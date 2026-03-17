@@ -2158,7 +2158,16 @@ class LogicalOrAscIrCodegenImplV2 : public AscIrCodegenV2 {
   }
 
   [[nodiscard]] bool IsVectorFunctionSupported(const ge::AscNode &node) const override {
-    (void)node;
+    AscNodeInputs node_inputs = node.inputs;
+    AscNodeOutputs node_outputs = node.outputs;
+    // MicroApi "or" 输入输出的数据类型需要相同
+    for (size_t i = 0; i < node_inputs().size(); i++) {
+      for (size_t j = 0; j < node_outputs().size(); j++) {
+        if (node_inputs[i].attr.dtype != node_outputs[j].attr.dtype) {
+          return false;
+        }
+      }
+    }
     return true;
   }
 

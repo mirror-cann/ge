@@ -188,7 +188,7 @@ TEST(CodegenKernel, VfCall_TwoDimLoad) {
 
   std::string result;
   call.Generate(tpipe, vector<ge::AxisId>{}, result);
-  EXPECT_EQ(result, std::string{"#if defined(__DAV_C310__) || (defined(__NPU_ARCH__) && (__NPU_ARCH__ == 5102 || __NPU_ARCH__ == 3101))\n"
+  EXPECT_EQ(result, std::string{"#if defined(__DAV_C310__) || (defined(__NPU_ARCH__) && (__NPU_ARCH__ == 5102 || __NPU_ARCH__ == 3510))\n"
     "VFCallvf((__local_mem__ float *)local_1[0].GetPhyAddr(), (__local_mem__ float "
     "*)local_0[0].GetPhyAddr(), t->s0 * t->s1);\n"
     "#endif\n"});
@@ -512,7 +512,7 @@ TEST(CodegenKernel, VfCall_TwoDim_Scalar) {
 
   std::string result;
   call.Generate(tpipe, vector<ge::AxisId>{}, result);
-  EXPECT_EQ(result, std::string{"#if defined(__DAV_C310__) || (defined(__NPU_ARCH__) && (__NPU_ARCH__ == 5102 || __NPU_ARCH__ == 3101))\n"
+  EXPECT_EQ(result, std::string{"#if defined(__DAV_C310__) || (defined(__NPU_ARCH__) && (__NPU_ARCH__ == 5102 || __NPU_ARCH__ == 3510))\n"
     "VFCallvf((__local_mem__ float *)local_1[0].GetPhyAddr(), (__local_mem__ float "
     "*)local_1[0].GetPhyAddr(), scalar_0, t->s0 * t->s1);\n"
     "#endif\n"});
@@ -684,7 +684,7 @@ TEST(CodegenKernel, VfCall_ThreeDimLoad) {
 
   std::string result;
   call.Generate(tpipe, vector<ge::AxisId>{}, result);
-  EXPECT_EQ(result, std::string{"#if defined(__DAV_C310__) || (defined(__NPU_ARCH__) && (__NPU_ARCH__ == 5102 || __NPU_ARCH__ == 3101))\n"
+  EXPECT_EQ(result, std::string{"#if defined(__DAV_C310__) || (defined(__NPU_ARCH__) && (__NPU_ARCH__ == 5102 || __NPU_ARCH__ == 3510))\n"
     "VFCallvf((__local_mem__ float *)local_1[0].GetPhyAddr(), (__local_mem__ float "
     "*)local_0[0].GetPhyAddr(), t->s0 * t->s1, t->s2, (2 * t->s2), (2 * t->s2));\n"
     "#endif\n"});
@@ -862,7 +862,7 @@ TEST(CodegenKernel, VfCall_FiveDimLoad) {
   call.Generate(tpipe, vector<ge::AxisId>{}, result);
   EXPECT_EQ(result,
             std::string{
-                "#if defined(__DAV_C310__) || (defined(__NPU_ARCH__) && (__NPU_ARCH__ == 5102 || __NPU_ARCH__ == 3101))\n"
+                "#if defined(__DAV_C310__) || (defined(__NPU_ARCH__) && (__NPU_ARCH__ == 5102 || __NPU_ARCH__ == 3510))\n"
                 "for(int outer_for_0 = 0; outer_for_0 < t->s0; outer_for_0++) {\n"
                 "VFCallvf((__local_mem__ float "
                 "*)local_1[outer_for_0 * (5 * t->s1 * t->s2 * t->s3 * t->s4)].GetPhyAddr(), (__local_mem__ float "

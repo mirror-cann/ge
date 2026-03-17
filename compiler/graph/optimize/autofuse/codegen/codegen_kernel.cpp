@@ -4389,7 +4389,7 @@ Status Kernel::GenerateKernelByNode(const ascir::ImplGraph &graph, stringstream 
   GE_ASSERT_SUCCESS(ge::PlatformContext::GetInstance().GetCurrentPlatformString(npu_arch));
   const bool need_marco = (npu_arch == "3510");
   if (need_marco) {
-    ss << "#if defined(__DAV_C310__) || (defined(__NPU_ARCH__) && (__NPU_ARCH__ == 5102 || __NPU_ARCH__ == 3101))"
+    ss << "#if defined(__DAV_C310__) || (defined(__NPU_ARCH__) && (__NPU_ARCH__ == 5102 || __NPU_ARCH__ == 3510))"
        << std::endl;
   }
   for (const auto &node : graph.GetAllNodes()) {
