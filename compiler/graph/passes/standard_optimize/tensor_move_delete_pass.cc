@@ -42,8 +42,8 @@ bool IsTensorMove(const NodePtr &node) {
  * 3. 显示引用类 (具有 REF_VAR_SRC_VAR_NAME 属性，指向源变量的节点)
  */
 bool IsSourceNodeSpecial(const NodePtr &node) {
-  GE_ASSERT_NOTNULL(node);
-  GE_ASSERT_NOTNULL(node->GetOpDesc());
+  GE_WARN_ASSERT(node != nullptr);
+  GE_WARN_ASSERT(node->GetOpDesc() != nullptr);
   const auto &node_type = node->GetType();
   if (OpTypeUtils::IsVariableNode(node_type) || OpTypeUtils::IsVarLikeNode(node_type) || OpTypeUtils::IsConstNode(node_type)) {
     GELOGI("Node %s of type %s is special node", node->GetName().c_str(), node_type.c_str());
@@ -73,10 +73,10 @@ Status JumpOutFromSubDataToTraceSource(const NodePtr &cur_node, std::vector<std:
                                        InDataAnchorPtr &cur_in_anchor) {
   // 获取 Wrapper 节点的输入锚点 (也就是这一层子图的“入口”)
   const auto parent_in_anchor = NodeUtils::GetParentInDataAnchor(cur_node);
-  GE_ASSERT_NOTNULL(parent_in_anchor, "Get parent input anchor failed for DATA node: %s", cur_node->GetName().c_str());
+  GE_WARN_ASSERT(parent_in_anchor != nullptr, "Get parent input anchor failed for DATA node: %s", cur_node->GetName().c_str());
 
   const auto parent_node = parent_in_anchor->GetOwnerNode();
-  GE_ASSERT_NOTNULL(parent_node);
+  GE_WARN_ASSERT(parent_node != nullptr);
 
   // 对于从子图 DATA 跳出的 wrapper 节点，仅保留节点标识，不使用 out anchor 参与路径表达。
   source_path.emplace_back(parent_node, nullptr);
@@ -101,15 +101,15 @@ Status JumpInPartitionedCallToTraceSource(const NodePtr &cur_node, int32_t &cur_
                                           std::vector<std::pair<NodePtr, OutDataAnchorPtr>> &source_path,
                                           InDataAnchorPtr &cur_in_anchor) {
   const auto sub_graph = NodeUtils::GetSubgraph(*cur_node, 0U);
-  GE_ASSERT_NOTNULL(sub_graph);
+  GE_WARN_ASSERT(sub_graph != nullptr);
 
   const auto sub_graph_netoutput = sub_graph->GetOrUpdateNetOutputNode();
-  GE_CHECK_NOTNULL(sub_graph_netoutput);
+  GE_WARN_ASSERT(sub_graph_netoutput != nullptr);
 
   for (const auto &in_data_anchor : sub_graph_netoutput->GetAllInDataAnchorsPtr()) {
     int32_t ref_o = -1;
     auto in_desc = sub_graph_netoutput->GetOpDesc()->GetInputDesc(static_cast<uint32_t>(in_data_anchor->GetIdx()));
-    GE_ASSERT_TRUE(AttrUtils::GetInt(in_desc, ATTR_NAME_PARENT_NODE_INDEX, ref_o),
+    GE_WARN_ASSERT(AttrUtils::GetInt(in_desc, ATTR_NAME_PARENT_NODE_INDEX, ref_o),
                    "Subgraph NetOutput node %s input index %d has no parent node index attr.",
                    sub_graph_netoutput->GetName().c_str(), in_data_anchor->GetIdx());
 
@@ -125,7 +125,7 @@ Status JumpInPartitionedCallToTraceSource(const NodePtr &cur_node, int32_t &cur_
       return SUCCESS;
     }
   }
-  GELOGE(FAILED, "Cannot find corresponding sub netoutput and parent node index mapping in subgraph %s for PartitionedCall node %s output index %d",
+  GELOGW("Cannot find corresponding sub netoutput and parent node index mapping in subgraph %s for PartitionedCall node %s output index %d",
          sub_graph->GetName().c_str(), cur_node->GetName().c_str(), cur_out_idx);
   return FAILED;
 }
@@ -199,7 +199,7 @@ Status TraceRealSourceNode(const NodePtr &start_node, int32_t index, std::vector
       return SUCCESS;
     }
     cur_node = peer_out_anchor->GetOwnerNode();
-    GE_ASSERT_NOTNULL(cur_node);
+    GE_WARN_ASSERT(cur_node != nullptr);
     cur_out_idx = peer_out_anchor->GetIdx();
     source_path.emplace_back(cur_node, peer_out_anchor);
 
@@ -211,12 +211,12 @@ Status TraceRealSourceNode(const NodePtr &start_node, int32_t index, std::vector
     }
     // 2. 处理跨子图跳出 (DATA)
     if (cur_node->GetType() == DATA && !NodeUtils::IsNodeInRootGraph(cur_node)) {
-      GE_ASSERT_SUCCESS(JumpOutFromSubDataToTraceSource(cur_node, source_path, cur_in_anchor));
+      GE_WARN_ASSERT(JumpOutFromSubDataToTraceSource(cur_node, source_path, cur_in_anchor) == ge::SUCCESS);
       continue;
     }
     // 3. 处理钻入子图 (PARTITIONEDCALL)
     if (cur_node->GetType() == PARTITIONEDCALL) {
-      GE_ASSERT_SUCCESS(JumpInPartitionedCallToTraceSource(cur_node, cur_out_idx, source_path, cur_in_anchor));
+      GE_WARN_ASSERT(JumpInPartitionedCallToTraceSource(cur_node, cur_out_idx, source_path, cur_in_anchor) == ge::SUCCESS);
       continue;
     }
     // 4. RefOp透传逻辑
@@ -280,12 +280,12 @@ bool HasMultipleOutputsSharingSameInput(const NodePtr &node, const OutDataAnchor
  * @return false 路径上存在被多处引用的节点
  */
 bool IsSourceNodeWithSinglePath(const NodePtr &tensor_move_node, const std::vector<std::pair<NodePtr, OutDataAnchorPtr>> &path_to_source_node) {
-  GE_ASSERT_TRUE(!path_to_source_node.empty());
+  GE_WARN_ASSERT(!path_to_source_node.empty());
 
   for (const auto &pairs : path_to_source_node) {
     const auto &node = pairs.first;
     const auto &out_data_anchor = pairs.second;
-    GE_ASSERT_NOTNULL(node);
+    GE_WARN_ASSERT(node != nullptr);
 
     // 多分支控制流算子
     if (NodeUtils::IsMultiBranchControlFlowOp(node)) {
@@ -428,8 +428,10 @@ DeleteRule CheckSinglePath = [](const TensorMoveDeleteContext &ctx) {
 }
 
 Status TensorMoveDeletePass::Run(NodePtr &node) {
-  GE_CHECK_NOTNULL(node);
-  GE_CHECK_NOTNULL(node->GetOpDesc());
+  if (node == nullptr || node->GetOpDesc() == nullptr) {
+    GELOGW("TensorMoveDeletePass: node or op_desc is nullptr, skip.");
+    return SUCCESS;
+  }
 
   if (!IsTensorMove(node) || HasReservedAttr(node)) {
     return SUCCESS;
@@ -437,9 +439,16 @@ Status TensorMoveDeletePass::Run(NodePtr &node) {
 
   TensorMoveDeleteContext ctx{node, {}};
 
-  GE_ASSERT_SUCCESS(TraceRealSourceNode(ctx.tensor_move, 0, ctx.path_to_source_node));
-  GE_ASSERT(!ctx.path_to_source_node.empty());
-  GE_ASSERT_NOTNULL(ctx.path_to_source_node.back().first);
+  const auto trace_ret = TraceRealSourceNode(ctx.tensor_move, 0, ctx.path_to_source_node);
+  if (trace_ret != SUCCESS) {
+    GELOGW("TensorMoveDeletePass: TraceRealSourceNode failed for node %s, skip.", node->GetName().c_str());
+    return SUCCESS;
+  }
+  if (ctx.path_to_source_node.empty() || ctx.path_to_source_node.back().first == nullptr) {
+    GELOGW("TensorMoveDeletePass: path to source node is empty or source is nullptr for node %s, skip.",
+           node->GetName().c_str());
+    return SUCCESS;
+  }
 
   std::vector<DeleteRule> rules = {
     CheckPathToSourceNodeValid,

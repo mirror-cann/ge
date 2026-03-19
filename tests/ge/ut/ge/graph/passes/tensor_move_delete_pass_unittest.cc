@@ -1414,3 +1414,104 @@ TEST_F(UtestTensorMoveDeletePass, TensorMoveFromData_MemReuse_Deleted2) {
 
   ge::GetThreadLocalContext().SetGraphOption({});
 }
+
+/**
+ * 说明：
+ * - 直接用 nullptr 调用 Run
+ *
+ * 预期行为：
+ * - 降级后 Run 返回 SUCCESS，不崩溃
+ */
+TEST_F(UtestTensorMoveDeletePass, RunWithNullNode_ReturnSuccess) {
+  TensorMoveDeletePass tensor_move_delete_pass;
+  NodePtr null_node = nullptr;
+  EXPECT_EQ(tensor_move_delete_pass.Run(null_node), SUCCESS);
+}
+
+/**
+ *       Relu
+ *        |
+ *     TensorMove (reserved: ATTR_NAME_CANNOT_BE_DELETED)
+ *        |
+ *     NetOutput
+ *
+ * 说明：
+ * - TensorMove 被保留属性标记，不应删除
+ *
+ * 预期行为：
+ * - 返回 SUCCESS，TensorMove 保留
+ */
+TEST_F(UtestTensorMoveDeletePass, TensorMoveWithReservedAttr_Kept_ReturnSuccess) {
+  auto builder = ut::GraphBuilder("g1");
+  auto relu_node = builder.AddNode("Relu", RELU, 1, 1);
+  auto tensor_move_node = builder.AddNode("TensorMove", TENSORMOVE, 1, 1);
+  auto netoutput_node = builder.AddNode("NetOutput", NETOUTPUT, 1, 1);
+
+  AttrUtils::SetBool(tensor_move_node->GetOpDesc(), ATTR_NAME_CANNOT_BE_DELETED, true);
+
+  GraphUtils::AddEdge(relu_node->GetOutDataAnchor(0), tensor_move_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tensor_move_node->GetOutDataAnchor(0), netoutput_node->GetInDataAnchor(0));
+
+  ge::GEPass pass(builder.GetGraph());
+  TensorMoveDeletePass tensor_move_delete_pass;
+  ge::NamesToPass names_to_pass;
+  names_to_pass.emplace_back("TensorMoveDeletePass", &tensor_move_delete_pass);
+  EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
+  EXPECT_NE(builder.GetGraph()->FindNode("TensorMove"), nullptr);
+}
+
+/**
+ *     TensorMove (没有输入边)
+ *        |
+ *     NetOutput
+ *
+ * 说明：
+ * - TensorMove 没有前驱节点（输入锚点无 peer），模拟 TraceRealSourceNode 提前退出的场景
+ *
+ * 预期行为：
+ * - 降级后 pass 返回 SUCCESS，TensorMove 保留（无法追溯到源头）
+ */
+TEST_F(UtestTensorMoveDeletePass, TensorMoveWithNoPeerInput_ReturnSuccess_Kept) {
+  auto builder = ut::GraphBuilder("g1");
+  auto tensor_move_node = builder.AddNode("TensorMove", TENSORMOVE, 1, 1);
+  auto netoutput_node = builder.AddNode("NetOutput", NETOUTPUT, 1, 1);
+
+  GraphUtils::AddEdge(tensor_move_node->GetOutDataAnchor(0), netoutput_node->GetInDataAnchor(0));
+
+  ge::GEPass pass(builder.GetGraph());
+  TensorMoveDeletePass tensor_move_delete_pass;
+  ge::NamesToPass names_to_pass;
+  names_to_pass.emplace_back("TensorMoveDeletePass", &tensor_move_delete_pass);
+  EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
+  EXPECT_NE(builder.GetGraph()->FindNode("TensorMove"), nullptr);
+}
+
+/**
+ *     Variable
+ *        |
+ *     TensorMove
+ *        |
+ *     NetOutput
+ *
+ * 说明：
+ * - TensorMove 输入为 Variable 节点（特殊源节点）
+ *
+ * 预期行为：
+ * - 返回 SUCCESS，TensorMove 保留（Variable 为特殊节点，不删除）
+ */
+TEST_F(UtestTensorMoveDeletePass, TensorMoveFromVariable_Kept_ReturnSuccess) {
+  auto builder = ut::GraphBuilder("g1");
+  auto var_node = builder.AddNode("Var", VARIABLE, 0, 1);
+  auto tensor_move_node = builder.AddNode("TensorMove", TENSORMOVE, 1, 1);
+  auto netoutput_node = builder.AddNode("NetOutput", NETOUTPUT, 1, 1);
+
+  GraphUtils::AddEdge(var_node->GetOutDataAnchor(0), tensor_move_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tensor_move_node->GetOutDataAnchor(0), netoutput_node->GetInDataAnchor(0));
+
+  ge::GEPass pass(builder.GetGraph());
+  TensorMoveDeletePass tensor_move_delete_pass;
+  ge::NamesToPass names_to_pass;
+  names_to_pass.emplace_back("TensorMoveDeletePass", &tensor_move_delete_pass);
+  EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
+  EXPECT_NE(builder.GetGraph()->FindNode("TensorMove"), nullptr);
+}
