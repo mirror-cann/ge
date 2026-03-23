@@ -111,55 +111,6 @@ if (ENABLE_SIGN)
             ${udf_compat_sign_file}
             DESTINATION ${CMAKE_INSTALL_PREFIX}
     )
-
-    # pack Ascend-runtime_device-minios.tar.gz
-    set(RUNTIME_PACKAGE_TAR_FILE_NAME "Ascend-runtime_device-minios.tar.gz")
-    set(RUNTIME_PACKAGE_TAR_PACK_DIR "${CMAKE_BINARY_DIR}/runtime_package_temp")
-    add_custom_command(
-            OUTPUT ${CMAKE_BINARY_DIR}/${RUNTIME_PACKAGE_TAR_FILE_NAME}
-            COMMAND ${CMAKE_COMMAND} -E make_directory ${RUNTIME_PACKAGE_TAR_PACK_DIR}/runtime/${PACKAGE_BIN_DIR}
-            COMMAND ${CMAKE_COMMAND} -E make_directory ${RUNTIME_PACKAGE_TAR_PACK_DIR}/runtime/${PACKAGE_LIB_DIR}
-
-            # 将可执行文件复制到临时目录的 bin 下
-            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:udf_executor> ${RUNTIME_PACKAGE_TAR_PACK_DIR}/runtime/${PACKAGE_BIN_DIR}/
-
-            # 将库文件复制到临时目录的 lib64 下
-            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:flow_func> ${RUNTIME_PACKAGE_TAR_PACK_DIR}/runtime/${PACKAGE_LIB_DIR}/
-            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:reader_writer> ${RUNTIME_PACKAGE_TAR_PACK_DIR}/runtime/${PACKAGE_LIB_DIR}/
-            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:built_in_flowfunc> ${RUNTIME_PACKAGE_TAR_PACK_DIR}/runtime/${PACKAGE_LIB_DIR}/
-            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:udf_profiling> ${RUNTIME_PACKAGE_TAR_PACK_DIR}/runtime/${PACKAGE_LIB_DIR}/
-            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:udf_dump> ${RUNTIME_PACKAGE_TAR_PACK_DIR}/runtime/${PACKAGE_LIB_DIR}/
-            COMMAND ${CMAKE_COMMAND} -E copy ${ALOG_REAL_PATH} ${RUNTIME_PACKAGE_TAR_PACK_DIR}/runtime/${PACKAGE_LIB_DIR}/
-
-            COMMAND ${HI_PYTHON} ${TOP_DIR}/scripts/signtool/image_extract/ci_img_headler.py -img ${ASCEND_INSTALL_PATH}/compat/cann-hccd-compat.tar.gz -raw ${RUNTIME_PACKAGE_TAR_PACK_DIR}/cann-hccd-compat.tar.gz --rcvr
-            COMMAND tar -zxf ${RUNTIME_PACKAGE_TAR_PACK_DIR}/cann-hccd-compat.tar.gz -C ${RUNTIME_PACKAGE_TAR_PACK_DIR}/runtime/
-
-            # 执行 tar 命令进行打包
-            # WORKING_DIRECTORY 设置为临时目录的父目录，这样 tar 打包的路径就是相对的
-            COMMAND tar -czf ${CMAKE_BINARY_DIR}/${RUNTIME_PACKAGE_TAR_FILE_NAME} -C ${RUNTIME_PACKAGE_TAR_PACK_DIR}/ runtime --mode=750
-
-            # 打包完成后，删除临时目录
-            COMMAND ${CMAKE_COMMAND} -E remove_directory ${RUNTIME_PACKAGE_TAR_PACK_DIR}
-
-            # 明确指定这个命令依赖于哪些目标
-            DEPENDS udf_executor flow_func reader_writer built_in_flowfunc udf_profiling udf_dump
-
-            COMMENT "Creating ${RUNTIME_PACKAGE_TAR_FILE_NAME} package: ${CMAKE_BINARY_DIR}/${RUNTIME_PACKAGE_TAR_FILE_NAME}"
-    )
-    add_custom_target(pack_runtime_device ALL
-            DEPENDS ${CMAKE_BINARY_DIR}/${RUNTIME_PACKAGE_TAR_FILE_NAME}
-    )
-    sign_file(
-            INPUT "${CMAKE_BINARY_DIR}/${RUNTIME_PACKAGE_TAR_FILE_NAME}"
-            CONFIG ${CMAKE_CURRENT_SOURCE_DIR}/sign/runtime_dev_sign.xml
-            RESULT_VAR "runtime_device_sign_file"
-            DEPENDS pack_runtime_device sign_cann_udf_compat
-    )
-
-    install(FILES
-            ${runtime_device_sign_file}
-            DESTINATION ${CMAKE_INSTALL_PREFIX}
-    )
 else ()
     install(
             FILES "${CMAKE_BINARY_DIR}/${PACKAGE_TAR_FILE_NAME}"

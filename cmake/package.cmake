@@ -387,8 +387,6 @@ elseif("${BUILD_COMPONENT}" STREQUAL "dflow-executor")
             RENAME "monitor.sh")
     install(FILES ${CMAKE_BINARY_DIR}/device_install/cann-udf-compat.tar.gz OPTIONAL
             DESTINATION ${BUILD_COMPONENT}/lib64)
-    install(FILES ${CMAKE_BINARY_DIR}/device_install/Ascend-runtime_device-minios.tar.gz OPTIONAL
-            DESTINATION ${BUILD_COMPONENT}/lib64)
     install(FILES ${CMAKE_BINARY_DIR}/device_install/device/lib64/libflow_func.so OPTIONAL
             DESTINATION ${BUILD_COMPONENT}/devlib/device)
 endif()
