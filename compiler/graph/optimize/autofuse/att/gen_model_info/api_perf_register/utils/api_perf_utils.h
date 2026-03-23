@@ -66,6 +66,9 @@ ge::Status GetOuterParams(const vector<Expr> &dims, Expr &outer_repeat, vector<E
 ge::Status UpdateTenary(PerfOutputInfo &perf_res, PerfOutputInfo &output_res);
 ge::Status GetDmaPerf(const TensorShapeInfo &tensor_info, NodeDetail &node_info, PerfOutputInfo &perf_res,
                       int32_t supported_max_dma_len, bool need_swap = false);
+// 指定支持的DMA数，获取外派循环/使用的轴
+ge::Status GetDmaParams(const vector<Expr> &dims, Expr &outer_repeat, vector<Expr> &used_dims,
+                        const int32_t supported_max_dma_len, bool need_swap);
 inline std::string GetNodeOutTensorName(const ge::AscNodePtr &node, const uint32_t tensor_index) {
   return (node != nullptr) ? (node->GetName() + "_output_" + std::to_string(tensor_index)) : "nil_out";
 }

@@ -277,9 +277,11 @@ TEST_F(UTestAscirPerfV2, TestStoreApiForSmallStride) {
   // Original: 0.0385 * z0z1t_size * stride_used = 1172.863...
   // New: 0.0385 * z0z1t_size * stride_used * 8 = 9382.9119...
   const std::string kStride = "(9382.91194915771 * z0z1t_size)";
+  // MTE3 block len padding checker: when (8 * z6t_size) < 128, use z6t_size, else use 16
+  const std::string kBlockLenWithPadding = "TenaryOp(IsEqual(ExpectLt((8 * z6t_size), 128), 0), z6t_size, 16)";
   // Note: The order of terms in the output is (store_perf + stride + 160.0)
   EXPECT_EQ(Str(res.Replace(ret)),
-            "((1904 * z0z1t_size * z6t_size / (((10.2650003433228 / (block_dim)) + 11.7740001678467))) + " + kStride +
+            "((1904 * " + kBlockLenWithPadding + " * z0z1t_size / (((10.2650003433228 / (block_dim)) + 11.7740001678467))) + " + kStride +
                 " + 160.0)");
 }
 
@@ -318,8 +320,10 @@ TEST_F(UTestAscirPerfV2, TestStoreApiForBiggerStride) {
   // StoreStride calculation: k=0.0385, block_count=238*z0z1t_size, stride_used=min(40960*8, 4096)=4096
   // Result: 0.0385 * 238 * z0z1t_size * 4096 = 37531.6477966309 * z0z1t_size
   const std::string kStride = "(37531.6477966309 * z0z1t_size)";
+  // MTE3 block len padding checker: when (8 * z6t_size) < 128, use z6t_size, else use 16
+  const std::string kBlockLenWithPadding = "TenaryOp(IsEqual(ExpectLt((8 * z6t_size), 128), 0), z6t_size, 16)";
   EXPECT_EQ(Str(res.Replace(ret)),
-            "((1904 * z0z1t_size * z6t_size / (((10.2650003433228 / (block_dim)) + 11.7740001678467))) + " + kStride +
+            "((1904 * " + kBlockLenWithPadding + " * z0z1t_size / (((10.2650003433228 / (block_dim)) + 11.7740001678467))) + " + kStride +
                 " + 160.0)");
 }
 
