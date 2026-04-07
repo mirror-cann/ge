@@ -74,7 +74,9 @@ export const InstallSkillsPlugin: Plugin = async ({ $, directory }) => {
 
       // 只有当两个skill都在安装前后完全相同时才不打印提示
       if (hasChanges && changedSkills.length > 0) {
+        setTimeout(() => {
         process.stdout.write(`💡 ${changedSkills.join(', ')}，重启opencode才能完全生效\n\n`)
+        }, 1000)
       }
     } catch (error) {
       log(`Command failed: ${error.message}`)
