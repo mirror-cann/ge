@@ -134,12 +134,8 @@ Status Codegen::GenerateForInductor(const ascir::FusedScheduledResult &fused_sch
                                     CodegenResult &result) const {
   GE_CHK_STATUS_RET(GenerateKernel(fused_schedule_result, result.kernel, true), "Codegen generate kernel failed");
   result.tiling_data = GenerateTilingData(fused_schedule_result);
-  auto tiling_file_name_to_content = GenerateTilingForInductor(fused_schedule_result);
-  for (const auto &[key, value] : tiling_file_name_to_content) {
-    (void)key;
-    GE_CHK_BOOL_RET_STATUS(value != ascgen_utils::INVALID_TILING, ge::FAILED, "tilings(%s) is invalid",
-                           value.c_str());
-  }
+  std::map<std::string, std::string> tiling_file_name_to_content;
+  GE_CHK_STATUS_RET(GenerateTilingForInductor(fused_schedule_result, tiling_file_name_to_content));
   GE_CHK_STATUS_RET(CombineTilings(tiling_file_name_to_content, result.tiling));
   return ge::SUCCESS;
 }
@@ -148,12 +144,8 @@ Status Codegen::Generate(const std::map<std::string, std::string> &shape_info,
                          const ascir::FusedScheduledResult &fused_schedule_result, CodegenResult &result) const {
   GE_CHK_STATUS_RET(GenerateKernel(fused_schedule_result, result.kernel, false), "Codegen generate kernel failed");
   result.tiling_data = GenerateTilingData(fused_schedule_result);
-  auto tiling_file_name_to_content = GenerateTiling(fused_schedule_result, shape_info, "", "0");
-  for (const auto &[key, value] : tiling_file_name_to_content) {
-    (void)key;
-    GE_CHK_BOOL_RET_STATUS(value != ascgen_utils::INVALID_TILING, ge::FAILED, "tilings(%s) is invalid",
-                           value.c_str());
-  }
+  std::map<std::string, std::string> tiling_file_name_to_content;
+  GE_CHK_STATUS_RET(GenerateTiling(fused_schedule_result, shape_info, "", "0", tiling_file_name_to_content));
   GE_CHK_STATUS_RET(CombineTilings(tiling_file_name_to_content, result.tiling));
 
   return ge::SUCCESS;
@@ -165,16 +157,44 @@ std::string Codegen::GenerateTilingData(const ascir::FusedScheduledResult &fused
   return ss.str();
 }
 
+Status Codegen::GenerateTilingForInductor(
+    const ascir::FusedScheduledResult &fused_schedule_result,
+    std::map<std::string, std::string> &tiling_file_name_to_content) const {
+  tiling_file_name_to_content = this->tiling_lib_.GenerateForInductor(fused_schedule_result);
+  for (const auto &pair : tiling_file_name_to_content) {
+    GE_CHK_BOOL_RET_STATUS(pair.second != ascgen_utils::INVALID_TILING, ge::FAILED, "tilings(%s) is invalid",
+                           pair.second.c_str());
+  }
+  return ge::SUCCESS;
+}
+
 std::map<std::string, std::string> Codegen::GenerateTilingForInductor(
     const ascir::FusedScheduledResult &fused_schedule_result) const {
-  return this->tiling_lib_.GenerateForInductor(fused_schedule_result);
+  std::map<std::string, std::string> tiling_file_name_to_content;
+  (void)GenerateTilingForInductor(fused_schedule_result, tiling_file_name_to_content);
+  return tiling_file_name_to_content;
+}
+
+Status Codegen::GenerateTiling(
+    const ascir::FusedScheduledResult &fused_schedule_result,
+    const std::map<std::string, std::string> &shape_info, const std::string &pgo_dir,
+    const std::string &core_num,
+    std::map<std::string, std::string> &tiling_file_name_to_content) const {
+  tiling_file_name_to_content = this->tiling_lib_.Generate(fused_schedule_result, shape_info, pgo_dir, core_num);
+  for (const auto &pair : tiling_file_name_to_content) {
+    GE_CHK_BOOL_RET_STATUS(pair.second != ascgen_utils::INVALID_TILING, ge::FAILED, "tilings(%s) is invalid",
+                           pair.second.c_str());
+  }
+  return ge::SUCCESS;
 }
 
 std::map<std::string, std::string> Codegen::GenerateTiling(
     const ascir::FusedScheduledResult &fused_schedule_result,
     const std::map<std::string, std::string> &shape_info, const std::string &pgo_dir,
     const std::string &core_num) const {
-  return this->tiling_lib_.Generate(fused_schedule_result, shape_info, pgo_dir, core_num);
+  std::map<std::string, std::string> tiling_file_name_to_content;
+  (void)GenerateTiling(fused_schedule_result, shape_info, pgo_dir, core_num, tiling_file_name_to_content);
+  return tiling_file_name_to_content;
 }
 
 std::string Codegen::GenerateInferShape(const std::vector<std::vector<std::string>> &symbol_shape_str,

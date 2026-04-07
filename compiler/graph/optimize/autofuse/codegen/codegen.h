@@ -41,9 +41,15 @@ class Codegen {
 
   std::string GenerateTilingData(const ::ascir::FusedScheduledResult& fused_schedule_result) const;
 
+  Status GenerateTiling(const ::ascir::FusedScheduledResult &fused_schedule_result,
+                        const std::map<std::string, std::string> &shape_info, const std::string& pgo_dir,
+                        const std::string &core_num,
+                        std::map<std::string, std::string> &tiling_file_name_to_content) const;
   std::map<std::string, std::string> GenerateTiling(const ::ascir::FusedScheduledResult &fused_schedule_result,
                                                     const std::map<std::string, std::string> &shape_info, const std::string& pgo_dir,
                                                     const std::string &core_num) const;
+  Status GenerateTilingForInductor(const ::ascir::FusedScheduledResult &fused_schedule_result,
+                                   std::map<std::string, std::string> &tiling_file_name_to_content) const;
   std::map<std::string, std::string> GenerateTilingForInductor(
       const ::ascir::FusedScheduledResult &fused_schedule_result) const;
 

@@ -41,6 +41,23 @@ using namespace codegen;
 using namespace ge::ops;
 using namespace ascgen_utils;
 namespace {
+bool CheckTilingHeadersValid(const std::map<std::string, std::string> &tiling_file_name_to_content) {
+  for (const auto &pair : tiling_file_name_to_content) {
+    if (pair.second == INVALID_TILING) {
+      GELOGE(ge::FAILED, "tilings(%s) is invalid", pair.first.c_str());
+      return false;
+    }
+  }
+  return true;
+}
+
+void AppendCommonTilingHeaders(std::stringstream &ss) {
+  ss << kTilingHeadInclude << std::endl;
+  ss << kTilingHeadCceKtTestGuard << std::endl;
+  ss << kTilingHeadTilingContext << std::endl;
+  ss << kTilingHeadEndGuard << std::endl;
+}
+
 void AppendTilingKeyBranch(std::stringstream &ss, const std::vector<std::vector<std::string>>& per_group_conditions,
                            std::vector<std::string> &current, uint32_t depth, uint32_t &tiling_key, bool &first_append) {
   if (per_group_conditions.size() == depth) {
@@ -192,15 +209,9 @@ TilingLib::TilingLib(const std::string &lib_path, const std::string &codegen_sym
 std::map<std::string, std::string> TilingLib::GenerateForInductor(
     const ascir::FusedScheduledResult &fused_schedule_result) const {
   std::map<std::string, std::string> tiling_file_name_to_content = GetTilingHeaders(fused_schedule_result, true);
-  for (const auto &iter : tiling_file_name_to_content) {
-    const std::string& key = iter.first;
-    GE_CHK_BOOL_RET_STATUS_NOLOG(key != INVALID_TILING, tiling_file_name_to_content);
-  }
+  GE_CHK_BOOL_RET_STATUS_NOLOG(CheckTilingHeadersValid(tiling_file_name_to_content), tiling_file_name_to_content);
   std::stringstream ss;
-  ss << kTilingHeadInclude << std::endl;
-  ss << kTilingHeadCceKtTestGuard << std::endl;
-  ss << kTilingHeadTilingContext << std::endl;
-  ss << kTilingHeadEndGuard << std::endl;
+  AppendCommonTilingHeaders(ss);
   ss << TilingFuncDefForInductor(fused_schedule_result) << std::endl;
   // 生成GenConstTilingData方法
   ss << TilingData("Autofuse").GenerateConst(fused_schedule_result) << std::endl;
@@ -1410,9 +1421,7 @@ std::map<std::string, std::string> TilingLib::GenerateCVFusion(const ascir::Fuse
   }
   tiling_file_name_to_content = GetTilingHeaders(elemwise_schedule_result, false, true);
 
-  for (const auto &iter : tiling_file_name_to_content) {
-    GE_CHK_BOOL_RET_STATUS_NOLOG(iter.first != INVALID_TILING, tiling_file_name_to_content);
-  }
+  GE_CHK_BOOL_RET_STATUS_NOLOG(CheckTilingHeadersValid(tiling_file_name_to_content), tiling_file_name_to_content);
   std::stringstream ss;
   ss << kTilingHeadInclude << std::endl;
   ss << kCubeTilingHeadInclude << std::endl;
@@ -1463,15 +1472,9 @@ std::map<std::string, std::string> TilingLib::Generate(const ascir::FusedSchedul
   }
 
   std::map<std::string, std::string> tiling_file_name_to_content = GetTilingHeaders(fused_schedule_result, false);
-  for (const auto &iter : tiling_file_name_to_content) {
-    const std::string &key = iter.first;
-    GE_CHK_BOOL_RET_STATUS_NOLOG(key != INVALID_TILING, tiling_file_name_to_content);
-  }
+  GE_CHK_BOOL_RET_STATUS_NOLOG(CheckTilingHeadersValid(tiling_file_name_to_content), tiling_file_name_to_content);
   std::stringstream ss;
-  ss << kTilingHeadInclude << std::endl;
-  ss << kTilingHeadCceKtTestGuard << std::endl;
-  ss << kTilingHeadTilingContext << std::endl;
-  ss << kTilingHeadEndGuard << std::endl;
+  AppendCommonTilingHeaders(ss);
   ss << TilingFuncDef(fused_schedule_result, shape_info, pgo_dir, core_num) << std::endl;
   // 生成GenConstTilingData方法
   ss << TilingData("Autofuse").GenerateConst(fused_schedule_result, false) << std::endl;
@@ -1594,9 +1597,11 @@ std::map<std::string, std::string> TilingLib::GetTilingHeaders(const ascir::Fuse
     options.emplace("tiling_data_type_name", tiling_name);
     options.emplace("solver_type", "AxesReorder");
     GE_CHK_BOOL_EXEC(this->codegen_func_(fused_schedule_result.fused_graph_name.GetString(), fused_schedule_result,
-                                         options, tiling_file_name_to_content, is_inductor_scene),
-                     return tiling_file_name_to_content, "Codegen Gen tiling func failed, graph:%s",
-                     graph_name.c_str());
+                                          options, tiling_file_name_to_content, is_inductor_scene),
+                     GELOGE(ge::FAILED, "Codegen Gen tiling func failed, graph:%s", graph_name.c_str());
+                     tiling_file_name_to_content[kTilingHeadIdentify] += "#endif // __AUTOFUSE_TILING_FUNC_COMMON_H__\n";
+                     tiling_file_name_to_content[kTilingDefAndConstIdentify] = INVALID_TILING;
+                     return tiling_file_name_to_content);
   } else {
     GELOGI("TilingLib generate stub GetTiling func start");
     ss << GetStubTilingHeaders(fused_schedule_result);

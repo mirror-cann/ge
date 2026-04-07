@@ -594,16 +594,21 @@ ge::Status CodeGen::HandleHostCodeGenForCVFusion(CodeGen::Object *self,
   // 生成UB模板的代码,存在没有UB模板的场景
   std::map<std::string, std::string> ub_tiling_file_name_to_content;
   if (ascgen_utils::HasCubeUBFusedScheduled(ub_schedule_result)) {
-    ub_tiling_file_name_to_content =
-        self->codegen->GenerateTiling(ub_schedule_result, symbol_source_info, pgo_dir, vector_core_num);
+    GE_CHK_STATUS_RET(
+        self->codegen->GenerateTiling(ub_schedule_result, symbol_source_info, pgo_dir, vector_core_num,
+                                      ub_tiling_file_name_to_content),
+        "generate ub tiling failed");
   } else {
     GELOGI("Has no cube ub fused shcedule result, no need to generate ub tiling");
   }
 
   // 生成兜底模板的代码，必须有兜底模板
   GE_ASSERT_TRUE(ascgen_utils::HasCubeCommonFusedScheduled(common_schedule_result));
-  std::map<std::string, std::string> common_tiling_file_name_to_content =
-      self->codegen->GenerateTiling(common_schedule_result, symbol_source_info, pgo_dir, vector_core_num);
+  std::map<std::string, std::string> common_tiling_file_name_to_content;
+  GE_CHK_STATUS_RET(
+      self->codegen->GenerateTiling(common_schedule_result, symbol_source_info, pgo_dir, vector_core_num,
+                                    common_tiling_file_name_to_content),
+      "generate common tiling failed");
 
   // 创建UB模板、兜底模板的内层字典
   PyObject *ub_dict = PyDict_New();
@@ -645,8 +650,11 @@ ge::Status CodeGen::HandleHostCodeGenForNonCVFusion(CodeGen::Object *self,
                                                     const char *pgo_dir, const char *vector_core_num,
                                                     PyObject *py_tilings) {
   // 非CV融合场景，生成一种结果
-  std::map<std::string, std::string> tiling_file_name_to_content =
-      self->codegen->GenerateTiling(fused_schedule_result, symbol_source_info, pgo_dir, vector_core_num);
+  std::map<std::string, std::string> tiling_file_name_to_content;
+  GE_CHK_STATUS_RET(
+      self->codegen->GenerateTiling(fused_schedule_result, symbol_source_info, pgo_dir, vector_core_num,
+                                    tiling_file_name_to_content),
+      "generate tiling failed");
 
   PyObject *default_dict = PyDict_New();
   if (default_dict == nullptr) {
