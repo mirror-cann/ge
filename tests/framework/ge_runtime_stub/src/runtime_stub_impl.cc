@@ -781,7 +781,7 @@ aclError AclRuntimeStubImpl::aclrtBinaryLoadFromData(const void *data, size_t le
 
 aclError AclRuntimeStubImpl::aclrtLaunchKernelV2(aclrtFuncHandle funcHandle, uint32_t numBlocks,
     const void *argsData, size_t argsSize, aclrtLaunchKernelCfg *cfg, aclrtStream stream) {
-  const std::lock_guard<std::mutex> lk(mtx_);
+  const std::lock_guard<std::mutex> lk(global_mtx_);
   all_launch_args_.emplace_back(funcHandle, numBlocks, argsData, argsSize, cfg, stream, std::move(last_tag_));
   cpu_launch_args_["cpu_new_args_launch_with_place_holder"].emplace_back(&all_launch_args_.back());
   last_stream_ = static_cast<uint64_t>(reinterpret_cast<uintptr_t>(stream));
@@ -810,7 +810,7 @@ aclError AclRuntimeStubImpl::aclrtBinaryGetFunction(const aclrtBinHandle binHand
 aclError AclRuntimeStubImpl::aclrtLaunchKernelWithHostArgs(aclrtFuncHandle funcHandle, uint32_t numBlocks,
     aclrtStream stream, aclrtLaunchKernelCfg *cfg, void *hostArgs, size_t argsSize,
     aclrtPlaceHolderInfo *placeHolderArray, size_t placeHolderNum) {
-  const std::lock_guard<std::mutex> lk(mtx_);
+  const std::lock_guard<std::mutex> lk(global_mtx_);
   all_launch_args_.emplace_back(funcHandle, numBlocks, stream, cfg, hostArgs, argsSize,
                                 placeHolderArray, placeHolderNum, std::move(last_tag_));
   cpu_launch_args_["cpu_new_args_launch_with_place_holder"].emplace_back(&all_launch_args_.back());
