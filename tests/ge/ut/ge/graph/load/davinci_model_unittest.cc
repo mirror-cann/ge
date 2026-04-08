@@ -11060,22 +11060,25 @@ TEST_F(UtestDavinciModel, ShouldSkipInput_Blacklist) {
   dumper.SetModelName("test_model");
   dumper.SetOmName("test_om");
 
+  DumpProperties dump_properties;
   std::map<std::string, ModelOpBlacklist> blacklist;
   ModelOpBlacklist bl;
   bl.dump_opname_blacklist["conv"].input_indices = {0};
   blacklist["test_model"] = bl;
-  dumper.dump_properties_.SetModelDumpBlacklistMap(blacklist);
+  dump_properties.SetModelDumpBlacklistMap(blacklist);
+  dumper.SetDumpProperties(dump_properties);
 
   auto op_desc = CreateOpDesc("conv", "conv");
-  EXPECT_TRUE(dumper.IsInInputOpBlackIist(op_desc, 0));
-  EXPECT_FALSE(dumper.IsInInputOpBlackIist(op_desc, 1));
+  EXPECT_TRUE(dumper.IsInInputOpBlacklist(op_desc, 0));
+  EXPECT_FALSE(dumper.IsInInputOpBlacklist(op_desc, 1));
 
   ModelOpBlacklist bl_type;
   bl_type.dump_optype_blacklist["conv"].input_indices = {1};
   blacklist["test_model"] = bl_type;
-  dumper.dump_properties_.SetModelDumpBlacklistMap(blacklist);
-  EXPECT_TRUE(dumper.IsInInputOpBlackIist(op_desc, 1));
-  EXPECT_FALSE(dumper.IsInInputOpBlackIist(op_desc, 0));
+  dump_properties.SetModelDumpBlacklistMap(blacklist);
+  dumper.SetDumpProperties(dump_properties);
+  EXPECT_TRUE(dumper.IsInInputOpBlacklist(op_desc, 1));
+  EXPECT_FALSE(dumper.IsInInputOpBlacklist(op_desc, 0));
 }
 
 TEST_F(UtestDavinciModel, ShouldSkipOutput_Blacklist) {
@@ -11084,23 +11087,26 @@ TEST_F(UtestDavinciModel, ShouldSkipOutput_Blacklist) {
   dumper.SetModelName("test_model");
   dumper.SetOmName("test_om");
 
+  DumpProperties dump_properties;
   std::map<std::string, ModelOpBlacklist> blacklist;
   ModelOpBlacklist bl;
   bl.dump_opname_blacklist["conv"].output_indices = {0, 2};
   blacklist["test_model"] = bl;
-  dumper.dump_properties_.SetModelDumpBlacklistMap(blacklist);
+  dump_properties.SetModelDumpBlacklistMap(blacklist);
+  dumper.SetDumpProperties(dump_properties);
 
   auto op_desc = CreateOpDesc("conv", "conv");
-  EXPECT_TRUE(dumper.IsInOutputOpBlackIist(op_desc, 0));
-  EXPECT_TRUE(dumper.IsInOutputOpBlackIist(op_desc, 2));
-  EXPECT_FALSE(dumper.IsInOutputOpBlackIist(op_desc, 1));
+  EXPECT_TRUE(dumper.IsInOutputOpBlacklist(op_desc, 0));
+  EXPECT_TRUE(dumper.IsInOutputOpBlacklist(op_desc, 2));
+  EXPECT_FALSE(dumper.IsInOutputOpBlacklist(op_desc, 1));
 
   ModelOpBlacklist bl_type;
   bl_type.dump_optype_blacklist["conv"].output_indices = {1};
   blacklist["test_model"] = bl_type;
-  dumper.dump_properties_.SetModelDumpBlacklistMap(blacklist);
-  EXPECT_TRUE(dumper.IsInOutputOpBlackIist(op_desc, 1));
-  EXPECT_FALSE(dumper.IsInOutputOpBlackIist(op_desc, 0));
+  dump_properties.SetModelDumpBlacklistMap(blacklist);
+  dumper.SetDumpProperties(dump_properties);
+  EXPECT_TRUE(dumper.IsInOutputOpBlacklist(op_desc, 1));
+  EXPECT_FALSE(dumper.IsInOutputOpBlacklist(op_desc, 0));
 }
 
 TEST_F(UtestDavinciModel, FillInputTensorInfos_WithBlacklist) {
@@ -11110,11 +11116,13 @@ TEST_F(UtestDavinciModel, FillInputTensorInfos_WithBlacklist) {
   dumper.SetOmName("test_om");
 
   // 设置黑名单：跳过 conv 的第一个输入
+  DumpProperties dump_properties;
   std::map<std::string, ModelOpBlacklist> blacklist;
   ModelOpBlacklist bl;
   bl.dump_opname_blacklist["conv"].input_indices = {0};
   blacklist["test_model"] = bl;
-  dumper.dump_properties_.SetModelDumpBlacklistMap(blacklist);
+  dump_properties.SetModelDumpBlacklistMap(blacklist);
+  dumper.SetDumpProperties(dump_properties);
 
   auto op_desc = CreateOpDesc("conv", "conv");
   GeTensorDesc tensor_desc(GeShape(), FORMAT_NCHW, DT_FLOAT);
@@ -11139,11 +11147,13 @@ TEST_F(UtestDavinciModel, FillOutputTensorInfos_WithBlacklist) {
   dumper.SetOmName("test_om");
 
   // 设置黑名单：跳过 conv 的第一个输出
+  DumpProperties dump_properties;
   std::map<std::string, ModelOpBlacklist> blacklist;
   ModelOpBlacklist bl;
   bl.dump_opname_blacklist["conv"].output_indices = {0};
   blacklist["test_model"] = bl;
-  dumper.dump_properties_.SetModelDumpBlacklistMap(blacklist);
+  dump_properties.SetModelDumpBlacklistMap(blacklist);
+  dumper.SetDumpProperties(dump_properties);
 
   auto op_desc = CreateOpDesc("conv", "conv");
   GeTensorDesc tensor_desc(GeShape(), FORMAT_NCHW, DT_FLOAT);
@@ -11236,6 +11246,97 @@ TEST_F(UtestDavinciModel, DumpOpWithAdump_AllTensorsFiltered) {
   Status ret = dumper.DumpOpWithAdump(dump_info);
   // 所有张量被过滤，tensors 为空，函数应直接返回 SUCCESS
   EXPECT_EQ(ret, SUCCESS);
+}
+
+TEST_F(UtestDavinciModel, GetRootGraphName_RootGraphOnly) {
+  DavinciModel model(0, nullptr);
+  ComputeGraphPtr graph = MakeShared<ComputeGraph>("root_graph");
+  GeModelPtr ge_model = MakeShared<GeModel>();
+  ge_model->SetGraph(graph);
+  model.ge_model_ = ge_model;
+
+  std::string root_name = model.GetRootGraphName();
+  EXPECT_EQ(root_name, "root_graph");
+}
+
+TEST_F(UtestDavinciModel, GetRootGraphName_WithSubgraph) {
+  DavinciModel model(0, nullptr);
+  ComputeGraphPtr root_graph = MakeShared<ComputeGraph>("root_graph");
+  ComputeGraphPtr subgraph = MakeShared<ComputeGraph>("subgraph");
+  subgraph->SetParentGraph(root_graph);
+
+  GeModelPtr ge_model = MakeShared<GeModel>();
+  ge_model->SetGraph(subgraph);
+  model.ge_model_ = ge_model;
+
+  std::string root_name = model.GetRootGraphName();
+  EXPECT_EQ(root_name, "root_graph");
+}
+
+TEST_F(UtestDavinciModel, GetRootGraphName_NoGeModel) {
+  DavinciModel model(0, nullptr);
+  model.ge_model_ = nullptr;
+
+  std::string root_name = model.GetRootGraphName();
+  EXPECT_TRUE(root_name.empty());
+}
+
+TEST_F(UtestDavinciModel, IsRootGraphNeedDump_True) {
+  DavinciModel model(0, nullptr);
+  ComputeGraphPtr root_graph = MakeShared<ComputeGraph>("root_graph");
+  ComputeGraphPtr subgraph = MakeShared<ComputeGraph>("subgraph");
+  subgraph->SetParentGraph(root_graph);
+
+  GeModelPtr ge_model = MakeShared<GeModel>();
+  ge_model->SetGraph(subgraph);
+  model.ge_model_ = ge_model;
+  model.dump_model_name_ = "subgraph";
+  model.om_name_ = "test_om";
+
+  // Configure dump for root graph using SetDumpProperties
+  DumpProperties dump_properties;
+  (void)dump_properties.InitByOptions(); // Initialize from context options
+  std::set<std::string> dump_ops = {"test_op"};
+  dump_properties.AddPropertyValue("root_graph", dump_ops);
+  model.SetDumpProperties(dump_properties);
+
+  EXPECT_TRUE(model.IsRootGraphNeedDump("test_op"));
+  EXPECT_FALSE(model.IsRootGraphNeedDump("other_op"));
+}
+
+TEST_F(UtestDavinciModel, IsRootGraphNeedDump_False_NoRootGraph) {
+  DavinciModel model(0, nullptr);
+  ComputeGraphPtr graph = MakeShared<ComputeGraph>("test_graph");
+  GeModelPtr ge_model = MakeShared<GeModel>();
+  ge_model->SetGraph(graph);
+  model.ge_model_ = ge_model;
+  model.dump_model_name_ = "test_graph";
+
+  // No parent graph, so no root graph
+  EXPECT_FALSE(model.IsRootGraphNeedDump("test_op"));
+}
+
+TEST_F(UtestDavinciModel, OpNeedDump_WithRootGraphConfig) {
+  DavinciModel model(0, nullptr);
+  ComputeGraphPtr root_graph = MakeShared<ComputeGraph>("root_graph");
+  ComputeGraphPtr subgraph = MakeShared<ComputeGraph>("subgraph");
+  subgraph->SetParentGraph(root_graph);
+
+  GeModelPtr ge_model = MakeShared<GeModel>();
+  ge_model->SetGraph(subgraph);
+  model.ge_model_ = ge_model;
+  model.dump_model_name_ = "subgraph";
+  model.om_name_ = "test_om";
+
+  // Configure dump for root graph only using SetDumpProperties
+  DumpProperties dump_properties;
+  (void)dump_properties.InitByOptions(); // Initialize from context options
+  std::set<std::string> dump_ops = {"test_op"};
+  dump_properties.AddPropertyValue("root_graph", dump_ops);
+  model.SetDumpProperties(dump_properties);
+
+  EXPECT_TRUE(model.OpNeedDump("test_op"));
+  EXPECT_FALSE(model.OpNeedDump("other_op"));
 }
 
 }  // namespace ge

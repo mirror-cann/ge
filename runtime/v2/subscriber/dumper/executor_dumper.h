@@ -240,11 +240,16 @@ private:
   ge::Status DoStreamSyncAfterFftsTask(const Node *node);
   bool IsSingleOpScene() const;
 
+  std::string GetRootGraphName() const;
   ge::Status ResetDumpFsmState();
   ge::Status SetDumpFsmState(const Node *node, const char *const node_type);
   bool IsInDumpOpRange(const std::string &op_name) const {
     return (dump_op_in_range_.count(op_name) == 1U);
   }
+  void SetDumpModelInfo(ge::DumpOp &dump_op) const;
+  bool HandleFftsDump(NodeDumpUnit &dump_unit, const ge::OpDescPtr &op_desc_dump);
+  bool GetAndCheckAddrs(NodeDumpUnit &dump_unit, const ge::OpDesc *op_desc, std::vector<uintptr_t> &input_addrs,
+                                             std::vector<uintptr_t> &output_addrs, std::vector<void*> &allocated_input_mem, std::vector<void*> &allocated_output_mem);
 
 protected:
   std::unordered_map<std::string, ExceptionDumpUint> node_names_to_extra_units_{};  // key computer node name

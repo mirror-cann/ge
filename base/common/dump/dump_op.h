@@ -64,6 +64,7 @@ class DumpOp {
   }
   Status UpdateAddrs(const std::vector<uintptr_t> &input_addrs,
                      const std::vector<uintptr_t> &output_addrs);
+  void SetRootGraphName(const std::string &name) { root_graph_name_ = name; }
  private:
   Status ExecutorDumpOp(bool need_device_args);
   void DumpWorkspace(toolkit::aicpu::dump::Task &task);
@@ -79,6 +80,7 @@ class DumpOp {
   Status BuildUnLoadFftsDumpInfo(void *&unload_dump_info, uint32_t &unload_dump_len);
   toolkit::aicpu::dump::AddressType GetAddrType(const toolkit::aicpu::dump::Task &task, const GeTensorDesc &desc) const;
   Status ExecuteDump(toolkit::aicpu::dump::Task &task, bool need_device_args);
+  bool IsInBlacklist(const std::string &op_name, const std::string &op_type, size_t index, bool is_input) const;
 
   DumpProperties dump_properties_;
   OpDescPtr op_desc_;
@@ -101,6 +103,7 @@ class DumpOp {
   std::string dynamic_om_name_;
   std::uint32_t dynamic_model_id_;
   void *launch_kernel_args_dev_mem_ = nullptr;
+  std::string root_graph_name_;
 };
 }  // namespace ge
 

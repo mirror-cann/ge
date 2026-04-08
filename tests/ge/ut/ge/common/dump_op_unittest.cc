@@ -540,4 +540,118 @@ TEST_F(UTEST_dump_op, dump_omname_opblacklist_input_ok) {
   free(addr_out);
 }
 
+TEST_F(UTEST_dump_op, IsInBlacklist_NoBlacklist) {
+  DumpOp dump_op;
+  DumpProperties dump_properties;
+  dump_op.SetDynamicModelInfo("model1", "model2", 1);
+  dump_op.SetRootGraphName("root_graph");
+
+  std::set<std::string> temp;
+  dump_properties.model_dump_properties_map_.emplace("model1", temp);
+  dump_properties.enable_dump_ = "1";
+  dump_op.SetDumpInfo(dump_properties, std::make_shared<OpDesc>("test_op", "TestType"), {}, {}, nullptr);
+
+  // No blacklist configured, should not skip
+  EXPECT_FALSE(dump_op.IsInBlacklist("test_op", "TestType", 0, true));
+  EXPECT_FALSE(dump_op.IsInBlacklist("test_op", "TestType", 0, false));
+}
+
+TEST_F(UTEST_dump_op, IsInBlacklist_InputOpNameBlacklist_ModelName) {
+  DumpOp dump_op;
+  DumpProperties dump_properties;
+  dump_op.SetDynamicModelInfo("model1", "model2", 1);
+
+  std::set<std::string> temp;
+  dump_properties.model_dump_properties_map_.emplace("model1", temp);
+  dump_properties.enable_dump_ = "1";
+
+  std::map<std::string, ModelOpBlacklist> blacklist;
+  ModelOpBlacklist bl;
+  bl.dump_opname_blacklist["test_op"].input_indices = {0};
+  blacklist["model1"] = bl;
+  dump_properties.SetModelDumpBlacklistMap(blacklist);
+
+  dump_op.SetDumpInfo(dump_properties, std::make_shared<OpDesc>("test_op", "TestType"), {}, {}, nullptr);
+
+  // Index 0 is blacklisted for input
+  EXPECT_TRUE(dump_op.IsInBlacklist("test_op", "TestType", 0, true));
+  EXPECT_FALSE(dump_op.IsInBlacklist("test_op", "TestType", 1, true));
+  EXPECT_FALSE(dump_op.IsInBlacklist("test_op", "TestType", 0, false));
+}
+
+TEST_F(UTEST_dump_op, IsInBlacklist_OutputOpTypeBlacklist_RootGraphName) {
+  DumpOp dump_op;
+  DumpProperties dump_properties;
+  dump_op.SetDynamicModelInfo("subgraph", "model2", 1);
+  dump_op.SetRootGraphName("root_graph");
+
+  std::set<std::string> temp;
+  dump_properties.model_dump_properties_map_.emplace("model1", temp);
+  dump_properties.enable_dump_ = "1";
+
+  std::map<std::string, ModelOpBlacklist> blacklist;
+  ModelOpBlacklist bl;
+  bl.dump_optype_blacklist["TestType"].output_indices = {0};
+  blacklist["root_graph"] = bl;
+  dump_properties.SetModelDumpBlacklistMap(blacklist);
+
+  dump_op.SetDumpInfo(dump_properties, std::make_shared<OpDesc>("test_op", "TestType"), {}, {}, nullptr);
+
+  // Index 0 is blacklisted for output via root_graph name
+  EXPECT_TRUE(dump_op.IsInBlacklist("test_op", "TestType", 0, false));
+  EXPECT_FALSE(dump_op.IsInBlacklist("test_op", "TestType", 1, false));
+  EXPECT_FALSE(dump_op.IsInBlacklist("test_op", "TestType", 0, true));
+}
+
+TEST_F(UTEST_dump_op, IsInBlacklist_OutputOpTypeBlacklist_OmName) {
+  DumpOp dump_op;
+  DumpProperties dump_properties;
+  dump_op.SetDynamicModelInfo("model1", "model_om", 1);
+  dump_op.SetRootGraphName("root_graph");
+
+  std::set<std::string> temp;
+  dump_properties.model_dump_properties_map_.emplace("model1", temp);
+  dump_properties.enable_dump_ = "1";
+
+  std::map<std::string, ModelOpBlacklist> blacklist;
+  ModelOpBlacklist bl;
+  bl.dump_optype_blacklist["TestType"].output_indices = {2};
+  blacklist["model_om"] = bl;
+  dump_properties.SetModelDumpBlacklistMap(blacklist);
+
+  dump_op.SetDumpInfo(dump_properties, std::make_shared<OpDesc>("test_op", "TestType"), {}, {}, nullptr);
+
+  // Index 2 is blacklisted for output via om name
+  EXPECT_TRUE(dump_op.IsInBlacklist("test_op", "TestType", 2, false));
+  EXPECT_FALSE(dump_op.IsInBlacklist("test_op", "TestType", 0, false));
+}
+
+TEST_F(UTEST_dump_op, IsInBlacklist_GlobalBlacklist_DumpLayerOpModel) {
+  DumpOp dump_op;
+  DumpProperties dump_properties;
+  dump_op.SetDynamicModelInfo("model1", "model2", 1);
+  dump_op.SetRootGraphName("root_graph");
+
+  std::set<std::string> temp;
+  dump_properties.model_dump_properties_map_.emplace("model1", temp);
+  dump_properties.enable_dump_ = "1";
+
+  std::map<std::string, ModelOpBlacklist> blacklist;
+  ModelOpBlacklist bl;
+  bl.dump_opname_blacklist["test_op"].input_indices = {0};
+  bl.dump_optype_blacklist["TestType"].output_indices = {0};
+  blacklist[DUMP_LAYER_OP_MODEL] = bl;
+  dump_properties.SetModelDumpBlacklistMap(blacklist);
+
+  dump_op.SetDumpInfo(dump_properties, std::make_shared<OpDesc>("test_op", "TestType"), {}, {}, nullptr);
+
+  // Global blacklist should be checked
+  EXPECT_TRUE(dump_op.IsInBlacklist("test_op", "TestType", 0, true));
+  EXPECT_TRUE(dump_op.IsInBlacklist("test_op", "TestType", 0, false));
+}
+
+TEST_F(UTEST_dump_op, SetRootGraphName_Ok) {
+  DumpOp dump_op;
+  dump_op.SetRootGraphName("test_root_graph");
+}
 }  // namespace ge

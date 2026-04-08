@@ -113,6 +113,8 @@ class DataDumper {
   }
   void InitAdumpCapability();
   bool IsDumpOpWithAdump() const;
+  void SetRootGraphName(const std::string &name) { root_graph_name_ = name; }
+
  private:
   void PrintCheckLog(std::string &dump_list_key);
 
@@ -158,6 +160,8 @@ class DataDumper {
   bool overflow_enabled_{false};
   bool persistent_unlimited_enabled_{false};
   bool adump_interface_available_{false};
+  std::string root_graph_name_;
+
   // Build task info of op mapping info
   Status BuildTaskInfoForDumpOutput(toolkit::aicpu::dump::OpMappingInfo &op_mapping_info,
                                     const InnerDumpInfo &dump_info, toolkit::aicpu::dump::Task &task);
@@ -206,8 +210,8 @@ class DataDumper {
   Status FillRawTensorInfos(const InnerDumpInfo &dump_info, std::vector<Adx::TensorInfo> &tensors,
                           bool dump_input = true, bool dump_output = true) const;
   std::vector<Adx::DumpAttr> BuildDumpAttrs() const;
-  bool IsInInputOpBlackIist(const std::shared_ptr<OpDesc>& op_desc, size_t index) const;
-  bool IsInOutputOpBlackIist(const std::shared_ptr<OpDesc>& op_desc, size_t index) const;
+  bool IsInInputOpBlacklist(const std::shared_ptr<OpDesc>& op_desc, size_t index) const;
+  bool IsInOutputOpBlacklist(const std::shared_ptr<OpDesc>& op_desc, size_t index) const;
 };
 struct DataDumper::InnerDumpInfo {
   uint32_t task_id;

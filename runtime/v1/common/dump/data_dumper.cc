@@ -515,17 +515,19 @@ uint64_t DataDumper::GetOffset(const InnerDumpInfo &inner_dump_info, const size_
   return offset;
 }
 
-bool DataDumper::IsInInputOpBlackIist(const std::shared_ptr<OpDesc>& op_desc, size_t index) const {
+bool DataDumper::IsInInputOpBlacklist(const std::shared_ptr<OpDesc>& op_desc, size_t index) const {
   if (dump_properties_.IsInputInOpNameBlacklist(model_name_, op_desc->GetName(), index) ||
       dump_properties_.IsInputInOpNameBlacklist(om_name_, op_desc->GetName(), index) ||
-      dump_properties_.IsInputInOpNameBlacklist(DUMP_LAYER_OP_MODEL, op_desc->GetName(), index)) {
+      dump_properties_.IsInputInOpNameBlacklist(DUMP_LAYER_OP_MODEL, op_desc->GetName(), index) ||
+      dump_properties_.IsInputInOpNameBlacklist(root_graph_name_, op_desc->GetName(), index)) {
     GELOGI("[Dumper] Node name %s, Node type: %s, input index %zu is in opname-blacklist, skip to dump this input.",
            op_desc->GetName().c_str(), op_desc->GetType().c_str(), index);
     return true;
   }
   if (dump_properties_.IsInputInOpTypeBlacklist(model_name_, op_desc->GetType(), index) ||
       dump_properties_.IsInputInOpTypeBlacklist(om_name_, op_desc->GetType(), index) ||
-      dump_properties_.IsInputInOpTypeBlacklist(DUMP_LAYER_OP_MODEL, op_desc->GetType(), index)) {
+      dump_properties_.IsInputInOpTypeBlacklist(DUMP_LAYER_OP_MODEL, op_desc->GetType(), index) ||
+      dump_properties_.IsInputInOpTypeBlacklist(root_graph_name_, op_desc->GetType(), index)) {
     GELOGI("[Dumper] Node name %s, Node type: %s, input index %zu is in optype-blacklist, skip to dump this input.",
            op_desc->GetName().c_str(), op_desc->GetType().c_str(), index);
     return true;
@@ -533,17 +535,19 @@ bool DataDumper::IsInInputOpBlackIist(const std::shared_ptr<OpDesc>& op_desc, si
   return false;
 }
 
-bool DataDumper::IsInOutputOpBlackIist(const std::shared_ptr<OpDesc>& op_desc, size_t index) const {
+bool DataDumper::IsInOutputOpBlacklist(const std::shared_ptr<OpDesc>& op_desc, size_t index) const {
   if (dump_properties_.IsOutputInOpNameBlacklist(model_name_, op_desc->GetName(), index) ||
       dump_properties_.IsOutputInOpNameBlacklist(om_name_, op_desc->GetName(), index) ||
-      dump_properties_.IsOutputInOpNameBlacklist(DUMP_LAYER_OP_MODEL, op_desc->GetName(), index)) {
+      dump_properties_.IsOutputInOpNameBlacklist(DUMP_LAYER_OP_MODEL, op_desc->GetName(), index) ||
+      dump_properties_.IsOutputInOpNameBlacklist(root_graph_name_, op_desc->GetName(), index)) {
     GELOGI("[Dumper] Node name %s, Node type: %s, output index %zu is in opname-blacklist, skip to dump this output.",
            op_desc->GetName().c_str(), op_desc->GetType().c_str(), index);
     return true;
   }
   if (dump_properties_.IsOutputInOpTypeBlacklist(model_name_, op_desc->GetType(), index) ||
       dump_properties_.IsOutputInOpTypeBlacklist(om_name_, op_desc->GetType(), index) ||
-      dump_properties_.IsOutputInOpTypeBlacklist(DUMP_LAYER_OP_MODEL, op_desc->GetType(), index)) {
+      dump_properties_.IsOutputInOpTypeBlacklist(DUMP_LAYER_OP_MODEL, op_desc->GetType(), index) ||
+      dump_properties_.IsOutputInOpTypeBlacklist(root_graph_name_, op_desc->GetType(), index)) {
     GELOGI("[Dumper] Node name %s, Node type: %s, output index %zu is in optype-blacklist, skip to dump this output.",
            op_desc->GetName().c_str(), op_desc->GetType().c_str(), index);
     return true;
@@ -569,18 +573,7 @@ Status DataDumper::DumpOutputWithTask(const InnerDumpInfo &inner_dump_info, tool
     toolkit::aicpu::dump::Output output;
     const auto &output_desc = *output_descs.at(i);
     GELOGI("[Dumper] Model name %s, Node name %s, Node type %s, output index %zu.", model_name.c_str(), inner_dump_info.op->GetName().c_str(), inner_dump_info.op->GetType().c_str(), i);
-    if (dump_properties_.IsOutputInOpNameBlacklist(model_name, inner_dump_info.op->GetName().c_str(), i) ||
-      dump_properties_.IsOutputInOpNameBlacklist(om_name, inner_dump_info.op->GetName().c_str(), i) ||
-      dump_properties_.IsOutputInOpNameBlacklist(DUMP_LAYER_OP_MODEL, inner_dump_info.op->GetName().c_str(), i)) {
-      GELOGI("[Dumper] Node name %s, Node type: %s, output index %zu is in opname-blacklist, skip to dump this output.",
-         inner_dump_info.op->GetName().c_str(), inner_dump_info.op->GetType().c_str(), i);
-      continue;
-    }
-    if (dump_properties_.IsOutputInOpTypeBlacklist(model_name, inner_dump_info.op->GetType().c_str(), i) ||
-      dump_properties_.IsOutputInOpTypeBlacklist(om_name, inner_dump_info.op->GetType().c_str(), i) ||
-      dump_properties_.IsOutputInOpTypeBlacklist(DUMP_LAYER_OP_MODEL, inner_dump_info.op->GetType().c_str(), i)) {
-      GELOGI("[Dumper] Node name %s, Node type: %s, output index %zu is in optype-blacklist, skip to dump this output.",
-         inner_dump_info.op->GetName().c_str(), inner_dump_info.op->GetType().c_str(), i);
+    if (IsInOutputOpBlacklist(inner_dump_info.op, i)) {
       continue;
     }
     if (TensorUtils::IsMemorySizeCalcTypeAlwaysEmpty(output_desc)) {
@@ -653,12 +646,8 @@ Status DataDumper::DumpOutput(const InnerDumpInfo &inner_dump_info, toolkit::aic
   }
   // else data, const or variable op
   toolkit::aicpu::dump::Output output;
-  const std::string model_name = model_name_;
-  const std::string om_name = om_name_;
   // if optype-blacklist contains output0, skip to dump the input node of model.
-  if (dump_properties_.IsOutputInOpTypeBlacklist(model_name, inner_dump_info.op->GetType().c_str(), kDataTypeOutput) ||
-    dump_properties_.IsOutputInOpTypeBlacklist(om_name, inner_dump_info.op->GetType().c_str(), kDataTypeOutput) ||
-    dump_properties_.IsOutputInOpTypeBlacklist(DUMP_LAYER_OP_MODEL, inner_dump_info.op->GetType().c_str(), kDataTypeOutput)) {
+  if (IsInOutputOpBlacklist(inner_dump_info.op, kDataTypeOutput)) {
     GELOGI("[Dumper] Node name %s, Node type: %s, output index %zu is in optype-blacklist, skip to dump this output.",
         inner_dump_info.op->GetName().c_str(), inner_dump_info.op->GetType().c_str(), kDataTypeOutput);
     return SUCCESS;
@@ -853,18 +842,7 @@ Status DataDumper::DumpInput(const InnerDumpInfo &inner_dump_info, toolkit::aicp
     toolkit::aicpu::dump::Input input;
     std::string node_name_index;
     GELOGI("[Dumper] Model name %s, Node name %s, Node type %s, input index %zu.", model_name.c_str(), inner_dump_info.op->GetName().c_str(), inner_dump_info.op->GetType().c_str(), i);
-    if (dump_properties_.IsInputInOpNameBlacklist(model_name, inner_dump_info.op->GetName().c_str(), i) ||
-      dump_properties_.IsInputInOpNameBlacklist(om_name, inner_dump_info.op->GetName().c_str(), i) ||
-      dump_properties_.IsInputInOpNameBlacklist(DUMP_LAYER_OP_MODEL, inner_dump_info.op->GetName().c_str(), i)) {
-      GELOGI("[Dumper] Node name %s, Node type: %s, input index %zu is in opname-blacklist, skip to dump this input.",
-         inner_dump_info.op->GetName().c_str(), inner_dump_info.op->GetType().c_str(), i);
-      continue;
-    }
-    if (dump_properties_.IsInputInOpTypeBlacklist(model_name, inner_dump_info.op->GetType().c_str(), i) ||
-      dump_properties_.IsInputInOpTypeBlacklist(om_name, inner_dump_info.op->GetType().c_str(), i) ||
-      dump_properties_.IsInputInOpTypeBlacklist(DUMP_LAYER_OP_MODEL, inner_dump_info.op->GetType().c_str(), i)) {
-      GELOGI("[Dumper] Node name %s, Node type: %s, input index %zu is in optype-blacklist, skip to dump this input.",
-         inner_dump_info.op->GetName().c_str(), inner_dump_info.op->GetType().c_str(), i);
+    if (IsInInputOpBlacklist(inner_dump_info.op, i)) {
       continue;
     }
     // check dump input tensor desc is redirected by attr ATTR_DATA_DUMP_REF
@@ -1136,7 +1114,7 @@ void DataDumper::FillInputTensorInfos(const OpDescPtr &op_desc, uintptr_t args_b
                                       std::vector<Adx::TensorInfo>& tensors) {
   const auto input_descs = op_desc->GetAllInputsDescPtr();
   for (size_t i = 0; i < input_descs.size(); ++i) {
-    if (IsInInputOpBlackIist(op_desc, i)) {
+    if (IsInInputOpBlacklist(op_desc, i)) {
       continue;
     }
     uint64_t offset_idx = i; // 默认使用原始索引
@@ -1180,7 +1158,7 @@ void DataDumper::FillOutputTensorInfos(const OpDescPtr &op_desc, uintptr_t args_
                                        std::vector<Adx::TensorInfo>& tensors) {
   const auto output_descs = op_desc->GetAllOutputsDescPtr();
   for (size_t i = 0; i < output_descs.size(); ++i) {
-    if (IsInOutputOpBlackIist(op_desc, i)) {
+    if (IsInOutputOpBlacklist(op_desc, i)) {
       continue;
     }
     uint64_t raw_offset = input_count + i;
@@ -1258,7 +1236,7 @@ Status DataDumper::FillRawTensorInfos(const InnerDumpInfo &dump_info, std::vecto
   // 输入张量
   if (dump_input) {
     for (size_t i = 0; i < input_cnt; ++i) {
-      if (IsInInputOpBlackIist(op_desc, i)) {
+      if (IsInInputOpBlacklist(op_desc, i)) {
         continue;
       }
       if (dump_info.address[i] == 0) continue;
@@ -1289,7 +1267,7 @@ Status DataDumper::FillRawTensorInfos(const InnerDumpInfo &dump_info, std::vecto
   // 输出张量
   if (dump_output) {
     for (size_t i = 0; i < output_cnt; ++i) {
-      if (IsInOutputOpBlackIist(op_desc, i)) {
+      if (IsInOutputOpBlacklist(op_desc, i)) {
         continue;
       }
       if (dump_info.address[input_cnt + i] == 0) continue;

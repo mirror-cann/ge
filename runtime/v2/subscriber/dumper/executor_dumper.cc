@@ -865,8 +865,16 @@ bool ExecutorDumper::IsOpInDumpList(const ge::DumpProperties &dump_properties, c
   if (dump_properties.IsOpDebugOpen() || (IsSingleOpScene() && dump_properties.IsSingleOpNeedDump())) {
     return true;
   }
-  if (dump_properties.IsLayerNeedDump(
-    extend_info_->model_name, extend_info_->model_data.om_name, op_name) || IsInDumpOpRange(op_name)) {
+
+  std::string root_graph_name = GetRootGraphName();
+  if (!root_graph_name.empty()) {
+    if (dump_properties.IsLayerNeedDump(root_graph_name, extend_info_->model_data.om_name, op_name)) {
+      return true;
+    }
+  }
+
+  if (dump_properties.IsLayerNeedDump(extend_info_->model_name, extend_info_->model_data.om_name, op_name) ||
+      IsInDumpOpRange(op_name)) {
     return true;
   }
   std::vector<std::string> original_names;
@@ -917,65 +925,81 @@ ge::Status ExecutorDumper::UpdateFftsplusLaunchTask(const Node *node) {
   return ge::SUCCESS;
 }
 
+void ExecutorDumper::SetDumpModelInfo(ge::DumpOp &dump_op) const {
+    dump_op.SetDynamicModelInfo(extend_info_->model_name, extend_info_->model_data.om_name, extend_info_->model_id);
+
+    std::string root_graph_name = GetRootGraphName();
+    if (!root_graph_name.empty()) {
+        dump_op.SetRootGraphName(root_graph_name);
+    }
+}
+
+bool ExecutorDumper::HandleFftsDump(NodeDumpUnit &dump_unit, const ge::OpDescPtr &op_desc_dump) {
+  if (dump_unit.context_list.empty()) {
+    return false;
+  }
+  ffts_dump_op_.SaveFftsSubOpInfo(op_desc_dump, dump_unit.context_list);
+  GELOGI("Save ffts dump op:%s Successfully", dump_unit.node->GetName().c_str());
+  return true;
+}
+
+bool ExecutorDumper::GetAndCheckAddrs(NodeDumpUnit &dump_unit, const ge::OpDesc *op_desc,
+                                       std::vector<uintptr_t> &input_addrs,
+                                       std::vector<uintptr_t> &output_addrs,
+                                       std::vector<void*> &allocated_input_mem,
+                                       std::vector<void*> &allocated_output_mem) {
+  if (GetDumpAddrFromChainAddr(dump_unit, true, allocated_input_mem, input_addrs) != ge::SUCCESS ||
+      GetDumpAddrFromChainAddr(dump_unit, false, allocated_output_mem, output_addrs) != ge::SUCCESS) {
+    return false;
+  }
+  if (input_addrs.size() != op_desc->GetAllInputsSize() ||
+      output_addrs.size() != op_desc->GetAllOutputsDescSize()) {
+    GELOGW("[Dumper] Node %s addr size invalid: input %zu/%zu, output %zu/%zu",
+           dump_unit.node->GetName().c_str(),
+           input_addrs.size(), op_desc->GetInputsSize(),
+           output_addrs.size(), op_desc->GetOutputsSize());
+    return false;
+  }
+  return true;
+}
+
 ge::Status ExecutorDumper::DoDataDump(NodeDumpUnit &dump_unit, const ge::DumpProperties &dump_properties,
                                       const Node *exe_node) {
   const auto &name = dump_unit.node->GetName();
   const auto op_desc = dump_unit.node->GetOpDescBarePtr();
   GE_ASSERT_NOTNULL(op_desc);
+
   if (!IsOpInDumpList(dump_properties, name) || (op_desc->GetOpKernelLibName() == kRtsFftsPlusOpKernelName)) {
     GELOGI("[Dumper] [%s] is not in dump list, no need to dump", name.c_str());
     dump_unit.Clear();
     return ge::SUCCESS;
   }
 
-  const auto &type = dump_unit.node->GetType();
-  GELOGI("[Dumper] Start to dump, op name: %s, type: %s", name.c_str(), type.c_str());
+  GELOGI("[Dumper] Start to dump, op name: %s, type: %s", name.c_str(), dump_unit.node->GetType().c_str());
 
-  std::vector<void *> allocated_input_mem{};
-  std::vector<void *> allocated_output_mem{};
-  const auto callback = [&allocated_input_mem, &allocated_output_mem, &dump_unit]() {
-    for (auto &mem : allocated_input_mem) {
-      GE_CHK_RT(rtFree(mem));
-    }
-    for (auto &mem : allocated_output_mem) {
-      GE_CHK_RT(rtFree(mem));
-    }
+  std::vector<void *> allocated_input_mem;
+  std::vector<void *> allocated_output_mem;
+  auto cleanup = [&allocated_input_mem, &allocated_output_mem, &dump_unit]() {
+    for (auto mem : allocated_input_mem) GE_CHK_RT(rtFree(mem));
+    for (auto mem : allocated_output_mem) GE_CHK_RT(rtFree(mem));
     dump_unit.Clear();
   };
-  GE_MAKE_GUARD(dump_release, callback);
+  GE_MAKE_GUARD(dump_release, cleanup);
 
   ge::DumpOp dump_op;
-  dump_op.SetDynamicModelInfo(extend_info_->model_name, extend_info_->model_data.om_name, extend_info_->model_id);
+  SetDumpModelInfo(dump_op);
 
-  ge::OpDescPtr op_desc_dump = nullptr;
+  ge::OpDescPtr op_desc_dump;
   GE_MAKE_SHARED(op_desc_dump = std::make_shared<ge::OpDesc>(*op_desc), return ge::FAILED);
   dump_unit.UpdateInputShapes(op_desc_dump);
   dump_unit.UpdateOutputShapes(op_desc_dump);
 
-  if (!dump_unit.context_list.empty()) {
-    ffts_dump_op_.SaveFftsSubOpInfo(op_desc_dump, dump_unit.context_list);
-    GELOGI("Save ffts dump op:%s Successfully", name.c_str());
+  if (HandleFftsDump(dump_unit, op_desc_dump)) {
     return ge::SUCCESS;
   }
 
-  std::vector<uintptr_t> input_addrs;
-  if (GetDumpAddrFromChainAddr(dump_unit, true, allocated_input_mem, input_addrs) != ge::SUCCESS) {
-    // skip and continue dump other nodes
-    return ge::SUCCESS;
-  }
-  std::vector<uintptr_t> output_addrs;
-  if (GetDumpAddrFromChainAddr(dump_unit, false, allocated_output_mem, output_addrs) != ge::SUCCESS) {
-    // skip and continue dump other nodes
-    return ge::SUCCESS;
-  }
-
-  if ((input_addrs.size() != op_desc->GetAllInputsSize()) ||
-      (output_addrs.size() != op_desc->GetAllOutputsDescSize())) {
-    GELOGW(
-        "[Dumper] Node %s input addr or output addr size is invalid, input addr size is %zu, output addr size is %zu, "
-        "op desc input size is %zu, output size is %zu.",
-        name.c_str(), input_addrs.size(), output_addrs.size(), op_desc->GetInputsSize(), op_desc->GetOutputsSize());
-    // skip and continue dump
+  std::vector<uintptr_t> input_addrs, output_addrs;
+  if (!GetAndCheckAddrs(dump_unit, op_desc, input_addrs, output_addrs, allocated_input_mem, allocated_output_mem)) {
     return ge::SUCCESS;
   }
 
@@ -1168,6 +1192,16 @@ ge::Status ExecutorDumper::ResetDumpFsmState() {
   return ge::SUCCESS;
 }
 
+std::string ExecutorDumper::GetRootGraphName() const {
+    if (extend_info_ && extend_info_->root_graph) {
+        const std::string &name = extend_info_->root_graph->GetName();
+        GELOGD("Root graph name: %s", name.c_str());
+        return name;
+    }
+    GELOGD("No root graph available, returning empty string");
+    return "";
+}
+
 ge::Status ExecutorDumper::SetDumpFsmState(const Node *node, const char *const node_type) {
   if (dump_fsm_state_.empty()) {
     return ge::SUCCESS;
@@ -1197,6 +1231,17 @@ ge::Status ExecutorDumper::DataDump(const Node *node, ExecutorEvent event) {
     SaveSessionId();
     UpdateStepNum();
     GE_ASSERT_SUCCESS(ResetDumpFsmState());
+    const std::string root_graph_name = GetRootGraphName();
+    const std::string current_model_name = extend_info_->model_name;
+    if (!root_graph_name.empty() && current_model_name != root_graph_name) {
+      auto dump_properties = ge::DumpManager::GetInstance().GetDumpProperties(session_id_);
+      size_t op_range_size = dump_properties.GetDumpOpRangeSize(root_graph_name, extend_info_->model_data.om_name);
+      bool is_watcher_enabled = dump_properties.IsDumpWatcherModelEnable();
+      if (op_range_size > 0 || is_watcher_enabled) {
+        GELOGW("[Dump] Op range or watcher mode is configured for root graph [%s], but current model is [%s] (subgraph). "
+                "Dump may not work as expected for these features on subgraphs.", root_graph_name.c_str(), current_model_name.c_str());
+      }
+    }
     return Init();
   } else if (event == ExecutorEvent::kModelEnd) {
     CountIterNum();

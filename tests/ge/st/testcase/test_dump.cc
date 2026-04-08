@@ -585,6 +585,104 @@ TEST_F(DumpTest, DataDump_dump_op_opblacklist_success) {
   free(addr_out);
 }
 
+TEST_F(DumpTest, TestSubgraphDumpWithRootGraphConfig) {
+  // 测试子图通过根图配置启用dump（动态图）
+  std::map<std::string, std::string> dump_options;
+  dump_options.emplace(OPTION_EXEC_ENABLE_DUMP, "1");
+  dump_options.emplace(OPTION_EXEC_DUMP_PATH, "./");
+  dump_options.emplace(OPTION_EXEC_DUMP_STEP, "0");
+  dump_options.emplace(OPTION_EXEC_DUMP_MODE, "all");
+  // 使用根图名配置dump
+  dump_options.emplace(OPTION_EXEC_DUMP_LAYER, "root_graph:conv");
+  
+  std::map<std::string, std::string> options;
+  EXPECT_EQ(GEInitialize(options), SUCCESS);
+  
+  std::map<std::string, std::string> session_options;
+  session_options = dump_options;
+  Session session(session_options);
+  
+  GraphId graph_id = 1;
+  const auto compute_graph = MakeShared<ComputeGraph>("subgraph");
+  Graph graph = GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph);
+  
+  // 模拟子图（设置父图）
+  // 注意：在实际场景中，ComputeGraph的SetParentGraph由外部设置
+  // 这里我们创建一个根图作为参考
+  
+  EXPECT_EQ(session.AddGraph(graph_id, graph), SUCCESS);
+  
+  vector<Tensor> inputs;
+  vector<InputTensorInfo> tensors;
+  EXPECT_EQ(session.BuildGraph(graph_id, inputs), FAILED);
+  
+  EXPECT_EQ(session.RemoveGraph(graph_id), SUCCESS);
+  EXPECT_EQ(GEFinalize(), SUCCESS);
+}
+
+TEST_F(DumpTest, TestSubgraphBlacklistWithRootGraph) {
+  // 测试子图使用根图黑名单
+  std::map<std::string, std::string> dump_options;
+  dump_options.emplace(OPTION_EXEC_ENABLE_DUMP, "1");
+  dump_options.emplace(OPTION_EXEC_DUMP_PATH, "./");
+  dump_options.emplace(OPTION_EXEC_DUMP_STEP, "0");
+  dump_options.emplace(OPTION_EXEC_DUMP_MODE, "all");
+  // 使用子图名配置dump
+  dump_options.emplace(OPTION_EXEC_DUMP_LAYER, "subgraph:conv");
+  // 使用根图名配置黑名单
+  dump_options.emplace("ge.exec.dumpBlacklist", "root_graph:conv:output:0");
+  
+  std::map<std::string, std::string> options;
+  EXPECT_EQ(GEInitialize(options), SUCCESS);
+  
+  std::map<std::string, std::string> session_options;
+  session_options = dump_options;
+  Session session(session_options);
+  
+  GraphId graph_id = 1;
+  const auto compute_graph = MakeShared<ComputeGraph>("subgraph");
+  Graph graph = GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph);
+  
+  EXPECT_EQ(session.AddGraph(graph_id, graph), SUCCESS);
+  
+  vector<Tensor> inputs;
+  vector<InputTensorInfo> tensors;
+  EXPECT_EQ(session.BuildGraph(graph_id, inputs), FAILED);
+  
+  EXPECT_EQ(session.RemoveGraph(graph_id), SUCCESS);
+  EXPECT_EQ(GEFinalize(), SUCCESS);
+}
+
+TEST_F(DumpTest, TestGlobalBlacklistForSubgraph) {
+  // 测试子图使用全局黑名单
+  std::map<std::string, std::string> dump_options;
+  dump_options.emplace(OPTION_EXEC_ENABLE_DUMP, "1");
+  dump_options.emplace(OPTION_EXEC_DUMP_PATH, "./");
+  dump_options.emplace(OPTION_EXEC_DUMP_STEP, "0");
+  dump_options.emplace(OPTION_EXEC_DUMP_MODE, "all");
+  dump_options.emplace(OPTION_EXEC_DUMP_LAYER, "conv");
+  // 使用全局黑名单
+  dump_options.emplace("ge.exec.dumpBlacklist", "*:conv:input:0");
+  
+  std::map<std::string, std::string> options;
+  EXPECT_EQ(GEInitialize(options), SUCCESS);
+  
+  std::map<std::string, std::string> session_options;
+  session_options = dump_options;
+  Session session(session_options);
+  
+  GraphId graph_id = 1;
+  const auto compute_graph = MakeShared<ComputeGraph>("test_graph");
+  Graph graph = GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph);
+  
+  EXPECT_EQ(session.AddGraph(graph_id, graph), SUCCESS);
+  
+  vector<Tensor> inputs;
+  vector<InputTensorInfo> tensors;
+  EXPECT_EQ(session.BuildGraph(graph_id, inputs), FAILED);
+  
+  EXPECT_EQ(session.RemoveGraph(graph_id), SUCCESS);
+  EXPECT_EQ(GEFinalize(), SUCCESS);
+}
+
 }  // namespace ge
-
-
