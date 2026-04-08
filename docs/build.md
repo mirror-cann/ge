@@ -159,6 +159,23 @@ bash scripts/check_env.sh
 
   **输出位置**：生成的覆盖率文件位于代码根目录下的 `cov/` 目录中。
 
+- 执行指定用例：
+  
+  执行完成UT/ST后，可以通过直接执行测试可执行文件进行单独测试。
+
+  **前置条件**：
+  - 已经执行了UT/ST对应的测试命令，并正确生成了测试可执行文件。
+
+  **使用方法**：
+  - 示例：已经执行了 `bash tests/run_test.sh --ut=ge_common` ，并希望单独执行验证 `ut_libge_multiparts_utest` ：
+  
+  ```bash
+  # 测试UT/ST会对部分依赖so进行打桩处理，需要清除LD_LIBRARY_PATH和ASCEND_OPP_PATH环境变量，避免宿主机已安装的 CANN/Ascend 环境干扰测试
+  unset LD_LIBRARY_PATH
+  unset ASCEND_OPP_PATH
+  ./tests/ge/ut/ge/ut_libge_multiparts_utest # 可以通过 --gtest_list_tests 查看包含的单用例，并通过 --gtest_filter 参数执行单用例
+  ```
+
 - 清理产物：
 
   `UT/ST`测试用例编译输出目录为`build_ut`和`build_st`，如果想清除历史编译记录，可执行如下操作：
