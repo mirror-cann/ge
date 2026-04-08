@@ -14,8 +14,17 @@
 #include <iostream>
 #include <vector>
 #include <memory>
+#include <string>
+#include <functional>
 #include "register/op_impl_registry.h"
+
+#ifdef NO_OPERATOR_IMPL
+namespace ge {
+  class Operator;
+}
+#else
 #include "graph/operator_reg.h"
+#endif
 
 namespace optiling {
 #define FUNC_CHECK_SUPPORTED "check_supported"
@@ -41,8 +50,8 @@ class AclnnOpGenerator;
 class Generator;
 class OpProtoGenerator;
 class GeneratorFactory;
-class CPUCfgGenerator;
 class CfgGenerator;
+class CPUCfgGenerator;
 class OpParamTrunk;
 
 enum Option { IGNORE = 0, OPTIONAL = 1, REQUIRED = 2, DYNAMIC = 3, VIRTUAL = 4 };
@@ -215,10 +224,12 @@ private:
   friend class Generator;
   friend class OpProtoGenerator;
   friend class GeneratorFactory;
-  friend class CfgGenerator;
   friend class CPUCfgGenerator;
+  friend class CfgGenerator;
   friend class OpParamTrunk;
   friend class OpDef;
+  friend class OpDefImpl;
+  friend class OpParamDefImpl;
 
   bool operator==(const OpParamDef &def) const;
   void MergeParam(const OpParamDef &def);
@@ -284,6 +295,7 @@ private:
   friend class GeneratorFactory;
   friend class CPUCfgGenerator;
   friend class OpDef;
+  friend class OpDefImpl;
 
   std::vector<ge::AscendString> &GetCfgKeys(void);
   std::map<ge::AscendString, ge::AscendString> &GetCfgInfo(void);
@@ -316,6 +328,7 @@ private:
   friend class GeneratorFactory;
   friend class CPUCfgGenerator;
   friend class OpDef;
+  friend class OpDefImpl;
 
   std::vector<ge::AscendString> &GetCfgKeys(void);
   std::map<ge::AscendString, ge::AscendString> &GetCfgInfo(void);
@@ -363,6 +376,8 @@ private:
   friend class CfgGenerator;
   friend class OpParamTrunk;
   friend class OpDef;
+  friend class OpDefImpl;
+  friend class OpAttrDefImpl;
 
   bool operator==(const OpAttrDef &attr_def) const;
   ge::AscendString &GetCfgDataType(void) const;
@@ -401,6 +416,8 @@ private:
   friend class CfgGenerator;
   friend class OpParamTrunk;
   friend class OpDef;
+  friend class OpDefImpl;
+  friend class OpAICoreConfigImpl;
 
   std::vector<OpParamDef> &GetInputs(void) const;
   std::vector<OpParamDef> &GetOutputs(void) const;
@@ -444,6 +461,8 @@ private:
   friend class CfgGenerator;
   friend class OpParamTrunk;
   friend class OpDef;
+  friend class OpDefImpl;
+  friend class OpAICoreDefImpl;
 
   std::map<ge::AscendString, OpAICoreConfig> &GetAICoreConfigs(void);
   void Log(const char *op_type, const char *info) const;
@@ -470,6 +489,8 @@ private:
   friend class GeneratorFactory;
   friend class CfgGenerator;
   friend class OpParamTrunk;
+  friend class OpDefImpl;
+  friend class OpMC2DefImpl;
 
   std::vector<ge::AscendString> &GetHcclGroups(void) const;
   ops::HcclServerType GetHcclServerType(const ge::AscendString &soc_version = "") const;
@@ -509,6 +530,7 @@ private:
   friend class GeneratorFactory;
   friend class CfgGenerator;
   friend class OpParamTrunk;
+  friend class OpDefImpl;
   using ArrParam = std::pair<uint32_t, bool>;
   struct DfsParam {
     std::vector<std::vector<ArrParam>> full_types;

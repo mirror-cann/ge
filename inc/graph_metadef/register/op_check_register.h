@@ -12,11 +12,19 @@
 #define INC_REGISTER_OP_CHECK_REGISTER_H_
 
 #include <map>
+#include <vector>
+#include <memory>
+#include <string>
+#include <functional>
 
 #include "graph/ascend_string.h"
 #include "graph/operator.h"
 #include "graph/ge_error_codes.h"
 #include "register/op_def.h"
+
+namespace ge {
+  class Operator;
+}
 
 namespace optiling {
 struct ReplayFuncParam {
@@ -34,6 +42,7 @@ struct ReplayFuncParam {
 using REPLAY_FUNC = int32_t (*)(ReplayFuncParam &param, const int32_t core_type);
 using GEN_SIMPLIFIEDKEY_FUNC = bool (*)(const ge::Operator &op, ge::AscendString &result);
 
+class OpCheckFuncRegistryImpl;
 class OpCheckFuncRegistry {
 public:
   static void RegisterOpCapability(const ge::AscendString &check_type, const ge::AscendString &op_type,
