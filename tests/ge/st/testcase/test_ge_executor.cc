@@ -67,12 +67,22 @@ class MockMemRuntime : public ge::RuntimeStub {
 
 class MockAclRuntime : public ge::AclRuntimeStub {
 public:
+  aclError aclrtGetMemInfo(aclrtMemAttr attr, size_t *free_size, size_t *total) override {
+    *free_size = 64UL * 1024UL * 1024UL;
+    *total = 32UL * 1024UL * 1024UL * 1024UL;
+    return ACL_SUCCESS;
+  }
+
   aclError aclrtCheckArchCompatibility(const char *socVersion, int32_t *canCompatible) {
     if (std::string(socVersion) == "Ascend310") {
       *canCompatible = 0;
       return -1;
     }
     *canCompatible = 1;
+    return ACL_SUCCESS;
+  }
+
+  aclError aclrtMemcpy(void *dst, size_t destMax, const void *src, size_t count, aclrtMemcpyKind kind) override {
     return ACL_SUCCESS;
   }
 };
@@ -1934,10 +1944,10 @@ TEST_F(GeExecutorTest, FileConstant_UserSetDeviceMem) {
     load_arg.mem_size = mem_offset;
 
     {
-      auto mock_runtime = std::make_shared<MockMemRuntime>();
-      ge::RuntimeStub::SetInstance(mock_runtime);
+      auto mock_acl_runtime = std::make_shared<MockAclRuntime>();
+      ge::AclRuntimeStub::SetInstance(mock_acl_runtime);
       EXPECT_EQ(ge_executor.LoadModelFromDataWithArgs(model_id, model_data, load_arg), SUCCESS);
-      ge::RuntimeStub::Reset();
+      ge::AclRuntimeStub::Reset();
     }
 
     GeExecutor ge_executor2;

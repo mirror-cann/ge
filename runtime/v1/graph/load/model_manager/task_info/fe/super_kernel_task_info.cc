@@ -804,11 +804,10 @@ Status SuperKernelV2TaskInfo::AssembleIoByArgsFormat() {
           break;
         }
         case AddrType::FFTS_ADDR: {
-          uint64_t mode_addr = 0U;
-          uint32_t len = 0U;
-          GE_CHK_RT_RET(rtGetC2cCtrlAddr(&mode_addr, &len));
+          void *mode_addr_ptr = nullptr;
+          GE_CHK_RT_RET(aclrtGetHardwareSyncAddr(&mode_addr_ptr));
           l0_dump_list_.push_back(std::numeric_limits<uint64_t>::max()); // 占位
-          AppendIoAddr(mode_addr, kAbsoluteMemType);
+          AppendIoAddr(reinterpret_cast<uint64_t>(mode_addr_ptr), kAbsoluteMemType);
           break;
         }
         case AddrType::PLACEHOLDER: {

@@ -48,7 +48,7 @@ using AddrGetter = std::function<const void*(size_t)>;
 #define GE_MAKE_GUARD_RTMEM(var)  \
   GE_MAKE_GUARD(var, [&var]() { \
     if ((var) != nullptr) {       \
-      GE_CHK_RT(rtFreeHost(var)); \
+      GE_CHK_RT(aclrtFreeHost(var)); \
     }                             \
   })
 
@@ -216,9 +216,9 @@ using AddrGetter = std::function<const void*(size_t)>;
 #define GE_FREE_RT_LOG(addr)                                        \
   do {                                                              \
     if ((addr) != nullptr) {                                        \
-      const rtError_t error = rtFree(addr);                         \
-      if (error != RT_ERROR_NONE) {                                 \
-        GELOGE(ge::RT_FAILED, "Call rtFree failed, error: %#x", error); \
+      const aclError error = aclrtFree(addr);                         \
+      if (error != ACL_SUCCESS) {                                 \
+        GELOGE(ge::RT_FAILED, "Call aclrtFree failed, error: %#x", error); \
       }                                                             \
       (addr) = nullptr;                                             \
     }                                                               \

@@ -654,4 +654,194 @@ TEST_F(UTEST_dump_op, SetRootGraphName_Ok) {
   DumpOp dump_op;
   dump_op.SetRootGraphName("test_root_graph");
 }
+
+TEST_F(UTEST_dump_op, UpdateAddrs_DynamicShape) {
+  DumpOp dump_op;
+  DumpProperties dump_properties;
+
+  OpDescPtr op_desc = std::make_shared<ge::OpDesc>("conv", "conv");
+  op_desc->SetStreamId(0);
+  op_desc->SetId(0);
+
+  GeTensorDesc tensor1(GeShape({-1, -1, 3, 3}), FORMAT_NCHW, DT_FLOAT);
+  ge::AttrUtils::SetStr(tensor1, ATTR_DATA_DUMP_REF, "conv:input:1");
+  op_desc->AddInputDesc(tensor1);
+  op_desc->AddInputDesc(tensor1);
+
+  GeTensorDesc tensor2(GeShape({-1, 16, 14, 14}), FORMAT_NCHW, DT_FLOAT);
+  ge::AttrUtils::SetStr(tensor2, ATTR_DATA_DUMP_REF, "conv:output:0");
+  op_desc->AddOutputDesc(tensor2);
+
+  std::set<std::string> temp;
+  dump_properties.model_dump_properties_map_.emplace("model2", temp);
+  dump_properties.enable_dump_ = "1";
+  dump_properties.dump_mode_ = "all";
+  dump_op.SetDynamicModelInfo("model1", "model2", 1);
+
+  std::vector<uintptr_t> input_addrs;
+  std::vector<uintptr_t> output_addrs;
+  int64_t *addr_in = (int64_t *)malloc(1024);
+  int64_t *addr_out = (int64_t *)malloc(1024);
+  input_addrs.push_back(reinterpret_cast<uintptr_t>(addr_in));
+  input_addrs.push_back(reinterpret_cast<uintptr_t>(addr_in) + 512);
+  output_addrs.push_back(reinterpret_cast<uintptr_t>(addr_out));
+
+  dump_op.SetDumpInfo(dump_properties, op_desc, input_addrs, output_addrs, nullptr);
+  auto ret = dump_op.UpdateAddrs(input_addrs, output_addrs);
+  EXPECT_EQ(ret, ge::SUCCESS);
+
+  free(addr_in);
+  free(addr_out);
+}
+
+TEST_F(UTEST_dump_op, UpdateAddrs_EmptyAddrs) {
+  DumpOp dump_op;
+  DumpProperties dump_properties;
+
+  OpDescPtr op_desc = std::make_shared<ge::OpDesc>("conv", "conv");
+  op_desc->SetStreamId(0);
+  op_desc->SetId(0);
+
+  GeTensorDesc tensor(GeShape({1, 3, 224, 224}), FORMAT_NCHW, DT_FLOAT);
+  ge::AttrUtils::SetStr(tensor, ATTR_DATA_DUMP_REF, "conv:input:1");
+  op_desc->AddInputDesc(tensor);
+  op_desc->AddOutputDesc(tensor);
+
+  std::set<std::string> temp;
+  dump_properties.model_dump_properties_map_.emplace("model2", temp);
+  dump_properties.enable_dump_ = "1";
+  dump_properties.dump_mode_ = "all";
+  dump_op.SetDynamicModelInfo("model1", "model2", 1);
+
+  std::vector<uintptr_t> input_addrs;
+  std::vector<uintptr_t> output_addrs;
+
+  dump_op.SetDumpInfo(dump_properties, op_desc, input_addrs, output_addrs, nullptr);
+  auto ret = dump_op.UpdateAddrs(input_addrs, output_addrs);
+  EXPECT_EQ(ret, ge::SUCCESS);
+}
+
+TEST_F(UTEST_dump_op, LaunchDumpOp_WithMultipleInputs) {
+  DumpOp dump_op;
+  DumpProperties dump_properties;
+
+  OpDescPtr op_desc = std::make_shared<ge::OpDesc>("addn", "AddN");
+  op_desc->SetStreamId(0);
+  op_desc->SetId(0);
+
+  for (int i = 0; i < 5; ++i) {
+    GeTensorDesc tensor(GeShape({1, 3, 224, 224}), FORMAT_NCHW, DT_FLOAT);
+    ge::AttrUtils::SetStr(tensor, ATTR_DATA_DUMP_REF, "addn:input:" + std::to_string(i));
+    op_desc->AddInputDesc(tensor);
+  }
+
+  GeTensorDesc output_tensor(GeShape({1, 3, 224, 224}), FORMAT_NCHW, DT_FLOAT);
+  ge::AttrUtils::SetStr(output_tensor, ATTR_DATA_DUMP_REF, "addn:output:0");
+  op_desc->AddOutputDesc(output_tensor);
+
+  std::set<std::string> temp;
+  dump_properties.model_dump_properties_map_.emplace("model1", temp);
+  dump_properties.enable_dump_ = "1";
+  dump_properties.dump_mode_ = "all";
+  dump_op.SetDynamicModelInfo("model1", "model2", 1);
+
+  std::vector<uintptr_t> input_addrs;
+  std::vector<uintptr_t> output_addrs;
+  for (int i = 0; i < 5; ++i) {
+    int64_t *addr = (int64_t *)malloc(1024);
+    input_addrs.push_back(reinterpret_cast<uintptr_t>(addr));
+  }
+  int64_t *addr_out = (int64_t *)malloc(1024);
+  output_addrs.push_back(reinterpret_cast<uintptr_t>(addr_out));
+
+  dump_op.SetDumpInfo(dump_properties, op_desc, input_addrs, output_addrs, nullptr);
+  auto ret = dump_op.LaunchDumpOp(false);
+  EXPECT_EQ(ret, ge::SUCCESS);
+
+  for (auto addr : input_addrs) {
+    free(reinterpret_cast<void*>(addr));
+  }
+  free(addr_out);
+}
+
+TEST_F(UTEST_dump_op, LaunchDumpOp_WithDifferentDataTypes) {
+  DumpOp dump_op;
+  DumpProperties dump_properties;
+
+  OpDescPtr op_desc = std::make_shared<ge::OpDesc>("cast", "Cast");
+  op_desc->SetStreamId(0);
+  op_desc->SetId(0);
+
+  GeTensorDesc input_tensor(GeShape({1, 3, 224, 224}), FORMAT_NCHW, DT_FLOAT16);
+  ge::AttrUtils::SetStr(input_tensor, ATTR_DATA_DUMP_REF, "cast:input:0");
+  op_desc->AddInputDesc(input_tensor);
+
+  GeTensorDesc output_tensor(GeShape({1, 3, 224, 224}), FORMAT_NCHW, DT_FLOAT);
+  ge::AttrUtils::SetStr(output_tensor, ATTR_DATA_DUMP_REF, "cast:output:0");
+  op_desc->AddOutputDesc(output_tensor);
+
+  std::set<std::string> temp;
+  dump_properties.model_dump_properties_map_.emplace("model1", temp);
+  dump_properties.enable_dump_ = "1";
+  dump_properties.dump_mode_ = "all";
+  dump_op.SetDynamicModelInfo("model1", "model2", 1);
+
+  std::vector<uintptr_t> input_addrs;
+  std::vector<uintptr_t> output_addrs;
+  int16_t *addr_in = (int16_t *)malloc(512);
+  int64_t *addr_out = (int64_t *)malloc(1024);
+  input_addrs.push_back(reinterpret_cast<uintptr_t>(addr_in));
+  output_addrs.push_back(reinterpret_cast<uintptr_t>(addr_out));
+
+  dump_op.SetDumpInfo(dump_properties, op_desc, input_addrs, output_addrs, nullptr);
+  auto ret = dump_op.LaunchDumpOp(false);
+  EXPECT_EQ(ret, ge::SUCCESS);
+
+  free(addr_in);
+  free(addr_out);
+}
+
+TEST_F(UTEST_dump_op, SetLoopAddr) {
+  DumpOp dump_op;
+
+  dump_op.SetLoopAddr(100, 10, 1);
+  EXPECT_EQ(dump_op.global_step_, 100U);
+  EXPECT_EQ(dump_op.loop_per_iter_, 10U);
+  EXPECT_EQ(dump_op.loop_cond_, 1U);
+
+  dump_op.SetLoopAddr(0, 0, 0);
+  EXPECT_EQ(dump_op.global_step_, 0U);
+  EXPECT_EQ(dump_op.loop_per_iter_, 0U);
+  EXPECT_EQ(dump_op.loop_cond_, 0U);
+}
+
+TEST_F(UTEST_dump_op, SetTaskIdAndStreamId) {
+  DumpOp dump_op;
+
+  dump_op.SetTaskId(12345);
+  dump_op.SetStreamId(67890);
+
+  EXPECT_EQ(dump_op.task_id_, 12345U);
+  EXPECT_EQ(dump_op.stream_id_, 67890U);
+}
+
+TEST_F(UTEST_dump_op, SetWorkspaceAddrs) {
+  DumpOp dump_op;
+
+  std::vector<std::pair<uintptr_t, int64_t>> workspace_addrs = {
+    {0x1000, 1024},
+    {0x2000, 2048},
+    {0x3000, 4096}
+  };
+
+  dump_op.SetWorkspaceAddrs(workspace_addrs);
+
+  EXPECT_EQ(dump_op.space_addrs_.size(), 3U);
+  EXPECT_EQ(dump_op.space_addrs_[0].first, 0x1000UL);
+  EXPECT_EQ(dump_op.space_addrs_[0].second, 1024);
+  EXPECT_EQ(dump_op.space_addrs_[1].first, 0x2000UL);
+  EXPECT_EQ(dump_op.space_addrs_[1].second, 2048);
+  EXPECT_EQ(dump_op.space_addrs_[2].first, 0x3000UL);
+  EXPECT_EQ(dump_op.space_addrs_[2].second, 4096);
+}
 }  // namespace ge

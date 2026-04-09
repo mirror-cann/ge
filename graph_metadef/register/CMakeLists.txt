@@ -116,6 +116,8 @@ target_include_directories(register PRIVATE
     ${ASCEND_INSTALL_PATH}/include/graph
     ${TOP_DIR}/runtime/pkg_inc
     ${TOP_DIR}/metadef/inc
+    ${TOP_DIR}/runtime/include/external
+    ${TOP_DIR}/runtime/include/external/acl
 )
 
 target_link_options(register PRIVATE
@@ -176,6 +178,8 @@ target_compile_definitions(register_static PRIVATE
 )
 
 target_include_directories(register_static PUBLIC
+    ${TOP_DIR}/runtime/include/external
+    ${TOP_DIR}/runtime/include/external/acl
     ${ASCEND_INSTALL_PATH}/pkg_inc
     ${ASCEND_INSTALL_PATH}/pkg_inc/base
     ${ASCEND_INSTALL_PATH}/include/
@@ -237,6 +241,8 @@ target_include_directories(op_tiling_o2 PRIVATE
     ${CMAKE_BINARY_DIR}
     ${CMAKE_BINARY_DIR}/proto/metadef_protos
     ${AIR_CODE_DIR}/inc/graph_metadef
+    ${TOP_DIR}/runtime/include/external
+    ${TOP_DIR}/runtime/include/external/acl
 )
 
 target_compile_options(op_tiling_o2 PRIVATE
@@ -336,6 +342,8 @@ target_include_directories(stub_register PRIVATE
     ${CMAKE_BINARY_DIR}
     ${CMAKE_BINARY_DIR}/proto/metadef_protos
     ${AIR_CODE_DIR}/inc
+    ${TOP_DIR}/runtime/include/external
+    ${TOP_DIR}/runtime/include/external/acl
 )
 
 add_library(stub_register_options INTERFACE)

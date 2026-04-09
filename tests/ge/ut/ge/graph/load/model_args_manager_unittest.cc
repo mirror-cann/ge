@@ -1908,4 +1908,212 @@ TEST_F(ModelArgsManagerUT, CalculateUpdateModelParamTiling_test) {
   EXPECT_EQ(block_dim, 14);
 };
 
+TEST_F(ModelArgsManagerUT, UpdateForExecute_AclrtMemcpyAsync_BulkIncrement) {
+  gert::GertRuntimeStub runtime_stub;
+  runtime_stub.GetTaskInfoFactoryStub().StubTaskInfo<AicoreStubTaskInfo>(ModelTaskType::MODEL_TASK_KERNEL);
+  auto graph = gert::ShareGraph::BuildTwoAddNodeKnownShapeGraph();
+  graph->TopologicalSorting();
+  auto model = gert::GeModelBuilder(graph)
+                   .AddTaskDef("add1", gert::AiCoreTaskDefFaker("add1"))
+                   .AddTaskDef("add2", gert::AiCoreTaskDefFaker("add2"))
+                   .Build();
+
+  auto davinci_model = DavinciModelFaker()
+                            .SetFmRefreshable(true)
+                            .GeModel(model)
+                            .GenerateSymbolForTaskInfoFaker(&(runtime_stub.GetTaskInfoFactoryStub()))
+                            .Build();
+
+  InsertStubAllocator(davinci_model.get());
+  ModelArgsManager mam(davinci_model.get());
+  std::vector<TaskInfoPtr> task_list;
+  ASSERT_EQ(mam.Init(*(model->GetModelTaskDefPtr()), &task_list), SUCCESS);
+
+  rtStream_t stream = (rtStream_t)1;
+  std::vector<uint64_t> active_mem_base_addr = ActiveMemBaseFaker(2, 1).FmBaseIndex(0).ModelIoBaseIndex(1).Build();
+  mam.AllocKernelLaunchArgsHostMem(active_mem_base_addr.size());
+  uint64_t* active_mem_base_addr_temp = mam.GetActivateMemBaseAddrs();
+  for (size_t i = 0; i < active_mem_base_addr.size(); i++) {
+    active_mem_base_addr_temp[i] = active_mem_base_addr[i];
+  }
+
+  class MockAclRuntime : public ge::AclRuntimeStub {
+   public:
+    aclError aclrtMemcpyAsync(void *dst, size_t dest_max, const void *src, size_t count,
+                              aclrtMemcpyKind kind, void *stream) override {
+      if (dst != nullptr && src != nullptr && count > 0) {
+        memcpy_s(dst, dest_max, src, count);
+      }
+      return ACL_SUCCESS;
+    }
+    aclError aclrtMemcpy(void *dst, size_t dest_max, const void *src, size_t count, aclrtMemcpyKind kind) override {
+      if (dst != nullptr && src != nullptr && count > 0) {
+        memcpy_s(dst, dest_max, src, count);
+      }
+      return ACL_SUCCESS;
+    }
+  };
+  auto mock_acl_runtime = std::make_shared<MockAclRuntime>();
+  ge::AclRuntimeStub::SetInstance(mock_acl_runtime);
+
+  uint32_t up = 4;
+  ASSERT_EQ(mam.UpdateForExecute(up, stream), SUCCESS);
+
+  ge::AclRuntimeStub::Reset();
+};
+
+TEST_F(ModelArgsManagerUT, UpdateForExecute_AclrtMemcpyAsync_HostInputOnly) {
+  gert::GertRuntimeStub runtime_stub;
+  runtime_stub.GetTaskInfoFactoryStub().StubTaskInfo<AicoreStubTaskInfo>(ModelTaskType::MODEL_TASK_KERNEL);
+  auto graph = gert::ShareGraph::BuildTwoAddNodeKnownShapeGraph();
+  graph->TopologicalSorting();
+  auto model = gert::GeModelBuilder(graph)
+                   .AddTaskDef("add1", gert::AiCoreTaskDefFaker("add1"))
+                   .AddTaskDef("add2", gert::AiCoreTaskDefFaker("add2"))
+                   .Build();
+
+  auto davinci_model = DavinciModelFaker()
+                            .SetFmRefreshable(true)
+                            .GeModel(model)
+                            .GenerateSymbolForTaskInfoFaker(&(runtime_stub.GetTaskInfoFactoryStub()))
+                            .Build();
+
+  InsertStubAllocator(davinci_model.get());
+  ModelArgsManager mam(davinci_model.get());
+  std::vector<TaskInfoPtr> task_list;
+  ASSERT_EQ(mam.Init(*(model->GetModelTaskDefPtr()), &task_list), SUCCESS);
+
+  rtStream_t stream = (rtStream_t)1;
+  std::vector<uint64_t> active_mem_base_addr = ActiveMemBaseFaker(2, 1).FmBaseIndex(0).ModelIoBaseIndex(1).Build();
+  mam.AllocKernelLaunchArgsHostMem(active_mem_base_addr.size());
+  uint64_t* active_mem_base_addr_temp = mam.GetActivateMemBaseAddrs();
+  for (size_t i = 0; i < active_mem_base_addr.size(); i++) {
+    active_mem_base_addr_temp[i] = active_mem_base_addr[i];
+  }
+
+  mam.host_input_size_ = 1024;
+
+  class MockAclRuntime : public ge::AclRuntimeStub {
+   public:
+    aclError aclrtMemcpyAsync(void *dst, size_t dest_max, const void *src, size_t count,
+                              aclrtMemcpyKind kind, void *stream) override {
+      if (dst != nullptr && src != nullptr && count > 0) {
+        memcpy_s(dst, dest_max, src, count);
+      }
+      return ACL_SUCCESS;
+    }
+  };
+  auto mock_acl_runtime = std::make_shared<MockAclRuntime>();
+  ge::AclRuntimeStub::SetInstance(mock_acl_runtime);
+
+  uint32_t up = 3;
+  ASSERT_EQ(mam.UpdateForExecute(up, stream), SUCCESS);
+
+  ge::AclRuntimeStub::Reset();
+};
+
+TEST_F(ModelArgsManagerUT, UpdateForExecute_AclrtMemcpyAsync_PartialUpdate) {
+  gert::GertRuntimeStub runtime_stub;
+  runtime_stub.GetTaskInfoFactoryStub().StubTaskInfo<AicoreStubTaskInfo>(ModelTaskType::MODEL_TASK_KERNEL);
+  auto graph = gert::ShareGraph::BuildTwoAddNodeKnownShapeGraph();
+  graph->TopologicalSorting();
+  auto model = gert::GeModelBuilder(graph)
+                   .AddTaskDef("add1", gert::AiCoreTaskDefFaker("add1"))
+                   .AddTaskDef("add2", gert::AiCoreTaskDefFaker("add2"))
+                   .Build();
+
+  auto davinci_model = DavinciModelFaker()
+                            .SetFmRefreshable(true)
+                            .GeModel(model)
+                            .GenerateSymbolForTaskInfoFaker(&(runtime_stub.GetTaskInfoFactoryStub()))
+                            .Build();
+
+  InsertStubAllocator(davinci_model.get());
+  ModelArgsManager mam(davinci_model.get());
+  std::vector<TaskInfoPtr> task_list;
+  ASSERT_EQ(mam.Init(*(model->GetModelTaskDefPtr()), &task_list), SUCCESS);
+
+  rtStream_t stream = (rtStream_t)1;
+  std::vector<uint64_t> active_mem_base_addr = ActiveMemBaseFaker(2, 1).FmBaseIndex(0).ModelIoBaseIndex(1).Build();
+  mam.AllocKernelLaunchArgsHostMem(active_mem_base_addr.size());
+  uint64_t* active_mem_base_addr_temp = mam.GetActivateMemBaseAddrs();
+  for (size_t i = 0; i < active_mem_base_addr.size(); i++) {
+    active_mem_base_addr_temp[i] = active_mem_base_addr[i];
+  }
+
+  class MockAclRuntime : public ge::AclRuntimeStub {
+   public:
+    aclError aclrtMemcpyAsync(void *dst, size_t dest_max, const void *src, size_t count,
+                              aclrtMemcpyKind kind, void *stream) override {
+      if (dst != nullptr && src != nullptr && count > 0) {
+        memcpy_s(dst, dest_max, src, count);
+      }
+      return ACL_SUCCESS;
+    }
+    aclError aclrtMemcpy(void *dst, size_t dest_max, const void *src, size_t count, aclrtMemcpyKind kind) override {
+      if (dst != nullptr && src != nullptr && count > 0) {
+        memcpy_s(dst, dest_max, src, count);
+      }
+      return ACL_SUCCESS;
+    }
+  };
+  auto mock_acl_runtime = std::make_shared<MockAclRuntime>();
+  ge::AclRuntimeStub::SetInstance(mock_acl_runtime);
+
+  uint32_t up = 4;
+  ASSERT_EQ(mam.UpdateForExecute(up, stream), SUCCESS);
+
+  ASSERT_EQ(mam.UpdateForExecute(up, stream), SUCCESS);
+
+  ge::AclRuntimeStub::Reset();
+};
+
+TEST_F(ModelArgsManagerUT, UpdateForExecute_AclrtMemcpy_SyncMode) {
+  gert::GertRuntimeStub runtime_stub;
+  runtime_stub.GetTaskInfoFactoryStub().StubTaskInfo<AicoreStubTaskInfo>(ModelTaskType::MODEL_TASK_KERNEL);
+  auto graph = gert::ShareGraph::BuildTwoAddNodeKnownShapeGraph();
+  graph->TopologicalSorting();
+  auto model = gert::GeModelBuilder(graph)
+                   .AddTaskDef("add1", gert::AiCoreTaskDefFaker("add1"))
+                   .AddTaskDef("add2", gert::AiCoreTaskDefFaker("add2"))
+                   .Build();
+
+  auto davinci_model = DavinciModelFaker()
+                            .SetFmRefreshable(true)
+                            .GeModel(model)
+                            .GenerateSymbolForTaskInfoFaker(&(runtime_stub.GetTaskInfoFactoryStub()))
+                            .Build();
+
+  InsertStubAllocator(davinci_model.get());
+  ModelArgsManager mam(davinci_model.get());
+  std::vector<TaskInfoPtr> task_list;
+  ASSERT_EQ(mam.Init(*(model->GetModelTaskDefPtr()), &task_list), SUCCESS);
+
+  rtStream_t stream = (rtStream_t)1;
+  std::vector<uint64_t> active_mem_base_addr = ActiveMemBaseFaker(2, 1).FmBaseIndex(0).ModelIoBaseIndex(1).Build();
+  mam.AllocKernelLaunchArgsHostMem(active_mem_base_addr.size());
+  uint64_t* active_mem_base_addr_temp = mam.GetActivateMemBaseAddrs();
+  for (size_t i = 0; i < active_mem_base_addr.size(); i++) {
+    active_mem_base_addr_temp[i] = active_mem_base_addr[i];
+  }
+
+  davinci_model->SetAsyncMode(false);
+
+  class MockAclRuntime : public ge::AclRuntimeStub {
+   public:
+    aclError aclrtMemcpy(void *dst, size_t dest_max, const void *src, size_t count, aclrtMemcpyKind kind) override {
+      if (dst != nullptr && src != nullptr && count > 0) {
+        memcpy_s(dst, dest_max, src, count);
+      }
+      return ACL_SUCCESS;
+    }
+  };
+  auto mock_acl_runtime = std::make_shared<MockAclRuntime>();
+  ge::AclRuntimeStub::SetInstance(mock_acl_runtime);
+
+  uint32_t up = 4;
+  ASSERT_EQ(mam.UpdateForExecute(up, stream), SUCCESS);
+
+  ge::AclRuntimeStub::Reset();
+};
 }  // namespace ge

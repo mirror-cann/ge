@@ -165,6 +165,8 @@ target_include_directories(graph_base PRIVATE
     ${CMAKE_BINARY_DIR}
     ${CMAKE_BINARY_DIR}/proto/metadef_protos
     ${ASCEND_INSTALL_PATH}/include
+    ${TOP_DIR}/runtime/include/external
+    ${TOP_DIR}/runtime/include/external/acl
 )
 
 target_link_options(graph_base PRIVATE
@@ -235,6 +237,8 @@ target_include_directories(graph PRIVATE
     ${AIR_CODE_DIR}/inc/graph_metadef
     ${ASCEND_INSTALL_PATH}/include/graph
     ${ASCEND_INSTALL_PATH}/include
+    ${TOP_DIR}/runtime/include/external
+    ${TOP_DIR}/runtime/include/external/acl
 )
 
 target_link_options(graph PRIVATE
@@ -411,6 +415,8 @@ target_include_directories(atc_stub_graph PRIVATE
     ${AIR_CODE_DIR}/inc
     ${AIR_CODE_DIR}/inc/graph_metadef
     ${ASCEND_INSTALL_PATH}/include
+    ${TOP_DIR}/runtime/include/external
+    ${TOP_DIR}/runtime/include/external/acl
 )
 
 target_compile_options(atc_stub_graph PRIVATE
@@ -473,6 +479,8 @@ target_include_directories(fwk_stub_graph PRIVATE
     ${METADEF_DIR}
     ${GE_METADEF_DIR}
     ${AIR_CODE_DIR}/inc
+    ${TOP_DIR}/runtime/include/external
+    ${TOP_DIR}/runtime/include/external/acl
 )
 
 target_link_libraries(fwk_stub_graph
