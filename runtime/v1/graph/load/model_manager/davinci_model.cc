@@ -278,6 +278,19 @@ bool CheckPlatformSoExist(const std::string &platform_so_path) {
   return true;
 }
 
+static void CheckDumpConfigForSubgraph(const std::string &root_graph_name, const std::string &current_model_name,
+                                       const std::string &om_name, const ge::DumpProperties &props) {
+  if (!root_graph_name.empty() && current_model_name != root_graph_name) {
+    size_t op_range_size = props.GetDumpOpRangeSize(root_graph_name, om_name);
+    bool is_watcher_enabled = props.IsDumpWatcherModelEnable();
+    if (op_range_size > 0 || is_watcher_enabled) {
+      GELOGW("[Dump] Op range or watcher mode is configured for root graph [%s], but current model is [%s] (subgraph). "
+              "Dump may not work as expected for these features on subgraphs.",
+              root_graph_name.c_str(), current_model_name.c_str());
+    }
+  }
+}
+
 Status ReadPlatformSo(const std::string &platform_so_path,
     std::unique_ptr<char_t []> &buf, uint32_t &buf_len) {
   // 读取platform so到buf
@@ -6245,6 +6258,22 @@ bool DavinciModel::OpNeedDump(const OpDescPtr &op_desc) {
   return false;
 }
 
+bool DavinciModel::IsRootGraphNeedDump(const std::string &op_name) const {
+  const std::string root_graph_name = GetRootGraphName();
+  if (root_graph_name.empty()) {
+    GELOGD("root_graph_name is empty, return false");
+    return false;
+  }
+
+  const auto &dump_props = GetDumpProperties();
+  bool need_dump_model_name = dump_props.IsLayerNeedDump(root_graph_name, om_name_, op_name);
+  GELOGD("Check dump: root_graph[%s], om_name[%s], dump_model_name[%s], op_name[%s], result1[%d], result2[%d]",
+         root_graph_name.c_str(), om_name_.c_str(), dump_model_name_.c_str(), op_name.c_str(),
+         need_dump_model_name);
+
+  return need_dump_model_name;
+}
+
 bool DavinciModel::OpNeedPrint(const OpDescPtr &op_desc) const {
   const std::string kOpDfxOptions = "_op_dfx_options";
   const std::string kOpDfxPrintf = "printf";
@@ -8113,12 +8142,36 @@ uint32_t DavinciModel::GetDumpModelId() const {
   return runtime_model_id_;
 }
 
+std::string DavinciModel::GetRootGraphName() const {
+  if (ge_model_ == nullptr) {
+    GELOGD("ge_model_ is null, root graph name unavailable");
+    return "";
+  }
+
+  GELOGD("Start to retrieve root graph name");
+  auto graph = ge_model_->GetGraph();
+  while (graph != nullptr && graph->GetParentGraph() != nullptr) {
+    graph = graph->GetParentGraph();
+  }
+  
+  if (graph != nullptr) {
+    std::string root_name = graph->GetName();
+    GELOGD("Found root graph, name[%s]", root_name.c_str());
+    return root_name;
+  } else {
+    GELOGD("Root graph is null");
+    return "";
+  }
+}
+
 Status DavinciModel::SetDataDumperArgs(const ComputeGraphPtr &graph,
                                        const std::map<std::string, OpDescPtr> &variable_by_name) {
   if (dump_model_name_.empty()) {
     dump_model_name_ = name_;
   }
+  const std::string root_graph_name = GetRootGraphName();
   data_dumper_.SetModelName(dump_model_name_);
+  data_dumper_.SetRootGraphName(root_graph_name);
   data_dumper_.SetModelId(GetDumpModelId());
   data_dumper_.SetOmName(om_name_);
   data_dumper_.SetComputeGraph(graph);
@@ -8164,6 +8217,7 @@ Status DavinciModel::SetDataDumperArgs(const ComputeGraphPtr &graph,
                              loop_cond_addr_);
   }
 
+  CheckDumpConfigForSubgraph(GetRootGraphName(), dump_model_name_, om_name_, GetDumpProperties());
   return SUCCESS;
 }
 

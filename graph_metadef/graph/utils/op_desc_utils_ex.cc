@@ -147,13 +147,17 @@ graphStatus OpDescUtilsEx::CallInferFunc(const OpDescPtr &op_desc, Operator &op)
   graphStatus ret;
   // NoOp算子有原型，无infershape, 无数据输出, 此类需要跳过infer
   const bool has_io = (op_desc->GetInputsSize() != 0U || op_desc->GetOutputsSize() != 0U);
-  const bool need_infer =
-      (has_io && (OperatorFactory::IsExistOp(op_desc->GetTypePtr()) || (op_desc->GetInferFunc() != nullptr)));
+  const bool is_exist_op = OperatorFactory::IsExistOp(op_desc->GetTypePtr());
+  const bool has_infer_func = (op_desc->GetInferFunc() != nullptr);
+  const bool need_infer = (has_io && (is_exist_op || has_infer_func));
   if (!need_infer) {
     // todo 这是一个特殊错误码，早期版本与接口调用方约定的错误码，调用方认为这不是个错误，并且会依据该错误码作额外工作
     // 如，映射到已有的IR上等行为，或无痛地跳过infershape（如netoutput/framework
     // 这里暂时为了v1动态shape执行时保留该错误码，后续整改
-    GELOGD("Node %s(%s) no io or no prototype so does not need infer.", op_desc->GetNamePtr(), op_desc->GetTypePtr());
+    GELOGW(
+        "Node %s(%s) skipped shape inferrence, because has_io is %d, has_ir is %d, has_infer_func is %d, The process "
+        "proceeds only if has_io is true and either has_ir or has_infer_func is true",
+        op_desc->GetNamePtr(), op_desc->GetTypePtr(), has_io, is_exist_op, has_infer_func);
     ret = GRAPH_PARAM_INVALID;
   } else if (CustomOpFactory::IsExistOp(op_desc->GetTypePtr())) {
     ret = InferCustomOpShape(op_desc, op);

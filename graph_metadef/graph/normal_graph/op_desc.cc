@@ -1802,8 +1802,9 @@ graphStatus OpDesc::CommonVerify() const {
       continue;
     }
     for (const int64_t dim : ishape) {
-      GE_ASSERT_TRUE(dim >= UNKNOWN_DIM_NUM, "Op[%s]'s input %s shape contains negative or zero dimension",
-                     GetName().c_str(), iname.c_str());
+      GE_ASSERT_TRUE(dim >= UNKNOWN_DIM_NUM,
+                     "Op[%s]'s input %s shape contains invalid dimension, it must >= -2, but it is :%" PRId64,
+                     GetName().c_str(), iname.c_str(), dim);
     }
   }
   // Check all attributes defined

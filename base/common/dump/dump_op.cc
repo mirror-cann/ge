@@ -105,6 +105,49 @@ static void SetLoopAddrToOpMapping(const uintptr_t step_id, const uintptr_t loop
   }
 }
 
+bool DumpOp::IsInBlacklist(const std::string &op_name, const std::string &op_type, size_t index, bool is_input) const {
+  std::set<std::string> check_names;
+  if (!dynamic_model_name_.empty()) check_names.insert(dynamic_model_name_);
+  if (!root_graph_name_.empty()) check_names.insert(root_graph_name_);
+  if (!dynamic_om_name_.empty()) check_names.insert(dynamic_om_name_);
+
+  for (const auto &mn : check_names) {
+    if (is_input) {
+      if (dump_properties_.IsInputInOpNameBlacklist(mn, op_name, static_cast<uint32_t>(index)) ||
+        dump_properties_.IsInputInOpTypeBlacklist(mn, op_type, static_cast<uint32_t>(index))) {
+        GELOGI("[Dumper] Node %s input[%zu] is in blacklist for model %s, skip.",
+                op_name.c_str(), index, mn.c_str());
+        return true;
+      }
+    } else {
+      if (dump_properties_.IsOutputInOpNameBlacklist(mn, op_name, static_cast<uint32_t>(index)) ||
+        dump_properties_.IsOutputInOpTypeBlacklist(mn, op_type, static_cast<uint32_t>(index))) {
+        GELOGI("[Dumper] Node %s output[%zu] is in blacklist for model %s, skip.",
+                op_name.c_str(), index, mn.c_str());
+        return true;
+      }
+    }
+  }
+
+  if (is_input) {
+    if (dump_properties_.IsInputInOpNameBlacklist(DUMP_LAYER_OP_MODEL, op_name, static_cast<uint32_t>(index)) ||
+      dump_properties_.IsInputInOpTypeBlacklist(DUMP_LAYER_OP_MODEL, op_type, static_cast<uint32_t>(index))) {
+      GELOGI("[Dumper] Node %s input[%zu] is in global blacklist (DUMP_LAYER_OP_MODEL), skip.",
+              op_name.c_str(), index);
+      return true;
+    }
+  } else {
+    if (dump_properties_.IsOutputInOpNameBlacklist(DUMP_LAYER_OP_MODEL, op_name, static_cast<uint32_t>(index)) ||
+      dump_properties_.IsOutputInOpTypeBlacklist(DUMP_LAYER_OP_MODEL, op_type, static_cast<uint32_t>(index))) {
+      GELOGI("[Dumper] Node %s output[%zu] is in global blacklist (DUMP_LAYER_OP_MODEL), skip.",
+              op_name.c_str(), index);
+      return true;
+    }
+  }
+
+  return false;
+}
+
 void DumpOp::DumpWorkspace(toolkit::aicpu::dump::Task &task) {
   for (size_t i = 0UL; i < space_addrs_.size(); ++i) {
     const uint64_t addr = static_cast<uint64_t>(space_addrs_[i].first);
@@ -142,18 +185,8 @@ Status DumpOp::DumpOutput(toolkit::aicpu::dump::Task &task, const OpDescPtr &op_
   for (size_t i = 0UL; i < output_descs.size(); ++i) {
     const std::string op_name = op_desc->GetName();
     const std::string op_type = op_desc->GetType();
-    if (dump_properties_.IsOutputInOpNameBlacklist(dump_model_name, op_name, static_cast<uint32_t>(i)) ||
-      dump_properties_.IsOutputInOpNameBlacklist(dump_om_name, op_name, static_cast<uint32_t>(i)) ||
-      dump_properties_.IsOutputInOpNameBlacklist(DUMP_LAYER_OP_MODEL, op_name, static_cast<uint32_t>(i))) {
-      GELOGI("[Dumper] Node name %s, Node type: %s, output index %zu is in opname-blacklist, skip to dump this output.",
-         op_name.c_str(), op_type.c_str(), i);
-      continue;
-    }
-    if (dump_properties_.IsOutputInOpTypeBlacklist(dump_model_name, op_type, static_cast<uint32_t>(i)) ||
-      dump_properties_.IsOutputInOpTypeBlacklist(dump_om_name, op_type, static_cast<uint32_t>(i)) ||
-      dump_properties_.IsOutputInOpTypeBlacklist(DUMP_LAYER_OP_MODEL, op_type, static_cast<uint32_t>(i))) {
-      GELOGI("[Dumper] Node name %s, Node type: %s, output index %zu is in optype-blacklist, skip to dump this output.",
-         op_name.c_str(), op_type.c_str(), i);
+        // 检查是否应该跳过该输出
+    if (IsInBlacklist(op_name, op_type, i, false)) {
       continue;
     }
     if ((i >= addrs.size()) || (!ffts_flag && addrs[i] == reinterpret_cast<uintptr_t>(nullptr))) {
@@ -202,18 +235,7 @@ Status DumpOp::DumpInput(toolkit::aicpu::dump::Task &task, const OpDescPtr &op_d
     const std::string op_name = op_desc->GetName();
     const std::string op_type = op_desc->GetType();
     GELOGI("[Dumper] Node name %s, node type %s input_descs idx %zu", op_name.c_str(), op_type.c_str(), i);
-    if (dump_properties_.IsInputInOpNameBlacklist(dump_model_name, op_name, static_cast<uint32_t>(i)) ||
-      dump_properties_.IsInputInOpNameBlacklist(dump_om_name, op_name, static_cast<uint32_t>(i)) ||
-      dump_properties_.IsInputInOpNameBlacklist(DUMP_LAYER_OP_MODEL, op_name, static_cast<uint32_t>(i))) {
-      GELOGI("[Dumper] Node name %s, Node type: %s, input index %zu is in opname-blacklist, skip to dump this input.",
-         op_name.c_str(), op_type.c_str(), i);
-      continue;
-    }
-    if (dump_properties_.IsInputInOpTypeBlacklist(dump_model_name, op_type, static_cast<uint32_t>(i)) ||
-      dump_properties_.IsInputInOpTypeBlacklist(dump_om_name, op_type, static_cast<uint32_t>(i)) ||
-      dump_properties_.IsInputInOpTypeBlacklist(DUMP_LAYER_OP_MODEL, op_type, static_cast<uint32_t>(i))) {
-      GELOGI("[Dumper] Node name %s, Node type: %s, input index %zu is in optype-blacklist, skip to dump this input.",
-         op_name.c_str(), op_type.c_str(), i);
+    if (IsInBlacklist(op_name, op_type, i, true)) {
       continue;
     }
     input_descs = op_desc->MutableInputDesc(static_cast<uint32_t>(i));

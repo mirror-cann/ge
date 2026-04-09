@@ -230,6 +230,7 @@ const char_t *const kEnvName = "ASCEND_OPP_PATH";
 const char_t *const kBuiltIn = "built-in";
 const char_t *const kVendors = "vendors";
 const char_t *const kOpMasterDeviceLib = "/op_impl/ai_core/tbe/op_master_device/lib/";
+const std::vector<int64_t> kTensorDim = {16};
 
 static void BuildSampleNoTilingGraph(ComputeGraphPtr &graph, uint32_t &mem_offset) {
   BuildSampleGraph(graph, mem_offset);
@@ -6780,5 +6781,150 @@ TEST_F(DavinciModelTest, Adump_InputNode) {
   EXPECT_EQ(g_adump_record.call_count, 1);
 }
 
-} // namespace ge
+TEST_F(DavinciModelTest, DavinciModelExecute_SubgraphDump_Blacklist_RootGraph) {
+  gert::GlobalDumper::GetInstance()->ClearInnerExceptionDumpers();
 
+  // 辅助常量
+  const int64_t kSizePerTensor = 16 * sizeof(float);
+  const std::vector<int64_t> kTensorDim = {16};
+
+  // ========== 构建根图 ==========
+  // data_0 节点：先清空偏移量，再添加描述符和正确偏移量
+  auto data_0 = CreateOpDesc("data_0", DATA);
+  data_0->SetOutputOffset({});      // 清空默认的 {100,200}
+  data_0->SetInputOffset({});       // 清空默认的 {100,200}
+  GeTensorDesc tensor(GeShape(kTensorDim), FORMAT_ND, DT_FLOAT);
+  TensorUtils::SetSize(tensor, kSizePerTensor);
+  data_0->AddOutputDesc(tensor);
+  data_0->SetOutputOffset({0});     // 输出偏移量
+  data_0->AddInputDesc(tensor);     // 添加虚拟输入描述符，避免 InitInputDescInfo 空指针
+
+  // conv_0 节点
+  auto conv_0 = CreateOpDesc("conv_0", CONV2D);
+  conv_0->SetOutputOffset({});
+  conv_0->SetInputOffset({});
+  conv_0->AddInputDesc(tensor);
+  conv_0->AddInputDesc(tensor);
+  conv_0->AddOutputDesc(tensor);
+  conv_0->SetInputOffset({0, kSizePerTensor});
+  conv_0->SetOutputOffset({2 * kSizePerTensor});
+
+  // output_0 节点
+  auto output_0 = CreateOpDesc("output_0", NETOUTPUT);
+  output_0->SetOutputOffset({});
+  output_0->SetInputOffset({});
+  output_0->AddInputDesc(tensor);
+  output_0->SetInputOffset({2 * kSizePerTensor});
+  output_0->SetSrcName({"conv_0"});
+  output_0->SetSrcIndex({0});
+
+  auto root_graph = MakeShared<ComputeGraph>("root_g");
+  auto node_data_0 = root_graph->AddNode(data_0);
+  auto node_conv_0 = root_graph->AddNode(conv_0);
+  auto node_output_0 = root_graph->AddNode(output_0);
+
+  GraphUtils::AddEdge(node_data_0->GetOutDataAnchor(0), node_conv_0->GetInDataAnchor(0));
+  GraphUtils::AddEdge(node_data_0->GetOutDataAnchor(0), node_conv_0->GetInDataAnchor(1));
+  GraphUtils::AddEdge(node_conv_0->GetOutDataAnchor(0), node_output_0->GetInDataAnchor(0));
+
+  // ========== 创建子图并设置父图 ==========
+  ComputeGraphPtr subgraph = MakeShared<ComputeGraph>("subgraph");
+
+  // 调用节点
+  auto call_node_desc = CreateOpDesc("call_subgraph", "Call");
+  call_node_desc->SetOutputOffset({});
+  call_node_desc->SetInputOffset({});
+  call_node_desc->AddInputDesc(tensor);
+  call_node_desc->AddOutputDesc(tensor);
+  call_node_desc->SetInputOffset({0});
+  call_node_desc->SetOutputOffset({0});
+  auto call_node = root_graph->AddNode(call_node_desc);
+
+  call_node->GetOpDesc()->RegisterSubgraphIrName("f", SubgraphType::kStatic);
+  call_node->GetOpDesc()->AddSubgraphName(subgraph->GetName());
+  call_node_desc->SetSubgraphInstanceName(0, subgraph->GetName());
+
+  subgraph->SetParentNode(call_node);
+  subgraph->SetParentGraph(root_graph);
+  root_graph->AddSubgraph(subgraph);
+
+  // ========== 构造子图节点 ==========
+  auto conv_1 = CreateOpDesc("conv_1", CONV2D);
+  conv_1->SetOutputOffset({});
+  conv_1->SetInputOffset({});
+  GeTensorDesc tensor_sub(GeShape(kTensorDim), FORMAT_NCHW, DT_FLOAT);
+  TensorUtils::SetSize(tensor_sub, kSizePerTensor);
+  conv_1->AddInputDesc(tensor_sub);
+  conv_1->AddOutputDesc(tensor_sub);
+  conv_1->SetInputOffset({0});
+  conv_1->SetOutputOffset({kSizePerTensor});
+
+  auto netout = CreateOpDesc("netoutput_1", NETOUTPUT);
+  netout->SetOutputOffset({});
+  netout->SetInputOffset({});
+  netout->AddInputDesc(tensor_sub);
+  netout->SetInputOffset({kSizePerTensor});
+  netout->SetSrcName({"conv_1"});
+  netout->SetSrcIndex({0});
+
+  auto node_conv = subgraph->AddNode(conv_1);
+  auto node_out = subgraph->AddNode(netout);
+  GraphUtils::AddEdge(node_conv->GetOutDataAnchor(0), node_out->GetInDataAnchor(0));
+
+  subgraph->SetGraphUnknownFlag(false);
+
+  // ========== 配置 dump 属性（包含黑名单）==========
+  uint64_t session_id = 12346;
+  DumpProperties dump_properties;
+  dump_properties.SetDumpMode("all");
+  dump_properties.SetDumpStep("0");
+  dump_properties.AddPropertyValue("root_g", {"_conv_0"});
+  dump_properties.AddPropertyValue("subgraph", {"conv_1"});
+
+  std::map<std::string, ModelOpBlacklist> blacklist;
+  ModelOpBlacklist bl;
+  bl.dump_opname_blacklist["_conv_0"].output_indices = {0};
+  blacklist["root_g"] = bl;
+  dump_properties.SetModelDumpBlacklistMap(blacklist);
+
+  DumpManager::GetInstance().RemoveDumpProperties(session_id);
+  DumpManager::GetInstance().AddDumpProperties(session_id, dump_properties);
+
+  // ========== 构建子图的 GeModel ==========
+  GeModelPtr ge_model = MakeShared<GeModel>();
+  ge_model->SetGraph(subgraph);
+  ge::AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 2560);
+  ge::AttrUtils::SetInt(ge_model, ATTR_MODEL_STREAM_NUM, 1);
+  auto model_task_def = MakeShared<domi::ModelTaskDef>();
+  ge_model->SetModelTaskDef(model_task_def);
+
+  // ========== 构建根图的 GeModel（必须包含 ModelTaskDef）==========
+  GeModelPtr root_ge_model = MakeShared<GeModel>();
+  root_ge_model->SetGraph(root_graph);
+  ge::AttrUtils::SetInt(root_ge_model, ATTR_MODEL_MEMORY_SIZE, 2560);
+  ge::AttrUtils::SetInt(root_ge_model, ATTR_MODEL_STREAM_NUM, 1);
+  auto root_model_task_def = MakeShared<domi::ModelTaskDef>();
+  root_ge_model->SetModelTaskDef(root_model_task_def);
+
+  // ========== 创建 GeRootModel 并关联 ==========
+  GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
+  ge_root_model->Initialize(root_graph);
+  ge_root_model->SetSubgraphInstanceNameToModel(root_graph->GetName(), root_ge_model);
+  ge_root_model->SetSubgraphInstanceNameToModel(subgraph->GetName(), ge_model);
+
+  // ========== 加载模型并执行 ==========
+  GraphId graph_id = 1002;
+  GraphNodePtr graph_node = MakeShared<GraphNode>(graph_id);
+  graph_node->SetGeRootModel(ge_root_model);
+  graph_node->SetLoadFlag(true);
+
+  ModelExecutor model_executor;
+  EXPECT_EQ(model_executor.Initialize({}, session_id), SUCCESS);
+  model_executor.StartRunThread();
+  EXPECT_EQ(model_executor.LoadGraph(ge_root_model, graph_node), SUCCESS);
+  EXPECT_EQ(model_executor.UnloadGraph(ge_root_model, graph_id), SUCCESS);
+  EXPECT_EQ(model_executor.Finalize(), SUCCESS);
+
+  DumpManager::GetInstance().RemoveDumpProperties(session_id);
+}
+} // namespace ge

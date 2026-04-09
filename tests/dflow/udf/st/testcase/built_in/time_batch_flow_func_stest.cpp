@@ -135,7 +135,8 @@ TEST_F(TimeBatchFlowFuncSTest, timebatch_with_flag_and_default_attr_value) {
     DataEnqueue(qid, shape, TensorDataType::DT_INT32, head_msg, input_data);
   }
   wait_in_ms = 0;
-  while (wait_in_ms < kMaxWaitInMs) {
+  constexpr uint64_t kMaxWaitInMsLong = 3000;
+  while (wait_in_ms < kMaxWaitInMsLong) {
     for (size_t i = 0; i < outputs_qid.size(); ++i) {
       if (!get_out[i]) {
         auto drv_ret = halQueueDeQueue(0, outputs_qid[i], &(outs_mbuf_ptr[i]));

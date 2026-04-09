@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -178,6 +178,7 @@ Status PluginManager::GetOppPath(std::string &opp_path) {
     opp_path = opp_path.substr(0, opp_path.rfind('/') + 1U);
     opp_path += "ops/";
   }
+  GELOGD("Leave get opp path schedule, opp_path:%s", opp_path.c_str());
   return SUCCESS;
 }
 
@@ -350,11 +351,22 @@ bool PluginManager::GetRequiredOppAbiVersion(std::vector<std::pair<uint32_t, uin
 }
 
 bool PluginManager::GetEffectiveVersion(const std::string &opp_version, uint32_t &effective_version) {
-  const auto split_version = StringUtils::Split(opp_version, '.');
+  auto split_version = StringUtils::Split(opp_version, '.');
   GE_ASSERT_TRUE(split_version.size() >= kEffectiveVersionNum);
   std::stringstream ss;
-  ss << split_version[0];        // Cann version
-  ss << split_version[1];        // C version
+  ss << split_version[0];  // Cann version
+  const size_t c_effective_version_max_num = 5;
+  const size_t c_effective_version_size = split_version[1].size();
+  if (c_effective_version_max_num > c_effective_version_size) {
+    // C version 的数字个数要拉齐，不然配 3.20~9.0 之类的会取到空集
+    split_version[1].append(c_effective_version_max_num - c_effective_version_size, '0');
+  } else {
+    GELOGW(
+        "c_effective_version_size:%zu, will reach or over max num:%zu, Ensure that the range of valid version is not "
+        "empty",
+        c_effective_version_size, c_effective_version_max_num);
+  }
+  ss << split_version[1];  // C version
   ss >> effective_version;
   if (ss.fail() || !ss.eof()) {
     GELOGW("Can not convert [%s] to number from %s", ss.str().c_str(), opp_version.c_str());
@@ -366,6 +378,7 @@ bool PluginManager::GetEffectiveVersion(const std::string &opp_version, uint32_t
 
 bool PluginManager::IsVendorVersionValid(const std::string &vendor_path) {
   // opp_kernel包支持独立升级，不进行版本号校验
+  GELOGD("CheckVersionValid, vendor_path:%s", vendor_path.c_str());
   if (vendor_path.find(kOppLatest) != std::string::npos) {
     GELOGW("Will not verify version for [%s] as the opp kernel is independent upgrade.", vendor_path.c_str());
     return true;
@@ -419,8 +432,8 @@ bool PluginManager::CheckOppAndCompilerVersions(const std::string &opp_version, 
       return false;
     }
     if (!IsVersionWithInRequiredRange(effective_opp_version, required_version)) {
-      GELOGW("opp_version:%s is not with in required_opp_abi_version:%s",
-             opp_version.c_str(), TransRequiredOppAbiVersionToString(required_version).c_str());
+      GELOGW("opp_version:%s is not with in required_opp_abi_version:%s", opp_version.c_str(),
+             TransRequiredOppAbiVersionToString(required_version).c_str());
       return false;
     }
   }
@@ -593,16 +606,18 @@ bool PluginManager::IsSplitOpp() {
  * @return
  */
 Status PluginManager::GetOpsProtoPath(std::string &opsproto_path) {
-  GELOGI("Enter GetOpsProtoPath schedule");
+  Status ret = SUCCESS;
   std::string opp_path;
   GE_ASSERT_TRUE(GetOppPath(opp_path) == SUCCESS, "Failed to get opp path!");
   if (!IsNewOppPathStruct(opp_path)) {
-    GELOGI("Opp plugin path structure is old version!");
-    return GetOppPluginPathOld(opp_path, "op_proto/%s/", opsproto_path);
+    ret = GetOppPluginPathOld(opp_path, "op_proto/%s/", opsproto_path);
+    GELOGI("Opp plugin path structure is old version! opsproto_path:%s", opsproto_path.c_str());
+    return ret;
   } else {
-    GELOGI("Opp plugin path structure is new version!");
     GetPluginPathFromCustomOppPath("op_proto/", opsproto_path);
-    return GetOppPluginPathNew(opp_path, "%s/op_proto/", opsproto_path, "op_proto/custom/");
+    ret = GetOppPluginPathNew(opp_path, "%s/op_proto/", opsproto_path, "op_proto/custom/");
+    GELOGI("Opp plugin path structure is new version! opsproto_path:%s", opsproto_path.c_str());
+    return ret;
   }
 }
 
@@ -731,7 +746,7 @@ Status PluginManager::LoadSo(const std::string &path, const std::vector<std::str
 }
 
 Status PluginManager::LoadSoWithFlags(const std::string &path, const int32_t flags,
-    const std::vector<std::string> &func_check_list) {
+                                      const std::vector<std::string> &func_check_list) {
   uint32_t num_of_loaded_so = 0U;
   int64_t size_of_loaded_so = 0;
   so_list_.clear();
@@ -861,7 +876,7 @@ Status PluginManager::Load(const std::string &path, const std::vector<std::strin
 }
 
 Status PluginManager::LoadWithFlags(const std::string &path, const int32_t flags,
-    const std::vector<std::string> &func_check_list) {
+                                    const std::vector<std::string> &func_check_list) {
   uint32_t num_of_loaded_so = 0U;
   int64_t size_of_loaded_so = 0;
   constexpr uint32_t is_folder = 0x4U;
@@ -900,10 +915,10 @@ Status PluginManager::LoadWithFlags(const std::string &path, const int32_t flags
 
     // ignore folder
     const bool invalid_file = ((file_type == is_folder) ||
-                         // ignore file whose name length is less than 3
-                         (file_name.size() <= ext.size()) ||
-                         // ignore file whose extension is not so
-                         (file_name.compare(file_name.size() - ext.size(), ext.size(), ext) != 0));
+                               // ignore file whose name length is less than 3
+                               (file_name.size() <= ext.size()) ||
+                               // ignore file whose extension is not so
+                               (file_name.compare(file_name.size() - ext.size(), ext.size(), ext) != 0));
     if (invalid_file) {
       continue;
     }

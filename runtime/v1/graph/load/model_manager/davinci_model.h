@@ -654,6 +654,10 @@ class DavinciModel {
       return false;
     }
 
+    if (IsRootGraphNeedDump(op_name)) {
+      return true;
+    }
+
     return GetDumpProperties().IsLayerNeedDump(dump_model_name_, om_name_, op_name) || IsInDumpOpRange(op_name);
   }
 
@@ -675,6 +679,10 @@ class DavinciModel {
   }
 
   bool OpNeedDump(const OpDescPtr &op_desc);
+  
+  bool IsRootGraphNeedDump(const std::string &op_name) const;
+
+  std::string GetRootGraphName() const;
 
   bool OpNeedPrint(const OpDescPtr &op_desc) const;
 

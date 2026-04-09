@@ -2756,4 +2756,77 @@ TEST_F(ExecutorDumperUT, InitOrderHoldersFromExeGraph_UT) {
   dumper->InitOrderHoldersFromExeGraph("WaitEvents_1025", &dump_unit);
   EXPECT_EQ(dumper->kernel_idxes_to_dump_units_[2].size(), 0);
 }
+
+TEST_F(ExecutorDumperUT, GetRootGraphName_WithRootGraph) {
+  auto graph = ShareGraph::BuildSingleNodeGraph();
+  graph->TopologicalSorting();
+  GeModelBuilder builder(graph);
+  auto ge_root_model = builder.AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle()).BuildGeRootModel();
+
+  auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model);
+  ASSERT_NE(exe_graph, nullptr);
+  ASSERT_EQ(3, exe_graph->GetDirectNodesSize());
+
+  auto root_compute_graph = ge_root_model->GetRootGraph();
+  const auto &extend_info = ge::MakeShared<const SubscriberExtendInfo>(
+    nullptr, exe_graph, root_compute_graph, ge::ModelData(), nullptr, SymbolsToValue{}, 0, "", nullptr,
+    std::unordered_map<std::string, TraceAttr>{});
+
+  ExecutorDumper dumper(extend_info);
+  std::string root_name = dumper.GetRootGraphName();
+  EXPECT_EQ(root_name, "g1");
+}
+
+TEST_F(ExecutorDumperUT, GetRootGraphName_WithoutRootGraph) {
+  auto exe_graph = std::make_shared<ge::ExecuteGraph>("");
+
+  const auto &extend_info = ge::MakeShared<const SubscriberExtendInfo>(
+      nullptr, exe_graph, nullptr, ge::ModelData(), nullptr, SymbolsToValue{}, 0, "", nullptr,
+      std::unordered_map<std::string, TraceAttr>{});
+
+  ExecutorDumper dumper(extend_info);
+  std::string root_name = dumper.GetRootGraphName();
+  EXPECT_TRUE(root_name.empty());
+}
+
+TEST_F(ExecutorDumperUT, IsOpInDumpList_RootGraphDump) {
+  auto exe_graph = std::make_shared<ge::ExecuteGraph>("");                    // 执行图，可以忽略名称
+  auto root_graph = std::make_shared<ge::ComputeGraph>("root_graph_name");    // 根图，类型修正
+
+  const auto &extend_info = ge::MakeShared<const SubscriberExtendInfo>(
+      nullptr, exe_graph, root_graph, ge::ModelData(), nullptr, SymbolsToValue{}, 0, "", nullptr,
+      std::unordered_map<std::string, TraceAttr>{});
+
+  ExecutorDumper dumper(extend_info);
+  GlobalDumper::GetInstance()->SetEnableFlags(1UL);
+
+  ge::DumpProperties dump_properties;
+  dump_properties.AddPropertyValue("root_graph_name", {"test_op"});   // 配置根图名称和需要dump的算子
+  dump_properties.SetDumpMode("all");
+  ge::DumpManager::GetInstance().AddDumpProperties(ge::kInferSessionId, dump_properties);
+
+  // Root graph dump should enable dump for op
+  EXPECT_TRUE(dumper.IsOpInDumpList(dump_properties, "test_op"));
+  EXPECT_FALSE(dumper.IsOpInDumpList(dump_properties, "other_op"));
+}
+
+TEST_F(ExecutorDumperUT, IsOpInDumpList_CurrentGraphDump) {
+  auto exe_graph = std::make_shared<ge::ExecuteGraph>("current_graph");
+
+  const auto &extend_info = ge::MakeShared<const SubscriberExtendInfo>(
+    nullptr, exe_graph, nullptr, ge::ModelData{}, nullptr, SymbolsToValue{}, 0, "", nullptr,
+    std::unordered_map<std::string, TraceAttr>{});
+
+  ExecutorDumper dumper(extend_info);
+  GlobalDumper::GetInstance()->SetEnableFlags(1UL);
+
+  ge::DumpProperties dump_properties;
+  dump_properties.AddPropertyValue("current_graph", {"test_op"});
+  dump_properties.SetDumpMode("all");
+  ge::DumpManager::GetInstance().AddDumpProperties(ge::kInferSessionId, dump_properties);
+
+  // Current graph dump should enable dump for op
+  EXPECT_FALSE(dumper.IsOpInDumpList(dump_properties, "test_op"));
+  EXPECT_FALSE(dumper.IsOpInDumpList(dump_properties, "other_op"));
+}
 }  // namespace gert

@@ -1253,4 +1253,160 @@ TEST_F(UtestDataDumper, DumpOpWithAdump_StreamNull_Fail) {
   EXPECT_EQ(g_adump_call.call_count, 0);
 }
 
+TEST_F(UtestDataDumper, SetRootGraphName_Ok) {
+  RuntimeParam rts_param;
+  DataDumper data_dumper(&rts_param);
+  data_dumper.SetRootGraphName("test_root_graph");
+}
+
+TEST_F(UtestDataDumper, IsInInputOpBlacklist_ModelName) {
+  RuntimeParam rts_param;
+  DataDumper data_dumper(&rts_param);
+  data_dumper.SetModelName("model1");
+  data_dumper.SetOmName("om1");
+
+  std::map<std::string, ModelOpBlacklist> blacklist;
+  ModelOpBlacklist bl;
+  bl.dump_opname_blacklist["test_op"].input_indices = {0, 1};
+  bl.dump_optype_blacklist["TestType"].input_indices = {2};
+  blacklist["model1"] = bl;
+  data_dumper.dump_properties_.SetModelDumpBlacklistMap(blacklist);
+
+  OpDescPtr op_desc1 = CreateOpDesc("test_op", "TestType");
+  OpDescPtr op_desc2 = CreateOpDesc("other_op", "OtherType");
+
+  // Check op name blacklist
+  EXPECT_TRUE(data_dumper.IsInInputOpBlacklist(op_desc1, 0));
+  EXPECT_TRUE(data_dumper.IsInInputOpBlacklist(op_desc1, 1));
+
+  // Check op type blacklist
+  EXPECT_TRUE(data_dumper.IsInInputOpBlacklist(op_desc1, 2));
+  EXPECT_FALSE(data_dumper.IsInInputOpBlacklist(op_desc1, 3));
+
+  // Op not in blacklist
+  EXPECT_FALSE(data_dumper.IsInInputOpBlacklist(op_desc2, 0));
+}
+
+TEST_F(UtestDataDumper, IsInInputOpBlacklist_OmName) {
+  RuntimeParam rts_param;
+  DataDumper data_dumper(&rts_param);
+  data_dumper.SetModelName("model1");
+  data_dumper.SetOmName("om1");
+
+  std::map<std::string, ModelOpBlacklist> blacklist;
+  ModelOpBlacklist bl;
+  bl.dump_opname_blacklist["test_op"].input_indices = {0};
+  blacklist["om1"] = bl;
+  data_dumper.dump_properties_.SetModelDumpBlacklistMap(blacklist);
+
+  OpDescPtr op_desc = CreateOpDesc("test_op", "TestType");
+
+  // Check om name blacklist
+  EXPECT_TRUE(data_dumper.IsInInputOpBlacklist(op_desc, 0));
+  EXPECT_FALSE(data_dumper.IsInInputOpBlacklist(op_desc, 1));
+}
+
+TEST_F(UtestDataDumper, IsInInputOpBlacklist_Global) {
+  RuntimeParam rts_param;
+  DataDumper data_dumper(&rts_param);
+  data_dumper.SetModelName("model1");
+  data_dumper.SetOmName("om1");
+
+  std::map<std::string, ModelOpBlacklist> blacklist;
+  ModelOpBlacklist bl;
+  bl.dump_opname_blacklist["test_op"].input_indices = {0};
+  blacklist[DUMP_LAYER_OP_MODEL] = bl;
+  data_dumper.dump_properties_.SetModelDumpBlacklistMap(blacklist);
+
+  OpDescPtr op_desc = CreateOpDesc("test_op", "TestType");
+
+  // Check global blacklist
+  EXPECT_TRUE(data_dumper.IsInInputOpBlacklist(op_desc, 0));
+  EXPECT_FALSE(data_dumper.IsInInputOpBlacklist(op_desc, 1));
+}
+
+TEST_F(UtestDataDumper, IsInOutputOpBlacklist_ModelName) {
+  RuntimeParam rts_param;
+  DataDumper data_dumper(&rts_param);
+  data_dumper.SetModelName("model1");
+  data_dumper.SetOmName("om1");
+
+  std::map<std::string, ModelOpBlacklist> blacklist;
+  ModelOpBlacklist bl;
+  bl.dump_opname_blacklist["test_op"].output_indices = {0, 1};
+  bl.dump_optype_blacklist["TestType"].output_indices = {2};
+  blacklist["model1"] = bl;
+  data_dumper.dump_properties_.SetModelDumpBlacklistMap(blacklist);
+
+  OpDescPtr op_desc1 = CreateOpDesc("test_op", "TestType");
+  OpDescPtr op_desc2 = CreateOpDesc("other_op", "OtherType");
+
+  // Check op name blacklist
+  EXPECT_TRUE(data_dumper.IsInOutputOpBlacklist(op_desc1, 0));
+  EXPECT_TRUE(data_dumper.IsInOutputOpBlacklist(op_desc1, 1));
+
+  // Check op type blacklist
+  EXPECT_TRUE(data_dumper.IsInOutputOpBlacklist(op_desc1, 2));
+  EXPECT_FALSE(data_dumper.IsInOutputOpBlacklist(op_desc1, 3));
+
+  // Op not in blacklist
+  EXPECT_FALSE(data_dumper.IsInOutputOpBlacklist(op_desc2, 0));
+}
+
+TEST_F(UtestDataDumper, IsInOutputOpBlacklist_OmName) {
+  RuntimeParam rts_param;
+  DataDumper data_dumper(&rts_param);
+  data_dumper.SetModelName("model1");
+  data_dumper.SetOmName("om1");
+
+  std::map<std::string, ModelOpBlacklist> blacklist;
+  ModelOpBlacklist bl;
+  bl.dump_opname_blacklist["test_op"].output_indices = {0};
+  blacklist["om1"] = bl;
+  data_dumper.dump_properties_.SetModelDumpBlacklistMap(blacklist);
+
+  OpDescPtr op_desc = CreateOpDesc("test_op", "TestType");
+
+  // Check om name blacklist
+  EXPECT_TRUE(data_dumper.IsInOutputOpBlacklist(op_desc, 0));
+  EXPECT_FALSE(data_dumper.IsInOutputOpBlacklist(op_desc, 1));
+}
+
+TEST_F(UtestDataDumper, IsInOutputOpBlacklist_Global) {
+  RuntimeParam rts_param;
+  DataDumper data_dumper(&rts_param);
+  data_dumper.SetModelName("model1");
+  data_dumper.SetOmName("om1");
+
+  std::map<std::string, ModelOpBlacklist> blacklist;
+  ModelOpBlacklist bl;
+  bl.dump_opname_blacklist["test_op"].output_indices = {0};
+  blacklist[DUMP_LAYER_OP_MODEL] = bl;
+  data_dumper.dump_properties_.SetModelDumpBlacklistMap(blacklist);
+
+  OpDescPtr op_desc = CreateOpDesc("test_op", "TestType");
+
+  // Check global blacklist
+  EXPECT_TRUE(data_dumper.IsInOutputOpBlacklist(op_desc, 0));
+  EXPECT_FALSE(data_dumper.IsInOutputOpBlacklist(op_desc, 1));
+}
+
+TEST_F(UtestDataDumper, IsInOutputOpBlacklist_KDataTypeOutput) {
+  RuntimeParam rts_param;
+  DataDumper data_dumper(&rts_param);
+  data_dumper.SetModelName("model1");
+  data_dumper.SetOmName("om1");
+
+  std::map<std::string, ModelOpBlacklist> blacklist;
+  ModelOpBlacklist bl;
+  bl.dump_optype_blacklist["TestType"].output_indices = {0};
+  blacklist["model1"] = bl;
+  data_dumper.dump_properties_.SetModelDumpBlacklistMap(blacklist);
+
+  OpDescPtr op_desc = CreateOpDesc("test_op", "TestType");
+
+  // Check kDataTypeOutput index
+  EXPECT_TRUE(data_dumper.IsInOutputOpBlacklist(op_desc, 0));
+}
+
 }  // namespace ge
