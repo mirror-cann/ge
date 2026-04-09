@@ -26,7 +26,7 @@ class VISIBILITY_EXPORT EventAllocator {
   EventAllocator &operator=(const EventAllocator &) = delete;
   ~EventAllocator();
 
-  TypedContinuousVector<aclrtEvent> *AcquireEvents(size_t event_num) const;
+  TypedContinuousVector<aclrtEvent> *AcquireEvents(const size_t event_num) const;
 
  private:
   TypedContinuousVector<aclrtEvent> *Events() const;
