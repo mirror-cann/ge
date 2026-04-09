@@ -171,15 +171,14 @@ graphStatus ExtractConstNodeDtype(const NodePtr &slice_node, DataType &dtype) {
 }
 
 graphStatus RefreshOffsetsValue(const NodePtr &slice_node, std::vector<int64_t> &before_paddings_value,
-                                DataType dtype) {
-  std::vector<int64_t> offsets_value;
-  GE_ASSERT_SUCCESS(AutofuseUtils::GetListIntByInputOrAttr(slice_node, offsets_value, "offsets", "offsets"));
-  GE_ASSERT_TRUE((offsets_value.size() == before_paddings_value.size()),
-                 "offsets_value and before_paddings_value size is different.");
+                                DataType dtype, const std::vector<int64_t> &original_offsets_value) {
+  GE_ASSERT_TRUE((original_offsets_value.size() == before_paddings_value.size()),
+                 "original_offsets_value and before_paddings_value size is different.");
   std::vector<int64_t> new_offsets_value;
-  for (size_t i = 0U; i < offsets_value.size(); i++) {
-    GELOGI("value is %ld, new_offsets_value is %ld", offsets_value[i], offsets_value[i] - before_paddings_value[i]);
-    new_offsets_value.emplace_back(offsets_value[i] - before_paddings_value[i]);
+  for (size_t i = 0U; i < original_offsets_value.size(); i++) {
+    GELOGI("origin offsets value is %ld, new_offsets_value is %ld",
+           original_offsets_value[i], original_offsets_value[i] - before_paddings_value[i]);
+    new_offsets_value.emplace_back(original_offsets_value[i] - before_paddings_value[i]);
   }
 
   auto offsets_const_node = slice_node->GetInDataNodes().at(1U);
@@ -230,7 +229,7 @@ graphStatus PadSliceOptimizePass::Run(const ComputeGraphPtr &graph, bool &change
         GE_ASSERT_GRAPH_SUCCESS(
             CheckSliceMatchRequirements(node_after_pad, pad_input_shape, paddings_value, all_results, need_skip));
       }
-      if (IsAllEqual(all_results, kNeedRemovePadPattern)) {
+      if (!need_skip && IsAllEqual(all_results, kNeedRemovePadPattern)) {
         GELOGI("Condition one is satisfied, pad node will be removed.");
         GE_ASSERT_SUCCESS(PostProcess(graph, node));
         changed = true;
@@ -250,23 +249,40 @@ graphStatus PadSliceOptimizePass::PostProcess(const ComputeGraphPtr &graph, cons
   GE_ASSERT_TRUE(paddings.size() >= kPaddingsDim2, "paddings size must be greater than 2");
   std::vector<int64_t> before_paddings_value = {};
   for (size_t index = 0U; index < paddings.size(); index += kPaddingsDim2) {
-    GELOGI("value is %ld", paddings[index]);
+    GELOGD("paddings value is %ld", paddings[index]);
     before_paddings_value.emplace_back(paddings[index]);
   }
 
+  std::vector<std::vector<int64_t>> original_offsets_values;
+  for (size_t out_idx = 0U; out_idx < output_size; ++out_idx) {
+    auto node_after_pad = node->GetOutNodes().at(out_idx);
+    GE_CHECK_NOTNULL(node_after_pad);
+    std::vector<int64_t> offsets_value;
+    GE_ASSERT_SUCCESS(AutofuseUtils::GetListIntByInputOrAttr(node_after_pad, offsets_value, "offsets", "offsets"));
+    original_offsets_values.push_back(offsets_value);
+  }
+
+  std::set<NodePtr> processed_offsets_nodes;
   for (size_t out_idx = 0U; out_idx < output_size; ++out_idx) {
     auto node_after_pad = node->GetOutNodes().at(out_idx);
     GE_CHECK_NOTNULL(node_after_pad);
 
-    DataType offsets_dtype = DT_INT32;
-    GE_ASSERT_SUCCESS(ExtractConstNodeDtype(node_after_pad, offsets_dtype));
-    auto op_desc = node_after_pad->GetOpDesc();
-    GE_CHECK_NOTNULL(op_desc);
-    *op_desc->MutableInputDesc(0U) = node->GetOpDesc()->GetInputDesc(0U);
-    GE_ASSERT_SUCCESS(RefreshOffsetsValue(node_after_pad, before_paddings_value, offsets_dtype));
+    auto offsets_const_node = node_after_pad->GetInDataNodes().at(1U);
+    if (processed_offsets_nodes.find(offsets_const_node) != processed_offsets_nodes.end()) {
+      GELOGI("Offsets node %s has been processed, skip refresh for slice node %s",
+             offsets_const_node->GetNamePtr(), node_after_pad->GetNamePtr());
+    } else {
+      DataType offsets_dtype = DT_INT32;
+      GE_ASSERT_SUCCESS(ExtractConstNodeDtype(node_after_pad, offsets_dtype));
+      auto op_desc = node_after_pad->GetOpDesc();
+      GE_CHECK_NOTNULL(op_desc);
+      *op_desc->MutableInputDesc(0U) = node->GetOpDesc()->GetInputDesc(0U);
+      GE_ASSERT_SUCCESS(RefreshOffsetsValue(node_after_pad, before_paddings_value, offsets_dtype, original_offsets_values[out_idx]));
+      processed_offsets_nodes.insert(offsets_const_node);
+    }
   }
   GE_ASSERT_SUCCESS(AutofuseUtils::DelOneNodeInGraph(graph, node));
   GELOGI("Success to delete pad node %s", node->GetNamePtr());
   return GRAPH_SUCCESS;
 }
-}
+}  // namespace ge
