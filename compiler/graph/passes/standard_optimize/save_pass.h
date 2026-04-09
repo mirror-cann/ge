@@ -17,7 +17,7 @@
 namespace ge {
 class SavePass : public GraphPass {
  public:
-  Status Run(ge::ComputeGraphPtr graph);
+  Status Run(ge::ComputeGraphPtr graph) override;
 };
 }  // namespace ge
 

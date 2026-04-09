@@ -12,14 +12,12 @@
 #define GE_INC_GRAPH_PASS_H_
 
 #include <string>
-#include <vector>
 
 #include "framework/common/op/ge_op_utils.h"
 #include "framework/common/types.h"
 #include "framework/common/debug/ge_log.h"
 #include "graph/compute_graph.h"
 #include "register/optimization_option_registry.h"
-#include "graph/utils/attr_utils.h"
 #include "graph/utils/graph_utils.h"
 #include "graph/passes/pass.h"
 #include "base/err_msg.h"

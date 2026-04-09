@@ -17,7 +17,7 @@
 namespace ge {
 class DataPass : public GraphPass {
  public:
-  Status Run(ge::ComputeGraphPtr compute_graph);
+  Status Run(ge::ComputeGraphPtr compute_graph) override;
 
  private:
   Status PostParseSubgraph(const ComputeGraphPtr &graph, const std::string &ir_name, const NodePtr &parent_node) const;
