@@ -1799,8 +1799,9 @@ Status GenerateOmModel() {
 
   options.insert(std::pair<std::string, std::string>(std::string(QUANT_DUMPABLE), FLAGS_quant_dumpable));
 
-  options.insert(std::pair<std::string, std::string>(std::string(ENABLE_ATTR_COMPRESSION),
-                                                     FLAGS_enable_attr_compression));
+  std::string lower_value = FLAGS_enable_attr_compression;
+  std::transform(lower_value.begin(), lower_value.end(), lower_value.begin(), ::tolower);
+  options.insert(std::pair<std::string, std::string>(std::string(ENABLE_ATTR_COMPRESSION), lower_value));
 
   options.insert(std::pair<std::string, std::string>(std::string(DEBUG_DIR), FLAGS_debug_dir));
 
