@@ -359,6 +359,10 @@ void GenerateStridesEqualCheck(const std::vector<Tensor> &inputs, const std::vec
 
   ss << "  bool strides_equal = false;\n";
   ss << "  uint32_t strides_align = static_cast<uint32_t>(" << all_stride_names[0] << ");\n";
+  if (all_stride_names.size() == 1) {
+    ss << "  strides_equal = true;\n";
+    return;
+  }
   ss << "  if (";
   for (size_t i = 1; i < all_stride_names.size(); i++) {
     ss << all_stride_names[0] << " == " << all_stride_names[i];
@@ -381,7 +385,7 @@ void OptimizeMergeParamsAndLoopSize(const std::vector<std::string> &loop_size_ve
   const auto &loop_size_0 = loop_size_vec[0];
   const auto &loop_size_1 = loop_size_vec[1];
 
-  ss << "  if (strides_equal && output_dims_1 != strides_align) {\n";
+  ss << "  if (strides_equal) {\n";
   ss << "    " << loop_size_0 << " = 1;\n";
   ss << "    element_count = static_cast<uint32_t>(strides_align * output_dims_0);\n";
   ss << "    " << loop_size_1 << " = static_cast<uint16_t>((element_count + ELEMENT_PER_VECTOR_LENGTH - 1) / ELEMENT_PER_VECTOR_LENGTH);\n";

@@ -83,11 +83,11 @@ class DataDumper {
   void SaveDumpTask(const OpDescInfoId &id, const std::shared_ptr<OpDesc> &op_desc, const uintptr_t args,
                     const FirstLevelAddressInfo &first_level_address_info = {false, {}},
                     const std::map<uint64_t, uint64_t> &cust_to_relevant_offset = {},
-                    const ModelTaskType task_type = ModelTaskType::MODEL_TASK_KERNEL, bool is_op_debug = false, rtStream_t stream = nullptr);
+                    const ModelTaskType task_type = ModelTaskType::MODEL_TASK_KERNEL, bool is_op_debug = false, const rtStream_t stream = nullptr);
 
   void SavePrintDumpTask(const OpDescInfoId &id, const std::shared_ptr<OpDesc> &op_desc, const uintptr_t args,
                          const FirstLevelAddressInfo &first_level_address_info = {false, {}},
-                         const ModelTaskType task_type = ModelTaskType::MODEL_TASK_KERNEL, rtStream_t stream = nullptr);
+                         const ModelTaskType task_type = ModelTaskType::MODEL_TASK_KERNEL, const rtStream_t stream = nullptr);
 
   void SaveEndGraphId(const uint32_t task_id, const uint32_t stream_id);
 
@@ -203,10 +203,10 @@ class DataDumper {
   void FillWorkspaceTensorInfos(const InnerDumpInfo &dump_info, std::vector<Adx::TensorInfo>& tensors) const;
   void FillInputTensorInfos(const OpDescPtr &op_desc, uintptr_t args_base,
                             const std::map<uint64_t, uint64_t>& cust_offset,
-                            std::vector<Adx::TensorInfo>& tensors);
+                            std::vector<Adx::TensorInfo>& tensors) const;
   void FillOutputTensorInfos(const OpDescPtr &op_desc, uintptr_t args_base, size_t input_count,
                             const std::map<uint64_t, uint64_t>& cust_offset,
-                            std::vector<Adx::TensorInfo>& tensors);
+                            std::vector<Adx::TensorInfo>& tensors) const;
   Status FillRawTensorInfos(const InnerDumpInfo &dump_info, std::vector<Adx::TensorInfo> &tensors,
                           bool dump_input = true, bool dump_output = true) const;
   std::vector<Adx::DumpAttr> BuildDumpAttrs() const;

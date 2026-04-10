@@ -19,6 +19,7 @@
 #include "framework/common/debug/log.h"
 #include "framework/common/ge_types.h"
 #include "framework/common/types.h"
+#include "graph_metadef/common/ge_common/util.h"
 #include "graph/debug/ge_attr_define.h"
 #include "graph/ge_context.h"
 #include "graph/utils/attr_utils.h"
@@ -123,8 +124,7 @@ Status DumpProperties::CheckDumpPathValid(const std::string &input) const {
   if (mmIsDir(input.c_str()) != EN_OK) {
     char_t err_buf[kMaxErrorStrLength + 1U] = {};
     const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrorStrLength);
-    std::string reason =
-        "The parameter value is not a directory. [Errno " + std::to_string(mmGetErrorCode()) + "] " + err_msg + ".";
+    std::string reason = FormatErrnoReason(mmGetErrorCode(), err_msg);
     (void)REPORT_PREDEFINED_ERR_MSG(
         "E10001", std::vector<const char *>({"parameter", "value", "reason"}),
         std::vector<const char *>(
@@ -136,8 +136,7 @@ Status DumpProperties::CheckDumpPathValid(const std::string &input) const {
   if (mmRealPath(input.c_str(), trusted_path.data(), MMPA_MAX_PATH) != EN_OK) {
     char_t err_buf[kMaxErrorStrLength + 1U] = {};
     const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrorStrLength);
-    std::string reason =
-        "The parameter value is invalid. [Errno " + std::to_string(mmGetErrorCode()) + "] " + err_msg + ".";
+    std::string reason = FormatErrnoReason(mmGetErrorCode(), err_msg);
     (void)REPORT_PREDEFINED_ERR_MSG(
         "E10001", std::vector<const char *>({"parameter", "value", "reason"}),
         std::vector<const char *>(
@@ -149,8 +148,7 @@ Status DumpProperties::CheckDumpPathValid(const std::string &input) const {
   if (mmAccess2(trusted_path.data(), access_flag) != EN_OK) {
     char_t err_buf[kMaxErrorStrLength + 1U] = {};
     const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrorStrLength);
-    std::string reason =
-        "No access permission for the path. [Errno " + std::to_string(mmGetErrorCode()) + "] " + err_msg + ".";
+    std::string reason = FormatErrnoReason(mmGetErrorCode(), err_msg);
     (void)REPORT_PREDEFINED_ERR_MSG(
         "E10001", std::vector<const char *>({"parameter", "value", "reason"}),
         std::vector<const char *>(

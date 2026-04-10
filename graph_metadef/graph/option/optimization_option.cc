@@ -95,9 +95,12 @@ graphStatus OptimizationOption::IsOptionValueValid(const std::string &opt_name, 
   if (checker == nullptr) {
     return GRAPH_SUCCESS;
   }
-  if (!checker(opt_value)) {
-    ReportParamInvalid(GetThreadLocalContext().GetReadableName(opt_name), opt_value,
-                       "Invalid optimization option value.");
+  std::string reason = "Invalid optimization option value.";
+  if (!checker(opt_value, reason)) {
+    if (reason.empty()) {
+      reason = "Invalid optimization option value.";
+    }
+    ReportParamInvalid(GetThreadLocalContext().GetReadableName(opt_name), opt_value, reason);
     return PARAM_INVALID;
   }
   return GRAPH_SUCCESS;

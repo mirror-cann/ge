@@ -19,6 +19,7 @@
 #include "graph_metadef/graph/utils/file_utils.h"
 #include "common/helper/om2/om2_utils.h"
 #include "graph/utils/type_utils.h"
+#include "graph_metadef/common/ge_common/util.h"
 #include "runtime/mem.h"
 #include "common/helper/om2/zip_archive.h"
 #include "common/helper/om2/json_file.h"
@@ -372,8 +373,9 @@ ge::Status LoadOm2DataFromFile(const std::string &model_path, ge::ModelData &mod
   if (!fs.is_open()) {
     std::array<char_t, kMaxErrorStringLen + 1U> err_buf = {};
     const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrorStringLen);
+    const std::string reason = ge::FormatErrnoReason(mmGetErrorCode(), err_msg);
     GELOGE(ACL_ERROR_GE_EXEC_MODEL_PATH_INVALID, "[Open][File]Failed, file %s, error %s", model_path.c_str(), err_msg);
-    REPORT_INNER_ERR_MSG("E19999", "Open file %s failed, error %s", model_path.c_str(), err_msg);
+    REPORT_INNER_ERR_MSG("E19999", "Open file %s failed, reason:%s", model_path.c_str(), reason.c_str());
     return ACL_ERROR_GE_EXEC_MODEL_PATH_INVALID;
   }
 
@@ -437,7 +439,7 @@ ge::Status IsOm2Model(const char *file_path, bool &is_support) {
   if (real_path.empty()) {
     std::array<char_t, kMaxErrorStringLen + 1U> err_buf = {};
     const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), err_buf.data(), kMaxErrorStringLen);
-    std::string reason = "[Error " + std::to_string(mmGetErrorCode()) + "] " + err_msg;
+    std::string reason = ge::FormatErrnoReason(mmGetErrorCode(), err_msg);
     REPORT_PREDEFINED_ERR_MSG("E13000", std::vector<const char *>({"patch", "errmsg"}),
                               std::vector<const char *>({file_path, reason.c_str()}));
     GELOGE(ACL_ERROR_GE_EXEC_MODEL_PATH_INVALID, "[Check][Param]Model file path %s is invalid", file_path);
@@ -448,8 +450,9 @@ ge::Status IsOm2Model(const char *file_path, bool &is_support) {
   if (!file.is_open()) {
     std::array<char_t, kMaxErrorStringLen + 1U> err_buf = {};
     const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrorStringLen);
+    const std::string reason = ge::FormatErrnoReason(mmGetErrorCode(), err_msg);
     GELOGE(ACL_ERROR_GE_EXEC_MODEL_PATH_INVALID, "[Open][File]Failed, file %s, error %s", file_path, err_msg);
-    REPORT_INNER_ERR_MSG("E19999", "Open file %s failed, error %s", file_path, err_msg);
+    REPORT_INNER_ERR_MSG("E19999", "Open file %s failed, reason:%s", file_path, reason.c_str());
     return ACL_ERROR_GE_EXEC_MODEL_PATH_INVALID;
   }
 

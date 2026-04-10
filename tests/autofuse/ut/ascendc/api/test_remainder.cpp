@@ -52,20 +52,20 @@ class TestApiRemainder : public testing::Test {
     UbToGm(param.y, l_y, param.size);
   }
 
-  // Int32 type test: input int32, output float
-  static void InvokeKernelWithTwoTensorInputInt32(TensorRemainderInputParam<int32_t, float> &param) {
+  // Int32 type test: input int32, output int32
+  static void InvokeKernelWithTwoTensorInputInt32(TensorRemainderInputParam<int32_t> &param) {
     TPipe tpipe;
     TBuf<TPosition::VECCALC> x1buf, x2buf, ybuf, tmp;
 
     tpipe.InitBuffer(x1buf, sizeof(int32_t) * param.size);
     tpipe.InitBuffer(x2buf, sizeof(int32_t) * param.size);
-    tpipe.InitBuffer(ybuf, sizeof(float) * AlignUp(param.size, ONE_BLK_SIZE / sizeof(float)));
+    tpipe.InitBuffer(ybuf, sizeof(int32_t) * AlignUp(param.size, ONE_BLK_SIZE / sizeof(int32_t)));
     // Need 3 temp buffers for intermediate float results
     tpipe.InitBuffer(tmp, 3 * sizeof(float) * AlignUp(param.size, ONE_BLK_SIZE / sizeof(float)));
 
     LocalTensor<int32_t> l_x1 = x1buf.Get<int32_t>();
     LocalTensor<int32_t> l_x2 = x2buf.Get<int32_t>();
-    LocalTensor<float> l_y = ybuf.Get<float>();
+    LocalTensor<int32_t> l_y = ybuf.Get<int32_t>();
     LocalTensor<uint8_t> l_tmp = tmp.Get<uint8_t>();
 
     GmToUb(l_x1, param.src0, param.size);
@@ -103,9 +103,9 @@ class TestApiRemainder : public testing::Test {
     }
   }
 
-  static void CreateTensorInputInt32(TensorRemainderInputParam<int32_t, float> &param) {
-    param.y = static_cast<float *>(AscendC::GmAlloc(sizeof(float) * param.size));
-    param.exp = static_cast<float *>(AscendC::GmAlloc(sizeof(float) * param.size));
+  static void CreateTensorInputInt32(TensorRemainderInputParam<int32_t> &param) {
+    param.y = static_cast<int32_t *>(AscendC::GmAlloc(sizeof(int32_t) * param.size));
+    param.exp = static_cast<int32_t *>(AscendC::GmAlloc(sizeof(int32_t) * param.size));
     param.src0 = static_cast<int32_t *>(AscendC::GmAlloc(sizeof(int32_t) * param.size));
     param.src1 = static_cast<int32_t *>(AscendC::GmAlloc(sizeof(int32_t) * param.size));
 
@@ -121,10 +121,10 @@ class TestApiRemainder : public testing::Test {
       param.src0[i] = input;
       param.src1[i] = input1;
       // remainder = dividend - floor(dividend / divisor) * divisor
-      // For int32, computation is in float precision
+      // For int32, computation is in float precision, then round to int32
       float fInput = static_cast<float>(input);
       float fInput1 = static_cast<float>(input1);
-      param.exp[i] = fInput - std::floor(fInput / fInput1) * fInput1;
+      param.exp[i] = static_cast<int32_t>(std::round(fInput - std::floor(fInput / fInput1) * fInput1));
     }
   }
 
@@ -154,7 +154,7 @@ class TestApiRemainder : public testing::Test {
   }
 
   static void RemainderTestInt32(uint32_t size) {
-    TensorRemainderInputParam<int32_t, float> param{};
+    TensorRemainderInputParam<int32_t> param{};
     param.size = size;
     CreateTensorInputInt32(param);
 

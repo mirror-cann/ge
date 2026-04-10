@@ -26,13 +26,25 @@ interface SkillState {
   hash: string | null
 }
 
+function findGitRoot(startDir: string): string {
+  let dir = startDir
+  while (dir !== path.dirname(dir)) {
+    if (fs.existsSync(path.join(dir, ".git"))) {
+      return dir
+    }
+    dir = path.dirname(dir)
+  }
+  return startDir
+}
+
 export const InstallSkillsPlugin: Plugin = async ({ $, directory }) => {
+  const rootDir = findGitRoot(directory)
   const installSkills = async () => {
     try {
       // 记录安装前两个skill文件的状态
       const skillsToCheck = [
-        { name: 'gitcode-pr', path: path.join(directory, ".claude", "skills", "gitcode-pr", "SKILL.md") },
-        { name: 'gitcode-issue', path: path.join(directory, ".claude", "skills", "gitcode-issue", "SKILL.md") }
+        { name: 'gitcode-pr', path: path.join(rootDir, ".claude", "skills", "gitcode-pr", "SKILL.md") },
+        { name: 'gitcode-issue', path: path.join(rootDir, ".claude", "skills", "gitcode-issue", "SKILL.md") }
       ]
 
       const beforeStates: SkillState[] = skillsToCheck.map(skill => ({
@@ -46,7 +58,8 @@ export const InstallSkillsPlugin: Plugin = async ({ $, directory }) => {
         process.stdout.write(`💡 提示：如果需要安装或更新默认skill，请输入指令"安装默认skill"\n\n`)
         return
       }
-      await $`bash ./.claude/skills/default-skills/scripts/install-default-skills.sh > /dev/null`
+      const scriptPath = path.join(rootDir, ".claude", "skills", "default-skills", "scripts", "install-default-skills.sh")
+      await $`bash ${scriptPath} > /dev/null`
 
       // 记录安装后两个skill文件的状态
       const afterStates: SkillState[] = skillsToCheck.map(skill => ({
@@ -82,13 +95,15 @@ export const InstallSkillsPlugin: Plugin = async ({ $, directory }) => {
       log(`Command failed: ${error.message}`)
       if (error.stderr) log(`stderr from error: ${error.stderr}`)
       // 创建错误标记文件，供用户后续查看
-      const errorMarkerPath = path.join(directory, ".opencode_skills_error")
-      const errorMessage = `❌ 安装默认技能时出错了，请输入指令“安装默认skill”重新安装\n`
+      const errorMarkerPath = path.join(rootDir, ".opencode_skills_error")
+      const detail = error.stderr ? `${error.message}\n${error.stderr}` : error.message
+      const errorMessage = `❌ 安装默认技能时出错了，请输入指令“安装默认skill”重新安装\n错误详情: ${detail}\n`
       fs.writeFileSync(errorMarkerPath, errorMessage)
 
       // 延迟打印到标准输出，避免被界面刷新清除
       setTimeout(() => {
         process.stdout.write(`❌ 安装默认技能时出错了，请输入指令“安装默认skill”重新安装\n`)
+        process.stdout.write(`   错误详情: ${detail}\n`)
         process.stdout.write(`   错误详情请查看: ${errorMarkerPath}\n\n`)
       }, 2000)
     }

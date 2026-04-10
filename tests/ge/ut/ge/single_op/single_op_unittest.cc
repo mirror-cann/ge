@@ -86,7 +86,7 @@ TEST_F(UtestSingleOp, test_dynamic_singleop_execute_async1) {
   input_desc.emplace_back(tensor_desc_0);
 
   int64_t input_size = 0;
-  EXPECT_EQ(TensorUtils::GetTensorMemorySizeInBytes(tensor_desc_0, input_size), SUCCESS);
+  EXPECT_EQ(TensorUtils::GetTensorMemorySizeInBytesWithAutoPadding(tensor_desc_0, input_size), SUCCESS);
   EXPECT_EQ(input_size, 64);
   EXPECT_NE(SingleOpManager::GetInstance().GetResource(resource_id, stream), nullptr);
 

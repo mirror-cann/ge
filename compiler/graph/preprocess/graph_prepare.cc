@@ -639,7 +639,7 @@ Status ModifyTensorDescStorageFormatAndShape(const OpDescPtr &op_desc, Idx2Tenso
     int64_t size = 0;
     graphStatus graph_status = GRAPH_FAILED;
     if (use_align_size) {
-      graph_status = TensorUtils::GetTensorMemorySizeInBytes(*idx_2_tensor_desc.second, size);
+      graph_status = TensorUtils::GetTensorMemorySizeInBytesWithAutoPadding(*idx_2_tensor_desc.second, size);
     } else {
       graph_status = TensorUtils::GetTensorSizeInBytes(*idx_2_tensor_desc.second, size);
     }
@@ -753,7 +753,7 @@ Status ProcessInputDtDynShape(const NodePtr &node_ptr, const DataType &dt_set) {
     int64_t input_shape_size = 0;
     int64_t output_shape_size = 0;
     ge::graphStatus input_graph_status = ge::TensorUtils::GetTensorSizeInBytes(*input, input_shape_size);
-    ge::graphStatus output_graph_status = ge::TensorUtils::GetTensorMemorySizeInBytes(*input, output_shape_size);
+    ge::graphStatus output_graph_status = ge::TensorUtils::GetTensorMemorySizeInBytesWithAutoPadding(*input, output_shape_size);
     if (input_graph_status != ge::GRAPH_SUCCESS && output_graph_status != ge::GRAPH_SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "Get input tensor size failed, op:%s(%s), index:0",
                         op_desc->GetName().c_str(), op_desc->GetType().c_str());
@@ -1543,11 +1543,11 @@ Status GraphPrepare::AdjustDataOpOutput(const NodePtr &node) const {
   }
 
   int64_t tensor_size = 0;
-  graphStatus graph_status = TensorUtils::GetTensorMemorySizeInBytes(output, tensor_size);
+  graphStatus graph_status = TensorUtils::GetTensorMemorySizeInBytesWithAutoPadding(output, tensor_size);
   if (graph_status != GRAPH_SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "GetTensorMemorySize by ouput index:0 of op:%s(%s) failed",
                       op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
-    GELOGE(graph_status, "[Call][GetTensorMemorySizeInBytes] failed, op:%s", node->GetName().c_str());
+    GELOGE(graph_status, "[Call][GetTensorMemorySizeInBytesWithAutoPadding] failed, op:%s", node->GetName().c_str());
     return FAILED;
   }
   TensorUtils::SetSize(output, tensor_size);

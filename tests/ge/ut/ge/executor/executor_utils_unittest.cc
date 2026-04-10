@@ -130,3 +130,41 @@ TEST(UtestExecutorUtils, test_assemble_reuse_binary_args) {
   ret = ExecutorUtils::AssembleReuseBinaryArgs(op_desc, run_info, args_ex);
   EXPECT_EQ(ret, SUCCESS);
 }
+
+TEST(UtestExecutorUtils, test_assemble_reuse_binary_args_empty_tiling) {
+  auto graph = make_shared<ComputeGraph>("graph");
+  auto op_desc = make_shared<OpDesc>("Add", "Add");
+  GeTensorDesc tensor_desc;
+  op_desc->AddInputDesc(tensor_desc);
+  op_desc->AddInputDesc(tensor_desc);
+  
+  optiling::utils::OpRunInfo run_info;
+  run_info.SetBlockDim(1);
+  run_info.SetTilingKey(0);
+  
+  rtArgsEx_t args_ex;
+  auto ret = ExecutorUtils::AssembleReuseBinaryArgs(op_desc, run_info, args_ex);
+  EXPECT_EQ(ret, SUCCESS);
+}
+
+TEST(UtestExecutorUtils, test_has_host_mem_input_no_host_mem) {
+  auto graph = make_shared<ComputeGraph>("graph");
+  auto op_desc = make_shared<OpDesc>("Add", "Add");
+  GeTensorDesc tensor_desc;
+  
+  tensor_desc.SetPlacement(ge::kPlacementDevice);
+  op_desc->AddInputDesc(tensor_desc);
+  op_desc->AddInputDesc(tensor_desc);
+  op_desc->AddOutputDesc(tensor_desc);
+  
+  EXPECT_FALSE(ExecutorUtils::HasHostMemInput(op_desc));
+}
+
+TEST(UtestExecutorUtils, test_has_host_mem_input_empty_inputs) {
+  auto graph = make_shared<ComputeGraph>("graph");
+  auto op_desc = make_shared<OpDesc>("Add", "Add");
+  GeTensorDesc tensor_desc;
+  op_desc->AddOutputDesc(tensor_desc);
+  
+  EXPECT_FALSE(ExecutorUtils::HasHostMemInput(op_desc));
+}

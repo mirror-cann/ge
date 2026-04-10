@@ -36,7 +36,7 @@ Status GetSingleNextNode(NodePtr &node, NodePtr &peer_in_node) {
 /**
  * 安全地获取节点的前驱节点，在调用 asc_adapt::GetPeerOutNode 之前先检查节点的 inanchors 是否存在
  */
-Status GetPeerOutNodeSafe(const NodePtr &node, NodePtr &peer_out_node, int idx) {
+Status GetPeerOutNodeSafe(const NodePtr &node, NodePtr &peer_out_node, int32_t idx) {
   // 检查节点是否存在
   GE_ASSERT_NOTNULL(node);
 
@@ -275,6 +275,17 @@ bool CollectSameBrcAxis(NodePtr &cur_node, NodePtr &next_node, std::vector<std::
   return true;
 }
 
+Status GetNodeScalarInputList(const ge::AscNodePtr &asc_node, std::vector<bool> &is_scalar_list) {
+  is_scalar_list.resize(asc_node->GetInDataNodesSize(), false);
+  for (size_t i = 0UL; i < is_scalar_list.size(); ++i) {
+    is_scalar_list[i] = ascgen_utils::IsScalarInput(asc_node->inputs[i].attr.repeats);
+  }
+  return ge::SUCCESS;
+}
+
+Status ProcessOtherInputBranches(const NodePtr &next_comp_op, size_t current_idx, const std::vector<int64_t> &bro_axes,
+                                 std::vector<bool> &is_scalar_list);
+
 /**
  * 检查节点是否支持Broadcast后移的公共部分
  */
@@ -319,6 +330,94 @@ bool CanBackwardSimplified(const NodePtr &next_node) {
   return true;
 }
 
+/**
+ * 检查输入节点是否是Scalar节点或者其前驱是Scalar节点
+ */
+bool IsScalarInput(const NodePtr &input_node) {
+  NodePtr temp_node = input_node;
+  while (temp_node != nullptr) {
+    if (temp_node->GetType() == kScalarType) {
+      return true;
+    }
+
+    // 如果是Broadcast节点，继续向上查找
+    if (temp_node->GetType() != kBroadcastType) {
+      break;
+    }
+
+    // 获取前驱节点
+    NodePtr pre_node;
+    GE_ASSERT_SUCCESS(GetPeerOutNodeSafe(temp_node, pre_node, 0));
+    temp_node = pre_node;
+  }
+  return false;
+}
+
+/**
+ * 检查计算节点是否支持Scalar输入
+ */
+Status CheckNodeSupportsScalarInput(const NodePtr &compute_node, int32_t input_idx,
+                                    const std::vector<int64_t> &bro_axes, bool &is_support) {
+  // 默认为不支持
+  is_support = false;
+
+  // 检查计算节点是否是AscNode
+  GE_ASSERT_NOTNULL(std::dynamic_pointer_cast<ge::AscNode>(compute_node));
+  const auto &asc_node = std::dynamic_pointer_cast<ge::AscNode>(compute_node);
+
+  // 获取is_scalar_list
+  std::vector<bool> is_scalar_list;
+  GE_ASSERT_SUCCESS(GetNodeScalarInputList(asc_node, is_scalar_list));
+
+  // 设置当前分支的is_scalar_list对应位置为true
+  if (input_idx >= 0 && static_cast<size_t>(input_idx) < is_scalar_list.size()) {
+    is_scalar_list[input_idx] = true;
+  }
+
+  // 处理其他输入分支的Broadcast节点
+  GE_ASSERT_SUCCESS(ProcessOtherInputBranches(compute_node, input_idx, bro_axes, is_scalar_list));
+
+  // 检查计算节点是否支持Scalar输入，使用ascgen_utils::IsNodeSupportsScalarInput接口
+  is_support = ascgen_utils::IsNodeSupportsScalarInput(asc_node, is_scalar_list);
+  if (!is_support) {
+    GELOGD("Compute node %s does not support scalar input, is_scalar_list: %s", compute_node->GetName().c_str(),
+           ascgen_utils::VectorToStr(is_scalar_list).c_str());
+  }
+
+  return SUCCESS;
+}
+
+/**
+ * 检查计算节点是否支持所有Scalar输入
+ */
+bool CheckScalarInputSupport(const NodePtr &next_node, const std::vector<NodePtr> &bro_nodes) {
+  GE_ASSERT_NOTNULL(std::dynamic_pointer_cast<ge::AscNode>(next_node));
+  
+  auto in_data_anchor_size = next_node->GetAllInDataAnchorsSize();
+  for (uint32_t i = 0U; i < in_data_anchor_size; ++i) {
+    // 获取当前输入分支的节点
+    NodePtr input_node;
+    GE_ASSERT_SUCCESS(GetPeerOutNodeSafe(next_node, input_node, i));
+
+    // 检查输入节点是否是Scalar输入
+    if (IsScalarInput(input_node)) {
+      // 获取当前分支的Broadcast轴
+      std::vector<int64_t> bro_axes;
+      if (!bro_nodes.empty()) {
+        GE_ASSERT_SUCCESS(GetBroAxises(bro_nodes, bro_axes));
+      }
+      
+      // 检查计算节点是否支持Scalar输入
+      bool is_support = false;
+      GE_ASSERT_SUCCESS(CheckNodeSupportsScalarInput(next_node, i, bro_axes, is_support));
+      if (!is_support) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 bool IsMulInputsCanBackward(NodePtr &cur_node, NodePtr &next_node, vector<NodePtr> &bro_nodes, AscGraph &graph,
                             std::set<NodePtr> &mul_input_nodes) {
   auto in_data_anchor_size = next_node->GetAllInDataAnchorsSize();
@@ -342,7 +441,7 @@ bool IsMulInputsCanBackward(NodePtr &cur_node, NodePtr &next_node, vector<NodePt
 
     // 存在Brc，需要比较Brc链是否一致
     std::vector<NodePtr> temp_bro_nodes;
-    ReverseCollectBrcNodes(node, temp_bro_nodes);
+    GE_ASSERT_SUCCESS(ReverseCollectBrcNodes(node, temp_bro_nodes));
     std::reverse(temp_bro_nodes.begin(), temp_bro_nodes.end());
     if (!IsSameBroNodes(bro_nodes, temp_bro_nodes)) {
       // 记录多输入节点，用于后续部分Brc场景继续后移
@@ -357,6 +456,11 @@ bool IsMulInputsCanBackward(NodePtr &cur_node, NodePtr &next_node, vector<NodePt
       return false;
     }
     remove_bro_nodes_list.push_back(temp_bro_nodes);
+  }
+
+  // 检查所有分支是否都支持Scalar输入（如果需要）
+  if (!CheckScalarInputSupport(next_node, bro_nodes)) {
+    return false;
   }
 
   // 循环完成证明需要删除其他分支上的bro列表
@@ -562,14 +666,6 @@ Status BroadcastBackwardReally(std::vector<NodePtr> &compute_nodes, std::vector<
   return SUCCESS;
 }
 
-Status GetNodeScalarInputList(const ge::AscNodePtr &asc_node, std::vector<bool> &is_scalar_list) {
-  is_scalar_list.resize(asc_node->GetInDataNodesSize(), false);
-  for (size_t i = 0UL; i < is_scalar_list.size(); ++i) {
-    is_scalar_list[i] = ascgen_utils::IsScalarInput(asc_node->inputs[i].attr.repeats);
-  }
-  return ge::SUCCESS;
-}
-
 /**
  * 收集分支上的Broadcast节点
  */
@@ -703,20 +799,14 @@ Status JudgeNextCompOpSupportsScalarInput(const NodePtr &node, bool &is_next_sup
     }
 
     // 检查该分支的计算节点是否支持Scalar输入
-    std::vector<bool> is_scalar_list;
-    GE_ASSERT_NOTNULL(std::dynamic_pointer_cast<ge::AscNode>(compute_node));
-    const auto &cur_asc_op = std::dynamic_pointer_cast<ge::AscNode>(compute_node);
-    GE_ASSERT_SUCCESS(GetNodeScalarInputList(cur_asc_op, is_scalar_list));
-
-    // 处理其他输入分支的Broadcast节点
+    bool is_support = false;
+    // 获取当前分支的Broadcast轴
     std::vector<int64_t> bro_axes;
     if (!bro_nodes.empty()) {
       GE_ASSERT_SUCCESS(GetBroAxises(bro_nodes, bro_axes));
     }
-    GE_ASSERT_SUCCESS(ProcessOtherInputBranches(compute_node, peer_in_anchor->GetIdx(), bro_axes, is_scalar_list));
-
-    // 检查计算节点是否支持Scalar输入，使用ascgen_utils::IsNodeSupportsScalarInput接口
-    if (!ascgen_utils::IsNodeSupportsScalarInput(cur_asc_op, is_scalar_list)) {
+    GE_ASSERT_SUCCESS(CheckNodeSupportsScalarInput(compute_node, peer_in_anchor->GetIdx(), bro_axes, is_support));
+    if (!is_support) {
       all_branches_support_scalar = false;
       break;
     }
@@ -757,26 +847,6 @@ Status CollectCandidateMultiRefNodes(const AscGraph &graph, std::vector<NodePtr>
     if (node->GetType() == kBroadcastType || ContainsBroadcastNode(node)) {
       candidate_nodes.push_back(node);
     }
-  }
-  return SUCCESS;
-}
-
-/**
- * 收集Broadcast节点链，考虑到最后的broadcast节点可能不是单引用的
- */
-Status CollectBroadcastChain(const NodePtr &start_node, std::vector<NodePtr> &bro_nodes) {
-  NodePtr cur_node = start_node;
-  while (cur_node->GetType() == kBroadcastType) {
-    bro_nodes.push_back(cur_node);
-
-    // 检查是否能获取下一个节点
-    NodePtr next_node;
-    if (GetSingleNextNode(cur_node, next_node) != SUCCESS) {
-      // 最后一个Broadcast节点可能是多引用的
-      break;
-    }
-
-    cur_node = next_node;
   }
   return SUCCESS;
 }
@@ -861,7 +931,7 @@ Status TraceBranchToMergeNode(const NodePtr &start_node, NodePtr &merge_node, st
  * 检查分支上的节点是否都支持Broadcast后移
  */
 bool CheckBranchNodesSupportBackward(const std::vector<NodePtr> &branch_nodes) {
-  for (const auto & next_node : branch_nodes) {
+  for (const auto &next_node : branch_nodes) {
     if (!CanBackwardSimplified(next_node)) {
       return false;
     }
@@ -1003,11 +1073,38 @@ Status MoveBroadcastAfterMerge(const NodePtr &merge_node, const NodePtr &first_b
 /**
  * 后移单输出多引用的Broadcast节点
  */
-Status BackwardMultiRefBroadcast(const NodePtr &bro_node, const NodePtr &merge_node,
-                                 const std::vector<std::vector<NodePtr>> &all_branch_nodes, AscGraph &graph) {
-  // 收集Broadcast节点链，考虑到最后的broadcast节点可能不是单引用的
-  std::vector<NodePtr> bro_nodes;
-  GE_ASSERT_SUCCESS(CollectBroadcastChain(bro_node, bro_nodes));
+Status BackwardMultiRefBroadcast(const NodePtr &merge_node, const std::vector<std::vector<NodePtr>> &all_branch_nodes,
+                                 std::vector<NodePtr> &bro_nodes, AscGraph &graph) {
+  // 获取Broadcast节点链的输入
+  auto bro_in_anchor = bro_nodes.front()->GetInDataAnchor(0);
+  auto pre_bro_out_anchor = bro_in_anchor->GetPeerOutAnchor();
+  NodePtr pre_bro_node = pre_bro_out_anchor->GetOwnerNode();
+  bool is_pre_scalar = (pre_bro_node->GetType() == kScalarType);
+
+  // 检查是否需要检查Scalar输入
+  if (is_pre_scalar) {
+    // 获取Broadcast轴
+    std::vector<int64_t> bro_axes;
+    if (!bro_nodes.empty()) {
+      GE_ASSERT_SUCCESS(GetBroAxises(bro_nodes, bro_axes));
+    }
+
+    // 获取所有分支的输入锚点，用于检查Scalar输入
+    auto bro_out_anchor = bro_nodes.back()->GetOutDataAnchor(0);
+    auto peer_in_anchors = bro_out_anchor->GetPeerInDataAnchors();
+
+    for (const auto &in_anchor : peer_in_anchors) {
+      NodePtr compute_node = in_anchor->GetOwnerNode();
+      int32_t input_idx = in_anchor->GetIdx();
+
+      // 检查计算节点是否支持Scalar输入
+      bool is_support = false;
+      GE_ASSERT_SUCCESS(CheckNodeSupportsScalarInput(compute_node, input_idx, bro_axes, is_support));
+      if (!is_support) {
+        return FAILED;
+      }
+    }
+  }
 
   // 断开所有分支与Broadcast节点的连接
   std::vector<OutDataAnchorPtr> branch_out_anchors;
@@ -1015,13 +1112,7 @@ Status BackwardMultiRefBroadcast(const NodePtr &bro_node, const NodePtr &merge_n
   GE_ASSERT_SUCCESS(DisconnectBranchesFromBroadcast(bro_nodes.back(), branch_out_anchors, branch_in_anchors));
 
   // 断开Broadcast节点链的输入
-  auto bro_in_anchor = bro_nodes.front()->GetInDataAnchor(0);
-  auto pre_bro_out_anchor = bro_in_anchor->GetPeerOutAnchor();
   GE_ASSERT_GRAPH_SUCCESS(GraphUtils::RemoveEdge(pre_bro_out_anchor, bro_in_anchor));
-
-  // 检查前驱节点是否是Scalar节点
-  NodePtr pre_bro_node = pre_bro_out_anchor->GetOwnerNode();
-  bool is_pre_scalar = (pre_bro_node->GetType() == kScalarType);
 
   // 移动Broadcast节点到合适位置
   GE_ASSERT_SUCCESS(MoveBroadcastAfterMerge(merge_node, bro_nodes.front(), bro_nodes.back()));
@@ -1029,30 +1120,6 @@ Status BackwardMultiRefBroadcast(const NodePtr &bro_node, const NodePtr &merge_n
   // 重新连接各个分支到pre_bro_out_anchor
   for (size_t i = 0; i < branch_out_anchors.size(); ++i) {
     GE_ASSERT_GRAPH_SUCCESS(GraphUtils::AddEdge(pre_bro_out_anchor, branch_in_anchors[i]));
-  }
-
-  // 如果前驱节点是Scalar节点，检查计算节点是否支持Scalar输入
-  if (is_pre_scalar) {
-    for (size_t i = 0; i < branch_in_anchors.size(); ++i) {
-      NodePtr compute_node = branch_in_anchors[i]->GetOwnerNode();
-      int input_idx = branch_in_anchors[i]->GetIdx();
-
-      // 检查计算节点是否支持Scalar输入
-      std::vector<bool> is_scalar_list;
-      GE_ASSERT_NOTNULL(std::dynamic_pointer_cast<ge::AscNode>(compute_node));
-      const auto &asc_node = std::dynamic_pointer_cast<ge::AscNode>(compute_node);
-      GE_ASSERT_SUCCESS(GetNodeScalarInputList(asc_node, is_scalar_list));
-
-      // 处理其他输入分支的Broadcast节点
-      std::vector<int64_t> empty_bro_axes;
-      GE_ASSERT_SUCCESS(ProcessOtherInputBranches(compute_node, input_idx, empty_bro_axes, is_scalar_list));
-
-      // 检查计算节点是否支持Scalar输入，使用ascgen_utils::IsNodeSupportsScalarInput接口
-      if (!ascgen_utils::IsNodeSupportsScalarInput(asc_node, is_scalar_list)) {
-        GELOGE(FAILED, "Compute node %s does not support scalar input", compute_node->GetName().c_str());
-        return FAILED;
-      }
-    }
   }
 
   // 更新topo id
@@ -1107,8 +1174,7 @@ Status ProcessMultiRefBroadcastBackward(AscGraph &graph, bool &is_changed) {
            candidate_node->GetName().c_str(), merge_node->GetName().c_str(), bro_nodes.size(), all_branch_nodes.size());
 
     // 执行后移
-    GE_ASSERT_SUCCESS(BackwardMultiRefBroadcast(bro_node, merge_node, all_branch_nodes, graph));
-    is_changed = true;
+    is_changed = BackwardMultiRefBroadcast(merge_node, all_branch_nodes, bro_nodes, graph) == SUCCESS;
   }
 
   return SUCCESS;

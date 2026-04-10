@@ -30,6 +30,7 @@
 #include "mmpa/mmpa_api.h"
 #include "graph_metadef/graph/utils/file_utils.h"
 #include "macro_utils/dt_public_unscope.h"
+#include "graph_metadef/common/ge_common/util.h"
 
 namespace ge {
 namespace formats {
@@ -123,6 +124,12 @@ TEST_F(UtestUtilTransfer, GetCurrentSecondTimestap) {
   //ComputeGraphPtr cgp = BuildComputeGraph();
  // Graph graph = ge::GraphUtilsEx::CreateGraphFromComputeGraph(cgp);
   //EXPECT_NE(GetCurrentSecondTimestap(), FAILED);
+}
+
+TEST_F(UtestUtilTransfer, FormatErrnoReason) {
+  EXPECT_EQ(ge::FormatErrnoReason(123, "permission denied"), "[Errno 123] permission denied");
+  EXPECT_EQ(ge::FormatErrnoReason(456, "already has dot."), "[Errno 456] already has dot.");
+  EXPECT_EQ(ge::FormatErrnoReason(321, ""), "[Errno 321]");
 }
 
 TEST_F(UtestUtilTransfer, ReadProtoFromText) {

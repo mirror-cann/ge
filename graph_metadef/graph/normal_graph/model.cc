@@ -20,6 +20,7 @@
 #include <iomanip>
 #include "graph/debug/ge_attr_define.h"
 #include "graph_metadef/graph/debug/ge_util.h"
+#include "graph_metadef/common/ge_common/util.h"
 #include "framework/common/debug/ge_log.h"
 #include "graph/model_serialize.h"
 #include "graph_metadef/graph/utils/file_utils.h"
@@ -41,11 +42,11 @@ static ge::ModelSerialize SERIALIZE;
 }  // namespace
 
 namespace ge {
-static char_t *GetStrError() {
+static std::string GetStrError() {
   constexpr size_t kMaxErrLen = 128U;
   char_t err_buf[kMaxErrLen + 1U] = {};
-  const auto str_error = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrLen);
-  return str_error;
+  const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrLen);
+  return FormatErrnoReason(mmGetErrorCode(), err_msg);
 }
 
 void Model::Init() {
@@ -168,8 +169,9 @@ graphStatus Model::SaveToFile(const std::string &file_name, const bool force_sep
         mmOpen2(&real_path[0], static_cast<int32_t>(static_cast<uint32_t>(M_WRONLY) | static_cast<uint32_t>(M_CREAT) |
             static_cast<uint32_t>(O_TRUNC)), static_cast<uint32_t>(ACCESS_PERMISSION_BITS));
     if (fd < 0) {
-      REPORT_INNER_ERR_MSG("E18888", "open file:%s failed, error:%s ", &real_path[0], GetStrError());
-      GELOGE(GRAPH_FAILED, "[Open][File] %s failed, error:%s ", &real_path[0], GetStrError());
+      const std::string reason = GetStrError();
+      REPORT_INNER_ERR_MSG("E18888", "open file:%s failed, reason:%s", &real_path[0], reason.c_str());
+      GELOGE(GRAPH_FAILED, "[Open][File] %s failed, error:%s ", &real_path[0], reason.c_str());
       return GRAPH_FAILED;
     }
     const bool result = ge_proto.SerializeToFileDescriptor(fd);
@@ -177,15 +179,17 @@ graphStatus Model::SaveToFile(const std::string &file_name, const bool force_sep
       REPORT_INNER_ERR_MSG("E18888", "SerializeToFileDescriptor failed, file:%s.", &real_path[0]);
       GELOGE(GRAPH_FAILED, "[Call][SerializeToFileDescriptor] failed, file:%s.", &real_path[0]);
       if (mmClose(fd) != 0) {
-        REPORT_INNER_ERR_MSG("E18888", "close file:%s fail, error:%s.", &real_path[0], GetStrError());
-        GELOGE(GRAPH_FAILED, "[Close][File] %s fail, error:%s.", &real_path[0], GetStrError());
+        const std::string reason = GetStrError();
+        REPORT_INNER_ERR_MSG("E18888", "close file:%s fail, reason:%s.", &real_path[0], reason.c_str());
+        GELOGE(GRAPH_FAILED, "[Close][File] %s fail, error:%s.", &real_path[0], reason.c_str());
         return GRAPH_FAILED;
       }
       return GRAPH_FAILED;
     }
     if (mmClose(fd) != 0) {
-      REPORT_INNER_ERR_MSG("E18888", "close file:%s fail, error:%s.", &real_path[0], GetStrError());
-      GELOGE(GRAPH_FAILED, "[Close][File] %s fail, error:%s.", &real_path[0], GetStrError());
+      const std::string reason = GetStrError();
+      REPORT_INNER_ERR_MSG("E18888", "close file:%s fail, reason:%s.", &real_path[0], reason.c_str());
+      GELOGE(GRAPH_FAILED, "[Close][File] %s fail, error:%s.", &real_path[0], reason.c_str());
       return GRAPH_FAILED;
     }
     if (!result) {
@@ -206,14 +210,16 @@ graphStatus Model::LoadFromFile(const std::string &file_name) {
   }
   const INT32 result = mmRealPath(file_name.c_str(), &real_path[0], MMPA_MAX_PATH);
   if (result != EN_OK) {
-    REPORT_INNER_ERR_MSG("E18888", "get realpath failed for %s, error:%s.", file_name.c_str(), GetStrError());
-    GELOGE(GRAPH_FAILED, "[Get][RealPath] failed for %s, error:%s.", file_name.c_str(), GetStrError());
+    const std::string reason = GetStrError();
+    REPORT_INNER_ERR_MSG("E18888", "get realpath failed for %s, reason:%s.", file_name.c_str(), reason.c_str());
+    GELOGE(GRAPH_FAILED, "[Get][RealPath] failed for %s, error:%s.", file_name.c_str(), reason.c_str());
     return GRAPH_FAILED;
   }
   const int32_t fd = mmOpen(&real_path[0], M_RDONLY);
   if (fd < 0) {
-    REPORT_INNER_ERR_MSG("E18888", "open file:%s failed, error:%s", &real_path[0], GetStrError());
-    GELOGE(GRAPH_FAILED, "[Open][File] %s failed, error:%s", &real_path[0], GetStrError());
+    const std::string reason = GetStrError();
+    REPORT_INNER_ERR_MSG("E18888", "open file:%s failed, reason:%s", &real_path[0], reason.c_str());
+    GELOGE(GRAPH_FAILED, "[Open][File] %s failed, error:%s", &real_path[0], reason.c_str());
     return GRAPH_FAILED;
   }
 
@@ -223,15 +229,17 @@ graphStatus Model::LoadFromFile(const std::string &file_name) {
     REPORT_INNER_ERR_MSG("E18888", "ParseFromFileDescriptor failed, file:%s.", &real_path[0]);
     GELOGE(GRAPH_FAILED, "[Call][ParseFromFileDescriptor] failed, file:%s.", &real_path[0]);
     if (mmClose(fd) != 0) {
-      REPORT_INNER_ERR_MSG("E18888", "close file:%s fail, error:%s.", &real_path[0], GetStrError());
-      GELOGE(GRAPH_FAILED, "[Close][File] %s fail. error:%s", &real_path[0], GetStrError());
+      const std::string reason = GetStrError();
+      REPORT_INNER_ERR_MSG("E18888", "close file:%s fail, reason:%s.", &real_path[0], reason.c_str());
+      GELOGE(GRAPH_FAILED, "[Close][File] %s fail. error:%s", &real_path[0], reason.c_str());
       return GRAPH_FAILED;
     }
     return GRAPH_FAILED;
   }
   if (mmClose(fd) != 0) {
-    REPORT_INNER_ERR_MSG("E18888", "close file:%s fail, error:%s.", &real_path[0], GetStrError());
-    GELOGE(GRAPH_FAILED, "[Close][File] %s fail. error:%s", &real_path[0], GetStrError());
+    const std::string reason = GetStrError();
+    REPORT_INNER_ERR_MSG("E18888", "close file:%s fail, reason:%s.", &real_path[0], reason.c_str());
+    GELOGE(GRAPH_FAILED, "[Close][File] %s fail. error:%s", &real_path[0], reason.c_str());
     return GRAPH_FAILED;
   }
   if (!ret) {

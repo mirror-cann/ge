@@ -131,8 +131,9 @@ std::string CurrentTimeInStr() {
   if (ptm == nullptr) {
     char_t err_buf[kMaxErrorStrLength + 1U] = {};
     const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrorStrLength);
+    const std::string reason = FormatErrnoReason(mmGetErrorCode(), err_msg);
     GELOGE(ge::FAILED, "[Check][Param]Localtime incorrect, errmsg %s", err_msg);
-    REPORT_INNER_ERR_MSG("E19999", "Localtime incorrect, errmsg %s", err_msg);
+    REPORT_INNER_ERR_MSG("E19999", "Localtime incorrect, reason:%s", reason.c_str());
     return "";
   }
 
@@ -186,7 +187,7 @@ bool CheckInputPathValid(const std::string &file_path, const std::string &atc_pa
     } else {
       char_t err_buf[kMaxErrorStrLength + 1U] = {};
       const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrorStrLength);
-      std::string reason = "[Error " + std::to_string(mmGetErrorCode()) + "] " + err_msg;
+      std::string reason = FormatErrnoReason(mmGetErrorCode(), err_msg);
       (void)REPORT_PREDEFINED_ERR_MSG("E13000", std::vector<const char *>({"path", "errmsg"}),
                                 std::vector<const char *>({file_path.c_str(), reason.c_str()}));
     }
@@ -198,7 +199,7 @@ bool CheckInputPathValid(const std::string &file_path, const std::string &atc_pa
   if (real_path.empty()) {
     char_t err_buf[kMaxErrorStrLength + 1U] = {};
     const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrorStrLength);
-    const std::string reason = "realpath error, errmsg:" + std::string(err_msg);
+    const std::string reason = FormatErrnoReason(mmGetErrorCode(), err_msg);
     PathValidErrReport(file_path, atc_param, reason);
     GELOGW("Path[%s]'s realpath is empty, errmsg[%s]", file_path.c_str(), err_msg);
     return false;
@@ -222,9 +223,9 @@ bool CheckInputPathValid(const std::string &file_path, const std::string &atc_pa
   // The absolute path points to a file that is not readable
   if (mmAccess2(real_path.c_str(), M_R_OK) != EN_OK) {
     char_t err_buf[kMaxErrorStrLength + 1U] = {};
-    const auto reason = "[Errno " + std::to_string(mmGetErrorCode()) + "] " +
-                        mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrorStrLength);
-    PathValidErrReport(file_path, atc_param, "cat not access, errmsg:" + reason);
+    const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrorStrLength);
+    const auto reason = FormatErrnoReason(mmGetErrorCode(), err_msg);
+    PathValidErrReport(file_path, atc_param, reason);
     GELOGW("Read file[%s] unsuccessful, errmsg[%s]", file_path.c_str(), reason.c_str());
     return false;
   }
@@ -275,9 +276,9 @@ bool CheckOutputPathValid(const std::string &file_path, const std::string &atc_p
     if (mmAccess2(real_path.c_str(),
         static_cast<int32_t>(static_cast<uint32_t>(M_W_OK) | static_cast<uint32_t>(M_F_OK))) != EN_OK) {
       char_t err_buf[kMaxErrorStrLength + 1U] = {};
-      const auto reason = "[Errno " + std::to_string(mmGetErrorCode()) + "] " +
-                          mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrorStrLength);
-      PathValidErrReport(file_path, atc_param, "cat not access, errmsg:" + std::string(reason));
+      const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrorStrLength);
+      const auto reason = FormatErrnoReason(mmGetErrorCode(), err_msg);
+      PathValidErrReport(file_path, atc_param, reason);
       GELOGW("Write file[%s] unsuccessful, errmsg[%s]", real_path.c_str(), reason.c_str());
       return false;
     }
@@ -299,9 +300,8 @@ bool CheckOutputPathValid(const std::string &file_path, const std::string &atc_p
       if (CreateDirectory(prefix_path) != 0) {
         char_t err_buf[kMaxErrorStrLength + 1U] = {};
         const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrorStrLength);
-        std::string reason =
-            "Directory creation failed. [Errno " + std::to_string(mmGetErrorCode()) + "] " + err_msg + ".";
-        PathValidErrReport(file_path, atc_param, "Can not create directory");
+        std::string reason = FormatErrnoReason(mmGetErrorCode(), err_msg);
+        PathValidErrReport(file_path, atc_param, reason);
         GELOGW("Can not create directory[%s].", file_path.c_str());
         return false;
       }

@@ -38,8 +38,8 @@ ge::graphStatus NpuGetFloatStatus(KernelContext *const context) {
 
   GE_ASSERT_NOTNULL(args_dev);
   GE_ASSERT_NOTNULL(args_holder);
-  GE_ASSERT_RT_OK(rtMemcpyAsync(args_dev->GetAddr(), sizeof(void *), &args_holder->output_holder,
-                                sizeof(void *), RT_MEMCPY_HOST_TO_DEVICE_EX, stream));
+  GE_ASSERT_RT_OK(aclrtMemcpyAsync(args_dev->GetAddr(), sizeof(void *), &args_holder->output_holder,
+      sizeof(void *), ACL_MEMCPY_HOST_TO_BUF_TO_DEVICE, stream));
   GE_ASSERT_RT_OK(ge::rtNpuGetFloatStatus(args_dev->GetAddr(), args_holder->output_size, 0U, stream));
 
   return ge::GRAPH_SUCCESS;
@@ -81,8 +81,8 @@ ge::graphStatus NpuGetFloatDebugStatus(KernelContext *const context) {
 
   GE_ASSERT_NOTNULL(args_dev);
   GE_ASSERT_NOTNULL(args_holder);
-  GE_ASSERT_RT_OK(rtMemcpyAsync(args_dev->GetAddr(), sizeof(void *), &args_holder->output_holder,
-                                sizeof(void *), RT_MEMCPY_HOST_TO_DEVICE_EX, stream));
+  GE_ASSERT_RT_OK(aclrtMemcpyAsync(args_dev->GetAddr(), sizeof(void *), &args_holder->output_holder,
+      sizeof(void *), ACL_MEMCPY_HOST_TO_BUF_TO_DEVICE, stream));
   GE_ASSERT_RT_OK(ge::rtNpuGetFloatDebugStatus(args_dev->GetAddr(), args_holder->output_size, 0U, stream));
 
   return ge::GRAPH_SUCCESS;

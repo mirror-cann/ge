@@ -85,6 +85,10 @@ class ModelBuilder {
 
   Status SetInputOutputDesc();
 
+  Status SetNodeFormatToND(const ge::OpDescPtr &node_op_desc) const;
+
+  Status AlignWeightOffset();
+
   Status AdjustInputTensorFlag() const;
 
   Status BuildModelDef(ge::Model &model);

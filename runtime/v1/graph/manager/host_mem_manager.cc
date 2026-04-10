@@ -18,6 +18,7 @@
 #include "runtime/rt.h"
 #include "acl/acl_rt.h"
 #include "base/err_msg.h"
+#include "acl/acl_rt.h"
 
 namespace {
 constexpr uint32_t kMallocHostMemFlag = 0U;

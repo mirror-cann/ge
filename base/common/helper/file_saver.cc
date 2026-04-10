@@ -141,9 +141,9 @@ Status FileSaver::SaveWithFileHeader(const std::string &file_path, const ModelFi
   if (mmClose(fd) != 0) {  // mmClose 0: success
     char_t err_buf[kMaxErrStrLen + 1U] = {};
     const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrStrLen);
+    const std::string reason = FormatErrnoReason(mmGetErrorCode(), err_msg);
     GELOGE(FAILED, "[Close][File]Failed, error_code:%u errmsg:%s", ret, err_msg);
-    REPORT_INNER_ERR_MSG("E19999", "Close file failed, error_code:%u errmsg:%s",
-                       ret, err_msg);
+    REPORT_INNER_ERR_MSG("E19999", "Close file failed, error_code:%u reason:%s", ret, reason.c_str());
     ret = FAILED;
   }
   return ret;
@@ -202,7 +202,8 @@ Status FileSaver::SaveWithFileHeader(const std::string &file_path, const ModelFi
   if (mmClose(fd) != EN_OK) {
     char_t err_buf[kMaxErrStrLen + 1U] = {};
     const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrStrLen);
-    REPORT_INNER_ERR_MSG("E19999", "Close file failed, error_code:%u errmsg:%s", ret, err_msg);
+    const std::string reason = FormatErrnoReason(mmGetErrorCode(), err_msg);
+    REPORT_INNER_ERR_MSG("E19999", "Close file failed, error_code:%u reason:%s", ret, reason.c_str());
     ret = FAILED;
   }
   return ret;
@@ -329,7 +330,7 @@ Status FileSaver::SaveToFile(const std::string &file_path, const ge::ModelData &
     GELOGE(FAILED, "[Save][File]Incorrect input param, file_path is empty");
     (void)REPORT_PREDEFINED_ERR_MSG(
           "E10059", std::vector<const char *>({"stage", "reason"}),
-          std::vector<const char *>({"SaveToFile", "Input parameter file_path is empty"}));
+          std::vector<const char *>({"SaveToFile", "input parameter file_path is empty"}));
     return FAILED;
   }
 
@@ -448,9 +449,9 @@ Status FileSaver::SaveWithFileHeader(const std::string &file_path, const ModelFi
   if (mmClose(fd) != 0) {  // mmClose 0: success
     std::array<char_t, kMaxErrStrLen + 1U> err_buf = {};
     const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrStrLen);
+    const std::string reason = FormatErrnoReason(mmGetErrorCode(), err_msg);
     GELOGE(FAILED, "[Close][File]Failed, error_code:%u errmsg:%s", ret, err_msg);
-    REPORT_INNER_ERR_MSG("E19999", "Close file failed, error_code:%u errmsg:%s",
-                      ret, err_msg);
+    REPORT_INNER_ERR_MSG("E19999", "Close file failed, error_code:%u reason:%s", ret, reason.c_str());
     ret = FAILED;
   }
   return ret;
@@ -482,9 +483,9 @@ Status FileSaver::SaveToFile(const std::string &file_path, const void *const dat
   if (mmClose(fd) != 0) {  // mmClose 0: success
     std::array<char_t, kMaxErrStrLen + 1U> err_buf = {};
     const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrStrLen);
+    const std::string reason = FormatErrnoReason(mmGetErrorCode(), err_msg);
     GELOGE(FAILED, "[Close][File]Failed, error_code:%u errmsg:%s", ret, err_msg);
-    REPORT_INNER_ERR_MSG("E19999", "Close file failed, error_code:%u errmsg:%s",
-                      ret, err_msg);
+    REPORT_INNER_ERR_MSG("E19999", "Close file failed, error_code:%u reason:%s", ret, reason.c_str());
     ret = FAILED;
   }
   return ret;

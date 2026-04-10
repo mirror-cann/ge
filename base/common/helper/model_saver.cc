@@ -65,7 +65,7 @@ Status ModelSaver::SaveJsonToFile(const char_t *const file_path, const Json &mod
                                                   static_cast<uint32_t>(O_TRUNC)), open_mode);
   if ((fd == EN_ERROR) || (fd == EN_INVALID_PARAM)) {
     const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrStrLength);
-    std::string reason = "[Error " + std::to_string(mmGetErrorCode()) + "] " + err_msg;
+    std::string reason = FormatErrnoReason(mmGetErrorCode(), err_msg);
     (void)REPORT_PREDEFINED_ERR_MSG("E13001", std::vector<const char *>({"file", "errmsg"}),
                               std::vector<const char *>({file_path, reason.c_str()}));
     GELOGE(FAILED, "[Open][File]Failed, file %s, errmsg %s", file_path, reason.c_str());
@@ -77,7 +77,7 @@ Status ModelSaver::SaveJsonToFile(const char_t *const file_path, const Json &mod
   const mmSsize_t mmpa_ret = mmWrite(fd, const_cast<char_t *>(model_char), len);
   if ((mmpa_ret == EN_ERROR) || (mmpa_ret == EN_INVALID_PARAM)) {
     const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrStrLength);
-    std::string reason = "[Error " + std::to_string(mmGetErrorCode()) + "] " + err_msg;
+    std::string reason = FormatErrnoReason(mmGetErrorCode(), err_msg);
     (void)REPORT_PREDEFINED_ERR_MSG("E13004", std::vector<const char *>({"file", "errmsg"}),
                               std::vector<const char *>({file_path, reason.c_str()}));
     // Need to both print the error info of mmWrite and mmClose, so return ret after mmClose
@@ -88,8 +88,9 @@ Status ModelSaver::SaveJsonToFile(const char_t *const file_path, const Json &mod
   // Close file
   if (mmClose(fd) != EN_OK) {
     const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrStrLength);
+    const std::string reason = FormatErrnoReason(mmGetErrorCode(), err_msg);
     GELOGE(FAILED, "[Close][File]Failed, file %s, errmsg %s", file_path, err_msg);
-    REPORT_INNER_ERR_MSG("E19999", "Close file %s failed, errmsg %s", file_path, err_msg);
+    REPORT_INNER_ERR_MSG("E19999", "Close file %s failed, reason:%s", file_path, reason.c_str());
     ret = FAILED;
   }
   return ret;

@@ -9,6 +9,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <limits>
 
 #include "parser/common/op_parser_factory.h"
 #include "parser/tensorflow/tensorflow_parser.h"
@@ -4258,6 +4259,17 @@ TEST_F(UtestTensorflowParser, tensorflow_data_op_parser_test)
 
   ge::OpDescPtr op = std::make_shared<ge::OpDesc>();
   ret = opParser.ParseShape(shape, op);
+}
+
+TEST_F(UtestTensorflowParser, tensorflow_data_op_parser_Init5DOutputTensor_failed_test)
+{
+  // Test Init5DOutputTensor with overflow shape to trigger GetTensorMemorySizeInBytesWithAutoPadding failure
+  const int64_t max_val = std::numeric_limits<int64_t>::max();
+  std::vector<int64_t> overflow_shape = {max_val, max_val, max_val, max_val};
+  ge::GeTensorDesc tensor_desc;
+  DataOpParser opParser;
+  Status ret = opParser.Init5DOutputTensor(overflow_shape, tensor_desc);
+  EXPECT_EQ(ret, domi::FAILED);
 }
 
 TEST_F(UtestTensorflowParser, read_proto_from_mem_test)

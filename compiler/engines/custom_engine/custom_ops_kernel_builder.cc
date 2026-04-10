@@ -50,7 +50,7 @@ Status CustomOpsKernelBuilder::CalcOpRunningParam(Node &node) {
       continue;
     }
     int64_t tensor_size = 0;
-    GE_ASSERT_SUCCESS(TensorUtils::GetTensorMemorySizeInBytes(*op_desc->MutableOutputDesc(i), tensor_size));
+    GE_ASSERT_SUCCESS(TensorUtils::GetTensorMemorySizeInBytesWithAutoPadding(*op_desc->MutableOutputDesc(i), tensor_size));
     TensorUtils::SetSize(*op_desc->MutableOutputDesc(i), tensor_size);
   }
   (void)node;

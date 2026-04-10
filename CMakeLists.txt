@@ -147,6 +147,12 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     add_compile_options(-Wno-error)
 endif()
 
+if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "14.0")
+        add_compile_options(-Wno-free-nonheap-object)
+    endif()
+endif()
+
 set(CMAKE_VERBOSE_MAKEFILE True)
 
 set(INSTALL_BASE_DIR "")

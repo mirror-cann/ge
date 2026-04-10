@@ -18,6 +18,7 @@
 #include "graph/def_types.h"
 #include "common/checker.h"
 #include "graph_metadef/graph/debug/ge_util.h"
+#include "graph_metadef/common/ge_common/util.h"
 #include "base/err_msg.h"
 #include "graph_metadef/graph/utils/file_utils.h"
 
@@ -78,8 +79,7 @@ static inline int32_t CheckAndMkdir(const char_t *tmp_dir_path, mmMode_t mode) {
     if (ret != 0) {
       std::vector<char_t> err_buf(kMaxErrorStrLen + 1U, '\0');
       const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), err_buf.data(), kMaxErrorStrLen);
-      std::string reason =
-          "Directory creation failed. [Errno " + std::to_string(mmGetErrorCode()) + "] " + err_msg + ".";
+      std::string reason = FormatErrnoReason(mmGetErrorCode(), err_msg);
       (void) REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char_t *>({"parameter", "value", "reason"}),
                                        std::vector<const char_t *>({"filepath", tmp_dir_path, reason.c_str()}));
       GELOGW("[Util][mkdir] Create directory %s failed, reason:%s. Make sure the "

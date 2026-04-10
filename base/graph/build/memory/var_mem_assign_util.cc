@@ -50,7 +50,7 @@ static Status GetSizeByNodeType(const OpDescPtr &op_desc, const GeTensorDescPtr 
       return SUCCESS;
     }
   }
-  GE_ASSERT_SUCCESS(TensorUtils::GetTensorMemorySizeInBytes(*tensor_desc, size),
+  GE_ASSERT_SUCCESS(TensorUtils::GetTensorMemorySizeInBytesWithAutoPadding(*tensor_desc, size),
                     "[Get][TensorMemorySize] In Bytes failed for op:%s(%s)",
                     op_desc->GetNamePtr(), node_type.c_str());
   return SUCCESS;

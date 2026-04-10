@@ -61,7 +61,7 @@ struct OoShowInfo {
 };
 
 struct OoInfo {
-  using ValueChecker = bool (*)(const std::string& opt_value);
+  using ValueChecker = bool (*)(const std::string &opt_value, std::string &reason);
   // identifies the visibility of the option at different entrances of the program
   uint64_t visibility;
   uint64_t levels;
@@ -89,7 +89,7 @@ class OoInfoUtils {
   static uint64_t GenOptLevelBits(const std::vector<OoLevel> &levels);
   static std::string GenOoLevelStr(const uint64_t opt_level);
   static std::string GetDefaultValue(const OoInfo &info, OoLevel target_level);
-  static bool IsSwitchOptValueValid(const std::string &opt_value);
+  static bool IsSwitchOptValueValid(const std::string &opt_value, std::string &reason);
 };
 }  // namespace ge
 #endif  // INC_GRAPH_OPTION_OPTIMIZATION_OPTION_INFO_H

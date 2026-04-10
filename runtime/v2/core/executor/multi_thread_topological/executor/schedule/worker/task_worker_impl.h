@@ -21,7 +21,6 @@
 #include "core/executor/multi_thread_topological/executor/schedule/task/task_package.h"
 #include "core/executor/multi_thread_topological/executor/schedule/task/exec_task.h"
 #include "acl/acl_rt.h"
-#include "runtime/context.h"
 #include "runtime/rt.h"
 #include "checker.h"
 #include "base/err_msg.h"

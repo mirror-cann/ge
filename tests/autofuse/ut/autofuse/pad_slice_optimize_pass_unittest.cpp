@@ -131,4 +131,59 @@ TEST_F(PadSliceOptimizePassTest, PadSlicePatternPostProcess) {
   PadSliceOptimizePass padSliceOptimizePass;
   EXPECT_EQ(padSliceOptimizePass.PostProcess(cg, pad1), ge::GRAPH_SUCCESS);
 }
+
+TEST_F(PadSliceOptimizePassTest, PadSlicePatternMultipleSlicesSharedOffsets) {
+  auto cg = [this]() {
+    auto data0 = es_graph_->CreateInput(0, "data0", nullptr);
+    data0.SetSymbolShape({"s0", "s1"});
+    data0.SetShape({10, 20});
+    auto paddings = CreateConst(*es_graph_, ge::DT_INT64, {2, 2}, std::vector<std::vector<int64_t>>{{1, 1}, {2, 2}});
+    paddings.SetShape({2, 2});
+    auto pad = es::Pad(data0, paddings);
+    pad.SetShape({12, 24});
+    auto shared_offsets = CreateConst(*es_graph_, ge::DT_INT64, {2}, std::vector<int64_t>{2, 4});
+    auto size1 = CreateConst(*es_graph_, ge::DT_INT32, {2}, std::vector<int32_t>{1, 2});
+    auto slice1 = es::Slice(pad, shared_offsets, size1);
+    slice1.SetSymbolShape({"s0", "s1"});
+    slice1.SetShape({1, 2});
+    auto size2 = CreateConst(*es_graph_, ge::DT_INT32, {2}, std::vector<int32_t>{1, 2});
+    auto slice2 = es::Slice(pad, shared_offsets, size2);
+    slice2.SetSymbolShape({"s0", "s1"});
+    slice2.SetShape({1, 2});
+    es_graph_->SetOutput(slice1, 0);
+    es_graph_->SetOutput(slice2, 1);
+    auto graph = es_graph_->Build();
+    return GraphUtilsEx::GetComputeGraph(*graph);
+  }();
+
+  for (const auto &node : cg->GetAllNodes()) {
+    printf("node name is %s \n", node->GetName().c_str());
+  }
+
+  auto pad_node = cg->FindNode("Pad_1");
+  ASSERT_NE(pad_node, nullptr);
+  auto pad_desc = pad_node->GetOpDesc()->MutableOutputDesc(0);
+  pad_desc->SetDataType(DT_FLOAT);
+  pad_desc->SetOriginDataType(DT_FLOAT);
+  auto pad_input_desc = pad_node->GetOpDesc()->MutableInputDesc(0);
+  pad_input_desc->SetShape(GeShape(std::vector<int64_t>{10, 20}));
+  pad_input_desc->SetDataType(DT_FLOAT);
+  pad_input_desc->SetOriginDataType(DT_FLOAT);
+
+  auto slice1 = cg->FindNode("Slice_4");
+  ASSERT_NE(slice1, nullptr);
+  auto slice1_desc = slice1->GetOpDesc()->MutableOutputDesc(0);
+  slice1_desc->SetDataType(DT_FLOAT);
+  slice1_desc->SetOriginDataType(DT_FLOAT);
+
+  auto slice2 = cg->FindNode("Slice_6");
+  ASSERT_NE(slice2, nullptr);
+  auto slice2_desc = slice2->GetOpDesc()->MutableOutputDesc(0);
+  slice2_desc->SetDataType(DT_FLOAT);
+  slice2_desc->SetOriginDataType(DT_FLOAT);
+
+  PadSliceOptimizePass padSliceOptimizePass;
+  bool changed = false;
+  EXPECT_EQ(padSliceOptimizePass.Run(cg, changed), ge::GRAPH_SUCCESS);
+}
 }  // namespace ge

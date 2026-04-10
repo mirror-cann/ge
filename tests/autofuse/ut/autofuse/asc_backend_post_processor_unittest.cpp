@@ -8231,6 +8231,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     compute_graph->SetGraphOutNodesInfo(output_nodes);
     return std::shared_ptr<ge::AscGraph>(new ge::AscGraph(graph));
   }
+
   std::shared_ptr<AscGraph> CreatAscGraphWithLoadAndCastMulReferenceAndInsertBroadcast(ge::AscGraph &graph) {
     auto ONE = Symbol(1);
     auto ZERO = Symbol(0);
@@ -9120,6 +9121,222 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     ge::ascir_op::Add add("add_4");
     add.x1 = x2Broadcast.y;
     add.x2 = x4Broadcast.y;
+    add.attr.sched.axis = {};
+    add.y.dtype = DT_FLOAT16;
+    AscOutputAttrDataType x2Local_output_data_type(&add, 0);
+    x2Local_output_data_type = ge::DT_FLOAT16;
+    *add.y.axis = {};
+    *add.y.repeats = {};
+    *add.y.strides = {};
+
+    ge::ascir_op::Store x_out("x_out_5");
+    x_out.x = add.y;
+    x_out.attr.sched.axis = {d.id, e.id};
+    x_out.attr.sched.loop_axis = d.id;
+    x_out.y.dtype = DT_FLOAT16;
+    *x_out.y.axis = {d.id, e.id};
+    *x_out.y.repeats = {D, E};
+    *x_out.y.strides = {E, ONE};
+
+    ge::ascir_op::Output x_output1("x_output1");
+    x_output1.x = x_out.y;
+    x_output1.attr.sched.axis = {d.id, e.id};
+    x_output1.attr.sched.loop_axis = d.id;
+    x_output1.y.dtype = DT_FLOAT;
+    *x_output1.y.axis = {d.id, e.id};
+    *x_output1.y.repeats = {D, E};
+    *x_output1.y.strides = {E, ONE};
+    auto x_out_node = graph.FindNode("x_output1");
+    auto compute_graph = x_out_node->GetOwnerComputeGraph();
+    std::vector<std::pair<NodePtr, int32_t>> output_nodes{{x_out_node, 0}};
+    compute_graph->SetOutputSize(1U);
+    compute_graph->SetGraphOutNodesInfo(output_nodes);
+    return std::shared_ptr<ge::AscGraph>(new ge::AscGraph(graph));
+  }
+
+  std::shared_ptr<AscGraph> CreatAscGraphWithScalarMulRefToAdd3(ge::AscGraph &graph) {
+    auto ONE = Symbol(1);
+    auto ZERO = Symbol(0);
+    const Expression A = graph.CreateSizeVar("A");
+    const Expression B = graph.CreateSizeVar("B");
+    const Expression C = graph.CreateSizeVar("C");
+    const Expression D = graph.CreateSizeVar("D");
+    const Expression E = graph.CreateSizeVar("E");
+
+    auto a = graph.CreateAxis("A", A);
+    auto b = graph.CreateAxis("B", B);
+    auto c = graph.CreateAxis("C", C);
+    auto d = graph.CreateAxis("D", D);
+    auto e = graph.CreateAxis("E", E);
+
+    ge::ascir_op::Data x1("x1_1", graph);
+    x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
+    x1.attr.sched.loop_axis = c.id;
+    x1.y.dtype = DT_FLOAT16;
+    *x1.y.axis = {a.id, b.id, c.id, d.id, e.id};
+    *x1.y.repeats =  {ONE, ONE, ONE, ONE, ONE};
+    *x1.y.strides =  {ZERO, ZERO, ZERO, ZERO, ZERO};
+
+    ge::ascir_op::Load x1Local("x1Local_2");
+    x1Local.x = x1.y;
+    x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
+    x1Local.y.dtype = DT_FLOAT16;
+    *x1Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
+    *x1Local.y.repeats = {A, B, C, D, E};
+    *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
+
+    ge::ascir_op::Scalar x2_scalar("scalar_to_add", graph);
+    x2_scalar.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
+    x2_scalar.attr.sched.loop_axis = c.id;
+    x2_scalar.y.dtype = DT_FLOAT16;
+    *x2_scalar.y.axis = {};
+    *x2_scalar.y.repeats = {};
+    *x2_scalar.y.strides = {};
+
+    ge::ascir_op::Sub sub1("sub_1");
+    sub1.x1 = x2_scalar.y;
+    sub1.x2 = x1Local.y;
+    sub1.attr.sched.axis = {};
+    sub1.y.dtype = DT_FLOAT16;
+    *sub1.y.axis = {};
+    *sub1.y.repeats = {};
+    *sub1.y.strides = {};
+
+    ge::ascir_op::Add add("add_4");
+    add.x1 = x2_scalar.y;
+    add.x2 = sub1.y;
+    add.attr.sched.axis = {};
+    add.y.dtype = DT_FLOAT16;
+    AscOutputAttrDataType x2Local_output_data_type(&add, 0);
+    x2Local_output_data_type = ge::DT_FLOAT16;
+    *add.y.axis = {};
+    *add.y.repeats = {};
+    *add.y.strides = {};
+
+    ge::ascir_op::Store x_out("x_out_5");
+    x_out.x = add.y;
+    x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
+    x_out.attr.sched.loop_axis = c.id;
+    x_out.y.dtype = DT_FLOAT16;
+    *x_out.y.axis = {a.id, b.id, c.id, d.id, e.id};
+    *x_out.y.repeats = {A, B, C, D, E};
+    *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
+
+    ge::ascir_op::Output x_output1("x_output1");
+    x_output1.x = x_out.y;
+    x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
+    x_output1.attr.sched.loop_axis = c.id;
+    x_output1.y.dtype = DT_FLOAT;
+    *x_output1.y.axis = {a.id, b.id, c.id, d.id, e.id};
+    *x_output1.y.repeats = {A, B, C, D, E};
+    *x_output1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
+    auto x_out_node = graph.FindNode("x_output1");
+    auto compute_graph = x_out_node->GetOwnerComputeGraph();
+    std::vector<std::pair<NodePtr, int32_t>> output_nodes{{x_out_node, 0}};
+    compute_graph->SetOutputSize(1U);
+    compute_graph->SetGraphOutNodesInfo(output_nodes);
+    return std::shared_ptr<ge::AscGraph>(new ge::AscGraph(graph));
+  }
+
+  std::shared_ptr<AscGraph> CreatAscGraphWithScalarMulRefToAdd4(ge::AscGraph &graph) {
+    auto ONE = Symbol(1);
+    auto ZERO = Symbol(0);
+    const Expression A = graph.CreateSizeVar("A");
+    const Expression B = graph.CreateSizeVar("B");
+    const Expression C = graph.CreateSizeVar("C");
+    const Expression D = graph.CreateSizeVar("D");
+    const Expression E = graph.CreateSizeVar("E");
+
+    auto a = graph.CreateAxis("A", A);
+    auto b = graph.CreateAxis("B", B);
+    auto c = graph.CreateAxis("C", C);
+    auto d = graph.CreateAxis("D", D);
+    auto e = graph.CreateAxis("E", E);
+
+    ge::ascir_op::Data x1("x1_1", graph);
+    x1.attr.sched.axis = {d.id, e.id};
+    x1.attr.sched.loop_axis = d.id;
+    x1.y.dtype = DT_FLOAT16;
+    *x1.y.axis = {d.id, e.id};
+    *x1.y.repeats =  {ONE, ONE};
+    *x1.y.strides =  {ZERO, ZERO};
+
+    ge::ascir_op::Load x1Local("x1Local_2");
+    x1Local.x = x1.y;
+    x1Local.attr.sched.axis = {d.id, e.id};
+    x1Local.y.dtype = DT_FLOAT16;
+    *x1Local.y.axis = {d.id, e.id};
+    *x1Local.y.repeats =  {ONE, ONE};
+    *x1Local.y.strides =  {ZERO, ZERO};
+
+    ge::ascir_op::Broadcast x3Broadcast("x3Broadcast_2_mul");
+    x3Broadcast.x = x1Local.y;
+    x3Broadcast.attr.sched.axis = {d.id, e.id};
+    x3Broadcast.y.dtype = DT_FLOAT16;
+    *x3Broadcast.y.axis = {d.id, e.id};
+    *x3Broadcast.y.repeats = {ONE, E};
+    *x3Broadcast.y.strides = {ZERO, ONE};
+
+    ge::ascir_op::Broadcast x4Broadcast("x4Broadcast_2_mul");
+    x4Broadcast.x = x3Broadcast.y;
+    x4Broadcast.attr.sched.axis = {d.id, e.id};
+    x4Broadcast.y.dtype = DT_FLOAT16;
+    *x4Broadcast.y.axis = {d.id, e.id};
+    *x4Broadcast.y.repeats = {D, E};
+    *x4Broadcast.y.strides = {E, ONE};
+
+    ge::ascir_op::Scalar x2_scalar("scalar_to_add", graph);
+    x2_scalar.attr.sched.axis = {d.id, e.id};
+    x2_scalar.attr.sched.loop_axis = d.id;
+    x2_scalar.y.dtype = DT_FLOAT16;
+    *x2_scalar.y.axis = {};
+    *x2_scalar.y.repeats = {};
+    *x2_scalar.y.strides = {};
+
+    ge::ascir_op::Broadcast x1Broadcast("x1Broadcast_2_mul");
+    x1Broadcast.x = x2_scalar.y;
+    x1Broadcast.attr.sched.axis = {d.id, e.id};
+    x1Broadcast.y.dtype = DT_FLOAT16;
+    *x1Broadcast.y.axis = {d.id, e.id};
+    *x1Broadcast.y.repeats = {ONE, E};
+    *x1Broadcast.y.strides = {ZERO, ONE};
+
+    ge::ascir_op::Broadcast x2Broadcast("x2Broadcast_2_mul");
+    x2Broadcast.x = x1Broadcast.y;
+    x2Broadcast.attr.sched.axis = {d.id, e.id};
+    x2Broadcast.y.dtype = DT_FLOAT16;
+    *x2Broadcast.y.axis = {d.id, e.id};
+    *x2Broadcast.y.repeats = {D, E};
+    *x2Broadcast.y.strides = {E, ONE};
+
+    ge::ascir_op::Broadcast x5Broadcast("x5Broadcast_2_mul");
+    x5Broadcast.x = x2_scalar.y;
+    x5Broadcast.attr.sched.axis = {d.id, e.id};
+    x5Broadcast.y.dtype = DT_FLOAT16;
+    *x5Broadcast.y.axis = {d.id, e.id};
+    *x5Broadcast.y.repeats = {ONE, E};
+    *x5Broadcast.y.strides = {ZERO, ONE};
+
+    ge::ascir_op::Broadcast x6Broadcast("x6Broadcast_2_mul");
+    x6Broadcast.x = x5Broadcast.y;
+    x6Broadcast.attr.sched.axis = {d.id, e.id};
+    x6Broadcast.y.dtype = DT_FLOAT16;
+    *x6Broadcast.y.axis = {d.id, e.id};
+    *x6Broadcast.y.repeats = {D, E};
+    *x6Broadcast.y.strides = {E, ONE};
+
+    ge::ascir_op::Sub sub1("sub_1");
+    sub1.x1 = x6Broadcast.y;
+    sub1.x2 = x4Broadcast.y;
+    sub1.attr.sched.axis = {};
+    sub1.y.dtype = DT_FLOAT16;
+    *sub1.y.axis = {};
+    *sub1.y.repeats = {};
+    *sub1.y.strides = {};
+
+    ge::ascir_op::Add add("add_4");
+    add.x1 = x2Broadcast.y;
+    add.x2 = sub1.y;
     add.attr.sched.axis = {};
     add.y.dtype = DT_FLOAT16;
     AscOutputAttrDataType x2Local_output_data_type(&add, 0);
@@ -19148,6 +19365,59 @@ TEST_F(AscBackendPostProcessorTest, BroadcastBackward_ScalarMulRefsNOK) {
   ASSERT_EQ(broadcast_cnt, 4);
 }
 
+// Broadcast后移判断Scalar节点后的Brc在其后计算节点不支持Scalar时不进行后移（Broadcast多引用）
+TEST_F(AscBackendPostProcessorTest, BroadcastBackward_ScalarMulRefsNOK2) {
+  ComputeGraphPtr compute_graph = BuildGraph1("AscBackend");
+  EXPECT_EQ(compute_graph->GetAllNodesSize(), 5);
+
+  auto addn1 = compute_graph->FindNode("addn1");
+  ASSERT_NE(addn1, nullptr);
+  auto op_desc1 = addn1->GetOpDescBarePtr();
+  ASSERT_NE(op_desc1, nullptr);
+  auto attr1 = GetOrCreateAutoFuseAttrs(op_desc1);
+  ASSERT_NE(attr1, nullptr);
+  std::vector<std::pair<std::string, DataType>> names = {
+      {"const1", DT_FLOAT16}, {"const2", DT_FLOAT16}, {"shape1", DT_FLOAT16}, {"netoutput", DT_FLOAT16}};
+  for (auto name : names) {
+    auto node = compute_graph->FindNode(name.first);
+    ASSERT_NE(node, nullptr);
+    auto op_desc = node->GetOpDescBarePtr();
+    ASSERT_NE(op_desc, nullptr);
+    op_desc->SetType("NotAscBc");
+    auto attr = GetOrCreateAutoFuseAttrs(op_desc);
+    ASSERT_NE(attr, nullptr);
+  }
+
+  ge::AscGraph add_graph1("add");
+  attr1->SetAscGraph(CreatAscGraphWithScalarMulRefToAdd(add_graph1));
+  EXPECT_EQ(asc_adapt::FallbackScalarToBroadcastWithoutCheckType(compute_graph), SUCCESS);
+  EXPECT_EQ(asc_adapt::GeFallback(compute_graph), SUCCESS);
+  EXPECT_EQ(asc_adapt::CompleteNodeAttrsOnAscGraphForSched(compute_graph), SUCCESS);
+  BroadcastBackwardPass broadcast_backward_pass;
+  EXPECT_EQ(broadcast_backward_pass.Run(compute_graph), SUCCESS);
+
+  // 校验结果
+  size_t broadcast_cnt = 0;
+  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+    if (node->GetType() == "Broadcast") {
+      broadcast_cnt++;
+    }
+    if (node->GetName() == "add_4") {
+      NodePtr pre_add_node;
+      asc_adapt::GetPeerOutNode(node, pre_add_node, 0);
+      ASSERT_EQ(pre_add_node->GetType(), "Broadcast");
+      asc_adapt::GetPeerOutNode(node, pre_add_node, 1);
+      ASSERT_EQ(pre_add_node->GetType(), "Broadcast");
+    }
+    if (node->GetName() == "x_out_5") {
+      NodePtr pre_add_node;
+      asc_adapt::GetPeerOutNode(node, pre_add_node, 0);
+      ASSERT_EQ(pre_add_node->GetType(), "Add");
+    }
+  }
+  ASSERT_EQ(broadcast_cnt, 5);
+}
+
 // Broadcast后移判断Scalar节点后的Brc多引用场景在其后计算节点支持Scalar时也支持后移（Broadcast多引用）
 TEST_F(AscBackendPostProcessorTest, BroadcastBackward_ScalarMulRefsOK) {
   // 添加自定义AscIrCodegen实现，使IsScalarInputSupported返回true
@@ -19315,6 +19585,183 @@ TEST_F(AscBackendPostProcessorTest, BroadcastBackward_ScalarMulRefsOK2) {
     }
   }
   ASSERT_EQ(broadcast_cnt, 2);
+
+  // 恢复原始注册表状态
+  registry.ClearAll();
+  for (const auto &item : original_registry) {
+    registry.RegisterAscIr(item.first, item.second);
+  }
+}
+
+// Broadcast后移判断Scalar节点后的Brc在其后计算节点不支持Scalar时不支持后移（Brc多引用+多输入公共Brc触发后移但多引用部分无法后移）
+TEST_F(AscBackendPostProcessorTest, BroadcastBackward_ScalarMulRefsOK3) {
+  // 添加自定义AscIrCodegen实现，使IsScalarInputSupported返回true
+  class TestAscIrCodegenStub : public ge::ascir::AscIrCodegen {
+   public:
+    bool IsScalarInputSupported(const std::vector<bool> &is_scalar_list) const override {
+      return true;
+    }
+  };
+
+  // 获取当前平台信息
+  std::string platform_name;
+  ge::PlatformContext::GetInstance().GetCurrentPlatformString(platform_name);
+
+  // 保存原始注册表状态
+  auto &registry = ge::ascir::AscirRegistry::GetInstance();
+  auto original_registry = registry.GetAll();
+
+  // 创建AscIrImpl对象，设置codegen创建函数
+  ge::ascir::AscIrImpl ir_impl;
+  ir_impl.codegen = []() { return std::unique_ptr<ge::ascir::AscIrCodegen>(new TestAscIrCodegenStub()); };
+
+  // 创建AscIrDef对象并添加实现
+  ge::ascir::AscIrDef ir_def;
+  ir_def.Init("Sub", __FILE__, __LINE__);
+  ir_def.AddSocImpl({platform_name}, ir_impl);
+
+  // 注册到AscirRegistry
+  registry.RegisterAscIr("Sub", ir_def);
+
+  // Sub多输入场景下，支持Scalar输入可以，多输入公共Brc支持后移
+  ComputeGraphPtr compute_graph = BuildGraph1("AscBackend");
+  EXPECT_EQ(compute_graph->GetAllNodesSize(), 5);
+
+  auto addn1 = compute_graph->FindNode("addn1");
+  ASSERT_NE(addn1, nullptr);
+  auto op_desc1 = addn1->GetOpDescBarePtr();
+  ASSERT_NE(op_desc1, nullptr);
+  auto attr1 = GetOrCreateAutoFuseAttrs(op_desc1);
+  ASSERT_NE(attr1, nullptr);
+  std::vector<std::pair<std::string, DataType>> names = {
+      {"const1", DT_FLOAT16}, {"const2", DT_FLOAT16}, {"shape1", DT_FLOAT16}, {"netoutput", DT_FLOAT16}};
+  for (auto name : names) {
+    auto node = compute_graph->FindNode(name.first);
+    ASSERT_NE(node, nullptr);
+    auto op_desc = node->GetOpDescBarePtr();
+    ASSERT_NE(op_desc, nullptr);
+    op_desc->SetType("NotAscBc");
+    auto attr = GetOrCreateAutoFuseAttrs(op_desc);
+    ASSERT_NE(attr, nullptr);
+  }
+
+  ge::AscGraph add_graph1("add");
+  attr1->SetAscGraph(CreatAscGraphWithScalarMulRefToAdd3(add_graph1));
+  EXPECT_EQ(asc_adapt::FallbackScalarToBroadcastWithoutCheckType(compute_graph), SUCCESS);
+  EXPECT_EQ(asc_adapt::GeFallback(compute_graph), SUCCESS);
+  EXPECT_EQ(asc_adapt::CompleteNodeAttrsOnAscGraphForSched(compute_graph), SUCCESS);
+  BroadcastBackwardPass broadcast_backward_pass;
+  EXPECT_EQ(broadcast_backward_pass.Run(compute_graph), SUCCESS);
+
+  // 校验结果
+  size_t broadcast_cnt = 0;
+  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+    if (node->GetType() == "Broadcast") {
+      broadcast_cnt++;
+    }
+    if (node->GetName() == "add_4") {
+      NodePtr pre_add_node;
+      asc_adapt::GetPeerOutNode(node, pre_add_node, 0);
+      ASSERT_EQ(pre_add_node->GetType(), "Broadcast");
+      asc_adapt::GetPeerOutNode(node, pre_add_node, 1);
+      ASSERT_EQ(pre_add_node->GetType(), "Sub");
+    }
+    if (node->GetName() == "x_out_5") {
+      NodePtr pre_add_node;
+      asc_adapt::GetPeerOutNode(node, pre_add_node, 0);
+      ASSERT_EQ(pre_add_node->GetType(), "Add");
+    }
+  }
+  ASSERT_EQ(broadcast_cnt, 10);
+
+  // 恢复原始注册表状态
+  registry.ClearAll();
+  for (const auto &item : original_registry) {
+    registry.RegisterAscIr(item.first, item.second);
+  }
+}
+
+// Broadcast后移判断Scalar节点后的Brc在其后计算节点不支持Scalar时不支持后移（Scalar多引用+多输入公共Brc触发后移）
+TEST_F(AscBackendPostProcessorTest, BroadcastBackward_ScalarMulRefsOK4) {
+  // 添加自定义AscIrCodegen实现，使IsScalarInputSupported返回true
+  class TestAscIrCodegenStub : public ge::ascir::AscIrCodegen {
+   public:
+    bool IsScalarInputSupported(const std::vector<bool> &is_scalar_list) const override {
+      return true;
+    }
+  };
+
+  // 获取当前平台信息
+  std::string platform_name;
+  ge::PlatformContext::GetInstance().GetCurrentPlatformString(platform_name);
+
+  // 保存原始注册表状态
+  auto &registry = ge::ascir::AscirRegistry::GetInstance();
+  auto original_registry = registry.GetAll();
+
+  // 清除所有已注册的算子，确保 Add 算子使用默认实现
+  registry.ClearAll();
+
+  // 创建AscIrImpl对象，设置codegen创建函数
+  ge::ascir::AscIrImpl ir_impl;
+  ir_impl.codegen = []() { return std::unique_ptr<ge::ascir::AscIrCodegen>(new TestAscIrCodegenStub()); };
+
+  // 创建AscIrDef对象并添加实现
+  ge::ascir::AscIrDef ir_def;
+  ir_def.Init("Sub", __FILE__, __LINE__);
+  ir_def.AddSocImpl({platform_name}, ir_impl);
+
+  // 注册到AscirRegistry
+  registry.RegisterAscIr("Sub", ir_def);
+
+  // Sub多输入场景下，支持Scalar输入可以，多输入公共Brc支持后移
+  ComputeGraphPtr compute_graph = BuildGraph1("AscBackend");
+  EXPECT_EQ(compute_graph->GetAllNodesSize(), 5);
+
+  auto addn1 = compute_graph->FindNode("addn1");
+  ASSERT_NE(addn1, nullptr);
+  auto op_desc1 = addn1->GetOpDescBarePtr();
+  ASSERT_NE(op_desc1, nullptr);
+  auto attr1 = GetOrCreateAutoFuseAttrs(op_desc1);
+  ASSERT_NE(attr1, nullptr);
+  std::vector<std::pair<std::string, DataType>> names = {
+      {"const1", DT_FLOAT16}, {"const2", DT_FLOAT16}, {"shape1", DT_FLOAT16}, {"netoutput", DT_FLOAT16}};
+  for (auto name : names) {
+    auto node = compute_graph->FindNode(name.first);
+    ASSERT_NE(node, nullptr);
+    auto op_desc = node->GetOpDescBarePtr();
+    ASSERT_NE(op_desc, nullptr);
+    op_desc->SetType("NotAscBc");
+    auto attr = GetOrCreateAutoFuseAttrs(op_desc);
+    ASSERT_NE(attr, nullptr);
+  }
+
+  ge::AscGraph add_graph1("add");
+  attr1->SetAscGraph(CreatAscGraphWithScalarMulRefToAdd4(add_graph1));
+  EXPECT_EQ(asc_adapt::CompleteNodeAttrsOnAscGraphForSched(compute_graph), SUCCESS);
+  BroadcastBackwardPass broadcast_backward_pass;
+  EXPECT_EQ(broadcast_backward_pass.Run(compute_graph), SUCCESS);
+
+  // 验证结果
+  size_t broadcast_cnt = 0;
+  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+    if (node->GetType() == "Broadcast") {
+      broadcast_cnt++;
+    }
+    if (node->GetName() == "add_4") {
+      NodePtr pre_add_node;
+      asc_adapt::GetPeerOutNode(node, pre_add_node, 0);
+      ASSERT_EQ(pre_add_node->GetType(), "Broadcast");
+      asc_adapt::GetPeerOutNode(node, pre_add_node, 1);
+      ASSERT_EQ(pre_add_node->GetType(), "Broadcast");
+    }
+    if (node->GetName() == "x_out_5") {
+      NodePtr pre_add_node;
+      asc_adapt::GetPeerOutNode(node, pre_add_node, 0);
+      ASSERT_EQ(pre_add_node->GetType(), "Add");
+    }
+  }
+  ASSERT_EQ(broadcast_cnt, 4);
 
   // 恢复原始注册表状态
   registry.ClearAll();

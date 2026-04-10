@@ -68,7 +68,7 @@ FMK_FUNC_HOST_VISIBILITY FMK_FUNC_DEV_VISIBILITY Status ModelSaver::SaveJsonToFi
   if (fd == EN_ERROR || fd == EN_INVALID_PARAM) {
     char_t err_buf[kMaxErrStrLen + 1U] = {};
     const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrStrLen);
-    std::string reason = "[Error " + std::to_string(mmGetErrorCode()) + "] " + err_msg;
+    std::string reason = FormatErrnoReason(mmGetErrorCode(), err_msg);
     REPORT_PREDEFINED_ERR_MSG("E13001", std::vector<const char *>({"file", "errmsg"}),
                               std::vector<const char *>({file_path, reason.c_str()}));
     GELOGE(FAILED, "[Open][File] [%s] failed. %s", file_path, reason.c_str());
@@ -80,7 +80,7 @@ FMK_FUNC_HOST_VISIBILITY FMK_FUNC_DEV_VISIBILITY Status ModelSaver::SaveJsonToFi
   if (mmpa_ret != GRAPH_SUCCESS) {
     char_t err_buf[kMaxErrStrLen + 1U] = {};
     const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrStrLen);
-    std::string reason = "[Error " + std::to_string(mmGetErrorCode()) + "] " + err_msg;
+    std::string reason = FormatErrnoReason(mmGetErrorCode(), err_msg);
     REPORT_PREDEFINED_ERR_MSG("E13004", std::vector<const char *>({"file", "errmsg"}),
                               std::vector<const char *>({file_path, reason.c_str()}));
     // Need to both print the error info of mmWrite and mmClose, so return ret after mmClose
@@ -91,7 +91,8 @@ FMK_FUNC_HOST_VISIBILITY FMK_FUNC_DEV_VISIBILITY Status ModelSaver::SaveJsonToFi
   if (mmClose(fd) != EN_OK) {
     char_t err_buf[kMaxErrStrLen + 1U] = {};
     const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrStrLen);
-    REPORT_INNER_ERR_MSG("E19999", "close file:%s failed. errmsg:%s", file_path, err_msg);
+    const std::string reason = FormatErrnoReason(mmGetErrorCode(), err_msg);
+    REPORT_INNER_ERR_MSG("E19999", "close file:%s failed. reason:%s", file_path, reason.c_str());
     GELOGE(FAILED, "[Close][File] %s failed. errmsg:%s", file_path, err_msg);
     ret = FAILED;
   }
@@ -148,9 +149,10 @@ FMK_FUNC_HOST_VISIBILITY FMK_FUNC_DEV_VISIBILITY int ModelSaver::CreateDirectory
           if (errno != EEXIST) {
             char_t err_buf[kMaxErrStrLen + 1U] = {};
             const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrStrLen);
+            const std::string reason = FormatErrnoReason(mmGetErrorCode(), err_msg);
             REPORT_INNER_ERR_MSG("E19999",
-                              "Can not create directory %s. Make sure the directory exists and writable. errmsg:%s",
-                              directory_path.c_str(), err_msg);
+                                 "Can not create directory %s. Make sure the directory exists and writable. reason:%s",
+                                 directory_path.c_str(), reason.c_str());
             GELOGW("Can not create directory %s. Make sure the directory exists and writable. errmsg:%s",
                    directory_path.c_str(), err_msg);
             return ret;
@@ -164,9 +166,10 @@ FMK_FUNC_HOST_VISIBILITY FMK_FUNC_DEV_VISIBILITY int ModelSaver::CreateDirectory
     if (errno != EEXIST) {
       char_t err_buf[kMaxErrStrLen + 1U] = {};
       const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrStrLen);
+      const std::string reason = FormatErrnoReason(mmGetErrorCode(), err_msg);
       REPORT_INNER_ERR_MSG("E19999",
-                        "Can not create directory %s. Make sure the directory exists and writable. errmsg:%s",
-                        directory_path.c_str(), err_msg);
+                           "Can not create directory %s. Make sure the directory exists and writable. reason:%s",
+                           directory_path.c_str(), reason.c_str());
       GELOGW("Can not create directory %s. Make sure the directory exists and writable. errmsg:%s",
              directory_path.c_str(), err_msg);
       return ret;

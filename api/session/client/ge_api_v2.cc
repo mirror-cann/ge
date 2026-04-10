@@ -303,9 +303,9 @@ Status GEInitializeV2(const std::map<AscendString, AscendString> &options) {
   for (const auto &option_item : options) {
     if (option_item.first.GetLength() == 0) {
       GELOGE(FAILED, "[Check][Param] GEInitializeV2 failed, option key is empty.");
-      REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char *>({"parameter", "value", "reason"}),
-                                std::vector<const char *>({option_item.first.GetString(),
-                                                           option_item.second.GetString(), "parameter is empty"}));
+      (void)REPORT_PREDEFINED_ERR_MSG(
+          "E10059", std::vector<const char *>({"stage", "reason"}),
+          std::vector<const char *>({"GEInitializeV2", "an option key is empty"}));
       return FAILED;
     }
     const std::string &key = std::string(option_item.first.GetString(), option_item.first.GetLength());
@@ -396,9 +396,9 @@ GeSession::GeSession(const std::map<AscendString, AscendString> &options) {
   for (auto &option_item : options) {
     if (option_item.first.GetLength() == 0) {
       GELOGE(FAILED, "Construct session failed, option key is empty.");
-      REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char *>({"parameter", "value", "reason"}),
-                                std::vector<const char *>({option_item.first.GetString(),
-                                                           option_item.second.GetString(), "parameter is empty"}));
+      (void)REPORT_PREDEFINED_ERR_MSG(
+          "E10059", std::vector<const char *>({"stage", "reason"}),
+          std::vector<const char *>({"GeSession", "an option key is empty"}));
       return;
     }
     const std::string &key = option_item.first.GetString();
@@ -463,9 +463,9 @@ Status GeSession::AddGraph(uint32_t graph_id, const Graph &graph, const std::map
   for (auto &option_item : options) {
     if (option_item.first.GetLength() == 0) {
       GELOGE(FAILED, "Add graph failed, option key is empty.");
-      REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char *>({"parameter", "value", "reason"}),
-                                std::vector<const char *>({option_item.first.GetString(),
-                                                           option_item.second.GetString(), "parameter is empty"}));
+      (void)REPORT_PREDEFINED_ERR_MSG(
+          "E10059", std::vector<const char *>({"stage", "reason"}),
+          std::vector<const char *>({"AddGraph", "an option key is empty"}));
       return FAILED;
     }
 

@@ -26,7 +26,7 @@ class VISIBILITY_EXPORT StreamAllocator {
 
   ~StreamAllocator();
 
-  TypedContinuousVector<rtStream_t> *AcquireStreams(size_t stream_num) const;
+  TypedContinuousVector<rtStream_t> *AcquireStreams(const size_t stream_num) const;
 
  private:
   TypedContinuousVector<rtStream_t> *Streams() const;

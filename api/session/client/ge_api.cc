@@ -186,7 +186,7 @@ Status GEInitialize(const std::map<std::string, std::string> &options) {
       GELOGE(FAILED, "[Check][Param] GEInitialize failed, option key is empty.");
       (void)REPORT_PREDEFINED_ERR_MSG(
           "E10059", std::vector<const char *>({"stage", "reason"}),
-          std::vector<const char *>({"GEInitialize", "An option key is empty"}));
+          std::vector<const char *>({"GEInitialize", "an option key is empty"}));
       return FAILED;
     }
     const AscendString &key =
@@ -269,7 +269,7 @@ Session::Session(const std::map<AscendString, AscendString> &options) {
       GELOGE(FAILED, "Construct session failed, option key is empty.");
       (void)REPORT_PREDEFINED_ERR_MSG(
           "E10059", std::vector<const char *>({"stage", "reason"}),
-          std::vector<const char *>({"Session Initialization", "An option key is empty"}));
+          std::vector<const char *>({"Session Initialization", "an option key is empty"}));
       return;
     }
     const std::string &key = option_item.first.GetString();

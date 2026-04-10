@@ -48,7 +48,7 @@ using AddrGetter = std::function<const void*(size_t)>;
 #define GE_MAKE_GUARD_RTMEM(var)  \
   GE_MAKE_GUARD(var, [&var]() { \
     if ((var) != nullptr) {       \
-      GE_CHK_RT(rtFreeHost(var)); \
+      GE_CHK_RT(aclrtFreeHost(var)); \
     }                             \
   })
 
@@ -216,9 +216,9 @@ using AddrGetter = std::function<const void*(size_t)>;
 #define GE_FREE_RT_LOG(addr)                                        \
   do {                                                              \
     if ((addr) != nullptr) {                                        \
-      const rtError_t error = rtFree(addr);                         \
-      if (error != RT_ERROR_NONE) {                                 \
-        GELOGE(ge::RT_FAILED, "Call rtFree failed, error: %#x", error); \
+      const aclError error = aclrtFree(addr);                         \
+      if (error != ACL_SUCCESS) {                                 \
+        GELOGE(ge::RT_FAILED, "Call aclrtFree failed, error: %#x", error); \
       }                                                             \
       (addr) = nullptr;                                             \
     }                                                               \
@@ -325,6 +325,15 @@ GE_FUNC_VISIBILITY bool CheckOutputPathValid(const std::string &file_path, const
 GE_FUNC_VISIBILITY bool ValidateStr(const std::string &file_path, const std::string &mode);
 
 GE_FUNC_VISIBILITY Status ConvertToInt32(const std::string &str, int32_t &val);
+
+inline std::string FormatErrnoReason(const int32_t error_num, const char_t *err_msg) {
+  std::string reason = "[Errno " + std::to_string(error_num) + "]";
+  if ((err_msg != nullptr) && (err_msg[0] != '\0')) {
+    reason += " ";
+    reason += err_msg;
+  }
+  return reason;
+}
 
 GE_FUNC_VISIBILITY std::string GetErrorNumStr(const int32_t errorNum);
 

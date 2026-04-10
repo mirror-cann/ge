@@ -18,21 +18,23 @@
 #include "graph/ge_local_context.h"
 
 namespace {
-bool ThresholdCheckerFunc(const std::string &opt_value) {
+bool ThresholdCheckerFunc(const std::string &opt_value, std::string &reason) {
   std::string tmp_opt_value = opt_value;
   std::stringstream ss(ge::StringUtils::Trim(tmp_opt_value));
   int64_t opt_convert;
   ss >> opt_convert;
   if (ss.fail() || !ss.eof()) {
+    reason = "The value must be an integer.";
     return false;
   }
   return true;
 }
 
-bool CustomCheckerFunc(const std::string &opt_value) {
+bool CustomCheckerFunc(const std::string &opt_value, std::string &reason) {
   if (opt_value.empty() || (opt_value == "disable") || (opt_value == "enable")) {
     return true;
   }
+  reason = "The value must be disable or enable.";
   return false;
 }
 }  // namespace

@@ -148,10 +148,10 @@ Status DataOpParser::Init5DOutputTensor(const std::vector<int64_t> &shape, ge::G
   output.SetShape(ge::GeShape(shape));
 
   int64_t output_size = 0;
-  ge::graphStatus graph_status = ge::TensorUtils::GetTensorMemorySizeInBytes(output, output_size);
+  ge::graphStatus graph_status = ge::TensorUtils::GetTensorMemorySizeInBytesWithAutoPadding(output, output_size);
   if (graph_status != ge::GRAPH_SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "GetTensorMemorySizeInBytes failed!");
-    GELOGE(FAILED, "[Invoke][GetTensorMemorySizeInBytes] failed!");
+    REPORT_INNER_ERR_MSG("E19999", "GetTensorMemorySizeInBytesWithAutoPadding failed!");
+    GELOGE(FAILED, "[Invoke][GetTensorMemorySizeInBytesWithAutoPadding] failed!");
     return domi::FAILED;
   }
   // Set the actual occupied space size

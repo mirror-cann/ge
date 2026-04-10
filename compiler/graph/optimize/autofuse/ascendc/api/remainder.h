@@ -22,11 +22,11 @@ constexpr uint32_t REMAINDER_TMP_BUF_FACTOR = 3U;  // Need 3 temp buffers for di
  * 
  * Supported data types: float, int32
  * For int32 input, Cast API is used to convert int32 to float for computation,
- * and output is float type.
+ * then convert result back to int32 for output.
  * 
  * Note: 
  * - Div API only supports half and float types, not int32
- * - For int32 input, computation is performed in float precision, output is float
+ * - For int32 input, computation is performed in float precision, output is int32
  * - Large int32 values (outside [-2^24, 2^24]) may have precision loss when converted to float
  * - Division by zero: Follows IEEE 754 standard behavior:
  *   - dividend > 0, divisor = 0: result = +inf
@@ -34,11 +34,10 @@ constexpr uint32_t REMAINDER_TMP_BUF_FACTOR = 3U;  // Need 3 temp buffers for di
  *   - dividend = 0, divisor = 0: result = NaN
  *   Caller should ensure divisor does not contain zero values if undefined behavior is not desired.
  * 
- * @tparam T Input data type (float or int32)
- * @tparam DstType Output data type (defaults to float for int32 input, same as T for float input)
+ * @tparam T Input/Output data type (float or int32)
  */
 template <typename T, bool isReuseSource = false>
-__aicore__ inline void RemainderExtend(const AscendC::LocalTensor<typename std::conditional<AscendC::IsSameType<T, int32_t>::value, float, T>::type> &dst, const AscendC::LocalTensor<T> &dividend,
+__aicore__ inline void RemainderExtend(const AscendC::LocalTensor<T> &dst, const AscendC::LocalTensor<T> &dividend,
                                  const AscendC::LocalTensor<T> &divisor, const AscendC::LocalTensor<uint8_t> &tmp_buf,
                                  const uint32_t calCount) {
   // Static type check: only support float and int32 for input
@@ -160,8 +159,6 @@ __aicore__ inline void RemainderExtend(const AscendC::LocalTensor<typename std::
     //   If bufElementCount == 0, process all data in one batch using calCount
     
     uint32_t batchSize = (bufElementCount > 0) ? bufElementCount : calCount;
-    // For DataCopy alignment: float requires 32-byte alignment, so 8 elements
-    constexpr uint32_t alignElements = AscendC::ONE_BLK_SIZE / sizeof(ComputeType);  // 8 for float
     
     for (calcSize = 0; calcSize < calCount; calcSize += batchSize) {
       uint32_t currentSize = (calCount - calcSize) > batchSize ? batchSize : (calCount - calcSize);
@@ -193,11 +190,10 @@ __aicore__ inline void RemainderExtend(const AscendC::LocalTensor<typename std::
       AscendC::Sub(buf0, buf0, buf2, currentSize);
       AscendC::PipeBarrier<PIPE_V>();
       
-      // Step 7: Copy float result to dst directly (no cast back to int32)
-      // dst is already float type for int32 input, buf0 is also float
-      // DataCopy requires 32-byte alignment, handle non-aligned cases
-      uint32_t alignedSize = ((currentSize + alignElements - 1) / alignElements) * alignElements;
-      AscendC::DataCopy<ComputeType>(dst[calcSize], buf0, alignedSize);
+      // Step 7: Cast float result to int32 and write to dst
+      // dst is int32 type for int32 input, buf0 is float
+      // Cast requires 32-byte alignment for both src and dst
+      AscendC::Cast(dst[calcSize], buf0, AscendC::RoundMode::CAST_RINT, currentSize);
       AscendC::PipeBarrier<PIPE_V>();
     }
   }

@@ -68,8 +68,8 @@ bool PropertiesManager::LoadFileContent(const std::string &file_path) {
   if (!fs.is_open()) {
     GELOGE(PARAM_INVALID, "[Open][File]Failed, file path %s invalid", file_path.c_str());
     char_t err_buf[kMaxErrorStrLength + 1U] = {};
-    const std::string errmsg = "[Errno " + std::to_string(mmGetErrorCode()) + "] " +
-                               mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrorStrLength);
+    const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrorStrLength);
+    const std::string errmsg = FormatErrnoReason(mmGetErrorCode(), err_msg);
     (void)REPORT_PREDEFINED_ERR_MSG(
         "E13001",
         std::vector<const char *>({"file", "errmsg"}),

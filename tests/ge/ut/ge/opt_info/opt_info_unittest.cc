@@ -14,6 +14,7 @@
 #include "macro_utils/dt_public_scope.h"
 #include "opt_info/ge_opt_info.h"
 #include "graph/ge_local_context.h"
+#include "ge/ge_api_error_codes.h"
 #include "ge/ge_api_types.h"
 #include "depends/runtime/src/runtime_stub.h"
 #include "macro_utils/dt_public_unscope.h"

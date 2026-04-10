@@ -156,7 +156,7 @@ Status ModelBuilder::CalcOutputSize(const ge::NodePtr &n) const {
     GE_IF_BOOL_EXEC(dim_num > DIM_DEFAULT_SIZE, TensorUtils::SetRealDimCnt(desc_temp, dim_num));
     // calculate tensor size
     int64_t size_temp = 0;
-    graphStatus graph_status = TensorUtils::GetTensorMemorySizeInBytes(desc_temp, size_temp);
+    graphStatus graph_status = TensorUtils::GetTensorMemorySizeInBytesWithAutoPadding(desc_temp, size_temp);
     if (graph_status != GRAPH_SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "Get tensor size in bytes failed for op:%s(%s) index:%u",
                         node_op_desc->GetName().c_str(), node_op_desc->GetType().c_str(), index);
@@ -305,6 +305,43 @@ Status ModelBuilder::AdjustConstWeightSize(const ge::NodePtr &node, size_t &mem_
   return SUCCESS;
 }
 
+Status ModelBuilder::SetNodeFormatToND(const ge::OpDescPtr &node_op_desc) const {
+  auto inputDescsPtr = node_op_desc->GetAllInputsDescPtr();
+  auto outputDescsPtr = node_op_desc->GetAllOutputsDescPtr();
+  ge::Format format = ge::FORMAT_ND;
+  for (auto &inputDescPtr : inputDescsPtr) {
+    GE_CHECK_NOTNULL(inputDescPtr);
+    if (AttrUtils::HasAttr(*inputDescPtr, ATTR_NAME_ORIGIN_FORMAT_IS_SET)) {
+      continue;
+    }
+    inputDescPtr->SetFormat(format);
+    inputDescPtr->SetOriginFormat(format);
+  }
+  for (auto &outputDescPtr : outputDescsPtr) {
+    GE_CHECK_NOTNULL(outputDescPtr);
+    if (AttrUtils::HasAttr(*outputDescPtr, ATTR_NAME_ORIGIN_FORMAT_IS_SET)) {
+      continue;
+    }
+    outputDescPtr->SetFormat(format);
+    outputDescPtr->SetOriginFormat(format);
+  }
+  return SUCCESS;
+}
+
+// 图编译后期，在 CalcOutputSize里面对opdesc上面的输出size进行了padding 32操作，但是实际weight申请内存时并没有做padding32操作
+// 导致在加载期，会存在拷贝越界情况。实际修改我们padding 32后做了512对齐，目的是确保下一个子图起始地址是512对齐的，不然copy性能会变差
+Status ModelBuilder::AlignWeightOffset() {
+  GELOGD("Before alignment processing, weight_offset_ is %zu", weight_offset_);
+  if (weight_offset_ > 0U) {
+    const size_t padding_size = static_cast<size_t>(ge::TensorUtils::GetPaddingSize());
+    GE_CHK_STATUS_RET(CheckSizeTAddOverflow(weight_offset_, (padding_size + MEM_ALIGN_SIZE - 1)),
+                      "32-aligned weights overflow, weight_offset_ is %zu", weight_offset_);
+    weight_offset_ = (weight_offset_ + padding_size + MEM_ALIGN_SIZE - 1) / MEM_ALIGN_SIZE * MEM_ALIGN_SIZE;
+  }
+  GELOGD("After add 32 and then do 512 alignment, weight_offset_ is %zu", weight_offset_);
+  return SUCCESS;
+}
+
 Status ModelBuilder::SetInputOutputDesc() {
   Status ret;
   for (const ge::NodePtr &n : compute_graph_->GetNodes(compute_graph_->GetGraphUnknownFlag())) {
@@ -321,27 +358,7 @@ Status ModelBuilder::SetInputOutputDesc() {
         (!node_op_desc->HasAttr("_is_single_op")) &&
         (OpTypeUtils::IsDataNode(type) || (type == NETOUTPUT));
     if (set_nd) {
-      auto inputDescsPtr = node_op_desc->GetAllInputsDescPtr();
-      auto outputDescsPtr = node_op_desc->GetAllOutputsDescPtr();
-      ge::Format format = ge::FORMAT_ND;
-      for (auto &inputDescPtr : inputDescsPtr) {
-        GE_CHECK_NOTNULL(inputDescPtr);
-        if (AttrUtils::HasAttr(*inputDescPtr, ATTR_NAME_ORIGIN_FORMAT_IS_SET)) {
-          continue;
-        }
-
-        inputDescPtr->SetFormat(format);
-        inputDescPtr->SetOriginFormat(format);
-      }
-      for (auto &outputDescPtr : outputDescsPtr) {
-        GE_CHECK_NOTNULL(outputDescPtr);
-        if (AttrUtils::HasAttr(*outputDescPtr, ATTR_NAME_ORIGIN_FORMAT_IS_SET)) {
-          continue;
-        }
-
-        outputDescPtr->SetFormat(format);
-        outputDescPtr->SetOriginFormat(format);
-      }
+      GE_CHK_STATUS_RET(SetNodeFormatToND(node_op_desc), "[Set][NodeFormatToND] failed");
     }
     if (OpTypeUtils::IsDataNode(type)) {
       GELOGD("Data node: %s.", n->GetName().c_str());
@@ -361,15 +378,7 @@ Status ModelBuilder::SetInputOutputDesc() {
     GE_IF_BOOL_EXEC(((weight_offset_ > 0) && (weight_offset_ % MEM_ALIGN_SIZE != 0)),
                     weight_offset_ = (weight_offset_ + MEM_ALIGN_SIZE - 1) / MEM_ALIGN_SIZE * MEM_ALIGN_SIZE);
   }
-  // 图编译后期，在 CalcOutputSize里面对opdesc上面的输出size进行了padding 32操作，但是实际weight申请内存时并没有做padding32操作
-  // 导致在加载期，会存在拷贝越界情况。实际修改我们padding 32后做了512对齐，目的是确保下一个子图起始地址是512对齐的，不然copy性能会变差
-  GELOGD("Before alignment processing, weight_offset_ is %zu", weight_offset_);
-  if (weight_offset_ > 0U) {
-    GE_CHK_STATUS_RET(CheckSizeTAddOverflow(weight_offset_, (kAlignBytes + MEM_ALIGN_SIZE - 1)),
-                      "32-aligned weights overflow, weight_offset_ is %zu", weight_offset_);
-    weight_offset_ = (weight_offset_ + kAlignBytes + MEM_ALIGN_SIZE - 1) / MEM_ALIGN_SIZE * MEM_ALIGN_SIZE;
-  }
-  GELOGD("After add 32 and then do 512 alignment, weight_offset_ is %zu", weight_offset_);
+  GE_CHK_STATUS_RET(AlignWeightOffset(), "[Align][WeightOffset] failed");
   GE_CHK_STATUS_RET(compute_graph_->TopologicalSorting(),
                     "[Call][TopologicalSorting] failed, graph:%s",
                     compute_graph_->GetName().c_str());

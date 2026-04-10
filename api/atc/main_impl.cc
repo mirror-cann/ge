@@ -1799,8 +1799,9 @@ Status GenerateOmModel() {
 
   options.insert(std::pair<std::string, std::string>(std::string(QUANT_DUMPABLE), FLAGS_quant_dumpable));
 
-  options.insert(std::pair<std::string, std::string>(std::string(ENABLE_ATTR_COMPRESSION),
-                                                     FLAGS_enable_attr_compression));
+  std::string lower_value = FLAGS_enable_attr_compression;
+  std::transform(lower_value.begin(), lower_value.end(), lower_value.begin(), ::tolower);
+  options.insert(std::pair<std::string, std::string>(std::string(ENABLE_ATTR_COMPRESSION), lower_value));
 
   options.insert(std::pair<std::string, std::string>(std::string(DEBUG_DIR), FLAGS_debug_dir));
 
@@ -1917,8 +1918,8 @@ Status DisplayModelInfo() {
   }
 
   REPORT_PREDEFINED_ERR_MSG("E10057", std::vector<const char *>({"parameter0", "parameter1"}),
-      std::vector<const char *>({"om", "model"}));
-  GELOGE(FAILED, "[Check][Parameter][--model] and [--om], if the value of [--model] is %u,"
+      std::vector<const char *>({"om", "mode"}));
+  GELOGE(FAILED, "[Check][Parameter][--mode] and [--om], if the value of [--mode] is %u,"
          "it can be used only with the [--om] parameter!", static_cast<uint32_t>(RunMode::DISPLAY_OM_INFO));
   return FAILED;
 }

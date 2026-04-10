@@ -1884,4 +1884,27 @@ TEST_F(UtestBlockMemAssigner, GetNoNeedAssignMemoryFlag_Cascaded_Success) {
   ASSERT_EQ(assigner.GetNoNeedAssignMemoryFlag(pc1, 0, no_need_assign_memory_flag), SUCCESS);
   EXPECT_TRUE(no_need_assign_memory_flag);
 }
+
+  TEST_F(UtestBlockMemAssigner, CanReuseZeroCopyBlock_unsupport_custom) {
+    auto builder = std::make_shared<block_mem_ut::GraphBuilder>("graph");
+    auto n = builder->AddNode("node", DATA, 1, 1);
+    auto custom_node = builder->AddNode("custom_node", ADD, 1, 1);
+    builder->AddDataEdge(n, 0, custom_node, 0);
+
+    NodeIndexIO node_index_io(n, 0, kOut);
+    NodeIndexIO custom_node_index_io(custom_node, 0, kIn);
+    MemAssistInfo mem_assist_info;
+    mem_assist_info.anchor_to_symbol[node_index_io.ToString()] = node_index_io.ToString();
+
+    std::list<NodeIndexIO> symbol_list;
+    symbol_list.push_back(custom_node_index_io);
+    mem_assist_info.symbol_to_anchors.insert(pair<std::string, std::list<NodeIndexIO>>("node_out_0", symbol_list));
+
+    custom_node->GetOpDesc()->SetOpKernelLibName(ge::kCustomOpKernelLibName.c_str());
+
+    BinaryBlockMemAssigner mem_assigner(mem_assist_info);
+    bool is_reuse_zero_copy = true;
+    EXPECT_EQ(mem_assigner.GetAllRefCount(node_index_io, is_reuse_zero_copy), 1);
+    EXPECT_EQ(is_reuse_zero_copy, false);
+  }
 } // namespace ge

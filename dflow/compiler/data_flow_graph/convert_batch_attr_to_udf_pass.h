@@ -30,7 +30,7 @@ enum class BatchType {
 
 class ConvertBatchAttrToUdfPass : public GraphPass {
  public:
-  Status Run(ge::ComputeGraphPtr graph);
+  Status Run(ge::ComputeGraphPtr graph) override;
 
  private:
   bool HasPeerOutAnchor(const Node &node, const int32_t index) const;

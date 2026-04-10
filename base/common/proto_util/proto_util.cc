@@ -79,8 +79,8 @@ bool ReadProtoFromText(const char_t *const file, google::protobuf::Message *cons
   std::ifstream fs(real_path.c_str(), std::ifstream::in);
   if (!fs.is_open()) {
     char_t err_buf[kMaxErrorStrLength + 1U] = {};
-    const std::string errmsg = "[Errno " + std::to_string(mmGetErrorCode()) + "] " +
-                               mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrorStrLength);
+    const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrorStrLength);
+    const std::string errmsg = FormatErrnoReason(mmGetErrorCode(), err_msg);
     (void)REPORT_PREDEFINED_ERR_MSG(
         "E13001",
         std::vector<const char *>({"file", "errmsg"}),

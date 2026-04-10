@@ -5,12 +5,12 @@
 - [x] **gitcode-issue** — 读取 Issue 详情、读取和回复评论，触发指令 `读取issue 168，并提交pr修复`
 - [x] **gitcode-pr** — 创建 PR、提交行内检视意见、cherry-pick 代码到商用分支，触发指令`检视pr 1437` 或 `创建pr到develop分支` 
 - [x] **superpowers** — 需求开发（生成软件设计文档、编码、生成测试用例），触发指令`开发需求，要求……`
-- [ ] **ge-code-review** — 遵循各种编码规范、编码军规、模块软件设计约束检视代码
+- [ ] **ge-reviewer** — 遵循各种编码规范、编码军规、模块软件设计约束检视代码
 - [ ] **gitcode-pipeline** — 触发流水线任务、查询流水线状态、获取失败任务日志
-- [ ] **ge-ut-st** — 生成和执行 UT/ST 用例
-- [ ] **ge-test** — 生成用例，在带有npu的环境上执行用例
+- [x] **ge-dt-runner** — 编译和执行 UT/ST 用例
+- [ ] **ge-tester** — 生成用例，在带有npu的环境上执行用例
 - [ ] **api-doc-generator** — 对外api生成文档
-- [ ] **install-cann-toolkit** — 拉去最新cann toolkit包，安装
+- [x] **install-cann-toolkit** — 下载最新cann toolkit包，安装
 
 ## agent要支持的流程
 
@@ -45,9 +45,9 @@ flowchart TB
 
     subgraph 编码验证阶段
         D1[superpower<br/>编写代码]
-        D2[ge-ut-st<br/>编写ut/st]
-        D3[ge-code-review<br/>agent检视代码]
-        D4[ge-test<br/>本地验证]
+        D2[ge-dt-runner<br/>执行ut/st]
+        D3[ge-reviewer<br/>agent检视代码]
+        D4[ge-tester<br/>本地验证]
     end
 
     subgraph PR流程

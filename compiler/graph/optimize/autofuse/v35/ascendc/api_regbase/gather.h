@@ -120,7 +120,7 @@ inline __aicore__ void GetMagicShiftForVectiorizedSize(DECLARE_VECTORIZED_AXIS_M
 }
 
 template <typename INDEX_SIZE_T, uint32_t VECTORIZED_AXIS_SIZE>
-inline __aicore__ void ComputeDestPositionAndSrcPosition(INDEX_SIZE_T &v_offset, INDEX_SIZE_T &src_positon, INDEX_SIZE_T &dest_position,
+inline __simt_callee__ __aicore__ void ComputeDestPositionAndSrcPosition(INDEX_SIZE_T &v_offset, INDEX_SIZE_T &src_positon, INDEX_SIZE_T &dest_position,
                                                         const uint32_t &vectorized_axis_size_m, const uint32_t &vectorized_axis_size_shift, const uint32_t &vectorized_axis_size,
                                                         const uint32_t &vectorized_axis_stride, const uint32_t &y_vectorized_axis_size) {
   INDEX_SIZE_T tmp1 = Simt::UintDiv(v_offset, static_cast<INDEX_SIZE_T>(vectorized_axis_size_m), static_cast<INDEX_SIZE_T>(vectorized_axis_size_shift));
@@ -131,7 +131,7 @@ inline __aicore__ void ComputeDestPositionAndSrcPosition(INDEX_SIZE_T &v_offset,
 }
 
 template <typename INDEX_SIZE_T, uint32_t VECTORIZED_AXIS_SIZE>
-inline __aicore__ void ComputeDestPositionAndSrcPosition(INDEX_SIZE_T v_offset, INDEX_SIZE_T &src_position, INDEX_SIZE_T &dest_position,
+inline __simt_callee__ __aicore__ void ComputeDestPositionAndSrcPosition(INDEX_SIZE_T v_offset, INDEX_SIZE_T &src_position, INDEX_SIZE_T &dest_position,
                                                         DECLARE_VECTORIZED_AXIS_PARAMS_SIMT_CONST_REF(1), DECLARE_VECTORIZED_AXIS_PARAMS_SIMT_CONST_REF(2),
                                                         DECLARE_VECTORIZED_AXIS_PARAMS_SIMT_CONST_REF(3), DECLARE_VECTORIZED_AXIS_PARAMS_SIMT_CONST_REF(4),
                                                         DECLARE_VECTORIZED_AXIS_PARAMS_SIMT_CONST_REF(5), DECLARE_VECTORIZED_AXIS_PARAMS_SIMT_CONST_REF(6),
@@ -188,7 +188,7 @@ inline __aicore__ void CopyInCase1(__ubuf__ T1 *dst, __gm__ T1 *x1_gm, __gm__ T2
 }
 
 template <typename T1, typename T2, typename INDEX_SIZE_T, int32_t SRC_NUMBER, bool negative_index_support>
-inline __aicore__ void CopyInCase2(__ubuf__ T1 *dst, __gm__ T1 *x1_gm, __gm__ T2 *x2_gm, uint32_t dst_p, const INDEX_SIZE_T & x1_gather_dim_size, const INDEX_SIZE_T &y_offset,
+inline __simt_callee__ __aicore__ void CopyInCase2(__ubuf__ T1 *dst, __gm__ T1 *x1_gm, __gm__ T2 *x2_gm, uint32_t dst_p, const INDEX_SIZE_T & x1_gather_dim_size, const INDEX_SIZE_T &y_offset,
                                   const INDEX_SIZE_T &x1_gather_dim_stride_m, const INDEX_SIZE_T &x1_gather_dim_stride_shift, const INDEX_SIZE_T &x1_gather_dim_stride) {
   INDEX_SIZE_T index_idx = Simt::UintDiv(y_offset, x1_gather_dim_stride_m, x1_gather_dim_stride_shift);
   T2 index_value = x2_gm[index_idx];
@@ -203,7 +203,7 @@ inline __aicore__ void CopyInCase2(__ubuf__ T1 *dst, __gm__ T1 *x1_gm, __gm__ T2
 }
 
 template <typename T1, typename T2, typename INDEX_SIZE_T, int32_t SRC_NUMBER, bool negative_index_support>
-inline __aicore__ void CopyInCase3(__ubuf__ T1 *dst, __gm__ T1 *x1_gm, __gm__ T2 *x2_gm, uint32_t dst_p, const INDEX_SIZE_T & x1_gather_dim_size, const INDEX_SIZE_T &y_offset,
+inline __simt_callee__ __aicore__ void CopyInCase3(__ubuf__ T1 *dst, __gm__ T1 *x1_gm, __gm__ T2 *x2_gm, uint32_t dst_p, const INDEX_SIZE_T & x1_gather_dim_size, const INDEX_SIZE_T &y_offset,
                                   const INDEX_SIZE_T &x2_tensor_size_m, const INDEX_SIZE_T &x2_tensor_size_shift, const INDEX_SIZE_T &x2_tensor_size) {
   INDEX_SIZE_T tmp = Simt::UintDiv(y_offset, x2_tensor_size_m, x2_tensor_size_shift);
   INDEX_SIZE_T index_idx = y_offset - tmp * x2_tensor_size;
@@ -218,7 +218,7 @@ inline __aicore__ void CopyInCase3(__ubuf__ T1 *dst, __gm__ T1 *x1_gm, __gm__ T2
 }
 
 template <typename T1, typename T2, typename INDEX_SIZE_T, int32_t SRC_NUMBER, bool negative_index_support>
-inline __aicore__ void CopyInCase4(__ubuf__ T1 *dst, __gm__ T1 *x1_gm, __gm__ T2 *x2_gm, uint32_t dst_p, const INDEX_SIZE_T & x1_gather_dim_size, const INDEX_SIZE_T &y_offset,
+inline __simt_callee__ __aicore__ void CopyInCase4(__ubuf__ T1 *dst, __gm__ T1 *x1_gm, __gm__ T2 *x2_gm, uint32_t dst_p, const INDEX_SIZE_T & x1_gather_dim_size, const INDEX_SIZE_T &y_offset,
                                   const INDEX_SIZE_T &x2_tensor_size_m, const INDEX_SIZE_T &x2_tensor_size_shift, const INDEX_SIZE_T &x2_tensor_size,
                                   const INDEX_SIZE_T &x1_gather_dim_stride_m, const INDEX_SIZE_T &x1_gather_dim_stride_shift, const INDEX_SIZE_T &x1_gather_dim_stride) {
   INDEX_SIZE_T tmp = Simt::UintDiv(y_offset, x1_gather_dim_stride_m, x1_gather_dim_stride_shift);
@@ -270,7 +270,7 @@ __simt_vf__ __aicore__ LAUNCH_BOUND(THREAD_NUMBER) inline void GatherSimt(__ubuf
 }
 
 template <typename T1, typename T2, typename INDEX_SIZE_T, int32_t SRC_NUMBER, bool negative_index_support>
-inline __aicore__ void CopyInCase1ParamFullLoad(__ubuf__ T1 *dst, __ubuf__ T1 *x1_gm, __gm__ T2 *x2_gm, uint32_t dst_p, const INDEX_SIZE_T & x1_gather_dim_size, const INDEX_SIZE_T &y_offset) {
+inline __simt_callee__ __aicore__ void CopyInCase1ParamFullLoad(__ubuf__ T1 *dst, __ubuf__ T1 *x1_gm, __gm__ T2 *x2_gm, uint32_t dst_p, const INDEX_SIZE_T & x1_gather_dim_size, const INDEX_SIZE_T &y_offset) {
   T2 param_offset = x2_gm[y_offset];
   if constexpr (negative_index_support) {
     if (unlikely(param_offset < 0)) {
@@ -281,7 +281,7 @@ inline __aicore__ void CopyInCase1ParamFullLoad(__ubuf__ T1 *dst, __ubuf__ T1 *x
 }
 
 template <typename T1, typename T2, typename INDEX_SIZE_T, int32_t SRC_NUMBER, bool negative_index_support>
-inline __aicore__ void CopyInCase2ParamFullLoad(__ubuf__ T1 *dst, __ubuf__ T1 *x1_gm, __gm__ T2 *x2_gm, uint32_t dst_p, const INDEX_SIZE_T & x1_gather_dim_size, const INDEX_SIZE_T &y_offset,
+inline __simt_callee__ __aicore__ void CopyInCase2ParamFullLoad(__ubuf__ T1 *dst, __ubuf__ T1 *x1_gm, __gm__ T2 *x2_gm, uint32_t dst_p, const INDEX_SIZE_T & x1_gather_dim_size, const INDEX_SIZE_T &y_offset,
                                   const INDEX_SIZE_T &x1_gather_dim_stride_m, const INDEX_SIZE_T &x1_gather_dim_stride_shift, const INDEX_SIZE_T &x1_gather_dim_stride) {
   INDEX_SIZE_T index_idx = Simt::UintDiv(y_offset, x1_gather_dim_stride_m, x1_gather_dim_stride_shift);
   T2 index_value = x2_gm[index_idx];
@@ -296,7 +296,7 @@ inline __aicore__ void CopyInCase2ParamFullLoad(__ubuf__ T1 *dst, __ubuf__ T1 *x
 }
 
 template <typename T1, typename T2, typename INDEX_SIZE_T, int32_t SRC_NUMBER, bool negative_index_support>
-inline __aicore__ void CopyInCase3ParamFullLoad(__ubuf__ T1 *dst, __ubuf__ T1 *x1_gm, __gm__ T2 *x2_gm, uint32_t dst_p, const INDEX_SIZE_T & x1_gather_dim_size, const INDEX_SIZE_T &y_offset,
+inline __simt_callee__ __aicore__ void CopyInCase3ParamFullLoad(__ubuf__ T1 *dst, __ubuf__ T1 *x1_gm, __gm__ T2 *x2_gm, uint32_t dst_p, const INDEX_SIZE_T & x1_gather_dim_size, const INDEX_SIZE_T &y_offset,
                                   const INDEX_SIZE_T &x2_tensor_size_m, const INDEX_SIZE_T &x2_tensor_size_shift, const INDEX_SIZE_T &x2_tensor_size) {
   INDEX_SIZE_T tmp = Simt::UintDiv(y_offset, x2_tensor_size_m, x2_tensor_size_shift);
   INDEX_SIZE_T index_idx = y_offset - tmp * x2_tensor_size;
@@ -311,7 +311,7 @@ inline __aicore__ void CopyInCase3ParamFullLoad(__ubuf__ T1 *dst, __ubuf__ T1 *x
 }
 
 template <typename T1, typename T2, typename INDEX_SIZE_T, int32_t SRC_NUMBER, bool negative_index_support>
-inline __aicore__ void CopyInCase4ParamFullLoad(__ubuf__ T1 *dst, __ubuf__ T1 *x1_gm, __gm__ T2 *x2_gm, uint32_t dst_p, const INDEX_SIZE_T & x1_gather_dim_size, const INDEX_SIZE_T &y_offset,
+inline __simt_callee__ __aicore__ void CopyInCase4ParamFullLoad(__ubuf__ T1 *dst, __ubuf__ T1 *x1_gm, __gm__ T2 *x2_gm, uint32_t dst_p, const INDEX_SIZE_T & x1_gather_dim_size, const INDEX_SIZE_T &y_offset,
                                   const INDEX_SIZE_T &x2_tensor_size_m, const INDEX_SIZE_T &x2_tensor_size_shift, const INDEX_SIZE_T &x2_tensor_size,
                                   const INDEX_SIZE_T &x1_gather_dim_stride_m, const INDEX_SIZE_T &x1_gather_dim_stride_shift, const INDEX_SIZE_T &x1_gather_dim_stride) {
   INDEX_SIZE_T tmp = Simt::UintDiv(y_offset, x1_gather_dim_stride_m, x1_gather_dim_stride_shift);

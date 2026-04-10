@@ -852,7 +852,7 @@ Status ModelHelper::SaveOriginalGraphToOmModel(const ge::Graph &graph, const std
     GELOGE(FAILED, "[Save][Model]Received invalid file name prefix, output_file %s", output_file.c_str());
     (void)REPORT_PREDEFINED_ERR_MSG(
           "E10059", std::vector<const char *>({"stage", "reason"}),
-          std::vector<const char *>({"SaveOriginalGraphToOmModel", "The model output file name cannot be empty"}));
+          std::vector<const char *>({"SaveOriginalGraphToOmModel", "the model output file name cannot be empty"}));
     return FAILED;
   }
   // Get computegraph from graph

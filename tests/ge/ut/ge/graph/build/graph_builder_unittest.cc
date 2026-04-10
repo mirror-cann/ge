@@ -84,7 +84,7 @@ class GraphBuilderTest : public testing::Test {
         GE_IF_BOOL_EXEC(dim_num > DIM_DEFAULT_SIZE, TensorUtils::SetRealDimCnt(desc_temp, dim_num));
         // calculate tensor size
         int64_t size_temp = 0;
-        graphStatus graph_status = TensorUtils::GetTensorMemorySizeInBytes(desc_temp, size_temp);
+        graphStatus graph_status = TensorUtils::GetTensorMemorySizeInBytesWithAutoPadding(desc_temp, size_temp);
         if (graph_status != GRAPH_SUCCESS) {
           return FAILED;
         }

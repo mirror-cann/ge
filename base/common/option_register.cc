@@ -10,10 +10,7 @@
 
 #include "common/ge_common/ge_types.h"
 #include "common/checker.h"
-#include "graph/ge_context.h"
 #include "register/optimization_option_registry.h"
-
-#include <base/err_msg.h>
 
 namespace ge {
 namespace {
@@ -30,15 +27,10 @@ std::string ValidValuesToString(const std::set<std::string> &valid_values) {
   return valid_values_str;
 }
 
-bool ExportCompileStatChecker(const std::string &opt_value) {
+bool ExportCompileStatChecker(const std::string &opt_value, std::string &reason) {
   static const std::set<std::string> kExportCompileStatValidValues = {"0", "1", "2"};
   if (kExportCompileStatValidValues.count(opt_value) == 0UL) {
-    auto reason = "The value must be selected from {" + ValidValuesToString(kExportCompileStatValidValues) + "}.";
-    const auto opt_name = "--" + ge::GetContext().GetReadableName(OPTION_EXPORT_COMPILE_STAT);
-    (void)REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char *>({"parameter", "value", "reason"}),
-                              std::vector<const char *>({opt_name.c_str(), opt_value.c_str(), reason.c_str()}));
-    GELOGE(ge::PARAM_INVALID, "[Check][Option] option[%s] value[%s] invalid, %s.", opt_name.c_str(), opt_value.c_str(),
-           reason.c_str());
+    reason = "The value must be selected from {" + ValidValuesToString(kExportCompileStatValidValues) + "}.";
     return false;
   }
   return true;
@@ -60,19 +52,14 @@ REG_OPTION(OO_DEAD_CODE_ELIMINATION)
     .SHOW_NAME(OoEntryPoint::kAtc, "oo_dead_code_elimination", OoCategory::kModelTuning)
     .HELP("The switch of dead code elimination, false: disable; true(default): enable.");
 
-static bool TopoSortingModeValueChecker(const std::string &opt_value) {
+static bool TopoSortingModeValueChecker(const std::string &opt_value, std::string &reason) {
   if (opt_value.empty()) {
     return true;
   }
   std::set<std::string> valid_values = {"0", "1", "2", "3"};
   const auto iter = valid_values.find(opt_value);
   if (iter == valid_values.end()) {
-    std::string reason = "The value must be selected from {" + ValidValuesToString(valid_values) + "}.";
-    const auto opt_name = "--" + ge::GetContext().GetReadableName(OPTION_EXPORT_COMPILE_STAT);
-    (void)REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char *>({"parameter", "value", "reason"}),
-                                    std::vector<const char *>({"topo_sorting_mode", opt_value.c_str(), reason.c_str()}));
-    GELOGE(ge::PARAM_INVALID, "Value of option topo_sorting_mode: %s is invalid, valid range is: [%s]",
-           opt_value.c_str(), ValidValuesToString(valid_values).c_str());
+    reason = "The value must be selected from {" + ValidValuesToString(valid_values) + "}.";
     return false;
   }
   return true;

@@ -26,6 +26,7 @@ add_library(intf_pub_base INTERFACE)
 target_compile_options(intf_pub_base INTERFACE
     ${OPTIMIZE_OPTION}
     -Werror -fno-common -Wextra -Wfloat-equal -Wall -fPIC
+    $<$<AND:$<CXX_COMPILER_ID:GNU>,$<VERSION_GREATER_EQUAL:${CMAKE_CXX_COMPILER_VERSION},14.0>>:-Wno-free-nonheap-object>
     -fstack-protector-strong
     $<$<NOT:$<STREQUAL:${CMAKE_BUILD_TYPE},GCOV>>:-D_FORTIFY_SOURCE=2>
     $<$<CONFIG:Debug>:-g>

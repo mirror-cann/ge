@@ -92,7 +92,7 @@ Status RtsOpsKernelBuilder::CalcOpRunningParam(Node &geNode) {
     GeTensorDesc outputTensor = opDesc->GetOutputDesc(i);
     Format format = outputTensor.GetFormat();
     DataType dataType = outputTensor.GetDataType();
-    graphStatus grhStatus = ge::TensorUtils::GetTensorMemorySizeInBytes(outputTensor, outputMemSize);
+    graphStatus grhStatus = ge::TensorUtils::GetTensorMemorySizeInBytesWithAutoPadding(outputTensor, outputMemSize);
     nodeSqeNum += outputMemSize / RT_MEMCPYASYNC_SPLIT_SIZE;
     if (grhStatus != GRAPH_SUCCESS) {
       RTS_REPORT_CALL_ERROR(

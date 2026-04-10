@@ -16,12 +16,13 @@
 #include "common/ge_common/string_util.h"
 
 namespace {
-bool ThresholdCheckerFunc(const std::string &opt_value) {
+bool ThresholdCheckerFunc(const std::string &opt_value, std::string &reason) {
   std::string tmp_opt_value = opt_value;
   std::stringstream ss(ge::StringUtils::Trim(tmp_opt_value));
   int64_t opt_convert;
   ss >> opt_convert;
   if (ss.fail() || !ss.eof()) {
+    reason = "The value must be an integer.";
     return false;
   }
   return true;
@@ -183,12 +184,28 @@ TEST_F(OptimizationOptRegistryUT, RegisterOption_Ok_MultiHierarchicalOptions) {
   const auto option_ptr4 = opt_registry.FindOptInfo("ge.oo.fake_conv_relu_thres");
   EXPECT_NE(option_ptr3, nullptr);
   EXPECT_NE(option_ptr4, nullptr);
-  EXPECT_EQ(option_ptr3->checker("TRUE"), false);
-  EXPECT_EQ(option_ptr4->checker("233"), true);
+  std::string reason;
+  EXPECT_EQ(option_ptr3->checker("TRUE", reason), false);
+  EXPECT_EQ(reason, "The value must be true or false.");
+  reason.clear();
+  EXPECT_EQ(option_ptr4->checker("233", reason), true);
+  EXPECT_TRUE(reason.empty());
   const auto option_infos = GetRegisteredOptionsByLevel(OoLevel::kO3);
   ASSERT_EQ(option_infos.count("ge.oo.fake_graph_fusion"), 1UL);
   ASSERT_EQ(option_infos.count("ge.oo.fake_conv_relu_thres"), 1UL);
   EXPECT_EQ(OoInfoUtils::GetDefaultValue(option_infos.at("ge.oo.fake_conv_relu_thres"), OoLevel::kO3), "800");
+}
+
+TEST_F(OptimizationOptRegistryUT, IsSwitchOptValueValid_ReturnSpecificReason) {
+  std::string reason;
+  EXPECT_TRUE(OoInfoUtils::IsSwitchOptValueValid("", reason));
+  EXPECT_TRUE(reason.empty());
+  EXPECT_TRUE(OoInfoUtils::IsSwitchOptValueValid("true", reason));
+  EXPECT_TRUE(reason.empty());
+  EXPECT_TRUE(OoInfoUtils::IsSwitchOptValueValid("false", reason));
+  EXPECT_TRUE(reason.empty());
+  EXPECT_FALSE(OoInfoUtils::IsSwitchOptValueValid("TRUE", reason));
+  EXPECT_EQ(reason, "The value must be true or false.");
 }
 
 TEST_F(OptimizationOptRegistryUT, GetCommandLineOptions_Ok) {

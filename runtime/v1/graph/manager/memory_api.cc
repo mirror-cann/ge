@@ -88,7 +88,7 @@ Status MallocSharedMemory(const TensorInfo &tensor_info, uint64_t &dev_addr, uin
   tensor_desc.SetDataType(tensor_info.data_type);
   tensor_desc.SetShape(ge::GeShape(tensor_info.dims));
   tensor_desc.SetFormat(FORMAT_ND);
-  GE_CHK_STATUS_RET(TensorUtils::GetTensorMemorySizeInBytes(tensor_desc, calculate_size),
+  GE_CHK_STATUS_RET(TensorUtils::GetTensorMemorySizeInBytesWithAutoPadding(tensor_desc, calculate_size),
                     "[Calculate][SharedMemory] failed, op name:%s", tensor_info.var_name.c_str());
   memory_size = static_cast<uint64_t>(calculate_size);
   GELOGI("[Calculate][SharedMemory] size is:%" PRIu64 " for op name:%s", memory_size, tensor_info.var_name.c_str());

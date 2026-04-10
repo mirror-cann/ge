@@ -11,7 +11,7 @@
 #ifndef GE_OPT_INFO_GE_OPT_INFO_H_
 #define GE_OPT_INFO_GE_OPT_INFO_H_
 
-#include "ge/ge_api_error_codes.h"
+#include "ge/ge_api_types.h"
 #include "register/register_types.h"
 
 namespace ge {

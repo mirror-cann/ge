@@ -83,7 +83,7 @@ Status GetGraphAvailableMemory(const ComputeGraphPtr &graph, uint64_t &available
     GE_CHECK_NOTNULL(op_desc);
     for (const auto &output_desc : op_desc->GetAllOutputsDesc()) {
       int64_t tensor_size = 0L;
-      GE_CHK_GRAPH_STATUS_RET(TensorUtils::GetTensorMemorySizeInBytes(output_desc, tensor_size),
+      GE_CHK_GRAPH_STATUS_RET(TensorUtils::GetTensorMemorySizeInBytesWithAutoPadding(output_desc, tensor_size),
                               "[Get][TensorMemorySize] Failed to calc tensor size");
       GE_CHK_STATUS_RET(CheckUint64AddOverflow(new_var_total_size, static_cast<uint64_t>(tensor_size)),
                         "[Overflow] total_size %lu add tensor_size %ld overflow", new_var_total_size, tensor_size);

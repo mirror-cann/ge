@@ -6,7 +6,7 @@
       "Skill(skill-creator)",
       "Skill(gitcode-pr)",
       "Skill(gitcode-issue)",
-      "Skill(ge-ut-st)",
+      "Skill(ge-dt-runner)",
       "Task(subagent_type=code-analyzer)",
       "Task(subagent_type=evaluator)",
       "Task(subagent_type=Explore)",

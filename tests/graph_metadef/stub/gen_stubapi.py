@@ -1112,6 +1112,11 @@ def collect_header_files(inc_file):
         shared_includes_content.append('#include "graph/graph.h"\n')
     elif inc_file.endswith('ascend_string.h'):
         shared_includes_content.append('#include "common/util/mem_utils.h"\n')
+        shared_includes_content.append('#include "graph/ascend_string.h"\n')
+    elif inc_file.endswith('tensor.h'):
+        shared_includes_content.append('#include "graph/tensor.h"\n')
+    elif inc_file.endswith('types.h'):
+        shared_includes_content.append('#include "graph/types.h"\n')
     elif len([var for var in need_any_value_headers if inc_file.endswith(var)]) > 0:
         shared_includes_content.append('#include "graph/any_value.h"\n')
 

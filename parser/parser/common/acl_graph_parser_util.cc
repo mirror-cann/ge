@@ -794,7 +794,7 @@ FMK_FUNC_HOST_VISIBILITY FMK_FUNC_DEV_VISIBILITY long GetFileLength(const std::s
   std::string real_path = RealPath(input_file.c_str());
   char_t err_buf[kMaxErrStrLen + 1U] = {};
   const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrStrLen);
-  std::string reason = "[Error " + std::to_string(mmGetErrorCode()) + "] " + err_msg;
+  std::string reason = FormatErrnoReason(mmGetErrorCode(), err_msg);
   if (real_path.empty()) {
     REPORT_PREDEFINED_ERR_MSG("E13000", std::vector<const char *>({"path", "errmsg"}),
                               std::vector<const char *>({real_path.c_str(), reason.c_str()}));
@@ -887,7 +887,7 @@ FMK_FUNC_HOST_VISIBILITY FMK_FUNC_DEV_VISIBILITY bool ReadProtoFromText(const ch
   std::string real_path = RealPath(file);
   char_t err_buf[kMaxErrStrLen + 1U] = {};
   const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrStrLen);
-  std::string reason = "[Error " + std::to_string(mmGetErrorCode()) + "] " + err_msg;
+  std::string reason = FormatErrnoReason(mmGetErrorCode(), err_msg);
   if (real_path.empty()) {
     REPORT_PREDEFINED_ERR_MSG("E13000", std::vector<const char *>({"path", "errmsg"}),
                               std::vector<const char *>({file, reason.c_str()}));

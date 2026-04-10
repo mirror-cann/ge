@@ -39,6 +39,9 @@ const std::string kSymbolSourceInfo = "symbol_source_info";
 const int64_t kDynamicType = 2;
 // dump graph related
 constexpr int32_t kBaseOfIntegerValue = 10;
+constexpr int32_t kConcatNameLength = 6;
+constexpr int32_t kFusedNameSize = 3;
+constexpr int32_t kNoFusedNameSize = 2;
 const char_t *const kNpuCollectPath = "NPU_COLLECT_PATH";
 const char_t *const kDumpGraphPath = "DUMP_GRAPH_PATH";
 const char_t *const kDumpGEGraph = "DUMP_GE_GRAPH";
@@ -150,14 +153,14 @@ bool IsNumber(const std::string &str) {
 }
 
 bool IsFusedFormat(const std::vector<std::string> &parts) {
-  if (parts.size() < 3) {
+  if (parts.size() < kFusedNameSize) {
     return false;
   }
   return (parts[0] == "autofuse") && (parts[1] == "fused") && IsNumber(parts[2]);
 }
 
 bool IsNormalFormat(const std::vector<std::string> &parts) {
-  if (parts.size() < 2) {
+  if (parts.size() < kNoFusedNameSize) {
     return false;
   }
   return (parts[0] == "autofuse") && IsNumber(parts[1]);
@@ -273,7 +276,7 @@ std::string ProcessFusedFormat(const std::vector<std::string> &parts) {
     // 判断是否以Concat开头（忽略大小写）
     std::string lower_type = type;
     std::transform(lower_type.begin(), lower_type.end(), lower_type.begin(), ::tolower);
-    if ((lower_type.substr(0, 6) == "concat") || (lower_type.substr(0, 6) == "pack")) {
+    if ((lower_type.substr(0, kConcatNameLength) == "concat") || (lower_type.substr(0, kConcatNameLength) == "pack")) {
       concat_idx = static_cast<int32_t>(i);
       break;
     }

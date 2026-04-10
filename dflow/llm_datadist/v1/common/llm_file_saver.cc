@@ -21,6 +21,7 @@
 #include "common/llm_utils.h"
 #include "common/llm_log.h"
 #include "common/def_types.h"
+#include "graph_metadef/common/ge_common/util.h"
 
 namespace llm {
 constexpr int32_t kFileOpSuccess = 0;
@@ -213,9 +214,9 @@ ge::Status LLMFileSaver::SaveToFile(const std::string &file_path, const void *co
   if (mmClose(fd) != 0) {  // mmClose 0: success
     std::array<char_t, kMaxErrStrLen + 1U> err_buf = {};
     const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrStrLen);
+    const std::string reason = ge::FormatErrnoReason(mmGetErrorCode(), err_msg);
     LLMLOGE(ge::FAILED, "[Close][File]Failed, error_code:%u errmsg:%s", ret, err_msg);
-    REPORT_INNER_ERR_MSG("E19999", "Close file failed, error_code:%u errmsg:%s",
-                      ret, err_msg);
+    REPORT_INNER_ERR_MSG("E19999", "Close file failed, error_code:%u reason:%s", ret, reason.c_str());
     ret = ge::FAILED;
   }
   return ret;

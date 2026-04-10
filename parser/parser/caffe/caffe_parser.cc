@@ -51,6 +51,7 @@
 #include "register/register_fmk_types.h"
 #include "mmpa/mmpa_api.h"
 #include "parser/common/parser_utils.h"
+#include "common/util.h"
 #include "common/checker.h"
 #include "base/err_msg.h"
 
@@ -239,7 +240,7 @@ Status CheckPathValid(const char *model_path, const string &custom_proto, string
   if (path_model.empty()) {
     char_t err_buf[kMaxErrStrLen + 1U] = {};
     const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrStrLen);
-    std::string reason = "[Error " + std::to_string(mmGetErrorCode()) + "] " + err_msg;
+    std::string reason = FormatErrnoReason(mmGetErrorCode(), err_msg);
     REPORT_PREDEFINED_ERR_MSG("E13000", std::vector<const char *>({"path", "errmsg"}),
                               std::vector<const char *>({model_path, reason.c_str()}));
     GELOGE(FAILED, "[Check][Param]ModelPath %s is Invalid path of model", model_path);
@@ -449,7 +450,8 @@ Status CaffeModelParser::ReadModelWithoutWarning(const char *model_path, google:
   if (copy_fd < 0) {
     char_t err_buf[kMaxErrStrLen + 1U] = {};
     const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrStrLen);
-    REPORT_INNER_ERR_MSG("E19999", "Duplicate to file STDERR_FILENO failed, errmsg:%s", err_msg);
+    const std::string reason = FormatErrnoReason(mmGetErrorCode(), err_msg);
+    REPORT_INNER_ERR_MSG("E19999", "Duplicate to file STDERR_FILENO failed, reason:%s", reason.c_str());
     GELOGE(FAILED, "[Invoke][Dup] failed:%d, reason:%s", copy_fd, err_msg);
     return FAILED;
   }
@@ -459,7 +461,7 @@ Status CaffeModelParser::ReadModelWithoutWarning(const char *model_path, google:
     (void)mmClose(copy_fd);
     char_t err_buf[kMaxErrStrLen + 1U] = {};
     const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrStrLen);
-    std::string reason = "[Error " + std::to_string(mmGetErrorCode()) + "] " + err_msg;
+    std::string reason = FormatErrnoReason(mmGetErrorCode(), err_msg);
     REPORT_PREDEFINED_ERR_MSG("E13001", std::vector<const char *>({"file", "errmsg"}),
                               std::vector<const char *>({kDevNull, reason.c_str()}));
     GELOGE(FAILED, "[Open][File] %s failed. reason:%s", kDevNull, reason.c_str());
@@ -471,7 +473,8 @@ Status CaffeModelParser::ReadModelWithoutWarning(const char *model_path, google:
     (void)mmClose(copy_fd);
     char_t err_buf[kMaxErrStrLen + 1U] = {};
     const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrStrLen);
-    REPORT_INNER_ERR_MSG("E19999", "Duplicate to file STDERR_FILENO failed, errmsg:%s", err_msg);
+    const std::string reason = FormatErrnoReason(mmGetErrorCode(), err_msg);
+    REPORT_INNER_ERR_MSG("E19999", "Duplicate to file STDERR_FILENO failed, reason:%s", reason.c_str());
     GELOGE(FAILED, "[Invoke][Dup2] Re-orient failed. reason:%s", err_msg);
     return FAILED;
   }
@@ -488,7 +491,8 @@ Status CaffeModelParser::ReadModelWithoutWarning(const char *model_path, google:
     (void)mmClose(copy_fd);
     char_t err_buf[kMaxErrStrLen + 1U] = {};
     const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrStrLen);
-    REPORT_INNER_ERR_MSG("E19999", "Duplicate to file STDERR_FILENO failed, errmsg:%s", err_msg);
+    const std::string reason = FormatErrnoReason(mmGetErrorCode(), err_msg);
+    REPORT_INNER_ERR_MSG("E19999", "Duplicate to file STDERR_FILENO failed, reason:%s", reason.c_str());
     GELOGE(FAILED, "[Invoke][Dup2] Re-orient failed. reason:%s", err_msg);
     return FAILED;
   }

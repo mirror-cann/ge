@@ -71,6 +71,10 @@ bool CanReuseZeroCopyBlock(const ge::Node *const node) {
     return false;
   }
   const auto op_engine = node->GetOpDesc()->GetOpKernelLibName();
+  if (op_engine == ge::kCustomOpKernelLibName) {
+    GELOGD("custom engine op[%s] not support zero copy", node->GetName().c_str());
+    return false;
+  }
   if (op_engine == ge::kEngineNameDsa) {
     GELOGD("dsa engine op[%s] can not reuse zero copy block", node->GetName().c_str());
     return false;

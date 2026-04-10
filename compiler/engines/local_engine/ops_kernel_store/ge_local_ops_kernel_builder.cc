@@ -84,7 +84,7 @@ graphStatus GeLocalOpsKernelBuilder::CalcMemSizeByNodeType(OpDescPtr &op_desc, G
     return GRAPH_SUCCESS;
   }
   if (OpTypeUtils::IsDataNode(node_type)) {
-    return TensorUtils::GetTensorMemorySizeInBytes(output_tensor, output_mem_size);
+    return TensorUtils::GetTensorMemorySizeInBytesWithAutoPadding(output_tensor, output_mem_size);
   }
   bool is_no_tiling = false;
   (void)AttrUtils::GetBool(output_tensor, ATTR_NAME_TENSOR_NO_TILING_MEM_TYPE, is_no_tiling);

@@ -23,7 +23,7 @@ const std::string ge_error_code = R"(
       "Arglist": "value,parameter,reason",
       "suggestion": {
         "Possible Cause": "N/A",
-        "Solution": "Try again with a valid argument."
+        "Solution": "N/A"
       }
     },
     {
@@ -474,7 +474,7 @@ const std::string ge_error_code = R"(
       "Arglist": "shape_range,reason,sample",
       "suggestion": {
         "Possible Cause": "N/A",
-        "Solution": "Try again with a valid argument."
+        "Solution": "N/A"
       }
     },
     {
@@ -503,11 +503,11 @@ const std::string ge_error_code = R"(
       "errClass": "GE Errors",
       "errTitle": "Invalid_Argument",
       "ErrCode": "E10051",
-      "ErrMessage": "Value %s for parameter --job_id exceeds the allowed maximum %s.",
+      "ErrMessage": "Value %s for parameter job_id exceeds the allowed maximum length %s.",
       "Arglist": "id, length",
       "suggestion": {
         "Possible Cause": "N/A",
-        "Solution": "Try again with a valid argument."
+        "Solution": "N/A"
       }
     },
     {
@@ -1013,7 +1013,7 @@ const std::string ge_error_code = R"(
       "Arglist": "file,errmsg",
       "suggestion": {
         "Possible Cause": "N/A",
-        "Solution": "Fix the error according to the error message."
+        "Solution": "N/A"
       }
     },
     {
@@ -1024,7 +1024,7 @@ const std::string ge_error_code = R"(
       "Arglist": "filepath,size",
       "suggestion": {
         "Possible Cause": "N/A",
-        "Solution": "Try again with a valid file directory."
+        "Solution": "N/A"
       }
     },
     {
@@ -1035,7 +1035,7 @@ const std::string ge_error_code = R"(
       "Arglist": "file,errmsg",
       "suggestion": {
         "Possible Cause": "Failed to read the file.",
-        "Solution": "Fix the error according to the error message."
+        "Solution": "N/A"
       }
     },
     {

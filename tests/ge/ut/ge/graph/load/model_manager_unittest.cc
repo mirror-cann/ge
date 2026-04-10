@@ -33,6 +33,7 @@
 #include "graph/utils/graph_utils_ex.h"
 #include "ge/ut/ge/ffts_plus_proto_tools.h"
 #include "depends/runtime/src/runtime_stub.h"
+#include "depends/ascendcl/src/ascendcl_stub.h"
 #include "common/dump/dump_manager.h"
 #include "common/share_graph.h"
 #include "base/common/model/external_allocator_manager.h"
@@ -184,8 +185,11 @@ class UtestModelManagerModelManager : public testing::Test {
  protected:
   void SetUp() {
     RTS_STUB_SETUP();
+    auto acl_runtime = std::make_shared<AclRuntimeStub>();
+    ge::AclRuntimeStub::SetInstance(acl_runtime);
   }
   void TearDown() override {
+    ge::AclRuntimeStub::Reset();
     unsetenv("NPU_COLLECT_PATH");
     unsetenv("NPU_COLLECT_PATH_EXE");
     EXPECT_TRUE(ModelManager::GetInstance().model_map_.empty());
@@ -2299,5 +2303,68 @@ TEST_F(UtestModelManagerModelManager, MallocWeightsMem) {
   EXPECT_EQ(ModelManager::FreeWeightsMem(weights_mem_id, dev_id, mem2), SUCCESS);
   auto iter2 = ModelManager::weights_mem_ids_to_addr_info_.find(weights_mem_id);
   EXPECT_EQ(iter2, ModelManager::weights_mem_ids_to_addr_info_.end());
+}
+
+TEST_F(UtestModelManagerModelManager, LaunchKernelCustAicpuSo_AclrtMalloc_Success) {
+  ModelManager mm;
+  const std::string kernel_name = "test_cust_aicpu";
+
+  class MockAclRuntime : public ge::AclRuntimeStub {
+   public:
+    aclError aclrtMalloc(void **devPtr, size_t size, aclrtMemMallocPolicy policy) override {
+      static void* mock_addr = reinterpret_cast<void*>(0x6000);
+      *devPtr = mock_addr;
+      return ACL_SUCCESS;
+    }
+
+    aclError aclrtMemcpy(void *dst, size_t dest_max, const void *src, size_t count, aclrtMemcpyKind kind) override {
+      if (dst != nullptr && src != nullptr && count > 0) {
+        memcpy_s(dst, dest_max, src, count);
+      }
+      return ACL_SUCCESS;
+    }
+
+    aclError aclrtFree(void *devPtr) override {
+      return ACL_SUCCESS;
+    }
+  };
+  auto mock_acl_runtime = std::make_shared<MockAclRuntime>();
+  ge::AclRuntimeStub::SetInstance(mock_acl_runtime);
+
+  auto ret = mm.LaunchKernelCustAicpuSo(kernel_name);
+  EXPECT_EQ(ret, SUCCESS);
+  ge::AclRuntimeStub::Reset();
+}
+
+TEST_F(UtestModelManagerModelManager, LaunchKernelBuiltinAicpuSo_AclrtMalloc_Success) {
+  ModelManager mm;
+  const std::string kernel_name = "test_builtin_aicpu";
+  const uint32_t resource_id = 1;
+
+  class MockAclRuntime : public ge::AclRuntimeStub {
+   public:
+    aclError aclrtMalloc(void **devPtr, size_t size, aclrtMemMallocPolicy policy) override {
+      static void* mock_addr = reinterpret_cast<void*>(0x8000);
+      *devPtr = mock_addr;
+      return ACL_SUCCESS;
+    }
+
+    aclError aclrtMemcpy(void *dst, size_t dest_max, const void *src, size_t count, aclrtMemcpyKind kind) override {
+      if (dst != nullptr && src != nullptr && count > 0) {
+        memcpy_s(dst, dest_max, src, count);
+      }
+      return ACL_SUCCESS;
+    }
+
+    aclError aclrtFree(void *devPtr) override {
+      return ACL_SUCCESS;
+    }
+  };
+  auto mock_acl_runtime = std::make_shared<MockAclRuntime>();
+  ge::AclRuntimeStub::SetInstance(mock_acl_runtime);
+
+  auto ret = mm.LaunchKernelBuiltinAicpuSo(kernel_name, resource_id);
+  EXPECT_EQ(ret, SUCCESS);
+  ge::AclRuntimeStub::Reset();
 }
 }  // namespace ge

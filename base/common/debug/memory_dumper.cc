@@ -60,9 +60,10 @@ Status MemoryDumper::DumpToFile(const char_t *const filename, const void *const 
   if (mmClose(fd) != EN_OK) {  // mmClose return 0: success
     char_t err_buf[kMaxErrorStringLength + 1U] = {};
     const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrorStringLength);
+    const std::string reason = FormatErrnoReason(mmGetErrorCode(), err_msg);
     GELOGE(FAILED, "[Close][File]Failed, error_code:%u, filename:%s errmsg:%s.", ret, filename, err_msg);
-    REPORT_INNER_ERR_MSG("E19999", "Close file failed, error_code:%u, filename:%s errmsg:%s.",
-                       ret, filename, err_msg);
+    REPORT_INNER_ERR_MSG("E19999", "Close file failed, error_code:%u, filename:%s reason:%s.",
+                         ret, filename, reason.c_str());
     ret = FAILED;
   }
 

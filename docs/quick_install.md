@@ -103,17 +103,15 @@ docker run --name cann_container \
 
 - **场景1（仅编译构建）**：
     ```bash
-    git clone https://gitcode.com/cann/ge.git && cp ge/scripts/init_env.sh ./ && rm -rf ge && bash init_env.sh
+    curl -fsSL https://raw.gitcode.com/cann/ge/raw/master/scripts/init_env.sh | bash
     ```
 
 - **场景2（需要运行样例，以Atlas A2系列产品为例）**：
     ```bash
-    git clone https://gitcode.com/cann/ge.git && cp ge/scripts/init_env.sh ./ && rm -rf ge && bash init_env.sh --chip-type 910b
+    curl -fsSL https://raw.gitcode.com/cann/ge/raw/master/scripts/init_env.sh | bash -s -- --chip-type 910b
     ```
 
 > **说明**：
-> - 场景1使用 `--skip-cann` 参数跳过CANN安装，因为Docker镜像已包含CANN环境
-> - 场景2使用 `--chip-type` 参数指定芯片型号并安装对应的ops包
 > - 对于其他芯片型号，请将 `--chip-type` 参数替换为对应的型号（如 `950`、`A3` ）
 
 ### 方式三：手动安装软件包

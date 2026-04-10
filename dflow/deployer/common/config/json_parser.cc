@@ -14,6 +14,7 @@
 #include <exception>
 #include "mmpa/mmpa_api.h"
 #include "framework/common/debug/ge_log.h"
+#include "graph_metadef/common/ge_common/util.h"
 #include "base/err_msg.h"
 
 namespace ge {
@@ -28,7 +29,7 @@ bool JsonParser::CheckFilePath(const std::string &file_path) {
            file_path.c_str(), ret, mmGetErrorCode());
     char_t err_buf[kMaxErrorStringLen + 1U] = {};
     const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrorStringLen);
-    std::string reason = "[Error " + std::to_string(mmGetErrorCode()) + "] " + err_msg;
+    std::string reason = ge::FormatErrnoReason(mmGetErrorCode(), err_msg);
     REPORT_PREDEFINED_ERR_MSG("E13000", std::vector<const char_t *>({"path", "errmsg"}),
                        std::vector<const char_t *>({file_path.c_str(), reason.c_str()}));
     return false;
@@ -42,7 +43,7 @@ bool JsonParser::CheckFilePath(const std::string &file_path) {
            trusted_path, ret, mmGetErrorCode());
     char_t err_buf[kMaxErrorStringLen + 1U] = {};
     const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrorStringLen);
-    std::string reason = "[Error " + std::to_string(mmGetErrorCode()) + "] " + err_msg;
+    std::string reason = ge::FormatErrnoReason(mmGetErrorCode(), err_msg);
     REPORT_PREDEFINED_ERR_MSG("E13001", std::vector<const char *>({"file", "errmsg"}),
                               std::vector<const char *>({trusted_path, reason.c_str()}));
     return false;

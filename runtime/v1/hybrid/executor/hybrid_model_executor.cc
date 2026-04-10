@@ -37,7 +37,7 @@ Status HybridModelExecutor::InitInputDesc() {
 
       if (tensor_size == 0) {
         GELOGW("[%s] Tensor size == 0", input_node->NodeName().c_str());
-        GE_CHK_GRAPH_STATUS_RET(TensorUtils::GetTensorMemorySizeInBytes(*output_desc, tensor_size),
+        GE_CHK_GRAPH_STATUS_RET(TensorUtils::GetTensorMemorySizeInBytesWithAutoPadding(*output_desc, tensor_size),
                                 "[Get][TensorMemorySize] Failed to calc tensor size");
         GELOGD("[%s] Tensor size updated to %ld", input_node->NodeName().c_str(), tensor_size);
       }
@@ -57,11 +57,8 @@ Status HybridModelExecutor::SyncVarData() const {
   if (global_step_var != nullptr) {
     std::vector<uint64_t> v_step;
     v_step.push_back(iterator_count_);
-    GE_CHK_RT_RET(rtMemcpy(global_step_var->MutableData(),
-                           global_step_var->GetSize(),
-                           v_step.data(),
-                           v_step.size() * sizeof(uint64_t),
-                           RT_MEMCPY_HOST_TO_DEVICE));
+    GE_CHK_RT_RET(aclrtMemcpy(global_step_var->MutableData(), global_step_var->GetSize(),
+        v_step.data(), v_step.size() * sizeof(uint64_t), ACL_MEMCPY_HOST_TO_DEVICE));
   } else {
     GELOGD("No GLOBAL_STEP variable was found.");
   }
@@ -105,8 +102,8 @@ Status HybridModelExecutor::PrepareDynamicInput(HybridModelExecutor::ExecuteArgs
   if (tensor_desc->GetDataType() == DT_STRING) {
     tensor_size = static_cast<int64_t>(data_buf.length);
   } else {
-    GE_CHK_GRAPH_STATUS_RET(TensorUtils::GetTensorMemorySizeInBytes(*tensor_desc, tensor_size),
-                            "[Invoke][GetTensorMemorySizeInBytes]Failed to calc tensor size,"
+    GE_CHK_GRAPH_STATUS_RET(TensorUtils::GetTensorMemorySizeInBytesWithAutoPadding(*tensor_desc, tensor_size),
+                            "[Invoke][GetTensorMemorySizeInBytesWithAutoPadding]Failed to calc tensor size,"
                             "index = %zu, shape = [%s], model_id = %u.",
                             input_index, tensor_desc->GetShape().ToString().c_str(), model_id_);
   }
@@ -151,11 +148,8 @@ Status HybridModelExecutor::CopyDataToExecutArgs(const int64_t tensor_size, Hybr
            args.inputs[input_index].GetData(),
            mem_size,
            data_buf.length);
-    GE_CHK_RT_RET(rtMemcpy(args.inputs[input_index].MutableData(),
-                           mem_size,
-                           data_buf.data,
-                           data_buf.length,
-                           RT_MEMCPY_HOST_TO_DEVICE));
+    GE_CHK_RT_RET(aclrtMemcpy(args.inputs[input_index].MutableData(), mem_size, data_buf.data,
+        data_buf.length, ACL_MEMCPY_HOST_TO_DEVICE));
   }
   return SUCCESS;
 }
@@ -294,8 +288,8 @@ Status HybridModelExecutor::CopyOutputs(HybridModelExecutor::ExecuteArgs &args, 
         GE_CHECK_NOTNULL(aligned_ptr);
         auto data_buf = aligned_ptr->MutableGet();
         GE_CHECK_NOTNULL(data_buf);
-        GE_CHK_RT_RET(rtMemcpy(data_buf, static_cast<uint64_t>(output_size), output_tensor.GetData(),
-                               static_cast<uint64_t>(output_size), RT_MEMCPY_DEVICE_TO_HOST));
+        GE_CHK_RT_RET(aclrtMemcpy(data_buf, static_cast<uint64_t>(output_size), output_tensor.GetData(),
+            static_cast<uint64_t>(output_size), ACL_MEMCPY_DEVICE_TO_HOST));
         GeTensor ge_tensor(ge_tensor_desc);
         ge_tensor.SetData(aligned_ptr, static_cast<size_t>(output_size));
         output_data->blobs.emplace_back(data_buf, static_cast<uint32_t>(output_size), false);
@@ -371,8 +365,8 @@ Status HybridModelExecutor::CopyOutputs(const std::vector<gert::Tensor> &executo
         GE_CHECK_NOTNULL(aligned_ptr);
         auto data_buf = aligned_ptr->MutableGet();
         GE_CHECK_NOTNULL(data_buf);
-        GE_CHK_RT_RET(rtMemcpy(data_buf, static_cast<uint64_t>(output_size), arg_output.GetAddr(),
-                               static_cast<uint64_t>(output_size), RT_MEMCPY_DEVICE_TO_HOST));
+        GE_CHK_RT_RET(aclrtMemcpy(data_buf, static_cast<uint64_t>(output_size), arg_output.GetAddr(),
+            static_cast<uint64_t>(output_size), ACL_MEMCPY_DEVICE_TO_HOST));
         GeTensor ge_tensor;
         ge_tensor.SetData(aligned_ptr, static_cast<size_t>(output_size));
         gert::Tensor host_tensor;
