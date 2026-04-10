@@ -8518,6 +8518,7 @@ static void CreateCompareScalarWhereGraph(ge::AscGraph &graph) {
 
   ge::ascir_op::Scalar scalar0("scalar0", graph);
   scalar0.ir_attr.SetValue("0.5");
+  scalar0.y.dtype = ge::DT_FLOAT16;
 
   ge::ascir_op::Ge ge0("ge0");
   ge0.x1 = load0.y;

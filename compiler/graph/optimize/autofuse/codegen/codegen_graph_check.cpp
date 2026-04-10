@@ -154,7 +154,8 @@ bool CollectOutputDtypes(const ascir::NodeView &node, std::vector<ge::DataType> 
 
 Status IsDataTypeSupported(const ascir::ImplGraph &graph) {
   std::set<string> ignore_node_type = {"Ge", "Eq", "Ne", "Gt", "Le", "Broadcast", "Nop", "Sign", "LogicalNot",
-                                       "LogicalOr", "LogicalAnd", "Concat", "Select", "Where", "Ub2ub", "BitwiseAnd", "Split"};
+                                       "LogicalOr", "LogicalAnd", "Concat", "Select", "Where", "Ub2ub", "BitwiseAnd",
+                                       "Split"};
   for (const auto &node : graph.GetAllNodes()) {
     // 对于动态输入和动态输出的节点，不进行类型检测
     const auto &ir_inputs = node->GetOpDescBarePtr()->GetIrInputs();
@@ -215,7 +216,7 @@ Status IsGraphNodeValid(const ascir::ImplGraph &graph) {
   return ge::SUCCESS;
 }
 
-Status CheckGraphValidity(const ascir::ImplGraph &graph) {
+Status CheckSingleGraphValidity(const ascir::ImplGraph &graph) {
   GE_ASSERT_SUCCESS(IsDataTypeSupported(graph), "Graph: %s check dtype failed", graph.GetName().c_str());
   // matmul模板不走正常schedule流程，暂不做后续校验。
   if (ascgen_utils::IsCubeType(graph)) {
@@ -225,4 +226,14 @@ Status CheckGraphValidity(const ascir::ImplGraph &graph) {
   GE_ASSERT_SUCCESS(IsGraphNodeValid(graph), "Graph: %s check graph node failed", graph.GetName().c_str());
   return ge::SUCCESS;
 }
+
+Status CheckGraphValidity(const ascir::ImplGraph &graph) {
+  GE_ASSERT_SUCCESS(CheckSingleGraphValidity(graph), "CheckSingleGraphValidity failed");
+  std::vector<ge::AscGraph> sub_graphs;
+  GE_ASSERT_SUCCESS(graph.GetAllSubGraphs(sub_graphs), "Graph: %s get sub graph failed", graph.GetName().c_str());
+  for (auto sub_graph : sub_graphs) {
+    GE_ASSERT_SUCCESS(CheckSingleGraphValidity(sub_graph), "SubGraph: %s check validity failed", sub_graph.GetName().c_str());
+  }
+  return ge::SUCCESS;
 }
+} // namespace codegen

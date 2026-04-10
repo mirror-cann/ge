@@ -846,6 +846,7 @@ ge::Status VectorFuncPartitioner::InsertDataAndLoadNode(ge::AscGraph &asc_graph,
   data_node->attr.api.compute_type = ge::ComputeType::kComputeInvalid;
   data_node->attr.api.type = ge::ApiType::kAPITypeBuffer;
   data_node->attr.api.unit = ge::ComputeUnit::kUnitNone;
+  data_node->outputs[0].attr.dtype = pre_node->outputs[out_anchor->GetIdx()].attr.dtype;
   auto ir_attr = data.attr.ir_attr->DownCastTo<ge::AscDataIrAttrDef>();
   GE_ASSERT_NOTNULL(ir_attr);
   (void)ir_attr->SetIndex(parent_in_index);
@@ -917,6 +918,7 @@ ge::Status VectorFuncPartitioner::InsertStoreAndOutputNode(ge::AscGraph &asc_gra
   output_node->attr.api.compute_type = ge::ComputeType::kComputeInvalid;
   output_node->attr.api.type = ge::ApiType::kAPITypeBuffer;
   output_node->attr.api.unit = ge::ComputeUnit::kUnitNone;
+  output_node->outputs[0].attr.dtype = pre_node.outputs[out_anchor_index].attr.dtype;
   output.x = store.y;
   auto ir_attr = output.attr.ir_attr->DownCastTo<ge::AscDataIrAttrDef>();
   GE_ASSERT_NOTNULL(ir_attr);
