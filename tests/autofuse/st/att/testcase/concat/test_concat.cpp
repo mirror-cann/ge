@@ -2536,6 +2536,10 @@ void STestGenConcat::VerifyGroupCacheBehavior() {
   EXPECT_EQ(ResultCheckerUtils::IsFileContainsString("./info.log", "[Operator Cache] MISS! key=[4096]"), true);
   EXPECT_EQ(ResultCheckerUtils::IsFileContainsString("./info.log", "[Operator Cache] SAVE SUCCESS: key=[4096]"), true);
 
+  // 新格式校验：多维shape key应带分隔逻辑
+  EXPECT_EQ(ResultCheckerUtils::IsFileContainsString("Concat_tiling_func.cpp", "if (i != 0) {"), true);
+  EXPECT_EQ(ResultCheckerUtils::IsFileContainsString("Concat_tiling_func.cpp", "out.append(\",\");"), true);
+
   // Test 6: ND=4096 Operator Cache HIT
   EXPECT_EQ(ResultCheckerUtils::IsFileContainsString("./info.log", "[Operator Cache] HIT! key=[4096]"), true);
   EXPECT_EQ(ResultCheckerUtils::IsFileContainsString("./info.log", "Operator level cache hit, input_shapes[4096]"), true);

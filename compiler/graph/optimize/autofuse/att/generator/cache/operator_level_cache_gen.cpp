@@ -45,6 +45,21 @@ std::vector<std::pair<std::string, std::string>> GetVarAccessors(const TilingMod
   }
   return var_accessors;
 }
+
+std::string GenShapeKeyToStringCode(const std::string &key_name) {
+  std::stringstream ss;
+  ss << "[&" << key_name << "]()->std::string {\n";
+  ss << "  std::string out;\n";
+  ss << "  for (size_t i = 0; i < " << key_name << ".size(); ++i) {\n";
+  ss << "    if (i != 0) {\n";
+  ss << "      out.append(\",\");\n";
+  ss << "    }\n";
+  ss << "    out.append(std::to_string(" << key_name << "[i]));\n";
+  ss << "  }\n";
+  ss << "  return out;\n";
+  ss << "}.operator()().c_str()";
+  return ss.str();
+}
 }
 
 
@@ -174,13 +189,8 @@ ge::Status OperatorLevelCacheGen::GenInitAndQueryCacheCode(ge::CodePrinter &code
   code_printer.AddLine(
       "      memcpy(&tiling_data, TilingCacheContext::FindOperatorCache(input_shapes), sizeof(tiling_data));");
   code_printer.AddLine(
-      "    OP_LOGI(OP_NAME, \"Operator level cache hit, input_shapes[%s]\", [&input_shapes]()->std::string {");
-  code_printer.AddLine("      std::string out;");
-  code_printer.AddLine("      for (auto axis : input_shapes) {");
-  code_printer.AddLine("        out.append(std::to_string(axis));");
-  code_printer.AddLine("      }");
-  code_printer.AddLine("      return out;");
-  code_printer.AddLine("    }.operator()().c_str());");
+      std::string("    OP_LOGI(OP_NAME, \"Operator level cache hit, input_shapes[%s]\", ") +
+      GenShapeKeyToStringCode("input_shapes") + ");");
   code_printer.AddLine("    return true;");
   code_printer.AddLine("  }");
   code_printer.AddLine("");
@@ -257,25 +267,13 @@ std::string OperatorLevelCacheGen::GenFindOperatorCacheImpl(const std::string &t
   static )" << tiling_data_type_name << R"(* FindOperatorCache(const std::array<uint32_t, kInputShapeSize>& shape_key) {
     )" << tiling_data_type_name << R"(* result = GetOperatorCache().Find(shape_key);
     if (result != nullptr) {
-      OP_LOGI(OP_NAME, "[Operator Cache] HIT! key=[%s]", [&shape_key]()->std::string {
-        std::string out;
-        for (auto axis : shape_key) {
-          out.append(std::to_string(axis));
-        }
-        return out;
-      }.operator()().c_str());
+      OP_LOGI(OP_NAME, "[Operator Cache] HIT! key=[%s]", )" + GenShapeKeyToStringCode("shape_key") + R"();
       // 更新访问计数
       size_t hash = Hash(shape_key);
       size_t index = hash % kOperatorCacheCapacity;
       access_counts_[index]++;
     } else {
-      OP_LOGI(OP_NAME, "[Operator Cache] MISS! key=[%s]", [&shape_key]()->std::string {
-        std::string out;
-        for (auto axis : shape_key) {
-          out.append(std::to_string(axis));
-        }
-        return out;
-      }.operator()().c_str());
+      OP_LOGI(OP_NAME, "[Operator Cache] MISS! key=[%s]", )" + GenShapeKeyToStringCode("shape_key") + R"();
     }
     return result;
   }
@@ -293,22 +291,10 @@ std::string OperatorLevelCacheGen::GenSaveOperatorCacheImpl(const std::string &t
 
     // 1. 尝试直接插入
     if (cache.Insert(shape_key, tiling_data)) {
-      OP_LOGI(OP_NAME, "[Operator Cache] SAVE SUCCESS: key=[%s]", [&shape_key]()->std::string {
-        std::string out;
-        for (auto axis : shape_key) {
-          out.append(std::to_string(axis));
-        }
-        return out;
-      }.operator()().c_str());
+      OP_LOGI(OP_NAME, "[Operator Cache] SAVE SUCCESS: key=[%s]", )" + GenShapeKeyToStringCode("shape_key") + R"();
       return true;
     }
-    OP_LOGI(OP_NAME, "[Operator Cache] SAVE FAILED (cache full), key=[%s]", [&shape_key]()->std::string {
-      std::string out;
-      for (auto axis : shape_key) {
-        out.append(std::to_string(axis));
-      }
-      return out;
-    }.operator()().c_str());
+    OP_LOGI(OP_NAME, "[Operator Cache] SAVE FAILED (cache full), key=[%s]", )" + GenShapeKeyToStringCode("shape_key") + R"();
 
     // 2. 缓存满，执行LRU老化
     if (cache.Size() >= kOperatorCacheCapacity) {

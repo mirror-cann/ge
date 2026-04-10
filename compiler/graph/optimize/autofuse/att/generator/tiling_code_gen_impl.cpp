@@ -3805,6 +3805,12 @@ ge::Status TilingCodeGenImpl::GenGetTilingFunctionBody(bool use_cache, bool is_t
   (void)use_cache;  // 保留参数以备将来使用
   bool need_operator_cache = is_tail || (!is_tail && is_uniq_group_);
 
+  // 初始化返回值
+  tiling_func_.AddLine("  bool ret = true;");
+
+  // 生成duration begin代码
+  GE_ASSERT_SUCCESS(GenDurationCode(true), "Generate duration begin code failed.");
+
   // 第一级：算子级缓存查询（在GetTilingKey之前）
   if (need_operator_cache) {
     GE_ASSERT_SUCCESS(
@@ -3812,20 +3818,14 @@ ge::Status TilingCodeGenImpl::GenGetTilingFunctionBody(bool use_cache, bool is_t
         "Generate init and query cache code failed.");
   }
 
-  // 初始化返回值
-  tiling_func_.AddLine("  bool ret = true;");
-
-  // 生成duration begin代码
-  GE_ASSERT_SUCCESS(GenDurationCode(true), "Generate duration begin code failed.");
-
   // 生成日志和GetTilingKey调用
   GE_ASSERT_SUCCESS(GenGetTilingKeyCall(cache_used), "Generate GetTilingKey call failed.");
 
-  // 生成duration end代码
-  GE_ASSERT_SUCCESS(GenDurationCode(false), "Generate duration end code failed.");
-
   // 保存算子级缓存
   GE_ASSERT_SUCCESS(GenOperatorCacheSaveCode(need_operator_cache), "Generate save cache calls failed.");
+
+  // 生成duration end代码
+  GE_ASSERT_SUCCESS(GenDurationCode(false), "Generate duration end code failed.");
 
   tiling_func_.AddLine("  return ret;");
   tiling_func_.AddLine("}");
