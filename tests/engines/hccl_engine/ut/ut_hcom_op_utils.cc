@@ -230,3 +230,271 @@ TEST_F(HcomOpUtilsTest, Ut_GetAccuracyCountFromOpDesc_When_RankSizeZero_Expect_E
   // 验证结果：函数应返回HCCL_E_PARA错误，因为rankSize不能为零
   EXPECT_EQ(ret, HCCL_E_PARA) << "Expected HCCL_E_PARA for zero rankSize, got " << ret;
 }
+
+// ========================================
+// CalcCommonCount 函数测试用例
+// 测试场景：验证 REDUCESCATTER 算子在连续内存输入时的 count 计算
+// 预期行为：inputSize=4096字节, rankSize=4, is_continuous_input=true
+// blockSize = (4096/4 + 511)/512*512 = (1024+511)/512*512 = 1536/512*512 = 3*512 = 1536
+// count = 1536 / 4 = 384
+TEST_F(HcomOpUtilsTest, Ut_CalcCommonCount_When_ReduceScatterWithContinuousInput_Expect_Success) {
+  auto opDesc = std::make_shared<ge::OpDesc>();
+  ge::GeTensorDesc tensorDesc;
+  tensorDesc.SetShape(ge::GeShape({1024}));
+  (void)opDesc->AddInputDesc(tensorDesc);
+  (void)ge::AttrUtils::SetBool(opDesc, ge::ATTR_NAME_CONTINUOUS_INPUT, true);
+
+  std::string sCollectiveType = HCCL_KERNEL_OP_TYPE_REDUCESCATTER;
+  HcclDataType dataType = HCCL_DATA_TYPE_FP32;
+  u64 count = 0;
+  u32 rankSize = 4;
+
+  HcclResult ret = HcomOpUtils::GetAccuracyCountFromOpDesc(opDesc, sCollectiveType, dataType, count, rankSize);
+
+  EXPECT_EQ(ret, HCCL_SUCCESS) << "Expected HCCL_SUCCESS, got " << ret;
+  EXPECT_EQ(count, 384) << "Expected count 384, got " << count;
+}
+
+// 测试场景：验证 REDUCESCATTER 算子在非连续内存输入时的 count 计算
+// 预期行为：inputSize=4096字节, rankSize=4, is_continuous_input=false
+// blockSize = 4096/4 = 1024
+// count = 1024 / 4 = 256
+TEST_F(HcomOpUtilsTest, Ut_CalcCommonCount_When_ReduceScatterWithNonContinuousInput_Expect_Success) {
+  auto opDesc = std::make_shared<ge::OpDesc>();
+  ge::GeTensorDesc tensorDesc;
+  tensorDesc.SetShape(ge::GeShape({1024}));
+  (void)opDesc->AddInputDesc(tensorDesc);
+  (void)ge::AttrUtils::SetBool(opDesc, ge::ATTR_NAME_CONTINUOUS_INPUT, false);
+
+  std::string sCollectiveType = HCCL_KERNEL_OP_TYPE_REDUCESCATTER;
+  HcclDataType dataType = HCCL_DATA_TYPE_FP32;
+  u64 count = 0;
+  u32 rankSize = 4;
+
+  HcclResult ret = HcomOpUtils::GetAccuracyCountFromOpDesc(opDesc, sCollectiveType, dataType, count, rankSize);
+
+  EXPECT_EQ(ret, HCCL_SUCCESS) << "Expected HCCL_SUCCESS, got " << ret;
+  EXPECT_EQ(count, 256) << "Expected count 256, got " << count;
+}
+
+// 测试场景：验证 ALLGATHER 算子在连续内存输入时的 count 计算
+// 预期行为：inputSize=400字节(100*4), is_continuous_input=true
+// blockSize = (400+511)/512*512 = 911/512*512 = 1*512 = 512
+// count = 512 / 4 = 128
+TEST_F(HcomOpUtilsTest, Ut_CalcCommonCount_When_AllGatherWithContinuousInput_Expect_Success) {
+  auto opDesc = std::make_shared<ge::OpDesc>();
+  ge::GeTensorDesc tensorDesc;
+  tensorDesc.SetShape(ge::GeShape({100}));
+  (void)opDesc->AddInputDesc(tensorDesc);
+  (void)ge::AttrUtils::SetBool(opDesc, ge::ATTR_NAME_CONTINUOUS_INPUT, true);
+
+  std::string sCollectiveType = HCCL_KERNEL_OP_TYPE_ALLGATHER;
+  HcclDataType dataType = HCCL_DATA_TYPE_FP32;
+  u64 count = 0;
+  u32 rankSize = 4;
+
+  HcclResult ret = HcomOpUtils::GetAccuracyCountFromOpDesc(opDesc, sCollectiveType, dataType, count, rankSize);
+
+  EXPECT_EQ(ret, HCCL_SUCCESS) << "Expected HCCL_SUCCESS, got " << ret;
+  EXPECT_EQ(count, 128) << "Expected count 128, got " << count;
+}
+
+// ========================================
+// 4M 大数据量测试用例
+// 4M = 4,194,304 字节, float32=4字节, shape_size = 1,048,576 元素
+
+// 测试场景：验证 REDUCESCATTER 算子 4M 数据量连续内存输入时的 count 计算
+// 预期行为：inputSize=4,194,304字节, rankSize=8, is_continuous_input=true
+// reduceSize = 4,194,304 / 8 = 524,288
+// blockSize = (524,288 + 511) / 512 * 512 = 524,800
+// count = 524,800 / 4 = 131,200
+TEST_F(HcomOpUtilsTest, Ut_CalcCommonCount_When_ReduceScatter4MContinuousInput_Expect_Success) {
+  auto opDesc = std::make_shared<ge::OpDesc>();
+  ge::GeTensorDesc tensorDesc;
+  tensorDesc.SetShape(ge::GeShape({1048576}));
+  (void)opDesc->AddInputDesc(tensorDesc);
+  (void)ge::AttrUtils::SetBool(opDesc, ge::ATTR_NAME_CONTINUOUS_INPUT, true);
+
+  std::string sCollectiveType = HCCL_KERNEL_OP_TYPE_REDUCESCATTER;
+  HcclDataType dataType = HCCL_DATA_TYPE_FP32;
+  u64 count = 0;
+  u32 rankSize = 8;
+
+  HcclResult ret = HcomOpUtils::GetAccuracyCountFromOpDesc(opDesc, sCollectiveType, dataType, count, rankSize);
+
+  EXPECT_EQ(ret, HCCL_SUCCESS) << "Expected HCCL_SUCCESS, got " << ret;
+  EXPECT_EQ(count, 131200) << "Expected count 131200, got " << count;
+}
+
+// 测试场景：验证 REDUCESCATTER 算子 4M 数据量非连续内存输入时的 count 计算
+// 预期行为：inputSize=4,194,304字节, rankSize=8, is_continuous_input=false
+// reduceSize = 4,194,304 / 8 = 524,288
+// blockSize = 524,288
+// count = 524,288 / 4 = 131,072
+TEST_F(HcomOpUtilsTest, Ut_CalcCommonCount_When_ReduceScatter4MNonContinuousInput_Expect_Success) {
+  auto opDesc = std::make_shared<ge::OpDesc>();
+  ge::GeTensorDesc tensorDesc;
+  tensorDesc.SetShape(ge::GeShape({1048576}));
+  (void)opDesc->AddInputDesc(tensorDesc);
+  (void)ge::AttrUtils::SetBool(opDesc, ge::ATTR_NAME_CONTINUOUS_INPUT, false);
+
+  std::string sCollectiveType = HCCL_KERNEL_OP_TYPE_REDUCESCATTER;
+  HcclDataType dataType = HCCL_DATA_TYPE_FP32;
+  u64 count = 0;
+  u32 rankSize = 8;
+
+  HcclResult ret = HcomOpUtils::GetAccuracyCountFromOpDesc(opDesc, sCollectiveType, dataType, count, rankSize);
+
+  EXPECT_EQ(ret, HCCL_SUCCESS) << "Expected HCCL_SUCCESS, got " << ret;
+  EXPECT_EQ(count, 131072) << "Expected count 131072, got " << count;
+}
+
+// 测试场景：验证 ALLGATHER 算子 4M 数据量连续内存输入时的 count 计算
+// 预期行为：inputSize=4,194,304字节, is_continuous_input=true
+// blockSize = (4,194,304 + 511) / 512 * 512 = 4,194,304 (已对齐)
+// count = 4,194,304 / 4 = 1,048,576
+TEST_F(HcomOpUtilsTest, Ut_CalcCommonCount_When_AllGather4MContinuousInput_Expect_Success) {
+  auto opDesc = std::make_shared<ge::OpDesc>();
+  ge::GeTensorDesc tensorDesc;
+  tensorDesc.SetShape(ge::GeShape({1048576}));
+  (void)opDesc->AddInputDesc(tensorDesc);
+  (void)ge::AttrUtils::SetBool(opDesc, ge::ATTR_NAME_CONTINUOUS_INPUT, true);
+
+  std::string sCollectiveType = HCCL_KERNEL_OP_TYPE_ALLGATHER;
+  HcclDataType dataType = HCCL_DATA_TYPE_FP32;
+  u64 count = 0;
+  u32 rankSize = 8;
+
+  HcclResult ret = HcomOpUtils::GetAccuracyCountFromOpDesc(opDesc, sCollectiveType, dataType, count, rankSize);
+
+  EXPECT_EQ(ret, HCCL_SUCCESS) << "Expected HCCL_SUCCESS, got " << ret;
+  EXPECT_EQ(count, 1048576) << "Expected count 1048576, got " << count;
+}
+
+// 测试场景：验证 ALLGATHER 算子 4M 数据量非连续内存输入时的 count 计算
+// 预期行为：inputSize=4,194,304字节, is_continuous_input=false
+// blockSize = 4,194,304 (不对齐)
+// count = 4,194,304 / 4 = 1,048,576
+TEST_F(HcomOpUtilsTest, Ut_CalcCommonCount_When_AllGather4MNonContinuousInput_Expect_Success) {
+  auto opDesc = std::make_shared<ge::OpDesc>();
+  ge::GeTensorDesc tensorDesc;
+  tensorDesc.SetShape(ge::GeShape({1048576}));
+  (void)opDesc->AddInputDesc(tensorDesc);
+  (void)ge::AttrUtils::SetBool(opDesc, ge::ATTR_NAME_CONTINUOUS_INPUT, false);
+
+  std::string sCollectiveType = HCCL_KERNEL_OP_TYPE_ALLGATHER;
+  HcclDataType dataType = HCCL_DATA_TYPE_FP32;
+  u64 count = 0;
+  u32 rankSize = 8;
+
+  HcclResult ret = HcomOpUtils::GetAccuracyCountFromOpDesc(opDesc, sCollectiveType, dataType, count, rankSize);
+
+  EXPECT_EQ(ret, HCCL_SUCCESS) << "Expected HCCL_SUCCESS, got " << ret;
+  EXPECT_EQ(count, 1048576) << "Expected count 1048576, got " << count;
+}
+
+// 测试场景：验证 ALLTOALL 算子 4M 数据量的 count 计算（不对齐）
+// 预期行为：inputSize=4,194,304字节
+// blockSize = 4,194,304 (ALLTOALL 默认不对齐)
+// count = 4,194,304 / 4 = 1,048,576
+TEST_F(HcomOpUtilsTest, Ut_CalcCommonCount_When_AlltoAll4M_Expect_Success) {
+  auto opDesc = std::make_shared<ge::OpDesc>();
+  ge::GeTensorDesc tensorDesc;
+  tensorDesc.SetShape(ge::GeShape({1048576}));
+  (void)opDesc->AddInputDesc(tensorDesc);
+
+  std::string sCollectiveType = HCCL_KERNEL_OP_TYPE_ALLTOALL;
+  HcclDataType dataType = HCCL_DATA_TYPE_FP32;
+  u64 count = 0;
+  u32 rankSize = 8;
+
+  HcclResult ret = HcomOpUtils::GetAccuracyCountFromOpDesc(opDesc, sCollectiveType, dataType, count, rankSize);
+
+  EXPECT_EQ(ret, HCCL_SUCCESS) << "Expected HCCL_SUCCESS, got " << ret;
+  EXPECT_EQ(count, 1048576) << "Expected count 1048576, got " << count;
+}
+
+// 测试场景：验证默认算子（默认512对齐）4M 数据量的 count 计算
+// 预期行为：inputSize=4,194,304字节
+// blockSize = (4,194,304 + 511) / 512 * 512 = 4,194,304 (已对齐)
+// count = 4,194,304 / 4 = 1,048,576
+TEST_F(HcomOpUtilsTest, Ut_CalcCommonCount_When_DefaultAlignedOp4M_Expect_Success) {
+  auto opDesc = std::make_shared<ge::OpDesc>();
+  ge::GeTensorDesc tensorDesc;
+  tensorDesc.SetShape(ge::GeShape({1048576}));
+  (void)opDesc->AddInputDesc(tensorDesc);
+
+  std::string sCollectiveType = HCCL_KERNEL_OP_TYPE_ALLREDUCE;
+  HcclDataType dataType = HCCL_DATA_TYPE_FP32;
+  u64 count = 0;
+  u32 rankSize = 8;
+
+  HcclResult ret = HcomOpUtils::GetAccuracyCountFromOpDesc(opDesc, sCollectiveType, dataType, count, rankSize);
+
+  EXPECT_EQ(ret, HCCL_SUCCESS) << "Expected HCCL_SUCCESS, got " << ret;
+  EXPECT_EQ(count, 1048576) << "Expected count 1048576, got " << count;
+}
+
+// 测试场景：验证 ALLGATHER 算子在非连续内存输入时的 count 计算
+// 预期行为：inputSize=400字节(100*4), is_continuous_input=false
+// blockSize = 400 (不对齐)
+// count = 400 / 4 = 100
+TEST_F(HcomOpUtilsTest, Ut_CalcCommonCount_When_AllGatherWithNonContinuousInput_Expect_Success) {
+  auto opDesc = std::make_shared<ge::OpDesc>();
+  ge::GeTensorDesc tensorDesc;
+  tensorDesc.SetShape(ge::GeShape({100}));
+  (void)opDesc->AddInputDesc(tensorDesc);
+  (void)ge::AttrUtils::SetBool(opDesc, ge::ATTR_NAME_CONTINUOUS_INPUT, false);
+
+  std::string sCollectiveType = HCCL_KERNEL_OP_TYPE_ALLGATHER;
+  HcclDataType dataType = HCCL_DATA_TYPE_FP32;
+  u64 count = 0;
+  u32 rankSize = 4;
+
+  HcclResult ret = HcomOpUtils::GetAccuracyCountFromOpDesc(opDesc, sCollectiveType, dataType, count, rankSize);
+
+  EXPECT_EQ(ret, HCCL_SUCCESS) << "Expected HCCL_SUCCESS, got " << ret;
+  EXPECT_EQ(count, 100) << "Expected count 100, got " << count;
+}
+
+// 测试场景：验证 ALLTOALL 算子的 count 计算（不对齐）
+// 预期行为：inputSize=400字节(100*4)
+// blockSize = 400 (ALLTOALL 默认不对齐)
+// count = 400 / 4 = 100
+TEST_F(HcomOpUtilsTest, Ut_CalcCommonCount_When_AlltoAll_Expect_Success) {
+  auto opDesc = std::make_shared<ge::OpDesc>();
+  ge::GeTensorDesc tensorDesc;
+  tensorDesc.SetShape(ge::GeShape({100}));
+  (void)opDesc->AddInputDesc(tensorDesc);
+
+  std::string sCollectiveType = HCCL_KERNEL_OP_TYPE_ALLTOALL;
+  HcclDataType dataType = HCCL_DATA_TYPE_FP32;
+  u64 count = 0;
+  u32 rankSize = 4;
+
+  HcclResult ret = HcomOpUtils::GetAccuracyCountFromOpDesc(opDesc, sCollectiveType, dataType, count, rankSize);
+
+  EXPECT_EQ(ret, HCCL_SUCCESS) << "Expected HCCL_SUCCESS, got " << ret;
+  EXPECT_EQ(count, 100) << "Expected count 100, got " << count;
+}
+
+// 测试场景：验证默认算子（默认512对齐）的 count 计算
+// 预期行为：inputSize=400字节(100*4)
+// blockSize = (400+511)/512*512 = 911/512*512 = 1*512 = 512
+// count = 512 / 4 = 128
+TEST_F(HcomOpUtilsTest, Ut_CalcCommonCount_When_DefaultAlignedOp_Expect_Success) {
+  auto opDesc = std::make_shared<ge::OpDesc>();
+  ge::GeTensorDesc tensorDesc;
+  tensorDesc.SetShape(ge::GeShape({100}));
+  (void)opDesc->AddInputDesc(tensorDesc);
+
+  std::string sCollectiveType = HCCL_KERNEL_OP_TYPE_ALLREDUCE;
+  HcclDataType dataType = HCCL_DATA_TYPE_FP32;
+  u64 count = 0;
+  u32 rankSize = 4;
+
+  HcclResult ret = HcomOpUtils::GetAccuracyCountFromOpDesc(opDesc, sCollectiveType, dataType, count, rankSize);
+
+  EXPECT_EQ(ret, HCCL_SUCCESS) << "Expected HCCL_SUCCESS, got " << ret;
+  EXPECT_EQ(count, 128) << "Expected count 128, got " << count;
+}

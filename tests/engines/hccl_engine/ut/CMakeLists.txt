@@ -89,6 +89,7 @@ set(hccl_engine_src_test_file
     ${CMAKE_CURRENT_SOURCE_DIR}/ut_autotuning_hccl_kernel_builder.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/ut_gradient_split_tune.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/ut_gradient_split.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/ut_hcom_op_utils.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/ut_hccl_kernel_info.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/ut_superFastKernel.cc
     ${hcce_ut_llt_stub}
