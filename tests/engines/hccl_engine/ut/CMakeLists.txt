@@ -140,9 +140,9 @@ set(src_path
     ${ASCEND_INSTALL_PATH}/include/adump/external
     ${ASCEND_INSTALL_PATH}/include/slog/toolchain
 
-    ${ASCEND_3RD_LIB_PATH}/json/include
+    ${CANN_3RD_LIB_PATH}/json/include
 
-    ${ASCEND_3RD_LIB_PATH}/protoc/include
+    ${CANN_3RD_LIB_PATH}/protoc/include
 
     ${CMAKE_BINARY_DIR}/proto/hcce
 
@@ -175,7 +175,7 @@ target_compile_definitions(hccl_engine_utest PRIVATE
 
 target_link_options(hccl_engine_utest PRIVATE
     -Wl,-rpath,${ASCEND_COMPILER_DIR}
-    -Wl,-rpath,${ASCEND_3RD_LIB_PATH}/gtest_shared/lib64
+    -Wl,-rpath,${CANN_3RD_LIB_PATH}/gtest_shared/lib64
     -Wl,-rpath,${AIR_CODE_DIR}/build/graph_metadef/register
     -Wl,-rpath,${AIR_CODE_DIR}/build/graph_metadef/graph
 )

@@ -136,7 +136,7 @@ if(BUILD_OPEN_PROJECT)
         ${ASCEND_INSTALL_PATH}/include/msprof
         ${ASCEND_INSTALL_PATH}/include/adump/external
         ${ASCEND_INSTALL_PATH}/include/slog/toolchain
-        ${ASCEND_3RD_LIB_PATH}/json/include
+        ${CANN_3RD_LIB_PATH}/json/include
         ${AIR_CODE_DIR}/inc
         ${AIR_CODE_DIR}/inc/external
         ${METADEF_DIR}/inc
@@ -162,7 +162,7 @@ if(BUILD_OPEN_PROJECT)
         ${ASCEND_INSTALL_PATH}/include/msprof
         ${ASCEND_INSTALL_PATH}/include/adump/external
         ${ASCEND_INSTALL_PATH}/include/slog/toolchain
-        ${ASCEND_3RD_LIB_PATH}/json/include
+        ${CANN_3RD_LIB_PATH}/json/include
         ${AIR_CODE_DIR}/inc
         ${AIR_CODE_DIR}/inc/external
         ${METADEF_DIR}/inc
@@ -189,7 +189,7 @@ if(BUILD_OPEN_PROJECT)
         ${ASCEND_INSTALL_PATH}/include/msprof
         ${ASCEND_INSTALL_PATH}/include/adump/external
         ${ASCEND_INSTALL_PATH}/include/slog/toolchain
-        ${ASCEND_3RD_LIB_PATH}/json/include
+        ${CANN_3RD_LIB_PATH}/json/include
         ${AIR_CODE_DIR}/inc
         ${AIR_CODE_DIR}/inc/external
         ${METADEF_DIR}/inc
@@ -215,7 +215,7 @@ if(BUILD_OPEN_PROJECT)
         ${ASCEND_INSTALL_PATH}/include/msprof
         ${ASCEND_INSTALL_PATH}/include/adump/external
         ${ASCEND_INSTALL_PATH}/include/slog/toolchain
-        ${ASCEND_3RD_LIB_PATH}/json/include
+        ${CANN_3RD_LIB_PATH}/json/include
         ${AIR_CODE_DIR}/inc
         ${AIR_CODE_DIR}/inc/external
         ${METADEF_DIR}/inc

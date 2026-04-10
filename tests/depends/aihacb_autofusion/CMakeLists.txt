@@ -51,7 +51,7 @@ target_include_directories(ascir_builtin_ops_stub PUBLIC
         ${C_SEC_INCLUDE}
         ${CMAKE_BINARY_DIR}/proto/ge/
         ${CMAKE_BINARY_DIR}/proto/graphengine_protos
-        ${ASCEND_3RD_LIB_PATH}/protoc/include
+        ${CANN_3RD_LIB_PATH}/protoc/include
         )
 add_dependencies(ascir_builtin_ops_stub metadef_graph_protos_obj ascir_ops_header_generator)
 

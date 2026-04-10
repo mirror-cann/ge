@@ -18,10 +18,10 @@ unset(mockcpp_FOUND CACHE)
 unset(MOCKCPP_INCLUDE CACHE)
 unset(MOCKCPP_STATIC_LIBRARY CACHE)
 
-set(MOCKCPP_INSTALL_PATH ${ASCEND_3RD_LIB_PATH}/mockcpp-2.7)
+set(MOCKCPP_INSTALL_PATH ${CANN_3RD_LIB_PATH}/mockcpp-2.7)
 set(MOCKCPP_DOWNLOAD_PATH ${MOCKCPP_INSTALL_PATH}/src)
-set(MOCKCPP_FILE "${ASCEND_3RD_LIB_PATH}/mockcpp-2.7/mockcpp-2.7.tar.gz")
-set(MOCKCPP_PATCH "${ASCEND_3RD_LIB_PATH}/mockcpp-2.7/mockcpp-2.7_py3.patch")
+set(MOCKCPP_FILE "${CANN_3RD_LIB_PATH}/mockcpp-2.7/mockcpp-2.7.tar.gz")
+set(MOCKCPP_PATCH "${CANN_3RD_LIB_PATH}/mockcpp-2.7/mockcpp-2.7_py3.patch")
 if (NOT EXISTS ${MOCKCPP_PATCH})
     set(MOCKCPP_PATCH "${CMAKE_CURRENT_LIST_DIR}/patch/mockcpp-2.7_py3.patch")
 endif ()
@@ -35,7 +35,7 @@ find_path(MOCKCPP_INCLUDE
 find_path(BOOST_INCLUDE
         NAMES boost/config.hpp
         PATHS
-        ${ASCEND_3RD_LIB_PATH}/boost/include
+        ${CANN_3RD_LIB_PATH}/boost/include
         ${CMAKE_INSTALL_PREFIX}/boost_src
         NO_DEFAULT_PATH
         NO_CMAKE_FIND_ROOT_PATH)

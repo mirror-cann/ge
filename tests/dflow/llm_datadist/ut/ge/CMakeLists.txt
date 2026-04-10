@@ -80,7 +80,7 @@ target_include_directories(ut_llm_engine_utest PRIVATE
         ${AIR_CODE_DIR}/dflow/llm_datadist/v1
         ${AIR_CODE_DIR}/dflow/llm_datadist/v1/common
         ${AIR_CODE_DIR}/tests/depends/llm_datadist/src
-        ${ASCEND_3RD_LIB_PATH}/json/include
+        ${CANN_3RD_LIB_PATH}/json/include
         ${ASCGEN_DIR}/inc
         #for session_util.h
         ${AIR_CODE_DIR}/api/session

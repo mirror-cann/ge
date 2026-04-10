@@ -13,7 +13,7 @@ set -e
 
 BASEPATH=$(cd "$(dirname $0)/.."; pwd)
 echo "ASCEND_INSTALL_PATH=${ASCEND_INSTALL_PATH}"
-echo "ASCEND_3RD_LIB_PATH=${ASCEND_3RD_LIB_PATH}"
+echo "CANN_3RD_LIB_PATH=${CANN_3RD_LIB_PATH}"
 echo "BUILD_METADEF=${BUILD_METADEF}"
 if [ -z "${BUILD_METADEF}" ] ; then
   BUILD_METADEF=ON
@@ -286,7 +286,7 @@ build_graphengine()
         -D PRODUCT=${PRODUCT} \
         -D BUILD_METADEF=${BUILD_METADEF} \
         -D ASCEND_INSTALL_PATH=${ASCEND_INSTALL_PATH} \
-        -D ASCEND_3RD_LIB_PATH=${ASCEND_3RD_LIB_PATH} \
+        -D CANN_3RD_LIB_PATH=${CANN_3RD_LIB_PATH} \
         -D CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} \
         -D CMAKE_INSTALL_PREFIX=${OUTPUT_PATH} \
         -D CMAKE_POLICY_VERSION_MINIMUM=3.5 \
@@ -473,7 +473,7 @@ if [[ "X$ENABLE_GE_UT" = "Xon" ]] || [[ "X$ENABLE_RT2_UT" = "Xon" ]] || [[ "X$EN
         lcov -r cov/tmp.info '*/output/*' "*/${BUILD_RELATIVE_PATH}/opensrc/*" "*/${BUILD_RELATIVE_PATH}/proto/*" \
                              '*/op_impl/*' "*/${BUILD_RELATIVE_PATH}/grpc_*" '*/third_party/*' '*/op_impl/*' '*/tests/*' \
                              '/usr/local/*' '/usr/include/*' '*/metadef/*' \
-                             "${ASCEND_INSTALL_PATH}/*" "${ASCEND_3RD_LIB_PATH}/*" \
+                             "${ASCEND_INSTALL_PATH}/*" "${CANN_3RD_LIB_PATH}/*" \
                              -o cov/coverage.info $(add_lcov_ops_by_major_version 2 "--ignore-errors unused")
         genhtml cov/coverage.info -o cov/html
 
@@ -678,7 +678,7 @@ if [[ "X$ENABLE_GE_ST" = "Xon" ]] || [[ "X$ENABLE_RT2_ST" = "Xon" ]] || [[ "X$EN
                              "*/${BUILD_RELATIVE_PATH}/opensrc/*" "*/${BUILD_RELATIVE_PATH}/proto/*" \
                              "*/${BUILD_RELATIVE_PATH}/grpc_*" '*/third_party/*' '*/tests/*' '/usr/local/*' \
                              '/usr/include/*' '*/metadef/*' \
-                             "${ASCEND_INSTALL_PATH}/*" "${ASCEND_3RD_LIB_PATH}/*" \
+                             "${ASCEND_INSTALL_PATH}/*" "${CANN_3RD_LIB_PATH}/*" \
                              -o cov/coverage.info $(add_lcov_ops_by_major_version 2 "--ignore-errors unused")
         genhtml cov/coverage.info -o cov/html
 

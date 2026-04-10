@@ -26,10 +26,10 @@ endif()
 
 if (NOT DEFINED CMAKE_PREFIX_PATH)
     set(CMAKE_PREFIX_PATH
-        ${ASCEND_3RD_LIB_PATH}/protoc
-        ${ASCEND_3RD_LIB_PATH}/protobuf_static
-        ${ASCEND_3RD_LIB_PATH}/ascend_protobuf
-        ${ASCEND_3RD_LIB_PATH}/ascend_protobuf_static
+        ${CANN_3RD_LIB_PATH}/protoc
+        ${CANN_3RD_LIB_PATH}/protobuf_static
+        ${CANN_3RD_LIB_PATH}/ascend_protobuf
+        ${CANN_3RD_LIB_PATH}/ascend_protobuf_static
         ${ASCEND_INSTALL_PATH}/
         ${ASCEND_INSTALL_PATH}/include
     )

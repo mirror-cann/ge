@@ -38,7 +38,7 @@ target_include_directories(llm_engine_test PRIVATE
         ${AIR_CODE_DIR}/dflow/llm_datadist/v1/flow_func
         ${AIR_CODE_DIR}/dflow/llm_datadist/v1/common
         ${AIR_CODE_DIR}/tests/depends/llm_datadist/src
-        ${ASCEND_3RD_LIB_PATH}/json/include
+        ${CANN_3RD_LIB_PATH}/json/include
         ${ASCGEN_DIR}/inc
         ${AIR_CODE_DIR}/api/session
 )

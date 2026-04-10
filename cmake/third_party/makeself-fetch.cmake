@@ -9,8 +9,8 @@
 # -----------------------------------------------------------------------------------------------------------
 
 set(MAKESELF_NAME "makeself")
-set(MAKESELF_PATH "${ASCEND_3RD_LIB_PATH}/${MAKESELF_NAME}")
-set(MAKESELF_FILE "${ASCEND_3RD_LIB_PATH}/${MAKESELF_NAME}/makeself-release-2.5.0-patch1.tar.gz")
+set(MAKESELF_PATH "${CANN_3RD_LIB_PATH}/${MAKESELF_NAME}")
+set(MAKESELF_FILE "${CANN_3RD_LIB_PATH}/${MAKESELF_NAME}/makeself-release-2.5.0-patch1.tar.gz")
 
 if(POLICY CMP0135)
     cmake_policy(SET CMP0135 NEW)

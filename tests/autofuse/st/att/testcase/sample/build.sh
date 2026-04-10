@@ -36,9 +36,9 @@ usage() {
 
 init_var() {
   # if used in yellow zone, should modify this path
-  if [ -z "$ASCEND_3RD_LIB_PATH" ]; then
-      ASCEND_3RD_LIB_PATH="$ATT_PROJECT_PATH/../output/third_party"
-      echo "ASCEND_3RD_LIB_PATH is not set, set to $ASCEND_3RD_LIB_PATH"
+  if [ -z "$CANN_3RD_LIB_PATH" ]; then
+      CANN_3RD_LIB_PATH="$ATT_PROJECT_PATH/../output/third_party"
+      echo "CANN_3RD_LIB_PATH is not set, set to $CANN_3RD_LIB_PATH"
   fi
   # sample的目录
   SAMPLE_PATH=$(dirname "$(realpath $0)")
@@ -54,7 +54,7 @@ init_var() {
 }
 
 cmake_command() {
-  CMAKE_ARGS="-D ASCEND_3RD_LIB_PATH=${ASCEND_3RD_LIB_PATH} \
+  CMAKE_ARGS="-D CANN_3RD_LIB_PATH=${CANN_3RD_LIB_PATH} \
               -D ASCEND_INSTALL_PATH=${ASCEND_INSTALL_PATH} \
               -D GEN_TARGET=$GEN_TARGET \
               -D CMAKE_CXX_FLAGS="-I${ATT_PROJECT_PATH}/../tests/autofuse/ut/att/testcase/" \
@@ -265,8 +265,8 @@ checkopts() {
         shift 2
         ;;
       --ascend_3rd_lib_path)
-        ASCEND_3RD_LIB_PATH="$(realpath $2)"
-        echo "ASCEND_3RD_LIB_PATH="$(realpath $2)""
+        CANN_3RD_LIB_PATH="$(realpath $2)"
+        echo "CANN_3RD_LIB_PATH="$(realpath $2)""
         shift 2
         ;;
       --log)

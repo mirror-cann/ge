@@ -100,8 +100,8 @@ target_include_directories(rts_engine_utest PRIVATE
     ${AIR_CODE_DIR}/inc/external/register/
     ${AIR_CODE_DIR}/compiler/engines/rts_engine/common
     ${AIR_CODE_DIR}/../inc/
-    ${ASCEND_3RD_LIB_PATH}/json/include
-    ${ASCEND_3RD_LIB_PATH}/protoc/include
+    ${CANN_3RD_LIB_PATH}/json/include
+    ${CANN_3RD_LIB_PATH}/protoc/include
     ${ASCEND_INSTALL_PATH}/
     ${ASCEND_INSTALL_PATH}
     ${ASCEND_INSTALL_PATH}/lib64
@@ -127,7 +127,7 @@ target_include_directories(rts_engine_utest PRIVATE
     ${AIR_CODE_DIR}/base/metadef/pkg_inc/common
     ${AIR_CODE_DIR}/inc/external/ge
     ${CMAKE_BINARY_DIR}/proto/graphengine_protos
-    ${ASCEND_3RD_LIB_PATH}/protoc/include
+    ${CANN_3RD_LIB_PATH}/protoc/include
     ${CMAKE_CURRENT_SOURCE_DIR}/../stub
 )
 
@@ -156,7 +156,7 @@ target_link_options(rts_engine_utest PRIVATE
     -Wl,-Bsymbolic
     -Wl,--exclude-libs,ALL
     -Wl,-rpath,${ASCEND_COMPILER_DIR}
-    -Wl,-rpath,${ASCEND_3RD_LIB_PATH}/gtest_shared/lib64
+    -Wl,-rpath,${CANN_3RD_LIB_PATH}/gtest_shared/lib64
     -Wl,-rpath,${AIR_CODE_DIR}/build/graph_metadef/register
     -Wl,-rpath,${AIR_CODE_DIR}/build/graph_metadef/graph
 )

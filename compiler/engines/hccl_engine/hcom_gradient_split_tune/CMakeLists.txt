@@ -38,7 +38,7 @@ if(BUILD_OPEN_PROJECT)
         ${ASCEND_INSTALL_PATH}/pkg_inc/base
         ${ASCEND_INSTALL_PATH}/include/msprof
         ${ASCEND_INSTALL_PATH}/include/slog/toolchain
-        ${ASCEND_3RD_LIB_PATH}/json/include
+        ${CANN_3RD_LIB_PATH}/json/include
         ${AIR_CODE_DIR}/inc
         ${AIR_CODE_DIR}/inc/graph_metadef
         ${METADEF_DIR}/inc

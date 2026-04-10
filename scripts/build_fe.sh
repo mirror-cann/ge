@@ -15,7 +15,7 @@ AIRDIR="$(basename $BASEPATH)"
 OUTPUT_PATH="${BASEPATH}/output"
 BUILD_PATH="${BASEPATH}/build/"
 ASCEND_INSTALL_PATH="/mnt/d/Ascend"
-ASCEND_3RD_LIB_PATH="/mnt/3rd_lib_path"
+CANN_3RD_LIB_PATH="/mnt/3rd_lib_path"
 
 export AIR_CODE_DIR=${AIRDIR}
 echo "AIR_CODE_DIR=${AIR_CODE_DIR}"
@@ -193,7 +193,7 @@ build_fe()
         -D CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} \
         -D CMAKE_INSTALL_PREFIX=${OUTPUT_PATH} \
         -D ASCEND_INSTALL_PATH=${ASCEND_INSTALL_PATH} \
-        -D ASCEND_3RD_LIB_PATH=${ASCEND_3RD_LIB_PATH} \
+        -D CANN_3RD_LIB_PATH=${CANN_3RD_LIB_PATH} \
         ..
 
   make ${VERBOSE} select_targets -j${THREAD_NUM} && make install

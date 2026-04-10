@@ -38,8 +38,8 @@ set(CMAKE_CXX_COMPILER_ ${TOOLCHAIN_DIR}/bin/aarch64-target-linux-gnu-g++)
 set(CMAKE_C_COMPILER_ ${TOOLCHAIN_DIR}/bin/aarch64-target-linux-gnu-gcc)
 set(SOURCE_DIR ${PROTOBUF_SRC_DIR})
 
-set(PROTOBUF_PATH ${OPEN_SOURCE_DIR}/protobuf)
-set(ABSEIL_PATH ${OPEN_SOURCE_DIR}/abseil-cpp)
+set(PROTOBUF_PATH ${CANN_3RD_LIB_PATH}/protobuf)
+set(ABSEIL_PATH ${CANN_3RD_LIB_PATH}/abseil-cpp)
 set(PATCH_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 
 if ((NOT EXISTS "${PROTOBUF_PATH}/protobuf-all-25.1.tar.gz" AND NOT EXISTS "${PROTOBUF_PATH}/protobuf-25.1.tar.gz") OR
@@ -90,8 +90,8 @@ else()
   message(STATUS "[UDF protobuf] protobuf tar.gz exists: ${PROTOBUF_FILE_NAME}")
   ExternalProject_Add(protobuf_src
       DOWNLOAD_COMMAND ""
-      COMMAND tar -zxf ${OPEN_SOURCE_DIR}/protobuf/${PROTOBUF_FILE_NAME} --strip-components 1 -C ${SOURCE_DIR}
-      COMMAND tar -zxf ${OPEN_SOURCE_DIR}/abseil-cpp/abseil-cpp-20230802.1.tar.gz --strip-components 1 -C ${SOURCE_DIR}/third_party/abseil-cpp
+      COMMAND tar -zxf ${CANN_3RD_LIB_PATH}/protobuf/${PROTOBUF_FILE_NAME} --strip-components 1 -C ${SOURCE_DIR}
+      COMMAND tar -zxf ${CANN_3RD_LIB_PATH}/abseil-cpp/abseil-cpp-20230802.1.tar.gz --strip-components 1 -C ${SOURCE_DIR}/third_party/abseil-cpp
       PATCH_COMMAND cd ${SOURCE_DIR} && patch -p1 < ${PATCH_PATH}/protobuf_25.1_change_version.patch && cd ${SOURCE_DIR}/third_party/abseil-cpp && patch -p1 < ${PATCH_PATH}/protobuf-hide_absl_symbols.patch
       CONFIGURE_COMMAND ""
       BUILD_COMMAND ""

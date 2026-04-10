@@ -59,10 +59,10 @@ checkopts() {
   else
     ASCEND_INSTALL_PATH="/usr/local/Ascend/ascend-toolkit/latest"
   fi
-  if [ -n "$ASCEND_3RD_LIB_PATH" ]; then
-    ASCEND_3RD_LIB_PATH="$ASCEND_3RD_LIB_PATH"
+  if [ -n "$CANN_3RD_LIB_PATH" ]; then
+    CANN_3RD_LIB_PATH="$CANN_3RD_LIB_PATH"
   else
-    ASCEND_3RD_LIB_PATH="$BASEPATH/output/third_party"
+    CANN_3RD_LIB_PATH="$BASEPATH/output/third_party"
   fi
   if [ -n "$ENABLE_PKG" ]; then
     ENABLE_PKG="$ENABLE_PKG"
@@ -96,7 +96,7 @@ checkopts() {
         shift 2
         ;;
       --ascend_3rd_lib_path)
-        ASCEND_3RD_LIB_PATH="$(realpath $2)"
+        CANN_3RD_LIB_PATH="$(realpath $2)"
         shift 2
         ;;
       -m | --module)
@@ -139,7 +139,7 @@ build_att_test() {
   ATT_PATH="${BASEPATH}/att"
 
   cd "${ATT_PATH}"
-  ./build.sh --ascend_install_path=${ASCEND_INSTALL_PATH} --ascend_3rd_lib_path=${ASCEND_3RD_LIB_PATH}
+  ./build.sh --ascend_install_path=${ASCEND_INSTALL_PATH} --ascend_3rd_lib_path=${CANN_3RD_LIB_PATH}
 
   if [ 0 -ne $? ]; then
     echo "execute command: cmake && make failed."
@@ -174,7 +174,7 @@ build_ascgen-dev() {
 
   CMAKE_ARGS="-D CMAKE_C_COMPILER=gcc \
               -D CMAKE_CXX_COMPILER=g++ \
-              -D ASCEND_3RD_LIB_PATH=${ASCEND_3RD_LIB_PATH} \
+              -D CANN_3RD_LIB_PATH=${CANN_3RD_LIB_PATH} \
               -D ASCEND_INSTALL_PATH=${ASCEND_INSTALL_PATH} \
               -D CMAKE_INSTALL_PREFIX=${OUTPUT_PATH} \
               -D ASCEND_INSTALL_LIB_PATH=${ASCEND_INSTALL_LIB_PATH} \
@@ -509,7 +509,7 @@ codegen_e2e_st() {
   ASCEND_INSTALL_LIB_PATH=${ASCEND_INSTALL_PATH}/$(uname -m)-linux/lib64/
   CMAKE_ARGS="-D CMAKE_C_COMPILER=gcc \
             -D CMAKE_CXX_COMPILER=g++ \
-            -D ASCEND_3RD_LIB_PATH=${ASCEND_3RD_LIB_PATH} \
+            -D CANN_3RD_LIB_PATH=${CANN_3RD_LIB_PATH} \
             -D ASCEND_INSTALL_PATH=${ASCEND_INSTALL_PATH} \
             -D CMAKE_INSTALL_PREFIX=${OUTPUT_PATH} \
             -D ASCEND_INSTALL_LIB_PATH=${ASCEND_INSTALL_LIB_PATH} \
@@ -625,7 +625,7 @@ build_backend() {
   ASCEND_INSTALL_LIB_PATH=${ASCEND_INSTALL_PATH}/$(uname -m)-linux/lib64/
   CMAKE_ARGS="-D CMAKE_C_COMPILER=gcc \
             -D CMAKE_CXX_COMPILER=g++ \
-            -D ASCEND_3RD_LIB_PATH=${ASCEND_3RD_LIB_PATH} \
+            -D CANN_3RD_LIB_PATH=${CANN_3RD_LIB_PATH} \
             -D ASCEND_INSTALL_PATH=${ASCEND_INSTALL_PATH} \
             -D CMAKE_INSTALL_PREFIX=${OUTPUT_PATH} \
             -D ASCEND_INSTALL_LIB_PATH=${ASCEND_INSTALL_LIB_PATH} \
@@ -863,7 +863,7 @@ build_ut_att() {
   cd "${BUILD_PATH}"
   CMAKE_ARGS="-D CMAKE_C_COMPILER=gcc \
               -D CMAKE_CXX_COMPILER=g++ \
-              -D ASCEND_3RD_LIB_PATH=${ASCEND_3RD_LIB_PATH} \
+              -D CANN_3RD_LIB_PATH=${CANN_3RD_LIB_PATH} \
               -D ASCEND_INSTALL_PATH=${ASCEND_INSTALL_PATH} \
               -D CMAKE_INSTALL_PREFIX=${OUTPUT_PATH} \
               -D ASCEND_INSTALL_LIB_PATH=${ASCEND_INSTALL_LIB_PATH} \
@@ -901,7 +901,7 @@ build_st_att() {
 
   CMAKE_ARGS="-D CMAKE_C_COMPILER=gcc \
               -D CMAKE_CXX_COMPILER=g++ \
-              -D ASCEND_3RD_LIB_PATH=${ASCEND_3RD_LIB_PATH} \
+              -D CANN_3RD_LIB_PATH=${CANN_3RD_LIB_PATH} \
               -D ASCEND_INSTALL_PATH=${ASCEND_INSTALL_PATH} \
               -D CMAKE_INSTALL_PREFIX=${OUTPUT_PATH} \
               -D ASCEND_INSTALL_LIB_PATH=${ASCEND_INSTALL_LIB_PATH} \
@@ -1048,7 +1048,7 @@ main() {
 
   # Build third party libraries first
   echo "---------------- build third party packages start ----------------"
-  bash ${BASEPATH}/build_third_party.sh ${ASCEND_3RD_LIB_PATH} ${THREAD_NUM} ""
+  bash ${BASEPATH}/build_third_party.sh ${CANN_3RD_LIB_PATH} ${THREAD_NUM} ""
   if [ $? -ne 0 ]; then
     echo "build third party packages failed."
     exit 1

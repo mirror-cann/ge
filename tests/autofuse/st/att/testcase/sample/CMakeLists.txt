@@ -33,7 +33,7 @@ endif()
 
 if (NOT DEFINED CMAKE_MODULE_PATH)
     set(CMAKE_MODULE_PATH
-            ${ASCEND_3RD_LIB_PATH}/cmake/modules
+            ${CANN_3RD_LIB_PATH}/cmake/modules
             ${GE_METADEF_DIR}/cmake/modules
             ${CMAKE_CURRENT_LIST_DIR}/depends/cmake/modules
             ${TOP_DIR}/cmake/third_party/scripts/modules
@@ -41,18 +41,18 @@ if (NOT DEFINED CMAKE_MODULE_PATH)
 endif()
 if (NOT DEFINED CMAKE_PREFIX_PATH)
     set(CMAKE_PREFIX_PATH
-            ${ASCEND_3RD_LIB_PATH}/symengine/lib/cmake/symengine
-            ${ASCEND_3RD_LIB_PATH}/protoc
-            ${ASCEND_3RD_LIB_PATH}/protobuf_static
-            ${ASCEND_3RD_LIB_PATH}/ascend_protobuf
-            ${ASCEND_3RD_LIB_PATH}/ascend_protobuf_static
+            ${CANN_3RD_LIB_PATH}/symengine/lib/cmake/symengine
+            ${CANN_3RD_LIB_PATH}/protoc
+            ${CANN_3RD_LIB_PATH}/protobuf_static
+            ${CANN_3RD_LIB_PATH}/ascend_protobuf
+            ${CANN_3RD_LIB_PATH}/ascend_protobuf_static
             )
 endif()
 message(STATUS "Using environment variable SAMPLE_PROJECT_PATH: ${SAMPLE_PROJECT_PATH}")
 message(STATUS "Using environment variable LD_LIBRARY_PATH: $ENV{LD_LIBRARY_PATH}")
 message(STATUS "Using environment variable ASCEND_INSTALL_PATH: ${ASCEND_INSTALL_PATH}")
 message(STATUS "Using environment variable GEN_TARGET: ${GEN_TARGET}")
-message(STATUS "Using environment variable ASCEND_3RD_LIB_PATH: ${ASCEND_3RD_LIB_PATH}")
+message(STATUS "Using environment variable CANN_3RD_LIB_PATH: ${CANN_3RD_LIB_PATH}")
 message(STATUS "Using environment variable:")
 cmake_print_variables(CMAKE_MODULE_PATH)
 cmake_print_variables(CMAKE_PREFIX_PATH)
@@ -103,7 +103,7 @@ set(COMMON_LINK_OPTIONS
         -rdynamic
         -Wl,-Bsymbolic
         -Wl,--exclude-libs,-rpath
-        -L ${ASCEND_3RD_LIB_PATH}/symengine/lib
+        -L ${CANN_3RD_LIB_PATH}/symengine/lib
         )
 
 set(ops_header_dir ${TOP_DIR}/build/ascir_builtin_ops)
@@ -138,7 +138,7 @@ target_include_directories(code_gen PRIVATE
         ${ASCEND_INSTALL_PATH}/include
         ${ASCEND_INSTALL_PATH}/include/experiment/runtime
         ${ASCEND_INSTALL_PATH}/include/experiment/msprof
-        ${ASCEND_3RD_LIB_PATH}/json/include
+        ${CANN_3RD_LIB_PATH}/json/include
         )
 
 target_compile_options(code_gen PRIVATE ${COMMON_COMPILE_OPTIONS})
@@ -187,7 +187,7 @@ target_include_directories(data_gen PRIVATE
         ${SAMPLE_PROJECT_PATH}/gen_data_st/stub
         ${SAMPLE_PROJECT_PATH}/depends/fake
         ${SAMPLE_PROJECT_PATH}/depends/common
-        ${ASCEND_3RD_LIB_PATH}/json/include
+        ${CANN_3RD_LIB_PATH}/json/include
         ${ASCEND_INSTALL_PATH}/include
         ${GE_METADEF_DIR}
         ${GE_METADEF_DIR}/inc

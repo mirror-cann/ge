@@ -43,12 +43,12 @@ if (ENABLE_OPEN_SRC)
     set(GE_METADEF_DIR ${CODE_ROOT_DIR}/../../../../graph_metadef)
     set(GE_METADEF_INC_DIR ${CODE_ROOT_DIR}/../../../../inc/graph_metadef)
 
-    if (NOT DEFINED ASCEND_3RD_LIB_PATH)
-        set(ASCEND_3RD_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/output/third_party)
+    if (NOT DEFINED CANN_3RD_LIB_PATH)
+        set(CANN_3RD_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/output/third_party)
     endif ()
 
-    if (NOT EXISTS "${ASCEND_3RD_LIB_PATH}")
-        message(FATAL_ERROR "Error: Directory \"${ASCEND_3RD_LIB_PATH}\" does not exist!\n"
+    if (NOT EXISTS "${CANN_3RD_LIB_PATH}")
+        message(FATAL_ERROR "Error: Directory \"${CANN_3RD_LIB_PATH}\" does not exist!\n"
                 "Please using build_third_party.sh compile first.")
     endif ()
 else ()
@@ -58,7 +58,7 @@ endif ()
 
 if (NOT DEFINED CMAKE_MODULE_PATH)
     set(CMAKE_MODULE_PATH
-        ${ASCEND_3RD_LIB_PATH}/cmake/modules
+        ${CANN_3RD_LIB_PATH}/cmake/modules
         ${GE_METADEF_DIR}/cmake/modules
         ${CODE_ROOT_DIR}/cmake/third_party/scripts/modules
     )
@@ -66,20 +66,20 @@ endif()
 
 if (NOT DEFINED CMAKE_PREFIX_PATH)
     set(CMAKE_PREFIX_PATH
-        ${ASCEND_3RD_LIB_PATH}/json
-        ${ASCEND_3RD_LIB_PATH}/openssl
-        ${ASCEND_3RD_LIB_PATH}/protoc
-        ${ASCEND_3RD_LIB_PATH}/protoc_grpc
-        ${ASCEND_3RD_LIB_PATH}/grpc
-        ${ASCEND_3RD_LIB_PATH}/protobuf_static
-        ${ASCEND_3RD_LIB_PATH}/ascend_protobuf
-        ${ASCEND_3RD_LIB_PATH}/ascend_protobuf_static
-        ${ASCEND_3RD_LIB_PATH}/gtest_shared/lib64/cmake/GTest
-        ${ASCEND_3RD_LIB_PATH}/gtest
-        ${ASCEND_3RD_LIB_PATH}/benchmark
-        ${ASCEND_3RD_LIB_PATH}/pybind11
-        ${ASCEND_3RD_LIB_PATH}/symengine/lib/cmake/symengine
-        ${ASCEND_3RD_LIB_PATH}/boost/lib/cmake/Boost-1.87.0
+        ${CANN_3RD_LIB_PATH}/json
+        ${CANN_3RD_LIB_PATH}/openssl
+        ${CANN_3RD_LIB_PATH}/protoc
+        ${CANN_3RD_LIB_PATH}/protoc_grpc
+        ${CANN_3RD_LIB_PATH}/grpc
+        ${CANN_3RD_LIB_PATH}/protobuf_static
+        ${CANN_3RD_LIB_PATH}/ascend_protobuf
+        ${CANN_3RD_LIB_PATH}/ascend_protobuf_static
+        ${CANN_3RD_LIB_PATH}/gtest_shared/lib64/cmake/GTest
+        ${CANN_3RD_LIB_PATH}/gtest
+        ${CANN_3RD_LIB_PATH}/benchmark
+        ${CANN_3RD_LIB_PATH}/pybind11
+        ${CANN_3RD_LIB_PATH}/symengine/lib/cmake/symengine
+        ${CANN_3RD_LIB_PATH}/boost/lib/cmake/Boost-1.87.0
     )
 endif()
 

@@ -141,7 +141,7 @@ checkopts() {
 
   ENABLE_GE_BENCHMARK="off"
 
-  ASCEND_3RD_LIB_PATH="$BASEPATH/output/third_party"
+  CANN_3RD_LIB_PATH="$BASEPATH/output/third_party"
   BUILD_METADEF="off"
 
   parsed_args=$(getopt -a -o u::s::cj:hvf: -l ut::,st::,process_st::,cov,help,verbose,cann_3rd_lib_path: -- "$@") || {
@@ -509,7 +509,7 @@ checkopts() {
         shift
         ;;
       --cann_3rd_lib_path)
-        ASCEND_3RD_LIB_PATH="$(realpath $2)"
+        CANN_3RD_LIB_PATH="$(realpath $2)"
         shift 2
         ;;
       -f)
@@ -633,7 +633,7 @@ build_acl() {
               -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} \
               -DCMAKE_INSTALL_PREFIX=${OUTPUT_PATH} \
               -DASCEND_INSTALL_PATH=${ASCEND_INSTALL_PATH} \
-              -DASCEND_3RD_LIB_PATH=${ASCEND_3RD_LIB_PATH} \
+              -DCANN_3RD_LIB_PATH=${CANN_3RD_LIB_PATH} \
               -DENABLE_ACL_COV=${ENABLE_ACL_COV} \
               -DENABLE_ACL_UT=${ENABLE_ACL_UT} \
               -DENABLE_C_COV=${ENABLE_C_COV} \
@@ -679,7 +679,7 @@ run_ut_acl() {
   lcov -c -d ${BUILD_RELATIVE_PATH}/tests/acl_ut/ut/acl -o cov/tmp.info
   lcov -r cov/tmp.info '*/output/*' "*/${BUILD_RELATIVE_PATH}/opensrc/*" "*/${BUILD_RELATIVE_PATH}/proto/*" \
       '*/third_party/*' '*/tests/*' '/usr/local/*' '/usr/include/*' \
-      "${ASCEND_INSTALL_PATH}/*" "${ASCEND_3RD_LIB_PATH}/*" \
+      "${ASCEND_INSTALL_PATH}/*" "${CANN_3RD_LIB_PATH}/*" \
       -o cov/coverage.info $(add_lcov_ops_by_major_version 2 "--ignore-errors unused")
   cd ${BASEPATH}/cov
   genhtml coverage.info -o cov/html
@@ -701,7 +701,7 @@ main() {
   export TEST_SUMMARY_FILE
 
   # build cann 3rd lib
-  bash ${BASEPATH}/build_third_party.sh ${ASCEND_3RD_LIB_PATH} ${THREAD_NUM} "LLT"
+  bash ${BASEPATH}/build_third_party.sh ${CANN_3RD_LIB_PATH} ${THREAD_NUM} "LLT"
 
   # build acl ut
   if [ "X$ENABLE_ACL_UT" = "Xon" ]; then
@@ -748,7 +748,7 @@ main() {
 
   export BUILD_METADEF=${BUILD_METADEF}
   export ASCEND_INSTALL_PATH=${ASCEND_INSTALL_PATH}
-  export ASCEND_3RD_LIB_PATH=${ASCEND_3RD_LIB_PATH}
+  export CANN_3RD_LIB_PATH=${CANN_3RD_LIB_PATH}
 
   if [ ! -f ${ASCEND_INSTALL_PATH}/fwkacllib/lib64/switch_by_index.o ]; then
     mkdir -p ${ASCEND_INSTALL_PATH}/fwkacllib/lib64/

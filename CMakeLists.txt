@@ -20,8 +20,6 @@ if(CCACHE_PROGRAM)
     set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE_PROGRAM})
 endif(CCACHE_PROGRAM)
 
-set(OPEN_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../open_source")
-
 if(DEFINED BUILD_COMPONENT)
     message(STATUS "Build pkgs in divided mode")
     option(BUILD_PKG_COMPONENT "Build pkgs in divided mode" TRUE)
@@ -32,7 +30,7 @@ endif()
 
 if (NOT DEFINED CMAKE_MODULE_PATH OR NOT DEFINED CMAKE_PREFIX_PATH)
     # In a developer environment, neither CMAKE_MODULE_PATH nor CMAKE_PREFIX_PATH is set.
-    if (NOT DEFINED ASCEND_INSTALL_PATH OR NOT DEFINED ASCEND_3RD_LIB_PATH)
+    if (NOT DEFINED ASCEND_INSTALL_PATH OR NOT DEFINED CANN_3RD_LIB_PATH)
         message(FATAL_ERROR "Environment setup incomplete.\n"
                 "To complete the setup, please refer to https://gitcode.com/cann/ge/blob/master/docs/build.md#2-%E5%AE%89%E8%A3%85%E8%BD%AF%E4%BB%B6%E5%8C%85.")
     endif ()
@@ -42,26 +40,26 @@ if (NOT DEFINED CMAKE_MODULE_PATH)
     set(CMAKE_MODULE_PATH
         ${CMAKE_CURRENT_LIST_DIR}/cmake/modules
         ${CMAKE_CURRENT_LIST_DIR}/cmake/third_party/scripts/modules
-        ${ASCEND_3RD_LIB_PATH}/cmake/modules
+        ${CANN_3RD_LIB_PATH}/cmake/modules
     )
 endif()
 
 if (NOT DEFINED CMAKE_PREFIX_PATH)
     set(CMAKE_PREFIX_PATH
-        ${ASCEND_3RD_LIB_PATH}/json
-        ${ASCEND_3RD_LIB_PATH}/openssl
-        ${ASCEND_3RD_LIB_PATH}/protoc
-        ${ASCEND_3RD_LIB_PATH}/protoc_grpc
-        ${ASCEND_3RD_LIB_PATH}/grpc
-        ${ASCEND_3RD_LIB_PATH}/protobuf_static
-        ${ASCEND_3RD_LIB_PATH}/ascend_protobuf
-        ${ASCEND_3RD_LIB_PATH}/ascend_protobuf_static
-        ${ASCEND_3RD_LIB_PATH}/gtest_shared/lib64/cmake/GTest
-        ${ASCEND_3RD_LIB_PATH}/benchmark
-        ${ASCEND_3RD_LIB_PATH}/pybind11
-        ${ASCEND_3RD_LIB_PATH}/symengine/lib/cmake/symengine
-        ${ASCEND_3RD_LIB_PATH}/boost/lib/cmake/Boost-1.87.0
-        ${ASCEND_3RD_LIB_PATH}/zlib
+        ${CANN_3RD_LIB_PATH}/json
+        ${CANN_3RD_LIB_PATH}/openssl
+        ${CANN_3RD_LIB_PATH}/protoc
+        ${CANN_3RD_LIB_PATH}/protoc_grpc
+        ${CANN_3RD_LIB_PATH}/grpc
+        ${CANN_3RD_LIB_PATH}/protobuf_static
+        ${CANN_3RD_LIB_PATH}/ascend_protobuf
+        ${CANN_3RD_LIB_PATH}/ascend_protobuf_static
+        ${CANN_3RD_LIB_PATH}/gtest_shared/lib64/cmake/GTest
+        ${CANN_3RD_LIB_PATH}/benchmark
+        ${CANN_3RD_LIB_PATH}/pybind11
+        ${CANN_3RD_LIB_PATH}/symengine/lib/cmake/symengine
+        ${CANN_3RD_LIB_PATH}/boost/lib/cmake/Boost-1.87.0
+        ${CANN_3RD_LIB_PATH}/zlib
         ${ASCEND_INSTALL_PATH}
         ${ASCEND_INSTALL_PATH}/pkg_inc
     )
@@ -70,7 +68,7 @@ endif()
 include(CMakePrintHelpers)
 message(STATUS "Variables in air project:")
 cmake_print_variables(ASCEND_INSTALL_PATH)
-cmake_print_variables(ASCEND_3RD_LIB_PATH)
+cmake_print_variables(CANN_3RD_LIB_PATH)
 cmake_print_variables(CMAKE_BUILD_TYPE)
 cmake_print_variables(CMAKE_INSTALL_PREFIX)
 cmake_print_variables(CMAKE_PREFIX_PATH)
@@ -588,7 +586,7 @@ else ((BUILD_OPEN_PROJECT OR ENABLE_OPEN_SRC))
                     -DTOOLCHAIN_DIR=${TOOLCHAIN_DIR}
                     -DCMAKE_INSTALL_PREFIX=${CHILD_INSTALL_DIR}
                     -DCMAKE_TOOLCHAIN_FILE=${CMAKE_SOURCE_DIR}/dflow/udf/cmake/aarch64-hcc-toolchain.cmake
-                    -DOPEN_SOURCE_DIR=${ASCEND_3RD_LIB_PATH}
+                    -DCANN_3RD_LIB_PATH=${CANN_3RD_LIB_PATH}
                     -DCMAKE_C_COMPILER_LAUNCHER=${CMAKE_C_COMPILER_LAUNCHER}
                     -DCMAKE_CXX_COMPILER_LAUNCHER=${CMAKE_CXX_COMPILER_LAUNCHER}
                     -DINSTALL_LIBRARY_DIR=${INSTALL_LIBRARY_DIR}

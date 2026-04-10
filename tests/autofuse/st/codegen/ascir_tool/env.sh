@@ -28,7 +28,7 @@ export EXPERIMENTAL_LOWERING_CONCAT=1
 
 #使用蓝区仓代码动态修改编译时放开下列环境变量 并根据实际代码仓配置路径
 #export CODE_PATH=/home/zgj/ascgen-dev/
-#export ASCEND_3RD_LIB_PATH=/home/zgj/Ascend/opensource_X86
+#export CANN_3RD_LIB_PATH=/home/zgj/Ascend/opensource_X86
 #export CODE_BUILD_PATH=$CODE_PATH/build
 #export PYTHONPATH=$CODE_PATH/build/compiler/py_module/:$PYTHONPATH
 #export LD_LIBRARY_PATH=$CODE_BUILD_PATH:$CODE_BUILD_PATH/att:$CODE_BUILD_PATH/autofuse:$CODE_BUILD_PATH/compiler/py_module:$CODE_BUILD_PATH/common:$CODE_BUILD_PATH/ascir/meta:$CODE_BUILD_PATH/ascir/generator:$CODE_BUILD_PATH/ascir/meta:$CODE_BUILD_PATH/base/metadef/graph/ascendc_ir/:$CODE_PATH/build/optimize:$CODE_BUILD_PATH/base/metadef/graph/:$CODE_BUILD_PATH/base/metadef/graph/ascend_ir:$CODE_BUILD_PATH/base/metadef/graph/ascend_ir/generator:$CODE_BUILD_PATH/base/metadef/graph/expression:$CODE_BUILD_PATH/base/metadef/error_manager:$LD_LIBRARY_PATH

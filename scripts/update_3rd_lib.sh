@@ -86,8 +86,8 @@ setup_environment() {
         BUILD_DIR="${PROJECT_DIR}/${BUILD_DIR}"
     fi
 
-    if [ -n "${ASCEND_3RD_LIB_PATH}" ]; then
-        THIRD_PARTY_BASE="${ASCEND_3RD_LIB_PATH}"
+    if [ -n "${CANN_3RD_LIB_PATH}" ]; then
+        THIRD_PARTY_BASE="${CANN_3RD_LIB_PATH}"
     elif [ -n "${CMAKE_THIRD_PARTY_LIB_DIR}" ]; then
         THIRD_PARTY_BASE="${CMAKE_THIRD_PARTY_LIB_DIR}"
     else
