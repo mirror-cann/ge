@@ -1099,11 +1099,241 @@ TEST_F(TestOptimizerV2, ScalarBroadcastOptimization_Not_Support_VF) {
   Status res = optimize::autoschedule::PassRunnerHandler::RunPasses(graph);
   EXPECT_EQ(res, ge::SUCCESS);
   auto compute_graph = ge::AscGraphUtils::GetComputeGraph(graph);
-  EXPECT_EQ(compute_graph->GetAllNodesSize(), 8);
+  EXPECT_EQ(compute_graph->GetAllNodesSize(), 7);
   EXPECT_EQ(compute_graph->FindNode("brc1"), nullptr);
   EXPECT_EQ(compute_graph->FindNode("brc2"), nullptr);
-  EXPECT_NE(compute_graph->FindNode("brc3"), nullptr);
+  EXPECT_EQ(compute_graph->FindNode("brc3"), nullptr);
   EXPECT_NE(compute_graph->FindNode("add"), nullptr);
+}
+
+/**
+ *           data
+ *             |
+ *           load
+ *             |
+ *           brc1
+ *             |
+ *           brc2
+ *             |
+ *           brc3
+ *             |
+ *      data2  |
+ *        |    |
+ *      load1  |
+ *        |    |
+ *         min
+ *          |
+ *        store
+ *          |
+ *        output
+ */
+TEST_F(TestOptimizerV2, ScalarBroadcastOptimization_Min_Support_VF) {
+  ge::AscGraph graph("ScalarBroadcastOptimization_Min_Support_VF");
+
+  auto s0 = graph.CreateSizeVar(4);
+  auto s1 = graph.CreateSizeVar(5);
+  auto s2 = graph.CreateSizeVar(6);
+  auto z0 = graph.CreateAxis("z0", s0);
+  auto z1 = graph.CreateAxis("z1", s1);
+  auto z2 = graph.CreateAxis("z2", s2);
+
+  Data data("data", graph);
+  data.ir_attr.SetIndex(0);
+  data.y.dtype = ge::DT_FLOAT;
+
+  Load load("load");
+  load.attr.sched.axis = {z0.id, z1.id, z2.id};
+  load.x = data.y;
+  *load.y.axis = {z0.id, z1.id, z2.id};
+  load.y.dtype = ge::DT_FLOAT;
+  *load.y.repeats = {ge::ops::One, ge::ops::One, ge::ops::One};
+  *load.y.strides = {ge::ops::Zero, ge::ops::Zero, ge::ops::Zero};
+
+  Broadcast brc1("brc1");
+  brc1.attr.sched.axis = {z0.id, z1.id, z2.id};
+  brc1.attr.api.compute_type = ComputeType::kComputeBroadcast;
+  brc1.x = load.y;
+  *brc1.y.axis = {z0.id, z1.id, z2.id};
+  brc1.y.dtype = ge::DT_FLOAT;
+  *brc1.y.repeats = {ge::ops::One, ge::ops::One, s2};
+  *brc1.y.strides = {ge::ops::Zero, ge::ops::Zero, ge::ops::One};
+
+  Broadcast brc2("brc2");
+  brc2.attr.sched.axis = {z0.id, z1.id, z2.id};
+  brc2.attr.api.compute_type = ComputeType::kComputeBroadcast;
+  brc2.x = brc1.y;
+  *brc2.y.axis = {z0.id, z1.id, z2.id};
+  brc2.y.dtype = ge::DT_FLOAT;
+  *brc2.y.repeats = {ge::ops::One, s1, s2};
+  *brc2.y.strides = {ge::ops::Zero, s2, ge::ops::One};
+
+  Broadcast brc3("brc3");
+  brc3.attr.sched.axis = {z0.id, z1.id, z2.id};
+  brc3.attr.api.compute_type = ComputeType::kComputeBroadcast;
+  brc3.x = brc2.y;
+  *brc3.y.axis = {z0.id, z1.id, z2.id};
+  brc3.y.dtype = ge::DT_FLOAT;
+  *brc3.y.repeats = {s0, s1, s2};
+  *brc3.y.strides = {s1 * s2, s2, ge::ops::One};
+
+  Data data2("data2", graph);
+  data2.ir_attr.SetIndex(1);
+  data2.y.dtype = ge::DT_FLOAT;
+
+  Load load1("load1");
+  load1.attr.sched.axis = {z0.id, z1.id, z2.id};
+  load1.x = data2.y;
+  load1.y.dtype = ge::DT_FLOAT;
+  *load1.y.axis = {z0.id, z1.id, z2.id};
+  *load1.y.repeats = {s0, s1, s2};
+  *load1.y.strides = {s1 * s2, s2, ge::ops::One};
+
+  Minimum min("min");
+  min.attr.sched.axis = {z0.id, z1.id, z2.id};
+  min.x1 = brc3.y;
+  min.x2 = load1.y;
+  min.y.dtype = ge::DT_FLOAT;
+  *min.y.axis = {z0.id, z1.id, z2.id};
+  *min.y.repeats = {s0, s1, s2};
+  *min.y.strides = {s1 * s2, s2, ge::ops::One};
+
+  Store store_op("store");
+  store_op.attr.sched.axis = {z0.id, z1.id, z2.id};
+  store_op.x = min.y;
+  *store_op.y.axis = {z0.id, z1.id, z2.id};
+  store_op.y.dtype = ge::DT_FLOAT;
+  *store_op.y.axis = {z0.id, z1.id, z2.id};
+  *store_op.y.repeats = {s0, s1, s2};
+  *store_op.y.strides = {s1 * s2, s2, ge::ops::One};
+
+  Output output_op("output");
+  output_op.ir_attr.SetIndex(0);
+  output_op.x = store_op.y;
+  output_op.y.dtype = ge::DT_FLOAT;
+
+  Status res = optimize::autoschedule::PassRunnerHandler::RunPasses(graph);
+  EXPECT_EQ(res, ge::SUCCESS);
+  auto compute_graph = ge::AscGraphUtils::GetComputeGraph(graph);
+  EXPECT_EQ(compute_graph->GetAllNodesSize(), 7);
+  EXPECT_EQ(compute_graph->FindNode("brc1"), nullptr);
+  EXPECT_EQ(compute_graph->FindNode("brc2"), nullptr);
+  EXPECT_EQ(compute_graph->FindNode("brc3"), nullptr);
+  EXPECT_NE(compute_graph->FindNode("min"), nullptr);
+}
+
+/**
+ *           data
+ *             |
+ *           load
+ *             |
+ *           brc1
+ *             |
+ *           brc2
+ *             |
+ *           brc3
+ *             |
+ *      data2  |
+ *        |    |
+ *      load1  |
+ *        |    |
+ *         max
+ *          |
+ *        store
+ *          |
+ *        output
+ */
+TEST_F(TestOptimizerV2, ScalarBroadcastOptimization_Max_Support_VF) {
+  ge::AscGraph graph("ScalarBroadcastOptimization_Max_Support_VF");
+
+  auto s0 = graph.CreateSizeVar(4);
+  auto s1 = graph.CreateSizeVar(5);
+  auto s2 = graph.CreateSizeVar(6);
+  auto z0 = graph.CreateAxis("z0", s0);
+  auto z1 = graph.CreateAxis("z1", s1);
+  auto z2 = graph.CreateAxis("z2", s2);
+
+  Data data("data", graph);
+  data.ir_attr.SetIndex(0);
+  data.y.dtype = ge::DT_FLOAT;
+
+  Load load("load");
+  load.attr.sched.axis = {z0.id, z1.id, z2.id};
+  load.x = data.y;
+  *load.y.axis = {z0.id, z1.id, z2.id};
+  load.y.dtype = ge::DT_FLOAT;
+  *load.y.repeats = {ge::ops::One, ge::ops::One, ge::ops::One};
+  *load.y.strides = {ge::ops::Zero, ge::ops::Zero, ge::ops::Zero};
+
+  Broadcast brc1("brc1");
+  brc1.attr.sched.axis = {z0.id, z1.id, z2.id};
+  brc1.attr.api.compute_type = ComputeType::kComputeBroadcast;
+  brc1.x = load.y;
+  *brc1.y.axis = {z0.id, z1.id, z2.id};
+  brc1.y.dtype = ge::DT_FLOAT;
+  *brc1.y.repeats = {ge::ops::One, ge::ops::One, s2};
+  *brc1.y.strides = {ge::ops::Zero, ge::ops::Zero, ge::ops::One};
+
+  Broadcast brc2("brc2");
+  brc2.attr.sched.axis = {z0.id, z1.id, z2.id};
+  brc2.attr.api.compute_type = ComputeType::kComputeBroadcast;
+  brc2.x = brc1.y;
+  *brc2.y.axis = {z0.id, z1.id, z2.id};
+  brc2.y.dtype = ge::DT_FLOAT;
+  *brc2.y.repeats = {ge::ops::One, s1, s2};
+  *brc2.y.strides = {ge::ops::Zero, s2, ge::ops::One};
+
+  Broadcast brc3("brc3");
+  brc3.attr.sched.axis = {z0.id, z1.id, z2.id};
+  brc3.attr.api.compute_type = ComputeType::kComputeBroadcast;
+  brc3.x = brc2.y;
+  *brc3.y.axis = {z0.id, z1.id, z2.id};
+  brc3.y.dtype = ge::DT_FLOAT;
+  *brc3.y.repeats = {s0, s1, s2};
+  *brc3.y.strides = {s1 * s2, s2, ge::ops::One};
+
+  Data data2("data2", graph);
+  data2.ir_attr.SetIndex(1);
+  data2.y.dtype = ge::DT_FLOAT;
+
+  Load load1("load1");
+  load1.attr.sched.axis = {z0.id, z1.id, z2.id};
+  load1.x = data2.y;
+  load1.y.dtype = ge::DT_FLOAT;
+  *load1.y.axis = {z0.id, z1.id, z2.id};
+  *load1.y.repeats = {s0, s1, s2};
+  *load1.y.strides = {s1 * s2, s2, ge::ops::One};
+
+  Maximum max("max");
+  max.attr.sched.axis = {z0.id, z1.id, z2.id};
+  max.x1 = brc3.y;
+  max.x2 = load1.y;
+  max.y.dtype = ge::DT_FLOAT;
+  *max.y.axis = {z0.id, z1.id, z2.id};
+  *max.y.repeats = {s0, s1, s2};
+  *max.y.strides = {s1 * s2, s2, ge::ops::One};
+
+  Store store_op("store");
+  store_op.attr.sched.axis = {z0.id, z1.id, z2.id};
+  store_op.x = max.y;
+  *store_op.y.axis = {z0.id, z1.id, z2.id};
+  store_op.y.dtype = ge::DT_FLOAT;
+  *store_op.y.axis = {z0.id, z1.id, z2.id};
+  *store_op.y.repeats = {s0, s1, s2};
+  *store_op.y.strides = {s1 * s2, s2, ge::ops::One};
+
+  Output output_op("output");
+  output_op.ir_attr.SetIndex(0);
+  output_op.x = store_op.y;
+  output_op.y.dtype = ge::DT_FLOAT;
+
+  Status res = optimize::autoschedule::PassRunnerHandler::RunPasses(graph);
+  EXPECT_EQ(res, ge::SUCCESS);
+  auto compute_graph = ge::AscGraphUtils::GetComputeGraph(graph);
+  EXPECT_EQ(compute_graph->GetAllNodesSize(), 7);
+  EXPECT_EQ(compute_graph->FindNode("brc1"), nullptr);
+  EXPECT_EQ(compute_graph->FindNode("brc2"), nullptr);
+  EXPECT_EQ(compute_graph->FindNode("brc3"), nullptr);
+  EXPECT_NE(compute_graph->FindNode("max"), nullptr);
 }
 
 /**

@@ -52,9 +52,10 @@ Status ScalarBroadcastOptimizationPass::IsNextNodeSupportScalarInput(const NodeV
       GE_CHECK_NOTNULL(next_in_anchor);
       const auto &next_node = std::dynamic_pointer_cast<ge::AscNode>(next_in_anchor->GetOwnerNode());
       GE_CHECK_NOTNULL(next_node);
-      // step1: 判断节点是否是高阶API，此处优化只针对高阶API
-      if (ascgen_utils::IsNodeSupportsVectorFunction(next_node)) {
-        GELOGD("Not support vector function node %s(%s).", next_node->GetTypePtr(), next_node->GetNamePtr());
+      // step1: 判断节点是否是高阶API且微指令不支持scalar输入，此处优化只针对非高阶API或高阶API但微指令支持scalar的场景
+      if (ascgen_utils::IsNodeSupportsVectorFunction(next_node) &&
+          !ScheduleUtils::IsMicroApiSupportsScalarInput(next_node)) {
+        GELOGD("Node %s(%s) supports vector function but its micro API does not support scalar input.", next_node->GetTypePtr(), next_node->GetNamePtr());
         return ge::SUCCESS;  // 直接返回， is_supported 为 false
       }
       // step2: 若当前节点支持全部是Scalar，则继续校验其他节点

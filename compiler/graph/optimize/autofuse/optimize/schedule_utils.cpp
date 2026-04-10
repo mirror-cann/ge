@@ -915,4 +915,13 @@ Status ScheduleUtils::ClearAllSizeVar(const ge::AscGraph &graph) {
   graph_attr->size_vars.clear();
   return ge::SUCCESS;
 }
+
+bool ScheduleUtils::IsMicroApiSupportsScalarInput(const ge::AscNodePtr &node) {
+  return ge::ops::IsOps<ge::ascir_op::Ge>(node) || ge::ops::IsOps<ge::ascir_op::Eq>(node) ||
+         ge::ops::IsOps<ge::ascir_op::Ne>(node) || ge::ops::IsOps<ge::ascir_op::Le>(node) ||
+         ge::ops::IsOps<ge::ascir_op::Lt>(node) || ge::ops::IsOps<ge::ascir_op::Gt>(node) ||
+         ge::ops::IsOps<ge::ascir_op::Add>(node) || ge::ops::IsOps<ge::ascir_op::Min>(node) ||
+         ge::ops::IsOps<ge::ascir_op::Max>(node) || ge::ops::IsOps<ge::ascir_op::Minimum>(node) ||
+         ge::ops::IsOps<ge::ascir_op::Maximum>(node);
+}
 }  // namespace optimize

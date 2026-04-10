@@ -10854,4 +10854,115 @@ ge::ComputeGraphPtr ShareGraph::ArgMaxFusedGraph(size_t dims_size) {
   return compute_graph;
 }
 
+/**
+ * 串行链接所有支持scalar输入的vf融合算子，包含ScalarBroadcast场景
+ *
+ *           output
+ *              |
+ *            store
+ *              |
+ *          maximum5
+ *              |
+ *          minimum4
+ *              |
+ *            add3
+ *              |
+ *     /--------|--------\
+ *     |        |        |
+ *  maximum0  minimum1   add2
+ *     |        |        |
+ *   scalar0       load1
+ *                   |
+ *                 data0 (tensor source)
+ */
+static void CreateVfScalarFusionComprehensiveGraph(ge::AscGraph &graph) {
+  // 使用标准的轴构造函数，创建2D轴（与测试用例一致）
+  ConstructVVAscGraphAxisInfo(graph, 2);
+
+  // ========== Scalar节点 ==========
+  ge::ascir_op::Scalar scalar0("scalar0", graph);
+  scalar0.ir_attr.SetValue("1.0");
+
+  // ========== 数据源（tensor输入） ==========
+  ge::ascir_op::Data data0("data0", graph);
+  data0.y.dtype = ge::DT_FLOAT16;
+  data0.ir_attr.SetIndex(0);
+
+  ge::ascir_op::Load load1("load1");
+  load1.x = data0.y;
+  load1.y.dtype = ge::DT_FLOAT16;
+
+  // ========== 计算节点 - 使用支持scalar输入的算子 ==========
+  // 注意：根据OnlySecondInputSupportScalar约束，只有第二个输入可以是scalar，第一个必须是tensor
+  // 1. Maximum (第一分支: load1 + scalar0)
+  ge::ascir_op::Maximum maximum0("maximum0");
+  maximum0.x1 = load1.y;   // tensor输入（第一个）
+  maximum0.x2 = scalar0.y;  // scalar输入（第二个）
+  maximum0.y.dtype = ge::DT_FLOAT16;
+
+  // 2. Minimum (第二分支: load1 + scalar0)
+  ge::ascir_op::Minimum minimum1("minimum1");
+  minimum1.x1 = load1.y;   // tensor输入（第一个）
+  minimum1.x2 = scalar0.y;  // scalar输入（第二个）
+  minimum1.y.dtype = ge::DT_FLOAT16;
+
+  // 3. Add (第三分支: load1 + scalar0)
+  ge::ascir_op::Add add2("add2");
+  add2.x1 = load1.y;   // tensor输入（第一个）
+  add2.x2 = scalar0.y;  // scalar输入（第二个）
+  add2.y.dtype = ge::DT_FLOAT16;
+
+  // 4. 继续串联更多支持scalar输入的算子
+  ge::ascir_op::Add add3("add3");
+  add3.x1 = maximum0.y;
+  add3.x2 = minimum1.y;
+  add3.y.dtype = ge::DT_FLOAT16;
+
+  ge::ascir_op::Minimum minimum4("minimum4");
+  minimum4.x1 = add3.y;
+  minimum4.x2 = add2.y;
+  minimum4.y.dtype = ge::DT_FLOAT16;
+
+  ge::ascir_op::Maximum maximum5("maximum5");
+  maximum5.x1 = minimum4.y;
+  maximum5.x2 = add2.y;
+  maximum5.y.dtype = ge::DT_FLOAT16;
+
+  // Store
+  ge::ascir_op::Store store_op("store");
+  store_op.x = maximum5.y;
+  store_op.y.dtype = ge::DT_FLOAT16;
+
+  // Output
+  ge::ascir_op::Output output_op("output");
+  output_op.ir_attr.SetIndex(0);
+  output_op.x = store_op.y;
+  output_op.y.dtype = ge::DT_FLOAT16;
+}
+
+ge::ComputeGraphPtr ShareGraph::VfScalarFusionComprehensiveFusedGraph() {
+  auto builder = GraphBuilder("vf_scalar_fusion_comprehensive_test");
+
+  auto data0 = builder.AddNode("data0", "Data", 0, 1);
+  ge::AttrUtils::SetInt(data0->GetOpDescBarePtr(), "_parent_node_index", 0);
+
+  auto ascbc = builder.AddNode("ascbc", "AscGraph", 1, 1);
+  auto netoutput = builder.AddNode("netoutput1", ge::NETOUTPUT, 1, 0);
+
+  builder.AddDataEdge(data0, 0, ascbc, 0);
+  builder.AddDataEdge(ascbc, 0, netoutput, 0);
+  ComputeGraphPtr compute_graph = builder.GetGraph();
+  if (compute_graph == nullptr) {
+    return nullptr;
+  }
+  auto ascbc_node = compute_graph->FindNode("ascbc");
+  ge::AscGraph sub_graph("vf_scalar_fusion_comprehensive");
+  CreateVfScalarFusionComprehensiveGraph(sub_graph);
+
+  std::string sub_graph_str;
+  ge::AscGraphUtils::SerializeToReadable(sub_graph, sub_graph_str);
+  ge::AttrUtils::SetStr(ascbc_node->GetOpDescBarePtr(), "ascgraph", sub_graph_str);
+  return compute_graph;
+}
+
 }  // namespace ascir

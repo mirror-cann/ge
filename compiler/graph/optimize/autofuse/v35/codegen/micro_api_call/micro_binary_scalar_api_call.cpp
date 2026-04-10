@@ -10,16 +10,18 @@
 #include "micro_api_call_factory.h"
 #include "ascir_ops.h"
 
-#include "micro_add_api_call.h"
+#include "micro_binary_scalar_api_call.h"
 
 namespace codegen {
-Status MicroAddApiCall::Generate(const codegen::TensorManager &tensor_mng, [[maybe_unused]] const TPipe &tpipe,
-                                     CallParam &param, string &result) {
-  GE_ASSERT_TRUE(this->inputs_.size() == 2, "Add api call must have 2 inputs");
-  GE_ASSERT_TRUE(this->outputs_.size() == 1, "Add api call must have 1 output");
+Status MicroBinaryScalarApiCall::Generate(const codegen::TensorManager &tensor_mng, [[maybe_unused]] const TPipe &tpipe,
+                                           CallParam &param, string &result) {
+  GE_ASSERT_TRUE(this->inputs_.size() == 2, "Binary scalar api call must have 2 inputs");
+  GE_ASSERT_TRUE(this->outputs_.size() == 1, "Binary scalar api call must have 1 output");
 
   std::stringstream ss;
-  ss << "AscendC::MicroAPI::" << this->api_name_ << (this->second_input_scalar_ ? "s" : "") << "(";
+  // 构建API调用名称，scalar输入时添加's'后缀
+  const auto api_suffix = this->second_input_scalar_ ? "s" : "";
+  ss << "AscendC::MicroAPI::" << this->api_name_ << api_suffix << "(";
   GE_ASSERT_NOTNULL(tensor_mng.GetTensor(this->outputs_[0].second));
   ss << *(tensor_mng.GetTensor(this->outputs_[0].second)) << ", ";
   GE_ASSERT_NOTNULL(tensor_mng.GetTensor(this->inputs_[0].second));
@@ -36,7 +38,7 @@ Status MicroAddApiCall::Generate(const codegen::TensorManager &tensor_mng, [[may
   return ge::SUCCESS;
 }
 
-Status MicroAddApiCall::Init(const ascir::NodeView &node) {
+Status MicroBinaryScalarApiCall::Init(const ascir::NodeView &node) {
   // 判断第二个输入是否是scalar
   if (node->GetInDataNodes().at(1)->GetType() == "Scalar") {
     this->second_input_scalar_ = true;
@@ -45,5 +47,5 @@ Status MicroAddApiCall::Init(const ascir::NodeView &node) {
   return ge::SUCCESS;
 }
 
-static MicroApiCallRegister<MicroAddApiCall> register_micro_add_api_call("MicroAddApiCall");
+static MicroApiCallRegister<MicroBinaryScalarApiCall> register_micro_binary_scalar_api_call("MicroBinaryScalarApiCall");
 }  // namespace codegen
