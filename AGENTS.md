@@ -1,4 +1,4 @@
-# CLAUDE.md
+# AGENTS.md
 
 本文件为 agent 在此代码仓库中工作时提供指导。
 
@@ -40,13 +40,13 @@ bash build_third_party.sh
 ## 测试
 
 ### GE 单元测试 / 系统测试
-**使用技能**: `ge-ut-st`
+**使用技能**: `ge-dt-runner`
 
 **适用场景**: 编译和运行 GE 项目的单元测试(UT)和系统测试(ST)。
 
 **指令格式**:
 ```
-/skill ge-ut-st <目标或参数>
+/skill ge-dt-runner <目标或参数>
 ```
 
 **支持操作**:
@@ -55,12 +55,12 @@ bash build_third_party.sh
 - 处理测试相关依赖和环境配置
 
 **示例**:
-- "编译并运行测试" → 使用 `/skill ge-ut-st`
-- "运行某个特定用例" → 使用 `/skill ge-ut-st <测试名称>`
+- "编译并运行测试" → 使用 `/skill ge-dt-runner`
+- "运行某个特定用例" → 使用 `/skill ge-dt-runner <测试名称>`
 
 ### 清理构建产物
 ```bash
-rm -rf build_ut/ build_st/ output/ build/ build_out/ cov/
+rm -rf build_ut/ build_st/ output/ build/ build_out/ cov/ build_cmake_gcov/
 ```
 
 ## 高层架构
