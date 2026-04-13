@@ -175,7 +175,7 @@ build_module() {
     EXTRACT_DIR="${BUILD_DIR}/${MODULE_NAME}_src"
     print_info "Extracting ${MODULE_NAME} source..."
     # Clean extract directory to avoid old cmake cache
-    rm -rf "${EXTRACT_DIR}"
+    [ -n "${EXTRACT_DIR}" ] && rm -rf "${EXTRACT_DIR}"
     mkdir -p "${EXTRACT_DIR}"
     tar -xf "${SOURCE_FILE}" -C "${EXTRACT_DIR}" --strip-components=1
 
