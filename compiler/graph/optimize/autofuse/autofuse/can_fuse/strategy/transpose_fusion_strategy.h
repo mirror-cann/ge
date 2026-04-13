@@ -24,6 +24,12 @@ public:
 
   // 检查两个节点是否可以融合
   bool CanFuse(const NodePtr &node1, const NodePtr &node2) override;
+
+private:
+  bool CheckBroadcastNodeFusion(const NodePtr &node1, const NodePtr &node2,
+      const AutoFuseAttrs *attr1, const AutoFuseAttrs *attr2);
+  bool CheckVerticalFusion(const NodePtr &node1, const NodePtr &node2,
+      const AutoFuseAttrs *attr1, const AutoFuseAttrs *attr2);
 };
 }
 #endif //AUTOFUSE_CAN_FUSE_STRATEGY_TRANSPOSE_FUSION_STRATEGY_H

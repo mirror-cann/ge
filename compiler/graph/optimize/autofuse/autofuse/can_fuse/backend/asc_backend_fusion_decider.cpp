@@ -1180,8 +1180,7 @@ Status AscBackendFusionDecider::SetReduceFusedElementwiseNodeNum(const NodePtr &
   GE_ASSERT_NOTNULL(attr1);
   const auto attr2 = BackendUtils::GetNodeAutoFuseAttr(node2);
   GE_ASSERT_NOTNULL(attr2);
-  uint64_t supported_type = (1UL << static_cast<uint64_t>(loop::FuseType::kPointwise));
-  if (attr1->HasFuseType(loop::FuseType::kReduction) && (attr2->GetAllFuseType() == supported_type)) {
+  if (attr1->HasFuseType(loop::FuseType::kReduction) && BackendUtils::IsOnlyPointwise(node2)) {
     const auto new_reduce_node_fused_elementwise_num =
         attr1->GetReduceFusedElementwiseNodeNum() + BackendUtils::GetComputeNodeNumInAscgraph(node2);
     attr->SetReduceFusedElementwiseNodeNum(new_reduce_node_fused_elementwise_num);
