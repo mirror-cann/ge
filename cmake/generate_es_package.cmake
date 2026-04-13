@@ -74,15 +74,15 @@ message(STATUS "[add_es_library] Module loaded from: ${_ADD_ES_LIBRARY_CMAKE_DIR
 # ======================================================================================================================
 macro(_es_add_gen_esb_cmd _gen_esb_exe _lib_dir _excl_ops _comment)
     if (COMBINED_COMMERCIAL_MODE)
-        set(_HIST_STAGE_DIR "${ARG_OUTPUT_PATH}")
-        if ("${_AUTO_HISTORY_REGISTRY}" STREQUAL "${ARG_OUTPUT_PATH}")
+        set(_HIST_STAGE_DIR "${FINAL_OUTPUT_PATH}")
+        if ("${_AUTO_HISTORY_REGISTRY}" STREQUAL "${FINAL_OUTPUT_PATH}")
             # 首次构建（历史库尚不存在于 CANN 路径）：_AUTO_HISTORY_REGISTRY == ARG_OUTPUT_PATH，
             set(_PREPOPULATE_STAGING "")
         else ()
             # 非首次构建：将 CANN 只读历史库内容合并复制到 ARG_OUTPUT_PATH
             set(_PREPOPULATE_STAGING
-                COMMAND ${CMAKE_COMMAND} -E copy_directory "${_AUTO_HISTORY_REGISTRY}" "${ARG_OUTPUT_PATH}"
-                COMMAND chmod u+w "${ARG_OUTPUT_PATH}/index.json"
+                COMMAND ${CMAKE_COMMAND} -E copy_directory "${_AUTO_HISTORY_REGISTRY}" "${FINAL_OUTPUT_PATH}"
+                COMMAND chmod u+w "${FINAL_OUTPUT_PATH}/index.json"
             )
         endif ()
 
@@ -121,7 +121,7 @@ macro(_es_add_gen_esb_cmd _gen_esb_exe _lib_dir _excl_ops _comment)
                 ""
                 ${RELEASE_DATE_ARG}
                 ${BRANCH_NAME_ARG}
-                COMMAND ${CMAKE_COMMAND} -E echo "[ES] Historical prototype library generation completed: ${ARG_OUTPUT_PATH}"
+                COMMAND ${CMAKE_COMMAND} -E echo "[ES] Historical prototype library generation completed: ${FINAL_OUTPUT_PATH}"
                 # 步骤3: 动态生成 wrapper 文件的 include 内容
                 COMMAND ${CMAKE_COMMAND} -P ${GENERATE_WRAPPER_SCRIPT}
                 COMMAND ${CMAKE_COMMAND} -E touch ${CODE_GEN_FLAG}
@@ -134,8 +134,8 @@ macro(_es_add_gen_esb_cmd _gen_esb_exe _lib_dir _excl_ops _comment)
         # 历史库路径有效时：代码生成后将 CANN 历史库内容合并复制到 ARG_OUTPUT_PATH
         if (_AUTO_HISTORY_REGISTRY)
             set(_COPY_EXISTING_HISTORY
-                COMMAND ${CMAKE_COMMAND} -E copy_directory "${_AUTO_HISTORY_REGISTRY}" "${ARG_OUTPUT_PATH}"
-                COMMAND ${CMAKE_COMMAND} -E echo "[ES] Existing history registry copied to output: ${ARG_OUTPUT_PATH}"
+                COMMAND ${CMAKE_COMMAND} -E copy_directory "${_AUTO_HISTORY_REGISTRY}" "${FINAL_OUTPUT_PATH}"
+                COMMAND ${CMAKE_COMMAND} -E echo "[ES] Existing history registry copied to output: ${FINAL_OUTPUT_PATH}"
             )
         else ()
             set(_COPY_EXISTING_HISTORY "")
@@ -429,7 +429,9 @@ exit 1
         message(FATAL_ERROR "_add_es_library_impl: OPP_PROTO_TARGET is required")
     endif ()
     if (NOT ARG_OUTPUT_PATH)
-        message(FATAL_ERROR "_add_es_library_impl: OUTPUT_PATH is required")
+        message(STATUS "_add_es_library_impl: OUTPUT_PATH not specified, artifacts will remain in build directory")
+    else ()
+        message(STATUS "_add_es_library_impl: OUTPUT_PATH is ${ARG_OUTPUT_PATH}")
     endif ()
 
     if (NOT ARG_EXCLUDE_OPS)
@@ -486,20 +488,77 @@ exit 1
         set(BRANCH_NAME_ARG "--branch_name=${GE_ES_BRANCH_NAME}")
     endif ()
 
+    # 2.0. 提前定义 BUILD_DIR（OBJECT 分支和后续逻辑需要）
+    set(BUILD_DIR "${CMAKE_CURRENT_BINARY_DIR}/${ARG_ES_LINKABLE_AND_ALL_TARGET}_build")
+
+    # 根据 OUTPUT_PATH 是否提供决定产物拷贝策略
+    if (ARG_OUTPUT_PATH)
+        set(DO_COPY_INSTALL TRUE)
+        set(INCLUDE_DIR "${ARG_OUTPUT_PATH}/include/${ARG_ES_LINKABLE_AND_ALL_TARGET}")
+        set(LIB_DIR "${ARG_OUTPUT_PATH}/lib64")
+        set(WHL_DIR "${ARG_OUTPUT_PATH}/whl")
+        set(FINAL_OUTPUT_PATH "${ARG_OUTPUT_PATH}")
+    else ()
+        set(DO_COPY_INSTALL FALSE)
+        set(FINAL_OUTPUT_PATH "${BUILD_DIR}")
+    endif ()
+
     # 2.1. 检查 OPP_PROTO_TARGET 是否存在
     if (NOT TARGET ${ARG_OPP_PROTO_TARGET})
         message(FATAL_ERROR "_add_es_library_impl: OPP_PROTO_TARGET '${ARG_OPP_PROTO_TARGET}' is not a valid CMake target")
     endif ()
 
     # 2.2. 从 OPP_PROTO_TARGET 获取原型库输出目录
-    # 支持两种方式：
+    # 支持三种方式：
     #   1. 常规库（SHARED/STATIC）：从 LIBRARY_OUTPUT_DIRECTORY 获取
     #   2. INTERFACE 库（包装）：从 INTERFACE_LIBRARY_OUTPUT_DIRECTORY 获取（自定义属性）
+    #   3. OBJECT 库：创建临时 SHARED 库，直接输出到标准 OPP 路径
 
     # 先检查 target 类型
     get_target_property(TARGET_TYPE ${ARG_OPP_PROTO_TARGET} TYPE)
 
-    if (TARGET_TYPE STREQUAL "INTERFACE_LIBRARY")
+    if (TARGET_TYPE STREQUAL "OBJECT_LIBRARY")
+        # OBJECT 库：创建临时 SHARED 库，直接输出到标准 OPP 路径
+        message(STATUS "add_es_package: Detected OBJECT_LIBRARY, creating temporary SHARED library")
+
+        # 创建标准路径
+        set(STANDARD_OPP_BASE "${BUILD_DIR}/opp_standard_path_${ARG_OPP_PROTO_TARGET}")
+        set(STANDARD_OPP_PROTO_DIR "${STANDARD_OPP_BASE}/op_proto/custom")
+        file(MAKE_DIRECTORY ${STANDARD_OPP_PROTO_DIR})
+
+        # 创建临时库名称
+        set(TEMP_PROTO_TARGET "${ARG_ES_LINKABLE_AND_ALL_TARGET}__temp_proto")
+
+        # 创建临时 SHARED 库包装 OBJECT 库
+        add_library(${TEMP_PROTO_TARGET} SHARED $<TARGET_OBJECTS:${ARG_OPP_PROTO_TARGET}>)
+
+        # 设置输出目录为标准路径，设置命名格式
+        set_target_properties(${TEMP_PROTO_TARGET} PROPERTIES
+                LIBRARY_OUTPUT_DIRECTORY "${STANDARD_OPP_PROTO_DIR}"
+                OUTPUT_NAME "${ARG_OPP_PROTO_TARGET}_temp"
+                PREFIX "lib_"
+                SUFFIX ".so"
+        )
+
+        # 复制原始 OBJECT 库的链接依赖到临时库
+        # $<TARGET_OBJECTS:...> 会直接使用已编译的 .o 文件，不需要复制编译选项
+        # 但需要复制链接库
+        get_target_property(_OBJ_LINK_LIBS ${ARG_OPP_PROTO_TARGET} LINK_LIBRARIES)
+        if (_OBJ_LINK_LIBS)
+            target_link_libraries(${TEMP_PROTO_TARGET} PRIVATE ${_OBJ_LINK_LIBS})
+        endif ()
+
+        add_dependencies(${TEMP_PROTO_TARGET} ${ARG_OPP_PROTO_TARGET})
+
+        # 后续使用临时库替代原始目标，路径直接使用标准路径
+        set(EFFECTIVE_OPP_PROTO_TARGET ${TEMP_PROTO_TARGET})
+        set(OPP_PROTO_OUTPUT_DIR "${STANDARD_OPP_PROTO_DIR}")
+
+        message(STATUS "add_es_package: Created temporary SHARED library: ${TEMP_PROTO_TARGET}")
+        message(STATUS "  - Standard output path: ${STANDARD_OPP_PROTO_DIR}")
+        message(STATUS "  - Output name: lib_${ARG_OPP_PROTO_TARGET}_temp.so")
+
+    elseif (TARGET_TYPE STREQUAL "INTERFACE_LIBRARY")
         # INTERFACE 库，使用自定义属性
         get_target_property(OPP_PROTO_OUTPUT_DIR ${ARG_OPP_PROTO_TARGET} INTERFACE_LIBRARY_OUTPUT_DIRECTORY)
         if (NOT OPP_PROTO_OUTPUT_DIR OR OPP_PROTO_OUTPUT_DIR STREQUAL "OPP_PROTO_OUTPUT_DIR-NOTFOUND")
@@ -507,6 +566,7 @@ exit 1
                     "Please set custom property: set_target_properties(${ARG_OPP_PROTO_TARGET} PROPERTIES INTERFACE_LIBRARY_OUTPUT_DIRECTORY <path>)")
         endif ()
         message(STATUS "add_es_package: Detected INTERFACE library, using INTERFACE_LIBRARY_OUTPUT_DIRECTORY property")
+        set(EFFECTIVE_OPP_PROTO_TARGET ${ARG_OPP_PROTO_TARGET})
     else ()
         # 常规库，使用标准属性
         get_target_property(OPP_PROTO_OUTPUT_DIR ${ARG_OPP_PROTO_TARGET} LIBRARY_OUTPUT_DIRECTORY)
@@ -520,6 +580,7 @@ exit 1
                 message(STATUS "add_es_package: Using default output directory: ${OPP_PROTO_OUTPUT_DIR}")
             endif ()
         endif ()
+        set(EFFECTIVE_OPP_PROTO_TARGET ${ARG_OPP_PROTO_TARGET})
     endif ()
 
     message(STATUS "add_es_package: OPP_PROTO_TARGET output directory: ${OPP_PROTO_OUTPUT_DIR}")
@@ -536,10 +597,7 @@ exit 1
 
     message(STATUS "add_es_package: Derived ASCEND_OPP_PATH: ${OPP_BASE_PATH}")
 
-    # 2.3.1. 临时定义 BUILD_DIR（完整定义在后面）
-    set(BUILD_DIR "${CMAKE_CURRENT_BINARY_DIR}/${ARG_ES_LINKABLE_AND_ALL_TARGET}_build")
-
-    # 2.3.2. 如果不是标准路径，创建标准路径并拷贝原型库
+    # 2.3.1. 如果不是标准路径，创建标准路径并拷贝原型库
     set(USE_STANDARD_PATH FALSE)
     set(OPP_COPY_FLAG "")
     # 如果路径没有变化，说明不是标准的 OPP 目录结构
@@ -559,9 +617,9 @@ exit 1
             add_custom_command(
                     OUTPUT ${OPP_COPY_FLAG}
                     COMMAND ${CMAKE_COMMAND} -E make_directory ${STANDARD_OPP_PROTO_DIR}
-                    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${ARG_OPP_PROTO_TARGET}> ${STANDARD_OPP_PROTO_DIR}/
+                    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${EFFECTIVE_OPP_PROTO_TARGET}> ${STANDARD_OPP_PROTO_DIR}/
                     COMMAND ${CMAKE_COMMAND} -E touch ${OPP_COPY_FLAG}
-                    DEPENDS ${ARG_OPP_PROTO_TARGET}
+                    DEPENDS ${EFFECTIVE_OPP_PROTO_TARGET}
                     COMMENT "Copying OPP proto library to standard path..."
             )
 
@@ -583,7 +641,7 @@ exit 1
     if (TARGET gen_esb)
         # 开发环境/源码编译环境: 使用源码编译的 gen_esb target
         set(USE_EXTERNAL_GEN_ESB FALSE)
-        message(STATUS "Yellow Zone Environment: Use the source-compiled gen_esb target")
+        message(STATUS "Use the source-compiled gen_esb target")
 
         # 为 gen_esb 及其依赖添加 JOB_POOL 保护
         # 防止 ar 和 ld 的文件竞态（特别是在高负载下）
@@ -760,7 +818,7 @@ exit 1
             string(FIND "${_INDEX_CONTENT}" "\"${GE_ES_RELEASE_VERSION}\"" _VER_POS)
             if (_VER_POS GREATER_EQUAL 0)
                 message(STATUS "[ES] Version ${GE_ES_RELEASE_VERSION} already exists in historical prototype library, skipping archive, still using code generation mode")
-                message(STATUS "[ES] Existing history registry will be copied to output: ${ARG_OUTPUT_PATH}")
+                message(STATUS "[ES] Existing history registry will be copied to output: ${FINAL_OUTPUT_PATH}")
                 set(GE_ES_EXTRACT_HISTORY OFF)
                 set(EXTRACT_HISTORY_FLAG "")
                 set(_DUPLICATE_VERSION_DETECTED TRUE)
@@ -778,9 +836,9 @@ exit 1
             message(STATUS "  - [add_es_library] Combined commercial mode: "
                     "code gen with overload + extract & merge history registry (two gen_esb calls internally)")
         else ()
-            set(_AUTO_HISTORY_REGISTRY "${ARG_OUTPUT_PATH}")
+            set(_AUTO_HISTORY_REGISTRY "${FINAL_OUTPUT_PATH}")
             message(STATUS "  - [add_es_library] Combined commercial mode (first build, no existing history registry): "
-                    "code gen + fresh history registry → ${ARG_OUTPUT_PATH}")
+                    "code gen + fresh history registry → ${FINAL_OUTPUT_PATH}")
         endif ()
     endif ()
 
@@ -841,20 +899,19 @@ exit 1
     set(GEN_CODE_DIR "${BUILD_DIR}/generated_code")
     set(PYTHON_BUILD_DIR "${BUILD_DIR}/python_package")
 
-    # 输出目录（直接使用 ES_LINKABLE_AND_ALL_TARGET 作为子目录名）
-    set(INCLUDE_DIR "${ARG_OUTPUT_PATH}/include/${ARG_ES_LINKABLE_AND_ALL_TARGET}")
-    set(LIB_DIR "${ARG_OUTPUT_PATH}/lib64")
-    set(WHL_DIR "${ARG_OUTPUT_PATH}/whl")
-
     message(STATUS "Configuring ES package: ${ARG_ES_LINKABLE_AND_ALL_TARGET}")
     message(STATUS "  - Exported target: ${EXPORTED_TARGET} (public interface)")
     message(STATUS "  - Internal .obj target: ${OBJ_NAME} (compile once)")
     message(STATUS "  - Internal .so target: ${SO_NAME}")
     message(STATUS "  - Internal .a target: ${A_NAME}")
     message(STATUS "  - Module name (for gen_esb): ${MODULE_NAME}")
-    message(STATUS "  - OPP proto target: ${ARG_OPP_PROTO_TARGET}")
+    message(STATUS "  - OPP proto target: ${ARG_OPP_PROTO_TARGET} (type: ${TARGET_TYPE})")
     message(STATUS "  - OPP proto path: ${OPP_PROTO_PATH}")
-    message(STATUS "  - Output path: ${ARG_OUTPUT_PATH}")
+    if (ARG_OUTPUT_PATH)
+        message(STATUS "  - Output path: ${ARG_OUTPUT_PATH} (artifacts will be copied)")
+    else ()
+        message(STATUS "  - Output path: ${BUILD_DIR} (artifacts remain in build directory)")
+    endif ()
     message(STATUS "  - Library files: lib${ARG_ES_LINKABLE_AND_ALL_TARGET}.so, lib${ARG_ES_LINKABLE_AND_ALL_TARGET}.a")
     message(STATUS "  - Python package: ${PYTHON_PKG_NAME}")
 
@@ -862,9 +919,11 @@ exit 1
     file(MAKE_DIRECTORY ${BUILD_DIR})
     file(MAKE_DIRECTORY ${GEN_CODE_DIR})
     file(MAKE_DIRECTORY ${PYTHON_BUILD_DIR})
-    file(MAKE_DIRECTORY ${INCLUDE_DIR})
-    file(MAKE_DIRECTORY ${LIB_DIR})
-    file(MAKE_DIRECTORY ${WHL_DIR})
+    if (DO_COPY_INSTALL)
+        file(MAKE_DIRECTORY ${INCLUDE_DIR})
+        file(MAKE_DIRECTORY ${LIB_DIR})
+        file(MAKE_DIRECTORY ${WHL_DIR})
+    endif ()
 
     # 5. 创建 wrapper 文件生成脚本（单文件方案）
     # 这个脚本会在代码生成完成后，动态扫描生成的 .cpp 文件并生成 include 列表
@@ -949,21 +1008,17 @@ message(STATUS \"[ES Wrapper] Total operators included: \${NUM_OPS}\")
 
     # 8.1. 准备依赖列表
     # INTERFACE 库不需要构建，不添加到 DEPENDS 中
+    # OBJECT 库使用临时 SHARED 库，需要依赖临时库 target
     set(CODE_GEN_DEPENDS "")
     if (NOT TARGET_TYPE STREQUAL "INTERFACE_LIBRARY")
-        set(CODE_GEN_DEPENDS "${ARG_OPP_PROTO_TARGET}")
+        set(CODE_GEN_DEPENDS "${EFFECTIVE_OPP_PROTO_TARGET}")
         # 如果使用了标准路径，还需要依赖拷贝完成
         if (USE_STANDARD_PATH AND OPP_COPY_FLAG)
             list(APPEND CODE_GEN_DEPENDS ${OPP_COPY_FLAG})
         endif ()
     endif ()
 
-    # INTERFACE 库不传 EXCLUDE_OPS（无算子需要排除）
-    if (TARGET_TYPE STREQUAL "INTERFACE_LIBRARY")
-        set(_EXCL_OPS_ARG "")
-    else ()
-        set(_EXCL_OPS_ARG "${ARG_EXCLUDE_OPS}")
-    endif ()
+    set(_EXCL_OPS_ARG "${ARG_EXCLUDE_OPS}")
 
     if (USE_EXTERNAL_GEN_ESB)
         # 使用 run 包的 gen_esb
@@ -979,9 +1034,9 @@ message(STATUS \"[ES Wrapper] Total operators included: \${NUM_OPS}\")
         )
     else ()
         # 使用源码编译的 gen_esb target
-        # 源码环境的 OPP_PROTO_TARGET 一定是实际的库 target，需要添加依赖
+        # 源码环境的 OPP_PROTO_TARGET 可能是 OBJECT 库（已转换为临时 SHARED）
         # 构建完整依赖列表（包含 gen_esb 和标准路径拷贝）
-        set(CODE_GEN_DEPENDS "$<TARGET_FILE:gen_esb>;${ARG_OPP_PROTO_TARGET}")
+        set(CODE_GEN_DEPENDS "$<TARGET_FILE:gen_esb>;${EFFECTIVE_OPP_PROTO_TARGET}")
         if (USE_STANDARD_PATH AND OPP_COPY_FLAG)
             list(APPEND CODE_GEN_DEPENDS ${OPP_COPY_FLAG})
         endif ()
@@ -1072,7 +1127,11 @@ message(STATUS \"[ES Wrapper] Total operators included: \${NUM_OPS}\")
         SKIP_INSTALL_RPATH TRUE
     )
     # 13.2 准备头文件搜索路径列表
-    set(ES_INCLUDE_DIRS ${GEN_CODE_DIR} ${INCLUDE_DIR})
+    set(ES_INCLUDE_DIRS ${GEN_CODE_DIR})
+    # 需要拷贝时添加 INCLUDE_DIR 到头文件路径中
+    if (DO_COPY_INSTALL)
+        list(APPEND ES_INCLUDE_DIRS ${INCLUDE_DIR})
+    endif ()
 
     # 如果使用外部 gen_esb（run 包环境），添加 run 包的头文件路径
     if (USE_EXTERNAL_GEN_ESB)
@@ -1265,9 +1324,13 @@ endforeach()
             DEPENDS ${WHL_GEN_FLAG}
             )
 
-    # 20. 创建拷贝头文件的脚本
-    set(COPY_HEADERS_SCRIPT "${BUILD_DIR}/copy_headers.cmake")
-    file(WRITE ${COPY_HEADERS_SCRIPT} "# Auto-generated script for copying headers
+    # 20. 拷贝逻辑（根据 DO_COPY_INSTALL 决定是否拷贝）
+    set(INSTALL_FLAG "${BUILD_DIR}/install.flag")
+
+    if (DO_COPY_INSTALL)
+        # 20.1. 创建拷贝头文件的脚本
+        set(COPY_HEADERS_SCRIPT "${BUILD_DIR}/copy_headers.cmake")
+        file(WRITE ${COPY_HEADERS_SCRIPT} "# Auto-generated script for copying headers
 file(GLOB H_FILES \"${GEN_CODE_DIR}/*.h\")
 foreach(h_file \${H_FILES})
     get_filename_component(filename \${h_file} NAME)
@@ -1277,9 +1340,9 @@ foreach(h_file \${H_FILES})
 endforeach()
 ")
 
-    # 创建拷贝 whl 文件的脚本
-    set(COPY_WHL_SCRIPT "${BUILD_DIR}/copy_whl.cmake")
-    file(WRITE ${COPY_WHL_SCRIPT} "# Auto-generated script for copying whl files
+        # 20.2. 创建拷贝 whl 文件的脚本
+        set(COPY_WHL_SCRIPT "${BUILD_DIR}/copy_whl.cmake")
+        file(WRITE ${COPY_WHL_SCRIPT} "# Auto-generated script for copying whl files
 file(GLOB WHL_FILES \"${PYTHON_BUILD_DIR}/dist/*.whl\")
 foreach(whl_file \${WHL_FILES})
     get_filename_component(filename \${whl_file} NAME)
@@ -1289,39 +1352,58 @@ foreach(whl_file \${WHL_FILES})
 endforeach()
 ")
 
-    # 21. 安装头文件到 include 目录
-    set(INSTALL_FLAG "${BUILD_DIR}/install.flag")
-    add_custom_command(
-            OUTPUT ${INSTALL_FLAG}
-            COMMAND ${CMAKE_COMMAND} -E echo "Installing ES package: ${ARG_ES_LINKABLE_AND_ALL_TARGET}"
-            # 拷贝头文件
-            COMMAND ${CMAKE_COMMAND} -P ${COPY_HEADERS_SCRIPT}
-            # 拷贝共享库
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:${SO_NAME}> ${LIB_DIR}/
-            # 拷贝静态库
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:${A_NAME}> ${LIB_DIR}/
-            # 拷贝 wheel 包
-            COMMAND ${CMAKE_COMMAND} -P ${COPY_WHL_SCRIPT}
-            # 标记完成
-            COMMAND ${CMAKE_COMMAND} -E touch ${INSTALL_FLAG}
-            DEPENDS ${SO_NAME} ${A_NAME} ${WHL_GEN_TARGET}
-            COMMENT "Installing ES package '${ARG_ES_LINKABLE_AND_ALL_TARGET}' to ${ARG_OUTPUT_PATH}"
-            VERBATIM
-    )
+        # 21. 拷贝产物到 OUTPUT_PATH
+        add_custom_command(
+                OUTPUT ${INSTALL_FLAG}
+                COMMAND ${CMAKE_COMMAND} -E echo "Installing ES package: ${ARG_ES_LINKABLE_AND_ALL_TARGET}"
+                # 拷贝头文件
+                COMMAND ${CMAKE_COMMAND} -P ${COPY_HEADERS_SCRIPT}
+                # 拷贝共享库
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:${SO_NAME}> ${LIB_DIR}/
+                # 拷贝静态库
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:${A_NAME}> ${LIB_DIR}/
+                # 拷贝 wheel 包
+                COMMAND ${CMAKE_COMMAND} -P ${COPY_WHL_SCRIPT}
+                # 标记完成
+                COMMAND ${CMAKE_COMMAND} -E touch ${INSTALL_FLAG}
+                DEPENDS ${SO_NAME} ${A_NAME} ${WHL_GEN_TARGET}
+                COMMENT "Installing ES package '${ARG_ES_LINKABLE_AND_ALL_TARGET}' to ${ARG_OUTPUT_PATH}"
+                VERBATIM
+        )
 
-    # 22. 创建安装目标（内部使用）
-    set(INSTALL_TARGET "install_${ARG_ES_LINKABLE_AND_ALL_TARGET}")
-    add_custom_target(${INSTALL_TARGET}
-            DEPENDS ${INSTALL_FLAG}
-            )
+        # 22. 创建安装目标（内部使用）
+        set(INSTALL_TARGET "install_${ARG_ES_LINKABLE_AND_ALL_TARGET}")
+        add_custom_target(${INSTALL_TARGET}
+                DEPENDS ${INSTALL_FLAG}
+        )
+    else ()
+        # 不需要拷贝，直接创建一个空的 flag 文件
+        add_custom_command(
+                OUTPUT ${INSTALL_FLAG}
+                COMMAND ${CMAKE_COMMAND} -E echo "Skipping install (OUTPUT_PATH not specified)"
+                COMMAND ${CMAKE_COMMAND} -E touch ${INSTALL_FLAG}
+                DEPENDS ${SO_NAME} ${A_NAME} ${WHL_GEN_TARGET}
+                COMMENT "Skipping install for '${ARG_ES_LINKABLE_AND_ALL_TARGET}' (OUTPUT_PATH not specified)"
+        )
 
-    # 22.5. 创建 SMART_BUILD_TARGET（单文件方案，直接依赖安装目标）
+        # 不创建 INSTALL_TARGET，直接使用 SO_NAME + A_NAME + WHL_GEN_TARGET
+        set(INSTALL_TARGET "")
+    endif ()
+
+    # 22.5. 创建 SMART_BUILD_TARGET
     # 单文件方案无需二次构建，外部使用此 target 即可触发完整构建流程
     set(SMART_BUILD_TARGET "build_${ARG_ES_LINKABLE_AND_ALL_TARGET}")
-    add_custom_target(${SMART_BUILD_TARGET}
-            DEPENDS ${INSTALL_TARGET}
-            COMMENT "ES package '${ARG_ES_LINKABLE_AND_ALL_TARGET}' build completed (single-file mode)"
-            )
+    if (DO_COPY_INSTALL)
+        add_custom_target(${SMART_BUILD_TARGET}
+                DEPENDS ${INSTALL_TARGET}
+                COMMENT "ES package '${ARG_ES_LINKABLE_AND_ALL_TARGET}' build completed (single-file mode)"
+        )
+    else ()
+        add_custom_target(${SMART_BUILD_TARGET}
+                DEPENDS ${SO_NAME} ${A_NAME} ${WHL_GEN_TARGET}
+                COMMENT "ES package '${ARG_ES_LINKABLE_AND_ALL_TARGET}' build completed (single-file mode, no install)"
+        )
+    endif ()
 
     # 22.6. 依赖管理：防止多个 ES packages 并发构建共享依赖
     # 如果有多个 ES packages，让后续的包依赖第一个包，确保 gen_esb 等共享依赖只构建一次
@@ -1366,7 +1448,14 @@ endforeach()
     message(STATUS "    * Shared library: ${SO_NAME}")
     message(STATUS "    * Static library: ${A_NAME}")
     message(STATUS "    * Wheel generation: ${WHL_GEN_TARGET}")
-    message(STATUS "    * Install: ${INSTALL_TARGET}")
+    if (DO_COPY_INSTALL)
+        message(STATUS "    * Install: ${INSTALL_TARGET}")
+    else ()
+        message(STATUS "    * Install: (skipped, OUTPUT_PATH not specified)")
+    endif ()
+    if (TARGET_TYPE STREQUAL "OBJECT_LIBRARY")
+        message(STATUS "    * Temporary proto library: ${TEMP_PROTO_TARGET} (retained in build directory)")
+    endif ()
     message(STATUS "  - Library files: lib${ARG_ES_LINKABLE_AND_ALL_TARGET}.so, lib${ARG_ES_LINKABLE_AND_ALL_TARGET}.a")
     message(STATUS "  - Python package: ${PYTHON_PKG_NAME}")
     if (HAS_ES_BASE_TARGET)
@@ -1391,8 +1480,9 @@ endfunction()
 #
 # 参数:
 #   ES_LINKABLE_AND_ALL_TARGET  - [必需] 对外暴露的接口库 target 名称（如 es_math）
-#   OPP_PROTO_TARGET   - [必需] 算子原型库的 CMake target 名称
-#   OUTPUT_PATH        - [必需] 产物输出的根目录
+#   OPP_PROTO_TARGET   - [必需] 算子原型库的 CMake target 名称（支持 SHARED/STATIC/INTERFACE/OBJECT 类型）
+#   OUTPUT_PATH        - [可选] 产物输出的根目录。不指定时产物保留在构建目录中
+#   EXCLUDE_OPS        - [可选] 需要排除生成的算子（如 Add,Conv2D）
 #
 # 使用示例:
 #   add_es_library_and_whl(
@@ -1417,8 +1507,9 @@ endfunction()
 #
 # 参数:
 #   ES_LINKABLE_AND_ALL_TARGET  - [必需] 对外暴露的接口库 target 名称（如 es_math）
-#   OPP_PROTO_TARGET   - [必需] 算子原型库的 CMake target 名称
-#   OUTPUT_PATH        - [必需] 产物输出的根目录
+#   OPP_PROTO_TARGET   - [必需] 算子原型库的 CMake target 名称（支持 SHARED/STATIC/INTERFACE/OBJECT 类型）
+#   OUTPUT_PATH        - [可选] 产物输出的根目录。不指定时产物保留在构建目录中
+#   EXCLUDE_OPS        - [可选] 需要排除生成的算子（如 Add,Conv2D）
 #
 # 使用示例:
 #   add_es_library(
@@ -1439,4 +1530,3 @@ endfunction()
 function(add_es_library)
     _add_es_library_impl(${ARGN} SKIP_WHL)
 endfunction()
-
