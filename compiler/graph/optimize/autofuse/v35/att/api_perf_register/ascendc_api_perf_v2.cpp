@@ -130,7 +130,7 @@ ge::Status InitBlockLenExpand(const NodeDetail &node_info, std::vector<Expr> &di
                               Expr &block_len_ref, int32_t &kCacheLineSize,
                               int32_t &blk_len_val, int32_t &stride_val) {
   GE_ASSERT_SUCCESS(InitBlockLenExpandParams(node_info, dims, block_len, cache_line_ele_num));
-  block_len_ref = const_cast<std::vector<Expr> &>(dims)[dims.size() - 1UL];
+  block_len_ref = dims[dims.size() - 1UL];
   kCacheLineSize = static_cast<int32_t>(GetCacheLineSize());
   if (block_len_ref.IsConstExpr() && node_info.gm_stride.IsConstExpr()) {
     block_len_ref.GetConstValue(blk_len_val);
@@ -157,7 +157,7 @@ ge::Status ExpandBlockLen(const NodeDetail &node_info, PerfOutputInfo &perf, std
       block_len_ref = CreateExpr(kCacheLineSize);
     }
   } else {
-    auto &block_len_ref_actual = const_cast<std::vector<Expr> &>(dims)[dims.size() - 1UL];
+    auto &block_len_ref_actual = dims[dims.size() - 1UL];
     auto is_small_block_len_checker =
         ge::sym::LogicalAnd({ge::sym::Gt(node_info.gm_stride, CreateExpr(0)), ge::sym::Lt(block_len_ref_actual, cache_line_ele_num)});
     bool is_small_block_len{false};
@@ -206,7 +206,7 @@ ge::Status ExpandMTE3BlockLen(const NodeDetail &node_info, PerfOutputInfo &perf,
     }
   } else {
     // 动态shape处理 - 创建三元表达式
-    auto &block_len_ref_actual = const_cast<std::vector<Expr> &>(dims)[dims.size() - 1UL];
+    auto &block_len_ref_actual = dims[dims.size() - 1UL];
     const auto &data_type_size = kDataTypeSizeMap.find(node_info.input_dtype[0]);
     Expr block_len_bytes = ge::sym::Mul(block_len_ref_actual, data_type_size->second);
     auto need_padding_checker = ge::sym::LogicalAnd(

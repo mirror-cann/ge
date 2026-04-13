@@ -1135,7 +1135,7 @@ Status GraphManager::ProcessNullableOutput(ComputeGraphPtr &compute_graph) const
       continue;
     }
 
-    size_t out_data_anchors_size = node->GetAllOutDataAnchors().size();
+    size_t out_data_anchors_size = node->GetAllOutDataAnchorsSize();
     for (size_t i = 0; i < out_data_anchors_size; i++) {
       auto out_anchor = node->GetOutDataAnchor(i);
       GE_ASSERT_NOTNULL(out_anchor);
@@ -3171,7 +3171,7 @@ Status GraphManager::RemoveIsolatedConst(ge::ComputeGraphPtr &compute_graph) {
   return SUCCESS;
 }
 
-Status GraphManager::AfterPrecisionRefine(ge::ComputeGraphPtr &compute_graph, const std::vector<GeTensor> &inputs) {
+Status GraphManager::AfterPrecisionRefine(ge::ComputeGraphPtr &compute_graph, const std::vector<GeTensor> &inputs) const {
   PassManager after_merge_passes;
   GE_CHK_STATUS_RET(after_merge_passes.AddPass("AfterPrecisionRefine::TransOpWithoutReshapeFusionPass",
                                                new (std::nothrow) TransOpWithoutReshapeFusionPass));
