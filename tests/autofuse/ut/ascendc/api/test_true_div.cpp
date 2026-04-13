@@ -13,6 +13,7 @@
 #include "gtest/gtest.h"
 #include "tikicpulib.h"
 #include "test_api_utils.h"
+#include "scalar_div.h"
 #include "true_div.h"
 
 using namespace AscendC;

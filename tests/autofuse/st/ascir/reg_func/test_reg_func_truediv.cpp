@@ -50,7 +50,54 @@ TEST_F(CalcTrueDivTmpSizeTest, CalcTrueDivTmpSize_ShouldReturnCorrectSize_WhenIn
 
     ge::ascir_op::Data x1("x1", graph);
     ge::ascir_op::Load load1("load1");
-    ge::ascir_op::Div div("div");
+    ge::ascir_op::TrueDiv true_div("true_div");
+    ge::ascir_op::Store store("store");
+    ge::ascir_op::Output y("y");
+
+    x1.attr.sched.axis = {z0.id, zo_s_0.id};
+    x1.y.dtype = ge::DT_INT32;
+    *x1.y.axis = {z0.id, zo_s_0.id};
+    *x1.y.repeats = {s0, s1};
+    *x1.y.strides = {s1, Symbol(1)};
+
+    load1.x = x1.y;
+    load1.attr.sched.axis = {z0.id, zo_s_0.id};
+    load1.y.dtype = ge::DT_INT32;
+    *load1.y.axis = {z0.id, zo_s_0.id};
+    *load1.y.repeats = {s0, s1};
+    *load1.y.strides = {s1, Symbol(1)};
+    *load1.y.vectorized_axis = {z0.id, zo_s_0.id};
+
+    true_div.x1 = load1.y;
+    true_div.x2 = load1.y;
+    true_div.attr.sched.axis = {z0.id, zo_s_0.id};
+    true_div.y.dtype = ge::DT_FLOAT;
+    *true_div.y.axis = {z0.id, zo_s_0.id};
+    *true_div.y.repeats = {s0, s1};
+    *true_div.y.strides = {s1, Symbol(1)};
+
+    std::shared_ptr<ge::AscNode> node = graph.FindNode("true_div");
+    std::vector<std::unique_ptr<ge::TmpBufDesc>> result = CalcTrueDivTmpSize(*node);
+    ASSERT_EQ(result.size(), 1);
+    ASSERT_EQ(result[0]->size, ge::Symbol(8));
+    ASSERT_EQ(result[0]->life_time_axis_id, -1);
+}
+
+TEST_F(CalcTrueDivTmpSizeTest, CalcTrueDivTmpSize_ShouldReturnCorrectSize_WhenInputsIsFloat)
+{
+    ge::AscGraph graph("test");
+    auto s0 = graph.CreateSizeVar("s0");
+    auto s1 = graph.CreateSizeVar("s1");
+    auto s2 = graph.CreateSizeVar("s2");
+
+    auto z0 = graph.CreateAxis("z0", s0);
+    auto zo = graph.CreateAxis("zo", s1 + s2);
+    auto zo_s_0 = graph.CreateAxis("zo_s_0", Axis::Type::kAxisTypeOriginal, s1, {zo.id}, ge::kIdNone);
+    auto zo_s_1 = graph.CreateAxis("zo_s_1", Axis::Type::kAxisTypeOriginal, s2, {zo.id}, ge::kIdNone);
+
+    ge::ascir_op::Data x1("x1", graph);
+    ge::ascir_op::Load load1("load1");
+    ge::ascir_op::TrueDiv true_div("true_div");
     ge::ascir_op::Store store("store");
     ge::ascir_op::Output y("y");
 
@@ -68,15 +115,64 @@ TEST_F(CalcTrueDivTmpSizeTest, CalcTrueDivTmpSize_ShouldReturnCorrectSize_WhenIn
     *load1.y.strides = {s1, Symbol(1)};
     *load1.y.vectorized_axis = {z0.id, zo_s_0.id};
 
-    div.x1 = load1.y;
-    div.x2 = load1.y;
-    div.attr.sched.axis = {z0.id, zo_s_0.id};
-    div.y.dtype = ge::DT_FLOAT;
-    *div.y.axis = {z0.id, zo_s_0.id};
-    *div.y.repeats = {s0, s1};
-    *div.y.strides = {s1, Symbol(1)};
+    true_div.x1 = load1.y;
+    true_div.x2 = load1.y;
+    true_div.attr.sched.axis = {z0.id, zo_s_0.id};
+    true_div.y.dtype = ge::DT_FLOAT;
+    *true_div.y.axis = {z0.id, zo_s_0.id};
+    *true_div.y.repeats = {s0, s1};
+    *true_div.y.strides = {s1, Symbol(1)};
 
-    std::shared_ptr<ge::AscNode> node = graph.FindNode("div");
+    std::shared_ptr<ge::AscNode> node = graph.FindNode("true_div");
+    std::vector<std::unique_ptr<ge::TmpBufDesc>> result = CalcTrueDivTmpSize(*node);
+    ASSERT_EQ(result.size(), 1);
+    ASSERT_EQ(result[0]->size, ge::Symbol(8192));
+    ASSERT_EQ(result[0]->life_time_axis_id, -1);
+}
+
+TEST_F(CalcTrueDivTmpSizeTest, CalcTrueDivTmpSize_ShouldReturnCorrectSize_WhenInputsHasScalar)
+{
+    ge::AscGraph graph("test");
+    auto s0 = graph.CreateSizeVar("s0");
+    auto s1 = graph.CreateSizeVar("s1");
+    auto s2 = graph.CreateSizeVar("s2");
+
+    auto z0 = graph.CreateAxis("z0", s0);
+    auto zo = graph.CreateAxis("zo", s1 + s2);
+    auto zo_s_0 = graph.CreateAxis("zo_s_0", Axis::Type::kAxisTypeOriginal, s1, {zo.id}, ge::kIdNone);
+    auto zo_s_1 = graph.CreateAxis("zo_s_1", Axis::Type::kAxisTypeOriginal, s2, {zo.id}, ge::kIdNone);
+
+    ge::ascir_op::Data x1("x1", graph);
+    ge::ascir_op::Load load1("load1");
+    ge::ascir_op::Scalar constant_op("constant");
+    constant_op.ir_attr.SetValue("1.0");
+    ge::ascir_op::TrueDiv true_div("true_div");
+    ge::ascir_op::Store store("store");
+    ge::ascir_op::Output y("y");
+
+    x1.attr.sched.axis = {z0.id, zo_s_0.id};
+    x1.y.dtype = ge::DT_FLOAT;
+    *x1.y.axis = {z0.id, zo_s_0.id};
+    *x1.y.repeats = {s0, s1};
+    *x1.y.strides = {s1, Symbol(1)};
+
+    load1.x = x1.y;
+    load1.attr.sched.axis = {z0.id, zo_s_0.id};
+    load1.y.dtype = ge::DT_FLOAT;
+    *load1.y.axis = {z0.id, zo_s_0.id};
+    *load1.y.repeats = {s0, s1};
+    *load1.y.strides = {s1, Symbol(1)};
+    *load1.y.vectorized_axis = {z0.id, zo_s_0.id};
+
+    true_div.x1 = load1.y;
+    true_div.x2 = constant_op.y;
+    true_div.attr.sched.axis = {z0.id, zo_s_0.id};
+    true_div.y.dtype = ge::DT_FLOAT;
+    *true_div.y.axis = {z0.id, zo_s_0.id};
+    *true_div.y.repeats = {s0, s1};
+    *true_div.y.strides = {s1, Symbol(1)};
+
+    std::shared_ptr<ge::AscNode> node = graph.FindNode("true_div");
     std::vector<std::unique_ptr<ge::TmpBufDesc>> result = CalcTrueDivTmpSize(*node);
     ASSERT_EQ(result.size(), 1);
     ASSERT_EQ(result[0]->size, ge::Symbol(8192));

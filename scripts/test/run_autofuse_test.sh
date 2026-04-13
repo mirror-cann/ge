@@ -646,6 +646,7 @@ build_backend() {
   MAKE_TARGET_LIST="add_abs_test_e2e \
                     axpy_abs_test_e2e \
                     sub_abs_test_e2e \
+                    truediv_abs_test_e2e \
                     scalar_float_inf_test_e2e \
                     scalar_div_inf_test_e2e \
                     add_gelu_test_e2e \
