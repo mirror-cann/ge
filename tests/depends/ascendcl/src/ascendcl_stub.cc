@@ -257,6 +257,8 @@ aclError AclRuntimeStub::aclrtRecordNotify(aclrtNotify notify, aclrtStream strea
 aclError AclRuntimeStub::aclrtBinaryGetFunctionByEntry(aclrtBinHandle binHandle,
                                                        uint64_t funcEntry,
                                                        aclrtFuncHandle *funcHandle) {
+  uint64_t stub_func_addr = 0x1700;
+  *funcHandle = reinterpret_cast<void *>(static_cast<uintptr_t>(stub_func_addr));
   return ACL_SUCCESS;
 }
 
