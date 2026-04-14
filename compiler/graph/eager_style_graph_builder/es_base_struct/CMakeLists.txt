@@ -45,7 +45,9 @@ target_link_libraries(eager_style_graph_builder_base
 
 add_library(eager_style_graph_builder_base_static STATIC ${EAGER_STYLE_GRAPH_BUILDER})
 
-target_compile_options(eager_style_graph_builder_base_static PRIVATE ${AIR_COMMON_COMPILE_OPTION})
+target_compile_options(eager_style_graph_builder_base_static PRIVATE ${AIR_COMMON_COMPILE_OPTION}
+        -ftrapv
+        )
 target_link_libraries(eager_style_graph_builder_base_static
         PRIVATE
         intf_pub

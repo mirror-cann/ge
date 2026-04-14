@@ -14,7 +14,7 @@
 #include <google/protobuf/message.h>
 #include "register/register_types.h"
 #include "register/register_error_codes.h"
-#include "graph_metadef/register/register.h"
+#include "graph_metadef/register/graph_register.h"
 #include "graph/operator.h"
 
 namespace domi {

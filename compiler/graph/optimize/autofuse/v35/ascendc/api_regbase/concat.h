@@ -450,6 +450,62 @@ __aicore__ inline void GatherInputs(__ubuf__ T *dst_addr, __ubuf__ T *src_addr, 
   }
 }
 
+template <typename T, typename U>
+__aicore__ inline void GatherInputsSplitCols(__ubuf__ T *dst_addr, __ubuf__ T *src_addr, __ubuf__ U *index_addr,
+                                             uint32_t rows, uint32_t dst_cols, uint32_t src_cols,
+                                             uint32_t tensor_stride) {
+  constexpr uint32_t kVfLen = AscendC::VECTOR_REG_WIDTH / sizeof(U);
+  const auto loop_times = static_cast<uint16_t>(rows);
+  const uint16_t loop_1_input_num = kVfLen / src_cols;
+  const uint16_t loop_1_cols = loop_1_input_num * src_cols;
+  const uint16_t loop_1_times = dst_cols / loop_1_cols;
+  const uint16_t loop_1_tail_cols = dst_cols - loop_1_times * loop_1_cols;
+
+  __VEC_SCOPE__ {
+    AscendC::MicroAPI::RegTensor<U> vd0;
+    AscendC::MicroAPI::RegTensor<U> vd1;
+    AscendC::MicroAPI::RegTensor<T> vd2;
+    AscendC::MicroAPI::RegTensor<uint16_t> vd3;  // for b8
+    AscendC::MicroAPI::RegTensor<U> vd4;
+    AscendC::MicroAPI::RegTensor<U> vd5;
+    AscendC::MicroAPI::UnalignReg u0;
+    AscendC::MicroAPI::UnalignReg u1;
+
+    AscendC::MicroAPI::DataCopy(vd0, index_addr);
+    auto num = static_cast<uint32_t>(loop_1_cols);
+    auto tail_num = static_cast<uint32_t>(loop_1_tail_cols);
+    uint32_t pnum = num;
+    uint32_t tail_pnum = tail_num;
+    AscendC::MicroAPI::MaskReg p0 = AscendC::MicroAPI::UpdateMask<U>(num);
+    AscendC::MicroAPI::MaskReg p1 = AscendC::MicroAPI::UpdateMask<U>(tail_num);
+    const uint32_t stride = loop_1_input_num * tensor_stride;
+    for (uint16_t i = 0; i < loop_times; ++i) {
+      auto cur_dst_addr = dst_addr + i * dst_cols;
+      const auto row_offset = i * src_cols;
+      for (uint16_t j = 0; j < loop_1_times; ++j) {
+        AscendC::MicroAPI::Adds(vd1, vd0, static_cast<U>(row_offset + j * stride), p0);
+        if constexpr (sizeof(T) == 1) {
+          AscendC::MicroAPI::DataCopyGather(vd3, src_addr, vd1, p0);
+          AscendC::MicroAPI::Pack(vd2, vd3);
+        } else {
+          AscendC::MicroAPI::DataCopyGather(vd2, src_addr, vd1, p0);
+        }
+        AscendC::MicroAPI::DataCopyUnAlign(cur_dst_addr, vd2, u0, pnum);
+        AscendC::MicroAPI::DataCopyUnAlignPost(cur_dst_addr, u0, 0);
+      }
+      AscendC::MicroAPI::Adds(vd1, vd0, static_cast<U>(row_offset + loop_1_times * stride), p1);
+      if constexpr (sizeof(T) == 1) {
+        AscendC::MicroAPI::DataCopyGather(vd3, src_addr, vd1, p1);
+        AscendC::MicroAPI::Pack(vd2, vd3);
+      } else {
+        AscendC::MicroAPI::DataCopyGather(vd2, src_addr, vd1, p1);
+      }
+      AscendC::MicroAPI::DataCopyUnAlign(cur_dst_addr, vd2, u1, tail_pnum);
+      AscendC::MicroAPI::DataCopyUnAlignPost(cur_dst_addr, u1, 0);
+    }
+  }
+}
+
 template <typename T, size_t INPUT_NUM, typename TilingType>
 __aicore__ inline void ConcatExtendByGather(T *dst_addr, T *src_addrs[INPUT_NUM], LocalTensor<uint8_t> &tmp_buf,
                                             const TilingType &tiling) {
@@ -463,13 +519,19 @@ __aicore__ inline void ConcatExtendByGather(T *dst_addr, T *src_addrs[INPUT_NUM]
   const auto stride = static_cast<uint32_t>(src_addrs[1] - src_addrs[0]);
   const auto num_src_cols = NumSrcCols(tiling);
   GenGatherIndex(num_src_cols, tiling.num_dst_cols, stride, index_addr);
-  GatherInputs((__ubuf__ T *)(uint64_t)dst_addr, (__ubuf__ T *)(uint64_t)src_addrs[0], index_addr, tiling.num_rows,
-               tiling.num_dst_cols, num_src_cols);
+  if (tiling.num_dst_cols * sizeof(U) <= AscendC::VECTOR_REG_WIDTH) {
+    GatherInputs((__ubuf__ T *)(uint64_t)dst_addr, (__ubuf__ T *)(uint64_t)src_addrs[0], index_addr, tiling.num_rows,
+                 tiling.num_dst_cols, num_src_cols);
+  } else {
+    GatherInputsSplitCols((__ubuf__ T *)(uint64_t)dst_addr, (__ubuf__ T *)(uint64_t)src_addrs[0], index_addr,
+                          tiling.num_rows, tiling.num_dst_cols, num_src_cols, stride);
+  }
 }
 
 template <typename T, size_t INPUT_NUM, bool CHECK_SHAPE = false>
 __aicore__ inline bool CanUseGather(const ConcatTiling<INPUT_NUM> &tiling) {
-  if (tiling.num_dst_cols * sizeof(T) > 256) {
+  using U = std::conditional_t<sizeof(T) == sizeof(uint32_t), uint32_t, uint16_t>;
+  if (tiling.num_srcs_cols[0] * sizeof(U) > (AscendC::VECTOR_REG_WIDTH / 2)) {
     return false;
   }
   if constexpr (CHECK_SHAPE) {

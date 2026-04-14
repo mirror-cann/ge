@@ -3781,7 +3781,7 @@ ge::Status TilingCodeGenImpl::GenGetTilingWithCaseId(bool is_tail) {
 std::string TilingCodeGenImpl::GetGetTilingParamDefines(bool use_cache, bool use_workspace,
                                                         std::string &cache_define_head,
                                                         std::string &cache_define_func,
-                                                        std::string &cache_used) {
+                                                        std::string &cache_used) const {
   cache_define_head = use_cache ? (", GroupLevelCache *cache = nullptr") : "";
   cache_define_func = use_cache ? (", GroupLevelCache *cache") : "";
   cache_used = use_cache ? (", cache") : "";

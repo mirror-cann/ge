@@ -76,6 +76,13 @@ inline int CopyStubFiles(const std::string& base_dir, const std::string& stub_pa
   return ret;
 }
 
+// 拷贝op_log.h到当前目录
+// base_dir: 基础目录（如 TOP_DIR）
+inline int CopyOpLog(const std::string& base_dir) {
+  return std::system(
+      std::string("cp ").append(base_dir).append("/tests/autofuse/st/att/testcase/stub/op_log.h ./ -f").c_str());
+}
+
 // 辅助函数：构建单图到ScheduleGroup
 // 需要前置声明相关类型，使用时需包含对应头文件
 class AscGraph;

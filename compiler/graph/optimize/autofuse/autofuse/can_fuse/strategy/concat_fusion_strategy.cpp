@@ -180,6 +180,7 @@ bool ConcatFusionStrategy::CheckSameSchedAxis(const NodePtr &node1, const NodePt
 
 Status ConcatFusionStrategy::CanFuseBackward(const NodePtr &node1, const NodePtr &node2,
                                              const AutoFuseAttrs *attr2) {
+  (void)attr2;
   const auto backend_spec = optimize::BackendSpec::GetInstance();
   GE_ASSERT_NOTNULL(backend_spec);
   const auto support_backward_fusion_ = backend_spec->concat_alg != kConcatAlgTranspose;
@@ -203,11 +204,11 @@ Status ConcatFusionStrategy::CanFuseBackward(const NodePtr &node1, const NodePtr
         ge::NotFuseReasonCode(ge::NotFuseReason::kFusedAscBackendCanNotBackwardFuseFromNonConcat));
     return NOT_CHANGED;
   }
-  // 后融合只支持融合Pointwise
-  if (attr2->GetAllFuseType() != (1UL << static_cast<uint64_t>(loop::FuseType::kPointwise))) {
+  // 后融合只支持融合Pointwise或Reshape
+  if (!BackendUtils::IsOnlyPointwise(node2)) {
     GELOGI(
-        "node1 %s(%s) and node2 %s(%s) can not fuse, the reason is [%s][node1 and node2 are vertical fuse, and node1 "
-        "is Concat type, concat can not backward fuse non Pointwise type]",
+        "node1 %s(%s) and node2 %s(%s) can not fuse, reason is [%s][node1 and node2 are vertical fuse, and node1 "
+        "is Concat type, concat can not backward fuse non Pointwise or Reshape type]",
         node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
         ge::NotFuseReasonCode(ge::NotFuseReason::kConcatCanNotBackwardFuseNonSimplestPointwise));
     return NOT_CHANGED;

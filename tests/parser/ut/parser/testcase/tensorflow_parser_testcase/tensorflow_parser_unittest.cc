@@ -17,7 +17,7 @@
 #include "graph/operator_reg.h"
 #include "graph/types.h"
 #include "register/op_registry.h"
-#include "graph_metadef/register/register.h"
+#include "graph_metadef/register/graph_register.h"
 #include "parser/common/acl_graph_parser_util.h"
 #include "ge/ge_api_types.h"
 #include "omg/parser/parser_factory.h"

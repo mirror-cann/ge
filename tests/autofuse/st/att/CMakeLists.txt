@@ -13,51 +13,75 @@ set(ATT_DIR ${TOP_DIR}/compiler/graph/optimize/autofuse/att)
 
 add_compile_definitions(TOP_DIR=\"${TOP_DIR}\")
 add_compile_definitions(ST_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\")
+add_compile_definitions(TILING_DATA_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/testcase/scenario/tiling_data\")
 
 file(GLOB SOURCES
-        ${TOP_DIR}/tests/autofuse/st/att/testcase/matmul/*.cpp
-        ${TOP_DIR}/tests/autofuse/st/att/testcase/ffn/*.cpp
-        ${TOP_DIR}/tests/autofuse/st/att/testcase/att_st_test/att_test.cpp
-        ${TOP_DIR}/tests/autofuse/st/att/testcase/test_expr/*.cpp
-        ${TOP_DIR}/tests/autofuse/st/att/testcase/solver_pass_gen/axes_reorder_solver_gen/*.cpp
-        ${TOP_DIR}/tests/autofuse/st/att/testcase/solver_pass_gen/general_solver_gen/*.cpp
-        ${TOP_DIR}/tests/autofuse/st/att/testcase/solver_pass_gen/l2_solver_gen/*.cpp
-        ${TOP_DIR}/tests/autofuse/st/att/testcase/solver_pass_gen/l0_solver_gen/*.cpp
-        ${TOP_DIR}/tests/autofuse/st/att/testcase/solver_pass/l0_solver/*.cpp
-        ${TOP_DIR}/tests/autofuse/st/att/testcase/solver_pass/l2_solver/*.cpp
-        ${TOP_DIR}/tests/autofuse/st/att/testcase/solver_pass/general_solver/*.cpp
-        ${TOP_DIR}/tests/autofuse/st/att/testcase/solver_pass_manager/*.cpp
-        ${TOP_DIR}/tests/autofuse/st/att/testcase/select_model/*.cpp
+        # common stub
+        ${TOP_DIR}/tests/autofuse/common/stub/stub_model_info.cpp
+        ${TOP_DIR}/tests/autofuse/common/stub/stub_matmul_modelinfo.cpp
+        ${TOP_DIR}/tests/autofuse/common/stub/stub_ffn_modelinfo.cpp
+        # --- source_mirror: generator ---
+        ${TOP_DIR}/tests/autofuse/st/att/testcase/source_mirror/generator/preprocess/*.cpp
+        ${TOP_DIR}/tests/autofuse/st/att/testcase/source_mirror/generator/solver_pass/l0_solver/*.cpp
+        ${TOP_DIR}/tests/autofuse/st/att/testcase/source_mirror/generator/solver_pass/l2_solver/*.cpp
+        ${TOP_DIR}/tests/autofuse/st/att/testcase/source_mirror/generator/solver_pass/general_solver/*.cpp
+        ${TOP_DIR}/tests/autofuse/st/att/testcase/source_mirror/generator/solver_pass/src/*.cpp
+        ${TOP_DIR}/tests/autofuse/st/att/testcase/source_mirror/generator/solver_pass_gen/l0_solver_gen/*.cpp
+        ${TOP_DIR}/tests/autofuse/st/att/testcase/source_mirror/generator/solver_pass_gen/l2_solver_gen/*.cpp
+        ${TOP_DIR}/tests/autofuse/st/att/testcase/source_mirror/generator/solver_pass_gen/general_solver_gen/*.cpp
+        ${TOP_DIR}/tests/autofuse/st/att/testcase/source_mirror/generator/solver_pass_gen/axes_reorder_solver_gen/*.cpp
+        ${TOP_DIR}/tests/autofuse/st/att/testcase/source_mirror/generator/solver_pass_gen/manager/*.cpp
+        ${TOP_DIR}/tests/autofuse/st/att/testcase/source_mirror/generator/test_generator.cpp
+        ${TOP_DIR}/tests/autofuse/st/att/testcase/source_mirror/generator/generator_utils/tiling_func/src/*.cpp
+        # --- source_mirror: gen_model_info ---
+        ${TOP_DIR}/tests/autofuse/st/att/testcase/source_mirror/gen_model_info_content/*.cpp
+        ${TOP_DIR}/tests/autofuse/st/att/testcase/source_mirror/gen_model_info_content/api_tiling_gen/*.cpp
+        ${TOP_DIR}/tests/autofuse/st/att/testcase/source_mirror/gen_model_info_content/api_tiling_gen/api/*.cpp
+        # --- source_mirror: util ---
+        ${TOP_DIR}/tests/autofuse/st/att/testcase/source_mirror/util/test_log/*.cpp
+        ${TOP_DIR}/tests/autofuse/st/att/testcase/source_mirror/util/utils_test/*.cpp
+        # --- scenario ---
+        ${TOP_DIR}/tests/autofuse/st/att/testcase/scenario/matmul/*.cpp
+        ${TOP_DIR}/tests/autofuse/st/att/testcase/scenario/concat/*.cpp
+        ${TOP_DIR}/tests/autofuse/st/att/testcase/scenario/add_layer_norm/*.cpp
+        ${TOP_DIR}/tests/autofuse/st/att/testcase/scenario/ffn/*.cpp
+        ${TOP_DIR}/tests/autofuse/st/att/testcase/scenario/reduce_split_penalty/*.cpp
+        ${TOP_DIR}/tests/autofuse/st/att/testcase/scenario/e2e_st_test/*.cpp
+        ${TOP_DIR}/tests/autofuse/st/att/testcase/scenario/e2e_brc_buf/*.cpp
+        ${TOP_DIR}/tests/autofuse/st/att/testcase/scenario/profiler_e2e/*.cpp
+        ${TOP_DIR}/tests/autofuse/st/att/testcase/scenario/att_st_test/*.cpp
+        ${TOP_DIR}/tests/autofuse/st/att/testcase/scenario/select_model/*.cpp
+        # stub
         ${TOP_DIR}/tests/autofuse/st/att/testcase/stub/*.cpp
-        ${TOP_DIR}/tests/autofuse/st/att/testcase/utils_test/*.cpp
-        ${TOP_DIR}/tests/autofuse/st/att/testcase/gen_model_info/*.cpp
-        ${TOP_DIR}/tests/autofuse/st/att/testcase/gen_model_info/api_tiling_gen/*.cpp
-        ${TOP_DIR}/tests/autofuse/st/att/testcase/gen_model_info/api_tiling_gen/api/*.cpp
-        ${TOP_DIR}/tests/autofuse/st/att/testcase/test_log/*.cpp
-        ${TOP_DIR}/tests/autofuse/st/att/testcase/add_layer_norm/test_add_layer_norm.cpp
-        ${TOP_DIR}/tests/autofuse/st/att/testcase/add_layer_norm/add_layer_norm.cpp
-        ${TOP_DIR}/tests/autofuse/st/att/testcase/concat/*.cpp
-        ${TOP_DIR}/tests/autofuse/st/att/testcase/cache/*.cpp
-        ${TOP_DIR}/tests/autofuse/st/att/testcase/reduce_split_penalty/*.cpp
-        ${TOP_DIR}/tests/autofuse/st/att/testcase/e2e_st_test/*.cpp
-        ${TOP_DIR}/tests/autofuse/st/att/testcase/profiler_e2e/*.cpp
-        ${TOP_DIR}/tests/autofuse/st/att/testcase/e2e_brc_buf/*.cpp
         ${TOP_DIR}/tests/autofuse/st/att/utils/*.cpp
 )
 
-file(GLOB DEPENDS
-        ${ATT_PATH}/sample/depends/fake/*.cpp
-        )
+# 排除依赖不可用头文件的测试（旧版本就不在编译列表中）
+list(FILTER SOURCES EXCLUDE REGEX "test_add_layer_norm_e2e\\.cpp$")
+# tiling_func/src/*.cpp not compiled in old version
+list(FILTER SOURCES EXCLUDE REGEX "tiling_func/src/.+\\.cpp$")
+# solver_pass/src/*.cpp 是源码镜像，旧版本从 ATT_DIR 编译
+list(FILTER SOURCES EXCLUDE REGEX "solver_pass/src/.+\\.cpp$")
+
+file(GLOB DEPENDS)
 
 add_executable(att_st
         ${DEPENDS}
         ${SOURCES}
-        ${TOP_DIR}/tests/autofuse/st/att/testcase/kernel_tiling/kernel_tiling.h
+        ${TOP_DIR}/tests/autofuse/st/att/testcase/source_mirror/generator/generator_utils/kernel_tiling/kernel_tiling.h
 )
 target_link_directories(att_st PRIVATE ${ASCEND_INSTALL_LIB_PATH})
 target_include_directories(att_st PRIVATE
         ${TOP_DIR}/tests/autofuse/st/att/testcase
+        ${TOP_DIR}/tests/autofuse/st/att/testcase/source_mirror
+        ${TOP_DIR}/tests/autofuse/st/att/testcase/source_mirror/generator
+        ${TOP_DIR}/tests/autofuse/st/att/testcase/source_mirror/generator/solver_pass/general_solver
+        ${TOP_DIR}/tests/autofuse/st/att/testcase/source_mirror/gen_model_info_content
+        ${TOP_DIR}/tests/autofuse/st/att/testcase/source_mirror/util
+        ${TOP_DIR}/tests/autofuse/st/att/testcase/scenario
+        ${TOP_DIR}/tests/autofuse/st/att/testcase/scenario/common
         ${TOP_DIR}/tests/autofuse/st/att/utils
+        ${TOP_DIR}/tests/autofuse/common/stub
         ${TOP_DIR}
         ${TOP_DIR}/compiler/graph/optimize/autofuse
         ${TOP_DIR}/common
@@ -72,7 +96,7 @@ target_include_directories(att_st PRIVATE
         ${ATT_DIR}/generator/solver_pass_gen
         ${ATT_DIR}/generator/cache
         ${ATT_DIR}/gen_model_info
-        ${ATT_DIR}/sample/depends/fake
+        ${ATT_DIR}/gen_model_info
         ${ASCEND_INSTALL_PATH}/include
         ${CMAKE_BINARY_DIR}/proto/metadef_protos
         ${CMAKE_BINARY_DIR}/ascir_builtin_ops/ascir_ops.h

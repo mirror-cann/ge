@@ -19,7 +19,7 @@
 #include <vector>
 
 #include "ge/ge_api_error_codes.h"
-#include "graph_metadef/register/register.h"
+#include "graph_metadef/register/graph_register.h"
 
 namespace ge {
 using SoHandlesVec = std::vector<void *>;

@@ -550,7 +550,7 @@ class RoundAscIrCodegenImplV2 : public AscIrCodegenV2 {
   }
   [[nodiscard]] std::vector<std::string> IncludeApiHeaderFiles() const override {
     return {
-      "adv_api/pad/round.h",
+      "adv_api/math/round.h",
     };
   }
   [[nodiscard]] bool IsNodeValid(const ge::AscNode &node) const override {
@@ -3233,6 +3233,7 @@ class FloorToIntAscIrCodegenImplV2 : public AscIrCodegenV2 {
   [[nodiscard]] std::vector<std::string> IncludeApiHeaderFiles() const override {
     return {
       "basic_api/reg_compute/kernel_reg_compute_intf.h",
+      "basic_api/kernel_operator_vec_vconv_intf.h",
     };
   }
   [[nodiscard]] bool IsNodeValid(const ge::AscNode &node) const override {
@@ -3613,7 +3614,11 @@ class RoundToIntAscIrCodegenImplV2 : public AscIrCodegenV2 {
   [[nodiscard]] std::vector<std::string> LoadApiHeaderFiles() const override {
     return {std::string("cast") + std::string("_reg_base.h")};
   }
-
+  [[nodiscard]] std::vector<std::string> IncludeApiHeaderFiles() const override {
+    return {
+      "basic_api/kernel_operator_vec_vconv_intf.h",
+    };
+  }
   [[nodiscard]] bool IsNodeValid(const ge::AscNode &node) const override {
     GE_ASSERT_SUCCESS(ValidateShapeConsistencyWithSingleOutput(node), "Node %s[%s] check shape consistency failed", node.GetTypePtr(),
                       node.GetNamePtr());
@@ -3635,7 +3640,11 @@ class TruncToIntAscIrCodegenImplV2 : public AscIrCodegenV2 {
   [[nodiscard]] std::vector<std::string> LoadApiHeaderFiles() const override {
     return {std::string("cast") + std::string("_reg_base.h")};
   }
-
+  [[nodiscard]] std::vector<std::string> IncludeApiHeaderFiles() const override {
+    return {
+      "basic_api/kernel_operator_vec_vconv_intf.h",
+    };
+  }
   [[nodiscard]] bool IsNodeValid(const ge::AscNode &node) const override {
     GE_ASSERT_SUCCESS(ValidateShapeConsistencyWithSingleOutput(node), "Node %s[%s] check shape consistency failed", node.GetTypePtr(),
                       node.GetNamePtr());

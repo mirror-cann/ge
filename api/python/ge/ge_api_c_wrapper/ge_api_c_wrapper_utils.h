@@ -18,6 +18,7 @@
 #include "graph/utils/math_util.h"
 #include "common/checker.h"
 #include "ge/ge_api.h"
+#include "ge/ge_ir_build.h"
 #include "ge/eager_style_graph_builder/c/esb_funcs.h"
 
 namespace ge {
@@ -209,6 +210,19 @@ ge::graphStatus GeApiWrapper_GNode_SetOutputAttr(ge::GNode *node, const char *at
 void GeApiWrapper_GNode_FreeIntArray(int32_t *arrs);
 ge::Status GeApiWrapper_GEFinalize();
 ge::Status GeApiWrapper_GEInitialize(char **keys, char **values, int size);
+ge::graphStatus GeApiWrapper_OfflineCompile_BuildInitialize(char **keys, char **values, int size);
+void GeApiWrapper_OfflineCompile_BuildFinalize();
+ge::graphStatus GeApiWrapper_OfflineCompile_BuildModel(ge::Graph *graph, char **keys, char **values, int size,
+                                                              ge::ModelBufferData **model);
+ge::graphStatus GeApiWrapper_OfflineCompile_SaveModel(const char_t *output_file,
+                                                             const ge::ModelBufferData *model);
+ge::graphStatus GeApiWrapper_OfflineCompile_BundleBuildModel(ge::Graph **graphs, char ***keys, char ***values,
+                                                                    int *sizes, int graph_count,
+                                                                    ge::ModelBufferData **model);
+ge::graphStatus GeApiWrapper_OfflineCompile_BundleSaveModel(const char_t *output_file,
+                                                                   const ge::ModelBufferData *model);
+void GeApiWrapper_ModelBuffer_Destroy(const ge::ModelBufferData *model);
+uint64_t GeApiWrapper_ModelBuffer_GetLength(const ge::ModelBufferData *model);
 ge::graphStatus GeApiWrapper_Graph_LoadFromAir(ge::Graph *graph, const char_t *file_name);
 ge::graphStatus GeApiWrapper_Graph_AddControlEdge(ge::Graph *graph, ge::GNode &src_node, ge::GNode &dst_node);
 ge::graphStatus GeApiWrapper_Graph_SetAttr(ge::Graph *graph, const char *key, const void *attr_value);

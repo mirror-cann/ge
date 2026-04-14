@@ -8,6 +8,7 @@ GE-PY 模块包含以下核心组件：
 
 - **graph 模块** - 图基础操作模块，提供 Graph、Node、Tensor 等核心类
 - **ge_global 模块** - GE 全局初始化和析构接口
+- **offline_compile 模块** - 离线图编译接口
 - **session 模块** - 图编译执行接口
 - **es 模块** - Eager-Style 图构建接口，提供函数式风格的图构建方式
 
@@ -16,6 +17,7 @@ GE-PY 模块包含以下核心组件：
 ### 设计文档
 
 - **[GE-PY 模块类关系文档](design/ge_python.md)** - Graph、Node、Tensor、Session 等基础模块的详细说明
+  - offline_compile 模块：离线图编译接口
   - Graph 类：图操作的主要接口
   - Node 类：图节点操作接口
   - Tensor 类：张量数据类
@@ -32,6 +34,7 @@ GE-PY 模块包含以下核心组件：
 - **es 模块** - 提供函数式图构建方式，最终构建出 graph 模块的 Graph 对象
 - **session 模块** - 使用 graph 模块构建的图进行编译和执行
 - **ge_global 模块** - 提供全局初始化和资源管理
+- **offline_compile 模块** - 提供离线模型构建、导出能力
 
 ## 使用示例
 
@@ -39,6 +42,11 @@ GE-PY 模块包含以下核心组件：
 
 参考 [使用es的python api构图sample](../../examples/es/transformer/python/README.md)的方式执行用例， 特别需要说明的是:
 [需要先安装包并设置对应的环境变量](../../examples/es/transformer/python/README.md#31准备cann包)
+
+### 离线图编译执行示例
+
+参考 [使用offline_compile的python api离线图编译执行sample](../../examples/offline_compile_run/python/README.md) 的方式执行用例，特别需要说明的是：
+[需要先安装包并设置对应的环境变量](../../examples/offline_compile_run/python/README.md#31准备cann包)
 
 ### 更多示例
 
@@ -59,6 +67,7 @@ GE-PY 模块包含以下核心组件：
 - [x] [***December 2025***]基础接口已经完成设计和落地。
 - [x] [***February 2026***] es 的 python 算子 api 支持，详见[es api集成路标](../es/README.md#api-集成)。
 - [ ] [***March 2026***] 图异步执行的python接口提供
+- [x] [***April 2026***] 离线图编译执行的python接口提供
 
 ### sample和相关文档
 
@@ -70,6 +79,3 @@ GE-PY 模块包含以下核心组件：
 - [x] [***December 2025***]Python api 后向兼容完成设计并落地。
 
 ### others
-
-- [ ] [***TBD***] 离线图编译执行的python接口暂无提供计划。
-

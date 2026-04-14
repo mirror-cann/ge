@@ -18,7 +18,7 @@
 #include "graph/gnode.h"
 #include "graph/op_desc.h"
 #include "graph/operator.h"
-#include "graph_metadef/register/register.h"
+#include "graph_metadef/register/graph_register.h"
 
 namespace ge {
 class HostCpuEngine {

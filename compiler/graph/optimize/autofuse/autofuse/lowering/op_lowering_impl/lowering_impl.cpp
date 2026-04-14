@@ -135,7 +135,8 @@ graphStatus CollectConcatInputs(const NodePtr &node, int64_t concat_dim_tensor_i
   int64_t input_index = 0;
   for (const auto &in_anchor : node->GetAllInDataAnchors()) {
     GE_ASSERT_NOTNULL(in_anchor);
-    if ((concat_dim_tensor_index != -1L) && (input_index++ == concat_dim_tensor_index)) {
+    const auto cur_index = input_index++;
+    if ((concat_dim_tensor_index != -1L) && (cur_index == concat_dim_tensor_index)) {
       continue;
     }
     std::vector<Expression> input_dims;

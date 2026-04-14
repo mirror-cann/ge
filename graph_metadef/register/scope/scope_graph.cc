@@ -11,7 +11,7 @@
 #include <stack>
 #include "register/scope/scope_graph_impl.h"
 #include "register/register_utils.h"
-#include "graph_metadef/register/register.h"
+#include "graph_metadef/register/graph_register.h"
 #include "framework/common/debug/ge_log.h"
 #include "common/ge_common/string_util.h"
 #include "graph_metadef/graph/debug/ge_util.h"

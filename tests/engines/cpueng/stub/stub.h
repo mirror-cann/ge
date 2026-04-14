@@ -9,7 +9,7 @@
  */
 
 #include "common/engine/base_engine.h"
-#include "graph_metadef/register/register.h"
+#include "graph_metadef/register/graph_register.h"
 
 ge::RunContext CreateContext();
 

@@ -16,7 +16,7 @@
 #include "graph/utils/graph_utils_ex.h"
 #include "graph/utils/op_desc_utils_ex.h"
 #include "register/op_registry.h"
-#include "graph_metadef/register/register.h"
+#include "graph_metadef/register/graph_register.h"
 #include "st/parser_st_utils.h"
 #include "depends/ops_stub/ops_stub.h"
 #include "parser/common/acl_graph_parser_util.h"

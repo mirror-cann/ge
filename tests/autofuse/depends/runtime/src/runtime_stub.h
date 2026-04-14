@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2025 Huawei Technologies Co., Ltd.
+ * Copyright (c) 2026 Huawei Technologies Co., Ltd.
  * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
@@ -11,12 +11,15 @@
 #ifndef __INC_LLT_RUNTIME_STUB_H
 #define __INC_LLT_RUNTIME_STUB_H
 
+#include <cstdint>
 #include <vector>
 #include <memory>
 #include <mutex>
 #include "mmpa/mmpa_api.h"
-#include "runtime/rt.h"
 #include "rt_error_codes.h"
+
+using rtError_t = int32_t;
+constexpr rtError_t RT_ERROR_NONE = 0;
 namespace ge {
 class RuntimeStub {
 public:
@@ -59,4 +62,16 @@ class RuntimeStubV2Common : public RuntimeStub {
   }
 };
 }  // namespace ge
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+rtError_t rtGetSocVersion(char *version, const uint32_t maxLen);
+rtError_t rtGetSocSpec(const char* label, const char* key, char* val, const uint32_t maxLen);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif // __INC_LLT_RUNTIME_STUB_H

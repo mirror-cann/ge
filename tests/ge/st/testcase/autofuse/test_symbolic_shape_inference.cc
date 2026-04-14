@@ -8590,20 +8590,105 @@ TEST_F(SymbolicShapeInferenceST, test_matrixdiagv2_col_less_than_min) {
 TEST_F(SymbolicShapeInferenceST, test_matrixdiagv2_row_less_than_min) {
   auto diagonal = builder_->CreateInput(0, "diagonal");
   diagonal.SetOriginSymbolShape(std::vector<const char *>({"s0", "s1" "3"}));
-  
+
   auto k = builder_->CreateScalar(static_cast<int32_t>(0));
   auto num_rows =  builder_->CreateScalar(static_cast<int32_t>(0));
   auto num_cols = builder_->CreateScalar(static_cast<int32_t>(3));
   auto padding_value = builder_->CreateScalar(static_cast<float>(0.0f));
-  
+
   auto matrix_diag_v2 = es::MatrixDiagV2(diagonal, k, num_rows, num_cols, padding_value);
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(matrix_diag_v2, 0), 0);
-  
+
   auto graph = builder_->BuildAndReset();
   auto cg = GraphUtilsEx::GetComputeGraph(*graph);
   ASSERT_NE(cg, nullptr);
-  
+
   SymbolicShapeInference ssi;
   ASSERT_NE(ssi.Infer(cg), ge::SUCCESS);
-} 
+}
+
+/*
+ * 预置条件：if子图中嵌套 partitioncall，partitioncall 通过数据锚点连接 data 节点
+ * 执行步骤：调用 SymbolicInfoPreProcessor::Run（内部触发 UnfoldAllPartitioncallInPlace）
+ * 预期结果：SymbolicInfoPreProcessor::Run 成功
+ *           if 各子图中 partitioncall 节点均已展开并移除
+ *           then/else 分支的 partitioncall 所有输入数据锚点已被 UnlinkAll() 正确断开
+ */
+TEST_F(SymbolicShapeInferenceST, PartitioncallInputAnchorUnlinkedAfterPreProcess) {
+  auto root_graph = gert::ShareGraph::BuildIfWithNestedPartitionedCall();
+
+  // 预处理前，保存 if 各分支子图中 partitioncall 节点的引用
+  NodePtr then_partitioncall = nullptr;
+  NodePtr else_partitioncall = nullptr;
+  for (const auto &subgraph : root_graph->GetAllSubgraphs()) {
+    auto pc = subgraph->FindNode("then_partitioncall");
+    if (pc != nullptr) { then_partitioncall = pc; }
+    pc = subgraph->FindNode("else_partitioncall");
+    if (pc != nullptr) { else_partitioncall = pc; }
+  }
+  ASSERT_NE(then_partitioncall, nullptr);
+  ASSERT_NE(else_partitioncall, nullptr);
+
+  // 预处理前：partitioncall 的输入数据锚点已通过数据边连接到 data 节点
+  ASSERT_EQ(then_partitioncall->GetAllInDataAnchorsPtr().size(), 1U);
+  ASSERT_NE(then_partitioncall->GetInDataAnchor(0)->GetPeerOutAnchor(), nullptr);
+  ASSERT_NE(else_partitioncall->GetInDataAnchor(0)->GetPeerOutAnchor(), nullptr);
+
+  std::vector<GeTensor> input_vec;
+  ASSERT_EQ(SymbolicInfoPreProcessor::Run(root_graph, input_vec), SUCCESS);
+
+  // 预处理后：if 各子图中 partitioncall 均已展开移除
+  for (const auto &subgraph : root_graph->GetAllSubgraphs()) {
+    EXPECT_EQ(subgraph->FindFirstNodeMatchType(PARTITIONEDCALL), nullptr);
+  }
+  // then/else 分支 partitioncall 的所有输入数据锚点均已被 UnlinkAll() 断开
+  for (const auto &anchor : then_partitioncall->GetAllInDataAnchorsPtr()) {
+    EXPECT_EQ(anchor->GetPeerOutAnchor(), nullptr);
+  }
+  for (const auto &anchor : else_partitioncall->GetAllInDataAnchorsPtr()) {
+    EXPECT_EQ(anchor->GetPeerOutAnchor(), nullptr);
+  }
+}
+
+/*
+ * 预置条件：case子图中多个分支各自嵌套 partitioncall，partitioncall 通过数据锚点连接 data 节点
+ * 执行步骤：调用 SymbolicInfoPreProcessor::Run（内部触发 UnfoldAllPartitioncallInPlace）
+ * 预期结果：SymbolicInfoPreProcessor::Run 成功
+ *           case 各分支子图中 partitioncall 节点均已展开并移除
+ *           batch1/batch2 分支的 partitioncall 所有输入数据锚点已被 UnlinkAll() 正确断开
+ */
+TEST_F(SymbolicShapeInferenceST, AllPartitioncallBranchAnchorsUnlinkedAfterPreProcess) {
+  auto root_graph = gert::ShareGraph::BuildCaseWithNestedPartitionedCall();
+
+  // 预处理前，保存 case 各分支子图中 partitioncall 节点的引用
+  NodePtr batch1_partitioncall = nullptr;
+  NodePtr batch2_partitioncall = nullptr;
+  for (const auto &subgraph : root_graph->GetAllSubgraphs()) {
+    auto pc = subgraph->FindNode("batch1_partitioncall");
+    if (pc != nullptr) { batch1_partitioncall = pc; }
+    pc = subgraph->FindNode("batch2_partitioncall");
+    if (pc != nullptr) { batch2_partitioncall = pc; }
+  }
+  ASSERT_NE(batch1_partitioncall, nullptr);
+  ASSERT_NE(batch2_partitioncall, nullptr);
+
+  // 预处理前：batch1、batch2 分支的 partitioncall 输入数据锚点均已通过数据边连接
+  ASSERT_NE(batch1_partitioncall->GetInDataAnchor(0)->GetPeerOutAnchor(), nullptr);
+  ASSERT_NE(batch2_partitioncall->GetInDataAnchor(0)->GetPeerOutAnchor(), nullptr);
+
+  std::vector<GeTensor> input_vec;
+  ASSERT_EQ(SymbolicInfoPreProcessor::Run(root_graph, input_vec), SUCCESS);
+
+  // 预处理后：case 各分支子图中 partitioncall 均已展开移除
+  for (const auto &subgraph : root_graph->GetAllSubgraphs()) {
+    EXPECT_EQ(subgraph->FindFirstNodeMatchType(PARTITIONEDCALL), nullptr);
+  }
+  // batch1、batch2 分支 partitioncall 的所有输入数据锚点均已被 UnlinkAll() 断开
+  for (const auto &anchor : batch1_partitioncall->GetAllInDataAnchorsPtr()) {
+    EXPECT_EQ(anchor->GetPeerOutAnchor(), nullptr);
+  }
+  for (const auto &anchor : batch2_partitioncall->GetAllInDataAnchorsPtr()) {
+    EXPECT_EQ(anchor->GetPeerOutAnchor(), nullptr);
+  }
+}
 }  // namespace ge

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2025 Huawei Technologies Co., Ltd.
+ * Copyright (c) 2026 Huawei Technologies Co., Ltd.
  * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
 #include "gtest/gtest.h"
 #include "api_perf_register/ascendc_api_perf.h"
 #include "api_perf_register/api_perf_factory.h"
-#include "../../../../st/att/testcase/gen_model_info/runtime_stub.h"
+#include "../../../../st/att/testcase/source_mirror/gen_model_info_content/runtime_stub.h"
 #include "common/platform_context.h"
 #include "compiler/graph/optimize/autofuse/v35/att/api_perf_register/ascir_api_perf_v2.h"
 #include "compiler/graph/optimize/autofuse/v35/att/api_perf_register/perf_param_v2.h"

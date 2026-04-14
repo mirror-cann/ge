@@ -149,9 +149,8 @@ bool CubeFusionStrategy::CanFuse(const NodePtr &node1, const NodePtr &node2) {
   }
 
   // 3.cube不能和非elementwise融合
-  uint64_t supported_type = (1UL << static_cast<uint64_t>(loop::FuseType::kPointwise));
-  if (!(attr1->HasFuseType(loop::FuseType::kCube) && (attr2->GetAllFuseType() == supported_type))) {
-    GELOGI("node1 %s(%s) and node2 %s(%s) can not fuse, the reason is[%s] [node1 is Cube, node2 is not Pointwise].",
+  if (!(attr1->HasFuseType(loop::FuseType::kCube) && BackendUtils::IsOnlyPointwise(node2))) {
+    GELOGI("node1 %s(%s) and node2 %s(%s) can not fuse, reason is[%s] [node1 is Cube, node2 is not Pointwise or Reshape].",
            node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
            ge::NotFuseReasonCode(ge::NotFuseReason::kCubeCanNotFuseWithNotElementwise));
     return false;

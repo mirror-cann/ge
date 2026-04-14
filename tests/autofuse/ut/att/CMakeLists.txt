@@ -13,30 +13,50 @@ add_compile_definitions(TOP_DIR=\"${TOP_DIR}\")
 add_compile_definitions(UT_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\")
 
 file(GLOB SOURCES
-        ${TOP_DIR}/tests/autofuse/ut/att/testcase/test_expr/*.cpp
+        # common stub
+        ${TOP_DIR}/tests/autofuse/common/stub/stub_model_info.cpp
+        ${TOP_DIR}/tests/autofuse/common/stub/stub_matmul_modelinfo.cpp
+        ${TOP_DIR}/tests/autofuse/common/stub/stub_solver_model_info.cpp
+        # generator/preprocess
+        ${TOP_DIR}/tests/autofuse/ut/att/testcase/preprocess/*.cpp
+        # generator/solver_pass
+        ${TOP_DIR}/tests/autofuse/ut/att/testcase/solver_pass/l0_solver/*.cpp
+        ${TOP_DIR}/tests/autofuse/ut/att/testcase/solver_pass/l2_solver/*.cpp
+        ${TOP_DIR}/tests/autofuse/ut/att/testcase/solver_pass/general_solver/*.cpp
+        ${TOP_DIR}/tests/autofuse/ut/att/testcase/solver_pass/src/*.cpp
+        # generator/solver_pass_gen
         ${TOP_DIR}/tests/autofuse/ut/att/testcase/solver_pass_gen/axes_reorder_gen/*.cpp
         ${TOP_DIR}/tests/autofuse/ut/att/testcase/solver_pass_gen/general_solver_gen/*.cpp
         ${TOP_DIR}/tests/autofuse/ut/att/testcase/solver_pass_gen/l2_solver_gen/*.cpp
         ${TOP_DIR}/tests/autofuse/ut/att/testcase/solver_pass_gen/l0_solver_gen/*.cpp
-        ${TOP_DIR}/tests/autofuse/ut/att/testcase/solver_pass/l0_solver/*.cpp
-        ${TOP_DIR}/tests/autofuse/ut/att/testcase/solver_pass/l2_solver/*.cpp
-        ${TOP_DIR}/tests/autofuse/ut/att/testcase/solver_pass/general_solver/*.cpp
-        ${TOP_DIR}/tests/autofuse/ut/att/testcase/solver_pass_manager/*.cpp
-        ${TOP_DIR}/tests/autofuse/ut/att/testcase/util/*.cpp
-        ${TOP_DIR}/tests/autofuse/ut/att/testcase/generator/att_generator_unittest.cpp
-        ${TOP_DIR}/tests/autofuse/ut/att/testcase/gen_model_info/api_perf_register/*.cpp
-        ${TOP_DIR}/tests/autofuse/ut/att/testcase/gen_model_info/expr_gen/*.cpp
+        ${TOP_DIR}/tests/autofuse/ut/att/testcase/solver_pass_gen/manager/*.cpp
+        # generator/core
+        ${TOP_DIR}/tests/autofuse/ut/att/testcase/generator/core/*.cpp
+        # gen_model_info/parser
         ${TOP_DIR}/tests/autofuse/ut/att/testcase/gen_model_info/parser/*.cpp
+        # gen_model_info/expr_gen
+        ${TOP_DIR}/tests/autofuse/ut/att/testcase/gen_model_info/expr_gen/*.cpp
+        # gen_model_info/pass
         ${TOP_DIR}/tests/autofuse/ut/att/testcase/gen_model_info/pass/*.cpp
+        # gen_model_info/utils
         ${TOP_DIR}/tests/autofuse/ut/att/testcase/gen_model_info/utils/*.cpp
-        ${TOP_DIR}/tests/autofuse/ut/att/testcase/gen_model_info/*.cpp
-        ${TOP_DIR}/tests/autofuse/ut/att/testcase/gen_model_info/equivalent_graph_recongnizer/*.cpp
+        # gen_model_info/reuse_group_utils
+        ${TOP_DIR}/tests/autofuse/ut/att/testcase/gen_model_info/reuse_group_utils/*.cpp
+        # gen_model_info/api_perf_register
+        ${TOP_DIR}/tests/autofuse/ut/att/testcase/gen_model_info/api_perf_register/*.cpp
+        # gen_model_info/core
+        ${TOP_DIR}/tests/autofuse/ut/att/testcase/gen_model_info/core/*.cpp
+        # util
+        ${TOP_DIR}/tests/autofuse/ut/att/testcase/util/*.cpp
+        # ascir
         ${TOP_DIR}/tests/autofuse/ut/att/testcase/ascir/*.cpp
+        # check_input
         ${TOP_DIR}/tests/autofuse/ut/att/testcase/check_input/*.cpp
-        ${TOP_DIR}/tests/autofuse/ut/att/testcase/matmul/*.cpp
-        ${TOP_DIR}/tests/autofuse/ut/att/testcase/concat/*.cpp
         ${TOP_DIR}/tests/autofuse/ut/att/utils/*.cpp
     )
+
+# solver_pass/src/*.cpp 是源码镜像，从 ATT_DIR 编译，排除以避免 multiple definition
+list(FILTER SOURCES EXCLUDE REGEX "solver_pass/src/.+\\.cpp$")
 
 add_executable(att_ut
         ${SOURCES}
@@ -47,7 +67,9 @@ target_link_directories(att_ut PRIVATE ${ASCEND_INSTALL_LIB_PATH})
 target_include_directories(att_ut PRIVATE
         ${TOP_DIR}/tests/autofuse/ut/att/testcase
         ${TOP_DIR}/tests/autofuse/ut/att/utils
+        ${TOP_DIR}/tests/autofuse/common/stub
         ${TOP_DIR}/tests/autofuse/ut/att/testcase/gen_model_info
+        ${TOP_DIR}/tests/autofuse/ut/att/testcase/gen_model_info/core
         ${TOP_DIR}/
         ${TOP_DIR}/compiler/graph/optimize/autofuse
         ${TOP_DIR}/common

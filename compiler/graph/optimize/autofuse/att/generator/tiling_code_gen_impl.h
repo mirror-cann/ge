@@ -157,7 +157,7 @@ class TilingCodeGenImpl {
 
   // 辅助函数：获取GetTiling函数的参数定义字符串
   std::string GetGetTilingParamDefines(bool use_cache, bool use_workspace, std::string &cache_define_head,
-                                        std::string &cache_define_func, std::string &cache_used);
+                                        std::string &cache_define_func, std::string &cache_used) const;
   // 辅助函数：生成GetTiling函数签名
   void GenGetTilingFunctionSignature(const std::string &workspace_define, const std::string &cache_define_func,
                                       const std::string &cache_define_head);

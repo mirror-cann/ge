@@ -73,6 +73,7 @@ else()
                             -DOPENSSL_ROOT_DIR=${CMAKE_THIRD_PARTY_LIB_DIR}/openssl
                             -DOPENSSL_USE_STATIC_LIBS=TRUE
                             # grpc option
+                            -DCMAKE_POLICY_VERSION_MINIMUM=3.5
                             -DCMAKE_CXX_STANDARD=14
                             -DCMAKE_CXX_FLAGS=${GRPC_CXX_FLAGS}
                             -DCMAKE_C_COMPILER_LAUNCHER=${CMAKE_C_COMPILER_LAUNCHER}

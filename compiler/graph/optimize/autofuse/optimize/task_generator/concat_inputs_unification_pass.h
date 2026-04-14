@@ -28,7 +28,7 @@ class ConcatInputUnificationPass {
   static ge::Expression GetColSize(const ge::AscTensor &tensor, size_t concat_dim);
   static ge::Status GetLoadNum(const ge::AscNodePtr &concat_node, uint32_t &load_num);
   static bool IsSrcColSizeAlignedToB4(const ge::AscNodePtr &concat_node, size_t concat_dim, int32_t dtype_size);
-  static bool IsDstColSizeOverLimit(const ge::AscNodePtr &concat_node, size_t concat_dim, int32_t dtype_size);
+  static bool IsSrcColSizeOverLimit(const ge::AscNodePtr &concat_node, size_t concat_dim, int32_t dtype_size);
 };
 
 }  // optimize

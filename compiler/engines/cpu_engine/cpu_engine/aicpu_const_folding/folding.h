@@ -22,7 +22,7 @@
 #include <string>
 
 #include "graph/utils/op_desc_utils.h"
-#include "graph_metadef/register/register.h"
+#include "graph_metadef/register/graph_register.h"
 
 extern "C" {
 __attribute__((visibility("default"))) int32_t InitCpuConstantFoldingNew(

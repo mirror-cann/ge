@@ -9,9 +9,9 @@
  */
 
 #include "common/platform_context.h"
-#include "gen_model_info/runtime_stub.h"
+#include "runtime_stub.h"
 #include "common/test_common_headers.h"
-#include "common/test_common_utils.h"
+#include "common/st_scenario_utils.h"
 
 using namespace att;
 class STestReduceSplitPenaltyV2 : public ::testing::Test {
@@ -33,11 +33,11 @@ ge::RuntimeStubV2 STestReduceSplitPenaltyV2::stub_v_2;
 
 namespace {
 
-using test_common::ValidateTilingResult;
-using test_common::PrintTilingDebugInfo;
 using test_common::ConstructSingleCaseForReduceSplitPenalty;
 using test_common::GenTilingImpl;
+using test_common::PrintTilingDebugInfo;
 using test_common::RunBasicTilingTest;
+using test_common::ValidateTilingResult;
 
 // 创建运行测试的main函数内容 (V2版本，包含两个测试用例)
 std::string CreateRunTestMainV2() {
@@ -100,8 +100,8 @@ TEST_F(STestReduceSplitPenaltyV2, reduce_split_penalty_basic) {
   RunBasicTilingTest("ReduceSplitPenalty", schedule_results);
 }
 
-TEST_F(STestReduceSplitPenaltyV2, reduce_split_penalty_run)
-{
+TEST_F(STestReduceSplitPenaltyV2, reduce_split_penalty_run) {
+  int32_t ret = 0;
   std::vector<ascir::ScheduledResult> schedule_results;
   ASSERT_EQ(ConstructSingleCaseForReduceSplitPenalty(schedule_results), ge::SUCCESS);
   ASSERT_EQ(GenTilingImpl(schedule_results), ge::SUCCESS);
@@ -110,7 +110,7 @@ TEST_F(STestReduceSplitPenaltyV2, reduce_split_penalty_run)
   oss << "#include \"ReduceSplitPenalty_tiling_data.h\"" << ResultCheckerUtils::DefineCheckerFunction()
       << CreateRunTestMainV2();
   oss.close();
-  auto ret = std::system(
+  ret = std::system(
       "g++ -ggdb3 -O0 tiling_func_main_ReduceSplitPenalty.cpp ReduceSplitPenalty_tiling_func.cpp -o "
       "tiling_func_main_ReduceSplitPenalty -I ./ -DSTUB_LOG");
   EXPECT_EQ(ret, 0);

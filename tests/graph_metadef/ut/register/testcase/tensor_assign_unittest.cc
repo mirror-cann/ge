@@ -11,7 +11,7 @@
 #include <gtest/gtest.h>
 #include <iostream>
 #include "graph_builder_utils.h"
-#include "graph_metadef/register/register.h"
+#include "graph_metadef/register/graph_register.h"
 #include <google/protobuf/message.h>
 #include "proto/tensorflow/node_def.pb.h"
 #include "register/op_registry.h"

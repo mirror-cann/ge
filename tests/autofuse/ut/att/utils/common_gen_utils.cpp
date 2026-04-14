@@ -10,6 +10,7 @@
 
 #include "common_gen_utils.h"
 #include <sstream>
+#include <fstream>
 #include <algorithm>
 
 namespace att {
@@ -32,8 +33,8 @@ std::string RemoveAutoFuseTilingHeadGuards(const std::string &input) {
 }
 
 void CombineTilings(const std::map<std::string, std::string> &tilings, std::string &result) {
-  const std::string tiling_head = "TilingHead";  // TilingHead作为开头拼接其他文件
-  const std::string tiling_data = "TilingData";  // 要排除的 TilingData 子串
+  const std::string tiling_head = "TilingHead";                       // TilingHead作为开头拼接其他文件
+  const std::string tiling_data = "TilingData";                       // 要排除的 TilingData 子串
   result += RemoveAutoFuseTilingHeadGuards(tilings.at(tiling_head));  // 删除头文件的宏保护，cpp文件不需要
   const std::string include_str = "#include \"autofuse_tiling_func_common.h\"";
 
@@ -61,6 +62,28 @@ void CombineTilings(const std::map<std::string, std::string> &tilings, std::stri
       result += '\n';
     }
   }
+}
+
+void AddHeaderGuardToFile(const std::string &file_name, const std::string &macro_name) {
+  std::string content;
+  std::ifstream in_file(file_name);
+  if (in_file.is_open()) {
+    std::string line;
+    while (std::getline(in_file, line)) {
+      content += line + "\n";
+    }
+    in_file.close();
+  }
+
+  std::ofstream out_file;
+  out_file.open(file_name, std::ios::out);
+  out_file << "#ifndef " << macro_name << "\n";
+  out_file << "#define " << macro_name << "\n";
+  out_file << "\n";
+  out_file << content;
+  out_file << "\n";
+  out_file << "#endif // " << macro_name << "\n";
+  out_file.close();
 }
 
 }  // namespace test

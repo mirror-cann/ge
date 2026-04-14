@@ -14,12 +14,12 @@
 namespace codegen {
 class TrueDivApiCall final : public ApiCall {
 public:
- using ApiCall::Generate;
- explicit TrueDivApiCall(const std::string &api_name) : ApiCall(api_name) {}
- ~TrueDivApiCall() final = default;
- Status Generate(const TPipe &tpipe, const std::vector<ascir::AxisId> &current_axis,
-                 const std::vector<std::reference_wrapper<const Tensor>> &inputs,
-                 const std::vector<std::reference_wrapper<const Tensor>> &outputs, std::string &result) const override;
+  using ApiCall::Generate;
+  explicit TrueDivApiCall(const std::string &api_name) : ApiCall(api_name) {}
+  ~TrueDivApiCall() final = default;
+  Status Generate(const TPipe &tpipe, const std::vector<ascir::AxisId> &current_axis,
+                  const std::vector<std::reference_wrapper<const Tensor>> &inputs,
+                  const std::vector<std::reference_wrapper<const Tensor>> &outputs, std::string &result) const override;
 };
 }
 #endif // __AUTOFUSE_TRUEDIV_API_CALL_H__

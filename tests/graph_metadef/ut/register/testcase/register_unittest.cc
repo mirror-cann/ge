@@ -18,7 +18,7 @@
 #include "graph_builder_utils.h"
 #include "graph/debug/ge_op_types.h"
 #include "graph/normal_graph/compute_graph_impl.h"
-#include "graph_metadef/register/register.h"
+#include "graph_metadef/register/graph_register.h"
 #include "base/registry/op_impl_space_registry_v2.h"
 #include "base/err_mgr.h"
 

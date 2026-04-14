@@ -274,10 +274,9 @@ ge::Status GraphUnfolder::UnfoldSubGraphPartitioncall(const ge::ComputeGraphPtr 
     GE_CHK_STATUS_RET(MergeNetOutputNode(*partiticall_sub_graph),
                       "[Invoke][MergeNetOutputNode][%s] Failed to merge net output nodes for subgraph",
                       partiticall_sub_graph->GetName().c_str());
-    auto anchors = node->GetAllInDataAnchors();
-    (void)std::for_each(anchors.begin(), anchors.end(), [](ge::InDataAnchorPtr &anchor)->void {
-      return anchor->UnlinkAll();
-    });
+    for (const auto &anchor : node->GetAllInDataAnchorsPtr()) {
+      (void)anchor->UnlinkAll();
+    }
     root_graph->RemoveSubgraph(partiticall_sub_graph->GetName());
     GE_ASSERT_SUCCESS(ge::GraphUtils::RemoveJustNode(sub_graph, node));
     GELOGD("[%s] Done merging partitioncall_subgraph", partiticall_sub_graph->GetName().c_str());

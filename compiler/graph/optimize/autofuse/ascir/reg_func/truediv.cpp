@@ -21,6 +21,9 @@ std::vector<std::unique_ptr<ge::TmpBufDesc>> CalcTrueDivTmpSize(const ge::AscNod
     auto data_type = node_inputs[0].attr.dtype;
     const auto data_type_size = GetSizeByDataType(data_type);
 
+    if (HasScalarOrUbScalar(node_inputs)) {
+        return CalcDefaultTmpSize(node);
+    }
     if (data_type == ge::DT_INT32) {
         // int32类型：tmp_buf大小需要 >= 2* size * sizeof(int32_t)
         // 用于原地计算时的数据暂存或中间结果存储

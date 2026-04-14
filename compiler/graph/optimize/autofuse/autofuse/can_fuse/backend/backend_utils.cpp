@@ -31,6 +31,7 @@
 #include "asc_graph_axis_mapping.h"
 #include "can_fuse/graph_manager.h"
 #include "utils/not_fuse_reason_code.h"
+#include "lowering/asc_lowerer/loop_common.h"
 
 namespace ge {
 using namespace autofuse;
@@ -3168,6 +3169,17 @@ bool BackendUtils::OnlyHasTypesInAscgraph(const NodePtr &node, const std::vector
     }
   }
   return true;
+}
+
+// reshape（仅有reshape的AscBackend） 的 fuse type 比 pointwise 优先级低，判断只有pointwise包括pointwise和reshape
+bool BackendUtils::IsOnlyPointwise(const NodePtr &node) {
+  const auto attr = BackendUtils::GetNodeAutoFuseAttr(node);
+  GE_ASSERT_NOTNULL(attr);
+
+  uint64_t mask = (1UL << static_cast<uint64_t>(loop::FuseType::kPointwise)) |
+                  (1UL << static_cast<uint64_t>(loop::FuseType::kReshape));
+  uint64_t all_fuse_type = attr->GetAllFuseType();
+  return (all_fuse_type & ~mask) == 0;
 }
 
 void BackendUtils::SetReduceOriginalAxisInfo(AutofuseInnerAttrs &attr_new, const AutofuseInnerAttrs &attr1,

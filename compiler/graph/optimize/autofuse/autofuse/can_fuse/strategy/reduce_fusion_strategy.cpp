@@ -32,9 +32,8 @@ bool ReduceFusionStrategy::CanFuse(const NodePtr &node1, const NodePtr &node2) {
   const auto attr2 = BackendUtils::GetNodeAutoFuseAttr(node2);
   GE_ASSERT_NOTNULL(attr2);
   if (attr1->HasFuseType(loop::FuseType::kReduction)) {
-    uint64_t supported_type = (1UL << static_cast<uint64_t>(loop::FuseType::kPointwise));
     // 不支持reduce后融合 非 elementwise
-    if (attr2->GetAllFuseType() != supported_type) {
+    if (!BackendUtils::IsOnlyPointwise(node2)) {
       GELOGI(
           "node1 %s(%s) and node2 %s(%s) can not fuse, the reason is [%s][Reduce can only backward fuse with "
           "elementwise nodes]",

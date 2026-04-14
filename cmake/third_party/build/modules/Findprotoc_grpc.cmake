@@ -68,6 +68,7 @@ else()
                             # ssl
                             -DgRPC_SSL_PROVIDER=none
                             # grpc option
+                            -DCMAKE_POLICY_VERSION_MINIMUM=3.5
                             -DCMAKE_CXX_STANDARD=14
                             -DCMAKE_CXX_FLAGS=${GRPC_CXX_FLAGS}
                             -DCMAKE_C_COMPILER_LAUNCHER=${CMAKE_C_COMPILER_LAUNCHER}

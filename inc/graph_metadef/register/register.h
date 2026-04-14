@@ -11,43 +11,6 @@
 #ifndef INC_REGISTER_REGISTRY_H_
 #define INC_REGISTER_REGISTRY_H_
 
-#include "include/register/register.h"
-#include "graph/types.h"
-
-namespace ge {
-class FMK_FUNC_HOST_VISIBILITY FMK_FUNC_DEV_VISIBILITY HostCpuOp {
- public:
-  HostCpuOp() = default;
-  HostCpuOp(HostCpuOp &&) = delete;
-  HostCpuOp &operator=(HostCpuOp &&) & = delete;
-  virtual ~HostCpuOp() = default;
-  virtual graphStatus Compute(Operator &op,
-                              const std::map<std::string, const ge::Tensor> &inputs,
-                              std::map<std::string, ge::Tensor> &outputs) = 0;
-
- private:
-  HostCpuOp(const HostCpuOp &) = delete;
-  HostCpuOp &operator=(const HostCpuOp &) & = delete;
-};
-
-class FMK_FUNC_HOST_VISIBILITY FMK_FUNC_DEV_VISIBILITY HostCpuOpRegistrar {
- public:
-  HostCpuOpRegistrar(const char_t *const op_type, HostCpuOp *(*const create_fn)());
-  ~HostCpuOpRegistrar() = default;
-};
-} // namespace ge
-
-#define REGISTER_HOST_CPU_OP_BUILDER(name, op) \
-    REGISTER_HOST_CPU_OP_BUILDER_UNIQ_HELPER(__COUNTER__, name, op)
-
-#define REGISTER_HOST_CPU_OP_BUILDER_UNIQ_HELPER(ctr, name, op) \
-    REGISTER_HOST_CPU_OP_BUILDER_UNIQ(ctr, name, op)
-
-#define REGISTER_HOST_CPU_OP_BUILDER_UNIQ(ctr, name, op)              \
-  static ::ge::HostCpuOpRegistrar register_host_cpu_op##ctr           \
-      __attribute__((unused)) =                                       \
-          ::ge::HostCpuOpRegistrar((name), []()->::ge::HostCpuOp* {   \
-            return new (std::nothrow) (op)();                         \
-          })
+#include "./graph_register.h"
 
 #endif // INC_REGISTER_REGISTRY_H_

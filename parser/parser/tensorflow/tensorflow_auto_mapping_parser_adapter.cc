@@ -16,7 +16,7 @@
 #include "graph/def_types.h"
 #include "parser/common/op_parser_factory.h"
 #include "register/op_registry.h"
-#include "graph_metadef/register/register.h"
+#include "graph_metadef/register/graph_register.h"
 #include "register/register_utils.h"
 #include "base/err_msg.h"
 #include "parser/common/parser_utils.h"

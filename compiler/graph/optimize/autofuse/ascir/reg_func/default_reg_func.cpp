@@ -144,5 +144,16 @@ bool IsAllScalarOrUbScalar(ge::AscNodeInputs &node_inputs) {
   }
   return true;
 }
+
+bool HasScalarOrUbScalar(ge::AscNodeInputs &node_inputs) {
+  for (uint32_t i = 0; i < node_inputs.Size(); i++) {
+    for (uint32_t j = 0; j < node_inputs[i].attr.repeats.size(); j++) {
+      if (SymbolicUtils::StaticCheckEq(node_inputs[i].attr.repeats[j], Symbol(1)) == TriBool::kTrue) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
 }  // namespace ascir
 }  // namespace ge

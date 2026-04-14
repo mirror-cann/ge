@@ -382,7 +382,7 @@ void BufQueAllocator::InitTensorReuseInfo(const ascir::NodeView &node, const ge:
     tensor_info.is_can_reuse_others = false;
   }
   if (is_node_cached) {
-    const auto &next_in_anchors = output->anchor.GetPeerInDataAnchors();
+    const auto &next_in_anchors = output->anchor.GetPeerInDataAnchorsPtr();
     for (auto &next_in_anchor : next_in_anchors) {
       if (next_in_anchor->GetOwnerNode() != nullptr && !ascgen_utils::IsNodeCacheable(next_in_anchor->GetOwnerNode())) {
         tensor_info.is_reusable = false;
@@ -397,7 +397,7 @@ void BufQueAllocator::InitTensorLifeTime(const ascir::NodeView &node, const ge::
   tensor_info.life_start = node->GetOpDescBarePtr()->GetId();
   tensor_info.life_end = node->GetOpDescBarePtr()->GetId();
   if (tensor_info.is_reusable) {
-    const auto &next_in_anchors = output->anchor.GetPeerInDataAnchors();
+    const auto &next_in_anchors = output->anchor.GetPeerInDataAnchorsPtr();
     for (auto &next_in_anchor : next_in_anchors) {
       auto out_node = next_in_anchor->GetOwnerNodeBarePtr();
       if (out_node != nullptr) {

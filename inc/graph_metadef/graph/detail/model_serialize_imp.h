@@ -11,19 +11,9 @@
 #ifndef INC_GRAPH_DETAIL_MODEL_SERIALIZE_IMP_H_
 #define INC_GRAPH_DETAIL_MODEL_SERIALIZE_IMP_H_
 
-#include <map>
 #include <google/protobuf/repeated_field.h>
-#include <memory>
-#include <string>
-#include <vector>
-#include "graph/buffer.h"
-#include "graph/model.h"
-#include "graph/anchor.h"
-#include "graph/detail/attributes_holder.h"
-#include "graph/ge_tensor.h"
-#include "graph/graph.h"
-#include "graph/node.h"
 #include "external/ge_common/ge_api_types.h"
+#include "graph/model.h"
 
 namespace ge {
 using ComputeGraphPtr = std::shared_ptr<ComputeGraph>;

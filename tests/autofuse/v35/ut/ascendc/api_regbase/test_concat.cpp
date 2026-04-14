@@ -53,9 +53,9 @@ class RegbaseApiConcatTest :public testing::Test {
     auto tmp_buf = tmp.Get<uint8_t>();
     // concat::ConcatExtend<T, 2>(l_y.GetPhyAddr(), src_addrs, tmp_buf, param.tiling);
     if (distinct_cols.size() == 1) {
-      concat::ConcatExtendDyn<T, 2>(l_y.GetPhyAddr(), src_addrs, tmp_buf, param.tiling);
+      concat::ConcatExtendDyn<T, N>(l_y.GetPhyAddr(), src_addrs, tmp_buf, param.tiling);
     } else {
-      concat::ConcatExtend<T, 2>(l_y.GetPhyAddr(), src_addrs, tmp_buf, param.tiling);
+      concat::ConcatExtend<T, N>(l_y.GetPhyAddr(), src_addrs, tmp_buf, param.tiling);
     }
     UbToGm(param.y, l_y, y_size);
   }
@@ -98,7 +98,7 @@ class RegbaseApiConcatTest :public testing::Test {
 
   template <typename T, size_t N>
   static void ConcatTest(uint32_t rows, const std::vector<uint32_t> &src_cols) {
-    TestConcatParam<T, 2> param{};
+    TestConcatParam<T, N> param{};
     param.tiling.num_rows = rows;
     for (size_t i = 0; i < N; ++i) {
       param.tiling.num_srcs_cols[i] = src_cols[i];
@@ -123,6 +123,7 @@ TEST_F(RegbaseApiConcatTest, ConcatSuccess) {
   ConcatTest<uint32_t, 2>(16, {7, 7});
   ConcatTest<uint16_t, 2>(16, {31, 31});
   ConcatTest<uint8_t, 2>(16, {63, 63});
+  ConcatTest<uint16_t, 3>(4, {63, 63, 63});
   ConcatTest<uint8_t, 2>(16, {31, 33});
   ConcatTest<uint8_t, 2>(16, {255, 257});
 }

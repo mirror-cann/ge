@@ -62,7 +62,7 @@ bool ConcatInputUnificationPass::NeedOptimize(const ge::AscNodePtr &concat_node)
                                  "src col size aligned to B32, no need for optimization");
 
   // 4. dst_col_size超过阈值不需要
-  GE_CHK_BOOL_RET_SPECIAL_STATUS(IsDstColSizeOverLimit(concat_node, concat_dim, dtype_size), false,
+  GE_CHK_BOOL_RET_SPECIAL_STATUS(IsSrcColSizeOverLimit(concat_node, concat_dim, dtype_size), false,
                                  "dst col size over limit, no need for optimization");
 
   // 5. 输入不能共用
@@ -118,12 +118,12 @@ Status ConcatInputUnificationPass::DoOptimize(ascir::ImplGraph &graph, const ge:
 }
 
 ge::Expression ConcatInputUnificationPass::GetColSize(const ge::AscTensor &tensor, size_t concat_dim) {
-  const auto &output_repeats = tensor.attr.repeats;
-  ge::Expression dst_col_size = output_repeats[concat_dim];
-  for (size_t i = concat_dim + 1; i < output_repeats.size(); ++i) {
-    dst_col_size = dst_col_size * output_repeats[i];
+  const auto &tensor_repeats = tensor.attr.repeats;
+  ge::Expression col_size = tensor_repeats[concat_dim];
+  for (size_t i = concat_dim + 1; i < tensor_repeats.size(); ++i) {
+    col_size = col_size * tensor_repeats[i];
   }
-  return dst_col_size;
+  return col_size;
 }
 
 ge::Status ConcatInputUnificationPass::GetLoadNum(const ge::AscNodePtr &concat_node, uint32_t &load_num) {
@@ -145,16 +145,16 @@ bool ConcatInputUnificationPass::IsSrcColSizeAlignedToB4(const ge::AscNodePtr &c
   return aligned;
 }
 
-bool ConcatInputUnificationPass::IsDstColSizeOverLimit(const ge::AscNodePtr &concat_node, size_t concat_dim,
+bool ConcatInputUnificationPass::IsSrcColSizeOverLimit(const ge::AscNodePtr &concat_node, size_t concat_dim,
                                                        int32_t dtype_size) {
-  const auto dst_col_size_expr = GetColSize(concat_node->outputs[0], concat_dim);
-  if (!dst_col_size_expr.IsConstExpr()) {
+  const auto src_col_size_expr = GetColSize(concat_node->inputs[0], concat_dim);
+  if (!src_col_size_expr.IsConstExpr()) {
     return false;
   }
-  int64_t dst_col_size = -1;
-  GE_WARN_ASSERT(dst_col_size_expr.GetConstValue(dst_col_size));
-  constexpr int64_t kDstColSizeLimit = 256;
-  GELOGI("dst_col_size = %ld", dst_col_size);
-  return (dst_col_size * dtype_size) > kDstColSizeLimit;
+  int64_t src_col_size = -1;
+  GE_WARN_ASSERT(src_col_size_expr.GetConstValue(src_col_size));
+  constexpr int64_t kSrcColSizeLimit = (256 / 2);
+  GELOGI("dst_col_size = %ld", src_col_size);
+  return (src_col_size * dtype_size) > kSrcColSizeLimit;
 }
 }  // optimize

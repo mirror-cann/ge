@@ -298,7 +298,7 @@ else()
     set(STUB_HEADER_LIST
         ${ASCEND_INSTALL_PATH}/include/register/op_impl_registry.h
         ${ASCEND_INSTALL_PATH}/include/register/tilingdata_base.h
-        ${GE_METADEF_INC_DIR}/register/register.h
+        ${GE_METADEF_INC_DIR}/register/graph_register.h
         ${GE_METADEF_INC_DIR}/register/op_lib_register_impl.h
         ${GE_METADEF_INC_DIR}/register/optimization_option_registry.h
         ${GE_METADEF_INC_DIR}/register/core_num_utils.h

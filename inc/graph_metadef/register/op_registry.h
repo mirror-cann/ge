@@ -18,7 +18,7 @@
 #include <map>
 #include <vector>
 
-#include "graph_metadef/register/register.h"
+#include "graph_metadef/register/graph_register.h"
 #include "graph/types.h"
 
 namespace domi {

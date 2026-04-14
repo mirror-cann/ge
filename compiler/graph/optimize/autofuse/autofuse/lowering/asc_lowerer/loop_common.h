@@ -215,6 +215,7 @@ enum class FuseType : int32_t {
   kGather,
   kTranspose,
   kCube,
+  kReshape,
   kExtern
 };
 
@@ -238,6 +239,8 @@ inline std::string FuseTypeToString(FuseType type) {
       return "transpose";
     case FuseType::kCube:
       return "cube";
+    case FuseType::kReshape:
+      return "reshape";
     default:
       return "extern";
   }

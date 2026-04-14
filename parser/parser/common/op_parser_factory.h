@@ -21,7 +21,7 @@
 #include "framework/omg/parser/parser_types.h"
 #include "framework/common/debug/ge_log.h"
 #include "omg/omg_inner_types.h"
-#include "graph_metadef/register/register.h"
+#include "graph_metadef/register/graph_register.h"
 
 namespace ge {
 class OpParser;

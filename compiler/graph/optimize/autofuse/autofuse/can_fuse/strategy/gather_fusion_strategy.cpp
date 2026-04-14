@@ -51,8 +51,7 @@ bool GatherFusionStrategy::CanFuse(const NodePtr &node1, const NodePtr &node2) {
   }
 
   // 4.gather只能和elementwise垂直融合
-  uint64_t supported_type = (1UL << static_cast<uint64_t>(loop::FuseType::kPointwise));
-  if (attr1->HasFuseType(loop::FuseType::kGather) && (attr2->GetAllFuseType() == supported_type)) {
+  if (attr1->HasFuseType(loop::FuseType::kGather) && BackendUtils::IsOnlyPointwise(node2)) {
     return CheckGatherElemwiseFuse(node1, node2, backend_spec->gather_spec.enable_gather_broadcast_fusion);
   }
 

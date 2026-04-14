@@ -50,10 +50,10 @@ bool IsSourceNodeSpecial(const NodePtr &node) {
     return true;
   }
 
-  string ref_origin_name;
-  if (AttrUtils::GetStr(node->GetOpDesc(), ge::REF_VAR_SRC_VAR_NAME, ref_origin_name)) {
+  const auto ref_origin_name = AttrUtils::GetStr(node->GetOpDesc(), ge::REF_VAR_SRC_VAR_NAME);
+  if (ref_origin_name != nullptr && !ref_origin_name->empty()) {
     GELOGI("Node %s of type %s is special node because it has ref var src name: %s",
-           node->GetName().c_str(), node_type.c_str(), ref_origin_name.c_str());
+           node->GetName().c_str(), node_type.c_str(), ref_origin_name->c_str());
     return true;
   }
   return false;
@@ -75,11 +75,11 @@ Status JumpOutFromSubDataToTraceSource(const NodePtr &cur_node, std::vector<std:
   const auto parent_in_anchor = NodeUtils::GetParentInDataAnchor(cur_node);
   GE_ASSERT_NOTNULL(parent_in_anchor, "Get parent input anchor failed for DATA node: %s", cur_node->GetName().c_str());
 
-  const auto parent_node = parent_in_anchor->GetOwnerNode();
+  const auto parent_node = parent_in_anchor->GetOwnerNodeBarePtr();
   GE_ASSERT_NOTNULL(parent_node);
 
   // 对于从子图 DATA 跳出的 wrapper 节点，仅保留节点标识，不使用 out anchor 参与路径表达。
-  source_path.emplace_back(parent_node, nullptr);
+  source_path.emplace_back(parent_node->shared_from_this(), nullptr);
   cur_in_anchor = parent_in_anchor;
 
   GELOGI("Jump out of subgraph from DATA %s to parent node %s input index %d.",
@@ -259,7 +259,7 @@ bool HasMultipleOutputsSharingSameInput(const NodePtr &node, const OutDataAnchor
     // 3. 检查旁路是否引用了同一个输入，且该旁路有下游节点连接
     int32_t tmp_reuse_in_index = -1;
     if (GraphUtils::IsRefFromInput(tmp_out_anchor, tmp_reuse_in_index) &&
-        (tmp_reuse_in_index == reuse_in_index) && !tmp_out_anchor->GetPeerInDataAnchors().empty()) {
+        (tmp_reuse_in_index == reuse_in_index) && !tmp_out_anchor->GetPeerInDataAnchorsPtr().empty()) {
       GELOGI("Node %s(type %s) has multiple outputs (Out:%d and Out:%d) sharing input:%d, "
              "and both are connected. Cannot delete tensor move %s.",
              node->GetName().c_str(), node->GetType().c_str(),
@@ -307,7 +307,7 @@ bool IsSourceNodeWithSinglePath(const NodePtr &tensor_move_node, const std::vect
     }
 
     // 单输出多引用
-    if (out_data_anchor->GetPeerInDataAnchors().size() > 1U) {
+    if (out_data_anchor->GetPeerInDataAnchorsPtr().size() > 1U) {
       GELOGI("Out data anchor %d of node %s(type %s) has multiple peer intput data anchors, cannot delete tensor move %s.",
              out_data_anchor->GetIdx(), node->GetName().c_str(), node->GetType().c_str(), tensor_move_node->GetName().c_str());
       return false;

@@ -21,7 +21,6 @@
 #include "graph_metadef/graph/debug/ge_util.h"
 #include "common/checker.h"
 #include "graph/node.h"
-#include "graph/serialization/attr_serializer_registry.h"
 
 namespace ge {
 static constexpr const char *const kIndentZero = "";   // 0个空格

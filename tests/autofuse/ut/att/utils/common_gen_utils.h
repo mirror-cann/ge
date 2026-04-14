@@ -24,6 +24,9 @@ void CombineTilings(const std::map<std::string, std::string> &tilings, std::stri
 // 移除AutoFuse tiling head的宏保护
 std::string RemoveAutoFuseTilingHeadGuards(const std::string &input);
 
+// 为文件添加头文件宏保护
+void AddHeaderGuardToFile(const std::string &file_name, const std::string &macro_name);
+
 }  // namespace test
 }  // namespace att
 

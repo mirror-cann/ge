@@ -231,13 +231,13 @@ ge::Status ConcatRegApiCall::CanUseGather(ConcatTiling &tiling) const {
                                "can not use Gather: input bufs can not be contiguous");
     tiling.all_inputs_shape_equal = ascir::utils::AreConcatInputShapesEqual(node_);
   }
-  if (tiling.dst_col_size_expr.IsConstExpr()) {
-    uint32_t dst_col_size = 0;
-    GE_ASSERT_TRUE(tiling.dst_col_size_expr.GetConstValue(dst_col_size));
-    constexpr uint32_t kMaxDstSize = 256U;
-    if (dst_col_size * tiling.data_type_size > kMaxDstSize) {
-      GELOGD("dst col size = %u, over %u, can not use Gather", tiling.dst_col_size * tiling.data_type_size,
-             kMaxDstSize);
+  if (tiling.src_col_size_exprs[0].IsConstExpr()) {
+    uint32_t src_col_size = 0;
+    GE_ASSERT_TRUE(tiling.src_col_size_exprs[0].GetConstValue(src_col_size));
+    constexpr uint32_t kMaxSrcSize = 256U / 2U;
+    if (src_col_size * tiling.data_type_size > kMaxSrcSize) {
+      GELOGD("src col size = %u, over %u, can not use Gather", src_col_size * tiling.data_type_size,
+             kMaxSrcSize);
       return ge::SUCCESS;
     }
   }

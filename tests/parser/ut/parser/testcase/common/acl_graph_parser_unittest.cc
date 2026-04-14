@@ -22,7 +22,7 @@
 #include "parser/common/proto_file_parser.h"
 #include "omg/parser/parser_factory.h"
 #include "parser/caffe/caffe_parser.h"
-#include "graph_metadef/register/register.h"
+#include "graph_metadef/register/graph_register.h"
 #include "parser/common/pass_manager.h"
 #include "parser/common/tbe_plugin_loader.h"
 #include "parser/common/parser_fp16_t.h"

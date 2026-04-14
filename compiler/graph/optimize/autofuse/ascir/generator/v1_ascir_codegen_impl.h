@@ -1352,7 +1352,11 @@ class TrueDivAscIrCodegenImpl : public AscIrCodegen {
     return "TrueDivExtend";
   }
   std::vector<std::string> LoadApiHeaderFiles() const override {
-    return {"true_div.h"};
+    return {"scalar_div.h", "true_div.h"};
+  }
+  bool IsScalarInputSupported(const std::vector<bool> &is_scalar_list) const override {
+    (void)is_scalar_list; // 支持任意输入是scalar
+    return true;
   }
   std::vector<std::string> IncludeApiHeaderFiles() const override {
     return {
@@ -1363,8 +1367,6 @@ class TrueDivAscIrCodegenImpl : public AscIrCodegen {
     };
   }
   [[nodiscard]] bool IsNodeValid(const ge::AscNode &node) const override {
-    GE_ASSERT_TRUE(!IsNodeHasScalarInput(node), "Node %s[%s] not support scalar input", node.GetTypePtr(),
-                   node.GetNamePtr());
     GE_ASSERT_SUCCESS(ValidateShapeConsistencyWithSingleOutput(node, {true, {0, 1}}), "Node %s[%s] check shape consistency failed",
                       node.GetTypePtr(), node.GetNamePtr());
     return true;

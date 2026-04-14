@@ -14,7 +14,7 @@
 
 #include "graph/operator_reg.h"
 #include "graph/operator.h"
-#include "graph_metadef/register/register.h"
+#include "graph_metadef/register/graph_register.h"
 #include "proto/onnx/ge_onnx.pb.h"
 #include "graph/utils/op_desc_utils.h"
 #include "parser/common/op_map.h"

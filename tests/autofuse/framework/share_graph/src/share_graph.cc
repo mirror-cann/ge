@@ -8381,6 +8381,48 @@ static void CreateTrueDivBf16AscGraph(ge::AscGraph &graph, size_t dims_size) {
   ConstructVVAscGraphAxisInfo(graph, dims_size);
 }
 
+static void CreateTruedivAbsAscGraph(ge::AscGraph &graph, size_t dims_size) {
+  ge::ascir_op::Data x1("data0", graph);
+  x1.y.dtype = ge::DataType::DT_FLOAT;
+  x1.ir_attr.SetIndex(0);
+
+  ge::ascir_op::Load x1Local("load0");
+  x1Local.x = x1.y;
+  x1Local.y.dtype = ge::DataType::DT_FLOAT;
+
+  ge::ascir_op::Scalar scalar0("scalar0", graph);
+  scalar0.ir_attr.SetValue("1.2");
+  
+  ge::ascir_op::Scalar scalar1("scalar1", graph);
+  scalar1.ir_attr.SetValue("1.8");
+
+  ge::ascir_op::TrueDiv trueDiv0("trueDiv0");
+  trueDiv0.x1 = x1Local.y;
+  trueDiv0.x2 = scalar0.y;
+  trueDiv0.y.dtype = ge::DataType::DT_FLOAT;
+
+  ge::ascir_op::TrueDiv trueDiv1("trueDiv1");
+  trueDiv1.x1 = scalar0.y;
+  trueDiv1.x2 = scalar1.y;
+  trueDiv1.y.dtype = ge::DataType::DT_FLOAT;  
+
+  ge::ascir_op::TrueDiv trueDiv2("trueDiv2");
+  trueDiv2.x1 = trueDiv0.y;
+  trueDiv2.x2 = trueDiv1.y;
+  trueDiv2.y.dtype = ge::DataType::DT_FLOAT;  
+
+  ge::ascir_op::Store x_out("store");
+  x_out.x = trueDiv2.y;
+  x_out.y.dtype = ge::DataType::DT_FLOAT;
+
+  ge::ascir_op::Output y("output");
+  y.x = x_out.y;
+
+  y.ir_attr.SetIndex(0);
+
+  ConstructVVAscGraphAxisInfo(graph, dims_size);
+}
+
 ge::ComputeGraphPtr ShareGraph::TrueDivBf16FusedGraph(size_t dims_size) {
   auto builder = GraphBuilder("truediv_bf16_test");
   auto data0 = builder.AddNode("data0", "Data", 0, 1);
@@ -8401,6 +8443,30 @@ ge::ComputeGraphPtr ShareGraph::TrueDivBf16FusedGraph(size_t dims_size) {
   auto ascbc_node = compute_graph->FindNode("ascbc");
   ge::AscGraph sub_graph("truediv_bf16");
   CreateTrueDivBf16AscGraph(sub_graph, dims_size);
+
+  std::string sub_graph_str;
+  ge::AscGraphUtils::SerializeToReadable(sub_graph, sub_graph_str);
+  ge::AttrUtils::SetStr(ascbc_node->GetOpDescBarePtr(), "ascgraph", sub_graph_str);
+  return compute_graph;
+}
+
+ge::ComputeGraphPtr ShareGraph::TruedivAbsFusedGraph(size_t dims_size) {
+  auto builder = GraphBuilder("truediv_abs_test");
+  auto data0 = builder.AddNode("data0", "Data", 0, 1);
+  ge::AttrUtils::SetInt(data0->GetOpDescBarePtr(), "_parent_node_index", 0);
+
+  auto ascbc = builder.AddNode("ascbc", "AscGraph", 2, 1);
+  auto netoutput = builder.AddNode("netoutput1", ge::NETOUTPUT, 1, 0);
+
+  builder.AddDataEdge(data0, 0, ascbc, 0);
+  builder.AddDataEdge(ascbc, 0, netoutput, 0);
+  ComputeGraphPtr compute_graph = builder.GetGraph();
+  if (compute_graph == nullptr) {
+    return nullptr;
+  }
+  auto ascbc_node = compute_graph->FindNode("ascbc");
+  ge::AscGraph sub_graph("truediv_abs");
+  CreateTruedivAbsAscGraph(sub_graph, dims_size);
 
   std::string sub_graph_str;
   ge::AscGraphUtils::SerializeToReadable(sub_graph, sub_graph_str);

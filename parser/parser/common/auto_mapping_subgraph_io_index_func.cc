@@ -10,7 +10,7 @@
 
 #include "auto_mapping_subgraph_io_index_func.h"
 #include <vector>
-#include "graph_metadef/register/register.h"
+#include "graph_metadef/register/graph_register.h"
 #include "graph/compute_graph.h"
 #include "graph/op_desc.h"
 #include "graph/utils/attr_utils.h"

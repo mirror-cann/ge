@@ -91,6 +91,7 @@ struct ShareGraph {
   static ge::ComputeGraphPtr LoadMatmulCompareScalarFusedGraph();
   static ge::ComputeGraphPtr DivAbsFusedGraph(size_t dims_size);
   static ge::ComputeGraphPtr TrueDivBf16FusedGraph(size_t dims_size);
+  static ge::ComputeGraphPtr TruedivAbsFusedGraph(size_t dims_size);
   static ge::ComputeGraphPtr BF16AddFusedGraph(size_t dims_size);
   static ge::ComputeGraphPtr BF16NddmaAddFusedGraph(size_t dims_size);
   static ge::ComputeGraphPtr AbsBf16FusedGraph(size_t dims_size);

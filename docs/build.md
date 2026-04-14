@@ -41,7 +41,9 @@ cat /usr/local/Ascend/cann/<arch>-linux/ascend_ops_install.info
 
 #### 安装依赖
 
-   以下所列为GE源码编译用到的依赖，请注意版本要求（如果遇到安装问题，请尝试切换镜像源）。
+  以下所列为GE源码编译用到的依赖，请注意版本要求（如果遇到安装问题，请尝试切换镜像源）。
+  > [!NOTE] 注意
+  > 如使用镜像方式进行项目体验，所有依赖已包含在[init_env.sh](../scripts/init_env.sh)中，可跳过此安装依赖步骤。
 
 - GCC >= 7.3.x
 

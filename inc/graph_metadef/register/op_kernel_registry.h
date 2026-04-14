@@ -13,7 +13,7 @@
 #include <memory>
 #include <string>
 #include "register/register_types.h"
-#include "graph_metadef/register/register.h"
+#include "graph_metadef/register/graph_register.h"
 
 namespace ge {
 class FMK_FUNC_HOST_VISIBILITY FMK_FUNC_DEV_VISIBILITY OpKernelRegistry {

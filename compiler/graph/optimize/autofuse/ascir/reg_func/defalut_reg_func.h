@@ -22,6 +22,7 @@ std::vector<std::unique_ptr<ge::TmpBufDesc>> GetInputDataSizeTmpBuffer(const ge:
 std::vector<std::unique_ptr<ge::TmpBufDesc>> CalcBinaryApiTmpSize(const ge::AscNode &node);
 uint32_t GetNonScalarAxisId(ge::AscNodeInputs &node_inputs);
 bool IsAllScalarOrUbScalar(ge::AscNodeInputs &node_inputs);
+bool HasScalarOrUbScalar(ge::AscNodeInputs &node_inputs);
 
 std::vector<std::unique_ptr<ge::TmpBufDesc>> CalcBroadCastTmpSize(const ge::AscNode &node);
 std::vector<std::unique_ptr<ge::TmpBufDesc>> CalcArgmaxTmpSize(const ge::AscNode &node);

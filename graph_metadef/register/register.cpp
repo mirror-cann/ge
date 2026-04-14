@@ -8,7 +8,7 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-#include "graph_metadef/register/register.h"
+#include "graph_metadef/register/graph_register.h"
 #include <google/protobuf/message.h>
 #include "graph_metadef/graph/debug/ge_util.h"
 #include "graph/debug/ge_op_types.h"

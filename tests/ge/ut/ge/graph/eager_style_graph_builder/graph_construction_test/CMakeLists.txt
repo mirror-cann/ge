@@ -15,7 +15,7 @@ message(STATUS "Binary directory: ${CMAKE_CURRENT_BINARY_DIR}")
 include(${AIR_CODE_DIR}/cmake/generate_es_package.cmake)
 
 # 2. 创建 stub_geir_ops 原型库（测试用）
-add_library(stub_geir_ops SHARED
+add_library(stub_geir_ops OBJECT
         ${AIR_CODE_DIR}/tests/ge/ut/ge/graph/eager_style_graph_builder/es_generator/stub_geir_ops.cc
         )
 

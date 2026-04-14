@@ -216,6 +216,52 @@ ge_api.ge_initialize(config)
 ge_api.ge_finalize()
 ```
 
+### offline_compile模块
+#### 目录结构
+```
+
+├── __init__.py           # 模块初始化文件
+└── offline_compile.py    # 离线图编译接口文件
+```
+#### 接口说明
+##### 1. offline_compile 模块
+**文件位置**: `offline_compile.py`
+
+**功能**：离线图编译接口
+
+**主要接口**:
+- `build_initialize(global_options)` - 模型构建初始化，用于申请资源
+- `build_finalize()` - 系统完成模型构建后，通过该接口释放资源
+- `build_model(graph, build_options)` - 将输入的Graph编译为适配AI处理器的离线模型，并保存到内存缓冲区
+- `save_model(output_file, model)` - 将离线模型序列化并保存到指定文件中
+- `bundle_build_model(graph_with_options)` - 将输入的一组Graph编译为适配AI处理器的离线模型，并保存到内存缓冲区，该接口适用于权重更新场景
+- `bundle_save_model(output_file, model)` - 将离线模型序列化并保存到指定文件中，该接口适用于权重更新场景
+
+**辅助类型**:
+- `ModelBuffer` - 内存缓冲区中的序列化模型数据，持有底层C模型对象的句柄
+- `GraphWithOptions` - bundle 编译时的图和编译选项对
+
+**关系**:
+- 通过 `offline_compile_lib` 调用底层C API
+- 输入依赖 `Graph` 对象
+
+**使用示例**:
+```python
+from ge.offline_compile import build_initialize, build_finalize, build_model, save_model
+from ge.graph import Graph
+
+# 创建Graph
+graph = Graph("test_graph")
+# 初始化模型构建
+build_initialize({"ge.socVersion": "Ascend910B1"})
+# 编译模型
+model = build_model(graph, {"input_format": "ND"})
+# 保存模型
+save_model("sample", model)
+# 释放模型构建资源
+build_finalize()
+```
+
 ### Session模块
 
 #### 目录结构
@@ -281,4 +327,3 @@ ES (Eager-Style) 模块提供了函数式风格的图构建接口，详细文档
 参考 [使用es的python api构图sample](../../../../examples/es/transformer/python/src/make_transformer_graph.py)
 
 更多示例请参考 [examples/es](../../../../examples/es) 目录下的 Python 用例。
-
