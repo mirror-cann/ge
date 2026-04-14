@@ -109,6 +109,10 @@ struct ShareGraph {
       std::vector<std::initializer_list<int64_t>> shape = {{-1}, {-1}, {-1}, {-1}},
       std::vector<std::initializer_list<int64_t>> min_shape = {{1}, {1}, {1}, {1}},
       std::vector<std::initializer_list<int64_t>> max_shape = {{-1}, {-1}, {-1}, {-1}});
+  static ge::ComputeGraphPtr BuildAssignReshapeGraph(
+      std::vector<std::initializer_list<int64_t>> shape = {{-1}, {-1}, {-1}, {-1}},
+      std::vector<std::initializer_list<int64_t>> min_shape = {{1}, {1}, {1}, {1}},
+      std::vector<std::initializer_list<int64_t>> max_shape = {{-1}, {-1}, {-1}, {-1}});
   static ge::ComputeGraphPtr BuildAddToUnSqueezeGraph(
       const std::string &node_type = "Add",
       std::vector<std::initializer_list<int64_t>> shape = {{-1}, {-1}, {-1}, {-1}},

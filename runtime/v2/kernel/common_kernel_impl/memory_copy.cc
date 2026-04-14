@@ -254,7 +254,7 @@ ge::graphStatus CopyH2D(KernelContext *context) {
   return ge::GRAPH_SUCCESS;
 }
 
-ge::graphStatus MakeSureTensorAtHost(KernelContext *context) {
+ge::graphStatus MakeSureTensorAtHostCommon(KernelContext *context, bool is_sync) {
   auto stream = context->GetInputValue<aclrtStream>(static_cast<size_t>(MakeSureTensorAtHostInputs::kStream));
   auto copy_num = context->GetOutputNum();
   GE_ASSERT_EQ(static_cast<size_t>(MakeSureTensorAtHostInputs::kAddrAndLengthStart) + (copy_num * 2U),
@@ -281,7 +281,9 @@ ge::graphStatus MakeSureTensorAtHost(KernelContext *context) {
       KERNEL_CHECK(host_block->GetAddr() != nullptr, "malloc failed, tensor size=%zu", alloc_size);
       GELOGD("StreamCopyD2H, device addr %p, host addr %p, tensor size %zu, alloc size %zu", tensor_data->GetAddr(),
              host_block->GetAddr(), tensor_size, alloc_size);
-      GE_ASSERT_SUCCESS(DoRtStreamSyncWithTimeout(stream));
+      if (is_sync) {
+        GE_ASSERT_SUCCESS(DoRtStreamSyncWithTimeout(stream));
+      }
       if (tensor_size > 0U) {
         GE_CHK_RT_RET(rtMemcpyEx(host_block->GetAddr(), static_cast<uint64_t>(tensor_size), tensor_data->GetAddr(),
                                  static_cast<uint64_t>(tensor_size), RT_MEMCPY_DEVICE_TO_HOST));
@@ -295,6 +297,14 @@ ge::graphStatus MakeSureTensorAtHost(KernelContext *context) {
     }
   }
   return ge::GRAPH_SUCCESS;
+}
+
+ge::graphStatus MakeSureTensorAtHost(KernelContext *context) {
+  return MakeSureTensorAtHostCommon(context, true);
+}
+
+ge::graphStatus MakeSureTensorAtHostWithoutSync(KernelContext *context) {
+  return MakeSureTensorAtHostCommon(context, false);
 }
 
 bool IsNeedMallocWhenMakeSureAtDevice(const TensorPlacement src_placement, const TensorPlacement dst_placement) {
@@ -346,6 +356,10 @@ REGISTER_KERNEL(CopyH2D)
     .ConcurrentCriticalSectionKey(kKernelUseMemory);
 REGISTER_KERNEL(MakeSureTensorAtHost)
     .RunFunc(MakeSureTensorAtHost)
+    .OutputsCreator(CreateTensorDataAtHost)
+    .ConcurrentCriticalSectionKey(kKernelUseMemory);
+REGISTER_KERNEL(MakeSureTensorAtHostWithoutSync)
+    .RunFunc(MakeSureTensorAtHostWithoutSync)
     .OutputsCreator(CreateTensorDataAtHost)
     .ConcurrentCriticalSectionKey(kKernelUseMemory);
 REGISTER_KERNEL(MakeSureTensorAtDevice)

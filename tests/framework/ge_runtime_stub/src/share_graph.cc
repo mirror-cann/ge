@@ -13477,4 +13477,74 @@ ComputeGraphPtr ShareGraph::BuildCaseWithNestedPartitionedCall() {
   (void)main_graph->AddSubGraph(batch2);
   return main_graph;
 }
+
+/*
+ *
+ *        netoutput
+ *        |         \
+ *     Reshape     assign
+ *      |   \      /   |
+ *    data1  data2  data3
+ */
+ComputeGraphPtr ShareGraph::BuildAssignReshapeGraph(std::vector<std::initializer_list<int64_t>> shape,
+                                                    std::vector<std::initializer_list<int64_t>> min_shape,
+                                                    std::vector<std::initializer_list<int64_t>> max_shape) {
+
+  DEF_GRAPH(g1) {
+                  auto assign = OP_CFG(ASSIGN)
+                      .TensorDesc(FORMAT_ND, DT_FLOAT, shape[2])
+                      .InCnt(2).OutCnt(1)
+                      .InNames({"ref", "value"}).OutNames({"ref"})
+                      .Attr(ge::ATTR_NAME_REFERENCE, true)
+                      .Build("assign");
+
+                  auto reshape = OP_CFG("Reshape")
+                      .TensorDesc(FORMAT_ND, DT_FLOAT, shape[2])
+                      .InCnt(2).OutCnt(1)
+                      .Build("reshape1");
+                  reshape->AppendIrInput("x", kIrInputRequired);
+                  reshape->AppendIrInput("shape", kIrInputRequired);
+                  reshape->SetOpEngineName(kEngineNameGeLocal);
+
+                  CHAIN(NODE("data1", "Data")->NODE(reshape)->NODE("NetOutput", "NetOutput"));
+                  CHAIN(NODE("data2", "Data")->EDGE(0, 1)->NODE(reshape));
+                  CHAIN(NODE("data2", "Data")->EDGE(0, 0)->NODE(assign)->EDGE(0, 1)->NODE("NetOutput", "NetOutput"));
+                  CHAIN(NODE("data3", "Data")->EDGE(0, 1)->NODE(assign));
+                };
+  auto graph = ToComputeGraph(g1);
+
+  auto data1 = graph->FindNode("data1");
+  AttrUtils::SetInt(data1->GetOpDesc(), "index", 0);
+  SetNoStorage(data1->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, shape[0]);
+  data1->GetOpDesc()->MutableAllInputName() = {{"x", 0}};
+
+  auto data2 = graph->FindNode("data2");
+  AttrUtils::SetInt(data2->GetOpDesc(), "index", 1);
+  SetNoStorage(data2->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, shape[1]);
+  data2->GetOpDesc()->MutableAllInputName() = {{"x", 0}};
+  
+  auto data3 = graph->FindNode("data3");
+  AttrUtils::SetInt(data3->GetOpDesc(), "index", 2);
+  SetNoStorage(data3->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, shape[1]);
+  data3->GetOpDesc()->MutableAllInputName() = {{"x", 0}};
+
+  auto assign = graph->FindNode("assign");
+  AddCompileResult(assign, false);
+  SetNoStorage(assign->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, shape[2]);
+  assign->GetOpDesc()->SetOpKernelLibName(kEngineNameAiCore);
+  assign->GetOpDesc()->SetOpEngineName(kEngineNameAiCore);
+  assign->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
+  
+  auto reshape1 = graph->FindNode("reshape1");
+  SetNoStorage(reshape1->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, shape[2]);
+  reshape1->GetOpDesc()->MutableAllInputName() = {{"x", 0}, {"shape", 1}};
+  reshape1->GetOpDesc()->SetOpInferDepends({"shape"});
+
+  auto noutput = graph->FindNode("NetOutput");
+  SetNoStorage(noutput->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, shape[3]);
+
+  graph->FindNode("NetOutput")->GetOpDesc()->SetSrcName({"reshape1", "assign"});
+  graph->FindNode("NetOutput")->GetOpDesc()->SetSrcIndex({0, 1});
+  return graph;
+}
 }  // namespace gert

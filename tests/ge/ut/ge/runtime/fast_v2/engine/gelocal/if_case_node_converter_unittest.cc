@@ -347,7 +347,7 @@ auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   ASSERT_NE(then_exec, nullptr);
   ASSERT_NE(else_exec, nullptr);
 
-  ASSERT_EQ(ExecuteGraphUtils::FindFirstNodeMatchType(then_exec, "MakeSureTensorAtHost"), nullptr);
-  ASSERT_NE(ExecuteGraphUtils::FindFirstNodeMatchType(else_exec, "MakeSureTensorAtHost"), nullptr);
+  ASSERT_EQ(ExecuteGraphUtils::FindFirstNodeMatchType(then_exec, "MakeSureTensorAtHostWithoutSync"), nullptr);
+  ASSERT_NE(ExecuteGraphUtils::FindFirstNodeMatchType(else_exec, "MakeSureTensorAtHostWithoutSync"), nullptr);
 }
 }  // namespace gert

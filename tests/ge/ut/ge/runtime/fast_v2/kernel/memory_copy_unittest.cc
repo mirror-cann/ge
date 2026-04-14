@@ -314,6 +314,43 @@ TEST_F(MemCopyKernelTest, MakeSureTensorAtHost_ZeroSizeSkipMemcpy) {
   ASSERT_EQ(tensor_data.GetStreamId(), 0);
 }
 
+TEST_F(MemCopyKernelTest, MakeSureTensorAtHostWithoutSync) {
+  auto run_context = BuildKernelRunContext(4, 1);
+  auto context = run_context.GetContext<KernelContext>();
+  auto device_data = std::vector<int8_t>{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  run_context.value_holder[0].Set(reinterpret_cast<void *>(0x11), nullptr);  // stream
+
+  gert::memory::HostMemAllocator host_mem_allocator;
+  memory::HostGertMemAllocator host_gert_mem_allocator(&host_mem_allocator);
+  run_context.value_holder[1].Set((void *)(&host_gert_mem_allocator), nullptr);
+
+  GertTensorData tensor_data = {(uint8_t *)device_data.data(), 0U, kTensorPlacementEnd, -1};
+
+  run_context.value_holder[2].Set((void *)(&tensor_data), nullptr);
+  run_context.value_holder[3].Set((void *)device_data.size(), nullptr);
+
+  auto makeSureTensorAtHostWithoutSync = registry.FindKernelFuncs("MakeSureTensorAtHostWithoutSync");
+
+  ASSERT_EQ(makeSureTensorAtHostWithoutSync->outputs_creator(nullptr, run_context), ge::GRAPH_SUCCESS);
+
+  tensor_data.SetPlacement(kTensorPlacementEnd);
+  ASSERT_EQ(makeSureTensorAtHostWithoutSync->run_func(run_context), ge::GRAPH_FAILED);
+
+  tensor_data.SetPlacement(kOnDeviceHbm);
+  ASSERT_EQ(makeSureTensorAtHostWithoutSync->run_func(run_context), ge::GRAPH_SUCCESS);
+
+  tensor_data.SetPlacement(kOnHost);
+  ASSERT_EQ(makeSureTensorAtHostWithoutSync->run_func(run_context), ge::GRAPH_SUCCESS);
+
+  auto host_data = context->GetOutputPointer<GertTensorData>(0);
+  ASSERT_NE(host_data, nullptr);
+  ASSERT_NE(host_data->GetAddr(), nullptr);
+  ASSERT_EQ(memcmp(host_data->GetAddr(), device_data.data(), device_data.size() * sizeof(uint8_t)), 0);
+  EXPECT_EQ(tensor_data.GetPlacement(), kOnHost);
+  ASSERT_EQ(host_data->Free(), ge::GRAPH_SUCCESS);
+  run_context.FreeValue(4);
+}
+
 TEST_F(MemCopyKernelTest, MakeSureTensorAtDevice) {
   auto tensor_holder1 = TensorFaker().Placement(kOnHost).Shape({10, 20}).Build();
   auto shape1 = tensor_holder1.GetTensor()->GetShape();

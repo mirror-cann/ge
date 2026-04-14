@@ -35,6 +35,7 @@
 #include "kernel/common_kernel_impl/memory_copy.h"
 #include "kernel/common_kernel_impl/copy_flow_launch.h"
 #include "graph/utils/graph_dump_utils.h"
+#include "stub/gert_runtime_stub.h"
 
 using namespace ge;
 namespace gert {
@@ -340,7 +341,7 @@ TEST_F(GraphConverterUT, LoweringSingleNodeGraph_DataDependent_OK) {
   reshape->GetOpDesc()->AppendIrInput("shape", kIrInputRequired);
 
   graph->TopologicalSorting();
-auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("Reshape", false).Build();
   ASSERT_NE(graph, nullptr);
   auto model_desc_holder = ModelDescHolderFaker().Build();
@@ -351,7 +352,7 @@ auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   CheckGraphGenerally(exe_graph.get());
   CheckAllocFreeStageMatch(exe_graph.get());
   auto nodes = GetNodeTypes(exe_graph->GetAllNodes());
-  ASSERT_EQ(nodes.count("MakeSureTensorAtHost"), 1);
+  ASSERT_EQ(nodes.count("MakeSureTensorAtHostWithoutSync"), 1);
 }
 
 TEST_F(GraphConverterUT, LoweringSingleNodeGraph_DataDependent_LessIrInputs_Failed) {
@@ -789,5 +790,23 @@ TEST_F(GraphConverterUT, MultiStream_LoweringLastEventSync) {
                                                {"SplitRtStreams", 1}}),
             "success");
   // check connection
+}
+
+TEST_F(GraphConverterUT, LoweringGraph_DataWithRefNode_OK) {
+  auto graph = ShareGraph::BuildAssignReshapeGraph();
+  graph->TopologicalSorting();
+
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto global_data = GlobalDataFaker(root_model)
+                         .FakeWithHandleAiCore("Assign", false)
+                         .Build();
+  auto model_desc_holder = ModelDescHolderFaker().Build();
+  auto exe_graph =
+      GraphConverter().SetModelDescHolder(&model_desc_holder).ConvertComputeGraphToExecuteGraph(graph, global_data);
+
+  CheckGraphGenerally(exe_graph.get());
+  CheckAllocFreeStageMatch(exe_graph.get());
+  auto nodes = GetNodeTypes(exe_graph->GetAllNodes());
+  ASSERT_EQ(nodes.count("MakeSureTensorAtHost"), 1);
 }
 }  // namespace gert
