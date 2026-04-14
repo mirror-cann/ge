@@ -125,6 +125,29 @@ int32_t GetGraphMaxParallelModelNum() {
   GELOGI("graphMaxParallelModelNum is %d", max_num);
   return max_num;
 }
+
+Status MallocOutputMemBlock(const GraphId &graph_id, const AllocatorPtr &external_allocator,
+                            const size_t tensor_size, ge::MemBlock *&mem_block) {
+  mem_block = external_allocator->Malloc(tensor_size);
+  GE_ASSERT((mem_block != nullptr), "malloc output memory failed by external allocator, graph_id:%u.", graph_id);
+  GE_ASSERT((mem_block->GetAddr() != nullptr),
+            "malloc output memory failed by external allocator, output memory addr is null, graph_id:%u.", graph_id);
+  GELOGI("Alloc output memory success by external allocator, mem_block:%p, addr:%p, size:%zu.", mem_block,
+         mem_block->GetAddr(), tensor_size);
+  return SUCCESS;
+}
+
+Status BindOutputMemBlock(const size_t tensor_size, ge::MemBlock *const mem_block, GeTensor &ge_tensor) {
+  const auto deleter = [mem_block](uint8_t *device_data) {
+    (void)device_data;
+    GELOGI("Free output memory which alloc by external allocator, mem_block:%p, addr:%p.", mem_block,
+           mem_block->GetAddr());
+    mem_block->Free();
+  };
+  GE_ASSERT_SUCCESS(ge_tensor.SetData(static_cast<uint8_t *>(mem_block->GetAddr()), tensor_size, deleter));
+  ge_tensor.MutableTensorDesc().SetPlacement(ge::kPlacementDevice);
+  return SUCCESS;
+}
 }  // namespace
 
 Status SetNetOutputTensorInfo(const GraphId &graph_id, const GraphNodePtr &graph_node) {
@@ -363,20 +386,9 @@ Status MallocOutputsMemory(const GraphId &graph_id, const GraphNodePtr &graph_no
   if (outputs.size() == 0U) {
     for (size_t i = 0UL; i < ge_tensor_descs.size(); i++) {
       GeTensor ge_tensor(*(ge_tensor_descs[i]));
-      auto mem_block = external_allocator->Malloc(ret_tensor_size[i]);
-      GE_ASSERT((mem_block != nullptr), "malloc output memory failed by external allocator, graph_id:%u.", graph_id);
-      GE_ASSERT((mem_block->GetAddr() != nullptr),
-        "malloc output memory failed by external allocator, output memory addr is null, graph_id:%u.", graph_id);
-      const auto deleter = [mem_block](uint8_t *device_data) {
-        (void)device_data;
-        GELOGI("Free output memory which alloc by external allocator, mem_block:%p, addr:%p.", mem_block,
-               mem_block->GetAddr());
-        mem_block->Free();
-      };
-      GE_ASSERT_SUCCESS(ge_tensor.SetData(static_cast<uint8_t *>(mem_block->GetAddr()), ret_tensor_size[i],
-                                          deleter));
-      GELOGI("Alloc output memory success by external allocator, mem_block:%p, addr:%p, size:%u.", mem_block,
-             mem_block->GetAddr(), ret_tensor_size[i]);
+      ge::MemBlock *mem_block = nullptr;
+      GE_ASSERT_SUCCESS(MallocOutputMemBlock(graph_id, external_allocator, ret_tensor_size[i], mem_block));
+      GE_ASSERT_SUCCESS(BindOutputMemBlock(ret_tensor_size[i], mem_block, ge_tensor));
       outputs.emplace_back(std::move(ge_tensor));
     }
     return SUCCESS;
@@ -388,19 +400,9 @@ Status MallocOutputsMemory(const GraphId &graph_id, const GraphNodePtr &graph_no
     if (outputs[i].GetData().GetSize() != 0) {
       continue;
     }
-    auto mem_block = external_allocator->Malloc(ret_tensor_size[i]);
-    GE_ASSERT((mem_block != nullptr), "malloc output memory failed by external allocator, graph_id:%u.", graph_id);
-    GE_ASSERT((mem_block->GetAddr() != nullptr),
-        "malloc output memory failed by external allocator, output memory addr is null, graph_id:%u.", graph_id);
-    const auto deleter = [mem_block](uint8_t *device_data) {
-      (void)device_data;
-      GELOGI("Free output memory which alloc by external allocator, mem_block:%p, addr:%p.", mem_block,
-             mem_block->GetAddr());
-      mem_block->Free();
-    };
-    GE_ASSERT_SUCCESS(outputs[i].SetData(static_cast<uint8_t *>(mem_block->GetAddr()), ret_tensor_size[i], deleter));
-    GELOGI("Alloc output memory success by external allocator, mem_block:%p, addr:%p, size:%u.", mem_block,
-           mem_block->GetAddr(), ret_tensor_size[i]);
+    ge::MemBlock *mem_block = nullptr;
+    GE_ASSERT_SUCCESS(MallocOutputMemBlock(graph_id, external_allocator, ret_tensor_size[i], mem_block));
+    GE_ASSERT_SUCCESS(BindOutputMemBlock(ret_tensor_size[i], mem_block, outputs[i]));
   }
   return SUCCESS;
 }

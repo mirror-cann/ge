@@ -18,11 +18,11 @@ usage() {
 Usage: $0 [OPTIONS]
 
 选项:
-  -t, --target TARGET   指定要构建和运行的目标 (sample_and_run_python)
+  -t, --target TARGET   指定要运行的目标 (sample_and_run_python|sample_and_run_python_custom_allocator)
   -h, --help            显示此帮助信息
 
 默认行为:
-  当未指定目标时，默认构建并dump图
+  当未指定目标时，默认运行默认 allocator 异步图样例
 EOF
     exit 0
 }
@@ -49,7 +49,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 # 验证目标有效性
-VALID_TARGETS=("sample_and_run_python")
+VALID_TARGETS=("sample_and_run_python" "sample_and_run_python_custom_allocator")
 if [[ ! " ${VALID_TARGETS[@]} " =~ " ${TARGET} " ]]; then
     echo "错误: 无效目标 '${TARGET}'。有效目标: ${VALID_TARGETS[*]}" >&2
     exit 1
@@ -64,7 +64,6 @@ if [[ -z "${ASCEND_HOME_PATH}" ]]; then
   echo -e "ERROR 请先执行: source /usr/local/Ascend/cann/set_env.sh  " >&2
   exit 1
 fi
-
 
 # ---------- 自动获取系统架构 ----------
 ARCH=$(uname -m)
@@ -89,78 +88,36 @@ ASCEND_LIB_DIR="${ASCEND_HOME_PATH}/lib64"
 echo "[Info] ASCEND_LIB_DIR = ${ASCEND_LIB_DIR}"
 
 export LD_LIBRARY_PATH="${ASCEND_LIB_DIR}:${LD_LIBRARY_PATH:-}"
-
-# ---------- 3. 生成 build 目录 ----------
-BUILD_DIR="build"
-if [[ ! -d "${BUILD_DIR}" ]]; then
-  echo "[Info] 创建构建目录 ${BUILD_DIR}"
-  mkdir -p "${BUILD_DIR}"
-fi
-
-# ----------  设置 LD_LIBRARY_PATH ----------
-export LD_LIBRARY_PATH="${ASCEND_LIB_DIR}:${LD_LIBRARY_PATH:-}"
 echo "[Info] LD_LIBRARY_PATH 已设置为: ${LD_LIBRARY_PATH}"
-# ----------  运行 python 图构建代码 ----------
 
-dump_and_run_python_graph(){
-  echo "[Info] 开始运行 Python 图构建代码"
-  SHOWCASE_DIR="src"
-  INSTALL_LIB_DIR="build/whl_package"
-  TMP_ES_PYTHON_PATH=""
-  if [[ -d "${INSTALL_LIB_DIR}" ]]; then
-      TMP_ES_PYTHON_PATH=$PWD/${INSTALL_LIB_DIR}
-      echo "[Info] TMP_ES_PYTHON_PATH = ${TMP_ES_PYTHON_PATH}"
+# ---------- 运行单个 Python 文件 ----------
+run_python_file() {
+  local py_file="$1"
+  if [[ ! -f "${py_file}" ]]; then
+    echo "[Error] 未找到 Python 用例 ${py_file}" >&2
+    return 1
   fi
-  if [[ -n "${TMP_ES_PYTHON_PATH}" ]]; then
-      export PYTHONPATH="${TMP_ES_PYTHON_PATH}:${PYTHONPATH:-}"
-      echo "[Info] PYTHONPATH = ${PYTHONPATH}"
+  echo "[Info] 运行：${py_file}"
+  if python3 "${py_file}"; then
+    echo "[Success] ${py_file} 执行成功"
+    return 0
   else
-      echo "[Warning] 未找到有效的临时生成的Es Python模块路径"
-  fi
-  echo "[Info] LD_LIBRARY_PATH = ${LD_LIBRARY_PATH}"
-  if [[ ! -d "${SHOWCASE_DIR}" ]]; then
-      echo "[Warning] 展示的目录不存在 ${SHOWCASE_DIR}"
-      return 0
-  fi
-
-  python_files=("${SHOWCASE_DIR}/make_add_graph.py")
-  if [[ ! -f "${python_files[0]}" ]]; then
-    echo "[Error] 未找到 Python 用例 ${python_files[0]}" >&2
+    echo "[Error] ${py_file} 执行失败" >&2
     return 1
   fi
-
-  local has_error=0
-  for py_file in "${python_files[@]}"; do
-    echo "[Info] 运行：${py_file} "
-    if python3 "${py_file}"; then
-      echo "[Success] ${py_file} 执行成功"
-    else
-      echo "[Error] ${py_file} 执行失败" >&2
-      has_error=1
-
-    fi
-  done
-
-  if [[ ${has_error} -ne 0 ]]; then
-    return 1
-  fi
-  return 0
 }
 
 case "${TARGET}" in
   sample_and_run_python)
-    echo "[Info] 开始清理构建目录并准备重编译"
-    rm -rf "${BUILD_DIR}"
-    echo "[Info] 创建构建目录 ${BUILD_DIR}"
-    mkdir -p "${BUILD_DIR}"
-    echo "[Info] 开始CMake构建"
-    cmake -S . -B "${BUILD_DIR}" -DCMAKE_BUILD_TYPE=Release
-    echo "[Info] 开始构建ES库"
-    cmake --build "${BUILD_DIR}" --target build_es_all -j"$(nproc)"
-    echo "[Info] 安装ES库"
-    pip install --force-reinstall --upgrade --target ./${BUILD_DIR}/whl_package  "./${BUILD_DIR}/output/whl/es_all-1.0.0-py3-none-any.whl"
-    export LD_LIBRARY_PATH="$PWD/${BUILD_DIR}/output/lib64:$LD_LIBRARY_PATH"
-    if dump_and_run_python_graph; then
+    if run_python_file "src/make_add_graph.py"; then
+      echo "[Success] sample 执行成功，pbtxt dump 已生成在当前目录。该文件以 ge_onnx_ 开头，可以在 netron 中打开显示"
+    else
+      echo "[Error] sample 执行失败，请检查上述错误信息" >&2
+      exit 1
+    fi
+    ;;
+  sample_and_run_python_custom_allocator)
+    if run_python_file "src/make_add_graph_custom_allocator.py"; then
       echo "[Success] sample 执行成功，pbtxt dump 已生成在当前目录。该文件以 ge_onnx_ 开头，可以在 netron 中打开显示"
     else
       echo "[Error] sample 执行失败，请检查上述错误信息" >&2

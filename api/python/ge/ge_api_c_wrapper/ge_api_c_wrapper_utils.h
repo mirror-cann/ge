@@ -210,6 +210,7 @@ ge::graphStatus GeApiWrapper_GNode_SetOutputAttr(ge::GNode *node, const char *at
 void GeApiWrapper_GNode_FreeIntArray(int32_t *arrs);
 ge::Status GeApiWrapper_GEFinalize();
 ge::Status GeApiWrapper_GEInitialize(char **keys, char **values, int size);
+bool GeApiWrapper_IsGEInitialized();
 ge::graphStatus GeApiWrapper_OfflineCompile_BuildInitialize(char **keys, char **values, int size);
 void GeApiWrapper_OfflineCompile_BuildFinalize();
 ge::graphStatus GeApiWrapper_OfflineCompile_BuildModel(ge::Graph *graph, char **keys, char **values, int size,
@@ -249,14 +250,29 @@ ge::graphStatus GeApiWrapper_Graph_AddSubGraph(ge::Graph *graph, const ge::Graph
 ge::graphStatus GeApiWrapper_Graph_RemoveSubgraph(ge::Graph *graph, const char *name);
 ge::Session *GeApiWrapper_Session_CreateSession();
 ge::Tensor** GeApiWrapper_Session_RunGraph(ge::Session *session, uint32_t graph_id, void **inputs, int input_count, size_t *tensor_num);
+ge::Tensor** GeApiWrapper_Session_RunGraphWithStreamAsync(ge::Session *session, uint32_t graph_id, void *stream,
+                                                          void **inputs, int input_count, size_t *tensor_num);
 ge::Status GeApiWrapper_Session_AddGraph(ge::Session *session, uint32_t graph_id, ge::Graph *graph);
+ge::Status GeApiWrapper_Session_RemoveGraph(ge::Session *session, uint32_t graph_id);
 void GeApiWrapper_Session_DestroySession(const ge::Session *session);
+ge::Status GeApiWrapper_Session_RegisterDefaultAllocator(ge::Session *session, void *stream);
+ge::Status GeApiWrapper_Session_RegisterExternalAllocator(
+    ge::Session *session, void *stream,
+    void *(*malloc_fn)(void *, size_t),
+    void (*free_fn)(void *, void *),
+    void *(*get_addr_fn)(void *),
+    void (*on_destroy_fn)(void *), void *prevent_gc_handle);
+ge::Status GeApiWrapper_Session_UnregisterExternalAllocator(ge::Session *session, void *stream);
+bool GeApiWrapper_HasExternalAllocator(void *stream);
 ge::Format GeApiWrapper_Tensor_GetFormat(EsCTensor *tensor);
 EsCTensor *GeApiWrapper_Tensor_CreateTensor();
 void GeApiWrapper_Tensor_DestroyEsCTensor(EsCTensor *tensor);
 ge::graphStatus GeApiWrapper_Tensor_SetFormat(EsCTensor *tensor, const ge::Format &format);
 ge::DataType GeApiWrapper_Tensor_GetDataType(EsCTensor *tensor);
 ge::graphStatus GeApiWrapper_Tensor_SetDataType(EsCTensor *tensor, const ge::DataType &dtype);
+int32_t GeApiWrapper_Tensor_GetPlacement(EsCTensor *tensor);
+ge::graphStatus GeApiWrapper_Tensor_ToHost(EsCTensor *tensor);
+ge::graphStatus GeApiWrapper_Tensor_ToDevice(EsCTensor *tensor);
 #ifdef __cplusplus
 }
 #endif

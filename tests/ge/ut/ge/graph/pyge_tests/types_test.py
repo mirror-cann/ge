@@ -22,7 +22,7 @@ import os
 
 # 添加 ge 到 Python 路径
 try:
-    from ge.graph.types import DataType, AttrValueType
+    from ge.graph.types import DataType, AttrValueType, Placement
 except ImportError as e:
     pytest.skip(f"无法导入 ge 模块: {e}", allow_module_level=True)
 
@@ -240,3 +240,38 @@ class TestAttrValueType:
         assert isinstance(attr_data_type, AttrValueType)
         assert isinstance(attr_data_type, int)
         assert attr_data_type.value >= 0
+
+
+class TestPlacement:
+    """Placement 功能测试类"""
+
+    @staticmethod
+    def test_placement_enum_values():
+        """测试 Placement 枚举值"""
+        assert Placement.PLACEMENT_HOST == 0
+        assert Placement.PLACEMENT_DEVICE == 1
+
+    @staticmethod
+    def test_placement_enum_inheritance():
+        """测试 Placement 继承自 IntEnum"""
+        assert isinstance(Placement.PLACEMENT_HOST, int)
+        assert isinstance(Placement.PLACEMENT_DEVICE, int)
+
+    @staticmethod
+    def test_placement_enum_comparison():
+        """测试 Placement 枚举比较"""
+        assert Placement.PLACEMENT_HOST < Placement.PLACEMENT_DEVICE
+
+    @staticmethod
+    def test_placement_enum_iteration():
+        """测试 Placement 枚举可迭代"""
+        placements = list(Placement)
+        assert len(placements) == 2
+        assert Placement.PLACEMENT_HOST in placements
+        assert Placement.PLACEMENT_DEVICE in placements
+
+    @staticmethod
+    def test_placement_enum_repr():
+        """测试 Placement 枚举 repr"""
+        assert repr(Placement.PLACEMENT_HOST) == "<Placement.PLACEMENT_HOST: 0>"
+        assert repr(Placement.PLACEMENT_DEVICE) == "<Placement.PLACEMENT_DEVICE: 1>"

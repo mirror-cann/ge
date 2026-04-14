@@ -20,6 +20,9 @@ using namespace ge;
 using namespace ge::c_wrapper;
 using Status = uint32_t;
 using AscendString = ge::AscendString;
+namespace ge {
+  bool IsGEInitialize();
+}  // namespace ge
 extern "C" {
 #endif
 
@@ -37,6 +40,10 @@ Status GeApiWrapper_GEInitialize(char **keys, char **values, int size) {
     options[key] = value;
   }
   return  ge::GEInitialize(options);
+}
+
+bool GeApiWrapper_IsGEInitialized() {
+  return ge::IsGEInitialize();
 }
 
 #ifdef __cplusplus

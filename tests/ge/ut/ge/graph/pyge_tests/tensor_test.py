@@ -12,15 +12,13 @@
 # -----------------------------------------------------------------------------------------------------------
 
 import pytest
-import sys
-import os
 import ctypes
 
 # 添加 ge 到 Python 路径
 try:
     from ge.graph import Tensor
     from ge.graph.tensor import _parse_str_list, unflatten_tensor_data
-    from ge.graph.types import DataType, Format
+    from ge.graph.types import DataType, Format, Placement
 except ImportError as e:
     pytest.skip(f"无法导入 ge 模块: {e}", allow_module_level=True)
 
@@ -35,97 +33,120 @@ class TestTensor:
             return tensor
         except Exception as e:
             print(f"Exception occurs {e}")
-            
-    def test_tensor_none_args_init(self):
+
+    @staticmethod
+    def test_tensor_none_args_init():
         """测试无参初始化"""
         tensor = Tensor()
         assert tensor._handle is not None
         assert tensor.set_data_type(DataType.DT_FLOAT).get_data_type() == DataType.DT_FLOAT
 
 
-    def test_tensor_shape_invalid(self):
+    @staticmethod
+    def test_tensor_shape_invalid():
         """测试shape传入错误"""
         with pytest.raises(TypeError, match="Shape must be a list of integers"):  
             tensor = Tensor([1.0, 2.1, 3.2, 4.3, 5.2, 6.0], shape=1)
 
-    def test_tensor_all_args_invalid(self):
+    @staticmethod
+    def test_tensor_placement_invalid():
+        with pytest.raises(TypeError, match="Placement must be a Placement"):
+            Tensor([1.0], shape=[1], placement=1)
+
+    @staticmethod
+    def test_tensor_all_args_invalid():
         """测试所有data和file_path同时传入时错误"""
         with pytest.raises(RuntimeError, match="Tensor should be created either by data or by file"):  
             tensor = Tensor([1.0, 2.1, 3.2, 4.3, 5.2, 6.0], "test.txt")
 
-    def test_tensor_data_invalid(self):
+    @staticmethod
+    def test_tensor_data_invalid():
         """测试data类型必须为List"""
         with pytest.raises(TypeError, match="data should be List"):  
             tensor = Tensor(1, shape=[1,2,3])
 
-    def test_scalar_tensor_data_invalid(self):
+    @staticmethod
+    def test_scalar_tensor_data_invalid():
         """测试data类型必须为List"""
         with pytest.raises(TypeError, match="data should be List"):  
             tensor = Tensor(1)
 
-    def test_create_tensor_double_data_invalid(self):
+    @staticmethod
+    def test_create_tensor_double_data_invalid():
         """测试通过Double构造Tensor"""
         with pytest.raises(RuntimeError, match="DT_DOUBLE is not supported in python Tensor constructor"):
             tensor = Tensor([1.0, 2.1, 3.2, 4.3, 5.2], data_type=DataType.DT_DOUBLE, shape=[5])
 
-    def test_create_tensor_from_file_invalid(self):
+    @staticmethod
+    def test_create_tensor_from_file_invalid():
         """测试test.txt文件读取"""
         with pytest.raises(RuntimeError, match="Failed to create Tensor"):  
             tensor = Tensor(file_path="test.txt")
 
-    def test_create_tensor_float_data(self):
+    @staticmethod
+    def test_create_tensor_float_data():
         """测试通过Float构造Tensor"""
         tensor = Tensor([1.0, 2.1, 3.2, 4.3, 5.2, 6.0], shape=[1,2,3])
         assert tensor._handle is not None
 
-    def test_create_tensor_int_data(self):
+    @staticmethod
+    def test_create_tensor_int_data():
         """测试通过Int构造Tensor"""
         tensor = Tensor([1, 2, 3, 4, 5, 6], data_type=DataType.DT_INT32, shape=[1,2,3])
         assert tensor._handle is not None
 
-    def test_create_tensor_bool_data(self):
+    @staticmethod
+    def test_create_tensor_bool_data():
         """测试通过Bool构造Tensor"""
         tensor = Tensor([True, True, False, False, False, False], None, DataType.DT_BOOL, Format.FORMAT_ND, [1,2,3])
         assert tensor._handle is not None
 
-    def test_create_tensor_invalid_data(self):
+    @staticmethod
+    def test_create_tensor_invalid_data():
         """测试无效构造Tensor"""
         with pytest.raises(RuntimeError, match="Failed to create Tensor"):  
             tensor = Tensor([1.0, bool, 3.2, 4.3, 5.2, 3], None, DataType.DT_BOOL, Format.FORMAT_ND, [1,2,3])
 
-    def test_copy_not_supported(self, tensor):
+    @staticmethod
+    def test_copy_not_supported(tensor):
         """测试复制不支持"""
         with pytest.raises(RuntimeError, match="Tensor does not support copy"):
             tensor.__copy__()
 
-    def test_deepcopy_not_supported(self, tensor):
+    @staticmethod
+    def test_deepcopy_not_supported(tensor):
         """测试深复制不支持"""
         with pytest.raises(RuntimeError, match="Tensor does not support deepcopy"):
             tensor.__deepcopy__({})
     
-    def test_tensor_create_from_invalid(self):
+    @staticmethod
+    def test_tensor_create_from_invalid():
         """测试从无效指针创建 Tensor"""
         with pytest.raises(ValueError, match="Tensor pointer cannot be None"):
             Tensor._create_from(None)
 
-    def test_tensor_create_from(self):
+    @staticmethod
+    def test_tensor_create_from():
         """测试从有效指针创建 Tensor"""
         tensosr1 = Tensor()
         tensor2 = Tensor._create_from(tensosr1._handle)
         assert tensor2 is not None
         tensor2._owns_handle = False
 
-    def test_get_format(self, tensor):
+    @staticmethod
+    def test_get_format(tensor):
         """测试获取当前Format"""
         format = tensor.get_format()
         assert format == Format.FORMAT_ND
 
-    def test_set_format_invalid(self, tensor):
+    @staticmethod
+    def test_set_format_invalid(tensor):
         """测试无效Format"""
         with pytest.raises(TypeError, match="Format must be a Format"):
             tensor.set_format("")
 
-    def test_set_format_error(self, tensor):
+    @staticmethod
+    def test_set_format_error(tensor):
         """测试set_format错误"""
         handle = tensor._handle
         try:
@@ -135,7 +156,8 @@ class TestTensor:
         finally:
             tensor._handle = handle
         
-    def test_set_format(self, tensor):
+    @staticmethod
+    def test_set_format(tensor):
         """测试set_format功能"""
         # 获取当前Format
         current_format = tensor.get_format()
@@ -146,12 +168,14 @@ class TestTensor:
         current_format = tensor.get_format()
         assert current_format == Format.FORMAT_NCHW
 
-    def test_get_data_type(self, tensor):
+    @staticmethod
+    def test_get_data_type(tensor):
         # 获取当前DataType
         current_data_type = tensor.get_data_type()
         assert current_data_type == DataType.DT_INT8
 
-    def test_set_data_type(self, tensor):
+    @staticmethod
+    def test_set_data_type(tensor):
         """测试set_data_type功能"""
         # 获取当前DataType
         current_data_type = tensor.get_data_type()
@@ -162,12 +186,14 @@ class TestTensor:
         current_format = tensor.get_data_type()
         assert current_format == DataType.DT_INT64
 
-    def test_set_data_type_invalid(self, tensor):
+    @staticmethod
+    def test_set_data_type_invalid(tensor):
         """测试必须传入DataType类型"""
         with pytest.raises(TypeError, match="Data_type must be a DataType"):
             tensor.set_data_type("")
 
-    def test_set_data_type_error(self, tensor):
+    @staticmethod
+    def test_set_data_type_error(tensor):
         """测试必须传入DataType类型"""
         handle = tensor._handle
         try:
@@ -176,8 +202,21 @@ class TestTensor:
                 tensor.set_data_type(DataType.DT_INT64)
         finally:
             tensor._handle = handle
-            
-    def test_transfer_ownership(self):
+
+    @staticmethod
+    def test_placement_property(tensor):
+        """测试 placement 属性"""
+        assert tensor.placement == Placement.PLACEMENT_HOST
+        assert tensor.get_placement() == Placement.PLACEMENT_HOST
+
+    @staticmethod
+    def test_to_host_on_host_tensor(tensor):
+        """测试对 HOST tensor 调用 to_host 触发 ValueError"""
+        with pytest.raises(ValueError, match="to_host\\(\\) only supports device tensors"):
+            tensor.to_host()
+
+    @staticmethod
+    def test_transfer_ownership(tensor):
         """测试Tensor作为Attr时的所有权转移"""
         from ge.es.graph_builder import GraphBuilder
         builder = GraphBuilder()
@@ -196,7 +235,8 @@ class TestTensor:
         # 还原为了避免内存泄漏
         tensor._owns_handle = True
 
-    def test_get_shape(self, tensor):
+    @staticmethod
+    def test_get_shape(tensor):
         # 获取当前Shape
         tensor_shape = tensor.get_shape()
         assert len(tensor_shape) == 3
@@ -204,14 +244,16 @@ class TestTensor:
         assert tensor_shape[1] == 2
         assert tensor_shape[2] == 3
 
-    def test_get_data(self, tensor):
+    @staticmethod
+    def test_get_data(tensor):
         # 获取当前Data
         tensor_data = tensor.get_data()
         assert len(tensor_data) == 1
         assert len(tensor_data[0]) == 2
         assert len(tensor_data[0][0]) == 3
 
-    def test_get_data_error(self, tensor):
+    @staticmethod
+    def test_get_data_error(tensor):
         # 获取当前Data
         handle = tensor._handle
         try:
@@ -221,7 +263,9 @@ class TestTensor:
         finally:
             tensor._handle = handle
 
-    def test_tensor_print(self, tensor): 
+    @staticmethod
+    def test_tensor_print(tensor):
+        """测试Tensor打印功能"""
         val = tensor.__str__()
         print(tensor)
         assert val == f'''
@@ -231,41 +275,48 @@ class TestTensor:
         data is [[[1, 2, 3], [4, 5, 6]]]
         '''
 
-    def test_parse_str_list_invalid(self):
+    @staticmethod
+    def test_parse_str_list_invalid(tensor):
         """验证解析无效 list字符串"""
         with pytest.raises(ValueError, match="Input must start with '[' and end with ']'"):
             _parse_str_list("")
 
-    def test_parse_str_list_empty(self):
+    @staticmethod
+    def test_parse_str_list_empty(tensor):
         """验证解析空 list字符串"""
         res = _parse_str_list("[]")
         assert len(res) == 0
 
-    def test_parse_str_list_int(self):
+    @staticmethod
+    def test_parse_str_list_int(tensor):
         """验证解析int list字符串"""
         res = _parse_str_list("[1, 2, -3, 5, 7]")
         assert len(res) == 5
         assert res[2] == -3
 
-    def test_parse_str_list_float(self):
+    @staticmethod
+    def test_parse_str_list_float(tensor):
         """验证解析float list字符串"""
         res = _parse_str_list("[1.0, 2.0, -3.2, 5.7, 7.22, 9.0]")
         assert len(res) == 6
         assert res[2] == -3.2
 
 
-    def test_parse_str_list_mix(self):
+    @staticmethod
+    def test_parse_str_list_mix(tensor):
         """验证解析list字符串无效"""
         res = _parse_str_list("[1, 2.0, 3.3, 5, 7]")
         assert len(res) == 5
         assert res[2] == 3.3
 
-    def test_parse_str_list_invalid(self):
+    @staticmethod
+    def test_parse_str_list_invalid(tensor):
         """验证解析list字符串无效"""
         with pytest.raises(ValueError, match="Invalid item: '2;23'"):
             res = _parse_str_list("[1, 2;23 , 3.3, 5, 7]")
 
-    def test_unflatten_tensor_data(self):
+    @staticmethod
+    def test_unflatten_tensor_data(tensor):
         """验证正常TensorData去扁平化"""
         res = unflatten_tensor_data("[1.0, 2.0, 3.0, 4.0, 5.0, 6.0]", [3, 2, 1])
         assert res.__str__() == "[[[1.0], [2.0]], [[3.0], [4.0]], [[5.0], [6.0]]]"

@@ -1,36 +1,60 @@
 # 样例使用指导
 
 ## 1、功能描述
-本样例使用操作符重载进行构图，旨在帮助构图开发者快速理解操作符重载的定义，因为python接口暂时**未支持异步执行**，所以本样例**仅展示同步执行**的构图过程。
+本样例使用操作符重载进行构图，旨在帮助构图开发者快速理解操作符重载的定义。
+与 `operator_overload` 不同，本目录在执行阶段使用 `Session.run_graph_with_stream_async` 接口。
+关于异步执行更多信息，请参考 [异步执行](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/850/graph/graphdevg/atlasag_25_0035.html)。
+
 ## 2、目录结构
 ```angular2html
 python/
 ├── src/
-|   └── make_add_graph.py   // sample文件
-├── CMakeLists.txt          // 编译脚本
+|   ├── common.py                            // 公共逻辑：常量、图构建、输入张量、GE 生命周期
+|   ├── make_add_graph.py                    // 异步执行样例
+|   └── make_add_graph_custom_allocator.py   // 注册自定义 SampleAllocator 异步执行样例
 ├── README.md               // README文件
 ├── run_sample.sh           // 执行脚本
 ```
 
 ## 3、使用方法
 ### 3.1、准备cann包
-- 通过安装指导 [环境准备](../../../../docs/build.md#2-安装软件包)正确安装`toolkit`和`ops`包
-- 设置环境变量 (假设包安装在/usr/local/Ascend/)
+- 本样例需要同时安装两套 CANN：最新开发包用于图编译，官网正式发布包提供 [`pyACL`](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/900beta1/appdevg/acldevg/aclpythondevg_0096.html) 模块用于图执行。本文中的“编译”和“执行”均特指图编译和图执行，不指 GE 工程源码编译。
+- 安装请参考：
+  - 最新开发包，用于图编译，提供本样例依赖的最新 GE/Python 能力。安装请参考 [安装指导](../../../docs/quick_install.md) 中“方式三：手动安装软件包 > 场景1：体验master版本能力或基于master版本进行开发”，安装最新版本的 `toolkit` 和 `ops` 包
+  - 官网正式发布的 CANN `toolkit` 和 `ops` 包，用于图执行，提供 `pyACL`。安装请参考 [安装指导](../../../docs/quick_install.md) 中“方式三：手动安装软件包 > 场景2：体验已发布版本能力或基于已发布版本进行开发”，安装官网正式发布版本的软件包
+- 设置环境变量 (假设最新开发包安装在/usr/local/Ascend/，官网正式发布包安装在/usr/local/Ascend-release/)
 ```
-source /usr/local/Ascend/cann/set_env.sh 
+source /usr/local/Ascend/cann/set_env.sh
+export PYTHONPATH="$PYTHONPATH:/usr/local/Ascend-release/cann/python/site-packages"
 ```
-### 3.2、编译和执行
-- 注：和 C/C++构图对比，Python构图需要额外添加 LD_LIBRARY_PATH 和 PYTHONPATH(参考sample中的配置方式)
+### 3.2、执行
+本目录提供两个可选 target：
+
+#### 3.2.1、默认 allocator 样例
 ```bash
 bash run_sample.sh -t sample_and_run_python
 ```
 该命令会：
-1. 自动生成ES接口
-2. 编译sample程序
-3. 生成dump图并运行该图
+1. 生成 dump 图并使用 GE 内置 allocator 异步执行该图
 
 执行成功后会看到：
 ```
+[Success] sample 执行成功，pbtxt dump 已生成在当前目录。该文件以 ge_onnx_ 开头，可以在 netron 中打开显示
+```
+
+#### 3.2.2、自定义 allocator 样例
+```bash
+bash run_sample.sh -t sample_and_run_python_custom_allocator
+```
+该命令在默认样例基础上，通过 `Session.register_external_allocator` 向 GE 注册一个自定义 allocator（`SampleAllocator`）。该 allocator 继承 `ge.allocator.Allocator` 基类，使用 `acl.rt.malloc`/`acl.rt.free` 完成设备内存管理，并在每次 `malloc`/`free` 时打印内存操作信息。
+
+执行成功后，终端会出现以下格式的打印（输出 Tensor 的数量决定 malloc/free 的调用次数）：
+```
+[Info] SampleAllocator 已注册到 stream
+[SampleAllocator] malloc: size=<字节数> bytes, addr=0x<设备内存地址>
+[Info] 异步执行 Graph 成功！
+[SampleAllocator] free:  addr=0x<设备内存地址>, size=<字节数> bytes
+[Info] SampleAllocator 已注销
 [Success] sample 执行成功，pbtxt dump 已生成在当前目录。该文件以 ge_onnx_ 开头，可以在 netron 中打开显示
 ```
 #### 输出文件说明
