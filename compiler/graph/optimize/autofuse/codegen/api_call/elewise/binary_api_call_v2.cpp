@@ -32,14 +32,11 @@ Status BinaryApiCallV2::Generate(const TPipe &tpipe, const std::vector<ascir::Ax
   auto x2 = inputs[1].get();
   auto y = outputs[0].get();
   stringstream ss;
-  string blk_align;
-  GE_CHK_STATUS_RET(KernelUtils::BlkAlign(x1.dtype, blk_align), "Codegen blk align failed");
   ss << this->api_name_ << "("
      << y << "[" << tpipe.tiler.TensorVectorizedOffset(current_axis, y) << "], "
      << x1 << "[" << tpipe.tiler.TensorVectorizedOffset(current_axis, x1) << "], "
      << x2 << "[" << tpipe.tiler.TensorVectorizedOffset(current_axis, x2) << "], "
-     << blk_align << "("
-     << x1.actual_size << "));" << std::endl;
+     << x1.actual_size << ");" << std::endl;
   result = ss.str();
   return ge::SUCCESS;
 }

@@ -99,7 +99,7 @@ TEST(CodegenKernel, BitwiseAndTest) {
   std::string result;
   call.Generate(tpipe, vector<ge::AxisId>{}, result);
   EXPECT_EQ(result, std::string{
-      "AscendC::BitwiseAnd(local_2[0], local_0[0], local_0[0], KernelUtils::BlkAlign<half>(local_0_actual_size));\n"
+      "AscendC::BitwiseAnd(local_2[0], local_0[0], local_0[0], local_0_actual_size);\n"
   });
 }
 

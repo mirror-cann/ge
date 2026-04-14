@@ -3628,7 +3628,7 @@ TEST(CodegenKernel, Ub2ubApiCall) {
   std::string result;
   call.Generate(tpipe, vector<ge::AxisId>{}, result);
   EXPECT_EQ(result, std::string{
-    "DataCopy(local_1[0], local_0[0], KernelUtils::BlkAlign<float>(local_0_actual_size));\n"
+    "DataCopy(local_1[0], local_0[0], local_0_actual_size);\n"
   });
 }
 
