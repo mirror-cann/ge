@@ -150,7 +150,7 @@ graphStatus DumpSubgraphFromOriginNodes(const AutoFuseAttrs &fuse_attrs,
   }
 
   ge::Graph ge_graph = GraphUtilsEx::CreateGraphFromComputeGraph(sub_compute_graph);
-  const std::string file_name = kSubgraphRecoverDir + "/" + subgraph_name + ".om";
+  const std::string file_name = kSubgraphRecoverDir + "/" + subgraph_name + ".air";
   const graphStatus ret = ge_graph.SaveToFile(file_name.c_str());
   GE_ASSERT(ret == GRAPH_SUCCESS, "SaveToFile failed for subgraph %s, ret=%d", file_name.c_str(), ret);
   GELOGI("Saved origin subgraph to file: %s", file_name.c_str());
@@ -306,7 +306,8 @@ graphStatus AscIrLowerer::DfxForAscBackendOp(const ComputeGraphPtr &graph) const
   GE_ASSERT_NOTNULL(graph);
   const std::string aiv_cnt_key = "_op_vectorcore_num";
   for (auto &node : graph->GetAllNodes()) {
-    if (!IsAscBackendOpNode(node) && (node->GetType() != "FusedAscBackend")) {
+    if ((!IsAscBackendOpNode(node) && (node->GetType() != "FusedAscBackend")) ||
+        node->GetOutNodes().empty()) {
       continue;
     }
     GE_ASSERT_NOTNULL(node->GetOpDesc());
