@@ -1073,7 +1073,8 @@ Status MoveBroadcastAfterMerge(const NodePtr &merge_node, const NodePtr &first_b
 /**
  * 后移单输出多引用的Broadcast节点
  */
-Status BackwardMultiRefBroadcast(const NodePtr &merge_node, const std::vector<std::vector<NodePtr>> &all_branch_nodes,
+Status BackwardMultiRefBroadcast(const NodePtr &candidate_node, const NodePtr &merge_node,
+                                 const std::vector<std::vector<NodePtr>> &all_branch_nodes,
                                  std::vector<NodePtr> &bro_nodes, AscGraph &graph) {
   // 获取Broadcast节点链的输入
   auto bro_in_anchor = bro_nodes.front()->GetInDataAnchor(0);
@@ -1127,6 +1128,10 @@ Status BackwardMultiRefBroadcast(const NodePtr &merge_node, const std::vector<st
 
   // 更新属性
   std::vector<NodePtr> compute_nodes;
+  if (candidate_node->GetType() != kBroadcastType) {
+    // 如果candidate_node不是Broadcast节点，也需要更新其属性
+    compute_nodes.push_back(candidate_node);
+  }
   for (const auto &branch : all_branch_nodes) {
     compute_nodes.insert(compute_nodes.end(), branch.begin(), branch.end());
   }
@@ -1174,7 +1179,7 @@ Status ProcessMultiRefBroadcastBackward(AscGraph &graph, bool &is_changed) {
            candidate_node->GetName().c_str(), merge_node->GetName().c_str(), bro_nodes.size(), all_branch_nodes.size());
 
     // 执行后移
-    is_changed = BackwardMultiRefBroadcast(merge_node, all_branch_nodes, bro_nodes, graph) == SUCCESS;
+    is_changed = BackwardMultiRefBroadcast(candidate_node, merge_node, all_branch_nodes, bro_nodes, graph) == SUCCESS;
   }
 
   return SUCCESS;
