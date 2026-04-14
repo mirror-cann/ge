@@ -5,6 +5,8 @@
         <path value="$(TARGET_ENV)/include/graph" install_mod="555"/>
         <path value="$(TARGET_ENV)/include/exe_graph" install_mod="555"/>
         <path value="$(TARGET_ENV)/include/exe_graph/runtime" install_mod="555"/>
+        <path value="$(TARGET_ENV)/include/external" install_mod="555"/>
+        <path value="$(TARGET_ENV)/include/external/ge_common" install_mod="555"/>
         <path value="$(TARGET_ENV)/include/register" install_mod="555"/>
         <path value="$(TARGET_ENV)/include/register/scope" install_mod="555"/>
         <path value="$(TARGET_ENV)/include/acl" install_mod="555"/>
@@ -20,6 +22,9 @@
         <file value="ge_api_error_codes.h"/>
         <file value="ge_api_types.h"/>
         <file value="ge_external_weight_desc.h"/>
+    </file_info>
+    <file_info value="include" copy_type="source" dst_path="include/external/ge_common" install_path="$(TARGET_ENV)/include/external/ge_common" install_type="devel" install_mod="440">
+        <file value="ge_api_types.h"/>
     </file_info>
     <file_info value="include" copy_type="source" dst_path="include/acl" install_path="$(TARGET_ENV)/include/acl" install_type="devel" install_mod="440">
         <file value="acl_mdl.h"/>

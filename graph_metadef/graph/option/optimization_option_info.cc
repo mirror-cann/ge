@@ -10,6 +10,11 @@
 
 #include "graph/option/optimization_option_info.h"
 
+#include <unordered_set>
+#include "common/ge_common/debug/ge_log.h"
+#include "graph/ge_local_context.h"
+#include "external/ge_common/ge_api_types.h"
+
 namespace {
 const std::map<ge::OoLevel, std::string> kOoLevelStr = {{ge::OoLevel::kO1, "O1"}, {ge::OoLevel::kO3, "O3"}};
 }  // namespace

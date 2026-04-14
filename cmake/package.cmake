@@ -305,6 +305,11 @@ elseif("${BUILD_COMPONENT}" STREQUAL "ge-executor")
                   ${CMAKE_SOURCE_DIR}/inc/external/ge/ge_external_weight_desc.h
         DESTINATION ${BUILD_COMPONENT}/include/ge COMPONENT ${BUILD_COMPONENT}
     )
+
+    install(FILES ${CMAKE_SOURCE_DIR}/inc/graph_metadef/external/ge_common/ge_api_types.h
+            DESTINATION ${BUILD_COMPONENT}/include/external/ge_common
+    )
+
     install(FILES ${CMAKE_SOURCE_DIR}/inc/external/acl/acl_mdl.h
                   ${CMAKE_SOURCE_DIR}/inc/external/acl/acl_base_mdl.h
                   ${CMAKE_SOURCE_DIR}/inc/external/acl/acl_op.h
