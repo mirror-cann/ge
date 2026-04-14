@@ -72,5 +72,5 @@ add_custom_target(runtime_update_model_param_dav_2201
 )
 
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/UpdateModelParam_dav_2201.o
-    DESTINATION ${INSTALL_LIBRARY_DIR} OPTIONAL
+    DESTINATION ${INSTALL_LIBRARY_DIR} ${INSTALL_OPTIONAL}
 )

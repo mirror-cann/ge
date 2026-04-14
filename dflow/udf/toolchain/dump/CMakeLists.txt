@@ -77,7 +77,7 @@ target_link_libraries(udf_dump PRIVATE
 
 set(INSTALL_LIBRARY_DIR lib)
 
-install(TARGETS udf_dump OPTIONAL
+install(TARGETS udf_dump ${INSTALL_OPTIONAL}
     EXPORT udf_dump-targets
     LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}
     RUNTIME DESTINATION ${INSTALL_RUNTIME_DIR}

@@ -82,6 +82,6 @@ target_link_libraries(formats PRIVATE
     -ldl
 )
 
-install(TARGETS formats OPTIONAL
+install(TARGETS formats ${INSTALL_OPTIONAL}
     LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}
 )

@@ -220,16 +220,16 @@ add_subdirectory(autofuse)
 if(NOT DEFINED RUN_TEST OR NOT RUN_TEST EQUAL 1)
 install(TARGETS aihac_codegen
                 pyautofuse
-    LIBRARY DESTINATION lib OPTIONAL
-    ARCHIVE DESTINATION lib OPTIONAL
-    RUNTIME DESTINATION bin OPTIONAL
+    LIBRARY DESTINATION lib ${INSTALL_OPTIONAL}
+    ARCHIVE DESTINATION lib ${INSTALL_OPTIONAL}
+    RUNTIME DESTINATION bin ${INSTALL_OPTIONAL}
 )
 
 # #########################以下内容是生成一个autofuse的so################################
 install(TARGETS aihac_autofusion
-        LIBRARY DESTINATION lib OPTIONAL
-        ARCHIVE DESTINATION lib OPTIONAL
-        RUNTIME DESTINATION bin OPTIONAL
+        LIBRARY DESTINATION lib ${INSTALL_OPTIONAL}
+        ARCHIVE DESTINATION lib ${INSTALL_OPTIONAL}
+        RUNTIME DESTINATION bin ${INSTALL_OPTIONAL}
 )
 
 if (NOT ENABLE_OPEN_SRC)
@@ -240,18 +240,18 @@ if (NOT ENABLE_OPEN_SRC)
     )
 endif ()
 
-if (ENABLE_OPEN_SRC)
+if (NOT DEFINED BUILD_COMPONENT AND ENABLE_OPEN_SRC)
     set(ARCH_LINX_PATH "${CMAKE_SYSTEM_PROCESSOR}-linux")
 
     install(TARGETS aihac_autofusion
                     aihac_codegen
-        LIBRARY DESTINATION ${ARCH_LINX_PATH}/lib64 OPTIONAL COMPONENT packages EXCLUDE_FROM_ALL
-        ARCHIVE DESTINATION ${ARCH_LINX_PATH}/lib64 OPTIONAL COMPONENT packages EXCLUDE_FROM_ALL
-        RUNTIME DESTINATION ${ARCH_LINX_PATH}/bin OPTIONAL COMPONENT packages EXCLUDE_FROM_ALL
+        LIBRARY DESTINATION ${ARCH_LINX_PATH}/lib64 ${INSTALL_OPTIONAL} COMPONENT packages EXCLUDE_FROM_ALL
+        ARCHIVE DESTINATION ${ARCH_LINX_PATH}/lib64 ${INSTALL_OPTIONAL} COMPONENT packages EXCLUDE_FROM_ALL
+        RUNTIME DESTINATION ${ARCH_LINX_PATH}/bin ${INSTALL_OPTIONAL} COMPONENT packages EXCLUDE_FROM_ALL
     )
 
     install(TARGETS pyautofuse
-        LIBRARY DESTINATION python/site-packages/autofuse OPTIONAL COMPONENT packages EXCLUDE_FROM_ALL
+        LIBRARY DESTINATION python/site-packages/autofuse ${INSTALL_OPTIONAL} COMPONENT packages EXCLUDE_FROM_ALL
     )
 
     install(FILES compiler/python/__init__.py
@@ -260,7 +260,7 @@ if (ENABLE_OPEN_SRC)
             compiler/python/compile_adapter.py
             compiler/python/ascendc_compile.py
             compiler/python/ascir_api.py
-            DESTINATION python/site-packages/autofuse OPTIONAL COMPONENT packages EXCLUDE_FROM_ALL
+            DESTINATION python/site-packages/autofuse ${INSTALL_OPTIONAL} COMPONENT packages EXCLUDE_FROM_ALL
     )
 
     set(version_info "${ASCEND_INSTALL_PATH}/runtime/version.info")
@@ -276,7 +276,7 @@ if (ENABLE_OPEN_SRC)
     )
 
     install(DIRECTORY ${install_script_dir}
-        DESTINATION . OPTIONAL
+        DESTINATION . ${INSTALL_OPTIONAL}
         FILE_PERMISSIONS OWNER_EXECUTE OWNER_READ GROUP_READ
         COMPONENT . EXCLUDE_FROM_ALL
     )

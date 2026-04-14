@@ -45,6 +45,6 @@ set(INSTALL_INCLUDE_DIR include)
 set(INSTALL_LIBRARY_DIR lib)
 set(INSTALL_CONFIG_DIR  lib/cmake)
 
-install(TARGETS cann_kb_stub OPTIONAL
+install(TARGETS cann_kb_stub ${INSTALL_OPTIONAL}
         EXPORT cann_kb_stub-targets
         LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR})

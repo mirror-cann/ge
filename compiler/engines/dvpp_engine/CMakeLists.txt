@@ -103,7 +103,7 @@ target_link_libraries(dvpp_engine PRIVATE
     json
 )
 
-install(TARGETS dvpp_engine OPTIONAL
+install(TARGETS dvpp_engine ${INSTALL_OPTIONAL}
     EXPORT dvpp_engine-targets
     LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}
 )

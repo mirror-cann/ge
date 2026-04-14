@@ -54,5 +54,5 @@ target_link_libraries(jit_exe PRIVATE
         ge_compiler
 )
 
-install(TARGETS jit_exe OPTIONAL
+install(TARGETS jit_exe ${INSTALL_OPTIONAL}
    ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR})

@@ -98,7 +98,7 @@ set_target_properties(ge_executor_c_static PROPERTIES
     OUTPUT_NAME ge_executor
 )
 
-install(TARGETS  ge_executor_c_static OPTIONAL
+install(TARGETS  ge_executor_c_static ${INSTALL_OPTIONAL}
     ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR}/c
 )
 
@@ -106,7 +106,7 @@ set(PKG_NAME air_c_exec)
 if (NOT ENABLE_OPEN_SRC)
     install(TARGETS ge_executor_c_static
             EXPORT ${PKG_NAME}-targets
-            ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR}/c/ge_exec OPTIONAL COMPONENT opensdk
+            ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR}/c/ge_exec ${INSTALL_OPTIONAL} COMPONENT opensdk
             )
     if (PACKAGE STREQUAL "opensdk")
         install(EXPORT ${PKG_NAME}-targets DESTINATION ${INSTALL_CONFIG_DIR}

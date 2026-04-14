@@ -506,10 +506,10 @@ add_subdirectory(ascendc_ir)
 add_subdirectory(expression)
 
 ############ install ############
-install(TARGETS atc_stub_graph OPTIONAL
+install(TARGETS atc_stub_graph ${INSTALL_OPTIONAL}
     LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}/${CMAKE_SYSTEM_PROCESSOR}/stub
 )
 
-install(TARGETS fwk_stub_graph OPTIONAL
+install(TARGETS fwk_stub_graph ${INSTALL_OPTIONAL}
     LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}/${CMAKE_SYSTEM_PROCESSOR}/fwk_stub
 )

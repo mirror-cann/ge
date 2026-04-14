@@ -131,8 +131,8 @@ target_include_directories(fwk_stub_ge_runner PRIVATE
 ###############################################################
 ############ install ############
 install(TARGETS atc_stub_ge_compiler
-    LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}/stub OPTIONAL
-    RUNTIME DESTINATION ${INSTALL_LIBRARY_DIR}/stub OPTIONAL
+    LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}/stub ${INSTALL_OPTIONAL}
+    RUNTIME DESTINATION ${INSTALL_LIBRARY_DIR}/stub ${INSTALL_OPTIONAL}
 )
 
 endif()

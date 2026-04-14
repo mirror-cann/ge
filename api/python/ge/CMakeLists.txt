@@ -27,6 +27,6 @@ add_custom_command(
         && echo "Build ge-py wheel package end"
         DEPENDS eager_style_graph_builder_base ge_api_c_wrapper ${GE_API_C_WRAPPER}
 )
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/ge_py-0.0.1-py3-none-any.whl OPTIONAL
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/ge_py-0.0.1-py3-none-any.whl ${INSTALL_OPTIONAL}
         DESTINATION ${INSTALL_LIBRARY_DIR}
 )

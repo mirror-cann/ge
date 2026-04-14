@@ -91,6 +91,6 @@ target_link_libraries(te_fusion_stub
         json
         graph)
 
-install(TARGETS te_fusion_stub OPTIONAL
+install(TARGETS te_fusion_stub ${INSTALL_OPTIONAL}
         EXPORT te_fusion_stub-targets
         LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR})

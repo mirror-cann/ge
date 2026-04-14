@@ -61,5 +61,5 @@ target_link_libraries(gen_esb_impl PRIVATE
 add_executable(gen_esb main.cc)
 target_compile_options(gen_esb PRIVATE ${AIR_COMMON_COMPILE_OPTION})
 target_link_libraries(gen_esb PRIVATE c_sec metadef  intf_pub cmd_flag_info_static gen_esb_impl json)
-install(TARGETS gen_esb OPTIONAL
-        RUNTIME DESTINATION ${INSTALL_RUNTIME_DIR})
+install(TARGETS gen_esb ${INSTALL_OPTIONAL}
+        RUNTIME DESTINATION ${INSTALL_RUNTIME_DIR} COMPONENT ge-compiler)

@@ -83,6 +83,6 @@ else()
     )
 endif()
 install(TARGETS hcom_gradient_split_tune
-    LIBRARY DESTINATION lib  OPTIONAL
+    LIBRARY DESTINATION lib  ${INSTALL_OPTIONAL}
 )
 

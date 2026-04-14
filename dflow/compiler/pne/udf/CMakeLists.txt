@@ -85,6 +85,6 @@ target_link_libraries(udf_compiler PRIVATE
     crypto_static
 )
 
-install(TARGETS udf_compiler OPTIONAL
+install(TARGETS udf_compiler ${INSTALL_OPTIONAL}
     LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}
 )

@@ -188,7 +188,7 @@ target_link_libraries(ge_runner
 ############ install ############
 install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/engine_conf.json
-    ${CMAKE_CURRENT_BINARY_DIR}/optimizer_priority.pbtxt OPTIONAL
+    ${CMAKE_CURRENT_BINARY_DIR}/optimizer_priority.pbtxt ${INSTALL_OPTIONAL}
     DESTINATION ${INSTALL_LIBRARY_DIR}
 )
 endif()

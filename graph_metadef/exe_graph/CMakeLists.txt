@@ -83,7 +83,7 @@ if (NOT ENABLE_OPEN_SRC)
     set_target_properties(lowering_static PROPERTIES OUTPUT_NAME lowering)
 
     ############ install ############
-    install(TARGETS lowering_static OPTIONAL
+    install(TARGETS lowering_static ${INSTALL_OPTIONAL}
         ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR}
     )
 endif()
@@ -159,12 +159,12 @@ if (NOT ENABLE_OPEN_SRC)
     )
 
     ############ install ############
-    install(TARGETS stub_lowering_static OPTIONAL
+    install(TARGETS stub_lowering_static ${INSTALL_OPTIONAL}
         ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR}/${CMAKE_SYSTEM_PROCESSOR}/stub
     )
 endif ()
 
 ############ install ############
-install(TARGETS stub_lowering OPTIONAL
+install(TARGETS stub_lowering ${INSTALL_OPTIONAL}
     LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}/${CMAKE_SYSTEM_PROCESSOR}/stub
 )

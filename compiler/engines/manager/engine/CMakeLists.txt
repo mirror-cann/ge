@@ -58,6 +58,6 @@ target_link_libraries(engine PRIVATE
     -ldl
 )
 
-install(TARGETS engine OPTIONAL
+install(TARGETS engine ${INSTALL_OPTIONAL}
     LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}
 )

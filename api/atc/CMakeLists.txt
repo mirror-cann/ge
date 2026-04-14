@@ -174,10 +174,10 @@ set_target_properties(fwk_atc.bin PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY fwkacl
         )
 
-install(TARGETS atc_atc.bin OPTIONAL
+install(TARGETS atc_atc.bin ${INSTALL_OPTIONAL}
         RUNTIME DESTINATION ${INSTALL_LIBRARY_DIR}/atclib
         )
 
-install(TARGETS fwk_atc.bin OPTIONAL
+install(TARGETS fwk_atc.bin ${INSTALL_OPTIONAL}
         RUNTIME DESTINATION ${INSTALL_LIBRARY_DIR}/fwkacl
         )

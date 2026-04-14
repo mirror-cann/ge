@@ -15,6 +15,6 @@ target_link_libraries(atrace_stub
         atrace_headers
 )
 
-install(TARGETS atrace_stub OPTIONAL
+install(TARGETS atrace_stub ${INSTALL_OPTIONAL}
         EXPORT atrace_stub-targets
         LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR})

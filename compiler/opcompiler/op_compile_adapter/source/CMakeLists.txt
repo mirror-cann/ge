@@ -59,7 +59,7 @@ target_link_libraries(op_compile_adapter
 )
 
 if (BUILD_OPEN_PROJECT OR ENABLE_OPEN_SRC)
-    install(TARGETS op_compile_adapter OPTIONAL
+    install(TARGETS op_compile_adapter ${INSTALL_OPTIONAL}
             EXPORT op_compile_adapter-targets
             LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}
             )

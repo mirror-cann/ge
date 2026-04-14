@@ -160,9 +160,9 @@ endif()
 
 install(TARGETS _caffe_parser parser_common fmk_onnx_parser fmk_parser parser_headers
     EXPORT parser-targets
-    LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR} OPTIONAL COMPONENT opensdk
-    ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR} OPTIONAL COMPONENT opensdk
-    RUNTIME DESTINATION ${INSTALL_RUNTIME_DIR} OPTIONAL COMPONENT opensdk
+    LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR} ${INSTALL_OPTIONAL} COMPONENT opensdk
+    ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR} ${INSTALL_OPTIONAL} COMPONENT opensdk
+    RUNTIME DESTINATION ${INSTALL_RUNTIME_DIR} ${INSTALL_OPTIONAL} COMPONENT opensdk
 )
 install(FILES   ${AIR_CODE_DIR}/inc/parser/external/parser/onnx_parser.h
                 ${AIR_CODE_DIR}/inc/parser/external/parser/caffe_parser.h

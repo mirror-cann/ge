@@ -657,6 +657,6 @@ if ("${PRODUCT}" STREQUAL "ascend031")
 endif ()
 
 
-install(TARGETS ge_common_stub OPTIONAL
+install(TARGETS ge_common_stub ${INSTALL_OPTIONAL}
     LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}/${CMAKE_SYSTEM_PROCESSOR}/stub
 )

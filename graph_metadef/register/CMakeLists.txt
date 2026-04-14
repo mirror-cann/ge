@@ -393,9 +393,9 @@ endif ()
 
 ############ install ############
 install(TARGETS register_static
-    ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR} OPTIONAL
+    ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR} ${INSTALL_OPTIONAL}
 )
 
-install(TARGETS stub_register OPTIONAL
+install(TARGETS stub_register ${INSTALL_OPTIONAL}
     LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}/${CMAKE_SYSTEM_PROCESSOR}/stub
 )

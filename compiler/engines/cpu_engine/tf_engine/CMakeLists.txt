@@ -111,7 +111,7 @@ target_compile_options(aicpu_tf_engine PRIVATE
     -Werror
 )
 
-install(TARGETS aicpu_tf_engine OPTIONAL
+install(TARGETS aicpu_tf_engine ${INSTALL_OPTIONAL}
     EXPORT aicpu_tf_engine-targets
     LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}
     RUNTIME DESTINATION ${INSTALL_RUNTIME_DIR}
@@ -121,5 +121,5 @@ set(json_src_path   ${CMAKE_CURRENT_SOURCE_DIR}/config/ir2tf/ir2tf_op_mapping_li
 
 install(FILES ${json_src_path}
     DESTINATION ${INSTALL_LIBRARY_DIR}
-    OPTIONAL
+    ${INSTALL_OPTIONAL}
 )

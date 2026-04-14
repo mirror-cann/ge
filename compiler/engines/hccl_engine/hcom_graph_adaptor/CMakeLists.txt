@@ -551,15 +551,15 @@ endif()
 add_subdirectory(ge_plugin)
 add_subdirectory(hcom_executor)
 
-install(TARGETS hcom_graph_adaptor  OPTIONAL
+install(TARGETS hcom_graph_adaptor  ${INSTALL_OPTIONAL}
     LIBRARY DESTINATION lib
 )
-install(TARGETS hcom_executor  OPTIONAL
+install(TARGETS hcom_executor  ${INSTALL_OPTIONAL}
     LIBRARY DESTINATION lib
 )
-install(TARGETS hcom_opskernel_builder  OPTIONAL
+install(TARGETS hcom_opskernel_builder  ${INSTALL_OPTIONAL}
     LIBRARY DESTINATION lib
 )
-install(TARGETS hcom_gradtune_opskernel_builder  OPTIONAL
+install(TARGETS hcom_gradtune_opskernel_builder  ${INSTALL_OPTIONAL}
     LIBRARY DESTINATION lib
 )

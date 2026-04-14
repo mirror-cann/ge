@@ -88,7 +88,7 @@ if(${TARGET_SYSTEM_NAME} STREQUAL "Linux")
         OUTPUT_NAME ge_dbg
     )
 
-    install(TARGETS  ge_dbg_c OPTIONAL
+    install(TARGETS  ge_dbg_c ${INSTALL_OPTIONAL}
         LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}/c
     )
 elseif(${TARGET_SYSTEM_NAME} STREQUAL "LiteOS")
@@ -133,7 +133,7 @@ elseif(${TARGET_SYSTEM_NAME} STREQUAL "LiteOS")
         OUTPUT_NAME ge_dbg_stub
     )
 
-    install(TARGETS  ge_dbg_c_static_stub OPTIONAL
+    install(TARGETS  ge_dbg_c_static_stub ${INSTALL_OPTIONAL}
         ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR}/c
     )
     # begin
@@ -218,7 +218,7 @@ elseif(${TARGET_SYSTEM_NAME} STREQUAL "LiteOS")
 
     install(
         FILES ${CMAKE_CURRENT_BINARY_DIR}/${DBG_STATIC_LIB_NAME}
-        DESTINATION ${INSTALL_LIBRARY_DIR}/c OPTIONAL
+        DESTINATION ${INSTALL_LIBRARY_DIR}/c ${INSTALL_OPTIONAL}
     )
     # LiteOS end
     # end

@@ -105,7 +105,7 @@ target_link_libraries(fusion_pass PRIVATE
         json
         -ldl)
 
-install(TARGETS fusion_pass OPTIONAL
+install(TARGETS fusion_pass ${INSTALL_OPTIONAL}
         EXPORT fusion_pass-targets
         LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}
 )

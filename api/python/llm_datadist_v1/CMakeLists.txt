@@ -23,6 +23,6 @@ add_custom_command(
         && echo "package llm datadist v1 whl end"
         DEPENDS llm_wrapper
 )
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/llm_datadist_v1-0.0.1-py3-none-any.whl OPTIONAL
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/llm_datadist_v1-0.0.1-py3-none-any.whl ${INSTALL_OPTIONAL}
         DESTINATION ${INSTALL_LIBRARY_DIR}
 )

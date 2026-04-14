@@ -111,7 +111,7 @@ target_link_options(aicpu_engine_common PRIVATE
     -Wl,-Bsymbolic
 )
 
-install(TARGETS aicpu_engine_common OPTIONAL
+install(TARGETS aicpu_engine_common ${INSTALL_OPTIONAL}
     EXPORT aicpu_engine_common-targets
     LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}
     RUNTIME DESTINATION ${INSTALL_RUNTIME_DIR}
@@ -120,11 +120,11 @@ install(TARGETS aicpu_engine_common OPTIONAL
 set(init.conf_src_path  ${CMAKE_CURRENT_SOURCE_DIR}/config/init.conf)
 install(FILES ${init.conf_src_path}
     DESTINATION ${INSTALL_LIBRARY_DIR}
-    OPTIONAL
+    ${INSTALL_OPTIONAL}
 )
 
 set(ops_parallel_json_src_path   ${CMAKE_CURRENT_SOURCE_DIR}/config/aicpu_ops_parallel_rule.json)
 install(FILES ${ops_parallel_json_src_path}
     DESTINATION ${INSTALL_LIBRARY_DIR}
-    OPTIONAL
+    ${INSTALL_OPTIONAL}
 )

@@ -634,6 +634,6 @@ if ("${PRODUCT}" STREQUAL "ascend031")
 endif ()
 
 
-install(TARGETS hybrid_executor_stub OPTIONAL
+install(TARGETS hybrid_executor_stub ${INSTALL_OPTIONAL}
     LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}/${CMAKE_SYSTEM_PROCESSOR}/stub
 )

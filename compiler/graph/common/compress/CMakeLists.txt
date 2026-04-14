@@ -129,6 +129,6 @@ target_link_libraries(compressweight_static PRIVATE
         )
 
 install(TARGETS compress compress_static compressweight compressweight_static
-        LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR} OPTIONAL
-        ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR} OPTIONAL
+        LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR} ${INSTALL_OPTIONAL}
+        ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR} ${INSTALL_OPTIONAL}
 )
