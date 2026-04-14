@@ -263,6 +263,7 @@ set(PASS_TEST_FILES
     "graph/passes/recompute_pass_unittest.cc"
     "graph/passes/split_variable_into_subgraph_pass_unittest.cc"
     "graph/passes/concat_notask_pass_unittest.cc"
+    "graph/passes/pack_notask_pass_unittest.cc"
     "graph/passes/auto_fuse_pass_unittest.cc"
     "graph/passes/algebraic_simplification_pass_unittest.cc"
     "fusion/pattern_unittest.cc"

@@ -129,6 +129,7 @@
 #include "graph/build/model_cache.h"
 #include "generator/ge_generator.h"
 #include "graph/passes/memory_optimize/concat_notask_pass.h"
+#include "graph/passes/memory_optimize/pack_notask_pass.h"
 #include "graph/passes/format_optimize/dim1_transpose_to_squeeze_pass.h"
 #include "graph/optimize/autofuse/autofuse_optimize.h"
 #include "graph/passes/standard_optimize/tensor_move_delete_pass.h"
@@ -3533,6 +3534,12 @@ Status GraphManager::OptimizeStage2(ge::ComputeGraphPtr &compute_graph) {
   GE_CHK_STATUS_RET(concat_no_task_manager.AddPass("OptimizeStage2::ConcatNotaskPass",
                                                            new (std::nothrow) ConcatNotaskPass));
   GE_RUN_PERF(ConcatNotaskPass, concat_no_task_manager.Run, compute_graph);
+
+  // PackNotaskPass放在ConcatNotaskPass之后
+  PassManager pack_no_task_manager;
+  GE_CHK_STATUS_RET(pack_no_task_manager.AddPass("OptimizeStage2::PackNotaskPass",
+                                                         new (std::nothrow) PackNotaskPass));
+  GE_RUN_PERF(PackNotaskPass, pack_no_task_manager.Run, compute_graph);
   GELOGI("End optimize after merge sub graph.");
   return SUCCESS;
 }

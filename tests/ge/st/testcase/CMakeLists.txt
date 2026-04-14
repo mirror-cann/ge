@@ -102,6 +102,8 @@ add_executable(graph_engine_test
     "${AIR_CODE_DIR}/tests/ge/st/testcase/test_ge_local_engine.cc"
     "${AIR_CODE_DIR}/tests/ge/st/testcase/test_infershape_and_folding.cc"
     "${AIR_CODE_DIR}/tests/ge/st/testcase/test_optimize_stage1.cc"
+    "${AIR_CODE_DIR}/tests/ge/st/testcase/test_concat_notask_pass.cc"
+    "${AIR_CODE_DIR}/tests/ge/st/testcase/test_pack_notask_pass.cc"
     "${AIR_CODE_DIR}/tests/ge/st/testcase/ffts_plus/scattered_collection_systemtest.cc"
     "${AIR_CODE_DIR}/tests/graph_metadef/ut/register/testcase/op_def_factory_unittest.cc"
     "${AIR_CODE_DIR}/tests/graph_metadef/depends/faker/plugin_manager_stub.cc"
@@ -192,7 +194,6 @@ add_executable(graph_engine_compile_test
         "${AIR_CODE_DIR}/tests/ge/st/testcase/test_merge_shape_n.cc"
         "${AIR_CODE_DIR}/tests/ge/st/testcase/test_mem_opt_rule.cc"
         "${AIR_CODE_DIR}/tests/ge/st/testcase/test_memory_api.cc"
-        "${AIR_CODE_DIR}/tests/ge/st/testcase/test_concat_notask_pass.cc"
         "${AIR_CODE_DIR}/tests/ge/st/testcase/test_kernel_manager.cc"
         )
 
