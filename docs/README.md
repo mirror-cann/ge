@@ -50,3 +50,13 @@
     -   [C++接口](./llm_datadist_api/README_cpp.md)
     -   [Python接口](./llm_datadist_api/README_python.md)
 
+## 架构与开发指南
+
+- [架构文档](architecture/README.md)
+
+  从不同维度介绍 GE 的架构设计，包括模块架构、特性设计文档和约束与规范文档，帮助开发者快速理解项目整体结构和核心设计决策。
+
+- [开发指南](guidelines/)
+
+  记录开发过程中的关键设计原则、约束汇总和编码红线，指导代码编写和检视。
+
