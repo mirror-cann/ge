@@ -307,7 +307,7 @@ elseif("${BUILD_COMPONENT}" STREQUAL "ge-executor")
     )
 
     install(FILES ${CMAKE_SOURCE_DIR}/inc/graph_metadef/external/ge_common/ge_api_types.h
-            DESTINATION ${BUILD_COMPONENT}/include/external/ge_common
+            DESTINATION ${BUILD_COMPONENT}/include/external/ge_common COMPONENT ${BUILD_COMPONENT}
     )
 
     install(FILES ${CMAKE_SOURCE_DIR}/inc/external/acl/acl_mdl.h
