@@ -15,9 +15,9 @@ __all__ = [
     "DecomposePass",
     "FusionBasePass",
     "MatchResult",
-    "PassContext",
     "PassStage",
     "PatternFusionPass",
+    "PassContext",
     "clear_registered_passes",
     "get_registered_pass_by_descriptor_key",
     "get_registered_pass_dicts",
@@ -29,9 +29,9 @@ __all__ = [
 from .base import DecomposePass
 from .base import FusionBasePass
 from .base import MatchResult
-from .base import PassContext
 from .base import PassStage
 from .base import PatternFusionPass
+from ._ge_pass_native import PassContext
 from .registry import clear_registered_passes
 from .registry import get_registered_pass_by_descriptor_key
 from .registry import get_registered_pass_dicts

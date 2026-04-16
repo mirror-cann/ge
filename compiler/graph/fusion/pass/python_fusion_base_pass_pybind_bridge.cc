@@ -44,6 +44,7 @@ namespace fusion {
 namespace py = pybind11;
 namespace {
 constexpr const char *kBridgeModuleName = "ge.passes._bridge";
+constexpr const char *kPassNativeModuleName = "ge.passes._ge_pass_native";
 constexpr const char *kPassModuleName = "ge.passes";
 constexpr const char *kPassKindFusionBase = "fusion_base";
 constexpr const char *kEnvPythonPassPath = "ASCEND_GE_PY_PASS_PATH";
@@ -251,6 +252,7 @@ class PythonFusionBasePassPybindBridge {
     if (bridge_module_ && (!bridge_module_.is_none())) {
       return;
     }
+    py::module_ pass_native_module = py::module_::import(kPassNativeModuleName);
     bridge_module_ = py::module_::import(kBridgeModuleName);
   }
 
@@ -331,11 +333,8 @@ class PythonFusionBasePassPybindBridge {
     return graph_type.attr("_create_from")(graph_handle, py::bool_(false), graph_owner);
   }
 
-  py::dict BuildPythonPassContext(CustomPassContext &pass_context) const {
-    py::dict py_context;
-    py_context["pass_name"] = pass_context.GetPassName().GetString();
-    py_context["options"] = py::dict();
-    return py_context;
+  py::object BuildPythonPassContext(CustomPassContext &pass_context) const {
+    return py::cast(&pass_context, py::return_value_policy::reference);
   }
 
   Status TranslateRunResult(const py::object &result, CustomPassContext &pass_context) const {

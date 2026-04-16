@@ -12,9 +12,14 @@
 
 """Base definitions for Python GE passes."""
 
+from __future__ import annotations
+from typing import TYPE_CHECKING
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, List, Optional
+if TYPE_CHECKING:
+    from ge.graph.graph import Graph
+    from ._ge_pass_native import PassContext
 
 
 class PassStage(str, Enum):
@@ -28,14 +33,6 @@ class PassStage(str, Enum):
 
 
 @dataclass(frozen=True)
-class PassContext:
-    """Lightweight Python-side pass context view."""
-
-    pass_name: str = ""
-    options: dict = field(default_factory=dict)
-
-
-@dataclass(frozen=True)
 class MatchResult:
     """Placeholder for future native MatchResult binding."""
 
@@ -46,11 +43,8 @@ class MatchResult:
 class FusionBasePass:
     """Python FusionBasePass contract."""
 
-    def run(self, graph: Any, context: PassContext) -> Any:
+    def run(self, graph: Graph, context: PassContext) -> Any:
         raise NotImplementedError("FusionBasePass.run must be implemented")
-
-    def Run(self, graph: Any, context: PassContext) -> Any:  # noqa: N802
-        return self.run(graph, context)
 
 
 class PatternFusionPass(FusionBasePass):

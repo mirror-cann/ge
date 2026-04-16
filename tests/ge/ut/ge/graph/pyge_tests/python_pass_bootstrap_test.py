@@ -45,7 +45,6 @@ def _write_python_pass_module(dir_path: Path, module_name: str, pass_name: str) 
                 self.counter += 1
                 return {{
                     "graph_name": graph.name,
-                    "context_pass_name": context.pass_name,
                     "counter": self.counter,
                 }}
     """).strip() + "\n", encoding="utf-8")
@@ -99,11 +98,11 @@ def test_bridge_create_run_destroy_holder_from_env(tmp_path, monkeypatch):
 
     first_graph = Graph("g1")
     second_graph = Graph("g2")
-    first = bridge.run_fusion_base_pass(first_instance_id, graph=first_graph, context={"pass_name": "BridgePass"})
+    first = bridge.run_fusion_base_pass(first_instance_id, graph=first_graph, context=None)
     first_again = bridge.run_fusion_base_pass(first_instance_id,
                                               graph=first_graph,
-                                              context={"pass_name": "BridgePass"})
-    second = bridge.run_fusion_base_pass(second_instance_id, graph=second_graph, context={"pass_name": "BridgePass"})
+                                              context=None)
+    second = bridge.run_fusion_base_pass(second_instance_id, graph=second_graph, context=None)
 
     assert first["counter"] == 1
     assert first["graph_name"] == "g1"
@@ -111,6 +110,5 @@ def test_bridge_create_run_destroy_holder_from_env(tmp_path, monkeypatch):
     assert first_again["graph_name"] == "g1"
     assert second["counter"] == 1
     assert second["graph_name"] == "g2"
-    assert second["context_pass_name"] == "BridgePass"
     assert bridge.destroy_pass_holder(first_instance_id)
     assert bridge.destroy_pass_holder(second_instance_id)
