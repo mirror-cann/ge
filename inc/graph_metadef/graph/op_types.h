@@ -19,10 +19,7 @@
 namespace ge {
 class GE_FUNC_VISIBILITY OpTypeContainer {
  public:
-  static OpTypeContainer &Instance() {
-    static OpTypeContainer instance;
-    return instance;
-  }
+  static OpTypeContainer &Instance();
   ~OpTypeContainer() = default;
 
   void Register(const std::string &op_type) { static_cast<void>(op_type_list_.insert(op_type)); }
