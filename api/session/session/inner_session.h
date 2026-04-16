@@ -132,6 +132,8 @@ class InnerSession {
 
   Status GetCompiledFlag(uint32_t graph_id, bool &flag) const;
 
+  Status DumpDebugJSONPrint(uint32_t graph_id, uint32_t flags, AscendString &json_result) const;
+
   Status SetCompiledFlag(uint32_t graph_id, bool flag);
 
   // Get and Set dflow_session_impl_

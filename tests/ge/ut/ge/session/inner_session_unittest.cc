@@ -97,6 +97,15 @@ class StubExecutor : public Executor {
     return SUCCESS;
   }
 
+  Status DumpDebugJSONPrint(uint32_t model_id, uint32_t graph_id, uint32_t flags,
+                            AscendString &json_result) override {
+    (void)model_id;
+    (void)graph_id;
+    (void)flags;
+    (void)json_result;
+    return SUCCESS;
+  }
+
   Status UpdateFeatureMemoryBase(const GraphNodePtr &graph_node, const uintptr_t mem_base, const size_t size) override {
     (void)graph_node;
     mem_base_ = mem_base;
@@ -790,5 +799,14 @@ TEST_F(UtestInnerSession, ForkAndLoadGraph_SUCCESS) {
   rtstub.Clear();
   ge_env.InstallDefault();
   ge_env.Reset();
+}
+
+TEST_F(UtestInnerSession, DumpDebugJSONPrint_graph_not_exist) {
+  std::map<std::string, std::string> options;
+  InnerSession inner_session(1U, options);
+  EXPECT_EQ(inner_session.Initialize(), SUCCESS);
+  AscendString json_result;
+  EXPECT_EQ(inner_session.DumpDebugJSONPrint(1U, 0U, json_result), GE_GRAPH_GRAPH_NOT_EXIST);
+  EXPECT_EQ(inner_session.Finalize(), SUCCESS);
 }
 }  // namespace ge

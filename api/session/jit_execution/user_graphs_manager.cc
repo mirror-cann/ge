@@ -252,6 +252,10 @@ Status UserGraphsManager::GetCompiledFlag(uint32_t user_graph_id, bool &flag) {
   return SUCCESS;
 }
 
+Status UserGraphsManager::DumpDebugJSONPrint(uint32_t user_graph_id, uint32_t flags, AscendString &json_result) {
+  return graph_manager_.DumpDebugJSONPrint(user_graph_id, flags, json_result);
+}
+
 Status UserGraphsManager::SetCompiledFlag(uint32_t user_graph_id, bool flag) {
   if (!EnableSliceSchedule()) {
     return graph_manager_.SetCompiledFlag(user_graph_id, flag);

@@ -79,6 +79,12 @@ class HcomOmeUtil {
   static bool IsHorovodOp(const std::string &op_type);
 
   /// @ingroup domi_ome
+  /// @brief check whether op_type is collective communication op or not
+  /// @return true
+  /// @return false
+  static bool IsCollectiveCommOp(const std::string &op_type);
+
+  /// @ingroup domi_ome
   /// @brief GetHcclType
   /// @return void
   static void GetHcclType(const domi::TaskDef &task_def, std::vector<GETaskKernelHcclInfo> &kernel_hccl_infos);

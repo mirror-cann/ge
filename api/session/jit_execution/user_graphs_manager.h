@@ -31,6 +31,7 @@ class UserGraphsManager {
   Status RemoveGraph(uint32_t user_graph_id);
   bool IsGraphNeedRebuild(uint32_t user_graph_id);
   Status GetCompiledFlag(uint32_t user_graph_id, bool &flag);
+  Status DumpDebugJSONPrint(uint32_t user_graph_id, uint32_t flags, AscendString &json_result);
   Status SetCompiledFlag(uint32_t user_graph_id, bool flag);
   Status Finalize();
   Status CompileGraph(uint32_t user_graph_id, uint64_t session_id, const vector<ge::Tensor> &inputs);

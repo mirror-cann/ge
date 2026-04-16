@@ -1047,7 +1047,7 @@ target_link_libraries(ut_libge_label_maker_utest
     es_ge_test
     -Wl,--no-whole-archive
     ge_running_env GTest::gtest GTest::gtest_main GTest::gmock_main ${COMMON_SHARED_LIBRARIES} -lrt -ldl
-    -Wl,--no-as-needed unified_dlog GTest::gmock -Wl,--as-needed
+    -Wl,--no-as-needed ascendcl_stub unified_dlog GTest::gmock -Wl,--as-needed
 )
 
 add_test(NAME ut_libge_label_maker_utest COMMAND ut_libge_label_maker_utest --gtest_output=xml:${CMAKE_INSTALL_PREFIX}/report/ut/ut_libge_label_maker_utest.xml)
@@ -1096,7 +1096,7 @@ target_link_libraries(ut_libge_kernel_utest
         ge_compiler
         -Wl,--no-whole-archive
         ge_running_env GTest::gtest GTest::gtest_main GTest::gmock_main ${COMMON_SHARED_LIBRARIES} -lrt -ldl
-        -Wl,--no-as-needed GTest::gmock -Wl,--as-needed
+        -Wl,--no-as-needed ascendcl_stub GTest::gmock -Wl,--as-needed
 )
 
 add_test(NAME ut_libge_kernel_utest COMMAND ut_libge_kernel_utest --gtest_output=xml:${CMAKE_INSTALL_PREFIX}/report/ut/ut_libge_kernel_utest.xml)

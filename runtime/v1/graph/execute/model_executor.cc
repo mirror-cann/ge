@@ -337,6 +337,11 @@ Status ModelExecutor::ExecuteGraphWithStream(const GraphNodePtr &graph_node, con
   return SUCCESS;
 }
 
+Status ModelExecutor::DumpDebugJSONPrint(uint32_t model_id, uint32_t graph_id, uint32_t flags,
+                                         AscendString &json_result) {
+  return ModelManager::GetInstance().DumpDebugJSONPrint(model_id, graph_id, flags, json_result);
+}
+
 Status ModelExecutor::UpdateFeatureMemoryBase(const GraphNodePtr &graph_node, const uintptr_t mem_base,
                                               const size_t size) {
   const auto graph_id = graph_node->GetGraphId();

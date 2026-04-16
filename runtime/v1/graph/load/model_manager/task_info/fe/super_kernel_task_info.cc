@@ -209,6 +209,7 @@ Status SuperKernelV2TaskInfo::Distribute() {
 
   // set for task_id_
   UpdateTaskId();
+  CacheLastTaskExtendInfoIfCollective(op_name, op_desc_->GetType());
   GELOGI("SuperKernelV2TaskInfo Distribute Success, node: %s, task_type: %u, args: %p, argsize: %u, "
       "block dim: %u, stream_id: %u, stream: %p, task_id: %u, local memory size: %u, ",
       op_desc_->GetName().c_str(), static_cast<uint32_t>(task_type_), args_, args_size_,

@@ -5616,6 +5616,35 @@ TEST_F(UtestKernelTaskInfo, AssembleTilingSinkTensors_Sk_PreprocessKernel_Succes
   EXPECT_EQ(sk_task_info.AssembleTilingSinkTensors(index_to_tensor), SUCCESS);
 }
 
+TEST_F(UtestKernelTaskInfo, cache_last_task_extend_info_if_collective_for_kernel_and_super_kernel) {
+  const bool is_online_model = domi::GetContext().is_online_model;
+  domi::GetContext().is_online_model = true;
+
+  auto stream = reinterpret_cast<rtStream_t>(0x1234);
+  KernelTaskInfo kernel_task_info;
+  kernel_task_info.op_desc_ = CreateOpDesc("mc2", "MatmulAllReduce");
+  kernel_task_info.func_handle_ = reinterpret_cast<void *>(0x12000);
+  kernel_task_info.stream_ = stream;
+
+  EXPECT_EQ(kernel_task_info.Distribute(), SUCCESS);
+
+  EXPECT_EQ(kernel_task_info.Distribute(), SUCCESS);
+
+  kernel_task_info.op_desc_ = CreateOpDesc("relu", RELU);
+  EXPECT_EQ(kernel_task_info.Distribute(), SUCCESS);
+
+  SuperKernelV2TaskInfo super_kernel_task_info;
+  super_kernel_task_info.op_desc_ = CreateOpDesc("mc2_sk", "GroupedMatMulAllReduce");
+  super_kernel_task_info.func_handle_ = reinterpret_cast<void *>(0x13000);
+  super_kernel_task_info.stream_ = stream;
+
+  EXPECT_EQ(super_kernel_task_info.Distribute(), SUCCESS);
+
+  super_kernel_task_info.op_desc_ = CreateOpDesc("relu_sk", RELU);
+  EXPECT_EQ(super_kernel_task_info.Distribute(), SUCCESS);
+  domi::GetContext().is_online_model = is_online_model;
+}
+
 TEST_F(UtestKernelTaskInfo, AppendWorkspaceAddr_PreprocessKernel_Success) {
   KernelTaskInfo kernel_task_info;
   kernel_task_info.task_type_ = ModelTaskType::MODEL_TASK_PREPROCESS_KERNEL;

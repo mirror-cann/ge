@@ -332,4 +332,17 @@ TEST_F(UtestHcomUtil, Test_GetHorovodInputs_success) {
   EXPECT_EQ(PARAM_INVALID, ret);
 }
 
+TEST_F(UtestHcomUtil, Test_IsCollectiveCommOp) {
+  EXPECT_TRUE(HcomOmeUtil::IsCollectiveCommOp(HCOMALLREDUCE));
+  EXPECT_TRUE(HcomOmeUtil::IsCollectiveCommOp(HVDCALLBACKALLGATHER));
+  EXPECT_TRUE(HcomOmeUtil::IsCollectiveCommOp("MatmulAllReduce"));
+  EXPECT_TRUE(HcomOmeUtil::IsCollectiveCommOp("GroupedMatMulAllReduce"));
+
+  EXPECT_FALSE(HcomOmeUtil::IsCollectiveCommOp(HCOMSEND));
+  EXPECT_FALSE(HcomOmeUtil::IsCollectiveCommOp(HCOMRECEIVE));
+  EXPECT_FALSE(HcomOmeUtil::IsCollectiveCommOp(HVDWAIT));
+  EXPECT_FALSE(HcomOmeUtil::IsCollectiveCommOp("matmulallreduce"));
+  EXPECT_FALSE(HcomOmeUtil::IsCollectiveCommOp("Relu"));
+}
+
 }  // namespace ge

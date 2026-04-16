@@ -1813,4 +1813,38 @@ TEST_F(UtestGeApi, QueryUnregisteredIr) {
   OutType inputs, outputs, attrs;
   EXPECT_NE(GetRegisteredIrDef("QueryIrTestOpNotRegistered", inputs, outputs, attrs), SUCCESS);
 }
+
+TEST_F(UtestGeApi, DumpDebugJSONPrint_not_initialized) {
+  EXPECT_EQ(GEFinalize(), SUCCESS);
+  std::map<std::string, std::string> options;
+  Session session(options);
+  AscendString json_result;
+  EXPECT_EQ(session.GraphDebugJSONPrint(1U, 0U, json_result), FAILED);
+}
+
+TEST_F(UtestGeApi, DumpDebugJSONPrint_graph_not_exist_after_initialize) {
+  std::map<std::string, std::string> options;
+  EXPECT_EQ(GEInitialize(options), SUCCESS);
+  Session session(options);
+  AscendString json_result;
+  EXPECT_EQ(session.GraphDebugJSONPrint(1U, 0U, json_result), FAILED);
+  EXPECT_EQ(GEFinalize(), SUCCESS);
+}
+
+TEST_F(UtestGeApi, GeSessionDumpDebugJSONPrint_not_initialized) {
+  EXPECT_EQ(GEFinalize(), SUCCESS);
+  std::map<std::string, std::string> options;
+  Session session(options);
+  AscendString json_result;
+  EXPECT_EQ(GeSessionGraphDebugJSONPrint(session, 1U, 0U, json_result), FAILED);
+}
+
+TEST_F(UtestGeApi, GeSessionDumpDebugJSONPrint_graph_not_exist_after_initialize) {
+  std::map<std::string, std::string> options;
+  EXPECT_EQ(GEInitialize(options), SUCCESS);
+  Session session(options);
+  AscendString json_result;
+  EXPECT_EQ(GeSessionGraphDebugJSONPrint(session, 1U, 0U, json_result), FAILED);
+  EXPECT_EQ(GEFinalize(), SUCCESS);
+}
 }  // namespace ge

@@ -597,6 +597,7 @@ Status KernelTaskInfo::DistributeTask() {
   GE_ASSERT_SUCCESS(KernelHandleUtils::LaunchKernel(func_handle_, launch_kernel_param));
   // set for task_id_
   UpdateTaskId();
+  CacheLastTaskExtendInfoIfCollective(op_name, op_desc_->GetType());
   if (IsAllKernel(task_type_) || ModelUtils::IsAICoreKernel(kernel_type_)) {
     std::shared_ptr<TilingContextAddr> default_ctx_ptr = nullptr;
     std::shared_ptr<TilingContextAddr> tiling_context_addr = op_desc_->TryGetExtAttr(kTilingContextAddrs, default_ctx_ptr);

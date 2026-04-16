@@ -499,6 +499,8 @@ class TaskInfo {
   TaskInfo &operator=(const TaskInfo &) & = default;
   Status SetStream(const uint32_t stream_id, const std::vector<aclrtStream> &stream_list);
   static void SetTaskTag(const char_t *const op_name);
+  static void CacheLastTaskExtendInfoIfCollective(const std::string &op_name,
+                                                  const std::string &op_type);
 
   void *stream_{nullptr};
   TaskProfInfo prof_api_{};

@@ -76,6 +76,9 @@ class ModelExecutor : public Executor {
                                          aclrtStream const stream, const std::vector<gert::Tensor> &inputs,
                                          std::vector<gert::Tensor> &outputs) override;
 
+  Status DumpDebugJSONPrint(uint32_t model_id, uint32_t graph_id, uint32_t flags,
+                            AscendString &json_result) override;
+
   /**
    * @ingroup ge
    * @brief Update feature memory base after load graph

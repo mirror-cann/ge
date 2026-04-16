@@ -870,6 +870,18 @@ Status InnerSession::GetCompiledFlag(uint32_t graph_id, bool &flag) const {
   return user_hybrid_graph_manager_->GetCompiledFlag(graph_id, flag);
 }
 
+Status InnerSession::DumpDebugJSONPrint(uint32_t graph_id, uint32_t flags, AscendString &json_result) const {
+  UpdateGlobalSessionContext();
+  GE_ASSERT_NOTNULL(user_graphs_manager_);
+  const auto ret = user_graphs_manager_->DumpDebugJSONPrint(graph_id, flags, json_result);
+  if (ret != SUCCESS) {
+    GELOGE(ret, "[Dump][DebugJSONPrint] failed, InnerSession:%lu, graph_id=%u.", session_id_, graph_id);
+    REPORT_INNER_ERR_MSG("E19999", "DumpDebugJSONPrint failed, InnerSession:%lu, graph_id=%u.", session_id_, graph_id);
+    return ret;
+  }
+  return SUCCESS;
+}
+
 Status InnerSession::SetCompiledFlag(uint32_t graph_id, bool flag) {
   GE_ASSERT_NOTNULL(user_hybrid_graph_manager_);
   return user_hybrid_graph_manager_->SetCompiledFlag(graph_id, flag);

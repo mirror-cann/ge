@@ -740,6 +740,24 @@ Status Session::LoadGraph(const uint32_t graph_id, const std::map<AscendString, 
   return ret;
 }
 
+Status Session::GraphDebugJSONPrint(const uint32_t graph_id, uint32_t flags, AscendString &json_result) const {
+  if (!IsGEInitialize()) {
+    GELOGE(GE_CLI_GE_NOT_INITIALIZED, "[Construct][Session]Failed because lack GEInitialize call before.");
+    REPORT_INNER_ERR_MSG("E19999", "Creating session failed because lack GEInitialize call before.");
+    return FAILED;
+  }
+
+  const auto inner_session = g_session_manager->GetSession(sessionId_);
+  GE_CHK_BOOL_RET_STATUS(inner_session != nullptr, FAILED,
+                         "DumpDebugJSONPrint failed, session_id:%lu.", sessionId_);
+
+  const auto ret = inner_session->DumpDebugJSONPrint(graph_id, flags, json_result);
+  GE_CHK_BOOL_RET_STATUS(ret == SUCCESS, FAILED,
+                         "DumpDebugJSONPrint failed, error code:%u, session_id:%lu, graph_id:%u",
+                         ret, sessionId_, graph_id);
+  return ret;
+}
+
 // Build Graph
 Status Session::BuildGraph(uint32_t graph_id, const std::vector<ge::Tensor> &inputs) {
   if (!IsGEInitialize()) {
@@ -1236,6 +1254,11 @@ ge::Status GeSessionExecuteGraphWithStreamAsync(ge::Session &session, uint32_t g
                                                 const std::vector<gert::Tensor> &inputs,
                                                 std::vector<gert::Tensor> &outputs) {
   return session.ExecuteGraphWithStreamAsync(graph_id, stream, inputs, outputs);
+}
+
+ge::Status GeSessionGraphDebugJSONPrint(ge::Session &session, uint32_t graph_id, uint32_t flags,
+                                       ge::AscendString &json_result) {
+  return session.GraphDebugJSONPrint(graph_id, flags, json_result);
 }
 
 ge::Status GetRegisteredIrDef(const char *op_type, std::vector<std::pair<ge::AscendString, ge::AscendString>> &inputs,

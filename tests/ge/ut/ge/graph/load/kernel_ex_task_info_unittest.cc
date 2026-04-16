@@ -710,6 +710,32 @@ TEST_F(UtestKernelExTaskInfo, testUpdateArgs) {
   kernel_ex_task_info.Release();
 }
 
+TEST_F(UtestKernelExTaskInfo, test_cache_last_task_extend_info_if_collective_success_and_degrade) {
+  DavinciModel model(0, nullptr);
+  rtStream_t stream = nullptr;
+  model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
+  model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
+  model.stream_list_.push_back(stream);
+
+  KernelExTaskInfo kernel_ex_task_info;
+  kernel_ex_task_info.davinci_model_ = &model;
+  kernel_ex_task_info.op_desc_ = CreateOpDesc("mc2", "MatmulAllReduce");
+  kernel_ex_task_info.func_handle_ = reinterpret_cast<void *>(0x12000);
+  kernel_ex_task_info.stream_ = stream;
+  kernel_ex_task_info.kernel_buf_ = nullptr;
+  kernel_ex_task_info.kernel_buf_size_ = 0;
+
+  const bool is_online_model = domi::GetContext().is_online_model;
+  domi::GetContext().is_online_model = true;
+  EXPECT_EQ(kernel_ex_task_info.Distribute(), SUCCESS);
+
+  EXPECT_EQ(kernel_ex_task_info.Distribute(), SUCCESS);
+
+  kernel_ex_task_info.op_desc_ = CreateOpDesc("relu", RELU);
+  EXPECT_EQ(kernel_ex_task_info.Distribute(), SUCCESS);
+  domi::GetContext().is_online_model = is_online_model;
+}
+
 TEST_F(UtestKernelExTaskInfo, testHeadFile) {
   PisToArgs args;
   const PisToPersistentWorkspace persistant_workspace = {};

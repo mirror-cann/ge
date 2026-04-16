@@ -3888,6 +3888,21 @@ Status GraphManager::GetCompiledFlag(uint32_t graph_id, bool &flag) const {
   return SUCCESS;
 }
 
+Status GraphManager::DumpDebugJSONPrint(uint32_t graph_id, uint32_t flags, AscendString &json_result) {
+  GraphNodePtr graph_node = nullptr;
+  GE_CHK_STATUS_RET(GetGraphNode(graph_id, graph_node), "Get graph node failed, graph_id:%u", graph_id);
+  GE_CHK_BOOL_RET_STATUS(graph_node != nullptr, GE_GRAPH_GRAPH_NODE_NULL,
+                         "graph node is NULL, graph_id:%u.", graph_id);
+  GE_CHK_BOOL_RET_STATUS(graph_node->GetCompiledFlag(), GE_GRAPH_NOT_BUILT,
+                         "Graph needs to be compiled first, graph_id=%u", graph_id);
+  GE_CHK_BOOL_RET_STATUS(graph_node->GetLoadFlag(), GE_RTI_MODEL_NOT_LOADED,
+                         "Graph needs to be loaded first, graph_id=%u", graph_id);
+  const auto ge_root_model = graph_node->GetGeRootModel();
+  GE_CHK_BOOL_RET_STATUS(ge_root_model != nullptr, PARAM_INVALID,
+                         "Get ge root model failed, graph_id:%u", graph_id);
+  return executor_->DumpDebugJSONPrint(ge_root_model->GetModelId(), graph_id, flags, json_result);
+}
+
 Status GraphManager::SetCompiledFlag(uint32_t graph_id, bool flag) {
   GraphNodePtr graph_node = nullptr;
   GE_ASSERT_SUCCESS(GetGraphNode(graph_id, graph_node));
