@@ -6,10 +6,6 @@
 
 GE (Graph Engine) 是华为 CANN (Compute Architecture for Neural Networks) 的图引擎 - 面向昇腾 AI 处理器的高性能图编译器和执行器。GE 提供图优化、多流并行执行、内存复用优化和模型下沉等能力。
 
-项目支持 PyTorch、TensorFlow、ONNX 和 PB 模型格式，以两种模式运行：
-- **在线模式**：GE 作为深度学习框架的后端集成（通过 TorchAir、TFA）
-- **离线模式**：使用 atc (Ascend Tensor Compiler) 进行独立模型编译
-
 ## 构建命令
 ### 基础构建
 ```bash
@@ -58,32 +54,50 @@ bash build_third_party.sh
 - "编译并运行测试" → 使用 `/skill ge-dt-runner`
 - "运行某个特定用例" → 使用 `/skill ge-dt-runner <测试名称>`
 
+### DT 测试开发经验
+
+开发 UT/ST 用例前，务必先阅读 `docs/guidelines/dt_guide/` 下的三份指导文档。
+
+#### 1. 在文件末尾追加代码时必须搞清 namespace 边界
+
+C++ 测试文件通常有多层 namespace，文件末尾的 `}` 分别关闭不同的作用域。例如：
+
+```cpp
+TEST_F(FooTest, LastTest) {
+  // ...
+}               // <-- 关闭测试函数
+}               // <-- 关闭 namespace inner
+}               // <-- 关闭 namespace outer
+```
+
+新增测试必须放在**最后一个 `TEST_F` 的 `}` 之后、namespace 的 `}` 之前**。如果误插入到测试函数体内，编译会报 `local class shall not have static data member` 等错误。
+
+**操作方法**：追加代码前，先用 Read 工具读取文件末尾 30-50 行，识别每个 `}` 的含义，确认插入点。
+
+#### 2. 写完代码后立即编译验证
+
+在大型 C++ 项目中，目视检查不可靠。编译器报错信息通常非常清晰，能快速定位问题。推荐流程：
+
+1. 编辑代码
+2. 立即编译（使用 `ge-dt-runner` skill）
+3. 编译失败则根据报错修复，再次编译
+4. 编译成功后运行测试验证逻辑正确性
+
+不要在"看代码觉得没问题"后跳过编译。
+
+#### 3. 先找到可复制的同类用例，再动手写
+
+大型代码库中 80% 的测试工作来自复制已有模式。写新用例前：
+
+1. 在 `tests/` 目录下搜索与被测代码相关的关键词（函数名、类名、特性名）
+2. 优先找同目录下的 ST 文件（ST 参考 ST，UT 参考 UT）
+3. 阅读已有用例的：includes、fixture 结构、构造数据的方式、校验手段
+4. 在已有用例模式基础上组合新的测试场景
+
 ### 清理构建产物
 ```bash
 rm -rf build_ut/ build_st/ output/ build/ build_out/ cov/ build_cmake_gcov/
 ```
-
-## 高层架构
-
-### 核心组件
-
-1. **GE 编译器** (`compiler/`)：将 AscendIR 编译为可执行模型（OM 文件）
-   - 图级优化（公共子表达式消除、常量折叠、死代码消除）
-   - 融合优化（基于 Pattern 和自动融合）
-   - 算子在线编译
-   - 流规划以实现并行
-   - 内存规划与复用
-   - 模型序列化
-
-2. **GE 执行器** (`runtime/`)：在昇腾设备上执行模型
-   - 模型加载（权重、二进制、执行序列）
-   - 模型执行控制（分支、同步）
-   - Sink 模式支持设备侧调度
-
-3. **atc** (Ascend Tensor Compiler)：独立的离线编译工具
-   - 将 ONNX/PB 模型转换为 AscendIR
-   - 无需昇腾设备即可生成 OM 文件
-   - 独立于框架运行时
 
 ### 关键目录
 
@@ -99,34 +113,27 @@ rm -rf build_ut/ build_st/ output/ build/ build_out/ cov/ build_cmake_gcov/
 | `tests/` | 综合测试套件（UT、ST、基准测试） |
 | `examples/` | 使用示例和样例 |
 
-### AscendIR (AIR) - 中间表示
+## 架构文档加载
 
-- **静态计算图**，使用 DAG 结构
-- **核心元素**：Graph（图）、Node（算子）、Tensor（张量）、Attribute（属性）、Data Edge（数据边）、Control Edge（控制边）
-- **实现方式**：使用"锚点（Anchor）"系统（DataAnchor 表示数据流，CtrlAnchor 表示控制流）
-- **统一入口**：所有输入（框架适配器、atc）在编译前都转换为 AscendIR
+**重要**： 在探索仓库、回答问题、修改代码、输出设计文档、需求Spec或做代码检视时，根据下表加载对应文档。每个文档只需加载一次，匹配触发词、涉及目录或场景中任意一条即加载。
 
-### 重要说明：算子仓库
+| 文档 | 触发词 | 涉及目录 |
+|------|----------------|----------|
+| [`architecture.md`](docs/architecture/architecture.md) | 架构总览、整体设计、GE介绍、系统架构、编译优化、插件扩展 | 首次了解项目时 |
+| [`ascend-ir.md`](docs/architecture/modules/graph_metadef/ascend-ir.md) | AscendIR、图结构、算子注册、Anchor、DAG | `base/`、`inc/`（图结构相关） |
+| [`compiler.md`](docs/architecture/modules/compiler/compiler.md) | 编译器、优化pass、融合、引擎分区、算子编译 | `compiler/`（非 memory/split/stream 子目录） |
+| [`runtime.md`](docs/architecture/modules/runtime/runtime.md) | 动态运行执行器、模型加载、模型执行、Hybrid、v2架构 | `runtime/`（整体架构层面） |
+| [`datadump.md`](docs/architecture/features/datadump.md) | dump、溢出、落盘、datadump、异常dump | `common/dump/`、`runtime/*/dump/` |
+| [`external_weight.md`](docs/architecture/features/external_weight.md) | 外置权重、external weight、FileConstant、权重分离、权重落盘 | `base/common/file_constant_utils/`、`base/graph/manager/graph_external_weight_manager.cc`、`runtime/v2/engine/gelocal/file_constant_converter.cc`、`runtime/v2/kernel/ge_local_kernel/file_constant_kernel.cc` |
 
-**算子定义不在 GE 仓库中维护。** 算子在独立的仓库中定义（如 ops-math、ops-transformer 等），并在以下场景共享：
-- **aclnn**：原生 API 调用
-- **GE（图）**：入图编译和执行
-
-这种分离确保：
-- CANN 生态中统一的算子语义
-- 算子独立演进
-- GE 职责清晰（图编译，而非算子定义）
-
-### 执行引擎
-
-多个执行引擎处理不同类型的算子：
-- **fe**：融合引擎
-- **dvpp**：数字视觉预处理
-- **aicpu**：AI CPU 操作
-- **ffts**：FFT 操作
-- **rts**：运行时服务
-- **hcce**：HCCE 引擎
-- **host_cpu_engine**：主机侧执行
+| 关键特性设计原则和软件约束 | 触发词 | 涉及目录 |
+|------|----------------|----------|
+| [`memory-constraints.md`](docs/architecture/constraints/memory-constraints.md) | 显存、内存、复用、block_mem、allocator、零拷贝、连续内存、内存排布冲突、内存释放 | `compiler/graph/build/memory/`、`compiler/graph/optimize/mem_layout_conflict_optimize/` |
+| [`rt2_runtime.md`](docs/architecture/constraints/rt2_runtime.md) | RT2、动态shape、rt2 executor、hybrid执行 | `runtime/v2/` |
+| [`known_shape_runtime.md`](docs/architecture/constraints/known_shape_runtime.md) | 静态shape、known shape、davinci model、sink模式、地址刷新 | `runtime/v1/` |
+| [`graph_split.md`](docs/architecture/constraints/graph_split.md) | 图拆分、切图、cluster、动态图拆分、执行器选择 | `compiler/graph/split/` |
+| [`stream_allocator.md`](docs/architecture/constraints/stream_allocator.md) | 流分配、stream、多流、流复用、event同步、流激活 | `compiler/graph/build/stream/` |
+| [`graph_metadef.md`](docs/architecture/constraints/graph_metadef.md) | 图基础结构 | `graph_metadef/` |
 
 ## 开发规范
 ### gitcode pr/issue 操作
@@ -143,4 +150,4 @@ rm -rf build_ut/ build_st/ output/ build/ build_out/ cov/ build_cmake_gcov/
 - 第三方库：protobuf、grpc、boost、gtest 等
 
 ## 语言
-使用中文
+使用中文回答问题
