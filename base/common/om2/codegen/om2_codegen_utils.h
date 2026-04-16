@@ -35,8 +35,6 @@ class Om2CodegenUtils {
   static bool IsAllKernel(const ModelTaskType task_type);
   static bool IsAICoreKernel(const ge::ccKernelType kernel_type);
   static bool RequireBinaryKernel(const ModelTaskType kernel_type);
-  static bool RequireArgsTable(ModelTaskType model_task_type);
-  static bool IsSuppoprtAddrRefreshable(const uint64_t mem_type);
   static bool IsUnsupportedNodeType(const std::string &type);
   static bool IsNeedAtomicCleanTask(const OpDescPtr &op_desc);
   static bool IsSeparatelyCleanTask(const OpDescPtr &op_desc, const std::string &kernel_name);

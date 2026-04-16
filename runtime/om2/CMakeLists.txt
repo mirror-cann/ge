@@ -13,9 +13,6 @@ file(GLOB_RECURSE OM2_EXECUTOR_SRCS CONFIGURE_DEPENDS "${AIR_CODE_DIR}/runtime/o
 add_library(om2_executor SHARED
         ${OM2_EXECUTOR_SRCS}
         # 此处仅添加执行时依赖的源文件
-        ${AIR_CODE_DIR}/base/common/helper/om2/zip_archive.cc
-        ${AIR_CODE_DIR}/base/common/helper/om2/zip_mem_ioapi.cc
-        ${AIR_CODE_DIR}/base/common/helper/om2/om2_utils.cc
 )
 
 target_compile_options(om2_executor PRIVATE ${AIR_COMMON_COMPILE_OPTION}
@@ -50,4 +47,3 @@ target_link_libraries(om2_executor PRIVATE
         $<$<NOT:$<STREQUAL:${TARGET_SYSTEM_NAME},Android>>:-lrt>
         -ldl
 )
-

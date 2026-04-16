@@ -415,7 +415,6 @@ const std::unordered_set<std::string> kOm2UnsuppotedFlag = {
     "host_env_cpu",
     "virtual_type",
     "insert_op_conf",
-    "external_weight",
     "op_name_map",
     "enable_small_channel",
     "quant_dumpable",

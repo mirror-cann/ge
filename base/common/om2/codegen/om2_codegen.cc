@@ -13,9 +13,12 @@
 #include <sstream>
 #include "common/helper/om2/om2_utils.h"
 #include "common/compile_profiling/ge_call_wrapper.h"
+#include "common/om2/codegen/ast/ast_build_context.h"
+#include "common/om2/codegen/ast/ast_context.h"
+#include "common/om2/codegen/om2_codegen_model_builder.h"
+#include "common/om2/codegen/om2_codegen_utils.h"
 #include "program_generator.h"
 #include "om2_code_printer.h"
-#include "common/om2/codegen/emitter/cpp_emitter.h"
 #include "graph_metadef/graph/utils/file_utils.h"
 #include "mmpa/mmpa_api.h"
 
@@ -24,25 +27,8 @@ namespace ge {
 namespace {
 constexpr int32_t kCppFileExtLen = 4;
 
-Status WriteProgramToFiles(const Program &program, const std::string &ws_dir, const std::string &model_name,
-                              std::vector<std::string> &output_file_paths) {
-  CppEmitter emitter;
-  Om2CodePrinter code_printer(model_name, ws_dir);
-
-  for (size_t i = 0U; i < static_cast<size_t>(GeneratedFileIndex::kEnd); i++) {
-    if (program[i].empty()) {
-      GELOGI("[OM2] Model %s program part %d has no content.", model_name.c_str(), i);
-      continue;
-    }
-    for (const auto *node : program[i]) {
-      if (node != nullptr) {
-        std::string code_content;
-        GE_ASSERT_SUCCESS(node->Accept(emitter, code_content), "[OM2] Program %zu code generation failed.", i);
-        code_printer.AddLine(static_cast<GeneratedFileIndex>(i), code_content);
-      }
-    }
-  }
-
+Status WriteGeneratedFiles(Om2CodePrinter &code_printer, const std::string &ws_dir, const std::string &model_name,
+                           std::vector<std::string> &output_file_paths) {
   GE_ASSERT_SUCCESS(code_printer.WriteFiles(ws_dir));
   code_printer.GetOutputFilePaths(output_file_paths);
   GELOGI("[OM2] Model %s has finished the codegen process.", model_name.c_str());
@@ -71,23 +57,26 @@ void Om2Codegen::CleanOm2WorkDir() const {
   (void)Om2Utils::RmOm2WorkspaceDir(ws_dir_);
 }
 
-Status Om2Codegen::Om2CodegenAndCompile(const ge::GeModelPtr &ge_model, vector<std::string> &output_file_paths) {
-  ProgramGenerator generator;
-  GE_ASSERT_SUCCESS(generator.Init(ge_model));
+Status Om2Codegen::Om2CodegenAndCompile(const ge::GeModelPtr &ge_model, vector<std::string> &output_file_paths,
+                                        Om2ConstMetas &const_metas) {
+  const_metas.clear();
+  AstContext ast_ctx;
+  AstBuildContext ast(ast_ctx);
+  Om2CodegenModel codegen_model;
+  std::vector<TaskCodeBuilderPtr> task_code_builders;
+  GE_ASSERT_SUCCESS(Om2CodegenModelBuilder::CreateTaskCodeBuilders(ge_model, ast, task_code_builders, codegen_model));
+  Om2CodegenModelBuilder builder;
+  GE_ASSERT_SUCCESS(builder.Build(ge_model, task_code_builders, codegen_model, const_metas));
+  ProgramGenerator generator(ast, task_code_builders, codegen_model);
   GE_ASSERT_SUCCESS(Om2Utils::CreateOm2WorkspaceDir(ws_dir_));
   const std::string runtime_ws_dir = ws_dir_ + "runtime/";
   GE_ASSERT_SUCCESS(ge::CreateDir(runtime_ws_dir), "Failed to create om2 work dir: [%s]", runtime_ws_dir.c_str());
 
-  Program program;
-  GE_ASSERT_SUCCESS(generator.GenerateKernelRegSource(program));
-  GE_ASSERT_SUCCESS(generator.GenerateInterfaceHeader(program));
-  GE_ASSERT_SUCCESS(generator.GenerateResourcesSource(program));
-  GE_ASSERT_SUCCESS(generator.GenerateLoadAndRunSource(program));
-  GE_ASSERT_SUCCESS(generator.GenerateArgsManagerSource(program));
-  GE_ASSERT_SUCCESS(generator.GenerateMakeFile(program));
+  Om2CodePrinter code_printer(ge_model->GetName(), runtime_ws_dir);
+  GE_ASSERT_SUCCESS(generator.GenerateProgram(code_printer));
 
   std::vector<std::string> all_file_paths;
-  GE_ASSERT_SUCCESS(WriteProgramToFiles(program, runtime_ws_dir, ge_model->GetName(), all_file_paths));
+  GE_ASSERT_SUCCESS(WriteGeneratedFiles(code_printer, runtime_ws_dir, ge_model->GetName(), all_file_paths));
 
   std::vector<std::string> cpp_file_paths;
   for (const auto &path : all_file_paths) {

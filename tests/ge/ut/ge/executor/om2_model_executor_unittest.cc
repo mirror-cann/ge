@@ -14,12 +14,14 @@
 #include <fstream>
 #include <memory>
 #include <mutex>
+#include <sstream>
 #include <string>
 #include <vector>
 
 #include "framework/runtime/om2_model_executor.h"
+#include "framework/runtime/rt_session.h"
 #include "common/env_path.h"
-#include "common/helper/om2/zip_archive.h"
+#include "common/helper/om2/zip_archive_writer.h"
 #include "common/path_utils.h"
 #include "graph/utils/file_utils.h"
 #include "mmpa/mmpa_api.h"
@@ -117,6 +119,7 @@ std::string MakeModelMetaJson() {
             "size": 4
         }
     ],
+    "work_size": 2048,
     "user_designate_shape_order": []
 })";
 }
@@ -135,7 +138,7 @@ struct FakeModel {
 
 extern "C" {
 int Om2ModelCreate(void **model_handle, const char **bin_files, const void **bin_data, size_t *bin_size, int bin_num,
-                   void *host_weight_mem_ptr, uint64_t *session_id);
+                   void **constants, void *work_ptr, uint64_t *session_id);
 int Om2ModelRunAsync(void **model_handle, void *stream, int input_count, void **input_data, int output_count,
                      void **output_data);
 int Om2ModelRun(void **model_handle, int input_count, void **input_data, int output_count, void **output_data);
@@ -147,10 +150,120 @@ int Om2ModelDestroy(void **model_handle);
 std::string MakeLoadAndRunCpp() {
   return R"(#include "g1_interface.h"
 
+#include <cstdlib>
 #include <new>
+#include <string>
 
-extern "C" int Om2ModelCreate(void **model_handle, const char **, const void **, size_t *, int, void *, uint64_t *session_id) {
+namespace {
+bool CheckWorkPtr(void *work_ptr) {
+  const char *mode = std::getenv("OM2_EXPECT_WORK_PTR_MODE");
+  if ((mode == nullptr) || (mode[0] == '\0')) {
+    return true;
+  }
+  const std::string mode_str(mode);
+  if (mode_str == "NON_NULL") {
+    return work_ptr != nullptr;
+  }
+  if (mode_str == "EQUAL") {
+    const char *value = std::getenv("OM2_EXPECT_WORK_PTR_VALUE");
+    if (value == nullptr) {
+      return false;
+    }
+    const auto expect_ptr = reinterpret_cast<void *>(std::stoull(value, nullptr, 16));
+    return work_ptr == expect_ptr;
+  }
+  return false;
+}
+
+bool CheckConst0(void **constants) {
+  const char *mode = std::getenv("OM2_EXPECT_CONST0_MODE");
+  if ((mode == nullptr) || (mode[0] == '\0')) {
+    return true;
+  }
+  if ((constants == nullptr) || (constants[0] == nullptr)) {
+    return false;
+  }
+  const char *value = std::getenv("OM2_EXPECT_CONST0_FIRST_BYTE");
+  if (value == nullptr) {
+    return false;
+  }
+  const auto expect = static_cast<unsigned char>(std::stoul(value, nullptr, 10));
+  return *(static_cast<unsigned char *>(constants[0])) == expect;
+}
+
+bool CheckConst0Ptr(void **constants) {
+  const char *mode = std::getenv("OM2_EXPECT_CONST0_PTR_MODE");
+  if ((mode == nullptr) || (mode[0] == '\0')) {
+    return true;
+  }
+  if ((constants == nullptr) || (constants[0] == nullptr)) {
+    return false;
+  }
+  const std::string mode_str(mode);
+  if (mode_str == "EQUAL") {
+    const char *value = std::getenv("OM2_EXPECT_CONST0_PTR_VALUE");
+    if (value == nullptr) {
+      return false;
+    }
+    const auto expect_ptr = reinterpret_cast<void *>(std::stoull(value, nullptr, 16));
+    return constants[0] == expect_ptr;
+  }
+  return false;
+}
+
+bool CheckConstByIndex(void **constants, size_t index, const char *mode_env, const char *value_env) {
+  const char *mode = std::getenv(mode_env);
+  if ((mode == nullptr) || (mode[0] == '\0')) {
+    return true;
+  }
+  if ((constants == nullptr) || (constants[index] == nullptr)) {
+    return false;
+  }
+  const char *value = std::getenv(value_env);
+  if (value == nullptr) {
+    return false;
+  }
+  const auto expect = static_cast<unsigned char>(std::stoul(value, nullptr, 10));
+  return *(static_cast<unsigned char *>(constants[index])) == expect;
+}
+
+bool CheckConstPtrEqual(void **constants) {
+  const char *value = std::getenv("OM2_EXPECT_CONST1_CONST2_PTR_EQUAL");
+  if ((value == nullptr) || (value[0] == '\0')) {
+    return true;
+  }
+  if ((constants == nullptr) || (constants[1] == nullptr) || (constants[2] == nullptr)) {
+    return false;
+  }
+  return constants[1] == constants[2];
+}
+
+bool CheckSessionId(uint64_t *session_id) {
+  const char *value = std::getenv("OM2_EXPECT_SESSION_ID");
+  if ((value == nullptr) || (value[0] == '\0')) {
+    return true;
+  }
+  if (session_id == nullptr) {
+    return false;
+  }
+  if (std::string(value) == "ANY") {
+    return true;
+  }
+  const auto expect = static_cast<uint64_t>(std::stoull(value, nullptr, 10));
+  return *session_id == expect;
+}
+}  // namespace
+
+extern "C" int Om2ModelCreate(void **model_handle, const char **, const void **, size_t *, int, void **constants,
+                              void *work_ptr, uint64_t *session_id) {
   if (model_handle == nullptr) {
+    return 1;
+  }
+  if (!CheckWorkPtr(work_ptr) || !CheckConst0(constants) || !CheckConst0Ptr(constants) ||
+      !CheckConstByIndex(constants, 1U, "OM2_EXPECT_CONST1_MODE", "OM2_EXPECT_CONST1_FIRST_BYTE") ||
+      !CheckConstByIndex(constants, 2U, "OM2_EXPECT_CONST2_MODE", "OM2_EXPECT_CONST2_FIRST_BYTE") ||
+      !CheckConstPtrEqual(constants) ||
+      !CheckSessionId(session_id)) {
     return 1;
   }
   auto *model = new (std::nothrow) om2::FakeModel();
@@ -213,15 +326,186 @@ set_target_properties(g1_om2 PROPERTIES
 )
 )";
 }
+
+std::string MakeConstantsConfigJson() {
+  return R"({
+    "internal_weight_size": 16,
+    "consts": {
+      "fc1_weight": {
+        "file_name": "",
+        "index": 0,
+        "type": "INTERNAL",
+        "offset": 0,
+        "size": 16,
+        "op_name": "fc1_weight"
+      }
+    }
+  })";
+}
+
+std::string MakeIndividualConstantsConfigJson() {
+  return R"({
+    "internal_weight_size": 0,
+    "consts": {
+      "fc1_weight": {
+        "file_name": "fc.bin",
+        "index": 0,
+        "type": "INDIVIDUAL",
+        "offset": 1,
+        "size": 2,
+        "op_name": "fc1_weight"
+      }
+    }
+  })";
+}
+
+std::string MakeIndividualConstantsConfigJsonWithZeroInternalWeightSize() {
+  return R"({
+    "internal_weight_size": 0,
+    "consts": {
+      "fc1_weight": {
+        "file_name": "fc.bin",
+        "index": 0,
+        "type": "INDIVIDUAL",
+        "offset": 1,
+        "size": 2,
+        "op_name": "fc1_weight"
+      }
+    }
+  })";
+}
+
+std::string MakeCombinedConstantsConfigJson() {
+  return R"({
+    "internal_weight_size": 0,
+    "consts": {
+      "fc1_weight": {
+        "file_name": "combined.bin",
+        "index": 0,
+        "type": "COMBINED",
+        "offset": 1,
+        "size": 2,
+        "op_name": "fc1_weight"
+      }
+    }
+  })";
+}
+
+std::string MakeMixedConstantsConfigJson() {
+  return R"({
+    "internal_weight_size": 16,
+    "consts": {
+      "fc0_weight": {
+        "file_name": "",
+        "index": 0,
+        "type": "INTERNAL",
+        "offset": 0,
+        "size": 16,
+        "op_name": "fc0_weight"
+      },
+      "fc1_weight": {
+        "file_name": "mixed_fc.bin",
+        "index": 1,
+        "type": "INDIVIDUAL",
+        "offset": 1,
+        "size": 2,
+        "op_name": "fc1_weight"
+      },
+      "fc2_weight": {
+        "file_name": "mixed_combined.bin",
+        "index": 2,
+        "type": "COMBINED",
+        "offset": 1,
+        "size": 2,
+        "op_name": "fc2_weight"
+      }
+    }
+  })";
+}
+
+std::string MakeDuplicateIndividualConstantsConfigJson() {
+  return R"({
+    "internal_weight_size": 0,
+    "consts": {
+      "fc1_weight": {
+        "file_name": "duplicate_fc.bin",
+        "index": 1,
+        "type": "INDIVIDUAL",
+        "offset": 1,
+        "size": 2,
+        "op_name": "fc1_weight"
+      },
+      "fc2_weight": {
+        "file_name": "duplicate_fc.bin",
+        "index": 2,
+        "type": "INDIVIDUAL",
+        "offset": 1,
+        "size": 2,
+        "op_name": "fc2_weight"
+      }
+    }
+  })";
+}
+
+std::string PtrToHexString(const void *ptr) {
+  std::ostringstream oss;
+  oss << std::hex << reinterpret_cast<uintptr_t>(ptr);
+  return oss.str();
+}
+
+gert::Om2ModelLoadArg MakeOm2LoadArg() {
+  gert::Om2ModelLoadArg load_arg;
+  load_arg.device_id = 0;
+  return load_arg;
+}
 }  // namespace
 
 class Om2ModelExecutorUt : public testing::Test {
  protected:
+  void SetUp() override {
+    unsetenv("OM2_EXPECT_WORK_PTR_MODE");
+    unsetenv("OM2_EXPECT_WORK_PTR_VALUE");
+    unsetenv("OM2_EXPECT_CONST0_MODE");
+    unsetenv("OM2_EXPECT_CONST0_FIRST_BYTE");
+    unsetenv("OM2_EXPECT_CONST0_PTR_MODE");
+    unsetenv("OM2_EXPECT_CONST0_PTR_VALUE");
+    unsetenv("OM2_EXPECT_CONST1_MODE");
+    unsetenv("OM2_EXPECT_CONST1_FIRST_BYTE");
+    unsetenv("OM2_EXPECT_CONST2_MODE");
+    unsetenv("OM2_EXPECT_CONST2_FIRST_BYTE");
+    unsetenv("OM2_EXPECT_CONST1_CONST2_PTR_EQUAL");
+    unsetenv("OM2_EXPECT_SESSION_ID");
+  }
+
+  void TearDown() override {
+    unsetenv("OM2_EXPECT_WORK_PTR_MODE");
+    unsetenv("OM2_EXPECT_WORK_PTR_VALUE");
+    unsetenv("OM2_EXPECT_CONST0_MODE");
+    unsetenv("OM2_EXPECT_CONST0_FIRST_BYTE");
+    unsetenv("OM2_EXPECT_CONST0_PTR_MODE");
+    unsetenv("OM2_EXPECT_CONST0_PTR_VALUE");
+    unsetenv("OM2_EXPECT_CONST1_MODE");
+    unsetenv("OM2_EXPECT_CONST1_FIRST_BYTE");
+    unsetenv("OM2_EXPECT_CONST2_MODE");
+    unsetenv("OM2_EXPECT_CONST2_FIRST_BYTE");
+    unsetenv("OM2_EXPECT_CONST1_CONST2_PTR_EQUAL");
+    unsetenv("OM2_EXPECT_SESSION_ID");
+  }
+
   static void SetUpTestSuite() {
     test_work_dir_ = EnvPath().GetOrCreateCaseTmpPath("Om2ModelExecutorUt");
     setenv("ASCEND_WORK_PATH", test_work_dir_.c_str(), 1);
     om2_file_path_ = PathUtils::Join({test_work_dir_, std::string(kOm2BaseName) + ".om2"});
+    om2_fileconst_file_path_ = PathUtils::Join({test_work_dir_, std::string(kOm2BaseName) + "_fileconst.om2"});
+    om2_combined_file_path_ = PathUtils::Join({test_work_dir_, std::string(kOm2BaseName) + "_combined.om2"});
+    om2_mixed_file_path_ = PathUtils::Join({test_work_dir_, std::string(kOm2BaseName) + "_mixed.om2"});
+    om2_duplicate_individual_file_path_ =
+        PathUtils::Join({test_work_dir_, std::string(kOm2BaseName) + "_duplicate_individual.om2"});
     PrepareOm2File();
+    PrepareFileConstOm2File();
+    PrepareCombinedFileConstOm2File();
+    PrepareMixedOm2File();
+    PrepareDuplicateIndividualOm2File();
   }
 
   static void TearDownTestSuite() {
@@ -252,8 +536,9 @@ class Om2ModelExecutorUt : public testing::Test {
       RunCommandOrAssert(cmake_build_cmd);
       ASSERT_EQ(mmAccess2(so_path.c_str(), M_F_OK), EOK);
 
-      WriteBinaryFile(archive_constant_path, std::vector<uint8_t>(16U, 0U));
-      WriteTextFile(archive_constant_cfg_path, R"({"constant_file":"constant_0"})");
+      WriteBinaryFile(archive_constant_path, std::vector<uint8_t>{1U, 2U, 3U, 4U, 5U, 6U, 7U, 8U,
+                                                                  9U, 10U, 11U, 12U, 13U, 14U, 15U, 16U});
+      WriteTextFile(archive_constant_cfg_path, MakeConstantsConfigJson());
 
       ZipArchiveWriter zip_writer(om2_file_path_);
       ASSERT_TRUE(zip_writer.IsMemFileOpened());
@@ -275,6 +560,204 @@ class Om2ModelExecutorUt : public testing::Test {
     });
   }
 
+  static void PrepareFileConstOm2File() {
+    std::call_once(prepare_fileconst_once_, []() {
+      const std::string runtime_dir = PathUtils::Join({test_work_dir_, "fake_runtime_fileconst"});
+      const std::string build_dir = PathUtils::Join({runtime_dir, "build"});
+      const std::string so_path = PathUtils::Join({runtime_dir, "libg1_om2.so"});
+      const std::string archive_constant_cfg_path = PathUtils::Join({test_work_dir_, "model_1_constants_config.json"});
+      const std::string weight_dir = PathUtils::Join({test_work_dir_, "weight"});
+      const std::string file_const_path = PathUtils::Join({weight_dir, "fc.bin"});
+
+      (void)PathUtils::RemoveDirectories(runtime_dir);
+      ASSERT_EQ(CreateDir(runtime_dir), 0);
+      WriteTextFile(PathUtils::Join({runtime_dir, "g1_interface.h"}), MakeInterfaceHeader());
+      WriteTextFile(PathUtils::Join({runtime_dir, "g1_resources.cpp"}), MakeEmptyCpp("g1_interface.h"));
+      WriteTextFile(PathUtils::Join({runtime_dir, "g1_kernel_reg.cpp"}), MakeEmptyCpp("g1_interface.h"));
+      WriteTextFile(PathUtils::Join({runtime_dir, "g1_args_manager.cpp"}), MakeEmptyCpp("g1_interface.h"));
+      WriteTextFile(PathUtils::Join({runtime_dir, "g1_load_and_run.cpp"}), MakeLoadAndRunCpp());
+      WriteTextFile(PathUtils::Join({runtime_dir, "CMakeLists.txt"}), MakeCMakeLists());
+
+      const std::string cmake_config_cmd = "cmake -S " + runtime_dir + " -B " + build_dir;
+      const std::string cmake_build_cmd = "cmake --build " + build_dir + " -j1";
+      RunCommandOrAssert(cmake_config_cmd);
+      RunCommandOrAssert(cmake_build_cmd);
+      ASSERT_EQ(mmAccess2(so_path.c_str(), M_F_OK), EOK);
+
+      WriteTextFile(archive_constant_cfg_path, MakeIndividualConstantsConfigJson());
+      WriteBinaryFile(file_const_path, {21U, 22U, 23U, 24U});
+
+      ZipArchiveWriter zip_writer(om2_fileconst_file_path_);
+      ASSERT_TRUE(zip_writer.IsMemFileOpened());
+      const auto manifest = MakeManifestJson();
+      const auto model_meta = MakeModelMetaJson();
+      ASSERT_TRUE(zip_writer.WriteBytes("manifest.json", manifest.data(), manifest.size(), false));
+      ASSERT_TRUE(zip_writer.WriteBytes("data/model_0/model_meta.json", model_meta.data(), model_meta.size(), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/CMakeLists.txt", PathUtils::Join({runtime_dir, "CMakeLists.txt"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_interface.h", PathUtils::Join({runtime_dir, "g1_interface.h"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_resources.cpp", PathUtils::Join({runtime_dir, "g1_resources.cpp"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_kernel_reg.cpp", PathUtils::Join({runtime_dir, "g1_kernel_reg.cpp"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_args_manager.cpp", PathUtils::Join({runtime_dir, "g1_args_manager.cpp"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_load_and_run.cpp", PathUtils::Join({runtime_dir, "g1_load_and_run.cpp"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/libg1_om2.so", so_path, false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/constants/model_1_constants_config.json", archive_constant_cfg_path, false));
+      ASSERT_TRUE(zip_writer.SaveModelDataToFile());
+      ASSERT_EQ(mmAccess2(om2_fileconst_file_path_.c_str(), M_F_OK), EOK);
+    });
+  }
+
+  static void PrepareCombinedFileConstOm2File() {
+    std::call_once(prepare_combined_once_, []() {
+      const std::string runtime_dir = PathUtils::Join({test_work_dir_, "fake_runtime_combined"});
+      const std::string build_dir = PathUtils::Join({runtime_dir, "build"});
+      const std::string so_path = PathUtils::Join({runtime_dir, "libg1_om2.so"});
+      const std::string archive_constant_cfg_path = PathUtils::Join({test_work_dir_, "model_2_constants_config.json"});
+      const std::string weight_dir = PathUtils::Join({test_work_dir_, "weight"});
+      const std::string file_const_path = PathUtils::Join({weight_dir, "combined.bin"});
+
+      (void)PathUtils::RemoveDirectories(runtime_dir);
+      ASSERT_EQ(CreateDir(runtime_dir), 0);
+      WriteTextFile(PathUtils::Join({runtime_dir, "g1_interface.h"}), MakeInterfaceHeader());
+      WriteTextFile(PathUtils::Join({runtime_dir, "g1_resources.cpp"}), MakeEmptyCpp("g1_interface.h"));
+      WriteTextFile(PathUtils::Join({runtime_dir, "g1_kernel_reg.cpp"}), MakeEmptyCpp("g1_interface.h"));
+      WriteTextFile(PathUtils::Join({runtime_dir, "g1_args_manager.cpp"}), MakeEmptyCpp("g1_interface.h"));
+      WriteTextFile(PathUtils::Join({runtime_dir, "g1_load_and_run.cpp"}), MakeLoadAndRunCpp());
+      WriteTextFile(PathUtils::Join({runtime_dir, "CMakeLists.txt"}), MakeCMakeLists());
+
+      const std::string cmake_config_cmd = "cmake -S " + runtime_dir + " -B " + build_dir;
+      const std::string cmake_build_cmd = "cmake --build " + build_dir + " -j1";
+      RunCommandOrAssert(cmake_config_cmd);
+      RunCommandOrAssert(cmake_build_cmd);
+      ASSERT_EQ(mmAccess2(so_path.c_str(), M_F_OK), EOK);
+
+      WriteTextFile(archive_constant_cfg_path, MakeCombinedConstantsConfigJson());
+      WriteBinaryFile(file_const_path, {41U, 42U, 43U, 44U});
+
+      ZipArchiveWriter zip_writer(om2_combined_file_path_);
+      ASSERT_TRUE(zip_writer.IsMemFileOpened());
+      const auto manifest = MakeManifestJson();
+      const auto model_meta = MakeModelMetaJson();
+      ASSERT_TRUE(zip_writer.WriteBytes("manifest.json", manifest.data(), manifest.size(), false));
+      ASSERT_TRUE(zip_writer.WriteBytes("data/model_0/model_meta.json", model_meta.data(), model_meta.size(), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/CMakeLists.txt", PathUtils::Join({runtime_dir, "CMakeLists.txt"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_interface.h", PathUtils::Join({runtime_dir, "g1_interface.h"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_resources.cpp", PathUtils::Join({runtime_dir, "g1_resources.cpp"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_kernel_reg.cpp", PathUtils::Join({runtime_dir, "g1_kernel_reg.cpp"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_args_manager.cpp", PathUtils::Join({runtime_dir, "g1_args_manager.cpp"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_load_and_run.cpp", PathUtils::Join({runtime_dir, "g1_load_and_run.cpp"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/libg1_om2.so", so_path, false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/constants/model_2_constants_config.json", archive_constant_cfg_path, false));
+      ASSERT_TRUE(zip_writer.SaveModelDataToFile());
+      ASSERT_EQ(mmAccess2(om2_combined_file_path_.c_str(), M_F_OK), EOK);
+    });
+  }
+
+  static void PrepareMixedOm2File() {
+    std::call_once(prepare_mixed_once_, []() {
+      const std::string runtime_dir = PathUtils::Join({test_work_dir_, "fake_runtime_mixed"});
+      const std::string build_dir = PathUtils::Join({runtime_dir, "build"});
+      const std::string so_path = PathUtils::Join({runtime_dir, "libg1_om2.so"});
+      const std::string archive_constant_path = PathUtils::Join({test_work_dir_, "constant_mixed_0"});
+      const std::string archive_constant_cfg_path = PathUtils::Join({test_work_dir_, "model_3_constants_config.json"});
+      const std::string weight_dir = PathUtils::Join({test_work_dir_, "weight"});
+      const std::string individual_path = PathUtils::Join({weight_dir, "mixed_fc.bin"});
+      const std::string combined_path = PathUtils::Join({weight_dir, "mixed_combined.bin"});
+
+      (void)PathUtils::RemoveDirectories(runtime_dir);
+      ASSERT_EQ(CreateDir(runtime_dir), 0);
+      WriteTextFile(PathUtils::Join({runtime_dir, "g1_interface.h"}), MakeInterfaceHeader());
+      WriteTextFile(PathUtils::Join({runtime_dir, "g1_resources.cpp"}), MakeEmptyCpp("g1_interface.h"));
+      WriteTextFile(PathUtils::Join({runtime_dir, "g1_kernel_reg.cpp"}), MakeEmptyCpp("g1_interface.h"));
+      WriteTextFile(PathUtils::Join({runtime_dir, "g1_args_manager.cpp"}), MakeEmptyCpp("g1_interface.h"));
+      WriteTextFile(PathUtils::Join({runtime_dir, "g1_load_and_run.cpp"}), MakeLoadAndRunCpp());
+      WriteTextFile(PathUtils::Join({runtime_dir, "CMakeLists.txt"}), MakeCMakeLists());
+
+      const std::string cmake_config_cmd = "cmake -S " + runtime_dir + " -B " + build_dir;
+      const std::string cmake_build_cmd = "cmake --build " + build_dir + " -j1";
+      RunCommandOrAssert(cmake_config_cmd);
+      RunCommandOrAssert(cmake_build_cmd);
+      ASSERT_EQ(mmAccess2(so_path.c_str(), M_F_OK), EOK);
+
+      WriteBinaryFile(archive_constant_path, std::vector<uint8_t>{1U, 2U, 3U, 4U, 5U, 6U, 7U, 8U,
+                                                                  9U, 10U, 11U, 12U, 13U, 14U, 15U, 16U});
+      WriteTextFile(archive_constant_cfg_path, MakeMixedConstantsConfigJson());
+      WriteBinaryFile(individual_path, {61U, 62U, 63U, 64U});
+      WriteBinaryFile(combined_path, {71U, 72U, 73U, 74U});
+
+      ZipArchiveWriter zip_writer(om2_mixed_file_path_);
+      ASSERT_TRUE(zip_writer.IsMemFileOpened());
+      const auto manifest = MakeManifestJson();
+      const auto model_meta = MakeModelMetaJson();
+      ASSERT_TRUE(zip_writer.WriteBytes("manifest.json", manifest.data(), manifest.size(), false));
+      ASSERT_TRUE(zip_writer.WriteBytes("data/model_0/model_meta.json", model_meta.data(), model_meta.size(), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/CMakeLists.txt", PathUtils::Join({runtime_dir, "CMakeLists.txt"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_interface.h", PathUtils::Join({runtime_dir, "g1_interface.h"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_resources.cpp", PathUtils::Join({runtime_dir, "g1_resources.cpp"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_kernel_reg.cpp", PathUtils::Join({runtime_dir, "g1_kernel_reg.cpp"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_args_manager.cpp", PathUtils::Join({runtime_dir, "g1_args_manager.cpp"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_load_and_run.cpp", PathUtils::Join({runtime_dir, "g1_load_and_run.cpp"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/libg1_om2.so", so_path, false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/constants/constant_0", archive_constant_path, false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/constants/model_3_constants_config.json", archive_constant_cfg_path, false));
+      ASSERT_TRUE(zip_writer.SaveModelDataToFile());
+      ASSERT_EQ(mmAccess2(om2_mixed_file_path_.c_str(), M_F_OK), EOK);
+    });
+  }
+
+  static void PrepareDuplicateIndividualOm2File() {
+    std::call_once(prepare_duplicate_individual_once_, []() {
+      const std::string runtime_dir = PathUtils::Join({test_work_dir_, "fake_runtime_duplicate_individual"});
+      const std::string build_dir = PathUtils::Join({runtime_dir, "build"});
+      const std::string so_path = PathUtils::Join({runtime_dir, "libg1_om2.so"});
+      const std::string archive_constant_cfg_path =
+          PathUtils::Join({test_work_dir_, "model_duplicate_individual_constants_config.json"});
+      const std::string weight_dir = PathUtils::Join({test_work_dir_, "weight"});
+      const std::string individual_path = PathUtils::Join({weight_dir, "duplicate_fc.bin"});
+
+      (void)PathUtils::RemoveDirectories(runtime_dir);
+      ASSERT_EQ(CreateDir(runtime_dir), 0);
+      WriteTextFile(PathUtils::Join({runtime_dir, "g1_interface.h"}), MakeInterfaceHeader());
+      WriteTextFile(PathUtils::Join({runtime_dir, "g1_resources.cpp"}), MakeEmptyCpp("g1_interface.h"));
+      WriteTextFile(PathUtils::Join({runtime_dir, "g1_kernel_reg.cpp"}), MakeEmptyCpp("g1_interface.h"));
+      WriteTextFile(PathUtils::Join({runtime_dir, "g1_args_manager.cpp"}), MakeEmptyCpp("g1_interface.h"));
+      WriteTextFile(PathUtils::Join({runtime_dir, "g1_load_and_run.cpp"}), MakeLoadAndRunCpp());
+      WriteTextFile(PathUtils::Join({runtime_dir, "CMakeLists.txt"}), MakeCMakeLists());
+
+      const std::string cmake_config_cmd = "cmake -S " + runtime_dir + " -B " + build_dir;
+      const std::string cmake_build_cmd = "cmake --build " + build_dir + " -j1";
+      RunCommandOrAssert(cmake_config_cmd);
+      RunCommandOrAssert(cmake_build_cmd);
+      ASSERT_EQ(mmAccess2(so_path.c_str(), M_F_OK), EOK);
+
+      WriteTextFile(archive_constant_cfg_path, MakeDuplicateIndividualConstantsConfigJson());
+      WriteBinaryFile(individual_path, {101U, 102U, 103U, 104U});
+
+      ZipArchiveWriter zip_writer(om2_duplicate_individual_file_path_);
+      ASSERT_TRUE(zip_writer.IsMemFileOpened());
+      const auto manifest = MakeManifestJson();
+      const auto model_meta = MakeModelMetaJson();
+      ASSERT_TRUE(zip_writer.WriteBytes("manifest.json", manifest.data(), manifest.size(), false));
+      ASSERT_TRUE(zip_writer.WriteBytes("data/model_0/model_meta.json", model_meta.data(), model_meta.size(), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/CMakeLists.txt",
+                                       PathUtils::Join({runtime_dir, "CMakeLists.txt"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_interface.h",
+                                       PathUtils::Join({runtime_dir, "g1_interface.h"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_resources.cpp",
+                                       PathUtils::Join({runtime_dir, "g1_resources.cpp"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_kernel_reg.cpp",
+                                       PathUtils::Join({runtime_dir, "g1_kernel_reg.cpp"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_args_manager.cpp",
+                                       PathUtils::Join({runtime_dir, "g1_args_manager.cpp"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_load_and_run.cpp",
+                                       PathUtils::Join({runtime_dir, "g1_load_and_run.cpp"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/libg1_om2.so", so_path, false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/constants/model_duplicate_individual_constants_config.json",
+                                       archive_constant_cfg_path, false));
+      ASSERT_TRUE(zip_writer.SaveModelDataToFile());
+      ASSERT_EQ(mmAccess2(om2_duplicate_individual_file_path_.c_str(), M_F_OK), EOK);
+    });
+  }
+
   static ModelDataHolder LoadValidModelData() {
     PrepareOm2File();
     uint32_t model_buf_size = 0U;
@@ -285,6 +768,67 @@ class Om2ModelExecutorUt : public testing::Test {
     ModelDataHolder holder;
     holder.model_data.model_data = model_buf.get();
     holder.model_data.model_len = model_buf_size;
+    holder.model_data.om_path = om2_file_path_;
+    holder.buffer = std::move(model_buf);
+    return holder;
+  }
+
+  static ModelDataHolder LoadValidFileConstModelData() {
+    PrepareFileConstOm2File();
+    uint32_t model_buf_size = 0U;
+    auto model_buf = GetBinDataFromFile(om2_fileconst_file_path_, model_buf_size);
+    EXPECT_NE(model_buf, nullptr);
+    EXPECT_GT(model_buf_size, 0U);
+
+    ModelDataHolder holder;
+    holder.model_data.model_data = model_buf.get();
+    holder.model_data.model_len = model_buf_size;
+    holder.model_data.om_path = om2_fileconst_file_path_;
+    holder.buffer = std::move(model_buf);
+    return holder;
+  }
+
+  static ModelDataHolder LoadValidCombinedModelData() {
+    PrepareCombinedFileConstOm2File();
+    uint32_t model_buf_size = 0U;
+    auto model_buf = GetBinDataFromFile(om2_combined_file_path_, model_buf_size);
+    EXPECT_NE(model_buf, nullptr);
+    EXPECT_GT(model_buf_size, 0U);
+
+    ModelDataHolder holder;
+    holder.model_data.model_data = model_buf.get();
+    holder.model_data.model_len = model_buf_size;
+    holder.model_data.om_path = om2_combined_file_path_;
+    holder.buffer = std::move(model_buf);
+    return holder;
+  }
+
+  static ModelDataHolder LoadValidMixedModelData() {
+    PrepareMixedOm2File();
+    uint32_t model_buf_size = 0U;
+    auto model_buf = GetBinDataFromFile(om2_mixed_file_path_, model_buf_size);
+    EXPECT_NE(model_buf, nullptr);
+    EXPECT_GT(model_buf_size, 0U);
+
+    ModelDataHolder holder;
+    holder.model_data.model_data = model_buf.get();
+    holder.model_data.model_len = model_buf_size;
+    holder.model_data.om_path = om2_mixed_file_path_;
+    holder.buffer = std::move(model_buf);
+    return holder;
+  }
+
+  static ModelDataHolder LoadValidDuplicateIndividualModelData() {
+    PrepareDuplicateIndividualOm2File();
+    uint32_t model_buf_size = 0U;
+    auto model_buf = GetBinDataFromFile(om2_duplicate_individual_file_path_, model_buf_size);
+    EXPECT_NE(model_buf, nullptr);
+    EXPECT_GT(model_buf_size, 0U);
+
+    ModelDataHolder holder;
+    holder.model_data.model_data = model_buf.get();
+    holder.model_data.model_len = model_buf_size;
+    holder.model_data.om_path = om2_duplicate_individual_file_path_;
     holder.buffer = std::move(model_buf);
     return holder;
   }
@@ -303,23 +847,209 @@ class Om2ModelExecutorUt : public testing::Test {
 
   static std::string test_work_dir_;
   static std::string om2_file_path_;
+  static std::string om2_fileconst_file_path_;
+  static std::string om2_combined_file_path_;
+  static std::string om2_mixed_file_path_;
+  static std::string om2_duplicate_individual_file_path_;
   static std::once_flag prepare_once_;
+  static std::once_flag prepare_fileconst_once_;
+  static std::once_flag prepare_combined_once_;
+  static std::once_flag prepare_mixed_once_;
+  static std::once_flag prepare_duplicate_individual_once_;
 };
 
 std::string Om2ModelExecutorUt::test_work_dir_;
 std::string Om2ModelExecutorUt::om2_file_path_;
+std::string Om2ModelExecutorUt::om2_fileconst_file_path_;
+std::string Om2ModelExecutorUt::om2_combined_file_path_;
+std::string Om2ModelExecutorUt::om2_mixed_file_path_;
+std::string Om2ModelExecutorUt::om2_duplicate_individual_file_path_;
 std::once_flag Om2ModelExecutorUt::prepare_once_;
+std::once_flag Om2ModelExecutorUt::prepare_fileconst_once_;
+std::once_flag Om2ModelExecutorUt::prepare_combined_once_;
+std::once_flag Om2ModelExecutorUt::prepare_mixed_once_;
+std::once_flag Om2ModelExecutorUt::prepare_duplicate_individual_once_;
 
 TEST_F(Om2ModelExecutorUt, load_invalid_model_data) {
   gert::Om2ModelExecutor executor;
   ModelData invalid_model_data{};
-  EXPECT_NE(executor.Load(invalid_model_data), SUCCESS);
+  auto load_arg = MakeOm2LoadArg();
+  EXPECT_NE(executor.Load(invalid_model_data, load_arg, 1U), SUCCESS);
 }
 
 TEST_F(Om2ModelExecutorUt, load_ok) {
   auto model_data_holder = LoadValidModelData();
   gert::Om2ModelExecutor executor;
-  EXPECT_EQ(executor.Load(model_data_holder.model_data), SUCCESS);
+  auto load_arg = MakeOm2LoadArg();
+  EXPECT_EQ(executor.Load(model_data_holder.model_data, load_arg, 1U), SUCCESS);
+}
+
+TEST_F(Om2ModelExecutorUt, load_generates_session_id_without_rt_session) {
+  auto model_data_holder = LoadValidModelData();
+  auto load_arg = MakeOm2LoadArg();
+  ge::Status error_code = SUCCESS;
+  ASSERT_EQ(setenv("OM2_EXPECT_SESSION_ID", "ANY", 1), 0);
+  auto executor = gert::LoadOm2ExecutorFromData(model_data_holder.model_data, load_arg, error_code);
+  EXPECT_EQ(error_code, SUCCESS);
+  ASSERT_NE(executor, nullptr);
+}
+
+TEST_F(Om2ModelExecutorUt, load_uses_rt_session_id_when_rt_session_is_not_null) {
+  auto model_data_holder = LoadValidModelData();
+  auto load_arg = MakeOm2LoadArg();
+  gert::RtSession rt_session(9527U);
+  load_arg.rt_session = &rt_session;
+  ge::Status error_code = SUCCESS;
+  ASSERT_EQ(setenv("OM2_EXPECT_SESSION_ID", "9527", 1), 0);
+  auto executor = gert::LoadOm2ExecutorFromData(model_data_holder.model_data, load_arg, error_code);
+  EXPECT_EQ(error_code, SUCCESS);
+  ASSERT_NE(executor, nullptr);
+}
+
+TEST_F(Om2ModelExecutorUt, load_failed_when_device_id_is_not_set) {
+  auto model_data_holder = LoadValidModelData();
+  gert::Om2ModelExecutor executor;
+  auto load_arg = MakeOm2LoadArg();
+  load_arg.device_id = -1;
+  EXPECT_NE(executor.Load(model_data_holder.model_data, load_arg, 1U), SUCCESS);
+}
+
+TEST_F(Om2ModelExecutorUt, load_ok_with_external_work_ptr_and_internal_weight_from_archive) {
+  auto model_data_holder = LoadValidModelData();
+  gert::Om2ModelExecutor executor;
+  auto load_arg = MakeOm2LoadArg();
+  load_arg.work_ptr = reinterpret_cast<void *>(0x12345);
+  load_arg.work_size = 2048U;
+  ASSERT_EQ(setenv("OM2_EXPECT_WORK_PTR_MODE", "EQUAL", 1), 0);
+  ASSERT_EQ(setenv("OM2_EXPECT_WORK_PTR_VALUE", PtrToHexString(load_arg.work_ptr).c_str(), 1), 0);
+  ASSERT_EQ(setenv("OM2_EXPECT_CONST0_MODE", "NON_NULL", 1), 0);
+  ASSERT_EQ(setenv("OM2_EXPECT_CONST0_FIRST_BYTE", "1", 1), 0);
+  EXPECT_EQ(executor.Load(model_data_holder.model_data, load_arg, 1U), SUCCESS);
+}
+
+TEST_F(Om2ModelExecutorUt, load_ok_with_internal_work_ptr_and_external_device_weight) {
+  auto model_data_holder = LoadValidModelData();
+  gert::Om2ModelExecutor executor;
+  std::vector<uint8_t> device_weight(16U, 0U);
+  auto load_arg = MakeOm2LoadArg();
+  load_arg.weight_ptr = device_weight.data();
+  load_arg.weight_size = device_weight.size();
+  ASSERT_EQ(setenv("OM2_EXPECT_WORK_PTR_MODE", "NON_NULL", 1), 0);
+  ASSERT_EQ(setenv("OM2_EXPECT_CONST0_MODE", "NON_NULL", 1), 0);
+  ASSERT_EQ(setenv("OM2_EXPECT_CONST0_FIRST_BYTE", "1", 1), 0);
+  ASSERT_EQ(setenv("OM2_EXPECT_CONST0_PTR_MODE", "EQUAL", 1), 0);
+  ASSERT_EQ(setenv("OM2_EXPECT_CONST0_PTR_VALUE", PtrToHexString(load_arg.weight_ptr).c_str(), 1), 0);
+  EXPECT_EQ(executor.Load(model_data_holder.model_data, load_arg, 1U), SUCCESS);
+}
+
+TEST_F(Om2ModelExecutorUt, load_failed_when_external_work_ptr_size_too_small) {
+  auto model_data_holder = LoadValidModelData();
+  gert::Om2ModelExecutor executor;
+  auto load_arg = MakeOm2LoadArg();
+  load_arg.work_ptr = reinterpret_cast<void *>(0x12345);
+  load_arg.work_size = 1024U;
+  EXPECT_NE(executor.Load(model_data_holder.model_data, load_arg, 1U), SUCCESS);
+}
+
+TEST_F(Om2ModelExecutorUt, load_failed_when_external_device_weight_size_too_small) {
+  auto model_data_holder = LoadValidModelData();
+  gert::Om2ModelExecutor executor;
+  std::vector<uint8_t> device_weight(8U, 0U);
+  auto load_arg = MakeOm2LoadArg();
+  load_arg.weight_ptr = device_weight.data();
+  load_arg.weight_size = device_weight.size();
+  EXPECT_NE(executor.Load(model_data_holder.model_data, load_arg, 1U), SUCCESS);
+}
+
+TEST_F(Om2ModelExecutorUt, load_ok_with_individual_fileconst_from_file) {
+  auto model_data_holder = LoadValidFileConstModelData();
+  gert::Om2ModelExecutor executor;
+  auto load_arg = MakeOm2LoadArg();
+  ASSERT_EQ(setenv("OM2_EXPECT_CONST0_MODE", "NON_NULL", 1), 0);
+  ASSERT_EQ(setenv("OM2_EXPECT_CONST0_FIRST_BYTE", "22", 1), 0);
+  EXPECT_EQ(executor.Load(model_data_holder.model_data, load_arg, 1U), SUCCESS);
+}
+
+TEST_F(Om2ModelExecutorUt, load_ok_with_individual_fileconst_from_user_mem) {
+  auto model_data_holder = LoadValidFileConstModelData();
+  gert::Om2ModelExecutor executor;
+  std::vector<uint8_t> user_mem{31U, 32U, 33U, 34U};
+  auto load_arg = MakeOm2LoadArg();
+  load_arg.file_constant_mems.push_back({"fc.bin", user_mem.data(), user_mem.size()});
+  ASSERT_EQ(setenv("OM2_EXPECT_CONST0_MODE", "NON_NULL", 1), 0);
+  ASSERT_EQ(setenv("OM2_EXPECT_CONST0_FIRST_BYTE", "32", 1), 0);
+  EXPECT_EQ(executor.Load(model_data_holder.model_data, load_arg, 1U), SUCCESS);
+}
+
+TEST_F(Om2ModelExecutorUt, load_ok_with_combined_fileconst_from_file) {
+  auto model_data_holder = LoadValidCombinedModelData();
+  gert::Om2ModelExecutor executor;
+  auto load_arg = MakeOm2LoadArg();
+  ASSERT_EQ(setenv("OM2_EXPECT_CONST0_MODE", "NON_NULL", 1), 0);
+  ASSERT_EQ(setenv("OM2_EXPECT_CONST0_FIRST_BYTE", "42", 1), 0);
+  EXPECT_EQ(executor.Load(model_data_holder.model_data, load_arg, 1U), SUCCESS);
+}
+
+TEST_F(Om2ModelExecutorUt, load_ok_with_combined_fileconst_from_user_mem) {
+  auto model_data_holder = LoadValidCombinedModelData();
+  gert::Om2ModelExecutor executor;
+  std::vector<uint8_t> user_mem{51U, 52U, 53U, 54U};
+  auto load_arg = MakeOm2LoadArg();
+  load_arg.file_constant_mems.push_back({"combined.bin", user_mem.data(), user_mem.size()});
+  ASSERT_EQ(setenv("OM2_EXPECT_CONST0_MODE", "NON_NULL", 1), 0);
+  ASSERT_EQ(setenv("OM2_EXPECT_CONST0_FIRST_BYTE", "52", 1), 0);
+  EXPECT_EQ(executor.Load(model_data_holder.model_data, load_arg, 1U), SUCCESS);
+}
+
+TEST_F(Om2ModelExecutorUt, load_ok_with_mixed_consts_from_file) {
+  auto model_data_holder = LoadValidMixedModelData();
+  gert::Om2ModelExecutor executor;
+  auto load_arg = MakeOm2LoadArg();
+  ASSERT_EQ(setenv("OM2_EXPECT_CONST0_MODE", "NON_NULL", 1), 0);
+  ASSERT_EQ(setenv("OM2_EXPECT_CONST0_FIRST_BYTE", "1", 1), 0);
+  ASSERT_EQ(setenv("OM2_EXPECT_CONST1_MODE", "NON_NULL", 1), 0);
+  ASSERT_EQ(setenv("OM2_EXPECT_CONST1_FIRST_BYTE", "62", 1), 0);
+  ASSERT_EQ(setenv("OM2_EXPECT_CONST2_MODE", "NON_NULL", 1), 0);
+  ASSERT_EQ(setenv("OM2_EXPECT_CONST2_FIRST_BYTE", "72", 1), 0);
+  EXPECT_EQ(executor.Load(model_data_holder.model_data, load_arg, 1U), SUCCESS);
+}
+
+TEST_F(Om2ModelExecutorUt, load_ok_with_mixed_consts_and_external_resources) {
+  auto model_data_holder = LoadValidMixedModelData();
+  gert::Om2ModelExecutor executor;
+  std::vector<uint8_t> device_weight(16U, 0U);
+  std::vector<uint8_t> individual_mem{80U, 81U, 82U, 83U};
+  std::vector<uint8_t> combined_mem{90U, 91U, 92U, 93U};
+  auto load_arg = MakeOm2LoadArg();
+  load_arg.work_ptr = reinterpret_cast<void *>(0x34567);
+  load_arg.work_size = 2048U;
+  load_arg.weight_ptr = device_weight.data();
+  load_arg.weight_size = device_weight.size();
+  load_arg.file_constant_mems.push_back({"mixed_fc.bin", individual_mem.data(), individual_mem.size()});
+  load_arg.file_constant_mems.push_back({"mixed_combined.bin", combined_mem.data(), combined_mem.size()});
+  ASSERT_EQ(setenv("OM2_EXPECT_WORK_PTR_MODE", "EQUAL", 1), 0);
+  ASSERT_EQ(setenv("OM2_EXPECT_WORK_PTR_VALUE", PtrToHexString(load_arg.work_ptr).c_str(), 1), 0);
+  ASSERT_EQ(setenv("OM2_EXPECT_CONST0_MODE", "NON_NULL", 1), 0);
+  ASSERT_EQ(setenv("OM2_EXPECT_CONST0_FIRST_BYTE", "1", 1), 0);
+  ASSERT_EQ(setenv("OM2_EXPECT_CONST0_PTR_MODE", "EQUAL", 1), 0);
+  ASSERT_EQ(setenv("OM2_EXPECT_CONST0_PTR_VALUE", PtrToHexString(load_arg.weight_ptr).c_str(), 1), 0);
+  ASSERT_EQ(setenv("OM2_EXPECT_CONST1_MODE", "NON_NULL", 1), 0);
+  ASSERT_EQ(setenv("OM2_EXPECT_CONST1_FIRST_BYTE", "81", 1), 0);
+  ASSERT_EQ(setenv("OM2_EXPECT_CONST2_MODE", "NON_NULL", 1), 0);
+  ASSERT_EQ(setenv("OM2_EXPECT_CONST2_FIRST_BYTE", "91", 1), 0);
+  EXPECT_EQ(executor.Load(model_data_holder.model_data, load_arg, 1U), SUCCESS);
+}
+
+TEST_F(Om2ModelExecutorUt, load_reuses_duplicate_individual_fileconst_in_same_load) {
+  auto model_data_holder = LoadValidDuplicateIndividualModelData();
+  gert::Om2ModelExecutor executor;
+  auto load_arg = MakeOm2LoadArg();
+  ASSERT_EQ(setenv("OM2_EXPECT_CONST1_MODE", "NON_NULL", 1), 0);
+  ASSERT_EQ(setenv("OM2_EXPECT_CONST1_FIRST_BYTE", "102", 1), 0);
+  ASSERT_EQ(setenv("OM2_EXPECT_CONST2_MODE", "NON_NULL", 1), 0);
+  ASSERT_EQ(setenv("OM2_EXPECT_CONST2_FIRST_BYTE", "102", 1), 0);
+  ASSERT_EQ(setenv("OM2_EXPECT_CONST1_CONST2_PTR_EQUAL", "1", 1), 0);
+  EXPECT_EQ(executor.Load(model_data_holder.model_data, load_arg, 1U), SUCCESS);
 }
 
 TEST_F(Om2ModelExecutorUt, run_before_load_failed) {
@@ -335,7 +1065,8 @@ TEST_F(Om2ModelExecutorUt, run_before_load_failed) {
 TEST_F(Om2ModelExecutorUt, run_ok_after_load) {
   auto model_data_holder = LoadValidModelData();
   gert::Om2ModelExecutor executor;
-  ASSERT_EQ(executor.Load(model_data_holder.model_data), SUCCESS);
+  auto load_arg = MakeOm2LoadArg();
+  ASSERT_EQ(executor.Load(model_data_holder.model_data, load_arg, 1U), SUCCESS);
 
   std::vector<gert::Tensor> input_tensors;
   std::vector<gert::Tensor> output_tensors;
@@ -358,7 +1089,8 @@ TEST_F(Om2ModelExecutorUt, run_async_before_load_failed) {
 TEST_F(Om2ModelExecutorUt, run_async_ok_after_load) {
   auto model_data_holder = LoadValidModelData();
   gert::Om2ModelExecutor executor;
-  ASSERT_EQ(executor.Load(model_data_holder.model_data), SUCCESS);
+  auto load_arg = MakeOm2LoadArg();
+  ASSERT_EQ(executor.Load(model_data_holder.model_data, load_arg, 1U), SUCCESS);
 
   std::vector<gert::Tensor> input_tensors;
   std::vector<gert::Tensor> output_tensors;
@@ -371,7 +1103,8 @@ TEST_F(Om2ModelExecutorUt, run_async_ok_after_load) {
 TEST_F(Om2ModelExecutorUt, get_model_desc_info_ok) {
   auto model_data_holder = LoadValidModelData();
   gert::Om2ModelExecutor executor;
-  ASSERT_EQ(executor.Load(model_data_holder.model_data), SUCCESS);
+  auto load_arg = MakeOm2LoadArg();
+  ASSERT_EQ(executor.Load(model_data_holder.model_data, load_arg, 1U), SUCCESS);
 
   std::vector<ge::TensorDesc> input_desc;
   std::vector<ge::TensorDesc> output_desc;
@@ -392,7 +1125,8 @@ TEST_F(Om2ModelExecutorUt, get_model_desc_info_ok) {
 TEST_F(Om2ModelExecutorUt, get_model_attrs_ok) {
   auto model_data_holder = LoadValidModelData();
   gert::Om2ModelExecutor executor;
-  ASSERT_EQ(executor.Load(model_data_holder.model_data), SUCCESS);
+  auto load_arg = MakeOm2LoadArg();
+  ASSERT_EQ(executor.Load(model_data_holder.model_data, load_arg, 1U), SUCCESS);
 
   std::vector<std::string> dynamic_output_shape;
   EXPECT_EQ(executor.GetModelAttrs(dynamic_output_shape), SUCCESS);
@@ -402,7 +1136,8 @@ TEST_F(Om2ModelExecutorUt, get_model_attrs_ok) {
 TEST_F(Om2ModelExecutorUt, get_dynamic_batch_info_ok) {
   auto model_data_holder = LoadValidModelData();
   gert::Om2ModelExecutor executor;
-  ASSERT_EQ(executor.Load(model_data_holder.model_data), SUCCESS);
+  auto load_arg = MakeOm2LoadArg();
+  ASSERT_EQ(executor.Load(model_data_holder.model_data, load_arg, 1U), SUCCESS);
 
   std::vector<std::vector<int64_t>> dynamic_batch_info;
   int32_t dynamic_type = -1;
@@ -414,7 +1149,8 @@ TEST_F(Om2ModelExecutorUt, get_dynamic_batch_info_ok) {
 TEST_F(Om2ModelExecutorUt, get_user_designate_shape_order_ok) {
   auto model_data_holder = LoadValidModelData();
   gert::Om2ModelExecutor executor;
-  ASSERT_EQ(executor.Load(model_data_holder.model_data), SUCCESS);
+  auto load_arg = MakeOm2LoadArg();
+  ASSERT_EQ(executor.Load(model_data_holder.model_data, load_arg, 1U), SUCCESS);
 
   std::vector<std::string> user_designate_shape_order;
   EXPECT_EQ(executor.GetUserDesignateShapeOrder(user_designate_shape_order), SUCCESS);
@@ -468,5 +1204,44 @@ TEST_F(Om2ModelExecutorUt, IsOm2Model_Ok_FromFileMultiScene) {
   is_support = false;
   EXPECT_EQ(gert::IsOm2Model(test_file.c_str(), is_support), SUCCESS);
   EXPECT_FALSE(is_support);
+}
+
+TEST_F(Om2ModelExecutorUt, get_mem_and_weight_size_from_file_ok) {
+  PrepareOm2File();
+  size_t work_size = 0U;
+  size_t weight_size = 0U;
+  EXPECT_EQ(gert::GetOm2MemAndWeightSize(om2_file_path_, work_size, weight_size), SUCCESS);
+  EXPECT_EQ(work_size, 2048U);
+  EXPECT_EQ(weight_size, 16U);
+}
+
+TEST_F(Om2ModelExecutorUt, get_mem_and_weight_size_external_only_with_zero_internal_weight_size_ok) {
+  const std::string om2_file_path = PathUtils::Join({test_work_dir_, "external_only_with_zero_internal_weight_size.om2"});
+  ZipArchiveWriter zip_writer(om2_file_path);
+  ASSERT_TRUE(zip_writer.IsMemFileOpened());
+  const auto manifest = MakeManifestJson();
+  const auto constants_config = MakeIndividualConstantsConfigJsonWithZeroInternalWeightSize();
+  const auto model_meta = MakeModelMetaJson();
+  ASSERT_TRUE(zip_writer.WriteBytes("manifest.json", manifest.data(), manifest.size(), false));
+  ASSERT_TRUE(zip_writer.WriteBytes("data/constants/model_0_constants_config.json",
+                                    constants_config.data(), constants_config.size(), false));
+  ASSERT_TRUE(zip_writer.WriteBytes("data/model_0/model_meta.json", model_meta.data(), model_meta.size(), false));
+  ASSERT_TRUE(zip_writer.SaveModelDataToFile());
+
+  size_t work_size = 0U;
+  size_t weight_size = 1024U;
+  EXPECT_EQ(gert::GetOm2MemAndWeightSize(om2_file_path, work_size, weight_size), SUCCESS);
+  EXPECT_EQ(work_size, 2048U);
+  EXPECT_EQ(weight_size, 0U);
+}
+
+TEST_F(Om2ModelExecutorUt, get_mem_and_weight_size_from_mem_ok) {
+  auto model_data_holder = LoadValidModelData();
+  size_t work_size = 0U;
+  size_t weight_size = 0U;
+  EXPECT_EQ(gert::GetOm2MemAndWeightSize(model_data_holder.model_data.model_data,
+                                         model_data_holder.model_data.model_len, work_size, weight_size), SUCCESS);
+  EXPECT_EQ(work_size, 2048U);
+  EXPECT_EQ(weight_size, 16U);
 }
 }  // namespace ge

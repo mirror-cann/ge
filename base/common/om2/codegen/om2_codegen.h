@@ -11,22 +11,19 @@
 #ifndef AIR_CXX_BASE_COMMON_OM2_CODEGEN_OM2_CODEGEN_H_
 #define AIR_CXX_BASE_COMMON_OM2_CODEGEN_OM2_CODEGEN_H_
 
-#include <array>
 #include <string>
 #include <vector>
 #include "common/model/ge_model.h"
 #include "ge_common/ge_api_types.h"
-#include "common/om2/codegen/ast/ast_nodes.h"
-#include "common/om2/codegen/om2_code_printer.h"
+#include "common/om2/codegen/om2_codegen_types.h"
 
 namespace ge {
-using Program = std::array<std::vector<AstNode *>, static_cast<size_t>(GeneratedFileIndex::kEnd)>;
-
 class Om2Codegen {
 public:
   ~Om2Codegen();
 
-  Status Om2CodegenAndCompile(const GeModelPtr &ge_model, std::vector<std::string> &output_file_paths);
+  Status Om2CodegenAndCompile(const GeModelPtr &ge_model, std::vector<std::string> &output_file_paths,
+                              Om2ConstMetas &const_metas);
 
 private:
   void CleanOm2WorkDir() const;

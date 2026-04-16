@@ -9,6 +9,7 @@
  */
 
 #include "acl/acl_mdl.h"
+#include "acl/acl_rt.h"
 #include <vector>
 #include <mutex>
 #include <string>
@@ -67,6 +68,17 @@ enum class TensorType : std::uint8_t {
     OUTPUT_TENSOR_TYPE
 };
 
+const std::unordered_set<aclmdlConfigAttr> kOm2SupportedLoadConfigOpts = {
+    ACL_MDL_LOAD_TYPE_SIZET,
+    ACL_MDL_PATH_PTR,
+    ACL_MDL_MEM_ADDR_PTR,
+    ACL_MDL_MEM_SIZET,
+    ACL_MDL_WEIGHT_ADDR_PTR,
+    ACL_MDL_WEIGHT_SIZET,
+    ACL_MDL_WORKSPACE_ADDR_PTR,
+    ACL_MDL_WORKSPACE_SIZET
+};
+
 aclError aclmdlCheckQueueParam(const uint32_t *const inputQ, const size_t inputQNum, const uint32_t *const outputQ,
                                 const size_t outputQNum) {
     ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(inputQ);
@@ -91,6 +103,41 @@ ge::ModelLoadArg ConstructGeModelLoadArg(void *devPtr, size_t memSize, void *wei
     loadArgs.file_constant_mems = fileConstantMems;
     loadArgs.need_clear_dfx_cache = need_clear_dfx_cache;
     return loadArgs;
+}
+
+aclError SetOm2ModelLoadArgDevice(gert::Om2ModelLoadArg &loadArgs) {
+    int32_t deviceId = -1;
+    const auto ret = aclrtGetDevice(&deviceId);
+    if ((ret != ACL_SUCCESS) || (deviceId < 0)) {
+        ACL_LOG_ERROR("[OM2][GetDevice] aclrtGetDevice failed, ret[%u], deviceId[%d]", ret, deviceId);
+        return ret == ACL_SUCCESS ? ACL_ERROR_INVALID_PARAM : ret;
+    }
+    loadArgs.device_id = deviceId;
+    return ACL_SUCCESS;
+}
+
+aclError CheckOm2UserLoadConfigOptValid(const aclmdlConfigHandle* handle) {
+    ACL_REQUIRES_NOT_NULL(handle);
+    for (const aclmdlConfigAttr& attr : handle->attrState) {
+        if (kOm2SupportedLoadConfigOpts.find(attr) == kOm2SupportedLoadConfigOpts.end()) {
+            ACL_LOG_ERROR("[Check][ConfigOpt]config opt [%d] is not supported in om2",  static_cast<int>(attr));
+            return ACL_ERROR_INVALID_PARAM;
+        }
+    }
+    return ACL_SUCCESS;
+}
+
+aclError ConstructOm2ModelLoadArg(void *workPtr, size_t workSize, void *weightPtr, size_t weightSize,
+    gert::Om2ModelLoadArg &loadArgs, gert::RtSession *rtSession = nullptr,
+    const std::vector<ge::FileConstantMem> &fileConstantMems = {}) {
+    loadArgs = {};
+    loadArgs.work_ptr = workPtr;
+    loadArgs.work_size = workSize;
+    loadArgs.weight_ptr = weightPtr;
+    loadArgs.weight_size = weightSize;
+    loadArgs.rt_session = rtSession;
+    loadArgs.file_constant_mems = fileConstantMems;
+    return SetOm2ModelLoadArgDevice(loadArgs);
 }
 }
 
@@ -417,7 +464,11 @@ static aclError RuntimeV2ModelLoadFromFileWithMem(const char_t *const modelPath,
     return ACL_SUCCESS;
 }
 
+static aclError Om2ModelLoadFromMemWithMem(const void *const model, const size_t modelSize, uint32_t *const modelId,
+                                           const gert::Om2ModelLoadArg &loadArgs);
+
 static aclError Om2ModelLoadFromFileWithMem(const char_t *const modelPath, uint32_t *const modelId,
+                                            const gert::Om2ModelLoadArg &loadArgs,
                                             const std::shared_ptr<gert::RtSession> &rtSessionExternal = nullptr) {
     auto rtSession = (rtSessionExternal != nullptr) ? rtSessionExternal :
                                                     acl::AclResourceManager::GetInstance().CreateRtSession();
@@ -435,7 +486,7 @@ static aclError Om2ModelLoadFromFileWithMem(const char_t *const modelPath, uint3
       return ACL_GET_ERRCODE_GE(static_cast<int32_t>(ret));
     }
 
-    std::unique_ptr<gert::Om2ModelExecutor> executor = gert::LoadOm2ExecutorFromData(modelData, ret);
+    std::unique_ptr<gert::Om2ModelExecutor> executor = gert::LoadOm2ExecutorFromData(modelData, loadArgs, ret);
     if (ret != ge::SUCCESS) {
       ACL_LOG_CALL_ERROR("[Model][FromData]call gert::LoadOm2ExecutorFromData failed, ge result[%u]", ret);
       return ACL_GET_ERRCODE_GE(static_cast<int32_t>(ret));
@@ -446,11 +497,18 @@ static aclError Om2ModelLoadFromFileWithMem(const char_t *const modelPath, uint3
 }
 
 static aclError Om2ModelLoadFromMemWithMem(const void *const model, const size_t modelSize, uint32_t *const modelId) {
+    gert::Om2ModelLoadArg loadArgs;
+    ACL_REQUIRES_OK(ConstructOm2ModelLoadArg(nullptr, 0U, nullptr, 0U, loadArgs));
+    return Om2ModelLoadFromMemWithMem(model, modelSize, modelId, loadArgs);
+}
+
+static aclError Om2ModelLoadFromMemWithMem(const void *const model, const size_t modelSize, uint32_t *const modelId,
+                                           const gert::Om2ModelLoadArg &loadArgs) {
     ge::ModelData modelData = {};
     modelData.model_data = const_cast<void *>(model);
     modelData.model_len = static_cast<uint64_t>(modelSize);
     ge::Status errorStatus = ge::SUCCESS;
-    std::unique_ptr<gert::Om2ModelExecutor> executor = gert::LoadOm2ExecutorFromData(modelData, errorStatus);
+    std::unique_ptr<gert::Om2ModelExecutor> executor = gert::LoadOm2ExecutorFromData(modelData, loadArgs, errorStatus);
     if (errorStatus != ge::SUCCESS) {
         ACL_LOG_CALL_ERROR("[Model][FromData]call gert::LoadOm2ExecutorFromData failed, ge result[%u]", errorStatus);
         return ACL_GET_ERRCODE_GE(static_cast<int32_t>(errorStatus));
@@ -590,6 +648,21 @@ static aclError CheckIsRuntimeV2WithConfig(const aclmdlConfigHandle* handle, con
   }
   return ACL_SUCCESS;
 }
+
+aclError DetectModelTypeInLoadWithConfig(const aclmdlConfigHandle *handle, const char *filePath,
+                                                 const void *model, const size_t modelSize,
+                                                 bool &isSupportRT2, bool &isSupportOm2)
+{
+    if (filePath != nullptr) {
+        ACL_REQUIRES_OK(CheckIsRuntimeV2WithConfig(handle, filePath, nullptr, 0, isSupportRT2));
+        ACL_REQUIRES_OK(gert::IsOm2Model(filePath, isSupportOm2));
+    } else {
+        ACL_REQUIRES_OK(CheckIsRuntimeV2WithConfig(handle, nullptr, model, modelSize, isSupportRT2));
+        ACL_REQUIRES_OK(gert::IsOm2Model(model, modelSize, isSupportOm2));
+    }
+    return ACL_SUCCESS;
+}
+
 static aclError RuntimeV2ModelLoadFromMemWithMem(const void *const model, const size_t modelSize,
                                                  const std::string &modelPath,
                                                  uint32_t *const modelId, void *const weightPtr,
@@ -2258,7 +2331,9 @@ aclError aclmdlLoadFromFileImpl(const char *modelPath, uint32_t *modelId)
     bool isSupportOm2 = false;
     ACL_REQUIRES_OK(gert::IsOm2Model(modelPath, isSupportOm2));
     if (isSupportOm2) {
-        const aclError ret = acl::Om2ModelLoadFromFileWithMem(modelPath, modelId);
+        gert::Om2ModelLoadArg loadArgs;
+        ACL_REQUIRES_OK(ConstructOm2ModelLoadArg(nullptr, 0U, nullptr, 0U, loadArgs));
+        const aclError ret = acl::Om2ModelLoadFromFileWithMem(modelPath, modelId, loadArgs);
         if (ret != ACL_SUCCESS) {
             ACL_LOG_ERROR("Load OM2 model from file failed, path [%s], errorCode [%u]", modelPath, ret);
         }
@@ -2291,6 +2366,17 @@ aclError aclmdlLoadFromFileWithMemImpl(const char *modelPath, uint32_t *modelId,
     ACL_LOG_INFO("start to execute aclmdlLoadFromFileWithMem, workSize[%zu], weightSize[%zu]", workSize, weightSize);
     ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(modelPath);
     ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(modelId);
+    bool isSupportOm2 = false;
+    ACL_REQUIRES_OK(gert::IsOm2Model(modelPath, isSupportOm2));
+    if (isSupportOm2) {
+        gert::Om2ModelLoadArg loadArgs;
+        ACL_REQUIRES_OK(ConstructOm2ModelLoadArg(workPtr, workSize, weightPtr, weightSize, loadArgs));
+        const auto ret = acl::Om2ModelLoadFromFileWithMem(modelPath, modelId, loadArgs);
+        if (ret != ACL_SUCCESS) {
+            ACL_LOG_ERROR("Load OM2 model from file with mem failed, path [%s], errorCode [%u]", modelPath, ret);
+        }
+        return ret;
+    }
     aclError ret = ACL_SUCCESS;
     bool isSupportRT2 = false;
     ACL_REQUIRES_OK(acl::IsSupportRuntimeV2WithModelPath(modelPath, isSupportRT2));
@@ -2588,6 +2674,17 @@ aclError aclmdlLoadFromMemWithMemImpl(const void *model, size_t modelSize,
         modelSize, workSize, weightSize);
     ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(model);
     ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(modelId);
+    bool isSupportOm2 = false;
+    ACL_REQUIRES_OK(gert::IsOm2Model(model, modelSize, isSupportOm2));
+    if (isSupportOm2) {
+        gert::Om2ModelLoadArg loadArgs;
+        ACL_REQUIRES_OK(ConstructOm2ModelLoadArg(workPtr, workSize, weightPtr, weightSize, loadArgs));
+        const auto ret = acl::Om2ModelLoadFromMemWithMem(model, modelSize, modelId, loadArgs);
+        if (ret != ACL_SUCCESS) {
+            ACL_LOG_ERROR("Load OM2 model from memory with mem failed, errorCode is %u", ret);
+        }
+        return ret;
+    }
     bool isSupportRT2 = false;
     ACL_REQUIRES_OK(acl::IsSupportRuntimeV2WithModelData(model, modelSize, isSupportRT2));
     aclError ret = ACL_SUCCESS;
@@ -2776,12 +2873,14 @@ aclError aclmdlQuerySizeImpl(const char *fileName, size_t *workSize, size_t *wei
     ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(workSize);
     ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(weightSize);
 
-    ge::GeExecutor executor;
+    bool isSupportOm2 = false;
+    ACL_REQUIRES_OK(gert::IsOm2Model(fileName, isSupportOm2));
     const std::string path(fileName);
     size_t work;
     size_t weight;
-    ACL_LOG_DEBUG("call ge interface executor.GetMemAndWeightSize");
-    const ge::Status ret = executor.GetMemAndWeightSize(path, work, weight);
+    ACL_LOG_DEBUG("call ge interface executor.GetOm2MemAndWeightSize");
+    const ge::Status ret = isSupportOm2 ? gert::GetOm2MemAndWeightSize(path, work, weight)
+                                        : ge::GeExecutor().GetMemAndWeightSize(path, work, weight);
     if (ret != ge::SUCCESS) {
         ACL_LOG_CALL_ERROR("[Get][MemAndWeightSize]query size failed, ge result[%u]", ret);
         return ACL_GET_ERRCODE_GE(static_cast<int32_t>(ret));
@@ -2803,11 +2902,13 @@ aclError aclmdlQuerySizeFromMemImpl(const void *model, size_t modelSize, size_t 
     ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(workSize);
     ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(weightSize);
 
-    ge::GeExecutor executor;
+    bool isSupportOm2 = false;
+    ACL_REQUIRES_OK(gert::IsOm2Model(model, modelSize, isSupportOm2));
     size_t work;
     size_t weight;
-    ACL_LOG_DEBUG("call ge interface executor.GetMemAndWeightSize, modelSize[%zu]", modelSize);
-    const ge::Status ret = executor.GetMemAndWeightSize(model, modelSize, work, weight);
+    ACL_LOG_DEBUG("call ge interface executor.GetOm2MemAndWeightSize, modelSize[%zu]", modelSize);
+    const ge::Status ret = isSupportOm2 ? gert::GetOm2MemAndWeightSize(model, modelSize, work, weight)
+                                        : ge::GeExecutor().GetMemAndWeightSize(model, modelSize, work, weight);
     if (ret != ge::SUCCESS) {
         ACL_LOG_CALL_ERROR("[Get][MemAndWeightSize]query size from mem failed, ge result[%u]", ret);
         return ACL_GET_ERRCODE_GE(static_cast<int32_t>(ret));
@@ -3434,6 +3535,151 @@ aclError aclmdlCreateAndGetOpDescImpl(uint32_t deviceId, uint32_t streamId, uint
     return ACL_SUCCESS;
 }
 
+aclError LoadFromFile(const aclmdlConfigHandle *handle, const std::vector<ge::FileConstantMem> &fileConstantMems,
+                      uint32_t *modelId)
+{
+    bool isSupportRT2 = false;
+    bool isSupportOm2 = false;
+    ACL_REQUIRES_OK(acl::DetectModelTypeInLoadWithConfig(handle, handle->loadPath.c_str(), nullptr, 0, isSupportRT2,
+                                                         isSupportOm2));
+    if (isSupportOm2) {
+        ACL_REQUIRES_OK(CheckOm2UserLoadConfigOptValid(handle));
+        gert::Om2ModelLoadArg loadArgs;
+        ACL_REQUIRES_OK(ConstructOm2ModelLoadArg(nullptr, 0U, nullptr, 0U, loadArgs, nullptr, fileConstantMems));
+        return acl::Om2ModelLoadFromFileWithMem(handle->loadPath.c_str(), modelId, loadArgs);
+    }
+    if (isSupportRT2) {
+        return acl::RuntimeV2ModelLoadFromFileWithMem(handle->loadPath.c_str(), modelId, nullptr, 0U,
+                                                      handle->priority, fileConstantMems);
+    }
+    ge::ModelLoadArg loadArgs{};
+    loadArgs.file_constant_mems = fileConstantMems;
+    loadArgs.need_clear_dfx_cache = handle->withoutGraph;
+    return acl::ModelLoadFromFileWithMem(handle->loadPath.c_str(), modelId, loadArgs, handle->priority);
+}
+
+aclError LoadFromFileWithMem(const aclmdlConfigHandle *handle, const std::vector<ge::FileConstantMem> &fileConstantMems,
+                             uint32_t *modelId)
+{
+    bool isSupportRT2 = false;
+    bool isSupportOm2 = false;
+    ACL_REQUIRES_OK(acl::DetectModelTypeInLoadWithConfig(handle, handle->loadPath.c_str(), nullptr, 0, isSupportRT2,
+                                                         isSupportOm2));
+    if (isSupportOm2) {
+        ACL_REQUIRES_OK(CheckOm2UserLoadConfigOptValid(handle));
+        gert::Om2ModelLoadArg loadArgs;
+        ACL_REQUIRES_OK(ConstructOm2ModelLoadArg(handle->workPtr, handle->workSize, handle->weightPtr,
+            handle->weightSize, loadArgs, nullptr, fileConstantMems));
+        return acl::Om2ModelLoadFromFileWithMem(handle->loadPath.c_str(), modelId, loadArgs);
+    }
+    if (isSupportRT2) {
+        return acl::RuntimeV2ModelLoadFromFileWithMem(handle->loadPath.c_str(), modelId, handle->weightPtr,
+                                                      handle->weightSize, handle->priority,
+                                                      fileConstantMems);
+    }
+    const auto loadArgs = ConstructGeModelLoadArg(handle->workPtr, handle->workSize, handle->weightPtr,
+        handle->weightSize, nullptr, fileConstantMems, handle->withoutGraph);
+    return acl::ModelLoadFromFileWithMem(handle->loadPath.c_str(), modelId, loadArgs, handle->priority);
+}
+
+aclError LoadFromMem(const aclmdlConfigHandle *handle, const std::vector<ge::FileConstantMem> &fileConstantMems,
+                     uint32_t *modelId)
+{
+    ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(handle->mdlAddr);
+    bool isSupportRT2 = false;
+    bool isSupportOm2 = false;
+    ACL_REQUIRES_OK(acl::DetectModelTypeInLoadWithConfig(handle, nullptr, handle->mdlAddr, handle->mdlSize,
+                                                     isSupportRT2, isSupportOm2));
+    if (isSupportOm2) {
+        ACL_REQUIRES_OK(CheckOm2UserLoadConfigOptValid(handle));
+        gert::Om2ModelLoadArg loadArgs;
+        ACL_REQUIRES_OK(ConstructOm2ModelLoadArg(nullptr, 0U, nullptr, 0U, loadArgs, nullptr, fileConstantMems));
+        return acl::Om2ModelLoadFromMemWithMem(handle->mdlAddr, handle->mdlSize, modelId, loadArgs);
+    }
+    if (isSupportRT2) {
+        return acl::RuntimeV2ModelLoadFromMemWithMem(handle->mdlAddr, handle->mdlSize, handle->loadPath, modelId,
+                                                     nullptr, 0U, handle->weightPath.c_str(), handle->priority,
+                                                     fileConstantMems);
+    }
+    ge::ModelLoadArg loadArgs{};
+    loadArgs.file_constant_mems = fileConstantMems;
+    loadArgs.need_clear_dfx_cache = handle->withoutGraph;
+    return acl::ModelLoadFromMemWithMem(handle->mdlAddr, handle->mdlSize, "", modelId, loadArgs,
+                                        handle->weightPath.c_str(), handle->priority);
+}
+
+aclError LoadFromMemWithMem(const aclmdlConfigHandle *handle, const std::vector<ge::FileConstantMem> &fileConstantMems,
+                            uint32_t *modelId)
+{
+    ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(handle->mdlAddr);
+    bool isSupportRT2 = false;
+    bool isSupportOm2 = false;
+    ACL_REQUIRES_OK(acl::DetectModelTypeInLoadWithConfig(handle, nullptr, handle->mdlAddr, handle->mdlSize,
+                                                     isSupportRT2, isSupportOm2));
+    if (isSupportOm2) {
+        ACL_REQUIRES_OK(CheckOm2UserLoadConfigOptValid(handle));
+        gert::Om2ModelLoadArg loadArgs;
+        ACL_REQUIRES_OK(ConstructOm2ModelLoadArg(handle->workPtr, handle->workSize, handle->weightPtr,
+            handle->weightSize, loadArgs, nullptr, fileConstantMems));
+        return acl::Om2ModelLoadFromMemWithMem(handle->mdlAddr, handle->mdlSize, modelId, loadArgs);
+    }
+    if (isSupportRT2) {
+        return acl::RuntimeV2ModelLoadFromMemWithMem(handle->mdlAddr, handle->mdlSize, handle->loadPath, modelId,
+                                                     handle->weightPtr, handle->weightSize,
+                                                     handle->weightPath.c_str(), handle->priority, fileConstantMems);
+    }
+    const auto loadArgs = ConstructGeModelLoadArg(handle->workPtr, handle->workSize, handle->weightPtr,
+        handle->weightSize, nullptr, fileConstantMems, handle->withoutGraph);
+    return acl::ModelLoadFromMemWithMem(handle->mdlAddr, handle->mdlSize, handle->loadPath, modelId, loadArgs,
+                                        handle->weightPath.c_str(), handle->priority);
+}
+
+static aclError LoadFromFileWithQ(const aclmdlConfigHandle *handle,
+                                  const std::vector<ge::FileConstantMem> &fileConstantMems,
+                                  uint32_t *modelId)
+{
+    if (aclmdlCheckQueueParam(handle->inputQ, handle->inputQNum, handle->outputQ, handle->outputQNum) !=
+        ACL_SUCCESS) {
+        return ACL_ERROR_INVALID_PARAM;
+    }
+
+    bool isSupportOm2 = false;
+    ACL_REQUIRES_OK(gert::IsOm2Model(handle->loadPath.c_str(), isSupportOm2));
+    if (isSupportOm2) {
+        ACL_LOG_INNER_ERROR("[Load][Model]model load type[%zu] is not supported in om2", handle->mdlLoadType);
+        return ACL_ERROR_INVALID_PARAM;
+    }
+
+    std::vector<uint32_t> inputQVec(handle->inputQ, handle->inputQ + handle->inputQNum);
+    std::vector<uint32_t> outputQVec(handle->outputQ, handle->outputQ + handle->outputQNum);
+    ge::ModelQueueArg args{std::move(inputQVec), std::move(outputQVec),
+                        fileConstantMems, handle->withoutGraph};
+    return acl::ModelLoadFromFileWithQ(handle->loadPath.c_str(), modelId, args, handle->priority);
+}
+
+static aclError LoadFromMemWithQ(const aclmdlConfigHandle *handle,
+                                 const std::vector<ge::FileConstantMem> &fileConstantMems,
+                                 uint32_t *modelId)
+{
+    if (aclmdlCheckQueueParam(handle->inputQ, handle->inputQNum, handle->outputQ, handle->outputQNum) !=
+        ACL_SUCCESS) {
+        return ACL_ERROR_INVALID_PARAM;
+    }
+
+    bool isSupportOm2 = false;
+    ACL_REQUIRES_OK(gert::IsOm2Model(handle->loadPath.c_str(), isSupportOm2));
+    if (isSupportOm2) {
+        ACL_LOG_INNER_ERROR("[Load][Model] model load type[%zu] is not supported in om2", handle->mdlLoadType);
+        return ACL_ERROR_INVALID_PARAM;
+    }
+
+    std::vector<uint32_t> inputQVec(handle->inputQ, handle->inputQ + handle->inputQNum);
+    std::vector<uint32_t> outputQVec(handle->outputQ, handle->outputQ + handle->outputQNum);
+    ge::ModelQueueArg que_args{std::move(inputQVec), std::move(outputQVec),
+            fileConstantMems, handle->withoutGraph};
+    return acl::ModelLoadFromMemWithQ(handle->mdlAddr, handle->mdlSize, modelId, que_args, handle->priority);
+}
+
 aclError aclmdlLoadWithConfigImpl(const aclmdlConfigHandle *handle, uint32_t *modelId)
 {
     ACL_PROFILING_REG(acl::AclProfType::AclmdlLoadWithConfig);
@@ -3450,85 +3696,19 @@ aclError aclmdlLoadWithConfigImpl(const aclmdlConfigHandle *handle, uint32_t *mo
         ACL_LOG_INFO("file constant name[%s], device memory address[%p], device memory size[%zu]",
                      file_constant_mem.file_name.c_str(), file_constant_mem.device_mem, file_constant_mem.mem_size);
     }
-    bool isSupportRT2 = false;
     switch (static_cast<int32_t>(handle->mdlLoadType)) {
         case ACL_MDL_LOAD_FROM_FILE:
-        {
-            ACL_REQUIRES_OK(acl::CheckIsRuntimeV2WithConfig(handle, handle->loadPath.c_str(), nullptr, 0, isSupportRT2));
-            if (isSupportRT2) {
-                return acl::RuntimeV2ModelLoadFromFileWithMem(handle->loadPath.c_str(), modelId, nullptr, 0U,
-                                                              handle->priority, file_constant_mems);
-            }
-            ge::ModelLoadArg loadArgs{};
-            loadArgs.file_constant_mems = file_constant_mems;
-            loadArgs.need_clear_dfx_cache = handle->withoutGraph;
-            return acl::ModelLoadFromFileWithMem(handle->loadPath.c_str(), modelId, loadArgs, handle->priority);
-        }
+            return LoadFromFile(handle, file_constant_mems, modelId);
         case ACL_MDL_LOAD_FROM_FILE_WITH_MEM:
-        {
-            ACL_REQUIRES_OK(acl::CheckIsRuntimeV2WithConfig(handle, handle->loadPath.c_str(), nullptr, 0, isSupportRT2));
-            if (isSupportRT2) {
-                return acl::RuntimeV2ModelLoadFromFileWithMem(handle->loadPath.c_str(), modelId, handle->weightPtr,
-                                                              handle->weightSize, handle->priority,
-                                                              file_constant_mems);
-            }
-            const auto loadArgs = ConstructGeModelLoadArg(handle->workPtr, handle->workSize, handle->weightPtr,
-                handle->weightSize, nullptr, file_constant_mems, handle->withoutGraph);
-            return acl::ModelLoadFromFileWithMem(handle->loadPath.c_str(), modelId, loadArgs, handle->priority);
-        }
+            return LoadFromFileWithMem(handle, file_constant_mems, modelId);
         case ACL_MDL_LOAD_FROM_MEM:
-        {
-            ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(handle->mdlAddr);
-            ACL_REQUIRES_OK(acl::CheckIsRuntimeV2WithConfig(handle, nullptr, handle->mdlAddr, handle->mdlSize, isSupportRT2));
-            if (isSupportRT2) {
-                return acl::RuntimeV2ModelLoadFromMemWithMem(handle->mdlAddr, handle->mdlSize, handle->loadPath, modelId, nullptr, 0U,
-                                                             handle->weightPath.c_str(), handle->priority,
-                                                             file_constant_mems);
-            }
-            ge::ModelLoadArg loadArgs{};
-            loadArgs.file_constant_mems = file_constant_mems;
-            loadArgs.need_clear_dfx_cache = handle->withoutGraph;
-            return acl::ModelLoadFromMemWithMem(handle->mdlAddr, handle->mdlSize, "", modelId, loadArgs,
-                                                handle->weightPath.c_str(), handle->priority);
-        }
+            return LoadFromMem(handle, file_constant_mems, modelId);
         case ACL_MDL_LOAD_FROM_MEM_WITH_MEM:
-        {
-            ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(handle->mdlAddr);
-            ACL_REQUIRES_OK(acl::CheckIsRuntimeV2WithConfig(handle, nullptr, handle->mdlAddr, handle->mdlSize, isSupportRT2));
-            if (isSupportRT2) {
-                return acl::RuntimeV2ModelLoadFromMemWithMem(handle->mdlAddr, handle->mdlSize, handle->loadPath, modelId,
-                                                             handle->weightPtr, handle->weightSize,
-                                                             handle->weightPath.c_str(), handle->priority, file_constant_mems);
-            }
-            const auto loadArgs = ConstructGeModelLoadArg(handle->workPtr, handle->workSize, handle->weightPtr,
-                handle->weightSize, nullptr, file_constant_mems, handle->withoutGraph);
-            return acl::ModelLoadFromMemWithMem(handle->mdlAddr, handle->mdlSize, handle->loadPath, modelId, loadArgs,
-                                                handle->weightPath.c_str(), handle->priority);
-        }
+            return LoadFromMemWithMem(handle, file_constant_mems, modelId);
         case ACL_MDL_LOAD_FROM_FILE_WITH_Q:
-        {
-            if (aclmdlCheckQueueParam(handle->inputQ, handle->inputQNum, handle->outputQ, handle->outputQNum) !=
-                ACL_SUCCESS) {
-                return ACL_ERROR_INVALID_PARAM;
-            }
-            std::vector<uint32_t> inputQVec(handle->inputQ, handle->inputQ + handle->inputQNum);
-            std::vector<uint32_t> outputQVec(handle->outputQ, handle->outputQ + handle->outputQNum);
-            ge::ModelQueueArg args{std::move(inputQVec), std::move(outputQVec),
-                                file_constant_mems, handle->withoutGraph};
-            return acl::ModelLoadFromFileWithQ(handle->loadPath.c_str(), modelId, args, handle->priority);
-        }
+            return LoadFromFileWithQ(handle, file_constant_mems, modelId);
         case ACL_MDL_LOAD_FROM_MEM_WITH_Q:
-        {
-            if (aclmdlCheckQueueParam(handle->inputQ, handle->inputQNum, handle->outputQ, handle->outputQNum) !=
-                ACL_SUCCESS) {
-                return ACL_ERROR_INVALID_PARAM;
-            }
-            std::vector<uint32_t> inputQVec(handle->inputQ, handle->inputQ + handle->inputQNum);
-            std::vector<uint32_t> outputQVec(handle->outputQ, handle->outputQ + handle->outputQNum);
-            ge::ModelQueueArg que_args{std::move(inputQVec), std::move(outputQVec),
-                    file_constant_mems, handle->withoutGraph};
-            return acl::ModelLoadFromMemWithQ(handle->mdlAddr, handle->mdlSize, modelId, que_args, handle->priority);
-        }
+            return LoadFromMemWithQ(handle, file_constant_mems, modelId);
         default:
             ACL_LOG_INNER_ERROR("[Load][Model]model load type[%zu] is invalid, it should be in [%d, %d]",
                 handle->mdlLoadType, ACL_MDL_LOAD_FROM_FILE, ACL_MDL_LOAD_FROM_MEM_WITH_Q);

@@ -12,7 +12,7 @@
 #include "framework/common/helper/model_save_helper_factory.h"
 #include "common/ge_common/ge_types.h"
 #include "common/ge_common/string_util.h"
-#include "common/helper/om2/zip_archive.h"
+#include "common/helper/om2/zip_archive_writer.h"
 #include "common/helper/om2/om2_package_contants.h"
 #include "common/helper/om2/json_file.h"
 #include "common/om2/codegen/om2_codegen.h"
@@ -177,14 +177,18 @@ Status BuildOutputJsonArray(const std::vector<OpDescPtr> &output_ops, const std:
 void FillModelMetaInfo(const GeModelPtr &ge_model, const JsonFile::json &input_json_array,
                        const JsonFile::json &output_json_array, const ModelMetaExtraInfo &extra_info,
                        JsonFile &model_meta_info) {
+  int64_t work_size = 0;
+  (void)AttrUtils::GetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, work_size);
   model_meta_info.Set("inputs", input_json_array);
   model_meta_info.Set("outputs", output_json_array);
   model_meta_info.Set("dynamic_output_shape", extra_info.dynamic_output_shape);
   model_meta_info.Set("dynamic_batch_info", extra_info.dynamic_batch_info);
   model_meta_info.Set("user_designate_shape_order", extra_info.user_designate_shape_order);
   model_meta_info.Set("dynamic_type", extra_info.dynamic_type);
+  model_meta_info.Set("work_size", work_size);
   model_meta_info.Set("name", ge_model->GetName());
 }
+
 }  // namespace
 Status Om2PackageHelper::SaveToOmRootModel(const GeRootModelPtr &ge_root_model, const std::string &output_file,
                                            ModelBufferData &model, const bool is_unknown_shape) {
@@ -213,11 +217,12 @@ Status Om2PackageHelper::SaveToOmModel(const GeModelPtr &ge_model, const std::st
   auto zip_writer = MakeShared<ZipArchiveWriter>(output_file);
   GE_ASSERT_NOTNULL(zip_writer);
   GE_ASSERT_TRUE(zip_writer->IsMemFileOpened());
+  std::vector<Om2ConstMeta> const_metas;
 
   // 1. Codegen and shared library
-  GE_ASSERT_SUCCESS(SaveCodegenArtifacts(zip_writer, ge_model, 0UL));
+  GE_ASSERT_SUCCESS(SaveCodegenArtifacts(zip_writer, ge_model, 0UL, const_metas));
   // 2. Save constants/weights
-  GE_ASSERT_SUCCESS(SaveConstants(zip_writer, ge_model, 0UL));
+  GE_ASSERT_SUCCESS(SaveConstants(zip_writer, ge_model, 0UL, const_metas));
   // 3. Save TBE kernels
   GE_ASSERT_SUCCESS(SaveTbeKernels(zip_writer, ge_model));
   // 4. Save meta infos of the compiled model
@@ -237,16 +242,39 @@ void Om2PackageHelper::SetSaveMode(const bool val) {
 }
 
 Status Om2PackageHelper::SaveConstants(std::shared_ptr<ZipArchiveWriter> &zip_writer, const GeModelPtr &ge_model,
-                                       const size_t model_index) {
+                                       const size_t model_index, const std::vector<Om2ConstMeta> &const_metas) {
   GELOGI("[OM2] Begin to save model constants");
-  if (ge_model->GetWeightSize() > 0) {
+  bool is_all_internal_const = !const_metas.empty();
+  for (const auto &const_meta : const_metas) {
+    if (const_meta.type != "INTERNAL") {
+      is_all_internal_const = false;
+      break;
+    }
+  }
+  if (is_all_internal_const && (ge_model->GetWeightSize() > 0)) {
     const auto constant_file_name = FormatOm2Path("%s%s%zu", OM2_CONSTANTS_DIR, OM2_CONSTANTS_FILE_PREFIX, model_index);
     GE_ASSERT_TRUE(
         zip_writer->WriteBytes(constant_file_name, ge_model->GetWeightData(), ge_model->GetWeightSize(), false));
   }
 
   JsonFile json_file;
-  json_file.Set("weight_size", ge_model->GetWeightSize());
+  json_file.Set("internal_weight_size", is_all_internal_const ? ge_model->GetWeightSize() : 0U);
+  auto const_json_object = JsonFile::json::object();
+  for (const auto &const_meta : const_metas) {
+    JsonFile const_info;
+    const_info.Set("index", const_meta.index);
+    const_info.Set("type", const_meta.type);
+    const_info.Set("file_name", const_meta.file_name);
+    const_info.Set("offset", const_meta.offset);
+    const_info.Set("size", const_meta.size);
+    const_info.Set("op_name", const_meta.op_name);
+    std::string const_key = const_meta.op_name.empty() ? const_meta.file_name : const_meta.op_name;
+    if (const_key.empty()) {
+      const_key = "constant_" + std::to_string(const_meta.index);
+    }
+    const_json_object[const_key] = const_info.Raw();
+  }
+  json_file.Set("consts", const_json_object);
   const std::string constants_json_str = json_file.Dump();
   const auto constants_config_path =
       FormatOm2Path(OM2_CONSTANTS_CONFIG_PATH_FORMAT, std::to_string(model_index).c_str());
@@ -321,12 +349,12 @@ Status Om2PackageHelper::SaveManifest(std::shared_ptr<ZipArchiveWriter> &zip_wri
 }
 
 Status Om2PackageHelper::SaveCodegenArtifacts(std::shared_ptr<ZipArchiveWriter> &zip_writer, const GeModelPtr &ge_model,
-                                              const size_t model_index) {
+                                              const size_t model_index, std::vector<Om2ConstMeta> &const_metas) {
   GELOGI("[OM2] Begin to save codegen artifacts");
   Om2Codegen codegen;
 
   std::vector<std::string> output_files;
-  GE_ASSERT_SUCCESS(codegen.Om2CodegenAndCompile(ge_model, output_files));
+  GE_ASSERT_SUCCESS(codegen.Om2CodegenAndCompile(ge_model, output_files, const_metas));
   GE_ASSERT_TRUE(!output_files.empty());
   const std::string artifacts_base_dir = FormatOm2Path(OM2_RUNTIME_DIR_FORMAT, std::to_string(model_index).c_str());
   for (const auto &src_file_path : output_files) {

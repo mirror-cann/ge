@@ -15,8 +15,8 @@
 
 namespace ge {
 
-void Om2CodePrinter::AddLine(GeneratedFileIndex generated_file_index, const std::string &input_string) {
-  output_[static_cast<size_t>(generated_file_index)].content << input_string << std::endl;
+void Om2CodePrinter::AddContent(GeneratedFileIndex generated_file_index, const std::string &input_string) {
+  output_[static_cast<size_t>(generated_file_index)].content << input_string;
 }
 
 void Om2CodePrinter::SetFileInfo(GeneratedFileIndex generated_file_index, const std::string &file_name,
@@ -48,7 +48,7 @@ Status Om2CodePrinter::WriteFiles(const std::string &target_path) {
     const auto &file_content = generated_file_info.content.str();
     std::ofstream om2_file(file_path);
     GE_ASSERT_TRUE(om2_file.good(), "Failed to open file: %s", file_path.c_str());
-    om2_file << file_content << std::endl;
+    om2_file << file_content;
     GELOGI("[OM2] File %s is successfully written.", file_path.c_str());
   }
   return SUCCESS;

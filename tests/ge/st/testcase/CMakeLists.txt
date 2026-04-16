@@ -142,6 +142,7 @@ target_link_libraries(graph_engine_test
     ge_compiler
     ge_runner
     ge_runner_v2
+    om2_executor
     ge_common_base
     gert
     cpu_compiler
@@ -272,6 +273,5 @@ add_subdirectory(autofuse)
 include(CTest)
 enable_testing()
 add_test(NAME test COMMAND graph_engine_test)
-
 
 

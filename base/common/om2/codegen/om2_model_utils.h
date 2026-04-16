@@ -12,78 +12,66 @@
 #define AIR_CXX_BASE_COMMON_OM2_CODEGEN_OM2_MODEL_UTILS_H
 
 #include "common/om2/codegen/om2_codegen_types.h"
+#include "common/om2/codegen/om2_codegen_types.h"
 #include "graph/op_desc.h"
 #include "graph/utils/attr_utils.h"
 
 namespace ge {
+struct TaskSemanticContributeContext;
+enum IowMemoryType : uint64_t {
+ 	   kFmMemType = 0x1000000000UL,
+ 	   kFixMemType,
+ 	   kWeightMemType,
+ 	   kVarMemType,
+ 	   kVarAutoMemType,
+ 	   kConstantMemType,
+ 	   kAicpuMemMallMemType,
+ 	   kAbsoluteMemType
+ 	 };
+
 class Om2ModelUtils {
  public:
-  static Status GenInputAddrCode(TaskDistributionContext &context, std::vector<AddrGenInfo> &input_addr_nodes);
+  static Status ResolveInputAddrs(const TaskSemanticContributeContext &context,
+                                  std::vector<AddrSemantic> &input_addrs);
 
-  static Status GenOutputAddrCode(TaskDistributionContext &context, std::vector<AddrGenInfo> &output_addr_nodes,
-                                  const bool has_optional_addr);
+  static Status ResolveOutputAddrs(const TaskSemanticContributeContext &context, bool has_optional_addr,
+                                   std::vector<AddrSemantic> &output_addrs);
 
-  static Status GenWorkspaceAddrsCode(TaskDistributionContext &context,
-                                      std::vector<AddrGenInfo> &workspace_addr_nodes);
+  static Status ResolveWorkspaceAddrs(const TaskSemanticContributeContext &context,
+                                      std::vector<AddrSemantic> &workspace_addrs);
+
+  static Status GetRtAddress(const TaskSemanticContributeContext &context, const uintptr_t logic_addr,
+                                    uint64_t &mem_type, AddrSemantic &addr_node, bool isInput, uint32_t index);
+
+  static uint32_t ArgsSizeAlign8(uint32_t args_size);
 
  private:
-  struct InputAddrBuildParams {
-    const vector_bit_t &v_is_input_const;
-    const std::vector<int64_t> &input_offsets;
-    const std::vector<int64_t> &v_memory_type;
-    size_t &non_const_index;
-  };
-
-  struct WorkspaceMemTypeParams {
-    const std::vector<int64_t> &v_workspace_offset;
-    bool has_mem_type_attr;
-    const std::vector<int64_t> &v_memory_type;
-    bool has_mem_type_workspace;
-    const std::vector<int64_t> &workspace_memory_type;
-  };
-
-  struct WorkspaceAddrBuildParams {
-    const std::vector<int64_t> &v_workspace_offset;
-    const vector_bit_t &workspace_reuse_flag;
-    bool has_workspace_reuse;
-    const std::vector<int32_t> &workspace_no_reuse_scope;
-    bool has_workspace_no_reuse_scope;
-    const std::vector<int64_t> &workspace_memory_type;
-    bool has_mem_type_workspace;
-    const std::vector<int64_t> &v_memory_type;
-    bool has_mem_type_attr;
-  };
-
   static uint64_t GetWorkspaceMemTypeByPriority(const bool is_p2p_memory, const bool is_l1_memory,
                                                 const bool is_ub_memory, const bool session_scope_memory);
-
   static bool ValidateMemRange(const ConstOpDescPtr &op_desc, const uint64_t total_size, const int64_t offset,
                                const int64_t size);
   static Status GetValidatedTensorMemType(const GeTensorDescPtr &tensor_desc, const std::vector<int64_t> &mem_types,
                                           size_t index, uint64_t &memory_type);
-
-  static Status GetOrCreateInputVarName(TaskDistributionContext &context, size_t input_idx,
-                                        size_t non_const_idx, const std::vector<int64_t> &input_offsets,
-                                        std::string &input_ptr_name, std::vector<AstNode *> &input_nodes);
-
-  static Status ValidateInputMemTypeList(const TaskDistributionContext &context, const bool has_mem_type_attr,
-                                         const std::vector<int64_t> &v_memory_type, const size_t inputs_size);
-  static Status BuildSingleInputAddrNode(TaskDistributionContext &context, const size_t input_idx,
-                                         InputAddrBuildParams &params, AddrGenInfo &input_addr_node);
-
-  static Status ValidateOutputAddrParams(TaskDistributionContext &context, const std::vector<int64_t> &v_output_offset,
-                                         const size_t outputs_size, const bool has_mem_type_attr,
-                                         const std::vector<int64_t> &v_memory_type);
-  static Status BuildMaterializedOutputAddrNode(TaskDistributionContext &context, const size_t output_idx,
-                                                const std::vector<int64_t> &v_output_offset,
-                                                const std::vector<int64_t> &v_memory_type,
-                                                AddrGenInfo &output_addr_node);
-
-  static Status ValidateWorkspaceMemTypeParams(TaskDistributionContext &context,
-                                               const WorkspaceMemTypeParams &params);
-  static Status BuildSingleWorkspaceAddrNode(TaskDistributionContext &context, const size_t workspace_idx,
-                                             const WorkspaceAddrBuildParams &params, AddrGenInfo &workspace_addr_node);
+  static Status ResolveInputVarName(std::unordered_map<int64_t, OpInputEdges> &op_id_to_input_edges,
+                                    const ConstOpDescPtr &op_desc, int64_t op_index, size_t input_idx,
+                                    size_t non_const_idx, std::string &input_ptr_name, bool &is_reused_from_upstream);
+  static bool GetFileConstInputVarName(int64_t input_offset,
+                                       const std::unordered_map<int64_t, std::string> &fileconst_output_offset_to_varname,
+                                       std::string &input_ptr_name);
+  static Status ConstructAddrSemanticForInputConst(
+                const TaskSemanticContributeContext &context, AddrSemantic &input_addr,
+                const GeTensorDescPtr &tensor_desc, size_t index);
+  static Status ConstructAddrSemanticForCommon(
+                const TaskSemanticContributeContext &context, AddrSemantic &input_addr,
+                const GeTensorDescPtr &tensor_desc, size_t &input_offset_index,
+                const std::vector<int64_t> &input_offsets, size_t index);
+  static Status ConstructOutputAddrForCommon(
+                const TaskSemanticContributeContext &context, AddrSemantic &output_addr,
+                const GeTensorDescPtr &tensor_desc, std::vector<int64_t> &v_memory_type,
+                const std::vector<int64_t> &v_output_offset, size_t index);
+  static Status GetRtInputAddress(const TaskSemanticContributeContext &context,
+                                  const int64_t logical_offset, AddrSemantic &addr_node, uint32_t index);
 };
-} // namespace ge
+}  // namespace ge
 
 #endif  // AIR_CXX_BASE_COMMON_OM2_CODEGEN_OM2_MODEL_UTILS_H

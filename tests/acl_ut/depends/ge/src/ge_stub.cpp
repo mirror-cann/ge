@@ -347,7 +347,10 @@ Status aclStub::UnloadModel(uint32_t modelId)
 ge::Status aclStub::LoadOm2DataFromFile(const std::string &model_path, ge::ModelData &model_data) {
   return SUCCESS;
 }
-std::unique_ptr<gert::Om2ModelExecutor> aclStub::LoadOm2ExecutorFromData(ge::ModelData &model_data, ge::Status &error_code) {
+std::unique_ptr<gert::Om2ModelExecutor> aclStub::LoadOm2ExecutorFromData(ge::ModelData &model_data,
+                                                                         const gert::Om2ModelLoadArg &load_arg,
+                                                                         ge::Status &error_code) {
+  (void)load_arg;
   return nullptr;
 }
 ge::Status aclStub::IsOm2Model(const void *data, size_t size, bool &is_support) {
@@ -367,6 +370,16 @@ Status aclStub::GetMemAndWeightSize(const std::string &path, size_t &mem_size, s
 }
 
 Status aclStub::GetMemAndWeightSize(const void *model_data, size_t model_size, size_t &mem_size, size_t &weight_size)
+{
+    return SUCCESS;
+}
+
+Status aclStub::GetOm2MemAndWeightSize(const std::string &path, size_t &mem_size, size_t &weight_size)
+{
+    return SUCCESS;
+}
+
+Status aclStub::GetOm2MemAndWeightSize(const void *model_data, size_t model_size, size_t &mem_size, size_t &weight_size)
 {
     return SUCCESS;
 }
@@ -2394,8 +2407,11 @@ namespace gert {
         return 0;
     }
 
-    ge::graphStatus Om2ModelExecutor::Load(ge::ModelData &model_data) const {
+    ge::graphStatus Om2ModelExecutor::Load(ge::ModelData &model_data, const Om2ModelLoadArg &load_arg,
+                                           uint64_t session_id) const {
         (void)model_data;
+        (void)load_arg;
+        (void)session_id;
         return ge::GRAPH_SUCCESS;
     }
     ge::graphStatus Om2ModelExecutor::Run(std::vector<gert::Tensor *> &inputs,
@@ -2443,8 +2459,16 @@ namespace gert {
         return MockFunctionTest::aclStubInstance().LoadOm2DataFromFile(model_path, model_data);
     }
     std::unique_ptr<gert::Om2ModelExecutor> LoadOm2ExecutorFromData(ge::ModelData &model_data,
+                                                                    const Om2ModelLoadArg &load_arg,
                                                                     ge::Status &error_code) {
-        return MockFunctionTest::aclStubInstance().LoadOm2ExecutorFromData(model_data, error_code);
+        return MockFunctionTest::aclStubInstance().LoadOm2ExecutorFromData(model_data, load_arg, error_code);
+    }
+    ge::Status GetOm2MemAndWeightSize(const std::string &model_path, size_t &work_size, size_t &weight_size) {
+        return MockFunctionTest::aclStubInstance().GetOm2MemAndWeightSize(model_path, work_size, weight_size);
+    }
+    ge::Status GetOm2MemAndWeightSize(const void *model_data, size_t model_size, size_t &work_size,
+                                      size_t &weight_size) {
+        return MockFunctionTest::aclStubInstance().GetOm2MemAndWeightSize(model_data, model_size, work_size, weight_size);
     }
     ge::Status IsOm2Model(const void *data, size_t size, bool &is_support) {
         return MockFunctionTest::aclStubInstance().IsOm2Model(data, size, is_support);

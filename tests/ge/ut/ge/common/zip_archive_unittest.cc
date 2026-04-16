@@ -9,7 +9,8 @@
  */
 
 #include "file_utils.h"
-#include "common/helper/om2/zip_archive.h"
+#include "common/helper/om2/zip_archive_writer.h"
+#include "runtime/om2/zip_archive_reader.h"
 #include <gtest/gtest.h>
 #include <fstream>
 #include <unordered_set>

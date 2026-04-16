@@ -28,6 +28,9 @@ using namespace testing;
 using namespace std;
 using namespace acl;
 
+ge::Status IsNotOm2ModelFromFile(const char *file_path, bool &is_support);
+ge::Status IsNotOm2ModelFromData(const void *data, size_t size, bool &is_support);
+
 class UTEST_ACL_Model : public testing::Test {
 public:
     UTEST_ACL_Model()
@@ -38,6 +41,10 @@ protected:
     void SetUp() override
     {
         MockFunctionTest::aclStubInstance().ResetToDefaultMock();
+        ON_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_))
+            .WillByDefault(Invoke(IsNotOm2ModelFromFile));
+        ON_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_, testing::_))
+            .WillByDefault(Invoke(IsNotOm2ModelFromData));
     }
     void TearDown() override
     {
@@ -352,6 +359,19 @@ ge::Status IsOm2ModelFromData(const void *data, size_t size, bool &is_support) {
   return ge::SUCCESS;
 }
 
+ge::Status IsNotOm2ModelFromFile(const char *file_path, bool &is_support) {
+  (void)file_path;
+  is_support = false;
+  return ge::SUCCESS;
+}
+
+ge::Status IsNotOm2ModelFromData(const void *data, size_t size, bool &is_support) {
+  (void)data;
+  (void)size;
+  is_support = false;
+  return ge::SUCCESS;
+}
+
 ge::Status LoadOm2DataFromFileSuccess(const std::string &model_path, ge::ModelData &model_data) {
     (void) model_path;
     model_data.model_data = new (std::nothrow) uint8_t[100];
@@ -363,18 +383,98 @@ ge::Status LoadOm2DataFromFileFail(const std::string &model_path, ge::ModelData 
     (void) model_data;
     return ge::FAILED;
 }
-std::unique_ptr<gert::Om2ModelExecutor> LoadOm2ExecutorFromDataSuccess(ge::ModelData &model_data, 
+
+struct ExpectedOm2FileConstantMem {
+    std::string file_name;
+    const void *device_mem;
+    size_t mem_size;
+};
+
+struct ExpectedOm2LoadArg {
+    int32_t device_id = 0;
+    void *work_ptr = nullptr;
+    size_t work_size = 0U;
+    void *weight_ptr = nullptr;
+    size_t weight_size = 0U;
+    std::vector<ExpectedOm2FileConstantMem> file_constant_mems;
+};
+
+ExpectedOm2LoadArg g_expected_om2_load_arg;
+
+void SetExpectedOm2LoadArg(void *work_ptr = nullptr, size_t work_size = 0U,
+                           void *weight_ptr = nullptr, size_t weight_size = 0U,
+                           int32_t device_id = 0,
+                           std::vector<ExpectedOm2FileConstantMem> file_constant_mems = {})
+{
+    g_expected_om2_load_arg = {device_id, work_ptr, work_size, weight_ptr, weight_size,
+                               std::move(file_constant_mems)};
+}
+
+void ExpectAclrtGetDeviceOk(int32_t device_id = 0)
+{
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclrtGetDevice(_))
+        .WillRepeatedly(DoAll(SetArgPointee<0>(device_id), Return(ACL_SUCCESS)));
+}
+
+void ExpectAclrtGetDeviceInvalid()
+{
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclrtGetDevice(_))
+        .WillOnce(DoAll(SetArgPointee<0>(-1), Return(ACL_SUCCESS)));
+}
+
+std::unique_ptr<gert::Om2ModelExecutor> LoadOm2ExecutorFromDataSuccess(ge::ModelData &model_data,
+                                                                       const gert::Om2ModelLoadArg &load_arg,
                                                                        ge::graphStatus &error_code) {
     (void) model_data;
+    (void) load_arg;
     auto executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
     error_code = ge::GRAPH_SUCCESS;
     return executor;
 }
-std::unique_ptr<gert::Om2ModelExecutor> LoadOm2ExecutorFromDataFail(ge::ModelData &model_data, 
+std::unique_ptr<gert::Om2ModelExecutor> LoadOm2ExecutorFromDataFail(ge::ModelData &model_data,
+                                                                    const gert::Om2ModelLoadArg &load_arg,
                                                                     ge::graphStatus &error_code) {
     (void) model_data;
+    (void) load_arg;
     error_code = ge::GRAPH_FAILED;
     return nullptr;
+}
+
+std::unique_ptr<gert::Om2ModelExecutor> LoadOm2ExecutorFromDataNullSuccess(ge::ModelData &model_data,
+                                                                           const gert::Om2ModelLoadArg &load_arg,
+                                                                           ge::graphStatus &error_code) {
+    (void) model_data;
+    (void) load_arg;
+    error_code = ge::GRAPH_SUCCESS;
+    return nullptr;
+}
+
+std::unique_ptr<gert::Om2ModelExecutor> LoadOm2ExecutorFromDataCheckLoadArg(ge::ModelData &model_data,
+                                                                             const gert::Om2ModelLoadArg &load_arg,
+                                                                             ge::graphStatus &error_code) {
+    (void) model_data;
+    if (load_arg.device_id != g_expected_om2_load_arg.device_id ||
+        load_arg.work_ptr != g_expected_om2_load_arg.work_ptr ||
+        load_arg.work_size != g_expected_om2_load_arg.work_size ||
+        load_arg.weight_ptr != g_expected_om2_load_arg.weight_ptr ||
+        load_arg.weight_size != g_expected_om2_load_arg.weight_size ||
+        load_arg.file_constant_mems.size() != g_expected_om2_load_arg.file_constant_mems.size()) {
+        error_code = ge::GRAPH_FAILED;
+        return nullptr;
+    }
+    for (size_t i = 0U; i < g_expected_om2_load_arg.file_constant_mems.size(); ++i) {
+        const auto &actual = load_arg.file_constant_mems[i];
+        const auto &expected = g_expected_om2_load_arg.file_constant_mems[i];
+        if (actual.file_name != expected.file_name ||
+            actual.device_mem != expected.device_mem ||
+            actual.mem_size != expected.mem_size) {
+            error_code = ge::GRAPH_FAILED;
+            return nullptr;
+        }
+    }
+    auto executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
+    error_code = ge::GRAPH_SUCCESS;
+    return executor;
 }
 
 TEST_F(UTEST_ACL_Model, aclmdlGetOpAttr)
@@ -728,10 +828,12 @@ TEST_F(UTEST_ACL_Model, aclmdlLoadFromFile_Ok_LoadOm2Model)
     uint32_t modelId = 1;
     EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _))
         .WillRepeatedly(Invoke(IsOm2ModelFromFile));
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclrtGetDevice(_))
+        .WillRepeatedly(DoAll(SetArgPointee<0>(0), Return(ACL_SUCCESS)));
     // Case 1: Load OM2 model from file successfully
     EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2DataFromFile(_, _))
         .WillOnce(Invoke(LoadOm2DataFromFileSuccess));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2ExecutorFromData(_, _))
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2ExecutorFromData(_, _, _))
         .WillOnce(Invoke(LoadOm2ExecutorFromDataSuccess));
     auto ret = aclmdlLoadFromFile(modelPath, &modelId);
     EXPECT_EQ(ret, ACL_SUCCESS);
@@ -745,7 +847,7 @@ TEST_F(UTEST_ACL_Model, aclmdlLoadFromFile_Ok_LoadOm2Model)
     // Case 3: Load OM2 model from file - LoadOm2ExecutorFromData fails with error
     EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2DataFromFile(_, _))
         .WillOnce(Invoke(LoadOm2DataFromFileSuccess));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2ExecutorFromData(_, _))
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2ExecutorFromData(_, _, _))
         .WillOnce(Invoke(LoadOm2ExecutorFromDataFail));
     ret = aclmdlLoadFromFile(modelPath, &modelId);
     EXPECT_NE(ret, ACL_SUCCESS);
@@ -758,18 +860,219 @@ TEST_F(UTEST_ACL_Model, aclmdlLoadFromMem_Ok_LoadOm2Model)
     uint32_t modelId = 1;
     EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _, _))
         .WillRepeatedly(Invoke(IsOm2ModelFromData));
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclrtGetDevice(_))
+        .WillRepeatedly(DoAll(SetArgPointee<0>(0), Return(ACL_SUCCESS)));
     
     // Case 1: Load OM2 model from memory successfully
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2ExecutorFromData(_, _))
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2ExecutorFromData(_, _, _))
         .WillOnce(Invoke(LoadOm2ExecutorFromDataSuccess));
     auto ret = aclmdlLoadFromMem(om2ModelData, sizeof(om2ModelData), &modelId);
     EXPECT_EQ(ret, ACL_SUCCESS);
     
     // Case 2: Load OM2 model from memory - LoadOm2ExecutorFromData fails with error
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2ExecutorFromData(_, _))
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2ExecutorFromData(_, _, _))
         .WillOnce(Invoke(LoadOm2ExecutorFromDataFail));
     ret = aclmdlLoadFromMem(om2ModelData, sizeof(om2ModelData), &modelId);
     EXPECT_NE(ret, ACL_SUCCESS);
+}
+
+TEST_F(UTEST_ACL_Model, aclmdlLoadWithConfig_Ok_LoadOm2Model) {
+    aclmdlConfigHandle *handle = aclmdlCreateConfigHandle();
+    ASSERT_NE(handle, nullptr);
+    uint32_t modelId = 1U;
+    uint8_t om2ModelData[sizeof(ge::ModelFileHeader)] = {0x50, 0x4B, 0x03, 0x04};
+    void *mdl_addr = static_cast<void *>(om2ModelData);
+    size_t mdl_size = sizeof(om2ModelData);
+    void *work_ptr = reinterpret_cast<void *>(0x1);
+    size_t work_size = 1U;
+    void *weight_ptr = reinterpret_cast<void *>(0x1);
+    size_t weight_size = 1U;
+    const char *load_path = "/fake/om2_model.om2";
+
+    ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_PATH_PTR, &load_path, sizeof(load_path)), ACL_SUCCESS);
+    ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_MEM_ADDR_PTR, &mdl_addr, sizeof(mdl_addr)), ACL_SUCCESS);
+    ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_MEM_SIZET, &mdl_size, sizeof(mdl_size)), ACL_SUCCESS);
+    ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_WORKSPACE_ADDR_PTR, &work_ptr, sizeof(work_ptr)), ACL_SUCCESS);
+    ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_WORKSPACE_SIZET, &work_size, sizeof(work_size)), ACL_SUCCESS);
+    ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_WEIGHT_ADDR_PTR, &weight_ptr, sizeof(weight_ptr)), ACL_SUCCESS);
+    ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_WEIGHT_SIZET, &weight_size, sizeof(weight_size)), ACL_SUCCESS);
+
+    size_t load_type = ACL_MDL_LOAD_FROM_MEM_WITH_MEM;
+    ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &load_type, sizeof(load_type)), ACL_SUCCESS);
+    ASSERT_EQ(aclmdlSetExternalWeightAddress(handle, "fileconstant1.bin", reinterpret_cast<void *>(0x2), 1024U), ACL_SUCCESS);
+    ASSERT_EQ(aclmdlSetExternalWeightAddress(handle, "fileconstant2.bin", reinterpret_cast<void *>(0x3), 2048U), ACL_SUCCESS);
+
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _, _))
+        .WillRepeatedly(Invoke(IsOm2ModelFromData));
+    ExpectAclrtGetDeviceOk();
+    SetExpectedOm2LoadArg(work_ptr, work_size, weight_ptr, weight_size, 0,
+                          {{"fileconstant1.bin", reinterpret_cast<void *>(0x2), 1024U},
+                           {"fileconstant2.bin", reinterpret_cast<void *>(0x3), 2048U}});
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2ExecutorFromData(_, _, _))
+        .WillOnce(Invoke(LoadOm2ExecutorFromDataCheckLoadArg));
+    EXPECT_EQ(aclmdlLoadWithConfig(handle, &modelId), ACL_SUCCESS);
+    EXPECT_EQ(aclmdlDestroyConfigHandle(handle), ACL_SUCCESS);
+}
+
+TEST_F(UTEST_ACL_Model, aclmdlLoadWithMem_Ok_LoadOm2ModelLoadArgs)
+{
+    const char *modelPath = "/fake/om2_model.om";
+    uint8_t om2ModelData[] = {0x50, 0x4B, 0x03, 0x04, 0x00, 0x00, 0x00, 0x00};
+    void *work_ptr = reinterpret_cast<void *>(0x10);
+    size_t work_size = 1024U;
+    void *weight_ptr = reinterpret_cast<void *>(0x20);
+    size_t weight_size = 2048U;
+    uint32_t modelId = 0U;
+
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _))
+        .WillRepeatedly(Invoke(IsOm2ModelFromFile));
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _, _))
+        .WillRepeatedly(Invoke(IsOm2ModelFromData));
+    ExpectAclrtGetDeviceOk();
+
+    SetExpectedOm2LoadArg(work_ptr, work_size, weight_ptr, weight_size);
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2DataFromFile(_, _))
+        .WillOnce(Invoke(LoadOm2DataFromFileSuccess));
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2ExecutorFromData(_, _, _))
+        .WillOnce(Invoke(LoadOm2ExecutorFromDataCheckLoadArg));
+    EXPECT_EQ(aclmdlLoadFromFileWithMem(modelPath, &modelId, work_ptr, work_size, weight_ptr, weight_size),
+              ACL_SUCCESS);
+    EXPECT_EQ(aclmdlUnload(modelId), ACL_SUCCESS);
+
+    SetExpectedOm2LoadArg(work_ptr, work_size, weight_ptr, weight_size);
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2ExecutorFromData(_, _, _))
+        .WillOnce(Invoke(LoadOm2ExecutorFromDataCheckLoadArg));
+    EXPECT_EQ(aclmdlLoadFromMemWithMem(om2ModelData, sizeof(om2ModelData), &modelId, work_ptr, work_size,
+                                       weight_ptr, weight_size),
+              ACL_SUCCESS);
+    EXPECT_EQ(aclmdlUnload(modelId), ACL_SUCCESS);
+}
+
+TEST_F(UTEST_ACL_Model, aclmdlLoadWithConfig_Ok_LoadOm2ModelAllLoadTypes)
+{
+    const char *load_path = "/fake/om2_model.om2";
+    uint8_t om2ModelData[sizeof(ge::ModelFileHeader)] = {0x50, 0x4B, 0x03, 0x04};
+    void *mdl_addr = static_cast<void *>(om2ModelData);
+    size_t mdl_size = sizeof(om2ModelData);
+    void *work_ptr = reinterpret_cast<void *>(0x10);
+    size_t work_size = 1024U;
+    void *weight_ptr = reinterpret_cast<void *>(0x20);
+    size_t weight_size = 2048U;
+    const std::vector<ExpectedOm2FileConstantMem> expected_file_constants = {
+        {"fileconstant1.bin", reinterpret_cast<void *>(0x30), 4096U},
+        {"fileconstant2.bin", reinterpret_cast<void *>(0x40), 8192U}
+    };
+
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _))
+        .WillRepeatedly(Invoke(IsOm2ModelFromFile));
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _, _))
+        .WillRepeatedly(Invoke(IsOm2ModelFromData));
+    ExpectAclrtGetDeviceOk();
+
+    auto check_load_with_config = [&](size_t load_type, bool from_file, bool with_mem) {
+        aclmdlConfigHandle *handle = aclmdlCreateConfigHandle();
+        ASSERT_NE(handle, nullptr);
+        ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_PATH_PTR, &load_path, sizeof(load_path)), ACL_SUCCESS);
+        ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_MEM_ADDR_PTR, &mdl_addr, sizeof(mdl_addr)), ACL_SUCCESS);
+        ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_MEM_SIZET, &mdl_size, sizeof(mdl_size)), ACL_SUCCESS);
+        ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &load_type, sizeof(load_type)), ACL_SUCCESS);
+        ASSERT_EQ(aclmdlSetExternalWeightAddress(handle, expected_file_constants[0].file_name.c_str(),
+                                                 const_cast<void *>(expected_file_constants[0].device_mem),
+                                                 expected_file_constants[0].mem_size),
+                  ACL_SUCCESS);
+        ASSERT_EQ(aclmdlSetExternalWeightAddress(handle, expected_file_constants[1].file_name.c_str(),
+                                                 const_cast<void *>(expected_file_constants[1].device_mem),
+                                                 expected_file_constants[1].mem_size),
+                  ACL_SUCCESS);
+        if (with_mem) {
+            ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_WORKSPACE_ADDR_PTR, &work_ptr, sizeof(work_ptr)),
+                      ACL_SUCCESS);
+            ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_WORKSPACE_SIZET, &work_size, sizeof(work_size)),
+                      ACL_SUCCESS);
+            ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_WEIGHT_ADDR_PTR, &weight_ptr, sizeof(weight_ptr)),
+                      ACL_SUCCESS);
+            ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_WEIGHT_SIZET, &weight_size, sizeof(weight_size)),
+                      ACL_SUCCESS);
+        }
+
+        SetExpectedOm2LoadArg(with_mem ? work_ptr : nullptr, with_mem ? work_size : 0U,
+                              with_mem ? weight_ptr : nullptr, with_mem ? weight_size : 0U,
+                              0, expected_file_constants);
+        if (from_file) {
+            EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2DataFromFile(_, _))
+                .WillOnce(Invoke(LoadOm2DataFromFileSuccess));
+        }
+        EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2ExecutorFromData(_, _, _))
+            .WillOnce(Invoke(LoadOm2ExecutorFromDataCheckLoadArg));
+
+        uint32_t modelId = 0U;
+        EXPECT_EQ(aclmdlLoadWithConfig(handle, &modelId), ACL_SUCCESS);
+        EXPECT_EQ(aclmdlUnload(modelId), ACL_SUCCESS);
+        EXPECT_EQ(aclmdlDestroyConfigHandle(handle), ACL_SUCCESS);
+    };
+
+    check_load_with_config(ACL_MDL_LOAD_FROM_FILE, true, false);
+    check_load_with_config(ACL_MDL_LOAD_FROM_FILE_WITH_MEM, true, true);
+    check_load_with_config(ACL_MDL_LOAD_FROM_MEM, false, false);
+    check_load_with_config(ACL_MDL_LOAD_FROM_MEM_WITH_MEM, false, true);
+}
+
+TEST_F(UTEST_ACL_Model, aclmdlLoad_Om2GetDeviceFailed_ReturnInvalidParam)
+{
+    uint8_t om2ModelData[] = {0x50, 0x4B, 0x03, 0x04, 0x00, 0x00, 0x00, 0x00};
+    uint32_t modelId = 0U;
+
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _, _))
+        .WillRepeatedly(Invoke(IsOm2ModelFromData));
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclrtGetDevice(_))
+        .WillOnce(Return(ACL_ERROR_RT_FAILURE));
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2ExecutorFromData(_, _, _)).Times(0);
+    EXPECT_EQ(aclmdlLoadFromMemWithMem(om2ModelData, sizeof(om2ModelData), &modelId, nullptr, 0U, nullptr, 0U),
+              ACL_ERROR_RT_FAILURE);
+
+    ExpectAclrtGetDeviceInvalid();
+    EXPECT_EQ(aclmdlLoadFromMemWithMem(om2ModelData, sizeof(om2ModelData), &modelId, nullptr, 0U, nullptr, 0U),
+              ACL_ERROR_INVALID_PARAM);
+}
+
+TEST_F(UTEST_ACL_Model, aclmdlLoad_Om2ExecutorNull_ReturnError)
+{
+    const char *modelPath = "/fake/om2_model.om";
+    uint8_t om2ModelData[] = {0x50, 0x4B, 0x03, 0x04, 0x00, 0x00, 0x00, 0x00};
+    uint32_t modelId = 0U;
+
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _))
+        .WillRepeatedly(Invoke(IsOm2ModelFromFile));
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _, _))
+        .WillRepeatedly(Invoke(IsOm2ModelFromData));
+    ExpectAclrtGetDeviceOk();
+
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2DataFromFile(_, _))
+        .WillOnce(Invoke(LoadOm2DataFromFileSuccess));
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2ExecutorFromData(_, _, _))
+        .WillOnce(Invoke(LoadOm2ExecutorFromDataNullSuccess));
+    EXPECT_NE(aclmdlLoadFromFile(modelPath, &modelId), ACL_SUCCESS);
+
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2ExecutorFromData(_, _, _))
+        .WillOnce(Invoke(LoadOm2ExecutorFromDataNullSuccess));
+    EXPECT_NE(aclmdlLoadFromMem(om2ModelData, sizeof(om2ModelData), &modelId), ACL_SUCCESS);
+}
+
+TEST_F(UTEST_ACL_Model, aclmdlUnload_Ok_UnloadOm2Model)
+{
+    uint8_t om2ModelData[] = {0x50, 0x4B, 0x03, 0x04, 0x00, 0x00, 0x00, 0x00};
+    uint32_t modelId = 0U;
+
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _, _))
+        .WillRepeatedly(Invoke(IsOm2ModelFromData));
+    ExpectAclrtGetDeviceOk();
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2ExecutorFromData(_, _, _))
+        .WillOnce(Invoke(LoadOm2ExecutorFromDataSuccess));
+
+    EXPECT_EQ(aclmdlLoadFromMem(om2ModelData, sizeof(om2ModelData), &modelId), ACL_SUCCESS);
+    EXPECT_NE(acl::AclResourceManager::GetInstance().GetOm2Executor(modelId), nullptr);
+    EXPECT_EQ(aclmdlUnload(modelId), ACL_SUCCESS);
+    EXPECT_EQ(acl::AclResourceManager::GetInstance().GetOm2Executor(modelId), nullptr);
 }
 
 TEST_F(UTEST_ACL_Model, aclmdlLoadFromFileWithMemRTV2)
@@ -1026,6 +1329,32 @@ TEST_F(UTEST_ACL_Model, aclmdlQuerySizeFromMem)
         .WillOnce(Return((PARAM_INVALID)));
     ret = aclmdlQuerySizeFromMem(model, 1, &memSize, &weightSize);
     EXPECT_NE(ret, ACL_SUCCESS);
+}
+
+TEST_F(UTEST_ACL_Model, aclmdlQuerySize_Ok_Om2Model) {
+    const char *fileName = "/fake/om2_model.om2";
+    size_t workSize = 0U;
+    size_t weightSize = 0U;
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _))
+        .WillRepeatedly(Invoke(IsOm2ModelFromFile));
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetOm2MemAndWeightSize(_, _, _))
+        .WillOnce(DoAll(SetArgReferee<1>(2048U), SetArgReferee<2>(1024U), Return(ge::SUCCESS)));
+    EXPECT_EQ(aclmdlQuerySize(fileName, &workSize, &weightSize), ACL_SUCCESS);
+    EXPECT_EQ(workSize, 2048U);
+    EXPECT_EQ(weightSize, 1024U);
+}
+
+TEST_F(UTEST_ACL_Model, aclmdlQuerySizeFromMem_Ok_Om2Model) {
+    uint8_t om2ModelData[] = {0x50, 0x4B, 0x03, 0x04, 0x00, 0x00, 0x00, 0x00};
+    size_t workSize = 0U;
+    size_t weightSize = 0U;
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _, _))
+        .WillRepeatedly(Invoke(IsOm2ModelFromData));
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetOm2MemAndWeightSize(_, _, _, _))
+        .WillOnce(DoAll(SetArgReferee<2>(2048U), SetArgReferee<3>(1024U), Return(ge::SUCCESS)));
+    EXPECT_EQ(aclmdlQuerySizeFromMem(om2ModelData, sizeof(om2ModelData), &workSize, &weightSize), ACL_SUCCESS);
+    EXPECT_EQ(workSize, 2048U);
+    EXPECT_EQ(weightSize, 1024U);
 }
 
 TEST_F(UTEST_ACL_Model, aclmdlExecute)

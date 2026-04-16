@@ -70,18 +70,20 @@ bool Om2CodegenUtils::IsSupportedTask(ModelTaskType model_task_type) {
          model_task_type == ModelTaskType::MODEL_TASK_VECTOR_ALL_KERNEL ||
          model_task_type == ModelTaskType::MODEL_TASK_END_GRAPH ||
          model_task_type == ModelTaskType::MODEL_TASK_FUSION_START ||
-         model_task_type == ModelTaskType::MODEL_TASK_FUSION_END;
+         model_task_type == ModelTaskType::MODEL_TASK_FUSION_END ||
+         model_task_type == ModelTaskType::MODEL_TASK_LABEL_SET ||
+         model_task_type == ModelTaskType::MODEL_TASK_STREAM_ACTIVE ||
+         model_task_type == ModelTaskType::MODEL_TASK_STREAM_LABEL_SWITCH_BY_INDEX ||
+         model_task_type == ModelTaskType::MODEL_TASK_STREAM_LABEL_GOTO ||
+         model_task_type == ModelTaskType::MODEL_TASK_EVENT_RECORD ||
+         model_task_type == ModelTaskType::MODEL_TASK_EVENT_WAIT ||
+         model_task_type == ModelTaskType::MODEL_TASK_NOTIFY_RECORD ||
+         model_task_type == ModelTaskType::MODEL_TASK_NOTIFY_WAIT ||
+         model_task_type == ModelTaskType::MODEL_TASK_STREAM_SWITCH ||
+         model_task_type == ModelTaskType::MODEL_TASK_MEMCPY_ASYNC;
 }
 
 bool Om2CodegenUtils::RequireBinaryKernel(const ModelTaskType model_task_type) {
-  return model_task_type == ModelTaskType::MODEL_TASK_KERNEL ||
-         model_task_type == ModelTaskType::MODEL_TASK_ALL_KERNEL ||
-         model_task_type == ModelTaskType::MODEL_TASK_VECTOR_KERNEL ||
-         model_task_type == ModelTaskType::MODEL_TASK_VECTOR_ALL_KERNEL ||
-         model_task_type == ModelTaskType::MODEL_TASK_PREPROCESS_KERNEL;
-}
-
-bool Om2CodegenUtils::RequireArgsTable(ModelTaskType model_task_type) {
   return model_task_type == ModelTaskType::MODEL_TASK_KERNEL ||
          model_task_type == ModelTaskType::MODEL_TASK_ALL_KERNEL ||
          model_task_type == ModelTaskType::MODEL_TASK_VECTOR_KERNEL ||
@@ -100,14 +102,9 @@ bool Om2CodegenUtils::IsAICoreKernel(const ge::ccKernelType kernel_type) {
   return aicore_kernel_type.count(kernel_type) > 0UL;
 }
 
-bool Om2CodegenUtils::IsSuppoprtAddrRefreshable(const uint64_t mem_type) {
-  return (mem_type == static_cast<uint64_t>(Om2MemoryAppType::kMemoryTypeFeatureMap)) ||
-         (mem_type == static_cast<uint64_t>(Om2MemoryAppType::kMemoryTypeModelIo));
-}
-
 bool Om2CodegenUtils::IsUnsupportedNodeType(const std::string &type) {
   return ((type == VARIABLE) || (type == CONSTANTOP) || (type == CONSTPLACEHOLDER) || (type == QUEUE_DATA)
-          || (type == FILECONSTANT) || (type == REFDATA) || (type == QUEUE_DATA) || (type == "SuperKernel"));
+          || (type == REFDATA) || (type == QUEUE_DATA) || (type == "SuperKernel"));
 }
 
 bool Om2CodegenUtils::IsNeedAtomicCleanTask(const OpDescPtr &op_desc) {

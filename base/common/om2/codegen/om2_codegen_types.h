@@ -11,9 +11,18 @@
 #ifndef AIR_CXX_BASE_COMMON_OM2_CODEGEN_TYPES_H_
 #define AIR_CXX_BASE_COMMON_OM2_CODEGEN_TYPES_H_
 
+#include <cstddef>
+#include <cstdint>
+#include <optional>
+#include <set>
+#include <string>
+#include <unordered_map>
+#include <vector>
+
+#include "common/opskernel/ops_kernel_info_types.h"
 #include "common/om2/codegen/ast/ast_nodes.h"
 #include "ast/ast_context.h"
-#include "graph/op_desc.h"
+#include "framework/common/taskdown_common.h"
 #include "proto/task.pb.h"
 
 namespace ge {
@@ -27,45 +36,6 @@ struct OpInputEdges {
   std::vector<std::string> output_var_names;
 };
 
-// Runtime parameters extracted from model
-struct Om2RuntimeParam {
-  uint64_t mem_size = 0U;
-  uint64_t weight_size = 0U;
-  uint32_t stream_num = 0U;
-  uint32_t notify_num = 0U;
-  uint32_t event_num = 0U;
-  uint32_t label_num = 0U;
-  uint32_t kernel_bin_num = 0U;
-};
-
-struct ArgsInfo {
-  std::vector<uint64_t> args_sizes;
-  std::vector<uint64_t> args_offset;
-  std::multimap<uint64_t, uint64_t> io_addr_offset_map; // mapping between compiled offset addr to host arg offset addr
-  uint64_t host_args_len = 0U;
-};
-
-struct TaskDistributionContext {
-  AstContext &ast_ctx;
-  std::vector<AstNode *> &nodes;
-  const OpDescPtr op_desc;
-  const domi::TaskDef &task_def;
-  int64_t op_index;
-  std::unordered_map<std::string, uint32_t> &func_handle_indices;
-  std::unordered_map<int64_t, OpInputEdges> &op_id_to_input_edges;
-  std::unordered_map<int64_t, std::string> &weight_offset_to_varname;
-  Om2RuntimeParam runtime_param;
-  uint64_t aicpu_task_index;
-  ArgsInfo &args_info;
-  uint64_t &args_table_index;
-  std::set<int64_t> model_io_offsets;
-};
-
-struct TaskDistributionImplContext {
-  AstContext &ast_ctx;
-  std::vector<AstNode *> &nodes;
-};
-
 enum class Om2MemoryAppType : int32_t {
   kMemoryTypeFix,  // const and var and fix fm
   kMemoryTypeFeatureMap,
@@ -73,12 +43,177 @@ enum class Om2MemoryAppType : int32_t {
   kEnd
 };
 
-struct AddrGenInfo {
-  std::vector<AstNode *> nodes;
-  std::string var_name;
-  Om2MemoryAppType mem_type;
-  int64_t compile_state_io_addr_offset;
+struct RuntimeResourceSemantic {
+  uint64_t total_mem_size{0U};
+  uint64_t total_weight_size{0U};
+  uint32_t stream_num{0U};
+  uint32_t notify_num{0U};
+  uint32_t event_num{0U};
+  uint32_t label_num{0U};
+  uint32_t kernel_bin_num{0U};
+  uint64_t logic_mem_base{0U};
+  bool has_label_switch{false};
+  bool has_label_goto{false};
+  std::vector<std::string> stream_flag_values;
+  std::vector<std::string> bind_flag_values;
 };
+
+struct ModelIoEntry {
+  uint32_t index{0U};
+  int64_t memory_offset{0};
+  uint32_t update_host_args_index{0U};
+  bool is_input{true};
+  bool is_addr_refreshable{true};
+};
+
+struct ModelIoSemantic {
+  std::vector<ModelIoEntry> entries;
+  std::set<int64_t> io_offsets;
+  uint32_t input_count{0U};
+  uint32_t output_count{0U};
+};
+
+struct ConstInputEntry {
+  size_t const_index{0U};
+  std::string var_name;
+};
+
+struct Om2ConstMeta {
+  size_t index = 0U;
+  std::string type;
+  std::string file_name;
+  int64_t offset = 0;
+  int64_t size = 0;
+  std::string op_name;
+};
+
+using Om2ConstMetas = std::vector<Om2ConstMeta>;
+
+enum class KernelBinaryKind : int32_t {
+  kAicore,
+  kAicpu,
+  kCustAicpu,
+};
+
+struct KernelBinaryRecord {
+  KernelBinaryKind kind{KernelBinaryKind::kAicore};
+  std::string kernel_name;
+  std::string file_name;
+  std::string op_type;
+  std::string so_name;
+  std::string op_kernel_lib;
+  std::string magic;
+  uint32_t func_handle_index{0U};
+};
+
+struct KernelRegistrySemantic {
+  std::vector<KernelBinaryRecord> binaries;
+  std::unordered_map<std::string, uint32_t> func_handle_indices;
+};
+
+struct LaunchConfigSemantic {
+  uint8_t schedule_mode{0U};
+  uint32_t local_memory_size{0U};
+  std::string engine_type{"ACL_RT_ENGINE_TYPE_AIC"};
+  uint32_t block_dim_offset{0U};
+  bool is_block_task_prefetch{false};
+  bool is_data_dump{false};
+  uint16_t time_out{0U};
+};
+
+struct LaunchCallSemantic {
+  uint32_t block_dim{0U};
+  uint32_t stream_id{0U};
+  LaunchConfigSemantic config;
+  uint32_t func_handle_index{0U};
+};
+
+enum class AddrValueKind : int32_t {
+  kInputInstance,
+  kOutputInstance,
+  kWorkspace,
+  kConstTensor,
+  kCustomValue,
+  kPlaceholder,
+  kLevel1DescPtr,
+  kShapeInfoBuffer,
+  kOptionalEmpty,
+};
+
+enum class MemoryAppType : int32_t {
+  kFix,
+  kFeatureMap,
+  kModelIo,
+};
+
+struct AddrSemantic {
+  AddrValueKind kind{AddrValueKind::kInputInstance};
+  MemoryAppType memory_app{MemoryAppType::kFix};
+  std::string symbol_hint;
+  int64_t mem_offset{0};
+  uint64_t byte_size{0U};
+  uint64_t custom_value{0U};
+  int64_t compile_state_io_addr_offset{0};
+  bool is_reused_from_upstream{false};
+  std::optional<std::vector<int64_t>> shape_info;
+  std::optional<uint64_t> level1_target_offset;
+};
+
+struct ArgsTableEntrySemantic {
+  uint64_t table_index{0U};
+  uint64_t args_size{0U};
+  uint64_t host_offset{0U};
+};
+
+struct AicpuArgsSemantic {
+  std::vector<uint8_t> args_buffer;
+  uint32_t args_size{0U};
+};
+
+struct AicpuExtInfoSemantic {
+  size_t total_len{0UL};
+  int32_t session_info_offset{-1};
+  std::vector<uint8_t> serialized_bytes;
+};
+
+struct KernelTaskSemantic {
+  ModelTaskType task_type{ModelTaskType::MODEL_TASK_KERNEL};
+  ccKernelType kernel_type{ccKernelType::INVALID};
+  LaunchCallSemantic launch;
+  std::vector<AddrSemantic> input_addrs;
+  std::vector<AddrSemantic> output_addrs;
+  std::vector<AddrSemantic> workspace_addrs;
+  std::vector<AddrSemantic> ordered_arg_values;
+  std::optional<ArgsTableEntrySemantic> args_table_entry;
+  uint64_t aicpu_task_index{0U};
+  std::optional<AicpuArgsSemantic> aicpu_args;
+  std::optional<AicpuExtInfoSemantic> aicpu_ext_info;
+};
+
+struct TaskSemanticHeader {
+  ModelTaskType task_type;
+  int64_t op_index{kInvalidOpIndex};
+  std::string op_name;
+  std::string op_type;
+  uint32_t stream_id{0U};
+};
+
+struct ArgsTableSemantic {
+  std::vector<ArgsTableEntrySemantic> entries;
+  uint64_t total_host_args_len{0UL};
+  std::vector<std::vector<uint64_t>> host_args_offsets;
+};
+
+struct Om2CodegenModel {
+  std::string model_name;
+  RuntimeResourceSemantic runtime;
+  ModelIoSemantic model_io;
+  KernelRegistrySemantic kernel_registry;
+  ArgsTableSemantic args_table;
+  std::vector<ConstInputEntry> const_inputs;
+  uint32_t aicpu_task_count{0U};
+};
+
 } // namespace ge
 
 #endif  // AIR_CXX_BASE_COMMON_OM2_CODEGEN_TYPES_H_

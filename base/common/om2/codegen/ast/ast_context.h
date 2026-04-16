@@ -176,6 +176,9 @@ class AstContext {
       return {};
     }
     const size_t len = std::strlen(s);
+    if (len == 0UL) {
+      return StringRef("", 0UL);
+    }
     const auto dest = static_cast<char_t *>(Allocate(len + 1));
     if (dest == nullptr) {
       return {};

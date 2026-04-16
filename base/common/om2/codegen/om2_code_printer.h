@@ -36,7 +36,7 @@ class Om2CodePrinter {
     InitDefaultFileInfo(model_name, base_dir);
   }
   ~Om2CodePrinter() = default;
-  void AddLine(GeneratedFileIndex generated_file_index, const std::string &input_string);
+  void AddContent(GeneratedFileIndex generated_file_index, const std::string &input_string);
   Status WriteFiles(const std::string &target_path);
   void GetOutputFilePaths(std::vector<std::string> &file_paths);
 

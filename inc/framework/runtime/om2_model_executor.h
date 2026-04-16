@@ -12,11 +12,24 @@
 #ifndef AIR_CXX_RUNTIME_V2_CORE_OM2_MODEL_EXECUTOR_H_
 #define AIR_CXX_RUNTIME_V2_CORE_OM2_MODEL_EXECUTOR_H_
 #include <memory>
+#include <vector>
 #include "common/ge_visibility.h"
 #include "common/ge_common/ge_types.h"
 #include "graph/ge_tensor.h"
 
 namespace gert {
+class RtSession;
+
+struct VISIBILITY_EXPORT Om2ModelLoadArg {
+  int32_t device_id = -1;
+  void *work_ptr = nullptr;
+  size_t work_size = 0U;
+  void *weight_ptr = nullptr;
+  size_t weight_size = 0U;
+  gert::RtSession *rt_session = nullptr;
+  std::vector<ge::FileConstantMem> file_constant_mems;
+};
+
 class VISIBILITY_EXPORT Om2ModelExecutor {
  public:
   Om2ModelExecutor();
@@ -27,7 +40,7 @@ class VISIBILITY_EXPORT Om2ModelExecutor {
   Om2ModelExecutor &operator=(const Om2ModelExecutor &) = delete;
   Om2ModelExecutor &operator=(Om2ModelExecutor &&) = delete;
 
-  ge::Status Load(ge::ModelData &model_data) const;
+  ge::Status Load(ge::ModelData &model_data, const Om2ModelLoadArg &load_arg, uint64_t session_id) const;
   ge::Status Run(std::vector<gert::Tensor *> &inputs, std::vector<gert::Tensor *> &outputs) const;
   ge::Status RunAsync(void *const stream, std::vector<gert::Tensor *> &inputs, std::vector<gert::Tensor *> &outputs) const;
   ge::Status GetModelDescInfo(std::vector<ge::TensorDesc> &input_desc, std::vector<ge::TensorDesc> &output_desc,
@@ -43,7 +56,12 @@ class VISIBILITY_EXPORT Om2ModelExecutor {
 
 
 VISIBILITY_EXPORT ge::Status LoadOm2DataFromFile(const std::string &model_path, ge::ModelData &model_data);
+VISIBILITY_EXPORT ge::Status GetOm2MemAndWeightSize(const std::string &model_path, size_t &work_size,
+                                                    size_t &internal_weight_size);
+VISIBILITY_EXPORT ge::Status GetOm2MemAndWeightSize(const void *model_data, size_t model_size,
+                                                    size_t &work_size, size_t &internal_weight_size);
 VISIBILITY_EXPORT std::unique_ptr<Om2ModelExecutor> LoadOm2ExecutorFromData(ge::ModelData &model_data,
+                                                                            const Om2ModelLoadArg &load_arg,
                                                                             ge::graphStatus &error_code);
 VISIBILITY_EXPORT ge::Status IsOm2Model(const void *data, size_t size, bool &is_support);
 VISIBILITY_EXPORT ge::Status IsOm2Model(const char *file_path, bool &is_support);
