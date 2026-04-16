@@ -78,7 +78,13 @@ IrType JsonToIrType(const std::string &type_str, const IrTypeToJsonMap<IrType> (
 
 GET_ATTR_JSON_FUNC(Int, int64_t);
 GET_ATTR_JSON_FUNC(Float, float);
-GET_ATTR_JSON_FUNC(Str, std::string);
+std::string GetStrJson(const OpDescPtr &op_desc, const std::string &attr_name) {
+  const std::string *value = AttrUtils::GetStr(op_desc, attr_name);
+  if (value == nullptr) {
+    throw std::runtime_error("Failed to get default value for attr: " + attr_name);
+  }
+  return nlohmann::json(*value).dump();
+}
 GET_ATTR_JSON_FUNC(Bool, bool);
 GET_ATTR_JSON_FUNC(DataType, ge::DataType);
 GET_ATTR_JSON_FUNC(ListInt, std::vector<int64_t>);

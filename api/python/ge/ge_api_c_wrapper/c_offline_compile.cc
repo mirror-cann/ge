@@ -19,7 +19,7 @@
 using namespace ge;
 using namespace ge::c_wrapper;
 namespace {
-graphStatus BuildOptionMapFromArrays(char **keys, char **values, const int size,
+graphStatus BuildOptionMapFromArrays(const char **keys, const char **values, const int size,
                                      std::map<AscendString, AscendString> &options) {
   if (size == 0) {
     return GRAPH_SUCCESS;
@@ -39,7 +39,7 @@ graphStatus BuildOptionMapFromArrays(char **keys, char **values, const int size,
 extern "C" {
 #endif
 
-graphStatus GeApiWrapper_OfflineCompile_BuildInitialize(char **keys, char **values, int size) {
+graphStatus GeApiWrapper_OfflineCompile_BuildInitialize(const char **keys, const char **values, int size) {
   std::map<AscendString, AscendString> options;
   const auto ret = BuildOptionMapFromArrays(keys, values, size, options);
   if (ret != GRAPH_SUCCESS) {
@@ -53,7 +53,7 @@ void GeApiWrapper_OfflineCompile_BuildFinalize() {
   aclgrphBuildFinalize();
 }
 
-graphStatus GeApiWrapper_OfflineCompile_BuildModel(Graph *graph, char **keys, char **values, int size,
+graphStatus GeApiWrapper_OfflineCompile_BuildModel(const Graph *graph, const char **keys, const char **values, int size,
                                                           ModelBufferData **model) {
   GE_ASSERT_NOTNULL(graph);
   GE_ASSERT_NOTNULL(model);
@@ -84,8 +84,8 @@ graphStatus GeApiWrapper_OfflineCompile_SaveModel(const char_t *output_file, con
   return aclgrphSaveModel(output_file, *model);
 }
 
-graphStatus GeApiWrapper_OfflineCompile_BundleBuildModel(Graph **graphs, char ***keys, char ***values,
-                                                                int *sizes, int graph_count, ModelBufferData **model) {
+graphStatus GeApiWrapper_OfflineCompile_BundleBuildModel(const Graph **graphs, const char ***keys, const char ***values,
+                                                         const int *sizes, int graph_count, ModelBufferData **model) {
   GE_ASSERT_NOTNULL(graphs);
   GE_ASSERT_NOTNULL(keys);
   GE_ASSERT_NOTNULL(values);
