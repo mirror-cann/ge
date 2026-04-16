@@ -9,13 +9,15 @@
 # See LICENSE in the root of the software repository for the full text of the License.
 # ----------------------------------------------------------------------------
 
-ScriptPath="$( cd "$(dirname "$BASH_SOURCE")" ; pwd -P )"
+set -euo pipefail # 命令执行错误则退出
+
+script_path="$( cd "$(dirname "$BASH_SOURCE")" ; pwd -P )"
 
 function main()
 {
   echo "[INFO] The sample starts to run"
 
-  cd $ScriptPath/../out
+  cd $script_path/../out
   ./main
 }
 
