@@ -774,24 +774,24 @@ bool IsInferShapeV2Registered(const ge::OpDescPtr &op_desc) {
   const auto *const space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance()
     .GetSpaceRegistry(static_cast<gert::OppImplVersionTag>(op_desc->GetOppImplVersion()))
     .get();
-  if (space_registry == nullptr) {
-    GELOGI("[%s][%s] Space registry is null.", op_desc->GetNamePtr(), op_desc->GetTypePtr());
-    return false;
+  if (space_registry != nullptr) {
+    const auto &functions = space_registry->GetOpImpl(op_desc->GetType().c_str());
+    if ((functions != nullptr) && (functions->infer_shape != nullptr)) {
+      GELOGI("[%s][%s] Registry infershape function.", op_desc->GetNamePtr(), op_desc->GetTypePtr());
+      return true;
+    }
   }
 
-  const auto &functions = space_registry->GetOpImpl(op_desc->GetType().c_str());
-  if (functions == nullptr) {
-    GELOGI("[%s][%s] Registry functions is null.", op_desc->GetNamePtr(), op_desc->GetTypePtr());
-    return false;
-  }
-
-  if ((functions->infer_shape == nullptr) && (ge::ShapeInferenceRule::FromOpDesc(op_desc) == nullptr)) {
+  if (ge::ShapeInferenceRule::FromOpDesc(op_desc) != nullptr) {
     GELOGI(
-      "[%s][%s] Infer shape is null.", op_desc->GetNamePtr(), op_desc->GetTypePtr());
-    return false;
+      "[%s][%s] Infer shape by infershape rule.", op_desc->GetNamePtr(), op_desc->GetTypePtr());
+    return true;
   }
 
-  return true;
+  GELOGI(
+    "[%s][%s] has no infer shape function or infershape rule.", op_desc->GetNamePtr(), op_desc->GetTypePtr());
+
+  return false;
 }
 
 

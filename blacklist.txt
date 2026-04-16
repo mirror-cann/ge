@@ -37,3 +37,4 @@ compiler/graph/build/memory/checker/node_checker/continuous_output_node_checker.
 compiler/graph/fusion/graph_rewriter.cc
 dflow/executor/data_flow_executor_utils.cc
 compiler/graph/optimize/autofuse/autofuse_optimize.cc
+graph_metadef/register/shape_inference.cc
