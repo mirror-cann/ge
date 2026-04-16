@@ -618,7 +618,7 @@ else ()
                 ascendcl)
 endif ()
 
-install(TARGETS npu_sched_model_loader model_deployer deployer_daemon npu_executor_main host_cpu_executor_main OPTIONAL
+install(TARGETS npu_sched_model_loader model_deployer deployer_daemon npu_executor_main host_cpu_executor_main ${INSTALL_OPTIONAL}
         LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}
         ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR}
         RUNTIME DESTINATION ${INSTALL_LIBRARY_DIR}
@@ -634,6 +634,6 @@ add_custom_command(
         COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/monitor_cpu.sh ${CMAKE_CURRENT_BINARY_DIR}/monitor.sh
 )
 
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/monitor.sh OPTIONAL
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/monitor.sh ${INSTALL_OPTIONAL}
         DESTINATION ${INSTALL_RUNTIME_DIR}
 )

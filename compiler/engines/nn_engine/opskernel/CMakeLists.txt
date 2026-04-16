@@ -51,7 +51,7 @@ target_link_libraries(opskernel PRIVATE
         json
         -ldl)
 
-install(TARGETS opskernel OPTIONAL
+install(TARGETS opskernel ${INSTALL_OPTIONAL}
         EXPORT opskernel-targets
         LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}
         )

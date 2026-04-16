@@ -153,6 +153,6 @@ set_target_properties(fmk_parser_stub PROPERTIES
 )
 
 ############ install ############
-install(TARGETS fmk_parser_stub OPTIONAL
+install(TARGETS fmk_parser_stub ${INSTALL_OPTIONAL}
     LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}/stub
 )

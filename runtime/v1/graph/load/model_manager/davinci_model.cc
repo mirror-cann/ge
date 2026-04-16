@@ -1235,9 +1235,9 @@ Status DavinciModel::Init(const ModelParam &param, void *outer_fm_mem) {
                              : static_cast<int32_t>(std::strtol(stream_sync_timeout.c_str(), nullptr, kBase));
 
   // Parse output reuse input memory indexes from model attribute
-  std::string reuse_indexes_str;
-  if (ge::AttrUtils::GetStr(ge_model_, ATTR_MODEL_OUTPUT_REUSE_INPUT_MEM_INDEXES, reuse_indexes_str)) {
-    ge::ParseOutputReuseInputMemIndexes(reuse_indexes_str, io_same_addr_pairs_);
+  auto reuse_indexes_str = AttrUtils::GetStr(ge_model_, ATTR_MODEL_OUTPUT_REUSE_INPUT_MEM_INDEXES);
+  if (reuse_indexes_str != nullptr && !reuse_indexes_str->empty()) {
+    ge::ParseOutputReuseInputMemIndexes(reuse_indexes_str->c_str(), io_same_addr_pairs_);
     GELOGI("Parsed output reuse input mem indexes, pairs count: %zu", io_same_addr_pairs_.size());
   }
 
@@ -1757,7 +1757,9 @@ Status DavinciModel::MapNodeAddressesToCombinedWeight(const std::map<NodePtr, st
                           "Weight offset[%" PRId64 "], size[%" PRId64 "] exceeds the file size[%" PRId64 "] for file: %s.",
                           weights_offset, weights_size, file_size, file_path.c_str());
     runtime_param_.fileconstant_addr_mapping[v_output_offset[0]] = reinterpret_cast<uintptr_t>(base_addr) + weights_offset;
-    VarManager::Instance(session_id_)->SetVarIsReady(op_desc->GetName(), *tensor_desc, device_id_);
+    auto var_manager = VarManager::Instance(session_id_);
+    GE_CHECK_NOTNULL(var_manager);
+    var_manager->SetVarIsReady(op_desc->GetName(), *tensor_desc, device_id_);
     GELOGI("FileConstant node %s malloc device memory (addr: %p, offset: %" PRId64 ")",
            op_desc->GetNamePtr(), runtime_param_.fileconstant_addr_mapping[v_output_offset[0]], v_output_offset[0]);
   }
@@ -1837,7 +1839,9 @@ Status DavinciModel::HandleIndividualWeights(const std::map<NodePtr, std::pair<s
 
     if (user_device_mem != nullptr) {
       runtime_param_.fileconstant_addr_mapping[v_output_offset[0]] = reinterpret_cast<uintptr_t>(user_device_mem);
-      VarManager::Instance(session_id_)->SetVarIsReady(op_desc->GetName(), *tensor_desc, device_id_);
+      auto var_manager = VarManager::Instance(session_id_);
+      GE_CHECK_NOTNULL(var_manager);
+      var_manager->SetVarIsReady(op_desc->GetName(), *tensor_desc, device_id_);
       GELOGI("FileConstant node %s found user device memory (addr:%p, logic addr:%" PRId64 "), no need to copy weight,"
              " set var ready", op_desc->GetNamePtr(), user_device_mem, v_output_offset[0]);
       continue;
@@ -3472,6 +3476,11 @@ Status DavinciModel::LoadWithHardwareQueue() {
   GE_ASSERT_RT_OK(LaunchDqsTask(RT_DQS_TASK_SCHED_CONFIG, &cfg));
   GE_ASSERT_RT_OK(LaunchDqsTask(RT_DQS_TASK_NOTIFY_WAIT));
   GE_ASSERT_RT_OK(LaunchDqsTask(RT_DQS_TASK_DEQUEUE));
+
+  if (input_queue_attrs_.size() > 1) {
+    GELOGI("there are %zu input queues, need frame align", input_queue_attrs_.size());
+    GE_ASSERT_RT_OK(LaunchDqsTask(RT_DQS_TASK_FRAME_ALIGN));
+  }
 
   GE_ASSERT_SUCCESS(LaunchInputZeroCpyCfg());
   GE_ASSERT_RT_OK(LaunchDqsTask(RT_DQS_TASK_PREPARE_OUT));

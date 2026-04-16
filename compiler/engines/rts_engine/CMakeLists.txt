@@ -129,7 +129,7 @@ target_link_libraries(rts_engine PRIVATE
     json
 )
 
-install(TARGETS rts_engine OPTIONAL
+install(TARGETS rts_engine ${INSTALL_OPTIONAL}
     EXPORT rts_engine-targets
     LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}
 )
@@ -186,7 +186,7 @@ set_target_properties(rts_engine_atc PROPERTIES
 )
 
 install(TARGETS rts_engine_atc
-          LIBRARY DESTINATION lib/atclib OPTIONAL
+          LIBRARY DESTINATION lib/atclib ${INSTALL_OPTIONAL}
         )
 
 ############ librts_kernel_builder.a ############
@@ -239,6 +239,6 @@ add_custom_command(OUTPUT ${SWITCH_BY_INDEX_OBJ}
     )
 
 install(FILES ${SWITCH_BY_INDEX_OBJ}
-    DESTINATION lib64
-    OPTIONAL
+    DESTINATION lib64 COMPONENT ge-compiler
+    ${INSTALL_OPTIONAL}
     )

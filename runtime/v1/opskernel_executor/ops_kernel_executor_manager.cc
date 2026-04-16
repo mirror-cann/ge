@@ -13,6 +13,7 @@
 #include "common/plugin/ge_make_unique_util.h"
 #include "base/err_msg.h"
 #include "graph_metadef/common/ge_common/util.h"
+#include "external/ge_common/ge_api_types.h"
 
 namespace ge {
 namespace {

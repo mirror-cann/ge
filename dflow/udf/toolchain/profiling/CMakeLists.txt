@@ -43,7 +43,7 @@ target_link_libraries(udf_profiling PRIVATE
 
 set(INSTALL_LIBRARY_DIR lib)
 
-install(TARGETS udf_profiling OPTIONAL
+install(TARGETS udf_profiling ${INSTALL_OPTIONAL}
     EXPORT udf_profiling-targets
     LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}
     RUNTIME DESTINATION ${INSTALL_LIBRARY_DIR}

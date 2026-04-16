@@ -32,6 +32,11 @@ c_size_t = ctypes.c_size_t
 c_p_to_char_p = ctypes.POINTER(ctypes.c_char_p)
 c_p_to_void_p = ctypes.POINTER(ctypes.c_void_p)
 
+c_func_t_malloc = ctypes.CFUNCTYPE(c_void_p, c_void_p, c_size_t)
+c_func_t_free = ctypes.CFUNCTYPE(None, c_void_p, c_void_p)
+c_func_t_get_addr = ctypes.CFUNCTYPE(c_void_p, c_void_p)
+c_func_t_on_destroy = ctypes.CFUNCTYPE(None, c_void_p)
+
 # ============ Session C API ============
 
 session_lib.GeApiWrapper_Session_CreateSession.argtypes = []
@@ -48,13 +53,40 @@ session_lib.GeApiWrapper_Session_AddGraphWithOptions.argtypes = [
 ]
 session_lib.GeApiWrapper_Session_AddGraphWithOptions.restype = c_int
 
+session_lib.GeApiWrapper_Session_RemoveGraph.argtypes = [c_void_p, c_uint32]
+session_lib.GeApiWrapper_Session_RemoveGraph.restype = c_int
+
 session_lib.GeApiWrapper_Session_RunGraph.argtypes = [
     c_void_p, c_uint32, c_p_to_void_p, c_int, ctypes.POINTER(c_size_t)
 ]
 session_lib.GeApiWrapper_Session_RunGraph.restype = ctypes.POINTER(c_void_p)
 
+session_lib.GeApiWrapper_Session_RunGraphWithStreamAsync.argtypes = [
+    c_void_p, c_uint32, c_void_p, c_p_to_void_p, c_int, ctypes.POINTER(c_size_t)
+]
+session_lib.GeApiWrapper_Session_RunGraphWithStreamAsync.restype = ctypes.POINTER(c_void_p)
+
 session_lib.GeApiWrapper_Session_DestroySession.argtypes = [c_void_p]
 session_lib.GeApiWrapper_Session_DestroySession.restype = None
+
+session_lib.GeApiWrapper_Session_RegisterDefaultAllocator.argtypes = [c_void_p, c_void_p]
+session_lib.GeApiWrapper_Session_RegisterDefaultAllocator.restype = c_uint32
+
+session_lib.GeApiWrapper_Session_RegisterExternalAllocator.argtypes = [
+    c_void_p, c_void_p,
+    c_func_t_malloc, c_func_t_free, c_func_t_get_addr,
+    c_func_t_on_destroy, c_void_p
+]
+session_lib.GeApiWrapper_Session_RegisterExternalAllocator.restype = c_uint32
+
+session_lib.GeApiWrapper_Session_UnregisterExternalAllocator.argtypes = [c_void_p, c_void_p]
+session_lib.GeApiWrapper_Session_UnregisterExternalAllocator.restype = c_uint32
+
+session_lib.GeApiWrapper_HasExternalAllocator.argtypes = [c_void_p]
+session_lib.GeApiWrapper_HasExternalAllocator.restype = ctypes.c_bool
+
+session_lib.GeApiWrapper_IsGEInitialized.argtypes = []
+session_lib.GeApiWrapper_IsGEInitialized.restype = ctypes.c_bool
 
 
 def get_session_lib():

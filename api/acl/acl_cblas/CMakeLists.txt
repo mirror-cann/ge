@@ -16,6 +16,7 @@ add_library(acl_cblas SHARED
     ../common/log_inner.cpp
 )
 
+set(AIR_CODE_DIR ${CMAKE_CURRENT_LIST_DIR}/../../../)
 target_include_directories(acl_cblas PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}
     ${CMAKE_CURRENT_LIST_DIR}/..
@@ -27,18 +28,18 @@ target_include_directories(acl_cblas PRIVATE
     ${AIR_CODE_DIR}/inc/graph_metadef/external
     ${AIR_CODE_DIR}/inc/external
     ${AIR_CODE_DIR}/inc/external/acl
-    ${AIR_CODE_DIR}/base/metadef/pkg_inc
+
     ${ASCEND_INSTALL_PATH}/pkg_inc/base
     ${ASCEND_INSTALL_PATH}/include/prof
-
     ${ASCEND_INSTALL_PATH}/include/acl
     ${ASCEND_INSTALL_PATH}/include
     ${ASCEND_INSTALL_PATH}/pkg_inc/runtime
-
-    ${TOP_DIR}/air/inc/external
-    ${TOP_DIR}/air/inc/external/acl
+        
+    ${TOP_DIR}/metadef/inc/external
+    ${TOP_DIR}/metadef/pkg_inc/
     ${TOP_DIR}/runtime/include/external
     ${TOP_DIR}/runtime/include/external/acl
+    ${TOP_DIR}/runtime/include/dfx
 )
 
 target_compile_options(acl_cblas PRIVATE

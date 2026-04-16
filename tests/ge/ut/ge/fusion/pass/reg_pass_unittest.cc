@@ -7,6 +7,7 @@
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
+#include <new>
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include "common/share_graph.h"
@@ -29,13 +30,63 @@
 namespace ge {
 namespace fusion {
 using namespace ge::es;
+namespace {
+struct PythonCreateSnapshot {
+  bool has_context{false};
+  bool has_descriptor{false};
+  PythonPassCreateContext create_context;
+  PythonPassDescriptor descriptor;
+};
+
+PythonCreateSnapshot g_python_create_snapshot;
+
+void ResetPythonCreateSnapshot() {
+  g_python_create_snapshot = {};
+}
+
+class Stage1PythonFusionPass : public FusionBasePass {
+ public:
+  explicit Stage1PythonFusionPass(const PythonPassDescriptor &descriptor) : descriptor_(descriptor) {}
+
+  const PythonPassDescriptor &GetDescriptor() const {
+    return descriptor_;
+  }
+
+  Status Run(GraphPtr &, CustomPassContext &) override {
+    return SUCCESS;
+  }
+
+ private:
+  PythonPassDescriptor descriptor_;
+};
+
+FusionBasePass *CreateStage1PythonFusionPass() {
+  ResetPythonCreateSnapshot();
+  g_python_create_snapshot.has_context = GetCurrentPythonPassCreateContext(g_python_create_snapshot.create_context);
+  g_python_create_snapshot.has_descriptor =
+      PassRegistry::GetInstance().ResolveCurrentPythonPassDescriptor(g_python_create_snapshot.descriptor);
+  if (!g_python_create_snapshot.has_descriptor) {
+    return nullptr;
+  }
+  return new (std::nothrow) Stage1PythonFusionPass(g_python_create_snapshot.descriptor);
+}
+} // namespace
+
 class UtestRegPass : public testing::Test {
  public:
   void SetUp() override {
     PassRegistry::GetInstance().name_2_fusion_pass_regs_.clear();
+    PassRegistry::GetInstance().descriptor_key_2_python_pass_descs_.clear();
+    PassRegistry::GetInstance().pass_name_2_python_pass_create_contexts_.clear();
+    ClearCurrentPythonPassCreateContext();
+    ResetPythonCreateSnapshot();
   }
   void TearDown() override {
     PassRegistry::GetInstance().name_2_fusion_pass_regs_.clear();
+    PassRegistry::GetInstance().descriptor_key_2_python_pass_descs_.clear();
+    PassRegistry::GetInstance().pass_name_2_python_pass_create_contexts_.clear();
+    ClearCurrentPythonPassCreateContext();
+    ResetPythonCreateSnapshot();
   }
 };
 /**
@@ -222,6 +273,91 @@ TEST_F(UtestRegPass, FusionPass_Reg_InWrongStage) {
       PassRegistry::GetInstance().GetFusionPassRegDataByStage(CustomPassStage::kAfterInferShape);
 
   EXPECT_EQ(passes_before_infershape.size(), 0);
+}
+
+TEST_F(UtestRegPass, PythonPassCreateScope_RestorePreviousContext) {
+  PythonPassCreateContext outer_context{"holder_outer", "OuterPass", PythonPassKind::kFusionBase};
+  PythonPassCreateContext inner_context{"holder_inner", "InnerPass", PythonPassKind::kPatternFusion};
+  PythonPassCreateContext current_context;
+
+  EXPECT_FALSE(GetCurrentPythonPassCreateContext(current_context));
+  {
+    PythonPassCreateScope outer_scope(outer_context);
+    ASSERT_TRUE(GetCurrentPythonPassCreateContext(current_context));
+    EXPECT_EQ(current_context.descriptor_key, outer_context.descriptor_key);
+    {
+      PythonPassCreateScope inner_scope(inner_context);
+      ASSERT_TRUE(GetCurrentPythonPassCreateContext(current_context));
+      EXPECT_EQ(current_context.descriptor_key, inner_context.descriptor_key);
+      EXPECT_EQ(current_context.pass_name, inner_context.pass_name);
+      EXPECT_EQ(current_context.kind, inner_context.kind);
+    }
+    ASSERT_TRUE(GetCurrentPythonPassCreateContext(current_context));
+    EXPECT_EQ(current_context.descriptor_key, outer_context.descriptor_key);
+    EXPECT_EQ(current_context.pass_name, outer_context.pass_name);
+    EXPECT_EQ(current_context.kind, outer_context.kind);
+  }
+  EXPECT_FALSE(GetCurrentPythonPassCreateContext(current_context));
+}
+
+TEST_F(UtestRegPass, PythonPassDescriptor_Reg_CreatePassWithTlsContext) {
+  PythonPassDescriptor pass_desc;
+  pass_desc.descriptor_key = "stage1.python.descriptor";
+  pass_desc.pass_name = "Stage1PythonPass";
+  pass_desc.module_name = "stage1.sample.module";
+  pass_desc.class_name = "Stage1PythonPass";
+  pass_desc.stage = CustomPassStage::kAfterInferShape;
+  pass_desc.kind = PythonPassKind::kFusionBase;
+
+  ASSERT_TRUE(PassRegistry::GetInstance().RegisterPythonPass(pass_desc, CreateStage1PythonFusionPass));
+
+  auto passes = PassRegistry::GetInstance().GetFusionPassRegDataByStage(CustomPassStage::kAfterInferShape);
+  ASSERT_EQ(passes.size(), 1);
+  PythonPassDescriptor stored_desc;
+  ASSERT_TRUE(PassRegistry::GetInstance().GetPythonPassDescriptor(pass_desc.descriptor_key, stored_desc));
+  EXPECT_EQ(stored_desc.pass_name, pass_desc.pass_name);
+  EXPECT_EQ(stored_desc.module_name, pass_desc.module_name);
+  EXPECT_EQ(stored_desc.class_name, pass_desc.class_name);
+
+  auto *pass_from_raw_creator = passes[0].GetCreatePassFn()();
+  EXPECT_EQ(pass_from_raw_creator, nullptr);
+  EXPECT_FALSE(g_python_create_snapshot.has_context);
+  delete pass_from_raw_creator;
+
+  auto *created_pass = PassRegistry::GetInstance().CreatePass(passes[0]);
+  ASSERT_NE(created_pass, nullptr);
+  EXPECT_TRUE(g_python_create_snapshot.has_context);
+  EXPECT_TRUE(g_python_create_snapshot.has_descriptor);
+  EXPECT_EQ(g_python_create_snapshot.create_context.descriptor_key, pass_desc.descriptor_key);
+  EXPECT_EQ(g_python_create_snapshot.create_context.pass_name, pass_desc.pass_name);
+  EXPECT_EQ(g_python_create_snapshot.descriptor.module_name, pass_desc.module_name);
+  EXPECT_EQ(g_python_create_snapshot.descriptor.class_name, pass_desc.class_name);
+
+  auto *python_pass = dynamic_cast<Stage1PythonFusionPass *>(created_pass);
+  ASSERT_NE(python_pass, nullptr);
+  EXPECT_EQ(python_pass->GetDescriptor().descriptor_key, pass_desc.descriptor_key);
+  EXPECT_EQ(python_pass->GetDescriptor().pass_name, pass_desc.pass_name);
+  delete created_pass;
+}
+
+TEST_F(UtestRegPass, PythonPassDescriptor_Reg_DuplicateHolderKeyRejected) {
+  PythonPassDescriptor first_pass_desc;
+  first_pass_desc.descriptor_key = "stage1.python.dup";
+  first_pass_desc.pass_name = "Stage1PythonPassA";
+  first_pass_desc.module_name = "sample.module_a";
+  first_pass_desc.class_name = "Stage1PythonPassA";
+  first_pass_desc.stage = CustomPassStage::kAfterInferShape;
+
+  PythonPassDescriptor second_pass_desc = first_pass_desc;
+  second_pass_desc.pass_name = "Stage1PythonPassB";
+  second_pass_desc.class_name = "Stage1PythonPassB";
+
+  ASSERT_TRUE(PassRegistry::GetInstance().RegisterPythonPass(first_pass_desc, CreateStage1PythonFusionPass));
+  EXPECT_FALSE(PassRegistry::GetInstance().RegisterPythonPass(second_pass_desc, CreateStage1PythonFusionPass));
+
+  auto passes = PassRegistry::GetInstance().GetFusionPassRegDataByStage(CustomPassStage::kAfterInferShape);
+  ASSERT_EQ(passes.size(), 1);
+  EXPECT_EQ(passes[0].GetPassName().GetString(), first_pass_desc.pass_name);
 }
 } // namespace fusion
 } // namespace ge

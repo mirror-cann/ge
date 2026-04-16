@@ -263,10 +263,10 @@ target_link_libraries(ge_local_opskernel_builder_static PRIVATE
     c_sec
 )
 
-install(TARGETS ge_local_engine ge_local_opskernel_builder OPTIONAL
+install(TARGETS ge_local_engine ge_local_opskernel_builder ${INSTALL_OPTIONAL}
     LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}
 )
 
-install(TARGETS atc_ge_local_engine atc_ge_local_opskernel_builder OPTIONAL
+install(TARGETS atc_ge_local_engine atc_ge_local_opskernel_builder ${INSTALL_OPTIONAL}
     LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}/atclib
 )

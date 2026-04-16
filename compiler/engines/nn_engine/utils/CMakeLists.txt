@@ -70,7 +70,7 @@ target_link_libraries(aicore_utils
 )
 
 if (BUILD_OPEN_PROJECT OR ENABLE_OPEN_SRC)
-    install(TARGETS aicore_utils OPTIONAL
+    install(TARGETS aicore_utils ${INSTALL_OPTIONAL}
             EXPORT aicore_utils-targets
             LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}
             )

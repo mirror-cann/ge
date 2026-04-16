@@ -3294,6 +3294,134 @@ TEST_F(DavinciModelTest, davinci_model_with_non_zero_cpy_inpouts) {
   }
 }
 
+namespace {
+void SetupTwoInputNoTilingNodes(const ComputeGraph::Vistor<NodePtr> &all_nodes) {
+  GeTensorDesc tensor0(GeShape({1, 1, 224, 224}), FORMAT_NCHW, DT_INT64);
+  TensorUtils::SetSize(tensor0, 64);
+  AttrUtils::SetBool(tensor0, ATTR_NAME_TENSOR_NO_TILING_MEM_TYPE, true);
+  AttrUtils::SetInt(tensor0, ATTR_NAME_TENSOR_DESC_MEM_OFFSET, 0);
+
+  GeTensorDesc tensor1(GeShape({1, 1, 224, 224}), FORMAT_NCHW, DT_INT64);
+  TensorUtils::SetSize(tensor1, 64);
+  AttrUtils::SetBool(tensor1, ATTR_NAME_TENSOR_NO_TILING_MEM_TYPE, true);
+  AttrUtils::SetInt(tensor1, ATTR_NAME_TENSOR_DESC_MEM_OFFSET, 0);
+
+  GeTensorDesc tensor_out(GeShape({1, 1, 224, 224}), FORMAT_NCHW, DT_INT64);
+  TensorUtils::SetSize(tensor_out, 64);
+  AttrUtils::SetBool(tensor_out, ATTR_NAME_TENSOR_NO_TILING_MEM_TYPE, true);
+  AttrUtils::SetInt(tensor_out, ATTR_NAME_TENSOR_DESC_MEM_OFFSET, 1024);
+
+  for (const auto &node : all_nodes) {
+    const auto op_desc = node->GetOpDesc();
+    if (op_desc->GetType() == DATA && op_desc->GetName() == "data0") {
+      op_desc->SetOpKernelLibName("DNN_VM_GE_LOCAL_OP_STORE");
+      op_desc->UpdateOutputDesc(0, tensor0);
+      op_desc->SetOutputOffset({2048});
+      op_desc->SetWorkspace({});
+      op_desc->SetWorkspaceBytes({});
+    } else if (op_desc->GetType() == DATA && op_desc->GetName() == "data1") {
+      op_desc->SetOpKernelLibName("DNN_VM_GE_LOCAL_OP_STORE");
+      op_desc->UpdateOutputDesc(0, tensor1);
+      // offset 与 data0(2048) 不同，避免虚拟地址去重跳过 SetInputOutsideAddrs → outside_addrs_ 为空
+      op_desc->SetOutputOffset({3072});
+      op_desc->SetWorkspace({});
+      op_desc->SetWorkspaceBytes({});
+    } else if (op_desc->GetType() == ADD) {
+      op_desc->SetOpKernelLibName("AIcoreEngine");
+      op_desc->UpdateInputDesc(0, tensor0);
+      op_desc->UpdateInputDesc(1, tensor1);
+      op_desc->UpdateOutputDesc(0, tensor_out);
+      op_desc->SetInputOffset({2048, 3072});  // 与 data0/data1 的 output offset 对应
+      op_desc->SetOutputOffset({4096});
+      op_desc->SetWorkspace({});
+      op_desc->SetWorkspaceBytes({});
+    } else {
+      op_desc->SetOpKernelLibName("DNN_VM_GE_LOCAL_OP_STORE");
+      op_desc->UpdateInputDesc(0, tensor_out);
+      op_desc->SetInputOffset({4096});
+      op_desc->SetSrcName({"add"});
+      op_desc->SetSrcIndex({0});
+    }
+  }
+}
+
+// 封装两输入图的构建与序列化，避免 TEST_F 函数体过长。
+// model_buffer_out 由调用方持有，确保 ModelData 中的裸指针在整个测试期间有效。
+ModelData CreateTwoInputNoTilingModelData(ModelBufferData &model_buffer_out) {
+  auto add = OP_CFG(ADD).Attr(ATTR_NAME_OP_NO_TILING, true).Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
+  auto data0 = OP_CFG(DATA).Attr(ATTR_NAME_OP_NO_TILING, true).Attr(ATTR_NAME_INDEX, 0);
+  auto data1 = OP_CFG(DATA).Attr(ATTR_NAME_OP_NO_TILING, true).Attr(ATTR_NAME_INDEX, 1);
+  auto output = OP_CFG(NETOUTPUT).Attr(ATTR_NAME_OP_NO_TILING, true);
+  DEF_GRAPH(g1) {
+    CHAIN(NODE("data0", data0)->EDGE(0, 0)->NODE("add", add));
+    CHAIN(NODE("data1", data1)->EDGE(0, 1)->NODE("add", add));
+    CHAIN(NODE("add", add)->EDGE(0, 0)->NODE("output", output));
+  };
+  auto graph = ToComputeGraph(g1);
+  SetupTwoInputNoTilingNodes(graph->GetDirectNode());
+  EXPECT_NE(graph, nullptr);
+
+  std::shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
+  TBEKernelStore tbe_kernel_store;
+  InitKernelTaskDef_TE(graph, *model_task_def, "add", tbe_kernel_store);
+  InitEventTaskDef(graph, *model_task_def);
+  InitFusionTaskDef(graph, *model_task_def);
+  InitEndGraphDef(graph, *model_task_def, "output");
+  InitProfilerTaskDef(graph, *model_task_def);
+
+  GeModelPtr ge_model = MakeShared<GeModel>();
+  ge_model->SetGraph(graph);
+  ge_model->SetModelTaskDef(model_task_def);
+  SetGeModelAttrs(ge_model);
+
+  ModelHelper model_helper;
+  model_helper.SetSaveMode(false);
+  EXPECT_TRUE(tbe_kernel_store.Build());
+  ge_model->SetTBEKernelStore(tbe_kernel_store);
+  EXPECT_EQ(model_helper.SaveToOmModel(ge_model, "file_name_prefix", model_buffer_out), SUCCESS);
+  return ModelData{model_buffer_out.data.get(), static_cast<uint32_t>(model_buffer_out.length), 0, "", ""};
+}
+}  // namespace
+
+// 覆盖 LoadWithHardwareQueue 中 input_queue_attrs_.size() > 1 的帧对齐分支
+// 两路输入队列触发 RT_DQS_TASK_FRAME_ALIGN 任务发射
+TEST_F(DavinciModelTest, davinci_model_multi_input_queue_frame_align) {
+  // model_buffer 必须与 model_data 同生命周期，ModelData 只持有裸指针
+  ModelBufferData model_buffer;
+  const ModelData model_data = CreateTwoInputNoTilingModelData(model_buffer);
+  // 两路输入队列：size() > 1 → LoadWithHardwareQueue 发射 RT_DQS_TASK_FRAME_ALIGN
+  // SetMemQueueEntityType(1) 使 rtMemQueueQuery 返回非零 entity_type，
+  // 令 SetQueueType() 设置 is_hw_q_ = true，
+  // 从而 LoadWithQueue() 在 is_hw_q_ 判断处 early-return，只走 LoadWithHardwareQueue 路径。
+  {
+    ModelHelper model_helper3;
+    EXPECT_EQ(model_helper3.LoadModel(model_data), SUCCESS);
+    const std::vector<uint32_t> input_queue_ids{1001U, 1003U};
+    QueueAttrs in_queue_0 = {.queue_id = 1001U, .device_type = NPU, .device_id = 0};
+    QueueAttrs in_queue_1 = {.queue_id = 1003U, .device_type = NPU, .device_id = 0};
+    const std::vector<uint32_t> output_queue_ids{1002U};
+    QueueAttrs out_queue_0 = {.queue_id = 1002U, .device_type = NPU, .device_id = 0};
+    ge::ExecutionRuntimeUtils::EnableInHeterogeneousExecutor();
+    // 设置硬件队列标记：entity_type != 0 → is_hw_q_ = true → LoadWithQueue early-return
+    SetMemQueueEntityType(1);
+    uint32_t model_id = 0;
+    ModelQueueParam model_queue_param{};
+    model_queue_param.group_total_count = 1;
+    model_queue_param.group_index = 0;
+    model_queue_param.input_queues = input_queue_ids;
+    model_queue_param.output_queues = output_queue_ids;
+    model_queue_param.input_queues_attrs = {in_queue_0, in_queue_1};
+    model_queue_param.output_queues_attrs = {out_queue_0};
+    model_queue_param.is_dynamic_sched = true;
+
+    GeExecutor ge_executor;
+    EXPECT_EQ(ge_executor.LoadModelWithQ(model_id, model_helper3.GetGeRootModel(), model_queue_param), SUCCESS);
+    EXPECT_EQ(ge_executor.UnloadModel(model_id), SUCCESS);
+    SetMemQueueEntityType(0);
+    ge::ExecutionRuntimeUtils::in_heterogeneous_executor_ = false;
+  }
+}
+
 TEST_F(DavinciModelTest, davinci_model_error_tracking_test) {
   const auto SetUnknownOpKernelForNoTiling = [](const ComputeGraph::Vistor<NodePtr> &all_nodes) {
     GeTensorDesc tensor0(GeShape({1, 1, 224, 224}), FORMAT_NCHW, DT_INT64);

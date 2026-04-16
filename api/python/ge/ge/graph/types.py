@@ -121,6 +121,13 @@ class Format(IntEnum):
     FORMAT_MAX = 53
 
 
+class Placement(IntEnum):
+    # The enum value of Placement must be the same with the value in c++.
+    # c++ file path: metadef/inc/external/graph/types.h
+    PLACEMENT_HOST = 0
+    PLACEMENT_DEVICE = 1
+
+
 class AttrValueType(IntEnum):
     # The enum value of AttrDataType must be the same with the value in c++(enum ValueType.
     # c++ file path: metadef/inc/graph/any_value.h

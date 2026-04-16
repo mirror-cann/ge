@@ -78,6 +78,7 @@ static void MockGenerateTask() {
   };
 
   MockForGenerateTask("AiCoreLib", aicore_func);
+  MockForGenerateTask("AIcoreEngine", aicore_func);
   MockForGenerateTask("ops_kernel_info_hccl", hccl_func);
 }
 class ConcatNotaskPassTest : public testing::Test {
@@ -87,6 +88,7 @@ class ConcatNotaskPassTest : public testing::Test {
   }
   void TearDown() {
     OpsKernelBuilderRegistry::GetInstance().Unregister("AiCoreLib");
+    OpsKernelBuilderRegistry::GetInstance().Unregister("AIcoreEngine");
     OpsKernelBuilderRegistry::GetInstance().Unregister("ops_kernel_info_hccl");
   }
 };

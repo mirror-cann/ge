@@ -20,19 +20,21 @@ graph模块 - 图操作接口
 - Tensor: 张量对象
 - DataType: 数据类型
 - Format: 数据格式
+- Placement: 数据存储位置格式
 - DumpFormat:  dump格式
 """
 
 from .graph import Graph, DumpFormat
 from .node import Node
 from .tensor import Tensor
-from .types import DataType, Format
+from .types import DataType, Format, Placement
 
 __all__ = [
     'Graph',
     'Node',
     'DataType',
     'Format',
+    'Placement',
     'Tensor',
     'DumpFormat',
 ]

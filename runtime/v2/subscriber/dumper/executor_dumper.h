@@ -249,7 +249,7 @@ private:
   void SetDumpModelInfo(ge::DumpOp &dump_op) const;
   bool HandleFftsDump(NodeDumpUnit &dump_unit, const ge::OpDescPtr &op_desc_dump);
   bool GetAndCheckAddrs(NodeDumpUnit &dump_unit, const ge::OpDesc *op_desc, std::vector<uintptr_t> &input_addrs,
-                                             std::vector<uintptr_t> &output_addrs, std::vector<void*> &allocated_input_mem, std::vector<void*> &allocated_output_mem);
+                                             std::vector<uintptr_t> &output_addrs, std::vector<void*> &allocated_input_mem, std::vector<void*> &allocated_output_mem) const;
 
 protected:
   std::unordered_map<std::string, ExceptionDumpUint> node_names_to_extra_units_{};  // key computer node name

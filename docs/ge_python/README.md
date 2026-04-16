@@ -10,6 +10,7 @@ GE-PY 模块包含以下核心组件：
 - **ge_global 模块** - GE 全局初始化和析构接口
 - **offline_compile 模块** - 离线图编译接口
 - **session 模块** - 图编译执行接口
+- **allocator 模块** - 内存分配器抽象，供异步执行场景注册外置 allocator
 - **es 模块** - Eager-Style 图构建接口，提供函数式风格的图构建方式
 
 ## 文档导航
@@ -23,6 +24,7 @@ GE-PY 模块包含以下核心组件：
   - Tensor 类：张量数据类
   - GeApi 类：GE 初始化和析构
   - Session 类：图编译执行接口
+  - Allocator 类：异步执行场景下的外置内存分配器接口
 
 - **[ES-PY 模块文档](../es/api/es_python.md)** - Eager-Style 图构建模块的详细说明
   - GraphBuilder 类：Eager-Style 图构建器
@@ -33,6 +35,7 @@ GE-PY 模块包含以下核心组件：
 - **graph 模块** - 提供图的基础操作能力，是其他模块的基础
 - **es 模块** - 提供函数式图构建方式，最终构建出 graph 模块的 Graph 对象
 - **session 模块** - 使用 graph 模块构建的图进行编译和执行
+- **allocator 模块** - 为 session 异步执行提供按 stream 维度注册的外置内存分配能力
 - **ge_global 模块** - 提供全局初始化和资源管理
 - **offline_compile 模块** - 提供离线模型构建、导出能力
 
@@ -62,12 +65,17 @@ GE-PY 模块包含以下核心组件：
 
 - [x] [***December 2025***] `ge-python` 模块已经完成设计和落地，具备了基本的使用es api 构图、 编译图、 执行图的能力。
 
-### API 集成
+### 基础API 集成
 
 - [x] [***December 2025***]基础接口已经完成设计和落地。
 - [x] [***February 2026***] es 的 python 算子 api 支持，详见[es api集成路标](../es/README.md#api-集成)。
-- [ ] [***March 2026***] 图异步执行的python接口提供
+- [x] [***April 2026***] 图异步执行的python接口提供
 - [x] [***April 2026***] 离线图编译执行的python接口提供
+
+### 自定义pass
+
+- [ ] [***May 2026***] 自定义pass的python接口完成设计和落地
+- [ ] [***May 2026***] 自定义pass的python接口ABI兼容性完成设计和落地
 
 ### sample和相关文档
 

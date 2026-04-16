@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # ----------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
 # This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
@@ -8,21 +9,28 @@
 # See LICENSE in the root of the software repository for the full text of the License.
 # ----------------------------------------------------------------------------
 
-import numpy as np
 import os
+import logging
+import numpy as np
 from PIL import Image
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="[%(levelname)s] %(asctime)s : %(message)s"
+)
+
 
 def process(input_path):
     try:
         input_image = Image.open(input_path)
         input_image = input_image.resize((256, 256))
         # hwc
-        img = np.array(input_image)
+        img = np.asarray(input_image)
         height = img.shape[0]
         width = img.shape[1]
-        h_off = int((height-224)/2)
-        w_off = int((width-224)/2)
-        crop_img = img[h_off:height-h_off, w_off:width-w_off, :]
+        h_off = int((height - 224) / 2)
+        w_off = int((width - 224) / 2)
+        crop_img = img[h_off:height - h_off, w_off:width - w_off, :]
         img = crop_img[:, :, :]
         shape = img.shape
         img = img.astype("float32")
@@ -33,11 +41,14 @@ def process(input_path):
         result = img.transpose([0, 3, 1, 2])
         output_name = input_path.split('.')[0] + ".bin"
         result.tofile(output_name)
+        input_image.close()
     except Exception as except_err:
-        print(except_err)
+        logging.error(except_err)
         return 1
     else:
         return 0
+
+
 if __name__ == "__main__":
     count_ok = 0
     count_ng = 0
@@ -45,16 +56,16 @@ if __name__ == "__main__":
     for image_name in images:
         if not image_name.endswith("jpg"):
             continue
-        print("start to process image {}....".format(image_name))
+        logging.info("start to process image %s....", image_name)
         ret = process(image_name)
         if ret == 0:
-            print("process image {} successfully".format(image_name))
+            logging.info("process image %s successfully", image_name)
             count_ok = count_ok + 1
         elif ret == 1:
-            print("failed to process image {}".format(image_name))
+            logging.error("failed to process image %s", image_name)
             count_ng = count_ng + 1
     if count_ng == 0:
-        print("{} images in total, {} images process successfully" .format(count_ok + count_ng, count_ok))
+        logging.info("%s images in total, %s images process successfully", count_ok + count_ng, count_ok)
     else:
-        print("{} images in total, {} images process successfully, {} images process failed"
-            .format(count_ok + count_ng, count_ok, count_ng))
+        logging.error("%s images in total, %s images process successfully, %s images process failed",
+                     count_ok + count_ng, count_ok, count_ng)

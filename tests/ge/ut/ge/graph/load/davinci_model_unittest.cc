@@ -2847,6 +2847,34 @@ TEST_F(UtestDavinciModel, LoadWithQueue_HWQ_ReportStatus_succ) {
   rtStreamDestroy(active_stream);
 }
 
+// 覆盖 input_queue_attrs_.size() > 1 分支：多路输入时应发射 RT_DQS_TASK_FRAME_ALIGN
+TEST_F(UtestDavinciModel, LoadWithHardwareQueue_MultiInputQueues_FrameAlignLaunched) {
+  DavinciModel model(0, nullptr);
+  model.ge_model_ = MakeShared<GeModel>();
+  model.is_hw_q_ = true;
+  // 添加两个输入队列，使 size() > 1，触发帧对齐路径
+  QueueAttrs inputQueue1 = {0, 0, 0, 0U};
+  QueueAttrs inputQueue2 = {1, 0, 0, 0U};
+  QueueAttrs outputQueue1 = {2, 0, 0, 0U};
+  model.input_queue_attrs_.emplace_back(inputQueue1);
+  model.input_queue_attrs_.emplace_back(inputQueue2);
+  model.output_queue_attrs_.emplace_back(outputQueue1);
+  rtStream_t active_stream = nullptr;
+  model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
+  rtStreamCreate(&active_stream, 0);
+  model.active_stream_list_ = {active_stream};
+  ZeroCopyOffset zero_copy_offset;
+  std::map<uintptr_t, std::vector<uintptr_t>> virtual_addr_out_data;
+  virtual_addr_out_data[0x1111].emplace_back(0x1111111);
+  zero_copy_offset.outside_addrs_.emplace_back(virtual_addr_out_data);
+  // input_data_info_ 索引需小于 input_queue_attrs_.size()（即 < 2）
+  model.input_data_info_[0] = zero_copy_offset;
+  model.input_data_info_[1] = zero_copy_offset;
+  model.output_data_info_[0] = zero_copy_offset;
+  EXPECT_EQ(model.LoadWithHardwareQueue(), SUCCESS);
+  rtStreamDestroy(active_stream);
+}
+
 TEST_F(UtestDavinciModel, CpuModelDequeue_WithInputAlignAttrs) {
   DavinciModel model(0, nullptr);
   model.ge_model_ = MakeShared<GeModel>();

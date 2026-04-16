@@ -23,7 +23,7 @@ from ge.es.all import Add
 
 def build_overload_graph():
     # 1、创建图构建器
-    builder = GraphBuilder("MakeMatMulGraph")
+    builder = GraphBuilder("MakeAddGraph")
     # 2、创建图输入节点
     input_tensor_holder1 = builder.create_input(
         index=0,

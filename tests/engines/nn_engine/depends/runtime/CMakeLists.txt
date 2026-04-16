@@ -34,6 +34,6 @@ target_link_libraries(runtime_stub_fe
         PUBLIC
                 runtime_headers)
 
-install(TARGETS runtime_stub_fe OPTIONAL
+install(TARGETS runtime_stub_fe ${INSTALL_OPTIONAL}
         EXPORT runtime_stub_fe-targets
         LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR})

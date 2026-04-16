@@ -617,6 +617,7 @@ if [[ "X$ENABLE_GE_ST" = "Xon" ]] || [[ "X$ENABLE_RT2_ST" = "Xon" ]] || [[ "X$EN
       unset ASAN_OPTIONS
       COV_DIRS+=("${BUILD_PATH}/graph_metadef")
       COV_DIRS+=("${BUILD_PATH}/parser")
+      COV_DIRS+=("${BUILD_PATH}/compiler")     # graph_engine_compile_test 触发了 compiler 下的代码
     fi
 
     if [[ "X$ENABLE_DFLOW_ST" = "Xon" ]]; then

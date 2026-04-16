@@ -16,6 +16,8 @@
 #include "graph_builder/bg_memory.h"
 #include "graph_builder/bg_tensor.h"
 #include "exe_graph/lowering/value_holder_utils.h"
+#include "graph/debug/ge_attr_define.h"
+#include "graph/utils/graph_utils.h"
 
 #include "lowering/placement/placed_lowering_register.h"
 namespace gert {
@@ -120,6 +122,30 @@ ge::graphStatus DeviceHbmToHost(const ge::Node *node, LoweringGlobalData &global
   return ge::GRAPH_SUCCESS;
 }
 
+bool IsNodeRefedByRefNode(const ge::Node *node) {
+  for (const auto &out_pair : node->GetOutDataNodesAndAnchors()) {
+    const auto &peer_node = out_pair.first;
+    const auto &peer_in_anchor = out_pair.second;
+    GE_ASSERT_NOTNULL(peer_node);
+    GE_ASSERT_NOTNULL(peer_in_anchor);
+    const int32_t input_index = peer_in_anchor->GetIdx();
+    const auto op_desc = peer_node->GetOpDescBarePtr();
+    GE_ASSERT_NOTNULL(op_desc);
+    bool is_ref = false;
+    (void)ge::AttrUtils::GetBool(op_desc, ge::ATTR_NAME_REFERENCE, is_ref);
+    if (is_ref) {
+      for (const auto &out_anchor : peer_node->GetAllOutDataAnchors()) {
+        int32_t reuse_in_index = -1;
+        if (ge::GraphUtils::IsRefFromInput(out_anchor, reuse_in_index) && reuse_in_index == input_index) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
+
 ge::graphStatus MakeSureAtHostDDR(const ge::Node *node, LoweringGlobalData &global_data, ge::DataType data_type,
                                   const OutputLowerResult &src, int64_t dst_logic_stream_id, OutputLowerResult &dst) {
   const auto op_desc = node->GetOpDescBarePtr();
@@ -128,6 +154,8 @@ ge::graphStatus MakeSureAtHostDDR(const ge::Node *node, LoweringGlobalData &glob
   (void)dst_logic_stream_id;
   auto dt_holder = bg::ValueHolder::CreateConst(&data_type, sizeof(data_type));
   auto tensor_size = GetTensorSize(global_data, data_type, src, dt_holder);
+  bool is_need_sync = ((node->GetType() != "Data") || IsNodeRefedByRefNode(node));
+
   // host不需要傳入allocator
   std::vector<bg::ValueHolderPtr> copy_inputs{global_data.GetStream()};
   copy_inputs.emplace_back(
@@ -136,8 +164,14 @@ ge::graphStatus MakeSureAtHostDDR(const ge::Node *node, LoweringGlobalData &glob
   copy_inputs.emplace_back(src.address);
   copy_inputs.emplace_back(tensor_size);
 
-  auto dst_address = bg::DevMemValueHolder::CreateSingleDataOutput("MakeSureTensorAtHost",
-                                                                   copy_inputs, src_logic_stream_id);
+  bg::DevMemValueHolderPtr dst_address;
+  if (is_need_sync) {
+    dst_address = bg::DevMemValueHolder::CreateSingleDataOutput("MakeSureTensorAtHost",
+                                                                copy_inputs, src_logic_stream_id);
+  } else {
+    dst_address = bg::DevMemValueHolder::CreateSingleDataOutput("MakeSureTensorAtHostWithoutSync",
+                                                                copy_inputs, src_logic_stream_id);
+  }
 
   for (const auto &src_ordered_holder : src.order_holders) {
     bg::ValueHolder::AddDependency(src_ordered_holder, dst_address);

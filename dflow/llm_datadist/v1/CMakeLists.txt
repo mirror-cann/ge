@@ -74,7 +74,7 @@ target_link_libraries(llm_engine PRIVATE
         )
 
 set(INSTALL_LIBRARY_DIR lib)
-install(TARGETS llm_engine OPTIONAL
+install(TARGETS llm_engine ${INSTALL_OPTIONAL}
         EXPORT llm_engine-targets
         LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}
         RUNTIME DESTINATION ${INSTALL_LIBRARY_DIR})

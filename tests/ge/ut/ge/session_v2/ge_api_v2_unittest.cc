@@ -633,13 +633,13 @@ TEST_F(UtestGeApiV2, GEInitialize_test) {
     {AscendString("ge.autoTuneMode"), AscendString("RA")}};
   ret = ge::GEInitializeV2(options2);
   EXPECT_NE(ret, SUCCESS);
+  EXPECT_EQ(GEFinalizeV2(), SUCCESS);  // Fixed: balance GEInitializeV2 and GEFinalizeV2 calls
 
   ge::GEGetErrorMsgV3();
   ge::GEGetWarningMsgV3();
   GeSession session(options);
   GeSession session1(options1);
   GeSession session2(options2);
-  EXPECT_EQ(GEFinalizeV2(), SUCCESS);
 }
 
 TEST_F(UtestGeApiV2, GEInitialize_load_custom_pass_failed) {

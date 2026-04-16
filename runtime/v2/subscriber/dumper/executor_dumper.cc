@@ -948,7 +948,7 @@ bool ExecutorDumper::GetAndCheckAddrs(NodeDumpUnit &dump_unit, const ge::OpDesc 
                                        std::vector<uintptr_t> &input_addrs,
                                        std::vector<uintptr_t> &output_addrs,
                                        std::vector<void*> &allocated_input_mem,
-                                       std::vector<void*> &allocated_output_mem) {
+                                       std::vector<void*> &allocated_output_mem) const {
   if (GetDumpAddrFromChainAddr(dump_unit, true, allocated_input_mem, input_addrs) != ge::SUCCESS ||
       GetDumpAddrFromChainAddr(dump_unit, false, allocated_output_mem, output_addrs) != ge::SUCCESS) {
     return false;

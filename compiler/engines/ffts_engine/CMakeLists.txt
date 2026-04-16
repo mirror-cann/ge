@@ -73,7 +73,7 @@ target_link_libraries(ffts PRIVATE
         json
         -ldl)
 
-install(TARGETS ffts OPTIONAL
+install(TARGETS ffts ${INSTALL_OPTIONAL}
         EXPORT ffts-targets
         LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}
         )
@@ -88,5 +88,5 @@ add_custom_command(
 )
 install(FILES
         ${CMAKE_CURRENT_BINARY_DIR}/ffts.ini
-        DESTINATION ${INSTALL_LIBRARY_DIR} OPTIONAL
+        DESTINATION ${INSTALL_LIBRARY_DIR} ${INSTALL_OPTIONAL}
 )

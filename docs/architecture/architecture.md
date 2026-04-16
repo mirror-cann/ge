@@ -7,7 +7,7 @@ GE（Graph Engine）是 CANN 生态中面向昇腾系列芯片的高性能图模
 
 GE 的逻辑结构如下所示：
 
-![](figures/ge_arch.svg)
+![](../figures/ge_arch.svg)
 
 ### 前端框架适配层
 
@@ -196,7 +196,7 @@ GE 支持通过插件方式扩展编译能力，包括 **AscendC 自定义算子
 可参考以下资料获取详细开发指南：
 
 * AscendC 自定义算子入图：[资料官网 ](https://www.hiascend.com/zh/document)搜索”算子入图（GE）开发“
-* 自定义 pass 开发：[融合Pass开发指南](../examples/fusion_pass/融合Pass开发指南.md)
+* 自定义 pass 开发：[融合Pass开发指南](../../examples/fusion_pass/融合Pass开发指南.md)
 
 ## 项目结构
 

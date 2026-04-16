@@ -37,6 +37,6 @@ target_link_libraries(graph_tuner_stub
         c_sec
         graph)
 
-install(TARGETS graph_tuner_stub OPTIONAL
+install(TARGETS graph_tuner_stub ${INSTALL_OPTIONAL}
         EXPORT graph_tuner_stub-targets
         LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR})

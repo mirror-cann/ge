@@ -89,6 +89,6 @@ target_link_libraries(data_flow_base PRIVATE
     json
 )
 
-install(TARGETS data_flow_base OPTIONAL
+install(TARGETS data_flow_base ${INSTALL_OPTIONAL}
     LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}
 )

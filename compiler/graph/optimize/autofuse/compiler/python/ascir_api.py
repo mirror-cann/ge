@@ -443,6 +443,26 @@ def Ceil2Int(owner_graph: ascir.HintGraph,
     return _common_in_1_out_1_normal_op("Ceil2Int", owner_graph, x, axis=axis, size=size, stride=stride)
 
 
+def FloorToInt(owner_graph: ascir.HintGraph,
+               x: ascir.OpsOperatorOutput,
+               *,
+               axis: List[ascir.Axis],
+               size: Optional[List[ascir.SizeExpr]] = None,
+               stride: Optional[List[ascir.SizeExpr]] = None
+               ) -> ascir.OpsOperatorOutput:
+    return _common_in_1_out_1_normal_op("FloorToInt", owner_graph, x, axis=axis, size=size, stride=stride)
+
+
+def Lgamma(owner_graph: ascir.HintGraph,
+               x: ascir.OpsOperatorOutput,
+               *,
+               axis: List[ascir.Axis],
+               size: Optional[List[ascir.SizeExpr]] = None,
+               stride: Optional[List[ascir.SizeExpr]] = None
+               ) -> ascir.OpsOperatorOutput:
+    return _common_in_1_out_1_normal_op("Lgamma", owner_graph, x, axis=axis, size=size, stride=stride)
+
+
 def Cos(owner_graph: ascir.HintGraph,
                x: ascir.OpsOperatorOutput,
                *,
@@ -1003,6 +1023,39 @@ def LogicalAnd(owner_graph: ascir.HintGraph,
     return _common_in_2_out_1_normal_op("LogicalAnd", owner_graph, x1, x2, axis=axis, size=size, stride=stride)
 
 
+def LogicalXor(owner_graph: ascir.HintGraph,
+               x1: ascir.OpsOperatorOutput,
+               x2: ascir.OpsOperatorOutput,
+               *,
+               axis: List[ascir.Axis],
+               size: Optional[List[ascir.SizeExpr]] = None,
+               stride: Optional[List[ascir.SizeExpr]] = None
+               ) -> ascir.OpsOperatorOutput:
+    return _common_in_2_out_1_normal_op("LogicalXor", owner_graph, x1, x2, axis=axis, size=size, stride=stride)
+
+
+def Fmod(owner_graph: ascir.HintGraph,
+               x1: ascir.OpsOperatorOutput,
+               x2: ascir.OpsOperatorOutput,
+               *,
+               axis: List[ascir.Axis],
+               size: Optional[List[ascir.SizeExpr]] = None,
+               stride: Optional[List[ascir.SizeExpr]] = None
+               ) -> ascir.OpsOperatorOutput:
+    return _common_in_2_out_1_normal_op("Fmod", owner_graph, x1, x2, axis=axis, size=size, stride=stride)
+
+
+def Hypot(owner_graph: ascir.HintGraph,
+               x1: ascir.OpsOperatorOutput,
+               x2: ascir.OpsOperatorOutput,
+               *,
+               axis: List[ascir.Axis],
+               size: Optional[List[ascir.SizeExpr]] = None,
+               stride: Optional[List[ascir.SizeExpr]] = None
+               ) -> ascir.OpsOperatorOutput:
+    return _common_in_2_out_1_normal_op("Hypot", owner_graph, x1, x2, axis=axis, size=size, stride=stride)
+
+
 def Select(owner_graph: ascir.HintGraph,
            x1: ascir.OpsOperatorOutput,
            x2: ascir.OpsOperatorOutput,
@@ -1109,6 +1162,26 @@ def Log2(owner_graph: ascir.HintGraph,
          stride: Optional[List[ascir.SizeExpr]] = None
          ) -> ascir.OpsOperatorOutput:
     return _common_in_1_out_1_normal_op("Log2", owner_graph, x, axis=axis, size=size, stride=stride)
+
+
+def Log10(owner_graph: ascir.HintGraph,
+         x: ascir.OpsOperatorOutput,
+         *,
+         axis: List[ascir.Axis],
+         size: Optional[List[ascir.SizeExpr]] = None,
+         stride: Optional[List[ascir.SizeExpr]] = None
+         ) -> ascir.OpsOperatorOutput:
+    return _common_in_1_out_1_normal_op("Log10", owner_graph, x, axis=axis, size=size, stride=stride)
+
+
+def Log1p(owner_graph: ascir.HintGraph,
+         x: ascir.OpsOperatorOutput,
+         *,
+         axis: List[ascir.Axis],
+         size: Optional[List[ascir.SizeExpr]] = None,
+         stride: Optional[List[ascir.SizeExpr]] = None
+         ) -> ascir.OpsOperatorOutput:
+    return _common_in_1_out_1_normal_op("Log1p", owner_graph, x, axis=axis, size=size, stride=stride)
 
 
 def LShift(owner_graph: ascir.HintGraph,

@@ -9,6 +9,12 @@
  */
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <fstream>
+#include <mutex>
+#include <sstream>
+#include <cstdio>
+#include <cstdlib>
+#include <unistd.h>
 #include "common/share_graph.h"
 #include "es_ge_test_ops.h"
 #include "graph/debug/ge_attr_define.h"
@@ -31,6 +37,8 @@
 #include "compiler/graph/fusion/pass/pass_registry.h"
 #include "ge/fusion/pass/decompose_pass.h"
 #undef private
+#include "compiler/graph/fusion/pass/python_fusion_base_pass_adapter.h"
+#include "compiler/graph/fusion/pass/python_fusion_base_pass_pybind_bridge.h"
 
 namespace ge {
 namespace fusion {
@@ -40,28 +48,243 @@ std::string GetCodeDir() {
   getcwd(current_path, MMPA_MAX_PATH);
   return current_path;
 }
+
+constexpr const char *kEnvPythonPassPath = "ASCEND_GE_PY_PASS_PATH";
+
+class ScopedTempDir {
+ public:
+  ScopedTempDir() {
+    char dir_template[] = "/tmp/ge_python_pass_ut_XXXXXX";
+    const auto *created_dir = mkdtemp(dir_template);
+    dir_path_ = (created_dir == nullptr) ? std::string() : std::string(created_dir);
+  }
+
+  ~ScopedTempDir() {
+    if (dir_path_.empty()) {
+      return;
+    }
+    for (const auto &file_name : created_files_) {
+      (void)remove((dir_path_ + "/" + file_name).c_str());
+    }
+    (void)rmdir(dir_path_.c_str());
+  }
+
+  std::string FilePath(const std::string &file_name) const {
+    return dir_path_ + "/" + file_name;
+  }
+
+  std::string CreateFilePath(const std::string &file_name) {
+    TrackFile(file_name);
+    return FilePath(file_name);
+  }
+
+  void TrackFile(const std::string &file_name) {
+    created_files_.push_back(file_name);
+  }
+
+ private:
+  std::string dir_path_;
+  std::vector<std::string> created_files_;
+};
+
+class ScopedEnvVar {
+ public:
+  ScopedEnvVar(const std::string &name, const std::string &value) : name_(name) {
+    const char *old_value = getenv(name_.c_str());
+    if (old_value != nullptr) {
+      has_old_value_ = true;
+      old_value_ = old_value;
+    }
+    (void)setenv(name_.c_str(), value.c_str(), 1);
+  }
+
+  ~ScopedEnvVar() {
+    if (has_old_value_) {
+      (void)setenv(name_.c_str(), old_value_.c_str(), 1);
+      return;
+    }
+    (void)unsetenv(name_.c_str());
+  }
+
+ private:
+  std::string name_;
+  std::string old_value_;
+  bool has_old_value_{false};
+};
+
+void WriteFile(const std::string &file_path, const std::string &content) {
+  std::ofstream file(file_path, std::ios::out | std::ios::trunc);
+  ASSERT_TRUE(file.is_open());
+  file << content;
+  file.close();
+}
+
+std::string ReadFile(const std::string &file_path) {
+  std::ifstream file(file_path);
+  std::stringstream buffer;
+  buffer << file.rdbuf();
+  return buffer.str();
+}
+
+ScopedTempDir &GetSharedPybindPassDir() {
+  static ScopedTempDir dir;
+  return dir;
+}
+
+const std::string &GetSharedPybindPassFilePath() {
+  static const std::string path = GetSharedPybindPassDir().CreateFilePath("pybind_shared_passes.py");
+  return path;
+}
+
+const std::string &GetSharedPybindMarkerFilePath() {
+  static const std::string path = GetSharedPybindPassDir().CreateFilePath("bridge_success_marker.txt");
+  return path;
+}
+
+void EnsureSharedPybindPassFile() {
+  static std::once_flag once;
+  std::call_once(once, []() {
+    std::ostringstream pass_code;
+    pass_code << "from pathlib import Path\n"
+              << "from ge.graph import Graph\n"
+              << "from ge.passes import FusionBasePass, PassStage, register_fusion_pass\n\n"
+              << "MARKER_FILE = r'" << GetSharedPybindMarkerFilePath() << "'\n\n"
+              << "@register_fusion_pass(name='PythonPybindBridgePass', stage=PassStage.AFTER_INFER_SHAPE)\n"
+              << "class PythonPybindBridgePass(FusionBasePass):\n"
+              << "    def run(self, graph, context):\n"
+              << "        assert isinstance(graph, Graph)\n"
+              << "        Path(MARKER_FILE).write_text(f\"{graph.name}|{context.pass_name}\", encoding='utf-8')\n"
+              << "        return 0\n\n"
+              << "@register_fusion_pass(name='PythonPybindBridgeFailedPass', "
+                 "stage=PassStage.AFTER_BUILTIN_FUSION_PASS)\n"
+              << "class PythonPybindBridgeFailedPass(FusionBasePass):\n"
+              << "    def run(self, graph, context):\n"
+              << "        raise RuntimeError('python bridge run failed')\n";
+    WriteFile(GetSharedPybindPassFilePath(), pass_code.str());
+  });
+}
+
+struct PythonFusionBasePassRuntimeSnapshot {
+  int create_count{0};
+  int destroy_count{0};
+  int run_count{0};
+  Status run_status{SUCCESS};
+  std::string last_descriptor_key;
+  std::string last_pass_name;
+  std::string last_context_pass_name;
+  std::string last_graph_name;
+};
+
+struct PythonFusionBasePassHolderForUt {
+  std::string descriptor_key;
+  std::string pass_name;
+};
+
+PythonFusionBasePassRuntimeSnapshot g_python_fusion_base_runtime_snapshot;
+
+void ResetPythonFusionBasePassRuntimeSnapshot() {
+  g_python_fusion_base_runtime_snapshot = {};
+}
+
+void *CreatePythonFusionBasePassHolderForUt(const PythonPassDescriptor *pass_desc) {
+  ++g_python_fusion_base_runtime_snapshot.create_count;
+  if (pass_desc == nullptr) {
+    return nullptr;
+  }
+  auto *holder = new (std::nothrow) PythonFusionBasePassHolderForUt{pass_desc->descriptor_key, pass_desc->pass_name};
+  return holder;
+}
+
+void DestroyPythonFusionBasePassHolderForUt(void *holder) {
+  ++g_python_fusion_base_runtime_snapshot.destroy_count;
+  delete static_cast<PythonFusionBasePassHolderForUt *>(holder);
+}
+
+Status RunPythonFusionBasePassHolderForUt(void *holder, GraphPtr &graph, CustomPassContext &pass_context) {
+  ++g_python_fusion_base_runtime_snapshot.run_count;
+  const auto *typed_holder = static_cast<PythonFusionBasePassHolderForUt *>(holder);
+  if (typed_holder != nullptr) {
+    g_python_fusion_base_runtime_snapshot.last_descriptor_key = typed_holder->descriptor_key;
+    g_python_fusion_base_runtime_snapshot.last_pass_name = typed_holder->pass_name;
+  }
+  g_python_fusion_base_runtime_snapshot.last_context_pass_name = pass_context.GetPassName().GetString();
+  g_python_fusion_base_runtime_snapshot.last_graph_name = graph->GetName();
+  return g_python_fusion_base_runtime_snapshot.run_status;
+}
 } // namespace
 using namespace ge::es;
 class UtestFusionPassExecutor : public testing::Test {
  public:
+  static void TearDownTestSuite() {
+    // Python bridge 的显式 dlclose 放到 suite 结束时做一次，
+    // 避免每个用例都把进程级 bridge 热卸载掉。
+    ShutdownPythonFusionBasePassesForProcess();
+  }
+
   void SetUp() override {
+    PreparePythonPathForSt();
+    (void)unsetenv(kEnvPythonPassPath);
+    UnloadPythonFusionBasePasses();
     PassRegistry::GetInstance().name_2_fusion_pass_regs_.clear();
+    PassRegistry::GetInstance().descriptor_key_2_python_pass_descs_.clear();
+    PassRegistry::GetInstance().pass_name_2_python_pass_create_contexts_.clear();
+    ClearCurrentPythonPassCreateContext();
+    ClearPythonFusionBasePassRuntimeRegistry();
+    ResetPythonFusionBasePassRuntimeSnapshot();
     global_options_bak_ = ge::GetThreadLocalContext().GetAllGlobalOptions();
     session_options_bak_ = ge::GetThreadLocalContext().GetAllSessionOptions();
     graph_options_bak_ = ge::GetThreadLocalContext().GetAllGraphOptions();
   }
   void TearDown() override {
+    (void)unsetenv(kEnvPythonPassPath);
+    UnloadPythonFusionBasePasses();
     PassRegistry::GetInstance().name_2_fusion_pass_regs_.clear();
+    PassRegistry::GetInstance().descriptor_key_2_python_pass_descs_.clear();
+    PassRegistry::GetInstance().pass_name_2_python_pass_create_contexts_.clear();
+    ClearCurrentPythonPassCreateContext();
+    ClearPythonFusionBasePassRuntimeRegistry();
+    ResetPythonFusionBasePassRuntimeSnapshot();
 
     GetThreadLocalContext().SetGlobalOption(global_options_bak_);
     GetThreadLocalContext().SetSessionOption(session_options_bak_);
     GetThreadLocalContext().SetGraphOption(graph_options_bak_);
     GetThreadLocalContext().GetOo().Initialize({}, OptionRegistry::GetInstance().GetRegisteredOptTable());
+    RestorePythonPathForSt();
   }
  private:
+  void PreparePythonPathForSt() {
+#ifdef ST_FUSION_PASS_PY_INSTALL_DIR
+    const char *old_python_path = getenv("PYTHONPATH");
+    if (old_python_path != nullptr) {
+      has_python_path_bak_ = true;
+      python_path_bak_ = old_python_path;
+      if (python_path_bak_.find(ST_FUSION_PASS_PY_INSTALL_DIR) == std::string::npos) {
+        const std::string new_python_path = std::string(ST_FUSION_PASS_PY_INSTALL_DIR) + ":" + python_path_bak_;
+        (void)setenv("PYTHONPATH", new_python_path.c_str(), 1);
+      }
+      return;
+    }
+    (void)setenv("PYTHONPATH", ST_FUSION_PASS_PY_INSTALL_DIR, 1);
+#endif
+  }
+
+  void RestorePythonPathForSt() {
+#ifdef ST_FUSION_PASS_PY_INSTALL_DIR
+    if (has_python_path_bak_) {
+      (void)setenv("PYTHONPATH", python_path_bak_.c_str(), 1);
+    } else {
+      (void)unsetenv("PYTHONPATH");
+    }
+    python_path_bak_.clear();
+    has_python_path_bak_ = false;
+#endif
+  }
+
   std::map<std::string, std::string> global_options_bak_;
   std::map<std::string, std::string> graph_options_bak_;
   std::map<std::string, std::string> session_options_bak_;
+  std::string python_path_bak_;
+  bool has_python_path_bak_{false};
 };
 /**
  * single node match
@@ -598,5 +821,98 @@ TEST_F(UtestFusionPassExecutor, DecomposePass_Run_AfterInferShape_Failed) {
   EXPECT_NE(ret, SUCCESS);
   EXPECT_NE(ret, NOT_CHANGED);
 }
+
+TEST_F(UtestFusionPassExecutor, PythonFusionBasePass_Run_CreateExecuteDestroy) {
+  PythonPassDescriptor pass_desc;
+  pass_desc.descriptor_key = "python.fusion.base.stage2";
+  pass_desc.pass_name = "PythonFusionBaseStage2Pass";
+  pass_desc.module_name = "python.pass.sample";
+  pass_desc.class_name = "PythonFusionBaseStage2Pass";
+  pass_desc.stage = CustomPassStage::kAfterInferShape;
+  pass_desc.kind = PythonPassKind::kFusionBase;
+
+  PythonFusionBasePassCallbacks callbacks;
+  callbacks.create = CreatePythonFusionBasePassHolderForUt;
+  callbacks.destroy = DestroyPythonFusionBasePassHolderForUt;
+  callbacks.run = RunPythonFusionBasePassHolderForUt;
+
+  ASSERT_TRUE(RegisterPythonFusionBasePass(pass_desc, callbacks));
+
+  auto target_compute_graph = gert::ShareGraph::BuildSingleNodeGraph();
+  {
+    FusionPassExecutor pass_executor;
+    EXPECT_EQ(pass_executor.RunPasses(target_compute_graph, CustomPassStage::kAfterInferShape), SUCCESS);
+    EXPECT_EQ(pass_executor.RunPasses(target_compute_graph, CustomPassStage::kAfterInferShape), SUCCESS);
+    EXPECT_EQ(g_python_fusion_base_runtime_snapshot.create_count, 1);
+    EXPECT_EQ(g_python_fusion_base_runtime_snapshot.run_count, 2);
+    EXPECT_EQ(g_python_fusion_base_runtime_snapshot.last_descriptor_key, pass_desc.descriptor_key);
+    EXPECT_EQ(g_python_fusion_base_runtime_snapshot.last_pass_name, pass_desc.pass_name);
+    EXPECT_EQ(g_python_fusion_base_runtime_snapshot.last_context_pass_name, pass_desc.pass_name);
+  }
+  EXPECT_EQ(g_python_fusion_base_runtime_snapshot.destroy_count, 1);
+}
+
+TEST_F(UtestFusionPassExecutor, PythonFusionBasePass_Run_Failed) {
+  PythonPassDescriptor pass_desc;
+  pass_desc.descriptor_key = "python.fusion.base.stage2.failed";
+  pass_desc.pass_name = "PythonFusionBaseStage2FailedPass";
+  pass_desc.module_name = "python.pass.sample";
+  pass_desc.class_name = "PythonFusionBaseStage2FailedPass";
+  pass_desc.stage = CustomPassStage::kAfterInferShape;
+  pass_desc.kind = PythonPassKind::kFusionBase;
+
+  PythonFusionBasePassCallbacks callbacks;
+  callbacks.create = CreatePythonFusionBasePassHolderForUt;
+  callbacks.destroy = DestroyPythonFusionBasePassHolderForUt;
+  callbacks.run = RunPythonFusionBasePassHolderForUt;
+
+  ASSERT_TRUE(RegisterPythonFusionBasePass(pass_desc, callbacks));
+  g_python_fusion_base_runtime_snapshot.run_status = FAILED;
+
+  auto target_compute_graph = gert::ShareGraph::BuildSingleNodeGraph();
+  {
+    FusionPassExecutor pass_executor;
+    const auto ret = pass_executor.RunPasses(target_compute_graph, CustomPassStage::kAfterInferShape);
+    EXPECT_EQ(ret, FAILED);
+    EXPECT_EQ(g_python_fusion_base_runtime_snapshot.create_count, 1);
+    EXPECT_EQ(g_python_fusion_base_runtime_snapshot.run_count, 1);
+  }
+  EXPECT_EQ(g_python_fusion_base_runtime_snapshot.destroy_count, 1);
+}
+
+TEST_F(UtestFusionPassExecutor, PythonFusionBasePass_PybindBridge_RunSuccess) {
+  EnsureSharedPybindPassFile();
+  const auto &marker_file = GetSharedPybindMarkerFilePath();
+  (void)remove(marker_file.c_str());
+
+  ScopedEnvVar scoped_py_pass_path(kEnvPythonPassPath, GetSharedPybindPassFilePath());
+  ASSERT_EQ(RegisterPythonFusionBasePassesFromPlugin(), SUCCESS);
+
+  auto target_compute_graph = gert::ShareGraph::BuildSingleNodeGraph();
+  const auto expected_graph_name = target_compute_graph->GetName();
+  FusionPassExecutor pass_executor;
+  EXPECT_EQ(pass_executor.RunPasses(target_compute_graph, CustomPassStage::kAfterInferShape), SUCCESS);
+  EXPECT_EQ(pass_executor.RunPasses(target_compute_graph, CustomPassStage::kAfterInferShape), SUCCESS);
+  EXPECT_EQ(ReadFile(marker_file), expected_graph_name + "|PythonPybindBridgePass");
+}
+
+TEST_F(UtestFusionPassExecutor, PythonFusionBasePass_PybindBridge_RunFailedOnPythonException) {
+  EnsureSharedPybindPassFile();
+  ScopedEnvVar scoped_py_pass_path(kEnvPythonPassPath, GetSharedPybindPassFilePath());
+  ASSERT_EQ(RegisterPythonFusionBasePassesFromPlugin(), SUCCESS);
+
+  auto target_compute_graph = gert::ShareGraph::BuildSingleNodeGraph();
+  FusionPassExecutor pass_executor;
+  EXPECT_EQ(pass_executor.RunPasses(target_compute_graph, CustomPassStage::kAfterBuiltinFusionPass), FAILED);
+}
 } // namespace fusion
 } // namespace ge
+
+// CPython 内部分配器（_PyObject_Malloc / PyThread_allocate_lock）在 Py_Finalize()
+// 后仍有残余内存不被回收，这是 CPython 的已知行为，不是业务代码的泄漏。
+// 通过 LSan 抑制规则让 ut_fusion_pass_executor_utest 不因此失败。
+extern "C" const char *__lsan_default_suppressions() {
+  return "leak:_PyObject_Malloc\n"
+         "leak:PyThread_allocate_lock\n"
+         "leak:_PyObject_Realloc\n";
+}

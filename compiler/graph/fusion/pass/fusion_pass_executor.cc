@@ -115,8 +115,6 @@ Status FusionPassExecutor::InitPassesIfNeed(CustomPassStage stage) {
   }
   auto pass_creators = PassRegistry::GetInstance().GetFusionPassRegDataByStage(stage);
   for (const auto &pass_reg : pass_creators) {
-    auto pass_creator = pass_reg.GetCreatePassFn();
-    GE_ASSERT_NOTNULL(pass_creator);
     const std::string pass_name = pass_reg.GetPassName().GetString();
     if (!IsPassEnable(pass_name_to_switches_, pass_name)) {
       GELOGI("[FusionPass][SKIP] Pass [%s] is disabled by fusion switch config file, Option[%s][%s].",
@@ -124,7 +122,9 @@ Status FusionPassExecutor::InitPassesIfNeed(CustomPassStage stage) {
              FusionUtils::GetFusionSwitchFileFromOption().c_str());
       continue;
     }
-    names_to_fusion_passes_.emplace_back(pass_name, pass_creator());
+    auto *pass = PassRegistry::GetInstance().CreatePass(pass_reg);
+    GE_ASSERT_NOTNULL(pass);
+    names_to_fusion_passes_.emplace_back(pass_name, pass);
     GELOGD("[FusionPass][ADD] %s", pass_reg.ToString().GetString());
   }
   return SUCCESS;

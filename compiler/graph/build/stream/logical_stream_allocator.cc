@@ -946,9 +946,12 @@ Status OptimizeIneffectiveMultiStreamPass::Run(const ComputeGraphPtr &graph) {
                      op_desc->GetNamePtr(), io_stream_id);
       // 如果输入输出节点之间在这条流上没有别的节点，则可以挪过去
       if (!HasOtherNodeBetweenIOInThisStream(io_nodes, node_ids_iter->second)) {
+        auto old_stream_id = op_desc->GetStreamId();
         op_desc->SetStreamId(io_stream_id);
         GE_STREAM_PASS_LOGI("node %s optimize ineffective multi stream , set stream id from %ld to %ld",
                             op_desc->GetNamePtr(), cur_stream_id, io_stream_id);
+        stream_id_to_node_ids[old_stream_id].erase(op_desc->GetId());
+        stream_id_to_node_ids[io_stream_id].insert(op_desc->GetId());
         changed = true;
       }
     }

@@ -78,6 +78,6 @@ target_link_libraries(cpu_compiler PRIVATE
     -ldl
 )
 
-install(TARGETS cpu_compiler OPTIONAL
+install(TARGETS cpu_compiler ${INSTALL_OPTIONAL}
     LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}
 )

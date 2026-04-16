@@ -70,7 +70,7 @@ add_custom_command(TARGET stub_for_aicpu POST_BUILD
                   COMMENT "[AICPU] copying stub_for_aicpu library to '${COPY_TO_PATH}'"
 )
 
-install(TARGETS stub_for_aicpu OPTIONAL
+install(TARGETS stub_for_aicpu ${INSTALL_OPTIONAL}
     EXPORT stub_for_aicpu-targets
     LIBRARY DESTINATION ${COPY_TO_PATH}
 )

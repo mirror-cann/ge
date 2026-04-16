@@ -364,6 +364,7 @@ if ((CMAKE_BUILD_TYPE MATCHES GCOV) OR ENABLE_GE_DT)
                     ut_libge_multiparts_utest
                     ut_libge_symbol_infer_utest
                     ut_libge_others_utest
+                    ut_fusion_pass_executor_utest
                     ut_libge_distinct_load_utest
                     ut_libge_kernel_utest
                     ut_libge_label_maker_utest
@@ -427,9 +428,9 @@ if (NOT BUILD_OPEN_PROJECT)
                 ge_runner_v2 dflow_runner data_flow_base
                 ge_compiler slice air_headers _caffe_parser fmk_onnx_parser fmk_parser parser_common
                 EXPORT air-targets
-                LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR} OPTIONAL COMPONENT opensdk
-                ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR} OPTIONAL COMPONENT opensdk
-                RUNTIME DESTINATION ${INSTALL_RUNTIME_DIR} OPTIONAL COMPONENT opensdk
+                LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR} ${INSTALL_OPTIONAL} COMPONENT opensdk
+                ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR} ${INSTALL_OPTIONAL} COMPONENT opensdk
+                RUNTIME DESTINATION ${INSTALL_RUNTIME_DIR} ${INSTALL_OPTIONAL} COMPONENT opensdk
                 )
     # yellow zone for ge/fe/others
     else ()
@@ -440,33 +441,33 @@ if (NOT BUILD_OPEN_PROJECT)
                 # 开发环境某些没有下载parser目录
                 # _caffe_parser fmk_onnx_parser fmk_parser parser_common
                 EXPORT air-targets
-                LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR} OPTIONAL COMPONENT opensdk
-                ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR} OPTIONAL COMPONENT opensdk
-                RUNTIME DESTINATION ${INSTALL_RUNTIME_DIR} OPTIONAL COMPONENT opensdk
+                LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR} ${INSTALL_OPTIONAL} COMPONENT opensdk
+                ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR} ${INSTALL_OPTIONAL} COMPONENT opensdk
+                RUNTIME DESTINATION ${INSTALL_RUNTIME_DIR} ${INSTALL_OPTIONAL} COMPONENT opensdk
                 )
 
         if ("${PRODUCT}" STREQUAL "ascend031")
             install(TARGETS ge_executor ge_common_base_static davinci_executor_static
-                ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR} OPTIONAL
+                ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR} ${INSTALL_OPTIONAL}
             )
 
             install(TARGETS ge_common_static_stub hybrid_executor_static_stub gert_static_stub
-                ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR}/${CMAKE_SYSTEM_PROCESSOR}/stub OPTIONAL
+                ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR}/${CMAKE_SYSTEM_PROCESSOR}/stub ${INSTALL_OPTIONAL}
             )
         endif ()
     endif ()
 
     install(TARGETS fwk_stub_ge_runner
         EXPORT air-targets
-        LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}/stub OPTIONAL COMPONENT opensdk
-        ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR}/stub OPTIONAL COMPONENT opensdk
-        RUNTIME DESTINATION ${INSTALL_RUNTIME_DIR}/stub OPTIONAL COMPONENT opensdk
+        LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}/stub ${INSTALL_OPTIONAL} COMPONENT opensdk
+        ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR}/stub ${INSTALL_OPTIONAL} COMPONENT opensdk
+        RUNTIME DESTINATION ${INSTALL_RUNTIME_DIR}/stub ${INSTALL_OPTIONAL} COMPONENT opensdk
     )
     install(TARGETS fwk_stub_ge_runner_v2
         EXPORT air-targets
-        LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}/stub OPTIONAL COMPONENT opensdk
-        ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR}/stub OPTIONAL COMPONENT opensdk
-        RUNTIME DESTINATION ${INSTALL_RUNTIME_DIR}/stub OPTIONAL COMPONENT opensdk
+        LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}/stub ${INSTALL_OPTIONAL} COMPONENT opensdk
+        ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR}/stub ${INSTALL_OPTIONAL} COMPONENT opensdk
+        RUNTIME DESTINATION ${INSTALL_RUNTIME_DIR}/stub ${INSTALL_OPTIONAL} COMPONENT opensdk
     )
     install(FILES   ${AIR_CODE_DIR}/compiler/engines/nn_engine/inc/common/aicore_util_attr_define.h
             ${AIR_CODE_DIR}/compiler/engines/nn_engine/inc/common/aicore_util_types.h
@@ -503,33 +504,13 @@ endif()
 if ((CMAKE_BUILD_TYPE MATCHES GCOV) OR ENABLE_GE_DT)
     message(STATUS "In test mode, skip installing")
 else ((BUILD_OPEN_PROJECT OR ENABLE_OPEN_SRC))
-    set(ARCH_LINX_PATH "${CMAKE_SYSTEM_PROCESSOR}-linux")
-    set(version_info "${ASCEND_INSTALL_PATH}/runtime/version.info")
-    set(install_script_dir "${CMAKE_CURRENT_BINARY_DIR}/install_scripts/")
-
-    add_custom_target(generate_install_script_air ALL
-        COMMAND rm -rf ${install_script_dir}
-        COMMAND cp -rf ${ASCEND_INSTALL_PATH}/toolkit/tools/ascend_project/open_install_scripts ${install_script_dir}
-        COMMAND chmod -R u+w ${install_script_dir}
-        COMMAND cp -rf ${CMAKE_CURRENT_LIST_DIR}/scripts/install.sh ${install_script_dir}
-        COMMAND echo "base_package=runtime\;compiler" > ${install_script_dir}/version.info
-        COMMAND echo "backup_dir=air" >> ${install_script_dir}/version.info
-        COMMAND grep -iE "'^(version|version_dir)='" ${version_info} >> ${install_script_dir}/version.info
-    )
-
-    install(DIRECTORY ${install_script_dir}
-        DESTINATION . OPTIONAL
-        FILE_PERMISSIONS OWNER_EXECUTE OWNER_READ GROUP_READ
-        COMPONENT . EXCLUDE_FROM_ALL
-    )
-
     if(BUILD_PKG_COMPONENT)
         if (NOT MDC_COMPILE_RUNTIME)
             add_custom_target(ge-compiler)
             add_dependencies(ge-compiler parser_common aicore_utils fusion_pass op_compile_adapter aicpu_engine_common fmk_parser ge_compiler
                     fmk_onnx_parser opskernel ge_runner slice aicpu_const_folding llm_engine jit_exe _caffe_parser flow_graph aihac_autofusion
                     dflow_runner eager_style_graph_builder_base eager_style_graph_builder_base_static gen_esb aihac_ir aihac_ir_register
-                    aihac_symbolizer pyautofuse ge_python llm_datadist_python_v1 dataflow_python)
+                    aihac_symbolizer pyautofuse ge_python llm_datadist_python_v1 dataflow_python ge_python_pass_bridge)
             add_dependencies(ge-compiler hcom_gradient_split_tune hcom_graph_adaptor hcom_opskernel_builder hcom_gradtune_opskernel_builder)
             add_dependencies(ge-compiler aicpu_ascend_engine aicpu_tf_engine dvpp_engine fe ffts ge_local_engine ge_local_opskernel_builder
                     host_cpu_opskernel_builder host_cpu_engine engine)

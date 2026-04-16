@@ -48,7 +48,7 @@ target_link_libraries(reader_writer PRIVATE
 
 set(INSTALL_LIBRARY_DIR lib)
 
-install(TARGETS reader_writer OPTIONAL
+install(TARGETS reader_writer ${INSTALL_OPTIONAL}
     EXPORT reader_writer-targets
     LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}
     RUNTIME DESTINATION ${INSTALL_LIBRARY_DIR}

@@ -28,7 +28,7 @@ GE 提供对 PyTorch、TensorFlow 前端的友好接入能力，并同时支持 
 
 如果希望深入了解 GE 的内部设计、架构机制与开发流程，可参考以下文档：
 
-* [GE 架构说明文档](docs/architecture.md)：介绍核心组件、执行流程、优化机制等内部原理。
+* [GE 架构说明文档](docs/architecture/architecture.md)：介绍核心组件、执行流程、优化机制等内部原理。
 * [贡献指南](CONTRIBUTING.md)：说明如何提交 Issue、Pull Request 以及代码规范。
 * [AI Agent支持](.opencode/README.md)：介绍仓内默认使用的一些skills及使用agent辅助开发流程
 

@@ -14,7 +14,7 @@ import ctypes
 from typing import Optional, List, Any, Union, TYPE_CHECKING
 from ge._capi.pygraph_wrapper import graph_lib
 from ge._capi.pyes_graph_builder_wrapper import esb_lib
-from .types import DataType, Format
+from .types import DataType, Format, Placement
 from ._numeric import float_list_to_fp16_bits
 
 
@@ -30,7 +30,8 @@ class Tensor:
         file_path: Optional[str] = None,
         data_type: Optional[DataType] = DataType.DT_FLOAT,
         format: Optional[Format] = Format.FORMAT_ND,
-        shape: Optional[List[int]] = None
+        shape: Optional[List[int]] = None,
+        placement: Optional[Placement] = Placement.PLACEMENT_HOST
         ) -> None:
         """
         Args:
@@ -39,9 +40,10 @@ class Tensor:
             data_type: Data type using DataType enum, defaults to DataType.DT_FLOAT.
             format: Data format using Format enum, defaults to Format.FORMAT_ND.
             shape: List of shape dimensions, If None, means scalar.
+            placement: Tensor placement using Placement enum, defaults to Placement.PLACEMENT_HOST.
         Example
-        >>> Tensor(data, None, data_type, format, shape)
-        >>> Tensor(None, file_path, data_type, format, shape)
+        >>> Tensor(data, None, data_type, format, shape, placement)
+        >>> Tensor(None, file_path, data_type, format, shape, placement)
         """
         self._handle = None
         self._owns_handle = False
@@ -49,6 +51,8 @@ class Tensor:
         if shape is not None:
             if not isinstance(shape, list) or not all(isinstance(dim, int) for dim in shape):
                 raise TypeError("Shape must be a list of integers")
+        if not isinstance(placement, Placement):
+            raise TypeError("Placement must be a Placement")
         if data is not None and file_path is not None:
             raise RuntimeError("Tensor should be created either by data or by file")
         elif data is not None and file_path is None:
@@ -61,6 +65,8 @@ class Tensor:
             raise RuntimeError("Failed to create Tensor")
         self._owns_handle = True
         self._owner = None
+        if placement == Placement.PLACEMENT_DEVICE:
+            self.to_device()
 
     @staticmethod
     def _prepare_ctypes_array(data: List[Any], data_type: DataType):
@@ -141,6 +147,10 @@ class Tensor:
         shape is {self.get_shape()}, 
         data is {self.get_data()}
         '''
+
+    @property
+    def placement(self) -> Placement:
+        return self.get_placement()
         
     @classmethod
     def _create_from(cls, handle: ctypes.c_void_p) -> 'Tensor':
@@ -293,6 +303,35 @@ class Tensor:
     @property
     def data(self) -> 'TensorLike':
         return self.get_data()
+
+    def get_placement(self) -> Placement:
+        """Get tensor placement.
+
+        Returns:
+            Placement of tensor.
+        """
+        res = graph_lib.GeApiWrapper_Tensor_GetPlacement(self._handle)
+        return Placement(res)
+
+    def to_host(self) -> 'Tensor':
+        """Move this tensor from device to host in place."""
+        if self.get_placement() != Placement.PLACEMENT_DEVICE:
+            raise ValueError("to_host() only supports device tensors")
+
+        ret = graph_lib.GeApiWrapper_Tensor_ToHost(self._handle)
+        if ret != 0:
+            raise RuntimeError(f"Failed to move tensor from device to host, ret={ret}")
+        return self
+
+    def to_device(self) -> 'Tensor':
+        """Move this tensor from host to device in place."""
+        if self.get_placement() != Placement.PLACEMENT_HOST:
+            raise ValueError("to_device() only supports host tensors")
+
+        ret = graph_lib.GeApiWrapper_Tensor_ToDevice(self._handle)
+        if ret != 0:
+            raise RuntimeError(f"Failed to move tensor from host to device, ret={ret}")
+        return self
 
 
 def _parse_str_list(list_str: str) -> List['Number']:

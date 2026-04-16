@@ -891,7 +891,7 @@ static aclError RuntimeV2ModelExecute(const uint32_t modelId, const aclmdlDatase
 
 static aclError Om2GetModelTensorDesc(std::vector<ge::TensorDesc> &inputDesc, std::vector<ge::TensorDesc> &outputDesc,
     size_t &inputNum, size_t &outputNum, const std::shared_ptr<gert::Om2ModelExecutor> &executor,
-    const aclmdlDataset *const input, aclmdlDataset *const output, const uint32_t modelId)
+    const aclmdlDataset *const input, const aclmdlDataset *const output, const uint32_t modelId)
 {
     ge::Status getDescRet = executor->GetModelDescInfo(inputDesc, outputDesc);
     if (getDescRet != ge::SUCCESS) {

@@ -93,12 +93,22 @@ class Graph:
         return self.dump_to_stream(DumpFormat.kReadable)
 
     @classmethod
-    def _create_from(cls, handle: ctypes.c_void_p) -> 'Graph':
-        """Create Graph object from C++ pointer.(internal use only by e.g GraphBuilder.build_and_reset(),
-         do not use this method directly)
+    def _create_from(
+            cls,
+            handle: ctypes.c_void_p,
+            owns_handle: bool = True,
+            owner: Optional[Any] = None) -> 'Graph':
+        """Create Graph object from C++ pointer.
+
+        Internal helper used by GraphBuilder and Python pass bridge borrowed views.
+        Do not call this method directly unless you also understand the underlying
+        handle ownership model.
 
         Args:
             handle: C++ Graph object pointer.
+            owns_handle: Whether Python owns the handle and should destroy it.
+            owner: Optional Python object that keeps the real owner alive when
+                   this Graph is only a borrowed view.
 
         Returns:
             Graph object.
@@ -110,8 +120,8 @@ class Graph:
             raise ValueError("Graph pointer cannot be None")
         instance = cls.__new__(cls)
         instance._handle = handle
-        instance._owns_handle = True
-        instance._owner = None
+        instance._owns_handle = owns_handle
+        instance._owner = owner
         return instance
 
     def _transfer_ownership_when_pass_as_subgraph(self, new_owner: 'GraphBuilder') -> None:

@@ -167,6 +167,9 @@ set(COMPILER_SRC_LIST
     "graph/fusion/pass/decompose_pass.cc"
     "graph/fusion/pass/pattern_fusion_pass.cc"
     "graph/fusion/pass/fusion_pass_executor.cc"
+    "graph/fusion/pass/pass_plugin_loader.cc"
+    "graph/fusion/pass/python_fusion_base_pass_adapter.cc"
+    "graph/fusion/pass/python_fusion_base_pass_bridge_loader.cc"
     "graph/fuzz_compile/fuzz_compile_bin_selector.cc"
     "graph/label/case_op_label_maker.cc"
     "graph/label/if_op_label_maker.cc"
@@ -311,7 +314,9 @@ set(COMPILER_SRC_LIST
     "graph/passes/feature/auto_fuse_pass.cc"
     "graph/passes/feature/algebraic_simplification_pass.cc"
     "graph/passes/variable_optimize/split_variable_into_subgraph_pass.cc"
+    "graph/passes/memory_optimize/notask_pass_base.cc"
     "graph/passes/memory_optimize/concat_notask_pass.cc"
+    "graph/passes/memory_optimize/pack_notask_pass.cc"
     "graph/optimize/mem_layout_conflict_optimize/mem_layout_conflict_util.cc"
     "graph/optimize/mem_layout_conflict_optimize/mem_layout_conflict_optimizer.cc"
     "graph/optimize/mem_layout_conflict_optimize/checker/checker.cc"
@@ -469,6 +474,63 @@ target_link_libraries(ge_compiler
         metadef_headers
 )
 
+add_library(ge_python_pass_bridge SHARED
+    "graph/fusion/pass/python_fusion_base_pass_pybind_bridge.cc"
+)
+
+add_dependencies(ge_python_pass_bridge
+    graphengine_protos
+)
+
+target_compile_definitions(ge_python_pass_bridge PRIVATE
+    PROTOBUF_INLINE_NOT_IN_HEADERS=0
+    google=ascend_private
+    $<$<STREQUAL:${ENABLE_TEST},True>:FUNC_VISIBILITY>
+)
+
+target_compile_options(ge_python_pass_bridge PRIVATE
+    ${AIR_COMMON_DYNAMIC_COMPILE_OPTION}
+)
+
+target_include_directories(ge_python_pass_bridge PRIVATE
+    ${AIR_CODE_DIR}/inc/graph_metadef
+)
+
+target_include_directories(ge_python_pass_bridge SYSTEM PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${AIR_CODE_DIR}
+    ${AIR_CODE_DIR}/base
+    ${AIR_CODE_DIR}/inc
+    ${AIR_CODE_DIR}/inc/external
+    ${AIR_CODE_DIR}/inc/framework
+    ${AIR_CODE_DIR}/inc/graph_metadef/external
+    ${ASCGEN_DIR}/inc
+    ${CMAKE_BINARY_DIR}
+    ${CMAKE_BINARY_DIR}/proto/graphengine_protos
+    ${HI_PYTHON_INC}
+    ${pybind11_INCLUDE_DIR}
+    ${METADEF_DIR}/base/registry
+    ${METADEF_DIR}/register
+    ${METADEF_DIR}/pkg_inc
+    ${TOP_DIR}/metadef/inc
+    ${TOP_DIR}/runtime/include/external/
+    ${TOP_DIR}/runtime/include/external/acl/error_codes
+)
+
+target_link_libraries(ge_python_pass_bridge
+    PRIVATE
+        intf_pub
+        register
+        graph
+        unified_dlog
+        ge_python_embed
+        pybind_options
+    PUBLIC
+        ge_common
+        air_headers
+        metadef_headers
+)
+
     ###############################################################
 add_custom_target(
     engine_conf.json ALL
@@ -494,7 +556,7 @@ add_custom_command(
 ############ install ############
 install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/engine_conf.json
-    ${CMAKE_CURRENT_BINARY_DIR}/optimizer_priority.pbtxt OPTIONAL
+    ${CMAKE_CURRENT_BINARY_DIR}/optimizer_priority.pbtxt ${INSTALL_OPTIONAL}
     DESTINATION ${INSTALL_LIBRARY_DIR}
 )
 endif()

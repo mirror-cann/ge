@@ -50,7 +50,7 @@
 #include "ge/ge_api_types.h"
 #include "common/checker.h"
 #include "graph/utils/op_type_utils.h"
-#include "register/custom_pass_helper.h"
+#include "graph/fusion/pass/pass_plugin_loader.h"
 
 namespace {
 
@@ -476,7 +476,7 @@ Status GeGenerator::Initialize(const std::map<std::string, std::string> &options
   option_tmp.emplace(std::pair<std::string, std::string>(string("ge.opsProtoLibPath"), opsproto_path));
   (void)manager->Initialize(option_tmp);
   gert::OppPackageUtils::LoadAllOppPackage();
-  GE_ASSERT_SUCCESS(CustomPassHelper::Instance().Load());
+  GE_ASSERT_SUCCESS(fusion::LoadPassPlugins());
 
   ret = impl_->graph_manager_.Initialize(options);
   if (ret != SUCCESS) {
@@ -501,7 +501,8 @@ Status GeGenerator::Finalize() {
   if (impl_ == nullptr) {
     return SUCCESS;
   }
-  CustomPassHelper::Instance().Unload();
+  // GeGenerator::Finalize 对应本轮构建流程结束，这里走进程级 shutdown。
+  (void)fusion::ShutdownPassPluginsForProcess();
   Status ret = impl_->graph_manager_.Finalize();
   if (ret != SUCCESS) {
     GELOGE(GE_GENERATOR_GRAPH_MANAGER_FINALIZE_FAILED, "[Call][Finalize] Graph manager finalize failed.");

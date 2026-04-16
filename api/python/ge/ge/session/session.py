@@ -11,12 +11,14 @@
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
 
-"""Graph module for GraphEngine graph operations."""
+"""Session module for GraphEngine graph operations."""
 
 import ctypes
 from typing import List, Optional
+from ge._capi._allocator_callback_adapter import create_allocator_c_callbacks, rollback_allocator_c_callbacks
 from ge._capi.pygraph_wrapper import graph_lib
 from ge._capi.pysession_wrapper import session_lib
+from ge.allocator import Allocator
 from ge.graph.graph import Graph
 from ge.graph.tensor import Tensor
 
@@ -38,6 +40,12 @@ def _str_list_to_c_array(python_list: list):
     return c_array
 
 
+def _tensor_list_to_c_array(tensors: List[Tensor]):
+    handles = [ctypes.cast(tensor._handle, ctypes.c_void_p) for tensor in tensors]
+    arr_type = ctypes.c_void_p * len(handles)
+    return arr_type(*handles)
+
+
 class Session:
     """Session class for session operations.
 
@@ -49,6 +57,7 @@ class Session:
         """Session Initialize a Session"""
         self._handle = None
         self._owns_handle = False
+        self._default_allocator_streams = set()
         if options is None:
             self._handle = session_lib.GeApiWrapper_Session_CreateSession()
         elif isinstance(options, dict):
@@ -68,6 +77,10 @@ class Session:
 
     def __del__(self) -> None:
         """Clean up resources."""
+        if self._default_allocator_streams and session_lib.GeApiWrapper_IsGEInitialized():
+            for stream in list(self._default_allocator_streams):
+                self.unregister_external_allocator(stream)
+        self._default_allocator_streams.clear()
         if self._owns_handle:
             session_lib.GeApiWrapper_Session_DestroySession(self._handle)
             self._handle = None
@@ -79,6 +92,41 @@ class Session:
     def __deepcopy__(self, session) -> None:
         """Deep copy is not supported."""
         raise RuntimeError("Session does not support deepcopy")
+
+    def register_external_allocator(self, stream: int, allocator: Allocator) -> None:
+        """Register an external allocator for the given stream.
+
+        Args:
+            stream: Stream address.
+            allocator: An Allocator subclass instance.
+        """
+        if not isinstance(stream, int):
+            raise TypeError("stream must be an integer")
+        if not isinstance(allocator, Allocator):
+            raise TypeError("allocator must be an Allocator instance")
+        cb, prevent_gc_key, c_on_allocator_destroy = create_allocator_c_callbacks(allocator)
+        ret = session_lib.GeApiWrapper_Session_RegisterExternalAllocator(
+            self._handle, ctypes.c_void_p(stream),
+            cb.c_malloc, cb.c_free, cb.c_get_addr,
+            c_on_allocator_destroy, ctypes.c_void_p(prevent_gc_key)
+        )
+        if ret != 0:
+            rollback_allocator_c_callbacks(prevent_gc_key)
+            raise RuntimeError(f"Failed to register allocator for stream 0x{stream:x}")
+
+    def unregister_external_allocator(self, stream: int) -> None:
+        """Unregister the external allocator for the given stream.
+
+        Args:
+            stream: Stream address.
+        """
+        if not isinstance(stream, int):
+            raise TypeError("stream must be an integer")
+        ret = session_lib.GeApiWrapper_Session_UnregisterExternalAllocator(
+            self._handle, ctypes.c_void_p(stream))
+        self._default_allocator_streams.discard(stream)
+        if ret != 0:
+            raise RuntimeError(f"Failed to unregister allocator for stream 0x{stream:x}")
 
     def add_graph(self, graph_id: int, add_graph: Graph, options: dict = None) -> None:
         if not isinstance(graph_id, int):
@@ -103,20 +151,67 @@ class Session:
             raise RuntimeError(f"Failed to add graph, graph_id is {graph_id}")
         return ret
 
+    def remove_graph(self, graph_id: int) -> None:
+        if not isinstance(graph_id, int):
+            raise TypeError("Graph_id must be an integer")
+        ret = session_lib.GeApiWrapper_Session_RemoveGraph(self._handle, ctypes.c_uint32(graph_id))
+        if ret != 0:
+            raise RuntimeError(f"Failed to remove graph, graph_id is {graph_id}")
+
     def run_graph(self, graph_id: int, inputs: List[Tensor]) -> List[Tensor]:
         if not isinstance(graph_id, int):
             raise TypeError("Graph_id must be an integer")
         if not all(isinstance(input_tensor, Tensor) for input_tensor in inputs):
             raise TypeError("All elements in inputs must be the type of Tensor")
-        inputs_handle = []
-        for inputs_tensor in inputs:
-            c_inputs_tensor_ptr = ctypes.cast(inputs_tensor._handle, ctypes.c_void_p)
-            inputs_handle.append(c_inputs_tensor_ptr)
-        arr_type = ctypes.c_void_p * len(inputs_handle)
-        arr = arr_type(*inputs_handle)
+        arr = _tensor_list_to_c_array(inputs)
         tensor_num = ctypes.c_size_t()
         output_tensors = session_lib.GeApiWrapper_Session_RunGraph(self._handle, ctypes.c_uint32(graph_id), arr,
-                                                                   len(inputs_handle), ctypes.byref(tensor_num))
+                                                                   len(inputs), ctypes.byref(tensor_num))
         if not output_tensors:
             raise RuntimeError(f"Failed to run graph, graph_id is {graph_id}")
         return [Tensor._create_from(output_tensors[i]) for i in range(tensor_num.value)]
+
+    def run_graph_with_stream_async(self, graph_id: int, stream: int, inputs: List[Tensor]) -> List[Tensor]:
+        """Run the graph asynchronously on the given stream and return output tensors.
+
+        Output tensor memory is allocated according to the following priority:
+          1. The external allocator registered via register_external_allocator(stream, allocator).
+          2. If no external allocator is registered, GE uses a built-in allocator automatically.
+
+        Args:
+            graph_id: Graph ID.
+            stream: Stream address.
+            inputs: List of input tensors.
+
+        Returns:
+            List of output tensors.
+        """
+        if not isinstance(graph_id, int):
+            raise TypeError("Graph_id must be an integer")
+        if not isinstance(stream, int):
+            raise TypeError("Stream must be an integer")
+        if not isinstance(inputs, list):
+            raise TypeError("inputs must be a list of Tensor")
+        if not all(isinstance(input_tensor, Tensor) for input_tensor in inputs):
+            raise TypeError("All elements in inputs must be the type of Tensor")
+
+        self._ensure_default_allocator(stream)
+        arr = _tensor_list_to_c_array(inputs)
+        tensor_num = ctypes.c_size_t()
+        output_tensors = session_lib.GeApiWrapper_Session_RunGraphWithStreamAsync(self._handle,
+            ctypes.c_uint32(graph_id), ctypes.c_void_p(stream), arr, len(inputs), ctypes.byref(tensor_num)
+        )
+        if not output_tensors:
+            raise RuntimeError(f"Failed to run graph with stream async, graph_id is {graph_id}")
+        return [Tensor._create_from(output_tensors[i]) for i in range(tensor_num.value)]
+
+    def _ensure_default_allocator(self, stream: int) -> None:
+        """Register a default allocator if none exists."""
+        has_external = session_lib.GeApiWrapper_HasExternalAllocator(ctypes.c_void_p(stream))
+        if stream in self._default_allocator_streams or has_external:
+            return
+        ret = session_lib.GeApiWrapper_Session_RegisterDefaultAllocator(
+            self._handle, ctypes.c_void_p(stream))
+        if ret != 0:
+            raise RuntimeError(f"Failed to register default allocator for stream {stream}")
+        self._default_allocator_streams.add(stream)

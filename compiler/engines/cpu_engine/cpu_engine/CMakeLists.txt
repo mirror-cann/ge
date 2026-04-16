@@ -260,22 +260,22 @@ endif ()
 
 #####改名称用的，因为一个cmake不能2个相同的名字的链接so 可执行程序 等
 
-install(TARGETS aicpu_ascend_engine OPTIONAL
+install(TARGETS aicpu_ascend_engine ${INSTALL_OPTIONAL}
     EXPORT aicpu_ascend_engine-targets
     LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}
 )
 
-install(TARGETS host_cpu_engine OPTIONAL
+install(TARGETS host_cpu_engine ${INSTALL_OPTIONAL}
     EXPORT host_cpu_engine-targets
     LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}
 )
 
-install(TARGETS host_cpu_opskernel_builder OPTIONAL
+install(TARGETS host_cpu_opskernel_builder ${INSTALL_OPTIONAL}
     EXPORT host_cpu_opskernel_builder-targets
     LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}
 )
 
-install(TARGETS aicpu_const_folding OPTIONAL
+install(TARGETS aicpu_const_folding ${INSTALL_OPTIONAL}
     EXPORT aicpu_const_folding-targets
     LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}
 )

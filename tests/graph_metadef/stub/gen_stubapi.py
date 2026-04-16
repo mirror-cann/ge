@@ -1094,7 +1094,7 @@ def collect_header_files(inc_file):
     else:
         logging.error('please check inc_dirs')
 
-    pattern = r'Ascend/cann[0-9\.\-]{0,10}/include/(.*)$'
+    pattern = r'/cann[0-9\.\-]{0,10}/include/(.*)$'
     match = re.search(pattern, inc_file)
     if match:
         captured_path = match.group(1)

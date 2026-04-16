@@ -156,7 +156,7 @@ target_link_libraries(udf_executor PRIVATE
 set(INSTALL_LIBRARY_DIR lib)
 set(INSTALL_RUNTIME_DIR lib)
 
-install(TARGETS udf_executor OPTIONAL
+install(TARGETS udf_executor ${INSTALL_OPTIONAL}
     EXPORT udf_executor-targets
     LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}
     RUNTIME DESTINATION ${INSTALL_RUNTIME_DIR}

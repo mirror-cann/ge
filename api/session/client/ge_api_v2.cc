@@ -22,7 +22,6 @@
 #include "base/err_msg.h"
 #include "rt_error_codes.h"
 #include "ge/ge_api_types.h"
-#include "register/custom_pass_helper.h"
 #include "framework/common/debug/ge_log.h"
 #include "framework/common/debug/log.h"
 #include "framework/common/ge_types.h"
@@ -40,6 +39,7 @@
 #include "graph/utils/type_utils.h"
 #include "api/gelib/gelib.h"
 #include "api/aclgrph/option_utils.h"
+#include "graph/fusion/pass/pass_plugin_loader.h"
 #include "proto/ge_api.pb.h"
 #include "register/op_registry.h"
 #include "runtime/v2/core/debug/kernel_tracing.h"
@@ -241,7 +241,7 @@ static Status GEInitializeImpl(const std::map<std::string, std::string> &options
     return FAILED;
   }
   gert::OppPackageUtils::LoadAllOppPackage();
-  GE_ASSERT_SUCCESS(CustomPassHelper::Instance().Load());
+  GE_ASSERT_SUCCESS(fusion::LoadPassPlugins());
 
   ge::GetContext().Init();
 
@@ -347,7 +347,8 @@ Status GEFinalizeV2() {
 
   ShutDownProfiling();
 
-  (void)CustomPassHelper::Instance().Unload();
+  // 这里是 GE 的进程级 finalization，额外负责显式关闭 Python bridge so。
+  (void)fusion::ShutdownPassPluginsForProcess();
   // call Finalize
   (void)GeExecutor::FinalizeEx();
   Status ret = SUCCESS;

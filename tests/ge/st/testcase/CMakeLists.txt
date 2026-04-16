@@ -102,6 +102,8 @@ add_executable(graph_engine_test
     "${AIR_CODE_DIR}/tests/ge/st/testcase/test_ge_local_engine.cc"
     "${AIR_CODE_DIR}/tests/ge/st/testcase/test_infershape_and_folding.cc"
     "${AIR_CODE_DIR}/tests/ge/st/testcase/test_optimize_stage1.cc"
+    "${AIR_CODE_DIR}/tests/ge/st/testcase/test_concat_notask_pass.cc"
+    "${AIR_CODE_DIR}/tests/ge/st/testcase/test_pack_notask_pass.cc"
     "${AIR_CODE_DIR}/tests/ge/st/testcase/ffts_plus/scattered_collection_systemtest.cc"
     "${AIR_CODE_DIR}/tests/graph_metadef/ut/register/testcase/op_def_factory_unittest.cc"
     "${AIR_CODE_DIR}/tests/graph_metadef/depends/faker/plugin_manager_stub.cc"
@@ -192,13 +194,35 @@ add_executable(graph_engine_compile_test
         "${AIR_CODE_DIR}/tests/ge/st/testcase/test_merge_shape_n.cc"
         "${AIR_CODE_DIR}/tests/ge/st/testcase/test_mem_opt_rule.cc"
         "${AIR_CODE_DIR}/tests/ge/st/testcase/test_memory_api.cc"
-        "${AIR_CODE_DIR}/tests/ge/st/testcase/test_concat_notask_pass.cc"
         "${AIR_CODE_DIR}/tests/ge/st/testcase/test_kernel_manager.cc"
         )
 
+# 安装 ge_py wheel 到 ST 测试专用目录（用于 fusion_pass_executor_unittest）
+set(ST_FUSION_PASS_PY_INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/st_fusion_pass_py_install)
+
+add_custom_command(
+    OUTPUT ${ST_FUSION_PASS_PY_INSTALL_DIR}/.installed
+    COMMAND ${CMAKE_COMMAND} -E remove -rf ${ST_FUSION_PASS_PY_INSTALL_DIR}
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${ST_FUSION_PASS_PY_INSTALL_DIR}
+    COMMAND ${HI_PYTHON} -m pip install --target ${ST_FUSION_PASS_PY_INSTALL_DIR}
+            ${CMAKE_BINARY_DIR}/api/python/ge/ge_py-0.0.1-py3-none-any.whl --force-reinstall
+    COMMAND ${CMAKE_COMMAND} -E touch ${ST_FUSION_PASS_PY_INSTALL_DIR}/.installed
+    DEPENDS ge_python
+    COMMENT "Installing ge-py wheel for graph_engine_compile_test"
+)
+
+add_custom_target(install_ge_py_for_st_compile_test DEPENDS
+    ${ST_FUSION_PASS_PY_INSTALL_DIR}/.installed)
+
+add_dependencies(graph_engine_compile_test
+        ge_python_pass_bridge
+        install_ge_py_for_st_compile_test
+)
 target_compile_definitions(graph_engine_compile_test PRIVATE
         google=ascend_private
         CMAKE_BINARY_DIR=\"${CMAKE_BINARY_DIR}\"
+        AIR_CODE_DIR=\"${AIR_CODE_DIR}\"
+        ST_FUSION_PASS_PY_INSTALL_DIR=\"${ST_FUSION_PASS_PY_INSTALL_DIR}\"
         )
 
 target_compile_options(graph_engine_compile_test PRIVATE
@@ -219,7 +243,10 @@ target_include_directories(graph_engine_compile_test PRIVATE
         ${AIR_CODE_DIR}/inc
         ${CMAKE_BINARY_DIR}/proto/data_flow_protos
         )
-
+target_link_options(graph_engine_compile_test PRIVATE
+        -Wl,--disable-new-dtags
+        -Wl,-rpath,${CMAKE_BINARY_DIR}/compiler
+)
 target_link_libraries(graph_engine_compile_test
         intf_llt_pub
         -Wl,-z,muldefs

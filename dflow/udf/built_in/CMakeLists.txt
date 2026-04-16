@@ -50,7 +50,7 @@ target_link_libraries(built_in_flowfunc PRIVATE
 
 set(INSTALL_LIBRARY_DIR lib)
 
-install(TARGETS built_in_flowfunc OPTIONAL
+install(TARGETS built_in_flowfunc ${INSTALL_OPTIONAL}
     EXPORT built_in_flowfunc-targets
     LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}
     RUNTIME DESTINATION ${INSTALL_LIBRARY_DIR}

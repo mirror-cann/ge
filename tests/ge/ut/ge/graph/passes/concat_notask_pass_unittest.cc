@@ -23,6 +23,20 @@
 using namespace std;
 using namespace ge;
 
+// 测试辅助类：暴露基类 protected 方法供 UT 直接调用
+class ConcatNotaskPassTestHelper : public ConcatNotaskPass {
+public:
+  using ConcatNotaskPass::CheckDimAlignment;
+  using ConcatNotaskPass::CheckDimForInput;
+  using ConcatNotaskPass::CheckRealDim;
+  using ConcatNotaskPass::CheckTensorAlign;
+  using ConcatNotaskPass::IsOwnerGraphUnknown;
+  using ConcatNotaskPass::IsPreNodeTypeValid;
+  using ConcatNotaskPass::IsPreNodeWithSubgraph;
+  using ConcatNotaskPass::IsScalarInput;
+  using ConcatNotaskPass::InputCheck;
+};
+
 class UtestConcatNotaskPass : public testing::Test {
  protected:
   void SetUp() {}
@@ -944,7 +958,7 @@ TEST_F(UtestConcatNotaskPass, data_connect_to_concat) {
   auto allgather_desc2 = allgather_node2->GetOpDesc();
   allgather_desc2->SetOpEngineName("DNN_HCCL");
 
-  ConcatNotaskPass pass;
+  ConcatNotaskPassTestHelper pass;
   auto ret = pass.Run(compute_graph);
   EXPECT_EQ(ret, SUCCESS);
   
@@ -1212,7 +1226,7 @@ TEST_F(UtestConcatNotaskPass, conv_5hd_connect_to_concat_ori_shape_invalid) {
   auto concat_node = compute_graph->FindNode("concat");
   auto op_desc = concat_node->GetOpDesc();
   (void)ge::AttrUtils::SetInt(op_desc, "concat_dim", 1);
-  ConcatNotaskPass pass;
+  ConcatNotaskPassTestHelper pass;
   auto ret = pass.Run(compute_graph);
   EXPECT_EQ(ret, SUCCESS);
 
@@ -1231,11 +1245,11 @@ TEST_F(UtestConcatNotaskPass, conv_5hd_connect_to_concat_ori_shape_invalid) {
   aligned_shape[0] = 0;
   aligned_shape[1] = 1;
   GeShape ori_shape({1, 2});
-  EXPECT_EQ(pass.CheckConcatDimAlignment(concat, aligned_shape, 0, ori_shape), false);
+  EXPECT_EQ(pass.CheckDimAlignment(concat, aligned_shape, 0, ori_shape), false);
   concat->MutableInputDesc(0)->SetOriginShape(GeShape({1,2}));
   aligned_shape[0] = 1;
   aligned_shape[0] = 3;
-  EXPECT_EQ(pass.CheckConcatDimAlignment(concat, aligned_shape, 0, ori_shape), false);
+  EXPECT_EQ(pass.CheckDimAlignment(concat, aligned_shape, 0, ori_shape), false);
 }
 
 static Graph BuildTrainGraphConcatOneInput(Format storage_format, Format origin_format,
@@ -1288,7 +1302,7 @@ static Graph BuildTrainGraphConcatOneInput(Format storage_format, Format origin_
   return ToGeGraph(graph);
 }
 TEST_F(UtestConcatNotaskPass, nullptr_check) {
-  ConcatNotaskPass pass;
+  ConcatNotaskPassTestHelper pass;
   auto train_graph2 =
       BuildTrainGraphConcatOneInput(FORMAT_NC1HWC0, FORMAT_NCHW, {1, 32, 16, 16}, {2}, DT_FLOAT16);
   auto compute_graph2 = GraphUtilsEx::GetComputeGraph(train_graph2);
@@ -1307,7 +1321,7 @@ TEST_F(UtestConcatNotaskPass, nullptr_check) {
 }
 
 TEST_F(UtestConcatNotaskPass, CheckRealConcatDimTest) {
-  ConcatNotaskPass pass;
+  ConcatNotaskPassTestHelper pass;
   gert::Shape aligned_shape;
   aligned_shape.SetDimNum(4);
   aligned_shape[0] = 1;
@@ -1325,21 +1339,21 @@ TEST_F(UtestConcatNotaskPass, CheckRealConcatDimTest) {
   axis_index_mapping.dst_to_src_transfer_dims = {{1,2,3},{0},{0},{1}};
   int64_t concat_dim = 2;
   ge::GeTensorDesc input_tensor(GeShape({30,1,16,16}), ge::FORMAT_FRACTAL_Z, DT_FLOAT16);
-  EXPECT_EQ(pass.CheckRealConcatDim(aligned_shape, src_shape, axis_index_mapping, concat_dim,input_tensor), true);
+  EXPECT_EQ(pass.CheckRealDim(aligned_shape, src_shape, axis_index_mapping, concat_dim,input_tensor), true);
   concat_dim = 3;
-  EXPECT_EQ(pass.CheckRealConcatDim(aligned_shape, src_shape, axis_index_mapping, concat_dim,input_tensor), false);
+  EXPECT_EQ(pass.CheckRealDim(aligned_shape, src_shape, axis_index_mapping, concat_dim,input_tensor), false);
   src_shape[2] = 1;
-  EXPECT_EQ(pass.CheckRealConcatDim(aligned_shape, src_shape, axis_index_mapping, concat_dim,input_tensor), true);
+  EXPECT_EQ(pass.CheckRealDim(aligned_shape, src_shape, axis_index_mapping, concat_dim,input_tensor), true);
   concat_dim = 0;
   ge::GeTensorDesc input_tensor3(GeShape({6,1,16,16}), ge::FORMAT_FRACTAL_Z, DT_FLOAT16);
-  EXPECT_EQ(pass.CheckRealConcatDim(aligned_shape, src_shape, axis_index_mapping, concat_dim,input_tensor3), false);
+  EXPECT_EQ(pass.CheckRealDim(aligned_shape, src_shape, axis_index_mapping, concat_dim,input_tensor3), false);
   src_shape[3] = 1;
   ge::GeTensorDesc input_tensor2(GeShape({1,1,16,16}), ge::FORMAT_FRACTAL_Z, DT_FLOAT16);
-  EXPECT_EQ(pass.CheckRealConcatDim(aligned_shape, src_shape, axis_index_mapping, concat_dim,input_tensor2), true);
+  EXPECT_EQ(pass.CheckRealDim(aligned_shape, src_shape, axis_index_mapping, concat_dim,input_tensor2), true);
   src_shape[1] = 32;
   concat_dim = 3;
   ge::GeTensorDesc input_tensor4(GeShape({2,1,16,16}), ge::FORMAT_FRACTAL_Z, DT_FLOAT16);
-  EXPECT_EQ(pass.CheckRealConcatDim(aligned_shape, src_shape, axis_index_mapping, concat_dim,input_tensor4), false);
+  EXPECT_EQ(pass.CheckRealDim(aligned_shape, src_shape, axis_index_mapping, concat_dim,input_tensor4), false);
 }
 
 TEST_F(UtestConcatNotaskPass, scalar_input_check) {
@@ -1371,7 +1385,7 @@ TEST_F(UtestConcatNotaskPass, scalar_input_check) {
   dims.push_back(100);
   op_desc->MutableInputDesc(1)->SetOriginShape(GeShape(dims));
   (void)ge::AttrUtils::SetInt(op_desc, "concat_dim", 0);
-  ConcatNotaskPass pass;
+  ConcatNotaskPassTestHelper pass;
   EXPECT_EQ(pass.IsScalarInput(concat_node, 0), true);
   EXPECT_EQ(pass.IsScalarInput(concat_node, 1), false);
   EXPECT_EQ(pass.InputCheck(concat_node), false);

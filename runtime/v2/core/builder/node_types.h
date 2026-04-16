@@ -176,7 +176,8 @@ inline bool IsAllocHostCpuOutputMemoryNode(const char *const node_type) {
   return (strcmp(node_type, "AllocHostCpuOutputMemory") == 0);
 }
 inline bool IsAllocHostNode(const char *const node_type) {
-  static std::vector<const char *> kAllocKernels = {"AllocHostCpuOutputMemory", "AllocMemHost", "MakeSureTensorAtHost",
+  static std::vector<const char *> kAllocKernels = {"AllocHostCpuOutputMemory", "AllocMemHost",
+                                                    "MakeSureTensorAtHost", "MakeSureTensorAtHostWithoutSync",
                                                     "CopyD2H", "CopyTensorDataH2H"};
   auto func = [&node_type](const char *const type) { return (strcmp(node_type, type) == 0); };
   return std::any_of(kAllocKernels.begin(), kAllocKernels.end(), func);

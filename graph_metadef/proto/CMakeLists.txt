@@ -182,6 +182,6 @@ set_target_properties(stub_op_common PROPERTIES
 )
 
 ############ install ############
-install(TARGETS stub_op_common OPTIONAL
+install(TARGETS stub_op_common ${INSTALL_OPTIONAL}
     LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}/${CMAKE_SYSTEM_PROCESSOR}/stub
 )

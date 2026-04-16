@@ -34,6 +34,6 @@ add_custom_command(
         DEPENDS dflow_wrapper flowfunc_wrapper data_wrapper
 )
 
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/dataflow-0.0.1-py3-none-any.whl OPTIONAL DESTINATION ${INSTALL_LIBRARY_DIR})
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/dataflow-0.0.1-py3-none-any.whl ${INSTALL_OPTIONAL} DESTINATION ${INSTALL_LIBRARY_DIR})
 
 add_subdirectory(wrapper)

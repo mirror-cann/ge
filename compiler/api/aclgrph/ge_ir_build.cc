@@ -52,7 +52,7 @@
 #include "graph/manager/util/rt_context_util.h"
 #include "analyzer/analyzer.h"
 #include "graph/utils/type_utils.h"
-#include "register/custom_pass_helper.h"
+#include "graph/fusion/pass/pass_plugin_loader.h"
 #include "base/err_msg.h"
 #include "base/err_mgr.h"
 
@@ -331,7 +331,7 @@ static graphStatus aclgrphBuildInitializeImpl(std::map<std::string, std::string>
   ge::PrintOptionMap(global_options, "global option");
   GE_ASSERT_GRAPH_SUCCESS(OpLibRegistry::GetInstance().PreProcessForCustomOp());
   LoadOpsProto();
-  GE_ASSERT_SUCCESS(CustomPassHelper::Instance().Load());
+  GE_ASSERT_SUCCESS(fusion::LoadPassPlugins());
 
   std::shared_ptr<ge::GELib> instance_ptr = ge::GELib::GetInstance();
   if (instance_ptr == nullptr || !instance_ptr->InitFlag()) {
@@ -367,7 +367,8 @@ graphStatus aclgrphBuildInitialize(std::map<AscendString, AscendString> &global_
 }
 
 void aclgrphBuildFinalize() {
-  CustomPassHelper::Instance().Unload();
+  // ge_ir_build 生命周期结束时显式关闭 Python bridge so，避免进程退出前长期悬挂。
+  (void)fusion::ShutdownPassPluginsForProcess();
   if (ge::GELib::GetInstance() != nullptr && ge::GELib::GetInstance()->InitFlag()) {
     (void)ge::GELib::GetInstance()->Finalize();
     return;

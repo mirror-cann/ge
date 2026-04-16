@@ -36,6 +36,7 @@ namespace {
 constexpr int gather_mode_two = 2;
 constexpr int gather_data_num_two = 2;
 constexpr int gather_data_num_three = 3;
+constexpr int len_of_num_to_str = 20;
 
 // 检查是否因为尾轴太小而跳过lowering
 // 返回true表示应该跳过，false表示继续lowering
@@ -2077,7 +2078,7 @@ REGISTER_LOWERING(ApplyAdagradD) {
 template <typename T>
 string FloatToStringWithPrecision(T value) {
   std::ostringstream oss;
-  oss << std::setprecision(20) << value;
+  oss << std::setprecision(len_of_num_to_str) << value;
   return oss.str();
 }
 

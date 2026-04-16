@@ -263,6 +263,7 @@ set(PASS_TEST_FILES
     "graph/passes/recompute_pass_unittest.cc"
     "graph/passes/split_variable_into_subgraph_pass_unittest.cc"
     "graph/passes/concat_notask_pass_unittest.cc"
+    "graph/passes/pack_notask_pass_unittest.cc"
     "graph/passes/auto_fuse_pass_unittest.cc"
     "graph/passes/algebraic_simplification_pass_unittest.cc"
     "fusion/pattern_unittest.cc"
@@ -279,7 +280,6 @@ set(PASS_TEST_FILES
     "fusion/pass/pattern_fusion_pass_unittest.cc"
     "fusion/pass/decompose_pass_unittest.cc"
     "fusion/pass/reg_pass_unittest.cc"
-    "fusion/pass/fusion_pass_executor_unittest.cc"
 )
 
 set(KERNEL_TEST_FILES
@@ -875,11 +875,13 @@ target_include_directories(ut_libge_others_utest PRIVATE
 
 target_compile_definitions(ut_libge_others_utest PRIVATE
     google=ascend_private
+    AIR_CODE_DIR=\"${AIR_CODE_DIR}\"
 )
 
 target_link_options(ut_libge_others_utest PRIVATE
     -Wl,--disable-new-dtags
     -Wl,-rpath,${CMAKE_CURRENT_LIST_DIR}
+    -Wl,-rpath,${CMAKE_BINARY_DIR}/compiler
 )
 
 target_link_libraries(ut_libge_others_utest
@@ -903,6 +905,101 @@ target_link_libraries(ut_libge_others_utest
 
 add_test(NAME ut_libge_others_utest COMMAND ut_libge_others_utest --gtest_output=xml:${CMAKE_INSTALL_PREFIX}/report/ut/ut_libge_others_utest.xml)
 set_tests_properties(ut_libge_others_utest PROPERTIES LABELS "ut;ge_common;ut_libge_others_utest" DEPENDS ut_libge_distinct_load_utest)
+
+# ut_fusion_pass_executor_utest
+add_executable(ut_fusion_pass_executor_utest
+    ${COMMON_TEST_FILES}
+    "fusion/pass/fusion_pass_executor_unittest.cc"
+)
+
+add_dependencies(ut_fusion_pass_executor_utest
+    mdat
+    ge_python_pass_bridge
+)
+
+target_compile_options(ut_fusion_pass_executor_utest PRIVATE ${AIR_COMMON_COMPILE_OPTION}
+    -Werror=format
+    -Wno-deprecated-declarations
+    -Wall -Wfloat-equal -Werror
+    -Wno-subobject-linkage
+)
+
+target_include_directories(ut_fusion_pass_executor_utest PRIVATE
+    ${AIR_CODE_DIR}/tests/framework/ge_runtime_stub/include
+    ${ASCEND_INSTALL_PATH}/include
+    ${ASCGEN_DIR}/inc
+)
+
+target_compile_definitions(ut_fusion_pass_executor_utest PRIVATE
+    google=ascend_private
+    AIR_CODE_DIR=\"${AIR_CODE_DIR}\"
+    $<$<STREQUAL:${ENABLE_OPEN_SRC},True>:ONLY_COMPILE_OPEN_SRC>
+)
+
+target_link_options(ut_fusion_pass_executor_utest PRIVATE
+    -Wl,--disable-new-dtags
+    -Wl,-rpath,${CMAKE_CURRENT_LIST_DIR}
+    -Wl,-rpath,${CMAKE_BINARY_DIR}/compiler
+)
+
+target_link_libraries(ut_fusion_pass_executor_utest
+    intf_llt_pub
+    metadef_headers
+    ascendcl_stub
+    ${AIR_COMMON_LINK_OPTION}
+    ge_compiler
+    gert
+    register
+    graph
+    graph_base
+    unified_dlog
+    -Wl,-z,muldefs
+    -Wl,--whole-archive
+    ge_runtime_stub
+    rt2_registry_static
+    -Wl,--no-whole-archive
+    ge_running_env
+    ${COMMON_SHARED_LIBRARIES}
+    GTest::gtest
+    GTest::gtest_main
+    GTest::gmock_main
+    -lrt
+    -ldl
+    -Wl,--no-as-needed
+    es_ge_test
+    GTest::gmock
+    -Wl,--as-needed
+)
+
+target_link_options(ut_fusion_pass_executor_utest PRIVATE
+        -rdynamic
+        -Wl,-Bsymbolic
+        )
+
+# 安装 ge_py wheel 到测试专用目录
+set(FUSION_PASS_PY_INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/fusion_pass_py_install)
+
+add_custom_command(
+    OUTPUT ${FUSION_PASS_PY_INSTALL_DIR}/.installed
+    COMMAND ${CMAKE_COMMAND} -E remove -rf ${FUSION_PASS_PY_INSTALL_DIR}
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${FUSION_PASS_PY_INSTALL_DIR}
+    COMMAND ${HI_PYTHON} -m pip install --target ${FUSION_PASS_PY_INSTALL_DIR}
+            ${CMAKE_BINARY_DIR}/api/python/ge/ge_py-0.0.1-py3-none-any.whl --force-reinstall
+    COMMAND ${CMAKE_COMMAND} -E touch ${FUSION_PASS_PY_INSTALL_DIR}/.installed
+    DEPENDS ge_python
+    COMMENT "Installing ge-py wheel for fusion_pass_executor_utest"
+)
+
+add_custom_target(install_ge_py_for_fusion_pass_ut DEPENDS
+    ${FUSION_PASS_PY_INSTALL_DIR}/.installed)
+
+add_dependencies(ut_fusion_pass_executor_utest install_ge_py_for_fusion_pass_ut)
+
+add_test(NAME ut_fusion_pass_executor_utest COMMAND ut_fusion_pass_executor_utest --gtest_output=xml:${CMAKE_INSTALL_PREFIX}/report/ut/ut_fusion_pass_executor_utest.xml)
+set_tests_properties(ut_fusion_pass_executor_utest PROPERTIES
+    LABELS "ut;ge_common;ut_fusion_pass_executor_utest"
+    ENVIRONMENT "PYTHONPATH=${FUSION_PASS_PY_INSTALL_DIR}"
+)
 
 # libge_label_maker_utest
 add_executable(ut_libge_label_maker_utest

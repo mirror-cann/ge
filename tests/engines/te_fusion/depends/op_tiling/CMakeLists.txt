@@ -76,6 +76,6 @@ set(INSTALL_INCLUDE_DIR include)
 set(INSTALL_LIBRARY_DIR lib)
 set(INSTALL_CONFIG_DIR  lib/cmake)
 
-install(TARGETS op_tiling_rt2_stub OPTIONAL
+install(TARGETS op_tiling_rt2_stub ${INSTALL_OPTIONAL}
         EXPORT op_tiling_rt2_stub-targets
         LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR})

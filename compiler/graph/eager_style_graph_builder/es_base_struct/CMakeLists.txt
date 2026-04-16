@@ -64,7 +64,7 @@ target_link_libraries(eager_style_graph_builder_base_static
         eager_style_graph_builder_base_headers
         eager_style_graph_builder_base_inner_headers
         )
-install(TARGETS eager_style_graph_builder_base_static OPTIONAL
+install(TARGETS eager_style_graph_builder_base_static ${INSTALL_OPTIONAL}
         ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR})
-install(TARGETS eager_style_graph_builder_base OPTIONAL
+install(TARGETS eager_style_graph_builder_base ${INSTALL_OPTIONAL}
         LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR})

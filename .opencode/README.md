@@ -2,6 +2,8 @@
 
 ## GE 仓 skills 清单
 
+> **说明**：清单中 `[x]` 表示该 skill 已就绪（ready），`[ ]` 表示该 skill 尚在规划中，还未实现。
+
 - [x] **gitcode-issue** — 读取 Issue 详情、读取和回复评论，触发指令 `读取issue 168，并提交pr修复`
 - [x] **gitcode-pr** — 创建 PR、提交行内检视意见、cherry-pick 代码到商用分支，触发指令`检视pr 1437` 或 `创建pr到develop分支` 
 - [x] **superpowers** — 需求开发（生成软件设计文档、编码、生成测试用例），触发指令`开发需求，要求……`
@@ -24,6 +26,8 @@
 - 项目组共享，希望能做到启动agent默认安装或更新
 - 仅在ge仓使用的skills可直接提交到ge仓`.claude/skills`目录
 - 多个仓都时用的skills，源码在公共仓（当前是https://gitcode.com/cann-agent/skills），启动agent时会自动下载或者更新skills到`.claude/skills`目录
+
+> **注意**：`gitcode-issue`、`gitcode-pr` 等跨仓共享的 skills 不在 GE 仓的 `.claude/skills` 目录中维护。它们的源码存放在公共仓，在 ge 目录下启动 agent 后会自动下载并安装到本地 `.claude/skills` 目录。
 
 ## Agent辅助流程
 ```mermaid

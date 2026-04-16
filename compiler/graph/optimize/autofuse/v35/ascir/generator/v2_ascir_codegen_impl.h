@@ -3037,7 +3037,6 @@ class LogicalOrAscIrCodegenImplV2 : public AscIrCodegenV2 {
       "adv_api/math/logical_ands.h",
       "adv_api/math/logical_or.h",
       "adv_api/math/logical_ors.h",
-      "adv_api/math/logical_xor.h",
     };
   }
   [[nodiscard]] bool IsNodeValid(const ge::AscNode &node) const override {
@@ -3076,7 +3075,6 @@ class LogicalAndAscIrCodegenImplV2 : public AscIrCodegenV2 {
       "adv_api/math/logical_ands.h",
       "adv_api/math/logical_or.h",
       "adv_api/math/logical_ors.h",
-      "adv_api/math/logical_xor.h",
     };
   }
   [[nodiscard]] bool IsNodeValid(const ge::AscNode &node) const override {
@@ -3360,20 +3358,16 @@ class Log10AscIrCodegenImplV2 : public AscIrCodegenV2 {
 class LogicalXorAscIrCodegenImplV2 : public AscIrCodegenV2 {
  public:
   [[nodiscard]] std::string GetApiCallName() const override {
-    return "BinaryApiCall";
+    return "BinaryApiCallV2";
   }
   [[nodiscard]] std::string GetApiName() const override {
     return "LogicalXorExtend";
   }
   [[nodiscard]] std::vector<std::string> LoadApiHeaderFiles() const override {
-    return {"logical_reg_base.h"};
+    return {"logical_xor_reg_base.h"};
   }
   [[nodiscard]] std::vector<std::string> IncludeApiHeaderFiles() const override {
     return {
-      "adv_api/math/logical_and.h",
-      "adv_api/math/logical_ands.h",
-      "adv_api/math/logical_or.h",
-      "adv_api/math/logical_ors.h",
       "adv_api/math/logical_xor.h",
     };
   }
@@ -3407,6 +3401,7 @@ class Log1pAscIrCodegenImplV2 : public AscIrCodegenV2 {
    [[nodiscard]] std::vector<std::string> IncludeApiHeaderFiles() const override {
      return {
        "basic_api/kernel_operator_vec_unary_intf.h",
+       "basic_api/kernel_operator_vec_binary_scalar_intf.h",
        "basic_api/reg_compute/kernel_reg_compute_intf.h",
      };
    }

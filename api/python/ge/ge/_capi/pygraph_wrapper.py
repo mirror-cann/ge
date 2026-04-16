@@ -294,4 +294,11 @@ graph_lib.GeApiWrapper_Tensor_FreeDimsArray.argtypes = [ctypes.POINTER(c_int64)]
 graph_lib.GeApiWrapper_Tensor_GetData.restype = c_char_ptr
 graph_lib.GeApiWrapper_Tensor_GetData.argtypes = [c_void_p]
 
+graph_lib.GeApiWrapper_Tensor_GetPlacement.restype = c_int32
+graph_lib.GeApiWrapper_Tensor_GetPlacement.argtypes = [c_void_p]
 
+graph_lib.GeApiWrapper_Tensor_ToHost.restype = c_int
+graph_lib.GeApiWrapper_Tensor_ToHost.argtypes = [c_void_p]
+
+graph_lib.GeApiWrapper_Tensor_ToDevice.restype = c_int
+graph_lib.GeApiWrapper_Tensor_ToDevice.argtypes = [c_void_p]

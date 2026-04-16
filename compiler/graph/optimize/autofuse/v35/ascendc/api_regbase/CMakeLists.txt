@@ -7,6 +7,7 @@ set(ascendc_api_regbase_extend_src
         clipbyvalue.h
         utils.h
         logical_not.h
+        logical_xor.h
         cast.h
         logical.h
         compare.h

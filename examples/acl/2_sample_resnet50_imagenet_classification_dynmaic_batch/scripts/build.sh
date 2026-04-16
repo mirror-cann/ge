@@ -9,32 +9,34 @@
 # See LICENSE in the root of the software repository for the full text of the License.
 # ----------------------------------------------------------------------------
 
-ScriptPath="$( cd "$(dirname "$BASH_SOURCE")" ; pwd -P )"
+set -o pipefail
+
+SCRIPT_PATH="$( cd "$(dirname "$BASH_SOURCE")" ; pwd -P )"
 
 function build()
 {
-  UserKernel=`arch`
-  if [[ ${TargetKernel} = "x86" ]] || [[ ${TargetKernel} = "X86" ]];then
-    TargetCompiler="g++"
-    TargetKernel="x86"
+  USER_KERNEL="$(arch)"
+  if [[ ${TARGET_KERNEL} = "x86" ]] || [[ ${TARGET_KERNEL} = "X86" ]];then
+    TARGET_COMPILER="g++"
+    TARGET_KERNEL="x86"
   else
-    if [[ ${UserKernel} == "x86_64" ]];then
-      TargetCompiler="aarch64-linux-gnu-g++"
-      TargetKernel="arm"
+    if [[ ${USER_KERNEL} == "x86_64" ]];then
+      TARGET_COMPILER="aarch64-linux-gnu-g++"
+      TARGET_KERNEL="arm"
     else
-      TargetCompiler="g++"
-      TargetKernel="arm"
+      TARGET_COMPILER="g++"
+      TARGET_KERNEL="arm"
     fi
   fi
-  if [ -d ${ScriptPath}/../build/intermediates/host ];then
-    rm -rf ${ScriptPath}/../build/intermediates/host
+  if [ -d ${SCRIPT_PATH}/../build/intermediates/host ];then
+    rm -rf ${SCRIPT_PATH}/../build/intermediates/host
   fi
     
-  mkdir -p ${ScriptPath}/../build/intermediates/host
-  cd ${ScriptPath}/../build/intermediates/host
+  mkdir -p ${SCRIPT_PATH}/../build/intermediates/host
+  cd ${SCRIPT_PATH}/../build/intermediates/host
 
   # Start compiling
-  cmake ../../../src -DCMAKE_CXX_COMPILER=${TargetCompiler} -DCMAKE_SKIP_RPATH=TRUE
+  cmake ../../../src -DCMAKE_CXX_COMPILER=${TARGET_COMPILER} -DCMAKE_SKIP_RPATH=TRUE
   if [ $? -ne 0 ];then
     echo "[ERROR] cmake error, Please check your environment!"
     return 1
@@ -49,26 +51,52 @@ function build()
 
 function target_kernel()
 {
-  declare -i CHOICE_TIMES=0
-  while [[ ${TargetKernel}"X" = "X" ]]
-  do
-    # three times choice 
-    [[ ${CHOICE_TIMES} -ge 3 ]] && break || ((CHOICE_TIMES++))
-    read -p "please input TargetKernel? [arm/x86]:" TargetKernel
-    if [ ${TargetKernel}"z" = "armz" ] || [ ${TargetKernel}"z" = "Armz" ] || [ ${TargetKernel}"z" = "x86z" ] || [ ${TargetKernel}"z" = "X86z" ]; then
-      echo "[INFO] input is normal, start preparation."
+    local arch=""
+
+    if command -v lscpu >/dev/null 2>&1; then
+        arch_info=$(lscpu 2>/dev/null | grep -i "Architecture" | head -n1)
+        if [[ -n "$arch_info" ]]; then
+            arch=$(echo "$arch_info" | awk -F: '{print $2}' | tr -d ' \t\n\r' | tr '[:upper:]' '[:lower:]')
+
+            if [[ "$arch" == "aarch64" || "$arch" == "armv8" || "$arch" == "armv7l" || "$arch" == "arm" ]]; then
+                TARGET_KERNEL="arm"
+                echo "[INFO] Detected ARM architecture via lscpu: '$arch_info'"
+                return 0
+            elif [[ "$arch" == "x86_64" || "$arch" == "i686" || "$arch" == "i386" ]]; then
+                TARGET_KERNEL="x86"
+                echo "[INFO] Detected x86 architecture via lscpu: '$arch_info'"
+                return 0
+            else
+                echo "[WARN] Unknown architecture from lscpu: '$arch', will fall back to manual input."
+            fi
+        fi
     else
-      echo "[WARNING] The ${CHOICE_TIMES}th parameter input error!"
-      TargetKernel=""
+        echo "[WARN] 'lscpu' command not found, falling back to manual input."
     fi
-  done
-  if [ ${TargetKernel}"z" = "z" ];then
-    echo "[ERROR] TargetKernel entered incorrectly three times, please input arm/x86!"
-    return 1
-  else
+
+    declare -i CHOICE_TIMES=0
+    TARGET_KERNEL=""
+    while [[ "${TARGET_KERNEL}" == "" ]]; do
+        ((CHOICE_TIMES++))
+        if [[ ${CHOICE_TIMES} -gt 3 ]]; then
+            echo "[ERROR] TARGET_KERNEL entered incorrectly three times. Please input 'arm' or 'x86'."
+            return 1
+        fi
+
+        read -p "Please input TARGET_KERNEL? [arm/x86]: " input_kernel
+        input_kernel=$(echo "$input_kernel" | tr '[:upper:]' '[:lower:]')
+
+        if [[ "$input_kernel" == "arm" || "$input_kernel" == "x86" ]]; then
+            TARGET_KERNEL="$input_kernel"
+            echo "[INFO] Input is valid, start preparation."
+        else
+            echo "[WARNING] The ${CHOICE_TIMES}th parameter input error! Please enter 'arm' or 'x86'."
+        fi
+    done
+
     return 0
-  fi
 }
+
 function main()
 {
   echo "[INFO] Sample preparation"
@@ -86,4 +114,3 @@ function main()
   echo "[INFO] Sample preparation is complete"
 }
 main
-

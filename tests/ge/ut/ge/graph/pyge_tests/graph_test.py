@@ -107,6 +107,15 @@ class TestGraph:
         with pytest.raises(ValueError, match="Graph pointer cannot be None"):
             Graph._create_from(None)
 
+    def test_graph_create_from_borrowed_handle(self, graph):
+        """测试从 borrowed handle 创建 Graph 视图"""
+        owner = object()
+        borrowed_graph = Graph._create_from(graph._handle, owns_handle=False, owner=owner)
+
+        assert borrowed_graph.name == "test_graph"
+        assert borrowed_graph._owns_handle is False
+        assert borrowed_graph._owner is owner
+
     def test_graph_name_property(self, graph):
         """测试 Graph name 属性"""
         name = graph.name
