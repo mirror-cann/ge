@@ -217,20 +217,18 @@ REG_ASC_IR(Cast)
            ge::ascir::AscIrImplCreator<ge::ascir::CastAscIrCodegenImplV2>(),
            {{"T1", OrderedTensorTypeList{DT_FLOAT,   DT_FLOAT,   DT_FLOAT,   DT_FLOAT,   DT_FLOAT,   DT_FLOAT,
                                          DT_FLOAT,   DT_FLOAT16, DT_FLOAT16, DT_FLOAT16, DT_FLOAT16, DT_FLOAT16,
-                                         DT_FLOAT16, DT_FLOAT16, DT_INT4,    DT_UINT8,   DT_UINT8,   DT_UINT8,
-                                         DT_UINT8,   DT_UINT8,   DT_UINT8,   DT_INT8,    DT_INT8,    DT_INT8,
+                                         DT_UINT64,  DT_FLOAT16, DT_UINT16,  DT_UINT8,   DT_UINT8,   DT_UINT8,
+                                         DT_UINT8,   DT_UINT8,   DT_UINT32,  DT_INT8,    DT_INT8,    DT_INT8,
                                          DT_INT8,    DT_INT16,   DT_INT16,   DT_INT16,   DT_INT16,   DT_INT16,
                                          DT_INT32,   DT_INT32,   DT_INT32,   DT_INT32,   DT_INT32,   DT_INT64,
-                                         DT_INT64,   DT_INT64,   DT_INT64,   DT_INT64,   DT_BF16,    DT_BF16,
-                                         DT_UINT32,  DT_UINT16,  DT_UINT64}},
+                                         DT_INT64,   DT_INT64,   DT_INT64,   DT_INT64,   DT_BF16,    DT_BF16}},
             {"T2", OrderedTensorTypeList{DT_FLOAT,   DT_FLOAT16, DT_INT64,   DT_INT32,   DT_INT16,   DT_BF16,
                                          DT_INT8,    DT_FLOAT,   DT_INT32,   DT_INT16,   DT_INT8,    DT_UINT8,
-                                         DT_INT4,    DT_INT64,   DT_FLOAT16, DT_FLOAT16, DT_FLOAT,   DT_INT32,
-                                         DT_INT16,   DT_INT8,    DT_INT4,    DT_FLOAT16, DT_UINT8,   DT_FLOAT,
+                                         DT_INT64,   DT_INT64,   DT_INT16,   DT_FLOAT16, DT_FLOAT,   DT_INT32,
+                                         DT_INT16,   DT_INT8,    DT_INT32,   DT_FLOAT16, DT_UINT8,   DT_FLOAT,
                                          DT_INT16,   DT_FLOAT16, DT_FLOAT,   DT_UINT16,  DT_INT8,    DT_UINT8,
                                          DT_FLOAT,   DT_INT64,   DT_INT16,   DT_FLOAT16, DT_UINT32,  DT_INT32,
-                                         DT_FLOAT,   DT_UINT8,   DT_UINT64,  DT_FLOAT16, DT_FLOAT,   DT_INT32,
-                                         DT_INT32,   DT_INT16,   DT_INT64}}}});
+                                         DT_FLOAT,   DT_UINT8,   DT_UINT64,  DT_FLOAT16, DT_FLOAT,   DT_INT32}}}});
 
 REG_ASC_IR(Abs)
     .Impl(v2_soc_versions, {ge::ascir::AscIrImplCreator<ge::ascir::AbsAscIrAttImplV2>(),
