@@ -723,11 +723,14 @@ HcclResult HcomOpUtils::CalcCommonCount(const ge::OpDescPtr &op, const std::stri
     if (sCollectiveType == HCCL_KERNEL_OP_TYPE_REDUCESCATTER) {
       blockSize = is_continuous_input ? inputSize / rankSize * (inputSize + ALIGNED_SIZE - 1) / ALIGNED_SIZE : inputSize / rankSize;
     } else if (sCollectiveType == HCCL_KERNEL_OP_TYPE_ALLGATHER) {
-      // ALLGATHER 和其他算子
-      blockSize = is_continuous_input ? inputSize * (inputSize + ALIGNED_SIZE - 1) / ALIGNED_SIZE : inputSize;
-    } else {
-      // 其他算子默认不对齐
+      // ALLGATHER算子判断是否连续内存，连续内存需要对齐，非连续内存不需要对齐
+ 	    blockSize = is_continuous_input ? (inputSize + ALIGNED_SIZE - 1) / ALIGNED_SIZE * ALIGNED_SIZE : inputSize;
+ 	  } else if (sCollectiveType == HCCL_KERNEL_OP_TYPE_ALLTOALL) {
+      // ALLTOALL 类型算子默认不对齐
       blockSize = inputSize;
+    } else {
+      // 其他算子默认对齐
+      blockSize = (inputSize + ALIGNED_SIZE - 1) / ALIGNED_SIZE * ALIGNED_SIZE;
     }
     
     // 溢出检查
