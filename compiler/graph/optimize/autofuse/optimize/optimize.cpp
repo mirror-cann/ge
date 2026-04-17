@@ -20,7 +20,7 @@
 #include "fused_graph/fused_graph_modifier.h"
 #include "graph/ascendc_ir/utils/asc_graph_utils.h"
 #include "task_generator/schedule_task_generator.h"
-#include "autofuse/utils/autofuse_attrs.h"
+#include "fusion/autofuse_attrs.h"
 #include "buffer_allocate/buf_que_allocator.h"
 #include "ascgraph_info_complete.h"
 #include "schedule_utils.h"
@@ -29,6 +29,7 @@
 #include "optimize/graph_pass/pass_runner_handler.h"
 #include "graph/symbolizer/symbolic_utils.h"
 #include "optimize/graph_completeness/dtype_consistency.h"
+#include "pre_process/pre_process.h"
 
 using namespace ascir;
 using namespace optimize;
@@ -744,12 +745,14 @@ Status Optimizer::OptimizeForHintGraph(ge::AscGraph &hint_graph,
   ScheduleUtils::NormalizeAxisIds(hint_graph);
   hint_graph.SetGraphType(ge::AscGraphType::kImplGraph);
   ascir::utils::DumpPyCode(hint_graph);
-  // 对dtype和stride的推导要放在原图上
-  // 这样原图自身才是dtype和stride连续的
-  // 这一步本身不是优化而是图的完整性准备。
   GE_CHK_STATUS_RET(AscGraphInfoComplete::CompleteApiInfo(hint_graph), "CompleteApiInfo failed");
   GE_ASSERT_SUCCESS(CheckGraphValidity(hint_graph),
                 "Check graph validity failed, graph:[%s].", hint_graph.GetName().c_str());
+  // 预处理：当前仅针对kFusedAscBackend流程生效，后续会全部放开
+  if (options_.graph_type == GraphType::kFusedAscBackend) {
+    GE_CHK_STATUS_RET(pre_process::PreProcess::Run(hint_graph), "Pre process failed");
+    ascir::utils::DumpGraph(hint_graph, "AfterPreProcess");
+  }
   // 截断 graph name
   std::string base_graph_name = TruncateGraphName(hint_graph.GetName());
   ascir::ImplGraph optimize_graph(base_graph_name.c_str());

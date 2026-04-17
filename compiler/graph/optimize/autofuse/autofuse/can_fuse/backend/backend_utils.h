@@ -13,7 +13,7 @@
 #include "ge_common/ge_api_types.h"
 #include "graph_metadef/graph/debug/ge_util.h"
 #include "graph/utils/graph_utils.h"
-#include "utils/autofuse_attrs.h"
+#include "fusion/autofuse_attrs.h"
 #include "graph/ascendc_ir/utils/asc_graph_utils.h"
 #include "autoschedule/axis_group.h"
 

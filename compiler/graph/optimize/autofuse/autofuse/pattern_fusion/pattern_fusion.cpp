@@ -10,7 +10,7 @@
 
 #include "pattern_fusion.h"
 #include "utils/auto_fuse_config.h"
-#include "utils/autofuse_attrs.h"
+#include "fusion/autofuse_attrs.h"
 #include "common/checker.h"
 #include "decompose_large_const_pass.h"
 #include "flatten_concat_pass.h"

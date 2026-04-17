@@ -23,7 +23,7 @@
 #include "graph/ascendc_ir/ascendc_ir_core/ascendc_ir.h"
 #include "graph/attribute_group/attr_group_symbolic_desc.h"
 #include "can_fuse/strategy/fusion_strategy_registry.h"
-#include "utils/autofuse_attrs.h"
+#include "fusion/autofuse_attrs.h"
 #include "post_process/post_process_util.h"
 #include "ascir_ops.h"
 #include "post_process/scheduler_adapter/torch_adaption_fallback_load.h"

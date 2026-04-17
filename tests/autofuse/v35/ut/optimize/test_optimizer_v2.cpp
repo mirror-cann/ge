@@ -31,7 +31,7 @@
 #include "graph/debug/ge_op_types.h"
 #include "graph/normal_graph/ge_tensor_impl.h"
 #include "codegen.h"
-#include "autofuse/utils/autofuse_attrs.h"
+#include "fusion/autofuse_attrs.h"
 #include "task_generator/transpose_schedule_case_generator.h"
 #include "ascgraph_info_complete.h"
 #include "schedule_result.h"

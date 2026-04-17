@@ -12,7 +12,7 @@
 #include "backend/backend_spec.h"
 #include "can_fuse/backend/backend_utils.h"
 #include "post_process/scheduler_adapter/adaption_complete_node_attrs.h"
-#include "utils/autofuse_attrs.h"
+#include "fusion/autofuse_attrs.h"
 #include "can_fuse/strategy/fusion_strategy_registry.h"
 #include "utils/auto_fuse_config.h"
 #include "utils/autofuse_utils.h"

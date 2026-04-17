@@ -18,6 +18,7 @@
 #include "utils/autofuse_utils.h"
 #include "graph/attribute_group/attr_group_symbolic_desc.h"
 #include "backend_utils.h"
+#include "lowering/asc_lowerer/loop_common.h"
 #include "can_fuse/strategy/fusion_strategy_registry.h"
 
 namespace ge {

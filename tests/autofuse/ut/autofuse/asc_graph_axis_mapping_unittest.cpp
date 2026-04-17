@@ -16,7 +16,7 @@
 #include "graph/utils/node_utils.h"
 #include "graph/operator_factory.h"
 #include "ascir_ops.h"
-#include "utils/autofuse_attrs.h"
+#include "fusion/autofuse_attrs.h"
 #include "utils/autofuse_utils.h"
 #include "attribute_group/attr_group_symbolic_desc.h"
 #include "ascgen_log.h"

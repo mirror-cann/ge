@@ -29,7 +29,7 @@
 #include "autoschedule/axis_group.h"
 #include "schedule_utils.h"
 #include "attribute_group/attr_group_shape_env.h"
-#include "autofuse/utils/autofuse_attrs.h"
+#include "fusion/autofuse_attrs.h"
 #include "fused_graph/fused_graph_unfolder.h"
 #include "graph/debug/ge_attr_define.h"
 #include "task_generator/concat_group_partitioner.h"

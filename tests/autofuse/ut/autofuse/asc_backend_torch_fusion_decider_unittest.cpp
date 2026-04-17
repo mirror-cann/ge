@@ -17,7 +17,7 @@
 #include "graph/operator_factory.h"
 #include "graph/utils/op_desc_utils.h"
 #include "ascir_ops.h"
-#include "utils/autofuse_attrs.h"
+#include "fusion/autofuse_attrs.h"
 #include "attribute_group/attr_group_symbolic_desc.h"
 #include "can_fuse/fusion_strategy_solver.h"
 #include "utils/auto_fuse_config.h"

@@ -10,7 +10,7 @@
 
 #include "fusion_strategy.h"
 #include "can_fuse/backend/backend_utils.h"
-#include "utils/autofuse_attrs.h"
+#include "fusion/autofuse_attrs.h"
 #include "utils/auto_fuse_config.h"
 
 namespace ge {

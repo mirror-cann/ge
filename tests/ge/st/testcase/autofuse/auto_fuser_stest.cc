@@ -16,7 +16,7 @@
 #include "compliant_node_builder.h"
 #include "graph/attribute_group/attr_group_symbolic_desc.h"
 #include "graph/utils/graph_utils.h"
-#include "utils/autofuse_attrs.h"
+#include "fusion/autofuse_attrs.h"
 #include "graph/optimize/symbolic/infer_symbolic_shape/symbolic_shape_inference.h"
 #include "graph/optimize/symbolic/infer_symbolic_shape/symbolic_shape_symbolizer.h"
 #include "compiler/graph/passes/feature/auto_fuse_pass.h"

@@ -19,7 +19,7 @@
 #include "graph/debug/ge_attr_define.h"
 #include "graph/debug/ge_op_types.h"
 #include "graph/ascendc_ir/utils/asc_graph_utils.h"
-#include "utils/autofuse_attrs.h"
+#include "fusion/autofuse_attrs.h"
 #include "utils/autofuse_utils.h"
 #include "op_helper/lower_concat_helper.h"
 #include "op_helper/lower_split_helper.h"

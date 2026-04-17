@@ -13,7 +13,7 @@
 #include "ge_common/ge_api_types.h"
 #include "graph/compute_graph.h"
 #include "exe_graph/runtime/symbolic_tensor.h"
-#include "can_fuse/backend/fusion_decider.h"
+#include "fusion/fusion_decider.h"
 #include "graph/utils/cycle_detector.h"
 #include "autofuse_frame/autofuse_frames.h"
 

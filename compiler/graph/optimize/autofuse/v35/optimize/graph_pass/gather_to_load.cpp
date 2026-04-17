@@ -13,7 +13,6 @@
 #include "node_utils.h"
 #include "schedule_utils.h"
 #include "graph_utils.h"
-#include "can_fuse/backend/backend_utils.h"
 
 using namespace ge::ops;
 using namespace ge::ascir_op;

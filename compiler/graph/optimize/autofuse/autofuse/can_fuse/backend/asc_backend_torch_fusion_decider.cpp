@@ -13,7 +13,7 @@
 #include "fusion_decider_registry.h"
 #include "graph/utils/node_utils.h"
 #include "graph/utils/op_desc_utils.h"
-#include "utils/autofuse_attrs.h"
+#include "fusion/autofuse_attrs.h"
 #include "can_fuse/strategy/fusion_strategy_registry.h"
 #include "utils/autofuse_utils.h"
 #include "graph/utils/type_utils.h"

@@ -29,7 +29,7 @@
 #include "graph/debug/ge_op_types.h"
 #include "ascgen_log.h"
 #include "schedule_utils.h"
-#include "autofuse/utils/autofuse_attrs.h"
+#include "fusion/autofuse_attrs.h"
 #include "graph/symbolizer/symbolic.h"
 #include "graph/expression/const_values.h"
 #include "platform_context.h"
