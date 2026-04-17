@@ -12,7 +12,7 @@
 #include "graph/graph.h"
 #include "graph/node.h"
 #include "ascir_ops.h"
-#include "utils/autofuse_attrs.h"
+#include "fusion/autofuse_attrs.h"
 #include "attribute_group/attr_group_symbolic_desc.h"
 #include "utils/auto_fuse_config.h"
 #include "post_process/asc_backend_post_processor.h"

@@ -21,7 +21,7 @@
 #include "lowering/asc_lowerer/asc_overrides.h"
 #include "lowering/lowerings.h"
 #include "lowering/op_lowering_impl/lowering_impl.h"
-#include "utils/autofuse_attrs.h"
+#include "fusion/autofuse_attrs.h"
 #include "utils/auto_fuse_config.h"
 #include "compliant_op_desc_builder.h"
 #include "graph/attribute_group/attr_group_shape_env.h"

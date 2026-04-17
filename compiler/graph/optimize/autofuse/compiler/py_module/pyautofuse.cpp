@@ -13,7 +13,6 @@
 #include "optimize.h"
 #include "codegen.h"
 #include "pyascir_common_utils.h"
-#include "autofuser.h"
 
 #include "pyascir.h"
 #include "pyascir_types.h"
@@ -54,7 +53,6 @@ public:
   struct Object {
     PyObject_HEAD
 
-    ge::AutofuserOptions* autofuser;
     optimize::OptimizerOptions* optimizer;
     codegen::CodegenOptions* codegen;
   };
@@ -85,7 +83,6 @@ PyObject *AutofuserOptions::New(PyTypeObject *type, PyObject *args, PyObject *kw
   auto self = reinterpret_cast<AutofuserOptions::Object *>(type->tp_alloc(type, 0));
   PY_ASSERT_NOTNULL(self);
 
-  self->autofuser = nullptr;
   self->optimizer = nullptr;
   self->codegen = nullptr;
 
@@ -99,8 +96,6 @@ int AutofuserOptions::Init(PyObject *self, PyObject *args, PyObject *kwds)
 
   self_->optimizer = new optimize::OptimizerOptions();
   self_->codegen = new codegen::CodegenOptions();
-  self_->autofuser = new ge::AutofuserOptions();
-  self_->autofuser->fwk_type = ge::AutoFuseFwkType::kTorch;
 
   if (kwds != nullptr) {
     PyObject *tiling_lib_path_kwarg = PyDict_GetItemString(kwds, "tiling_lib_path");
@@ -134,7 +129,6 @@ class Autofuser {
   struct Object {
     PyObject_HEAD
 
-    ge::Autofuser* autofuser;
     optimize::Optimizer* optimizer;
     codegen::Codegen* codegen;
   };
@@ -177,7 +171,6 @@ PyObject *Autofuser::New(PyTypeObject *type, PyObject *args, PyObject *kwds) {
   auto self = reinterpret_cast<Autofuser::Object *>(type->tp_alloc(type, 0));
   PY_ASSERT_NOTNULL(self);
 
-  self->autofuser = nullptr;
   self->optimizer = nullptr;
   self->codegen = nullptr;
 
@@ -195,7 +188,6 @@ int Autofuser::Init(PyObject *self, PyObject *args, PyObject *kwds) {
 
   self_->optimizer = new optimize::Optimizer(*options->optimizer);
   self_->codegen = new codegen::Codegen(*options->codegen);
-  self_->autofuser = new ge::Autofuser(*options->autofuser);
   return 0;
 }
 
@@ -228,14 +220,7 @@ PyObject *Autofuser::Schedule(PyObject *self, PyObject *args, PyObject *kwds) {
     return Py_BuildValue("O", fused_schedule_result_obj);
   } else if (PyObject_IsInstance(graph_obj, reinterpret_cast<PyObject *>(&pyascir::FusedGraph::type)) == kPythonSuccess) {
     auto fused_graph = reinterpret_cast<pyascir::FusedGraph::Object *>(graph_obj);
-    auto ret = self_->autofuser->Fuse(fused_graph->graph);
-    if (ret != 0) {
-      ERROR_PRINT("Fuse fail ret %d", ret);
-      ascir::AscGraphDumperContext::GetThreadLocalCtx().DumpWatchedGraphs();
-      return PyErr_Format(PyExc_RuntimeError, "Fuse fail");
-    }
-
-    ret = self_->optimizer->Optimize(fused_graph->graph, fused_schedule_result->fused_schedule_result);
+    auto ret = self_->optimizer->Optimize(fused_graph->graph, fused_schedule_result->fused_schedule_result);
     if (ret != 0) {
       ERROR_PRINT("Optimize fail ret %d", ret);
       ascir::AscGraphDumperContext::GetThreadLocalCtx().DumpWatchedGraphs();
@@ -292,13 +277,7 @@ PyObject *Autofuser::AutofuseBackend(PyObject *self, PyObject *args, PyObject *k
     }
   } else if (PyObject_IsInstance(graph_obj, reinterpret_cast<PyObject *>(&pyascir::FusedGraph::type)) == kPythonSuccess) {
     auto fused_graph = reinterpret_cast<pyascir::FusedGraph::Object *>(graph_obj);
-    auto ret = self_->autofuser->Fuse(fused_graph->graph);
-    if (ret != 0) {
-      ERROR_PRINT("Fuse fail ret %d", ret);
-      return PyErr_Format(PyExc_RuntimeError, "Fuse fail");
-    }
-
-    ret = self_->optimizer->Optimize(fused_graph->graph, fused_schedule_result);
+    auto ret = self_->optimizer->Optimize(fused_graph->graph, fused_schedule_result);
     if (ret != 0) {
       ERROR_PRINT("Optimize fail ret %d", ret);
       return PyErr_Format(PyExc_RuntimeError, "Optimize fail");

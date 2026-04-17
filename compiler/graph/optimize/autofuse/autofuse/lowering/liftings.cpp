@@ -17,7 +17,7 @@
 #include "graph/utils/graph_utils.h"
 #include "graph/utils/node_utils.h"
 #include "graph/utils/op_desc_utils.h"
-#include "utils/autofuse_attrs.h"
+#include "fusion/autofuse_attrs.h"
 #include "utils/autofuse_utils.h"
 #include "asc_lowerer/asc_overrides.h"
 #include "asc_lowerer/loop_common.h"

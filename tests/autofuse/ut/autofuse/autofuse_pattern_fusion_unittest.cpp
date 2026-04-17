@@ -19,7 +19,7 @@
  #include "lowering/asc_lowerer/loop_api.h"
  #include "lowering/asc_lowerer/asc_overrides.h"
  #include "lowering/lowerings.h"
- #include "utils/autofuse_attrs.h"
+ #include "fusion/autofuse_attrs.h"
  #include "utils/auto_fuse_config.h"
  #include "../../eager_style_graph_builder/compliant_op_desc_builder.h"
  #include "pattern_fusion/flatten_concat_pass.h"

@@ -10,7 +10,7 @@
 
 #include "reduce_fusion_strategy.h"
 #include "can_fuse/backend/backend_utils.h"
-#include "utils/autofuse_attrs.h"
+#include "fusion/autofuse_attrs.h"
 #include "can_fuse/strategy/fusion_strategy_registry.h"
 #include "utils/not_fuse_reason_code.h"
 #include "utils/auto_fuse_config.h"

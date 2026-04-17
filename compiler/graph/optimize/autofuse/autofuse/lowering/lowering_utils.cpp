@@ -23,7 +23,7 @@
 #include "graph/utils/graph_utils.h"
 #include "ascendc_ir/ascendc_ir_core/ascendc_ir_def.h"
 #include "asc_lowerer/loop_common.h"
-#include "utils/autofuse_attrs.h"
+#include "fusion/autofuse_attrs.h"
 
 
 namespace ge{

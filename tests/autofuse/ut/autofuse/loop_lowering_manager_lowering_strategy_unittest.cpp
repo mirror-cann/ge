@@ -23,7 +23,7 @@
 #include "lowering/lowerings.h"
 #include "lowering/liftings.h"
 #include "lowering/op_lowering_impl/lowering_impl.h"
-#include "utils/autofuse_attrs.h"
+#include "fusion/autofuse_attrs.h"
 #include "utils/auto_fuse_config.h"
 
 #include "op_creator_register.h"

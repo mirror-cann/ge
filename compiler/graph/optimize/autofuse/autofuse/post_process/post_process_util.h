@@ -13,7 +13,7 @@
 #include "common/checker.h"
 #include "graph/utils/node_utils.h"
 #include "utils/autofuse_utils.h"
-#include "utils/autofuse_attrs.h"
+#include "fusion/autofuse_attrs.h"
 #include "graph/ascendc_ir/utils/asc_graph_utils.h"
 #include "can_fuse/backend/backend_utils.h"
 #include "ascir_ops.h"

@@ -17,7 +17,7 @@
 #include "compiler/graph/build/model_builder.h"
 #include "compiler/graph/build/graph_builder.h"
 #include "compiler/graph/manager/graph_manager.h"
-#include "utils/autofuse_attrs.h"
+#include "fusion/autofuse_attrs.h"
 #include "utils/auto_fuse_config.h"
 #include "ge_running_env/ge_running_env_faker.h"
 #include "../init_ge.h"

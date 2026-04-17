@@ -16,7 +16,7 @@
 #include "ascir_ops_utils.h"
 #include "ascgen_log.h"
 #include "graph/ascendc_ir/utils/asc_graph_utils.h"
-#include "autofuse/lowering/asc_lowerer/loop_common.h"
+#include "fusion/loop_types.h"
 #include "common/platform_context.h"
 
 #include "pyascir_types.h"

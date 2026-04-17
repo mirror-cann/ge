@@ -16,6 +16,7 @@
 #include <vector>
 
 #include "common/checker.h"
+#include "fusion/loop_types.h"
 #include "graph/node.h"
 #include "graph/ge_tensor.h"
 #include "graph/symbolizer/symbolic.h"
@@ -203,72 +204,6 @@ inline std::string ReduceTypeToString(ReduceType type) {
 inline std::ostream& operator<<(std::ostream& os, ReduceType type) {
   os << ReduceTypeToString(type);
   return os;
-}
-
-enum class FuseType : int32_t {
-  kDefault = 0,
-  kPointwise,
-  kReduction,
-  kConcat,
-  kSplit,
-  kSliceSplit,
-  kGather,
-  kTranspose,
-  kCube,
-  kReshape,
-  kExtern
-};
-
-inline std::string FuseTypeToString(FuseType type) {
-  switch (type) {
-    case FuseType::kDefault:
-      return "default";
-    case FuseType::kPointwise:
-      return "pointwise";
-    case FuseType::kReduction:
-      return "reduce";
-    case FuseType::kConcat:
-      return "concat";
-    case FuseType::kSplit:
-      return "split";
-    case FuseType::kSliceSplit:
-      return "slice";
-    case FuseType::kGather:
-      return "gather";
-    case FuseType::kTranspose:
-      return "transpose";
-    case FuseType::kCube:
-      return "cube";
-    case FuseType::kReshape:
-      return "reshape";
-    default:
-      return "extern";
-  }
-}
-
-// some common functions
-template <typename T, typename F>
-std::string StrJoin(const std::vector<T> &vec, F f, const std::string &sep = ", ") {
-  if (vec.empty()) {
-    return "[]";
-  }
-  std::string res = "[" + f(vec[0]);
-  for (size_t i = 1U; i < vec.size(); ++i) {
-    res += sep + f(vec[i]);
-  }
-  return res + "]";
-}
-
-inline std::string StrJoin(const std::vector<std::string> &vec, const std::string &sep = ", ") {
-  return StrJoin(vec, [](const string &s) { return s; }, sep);
-}
-
-inline std::string StrJoin(const std::vector<Expression> &vec, const std::string &sep = ", ") {
-  return StrJoin(vec, [](const Expression &s) { return std::string(s.Str().get()); }, sep);
-}
-
-inline std::string StrJoin(const std::vector<ge::DataType> &vec, const std::string &sep = ", ") {
-  return StrJoin(vec, [](const ge::DataType &s) { return TypeUtils::DataTypeToSerialString(s); }, sep);
 }
 
 std::string BufferName(const AnchorPtr &buffer);

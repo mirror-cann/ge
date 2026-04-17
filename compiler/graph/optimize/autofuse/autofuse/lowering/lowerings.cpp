@@ -18,7 +18,7 @@
 #include "graph/utils/op_desc_utils.h"
 #include "graph/ir_definitions_recover.h"
 #include "graph/symbolizer/symbolic_utils.h"
-#include "utils/autofuse_attrs.h"
+#include "fusion/autofuse_attrs.h"
 #include "utils/autofuse_utils.h"
 #include "utils/auto_fuse_config.h"
 #include "asc_lowerer/asc_overrides.h"

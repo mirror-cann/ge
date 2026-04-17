@@ -9,6 +9,7 @@
  */
 #include <gtest/gtest.h>
 #include "graph/utils/graph_utils_ex.h"
+#include "graph/attribute_group/attr_group_symbolic_desc.h"
 #include "graph/compute_graph.h"
 #include "graph/graph.h"
 #include "graph/node.h"
@@ -20,7 +21,7 @@
 #include "post_process/scheduler_adapter/adaption_fallback_load.h"
 #include "post_process/scheduler_adapter/adaption_fallback_scalar.h"
 #include "post_process/asc_backend_post_processor.h"
-#include "utils/autofuse_attrs.h"
+#include "fusion/autofuse_attrs.h"
 #include "ascgen_log.h"
 #include "attribute_group/attr_group_shape_env.h"
 #include "can_fuse/backend/asc_backend_fusion_decider.h"

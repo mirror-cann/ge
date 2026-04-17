@@ -11,7 +11,6 @@
 #include "un_alignment_strategy.h"
 #include "common_utils.h"
 #include "tensor_layout_utils.h"
-#include "can_fuse/backend/backend_utils.h"
 #include "platform/v1/alignment_strategy.h"
 
 namespace optimize {

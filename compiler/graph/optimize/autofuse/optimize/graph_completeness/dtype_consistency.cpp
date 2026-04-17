@@ -14,7 +14,6 @@
 #include "graph_utils.h"
 #include "node_utils.h"
 #include "schedule_utils.h"
-#include "autofuse/utils/autofuse_attrs.h"
 #include "graph_pass/pass_utils.h"
 
 using namespace ge::ascir_op;

@@ -30,7 +30,7 @@
 #include "can_fuse/backend/fusion_decider_registry.h"
 #include "can_fuse/backend/asc_backend_fusion_decider.h"
 #include "post_process/scheduler_adapter/adaption_fallback_load.h"
-#include "utils/autofuse_attrs.h"
+#include "fusion/autofuse_attrs.h"
 #include "util/mem_utils.h"
 #include "utils/auto_fuse_config.h"
 #include "backend/backend_spec.h"

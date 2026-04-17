@@ -16,13 +16,14 @@
 #include <algorithm>
 #include <google/protobuf/text_format.h>
 #include "nlohmann/json.hpp"
-#include "autofuse_attrs.h"
+#include "fusion/autofuse_attrs.h"
 #include "utils/graph_utils.h"
 #include "common/ge_common/ge_types.h"
 #include "utils/node_utils.h"
 #include "can_fuse/backend/backend_utils.h"
 #include "graph/detail/model_serialize_imp.h"
 #include "attribute_group/attr_group_shape_env.h"
+#include "graph/attribute_group/attr_group_symbolic_desc.h"
 #include "graph/utils/type_utils.h"
 #include "graph_metadef/graph/utils/file_utils.h"
 #include "mmpa/mmpa_api.h"

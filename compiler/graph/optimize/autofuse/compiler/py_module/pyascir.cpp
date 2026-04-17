@@ -19,8 +19,7 @@
 #include "graph/ascendc_ir/utils/asc_graph_utils.h"
 #include "graph/detail/model_serialize_imp.h"
 #include "graph/utils/graph_utils.h"
-#include "autofuse/utils/autofuse_attrs.h"
-#include "autofuse/can_fuse/backend/backend_utils.h"
+#include "fusion/autofuse_attrs.h"
 
 #include "ascendc_ir.h"
 #include "ascir_ops.h"
@@ -34,6 +33,7 @@
 #include "ascgraph_info_complete.h"
 
 namespace {
+inline constexpr char kAscBackendType[] = "AscBackend";
 inline constexpr char kIndexAttr[] = "index";
 inline constexpr char kValueAttr[] = "value";
 inline constexpr char kExprAttr[] = "expr";
@@ -102,7 +102,7 @@ static const DTypeEntry dtype_entries[] = {
 // 这里定义一些非ascir的geir op但是要在ascir.ops的模块中暴露（对外不体现geir.ops）
 namespace geir_op {
 struct AscBackend : public ge::Operator {
-  inline explicit AscBackend(const char *name) : ge::Operator(name, ge::kAscBackendType.c_str()) {
+  inline explicit AscBackend(const char *name) : ge::Operator(name, kAscBackendType) {
     this->DynamicInputRegister("x", 0U, true);
     this->DynamicOutputRegister("y", 0U, true);
   }
@@ -1043,7 +1043,7 @@ int OpsOperatorInput::_setter_list(PyObject *self, PyObject *value, void *closur
   (void)self_->op->GetOpType(op_type);
   ge::AscendString op_name;
   (void)self_->op->GetName(op_name);
-  if (op_type == ge::kAscBackendType.c_str() || op_type == geir_op::AscGraph::Type) {
+  if (op_type == kAscBackendType || op_type == geir_op::AscGraph::Type) {
     PY_ASSERT(dynamic_num == self_->op->GetInputsSize(), "%s %s should has %zu input but given %u", op_name.GetString(),
               op_type.GetString(), self_->op->GetInputsSize(), dynamic_num);
   } else {

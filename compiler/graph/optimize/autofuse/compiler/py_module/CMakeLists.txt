@@ -13,7 +13,6 @@ target_include_directories(pyautofuse PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/../../
         ${CMAKE_CURRENT_SOURCE_DIR}/../../optimize
         ${CMAKE_CURRENT_SOURCE_DIR}/../../codegen
-        ${CMAKE_CURRENT_SOURCE_DIR}/../../autofuse
 )
 
 target_compile_definitions(pyautofuse PRIVATE
@@ -31,7 +30,6 @@ if (ENABLE_OPEN_SRC)
         -Wl,--no-as-needed
         atrace_share
         aihac_codegen
-        aihac_autofusion
         aihac_ir
         ascend_protobuf
         json
@@ -44,7 +42,6 @@ else ()
         $<BUILD_INTERFACE:atrace_headers>
         atrace_share
         aihac_codegen
-        aihac_autofusion
         aihac_ir
         ascend_protobuf
         json

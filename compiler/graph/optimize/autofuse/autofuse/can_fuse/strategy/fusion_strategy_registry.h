@@ -11,7 +11,7 @@
 #ifndef AUTOFUSE_CAN_FUSE_FUSION_STRATEGY_REGISTRY_H_
 #define AUTOFUSE_CAN_FUSE_FUSION_STRATEGY_REGISTRY_H_
 #include "fusion_strategy.h"
-#include "utils/autofuse_attrs.h"
+#include "fusion/autofuse_attrs.h"
 
 namespace ge {
 class FusionStrategyRegistry {

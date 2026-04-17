@@ -11,7 +11,7 @@
 #include <gtest/gtest.h>
 #include <queue>
 #include "utils/autofuse_utils.h"
-#include "utils/autofuse_attrs.h"
+#include "fusion/autofuse_attrs.h"
 #include "can_fuse/backend/asc_backend_fusion_decider.h"
 #include "attribute_group/attr_group_symbolic_desc.h"
 #include "common/ge_common/ge_types.h"

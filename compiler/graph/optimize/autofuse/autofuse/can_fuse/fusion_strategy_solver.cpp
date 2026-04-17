@@ -18,7 +18,7 @@
 #include "can_fuse/backend/fusion_decider_registry.h"
 #include "common/scope_tracing_recorder.h"
 #include "graph/utils/graph_utils.h"
-#include "utils/autofuse_attrs.h"
+#include "fusion/autofuse_attrs.h"
 #include "graph/ascendc_ir/utils/asc_graph_utils.h"
 #include "can_fuse/backend/backend_utils.h"
 #include "utils/autofuse_utils.h"

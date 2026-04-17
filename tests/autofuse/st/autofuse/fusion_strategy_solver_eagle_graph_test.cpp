@@ -24,7 +24,7 @@
 #include "attribute_group/attr_group_shape_env.h"
 #include "lowering/asc_lowerer/loop_api.h"
 #include "lowering/lowerings.h"
-#include "utils/autofuse_attrs.h"
+#include "fusion/autofuse_attrs.h"
 #include "lowering/asc_ir_lowerer.h"
 #include "can_fuse/fusion_strategy_solver.h"
 #include "can_fuse/backend/fusion_decider_registry.h"

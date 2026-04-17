@@ -12,7 +12,7 @@
 #define AUTOFUSE_CAN_FUSE_BACKEND_FUSION_DECIDER_REGISTRY_H_
 #include "ge_common/ge_api_types.h"
 #include "graph/compute_graph.h"
-#include "fusion_decider.h"
+#include "fusion/fusion_decider.h"
 #include "common/autofuse_base_type.h"
 
 namespace ge {

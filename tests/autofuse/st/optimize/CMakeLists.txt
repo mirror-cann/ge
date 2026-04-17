@@ -23,6 +23,9 @@ set(ASCGEN_COMMON_LINK_OPTION
 target_include_directories(optimize_st PRIVATE
         ${CODE_ROOT_DIR}/../../../../
         ${CODE_ROOT_DIR}/../../../../tests/autofuse/st/optimize
+        ${CODE_ROOT_DIR}/../../../../tests/autofuse/depends/runtime/src
+        ${CODE_ROOT_DIR}/../../../../tests/autofuse/framework/easy_asc_graph
+        ${CODE_ROOT_DIR}/autofuse
         ${CODE_ROOT_DIR}
 )
 
