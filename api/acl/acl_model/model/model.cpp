@@ -3667,7 +3667,7 @@ static aclError LoadFromMemWithQ(const aclmdlConfigHandle *handle,
     }
 
     bool isSupportOm2 = false;
-    ACL_REQUIRES_OK(gert::IsOm2Model(handle->loadPath.c_str(), isSupportOm2));
+    ACL_REQUIRES_OK(gert::IsOm2Model(handle->mdlAddr, handle->mdlSize, isSupportOm2));
     if (isSupportOm2) {
         ACL_LOG_INNER_ERROR("[Load][Model] model load type[%zu] is not supported in om2", handle->mdlLoadType);
         return ACL_ERROR_INVALID_PARAM;
