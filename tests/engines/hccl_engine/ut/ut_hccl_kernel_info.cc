@@ -3197,6 +3197,272 @@ TEST_F(HcomKernelInfoTest, ut_CleanInterMemoryV2_When_MemAsyncCopyFail_Expect_Re
 {
     HcomOpsKernelInfoStore hcomKernelInfo;
     rtStream_t stream = NULL;
+}
+
+TEST_F(HcomKernelInfoTest, ut_AllReduceOpKernel_OpenSource)
+{
+    // 测试开源版本的HcomAllReduceOpKernel
+    HcomOpsKernelInfoStore hcomKernelInfo;
+    ge::NodePtr nodeptr(new NodeTest);
+    ge::RunContext runContext;
+    std::vector<domi::TaskDef> taskDefList;
+    
+    // 模拟IsUsingOpenSource返回true，使用开源版本
+    MOCKER(IsUsingOpenSource)
+    .expects(atMost(1))
+    .with(outBound(true))
+    .will(returnValue(HCCL_SUCCESS));
+    
+    // 模拟HcceAllReduceGraphMode函数
+    MOCKER(HcceAllReduceGraphMode)
+    .expects(atMost(1))
+    .will(returnValue(HCCL_SUCCESS));
+    
+    // 测试HcomAllReduceOpKernel方法
+    HcclResult ret = hcomKernelInfo.HcomAllReduceOpKernel(*nodeptr, runContext, taskDefList);
+    EXPECT_EQ(ret, HCCL_SUCCESS);
+    
+    GlobalMockObject::verify();
+}
+
+TEST_F(HcomKernelInfoTest, ut_AllGatherOpKernel_OpenSource)
+{
+    // 测试开源版本的HcomAllGatherOpKernel
+    HcomOpsKernelInfoStore hcomKernelInfo;
+    ge::NodePtr nodeptr(new NodeTest);
+    ge::RunContext runContext;
+    std::vector<domi::TaskDef> taskDefList;
+    
+    // 模拟IsUsingOpenSource返回true，使用开源版本
+    MOCKER(IsUsingOpenSource)
+    .expects(atMost(1))
+    .with(outBound(true))
+    .will(returnValue(HCCL_SUCCESS));
+    
+    // 模拟HcceAllGatherGraphMode函数
+    MOCKER(HcceAllGatherGraphMode)
+    .expects(atMost(1))
+    .will(returnValue(HCCL_SUCCESS));
+    
+    // 测试HcomAllGatherOpKernel方法
+    HcclResult ret = hcomKernelInfo.HcomAllGatherOpKernel(*nodeptr, runContext, taskDefList);
+    EXPECT_EQ(ret, HCCL_SUCCESS);
+    
+    GlobalMockObject::verify();
+}
+
+TEST_F(HcomKernelInfoTest, ut_ReduceScatterOpKernel_OpenSource)
+{
+    // 测试开源版本的HcomReduceScatterOpKernel
+    HcomOpsKernelInfoStore hcomKernelInfo;
+    ge::NodePtr nodeptr(new NodeTest);
+    ge::RunContext runContext;
+    std::vector<domi::TaskDef> taskDefList;
+    
+    // 模拟IsUsingOpenSource返回true，使用开源版本
+    MOCKER(IsUsingOpenSource)
+    .expects(atMost(1))
+    .with(outBound(true))
+    .will(returnValue(HCCL_SUCCESS));
+    
+    // 模拟HcceReduceScatterGraphMode函数
+    MOCKER(HcceReduceScatterGraphMode)
+    .expects(atMost(1))
+    .will(returnValue(HCCL_SUCCESS));
+    
+    // 测试HcomReduceScatterOpKernel方法
+    HcclResult ret = hcomKernelInfo.HcomReduceScatterOpKernel(*nodeptr, runContext, taskDefList);
+    EXPECT_EQ(ret, HCCL_SUCCESS);
+    
+    GlobalMockObject::verify();
+}
+
+TEST_F(HcomKernelInfoTest, ut_BroadcastOpKernel_OpenSource)
+{
+    // 测试开源版本的HcomBroadcastOpKernel
+    HcomOpsKernelInfoStore hcomKernelInfo;
+    ge::NodePtr nodeptr(new NodeTest);
+    ge::RunContext runContext;
+    std::vector<domi::TaskDef> taskDefList;
+    
+    // 模拟IsUsingOpenSource返回true，使用开源版本
+    MOCKER(IsUsingOpenSource)
+    .expects(atMost(1))
+    .with(outBound(true))
+    .will(returnValue(HCCL_SUCCESS));
+    
+    // 模拟HcceBroadcastGraphMode函数
+    MOCKER(HcceBroadcastGraphMode)
+    .expects(atMost(1))
+    .will(returnValue(HCCL_SUCCESS));
+    
+    // 测试HcomBroadcastOpKernel方法
+    HcclResult ret = hcomKernelInfo.HcomBroadcastOpKernel(*nodeptr, runContext, taskDefList);
+    EXPECT_EQ(ret, HCCL_SUCCESS);
+    
+    GlobalMockObject::verify();
+}
+
+TEST_F(HcomKernelInfoTest, ut_AlltoAllOpKernel_OpenSource)
+{
+    // 测试开源版本的HcomAlltoAllOpKernel
+    HcomOpsKernelInfoStore hcomKernelInfo;
+    ge::NodePtr nodeptr(new NodeTest);
+    ge::RunContext runContext;
+    std::vector<domi::TaskDef> taskDefList;
+    
+    // 模拟IsUsingOpenSource返回true，使用开源版本
+    MOCKER(IsUsingOpenSource)
+    .expects(atMost(1))
+    .with(outBound(true))
+    .will(returnValue(HCCL_SUCCESS));
+    
+    // 模拟HcceAlltoAllGraphMode函数
+    MOCKER(HcceAlltoAllGraphMode)
+    .expects(atMost(1))
+    .will(returnValue(HCCL_SUCCESS));
+    
+    // 测试HcomAlltoAllOpKernel方法
+    HcclResult ret = hcomKernelInfo.HcomAlltoAllOpKernel(*nodeptr, runContext, taskDefList);
+    EXPECT_EQ(ret, HCCL_SUCCESS);
+    
+    GlobalMockObject::verify();
+}
+
+TEST_F(HcomKernelInfoTest, ut_AlltoAllVOpKernel_OpenSource)
+{
+    // 测试开源版本的HcomAlltoAllVOpKernel
+    HcomOpsKernelInfoStore hcomKernelInfo;
+    ge::NodePtr nodeptr(new NodeTest);
+    ge::RunContext runContext;
+    std::vector<domi::TaskDef> taskDefList;
+    
+    // 模拟IsUsingOpenSource返回true，使用开源版本
+    MOCKER(IsUsingOpenSource)
+    .expects(atMost(1))
+    .with(outBound(true))
+    .will(returnValue(HCCL_SUCCESS));
+    
+    // 模拟HcceAlltoAllVGraphMode函数
+    MOCKER(HcceAlltoAllVGraphMode)
+    .expects(atMost(1))
+    .will(returnValue(HCCL_SUCCESS));
+    
+    // 测试HcomAlltoAllVOpKernel方法
+    HcclResult ret = hcomKernelInfo.HcomAlltoAllVOpKernel(*nodeptr, runContext, taskDefList);
+    EXPECT_EQ(ret, HCCL_SUCCESS);
+    
+    GlobalMockObject::verify();
+}
+
+TEST_F(HcomKernelInfoTest, ut_AlltoAllVCOpKernel_OpenSource)
+{
+    // 测试开源版本的HcomAlltoAllVCOpKernel
+    HcomOpsKernelInfoStore hcomKernelInfo;
+    ge::NodePtr nodeptr(new NodeTest);
+    ge::RunContext runContext;
+    std::vector<domi::TaskDef> taskDefList;
+    
+    // 模拟IsUsingOpenSource返回true，使用开源版本
+    MOCKER(IsUsingOpenSource)
+    .expects(atMost(1))
+    .with(outBound(true))
+    .will(returnValue(HCCL_SUCCESS));
+    
+    // 模拟HcceAlltoAllVCGraphMode函数
+    MOCKER(HcceAlltoAllVCGraphMode)
+    .expects(atMost(1))
+    .will(returnValue(HCCL_SUCCESS));
+    
+    // 测试HcomAlltoAllVCOpKernel方法
+    HcclResult ret = hcomKernelInfo.HcomAlltoAllVCOpKernel(*nodeptr, runContext, taskDefList);
+    EXPECT_EQ(ret, HCCL_SUCCESS);
+    
+    GlobalMockObject::verify();
+}
+
+TEST_F(HcomKernelInfoTest, ut_ReduceScatterVOpKernel_OpenSource)
+{
+    // 测试开源版本的HcomReduceScatterVOpKernel
+    HcomOpsKernelInfoStore hcomKernelInfo;
+    ge::NodePtr nodeptr(new NodeTest);
+    ge::RunContext runContext;
+    std::vector<domi::TaskDef> taskDefList;
+    
+    // 模拟IsUsingOpenSource返回true，使用开源版本
+    MOCKER(IsUsingOpenSource)
+    .expects(atMost(1))
+    .with(outBound(true))
+    .will(returnValue(HCCL_SUCCESS));
+    
+    // 模拟HcceReduceScatterVGraphMode函数
+    MOCKER(HcceReduceScatterVGraphMode)
+    .expects(atMost(1))
+    .will(returnValue(HCCL_SUCCESS));
+    
+    // 测试HcomReduceScatterVOpKernel方法
+    HcclResult ret = hcomKernelInfo.HcomReduceScatterVOpKernel(*nodeptr, runContext, taskDefList);
+    EXPECT_EQ(ret, HCCL_SUCCESS);
+    
+    GlobalMockObject::verify();
+}
+
+TEST_F(HcomKernelInfoTest, ut_SendOpKernel_OpenSource)
+{
+    // 测试开源版本的HcomSendOpKernel
+    HcomOpsKernelInfoStore hcomKernelInfo;
+    ge::NodePtr nodeptr(new NodeTest);
+    ge::RunContext runContext;
+    std::vector<domi::TaskDef> taskDefList;
+    
+    // 模拟IsUsingOpenSource返回true，使用开源版本
+    MOCKER(IsUsingOpenSource)
+    .expects(atMost(1))
+    .with(outBound(true))
+    .will(returnValue(HCCL_SUCCESS));
+    
+    // 模拟HcceSendGraphMode函数
+    MOCKER(HcceSendGraphMode)
+    .expects(atMost(1))
+    .will(returnValue(HCCL_SUCCESS));
+    
+    // 测试HcomSendOpKernel方法
+    HcclResult ret = hcomKernelInfo.HcomSendOpKernel(*nodeptr, runContext, taskDefList);
+    EXPECT_EQ(ret, HCCL_SUCCESS);
+    
+    GlobalMockObject::verify();
+}
+
+TEST_F(HcomKernelInfoTest, ut_ReceiveOpKernel_OpenSource)
+{
+    // 测试开源版本的HcomReceiveOpKernel
+    HcomOpsKernelInfoStore hcomKernelInfo;
+    ge::NodePtr nodeptr(new NodeTest);
+    ge::RunContext runContext;
+    std::vector<domi::TaskDef> taskDefList;
+    
+    // 模拟IsUsingOpenSource返回true，使用开源版本
+    MOCKER(IsUsingOpenSource)
+    .expects(atMost(1))
+    .with(outBound(true))
+    .will(returnValue(HCCL_SUCCESS));
+    
+    // 模拟HcceRecvGraphMode函数
+    MOCKER(HcceRecvGraphMode)
+    .expects(atMost(1))
+    .will(returnValue(HCCL_SUCCESS));
+    
+    // 测试HcomReceiveOpKernel方法
+    HcclResult ret = hcomKernelInfo.HcomReceiveOpKernel(*nodeptr, runContext, taskDefList);
+    EXPECT_EQ(ret, HCCL_SUCCESS);
+    
+    GlobalMockObject::verify();
+}
+
+TEST_F(HcomKernelInfoTest, ut_CleanInterMemoryV2_When_MemAsyncCopyFail_Expect_ReturnHCCL_E_INTERNAL)
+{
+    HcomOpsKernelInfoStore hcomKernelInfo;
+    rtStream_t stream = NULL;
 
     std::vector<std::int64_t> crackAddr = {16};
     std::vector<std::int64_t> crackSize = {16};

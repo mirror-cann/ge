@@ -14,6 +14,7 @@
 #include "hcom_reduce_fusion.h"
 #include "hcom_ops_kernel_info_store.h"
 #include "hcom_op_utils.h"
+#include "common/op_hcom_comm.h"
 #include "hccl/hcom.h"
 #include "graph/utils/node_utils.h"
 #include "graph/utils/tensor_utils.h"
@@ -1017,10 +1018,28 @@ HcclResult HcomGraphOptimizer::GetHcomReceiveOpOutputSize(const ge::OpDescPtr &o
 HcclResult HcomGraphOptimizer::HcomCalcOpRunningParam(ge::Node &node, bool uknownShapeGraph) {
   HCCL_INFO("calculate hccl runing parameters start.");
 
-  HcclResult ret;
-  HcomOpParam hcomOpParam;
-  HcomResResponse hcomResResponse;
   std::string sCollectiveType;
+  u32 streamNum = 0;
+  u64 opMemSize = 0;
+  u32 taskNum = 0;
+  u32 aivCoreNum = 0;
+  CHK_RET(CalcOpRunningResources(node, sCollectiveType, streamNum, opMemSize, taskNum, aivCoreNum));
+
+  CHK_RET(SetOpRunningParamAttributes(node, sCollectiveType, streamNum, opMemSize));
+
+  if (uknownShapeGraph) {
+    u32 cleanTaskNum = 0;
+    CHK_RET(HcomOpUtils::GetTensorCleanTaskNum(node, sCollectiveType, cleanTaskNum));
+    taskNum += cleanTaskNum;
+    CHK_RET(CheckForceUnknown(node, taskNum));
+  }
+
+  return HCCL_SUCCESS;
+}
+
+HcclResult HcomGraphOptimizer::CalcOpRunningResources(const ge::Node &node, std::string &sCollectiveType,
+                                                       u32 &streamNum, u64 &opMemSize, u32 &taskNum, u32 &aivCoreNum) {
+  HcomOpParam hcomOpParam;
   std::string sGroup;
   std::string socVersion;
   std::vector<int64_t> sendCountMatrix;
@@ -1031,63 +1050,86 @@ HcclResult HcomGraphOptimizer::HcomCalcOpRunningParam(ge::Node &node, bool uknow
   std::vector<u32> curRanks;
   std::string rankTableStr;
   std::string rankTableM;
-
   CHK_RET(SetHcomOpParam(node, &hcomOpParam, sCollectiveType, sGroup, socVersion, sendCountMatrix, sendCounts,
                          sendDispls, recvCounts, recvDispls, curRanks, rankTableStr, rankTableM));
 
-  if (IsOfflineCompilation() || hcomOpParam.groupListSize != 0) {
-    CHK_RET(HcomCalcOpResOffline(&hcomOpParam, &hcomResResponse));
+  bool openSourceTag = false;
+  CHK_RET(IsUsingOpenSource(openSourceTag));
+  if (openSourceTag) {
+    HCCL_INFO("[HcomCalcOpRunningParam] enter opensource produce");
+  
+    OpParamGraphModePtr opParamPtr = nullptr;
+    CHK_RET(HcceCreateOpParamGraphMode(&opParamPtr));
+    // 使用RAII模式管理资源
+    OpParamGraphModeGuard opParamGuard(opParamPtr);
+    // 设置Op参数
+    CHK_RET(SetHcclOpParam(node, &hcomOpParam, opParamPtr, sCollectiveType, sendCounts,
+                         sendDispls, recvCounts, recvDispls, sGroup.c_str()));
+    
+    if (IsOfflineCompilation() || hcomOpParam.groupListSize != 0) {
+      CHK_RET(HcceCalcOpResOfflineGraphMode(opParamPtr, &opMemSize, &streamNum, &taskNum, &aivCoreNum));
+    } else {
+      CHK_RET(HcceCalcOpResOnlineGraphMode(opParamPtr, &opMemSize, &streamNum, &taskNum, &aivCoreNum));
+    }
+    
+    if (!ge::AttrUtils::SetInt(node.GetOpDesc(), "hccl_aiv_core_num", static_cast<int64_t>(aivCoreNum))) {
+      HCCL_ERROR("[Calc][OpRunningParam] op[%s]: set aivCore number[%u] to OpDesc failed.",  sCollectiveType.c_str(), aivCoreNum);
+      return HCCL_E_INTERNAL;
+    }
+    HCCL_INFO("[HcomGraphOptimizer][HcomCalcOpRunningParam] end opensource produce");
   } else {
-    CHK_RET(HcomCalcOpOnline(&hcomOpParam, &hcomResResponse));
+    HcomResResponse hcomResResponse;
+    if (IsOfflineCompilation() || hcomOpParam.groupListSize != 0) {
+      CHK_RET(HcomCalcOpResOffline(&hcomOpParam, &hcomResResponse));
+    } else {
+      CHK_RET(HcomCalcOpOnline(&hcomOpParam, &hcomResResponse));
+    }
+    streamNum = static_cast<u32>(hcomResResponse.streamNum);
+    opMemSize = hcomResResponse.opMemSize;
+    taskNum = static_cast<u32>(hcomResResponse.taskNum);
   }
 
+  return HCCL_SUCCESS;
+}
+
+HcclResult HcomGraphOptimizer::SetOpRunningParamAttributes(ge::Node &node, const std::string &sCollectiveType,
+                                                            u32 &streamNum, u64 opMemSize) {
   std::string nodeName = node.GetName();
+  
   if (sCollectiveType == HCCL_KERNEL_OP_TYPE_SEND || sCollectiveType == HCCL_KERNEL_OP_TYPE_RECEIVE ||
       (sCollectiveType == HCCL_KERNEL_OP_TYPE_BROADCAST && nodeName.find(NO_CALCULATION) != std::string::npos)) {
-    // 重新刷新从流为0
-    hcomResResponse.streamNum = 0;
+    streamNum = 0;
   }
 
-  if (ge::AttrUtils::SetInt(node.GetOpDesc(), "used_stream_num", hcomResResponse.streamNum) == false) {
-    HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] op[%s]: set stream number[%llu] to OpDesc failed.", HCCL_E_PARA,
-               hcomOpParam.opType, hcomResResponse.streamNum);
+  if (!ge::AttrUtils::SetInt(node.GetOpDesc(), "used_stream_num", streamNum)) {
+    HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] op[%s]: set stream number[%u] to OpDesc failed.", 
+               HCOM_ERROR_CODE(HCCL_E_PARA), sCollectiveType.c_str(), streamNum);
     return HCCL_E_INTERNAL;
   }
 
-  CHK_RET(SetOpWorkerSpaceForKnowShape(node, hcomResResponse.opMemSize));
-  ret = SetOpMemAttr(node, node.GetOpDesc()->GetType(), hcomResResponse.opMemSize);
-  CHK_PRT_RET(
-      ret != HCCL_SUCCESS,
-      HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] set node[%s] mem attr failed.", ret, node.GetName().c_str()),
-      HCCL_E_INTERNAL);
-
-  // 设置output size 大小
-  ret = SetOpOutputMemSize(node, hcomOpParam.opType);
-  CHK_PRT_RET(
-      ret != HCCL_SUCCESS,
-      HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] set op[%s] output size failed.", ret, hcomOpParam.opType),
-      HCCL_E_INTERNAL);
-
-  // 设定atomic index参数
-  ret = SetOpAtomicInputIndex(node, hcomOpParam.opType);
+  CHK_RET(SetOpWorkerSpaceForKnowShape(node, opMemSize));
+  
+  HcclResult ret = SetOpMemAttr(node, node.GetOpDesc()->GetType(), opMemSize);
   CHK_PRT_RET(ret != HCCL_SUCCESS,
-              HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] set op[%s] atomic input index failed.", ret,
-                         hcomOpParam.opType),
+              HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] set node[%s] mem attr failed.", 
+                         HCOM_ERROR_CODE(ret), node.GetName().c_str()),
               HCCL_E_INTERNAL);
 
-  HCCL_INFO(
-      "[Calc][OpRunningParam] node[%s] calculate hccl runing parameters completed. stream num:[%llu], workspace "
-      "size:[%llu]bytes",
-      node.GetName().c_str(), hcomResResponse.streamNum, hcomResResponse.opMemSize);
+  ret = SetOpOutputMemSize(node, sCollectiveType.c_str());
+  CHK_PRT_RET(ret != HCCL_SUCCESS,
+              HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] set op[%s] output size failed.", 
+                         HCOM_ERROR_CODE(ret), sCollectiveType.c_str()),
+              HCCL_E_INTERNAL);
 
-  if (uknownShapeGraph) {  // 动态图+集合通信算子+send/recv
-    // 计算清零task数量，累加到hcomResResponse算出的taskNum
-    u32 taskNum = static_cast<u32>(hcomResResponse.taskNum);
-    u32 cleanTaskNum = 0;
-    CHK_RET(HcomOpUtils::GetTensorCleanTaskNum(node, sCollectiveType, cleanTaskNum));
-    taskNum += cleanTaskNum;
-    CHK_RET(CheckForceUnknown(node, taskNum));
-  }
+  ret = SetOpAtomicInputIndex(node, sCollectiveType.c_str());
+  CHK_PRT_RET(ret != HCCL_SUCCESS,
+              HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] set op[%s] atomic input index failed.", 
+                         HCOM_ERROR_CODE(ret), sCollectiveType.c_str()),
+              HCCL_E_INTERNAL);
+
+  HCCL_INFO("[Calc][OpRunningParam] node[%s] calculate hccl runing parameters completed. "
+            "stream num:[%llu], workspace size:[%llu]bytes",
+            node.GetName().c_str(), streamNum, opMemSize);
 
   return HCCL_SUCCESS;
 }
@@ -1369,4 +1411,206 @@ HcclResult HcomGraphOptimizer::SetHcomOpParam(const ge::Node &node, HcomOpParam 
       hcomOpParam->groupList, hcomOpParam->groupListSize, hcomOpParam->rankTable);
   return HCCL_SUCCESS;
 }
+
+HcclResult HcomGraphOptimizer::SetHcclOpParam(const ge::Node &node, HcomOpParam *hcomOpParam, OpParamGraphModePtr opParamPtr, std::string &sCollectiveType,
+                                              std::vector<int64_t> &sendCounts, std::vector<int64_t> &sendDispls,
+                                              std::vector<int64_t> &recvCounts, std::vector<int64_t> &recvDispls, const char* group) {
+  HCCL_INFO("[Calc][SetHcclOpParam] with [%s].", sCollectiveType.c_str());
+  HcclResult ret;
+  sCollectiveType = node.GetOpDesc()->GetType();
+  ret = CheckSupportedOP(sCollectiveType);
+  CHK_PRT_RET(
+      ret != HCCL_SUCCESS,
+      HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] op type[%s] is not supported.", ret, sCollectiveType.c_str()),
+      HCCL_E_NOT_SUPPORT);
+  // aiv参数
+  u64 count = 0;
+  void* counts = nullptr;
+  HcclDataType dataType = HCCL_DATA_TYPE_RESERVED;
+  HcclReduceOp reduction = HcclReduceOp::HCCL_REDUCE_SUM;
+  HcclCMDType opTypeAiv = HcclCMDType::HCCL_CMD_INVALID;
+  u32 aivCoreLimit = 0;
+  bool ifAiv = false;
+  
+  // 计算Aiv参数
+ 	CHK_RET(GetAivParam(node, sCollectiveType, group, count, dataType, reduction, opTypeAiv, aivCoreLimit, ifAiv));
+  // 设置aiv参数
+  ret = HcceSetAivSelectOpParamGraphMode(opParamPtr, group, count, counts, dataType, reduction, opTypeAiv, aivCoreLimit, ifAiv);
+  CHK_PRT_RET(
+      ret != HCCL_SUCCESS,
+      HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] set aivParam failed.", ret),
+      ret);
+  // 设置 opType
+  ret = HcceSetOpParamGraphModeOpType(opParamPtr, sCollectiveType.c_str());
+  CHK_PRT_RET(
+      ret != HCCL_SUCCESS,
+      HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] set op type[%s] failed.", ret, sCollectiveType.c_str()),
+      ret);
+
+  ret = HcomOpUtils::ConversionOpDataType(node.GetOpDesc(), sCollectiveType, dataType);
+  CHK_PRT_RET(
+      ret != HCCL_SUCCESS,
+      HCCL_ERROR("[Get][OpWorkspaceMemSize]op[%s]: get data type failed. ret[%d]", sCollectiveType.c_str(), ret), ret);
+
+  ret = HcceSetOpParamGraphModeDataType(opParamPtr, dataType);
+  CHK_PRT_RET(
+      ret != HCCL_SUCCESS,
+      HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] set data type failed.", ret),
+      ret);
+
+  // 设置 rankSize
+  int64_t hcomComm = 0;
+  std::string sGroup;
+  ret = GetCommFromOpDesc(node.GetOpDesc(), hcomComm, sGroup);
+  CHK_PRT_RET(
+      ret != HCCL_SUCCESS,
+      HCCL_ERROR("[Get][OpWorkspaceMemSize]op[%s]: GetGroupFromOpDesc failed. ret[%d]", sCollectiveType.c_str(), ret),
+      ret);
+  if (hcomComm != static_cast<int64_t>(CommNumHcom::COMM_VALUE_DEFAULT)) {
+    CHK_RET(GetGroupNameByOpBaseHcom(hcomComm, &(hcomOpParam->group)));
+  } else {
+    hcomOpParam->group = const_cast<char *>(sGroup.c_str());
+  }
+
+  u32 rankSize = 0;
+  if (!IsOfflineCompilation()) {
+    if (hcomComm == static_cast<int64_t>(CommNumHcom::COMM_VALUE_DEFAULT)) {
+      CHK_RET(HcomGetRankSize(sGroup.c_str(), &rankSize));
+    } else {
+      char *group = nullptr;
+      CHK_RET(GetGroupNameByOpBaseHcom(hcomComm, &group));
+      CHK_RET(HcomGetRankSize(group, &rankSize));
+    }
+  } else {
+    // 离线编译ranksize在HcomCalcOpResOffline中计算
+  }
+  if ((sCollectiveType == HCCL_KERNEL_OP_TYPE_REDUCESCATTER) || (sCollectiveType == HCCL_KERNEL_OP_TYPE_ALLGATHER)) {
+    CHK_PRT_RET((!ge::AttrUtils::GetInt(node.GetOpDesc(), HCOM_ATTR_RANK_SIZE, rankSize)),
+                HCCL_ERROR("[Get][OpWorkspaceMemSize]op[%s] get  attr[%s] failed.", sCollectiveType.c_str(),
+                           HCOM_ATTR_RANK_SIZE.c_str()),
+                HCCL_E_PARA);
+    CHK_PRT_RET((rankSize <= 0),
+                HCCL_ERROR("[Get][OpWorkspaceMemSize]op[%s]: rank_size[%d] should be "
+                           "greater than 0.",
+                           sCollectiveType.c_str(), rankSize),
+                HCCL_E_PARA);
+  }
+  ret = HcceSetOpParamGraphModeRankSize(opParamPtr, &rankSize);
+  CHK_PRT_RET(
+      ret != HCCL_SUCCESS,
+      HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] set rank_size[%d] failed.", ret, rankSize),
+      ret);
+
+  ret = GetCountFromOpDesc(node.GetOpDesc(), sCollectiveType, dataType, count);
+  HCCL_INFO("GetCountFromOpDesc count[%d]", count);
+  
+  ret = HcomOpUtils::GetAccuracyCountFromOpDesc(node.GetOpDesc(), sCollectiveType, dataType, count, rankSize);
+  HCCL_INFO("GetAccuracyCountFromOpDesc count[%d]", count);
+  CHK_PRT_RET(ret != HCCL_SUCCESS,
+              HCCL_ERROR("[Get][OpWorkspaceMemSize]op[%s]: get count failed. ret[%d]", sCollectiveType.c_str(), ret),
+              ret);
+  ret = HcceSetOpParamGraphModeDataCount(opParamPtr, &count);
+  HCCL_INFO("Count[%llu]", count);
+  CHK_PRT_RET(
+      ret != HCCL_SUCCESS,
+      HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] set count[%d] failed.", ret, count),
+      ret);
+
+  if (sCollectiveType == HCCL_KERNEL_OP_TYPE_REDUCESCATTERV) {
+    // reducescatterv复用HcomOpParam的All2AllDataDes字段
+    CHK_RET(
+        HcomOpUtils::GetReduceScatterVCountsDispl(const_cast<ge::Node &>(node), sendCounts, sendDispls, recvCounts));
+    count = *std::max_element(sendCounts.begin(), sendCounts.end());
+    ret = HcceSetOpParamGraphModeDataCount(opParamPtr, &count);
+    HCCL_INFO("REDUCESCATTERV Count[%llu]", count);
+    CHK_PRT_RET(
+      ret != HCCL_SUCCESS,
+      HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] set count[%d] failed.", ret, count),
+      ret);
+  }
+
+  if (sCollectiveType == HCCL_KERNEL_OP_TYPE_ALLGATHERV) {
+    // allgatherv复用HcomOpParam的All2AllDataDes字段
+    CHK_RET(HcomOpUtils::GetAllGatherVCountsDispl(const_cast<ge::Node &>(node), sendCounts, recvCounts, recvDispls));
+    count = *std::max_element(recvCounts.begin(), recvCounts.end());
+    ret = HcceSetOpParamGraphModeDataCount(opParamPtr, &count);
+    HCCL_INFO("ALLGATHERV Count[%llu]", count);
+    CHK_PRT_RET(
+      ret != HCCL_SUCCESS,
+      HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] set count[%d] failed.", ret, count),
+      ret);
+  }
+
+  if (sCollectiveType == HCCL_KERNEL_OP_TYPE_ALLTOALLV) {
+    HcclDataType sendType;
+    HcclDataType recvType;
+    CHK_RET(HcomOpUtils::GetAlltoAllDataType(node.GetOpDesc(), sendType, recvType));
+
+    auto op = node.GetOpDesc();
+    if (ge::AttrUtils::HasAttr(op, "send_counts")) {
+      CHK_RET(HcomOpUtils::GetAlltoAllCountsDispl(op, sendCounts, sendDispls, recvCounts, recvDispls));
+    } else {
+      CHK_RET(HcomOpUtils::GetAlltoAllCountsDispl(const_cast<ge::Node &>(node), sendCounts, sendDispls, recvCounts,
+                                                  recvDispls));
+    }
+
+    if (sendCounts.size() < rankSize) {
+      HCCL_ERROR("[sendCounts] size[%u] is invalid, expect size: %llu", sendCounts.size(), rankSize);
+      return HCCL_E_PARA;
+    }
+
+    count = *std::max_element(sendCounts.begin(), sendCounts.end());
+    ret = HcceSetOpParamGraphModeDataCount(opParamPtr, &count);
+    HCCL_INFO("ALLTOALLV Count[%llu]", count);
+    CHK_PRT_RET(
+      ret != HCCL_SUCCESS,
+      HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] set count[%d] failed.", ret, count),
+      ret);
+  }
+  
+  // 获取cclbuffer size
+  u64 cclBuffSize;
+  CHK_RET(GetCCLBufferAvailableSize(cclBuffSize));
+  ret = HcceSetOpParamGraphModeHCCLBufferSize(opParamPtr, &cclBuffSize);
+  CHK_PRT_RET(
+      ret != HCCL_SUCCESS,
+      HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] set op type[%s] failed.", ret, sCollectiveType.c_str()),
+      ret);
+
+  return HCCL_SUCCESS;
+}
+
+HcclResult HcomGraphOptimizer::GetAivParam(const ge::Node &node, std::string &sCollectiveType, const char* group,
+                                          u64 &count, HcclDataType &dataType, HcclReduceOp &reduction, HcclCMDType &opType,
+                                          u32 &aivCoreLimit, bool ifAiv) {
+  CHK_RET(HcomOpUtils::GetAivCoreLimit(node.GetOpDesc(), sCollectiveType, aivCoreLimit));
+  (void)ifAiv;
+  HcclResult ret;
+  u32 rankSize = 0;
+  CHK_RET(HcomGetRankSize(group, &rankSize));
+
+  ret = HcomOpUtils::ConversionOpDataType(node.GetOpDesc(), sCollectiveType, dataType);
+  CHK_PRT_RET(
+      ret != HCCL_SUCCESS,
+      HCCL_ERROR("[Get][SetSuperKernelScopeAttr]op[%s]: get data type failed. ret[%d]", sCollectiveType.c_str(), ret),
+      ret);
+
+  ret = HcomOpUtils::GetCountFromOpDescSuperkernel(node.GetOpDesc(), sCollectiveType, dataType, count, rankSize);
+  CHK_PRT_RET(
+      ret != HCCL_SUCCESS,
+      HCCL_ERROR("[Get][SetSuperKernelScopeAttr]op[%s]: get count failed. ret[%d]", sCollectiveType.c_str(), ret),
+      ret);
+
+  auto iter = HCCL_OPTYPE_NAME_MAP.find(sCollectiveType);
+  if (iter != HCCL_OPTYPE_NAME_MAP.end()) {
+    opType = iter->second;
+  }
+
+  if (opType == HcclCMDType::HCCL_CMD_ALLREDUCE || opType == HcclCMDType::HCCL_CMD_REDUCE_SCATTER) {
+    CHK_RET(HcomOpUtils::GetReduction(node.GetOpDesc(), reduction));
+  }
+
+  return HCCL_SUCCESS;
+}
+
 }  // namespace hccl

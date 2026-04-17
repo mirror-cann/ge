@@ -16,6 +16,7 @@
 #include <vector>
 #include "common/optimizer/graph_optimizer.h"
 #include "common/optimizer/graph_optimizer_types.h"
+#include "common/adapter_dlhcclfunc.h"
 #include "graph/compute_graph.h"
 #include "hccl/hccl_types.h"
 #include "hccl/base.h"
@@ -84,9 +85,19 @@ class HcomGraphOptimizer : public ge::GraphOptimizer {
                             std::vector<int64_t> &sendCounts, std::vector<int64_t> &sendDispls,
                             std::vector<int64_t> &recvCounts, std::vector<int64_t> &recvDispls,
                             std::vector<u32> &curRanks, std::string &rankTableStr, std::string &rankTableM);
+  HcclResult SetHcclOpParam(const ge::Node &node, HcomOpParam *hcomOpParam, OpParamGraphModePtr opParam, std::string &sCollectiveType,
+                            std::vector<int64_t> &sendCounts, std::vector<int64_t> &sendDispls,
+                            std::vector<int64_t> &recvCounts, std::vector<int64_t> &recvDispls, const char* group);
+  HcclResult GetAivParam(const ge::Node &node, std::string &sCollectiveType, const char* group,
+                        u64 &count, HcclDataType &dataType, HcclReduceOp &reduction, HcclCMDType &opType,
+                        u32 &aivCoreLimit, bool ifAiv);
   HcclResult SetOpWorkerSpaceForKnowShape(ge::Node &node, u64 &opMemSize);
   HcclResult GetOriginalGraphShapeTypeFromDesc(const ge::OpDescPtr &op, u32 &shapeType);
   HcclResult CheckForceUnknown(const ge::Node &node, u32 &taskNum);
+  HcclResult CalcOpRunningResources(const ge::Node &node, std::string &sCollectiveType,
+                                     u32 &streamNum, u64 &opMemSize, u32 &taskNum, u32 &aivCoreNum);
+  HcclResult SetOpRunningParamAttributes(ge::Node &node, const std::string &sCollectiveType,
+                                          u32 &streamNum, u64 opMemSize);
 
   bool IsSubgraphMultiBatch(ge::ComputeGraph &graph);
 

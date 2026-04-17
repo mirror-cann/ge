@@ -13,6 +13,7 @@
 
 #include "ops_kernel_builder_base.h"
 #include "op_hcom_comm.h"
+#include "common/adapter_dlhcclfunc.h"
 
 namespace hccl {
 class HcomOpsKernelBuilder : public HCCLOpsKernelBuilder {
@@ -35,6 +36,12 @@ class HcomOpsKernelBuilder : public HCCLOpsKernelBuilder {
                             std::vector<int64_t> &sendCounts, std::vector<int64_t> &sendDispls,
                             std::vector<int64_t> &recvCounts, std::vector<int64_t> &recvDispls,
                             std::vector<u32> &curRanks, std::string &rankTableStr, std::string &rankTableM);
+  HcclResult SetHcclOpParam(const ge::Node &node, HcomOpParam *hcomOpParam, OpParamGraphModePtr opParam, std::string &sCollectiveType,
+                            std::vector<int64_t> &sendCounts, std::vector<int64_t> &sendDispls,
+                            std::vector<int64_t> &recvCounts, std::vector<int64_t> &recvDispls, const char* group);
+  HcclResult GetAivParam(const ge::Node &node, std::string &sCollectiveType, const char* group,
+                        u64 &count, HcclDataType &dataType, HcclReduceOp &reduction, HcclCMDType &opType,
+                        u32 &aivCoreLimit, bool ifAiv);
   HcclResult SetOpWorkerSpaceForKnowShape(ge::Node &node, u64 &opMemSize);
   HcclResult GetSupportedOP(std::vector<std::string> &hcclSupportOp) const override;
   HcclResult SetOpMemAttr(ge::Node &node, const std::string &sCollectiveType, const u64 &opMemSize) override;
@@ -99,6 +106,10 @@ class HcomOpsKernelBuilder : public HCCLOpsKernelBuilder {
   HcclResult SetAttachedStreamInfoList(ge::Node &node, const std::string &group);  // 设置附属从流信息
   HcclResult TaskDefSetNumBlocks(const ge::Node &node, domi::TaskDef &taskDef, const std::string sCollectiveType,
                                  const u32 aivCoreLimit);
+  HcclResult CalcOpRunningResources(const ge::Node &node, std::string &sCollectiveType,
+                                     std::string &sGroup, u32 &streamNum, u64 &opMemSize, u32 &taskNum, u32 &aivCoreNum);
+  HcclResult SetOpRunningParamAttributes(ge::Node &node, const std::string &sCollectiveType,
+                                          const std::string &sGroup, u32 &streamNum, u64 opMemSize, u32 taskNum);
   int32_t optionFeatureBaseRefreshable_;
 };
 }  // namespace hccl

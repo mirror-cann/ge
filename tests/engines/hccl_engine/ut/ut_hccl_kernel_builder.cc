@@ -1193,6 +1193,97 @@ TEST_F(HcomKernelBuilderTest, ut_CheckAlltoAllvcRank)
     GlobalMockObject::verify();
 }
 
+TEST_F(HcomKernelBuilderTest, ut_CalcOpRunningResources_OpenSource)
+{
+    // 测试开源版本的CalcOpRunningResources
+    HcomOpsKernelBuilder kernelBuilder;
+    ge::NodePtr nodeptr(new NodeTest);
+    std::string sCollectiveType = HCCL_KERNEL_OP_TYPE_ALLREDUCE;
+    std::string sGroup = "test_group";
+    u32 streamNum = 0;
+    u64 opMemSize = 0;
+    u32 taskNum = 0;
+    u32 aivCoreNum = 0;
+
+    // 模拟IsUsingOpenSource返回true，使用开源版本
+    MOCKER(IsUsingOpenSource)
+    .expects(atMost(1))
+    .with(outBound(true))
+    .will(returnValue(HCCL_SUCCESS));
+
+    // 模拟SetHcomOpParam函数
+    MOCKER(SetHcomOpParam)
+    .expects(atMost(1))
+    .will(returnValue(HCCL_SUCCESS));
+
+    // 模拟HcceCreateOpParamGraphMode函数
+    OpParamGraphModePtr opParamPtr = reinterpret_cast<OpParamGraphModePtr>(0x12345678);
+    MOCKER(HcceCreateOpParamGraphMode)
+    .expects(atMost(1))
+    .with(outBound(opParamPtr))
+    .will(returnValue(HCCL_SUCCESS));
+
+    // 模拟SetHcclOpParam函数
+    MOCKER(SetHcclOpParam)
+    .expects(atMost(1))
+    .will(returnValue(HCCL_SUCCESS));
+
+    // 模拟HcceCalcOpResOfflineGraphMode函数
+    MOCKER(HcceCalcOpResOfflineGraphMode)
+    .expects(atMost(1))
+    .with(mockcpp::any(), outBound(&opMemSize), outBound(&streamNum), outBound(&taskNum), outBound(&aivCoreNum))
+    .will(returnValue(HCCL_SUCCESS));
+
+    // 模拟IsOfflineCompilation返回true
+    MOCKER(IsOfflineCompilation)
+    .expects(atMost(1))
+    .will(returnValue(true));
+
+    // 测试CalcOpRunningResources方法
+    HcclResult ret = kernelBuilder.CalcOpRunningResources(*nodeptr, sCollectiveType, sGroup, streamNum, opMemSize, taskNum, aivCoreNum);
+    EXPECT_EQ(ret, HCCL_SUCCESS);
+
+    GlobalMockObject::verify();
+}
+
+TEST_F(HcomGraphOptimizerTest, ut_SetHcclOpParam)
+{
+    // 测试SetHcclOpParam函数
+    HcomGraphOptimizer graphOptimizer;
+    ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test_graph");
+    auto descPtr0 = std::make_shared<ge::OpDesc>("Allreduce0", HCCL_KERNEL_OP_TYPE_ALLREDUCE);
+    auto addedNodePtr0 = graph->AddNode(descPtr0);
+    EXPECT_NE(addedNodePtr0, nullptr);
+
+    // 准备测试参数
+    HcomOpParam hcomOpParam;
+    std::string sCollectiveType;
+    OpParamGraphModePtr opParamPtr = reinterpret_cast<OpParamGraphModePtr>(0x12345678);
+    std::vector<int64_t> sendCounts;
+    std::vector<int64_t> sendDispls;
+    std::vector<int64_t> recvCounts;
+    std::vector<int64_t> recvDispls;
+    const char* group = "aiv";
+
+    // 模拟IsUsingOpenSource返回true，使用开源版本
+    MOCKER(IsUsingOpenSource)
+    .expects(atMost(1))
+    .with(outBound(true))
+    .will(returnValue(HCCL_SUCCESS));
+
+    // 模拟HcceCreateOpParamGraphMode函数
+    MOCKER(HcceCreateOpParamGraphMode)
+    .expects(atMost(1))
+    .with(outBound(opParamPtr))
+    .will(returnValue(HCCL_SUCCESS));
+
+    HcclResult ret = graphOptimizer.SetHcclOpParam(*addedNodePtr0, &hcomOpParam, opParamPtr, sCollectiveType, 
+                                                  sendCounts, sendDispls, recvCounts, recvDispls, group);
+    EXPECT_EQ(ret, HCCL_SUCCESS);
+
+    GlobalMockObject::verify();
+}
+
 TEST_F(HcomKernelBuilderTest, ut_getAlltoAllCountsDispl_across_graph)
 {
     ge::NodePtr nodeptr(new NodeTest);

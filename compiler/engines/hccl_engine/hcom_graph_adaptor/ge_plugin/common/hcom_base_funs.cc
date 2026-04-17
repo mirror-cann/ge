@@ -19,7 +19,7 @@
 #include "hccl/hcom.h"
 #include "mmpa/mmpa_api.h"
 #include <pthread.h>
-
+#include "adapter_dlhcclfunc.h"
 namespace hccl {
 
 HcclResult HcomInitialize() {
@@ -370,6 +370,33 @@ HcclResult SalParseInformation(nlohmann::json &parseInformation, const std::stri
         "please check json input!",
         HCOM_ERROR_CODE(HCCL_E_PARA));
     return HCCL_E_PARA;
+  }
+  return HCCL_SUCCESS;
+}
+
+HcclResult IsUsingOpenSource(bool &openSource) {
+  // 如果开源模式HCCL相关函数未定义，走原流程
+  bool dllFuncValid = false;
+  CHK_RET(HcceIsHcclGraphModeValid(dllFuncValid));
+  if (!dllFuncValid) {
+    openSource = false;
+    HCCL_INFO("[HcomBaseFuns] IsUsingOpenSource: HcceIsHcclGraphModeValid is false, use original flow.");
+    return HCCL_SUCCESS;
+  }
+  std::string socVersion{};
+  if (ge::GetThreadLocalContext().GetOption(ge::SOC_VERSION, socVersion) != ge::GRAPH_SUCCESS) {
+    HCCL_ERROR("[HcomBaseFuns][IsUsingOpenSource] get soc version failed");
+    return HCCL_E_NOT_FOUND;
+  }
+  HCCL_INFO("[HcomBaseFuns] IsUsingOpenSource: socVersion[%s]", socVersion.c_str());
+  const char *indOp = getenv("HCCL_INDEPENDENT_OP");
+
+  if (socVersion.find("Ascend950") == std::string::npos) {
+    openSource = false;
+  } else if (indOp != nullptr && strcmp(indOp, "") != 0) {
+    openSource = true;
+  } else {
+    openSource = false;
   }
   return HCCL_SUCCESS;
 }

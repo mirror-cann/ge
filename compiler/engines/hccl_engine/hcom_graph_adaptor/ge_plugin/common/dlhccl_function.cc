@@ -102,9 +102,127 @@ HcclResult DlHcclFunction::init() {
   dlHcomGetandClearOverFlowTasksFunc = (HcclResult (*)(const char *group, hccl::HcclDumpInfo **hcclDumpInfoPtr,
                                                        s32 *len))dlsym(dl_hcomm_handle, "HcomGetandClearOverFlowTasks");
   CHK_PTR_NULL(dlHcomGetandClearOverFlowTasksFunc);
-
+  
+  auto ret = initHcclGraphModeFunctions();
+  if(ret != HCCL_SUCCESS) {
+    isHcclGraphModeFunctionsLoaded_ = false;
+    HCCL_WARNING("[DlHcclFunction]load hccl graph mode functions fail\n");
+  } else {
+    isHcclGraphModeFunctionsLoaded_ = true;
+  }
   return HCCL_SUCCESS;
 }
+
+HcclResult DlHcclFunction::initHcclGraphModeFunctions() {
+  // 图模式相关函数
+  dlHcclCreateOpParamGraphModeFunc = (HcclResult (*)(OpParamGraphModePtr *opParam))dlsym(dl_hccl_handle, "HcclCreateOpParamGraphMode");
+  CHK_PTR_NULL(dlHcclCreateOpParamGraphModeFunc);
+
+  dlHcclDestroyOpParamGraphModeFunc = (HcclResult (*)(OpParamGraphModePtr opParam))dlsym(dl_hccl_handle, "HcclDestroyOpParamGraphMode");
+  CHK_PTR_NULL(dlHcclDestroyOpParamGraphModeFunc);
+
+  dlHcclSetOpParamGraphModeOpTypeFunc = (HcclResult (*)(OpParamGraphModePtr opParam, const char *opType))dlsym(dl_hccl_handle, "HcclSetOpParamGraphModeOpType");
+  CHK_PTR_NULL(dlHcclSetOpParamGraphModeOpTypeFunc);
+
+  dlHcclSetOpParamGraphModeDataCountFunc = (HcclResult (*)(OpParamGraphModePtr opParam, const u64 *count))dlsym(dl_hccl_handle, "HcclSetOpParamGraphModeDataCount");
+  CHK_PTR_NULL(dlHcclSetOpParamGraphModeDataCountFunc);
+
+  dlHcclSetOpParamGraphModeRankSizeFunc = (HcclResult (*)(OpParamGraphModePtr opParam, const u32 *rankSize))dlsym(dl_hccl_handle, "HcclSetOpParamGraphModeRankSize");
+  CHK_PTR_NULL(dlHcclSetOpParamGraphModeRankSizeFunc);
+
+  dlHcclSetOpParamGraphModeHCCLBufferSizeFunc = (HcclResult (*)(OpParamGraphModePtr opParam, const u64 *cclBufferSize))dlsym(dl_hccl_handle, "HcclSetOpParamGraphModeHCCLBufferSize");
+  CHK_PTR_NULL(dlHcclSetOpParamGraphModeHCCLBufferSizeFunc);
+
+  dlHcclSetOpParamGraphModeDataTypeFunc = (HcclResult (*)(OpParamGraphModePtr opParam, const HcclDataType dataType))dlsym(dl_hccl_handle, "HcclSetOpParamGraphModeDataType");
+  CHK_PTR_NULL(dlHcclSetOpParamGraphModeDataTypeFunc);
+
+  dlHcclSetAivSelectOpParamGraphModeFunc = (HcclResult (*)(OpParamGraphModePtr opParam, const char *group, u64 count, 
+      void *counts, HcclDataType dataType, HcclReduceOp reduction, 
+      HcclCMDType opType, u32 aivCoreLimit, bool ifAiv))dlsym(dl_hccl_handle, "HcclSetAivSelectOpParamGraphMode");
+ 	CHK_PTR_NULL(dlHcclSetAivSelectOpParamGraphModeFunc);
+
+  dlHcclCalcOpResOfflineGraphModeFunc = (HcclResult (*)(OpParamGraphModePtr opParam, u64 *opMemSize, 
+      u32 *streamNum, u32 *taskNum, u32 *aivCoreNum))dlsym(dl_hccl_handle, "HcclCalcOpResOfflineGraphMode");
+  CHK_PTR_NULL(dlHcclCalcOpResOfflineGraphModeFunc);
+
+  dlHcclCalcOpResOnlineGraphModeFunc = (HcclResult (*)(OpParamGraphModePtr opParam, u64 *opMemSize, 
+      u32 *streamNum, u32 *taskNum, u32 *aivCoreNum))dlsym(dl_hccl_handle, "HcclCalcOpResOnlineGraphMode");
+  CHK_PTR_NULL(dlHcclCalcOpResOnlineGraphModeFunc);
+
+  dlHcclAllGatherGraphModeFunc = (HcclResult (*)(void *sendBuf, void *recvBuf, uint64_t count, HcclDataType dataType, 
+      const char *group, void *stream, const char *tag, void **streams, size_t streamCount, 
+      void *scratchMemAddr, uint64_t scratchMemSize))dlsym(dl_hccl_handle, "HcclAllGatherGraphMode");
+  CHK_PTR_NULL(dlHcclAllGatherGraphModeFunc);
+  
+  dlHcclBroadcastGraphModeFunc = (HcclResult (*)(void *sendBuf, uint64_t count, HcclDataType dataType, uint32_t root, 
+      const char *group, void *stream, const char *tag, void **streams, size_t streamCount, 
+      void *scratchMemAddr, uint64_t scratchMemSize))dlsym(dl_hccl_handle, "HcclBroadcastGraphMode");
+  CHK_PTR_NULL(dlHcclBroadcastGraphModeFunc);
+
+  dlHcclReduceScatterVGraphModeFunc = (HcclResult (*)(void *sendBuf, const void *sendCounts, const void *sendDispls, 
+      void *recvBuf, uint64_t recvCount, HcclDataType dataType, HcclReduceOp reduceOp, 
+      const char *group, void *stream, const char *tag, void **streams, size_t streamCount, 
+      void *scratchMemAddr, uint64_t scratchMemSize))dlsym(dl_hccl_handle, "HcclReduceScatterVGraphMode");
+  CHK_PTR_NULL(dlHcclReduceScatterVGraphModeFunc);
+
+  dlHcclAllGatherVGraphModeFunc = (HcclResult (*)(void *sendBuf, void *recvBuf, uint64_t sendCount, 
+      const void *recvCounts, const void *recvDispls, HcclDataType dataType, 
+      const char *group, void *stream, const char *tag, void **streams, size_t streamCount, 
+      void *scratchMemAddr, uint64_t scratchMemSize))dlsym(dl_hccl_handle, "HcclAllGatherVGraphMode");
+ 	CHK_PTR_NULL(dlHcclAllGatherVGraphModeFunc);
+
+  dlHcclAlltoAllGraphModeFunc = (HcclResult (*)(const void *sendBuf, uint64_t sendCount, HcclDataType sendType, 
+      const void *recvBuf, uint64_t recvCount, HcclDataType recvType, 
+      const char *group, void *stream, const char *tag, void **streams, size_t streamCount, 
+      void *scratchMemAddr, uint64_t scratchMemSize))dlsym(dl_hccl_handle, "HcclAlltoAllGraphMode");
+  CHK_PTR_NULL(dlHcclAlltoAllGraphModeFunc);
+
+  dlHcclAlltoAllVGraphModeFunc = (HcclResult (*)(const void *sendBuf, const void *sendCounts, const void *sendDispls, 
+      HcclDataType sendType, const void *recvBuf, const void *recvCounts, const void *recvDispls, 
+      HcclDataType recvType, const char *group, void *stream, const char *tag, void **streams, 
+      size_t streamCount, void *scratchMemAddr, uint64_t scratchMemSize))dlsym(dl_hccl_handle, "HcclAlltoAllVGraphMode");
+  CHK_PTR_NULL(dlHcclAlltoAllVGraphModeFunc);
+
+  dlHcclAlltoAllVCGraphModeFunc = (HcclResult (*)(const void *sendBuf, const void *sendCountMatrix, HcclDataType sendType, 
+      const void *recvBuf, HcclDataType recvType, const char *group, void *stream, 
+      const char *tag, void **streams, size_t streamCount, void *scratchMemAddr, 
+      uint64_t scratchMemSize))dlsym(dl_hccl_handle, "HcclAlltoAllVCGraphMode");
+  CHK_PTR_NULL(dlHcclAlltoAllVCGraphModeFunc);
+
+  dlHcclSendGraphModeFunc = (HcclResult (*)(void *sendBuf, uint64_t count, HcclDataType dataType, uint32_t destRank, 
+      const char *group, void *stream, const char *tag, void **streams, size_t streamCount, 
+      void *scratchMemAddr, uint64_t scratchMemSize))dlsym(dl_hccl_handle, "HcclSendGraphMode");
+  CHK_PTR_NULL(dlHcclSendGraphModeFunc);
+
+  dlHcclRecvGraphModeFunc = (HcclResult (*)(void *recvBuf, uint64_t count, HcclDataType dataType, uint32_t srcRank, 
+      const char *group, void *stream, const char *tag, void **streams, size_t streamCount, 
+      void *scratchMemAddr, uint64_t scratchMemSize))dlsym(dl_hccl_handle, "HcclRecvGraphMode");
+  CHK_PTR_NULL(dlHcclRecvGraphModeFunc);
+
+  dlHcclAllReduceGraphModeFunc = (HcclResult (*)(void *sendBuf, void *recvBuf, uint64_t count, HcclDataType dataType, 
+      HcclReduceOp reduceOp, const char *group, void *stream, const char *tag, 
+      void **streams, size_t streamCount, void *scratchMemAddr, uint64_t scratchMemSize))dlsym(dl_hccl_handle, "HcclAllReduceGraphMode");
+  CHK_PTR_NULL(dlHcclAllReduceGraphModeFunc);
+
+  dlHcclReduceGraphModeFunc = (HcclResult (*)(void *sendBuf, void *recvBuf, uint64_t count, HcclDataType dataType, 
+      HcclReduceOp reduceOp, uint32_t root, const char *group, void *stream, 
+      const char *tag, void **streams, size_t streamCount, void *scratchMemAddr, 
+      uint64_t scratchMemSize))dlsym(dl_hccl_handle, "HcclReduceGraphMode");
+  CHK_PTR_NULL(dlHcclReduceGraphModeFunc);
+  
+  dlHcclReduceScatterGraphModeFunc = (HcclResult (*)(void *sendBuf, void *recvBuf, uint64_t count, HcclDataType dataType, 
+      HcclReduceOp reduceOp, const char *group, void *stream, const char *tag, 
+      void **streams, size_t streamCount, void *scratchMemAddr, uint64_t scratchMemSize))dlsym(dl_hccl_handle, "HcclReduceScatterGraphMode");
+  CHK_PTR_NULL(dlHcclReduceScatterGraphModeFunc);
+
+  dlHcclSetAivCoreLimitGraphModeFunc = (HcclResult (*)(const char *group, u32 aivCoreLimit))dlsym(dl_hccl_handle, "HcclSetAivCoreLimitGraphMode");
+  CHK_PTR_NULL(dlHcclSetAivCoreLimitGraphModeFunc);
+  return HCCL_SUCCESS;
+}
+
+bool DlHcclFunction::isLoadHcclGraphModeFunctions() {
+  return isHcclGraphModeFunctionsLoaded_;
+};
 
 void DlHcclFunction::deinit() {
   if (dl_hccl_handle != nullptr) {
@@ -188,4 +306,107 @@ HcclResult DlHcclFunction::dlHcclReduce(void *sendBuf, void *recvBuf, uint64_t c
 HcclResult DlHcclFunction::dlHcomGetandClearOverFlowTasks(const char *group, hccl::HcclDumpInfo **hcclDumpInfoPtr,
                                                           s32 *len) {
   return dlHcomGetandClearOverFlowTasksFunc(group, hcclDumpInfoPtr, len);
+}
+
+// 图模式相关函数实现
+HcclResult DlHcclFunction::dlHcclCreateOpParamGraphMode(OpParamGraphModePtr *opParam) {
+  return dlHcclCreateOpParamGraphModeFunc(opParam);
+}
+
+HcclResult DlHcclFunction::dlHcclDestroyOpParamGraphMode(OpParamGraphModePtr opParam) {
+  return dlHcclDestroyOpParamGraphModeFunc(opParam);
+}
+
+HcclResult DlHcclFunction::dlHcclSetOpParamGraphModeOpType(OpParamGraphModePtr opParam, const char *opType) {
+  return dlHcclSetOpParamGraphModeOpTypeFunc(opParam, opType);
+}
+
+HcclResult DlHcclFunction::dlHcclSetOpParamGraphModeDataCount(OpParamGraphModePtr opParam, const u64 *dataCount) {
+  return dlHcclSetOpParamGraphModeDataCountFunc(opParam, dataCount);
+}
+
+HcclResult DlHcclFunction::dlHcclSetOpParamGraphModeRankSize(OpParamGraphModePtr opParam, const u32 *rankSize) {
+  return dlHcclSetOpParamGraphModeRankSizeFunc(opParam, rankSize);
+}
+
+HcclResult DlHcclFunction::dlHcclSetOpParamGraphModeHCCLBufferSize(OpParamGraphModePtr opParam, const u64 *hcclBufferSize) {
+  return dlHcclSetOpParamGraphModeHCCLBufferSizeFunc(opParam, hcclBufferSize);
+}
+
+HcclResult DlHcclFunction::dlHcclSetOpParamGraphModeDataType(OpParamGraphModePtr opParam, const HcclDataType dataType) {
+  return dlHcclSetOpParamGraphModeDataTypeFunc(opParam, dataType);
+}
+
+HcclResult DlHcclFunction::dlHcclSetAivSelectOpParamGraphMode(OpParamGraphModePtr opParam, const char *group, u64 count, void *counts, HcclDataType dataType, HcclReduceOp op, HcclCMDType opTypeAiv, u32 aivCoreLimit, bool ifAiv) {
+  return dlHcclSetAivSelectOpParamGraphModeFunc(opParam, group, count, counts, dataType, op, opTypeAiv, aivCoreLimit, ifAiv);
+}
+
+HcclResult DlHcclFunction::dlHcclCalcOpResOfflineGraphMode(OpParamGraphModePtr opParam, u64 *opMemSize, u32 *streamNum, u32 *taskNum, u32 *aivCoreNum) {
+  return dlHcclCalcOpResOfflineGraphModeFunc(opParam, opMemSize, streamNum, taskNum, aivCoreNum);
+}
+
+HcclResult DlHcclFunction::dlHcclCalcOpResOnlineGraphMode(OpParamGraphModePtr opParam, u64 *opMemSize, u32 *streamNum, u32 *taskNum, u32 *aivCoreNum) {
+  return dlHcclCalcOpResOnlineGraphModeFunc(opParam, opMemSize, streamNum, taskNum, aivCoreNum);
+}
+
+HcclResult DlHcclFunction::dlHcclAllGatherGraphMode(void *sendBuf, void *recvBuf, uint64_t sendCount, HcclDataType dataType, const char *group, void *stream, const char *optag, void **streams, size_t streamCount, void *scratchMemAddr, uint64_t scratchMemSize) {
+    return dlHcclAllGatherGraphModeFunc(sendBuf, recvBuf, sendCount, dataType, group, stream, optag, streams, streamCount, scratchMemAddr, scratchMemSize);
+}
+
+HcclResult DlHcclFunction::dlHcclBroadcastGraphMode(void *buf, uint64_t count, HcclDataType dataType, uint32_t root, const char *group, void *stream, const char *optag, void **streams, size_t streamCount, void *scratchMemAddr, uint64_t scratchMemSize) {
+    return dlHcclBroadcastGraphModeFunc(buf, count, dataType, root, group, stream, optag, streams, streamCount, scratchMemAddr, scratchMemSize);
+}
+
+HcclResult DlHcclFunction::dlHcclReduceScatterVGraphMode(void *sendBuf, const void *sendCounts, const void *sendDispls, void *recvBuf,
+                                   uint64_t recvCount, HcclDataType dataType, HcclReduceOp op, const char *group, void *stream, const char *optag, void **streams, size_t streamCount, void *scratchMemAddr, uint64_t scratchMemSize) {
+  return dlHcclReduceScatterVGraphModeFunc(sendBuf, sendCounts, sendDispls, recvBuf, recvCount, dataType, op, group, stream, optag, streams, streamCount, scratchMemAddr, scratchMemSize);
+}
+
+HcclResult DlHcclFunction::dlHcclAllGatherVGraphMode(void *sendBuf, void *recvBuf, uint64_t sendCount, const void *recvCounts, const void *recvDispls, HcclDataType dataType, const char *group, void *stream, const char *optag, void **streams, size_t streamCount, void *scratchMemAddr, uint64_t scratchMemSize) {
+  return dlHcclAllGatherVGraphModeFunc(sendBuf, recvBuf, sendCount, recvCounts, recvDispls, dataType, group, stream, optag, streams, streamCount, scratchMemAddr, scratchMemSize);
+}
+
+HcclResult DlHcclFunction::dlHcclAlltoAllGraphMode(const void *sendBuf, uint64_t sendCount, HcclDataType sendType, const void *recvBuf, uint64_t recvCount, HcclDataType recvType,
+  const char *group, void *stream, const char *optag, void **streams, size_t streamCount, void *scratchMemAddr, uint64_t scratchMemSize) {
+    return dlHcclAlltoAllGraphModeFunc(sendBuf, sendCount, sendType, recvBuf, recvCount, recvType,
+      group, stream, optag, streams, streamCount, scratchMemAddr, scratchMemSize);
+}
+
+HcclResult DlHcclFunction::dlHcclAlltoAllVGraphMode(const void *sendBuf, const void *sendCounts, const void *sdispls, HcclDataType sendType,
+  const void *recvBuf, const void *recvCounts, const void *rdispls, HcclDataType recvType,
+  const char *group, void *stream, const char *optag, void **streams, size_t streamCount, void *scratchMemAddr, uint64_t scratchMemSize) {
+    return dlHcclAlltoAllVGraphModeFunc(sendBuf, sendCounts, sdispls, sendType, recvBuf, recvCounts, rdispls, recvType,
+      group, stream, optag, streams, streamCount, scratchMemAddr, scratchMemSize);
+}
+
+HcclResult DlHcclFunction::dlHcclAlltoAllVCGraphMode(const void *sendBuf, const void *sendCountMatrix, HcclDataType sendType, const void *recvBuf, HcclDataType recvType,
+  const char *group, void *stream, const char *optag, void **streams, size_t streamCount, void *scratchMemAddr, uint64_t scratchMemSize) {
+    return dlHcclAlltoAllVCGraphModeFunc(sendBuf, sendCountMatrix, sendType, recvBuf, recvType,
+      group, stream, optag, streams, streamCount, scratchMemAddr, scratchMemSize);
+}
+
+HcclResult DlHcclFunction::dlHcclSendGraphMode(void *sendBuf, uint64_t count, HcclDataType dataType, uint32_t destRank, const char *group, void *stream, const char *tag, void **streams, size_t streamCount, void *scratchMemAddr, uint64_t scratchMemSize) {
+    return dlHcclSendGraphModeFunc(sendBuf, count, dataType, destRank, group, stream, tag, streams, streamCount, scratchMemAddr, scratchMemSize);
+}
+
+HcclResult DlHcclFunction::dlHcclRecvGraphMode(void *recvBuf, uint64_t count, HcclDataType dataType, uint32_t srcRank, const char *group, void *stream, const char *tag, void **streams, size_t streamCount, void *scratchMemAddr, uint64_t scratchMemSize) {
+    return dlHcclRecvGraphModeFunc(recvBuf, count, dataType, srcRank, group, stream, tag, streams, streamCount, scratchMemAddr, scratchMemSize);
+}
+
+HcclResult DlHcclFunction::dlHcclAllReduceGraphMode(void *sendBuf, void *recvBuf, uint64_t sendCount, HcclDataType dataType, HcclReduceOp op, const char *group, void *stream, const char *optag, void **streams, size_t streamCount, void *scratchMemAddr, uint64_t scratchMemSize) {
+    return dlHcclAllReduceGraphModeFunc(sendBuf, recvBuf, sendCount, dataType, op, group, stream, optag, streams, streamCount, scratchMemAddr, scratchMemSize);
+}
+
+HcclResult DlHcclFunction::dlHcclReduceGraphMode(void *sendBuf, void *recvBuf, uint64_t count, HcclDataType dataType, HcclReduceOp op, uint32_t root,
+                                                 const char *group, void *stream, const char *optag, void **streams, size_t streamCount,
+                                                 void *scratchMemAddr, uint64_t scratchMemSize) {
+  return dlHcclReduceGraphModeFunc(sendBuf, recvBuf, count, dataType, op, root, group, stream, optag, streams, streamCount, scratchMemAddr, scratchMemSize);
+}
+
+HcclResult DlHcclFunction::dlHcclReduceScatterGraphMode(void *sendBuf, void *recvBuf, uint64_t recvCount, HcclDataType dataType, HcclReduceOp op, const char *group, void *stream, const char *optag, void **streams, size_t streamCount, void *scratchMemAddr, uint64_t scratchMemSize) {
+    return dlHcclReduceScatterGraphModeFunc(sendBuf, recvBuf, recvCount, dataType, op, group, stream, optag, streams, streamCount, scratchMemAddr, scratchMemSize);
+}
+
+HcclResult DlHcclFunction::dlHcclSetAivCoreLimitGraphMode(const char *group, u32 aivCoreLimit) {
+    return dlHcclSetAivCoreLimitGraphModeFunc(group, aivCoreLimit);
 }

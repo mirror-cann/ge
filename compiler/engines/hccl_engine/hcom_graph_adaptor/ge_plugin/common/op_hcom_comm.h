@@ -279,6 +279,7 @@ void SetThreadName(const std::string &threadStr);
 bool IsSocVersion91093(std::string socVersion);
 bool IsSocVersion910B(std::string socVersion);
 bool IsSocVersion910(std::string socVersion);
+HcclResult IsUsingOpenSource(bool &openSource);
 
 }  // namespace hccl
 #endif
