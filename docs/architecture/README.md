@@ -37,6 +37,16 @@
 |------|------|
 | [Dump 模块](features/datadump.md) | Dump 模块整体设计：架构分层、RT1.0/RT2.0 适配、HCCL 处理、动态开关 |
 | [外置权重](features/external_weight.md) | FileConstant 特性：权重从 OM 分离存储、编译期 Const→FileConstant 转换、RT V1/V2 加载流程、内存管理、全局权重管理器 |
+| [常量折叠](features/constant_folding.md) | 常量折叠优化：编译期常量表达式求值、维度计算、空张量替换、延迟生效机制、多编译阶段流水线 |
+| [动态分档](features/dynamic_gear.md) | 动态分档特性：动态 Batch / 动态分辨率 / ND 任意维度三种模式、档位枚举、静态子图生成与运行时分发 |
+| [内存冲突处理](features/memory_conflict.md) | 内存冲突防护体系：语义读写冲突、内存布局冲突、子图地址隔离、Inplace 复用冲突、多流并发管理 |
+| [模型缓存](features/model_cache.md) | 编译结果持久化机制：图编译缓存、JIT 编译缓存、算子模型缓存三级体系、缓存命中与失效策略 |
+| [Profiling](features/profiling.md) | 性能采集与可观测性：分层采集架构（API/Host/Device）、按需使能、msprof 统一上报 |
+| [SO in OM](features/so_in_om.md) | 算子自包含打包：将依赖的算子 .so 按需打包进 OM 文件、消除运行时对 OPP 算子包的依赖 |
+| [TensorMove 消除](features/tensormove_delete.md) | TensorMove 冗余节点消除优化：识别并删除冗余内存拷贝节点、O3 优化级别 |
+| [变量管理](features/variable_manager.md) | 变量生命周期管理：注册、内存分配、格式转换、逻辑地址映射、序列化/反序列化全流程 |
+| [零拷贝](features/zero_copy.md) | 零拷贝特性：输入零拷贝（消除 H2D）、输出零拷贝（消除 D2H/D2D）、编译期规划与运行时执行 |
+| [Concat No Task](features/concat_no_task.md) | Concat 连续内存优化：编译期识别输入连续的 Concat 算子，标记为虚拟算子跳过 Task 生成和内存搬运 |
 
 ## 模块关键设计原则与软件约束
 
