@@ -58,7 +58,11 @@ class _AllocatorCCallbacks:
 
 def _on_allocator_destroy(prevent_gc_key):
     """Called from C++ ~PyCallbackAllocator to release Python callback refs."""
-    _prevent_gc.pop(prevent_gc_key, None)
+    cb = _prevent_gc.pop(prevent_gc_key, None)
+    if cb is not None:
+        cb.c_malloc = None
+        cb.c_free = None
+        cb.c_get_addr = None
 
 
 _c_on_allocator_destroy = c_func_t_on_destroy(_on_allocator_destroy)

@@ -41,6 +41,8 @@
 #include "common/opskernel/ops_kernel_info_types.h"
 #include "common/env_path.h"
 #include "stub/gert_runtime_stub.h"
+#include "depends/ascendcl/src/ascendcl_stub.h"
+#include "register/optimization_option_registry.h"
 
 using namespace std;
 using namespace testing;
@@ -86,7 +88,6 @@ public:
     return -1;
   }
 };
-
 int32_t g_call_stream_create_times = 0;
 rtError_t MockrtStreamCreateWithFlags(rtStream_t *stream, int32_t priority, uint32_t flags) {
   ++g_call_stream_create_times;
@@ -333,6 +334,15 @@ class StubExecutor : public Executor {
   Status ExecuteGraphWithStream(const GraphNodePtr &graph_node, const GraphId graph_id,
                                rtStream_t const stream, const std::vector<gert::Tensor> &inputs,
                                std::vector<gert::Tensor> &outputs) override {
+    return SUCCESS;
+  }
+
+  Status DumpDebugJSONPrint(uint32_t model_id, uint32_t graph_id, uint32_t flags,
+                            AscendString &json_result) override {
+    (void)model_id;
+    (void)graph_id;
+    (void)flags;
+    (void)json_result;
     return SUCCESS;
   }
 
@@ -871,6 +881,117 @@ TEST_F(UtestModelManagerModelManager, test_load_model_online) {
   ge_root_model->MutableFixedFeatureMemory().insert({RT_MEMORY_HBM, {RT_MEMORY_HBM, &mem, sizeof(mem), true, false, false, 0U, nullptr}});
   EXPECT_EQ(mm.LoadModelOnline(model_id, ge_root_model, graph_node2, device_id), SUCCESS);
   ge::ProfilingProperties::Instance().CleanSubscribeInfo();
+}
+
+TEST_F(UtestModelManagerModelManager, AutoDumpDebugJsonOnline_DumpGeGraphEnabled) {
+  setenv("DUMP_GE_GRAPH", "1", 1);
+  g_acl_stub_debug_json_last_file_path.clear();
+
+  const auto old_graph_options = GetThreadLocalContext().GetAllGraphOptions();
+  auto graph_options = old_graph_options;
+  graph_options["ge.exec.placement"] = "DEVICE";
+  GetThreadLocalContext().SetGraphOption(graph_options);
+  const auto ret_oo = GetThreadLocalContext().GetOo().Initialize(
+      GetThreadLocalContext().GetAllOptions(), OptionRegistry::GetInstance().GetRegisteredOptTable());
+  ASSERT_EQ(ret_oo, GRAPH_SUCCESS);
+
+  uint32_t model_id = 1;
+  uint32_t device_id = 0;
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_auto_dump_online");
+  GeRootModelPtr ge_root_model = make_shared<GeRootModel>();
+  ASSERT_EQ(ge_root_model->Initialize(graph), SUCCESS);
+
+  GeModelPtr ge_model = MakeShared<GeModel>();
+  ge_model->SetGraph(graph);
+  ge_model->SetModelTaskDef(MakeShared<domi::ModelTaskDef>());
+  ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
+  ge_root_model->SetIsSpecificStream(true);
+
+  const auto graph_node = MakeShared<GraphNode>(graph->GetGraphID());
+  graph_node->SetGeRootModel(ge_root_model);
+  graph_node->SetLoadFlag(true);
+  graph_node->SetAsync(true);
+  uint64_t mem = 0UL;
+  ge_root_model->MutableFixedFeatureMemory().insert(
+      {RT_MEMORY_HBM, {RT_MEMORY_HBM, &mem, sizeof(mem), true, false, false, 0U, nullptr}});
+
+  EXPECT_EQ(ModelManager::GetInstance().LoadModelOnline(model_id, ge_root_model, graph_node, device_id), SUCCESS);
+  /*
+* 背景：GE接口依赖RTS，RTS该接口还没上库
+* 临时规避方案：先注销该代码，GE先保证主体上库，等RTS上库后再重新打开。
+*/
+  // EXPECT_FALSE(g_acl_stub_debug_json_last_file_path.empty());
+  // EXPECT_NE(g_acl_stub_debug_json_last_file_path.find("debug_graph_"), std::string::npos);
+  (void)ModelManager::GetInstance().Unload(model_id);
+
+  GetThreadLocalContext().SetGraphOption(old_graph_options);
+  const auto ret_reset_oo = GetThreadLocalContext().GetOo().Initialize(
+      GetThreadLocalContext().GetAllOptions(), OptionRegistry::GetInstance().GetRegisteredOptTable());
+  EXPECT_EQ(ret_reset_oo, GRAPH_SUCCESS);
+  unsetenv("DUMP_GE_GRAPH");
+  g_acl_stub_debug_json_last_file_path.clear();
+}
+
+TEST_F(UtestModelManagerModelManager, AutoDumpDebugJsonOffline_DumpGeGraphEnabled) {
+  setenv("DUMP_GE_GRAPH", "1", 1);
+  g_acl_stub_debug_json_last_file_path.clear();
+
+  ModelData data;
+  LoadStandardModelData(data);
+  {
+    ModelManager mm;
+    uint32_t model_id = std::numeric_limits<uint32_t>::max();
+    const ModelParam param;
+    EXPECT_EQ(mm.LoadModelOffline(data, param, model_id), SUCCESS);
+  }
+  /*
+* 背景：GE接口依赖RTS，RTS该接口还没上库
+* 临时规避方案：先注销该代码，GE先保证主体上库，等RTS上库后再重新打开。
+*/
+  // EXPECT_FALSE(g_acl_stub_debug_json_last_file_path.empty());
+  // EXPECT_NE(g_acl_stub_debug_json_last_file_path.find("debug_graph_"), std::string::npos);
+
+  delete [] (uint8_t *)data.model_data;
+  unsetenv("DUMP_GE_GRAPH");
+  g_acl_stub_debug_json_last_file_path.clear();
+}
+
+TEST_F(UtestModelManagerModelManager, AutoDumpDebugJsonOffline_DumpGeGraphZeroNoTrigger) {
+  setenv("DUMP_GE_GRAPH", "0", 1);
+  g_acl_stub_debug_json_last_file_path.clear();
+
+  ModelData data;
+  LoadStandardModelData(data);
+  {
+    ModelManager mm;
+    uint32_t model_id = std::numeric_limits<uint32_t>::max();
+    const ModelParam param;
+    EXPECT_EQ(mm.LoadModelOffline(data, param, model_id), SUCCESS);
+  }
+
+  EXPECT_TRUE(g_acl_stub_debug_json_last_file_path.empty());
+
+  delete [] (uint8_t *)data.model_data;
+  unsetenv("DUMP_GE_GRAPH");
+  g_acl_stub_debug_json_last_file_path.clear();
+}
+
+TEST_F(UtestModelManagerModelManager, AutoDumpDebugJsonOffline_FailSoftWhenDumpFailed) {
+  setenv("DUMP_GE_GRAPH", "1", 1);
+  g_acl_stub_mock = "aclmdlRIDebugJsonPrint";
+
+  ModelData data;
+  LoadStandardModelData(data);
+  {
+    ModelManager mm;
+    uint32_t model_id = std::numeric_limits<uint32_t>::max();
+    const ModelParam param;
+    EXPECT_EQ(mm.LoadModelOffline(data, param, model_id), SUCCESS);
+  }
+
+  delete [] (uint8_t *)data.model_data;
+  unsetenv("DUMP_GE_GRAPH");
+  g_acl_stub_mock.clear();
 }
 
 TEST_F(UtestModelManagerModelManager, command_profiling) {
@@ -2283,6 +2404,39 @@ TEST_F(UtestModelManagerModelManager, InitOpMasterDeviceSo_FromPackage_Success) 
   EXPECT_NE(ModelManager::GetInstance().LoadModelOffline(model_data, param, model_id), SUCCESS);
   EXPECT_EQ(model_mgr.built_in_op_master_so_names_to_bin_.size(), 1UL);
   system(("rm -rf " + opp_path).c_str());
+}
+
+TEST_F(UtestModelManagerModelManager, DumpDebugJSONPrint) {
+  AscendString json_result;
+  EXPECT_EQ(ModelManager::GetInstance().DumpDebugJSONPrint(1U, 0U, 0U, json_result),
+            ACL_ERROR_GE_EXEC_MODEL_ID_INVALID);
+
+  const uint32_t model_id = 1U;
+  auto davinci_model = std::make_shared<DavinciModel>(0, nullptr);
+  davinci_model->Init();
+  davinci_model->session_id_ = 1U;
+  davinci_model->model_id_ = model_id;
+  davinci_model->sub_model_id_ = 1U;
+  davinci_model->rt_model_handle_ = reinterpret_cast<rtModel_t>(new uint32_t(1U));
+  const auto valid_rt_model_handle = davinci_model->rt_model_handle_;
+  ModelManager::GetInstance().InsertModel(model_id, davinci_model);
+
+  davinci_model->rt_model_handle_ = nullptr;
+  EXPECT_EQ(ModelManager::GetInstance().DumpDebugJSONPrint(model_id, 0U, 0U, json_result), FAILED);
+
+  davinci_model->rt_model_handle_ = valid_rt_model_handle;
+  g_acl_stub_debug_json_last_file_path.clear();
+  // TODO: RTS aclmdlRIDebugJsonPrint 接口恢复后，重新打开成功路径断言。
+  // EXPECT_EQ(ModelManager::GetInstance().DumpDebugJSONPrint(model_id, 0U, 0U, json_result), SUCCESS);
+  // EXPECT_FALSE(g_acl_stub_debug_json_last_file_path.empty());
+  // EXPECT_NE(mmAccess(g_acl_stub_debug_json_last_file_path.c_str()), EN_OK);
+  // ASSERT_NE(json_result.GetString(), nullptr);
+  // EXPECT_NE(std::string(json_result.GetString()), "");
+  // EXPECT_NE(std::string(json_result.GetString()).find("\"debug\":\"ok\""), std::string::npos);
+
+  delete reinterpret_cast<uint32_t *>(valid_rt_model_handle);
+  davinci_model->rt_model_handle_ = nullptr;
+  ModelManager::GetInstance().model_map_.clear();
 }
 
 TEST_F(UtestModelManagerModelManager, MallocWeightsMem) {

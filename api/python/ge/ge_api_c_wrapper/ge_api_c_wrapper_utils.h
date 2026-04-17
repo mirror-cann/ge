@@ -211,17 +211,16 @@ void GeApiWrapper_GNode_FreeIntArray(int32_t *arrs);
 ge::Status GeApiWrapper_GEFinalize();
 ge::Status GeApiWrapper_GEInitialize(char **keys, char **values, int size);
 bool GeApiWrapper_IsGEInitialized();
-ge::graphStatus GeApiWrapper_OfflineCompile_BuildInitialize(char **keys, char **values, int size);
+ge::graphStatus GeApiWrapper_OfflineCompile_BuildInitialize(const char **keys, const char **values, int size);
 void GeApiWrapper_OfflineCompile_BuildFinalize();
-ge::graphStatus GeApiWrapper_OfflineCompile_BuildModel(ge::Graph *graph, char **keys, char **values, int size,
-                                                              ge::ModelBufferData **model);
-ge::graphStatus GeApiWrapper_OfflineCompile_SaveModel(const char_t *output_file,
-                                                             const ge::ModelBufferData *model);
-ge::graphStatus GeApiWrapper_OfflineCompile_BundleBuildModel(ge::Graph **graphs, char ***keys, char ***values,
-                                                                    int *sizes, int graph_count,
-                                                                    ge::ModelBufferData **model);
+ge::graphStatus GeApiWrapper_OfflineCompile_BuildModel(const ge::Graph *graph, const char **keys, const char **values,
+                                                       int size, ge::ModelBufferData **model);
+ge::graphStatus GeApiWrapper_OfflineCompile_SaveModel(const char_t *output_file, const ge::ModelBufferData *model);
+ge::graphStatus GeApiWrapper_OfflineCompile_BundleBuildModel(const ge::Graph **graphs, const char ***keys,
+                                                             const char ***values, const int *sizes, int graph_count,
+                                                             ge::ModelBufferData **model);
 ge::graphStatus GeApiWrapper_OfflineCompile_BundleSaveModel(const char_t *output_file,
-                                                                   const ge::ModelBufferData *model);
+                                                            const ge::ModelBufferData *model);
 void GeApiWrapper_ModelBuffer_Destroy(const ge::ModelBufferData *model);
 uint64_t GeApiWrapper_ModelBuffer_GetLength(const ge::ModelBufferData *model);
 ge::graphStatus GeApiWrapper_Graph_LoadFromAir(ge::Graph *graph, const char_t *file_name);

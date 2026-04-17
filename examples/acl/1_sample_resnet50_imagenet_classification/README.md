@@ -5,7 +5,7 @@
 该样例主要是基于Onnx ResNet-50网络（单输入、单Batch）实现图片分类的功能。
 
 在该样例中：
-1.  先使用样例提供的脚本transferPic.py，将2张\*.jpg图片都转换为\*.bin格式，同时将图片从1024\*683的分辨率缩放为224\*224。
+1.  先使用样例提供的脚本transfer_pic.py，将2张\*.jpg图片都转换为\*.bin格式，同时将图片从1024\*683的分辨率缩放为224\*224。
 2.  加载离线模型om文件，对2张图片进行同步推理，分别得到推理结果，再对推理结果进行处理，输出top5置信度的类别标识。
 
 在加载离线模型前，提前将Onnx ResNet-50网络的模型文件转换为适配昇腾AI处理器的离线模型。
@@ -23,7 +23,7 @@
 ├── scripts
 │   ├── build.sh                        // sample编译脚本
 │   ├── run.sh                          // sample运行脚本
-│   ├── transferPic.py                  // 将*.jpg转换为*.bin，同时将图片从1024*683的分辨率缩放为224*224
+│   ├── transfer_pic.py                  // 将*.jpg转换为*.bin，同时将图片从1024*683的分辨率缩放为224*224
 
 ├── src
 │   ├── acl.json                        // 系统初始化的配置文件
@@ -85,10 +85,10 @@
         wget https://obs-9be7.obs.cn-east-2.myhuaweicloud.com/models/aclsample/dog2_1024_683.jpg
         ```
 
-    2.  切换到"样例目录/data"目录下，执行transferPic.py脚本，将\*.jpg转换为\*.bin，同时将图片从1024\*683的分辨率缩放为224\*224。在"样例目录/data"目录下生成2个\*.bin文件。
+    2.  切换到"样例目录/data"目录下，执行transfer_pic.py脚本，将\*.jpg转换为\*.bin，同时将图片从1024\*683的分辨率缩放为224\*224。在"样例目录/data"目录下生成2个\*.bin文件。
 
         ```
-        python3 ../scripts/transferPic.py
+        python3 ../scripts/transfer_pic.py
         ```
 
         如果执行脚本报错"ModuleNotFoundError: No module named 'PIL'"，则表示缺少Pillow库，请使用**pip3 install Pillow --user**命令安装Pillow库。

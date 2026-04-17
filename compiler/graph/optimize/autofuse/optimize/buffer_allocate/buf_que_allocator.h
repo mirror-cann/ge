@@ -50,6 +50,7 @@ class BufQueAllocator {
   static Status ShortenVecoutLifetime(ge::AscGraph &graph, size_t max_que_num);
   static Status GetAndSetNodeTempBuffer(const ge::AscNodePtr &node);
   static Status TopoSortByLoadPriority(ge::AscGraph &graph);
+  static Status MarkUnreusableTensors(const ge::AscGraph &graph);
 
   int64_t prev_tensor_id_ = 0;
   ascir::CubeTemplateType cube_type{ascir::CubeTemplateType::kDefault};

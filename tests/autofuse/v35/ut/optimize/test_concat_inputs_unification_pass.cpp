@@ -51,6 +51,24 @@ class ConcatInputUnificationPassTest : public ::testing::Test {
     return graph_builder.Build();
   }
 
+  static AscGraph BuildGraphShareInput() {
+    const ge::Expression s0 = ge::Symbol(16);
+    const ge::Expression s1 = ge::Symbol(17);
+    auto s2 = s1 * Symbol(4);
+    ge::testing::AscGraphBuilder graph_builder("test_graph");
+    std::vector<std::string> concat_inputs;
+    graph_builder.Loops({s0, s2})
+        .Data("data0", static_cast<int64_t>(0), ge::DT_FLOAT16)
+        .Data("data1", static_cast<int64_t>(1), ge::DT_FLOAT16)
+        .Load("load0", "data0", {s0, s1}, {s1, ge::sym::kSymbolOne})
+        .Load("load1", "data1", {s0, s1}, {s1, ge::sym::kSymbolOne})
+        .Abs("abs0", "load1")
+        .Concat("concat", {"load0", "abs0", "load0", "abs0"})
+        .Store("store", "concat")
+        .Output("out", "store");
+    return graph_builder.Build();
+  }
+
   static AscGraph Build2InputGraph(const ge::Expression &s0, const ge::Expression &s1, DataType dtype = ge::DT_FLOAT16) {
     const std::vector<bool> inputs_is_load{true, false};
     return BuildGraph(s0, s1, inputs_is_load, dtype);
@@ -61,21 +79,21 @@ TEST_F(ConcatInputUnificationPassTest, RunSuccess) {
   const auto graph = Build2InputGraph(ge::Symbol("s0"), ge::Symbol(15));
   std::vector<::ascir::ImplGraph> graphs{graph};
   EXPECT_EQ(ConcatInputUnificationPass::Run(graphs), ge::SUCCESS);
-  EXPECT_TRUE(graphs[0].FindNode("ub_cpy_load0") != nullptr);
+  EXPECT_TRUE(graphs[0].FindNode("load0_ub_cpy_input_0") != nullptr);
 }
 
 TEST_F(ConcatInputUnificationPassTest, DstColSizeOverLimit) {
   const auto graph = Build2InputGraph(ge::Symbol("s0"), ge::Symbol(34));
   std::vector<::ascir::ImplGraph> graphs{graph};
   EXPECT_EQ(ConcatInputUnificationPass::Run(graphs), ge::SUCCESS);
-  EXPECT_TRUE(graphs[0].FindNode("ub_cpy_load0") == nullptr);
+  EXPECT_TRUE(graphs[0].FindNode("load0_ub_cpy_input_0") == nullptr);
 }
 
 TEST_F(ConcatInputUnificationPassTest, SrcColSizeIsAligned) {
   const auto graph = Build2InputGraph(ge::Symbol("s0"), ge::Symbol(2));
   std::vector<::ascir::ImplGraph> graphs{graph};
   EXPECT_EQ(ConcatInputUnificationPass::Run(graphs), ge::SUCCESS);
-  EXPECT_TRUE(graphs[0].FindNode("ub_cpy_load0") == nullptr);
+  EXPECT_TRUE(graphs[0].FindNode("load0_ub_cpy_input_0") == nullptr);
 }
 
 TEST_F(ConcatInputUnificationPassTest, AllInputsIsLoad) {
@@ -83,6 +101,15 @@ TEST_F(ConcatInputUnificationPassTest, AllInputsIsLoad) {
   const auto graph = BuildGraph(ge::Symbol("s0"), ge::Symbol(15), inputs_is_load);
   std::vector<::ascir::ImplGraph> graphs{graph};
   EXPECT_EQ(ConcatInputUnificationPass::Run(graphs), ge::SUCCESS);
-  EXPECT_TRUE(graphs[0].FindNode("ub_cpy_load0") == nullptr);
+  EXPECT_TRUE(graphs[0].FindNode("load0_ub_cpy_input_0") == nullptr);
+}
+
+TEST_F(ConcatInputUnificationPassTest, InputShared) {
+  const auto graph = BuildGraphShareInput();
+  std::vector<::ascir::ImplGraph> graphs{graph};
+  EXPECT_EQ(ConcatInputUnificationPass::Run(graphs), ge::SUCCESS);
+  EXPECT_TRUE(graphs[0].FindNode("load0_ub_cpy_input_0") != nullptr);
+  EXPECT_TRUE(graphs[0].FindNode("load0_ub_cpy_input_2") != nullptr);
+  EXPECT_TRUE(graphs[0].FindNode("abs0_ub_cpy_input_3") != nullptr);
 }
 }  // namespace schedule

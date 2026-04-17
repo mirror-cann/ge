@@ -233,8 +233,8 @@ target_link_libraries(fe_ut PRIVATE
         lowering
         graph
         metadef
-#        graph_base
-        register
+        register_pkg
+        graph_base_pkg
         opp_registry
         op_tiling_rt2_stub
         ge_common_pkg

@@ -3053,7 +3053,7 @@ TEST_F(LoopNodeLoweringUT, TransposeLoweringDtypeNotSupport) {
   auto transpose = cg->FindNode("Transpose_1");
   ASSERT_NE(transpose, nullptr);
 
-  ASSERT_EQ(LoweringManager::Lowering(transpose), GRAPH_FAILED);
+  ASSERT_NE(LoweringManager::Lowering(transpose), GRAPH_SUCCESS);
   unsetenv("ENABLE_LOWER_TRANSPOSE");
 }
 

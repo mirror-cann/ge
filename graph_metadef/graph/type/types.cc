@@ -14,8 +14,13 @@
 #include "framework/common/debug/ge_log.h"
 #include "graph/ge_error_codes.h"
 #include "graph/utils/type_utils.h"
+#include "graph/op_types.h"
 
 namespace ge {
+OpTypeContainer &OpTypeContainer::Instance() {
+  static OpTypeContainer instance;
+  return instance;
+}
 const char_t *GetFormatName(Format format) {
   static const char_t *names[FORMAT_END] = {
       "NCHW",

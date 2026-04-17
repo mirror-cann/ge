@@ -15,11 +15,14 @@
 #include "ascendcl_stub.h"
 #include "mmpa/mmpa_api.h"
 #include "runtime_stub.h"
+#include <fstream>
 
 extern std::string g_acl_stub_mock;
 extern std::string g_acl_stub_mock_v2;
+extern std::string g_acl_stub_debug_json_last_file_path;
 std::string g_acl_stub_mock = "";
 std::string g_acl_stub_mock_v2 = "";
+std::string g_acl_stub_debug_json_last_file_path = "";
 static char g_soc_version[50] = {0};
 
 static int32_t g_free_event_num = 2048;
@@ -330,6 +333,12 @@ aclError AclRuntimeStub::aclrtSetDevice(int32_t deviceId) {
 }
 
 aclError AclRuntimeStub::aclrtResetDevice(int32_t deviceId) {
+  return ACL_SUCCESS;
+}
+
+aclError AclRuntimeStub::aclrtCacheLastTaskExtendInfo(const char * const extendInfoPtr, const size_t infoSize) {
+  (void)extendInfoPtr;
+  (void)infoSize;
   return ACL_SUCCESS;
 }
 
@@ -1051,6 +1060,23 @@ aclError AclRuntimeStub::aclmdlRISetName(aclmdlRI modelRI, const char *name) {
   return ACL_SUCCESS;
 }
 
+aclError AclRuntimeStub::aclmdlRIDebugJsonPrint(aclmdlRI modelRI, const char *path, uint32_t flags) {
+  if (__FUNCTION__ == g_acl_stub_mock) {
+    return ACL_ERROR_RT_INTERNAL_ERROR;
+  }
+
+  g_acl_stub_debug_json_last_file_path = ((path == nullptr) ? "" : std::string(path));
+
+  if (path != nullptr) {
+    std::ofstream ofs(path);
+    if (ofs.is_open()) {
+      ofs << "{\"debug\":\"ok\",\"flag\":" << flags << "}";
+      ofs.close();
+    }
+  }
+  return ACL_SUCCESS;
+}
+
 aclError AclRuntimeStub::aclrtCtxGetFloatOverflowAddr(void **overflowAddr) {
   *overflowAddr = (void *)0x1;
   return ACL_SUCCESS;
@@ -1383,6 +1409,10 @@ aclError aclrtSetDevice(int32_t deviceId) {
 
 aclError aclrtResetDevice(int32_t deviceId) {
   return ge::AclRuntimeStub::GetInstance()->aclrtResetDevice(deviceId);
+}
+
+aclError aclrtCacheLastTaskExtendInfo(const char * const extendInfoPtr, const size_t infoSize) {
+  return ge::AclRuntimeStub::GetInstance()->aclrtCacheLastTaskExtendInfo(extendInfoPtr, infoSize);
 }
 
 aclError aclrtGetDevice(int32_t *deviceId) {
@@ -1737,6 +1767,10 @@ aclError aclmdlRIEndTask(aclmdlRI modelRI, aclrtStream stream) {
 
 aclError aclmdlRISetName(aclmdlRI modelRI, const char *name) {
   return ge::AclRuntimeStub::GetInstance()->aclmdlRISetName(modelRI, name);
+}
+
+aclError aclmdlRIDebugJsonPrint(aclmdlRI modelRI, const char *path, uint32_t flags) {
+  return ge::AclRuntimeStub::GetInstance()->aclmdlRIDebugJsonPrint(modelRI, path, flags);
 }
 
 aclError aclrtCtxGetFloatOverflowAddr(void **overflowAddr) {

@@ -11,7 +11,7 @@ python/
 ├── src/
 |   ├── common.py                            // 公共逻辑：常量、图构建、输入张量、GE 生命周期
 |   ├── make_add_graph.py                    // 异步执行样例
-|   └── make_add_graph_custom_allocator.py   // 注册自定义 SampleAllocator 异步执行样例
+|   └── make_add_graph_custom_allocator.py   // 注册自定义 SamplePoolAllocator 异步执行样例
 ├── README.md               // README文件
 ├── run_sample.sh           // 执行脚本
 ```
@@ -46,15 +46,17 @@ bash run_sample.sh -t sample_and_run_python
 ```bash
 bash run_sample.sh -t sample_and_run_python_custom_allocator
 ```
-该命令在默认样例基础上，通过 `Session.register_external_allocator` 向 GE 注册一个自定义 allocator（`SampleAllocator`）。该 allocator 继承 `ge.allocator.Allocator` 基类，使用 `acl.rt.malloc`/`acl.rt.free` 完成设备内存管理，并在每次 `malloc`/`free` 时打印内存操作信息。
+该命令在默认样例基础上，通过 `Session.register_external_allocator` 向 GE 注册自定义 `SamplePoolAllocator`。该类继承 `ge.allocator.Allocator` 基类：按**精确字节数**维护空闲块列表，命中则复用，否则 `acl.rt.malloc` 申请；`free` 时将块放回池内（不立即 `acl.rt.free`）。对象被回收时在 `__del__` 中统一 `acl.rt.free` 缓存块。
 
-执行成功后，终端会出现以下格式的打印（输出 Tensor 的数量决定 malloc/free 的调用次数）：
+执行成功后，终端会出现以下格式的打印（具体行数取决于 GE 对输出 Tensor 的分配/释放；地址与 `size` 以实际运行为准）：
 ```
-[Info] SampleAllocator 已注册到 stream
-[SampleAllocator] malloc: size=<字节数> bytes, addr=0x<设备内存地址>
+[Info] SamplePoolAllocator 已注册到 stream
+[SamplePool] new   : addr=0x<设备内存地址>  size=<字节数> B
 [Info] 异步执行 Graph 成功！
-[SampleAllocator] free:  addr=0x<设备内存地址>, size=<字节数> bytes
-[Info] SampleAllocator 已注销
+[SamplePool] cache : addr=0x<设备内存地址>  size=<字节数> B
+[Info] SamplePoolAllocator 已注销
+[SamplePool] destroy: freed <N> cached blocks
+[Info] 运行环境已清理
 [Success] sample 执行成功，pbtxt dump 已生成在当前目录。该文件以 ge_onnx_ 开头，可以在 netron 中打开显示
 ```
 #### 输出文件说明

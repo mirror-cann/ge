@@ -440,6 +440,11 @@ rtError_t RuntimeStub::rtSetTaskTag(const char *taskTag) {
 }
 
 rtError_t RuntimeStub::rtModelCreate(rtModel_t *model, uint32_t flag) {
+  (void)flag;
+  if (model == nullptr) {
+    return RT_ERROR_NONE;
+  }
+  *model = new uint32_t;
   return RT_ERROR_NONE;
 }
 

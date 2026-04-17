@@ -93,6 +93,9 @@ class Executor {
                                          aclrtStream const stream, const std::vector<gert::Tensor> &inputs,
                                          std::vector<gert::Tensor> &outputs) = 0;
 
+  virtual Status DumpDebugJSONPrint(uint32_t model_id, uint32_t graph_id, uint32_t flags,
+                                    AscendString &json_result) = 0;
+
   /**
    * @ingroup ge
    * @brief Update graph feature memory base after load model

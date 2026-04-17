@@ -11,6 +11,7 @@
 
 echo "Start running custom es api sample"
 
+set -e
 set +u
 if [[ -z "${ASCEND_HOME_PATH}" ]]; then
   echo -e "[ERROR] 环境变量ASCEND_HOME_PATH 未配置" >&2

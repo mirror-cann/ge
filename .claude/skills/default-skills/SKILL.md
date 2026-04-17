@@ -6,8 +6,8 @@ description: |
 
 ## 安装默认skills步骤
 1. 读取`.claude/skills/default-skills/scripts/install-default-skills.sh` 获取 `DEFAULT_SKILLS`
-2. 首先尝试使用 `.claude/skills/default-skills/scripts/install-default-skills.sh` 安装或更新skills，执行后检查 `.claude/skills/`目录有没有`DEFAULT_SKILLS`，如果有立即结束；如果没有，继续下一步
-3. 使用git克隆`https://gitcode.com/cann-agent/skills.git` 到临时目录，要使用`--depth 1`参数，该仓下找到`DEFAULT_SKILLS`，拷贝到`.claude/skills/`目录下
+2. 首先尝试使用 `.claude/skills/default-skills/scripts/install-default-skills.sh` 安装或更新skills，执行后检查 `.claude/skills/_remote/`目录有没有`DEFAULT_SKILLS`，如果有立即结束；如果没有，继续下一步
+3. 使用git克隆`https://gitcode.com/cann-agent/skills.git` 到临时目录，要使用`--depth 1`参数，该仓下找到`DEFAULT_SKILLS`，拷贝到`.claude/skills/_remote/`目录下
 
 ## 默认skills使用场景
 1. **必须触发 gitcode-issue 的场景**（用户提到以下任何内容时使用）：

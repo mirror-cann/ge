@@ -351,6 +351,7 @@ Status HcclTaskInfo::Distribute() {
   const auto result = ops_kernel_store_->LoadTask(ge_task);
   GE_CHK_BOOL_RET_STATUS((result == HCCL_SUCCESS), INTERNAL_ERROR, "call hccl op:%s(%s) load task fail",
       hccl_op_desc_->GetName().c_str(), hccl_op_desc_->GetType().c_str());
+  CacheLastTaskExtendInfoIfCollective(hccl_op_desc_->GetName(), hccl_op_desc_->GetType());
   if (InsertDumpOp(kDumpOutput) != SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Insert hccl output dump op fail");
     GELOGE(INTERNAL_ERROR, "Insert hccl input dump op fail");

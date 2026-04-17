@@ -437,6 +437,15 @@ class StubExecutor : public Executor {
     return SUCCESS;
   }
 
+  Status DumpDebugJSONPrint(uint32_t model_id, uint32_t graph_id, uint32_t flags,
+                            AscendString &json_result) override {
+    (void)model_id;
+    (void)graph_id;
+    (void)flags;
+    (void)json_result;
+    return SUCCESS;
+  }
+
   Status UpdateFeatureMemoryBase(const GraphNodePtr &graph_node, const uintptr_t mem_base, const size_t size) override {
     (void)graph_node;
     mem_base_ = mem_base;
@@ -480,6 +489,15 @@ class StubExecutorFail : public Executor {
   Status ExecuteGraphWithStream(const GraphNodePtr &graph_node, const GraphId graph_id,
                                rtStream_t const stream, const std::vector<gert::Tensor> &inputs,
                                std::vector<gert::Tensor> &outputs) override {
+    return FAILED;
+  }
+
+  Status DumpDebugJSONPrint(uint32_t model_id, uint32_t graph_id, uint32_t flags,
+                            AscendString &json_result) override {
+    (void)model_id;
+    (void)graph_id;
+    (void)flags;
+    (void)json_result;
     return FAILED;
   }
 

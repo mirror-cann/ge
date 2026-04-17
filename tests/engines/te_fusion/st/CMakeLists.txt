@@ -100,7 +100,6 @@ target_link_libraries(tefusion_st PRIVATE
         opp_registry
         op_tiling_rt2_stub
         ge_common_pkg
-        ge_compiler_pkg
         runtime_stub_fe
         ascend_protobuf
         c_sec

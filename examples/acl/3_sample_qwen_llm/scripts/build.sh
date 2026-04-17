@@ -9,32 +9,34 @@
 # See LICENSE in the root of the software repository for the full text of the License.
 # ----------------------------------------------------------------------------
 
-ScriptPath="$( cd "$(dirname "$BASH_SOURCE")" ; pwd -P )"
+set -euo pipefail # 命令执行错误则退出
+
+script_path="$( cd "$(dirname "$BASH_SOURCE")" ; pwd -P )"
 
 function build()
 {
-  UserKernel=`arch`
-  if [[ ${TargetKernel} = "x86" ]] || [[ ${TargetKernel} = "X86" ]];then
-    TargetCompiler="g++"
-    TargetKernel="x86"
+  user_kernel=$(arch)
+  if [[ ${target_kernel} = "x86" ]] || [[ ${target_kernel} = "X86" ]];then
+    target_compiler="g++"
+    target_kernel="x86"
   else
-    if [[ ${UserKernel} == "x86_64" ]];then
-      TargetCompiler="aarch64-linux-gnu-g++"
-      TargetKernel="arm"
+    if [[ ${user_kernel} == "x86_64" ]];then
+      target_compiler="aarch64-linux-gnu-g++"
+      target_kernel="arm"
     else
-      TargetCompiler="g++"
-      TargetKernel="arm"
+      target_compiler="g++"
+      target_kernel="arm"
     fi
   fi
-  if [ -d ${ScriptPath}/../build/intermediates/host ];then
-    rm -rf ${ScriptPath}/../build/intermediates/host
+  if [ -d ${script_path}/../build/intermediates/host ];then
+    rm -rf ${script_path}/../build/intermediates/host
   fi
     
-  mkdir -p ${ScriptPath}/../build/intermediates/host
-  cd ${ScriptPath}/../build/intermediates/host
+  mkdir -p ${script_path}/../build/intermediates/host
+  cd ${script_path}/../build/intermediates/host
 
   # Start compiling
-  cmake ../../../src -DCMAKE_CXX_COMPILER=${TargetCompiler} -DCMAKE_SKIP_RPATH=TRUE
+  cmake ../../../src -DCMAKE_CXX_COMPILER=${target_compiler} -DCMAKE_SKIP_RPATH=TRUE
   if [ $? -ne 0 ];then
     echo "[ERROR] cmake error, Please check your environment!"
     return 1
@@ -57,11 +59,11 @@ function target_kernel()
             arch=$(echo "$arch_info" | awk -F: '{print $2}' | tr -d ' \t\n\r' | tr '[:upper:]' '[:lower:]')
 
             if [[ "$arch" == "aarch64" || "$arch" == "armv8" || "$arch" == "armv7l" || "$arch" == "arm" ]]; then
-                TargetKernel="arm"
+                target_kernel="arm"
                 echo "[INFO] Detected ARM architecture via lscpu: '$arch_info'"
                 return 0
             elif [[ "$arch" == "x86_64" || "$arch" == "i686" || "$arch" == "i386" ]]; then
-                TargetKernel="x86"
+                target_kernel="x86"
                 echo "[INFO] Detected x86 architecture via lscpu: '$arch_info'"
                 return 0
             else
@@ -73,19 +75,19 @@ function target_kernel()
     fi
 
     declare -i CHOICE_TIMES=0
-    TargetKernel=""
-    while [[ "${TargetKernel}" == "" ]]; do
+    target_kernel=""
+    while [[ "${target_kernel}" == "" ]]; do
         ((CHOICE_TIMES++))
         if [[ ${CHOICE_TIMES} -gt 3 ]]; then
-            echo "[ERROR] TargetKernel entered incorrectly three times. Please input 'arm' or 'x86'."
+            echo "[ERROR] target_kernel entered incorrectly three times. Please input 'arm' or 'x86'."
             return 1
         fi
 
-        read -p "Please input TargetKernel? [arm/x86]: " input_kernel
+        read -p "Please input target_kernel? [arm/x86]: " input_kernel
         input_kernel=$(echo "$input_kernel" | tr '[:upper:]' '[:lower:]')
 
         if [[ "$input_kernel" == "arm" || "$input_kernel" == "x86" ]]; then
-            TargetKernel="$input_kernel"
+            target_kernel="$input_kernel"
             echo "[INFO] Input is valid, start preparation."
         else
             echo "[WARNING] The ${CHOICE_TIMES}th parameter input error! Please enter 'arm' or 'x86'."

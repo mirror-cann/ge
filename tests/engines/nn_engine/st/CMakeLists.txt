@@ -240,10 +240,10 @@ target_link_libraries(fe_st PRIVATE
         air_headers
         metadef_headers
         metadef
-#        graph_base
+        register_pkg
+        graph_base_pkg
         $<BUILD_INTERFACE:atrace_headers>
         atrace_stub
-        register
         opp_registry
         op_tiling_rt2_stub
         ge_common_pkg

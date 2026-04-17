@@ -10,6 +10,9 @@
 
 #include "graph/load/model_manager/task_info/task_info.h"
 #include "common/checker.h"
+#include <acl_rt.h>
+#include <cstring>
+#include "graph/manager/util/hcom_ome_util.h"
 
 namespace ge {
 namespace {
@@ -37,6 +40,27 @@ Status TaskInfo::SetStream(const uint32_t stream_id, const std::vector<aclrtStre
 void TaskInfo::SetTaskTag(const char_t *const op_name) {
   GE_CHK_RT(rtSetTaskTag(op_name));
 }
+void TaskInfo::CacheLastTaskExtendInfoIfCollective(const std::string &op_name,
+                                                  const std::string &op_type) {
+  if (!HcomOmeUtil::IsCollectiveCommOp(op_type)) {
+    return;
+  }
+
+  /*  *
+   *  背景：GE接口依赖RTS，RTS该接口还没上库
+   *  临时规避方案：先注销该代码，GE先保证主体上库，等RTS上库后再重新打开。
+   *
+   */
+  GELOGW("[Call][aclrtCacheLastTaskExtendInfo],op:%s(%s)", op_name.c_str(), op_type.c_str());
+  // static char_t kCommunicationTaskType[] = "taskType:communication";
+
+  // const auto rt_ret = aclrtCacheLastTaskExtendInfo(kCommunicationTaskType, strlen(kCommunicationTaskType));
+  // if (rt_ret != RT_ERROR_NONE) {
+  //   GELOGW("[Call][aclrtCacheLastTaskExtendInfo] failed, op:%s(%s), extend info:%s, ret:%d",
+  //          op_name.c_str(), op_type.c_str(), kCommunicationTaskType, rt_ret);
+  // }
+}
+
 const char_t *GetArgsPlacementStr(ArgsPlacement placement) {
   auto i = static_cast<size_t>(placement);
   if (i > static_cast<size_t>(ArgsPlacement::kEnd)) {

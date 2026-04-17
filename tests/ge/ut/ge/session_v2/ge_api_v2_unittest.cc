@@ -368,6 +368,9 @@ TEST_F(UtestGeApiV2, ge_not_initialized) {
   RunCallback session_callback = nullptr;
   EXPECT_EQ(session.RegisterCallBackFunc("1", session_callback), FAILED);
 
+  AscendString json_result;
+  EXPECT_EQ(session.GraphDebugJSONPrint(graph_id, 0U, json_result), FAILED);
+
   EXPECT_FALSE(session.IsGraphNeedRebuild(graph_id));
 
   EXPECT_EQ(session.RemoveGraph(graph_id), FAILED);
@@ -1056,6 +1059,19 @@ TEST_F(UtestGeApiV2, Test_LoadGraphApi) {
 
   options.insert(pair<AscendString, AscendString>("ge.exec.frozenInputIndexes", "1,2"));
   EXPECT_NE(session1.LoadGraph(graph_id, options, nullptr), SUCCESS);
+  EXPECT_EQ(GEFinalizeV2(), SUCCESS);
+}
+
+TEST_F(UtestGeApiV2, DumpDebugJSONPrint_with_graph_id) {
+  uint32_t graph_id = 1;
+  std::map<AscendString, AscendString> options;
+  GeSession session(options);
+  AscendString json_result;
+  EXPECT_EQ(session.GraphDebugJSONPrint(graph_id, 0U, json_result), FAILED);
+
+  EXPECT_EQ(GEInitializeV2(options), SUCCESS);
+  GeSession session1(options);
+  EXPECT_EQ(session1.GraphDebugJSONPrint(graph_id, 0U, json_result), FAILED);
   EXPECT_EQ(GEFinalizeV2(), SUCCESS);
 }
 

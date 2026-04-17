@@ -24,10 +24,10 @@ file(GLOB_RECURSE ASC_SRC_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 file(GLOB ASCIR_SOURCES
-        "${AIR_CODE_DIR}/compiler/graph/optimize/autofuse/ascir/generator/ascir_builtin_ops.cpp"
+        "${AIR_CODE_DIR}/compiler/graph/optimize/autofuse/ascir/generator/ascir_builtin_ops_v1.cpp"
         "${AIR_CODE_DIR}/compiler/graph/optimize/autofuse/ascir/generator/ascir_common.cpp"
         "${AIR_CODE_DIR}/compiler/graph/optimize/autofuse/ascir/reg_func/*.cpp"
-        "${AIR_CODE_DIR}/compiler/graph/optimize/autofuse/v35/ascir/generator/ascir_builtin_ops.cpp"
+        "${AIR_CODE_DIR}/compiler/graph/optimize/autofuse/v35/ascir/generator/ascir_builtin_ops_v2.cpp"
         "${AIR_CODE_DIR}/compiler/graph/optimize/autofuse/v35/ascir/reg_func/*.cpp"
         "${AIR_CODE_DIR}/tests/graph_metadef/ut/ascendc_ir/stub/*.cc")
 

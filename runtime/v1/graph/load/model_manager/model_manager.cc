@@ -10,6 +10,12 @@
 
 #include "graph/load/model_manager/model_manager.h"
 
+#include <acl_rt.h>
+#include <atomic>
+#include <ctime>
+#include <fstream>
+#include <sstream>
+
 #include "aicpu_engine_struct.h"
 #include "aicpu_op_type_list.h"
 #include "common/helper/model_parser_base.h"
@@ -21,6 +27,7 @@
 #include "common/model/external_allocator_manager.h"
 #include "graph/utils/op_type_utils.h"
 #include "graph/load/model_manager/model_utils.h"
+#include "graph/utils/file_utils.h"
 #include "graph/utils/type_utils.h"
 #include "graph/load/model_manager/davinci_model.h"
 #include "common/profiling_definitions.h"
@@ -72,6 +79,8 @@ const std::string kLibAicpuExtendKernelsSo = "libaicpu_extend_kernels.so";
 const std::string kTriggerFile = "exec_record_trigger";
 const std::string kRecordFilePrefix = "exec_record_";
 const std::string kPathSeparator = "/";
+const std::string kDumpGraphSubPath = "extra-info/graph";
+const std::string kDumpDebugJsonFilePrefix = "debug_graph_";
 constexpr const char_t *const kReloadDumpFuncName = "Load";
 constexpr const char_t *const kUnloadDumpFuncName = "Unload";
 
@@ -783,6 +792,7 @@ Status ModelManager::LoadModelOnline(uint32_t &model_id, const GeRootModelPtr &g
   GE_TIMESTAMP_END(Init, "GraphLoader::ModelInit");
 
   InsertModel(model_id, davinci_model);
+  TryAutoDumpDebugJson(davinci_model, graph_node->GetGraphId());
   GELOGI("Parse model %u success.", model_id);
 
   return SUCCESS;
@@ -1495,6 +1505,7 @@ Status ModelManager::LoadModelOffline(const ModelData &model, const ModelParam &
   ge_model->ClearWeightDataBuf();
 
   InsertModel(model_id, davinci_model);
+  TryAutoDumpDebugJson(davinci_model, model_id);
   GELOGI("Parse model %u success.", model_id);
   return SUCCESS;
 }
@@ -2750,6 +2761,137 @@ Status ModelManager::UnloadTaskForDavinciModel(const DumpProperties &dump_proper
       GE_CHK_RT(aclrtResetDevice(device_id));
     }
   }
+  return SUCCESS;
+}
+
+void ModelManager::TryAutoDumpDebugJson(const std::shared_ptr<DavinciModel> &davinci_model,
+                                        const uint32_t graph_id) {
+  const char_t *dump_ge_graph = nullptr;
+  MM_SYS_GET_ENV(MM_ENV_DUMP_GE_GRAPH, dump_ge_graph);
+  if ((dump_ge_graph == nullptr) || (dump_ge_graph[0U] == '\0') || (dump_ge_graph[0U] == '0')) {
+    return;
+  }
+
+  if (davinci_model == nullptr) {
+    GELOGW("[Auto][DumpDebugJson] Skip auto dump, davinci_model is null, graph_id:%u.", graph_id);
+    return;
+  }
+
+  if (davinci_model->GetRtModelHandle() == nullptr) {
+    GELOGW("[Auto][DumpDebugJson] Skip auto dump, rt_model is null, graph_id:%u.", graph_id);
+    return;
+  }
+
+  std::string file_path;
+  const Status path_ret = GetDumpDebugJsonOutputPath(graph_id, file_path);
+  if (path_ret != SUCCESS) {
+    GELOGW("[Auto][DumpDebugJson] Get output path failed, ret:%d, graph_id:%u.", path_ret, graph_id);
+    return;
+  }
+  /*
+  * 背景：GE接口依赖RTS，RTS该接口还没上库
+  * 临时规避方案：先注销该代码，GE先保证主体上库，等RTS上库后再重新打开。
+*/
+  // const aclError acl_ret = aclmdlRIDebugJsonPrint(davinci_model->GetRtModelHandle(), file_path.c_str(), 0U);
+  // if (acl_ret != ACL_SUCCESS) {
+  //   GELOGW("[Auto][DumpDebugJson] aclmdlRIDebugJsonPrint failed, ret:%d, graph_id:%u, file_path:%s.",
+  //          acl_ret, graph_id, file_path.c_str());
+  //   return;
+  // }
+
+  GELOGI("[Auto][DumpDebugJson] auto dump success, graph_id:%u, file_path:%s.", graph_id, file_path.c_str());
+}
+
+Status ModelManager::GetDumpDebugJsonOutputPath(
+  const uint32_t graph_id,
+  std::string& file_path) const {
+  std::string output_dir;
+  const char_t* npu_collect_path = nullptr;
+  MM_SYS_GET_ENV(MM_ENV_NPU_COLLECT_PATH, npu_collect_path);
+  if ((npu_collect_path != nullptr) && (npu_collect_path[0] != '\0')) {
+    output_dir = std::string(npu_collect_path) + kPathSeparator + kDumpGraphSubPath;
+  } else {
+    const char_t* dump_graph_path = nullptr;
+    MM_SYS_GET_ENV(MM_ENV_DUMP_GRAPH_PATH, dump_graph_path);
+    if ((dump_graph_path != nullptr) && (dump_graph_path[0] != '\0')) {
+      output_dir = dump_graph_path;
+    } else {
+      output_dir = ".";
+      std::string ascend_work_path;
+      if (GetAscendWorkPath(ascend_work_path) == SUCCESS && (!ascend_work_path.empty())) {
+        output_dir = ascend_work_path;
+      }
+    }
+  }
+
+  GE_CHK_BOOL_RET_STATUS(CreateDirectory(output_dir) == 0, FAILED,
+                         "[Create][Directory] failed, output_dir:%s.", output_dir.c_str());
+
+  const std::time_t now = std::time(nullptr);
+  static std::atomic<uint64_t> dump_seq(0UL);
+  const uint64_t unique_seq = ++dump_seq;
+  std::stringstream file_name_stream;
+  file_name_stream << output_dir << kPathSeparator << kDumpDebugJsonFilePrefix
+    << graph_id << "_"<< static_cast<long long>(now) << "_" << unique_seq << ".json";
+  file_path = file_name_stream.str();
+  return SUCCESS;
+}
+
+Status ModelManager::ReadDumpDebugJsonFile(const std::string &file_path, std::string &json_result) const {
+  std::ifstream ifs(file_path, std::ios::in | std::ios::binary);
+  GE_CHK_BOOL_RET_STATUS(ifs.is_open(), FAILED,
+                         "[Open][File] failed, file_path:%s.", file_path.c_str());
+
+  std::stringstream content_stream;
+  content_stream << ifs.rdbuf();
+  GE_CHK_BOOL_RET_STATUS(!ifs.fail(), FAILED,
+                         "[Read][File] stream failed, file_path:%s.", file_path.c_str());
+  json_result = content_stream.str();
+  GE_CHK_BOOL_RET_STATUS(!json_result.empty(), FAILED,
+                         "[Read][File] failed, file_path:%s.", file_path.c_str());
+  return SUCCESS;
+}
+
+void ModelManager::TryCleanupDumpDebugJsonFile(const std::string &file_path) const {
+  if (mmUnlink(file_path.c_str()) != EN_OK) {
+    GELOGW("[Remove][File] failed, file_path:%s.", file_path.c_str());
+  }
+}
+
+Status ModelManager::DumpDebugJSONPrint(uint32_t model_id, uint32_t graph_id,
+                                        uint32_t flags, AscendString &json_result) {
+  json_result = AscendString("");
+
+  const auto &davinci_model = GetModel(model_id);
+  GE_CHK_BOOL_RET_STATUS(davinci_model != nullptr, ACL_ERROR_GE_EXEC_MODEL_ID_INVALID,
+                         "[Get][Model] failed, invalid model_id is %u.", model_id);
+
+  GE_CHK_BOOL_RET_STATUS(davinci_model->GetRtModelHandle() != nullptr, FAILED,
+                         "[Check][RtModel] failed, rt_model is null, model_id:%u.", model_id);
+
+  std::string file_path;
+  GE_CHK_STATUS_RET(GetDumpDebugJsonOutputPath(graph_id, file_path),
+                    "[Get][DumpDebugJsonOutputPath] failed, model_id:%u, graph_id:%u.", model_id, graph_id);
+
+  /*
+  * 背景：GE接口依赖RTS，RTS该接口还没上库
+  * 临时规避方案：先注销该代码，GE先保证主体上库，等RTS上库后再重新打开。
+*/
+  // 临时规避编译告警，GE先保证主体上库，等RTS上库后再重新打开。
+  GELOGD("[DumpDebugJsonOutputPath] flags: %u", flags);
+  // const aclError acl_ret = aclmdlRIDebugJsonPrint(davinci_model->GetRtModelHandle(), file_path.c_str(), flags);
+  // GE_CHK_BOOL_RET_STATUS(acl_ret == ACL_SUCCESS, FAILED,
+  //                        "[Call][AclDump] aclmdlRIDebugJsonPrint failed, ret:%d, model_id:%u, graph_id:%u, flags:%u.",
+  //                        acl_ret, model_id, graph_id, flags);
+
+  // std::string tmp_json;
+  // const Status read_status = ReadDumpDebugJsonFile(file_path, tmp_json);
+  // TryCleanupDumpDebugJsonFile(file_path);
+  // GE_CHK_BOOL_RET_STATUS(read_status == SUCCESS, read_status,
+  //                        "[Read][DumpDebugJsonFile] failed, model_id:%u, graph_id:%u, file_path:%s.",
+  //                        model_id, graph_id, file_path.c_str());
+  // json_result = AscendString(tmp_json.c_str(), tmp_json.length());
+
   return SUCCESS;
 }
 

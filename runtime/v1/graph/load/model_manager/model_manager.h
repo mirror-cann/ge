@@ -327,6 +327,8 @@ class ModelManager {
 
   Status GetRuntimeModelId(const uint32_t model_id, uint32_t &model_runtime_id);
 
+  Status DumpDebugJSONPrint(uint32_t model_id, uint32_t graph_id, uint32_t flags, AscendString &json_result);
+
   Status SetCallBackFuncForDumpManager();
   Status LoadTaskForDavinciModel(const DumpProperties &dump_properties);
   Status UnloadTaskForDavinciModel(const DumpProperties &dump_properties);
@@ -402,6 +404,10 @@ class ModelManager {
   Status LaunchKernelBuiltinAicpuSo(const std::string &kernel_name, const uint32_t device_id);
   void AddSharedSessionModel(const uint32_t model_id);
   void DeleteSharedSessionModel(const uint32_t model_id);
+  void TryAutoDumpDebugJson(const std::shared_ptr<DavinciModel> &davinci_model, const uint32_t graph_id);
+  Status GetDumpDebugJsonOutputPath(const uint32_t graph_id, std::string &file_path) const;
+  Status ReadDumpDebugJsonFile(const std::string &file_path, std::string &json_result) const;
+  void TryCleanupDumpDebugJsonFile(const std::string &file_path) const;
 
   std::mutex model_shared_session_mutex_;
   std::set<uint32_t> model_shared_session_; // 存在多个模型共享同一份rtSession资源场景，在此记录这些modelID

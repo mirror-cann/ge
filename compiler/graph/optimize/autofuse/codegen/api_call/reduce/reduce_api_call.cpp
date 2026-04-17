@@ -28,6 +28,8 @@ using namespace ge::ascir_op;
 using namespace ascgen_utils;
 using namespace reduce_base;
 
+#define ARGMAXMULTIRPHASE_OUTPUT_AND_INPUT_NUM (2)
+
 int64_t ReduceApiCall::GetTmpBufIdByLifeTime(int64_t life_time, const std::string &api_name) const {
   auto it = this->tmp_buf_id.find(life_time);
   GE_ASSERT_TRUE(it != this->tmp_buf_id.end(),
@@ -190,7 +192,7 @@ Status ReduceApiCall::Generate(const TPipe &tpipe, const std::vector<ascir::Axis
       // ArgMaxMultiRPhase1有两个输出：
       //   - outputs[0]: value
       //   - outputs[1]: index
-      GE_ASSERT_TRUE(outputs.size() >= 2, "ArgMaxMultiRPhase1 requires at least 2 outputs.");
+      GE_ASSERT_TRUE(outputs.size() >= ARGMAXMULTIRPHASE_OUTPUT_AND_INPUT_NUM, "ArgMaxMultiRPhase1 requires at least 2 outputs.");
       auto y_value = outputs[0].get();
       auto y_index = outputs[1].get();
 
@@ -226,8 +228,8 @@ Status ReduceApiCall::Generate(const TPipe &tpipe, const std::vector<ascir::Axis
       //   - outputs[0]: 最终的index输出
       // 注意：Phase2也是R轴分核，需要调用ArgmaxExtend和ReduceMax
 
-      GE_ASSERT_TRUE(inputs.size() >= 2, "ArgMaxMultiRPhase2 requires at least 2 inputs.");
-      GE_ASSERT_TRUE(outputs.size() >= 1, "ArgMaxMultiRPhase2 requires at least 1 output.");
+      GE_ASSERT_TRUE(inputs.size() >= ARGMAXMULTIRPHASE_OUTPUT_AND_INPUT_NUM, "ArgMaxMultiRPhase2 requires at least 2 inputs.");
+      GE_ASSERT_TRUE(outputs.size() >= 1, "ArgMaxMultiRPhase2 requires at least 1 output."); // ArgMaxMultiRPhase2有1个输出
       auto x_value = inputs[0].get();
       auto x_index = inputs[1].get();
 

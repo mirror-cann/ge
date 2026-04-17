@@ -10,6 +10,8 @@
 
 #include "graph/manager/util/hcom_ome_util.h"
 
+#include <set>
+
 #include "framework/common/debug/log.h"
 #include "framework/common/types.h"
 #include "common/math/math_util.h"
@@ -461,6 +463,61 @@ bool HcomOmeUtil::IsHCOMOp(const std::string &op_type) {
 bool HcomOmeUtil::IsHorovodOp(const std::string &op_type) {
   return (op_type == HVDCALLBACKALLREDUCE) || (op_type == HVDCALLBACKALLGATHER) || (op_type == HVDCALLBACKBROADCAST) ||
          (op_type == HVDWAIT);
+}
+
+bool HcomOmeUtil::IsCollectiveCommOp(const std::string &op_type) {
+  static const std::set<std::string> kCollectiveCommOps = {
+      HCOMALLREDUCE,
+      HCOMALLGATHER,
+      HCOMALLGATHERV,
+      HCOMBROADCAST,
+      HCOMREDUCESCATTER,
+      HCOMREDUCESCATTERV,
+      HCOMREDUCE,
+      HCOMALLTOALL,
+      HCOMALLTOALLV,
+      HCOMALLTOALLVC,
+      HCOMGATHERALLTOALLV,
+      HCOMGATHER,
+      HVDCALLBACKALLREDUCE,
+      HVDCALLBACKALLGATHER,
+      HVDCALLBACKBROADCAST,
+      "MatMulAllReduce",
+      "GroupedMatMulAllReduce",
+      "MatMulAllReduceAddRmsNorm",
+      "AllGatherMatmul",
+      "AllGatherMatmulV2",
+      "AlltoAllAllGatherBatchMatMul",
+      "AlltoAllMatmul",
+      "AlltoAllvGroupedMatMul",
+      "AlltoAllvQuantGroupedMatMul",
+      "AttentionToFFN",
+      "BatchMatMulReduceScatterAlltoAll",
+      "DistributeBarrier",
+      "FFNToAttention",
+      "GroupedMatMulAllReduce",
+      "GroupedMatMulAlltoAllv",
+      "InplaceMatmulAllReduceAddRmsNorm",
+      "MatmulAllReduce",
+      "MatmulAllReduceAddRmsNorm",
+      "MatmulAlltoAll",
+      "MatmulReduceScatter",
+      "MatmulReduceScatterV2",
+      "MoeDistributeCombine",
+      "MoeDistributeCombineAddRmsNorm",
+      "MoeDistributeCombineSetup",
+      "MoeDistributeCombineTeardown",
+      "MoeDistributeCombineV2",
+      "MoeDistributeCombineV3",
+      "MoeDistributeDispatch",
+      "MoeDistributeDispatchSetup",
+      "MoeDistributeDispatchTeardown",
+      "MoeDistributeDispatchV2",
+      "MoeDistributeDispatchV3",
+      "QuantAllReduce",
+      "QuantGroupedMatMulAlltoAllv",
+      "QuantReduceScatter"};
+  return kCollectiveCommOps.find(op_type) != kCollectiveCommOps.end();
 }
 
 Status HcomOmeUtil::CheckKernelHcclInfo(const ge::ConstOpDescPtr &op_desc,

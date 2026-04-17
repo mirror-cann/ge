@@ -231,7 +231,7 @@ void GenLastTwoRAxisSizeProductCode(const Tensor &x, const Tensor &y,
   }
 
   // 根据R轴数量生成不同的代码
-  if (r_axes.size() >= 2) {
+  if (r_axes.size() >= 2) { // 如果有2个以上的R轴，则R轴块大小为最后2个R轴的乘积
     // 有至少两个R轴，使用最后两个R轴
     ascir::AxisId last_r_axis = r_axes[r_axes.size() - 1].first;
     ascir::AxisId second_last_r_axis = r_axes[r_axes.size() - 2].first;

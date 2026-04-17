@@ -74,6 +74,7 @@ public:
   virtual aclError aclrtWaitAndResetNotify(aclrtNotify notify, aclrtStream stream, uint32_t timeout);
   virtual aclError aclrtSetDevice(int32_t deviceId);
   virtual aclError aclrtResetDevice(int32_t deviceId);
+  virtual aclError aclrtCacheLastTaskExtendInfo(const char * const extendInfoPtr, const size_t infoSize);
   virtual aclError aclrtGetDevice(int32_t *deviceId);
   virtual aclError aclrtGetThreadLastTaskId(uint32_t *taskId);
   virtual aclError aclrtCreateContext(aclrtContext *context, int32_t deviceId);
@@ -174,6 +175,7 @@ public:
   virtual aclError aclmdlRIBuildBegin(aclmdlRI *modelRI, uint32_t flag);
   virtual aclError aclmdlRIEndTask(aclmdlRI modelRI, aclrtStream stream);
   virtual aclError aclmdlRISetName(aclmdlRI modelRI, const char *name);
+  virtual aclError aclmdlRIDebugJsonPrint(aclmdlRI modelRI, const char *path, uint32_t flags);
   virtual aclError aclrtCtxGetFloatOverflowAddr(void **overflowAddr);
   virtual aclError aclrtGetHardwareSyncAddr(void **addr);
   virtual aclError aclrtTaskUpdateAsync(aclrtStream taskStream, uint32_t taskId, aclrtTaskUpdateInfo *info,
@@ -265,6 +267,7 @@ extern "C" {
 
 extern std::string g_acl_stub_mock;
 extern std::string g_acl_stub_mock_v2;
+extern std::string g_acl_stub_debug_json_last_file_path;
 
 #ifdef __cplusplus
 }

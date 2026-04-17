@@ -14,7 +14,6 @@
 #include <queue>
 #include <mutex>
 
-#include "runtime/base.h"
 #include "acl/acl_rt.h"
 #include "exe_graph/runtime/tensor.h"
 #include "ge/ge_api_types.h"

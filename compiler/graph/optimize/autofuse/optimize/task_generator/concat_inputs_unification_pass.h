@@ -23,12 +23,15 @@ class ConcatInputUnificationPass {
 
  private:
   static Status RunOneGraph(ascir::ImplGraph &graph);
-  static bool NeedOptimize(const ge::AscNodePtr &concat_node);
-  static Status DoOptimize(ascir::ImplGraph &graph, const ge::AscNodePtr &concat_node);
+  static bool NeedOptimize(const ge::AscNodePtr &concat_node, std::set<int32_t> &input_indices_need_copy);
+  static Status DoOptimize(ascir::ImplGraph &graph, const ge::AscNodePtr &concat_node,
+                           const std::set<int32_t> &input_indices_need_copy);
   static ge::Expression GetColSize(const ge::AscTensor &tensor, size_t concat_dim);
-  static ge::Status GetLoadNum(const ge::AscNodePtr &concat_node, uint32_t &load_num);
+  static ge::Status GetQueInputIndices(const ge::AscNodePtr &concat_node, std::set<int32_t> &input_indices_need_copy);
   static bool IsSrcColSizeAlignedToB4(const ge::AscNodePtr &concat_node, size_t concat_dim, int32_t dtype_size);
   static bool IsSrcColSizeOverLimit(const ge::AscNodePtr &concat_node, size_t concat_dim, int32_t dtype_size);
+  static ge::Status CollectSharedInputs(const ge::AscNodePtr &concat_node,
+                                        std::set<int32_t> &input_indices_need_copy);
 };
 
 }  // optimize

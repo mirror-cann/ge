@@ -8,9 +8,9 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
+#include "ascir_common.h"
 #include "symbolizer/symbolic_utils.h"
 #include "graph/ascendc_ir/utils/asc_tensor_utils.h"
-#include "ascir_common.h"
 
 namespace ge {
 namespace ascir {

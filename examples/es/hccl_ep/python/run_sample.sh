@@ -278,7 +278,7 @@ case "${TARGET}" in
     fi
 
     echo "[Info] 开始清理构建目录并准备重编译"
-    rm -rf "${BUILD_DIR}"
+    [ -n "${BUILD_DIR}" ] && rm -rf "${BUILD_DIR}" || true
     echo "[Info] 创建构建目录 ${BUILD_DIR}"
     mkdir -p "${BUILD_DIR}"
     echo "[Info] 开始CMake构建"

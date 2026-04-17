@@ -11,7 +11,6 @@
 #include "jit_executor.h"
 
 #include <checker.h>
-#include <runtime/stream.h>
 #include "framework/runtime/gert_api.h"
 #include "common/memory/tensor_trans_utils.h"
 #include "graph/manager/util/rt_context_util.h"

@@ -8,6 +8,7 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
+#include <nlohmann/json.hpp>
 #include "graph/operator_factory_impl.h"
 #include "graph/operator_reg.h"
 #include "register/op_impl_registry.h"
@@ -1455,5 +1456,133 @@ TEST_F(ShapeInferenceUT, CallInferFunc_CustomOp_Without_InferShape_with_origin_s
   ASSERT_EQ(op_desc->GetOutputDesc(0U).GetDataType(), DT_FLOAT16);
   ASSERT_EQ(op_desc->GetOutputDesc(0U).GetShape().GetDimNum(), 4);
   ASSERT_EQ(op_desc->GetOutputDesc(0U).GetShape().GetDim(0), 1);
+}
+
+// 测试算子，用于 IsInferShapeV2Registered 测试
+REG_OP(TestIsInferShapeV2Registered)
+    .INPUT(input1, "T")
+    .OUTPUT(output, "T")
+    .OP_END_FACTORY_REG(TestIsInferShapeV2Registered);
+
+// 测试算子，用于 rule 场景
+REG_OP(TestRuleOp)
+    .DYNAMIC_INPUT(x, TensorType::ALL())
+    .DYNAMIC_OUTPUT(y, TensorType::ALL())
+    .OP_END_FACTORY_REG(TestRuleOp);
+
+// 测试用例：算子注册了 infer_shape 函数，返回 true
+TEST_F(ShapeInferenceUT, IsInferShapeV2Registered_WithInferShapeFunc_ReturnTrue) {
+  auto op = OperatorFactory::CreateOperator("test1", "TestIsInferShapeV2Registered");
+  auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
+  ASSERT_NE(op_desc, nullptr);
+
+  GeShape shape({1, 2, 3});
+  GeTensorDesc tensor_desc(shape, Format::FORMAT_NCHW, DT_FLOAT16);
+  tensor_desc.SetOriginShape(shape);
+  tensor_desc.SetOriginDataType(DT_FLOAT16);
+  op_desc->UpdateInputDesc(0, tensor_desc);
+
+  const auto infer_shape_func = [](gert::InferShapeContext *context) -> graphStatus {
+    const auto input_shape = context->GetInputShape(0U);
+    auto output = context->GetOutputShape(0);
+    for (size_t dim = 0UL; dim < input_shape->GetDimNum(); dim++) {
+      output->AppendDim(input_shape->GetDim(dim));
+    }
+    output->SetDimNum(input_shape->GetDimNum());
+    return GRAPH_SUCCESS;
+  };
+
+  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
+  auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
+  ASSERT_NE(space_registry, nullptr);
+  auto op_impl_func = space_registry->CreateOrGetOpImpl("TestIsInferShapeV2Registered");
+  op_impl_func->infer_shape = infer_shape_func;
+
+  const auto is_registered_func = OperatorFactoryImpl::GetIsInferShapeV2RegisteredFunc();
+  ASSERT_NE(is_registered_func, nullptr);
+
+  bool is_registered = is_registered_func(op_desc);
+  EXPECT_TRUE(is_registered);
+}
+
+// 测试用例：算子没有 infer_shape 函数但有 ShapeInferenceRule，返回 true
+TEST_F(ShapeInferenceUT, IsInferShapeV2Registered_WithInferenceRule_ReturnTrue) {
+  auto op = OperatorFactory::CreateOperator("test2", "TestRuleOp");
+  auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
+  ASSERT_NE(op_desc, nullptr);
+
+  // 设置输入输出
+  GeShape input_shape({32, 64});
+  GeTensorDesc input_tensor_desc(input_shape, Format::FORMAT_NCHW, DT_FLOAT16);
+  input_tensor_desc.SetOriginShape(input_shape);
+  input_tensor_desc.SetOriginDataType(DT_FLOAT16);
+  op_desc->UpdateInputDesc("x", input_tensor_desc);
+
+  GeShape output_shape({32, 64});
+  GeTensorDesc output_tensor_desc(output_shape, Format::FORMAT_NCHW, DT_FLOAT16);
+  output_tensor_desc.SetOriginShape(output_shape);
+  output_tensor_desc.SetOriginDataType(DT_FLOAT16);
+  op_desc->UpdateOutputDesc("y", output_tensor_desc);
+
+  // 设置 inference rule
+  nlohmann::json rule_json;
+  rule_json["shape"]["inputs"] = {{"s0", "s1"}};
+  rule_json["shape"]["outputs"] = {{"s0", "s1"}};
+  std::string rule_str = rule_json.dump();
+  ge::AttrUtils::SetStr(op_desc, "_inference_rule", rule_str);
+
+  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
+  const auto is_registered_func = OperatorFactoryImpl::GetIsInferShapeV2RegisteredFunc();
+  ASSERT_NE(is_registered_func, nullptr);
+
+  bool is_registered = is_registered_func(op_desc);
+  EXPECT_TRUE(is_registered);
+}
+
+// 测试用例：算子既没有 infer_shape 函数也没有 ShapeInferenceRule，返回 false
+TEST_F(ShapeInferenceUT, IsInferShapeV2Registered_WithoutInferShapeAndRule_ReturnFalse) {
+  auto op = OperatorFactory::CreateOperator("test3", "TestIsInferShapeV2Registered");
+  auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
+  ASSERT_NE(op_desc, nullptr);
+
+  GeShape shape({1, 2, 3});
+  GeTensorDesc tensor_desc(shape, Format::FORMAT_NCHW, DT_FLOAT16);
+  tensor_desc.SetOriginShape(shape);
+  tensor_desc.SetOriginDataType(DT_FLOAT16);
+  op_desc->UpdateInputDesc(0, tensor_desc);
+
+  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
+  auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
+  ASSERT_NE(space_registry, nullptr);
+  auto op_impl_func = space_registry->CreateOrGetOpImpl("TestIsInferShapeV2Registered");
+  op_impl_func->infer_shape = nullptr;  // 没有注册 infer_shape 函数
+
+  const auto is_registered_func = OperatorFactoryImpl::GetIsInferShapeV2RegisteredFunc();
+  ASSERT_NE(is_registered_func, nullptr);
+
+  bool is_registered = is_registered_func(op_desc);
+  EXPECT_FALSE(is_registered);
+}
+
+// 测试用例：space_registry 为 null，返回 false
+TEST_F(ShapeInferenceUT, IsInferShapeV2Registered_SpaceRegistryNull_ReturnFalse) {
+  auto op = OperatorFactory::CreateOperator("test4", "TestIsInferShapeV2Registered");
+  auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
+  ASSERT_NE(op_desc, nullptr);
+
+  GeShape shape({1, 2, 3});
+  GeTensorDesc tensor_desc(shape, Format::FORMAT_NCHW, DT_FLOAT16);
+  tensor_desc.SetOriginShape(shape);
+  tensor_desc.SetOriginDataType(DT_FLOAT16);
+  op_desc->UpdateInputDesc(0, tensor_desc);
+
+  // 设置 space_registry 为 null
+  gert::DefaultOpImplSpaceRegistryV2::GetInstance().SetSpaceRegistry(nullptr);
+
+  const auto is_registered_func = OperatorFactoryImpl::GetIsInferShapeV2RegisteredFunc();
+  ASSERT_NE(is_registered_func, nullptr);
+
+  bool is_registered = is_registered_func(op_desc);
+  EXPECT_FALSE(is_registered);
 }
 }  // namespace gert

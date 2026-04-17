@@ -9,6 +9,8 @@
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # ----------------------------------------------------------------------------
+from typing import Dict, List
+
 import acl
 
 from ge.allocator import Allocator, MemBlock
@@ -22,19 +24,42 @@ from common import (
 )
 
 
-class SampleAllocator(Allocator):
+class SamplePoolAllocator(Allocator):
+    """内存池：按精确 size 缓存空闲块，命中则复用，否则从设备申请。
+
+    适合请求尺寸固定（如推理输出 Tensor 大小不变）的场景，无桶对齐开销。
+    缓存块在对象被 GC 时通过 __del__ 自动释放。
+    """
+
+    def __init__(self) -> None:
+        # { size: [addr, ...] }  —— 按精确大小分组的空闲地址列表
+        self._cache: Dict[int, List[int]] = {}
+
+    def __del__(self) -> None:
+        count = sum(len(v) for v in self._cache.values())
+        for addrs in self._cache.values():
+            for addr in addrs:
+                ret = acl.rt.free(addr)
+                if ret != ACL_SUCCESS:
+                    print(f"[SamplePool] free address failed, ret={ret}")
+        self._cache.clear()
+        print(f"[SamplePool] destroy: freed {count} cached blocks")
+
     def malloc(self, size: int) -> MemBlock:
+        bucket = self._cache.get(size)
+        if bucket:
+            addr = bucket.pop()
+            print(f"[SamplePool] reuse : addr=0x{addr:016x}  size={size} B")
+            return MemBlock(addr=addr, size=size)
         ptr, ret = acl.rt.malloc(size, ACL_MEM_MALLOC_NORMAL_ONLY)
         if ret != ACL_SUCCESS:
-            raise RuntimeError(f"[SampleAllocator] malloc failed: size={size} bytes, ret={ret}")
-        print(f"[SampleAllocator] malloc: size={size} bytes, addr=0x{ptr:016x}")
+            raise RuntimeError(f"[SamplePool] malloc failed: size={size} B, ret={ret}")
+        print(f"[SamplePool] new   : addr=0x{ptr:016x}  size={size} B")
         return MemBlock(addr=ptr, size=size)
 
     def free(self, block: MemBlock) -> None:
-        print(f"[SampleAllocator] free: addr=0x{block.addr:016x}, size={block.size} bytes")
-        ret = acl.rt.free(block.addr)
-        if ret != ACL_SUCCESS:
-            raise RuntimeError(f"[SampleAllocator] free address failed, ret={ret}")
+        self._cache.setdefault(block.size, []).append(block.addr)
+        print(f"[SamplePool] cache : addr=0x{block.addr:016x}  size={block.size} B")
 
 
 def run_with_sample_allocator(sample_graph: Graph, session: Session) -> int:
@@ -47,10 +72,10 @@ def run_with_sample_allocator(sample_graph: Graph, session: Session) -> int:
         check_ret("acl.rt.create_stream", ret)
 
         # 2. 注册自定义 allocator：GE 将通过它为输出 Tensor 申请设备内存
-        allocator = SampleAllocator()
+        allocator = SamplePoolAllocator()
         session.register_external_allocator(stream, allocator)
         allocator_registered = True
-        print("[Info] SampleAllocator 已注册到 stream")
+        print("[Info] SamplePoolAllocator 已注册到 stream")
 
         # 3. 创建 Device 输入
         inputs = create_input_tensors()
@@ -72,7 +97,7 @@ def run_with_sample_allocator(sample_graph: Graph, session: Session) -> int:
     finally:
         if allocator_registered:
             session.unregister_external_allocator(stream)
-            print("[Info] SampleAllocator 已注销")
+            print("[Info] SamplePoolAllocator 已注销")
         if stream is not None:
             check_ret("acl.rt.destroy_stream", acl.rt.destroy_stream(stream))
         if graph_added and session is not None:

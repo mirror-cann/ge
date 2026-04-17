@@ -486,6 +486,30 @@ TEST_F(UtestHcclTaskInfo, test_hccl_task_distribute_release) {
   ASSERT_EQ(g_unload_called_count, 2);
 }
 
+TEST_F(UtestHcclTaskInfo, test_cache_last_task_extend_info_if_collective_success_and_degrade) {
+  auto kernel_info_store = std::make_shared<HcclOpsKernelInfoStore>();
+  HcclTaskInfo hccl_task_info;
+  DavinciModel model(0, nullptr);
+  DumpProperties dump_properties;
+  model.SetDumpProperties(dump_properties);
+  model.SetOmName("test_hccl_om");
+  model.SetDumpModelName("test_hccl_model");
+  model.stream_list_.push_back(reinterpret_cast<void *>(&model));
+  hccl_task_info.davinci_model_ = &model;
+  hccl_task_info.ops_kernel_store_ = kernel_info_store.get();
+  hccl_task_info.hccl_op_desc_ = std::make_shared<OpDesc>("hcom_reduce", HCOMREDUCE);
+
+  EXPECT_EQ(hccl_task_info.Distribute(), SUCCESS);
+
+  EXPECT_EQ(hccl_task_info.Distribute(), SUCCESS);
+
+  hccl_task_info.hccl_op_desc_ = std::make_shared<OpDesc>("hcom_send", HCOMSEND);
+  EXPECT_EQ(hccl_task_info.Distribute(), SUCCESS);
+
+  EXPECT_EQ(hccl_task_info.Release(), SUCCESS);
+  model.stream_list_.clear();
+}
+
 TEST_F(UtestHcclTaskInfo, test_hccl_task_dump_all) {
   auto kernel_info_store = std::make_shared<HcclOpsKernelInfoStore>();
   HcclTaskInfo hccl_task_info;

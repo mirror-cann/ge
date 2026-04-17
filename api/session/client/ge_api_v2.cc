@@ -723,6 +723,21 @@ Status GeSession::LoadGraph(const uint32_t graph_id, const std::map<AscendString
   return ret;
 }
 
+Status GeSession::GraphDebugJSONPrint(const uint32_t graph_id, uint32_t flags, AscendString &json_result) const {
+  if (!g_ge_initialized) {
+    GELOGE(GE_CLI_GE_NOT_INITIALIZED, "[Construct][GeSession]Failed because lack GEInitializeV2 call before.");
+    REPORT_INNER_ERR_MSG("E19999", "Creating session failed because lack GEInitializeV2 call before.");
+    return FAILED;
+  }
+
+  GE_CHK_BOOL_RET_STATUS(impl_ != nullptr, FAILED, "GeSession construction incomplete (null impl pointer)");
+  const auto ret = impl_->DumpDebugJSONPrint(graph_id, flags, json_result);
+  GE_CHK_BOOL_RET_STATUS(ret == SUCCESS, FAILED,
+                         "Dump debug json print failed, error code:%u, session_id:%lu, graph_id:%u.",
+                         ret, GetSessionId(), graph_id);
+  return SUCCESS;
+}
+
 // Run Graph Asynchronously
 Status GeSession::RunGraphAsync(uint32_t graph_id, const std::vector<gert::Tensor> &inputs,
                                 RunAsyncCallbackV2 callback) {

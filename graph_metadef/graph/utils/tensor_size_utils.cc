@@ -28,8 +28,9 @@ constexpr const char *kSocSpecKeyPaddingSize = "padding_size";
 constexpr int64_t kDefaultPaddingSize = 32;
 constexpr int64_t kDataMemAlignSize = 32;
 
-typedef int32_t rtError_t;
+using rtError_t = int32_t;
 constexpr rtError_t RT_ERROR_NONE = 0;
+constexpr int32_t kDecimalBase = 10;
 
 using RtGetSocSpecFunc = rtError_t (*)(const char*, const char*, char*, const uint32_t);
 
@@ -103,7 +104,7 @@ bool QueryPaddingSizeFromSocSpec(int64_t &padding_size) {
   }
   char *end_ptr = nullptr;
   errno = 0;
-  padding_size = static_cast<int64_t>(strtoll(padding_size_str, &end_ptr, 10));
+  padding_size = static_cast<int64_t>(strtoll(padding_size_str, &end_ptr, kDecimalBase));
   if (errno == ERANGE || end_ptr == padding_size_str || *end_ptr != '\0') {
     GELOGW("[Parse][PaddingSize] Invalid value string: %s", padding_size_str);
     return false;

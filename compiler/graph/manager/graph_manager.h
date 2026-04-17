@@ -250,6 +250,7 @@ class GraphManager {
   bool GetLoadFlag(uint32_t graph_id) const;
   bool GetBuildFlag(uint32_t graph_id) const;
   Status GetCompiledFlag(uint32_t graph_id, bool &flag) const;
+  Status DumpDebugJSONPrint(uint32_t graph_id, uint32_t flags, AscendString &json_result);
   Status SetCompiledFlag(uint32_t graph_id, bool flag);
  private:
   struct CompilerStages {

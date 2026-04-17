@@ -43,6 +43,8 @@ class GeSession::Impl {
 
     Status LoadGraph(const uint32_t graph_id, const std::map<AscendString, AscendString> &options, void *stream);
 
+    Status DumpDebugJSONPrint(uint32_t graph_id, uint32_t flags, AscendString &json_result) const;
+
     Status RunGraph(uint32_t graph_id, const std::vector<gert::Tensor> &inputs, std::vector<gert::Tensor> &outputs);
 
     Status RunGraphAsync(uint32_t graph_id, std::vector<gert::Tensor> &&inputs,

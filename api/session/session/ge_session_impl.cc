@@ -108,6 +108,11 @@ Status GeSession::Impl::LoadGraph(const uint32_t graph_id, const std::map<Ascend
   return inner_session_->LoadGraph(graph_id, options, stream);
 }
 
+Status GeSession::Impl::DumpDebugJSONPrint(uint32_t graph_id, uint32_t flags, AscendString &json_result) const {
+  GE_CHK_BOOL_RET_STATUS(inner_session_ != nullptr, FAILED, "inner_session is null (null inner_session pointer)");
+  return inner_session_->DumpDebugJSONPrint(graph_id, flags, json_result);
+}
+
 Status GeSession::Impl::RunGraph(uint32_t graph_id, const std::vector<gert::Tensor> &inputs, std::vector<gert::Tensor> &outputs) {
   GE_CHK_BOOL_RET_STATUS(inner_session_ != nullptr, FAILED, "inner_session is null (null inner_session pointer)");
   return inner_session_->RunGraph(graph_id, inputs, outputs);

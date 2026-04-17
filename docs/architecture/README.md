@@ -36,6 +36,7 @@
 | 文档 | 说明 |
 |------|------|
 | [Dump 模块](features/datadump.md) | Dump 模块整体设计：架构分层、RT1.0/RT2.0 适配、HCCL 处理、动态开关 |
+| [外置权重](features/external_weight.md) | FileConstant 特性：权重从 OM 分离存储、编译期 Const→FileConstant 转换、RT V1/V2 加载流程、内存管理、全局权重管理器 |
 
 ## 模块关键设计原则与软件约束
 

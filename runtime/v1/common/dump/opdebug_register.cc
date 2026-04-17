@@ -85,7 +85,7 @@ Status OpdebugRegister::CreateOpDebugTaskByStream(aclrtStream const stream, cons
   op_debug_task = MakeUnique<OpDebugTask>();
   GE_CHECK_NOTNULL(op_debug_task);
   GE_CHK_RT_RET(aclrtMallocForTaskScheduler(&op_debug_task->op_debug_addr_,
-      kOpDebugMemorySize, ACL_MEM_TYPE_HIGH_BAND_WIDTH, nullptr));
+      kOpDebugMemorySize, ACL_MEM_MALLOC_HUGE_FIRST, nullptr));
   GE_CHK_RT_RET(rtDebugRegisterForStream(stream, op_debug_mode, op_debug_task->op_debug_addr_,
                                          &op_debug_task->debug_stream_id_, &op_debug_task->debug_task_id_));
   return SUCCESS;
@@ -114,7 +114,7 @@ Status OpdebugRegister::RegisterDebugForStream(aclrtStream const stream, const u
 }
 
 void OpdebugRegister::UnregisterDebugForStream(aclrtStream const stream) {
-  rtError_t rt_ret = RT_ERROR_NONE;
+  aclError rt_ret = ACL_SUCCESS;
   if (stream != nullptr) {
     const std::lock_guard<std::mutex> lk(mu_);
     stream_ref_count_[stream] -= 1U;
@@ -130,7 +130,7 @@ void OpdebugRegister::UnregisterDebugForStream(aclrtStream const stream) {
 
   if (p2p_debug_addr_ != nullptr) {
     rt_ret = aclrtFree(p2p_debug_addr_);
-    if (rt_ret != RT_ERROR_NONE) {
+    if (rt_ret != ACL_SUCCESS) {
       GELOGW("aclrtFree failed, ret: 0x%X", rt_ret);
     }
     p2p_debug_addr_ = nullptr;
@@ -140,7 +140,7 @@ void OpdebugRegister::UnregisterDebugForStream(aclrtStream const stream) {
 
 Status OpdebugRegister::MallocMemForOpdebug() {
   aclError rt_ret = aclrtMallocForTaskScheduler(&op_debug_addr_,
-      kOpDebugMemorySize, ACL_MEM_TYPE_HIGH_BAND_WIDTH, nullptr);
+      kOpDebugMemorySize, ACL_MEM_MALLOC_HUGE_FIRST, nullptr);
   if (rt_ret != ACL_SUCCESS) {
     GELOGE(RT_FAILED, "[Call][aclrtMallocForTaskScheduler]Failed, ret %d", rt_ret);
     REPORT_INNER_ERR_MSG("E19999", "Call aclrtMallocForTaskScheduler failed, ret %d", rt_ret);

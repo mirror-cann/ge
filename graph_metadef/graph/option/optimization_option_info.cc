@@ -79,7 +79,7 @@ bool OoInfoUtils::IsSwitchOptValueValid(const std::string &opt_value, std::strin
   if (opt_value.empty() || (opt_value == "true") || (opt_value == "false")) {
     return true;
   }
-  reason = "The value must be true or false.";
+  reason = "The value must be true, false or empty.";
   return false;
 }
 }  // namespace ge

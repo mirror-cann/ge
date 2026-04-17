@@ -416,12 +416,58 @@ LoopVar Permute(const LoopVar &op, std::vector<size_t> order) {
   return LoopVar(std::make_shared<PermuteOp>(op.Op(), std::move(order)));
 }
 
-bool IsStaticShape(std::vector<Expression> output_dims) {
+// 检查描述符是否都是静态的
+bool AreDescriptorsStatic(const ge::OpDesc *op_desc, bool check_inputs) {
+  if (check_inputs) {
+    for (size_t i = 0; i < op_desc->GetInputsSize(); i++) {
+      const auto input_desc = op_desc->MutableInputDesc(i);
+      GE_ASSERT_NOTNULL(input_desc);
+      if (input_desc->GetOriginShape().IsUnknownShape()) {
+        return false;
+      }
+    }
+  } else {
+    for (size_t i = 0; i < op_desc->GetOutputsSize(); i++) {
+      const auto output_desc = op_desc->MutableOutputDesc(i);
+      GE_ASSERT_NOTNULL(output_desc);
+      if (output_desc->GetOriginShape().IsUnknownShape()) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+bool IsStaticShape(std::vector<Expression> output_dims, const ge::OutDataAnchorPtr &dst,
+                   const std::vector<ge::InDataAnchorPtr> &inputs) {
+  // 检查输出维度是否都是常量表达式
   for (const auto &exp : output_dims) {
     if (!exp.IsConstExpr()) {
       return false;
     }
   }
+
+  // 检查输出节点的形状是否都是静态的
+  GE_ASSERT_NOTNULL(dst);
+  GE_ASSERT_NOTNULL(dst->GetOwnerNode());
+  const auto &outputs_op_desc = dst->GetOwnerNode()->GetOpDescBarePtr();
+  GE_ASSERT_NOTNULL(outputs_op_desc);
+  if (!AreDescriptorsStatic(outputs_op_desc, false)) {
+    return false;
+  }
+
+  // 检查输入节点的形状是否都是静态的
+  if (!inputs.empty()) {
+    for (const auto &input : inputs) {
+      GE_ASSERT_NOTNULL(input->GetOwnerNode());
+      const auto &inputs_op_desc = input->GetOwnerNode()->GetOpDescBarePtr();
+      GE_ASSERT_NOTNULL(inputs_op_desc);
+      if (!AreDescriptorsStatic(inputs_op_desc, true)) {
+        return false;
+      }
+    }
+  }
+
   return true;
 }
 
@@ -493,7 +539,7 @@ KernelBox StoreMatMul(const ge::OutDataAnchorPtr &dst, const std::vector<ge::InD
     return StoreExtern(dst);
   }
 
-  if (!IsStaticShape(dims)) {
+  if (!IsStaticShape(dims, dst, inputs)) {
     GELOGI("Drop lower result of %s as it is not static shape", BufferName(dst).c_str());
     return StoreExtern(dst);
   }

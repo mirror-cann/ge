@@ -186,7 +186,7 @@ TEST_F(OptimizationOptRegistryUT, RegisterOption_Ok_MultiHierarchicalOptions) {
   EXPECT_NE(option_ptr4, nullptr);
   std::string reason;
   EXPECT_EQ(option_ptr3->checker("TRUE", reason), false);
-  EXPECT_EQ(reason, "The value must be true or false.");
+  EXPECT_EQ(reason, "The value must be true, false or empty.");
   reason.clear();
   EXPECT_EQ(option_ptr4->checker("233", reason), true);
   EXPECT_TRUE(reason.empty());
@@ -205,7 +205,7 @@ TEST_F(OptimizationOptRegistryUT, IsSwitchOptValueValid_ReturnSpecificReason) {
   EXPECT_TRUE(OoInfoUtils::IsSwitchOptValueValid("false", reason));
   EXPECT_TRUE(reason.empty());
   EXPECT_FALSE(OoInfoUtils::IsSwitchOptValueValid("TRUE", reason));
-  EXPECT_EQ(reason, "The value must be true or false.");
+  EXPECT_EQ(reason, "The value must be true, false or empty.");
 }
 
 TEST_F(OptimizationOptRegistryUT, GetCommandLineOptions_Ok) {

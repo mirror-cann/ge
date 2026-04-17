@@ -17,9 +17,9 @@ import threading
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
-from .base import PassContext
 from .bootstrap import get_registered_passes, load_pass_plugins
 from .registry import get_registered_pass_by_descriptor_key
+from ._ge_pass_native import PassContext
 
 
 @dataclass
@@ -63,16 +63,9 @@ def run_fusion_base_pass(instance_id: str, graph: Any, context: Optional[Any] = 
         holder = _PASS_HOLDERS.get(instance_id)
     if holder is None:
         raise KeyError(f"python pass holder is not created: {instance_id}")
-    if isinstance(context, PassContext):
-        pass_context = context
-    elif isinstance(context, dict):
-        pass_context = PassContext(
-            pass_name=str(context.get("pass_name", "")),
-            options=dict(context.get("options", {})),
-        )
-    else:
-        pass_context = PassContext()
-    return holder.instance.run(graph, pass_context)
+    if not isinstance(context, PassContext):
+        raise KeyError(f"context type error")
+    return holder.instance.run(graph, context)
 
 
 def clear_pass_holders() -> None:

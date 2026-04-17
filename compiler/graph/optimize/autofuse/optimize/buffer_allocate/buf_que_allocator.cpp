@@ -609,6 +609,7 @@ Status BufQueAllocator::AllocateWithinGroup(ge::AscGraph &graph, size_t &total_v
   TmpBuffInfoMap tmp_buff_attr_to_tensor_info;
   TensorInfoMap tensor_attr_to_tensor_info;
   GE_ASSERT_SUCCESS(InitNodeTmpBuffInfo(graph, tmp_buff_attr_to_tensor_info));
+  GE_ASSERT_SUCCESS(MarkUnreusableTensors(graph));
   GE_ASSERT_SUCCESS(InitTensorInfo(graph, tensor_attr_to_tensor_info, is_reduce_mem_reuse));
   AllocateReuseId(graph, tensor_attr_to_tensor_info);
   InitGroupId(graph, tensor_attr_to_tensor_info);
@@ -802,6 +803,28 @@ Status BufQueAllocator::TopoSortByLoadPriority(ge::AscGraph &graph) {
   GE_ASSERT_NOTNULL(compute_graph);
   compute_graph->TopologicalSorting(func);
 
+  return ge::SUCCESS;
+}
+
+Status BufQueAllocator::MarkUnreusableTensors(const ge::AscGraph &graph) {
+  for (const auto &node : graph.GetAllNodes()) {
+    GE_ASSERT_NOTNULL(node);
+    bool input_is_unreusable = false;
+    (void)ge::AttrUtils::GetBool(node->GetOpDesc(), kAttrNameNoReuseInputs, input_is_unreusable);
+    if (!input_is_unreusable) {
+      continue;
+    }
+    GELOGD("node: %s, input is unreusable", node->GetName().c_str());
+    std::map<ge::NodePtr, std::vector<int64_t>> node_to_indices;
+    for (const auto &[in_node, out_anchor] : node->GetInDataNodesAndAnchors()) {
+      node_to_indices[in_node].push_back(out_anchor->GetIdx());
+    }
+    for (const auto &[in_node, indices] : node_to_indices) {
+      (void)ge::AttrUtils::SetListInt(in_node->GetOpDesc(), kAttrNameNoReuseOutputIndices, indices);
+      GELOGD("mark unreusable output indices, node = %s, indices = %s", in_node->GetName().c_str(),
+             ge::ToString(indices).c_str());
+    }
+  }
   return ge::SUCCESS;
 }
 }  // namespace optimize

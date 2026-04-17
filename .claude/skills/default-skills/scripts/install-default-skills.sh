@@ -7,6 +7,10 @@ DEFAULT_SKILLS=("gitcode-pr" "gitcode-issue")
 # 脚本所在目录的上上级目录为 .claude/skills/
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SKILLS_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+REMOTE_DIR="$SKILLS_DIR/_remote"
+
+# 创建远程 skills 子目录
+mkdir -p "$REMOTE_DIR"
 
 # 创建临时目录
 TEMP_DIR=$(mktemp -d)
@@ -26,11 +30,11 @@ if [ ! -d "$TEMP_DIR/skills/skills" ]; then
     exit 1
 fi
 
-# 拷贝技能到 .claude/skills/ 目录
+# 拷贝技能到 .claude/skills/_remote/ 目录
 echo "Installing skills..."
 for skill in "${DEFAULT_SKILLS[@]}"; do
     if [ -d "$TEMP_DIR/skills/skills/$skill" ]; then
-        cp -r "$TEMP_DIR/skills/skills/$skill" "$SKILLS_DIR/"
+        cp -r "$TEMP_DIR/skills/skills/$skill" "$REMOTE_DIR/"
         echo "Installed skill: $skill"
     else
         echo "Warning: Skill '$skill' not found in repository"
