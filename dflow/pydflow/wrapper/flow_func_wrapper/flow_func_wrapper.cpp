@@ -888,8 +888,8 @@ void BindRuntimeTensorDesc(py::module &m) {
                       return std::vector<int64_t>(&s.shape[1], &s.shape[1 + s.shape[0]]);
                     },
                     [](RuntimeTensorDesc &s, const std::vector<int64_t> &v) {
-                      s.shape[0] = v.size() > kMaxDimSize ? kMaxDimSize : v.size();
-                      for (size_t i = 0; i < v.size(); ++i) {
+                      s.shape[0] = v.size() > kMaxDimSize ? kMaxDimSize : static_cast<int64_t>(v.size());
+                      for (int64_t i = 0; i < s.shape[0]; ++i) {
                         s.shape[i + 1] = v[i];
                       }
                     })

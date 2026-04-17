@@ -314,7 +314,7 @@ target_compile_definitions(deployer_daemon PRIVATE
 target_link_options(deployer_daemon PRIVATE
         -rdynamic
         -Wl,-Bsymbolic
-        -Wl,--exclude-libs,All
+        -Wl,--exclude-libs,ALL
         )
 
 target_link_libraries(deployer_daemon PRIVATE
