@@ -354,6 +354,8 @@ class ScheduleUtils {
                                        std::vector<ge::Expression> &strides);
   static bool IsNeedDiscontinuousAligned(const ge::AscTensorAttr &attr);
   static Status ClearAllSizeVar(const ge::AscGraph &graph);
+  // 判断节点的Micro API是否支持Scalar输入，用于scalar_broadcast优化
+  static bool IsMicroApiSupportsScalarInput(const ge::AscNodePtr &node);
 };
 }  // namespace optimize
 

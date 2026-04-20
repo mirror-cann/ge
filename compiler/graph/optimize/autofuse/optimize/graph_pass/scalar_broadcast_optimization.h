@@ -18,7 +18,8 @@ class ScalarBroadcastOptimizationPass final : public BaseGraphPass {
   ScalarBroadcastOptimizationPass() = default;
   ~ScalarBroadcastOptimizationPass() override = default;
   Status RunPass(ge::AscGraph &graph) override;
-  static Status IsNextNodeSupportScalarInput(const ascir::NodeView &brc_node, bool &is_supported);
+  static Status IsNextNodeSupportScalarInput(const ascir::NodeView &brc_node, bool &is_supported,
+                                             const ge::AscNodePtr &first_brc_node);
   static Status GetNodeScalarInputList(const ge::NodePtr &node, std::vector<bool> &is_scalar_list);
 };
 }  // namespace optimize

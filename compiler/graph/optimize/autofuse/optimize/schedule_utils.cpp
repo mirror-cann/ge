@@ -915,4 +915,14 @@ Status ScheduleUtils::ClearAllSizeVar(const ge::AscGraph &graph) {
   graph_attr->size_vars.clear();
   return ge::SUCCESS;
 }
+
+// 判断节点的Micro API是否支持Scalar输入，用于scalar_broadcast优化
+// 支持的算子：比较类(Ge/Eq/Ne/Le/Lt/Gt)和二元计算类(Add/Minimum/Maximum)
+bool ScheduleUtils::IsMicroApiSupportsScalarInput(const ge::AscNodePtr &node) {
+  return ge::ops::IsOps<ge::ascir_op::Ge>(node) || ge::ops::IsOps<ge::ascir_op::Eq>(node) ||
+         ge::ops::IsOps<ge::ascir_op::Ne>(node) || ge::ops::IsOps<ge::ascir_op::Le>(node) ||
+         ge::ops::IsOps<ge::ascir_op::Lt>(node) || ge::ops::IsOps<ge::ascir_op::Gt>(node) ||
+         ge::ops::IsOps<ge::ascir_op::Add>(node) || ge::ops::IsOps<ge::ascir_op::Minimum>(node) ||
+         ge::ops::IsOps<ge::ascir_op::Maximum>(node);
+}
 }  // namespace optimize

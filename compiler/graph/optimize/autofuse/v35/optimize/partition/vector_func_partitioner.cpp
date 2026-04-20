@@ -435,7 +435,7 @@ void VectorFuncPartitioner::RefineEnableVFFlag(const ge::AscNodePtr &node, bool 
     return;
   }
 
-  // 如果当前图中有reduce节点，cast不参与vf融合
+  // 1. 如果当前图中有reduce节点，cast不参与vf融合
   if (ge::ops::IsOps<ge::ascir_op::Cast>(node)) {
     if (graph_has_reduce_node_) {
       // 当前直接把cast移到外面使用castExtend api有性能问题，待解决后放开。enable_vf = false;
@@ -444,7 +444,7 @@ void VectorFuncPartitioner::RefineEnableVFFlag(const ge::AscNodePtr &node, bool 
     }
   }
 
-  // ScalarBrc 场景：检查输出节点是否支持 VF
+  // 2. ScalarBrc 场景：检查输出节点是否支持 VF
   if (IsScalarBrc(node)) {
     bool is_out_support_vf = false;
     for (const auto &out_node : node->GetOutDataNodes()) {
@@ -458,35 +458,32 @@ void VectorFuncPartitioner::RefineEnableVFFlag(const ge::AscNodePtr &node, bool 
     enable_vf = is_out_support_vf;
     return;
   }
-  // Compare/Add微指令支持scalar输入
-  if (ge::ops::IsOps<ge::ascir_op::Ge>(node) || ge::ops::IsOps<ge::ascir_op::Eq>(node) ||
-      ge::ops::IsOps<ge::ascir_op::Ne>(node) || ge::ops::IsOps<ge::ascir_op::Le>(node) ||
-      ge::ops::IsOps<ge::ascir_op::Lt>(node) || ge::ops::IsOps<ge::ascir_op::Gt>(node) ||
-      ge::ops::IsOps<ge::ascir_op::Add>(node)) {
+
+  // 3. 尾轴stride!=1场景，暂不支持生成vf代码
+  for (const auto &output : node->outputs()) {
+    const auto &vectorized_strides = output->attr.vectorized_strides;
+    auto it = std::find_if(vectorized_strides.rbegin(), vectorized_strides.rend(), [](const ge::Expression &val) {
+      return ge::SymbolicUtils::StaticCheckNe(val, ge::sym::kSymbolZero) == ge::TriBool::kTrue;
+    });
+    if ((it != vectorized_strides.rend()) &&
+        (ge::SymbolicUtils::StaticCheckNe(*it, ge::sym::kSymbolOne) == ge::TriBool::kTrue)) {
+      GELOGD("The stride of the node[%s]'s tail axis is not 1, which is not supported in vf.", node->GetNamePtr());
+      enable_vf = false;
+      return;
+    }
+  }
+
+  // 4. Compare/Add/Min/Max/LogicalAnd等微指令支持scalar输入，不需要检查直连scalar
+  if (ScheduleUtils::IsMicroApiSupportsScalarInput(node)) {
     return;
   }
-  // 非ScalarBrc场景：如果算子的任意输入直连scalar，就把enable_vf标记为false
+
+  // 5. 非ScalarBrc场景：如果算子的任意输入直连scalar且不支持scalar输入，就把enable_vf标记为false
   for (const auto &in_node : node->GetInDataNodes()) {
     if (ge::ops::IsOps<ge::ascir_op::Scalar>(in_node)) {
       enable_vf = false;
       GELOGD("Node [%s] has direct Scalar input, disable VF support.", node->GetNamePtr());
       break;
-    }
-  }
-
-  // 尾轴stride!=1场景，暂不支持生成vf代码
-  if (enable_vf) {
-    for (const auto &output : node->outputs()) {
-      const auto &vectorized_strides = output->attr.vectorized_strides;
-      auto it = std::find_if(vectorized_strides.rbegin(), vectorized_strides.rend(), [](const ge::Expression &val) {
-        return ge::SymbolicUtils::StaticCheckNe(val, ge::sym::kSymbolZero) == ge::TriBool::kTrue;
-      });
-      if ((it != vectorized_strides.rend()) &&
-          (ge::SymbolicUtils::StaticCheckNe(*it, ge::sym::kSymbolOne) == ge::TriBool::kTrue)) {
-        GELOGD("The stride of the node[%s]'s tail axis is not 1, which is not supported in vf.", node->GetNamePtr());
-        enable_vf = false;
-        break;
-      }
     }
   }
 }

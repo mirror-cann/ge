@@ -769,7 +769,8 @@ build_backend() {
                       truediv_bf16_test_e2e_v2 \
                       atan2_bf16_test_e2e_v2 \
                       ceil2int_bf16_test_e2e_v2 \
-                      copysign_bf16_test_e2e_v2 \
+                      copysign_bf16_test_e2e_v2  \
+                      vf_scalar_fusion_comprehensive_test_e2e_v2\
                       erfcx_test_e2e_v2 \
                       expm_test_e2e_v2"
   fi

@@ -7,16 +7,16 @@
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
-#ifndef __AUTOFUSE_MICRO_ADD_API_CALL_H__
-#define __AUTOFUSE_MICRO_ADD_API_CALL_H__
+#ifndef __AUTOFUSE_MICRO_BINARY_SCALAR_API_CALL_H__
+#define __AUTOFUSE_MICRO_BINARY_SCALAR_API_CALL_H__
 
 #include "micro_api_call.h"
 
 namespace codegen {
-class MicroAddApiCall final : public MicroApiCall {
+class MicroBinaryScalarApiCall final : public MicroApiCall {
  public:
-  explicit MicroAddApiCall(const std::string &api_name) : MicroApiCall(api_name) {}
-  ~MicroAddApiCall() override = default;
+  explicit MicroBinaryScalarApiCall(const std::string &api_name) : MicroApiCall(api_name) {}
+  ~MicroBinaryScalarApiCall() override = default;
   Status Init(const ascir::NodeView &node) override;
   Status Generate(const TensorManager &tensor_mng, const TPipe &tpipe, CallParam &param, std::string &result) override;
 
@@ -25,4 +25,4 @@ class MicroAddApiCall final : public MicroApiCall {
 };
 }  // namespace codegen
 
-#endif  // __AUTOFUSE_MICRO_ADD_API_CALL_H__
+#endif  // __AUTOFUSE_MICRO_BINARY_SCALAR_API_CALL_H__

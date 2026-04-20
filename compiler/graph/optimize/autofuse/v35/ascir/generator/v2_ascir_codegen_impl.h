@@ -1827,7 +1827,7 @@ class AddAscIrCodegenImplV2 : public AscIrCodegenV2 {
     return {"scalar_add.h"};
   }
   [[nodiscard]] std::string GetMicroApiCallName() const override {
-    return "MicroAddApiCall";
+    return "MicroBinaryScalarApiCall";
   }
 
   [[nodiscard]] std::string GetMicroApiName() const override {
@@ -1840,11 +1840,15 @@ class AddAscIrCodegenImplV2 : public AscIrCodegenV2 {
   }
 
   [[nodiscard]] bool IsVectorFunctionSupported(const ge::AscNode &node) const override {
-    // 不支持第一个输入是scalar，支持第二个输入是scalar
-    if (node.GetInDataNodes().at(0)->GetType() == "Scalar") {
-      return false;
-    }
+    (void)node;
     return true;
+  }
+  [[nodiscard]] bool IsScalarInputSupported(const std::vector<bool> &is_scalar_list) const override {
+    return OnlySecondInputSupportScalar(is_scalar_list);
+  }
+  [[nodiscard]] bool IsScalarInputSupportedIfExchangeInputs(const std::vector<bool> &is_scalar_list) const override {
+    GE_ASSERT_EQ(is_scalar_list.size(), 2UL);
+    return OnlySecondInputSupportScalar({is_scalar_list[1], is_scalar_list[0]});
   }
   [[nodiscard]] bool IsInplaceSupported(const ge::AscNode &add_node) const override {
     (void) add_node;
@@ -1993,7 +1997,7 @@ class MinimumAscIrCodegenImplV2 : public AscIrCodegenV2 {
     return OnlySecondInputSupportScalar(is_scalar_list);
   }
   [[nodiscard]] std::string GetMicroApiCallName() const override {
-    return "MicroApiCall";
+    return "MicroBinaryScalarApiCall";
   }
 
   [[nodiscard]] std::string GetMicroApiName() const override {
@@ -2046,7 +2050,7 @@ class MaximumAscIrCodegenImplV2 : public AscIrCodegenV2 {
   }
 
   [[nodiscard]] std::string GetMicroApiCallName() const override {
-    return "MicroApiCall";
+    return "MicroBinaryScalarApiCall";
   }
 
   [[nodiscard]] std::string GetMicroApiName() const override {

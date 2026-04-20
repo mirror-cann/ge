@@ -1000,7 +1000,7 @@ TEST_F(VfPartition, all_zero_axis_stride) {
   EXPECT_EQ(abs1_node->attr.sched.loop_axis, -1);
 }
 
-TEST_F(VfPartition, ScalarInputDisableVf) {
+TEST_F(VfPartition, ScalarInputSupportVf) {
   ge::AscGraph graph("brc_abs");
   ge::ascir_op::Data data0("data0", graph);
   data0.ir_attr.SetIndex(1);
@@ -1043,7 +1043,7 @@ TEST_F(VfPartition, ScalarInputDisableVf) {
   auto scalar_node = graph.FindNode("scalar0");
   ASSERT_NE(scalar_node, nullptr);
 
-  auto maximum_node = graph.FindNode("maximum");
+  auto maximum_node = sub_graphs[0].FindNode("maximum");
   ASSERT_NE(maximum_node, nullptr);
 
   auto abs_node = sub_graphs[0].FindNode("abs");
@@ -1669,5 +1669,43 @@ TEST_F(VfPartition, CompareWhereForceMerge) {
   ASSERT_TRUE(cast_node != nullptr);
   EXPECT_EQ(cast_node->GetInDataNodes().at(0)->GetType(), "Abs");
   EXPECT_FALSE(found_gt_where_in_same_graph);
+}
+
+// 测试当节点尾轴stride!=1时禁用VF支持
+TEST_F(VfPartition, tail_axis_stride_not_one_disable_vf) {
+  ge::AscGraph graph("tail_stride_test");
+  auto s0 = ge::Symbol(10);
+  auto s1 = ge::Symbol(10);
+  auto s2 = ge::Symbol(10);
+  ge::ascir_op::Data data0("data0", graph);
+  data0.ir_attr.SetIndex(1);
+
+  ge::ascir_op::Load load("load0");
+  load.x = data0.y;
+  load.y.dtype = ge::DT_FLOAT;
+
+  ge::ascir_op::Abs abs("abs");
+  abs.x = load.y;
+  abs.y.dtype = ge::DT_FLOAT;
+
+  ge::ascir_op::Store store("store");
+  store.x = abs.y;
+  store.y.dtype = ge::DT_FLOAT;
+
+  SetupGraphAxes(graph, {s0, s1, s2});
+  ASSERT_EQ(AlignmentHandler::AlignVectorizedStrides(graph), ge::SUCCESS);
+
+  // 设置尾轴stride!=1，应该禁用VF
+  std::vector<ge::Expression> strides = {s1 * s2, s2, ge::Symbol(2)};
+  graph.FindNode("load0")->outputs[0].attr.vectorized_strides = strides;
+  graph.FindNode("abs")->outputs[0].attr.vectorized_strides = strides;
+  graph.FindNode("store")->outputs[0].attr.vectorized_strides = strides;
+
+  VectorFuncPartitioner partitioner(graph);
+  ASSERT_EQ(partitioner.Partition(), ge::SUCCESS);
+
+  std::vector<ge::AscGraph> sub_graphs;
+  EXPECT_EQ(graph.GetAllSubGraphs(sub_graphs), ge::SUCCESS);
+  EXPECT_EQ(sub_graphs.size(), 0UL);
 }
 } // namespace optimize
