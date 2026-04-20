@@ -8,34 +8,34 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-#ifndef CANN_GRAPH_ENGINE_PYTHON_FUSION_BASE_PASS_BRIDGE_C_API_H
-#define CANN_GRAPH_ENGINE_PYTHON_FUSION_BASE_PASS_BRIDGE_C_API_H
+#ifndef CANN_GRAPH_ENGINE_PYTHON_PASS_BRIDGE_C_API_H
+#define CANN_GRAPH_ENGINE_PYTHON_PASS_BRIDGE_C_API_H
 
 #include <cstdint>
 
-#include "python_fusion_base_pass_adapter.h"
-#include "python_fusion_base_pass_pybind_bridge.h"
+#include "python_pass_adapter.h"
+#include "python_pass_pybind_bridge.h"
 
 namespace ge {
 namespace fusion {
-struct PythonFusionBasePassRegistrar {
+struct PythonFusionPassRegistrar {
   bool (*register_pass)(const PythonPassDescriptor *pass_desc,
-                        const PythonFusionBasePassCallbacks *callbacks);
+                        const PythonFusionPassCallbacks *callbacks);
 };
 
-struct PythonFusionBasePassBridgeApi {
+struct PythonFusionPassBridgeApi {
   uint32_t abi_version;
-  Status (*register_fusion_base_passes)(const PythonFusionBasePassRegistrar *registrar);
+  Status (*register_passes)(const PythonFusionPassRegistrar *registrar);
   void (*reset_bridge_state)();
   void (*shutdown_bridge)();
 };
 
-constexpr uint32_t kPythonFusionBasePassBridgeAbiVersion = 1U;
-constexpr const char *kPythonFusionBasePassBridgeGetApiSymbol = "GeGetPythonFusionBasePassBridgeApi";
+constexpr uint32_t kPythonFusionPassBridgeAbiVersion = 1U;
+constexpr const char *kPythonFusionPassBridgeGetApiSymbol = "GeGetPythonFusionPassBridgeApi";
 }  // namespace fusion
 }  // namespace ge
 
 extern "C" __attribute__((visibility("default")))
-const ge::fusion::PythonFusionBasePassBridgeApi *GeGetPythonFusionBasePassBridgeApi();
+const ge::fusion::PythonFusionPassBridgeApi *GeGetPythonFusionPassBridgeApi();
 
-#endif  // CANN_GRAPH_ENGINE_PYTHON_FUSION_BASE_PASS_BRIDGE_C_API_H
+#endif  // CANN_GRAPH_ENGINE_PYTHON_PASS_BRIDGE_C_API_H

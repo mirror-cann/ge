@@ -402,8 +402,8 @@ int32_t FlowFuncExecutor::Init(const std::vector<std::unique_ptr<FlowFuncModel>>
         params->SetHeadInfo(model->IsHead());
         params->SetInstanceName(instance_name);
         params->SetScope(model->GetScope());
-        params->SetRunnningInstanceId(model->GetReplicaIdx());
-        params->SetRunnningInstanceNum(model->GetReplicaNum());
+        params->SetRunningInstanceId(model->GetReplicaIdx());
+        params->SetRunningInstanceNum(model->GetReplicaNum());
         params->SetInvokedScopes(model->GetInvokedScopes());
         if (!GlobalConfig::Instance().IsNpuSched()) {
             const QueueDevInfo &status_output_queue = model->GetStatusOutputQueue();

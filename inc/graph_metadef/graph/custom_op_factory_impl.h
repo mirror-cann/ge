@@ -12,6 +12,7 @@
 #define CANN_GRAPH_ENGINE_CUSTOM_OP_FACTORY_IMPL_H
 #include <map>
 #include <memory>
+#include <mutex>
 #include "graph/custom_op_factory.h"
 
 namespace ge {
@@ -25,12 +26,15 @@ public:
 
   bool IsExistOp(const AscendString &op_type);
 
+  graphStatus LoadCustomOpsPartition(const uint8_t *data, size_t len);
+
   static CustomOpFactoryImpl &GetInstance() {
     static CustomOpFactoryImpl instance;
     return instance;
   }
 
 private:
+  std::mutex mu_;
   std::map<AscendString, BaseOpCreator> custom_op_creators_;
   CustomOpFactoryImpl();
 };

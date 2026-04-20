@@ -722,8 +722,19 @@ enum ModelPartitionType {
   PRE_KERNEL_ARGS = 22,
   PRE_MODEL_DESC_EXTEND = 23,
   BUNDLE_MODEL_INFO = 24,
-  BUNDLE_MODEL_VAR_INFO = 25
+  BUNDLE_MODEL_VAR_INFO = 25,
+  CUSTOM_OPS = 26
 };
+
+// Custom kernel item header for CUSTOM_OPS partition
+// GE 解析此 header 用于路由，但不解析 kernel_bin 的内容
+struct CustomKernelItemHeader {
+  uint32_t magic;        // 0x4B43534B ("KCSK" = Kernel Custom SerializedKernel)
+  uint32_t name_len;     // kernel_name 长度（字节）
+  uint32_t bin_len;      // kernel_bin 长度（字节）
+};
+
+constexpr uint32_t kCustomKernelItemMagic = 0x4B43534BU;  // "KCSK"
 
 enum ModelHeaderType {
   MODEL_TYPE_IR_MODEL = 0,

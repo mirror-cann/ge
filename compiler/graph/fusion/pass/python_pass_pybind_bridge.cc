@@ -8,8 +8,8 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-#include "python_fusion_base_pass_pybind_bridge.h"
-#include "python_fusion_base_pass_bridge_c_api.h"
+#include "python_pass_pybind_bridge.h"
+#include "python_pass_bridge_c_api.h"
 
 #include "Python.h"
 #ifdef ASCEND_CI_LIMITED_PY37
@@ -34,7 +34,7 @@
 #include "graph/node.h"
 #include "graph/utils/graph_utils_ex.h"
 #include "graph_metadef/register/custom_pass_context_impl.h"
-#include "python_fusion_base_pass_adapter.h"
+#include "python_pass_adapter.h"
 
 #undef PYBIND11_CHECK_PYTHON_VERSION
 #define PYBIND11_CHECK_PYTHON_VERSION
@@ -83,15 +83,15 @@ bool ParsePythonPassKind(const std::string &kind_name, PythonPassKind &kind) {
   return false;
 }
 
-class PythonFusionBasePassPybindBridge {
+class PythonFusionPassPybindBridge {
  public:
-  static PythonFusionBasePassPybindBridge &GetInstance() {
-    static PythonFusionBasePassPybindBridge instance;
+  static PythonFusionPassPybindBridge &GetInstance() {
+    static PythonFusionPassPybindBridge instance;
     return instance;
   }
 
-  Status RegisterFusionBasePasses(const PythonFusionBasePassRegistrar &registrar) {
-    GELOGI("Begin to register python fusion base passes through pybind bridge.");
+  Status RegisterPythonPasses(const PythonFusionPassRegistrar &registrar) {
+    GELOGI("Begin to register python passes through pybind bridge.");
     const auto prepare_ret = EnsureBridgeReady();
     if (prepare_ret != SUCCESS) {
       GELOGE(prepare_ret, "Prepare python pybind bridge failed.");
@@ -114,15 +114,12 @@ class PythonFusionBasePassPybindBridge {
         GELOGE(parse_ret, "Parse python pass descriptor failed.");
         return parse_ret;
       }
-      if (pass_desc.kind != PythonPassKind::kFusionBase) {
-        continue;
-      }
-      const auto callbacks = GetCallbacks();
+      const auto callbacks = GetCallbacks(pass_desc.kind);
       if ((registrar.register_pass == nullptr) || (!registrar.register_pass(&pass_desc, &callbacks))) {
-        GELOGE(FAILED, "Register python fusion base pass[%s] failed.", pass_desc.pass_name.c_str());
+        GELOGE(FAILED, "Register python pass[%s] failed.", pass_desc.pass_name.c_str());
         return FAILED;
       }
-      GELOGI("Python fusion base pass[%s] is registered from pybind bridge.", pass_desc.pass_name.c_str());
+      GELOGI("Python pass[%s] is registered from pybind bridge.", pass_desc.pass_name.c_str());
     }
     return SUCCESS;
   }
@@ -156,7 +153,7 @@ class PythonFusionBasePassPybindBridge {
         // 如果解释器来自进程中的其他 Python 用户，这里只清理 bridge 自己的状态。
         py::finalize_interpreter();
       } catch (const std::exception &err) {
-        GELOGW("Finalize python fusion base pybind bridge interpreter failed: %s", err.what());
+        GELOGW("Finalize python pybind bridge interpreter failed: %s", err.what());
       }
     }
     owns_interpreter_ = false;
@@ -219,7 +216,7 @@ class PythonFusionBasePassPybindBridge {
       return TranslateRunResult(result, pass_context);
     } catch (const py::error_already_set &err) {
       pass_context.SetErrorMessage(AscendString(err.what()));
-      GELOGE(FAILED, "Run python fusion base pass failed, descriptor key[%s], instance id[%s]: %s",
+      GELOGE(FAILED, "Run python pass failed, descriptor key[%s], instance id[%s]: %s",
              holder->descriptor_key.c_str(), holder->instance_id.c_str(), err.what());
       return FAILED;
     }
@@ -263,7 +260,7 @@ class PythonFusionBasePassPybindBridge {
       (void)bridge_module_.attr("clear_loaded_pass_modules")();
       (void)py::module_::import(kPassModuleName).attr("clear_registered_passes")();
     } catch (const py::error_already_set &err) {
-      GELOGW("Reset python fusion base pybind bridge state failed: %s", err.what());
+      GELOGW("Reset python pybind bridge state failed: %s", err.what());
     }
   }
 
@@ -348,29 +345,143 @@ class PythonFusionBasePassPybindBridge {
       return static_cast<Status>(result.cast<uint32_t>());
     }
     std::ostringstream oss;
-    oss << "python fusion base pass returned unsupported type: " << std::string(py::str(py::type::of(result)));
+    oss << "python pass returned unsupported type: " << std::string(py::str(py::type::of(result)));
     pass_context.SetErrorMessage(AscendString(oss.str().c_str()));
     GELOGE(FAILED, "%s", oss.str().c_str());
     return FAILED;
   }
 
-  PythonFusionBasePassCallbacks GetCallbacks() {
-    PythonFusionBasePassCallbacks callbacks;
+  PythonFusionPassCallbacks GetCallbacks(PythonPassKind kind) {
+    PythonFusionPassCallbacks callbacks;
     callbacks.create = [](const PythonPassDescriptor *pass_desc) -> void* {
       if (pass_desc == nullptr) {
         return nullptr;
       }
-      return PythonFusionBasePassPybindBridge::GetInstance().CreateHolder(*pass_desc);
+      return PythonFusionPassPybindBridge::GetInstance().CreateHolder(*pass_desc);
     };
     callbacks.destroy = [](void *holder) {
-      PythonFusionBasePassPybindBridge::GetInstance().DestroyHolder(static_cast<PythonBridgeHolder *>(holder));
+      PythonFusionPassPybindBridge::GetInstance().DestroyHolder(static_cast<PythonBridgeHolder *>(holder));
     };
-    callbacks.run = [](void *holder, GraphPtr &graph, CustomPassContext &pass_context) -> Status {
-      return PythonFusionBasePassPybindBridge::GetInstance().Run(static_cast<PythonBridgeHolder *>(holder),
-                                                                 graph,
-                                                                 pass_context);
-    };
+
+    switch (kind) {
+      case PythonPassKind::kFusionBase:
+        callbacks.run = [](void *holder, GraphPtr &graph, CustomPassContext &pass_context) -> Status {
+          return PythonFusionPassPybindBridge::GetInstance().Run(static_cast<PythonBridgeHolder *>(holder),
+                                                                     graph,
+                                                                     pass_context);
+        };
+        break;
+      case PythonPassKind::kPatternFusion:
+        callbacks.patterns = [](void *holder, std::vector<PatternUniqPtr> &patterns) -> Status {
+          return PythonFusionPassPybindBridge::GetInstance().GetPatterns(
+              static_cast<PythonBridgeHolder *>(holder), patterns);
+        };
+        callbacks.meet_requirements = [](void *holder,
+                                          const std::unique_ptr<MatchResult> &match_result) -> bool {
+          return PythonFusionPassPybindBridge::GetInstance().CallMeetRequirements(
+              static_cast<PythonBridgeHolder *>(holder), match_result);
+        };
+        callbacks.replacement =
+            [](void *holder, const std::unique_ptr<MatchResult> &match_result,
+               GraphUniqPtr &replacement_graph) -> Status {
+              return PythonFusionPassPybindBridge::GetInstance().CallReplacement(
+                  static_cast<PythonBridgeHolder *>(holder), match_result, replacement_graph);
+            };
+        break;
+      default:
+        break;
+    }
     return callbacks;
+  }
+
+  // TTODO: GetPatterns / CallMeetRequirements / CallReplacement 三个方法为
+  // PatternFusionPass 桥接的占位实现，当前代码可编译但尚不可运行，原因：
+  // 1. _bridge.py 尚未提供 get_pass_patterns / call_meet_requirements /
+  //    call_replacement 三个函数，桥接协议待协同设计后实现
+  // 2. Pattern 的 native binding 未就绪，cast<Pattern*> 获取裸指针后交给
+  //    unique_ptr 的所有权语义尚未确定
+  // 3. MatchResult / Graph 跨语言传递使用 uintptr_t，需 native binding
+  //    提供类型安全的 wrapper 后才能确立生命周期约定
+  // 待 Pattern / MatchResult 的 native binding 就绪后完成最终实现。
+  Status GetPatterns(PythonBridgeHolder *holder, std::vector<PatternUniqPtr> &patterns) {
+    if (holder == nullptr) {
+      return FAILED;
+    }
+    const auto prepare_ret = EnsureBridgeReady();
+    if (prepare_ret != SUCCESS) {
+      GELOGE(prepare_ret, "Prepare python bridge failed for GetPatterns.");
+      return prepare_ret;
+    }
+    py::gil_scoped_acquire gil;
+    try {
+      py::list pattern_list = bridge_module_.attr("get_pass_patterns")(holder->instance_id);
+      for (const auto &item : pattern_list) {
+        auto *pattern_ptr = item.cast<Pattern *>();
+        if (pattern_ptr != nullptr) {
+          patterns.emplace_back(pattern_ptr);
+        }
+      }
+      return SUCCESS;
+    } catch (const py::error_already_set &err) {
+      GELOGE(FAILED, "Get python pass patterns failed, instance id[%s]: %s",
+             holder->instance_id.c_str(), err.what());
+      return FAILED;
+    }
+  }
+
+  bool CallMeetRequirements(PythonBridgeHolder *holder,
+                             const std::unique_ptr<MatchResult> &match_result) {
+    if ((holder == nullptr) || (match_result == nullptr)) {
+      return false;
+    }
+    const auto prepare_ret = EnsureBridgeReady();
+    if (prepare_ret != SUCCESS) {
+      GELOGW("Prepare python bridge failed for MeetRequirements.");
+      return false;
+    }
+    py::gil_scoped_acquire gil;
+    try {
+      py::object result = bridge_module_.attr("call_meet_requirements")(
+          holder->instance_id,
+          py::int_(reinterpret_cast<uintptr_t>(match_result.get())));
+      return result.cast<bool>();
+    } catch (const py::error_already_set &err) {
+      GELOGW("Call python meet_requirements failed, instance id[%s]: %s",
+             holder->instance_id.c_str(), err.what());
+      return false;
+    }
+  }
+
+  Status CallReplacement(PythonBridgeHolder *holder,
+                          const std::unique_ptr<MatchResult> &match_result,
+                          GraphUniqPtr &replacement_graph) {
+    if (holder == nullptr) {
+      return FAILED;
+    }
+    const auto prepare_ret = EnsureBridgeReady();
+    if (prepare_ret != SUCCESS) {
+      GELOGE(prepare_ret, "Prepare python bridge failed for Replacement.");
+      return prepare_ret;
+    }
+    py::gil_scoped_acquire gil;
+    try {
+      py::object result = bridge_module_.attr("call_replacement")(
+          holder->instance_id,
+          py::int_(reinterpret_cast<uintptr_t>(match_result.get())));
+      if (result.is_none()) {
+        return FAILED;
+      }
+      auto *graph_ptr = result.cast<Graph *>();
+      if (graph_ptr == nullptr) {
+        return FAILED;
+      }
+      replacement_graph = GraphUniqPtr(graph_ptr);
+      return SUCCESS;
+    } catch (const py::error_already_set &err) {
+      GELOGE(FAILED, "Call python replacement failed, instance id[%s]: %s",
+             holder->instance_id.c_str(), err.what());
+      return FAILED;
+    }
   }
 
   std::mutex mutex_;
@@ -380,29 +491,29 @@ class PythonFusionBasePassPybindBridge {
 };
 }  // namespace
 
-Status RegisterFusionBasePassesFromBridge(const PythonFusionBasePassRegistrar *registrar) {
+Status RegisterPythonPassesFromBridge(const PythonFusionPassRegistrar *registrar) {
   if (registrar == nullptr) {
     return FAILED;
   }
-  return PythonFusionBasePassPybindBridge::GetInstance().RegisterFusionBasePasses(*registrar);
+  return PythonFusionPassPybindBridge::GetInstance().RegisterPythonPasses(*registrar);
 }
 
-void ResetPythonFusionBasePassBridgeState() {
-  PythonFusionBasePassPybindBridge::GetInstance().ResetBridgeState();
+void ResetPythonPassBridgeState() {
+  PythonFusionPassPybindBridge::GetInstance().ResetBridgeState();
 }
 
-void ShutdownPythonFusionBasePassBridge() {
-  PythonFusionBasePassPybindBridge::GetInstance().Shutdown();
+void ShutdownPythonPassBridge() {
+  PythonFusionPassPybindBridge::GetInstance().Shutdown();
 }
 }  // namespace fusion
 }  // namespace ge
 
-extern "C" const ge::fusion::PythonFusionBasePassBridgeApi *GeGetPythonFusionBasePassBridgeApi() {
-  static const ge::fusion::PythonFusionBasePassBridgeApi kBridgeApi = {
-      ge::fusion::kPythonFusionBasePassBridgeAbiVersion,
-      &ge::fusion::RegisterFusionBasePassesFromBridge,
-      &ge::fusion::ResetPythonFusionBasePassBridgeState,
-      &ge::fusion::ShutdownPythonFusionBasePassBridge,
+extern "C" const ge::fusion::PythonFusionPassBridgeApi *GeGetPythonFusionPassBridgeApi() {
+  static const ge::fusion::PythonFusionPassBridgeApi kBridgeApi = {
+      ge::fusion::kPythonFusionPassBridgeAbiVersion,
+      &ge::fusion::RegisterPythonPassesFromBridge,
+      &ge::fusion::ResetPythonPassBridgeState,
+      &ge::fusion::ShutdownPythonPassBridge,
   };
   return &kBridgeApi;
 }

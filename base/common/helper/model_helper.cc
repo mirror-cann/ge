@@ -12,6 +12,7 @@
 #include "framework/common/helper/model_helper.h"
 #include "common/checker.h"
 #include "common/helper/model_parser_base.h"
+#include "common/helper/custom_op_so_loader.h"
 #include "common/model/ge_model.h"
 #include "common/model/ge_root_model.h"
 #include "common/op_so_store/op_so_store_utils.h"
@@ -30,6 +31,7 @@
 #include "graph/utils/op_type_utils.h"
 #include "graph/build/memory/var_mem_assign_util.h"
 #include "graph/manager/graph_var_manager.h"
+#include "graph/custom_op_factory.h"
 #include "common/math/math_util.h"
 #include "common/file_constant_utils/file_constant_utils.h"
 #include "common/helper/file_saver.h"
@@ -41,6 +43,10 @@
 #include "common/opskernel/ops_kernel_info_types.h"
 #include "register/core_num_utils.h"
 #include "acl/acl_rt.h"
+#include "framework/common/types.h"
+#include "graph/compute_graph.h"
+#include "graph/node.h"
+#include <set>
 
 namespace {
 constexpr uint32_t kOriginalOmPartitionNum = 1U;
@@ -588,6 +594,16 @@ Status ModelHelper::SaveAutofuseSoBin(const GeRootModelPtr &ge_root_model) {
   return SUCCESS;
 }
 
+Status ModelHelper::SaveCustomOpSoBin(const GeRootModelPtr &ge_root_model) {
+  GE_ASSERT_NOTNULL(ge_root_model);
+  if (!OpSoStoreUtils::IsSoBinType(ge_root_model->GetSoInOmFlag(), SoBinType::kCustomOp)) {
+    return SUCCESS;
+  }
+  GE_ASSERT_SUCCESS(LoadAndStoreOppSo(ge_root_model->GetCustomOpSoSet(), SoBinType::kCustomOp));
+  GELOGI("[CustomOp]Save %zu custom op so to OpSoStore success.", ge_root_model->GetCustomOpSoSet().size());
+  return SUCCESS;
+}
+
 Status ModelHelper::SaveSoStoreModelPartitionInfo(std::shared_ptr<OmFileSaveHelper> &om_file_save_helper,
                                                   const GeRootModelPtr &ge_root_model, string &output_file_name,
                                                   const GeModelPtr &first_ge_model) {
@@ -600,6 +616,7 @@ Status ModelHelper::SaveSoStoreModelPartitionInfo(std::shared_ptr<OmFileSaveHelp
   GE_ASSERT_SUCCESS(SaveSpaceRegistrySoBin(ge_root_model, first_ge_model, output_file_name));
   GE_ASSERT_SUCCESS(SaveOpMasterDeviceSoBin(ge_root_model));
   GE_ASSERT_SUCCESS(SaveAutofuseSoBin(ge_root_model));
+  GE_ASSERT_SUCCESS(SaveCustomOpSoBin(ge_root_model));
 
   GE_ASSERT_TRUE(op_so_store_.Build(), "Build op so store failed.");
   const auto op_so_data = GetOpSoStoreData();
@@ -667,6 +684,32 @@ Status ModelHelper::SaveAllModelPartiton(std::shared_ptr<OmFileSaveHelper> &om_f
   return SUCCESS;
 }
 
+Status ModelHelper::SaveRootModelPartitionsForOmModel(std::shared_ptr<OmFileSaveHelper> &om_file_save_helper,
+                                                      const GeRootModelPtr &ge_root_model, string &output_file_name,
+                                                      const GeModelPtr &ge_model) {
+  if (is_offline_) {
+    GE_ASSERT_SUCCESS(SaveSoStoreModelPartitionInfo(om_file_save_helper, ge_root_model, output_file_name, ge_model),
+                      "[SaveSoStoreModelPartition]Failed");
+    GE_ASSERT_SUCCESS(SaveCustomOpsPartition(om_file_save_helper, ge_root_model),
+                      "[Save][CustomOpsPartition]Failed");
+  }
+  GE_ASSERT_SUCCESS(SaveTilingData(om_file_save_helper, ge_root_model), "Save tiling data to model failed.");
+  return SUCCESS;
+}
+
+Status ModelHelper::SetModelAttributes(const GeModelPtr &ge_model) {
+  GE_CHK_BOOL_EXEC(ge::AttrUtils::SetStr(*(ge_model.get()), ATTR_MODEL_ATC_CMDLINE,
+                   domi::GetContext().atc_cmdline),
+                   GELOGE(FAILED, "SetStr for atc_cmdline failed.");
+                   return FAILED);
+  std::string cur_version;
+  auto ret = GetOppVersion(cur_version);
+  if ((ret != SUCCESS) || (!ge::AttrUtils::SetStr(*(ge_model.get()), ATTR_MODEL_OPP_VERSION, cur_version))) {
+    GELOGW("Ge model set opp version unsuccessful!");
+  }
+  return SUCCESS;
+}
+
 Status ModelHelper::SaveToOmModel(const GeModelPtr &ge_model, const std::string &output_file,
                                   ModelBufferData &model, const GeRootModelPtr &ge_root_model) {
   GE_ASSERT_NOTNULL(ge_model, "Ge_model is nullptr");
@@ -682,23 +725,11 @@ Status ModelHelper::SaveToOmModel(const GeModelPtr &ge_model, const std::string 
   GE_CHECK_NOTNULL(om_file_save_helper);
   ge::Buffer model_buffer;
   ge::Buffer task_buffer;
-  GE_CHK_BOOL_EXEC(ge::AttrUtils::SetStr(*(ge_model.get()), ATTR_MODEL_ATC_CMDLINE,
-                   domi::GetContext().atc_cmdline),
-                   GELOGE(FAILED, "SetStr for atc_cmdline failed.");
-                   return FAILED);
-  std::string cur_version;
-  auto ret = GetOppVersion(cur_version);
-  if ((ret != SUCCESS) || (!ge::AttrUtils::SetStr(*(ge_model.get()), ATTR_MODEL_OPP_VERSION, cur_version))) {
-    GELOGW("Ge model set opp version unsuccessful!");
-  }
+  GE_ASSERT_SUCCESS(SetModelAttributes(ge_model));
 
   string output_file_name = output_file;
   if (ge_root_model != nullptr) {
-    if (is_offline_) {
-      GE_ASSERT_SUCCESS(SaveSoStoreModelPartitionInfo(om_file_save_helper, ge_root_model, output_file_name, ge_model),
-                        "[SaveSoStoreModelPartition]Failed");
-    }
-    GE_ASSERT_SUCCESS(SaveTilingData(om_file_save_helper, ge_root_model), "Save tiling data to model failed.");
+    GE_ASSERT_SUCCESS(SaveRootModelPartitionsForOmModel(om_file_save_helper, ge_root_model, output_file_name, ge_model));
   }
 
   GE_IF_BOOL_EXEC(SaveModelIntroduction(om_file_save_helper, ge_model) != SUCCESS,
@@ -706,7 +737,7 @@ Status ModelHelper::SaveToOmModel(const GeModelPtr &ge_model, const std::string 
                   REPORT_INNER_ERR_MSG("E19999", "Save model introduction failed.");
                   return FAILED);
 
-  ret = SaveAllModelPartiton(om_file_save_helper, ge_model, model_buffer, task_buffer);
+  auto ret = SaveAllModelPartiton(om_file_save_helper, ge_model, model_buffer, task_buffer);
   if (ret != SUCCESS) {
     GELOGE(ret, "[Save][AllModelPartition]Failed, model %s, error_code %u",
            ge_model->GetName().c_str(), ret);
@@ -715,7 +746,6 @@ Status ModelHelper::SaveToOmModel(const GeModelPtr &ge_model, const std::string 
     return ret;
   }
 
-  // static case 3th param is model_num :1U
   ret = SaveModelHeader(om_file_save_helper, ge_model, 1U, is_so_store_);
   if (ret != SUCCESS) {
     GELOGE(ret, "[Save][ModelHeader]Failed, model %s, error_code %u",
@@ -731,9 +761,8 @@ Status ModelHelper::SaveToOmModel(const GeModelPtr &ge_model, const std::string 
            ge_model->GetName().c_str(), output_file.c_str());
     REPORT_INNER_ERR_MSG("E19999", "OmFileSaveHelper save model failed, model %s, "
                        "output file %s", ge_model->GetName().c_str(), output_file.c_str());
-    return ret;
   }
-  return SUCCESS;
+  return ret;
 }
 
 void ModelHelper::SaveOutNodesFromRootGraph(const GeRootModelPtr &ge_root_model, GeModelPtr &first_ge_model) const {
@@ -748,18 +777,39 @@ void ModelHelper::SaveOutNodesFromRootGraph(const GeRootModelPtr &ge_root_model,
   }
 }
 
-Status ModelHelper::SaveToOmRootModel(const GeRootModelPtr &ge_root_model, const std::string &output_file,
-                                      ModelBufferData &model, const bool is_unknown_shape) {
-  GE_ASSERT_NOTNULL(ge_root_model, "[Check][GERootModel]Ge_root_model is nullptr");
-  GE_ASSERT_TRUE(!output_file.empty(), "[Save][Model]GraphBuilder SaveModel received invalid file name prefix.");
-  const auto &name_to_ge_model = ge_root_model->GetSubgraphInstanceNameToModel();
-  GE_ASSERT_TRUE(!name_to_ge_model.empty(), "[Get][SubModel]Ge_root_model has no sub model.");
-  if (!is_unknown_shape) {
-    auto &model_root = name_to_ge_model.begin()->second;
-    return SaveToOmModel(model_root, output_file, model, ge_root_model);
+Status ModelHelper::SaveRootModelPartitions(std::shared_ptr<OmFileSaveHelper> &om_file_save_helper,
+                                            const GeRootModelPtr &ge_root_model, const GeModelPtr &first_ge_model,
+                                            string &output_file_name, const bool has_asc_node) {
+  if (is_offline_ || has_asc_node) {
+    GE_ASSERT_SUCCESS(SaveSoStoreModelPartitionInfo(om_file_save_helper, ge_root_model,
+        output_file_name, first_ge_model), "[SaveSoStoreModelPartitionInfo]Failed");
+    GE_ASSERT_SUCCESS(SaveCustomOpsPartition(om_file_save_helper, ge_root_model),
+                      "[Save][CustomOpsPartition]Failed");
   }
+  GE_ASSERT_SUCCESS(SaveTilingData(om_file_save_helper, ge_root_model));
+  return SUCCESS;
+}
 
-  GeModelPtr first_ge_model;
+Status ModelHelper::SaveRootModelLoop(std::shared_ptr<OmFileSaveHelper> &om_file_save_helper,
+                                      const std::vector<std::string> &model_names,
+                                      const std::map<std::string, GeModelPtr> &name_to_ge_model,
+                                      std::vector<ge::Buffer> &model_buffers,
+                                      std::vector<ge::Buffer> &task_buffers,
+                                      size_t &cur_index) {
+  for (; cur_index < model_names.size(); ++cur_index) {
+    const auto model_name = model_names[cur_index];
+    GELOGD("cur model %s index is %zu", model_name.c_str(), cur_index);
+    const GeModelPtr &ge_model = name_to_ge_model.at(model_name);
+    GE_ASSERT_SUCCESS(SaveAllModelPartiton(om_file_save_helper, ge_model, model_buffers[cur_index],
+                                           task_buffers[cur_index], cur_index),
+                      "[Save][AllModelPartition]Failed, model name %s, cur_index %zu", model_name.c_str(), cur_index);
+  }
+  return SUCCESS;
+}
+
+Status ModelHelper::InitFirstGeModel(const GeRootModelPtr &ge_root_model,
+                                     const std::map<std::string, GeModelPtr> &name_to_ge_model,
+                                     GeModelPtr &first_ge_model) {
   const auto &first_model_it = name_to_ge_model.find(ge_root_model->GetRootGraph()->GetName());
   if (first_model_it == name_to_ge_model.end()) {
     first_ge_model = MakeShared<GeModel>();
@@ -777,7 +827,43 @@ Status ModelHelper::SaveToOmRootModel(const GeRootModelPtr &ge_root_model, const
   if ((get_ret != SUCCESS) || (!ge::AttrUtils::SetStr(*(first_ge_model.get()), ATTR_MODEL_OPP_VERSION, cur_version))) {
     GELOGW("Ge model set opp version unsuccessful!");
   }
-  // ge root model must be the first to be loaded
+  return SUCCESS;
+}
+
+Status ModelHelper::SavePartitionedFirstModel(std::shared_ptr<OmFileSaveHelper> &om_file_save_helper,
+                                              const GeRootModelPtr &ge_root_model, GeModelPtr &first_ge_model,
+                                              const ComputeGraphPtr &root_graph, bool is_unknown_shape,
+                                              std::vector<ge::Buffer> &model_buffers,
+                                              std::vector<ge::Buffer> &task_buffers, size_t &cur_index) {
+  SaveOutNodesFromRootGraph(ge_root_model, first_ge_model);
+  GE_ASSERT_SUCCESS(SaveModelIntroduction(om_file_save_helper, first_ge_model, is_unknown_shape));
+  if (gert::GraphUnfolder::IsGraphNeedUnfold(root_graph)) {
+    GELOGD("only save first model MODEL_DEF");
+    GE_ASSERT_SUCCESS(SaveModelDef(om_file_save_helper, first_ge_model, model_buffers[cur_index], cur_index),
+                      "Save model def failed, cur_index %zu", cur_index);
+  } else {
+    GE_ASSERT_SUCCESS(SaveAllModelPartiton(om_file_save_helper, first_ge_model, model_buffers[cur_index],
+                                           task_buffers[cur_index], cur_index));
+  }
+  is_need_compress_ = false;
+  ++cur_index;
+  return SUCCESS;
+}
+
+Status ModelHelper::SaveToOmRootModel(const GeRootModelPtr &ge_root_model, const std::string &output_file,
+                                      ModelBufferData &model, const bool is_unknown_shape) {
+  GE_ASSERT_NOTNULL(ge_root_model, "[Check][GERootModel]Ge_root_model is nullptr");
+  GE_ASSERT_TRUE(!output_file.empty(), "[Save][Model]GraphBuilder SaveModel received invalid file name prefix.");
+  const auto &name_to_ge_model = ge_root_model->GetSubgraphInstanceNameToModel();
+  GE_ASSERT_TRUE(!name_to_ge_model.empty(), "[Get][SubModel]Ge_root_model has no sub model.");
+  if (!is_unknown_shape) {
+    auto &model_root = name_to_ge_model.begin()->second;
+    return SaveToOmModel(model_root, output_file, model, ge_root_model);
+  }
+
+  GeModelPtr first_ge_model;
+  GE_ASSERT_SUCCESS(InitFirstGeModel(ge_root_model, name_to_ge_model, first_ge_model));
+
   std::vector<std::string> model_names{ge_root_model->GetRootGraph()->GetName()};
   for (auto &item : name_to_ge_model) {
     if (item.first != model_names.front()) {
@@ -800,43 +886,20 @@ Status ModelHelper::SaveToOmRootModel(const GeRootModelPtr &ge_root_model, const
   }
 
   string output_file_name = output_file;
-  // only save in model index 0
   std::shared_ptr<OmFileSaveHelper> om_file_save_helper = ge::MakeShared<OmFileSaveHelper>();
   GE_CHECK_NOTNULL(om_file_save_helper);
-  if (is_offline_ || has_asc_node) {
-    GE_ASSERT_SUCCESS(SaveSoStoreModelPartitionInfo(om_file_save_helper, ge_root_model,
-        output_file_name, first_ge_model), "[SaveSoStoreModelPartitionInfo]Failed");
-  }
-  GE_ASSERT_SUCCESS(SaveTilingData(om_file_save_helper, ge_root_model));
+  GE_ASSERT_SUCCESS(SaveRootModelPartitions(om_file_save_helper, ge_root_model, first_ge_model, output_file_name, has_asc_node));
 
   size_t cur_index = 0U;
   bool is_partitioned = false;
-  // shape partitioned scene no need to load root_graph ge_model.
   (void) AttrUtils::GetBool(root_graph,  ATTR_NAME_DYNAMIC_SHAPE_PARTITIONED, is_partitioned);
   if (is_partitioned) {
-    // out_nodes should find in all subgraphs in case of first_ge_model has no out_nodes info
-    SaveOutNodesFromRootGraph(ge_root_model, first_ge_model);
-    GE_ASSERT_SUCCESS(SaveModelIntroduction(om_file_save_helper, first_ge_model, is_unknown_shape));
-    if (gert::GraphUnfolder::IsGraphNeedUnfold(root_graph)) {
-      GELOGD("only save first model MODEL_DEF");
-      GE_ASSERT_SUCCESS(SaveModelDef(om_file_save_helper, first_ge_model, model_buffers[cur_index], cur_index),
-                        "Save model def failed, cur_index %zu", cur_index);
-    } else {
-      GE_ASSERT_SUCCESS(SaveAllModelPartiton(om_file_save_helper, first_ge_model, model_buffers[cur_index],
-                                             task_buffers[cur_index], cur_index));
-    }
-    is_need_compress_ = false;
-    ++cur_index;
+    GE_ASSERT_SUCCESS(SavePartitionedFirstModel(om_file_save_helper, ge_root_model, first_ge_model,
+                                                 root_graph, is_unknown_shape, model_buffers, task_buffers, cur_index));
   }
 
-  for (; cur_index < model_names.size(); ++cur_index) {
-    const auto model_name = model_names[cur_index];
-    GELOGD("cur model %s index is %zu", model_name.c_str(), cur_index);
-    const GeModelPtr &ge_model = name_to_ge_model.at(model_name);
-    GE_ASSERT_SUCCESS(SaveAllModelPartiton(om_file_save_helper, ge_model, model_buffers[cur_index],
-                                           task_buffers[cur_index], cur_index),
-                      "[Save][AllModelPartition]Failed, model name %s, cur_index %zu", model_name.c_str(), cur_index);
-  }
+  GE_ASSERT_SUCCESS(SaveRootModelLoop(om_file_save_helper, model_names, name_to_ge_model,
+                                       model_buffers, task_buffers, cur_index));
 
   GE_ASSERT_SUCCESS(
       SaveModelHeader(om_file_save_helper, first_ge_model, model_names.size(), is_so_store_, is_unknown_shape),
@@ -1273,6 +1336,7 @@ Status ModelHelper::GenerateGeRootModel(const OmFileLoadHelper &om_load_helper, 
     GE_ASSERT_SUCCESS(root_model_->Initialize(model_->GetGraph()));
     root_model_->SetModelName(model_->GetName());
     GE_CHK_STATUS_RET(LoadOpSoBin(om_load_helper, root_model_), "[Generate][LoadOpSoBin]Failed");
+    GE_CHK_STATUS_RET(LoadCustomOps(om_load_helper), "[Generate][LoadCustomOps]Failed");
     GE_CHK_STATUS_RET(LoadTilingData(om_load_helper, root_model_), "[Generate][LoadTilingData]Failed");
     root_model_->SetSubgraphInstanceNameToModel(model_->GetGraph()->GetName(), model_);
     return SUCCESS;
@@ -1286,6 +1350,7 @@ Status ModelHelper::GenerateGeRootModel(const OmFileLoadHelper &om_load_helper, 
       root_model_->SetModelName(cur_model->GetName());
       model_ = cur_model;
       GE_CHK_STATUS_RET(LoadOpSoBin(om_load_helper, root_model_), "[Generate][LoadOpSoBin]Failed");
+      GE_CHK_STATUS_RET(LoadCustomOps(om_load_helper), "[Generate][LoadCustomOps]Failed");
       GE_CHK_STATUS_RET(LoadTilingData(om_load_helper, root_model_), "[Generate][LoadTilingData]Failed");
       if (IsPartitionedGraph(cur_model)) {
         if (!gert::GraphUnfolder::IsGraphNeedUnfold(cur_model->GetGraph())) {
@@ -1444,24 +1509,41 @@ Status ModelHelper::LoadOpSoBin(const OmFileLoadHelper &om_load_helper,
       GE_ASSERT_NOTNULL(root_graph);
       std::map<std::string, ge::OpSoBinPtr> bin_file_buffer;
       auto all_so_bin = ge_root_model->GetAllSoBin();
-      auto new_end = std::remove_if(all_so_bin.begin(), all_so_bin.end(),
-        [&bin_file_buffer, &root_graph](const OpSoBinPtr& op_so_bin_ptr) {
-          if (op_so_bin_ptr != nullptr && op_so_bin_ptr->GetSoBinType() == SoBinType::kAutofuse) {
-            std::string so_path = op_so_bin_ptr->GetVendorName() + "/" + op_so_bin_ptr->GetSoName();
-            bin_file_buffer[so_path] = op_so_bin_ptr;
-            GELOGD("Added autofuse so_path:%s", so_path.c_str());
-            root_graph->SetExtAttr<std::map<std::string, ge::OpSoBinPtr>>("bin_file_buffer", bin_file_buffer);
-            return true;
-          }
-          return false;
-      });
-      (void)all_so_bin.erase(new_end, all_so_bin.end()); // 防止后续缓存落盘时重复保存AutofuseSo
+      std::vector<OpSoBinPtr> custom_op_so_bins;
+      for (const auto &op_so_bin_ptr : all_so_bin) {
+        if (op_so_bin_ptr == nullptr) {
+          continue;
+        }
+        if (op_so_bin_ptr->GetSoBinType() == SoBinType::kAutofuse) {
+          std::string so_path = op_so_bin_ptr->GetVendorName() + "/" + op_so_bin_ptr->GetSoName();
+          bin_file_buffer[so_path] = op_so_bin_ptr;
+          GELOGD("Added autofuse so_path:%s", so_path.c_str());
+        } else if (op_so_bin_ptr->GetSoBinType() == SoBinType::kCustomOp) {
+          custom_op_so_bins.emplace_back(op_so_bin_ptr);
+        }
+      }
+      if (!bin_file_buffer.empty()) {
+        root_graph->SetExtAttr<std::map<std::string, ge::OpSoBinPtr>>("bin_file_buffer", bin_file_buffer);
+      }
+      GE_ASSERT_SUCCESS(LoadCustomOpSoBins(custom_op_so_bins));
       SaveOpSoInfo(ge_root_model);
       GELOGD("Load so bin store success");
     } else {
       GELOGW("Load so bin store unsuccessful");
+      GE_ASSERT_TRUE(partition_kernel_def.size == 0U,
+                     "Load so bin store failed when SO_BINS partition is non-empty, size:%" PRIu64,
+                     partition_kernel_def.size);
     }
   }
+  return SUCCESS;
+}
+
+Status ModelHelper::LoadCustomOpSoBins(const std::vector<OpSoBinPtr> &custom_so_bins) const {
+  if (custom_so_bins.empty()) {
+    return SUCCESS;
+  }
+  GE_ASSERT_SUCCESS(CustomOpSoLoader::GetInstance().LoadCustomOpSoBins(custom_so_bins),
+                    "Load custom op so bins from SO_BINS failed.");
   return SUCCESS;
 }
 

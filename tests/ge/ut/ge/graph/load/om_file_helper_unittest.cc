@@ -166,6 +166,35 @@ TEST_F(UtestOmFileHelper, AddPartition)
   EXPECT_EQ(saver.AddPartition(partition), SUCCESS);
 }
 
+TEST_F(UtestOmFileHelper, AddOwnedPartition) {
+  OmFileSaveHelper saver;
+  std::vector<uint8_t> payload = {0x12U, 0x34U, 0x56U, 0x78U};
+  const std::vector<uint8_t> expected = payload;
+
+  EXPECT_EQ(saver.AddOwnedPartition(ModelPartitionType::CUSTOM_OPS, std::move(payload), 0U), SUCCESS);
+  ASSERT_EQ(saver.model_contexts_.size(), 1U);
+
+  const auto &ctx = saver.model_contexts_[0U];
+  ASSERT_EQ(ctx.partition_datas_.size(), 1U);
+  ASSERT_EQ(ctx.owned_partitions_.size(), 1U);
+  ASSERT_NE(ctx.owned_partitions_[0U], nullptr);
+
+  const auto &partition = ctx.partition_datas_[0U];
+  EXPECT_EQ(partition.type, ModelPartitionType::CUSTOM_OPS);
+  EXPECT_EQ(partition.size, expected.size());
+  ASSERT_NE(partition.data, nullptr);
+  EXPECT_EQ(partition.data, ctx.owned_partitions_[0U]->data());
+
+  const std::vector<uint8_t> actual(partition.data, partition.data + partition.size);
+  EXPECT_EQ(actual, expected);
+}
+
+TEST_F(UtestOmFileHelper, AddOwnedPartitionInvalid) {
+  OmFileSaveHelper saver;
+  std::vector<uint8_t> payload;
+  EXPECT_EQ(saver.AddOwnedPartition(ModelPartitionType::CUSTOM_OPS, std::move(payload), 0U), PARAM_INVALID);
+}
+
 TEST_F(UtestOmFileHelper, TestInvalidPartitionNumber) {
   std::vector<ModelPartitionType> valid0{MODEL_DEF};
   EXPECT_EQ(OmFileLoadHelper::CheckPartitionTableNum(valid0.size()), true);

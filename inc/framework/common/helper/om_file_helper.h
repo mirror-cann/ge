@@ -11,6 +11,7 @@
 #ifndef INC_FRAMEWORK_COMMON_HELPER_OM_FILE_HELPER_H_
 #define INC_FRAMEWORK_COMMON_HELPER_OM_FILE_HELPER_H_
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -29,6 +30,7 @@ struct ModelPartition {
 
 struct OmFileContext {
   std::vector<ModelPartition> partition_datas_;
+  std::vector<std::shared_ptr<std::vector<uint8_t>>> owned_partitions_;
   std::vector<char_t> partition_table_;
   uint64_t model_data_len_ = 0UL;
 };
@@ -83,6 +85,9 @@ class GE_FUNC_VISIBILITY OmFileSaveHelper {
   Status AddPartition(const ModelPartition &partition);
 
   Status AddPartition(const ModelPartition &partition, const size_t cur_index);
+
+  Status AddOwnedPartition(const ModelPartitionType type, std::vector<uint8_t> &&payload,
+                           const size_t cur_index = 0U);
 
   Status SaveModel(const char_t *const output_file, ModelBufferData &model, const bool save_to_file = true,
                    const bool is_partition_align = false, const uint32_t align_bytes = 32U);

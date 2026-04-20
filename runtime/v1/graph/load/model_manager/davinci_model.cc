@@ -471,7 +471,7 @@ void DavinciModel::ClearTaskAddrs() {
 
 void DavinciModel::UnbindHcomStream() {
   for (size_t i = 0U; i < all_hccl_stream_list_.size(); ++i) {
-    GE_LOGW_IF(rtModelUnbindStream(rt_model_handle_, all_hccl_stream_list_[i]) != RT_ERROR_NONE,
+    GE_LOGW_IF(aclmdlRIUnbindStream(rt_model_handle_, all_hccl_stream_list_[i]) != ACL_SUCCESS,
                "Unbind hccl stream from model failed, Index: %zu", i);
   }
 }
@@ -732,10 +732,10 @@ Status DavinciModel::BindModelStream() {
     auto stream_id = pair.second;
     const auto bind_flag =
         (active_stream_indication_.count(stream_id) == 0U) ?
-        RT_HEAD_STREAM : RT_INVALID_FLAG;
-    GELOGI("rtModelBindStream[%zu] stream: %p, flag: %#x",
+        ACL_MODEL_STREAM_FLAG_HEAD : ACL_MODEL_STREAM_FLAG_DEFAULT;
+    GELOGI("aclmdlRIBindStream[%zu] stream: %p, flag: %#x",
         stream_id, stream_list_[stream_id], static_cast<uint32_t>(bind_flag));
-    GE_CHK_RT_RET(rtModelBindStream(rt_model_handle_,
+    GE_CHK_RT_RET(aclmdlRIBindStream(rt_model_handle_,
         stream_list_[stream_id], static_cast<uint32_t>(bind_flag)));
   }
   is_stream_list_bind_ = true;
@@ -5730,23 +5730,23 @@ void DavinciModel::UnbindTaskSinkStream() {
       // unbind rt_model_handle and streams
       auto stream_id = iter.first;
       GE_LOGE_IF(static_cast<size_t>(stream_id) >= stream_list_.size(), "stream id %zu is invalid", stream_id);
-      GE_LOGW_IF(rtModelUnbindStream(rt_model_handle_, stream_list_[stream_id]) != RT_ERROR_NONE,
+      GE_LOGW_IF(aclmdlRIUnbindStream(rt_model_handle_, stream_list_[stream_id]) != ACL_SUCCESS,
                  "Unbind stream from model failed! Index: %zu", stream_id);
     }
   }
 
   if (is_inner_model_stream_) {
     if ((!input_queue_attrs_.empty()) || (!output_queue_attrs_.empty()) || is_stream_sync_timeout_) {
-      GE_LOGW_IF(rtModelUnbindStream(rt_model_handle_, rt_model_stream_) != RT_ERROR_NONE, "Unbind stream failed!");
+      GE_LOGW_IF(aclmdlRIUnbindStream(rt_model_handle_, rt_model_stream_) != ACL_SUCCESS, "Unbind stream failed!");
     }
   }
 
   if (is_pure_head_stream_ && (rt_head_stream_ != nullptr)) {
-    GE_LOGW_IF(rtModelUnbindStream(rt_model_handle_, rt_head_stream_) != RT_ERROR_NONE, "Unbind stream failed!");
+    GE_LOGW_IF(aclmdlRIUnbindStream(rt_model_handle_, rt_head_stream_) != ACL_SUCCESS, "Unbind stream failed!");
   }
 
   if (rt_entry_stream_ != nullptr) {
-    GE_LOGW_IF(rtModelUnbindStream(rt_model_handle_, rt_entry_stream_) != RT_ERROR_NONE, "Unbind stream failed!");
+    GE_LOGW_IF(aclmdlRIUnbindStream(rt_model_handle_, rt_entry_stream_) != ACL_SUCCESS, "Unbind stream failed!");
   }
   GELOGD("Npu model: %u success to unbind streams.", model_id_);
 }
@@ -7876,8 +7876,8 @@ Status DavinciModel::AddHeadStream() {
     GE_CHECK_NOTNULL(reusable_stream_allocator_);
     GE_ASSERT_SUCCESS(reusable_stream_allocator_->GetOrCreateRtStream(rt_head_stream_, runtime_model_id_, priority_,
                                                                       RT_STREAM_PERSISTENT));
-    GE_CHK_RT_RET(rtModelBindStream(rt_model_handle_, rt_head_stream_,
-        static_cast<uint32_t>(RT_INVALID_FLAG)));
+    GE_CHK_RT_RET(aclmdlRIBindStream(rt_model_handle_, rt_head_stream_,
+        static_cast<uint32_t>(ACL_MODEL_STREAM_FLAG_DEFAULT)));
     is_pure_head_stream_ = true;
 
     for (const auto &s : active_stream_list_) {
@@ -7895,9 +7895,9 @@ Status DavinciModel::AddHeadStream() {
 
   // Create entry stream active head stream. AICPU stream.
   GE_ASSERT_SUCCESS(reusable_stream_allocator_->GetOrCreateRtStream(rt_entry_stream_, runtime_model_id_, priority_,
-                                                                    RT_STREAM_AICPU));
-  GE_CHK_RT_RET(rtModelBindStream(rt_model_handle_, rt_entry_stream_,
-      static_cast<uint32_t>(RT_HEAD_STREAM)));
+                                                                    RT_STREAM_AICPU | RT_STREAM_PERSISTENT));
+  GE_CHK_RT_RET(aclmdlRIBindStream(rt_model_handle_, rt_entry_stream_,
+        static_cast<uint32_t>(ACL_MODEL_STREAM_FLAG_HEAD)));
   return SUCCESS;
 }
 

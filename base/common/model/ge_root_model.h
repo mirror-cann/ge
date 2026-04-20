@@ -26,6 +26,8 @@
 #include "ge/ge_ir_build.h"
 
 namespace ge {
+class PortableOp;
+
 struct FixedFeatureMemory {
   std::string ToString() const {
     std::stringstream ss;
@@ -154,6 +156,9 @@ struct FixedFeatureMemory {
   const std::unordered_set<std::string> &GetAutofuseSoSet() const {
     return autofuse_so_set_;
   }
+  const std::unordered_set<std::string> &GetCustomOpSoSet() const {
+    return custom_op_so_set_;
+  }
 
   std::shared_ptr<GeRootModel> Fork();
 
@@ -176,6 +181,12 @@ struct FixedFeatureMemory {
   Status CheckAndSetSpaceRegistry();
   Status CheckAndSetOpMasterDevice();
   Status CheckAndSetAutofuseSo();
+  Status CheckAndSetCustomOpSo();
+  Status GetTargetHostEnv(std::string &host_env_os, std::string &host_env_cpu) const;
+  bool IsCrossCompileTarget(const std::string &target_os, const std::string &target_cpu) const;
+  Status ResolvePortableOpSoPath(const std::string &op_type, PortableOp *portable_op, std::string &so_path);
+  Status CheckSoArchMatchesTarget(const std::string &so_path, const std::string &target_cpu) const;
+  Status CollectCustomOpSoFromCustomOppPath(const std::string &target_os, const std::string &target_cpu);
 
   ComputeGraphPtr root_graph_ = nullptr;
   std::map<std::string, GeModelPtr> subgraph_instance_name_to_model_;
@@ -206,6 +217,7 @@ struct FixedFeatureMemory {
   HostResourceCenterPtr host_resource_center_ = ge::MakeShared<HostResourceCenter>();;
   std::unordered_set<std::string> op_master_device_so_set_{};
   std::unordered_set<std::string> autofuse_so_set_{};
+  std::unordered_set<std::string> custom_op_so_set_{};
 };
 using GeRootModelPtr = std::shared_ptr<ge::GeRootModel>;
 }  // namespace ge

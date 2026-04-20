@@ -27,6 +27,8 @@ public:
   static graphStatus GetAllRegisteredOps(std::vector<AscendString> &all_registered_ops);
 
   static bool IsExistOp(const AscendString &op_type);
+
+  static graphStatus LoadCustomOpsPartition(const uint8_t *data, size_t len);
 };
 } // namespace ge
 #endif  // CANN_GRAPH_ENGINE_CUSTOM_OP_REGISTRY_H

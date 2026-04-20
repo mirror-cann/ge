@@ -27,7 +27,8 @@ typedef struct {
 enum class SoBinType : uint16_t {
   kSpaceRegistry = 0,  // for use of rt2 infer shape/tiling so, managed in OpImplSpaceRegistry
   kOpMasterDevice = 1,  // for use of tiling so on device
-  kAutofuse = 2  // for use of autofuse so offline saving and loading
+  kAutofuse = 2,  // for use of autofuse so offline saving and loading
+  kCustomOp = 3  // for use of portable custom op so offline saving and loading
 };
 
 class OpSoBin {

@@ -8,7 +8,7 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-#include "python_fusion_base_pass_pybind_bridge.h"
+#include "python_pass_pybind_bridge.h"
 
 #include <dlfcn.h>
 #include <unistd.h>
@@ -19,13 +19,13 @@
 
 #include "framework/common/debug/ge_log.h"
 #include "pass_registry.h"
-#include "python_fusion_base_pass_adapter.h"
-#include "python_fusion_base_pass_bridge_c_api.h"
+#include "python_pass_adapter.h"
+#include "python_pass_bridge_c_api.h"
 
 namespace ge {
 namespace fusion {
 namespace {
-constexpr const char *kPythonFusionBasePassBridgeLibName = "libge_python_pass_bridge.so";
+constexpr const char *kPythonFusionPassBridgeLibName = "libge_python_pass_bridge.so";
 
 std::string DirName(const std::string &path) {
   const auto pos = path.find_last_of('/');
@@ -41,26 +41,26 @@ std::string DirName(const std::string &path) {
 std::vector<std::string> BuildBridgeLibraryCandidates() {
   std::vector<std::string> candidates;
   Dl_info dl_info{};
-  if ((dladdr(reinterpret_cast<void *>(&RegisterPythonFusionBasePassesFromPlugin), &dl_info) != 0) &&
+  if ((dladdr(reinterpret_cast<void *>(&RegisterPythonPassesFromPlugin), &dl_info) != 0) &&
       (dl_info.dli_fname != nullptr) && (dl_info.dli_fname[0] != '\0')) {
-    candidates.emplace_back(DirName(dl_info.dli_fname) + "/" + kPythonFusionBasePassBridgeLibName);
+    candidates.emplace_back(DirName(dl_info.dli_fname) + "/" + kPythonFusionPassBridgeLibName);
   }
-  candidates.emplace_back(kPythonFusionBasePassBridgeLibName);
+  candidates.emplace_back(kPythonFusionPassBridgeLibName);
   return candidates;
 }
 
-bool RegisterPythonFusionBasePassFromBridge(const PythonPassDescriptor *pass_desc,
-                                            const PythonFusionBasePassCallbacks *callbacks) {
+bool RegisterPythonPassFromBridge(const PythonPassDescriptor *pass_desc,
+                                            const PythonFusionPassCallbacks *callbacks) {
   if ((pass_desc == nullptr) || (callbacks == nullptr)) {
     return false;
   }
-  return RegisterPythonFusionBasePass(*pass_desc, *callbacks);
+  return RegisterPythonPass(*pass_desc, *callbacks);
 }
 
-class PythonFusionBasePassBridgeLoader {
+class PythonFusionPassBridgeLoader {
  public:
-  static PythonFusionBasePassBridgeLoader &GetInstance() {
-    static PythonFusionBasePassBridgeLoader loader;
+  static PythonFusionPassBridgeLoader &GetInstance() {
+    static PythonFusionPassBridgeLoader loader;
     return loader;
   }
 
@@ -70,10 +70,10 @@ class PythonFusionBasePassBridgeLoader {
     if (ret != SUCCESS) {
       return ret;
     }
-    static const PythonFusionBasePassRegistrar kRegistrar = {
-        &RegisterPythonFusionBasePassFromBridge,
+    static const PythonFusionPassRegistrar kRegistrar = {
+        &RegisterPythonPassFromBridge,
     };
-    return api_->register_fusion_base_passes(&kRegistrar);
+    return api_->register_passes(&kRegistrar);
   }
 
   void Unload() {
@@ -83,7 +83,7 @@ class PythonFusionBasePassBridgeLoader {
     }
     // 这里只清理本轮 Python pass 注册态与 C++ runtime 状态，
     // 不接管进程级 Python 解释器生命周期，也不热卸载 bridge so。
-    ClearPythonFusionBasePassRuntimeRegistry();
+    ClearPythonPassRuntimeRegistry();
     PassRegistry::GetInstance().ClearPythonPasses();
   }
 
@@ -97,7 +97,7 @@ class PythonFusionBasePassBridgeLoader {
     api_ = nullptr;
     if (handle_ != nullptr) {
       if (dlclose(handle_) != 0) {
-        GELOGW("Close python fusion base bridge library failed: %s", dlerror());
+        GELOGW("Close python pass bridge library failed: %s", dlerror());
       }
       handle_ = nullptr;
     }
@@ -117,55 +117,55 @@ class PythonFusionBasePassBridgeLoader {
       // 才能从已加载的 libpython 中继续解析 Python C-API 符号。
       void *handle = dlopen(candidate.c_str(), RTLD_NOW | RTLD_GLOBAL);
       if (handle == nullptr) {
-        GELOGI("Skip loading python fusion base bridge candidate[%s]: %s",
+        GELOGI("Skip loading python pass bridge candidate[%s]: %s",
                candidate.c_str(),
                dlerror());
         continue;
       }
-      auto *get_api = reinterpret_cast<const PythonFusionBasePassBridgeApi *(*)()>(
-          dlsym(handle, kPythonFusionBasePassBridgeGetApiSymbol));
+      auto *get_api = reinterpret_cast<const PythonFusionPassBridgeApi *(*)()>(
+          dlsym(handle, kPythonFusionPassBridgeGetApiSymbol));
       if (get_api == nullptr) {
-        GELOGW("Get python fusion base bridge api symbol failed from [%s]: %s",
+        GELOGW("Get python pass bridge api symbol failed from [%s]: %s",
                candidate.c_str(),
                dlerror());
         (void)dlclose(handle);
         continue;
       }
       const auto *api = get_api();
-      if ((api == nullptr) || (api->abi_version != kPythonFusionBasePassBridgeAbiVersion) ||
-          (api->register_fusion_base_passes == nullptr) || (api->reset_bridge_state == nullptr) ||
+      if ((api == nullptr) || (api->abi_version != kPythonFusionPassBridgeAbiVersion) ||
+          (api->register_passes == nullptr) || (api->reset_bridge_state == nullptr) ||
           (api->shutdown_bridge == nullptr)) {
-        GELOGW("Python fusion base bridge api is invalid from [%s].", candidate.c_str());
+        GELOGW("Python pass bridge api is invalid from [%s].", candidate.c_str());
         (void)dlclose(handle);
         continue;
       }
       handle_ = handle;
       api_ = api;
       loaded_path_ = candidate;
-      GELOGI("Load python fusion base bridge from [%s] success.", loaded_path_.c_str());
+      GELOGI("Load python pass bridge from [%s] success.", loaded_path_.c_str());
       return SUCCESS;
     }
-    GELOGE(FAILED, "Load python fusion base bridge library failed.");
+    GELOGE(FAILED, "Load python pass bridge library failed.");
     return FAILED;
   }
 
   std::mutex mutex_;
   void *handle_{nullptr};
-  const PythonFusionBasePassBridgeApi *api_{nullptr};
+  const PythonFusionPassBridgeApi *api_{nullptr};
   std::string loaded_path_;
 };
 }  // namespace
 
-Status RegisterPythonFusionBasePassesFromPlugin() {
-  return PythonFusionBasePassBridgeLoader::GetInstance().Register();
+Status RegisterPythonPassesFromPlugin() {
+  return PythonFusionPassBridgeLoader::GetInstance().Register();
 }
 
-void UnloadPythonFusionBasePasses() {
-  PythonFusionBasePassBridgeLoader::GetInstance().Unload();
+void UnloadPythonPasses() {
+  PythonFusionPassBridgeLoader::GetInstance().Unload();
 }
 
-void ShutdownPythonFusionBasePassesForProcess() {
-  PythonFusionBasePassBridgeLoader::GetInstance().ShutdownForProcess();
+void ShutdownPythonPassesForProcess() {
+  PythonFusionPassBridgeLoader::GetInstance().ShutdownForProcess();
 }
 }  // namespace fusion
 }  // namespace ge

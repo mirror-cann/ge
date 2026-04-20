@@ -792,7 +792,8 @@ bool FlowFuncProcessor::OnPrepareInput(bool &need_retry) {
     // if has exception need priority handle it
     if (NeedProcException()) {
         if (is_stream_input_) {
-            UDF_LOG_ERROR("Report or proc exception is not supported when func has stream input", flow_func_info_.c_str());
+            UDF_LOG_ERROR("Report or proc exception is not supported when func has stream input, flow_func_info=%s.",
+                          flow_func_info_.c_str());
             status_ = FlowFuncProcessorStatus::kProcError;
             return false;
         }

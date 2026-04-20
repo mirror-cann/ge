@@ -46,17 +46,17 @@ Status MicroStoreApiCall::Init(const ascir::NodeView &node) {
   auto in_node = std::dynamic_pointer_cast<ge::AscNode>(node->inputs[0].anchor.GetOwnerNode());
   auto in_dtype_size = ge::GetSizeByDataType(in_node->inputs[0].attr.dtype);
   auto out_dtype_size = ge::GetSizeByDataType(in_node->outputs[0].attr.dtype);
-  bool is_all_zero = std::all_of(node->outputs[0].attr.vectorized_strides.begin(),
+  bool is_output_out_dtype_scalar = std::all_of(node->outputs[0].attr.vectorized_strides.begin(),
                                  node->outputs[0].attr.vectorized_strides.end(), [](const ascir::SizeExpr &stride) {
                                    return ge::SymbolicUtils::StaticCheckEq(stride.Simplify(), ge::sym::kSymbolZero) ==
                                           ge::TriBool::kTrue;
                                  });
-  if (is_all_zero) {
-    if (in_dtype_size == DTYPE_SIZE_1BYTE) {
+  if (is_output_out_dtype_scalar) {
+    if (out_dtype_size == DTYPE_SIZE_1BYTE) {
       this->dist_ = "DIST_FIRST_ELEMENT_B8";
-    } else if (in_dtype_size == DTYPE_SIZE_2BYTE) {
+    } else if (out_dtype_size == DTYPE_SIZE_2BYTE) {
       this->dist_ = "DIST_FIRST_ELEMENT_B16";
-    } else if (in_dtype_size == DTYPE_SIZE_4BYTE) {
+    } else if (out_dtype_size == DTYPE_SIZE_4BYTE) {
       this->dist_ = "DIST_FIRST_ELEMENT_B32";
     }
   } else if (ge::ops::IsOps<ge::ascir_op::Cast>(in_node)) {

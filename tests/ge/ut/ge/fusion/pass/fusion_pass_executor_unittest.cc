@@ -37,8 +37,8 @@
 #include "compiler/graph/fusion/pass/pass_registry.h"
 #include "ge/fusion/pass/decompose_pass.h"
 #undef private
-#include "compiler/graph/fusion/pass/python_fusion_base_pass_adapter.h"
-#include "compiler/graph/fusion/pass/python_fusion_base_pass_pybind_bridge.h"
+#include "compiler/graph/fusion/pass/python_pass_adapter.h"
+#include "compiler/graph/fusion/pass/python_pass_pybind_bridge.h"
 
 namespace ge {
 namespace fusion {
@@ -182,6 +182,52 @@ struct PythonFusionBasePassHolderForUt {
 
 PythonFusionBasePassRuntimeSnapshot g_python_fusion_base_runtime_snapshot;
 
+struct PatternFusionPassRuntimeSnapshot {
+  int create_count{0};
+  int destroy_count{0};
+  int patterns_count{0};
+  int meet_requirements_count{0};
+  int replacement_count{0};
+  Status patterns_status{SUCCESS};
+  bool meet_requirements_result{true};
+  Status replacement_status{SUCCESS};
+};
+
+PatternFusionPassRuntimeSnapshot g_pattern_fusion_runtime_snapshot;
+
+void ResetPatternFusionRuntimeSnapshot() {
+  g_pattern_fusion_runtime_snapshot = {};
+}
+
+void *CreatePatternFusionPassHolderForUt(const PythonPassDescriptor *pass_desc) {
+  ++g_pattern_fusion_runtime_snapshot.create_count;
+  if (pass_desc == nullptr) {
+    return nullptr;
+  }
+  return new (std::nothrow) PythonFusionBasePassHolderForUt{pass_desc->descriptor_key, pass_desc->pass_name};
+}
+
+void DestroyPatternFusionPassHolderForUt(void *holder) {
+  ++g_pattern_fusion_runtime_snapshot.destroy_count;
+  delete static_cast<PythonFusionBasePassHolderForUt *>(holder);
+}
+
+Status GetPatternsForUt(void *holder, std::vector<PatternUniqPtr> &patterns) {
+  ++g_pattern_fusion_runtime_snapshot.patterns_count;
+  return g_pattern_fusion_runtime_snapshot.patterns_status;
+}
+
+bool MeetRequirementsForUt(void *holder, const std::unique_ptr<MatchResult> &match_result) {
+  ++g_pattern_fusion_runtime_snapshot.meet_requirements_count;
+  return g_pattern_fusion_runtime_snapshot.meet_requirements_result;
+}
+
+Status ReplacementForUt(void *holder, const std::unique_ptr<MatchResult> &match_result,
+                        GraphUniqPtr &replacement_graph) {
+  ++g_pattern_fusion_runtime_snapshot.replacement_count;
+  return g_pattern_fusion_runtime_snapshot.replacement_status;
+}
+
 void ResetPythonFusionBasePassRuntimeSnapshot() {
   g_python_fusion_base_runtime_snapshot = {};
 }
@@ -218,32 +264,34 @@ class UtestFusionPassExecutor : public testing::Test {
   static void TearDownTestSuite() {
     // Python bridge 的显式 dlclose 放到 suite 结束时做一次，
     // 避免每个用例都把进程级 bridge 热卸载掉。
-    ShutdownPythonFusionBasePassesForProcess();
+    ShutdownPythonPassesForProcess();
   }
 
   void SetUp() override {
     PreparePythonPathForSt();
     (void)unsetenv(kEnvPythonPassPath);
-    UnloadPythonFusionBasePasses();
+    UnloadPythonPasses();
     PassRegistry::GetInstance().name_2_fusion_pass_regs_.clear();
     PassRegistry::GetInstance().descriptor_key_2_python_pass_descs_.clear();
     PassRegistry::GetInstance().pass_name_2_python_pass_create_contexts_.clear();
     ClearCurrentPythonPassCreateContext();
-    ClearPythonFusionBasePassRuntimeRegistry();
+    ClearPythonPassRuntimeRegistry();
     ResetPythonFusionBasePassRuntimeSnapshot();
+    ResetPatternFusionRuntimeSnapshot();
     global_options_bak_ = ge::GetThreadLocalContext().GetAllGlobalOptions();
     session_options_bak_ = ge::GetThreadLocalContext().GetAllSessionOptions();
     graph_options_bak_ = ge::GetThreadLocalContext().GetAllGraphOptions();
   }
   void TearDown() override {
     (void)unsetenv(kEnvPythonPassPath);
-    UnloadPythonFusionBasePasses();
+    UnloadPythonPasses();
     PassRegistry::GetInstance().name_2_fusion_pass_regs_.clear();
     PassRegistry::GetInstance().descriptor_key_2_python_pass_descs_.clear();
     PassRegistry::GetInstance().pass_name_2_python_pass_create_contexts_.clear();
     ClearCurrentPythonPassCreateContext();
-    ClearPythonFusionBasePassRuntimeRegistry();
+    ClearPythonPassRuntimeRegistry();
     ResetPythonFusionBasePassRuntimeSnapshot();
+    ResetPatternFusionRuntimeSnapshot();
 
     GetThreadLocalContext().SetGlobalOption(global_options_bak_);
     GetThreadLocalContext().SetSessionOption(session_options_bak_);
@@ -831,12 +879,12 @@ TEST_F(UtestFusionPassExecutor, PythonFusionBasePass_Run_CreateExecuteDestroy) {
   pass_desc.stage = CustomPassStage::kAfterInferShape;
   pass_desc.kind = PythonPassKind::kFusionBase;
 
-  PythonFusionBasePassCallbacks callbacks;
+  PythonFusionPassCallbacks callbacks;
   callbacks.create = CreatePythonFusionBasePassHolderForUt;
   callbacks.destroy = DestroyPythonFusionBasePassHolderForUt;
   callbacks.run = RunPythonFusionBasePassHolderForUt;
 
-  ASSERT_TRUE(RegisterPythonFusionBasePass(pass_desc, callbacks));
+  ASSERT_TRUE(RegisterPythonPass(pass_desc, callbacks));
 
   auto target_compute_graph = gert::ShareGraph::BuildSingleNodeGraph();
   {
@@ -861,12 +909,12 @@ TEST_F(UtestFusionPassExecutor, PythonFusionBasePass_Run_Failed) {
   pass_desc.stage = CustomPassStage::kAfterInferShape;
   pass_desc.kind = PythonPassKind::kFusionBase;
 
-  PythonFusionBasePassCallbacks callbacks;
+  PythonFusionPassCallbacks callbacks;
   callbacks.create = CreatePythonFusionBasePassHolderForUt;
   callbacks.destroy = DestroyPythonFusionBasePassHolderForUt;
   callbacks.run = RunPythonFusionBasePassHolderForUt;
 
-  ASSERT_TRUE(RegisterPythonFusionBasePass(pass_desc, callbacks));
+  ASSERT_TRUE(RegisterPythonPass(pass_desc, callbacks));
   g_python_fusion_base_runtime_snapshot.run_status = FAILED;
 
   auto target_compute_graph = gert::ShareGraph::BuildSingleNodeGraph();
@@ -886,7 +934,7 @@ TEST_F(UtestFusionPassExecutor, PythonFusionBasePass_PybindBridge_RunSuccess) {
   (void)remove(marker_file.c_str());
 
   ScopedEnvVar scoped_py_pass_path(kEnvPythonPassPath, GetSharedPybindPassFilePath());
-  ASSERT_EQ(RegisterPythonFusionBasePassesFromPlugin(), SUCCESS);
+  ASSERT_EQ(RegisterPythonPassesFromPlugin(), SUCCESS);
 
   auto target_compute_graph = gert::ShareGraph::BuildSingleNodeGraph();
   const auto expected_graph_name = target_compute_graph->GetName();
@@ -899,11 +947,141 @@ TEST_F(UtestFusionPassExecutor, PythonFusionBasePass_PybindBridge_RunSuccess) {
 TEST_F(UtestFusionPassExecutor, PythonFusionBasePass_PybindBridge_RunFailedOnPythonException) {
   EnsureSharedPybindPassFile();
   ScopedEnvVar scoped_py_pass_path(kEnvPythonPassPath, GetSharedPybindPassFilePath());
-  ASSERT_EQ(RegisterPythonFusionBasePassesFromPlugin(), SUCCESS);
+  ASSERT_EQ(RegisterPythonPassesFromPlugin(), SUCCESS);
 
   auto target_compute_graph = gert::ShareGraph::BuildSingleNodeGraph();
   FusionPassExecutor pass_executor;
   EXPECT_EQ(pass_executor.RunPasses(target_compute_graph, CustomPassStage::kAfterBuiltinFusionPass), FAILED);
+}
+
+TEST_F(UtestFusionPassExecutor, PythonPatternFusionPass_CreateAndDestroy) {
+  PythonPassDescriptor pass_desc;
+  pass_desc.descriptor_key = "python.pattern.fusion.create";
+  pass_desc.pass_name = "PythonPatternFusionCreatePass";
+  pass_desc.module_name = "python.pass.sample";
+  pass_desc.class_name = "PythonPatternFusionCreatePass";
+  pass_desc.stage = CustomPassStage::kAfterInferShape;
+  pass_desc.kind = PythonPassKind::kPatternFusion;
+
+  PythonFusionPassCallbacks callbacks;
+  callbacks.create = CreatePatternFusionPassHolderForUt;
+  callbacks.destroy = DestroyPatternFusionPassHolderForUt;
+  callbacks.patterns = GetPatternsForUt;
+  callbacks.replacement = ReplacementForUt;
+
+  ASSERT_TRUE(RegisterPythonPass(pass_desc, callbacks));
+
+  {
+    auto adapter = std::make_unique<PythonPatternFusionPassAdapter>(pass_desc);
+    ASSERT_TRUE(adapter->IsValid());
+    EXPECT_EQ(g_pattern_fusion_runtime_snapshot.create_count, 1);
+
+    // Patterns callback should be invoked
+    auto patterns = adapter->Patterns();
+    EXPECT_EQ(g_pattern_fusion_runtime_snapshot.patterns_count, 1);
+  }
+  EXPECT_EQ(g_pattern_fusion_runtime_snapshot.destroy_count, 1);
+}
+
+TEST_F(UtestFusionPassExecutor, PythonPatternFusionPass_MeetRequirements_DefaultFallback) {
+  PythonPassDescriptor pass_desc;
+  pass_desc.descriptor_key = "python.pattern.fusion.meetreq";
+  pass_desc.pass_name = "PythonPatternFusionMeetReqPass";
+  pass_desc.module_name = "python.pass.sample";
+  pass_desc.class_name = "PythonPatternFusionMeetReqPass";
+  pass_desc.stage = CustomPassStage::kAfterInferShape;
+  pass_desc.kind = PythonPassKind::kPatternFusion;
+
+  PythonFusionPassCallbacks callbacks;
+  callbacks.create = CreatePatternFusionPassHolderForUt;
+  callbacks.destroy = DestroyPatternFusionPassHolderForUt;
+  callbacks.patterns = GetPatternsForUt;
+  callbacks.replacement = ReplacementForUt;
+  // meet_requirements is nullptr -> should fall back to PatternFusionPass::MeetRequirements (return true)
+
+  ASSERT_TRUE(RegisterPythonPass(pass_desc, callbacks));
+
+  auto adapter = std::make_unique<PythonPatternFusionPassAdapter>(pass_desc);
+  ASSERT_TRUE(adapter->IsValid());
+
+  // meet_requirements callback is nullptr -> falls back to PatternFusionPass::MeetRequirements (returns true)
+  auto null_result = std::unique_ptr<MatchResult>();
+  EXPECT_TRUE(adapter->MeetRequirements(null_result));
+
+  // meet_requirements callback is nullptr, so count should stay 0
+  EXPECT_EQ(g_pattern_fusion_runtime_snapshot.meet_requirements_count, 0);
+}
+
+TEST_F(UtestFusionPassExecutor, PythonPatternFusionPass_InvalidOnMissingRequiredCallbacks) {
+  PythonPassDescriptor pass_desc;
+  pass_desc.descriptor_key = "python.pattern.fusion.invalid";
+  pass_desc.pass_name = "PythonPatternFusionInvalidPass";
+  pass_desc.module_name = "python.pass.sample";
+  pass_desc.class_name = "PythonPatternFusionInvalidPass";
+  pass_desc.stage = CustomPassStage::kAfterInferShape;
+  pass_desc.kind = PythonPassKind::kPatternFusion;
+
+  // Missing patterns and replacement -> IsValid() should return false from callbacks validation
+  PythonFusionPassCallbacks callbacks;
+  callbacks.create = CreatePatternFusionPassHolderForUt;
+  callbacks.destroy = DestroyPatternFusionPassHolderForUt;
+  // patterns and replacement are nullptr
+
+  EXPECT_FALSE(callbacks.IsValid(pass_desc.kind));
+  EXPECT_FALSE(RegisterPythonPass(pass_desc, callbacks));
+}
+
+TEST_F(UtestFusionPassExecutor, PythonPassHolder_ReusedAcrossAdapters) {
+  // Verify PythonPassHolder lifecycle works for FusionBase
+  PythonPassDescriptor base_desc;
+  base_desc.descriptor_key = "python.holder.base";
+  base_desc.pass_name = "PythonHolderBasePass";
+  base_desc.module_name = "python.pass.sample";
+  base_desc.class_name = "PythonHolderBasePass";
+  base_desc.stage = CustomPassStage::kAfterInferShape;
+  base_desc.kind = PythonPassKind::kFusionBase;
+
+  PythonFusionPassCallbacks base_callbacks;
+  base_callbacks.create = CreatePythonFusionBasePassHolderForUt;
+  base_callbacks.destroy = DestroyPythonFusionBasePassHolderForUt;
+  base_callbacks.run = RunPythonFusionBasePassHolderForUt;
+
+  ASSERT_TRUE(RegisterPythonPass(base_desc, base_callbacks));
+
+  // Verify PythonPassHolder lifecycle works for PatternFusion
+  PythonPassDescriptor pattern_desc;
+  pattern_desc.descriptor_key = "python.holder.pattern";
+  pattern_desc.pass_name = "PythonHolderPatternPass";
+  pattern_desc.module_name = "python.pass.sample";
+  pattern_desc.class_name = "PythonHolderPatternPass";
+  pattern_desc.stage = CustomPassStage::kAfterInferShape;
+  pattern_desc.kind = PythonPassKind::kPatternFusion;
+
+  PythonFusionPassCallbacks pattern_callbacks;
+  pattern_callbacks.create = CreatePatternFusionPassHolderForUt;
+  pattern_callbacks.destroy = DestroyPatternFusionPassHolderForUt;
+  pattern_callbacks.patterns = GetPatternsForUt;
+  pattern_callbacks.replacement = ReplacementForUt;
+
+  ASSERT_TRUE(RegisterPythonPass(pattern_desc, pattern_callbacks));
+
+  // Both adapters should be valid and independently manageable
+  auto base_adapter = std::make_unique<PythonFusionBasePassAdapter>(base_desc);
+  auto pattern_adapter = std::make_unique<PythonPatternFusionPassAdapter>(pattern_desc);
+  EXPECT_TRUE(base_adapter->IsValid());
+  EXPECT_TRUE(pattern_adapter->IsValid());
+
+  // Verify independent create/destroy
+  EXPECT_EQ(g_python_fusion_base_runtime_snapshot.create_count, 1);
+  EXPECT_EQ(g_pattern_fusion_runtime_snapshot.create_count, 1);
+
+  base_adapter.reset();
+  EXPECT_EQ(g_python_fusion_base_runtime_snapshot.destroy_count, 1);
+  // Pattern adapter should still be valid
+  EXPECT_TRUE(pattern_adapter->IsValid());
+
+  pattern_adapter.reset();
+  EXPECT_EQ(g_pattern_fusion_runtime_snapshot.destroy_count, 1);
 }
 } // namespace fusion
 } // namespace ge

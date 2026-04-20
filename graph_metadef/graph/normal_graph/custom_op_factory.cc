@@ -29,6 +29,10 @@ bool CustomOpFactory::IsExistOp(const AscendString &op_type) {
   return CustomOpFactoryImpl::GetInstance().IsExistOp(op_type);
 }
 
+graphStatus CustomOpFactory::LoadCustomOpsPartition(const uint8_t *data, size_t len) {
+  return CustomOpFactoryImpl::GetInstance().LoadCustomOpsPartition(data, len);
+}
+
 CustomOpCreatorRegister::CustomOpCreatorRegister(const AscendString &operator_type, BaseOpCreator const &op_creator) {
   CustomOpFactoryImpl::GetInstance().RegisterCustomOpCreator(operator_type, op_creator);
 }

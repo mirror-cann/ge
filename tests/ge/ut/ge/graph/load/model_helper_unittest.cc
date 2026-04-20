@@ -10,8 +10,18 @@
 
 #include <stdio.h>
 #include <gtest/gtest.h>
+#include <dlfcn.h>
+#include <algorithm>
+#include <cstring>
+#include <cstdlib>
+#include <fstream>
+#include <utility>
 #include "mmpa/mmpa_api.h"
 #include "macro_utils/dt_public_scope.h"
+#define private public
+#include "common/model/ge_root_model.h"
+#include "common/helper/custom_op_so_loader.h"
+#undef private
 #include "framework/common/helper/model_helper.h"
 #include "hybrid/node_executor/aicore/aicore_op_task.h"
 #include "framework/omg/ge_init.h"
@@ -20,18 +30,22 @@
 #include "graph/buffer/buffer_impl.h"
 #include "graph/utils/graph_utils.h"
 #include "graph/utils/graph_utils_ex.h"
+#include "graph/utils/file_utils.h"
 #include "graph/debug/ge_attr_define.h"
 #include "graph/ge_local_context.h"
 #include "depends/runtime/src/runtime_stub.h"
 #include "macro_utils/dt_public_unscope.h"
 #include "faker/space_registry_faker.h"
 #include "common/path_utils.h"
+#include "common/plugin/plugin_manager.h"
 #include "ge/framework/common/taskdown_common.h"
 #include "stub/gert_runtime_stub.h"
 #include "common/share_graph.h"
 #include "proto/task.pb.h"
 #include "faker/space_registry_faker.h"
 #include "common/opskernel/ops_kernel_info_types.h"
+#include "graph/custom_op.h"
+#include "graph/custom_op_factory.h"
 
 using namespace std;
 extern std::string g_runtime_stub_mock;
@@ -46,6 +60,485 @@ const string kOpMaster = "libopmaster_rt2.0.so";
 const string kInner = "built-in";
 const string kOpsProtoPath = "/op_proto/lib/linux/x86_64/";
 const string kOpMasterPath = "/op_impl/ai_core/tbe/op_tiling/lib/linux/x86_64/";
+
+constexpr const char *kPortableOpTypeForModelHelper = "ModelHelperPortableOpForUt";
+constexpr const char *kPortableOpEmptyTypeForModelHelper = "ModelHelperPortableOpEmptyForUt";
+constexpr const char *kPortableOpSerializeFailTypeForModelHelper = "ModelHelperPortableOpSerializeFailForUt";
+constexpr const char *kNonPortableOpTypeForModelHelper = "ModelHelperNonPortableOpForUt";
+constexpr const char *kUnregisteredPortableOpTypeForModelHelper = "ModelHelperUnregisteredPortableOpForUt";
+const std::vector<uint8_t> kPortableKernelBinForModelHelper = {0x11U, 0x22U, 0x33U};
+
+static bool FindNotLoadedSystemSoForModelHelperUt(std::string &so_path) {
+  const std::vector<std::string> so_dirs = {"/lib/aarch64-linux-gnu", "/usr/lib/aarch64-linux-gnu", "/lib/x86_64-linux-gnu",
+                                            "/usr/lib/x86_64-linux-gnu", "/lib64", "/usr/lib64"};
+  const std::vector<std::string> so_names = {"libz.so.1", "liblzma.so.5", "libbz2.so.1.0", "libuuid.so.1",
+                                             "libffi.so.8", "libcrypt.so.1"};
+  for (const auto &so_dir : so_dirs) {
+    for (const auto &so_name : so_names) {
+      const std::string candidate = so_dir + "/" + so_name;
+      if (mmAccess2(candidate.c_str(), M_R_OK) != EN_OK) {
+        continue;
+      }
+      so_path = candidate;
+      return true;
+    }
+  }
+  return false;
+}
+
+class ScopedEnvVarForModelHelperUt {
+ public:
+  explicit ScopedEnvVarForModelHelperUt(std::string env_name) : env_name_(std::move(env_name)) {
+    const char *env_value = std::getenv(env_name_.c_str());
+    if (env_value != nullptr) {
+      has_old_value_ = true;
+      old_value_ = env_value;
+    }
+  }
+
+  ~ScopedEnvVarForModelHelperUt() {
+    if (has_old_value_) {
+      (void)mmSetEnv(env_name_.c_str(), old_value_.c_str(), 1);
+      return;
+    }
+    (void)mmSetEnv(env_name_.c_str(), "", 1);
+  }
+
+ private:
+  std::string env_name_;
+  std::string old_value_;
+  bool has_old_value_ = false;
+};
+
+class ScopedHostEnvForModelHelperUt {
+ public:
+  ScopedHostEnvForModelHelperUt(const std::string &host_env_os, const std::string &host_env_cpu) {
+    (void)GetThreadLocalContext().GetOption(OPTION_HOST_ENV_OS, old_host_env_os_);
+    (void)GetThreadLocalContext().GetOption(OPTION_HOST_ENV_CPU, old_host_env_cpu_);
+    std::map<std::string, std::string> options_map;
+    options_map[OPTION_HOST_ENV_OS] = host_env_os;
+    options_map[OPTION_HOST_ENV_CPU] = host_env_cpu;
+    (void)GetThreadLocalContext().SetGlobalOption(options_map);
+  }
+
+  ~ScopedHostEnvForModelHelperUt() {
+    std::map<std::string, std::string> restore_options;
+    restore_options[OPTION_HOST_ENV_OS] = old_host_env_os_;
+    restore_options[OPTION_HOST_ENV_CPU] = old_host_env_cpu_;
+    (void)GetThreadLocalContext().SetGlobalOption(restore_options);
+  }
+
+ private:
+  std::string old_host_env_os_;
+  std::string old_host_env_cpu_;
+};
+
+class ScopedTmpDirCleanerForModelHelperUt {
+ public:
+  explicit ScopedTmpDirCleanerForModelHelperUt(std::string dir_path) : dir_path_(std::move(dir_path)) {
+    Cleanup();
+  }
+
+  ~ScopedTmpDirCleanerForModelHelperUt() {
+    Cleanup();
+  }
+
+ private:
+  void Cleanup() const {
+    if (!dir_path_.empty()) {
+      (void)system(("rm -rf " + dir_path_).c_str());
+    }
+  }
+
+  std::string dir_path_;
+};
+
+static bool ReadSoDataForModelHelperUt(const std::string &so_path, std::vector<char_t> &so_data) {
+  std::ifstream file(so_path, std::ios::binary | std::ios::ate);
+  if (!file.good()) {
+    return false;
+  }
+  const std::streamsize file_size = file.tellg();
+  if (file_size <= 0) {
+    return false;
+  }
+  file.seekg(0, std::ios::beg);
+  so_data.resize(static_cast<size_t>(file_size));
+  if (!file.read(so_data.data(), file_size)) {
+    so_data.clear();
+    return false;
+  }
+  return true;
+}
+
+static bool WriteElfHeaderForModelHelperUt(const std::string &so_path, const uint16_t e_machine) {
+  std::vector<uint8_t> elf_header(64U, 0U);
+  elf_header[0] = 0x7FU;
+  elf_header[1] = static_cast<uint8_t>('E');
+  elf_header[2] = static_cast<uint8_t>('L');
+  elf_header[3] = static_cast<uint8_t>('F');
+  elf_header[4] = 2U;  // ELFCLASS64
+  elf_header[5] = 1U;  // ELFDATA2LSB
+  elf_header[6] = 1U;  // EV_CURRENT
+  elf_header[16] = 3U;  // ET_DYN
+  elf_header[18] = static_cast<uint8_t>(e_machine & 0xFFU);
+  elf_header[19] = static_cast<uint8_t>((e_machine >> 8U) & 0xFFU);
+
+  std::ofstream file(so_path, std::ios::binary | std::ios::trunc);
+  if (!file.good()) {
+    return false;
+  }
+  file.write(reinterpret_cast<const char *>(elf_header.data()), static_cast<std::streamsize>(elf_header.size()));
+  return file.good();
+}
+
+static bool GetExpectedElfMachineForCpuModelHelperUt(const std::string &target_cpu, uint16_t &expected_machine) {
+  std::string normalized_target_cpu = target_cpu;
+  std::transform(normalized_target_cpu.begin(), normalized_target_cpu.end(), normalized_target_cpu.begin(),
+                 [](char ch) { return static_cast<char>(std::tolower(static_cast<unsigned char>(ch))); });
+  if ((normalized_target_cpu == "x86_64") || (normalized_target_cpu == "amd64")) {
+    expected_machine = 62U;  // EM_X86_64
+    return true;
+  }
+  if ((normalized_target_cpu == "aarch64") || (normalized_target_cpu == "arm64")) {
+    expected_machine = 183U;  // EM_AARCH64
+    return true;
+  }
+  return false;
+}
+
+static OpSoBinPtr BuildCustomOpSoBinForModelHelperUt(const std::string &so_name, const std::string &vendor_name,
+                                                      const std::vector<char_t> &so_data) {
+  if ((so_data.empty()) || (so_data.size() > static_cast<size_t>(UINT32_MAX))) {
+    return nullptr;
+  }
+  auto so_data_buf = std::unique_ptr<char_t[]>(new (std::nothrow) char_t[so_data.size()]);
+  if (so_data_buf == nullptr) {
+    return nullptr;
+  }
+  if (memcpy_s(so_data_buf.get(), so_data.size(), so_data.data(), so_data.size()) != EOK) {
+    return nullptr;
+  }
+  return std::make_shared<OpSoBin>(so_name, vendor_name, std::move(so_data_buf), static_cast<uint32_t>(so_data.size()),
+                                   SoBinType::kCustomOp);
+}
+
+static OpSoBinPtr BuildOpSoBinForModelHelperUt(const std::string &so_name, const std::string &vendor_name,
+                                               const std::vector<uint8_t> &so_data, const SoBinType so_bin_type) {
+  if ((so_data.empty()) || (so_data.size() > static_cast<size_t>(UINT32_MAX))) {
+    return nullptr;
+  }
+  auto so_data_buf = std::unique_ptr<char_t[]>(new (std::nothrow) char_t[so_data.size()]);
+  if (so_data_buf == nullptr) {
+    return nullptr;
+  }
+  if (memcpy_s(so_data_buf.get(), so_data.size(), so_data.data(), so_data.size()) != EOK) {
+    return nullptr;
+  }
+  return std::make_shared<OpSoBin>(so_name, vendor_name, std::move(so_data_buf), static_cast<uint32_t>(so_data.size()),
+                                   so_bin_type);
+}
+
+static bool BuildSoBinsPayloadForModelHelperUt(const std::vector<OpSoBinPtr> &so_bins, std::vector<uint8_t> &payload) {
+  OpSoStore op_so_store;
+  for (const auto &so_bin : so_bins) {
+    if (so_bin == nullptr) {
+      return false;
+    }
+    op_so_store.AddKernel(so_bin);
+  }
+  if (!op_so_store.Build()) {
+    return false;
+  }
+  const auto *data = op_so_store.Data();
+  const auto size = op_so_store.DataSize();
+  if ((data == nullptr) || (size == 0U)) {
+    return false;
+  }
+  payload.assign(data, data + size);
+  return true;
+}
+
+static bool PrepareBuiltInOpMasterFilesForModelHelperUt(const std::string &opp_path, std::string &inner_op_master) {
+  inner_op_master = opp_path + "built_in/op_master_device/lib/";
+  if (system(("mkdir -p " + inner_op_master).c_str()) != 0) {
+    return false;
+  }
+  inner_op_master += "Ascend-V7.6-libopmaster.so";
+  if (system(("touch " + inner_op_master).c_str()) != 0) {
+    return false;
+  }
+  if (system(("echo 'Ascend-V7.6-libopmaster' > " + inner_op_master).c_str()) != 0) {
+    return false;
+  }
+
+  std::string inner_proto_path = opp_path + kInner + kOpsProtoPath;
+  if (system(("mkdir -p " + inner_proto_path).c_str()) != 0) {
+    return false;
+  }
+  inner_proto_path += kOpsProto;
+  if (system(("touch " + inner_proto_path).c_str()) != 0) {
+    return false;
+  }
+  if (system(("echo 'ops proto' > " + inner_proto_path).c_str()) != 0) {
+    return false;
+  }
+
+  std::string inner_tiling_path = opp_path + kInner + kOpMasterPath;
+  if (system(("mkdir -p " + inner_tiling_path).c_str()) != 0) {
+    return false;
+  }
+  inner_tiling_path += kOpMaster;
+  if (system(("touch " + inner_tiling_path).c_str()) != 0) {
+    return false;
+  }
+  return system(("echo 'op tiling ' > " + inner_tiling_path).c_str()) == 0;
+}
+
+static bool AddAutofuseNodeAndSetBinFilePathForModelHelperUt(const ComputeGraphPtr &ge_root_graph,
+                                                              const std::string &autofuse_stub_so) {
+  if ((ge_root_graph == nullptr) || autofuse_stub_so.empty()) {
+    return false;
+  }
+  OpDescBuilder op_desc_builder("test", "AscBackend");
+  const auto &op_desc = op_desc_builder.Build();
+  auto node = ge_root_graph->AddNode(op_desc);
+  if (node == nullptr) {
+    return false;
+  }
+  node->SetOwnerComputeGraph(ge_root_graph);
+  for (const auto &n : ge_root_graph->GetAllNodesPtr()) {
+    (void)ge::AttrUtils::SetStr(n->GetOpDesc(), "bin_file_path", autofuse_stub_so);
+  }
+  return true;
+}
+
+static bool BuildOfflineAutofuseSoBinsForModelHelperUt(OmFileLoadHelper &load_helper, std::vector<uint8_t> &so_payload) {
+  load_helper.is_inited_ = true;
+  OmFileContext cur_ctx;
+  ModelPartition so_patition;
+  so_patition.type = ModelPartitionType::SO_BINS;
+  const auto op_master_so_bin = BuildOpSoBinForModelHelperUt("Ascend-V7.6-libopmaster.so", "built_in", {0x11U, 0x22U},
+                                                             SoBinType::kOpMasterDevice);
+  const auto autofuse_so_bin = BuildOpSoBinForModelHelperUt("libautofuse_for_ut.so", "autofuse_vendor",
+                                                            {0x33U, 0x44U, 0x55U}, SoBinType::kAutofuse);
+  if ((op_master_so_bin == nullptr) || (autofuse_so_bin == nullptr)) {
+    return false;
+  }
+  if (!BuildSoBinsPayloadForModelHelperUt({op_master_so_bin, autofuse_so_bin}, so_payload)) {
+    return false;
+  }
+  so_patition.data = so_payload.data();
+  so_patition.size = so_payload.size();
+  cur_ctx.partition_datas_.push_back(so_patition);
+  load_helper.model_contexts_.push_back(cur_ctx);
+  return true;
+}
+
+struct CrossModeCustomOppPathsForModelHelperUt {
+  std::string custom_opp_path;
+  std::string target_graph_so_path;
+  std::string non_target_graph_so_path;
+};
+
+static bool ResolveCrossModeTargetEnvForModelHelperUt(std::string &current_env_os, std::string &current_env_cpu,
+                                                      std::string &target_env_cpu) {
+  PluginManager::GetCurEnvPackageOsAndCpuType(current_env_os, current_env_cpu);
+  if (current_env_os.empty()) {
+    current_env_os = "linux";
+  }
+  if (current_env_cpu.empty()) {
+#if defined(__aarch64__) || defined(__arm64__)
+    current_env_cpu = "aarch64";
+#elif defined(__x86_64__) || defined(__amd64__)
+    current_env_cpu = "x86_64";
+#endif
+  }
+  if (current_env_cpu.empty()) {
+    return false;
+  }
+  target_env_cpu = current_env_cpu;
+  std::transform(target_env_cpu.begin(), target_env_cpu.end(), target_env_cpu.begin(),
+                 [](char c) { return static_cast<char>(std::tolower(static_cast<unsigned char>(c))); });
+  if ((target_env_cpu == "aarch64") || (target_env_cpu == "arm64")) {
+    target_env_cpu = "x86_64";
+  } else {
+    target_env_cpu = "aarch64";
+  }
+  return true;
+}
+
+static bool PrepareCrossModeCustomOppForModelHelperUt(const std::string &custom_opp_path, const std::string &current_env_os,
+                                                      const std::string &current_env_cpu, const std::string &target_env_cpu,
+                                                      CrossModeCustomOppPathsForModelHelperUt &so_paths) {
+  so_paths.custom_opp_path = custom_opp_path;
+  const std::string target_graph_so_dir = custom_opp_path + "/op_graph/lib/" + current_env_os + "/" + target_env_cpu;
+  const std::string non_target_graph_so_dir = custom_opp_path + "/op_proto/lib/" + current_env_os + "/" + current_env_cpu;
+  so_paths.target_graph_so_path = target_graph_so_dir + "/libcustom_unrelated_ut.so";
+  so_paths.non_target_graph_so_path = non_target_graph_so_dir + "/libshould_not_collect_ut.so";
+
+  if (system(("mkdir -p " + target_graph_so_dir).c_str()) != 0) {
+    return false;
+  }
+  if (system(("mkdir -p " + non_target_graph_so_dir).c_str()) != 0) {
+    return false;
+  }
+  uint16_t expected_machine = 0U;
+  if (!GetExpectedElfMachineForCpuModelHelperUt(target_env_cpu, expected_machine)) {
+    return false;
+  }
+  if (!WriteElfHeaderForModelHelperUt(so_paths.target_graph_so_path, expected_machine)) {
+    return false;
+  }
+  return system(("touch " + so_paths.non_target_graph_so_path).c_str()) == 0;
+}
+
+static std::string BuildProcFdPathForModelHelperUt(const int32_t fd) {
+  return "/proc/self/fd/" + std::to_string(fd);
+}
+
+class ModelHelperPortableOpForUt : public PortableOp {
+ public:
+  ge::graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
+    (void)ctx;
+    return ge::GRAPH_SUCCESS;
+  }
+
+  ge::graphStatus Serialize(std::vector<uint8_t> &buffer) override {
+    buffer = kPortableKernelBinForModelHelper;
+    return ge::GRAPH_SUCCESS;
+  }
+
+  ge::graphStatus Deserialize(const std::vector<uint8_t> &buffer) override {
+    (void)buffer;
+    return ge::GRAPH_SUCCESS;
+  }
+};
+
+class ModelHelperPortableOpEmptyForUt : public PortableOp {
+ public:
+  ge::graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
+    (void)ctx;
+    return ge::GRAPH_SUCCESS;
+  }
+
+  ge::graphStatus Serialize(std::vector<uint8_t> &buffer) override {
+    buffer.clear();
+    return ge::GRAPH_SUCCESS;
+  }
+
+  ge::graphStatus Deserialize(const std::vector<uint8_t> &buffer) override {
+    (void)buffer;
+    return ge::GRAPH_SUCCESS;
+  }
+};
+
+class ModelHelperPortableOpSerializeFailForUt : public PortableOp {
+ public:
+  ge::graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
+    (void)ctx;
+    return ge::GRAPH_SUCCESS;
+  }
+
+  ge::graphStatus Serialize(std::vector<uint8_t> &buffer) override {
+    (void)buffer;
+    return ge::GRAPH_FAILED;
+  }
+
+  ge::graphStatus Deserialize(const std::vector<uint8_t> &buffer) override {
+    (void)buffer;
+    return ge::GRAPH_SUCCESS;
+  }
+};
+
+class ModelHelperNonPortableOpForUt : public BaseCustomOp {
+ public:
+  ge::graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
+    (void)ctx;
+    return ge::GRAPH_SUCCESS;
+  }
+};
+
+static void RegisterCustomOpCreatorForModelHelperUt(const std::string &op_type, const BaseOpCreator &creator) {
+  const auto ret = CustomOpFactory::RegisterCustomOpCreator(op_type.c_str(), creator);
+  EXPECT_TRUE((ret == GRAPH_SUCCESS) || (ret == GRAPH_FAILED));
+}
+
+static NodePtr AddNodeWithOpTypeForModelHelperUt(const ComputeGraphPtr &graph,
+                                                 const std::string &node_name,
+                                                 const std::string &op_type) {
+  auto op_desc = std::make_shared<OpDesc>(node_name, op_type);
+  if (op_desc == nullptr) {
+    return nullptr;
+  }
+  (void)op_desc->AddDynamicInputDesc("x", 1);
+  (void)op_desc->AddDynamicOutputDesc("y", 1);
+  return graph->AddNode(op_desc);
+}
+
+static GeRootModelPtr CreateGeRootModelForModelHelperUt(const std::string &root_op_type,
+                                                        const std::string &sub_op_type) {
+  auto root_graph = std::make_shared<ComputeGraph>("root_graph_for_custom_kernels");
+  if (!root_op_type.empty()) {
+    (void)AddNodeWithOpTypeForModelHelperUt(root_graph, "root_node", root_op_type);
+  }
+
+  auto ge_root_model = std::make_shared<GeRootModel>();
+  if (ge_root_model->Initialize(root_graph) != SUCCESS) {
+    return nullptr;
+  }
+
+  auto sub_graph = std::make_shared<ComputeGraph>("sub_graph_for_custom_kernels");
+  if (!sub_op_type.empty()) {
+    (void)AddNodeWithOpTypeForModelHelperUt(sub_graph, "sub_node", sub_op_type);
+  }
+  GeModelPtr sub_model = std::make_shared<GeModel>();
+  sub_model->SetGraph(sub_graph);
+  ge_root_model->subgraph_instance_name_to_model_["sub_graph_for_custom_kernels"] = sub_model;
+  return ge_root_model;
+}
+
+static bool FindCustomOpsPartitionForModelHelperUt(const std::shared_ptr<OmFileSaveHelper> &om_file_save_helper,
+                                                       ModelPartition &partition) {
+  if (om_file_save_helper == nullptr || om_file_save_helper->model_contexts_.empty()) {
+    return false;
+  }
+  for (const auto &saved_partition : om_file_save_helper->model_contexts_[0U].partition_datas_) {
+    if (saved_partition.type == ModelPartitionType::CUSTOM_OPS) {
+      partition = saved_partition;
+      return true;
+    }
+  }
+  return false;
+}
+
+static std::vector<uint8_t> BuildExpectedCustomOpsDataForModelHelperUt(const std::string &op_type,
+                                                                            const std::vector<uint8_t> &kernel_bin) {
+  CustomKernelItemHeader header{};
+  header.magic = kCustomKernelItemMagic;
+  header.name_len = static_cast<uint32_t>(op_type.size());
+  header.bin_len = static_cast<uint32_t>(kernel_bin.size());
+
+  std::vector<uint8_t> expected(sizeof(CustomKernelItemHeader));
+  std::copy_n(reinterpret_cast<const uint8_t *>(&header), sizeof(CustomKernelItemHeader), expected.data());
+  expected.insert(expected.end(), op_type.begin(), op_type.end());
+  expected.insert(expected.end(), kernel_bin.begin(), kernel_bin.end());
+  return expected;
+}
+
+static bool FindSoBinsPartitionForModelHelperUt(const std::shared_ptr<OmFileSaveHelper> &om_file_save_helper,
+                                                ModelPartition &partition) {
+  if (om_file_save_helper == nullptr || om_file_save_helper->model_contexts_.empty()) {
+    return false;
+  }
+  for (const auto &saved_partition : om_file_save_helper->model_contexts_[0U].partition_datas_) {
+    if (saved_partition.type == ModelPartitionType::SO_BINS) {
+      partition = saved_partition;
+      return true;
+    }
+  }
+  return false;
+}
 
 static void FillModelTaskDef(GeModelPtr ge_model, ModelTaskType task_type = ModelTaskType::MODEL_TASK_ALL_KERNEL,
                              ccKernelType kernel_type = ccKernelType::TE,
@@ -656,9 +1149,13 @@ TEST_F(UtestModelHelper, LoadOpSoBinSuccess)
   OmFileContext cur_ctx;
   ModelPartition so_patition;
   so_patition.type = ModelPartitionType::SO_BINS;
-  auto so_data = std::unique_ptr<char[]>(new(std::nothrow) char[20]);
-  so_patition.data = reinterpret_cast<uint8_t*>(so_data.get());
-  so_patition.size = 20;
+  std::vector<uint8_t> so_payload;
+  const auto test_so_bin = BuildOpSoBinForModelHelperUt("libload_op_so_bin_success.so", "vendor_ut", {0x1U, 0x2U, 0x3U},
+                                                        SoBinType::kAutofuse);
+  ASSERT_NE(test_so_bin, nullptr);
+  ASSERT_TRUE(BuildSoBinsPayloadForModelHelperUt({test_so_bin}, so_payload));
+  so_patition.data = so_payload.data();
+  so_patition.size = so_payload.size();
   cur_ctx.partition_datas_.push_back(so_patition);
   load_helper.model_contexts_.push_back(cur_ctx);
   EXPECT_EQ(model_helper.LoadOpSoBin(load_helper, ge_root_model), SUCCESS);
@@ -700,16 +1197,585 @@ TEST_F(UtestModelHelper, LoadTilingDataSuccess) {
   EXPECT_EQ(model_helper.LoadTilingData(load_helper, ge_root_model), SUCCESS);
 }
 
-TEST_F(UtestModelHelper, NotContainSoBin)
-{
+TEST_F(UtestModelHelper, LoadCustomOpsPartitionMissingSuccess) {
   OmFileLoadHelper load_helper;
-  ModelHelper model_helper;
   load_helper.is_inited_ = true;
+  load_helper.model_contexts_.emplace_back(OmFileContext{});
+
+  ModelHelper model_helper;
+  EXPECT_EQ(model_helper.LoadCustomOps(load_helper), SUCCESS);
+}
+
+TEST_F(UtestModelHelper, LoadCustomOpsEmptyPartitionSuccess) {
+  OmFileLoadHelper load_helper;
+  load_helper.is_inited_ = true;
+
+  OmFileContext cur_ctx;
+  ModelPartition custom_partition;
+  custom_partition.type = ModelPartitionType::CUSTOM_OPS;
+  custom_partition.data = nullptr;
+  custom_partition.size = 0U;
+  cur_ctx.partition_datas_.push_back(custom_partition);
+  load_helper.model_contexts_.push_back(cur_ctx);
+
+  ModelHelper model_helper;
+  EXPECT_EQ(model_helper.LoadCustomOps(load_helper), SUCCESS);
+}
+
+TEST_F(UtestModelHelper, SerializeCustomOpKernelNullPortableOpReturnsFailed) {
+  ModelHelper model_helper;
+  std::vector<uint8_t> merged_kernels = {0xB0U};
+  EXPECT_EQ(model_helper.SerializeCustomOpKernel(nullptr, kPortableOpTypeForModelHelper, merged_kernels), FAILED);
+  EXPECT_EQ(merged_kernels, std::vector<uint8_t>({0xB0U}));
+}
+
+TEST_F(UtestModelHelper, SerializeCustomOpKernelPortableOpSerializeFailedPropagates) {
+  ModelHelper model_helper;
+  std::vector<uint8_t> merged_kernels = {0xCDU};
+  ModelHelperPortableOpSerializeFailForUt portable_op;
+  EXPECT_EQ(model_helper.SerializeCustomOpKernel(&portable_op, kPortableOpSerializeFailTypeForModelHelper, merged_kernels),
+            GRAPH_FAILED);
+  EXPECT_EQ(merged_kernels, std::vector<uint8_t>({0xCDU}));
+}
+
+TEST_F(UtestModelHelper, SerializeCustomOpKernelPortableOpSerializeEmptySkipsAppend) {
+  ModelHelper model_helper;
+  std::vector<uint8_t> merged_kernels = {0xDEU};
+  ModelHelperPortableOpEmptyForUt portable_op;
+  EXPECT_EQ(model_helper.SerializeCustomOpKernel(&portable_op, kPortableOpEmptyTypeForModelHelper, merged_kernels), SUCCESS);
+  EXPECT_EQ(merged_kernels, std::vector<uint8_t>({0xDEU}));
+}
+
+TEST_F(UtestModelHelper, SerializeCustomOpKernelPortableOpSerializeSuccessAppendsKernelHeaderAndPayload) {
+  ModelHelper model_helper;
+  std::vector<uint8_t> merged_kernels = {0xEFU};
+  const auto old_size = merged_kernels.size();
+  ModelHelperPortableOpForUt portable_op;
+  EXPECT_EQ(model_helper.SerializeCustomOpKernel(&portable_op, kPortableOpTypeForModelHelper, merged_kernels), SUCCESS);
+
+  const auto expected_size = old_size + sizeof(CustomKernelItemHeader) + strlen(kPortableOpTypeForModelHelper) +
+                             kPortableKernelBinForModelHelper.size();
+  ASSERT_EQ(merged_kernels.size(), expected_size);
+
+  CustomKernelItemHeader header{};
+  std::copy_n(merged_kernels.data() + old_size, sizeof(CustomKernelItemHeader),
+              reinterpret_cast<uint8_t *>(&header));
+  EXPECT_EQ(header.magic, kCustomKernelItemMagic);
+  EXPECT_EQ(header.name_len, strlen(kPortableOpTypeForModelHelper));
+  EXPECT_EQ(header.bin_len, kPortableKernelBinForModelHelper.size());
+
+  const size_t name_offset = old_size + sizeof(CustomKernelItemHeader);
+  const std::string kernel_name(reinterpret_cast<const char *>(merged_kernels.data() + name_offset), header.name_len);
+  EXPECT_EQ(kernel_name, kPortableOpTypeForModelHelper);
+
+  const size_t bin_offset = name_offset + header.name_len;
+  const std::vector<uint8_t> kernel_bin(merged_kernels.begin() + static_cast<ptrdiff_t>(bin_offset),
+                                        merged_kernels.begin() + static_cast<ptrdiff_t>(bin_offset + header.bin_len));
+  EXPECT_EQ(kernel_bin, kPortableKernelBinForModelHelper);
+}
+
+TEST_F(UtestModelHelper, SaveCustomOpsPartitionPortableOpsWithoutKernelBinSkipsPartition) {
+  RegisterCustomOpCreatorForModelHelperUt(kPortableOpEmptyTypeForModelHelper, []() -> std::unique_ptr<BaseCustomOp> {
+    return std::make_unique<ModelHelperPortableOpEmptyForUt>();
+  });
+  const auto ge_root_model = CreateGeRootModelForModelHelperUt(kPortableOpEmptyTypeForModelHelper,
+                                                               kPortableOpEmptyTypeForModelHelper);
+  ASSERT_NE(ge_root_model, nullptr);
+
+  std::shared_ptr<OmFileSaveHelper> om_file_save_helper = std::make_shared<OmFileSaveHelper>();
+  ModelHelper model_helper;
+  EXPECT_EQ(model_helper.SaveCustomOpsPartition(om_file_save_helper, ge_root_model), SUCCESS);
+  EXPECT_TRUE(om_file_save_helper->model_contexts_.empty());
+}
+
+TEST_F(UtestModelHelper, SaveCustomOpsPartitionSerializeFailedReturnsFailed) {
+  RegisterCustomOpCreatorForModelHelperUt(kPortableOpSerializeFailTypeForModelHelper,
+                                          []() -> std::unique_ptr<BaseCustomOp> {
+                                            return std::make_unique<ModelHelperPortableOpSerializeFailForUt>();
+                                          });
+  const auto ge_root_model = CreateGeRootModelForModelHelperUt(kPortableOpSerializeFailTypeForModelHelper,
+                                                               kPortableOpSerializeFailTypeForModelHelper);
+  ASSERT_NE(ge_root_model, nullptr);
+
+  std::shared_ptr<OmFileSaveHelper> om_file_save_helper = std::make_shared<OmFileSaveHelper>();
+  ModelHelper model_helper;
+  EXPECT_NE(model_helper.SaveCustomOpsPartition(om_file_save_helper, ge_root_model), SUCCESS);
+}
+
+TEST_F(UtestModelHelper, SaveCustomOpsPartitionCreateCustomOpFailedReturnsFailed) {
+  RegisterCustomOpCreatorForModelHelperUt(kUnregisteredPortableOpTypeForModelHelper, []() -> std::unique_ptr<BaseCustomOp> {
+    return nullptr;
+  });
+
+  const auto ge_root_model = CreateGeRootModelForModelHelperUt(kUnregisteredPortableOpTypeForModelHelper,
+                                                               kUnregisteredPortableOpTypeForModelHelper);
+  ASSERT_NE(ge_root_model, nullptr);
+
+  std::shared_ptr<OmFileSaveHelper> om_file_save_helper = std::make_shared<OmFileSaveHelper>();
+  ModelHelper model_helper;
+  EXPECT_EQ(model_helper.SaveCustomOpsPartition(om_file_save_helper, ge_root_model), FAILED);
+}
+
+TEST_F(UtestModelHelper, SaveCustomOpsPartitionHasSerializablePortableOpsSavesPartition) {
+  RegisterCustomOpCreatorForModelHelperUt(kPortableOpTypeForModelHelper, []() -> std::unique_ptr<BaseCustomOp> {
+    return std::make_unique<ModelHelperPortableOpForUt>();
+  });
+  const auto ge_root_model = CreateGeRootModelForModelHelperUt(kPortableOpTypeForModelHelper,
+                                                               kPortableOpTypeForModelHelper);
+  ASSERT_NE(ge_root_model, nullptr);
+
+  std::shared_ptr<OmFileSaveHelper> om_file_save_helper = std::make_shared<OmFileSaveHelper>();
+  ModelHelper model_helper;
+  EXPECT_EQ(model_helper.SaveCustomOpsPartition(om_file_save_helper, ge_root_model), SUCCESS);
+
+  ModelPartition custom_partition;
+  ASSERT_TRUE(FindCustomOpsPartitionForModelHelperUt(om_file_save_helper, custom_partition));
+  ASSERT_FALSE(om_file_save_helper->model_contexts_.empty());
+  ASSERT_EQ(om_file_save_helper->model_contexts_[0U].owned_partitions_.size(), 1U);
+  EXPECT_EQ(custom_partition.data, om_file_save_helper->model_contexts_[0U].owned_partitions_[0U]->data());
+
+  const auto expected_partition_size =
+      sizeof(CustomKernelItemHeader) + strlen(kPortableOpTypeForModelHelper) + kPortableKernelBinForModelHelper.size();
+  ASSERT_EQ(custom_partition.size, expected_partition_size);
+}
+
+TEST_F(UtestModelHelper, SaveCustomOpsPartitionSaveModelToBufferBytesStable) {
+  RegisterCustomOpCreatorForModelHelperUt(kPortableOpTypeForModelHelper, []() -> std::unique_ptr<BaseCustomOp> {
+    return std::make_unique<ModelHelperPortableOpForUt>();
+  });
+  const auto ge_root_model = CreateGeRootModelForModelHelperUt(kPortableOpTypeForModelHelper,
+                                                               kPortableOpTypeForModelHelper);
+  ASSERT_NE(ge_root_model, nullptr);
+
+  std::shared_ptr<OmFileSaveHelper> om_file_save_helper = std::make_shared<OmFileSaveHelper>();
+  ModelHelper model_helper;
+  ASSERT_EQ(model_helper.SaveCustomOpsPartition(om_file_save_helper, ge_root_model), SUCCESS);
+  ASSERT_FALSE(om_file_save_helper->model_contexts_.empty());
+  ASSERT_EQ(om_file_save_helper->model_contexts_[0U].owned_partitions_.size(), 1U);
+
+  const std::vector<uint8_t> expected_partition = BuildExpectedCustomOpsDataForModelHelperUt(
+      kPortableOpTypeForModelHelper, kPortableKernelBinForModelHelper);
+
+  // Overwrite allocator cache to stress payload lifetime before delayed SaveModel serialization.
+  std::vector<uint8_t> memory_noise(expected_partition.size(), 0xABU);
+  ASSERT_FALSE(memory_noise.empty());
+
+  ModelBufferData model_buffer;
+  ASSERT_EQ(om_file_save_helper->SaveModel("unused.om", model_buffer, false), SUCCESS);
+  ASSERT_NE(model_buffer.data, nullptr);
+  ASSERT_GT(model_buffer.length, 0U);
+  ASSERT_GE(model_buffer.length, expected_partition.size());
+  const auto *tail = model_buffer.data.get() + (model_buffer.length - expected_partition.size());
+  const std::vector<uint8_t> loaded_data(tail, tail + expected_partition.size());
+  EXPECT_EQ(loaded_data, expected_partition);
+}
+
+TEST_F(UtestModelHelper, SaveCustomOpsPartitionPortableAndNonPortableFails)
+{
+  RegisterCustomOpCreatorForModelHelperUt(kPortableOpTypeForModelHelper, []() -> std::unique_ptr<BaseCustomOp> {
+    return std::make_unique<ModelHelperPortableOpForUt>();
+  });
+  RegisterCustomOpCreatorForModelHelperUt(kNonPortableOpTypeForModelHelper, []() -> std::unique_ptr<BaseCustomOp> {
+    return std::make_unique<ModelHelperNonPortableOpForUt>();
+  });
+
+  const auto ge_root_model = CreateGeRootModelForModelHelperUt(kPortableOpTypeForModelHelper,
+                                                               kNonPortableOpTypeForModelHelper);
+  ASSERT_NE(ge_root_model, nullptr);
+
+  std::shared_ptr<OmFileSaveHelper> om_file_save_helper = std::make_shared<OmFileSaveHelper>();
+  ModelHelper model_helper;
+  EXPECT_NE(model_helper.SaveCustomOpsPartition(om_file_save_helper, ge_root_model), SUCCESS);
+}
+
+TEST_F(UtestModelHelper, SaveCustomOpsPartitionSkipsRootGraphRepeatedInSubgraphMap) {
+  RegisterCustomOpCreatorForModelHelperUt(kPortableOpTypeForModelHelper, []() -> std::unique_ptr<BaseCustomOp> {
+    return std::make_unique<ModelHelperPortableOpForUt>();
+  });
+  const auto ge_root_model = CreateGeRootModelForModelHelperUt(kPortableOpTypeForModelHelper,
+                                                               kPortableOpTypeForModelHelper);
+  ASSERT_NE(ge_root_model, nullptr);
+
+  GeModelPtr root_model = std::make_shared<GeModel>();
+  root_model->SetGraph(ge_root_model->GetRootGraph());
+  ge_root_model->subgraph_instance_name_to_model_[ge_root_model->GetRootGraph()->GetName()] = root_model;
+
+  std::shared_ptr<OmFileSaveHelper> om_file_save_helper = std::make_shared<OmFileSaveHelper>();
+  ModelHelper model_helper;
+  EXPECT_EQ(model_helper.SaveCustomOpsPartition(om_file_save_helper, ge_root_model), SUCCESS);
+
+  ModelPartition custom_partition;
+  ASSERT_TRUE(FindCustomOpsPartitionForModelHelperUt(om_file_save_helper, custom_partition));
+  ASSERT_FALSE(om_file_save_helper->model_contexts_.empty());
+  ASSERT_EQ(om_file_save_helper->model_contexts_[0U].owned_partitions_.size(), 1U);
+  EXPECT_EQ(custom_partition.data, om_file_save_helper->model_contexts_[0U].owned_partitions_[0U]->data());
+
+  const auto expected_partition_size =
+      sizeof(CustomKernelItemHeader) + strlen(kPortableOpTypeForModelHelper) + kPortableKernelBinForModelHelper.size();
+  ASSERT_EQ(custom_partition.size, expected_partition_size);
+}
+
+TEST_F(UtestModelHelper, CollectCustomOpSoFromCustomOppPathNoTargetSoShouldFail) {
+  ScopedHostEnvForModelHelperUt host_env_guard("linux", "x86_64");
+  ScopedEnvVarForModelHelperUt custom_opp_guard(kEnvNameCustom);
+
+  std::string opp_path = __FILE__;
+  opp_path = opp_path.substr(0, opp_path.rfind("/") + 1);
+  const std::string custom_opp_path = opp_path + "custom_opp_no_match_ut";
+  ScopedTmpDirCleanerForModelHelperUt opp_dir_guard(custom_opp_path);
+  const std::string target_proto_so_dir = custom_opp_path + "/op_proto/lib/linux/x86_64";
+  const std::string target_tiling_so_dir = custom_opp_path + "/op_tiling/lib/linux/x86_64";
+  const std::string non_target_so_dir = custom_opp_path + "/op_proto/lib/linux/aarch64";
+  const std::string non_target_so_path = non_target_so_dir + "/libcross_only_ut.so";
+  system(("mkdir -p " + target_proto_so_dir).c_str());
+  system(("mkdir -p " + target_tiling_so_dir).c_str());
+  system(("mkdir -p " + non_target_so_dir).c_str());
+  system(("touch " + non_target_so_path).c_str());
+  mmSetEnv(kEnvNameCustom, custom_opp_path.c_str(), 1);
+
+  GeRootModel ge_root_model;
+  EXPECT_NE(ge_root_model.CollectCustomOpSoFromCustomOppPath("linux", "x86_64"), SUCCESS);
+  system(("rm -rf " + custom_opp_path).c_str());
+}
+
+TEST_F(UtestModelHelper, CheckAndSetNeedSoInOMCrossModePortableOpShouldCollectAllTargetEnvSo) {
+  RegisterCustomOpCreatorForModelHelperUt(kPortableOpTypeForModelHelper, []() -> std::unique_ptr<BaseCustomOp> {
+    return std::make_unique<ModelHelperPortableOpForUt>();
+  });
+  const auto ge_root_model = CreateGeRootModelForModelHelperUt(kPortableOpTypeForModelHelper,
+                                                               kPortableOpTypeForModelHelper);
+  ASSERT_NE(ge_root_model, nullptr);
+
+  std::string current_env_os;
+  std::string current_env_cpu;
+  std::string target_env_cpu;
+  ASSERT_TRUE(ResolveCrossModeTargetEnvForModelHelperUt(current_env_os, current_env_cpu, target_env_cpu));
+
+  ScopedHostEnvForModelHelperUt host_env_guard(current_env_os, target_env_cpu);
+  ScopedEnvVarForModelHelperUt custom_opp_guard(kEnvNameCustom);
+
+  std::string opp_path = __FILE__;
+  opp_path = opp_path.substr(0, opp_path.rfind("/") + 1);
+  const std::string custom_opp_path = opp_path + "custom_opp_cross_mode_ut";
+  ScopedTmpDirCleanerForModelHelperUt opp_dir_guard(custom_opp_path);
+  CrossModeCustomOppPathsForModelHelperUt so_paths;
+  ASSERT_TRUE(PrepareCrossModeCustomOppForModelHelperUt(custom_opp_path, current_env_os, current_env_cpu, target_env_cpu,
+                                                        so_paths));
+  mmSetEnv(kEnvNameCustom, custom_opp_path.c_str(), 1);
+
+  ASSERT_EQ(ge_root_model->CheckAndSetNeedSoInOM(), SUCCESS);
+  const auto &custom_op_so_set = ge_root_model->GetCustomOpSoSet();
+  ASSERT_EQ(custom_op_so_set.size(), 1U);
+  EXPECT_NE(custom_op_so_set.count(so_paths.target_graph_so_path), 0U);
+  EXPECT_EQ(custom_op_so_set.count(so_paths.non_target_graph_so_path), 0U);
+  for (const auto &so_path : custom_op_so_set) {
+    EXPECT_NE(so_path.find(current_env_os + "/" + target_env_cpu), std::string::npos);
+  }
+}
+
+TEST_F(UtestModelHelper, CheckAndSetNeedSoInOMSameArchShouldKeepExistingBehavior) {
+  RegisterCustomOpCreatorForModelHelperUt(kPortableOpTypeForModelHelper, []() -> std::unique_ptr<BaseCustomOp> {
+    return std::make_unique<ModelHelperPortableOpForUt>();
+  });
+  const auto ge_root_model = CreateGeRootModelForModelHelperUt(kPortableOpTypeForModelHelper,
+                                                               kPortableOpTypeForModelHelper);
+  ASSERT_NE(ge_root_model, nullptr);
+
+  std::string current_env_os;
+  std::string current_env_cpu;
+  PluginManager::GetCurEnvPackageOsAndCpuType(current_env_os, current_env_cpu);
+  if (current_env_os.empty()) {
+    current_env_os = "linux";
+  }
+  if (current_env_cpu.empty()) {
+#if defined(__aarch64__) || defined(__arm64__)
+    current_env_cpu = "aarch64";
+#elif defined(__x86_64__) || defined(__amd64__)
+    current_env_cpu = "x86_64";
+#endif
+  }
+  ASSERT_FALSE(current_env_cpu.empty());
+
+  ScopedHostEnvForModelHelperUt host_env_guard(current_env_os, current_env_cpu);
+  ScopedEnvVarForModelHelperUt custom_opp_guard(kEnvNameCustom);
+  mmSetEnv(kEnvNameCustom, "", 1);
+
+  EXPECT_EQ(ge_root_model->CheckAndSetNeedSoInOM(), SUCCESS);
+  EXPECT_FALSE(ge_root_model->GetCustomOpSoSet().empty());
+}
+
+TEST_F(UtestModelHelper, CollectCustomOpSoFromCustomOppPathShouldCollectAllSoWithoutNameFilter) {
+  ScopedHostEnvForModelHelperUt host_env_guard("linux", "aarch64");
+  ScopedEnvVarForModelHelperUt custom_opp_guard(kEnvNameCustom);
+
+  std::string opp_path = __FILE__;
+  opp_path = opp_path.substr(0, opp_path.rfind("/") + 1);
+  const std::string custom_opp_path = opp_path + "custom_opp_ambiguous_match_ut";
+  ScopedTmpDirCleanerForModelHelperUt opp_dir_guard(custom_opp_path);
+  const std::string target_graph_so_dir = custom_opp_path + "/op_graph/lib/linux/aarch64";
+  const std::string so_path_0 = target_graph_so_dir + "/libaaa_custom_0.so";
+  system(("mkdir -p " + target_graph_so_dir).c_str());
+  uint16_t expected_machine = 0U;
+  ASSERT_TRUE(GetExpectedElfMachineForCpuModelHelperUt("aarch64", expected_machine));
+  ASSERT_TRUE(WriteElfHeaderForModelHelperUt(so_path_0, expected_machine));
+  mmSetEnv(kEnvNameCustom, custom_opp_path.c_str(), 1);
+
+  GeRootModel ge_root_model;
+  EXPECT_EQ(ge_root_model.CollectCustomOpSoFromCustomOppPath("linux", "aarch64"), SUCCESS);
+  EXPECT_EQ(ge_root_model.GetCustomOpSoSet().size(), 1U);
+  EXPECT_NE(ge_root_model.GetCustomOpSoSet().count(so_path_0), 0U);
+
+  system(("rm -rf " + custom_opp_path).c_str());
+}
+
+TEST_F(UtestModelHelper, CheckAndSetNeedSoInOMPortableOpTargetArchMismatchShouldFail) {
+  RegisterCustomOpCreatorForModelHelperUt(kPortableOpTypeForModelHelper, []() -> std::unique_ptr<BaseCustomOp> {
+    return std::make_unique<ModelHelperPortableOpForUt>();
+  });
+  const auto ge_root_model = CreateGeRootModelForModelHelperUt(kPortableOpTypeForModelHelper,
+                                                               kPortableOpTypeForModelHelper);
+  ASSERT_NE(ge_root_model, nullptr);
+
+  std::string current_env_os;
+  std::string current_env_cpu;
+  PluginManager::GetCurEnvPackageOsAndCpuType(current_env_os, current_env_cpu);
+  if (current_env_os.empty()) {
+    current_env_os = "linux";
+  }
+  if (current_env_cpu.empty()) {
+#if defined(__aarch64__) || defined(__arm64__)
+    current_env_cpu = "aarch64";
+#elif defined(__x86_64__) || defined(__amd64__)
+    current_env_cpu = "x86_64";
+#endif
+  }
+  ASSERT_FALSE(current_env_os.empty());
+  ASSERT_FALSE(current_env_cpu.empty());
+  std::string target_env_cpu = current_env_cpu;
+  std::transform(target_env_cpu.begin(), target_env_cpu.end(), target_env_cpu.begin(),
+                 [](char c) { return static_cast<char>(std::tolower(static_cast<unsigned char>(c))); });
+  if ((target_env_cpu == "aarch64") || (target_env_cpu == "arm64")) {
+    target_env_cpu = "x86_64";
+  } else {
+    target_env_cpu = "aarch64";
+  }
+
+  ScopedHostEnvForModelHelperUt host_env_guard(current_env_os, target_env_cpu);
+  ScopedEnvVarForModelHelperUt custom_opp_guard(kEnvNameCustom);
+
+  std::string opp_path = __FILE__;
+  opp_path = opp_path.substr(0, opp_path.rfind("/") + 1);
+  const std::string custom_opp_path = opp_path + "custom_opp_arch_mismatch_ut";
+  ScopedTmpDirCleanerForModelHelperUt opp_dir_guard(custom_opp_path);
+  const std::string mismatch_so_dir = custom_opp_path + "/op_proto/lib/" + current_env_os + "/" + target_env_cpu;
+  const std::string mismatch_so_path = mismatch_so_dir + "/lib" + std::string(kPortableOpTypeForModelHelper) + "_ut.so";
+  system(("mkdir -p " + mismatch_so_dir).c_str());
+  const uint16_t mismatch_e_machine = (target_env_cpu == "x86_64") ? 183U : 62U;  // EM_AARCH64 : EM_X86_64
+  ASSERT_TRUE(WriteElfHeaderForModelHelperUt(mismatch_so_path, mismatch_e_machine));
+  mmSetEnv(kEnvNameCustom, custom_opp_path.c_str(), 1);
+
+  EXPECT_NE(ge_root_model->CheckAndSetNeedSoInOM(), SUCCESS);
+
+  system(("rm -rf " + custom_opp_path).c_str());
+}
+
+TEST_F(UtestModelHelper, CheckAndSetNeedSoInOMPortableCustomOpSetsCustomSoBit) {
+  RegisterCustomOpCreatorForModelHelperUt(kPortableOpTypeForModelHelper, []() -> std::unique_ptr<BaseCustomOp> {
+    return std::make_unique<ModelHelperPortableOpForUt>();
+  });
+  const auto ge_root_model = CreateGeRootModelForModelHelperUt(kPortableOpTypeForModelHelper,
+                                                               kPortableOpTypeForModelHelper);
+  ASSERT_NE(ge_root_model, nullptr);
+
+  EXPECT_EQ(ge_root_model->CheckAndSetNeedSoInOM(), SUCCESS);
+  EXPECT_NE((ge_root_model->GetSoInOmFlag() & 0x1000U), 0U);
+}
+
+TEST_F(UtestModelHelper, SaveSoStoreModelPartitionInfoCustomOpOnlyGraphShouldSaveSoBinsPartition) {
+  RegisterCustomOpCreatorForModelHelperUt(kPortableOpTypeForModelHelper, []() -> std::unique_ptr<BaseCustomOp> {
+    return std::make_unique<ModelHelperPortableOpForUt>();
+  });
+  const auto ge_root_model = CreateGeRootModelForModelHelperUt(kPortableOpTypeForModelHelper,
+                                                               kPortableOpTypeForModelHelper);
+  ASSERT_NE(ge_root_model, nullptr);
+  ASSERT_EQ(ge_root_model->CheckAndSetNeedSoInOM(), SUCCESS);
+
+  std::shared_ptr<OmFileSaveHelper> om_file_save_helper = std::make_shared<OmFileSaveHelper>();
+  GeModelPtr first_ge_model = std::make_shared<GeModel>();
+  std::string output_file_name = "custom_only_model.om";
+  ModelHelper model_helper;
+  ASSERT_EQ(model_helper.SaveSoStoreModelPartitionInfo(om_file_save_helper, ge_root_model, output_file_name,
+                                                       first_ge_model),
+            SUCCESS);
+
+  ModelPartition so_bins_partition;
+  EXPECT_TRUE(FindSoBinsPartitionForModelHelperUt(om_file_save_helper, so_bins_partition));
+}
+
+TEST_F(UtestModelHelper, LoadOpSoBinCustomTypeInvalidPayloadShouldFail) {
+  OpSoStore op_so_store;
+  std::vector<char_t> invalid_payload = {static_cast<char_t>(0xA5), static_cast<char_t>(0x5A),
+                                         static_cast<char_t>(0x00), static_cast<char_t>(0xFF)};
+  auto invalid_so_data = std::unique_ptr<char_t[]>(new (std::nothrow) char_t[invalid_payload.size()]);
+  ASSERT_NE(invalid_so_data, nullptr);
+  ASSERT_EQ(memcpy_s(invalid_so_data.get(), invalid_payload.size(), invalid_payload.data(), invalid_payload.size()), EOK);
+
+  const auto custom_invalid_so = std::make_shared<OpSoBin>("libcustom_invalid.so", "vendor_custom",
+                                                           std::move(invalid_so_data),
+                                                           static_cast<uint32_t>(invalid_payload.size()),
+                                                           static_cast<SoBinType>(3));
+  ASSERT_NE(custom_invalid_so, nullptr);
+  op_so_store.AddKernel(custom_invalid_so);
+  ASSERT_TRUE(op_so_store.Build());
+
+  OmFileLoadHelper load_helper;
+  load_helper.is_inited_ = true;
+  OmFileContext cur_ctx;
+  ModelPartition so_patition;
+  so_patition.type = ModelPartitionType::SO_BINS;
+  so_patition.data = const_cast<uint8_t *>(op_so_store.Data());
+  so_patition.size = op_so_store.DataSize();
+  cur_ctx.partition_datas_.push_back(so_patition);
+  load_helper.model_contexts_.push_back(cur_ctx);
+
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("graph");
-  AttrUtils::SetBool(graph, ATTR_NAME_DYNAMIC_SHAPE_PARTITIONED, true);
   GeRootModelPtr ge_root_model = std::make_shared<GeRootModel>();
-  EXPECT_EQ(ge_root_model->Initialize(graph), SUCCESS);
-  EXPECT_EQ(model_helper.LoadOpSoBin(load_helper, ge_root_model), SUCCESS);
+  ASSERT_EQ(ge_root_model->Initialize(graph), SUCCESS);
+  GeModelPtr ge_model = std::make_shared<GeModel>();
+
+  ModelHelper model_helper;
+  model_helper.model_ = ge_model;
+  EXPECT_NE(model_helper.LoadOpSoBin(load_helper, ge_root_model), SUCCESS);
+}
+
+TEST_F(UtestModelHelper, CustomOpSoLoaderLoadSuccessAndCleanupShouldReleaseHandleAndFd) {
+  std::string source_so_path;
+  ASSERT_TRUE(FindNotLoadedSystemSoForModelHelperUt(source_so_path));
+  std::vector<char_t> so_data;
+  ASSERT_TRUE(ReadSoDataForModelHelperUt(source_so_path, so_data));
+  const auto so_bin = BuildCustomOpSoBinForModelHelperUt("libcustom_op_loader_fallback_ut.so", "vendor_ut", so_data);
+  ASSERT_NE(so_bin, nullptr);
+
+  std::string so_key;
+  std::string fd_path;
+  {
+    CustomOpSoLoader loader;
+    ASSERT_EQ(loader.LoadCustomOpSoBins({so_bin}), SUCCESS);
+    ASSERT_EQ(loader.loaded_states_.size(), 1U);
+    so_key = loader.loaded_states_.begin()->first;
+    const auto &state = loader.loaded_states_.begin()->second;
+    ASSERT_NE(state.handle, nullptr);
+    ASSERT_NE(state.mem_fd, -1);
+    fd_path = BuildProcFdPathForModelHelperUt(state.mem_fd);
+    ASSERT_EQ(mmAccess2(fd_path.c_str(), M_F_OK), EN_OK);
+
+    loader.Cleanup();
+    EXPECT_TRUE(loader.loaded_states_.empty());
+  }
+
+  EXPECT_FALSE(so_key.empty());
+  EXPECT_NE(mmAccess2(fd_path.c_str(), M_F_OK), EN_OK);
+}
+
+TEST_F(UtestModelHelper, CustomOpSoLoaderShouldIgnoreLegacyCacheDirEnvAndNeverWriteDiskSo) {
+  ScopedEnvVarForModelHelperUt env_guard("GE_CUSTOM_OP_CACHE_DIR");
+  const std::string cache_dir =
+      "/tmp/custom_op_loader_env_" + std::to_string(mmGetPid()) + "_" + std::to_string(mmGetTid());
+  (void)mmRmdir(cache_dir.c_str());
+  ASSERT_EQ(CreateDir(cache_dir), 0);
+  ASSERT_EQ(mmSetEnv("GE_CUSTOM_OP_CACHE_DIR", cache_dir.c_str(), 1), EN_OK);
+
+  std::string source_so_path;
+  ASSERT_TRUE(FindNotLoadedSystemSoForModelHelperUt(source_so_path));
+  std::vector<char_t> so_data;
+  ASSERT_TRUE(ReadSoDataForModelHelperUt(source_so_path, so_data));
+  const auto so_bin = BuildCustomOpSoBinForModelHelperUt("libcustom_op_loader_cache_env_ut.so", "vendor_ut", so_data);
+  ASSERT_NE(so_bin, nullptr);
+
+  const std::string expected_disk_so_path = cache_dir + "/vendor_ut_libcustom_op_loader_cache_env_ut.so";
+  {
+    CustomOpSoLoader loader;
+    ASSERT_EQ(loader.LoadCustomOpSoBins({so_bin}), SUCCESS);
+    ASSERT_EQ(loader.loaded_states_.size(), 1U);
+    EXPECT_NE(mmAccess2(expected_disk_so_path.c_str(), M_F_OK), EN_OK);
+    loader.Cleanup();
+    EXPECT_TRUE(loader.loaded_states_.empty());
+  }
+
+  EXPECT_EQ(mmAccess2(cache_dir.c_str(), M_F_OK), EN_OK);
+  EXPECT_NE(mmAccess2(expected_disk_so_path.c_str(), M_F_OK), EN_OK);
+  (void)mmRmdir(cache_dir.c_str());
+}
+
+TEST_F(UtestModelHelper, CustomOpSoLoaderLoadSamePathSameContentSkipsReload) {
+  std::string source_so_path;
+  ASSERT_TRUE(FindNotLoadedSystemSoForModelHelperUt(source_so_path));
+  std::vector<char_t> so_data;
+  ASSERT_TRUE(ReadSoDataForModelHelperUt(source_so_path, so_data));
+  const auto so_bin = BuildCustomOpSoBinForModelHelperUt("libcustom_op_loader_same_path_ut.so", "vendor_ut", so_data);
+  ASSERT_NE(so_bin, nullptr);
+
+  {
+    CustomOpSoLoader loader;
+    ASSERT_EQ(loader.LoadCustomOpSoBins({so_bin}), SUCCESS);
+    ASSERT_EQ(loader.loaded_states_.size(), 1U);
+    const auto first_it = loader.loaded_states_.begin();
+    const auto first_key = first_it->first;
+    const auto first_state = first_it->second;
+    ASSERT_NE(first_state.handle, nullptr);
+    ASSERT_NE(first_state.mem_fd, -1);
+    ASSERT_EQ(mmAccess2(BuildProcFdPathForModelHelperUt(first_state.mem_fd).c_str(), M_F_OK), EN_OK);
+
+    ASSERT_EQ(loader.LoadCustomOpSoBins({so_bin}), SUCCESS);
+    ASSERT_EQ(loader.loaded_states_.size(), 1U);
+    const auto second_it = loader.loaded_states_.find(first_key);
+    ASSERT_NE(second_it, loader.loaded_states_.end());
+    EXPECT_EQ(second_it->second.handle, first_state.handle);
+    EXPECT_EQ(second_it->second.mem_fd, first_state.mem_fd);
+    EXPECT_EQ(second_it->second.fingerprint.bin_size, first_state.fingerprint.bin_size);
+    EXPECT_EQ(second_it->second.fingerprint.content_hash, first_state.fingerprint.content_hash);
+
+    loader.Cleanup();
+    EXPECT_TRUE(loader.loaded_states_.empty());
+  }
+}
+
+TEST_F(UtestModelHelper, CustomOpSoLoaderLoadSamePathDifferentContentShouldFail) {
+  std::string source_so_path;
+  ASSERT_TRUE(FindNotLoadedSystemSoForModelHelperUt(source_so_path));
+  std::vector<char_t> so_data;
+  ASSERT_TRUE(ReadSoDataForModelHelperUt(source_so_path, so_data));
+  ASSERT_FALSE(so_data.empty());
+
+  const auto so_bin = BuildCustomOpSoBinForModelHelperUt("libcustom_op_loader_conflict_ut.so", "vendor_ut", so_data);
+  ASSERT_NE(so_bin, nullptr);
+
+  std::vector<char_t> modified_so_data = so_data;
+  modified_so_data[0U] = static_cast<char_t>(modified_so_data[0U] ^ 0x1);
+  const auto modified_so_bin = BuildCustomOpSoBinForModelHelperUt("libcustom_op_loader_conflict_ut.so", "vendor_ut",
+                                                                   modified_so_data);
+  ASSERT_NE(modified_so_bin, nullptr);
+
+  {
+    CustomOpSoLoader loader;
+    ASSERT_EQ(loader.LoadCustomOpSoBins({so_bin}), SUCCESS);
+    ASSERT_EQ(loader.loaded_states_.size(), 1U);
+    const auto first_it = loader.loaded_states_.begin();
+    const auto first_key = first_it->first;
+    const auto first_state = first_it->second;
+
+    EXPECT_NE(loader.LoadCustomOpSoBins({modified_so_bin}), SUCCESS);
+    ASSERT_EQ(loader.loaded_states_.size(), 1U);
+    const auto second_it = loader.loaded_states_.find(first_key);
+    ASSERT_NE(second_it, loader.loaded_states_.end());
+    EXPECT_EQ(second_it->second.handle, first_state.handle);
+    EXPECT_EQ(second_it->second.mem_fd, first_state.mem_fd);
+    EXPECT_EQ(second_it->second.fingerprint.bin_size, first_state.fingerprint.bin_size);
+    EXPECT_EQ(second_it->second.fingerprint.content_hash, first_state.fingerprint.content_hash);
+
+    loader.Cleanup();
+    EXPECT_TRUE(loader.loaded_states_.empty());
+  }
 }
 
 TEST_F(UtestModelHelper, LoadOpSoBinDataFail)
@@ -734,6 +1800,30 @@ TEST_F(UtestModelHelper, LoadOpSoBinDataFail)
   load_helper.model_contexts_.push_back(cur_ctx);
   model_helper.model_ = ge_model;
   EXPECT_EQ(model_helper.LoadOpSoBin(load_helper, ge_root_model), SUCCESS);
+}
+
+TEST_F(UtestModelHelper, LoadOpSoBinDataNonEmptyInvalidPayloadShouldFail) {
+  OmFileLoadHelper load_helper;
+  load_helper.is_inited_ = true;
+  OmFileContext cur_ctx;
+  // so_num = 1 but no SoStoreItemHead payload, should make OpSoStore::Load fail.
+  std::vector<uint8_t> invalid_so_bins = {0x01U, 0x00U, 0x00U, 0x00U, 0x00U};
+  ModelPartition so_patition;
+  so_patition.type = ModelPartitionType::SO_BINS;
+  so_patition.data = invalid_so_bins.data();
+  so_patition.size = invalid_so_bins.size();
+  cur_ctx.partition_datas_.push_back(so_patition);
+  load_helper.model_contexts_.push_back(cur_ctx);
+
+  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("graph");
+  GeRootModelPtr ge_root_model = std::make_shared<GeRootModel>();
+  EXPECT_EQ(ge_root_model->Initialize(graph), SUCCESS);
+  GeModelPtr ge_model = std::make_shared<GeModel>();
+  ge_root_model->subgraph_instance_name_to_model_["graph"] = ge_model;
+
+  ModelHelper model_helper;
+  model_helper.model_ = ge_model;
+  EXPECT_NE(model_helper.LoadOpSoBin(load_helper, ge_root_model), SUCCESS);
 }
 
 TEST_F(UtestModelHelper, GetBinDataSuccess) {
@@ -1043,23 +2133,8 @@ TEST_F(UtestModelHelper, SaveOpMasterDevice_WithSpaceRegistry_Success) {
   std::string opp_path = __FILE__;
   opp_path = opp_path.substr(0, opp_path.rfind("/") + 1) + "/test_tmp/";
   mmSetEnv(kEnvName, opp_path.c_str(), 1);
-  std::string inner_op_master = opp_path + "built_in/op_master_device/lib/";
-  system(("mkdir -p " + inner_op_master).c_str());
-  inner_op_master += "Ascend-V7.6-libopmaster.so";
-  system(("touch " + inner_op_master).c_str());
-  system(("echo 'Ascend-V7.6-libopmaster' > " + inner_op_master).c_str());
-
-  std::string inner_proto_path = opp_path + kInner + kOpsProtoPath;
-  system(("mkdir -p " + inner_proto_path).c_str());
-  inner_proto_path += kOpsProto;
-  system(("touch " + inner_proto_path).c_str());
-  system(("echo 'ops proto' > " + inner_proto_path).c_str());
-
-  std::string inner_tiling_path = opp_path + kInner + kOpMasterPath;
-  system(("mkdir -p " + inner_tiling_path).c_str());
-  inner_tiling_path += kOpMaster;
-  system(("touch " + inner_tiling_path).c_str());
-  system(("echo 'op tiling ' > " + inner_tiling_path).c_str());
+  std::string inner_op_master;
+  ASSERT_TRUE(PrepareBuiltInOpMasterFilesForModelHelperUt(opp_path, inner_op_master));
 
   ModelBufferData model;
   ModelHelper model_helper;
@@ -1101,29 +2176,6 @@ TEST_F(UtestModelHelper, SaveOpMasterDevice_So_Name_Invalid) {
   EXPECT_NE(ge_root_model->CheckAndSetNeedSoInOM(), SUCCESS);
 }
 
-TEST_F(UtestModelHelper, CheckOsCpuInfoAndOppVersion_Success) {
-  ModelHelper model_helper;
-  std::vector<char> data;
-  data.resize(256);
-  ModelFileHeader *file_header = reinterpret_cast<ModelFileHeader *>(data.data());
-  file_header->need_check_os_cpu_info = static_cast<uint8_t>(OsCpuInfoCheckTyep::NO_CHECK);
-  model_helper.file_header_ = file_header;
-  model_helper.is_unknown_shape_model_ = true;
-  gert::GertRuntimeStub stub;
-  stub.GetSlogStub().Clear();
-  stub.GetSlogStub().SetLevelDebug();
-  EXPECT_EQ(model_helper.CheckOsCpuInfoAndOppVersion(), SUCCESS);
-  ASSERT_TRUE(stub.GetSlogStub().FindLog(DLOG_DEBUG, "Check opp version[] success") >= 0);
-}
-
-TEST_F(UtestModelHelper, UpdateSessionGraphId) {
-  ModelHelper model_helper;
-  bool refreshed = false;
-  auto graph = gert::ShareGraph::BuildWithKnownSubgraphWithTwoConst();
-  auto ret = model_helper.UpdateSessionGraphId(graph, "1", refreshed);
-  EXPECT_EQ(ret, SUCCESS);
-}
-
 TEST_F(UtestModelHelper, SaveAndLoadOfflineAutofuseSo) {
   std::string opp_path = __FILE__;
   opp_path = opp_path.substr(0, opp_path.rfind("/") + 1) + "/test_tmp/";
@@ -1141,18 +2193,9 @@ TEST_F(UtestModelHelper, SaveAndLoadOfflineAutofuseSo) {
       ConstructGeRootModel(false, ModelTaskType::MODEL_TASK_PREPROCESS_KERNEL, ccKernelType::AI_CPU, inner_op_master);
 
   auto ge_root_graph = ge_root_model->GetRootGraph();
-
-  OpDescBuilder op_desc_builder("test", "AscBackend");
-  const auto &op_desc = op_desc_builder.Build();
-  auto node = ge_root_graph->AddNode(op_desc);
-  node->SetOwnerComputeGraph(ge_root_graph);
   auto autofuse_stub_so = __FILE__;
   std::cout << "bin path: " << autofuse_stub_so << std::endl;
-  auto nodes = ge_root_graph->GetAllNodesPtr();
-  for (auto n : nodes) {
-    cout << n->GetName() << endl;
-    (void)ge::AttrUtils::SetStr(n->GetOpDesc(), "bin_file_path", autofuse_stub_so);
-  }
+  ASSERT_TRUE(AddAutofuseNodeAndSetBinFilePathForModelHelperUt(ge_root_graph, autofuse_stub_so));
 
   EXPECT_EQ(ge_root_model->CheckAndSetNeedSoInOM(), SUCCESS);
   EXPECT_EQ(ge_root_model->GetSoInOmFlag(), 0x6000);
@@ -1169,15 +2212,8 @@ TEST_F(UtestModelHelper, SaveAndLoadOfflineAutofuseSo) {
   }
 
   OmFileLoadHelper load_helper;
-  load_helper.is_inited_ = true;
-  OmFileContext cur_ctx;
-  ModelPartition so_patition;
-  so_patition.type = ModelPartitionType::SO_BINS;
-  auto so_data = std::unique_ptr<char[]>(new(std::nothrow) char[20]);
-  so_patition.data = reinterpret_cast<uint8_t*>(so_data.get());
-  so_patition.size = 20;
-  cur_ctx.partition_datas_.push_back(so_patition);
-  load_helper.model_contexts_.push_back(cur_ctx);
+  std::vector<uint8_t> so_payload;
+  ASSERT_TRUE(BuildOfflineAutofuseSoBinsForModelHelperUt(load_helper, so_payload));
   EXPECT_EQ(model_helper.LoadOpSoBin(load_helper, ge_root_model), SUCCESS);
 
   const auto &root_model = model_helper.GetGeRootModel();
@@ -1227,96 +2263,4 @@ TEST_F(UtestModelHelper, SaveToOm_for_SubPkg_Opp) {
   }
 }
 
-// Testable ModelHelper subclass to expose private methods for testing
-class TestableModelHelper : public ModelHelper {
- public:
-  // Expose ShouldCompress method for testing
-  bool TestShouldCompress() const {
-    return ShouldCompress();
-  }
-
-  // Expose GetCompressionModeString method for testing
-  const char* TestGetCompressionModeString() const {
-    return attr_compression_enabled_ ? "enable" : "disable";
-  }
-};
-
-// Test 1: enabled=true + offline=true + need_compress=true → should compress
-TEST_F(UtestModelHelper, AttrCompression_EnabledWithOffline_ShouldCompress) {
-  TestableModelHelper helper;
-  helper.SetSaveMode(true);  // is_offline_ = true
-  helper.SetAttrCompressionEnabled(true);  // attr_compression_enabled_ = true
-
-  EXPECT_TRUE(helper.TestShouldCompress());
-  EXPECT_STREQ(helper.TestGetCompressionModeString(), "enable");
-}
-
-// Test 2: enabled=true + offline=false → should not compress
-TEST_F(UtestModelHelper, AttrCompression_EnabledWithOnline_ShouldNotCompress) {
-  TestableModelHelper helper;
-  helper.SetSaveMode(false);  // is_offline_ = false
-  helper.SetAttrCompressionEnabled(true);  // attr_compression_enabled_ = true
-
-  EXPECT_FALSE(helper.TestShouldCompress());
-  EXPECT_STREQ(helper.TestGetCompressionModeString(), "enable");
-}
-
-// Test 3: enabled=false + offline=true → should not compress (disabled overrides offline)
-TEST_F(UtestModelHelper, AttrCompression_DisabledWithOffline_ShouldNotCompress) {
-  TestableModelHelper helper;
-  helper.SetSaveMode(true);   // is_offline_ = true
-  helper.SetAttrCompressionEnabled(false);  // attr_compression_enabled_ = false
-
-  EXPECT_FALSE(helper.TestShouldCompress());
-  EXPECT_STREQ(helper.TestGetCompressionModeString(), "disable");
-}
-
-// Test 4: enabled=false + offline=false → should not compress
-TEST_F(UtestModelHelper, AttrCompression_DisabledWithOnline_ShouldNotCompress) {
-  TestableModelHelper helper;
-  helper.SetSaveMode(false);  // is_offline_ = false
-  helper.SetAttrCompressionEnabled(false);  // attr_compression_enabled_ = false
-
-  EXPECT_FALSE(helper.TestShouldCompress());
-  EXPECT_STREQ(helper.TestGetCompressionModeString(), "disable");
-}
-
-// Test 5: ConfigureFromOptions with valid values (only "true" and "false" are accepted)
-TEST_F(UtestModelHelper, AttrCompression_ConfigureFromOptions_ValidValues) {
-  TestableModelHelper helper;
-
-  // Test "true"
-  EXPECT_EQ(helper.ConfigureAttrCompressionMode("true"), SUCCESS);
-  EXPECT_STREQ(helper.TestGetCompressionModeString(), "enable");
-
-  // Test "false"
-  EXPECT_EQ(helper.ConfigureAttrCompressionMode("false"), SUCCESS);
-  EXPECT_STREQ(helper.TestGetCompressionModeString(), "disable");
-}
-
-// Test 8: ConfigureFromOptions with other invalid values (auto, enable, disable, 1, 0)
-TEST_F(UtestModelHelper, AttrCompression_ConfigureFromOptions_OtherInvalidValues) {
-  TestableModelHelper helper;
-
-  // Test "enable" - no longer supported
-  EXPECT_EQ(helper.ConfigureAttrCompressionMode("enable"), PARAM_INVALID);
-
-  // Test "disable" - no longer supported
-  EXPECT_EQ(helper.ConfigureAttrCompressionMode("disable"), PARAM_INVALID);
-
-  // Test "1" - no longer supported
-  EXPECT_EQ(helper.ConfigureAttrCompressionMode("1"), PARAM_INVALID);
-
-  // Test "0" - no longer supported
-  EXPECT_EQ(helper.ConfigureAttrCompressionMode("0"), PARAM_INVALID);
-}
-
-// Test 6: ConfigureFromOptions with empty options (use default)
-TEST_F(UtestModelHelper, AttrCompression_ConfigureFromOptions_EmptyOptions) {
-  TestableModelHelper helper;
-
-  std::map<std::string, std::string> options;
-  EXPECT_EQ(helper.ConfigureAttrCompressionMode(""), PARAM_INVALID);
-  EXPECT_STREQ(helper.TestGetCompressionModeString(), "enable");  // Default value is true
-}
 }  // namespace ge

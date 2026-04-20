@@ -21,6 +21,21 @@
 extern "C" __attribute__((weak)) void SetMetadefPluginCustomOpLibPathForC(const char* custom_op_Lib_path);
 namespace {
   const std::string custom_so_name = "libcust_opapi.so";
+
+  void FallbackHostEnvByCompileTime(std::string &host_os, std::string &host_cpu) {
+    if (host_os.empty()) {
+#if defined(__linux__)
+      host_os = "linux";
+#endif
+    }
+    if (host_cpu.empty()) {
+#if defined(__aarch64__) || defined(__arm64__)
+      host_cpu = "aarch64";
+#elif defined(__x86_64__) || defined(__amd64__)
+      host_cpu = "x86_64";
+#endif
+    }
+  }
 }
 
 namespace ge {
@@ -130,6 +145,22 @@ graphStatus OpLibRegistry::GetAllCustomOpApiSoPaths(const std::string &custom_op
     return GRAPH_SUCCESS;
   }
 
+  // 获取当前环境的 os 和 cpu 信息
+  std::string host_os;
+  std::string host_cpu;
+  PluginManager::GetCurEnvPackageOsAndCpuType(host_os, host_cpu);
+  if (host_os.empty() || host_cpu.empty()) {
+    GELOGW("Failed to get current environment os or cpu type, fallback to compile-time os/cpu. host_os: %s, "
+           "host_cpu: %s.", host_os.c_str(), host_cpu.c_str());
+    FallbackHostEnvByCompileTime(host_os, host_cpu);
+  }
+  GELOGI("Current host os is %s, cpu is %s.", host_os.c_str(), host_cpu.c_str());
+  if (host_os.empty() || host_cpu.empty()) {
+    GELOGW("Failed to get fallback environment os or cpu type, host_os: %s, host_cpu: %s.", host_os.c_str(),
+           host_cpu.c_str());
+    return GRAPH_FAILED;
+  }
+
   for (const auto &path : current_custom_opp_path) {
     if (path.empty()) {
       continue;
@@ -140,7 +171,18 @@ graphStatus OpLibRegistry::GetAllCustomOpApiSoPaths(const std::string &custom_op
       GELOGI("find so_real_path %s", so_real_path.c_str());
       (void) so_real_paths.emplace_back(so_real_path);
     }
+    // 加载ASCEND_CUSTOM_OPP_PATH/op_graph/lib/host_os/host_cpu/下的所有so文件
+    std::string custom_op_so_path = path + "/op_graph/lib/" + host_os + "/" + host_cpu + "/";
+    std::vector<std::string> so_files;
+    PluginManager::GetFileListWithSuffix(custom_op_so_path, ".so", so_files);
+    if (so_files.empty()) {
+      GELOGW("No so file found in custom op lib path: %s.", custom_op_so_path.c_str());
+    } else {
+      GELOGI("Find %zu so files in custom op lib path: %s.", so_files.size(), custom_op_so_path.c_str());
+      so_real_paths.insert(so_real_paths.end(), so_files.begin(), so_files.end());
+    }
   }
+
   return GRAPH_SUCCESS;
 }
 

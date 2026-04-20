@@ -372,6 +372,175 @@ GeApi.ge_finalize()
 ```
 
 
+### passes 模块
+
+#### 目录结构
+```
+
+├── __init__.py      # 模块初始化，导出公共 API
+├── base.py          # Pass 基类定义（FusionBasePass、PatternFusionPass、DecomposePass 等）
+├── registry.py      # Pass 注册中心与装饰器
+├── bootstrap.py     # 插件发现与加载
+└── _bridge.py       # Bridge 运行时辅助（Pass 实例管理，供 C++ bridge .so 回调）
+```
+注：下划线开头的为 Python 风格下的对内模块
+
+#### 类详细说明
+
+##### 1. PassStage 枚举
+
+**文件位置**: `base.py`
+
+**功能**: 定义 Pass 执行阶段
+
+**枚举值**:
+- `BEFORE_INFER_SHAPE` - 在 InferShape 之前执行
+- `AFTER_INFER_SHAPE` - 在 InferShape 之后执行
+- `AFTER_ASSIGN_LOGIC_STREAM` - 在逻辑流分配之后执行
+- `AFTER_BUILTIN_FUSION_PASS` - 在内置融合 Pass 之后执行
+- `AFTER_ORIGIN_GRAPH_OPTIMIZE` - 在原始图优化之后执行
+
+##### 2. PassContext 数据类
+
+**文件位置**: `base.py`
+
+**功能**: Python 侧的 Pass 上下文视图
+
+**属性**:
+- `pass_name` - Pass 名称
+- `options` - Pass 选项字典
+
+##### 3. MatchResult 数据类
+
+**文件位置**: `base.py`
+
+**功能**: 模式匹配结果
+
+**属性**:
+- `captured_nodes` - 捕获的节点字典
+- `captured_tensors` - 捕获的张量字典
+
+##### 4. FusionBasePass 类
+
+**文件位置**: `base.py`
+
+**功能**: 基础融合 Pass 基类，直接操作图结构
+
+**主要方法**:
+- `run(graph, context)` - 执行 Pass，接收图对象和 PassContext，返回修改后的图
+
+**关系**:
+- `PatternFusionPass` 和 `DecomposePass` 的父类
+- 通过 `register_fusion_pass` 装饰器注册到全局 Pass 注册中心
+
+##### 5. PatternFusionPass 类
+
+**文件位置**: `base.py`
+
+**功能**: 基于模式匹配的融合 Pass 基类
+
+**主要方法**:
+- `patterns()` - 定义匹配模式，返回模式列表
+- `meet_requirements(match_result)` - 判断匹配结果是否满足融合条件，默认返回 True
+- `replacement(match_result)` - 根据匹配结果生成替换子图
+
+**设计约束**:
+- **不支持用户自定义 `run()` 方法**：`PatternFusionPass` 复用 C++ 的 `Run()` 实现来执行标准的 pattern-match-replacement 流程。Python 侧只需实现 `patterns()`、`meet_requirements()` 和 `replacement()` 三个 hook 即可。
+- **需要完全自定义 `run()` 逻辑的场景**：请直接使用 `FusionBasePass` 基类。
+
+**关系**:
+- 继承自 `FusionBasePass`
+- 通过 `register_fusion_pass` 装饰器注册
+
+##### 6. DecomposePass 类
+
+**文件位置**: `base.py`
+
+**功能**: 算子分解 Pass 基类
+
+**类属性**:
+- `op_types` - 需要分解的算子类型列表
+
+**主要方法**:
+- `meet_requirements(node)` - 判断节点是否满足分解条件，默认返回 True
+- `replacement(node)` - 将节点分解为多个子节点
+
+**关系**:
+- 继承自 `FusionBasePass`
+- 通过 `register_decompose_pass` 装饰器注册
+
+##### 7. PassDescriptor 数据类
+
+**文件位置**: `registry.py`
+
+**功能**: 规范化的 Python Pass 描述符
+
+**属性**:
+- `descriptor_key` - 描述符唯一键（格式：`模块名:类名:Pass名`）
+- `pass_name` - Pass 名称
+- `module_name` - 所属模块名
+- `class_name` - 类名
+- `stage` - 执行阶段（PassStage）
+- `kind` - Pass 类型（`fusion_base`、`pattern_fusion`、`decompose`）
+- `cls` - Pass 类引用
+- `op_types` - 关联的算子类型列表
+
+#### 注册与发现
+
+**装饰器**:
+- `register_fusion_pass(name, stage, kind=None)` - 注册 FusionBasePass 或 PatternFusionPass
+- `register_decompose_pass(name, stage, op_types)` - 注册 DecomposePass
+
+**发现机制**:
+- 通过环境变量 `ASCEND_GE_PY_PASS_PATH` 指定 Pass 文件或目录路径
+- `bootstrap.py` 负责扫描路径并动态加载 Python 模块
+- 支持单个 `.py` 文件和包含 `__init__.py` 的 Python 包
+
+**使用示例**:
+```python
+from ge.passes import (
+    FusionBasePass, PatternFusionPass, DecomposePass,
+    PassStage, PassContext,
+    register_fusion_pass, register_decompose_pass
+)
+
+# 1. FusionBasePass 示例
+@register_fusion_pass(name="MyFusionPass", stage=PassStage.AFTER_INFER_SHAPE)
+class MyFusionPass(FusionBasePass):
+    def run(self, graph, context: PassContext):
+        # 实现图融合逻辑
+        return graph
+
+# 2. PatternFusionPass 示例
+@register_fusion_pass(name="MyPatternPass", stage=PassStage.BEFORE_INFER_SHAPE)
+class MyPatternPass(PatternFusionPass):
+    def patterns(self):
+        return [...]
+
+    def meet_requirements(self, match_result):
+        return True
+
+    def replacement(self, match_result):
+        pass
+
+# 3. DecomposePass 示例
+@register_decompose_pass(
+    name="MyDecomposePass",
+    stage=PassStage.BEFORE_INFER_SHAPE,
+    op_types=["MyOp"]
+)
+class MyDecomposePass(DecomposePass):
+    def replacement(self, node):
+        pass
+```
+
+加载自定义 Pass：
+```bash
+export ASCEND_GE_PY_PASS_PATH=/path/to/my_pass.py:/path/to/pass_dir/
+```
+
+更多设计细节请参考 [Python Pass 设计文档](ge_python_pass_design.md)。
+
 ## ES 模块
 
 ES (Eager-Style) 模块提供了函数式风格的图构建接口，详细文档请参考：[ES-PY Python 模块文档](../../es/api/es_python.md)

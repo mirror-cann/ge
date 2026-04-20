@@ -129,6 +129,8 @@ set(DISTINCT_GRAPH_LOAD_TEST_FILES
     "executor/executor_utils_unittest.cc"
     "executor/runtime/model_rt_var_manager_unittest.cc"
     "graph/load/model_helper_unittest.cc"
+    "graph/load/model_helper_attr_compression_unittest.cc"
+    "graph/load/model_helper_misc_unittest.cc"
     "graph/load/om2_package_helper_unittest.cc"
     "graph/load/om_file_helper_unittest.cc"
     "hybrid/hybrid_davinci_model_unittest.cc"

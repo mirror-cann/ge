@@ -8,17 +8,17 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-#ifndef CANN_GRAPH_ENGINE_PYTHON_FUSION_BASE_PASS_PYBIND_BRIDGE_H
-#define CANN_GRAPH_ENGINE_PYTHON_FUSION_BASE_PASS_PYBIND_BRIDGE_H
+#ifndef CANN_GRAPH_ENGINE_PYTHON_PASS_PYBIND_BRIDGE_H
+#define CANN_GRAPH_ENGINE_PYTHON_PASS_PYBIND_BRIDGE_H
 
 #include "ge/ge_api_types.h"
 
 namespace ge {
 namespace fusion {
-Status RegisterPythonFusionBasePassesFromPlugin();
-void UnloadPythonFusionBasePasses();
-void ShutdownPythonFusionBasePassesForProcess();
+Status RegisterPythonPassesFromPlugin();
+void UnloadPythonPasses();
+void ShutdownPythonPassesForProcess();
 }  // namespace fusion
 }  // namespace ge
 
-#endif  // CANN_GRAPH_ENGINE_PYTHON_FUSION_BASE_PASS_PYBIND_BRIDGE_H
+#endif  // CANN_GRAPH_ENGINE_PYTHON_PASS_PYBIND_BRIDGE_H

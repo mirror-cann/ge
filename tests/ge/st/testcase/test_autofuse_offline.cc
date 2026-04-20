@@ -23,6 +23,7 @@
 #include "faker/ge_model_builder.h"
 #include "common/opskernel/ops_kernel_info_types.h"
 #include "common/env_path.h"
+#include "common/op_so_store/op_so_store.h"
 
 namespace ge {
 const char *const kEnvName = "ASCEND_OPP_PATH";
@@ -97,6 +98,36 @@ ge::ComputeGraphPtr BuildAutofuseGraph() {
     return graph;
 }
 
+bool BuildSoBinsPayloadForAutofuseSt(std::vector<uint8_t> &payload) {
+  auto so_data_buf = std::unique_ptr<char_t[]>(new (std::nothrow) char_t[3U]);
+  if (so_data_buf == nullptr) {
+    return false;
+  }
+  so_data_buf[0] = static_cast<char_t>(0x11);
+  so_data_buf[1] = static_cast<char_t>(0x22);
+  so_data_buf[2] = static_cast<char_t>(0x33);
+
+  const auto so_bin = std::make_shared<OpSoBin>("libautofuse_stub.so", "vendor_ut", std::move(so_data_buf), 3U,
+                                                 SoBinType::kAutofuse);
+  if (so_bin == nullptr) {
+    return false;
+  }
+
+  OpSoStore op_so_store;
+  op_so_store.AddKernel(so_bin);
+  if (!op_so_store.Build()) {
+    return false;
+  }
+
+  const auto *data = op_so_store.Data();
+  const auto size = op_so_store.DataSize();
+  if ((data == nullptr) || (size == 0U)) {
+    return false;
+  }
+  payload.assign(data, data + size);
+  return true;
+}
+
 class AutofuseOfflineSt : public testing::Test {};
 TEST_F(AutofuseOfflineSt, CheckSaveAutofuseSo) {
   std::string output_file{"split_opp.om"};
@@ -113,9 +144,10 @@ TEST_F(AutofuseOfflineSt, CheckSaveAutofuseSo) {
   OmFileContext cur_ctx;
   ModelPartition so_patition;
   so_patition.type = ModelPartitionType::SO_BINS;
-  auto so_data = std::unique_ptr<char[]>(new(std::nothrow) char[20]);
-  so_patition.data = reinterpret_cast<uint8_t*>(so_data.get());
-  so_patition.size = 20;
+  std::vector<uint8_t> so_payload;
+  ASSERT_TRUE(BuildSoBinsPayloadForAutofuseSt(so_payload));
+  so_patition.data = so_payload.data();
+  so_patition.size = so_payload.size();
   cur_ctx.partition_datas_.push_back(so_patition);
   load_helper.model_contexts_.push_back(cur_ctx);
   EXPECT_EQ(model_helper.LoadOpSoBin(load_helper, ge_root_model), SUCCESS);

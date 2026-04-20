@@ -254,15 +254,15 @@ ge::Tensor** GeApiWrapper_Session_RunGraphWithStreamAsync(ge::Session *session, 
 ge::Status GeApiWrapper_Session_AddGraph(ge::Session *session, uint32_t graph_id, ge::Graph *graph);
 ge::Status GeApiWrapper_Session_RemoveGraph(ge::Session *session, uint32_t graph_id);
 void GeApiWrapper_Session_DestroySession(const ge::Session *session);
-ge::Status GeApiWrapper_Session_RegisterDefaultAllocator(ge::Session *session, void *stream);
+ge::Status GeApiWrapper_Session_RegisterDefaultAllocator(const ge::Session *session, const void *stream);
 ge::Status GeApiWrapper_Session_RegisterExternalAllocator(
-    ge::Session *session, void *stream,
+    const ge::Session *session, const void *stream,
     void *(*malloc_fn)(void *, size_t),
     void (*free_fn)(void *, void *),
     void *(*get_addr_fn)(void *),
     void (*on_destroy_fn)(void *), void *prevent_gc_handle);
-ge::Status GeApiWrapper_Session_UnregisterExternalAllocator(ge::Session *session, void *stream);
-bool GeApiWrapper_HasExternalAllocator(void *stream);
+ge::Status GeApiWrapper_Session_UnregisterExternalAllocator(const ge::Session *session, const void *stream);
+bool GeApiWrapper_HasExternalAllocator(const void *stream);
 ge::Format GeApiWrapper_Tensor_GetFormat(EsCTensor *tensor);
 EsCTensor *GeApiWrapper_Tensor_CreateTensor();
 void GeApiWrapper_Tensor_DestroyEsCTensor(EsCTensor *tensor);

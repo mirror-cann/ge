@@ -10,6 +10,8 @@
 
 #include "framework/common/helper/om_file_helper.h"
 
+#include <new>
+
 #include "common/checker.h"
 #include "graph_metadef/common/ge_common/util.h"
 #include "common/helper/model_parser_base.h"
@@ -21,7 +23,7 @@
 
 namespace {
 constexpr uint32_t kOptionalNum = 2U;
-constexpr uint32_t kMaxIncreasePartitionNum = 2U;  // 新增partition类型时需要修改
+constexpr uint32_t kMaxIncreasePartitionNum = 3U;  // 新增partition类型时需要修改
 constexpr const char *kSocVersion = "soc_version";
 constexpr const char *kArchType = "arch_type";
 }
@@ -113,9 +115,9 @@ Status OmFileLoadHelper::GetModelPartition(const ModelPartitionType type,
   }
 
   static const std::set<ModelPartitionType> model_partitions = {
-      ModelPartitionType::TBE_KERNELS, ModelPartitionType::WEIGHTS_DATA,     ModelPartitionType::CUST_AICPU_KERNELS,
-      ModelPartitionType::SO_BINS,     ModelPartitionType::MODEL_INOUT_INFO, ModelPartitionType::TASK_INFO,
-      ModelPartitionType::TILING_DATA,
+      ModelPartitionType::TBE_KERNELS,      ModelPartitionType::WEIGHTS_DATA,      ModelPartitionType::CUST_AICPU_KERNELS,
+      ModelPartitionType::SO_BINS,          ModelPartitionType::MODEL_INOUT_INFO,  ModelPartitionType::TASK_INFO,
+      ModelPartitionType::TILING_DATA,      ModelPartitionType::CUSTOM_OPS,
   };
 
   if (model_partitions.count(type) == 0UL) {
@@ -321,6 +323,29 @@ ModelPartitionTable *OmFileSaveHelper::GetPartitionTable(const size_t cur_ctx_in
 
 Status OmFileSaveHelper::AddPartition(const ModelPartition &partition) {
   return AddPartition(partition, 0U);
+}
+
+Status OmFileSaveHelper::AddOwnedPartition(const ModelPartitionType type, std::vector<uint8_t> &&payload,
+                                           const size_t cur_index) {
+  if (payload.empty()) {
+    GELOGE(PARAM_INVALID, "payload is empty, type:%d", static_cast<int32_t>(type));
+    return PARAM_INVALID;
+  }
+  if (cur_index > model_contexts_.size()) {
+    GELOGE(FAILED, "cur index is %zu make model_contexts_ overflow", cur_index);
+    return FAILED;
+  }
+  if (cur_index == model_contexts_.size()) {
+    model_contexts_.emplace_back(OmFileContext{});
+  }
+
+  auto owned_payload = std::make_shared<std::vector<uint8_t>>(std::move(payload));
+
+  ModelPartition partition{type, owned_payload->data(), static_cast<uint64_t>(owned_payload->size())};
+  GE_CHK_STATUS_RET(AddPartition(partition, cur_index), "[Add][OwnedPartition] failed, type:%d",
+                    static_cast<int32_t>(type));
+  model_contexts_[cur_index].owned_partitions_.push_back(std::move(owned_payload));
+  return SUCCESS;
 }
 
 Status OmFileSaveHelper::AddPartition(const ModelPartition &partition, const size_t cur_index) {

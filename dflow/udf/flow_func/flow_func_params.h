@@ -170,7 +170,7 @@ public:
         return running_instance_id_;
     }
 
-    void SetRunnningInstanceId(int32_t instance_id) {
+    void SetRunningInstanceId(int32_t instance_id) {
         running_instance_id_ = instance_id;
     }
 
@@ -178,7 +178,7 @@ public:
         return running_instance_num_;
     }
 
-    void SetRunnningInstanceNum(int32_t instance_num) {
+    void SetRunningInstanceNum(int32_t instance_num) {
         running_instance_num_ = instance_num;
     }
 

@@ -15,7 +15,7 @@
 
 #include "framework/common/debug/ge_log.h"
 #include "register/custom_pass_helper.h"
-#include "python_fusion_base_pass_pybind_bridge.h"
+#include "python_pass_pybind_bridge.h"
 
 namespace ge {
 namespace fusion {
@@ -47,9 +47,9 @@ public:
     }
 
     if ((!python_pass_loaded_) && NeedLoadPythonPasses()) {
-      const auto ret = RegisterPythonFusionBasePassesFromPlugin();
+      const auto ret = RegisterPythonPassesFromPlugin();
       if (ret != SUCCESS) {
-        GELOGE(ret, "Load Python fusion base pass plugins failed.");
+        GELOGE(ret, "Load Python fusion pass plugins failed.");
         return ret;
       }
       python_pass_loaded_ = true;
@@ -60,7 +60,7 @@ public:
   Status Unload() {
     std::lock_guard<std::mutex> lock(mutex_);
     if (python_pass_loaded_) {
-      UnloadPythonFusionBasePasses();
+      UnloadPythonPasses();
       python_pass_loaded_ = false;
     }
 
@@ -80,7 +80,7 @@ public:
     // 后续 Load() 会因 cpp_pass_loaded_=true 跳过实际加载。
     if (python_pass_loaded_) {
       GELOGI("[PythonPass] ShutdownForProcess unloading python passes.");
-      UnloadPythonFusionBasePasses();
+      UnloadPythonPasses();
       python_pass_loaded_ = false;
     }
     if (cpp_pass_loaded_) {
@@ -96,8 +96,8 @@ public:
     shutdown_done_ = true;
 
     // 进程级 shutdown 额外负责关闭 bridge so。
-    ShutdownPythonFusionBasePassesForProcess();
-    GELOGI("[PythonPass] ShutdownPythonFusionBasePassesForProcess done.");
+    ShutdownPythonPassesForProcess();
+    GELOGI("[PythonPass] ShutdownPythonPassesForProcess done.");
     return SUCCESS;
   }
 

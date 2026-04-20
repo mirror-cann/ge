@@ -904,6 +904,55 @@ V1 的设计原则是“把生命周期和并发复杂度收敛在 bridge 内部
 
 这能保证后续扩展不需要再造一套平行体系。
 
+### 8.13 PatternFusionPass 桥接协议
+
+本节定义 C++ pybind bridge 与 `_bridge.py` 之间用于 `PatternFusionPass` 的跨语言调用协议。
+
+#### 8.13.1 协议函数
+
+`_bridge.py` 需实现以下三个函数，供 `libge_python_pass_bridge.so` 在 embed 模式下回调：
+
+1. **`get_pass_patterns(instance_id: str) -> list`**
+   - 由 C++ 侧 `PythonPatternFusionPassAdapter::Patterns()` 通过 bridge 回调
+   - `_bridge.py` 调用 Python pass 实例的 `patterns()` 方法
+   - 返回 Pattern 对象列表，每个 Pattern 由 `_ge_pass_native.so` 构造
+
+2. **`call_meet_requirements(instance_id: str, match_result_handle: int) -> bool`**
+   - 由 C++ 侧 `PythonPatternFusionPassAdapter::MeetRequirements()` 通过 bridge 回调
+   - `match_result_handle` 为 C++ `MatchResult*` 的 `uintptr_t` 表示
+   - `_bridge.py` 通过 `_ge_pass_native.so` 将其还原为 borrowed MatchResult wrapper
+   - 调用 Python pass 实例的 `meet_requirements()` 方法
+   - 返回是否满足条件
+
+3. **`call_replacement(instance_id: str, match_result_handle: int) -> object | None`**
+   - 由 C++ 侧 `PythonPatternFusionPassAdapter::Replacement()` 通过 bridge 回调
+   - `match_result_handle` 同上
+   - 调用 Python pass 实例的 `replacement()` 方法
+   - 返回 replacement Graph 对象或 `None`（表示失败）
+
+#### 8.13.2 所有权与生命周期约定
+
+##### Pattern 所有权转移（get_pass_patterns）
+
+- Python 侧通过 `_ge_pass_native.so` 构造 Pattern 对象
+- Pattern 为 `unique_ptr` 语义，函数返回前 Python 侧必须调用 `release()` 释放所有权
+- C++ 侧通过 `unique_ptr<Pattern>` 接管裸指针，负责后续析构
+- **约束**：Python 侧在函数返回后不得继续持有 Pattern 引用
+
+##### MatchResult 借用语义（call_meet_requirements / call_replacement）
+
+- `MatchResult` 所有权始终在 C++ 侧（由 `PatternFusionPass::Run()` 持有）
+- Python 侧获得的 MatchResult 为 borrowed 视图，不拥有所有权
+- **约束**：Python 侧不得在回调返回后继续持有或缓存 MatchResult 引用
+- native binding 应提供 borrowed wrapper，并在过期访问时抛出 `RuntimeError` 而非崩溃
+- `uintptr_t` 传递为过渡方案，待 MatchResult native binding 就绪后替换为类型安全的方式
+
+##### Replacement Graph 所有权转移（call_replacement）
+
+- Python 侧构造 replacement Graph
+- Graph 所有权通过 `release()` 转移给 C++ 侧（`GraphUniqPtr` / `unique_ptr<Graph>`）
+- **约束**：Python 侧在函数返回后不得继续持有该 Graph 引用
+
 建议把 legacy custom pass 的接入拆成两层：
 
 - 发现与注册层

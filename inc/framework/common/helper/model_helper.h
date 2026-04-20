@@ -26,6 +26,7 @@ namespace ge {
 using NodeRefreshInfo = std::map<NodePtr, std::map<NodePtr, std::vector<std::pair<size_t, int64_t>>>>;
 class GeModel;
 class GeRootModel;
+class PortableOp;
 class GE_FUNC_VISIBILITY ModelHelper : public ModelSaveHelper {
  public:
   ModelHelper() noexcept = default;
@@ -142,6 +143,12 @@ class GE_FUNC_VISIBILITY ModelHelper : public ModelSaveHelper {
   Status SaveSoStoreModelPartitionInfo(std::shared_ptr<OmFileSaveHelper> &om_file_save_helper,
                                        const GeRootModelPtr &ge_root_model, string &output_file_name,
                                        const GeModelPtr &first_ge_model);
+  Status SaveCustomOpsPartition(std::shared_ptr<OmFileSaveHelper> &om_file_save_helper,
+                                    const GeRootModelPtr &ge_root_model);
+  Status CollectUsedCustomOpTypes(const GeRootModelPtr &ge_root_model,
+                                  std::set<std::string> &used_custom_op_types) const;
+  Status SerializeCustomOpKernel(PortableOp *serializable_op, const std::string &op_type_str,
+                                 std::vector<uint8_t> &merged_buffers);
   Status SaveModelHeader(shared_ptr<OmFileSaveHelper> &om_file_save_helper, const GeModelPtr &ge_model,
                          const size_t model_num = 1U, const bool need_check_os_cpu = false,
                          const bool is_unknow_shape = false) const;
@@ -194,6 +201,8 @@ class GE_FUNC_VISIBILITY ModelHelper : public ModelSaveHelper {
 
   bool IsPartitionedGraph(const GeModelPtr &cur_model) const;
 
+  Status SetModelAttributes(const GeModelPtr &ge_model);
+
   Status GenerateGeRootModel(const OmFileLoadHelper &om_load_helper, const ModelData &model_data);
 
   Status CheckIfWeightPathValid(const ge::ComputeGraphPtr &graph, const ge::ModelData &model_data) const;
@@ -217,6 +226,7 @@ class GE_FUNC_VISIBILITY ModelHelper : public ModelSaveHelper {
                               Buffer &model_buffer, Buffer &task_buffer, const size_t model_index = 0U) const;
 
   Status LoadOpSoBin(const OmFileLoadHelper &om_load_helper, const GeRootModelPtr &ge_root_model) const;
+  Status LoadCustomOps(const OmFileLoadHelper &om_load_helper) const;
   Status LoadTilingData(const OmFileLoadHelper &om_load_helper, const GeRootModelPtr &ge_root_model) const;
   Status SaveTilingData(std::shared_ptr<OmFileSaveHelper> &om_file_save_helper, const GeRootModelPtr &ge_root_model);
   void SaveOpSoInfo(const GeRootModelPtr &ge_root_model) const;
@@ -228,6 +238,28 @@ class GE_FUNC_VISIBILITY ModelHelper : public ModelSaveHelper {
                                 string &output_file_name);
   Status SaveOpMasterDeviceSoBin(const GeRootModelPtr &ge_root_model);
   Status SaveAutofuseSoBin(const GeRootModelPtr &ge_root_model);
+  Status SaveCustomOpSoBin(const GeRootModelPtr &ge_root_model);
+  Status LoadCustomOpSoBins(const std::vector<OpSoBinPtr> &custom_so_bins) const;
+  Status SaveRootModelPartitions(std::shared_ptr<OmFileSaveHelper> &om_file_save_helper,
+                                 const GeRootModelPtr &ge_root_model, const GeModelPtr &first_ge_model,
+                                 string &output_file_name, const bool has_asc_node);
+  Status SaveRootModelLoop(std::shared_ptr<OmFileSaveHelper> &om_file_save_helper,
+                           const std::vector<std::string> &model_names,
+                           const std::map<std::string, GeModelPtr> &name_to_ge_model,
+                           std::vector<ge::Buffer> &model_buffers,
+                           std::vector<ge::Buffer> &task_buffers,
+                           size_t &cur_index);
+  Status InitFirstGeModel(const GeRootModelPtr &ge_root_model,
+                          const std::map<std::string, GeModelPtr> &name_to_ge_model,
+                          GeModelPtr &first_ge_model);
+  Status SavePartitionedFirstModel(std::shared_ptr<OmFileSaveHelper> &om_file_save_helper,
+                                   const GeRootModelPtr &ge_root_model, GeModelPtr &first_ge_model,
+                                   const ComputeGraphPtr &root_graph, bool is_unknown_shape,
+                                   std::vector<ge::Buffer> &model_buffers,
+                                   std::vector<ge::Buffer> &task_buffers, size_t &cur_index);
+  Status SaveRootModelPartitionsForOmModel(std::shared_ptr<OmFileSaveHelper> &om_file_save_helper,
+                                           const GeRootModelPtr &ge_root_model, string &output_file_name,
+                                           const GeModelPtr &ge_model);
 };
 }  // namespace ge
 #endif  // INC_FRAMEWORK_COMMON_HELPER_MODEL_HELPER_H_

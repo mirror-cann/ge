@@ -197,7 +197,7 @@ void GeApiWrapper_Session_DestroySession(const Session *session) {
   delete session;
 }
 
-Status GeApiWrapper_Session_RegisterDefaultAllocator(Session *session, void *stream) {
+Status GeApiWrapper_Session_RegisterDefaultAllocator(const Session *session, const void *stream) {
   GE_ASSERT_NOTNULL(session);
   GE_ASSERT_NOTNULL(stream);
   auto allocator = std::make_shared<PyCallbackAllocator>();
@@ -208,7 +208,7 @@ Status GeApiWrapper_Session_RegisterDefaultAllocator(Session *session, void *str
 }
 
 Status GeApiWrapper_Session_RegisterExternalAllocator(
-    Session *session, void *stream,
+    const Session *session, const void *stream,
     PyMallocFunc malloc_fn, PyFreeFunc free_fn,
     PyGetAddrFunc get_addr_fn,
     PyOnDestroyFunc on_destroy_fn, void *prevent_gc_handle) {
@@ -226,13 +226,13 @@ Status GeApiWrapper_Session_RegisterExternalAllocator(
   return session->RegisterExternalAllocator(stream, allocator);
 }
 
-Status GeApiWrapper_Session_UnregisterExternalAllocator(Session *session, void *stream) {
+Status GeApiWrapper_Session_UnregisterExternalAllocator(const Session *session, const void *stream) {
   GE_ASSERT_NOTNULL(session);
   GE_ASSERT_NOTNULL(stream);
   return session->UnregisterExternalAllocator(stream);
 }
 
-bool GeApiWrapper_HasExternalAllocator(void *stream) {
+bool GeApiWrapper_HasExternalAllocator(const void *stream) {
   return ge::ExternalAllocatorManager::GetExternalAllocator(stream) != nullptr;
 }
 

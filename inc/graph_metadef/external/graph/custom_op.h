@@ -19,6 +19,25 @@ class BaseCustomOp {
   virtual ~BaseCustomOp() = default;
 };
 
+class PortableOp : public BaseCustomOp {
+ public:
+  /**
+   * 序列化自定义算子的 kernel bin 数据
+   * @param buffer 输出的二进制数据，由算子自定义格式，GE 不解析只透传
+   * @return 状态码，默认实现返回 GRAPH_SUCCESS
+   */
+  virtual graphStatus Serialize(std::vector<uint8_t> &buffer) = 0;
+
+  /**
+   * 反序列化自定义算子的 kernel bin 数据
+   * @param buffer 输入的二进制数据
+   * @return 状态码，默认实现返回 GRAPH_SUCCESS
+   */
+  virtual graphStatus Deserialize(const std::vector<uint8_t> &buffer) = 0;
+
+  ~PortableOp() override = default;
+};
+
 class EagerExecuteOp : public BaseCustomOp {
  public:
   /**

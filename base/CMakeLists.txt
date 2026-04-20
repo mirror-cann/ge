@@ -86,6 +86,8 @@ set(SRC_BASE_LIST
     "common/plugin/op_tiling_manager.cc"
     "common/ge_inner_error_codes.cc"
     "common/helper/model_helper.cc"
+    "common/helper/custom_op_so_loader.cc"
+    "common/helper/model_custom_kernels_helper.cc"
     "common/helper/pre_model_helper.cc"
     "common/helper/nano_model_save_helper.cc"
     "common/helper/om_file_helper.cc"
