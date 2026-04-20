@@ -409,7 +409,7 @@ Status ConstructBeginList(const gert::InferSymbolShapeContext *context, const st
                           const std::vector<int64_t> &axes, std::vector<Expression> &start_indexes) {
   start_indexes.resize(x_dims.size(), Symbol(0));
   std::vector<Expression> begin_values;
-  graphStatus ret = GetValueFromInputConstData(context, kStartInputIndex, begin_values);
+  const graphStatus ret = GetValueFromInputConstData(context, kStartInputIndex, begin_values);
   if (ret != SUCCESS) {
     GELOGI("Begin list is not const for node %s, error code %u.", context->GetNodeName(), static_cast<uint32_t>(ret));
     return ret;
@@ -428,7 +428,7 @@ Status ConstructEndList(const gert::InferSymbolShapeContext *context, const std:
     end_indexes.push_back(x_dims[i]);
   }
   std::vector<Expression> end_values;
-  graphStatus ret = GetValueFromInputConstData(context, kEndInputIndex, end_values);
+  const graphStatus ret = GetValueFromInputConstData(context, kEndInputIndex, end_values);
   if (ret != SUCCESS) {
     GELOGI("End list is not const for node %s, error code %u.", context->GetNodeName(), static_cast<uint32_t>(ret));
     return ret;
@@ -444,8 +444,7 @@ Status ConstructEndList(const gert::InferSymbolShapeContext *context, const std:
 Status ConstructStrideList(const gert::InferSymbolShapeContext *context, const std::vector<ge::Expression> &x_dims,
                            const std::vector<int64_t> &axes, std::vector<Expression> &strides_indexes) {
   strides_indexes.resize(x_dims.size(), Symbol(1));
-  const auto stride_tensor = context->GetInputSymbolTensor(kStridesV2InputIndex);
-  if (stride_tensor == nullptr) {
+  if (context->GetInputSymbolTensor(kStridesV2InputIndex) == nullptr) {
     GELOGD("Apply default stride for node %s.", context->GetNodeName());
     return SUCCESS;
   }
@@ -465,7 +464,7 @@ Status ConstructStrideList(const gert::InferSymbolShapeContext *context, const s
 
 Status GetStridedSliceV2IndexInput(const gert::InferSymbolShapeContext *context, StrdedSliceIndexInputs &index_input) {
   const auto x_shape = context->GetInputSymbolShape(kXInputIndex);
-  GE_ASSERT_NOTNULL(x_shape);
+  GE_UNSUPPORTED_IF_NULL(x_shape);
   const std::vector<ge::Expression> x_dims = x_shape->GetDims();
   std::vector<int64_t> axes{};
   Status ret = ConstructAxis(context, x_dims.size(), axes);

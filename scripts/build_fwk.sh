@@ -327,7 +327,7 @@ mk_dir ${report_dir}/ut
 mk_dir ${report_dir}/st
 mk_dir ${report_dir}/benchmark
 
-build_graphengine || { echo "GraphEngine build failed."; return; }
+build_graphengine || { echo "GraphEngine build failed."; exit 1; }
 echo "---------------- GraphEngine build finished ----------------"
 rm -f ${OUTPUT_PATH}/libgmock*.so
 rm -f ${OUTPUT_PATH}/libgtest*.so

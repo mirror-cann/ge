@@ -3174,6 +3174,297 @@ TEST_F(SymbolicShapeInferenceUT, InferShapeForGatherNd_with_invalid_input) {
   ASSERT_NE(RunSymbolInferenceTest(cg, expect_node_vec, {}), SUCCESS);
 }
 
+TEST_F(SymbolicShapeInferenceUT, InferShapeForGatherElements) {
+  auto data0 = EsCreateGraphInputWithDetails(
+      graph_, 0, "data0", nullptr, C_DataType::C_DT_FLOAT, C_Format::C_FORMAT_ND, nullptr, 0);
+  ASSERT_NE(data0, nullptr);
+  ASSERT_EQ(EsSetOriginSymbolShape(data0, std::vector<const char *>({"s0", "s1", "s2", "s3"}).data(), 4), 0);
+
+  std::vector<int64_t> const_data = {11, 22, 33, 44, 55, 66};
+  auto const0 = EsCreateVectorInt64(graph_, const_data.data(), const_data.size());
+  ASSERT_NE(const0, nullptr);
+
+  auto output = EsGatherElements(const0, data0, false);
+  ASSERT_EQ(EsSetGraphOutput(output, 0), 0);
+  auto graph = std::unique_ptr<Graph>(reinterpret_cast<Graph *>(EsBuildGraphAndReset(graph_)));
+
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+  ASSERT_NE(cg, nullptr);
+  auto node = cg->FindFirstNodeMatchType("GatherElements");
+  ASSERT_NE(node, nullptr);
+  auto op_desc = node->GetOpDesc();
+  ASSERT_NE(op_desc, nullptr);
+
+  std::vector<Expression> expect_dim = {Symbol("s0"), Symbol("s1"), Symbol("s2"), Symbol("s3")};
+  ExpectNodeInfo expect_node("GatherElements", expect_dim, {}, {}, {});
+  std::vector<ExpectNodeInfo> expect_node_vec;
+  expect_node_vec.push_back(expect_node);
+  ASSERT_EQ(RunSymbolInferenceTest(cg, expect_node_vec, {}), SUCCESS);
+}
+
+TEST_F(SymbolicShapeInferenceUT, InferShapeForUnsortedSegmentSum) {
+  auto data0 = EsCreateGraphInputWithDetails(
+      graph_, 0, "data0", nullptr, C_DataType::C_DT_INT32, C_Format::C_FORMAT_ND, nullptr, 0);
+  ASSERT_NE(data0, nullptr);
+  ASSERT_EQ(EsSetOriginSymbolShape(data0, std::vector<const char *>({"s0", "s1", "s2"}).data(), 3), 0);
+
+  auto data1 = EsCreateGraphInputWithDetails(
+      graph_, 1, "data1", nullptr, C_DataType::C_DT_INT32, C_Format::C_FORMAT_ND, nullptr, 0);
+  ASSERT_NE(data1, nullptr);
+  ASSERT_EQ(EsSetOriginSymbolShape(data1, std::vector<const char *>({"s0"}).data(), 1), 0);
+
+  std::vector<int32_t> const_data = {5};
+  auto const0 = EsCreateVectorInt32(graph_, const_data.data(), const_data.size());
+  ASSERT_NE(const0, nullptr);
+
+  auto output = EsUnsortedSegmentSum(data0, data1, const0, false, false);
+  ASSERT_EQ(EsSetGraphOutput(output, 0), 0);
+  auto graph = std::unique_ptr<Graph>(reinterpret_cast<Graph *>(EsBuildGraphAndReset(graph_)));
+
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+  ASSERT_NE(cg, nullptr);
+  auto node = cg->FindFirstNodeMatchType("UnsortedSegmentSum");
+  ASSERT_NE(node, nullptr);
+  auto op_desc = node->GetOpDesc();
+  ASSERT_NE(op_desc, nullptr);
+  op_desc->MutableInputDesc(2)->SetDataType(DT_INT32);
+
+  std::vector<Expression> expect_dim = {Symbol(5), Symbol("s1"), Symbol("s2")};
+  ExpectNodeInfo expect_node("UnsortedSegmentSum", expect_dim, {}, {}, {});
+  std::vector<ExpectNodeInfo> expect_node_vec;
+  expect_node_vec.push_back(expect_node);
+  ASSERT_EQ(RunSymbolInferenceTest(cg, expect_node_vec, {}), SUCCESS);
+}
+
+TEST_F(SymbolicShapeInferenceUT, InferShapeForRandomLikeConstInput) {
+  std::vector<int32_t> const_data = {4, 5, 6, 7};
+  auto const0 = EsCreateVectorInt32(graph_, const_data.data(), const_data.size());
+  ASSERT_NE(const0, nullptr);
+
+  auto output = EsRandomUniform(const0, C_DataType::C_DT_INT32, 0, 0);
+  ASSERT_EQ(EsSetGraphOutput(output, 0), 0);
+  auto graph = std::unique_ptr<Graph>(reinterpret_cast<Graph *>(EsBuildGraphAndReset(graph_)));
+
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+  ASSERT_NE(cg, nullptr);
+  auto node = cg->FindFirstNodeMatchType("RandomUniform");
+  ASSERT_NE(node, nullptr);
+  auto op_desc = node->GetOpDesc();
+  ASSERT_NE(op_desc, nullptr);
+  op_desc->MutableInputDesc(0)->SetDataType(DT_INT32);
+
+  std::vector<Expression> expect_dim = {Symbol(4), Symbol(5), Symbol(6), Symbol(7)};
+  ExpectNodeInfo expect_node("RandomUniform", expect_dim, {}, {}, {});
+  std::vector<ExpectNodeInfo> expect_node_vec;
+  expect_node_vec.push_back(expect_node);
+  ASSERT_EQ(RunSymbolInferenceTest(cg, expect_node_vec, {}), SUCCESS);
+}
+
+TEST_F(SymbolicShapeInferenceUT, InferShapeForRandomLikeDataInput) {
+  auto data0 = EsCreateGraphInputWithDetails(
+      graph_, 0, "data0", nullptr, C_DataType::C_DT_INT32, C_Format::C_FORMAT_ND, nullptr, 0);
+  ASSERT_NE(data0, nullptr);
+
+  auto output = EsTruncatedNormal(data0, 0, 0, C_DataType::C_DT_INT32);
+  ASSERT_EQ(EsSetGraphOutput(output, 0), 0);
+  auto graph = std::unique_ptr<Graph>(reinterpret_cast<Graph *>(EsBuildGraphAndReset(graph_)));
+
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+  ASSERT_NE(cg, nullptr);
+  auto node = cg->FindNode("data0");
+  ASSERT_NE(node, nullptr);
+  auto op_desc = node->GetOpDesc();
+  ASSERT_NE(op_desc, nullptr);
+  auto data_input = op_desc->MutableOutputDesc(0);
+  ASSERT_NE(data_input, nullptr);
+  auto ptr = std::make_unique<std::vector<ge::Expression>>();
+  ASSERT_NE(ptr, nullptr);
+  ptr->emplace_back(Symbol("s0"));
+  ptr->emplace_back(Symbol(1));
+  ptr->emplace_back(Symbol(2));
+  auto data_input_desc_attr = data_input->template GetOrCreateAttrsGroup<SymbolicDescAttr>();
+  ASSERT_NE(data_input_desc_attr, nullptr);
+  data_input_desc_attr->symbolic_tensor.SetSymbolicValue(std::move(ptr));
+
+  std::vector<Expression> expect_dim = {Symbol("s0"), Symbol(1), Symbol(2)};
+  ExpectNodeInfo expect_node("TruncatedNormal", expect_dim, {}, {}, {});
+  std::vector<ExpectNodeInfo> expect_node_vec;
+  expect_node_vec.push_back(expect_node);
+  ASSERT_EQ(RunSymbolInferenceTest(cg, expect_node_vec, {}), SUCCESS);
+}
+
+TEST_F(SymbolicShapeInferenceUT, InferShapeForDynamicStitch) {
+  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistry(true);
+  gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->
+      CreateOrGetOpImpl("DynamicStitch")->SetInputDataDependency({0});
+  auto indices0 = EsCreateGraphInputWithDetails(
+      graph_, 0, "data0", nullptr, C_DataType::C_DT_INT32, C_Format::C_FORMAT_ND, nullptr, 0);
+  ASSERT_EQ(EsSetOriginSymbolShape(indices0, std::vector<const char *>({"1"}).data(), 1), 0);
+  auto indices1 = EsCreateGraphInputWithDetails(
+      graph_, 1, "data1", nullptr, C_DataType::C_DT_INT32, C_Format::C_FORMAT_ND, nullptr, 0);
+  ASSERT_EQ(EsSetOriginSymbolShape(indices1, std::vector<const char *>({"2"}).data(), 1), 0);
+  auto indices2 = EsCreateGraphInputWithDetails(
+      graph_, 2, "data2", nullptr, C_DataType::C_DT_INT32, C_Format::C_FORMAT_ND, nullptr, 0);
+  ASSERT_EQ(EsSetOriginSymbolShape(indices2, std::vector<const char *>({"2", "2"}).data(), 2), 0);
+
+  auto x0 = EsCreateGraphInputWithDetails(
+      graph_, 3, "data3", nullptr, C_DataType::C_DT_INT32, C_Format::C_FORMAT_ND, nullptr, 0);
+  ASSERT_EQ(EsSetOriginSymbolShape(x0, std::vector<const char *>({"1", "2"}).data(), 2), 0);
+  auto x1 = EsCreateGraphInputWithDetails(
+      graph_, 4, "data4", nullptr, C_DataType::C_DT_INT32, C_Format::C_FORMAT_ND, nullptr, 0);
+  ASSERT_EQ(EsSetOriginSymbolShape(x1, std::vector<const char *>({"2", "2"}).data(), 2), 0);
+  auto x2 = EsCreateGraphInputWithDetails(
+      graph_, 5, "data5", nullptr, C_DataType::C_DT_INT32, C_Format::C_FORMAT_ND, nullptr, 0);
+  ASSERT_EQ(EsSetOriginSymbolShape(x2, std::vector<const char *>({"2", "2", "2"}).data(), 3), 0);
+
+  EsCTensorHolder *indices_list[] = {indices0, indices1, indices2};
+  EsCTensorHolder *x_list[] = {x0, x1, x2};
+  ASSERT_EQ(EsSetGraphOutput(EsDynamicStitch(indices_list, 3, x_list, 3, 3), 0), 0);
+  auto graph = std::unique_ptr<Graph>(reinterpret_cast<Graph *>(EsBuildGraphAndReset(graph_)));
+  ASSERT_NE(graph, nullptr);
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+  ASSERT_NE(cg, nullptr);
+
+  auto ptr0 = std::make_unique<std::vector<ge::Expression>>();
+  ptr0->emplace_back(Symbol(6));
+  cg->FindNode("data0")->GetOpDesc()->MutableOutputDesc(0)->template GetOrCreateAttrsGroup<SymbolicDescAttr>()->
+      symbolic_tensor.SetSymbolicValue(std::move(ptr0));
+
+  auto ptr1 = std::make_unique<std::vector<ge::Expression>>();
+  ptr1->emplace_back(Symbol("s1"));
+  ptr1->emplace_back(Symbol("s2"));
+  cg->FindNode("data1")->GetOpDesc()->MutableOutputDesc(0)->template GetOrCreateAttrsGroup<SymbolicDescAttr>()->
+      symbolic_tensor.SetSymbolicValue(std::move(ptr1));
+
+  auto ptr2 = std::make_unique<std::vector<ge::Expression>>();
+  ptr2->emplace_back(Symbol(5));
+  ptr2->emplace_back(Symbol(9));
+  ptr2->emplace_back(Symbol(0));
+  ptr2->emplace_back(Symbol(3));
+  cg->FindNode("data2")->GetOpDesc()->MutableOutputDesc(0)->template GetOrCreateAttrsGroup<SymbolicDescAttr>()->
+      symbolic_tensor.SetSymbolicValue(std::move(ptr2));
+
+  std::vector<Expression> expect_dim = {sym::Max(Symbol(9), sym::Max(Symbol("s1"), Symbol("s2"))) + Symbol(1), Symbol(2)};
+  ExpectNodeInfo expect_node("DynamicStitch", expect_dim, {}, {}, {});
+  std::vector<ExpectNodeInfo> expect_node_vec;
+  expect_node_vec.push_back(expect_node);
+  ASSERT_EQ(RunSymbolInferenceTest(cg, expect_node_vec, {}), SUCCESS);
+}
+
+TEST_F(SymbolicShapeInferenceUT, InferShapeForDynamicStitch_InvalidDimNum) {
+  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistry(true);
+  gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->
+      CreateOrGetOpImpl("DynamicStitch")->SetInputDataDependency({0});
+  std::vector<int32_t> const_data0 = {6};
+  std::vector<int64_t> const_dim0 = {1};
+  auto indices0 = EsCreateConstInt32(graph_, const_data0.data(), const_dim0.data(), const_dim0.size());
+  ASSERT_NE(indices0, nullptr);
+  std::vector<int32_t> const_data1 = {6, 6, 6, 6, 6, 6, 6, 6};
+  std::vector<int64_t> const_dim1 = {2, 2, 2}; /* rank should be smaller than const_dim4 */
+  auto indices1 = EsCreateConstInt32(graph_, const_data1.data(), const_dim1.data(), const_dim1.size());
+  ASSERT_NE(indices1, nullptr);
+
+  std::vector<int32_t> const_data3 = {6, 6};
+  std::vector<int64_t> const_dim3 = {1, 2};
+  auto x0 = EsCreateConstInt32(graph_, const_data3.data(), const_dim3.data(), const_dim3.size());
+  ASSERT_NE(x0, nullptr);
+  std::vector<int32_t> const_data4 = {6, 6, 6, 6};
+  std::vector<int64_t> const_dim4 = {2, 2};
+  auto x1 = EsCreateConstInt32(graph_, const_data4.data(), const_dim4.data(), const_dim4.size());
+  ASSERT_NE(x1, nullptr);
+
+  EsCTensorHolder *indices_list[] = {indices0, indices1};
+  EsCTensorHolder *x_list[] = {x0, x1};
+  auto output = EsDynamicStitch(indices_list, 2, x_list, 2, 2);
+  ASSERT_EQ(EsSetGraphOutput(output, 0), 0);
+  auto graph = std::unique_ptr<Graph>(reinterpret_cast<Graph *>(EsBuildGraphAndReset(graph_)));
+  ASSERT_NE(graph, nullptr);
+
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+  ASSERT_NE(cg, nullptr);
+  std::vector<Expression> expect_dim = {Symbol(7), Symbol(2)};
+  ExpectNodeInfo expect_node("DynamicStitch", expect_dim, {}, {}, {});
+  std::vector<ExpectNodeInfo> expect_node_vec;
+  expect_node_vec.push_back(expect_node);
+  ASSERT_NE(RunSymbolInferenceTest(cg, expect_node_vec, {}), SUCCESS);
+}
+
+TEST_F(SymbolicShapeInferenceUT, InferShapeForDynamicStitch_InvalidPreDim) {
+  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistry(true);
+  gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->
+      CreateOrGetOpImpl("DynamicStitch")->SetInputDataDependency({0});
+  std::vector<int32_t> const_data0 = {6};
+  std::vector<int64_t> const_dim0 = {1};
+  auto indices0 = EsCreateConstInt32(graph_, const_data0.data(), const_dim0.data(), const_dim0.size());
+  ASSERT_NE(indices0, nullptr);
+  std::vector<int32_t> const_data1 = {6, 6};
+  std::vector<int64_t> const_dim1 = {2};
+  auto indices1 = EsCreateConstInt32(graph_, const_data1.data(), const_dim1.data(), const_dim1.size());
+  ASSERT_NE(indices1, nullptr);
+
+  std::vector<int32_t> const_data3 = {6, 6};
+  std::vector<int64_t> const_dim3 = {1, 2};
+  auto x0 = EsCreateConstInt32(graph_, const_data3.data(), const_dim3.data(), const_dim3.size());
+  ASSERT_NE(x0, nullptr);
+  std::vector<int32_t> const_data4 = {6, 6, 6, 6, 6, 6};
+  std::vector<int64_t> const_dim4 = {3/*should be 2*/, 2};
+  auto x1 = EsCreateConstInt32(graph_, const_data4.data(), const_dim4.data(), const_dim4.size());
+  ASSERT_NE(x1, nullptr);
+
+  EsCTensorHolder *indices_list[] = {indices0, indices1};
+  EsCTensorHolder *x_list[] = {x0, x1};
+  auto output = EsDynamicStitch(indices_list, 2, x_list, 2, 2);
+  ASSERT_EQ(EsSetGraphOutput(output, 0), 0);
+  auto graph = std::unique_ptr<Graph>(reinterpret_cast<Graph *>(EsBuildGraphAndReset(graph_)));
+  ASSERT_NE(graph, nullptr);
+
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+  ASSERT_NE(cg, nullptr);
+  std::vector<Expression> expect_dim = {Symbol(7), Symbol(2)};
+  ExpectNodeInfo expect_node("DynamicStitch", expect_dim, {}, {}, {});
+  std::vector<ExpectNodeInfo> expect_node_vec;
+  expect_node_vec.push_back(expect_node);
+  ASSERT_NE(RunSymbolInferenceTest(cg, expect_node_vec, {}), SUCCESS);
+}
+
+TEST_F(SymbolicShapeInferenceUT, InferShapeForDynamicStitch_InvalidConstantDims) {
+  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistry(true);
+  gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->
+      CreateOrGetOpImpl("DynamicStitch")->SetInputDataDependency({0});
+  std::vector<int32_t> const_data0 = {6};
+  std::vector<int64_t> const_dim0 = {1};
+  auto indices0 = EsCreateConstInt32(graph_, const_data0.data(), const_dim0.data(), const_dim0.size());
+  ASSERT_NE(indices0, nullptr);
+  std::vector<int32_t> const_data1 = {6, 6};
+  std::vector<int64_t> const_dim1 = {2};
+  auto indices1 = EsCreateConstInt32(graph_, const_data1.data(), const_dim1.data(), const_dim1.size());
+  ASSERT_NE(indices1, nullptr);
+
+  std::vector<int32_t> const_data3 = {6, 6};
+  std::vector<int64_t> const_dim3 = {1, 2};
+  auto x0 = EsCreateConstInt32(graph_, const_data3.data(), const_dim3.data(), const_dim3.size());
+  ASSERT_NE(x0, nullptr);
+  std::vector<int32_t> const_data4 = {6, 6, 6, 6, 6, 6};
+  std::vector<int64_t> const_dim4 = {2, 3/*should be 2*/};
+  auto x1 = EsCreateConstInt32(graph_, const_data4.data(), const_dim4.data(), const_dim4.size());
+  ASSERT_NE(x1, nullptr);
+
+  EsCTensorHolder *indices_list[] = {indices0, indices1};
+  EsCTensorHolder *x_list[] = {x0, x1};
+  auto output = EsDynamicStitch(indices_list, 2, x_list, 2, 2);
+  ASSERT_EQ(EsSetGraphOutput(output, 0), 0);
+  auto graph = std::unique_ptr<Graph>(reinterpret_cast<Graph *>(EsBuildGraphAndReset(graph_)));
+  ASSERT_NE(graph, nullptr);
+
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+  ASSERT_NE(cg, nullptr);
+  std::vector<Expression> expect_dim = {Symbol(7), Symbol(2)};
+  ExpectNodeInfo expect_node("DynamicStitch", expect_dim, {}, {}, {});
+  std::vector<ExpectNodeInfo> expect_node_vec;
+  expect_node_vec.push_back(expect_node);
+  ASSERT_NE(RunSymbolInferenceTest(cg, expect_node_vec, {}), SUCCESS);
+}
+
 TEST_F(SymbolicShapeInferenceUT, InferShapeForBroadCastToGraphWithGuard) {
   auto data0 = EsCreateGraphInputWithDetails(graph_, 0, "data0", nullptr, C_DataType::C_DT_FLOAT, C_Format::C_FORMAT_ND, nullptr, 0);
   std::vector<int32_t> const_data0 = {3, 2, 3, 4};
@@ -4260,5 +4551,5 @@ TEST_F(SymbolicShapeInferenceUT, test_matrixdiagv2_row_less_than_min) {
   std::vector<ExpectNodeInfo> expect_node_vec;
   expect_node_vec.push_back(expect_node);
   ASSERT_NE(RunSymbolInferenceTest(cg, expect_node_vec, {}), SUCCESS);
-} 
+}
 } // namespace ge

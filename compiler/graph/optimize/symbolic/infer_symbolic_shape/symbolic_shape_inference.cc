@@ -85,7 +85,6 @@ bool IsInputDescValid(const ge::GeTensorDesc &input_desc, size_t &invalid_index_
 }
 
 bool IsSupportInfer(const ge::OpDescPtr &op_desc) {
-  GE_ASSERT_NOTNULL(op_desc);
   size_t idx = 0;
   if (!op_desc->GetSubgraphInstanceNames().empty()) {
     GELOGW("Subgraph is not supported Currently.");
@@ -336,16 +335,46 @@ bool IsSameSymbolicTensor(const ge::GeTensorDescPtr &src, const ge::GeTensorDesc
          (src_attr->symbolic_tensor.GetSymbolicValue() == dst_attr->symbolic_tensor.GetSymbolicValue());
 }
 
-Status ClearOutputSymbol(const ge::NodePtr &node) {
-  GE_ASSERT_NOTNULL(node);
-  const auto op_desc = node->GetOpDesc();
-  GE_ASSERT_NOTNULL(op_desc);
-  for (size_t index = 0UL; index < op_desc->GetOutputsSize(); index++) {
-    auto output_desc = op_desc->MutableOutputDesc(index);
+Status ClearOutputSymbol(const OpDesc &op_desc) {
+  for (size_t index = 0UL; index < op_desc.GetOutputsSize(); index++) {
+    auto output_desc = op_desc.MutableOutputDesc(index);
     GE_ASSERT_NOTNULL(output_desc);
     (void)output_desc->DeleteAttrsGroup<SymbolicDescAttr>();
   }
   return ge::GRAPH_SUCCESS;
+}
+
+graphStatus CheckOutputSymbolDimNumValid(const OpDescPtr &op_desc) {
+  const auto &output_descs = op_desc->GetAllOutputsDescPtr();
+  for (size_t i = 0UL; i < output_descs.size(); i++) {
+    const auto &output_desc = output_descs.at(i);
+    GE_ASSERT_NOTNULL(output_desc);
+    auto symbol_attr = output_desc->GetAttrsGroup<SymbolicDescAttr>();
+    if (symbol_attr == nullptr) {
+      continue;
+    }
+    auto symbol_shapes = symbol_attr->symbolic_tensor.GetOriginSymbolShape().GetDims();
+    if (output_desc->GetShape().IsUnknownDimNum()) {
+      continue;
+    }
+    auto shapes = output_desc->GetShape().GetDims();
+    if (symbol_shapes.size() != shapes.size()) {
+      GELOGW("Symbol_DimNum_Check: [Node:%s(%s), output: %zu] Symbol shape dim num:%zu is not equal to shape dim num: %zu.",
+             op_desc->GetName().c_str(), op_desc->GetType().c_str(), i, symbol_shapes.size(), shapes.size());
+    }
+  }
+  return GRAPH_SUCCESS;
+}
+
+graphStatus PrintSymbolShapeInfo(const OpDescPtr &op_desc, const std::string &stage, bool check_dim = true) {
+  if (!IsLogEnable(GE_MODULE_NAME, DLOG_DEBUG)) {
+    return GRAPH_SUCCESS;
+  }
+  if (check_dim) {
+    GE_ASSERT_SUCCESS(CheckOutputSymbolDimNumValid(op_desc));
+  }
+  GELOGD("%s", DebugInOutSymbolInfo(op_desc, stage).c_str());
+  return GRAPH_SUCCESS;
 }
 }  // namespace
 
@@ -479,38 +508,33 @@ Status SymbolicShapeInference::DoComputeAndUpdate(const NodePtr &node, const OpD
   GE_ASSERT_TRUE(ret == ge::GRAPH_SUCCESS || ret == ge::UNSUPPORTED,
                  "[Call][InferSymbolCompute] failed, op_desc[%s], ret[%d]", op_desc->GetName().c_str());
   if (ret == ge::UNSUPPORTED) {
-    GELOGW("Symbol compute unsupported, node %s[%s].",
-        op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    GELOGW("Symbol compute unsupported, node %s[%s].", op_desc->GetName().c_str(), op_desc->GetType().c_str());
     return ge::UNSUPPORTED;
   }
   GE_ASSERT_GRAPH_SUCCESS(UpdateOpDescOutShape(op_desc, infer_symbol_shape_ctx));
-  GE_ASSERT_SUCCESS(PrintSymbolShapeInfo(op_desc, "After_Infer_Symbol"));
+  GE_ASSERT_SUCCESS(PrintSymbolShapeInfo(op_desc, "After_Compute_Symbol"));
   return ge::GRAPH_SUCCESS;
 }
 
 Status SymbolicShapeInference::InferOneNode(NodePtr &node) const {
   auto op_desc = node->GetOpDesc();
   GE_ASSERT_NOTNULL(op_desc);
-  GE_ASSERT_SUCCESS(PrintSymbolShapeInfo(op_desc, "Before_Infer_Symbol"));
-  GE_ASSERT_NOTNULL(op_desc);
-  if (OpTypeUtils::IsDataNode(op_desc->GetType())) {
-    return SUCCESS;
-  }
-  if (op_desc->GetType() == NETOUTPUT) {
-    GELOGD("Netoutput %s no need to infer symbol shape.", op_desc->GetName().c_str());
+  GE_ASSERT_SUCCESS(PrintSymbolShapeInfo(op_desc, "Before_Infer_Symbol", false));
+  if (OpTypeUtils::IsDataNode(op_desc->GetType()) || op_desc->GetType() == NETOUTPUT) {
+    GELOGD("No need to infer symbol shape for net-output/data node %s.", op_desc->GetName().c_str());
     return ge::SUCCESS;
   }
 
-  // 推导前清理残留shape
-  GE_ASSERT_SUCCESS(ClearOutputSymbol(node));
-  if (!IsSupportInfer(node->GetOpDesc())) {
+  if (!IsSupportInfer(op_desc)) {
     REPORT_INNER_ERR_MSG("W18888", "op %s[%s] Check support infer symbol shape failed.",
-                       node->GetNamePtr(), node->GetTypePtr());
+                         node->GetNamePtr(), node->GetTypePtr());
     GELOGW("op %s[%s] Check support infer symbol shape failed.", node->GetNamePtr(), node->GetTypePtr());
     return ge::UNSUPPORTED;
   }
 
-  GE_ASSERT_SUCCESS(ge::RecoverOpDescIrDefinition(op_desc, op_desc->GetType()));
+  // 推导前清理残留shape
+  GE_ASSERT_SUCCESS(ClearOutputSymbol(*op_desc.get()));
+  GE_ASSERT_SUCCESS(RecoverOpDescIrDefinition(op_desc, op_desc->GetType()));
   auto kernel_func = SymbolicKernelFactory::GetInstance().Create(op_desc->GetType());
   if (kernel_func != nullptr) {
     auto ret = DoComputeAndUpdate(node, op_desc, kernel_func);
@@ -536,40 +560,6 @@ Status SymbolicShapeInference::InferOneNode(NodePtr &node) const {
     function_new = const_cast<gert::OpImplKernelRegistry::OpImplFunctionsV2 *>(functions);
   }
   return DoInferAndUpdate(node, op_desc, function_new);
-}
-
-graphStatus SymbolicShapeInference::PrintSymbolShapeInfo(const OpDescPtr &op_desc,
-    const std::string &stage) const {
-  if (!IsLogEnable(GE_MODULE_NAME, DLOG_DEBUG)) {
-    return GRAPH_SUCCESS;
-  }
-  if (stage.compare("After_Infer_Symbol") == 0) {
-    GE_ASSERT_SUCCESS(CheckOutputSymbolDimNumValid(op_desc));
-  }
-  GELOGD("%s", DebugInOutSymbolInfo(op_desc, stage).c_str());
-  return GRAPH_SUCCESS;
-}
-
-graphStatus SymbolicShapeInference::CheckOutputSymbolDimNumValid(const OpDescPtr &op_desc) const {
-  const auto &output_descs = op_desc->GetAllOutputsDescPtr();
-  for (size_t i = 0UL; i < output_descs.size(); i++) {
-    const auto &output_desc = output_descs.at(i);
-    GE_ASSERT_NOTNULL(output_desc);
-    auto symbol_attr = output_desc->GetAttrsGroup<SymbolicDescAttr>();
-    if (symbol_attr == nullptr) {
-      continue;
-    }
-    auto symbol_shapes = symbol_attr->symbolic_tensor.GetOriginSymbolShape().GetDims();
-    if (output_desc->GetShape().IsUnknownDimNum()) {
-      continue;
-    }
-    auto shapes = output_desc->GetShape().GetDims();
-    if (symbol_shapes.size() != shapes.size()) {
-      GELOGW("Symbol_DimNum_Check: [Node:%s(%s), output: %zu] Symbol shape dim num:%zu is not equal to shape dim num: %zu.",
-          op_desc->GetName().c_str(), op_desc->GetType().c_str(), i, symbol_shapes.size(), shapes.size());
-    }
-  }
-  return GRAPH_SUCCESS;
 }
 
 // todo: 暂时无需考虑某个节点更新后影响其他pass场景，后续迁移到NodePass时需要考虑

@@ -159,5 +159,16 @@ graphStatus InferShape4GatherNd(gert::InferSymbolShapeContext *context) {
   return GRAPH_SUCCESS;
 }
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(GatherNd).InferSymbolShape(InferShape4GatherNd);
+
+graphStatus InferShape4GatherEles(gert::InferSymbolShapeContext *context) {
+  GE_ASSERT_NOTNULL(context);
+  const auto in_shape = context->GetInputSymbolShape(1);
+  GE_UNSUPPORTED_IF_NULL(in_shape);
+  const auto out_shape = context->GetOutputSymbolShape(0);
+  GE_ASSERT_NOTNULL(out_shape);
+  out_shape->MutableDims() = in_shape->GetDims();
+  return SUCCESS;
+}
+IMPL_OP_INFER_SYMBOL_SHAPE_INNER(GatherElements).InferSymbolShape(InferShape4GatherEles);
 }  // namespace
 }  // namespace ge

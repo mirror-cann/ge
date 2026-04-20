@@ -7143,6 +7143,174 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForGatherNd) {
   EXPECT_EQ(attr->symbolic_tensor.GetOriginSymbolShape(), gert::SymbolShape({ge::Symbol("s2"), ge::Symbol("s3")}));
 }
 
+TEST_F(SymbolicShapeInferenceST, InferShapeForGatherElements) {
+  auto data0 = builder_->CreateInput(0, "data0");
+  data0.SetOriginSymbolShape(std::vector<const char *>({"s0", "s1", "s2", "s3"}));
+
+  std::vector<int64_t> const_data = {11, 22, 33, 44, 55, 66};
+  auto const0 = builder_->CreateVector(const_data);
+
+  auto output = es::GatherElements(const0, data0, false);
+  ASSERT_EQ(es::EsGraphBuilder::SetOutput(output, 0), 0);
+  auto graph = builder_->BuildAndReset();
+
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+  ASSERT_NE(cg, nullptr);
+  auto node = cg->FindFirstNodeMatchType("GatherElements");
+  ASSERT_NE(node, nullptr);
+  auto op_desc = node->GetOpDesc();
+  ASSERT_NE(op_desc, nullptr);
+
+  SymbolicShapeInference ssi;
+  ASSERT_EQ(ssi.Infer(cg), ge::SUCCESS);
+  auto attr = op_desc->GetOutputDesc(0).GetAttrsGroup<SymbolicDescAttr>();
+  ASSERT_NE(attr, nullptr);
+  EXPECT_EQ(attr->symbolic_tensor.GetOriginSymbolShape(),
+            gert::SymbolShape({Symbol("s0"), Symbol("s1"), Symbol("s2"), Symbol("s3")}));
+}
+
+TEST_F(SymbolicShapeInferenceST, InferShapeForUnsortedSegmentSum) {
+  auto data0 = builder_->CreateInput(0, "data0");
+  data0.SetOriginSymbolShape(std::vector<const char *>({"s0", "s1", "s2"}));
+  auto data1 = builder_->CreateInput(1, "data1");
+  data1.SetOriginSymbolShape(std::vector<const char *>({"s0"}));
+
+  std::vector<int32_t> const_data = {5};
+  auto const0 = builder_->CreateVector(const_data);
+
+  auto output = es::UnsortedSegmentSum(data0, data1, const0, false, false);
+  ASSERT_EQ(es::EsGraphBuilder::SetOutput(output, 0), 0);
+  auto graph = builder_->BuildAndReset();
+
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+  ASSERT_NE(cg, nullptr);
+  auto node = cg->FindFirstNodeMatchType("UnsortedSegmentSum");
+  ASSERT_NE(node, nullptr);
+  auto op_desc = node->GetOpDesc();
+  ASSERT_NE(op_desc, nullptr);
+  op_desc->MutableInputDesc(2)->SetDataType(DT_INT32);
+
+  SymbolicShapeInference ssi;
+  ASSERT_EQ(ssi.Infer(cg), ge::SUCCESS);
+  auto attr = op_desc->GetOutputDesc(0).GetAttrsGroup<SymbolicDescAttr>();
+  ASSERT_NE(attr, nullptr);
+  EXPECT_EQ(attr->symbolic_tensor.GetOriginSymbolShape(),
+            gert::SymbolShape({Symbol(5), Symbol("s1"), Symbol("s2")}));
+}
+
+TEST_F(SymbolicShapeInferenceST, InferShapeForRandomLikeConstInput) {
+  std::vector<int32_t> const_data = {4, 5, 6, 7};
+  auto const0 = builder_->CreateVector(const_data);
+
+  auto output = es::RandomUniform(const0, DT_INT32, 0, 0);
+  ASSERT_EQ(es::EsGraphBuilder::SetOutput(output, 0), 0);
+  auto graph = builder_->BuildAndReset();
+
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+  ASSERT_NE(cg, nullptr);
+  auto node = cg->FindFirstNodeMatchType("RandomUniform");
+  ASSERT_NE(node, nullptr);
+  auto op_desc = node->GetOpDesc();
+  ASSERT_NE(op_desc, nullptr);
+  op_desc->MutableInputDesc(0)->SetDataType(DT_INT32);
+
+  SymbolicShapeInference ssi;
+  ASSERT_EQ(ssi.Infer(cg), ge::SUCCESS);
+  auto attr = op_desc->GetOutputDesc(0).GetAttrsGroup<SymbolicDescAttr>();
+  ASSERT_NE(attr, nullptr);
+  EXPECT_EQ(attr->symbolic_tensor.GetOriginSymbolShape(),
+            gert::SymbolShape({Symbol(4), Symbol(5), Symbol(6), Symbol(7)}));
+}
+
+TEST_F(SymbolicShapeInferenceST, InferShapeForRandomLikeDataInput) {
+  auto data0 = builder_->CreateInput(0, "data0");
+
+  auto output = es::TruncatedNormal(data0, 0, 0, DT_INT32);
+  ASSERT_EQ(es::EsGraphBuilder::SetOutput(output, 0), 0);
+  auto graph = builder_->BuildAndReset();
+
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+  ASSERT_NE(cg, nullptr);
+  auto node = cg->FindNode("data0");
+  ASSERT_NE(node, nullptr);
+  auto op_desc = node->GetOpDesc();
+  ASSERT_NE(op_desc, nullptr);
+  auto data_input = op_desc->MutableOutputDesc(0);
+  ASSERT_NE(data_input, nullptr);
+  auto ptr = std::make_unique<std::vector<ge::Expression>>();
+  ASSERT_NE(ptr, nullptr);
+  ptr->emplace_back(Symbol("s0"));
+  ptr->emplace_back(Symbol(1));
+  ptr->emplace_back(Symbol(2));
+  auto data_input_desc_attr = data_input->template GetOrCreateAttrsGroup<SymbolicDescAttr>();
+  ASSERT_NE(data_input_desc_attr, nullptr);
+  data_input_desc_attr->symbolic_tensor.SetSymbolicValue(std::move(ptr));
+
+  SymbolicShapeInference ssi;
+  ASSERT_EQ(ssi.Infer(cg), ge::SUCCESS);
+  node = cg->FindFirstNodeMatchType("TruncatedNormal");
+  ASSERT_NE(node, nullptr);
+  op_desc = node->GetOpDesc();
+  ASSERT_NE(op_desc, nullptr);
+  auto attr = op_desc->GetOutputDesc(0).GetAttrsGroup<SymbolicDescAttr>();
+  ASSERT_NE(attr, nullptr);
+  EXPECT_EQ(attr->symbolic_tensor.GetOriginSymbolShape(),
+            gert::SymbolShape({Symbol("s0"), Symbol(1), Symbol(2)}));
+}
+
+TEST_F(SymbolicShapeInferenceST, InferShapeForDynamicStitch) {
+  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistry(true);
+  gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->
+      CreateOrGetOpImpl("DynamicStitch")->SetInputDataDependency({0});
+  auto indices0 = builder_->CreateInput(0, "data0", nullptr);
+  indices0.SetOriginSymbolShape(std::vector<const char *>({"1"}));
+  auto indices1 = builder_->CreateInput(1, "data1", nullptr);
+  indices1.SetOriginSymbolShape(std::vector<const char *>({"2"}));
+  auto indices2 = builder_->CreateInput(2, "data2", nullptr);
+  indices2.SetOriginSymbolShape(std::vector<const char *>({"2", "2"}));
+
+  auto x0 = builder_->CreateInput(3, "data3", nullptr);
+  x0.SetOriginSymbolShape(std::vector<const char *>({"1", "2"}));
+  auto x1 = builder_->CreateInput(4, "data4", nullptr);
+  x1.SetOriginSymbolShape(std::vector<const char *>({"2", "2"}));
+  auto x2 = builder_->CreateInput(5, "data5", nullptr);
+  x2.SetOriginSymbolShape(std::vector<const char *>({"2", "2", "2"}));
+
+  std::vector<EsTensorHolder> indices_list = {indices0, indices1, indices2};
+  std::vector<EsTensorHolder> x_list = {x0, x1, x2};
+  auto output = es::DynamicStitch(indices_list, x_list, 3);
+  ASSERT_EQ(es::EsGraphBuilder::SetOutput(output, 0), 0);
+  auto graph = builder_->BuildAndReset();
+  ASSERT_NE(graph, nullptr);
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+  ASSERT_NE(cg, nullptr);
+
+  auto ptr0 = std::make_unique<std::vector<ge::Expression>>();
+  ptr0->emplace_back(Symbol(6));
+  cg->FindNode("data0")->GetOpDesc()->MutableOutputDesc(0)->template GetOrCreateAttrsGroup<SymbolicDescAttr>()->
+      symbolic_tensor.SetSymbolicValue(std::move(ptr0));
+
+  auto ptr1 = std::make_unique<std::vector<ge::Expression>>();
+  ptr1->emplace_back(Symbol("s1"));
+  ptr1->emplace_back(Symbol("s2"));
+  cg->FindNode("data1")->GetOpDesc()->MutableOutputDesc(0)->template GetOrCreateAttrsGroup<SymbolicDescAttr>()->
+      symbolic_tensor.SetSymbolicValue(std::move(ptr1));
+
+  auto ptr2 = std::make_unique<std::vector<ge::Expression>>();
+  ptr2->emplace_back(Symbol(5));
+  ptr2->emplace_back(Symbol(9));
+  ptr2->emplace_back(Symbol(0));
+  ptr2->emplace_back(Symbol(3));
+  cg->FindNode("data2")->GetOpDesc()->MutableOutputDesc(0)->template GetOrCreateAttrsGroup<SymbolicDescAttr>()->
+      symbolic_tensor.SetSymbolicValue(std::move(ptr2));
+
+  SymbolicShapeInference ssi;
+  ASSERT_EQ(ssi.Infer(cg), ge::SUCCESS);
+  EXPECT_EQ(cg->FindFirstNodeMatchType("DynamicStitch")->GetOpDesc()->GetOutputDesc(0).GetAttrsGroup<SymbolicDescAttr>()->
+      symbolic_tensor.GetOriginSymbolShape(),
+            gert::SymbolShape({sym::Max(Symbol(9), sym::Max(Symbol("s1"), Symbol("s2"))) + Symbol(1), Symbol(2)}));
+}
+
 REG_OP(MatMul)
     .INPUT(x1, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT32, DT_BF16}))
     .INPUT(x2, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT32, DT_BF16}))

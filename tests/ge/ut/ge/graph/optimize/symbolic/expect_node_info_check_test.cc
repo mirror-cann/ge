@@ -72,9 +72,11 @@ Status RunSymbolInferenceTest(const ComputeGraphPtr &cg, const std::vector<Expec
     GE_ASSERT_NOTNULL(node_ptr);
     auto op_desc = node_ptr->GetOpDesc();
     GE_ASSERT_NOTNULL(op_desc);
-    auto attr = op_desc->GetOutputDesc(0).template GetAttrsGroup<SymbolicDescAttr>();
+    auto attr = op_desc->GetOutputDesc(node.GetOutputIdx()).template GetAttrsGroup<SymbolicDescAttr>();
     GE_ASSERT_NOTNULL(attr);
     auto symbol_shape = attr->symbolic_tensor.GetOriginSymbolShape();
+    GELOGD("Op %s output idx %zu of symbol tensor info %s", op_desc->GetName().c_str(), node.GetOutputIdx(),
+           SymbolicInferUtil::DumpSymbolTensor(attr->symbolic_tensor).c_str());
     GE_ASSERT_TRUE(node.ExpectShapeCheck(symbol_shape));
     auto shape_env_attr = cg->GetAttrsGroup<ShapeEnvAttr>();
     if (shape_env_attr != nullptr) {

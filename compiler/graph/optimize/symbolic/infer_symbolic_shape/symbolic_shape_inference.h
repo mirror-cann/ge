@@ -24,8 +24,6 @@ class SymbolicShapeInference {
  public:
   Status Infer(const ComputeGraphPtr &graph) const;
  private:
-  graphStatus CheckOutputSymbolDimNumValid(const OpDescPtr &op_desc) const;
-  graphStatus PrintSymbolShapeInfo(const OpDescPtr &op_desc, const std::string &stage) const;
   Status SimplifyTensorSymbol(const GeTensorDescPtr &ge_tensor_desc) const;
   Status Simplify(const ComputeGraphPtr &graph) const;
   Status InferOneNode(NodePtr &node) const;

@@ -1026,7 +1026,49 @@ REG_OP(Expand)
     .INPUT(padding_value, TensorType::BasicType())
     .OUTPUT(output, TensorType::BasicType())
     .OP_END_FACTORY_REG(MatrixDiagV2)
-    
+
+REG_OP(GatherElements)
+    .INPUT(x, TensorType({DT_FLOAT16, DT_BF16, DT_FLOAT, DT_INT8, DT_INT16, DT_INT32,
+                          DT_INT64, DT_UINT8, DT_UINT16, DT_UINT32, DT_UINT64, DT_BOOL, DT_DOUBLE, DT_FLOAT8_E5M2,
+                          DT_FLOAT8_E8M0, DT_FLOAT8_E4M3FN}))
+    .INPUT(index, TensorType({DT_INT32, DT_INT64}))
+    .OUTPUT(y, TensorType({DT_FLOAT16, DT_BF16, DT_FLOAT, DT_INT8, DT_INT16, DT_INT32,
+                           DT_INT64, DT_UINT8, DT_UINT16, DT_UINT32, DT_UINT64, DT_BOOL, DT_DOUBLE, DT_FLOAT8_E5M2,
+                           DT_FLOAT8_E8M0, DT_FLOAT8_E4M3FN}))
+    .ATTR(dim, Int, 0)
+    .OP_END_FACTORY_REG(GatherElements)
+
+REG_OP(RandomUniform)
+    .INPUT(shape, TensorType({DT_INT32, DT_INT64}))
+    .OUTPUT(y, TensorType({DT_FLOAT16, DT_FLOAT, DT_DOUBLE, DT_BF16}))
+    .REQUIRED_ATTR(dtype, Type)
+    .ATTR(seed, Int, 0)
+    .ATTR(seed2, Int, 0)
+    .OP_END_FACTORY_REG(RandomUniform)
+
+REG_OP(TruncatedNormal)
+    .INPUT(shape, TensorType({DT_INT32, DT_INT64}))
+    .OUTPUT(y, TensorType({DT_FLOAT16, DT_FLOAT, DT_DOUBLE, DT_BF16}))
+    .ATTR(seed, Int, 0)
+    .ATTR(seed2, Int, 0)
+    .ATTR(dtype, Type, DT_FLOAT)
+    .OP_END_FACTORY_REG(TruncatedNormal)
+
+REG_OP(UnsortedSegmentSum)
+    .INPUT(x, TensorType::NumberType())
+    .INPUT(segment_ids, TensorType::IndexNumberType())
+    .INPUT(num_segments, TensorType::IndexNumberType())
+    .OUTPUT(y, TensorType::NumberType())
+    .ATTR(is_preprocessed, Bool, false)
+    .ATTR(chedk_ids, Bool, false)
+    .OP_END_FACTORY_REG(UnsortedSegmentSum)
+
+REG_OP(DynamicStitch)
+    .DYNAMIC_INPUT(indices, TensorType::NumberType())
+    .DYNAMIC_INPUT(x, TensorType::IndexNumberType())
+    .OUTPUT(y, TensorType::NumberType())
+    .ATTR(N, Int, 1)
+    .OP_END_FACTORY_REG(DynamicStitch)
 }  // namespace ge 
 
 #endif  // GE_TESTS_FRAMEWORK_ESB_TEST_OPS_H_

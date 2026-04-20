@@ -58,5 +58,6 @@ graphStatus InferShape4UnsortedSegment(gert::InferSymbolShapeContext* context) {
 }
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(UnsortedSegmentMax).InferSymbolShape(InferShape4UnsortedSegment);
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(UnsortedSegmentMin).InferSymbolShape(InferShape4UnsortedSegment);
+IMPL_OP_INFER_SYMBOL_SHAPE_INNER(UnsortedSegmentSum).InferSymbolShape(InferShape4UnsortedSegment);
 }  // namespace
 }  // namespace ge

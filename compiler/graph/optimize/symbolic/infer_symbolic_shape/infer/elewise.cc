@@ -66,5 +66,9 @@ IMPL_OP_INFER_SYMBOL_SHAPE_INNER(FusedMulAddN).InferSymbolShape(InferShape4Eleme
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(Softplus).InferSymbolShape(InferShape4ElementWise);
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(BNInferenceD).InferSymbolShape(InferShape4ElementWise);
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(Adds).InferSymbolShape(InferShape4ElementWise);
+IMPL_OP_INFER_SYMBOL_SHAPE_INNER(Round).InferSymbolShape(InferShape4ElementWise);
+IMPL_OP_INFER_SYMBOL_SHAPE_INNER(ScatterAdd).InferSymbolShape(InferShape4ElementWise);
+IMPL_OP_INFER_SYMBOL_SHAPE_INNER(ScatterNdAdd).InferSymbolShape(InferShape4ElementWise);
+IMPL_OP_INFER_SYMBOL_SHAPE_INNER(ScatterNdUpdate).InferSymbolShape(InferShape4ElementWise);
 } // namespace
 } // namespace ge

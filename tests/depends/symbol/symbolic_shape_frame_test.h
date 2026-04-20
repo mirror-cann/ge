@@ -30,12 +30,14 @@ class ExpectNodeInfoCheckBase {
                           std::vector<Expression> expect_symbol_output_shape,
                           std::set<std::string> expect_guard_infos,
                           std::set<std::string> expect_assert_infos,
-                          std::vector<Expression> expect_symbolic_value)
+                          std::vector<Expression> expect_symbolic_value,
+                          size_t output_idx)
       : node_name_(std::move(node_name)),
         expect_symbol_output_shape_(std::move(expect_symbol_output_shape)),
         expect_guard_infos_(std::move(expect_guard_infos)),
         expect_assert_infos_(std::move(expect_assert_infos)),
-        expect_symbolic_value_(std::move(expect_symbolic_value)) {}
+        expect_symbolic_value_(std::move(expect_symbolic_value)),
+        output_idx_(output_idx) {}
 
   std::string GetNodeName() const {
     return node_name_;
@@ -52,6 +54,9 @@ class ExpectNodeInfoCheckBase {
   std::vector<Expression> GetExpectSymbolicValue() const {
     return expect_symbolic_value_;
   }
+  size_t GetOutputIdx() const {
+    return output_idx_;
+  }
   virtual bool ExpectShapeCheck(const gert::SymbolShape &real_shape) const = 0;
   virtual bool ExpectGuardInfoCheck(std::vector<SymbolCheckInfo> real_guard) const = 0;
   virtual bool ExpectAssertInfoCheck(std::vector<SymbolCheckInfo> real_assert) const = 0;
@@ -64,6 +69,7 @@ class ExpectNodeInfoCheckBase {
   std::set<std::string> expect_guard_infos_;
   std::set<std::string> expect_assert_infos_;
   std::vector<Expression> expect_symbolic_value_;
+  size_t output_idx_;
 };
 }  // namespace ge
 #endif  // AIR_CXX_SYMBOLIC_SHAPE_FRAME_TEST_H

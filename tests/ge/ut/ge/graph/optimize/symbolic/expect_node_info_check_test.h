@@ -21,13 +21,15 @@ class ExpectNodeInfo : public ExpectNodeInfoCheckBase {
                  std::vector<Expression> expect_symbol_output_shape,
                  std::set<std::string> expect_guard_infos,
                  std::set<std::string> expect_assert_infos,
-                 std::vector<Expression> expect_symbolic_value)
+                 std::vector<Expression> expect_symbolic_value,
+                 size_t output_idx = 0U)
       : ExpectNodeInfoCheckBase(
             std::move(node_name),
             std::move(expect_symbol_output_shape),
             std::move(expect_guard_infos),
             std::move(expect_assert_infos),
-            std::move(expect_symbolic_value)){}
+            std::move(expect_symbolic_value),
+            output_idx) {}
   ~ExpectNodeInfo() override = default;
   bool ExpectShapeCheck(const gert::SymbolShape &real_shape) const override;
   bool ExpectGuardInfoCheck(std::vector<SymbolCheckInfo> real_guard) const override;
