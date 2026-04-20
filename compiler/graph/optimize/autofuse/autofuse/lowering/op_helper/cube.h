@@ -12,6 +12,8 @@
 #define AIR_CXX_COMPILER_GRAPH_OPTIMIZE_AUTOFUSE_LOWERING_CUBE_H_
 
 #include <cstdint>
+#include <string>
+#include <vector>
 #include "graph/types.h"
 
 namespace ge {
@@ -26,6 +28,20 @@ struct MatMulAttr {
   bool adj_x1{false};
   bool adj_x2{false};
   bool is_batch{false};
+};
+
+struct Conv2DAttr {
+  ge::DataType output_dtype = ge::DataType::DT_MAX;
+  std::vector<int64_t> strides;
+  std::vector<int64_t> pads;
+  std::vector<int64_t> dilations;
+  int64_t groups = 1;
+  std::string data_format = "NCHW";
+  int64_t offset_x = 0;
+  std::string pad_mode = "SPECIFIC";
+  bool enable_hf32 = false;
+  bool has_bias = false;
+  bool has_offset_w = false;
 };
 }  // namespace ge
 

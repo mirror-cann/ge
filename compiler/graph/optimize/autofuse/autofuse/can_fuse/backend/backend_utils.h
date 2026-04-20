@@ -828,6 +828,9 @@ class BackendUtils {
   static bool OnlyHasTypesInAscgraph(const NodePtr &node, const std::vector<std::string> &target_types);
   static void SetReduceOriginalAxisInfo(AutofuseInnerAttrs &attr_new, const AutofuseInnerAttrs &attr1,
                                         const AutofuseInnerAttrs &attr2);
+  static Status FlushReduceOriginalAxisIfIsReduceNode(const NodePtr &node, const NodePtr &asc_node,
+                                                      const std::vector<int64_t> axis_before_Flush,
+                                                      const std::vector<int64_t> axis_after_Flush);
   static Status GetTransposeInfos(
       AscGraph &asc_graph, bool &has_only_one_transpose,
       std::unordered_map<NodePtr, std::vector<std::pair<int64_t, int64_t>>> &fallback_node_to_transpose_info);

@@ -717,8 +717,8 @@ Status AscGraphAxisMapping::GetVerticalAxisMapInfo(const NodePtr &node, const in
   return SUCCESS;
 }
 
-Status AscGraphAxisMapping::FlushAscSubGraphAxisInfo(const ComputeGraphPtr &graph, const AxisPairSet &node_map,
-                                                     bool need_flash) const {
+Status AscGraphAxisMapping::FlushAscSubGraphAxisInfo(const NodePtr &node, const ComputeGraphPtr &graph,
+                                                     const AxisPairSet &node_map, bool need_flash) const {
   for (auto &asc_node : graph->GetAllNodes()) {
     GE_ASSERT_NOTNULL(asc_node);
     auto asc_node_op_desc = asc_node->GetOpDesc();
@@ -733,9 +733,12 @@ Status AscGraphAxisMapping::FlushAscSubGraphAxisInfo(const ComputeGraphPtr &grap
       GE_ASSERT_NOTNULL(output_desc);
       auto output_desc_tensor_attr = output_desc->GetAttrsGroup<AscTensorAttr>();
       GE_ASSERT_NOTNULL(output_desc_tensor_attr);
+      auto axis_before_Flush = output_desc_tensor_attr->axis;
       if (BackendUtils::ConvertAxis(node_map, output_desc_tensor_attr->axis, need_flash) != SUCCESS) {
         return FAILED;
       }
+      GE_ASSERT_SUCCESS(BackendUtils::FlushReduceOriginalAxisIfIsReduceNode(node, asc_node, axis_before_Flush,
+                                                                            output_desc_tensor_attr->axis));
     }
   }
   auto graph_attr = graph->GetAttrsGroup<AscGraphAttr>();
@@ -756,7 +759,7 @@ Status AscGraphAxisMapping::FlushSubGraphAxisInfo(const NodePtr &node, const Axi
   ComputeGraphPtr graph;
   GE_ASSERT_SUCCESS(BackendUtils::GetNodeFusedGraph(node, graph));
   if (node->GetType() == kAscBackendType) {
-    if (FlushAscSubGraphAxisInfo(graph, node_map, need_flash) != SUCCESS) {
+    if (FlushAscSubGraphAxisInfo(node, graph, node_map, need_flash) != SUCCESS) {
       return FAILED;
     }
   } else if (node->GetType() == kFusedAscBackendType) {

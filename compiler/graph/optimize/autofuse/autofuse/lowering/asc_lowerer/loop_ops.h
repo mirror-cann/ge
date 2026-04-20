@@ -1041,8 +1041,8 @@ class StoreMatMulOp : public LoopOp {
     std::stringstream ss;
     ss << Type() << "(\"";
     ss << dst_->GetOwnerNode()->GetName() << ":" << dst_->GetIdx() << "\", ";
-    ss << loop::StrJoin(var_names) << ", transpose_x1=" << attrs_.transpose_x1
-       << ", transpose_x2=" << attrs_.transpose_x2 << ", offset_x=" << attrs_.offset_x
+    ss << loop::StrJoin(var_names) << ", transpose_x1=" << (attrs_.transpose_x1 || attrs_.adj_x1)
+       << ", transpose_x2=" << (attrs_.transpose_x2 || attrs_.adj_x2) << ", offset_x=" << attrs_.offset_x
        << ", enable_hf32=" << attrs_.enable_hf32 << ", has_bias=" << attrs_.has_bias
        << ", has_offset_w=" << attrs_.has_offset_w << ")";
     return ss.str();
@@ -1063,6 +1063,79 @@ class StoreMatMulOp : public LoopOp {
   }
 
   MatMulAttr attrs_;
+  std::vector<Expression> dims_;
+  const ge::OutDataAnchor *dst_;
+  std::vector<std::vector<Expression>> input_dims_;
+};
+
+class StoreConv2DOp : public LoopOp {
+ public:
+  explicit StoreConv2DOp(const ge::OutDataAnchor *dst, std::vector<LoopOpPtr> inputs, Conv2DAttr conv2d_attr,
+                         std::vector<Expression> dims, std::vector<std::vector<Expression>> input_dims)
+      : LoopOp(std::move(inputs)),
+        attrs_(std::move(conv2d_attr)),
+        dims_(std::move(dims)),
+        dst_(dst),
+        input_dims_(input_dims) {}
+
+  [[nodiscard]] graphStatus ReIndex(const Index &index, Index &reindex) const override {
+    reindex = index;
+    return GRAPH_SUCCESS;
+  }
+
+  [[nodiscard]] CseVar Compute(const LoopCtx &ctx) const override {
+    std::vector<CseVar> conv_inputs;
+    conv_inputs.reserve(inputs_.size());
+    for (const auto &input : inputs_) {
+      conv_inputs.push_back(ctx.Get(input));
+    }
+    const std::string target = BufferName(dst_);
+    Ops()->SetBufferSrc(target, dst_);
+    auto result = Ops()->StoreConv2D(target, conv_inputs, TensorLoopDesc(dims_, ContiguousStrides(dims_)), attrs_,
+                              {attrs_.output_dtype});
+    return result;
+  }
+
+  [[nodiscard]] const std::string &Type() const override {
+    const static std::string kType = "ops.StoreConv2D";
+    return kType;
+  }
+
+  [[nodiscard]] LoopOpPtr CloneImpl() const override {
+    return std::make_shared<StoreConv2DOp>(*this);
+  };
+
+  [[nodiscard]] ge::NodePtr GetAscendIrNode() const override {
+    return dst_ == nullptr ? nullptr : dst_->GetOwnerNode();
+  }
+
+  [[nodiscard]] std::string ReadableLine(const std::vector<std::string> &var_names) const override {
+    std::stringstream ss_conv;
+    ss_conv << Type() << "(\"";
+    ss_conv << dst_->GetOwnerNode()->GetName() << ":" << dst_->GetIdx() << "\", ";
+    ss_conv << loop::StrJoin(var_names) << ", strides=[" << loop::StrJoin(attrs_.strides) << "], "
+            << "pads=[" << loop::StrJoin(attrs_.pads) << "], dilations=[" << loop::StrJoin(attrs_.dilations) << "], "
+            << "groups=" << attrs_.groups << ", data_format=" << attrs_.data_format << ", offset_x=" << attrs_.offset_x
+            << ", pad_mode=" << attrs_.pad_mode << ", enable_hf32=" << attrs_.enable_hf32
+            << ", has_bias=" << attrs_.has_bias << ", has_offset_w=" << attrs_.has_offset_w << ")";
+    return ss_conv.str();
+  }
+
+  graphStatus RealizeImpl() override;
+
+  [[nodiscard]] bool InferDataType(const std::vector<DataType> &input_dtypes_conv,
+                                   std::vector<DataType> &expect_output_dtypes_conv) const override {
+    (void)input_dtypes_conv;
+    expect_output_dtypes_conv.emplace_back(attrs_.output_dtype);
+    return true;
+  }
+
+ private:
+  [[nodiscard]] std::string Buffer() const {
+    return dst_->GetOwnerNode()->GetName() + ":" + std::to_string(dst_->GetIdx());
+  }
+
+  Conv2DAttr attrs_;
   std::vector<Expression> dims_;
   const ge::OutDataAnchor *dst_;
   std::vector<std::vector<Expression>> input_dims_;

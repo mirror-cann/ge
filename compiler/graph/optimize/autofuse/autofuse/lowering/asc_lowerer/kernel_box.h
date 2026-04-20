@@ -66,6 +66,8 @@ struct KernelBoxMeta {
         type = FuseType::kSliceSplit;
       } else if (var.Op()->Type() == "ops.StoreMatMul") {
         type = FuseType::kCube;
+      } else if (var.Op()->Type() == "ops.StoreConv2D") {
+        type = FuseType::kCube;
       } else {
         type = FuseType::kPointwise;
         LoopOp::Dfs(var.Op().get(), [this](const LoopOp *op) -> graphStatus {

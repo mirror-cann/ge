@@ -81,7 +81,7 @@ inline Status UpdateReduceNodeRepeats(const NodePtr &asc_node, TensorAttrInfo &t
   const auto &original_axis = reduce_attrs->GetReduceOriginalAxis();
   const auto &original_repeats = reduce_attrs->GetReduceOriginalRepeats();
 
-  if (original_axis.empty() || original_repeats.empty()) {
+  if (original_axis.empty() || original_repeats.empty()) { // 如果为空，说明前面是lowering出来不需要反推broadcast（load后或者融合点）的计算节点
     return SUCCESS;
   }
 

@@ -144,6 +144,10 @@ static const std::map<std::string, ge::ComputeType> kOpTypeToComputeType = {
     {BatchMatMul::Type, ge::ComputeType::kComputeCube},    {BatchMatMulBias::Type, ge::ComputeType::kComputeCube},
     {BatchMatMulOffset::Type, ge::ComputeType::kComputeCube},
     {BatchMatMulOffsetBias::Type, ge::ComputeType::kComputeCube},
+    {Conv2D::Type, ge::ComputeType::kComputeCube},
+    {Conv2DBias::Type, ge::ComputeType::kComputeCube},
+    {Conv2DOffset::Type, ge::ComputeType::kComputeCube},
+    {Conv2DOffsetBias::Type, ge::ComputeType::kComputeCube},
 };
 
 static const std::map<ge::ComputeType, Completer> kComputeTypeToCompleter = {

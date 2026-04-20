@@ -372,7 +372,8 @@ class AscGraphAxisMapping {
    * @param need_flash 是否需要刷新轴信息，如果为true，则更新轴信息；如果为false，则不更新
    * @return 返回SUCCESS表示刷新成功，返回FAILED表示刷新失败
    */
-  Status FlushAscSubGraphAxisInfo(const ComputeGraphPtr &graph, const AxisPairSet &node_map, bool need_flash) const;
+  Status FlushAscSubGraphAxisInfo(const NodePtr &node, const ComputeGraphPtr &graph, const AxisPairSet &node_map,
+                                  bool need_flash) const;
 
   /**
    * 该函数用于获取当前 Asc 节点的属性信息。

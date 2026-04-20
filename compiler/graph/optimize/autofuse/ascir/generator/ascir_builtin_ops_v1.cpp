@@ -804,6 +804,98 @@ REG_ASC_IR(BatchMatMulOffsetBias)
                              {"T2", TensorType{DT_FLOAT16, DT_FLOAT, DT_BF16}},
                              {"T3", TensorType{DT_INT8, DT_INT4}}}});
 
+REG_ASC_IR(Conv2D)
+    .Input("x", "T1")
+    .Input("filter", "T1")
+    .Output("y", "T2")
+    .DataType("T1", TensorType{DT_FLOAT16, DT_FLOAT, DT_BF16, DT_HIFLOAT8})
+    .DataType("T2", TensorType{DT_FLOAT16, DT_FLOAT, DT_BF16, DT_HIFLOAT8})
+    .Attr<std::vector<int64_t>>("strides")
+    .Attr<std::vector<int64_t>>("pads")
+    .Attr<std::vector<int64_t>>("dilations")
+    .Attr<int64_t>("groups")
+    .Attr<int64_t>("has_relu")
+    .Attr<std::string>("pad_mode")
+    .Attr<std::string>("data_format")
+    .Attr<int64_t>("offset_x")
+    .Attr<bool>("enable_hf32")
+    .ComputeType(ge::ComputeType::kComputeCube)
+    .Impl(v1_soc_versions, {ge::ascir::AscIrImplCreator<Conv2DAscIrAttImpl>(),
+                              ge::ascir::AscIrImplCreator<ge::ascir::Conv2DAscIrCodegenImpl>(),
+                              {{"T1", TensorType{DT_FLOAT16, DT_FLOAT, DT_BF16, DT_HIFLOAT8}},
+                               {"T2", TensorType{DT_FLOAT16, DT_FLOAT, DT_BF16, DT_HIFLOAT8}}}});
+
+REG_ASC_IR(Conv2DBias)
+    .Input("x", "T1")
+    .Input("filter", "T1")
+    .Input("bias", "T2")
+    .Output("y", "T2")
+    .DataType("T1", TensorType{DT_FLOAT16, DT_FLOAT, DT_BF16, DT_HIFLOAT8})
+    .DataType("T2", TensorType{DT_FLOAT16, DT_FLOAT, DT_BF16, DT_HIFLOAT8})
+    .Attr<std::vector<int64_t>>("strides")
+    .Attr<std::vector<int64_t>>("pads")
+    .Attr<std::vector<int64_t>>("dilations")
+    .Attr<int64_t>("groups")
+    .Attr<int64_t>("has_relu")
+    .Attr<std::string>("pad_mode")
+    .Attr<std::string>("data_format")
+    .Attr<int64_t>("offset_x")
+    .Attr<bool>("enable_hf32")
+    .ComputeType(ge::ComputeType::kComputeCube)
+    .Impl(v1_soc_versions, {ge::ascir::AscIrImplCreator<Conv2DAscIrAttImpl>(),
+                              ge::ascir::AscIrImplCreator<ge::ascir::Conv2DAscIrCodegenImpl>(),
+                              {{"T1", TensorType{DT_FLOAT16, DT_FLOAT, DT_BF16, DT_HIFLOAT8}},
+                               {"T2", TensorType{DT_FLOAT16, DT_FLOAT, DT_BF16, DT_HIFLOAT8}}}});
+
+REG_ASC_IR(Conv2DOffset)
+    .Input("x", "T1")
+    .Input("filter", "T1")
+    .Input("offset_w", "T3")
+    .Output("y", "T2")
+    .DataType("T1", TensorType{DT_FLOAT16, DT_FLOAT, DT_BF16, DT_HIFLOAT8})
+    .DataType("T2", TensorType{DT_FLOAT16, DT_FLOAT, DT_BF16, DT_HIFLOAT8})
+    .DataType("T3", TensorType{DT_INT8})
+    .Attr<std::vector<int64_t>>("strides")
+    .Attr<std::vector<int64_t>>("pads")
+    .Attr<std::vector<int64_t>>("dilations")
+    .Attr<int64_t>("groups")
+    .Attr<int64_t>("has_relu")
+    .Attr<std::string>("pad_mode")
+    .Attr<std::string>("data_format")
+    .Attr<int64_t>("offset_x")
+    .Attr<bool>("enable_hf32")
+    .ComputeType(ge::ComputeType::kComputeCube)
+    .Impl(v1_soc_versions, {ge::ascir::AscIrImplCreator<Conv2DAscIrAttImpl>(),
+                              ge::ascir::AscIrImplCreator<ge::ascir::Conv2DAscIrCodegenImpl>(),
+                              {{"T1", TensorType{DT_FLOAT16, DT_FLOAT, DT_BF16, DT_HIFLOAT8}},
+                               {"T2", TensorType{DT_FLOAT16, DT_FLOAT, DT_BF16, DT_HIFLOAT8}},
+                               {"T3", TensorType{DT_INT8}}}});
+
+REG_ASC_IR(Conv2DOffsetBias)
+    .Input("x", "T1")
+    .Input("filter", "T1")
+    .Input("bias", "T2")
+    .Input("offset_w", "T3")
+    .Output("y", "T2")
+    .DataType("T1", TensorType{DT_FLOAT16, DT_FLOAT, DT_BF16, DT_HIFLOAT8})
+    .DataType("T2", TensorType{DT_FLOAT16, DT_FLOAT, DT_BF16, DT_HIFLOAT8})
+    .DataType("T3", TensorType{DT_INT8})
+    .Attr<std::vector<int64_t>>("strides")
+    .Attr<std::vector<int64_t>>("pads")
+    .Attr<std::vector<int64_t>>("dilations")
+    .Attr<int64_t>("groups")
+    .Attr<int64_t>("has_relu")
+    .Attr<std::string>("pad_mode")
+    .Attr<std::string>("data_format")
+    .Attr<int64_t>("offset_x")
+    .Attr<bool>("enable_hf32")
+    .ComputeType(ge::ComputeType::kComputeCube)
+    .Impl(v1_soc_versions, {ge::ascir::AscIrImplCreator<Conv2DAscIrAttImpl>(),
+                            ge::ascir::AscIrImplCreator<ge::ascir::Conv2DAscIrCodegenImpl>(),
+                            {{"T1", TensorType{DT_FLOAT16, DT_FLOAT, DT_BF16, DT_HIFLOAT8}},
+                             {"T2", TensorType{DT_FLOAT16, DT_FLOAT, DT_BF16, DT_HIFLOAT8}},
+                             {"T3", TensorType{DT_INT8}}}});
+
 REG_ASC_IR(Split)
     .Input("x", "T")
     .DynamicOutput("y", "T")

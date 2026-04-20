@@ -395,23 +395,50 @@ bool BroadcastOp::InferDataType(const std::vector<DataType> &input_dtypes,
   return AutofuseUtils::CallAscirInferDataType<ascir_op::Broadcast>(input_dtypes, expect_output_dtypes) == SUCCESS;
 }
 
-graphStatus StoreMatMulOp::RealizeImpl() {
-  LoopCtx loop_ctx(dims_);
-  // mm不考虑前融合，此处简化处理
-  Ops()->SetLoopAxis(loop_ctx.loop_axis);
-
+namespace {
+graphStatus BuildLoopCtx(const std::vector<LoopOpPtr> &inputs, const std::vector<std::vector<Expression>> &input_dims,
+                  LoopCtx &loop_ctx) {
   auto load_index = std::make_shared<Index>(loop_ctx.loop_axis.axis);
   GE_ASSERT_NOTNULL(load_index);
-  GE_WARN_ASSERT(inputs_.size() == input_dims_.size());
-  for (size_t i = 0U; i < inputs_.size(); i++) {
-    auto input = inputs_[i].get();
+  GE_WARN_ASSERT(inputs.size() == input_dims.size());
+  for (size_t i = 0U; i < inputs.size(); i++) {
+    auto input = inputs[i].get();
     loop_ctx.load_2_index[input] = load_index;
-    auto desc = TensorLoopDesc(input_dims_[i], ContiguousStrides(input_dims_[i]));
+    auto desc = TensorLoopDesc(input_dims[i], ContiguousStrides(input_dims[i]));
     loop_ctx.load_2_god_desc.emplace(input, LoopCtx::GodLoadSpec(desc, desc));
   }
+  return GRAPH_SUCCESS;
+}
+}  // anonymous namespace
+
+graphStatus StoreMatMulOp::RealizeImpl() {
+  LoopCtx loop_ctx(dims_);
+  Ops()->SetLoopAxis(loop_ctx.loop_axis);
+  GE_WARN_ASSERT_GRAPH_SUCCESS(BuildLoopCtx(inputs_, input_dims_, loop_ctx), "Failed build loop ctx for %s",
+                               BufferName(dst_).c_str());
 
   auto status = StrictTopoExecute(this, [&loop_ctx](const LoopOp *op) -> graphStatus {
     const auto result = op->Compute(loop_ctx);
+    GE_WARN_ASSERT(result.IsValid(), "Loop kernel for %s got %s", op->Type().c_str(), result.Name().c_str());
+    loop_ctx.Set(op, result);
+    return GRAPH_SUCCESS;
+  });
+  GE_WARN_ASSERT_GRAPH_SUCCESS(status, "Failed build asc graph for %s", BufferName(dst_).c_str());
+  GE_WARN_ASSERT(loop_ctx.Get(this).IsValid());
+  return GRAPH_SUCCESS;
+}
+
+graphStatus StoreConv2DOp::RealizeImpl() {
+  LoopCtx loop_ctx(dims_);
+  Ops()->SetLoopAxis(loop_ctx.loop_axis);
+  GE_WARN_ASSERT_GRAPH_SUCCESS(BuildLoopCtx(inputs_, input_dims_, loop_ctx), "Failed build loop ctx for %s",
+                               BufferName(dst_).c_str());
+
+  auto status = StrictTopoExecute(this, [&loop_ctx](const LoopOp *op) -> graphStatus {
+    const auto result = op->Compute(loop_ctx);
+    if (!result.IsValid()) {
+      GELOGE(FAILED, "result is invalid for op: %s", op->Type().c_str());
+    }
     GE_WARN_ASSERT(result.IsValid(), "Loop kernel for %s got %s", op->Type().c_str(), result.Name().c_str());
     loop_ctx.Set(op, result);
     return GRAPH_SUCCESS;

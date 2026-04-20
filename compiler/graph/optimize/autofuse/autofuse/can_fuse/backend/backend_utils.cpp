@@ -3197,6 +3197,62 @@ void BackendUtils::SetReduceOriginalAxisInfo(AutofuseInnerAttrs &attr_new, const
   }
 }
 
+// 融合存在轴映射之后index对应的axis变化的场景，则记录的reduce的原始axis也要相应变化
+Status BackendUtils::FlushReduceOriginalAxisIfIsReduceNode(const NodePtr &node, const NodePtr &asc_node,
+                                                           const std::vector<int64_t> axis_before_Flush,
+                                                           const std::vector<int64_t> axis_after_Flush) {
+  if (!asc_adapt::IsReduceNode(asc_node)) {
+    return SUCCESS;
+  }
+
+  if (axis_before_Flush.empty() || axis_after_Flush.empty()) {
+    return SUCCESS;
+  }
+
+  GE_ASSERT_TRUE(axis_before_Flush.size() == axis_after_Flush.size(),
+                 "axis_before_Flush size %zu must equal to axis_after_Flush size %zu", axis_before_Flush.size(),
+                 axis_after_Flush.size());
+
+  if (axis_before_Flush == axis_after_Flush) {
+    GELOGD("axis_before_Flush and axis_after_Flush are identical for asc_node %s, skip flush",
+           asc_node->GetName().c_str());
+    return SUCCESS;
+  }
+
+  auto autofuse_attr = BackendUtils::GetNodeAutoFuseAttr(node);
+  GE_ASSERT_NOTNULL(autofuse_attr);
+
+  auto reduce_original_axis = autofuse_attr->GetReduceOriginalAxis();
+  if (reduce_original_axis.empty()) {
+    return SUCCESS;
+  }
+
+  std::unordered_map<int64_t, size_t> axis_before_to_index;
+  for (size_t i = 0U; i < axis_before_Flush.size(); ++i) {
+    axis_before_to_index[axis_before_Flush[i]] = i;
+  }
+
+  std::vector<int64_t> updated_axis;
+  updated_axis.reserve(reduce_original_axis.size());
+  for (const auto &axis : reduce_original_axis) {
+    auto it = axis_before_to_index.find(axis);
+    if (it != axis_before_to_index.end()) {
+      size_t index = it->second;
+      updated_axis.push_back(axis_after_Flush[index]);
+    } else {
+      GELOGW("Axis %ld in reduce_original_axis not found in axis_before_Flush for asc_node %s, keep original value",
+             axis, asc_node->GetName().c_str());
+      updated_axis.push_back(axis);
+    }
+  }
+
+  autofuse_attr->SetReduceOriginalAxis(updated_axis);
+  GELOGD("Flush reduce original axis for asc_node %s, before: %s, after: %s", asc_node->GetName().c_str(),
+         AutofuseUtils::VectorToStr(reduce_original_axis).c_str(), AutofuseUtils::VectorToStr(updated_axis).c_str());
+
+  return SUCCESS;
+}
+
 Status GetNodeTransposeInfo(const NodePtr &node, const TensorAttrInfo &temp_graph_attr,
                                      std::vector<std::pair<int64_t, int64_t>> &transpose_info) {
   const auto cur_op_desc = node->GetOpDesc();

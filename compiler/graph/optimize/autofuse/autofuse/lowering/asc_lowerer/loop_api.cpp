@@ -76,8 +76,15 @@ KernelBox StoreExtern(const ge::OutDataAnchorPtr &dst) {
 namespace {
 void DropLowerResultIfNeeded(const std::shared_ptr<KernelBoxMeta> &meta, const ge::OutDataAnchorPtr &dst,
                              const LoopVar &result) {
-  // 暂时添加环境变量控制是否允许lowering成matmul
-  if ((meta->type == FuseType::kCube) && !ge::AutoFuseConfig::LoweringConfig().experimental_lowering_matmul) {
+  if (result.Op()->Type() == "ops.StoreConv2D" && !ge::AutoFuseConfig::LoweringConfig().experimental_lowering_conv) {
+    GELOGI(
+        "Drop lower result %s of %s as conv lowering disabled, you can enable it by setting "
+        "AUTOFUSE_FLAGS=\"--autofuse_enable_pass=conv\""
+        " and unsetting AUTOFUSE_FLAGS=\"--autofuse_disable_pass=conv\"",
+        result.Readable().c_str(), BufferName(dst).c_str());
+    meta->type = FuseType::kExtern;
+  }
+  if (result.Op()->Type() == "ops.StoreMatMul" && !ge::AutoFuseConfig::LoweringConfig().experimental_lowering_matmul) {
     GELOGI(
         "Drop lower result %s of %s as disabled, you can enable it by setting "
         "AUTOFUSE_FLAGS=\"--autofuse_enable_pass=matmul\""
@@ -493,6 +500,46 @@ bool IsSameBatchSize(const std::vector<std::vector<Expression>> &input_dims) {
   return true;
 }
 
+namespace {
+bool ValidateAndLoadInputs(const ge::OutDataAnchorPtr &dst,
+                          const std::vector<ge::InDataAnchorPtr> &inputs,
+                          std::vector<LoopOpPtr> &input_buffers,
+                          std::vector<std::vector<Expression>> &input_dims,
+                          size_t &max_dim) {
+  input_dims.resize(inputs.size());
+  max_dim = 0U;
+  for (size_t i = 0U; i < inputs.size(); i++) {
+    if ((inputs[i] == nullptr) || (inputs[i]->GetPeerOutAnchor() == nullptr)) {
+      GELOGI("Drop lower result of %s as input %zu is nullptr", BufferName(dst).c_str(), i);
+      return false;
+    }
+    loop::GetKernelBox(inputs[i]->GetPeerOutAnchor()).Realize();
+    input_buffers.emplace_back(loop::Load(inputs[i]).Op());
+    const auto buffer = inputs[i]->GetPeerOutAnchor().get();
+    if (GetBufferShape(buffer, input_dims[i]) != GRAPH_SUCCESS) {
+      GELOGI("Drop lower result of %s as input %s has no sym shape", BufferName(dst).c_str(),
+             BufferName(buffer).c_str());
+      return false;
+    }
+    if (input_dims[i].size() > max_dim) {
+      max_dim = input_dims[i].size();
+    }
+  }
+  return true;
+}
+
+void PadDimsToMax(std::vector<std::vector<Expression>> &input_dims, size_t max_dim) {
+  for (size_t i = 0U; i < input_dims.size(); i++) {
+    if (input_dims[i].size() < max_dim) {
+      size_t diff = max_dim - input_dims[i].size();
+      for (size_t j = 0U; j < diff; j++) {
+        input_dims[i].insert(input_dims[i].begin(), ge::Symbol(1));
+      }
+    }
+  }
+}
+}  // anonymous namespace
+
 KernelBox StoreMatMul(const ge::OutDataAnchorPtr &dst, const std::vector<ge::InDataAnchorPtr> &inputs,
                       const MatMulAttr &matmul_attr) {
   if ((inputs.size() <= 1U) || (inputs.size() > 4U)) {
@@ -506,34 +553,11 @@ KernelBox StoreMatMul(const ge::OutDataAnchorPtr &dst, const std::vector<ge::InD
   }
   std::vector<LoopOpPtr> input_buffers;
   std::vector<std::vector<Expression>> input_dims;
-  input_dims.resize(inputs.size());
   size_t max_dim = 0U;
-  for (size_t i = 0U; i < inputs.size(); i++) {
-    if ((inputs[i] == nullptr) || (inputs[i]->GetPeerOutAnchor() == nullptr)) {
-      GELOGI("Drop lower result of %s as input %zu is nullptr", BufferName(dst).c_str(), i);
-      return StoreExtern(dst);
-    }
-    loop::GetKernelBox(inputs[i]->GetPeerOutAnchor()).Realize();
-    input_buffers.emplace_back(loop::Load(inputs[i]).Op());
-    const auto buffer = inputs[i]->GetPeerOutAnchor().get();
-    if (GetBufferShape(buffer, input_dims[i]) != GRAPH_SUCCESS) {
-      GELOGI("Drop lower result of %s as input %s has no sym shape", BufferName(dst).c_str(),
-             BufferName(buffer).c_str());
-      return StoreExtern(dst);
-    }
-    if (input_dims[i].size() > max_dim) {
-      max_dim = input_dims[i].size();
-    }
+  if (!ValidateAndLoadInputs(dst, inputs, input_buffers, input_dims, max_dim)) {
+    return StoreExtern(dst);
   }
-
-  for (size_t i = 0U; i < inputs.size(); i++) {
-    if (input_dims[i].size() < max_dim) {
-      size_t diff = max_dim - input_dims[i].size();
-      for (size_t j = 0U; j < diff; j++) {
-        input_dims[i].insert(input_dims[i].begin(), ge::Symbol(1));
-      }
-    }
-  }
+  PadDimsToMax(input_dims, max_dim);
   if (!IsSameBatchSize(input_dims)) {
     GELOGI("Drop lower result of %s as it has different batch size", BufferName(dst).c_str());
     return StoreExtern(dst);
@@ -545,6 +569,44 @@ KernelBox StoreMatMul(const ge::OutDataAnchorPtr &dst, const std::vector<ge::InD
   }
 
   auto loop_var = LoopVar(std::make_shared<StoreMatMulOp>(dst.get(), input_buffers, matmul_attr, dims, input_dims));
+  return SetLoopKernel(dst, loop_var).Realize();
+}
+
+static bool IsValidConv2DInputs(const std::vector<ge::InDataAnchorPtr> &inputs) {
+  return inputs.size() >= 2 && inputs.size() <= 4;
+}
+
+KernelBox StoreConv2D(const ge::OutDataAnchorPtr &dst, const std::vector<ge::InDataAnchorPtr> &inputs,
+                      const Conv2DAttr &conv2d_attr) {
+  GELOGI("StoreConv2D called for dst: %s, inputs.size(): %zu", BufferName(dst).c_str(), inputs.size());
+  if (!IsValidConv2DInputs(inputs)) {
+    GELOGI("Drop lower result of %s as it has err inputs num=%zu", BufferName(dst).c_str(), inputs.size());
+    return StoreExtern(dst);
+  }
+  std::vector<Expression> dims;
+  if (GetBufferShape(dst, dims) != GRAPH_SUCCESS) {
+    GELOGI("Drop lower result of %s as it has no sym shape", BufferName(dst).c_str());
+    return StoreExtern(dst);
+  }
+  if (dims.size() != 4U) {
+    GELOGI("Drop lower result of %s as output shape dim=%zu not support", BufferName(dst).c_str(), dims.size());
+    return StoreExtern(dst);
+  }
+  std::vector<LoopOpPtr> input_buffers;
+  std::vector<std::vector<Expression>> input_dims;
+  size_t max_dim = 0U;
+  if (!ValidateAndLoadInputs(dst, inputs, input_buffers, input_dims, max_dim)) {
+    return StoreExtern(dst);
+  }
+  PadDimsToMax(input_dims, max_dim);
+
+  if (!IsStaticShape(dims, dst, inputs)) {
+    GELOGI("Drop lower result of %s as it is not static shape", BufferName(dst).c_str());
+    return StoreExtern(dst);
+  }
+
+  auto loop_var = LoopVar(std::make_shared<StoreConv2DOp>(dst.get(), input_buffers, conv2d_attr, dims, input_dims));
+  GELOGI("StoreConv2D SUCCESS for dst: %s", BufferName(dst).c_str());
   return SetLoopKernel(dst, loop_var).Realize();
 }
 

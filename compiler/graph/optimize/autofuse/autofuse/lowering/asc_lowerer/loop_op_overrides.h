@@ -48,6 +48,9 @@ class OpOverrides {
   virtual CseVar StoreMatMul(const std::string &buffer, const std::vector<CseVar> &inputs,
                              const TensorLoopDesc &loop_desc, const MatMulAttr &matmul_attr,
                              const std::vector<DataType> &explicit_output_dtypes) = 0;
+  virtual CseVar StoreConv2D(const std::string &buffer, const std::vector<CseVar> &inputs,
+                             const TensorLoopDesc &loop_desc, const Conv2DAttr &conv2d_attr,
+                             const std::vector<DataType> &explicit_output_dtypes) = 0;
 
   virtual CseVar Abs(const CseVar &x) = 0;
   virtual CseVar Acos(const CseVar &x) = 0;

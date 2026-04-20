@@ -33,8 +33,73 @@ constexpr size_t kMinOneNodeInData = 64U;
 constexpr size_t kMatmulMinInputNum = 2U;
 constexpr size_t kNumOne = 1U;
 const char *const kMatmulSubgraph = "matmul_subgraph";
+const char *const kConvSubgraph = "conv_subgraph";
 const char *const kMMV3Type = "MatMulV3";
 const char *const kBMMV3Type = "BatchMatMulV3";
+const char *const kConv2DType = "Conv2D";
+const char *const kConv2DV2Type = "Conv2DV2";
+
+GeShape TransferShapeBetweenHwcnNchw(const GeShape& old_shape, const Format& old_format, const Format& new_format) {
+  if (old_shape.GetDimNum() != 4U) {
+    return old_shape;
+  }
+  if (old_format == new_format) {
+    return old_shape;
+  }
+  std::vector<int64_t> dims = old_shape.GetDims();
+  if (old_format == FORMAT_HWCN && new_format == FORMAT_NCHW) {
+    return GeShape({dims[3], dims[2], dims[0], dims[1]});
+  }
+  if (old_format == FORMAT_NCHW && new_format == FORMAT_HWCN) {
+    return GeShape({dims[2], dims[3], dims[1], dims[0]});
+  }
+  return old_shape;
+}
+
+graphStatus CreateConvSubgraphAttr(const NodePtr &node, vector<const Node *> &compute_ops,
+                                   size_t &cube_real_inputs) {
+  const auto &sub_graph = ComGraphMakeShared<ComputeGraph>(kConvSubgraph + node->GetName());
+  GE_ASSERT_NOTNULL(sub_graph);
+  for (auto *org_node : compute_ops) {
+    if (org_node->GetType() == kConv2DV2Type) {
+      const auto &op_desc = GraphUtils::CopyOpDesc(org_node->GetOpDesc(), nullptr);
+      GE_ASSERT_NOTNULL(op_desc);
+      op_desc->SetName(org_node->GetName());
+      auto conv_output_desc = op_desc->MutableOutputDesc(0);
+      const auto data_format = conv_output_desc->GetFormat(); // 1.单算子在自动融合后formatJudge更新format，自动融合需在subgraph更新format
+      auto conv_node = sub_graph->AddNode(op_desc);
+      GE_ASSERT_NOTNULL(conv_node);
+      for (auto i = 0U; i < cube_real_inputs; i++) {
+        auto conv_input_desc = op_desc->MutableInputDesc(i);
+        GE_ASSERT_NOTNULL(conv_input_desc);
+        const auto old_format = conv_input_desc->GetFormat();
+        conv_input_desc->SetFormat(data_format); // 2.conv节点的输入更新为与输出一致（filter输入会不一样，单算子执行时tiling会校验这个format一致）
+        const auto new_shape = TransferShapeBetweenHwcnNchw(conv_input_desc->GetShape(), old_format, data_format);
+        conv_input_desc->SetShape(new_shape);
+        const auto &src_anchor = node->GetInDataAnchor(i);
+        GE_ASSERT_NOTNULL(src_anchor);
+        auto peer_anchor = src_anchor->GetPeerOutAnchor();
+        GE_ASSERT_NOTNULL(peer_anchor);
+        auto peer_node = peer_anchor->GetOwnerNode();
+        GE_ASSERT_NOTNULL(peer_node);
+        const auto &peer_op_desc = GraphUtils::CopyOpDesc(peer_node->GetOpDesc(), nullptr);
+        GE_ASSERT_NOTNULL(peer_op_desc);
+        peer_op_desc->SetName(peer_node->GetName());
+        auto conv_peer_node = sub_graph->AddNode(peer_op_desc);
+        GE_ASSERT_NOTNULL(conv_peer_node);
+        const auto &peer_node_out_anchor = conv_peer_node->GetOutDataAnchor(peer_anchor->GetIdx());
+        GE_ASSERT_NOTNULL(peer_node_out_anchor);
+        GE_ASSERT_GRAPH_SUCCESS(GraphUtils::AddEdge(peer_node_out_anchor, conv_node->GetInDataAnchor(i)));
+      }
+      break;
+    }
+  }
+
+  auto op_desc = node->GetOpDesc();
+  GE_ASSERT_NOTNULL(op_desc);
+  GE_ASSERT_TRUE(op_desc->SetExtAttr(kConvSubgraph, sub_graph));
+  return GRAPH_SUCCESS;
+}
 
 graphStatus CreateMMSubgraphAttr(const NodePtr &node, vector<const Node *> &compute_ops,
                                  size_t &cube_real_inputs) {
@@ -87,15 +152,29 @@ bool IsCubeSkipLifting(const NodePtr &node, const size_t min_compute_nodes,
   size_t cube_real_inputs = kMatmulMinInputNum;
   const auto asc_graph = fuse_attrs->GetAscGraph();
   GE_ASSERT_NOTNULL(asc_graph);
+
+  bool has_conv = false;
   for (const auto &asc_node : asc_graph->GetAllNodes()) {
     if (!AutofuseUtils::IsCubeNodeType(asc_node)) {
       continue;
     }
-    cube_real_inputs = asc_node->GetInNodes().size(); // ascgraph里面的matmul节点，即使输入是某个节点输出的多引用，也有至少两个输入
+    if (asc_node->GetType() == kConv2DType || asc_node->GetType() == kConv2DBias ||
+        asc_node->GetType() == kConv2DOffset || asc_node->GetType() == kConv2DOffsetBias) {
+      has_conv = true;
+    } else {
+      // 当前cube只有matmul和conv，非conv就是matmul
+    }
+    cube_real_inputs = asc_node->GetInNodes().size(); // ascgraph里面的cube节点，即使输入是某个节点输出的多引用，也有至少两个输入
+    break;
   }
-  GE_ASSERT_SUCCESS(CreateMMSubgraphAttr(node, compute_ops, cube_real_inputs));
 
-  GELOGI("Skip lifting node: %s, cube_real_inputs %zu", node->GetName().c_str(), cube_real_inputs);
+  if (has_conv) {
+    GE_ASSERT_SUCCESS(CreateConvSubgraphAttr(node, compute_ops, cube_real_inputs));
+    GELOGI("Skip lifting node: %s, cube_real_inputs %zu, has_conv", node->GetName().c_str(), cube_real_inputs);
+  } else {
+    GE_ASSERT_SUCCESS(CreateMMSubgraphAttr(node, compute_ops, cube_real_inputs));
+    GELOGI("Skip lifting node: %s, cube_real_inputs %zu, has_matmul", node->GetName().c_str(), cube_real_inputs);
+  }
   return true;
 }
 

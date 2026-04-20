@@ -3545,6 +3545,34 @@ class BatchMatMulAscIrCodegenImplV2 : public AscIrCodegenV2 {
   }
 };
 
+class Conv2DAscIrCodegenImplV2 : public AscIrCodegenV2 {
+ public:
+  std::string GetApiCallName() const override {
+    return "Conv2DApiCall";
+  }
+  std::string GetApiName() const override {
+    return "Conv2D";
+  }
+  std::vector<std::string> LoadApiHeaderFiles() const override {
+    return {"conv2d_include_headers.h",
+            "conv2d_v2_tilingkey.h",
+            "conv_pingpong_basic_atcos.h",
+            "conv2d.h"};
+  }
+  std::vector<std::string> IncludeApiHeaderFiles() const override {
+    return {"basic_api/kernel_operator_common_intf.h"};
+  }
+  [[nodiscard]] bool IsNodeValid(const ge::AscNode &node) const override {
+    std::string node_type = node.GetType();
+    const auto &inputs = node.GetInDataNodes();
+    GE_ASSERT_TRUE(!(inputs.size() > 0 && inputs.at(0)->GetType() == "Scalar"),
+        "Node %s[%s] not support scalar input at index 0", node.GetTypePtr(), node.GetNamePtr());
+    GE_ASSERT_TRUE(!(inputs.size() > 1 && inputs.at(1)->GetType() == "Scalar"),
+        "Node %s[%s] not support scalar input at index 1", node.GetTypePtr(), node.GetNamePtr());
+    return true;
+  }
+};
+
 class SinAscIrCodegenImplV2 : public AscIrCodegenV2 {
  public:
   [[nodiscard]] std::string GetApiCallName() const override {

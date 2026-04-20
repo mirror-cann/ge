@@ -54,6 +54,18 @@ namespace loop {
     GET_IR_ATTR(OpType, Obj.Src())->SetEnable_hf32(Attr.enable_hf32); \
     GET_IR_ATTR(OpType, Obj.Src())->SetHas_relu(0);
 
+#define SET_CONV2D_ATTRS(OpType, Obj, Attr) \
+    GE_WARN_ASSERT(Obj.Src() != nullptr); \
+    GET_IR_ATTR(OpType, Obj.Src())->SetStrides(Attr.strides); \
+    GET_IR_ATTR(OpType, Obj.Src())->SetPads(Attr.pads); \
+    GET_IR_ATTR(OpType, Obj.Src())->SetDilations(Attr.dilations); \
+    GET_IR_ATTR(OpType, Obj.Src())->SetGroups(Attr.groups); \
+    GET_IR_ATTR(OpType, Obj.Src())->SetPad_mode(Attr.pad_mode); \
+    GET_IR_ATTR(OpType, Obj.Src())->SetData_format(Attr.data_format); \
+    GET_IR_ATTR(OpType, Obj.Src())->SetOffset_x(Attr.offset_x); \
+    GET_IR_ATTR(OpType, Obj.Src())->SetEnable_hf32(Attr.enable_hf32); \
+    GET_IR_ATTR(OpType, Obj.Src())->SetHas_relu(0)
+
 template <typename T>
 bool InferAscirDataType(const std::vector<DataType> &input_dtypes, std::vector<DataType> &output_dtypes) {
   if (ge::AutofuseUtils::CallAscirInferDataType<T>(input_dtypes, output_dtypes)== SUCCESS) {
@@ -380,6 +392,38 @@ class AscOverrides final : public OpOverrides {
     }
     mm.SetTensorLoop(asc_axis_, loop_desc.repeats, loop_desc.strides);
     return CseVar(AddOutput(buffer, mm, loop_desc.repeats, loop_desc.strides).Shared());
+  }
+
+  CseVar StoreConv2D(const std::string &buffer, const std::vector<CseVar> &inputs, const TensorLoopDesc &loop_desc,
+                     const Conv2DAttr &conv2d_attr, const std::vector<DataType> &explicit_output_dtypes) override {
+    GE_WARN_ASSERT(loop_desc.repeats.size() == asc_axis_.size());
+    GE_WARN_ASSERT(loop_desc.strides.size() == asc_axis_.size());
+    GE_WARN_ASSERT(inputs.size() >= 2U && inputs.size() <= 4U);
+
+    AscVar conv;
+    if (inputs.size() == 2U) {
+      conv = MakeAscVar<ascir_op::Conv2D>(explicit_output_dtypes, inputs[0], inputs[1]);
+      SET_CONV2D_ATTRS(Conv2D, conv, conv2d_attr);
+    } else if (inputs.size() == 3U) {
+      if (conv2d_attr.has_bias) {
+        conv = MakeAscVar<ascir_op::Conv2DBias>(explicit_output_dtypes, inputs[0], inputs[1], inputs[2]);
+        SET_CONV2D_ATTRS(Conv2DBias, conv, conv2d_attr);
+      } else if (conv2d_attr.has_offset_w) {
+        conv = MakeAscVar<ascir_op::Conv2DOffset>(explicit_output_dtypes, inputs[0], inputs[1], inputs[2]);
+        SET_CONV2D_ATTRS(Conv2DOffset, conv, conv2d_attr);
+      } else {
+        GE_WARN_ASSERT(false, "Conv2D attr info not match, input=3, bias=false, offset=false.");
+      }
+    } else if (inputs.size() == 4U) {
+      if (conv2d_attr.has_bias && conv2d_attr.has_offset_w) {
+        conv = MakeAscVar<ascir_op::Conv2DOffsetBias>(explicit_output_dtypes, inputs[0], inputs[1], inputs[2], inputs[3]);
+        SET_CONV2D_ATTRS(Conv2DOffsetBias, conv, conv2d_attr);
+      } else {
+        GE_WARN_ASSERT(false, "Conv2D attr info not match, input=4, bias or offset is false.");
+      }
+    }
+    conv.SetTensorLoop(asc_axis_, loop_desc.repeats, loop_desc.strides);
+    return CseVar(AddOutput(buffer, conv, loop_desc.repeats, loop_desc.strides).Shared());
   }
 
   CseVar Scalar(const std::string &face, ge::DataType dtype) override {

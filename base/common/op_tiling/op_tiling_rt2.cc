@@ -67,8 +67,10 @@ const std::string kDefaultCoreType = "Aicore";
 const std::string kMemSetOpType = "MemSet";
 const std::string kCompileInfoTmpName = "temp";
 const std::string kMatMulSubgraphName = "matmul_subgraph";
+const std::string kConvSubgraphName = "conv_subgraph";
 const std::string kMatMulNodeType = "MatMulV3";
 const std::string kMatMulBatchMatmulNodeType = "BatchMatMulV3";
+const std::string kConv2DNodeType = "Conv2DV2";
 constexpr int32_t kSocVersionLen = 50;
 
 gert::KernelContextHolder BuildTilingParseContextHolder(const ge::OpDescPtr &op_desc, const char_t * const compile_info,
@@ -724,7 +726,7 @@ static ge::graphStatus AutofuseNodeTiling(const ge::Operator &op, const fe::Plat
   return ge::GRAPH_SUCCESS;
 }
 
-static ge::graphStatus HandleMatmulTilingCallback(gert::KernelContext *kernel_context, OpRunInfoV2 &run_info,
+static ge::graphStatus HandleCubeTilingCallback(gert::KernelContext *kernel_context, OpRunInfoV2 &run_info,
                                                   size_t &wk_size, uint32_t &aic_num) {
   auto tiling_context = reinterpret_cast<gert::TilingContext *>(kernel_context);
   GE_ASSERT_NOTNULL(tiling_context);
@@ -774,7 +776,7 @@ ge::graphStatus AutofuseNodeWithMatmulTiling(const ge::Operator &op, const fe::P
   uint32_t aic_num = 0U;
   uint32_t aiv_num = 0U;
   const auto callback1 = [&run_info, &wk_size, &aic_num](gert::KernelContext *kernel_context) -> ge::graphStatus {
-    return HandleMatmulTilingCallback(kernel_context, run_info, wk_size, aic_num);
+    return HandleCubeTilingCallback(kernel_context, run_info, wk_size, aic_num);
   };
   (void)RtParseAndTiling(matmul_op, kCompileInfoTmpName.c_str(), ge_platform_infos, callback1, space_registry);
   const auto callback2 = [&run_info, &wk_size, &aiv_num,
@@ -784,6 +786,33 @@ ge::graphStatus AutofuseNodeWithMatmulTiling(const ge::Operator &op, const fe::P
   (void)AutofuseNodeTiling(op, ge_platform_infos, callback2);
   uint32_t new_block_dim = aic_num * 2 < aiv_num ? (aiv_num + 1) / 2 : aic_num;
   GELOGI("Get autofuse matmul op(%s) tiling key: %llu aic_num: %u, aiv_num: %u, fuse_op_block_dim: %u",
+         op_desc->GetName().c_str(), run_info.GetTilingKey(), aic_num, aiv_num, new_block_dim);
+  GE_ASSERT_TRUE(new_block_dim > 0U);
+  run_info.SetBlockDim(new_block_dim);
+  return ge::GRAPH_SUCCESS;
+}
+
+ge::graphStatus AutofuseNodeWithConvTiling(const ge::Operator &op, const fe::PlatFormInfos &ge_platform_infos,
+                                           OpRunInfoV2 &run_info, ge::ConstNodePtr node) {
+  ge::Operator conv_op = ge::OpDescUtils::CreateOperatorFromNode(node);
+  auto op_desc = ge::OpDescUtils::GetOpDescFromOperator(conv_op);
+  const auto &space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry(
+      static_cast<gert::OppImplVersionTag>(op_desc->GetOppImplVersion()));
+  GE_ASSERT_NOTNULL(space_registry);
+  size_t wk_size = 0U;
+  uint32_t aic_num = 0U;
+  uint32_t aiv_num = 0U;
+  const auto callback1 = [&run_info, &wk_size, &aic_num](gert::KernelContext *kernel_context) -> ge::graphStatus {
+    return HandleCubeTilingCallback(kernel_context, run_info, wk_size, aic_num);
+  };
+  (void)RtParseAndTiling(conv_op, kCompileInfoTmpName.c_str(), ge_platform_infos, callback1, space_registry);
+  const auto callback2 = [&run_info, &wk_size, &aiv_num,
+                          &op_desc](gert::KernelContext *kernel_context) -> ge::graphStatus {
+    return HandleAutofuseTilingCallback(kernel_context, run_info, wk_size, aiv_num, op_desc);
+  };
+  (void)AutofuseNodeTiling(op, ge_platform_infos, callback2);
+  uint32_t new_block_dim = aic_num * 2 < aiv_num ? (aiv_num + 1) / 2 : aic_num;
+  GELOGI("Get autofuse conv op(%s) tiling key: %llu aic_num: %u, aiv_num: %u, fuse_op_block_dim: %u",
          op_desc->GetName().c_str(), run_info.GetTilingKey(), aic_num, aiv_num, new_block_dim);
   GE_ASSERT_TRUE(new_block_dim > 0U);
   run_info.SetBlockDim(new_block_dim);
@@ -812,6 +841,18 @@ ge::graphStatus AicoreRtParseAndTiling(const ge::Operator &op, const fe::PlatFor
         }
       }
       GELOGI("Get autofuse matmul node end: %s", op_desc->GetName().c_str());
+    }
+    ge::ComputeGraphPtr conv_subgraph = nullptr;
+    conv_subgraph = op_desc->TryGetExtAttr(kConvSubgraphName, conv_subgraph);
+    if (conv_subgraph != nullptr) {
+      GELOGI("Get autofuse conv node: %s", op_desc->GetName().c_str());
+      for (auto &node : conv_subgraph->GetAllNodes()) {
+        if (node->GetType() == kConv2DNodeType.c_str()) {
+          GE_ASSERT_GRAPH_SUCCESS(AutofuseNodeWithConvTiling(op, ge_platform_infos, run_info, node));
+          return ge::GRAPH_SUCCESS;
+        }
+      }
+      GELOGI("Get autofuse conv node end: %s", op_desc->GetName().c_str());
     }
     return AutofuseNodeTiling(op, ge_platform_infos, callback);
   }

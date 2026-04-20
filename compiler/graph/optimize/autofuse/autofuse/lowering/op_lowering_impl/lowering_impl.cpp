@@ -1185,6 +1185,104 @@ graphStatus BatchLowerMatMul(const NodePtr &node) {
   return InnerLowerMatMul(node, true);
 }
 
+namespace {
+void BuildConv2DAttr(const OpDescPtr &op_desc, Conv2DAttr &conv2d_attr) {
+  (void)AttrUtils::GetListInt(op_desc, "strides", conv2d_attr.strides);
+  (void)AttrUtils::GetListInt(op_desc, "pads", conv2d_attr.pads);
+  (void)AttrUtils::GetListInt(op_desc, "dilations", conv2d_attr.dilations);
+  (void)AttrUtils::GetInt(op_desc, "groups", conv2d_attr.groups);
+  (void)AttrUtils::GetStr(op_desc, "data_format", conv2d_attr.data_format);
+  (void)AttrUtils::GetInt(op_desc, "offset_x", conv2d_attr.offset_x);
+  (void)AttrUtils::GetStr(op_desc, "padding", conv2d_attr.pad_mode);
+  (void)AttrUtils::GetBool(op_desc, "enable_hf32", conv2d_attr.enable_hf32);
+}
+
+graphStatus GetConv2DDims(const NodePtr &node, const ge::InDataAnchorPtr &x_anchor,
+                          const ge::InDataAnchorPtr &w_anchor) {
+  std::vector<Expression> x_dims;
+  std::vector<Expression> w_dims;
+  auto ret = loop::GetBufferShape(x_anchor, x_dims);
+  LOWERING_WARN_RECORD_REASON(ret == GRAPH_SUCCESS, node, "Failed to get input x shape for node %s", node->GetNamePtr());
+  LOWERING_WARN_RECORD_REASON(x_dims.size() == 4U, node, "Conv2D input x must be 4D for node %s", node->GetNamePtr());
+
+  ret = loop::GetBufferShape(w_anchor, w_dims);
+  LOWERING_WARN_RECORD_REASON(ret == GRAPH_SUCCESS, node, "Failed to get filter shape for node %s", node->GetNamePtr());
+  LOWERING_WARN_RECORD_REASON(w_dims.size() == 4U, node, "Conv2D filter must be 4D for node %s", node->GetNamePtr());
+  return GRAPH_SUCCESS;
+}
+
+void SetConv2DBiasAndOffsetW(const NodePtr &node, const OpDescPtr &op_desc, Conv2DAttr &conv2d_attr) {
+  auto bias_index = op_desc->GetInputIndexByName("bias");
+  if (bias_index >= 0) {
+    const auto bias_anchor = node->GetInDataAnchor(bias_index);
+    if (bias_anchor != nullptr && bias_anchor->GetPeerOutAnchor() != nullptr) {
+      conv2d_attr.has_bias = true;
+    }
+  }
+
+  auto offset_w_index = op_desc->GetInputIndexByName("offset_w");
+  if (offset_w_index >= 0) {
+    const auto offset_w_anchor = node->GetInDataAnchor(offset_w_index);
+    if (offset_w_anchor != nullptr && offset_w_anchor->GetPeerOutAnchor() != nullptr) {
+      conv2d_attr.has_offset_w = true;
+    }
+  }
+}
+
+std::vector<ge::InDataAnchorPtr> CollectConv2DInputs(const NodePtr &node) {
+  std::vector<ge::InDataAnchorPtr> inputs;
+  for (const auto &in_anchor : node->GetAllInDataAnchors()) {
+    GE_ASSERT_NOTNULL(in_anchor);
+    if (in_anchor->GetPeerOutAnchor() == nullptr) {
+      continue;
+    }
+    inputs.emplace_back(in_anchor);
+  }
+  return inputs;
+}
+}  // anonymous namespace
+
+graphStatus LowerConv2D(const NodePtr &node) {
+  const auto x_anchor = node->GetInDataAnchor(0);
+  const auto w_anchor = node->GetInDataAnchor(1);
+  GE_ASSERT_NOTNULL(x_anchor);
+  GE_ASSERT_NOTNULL(w_anchor);
+
+  GE_WARN_ASSERT(GetConv2DDims(node, x_anchor, w_anchor) == GRAPH_SUCCESS,
+                 "Skip lowering node %s, as: Failed to get dims.", node->GetNamePtr());
+
+  Conv2DAttr conv2d_attr;
+  auto op_desc = node->GetOpDesc();
+  GE_ASSERT_NOTNULL(op_desc);
+
+  BuildConv2DAttr(op_desc, conv2d_attr);
+  SetConv2DBiasAndOffsetW(node, op_desc, conv2d_attr);
+
+  auto output_desc = op_desc->GetOutputDescPtr(0);
+  if (output_desc != nullptr) {
+    conv2d_attr.output_dtype = output_desc->GetDataType();
+  }
+
+  auto inputs = CollectConv2DInputs(node);
+
+  GELOGI("Conv2D lowering: output_dtype=%s, strides=[%s], pads=[%s], dilations=[%s], "
+         "groups=%ld, data_format=%s, offset_x=%ld, pad_mode=%s, enable_hf32=%d, has_bias=%d, has_offset_w=%d",
+         TypeUtils::DataTypeToSerialString(conv2d_attr.output_dtype).c_str(),
+         loop::StrJoin(conv2d_attr.strides).c_str(),
+         loop::StrJoin(conv2d_attr.pads).c_str(),
+         loop::StrJoin(conv2d_attr.dilations).c_str(),
+         conv2d_attr.groups,
+         conv2d_attr.data_format.c_str(),
+         conv2d_attr.offset_x,
+         conv2d_attr.pad_mode.c_str(),
+         conv2d_attr.enable_hf32,
+         conv2d_attr.has_bias,
+         conv2d_attr.has_offset_w);
+
+  auto kernel_box = loop::StoreConv2D(node->GetOutDataAnchor(0), inputs, conv2d_attr);
+  return GRAPH_SUCCESS;
+}
+
 REGISTER_POINTWISE_LOWER(Abs, loop::Abs);
 REGISTER_POINTWISE_LOWER(Add, loop::Add);
 REGISTER_POINTWISE_LOWER(AddV2, loop::Add);
@@ -1260,6 +1358,9 @@ REGISTER_LOWERING_WITH_EXISTED(MatMulV3, LowerMatMul);
 REGISTER_LOWERING_WITH_EXISTED(BatchMatMul, BatchLowerMatMul);
 REGISTER_LOWERING_WITH_EXISTED(BatchMatMulV2, BatchLowerMatMul);
 REGISTER_LOWERING_WITH_EXISTED(BatchMatMulV3, BatchLowerMatMul);
+
+REGISTER_LOWERING_WITH_EXISTED(Conv2D, LowerConv2D);
+REGISTER_LOWERING_WITH_EXISTED(Conv2DV2, LowerConv2D);
 
 REGISTER_LOWERING(ClipByValue) {
   loop::Index broadcasted;

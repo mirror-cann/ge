@@ -43,6 +43,10 @@ const std::string kBatchMatMul = "BatchMatMul";
 const std::string kBatchMatMulBias = "BatchMatMulBias";
 const std::string kBatchMatMulOffset = "BatchMatMulOffset";
 const std::string kBatchMatMulOffsetBias = "BatchMatMulOffsetBias";
+const std::string kConv2D = "Conv2D";
+const std::string kConv2DBias = "Conv2DBias";
+const std::string kConv2DOffset = "Conv2DOffset";
+const std::string kConv2DOffsetBias = "Conv2DOffsetBias";
 
 class DefaultCounter : public Counter {
 public:
