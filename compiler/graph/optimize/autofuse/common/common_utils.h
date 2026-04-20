@@ -23,8 +23,11 @@
 namespace ascgen_utils {
   const string INVALID_TILING = "invalid_tiling";
   constexpr int32_t NOT_SUPPORT_BRC_INLINE = -1;
+
   const std::string kKernelTaskTypeAIVOnly = "KERNEL_TYPE_AIV_ONLY";
   const std::string kKernelTaskTypeMixAIVOneZero = "KERNEL_TYPE_MIX_AIV_1_0";
+  const std::string kKernelTaskTypeAICOnly = "KERNEL_TYPE_AIC_ONLY";
+  const std::string kKernelTaskTypeMixAICOneTwo = "KERNEL_TYPE_MIX_AIC_1_2";
 
   const std::string kMatMul = "MatMul";
   const std::string kMatMulBias = "MatMulBias";

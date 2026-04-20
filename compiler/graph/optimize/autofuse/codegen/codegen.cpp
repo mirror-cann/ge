@@ -21,16 +21,12 @@
 #include "codegen_infershape.h"
 
 using namespace codegen;
+using namespace ascgen_utils;
 
 namespace {
 constexpr uint32_t ELEMENTS_PER_LINE = 20;
 constexpr size_t kMaxUnfoldedIoNum = 64U;
 constexpr size_t kKernelMaxIoNum = 190U;
-
-const std::string kKernelTaskTypeAIVOnly = "KERNEL_TYPE_AIV_ONLY";
-const std::string kKernelTaskTypeMixAIVOneZero = "KERNEL_TYPE_MIX_AIV_1_0";
-const std::string kKernelTaskTypeAICOnly = "KERNEL_TYPE_AIC_ONLY";
-const std::string kKernelTaskTypeMixAICOneTwo = "KERNEL_TYPE_MIX_AIC_1_2";
 
 // Include path prefixes to be removed
 const std::string kBasicApiInclude = "#include \"basic_api/";

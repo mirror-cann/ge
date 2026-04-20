@@ -28,6 +28,8 @@
 #include "elewise/unary_api_call.h"
 #include "autofuse_config/auto_fuse_config.h"
 #include "codegen_graph_check.h"
+#include "platform_context.h"
+#include "runtime_stub.h"
 
 using namespace ge;
 using namespace ge::ops;
@@ -1659,6 +1661,28 @@ class CodegenKernel_CallSync : public ::testing::Test {
     return n;
   }
 
+  void InitApiCallInputs(std::map<int, MockApiCall> &calls, std::map<ge::AscNode *, int64_t> &node_to_order,
+                         const AscNodePtr &node, ApiCall &api_call) {
+    int32_t index = 0;
+    for (auto i : node->inputs()) {
+      auto i_index = ge::ascir::AscTensorUtils::Index(*i);
+      auto in_node = dynamic_cast<ge::AscNode *>(ge::ascir::AscTensorUtils::GetOwner(*i));
+      if (in_node->GetType() == "Data") {
+        continue;
+      }
+
+      auto in_call = calls.find(static_cast<int32_t>(node_to_order[in_node]));
+      if (in_call != calls.end()) {
+        api_call.inputs.emplace_back(&in_call->second.outputs[i_index]);
+        in_call->second.outputs[i_index].reads.emplace_back(&api_call);
+        if (node->GetName() == "Concat") {
+          in_call->second.outputs[i_index].share_order = index;
+        }
+      }
+      ++index;
+    }
+  }
+
   std::string Generate() {
     codegen::Tiler tiler;
     codegen::TPipe tpipe("tpipe", tiler);
@@ -1685,20 +1709,7 @@ class CodegenKernel_CallSync : public ::testing::Test {
       }
 
       auto [it, _] = calls.insert({node_to_order_[node.get()], MockApiCall(node, "")});
-      for (auto i: node->inputs()) {
-        auto i_index = ge::ascir::AscTensorUtils::Index(*i);
-        auto in_node = dynamic_cast<ge::AscNode*>(ge::ascir::AscTensorUtils::GetOwner(*i));
-        if (in_node->GetType() == "Data") {
-          continue;
-        }
-
-        auto in_call = calls.find(node_to_order_[in_node]);
-        if (in_call != calls.end()) {
-          it->second.inputs.emplace_back(&in_call->second.outputs[i_index]);
-          in_call->second.outputs[i_index].reads.emplace_back(&it->second);
-        }
-      }
-
+      InitApiCallInputs(calls, node_to_order_, node, it->second);
       for (auto o: node->outputs()) {
         auto o_index = ge::ascir::AscTensorUtils::Index(*o);
         if (o->attr.mem.alloc_type == ge::AllocType::kAllocTypeBuffer) {
@@ -6025,4 +6036,177 @@ TEST(CodegenKernel, CalculateVectorizedAixsMergeStatus) {
     GenerateVectorizedAxisMergeStatus(inputs, outputs, merge_info, tpipe);
     EXPECT_EQ(merge_info.merge_repeats_str.size(), 1);
     EXPECT_EQ(merge_info.merge_repeats_str[0], "t->s1 * t->s2");
+}
+
+class CodegenKernelV2Test : public ::testing::Test {
+protected:
+  void SetUp() override {
+    dlog_setlevel(ASCGEN_MODULE_NAME, DLOG_ERROR, 0);
+    ge::PlatformContext::GetInstance().Reset();
+    auto stub_v2 = std::make_shared<RuntimeStubV2Common>();
+    RuntimeStub::SetInstance(stub_v2);
+  }
+  void TearDown() override {
+    dlog_setlevel(ASCGEN_MODULE_NAME, DLOG_ERROR, 0);
+    RuntimeStub::Reset();
+    ge::PlatformContext::GetInstance().Reset();
+  }
+};
+
+TEST_F(CodegenKernelV2Test, RequireContinuousTQueBuf_AllFromQue) {
+  ge::AscGraph graph("test_graph");
+  auto s0 = graph.CreateSizeVar("s0");
+  auto s1 = graph.CreateSizeVar("s1");
+
+  auto z0 = graph.CreateAxis("z0", s0);
+  auto z1 = graph.CreateAxis("z1", s1);
+
+  Data x_op("x", graph);
+  x_op.ir_attr.SetIndex(0);
+  Load load_op1("load1");
+  Load load_op2("load2");
+  Concat concat_op("concat");
+
+  load_op1.x = x_op.y;
+  load_op1.y.dtype = ge::DT_FLOAT;
+  *load_op1.y.axis = {z0.id, z1.id};
+
+  load_op2.x = x_op.y;
+  load_op2.y.dtype = ge::DT_FLOAT;
+  *load_op2.y.axis = {z0.id, z1.id};
+
+  concat_op.x = {load_op1.y, load_op2.y};
+  *concat_op.y.axis = {z0.id, z1.id};
+
+  auto load1 = graph.FindNode("load1");
+  auto load2 = graph.FindNode("load2");
+  auto concat = graph.FindNode("concat");
+
+  load1->outputs[0].attr.mem.tensor_id = 3;
+  load1->outputs[0].attr.repeats = {s0, s1};
+  load1->outputs[0].attr.strides = {s1, One};
+  load1->outputs[0].attr.mem.position = Position::kPositionVecIn;
+
+  load2->outputs[0].attr = load1->outputs[0].attr;
+  load2->outputs[0].attr.mem.tensor_id = 4;
+
+  concat->outputs[0].attr.mem.alloc_type = AllocType::kAllocTypeGlobal;
+  concat->outputs[0].attr.mem.tensor_id = 5;
+  concat->outputs[0].attr.repeats = {s0, s1 + s1};
+  concat->outputs[0].attr.strides = {s1 + s1, One};
+
+  ::ascir::FusedScheduledResult fused_schedule_result;
+  fused_schedule_result.input_nodes = {graph.FindNode("x")};
+  codegen::Kernel kernel("test_input_all_from_que");
+  EXPECT_EQ(codegen::Kernel::ParseGraph(graph, fused_schedule_result, kernel), ge::SUCCESS);
+  for (const auto &body : kernel.root_loop.bodys) {
+    if (body.call->inputs.size() > 1) {
+      for (int32_t i = 0; i < static_cast<int32_t>(body.call->inputs.size()); ++i) {
+        EXPECT_EQ(body.call->inputs[i]->share_order, i);
+      }
+    }
+  }
+  ge::RuntimeStub::Reset();
+  ge::PlatformContext::GetInstance().Reset();
+}
+
+TEST_F(CodegenKernelV2Test, RequireContinuousTQueBuf_AllFromBuf) {
+  ge::PlatformContext::GetInstance().Reset();
+  auto stub_v2 = std::make_shared<ge::RuntimeStubV2Common>();
+  ge::RuntimeStub::SetInstance(stub_v2);
+
+  ge::AscGraph graph("test_graph");
+  ::ascir::FusedScheduledResult fused_schedule_result;
+
+  auto s0 = graph.CreateSizeVar("s0");
+  auto s1 = graph.CreateSizeVar("s1");
+  auto z0 = graph.CreateAxis("z0", s0);
+  auto z1 = graph.CreateAxis("z1", s1);
+
+  Data x_op("x", graph);
+  x_op.ir_attr.SetIndex(0);
+  Load load_op1("load1");
+  Load load_op2("load2");
+  Concat concat_op("concat");
+
+  load_op1.x = x_op.y;
+  load_op1.y.dtype = ge::DT_FLOAT;
+  *load_op1.y.axis = {z0.id, z1.id};
+
+  load_op2.x = x_op.y;
+  load_op2.y.dtype = ge::DT_FLOAT;
+  *load_op2.y.axis = {z0.id, z1.id};
+
+  concat_op.x = {load_op2.y, load_op1.y};
+  *concat_op.y.axis = {z0.id, z1.id};
+
+  auto data = graph.FindNode("x");
+  auto load1 = graph.FindNode("load1");
+  auto load2 = graph.FindNode("load2");
+  auto concat = graph.FindNode("concat");
+
+  load1->outputs[0].attr.mem.alloc_type = AllocType::kAllocTypeBuffer;
+  load1->outputs[0].attr.mem.tensor_id = 3;
+  load1->outputs[0].attr.repeats = {s0, s1};
+  load1->outputs[0].attr.strides = {s1, One};
+  load1->outputs[0].attr.mem.position = Position::kPositionVecCalc;
+  load1->outputs[0].attr.buf.id = 1;
+
+  load2->outputs[0].attr = load1->outputs[0].attr;
+  load2->outputs[0].attr.mem.tensor_id = 4;
+  load2->outputs[0].attr.buf.id = 2;
+
+  concat->outputs[0].attr.mem.tensor_id = 5;
+  concat->outputs[0].attr.repeats = {s0, s1 + s1};
+  concat->outputs[0].attr.strides = {s1 + s1, One};
+
+  fused_schedule_result.input_nodes = {data};
+  codegen::Kernel kernel("test_input_all_from_que");
+  EXPECT_EQ(codegen::Kernel::ParseGraph(graph, fused_schedule_result, kernel), ge::SUCCESS);
+  EXPECT_EQ(kernel.tpipe.contiguous_buf_ids, (std::vector<::ascir::BufId>{2, 1}));
+}
+
+TEST_F(CodegenKernel_CallSync, TestDefineShareOffsets) {
+  auto load1 = Load("load1", x);
+  auto load2 = Load("load2", x);
+  auto load3 = Load("load3", x);
+  load2->outputs[0].attr.que.id = load1->outputs[0].attr.que.id;
+  load2->outputs[0].attr.mem.reuse_id = load1->outputs[0].attr.mem.reuse_id;
+  load3->outputs[0].attr.que.id = load1->outputs[0].attr.que.id;
+  load3->outputs[0].attr.mem.reuse_id = load1->outputs[0].attr.mem.reuse_id;
+  auto concat = Vec("Concat", {load3, load2, load1});
+  auto store = Store("store", concat);
+  EXPECT_EQ(Generate(), R"(uint32_t q1_reuse1_offset = 0;
+LocalTensor<uint8_t> q1_buf = q1.AllocTensor<uint8_t>();
+const uint32_t q1_reuse1_offset_part_1 = q1_reuse1_offset + local_3_size * 2;
+const uint32_t q1_reuse1_offset_part_2 = q1_reuse1_offset_part_1 + local_2_size * 2;
+q1_reuse1_offset = q1_reuse1_offset_part_2;
+const uint32_t local_1_actual_size = 1;
+LocalTensor<half> local_1;
+local_1 = q1_buf[q1_reuse1_offset].template ReinterpretCast<half>();
+load1();
+
+q1_reuse1_offset = q1_reuse1_offset_part_1;
+const uint32_t local_2_actual_size = 1;
+LocalTensor<half> local_2;
+local_2 = q1_buf[q1_reuse1_offset].template ReinterpretCast<half>();
+load2();
+
+q1_reuse1_offset = 0;
+const uint32_t local_3_actual_size = 1;
+LocalTensor<half> local_3;
+local_3 = q1_buf[q1_reuse1_offset].template ReinterpretCast<half>();
+load3();
+q1.EnQue(q1_buf);
+
+q1_buf = q1.DeQue<uint8_t>();
+const uint32_t local_4_actual_size = 1;
+LocalTensor<half> local_4;
+local_4 = b4_buf.template ReinterpretCast<half>();
+Concat();
+q1.FreeTensor(q1_buf);
+
+store();
+
+)");
 }

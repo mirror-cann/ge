@@ -31,7 +31,6 @@ TEST_F(ReduceApicallTest, ReduceApi_Test_001) {
   std::vector<ascir::AxisId> current_axis;
   std::vector<std::reference_wrapper<const Tensor>> inputs;
   std::vector<std::reference_wrapper<const Tensor>> outputs;
-  ApiAttr api_attr;
 
   ge::SizeVar s0(ge::Symbol("s0"));
   ge::SizeVar s1(ge::Symbol("s1"));
@@ -428,7 +427,6 @@ TEST_F(ReduceApicallTest, ReduceApi_Test_All_Reduce) {
   std::vector<ascir::AxisId> current_axis;
   std::vector<std::reference_wrapper<const Tensor>> inputs;
   std::vector<std::reference_wrapper<const Tensor>> outputs;
-  ApiAttr api_attr;
 
   ge::SizeVar s0(ge::Symbol("s0"));
   ge::SizeVar s1(ge::Symbol("s1"));
