@@ -546,7 +546,7 @@ TEST_F(UdfExecutorClientTest, ForkProcess_with_args) {
   pid_t child_pid = 0;
   UdfExecutorClient::SubProcessParams id_params;
   id_params.is_builtin = false;
-  id_params.requeset_queue_id = UINT32_MAX;
+  id_params.request_queue_id = UINT32_MAX;
   id_params.response_queue_id = UINT32_MAX;
   id_params.npu_sched_model = "1";
   SubprocessManager::GetInstance().excpt_handle_callbacks_.clear();

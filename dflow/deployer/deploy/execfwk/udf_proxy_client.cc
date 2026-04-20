@@ -184,7 +184,7 @@ Status UdfProxyClient::ForkChildProcess(const deployer::ExecutorRequest_LoadMode
   config.kv_args = {
       {"--load_path", file_path}, {"--group_name", group_name},
       {"--phy_device_id", std::to_string(phy_device_id)},
-      {"--req_queue_id", std::to_string(params.requeset_queue_id)},
+      {"--req_queue_id", std::to_string(params.request_queue_id)},
       {"--rsp_queue_id", std::to_string(params.response_queue_id)}};
 
   config.kv_args.emplace("PROFILING_RENEW_PATH", "0");

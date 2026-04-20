@@ -451,7 +451,7 @@ Status ExecutorContext::LoadModel(const deployer::ExecutorRequest_LoadModelReque
   GELOGD("Begin to load model, root_model_id = %u, submodel_id = %u, path = %s, is_dynamic_proxy_controlled = %d.",
          root_model_id, sub_model_id, model_path.c_str(), static_cast<int32_t>(request.is_dynamic_proxy_controlled()));
   GE_CHK_STATUS_RET(handle->LoadModel(param), "Failed to load model");
-  GELOGD("Success to load model, proot_model_id = %u, submodel_id = %u, path = %s, is_dynamic_proxy_controlled = %d.",
+  GELOGD("Success to load model, root_model_id = %u, submodel_id = %u, path = %s, is_dynamic_proxy_controlled = %d.",
          root_model_id, sub_model_id, model_path.c_str(), static_cast<int32_t>(request.is_dynamic_proxy_controlled()));
   return SUCCESS;
 }
@@ -705,7 +705,7 @@ Status ExecutorContext::ModelHandle::DoUnloadModel(uint32_t model_id) {
     (void) aclmdlDestroyConfigHandle(handle_);
     handle_ = nullptr;
   } else {
-    GE_CHK_STATUS_RET(GeExecutor().UnloadModel(model_id), "Unload model[%u] faield.", model_id);
+    GE_CHK_STATUS_RET(GeExecutor().UnloadModel(model_id), "Unload model[%u] failed.", model_id);
   }
   return SUCCESS;
 }

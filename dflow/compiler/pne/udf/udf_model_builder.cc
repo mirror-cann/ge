@@ -393,7 +393,7 @@ Status UdfModelBuilder::GenReleasePackageForUserDefineFunc(UdfModel &udf_model, 
 Status UdfModelBuilder::ProcessForCache(UdfModel &udf_model, const std::string &om_model_file) const {
   udf_model.SetSavedModelPath(om_model_file);
   std::string normalize_model_name = GetUdfModelNameByFileName(om_model_file);
-  GE_ASSERT_TRUE(!normalize_model_name.empty(), "Get normalized name faield by path[%s]", om_model_file.c_str());
+  GE_ASSERT_TRUE(!normalize_model_name.empty(), "Get normalized name failed by path[%s]", om_model_file.c_str());
   udf_model.SetNormalizedModelName(normalize_model_name);
   GELOGI("Set cache file path [%s] and normalized name [%s] to UdfModel success.",
     om_model_file.c_str(), normalize_model_name.c_str());

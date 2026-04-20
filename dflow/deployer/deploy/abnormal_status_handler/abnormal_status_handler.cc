@@ -235,7 +235,7 @@ void AbnormalStatusHandler::ParseHeartbeatAbnormalInfo(bool &is_new_abnormal,
   GELOGI("AbnormalStatusMonitor, ParseHeartbeatAbnormalInfo end");
 }
 
-bool AbnormalStatusHandler::IsModelMulInstace(std::map<const std::string, bool> &abnormal_submodel_instances_name,
+bool AbnormalStatusHandler::IsModelMulInstance(std::map<const std::string, bool> &abnormal_submodel_instances_name,
     DeployPlan::ModelDeployInfo model_deploy_infos) const {
     for (auto model_deploy_info = model_deploy_infos.begin();
         model_deploy_info != model_deploy_infos.end(); model_deploy_info++) {
@@ -271,7 +271,7 @@ bool AbnormalStatusHandler::IsSupportDynamicSchedRecover(const uint32_t &root_mo
   }
 
   // 检查root_model_id对应的异常模型是否多实例
-  if (!IsModelMulInstace(abnormal_submodel_instances_name_[root_model_id], model_deploy_info)) {
+  if (!IsModelMulInstance(abnormal_submodel_instances_name_[root_model_id], model_deploy_info)) {
     return false;
   }
   return true;

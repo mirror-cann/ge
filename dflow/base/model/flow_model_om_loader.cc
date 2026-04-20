@@ -194,7 +194,7 @@ Status LoadSerializedModel(flow_model::proto::SubmodelDef &flow_submodel_def, co
     // user define function :deployder will find saved path and set to request directly
     serialized_model->SetSavedModelPath(submodel_file_path);
     std::string normalize_model_name = GetUdfModelNameByFileName(submodel_file_path);
-    GE_ASSERT_TRUE(!normalize_model_name.empty(), "Get normalized name faield by path[%s]",
+    GE_ASSERT_TRUE(!normalize_model_name.empty(), "Get normalized name failed by path[%s]",
                    submodel_file_path.c_str());
     serialized_model->SetNormalizedModelName(normalize_model_name);
     GELOGI("set udf model cache file path: %s, normalize name: %s.",

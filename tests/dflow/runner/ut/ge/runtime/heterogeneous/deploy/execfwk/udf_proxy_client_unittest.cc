@@ -280,7 +280,7 @@ TEST_F(UdfProxyClientTest, ForkProcess_with_args) {
   deployer::ExecutorRequest_LoadModelRequest model_req;
   UdfExecutorClient::SubProcessParams id_params;
   id_params.is_builtin = false;
-  id_params.requeset_queue_id = UINT32_MAX;
+  id_params.request_queue_id = UINT32_MAX;
   id_params.response_queue_id = UINT32_MAX;
   ret = client.ForkChildProcess(model_req, "", "1", id_params, child_pid);
   for (auto callback : SubprocessManager::GetInstance().excpt_handle_callbacks_) {

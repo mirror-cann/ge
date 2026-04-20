@@ -677,7 +677,7 @@ bool DeployPlannerBase::CanBeFused(const std::string &fusion_name, const std::st
 }
 
 void DeployPlannerBase::MarkMultiDeployedModels() {
-  // key: model_name value: {key: device, value:{model_instace_name}}
+  // key: model_name value: {key: device, value:{model_instance_name}}
   std::map<std::string, std::map<std::string, std::vector<std::string>>> model_instances;
   for (const auto &it : model_relation_.submodel_endpoint_infos) {
     const auto &model_instance_name = it.first;
@@ -1208,7 +1208,7 @@ bool DeployPlannerBase::CheckAndAddRelation(const int32_t src_endpoint_idx,
   if (!relation_added) {
     (void) relations_.emplace(relation_key);
   }
-  GELOGD("Check and add relaton[%s] success, relation added = %d.",
+  GELOGD("Check and add relation[%s] success, relation added = %d.",
          relation_key.c_str(), static_cast<int32_t>(relation_added));
   return relation_added;
 }
@@ -1785,7 +1785,7 @@ Status DeployPlannerBase::ResolveDequeueFusion(int32_t src_endpoint_idx, int32_t
     return SUCCESS;
   }
   endpoint.ref_index = dst_info_it->second;
-  GELOGI("Fusion dequeue enpoint[%d] success, ref index = %d.", dst_endpoint_idx, endpoint.ref_index);
+  GELOGI("Fusion dequeue endpoint[%d] success, ref index = %d.", dst_endpoint_idx, endpoint.ref_index);
   return SUCCESS;
 }
 

@@ -55,7 +55,7 @@ class AbnormalStatusHandler {
   Status FindAbnormalDevice(DeployPlan::DeviceStateList &device_state_list,
       DeployerConfig information_new, DeployerConfig information_old) const;
   Status ParseDeviceStateList(const std::string &file_path, DeployPlan::DeviceStateList &device_state_list);
-  bool IsModelMulInstace(std::map<const std::string, bool> &abnormal_submodel_instances_name,
+  bool IsModelMulInstance(std::map<const std::string, bool> &abnormal_submodel_instances_name,
       DeployPlan::ModelDeployInfo model_deploy_infos) const;
   bool IsHeartbeatNormal() const;
   void ParseAbnormalNodeConfig(DeployPlan::DeviceStateList &device_state_list) const;

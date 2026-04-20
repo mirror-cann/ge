@@ -25,7 +25,7 @@ class UdfExecutorClient : public PneExecutorClient {
  public:
   struct SubProcessParams {
     bool is_builtin = false;
-    uint32_t requeset_queue_id = UINT32_MAX;
+    uint32_t request_queue_id = UINT32_MAX;
     uint32_t response_queue_id = UINT32_MAX;
     std::string npu_sched_model;
   };

@@ -243,7 +243,7 @@ Status UdfExecutorClient::ForkAndInit(const deployer::ExecutorRequest_BatchLoadM
   const auto &model = model_desc.models(0);
   const auto &model_path = GetContext().base_dir + model.model_path();
   params.is_builtin = model.is_builtin_udf();
-  params.requeset_queue_id = req_msg_queue_id;
+  params.request_queue_id = req_msg_queue_id;
   params.response_queue_id = rsp_msg_queue_id;
 
   const auto &model_attrs = model.attrs();
@@ -772,7 +772,7 @@ Status UdfExecutorClient::ForkChildProcess(const deployer::ExecutorRequest_LoadM
                     {"--group_name", group_name},
                     {"--device_id", std::to_string(GetDeviceId())},
                     {"--phy_device_id", std::to_string(phy_device_id)},
-                    {"--req_queue_id", std::to_string(params.requeset_queue_id)},
+                    {"--req_queue_id", std::to_string(params.request_queue_id)},
                     {"--rsp_queue_id", std::to_string(params.response_queue_id)},
                     {"--base_dir", context.base_dir}};
   if (!params.npu_sched_model.empty()) {
