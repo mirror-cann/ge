@@ -3102,8 +3102,6 @@ Status TensorFlowModelParser::GetFormatTranspose(const NodeDef *transpose_node, 
   GE_IF_BOOL_EXEC(!ge::TensorFlowUtil::FindAttrValue(perm_node, TENSORFLOW_ATTR_DTYPE, attr_value), return FAILED);
   GE_IF_BOOL_EXEC(ge::TensorFlowUtil::CheckAttrHasType(attr_value, TENSORFLOW_ATTR_TYPE_TYPE) != SUCCESS,
                   return FAILED);
-  domi::tensorflow::DataType type = attr_value.type();
-  GE_IF_BOOL_EXEC(type != domi::tensorflow::DT_INT32 && type != domi::tensorflow::DT_INT64, return FAILED);
 
   GE_IF_BOOL_EXEC(!ge::TensorFlowUtil::FindAttrValue(perm_node, TENSORFLOW_ATTR_VALUE, attr_value), return FAILED);
   GE_IF_BOOL_EXEC(ge::TensorFlowUtil::CheckAttrHasType(attr_value, TENSORFLOW_ATTR_TYPE_TENSOR) != SUCCESS,
@@ -3113,6 +3111,22 @@ Status TensorFlowModelParser::GetFormatTranspose(const NodeDef *transpose_node, 
   GE_IF_BOOL_EXEC(tensor_shape.dim_size() != 1 || tensor_shape.dim(0).size() != parser::DIM_DEFAULT_SIZE,
                   return SUCCESS);
   GE_IF_BOOL_EXEC(tensor.tensor_content().empty(), return SUCCESS);
+
+  // 校验 tensor_content 大小是否足够
+  const domi::tensorflow::DataType type = attr_value.type();
+  size_t required_size = 0;
+  if (type == domi::tensorflow::DT_INT32) {
+    required_size = parser::DIM_DEFAULT_SIZE * sizeof(int32_t);
+  } else if (type == domi::tensorflow::DT_INT64) {
+    required_size = parser::DIM_DEFAULT_SIZE * sizeof(int64_t);
+  } else {
+    GELOGE(FAILED, "Perm node tensor value has unsupported data type: expected INT32 or INT64");
+    return FAILED;
+  }
+  GE_IF_BOOL_EXEC(tensor.tensor_content().size() < required_size,
+                  GELOGE(PARAM_INVALID, "tensor_content size %zu is less than required %zu",
+                         tensor.tensor_content().size(), required_size);
+                  return FAILED);
 
   vector<int64_t> perm_value;
 

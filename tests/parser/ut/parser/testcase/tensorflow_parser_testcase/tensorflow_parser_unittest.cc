@@ -288,7 +288,7 @@ namespace {
     }
   }
 
-  NodeDef *initNodeDef() {
+  NodeDef *initNodeDef(bool is_tensor_size_invalid = false) {
     NodeDef * nodeDef = new NodeDef();
     nodeDef->set_op("Const");
     ::google::protobuf::Map<std::string, tensorflow::AttrValue >* node_attr_map = nodeDef->mutable_attr();
@@ -3412,6 +3412,40 @@ TEST_F(UtestTensorflowParser, tensorflow_GetFormatTranspose_test)
   ret = modelParser.GetFormatTranspose(ret1, transpose_direc);
   EXPECT_EQ(ret, SUCCESS);
   delete transpose_node;
+}
+
+TEST_F(UtestTensorflowParser, tensorflow_GetFormatTranspose_tensor_content_size_invalid)
+{
+  auto *transpose_node = new NodeDef();
+  transpose_node->set_name("transpose");
+  transpose_node->set_op(TENSORFLOWF_NODE_OP_TRANSPOSE);
+  transpose_node->add_input("data");
+  transpose_node->add_input("perm");
+
+  auto *perm_node = new NodeDef();
+  perm_node->set_name("perm");
+  perm_node->set_op(TENSORFLOWF_NODE_OP_CONST);
+  auto *attr_map = perm_node->mutable_attr();
+  domi::tensorflow::AttrValue dtype_attr_value;
+  dtype_attr_value.set_type(domi::tensorflow::DT_INT32);
+  (*attr_map)[TENSORFLOW_ATTR_DTYPE] = dtype_attr_value;
+  domi::tensorflow::AttrValue value_attr_value;
+  auto *tensor = value_attr_value.mutable_tensor();
+  tensor->set_dtype(domi::tensorflow::DT_INT32);
+  auto *tensor_shape = tensor->mutable_tensor_shape();
+  tensor_shape->add_dim()->set_size(4);
+  int32_t perm_value[3] = {0, 3, 1};
+  tensor->set_tensor_content((void *)perm_value, sizeof(perm_value));
+  (*attr_map)[TENSORFLOW_ATTR_VALUE] = value_attr_value;
+
+  TensorFlowModelParser model_parser;
+  model_parser.nodedef_map_["perm"] = perm_node;
+  TfTranspose transpose_direc = TO_NCHW;
+  Status ret = model_parser.GetFormatTranspose(transpose_node, transpose_direc);
+  EXPECT_EQ(ret, FAILED);
+  EXPECT_EQ(transpose_direc, NO_TRANSPOSE);
+  delete transpose_node;
+  delete perm_node;
 }
 
 TEST_F(UtestTensorflowParser, tensorflow_GetTensorflowGraphInOutMap_test)

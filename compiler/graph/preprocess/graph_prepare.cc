@@ -2647,19 +2647,18 @@ Status GraphPrepare::CheckAndUpdateInput(const std::vector<GeTensor> &user_input
     GELOGE(ret, "[Update][Input] fail, ret:%u", ret);
     return ret;
   }
-  if (user_input.size() != 0) {
-    ret = CheckConstOp();
-    if (ret != SUCCESS) {
-      GELOGE(ret, "[Check][ConstOp] fail, ret:%u", ret);
-      return ret;
-    }
-  } else {
-    ret = compute_graph_->TopologicalSorting();
-    if (ret != SUCCESS) {
-      REPORT_INNER_ERR_MSG("E19999", "Topological sorting failed");
-      GELOGE(ret, "[Call][TopologicalSorting] failed.");
-      return FAILED;
-    }
+
+  ret = CheckConstOp();
+  if (ret != SUCCESS) {
+    GELOGE(ret, "[Check][ConstOp] fail, ret:%u", ret);
+    return ret;
+  }
+
+  ret = compute_graph_->TopologicalSorting();
+  if (ret != SUCCESS) {
+    REPORT_INNER_ERR_MSG("E19999", "Topological sorting failed");
+    GELOGE(ret, "[Call][TopologicalSorting] failed.");
+    return FAILED;
   }
   return SUCCESS;
 }
