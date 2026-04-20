@@ -18,6 +18,7 @@
 #include "framework/omg/omg_inner_types.h"
 #include "framework/common/types.h"
 #include "common/runtime_api_wrapper.h"
+#include "runtime/subscriber/global_profiler.h"
 
 namespace {
 constexpr uint64_t kProfilingIterStartLogid = 5UL;
@@ -175,11 +176,16 @@ Status ProfilingTraceNodeTask::ExecuteAsync(TaskContext &context, const std::fun
       GELOGD("ProfilerTraceNodeTask log id:%lu out of range.", log_time_stamp_id);
       continue;
     }
-    const rtError_t rt_ret = rtProfilerTraceEx(index_id, static_cast<uint64_t>(model_id_),
-                                               static_cast<uint16_t>(log_time_stamp_id), context.GetStream());
-    if (rt_ret != RT_ERROR_NONE) {
-      REPORT_INNER_ERR_MSG("E19999", "Call rtProfilerTraceEx failed, ret:%d", rt_ret);
-      GELOGE(RT_FAILED, "[Call][RtProfilerTraceEx] failed, ret:%d", rt_ret);
+    gert::rtProfTraceUserData userData = {
+      .id = index_id,
+      .model_id = static_cast<uint64_t>(model_id_),
+      .tag_id = static_cast<uint16_t>(log_time_stamp_id)
+    };
+    const auto rt_ret = aclrtProfTrace(&userData, sizeof(gert::rtProfTraceUserData),
+      context.GetStream());
+    if (rt_ret != ACL_SUCCESS) {
+      REPORT_INNER_ERR_MSG("E19999", "Call aclrtProfTrace failed, ret:%d", rt_ret);
+      GELOGE(RT_FAILED, "[Call][aclrtProfTrace] failed, ret:%d", rt_ret);
       return RT_ERROR_TO_GE_STATUS(rt_ret);
     }
     GELOGD("[%s] ProfilingTraceTask[%lu] execute success.", context.GetNodeName(), log_time_stamp_id);
@@ -202,11 +208,15 @@ Status StartOfSequenceTask::ExecuteAsync(TaskContext &context, const std::functi
   const uint64_t index_id = 1UL;
   GELOGD("StartOfSequenceTask execute async start. logid = %lu", kProfilingIterStartLogid);
 
-  const rtError_t rt_ret = rtProfilerTraceEx(index_id, static_cast<uint64_t>(model_id_), kProfilingIterStartLogid,
-                                             context.GetStream());
-  if (rt_ret != RT_ERROR_NONE) {
-    REPORT_INNER_ERR_MSG("E19999", "Call rtProfilerTraceEx failed, ret:%d", rt_ret);
-    GELOGE(RT_FAILED, "[Call][RtProfilerTraceEx] failed, ret:%d", rt_ret);
+  gert::rtProfTraceUserData userData = {
+    .id = index_id,
+    .model_id = static_cast<uint64_t>(model_id_),
+    .tag_id = static_cast<uint16_t>(kProfilingIterStartLogid)
+  };
+  const auto rt_ret = aclrtProfTrace(&userData, sizeof(gert::rtProfTraceUserData), context.GetStream());
+  if (rt_ret != ACL_SUCCESS) {
+    REPORT_INNER_ERR_MSG("E19999", "Call aclrtProfTrace failed, ret:%d", rt_ret);
+    GELOGE(RT_FAILED, "[Call][aclrtProfTrace] failed, ret:%d", rt_ret);
     return RT_ERROR_TO_GE_STATUS(rt_ret);
   }
 

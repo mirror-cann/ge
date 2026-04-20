@@ -16,6 +16,7 @@
 #include "hybrid/executor/subgraph_context.h"
 #include "hybrid/node_executor/rts/rts_node_executor.h"
 #include "common/model/ge_root_model.h"
+#include "depends/ascendcl/src/ascendcl_stub.h"
 #include "ge/ut/ge/ffts_plus_proto_tools.h"
 #include "hybrid/node_executor/rts/rts_task_factory.h"
 #include "depends/runtime/src/runtime_stub.h"
@@ -533,8 +534,9 @@ TEST_F(UtestRtsNodeTask, profiler_node_task_execute) {
   ASSERT_EQ(prof_task.ExecuteAsync(*node_state->GetTaskContext(), done), SUCCESS);
 
   prof_task.model_id_ = 99;
-  RTS_STUB_RETURN_VALUE(rtProfilerTraceEx, rtError_t, 0x07110001);
+  AclRuntimeStub::GetInstance()->SetErrorResultApiName("aclrtProfTrace");
   ASSERT_NE(prof_task.ExecuteAsync(*node_state->GetTaskContext(), done), SUCCESS);
+  AclRuntimeStub::GetInstance()->SetErrorResultApiName("");
 }
 
 TEST_F(UtestRtsNodeTask, test_start_node_task) {
@@ -570,8 +572,9 @@ TEST_F(UtestRtsNodeTask, test_start_node_task) {
   ASSERT_EQ(start_task.ExecuteAsync(*node_state->GetTaskContext(), done), SUCCESS);
 
   start_task.model_id_ = 99;
-  RTS_STUB_RETURN_VALUE(rtProfilerTraceEx, rtError_t, 0x07110001);
+  AclRuntimeStub::GetInstance()->SetErrorResultApiName("aclrtProfTrace");
   ASSERT_NE(start_task.ExecuteAsync(*node_state->GetTaskContext(), done), SUCCESS);
+  AclRuntimeStub::GetInstance()->SetErrorResultApiName("");
 }
 
 TEST_F(UtestRtsNodeTask, test_identiity_task) {

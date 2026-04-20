@@ -38,6 +38,14 @@ struct ProfilingData {
   std::chrono::time_point<std::chrono::system_clock> timestamp;
   int64_t thread_id;
 };
+#pragma pack(push)
+#pragma pack(1)
+struct rtProfTraceUserData {
+  uint64_t id;
+  uint64_t model_id;
+  uint16_t tag_id;
+};
+#pragma pack(pop)
 enum class GeProfInfoType {
   // model level
   kModelExecute = MSPROF_REPORT_MODEL_GRAPH_ID_MAP_TYPE + 1,  // 模型执行

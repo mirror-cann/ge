@@ -586,11 +586,18 @@ ge::Status GlobalProfilingWrapper::ProfileStepTrace(const uint64_t step_id, cons
   GELOGD("Profiling Step Info TraceTask execute async start, step_id = %lu, model_id = %u, tag_id = %u", step_id,
          model_id, static_cast<uint32_t>(tag_id));
   const auto begin_time = MsprofSysCycleTime();
-  const rtError_t rt_ret = rtProfilerTraceEx(step_id, static_cast<uint64_t>(model_id), tag_id, stream);
+
+  rtProfTraceUserData userData = {
+    .id = step_id,
+    .model_id = static_cast<uint64_t>(model_id),
+    .tag_id = tag_id
+  };
+
+  const auto rt_ret = aclrtProfTrace(&userData, sizeof(rtProfTraceUserData), stream);
   const auto end_time = MsprofSysCycleTime();
-  if (rt_ret != RT_ERROR_NONE) {
-    GELOGE(ge::RT_FAILED, "[Call][rtProfilerTraceEx]Failed, ret %d", rt_ret);
-    REPORT_INNER_ERR_MSG("E19999", "Call rtProfilerTraceEx failed, ret %d", rt_ret);
+  if (rt_ret != ACL_SUCCESS) {
+    GELOGE(ge::RT_FAILED, "[Call][aclrtProfTrace]Failed, ret %d", rt_ret);
+    REPORT_INNER_ERR_MSG("E19999", "Call aclrtProfTrace failed, ret %d", rt_ret);
     return RT_ERROR_TO_GE_STATUS(rt_ret);
   }
   return ReportApiInfo(begin_time, end_time, static_cast<uint64_t>(tag_id),

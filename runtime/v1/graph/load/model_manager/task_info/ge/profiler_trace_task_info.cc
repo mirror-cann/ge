@@ -11,6 +11,7 @@
 #include "graph/load/model_manager/task_info/ge/profiler_trace_task_info.h"
 #include "acl/acl_rt.h"
 #include "graph/load/model_manager/davinci_model.h"
+#include "runtime/subscriber/global_profiler.h"
 
 namespace {
 constexpr uint64_t kProfilingMaxLogid = 5U;  // step trace中tagId的最大值
@@ -56,11 +57,15 @@ Status ProfilerTraceTaskInfo::Distribute() {
     return SUCCESS;
   }
 
-  const rtError_t rt_ret =
-    rtProfilerTraceEx(1UL, static_cast<uint64_t>(model_id_), static_cast<uint16_t>(log_id_), stream_);
-  if (rt_ret != RT_ERROR_NONE) {
-    GELOGE(ge::RT_FAILED, "[Call][rtProfilerTraceEx]Failed, ret %d", rt_ret);
-    REPORT_INNER_ERR_MSG("E19999", "Call rtProfilerTraceEx failed, ret %d", rt_ret);
+  gert::rtProfTraceUserData userData = {
+    .id = 1UL,
+    .model_id = static_cast<uint64_t>(model_id_),
+    .tag_id = static_cast<uint16_t>(log_id_)
+  };
+  const auto rt_ret = aclrtProfTrace(&userData, sizeof(gert::rtProfTraceUserData), stream_);
+  if (rt_ret != ACL_SUCCESS) {
+    GELOGE(ge::RT_FAILED, "[Call][aclrtProfTrace]Failed, ret %d", rt_ret);
+    REPORT_INNER_ERR_MSG("E19999", "Call aclrtProfTrace failed, ret %d", rt_ret);
     return RT_ERROR_TO_GE_STATUS(rt_ret);
   }
   GELOGI("ProfilerTraceTaskInfo Distribute Success, stream: %p.", stream_);

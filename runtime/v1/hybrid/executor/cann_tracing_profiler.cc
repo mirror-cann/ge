@@ -19,6 +19,7 @@
 #include "graph/load/model_manager/davinci_model.h"
 #include "subscriber/subscriber_utils.h"
 #include "engine/aicore/launch_kernel/ai_core_launch_kernel.h"
+#include "runtime/subscriber/global_profiler.h"
 
 namespace gert {
 namespace {
@@ -86,8 +87,12 @@ ge::Status CannTracingProfiler::ReportTraceInfo(uint16_t tag_id, const Node *nod
     cur_stream =
         *(reinterpret_cast<aclrtStream *>(rt_streams_->MutableData()) + static_cast<size_t>(logic_stream_id));
   }
-  GE_ASSERT_RT_OK(rtProfilerTraceEx(iteration_num_, static_cast<uint64_t>(extend_info_.model_id),
-      tag_id, cur_stream));
+  rtProfTraceUserData userData = {
+    .id = iteration_num_,
+    .model_id = static_cast<uint64_t>(extend_info_.model_id),
+    .tag_id = tag_id
+  };
+  GE_ASSERT_RT_OK(aclrtProfTrace(&userData, sizeof(rtProfTraceUserData), cur_stream));
   GELOGD(
       "Profiling Step Info TraceTask execute async success, index_id = %llu, model_id = %u, tag_id = %u, "
       "logic_stream_id= %lld",
