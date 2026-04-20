@@ -138,13 +138,13 @@ ge::Expression ConcatInputUnificationPass::GetColSize(const ge::AscTensor &tenso
 
 ge::Status ConcatInputUnificationPass::GetQueInputIndices(const ge::AscNodePtr &concat_node,
                                                           std::set<int32_t> &input_indices_need_copy) {
-  for (const auto &in_anchor : concat_node->GetAllInDataAnchors()) {
+  for (const auto &in_anchor : concat_node->GetAllInDataAnchorsPtr()) {
     GE_ASSERT_NOTNULL(in_anchor);
     const auto out_anchor = in_anchor->GetPeerOutAnchor();
     GE_ASSERT_NOTNULL(out_anchor);
-    const auto in_node = out_anchor->GetOwnerNode();
+    const auto in_node = out_anchor->GetOwnerNodeBarePtr();
     GE_ASSERT_NOTNULL(in_node);
-    const auto asc_node = std::dynamic_pointer_cast<ge::AscNode>(in_node);
+    const auto asc_node = dynamic_cast<ge::AscNode *>(in_node);
     GE_ASSERT_NOTNULL(asc_node);
     if (asc_node->attr.api.compute_type == ge::ComputeType::kComputeLoad) {
       input_indices_need_copy.emplace(in_anchor->GetIdx());
@@ -177,7 +177,7 @@ bool ConcatInputUnificationPass::IsSrcColSizeOverLimit(const ge::AscNodePtr &con
 ge::Status ConcatInputUnificationPass::CollectSharedInputs(const ge::AscNodePtr &concat_node,
                                                            std::set<int32_t> &input_indices_need_copy) {
   std::map<const ge::OutDataAnchor *, std::vector<int32_t>> src_anchor_to_input_indices;
-  for (const auto &in_anchor : concat_node->GetAllInDataAnchors()) {
+  for (const auto &in_anchor : concat_node->GetAllInDataAnchorsPtr()) {
     GE_ASSERT_NOTNULL(in_anchor);
     const auto out_anchor = in_anchor->GetPeerOutAnchor();
     GE_ASSERT_NOTNULL(out_anchor);
