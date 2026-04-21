@@ -64,7 +64,8 @@ enum class NotFuseReason : uint32_t {
   kFusedSliceHasViewOp,
   kCubeCanNotFuseWithNotElementwise,
   kCubeCanNotFuseHoriZontal,
-  kSplitLowFuseRatio
+  kSplitLowFuseRatio,
+  kSplitCanNotFuseReshapeSqueeze
 };
 
 inline const char* NotFuseReasonCode(NotFuseReason reason) noexcept {
@@ -169,6 +170,8 @@ inline const char* NotFuseReasonCode(NotFuseReason reason) noexcept {
       return "NF1049";
     case NotFuseReason::kSplitLowFuseRatio:
       return "NF1050";
+    case NotFuseReason::kSplitCanNotFuseReshapeSqueeze:
+      return "NF1051";
   }
   return "NF9999";  // unknown
 }
