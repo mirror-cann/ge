@@ -259,6 +259,19 @@ KernelBox Store(const ge::OutDataAnchorPtr &dst, const LoopVar &src) {
   return SetLoopKernel(dst, LoopVar(std::make_shared<StoreOp>(dst, src.Op(), dims)));
 }
 
+KernelBox StoreReshape(const ge::OutDataAnchorPtr &dst, const LoopVar &src) {
+  std::vector<Expression> dims;
+  if (loop::GetBufferShape(dst, dims) != GRAPH_SUCCESS) {
+    GELOGI("Drop lower result %s of %s as buffer has no sym shape", src.Readable().c_str(), BufferName(dst).c_str());
+    return StoreExtern(dst);
+  }
+  if (!src.IsValid()) {
+    GELOGI("Drop lower result %s of %s as loop var is invalid", src.Readable().c_str(), BufferName(dst).c_str());
+    return StoreExtern(dst);
+  }
+  return SetLoopKernel(dst, LoopVar(std::make_shared<StoreReshapeOp>(dst, src.Op(), dims)));
+}
+
 KernelBox StoreReduction(ReduceType type, const ge::OutDataAnchorPtr &dst, const LoopVar &src,
                          const std::vector<Expression> &src_dims, const std::vector<size_t> &reduced_axis) {
   std::vector<Expression> reduced_dims;

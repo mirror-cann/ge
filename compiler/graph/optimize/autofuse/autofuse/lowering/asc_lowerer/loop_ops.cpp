@@ -440,11 +440,37 @@ graphStatus StoreConv2DOp::RealizeImpl() {
       GELOGE(FAILED, "result is invalid for op: %s", op->Type().c_str());
     }
     GE_WARN_ASSERT(result.IsValid(), "Loop kernel for %s got %s", op->Type().c_str(), result.Name().c_str());
+ 	     loop_ctx.Set(op, result);
+ 	     return GRAPH_SUCCESS;
+ 	   });
+ 	   GE_WARN_ASSERT_GRAPH_SUCCESS(status, "Failed build asc graph for %s", BufferName(dst_).c_str());
+ 	   GE_WARN_ASSERT(loop_ctx.Get(this).IsValid());
+  return GRAPH_SUCCESS;
+}
+
+graphStatus StoreReshapeOp::RealizeImpl() {
+  for (size_t i = 0U; i < dims_.size(); ++i) {
+    dims_[i] = dims_[i].Simplify();
+  }
+  LoopCtx loop_ctx(dims_);
+  Ops()->SetLoopAxis(loop_ctx.loop_axis);
+  const auto &loop_axis = loop_ctx.loop_axis;
+
+  GE_WARN_ASSERT_GRAPH_SUCCESS(InferLoadIndex(loop_axis.axis, this, loop_ctx), "Failed to infer load index");
+
+  auto status = StrictTopoExecute(this, [&loop_ctx](const LoopOp *op) -> graphStatus {
+    const auto result = op->Compute(loop_ctx);
+    GE_WARN_ASSERT(result.IsValid(), "Loop kernel for %s got %s", op->Type().c_str(), result.Name().c_str());
     loop_ctx.Set(op, result);
     return GRAPH_SUCCESS;
   });
   GE_WARN_ASSERT_GRAPH_SUCCESS(status, "Failed build asc graph for %s", BufferName(dst_).c_str());
-  GE_WARN_ASSERT(loop_ctx.Get(this).IsValid());
+
+  std::string buffer = BufferName(dst_);
+  Ops()->SetBufferSrc(buffer, dst_);
+  const TensorLoopDesc loop_desc(loop_axis.repeats, ContiguousStrides(loop_axis.repeats));
+  auto var = Ops()->Store(buffer, loop_ctx.Get(this), loop_desc, Symbol(0));
+  GE_WARN_ASSERT(var.IsValid());
   return GRAPH_SUCCESS;
 }
 }  // namespace loop

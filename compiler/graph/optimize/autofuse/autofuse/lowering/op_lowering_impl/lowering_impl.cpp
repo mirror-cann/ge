@@ -2013,7 +2013,7 @@ REGISTER_LOWERING(Reshape) {
   auto x = loop::Load(node->GetInDataAnchor(0));
   auto reshape = loop::Reshape(x, dims, output_dims);
   LOWERING_WARN_RECORD_REASON(reshape.IsValid(), node, "no specific reshape pattern matched");
-  loop::Store(node->GetOutDataAnchor(0), reshape);
+  loop::StoreReshape(node->GetOutDataAnchor(0), reshape);
   return GRAPH_SUCCESS;
 }
 

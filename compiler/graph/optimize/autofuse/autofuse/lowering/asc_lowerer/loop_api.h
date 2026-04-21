@@ -150,6 +150,7 @@ KernelBox StoreConcat(const ge::OutDataAnchorPtr &dst, const std::vector<ge::InD
                       size_t concat_dim);
 KernelBox StorePack(const ge::OutDataAnchorPtr &dst, const std::vector<ge::InDataAnchorPtr> &inputs,
                     int64_t packed_dim);
+KernelBox StoreReshape(const ge::OutDataAnchorPtr &dst, const LoopVar &src);
 KernelBox StoreExtern(const ge::OutDataAnchorPtr &dst);
 KernelBox GetKernelBox(const ge::OutDataAnchorPtr &dst);
 

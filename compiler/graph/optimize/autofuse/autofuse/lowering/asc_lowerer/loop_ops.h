@@ -1207,6 +1207,56 @@ private:
   size_t short_idx_;
   std::vector<size_t> mul_idx_;
 };
+
+class StoreReshapeOp : public LoopOp {
+ public:
+  explicit StoreReshapeOp(const ge::OutDataAnchorPtr &dst, LoopOpPtr src, std::vector<Expression> dims)
+      : LoopOp(std::move(src)), dst_(dst.get()), dims_(std::move(dims)) {}
+
+  [[nodiscard]] graphStatus ReIndex(const Index &index, Index &reindex) const override {
+    reindex = index;
+    return GRAPH_SUCCESS;
+  }
+
+  [[nodiscard]] CseVar Compute(const LoopCtx &ctx) const override {
+    return ctx.Get(inputs_[0]);
+  }
+
+  [[nodiscard]] const std::string &Type() const override {
+    const static std::string kType = "ops.StoreReshape";
+    return kType;
+  }
+
+  [[nodiscard]] LoopOpPtr CloneImpl() const override {
+    return std::make_shared<StoreReshapeOp>(*this);
+  };
+
+  [[nodiscard]] ge::NodePtr GetAscendIrNode() const override {
+    return dst_ == nullptr ? nullptr : dst_->GetOwnerNode();
+  }
+
+  [[nodiscard]] std::string ReadableLine(const std::vector<std::string> &var_names) const override {
+    std::stringstream ss;
+    ss << Type() << "(\"";
+    ss << dst_->GetOwnerNode()->GetName() << ":" << dst_->GetIdx() << "\"";
+    ss << ", " << var_names[0] << ")";
+    return ss.str();
+  }
+
+  graphStatus RealizeImpl() override;
+
+  [[nodiscard]] bool InferDataType(const std::vector<DataType> &input_dtypes,
+                                     std::vector<DataType> &expect_output_dtypes) const override {
+    if (!input_dtypes.empty()) {
+      expect_output_dtypes.emplace_back(input_dtypes[0]);
+    }
+    return true;
+  }
+
+ private:
+  ge::OutDataAnchor *dst_;
+  std::vector<Expression> dims_;
+};
 }  // namespace loop
 }  // namespace ge
 
