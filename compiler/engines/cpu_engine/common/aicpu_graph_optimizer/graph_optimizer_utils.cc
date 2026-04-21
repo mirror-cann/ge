@@ -180,7 +180,7 @@ Status CacheGraph::GenerateNoCacheGraph(ComputeGraph &graph) {
       CHECK_RES_BOOL(
           (pld_front_node_engine != nullptr),
           ErrorCode::GET_ATTR_FAILED,
-          AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::GetStr faield to get attr[%s], op[%s].",
+          AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::GetStr failed to get attr[%s], op[%s].",
                                   ge::ATTR_NAME_PLD_FRONT_NODE_ENGINE_NAME.c_str(),
                                   curr_op_desc_ptr->GetName().c_str()));
 
