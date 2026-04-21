@@ -234,7 +234,7 @@ Status Om2CodegenModelBuilder::BuildOpInputEdges(const GeModelPtr &model) {
   return SUCCESS;
 }
 
-Status Om2CodegenModelBuilder::BuildModelInfo(const GeModelPtr &model, Om2CodegenModel &codegen_model) {
+Status Om2CodegenModelBuilder::BuildModelInfo(const GeModelPtr &model, Om2CodegenModel &codegen_model) const {
   GE_ASSERT_NOTNULL(model);
   codegen_model.model_name = model->GetName();
   return SUCCESS;
@@ -290,7 +290,7 @@ Status Om2CodegenModelBuilder::UpdateStreamFlag(const GeModelPtr &model, Om2Code
 }
 
 Status Om2CodegenModelBuilder::InitStreamActive(const OpDescPtr &op_desc,
-                                                std::set<uint32_t> &active_stream_indication) {
+                                                std::set<uint32_t> &active_stream_indication) const {
   if (op_desc->HasAttr(ATTR_NAME_SWITCH_BRANCH_NODE_LABEL)) {
     std::vector<uint32_t> active_stream_list;
     if (!AttrUtils::GetListInt(op_desc, ATTR_NAME_ACTIVE_STREAM_LIST, active_stream_list)) {
@@ -310,7 +310,7 @@ Status Om2CodegenModelBuilder::InitStreamActive(const OpDescPtr &op_desc,
 }
 
 Status Om2CodegenModelBuilder::InitStreamSwitch(const OpDescPtr &op_desc,
-                                                std::set<uint32_t> &active_stream_indication) {
+                                                std::set<uint32_t> &active_stream_indication) const {
   std::vector<uint32_t> active_stream_list;
   GE_LOGI_IF(!AttrUtils::GetListInt(op_desc, ATTR_NAME_ACTIVE_STREAM_LIST, active_stream_list),
              "GetInt active_stream_list failed.");
@@ -354,7 +354,7 @@ Status Om2CodegenModelBuilder::BuildModelIo(const GeModelPtr &model, Om2CodegenM
 
 Status Om2CodegenModelBuilder::CollectModelIoItems(Om2CodegenModel &codegen_model, const ComputeGraphPtr &compute_graph,
                                                    std::vector<InputModelIoItem> &input_items,
-                                                   std::vector<OutputModelIoItem> &output_items) {
+                                                   std::vector<OutputModelIoItem> &output_items) const {
   size_t input_visit_order = 0U;
   for (const auto &node : compute_graph->GetDirectNode()) {
     GE_ASSERT_NOTNULL(node);
@@ -618,7 +618,7 @@ Status Om2CodegenModelBuilder::BuildTaskSemantics(const GeModelPtr &model,
 }
 
 Status Om2CodegenModelBuilder::AggregateArgsTable(const std::vector<TaskCodeBuilderPtr> &task_builders,
-                                                  Om2CodegenModel &codegen_model) {
+                                                  Om2CodegenModel &codegen_model) const {
   uint64_t max_end = 0UL;
   std::multimap<uint64_t, uint64_t> io_addr_offset_map;
   for (const auto &task_builder : task_builders) {

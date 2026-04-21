@@ -55,14 +55,14 @@ class KernelTaskCodeBuilder : public TaskCodeBuilder {
     std::vector<std::vector<int64_t>> shape_infos;
     size_t level1_addr_cnt{0UL};
   };
-  StructDecl *BuildLaunchKernelCfgHolder();
-  StructDecl *BuildLaunchKernelConfig();
-  FunctionDef *BuildAssembleLaunchConfig();
-  FunctionDef *BuildKernelTaskDistribute();
-  FunctionDef *BuildUpdateExtInfoSession();
-  FunctionDef *BuildAssembleAicpuExtInfo();
-  FunctionDef *BuildAssembleAicpuArgs();
-  FunctionDef *BuildAicpuKernelTaskDistribute();
+  StructDecl *BuildLaunchKernelCfgHolder() const;
+  StructDecl *BuildLaunchKernelConfig() const;
+  FunctionDef *BuildAssembleLaunchConfig() const;
+  FunctionDef *BuildKernelTaskDistribute() const;
+  FunctionDef *BuildUpdateExtInfoSession() const;
+  FunctionDef *BuildAssembleAicpuExtInfo() const;
+  FunctionDef *BuildAssembleAicpuArgs() const;
+  FunctionDef *BuildAicpuKernelTaskDistribute() const;
   Status AppendAicpuArgsCode(Arg iow_addr, const VarRef &args_var, std::vector<BodyItem> &items);
   Status GenArgsCode();
   Status InitAicpuTaskExtInfo(uint8_t *ext_info, size_t ext_info_len, const OpDescPtr op_desc,
@@ -106,7 +106,7 @@ class KernelTaskCodeBuilder : public TaskCodeBuilder {
   VarRef AppendLaunchConfigSetup(size_t op_index, std::vector<BodyItem> &items) const;
   std::string SerializeBytesToOctalString(const std::vector<uint8_t> &buffer) const;
   Status ParseExtShape(AicpuExtInfo &aicpu_ext_info, const uint32_t num_tensor,
-    const std::string &node_name, const bool all_shape, const OpDescPtr &op_desc);
+    const std::string &node_name, const bool all_shape, const OpDescPtr &op_desc) const;
   Status ParseExtBitmap(AicpuExtInfo &aicpu_ext_info, const std::string &node_name) const;
   Status ParseExtTopicType(AicpuExtInfo &aicpu_ext_info, const std::string &node_name) const;
   Status ParseExtAsyncWait(AicpuExtInfo &aicpu_ext_info, const std::string &node_name) const;

@@ -34,7 +34,7 @@ class Om2ModelUtils {
   static Status ResolveInputAddrs(const TaskSemanticContributeContext &context,
                                   std::vector<AddrSemantic> &input_addrs);
 
-  static Status ResolveOutputAddrs(const TaskSemanticContributeContext &context, bool has_optional_addr,
+  static Status ResolveOutputAddrs(const TaskSemanticContributeContext &context, const bool has_optional_addr,
                                    std::vector<AddrSemantic> &output_addrs);
 
   static Status ResolveWorkspaceAddrs(const TaskSemanticContributeContext &context,
@@ -53,9 +53,10 @@ class Om2ModelUtils {
   static Status GetValidatedTensorMemType(const GeTensorDescPtr &tensor_desc, const std::vector<int64_t> &mem_types,
                                           size_t index, uint64_t &memory_type);
   static Status ResolveInputVarName(std::unordered_map<int64_t, OpInputEdges> &op_id_to_input_edges,
-                                    const ConstOpDescPtr &op_desc, int64_t op_index, size_t input_idx,
-                                    size_t non_const_idx, std::string &input_ptr_name, bool &is_reused_from_upstream);
-  static bool GetFileConstInputVarName(int64_t input_offset,
+                                    const ConstOpDescPtr &op_desc, const int64_t op_index, const size_t input_idx,
+                                    const size_t non_const_idx, std::string &input_ptr_name,
+                                    bool &is_reused_from_upstream);
+  static bool GetFileConstInputVarName(const int64_t input_offset,
                                        const std::unordered_map<int64_t, std::string> &fileconst_output_offset_to_varname,
                                        std::string &input_ptr_name);
   static Status ConstructAddrSemanticForInputConst(

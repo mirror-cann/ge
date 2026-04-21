@@ -40,12 +40,12 @@ class Om2CodegenModelBuilder {
  private:
   Status BuildOpDescLookup(const GeModelPtr &model);
   Status BuildOpInputEdges(const GeModelPtr &model);
-  Status BuildModelInfo(const GeModelPtr &model, Om2CodegenModel &codegen_model);
+  Status BuildModelInfo(const GeModelPtr &model, Om2CodegenModel &codegen_model) const;
   Status BuildRuntimeResource(const GeModelPtr &model, Om2CodegenModel &codegen_model);
   Status BuildModelIo(const GeModelPtr &model, Om2CodegenModel &codegen_model);
   Status CollectModelIoItems(Om2CodegenModel &codegen_model, const ComputeGraphPtr &compute_graph,
                              std::vector<InputModelIoItem> &input_items,
-                             std::vector<OutputModelIoItem> &output_items);
+                             std::vector<OutputModelIoItem> &output_items) const;
   Status BuildConstInputs(const GeModelPtr &model, const std::vector<TaskCodeBuilderPtr> &task_builders,
                           Om2CodegenModel &codegen_model, Om2ConstMetas &const_metas);
   Status BuildFileConstInputs(const GeModelPtr &model, Om2CodegenModel &codegen_model, Om2ConstMetas &const_metas);
@@ -53,14 +53,14 @@ class Om2CodegenModelBuilder {
                              Om2CodegenModel &codegen_model);
   Status BuildTaskSemantics(const GeModelPtr &model, const std::vector<TaskCodeBuilderPtr> &task_builders,
                             Om2CodegenModel &codegen_model);
-  Status AggregateArgsTable(const std::vector<TaskCodeBuilderPtr> &task_builders, Om2CodegenModel &codegen_model);
+  Status AggregateArgsTable(const std::vector<TaskCodeBuilderPtr> &task_builders, Om2CodegenModel &codegen_model) const;
   Status BuildHostArgsOffsets(const std::multimap<uint64_t, uint64_t> &io_addr_offset_map,
                               Om2CodegenModel &codegen_model) const;
   Status CollectConstInputsFromOp(const OpDescPtr &op_desc, Om2CodegenModel &codegen_model,
                                   Om2ConstMetas &const_metas);
   Status UpdateStreamFlag(const GeModelPtr &model, Om2CodegenModel &codegen_model);
-  Status InitStreamActive(const OpDescPtr &op_desc, std::set<uint32_t> &active_stream_indication);
-  Status InitStreamSwitch(const OpDescPtr &op_desc, std::set<uint32_t> &active_stream_indication);
+  Status InitStreamActive(const OpDescPtr &op_desc, std::set<uint32_t> &active_stream_indication) const;
+  Status InitStreamSwitch(const OpDescPtr &op_desc, std::set<uint32_t> &active_stream_indication) const;
   static void ReportUnsupportedTask(TaskCodeBuilderPtr &task_builder,  domi::TaskDef *const task_def,
                              std::unordered_map<int64_t, OpDescPtr> &op_desc_by_index, const ModelTaskType &task_type);
   static Status BuildKernelRegistryForAicore(Om2CodegenModel &codegen_model, const OpDescPtr &op_desc,

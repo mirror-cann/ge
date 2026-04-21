@@ -147,22 +147,6 @@ GeModelPtr CreateGeModelWithControlTasks() {
     task_def->set_event_id(0U);
     task_def->mutable_event_ex()->set_op_index(op_desc->GetId());
   }
-  {
-    const auto op_desc = graph->FindNode("input")->GetOpDesc();
-    domi::TaskDef *task_def = model_def->add_task();
-    task_def->set_id(static_cast<uint32_t>(op_desc->GetId()));
-    task_def->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_NOTIFY_RECORD));
-    task_def->set_stream_id(op_desc->GetStreamId());
-    task_def->set_notify_id(0U);
-  }
-  {
-    const auto op_desc = graph->FindNode("While")->GetOpDesc();
-    domi::TaskDef *task_def = model_def->add_task();
-    task_def->set_id(static_cast<uint32_t>(op_desc->GetId()));
-    task_def->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_NOTIFY_WAIT));
-    task_def->set_stream_id(op_desc->GetStreamId());
-    task_def->set_notify_id(0U);
-  }
 
   int64_t max_stream_id = 0;
   for (const auto &node : graph->GetAllNodes()) {

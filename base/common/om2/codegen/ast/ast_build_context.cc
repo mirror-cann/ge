@@ -434,7 +434,7 @@ ExprRef AstBuildContext::IgnoreOutput(Arg expr) {
   return ExprRef(ctx_, IgnoreOutputExpr::Create(ctx_, ResolveArg(expr, ctx_)));
 }
 
-LambdaCaptureSpec AstBuildContext::CaptureRef(const VarRef &symbol) {
+LambdaCaptureSpec AstBuildContext::CaptureRef(const VarRef &symbol) const {
   return LambdaCaptureSpec{symbol.SymbolName(), LambdaCaptureSpec::Kind::kByRef};
 }
 
@@ -505,7 +505,7 @@ RangeForStmt *AstBuildContext::RangeFor(const std::string &type_spec, const std:
   return RangeForStmt::Create(ctx_, type_spec, name, ResolveArg(range, ctx_), BlockStmt::Create(ctx_, Body(items)));
 }
 
-MemberInitSpec AstBuildContext::MemberInit(const std::string &member_name, Arg init) {
+MemberInitSpec AstBuildContext::MemberInit(const std::string &member_name, Arg init) const {
   return MemberInitSpec{member_name, init};
 }
 

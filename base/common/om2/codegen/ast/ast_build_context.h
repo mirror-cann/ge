@@ -215,7 +215,7 @@ class AstBuildContext {
   ExprRef Sizeof(Arg expr);
   ExprRef RemoveFile(Arg path);
   ExprRef IgnoreOutput(Arg expr);
-  LambdaCaptureSpec CaptureRef(const VarRef &symbol);
+  LambdaCaptureSpec CaptureRef(const VarRef &symbol) const;
   ExprRef Lambda(std::initializer_list<LambdaCaptureSpec> captures, std::initializer_list<BodyItem> items);
   ExprRef Call(const std::string &callee_name, std::initializer_list<Arg> args);
   ExprRef Call(const std::string &callee_name, const std::vector<Arg> &args);
@@ -231,7 +231,7 @@ class AstBuildContext {
   RangeForStmt *RangeFor(const VarRef &loop_var, Arg range, std::initializer_list<BodyItem> items);
   RangeForStmt *RangeFor(const std::string &type_spec, const std::string &name, Arg range,
                          std::initializer_list<BodyItem> items);
-  MemberInitSpec MemberInit(const std::string &member_name, Arg init);
+  MemberInitSpec MemberInit(const std::string &member_name, Arg init) const;
   std::vector<Stmt *> Body(std::initializer_list<BodyItem> items);
   std::vector<Stmt *> Body(const std::vector<BodyItem> &items);
   ExprRef StaticCast(const std::string &target_type, Arg expr);

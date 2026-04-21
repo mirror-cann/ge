@@ -54,7 +54,7 @@ MethodDef *ResourcesFileCodeGenerator::BuildOm2ModelConstructor(const Om2Codegen
       body);
 }
 
-MethodDef *ResourcesFileCodeGenerator::BuildOm2ModelDestructor() {
+MethodDef *ResourcesFileCodeGenerator::BuildOm2ModelDestructor() const {
   return ast_.DefineMethod("Om2Model", "~Om2Model", {}, "", {
       ast_.IgnoreOutput(ast_.Call("ReleaseResources", {})),
   });

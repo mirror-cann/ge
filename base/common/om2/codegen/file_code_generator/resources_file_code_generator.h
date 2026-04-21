@@ -21,7 +21,7 @@ class ResourcesFileCodeGenerator : public Om2ModelClassGeneratorBase {
   ~ResourcesFileCodeGenerator() override = default;
 
   MethodDef *BuildOm2ModelConstructor(const Om2CodegenModel &codegen_model);
-  MethodDef *BuildOm2ModelDestructor();
+  MethodDef *BuildOm2ModelDestructor() const;
   MethodDef *BuildInitResourcesMethod(const Om2CodegenModel &codegen_model,
                                       const std::vector<TaskCodeBuilderPtr> &task_code_builders);
   MethodDef *BuildReleaseResourcesMethod(const Om2CodegenModel &codegen_model);
