@@ -11,12 +11,12 @@
 #include "python_pass_pybind_bridge.h"
 
 #include <dlfcn.h>
-#include <unistd.h>
 
 #include <mutex>
 #include <string>
 #include <vector>
 
+#include "ge/ge_api_types.h"
 #include "framework/common/debug/ge_log.h"
 #include "pass_registry.h"
 #include "python_pass_adapter.h"
@@ -73,11 +73,14 @@ class PythonFusionPassBridgeLoader {
     static const PythonFusionPassRegistrar kRegistrar = {
         &RegisterPythonPassFromBridge,
     };
+    GELOGI("Register python passes with bridge library[%s].", loaded_path_.c_str());
     return api_->register_passes(&kRegistrar);
   }
 
   void Unload() {
     std::lock_guard<std::mutex> lock(mutex_);
+    GELOGI("Unload python passes with bridge library[%s], keep bridge loaded for process reuse.",
+           loaded_path_.c_str());
     if ((api_ != nullptr) && (api_->reset_bridge_state != nullptr)) {
       api_->reset_bridge_state();
     }
@@ -89,6 +92,7 @@ class PythonFusionPassBridgeLoader {
 
   void ShutdownForProcess() {
     std::lock_guard<std::mutex> lock(mutex_);
+    GELOGI("Shutdown python pass bridge for process, current library[%s].", loaded_path_.c_str());
     if ((api_ != nullptr) && (api_->shutdown_bridge != nullptr)) {
       api_->shutdown_bridge();
     }
@@ -107,6 +111,7 @@ class PythonFusionPassBridgeLoader {
  private:
   Status EnsureLoaded() {
     if (api_ != nullptr) {
+      GELOGI("Reuse already loaded python pass bridge library[%s].", loaded_path_.c_str());
       return SUCCESS;
     }
 

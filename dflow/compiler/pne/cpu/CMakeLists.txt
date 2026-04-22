@@ -27,11 +27,6 @@ target_compile_definitions(cpu_compiler PRIVATE
 )
 
 target_compile_options(cpu_compiler PRIVATE
-    -O2
-    -fno-common
-    -Werror
-    -Wextra
-    -Wfloat-equal
     -fvisibility=default
 )
 

@@ -55,8 +55,8 @@ class Node:
 
     @classmethod
     def _create_from(cls, node_handle: ctypes.c_void_p, owns_handle: bool = True) -> 'Node':
-        """Create Node object from C++ handle.(internal use only by e.g Graph.get_all_nodes() or TensorHolder.get_producer(),
-         do not use this method directly)
+        """Create Node object from C++ handle.(internal use only by e.g Graph.get_all_nodes()
+        or TensorHolder._get_node_snapshot(), do not use this method directly)
 
         Args:
             node_handle: C++ GNode object handle.

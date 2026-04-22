@@ -987,12 +987,17 @@ set(FUSION_PASS_PY_INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/fusion_pass_py_instal
 
 add_custom_command(
     OUTPUT ${FUSION_PASS_PY_INSTALL_DIR}/.installed
-    COMMAND ${CMAKE_COMMAND} -E remove -rf ${FUSION_PASS_PY_INSTALL_DIR}
+    COMMAND ${CMAKE_COMMAND} -E remove_directory ${FUSION_PASS_PY_INSTALL_DIR}
     COMMAND ${CMAKE_COMMAND} -E make_directory ${FUSION_PASS_PY_INSTALL_DIR}
     COMMAND ${HI_PYTHON} -m pip install --target ${FUSION_PASS_PY_INSTALL_DIR}
             ${CMAKE_BINARY_DIR}/api/python/ge/ge_py-0.0.1-py3-none-any.whl --force-reinstall
+    COMMAND ${HI_PYTHON} -m pip install --target ${FUSION_PASS_PY_INSTALL_DIR}
+            ${CMAKE_BINARY_DIR}/tests/ge/ut/ge/graph/eager_style_graph_builder/graph_construction_test/output/whl/es_ut_test-1.0.0-py3-none-any.whl --force-reinstall
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:eager_style_graph_builder_base> ${FUSION_PASS_PY_INSTALL_DIR}/ge/_capi/
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/tests/ge/ut/ge/graph/eager_style_graph_builder/graph_construction_test/output/lib64/libes_ut_test.so ${FUSION_PASS_PY_INSTALL_DIR}/ge/_capi/
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:_ge_pass_native> ${FUSION_PASS_PY_INSTALL_DIR}/ge/passes/
     COMMAND ${CMAKE_COMMAND} -E touch ${FUSION_PASS_PY_INSTALL_DIR}/.installed
-    DEPENDS ge_python
+    DEPENDS ge_python eager_style_graph_builder_base es_ut_test _ge_pass_native
     COMMENT "Installing ge-py wheel for fusion_pass_executor_utest"
 )
 

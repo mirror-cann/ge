@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -260,7 +260,7 @@ TEST_F(UTEST_dump_op, launch_dump_op_output) {
   toolkit::aicpu::dump::Task task;
   auto ret = dump_op.DumpOutput(task, op_desc, output_addrs);
   EXPECT_EQ(ret, ge::SUCCESS);
-  
+
   free(addr_out);
 }
 
@@ -385,7 +385,7 @@ TEST_F(UTEST_dump_op, dump_modelname_opblacklist_output_ok) {
   toolkit::aicpu::dump::Task task;
   auto ret = dump_op.DumpOutput(task, op_desc, output_addrs);
   EXPECT_EQ(ret, ge::SUCCESS);
-  
+
   free(addr_out);
 }
 
@@ -426,7 +426,7 @@ TEST_F(UTEST_dump_op, dump_omname_opblacklist_output_ok) {
   toolkit::aicpu::dump::Task task;
   auto ret = dump_op.DumpOutput(task, op_desc, output_addrs);
   EXPECT_EQ(ret, ge::SUCCESS);
-  
+
   free(addr_out);
 }
 
@@ -843,5 +843,40 @@ TEST_F(UTEST_dump_op, SetWorkspaceAddrs) {
   EXPECT_EQ(dump_op.space_addrs_[1].second, 2048);
   EXPECT_EQ(dump_op.space_addrs_[2].first, 0x3000UL);
   EXPECT_EQ(dump_op.space_addrs_[2].second, 4096);
+}
+
+TEST_F(UTEST_dump_op, SetDumpModelName_MatchRootGraphName_Success) {
+  DumpOp dump_op;
+  DumpProperties dump_properties;
+  dump_properties.enable_dump_debug_ = "1";
+  dump_properties.is_train_op_debug_ = true;
+
+  std::set<std::string> temp;
+  temp.insert("root_graph");
+  dump_properties.model_dump_properties_map_.emplace("root_graph", temp);
+  dump_op.SetDynamicModelInfo("model_name", "om_name", 1);
+  dump_op.SetRootGraphName("root_graph");
+  dump_op.SetDumpInfo(dump_properties, std::make_shared<OpDesc>("test", "Test"), {}, {}, nullptr);
+
+  Status ret = dump_op.SetDumpModelName();
+  EXPECT_EQ(ret, SUCCESS);
+  EXPECT_EQ(dump_op.op_mapping_info_.model_name(), "model_name");
+}
+
+TEST_F(UTEST_dump_op, SetDumpModelName_NoMatch_Failed) {
+  DumpOp dump_op;
+  DumpProperties dump_properties;
+  dump_properties.enable_dump_debug_ = "1";
+  dump_properties.is_train_op_debug_ = true;
+
+  std::set<std::string> temp;
+  temp.insert("other_model");
+  dump_properties.model_dump_properties_map_.emplace("other_model", temp);
+  dump_op.SetDynamicModelInfo("model_name", "om_name", 1);
+  dump_op.SetRootGraphName("root_graph");
+  dump_op.SetDumpInfo(dump_properties, std::make_shared<OpDesc>("test", "Test"), {}, {}, nullptr);
+
+  Status ret = dump_op.SetDumpModelName();
+  EXPECT_EQ(ret, SUCCESS);
 }
 }  // namespace ge

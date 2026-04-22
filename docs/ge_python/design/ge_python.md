@@ -379,11 +379,14 @@ GeApi.ge_finalize()
 
 ├── __init__.py      # 模块初始化，导出公共 API
 ├── base.py          # Pass 基类定义（FusionBasePass、PatternFusionPass、DecomposePass 等）
+├── pattern.py       # Pattern / NodeIo / capture_tensor 等模式匹配辅助接口
+├── replacement.py   # replacement graph 构建辅助接口
 ├── registry.py      # Pass 注册中心与装饰器
 ├── bootstrap.py     # 插件发现与加载
 └── _bridge.py       # Bridge 运行时辅助（Pass 实例管理，供 C++ bridge .so 回调）
 ```
 注：下划线开头的为 Python 风格下的对内模块
+注：`PassContext`、`MatchResult`、`Pattern`、`PatternMatcherConfig` 等对象由 `_ge_pass_native.so` 提供 native-backed 实现，`base.py` / `pattern.py` 负责对外导出与少量 Python 辅助封装。
 
 #### 类详细说明
 
@@ -400,27 +403,51 @@ GeApi.ge_finalize()
 - `AFTER_BUILTIN_FUSION_PASS` - 在内置融合 Pass 之后执行
 - `AFTER_ORIGIN_GRAPH_OPTIMIZE` - 在原始图优化之后执行
 
-##### 2. PassContext 数据类
+##### 2. PassContext native-backed wrapper
 
 **文件位置**: `base.py`
 
 **功能**: Python 侧的 Pass 上下文视图
 
-**属性**:
-- `pass_name` - Pass 名称
-- `options` - Pass 选项字典
+**主要方法**:
+- `get_pass_name()` - 获取 Pass 名称
+- `set_pass_name(pass_name)` - 设置 Pass 名称
+- `get_option_value(option_key)` - 获取编译选项
+- `get_error_message()` - 获取错误信息
+- `set_error_message(error_message)` - 设置错误信息
 
-##### 3. MatchResult 数据类
+##### 3. MatchResult native-backed wrapper
 
 **文件位置**: `base.py`
 
 **功能**: 模式匹配结果
 
-**属性**:
-- `captured_nodes` - 捕获的节点字典
-- `captured_tensors` - 捕获的张量字典
+**主要方法**:
+- `get_matched_nodes()` - 获取当前匹配命中的节点列表
+- `get_captured_tensor(capture_index)` - 获取指定 capture 的 `NodeIo`
+- `get_pattern_graph_name()` - 获取 pattern graph 名称
+- `__str__()` - 返回可读字符串表示
 
-##### 4. FusionBasePass 类
+##### 4. Pattern / NodeIo / PatternMatcherConfig
+
+**文件位置**: `pattern.py`、`base.py`
+
+**功能**:
+- `Pattern` - native-backed pattern wrapper，负责持有 pattern graph 与 capture 信息
+- `NodeIo` - Python 侧描述节点输出位置的轻量 helper
+- `PatternMatcherConfig` / `PatternMatcherConfigBuilder` - 模式匹配配置对象与 builder
+
+**主要接口**:
+- `Pattern(graph)` - 从 `ge.graph.Graph` 构造 pattern
+- `Pattern.capture_tensor(source, index=0)` - 记录 capture tensor
+- `Pattern.get_captured_tensors()` - 获取 capture 列表
+- `capture_tensor(source, index=0)` - 将 `Node` / `TensorHolder` / `NodeIo` 规范化为 `NodeIo`
+- `create_pattern(graph)` - 显式构造 `Pattern`
+- `PatternMatcherConfigBuilder.enable_const_value_match()` - 打开常量值匹配
+- `PatternMatcherConfigBuilder.enable_ir_attr_match()` - 打开 IR 属性匹配
+- `PatternMatcherConfigBuilder.build()` - 生成配置对象
+
+##### 5. FusionBasePass 类
 
 **文件位置**: `base.py`
 
@@ -433,7 +460,7 @@ GeApi.ge_finalize()
 - `PatternFusionPass` 和 `DecomposePass` 的父类
 - 通过 `register_fusion_pass` 装饰器注册到全局 Pass 注册中心
 
-##### 5. PatternFusionPass 类
+##### 6. PatternFusionPass 类
 
 **文件位置**: `base.py`
 
@@ -444,6 +471,9 @@ GeApi.ge_finalize()
 - `meet_requirements(match_result)` - 判断匹配结果是否满足融合条件，默认返回 True
 - `replacement(match_result)` - 根据匹配结果生成替换子图
 
+**可选构造参数**:
+- `matcher_config` - `PatternMatcherConfig`，用于控制常量值匹配、IR 属性匹配等 matcher 选项
+
 **设计约束**:
 - **不支持用户自定义 `run()` 方法**：`PatternFusionPass` 复用 C++ 的 `Run()` 实现来执行标准的 pattern-match-replacement 流程。Python 侧只需实现 `patterns()`、`meet_requirements()` 和 `replacement()` 三个 hook 即可。
 - **需要完全自定义 `run()` 逻辑的场景**：请直接使用 `FusionBasePass` 基类。
@@ -452,7 +482,7 @@ GeApi.ge_finalize()
 - 继承自 `FusionBasePass`
 - 通过 `register_fusion_pass` 装饰器注册
 
-##### 6. DecomposePass 类
+##### 7. DecomposePass 类
 
 **文件位置**: `base.py`
 
@@ -469,7 +499,7 @@ GeApi.ge_finalize()
 - 继承自 `FusionBasePass`
 - 通过 `register_decompose_pass` 装饰器注册
 
-##### 7. PassDescriptor 数据类
+##### 8. PassDescriptor 数据类
 
 **文件位置**: `registry.py`
 

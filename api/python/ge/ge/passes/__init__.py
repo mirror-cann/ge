@@ -15,10 +15,17 @@ __all__ = [
     "DecomposePass",
     "FusionBasePass",
     "MatchResult",
+    "NodeIo",
     "PassStage",
-    "PatternFusionPass",
     "PassContext",
+    "Pattern",
+    "PatternMatcherConfig",
+    "PatternMatcherConfigBuilder",
+    "PatternFusionPass",
+    "capture_tensor",
     "clear_registered_passes",
+    "create_pattern",
+    "create_replacement",
     "get_registered_pass_by_descriptor_key",
     "get_registered_pass_dicts",
     "get_registered_passes",
@@ -30,12 +37,18 @@ from .base import DecomposePass
 from .base import FusionBasePass
 from .base import MatchResult
 from .base import PassStage
+from .base import PassContext
+from .base import PatternMatcherConfig
+from .base import PatternMatcherConfigBuilder
 from .base import PatternFusionPass
-from ._ge_pass_native import PassContext
+from .pattern import NodeIo
+from .pattern import Pattern
+from .pattern import capture_tensor
+from .pattern import create_pattern
+from .replacement import create_replacement
 from .registry import clear_registered_passes
 from .registry import get_registered_pass_by_descriptor_key
 from .registry import get_registered_pass_dicts
 from .registry import get_registered_passes
 from .registry import register_decompose_pass
 from .registry import register_fusion_pass
-

@@ -31,7 +31,6 @@
 #include "pybind11/stl.h"
 #include "framework/common/debug/ge_log.h"
 #include "graph/ascend_string.h"
-#include "graph/node.h"
 #include "graph/utils/graph_utils_ex.h"
 #include "graph_metadef/register/custom_pass_context_impl.h"
 #include "python_pass_adapter.h"
@@ -127,14 +126,19 @@ class PythonFusionPassPybindBridge {
   void ResetBridgeState() {
     std::lock_guard<std::mutex> lock(mutex_);
     if (Py_IsInitialized() == 0) {
+      GELOGI("Skip resetting python pybind bridge state because interpreter is not initialized.");
       return;
     }
     py::gil_scoped_acquire gil;
+    GELOGI("Resetting python pybind bridge state with existing interpreter.");
     ResetBridgeStateUnlocked();
   }
 
   void Shutdown() {
     std::lock_guard<std::mutex> lock(mutex_);
+    GELOGI("Shutting down python pybind bridge, owns_interpreter[%d], py_initialized[%d].",
+           owns_interpreter_ ? 1 : 0,
+           Py_IsInitialized() != 0 ? 1 : 0);
     if (Py_IsInitialized() != 0) {
       py::gil_scoped_acquire gil;
       ResetBridgeStateUnlocked();
@@ -198,7 +202,7 @@ class PythonFusionPassPybindBridge {
     delete holder;
   }
 
-  Status Run(PythonBridgeHolder *holder, GraphPtr &graph, CustomPassContext &pass_context) {
+  Status Run(PythonBridgeHolder *holder, const GraphPtr &graph, CustomPassContext &pass_context) {
     if (holder == nullptr) {
       pass_context.SetErrorMessage("python bridge holder is null");
       return FAILED;
@@ -247,10 +251,12 @@ class PythonFusionPassPybindBridge {
 
   void EnsureBridgeModuleUnlocked() {
     if (bridge_module_ && (!bridge_module_.is_none())) {
+      GELOGI("Reusing cached python bridge module.");
       return;
     }
     py::module_ pass_native_module = py::module_::import(kPassNativeModuleName);
     bridge_module_ = py::module_::import(kBridgeModuleName);
+    GELOGI("Imported python bridge modules [%s] and [%s].", kPassNativeModuleName, kBridgeModuleName);
   }
 
   void ResetBridgeStateUnlocked() {
@@ -264,13 +270,13 @@ class PythonFusionPassPybindBridge {
     }
   }
 
-  void ClearPythonEnvVarUnlocked() {
+  static void ClearPythonEnvVarUnlocked() {
     py::module_ os = py::module_::import("os");
     py::dict environ = os.attr("environ");
     (void)environ.attr("pop")(py::str(kEnvPythonPassPath), py::none());
   }
 
-  void SyncProcessEnvToPythonUnlocked() {
+  static void SyncProcessEnvToPythonUnlocked() {
     const char *env_value = std::getenv(kEnvPythonPassPath);
     if (env_value == nullptr) {
       ClearPythonEnvVarUnlocked();
@@ -289,7 +295,7 @@ class PythonFusionPassPybindBridge {
     return oss.str();
   }
 
-  Status ParseDescriptor(const py::dict &descriptor_dict, PythonPassDescriptor &pass_desc) const {
+  static Status ParseDescriptor(const py::dict &descriptor_dict, PythonPassDescriptor &pass_desc) {
     try {
       pass_desc.descriptor_key = py::str(descriptor_dict["descriptor_key"]);
       pass_desc.pass_name = py::str(descriptor_dict["pass_name"]);
@@ -316,7 +322,7 @@ class PythonFusionPassPybindBridge {
     return pass_desc.IsValid() ? SUCCESS : FAILED;
   }
 
-  py::object BuildPythonGraph(GraphPtr &graph) const {
+  static py::object BuildPythonGraph(const GraphPtr &graph) {
     if (graph == nullptr) {
       return py::none();
     }
@@ -324,17 +330,17 @@ class PythonFusionPassPybindBridge {
     py::module_ graph_module = py::module_::import("ge.graph");
     py::object graph_type = graph_module.attr("Graph");
     py::object graph_handle = ctypes_module.attr("c_void_p")(py::int_(reinterpret_cast<uintptr_t>(graph.get())));
-    py::capsule graph_owner(new GraphPtr(graph), [](void *ptr) {
+    py::capsule graph_owner(new (std::nothrow) GraphPtr(graph), [](void *ptr) {
       delete static_cast<GraphPtr *>(ptr);
     });
     return graph_type.attr("_create_from")(graph_handle, py::bool_(false), graph_owner);
   }
 
-  py::object BuildPythonPassContext(CustomPassContext &pass_context) const {
+  static py::object BuildPythonPassContext(CustomPassContext &pass_context) {
     return py::cast(&pass_context, py::return_value_policy::reference);
   }
 
-  Status TranslateRunResult(const py::object &result, CustomPassContext &pass_context) const {
+  static Status TranslateRunResult(const py::object &result, CustomPassContext &pass_context) {
     if (result.is_none()) {
       return SUCCESS;
     }
@@ -351,7 +357,7 @@ class PythonFusionPassPybindBridge {
     return FAILED;
   }
 
-  PythonFusionPassCallbacks GetCallbacks(PythonPassKind kind) {
+  static PythonFusionPassCallbacks GetCallbacks(const PythonPassKind kind) {
     PythonFusionPassCallbacks callbacks;
     callbacks.create = [](const PythonPassDescriptor *pass_desc) -> void* {
       if (pass_desc == nullptr) {
@@ -372,6 +378,11 @@ class PythonFusionPassPybindBridge {
         };
         break;
       case PythonPassKind::kPatternFusion:
+        callbacks.get_matcher_config = [](void *holder,
+                                          std::unique_ptr<PatternMatcherConfig> &matcher_config) -> Status {
+          return PythonFusionPassPybindBridge::GetInstance().GetPatternMatcherConfig(
+              static_cast<PythonBridgeHolder *>(holder), matcher_config);
+        };
         callbacks.patterns = [](void *holder, std::vector<PatternUniqPtr> &patterns) -> Status {
           return PythonFusionPassPybindBridge::GetInstance().GetPatterns(
               static_cast<PythonBridgeHolder *>(holder), patterns);
@@ -394,15 +405,39 @@ class PythonFusionPassPybindBridge {
     return callbacks;
   }
 
-  // TTODO: GetPatterns / CallMeetRequirements / CallReplacement 三个方法为
-  // PatternFusionPass 桥接的占位实现，当前代码可编译但尚不可运行，原因：
-  // 1. _bridge.py 尚未提供 get_pass_patterns / call_meet_requirements /
-  //    call_replacement 三个函数，桥接协议待协同设计后实现
-  // 2. Pattern 的 native binding 未就绪，cast<Pattern*> 获取裸指针后交给
-  //    unique_ptr 的所有权语义尚未确定
-  // 3. MatchResult / Graph 跨语言传递使用 uintptr_t，需 native binding
-  //    提供类型安全的 wrapper 后才能确立生命周期约定
-  // 待 Pattern / MatchResult 的 native binding 就绪后完成最终实现。
+  Status GetPatternMatcherConfig(PythonBridgeHolder *holder,
+                                 std::unique_ptr<PatternMatcherConfig> &matcher_config) {
+    matcher_config.reset();
+    if (holder == nullptr) {
+      return FAILED;
+    }
+    const auto prepare_ret = EnsureBridgeReady();
+    if (prepare_ret != SUCCESS) {
+      GELOGE(prepare_ret, "Prepare python bridge failed for GetPatternMatcherConfig.");
+      return prepare_ret;
+    }
+    py::gil_scoped_acquire gil;
+    try {
+      py::object result = bridge_module_.attr("get_pattern_matcher_config")(holder->instance_id);
+      if (result.is_none()) {
+        return SUCCESS;
+      }
+      const auto config_handle = result.cast<uintptr_t>();
+      auto *config_ptr = reinterpret_cast<PatternMatcherConfig *>(config_handle);
+      if (config_ptr == nullptr) {
+        GELOGE(FAILED, "Python pattern fusion pass returned empty matcher config handle, instance id[%s].",
+               holder->instance_id.c_str());
+        return FAILED;
+      }
+      matcher_config.reset(config_ptr);
+      return SUCCESS;
+    } catch (const py::error_already_set &err) {
+      GELOGE(FAILED, "Get python pass matcher config failed, instance id[%s]: %s",
+             holder->instance_id.c_str(), err.what());
+      return FAILED;
+    }
+  }
+
   Status GetPatterns(PythonBridgeHolder *holder, std::vector<PatternUniqPtr> &patterns) {
     if (holder == nullptr) {
       return FAILED;
@@ -415,11 +450,18 @@ class PythonFusionPassPybindBridge {
     py::gil_scoped_acquire gil;
     try {
       py::list pattern_list = bridge_module_.attr("get_pass_patterns")(holder->instance_id);
+      GELOGI("Python pattern fusion pass instance[%s] returned [%zu] patterns.",
+             holder->instance_id.c_str(),
+             static_cast<size_t>(py::len(pattern_list)));
       for (const auto &item : pattern_list) {
-        auto *pattern_ptr = item.cast<Pattern *>();
-        if (pattern_ptr != nullptr) {
-          patterns.emplace_back(pattern_ptr);
+        const auto pattern_handle = item.cast<uintptr_t>();
+        auto *pattern_ptr = reinterpret_cast<Pattern *>(pattern_handle);
+        if (pattern_ptr == nullptr) {
+          GELOGE(FAILED, "Python pattern fusion pass returned empty pattern handle, instance id[%s].",
+                 holder->instance_id.c_str());
+          return FAILED;
         }
+        patterns.emplace_back(pattern_ptr);
       }
       return SUCCESS;
     } catch (const py::error_already_set &err) {
@@ -469,13 +511,18 @@ class PythonFusionPassPybindBridge {
           holder->instance_id,
           py::int_(reinterpret_cast<uintptr_t>(match_result.get())));
       if (result.is_none()) {
+        GELOGW("Python pattern fusion pass instance[%s] returned None replacement.", holder->instance_id.c_str());
         return FAILED;
       }
-      auto *graph_ptr = result.cast<Graph *>();
+      const auto graph_handle = result.cast<uintptr_t>();
+      auto *graph_ptr = reinterpret_cast<Graph *>(graph_handle);
       if (graph_ptr == nullptr) {
         return FAILED;
       }
       replacement_graph = GraphUniqPtr(graph_ptr);
+      GELOGI("Python pattern fusion pass instance[%s] returned replacement graph handle[%p].",
+             holder->instance_id.c_str(),
+             graph_ptr);
       return SUCCESS;
     } catch (const py::error_already_set &err) {
       GELOGE(FAILED, "Call python replacement failed, instance id[%s]: %s",

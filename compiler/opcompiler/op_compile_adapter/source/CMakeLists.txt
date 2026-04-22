@@ -30,8 +30,6 @@ target_include_directories(op_compile_adapter PRIVATE
   )
 
 target_compile_options(op_compile_adapter PRIVATE
-  -Werror -O2 -fPIC
-  -fno-common
   -fno-strict-aliasing
   )
 

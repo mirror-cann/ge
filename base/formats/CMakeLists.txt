@@ -48,11 +48,6 @@ target_compile_definitions(formats PRIVATE
 
 target_compile_options(formats PRIVATE
     -fvisibility=default
-    -O2
-    -Werror
-    -Wextra
-    -Wfloat-equal
-    -fno-common
 )
 
 target_include_directories(formats PRIVATE

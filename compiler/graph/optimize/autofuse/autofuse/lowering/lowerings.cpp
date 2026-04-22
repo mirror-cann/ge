@@ -534,7 +534,7 @@ graphStatus LoweringManager::LowerImpl(const NodePtr &node) {
   auto iter = lowerings_.find(op_type);
   if (iter == lowerings_.end()) {
     if (!OpTypeUtils::IsConstNode(node->GetType()) && !OpTypeUtils::IsDataNode(node->GetType())) {
-      GraphFusionReasonStore::CountNodeFuseFailReason(node->GetName(), op_type + "No lowering registered",
+      GraphFusionReasonStore::CountNodeFuseFailReason(node->GetName(), op_type + " No lowering registered",
                                                       GraphFusionReasonStore::FailReasonCategory::TEMPORARILY_NOT_SUPPORTED);
     }
     return FallbackLowering(node);

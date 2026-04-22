@@ -8,7 +8,7 @@
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
 
-if (CMAKE_BUILD_TYPE MATCHES GCOV)
+if ((CMAKE_BUILD_TYPE MATCHES GCOV) OR (CMAKE_BUILD_TYPE MATCHES Debug))
     set(OPTIMIZE_OPTION "-O0")
 else ()
     set(OPTIMIZE_OPTION "-O2")
@@ -28,7 +28,7 @@ target_compile_options(intf_pub_base INTERFACE
     -Werror -fno-common -Wextra -Wfloat-equal -Wall -fPIC
     $<$<AND:$<CXX_COMPILER_ID:GNU>,$<VERSION_GREATER_EQUAL:${CMAKE_CXX_COMPILER_VERSION},14.0>>:-Wno-free-nonheap-object>
     -fstack-protector-strong
-    $<$<NOT:$<STREQUAL:${CMAKE_BUILD_TYPE},GCOV>>:-D_FORTIFY_SOURCE=2>
+    $<$<NOT:$<STREQUAL:${OPTIMIZE_OPTION},-O0>>:-D_FORTIFY_SOURCE=2>
     $<$<CONFIG:Debug>:-g>
     $<$<BOOL:${ENABLE_ASAN}>:
         -Wno-maybe-uninitialized -fsanitize=address -fsanitize=leak -fsanitize-recover=address,all

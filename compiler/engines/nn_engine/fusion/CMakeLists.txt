@@ -100,7 +100,6 @@ target_link_libraries(fusion_pass PRIVATE
         aicore_utils
         opskernel
         static_mmpa
-        -O2
         -Wl,--no-as-needed
         json
         -ldl)

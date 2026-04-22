@@ -19,23 +19,23 @@ class KernelRegFileCodeGenerator : public Om2ModelClassGeneratorBase {
   explicit KernelRegFileCodeGenerator(AstBuildContext &ast);
   ~KernelRegFileCodeGenerator() override = default;
 
-  StructDecl *BuildBinaryBufferStruct();
-  StructDecl *BuildAicoreRegisterInfoStruct();
-  StructDecl *BuildAicpuRegisterInfoStruct();
-  StructDecl *BuildCustAicpuRegisterInfoStruct();
-  FunctionDef *BuildAssembleAicpuLoadOptions();
-  FunctionDef *BuildRegisterAicoreKernel();
-  FunctionDef *BuildRegisterAicpuKernel();
-  FunctionDef *BuildRegisterCustAicpuKernel();
+  StructDecl *BuildBinaryBufferStruct() const;
+  StructDecl *BuildAicoreRegisterInfoStruct() const;
+  StructDecl *BuildAicpuRegisterInfoStruct() const;
+  StructDecl *BuildCustAicpuRegisterInfoStruct() const;
+  FunctionDef *BuildAssembleAicpuLoadOptions() const;
+  FunctionDef *BuildRegisterAicoreKernel() const;
+  FunctionDef *BuildRegisterAicpuKernel() const;
+  FunctionDef *BuildRegisterCustAicpuKernel() const;
   MethodDef *BuildRegisterKernels(const Om2CodegenModel &codegen_model);
 
  private:
-  ExprRef GenerateJsonFile(Arg register_info, Arg json_path);
-  ExprRef ReadBinaryFileToBuffer(Arg file_path);
-  ExprRef AssembleAicpuLoadOptionsCall(Arg load_options, Arg cpu_kernel_mode);
-  ExprRef CallRegisterAicoreKernel(Arg bin_handle, Arg func_handle, Arg register_info, Arg bin_info_map);
-  ExprRef CallRegisterAicpuKernel(Arg bin_handle, Arg func_handle, Arg register_info);
-  ExprRef CallRegisterCustAicpuKernel(Arg bin_handle, Arg func_handle, Arg register_info);
+  ExprRef GenerateJsonFile(Arg register_info, Arg json_path) const;
+  ExprRef ReadBinaryFileToBuffer(Arg file_path) const;
+  ExprRef AssembleAicpuLoadOptionsCall(Arg load_options, Arg cpu_kernel_mode) const;
+  ExprRef CallRegisterAicoreKernel(Arg bin_handle, Arg func_handle, Arg register_info, Arg bin_info_map) const;
+  ExprRef CallRegisterAicpuKernel(Arg bin_handle, Arg func_handle, Arg register_info) const;
+  ExprRef CallRegisterCustAicpuKernel(Arg bin_handle, Arg func_handle, Arg register_info) const;
 };
 }  // namespace ge
 

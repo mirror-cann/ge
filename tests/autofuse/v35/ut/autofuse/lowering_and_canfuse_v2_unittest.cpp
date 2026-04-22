@@ -2666,4 +2666,258 @@ TEST_F(UTestLoweringAndCanfuseV2, GatherGatherConcatFuse) {
   ge::PlatformContext::GetInstance().Reset();
   RuntimeStub::Reset();
 }
+
+// Split与Reshape融合测试：Reshape只是squeeze掉shape为1的轴，且下游节点可以融合
+// 预期：Split应该与Reshape融合
+TEST_F(UTestLoweringAndCanfuseV2, SplitReshapeSqueezeShouldFuseWhenNextNodeCanFuse) {
+  ge::PlatformContext::GetInstance().Reset();
+  auto stub_v2 = std::make_shared<RuntimeStubV2Common>();
+  RuntimeStub::SetInstance(stub_v2);
+  [this]() {
+    // 创建输入数据 shape: (64, 96, 1, 16)
+    auto data0 = es_graph_->CreateInput(0, "data0", nullptr);
+    data0.SetSymbolShape({"64", "96", "1", "16"});
+
+    // Split将数据在axis=1上分成3份，每个输出shape: (64, 32, 1, 16)
+    auto size_splits = CreateConst(*es_graph_, ge::DT_INT64, {3}, std::vector<int64_t>{32, 32, 32});
+    size_splits.SetSymbolShape({"3"});
+    auto split_dim = CreateConst(*es_graph_, ge::DT_INT64, {1}, std::vector<int64_t>{1});
+    split_dim.SetSymbolShape({"1"});
+    auto split_outputs = es::SplitV(data0, size_splits, split_dim, 3);
+
+    // 第一个Split输出直接接Abs然后输出（作为对比）
+    split_outputs[0].SetSymbolShape({"64", "32", "1", "16"});
+    auto abs0 = es::Abs(split_outputs[0]);
+    abs0.SetSymbolShape({"64", "32", "1", "16"});
+    es_graph_->SetOutput(abs0, 0);
+
+    // 第二个Split输出经过Reshape squeeze，后面接Abs（可以融合的节点）
+    // Split输出shape: (64, 32, 1, 16) -> Reshape输出shape: (64, 32, 16)
+    split_outputs[1].SetSymbolShape({"64", "32", "1", "16"});
+    auto reshape_shape = CreateConst(*es_graph_, ge::DT_INT64, {3}, std::vector<int64_t>{64, 32, 16});
+    reshape_shape.SetSymbolShape({"3"});
+    auto reshape = es::Reshape(split_outputs[1], reshape_shape);
+    reshape.SetSymbolShape({"64", "32", "16"});
+    // Reshape后面接Abs，这是可以融合的节点类型
+    auto abs1 = es::Abs(reshape);
+    abs1.SetSymbolShape({"64", "32", "16"});
+    es_graph_->SetOutput(abs1, 1);
+
+    // 第三个Split输出经过Reshape squeeze，后面接Reduce（Split不与Reduce融合）
+    split_outputs[2].SetSymbolShape({"64", "32", "1", "16"});
+    auto reshape2_shape = CreateConst(*es_graph_, ge::DT_INT64, {3}, std::vector<int64_t>{64, 32, 16});
+    reshape2_shape.SetSymbolShape({"3"});
+    auto reshape2 = es::Reshape(split_outputs[2], reshape2_shape);
+    reshape2.SetSymbolShape({"64", "32", "16"});
+    // Reshape后面接ReduceSum，这是Split不能融合的节点类型
+    auto reduce = es::ReduceSumD(reshape2, {1}, true);
+    reduce.SetSymbolShape({"64", "1", "16"});
+    es_graph_->SetOutput(reduce, 2);
+  }();
+
+  auto graph = es_graph_->Build();
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+
+  ge::PatternFusion patter_fusion;
+  ASSERT_EQ(patter_fusion.RunAllPatternFusion(cg), GRAPH_SUCCESS);
+
+  ge::AscIrLowerer lowerer;
+  ASSERT_EQ(lowerer.Lowering(cg), GRAPH_SUCCESS);
+  ASSERT_EQ(asc_adapt::GeFallback(cg), GRAPH_SUCCESS);
+
+  // 记录融合前AscBackend节点数
+  size_t asc_backend_count_before = 0;
+  for (const auto &node : cg->GetDirectNode()) {
+    if (node->GetType() == kAscBackendType) {
+      asc_backend_count_before++;
+    }
+  }
+
+  FusionStrategySolver fusion_strategy_solver;
+  FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new AscBackendFusionDecider()));
+  EXPECT_EQ(fusion_strategy_solver.Fuse(cg), SUCCESS);
+
+  // 记录融合后AscBackend节点数，验证融合效果
+  size_t asc_backend_count_after = 0;
+  for (const auto &node : cg->GetDirectNode()) {
+    if (node->GetType() == kAscBackendType) {
+      asc_backend_count_after++;
+    }
+  }
+
+  // 验证融合效果：Split应该与Reshape融合（当Reshape下游节点可以融合时）
+  // 根据测试设计，asc_backend_count_before应该大于asc_backend_count_after（发生了融合）
+  // 期望至少融合2个节点：Split+Reshape（下游是Abs）
+  EXPECT_LT(asc_backend_count_after, asc_backend_count_before)
+      << "Expected fusion to reduce AscBackend node count. Before: " << asc_backend_count_before
+      << ", After: " << asc_backend_count_after;
+  GELOGI("SplitReshapeSqueezeShouldFuseWhenNextNodeCanFuse: AscBackend nodes before=%zu, after=%zu",
+         asc_backend_count_before, asc_backend_count_after);
+
+  ASSERT_EQ(lowerer.Lifting(cg), GRAPH_SUCCESS);
+  AscBackendPostProcessor post_processor;
+  EXPECT_EQ(post_processor.Do(cg), SUCCESS);
+  SetCurShapeEnvContext(nullptr);
+  ge::PlatformContext::GetInstance().Reset();
+  RuntimeStub::Reset();
+}
+
+// Split与Reshape融合测试：Reshape只是squeeze掉shape为1的轴，但下游节点是NetOutput
+// 预期：Split不应与Reshape融合
+TEST_F(UTestLoweringAndCanfuseV2, SplitReshapeSqueezeShouldNotFuseWhenNextIsNetOutput) {
+  ge::PlatformContext::GetInstance().Reset();
+  auto stub_v2 = std::make_shared<RuntimeStubV2Common>();
+  RuntimeStub::SetInstance(stub_v2);
+  [this]() {
+    // 创建输入数据 shape: (64, 96, 1, 16)
+    auto data0 = es_graph_->CreateInput(0, "data0", nullptr);
+    data0.SetSymbolShape({"64", "96", "1", "16"});
+
+    // Split将数据在axis=1上分成2份
+    auto size_splits = CreateConst(*es_graph_, ge::DT_INT64, {2}, std::vector<int64_t>{48, 48});
+    size_splits.SetSymbolShape({"2"});
+    auto split_dim = CreateConst(*es_graph_, ge::DT_INT64, {1}, std::vector<int64_t>{1});
+    split_dim.SetSymbolShape({"1"});
+    auto split_outputs = es::SplitV(data0, size_splits, split_dim, 2);
+
+    // 第一个Split输出直接接Abs然后输出（作为对比）
+    split_outputs[0].SetSymbolShape({"64", "48", "1", "16"});
+    auto abs0 = es::Abs(split_outputs[0]);
+    abs0.SetSymbolShape({"64", "48", "1", "16"});
+    es_graph_->SetOutput(abs0, 0);
+
+    // 第二个Split输出经过Reshape squeeze，直接输出到NetOutput
+    // Split输出shape: (64, 48, 1, 16) -> Reshape输出shape: (64, 48, 16)
+    auto reshape_shape = CreateConst(*es_graph_, ge::DT_INT64, {3}, std::vector<int64_t>{64, 48, 16});
+    reshape_shape.SetSymbolShape({"3"});
+    auto reshape = es::Reshape(split_outputs[1], reshape_shape);
+    reshape.SetSymbolShape({"64", "48", "16"});
+    // Reshape直接输出，后继节点是NetOutput，Split不应与Reshape融合
+    es_graph_->SetOutput(reshape, 1);
+  }();
+
+  auto graph = es_graph_->Build();
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+
+  ge::PatternFusion patter_fusion;
+  ASSERT_EQ(patter_fusion.RunAllPatternFusion(cg), GRAPH_SUCCESS);
+
+  ge::AscIrLowerer lowerer;
+  ASSERT_EQ(lowerer.Lowering(cg), GRAPH_SUCCESS);
+  ASSERT_EQ(asc_adapt::GeFallback(cg), GRAPH_SUCCESS);
+
+  // 记录融合前AscBackend节点数
+  size_t asc_backend_count_before = 0;
+  for (const auto &node : cg->GetDirectNode()) {
+    if (node->GetType() == kAscBackendType) {
+      asc_backend_count_before++;
+    }
+  }
+
+  FusionStrategySolver fusion_strategy_solver;
+  FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new AscBackendFusionDecider()));
+  EXPECT_EQ(fusion_strategy_solver.Fuse(cg), SUCCESS);
+
+  // 记录融合后AscBackend节点数，验证融合效果
+  size_t asc_backend_count_after = 0;
+  for (const auto &node : cg->GetDirectNode()) {
+    if (node->GetType() == kAscBackendType) {
+      asc_backend_count_after++;
+    }
+  }
+  // 验证融合效果：Split不应与Reshape融合（当Reshape下游是NetOutput时）
+  // 融合后的节点数应该与融合前相同（没有发生融合）
+  EXPECT_EQ(asc_backend_count_after, asc_backend_count_before)
+      << "Expected no fusion between Split and Reshape when next node is NetOutput. Before: " << asc_backend_count_before
+      << ", After: " << asc_backend_count_after;
+  GELOGI("SplitReshapeSqueezeShouldNotFuseWhenNextIsNetOutput: AscBackend nodes before=%zu, after=%zu",
+         asc_backend_count_before, asc_backend_count_after);
+
+  ASSERT_EQ(lowerer.Lifting(cg), GRAPH_SUCCESS);
+  AscBackendPostProcessor post_processor;
+  EXPECT_EQ(post_processor.Do(cg), SUCCESS);
+  SetCurShapeEnvContext(nullptr);
+  ge::PlatformContext::GetInstance().Reset();
+  RuntimeStub::Reset();
+}
+
+// Split与Reshape融合测试：Reshape不是squeeze（改变了shape的其他维度）
+// 预期：Split应该可以与Reshape融合
+TEST_F(UTestLoweringAndCanfuseV2, SplitReshapeNotSqueezeShouldFuse) {
+  ge::PlatformContext::GetInstance().Reset();
+  auto stub_v2 = std::make_shared<RuntimeStubV2Common>();
+  RuntimeStub::SetInstance(stub_v2);
+  [this]() {
+    // 创建输入数据 shape: (64, 96, 16)
+    auto data0 = es_graph_->CreateInput(0, "data0", nullptr);
+    data0.SetSymbolShape({"64", "96", "16"});
+
+    // Split将数据在axis=1上分成2份
+    auto size_splits = CreateConst(*es_graph_, ge::DT_INT64, {2}, std::vector<int64_t>{48, 48});
+    size_splits.SetSymbolShape({"2"});
+    auto split_dim = CreateConst(*es_graph_, ge::DT_INT64, {1}, std::vector<int64_t>{1});
+    split_dim.SetSymbolShape({"1"});
+    auto split_outputs = es::SplitV(data0, size_splits, split_dim, 2);
+
+    // Split输出shape: (64, 48, 16)
+    split_outputs[0].SetSymbolShape({"64", "48", "16"});
+    auto abs0 = es::Abs(split_outputs[0]);
+    abs0.SetSymbolShape({"64", "48", "16"});
+    es_graph_->SetOutput(abs0, 0);
+
+    // 第二个Split输出经过Reshape，这是一个非squeeze的reshape
+    // Split输出shape: (64, 48, 16) -> Reshape输出shape: (64, 768)
+    split_outputs[1].SetSymbolShape({"64", "48", "16"});
+    auto reshape_shape = CreateConst(*es_graph_, ge::DT_INT64, {2}, std::vector<int64_t>{64, 768});
+    reshape_shape.SetSymbolShape({"2"});
+    auto reshape = es::Reshape(split_outputs[1], reshape_shape);
+    reshape.SetSymbolShape({"64", "768"});
+    auto abs1 = es::Abs(reshape);
+    abs1.SetSymbolShape({"64", "768"});
+    es_graph_->SetOutput(abs1, 1);
+  }();
+
+  auto graph = es_graph_->Build();
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+
+  ge::PatternFusion patter_fusion;
+  ASSERT_EQ(patter_fusion.RunAllPatternFusion(cg), GRAPH_SUCCESS);
+  ge::AscIrLowerer lowerer;
+  ASSERT_EQ(lowerer.Lowering(cg), GRAPH_SUCCESS);
+  ASSERT_EQ(asc_adapt::GeFallback(cg), GRAPH_SUCCESS);
+
+  // 记录融合前AscBackend节点数
+  size_t asc_backend_count_before = 0;
+  for (const auto &node : cg->GetDirectNode()) {
+    if (node->GetType() == kAscBackendType) {
+      asc_backend_count_before++;
+    }
+  }
+
+  FusionStrategySolver fusion_strategy_solver;
+  FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new AscBackendFusionDecider()));
+  EXPECT_EQ(fusion_strategy_solver.Fuse(cg), SUCCESS);
+
+  // 记录融合后AscBackend节点数，验证融合效果
+  size_t asc_backend_count_after = 0;
+  for (const auto &node : cg->GetDirectNode()) {
+    if (node->GetType() == kAscBackendType) {
+      asc_backend_count_after++;
+    }
+  }
+
+  // 验证融合效果：非squeeze的Reshape，Split应该可以与之融合
+  EXPECT_LT(asc_backend_count_after, asc_backend_count_before)
+      << "Expected fusion to reduce AscBackend node count. Before: " << asc_backend_count_before
+      << ", After: " << asc_backend_count_after;
+  GELOGI("SplitReshapeNotSqueezeShouldFuse: AscBackend nodes before=%zu, after=%zu",
+         asc_backend_count_before, asc_backend_count_after);
+
+  ASSERT_EQ(lowerer.Lifting(cg), GRAPH_SUCCESS);
+  AscBackendPostProcessor post_processor;
+  EXPECT_EQ(post_processor.Do(cg), SUCCESS);
+  SetCurShapeEnvContext(nullptr);
+  ge::PlatformContext::GetInstance().Reset();
+  RuntimeStub::Reset();
+}
 }  // namespace ge

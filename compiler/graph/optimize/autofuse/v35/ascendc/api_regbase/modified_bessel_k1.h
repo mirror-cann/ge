@@ -13,7 +13,7 @@
 
 #include "modified_bessel_i1.h"
 
-constexpr float MODIFIED_BESSEL_K1_FLOAT_NAN = 0x7fc00000;
+constexpr uint32_t MODIFIED_BESSEL_K1_FLOAT_NAN = 0x7fc00000;
 
 #ifndef INFINITY
 #define INFINITY (1.0f / 0.0f)
@@ -127,7 +127,7 @@ __aicore__ inline void ModifiedBesselK1ImplVF(__ubuf__ T* dst, __ubuf__ T* src, 
 
         // ===== x <= 0: NaN for x < 0=====
         AscendC::Reg::Compares<T, CMPMODE::LT>(branchMask, srcReg, (T)0.0, mask);
-        AscendC::Reg::Duplicate(nanReg, MODIFIED_BESSEL_K1_FLOAT_NAN, branchMask);
+        AscendC::Reg::Duplicate(nanReg, (float&)MODIFIED_BESSEL_K1_FLOAT_NAN, branchMask);
         AscendC::Reg::Select(dstReg, nanReg, dstReg, branchMask);
 
         // ===== Inf for x == 0 =====

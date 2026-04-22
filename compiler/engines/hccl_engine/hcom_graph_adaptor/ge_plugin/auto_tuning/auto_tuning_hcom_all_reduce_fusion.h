@@ -35,6 +35,7 @@ class AutoTuningHcomAllReduceFusion : public HcomAllReduceFusion {
  public:
   AutoTuningHcomAllReduceFusion();
   ~AutoTuningHcomAllReduceFusion() override;
+  using HcomAllReduceFusion::Run;
   HcclResult Run(ge::ComputeGraph &graph, std::vector<GradientDataInfo> &recordInfos);
 
  protected:

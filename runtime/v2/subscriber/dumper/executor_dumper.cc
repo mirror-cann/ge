@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -596,7 +596,12 @@ ge::Status ExecutorDumper::InitDumpUnits() {
     if (IsOutputType(node->GetTypePtr())) {
       continue;
     }
-
+    if (auto parent_node = node->GetOwnerComputeGraph()->GetParentNode()) {
+      if (parent_node->GetType() == "PartitionedCall") {
+        GELOGI("[Dumper][InitDumpUnits] skip node[%s], type[%s]", node->GetName().c_str(), node->GetTypePtr());
+        continue;
+      }
+    }
     // init exception dump unit for computer node
     auto &extra_dump_unit = node_names_to_extra_units_[node->GetName()];
     (void)extra_dump_unit;

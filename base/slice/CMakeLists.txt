@@ -32,11 +32,6 @@ target_compile_definitions(slice PRIVATE
 
 target_compile_options(slice PRIVATE
     -fvisibility=default
-    -O2
-    -Werror
-    -Wextra
-    -Wfloat-equal
-    -fno-common
 )
 
 target_include_directories(slice PRIVATE

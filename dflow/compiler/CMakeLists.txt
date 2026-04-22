@@ -63,11 +63,6 @@ target_compile_definitions(dflow_runner PRIVATE
 )
 
 target_compile_options(dflow_runner PRIVATE
-    -O2
-    -fno-common
-    -Werror
-    -Wextra
-    -Wfloat-equal
     -fvisibility=default
 )
 

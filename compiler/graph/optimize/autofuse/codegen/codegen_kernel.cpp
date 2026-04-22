@@ -232,7 +232,7 @@ Status Tensor::DefineUbScalar(std::string &result) const {
   return ge::SUCCESS;
 }
 
-Status Tensor::SetGlobalBuffer(GM_ADDR global, const std::string &offset, std::string &result) const {
+Status Tensor::SetGlobalBuffer(Variable global, const std::string &offset, std::string &result) const {
   std::stringstream ss;
   std::string dtype_name;
   GE_CHK_STATUS_RET(Tensor::DtypeName(this->dtype, dtype_name), "Codegen get data type:%d failed",
@@ -1630,6 +1630,9 @@ Status Kernel::GlobalTensorInit(std::string &result) const {
       GELOGE(ge::FAILED, "Codegen input tensor id[%ld] not found", this->input_tensors[i]);
       return ge::FAILED;
     }
+    if (tensor->second.is_constant) {
+      continue;
+    }
 
     ss << tensor->second.Define() << std::endl;
     std::string local_result;
@@ -1774,8 +1777,8 @@ Status Kernel::ParseGraph(const ascir::ImplGraph &graph, const ascir::FusedSched
 
   for (size_t i = 0U; i < fused_schedule_result.input_nodes.size(); ++i) {
     const auto &input = fused_schedule_result.input_nodes[i];
-    GE_ASSERT_TRUE(IsOps<Data>(input), "Codegen unsupported input[%s] type[%s]", input->GetName().c_str(),
-                   input->GetType().c_str());
+    GE_ASSERT_TRUE(IsOps<Data>(input) || IsOps<ScalarData>(input), "Codegen unsupported input[%s] type[%s]",
+                   input->GetName().c_str(), input->GetType().c_str());
     const auto &normalized_name = GenValidName(input->GetName());
     kernel.input_name_to_index_[normalized_name] = i;
     input_index_to_name[i] = normalized_name;
@@ -1791,11 +1794,10 @@ Status Kernel::ParseGraph(const ascir::ImplGraph &graph, const ascir::FusedSched
   }
   std::set<int64_t> input_indices;
   std::set<int64_t> output_indices;
-  std::map<int64_t, std::pair<std::string, ascir::TensorId>> kernel_inputs;
   std::map<int64_t, std::pair<std::string, ascir::TensorId>> kernel_outputs;
   bool has_gather = false;
   for (const auto &node : graph.GetAllNodes()) {
-    if (IsOps<Data>(node)) {
+    if (IsOps<Data>(node) || IsOps<ScalarData>(node)) {
       int64_t index;
       GE_CHK_GRAPH_STATUS_RET(node->attr.ir_attr->GetAttrValue("index", index), "Failed to get Data index, node = %s",
                               node->GetNamePtr());
@@ -1804,7 +1806,15 @@ Status Kernel::ParseGraph(const ascir::ImplGraph &graph, const ascir::FusedSched
       GE_ASSERT_TRUE(!input_name.empty(), "Failed to get arg name, input_node = %s, index = %ld", node->GetNamePtr(),
                      index);
       if (input_indices.emplace(index).second) {
-        kernel_inputs[index] = std::make_pair(input_name, node->outputs[0].attr.mem.tensor_id);
+        if (IsOps<Data>(node)) {
+          kernel.inputs.emplace_back(GM_ADDR(GenValidName(input_name)));
+        } else if (IsOps<ScalarData>(node)) {
+          std::string dtype_name;
+          GE_CHK_STATUS_RET(Tensor::DtypeName(node->outputs[0].attr.dtype, dtype_name), "data type:%d failed",
+                            static_cast<int32_t>(node->outputs[0].attr.dtype));
+          kernel.inputs.emplace_back(Variable(Type(dtype_name), input_name));
+        }
+        kernel.input_tensors.emplace_back(node->outputs[0].attr.mem.tensor_id);
       }
       continue;
     }
@@ -1822,10 +1832,6 @@ Status Kernel::ParseGraph(const ascir::ImplGraph &graph, const ascir::FusedSched
       continue;
     }
     has_gather = (has_gather || IsOps<Gather>(node));
-  }
-  for (const auto &pair : kernel_inputs) {
-    kernel.inputs.emplace_back(GM_ADDR(GenValidName(pair.second.first)));
-    kernel.input_tensors.emplace_back(pair.second.second);
   }
   for (const auto &pair : kernel_outputs) {
     kernel.outputs.emplace_back(GM_ADDR(GenValidName(pair.second.first)));
@@ -1874,9 +1880,15 @@ Status Kernel::ParseGraph(const ascir::ImplGraph &graph, const ascir::FusedSched
           GELOGE(ge::FAILED, "GetAttrValue const value faild");
           return ge::FAILED;
         }
-        GELOGI("const value %s", const_value.c_str());
+        GELOGI("Scalar node const value %s", const_value.c_str());
         // 不要将const_value放在参数第二个位置，会导致overload出现歧义
         GE_CHK_STATUS_RET(kernel.tpipe.AddTensor(const_value, *output, tensor_name), "Codegen add tensor failed");
+        GE_CHK_STATUS_RET(kernel.ParseOptimizeInfo(node, *output));
+      } else if (IsOps<ScalarData>(node)) {
+        GELOGI("ScalarData node const value %s", node->GetName().c_str());
+        // 不要将const_value放在参数第二个位置，会导致overload出现歧义
+        GE_CHK_STATUS_RET(kernel.tpipe.AddTensor(GenValidName(node->GetName()), *output, tensor_name),
+                          "Codegen add tensor failed");
         GE_CHK_STATUS_RET(kernel.ParseOptimizeInfo(node, *output));
       } else if (IsOps<IndexExpr>(node)) {
         int64_t size_id = 0;
@@ -2124,7 +2136,14 @@ std::string Kernel::KernelFuncDeclare(const std::string &graph_name,
     ss << GM_ADDR("outputs").AsArg() << ", ";
   } else {
     for (auto &input : fused_schedule_result.input_nodes) {
-      ss << GM_ADDR(GenValidName(input->GetName())).AsArg() << ", ";
+      if (IsOps<ScalarData>(input)) {
+        std::string dtype_name;
+        GE_ASSERT_SUCCESS(Tensor::DtypeName(input->outputs[0].attr.dtype, dtype_name), "data type:%d failed",
+                          static_cast<int32_t>(input->outputs[0].attr.dtype));
+        ss << dtype_name << " " << GenValidName(input->GetName()) << ", ";
+      } else {
+        ss << GM_ADDR(GenValidName(input->GetName())).AsArg() << ", ";
+      }
     }
     for (auto &output : fused_schedule_result.output_nodes) {
       ss << GM_ADDR(GenValidName(output->GetName())).AsArg() << ", ";
@@ -2932,6 +2951,9 @@ Status Kernel::GlobalTensorDefine(std::string &result) const {
     const auto &tensor = this->tpipe.tensors.find(this->input_tensors[i]);
     GE_ASSERT_TRUE((tensor != this->tpipe.tensors.end()), "Codegen input tensor id[%ld] not found",
                    this->input_tensors[i]);
+    if (tensor->second.is_constant) {
+      continue;
+    }
     ss << "    " << tensor->second.Define() << std::endl;
   }
 
@@ -3404,10 +3426,18 @@ Status Kernel::InitCVFusionAddr(std::stringstream &result, bool vector_no_db_fla
 }
 
 static std::string GetScheduledResultInputOutput(const ascir::FusedScheduledResult &fused_schedule_result,
-                                          bool is_kernel_func_call) {
+                                                 bool is_kernel_func_call) {
   std::stringstream ss;
   for (size_t i = 0U; i < fused_schedule_result.input_nodes.size(); i++) {
-    ss << (is_kernel_func_call ? "(uint8_t*)" : "void* ") << "input" << i << ", ";
+    auto &input = fused_schedule_result.input_nodes[i];
+    if (IsOps<Data>(input)) {
+      ss << (is_kernel_func_call ? "(uint8_t*)" : "void* ") << "input" << i << ", ";
+    } else if (IsOps<ScalarData>(input)) {
+      std::string dtype_name;
+      GE_ASSERT_SUCCESS(Tensor::DtypeName(input->outputs[0].attr.dtype, dtype_name), "data type:%d failed",
+                        static_cast<int32_t>(input->outputs[0].attr.dtype));
+      ss << (is_kernel_func_call ? "" : (dtype_name + " ")) << "input" << i << ", ";
+    }
   }
   int32_t index = 0;
   for (const auto &node : fused_schedule_result.output_nodes) {
@@ -3433,27 +3463,6 @@ std::string Kernel::GenKernelFuncCallForInductor(const ascir::FusedScheduledResu
   ss << "  " << graph_name << "<<<blockDim, nullptr, stream>>>(";
   ss << GetScheduledResultInputOutput(fused_schedule_result, true);
   ss << "(uint8_t*)workspace, *tiling_data);" << std::endl;
-  ss << "  return 0;" << std::endl;
-  ss << "}" << std::endl;
-
-  // 二级指针方式 launch
-  ss << extern_c << " uint32_t AutofuseLaunchV2"
-     << "(uint32_t blockDim, void* stream, void** input_data, int32_t input_num, void** output_data, int32_t output_num"
-     << ", void* workspace, void* tiling_data)" << std::endl;
-  ss << "{" << std::endl;
-  ss << "  " << graph_name << "<<<blockDim, nullptr, stream>>>(";
-  int32_t index = 0;
-  for (auto input : fused_schedule_result.input_nodes) {
-    ss << "(uint8_t*)input_data[" << index++ << "], ";
-  }
-  index = 0;
-  for (auto node : fused_schedule_result.output_nodes) {
-    if (IsOps<Output>(node)) {
-      ss << "(uint8_t*)output_data[" << index++ << "], ";
-    }
-  }
-  ss << "(uint8_t*)workspace, ";
-  ss << "*(" << tiling_data_name << "*)tiling_data);" << std::endl;
   ss << "  return 0;" << std::endl;
   ss << "}" << std::endl;
   return ss.str();

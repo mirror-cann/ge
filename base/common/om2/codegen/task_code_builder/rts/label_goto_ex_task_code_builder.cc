@@ -76,7 +76,7 @@ Status LabelGotoExTaskCodeBuilder::RenderDistHelper(std::vector<DeclNode *> &ite
   auto aligned_size = ast_.Var("const auto", "aligned_size");
   auto final_block_size = ast_.Var("const auto", "final_block_size");
   auto rt_ret = ast_.Var("const auto", "rt_ret");
-  items.push_back(ast_.Field("constexpr uint16_t", "GE_MODULE_NAME_U16", 45));
+  items.push_back(ast_.Field("constexpr uint16_t", "GE_MODULE_NAME_U16", GE_MODULE_NAME_U16));
   items.push_back(ast_.DefineFunction("MallocDynamicMemory", {dev_ptr, size, mem_type}, "aclError", {
       ast_.VarDecl(block_size, (2 * 1024 * 1024)),
       ast_.If(mem_type == "RT_MEMORY_TS", {

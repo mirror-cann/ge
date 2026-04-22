@@ -601,7 +601,8 @@ target_compile_definitions(ge_common_stub PRIVATE
 )
 
 target_compile_options(ge_common_stub PRIVATE
-    -fvisibility=default -O2 -fno-common -Wfloat-equal
+    -fvisibility=default
+    $<$<CONFIG:Release>:-O2> -fno-common -Wfloat-equal
     -Werror=return-type
     -Wno-unused-parameter
 )

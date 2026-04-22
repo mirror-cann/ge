@@ -288,8 +288,7 @@ Status HcclTaskInfo::InsertDumpOp(const std::string &dump_mode) {
       return SUCCESS;
     }
     GELOGI("Insert input dump op fo node: %s, type: %s.",
-           hccl_op_desc_->GetName().c_str(),
-           hccl_op_desc_->GetType().c_str());
+           hccl_op_desc_->GetName().c_str(), hccl_op_desc_->GetType().c_str());
     hccl_dump_properties.ClearOpDebugFlag();
     hccl_dump_properties.SetDumpMode(kDumpInput);
     dump_op = &input_hccl_dump_;
@@ -298,8 +297,7 @@ Status HcclTaskInfo::InsertDumpOp(const std::string &dump_mode) {
       return SUCCESS;
     }
     GELOGI("Insert output dump op fo node: %s, type: %s.",
-           hccl_op_desc_->GetName().c_str(),
-           hccl_op_desc_->GetType().c_str());
+           hccl_op_desc_->GetName().c_str(), hccl_op_desc_->GetType().c_str());
     hccl_dump_properties.ClearOpDebugFlag();
     hccl_dump_properties.SetDumpMode(kDumpOutput);
     dump_op = &output_hccl_dump_;
@@ -320,13 +318,10 @@ Status HcclTaskInfo::InsertDumpOp(const std::string &dump_mode) {
   if (davinci_model_->IsKnownNode()) {
     dump_op->SetLoopAddr(davinci_model_->GetGlobalStep(), 0U, 0U);
   } else {
-    dump_op->SetLoopAddr(davinci_model_->GetGlobalStep(),
-                         davinci_model_->GetLoopPerIter(),
-                         davinci_model_->GetLoopCond());
+    dump_op->SetLoopAddr(davinci_model_->GetGlobalStep(), davinci_model_->GetLoopPerIter(), davinci_model_->GetLoopCond());
   }
-  dump_op->SetDynamicModelInfo(davinci_model_->GetDumpModelName(),
-                               davinci_model_->GetOmName(),
-                               davinci_model_->GetDumpModelId());
+  dump_op->SetDynamicModelInfo(davinci_model_->GetDumpModelName(), davinci_model_->GetOmName(), davinci_model_->GetDumpModelId());
+  dump_op->SetRootGraphName(davinci_model_->GetRootGraphName());
   return dump_op->LaunchDumpOp(false, (stream_flag_ & RT_STREAM_FORCE_COPY) == 0U);
 }
 

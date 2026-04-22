@@ -219,6 +219,22 @@ def Scalar(
     return op.y
 
 
+def ScalarData(
+        owner_graph: ascir.HintGraph,
+        *,
+        dtype: ascir.dtypes,
+        value: str
+) -> ascir.OpsOperatorOutput:
+    meta = _get_metadata(owner_graph)
+    name = _generate_op_name(owner_graph, "scalardata")
+    op = ascir.ops.ScalarData(name, owner_graph)
+    meta.ops.append(op)
+    op.attr.ir_attr.value = value
+    op.y.dtype = dtype
+    op.infer_dtype()
+    return op.y
+
+
 def Workspace(owner_graph: ascir.HintGraph,
               x: ascir.OpsOperatorOutput,
               *,

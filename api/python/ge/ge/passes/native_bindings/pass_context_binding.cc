@@ -8,33 +8,12 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-#ifdef ASCEND_CI_LIMITED_PY37
-#undef PyCFunction_NewEx
-#endif
-
-#include <memory>
-#include <string>
-
-#include "Python.h"
-#include "pybind11/pybind11.h"
-#include "pybind11/stl.h"
-#include "graph/ascend_string.h"
+#include "binding_utils.h"
+#include "bindings.h"
 #include "register/register_custom_pass.h"
 
-#undef PYBIND11_CHECK_PYTHON_VERSION
-#define PYBIND11_CHECK_PYTHON_VERSION
-
 namespace ge {
-namespace {
-namespace py = pybind11;
-
-std::string AscendStringToString(const AscendString &ascend_str) {
-  return std::string(ascend_str.GetString());
-}
-
-AscendString StringToAscendString(const std::string &str) {
-  return AscendString(str.c_str());
-}
+namespace python_pass_native {
 
 std::string GetOptionValueWrapper(CustomPassContext &context, const std::string &option_key) {
   AscendString option_value;
@@ -44,9 +23,8 @@ std::string GetOptionValueWrapper(CustomPassContext &context, const std::string 
   }
   return AscendStringToString(option_value);
 }
-}
 
-PYBIND11_MODULE(_ge_pass_native, m) {
+void BindPassContext(py::module_ &m) {
   py::class_<CustomPassContext>(m, "PassContext")
       .def("get_pass_name", [](CustomPassContext &context) -> std::string {
         return AscendStringToString(context.GetPassName());
@@ -62,4 +40,6 @@ PYBIND11_MODULE(_ge_pass_native, m) {
       })
       .def("get_option_value", &GetOptionValueWrapper);
 }
+
+}  // namespace python_pass_native
 }  // namespace ge

@@ -71,7 +71,7 @@ target_compile_options(ge_fusion_model_protos_obj PRIVATE
     -Werror
     -Wextra
     -Wfloat-equal
-    $<$<STREQUAL:${TARGET_SYSTEM_NAME},Linux>:-O2 -fPIC>
+    $<$<STREQUAL:${TARGET_SYSTEM_NAME},Linux>:-fPIC>
     $<$<OR:$<STREQUAL:${PRODUCT_SIDE},host>,$<STREQUAL:${ENABLE_OPEN_SRC},True>>:-fexceptions>
     $<$<OR:$<STREQUAL:${TARGET_SYSTEM_NAME},Linux>,$<STREQUAL:${TARGET_SYSTEM_NAME},Android>>: -fno-common>
     $<$<AND:$<STREQUAL:${TARGET_SYSTEM_NAME},Windows>,$<STREQUAL:${CMAKE_CONFIGURATION_TYPES},Debug>>:/MTd>
@@ -87,13 +87,6 @@ add_library(ge_proto_common STATIC
 target_compile_definitions(ge_proto_common PRIVATE
     PROTOBUF_INLINE_NOT_IN_HEADERS=0
     google=ascend_private
-)
-
-target_compile_options(ge_proto_common PRIVATE
-    -O2
-    -fno-common
-    -Wextra
-    -Wfloat-equal
 )
 
 target_link_libraries(ge_proto_common PRIVATE

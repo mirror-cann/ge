@@ -31,11 +31,13 @@ add_library(test_regbase_ascendc OBJECT
     ./test_modified_bessel_i1.cpp
     ./test_modified_bessel_k0.cpp
     ./test_modified_bessel_k1.cpp
+    ./test_erfinv.cpp
     )
 target_link_libraries(test_regbase_ascendc
     ascendc_api_regbase_extend
     tikicpulib_ascend950pr_9599
     depends
+    Boost::boost
     GTest::gtest)
 
 target_include_directories(test_regbase_ascendc PUBLIC

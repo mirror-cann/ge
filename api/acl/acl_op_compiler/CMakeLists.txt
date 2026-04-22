@@ -55,11 +55,9 @@ target_include_directories(acl_op_compiler PRIVATE
 
 target_compile_options(acl_op_compiler PRIVATE
     -ftrapv
-    -O2
-    -Werror
+    $<$<CONFIG:Release>:-O2>
     -Wno-deprecated-declarations
     -fvisibility=hidden
-    -fno-common
 )
 
 target_compile_definitions(acl_op_compiler PRIVATE

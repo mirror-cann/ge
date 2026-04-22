@@ -22,7 +22,8 @@ target_compile_definitions(flow_graph_protos_obj PRIVATE
 )
 target_link_libraries(flow_graph_protos_obj PRIVATE ascend_protobuf intf_pub)
 target_compile_options(flow_graph_protos_obj PRIVATE
-        $<$<STREQUAL:${TARGET_SYSTEM_NAME},Linux>:-O2 -fPIC -Wextra -Wfloat-equal>
+        $<$<CONFIG:Release>:-O2>
+        $<$<STREQUAL:${TARGET_SYSTEM_NAME},Linux>:-fPIC>
         $<$<OR:$<STREQUAL:${PRODUCT_SIDE},host>,$<STREQUAL:${ENABLE_OPEN_SRC},True>>:-fexceptions>
         $<$<OR:$<STREQUAL:${TARGET_SYSTEM_NAME},Linux>,$<STREQUAL:${TARGET_SYSTEM_NAME},Android>>: -fno-common -Wextra -Wfloat-equal>
         $<$<AND:$<STREQUAL:${TARGET_SYSTEM_NAME},Windows>,$<STREQUAL:${CMAKE_CONFIGURATION_TYPES},Debug>>:/MTd>

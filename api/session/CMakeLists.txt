@@ -118,12 +118,8 @@ target_compile_definitions(ge_runner PRIVATE
 )
 
 target_compile_options(ge_runner PRIVATE
-    -O2
-    -fno-common
-    -Werror
-    -Wextra
-    -Wfloat-equal
     -fvisibility=default
+    $<$<CONFIG:Release>:-O2>
 )
 
 target_include_directories(ge_runner SYSTEM PRIVATE

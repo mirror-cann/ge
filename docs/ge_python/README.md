@@ -36,7 +36,7 @@ GE-PY 模块包含以下核心组件：
   - PatternFusionPass 类：模式匹配融合 Pass 基类
   - DecomposePass 类：算子分解 Pass 基类
   - Pass 注册与发现机制
-  - Bridge 架构与 ABI 兼容性设计
+  - Bridge 架构、native helper 与多版本产物装载设计
 
 ## 模块关系
 
@@ -83,8 +83,8 @@ GE-PY 模块包含以下核心组件：
 
 ### 自定义pass
 
-- [ ] [***May 2026***] 自定义pass的python接口完成设计和落地
-- [ ] [***May 2026***] 自定义pass的python接口ABI兼容性完成设计和落地
+- [~] [***April 2026***] 开发态主链已完成 `FusionBasePass` 与 `PatternFusionPass`，`DecomposePass` 待补齐
+- [ ] [***后续阶段***] 预制版本、fallback、多版本 native artifact 与 `entry_points` 产品化待补齐
 
 ### sample和相关文档
 

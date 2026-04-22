@@ -21,6 +21,9 @@ add_custom_command(
          && cp -r ${CMAKE_CURRENT_SOURCE_DIR}/setup.py ${CMAKE_CURRENT_BINARY_DIR}/wheel/setup.py
          && cp -r ${CMAKE_CURRENT_SOURCE_DIR}/MANIFEST.in ${CMAKE_CURRENT_BINARY_DIR}/wheel/
          && cp -r ${CMAKE_CURRENT_SOURCE_DIR}/ge ${CMAKE_CURRENT_BINARY_DIR}/wheel/
+         && ${CMAKE_COMMAND} -E remove ${CMAKE_CURRENT_BINARY_DIR}/wheel/ge/passes/CMakeLists.txt
+         && ${CMAKE_COMMAND} -E remove_directory ${CMAKE_CURRENT_BINARY_DIR}/wheel/ge/passes/native_bindings
+         && find ${CMAKE_CURRENT_BINARY_DIR}/wheel/ge -name __pycache__ -type d -exec rm -rf {} +
          && cp $<TARGET_FILE:graph_wrapper> ${CMAKE_CURRENT_BINARY_DIR}/wheel/ge/_capi/
          && cp $<TARGET_FILE:_ge_pass_native> ${CMAKE_CURRENT_BINARY_DIR}/wheel/ge/passes/
          && cd ${CMAKE_CURRENT_BINARY_DIR}/wheel

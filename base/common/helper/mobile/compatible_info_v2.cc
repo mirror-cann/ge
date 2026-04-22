@@ -14,7 +14,6 @@
 #include "securec.h"
 #include "common/checker.h"
 #include "ge_context.h"
-#include "external/ge_common/ge_api_types.h"
 
 namespace {
 

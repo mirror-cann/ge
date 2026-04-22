@@ -49,14 +49,12 @@ target_link_libraries(aicore_utils
                 intf_pub
                 msprof_headers
                 runtime_headers
-                -O2
                 -Wl,--no-as-needed
                 c_sec
                 static_mmpa
                 unified_dlog
                 exe_graph
                 graph
-#                graph_base
                 ascend_protobuf
                 error_manager
                 register

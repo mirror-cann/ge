@@ -12,6 +12,7 @@
 #define CANN_GRAPH_ENGINE_PYTHON_PASS_ADAPTER_H
 
 #include <memory>
+#include <utility>
 #include <vector>
 
 #include "ge/fusion/pass/fusion_base_pass.h"
@@ -24,6 +25,8 @@ using PythonFusionBasePassHolderCreateFn = void *(*)(const PythonPassDescriptor 
 using PythonFusionBasePassHolderDestroyFn = void (*)(void *holder);
 using PythonFusionBasePassRunFn = Status (*)(void *holder, GraphPtr &graph, CustomPassContext &pass_context);
 
+using PythonFusionPassGetMatcherConfigFn =
+    Status (*)(void *holder, std::unique_ptr<PatternMatcherConfig> &matcher_config);
 using PythonFusionPassPatternsFn = Status (*)(void *holder, std::vector<PatternUniqPtr> &patterns);
 using PythonFusionPassMeetRequirementsFn = bool (*)(void *holder, const std::unique_ptr<MatchResult> &match_result);
 using PythonFusionPassReplacementFn =
@@ -33,6 +36,7 @@ struct PythonFusionPassCallbacks {
   PythonFusionBasePassHolderCreateFn create{nullptr};
   PythonFusionBasePassHolderDestroyFn destroy{nullptr};
   PythonFusionBasePassRunFn run{nullptr};
+  PythonFusionPassGetMatcherConfigFn get_matcher_config{nullptr};
   PythonFusionPassPatternsFn patterns{nullptr};
   PythonFusionPassMeetRequirementsFn meet_requirements{nullptr};
   PythonFusionPassReplacementFn replacement{nullptr};
@@ -56,11 +60,11 @@ class PythonFusionPassRuntimeRegistry {
  public:
   static PythonFusionPassRuntimeRegistry &GetInstance();
 
-  bool Register(const PythonPassDescriptor &pass_desc, const PythonFusionPassCallbacks &callbacks);
-  bool Unregister(const std::string &descriptor_key);
-  bool Acquire(const PythonPassDescriptor &pass_desc, PythonFusionPassCallbacks &callbacks);
-  void Release(const PythonPassDescriptor &pass_desc);
-  void Clear();
+  static bool Register(const PythonPassDescriptor &pass_desc, const PythonFusionPassCallbacks &callbacks);
+  static bool Unregister(const std::string &descriptor_key);
+  static bool Acquire(const PythonPassDescriptor &pass_desc, PythonFusionPassCallbacks &callbacks);
+  static void Release(const PythonPassDescriptor &pass_desc);
+  static void Clear();
 
  private:
   PythonFusionPassRuntimeRegistry() = default;
@@ -112,6 +116,9 @@ class PythonPatternFusionPassAdapter : public PatternFusionPass {
   GraphUniqPtr Replacement(const std::unique_ptr<MatchResult> &match_result) override;
 
  private:
+  explicit PythonPatternFusionPassAdapter(
+      std::pair<std::unique_ptr<PythonPassHolder>, std::unique_ptr<PatternMatcherConfig>> init);
+
   std::unique_ptr<PythonPassHolder> holder_;
 };
 

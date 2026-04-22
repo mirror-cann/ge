@@ -169,9 +169,9 @@ Status AscGraphInfoComplete::CompleteApiInfo(const ge::AscGraph &optimize_graph)
     auto node_compute_type = &node->attr.api.compute_type;
     if (*node_compute_type >= ge::ComputeType::kComputeInvalid) {
       auto item = kOpTypeToComputeType.find(node->GetType());
-      GE_ASSERT_TRUE((item != kOpTypeToComputeType.end()), "Failed get node compute type, node name:[%s], type: [%s].",
-                     node->GetNamePtr(), node->GetTypePtr());
-      *node_compute_type = item->second;
+      if (item != kOpTypeToComputeType.end()) {
+        *node_compute_type = item->second;
+      }
     }
     auto it = kComputeTypeToCompleter.find(*node_compute_type);
     GE_ASSERT_TRUE((it != kComputeTypeToCompleter.end()), "CompleteApiInfo unsupported node name:[%s], type: [%s].",

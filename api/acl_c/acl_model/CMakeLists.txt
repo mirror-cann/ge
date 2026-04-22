@@ -67,7 +67,8 @@ if (${TARGET_SYSTEM_NAME} STREQUAL "Linux")
     )
 
     target_compile_options(${ASCENDCL_C_COMPILE_TARGET} PRIVATE
-        $<$<STREQUAL:${TARGET_SYSTEM_NAME},Linux>:-fvisibility=hidden -O2 -fno-common>
+        $<$<STREQUAL:${TARGET_SYSTEM_NAME},Linux>:-fvisibility=hidden>
+        $<$<CONFIG:Release>:-O2>
         $<$<STREQUAL:${TARGET_SYSTEM_NAME},Windows>:/utf-8 /Od>
         $<$<AND:$<STREQUAL:${TARGET_SYSTEM_NAME},Windows>,$<STREQUAL:${CMAKE_CONFIGURATION_TYPES},Debug>>:/MTd>
         $<$<AND:$<STREQUAL:${TARGET_SYSTEM_NAME},Windows>,$<STREQUAL:${CMAKE_CONFIGURATION_TYPES},Release>>:/MT>
@@ -130,7 +131,8 @@ elseif (${TARGET_SYSTEM_NAME} STREQUAL "LiteOS")
     )
 
     target_compile_options(${ASCENDCL_C_COMPILE_TARGET} PRIVATE
-        $<$<STREQUAL:${TARGET_SYSTEM_NAME},Linux>:-fvisibility=hidden -O2 -fno-common>
+        $<$<STREQUAL:${TARGET_SYSTEM_NAME},Linux>:-fvisibility=hidden>
+        $<$<CONFIG:Release>:-O2>
         $<$<STREQUAL:${TARGET_SYSTEM_NAME},Windows>:/utf-8 /Od>
         $<$<AND:$<STREQUAL:${TARGET_SYSTEM_NAME},Windows>,$<STREQUAL:${CMAKE_CONFIGURATION_TYPES},Debug>>:/MTd>
         $<$<AND:$<STREQUAL:${TARGET_SYSTEM_NAME},Windows>,$<STREQUAL:${CMAKE_CONFIGURATION_TYPES},Release>>:/MT>

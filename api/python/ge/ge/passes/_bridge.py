@@ -14,12 +14,19 @@
 
 import sys
 import threading
+from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
+from ge.graph import Graph
+
+from .base import PassContext, PatternMatcherConfig
 from .bootstrap import get_registered_passes, load_pass_plugins
+from .pattern import ensure_pattern
 from .registry import get_registered_pass_by_descriptor_key
-from ._ge_pass_native import PassContext
+from ._ge_pass_native import borrow_match_result
+from ._ge_pass_native import clone_pattern_matcher_config
+from ._ge_pass_native import release_graph
 
 
 @dataclass
@@ -36,6 +43,14 @@ _PASS_HOLDERS: Dict[str, _PassHolder] = {}
 def load_and_get_pass_descriptors() -> list:
     load_pass_plugins()
     return get_registered_passes()
+
+
+def _get_holder(instance_id: str) -> _PassHolder:
+    with _HOLDER_LOCK:
+        holder = _PASS_HOLDERS.get(instance_id)
+    if holder is None:
+        raise KeyError(f"python pass holder is not created: {instance_id}")
+    return holder
 
 
 def create_pass_holder(instance_id: str, descriptor_key: str) -> bool:
@@ -59,13 +74,59 @@ def destroy_pass_holder(instance_id: str) -> bool:
 
 
 def run_fusion_base_pass(instance_id: str, graph: Any, context: Optional[Any] = None) -> Any:
-    with _HOLDER_LOCK:
-        holder = _PASS_HOLDERS.get(instance_id)
-    if holder is None:
-        raise KeyError(f"python pass holder is not created: {instance_id}")
-    if not isinstance(context, PassContext):
-        raise KeyError(f"context type error")
+    holder = _get_holder(instance_id)
+    if context is not None and not isinstance(context, PassContext):
+        raise TypeError("context type error")
     return holder.instance.run(graph, context)
+
+
+def get_pass_patterns(instance_id: str) -> list[int]:
+    holder = _get_holder(instance_id)
+    patterns = holder.instance.patterns()
+    if patterns is None:
+        return []
+    if not isinstance(patterns, Iterable) or isinstance(patterns, (str, bytes)):
+        raise TypeError("PatternFusionPass.patterns must return an iterable of Pattern or Graph")
+
+    released_patterns = []
+    for item in patterns:
+        pattern = ensure_pattern(item)
+        released_patterns.append(pattern.release())
+    return released_patterns
+
+
+def get_pattern_matcher_config(instance_id: str) -> Optional[int]:
+    holder = _get_holder(instance_id)
+    matcher_config = holder.instance.matcher_config
+    if matcher_config is None:
+        return None
+    if not isinstance(matcher_config, PatternMatcherConfig):
+        raise TypeError("PatternFusionPass.matcher_config must be PatternMatcherConfig or None")
+    return clone_pattern_matcher_config(matcher_config)
+
+
+def call_meet_requirements(instance_id: str, match_result_handle: int) -> bool:
+    holder = _get_holder(instance_id)
+    match_result = borrow_match_result(match_result_handle)
+    try:
+        return bool(holder.instance.meet_requirements(match_result))
+    finally:
+        match_result._invalidate()
+
+
+def call_replacement(instance_id: str, match_result_handle: int) -> Optional[int]:
+    holder = _get_holder(instance_id)
+    match_result = borrow_match_result(match_result_handle)
+    try:
+        replacement = holder.instance.replacement(match_result)
+    finally:
+        match_result._invalidate()
+
+    if replacement is None:
+        return None
+    if not isinstance(replacement, Graph):
+        raise TypeError("PatternFusionPass.replacement must return ge.graph.Graph or None")
+    return release_graph(replacement)
 
 
 def clear_pass_holders() -> None:

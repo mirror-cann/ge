@@ -148,7 +148,7 @@ class Tensor : public Variable {
   Status Init();
 
   // For GlobalTensor
-  Status SetGlobalBuffer(GM_ADDR global, const std::string& offset, std::string &result) const;
+  Status SetGlobalBuffer(Variable global, const std::string& offset, std::string &result) const;
 
   bool IsUbScalar() const {
     return is_ub_scalar && need_gen_get_value_of_ub_scalar;
@@ -377,7 +377,7 @@ struct TilingFuncCall {
 class Kernel {
  public:
   GM_ADDR workspace_arg;
-  std::vector<GM_ADDR> inputs;
+  std::vector<Variable> inputs;
   std::vector<ascir::TensorId> input_tensors;
   std::vector<GM_ADDR> outputs;
   std::vector<ascir::TensorId> output_tensors;

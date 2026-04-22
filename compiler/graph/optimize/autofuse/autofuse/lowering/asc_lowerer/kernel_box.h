@@ -48,42 +48,16 @@ struct ExtraKernelBoxMeta {
 
 struct KernelBoxMeta {
   explicit KernelBoxMeta(LoopVar result) : var(std::move(result)) {
-    std::map<const LoopOp *, DataType> op_2_dtype;
-    LoopOp::StrictTopoExecute(var.Op().get(), [this, &op_2_dtype](const LoopOp *op) -> graphStatus {
-      is_support = this->InferDataType(op, op_2_dtype);
-      return GRAPH_SUCCESS;
-    });
+    InferDataTypeForAllOps();
     if (!var.IsValid()) {
       type = FuseType::kExtern;
     } else {
-      if (var.Op()->Type() == "ops.StoreReduction") {
-        type = FuseType::kReduction;
-      } else if (var.Op()->Type() == "ops.StoreConcat") {
-        type = FuseType::kConcat;
-      } else if (var.Op()->Type() == "ops.StoreSplit") {
-        type = FuseType::kSplit;
-      }else if (var.Op()->Type() == "ops.StoreStridedSlice") {
-        type = FuseType::kSliceSplit;
-      } else if (var.Op()->Type() == "ops.StoreMatMul") {
-        type = FuseType::kCube;
-      } else if (var.Op()->Type() == "ops.StoreConv2D") {
-        type = FuseType::kCube;
-      } else {
-        type = FuseType::kPointwise;
-        LoopOp::Dfs(var.Op().get(), [this](const LoopOp *op) -> graphStatus {
-          if (op != nullptr && op->Type() == "ops.StoreStridedSlice") {
-            type = FuseType::kSliceSplit;
-          } else if (op != nullptr && op->IsReduction()) {
-            type = FuseType::kReduction;
-          } else if (op != nullptr && op->IsGather()) {
-            type = FuseType::kGather;
-          } 
-          return GRAPH_SUCCESS;
-        });
-      }
+      type = DetermineFuseType();
     }
   }
+
   KernelBoxMeta() : type(FuseType::kExtern) {}
+
   ExtraKernelBoxMeta &Extra() {
     if (extra != nullptr) {
       return *extra;
@@ -170,6 +144,70 @@ struct KernelBoxMeta {
     }
     return true;
   }
+
+  void InferDataTypeForAllOps() {
+    std::map<const LoopOp *, DataType> op_2_dtype;
+    LoopOp::StrictTopoExecute(var.Op().get(), [this, &op_2_dtype](const LoopOp *op) -> graphStatus {
+      is_support = this->InferDataType(op, op_2_dtype);
+      return GRAPH_SUCCESS;
+    });
+  }
+
+  FuseType DetermineFuseType() {
+    const auto &op_type = var.Op()->Type();
+    if (op_type == "ops.StoreReshape") {
+      return FuseType::kReshape;
+    }
+    if (op_type == "ops.StoreReduction") {
+      return FuseType::kReduction;
+    }
+    if (op_type == "ops.StoreConcat") {
+      return FuseType::kConcat;
+    }
+    if (op_type == "ops.StoreSplit") {
+      return FuseType::kSplit;
+    }
+    if (op_type == "ops.StoreStridedSlice") {
+      return FuseType::kSliceSplit;
+    }
+    if ((op_type == "ops.StoreMatMul") || (op_type == "ops.StoreConv2D")) {
+      return FuseType::kCube;
+    }
+    return DeterminePointwiseOrReshapeType();
+  }
+
+  FuseType DeterminePointwiseOrReshapeType() {
+    bool has_reshape = false;
+    bool has_other_ops = false;
+    FuseType result_type = FuseType::kPointwise;
+    
+    LoopOp::Dfs(var.Op().get(), [&has_reshape, &has_other_ops, &result_type](const LoopOp *op) -> graphStatus {
+      if (op == nullptr) {
+        return GRAPH_SUCCESS;
+      }
+      const auto &type = op->Type();
+      if (type == "ops.Reshape") {
+        has_reshape = true;
+      } else if (type == "ops.StoreStridedSlice") {
+        result_type = FuseType::kSliceSplit;
+        has_other_ops = true;
+      } else if (op->IsReduction()) {
+        result_type = FuseType::kReduction;
+        has_other_ops = true;
+      } else if (op->IsGather()) {
+        result_type = FuseType::kGather;
+        has_other_ops = true;
+      } else if (type != "ops.Load" && type != "ops.Store") {
+        has_other_ops = true;
+      }
+      return GRAPH_SUCCESS;
+    });
+    
+    if (has_reshape && !has_other_ops) {
+      return FuseType::kReshape;
+    }
+    return result_type;
+  }
 };
 
 class KernelBox {
@@ -235,6 +273,10 @@ class KernelBox {
 
   bool IsSlice() const {
     return (meta_ != nullptr) && (meta_->type == FuseType::kSliceSplit);
+  }
+
+  bool IsReshape() const {
+    return (meta_ != nullptr) && (meta_->type == FuseType::kReshape);
   }
 
   bool IsSliceOnly() const {

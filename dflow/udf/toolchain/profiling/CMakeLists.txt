@@ -26,13 +26,8 @@ target_include_directories(udf_profiling PRIVATE
 
 target_compile_options(udf_profiling PRIVATE
     -ftrapv
-    -O2
     -fvisibility-inlines-hidden
     -fvisibility=hidden
-    -Werror
-    -Wextra
-    -Wfloat-equal
-    -fno-common
 )
 
 target_link_libraries(udf_profiling PRIVATE

@@ -6000,11 +6000,11 @@ TEST(CodegenKernel, CalculateVectorizedAixsMergeStatus) {
     ge::SizeVar s0(ge::Symbol("s0"));
     ge::SizeVar s1(ge::Symbol("s1"));
     ge::SizeVar s2(ge::Symbol("s2"));
-  
+
     ge::Axis z0{.id = 0, .name = "z0", .type = ge::Axis::Type::kAxisTypeTileOuter, .size = s0.expr};
     ge::Axis z1{.id = 1, .name = "z1", .type = ge::Axis::Type::kAxisTypeTileInner, .size = s1.expr};
     ge::Axis z2{.id = 2, .name = "z2", .type = ge::Axis::Type::kAxisTypeOriginal, .size = s2.expr};
-  
+
     codegen::Tiler tiler;
     tiler.AddSizeVar(ge::SizeVar(s0));
     tiler.AddSizeVar(ge::SizeVar(s1));
@@ -6012,18 +6012,18 @@ TEST(CodegenKernel, CalculateVectorizedAixsMergeStatus) {
     tiler.AddAxis(z0);
     tiler.AddAxis(z1);
     tiler.AddAxis(z2);
-  
+
     codegen::TPipe tpipe("tpipe", tiler);
     ge::AscGraph graph("test");
     ge::ascir_op::Data x("x", graph);
     auto node = graph.FindNode("x");
     ge::AscTensor tensor = node->outputs[0];
-  
+
     tensor.attr.axis = {z0.id, z1.id, z2.id};
     tensor.attr.vectorized_axis = {z1.id, z2.id};
     tensor.attr.repeats = {z0.size, z1.size, z2.size};
     tensor.attr.strides = {z1.size*z2.size, z2.size, One};
-  
+
     vector<ge::Expression> vectorized_strides{One, One};
     vectorized_strides[0] = z2.size;
     tensor.attr.vectorized_strides = vectorized_strides;
@@ -6210,4 +6210,43 @@ q1.FreeTensor(q1_buf);
 store();
 
 )");
+}
+
+TEST(CodegenKernel, ScalarDataOutputTensor_test) {
+  ge::AscGraph graph("test");
+
+  codegen::Tiler tiler;
+
+  ScalarData scalar_data("scalar_data", graph);
+  scalar_data.ir_attr.SetIndex(0);
+  scalar_data.y.dtype = ge::DT_FLOAT;
+  auto scalar_node = graph.FindNode("scalar_data");
+  ge::AscTensor scalar_tensor = scalar_node->outputs[0];
+  scalar_tensor.attr.mem.tensor_id = 0;
+
+  Data data("data", graph);
+  data.ir_attr.SetIndex(1);
+  data.y.dtype = ge::DT_FLOAT;
+  auto data_node = graph.FindNode("data");
+  ge::AscTensor data_tensor = data_node->outputs[0];
+  data_tensor.attr.mem.tensor_id = 1;
+
+  std::string scalar_dtype_name;
+  codegen::Tensor::DtypeName(scalar_tensor.attr.dtype, scalar_dtype_name);
+  codegen::Tensor t1(scalar_tensor, scalar_dtype_name, "t1");
+  EXPECT_EQ(t1.Init(), 0);
+
+  std::string data_dtype_name;
+  codegen::Tensor::DtypeName(data_tensor.attr.dtype, data_dtype_name);
+  codegen::Tensor t2(data_tensor, data_dtype_name, "t2");
+  EXPECT_EQ(t2.Init(), 0);
+
+  ::ascir::FusedScheduledResult fused_schedule_result;
+  fused_schedule_result.input_nodes.push_back(data_node);
+  fused_schedule_result.input_nodes.push_back(scalar_node);
+  codegen::Kernel kernel(graph.GetName());
+  codegen::Kernel::ParseGraph(graph, fused_schedule_result, kernel);
+  std::string result;
+  EXPECT_EQ(kernel.GlobalTensorInit(result), 0);
+  EXPECT_EQ(result, "GlobalTensor<float> global_1;\nglobal_1.SetGlobalBuffer((__gm__ float*)scalar_data);\n");
 }

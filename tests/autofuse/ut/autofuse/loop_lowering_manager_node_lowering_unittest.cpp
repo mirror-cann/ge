@@ -2050,7 +2050,7 @@ TEST_F(LoopNodeLoweringUT, ReshapeLowering1) {
             "tmp0 = ops.Load(\"x:0\")\n"
             "tmp1 = ops.Unsqueeze(tmp0, 1)\n"
             "tmp2 = ops.Unsqueeze(tmp1, 4)\n"
-            "tmp3 = ops.Store(\"Reshape_0:0\", tmp2)\n");
+            "tmp3 = ops.StoreReshape(\"Reshape_0:0\", tmp2)\n");
 }
 
 TEST_F(LoopNodeLoweringUT, ReshapeLowering2) {
@@ -2076,7 +2076,7 @@ TEST_F(LoopNodeLoweringUT, ReshapeLowering2) {
             "tmp0 = ops.Load(\"x:0\")\n"
             "tmp1 = ops.Squeeze(tmp0, 1)\n"
             "tmp2 = ops.Squeeze(tmp1, 2)\n"
-            "tmp3 = ops.Store(\"Reshape_0:0\", tmp2)\n");
+            "tmp3 = ops.StoreReshape(\"Reshape_0:0\", tmp2)\n");
 }
 
 TEST_F(LoopNodeLoweringUT, ReshapeLowering3) {
@@ -2151,7 +2151,7 @@ TEST_F(LoopNodeLoweringUT, ReshapeLowering5) {
     EXPECT_EQ(kernel.Readable(),
 "tmp0 = ops.Load(\"x:0\")\n"
 "tmp1 = ops.Unsqueeze(tmp0, 1)\n"
-"tmp2 = ops.Store(\"Reshape_0:0\", tmp1)\n");
+"tmp2 = ops.StoreReshape(\"Reshape_0:0\", tmp1)\n");
 }
 
 TEST_F(LoopNodeLoweringUT, ReshapeLoweringFailure1) {

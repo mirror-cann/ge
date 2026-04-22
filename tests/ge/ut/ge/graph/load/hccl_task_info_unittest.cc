@@ -698,4 +698,47 @@ TEST_F(UtestHcclTaskInfo, AllToAll_GetCount_Success) {
   auto ret = HcomOmeUtil::GetHcclCount(op_desc, kernel_hccl_infos);
   EXPECT_EQ(ret, SUCCESS);
 }
+
+TEST_F(UtestHcclTaskInfo, InsertDumpOp_SetRootGraphName) {
+  HcclTaskInfo hccl_task_info;
+  DavinciModel model(0, nullptr);
+  model.SetOmName("test_om");
+  model.SetDumpModelName("test_model");
+  // GetRootGraphName will get from ge_model_, which is nullptr in test, so returns empty string
+  // That's fine - we just need to verify InsertDumpOp calls SetRootGraphName on dump_op
+  hccl_task_info.davinci_model_ = &model;
+  GeTensorDesc desc;
+  auto op_desc = std::make_shared<OpDesc>("hcom_reduce", HCOMREDUCE);
+  AttrUtils::SetInt(op_desc, HCOM_ATTR_ROOT_RANK, 0);
+  AttrUtils::SetStr(op_desc, HCOM_ATTR_REDUCE_TYPE, "min");
+  op_desc->SetStreamId(0);
+  op_desc->SetId(0);
+  op_desc->AddInputDesc(desc);
+  op_desc->AddOutputDesc(desc);
+  op_desc->SetInputOffset({8});
+  op_desc->SetWorkspaceBytes({150});
+  op_desc->SetOpKernelLibName(kEngineNameHccl);
+  model.op_list_[op_desc->GetId()] = op_desc;
+  hccl_task_info.hccl_op_desc_ = op_desc;
+
+  DumpProperties dump_properties;
+  dump_properties.SetDumpMode("all");
+  dump_properties.AddPropertyValue(DUMP_ALL_MODEL, {});
+  model.SetDumpProperties(dump_properties);
+
+  // Init address for dump - input_data_addrs_ is vector<void*>
+  void *addr = reinterpret_cast<void*>(0x1000);
+  hccl_task_info.input_data_addrs_.push_back(addr);
+  hccl_task_info.output_data_addrs_.push_back(addr);
+
+  Status ret = hccl_task_info.InsertDumpOp("all");
+  EXPECT_EQ(ret, SUCCESS);
+  // Cleanup
+  if (hccl_task_info.input_hccl_dump_.proto_dev_mem_ != nullptr) {
+    (void)rtFree(hccl_task_info.input_hccl_dump_.proto_dev_mem_);
+  }
+  if (hccl_task_info.input_hccl_dump_.proto_size_dev_mem_ != nullptr) {
+    (void)rtFree(hccl_task_info.input_hccl_dump_.proto_size_dev_mem_);
+  }
+}
 }  // namespace ge

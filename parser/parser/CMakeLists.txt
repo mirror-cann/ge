@@ -120,10 +120,6 @@ add_library(fmk_parser_stub SHARED
 )
 
 target_compile_options(fmk_parser_stub PRIVATE
-    -O2
-    -fno-common
-    -Wextra
-    -Wfloat-equal
     -Werror=return-type
     -Wno-unused-parameter
 )

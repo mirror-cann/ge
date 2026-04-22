@@ -8,7 +8,16 @@
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
 
-add_library(_ge_pass_native MODULE passes_apis/pass_context_wrapper.cc)
+set(_ge_pass_native_sources
+        native_bindings/module.cc
+        native_bindings/pass_context_binding.cc
+        native_bindings/pattern_binding.cc
+        native_bindings/match_result_binding.cc
+        native_bindings/pattern_matcher_config_binding.cc
+        native_bindings/graph_handle_binding.cc
+)
+
+add_library(_ge_pass_native MODULE ${_ge_pass_native_sources})
 target_include_directories(_ge_pass_native PRIVATE
         ${HI_PYTHON_INC}
         ${pybind11_INCLUDE_DIR}
@@ -23,6 +32,8 @@ target_link_libraries(_ge_pass_native PRIVATE
         $<BUILD_INTERFACE:slog_headers>
         $<BUILD_INTERFACE:mmpa_headers>
         $<BUILD_INTERFACE:pybind_options>
+        graph
+        ge_compiler
         register
 )
 
@@ -36,7 +47,7 @@ target_compile_definitions(_ge_pass_native PRIVATE
 )
 
 target_compile_options(_ge_pass_native PRIVATE
-        -O2
+        $<$<CONFIG:Release>:-O2>
         -Xlinker -export-dynamic
 )
 

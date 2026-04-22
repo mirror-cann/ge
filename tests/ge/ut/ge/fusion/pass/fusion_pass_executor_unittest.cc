@@ -141,6 +141,27 @@ const std::string &GetSharedPybindMarkerFilePath() {
   return path;
 }
 
+const std::string &GetSharedPybindPatternPassFilePath() {
+  static const std::string path = GetSharedPybindPassDir().CreateFilePath("pybind_pattern_passes.py");
+  return path;
+}
+
+const std::string &GetSharedPybindPatternMarkerFilePath() {
+  static const std::string path = GetSharedPybindPassDir().CreateFilePath("pattern_bridge_success_marker.txt");
+  return path;
+}
+
+const std::string &GetSharedPybindPatternMatcherConfigPassFilePath() {
+  static const std::string path = GetSharedPybindPassDir().CreateFilePath("pybind_pattern_matcher_config_passes.py");
+  return path;
+}
+
+const std::string &GetSharedPybindPatternMatcherConfigMarkerFilePath() {
+  static const std::string path =
+      GetSharedPybindPassDir().CreateFilePath("pattern_matcher_config_bridge_marker.txt");
+  return path;
+}
+
 void EnsureSharedPybindPassFile() {
   static std::once_flag once;
   std::call_once(once, []() {
@@ -161,6 +182,94 @@ void EnsureSharedPybindPassFile() {
               << "    def run(self, graph, context):\n"
               << "        raise RuntimeError('python bridge run failed')\n";
     WriteFile(GetSharedPybindPassFilePath(), pass_code.str());
+  });
+}
+
+void EnsureSharedPybindPatternPassFile() {
+  static std::once_flag once;
+  std::call_once(once, []() {
+    std::ostringstream pass_code;
+    pass_code << "from pathlib import Path\n"
+              << "from ge.es.graph_builder import GraphBuilder\n"
+              << "from es_ut_test import Add\n"
+              << "from ge.passes import (\n"
+              << "    PassStage,\n"
+              << "    PatternFusionPass,\n"
+              << "    PatternMatcherConfigBuilder,\n"
+              << "    capture_tensor,\n"
+              << "    create_pattern,\n"
+              << "    create_replacement,\n"
+              << "    register_fusion_pass,\n"
+              << ")\n\n"
+              << "MARKER_FILE = r'" << GetSharedPybindPatternMarkerFilePath() << "'\n\n"
+              << "@register_fusion_pass(name='PythonPybindPatternAddZeroPass', stage=PassStage.AFTER_INFER_SHAPE)\n"
+              << "class PythonPybindPatternAddZeroPass(PatternFusionPass):\n"
+              << "    def __init__(self):\n"
+              << "        super().__init__(\n"
+              << "            PatternMatcherConfigBuilder().enable_const_value_match().build()\n"
+              << "        )\n\n"
+              << "    def patterns(self):\n"
+              << "        pattern_builder = GraphBuilder('add_zero_pattern')\n"
+              << "        data = pattern_builder.create_input(0)\n"
+              << "        zero = pattern_builder.create_scalar_float(0.0)\n"
+              << "        add = Add(data, zero)\n"
+              << "        pattern_builder.set_graph_output(add, 0)\n"
+              << "        pattern = create_pattern(pattern_builder.build_and_reset())\n"
+              << "        pattern.capture_tensor(capture_tensor(data))\n"
+              << "        return [pattern]\n\n"
+              << "    def meet_requirements(self, match_result):\n"
+              << "        return True\n\n"
+              << "    def replacement(self, match_result):\n"
+              << "        captured = match_result.get_captured_tensor(0)\n"
+              << "        Path(MARKER_FILE).write_text(\n"
+              << "            f\"{match_result.get_pattern_graph_name()}|{captured.node.name}:{captured.index}\",\n"
+              << "            encoding='utf-8'\n"
+              << "        )\n"
+              << "        replacement_builder = GraphBuilder('add_zero_replacement')\n"
+              << "        passthrough = replacement_builder.create_input(0)\n"
+              << "        replacement_builder.set_graph_output(passthrough, 0)\n"
+              << "        return create_replacement(replacement_builder.build_and_reset())\n";
+    WriteFile(GetSharedPybindPatternPassFilePath(), pass_code.str());
+  });
+}
+
+void EnsureSharedPybindPatternMatcherConfigPassFile() {
+  static std::once_flag once;
+  std::call_once(once, []() {
+    std::ostringstream pass_code;
+    pass_code << "from pathlib import Path\n"
+              << "from ge.es.graph_builder import GraphBuilder\n"
+              << "from es_ut_test import Add\n"
+              << "from ge.passes import (\n"
+              << "    PassStage,\n"
+              << "    PatternFusionPass,\n"
+              << "    PatternMatcherConfigBuilder,\n"
+              << "    create_pattern,\n"
+              << "    create_replacement,\n"
+              << "    register_fusion_pass,\n"
+              << ")\n\n"
+              << "MARKER_FILE = r'" << GetSharedPybindPatternMatcherConfigMarkerFilePath() << "'\n\n"
+              << "@register_fusion_pass(name='PythonPybindPatternMatcherConfigPass', "
+                 "stage=PassStage.AFTER_INFER_SHAPE)\n"
+              << "class PythonPybindPatternMatcherConfigPass(PatternFusionPass):\n"
+              << "    def __init__(self):\n"
+              << "        super().__init__(\n"
+              << "            PatternMatcherConfigBuilder().enable_const_value_match().build()\n"
+              << "        )\n\n"
+              << "    def patterns(self):\n"
+              << "        pattern_builder = GraphBuilder('const_one_pattern')\n"
+              << "        data = pattern_builder.create_input(0)\n"
+              << "        one = pattern_builder.create_const_float(1.0)\n"
+              << "        add = Add(data, one)\n"
+              << "        pattern_builder.set_graph_output(add, 0)\n"
+              << "        return [create_pattern(pattern_builder.build_and_reset())]\n\n"
+              << "    def replacement(self, match_result):\n"
+              << "        Path(MARKER_FILE).write_text(match_result.get_pattern_graph_name(), encoding='utf-8')\n"
+              << "        replacement_builder = GraphBuilder('const_one_replacement')\n"
+              << "        passthrough = replacement_builder.create_input(0)\n"
+              << "        replacement_builder.set_graph_output(passthrough, 0)\n"
+              << "        return create_replacement(replacement_builder.build_and_reset())\n";
+    WriteFile(GetSharedPybindPatternMatcherConfigPassFilePath(), pass_code.str());
   });
 }
 
@@ -261,16 +370,10 @@ Status RunPythonFusionBasePassHolderForUt(void *holder, GraphPtr &graph, CustomP
 using namespace ge::es;
 class UtestFusionPassExecutor : public testing::Test {
  public:
-  static void TearDownTestSuite() {
-    // Python bridge 的显式 dlclose 放到 suite 结束时做一次，
-    // 避免每个用例都把进程级 bridge 热卸载掉。
-    ShutdownPythonPassesForProcess();
-  }
-
   void SetUp() override {
     PreparePythonPathForSt();
     (void)unsetenv(kEnvPythonPassPath);
-    UnloadPythonPasses();
+    ShutdownPythonPassesForProcess();
     PassRegistry::GetInstance().name_2_fusion_pass_regs_.clear();
     PassRegistry::GetInstance().descriptor_key_2_python_pass_descs_.clear();
     PassRegistry::GetInstance().pass_name_2_python_pass_create_contexts_.clear();
@@ -284,7 +387,7 @@ class UtestFusionPassExecutor : public testing::Test {
   }
   void TearDown() override {
     (void)unsetenv(kEnvPythonPassPath);
-    UnloadPythonPasses();
+    ShutdownPythonPassesForProcess();
     PassRegistry::GetInstance().name_2_fusion_pass_regs_.clear();
     PassRegistry::GetInstance().descriptor_key_2_python_pass_descs_.clear();
     PassRegistry::GetInstance().pass_name_2_python_pass_create_contexts_.clear();
@@ -952,6 +1055,79 @@ TEST_F(UtestFusionPassExecutor, PythonFusionBasePass_PybindBridge_RunFailedOnPyt
   auto target_compute_graph = gert::ShareGraph::BuildSingleNodeGraph();
   FusionPassExecutor pass_executor;
   EXPECT_EQ(pass_executor.RunPasses(target_compute_graph, CustomPassStage::kAfterBuiltinFusionPass), FAILED);
+}
+
+TEST_F(UtestFusionPassExecutor, PythonPatternFusionPass_PybindBridge_RunSuccess) {
+  EnsureSharedPybindPatternPassFile();
+  const auto &marker_file = GetSharedPybindPatternMarkerFilePath();
+  (void)remove(marker_file.c_str());
+
+  ScopedEnvVar scoped_py_pass_path(kEnvPythonPassPath, GetSharedPybindPatternPassFilePath());
+  ASSERT_EQ(RegisterPythonPassesFromPlugin(), SUCCESS);
+
+  auto target_graph = ge::es::EsGraphBuilder("python_pattern_target");
+  auto *esb_graph = target_graph.GetCGraphBuilder();
+  auto data = EsCreateGraphInput(esb_graph, 0);
+  auto zero = EsCreateScalarFloat(esb_graph, 0.0f);
+  auto add = EsAdd(data, zero);
+  esb_graph->SetGraphOutput(add, 0);
+  auto target_ge_graph = target_graph.BuildAndReset();
+  auto target_compute_graph = GraphUtilsEx::GetComputeGraph(*target_ge_graph);
+  ASSERT_NE(target_compute_graph, nullptr);
+
+  FusionPassExecutor pass_executor;
+  EXPECT_EQ(pass_executor.RunPasses(target_compute_graph, CustomPassStage::kAfterInferShape), SUCCESS);
+  EXPECT_EQ(ReadFile(marker_file), "add_zero_pattern|input_0:0");
+
+  uint32_t add_node_count = 0;
+  uint32_t const_node_count = 0;
+  for (const auto &node : target_compute_graph->GetDirectNode()) {
+    if (node->GetType() == "Add") {
+      ++add_node_count;
+    }
+    if (node->GetType() == CONSTANT) {
+      ++const_node_count;
+    }
+  }
+  EXPECT_EQ(add_node_count, 0U);
+  EXPECT_EQ(const_node_count, 0U);
+  EXPECT_EQ(pass_executor.RunPasses(target_compute_graph, CustomPassStage::kAfterInferShape), SUCCESS);
+}
+
+TEST_F(UtestFusionPassExecutor, PythonPatternFusionPass_PybindBridge_MatcherConfigTakesEffect) {
+  EnsureSharedPybindPatternMatcherConfigPassFile();
+  const auto &marker_file = GetSharedPybindPatternMatcherConfigMarkerFilePath();
+  (void)remove(marker_file.c_str());
+
+  ScopedEnvVar scoped_py_pass_path(kEnvPythonPassPath, GetSharedPybindPatternMatcherConfigPassFilePath());
+  ASSERT_EQ(RegisterPythonPassesFromPlugin(), SUCCESS);
+
+  auto target_graph = ge::es::EsGraphBuilder("python_pattern_matcher_config_target");
+  auto *esb_graph = target_graph.GetCGraphBuilder();
+  auto data = EsCreateGraphInput(esb_graph, 0);
+  auto zero = EsCreateScalarFloat(esb_graph, 0.0f);
+  auto add = EsAdd(data, zero);
+  esb_graph->SetGraphOutput(add, 0);
+  auto target_ge_graph = target_graph.BuildAndReset();
+  auto target_compute_graph = GraphUtilsEx::GetComputeGraph(*target_ge_graph);
+  ASSERT_NE(target_compute_graph, nullptr);
+
+  FusionPassExecutor pass_executor;
+  EXPECT_EQ(pass_executor.RunPasses(target_compute_graph, CustomPassStage::kAfterInferShape), SUCCESS);
+  EXPECT_EQ(access(marker_file.c_str(), F_OK), -1);
+
+  uint32_t add_node_count = 0;
+  uint32_t const_node_count = 0;
+  for (const auto &node : target_compute_graph->GetDirectNode()) {
+    if (node->GetType() == "Add") {
+      ++add_node_count;
+    }
+    if (node->GetType() == CONSTANT) {
+      ++const_node_count;
+    }
+  }
+  EXPECT_EQ(add_node_count, 1U);
+  EXPECT_EQ(const_node_count, 1U);
 }
 
 TEST_F(UtestFusionPassExecutor, PythonPatternFusionPass_CreateAndDestroy) {

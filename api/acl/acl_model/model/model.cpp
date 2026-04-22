@@ -502,8 +502,8 @@ static aclError Om2ModelLoadFromMemWithMem(const void *const model, const size_t
     return Om2ModelLoadFromMemWithMem(model, modelSize, modelId, loadArgs);
 }
 
-static aclError Om2ModelLoadFromMemWithMem(const void *const model, const size_t modelSize, uint32_t *const modelId,
-                                           const gert::Om2ModelLoadArg &loadArgs) {
+static aclError Om2ModelLoadFromMemWithMem(const void *const model, const size_t modelSize,
+                                           uint32_t *const modelId, const gert::Om2ModelLoadArg &loadArgs) {
     ge::ModelData modelData = {};
     modelData.model_data = const_cast<void *>(model);
     modelData.model_len = static_cast<uint64_t>(modelSize);
@@ -3535,8 +3535,8 @@ aclError aclmdlCreateAndGetOpDescImpl(uint32_t deviceId, uint32_t streamId, uint
     return ACL_SUCCESS;
 }
 
-aclError LoadFromFile(const aclmdlConfigHandle *handle, const std::vector<ge::FileConstantMem> &fileConstantMems,
-                      uint32_t *modelId)
+static aclError LoadFromFile(const aclmdlConfigHandle *handle, const std::vector<ge::FileConstantMem> &fileConstantMems,
+                             uint32_t *const modelId)
 {
     bool isSupportRT2 = false;
     bool isSupportOm2 = false;
@@ -3558,8 +3558,8 @@ aclError LoadFromFile(const aclmdlConfigHandle *handle, const std::vector<ge::Fi
     return acl::ModelLoadFromFileWithMem(handle->loadPath.c_str(), modelId, loadArgs, handle->priority);
 }
 
-aclError LoadFromFileWithMem(const aclmdlConfigHandle *handle, const std::vector<ge::FileConstantMem> &fileConstantMems,
-                             uint32_t *modelId)
+static aclError LoadFromFileWithMem(const aclmdlConfigHandle *handle, const std::vector<ge::FileConstantMem> &fileConstantMems,
+                                    uint32_t *const modelId)
 {
     bool isSupportRT2 = false;
     bool isSupportOm2 = false;
@@ -3582,8 +3582,8 @@ aclError LoadFromFileWithMem(const aclmdlConfigHandle *handle, const std::vector
     return acl::ModelLoadFromFileWithMem(handle->loadPath.c_str(), modelId, loadArgs, handle->priority);
 }
 
-aclError LoadFromMem(const aclmdlConfigHandle *handle, const std::vector<ge::FileConstantMem> &fileConstantMems,
-                     uint32_t *modelId)
+static aclError LoadFromMem(const aclmdlConfigHandle *handle, const std::vector<ge::FileConstantMem> &fileConstantMems,
+                            uint32_t *const modelId)
 {
     ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(handle->mdlAddr);
     bool isSupportRT2 = false;
@@ -3608,8 +3608,8 @@ aclError LoadFromMem(const aclmdlConfigHandle *handle, const std::vector<ge::Fil
                                         handle->weightPath.c_str(), handle->priority);
 }
 
-aclError LoadFromMemWithMem(const aclmdlConfigHandle *handle, const std::vector<ge::FileConstantMem> &fileConstantMems,
-                            uint32_t *modelId)
+static aclError LoadFromMemWithMem(const aclmdlConfigHandle *handle, const std::vector<ge::FileConstantMem> &fileConstantMems,
+                                   uint32_t *const modelId)
 {
     ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(handle->mdlAddr);
     bool isSupportRT2 = false;
@@ -3636,7 +3636,7 @@ aclError LoadFromMemWithMem(const aclmdlConfigHandle *handle, const std::vector<
 
 static aclError LoadFromFileWithQ(const aclmdlConfigHandle *handle,
                                   const std::vector<ge::FileConstantMem> &fileConstantMems,
-                                  uint32_t *modelId)
+                                  uint32_t *const modelId)
 {
     if (aclmdlCheckQueueParam(handle->inputQ, handle->inputQNum, handle->outputQ, handle->outputQNum) !=
         ACL_SUCCESS) {
@@ -3659,7 +3659,7 @@ static aclError LoadFromFileWithQ(const aclmdlConfigHandle *handle,
 
 static aclError LoadFromMemWithQ(const aclmdlConfigHandle *handle,
                                  const std::vector<ge::FileConstantMem> &fileConstantMems,
-                                 uint32_t *modelId)
+                                uint32_t *const modelId)
 {
     if (aclmdlCheckQueueParam(handle->inputQ, handle->inputQNum, handle->outputQ, handle->outputQNum) !=
         ACL_SUCCESS) {

@@ -11,9 +11,9 @@
 
 ```
 ├── src
-│   ├──fuse_matmul_add_pass.cpp  // pass实现文件 
+│   ├──fuse_matmul_add_pass.cpp  // pass实现文件
 ├── CMakeLists.txt               // 编译脚本
-├── data         
+├── data
 |   ├──torch_gen_onnx.py         // torch脚本用于导出onnx
 |   ├──torch_forward.py          // torch脚本用于在线推理
 |—— gen_es_api
@@ -24,7 +24,7 @@
 
 - 编译器：GCC >= 7.3.x
 - 使用python及其依赖库版本：python>=3.9 、pytorch>=2.1
-- 已完成[相关环境准备](../../../../docs/build.md)。
+- 已完成[相关环境准备](../../../../../docs/build.md)。
 
 ## 实现步骤
 
@@ -119,7 +119,7 @@
    - 进入data目录执行.py文件进行在线推理（在线推理请确保已安装torch_npu插件）：
       ```
       python torch_forward.py
-      ```  
+      ```
    - 日志中出现如下打印：
       ```
       Define pattern for FuseMatMulAndAddPass
@@ -140,46 +140,3 @@
       export ASCEND_SLOG_PRINT_TO_STDOUT=1 #日志打印到屏幕
       export ASCEND_GLOBAL_LOG_LEVEL=0 #日志级别为debug级别
      ```
-
-## Python Pass[v1]
-引入GE Python自定义Fusion Pass开发能力（V1），使用户可以通过纯Python编写`FusionBasePass`并通过装饰器`@register_fusion_pass`注册，GE编译器在初始化阶段自动发现并执行Python pass。
-[这里](./data/test_python_pass.py)演示了一个使用纯Python实现的Pass实现与注册sample，
-其中设置并获取了`PassContext`中的pass名称，打印了graph对象后设置并获取了图属性。按如下步骤执行
-
-> - run包编译与执行sample的Python版本一致（临时要求）
-> - 已安装图编译流程的相关Python库（attrs、decorator、sympy、numpy、psutil、scipy）
-1. 确定whl包位置，例如`path_to_whl/ge_py-0.0.1-py3-none-any.whl`
-  ```bash
-   find ${INSTALL_PATH} -name ge_py-0.0.1-py3-none-any.whl
-  ```
-2. 安装whl包
-  ```bash
-   pip install path_to_whl/ge_py-0.0.1-py3-none-any.whl
-  ```
-
-3. 进入data目录下，执行`test_python_pass.py`
-  ```bash
-   python test_python_pass.py
-  ```
-运行结果预期有如下打印，打印Python Pass中设置的`PassContext`与`Graph`信息：
-  ```
-   --------PassContext as follow--------
-    <ge.passes.ge_pass_native.PassContext object at 0x7f07508223b0>
-    TestPass
-    halo, i'm testpass
-    -----------Graph as follow-----------
-    graph("model"):
-      %onnx::MatMul_0 : [#users=1] = Node[type=Data] (attrs = {index: 0})
-      %onnx::MatMul_1 : [#users=1] = Node[type=Data] (attrs = {index: 1})
-      %/MatMul : [#users=1] = Node[type=BatchMatMulV2] (inputs = (x1=%onnx::MatMul_0, x2=%onnx::MatMul_1), attrs = {adj_x1: false, adj_x2: false, offset_x: 0})
-      %onnx::Add_2 : [#users=1] = Node[type=Data] (attrs = {index: 2})
-      %/Add : [#users=1] = Node[type=Add] (inputs = (x1=%/MatMul, x2=%onnx::Add_2))
-    
-      return (%/Add)
-    
-    a test attr
-  ```
-
-
-
-

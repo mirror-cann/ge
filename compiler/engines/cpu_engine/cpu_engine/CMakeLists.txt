@@ -125,12 +125,10 @@ target_compile_options(host_cpu_opskernel_builder PRIVATE
 )
 
 target_compile_options(aicpu_const_folding PRIVATE
-    -O2
     -ftrapv
     -fstack-protector-all
     -fvisibility-inlines-hidden
     -fvisibility=hidden
-    -Werror
     -Wno-deprecated-declarations
 )
 

@@ -14,14 +14,14 @@ namespace ge {
 
 KernelRegFileCodeGenerator::KernelRegFileCodeGenerator(AstBuildContext &ast) : Om2ModelClassGeneratorBase(ast) {}
 
-StructDecl *KernelRegFileCodeGenerator::BuildBinaryBufferStruct() {
+StructDecl *KernelRegFileCodeGenerator::BuildBinaryBufferStruct() const {
   return ast_.Struct("BinaryBuffer", {
       ast_.Field("std::unique_ptr<uint8_t[]>", "data"),
       ast_.Field("size_t", "size", 0),
   });
 }
 
-StructDecl *KernelRegFileCodeGenerator::BuildAicoreRegisterInfoStruct() {
+StructDecl *KernelRegFileCodeGenerator::BuildAicoreRegisterInfoStruct() const {
   return ast_.Struct("AicoreRegisterInfo", {
       ast_.Field("uint32_t", "magic"),
       ast_.Field("const char *", "kernel_name"),
@@ -29,7 +29,7 @@ StructDecl *KernelRegFileCodeGenerator::BuildAicoreRegisterInfoStruct() {
   });
 }
 
-StructDecl *KernelRegFileCodeGenerator::BuildAicpuRegisterInfoStruct() {
+StructDecl *KernelRegFileCodeGenerator::BuildAicpuRegisterInfoStruct() const {
   return ast_.Struct("AicpuRegisterInfo", {
       ast_.Field("const char *", "op_type"),
       ast_.Field("const char *", "so_name"),
@@ -38,7 +38,7 @@ StructDecl *KernelRegFileCodeGenerator::BuildAicpuRegisterInfoStruct() {
   });
 }
 
-StructDecl *KernelRegFileCodeGenerator::BuildCustAicpuRegisterInfoStruct() {
+StructDecl *KernelRegFileCodeGenerator::BuildCustAicpuRegisterInfoStruct() const {
   return ast_.Struct("CustAicpuRegisterInfo", {
       ast_.Field("const char *", "kernel_name"),
       ast_.Field("const char *", "func_name"),
@@ -46,7 +46,7 @@ StructDecl *KernelRegFileCodeGenerator::BuildCustAicpuRegisterInfoStruct() {
   });
 }
 
-FunctionDef *KernelRegFileCodeGenerator::BuildAssembleAicpuLoadOptions() {
+FunctionDef *KernelRegFileCodeGenerator::BuildAssembleAicpuLoadOptions() const {
   auto load_options = ast_.Var("aclrtBinaryLoadOptions &", "load_options");
   auto cpu_kernel_mode = ast_.Var("int32_t", "cpu_kernel_mode");
   auto option = ast_.Var("aclrtBinaryLoadOption", "option");
@@ -59,7 +59,7 @@ FunctionDef *KernelRegFileCodeGenerator::BuildAssembleAicpuLoadOptions() {
   });
 }
 
-FunctionDef *KernelRegFileCodeGenerator::BuildRegisterAicoreKernel() {
+FunctionDef *KernelRegFileCodeGenerator::BuildRegisterAicoreKernel() const {
   auto bin_handle = ast_.Var("aclrtBinHandle &", "bin_handle");
   auto func_handle = ast_.Var("aclrtFuncHandle &", "func_handle");
   auto register_info = ast_.Var("const AicoreRegisterInfo &", "register_info");
@@ -82,7 +82,7 @@ FunctionDef *KernelRegFileCodeGenerator::BuildRegisterAicoreKernel() {
   });
 }
 
-FunctionDef *KernelRegFileCodeGenerator::BuildRegisterAicpuKernel() {
+FunctionDef *KernelRegFileCodeGenerator::BuildRegisterAicpuKernel() const {
   auto bin_handle = ast_.Var("aclrtBinHandle &", "bin_handle");
   auto func_handle = ast_.Var("aclrtFuncHandle &", "func_handle");
   auto register_info = ast_.Var("const AicpuRegisterInfo &", "register_info");
@@ -108,7 +108,7 @@ FunctionDef *KernelRegFileCodeGenerator::BuildRegisterAicpuKernel() {
   });
 }
 
-FunctionDef *KernelRegFileCodeGenerator::BuildRegisterCustAicpuKernel() {
+FunctionDef *KernelRegFileCodeGenerator::BuildRegisterCustAicpuKernel() const {
   auto bin_handle = ast_.Var("aclrtBinHandle &", "bin_handle");
   auto func_handle = ast_.Var("aclrtFuncHandle &", "func_handle");
   auto register_info = ast_.Var("const CustAicpuRegisterInfo &", "register_info");
@@ -154,28 +154,29 @@ MethodDef *KernelRegFileCodeGenerator::BuildRegisterKernels(const Om2CodegenMode
   return ast_.DefineMethod("Om2Model", "RegisterKernels", std::vector<VarRef>{}, "aclError", items);
 }
 
-ExprRef KernelRegFileCodeGenerator::GenerateJsonFile(Arg register_info, Arg json_path) {
+ExprRef KernelRegFileCodeGenerator::GenerateJsonFile(Arg register_info, Arg json_path) const {
   return ast_.Call("GenerateJsonFile", {register_info, json_path});
 }
 
-ExprRef KernelRegFileCodeGenerator::ReadBinaryFileToBuffer(Arg file_path) {
+ExprRef KernelRegFileCodeGenerator::ReadBinaryFileToBuffer(Arg file_path) const {
   return ast_.Call("ReadBinaryFileToBuffer", {file_path});
 }
 
-ExprRef KernelRegFileCodeGenerator::AssembleAicpuLoadOptionsCall(Arg load_options, Arg cpu_kernel_mode) {
+ExprRef KernelRegFileCodeGenerator::AssembleAicpuLoadOptionsCall(Arg load_options, Arg cpu_kernel_mode) const {
   return ast_.Call("AssembleAicpuLoadOptions", {load_options, cpu_kernel_mode});
 }
 
 ExprRef KernelRegFileCodeGenerator::CallRegisterAicoreKernel(Arg bin_handle, Arg func_handle, Arg register_info,
-                                                       Arg bin_info_map) {
+                                                       Arg bin_info_map) const {
   return ast_.Call("RegisterAicoreKernel", {bin_handle, func_handle, register_info, bin_info_map});
 }
 
-ExprRef KernelRegFileCodeGenerator::CallRegisterAicpuKernel(Arg bin_handle, Arg func_handle, Arg register_info) {
+ExprRef KernelRegFileCodeGenerator::CallRegisterAicpuKernel(Arg bin_handle, Arg func_handle, Arg register_info) const {
   return ast_.Call("RegisterAicpuKernel", {bin_handle, func_handle, register_info});
 }
 
-ExprRef KernelRegFileCodeGenerator::CallRegisterCustAicpuKernel(Arg bin_handle, Arg func_handle, Arg register_info) {
+ExprRef KernelRegFileCodeGenerator::CallRegisterCustAicpuKernel(Arg bin_handle, Arg func_handle, Arg register_info)
+                                    const {
   return ast_.Call("RegisterCustAicpuKernel", {bin_handle, func_handle, register_info});
 }
 }  // namespace ge

@@ -66,7 +66,7 @@ if (NOT TARGET flow_graph)
     )
 
     target_link_libraries(flow_graph PRIVATE ascend_protobuf error_manager)
-    target_compile_options(flow_graph PRIVATE -O2)
+    target_compile_options(flow_graph PRIVATE $<$<CONFIG:Release>:-O2>)
 
     install(TARGETS flow_graph
             EXPORT dflow-targets

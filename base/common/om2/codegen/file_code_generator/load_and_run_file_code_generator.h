@@ -21,7 +21,7 @@ class LoadAndRunFileCodeGenerator : public Om2ModelClassGeneratorBase {
   ~LoadAndRunFileCodeGenerator() override = default;
 
   std::vector<DeclNode *> BuildAnonymousNamespaceItems(const Om2CodegenModel &codegen_model,
-                                                       const std::vector<TaskCodeBuilderPtr> &task_code_builders);
+                                                       const std::vector<TaskCodeBuilderPtr> &task_code_builders) const;
   MethodDef *BuildLoadMethod(const Om2CodegenModel &codegen_model,
                              const std::vector<TaskCodeBuilderPtr> &task_code_builders);
   MethodDef *BuildRunAsyncMethod(const Om2CodegenModel &codegen_model);

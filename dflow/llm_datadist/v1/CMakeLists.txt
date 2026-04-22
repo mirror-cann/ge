@@ -40,13 +40,7 @@ add_library(llm_engine SHARED ${LLM_SRC_LIST})
 target_include_directories(llm_engine PRIVATE ${INC_DIR})
 
 target_compile_options(llm_engine PRIVATE
-        -ftrapv
-        -O2
-        -fno-common
-        -Wfloat-equal
-        -Wall
-        -Werror
-        -Wextra)
+        -ftrapv)
 
 target_link_libraries(llm_engine PRIVATE
         $<BUILD_INTERFACE:intf_pub>
@@ -68,7 +62,6 @@ target_link_libraries(llm_engine PRIVATE
         runtime
         msprof_headers
         ascend_protobuf
-        -O2 -fPIC -Wextra -Wfloat-equal
         -Wl,--no-as-needed
         unified_dlog
         )

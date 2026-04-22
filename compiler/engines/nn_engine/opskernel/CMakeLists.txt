@@ -40,11 +40,9 @@ target_link_libraries(opskernel PRIVATE
         mmpa_headers
         msprof_headers
         runtime_headers
-        -O2
         c_sec
         unified_dlog
         graph
-#        graph_base
         error_manager
         aicore_utils
         -Wl,--no-as-needed

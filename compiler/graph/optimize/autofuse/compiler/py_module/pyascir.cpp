@@ -1133,6 +1133,8 @@ DEFINE_IR_ATTR_ACCESSORS(Data, AscDataIrAttrDef, kIndexAttr, int64_t, PyLong_Che
                          SetIndex, GetIndex)
 DEFINE_IR_ATTR_ACCESSORS(Output, AscOutputIrAttrDef, kIndexAttr, int64_t, PyLong_Check, PyLong_FromLong, PyLong_AsLong,
                          SetIndex, GetIndex)
+DEFINE_IR_ATTR_ACCESSORS(ScalarData, AscScalarDataIrAttrDef, kIndexAttr, int64_t, PyLong_Check, PyLong_FromLong,
+                         PyLong_AsLong, SetIndex, GetIndex)
 DEFINE_IR_ATTR_ACCESSORS(IndexExpr, AscIndexExprIrAttrDef, kExprAttr, int64_t, PyLong_Check, PyLong_FromLong,
                          PyLong_AsLong, SetExpr, GetExpr)
 DEFINE_IR_ATTR_ACCESSORS(Gather, AscGatherIrAttrDef, kAxisAttr, int64_t, PyLong_Check, PyLong_FromLong, PyLong_AsLong,
@@ -1236,6 +1238,7 @@ template <typename OpType>
 const std::map<std::string, typename IrAttr<OpType>::handler> IrAttr<OpType>::attr_handlers = {
     {"Data", AutoRegAttrHandle<ge::ascir_op::Data, kIndexAttr>::RegHandle},
     {"Scalar", AutoRegAttrHandle<ge::ascir_op::Scalar, kValueAttr>::RegHandle},
+    {"ScalarData", AutoRegAttrHandle<ge::ascir_op::ScalarData, kIndexAttr>::RegHandle},
     {"IndexExpr", AutoRegAttrHandle<ge::ascir_op::IndexExpr, kExprAttr>::RegHandle},
     {"Output", AutoRegAttrHandle<ge::ascir_op::Output, kIndexAttr>::RegHandle},
     {"Load", AutoRegAttrHandle<ge::ascir_op::Load, kOffsetAttr>::RegHandle},

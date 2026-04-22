@@ -19,7 +19,7 @@ namespace ge {
 LoadAndRunFileCodeGenerator::LoadAndRunFileCodeGenerator(AstBuildContext &ast) : Om2ModelClassGeneratorBase(ast) {}
 
 std::vector<DeclNode *> LoadAndRunFileCodeGenerator::BuildAnonymousNamespaceItems(
-    const Om2CodegenModel &codegen_model, const std::vector<TaskCodeBuilderPtr> &task_code_builders) {
+    const Om2CodegenModel &codegen_model, const std::vector<TaskCodeBuilderPtr> &task_code_builders) const {
   (void)codegen_model;
   std::vector<DeclNode *> items;
   std::unordered_set<std::type_index> helper_types;

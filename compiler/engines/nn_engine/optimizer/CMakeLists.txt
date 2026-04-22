@@ -131,7 +131,6 @@ target_link_libraries(fe PRIVATE
         lowering
         graph
         ge_common
-#        graph_base
         register
         opp_registry
         c_sec
@@ -143,7 +142,6 @@ target_link_libraries(fe PRIVATE
         fusion_pass
         opskernel
         static_mmpa
-        -O2
         -Wl,--no-as-needed
         json
         -ldl)

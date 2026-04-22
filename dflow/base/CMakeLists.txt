@@ -43,11 +43,6 @@ target_compile_definitions(data_flow_base PRIVATE
 )
 
 target_compile_options(data_flow_base PRIVATE
-    -O2
-    -fno-common
-    -Werror
-    -Wextra
-    -Wfloat-equal
     -fvisibility=default
 )
 

@@ -44,7 +44,7 @@ if (NOT ENABLE_TEST)
     )
 
     target_compile_options(llm_wrapper PRIVATE
-            -O2
+            $<$<CONFIG:Release>:-O2>
             -Xlinker -export-dynamic
     )
 

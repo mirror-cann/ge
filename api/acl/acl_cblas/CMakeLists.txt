@@ -43,7 +43,8 @@ target_include_directories(acl_cblas PRIVATE
 )
 
 target_compile_options(acl_cblas PRIVATE
-    $<$<STREQUAL:${TARGET_SYSTEM_NAME},Linux>:-fvisibility=hidden -O2 -fno-common>
+    $<$<STREQUAL:${TARGET_SYSTEM_NAME},Linux>:-fvisibility=hidden>
+    $<$<CONFIG:Release>:-O2>
     $<$<STREQUAL:${TARGET_SYSTEM_NAME},Windows>:/utf-8>
     $<$<AND:$<STREQUAL:${TARGET_SYSTEM_NAME},Windows>,$<STREQUAL:${CMAKE_CONFIGURATION_TYPES},Debug>>:/MTd>
     $<$<AND:$<STREQUAL:${TARGET_SYSTEM_NAME},Windows>,$<STREQUAL:${CMAKE_CONFIGURATION_TYPES},Release>>:/MT>

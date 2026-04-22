@@ -947,4 +947,25 @@ ge::Status FilterCVFusionCommonResult(ascir::FusedScheduledResult &common_schedu
   }
   return ge::SUCCESS;
 }
+
+ge::Status DtypeName(ge::DataType dtype, std::string &dtype_name) {
+  static const std::string kTypeNames[] = {
+      [ge::DT_FLOAT] = "float",     [ge::DT_FLOAT16] = "half",    [ge::DT_INT8] = "int8_t",
+      [ge::DT_INT32] = "int32_t",   [ge::DT_UINT8] = "uint8_t",   "",
+      [ge::DT_INT16] = "int16_t",   [ge::DT_UINT16] = "uint16_t", [ge::DT_UINT32] = "uint32_t",
+      [ge::DT_INT64] = "int64_t",   [ge::DT_UINT64] = "uint64_t", [ge::DT_DOUBLE] = "",
+      [ge::DT_BOOL] = "uint8_t",    [ge::DT_STRING] = "",         [ge::DT_DUAL_SUB_INT8] = "",
+      [ge::DT_DUAL_SUB_UINT8] = "", [ge::DT_COMPLEX64] = "",      [ge::DT_COMPLEX128] = "",
+      [ge::DT_QINT8] = "",          [ge::DT_QINT16] = "",         [ge::DT_QINT32] = "",
+      [ge::DT_QUINT8] = "",         [ge::DT_QUINT16] = "",        [ge::DT_RESOURCE] = "",
+      [ge::DT_STRING_REF] = "",     [ge::DT_DUAL] = "",           [ge::DT_VARIANT] = "",
+      [ge::DT_BF16] = "bfloat16_t",   [ge::DT_UNDEFINED] = "",      [ge::DT_INT4] = "int4_t",
+      [ge::DT_UINT1] = "",          [ge::DT_INT2] = "",           [ge::DT_UINT2] = "",
+      [ge::DT_COMPLEX32] = "",
+  };
+  GE_CHK_BOOL_RET_STATUS((dtype < (sizeof(kTypeNames) / sizeof(kTypeNames[0])) && kTypeNames[dtype] != ""), ge::FAILED,
+                         "Unsupported data type:%d", static_cast<int32_t>(dtype));
+  dtype_name = kTypeNames[dtype];
+  return ge::SUCCESS;
+}
 }  // namespace ascgen_utils

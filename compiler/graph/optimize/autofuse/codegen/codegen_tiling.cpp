@@ -228,7 +228,15 @@ std::string GenAutofuseLaunchDeclare(const ascir::FusedScheduledResult &fused_sc
 
   ss << "extern \"C\" int64_t " << launch_func_name << "(uint32_t blockDim, void* stream, ";
   for (size_t i = 0U; i < fused_schedule_result.input_nodes.size(); i++) {
-    ss << "void* input" << i << ", ";
+    auto &input = fused_schedule_result.input_nodes[i];
+    if (IsOps<Data>(input)) {
+      ss << "void* input" << i << ", ";
+    } else if (IsOps<ScalarData>(input)) {
+      std::string dtype_name;
+      GE_ASSERT_SUCCESS(ascgen_utils::DtypeName(input->outputs[0].attr.dtype, dtype_name), "data type:%d failed",
+                        static_cast<int32_t>(input->outputs[0].attr.dtype));
+      ss << dtype_name << " input" << i << ", ";
+    }
   }
   for (size_t i = 0U; i < fused_schedule_result.output_nodes.size(); i++) {
     ss << "void* output" << i << ", ";
@@ -247,7 +255,15 @@ std::string GenAscirCompileAndLaunchHead(const ascir::FusedScheduledResult &fuse
     }
   }
   for (size_t i = 0U; i < fused_schedule_result.input_nodes.size(); i++) {
-    ss << "void* input" << i << ", ";
+    auto &input = fused_schedule_result.input_nodes[i];
+    if (IsOps<ScalarData>(input)) {
+      std::string dtype_name;
+      GE_ASSERT_SUCCESS(ascgen_utils::DtypeName(input->outputs[0].attr.dtype, dtype_name), "data type:%d failed",
+                        static_cast<int32_t>(input->outputs[0].attr.dtype));
+      ss << dtype_name << " input" << i << ", ";
+    } else if (IsOps<Data>(input)) {
+      ss << "void* input" << i << ", ";
+    }
   }
   for (size_t i = 0U; i < fused_schedule_result.output_nodes.size(); i++) {
     ss << "void* output" << i << ", ";

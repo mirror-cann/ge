@@ -31,11 +31,6 @@ target_compile_definitions(udf_compiler PRIVATE
 )
 
 target_compile_options(udf_compiler PRIVATE
-    -O2
-    -fno-common
-    -Werror
-    -Wextra
-    -Wfloat-equal
     -fvisibility=default
 )
 

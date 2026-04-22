@@ -55,15 +55,6 @@ target_include_directories(npu_sched_model_loader PRIVATE
         .
         )
 
-target_compile_options(npu_sched_model_loader PRIVATE
-        -O2
-        -fPIC
-        -fno-common
-        -Wextra
-        -Wfloat-equal
-        -Werror
-        )
-
 target_link_options(npu_sched_model_loader PRIVATE
         -rdynamic
         -Wl,-Bsymbolic
@@ -298,15 +289,6 @@ target_include_directories(deployer_daemon PRIVATE
         ${TOP_DIR}/runtime/include/external/acl/error_codes
         )
 
-target_compile_options(deployer_daemon PRIVATE
-        -O2
-        -fPIC
-        -fno-common
-        -Wextra
-        -Wfloat-equal
-        -Werror
-        )
-
 target_compile_definitions(deployer_daemon PRIVATE
         google=ascend_private
         )
@@ -438,15 +420,6 @@ target_include_directories(npu_executor_main PRIVATE
         ${TOP_DIR}/runtime/include/external/acl/error_codes
         )
 
-target_compile_options(npu_executor_main PRIVATE
-        -O2
-        -fPIC
-        -fno-common
-        -Wextra
-        -Wfloat-equal
-        -Werror
-        )
-
 target_compile_definitions(npu_executor_main PRIVATE
         google=ascend_private)
 
@@ -551,15 +524,6 @@ target_include_directories(host_cpu_executor_main PRIVATE
         ${TOP_DIR}/runtime/include/external
         ${TOP_DIR}/runtime/include/external/acl
         ${TOP_DIR}/runtime/include/external/acl/error_codes
-        )
-
-target_compile_options(host_cpu_executor_main PRIVATE
-        -O2
-        -fPIC
-        -fno-common
-        -Wextra
-        -Wfloat-equal
-        -Werror
         )
 
 target_compile_definitions(host_cpu_executor_main PRIVATE

@@ -53,7 +53,8 @@ target_include_directories(acl_mdl_impl PRIVATE
 )
 
 target_compile_options(acl_mdl_impl PRIVATE
-    $<$<STREQUAL:${TARGET_SYSTEM_NAME},Linux>:-fvisibility=hidden -O2 -fno-common>
+    $<$<STREQUAL:${TARGET_SYSTEM_NAME},Linux>:-fvisibility=hidden>
+    $<$<CONFIG:Release>:-O2>
     $<$<STREQUAL:${TARGET_SYSTEM_NAME},Windows>:/utf-8 /Od>
     $<$<AND:$<STREQUAL:${TARGET_SYSTEM_NAME},Windows>,$<STREQUAL:${CMAKE_CONFIGURATION_TYPES},Debug>>:/MTd>
     $<$<AND:$<STREQUAL:${TARGET_SYSTEM_NAME},Windows>,$<STREQUAL:${CMAKE_CONFIGURATION_TYPES},Release>>:/MT>
@@ -131,7 +132,8 @@ target_include_directories(acl_mdl PRIVATE
 )
 
 target_compile_options(acl_mdl PRIVATE
-    $<$<STREQUAL:${TARGET_SYSTEM_NAME},Linux>:-fvisibility=hidden -O2 -fno-common>
+    $<$<STREQUAL:${TARGET_SYSTEM_NAME},Linux>:-fvisibility=hidden>
+    $<$<CONFIG:Release>:-O2>
     $<$<STREQUAL:${TARGET_SYSTEM_NAME},Windows>:/utf-8 /Od>
     $<$<AND:$<STREQUAL:${TARGET_SYSTEM_NAME},Windows>,$<STREQUAL:${CMAKE_CONFIGURATION_TYPES},Debug>>:/MTd>
     $<$<AND:$<STREQUAL:${TARGET_SYSTEM_NAME},Windows>,$<STREQUAL:${CMAKE_CONFIGURATION_TYPES},Release>>:/MT>

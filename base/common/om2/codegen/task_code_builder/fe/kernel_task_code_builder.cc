@@ -333,14 +333,14 @@ Status KernelTaskCodeBuilder::RenderDistHelper(std::vector<DeclNode *> &items) {
   return SUCCESS;
 }
 
-StructDecl *KernelTaskCodeBuilder::BuildLaunchKernelCfgHolder() {
+StructDecl *KernelTaskCodeBuilder::BuildLaunchKernelCfgHolder() const {
   return ast_.Struct("LaunchKernelCfgHolder", {
       ast_.Field("aclrtLaunchKernelCfg", "cfg{}"),
       ast_.Field("aclrtLaunchKernelAttr", "attrs[max_launch_cfg_num]"),
   });
 }
 
-StructDecl *KernelTaskCodeBuilder::BuildLaunchKernelConfig() {
+StructDecl *KernelTaskCodeBuilder::BuildLaunchKernelConfig() const {
   return ast_.Struct("LaunchKernelConfig", {
       ast_.Field("uint8_t", "schedule_mode{0U}"),
       ast_.Field("aclrtEngineType", "engine_type{ACL_RT_ENGINE_TYPE_AIC}"),
@@ -352,7 +352,7 @@ StructDecl *KernelTaskCodeBuilder::BuildLaunchKernelConfig() {
   });
 }
 
-FunctionDef *KernelTaskCodeBuilder::BuildAssembleLaunchConfig() {
+FunctionDef *KernelTaskCodeBuilder::BuildAssembleLaunchConfig() const {
   auto holder = ast_.Var("LaunchKernelCfgHolder &", "holder");
   auto launch_config = ast_.Var("const LaunchKernelConfig &", "launch_config");
   auto actual_cfg_num = ast_.Var("size_t", "actual_cfg_num");
@@ -385,7 +385,7 @@ FunctionDef *KernelTaskCodeBuilder::BuildAssembleLaunchConfig() {
   return ast_.DefineFunction("AssembleLaunchConfig", {holder, launch_config}, "void", ast_.Body(body));
 }
 
-FunctionDef *KernelTaskCodeBuilder::BuildKernelTaskDistribute() {
+FunctionDef *KernelTaskCodeBuilder::BuildKernelTaskDistribute() const {
   auto io_addrs = ast_.Var("const std::vector<uint64_t> &", "io_addrs");
   auto args_info = ast_.Var("ArgsInfo *", "args_info");
   auto func_handle = ast_.Var("aclrtFuncHandle", "func_handle");
@@ -403,7 +403,7 @@ FunctionDef *KernelTaskCodeBuilder::BuildKernelTaskDistribute() {
                              });
 }
 
-FunctionDef *KernelTaskCodeBuilder::BuildUpdateExtInfoSession() {
+FunctionDef *KernelTaskCodeBuilder::BuildUpdateExtInfoSession() const {
   auto ext_info = ast_.Var("uint8_t *", "extInfo");
   auto session_info_offset = ast_.Var("size_t", "session_info_offset");
   auto session_id = ast_.Var("uint64_t *", "session_id");
@@ -422,7 +422,7 @@ FunctionDef *KernelTaskCodeBuilder::BuildUpdateExtInfoSession() {
                              });
 }
 
-FunctionDef *KernelTaskCodeBuilder::BuildAssembleAicpuExtInfo() {
+FunctionDef *KernelTaskCodeBuilder::BuildAssembleAicpuExtInfo() const {
   auto ext_info = ast_.Var("uint8_t *", "ext_info");
   auto ext_info_len = ast_.Var("size_t", "ext_info_len");
   auto session_info_offset = ast_.Var("int32_t", "session_info_offset");
@@ -453,7 +453,7 @@ FunctionDef *KernelTaskCodeBuilder::BuildAssembleAicpuExtInfo() {
                              });
 }
 
-FunctionDef *KernelTaskCodeBuilder::BuildAssembleAicpuArgs() {
+FunctionDef *KernelTaskCodeBuilder::BuildAssembleAicpuArgs() const {
   auto args = ast_.Var("uint8_t *", "args");
   auto args_len = ast_.Var("size_t", "args_len");
   auto ext_info_addr = ast_.Var("void *", "ext_info_addr");
@@ -485,7 +485,7 @@ FunctionDef *KernelTaskCodeBuilder::BuildAssembleAicpuArgs() {
                              });
 }
 
-FunctionDef *KernelTaskCodeBuilder::BuildAicpuKernelTaskDistribute() {
+FunctionDef *KernelTaskCodeBuilder::BuildAicpuKernelTaskDistribute() const {
   auto args = ast_.Var("const std::vector<uint8_t> &", "args");
   auto args_info = ast_.Var("ArgsInfo *", "args_info");
   auto func_handle = ast_.Var("aclrtFuncHandle", "func_handle");
@@ -723,7 +723,7 @@ Status KernelTaskCodeBuilder::UpdateShapeAndType(const GeShape &shape,
 }
 
 Status KernelTaskCodeBuilder::ParseExtShape(AicpuExtInfo &aicpu_ext_info, const uint32_t num_tensor,
-  const std::string &node_name, const bool all_shape, const OpDescPtr &op_desc)
+  const std::string &node_name, const bool all_shape, const OpDescPtr &op_desc) const
 {
   std::vector<AicpuShapeAndType *> shape_and_type;
   shape_and_type.clear();

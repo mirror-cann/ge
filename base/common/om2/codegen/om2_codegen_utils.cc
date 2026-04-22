@@ -77,8 +77,6 @@ bool Om2CodegenUtils::IsSupportedTask(ModelTaskType model_task_type) {
          model_task_type == ModelTaskType::MODEL_TASK_STREAM_LABEL_GOTO ||
          model_task_type == ModelTaskType::MODEL_TASK_EVENT_RECORD ||
          model_task_type == ModelTaskType::MODEL_TASK_EVENT_WAIT ||
-         model_task_type == ModelTaskType::MODEL_TASK_NOTIFY_RECORD ||
-         model_task_type == ModelTaskType::MODEL_TASK_NOTIFY_WAIT ||
          model_task_type == ModelTaskType::MODEL_TASK_STREAM_SWITCH ||
          model_task_type == ModelTaskType::MODEL_TASK_MEMCPY_ASYNC;
 }

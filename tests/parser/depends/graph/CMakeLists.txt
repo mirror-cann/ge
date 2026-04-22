@@ -51,10 +51,6 @@ target_compile_definitions(attr_util_stub PRIVATE
     google=ascend_private
 )
 
-target_compile_options(attr_util_stub PRIVATE
-    -O2 -g -fno-common
-)
-
 target_link_libraries(attr_util_stub PRIVATE
     intf_llt_pub
     metadef_headers

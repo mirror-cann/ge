@@ -199,6 +199,7 @@ namespace ascgen_utils {
   bool IsCVFusionUBGraph(const ascir::ImplGraph &impl_graph, ascir::CubeTemplateType cv_fusion_type);
   ge::Status FilterCVFusionUBResult(ascir::FusedScheduledResult &ub_schedule_result);
   ge::Status FilterCVFusionCommonResult(ascir::FusedScheduledResult &common_schedule_result);
+  ge::Status DtypeName(ge::DataType dtype, std::string &dtype_name);
 }  // namespace ascgen_utils
 
 #endif

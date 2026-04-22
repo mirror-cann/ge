@@ -21,6 +21,9 @@ fi
 if [ -z "${OUTPUT_PATH}" ] ; then
   OUTPUT_PATH="${BASEPATH}/output"
 fi
+if [ -z "${HI_PYTHON}" ] ; then
+  HI_PYTHON=python3
+fi
 
 BUILD_RELATIVE_PATH="build"
 BUILD_PATH="${BASEPATH}/${BUILD_RELATIVE_PATH}/"
@@ -240,11 +243,24 @@ run_pyge_pytests() {
   echo "----------pyge tests start----------"
   PYGE_INSTALL_PATH=${BUILD_PATH}/tests/ge/ut/ge/graph/pyge_tests/ge_py_install
   PYGE_SRC_PATH=${BASEPATH}/api/python/ge
+  PYGE_COVERAGE_RCFILE=${BUILD_PATH}/pyge.coveragerc
   ORIGINAL_LD_LIBRARY_PATH=$LD_LIBRARY_PATH
+  cat > ${PYGE_COVERAGE_RCFILE} <<EOF
+[run]
+source =
+    ${PYGE_SRC_PATH}/ge
+    ${PYGE_INSTALL_PATH}/ge
+
+[paths]
+ge =
+    ${PYGE_SRC_PATH}/ge
+    ${PYGE_INSTALL_PATH}/ge
+EOF
   export LD_LIBRARY_PATH=${PYGE_INSTALL_PATH}/ge/_capi/:${ORIGINAL_LD_LIBRARY_PATH}
-  # 优先使用源码路径，因为使用安装路径存在覆盖率统计不到问题
-  export PYTHONPATH=${PYGE_SRC_PATH}:${PYGE_INSTALL_PATH}:$PYTHON_ORIGINAL_PATH
-  ASAN_OPTIONS=detect_leaks=0:detect_container_overflow=0 coverage run --data-file=coverage_pyge --source=${PYGE_SRC_PATH}/ge -m pytest ${BASEPATH}/tests/ge/ut/ge/graph/pyge_tests/*_test.py -vv -s
+  # 先走安装目录，确保 ge.passes 能导到安装产物里的 _ge_pass_native.so；
+  # 覆盖率通过 coveragerc 的 [paths] 映射回源码目录。
+  export PYTHONPATH=${PYGE_INSTALL_PATH}:${PYGE_SRC_PATH}:$PYTHON_ORIGINAL_PATH
+  ASAN_OPTIONS=detect_leaks=0:detect_container_overflow=0 ${HI_PYTHON} -m coverage run --rcfile=${PYGE_COVERAGE_RCFILE} --data-file=coverage_pyge -m pytest ${BASEPATH}/tests/ge/ut/ge/graph/pyge_tests/*_test.py -vv -rs -s
   export LD_LIBRARY_PATH=${ORIGINAL_LD_LIBRARY_PATH}
   export PYTHONPATH=$PYTHON_ORIGINAL_PATH
 }
@@ -391,7 +407,7 @@ if [[ "X$ENABLE_GE_UT" = "Xon" ]] || [[ "X$ENABLE_RT2_UT" = "Xon" ]] || [[ "X$EN
       export LD_PRELOAD=${USE_ASAN}
       echo "----------v1 ut start----------"
 
-      ASAN_OPTIONS=detect_leaks=0:detect_container_overflow=0 coverage run --data-file=coverage_python -m unittest discover python_tests/v1/ut
+      ASAN_OPTIONS=detect_leaks=0:detect_container_overflow=0 ${HI_PYTHON} -m coverage run --data-file=coverage_python -m unittest discover python_tests/v1/ut
       run_pyge_pytests
       export PYTHONPATH=$PYTHON_ORIGINAL_PATH:${BASEPATH}/api/python/llm_datadist/:${BASEPATH}/api/python/
       unset ASAN_OPTIONS
@@ -451,7 +467,11 @@ if [[ "X$ENABLE_GE_UT" = "Xon" ]] || [[ "X$ENABLE_RT2_UT" = "Xon" ]] || [[ "X$EN
       mk_dir ${BASEPATH}/cov
       if [[ "X$ENABLE_PYTHON_UT" = "Xon" ]] || [[ "X$ENABLE_DFLOW_UT" = "Xon" ]]; then
         echo "generate python coverage" ${BUILD_PATH}/coverage_*
-        coverage combine ${BUILD_PATH}/coverage_*
+        if [[ -f ${BUILD_PATH}/pyge.coveragerc ]]; then
+          ${HI_PYTHON} -m coverage combine --rcfile=${BUILD_PATH}/pyge.coveragerc ${BUILD_PATH}/coverage_*
+        else
+          ${HI_PYTHON} -m coverage combine ${BUILD_PATH}/coverage_*
+        fi
         mv .coverage ${BASEPATH}/cov/
       fi
 
@@ -595,7 +615,7 @@ if [[ "X$ENABLE_GE_ST" = "Xon" ]] || [[ "X$ENABLE_RT2_ST" = "Xon" ]] || [[ "X$EN
       export PYTHONPATH=$PYTHON_ORIGINAL_PATH:${BASEPATH}/api/python/llm_datadist/:${BASEPATH}/api/python/
       export LD_PRELOAD=${USE_ASAN}
       echo "----------v1 st start----------"
-      ASAN_OPTIONS=detect_leaks=0:detect_container_overflow=0 coverage run --data-file=coverage_python -m unittest discover python_tests/v1/st
+      ASAN_OPTIONS=detect_leaks=0:detect_container_overflow=0 ${HI_PYTHON} -m coverage run --data-file=coverage_python -m unittest discover python_tests/v1/st
       run_pyge_pytests
       export PYTHONPATH=$PYTHON_ORIGINAL_PATH:${BASEPATH}/api/python/llm_datadist/:${BASEPATH}/api/python/
       unset LD_PRELOAD
@@ -656,7 +676,11 @@ if [[ "X$ENABLE_GE_ST" = "Xon" ]] || [[ "X$ENABLE_RT2_ST" = "Xon" ]] || [[ "X$EN
       mk_dir ${BASEPATH}/cov
       if [[ "X$ENABLE_PYTHON_ST" = "Xon" ]] || [[ "X$ENABLE_DFLOW_ST" = "Xon" ]]; then
         echo "generate python coverage" ${BUILD_PATH}/coverage_*
-        coverage combine ${BUILD_PATH}/coverage_*
+        if [[ -f ${BUILD_PATH}/pyge.coveragerc ]]; then
+          ${HI_PYTHON} -m coverage combine --rcfile=${BUILD_PATH}/pyge.coveragerc ${BUILD_PATH}/coverage_*
+        else
+          ${HI_PYTHON} -m coverage combine ${BUILD_PATH}/coverage_*
+        fi
         mv .coverage ${BASEPATH}/cov/
       fi
 

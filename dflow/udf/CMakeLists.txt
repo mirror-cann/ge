@@ -121,15 +121,10 @@ target_compile_definitions(udf_executor PRIVATE
 )
 
 target_compile_options(udf_executor PRIVATE
-    -O2
     -fno-strict-aliasing
     -fvisibility=hidden
     -Wno-unused-parameter   # protobuf has many unused-parameter alarms
     -Wno-array-bounds       # protobuf has array-bounds alarms on higher g++
-    -Werror
-    -Wextra
-    -Wfloat-equal
-    -fno-common
 )
 
 target_link_libraries(udf_executor PRIVATE

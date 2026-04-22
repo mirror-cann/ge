@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -380,6 +380,8 @@ Status DumpOp::SetDumpModelName() {
   std::set<std::string> model_list = dump_properties_.GetAllDumpModel();
   const bool not_find_by_omname = model_list.find(dynamic_om_name_) == model_list.end();
   const bool not_find_by_modelname = model_list.find(dynamic_model_name_) == model_list.cend();
+  const bool find_by_rootgraphname = (!root_graph_name_.empty()) &&
+                                    (model_list.find(root_graph_name_) != model_list.end());
   const std::string dump_model_name = not_find_by_omname ? dynamic_model_name_ : dynamic_om_name_;
   if ((!dump_model_name.empty()) && (dump_properties_.IsOpDebugOpen())) {
     GELOGI("Dump model name is %s", dump_model_name.c_str());
@@ -388,12 +390,13 @@ Status DumpOp::SetDumpModelName() {
   }
   if ((model_list.find(DUMP_ALL_MODEL) == model_list.end()) &&
       (model_list.find(DUMP_LAYER_OP_MODEL) == model_list.end())) {
-    if (not_find_by_omname && not_find_by_modelname) {
+    if (not_find_by_omname && not_find_by_modelname && !find_by_rootgraphname) {
       std::string model_list_str;
       for (auto &model : model_list) {
         model_list_str += "[" + model + "].";
       }
-      GELOGW("Model %s will not be set to dump, dump list: %s", dump_model_name.c_str(), model_list_str.c_str());
+      GELOGW("Model %s (root_graph: %s) will not be set to dump, dump list: %s",
+            dump_model_name.c_str(), root_graph_name_.c_str(), model_list_str.c_str());
       return FAILED;
     }
   }

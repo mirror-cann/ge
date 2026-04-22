@@ -15,6 +15,7 @@
 #include <utility>
 #include <vector>
 
+#include "graph_metadef/graph/debug/ge_util.h"
 #include "framework/common/debug/ge_log.h"
 
 namespace ge {
@@ -51,7 +52,7 @@ class PythonFusionPassRuntimeRegistryImpl {
     }
 
     descriptor_key_2_runtime_entry_.emplace(
-        pass_desc.descriptor_key, std::make_shared<PythonFusionPassRuntimeEntry>(pass_desc, callbacks));
+        pass_desc.descriptor_key, ge::ComGraphMakeShared<PythonFusionPassRuntimeEntry>(pass_desc, callbacks));
     return true;
   }
 

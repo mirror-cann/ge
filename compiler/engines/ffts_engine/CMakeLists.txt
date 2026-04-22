@@ -62,13 +62,11 @@ target_link_libraries(ffts PRIVATE
         platform
         unified_dlog
         graph
-#        graph_base
         register
         c_sec
         ascend_protobuf
         error_manager
         aicore_utils
-        -O2
         -Wl,--no-as-needed
         json
         -ldl)
