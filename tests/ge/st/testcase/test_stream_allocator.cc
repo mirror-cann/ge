@@ -1090,6 +1090,44 @@ TEST_F(STEST_stream_allocator, cmo_with_label_nodes) {
   };
 }
 
+TEST_F(STEST_stream_allocator, cmo_enable_inner_parallel) {
+  auto graph = BuildCmoGraph();
+  auto root_graph = GraphUtilsEx::GetComputeGraph(graph);
+  auto cmo = root_graph->FindNode("cmo1");
+  ASSERT_NE(cmo, nullptr);
+  AttrUtils::SetStr(cmo->GetOpDesc(), public_attr::USER_STREAM_LABEL, "user_stream_label");
+  AttrUtils::SetBool(cmo->GetOpDesc(), "_enable_inner_parallel", true);
+
+  auto matmul = root_graph->FindNode("matmul");
+  ASSERT_NE(matmul, nullptr);
+  AttrUtils::SetStr(matmul->GetOpDesc(), public_attr::USER_STREAM_LABEL, "user_stream_label");
+
+  // new session & add graph
+  map<string, string> options;
+  Status ret = ge::GELib::Initialize(options);
+  EXPECT_EQ(ret, SUCCESS);
+
+  Session session(options);
+  ret = session.AddGraph(0, graph, options);
+  EXPECT_EQ(ret, SUCCESS);
+  // build input tensor
+  std::vector<InputTensorInfo> inputs;
+  // build_graph through session
+  ret = session.BuildGraph(0, inputs);
+  EXPECT_EQ(ret, SUCCESS);
+
+  CHECK_GRAPH(PreRunAfterBuild) {
+    auto cmo = graph->FindNode("cmo1");
+    ASSERT_NE(cmo, nullptr);
+    auto stream_id = cmo->GetOpDesc()->GetStreamId();
+    EXPECT_TRUE(cmo->GetOpDesc()->HasAttr(ATTR_NAME_STREAM_LABEL));
+    auto matmul = graph->FindNode("matmul");
+    ASSERT_NE(matmul, nullptr);
+    auto stream_id1 = matmul->GetOpDesc()->GetStreamId();
+    EXPECT_NE(stream_id1, stream_id);
+  };
+}
+
 TEST_F(STEST_stream_allocator, single_stream) {
   auto graph = BuildGenmaskGraph();
   map<string, string> options;

@@ -562,6 +562,14 @@ Status StreamUtils::TransUserStreamLabel(const ComputeGraphPtr &root_graph) {
         GELOGI(
           "Node %s(%s) has both user stream label %s and inner stream label: %s. User stream label will take effect.",
           op_desc->GetNamePtr(), op_desc->GetTypePtr(), user_stream_label.c_str(), inner_stream_label.c_str());
+        bool enable_inner_parallel = false;
+        (void)AttrUtils::GetBool(op_desc, "_enable_inner_parallel", enable_inner_parallel);
+        if (enable_inner_parallel) {
+          user_stream_label = user_stream_label + "_" + inner_stream_label;
+          (void)AttrUtils::SetStr(op_desc, public_attr::USER_STREAM_LABEL, user_stream_label);
+          GELOGI("Node %s(%s) has been enabled inner parallel, update user stream label to %s", op_desc->GetNamePtr(),
+                 op_desc->GetTypePtr(), user_stream_label.c_str());
+        }
       }
       GELOGI(
         "Node %s(%s) has user stream label: %s. User stream label will take effect.",

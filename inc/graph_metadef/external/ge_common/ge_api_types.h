@@ -785,6 +785,7 @@ const std::set<std::string> global_options = {CORE_TYPE,
 namespace public_attr {
 // user can set stream label to define concurrent structure
 static const char_t *const USER_STREAM_LABEL = "_user_stream_label";
+static const char_t *const ENABLE_INNER_PARALLEL = "_enable_inner_parallel"; // 配合USER_STREAM_LABEL使用，当该属性为true时，USER_STREAM_LABEL范围内的算子还按照GE原有的并发策略分流
 static const char_t *const USER_STREAM_PRIORITY = "_user_stream_priority";
 static const char_t *const OP_AI_CORE_NUM = "_op_aicore_num";
 static const char_t *const OP_VECTOR_CORE_NUM = "_op_vectorcore_num";
