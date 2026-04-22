@@ -17,6 +17,7 @@
 #include <utility>
 #include "graph/node.h"
 #include "graph/utils/op_desc_utils.h"
+#include "common/checker.h"
 #include "asc_lowerer/asc_overrides.h"
 #include "asc_lowerer/kernel_box.h"
 #include "utils/auto_fuse_config.h"
@@ -72,15 +73,15 @@ class GraphFusionReasonStore {
       TEMPORARILY_NOT_SUPPORTED = 2
     };
 
-    static void StartProcessGraph(const std::string& graph_name);
+    static void StartProcessGraph(const std::string &graph_name);
 
-    static void AddCurrentGraphNode(const std::string& node_name, const std::string& node_type);
+    static void AddCurrentGraphNode(const std::string &node_name, const std::string &node_type);
 
-    static void CountNodeFuseFailReason(const std::string& node_name, const std::string& reason, FailReasonCategory category);
+    static void CountNodeFuseFailReason(const std::string &node_name, const std::string &reason, FailReasonCategory category);
 
-    static void ShowGraphFusionFailReasons(const std::string& graph_name);
+    static void ShowGraphFusionFailReasons(const std::string &graph_name);
 
-    static void ClearGraphData(const std::string& graph_name);
+    static void ClearGraphData(const std::string &graph_name);
 
   private:
     struct NodeInfo {

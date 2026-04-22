@@ -167,17 +167,23 @@ bool IsOutputAnchorEmptyTensor(const ge::OutDataAnchor* out_anchor) {
 
 bool IsViewNodeShouldLowering(vector<const ge::Node *> origin_nodes) {
   if (origin_nodes.size() != 1) {
-    GELOGI("View node num exceed one, Fall back lowering.");
+    for (const auto &node : origin_nodes) {
+      GraphFusionReasonStore::CountNodeFuseFailReason(node->GetName(), "View node num exceed one, Fall back lowering.",
+                                                      GraphFusionReasonStore::FailReasonCategory::TEMPORARILY_NOT_SUPPORTED);
+    }
     return false;
   }
   auto node = origin_nodes.at(0);
   if (node->GetType() != "Reshape") {
-    GELOGI("Now only support single reshape node lowering, Fall back lowering.");
+    GraphFusionReasonStore::CountNodeFuseFailReason(node->GetName(), "Now only support single reshape node lowering, Fall back lowering.",
+                                                    GraphFusionReasonStore::FailReasonCategory::TEMPORARILY_NOT_SUPPORTED);
     return false;
   }
   if (!node->GetOutControlNodes().empty() || !node->GetInControlNodes().empty() ||
       (node->GetOutDataNodesSize() != 1)) {
-    GELOGI("View node has control edge, or node has multi output anchor, Fall back lowering.");
+    GraphFusionReasonStore::CountNodeFuseFailReason(node->GetName(), "View node has control edge, or node has multi output anchor, Fall back lowering.",
+                                                    GraphFusionReasonStore::FailReasonCategory::TEMPORARILY_NOT_SUPPORTED);
+    return false;
   }
   return true;
 }

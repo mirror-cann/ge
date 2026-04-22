@@ -22,7 +22,7 @@
 #include "asc_lowerer/asc_overrides.h"
 #include "asc_lowerer/loop_common.h"
 #include "lowerings.h"
-
+#include "lowering/op_lowering_impl/lowering_impl.h"
 #include "ascir_ops_utils.h"
 #include "backend/backend_spec.h"
 #include "op_helper/lower_split_helper.h"
@@ -101,6 +101,21 @@ graphStatus CreateConvSubgraphAttr(const NodePtr &node, vector<const Node *> &co
   return GRAPH_SUCCESS;
 }
 
+graphStatus RecordLiftingSkipReason(const NodePtr &fuse_node, const std::string &reason) {
+  GE_ASSERT_NOTNULL(fuse_node->GetOpDesc());
+  auto fuse_attrs = fuse_node->GetOpDesc()->GetAttrsGroup<AutoFuseAttrs>();
+  GE_ASSERT_NOTNULL(fuse_attrs);
+  const std::vector<const ge::Node *> origin_nodes = fuse_attrs->GetOriginNodes();
+  for (const auto *origin_node : origin_nodes) {
+    if (origin_node != nullptr) {
+      GraphFusionReasonStore::CountNodeFuseFailReason(
+          origin_node->GetName(), "Skip lifting: " + reason,
+          GraphFusionReasonStore::FailReasonCategory::TEMPORARILY_NOT_SUPPORTED);
+    }
+  }
+  return GRAPH_SUCCESS;
+}
+
 graphStatus CreateMMSubgraphAttr(const NodePtr &node, vector<const Node *> &compute_ops,
                                  size_t &cube_real_inputs) {
   const auto &sub_graph = ComGraphMakeShared<ComputeGraph>(kMatmulSubgraph + node->GetName());
@@ -167,13 +182,12 @@ bool IsCubeSkipLifting(const NodePtr &node, const size_t min_compute_nodes,
     cube_real_inputs = asc_node->GetInNodes().size(); // ascgraph里面的cube节点，即使输入是某个节点输出的多引用，也有至少两个输入
     break;
   }
-
   if (has_conv) {
     GE_ASSERT_SUCCESS(CreateConvSubgraphAttr(node, compute_ops, cube_real_inputs));
-    GELOGI("Skip lifting node: %s, cube_real_inputs %zu, has_conv", node->GetName().c_str(), cube_real_inputs);
+    GELOGI("Skip lifting node: %s, cube_real_inputs %zu, has_conv", node->GetNamePtr(), cube_real_inputs);
   } else {
     GE_ASSERT_SUCCESS(CreateMMSubgraphAttr(node, compute_ops, cube_real_inputs));
-    GELOGI("Skip lifting node: %s, cube_real_inputs %zu, has_matmul", node->GetName().c_str(), cube_real_inputs);
+    GELOGI("Skip lifting node: %s, cube_real_inputs %zu, has_matmul", node->GetNamePtr(), cube_real_inputs);
   }
   return true;
 }
@@ -218,7 +232,7 @@ bool IsSkipLifting(const NodePtr &node, size_t min_compute_nodes) {
   GE_ASSERT_NOTNULL(fuse_attrs);
   bool disable_lifting = false;
   if (AttrUtils::GetBool(node->GetOpDesc(), "_disable_lifting", disable_lifting) && disable_lifting) {
-    GELOGI("Skip lifting node: %s, as it has disable lifting flag", node->GetName().c_str());
+    GELOGI("Skip lifting node: %s, as it has disable lifting flag", node->GetNamePtr());
     return true;
   }
   // step1: cube type
@@ -228,7 +242,7 @@ bool IsSkipLifting(const NodePtr &node, size_t min_compute_nodes) {
   // step2: fused from can_fuse
   auto &inner_fuse_attr = GetInterAttrs(fuse_attrs);
   if (inner_fuse_attr.split_global_id == kNonSplitGlobalId && !inner_fuse_attr.is_fuse_from_lowering) {
-    GELOGI("Skip lifting node: %s, as it is fused from can_fuse, and is not split fuse type.", node->GetName().c_str());
+    GELOGI("Skip lifting node: %s, as it is fused from can_fuse, and is not split fuse type.", node->GetNamePtr());
     return true;
   }
   // step3: split type
@@ -241,19 +255,19 @@ bool IsSkipLifting(const NodePtr &node, size_t min_compute_nodes) {
   auto origin_nodes = fuse_attrs->GetOriginNodes();
   if ((origin_nodes.size() > kNumOne) && (fuse_attrs->HasFuseType(loop::FuseType::kSliceSplit))) {
     GELOGI("Skip lifting node: %s, as slice fuse other node, origin node size is %zu",
-           node->GetName().c_str(), origin_nodes.size());
+           node->GetNamePtr(), origin_nodes.size());
     return true;
   }
   // step4: compute node num
   vector<const Node*> compute_nodes = AutofuseUtils::GetComputeOps(origin_nodes);
   if (compute_nodes.size() >= min_compute_nodes) {
     GELOGD("Skip lifting node：%s, as num fused nodes num %zu >= %zu",
-           node->GetName().c_str(), compute_nodes.size(), min_compute_nodes);
+           node->GetNamePtr(), compute_nodes.size(), min_compute_nodes);
     return true;
   }
 
   if (fuse_attrs->GetOriginOutputBuffers().size() > kNumOne) {
-    GELOGD("Skip lifting node: %s, as num origin output anchors %zu > 1", node->GetName().c_str(),
+    GELOGD("Skip lifting node: %s, as num origin output anchors %zu > 1", node->GetNamePtr(),
            fuse_attrs->GetOriginOutputBuffers().size());
     return true;
   }
@@ -265,7 +279,7 @@ bool IsSkipLifting(const NodePtr &node, size_t min_compute_nodes) {
       GE_ASSERT_NOTNULL(optimized_input_buffer->GetOwnerNode());
       auto optimized_input_node = optimized_input_buffer->GetOwnerNode();
       if (!OpTypeUtils::IsConstNode(optimized_input_node->GetType())) {
-        GELOGD("Skip lifting node: %s, as it optimize buffer loads %s", node->GetName().c_str(),
+        GELOGD("Skip lifting node: %s, as it optimize buffer loads %s", node->GetNamePtr(),
                loop::BufferName(*fuse_attrs->GetOptimizedInputBuffers().begin()).c_str());
         return true;
       }
@@ -279,7 +293,7 @@ bool IsSkipLifting(const NodePtr &node, size_t min_compute_nodes) {
   }
   if ((origin_nodes.size() == kNumOne) && (origin_nodes.at(0) != nullptr) &&
       (origin_nodes.at(0)->GetAllInDataAnchorsSize() >= min_one_node_in_data)) {
-    GELOGI("Skip lifting node: %s, as it Only one node But Origin Input Size %u", node->GetName().c_str(),
+    GELOGI("Skip lifting node: %s, as it Only one node But Origin Input Size %u", node->GetNamePtr(),
            fuse_attrs->GetOriginNodes().at(0)->GetAllInDataAnchorsSize());
     return true;
   }
@@ -288,7 +302,7 @@ bool IsSkipLifting(const NodePtr &node, size_t min_compute_nodes) {
   if ((origin_nodes.size() == kNumOne) && (IsSpecificConditionSkipLifting(node))) {
     GELOGI("Skip lifting node: %s, as the origin node is "
            "Non-tail axis Transpose with Tail axis greater than or equal to 512B",
-           node->GetName().c_str());
+           node->GetNamePtr());
     return true;
   }
   return false;
@@ -296,15 +310,15 @@ bool IsSkipLifting(const NodePtr &node, size_t min_compute_nodes) {
 
 graphStatus LiftingAscBackendOp(const NodePtr &node) {
   const auto fuse_attr = node->GetOpDesc()->GetAttrsGroup<AutoFuseAttrs>();
-  GE_WARN_ASSERT(fuse_attr != nullptr, "Node %s has no AutoFuseAttrs", node->GetName().c_str());
+  GE_WARN_ASSERT(fuse_attr != nullptr, "Node %s has no AutoFuseAttrs", node->GetNamePtr());
   std::vector<const ge::Node *> origin_nodes = fuse_attr->GetOriginNodes();
 
   const std::map<size_t, std::set<const ge::InDataAnchor *>> &concrete_edges = fuse_attr->GetConcreteEdges();
   for (auto &edges : concrete_edges) {
     auto in_anchor = node->GetInDataAnchor(static_cast<int32_t>(edges.first));
-    GE_ASSERT_NOTNULL(in_anchor, "Node %s has no input anchor %zu", node->GetName().c_str(), edges.first);
+    GE_ASSERT_NOTNULL(in_anchor, "Node %s has no input anchor %zu", node->GetNamePtr(), edges.first);
     auto src = in_anchor->GetPeerOutAnchor();
-    GE_ASSERT_NOTNULL(src, "Node %s input %zu has no peer out anchor", node->GetName().c_str(), edges.first);
+    GE_ASSERT_NOTNULL(src, "Node %s input %zu has no peer out anchor", node->GetNamePtr(), edges.first);
     for (auto &dst : edges.second) {
       GE_ASSERT_NOTNULL(dst);
       if (!dst->IsLinkedWith(src)) {
@@ -374,7 +388,7 @@ graphStatus LiftingManager::LiftingGraph(const ComputeGraphPtr &graph) {
     }
     auto fuse_attrs = node->GetOpDesc()->GetAttrsGroup<AutoFuseAttrs>();
     if (fuse_attrs == nullptr) {
-      GELOGD("Skip lifting node: %s, as it has no auto fuse attrs", node->GetName().c_str());
+      GELOGD("Skip lifting node: %s, as it has no auto fuse attrs", node->GetNamePtr());
       continue;
     }
     auto &origin_output = fuse_attrs->GetOriginOutputBuffers()[0];
@@ -384,7 +398,7 @@ graphStatus LiftingManager::LiftingGraph(const ComputeGraphPtr &graph) {
 
     if (IsSkipLifting(node, kMinComputeNodes)) {
       GELOGD("Skip lifting node: %s(%s), as it need skip lifting process.",
-             node->GetName().c_str(), node->GetType().c_str());
+             node->GetNamePtr(), node->GetType().c_str());
       continue;
     }
 
@@ -393,10 +407,11 @@ graphStatus LiftingManager::LiftingGraph(const ComputeGraphPtr &graph) {
       continue;
     }
 
-    GELOGI("Lift AscBackend node %s, node list is %s, as: Num fused nodes %zu < %zu.", node->GetName().c_str(),
+    GELOGI("Lift AscBackend node %s, node list is %s, as: Num fused nodes %zu < %zu.", node->GetNamePtr(),
            loop::StrJoin(fuse_attrs->GetOriginNodes(), [](const Node *n) {
              return n->GetType() + "(" + n->GetName() + ")";
            }).c_str(), fuse_attrs->GetOriginNodes().size(), kMinComputeNodes);
+    (void)RecordLiftingSkipReason(node, "Not satisfy requierent of skiping lifting , need do lifting");
     GE_ASSERT_GRAPH_SUCCESS(LiftingAscBackendOp(node));
   }
   return GRAPH_SUCCESS;

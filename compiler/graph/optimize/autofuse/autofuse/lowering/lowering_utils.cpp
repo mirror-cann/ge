@@ -261,15 +261,25 @@ std::string LoweringUtils::GetConstructDumpGraphName(const NodePtr &node) {
 }
 
 graphStatus LoweringUtils::CheckSpecialFuseType(loop::KernelBox &kernel_box,
-                                                std::shared_ptr<ge::loop::AscOverrides>&asc_graph) {
+                                                std::shared_ptr<ge::loop::AscOverrides> &asc_graph) {
   if (!kernel_box.IsCube() && !(kernel_box.Type() == ge::loop::FuseType::kSliceSplit)) {
-    GE_WARN_ASSERT(!asc_graph->IsScalarGraph(),
-                   "Fall back lowering for node scope: %s. As unsupported scalar AscendC IR graph for kernel box %s",
-                   kernel_box.DebugString().c_str(), kernel_box.Name().c_str());
+    if (asc_graph->IsScalarGraph()) {
+      for (const auto &node : kernel_box.GetAscendIrNodes()) {
+        GraphFusionReasonStore::CountNodeFuseFailReason(node->GetName(), "Unsupported scalar AscendC IR graph.",
+                                                        GraphFusionReasonStore::FailReasonCategory::BACKEND_NOT_SUPPORTED);
+      }
+      GE_WARN_ASSERT(false, "Fall back lowering for node scope: %s. As unsupported scalar AscendC IR graph for kernel box %s",	 
+                     kernel_box.DebugString().c_str(), kernel_box.Name().c_str());
+    }
   } else if (kernel_box.Type() == ge::loop::FuseType::kSliceSplit) {
-    GE_WARN_ASSERT(!asc_graph->IsAscAxisEmpty(),
-                   "Fall back lowering for node scope: %s. As unsupported scalar AscendC IR graph for kernel box %s",
-                   kernel_box.DebugString().c_str(), kernel_box.Name().c_str());
+    if (asc_graph->IsAscAxisEmpty()) {
+      for (const auto &node : kernel_box.GetAscendIrNodes()) {
+        GraphFusionReasonStore::CountNodeFuseFailReason(node->GetName(), "SliceSplit type, Unsupported scalar AscendC IR graph.",
+                                                        GraphFusionReasonStore::FailReasonCategory::BACKEND_NOT_SUPPORTED);
+      }
+      GE_WARN_ASSERT(false, "SliceSplit type, Fall back lowering for node scope: %s. As unsupported scalar AscendC IR graph for kernel box %s",	 
+                     kernel_box.DebugString().c_str(), kernel_box.Name().c_str());
+    }
   }
   return GRAPH_SUCCESS;
 }
@@ -374,7 +384,7 @@ GraphFusionReasonStore::Storage& GraphFusionReasonStore::GetGlobalStorage() {
   return global_storage;
 }
 
-void GraphFusionReasonStore::StartProcessGraph(const std::string& graph_name) {
+void GraphFusionReasonStore::StartProcessGraph(const std::string &graph_name) {
   if (!IsLogEnable(GE_MODULE_NAME, DLOG_INFO)) {
     return;
   }
@@ -392,7 +402,7 @@ void GraphFusionReasonStore::StartProcessGraph(const std::string& graph_name) {
   storage.graph_node_info_[graph_name].clear();
 }
 
-void GraphFusionReasonStore::AddCurrentGraphNode(const std::string& node_name, const std::string& node_type) {
+void GraphFusionReasonStore::AddCurrentGraphNode(const std::string &node_name, const std::string &node_type) {
   if (!IsLogEnable(GE_MODULE_NAME, DLOG_INFO)) {
     return;
   }
@@ -409,7 +419,7 @@ void GraphFusionReasonStore::AddCurrentGraphNode(const std::string& node_name, c
   storage.graph_node_info_[storage.current_graph_][node_name] = {node_type, storage.global_node_order_.fetch_add(1)};
 }
 
-void GraphFusionReasonStore::CountNodeFuseFailReason(const std::string& node_name, const std::string& reason, FailReasonCategory category) {
+void GraphFusionReasonStore::CountNodeFuseFailReason(const std::string &node_name, const std::string &reason, FailReasonCategory category) {
   if (!IsLogEnable(GE_MODULE_NAME, DLOG_INFO) && !IsLogEnable(GE_MODULE_NAME, DLOG_DEBUG)) {
     return;
   }
@@ -422,7 +432,7 @@ void GraphFusionReasonStore::CountNodeFuseFailReason(const std::string& node_nam
   GELOGI("Skip lowering node %s, as: %s (category: %s)", node_name.c_str(), reason.c_str(), GetCategoryName(category));
 }
 
-void GraphFusionReasonStore::ShowGraphFusionFailReasons(const std::string& graph_name) {
+void GraphFusionReasonStore::ShowGraphFusionFailReasons(const std::string &graph_name) {
   if (!IsLogEnable(GE_MODULE_NAME, DLOG_INFO) && !IsLogEnable(GE_MODULE_NAME, DLOG_DEBUG)) {
     return;
   }
@@ -460,7 +470,7 @@ void GraphFusionReasonStore::ShowGraphFusionFailReasons(const std::string& graph
   }
 }
 
-void GraphFusionReasonStore::ClearGraphData(const std::string& graph_name) {
+void GraphFusionReasonStore::ClearGraphData(const std::string &graph_name) {
   if (!IsLogEnable(GE_MODULE_NAME, DLOG_INFO)) {
     return;
   }
