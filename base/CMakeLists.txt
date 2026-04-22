@@ -174,6 +174,7 @@ set(SRC_BASE_LIST
     "common/helper/mobile/model_file_saver.cc"
     "common/helper/mobile/model.cc"
     "common/error_registry/error_registry.cc"
+    "common/ge_api_error_codes.cc"
 )
 
 if (NOT ENABLE_D AND NOT ENABLE_ACL)
