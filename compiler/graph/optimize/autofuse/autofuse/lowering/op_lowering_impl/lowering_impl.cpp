@@ -37,6 +37,9 @@ constexpr int gather_mode_two = 2;
 constexpr int gather_data_num_two = 2;
 constexpr int gather_data_num_three = 3;
 constexpr int len_of_num_to_str = 20;
+const std::vector<std::string> kControlOpTypes = {"If", "Case", "While", "Switch", "RefSwitch", "Merge", "RefMerge",
+                                                  "Enter", "RefEnter", "NextIteration", "RefNextIteration",
+                                                  "Exit", "RefExit", "StreamActive", "StreamSwitch", "StreamMerge", "LoopCond"};
 
 // 检查是否因为尾轴太小而跳过lowering
 // 返回true表示应该跳过，false表示继续lowering
@@ -576,15 +579,30 @@ graphStatus LowerSplitToStridedSlices(const NodePtr &node, const vector<Expressi
   return GRAPH_SUCCESS;
 }
 
+bool InputIsConditionNode(const NodePtr &node) {
+  bool node_peerin_node_is_branch = false;
+  for (auto in_node : node->GetInNodesPtr()) {  
+    GE_ASSERT_NOTNULL(in_node);
+    if (find(kControlOpTypes.begin(), kControlOpTypes.end(), in_node->GetType()) != kControlOpTypes.end()) {
+      node_peerin_node_is_branch = true;
+      GELOGI("peerin nodes is branch type: %s", node->GetName().c_str());
+      break;
+    }
+  }
+  return node_peerin_node_is_branch;
+}
+
 graphStatus LowerSplitToNormalSplit(const NodePtr &node, std::vector<ge::Expression> &x_dims, int64_t split_dim, const InDataAnchorPtr &x_anchor) {
   GELOGI("split node %s do normal split lowering.", node->GetName().c_str());
   // TODO: LOWERING_WARN_RECORD_REASON
-  if ((node->GetAllOutDataAnchorsSize() > loop::StoreSplitOp::kSplitCanFuseMaxOutput)
+  bool input_is_condition_node = InputIsConditionNode(node);
+  if ((input_is_condition_node)
+      || (node->GetAllOutDataAnchorsSize() > loop::StoreSplitOp::kSplitCanFuseMaxOutput)
       || ((x_dims.size() != 1U) && (static_cast<uint32_t>(split_dim) == (x_dims.size() - 1))
           && (CheckEndDimHasOne(node) == true) && (node->GetAllOutDataAnchorsSize() > loop::StoreSplitOp::kSplitCanLowerEndDimMaxOutput))) {
-    GELOGI("Skip lowering node %s(%s), as: split node %s has output size %zu > %zu",
-           node->GetName().c_str(), node->GetType().c_str(), node->GetName().c_str(), node->GetAllOutDataAnchorsSize(),
-           loop::StoreSplitOp::kSplitCanFuseMaxOutput);
+    GELOGI("Skip lowering node %s(%s), as: Conditions: input_is_condition_node(%s); split node %s has output size %zu > %zu",
+           node->GetName().c_str(), node->GetType().c_str(), input_is_condition_node ? "true" : "false",
+           node->GetName().c_str(), node->GetAllOutDataAnchorsSize(), loop::StoreSplitOp::kSplitCanFuseMaxOutput);
     return GRAPH_FAILED;
   }
 

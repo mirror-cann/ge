@@ -3092,6 +3092,73 @@ TEST_F(LoopLoweringToAscBackendUT, TestSplitDLoweringSplitInputDimNotEqOutputDim
   }
 }
 
+TEST_F(LoopLoweringToAscBackendUT, TestSplitDLoweringSplitPeerInNodeIsBranch) {
+  [this]() {
+    auto data0 = es_graph_->CreateInput(0, "data0", nullptr);
+    data0.SetSymbolShape({"192", "64", "30"});
+  }();
+
+  auto desc_if = ge::CompliantOpDescBuilder().OpType("If")
+  .Name("If")
+  .IrDefInputs({
+  {"cond", ge::kIrInputRequired, ""},
+  {"input", ge::kIrInputDynamic, ""},
+  })
+  .IrDefOutputs({
+  {"output", ge::kIrOutputDynamic, ""},
+  })
+  .InstanceDynamicOutputNum("output", 1)
+  .IrDefAttrs({})
+  .Build();
+
+  auto desc = ge::CompliantOpDescBuilder().OpType("SplitD")
+  .Name("SplitD")
+  .IrDefInputs({
+  {"x", ge::kIrInputRequired, ""},
+  })
+  .IrDefOutputs({
+  {"y", ge::kIrOutputDynamic, ""},
+  })
+  .InstanceDynamicOutputNum("y", 3)
+  .IrDefAttrs({
+    {
+    "split_dim",
+    ge::kAttrRequired,
+    "VT_INT",
+    ge::AnyValue::CreateFrom(static_cast<int64_t>(-1))
+    },
+  {
+  "num_split",
+  ge::kAttrRequired,
+  "VT_INT",
+  ge::AnyValue::CreateFrom(static_cast<int64_t>(3))
+  },
+  })
+  .Build();
+  auto graph = es_graph_->Build();
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+  auto node_if = cg->AddNode(desc_if);
+  auto node = cg->AddNode(desc);
+  auto x = cg->FindNode("data0");
+  ASSERT_NE(x, nullptr);
+  ASSERT_EQ(ge::GraphUtils::AddEdge(x->GetOutDataAnchor(0), node_if->GetInDataAnchor(0)), GRAPH_SUCCESS);
+  ASSERT_EQ(ge::GraphUtils::AddEdge(node_if->GetOutDataAnchor(0), node->GetInDataAnchor(0)), GRAPH_SUCCESS);  
+  auto esb_graph = es_graph_->GetEsbGraph();
+  auto split_out0 = esb_graph->GetEsbTensorFromNode(node, 0);
+  auto split_out1 = esb_graph->GetEsbTensorFromNode(node, 1);
+  auto split_out2 = esb_graph->GetEsbTensorFromNode(node, 2);
+  split_out0->SetSymbolShape({Symbol(192), Symbol(64), Symbol(10), Symbol(10)});
+  split_out1->SetSymbolShape({Symbol(192), Symbol(64), Symbol(10), Symbol(10)});
+  split_out2->SetSymbolShape({Symbol(192), Symbol(64), Symbol(10), Symbol(10)});
+  es_graph_->SetOutput(split_out0, 0);
+  es_graph_->SetOutput(split_out1, 1);
+  es_graph_->SetOutput(split_out2, 2);
+
+  ASSERT_EQ(LoweringManager::LoweringGraph(cg), GRAPH_SUCCESS);
+  auto split = cg->FindNode("SplitD");
+  ASSERT_NE(split, nullptr);
+}
+
 TEST_F(LoopLoweringToAscBackendUTV1, TestSplitDLoweringSplitOutputEndDimHasOne) {
   [this]() {
     auto data0 = es_graph_->CreateInput(0, "data0", nullptr);
