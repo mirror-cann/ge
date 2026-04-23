@@ -18,6 +18,8 @@
 
 # Auto-downloaded remote skills
 .claude/skills/_remote/
+.claude/skills/gitcode-pr
+.claude/skills/gitcode-issue
 
 # IDE
 .vscode

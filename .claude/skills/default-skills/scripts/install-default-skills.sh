@@ -8,6 +8,7 @@ DEFAULT_SKILLS=("gitcode-pr" "gitcode-issue" "api-doc-generator")
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SKILLS_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 REMOTE_DIR="$SKILLS_DIR/_remote"
+GITIGNORE="$(cd "$SCRIPT_DIR/../../.." && pwd)/.gitignore"
 
 # 创建远程 skills 子目录
 mkdir -p "$REMOTE_DIR"
@@ -30,15 +31,27 @@ if [ ! -d "$TEMP_DIR/skills/skills" ]; then
     exit 1
 fi
 
-# 拷贝技能到 .claude/skills/_remote/ 目录
+# 拷贝技能到 .claude/skills/_remote/ 目录，并在 skills 根目录创建符号链接
 echo "Installing skills..."
 for skill in "${DEFAULT_SKILLS[@]}"; do
     if [ -d "$TEMP_DIR/skills/skills/$skill" ]; then
         cp -r "$TEMP_DIR/skills/skills/$skill" "$REMOTE_DIR/"
+        # 创建符号链接使 Claude Code 能发现 _remote 下的 skill（仅扫描一级目录）
+        ln -sfn "_remote/$skill" "$SKILLS_DIR/$skill"
         echo "Installed skill: $skill"
     else
         echo "Warning: Skill '$skill' not found in repository"
     fi
 done
+
+# 更新 .gitignore：确保符号链接被忽略（幂等，已有条目不会重复添加）
+if [ -f "$GITIGNORE" ]; then
+    for skill in "${DEFAULT_SKILLS[@]}"; do
+        ENTRY=".claude/skills/$skill"
+        if ! grep -qxF "$ENTRY" "$GITIGNORE"; then
+            echo "$ENTRY" >> "$GITIGNORE"
+        fi
+    done
+fi
 
 echo "All skills installed successfully."
