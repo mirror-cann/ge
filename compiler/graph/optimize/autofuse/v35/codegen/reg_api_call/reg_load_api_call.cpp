@@ -41,8 +41,21 @@ Status LoadRegApiCall::Generate(const TPipe &tpipe, const std::vector<ascir::Axi
   if (tpipe.cv_fusion_type == ascir::CubeTemplateType::kUBFuse && !ub.is_ub_scalar) {
     std::string dtype_name;
     Tensor::DtypeName(gm.dtype, dtype_name);
+    int dtype_size = GetSizeByDataType(gm.dtype);
     ss << "DataCopyPadExtend<" << dtype_name << ", AscendC::PaddingMode::Normal>(" << ub << ", " << gm << "[offset], "
        << "curAivM, load_block_len, load_src_stride, load_dst_stride);" << std::endl;
+    if (dtype_size == 1 || dtype_size == 2 || dtype_size == 4) { // LoadAlign仅支持字节大小为1、2、4的数据类型，否则GatherMask编译错误
+      ss << "if (KernelUtils::BlkAlign<" << dtype_name << ">(curAlignN) != curAlignN) {" << std::endl;
+      ss << "event_t eventID = static_cast<event_t>(GetTPipePtr()->FetchEventID(HardEvent::MTE2_V));" << std::endl;
+      ss << "SetFlag<HardEvent::MTE2_V>(eventID);" << std::endl;
+      ss << "WaitFlag<HardEvent::MTE2_V>(eventID);" << std::endl;
+      ss << "uint8_t mask = 7;" << std::endl;
+      ss << "uint64_t rsvdCnt = 0;" << std::endl;
+      ss << "AscendC::GatherMask(" << ub << ", " << ub << ", mask, true, static_cast<uint32_t>(curAlignN)"
+        << ", {1, static_cast<uint16_t>(curAivM), static_cast<uint16_t>(KernelUtils::BlkAlign<" << dtype_name << ">(curAlignN) * sizeof(" << dtype_name << ") / ONE_BLK_SIZE), 0}"
+        << ", rsvdCnt);" << std::endl;
+      ss << "}" << std::endl;      
+    }
   } else {
     DataCopyParams param;
     bool status = CalculateDmaParams(tpipe, ub, ub, param);

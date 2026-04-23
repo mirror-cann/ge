@@ -147,6 +147,7 @@ class LoadAscIrCodegenImplV2 : public AscIrCodegenV2 {
   [[nodiscard]] std::vector<std::string> IncludeApiHeaderFiles() const override {
     return {
       "basic_api/reg_compute/kernel_reg_compute_intf.h",
+      "basic_api/kernel_operator_vec_gather_mask_intf.h",
     };
   }
   [[nodiscard]] bool IsNodeValid(const ge::AscNode &node) const override {
