@@ -22,6 +22,7 @@
 #include "mmpa/mmpa_api.h"
 #include "offline_build_config_parse.h"
 #include "graph/ge_context.h"
+#include "graph/utils/tensor_utils_ex.h"
 
 namespace hccl {
 const std::string HCOM_ATTR_ROOT = "root_rank";
@@ -169,7 +170,7 @@ HcclResult HcomOpUtils::GetAllOutputsTensorMemSize(const ge::OpDescPtr &opDescPt
 HcclResult HcomOpUtils::GetTensorMemSize(const ge::GeTensorDesc &tensorDesc, int64_t &memSize) {
   HCCL_DEBUG("[GetTensorMemSize][Before] memSize[%lld B]", memSize);
   // 通过ge接口获取32B对齐后的memSize
-  CHK_PRT_RET((ge::TensorUtils::GetTensorMemorySizeInBytesWithAutoPadding(tensorDesc, memSize) != ge::GRAPH_SUCCESS),
+  CHK_PRT_RET((ge::TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(tensorDesc, memSize) != ge::GRAPH_SUCCESS),
     HCCL_ERROR("[GetTensorMemSize]In GetTensorMemSize, get memSize failed"), HCCL_E_PARA);
   HCCL_DEBUG("[GetTensorMemSize][After] memSize[%lld B]", memSize);
   return HCCL_SUCCESS;
@@ -815,7 +816,7 @@ HcclResult HcomOpUtils::GetTaskNumFromCrackSize(const ge::Node &node, u32 tensor
     ge::GeTensorDesc inputTensor = op->GetInputDesc(i);
     int64_t crackSizeTemp = 0;
     // 通过ge接口获取32B对齐后的memSize
-    CHK_PRT_RET((ge::TensorUtils::GetTensorMemorySizeInBytesWithAutoPadding(inputTensor, crackSizeTemp) != ge::GRAPH_SUCCESS),
+    CHK_PRT_RET((ge::TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(inputTensor, crackSizeTemp) != ge::GRAPH_SUCCESS),
       HCCL_ERROR("[GetTaskNumFromCrackSize]Get memSize failed"), HCCL_E_PARA);
     crackSizeTemp = (crackSizeTemp + TENSOR_ALIGNMENT_512 - 1) / TENSOR_ALIGNMENT_512 * TENSOR_ALIGNMENT_512;
     if (crackSizeTemp >= tensorSize[i]) {

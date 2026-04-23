@@ -17,6 +17,7 @@
 #include "graph/normal_graph/ge_tensor_impl.h"
 #include "graph/utils/tensor_adapter.h"
 #include "graph/utils/tensor_utils.h"
+#include "graph/utils/tensor_utils_ex.h"
 #include "graph/utils/attr_utils.h"
 #include "graph/debug/ge_attr_define.h"
 
@@ -794,14 +795,14 @@ TEST_F(TensorUT, GeTensorDesc2TensorDesc_expand_dims_rule) {
 }
 
 TEST_F(TensorUT, GetPaddingSize_ReturnsValidValue) {
-  const int64_t padding_size = TensorUtils::GetPaddingSize();
+  const int64_t padding_size = TensorUtilsEx::GetPaddingSize();
   EXPECT_GE(padding_size, 0);
   EXPECT_LE(padding_size, 32);
 }
 
 TEST_F(TensorUT, GetPaddingSize_ReturnsCachedValue) {
-  const int64_t first = TensorUtils::GetPaddingSize();
-  const int64_t second = TensorUtils::GetPaddingSize();
+  const int64_t first = TensorUtilsEx::GetPaddingSize();
+  const int64_t second = TensorUtilsEx::GetPaddingSize();
   EXPECT_EQ(first, second);
 }
 }  // namespace ge

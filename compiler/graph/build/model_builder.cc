@@ -26,6 +26,7 @@
 #include "graph/utils/node_utils.h"
 #include "graph/utils/op_desc_utils.h"
 #include "graph/utils/tensor_utils.h"
+#include "graph/utils/tensor_utils_ex.h"
 #include "graph/utils/type_utils.h"
 #include "graph/utils/op_desc_utils_ex.h"
 #include "api/gelib/gelib.h"
@@ -156,7 +157,7 @@ Status ModelBuilder::CalcOutputSize(const ge::NodePtr &n) const {
     GE_IF_BOOL_EXEC(dim_num > DIM_DEFAULT_SIZE, TensorUtils::SetRealDimCnt(desc_temp, dim_num));
     // calculate tensor size
     int64_t size_temp = 0;
-    graphStatus graph_status = TensorUtils::GetTensorMemorySizeInBytesWithAutoPadding(desc_temp, size_temp);
+    graphStatus graph_status = TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(desc_temp, size_temp);
     if (graph_status != GRAPH_SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "Get tensor size in bytes failed for op:%s(%s) index:%u",
                         node_op_desc->GetName().c_str(), node_op_desc->GetType().c_str(), index);
@@ -333,7 +334,7 @@ Status ModelBuilder::SetNodeFormatToND(const ge::OpDescPtr &node_op_desc) const 
 Status ModelBuilder::AlignWeightOffset() {
   GELOGD("Before alignment processing, weight_offset_ is %zu", weight_offset_);
   if (weight_offset_ > 0U) {
-    const size_t padding_size = static_cast<size_t>(ge::TensorUtils::GetPaddingSize());
+    const size_t padding_size = static_cast<size_t>(ge::TensorUtilsEx::GetPaddingSize());
     GE_CHK_STATUS_RET(CheckSizeTAddOverflow(weight_offset_, (padding_size + MEM_ALIGN_SIZE - 1)),
                       "32-aligned weights overflow, weight_offset_ is %zu", weight_offset_);
     weight_offset_ = (weight_offset_ + padding_size + MEM_ALIGN_SIZE - 1) / MEM_ALIGN_SIZE * MEM_ALIGN_SIZE;

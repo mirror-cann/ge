@@ -15,6 +15,7 @@
 #include "framework/common/debug/ge_log.h"
 #include "graph/utils/node_utils.h"
 #include "graph/utils/tensor_utils.h"
+#include "graph/utils/tensor_utils_ex.h"
 #include "graph/utils/type_utils.h"
 #include "graph/utils/op_type_utils.h"
 #include "engines/local_engine/ops_kernel_store/op/op_factory.h"
@@ -36,7 +37,7 @@ const char *const kConstOpType = "Const";
 const std::unordered_set<std::string> kDependComputeOps = {"StackPop"};
 const int64_t kMemAlignSize = 32;
 int64_t AlignOutputMemSize(const int64_t mem_size) {
-  const int64_t padding_size = TensorUtils::GetPaddingSize();
+  const int64_t padding_size = TensorUtilsEx::GetPaddingSize();
   GE_ASSERT_TRUE(mem_size < std::numeric_limits<int64_t>::max() - kMemAlignSize);
   return (mem_size + kMemAlignSize - 1) / kMemAlignSize * kMemAlignSize + padding_size;
 }
@@ -84,7 +85,7 @@ graphStatus GeLocalOpsKernelBuilder::CalcMemSizeByNodeType(OpDescPtr &op_desc, G
     return GRAPH_SUCCESS;
   }
   if (OpTypeUtils::IsDataNode(node_type)) {
-    return TensorUtils::GetTensorMemorySizeInBytesWithAutoPadding(output_tensor, output_mem_size);
+    return TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(output_tensor, output_mem_size);
   }
   bool is_no_tiling = false;
   (void)AttrUtils::GetBool(output_tensor, ATTR_NAME_TENSOR_NO_TILING_MEM_TYPE, is_no_tiling);

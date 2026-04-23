@@ -20,6 +20,7 @@
 #include "graph_builder/bg_memory.h"
 #include "graph/ge_context.h"
 #include "graph/utils/op_desc_utils.h"
+#include "graph/utils/tensor_utils_ex.h"
 #include "graph/manager/host_mem_manager.h"
 #include "graph/types.h"
 #include "graph/manager/mem_manager.h"
@@ -204,9 +205,9 @@ std::shared_ptr<HybridModel> FakeHybridModel(const bool is_exec_on_host,
   GE_ASSERT_NOTNULL(file_constant_0);
   GE_ASSERT_NOTNULL(file_constant_1);
   int64_t aligned_mem_size = 0U;
-  ge::TensorUtils::GetTensorMemorySizeInBytesWithAutoPadding(file_constant_0->GetOpDesc()->GetOutputDesc(0U), aligned_mem_size);
+  ge::TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(file_constant_0->GetOpDesc()->GetOutputDesc(0U), aligned_mem_size);
   ge::TensorUtils::SetSize(*file_constant_0->GetOpDesc()->MutableOutputDesc(0U), aligned_mem_size);
-  ge::TensorUtils::GetTensorMemorySizeInBytesWithAutoPadding(file_constant_1->GetOpDesc()->GetOutputDesc(0U), aligned_mem_size);
+  ge::TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(file_constant_1->GetOpDesc()->GetOutputDesc(0U), aligned_mem_size);
   ge::TensorUtils::SetSize(*file_constant_1->GetOpDesc()->MutableOutputDesc(0U), aligned_mem_size);
   for (const auto &location : location_config) {
     GE_ASSERT_SUCCESS(CreateFileConstantFile("", location, 5 * 5 * sizeof(int32_t)));

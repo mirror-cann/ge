@@ -15,7 +15,7 @@
 #include "securec.h"
 #include "utils/math_utils.h"
 #include "utils/attr_utils.h"
-#include "graph/utils/tensor_utils.h"
+#include "graph/utils/tensor_utils_ex.h"
 
 namespace acl {
 namespace {
@@ -24,7 +24,7 @@ constexpr size_t DATA_MEMORY_ALIGN_SIZE = 32UL;
 
 aclError GetAlignedAndPaddingSize(const size_t size, const bool isPadding, size_t &alignedSize)
 {
-  const size_t padding_size = static_cast<size_t>(ge::TensorUtils::GetPaddingSize());
+  const size_t padding_size = static_cast<size_t>(ge::TensorUtilsEx::GetPaddingSize());
   const size_t appendSize = isPadding ? (DATA_MEMORY_ALIGN_SIZE + padding_size)
                                       : DATA_MEMORY_ALIGN_SIZE;
   if ((size + appendSize) < size) {

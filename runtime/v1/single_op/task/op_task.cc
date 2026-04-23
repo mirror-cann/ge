@@ -20,6 +20,7 @@
 #include "common/utils/executor_utils.h"
 #include "common/op_tiling/op_tiling_rt2.h"
 #include "graph/load/model_manager/task_info/ffts_plus/ffts_plus_proto_transfer.h"
+#include "graph/utils/tensor_utils_ex.h"
 #include "single_op/task/build_task_utils.h"
 #include "framework/common/profiling_definitions.h"
 #include "runtime/subscriber/global_profiler.h"
@@ -819,7 +820,7 @@ Status AtomicAddrCleanOpTask::UpdateIoAddr(const std::vector<DataBuffer> &inputs
     const auto tensor_desc = op_desc_->MutableOutputDesc(static_cast<uint32_t>(atomic_output_index));
     GE_ASSERT_NOTNULL(tensor_desc);
     int64_t size = 0;
-    const graphStatus graph_status = TensorUtils::GetTensorMemorySizeInBytesWithAutoPadding(*tensor_desc, size);
+    const graphStatus graph_status = TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(*tensor_desc, size);
     if (graph_status != GRAPH_SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "Get tensor size in bytes failed!");
       GELOGE(graph_status, "[Get][TensorMemorySize] In Bytes failed!");

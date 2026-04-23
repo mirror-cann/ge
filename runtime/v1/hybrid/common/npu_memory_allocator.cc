@@ -15,7 +15,7 @@
 #include "graph/def_types.h"
 #include "graph/ge_context.h"
 #include "graph/manager/mem_manager.h"
-#include "graph/utils/tensor_utils.h"
+#include "graph/utils/tensor_utils_ex.h"
 #include "runtime/rt.h"
 #include "hybrid/common/npu_memory_allocator.h"
 #include "acl/acl_rt.h"
@@ -221,7 +221,7 @@ void *NpuMemoryAllocator::AllocateHbmBuffer(const uint64_t size, const Allocatio
     GELOGD("Padding size [%" PRIu64 "] by user specified %d. final size = [%" PRIu64 "].",
            size, padding, allocate_size);
   } else {
-    const size_t platform_padding = static_cast<size_t>(ge::TensorUtils::GetPaddingSize());
+    const size_t platform_padding = static_cast<size_t>(ge::TensorUtilsEx::GetPaddingSize());
     const uint64_t append_size = kAlignSize + static_cast<uint64_t>(platform_padding);
     allocate_size = ((size + append_size - 1U) / kAlignSize) * kAlignSize;
     GELOGD("Padding size [%" PRIu64 "] by platform padding [%zu]. final size = [%" PRIu64 "].",

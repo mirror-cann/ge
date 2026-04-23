@@ -15,6 +15,7 @@
 #include "macro_utils/dt_public_scope.h"
 #include "graph/build/graph_builder.h"
 #include "graph/utils/graph_utils_ex.h"
+#include "graph/utils/tensor_utils_ex.h"
 #include "common/helper/file_saver.h"
 #include "api/gelib/gelib.h"
 #include "engines/manager/opskernel_manager/ops_kernel_builder_manager.h"
@@ -84,7 +85,7 @@ class GraphBuilderTest : public testing::Test {
         GE_IF_BOOL_EXEC(dim_num > DIM_DEFAULT_SIZE, TensorUtils::SetRealDimCnt(desc_temp, dim_num));
         // calculate tensor size
         int64_t size_temp = 0;
-        graphStatus graph_status = TensorUtils::GetTensorMemorySizeInBytesWithAutoPadding(desc_temp, size_temp);
+        graphStatus graph_status = TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(desc_temp, size_temp);
         if (graph_status != GRAPH_SUCCESS) {
           return FAILED;
         }

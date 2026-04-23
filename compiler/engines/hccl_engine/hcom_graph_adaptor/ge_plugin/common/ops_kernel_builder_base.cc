@@ -13,6 +13,7 @@
 #include "graph/tensor.h"
 #include "graph/utils/attr_utils.h"
 #include "graph/utils/tensor_utils.h"
+#include "graph/utils/tensor_utils_ex.h"
 
 #include "ops_kernel_builder_base.h"
 
@@ -92,7 +93,7 @@ HcclResult HCCLOpsKernelBuilder::CalcHCCLOutputMemSize(const std::string &sColle
   HCCL_DEBUG("[HCCLOpsKernelBuilder][CalcHCCLOutputMemSize]Before sCollectiveType[%s], memSize[%lld B]",
     sCollectiveType.c_str(), memSize);
   // 通过ge接口获取32B对齐后的memSize
-  CHK_PRT_RET((ge::TensorUtils::GetTensorMemorySizeInBytesWithAutoPadding(desc_temp, memSize) != ge::GRAPH_SUCCESS),
+  CHK_PRT_RET((ge::TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(desc_temp, memSize) != ge::GRAPH_SUCCESS),
     HCCL_ERROR("[HCCLOpsKernelBuilder][CalcHCCLOutputMemSize]Get memSize failed"), HCCL_E_PARA);
 
   HCCL_DEBUG("[HCCLOpsKernelBuilder][CalcHCCLOutputMemSize]After sCollectiveType[%s], memSize[%lld B]",

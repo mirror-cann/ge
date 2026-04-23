@@ -8,6 +8,7 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
+#include "graph/utils/tensor_utils_ex.h"
 #include "graph/utils/tensor_utils.h"
 
 #include <cerrno>
@@ -115,7 +116,7 @@ bool QueryPaddingSizeFromSocSpec(int64_t &padding_size) {
 }
 }  // namespace
 
-GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY int64_t TensorUtils::GetPaddingSize() {
+GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY int64_t TensorUtilsEx::GetPaddingSize() {
   static std::once_flag g_padding_size_flag;
   static int64_t g_cached_padding_size = 0;
 
@@ -132,13 +133,13 @@ GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY int64_t TensorUtils::GetPaddingSi
 }
 
 GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY graphStatus
-TensorUtils::GetTensorMemorySizeInBytesWithAutoPadding(const GeTensorDesc &desc_temp, int64_t &size_temp) {
-  const graphStatus graph_status = GetTensorSizeInBytes(desc_temp, size_temp);
+TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(const GeTensorDesc &desc_temp, int64_t &size_temp) {
+  const graphStatus graph_status = TensorUtils::GetTensorSizeInBytes(desc_temp, size_temp);
   if (graph_status != GRAPH_SUCCESS) {
     return GRAPH_FAILED;
   }
 
-  const int64_t padding_size = GetPaddingSize();
+  const int64_t padding_size = TensorUtilsEx::GetPaddingSize();
   const int64_t append_size = kDataMemAlignSize + padding_size;
   if (size_temp > (std::numeric_limits<int64_t>::max() - append_size)) {
     GELOGW("[Util][CalcBytesSize] Mem size %" PRId64 " after alignment is bigger than INT64_MAX", size_temp);

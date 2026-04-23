@@ -47,6 +47,7 @@
 #include "graph/utils/graph_utils.h"
 #include "graph/utils/graph_utils_ex.h"
 #include "graph/utils/op_desc_utils_ex.h"
+#include "graph/utils/tensor_utils_ex.h"
 #include "graph/operator_factory_impl.h"
 #include "common/share_graph.h"
 #include "op_impl/less_important_op_impl.h"
@@ -2202,7 +2203,7 @@ TEST_F(StestHybridRt2Executor, run_graph_with_ref_fileconstant_success) {
   file_constant_desc->SetOriginShape(GeShape(std::vector<int64_t>{}));
   file_constant_desc->SetDataType(ge::DT_FLOAT);
   int64_t aligned_mem_size = 0U;
-  ge::TensorUtils::GetTensorMemorySizeInBytesWithAutoPadding(file_constant->GetOpDesc()->GetOutputDesc(0U), aligned_mem_size);
+  ge::TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(file_constant->GetOpDesc()->GetOutputDesc(0U), aligned_mem_size);
   ge::TensorUtils::SetSize(*file_constant->GetOpDesc()->MutableOutputDesc(0U), aligned_mem_size);
 
   variable_desc->SetShape(GeShape(std::vector<int64_t>{}));

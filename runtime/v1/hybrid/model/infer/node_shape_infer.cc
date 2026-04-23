@@ -10,6 +10,7 @@
 
 #include "hybrid/model/infer/node_shape_infer.h"
 #include "graph/utils/tensor_utils.h"
+#include "graph/utils/tensor_utils_ex.h"
 #include "common/math/math_util.h"
 #include "graph/utils/type_utils.h"
 #include "graph_metadef/common/ge_common/util.h"
@@ -42,7 +43,7 @@ Status CalcTensorSize(const DataType data_type, const std::vector<int64_t> &shap
     tensor_size *= dim;
   }
 
-  const int64_t padding_size = TensorUtils::GetPaddingSize();
+  const int64_t padding_size = TensorUtilsEx::GetPaddingSize();
   const int64_t append_size = kAlignment + padding_size;
   GE_CHK_STATUS_RET(
       CheckInt64AddOverflow(tensor_size, append_size - 1),

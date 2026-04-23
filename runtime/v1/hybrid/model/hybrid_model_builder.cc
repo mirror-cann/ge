@@ -28,6 +28,7 @@
 #include "graph/manager/mem_manager.h"
 #include "graph/utils/graph_utils.h"
 #include "graph/utils/math_util.h"
+#include "graph/utils/tensor_utils_ex.h"
 #include "graph/unfold/graph_unfolder.h"
 #include "hybrid/common/npu_memory_allocator.h"
 #include "hybrid/node_executor/node_executor.h"
@@ -106,7 +107,7 @@ int64_t CalcTensorSizeInBytes(const GeTensorDesc &tensor_desc) {
     return var_size;
   }
 
-  if (TensorUtils::GetTensorMemorySizeInBytesWithAutoPadding(tensor_desc, var_size) != GRAPH_SUCCESS) {
+  if (TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(tensor_desc, var_size) != GRAPH_SUCCESS) {
     GELOGW("Failed to calc var data size");
     return -1;
   }

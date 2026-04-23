@@ -27,6 +27,7 @@
 #include "graph/utils/graph_utils.h"
 #include "graph/utils/attr_utils.h"
 #include "graph/utils/tensor_utils.h"
+#include "graph/utils/tensor_utils_ex.h"
 #include "graph/utils/op_desc_utils.h"
 #include "graph/ge_tensor.h"
 #include "graph/utils/type_utils_inner.h"
@@ -1647,7 +1648,7 @@ std::map<string, AnyValue> g_geAttrMap;
     {
     }
 
-    int64_t TensorUtils::GetPaddingSize()
+    int64_t TensorUtilsEx::GetPaddingSize()
     {
         return kDefaultPaddingSize;
     }

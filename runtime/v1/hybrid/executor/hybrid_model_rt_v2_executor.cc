@@ -25,6 +25,7 @@
 #include "graph/manager/host_mem_allocator.h"
 #include "graph/manager/host_mem_manager.h"
 #include "graph/utils/type_utils.h"
+#include "graph/utils/tensor_utils_ex.h"
 #include "graph/runtime_inference_context.h"
 #include "graph/manager/trans_var_data_utils.h"
 #include "hybrid/executor/runtime_v2/rt_v2_executor_factory.h"
@@ -74,7 +75,7 @@ Status GetTensorDescSize(const GeTensorDesc &desc, int64_t &size) {
     GE_ASSERT_GRAPH_SUCCESS(TensorUtils::GetSize(desc, size));
     return SUCCESS;
   }
-  GE_ASSERT_GRAPH_SUCCESS(TensorUtils::GetTensorMemorySizeInBytesWithAutoPadding(desc, size));
+  GE_ASSERT_GRAPH_SUCCESS(TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(desc, size));
   return SUCCESS;
 }
 

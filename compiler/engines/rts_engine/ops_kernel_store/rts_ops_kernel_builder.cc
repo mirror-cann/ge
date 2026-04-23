@@ -14,6 +14,7 @@
 #include "common/constant/constant.h"
 #include "common/util.h"
 #include "graph/utils/tensor_utils.h"
+#include "graph/utils/tensor_utils_ex.h"
 #include "graph/utils/type_utils.h"
 #include "graph/utils/node_utils.h"
 #include "op/op_factory.h"
@@ -92,7 +93,7 @@ Status RtsOpsKernelBuilder::CalcOpRunningParam(Node &geNode) {
     GeTensorDesc outputTensor = opDesc->GetOutputDesc(i);
     Format format = outputTensor.GetFormat();
     DataType dataType = outputTensor.GetDataType();
-    graphStatus grhStatus = ge::TensorUtils::GetTensorMemorySizeInBytesWithAutoPadding(outputTensor, outputMemSize);
+    graphStatus grhStatus = ge::TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(outputTensor, outputMemSize);
     nodeSqeNum += outputMemSize / RT_MEMCPYASYNC_SPLIT_SIZE;
     if (grhStatus != GRAPH_SUCCESS) {
       RTS_REPORT_CALL_ERROR(

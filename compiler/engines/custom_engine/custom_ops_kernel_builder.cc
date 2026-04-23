@@ -16,6 +16,7 @@
 #include "common/ge_common/ge_types.h"
 #include "common/checker.h"
 #include "graph/utils/tensor_utils.h"
+#include "graph/utils/tensor_utils_ex.h"
 #include "graph/utils/type_utils.h"
 #include "graph/utils/node_utils.h"
 #include "common/opskernel/ops_kernel_info_types.h"
@@ -50,7 +51,7 @@ Status CustomOpsKernelBuilder::CalcOpRunningParam(Node &node) {
       continue;
     }
     int64_t tensor_size = 0;
-    GE_ASSERT_SUCCESS(TensorUtils::GetTensorMemorySizeInBytesWithAutoPadding(*op_desc->MutableOutputDesc(i), tensor_size));
+    GE_ASSERT_SUCCESS(TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(*op_desc->MutableOutputDesc(i), tensor_size));
     TensorUtils::SetSize(*op_desc->MutableOutputDesc(i), tensor_size);
   }
   (void)node;

@@ -346,6 +346,7 @@ set(STUB_HEADER_LIST
     ${GE_METADEF_INC_DIR}/graph/utils/node_utils_ex.h
     ${GE_METADEF_INC_DIR}/graph/utils/graph_utils_ex.h
     ${GE_METADEF_INC_DIR}/graph/utils/tensor_adapter.h
+    ${GE_METADEF_INC_DIR}/graph/utils/tensor_utils_ex.h
     ${GE_METADEF_INC_DIR}/graph/shape_refiner.h
     ${GE_METADEF_INC_DIR}/graph/opsproto_manager.h
     ${GE_METADEF_INC_DIR}/graph/runtime_inference_context.h

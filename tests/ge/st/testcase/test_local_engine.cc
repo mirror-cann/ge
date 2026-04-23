@@ -24,6 +24,7 @@
 #include "graph/utils/graph_utils_ex.h"
 #include "graph/utils/graph_utils.h"
 #include "graph/utils/tensor_utils.h"
+#include "graph/utils/tensor_utils_ex.h"
 #include "common/debug/ge_log.h"
 #include "ge_context.h"
 #include "common/summary_checker.h"
@@ -601,7 +602,7 @@ TEST_F(GeLocalEngineTest, PhonySplitGraphBuild) {
 TEST_F(GeLocalEngineTest, GetTensorMemorySizeInBytesWithAutoPadding_SUCCESS) {
   GeTensorDesc tensorDesc;
   int64_t size;
-  graphStatus ret = TensorUtils::GetTensorMemorySizeInBytesWithAutoPadding(tensorDesc, size);
+  graphStatus ret = TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(tensorDesc, size);
   EXPECT_EQ(ret, GRAPH_SUCCESS);
 }
 
@@ -613,7 +614,7 @@ TEST_F(GeLocalEngineTest, GetTensorMemorySizeInBytesWithAutoPadding_FAILED) {
   DataType data_type = DT_MAX;
   GeTensorDesc tensorDesc(ge_shape, format, data_type);
   int64_t size;
-  graphStatus ret = TensorUtils::GetTensorMemorySizeInBytesWithAutoPadding(tensorDesc, size);
+  graphStatus ret = TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(tensorDesc, size);
   EXPECT_EQ(ret, GRAPH_FAILED);
 }
 

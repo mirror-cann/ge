@@ -11,7 +11,7 @@
 #include "hybrid_model_executor.h"
 #include "common/memory/tensor_trans_utils.h"
 #include "graph/ge_context.h"
-#include "graph/utils/tensor_utils.h"
+#include "graph/utils/tensor_utils_ex.h"
 #include "graph/utils/type_utils.h"
 
 namespace ge {
@@ -37,7 +37,7 @@ Status HybridModelExecutor::InitInputDesc() {
 
       if (tensor_size == 0) {
         GELOGW("[%s] Tensor size == 0", input_node->NodeName().c_str());
-        GE_CHK_GRAPH_STATUS_RET(TensorUtils::GetTensorMemorySizeInBytesWithAutoPadding(*output_desc, tensor_size),
+        GE_CHK_GRAPH_STATUS_RET(TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(*output_desc, tensor_size),
                                 "[Get][TensorMemorySize] Failed to calc tensor size");
         GELOGD("[%s] Tensor size updated to %ld", input_node->NodeName().c_str(), tensor_size);
       }
@@ -102,7 +102,7 @@ Status HybridModelExecutor::PrepareDynamicInput(HybridModelExecutor::ExecuteArgs
   if (tensor_desc->GetDataType() == DT_STRING) {
     tensor_size = static_cast<int64_t>(data_buf.length);
   } else {
-    GE_CHK_GRAPH_STATUS_RET(TensorUtils::GetTensorMemorySizeInBytesWithAutoPadding(*tensor_desc, tensor_size),
+    GE_CHK_GRAPH_STATUS_RET(TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(*tensor_desc, tensor_size),
                             "[Invoke][GetTensorMemorySizeInBytesWithAutoPadding]Failed to calc tensor size,"
                             "index = %zu, shape = [%s], model_id = %u.",
                             input_index, tensor_desc->GetShape().ToString().c_str(), model_id_);

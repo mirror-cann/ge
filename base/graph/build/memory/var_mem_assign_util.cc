@@ -19,6 +19,7 @@
 #include "graph/utils/attr_utils.h"
 #include "graph/utils/graph_utils.h"
 #include "graph/utils/tensor_utils.h"
+#include "graph/utils/tensor_utils_ex.h"
 #include "framework/common/op/ge_op_utils.h"
 #include "base/err_msg.h"
 
@@ -50,7 +51,7 @@ static Status GetSizeByNodeType(const OpDescPtr &op_desc, const GeTensorDescPtr 
       return SUCCESS;
     }
   }
-  GE_ASSERT_SUCCESS(TensorUtils::GetTensorMemorySizeInBytesWithAutoPadding(*tensor_desc, size),
+  GE_ASSERT_SUCCESS(TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(*tensor_desc, size),
                     "[Get][TensorMemorySize] In Bytes failed for op:%s(%s)",
                     op_desc->GetNamePtr(), node_type.c_str());
   return SUCCESS;

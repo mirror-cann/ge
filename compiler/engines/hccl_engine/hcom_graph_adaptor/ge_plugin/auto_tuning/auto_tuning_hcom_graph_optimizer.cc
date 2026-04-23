@@ -21,6 +21,7 @@
 #include "auto_tuning_hcom_ops_kernel_builder.h"
 #include "graph/utils/node_utils.h"
 #include "graph/utils/tensor_utils.h"
+#include "graph/utils/tensor_utils_ex.h"
 #include "graph/debug/ge_attr_define.h"
 #include "graph/tuning_utils.h"
 #include "graph/ge_local_context.h"
@@ -153,7 +154,7 @@ HcclResult AutoTuningHcomGraphOptimizer::CalcHCCLOutputMemSize(const std::string
   HCCL_DEBUG("[HcomGraphOptimizer][CalcHCCLOutputMemSize]Before sCollectiveType[%s] memSize[%lld B]",
     sCollectiveType.c_str(), memSize);
   // 通过ge接口获取32B对齐后的memSize
-  CHK_PRT_RET((ge::TensorUtils::GetTensorMemorySizeInBytesWithAutoPadding(desc_temp, memSize) != ge::GRAPH_SUCCESS),
+  CHK_PRT_RET((ge::TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(desc_temp, memSize) != ge::GRAPH_SUCCESS),
     HCCL_ERROR("[HcomGraphOptimizer][CalcHCCLOutputMemSize]Get memSize failed"), HCCL_E_PARA);
 
   HCCL_DEBUG("[HcomGraphOptimizer][CalcHCCLOutputMemSize]After sCollectiveType[%s] memSize[%lld B]",

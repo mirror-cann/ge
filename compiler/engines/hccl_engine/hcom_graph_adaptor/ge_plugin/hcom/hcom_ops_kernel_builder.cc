@@ -19,6 +19,7 @@
 #include <memory>
 #include <mutex>
 #include "graph/utils/tensor_utils.h"
+#include "graph/utils/tensor_utils_ex.h"
 #include "graph/debug/ge_attr_define.h"
 #include "graph/utils/node_utils.h"
 #include "graph/utils/graph_utils.h"
@@ -995,7 +996,7 @@ HcclResult HcomOpsKernelBuilder::GetCrackParamsInfo([[maybe_unused]] const ge::N
     // 获取padding_size
     ge::GeTensorDesc inputTensor = op->GetInputDesc(i);
     int64_t tensorSizeTemp = 0;
-    CHK_PRT_RET((ge::TensorUtils::GetTensorMemorySizeInBytesWithAutoPadding(inputTensor, tensorSizeTemp) != ge::GRAPH_SUCCESS),
+    CHK_PRT_RET((ge::TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(inputTensor, tensorSizeTemp) != ge::GRAPH_SUCCESS),
       HCCL_ERROR("[HcomOpsKernelBuilder][GetCrackParamsInfo]Get tensorSize failed"), HCCL_E_PARA);
     // crackOffset基于LoadTask的inputaddr偏移，而不是基于基地址偏移
     crackOffset[i] = tensorOffset[i] + tensorSize[i] - tensorOffset[0];

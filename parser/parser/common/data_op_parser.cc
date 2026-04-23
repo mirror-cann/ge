@@ -16,6 +16,7 @@
 #include "graph/debug/ge_attr_define.h"
 #include "graph/utils/type_utils.h"
 #include "graph/utils/type_utils_inner.h"
+#include "graph/utils/tensor_utils_ex.h"
 #include "base/err_msg.h"
 
 namespace {
@@ -148,7 +149,7 @@ Status DataOpParser::Init5DOutputTensor(const std::vector<int64_t> &shape, ge::G
   output.SetShape(ge::GeShape(shape));
 
   int64_t output_size = 0;
-  ge::graphStatus graph_status = ge::TensorUtils::GetTensorMemorySizeInBytesWithAutoPadding(output, output_size);
+  ge::graphStatus graph_status = ge::TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(output, output_size);
   if (graph_status != ge::GRAPH_SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "GetTensorMemorySizeInBytesWithAutoPadding failed!");
     GELOGE(FAILED, "[Invoke][GetTensorMemorySizeInBytesWithAutoPadding] failed!");
