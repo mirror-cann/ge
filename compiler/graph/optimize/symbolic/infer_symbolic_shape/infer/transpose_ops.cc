@@ -88,6 +88,49 @@ graphStatus InferShape4Transpose(gert::InferSymbolShapeContext *context) {
   return ge::GRAPH_SUCCESS;
 }
 
+constexpr size_t kMatmulDimNum = 2U;
+constexpr size_t kZero = 0U;
+constexpr size_t kOne = 1U;
+
+/**
+ * TransposeD算子符号化推导，交换一个张量的维度
+ * input_shape0：输入张量的shape
+ * perm：转置后张量的维度在原张量上的映射，整型列表，列表长度跟输入张量的维度相同，其中的元素要求>=0，且小于输入张量的最大维度
+ * perm_num：perm 列表长度
+ * 例如
+ * 输入张量为{1, 2, 3}
+ * perm为[2, 0, 1]， perm_num=3
+ * 转置后的张量为{3, 1, 2}
+ */
+graphStatus InferShape4TransposeD(gert::InferSymbolShapeContext *context) {
+  auto in_shape = context->GetInputSymbolShape(0);
+  GE_UNSUPPORTED_IF_NULL(in_shape);
+  auto out_shape = context->GetOutputSymbolShape(0);
+  GE_ASSERT_NOTNULL(out_shape);
+  auto attrs = context->GetAttrs();
+  GE_ASSERT_NOTNULL(attrs);
+  auto perm = attrs->GetListInt(0);
+  GE_ASSERT_NOTNULL(perm);
+  int64_t perm_size = perm->GetSize();
+  size_t input_dim_size = in_shape->GetDimNum();
+  GE_ASSERT_EQ(static_cast<int64_t>(input_dim_size), perm_size);
+  std::vector<int64_t> perm_list;
+  perm_list.resize(perm_size);
+  for (int64_t i = 0; i < perm_size; ++i) {
+    perm_list[i] = perm->GetData()[i];
+  }
+  for (auto &p : perm_list) {
+    int64_t perm_v = p;
+    perm_v = perm_v >= 0 ? perm_v : perm_v + input_dim_size;
+    if (perm_v < 0 || perm_v >= static_cast<int64_t>(input_dim_size)) {
+      return ge::GRAPH_FAILED;
+    }
+    out_shape->AppendDim(in_shape->GetDim(perm_v));
+  }
+  return ge::GRAPH_SUCCESS;
+}
+
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(Transpose).InferSymbolShape(InferShape4Transpose);
+IMPL_OP_INFER_SYMBOL_SHAPE_INNER(TransposeD).InferSymbolShape(InferShape4TransposeD);
 }  // namespace
 }  // namespace ge

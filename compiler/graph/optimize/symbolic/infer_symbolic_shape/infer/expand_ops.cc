@@ -15,6 +15,7 @@
 #include "common/types.h"
 #include "graph/utils/type_utils.h"
 #include "graph/optimize/symbolic/infer_symbolic_shape/symbolic_infer_util.h"
+#include "symbolizer/symbolic_utils.h"
 
 namespace ge {
 namespace {
@@ -34,7 +35,7 @@ graphStatus ExpandShapeInference(const gert::SymbolShape *input_shape,
         output_shape->MutableDims().emplace_back(dim);
         continue;
       }
-      
+
       if (EXPECT_SYMBOL_EQ(input_shape->GetDim(i), Symbol(1))) {
         output_shape->MutableDims().emplace_back(dim);
       } else if (EXPECT_SYMBOL_EQ(dim, Symbol(1))) {
@@ -58,7 +59,7 @@ graphStatus ExpandShapeInference(const gert::SymbolShape *input_shape,
         output_shape->MutableDims().emplace_back(dim);
         continue;
       }
-        
+
       if (EXPECT_SYMBOL_EQ(input_shape->GetDim(i - diff), Symbol(1))) {
         output_shape->MutableDims().emplace_back(dim);
       } else if (EXPECT_SYMBOL_EQ(dim, Symbol(1))) {
@@ -93,7 +94,40 @@ graphStatus InferShape4Expand(gert::InferSymbolShapeContext *context) {
   return GRAPH_SUCCESS;
 }
 
+graphStatus InferShape4BroadcastTo(gert::InferSymbolShapeContext *context) {
+  auto shape_tensor = context->GetInputSymbolTensor(1);
+  GE_UNSUPPORTED_IF_NULL(shape_tensor);
+  auto shape_value = shape_tensor->GetSymbolicValue();
+  GE_UNSUPPORTED_IF_NULL(shape_value);
+  auto shape_size = shape_value->size();
+  auto in_shape = context->GetInputSymbolShape(0);
+  GE_UNSUPPORTED_IF_NULL(in_shape);
+  auto in_dims_num = in_shape->GetDimNum();
+  GE_ASSERT_TRUE(shape_size >= in_dims_num, "tensor shape size %zu should be no less than input shape dim num %zu.",
+                 shape_size, in_dims_num);
+  auto out_shape = context->GetOutputSymbolShape(0);
+  GE_ASSERT_NOTNULL(out_shape);
+  out_shape->MutableDims() = *shape_value;
+  auto diff = static_cast<int32_t>(shape_size - in_dims_num);
+  for (int32_t i = shape_size - 1; i >= 0; i--) {
+    if (SymbolicUtils::StaticCheckEq(shape_value->at(i), Symbol(-1)) == TriBool::kTrue) {
+      if (i >= diff) {
+        out_shape->MutableDim(i) = in_shape->GetDim(i - diff);
+      } else {
+        out_shape->MutableDim(i) = kSymbolOne;
+      }
+    }
+    if (i < diff) {
+      continue;
+    }
+    GE_ASSERT_TRUE(EXPECT_SYMBOL_OR(sym::Eq(out_shape->GetDim(i), in_shape->GetDim(i - diff)),
+                                    sym::Eq(in_shape->GetDim(i - diff), kSymbolOne)));
+  }
+  return ge::GRAPH_SUCCESS;
+}
+
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(Expand).InferSymbolShape(InferShape4Expand);
+IMPL_OP_INFER_SYMBOL_SHAPE_INNER(BroadcastTo).InferSymbolShape(InferShape4BroadcastTo);
 }
 
 }

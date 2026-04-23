@@ -17,6 +17,43 @@
 namespace ge {
 namespace {
 
+graphStatus InferShape4ApplyAdagradD(gert::InferSymbolShapeContext *context) {
+  auto var_shape = context->GetInputSymbolShape(0);
+  GE_UNSUPPORTED_IF_NULL(var_shape);
+  auto accum_shape = context->GetInputSymbolShape(1);
+  GE_UNSUPPORTED_IF_NULL(accum_shape);
+
+  auto varout_shape = context->GetOutputSymbolShape(0);
+  GE_ASSERT_NOTNULL(varout_shape);
+  auto accumout_shape = context->GetOutputSymbolShape(1);
+  GE_ASSERT_NOTNULL(accumout_shape);
+
+  *varout_shape = *var_shape;
+  *accumout_shape = *accum_shape;
+  return ge::GRAPH_SUCCESS;
+}
+
+graphStatus InferShape4ApplyAdamD(gert::InferSymbolShapeContext *context) {
+  auto var_shape = context->GetInputSymbolShape(0);
+  GE_UNSUPPORTED_IF_NULL(var_shape);
+  auto m_shape = context->GetInputSymbolShape(1);
+  GE_UNSUPPORTED_IF_NULL(m_shape);
+  auto v_shape = context->GetInputSymbolShape(2);
+  GE_UNSUPPORTED_IF_NULL(v_shape);
+
+  auto varout_shape = context->GetOutputSymbolShape(0);
+  GE_ASSERT_NOTNULL(varout_shape);
+  auto mout_shape = context->GetOutputSymbolShape(1);
+  GE_ASSERT_NOTNULL(mout_shape);
+  auto vout_shape = context->GetOutputSymbolShape(2);
+  GE_ASSERT_NOTNULL(vout_shape);
+
+  *varout_shape = *var_shape;
+  *mout_shape = *m_shape;
+  *vout_shape = *v_shape;
+  return ge::GRAPH_SUCCESS;
+}
+
 /**
  * SquareSumV1算子 infer shape函数实现
  *
@@ -49,6 +86,8 @@ graphStatus InferShape4SquareSumV1(gert::InferSymbolShapeContext *context) {
   return SymbolicInferUtil::ReduceDimsWithoutKeepDims<int64_t>(input_shape, reduce_axes, axes_size, out_shape);
 }
 
+IMPL_OP_INFER_SYMBOL_SHAPE_INNER(ApplyAdagradD).InferSymbolShape(InferShape4ApplyAdagradD);
+IMPL_OP_INFER_SYMBOL_SHAPE_INNER(ApplyAdamD).InferSymbolShape(InferShape4ApplyAdamD);
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(SquareSumV1).InferSymbolShape(InferShape4SquareSumV1);
 }  // namespace
 }  // namespace ge

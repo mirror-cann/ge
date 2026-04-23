@@ -16,6 +16,24 @@
 
 namespace ge {
 namespace {
+graphStatus InferShape4Assign(gert::InferSymbolShapeContext *context) {
+  auto value_shape = context->GetInputSymbolShape(1);
+  GE_UNSUPPORTED_IF_NULL(value_shape);
+
+  auto ref_shape = context->GetOutputSymbolShape(0);
+  GE_ASSERT_NOTNULL(ref_shape);
+
+  *ref_shape = *value_shape;
+  return ge::GRAPH_SUCCESS;
+}
+
+graphStatus InferShape4L2Loss(gert::InferSymbolShapeContext *context) {
+  auto out_shape = context->GetOutputSymbolShape(0);
+  GE_UNSUPPORTED_IF_NULL(out_shape);
+  out_shape->Clear();
+  return ge::GRAPH_SUCCESS;
+}
+
 graphStatus InferSymbolicShapeFunc(gert::InferSymbolShapeContext *context) {
   GE_ASSERT_NOTNULL(context);
   const auto in_tensor = context->GetInputSymbolTensor(0);
@@ -28,6 +46,8 @@ graphStatus InferSymbolicShapeFunc(gert::InferSymbolShapeContext *context) {
   return GRAPH_SUCCESS;
 }
 
+IMPL_OP_INFER_SYMBOL_SHAPE_INNER(Assign).InferSymbolShape(InferShape4Assign);
+IMPL_OP_INFER_SYMBOL_SHAPE_INNER(L2Loss).InferSymbolShape(InferShape4L2Loss);
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(RandomUniform).InferSymbolShape(InferSymbolicShapeFunc);
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(TruncatedNormal).InferSymbolShape(InferSymbolicShapeFunc);
 }  // namespace

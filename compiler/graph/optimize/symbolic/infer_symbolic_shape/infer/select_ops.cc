@@ -58,6 +58,22 @@ graphStatus InferShape4Select(gert::InferSymbolShapeContext *context) {
   *out_shape = *in_shape1;
   return ge::GRAPH_SUCCESS;
 }
+
+graphStatus InferShape4SelectV2(gert::InferSymbolShapeContext *context) {
+  const auto condition_shape = context->GetInputSymbolShape(0);
+  GE_UNSUPPORTED_IF_NULL(condition_shape);
+  const auto in_shape1 = context->GetInputSymbolShape(1);
+  GE_UNSUPPORTED_IF_NULL(in_shape1);
+  const auto in_shape2 = context->GetInputSymbolShape(2);
+  GE_UNSUPPORTED_IF_NULL(in_shape2);
+  const auto out_shape = context->GetOutputSymbolShape(0);
+  GE_ASSERT_NOTNULL(out_shape);
+  GE_ASSERT_SUCCESS(SymbolicInferUtil::Broadcast({in_shape1->GetDims(),
+     in_shape2->GetDims(), condition_shape->GetDims()}, out_shape->MutableDims()));
+  return ge::GRAPH_SUCCESS;
+}
+
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(Select).InferSymbolShape(InferShape4Select);
+IMPL_OP_INFER_SYMBOL_SHAPE_INNER(SelectV2).InferSymbolShape(InferShape4SelectV2);
 }  // namespace
 }  // namespace ge

@@ -78,6 +78,40 @@ graphStatus InferShape4Pack(gert::InferSymbolShapeContext *context) {
   return GRAPH_SUCCESS;
 }
 
+graphStatus InferShape4Unpack(gert::InferSymbolShapeContext *context) {
+  auto attrs = context->GetAttrs();
+  GE_ASSERT_NOTNULL(attrs);
+  const auto *num = attrs->GetAttrPointer<int64_t>(0);
+  GE_ASSERT_NOTNULL(num);
+  const auto *axis_ptr = attrs->GetAttrPointer<int64_t>(1);
+  GE_ASSERT_NOTNULL(axis_ptr);
+  if (!context->GetOutputSymbolShape(*num - 1) || context->GetOutputSymbolShape(*num)) {
+    GELOGE(PARAM_INVALID, "invalid num or out_shape_size");
+    return GRAPH_FAILED;
+  }
+  auto input_x_shape = context->GetInputSymbolShape(0);
+  GE_UNSUPPORTED_IF_NULL(input_x_shape);
+  size_t input_x_dim_size = input_x_shape->GetDimNum();
+  const int64_t real_axis = (*axis_ptr >= 0 ? *axis_ptr : *axis_ptr + static_cast<int64_t>(input_x_dim_size));
+  if (real_axis < 0 || real_axis >= static_cast<int64_t>(input_x_dim_size)) {
+    GELOGE(PARAM_INVALID, "invalid axis=%d  but input_x_shape is %d", *axis_ptr, input_x_shape);
+    return PARAM_INVALID;
+  }
+  for (size_t i = 0; i < static_cast<size_t>(*num); ++i) {
+    auto out_y_i_shape = context->GetOutputSymbolShape(i);
+    GE_ASSERT_NOTNULL(out_y_i_shape);
+    for (size_t j = 0; j < input_x_dim_size; ++j) {
+      if (static_cast<int64_t>(j) < real_axis) {
+        out_y_i_shape->AppendDim(input_x_shape->GetDim(j));
+      } else if (static_cast<int64_t>(j) > real_axis) {
+        out_y_i_shape->AppendDim(input_x_shape->GetDim(j));
+      }
+    }
+  }
+  return GRAPH_SUCCESS;
+}
+
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(Pack).InferSymbolShape(InferShape4Pack);
+IMPL_OP_INFER_SYMBOL_SHAPE_INNER(Unpack).InferSymbolShape(InferShape4Unpack);
 }  // namespace
 }  // namespace ge

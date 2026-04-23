@@ -81,6 +81,29 @@ graphStatus InferShape4BNTrainingReduce(gert::InferSymbolShapeContext *context) 
   return GetOutputShapeFromOriginFormat(dim_num, origin_format, x_shape, sum_shape, squaresum_shape);
 }
 
+graphStatus InferShape4BNTrainingUpdate(gert::InferSymbolShapeContext *context) {
+  auto x_shape = context->GetInputSymbolShape(0);
+  GE_UNSUPPORTED_IF_NULL(x_shape);
+  auto scale_shape = context->GetInputSymbolShape(3);
+  GE_UNSUPPORTED_IF_NULL(scale_shape);
+
+  constexpr size_t output_num = 5U;
+  for (size_t i = 0U; i < output_num; ++i) {
+    auto output_shape = context->GetOutputSymbolShape(i);
+    GE_ASSERT(output_shape != nullptr, "BNTrainingUpdate output shape is null, idx %zu", i);
+    if (i == 0U) {
+      *output_shape = *x_shape;
+    } else {
+      *output_shape = *scale_shape;
+    }
+  }
+
+  return ge::GRAPH_SUCCESS;
+}
+
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(BNTrainingReduce).InferSymbolShape(InferShape4BNTrainingReduce);
+IMPL_OP_INFER_SYMBOL_SHAPE_INNER(BNTrainingUpdate).InferSymbolShape(InferShape4BNTrainingUpdate);
+IMPL_OP_INFER_SYMBOL_SHAPE_INNER(BNTrainingUpdateV3).InferSymbolShape(InferShape4BNTrainingUpdate);
+
 }
 } // namespace ge

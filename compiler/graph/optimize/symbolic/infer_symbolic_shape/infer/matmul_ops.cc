@@ -19,9 +19,52 @@ namespace ge {
 namespace {
 
 constexpr size_t kMatmulDimNum = 2U;
+constexpr size_t kZero = 0U;
+constexpr size_t kOne = 1U;
 const size_t kBatchMatMulMaxDimNum = 8;
 const size_t kMatMulMIdx = 2;
 const size_t kMatMulNIdx = 1;
+
+graphStatus InferShape4MatMul(gert::InferSymbolShapeContext *context) {
+  auto in_shape1 = context->GetInputSymbolShape(0);
+  GE_UNSUPPORTED_IF_NULL(in_shape1);
+  auto in_shape2 = context->GetInputSymbolShape(1);
+  GE_UNSUPPORTED_IF_NULL(in_shape2);
+  auto out_shape = context->GetOutputSymbolShape(0);
+  GE_UNSUPPORTED_IF_NULL(out_shape);
+  auto attrs = context->GetAttrs();
+  GE_ASSERT_NOTNULL(attrs);
+  const bool *trans_a = attrs->GetAttrPointer<bool>(0);
+  const bool *trans_b = attrs->GetAttrPointer<bool>(1);
+  GE_ASSERT_NOTNULL(trans_a);
+  GE_ASSERT_NOTNULL(trans_b);
+  // todo: matmul的infershape中出现了补维现象，例如shape[128]会补成[1, 128]，暂时我们不支持
+  GE_ASSERT_EQ(in_shape1->GetDimNum(), kMatmulDimNum);
+  GE_ASSERT_EQ(in_shape2->GetDimNum(), kMatmulDimNum);
+  size_t idx_m = kZero;
+  size_t idx_k_a = kOne;
+  size_t idx_k_b = kZero;
+  size_t idx_n = kOne;
+  if (*trans_a) {
+    idx_m = kOne;
+    idx_k_a = kZero;
+  }
+
+  if (*trans_b) {
+    idx_k_b = kOne;
+    idx_n = kZero;
+  }
+
+  auto k_a = in_shape1->GetDim(idx_k_a);
+  auto k_b = in_shape2->GetDim(idx_k_b);
+  ASSERT_SYMBOL_EQ(k_a, k_b);
+
+  // 设置输出shape
+  out_shape->MutableDims().clear();
+  out_shape->MutableDims().emplace_back(in_shape1->GetDim(idx_m));
+  out_shape->MutableDims().emplace_back(in_shape2->GetDim(idx_n));
+  return ge::GRAPH_SUCCESS;
+}
 
 void GetMatMulDim(size_t dim_num, bool adj, size_t &dim_m, size_t &dim_n) {
   if (!adj) {
@@ -118,6 +161,8 @@ graphStatus InferShape4BatchMatMulV2(gert::InferSymbolShapeContext *context) {
   return GRAPH_SUCCESS;
 }
 
+IMPL_OP_INFER_SYMBOL_SHAPE_INNER(MatMul).InferSymbolShape(InferShape4MatMul);
+IMPL_OP_INFER_SYMBOL_SHAPE_INNER(MatMulV2).InferSymbolShape(InferShape4MatMul);
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(BatchMatMulV2).InferSymbolShape(InferShape4BatchMatMulV2);
 }  // namespace
 }  // namespace ge

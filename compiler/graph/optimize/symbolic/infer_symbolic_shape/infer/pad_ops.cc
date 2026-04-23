@@ -20,6 +20,8 @@ namespace ge {
 namespace {
 // 要求paddings的长度是input_dim的两倍
 constexpr size_t kPadSizeParam = 2U;
+constexpr size_t PAIR = 2UL;
+
 /**
  * Pad算子 算子的符号化shape推导
  * 【算子功能】对张量进行填充
@@ -94,7 +96,51 @@ graphStatus InferShape4PadD(gert::InferSymbolShapeContext *context) {
   return GRAPH_SUCCESS;
 }
 
+graphStatus PadV3InferShape(const gert::InferSymbolShapeContext* context, const gert::SymbolShape* x_shape,
+                            const gert::SymbolTensor* paddings_tensor, gert::SymbolShape* y_shape) {
+  const auto paddings_value = paddings_tensor->GetSymbolicValue();
+  GE_ASSERT_NOTNULL(paddings_value);
+  const auto attrs = context->GetAttrs();
+  GE_ASSERT_NOTNULL(attrs);
+  const auto paddings_contiguous = attrs->GetAttrPointer<bool>(1);
+  GE_ASSERT_NOTNULL(paddings_contiguous);
+  const size_t input_dim_size = x_shape->GetDimNum();
+  GE_ASSERT(input_dim_size != 0UL, "input shape cannot empty");
+  const auto paddings_size = paddings_tensor->GetSymbolicValue()->size();
+  GE_ASSERT(paddings_size > 0UL, "Invalid paddings, must be non-empty!");
+
+  const auto &paddings_num = paddings_tensor->GetOriginSymbolShape().GetSymbolShapeSize();
+  ASSERT_SYMBOL_EQ(paddings_num, Symbol(input_dim_size * PAIR));
+  size_t index_cof = 1UL;
+  size_t index_offset = input_dim_size;
+  if (*paddings_contiguous) {
+    index_cof = PAIR;
+    index_offset = 1UL;
+  }
+  for (size_t i = 0UL; i < input_dim_size; ++i) {
+    auto pad_front = paddings_value->at(index_cof * i);
+    auto pad_end = paddings_value->at(index_cof * i + index_offset);
+    y_shape->AppendDim(x_shape->GetDim(i) + pad_front + pad_end);
+  }
+  return GRAPH_SUCCESS;
+}
+
+graphStatus InferShape4PadV3(gert::InferSymbolShapeContext* context) {
+  const auto x_shape = context->GetInputSymbolShape(0);
+  GE_UNSUPPORTED_IF_NULL(x_shape);
+  auto y_shape = context->GetOutputSymbolShape(0);
+  GE_ASSERT_NOTNULL(y_shape);
+  const auto paddings_tensor = context->GetInputSymbolTensor(1);
+  GE_UNSUPPORTED_IF_NULL(paddings_tensor);
+  const auto paddings_desc = context->GetInputDesc(1);
+  GE_ASSERT_NOTNULL(paddings_desc);
+  const auto paddings_dtype = paddings_desc->GetDataType();
+  GE_ASSERT(paddings_dtype == DT_INT32 || paddings_dtype == DT_INT64, "paddings data type must is int32 or int64, it is %d", paddings_dtype);
+  return PadV3InferShape(context, x_shape, paddings_tensor, y_shape);
+}
+
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(Pad).InferSymbolShape(InferShape4Pad);
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(PadD).InferSymbolShape(InferShape4PadD);
+IMPL_OP_INFER_SYMBOL_SHAPE_INNER(PadV3).InferSymbolShape(InferShape4PadV3);
 }  // namespace
 }  // namespace ge
