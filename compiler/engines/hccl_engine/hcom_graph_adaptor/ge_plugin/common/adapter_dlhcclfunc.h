@@ -75,8 +75,7 @@ struct OpParamGraphModeDeleter {
 };
 // 用于管理 OpParamGraphModePtr 资源的智能指针类型
 using OpParamGraphModeGuard = std::unique_ptr<void, OpParamGraphModeDeleter>;
-HcclResult HcceSetAivSelectOpParamGraphMode(OpParamGraphModePtr opParam, const char *group, u64 count, void *counts, 
- 	                                          HcclDataType dataType, HcclReduceOp op, HcclCMDType opTypeAiv, u32 aivCoreLimit, bool ifAiv);
+HcclResult HcceSetAivSelectOpParamGraphMode(OpParamGraphModePtr opParam, u32 aivCoreLimit);
 
 // 资源计算函数
 HcclResult HcceCalcOpResOfflineGraphMode(OpParamGraphModePtr opParam, u64 *opMemSize, u32 *streamNum, u32 *taskNum, u32 *aivCoreNum);

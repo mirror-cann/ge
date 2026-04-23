@@ -1066,7 +1066,7 @@ HcclResult HcomGraphOptimizer::CalcOpRunningResources(const ge::Node &node, std:
     OpParamGraphModeGuard opParamGuard(opParamPtr);
     // 设置Op参数
     CHK_RET(SetHcclOpParam(node, &hcomOpParam, opParamPtr, sCollectiveType, sendCounts,
-                         sendDispls, recvCounts, recvDispls, sGroup.c_str()));
+                         sendDispls, recvCounts, recvDispls));
     
     if (IsOfflineCompilation() || hcomOpParam.groupListSize != 0) {
       CHK_RET(HcceCalcOpResOfflineGraphMode(opParamPtr, &opMemSize, &streamNum, &taskNum, &aivCoreNum));
@@ -1416,7 +1416,7 @@ HcclResult HcomGraphOptimizer::SetHcomOpParam(const ge::Node &node, HcomOpParam 
 
 HcclResult HcomGraphOptimizer::SetHcclOpParam(const ge::Node &node, HcomOpParam *hcomOpParam, OpParamGraphModePtr opParamPtr, std::string &sCollectiveType,
                                               std::vector<int64_t> &sendCounts, std::vector<int64_t> &sendDispls,
-                                              std::vector<int64_t> &recvCounts, std::vector<int64_t> &recvDispls, const char* group) {
+                                              std::vector<int64_t> &recvCounts, std::vector<int64_t> &recvDispls) {
   HCCL_INFO("[Calc][SetHcclOpParam] with [%s].", sCollectiveType.c_str());
   HcclResult ret;
   sCollectiveType = node.GetOpDesc()->GetType();
@@ -1425,19 +1425,15 @@ HcclResult HcomGraphOptimizer::SetHcclOpParam(const ge::Node &node, HcomOpParam 
       ret != HCCL_SUCCESS,
       HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] op type[%s] is not supported.", ret, sCollectiveType.c_str()),
       HCCL_E_NOT_SUPPORT);
-  // aiv参数
+  // 补充参数
   u64 count = 0;
-  void* counts = nullptr;
   HcclDataType dataType = HCCL_DATA_TYPE_RESERVED;
-  HcclReduceOp reduction = HcclReduceOp::HCCL_REDUCE_SUM;
-  HcclCMDType opTypeAiv = HcclCMDType::HCCL_CMD_INVALID;
   u32 aivCoreLimit = 0;
-  bool ifAiv = false;
   
   // 计算Aiv参数
- 	CHK_RET(GetAivParam(node, sCollectiveType, group, count, dataType, reduction, opTypeAiv, aivCoreLimit, ifAiv));
+ 	CHK_RET(GetAivParam(node, sCollectiveType, aivCoreLimit));
   // 设置aiv参数
-  ret = HcceSetAivSelectOpParamGraphMode(opParamPtr, group, count, counts, dataType, reduction, opTypeAiv, aivCoreLimit, ifAiv);
+  ret = HcceSetAivSelectOpParamGraphMode(opParamPtr, aivCoreLimit);
   CHK_PRT_RET(
       ret != HCCL_SUCCESS,
       HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] set aivParam failed.", ret),
@@ -1582,36 +1578,8 @@ HcclResult HcomGraphOptimizer::SetHcclOpParam(const ge::Node &node, HcomOpParam 
   return HCCL_SUCCESS;
 }
 
-HcclResult HcomGraphOptimizer::GetAivParam(const ge::Node &node, std::string &sCollectiveType, const char* group,
-                                          u64 &count, HcclDataType &dataType, HcclReduceOp &reduction, HcclCMDType &opType,
-                                          u32 &aivCoreLimit, bool ifAiv) {
+HcclResult HcomGraphOptimizer::GetAivParam(const ge::Node &node, std::string &sCollectiveType, u32 &aivCoreLimit) {
   CHK_RET(HcomOpUtils::GetAivCoreLimit(node.GetOpDesc(), sCollectiveType, aivCoreLimit));
-  (void)ifAiv;
-  HcclResult ret;
-  u32 rankSize = 0;
-  CHK_RET(HcomGetRankSize(group, &rankSize));
-
-  ret = HcomOpUtils::ConversionOpDataType(node.GetOpDesc(), sCollectiveType, dataType);
-  CHK_PRT_RET(
-      ret != HCCL_SUCCESS,
-      HCCL_ERROR("[Get][SetSuperKernelScopeAttr]op[%s]: get data type failed. ret[%d]", sCollectiveType.c_str(), ret),
-      ret);
-
-  ret = HcomOpUtils::GetCountFromOpDescSuperkernel(node.GetOpDesc(), sCollectiveType, dataType, count, rankSize);
-  CHK_PRT_RET(
-      ret != HCCL_SUCCESS,
-      HCCL_ERROR("[Get][SetSuperKernelScopeAttr]op[%s]: get count failed. ret[%d]", sCollectiveType.c_str(), ret),
-      ret);
-
-  auto iter = HCCL_OPTYPE_NAME_MAP.find(sCollectiveType);
-  if (iter != HCCL_OPTYPE_NAME_MAP.end()) {
-    opType = iter->second;
-  }
-
-  if (opType == HcclCMDType::HCCL_CMD_ALLREDUCE || opType == HcclCMDType::HCCL_CMD_REDUCE_SCATTER) {
-    CHK_RET(HcomOpUtils::GetReduction(node.GetOpDesc(), reduction));
-  }
-
   return HCCL_SUCCESS;
 }
 

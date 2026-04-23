@@ -136,9 +136,7 @@ HcclResult DlHcclFunction::initHcclGraphModeFunctions() {
   dlHcclSetOpParamGraphModeDataTypeFunc = (HcclResult (*)(OpParamGraphModePtr opParam, const HcclDataType dataType))dlsym(dl_hccl_handle, "HcclSetOpParamGraphModeDataType");
   CHK_PTR_NULL(dlHcclSetOpParamGraphModeDataTypeFunc);
 
-  dlHcclSetAivSelectOpParamGraphModeFunc = (HcclResult (*)(OpParamGraphModePtr opParam, const char *group, u64 count, 
-      void *counts, HcclDataType dataType, HcclReduceOp reduction, 
-      HcclCMDType opType, u32 aivCoreLimit, bool ifAiv))dlsym(dl_hccl_handle, "HcclSetAivSelectOpParamGraphMode");
+  dlHcclSetAivSelectOpParamGraphModeFunc = (HcclResult (*)(OpParamGraphModePtr opParam, u32 aivCoreLimit))dlsym(dl_hccl_handle, "HcclSetAivSelectOpParamGraphMode");
  	CHK_PTR_NULL(dlHcclSetAivSelectOpParamGraphModeFunc);
 
   dlHcclCalcOpResOfflineGraphModeFunc = (HcclResult (*)(OpParamGraphModePtr opParam, u64 *opMemSize, 
@@ -337,8 +335,8 @@ HcclResult DlHcclFunction::dlHcclSetOpParamGraphModeDataType(OpParamGraphModePtr
   return dlHcclSetOpParamGraphModeDataTypeFunc(opParam, dataType);
 }
 
-HcclResult DlHcclFunction::dlHcclSetAivSelectOpParamGraphMode(OpParamGraphModePtr opParam, const char *group, u64 count, void *counts, HcclDataType dataType, HcclReduceOp op, HcclCMDType opTypeAiv, u32 aivCoreLimit, bool ifAiv) {
-  return dlHcclSetAivSelectOpParamGraphModeFunc(opParam, group, count, counts, dataType, op, opTypeAiv, aivCoreLimit, ifAiv);
+HcclResult DlHcclFunction::dlHcclSetAivSelectOpParamGraphMode(OpParamGraphModePtr opParam, u32 aivCoreLimit) {
+  return dlHcclSetAivSelectOpParamGraphModeFunc(opParam, aivCoreLimit);
 }
 
 HcclResult DlHcclFunction::dlHcclCalcOpResOfflineGraphMode(OpParamGraphModePtr opParam, u64 *opMemSize, u32 *streamNum, u32 *taskNum, u32 *aivCoreNum) {

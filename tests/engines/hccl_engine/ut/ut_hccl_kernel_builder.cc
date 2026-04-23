@@ -1263,7 +1263,6 @@ TEST_F(HcomGraphOptimizerTest, ut_SetHcclOpParam)
     std::vector<int64_t> sendDispls;
     std::vector<int64_t> recvCounts;
     std::vector<int64_t> recvDispls;
-    const char* group = "aiv";
 
     // 模拟IsUsingOpenSource返回true，使用开源版本
     MOCKER(IsUsingOpenSource)
@@ -1278,7 +1277,7 @@ TEST_F(HcomGraphOptimizerTest, ut_SetHcclOpParam)
     .will(returnValue(HCCL_SUCCESS));
 
     HcclResult ret = graphOptimizer.SetHcclOpParam(*addedNodePtr0, &hcomOpParam, opParamPtr, sCollectiveType, 
-                                                  sendCounts, sendDispls, recvCounts, recvDispls, group);
+                                                  sendCounts, sendDispls, recvCounts, recvDispls);
     EXPECT_EQ(ret, HCCL_SUCCESS);
 
     GlobalMockObject::verify();

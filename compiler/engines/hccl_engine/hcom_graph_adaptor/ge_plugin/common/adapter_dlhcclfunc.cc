@@ -178,12 +178,11 @@ HcclResult HcceSetOpParamGraphModeDataType(OpParamGraphModePtr opParam, HcclData
   return DlHcclFunction::get_instance().dlHcclSetOpParamGraphModeDataType(opParam, dataType);
 }
 
-HcclResult HcceSetAivSelectOpParamGraphMode(OpParamGraphModePtr opParam, const char *group, u64 count, void *counts, 
-                                      HcclDataType dataType, HcclReduceOp op, HcclCMDType opTypeAiv, u32 aivCoreLimit, bool ifAiv) {
+HcclResult HcceSetAivSelectOpParamGraphMode(OpParamGraphModePtr opParam, u32 aivCoreLimit) {
   CHK_PRT_RET(DlHcclFunction::get_instance().init() != HCCL_SUCCESS, HCCL_ERROR("DlHcclFunction::get_instance().init() fail \n"),
               HCCL_E_PARA);
 
-  return DlHcclFunction::get_instance().dlHcclSetAivSelectOpParamGraphMode(opParam, group, count, counts, dataType, op, opTypeAiv, aivCoreLimit, ifAiv);
+  return DlHcclFunction::get_instance().dlHcclSetAivSelectOpParamGraphMode(opParam, aivCoreLimit);
 }
 
 HcclResult HcceCalcOpResOfflineGraphMode(OpParamGraphModePtr opParam, u64 *opMemSize, u32 *streamNum, u32 *taskNum, u32 *aivCoreNum) {
