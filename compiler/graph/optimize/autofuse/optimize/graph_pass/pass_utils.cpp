@@ -99,6 +99,7 @@ ge::AscNodePtr PassUtils::CreateOneScalarBrc(ge::AscGraph &graph, const ge::AscN
   std::string scalar_name = ref_node->GetName() + "_One";
   ge::ascir_op::Scalar scalar_one(scalar_name.c_str(), graph);
   scalar_one.ir_attr.SetValue(ge::SymbolicUtils::ToString(ge::sym::kSymbolOne));
+  scalar_one.y.dtype = static_cast<ge::DataType>(ref_node->outputs[0].attr.dtype);
 
   std::string brc_name = ref_node->GetName() + "_Brc";
   ge::ascir_op::Broadcast brc(brc_name.c_str());

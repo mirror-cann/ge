@@ -645,6 +645,77 @@ TEST_F(TestOptimizerV2, PowScalarSqrt) {
   EXPECT_EQ(pow1_node, nullptr);
 }
 
+// 验证Pow等价替换后，CreateOneScalarBrc创建的Scalar节点dtype正确继承自Pow节点
+TEST_F(TestOptimizerV2, PowScalarDtypeCheck) {
+  auto s0 = Sym(128);
+  auto s1 = Sym(256);
+
+  // pow(x, -1) -> 1/x，触发 CreateOneScalarBrc 创建 Scalar(1) 节点
+  // Data/Load 使用 DT_FLOAT16（非默认 DT_FLOAT），验证新节点 dtype 正确继承
+  auto graph = AscGraphBuilder("PowDtypeCheck")
+      .Loops({s0, s1})
+      .Data("data0", 0, ge::DT_FLOAT16)
+      .Load("load0", "data0")
+      .Scalar("pow_input", "-1.0")
+      .Broadcast("brc_scalar", "pow_input", {s0, s1})
+      .Op<ascir_op::Pow>("pow", {"load0", "brc_scalar"})
+      .Store("store", "pow")
+      .Output("y", "store", 0, ge::DT_FLOAT16)
+      .Build();
+
+  PowEquivSubstitutionPass pass;
+  EXPECT_EQ(pass.RunPass(graph), ge::SUCCESS);
+
+  // pow 节点应被替换
+  auto pow_node = graph.FindNode("pow");
+  EXPECT_EQ(pow_node, nullptr);
+
+  // 验证 CreateOneScalarBrc 创建的 Scalar 节点 dtype 为 DT_FLOAT16（非默认 DT_FLOAT）
+  auto scalar_node = graph.FindNode("pow_One");
+  ASSERT_NE(scalar_node, nullptr);
+  EXPECT_EQ(static_cast<ge::DataType>(scalar_node->outputs[0].attr.dtype), ge::DT_FLOAT16);
+
+  // 验证 Brc 节点 dtype 为 DT_FLOAT16
+  auto brc_node = graph.FindNode("pow_Brc");
+  ASSERT_NE(brc_node, nullptr);
+  EXPECT_EQ(static_cast<ge::DataType>(brc_node->outputs[0].attr.dtype), ge::DT_FLOAT16);
+
+  // 验证 Div 节点存在且 dtype 为 DT_FLOAT16
+  auto div_node = graph.FindNode("pow_Div");
+  ASSERT_NE(div_node, nullptr);
+  EXPECT_EQ(static_cast<ge::DataType>(div_node->outputs[0].attr.dtype), ge::DT_FLOAT16);
+}
+
+// 验证负指数模式对非浮点类型不执行替换，防止除法语义异常
+TEST_F(TestOptimizerV2, PowNegScalarNonFloatSkip) {
+  auto s0 = Sym(128);
+  auto s1 = Sym(256);
+
+  // pow(x, -1) 但 dtype 为 DT_INT32（非浮点），不应被替换为 Div
+  auto graph = AscGraphBuilder("PowNegNonFloat")
+      .Loops({s0, s1})
+      .Data("data0", 0, ge::DT_INT32)
+      .Load("load0", "data0")
+      .Scalar("pow_input", "-1.0")
+      .Broadcast("brc_scalar", "pow_input", {s0, s1})
+      .Op<ascir_op::Pow>("pow", {"load0", "brc_scalar"})
+      .Store("store", "pow")
+      .Output("y", "store", 0, ge::DT_INT32)
+      .Build();
+
+  PowEquivSubstitutionPass pass;
+  EXPECT_EQ(pass.RunPass(graph), ge::SUCCESS);
+
+  // 非浮点类型，pow 节点应保留不替换
+  auto pow_node = graph.FindNode("pow");
+  EXPECT_NE(pow_node, nullptr);
+
+  // 不应创建除法相关的新节点
+  EXPECT_EQ(graph.FindNode("pow_One"), nullptr);
+  EXPECT_EQ(graph.FindNode("pow_Brc"), nullptr);
+  EXPECT_EQ(graph.FindNode("pow_Div"), nullptr);
+}
+
 TEST_F(TestOptimizerV2, GatherReduceFuse) {
   ge::AscGraph graph("gather_reduce");
 
