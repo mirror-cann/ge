@@ -8,25 +8,17 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-#include "pre_process/pre_process.h"
-#include "pre_process/improve_precision.h"
-#include "pre_process/scalar_broadcast_insert.h"
-#include "ascgen_log.h"
+#ifndef AUTOFUSE_OPTIMIZE_PRE_PROCESS_SCALAR_BROADCAST_INSERT_H
+#define AUTOFUSE_OPTIMIZE_PRE_PROCESS_SCALAR_BROADCAST_INSERT_H
+
+#include "graph/ascendc_ir/utils/asc_graph_utils.h"
 
 namespace optimize {
 namespace pre_process {
 
-ge::Status PreProcess::Run(ge::AscGraph &asc_graph) {
-  // 对用户构图存在一些后端支持不了的场景做一些适配
-  GELOGD("PreProcess::Run start, graph: %s.", asc_graph.GetName().c_str());
-  GE_CHK_STATUS_RET(ImprovePrecisionForAscGraph(asc_graph), "Improve precision failed");
-
-  GE_CHK_STATUS_RET(InsertBroadcastAfterScalarForAscGraph(asc_graph), "Insert broadcast after scalar failed");
-  // 后续预处理步骤在此追加
-
-  GELOGD("PreProcess::Run end, graph: %s.", asc_graph.GetName().c_str());
-  return ge::SUCCESS;
-}
+ge::Status InsertBroadcastAfterScalarForAscGraph(ge::AscGraph &asc_graph);
 
 }  // namespace pre_process
 }  // namespace optimize
+
+#endif  // AUTOFUSE_OPTIMIZE_PRE_PROCESS_SCALAR_BROADCAST_INSERT_H
