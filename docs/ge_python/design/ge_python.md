@@ -495,7 +495,13 @@ GeApi.ge_finalize()
 
 **主要方法**:
 - `meet_requirements(node)` - 判断节点是否满足分解条件，默认返回 True
-- `replacement(node)` - 将节点分解为多个子节点
+- `replacement(node)` - 将节点分解为多个子节点，必须返回 `Graph`
+
+**设计约束**:
+- **不支持用户自定义 `run()` 方法**：`DecomposePass` 复用 C++ 的 `Run()` 实现来执行标准的 node-filter-replacement 流程。Python 侧只需实现 `meet_requirements()` 和 `replacement()` 两个 hook 即可。
+- **若子类覆写 `run()` 会在类定义阶段直接抛出 `TypeError`**：避免用户误以为 `run()` 会在 `DecomposePass` 路径中被调用。
+- **不支持在 `replacement()` 中返回 `None` 表示跳过**：若希望放弃当前节点，需在 `meet_requirements()` 中返回 `False`。
+- **`op_types` 由 `register_decompose_pass(..., op_types=[...])` 声明并固化到 descriptor**：Python 基类不再自行维护另一套构造参数。
 
 **关系**:
 - 继承自 `FusionBasePass`

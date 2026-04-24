@@ -12,6 +12,7 @@
 
 """Python pass registry and decorators."""
 
+from collections.abc import Iterable as IterableABC
 import inspect
 import threading
 from dataclasses import dataclass, field
@@ -86,6 +87,20 @@ def _build_descriptor_key(module_name: str, class_name: str, pass_name: str) -> 
     return f"{module_name}:{class_name}:{pass_name}"
 
 
+def _normalize_decompose_op_types(op_types: Iterable[str]) -> List[str]:
+    if isinstance(op_types, (str, bytes)) or not isinstance(op_types, IterableABC):
+        raise TypeError("register_decompose_pass op_types must be an iterable of strings")
+
+    normalized_op_types = list(op_types)
+    if not normalized_op_types:
+        raise ValueError("register_decompose_pass requires at least one op type")
+
+    for op_type in normalized_op_types:
+        if not isinstance(op_type, str) or not op_type:
+            raise TypeError("register_decompose_pass op_types must contain non-empty strings")
+    return normalized_op_types
+
+
 def _register_pass_class(cls: Type[FusionBasePass], *, kind: str, name: str, stage: PassStage,
                          op_types: Optional[Iterable[str]] = None) -> Type[FusionBasePass]:
     module_name = cls.__module__
@@ -124,10 +139,19 @@ def register_decompose_pass(*, name: str, stage: PassStage,
                             op_types: Iterable[str]) -> callable:
     """Decorator for DecomposePass."""
 
+    normalized_op_types = _normalize_decompose_op_types(op_types)
+
     def decorator(cls: Type[DecomposePass]) -> Type[DecomposePass]:
         if not inspect.isclass(cls) or not issubclass(cls, DecomposePass):
             raise TypeError("register_decompose_pass expects a DecomposePass subclass")
-        return _register_pass_class(cls, kind=PASS_KIND_DECOMPOSE, name=name, stage=stage, op_types=op_types)
+        setattr(cls, "op_types", list(normalized_op_types))
+        return _register_pass_class(
+            cls,
+            kind=PASS_KIND_DECOMPOSE,
+            name=name,
+            stage=stage,
+            op_types=normalized_op_types,
+        )
 
     return decorator
 

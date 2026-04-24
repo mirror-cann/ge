@@ -399,6 +399,17 @@ class PythonFusionPassPybindBridge {
                   static_cast<PythonBridgeHolder *>(holder), match_result, replacement_graph);
             };
         break;
+      case PythonPassKind::kDecompose:
+        callbacks.decompose_meet_requirements = [](void *holder, const GNode &matched_node) -> bool {
+          return PythonFusionPassPybindBridge::GetInstance().CallDecomposeMeetRequirements(
+              static_cast<PythonBridgeHolder *>(holder), matched_node);
+        };
+        callbacks.decompose_replacement =
+            [](void *holder, const GNode &matched_node, GraphUniqPtr &replacement_graph) -> Status {
+              return PythonFusionPassPybindBridge::GetInstance().CallDecomposeReplacement(
+                  static_cast<PythonBridgeHolder *>(holder), matched_node, replacement_graph);
+            };
+        break;
       default:
         break;
     }
@@ -526,6 +537,65 @@ class PythonFusionPassPybindBridge {
       return SUCCESS;
     } catch (const py::error_already_set &err) {
       GELOGE(FAILED, "Call python replacement failed, instance id[%s]: %s",
+             holder->instance_id.c_str(), err.what());
+      return FAILED;
+    }
+  }
+
+  bool CallDecomposeMeetRequirements(PythonBridgeHolder *holder, const GNode &matched_node) {
+    if (holder == nullptr) {
+      return false;
+    }
+    const auto prepare_ret = EnsureBridgeReady();
+    if (prepare_ret != SUCCESS) {
+      GELOGW("Prepare python bridge failed for decompose MeetRequirements.");
+      return false;
+    }
+    py::gil_scoped_acquire gil;
+    try {
+      py::object result = bridge_module_.attr("call_decompose_meet_requirements")(
+          holder->instance_id,
+          py::int_(reinterpret_cast<uintptr_t>(&matched_node)));
+      return result.cast<bool>();
+    } catch (const py::error_already_set &err) {
+      GELOGW("Call python decompose meet_requirements failed, instance id[%s]: %s",
+             holder->instance_id.c_str(), err.what());
+      return false;
+    }
+  }
+
+  Status CallDecomposeReplacement(PythonBridgeHolder *holder,
+                                  const GNode &matched_node,
+                                  GraphUniqPtr &replacement_graph) {
+    if (holder == nullptr) {
+      return FAILED;
+    }
+    const auto prepare_ret = EnsureBridgeReady();
+    if (prepare_ret != SUCCESS) {
+      GELOGE(prepare_ret, "Prepare python bridge failed for decompose Replacement.");
+      return prepare_ret;
+    }
+    py::gil_scoped_acquire gil;
+    try {
+      py::object result = bridge_module_.attr("call_decompose_replacement")(
+          holder->instance_id,
+          py::int_(reinterpret_cast<uintptr_t>(&matched_node)));
+      if (result.is_none()) {
+        GELOGW("Python decompose pass instance[%s] returned None replacement.", holder->instance_id.c_str());
+        return FAILED;
+      }
+      const auto graph_handle = result.cast<uintptr_t>();
+      auto *graph_ptr = reinterpret_cast<Graph *>(graph_handle);
+      if (graph_ptr == nullptr) {
+        return FAILED;
+      }
+      replacement_graph = GraphUniqPtr(graph_ptr);
+      GELOGI("Python decompose pass instance[%s] returned replacement graph handle[%p].",
+             holder->instance_id.c_str(),
+             graph_ptr);
+      return SUCCESS;
+    } catch (const py::error_already_set &err) {
+      GELOGE(FAILED, "Call python decompose replacement failed, instance id[%s]: %s",
              holder->instance_id.c_str(), err.what());
       return FAILED;
     }

@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Iterable, List, Optional, Union
+from typing import TYPE_CHECKING, Iterable, List, Optional, Union
 
 from ._ge_pass_native import MatchResult
 from ._ge_pass_native import PassContext
@@ -23,6 +23,7 @@ from ._ge_pass_native import PatternMatcherConfigBuilder
 
 if TYPE_CHECKING:
     from ge.graph.graph import Graph
+    from ge.graph.node import Node
     from .pattern import Pattern
 
 
@@ -83,12 +84,27 @@ class PatternFusionPass(FusionBasePass):
 
 
 class DecomposePass(FusionBasePass):
-    """Python DecomposePass contract."""
+    """Python DecomposePass contract.
+
+    The execution engine calls ``meet_requirements()`` and ``replacement()``
+    for matched nodes — **not** ``run()``. Overriding ``run()`` in a
+    ``DecomposePass`` subclass has no effect; implement the two hook methods
+    above instead.
+    """
 
     op_types: Optional[List[str]] = None
 
-    def meet_requirements(self, node: Any) -> bool:
+    def __init_subclass__(cls, **kwargs) -> None:
+        super().__init_subclass__(**kwargs)
+        if "run" in cls.__dict__:
+            raise TypeError(
+                f"{cls.__name__} overrides run(), which is never invoked "
+                f"by the DecomposePass execution path. "
+                f"Implement meet_requirements()/replacement() instead."
+            )
+
+    def meet_requirements(self, node: "Node") -> bool:
         return True
 
-    def replacement(self, node: Any) -> Any:
+    def replacement(self, node: "Node") -> "Graph":
         raise NotImplementedError("DecomposePass.replacement must be implemented")

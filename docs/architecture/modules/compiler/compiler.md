@@ -280,6 +280,14 @@ classDiagram
 1. `OptimizeOriginalGraph`：执行引擎级的内置融合 Pass + 自定义 Pass
 2. `RunCustomPassAfterOriginGraphOptimize`：执行用户注册的自定义 Pass
 
+当前自定义 Pass 不再只限于 C++ 静态注册。Python pass 也会通过 bridge 先注册到 `PassRegistry`，然后在执行期由三类 adapter 接入现有主流程：
+
+- `PythonFusionBasePassAdapter` 直接转调 Python `run(graph, context)`
+- `PythonPatternFusionPassAdapter` 复用 C++ `PatternFusionPass::Run()`，只在 `Patterns / MeetRequirements / Replacement` 三个 hook 上回调 Python
+- `PythonDecomposePassAdapter` 复用 C++ `DecomposePass::Run()`，只在 `MeetRequirements / Replacement` 两个 hook 上回调 Python
+
+这个设计保证了 `FusionPassExecutor`、`PassRegistry`、`PatternFusionPass` 和 `DecomposePass` 的既有执行语义不需要为 Python 另起一套平行调度框架。
+
 ### 3.4 自动融合（AutofuseOptimize）
 
 自动融合在精度调整后、格式调整前执行，时机选择很关键：精度已经确定（不会再插入 Cast），但格式尚未固定（还有变换的空间）。

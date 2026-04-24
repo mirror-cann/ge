@@ -163,6 +163,7 @@ set(COMPILER_SRC_LIST
     "graph/fusion/pass/pass_plugin_loader.cc"
     "graph/fusion/pass/python_fusion_base_pass_adapter.cc"
     "graph/fusion/pass/python_pass_bridge_loader.cc"
+    "graph/fusion/pass/python_decompose_pass_adapter.cc"
     "graph/fusion/pass/python_pattern_fusion_pass_adapter.cc"
     "graph/fuzz_compile/fuzz_compile_bin_selector.cc"
     "graph/label/case_op_label_maker.cc"

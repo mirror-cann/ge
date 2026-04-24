@@ -15,6 +15,7 @@
 #include <utility>
 #include <vector>
 
+#include "ge/fusion/pass/decompose_pass.h"
 #include "ge/fusion/pass/fusion_base_pass.h"
 #include "ge/fusion/pass/pattern_fusion_pass.h"
 #include "pass_registry.h"
@@ -31,6 +32,9 @@ using PythonFusionPassPatternsFn = Status (*)(void *holder, std::vector<PatternU
 using PythonFusionPassMeetRequirementsFn = bool (*)(void *holder, const std::unique_ptr<MatchResult> &match_result);
 using PythonFusionPassReplacementFn =
     Status (*)(void *holder, const std::unique_ptr<MatchResult> &match_result, GraphUniqPtr &replacement_graph);
+using PythonDecomposePassMeetRequirementsFn = bool (*)(void *holder, const GNode &matched_node);
+using PythonDecomposePassReplacementFn =
+    Status (*)(void *holder, const GNode &matched_node, GraphUniqPtr &replacement_graph);
 
 struct PythonFusionPassCallbacks {
   PythonFusionBasePassHolderCreateFn create{nullptr};
@@ -40,6 +44,8 @@ struct PythonFusionPassCallbacks {
   PythonFusionPassPatternsFn patterns{nullptr};
   PythonFusionPassMeetRequirementsFn meet_requirements{nullptr};
   PythonFusionPassReplacementFn replacement{nullptr};
+  PythonDecomposePassMeetRequirementsFn decompose_meet_requirements{nullptr};
+  PythonDecomposePassReplacementFn decompose_replacement{nullptr};
 
   bool IsValid(PythonPassKind kind) const {
     if ((create == nullptr) || (destroy == nullptr)) {
@@ -50,6 +56,8 @@ struct PythonFusionPassCallbacks {
         return run != nullptr;
       case PythonPassKind::kPatternFusion:
         return (patterns != nullptr) && (replacement != nullptr);
+      case PythonPassKind::kDecompose:
+        return decompose_replacement != nullptr;
       default:
         return false;
     }
@@ -119,6 +127,21 @@ class PythonPatternFusionPassAdapter : public PatternFusionPass {
   explicit PythonPatternFusionPassAdapter(
       std::pair<std::unique_ptr<PythonPassHolder>, std::unique_ptr<PatternMatcherConfig>> init);
 
+  std::unique_ptr<PythonPassHolder> holder_;
+};
+
+class PythonDecomposePassAdapter : public DecomposePass {
+ public:
+  explicit PythonDecomposePassAdapter(const PythonPassDescriptor &pass_desc);
+  ~PythonDecomposePassAdapter() override;
+
+  bool IsValid() const;
+
+ protected:
+  bool MeetRequirements(const GNode &matched_node) override;
+  GraphUniqPtr Replacement(const GNode &matched_node) override;
+
+ private:
   std::unique_ptr<PythonPassHolder> holder_;
 };
 

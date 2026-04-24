@@ -231,6 +231,14 @@ FusionBasePass *CreatePythonPassAdapter() {
       }
       return adapter;
     }
+    case PythonPassKind::kDecompose: {
+      auto *adapter = new (std::nothrow) PythonDecomposePassAdapter(pass_desc);
+      if ((adapter == nullptr) || (!adapter->IsValid())) {
+        delete adapter;
+        return nullptr;
+      }
+      return adapter;
+    }
     default:
       GELOGW("Create python pass adapter failed because pass kind[%u] is unsupported.",
              static_cast<uint32_t>(pass_desc.kind));

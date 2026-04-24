@@ -162,6 +162,16 @@ const std::string &GetSharedPybindPatternMatcherConfigMarkerFilePath() {
   return path;
 }
 
+const std::string &GetSharedPybindDecomposePassFilePath() {
+  static const std::string path = GetSharedPybindPassDir().CreateFilePath("pybind_decompose_passes.py");
+  return path;
+}
+
+const std::string &GetSharedPybindDecomposeMarkerFilePath() {
+  static const std::string path = GetSharedPybindPassDir().CreateFilePath("decompose_bridge_success_marker.txt");
+  return path;
+}
+
 void EnsureSharedPybindPassFile() {
   static std::once_flag once;
   std::call_once(once, []() {
@@ -273,6 +283,35 @@ void EnsureSharedPybindPatternMatcherConfigPassFile() {
   });
 }
 
+void EnsureSharedPybindDecomposePassFile() {
+  static std::once_flag once;
+  std::call_once(once, []() {
+    std::ostringstream pass_code;
+    pass_code << "from pathlib import Path\n"
+              << "from ge.es.graph_builder import GraphBuilder\n"
+              << "from ge.passes import (\n"
+              << "    DecomposePass,\n"
+              << "    PassStage,\n"
+              << "    create_replacement,\n"
+              << "    register_decompose_pass,\n"
+              << ")\n\n"
+              << "MARKER_FILE = r'" << GetSharedPybindDecomposeMarkerFilePath() << "'\n\n"
+              << "@register_decompose_pass(name='PythonPybindDecomposeAddPass', "
+                 "stage=PassStage.AFTER_INFER_SHAPE, op_types=['Add'])\n"
+              << "class PythonPybindDecomposeAddPass(DecomposePass):\n"
+              << "    def meet_requirements(self, node):\n"
+              << "        Path(MARKER_FILE).write_text(f\"{node.name}|{node.type}\", encoding='utf-8')\n"
+              << "        return node.type == 'Add'\n\n"
+              << "    def replacement(self, node):\n"
+              << "        replacement_builder = GraphBuilder('decompose_add_replacement')\n"
+              << "        passthrough = replacement_builder.create_input(0)\n"
+              << "        replacement_builder.create_input(1)\n"
+              << "        replacement_builder.set_graph_output(passthrough, 0)\n"
+              << "        return create_replacement(replacement_builder.build_and_reset())\n";
+    WriteFile(GetSharedPybindDecomposePassFilePath(), pass_code.str());
+  });
+}
+
 struct PythonFusionBasePassRuntimeSnapshot {
   int create_count{0};
   int destroy_count{0};
@@ -337,6 +376,44 @@ Status ReplacementForUt(void *holder, const std::unique_ptr<MatchResult> &match_
   return g_pattern_fusion_runtime_snapshot.replacement_status;
 }
 
+struct DecomposePassRuntimeSnapshot {
+  int create_count{0};
+  int destroy_count{0};
+  int meet_requirements_count{0};
+  int replacement_count{0};
+  bool meet_requirements_result{true};
+  Status replacement_status{SUCCESS};
+};
+
+DecomposePassRuntimeSnapshot g_decompose_runtime_snapshot;
+
+void ResetDecomposeRuntimeSnapshot() {
+  g_decompose_runtime_snapshot = {};
+}
+
+void *CreateDecomposePassHolderForUt(const PythonPassDescriptor *pass_desc) {
+  ++g_decompose_runtime_snapshot.create_count;
+  if (pass_desc == nullptr) {
+    return nullptr;
+  }
+  return new (std::nothrow) PythonFusionBasePassHolderForUt{pass_desc->descriptor_key, pass_desc->pass_name};
+}
+
+void DestroyDecomposePassHolderForUt(void *holder) {
+  ++g_decompose_runtime_snapshot.destroy_count;
+  delete static_cast<PythonFusionBasePassHolderForUt *>(holder);
+}
+
+bool DecomposeMeetRequirementsForUt(void *holder, const GNode &matched_node) {
+  ++g_decompose_runtime_snapshot.meet_requirements_count;
+  return g_decompose_runtime_snapshot.meet_requirements_result;
+}
+
+Status DecomposeReplacementForUt(void *holder, const GNode &matched_node, GraphUniqPtr &replacement_graph) {
+  ++g_decompose_runtime_snapshot.replacement_count;
+  return g_decompose_runtime_snapshot.replacement_status;
+}
+
 void ResetPythonFusionBasePassRuntimeSnapshot() {
   g_python_fusion_base_runtime_snapshot = {};
 }
@@ -381,6 +458,7 @@ class UtestFusionPassExecutor : public testing::Test {
     ClearPythonPassRuntimeRegistry();
     ResetPythonFusionBasePassRuntimeSnapshot();
     ResetPatternFusionRuntimeSnapshot();
+    ResetDecomposeRuntimeSnapshot();
     global_options_bak_ = ge::GetThreadLocalContext().GetAllGlobalOptions();
     session_options_bak_ = ge::GetThreadLocalContext().GetAllSessionOptions();
     graph_options_bak_ = ge::GetThreadLocalContext().GetAllGraphOptions();
@@ -395,6 +473,7 @@ class UtestFusionPassExecutor : public testing::Test {
     ClearPythonPassRuntimeRegistry();
     ResetPythonFusionBasePassRuntimeSnapshot();
     ResetPatternFusionRuntimeSnapshot();
+    ResetDecomposeRuntimeSnapshot();
 
     GetThreadLocalContext().SetGlobalOption(global_options_bak_);
     GetThreadLocalContext().SetSessionOption(session_options_bak_);
@@ -1130,6 +1209,40 @@ TEST_F(UtestFusionPassExecutor, PythonPatternFusionPass_PybindBridge_MatcherConf
   EXPECT_EQ(const_node_count, 1U);
 }
 
+TEST_F(UtestFusionPassExecutor, PythonDecomposePass_PybindBridge_RunSuccess) {
+  EnsureSharedPybindDecomposePassFile();
+  const auto &marker_file = GetSharedPybindDecomposeMarkerFilePath();
+  (void)remove(marker_file.c_str());
+
+  ScopedEnvVar scoped_py_pass_path(kEnvPythonPassPath, GetSharedPybindDecomposePassFilePath());
+  ASSERT_EQ(RegisterPythonPassesFromPlugin(), SUCCESS);
+
+  auto target_graph = ge::es::EsGraphBuilder("python_decompose_target");
+  auto *esb_graph = target_graph.GetCGraphBuilder();
+  auto data = EsCreateGraphInput(esb_graph, 0);
+  auto zero = EsCreateScalarFloat(esb_graph, 0.0f);
+  auto add = EsAdd(data, zero);
+  esb_graph->SetGraphOutput(add, 0);
+  auto target_ge_graph = target_graph.BuildAndReset();
+  auto target_compute_graph = GraphUtilsEx::GetComputeGraph(*target_ge_graph);
+  ASSERT_NE(target_compute_graph, nullptr);
+
+  FusionPassExecutor pass_executor;
+  EXPECT_EQ(pass_executor.RunPasses(target_compute_graph, CustomPassStage::kAfterInferShape), SUCCESS);
+
+  const auto marker = ReadFile(marker_file);
+  EXPECT_NE(marker.find("|Add"), std::string::npos);
+
+  uint32_t add_node_count = 0;
+  for (const auto &node : target_compute_graph->GetDirectNode()) {
+    if (node->GetType() == "Add") {
+      ++add_node_count;
+    }
+  }
+  EXPECT_EQ(add_node_count, 0U);
+  EXPECT_EQ(pass_executor.RunPasses(target_compute_graph, CustomPassStage::kAfterInferShape), SUCCESS);
+}
+
 TEST_F(UtestFusionPassExecutor, PythonPatternFusionPass_CreateAndDestroy) {
   PythonPassDescriptor pass_desc;
   pass_desc.descriptor_key = "python.pattern.fusion.create";
@@ -1157,6 +1270,31 @@ TEST_F(UtestFusionPassExecutor, PythonPatternFusionPass_CreateAndDestroy) {
     EXPECT_EQ(g_pattern_fusion_runtime_snapshot.patterns_count, 1);
   }
   EXPECT_EQ(g_pattern_fusion_runtime_snapshot.destroy_count, 1);
+}
+
+TEST_F(UtestFusionPassExecutor, PythonDecomposePass_CreateAndDestroy) {
+  PythonPassDescriptor pass_desc;
+  pass_desc.descriptor_key = "python.decompose.create";
+  pass_desc.pass_name = "PythonDecomposeCreatePass";
+  pass_desc.module_name = "python.pass.sample";
+  pass_desc.class_name = "PythonDecomposeCreatePass";
+  pass_desc.stage = CustomPassStage::kAfterInferShape;
+  pass_desc.kind = PythonPassKind::kDecompose;
+  pass_desc.op_types = {"Add"};
+
+  PythonFusionPassCallbacks callbacks;
+  callbacks.create = CreateDecomposePassHolderForUt;
+  callbacks.destroy = DestroyDecomposePassHolderForUt;
+  callbacks.decompose_replacement = DecomposeReplacementForUt;
+
+  ASSERT_TRUE(RegisterPythonPass(pass_desc, callbacks));
+
+  {
+    auto adapter = std::make_unique<PythonDecomposePassAdapter>(pass_desc);
+    ASSERT_TRUE(adapter->IsValid());
+    EXPECT_EQ(g_decompose_runtime_snapshot.create_count, 1);
+  }
+  EXPECT_EQ(g_decompose_runtime_snapshot.destroy_count, 1);
 }
 
 TEST_F(UtestFusionPassExecutor, PythonPatternFusionPass_MeetRequirements_DefaultFallback) {
@@ -1188,6 +1326,38 @@ TEST_F(UtestFusionPassExecutor, PythonPatternFusionPass_MeetRequirements_Default
   EXPECT_EQ(g_pattern_fusion_runtime_snapshot.meet_requirements_count, 0);
 }
 
+TEST_F(UtestFusionPassExecutor, PythonDecomposePass_MeetRequirements_DefaultFallback) {
+  PythonPassDescriptor pass_desc;
+  pass_desc.descriptor_key = "python.decompose.meetreq";
+  pass_desc.pass_name = "PythonDecomposeMeetReqPass";
+  pass_desc.module_name = "python.pass.sample";
+  pass_desc.class_name = "PythonDecomposeMeetReqPass";
+  pass_desc.stage = CustomPassStage::kAfterInferShape;
+  pass_desc.kind = PythonPassKind::kDecompose;
+  pass_desc.op_types = {"Add"};
+
+  PythonFusionPassCallbacks callbacks;
+  callbacks.create = CreateDecomposePassHolderForUt;
+  callbacks.destroy = DestroyDecomposePassHolderForUt;
+  callbacks.decompose_replacement = DecomposeReplacementForUt;
+
+  ASSERT_TRUE(RegisterPythonPass(pass_desc, callbacks));
+
+  auto adapter = std::make_unique<PythonDecomposePassAdapter>(pass_desc);
+  ASSERT_TRUE(adapter->IsValid());
+
+  auto target_compute_graph = gert::ShareGraph::BuildSingleNodeGraph();
+  ge::NodePtr matched_node_ptr = nullptr;
+  for (const auto &node : target_compute_graph->GetDirectNode()) {
+    matched_node_ptr = node;
+    break;
+  }
+  ASSERT_NE(matched_node_ptr, nullptr);
+  const auto matched_node = NodeAdapter::Node2GNode(matched_node_ptr);
+  EXPECT_TRUE(adapter->MeetRequirements(matched_node));
+  EXPECT_EQ(g_decompose_runtime_snapshot.meet_requirements_count, 0);
+}
+
 TEST_F(UtestFusionPassExecutor, PythonPatternFusionPass_InvalidOnMissingRequiredCallbacks) {
   PythonPassDescriptor pass_desc;
   pass_desc.descriptor_key = "python.pattern.fusion.invalid";
@@ -1202,6 +1372,24 @@ TEST_F(UtestFusionPassExecutor, PythonPatternFusionPass_InvalidOnMissingRequired
   callbacks.create = CreatePatternFusionPassHolderForUt;
   callbacks.destroy = DestroyPatternFusionPassHolderForUt;
   // patterns and replacement are nullptr
+
+  EXPECT_FALSE(callbacks.IsValid(pass_desc.kind));
+  EXPECT_FALSE(RegisterPythonPass(pass_desc, callbacks));
+}
+
+TEST_F(UtestFusionPassExecutor, PythonDecomposePass_InvalidOnMissingRequiredCallbacks) {
+  PythonPassDescriptor pass_desc;
+  pass_desc.descriptor_key = "python.decompose.invalid";
+  pass_desc.pass_name = "PythonDecomposeInvalidPass";
+  pass_desc.module_name = "python.pass.sample";
+  pass_desc.class_name = "PythonDecomposeInvalidPass";
+  pass_desc.stage = CustomPassStage::kAfterInferShape;
+  pass_desc.kind = PythonPassKind::kDecompose;
+  pass_desc.op_types = {"Add"};
+
+  PythonFusionPassCallbacks callbacks;
+  callbacks.create = CreateDecomposePassHolderForUt;
+  callbacks.destroy = DestroyDecomposePassHolderForUt;
 
   EXPECT_FALSE(callbacks.IsValid(pass_desc.kind));
   EXPECT_FALSE(RegisterPythonPass(pass_desc, callbacks));

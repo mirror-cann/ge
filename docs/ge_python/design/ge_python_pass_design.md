@@ -488,6 +488,17 @@ Python 侧统一提供：
 
 构造时需要保留 `op_types` 信息。
 
+与 `PatternFusionPass` 一样，Python 用户类不直接接管 `Run()` 主流程，而是只实现 hook：
+
+- `meet_requirements(node) -> bool`
+- `replacement(node) -> Graph`
+
+这里的额外合同约束需要明确写死在 Python 基类里：
+
+- Python 子类禁止覆写 `run()`；若误覆写，基类在类定义阶段直接抛出 `TypeError`
+- `replacement()` 必须返回 replacement Graph
+- 若希望跳过当前节点，必须在 `meet_requirements()` 阶段返回 `False`，不支持通过 `replacement()` 返回 `None`
+
 与 `PatternFusionPass` 相同，这里也不要求 Python 用户类直接继承 pybind 暴露的 C++ `DecomposePass`。推荐形态是：
 
 - `PythonDecomposePassAdapter : public DecomposePass`
@@ -1050,6 +1061,35 @@ V1 的设计原则是“把生命周期和并发复杂度收敛在 bridge 内部
 - Python 侧构造 replacement Graph
 - Graph 所有权通过 `release()` 转移给 C++ 侧（`GraphUniqPtr` / `unique_ptr<Graph>`）
 - **约束**：Python 侧在函数返回后不得继续持有该 Graph 引用
+
+#### 8.13.3 DecomposePass 桥接协议
+
+`DecomposePass` 复用 C++ `DecomposePass::Run()` 的匹配与替换主流程，因此 `_bridge.py` 只需补两段按节点回调的协议函数：
+
+1. **`call_decompose_meet_requirements(instance_id: str, node_handle: int) -> bool`**
+   - 由 C++ `PythonDecomposePassAdapter::MeetRequirements()` 通过 bridge 回调
+   - `node_handle` 为当前 `GNode*` 的 `uintptr_t` 表示
+   - `_bridge.py` 通过 `_ge_pass_native.so` 的 `borrow_node()` helper 把它还原为短生命周期 Python `Node` 视图
+   - 调用 Python pass 实例的 `meet_requirements()` 方法
+
+2. **`call_decompose_replacement(instance_id: str, node_handle: int) -> int`**
+   - 由 C++ `PythonDecomposePassAdapter::Replacement()` 通过 bridge 回调
+   - `_bridge.py` 调用 Python pass 实例的 `replacement()` 方法
+   - 要求 Python pass 必须返回 replacement Graph
+   - 若当前节点不应继续，必须在 `meet_requirements()` 阶段返回 `False`
+   - `_bridge.py` 负责校验返回值类型，并通过 `release_graph()` 把所有权转交给 C++
+
+3. **`_bridge.py` 内部实例分派采用明确基类，而不是 `Any`**
+   - holder 中保存的实例类型收敛为 `FusionBasePass`
+   - `PatternFusionPass` / `DecomposePass` 协议入口在调用前分别做 `isinstance` 收敛
+   - `replacement()` 的 bridge 参数与返回值按正式 `Graph` / `Node` 接口处理，不再以无约束 `Any` 传递
+
+##### Node 借用语义（call_decompose_meet_requirements / call_decompose_replacement）
+
+- `DecomposePass::Run()` 在 C++ 侧枚举匹配节点
+- Python 侧看到的 `Node` 是由 `_ge_pass_native.so` 基于当前 `GNode` 构造的短生命周期视图
+- Python 侧不应跨回调缓存该 `Node`
+- 因为该视图本质上仍指向真实图节点，所以读取名称、类型、属性和张量描述等信息时能保持与当前图一致
 
 建议把 legacy custom pass 的接入拆成两层：
 

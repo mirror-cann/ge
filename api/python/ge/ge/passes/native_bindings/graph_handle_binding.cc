@@ -14,6 +14,14 @@
 namespace ge {
 namespace python_pass_native {
 namespace {
+py::object BorrowNode(uintptr_t node_handle) {
+  if (node_handle == 0U) {
+    throw std::runtime_error("Node handle cannot be null");
+  }
+  const auto *node_ptr = reinterpret_cast<GNode *>(node_handle);
+  return BuildPythonNode(*node_ptr);
+}
+
 uintptr_t ReleaseGraph(py::object graph_obj) {
   auto *graph_ptr = BorrowGraphFromPython(graph_obj);
   if (graph_ptr == nullptr) {
@@ -25,6 +33,7 @@ uintptr_t ReleaseGraph(py::object graph_obj) {
 }  // namespace
 
 void BindGraphHandleHelpers(py::module_ &m) {
+  m.def("borrow_node", &BorrowNode, py::arg("node_handle"));
   m.def("release_graph", &ReleaseGraph, py::arg("graph"));
 }
 
