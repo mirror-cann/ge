@@ -199,7 +199,7 @@ Status AutoSchedule::PruneTilingCase(std::vector<TilingCase> &tiling_cases) cons
     if (ge::SymbolicUtils::StaticCheckEq(axis->size, ge::sym::kSymbolOne) == ge::TriBool::kTrue &&
         tiling_cases.size() > 1UL) {
       it = tiling_cases.erase(it);
-      GELOGD("Axis [%s]'s size is 1, will skip to cut.", axis->name.c_str());
+      GELOGD("Axis [%s]'s size is 1, will skip cutting it.", axis->name.c_str());
     } else {
       ++it;
     }

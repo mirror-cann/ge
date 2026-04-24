@@ -262,7 +262,7 @@ Status SearchNodesNeedForward(const ge::AscGraph &impl_graph, std::map<int64_t, 
     GE_CHECK_NOTNULL(node);
     GE_CHECK_NOTNULL(node->GetOpDesc());
     if (num_of_load_need_adjust >= load_thresh) {
-      GELOGD("The num of loads need to be brought forward is %zu, which reaches threshold %zu.",
+      GELOGD("The number of loads that need to be brought forward is %zu, which reaches threshold %zu.",
              num_of_load_need_adjust, load_thresh);
       break;
     }

@@ -27,7 +27,7 @@ namespace {
 bool IsSupportInplace(const ge::AscNodePtr &node) {
   // 1. ascir注册信息表示该节点不支持inplace
   if (!ascgen_utils::IsNodeSupportsInplace(node)) {
-    GELOGD("Node %s[%s] not support inplace.", node->GetTypePtr(), node->GetNamePtr());
+    GELOGD("Node %s[%s] does not support inplace.", node->GetTypePtr(), node->GetNamePtr());
     return false;
   }
   // 2. 当前节点如果是多输出，不支持复用（白名单可保证没有多输出节点，但是还是加一个校验）
@@ -41,7 +41,8 @@ bool IsSupportInplace(const ge::AscNodePtr &node) {
   // 3. 若节点的任一输入是个单输出多引用，则不支持复用（存在优化空间，当前先不细化
   for (const auto &input_node : node->GetInDataNodes()) {
     if (input_node->GetOutDataNodesSize() > 1U) {
-      GELOGD("Node %s[%s] has %u output， not support inplace.", input_node->GetTypePtr(), input_node->GetNamePtr());
+      GELOGD("Node %s[%s] has %u outputs, does not support inplace.", input_node->GetTypePtr(),
+             input_node->GetNamePtr());
       return false;
     }
   }

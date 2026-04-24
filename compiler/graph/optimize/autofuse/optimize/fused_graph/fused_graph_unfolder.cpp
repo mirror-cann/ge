@@ -42,7 +42,7 @@ Status FusedGraphUnfolder::RemoveUnusedNode(const ge::ComputeGraphPtr &graph, co
     ge::GraphUtils::RemoveNodeWithoutRelink(graph, node);
     return ge::SUCCESS;
   }
-  GELOGD("%s node [%s] has %zu output, keep it.", node->GetTypePtr(), node->GetNamePtr(), node->GetOutNodes().size());
+  GELOGD("%s node [%s] has %zu outputs, keep it.", node->GetTypePtr(), node->GetNamePtr(), node->GetOutNodes().size());
   return ge::SUCCESS;
 }
 
@@ -224,7 +224,7 @@ Status FusedGraphUnfolder::RemoveRedundantLoads(const ge::ComputeGraphPtr &graph
     GE_ASSERT_TRUE(store_node->GetInDataNodesSize() == 1UL);  // Store node has only one input.
 
     // step4: Pattern like Store+Output+Load can be optimized.
-    GELOGD("Find Store+Output+Load patten: [%s]+[%s]+[%s]", store_node->GetNamePtr(), output_node->GetNamePtr(),
+    GELOGD("Find Store+Output+Load pattern: [%s]+[%s]+[%s]", store_node->GetNamePtr(), output_node->GetNamePtr(),
            load_node->GetNamePtr());
     // find the input node of Store
     auto store_in_anchor = store_node->GetInDataAnchor(0);

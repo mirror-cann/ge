@@ -64,7 +64,7 @@ ge::Status BaseTemplateGenerator::Generate(BaseTemplate &strategy, const ge::Asc
 ge::Status BaseTemplateGenerator::GenerateTemplates(const ge::AscGraph &origin_graph,
                                                     std::vector<autoschedule::AutoScheduleOutput> &tiling_cases) {
   if (strategies_.empty()) {
-    GELOGD("Not found template strategies.");
+    GELOGD("No template strategies found.");
     return ge::SUCCESS;
   }
   std::vector<autoschedule::AutoScheduleOutput> generated_cases;

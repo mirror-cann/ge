@@ -151,7 +151,7 @@ bool ConcatFusionCaseGenerator::NeedDynSmallTailTemplate(const ge::AscNodePtr &c
 
 Status ConcatFusionCaseGenerator::AddTemplateForSmallTail(const ascir::HintGraph &graph,
                                                           std::vector<ascir::ImplGraph> &graphs) {
-  GELOGI("exits dynamic dim after concat_dim, generate force small tail template");
+  GELOGI("exists dynamic dim after concat_dim, generate force small tail template");
   ascir::ImplGraph force_small_tail_graph((graph.GetName() + "_force_small_tail").c_str());
   GE_ASSERT_TRUE(force_small_tail_graph.CopyFrom(graph));
   auto force_small_tail_node = FindConcatNodes(force_small_tail_graph).front();

@@ -178,7 +178,7 @@ bool ScheduleUtils::NotNeedAlignVectorStride(const ge::AscGraph &graph) {
       continue;
     }
     if (!std::any_of(support_list.begin(), support_list.end(), [&node](const auto &func) { return func(node); })) {
-      GELOGD("Graph[%s], %s[%s] not support unaligned vector stride.", graph.GetName().c_str(), node->GetTypePtr(),
+      GELOGD("Graph[%s], %s[%s] does not support unaligned vector stride.", graph.GetName().c_str(), node->GetTypePtr(),
              node->GetNamePtr());
       return false;
     }
@@ -188,7 +188,7 @@ bool ScheduleUtils::NotNeedAlignVectorStride(const ge::AscGraph &graph) {
     // 存在Concat节点时以Concat的判断为准
     if (IsStore(node) && (!exist_concat_node)) {
       if (!IsContinuesStrides(node->outputs[0].attr.repeats, node->outputs[0].attr.strides)) {
-        GELOGD("Graph[%s], %s[%s] is not continues Store, skip it.", graph.GetName().c_str(), node->GetTypePtr(),
+        GELOGD("Graph[%s], %s[%s] is not continuous Store, skip it.", graph.GetName().c_str(), node->GetTypePtr(),
                node->GetNamePtr());
         return false;
       }
@@ -326,7 +326,7 @@ Status ScheduleUtils::TopologicalSorting(ge::AscGraph &graph) {
     return ge::SUCCESS;
   }
 
-  GELOGI("Graph [%s] will be sorting with specifical rule.", graph.GetName().c_str());
+  GELOGI("Graph [%s] will be sorted with a specific rule.", graph.GetName().c_str());
   std::unordered_set<ge::Node *> reduce_sequences;
   for (const auto &node : graph.GetAllNodes()) {
     if (IsReduce(node)) {

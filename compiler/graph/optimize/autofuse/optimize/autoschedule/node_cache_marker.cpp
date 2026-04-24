@@ -255,7 +255,7 @@ ge::Status NodeCacheMarker::MarkIfNodeNeedsCache() {
     }
   }
   if (store_nodes.empty()) {
-    GELOGD("Graph(%s) has no store node, return.", graph_.GetName().c_str());
+    GELOGD("Graph(%s) has no store node, returning.", graph_.GetName().c_str());
     return ge::SUCCESS;
   }
   visited_nodes_.clear();

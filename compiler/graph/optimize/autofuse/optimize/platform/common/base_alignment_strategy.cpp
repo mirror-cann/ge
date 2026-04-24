@@ -108,7 +108,7 @@ bool IsTailAxisTransposeV2(const ge::AscNodePtr &node_load) {
   }
 
   if (last_valid_axis_index >= attr.axis.size()) {
-    GELOGD("Node %s with unexpeced vectorized strides.", node_load->GetNamePtr());
+    GELOGD("Node %s with unexpected vectorized strides.", node_load->GetNamePtr());
     return false;
   }
 
