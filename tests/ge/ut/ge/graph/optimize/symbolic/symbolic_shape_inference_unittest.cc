@@ -50,6 +50,22 @@ class SymbolicShapeInferenceUT : public testing::Test {
  protected:
   static void SetUpTestSuite() {
     gert::SpaceRegistryFaker::CreateDefaultSpaceRegistry();
+    auto registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
+    static const struct {
+      const char *op_name;
+      std::vector<size_t> input_indices;
+    } kDataDeps[] = {
+      {"BroadcastTo", {1}},
+      {"Expand", {1}},
+      {"MatrixDiagV2", {1, 2, 3}},
+      {"DynamicStitch", {0}},
+    };
+    for (const auto &dep: kDataDeps) {
+      auto impl = registry->CreateOrGetOpImpl(dep.op_name);
+      for (size_t idx : dep.input_indices) {
+        impl->SetInputDataDependency(idx);
+      }
+    }
   }
   static void TearDownTestSuite() {
 
@@ -3294,9 +3310,6 @@ TEST_F(SymbolicShapeInferenceUT, InferShapeForRandomLikeDataInput) {
 }
 
 TEST_F(SymbolicShapeInferenceUT, InferShapeForDynamicStitch) {
-  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistry(true);
-  gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->
-      CreateOrGetOpImpl("DynamicStitch")->SetInputDataDependency({0});
   auto indices0 = EsCreateGraphInputWithDetails(
       graph_, 0, "data0", nullptr, C_DataType::C_DT_INT32, C_Format::C_FORMAT_ND, nullptr, 0);
   ASSERT_EQ(EsSetOriginSymbolShape(indices0, std::vector<const char *>({"1"}).data(), 1), 0);
@@ -3352,9 +3365,6 @@ TEST_F(SymbolicShapeInferenceUT, InferShapeForDynamicStitch) {
 }
 
 TEST_F(SymbolicShapeInferenceUT, InferShapeForDynamicStitch_InvalidDimNum) {
-  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistry(true);
-  gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->
-      CreateOrGetOpImpl("DynamicStitch")->SetInputDataDependency({0});
   std::vector<int32_t> const_data0 = {6};
   std::vector<int64_t> const_dim0 = {1};
   auto indices0 = EsCreateConstInt32(graph_, const_data0.data(), const_dim0.data(), const_dim0.size());
@@ -3390,9 +3400,6 @@ TEST_F(SymbolicShapeInferenceUT, InferShapeForDynamicStitch_InvalidDimNum) {
 }
 
 TEST_F(SymbolicShapeInferenceUT, InferShapeForDynamicStitch_InvalidPreDim) {
-  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistry(true);
-  gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->
-      CreateOrGetOpImpl("DynamicStitch")->SetInputDataDependency({0});
   std::vector<int32_t> const_data0 = {6};
   std::vector<int64_t> const_dim0 = {1};
   auto indices0 = EsCreateConstInt32(graph_, const_data0.data(), const_dim0.data(), const_dim0.size());
@@ -3428,9 +3435,6 @@ TEST_F(SymbolicShapeInferenceUT, InferShapeForDynamicStitch_InvalidPreDim) {
 }
 
 TEST_F(SymbolicShapeInferenceUT, InferShapeForDynamicStitch_InvalidConstantDims) {
-  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistry(true);
-  gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->
-      CreateOrGetOpImpl("DynamicStitch")->SetInputDataDependency({0});
   std::vector<int32_t> const_data0 = {6};
   std::vector<int64_t> const_dim0 = {1};
   auto indices0 = EsCreateConstInt32(graph_, const_data0.data(), const_dim0.data(), const_dim0.size());

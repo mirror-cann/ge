@@ -278,4 +278,5 @@ IMPL_OP(MatrixDiagV2).InputsDataDependency({1, 2, 3});
 IMPL_OP(RandomUniform).InputsDataDependency({0});
 IMPL_OP(TruncatedNormal).InputsDataDependency({0});
 IMPL_OP(UnsortedSegmentSum).InputsDataDependency({2});
+IMPL_OP(DynamicStitch).InputsDataDependency({0});
 }  // namespace ops

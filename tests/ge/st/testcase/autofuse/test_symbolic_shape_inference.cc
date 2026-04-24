@@ -51,7 +51,25 @@ class SymbolicShapeInferenceST : public testing::Test {
  public:
  protected:
   static void SetUpTestSuite() {
-     gert::SpaceRegistryFaker::CreateDefaultSpaceRegistry();
+    gert::SpaceRegistryFaker::CreateDefaultSpaceRegistry();
+    auto registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
+    static const struct {
+      const char *op_name;
+      std::vector<size_t> input_indices;
+    } kDataDeps[] = {
+      {"UnsqueezeV3", {1}},
+      {"Transpose", {1}},
+      {"BroadcastTo", {1}},
+      {"Expand", {1}},
+      {"MatrixDiagV2", {1, 2, 3}},
+      {"DynamicStitch", {0}},
+    };
+    for (const auto &dep: kDataDeps) {
+      auto impl = registry->CreateOrGetOpImpl(dep.op_name);
+      for (size_t idx : dep.input_indices) {
+        impl->SetInputDataDependency(idx);
+      }
+    }
   }
   static void TearDownTestSuite() {
   }
@@ -7259,9 +7277,6 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForRandomLikeDataInput) {
 }
 
 TEST_F(SymbolicShapeInferenceST, InferShapeForDynamicStitch) {
-  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistry(true);
-  gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->
-      CreateOrGetOpImpl("DynamicStitch")->SetInputDataDependency({0});
   auto indices0 = builder_->CreateInput(0, "data0", nullptr);
   indices0.SetOriginSymbolShape(std::vector<const char *>({"1"}));
   auto indices1 = builder_->CreateInput(1, "data1", nullptr);

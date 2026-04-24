@@ -166,7 +166,7 @@ graphStatus InferShape4UnsqueezeV3(gert::InferSymbolShapeContext *context) {
   const auto axes_tensor = context->GetInputSymbolTensor(1);
   GE_ASSERT_NOTNULL(axes_tensor);
   const auto axes = axes_tensor->GetSymbolicValue();
-  GE_UNSUPPORTED_IF_NULL(axes_tensor);
+  GE_UNSUPPORTED_IF_NULL(axes);
   if (axes->empty()) {
     GELOGD("UnsqueezeV3: axes is empty, out shape is same as input shape. node %s[%s]", context->GetNodeName(),
            context->GetNodeType());

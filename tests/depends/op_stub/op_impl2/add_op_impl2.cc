@@ -195,5 +195,6 @@ IMPL_OP(FooTestGuard);
 IMPL_OP(FooTest);
 IMPL_OP(Repeat);
 IMPL_OP(Const);
+IMPL_OP(DynamicStitch);
 
 }  // namespace ops
