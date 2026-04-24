@@ -76,7 +76,8 @@ const std::unordered_set<aclmdlConfigAttr> kOm2SupportedLoadConfigOpts = {
     ACL_MDL_WEIGHT_ADDR_PTR,
     ACL_MDL_WEIGHT_SIZET,
     ACL_MDL_WORKSPACE_ADDR_PTR,
-    ACL_MDL_WORKSPACE_SIZET
+    ACL_MDL_WORKSPACE_SIZET,
+    ACL_MDL_WEIGHT_PATH_PTR
 };
 
 aclError aclmdlCheckQueueParam(const uint32_t *const inputQ, const size_t inputQNum, const uint32_t *const outputQ,
@@ -465,7 +466,7 @@ static aclError RuntimeV2ModelLoadFromFileWithMem(const char_t *const modelPath,
 }
 
 static aclError Om2ModelLoadFromMemWithMem(const void *const model, const size_t modelSize, uint32_t *const modelId,
-                                           const gert::Om2ModelLoadArg &loadArgs);
+                                           const gert::Om2ModelLoadArg &loadArgs, const char_t *const weightPath);
 
 static aclError Om2ModelLoadFromFileWithMem(const char_t *const modelPath, uint32_t *const modelId,
                                             const gert::Om2ModelLoadArg &loadArgs,
@@ -499,14 +500,18 @@ static aclError Om2ModelLoadFromFileWithMem(const char_t *const modelPath, uint3
 static aclError Om2ModelLoadFromMemWithMem(const void *const model, const size_t modelSize, uint32_t *const modelId) {
     gert::Om2ModelLoadArg loadArgs;
     ACL_REQUIRES_OK(ConstructOm2ModelLoadArg(nullptr, 0U, nullptr, 0U, loadArgs));
-    return Om2ModelLoadFromMemWithMem(model, modelSize, modelId, loadArgs);
+    return Om2ModelLoadFromMemWithMem(model, modelSize, modelId, loadArgs, nullptr);
 }
 
-static aclError Om2ModelLoadFromMemWithMem(const void *const model, const size_t modelSize,
-                                           uint32_t *const modelId, const gert::Om2ModelLoadArg &loadArgs) {
+static aclError Om2ModelLoadFromMemWithMem(const void *const model, const size_t modelSize, uint32_t *const modelId,
+                                           const gert::Om2ModelLoadArg &loadArgs, const char_t *const weightPath) {
     ge::ModelData modelData = {};
     modelData.model_data = const_cast<void *>(model);
     modelData.model_len = static_cast<uint64_t>(modelSize);
+    if (weightPath != nullptr) {
+        modelData.weight_path = std::string(weightPath);
+        ACL_LOG_INFO("[Model][WeightPath]Load weight path is [%s]", modelData.weight_path.c_str());
+    }
     ge::Status errorStatus = ge::SUCCESS;
     std::unique_ptr<gert::Om2ModelExecutor> executor = gert::LoadOm2ExecutorFromData(modelData, loadArgs, errorStatus);
     if (errorStatus != ge::SUCCESS) {
@@ -2679,7 +2684,7 @@ aclError aclmdlLoadFromMemWithMemImpl(const void *model, size_t modelSize,
     if (isSupportOm2) {
         gert::Om2ModelLoadArg loadArgs;
         ACL_REQUIRES_OK(ConstructOm2ModelLoadArg(workPtr, workSize, weightPtr, weightSize, loadArgs));
-        const auto ret = acl::Om2ModelLoadFromMemWithMem(model, modelSize, modelId, loadArgs);
+        const auto ret = acl::Om2ModelLoadFromMemWithMem(model, modelSize, modelId, loadArgs, nullptr);
         if (ret != ACL_SUCCESS) {
             ACL_LOG_ERROR("Load OM2 model from memory with mem failed, errorCode is %u", ret);
         }
@@ -3594,7 +3599,8 @@ static aclError LoadFromMem(const aclmdlConfigHandle *handle, const std::vector<
         ACL_REQUIRES_OK(CheckOm2UserLoadConfigOptValid(handle));
         gert::Om2ModelLoadArg loadArgs;
         ACL_REQUIRES_OK(ConstructOm2ModelLoadArg(nullptr, 0U, nullptr, 0U, loadArgs, nullptr, fileConstantMems));
-        return acl::Om2ModelLoadFromMemWithMem(handle->mdlAddr, handle->mdlSize, modelId, loadArgs);
+        return acl::Om2ModelLoadFromMemWithMem(handle->mdlAddr, handle->mdlSize, modelId, loadArgs,
+                                               handle->weightPath.c_str());
     }
     if (isSupportRT2) {
         return acl::RuntimeV2ModelLoadFromMemWithMem(handle->mdlAddr, handle->mdlSize, handle->loadPath, modelId,
@@ -3621,7 +3627,7 @@ static aclError LoadFromMemWithMem(const aclmdlConfigHandle *handle, const std::
         gert::Om2ModelLoadArg loadArgs;
         ACL_REQUIRES_OK(ConstructOm2ModelLoadArg(handle->workPtr, handle->workSize, handle->weightPtr,
             handle->weightSize, loadArgs, nullptr, fileConstantMems));
-        return acl::Om2ModelLoadFromMemWithMem(handle->mdlAddr, handle->mdlSize, modelId, loadArgs);
+        return acl::Om2ModelLoadFromMemWithMem(handle->mdlAddr, handle->mdlSize, modelId, loadArgs, nullptr);
     }
     if (isSupportRT2) {
         return acl::RuntimeV2ModelLoadFromMemWithMem(handle->mdlAddr, handle->mdlSize, handle->loadPath, modelId,

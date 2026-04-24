@@ -164,7 +164,7 @@ ge::Status ResolveFileConstWeightDir(const ge::ModelData &model_data, std::strin
   weight_dir.clear();
   if (!model_data.weight_path.empty()) {
     const auto real_weight_path = ge::om2::RealPath(model_data.weight_path.c_str());
-    GE_ASSERT_TRUE(!real_weight_path.empty(), "[OM2][Check] Invalid weight_path.");
+    GE_ASSERT_TRUE(!real_weight_path.empty(), "[OM2][Check] Failed to resolve weight path: [%s].", model_data.weight_path.c_str());
     weight_dir = real_weight_path + "/";
     return ge::SUCCESS;
   }
@@ -172,7 +172,7 @@ ge::Status ResolveFileConstWeightDir(const ge::ModelData &model_data, std::strin
     return ge::SUCCESS;
   }
   const auto real_om_path = ge::om2::RealPath(model_data.om_path.c_str());
-  GE_ASSERT_TRUE(!real_om_path.empty(), "[OM2][Check] Invalid om_path.");
+  GE_ASSERT_TRUE(!real_om_path.empty(), "[OM2][Check] Failed to resolve om path: [%s].", model_data.om_path.c_str());
   std::string om_dir;
   std::string om_name;
   ge::om2::SplitFilePath(real_om_path, om_dir, om_name);
@@ -190,7 +190,7 @@ ge::Status ResolveFileConstFilePath(const std::string &weight_dir, const std::st
   }
   file_path += file_name;
   const auto real_file_path = ge::om2::RealPath(file_path.c_str());
-  GE_ASSERT_TRUE(!real_file_path.empty(), "[OM2][Check] Invalid file const file path.");
+  GE_ASSERT_TRUE(!real_file_path.empty(), "[OM2][Check] Failed to resolve file path: [%s].", file_path.c_str());
   file_path = real_file_path;
   return ge::SUCCESS;
 }
