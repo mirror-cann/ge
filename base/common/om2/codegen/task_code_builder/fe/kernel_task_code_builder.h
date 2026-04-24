@@ -112,7 +112,7 @@ class KernelTaskCodeBuilder : public TaskCodeBuilder {
   Status ParseExtAsyncWait(AicpuExtInfo &aicpu_ext_info, const std::string &node_name) const;
   Status ParseExtInfo(uint8_t *ext_info, const size_t ext_info_len, const OpDescPtr &op_desc,
     int32_t &session_info_offset, const uint32_t num_inputs, const uint32_t num_outputs, const std::string &node_name,
-    const bool all_shape);
+    const bool all_shape) const;
   Status AppendDistributionForAicpu(const std::vector<Arg> &args_vars, std::vector<BodyItem> &items);
   void AppendOrderedArgValueForAicpu(const AddrSemantic &semantic, const uint64_t addr_offset);
  private:

@@ -19,7 +19,7 @@
 #include "graph/utils/attr_utils.h"
 #include "graph/utils/tensor_utils.h"
 #include "graph/utils/op_desc_utils.h"
-
+#include "graph/def_types.h"
 
 namespace ge {
 namespace {
@@ -737,7 +737,7 @@ Status KernelTaskCodeBuilder::ParseExtShape(AicpuExtInfo &aicpu_ext_info, const 
                          "tensor_num[%u]*sizeof(ShapeAndType)[%zu] but %u.",
                          node_name.c_str(), num_tensor, sizeof(AicpuShapeAndType), aicpu_ext_info.infoLen);
                   return ACL_ERROR_GE_PARAM_INVALID;);
-  const auto tensor_info = reinterpret_cast<AicpuShapeAndType *>(aicpu_ext_info.infoMsg);
+  const auto tensor_info = PtrToPtr<char, AicpuShapeAndType>(aicpu_ext_info.infoMsg);
   if (all_shape) {
     for (uint32_t i = 0U; i < num_tensor; ++i) {
       shape_and_type.emplace_back(PtrAdd<AicpuShapeAndType>(tensor_info, static_cast<size_t>(num_tensor),
@@ -765,7 +765,7 @@ Status KernelTaskCodeBuilder::ParseExtBitmap(AicpuExtInfo &aicpu_ext_info, const
                         node_name.c_str(), sizeof(uint64_t), aicpu_ext_info.infoLen);
                   return PARAM_INVALID;);
 
-  uint64_t *bit_map = reinterpret_cast<uint64_t *>(aicpu_ext_info.infoMsg);
+  uint64_t *bit_map = PtrToPtr<char, uint64_t>(aicpu_ext_info.infoMsg);
   *(bit_map) |= 1UL;
   GELOGI("[OM2] Node[%s] bit_map info success infoLen=%u, value = %" PRIu64 ".",
           node_name.c_str(), aicpu_ext_info.infoLen, *(bit_map));
@@ -784,7 +784,7 @@ Status KernelTaskCodeBuilder::ParseExtTopicType(AicpuExtInfo &aicpu_ext_info, co
     return ACL_ERROR_GE_PARAM_INVALID;
   }
   GE_CHECK_NOTNULL(aicpu_ext_info.infoMsg);
-  const int32_t type = *(reinterpret_cast<int32_t *>(aicpu_ext_info.infoMsg));
+  const int32_t type = *(PtrToPtr<char, int32_t>(aicpu_ext_info.infoMsg));
   int32_t deploy_type_flag = Om2CodegenUtils::TopicTypeToRtsFlag(type);
   if (deploy_type_flag == -1) {
     REPORT_INNER_ERR_MSG("E19999", "Node[%s] parse ext topic type failed as need %d %d %d %d but %d.",
@@ -829,13 +829,13 @@ Status KernelTaskCodeBuilder::ParseExtAsyncWait(AicpuExtInfo &aicpu_ext_info, co
 
 Status KernelTaskCodeBuilder::ParseExtInfo(uint8_t *ext_info, const size_t ext_info_len, const OpDescPtr &op_desc,
   int32_t &session_info_offset, const uint32_t num_inputs, const uint32_t num_outputs, const std::string &node_name,
-  const bool all_shape)
+  const bool all_shape) const
 {
   size_t offset = 0UL;
   while ((offset + sizeof(AicpuExtInfo)) <= ext_info_len) {
     auto tmp_ext_info_data = PtrAdd(ext_info, ext_info_len, offset);
     GE_CHECK_NOTNULL(tmp_ext_info_data);
-    auto &aicpu_ext_info = *(reinterpret_cast<AicpuExtInfo *>(tmp_ext_info_data));
+    auto &aicpu_ext_info = *(PtrToPtr<uint8_t, AicpuExtInfo>(tmp_ext_info_data));
     GELOGD("[OM2] Ext infoType=%d, infoLen=%u.", aicpu_ext_info.infoType, aicpu_ext_info.infoLen);
     switch (aicpu_ext_info.infoType) {
       case aicpu::FWKAdapter::FWK_ADPT_EXT_SHAPE_TYPE:
@@ -1115,7 +1115,7 @@ Status KernelTaskCodeBuilder::AppendOrderedArgsByFormat(
         AppendOrderedPlaceholder(context);
         break;
       case AddrType::CUSTOM_VALUE:
-        AppendOrderedCustomValue(context, *reinterpret_cast<const uint64_t *>(arg_format.reserved));
+        AppendOrderedCustomValue(context, *(PtrToPtr<uint8_t, uint64_t>(arg_format.reserved)));
         break;
       case AddrType::INPUT_DESC:
       case AddrType::OUTPUT_DESC: {
