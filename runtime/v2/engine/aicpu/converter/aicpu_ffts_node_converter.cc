@@ -103,7 +103,7 @@ bool IsGetRefNodeOutAddr(const RefNodeInfo &ref_node_info, const FFTSLowerInput 
   GE_ASSERT_EQ(lower_input.mem_pool_types.size(), lower_input.input_addrs.size());
   auto iter = ref_node_info.ref_map.find(ref_node_info.out_index);
   if (iter == ref_node_info.ref_map.end()) {
-    GELOGD("Node %s if not ref node", ref_node_info.node->GetName().c_str());
+    GELOGD("Node %s is not a ref node", ref_node_info.node->GetName().c_str());
     return false;
   }
   auto ref_input_index = iter->second;

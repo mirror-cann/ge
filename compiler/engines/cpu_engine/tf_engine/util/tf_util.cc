@@ -429,7 +429,7 @@ ge::Status ParseNodeDefAndFuncDef(const ge::Node &node, ge::Buffer &node_def_byt
   node_def_size = node_def_bytes.GetSize();
   // calculate function def size
   AICPU_CHECK_FALSE_EXEC(ge::AttrUtils::GetBytes(op_desc, kTfFuncDef, func_def_lib_bytes),
-                         AICPUE_LOGD("Function def attr is not exist in ge op[%s], op type[%s].",
+                         AICPUE_LOGD("Function def attr does not exist in ge op[%s], op type[%s].",
                          node_name.c_str(), node.GetType().c_str());
                          func_def_lib_size = 0;
                          return ge::SUCCESS)

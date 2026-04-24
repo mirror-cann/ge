@@ -443,7 +443,7 @@ ge::Status AicpuOpsKernelInfoStore::CompileOp(vector<ge::NodePtr> &node_vec) {
     std::string kernel_name = GetKernelLibNameByOpType(op_type, all_op_info);
     auto iter = kernel_libs_.find(kernel_name);
     if (iter == kernel_libs_.end()) {
-        AICPU_REPORT_INNER_ERR_MSG("kernel lib[%s] is not exist.", kernel_name.c_str());
+        AICPU_REPORT_INNER_ERR_MSG("kernel lib[%s] does not exist.", kernel_name.c_str());
         return KERNEL_TYPE_INVALID;
     }
     const KernelInfoPtr &kernel_lib_ptr = iter->second;

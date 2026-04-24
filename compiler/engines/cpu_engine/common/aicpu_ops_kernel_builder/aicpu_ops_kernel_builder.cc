@@ -196,7 +196,7 @@ KernelBuilderPtr AicpuOpsKernelBuilder::GetKernelBuilderByName(
   if (kernel_builder_map_.find(kernel_builder_name) != kernel_builder_map_.end()) {
     return kernel_builder_map_[kernel_builder_name];
   }
-  AICPU_REPORT_INNER_ERR_MSG("kernel builder[%s] is not exist.",
+  AICPU_REPORT_INNER_ERR_MSG("kernel builder[%s] does not exist.",
       kernel_builder_name.c_str());
   return nullptr;
 }

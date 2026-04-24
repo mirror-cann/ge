@@ -288,7 +288,7 @@ ge::Status CpuOptimizer::SetCustKernelBinFile(
   auto iter = all_op_info.find(op_type);
   AICPU_IF_BOOL_EXEC(
       iter == all_op_info.end(),
-      AICPU_REPORT_INNER_ERR_MSG("can not find op type[%s] for op[%s].",
+      AICPU_REPORT_INNER_ERR_MSG("cannot find op type[%s] for op[%s].",
                                op_type.c_str(), op_desc_ptr->GetName().c_str());
       return ErrorCode::NONE_KERNELINFOSTORE)
   op_full_info = iter->second;
@@ -433,7 +433,7 @@ bool CpuOptimizer::PackageBinFile(ge::OpDescPtr op_desc_ptr,
         std::make_pair(graph_id, bin_file_name);
     auto iter = g_so_in_graph_set.find(pair);
     if (iter != g_so_in_graph_set.end()) {
-      AICPUE_LOGI("So [%s] has exist in current sub graph [%u].",
+      AICPUE_LOGI("So [%s] already exists in current sub graph [%u].",
                   bin_file_name.c_str(), graph_id);
       // kernel_so need refresh to real name for libcpu_kernels_${version}.so
       (void)ge::AttrUtils::SetStr(op_desc_ptr, "kernelSo", bin_file_name);

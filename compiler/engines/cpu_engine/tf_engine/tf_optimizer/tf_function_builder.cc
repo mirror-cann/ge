@@ -517,7 +517,7 @@ ge::Status TfFunctionBuilder::GetTfNodeDef(const ge::NodePtr &node, NodeDef &tf_
   from_ir_mapping = false;
   std::string node_name = node->GetName();
   ge::Buffer node_def_bytes;
-  // TF_NODE_DEF has exist.
+  // TF_NODE_DEF already exists.
   if (ge::AttrUtils::GetBytes(node->GetOpDesc(), kTfNodeDef, node_def_bytes)) {
     AICPU_IF_BOOL_EXEC(node_def_bytes.GetSize() == 0,
         AICPU_REPORT_INNER_ERR_MSG("Size of [%s] is out of range.",
@@ -530,7 +530,8 @@ ge::Status TfFunctionBuilder::GetTfNodeDef(const ge::NodePtr &node, NodeDef &tf_
     return ge::SUCCESS;
   }
 
-  AICPUE_LOGI("Tf node def attr is not exist in op[%s], op type[%s].", node_name.c_str(), node->GetType().c_str());
+  AICPUE_LOGI("Tf node def attr does not exist in op[%s], op type[%s].",
+              node_name.c_str(), node->GetType().c_str());
   // IR->TF
   from_ir_mapping = true;
   std::shared_ptr<Ir2tfBaseParser> parser = Ir2tfParserFactory::Instance().CreateIRParser(node->GetOpDesc()->GetType());
@@ -563,7 +564,8 @@ ge::Status TfFunctionBuilder::GetTfOutputNameRangeMap(const ge::NodePtr &node, N
         "op[%s], op type[%s].", node_name.c_str(), node->GetType().c_str())
     return ge::SUCCESS;
   }
-  AICPUE_LOGI("Tf op def attr is not exist in op[%s], op type[%s].", node_name.c_str(), node->GetType().c_str());
+  AICPUE_LOGI("Tf op def attr does not exist in op[%s], op type[%s].",
+              node_name.c_str(), node->GetType().c_str());
 
   // Function op
   ge::OpDescPtr op_desc = node->GetOpDesc();
@@ -593,7 +595,7 @@ ge::Status TfFunctionBuilder::NameRangesForFunc(const ge::NodePtr &node, NodeDef
   std::string node_name = node->GetName();
   ge::Buffer func_def_bytes;
   AICPU_CHECK_FALSE_EXEC(ge::AttrUtils::GetBytes(node->GetOpDesc(), kTfFuncDef, func_def_bytes),
-                         AICPUE_LOGI("function def attr is not exist in ge op[%s], op type[%s].",
+                         AICPUE_LOGI("function def attr does not exist in ge op[%s], op type[%s].",
                          node_name.c_str(), node->GetType().c_str());
                          return ErrorCode::FUNC_DEF_NOT_EXIST)
   AICPU_IF_BOOL_EXEC(func_def_bytes.GetSize() == 0,

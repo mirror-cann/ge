@@ -140,7 +140,7 @@ ge::graphStatus UpdateAicpuIoAddrs(KernelContext *context, AICpuSubTaskFlush *fl
   auto out_mem_type = context->GetInputPointer<ContinuousVector>(static_cast<size_t>(FFTSAicpuArgss::kOutMemType));
   GE_ASSERT_NOTNULL(out_mem_type);
   GE_ASSERT_TRUE(thread_para->input_output_num <= MAX_OFFSET_NUM,
-                 "input_output_num[%zu] can not be large than MAX_OFFSET_NUM[%zu]", thread_para->input_output_num,
+                 "input_output_num[%zu] cannot be larger than MAX_OFFSET_NUM[%zu]", thread_para->input_output_num,
                  MAX_OFFSET_NUM);
   if ((in_mem_type->GetSize() != thread_para->input_num) || (out_mem_type->GetSize() != thread_para->output_num)) {
     GELOGE(ge::FAILED, "In/Out mem type size:%zu/%zu is invalid.", in_mem_type->GetSize(), out_mem_type->GetSize());
@@ -265,7 +265,7 @@ ge::graphStatus FFTSUpdateAICpuTfArgs(KernelContext *context) {
   auto out_mem_type = context->GetInputPointer<ContinuousVector>(static_cast<size_t>(FFTSAicpuArgss::kOutMemType));
   GE_ASSERT_NOTNULL(out_mem_type);
   GE_ASSERT_TRUE(thread_param->input_output_num <= MAX_OFFSET_NUM,
-                 "input_output_num[%zu] can not be large than MAX_OFFSET_NUM[%zu]", thread_param->input_output_num,
+                 "input_output_num[%zu] cannot be larger than MAX_OFFSET_NUM[%zu]", thread_param->input_output_num,
                  MAX_OFFSET_NUM);
   if ((in_mem_type->GetSize() != thread_param->input_num) || (out_mem_type->GetSize() != thread_param->output_num)) {
     GELOGE(ge::FAILED, "In/Out mem type size:%zu/%zu is invalid.", in_mem_type->GetSize(), out_mem_type->GetSize());
@@ -579,7 +579,7 @@ ge::graphStatus FFTSInitAicpuCtxUserData(KernelContext *context) {
   uint16_t total_num = task_info->fftsPlusSqe->totalContextNum;
 
   if (ctx_id_vec[index] > total_num) {
-    GELOGE(ge::FAILED, "Context Id(%d) over flow.", ctx_id_vec[index]);
+    GELOGE(ge::FAILED, "Context Id(%d) overflow.", ctx_id_vec[index]);
     return ge::GRAPH_FAILED;
   }
   auto ctx = reinterpret_cast<rtFftsPlusAiCpuCtx_t *>(ctx_head + ctx_id_vec[index]);

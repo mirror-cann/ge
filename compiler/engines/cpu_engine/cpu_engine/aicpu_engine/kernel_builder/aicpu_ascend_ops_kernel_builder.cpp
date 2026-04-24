@@ -32,7 +32,7 @@ ge::Status AicpuAscendOpsKernelBuilder::Initialize(
   FACTORY_KERNEL_BUILDER::FactoryType kernel_builder_ptr =
       FACTORY_KERNEL_BUILDER::Produce(kernel_builder);
   if (kernel_builder_ptr == nullptr) {
-    AICPU_REPORT_INNER_ERR_MSG("Crate %s failed.", kernel_builder.c_str());
+    AICPU_REPORT_INNER_ERR_MSG("Create %s failed.", kernel_builder.c_str());
     return KERNEL_BUILDER_INSTANCE_FAILED;
   }
   kernel_builder_map_[kernel_builder] = kernel_builder_ptr;

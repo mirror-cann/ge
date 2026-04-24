@@ -666,7 +666,7 @@ ge::Status TfOptimizer::FuseNodesForGraph(ge::ComputeGraph &graph, std::vector<g
       "cluster[%s] to sub graph[%s].", node_cluster_name.c_str(), sub_graph->GetName().c_str())
 
   if (!CheckSubGraphSupportFuse(node_cluster, sub_graph_info, isolated_node_map)) {
-    AICPUE_LOG_RUN_INFO("SubGraph[%s] has ref input or output, it can not be fused", node_cluster_name.c_str());
+    AICPUE_LOG_RUN_INFO("SubGraph[%s] has ref input or output, so it cannot be fused", node_cluster_name.c_str());
     return ge::SUCCESS;
   }
 
@@ -890,8 +890,8 @@ ge::Status TfOptimizer::SetExceptionAbortAttr(ge::NodePtr &node) const {
   std::string node_name = node->GetName();
   AICPU_CHECK_FALSE_EXEC(
     ge::AttrUtils::GetBytes(op_desc_ptr, kTfFuncDef, func_def_bytes),
-    AICPUE_LOGE("function def attr is not exist in op[%s], op type[%s].",
-      node_name.c_str(), op_type.c_str());
+    AICPUE_LOGE("function def attr does not exist in op[%s], op type[%s].",
+                node_name.c_str(), op_type.c_str());
     return ErrorCode::FUNC_DEF_NOT_EXIST)
   AICPU_IF_BOOL_EXEC(func_def_bytes.GetSize() == 0,
     AICPU_REPORT_INNER_ERR_MSG("Size of [%s] is out of range.", node_name.c_str());

@@ -93,7 +93,7 @@ private:
    * mark node can be fused
    * @param graph, Compute graph
    * @param tf_node_cluster_map, node cluster
-   * @param tf_isolated_node_map, node can not be fused
+   * @param tf_isolated_node_map, node cannot be fused
    * @return status whether this operation success
   */
   __attribute__((visibility("hidden")))
@@ -105,7 +105,7 @@ private:
    * mark node can be fused
    * @param graph, Compute graph
    * @param cluster_node_map, node cluster
-   * @param isolated_node_map, node can not be fused
+   * @param isolated_node_map, node cannot be fused
    * @return status whether this operation success
   */
   __attribute__((visibility("hidden"))) ge::Status MarkNodeForFusionOfFfts(
@@ -127,7 +127,7 @@ private:
    * Fuse node for graph
    * @param tf_node_cluster Node cluster
    * @param tf_node_cluster_map Node cluster map
-   * @param isolated_node_map, node can not be fused
+   * @param isolated_node_map, node cannot be fused
    * @return status whether this operation success
    */
   ge::Status SeparateDiffOpsToMap(const std::vector<ge::NodePtr> &tf_node_cluster,

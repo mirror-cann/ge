@@ -419,7 +419,7 @@ const string RealPath(const string &path) {
   if (realpath(path.c_str(), resoved_path) != nullptr) {
     res = resoved_path;
   } else {
-    AICPUE_LOGI("Path %s is not exist.", path.c_str());
+    AICPUE_LOGI("Path %s does not exist.", path.c_str());
   }
   return res;
 }
@@ -487,7 +487,7 @@ bool ValidateStr(const std::string &str, const std::string &mode) {
 ge::string GetKernelLibNameByOpType(const string &op_type, const std::map<string, OpFullInfo> &all_op_info) {
   auto iter = all_op_info.find(op_type);
   if (iter == all_op_info.end()) {
-    AICPUE_LOGW("Op[%s] is not exist in all kernel librarys.", op_type.c_str());
+    AICPUE_LOGW("Op[%s] does not exist in any kernel libraries.", op_type.c_str());
     return "";
   }
   return (iter->second).opKernelLib;
@@ -843,7 +843,7 @@ bool ReadConfigFile(const string &file_path, std::vector<string> &result) {
   AICPUE_LOGI("The real path of config.ini is %s.", real_path.c_str());
   std::ifstream ifs(real_path);
   if (!ifs.is_open()) {
-    AICPUE_LOGI("Custom config.ini is not exist.");
+    AICPUE_LOGI("Custom config.ini does not exist.");
     return false;
   }
   std::string line;

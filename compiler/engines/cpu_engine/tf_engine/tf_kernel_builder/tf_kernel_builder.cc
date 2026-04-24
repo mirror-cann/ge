@@ -969,7 +969,7 @@ void TfKernelBuilder::GetInOutPutsDataType(const ge::OpDescPtr &op_desc_ptr,
   std::set<std::string>  refinput_set;
   std::string op_type = op_desc_ptr->GetType();
   if (op_type == kFrameworkOp) {
-    // using frameworkop type can not get the is_ref flag, so use original one.
+    // Using framework op type cannot get the is_ref flag, so use the original one.
     (void)ge::AttrUtils::GetStr(op_desc_ptr, kOriginalType, op_type);
   }
   auto parser = Ir2tfParserFactory::Instance().CreateIRParser(op_type);

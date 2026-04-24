@@ -379,7 +379,7 @@ ge::graphStatus BuildCCArgsBinHandle(KernelContext *context) {
     (void)ge::AttrUtils::GetStr(op_desc, kAttrJsonPath, json_path);
     if (json_path == "") {
       *bin_handle = nullptr;
-      GELOGI("Node[%s] attr ops_json_path is empty, can not get bin handle.", node_type);
+      GELOGI("Node[%s] attr ops_json_path is empty, cannot get bin handle.", node_type);
       return ge::GRAPH_SUCCESS;
     }
     GELOGI("Building aicpu bin handle, node_type=%s, json_path=%s", node_type, json_path.c_str());
@@ -402,7 +402,7 @@ ge::graphStatus BuildTfArgsBinHandle(KernelContext *context) {
   (void)ge::AttrUtils::GetStr(op_desc, kAttrJsonPath, json_path);
   if (json_path == "") {
     *bin_handle = nullptr;
-    GELOGI("Node[%s] attr ops_json_path is empty, can not get bin handle.", node_type);
+    GELOGI("Node[%s] attr ops_json_path is empty, cannot get bin handle.", node_type);
     return ge::GRAPH_SUCCESS;
   }
   GELOGI("Building aicpu tf bin handle, node_type=%s, json_path=%s", node_type, json_path.c_str());

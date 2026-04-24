@@ -193,7 +193,7 @@ ge::Status Ir2tfBaseParser::ParseAttr(const ge::Node &node, domi::tensorflow::No
         node.GetName().c_str(), node.GetType().c_str())
     return ge::SUCCESS;
   }
-  AICPUE_LOGW("Op[%s] is not exist in ir2tf json config.", node.GetType().c_str());
+  AICPUE_LOGW("Op[%s] does not exist in ir2tf json config.", node.GetType().c_str());
   node_def->set_op(node.GetType());
   AICPU_CHECK_RES_WITH_LOG(ParseBaseAttr(node, node_def),
       "Call Ir2tfBaseParser::ParseBaseAttr function failed, op[%s], op type[%s].",
@@ -286,7 +286,7 @@ ge::Status Ir2tfBaseParser::HandleAttrMapping(const ge::Node &node,
           " attr[%s], op[%s], op type[%s]",
           (iter->first).c_str(), node.GetName().c_str(), node.GetType().c_str())
     } else {
-      AICPU_REPORT_INNER_ERR_MSG("Can not find attr[%s], op[%s], op type[%s].",
+      AICPU_REPORT_INNER_ERR_MSG("Cannot find attr[%s], op[%s], op type[%s].",
           attr_mapping.src_field_name.c_str(), node.GetName().c_str(),
           node.GetType().c_str());
       return ErrorCode::IR2TF_SRC_ATTR_MISSING;
@@ -641,7 +641,7 @@ ge::Status Ir2tfBaseParser::GetAttrValueFromGe(const ge::Node &node,
       break;
     }
     default: {
-      AICPU_REPORT_INNER_ERR_MSG("Currently ir2tf can not support attr type[%d].",
+      AICPU_REPORT_INNER_ERR_MSG("Currently ir2tf cannot support attr type[%d].",
           ge_value_type);
       return ErrorCode::UNKNOWN_ATTR_TYPE;
     }
@@ -860,7 +860,7 @@ ge::Status Ir2tfBaseParser::ParseOutputArgs(const ge::NodePtr &node, const std::
 
   auto iter = ir2tf_map_.find(op_type);
   if (iter == ir2tf_map_.end()) {
-    AICPU_REPORT_INNER_ERR_MSG("Op type[%s] is not exist in ir2tf config file. op[%s].",
+    AICPU_REPORT_INNER_ERR_MSG("Op type[%s] does not exist in ir2tf config file. op[%s].",
         op_type.c_str(), node->GetName().c_str());
     return ErrorCode::OP_NOT_EXIST_IN_IR2TF_CONFIG_FILE;
   }

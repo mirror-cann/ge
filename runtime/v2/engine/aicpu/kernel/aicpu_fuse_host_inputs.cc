@@ -101,7 +101,7 @@ ge::graphStatus AicpuFuseHost(KernelContext *context) {
         GE_ASSERT_SUCCESS(args_handle->AddHostInput(*(input_indexes + i), tensor_data->GetAddr(), host_tensor_size,
                                                     align_size));
       } else {
-        GELOGD("Total host memory input size lengther then range is %zu, no need optimize", kMaxTotalHostLen);
+        GELOGD("Total host memory input size larger than range is %zu, no need optimize", kMaxTotalHostLen);
         GE_ASSERT_SUCCESS(CopyTensorToDevice(context, *tensor_data, static_cast<size_t>(host_tensor_size), tensor_size,
                                              *out_tensor_data));
       }

@@ -302,7 +302,7 @@ ge::Status GetAttrValueFromGe(const ge::OpDescPtr &op_desc_ptr,
       break;
     }
     default: {
-      AICPUE_LOGW("op [%s] Currently can not support attr value type of [%d].",
+      AICPUE_LOGW("op [%s] currently cannot support attr value type [%d].",
                   op_type.c_str(), ge_value_type);
       return ge::SUCCESS;
     }

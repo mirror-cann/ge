@@ -556,7 +556,7 @@ ge::graphStatus ExceptionDumpFillWorkSpace(const KernelContext *context,
   uintptr_t workspace_addr;
   int64_t workspace_bytes;
   if (GetWorkspaceInfo(context, workspace_addr, workspace_bytes) != ge::GRAPH_SUCCESS) {
-    GELOGE(ge::FAILED, "Excpetion dump GetWorkspaceInfo failed.");
+    GELOGE(ge::FAILED, "Exception dump GetWorkspaceInfo failed.");
     return ge::GRAPH_FAILED;
   }
   exception_dump_wrapper.AddWorkspace(workspace_addr, workspace_bytes);

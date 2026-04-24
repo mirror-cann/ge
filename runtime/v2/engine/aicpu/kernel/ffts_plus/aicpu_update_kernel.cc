@@ -220,7 +220,7 @@ ge::graphStatus AICpuUpdateContext(gert::KernelContext *context) {
   auto parse_base = reinterpret_cast<uintptr_t>(flush_data->args_base_addr_dev);
   for (size_t idx = 0; idx < ctx_num; ++idx) {
     if (ctx_id_vec[idx] > total_num) {
-      GELOGE(ge::FAILED, "Context Id(%d) over flow.", ctx_id_vec[idx]);
+      GELOGE(ge::FAILED, "Context Id(%d) overflow.", ctx_id_vec[idx]);
       return ge::GRAPH_FAILED;
     }
     GELOGI("ctx_num is %d, ctx[%d] is %d", ctx_num, idx, ctx_id_vec[idx]);

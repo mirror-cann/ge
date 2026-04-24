@@ -56,7 +56,7 @@ bool OpJsonBinHandler::IsSupportBinHandle()
 ge::graphStatus OpJsonBinHandler::LoadBinary(const std::string &json_path) {
   std::unique_lock lock(bin_mutex_);
   if (bin_handle_ != nullptr) {
-    GELOGI("Load binary from json success, not need to load again. json_path=%s", json_path.c_str());
+    GELOGI("Load binary from json success, no need to load again. json_path=%s", json_path.c_str());
     return ge::GRAPH_SUCCESS;
   }
 
@@ -81,7 +81,7 @@ ge::graphStatus OpDataBinHandler::LoadBinary(const std::string &so_name, const g
 {
   std::unique_lock lock(bin_mutex_);
     if (bin_handle_ != nullptr) {
-    GELOGI("Load binary from data success, not need to load again. so=%s", so_name.c_str());
+    GELOGI("Load binary from data success, no need to load again. so=%s", so_name.c_str());
     return ge::GRAPH_SUCCESS;
   }
 
@@ -161,7 +161,8 @@ ge::graphStatus CustBinHandlerManager::LoadAndGetBinHandle(const std::string &so
     return ge::GRAPH_SUCCESS;
   }
 
-  GELOGI("Bin handle for so %s has exist, will not repeat load. resource_id=%lu", so_name.c_str(), resource_id);
+  GELOGI("Bin handle for so %s already exists, will not repeat load. resource_id=%lu",
+         so_name.c_str(), resource_id);
   handle = iter->second->GetBinHandle();
 
   return ge::GRAPH_SUCCESS;
@@ -184,7 +185,7 @@ ge::graphStatus CustBinHandlerManager::GetBinHandle(const std::string &so_name, 
     ge::OpKernelBinPtr kernel_bin = GetKernelBin(so_name);
     GE_ASSERT_NOTNULL(kernel_bin);
     (void)LoadAndGetBinHandle(so_name, kernel_bin, handle);
-    GELOGI("Bin handle not find in resource id, but read so success, resource_id=%lu, so=%s, size=%lu",
+    GELOGI("Bin handle is not found in resource id, but reading so succeeds, resource_id=%lu, so=%s, size=%lu",
       resource_id, so_name.c_str(), bin_manager_.size());
     return ge::SUCCESS;
   }
@@ -199,7 +200,7 @@ ge::graphStatus CustBinHandlerManager::GetBinHandle(const std::string &so_name, 
     return ge::GRAPH_SUCCESS;
   }
 
-  GELOGI("Get bind handle success, resource_id=%lu, so=%s", resource_id, so_name.c_str());
+  GELOGI("Get bin handle success, resource_id=%lu, so=%s", resource_id, so_name.c_str());
   handle = iter->second->GetBinHandle();
 
   return ge::GRAPH_SUCCESS;
@@ -233,7 +234,7 @@ bool CustBinHandlerManager::GetCustAicpuBinFromFile(const std::string &so_name, 
   const std::string file_path = folder_path + so_name;
   const std::string real_path = ge::RealPath(file_path.c_str());
   if (real_path.empty()) {
-    GELOGI("The file[%s] is not exist, will not read.", file_path.c_str());
+    GELOGI("The file[%s] does not exist and will not be read.", file_path.c_str());
     return true;
   }
 
