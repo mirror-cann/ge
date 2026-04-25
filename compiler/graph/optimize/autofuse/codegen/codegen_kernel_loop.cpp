@@ -275,8 +275,8 @@ Status Loop::ConstructFromNodes(ascir::NodeViewVisitorConst nodes, const Tiler &
     // Add call
     auto call = CreateApiCallObject(node);
     GE_ASSERT_NOTNULL(call, "Create api call object failed, ascir type:%s", node->GetTypePtr());
-    GE_CHK_STATUS_RET(call->Init(node), "ApiCall Init failed, ascir type:%s", node->GetTypePtr());
     current_loop->AddCall(call);
+    GE_CHK_STATUS_RET(call->Init(node), "ApiCall Init failed, ascir type:%s", node->GetTypePtr());
     call->exec_condition = node->attr.sched.exec_condition;
     call->enable_cache = this->is_graph_has_reduce_node
                               ? IsNodeSplitB(node, tiler, call->enable_cache_with_condition, current_loop->is_ar)

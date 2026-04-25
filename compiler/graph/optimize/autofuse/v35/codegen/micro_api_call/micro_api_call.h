@@ -71,7 +71,7 @@ class MicroApiCall {
 
   // 生成outputs;
   virtual Status Init([[maybe_unused]] const ascir::NodeView &node) {
-    // todo:待实现
+    this->unit = node->attr.api.unit;
     return ge::SUCCESS;
   }
 
@@ -109,6 +109,8 @@ class MicroApiCall {
   std::string api_name_;
   std::vector<std::pair<TensorType, ascir::TensorId>> inputs_;
   std::vector<std::pair<TensorType, ascir::TensorId>> outputs_;
+ public:
+  ascir::ComputeUnit unit{ascir::ComputeUnit::kUnitInvalid};
 };
 }  // namespace codegen
 #endif // __AUTOFUSE_MICRO_API_CALL_H__

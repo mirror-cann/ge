@@ -118,10 +118,8 @@ Status VFLoop::ConstructFromNodes(ascir::NodeViewVisitorConst nodes, const ascir
     // Add call
     auto call = CreateMicroApiCallObject(node);
     GE_ASSERT_NOTNULL(call, "Create api call object failed, ascir type:%s", node->GetTypePtr());
+    current_loop->AddCall(call);
     GE_CHK_STATUS_RET(call->Init(node), "ApiCall Init failed, ascir type:%s", node->GetTypePtr());
-    if (!IsOps<Data>(node) && !IsOps<Output>(node) && !IsOps<Scalar>(node)) {
-      current_loop->AddCall(call);
-    }
 
     for (auto in : node->inputs()) {
       if (in == nullptr) {
@@ -247,6 +245,9 @@ Status VFLoop::GenerateBody(const TPipe &tpipe, const TensorManager &tensor_mgr,
                         "Generate loop for body failed");
       has_loop = true;
     } else if (body.type_ == LoopType::CALL) {
+      if (body.call_->unit == ge::ComputeUnit::kUnitNone) {
+        continue;
+      }
       std::string preg_name = GetOriginPregName(current_axis, depth);
       std::string ub_offset = "";
       if (body.call_->GetMicroApiName() == "Load") {
