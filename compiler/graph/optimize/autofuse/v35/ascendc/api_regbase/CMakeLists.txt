@@ -26,6 +26,7 @@ set(ascendc_api_regbase_extend_src
         sign.h
         reduce_init.h
         atan2.h
+        airy_ai.h
         copy_sign.h
         erfcx.h
         expm.h

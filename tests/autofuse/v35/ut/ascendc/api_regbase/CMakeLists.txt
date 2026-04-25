@@ -12,6 +12,7 @@ add_library(test_regbase_ascendc OBJECT
     ./test_where.cpp
     ./test_reduce_init.cpp
     ./test_add.cpp
+    ./test_airy_ai.cpp
     ./test_bitwise_and.cpp
     ./test_rshift.cpp
     ./test_sin.cpp
