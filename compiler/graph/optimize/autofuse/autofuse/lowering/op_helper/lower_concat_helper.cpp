@@ -13,16 +13,15 @@
 #include "backend/backend_spec.h"
 #include "graph/utils/node_utils.h"
 #include "can_fuse/backend/backend_utils.h"
-#include "lowering/asc_lowerer/loop_common.h"
 #include "graph/debug/ge_op_types.h"
 #include "symbolizer/symbolic_utils.h"
 
 namespace ge {
 namespace {
 constexpr int64_t kAlignment = 32;
-constexpr uint32_t kMaxInputNum = 63U;
 constexpr int32_t kAlgTranspose = 0;
 constexpr int32_t kAlgScatter = 1;
+const Expression kOne = Symbol(1);
 }  // namespace
 LowerConcatHelper::LowerConcatHelper(NodePtr fused_asc_backend_node) :
     fused_asc_backend_node_(std::move(fused_asc_backend_node)) {
@@ -91,11 +90,17 @@ graphStatus LowerConcatHelper::ParseConcatNode() {
   }
   output_shape_ = concat_node_->outputs[0].attr.repeats;
   GE_ASSERT_EQ(input_shapes_.front().size(), output_shape_.size());
+
+  size_t non_one_count = 0U;
   for (size_t i = 0U; i < output_shape_.size(); ++i) {
     if (input_shapes_.front()[i] != output_shape_[i]) {
       concat_dim_ = i;
+      is_first_dim_ = (non_one_count == 0);
       found = true;
       break;
+    }
+    if (ge::SymbolicUtils::StaticCheckEq(output_shape_[i], kOne) != ge::TriBool::kTrue) {
+      ++non_one_count;
     }
   }
   GE_ASSERT_TRUE(found,
@@ -107,19 +112,13 @@ graphStatus LowerConcatHelper::ParseConcatNode() {
 }
 
 graphStatus LowerConcatHelper::ParseConcatCase() {
-  int64_t stride = ge::GetSizeByDataType(concat_node_->GetOpDesc()->GetOutputDesc(0).GetDataType());
-  for (size_t i = concat_dim_ + 1U; i < output_shape_.size(); ++i) {
-    auto &dim_expr = output_shape_[i];
-    if (dim_expr.IsConstExpr()) {
-      int64_t dim_size = -1;
-      dim_expr.GetConstValue(dim_size);
-      if (dim_size >= 0) {
-        stride *= dim_size;
-      }
-    }
-  }
+  bool is_unknown_shape = false;
+  stride_ = CalcConcatAxisStride(is_unknown_shape);
   size_t num_aligned = 0;
-  std::set<std::pair<ge::Node *, int32_t>> unique_srcs;
+  std::set<std::pair<Node *, int32_t>> unique_srcs;
+  bool can_be_no_task = is_first_dim_ && (!is_unknown_shape);
+  GELOGD("is first dim concat = %d, is known shape = %d", static_cast<int32_t>(is_first_dim_),
+         static_cast<int32_t>(!is_unknown_shape));
   for (const auto in_anchor : concat_asc_backend_node_->GetAllInDataAnchorsPtr()) {
     if (in_anchor != nullptr) {
       GE_ASSERT_TRUE(static_cast<size_t>(in_anchor->GetIdx()) < input_shapes_.size());
@@ -142,39 +141,56 @@ graphStatus LowerConcatHelper::ParseConcatCase() {
       if ((peer_node->GetType() == kAscBackendType) &&
           unique_srcs.emplace(peer_node, peer_out_anchor->GetIdx()).second) {
         total_fused_dim_size_ += dim_size_val;
+      } else {
+        if (can_be_no_task) {
+          GE_ASSERT_SUCCESS(IsPeerNodeValidForNoTask(peer_node, can_be_no_task));
+        }
       }
-      num_aligned += static_cast<int64_t>(stride * dim_size_val % kAlignment == 0);
+      num_aligned += static_cast<int64_t>(stride_ * dim_size_val % kAlignment == 0);
     }
   }
-  case_ = concat_dim_ == 0 ? ConcatCase::kFirstDim :
-          (num_aligned == concat_asc_backend_node_->GetInDataNodesSize() ? ConcatCase::kAllAligned
-                                                                         : ConcatCase::kOther);
+  const auto in_num = concat_asc_backend_node_->GetInDataNodesSize();
+  const auto all_aligned = (num_aligned == in_num);
+  const auto none_reuse =  (input_shapes_.size() == in_num);
+  GELOGI("can_be_no_task = %d, all_aligned = %d, none_reuse = %d", static_cast<int32_t>(can_be_no_task),
+         static_cast<int32_t>(all_aligned), static_cast<int32_t>(none_reuse));
+  if (can_be_no_task && all_aligned && none_reuse) {
+    case_ = ParseConcatCaseForNoTask();
+    return GRAPH_SUCCESS;
+  }
+  case_ = is_first_dim_ ? ConcatCase::kFirstDim :
+          (all_aligned ? ConcatCase::kAllAligned : ConcatCase::kOther);
   return GRAPH_SUCCESS;
 }
+
+LowerConcatHelper::ConcatCase LowerConcatHelper::ParseConcatCaseForNoTask() const {
+  constexpr int64_t kInputSizeLarge = 8 * 1024 * 1024;
+  constexpr int64_t kInputSizeMid = 1024 * 1024;
+  constexpr int64_t kInputSizeSmall = 512 * 1024;
+  const int64_t avg_input_size = stride_ * output_dim_size_ / num_inputs_;  // checked num_inputs_ > 0
+  GELOGD("avg_input_size = %ld bytes", avg_input_size);
+  if (avg_input_size > kInputSizeLarge) {
+    return ConcatCase::kFirstDimNoTaskLarge;  // 100%
+  }
+  if (avg_input_size > kInputSizeMid) {
+    return ConcatCase::kFirstDimNoTaskMid;  // 80%
+  }
+  if (avg_input_size > kInputSizeSmall) {
+    return ConcatCase::kFirstDimNoTaskSmall;  // 50%
+  }
+  return ConcatCase::kFirstDimNoTaskTiny;  // 33%
+}
+
 graphStatus LowerConcatHelper::NeedLifting(bool &need_lifting) {
-  static const std::map<ConcatCase, std::string> kCaseToName{
-      {ConcatCase::kFirstDim, "first_dim"}, {ConcatCase::kAllAligned, "aligned"}, {ConcatCase::kOther, "other"}};
-  static const std::map<int32_t, std::map<ConcatCase, ge::float64_t>> kAlgToCaseToRatio{
-      {kAlgTranspose,
-       std::map<ConcatCase, ge::float64_t>{
-           {ConcatCase::kFirstDim, 0.0},
-           {ConcatCase::kAllAligned, 0.3333},
-           {ConcatCase::kOther, 0.3333},
-       }},
-      {kAlgScatter,
-       std::map<ConcatCase, ge::float64_t>{
-           {ConcatCase::kFirstDim, 0.0},
-           {ConcatCase::kAllAligned, 0.1666},
-           {ConcatCase::kOther, 0.1666},
-       }},
-  };
+  num_inputs_ = concat_node_->GetAllInDataAnchorsSize();
+  GE_ASSERT_TRUE(num_inputs_ > 0);
   GE_CHK_BOOL_RET_SPECIAL_STATUS(HasBackwardFusion(), GRAPH_SUCCESS, "has backward fusion, do not lifting");
+  auto backend_spec = optimize::BackendSpec::GetInstance();
+  GE_ASSERT_NOTNULL(backend_spec);
   if (!IsTile()) {
-    GE_CHK_BOOL_RET_SPECIAL_STATUS(concat_asc_backend_node_->GetAllInDataAnchorsSize() > kMaxInputNum, GRAPH_SUCCESS,
-                                   "num_inputs = %zu, do not lifting",
-                                   concat_asc_backend_node_->GetAllInDataAnchorsSize());
-    GE_CHK_BOOL_RET_SPECIAL_STATUS(concat_asc_backend_node_->GetAllInDataAnchorsSize() == 1U, GRAPH_SUCCESS,
-                                   "single input, do not lifting");
+    GE_CHK_BOOL_RET_SPECIAL_STATUS(num_inputs_ > backend_spec->concat_max_input_num, GRAPH_SUCCESS,
+                                   "num_inputs = %zu, do not lifting", num_inputs_);
+    GE_CHK_BOOL_RET_SPECIAL_STATUS(num_inputs_ == 1U, GRAPH_SUCCESS, "single input, do not lifting");
   }
   GE_ASSERT_SUCCESS(ParseConcatNode());
   // 暂不处理concat_dim后为动态shape的场景
@@ -188,13 +204,11 @@ graphStatus LowerConcatHelper::NeedLifting(bool &need_lifting) {
   GE_ASSERT_SUCCESS(ParseConcatCase());
   GE_CHK_BOOL_RET_SPECIAL_STATUS(case_ == ConcatCase::kNoLifting, GRAPH_SUCCESS, "No need for lifting");
   auto buffer_ratio = static_cast<float64_t>(total_fused_dim_size_) / static_cast<float64_t>(output_dim_size_);
-  auto backend_spec = optimize::BackendSpec::GetInstance();
-  GE_ASSERT_NOTNULL(backend_spec);
-  auto threshold = kAlgToCaseToRatio.at(backend_spec->concat_alg).at(case_);
+  auto threshold = GetThreshold(backend_spec->concat_alg, case_);
   need_lifting = buffer_ratio < threshold;
   GELOGI("FusedAscBackend: %s, concat: %s, case = %s, ratio = %ld/%ld = %.15f, threshold = %f, need_lifting = %d",
          fused_asc_backend_node_->GetNamePtr(), concat_node_->GetNamePtr(),
-         kCaseToName.at(case_).c_str(), total_fused_dim_size_, output_dim_size_,
+         CaseName(case_).c_str(), total_fused_dim_size_, output_dim_size_,
          buffer_ratio, threshold, need_lifting);
   return GRAPH_SUCCESS;
 }
@@ -239,5 +253,79 @@ bool LowerConcatHelper::HasBackwardFusion() const {
 
 bool LowerConcatHelper::IsTile() const {
   return (concat_node_->GetInDataNodesSize() > 1UL) && (concat_asc_backend_node_->GetInDataNodesSize() == 1UL);
+}
+
+graphStatus LowerConcatHelper::IsPeerNodeValidForNoTask(const Node *node, bool &is_valid) const {
+  static std::set<std::string> kUnsupportedTypes = {"Data", "RefData", "Variable", "Constant", "Const"};
+  auto peer_node = node;
+  if (peer_node->GetType() == "Data") {
+    int32_t index = -1;
+    GE_ASSERT_TRUE(AttrUtils::GetInt(node->GetOpDesc(), ATTR_NAME_PARENT_NODE_INDEX, index));
+    const auto in_anchor = fused_asc_backend_node_->GetInDataAnchor(index);
+    GE_ASSERT_NOTNULL(in_anchor);
+    const auto out_anchor = in_anchor->GetPeerOutAnchor();
+    GE_ASSERT_NOTNULL(out_anchor);
+    peer_node = out_anchor->GetOwnerNodeBarePtr();
+    GE_ASSERT_NOTNULL(peer_node);
+  }
+  if (kUnsupportedTypes.find(peer_node->GetType()) != kUnsupportedTypes.cend()) {
+    is_valid = false;
+    GELOGI("peer node = %s(%s), do not support no task", peer_node->GetNamePtr(), peer_node->GetTypePtr());
+  }
+  return SUCCESS;
+}
+
+int64_t LowerConcatHelper::CalcConcatAxisStride(bool &is_unknown_shape) const {
+  int64_t stride = ge::GetSizeByDataType(concat_node_->GetOpDesc()->GetOutputDesc(0).GetDataType());
+  for (size_t i = concat_dim_ + 1U; i < output_shape_.size(); ++i) {
+    auto &dim_expr = output_shape_[i];
+    if (dim_expr.IsConstExpr()) {
+      int64_t dim_size = -1;
+      dim_expr.GetConstValue(dim_size);
+      if (dim_size >= 0) {
+        stride *= dim_size;
+      }
+    } else {
+      is_unknown_shape = true;
+    }
+  }
+  return stride;
+}
+
+const std::string &LowerConcatHelper::CaseName(ConcatCase concat_case) {
+  static const std::map<ConcatCase, std::string> kCaseToName{{ConcatCase::kFirstDim, "first_dim"},
+                                                             {ConcatCase::kAllAligned, "aligned"},
+                                                             {ConcatCase::kOther, "other"},
+                                                             {ConcatCase::kFirstDimNoTaskLarge, "may_be_no_task_large"},
+                                                             {ConcatCase::kFirstDimNoTaskMid, "may_be_no_task_mid"},
+                                                             {ConcatCase::kFirstDimNoTaskSmall, "may_be_no_task_small"},
+                                                             {ConcatCase::kFirstDimNoTaskTiny, "may_be_no_task"}};
+  return kCaseToName.at(concat_case);
+}
+
+float64_t LowerConcatHelper::GetThreshold(int32_t alg, ConcatCase concat_case) {
+  static const std::map<int32_t, std::map<ConcatCase, ge::float64_t>> kAlgToCaseToRatio{
+      {kAlgTranspose,
+       std::map<ConcatCase, ge::float64_t>{
+           {ConcatCase::kFirstDim, 0.0},
+           {ConcatCase::kFirstDimNoTaskLarge, 1.0},
+           {ConcatCase::kFirstDimNoTaskMid, 0.8},
+           {ConcatCase::kFirstDimNoTaskSmall, 0.5},
+           {ConcatCase::kFirstDimNoTaskTiny, 0.3333},
+           {ConcatCase::kAllAligned, 0.3333},
+           {ConcatCase::kOther, 0.3333},
+       }},
+      {kAlgScatter,
+       std::map<ConcatCase, ge::float64_t>{
+           {ConcatCase::kFirstDim, 0.0},
+           {ConcatCase::kFirstDimNoTaskLarge, 1.0},
+           {ConcatCase::kFirstDimNoTaskMid, 0.8},
+           {ConcatCase::kFirstDimNoTaskSmall, 0.5},
+           {ConcatCase::kFirstDimNoTaskTiny, 0.3333},
+           {ConcatCase::kAllAligned, 0.1666},
+           {ConcatCase::kOther, 0.1666},
+       }},
+  };
+  return kAlgToCaseToRatio.at(alg).at(concat_case);
 }
 }  // namespace ge

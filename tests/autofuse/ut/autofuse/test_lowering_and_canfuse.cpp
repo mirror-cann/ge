@@ -136,6 +136,51 @@ class LoweringAndCanfuseUT : public testing::Test {
     es_graph_->SetOutput(cast3, 1);
   }
 
+  ComputeGraphPtr BuildConcatFirstDimGraph(const std::string &last_dim, bool contains_reduce) {
+    auto data0 = es_graph_->CreateInput(0, "data0", nullptr);
+    data0.SetSymbolShape({"1", "2", "1", last_dim.c_str()});
+    auto data1 = es_graph_->CreateInput(1, "data1", nullptr);
+    data1.SetSymbolShape({"1", "2", "1", last_dim.c_str()});
+
+    auto abs0 = es::Abs(data0);
+    abs0.SetSymbolShape({"1", "2", "1", last_dim.c_str()});
+
+    if (contains_reduce) {
+      auto sum = es::ReduceSumD(data1, {1}, true);
+      sum.SetSymbolShape({"1", "2", "1", last_dim.c_str()});
+      auto concat = es::ConcatD({abs0, sum}, 1);
+      concat.SetSymbolShape({"1", "4", "1", last_dim.c_str()});
+      es_graph_->SetOutput(concat, 0);
+    } else {
+      auto concat = es::ConcatD({abs0, data1}, 1);
+      concat.SetSymbolShape({"1", "4", "1", last_dim.c_str()});
+      es_graph_->SetOutput(concat, 0);
+    }
+    auto graph = es_graph_->Build();
+    auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+    return cg;
+  }
+
+  ComputeGraphPtr BuildConcatFirstDimWithReuseGraph(const std::string &last_dim) {
+    auto data0 = es_graph_->CreateInput(0, "data0", nullptr);
+    data0.SetSymbolShape({"1", "2", "1", last_dim.c_str()});
+    auto data1 = es_graph_->CreateInput(1, "data1", nullptr);
+    data1.SetSymbolShape({"1", "2", "1", last_dim.c_str()});
+
+    auto abs0 = es::Abs(data0);
+    abs0.SetSymbolShape({"1", "2", "1", last_dim.c_str()});
+
+    auto sum = es::ReduceSumD(data1, {1}, true);
+    sum.SetSymbolShape({"1", "2", "1", last_dim.c_str()});
+    auto concat = es::ConcatD({abs0, sum, abs0}, 1);
+    concat.SetSymbolShape({"1", "6", "1", last_dim.c_str()});
+    es_graph_->SetOutput(concat, 0);
+    auto graph = es_graph_->Build();
+    auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+    auto concat_node = cg->FindFirstNodeMatchType("ConcatD");
+    return cg;
+  }
+
   void PrintComputeGraphNodes(const ComputeGraphPtr &cg) {
     for (const auto &node : cg->GetAllNodes()) {
       std::cout << "Node: " << node->GetName() << ", Type: " << node->GetType() << std::endl;
@@ -1571,4 +1616,53 @@ TEST_F(LoweringAndCanfuseUT, SliceSliceLoadStridesVerification) {
   SetCurShapeEnvContext(nullptr);
 }
 
+TEST_F(LoweringAndCanfuseUT, LiftConcat_FirstDim) {
+  auto run_test = [](const ComputeGraphPtr &cg) -> void {
+    ge::AscIrLowerer lowerer;
+    ASSERT_EQ(lowerer.Lowering(cg), GRAPH_SUCCESS);
+    ASSERT_EQ(asc_adapt::GeFallback(cg), GRAPH_SUCCESS);
+    FusionStrategySolver fusion_strategy_solver;
+    FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new AscBackendFusionDecider()));
+    EXPECT_EQ(fusion_strategy_solver.Fuse(cg), SUCCESS);
+    ASSERT_EQ(lowerer.Lifting(cg), GRAPH_SUCCESS);
+    EXPECT_EQ(AscBackendPostProcessor().Do(cg), SUCCESS);
+  };
+  // no task, mid
+  {
+    auto cg = BuildConcatFirstDimGraph("262144", true);
+    run_test(cg);
+    EXPECT_FALSE(cg->FindFirstNodeMatchType(kFusedAscBackendType) != nullptr);
+  }
+  // no task, small
+  {
+    es_graph_ = std::make_unique<es::Graph>("graph");
+    auto cg = BuildConcatFirstDimGraph("131072", true);
+    run_test(cg);
+    EXPECT_TRUE(cg->FindFirstNodeMatchType(kFusedAscBackendType) != nullptr);
+  }
+
+  // connected to Data, does not support no task
+  {
+    es_graph_ = std::make_unique<es::Graph>("graph");
+    auto cg = BuildConcatFirstDimGraph("262144", false);
+    run_test(cg);
+    EXPECT_TRUE(cg->FindFirstNodeMatchType(kFusedAscBackendType) != nullptr);
+  }
+
+  // not all aligned, does not support no task
+  {
+    es_graph_ = std::make_unique<es::Graph>("graph");
+    auto cg = BuildConcatFirstDimGraph("3", true);
+    run_test(cg);
+    EXPECT_TRUE(cg->FindFirstNodeMatchType(kFusedAscBackendType) != nullptr);
+  }
+  // reuse input, does not support no task
+  {
+    es_graph_ = std::make_unique<es::Graph>("graph");
+    auto cg = BuildConcatFirstDimWithReuseGraph("262144");
+    run_test(cg);
+    EXPECT_TRUE(cg->FindFirstNodeMatchType(kFusedAscBackendType) != nullptr);
+  }
+  SetCurShapeEnvContext(nullptr);
+}
 }  // namespace ge

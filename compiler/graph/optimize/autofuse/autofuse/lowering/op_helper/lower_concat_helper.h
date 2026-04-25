@@ -27,6 +27,10 @@ class LowerConcatHelper {
     kAllAligned = 1,
     kOther = 2,
     kNoLifting = 3,
+    kFirstDimNoTaskTiny = 4,
+    kFirstDimNoTaskSmall = 5,
+    kFirstDimNoTaskMid = 6,
+    kFirstDimNoTaskLarge = 7,
   };
   graphStatus LiftingPoorPerfFusedAscBackendOp();
   bool FindConcatAscBackendNode();
@@ -34,11 +38,16 @@ class LowerConcatHelper {
 
   graphStatus ParseConcatNode();
   graphStatus ParseConcatCase();
+  ConcatCase ParseConcatCaseForNoTask() const;
   graphStatus NeedLifting(bool &need_lifting);
   graphStatus UnfoldFusedAscBackend() const;
   bool CheckGraph() const;
   bool HasBackwardFusion() const;
   bool IsTile() const;
+  graphStatus IsPeerNodeValidForNoTask(const Node *node, bool &is_valid) const;
+  int64_t CalcConcatAxisStride(bool &is_unknown_shape) const;
+  static const std::string &CaseName(ConcatCase concat_case);
+  static float64_t GetThreshold(int32_t alg, ConcatCase concat_case);
 
   ComputeGraphPtr graph_;
   NodePtr fused_asc_backend_node_;
@@ -46,10 +55,13 @@ class LowerConcatHelper {
   AscNodePtr concat_node_;
   std::vector<ge::Expression> output_shape_;
   std::vector<std::vector<ge::Expression>> input_shapes_;
+  int64_t stride_ = -1;
   ConcatCase case_ = ConcatCase::kNoLifting;
   size_t concat_dim_ = 0;
+  bool is_first_dim_ = false;
   int64_t total_fused_dim_size_ = 0L;
   int64_t output_dim_size_ = -1L;
+  int64_t num_inputs_ = -1L;
 };
 }  // namespace ge
 
