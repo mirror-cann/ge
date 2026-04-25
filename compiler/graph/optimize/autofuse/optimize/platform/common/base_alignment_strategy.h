@@ -88,5 +88,7 @@ class BaseAlignmentStrategy {
 
 bool IsLoadNeedAlignForReduce(const ge::AscNodePtr &node);
 bool IsLoadNeedAlign(const ge::AscNodePtr &node_load);
+bool IsTailAxisTranspose(const ge::AscTensorAttr &attr);
+bool IsTailAxisTransposeV2(const ge::AscNodePtr &node_load);
 }  // namespace optimize
 #endif  // OPTIMIZE_PLATFORM_COMMON_BASE_ALIGNMENT_STRATEGY_H

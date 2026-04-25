@@ -3530,7 +3530,7 @@ TEST_F(TestOptimizerV2, SliceSliceConcatD) {
   EXPECT_EQ(optimizer.Optimize(graph, fused_scheduled_result), ge::SUCCESS);
   EXPECT_EQ(fused_scheduled_result.node_idx_to_scheduled_results.size(), 1UL);
   EXPECT_EQ(fused_scheduled_result.node_idx_to_scheduled_results[0][0].schedule_groups.size(), 1UL);
-  EXPECT_EQ(fused_scheduled_result.node_idx_to_scheduled_results[0][0].schedule_groups[0].impl_graphs.size(), 1UL);
+  EXPECT_EQ(fused_scheduled_result.node_idx_to_scheduled_results[0][0].schedule_groups[0].impl_graphs.size(), 2UL);
   for (auto impl_graph : fused_scheduled_result.node_idx_to_scheduled_results[0][0].schedule_groups[0].impl_graphs) {
     auto load0_remove_pad_0 = impl_graph.FindNode("load0_remove_pad_0");
     EXPECT_EQ(load0_remove_pad_0, nullptr);
@@ -3623,7 +3623,7 @@ TEST_F(TestOptimizerV2, LoadAlignmentInferFunc_multiple_axis_discontine) {
   EXPECT_EQ(optimizer.Optimize(graph, fused_scheduled_result), ge::SUCCESS);
   EXPECT_EQ(fused_scheduled_result.node_idx_to_scheduled_results.size(), 1UL);
   EXPECT_EQ(fused_scheduled_result.node_idx_to_scheduled_results[0][0].schedule_groups.size(), 1UL);
-  EXPECT_EQ(fused_scheduled_result.node_idx_to_scheduled_results[0][0].schedule_groups[0].impl_graphs.size(), 1UL);
+  EXPECT_EQ(fused_scheduled_result.node_idx_to_scheduled_results[0][0].schedule_groups[0].impl_graphs.size(), 2UL);
   for (auto impl_graph : fused_scheduled_result.node_idx_to_scheduled_results[0][0].schedule_groups[0].impl_graphs) {
     auto load0_nddma = impl_graph.FindNode("load1");
     EXPECT_NE(load0_nddma, nullptr);
@@ -6271,4 +6271,76 @@ TEST_F(TestOptimizerV2, MatmulAndLoadBrcAndAbsBrcAdd) {
       EXPECT_EQ(node->GetOpDesc()->GetType(), "Broadcast");
     }
   }
+}
+
+TEST_F(TestOptimizerV2, LoadSliceCase) {
+  AscGraph graph("gen_nddma_slice");
+  auto s0 = graph.CreateSizeVar(256);
+  auto s1 = graph.CreateSizeVar(50);
+  auto s2 = graph.CreateSizeVar(16);
+  auto s1_orign = graph.CreateSizeVar(100);  
+  auto z0 = graph.CreateAxis("z0", s0);
+  auto z1 = graph.CreateAxis("z1", s1);
+  auto z2 = graph.CreateAxis("z2", s2);
+
+  Data data0("data0", graph);
+  data0.y.dtype = ge::DT_FLOAT;
+  data0.ir_attr.SetIndex(0);
+
+  Data data1("data1", graph);
+  data1.y.dtype = ge::DT_UINT8;
+  data1.ir_attr.SetIndex(1);
+
+  Load load0("load0");
+  load0.attr.sched.axis = {z0.id, z1.id, z2.id};
+  load0.x = data0.y;
+  *load0.y.axis = {z0.id, z1.id, z2.id};
+  load0.y.dtype = ge::DT_FLOAT;
+  *load0.y.repeats = {s0, s1, s2};
+  *load0.y.strides = {s1_orign * s2, s2, One};
+
+  Load load1("load1");
+  load1.attr.sched.axis = {z0.id, z1.id, z2.id};
+  load1.x = data1.y;
+  *load1.y.axis = {z0.id, z1.id, z2.id};
+  load1.y.dtype = ge::DT_UINT8;
+  *load1.y.repeats = {s0, s1, s2};
+  *load1.y.strides = {s1 * s2, s2, One};
+
+  Cast cast1("cast1");
+  cast1.x = load1.y;
+  cast1.attr.sched.axis = {z0.id, z1.id, z2.id};
+  *cast1.y.axis = {z0.id, z1.id, z2.id};
+  cast1.y.dtype = ge::DT_FLOAT;
+  *cast1.y.repeats = {s0, s1, s2};
+  *cast1.y.strides = {s1 * s2, s2, One};
+
+  Mul mul0("mul0");
+  mul0.attr.sched.axis = {z0.id, z1.id, z2.id};
+  mul0.x1 = load0.y;
+  mul0.x2 = cast1.y;
+  mul0.y.dtype = ge::DT_FLOAT;
+  *mul0.y.axis = {z0.id, z1.id, z2.id};
+  *mul0.y.repeats = {s0, s1, s2};
+  *mul0.y.strides = {s1 * s2, s2, One};
+
+  Store store_op("store");
+  store_op.attr.sched.axis = {z0.id, z1.id, z2.id};
+  store_op.x = mul0.y;
+  *store_op.y.axis = {z0.id, z1.id, z2.id};
+  store_op.y.dtype = ge::DT_FLOAT;
+  *store_op.y.repeats = {s0, s1, s2};
+  *store_op.y.strides = {s1 * s2, s2, One};
+
+  Output output_op("output");
+  output_op.x = store_op.y;
+  output_op.y.dtype = ge::DT_FLOAT;
+  output_op.ir_attr.SetIndex(8);
+
+  optimize::AscGraphInfoComplete::CompleteApiInfo(graph);
+  std::vector<autoschedule::AutoScheduleOutput> impl_graphs;
+  optimize::autoschedule::AutoSchedule autoschedule(graph, impl_graphs);
+  autoschedule.DoAutoSchedule();
+  EXPECT_EQ(impl_graphs.size(), 4);
+  EXPECT_EQ(impl_graphs[0].scheduled_graph.GetName(), "gen_nddma_slice_B0Y0"); 
 }

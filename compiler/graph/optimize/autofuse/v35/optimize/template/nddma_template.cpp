@@ -195,6 +195,29 @@ Status NddmaTemplate::TransposeToNddmaNode(const ge::AscNodePtr &transpose_node,
   return ge::SUCCESS;
 }
 
+ge::Status NddmaTemplate::ProcessSliceToNddma(const ge::AscNodePtr &node_load, 
+                                              bool &is_nddma_generated_cur, 
+                                              bool &is_slice_to_nddma_converted) {
+  GE_CHECK_NOTNULL(node_load);
+  GE_CHECK_NOTNULL(node_load->GetOpDesc());
+
+  const std::vector<int64_t> &node_axis = node_load->attr.sched.axis;
+  const std::vector<int64_t> &tensor_axis = node_load->outputs[0].attr.axis;
+  bool is_axis_consistent = (node_axis == tensor_axis);
+
+  if (is_axis_consistent && !(IsTailAxisTransposeV2(node_load) || IsTailAxisTranspose(node_load->outputs[0].attr))) {
+    if (!ScheduleUtils::IsVectorizedAxisContinuousInGM(node_load->outputs[0].attr)) {
+      node_load->GetOpDesc()->SetType("Nddma");
+      node_load->attr.type = "Nddma";
+      is_nddma_generated_cur = true;
+      is_slice_to_nddma_converted = true;
+      GELOGD("Node [%s] is a slice load, converted to Nddma.", node_load->GetNamePtr());
+    }
+  }
+
+  return ge::SUCCESS;
+}
+
 /**
  * 生成NDDMA模版，具体逻辑如下：
  * 1. 遍历图找到Transpose节点，将transpose前移并随路更新路过节点的属性，最终与load或nddma节点融合成新的nddma节点
@@ -205,6 +228,7 @@ ge::Status NddmaTemplate::Generate([[maybe_unused]] const ge::AscGraph &origin_g
                                    [[maybe_unused]] const ge::AscGraph &based_case,
                                    ge::AscGraph &new_case) {
   bool is_nddma_generated = false;
+  bool is_slice_to_nddma_converted = false;
   for  (const auto &node : new_case.GetAllNodes()) {
     GE_CHECK_NOTNULL(node);
     if (ge::ops::IsOps<ge::ascir_op::Transpose>(node)) {
@@ -236,6 +260,7 @@ ge::Status NddmaTemplate::Generate([[maybe_unused]] const ge::AscGraph &origin_g
         SwapCastBrcAndGenNddma(std::dynamic_pointer_cast<ge::AscNode>(out_node), node, new_case) == ge::SUCCESS) {
       is_nddma_generated_cur = true;
     }
+    GE_ASSERT_SUCCESS(ProcessSliceToNddma(node, is_nddma_generated_cur, is_slice_to_nddma_converted));
     is_nddma_generated = is_nddma_generated || is_nddma_generated_cur;
     DiscontinuityInfo info;
     GE_ASSERT_SUCCESS(TensorLayoutUtils::AnalyzeLoadDiscontinuity(node->outputs[0].attr, info),
@@ -250,6 +275,10 @@ ge::Status NddmaTemplate::Generate([[maybe_unused]] const ge::AscGraph &origin_g
     return ge::FAILED;
   }
   GE_ASSERT_SUCCESS(ScheduleUtils::TopologicalSorting(new_case));
+  if (is_slice_to_nddma_converted) {
+    GELOGD("Slice to Nddma detected, performing alignment check.");
+    GE_ASSERT_SUCCESS(autoschedule::AlignmentHandler::AlignVectorizedStrides(new_case));
+  }
   return ge::SUCCESS;
 }
 

@@ -3370,7 +3370,7 @@ TEST_F(OptimizerStV2, SliceSliceConcatD) {
   EXPECT_EQ(optimizer.Optimize(graph, fused_scheduled_result), ge::SUCCESS);
   EXPECT_EQ(fused_scheduled_result.node_idx_to_scheduled_results.size(), 1UL);
   EXPECT_EQ(fused_scheduled_result.node_idx_to_scheduled_results[0][0].schedule_groups.size(), 1UL);
-  EXPECT_EQ(fused_scheduled_result.node_idx_to_scheduled_results[0][0].schedule_groups[0].impl_graphs.size(), 1UL);
+  EXPECT_EQ(fused_scheduled_result.node_idx_to_scheduled_results[0][0].schedule_groups[0].impl_graphs.size(), 2UL);
   for (auto impl_graph : fused_scheduled_result.node_idx_to_scheduled_results[0][0].schedule_groups[0].impl_graphs) {
     auto load0_remove_pad_0 = impl_graph.FindNode("load0_remove_pad_0");
     EXPECT_EQ(load0_remove_pad_0, nullptr);
