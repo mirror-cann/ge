@@ -1,6 +1,8 @@
 ## Python Pass[v1]
 
-该目录提供了两个纯 Python 的 `PatternFusionPass` 版本：
+### 功能描述
+
+本目录提供两个纯 Python 的 `PatternFusionPass` sample：
 
 - [src/test_python_pattern_pass.py](./src/test_python_pattern_pass.py)
 - [src/test_python_pattern_pass_cpp_equivalent.py](./src/test_python_pattern_pass_cpp_equivalent.py)
@@ -10,39 +12,67 @@
 - `test_python_pattern_pass.py`
   - 演示 Python V1 的 `PatternMatcherConfigBuilder.enable_const_value_match()`
   - 通过 strict const-value-match 直接把 `Add(x, 0.0f)` 前置到 matcher 阶段
-  - 需要注意：当前 `ConstantMatcher::IsMatch` 的值匹配是严格二进制匹配，不带浮点容差，也不做跨 dtype 归一化
+  - 当前 `ConstantMatcher::IsMatch` 的值匹配是严格二进制匹配，不带浮点容差，也不做跨 dtype 归一化
   - 因此它更适合作为 matcher_config 示例，而不是 C++ sample 的完全等价版本
 
 - `test_python_pattern_pass_cpp_equivalent.py`
-  - 语义上对齐 [C++ pass样例](../cpp/src/add_zero_pass.cpp)
+  - 主逻辑对齐 [C++ pass 样例](../cpp/README.md)
   - `patterns()` 只描述 `Data + Const` 拓扑
   - `meet_requirements()` 中再显式读取匹配到的 `Const.value`，按 C++ sample 同样的规则判断零值
-  - 当前支持与 C++ sample 一致的 `DT_FLOAT` / `DT_DOUBLE` / `DT_INT32`
+  - 当前支持与 C++ sample 一致的 `DT_FLOAT`、`DT_DOUBLE`、`DT_INT32`
 
-两者共同演示了以下 Python V1 能力：
+### 环境要求
 
-- 使用 `GraphBuilder` 构造 pattern / replacement graph
-- 使用 `capture_tensor()` / `MatchResult.get_captured_tensor()` 获取捕获输入
-- 在 `meet_requirements()` 中读取 `MatchResult.get_matched_nodes()` 返回的 `Const` 节点属性
-- 通过 `@register_fusion_pass` 以 `PatternFusionPass` 形式注册到 GE
+- 临时要求：**run 包编译时使用的 Python 版本，需要与执行 sample 的 Python 版本保持一致**
+- CANN 软件包安装请参考 [环境准备](../../../../../docs/build.md#1-环境准备)
+- 环境变量设置请参考 [C++ 样例 README 的程序编译-配置环境变量](../cpp/README.md#程序编译)
+- 已安装图编译流程相关 Python 依赖：`attrs`、`decorator`、`sympy`、`numpy`、`psutil`、`scipy`
 
-使用方式如下：
+run 包已包含 GE Python 运行时所需的 `ge_py` wheel，本节不需要再单独安装 `ge_py-*.whl`。
 
-1. 设置 Python pass 插件路径
+### 使用方式
+
+1. 设置 Python pass 插件路径：
+
    ```bash
    export ASCEND_GE_PY_PASS_PATH=$(pwd)/src/test_python_pattern_pass.py
    ```
-   如果需要运行与 C++ 语义等价的版本，可改为：
+
+   如果需要运行与 C++ 主逻辑对齐的版本，可改为：
+
    ```bash
    export ASCEND_GE_PY_PASS_PATH=$(pwd)/src/test_python_pattern_pass_cpp_equivalent.py
    ```
-2. 复用[C++ pass样例](../cpp/README.md#程序运行)的 ATC 或在线推理步骤执行模型编译
 
-run包已包含 GE Python 运行时所需的 ge-py wheel，本节不需要再单独安装 `ge_py-0.0.1-py3-none-any.whl`。
+2. 复用 [C++ pass 样例 README](../cpp/README.md#程序运行) 中的 ATC 或在线推理步骤执行模型编译。
 
-预期日志中会出现类似输出：
+3. 说明：
+
+   - 这两个 sample 都不是独立执行脚本，直接运行 `python src/test_python_pattern_pass.py` 或 `python src/test_python_pattern_pass_cpp_equivalent.py` 不会触发 pass 执行
+   - 预期输出会在 GE 编译流程真正加载该 Python pass 后打印
+
+### 预期日志
+
+运行成功后，日志中会出现类似输出：
 
 ```text
 [PythonAddZeroPass] matched=add_zero_pattern captured=input_0:0
 [PythonAddZeroPassCppEquivalent] matched=add_zero_pattern_cpp_equivalent captured=input_0:0 const_dtype=DT_FLOAT zero=True
 ```
+
+### Conda 环境示例（Python 3.11）
+
+如果本机没有现成的匹配环境，可以参考下面的方式创建：
+
+```bash
+conda create -n ge-pass-py311 python=3.11 -y
+conda activate ge-pass-py311
+python -m pip install --upgrade pip
+python -m pip install attrs decorator sympy numpy psutil scipy
+```
+
+创建环境后，请确认：
+
+- 该环境中的 Python 版本与 run 包编译时使用的 Python 版本一致
+- 再按 [C++ 样例 README 的程序编译-配置环境变量](../cpp/README.md#程序编译) 完成环境变量设置
+- 最后按上文设置 `ASCEND_GE_PY_PASS_PATH` 并复用 C++ sample 的运行步骤

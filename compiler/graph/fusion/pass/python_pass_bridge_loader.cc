@@ -70,7 +70,7 @@ class PythonFusionPassBridgeLoader {
     if (ret != SUCCESS) {
       return ret;
     }
-    static const PythonFusionPassRegistrar kRegistrar = {
+    static constexpr PythonFusionPassRegistrar kRegistrar = {
         &RegisterPythonPassFromBridge,
     };
     GELOGI("Register python passes with bridge library[%s].", loaded_path_.c_str());

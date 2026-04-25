@@ -23,7 +23,7 @@ cpp/
 ## 3、使用方法
 
 ### 3.1、准备cann包
-- 通过安装指导 [环境准备](../../../../docs/build.md#2-安装软件包)正确安装`toolkit`和`ops`包
+- 通过安装指导 [环境准备](../../../../docs/build.md#1-环境准备)正确安装`toolkit`和`ops`包
 - 设置环境变量 (假设包安装在/usr/local/Ascend/)
 ```
 source /usr/local/Ascend/cann/set_env.sh
