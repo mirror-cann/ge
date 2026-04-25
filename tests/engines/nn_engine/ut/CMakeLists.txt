@@ -230,8 +230,8 @@ target_link_libraries(fe_ut PRIVATE
         $<BUILD_INTERFACE:atrace_headers>
         atrace_stub
         exe_graph
-        lowering
-        graph
+        lowering_pkg
+        graph_pkg
         metadef
         register_pkg
         graph_base_pkg

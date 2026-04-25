@@ -235,8 +235,8 @@ target_link_libraries(fe_st PRIVATE
         -Wl,--no-as-needed
         -lrt -ldl -lpthread -lgcov
         exe_graph
-        lowering
-        graph
+        lowering_pkg
+        graph_pkg
         air_headers
         metadef_headers
         metadef
