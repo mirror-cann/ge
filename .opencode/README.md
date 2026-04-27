@@ -1,18 +1,24 @@
 # GE 仓 Agent skills 规划
 
-## GE 仓 skills 清单
+## GE仓已有skill及效果
 
-> **说明**：清单中 `[x]` 表示该 skill 已就绪（ready），`[ ]` 表示该 skill 尚在规划中，还未实现。
+| skill名称 | 作用                                                       | 使用Agent（触发指令）                                                       | 不用Agent                                                                  |
+|-----------|----------------------------------------------------------|---------------------------------------------------------------------|--------------------------------------------------------------------------|
+| **gitcode-issue** | 读取Issue详情、读取和回复评论                                        | `读取issue 168，并提交pr修复`，耗时 ~30秒                                       | 打开浏览器 → 找到issue → 阅读/评论，耗时 3-5分钟                                         |
+| **gitcode-pr** | 创建PR，自动按模板填pr描述                                          | `创建pr到develop分支`，耗时 ~1分钟                                            | git add/commit/push → 打开浏览器 → 创建PR → 填写描述，编写测试方法，勾选变更类型与核对清单，耗时 3~5分钟    |
+| **superpowers** | 需求开发（生成设计文档、编码、生成测试用例）                                   | `开发需求，要求……` → 按照提示进行后续流程，耗时 数小时-数天                                  | 分析需求 → 设计 → 编码 → ut/st → 调试 → 验证，耗时 数天-数周                                |
+| **ge-code-reviewer** | 遵循编码规范/军规/模块约束检视代码                                       | `检视pr 1437` → `发布检视意见`，耗时 2-5分钟 ，**注意**：Agent只能作为Commiter的辅助，不能完全替代 | 打开PR → 逐文件阅读diff → 对照规范检查 → 理解业务逻辑 → 写评论，耗时 5~30分钟                       |
+| **ge-dt-developer** | 编写UT/ST测试用例                                              | `为内存复用模块新增一个ut, 图结构relu-[0]concat...`，耗时 ~5分钟                       | 编写测试代码，耗时 ~30分钟                                                          |
+| **ge-dt-runner** | 编译和执行UT/ST用例，仅编译用例对应的cmake target,默认使用gtest-filter执行指定用例 | `执行新增加的用例`，耗时 ~30秒-2分钟                                                | bash tests/run_test.sh -u=ge_common,编译多个cmake target并执行所有用例，耗时 5-15分钟 |
+| **api-doc-generator** | 对外API生成文档                                                | `xx接口生成文档`，耗时 1-2分钟                                                 | 阅读接口代码 → 理解参数和返回值 → 编写文档 → 格式化，耗时 10-20分钟                                |
+| **install-cann-toolkit** | 下载最新CANN Toolkit包并安装                                     | `更新toolkit包`，耗时 ~10分钟                                               | 找下载链接并下载 → 等待下载完成，使用bash cann-*.run xxx安装，耗时 ~10分钟                       |
 
-- [x] **gitcode-issue** — 读取 Issue 详情、读取和回复评论，触发指令 `读取issue 168，并提交pr修复`
-- [x] **gitcode-pr** — 创建 PR、提交行内检视意见、cherry-pick 代码到商用分支，触发指令`检视pr 1437` 或 `创建pr到develop分支` 
-- [x] **superpowers** — 需求开发（生成软件设计文档、编码、生成测试用例），触发指令`开发需求，要求……`
-- [ ] **ge-reviewer** — 遵循各种编码规范、编码军规、模块软件设计约束检视代码
-- [ ] **gitcode-pipeline** — 触发流水线任务、查询流水线状态、获取失败任务日志
-- [x] **ge-dt-runner** — 编译和执行 UT/ST 用例
-- [ ] **ge-tester** — 生成用例，在带有npu的环境上执行用例
-- [x] **api-doc-generator** — 对外api生成文档
-- [x] **install-cann-toolkit** — 下载最新cann toolkit包，安装
+> 耗时说明：因任务复杂度不同，实际耗时存在差异；表中耗时数据均为估计，仅为了让还没有体验的同学有一个直观的比较
+
+## 规划但还未实现的skill
+
+- **gitcode-pipeline** — 触发流水线任务、查询流水线状态、获取失败任务日志、修改代码重新触发流水线直到流水线通过
+- **ge-tester** — 生成用例，在带有NPU的环境上执行用例
 
 ## agent要支持的流程
 
@@ -23,13 +29,55 @@
 
 ## GE 仓 skills 路径
 
-- 项目组共享，希望能做到启动agent默认安装或更新
+- 项目组共享，希望能做到启动agent时默认安装或更新
 - 仅在ge仓使用的skills可直接提交到ge仓`.claude/skills`目录
-- 多个仓都时用的skills，源码在公共仓（当前是https://gitcode.com/cann-agent/skills），启动agent时会自动下载或者更新skills到`.claude/skills`目录
+- 多个仓都使用的skills（`gitcode-issue`、`gitcode-pr`、`api-doc-generator`），源码在公共仓（当前是https://gitcode.com/cann-agent/skills），启动agent时会自动下载或者更新skills到`.claude/skills/_remote`目录
 
-> **注意**：`gitcode-issue`、`gitcode-pr`、`api-doc-generator` 等跨仓共享的 skills 不在 GE 仓的 `.claude/skills` 目录中维护。它们的源码存放在公共仓，在 ge 目录下启动 agent 后会自动下载并安装到本地 `.claude/skills` 目录。
+## Agent辅助需求开发流程
 
-## Agent辅助流程
+> **图例**：🤖 = Agent 执行 | 👤 = 个人检视 | 🧑‍💼 = COMMITTER/MDE 审查
+
+```text
+                       👤 个人检视   　 　　👤   🧑‍💼 　     👤 个人检视      👤 个人检视　 👤 个人检视  🧑‍💼 COMMITTER/MDE检视
+                           │          　   │    │              │             │　　　　　     │             │
+                           ▼          　   ▼    ▼              ▼             ▼　　　　　     ▼             ▼
+需求输入　────▶　🤖软件设计　────▶　🤖需求SPEC　────▶　🤖生成Plan　────▶　🤖编码　────▶　🤖UT/ST　────▶　🤖联调　────▶　🤖代码合入
+```
+
+> **流程说明**：
+> - **需求SPEC**：基于软件设计文档，生成详细的需求规格说明（SPEC），明确功能需求、接口定义、约束条件等
+> - **生成Plan**：将SPEC拆解为可执行的实施计划（Plan），包含任务分解、文件路径、代码结构、测试策略等
+> - **联调**：在真实 NPU 环境中执行端到端测试，验证功能正确性、性能指标和系统集成
+>
+> **需求输入**：
+> - **Issue**：GitCode 上的问题单，包含问题描述、复现步骤、期望行为等
+> - **需求文档**：产品/架构团队提供的正式需求规格文档
+> - **口头描述**：开发者直接描述的功能需求或改进建议
+> - **代码注释/TODO**：代码库中遗留的 TODO 注释或待办事项
+
+### 需求输入要素
+
+给 Agent 输入需求时，建议包含以下要素：
+
+- **[背景]**：为什么要做这件事？解决什么问题？
+- **[目标]**：期望达到什么效果？
+- **[范围]**：涉及哪些模块/文件/接口？
+- **[约束]**：有什么限制条件？（性能、兼容性、不影响现有功能等）
+- **[验收标准]**：怎么算完成？
+
+### 输入示例
+
+**❌ 差的输入**：
+> "优化一下内存管理"
+
+**✅ 好的输入**：
+> "背景：当前图编译阶段内存峰值过高（>8GB），导致大模型编译OOM。
+> 目标：将内存峰值降低到4GB以内。
+> 范围：`compiler/graph/build/memory/` 目录下的内存分配逻辑。
+> 约束：不能影响编译结果正确性，不能改变现有API。
+> 验收：编译 ResNet50 模型内存峰值 < 4GB，且现有UT/ST全部通过。"
+
+## Agent辅助流程（详细流程图）
 ```mermaid
 flowchart TB
     subgraph 入口节点
@@ -49,8 +97,8 @@ flowchart TB
 
     subgraph 编码验证阶段
         D1[superpower<br/>编写代码]
-        D2[ge-dt-runner<br/>执行ut/st]
-        D3[ge-reviewer<br/>agent检视代码]
+        D2[ge-dt-developer<br/>执行ut/st<br/>ge-dt-runner<br/>执行ut/st]
+        D3[ge-code-reviewer<br/>agent检视代码]
         D4[ge-tester<br/>本地验证]
     end
 
