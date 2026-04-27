@@ -13,12 +13,6 @@
 
 #include "modified_bessel_i0.h"
 
-constexpr uint32_t MODIFIED_BESSEL_K0_FLOAT_NAN = 0x7fc00000;
-
-#ifndef INFINITY
-#define INFINITY (1.0f / 0.0f)
-#endif
-
 constexpr float K0_A[10] = {
     +1.37446543561352307156e-16,
     +4.25981614279661018399e-14,
@@ -49,90 +43,111 @@ constexpr float K0_B[25] = {
 };
 
 template <typename T>
-__aicore__ inline void ModifiedBesselK0ImplVF(__ubuf__ T* dst, __ubuf__ T* src, uint32_t calCount) {
+__simd_callee__ inline void ModifiedBesselK0SmallCompute(AscendC::Reg::RegTensor<T>& srcReg,
+                                                          AscendC::Reg::RegTensor<T>& smallDstReg,
+                                                          AscendC::Reg::MaskReg& branchMask,
+                                                          __ubuf__ T* dst, uint32_t offSet) {
+    AscendC::Reg::RegTensor<T> pReg, qReg, xFactorReg, constReg, iterReg, i0Reg, factorReg;
+
+    AscendC::Reg::Duplicate(pReg, (T)0.0, branchMask);
+    AscendC::Reg::Duplicate(qReg, (T)0.0, branchMask);
+    AscendC::Reg::Duplicate(constReg, K0_A[0], branchMask);
+
+    // x_factor = x*x - 2
+    AscendC::Reg::Mul(xFactorReg, srcReg, srcReg, branchMask);
+    AscendC::Reg::Adds(xFactorReg, xFactorReg, (T)(-2.0), branchMask);
+
+    mainIter<T, 1, 9, K0_A>(pReg, qReg, constReg, xFactorReg, iterReg, branchMask);
+
+    // result_small = 0.5 * (a - p)
+    AscendC::Reg::Sub(smallDstReg, constReg, pReg, branchMask);
+    AscendC::Reg::Muls(smallDstReg, smallDstReg, (T)0.5, branchMask);
+
+    // load I0(x) from dst
+    AscendC::Reg::LoadAlign(i0Reg, dst + offSet);
+
+    // result_small -= log(0.5 * x) * I0(x)
+    AscendC::Reg::Muls(factorReg, srcReg, (T)0.5, branchMask);
+    AscendC::Reg::Log(factorReg, factorReg, branchMask);
+    AscendC::Reg::Mul(factorReg, factorReg, i0Reg, branchMask);
+    AscendC::Reg::Sub(smallDstReg, smallDstReg, factorReg, branchMask);
+}
+
+template <typename T, uint32_t currentIteration, uint32_t endIteration, uint32_t sliceNum>
+__simd_callee__ inline void ModifiedBesselK0BigSliceCompute(AscendC::Reg::RegTensor<T>& srcReg,
+                                                             AscendC::Reg::RegTensor<T>& bigDstReg,
+                                                             AscendC::Reg::MaskReg& branchMask,
+                                                             __ubuf__ T* dst, __ubuf__ T* tmpBuf,
+                                                             uint32_t offSet, uint32_t tensorLen) {
+    AscendC::Reg::RegTensor<T> pReg, qReg, xFactorReg, constReg, iterReg;
+    ModifiedBesselImportData<T, sliceNum, K0_B>(pReg, qReg, constReg, branchMask, dst, tmpBuf, offSet, tensorLen);
+
+    // x_factor = 8/x - 2
+    AscendC::Reg::Duplicate(xFactorReg, (T)8, branchMask);
+    AscendC::Reg::Div(xFactorReg, xFactorReg, srcReg, branchMask);
+    AscendC::Reg::Adds(xFactorReg, xFactorReg, (T)(-2.0), branchMask);
+
+    mainIter<T, currentIteration, endIteration, K0_B>(pReg, qReg, constReg, xFactorReg, iterReg, branchMask);
+    if constexpr (sliceNum == 1) {
+        // result_big = exp(-x) * (0.5 * (b - p)) / sqrt(x)
+        AscendC::Reg::Sub(bigDstReg, constReg, pReg, branchMask);
+        AscendC::Reg::Muls(bigDstReg, bigDstReg, (T)0.5, branchMask);
+        ModifiedBesselKFactorBigCompute<T>(srcReg, bigDstReg, branchMask);
+    } else {
+        ModifiedBesselExportData<T>(pReg, qReg, constReg, branchMask, dst, tmpBuf, offSet, tensorLen);
+    }
+}
+
+template <typename T>
+__simd_vf__ inline void ModifiedBesselK0ImplVF(__ubuf__ T* dst, __ubuf__ T* src, __ubuf__ T* tmpBuf, uint32_t calCount) {
     uint32_t vlSize = static_cast<uint32_t>(GetVecLen() / sizeof(T));
     uint16_t repeatTime = static_cast<uint16_t>(AscendC::CeilDivision(calCount, vlSize));
+    uint32_t tensorLen = repeatTime * vlSize;
+    uint32_t calCount2 = calCount;
 
-    AscendC::Reg::RegTensor<T> srcReg, absXReg, xFactorReg, constReg, iterReg;
-    AscendC::Reg::RegTensor<T> pReg, qReg, smallDstReg, bigDstReg, dstReg, nanReg, infReg;
-    AscendC::Reg::RegTensor<T> i0Reg, factorReg;
+    AscendC::Reg::RegTensor<T> srcReg, smallDstReg, bigDstReg, dstReg, nanReg, infReg;
     AscendC::Reg::MaskReg mask, branchMask;
 
     for (uint16_t i = 0U; i < repeatTime; ++i) {
         mask = AscendC::Reg::UpdateMask<T>(calCount);
         AscendC::Reg::LoadAlign(srcReg, src + i * vlSize);
 
-        // ===== 0 < x <= 2.0 branch =====
+        // ===== Big branch: x > 2.0 =====
+        AscendC::Reg::Compares<T, CMPMODE::GT>(branchMask, srcReg, (T)2.0, mask);
+        ModifiedBesselK0BigSliceCompute<T, 1, 12, 0>(srcReg, bigDstReg, branchMask, dst, tmpBuf, i * vlSize, tensorLen);
+    }
+
+    for (uint16_t i = 0U; i < repeatTime; ++i) {
+        mask = AscendC::Reg::UpdateMask<T>(calCount2);
+        AscendC::Reg::LoadAlign(srcReg, src + i * vlSize);
+
+        // ===== Small branch: 0 < x <= 2.0 =====
         AscendC::Reg::Compares<T, CMPMODE::GT>(branchMask, srcReg, (T)0.0, mask);
         AscendC::Reg::Compares<T, CMPMODE::LE>(branchMask, srcReg, (T)2.0, branchMask);
+        ModifiedBesselK0SmallCompute<T>(srcReg, smallDstReg, branchMask, dst, i * vlSize);
 
-        AscendC::Reg::Duplicate(pReg, (T)0.0, mask);
-        AscendC::Reg::Duplicate(qReg, (T)0.0, mask);
-        // x_factor = x*x - 2
-        AscendC::Reg::Mul(xFactorReg, srcReg, srcReg, branchMask);
-        AscendC::Reg::Adds(xFactorReg, xFactorReg, (T)(-2.0), branchMask);
-
-        AscendC::Reg::Duplicate(constReg, K0_A[0], branchMask);
-        mainIter<T, 10, 10, K0_A>(pReg, qReg, constReg, xFactorReg, branchMask);
-
-        // result_small = 0.5 * (a - p) - log(0.5 * x) * I0(x)
-        AscendC::Reg::Sub(smallDstReg, constReg, pReg, branchMask);
-        AscendC::Reg::Muls(smallDstReg, smallDstReg, (T)0.5, branchMask);
-        
-        // calculate modified_bessel_I0(x)
-        AscendC::Reg::Duplicate(pReg, (T)0.0, branchMask);
-        AscendC::Reg::Duplicate(qReg, (T)0.0, branchMask);
-        AscendC::Reg::Abs(absXReg, srcReg, branchMask);
-        AscendC::Reg::Muls(xFactorReg, absXReg, (T)0.5, branchMask);
-        AscendC::Reg::Adds(xFactorReg, xFactorReg, (T)(-2.0), branchMask);
-
-        AscendC::Reg::Duplicate(constReg, I0_A[0], branchMask);
-        mainIter<T, 30, 30, I0_A>(pReg, qReg, constReg, xFactorReg, branchMask);
-
-        AscendC::Reg::Exp(factorReg, absXReg, branchMask);
-        AscendC::Reg::Sub(i0Reg, constReg, pReg, branchMask);
-        AscendC::Reg::Muls(i0Reg, i0Reg, (T)0.5, branchMask);
-        AscendC::Reg::Mul(i0Reg, i0Reg, factorReg, branchMask);
-
-        // get result
-        AscendC::Reg::Muls(factorReg, srcReg, (T)0.5, branchMask);
-        AscendC::Reg::Log(factorReg, factorReg, branchMask);
-        AscendC::Reg::Mul(factorReg, factorReg, i0Reg, branchMask);
-        AscendC::Reg::Sub(smallDstReg, smallDstReg, factorReg, branchMask);
-
-        // // ===== Large branch: x > 2.0 =====
+        // ===== Big branch: x > 2.0 =====
         AscendC::Reg::Compares<T, CMPMODE::GT>(branchMask, srcReg, (T)2.0, mask);
-
-        // x_factor = 8/x - 2
-        AscendC::Reg::Duplicate(xFactorReg, (T)8, branchMask);
-        AscendC::Reg::Div(xFactorReg, xFactorReg, srcReg, branchMask);
-        AscendC::Reg::Adds(xFactorReg, xFactorReg, (T)(-2.0), branchMask);
-
-        AscendC::Reg::Duplicate(constReg, (T)K0_B[0], branchMask);
-        mainIter<T, 25, 25, K0_B>(pReg, qReg, constReg, xFactorReg, branchMask);
-
-        // result_big = exp(-x) * (0.5 * (b - p)) / sqrt(x)
-        AscendC::Reg::Sub(bigDstReg, constReg, pReg, branchMask);
-        AscendC::Reg::Muls(bigDstReg, bigDstReg, (T)0.5, branchMask);
-        AscendC::Reg::Muls(factorReg, srcReg, (T)(-1), branchMask);
-        AscendC::Reg::Exp(factorReg, factorReg, branchMask);
-        AscendC::Reg::Mul(bigDstReg, bigDstReg, factorReg, branchMask);
-        AscendC::Reg::Sqrt(factorReg, srcReg, branchMask);
-        AscendC::Reg::Div(bigDstReg, bigDstReg, factorReg, branchMask);
+        ModifiedBesselK0BigSliceCompute<T, 13, 24, 1>(srcReg, bigDstReg, branchMask, dst, tmpBuf, i * vlSize, tensorLen);
 
         AscendC::Reg::Select(dstReg, bigDstReg, smallDstReg, branchMask);
 
-        // ===== x <= 0: NaN for x < 0=====
+        // ===== x < 0: NaN =====
         AscendC::Reg::Compares<T, CMPMODE::LT>(branchMask, srcReg, (T)0.0, mask);
-        AscendC::Reg::Duplicate(nanReg, (float&)MODIFIED_BESSEL_K0_FLOAT_NAN, branchMask);
+        AscendC::Reg::Duplicate(nanReg, (float&)MODIFIED_BESSEL_FLOAT_NAN, branchMask);
         AscendC::Reg::Select(dstReg, nanReg, dstReg, branchMask);
 
-        // ===== Inf for x == 0 =====
+        // ===== x == 0: Inf =====
         AscendC::Reg::Compares<T, CMPMODE::EQ>(branchMask, srcReg, (T)0.0, mask);
         AscendC::Reg::Duplicate(infReg, INFINITY, branchMask);
         AscendC::Reg::Select(dstReg, infReg, dstReg, branchMask);
 
-        // // Store output
+        // handle nan input
+        AscendC::Reg::Compare<T, CMPMODE::NE>(branchMask, srcReg, srcReg, mask);
+        AscendC::Reg::Duplicate(nanReg, (float&)MODIFIED_BESSEL_FLOAT_NAN, mask);
+        AscendC::Reg::Select(dstReg, nanReg, dstReg, branchMask);
+
+        // Store output
         AscendC::Reg::StoreAlign(dst + i * vlSize, dstReg, mask);
     }
 }
@@ -142,9 +157,12 @@ __aicore__ inline void ModifiedBesselK0Extend(const LocalTensor<T> &dst, const L
                                            const LocalTensor<uint8_t>& sharedTmpBuffer,
                                            const uint32_t calCount) {
     static_assert(SupportType<T, float>(), "Current data type is  not supported on current device!");
-    VF_CALL<ModifiedBesselK0ImplVF<T>>((__ubuf__ T*)dst.GetPhyAddr(),
-                                        (__ubuf__ T*)src.GetPhyAddr(),
-                                        calCount);
+    ModifiedBesselI0Extend<T>(dst, src, sharedTmpBuffer, calCount);
+    auto tmpUB = sharedTmpBuffer.ReinterpretCast<T>();
+    ModifiedBesselK0ImplVF<T>((__ubuf__ T*)dst.GetPhyAddr(),
+                               (__ubuf__ T*)src.GetPhyAddr(),
+                               (__ubuf__ T*)tmpUB.GetPhyAddr(),
+                               calCount);
 }
 
 #endif  // __ASCENDC_API_REGBASE_MODIFIED_BESSEL_K0_H__

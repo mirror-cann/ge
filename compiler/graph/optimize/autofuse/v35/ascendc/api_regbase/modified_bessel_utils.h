@@ -11,20 +11,59 @@
 #ifndef __ASCENDC_API_REGBASE_MODIFIED_BESSEL_UTILS_H__
 #define __ASCENDC_API_REGBASE_MODIFIED_BESSEL_UTILS_H__
 
-template<typename T, int32_t iterationNum, int32_t factorLen, const float* factorList>
+constexpr uint32_t MODIFIED_BESSEL_FLOAT_NAN = 0x7fc00000;
+
+#ifndef INFINITY
+#define INFINITY (1.0f / 0.0f)
+#endif
+
+template <typename T, uint32_t currentIteration, uint32_t endIteration, const float* factorList>
 __simd_callee__ inline void mainIter(AscendC::Reg::RegTensor<T>& pReg, AscendC::Reg::RegTensor<T>& qReg, 
                                     AscendC::Reg::RegTensor<T>& constReg, AscendC::Reg::RegTensor<T>& xFactorReg,
-                                    AscendC::Reg::MaskReg& branchMask) {
-    AscendC::Reg::RegTensor<T> iterReg;
-
-    AscendC::Reg::Adds(pReg, qReg, (T)0.0, branchMask);
-    AscendC::Reg::Adds(qReg, constReg, (T)0.0, branchMask);
+                                    AscendC::Reg::RegTensor<T>& iterReg, AscendC::Reg::MaskReg& branchMask) {
+    AscendC::Reg::Move(pReg, qReg, branchMask);
+    AscendC::Reg::Move(qReg, constReg, branchMask);
     AscendC::Reg::Mul(iterReg, xFactorReg, qReg, branchMask);
     AscendC::Reg::Sub(iterReg, iterReg, pReg, branchMask);
-    AscendC::Reg::Adds(constReg, iterReg, (T)factorList[factorLen - iterationNum + 1], branchMask);
-    if constexpr (iterationNum > 2) {
-        mainIter<T, iterationNum - 1, factorLen, factorList>(pReg, qReg, constReg, xFactorReg, branchMask);
+    AscendC::Reg::Adds(constReg, iterReg, (T)factorList[currentIteration], branchMask);
+    if constexpr (currentIteration < endIteration) {
+        mainIter<T, currentIteration + 1, endIteration, factorList>(pReg, qReg, constReg, xFactorReg, iterReg, branchMask);
     }
+}
+
+template <typename T, uint32_t sliceNum, const float* factorList>
+__simd_callee__ inline void ModifiedBesselImportData(AscendC::Reg::RegTensor<T>& pReg, AscendC::Reg::RegTensor<T>& qReg, 
+                                    AscendC::Reg::RegTensor<T>& constReg, AscendC::Reg::MaskReg& branchMask, __ubuf__ T* dst,  
+                                    __ubuf__ T* tmpBuf, uint32_t offSet, uint32_t tensorLen) {
+    if constexpr (sliceNum == 0) {
+        AscendC::Reg::Duplicate(pReg, (T)0.0, branchMask);
+        AscendC::Reg::Duplicate(qReg, (T)0.0, branchMask);
+        AscendC::Reg::Duplicate(constReg, factorList[0], branchMask);
+    } else {
+        AscendC::Reg::LoadAlign(constReg, dst + offSet);
+        AscendC::Reg::LoadAlign(pReg, tmpBuf + offSet);
+        AscendC::Reg::LoadAlign(qReg, tmpBuf + tensorLen + offSet);
+    }
+}
+
+template <typename T>
+__simd_callee__ inline void ModifiedBesselExportData(AscendC::Reg::RegTensor<T>& pReg, AscendC::Reg::RegTensor<T>& qReg, 
+                                    AscendC::Reg::RegTensor<T>& constReg, AscendC::Reg::MaskReg& branchMask, __ubuf__ T* dst,  
+                                    __ubuf__ T* tmpBuf, uint32_t offSet, uint32_t tensorLen) {
+    AscendC::Reg::StoreAlign(dst + offSet, constReg, branchMask);
+    AscendC::Reg::StoreAlign(tmpBuf + offSet, pReg, branchMask);
+    AscendC::Reg::StoreAlign(tmpBuf + tensorLen + offSet, qReg, branchMask);
+}
+
+template <typename T>
+__simd_callee__ inline void ModifiedBesselKFactorBigCompute(AscendC::Reg::RegTensor<T>& srcReg,
+                                                    AscendC::Reg::RegTensor<T>& bigDstReg, AscendC::Reg::MaskReg& branchMask) {
+    AscendC::Reg::RegTensor<T> factorReg;
+    AscendC::Reg::Muls(factorReg, srcReg, (T)(-1), branchMask);
+    AscendC::Reg::Exp(factorReg, factorReg, branchMask);
+    AscendC::Reg::Mul(bigDstReg, bigDstReg, factorReg, branchMask);
+    AscendC::Reg::Sqrt(factorReg, srcReg, branchMask);
+    AscendC::Reg::Div(bigDstReg, bigDstReg, factorReg, branchMask);
 }
 
 #endif // __ASCENDC_API_REGBASE_MODIFIED_BESSEL_UTILS_H__
