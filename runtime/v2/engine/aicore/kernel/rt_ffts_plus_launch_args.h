@@ -154,8 +154,8 @@ struct RtFFTSKernelLaunchArgs {
   static ge::graphStatus CalcTotalSize(const ge::NodePtr &node, ComputeNodeDesc &node_desc, ArgsDesc &args_desc,
                                        size_t &total_size, DynDescInfo &dyn_desc_v);
   ge::graphStatus Init(const ComputeNodeDesc &node_desc, const ArgsDesc &args_desc, DynDescInfo &dyn_desc_v);
-  void SetDynInAddr(size_t in_index, size_t &arg_index, uintptr_t data_base, const Shape &shape, void *args_dev_base);
-  void SetDynOutAddr(size_t out_index, size_t &arg_index, uintptr_t data_base, const Shape &shape, void *args_dev_base);
+  ge::graphStatus SetDynInAddr(size_t in_index, size_t &arg_index, uintptr_t data_base, const Shape &shape, void *args_dev_base);
+  ge::graphStatus SetDynOutAddr(size_t out_index, size_t &arg_index, uintptr_t data_base, const Shape &shape, void *args_dev_base);
  private:
   ComputeNodeDesc node_desc_;
   ArgsDesc args_desc_;

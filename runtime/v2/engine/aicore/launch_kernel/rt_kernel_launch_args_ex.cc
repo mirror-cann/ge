@@ -586,7 +586,7 @@ ge::graphStatus ProcFoldedDescArgs(const ge::NodePtr &compute_node, std::vector<
  * |     ptr1     |  -- dynamic in 1 addr
  * |     ptr2     |  -- dynamic in 2 addr
  * */
-void SetDynShape(const Shape &shape, uint8_t *host_addr, const DynDesc &dyn_desc, size_t &shape_offset) {
+ge::graphStatus SetDynShape(const Shape &shape, uint8_t *host_addr, const DynDesc &dyn_desc, size_t &shape_offset) {
   void *grp_host_base = &(host_addr[dyn_desc.group_offset]);
   if (dyn_desc.is_group_first) {
     static_cast<uintptr_t *>(grp_host_base)[0] = dyn_desc.ptr_offset;
@@ -594,14 +594,20 @@ void SetDynShape(const Shape &shape, uint8_t *host_addr, const DynDesc &dyn_desc
   }
   uintptr_t *base_in_64 = &(static_cast<uintptr_t *>(grp_host_base)[shape_offset]);
   auto base_addr = static_cast<void *>(base_in_64);
-  auto dim_num = shape.IsScalar() ? 1 : shape.GetDimNum();
-  static_cast<uint32_t *>(base_addr)[0] = dim_num;  // dim num
-  static_cast<uint32_t *>(base_addr)[1] = 1;        // cnt
+  auto dim_num = shape.IsScalar() ? 1U : shape.GetDimNum();
+  if (dim_num > MAX_DIM_NUM) {
+    GELOGE(ge::FAILED, "Dynamic io %ld has dim_num[%zu] exceeding MAX_DIM_NUM[%zu], "
+           "which would cause buffer overflow in folded desc layout.",
+           dyn_desc.io_index, dim_num, MAX_DIM_NUM);
+    return ge::GRAPH_FAILED;
+  }
+  static_cast<uint32_t *>(base_addr)[0] = static_cast<uint32_t>(dim_num);  // dim num
+  static_cast<uint32_t *>(base_addr)[1] = 1;                                // cnt
   for (size_t i = 0; i < dim_num; ++i) {
     GELOGD("Io: %ld dim[%zu] with val[%ld].", dyn_desc.io_index, i, shape.GetDim(i));
     base_in_64[1 + i] = shape.IsScalar() ? 1 : shape.GetDim(i);
   }
   shape_offset += (dim_num + 1);
-  return;
+  return ge::GRAPH_SUCCESS;
 }
 }  // namespace gert

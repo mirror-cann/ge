@@ -321,7 +321,7 @@ ge::graphStatus RtFFTSKernelLaunchArgs::RedirectTilingAddr() {
   return ge::GRAPH_SUCCESS;
 }
 
-void RtFFTSKernelLaunchArgs::SetDynInAddr(size_t in_index, size_t &arg_index, uintptr_t data_base, const Shape &shape,
+ge::graphStatus RtFFTSKernelLaunchArgs::SetDynInAddr(size_t in_index, size_t &arg_index, uintptr_t data_base, const Shape &shape,
                                           void *args_dev_base) {
   auto dyn_in_desc_v = GetArgsPointer<DynDesc>(kDyInputsDescData);
   size_t i = 0;
@@ -333,7 +333,7 @@ void RtFFTSKernelLaunchArgs::SetDynInAddr(size_t in_index, size_t &arg_index, ui
   }
   if (i == dyn_in_num_) {
     GetArgsPointer<uintptr_t>(kArgsHostAddr)[arg_index++] = data_base;
-    return;
+    return ge::GRAPH_SUCCESS;
   }
   auto &dyn_desc = dyn_in_desc_v[i];
   size_t dev_pos = GetArgsPointer<uint8_t>(kDyInputsHostAddr) - reinterpret_cast<uint8_t *>(this);
@@ -343,14 +343,14 @@ void RtFFTSKernelLaunchArgs::SetDynInAddr(size_t in_index, size_t &arg_index, ui
     GetArgsPointer<uintptr_t>(kArgsHostAddr)[arg_index++] = ge::PtrToValue(dyn_dev_ptr);
   }
   auto dyn_host_ptr = GetArgsPointer<void>(kDyInputsHostAddr);
-  SetDynShape(shape, static_cast<uint8_t *>(dyn_host_ptr), dyn_desc, shape_offset_);
+  FE_RETURN_IF_ERROR(SetDynShape(shape, static_cast<uint8_t *>(dyn_host_ptr), dyn_desc, shape_offset_));
   auto tmp_addr = static_cast<void *>(GetArgsPointer<uint8_t>(kDyInputsHostAddr) + dyn_desc.group_offset);
   auto io_addr_ptr = &(static_cast<uintptr_t *>(tmp_addr)[dyn_desc.ptr_offset / sizeof(TensorAddress)]);
   io_addr_ptr[dyn_desc.io_group_id] = data_base;
-  return;
+  return ge::GRAPH_SUCCESS;
 }
 
-void RtFFTSKernelLaunchArgs::SetDynOutAddr(size_t out_index, size_t &arg_index, uintptr_t data_base, const Shape &shape,
+ge::graphStatus RtFFTSKernelLaunchArgs::SetDynOutAddr(size_t out_index, size_t &arg_index, uintptr_t data_base, const Shape &shape,
                                            void *args_dev_base) {
   auto dyn_out_desc_v = GetArgsPointer<DynDesc>(kDyOutputsDescData);
   size_t i = 0;
@@ -362,7 +362,7 @@ void RtFFTSKernelLaunchArgs::SetDynOutAddr(size_t out_index, size_t &arg_index, 
   }
   if (i == dyn_out_num_) {
     GetArgsPointer<uintptr_t>(kArgsHostAddr)[arg_index++] = data_base;
-    return;
+    return ge::GRAPH_SUCCESS;
   }
   auto &dyn_desc = dyn_out_desc_v[i];
   size_t dev_pos = GetArgsPointer<uint8_t>(kDyOutputsHostAddr) - reinterpret_cast<uint8_t *>(this);
@@ -372,11 +372,11 @@ void RtFFTSKernelLaunchArgs::SetDynOutAddr(size_t out_index, size_t &arg_index, 
     GetArgsPointer<uintptr_t>(kArgsHostAddr)[arg_index++] = ge::PtrToValue(dyn_dev_ptr);
   }
   auto dyn_host_ptr = GetArgsPointer<void>(kDyOutputsHostAddr);
-  SetDynShape(shape, static_cast<uint8_t *>(dyn_host_ptr), dyn_desc, shape_offset_);
+  FE_RETURN_IF_ERROR(SetDynShape(shape, static_cast<uint8_t *>(dyn_host_ptr), dyn_desc, shape_offset_));
   auto tmp_addr = static_cast<void *>(GetArgsPointer<uint8_t>(kDyOutputsHostAddr) + dyn_desc.group_offset);
   auto io_addr_ptr = &(static_cast<uintptr_t *>(tmp_addr)[dyn_desc.ptr_offset / sizeof(TensorAddress)]);
   io_addr_ptr[dyn_desc.io_group_id] = data_base;
-  return;
+  return ge::GRAPH_SUCCESS;
 }
 
 ge::graphStatus RtFFTSKernelLaunchArgs::SetIoAddr(size_t io_index, size_t &arg_index, uintptr_t data_base,
