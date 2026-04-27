@@ -9,6 +9,7 @@
  */
 
 #include "llm_datadist.h"
+#include "acl/acl.h"
 #include "common/mem_utils.h"
 #include "common/llm_flow_service.h"
 #include "common/cache_engine.h"
@@ -209,10 +210,12 @@ ge::Status LLMDataDist::Impl::TransferCache(uint64_t task_id, const TransferCach
   LLM_CHK_BOOL_RET_STATUS(is_initialized_.load(std::memory_order::memory_order_relaxed),
                          ge::FAILED,
                          "Llm datadist of cluster:%lu is not initialized.", cluster_id_);
-  LLM_CHK_BOOL_RET_STATUS(device_ids_.size() <= 1U, ge::LLM_FEATURE_NOT_ENABLED,
+  LLM_CHK_BOOL_RET_STATUS(device_ids_.size() == 1U, ge::LLM_FEATURE_NOT_ENABLED,
                         "Transfer cache is not supported when device num bigger than one.");
   LLM_CHK_BOOL_RET_STATUS(role_ == kPrompt, ge::LLM_PARAM_INVALID,
                          "Transfer cache is not supported by %s", role_.c_str());
+  LLM_CHK_BOOL_RET_STATUS(aclrtSetDevice(device_ids_.front()) == ACL_ERROR_NONE, ge::FAILED,
+                          "Failed to set device, device id = %d", device_ids_.front());
   return cache_engine_->TransferCache(task_id, transfer_cache_config, transfer_block_config);
 }
 

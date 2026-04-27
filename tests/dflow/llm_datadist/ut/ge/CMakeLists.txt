@@ -118,4 +118,4 @@ target_link_libraries(ut_llm_engine_utest
         )
 
 add_test(NAME ut_llm_engine_utest COMMAND ut_llm_engine_utest --gtest_output=xml:${CMAKE_INSTALL_PREFIX}/report/ut/ut_llm_engine_utest.xml)
-set_tests_properties(ut_llm_engine_utest PROPERTIES LABELS "ut;ge_rt;ut_llm_engine_utest")
+set_tests_properties(ut_llm_engine_utest PROPERTIES LABELS "ut;ut_dflow;ut_llm_engine_utest")
