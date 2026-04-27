@@ -397,7 +397,7 @@ static std::string BuildProcFdPathForModelHelperUt(const int32_t fd) {
   return "/proc/self/fd/" + std::to_string(fd);
 }
 
-class ModelHelperPortableOpForUt : public PortableOp {
+class ModelHelperPortableOpForUt : public EagerExecuteOp, public PortableOp {
  public:
   ge::graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
     (void)ctx;
@@ -415,7 +415,7 @@ class ModelHelperPortableOpForUt : public PortableOp {
   }
 };
 
-class ModelHelperPortableOpEmptyForUt : public PortableOp {
+class ModelHelperPortableOpEmptyForUt : public EagerExecuteOp, public PortableOp {
  public:
   ge::graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
     (void)ctx;
@@ -433,7 +433,7 @@ class ModelHelperPortableOpEmptyForUt : public PortableOp {
   }
 };
 
-class ModelHelperPortableOpSerializeFailForUt : public PortableOp {
+class ModelHelperPortableOpSerializeFailForUt : public EagerExecuteOp, public PortableOp {
  public:
   ge::graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
     (void)ctx;
@@ -451,7 +451,7 @@ class ModelHelperPortableOpSerializeFailForUt : public PortableOp {
   }
 };
 
-class ModelHelperNonPortableOpForUt : public BaseCustomOp {
+class ModelHelperNonPortableOpForUt : public EagerExecuteOp {
  public:
   ge::graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
     (void)ctx;

@@ -182,7 +182,7 @@ Status CustomTaskInfo::Distribute() {
   const TaskProfGuarder prof_guarder(this);
 
   AscendString op_type(op_desc_->GetType().c_str());
-  auto custom_op_ptr = CustomOpFactory::CreateCustomOp(op_type);
+  auto custom_op_ptr = CustomOpFactory::CreateOrGetCustomOp(op_type);
   GE_ASSERT_NOTNULL(custom_op_ptr);
   std::vector<std::unique_ptr<uint8_t[]>> inputs_holder;
   std::vector<std::unique_ptr<uint8_t[]>> outputs_holder;
@@ -196,7 +196,12 @@ Status CustomTaskInfo::Distribute() {
       .Outputs({&ws_vec})
       .Build(op_desc_);
   auto eager_context = reinterpret_cast<gert::EagerOpExecutionContext *>(eager_context_holder_.context_);
-  GE_ASSERT_SUCCESS(custom_op_ptr->Execute(eager_context));
+  auto *eager_execute_op_ptr = dynamic_cast<ge::EagerExecuteOp *>(custom_op_ptr);
+  if (eager_execute_op_ptr == nullptr) {
+    GELOGW("%s is custom op but did not implement EagerExecuteOp", eager_context->GetNodeType());
+    return ge::GRAPH_FAILED;
+  }
+  GE_ASSERT_SUCCESS(eager_execute_op_ptr->Execute(eager_context));
   GELOGI(
       "CustomTaskInfo Distribute Success, node: %s, stream_id: %u, stream: %p, task_id: %u",
       op_desc_->GetName().c_str(), stream_id_, stream_, task_id_);

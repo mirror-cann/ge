@@ -63,11 +63,11 @@ void PrintTensor(std::stringstream &ss, const gert::Tensor *tensor) {
 ge::graphStatus FindCustomOpFunc(KernelContext *context) {
   const char *node_type = context->GetInputValue<char *>(0);
   GE_ASSERT_NOTNULL(node_type, "Failed to find custom op func, node type is nullptr");
-  auto custom_op_ptr = ge::CustomOpFactory::CreateCustomOp(node_type);
+  auto custom_op_ptr = ge::CustomOpFactory::CreateOrGetCustomOp(node_type);
   GE_ASSERT_NOTNULL(custom_op_ptr);
   auto chain = context->GetOutput(0);
   GE_ASSERT_NOTNULL(chain);
-  chain->SetWithDefaultDeleter(custom_op_ptr.release());
+  chain->Set(custom_op_ptr, nullptr);
   return ge::GRAPH_SUCCESS;
 }
 
@@ -93,14 +93,18 @@ static ge::graphStatus CreateWorkspacesMemory(const ge::FastNode *node, KernelCo
 }
 
 ge::graphStatus ExecuteCustomOpFunc(KernelContext *context) {
-  // OpExecuteContext *op_execute_context = reinterpret_cast<OpExecuteContext *>(context);
   auto *extended_kernel_context = reinterpret_cast<ExtendedKernelContext *>(context);
   GE_ASSERT_NOTNULL(extended_kernel_context);
   const size_t node_input_num = extended_kernel_context->GetComputeNodeInputNum();
   auto custom_op_ptr =
       context->GetInputValue<ge::BaseCustomOp *>(node_input_num + static_cast<size_t>(CustomOpInput::kFunc));
   GE_ASSERT_NOTNULL(custom_op_ptr);
-  GE_ASSERT_SUCCESS(custom_op_ptr->Execute(reinterpret_cast<EagerOpExecutionContext *>(context)));
+  auto *eager_execute_op_ptr = dynamic_cast<ge::EagerExecuteOp *>(custom_op_ptr);
+  if (eager_execute_op_ptr == nullptr) {
+    GELOGW("%s is custom op but did not implement EagerExecuteOp", extended_kernel_context->GetNodeType());
+    return ge::GRAPH_FAILED;
+  }
+  GE_ASSERT_SUCCESS(eager_execute_op_ptr->Execute(reinterpret_cast<EagerOpExecutionContext *>(context)));
   return ge::GRAPH_SUCCESS;
 }
 

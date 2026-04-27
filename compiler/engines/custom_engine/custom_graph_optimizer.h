@@ -60,6 +60,13 @@ class CustomGraphOptimizer : public ge::GraphOptimizer {
    * @return status whether success
    */
   ge::Status GetAttributes(ge::GraphOptimizerAttribute &attrs) const override;
+
+  /**
+   * @brief compile custom ops in parallel during subgraph post process
+   * @param graph computation graph
+   * @return status whether success
+   */
+  Status OptimizeSubgraphPostProc(ComputeGraph &graph) override;
 };
 } // namespace ge
 

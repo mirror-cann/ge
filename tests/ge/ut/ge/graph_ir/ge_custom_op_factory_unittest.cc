@@ -31,11 +31,11 @@ class UtestCustomOpFactory : public testing::Test {
 };
 
 
-TEST(UtestCustomOpFactory, create_custom_op) {
-  EXPECT_EQ(true, CustomOpFactory::IsExistOp("MyCustomOp"));
+TEST(UtestCustomOpFactory, create_or_get_custom_op) {
+  EXPECT_EQ(true, CustomOpFactory::IsExistOp("MyEagerExecuteOp"));
   EXPECT_EQ(true, CustomOpFactory::IsExistOp("MyPortableOp"));
-  const auto op = CustomOpFactory::CreateCustomOp("MyCustomOp");
-  const auto op2 = CustomOpFactory::CreateCustomOp("NonExists");
+  const auto op = CustomOpFactory::CreateOrGetCustomOp("MyEagerExecuteOp");
+  const auto op2 = CustomOpFactory::CreateOrGetCustomOp("NonExists");
   EXPECT_EQ(true, op != nullptr);
   EXPECT_EQ(true, op2 == nullptr);
 }
@@ -45,7 +45,7 @@ TEST(UtestCustomOpFactory, get_all_ops) {
   const auto ret = CustomOpFactory::GetAllRegisteredOps(all_registered_ops);
   EXPECT_EQ(ge::SUCCESS, ret);
   const auto has_my_custom_op = std::any_of(all_registered_ops.begin(), all_registered_ops.end(),
-      [](const AscendString &op_name) { return op_name == "MyCustomOp"; });
+      [](const AscendString &op_name) { return op_name == "MyEagerExecuteOp"; });
   const auto has_my_serializable_custom_op = std::any_of(all_registered_ops.begin(), all_registered_ops.end(),
       [](const AscendString &op_name) { return op_name == "MyPortableOp"; });
   EXPECT_EQ(true, has_my_custom_op);
@@ -54,7 +54,7 @@ TEST(UtestCustomOpFactory, get_all_ops) {
 
 TEST(UtestCustomOpFactory, register_custom_op_creator) {
   const auto reg_ret = CustomOpFactory::RegisterCustomOpCreator(
-      "MyCustomOp3", []() -> std::unique_ptr<BaseCustomOp> { return std::make_unique<MyCustomOp>(); });
+      "MyCustomOp3", []() -> std::unique_ptr<BaseCustomOp> { return std::make_unique<MyEagerExecuteOp>(); });
   const auto reg_null_ret = CustomOpFactory::RegisterCustomOpCreator("MyCustomOp4", nullptr);
   EXPECT_TRUE((reg_ret == ge::SUCCESS) || (reg_ret == ge::GRAPH_FAILED));
   EXPECT_EQ(ge::GRAPH_PARAM_INVALID, reg_null_ret);
@@ -64,11 +64,33 @@ TEST(UtestCustomOpFactory, register_custom_op_creator) {
 
 TEST(UtestCustomOpFactory, creator_register) {
   CustomOpCreatorRegister(
-      "MyCustomOp5", []() -> std::unique_ptr<BaseCustomOp> { return std::make_unique<MyCustomOp>(); });
+      "MyCustomOp5", []() -> std::unique_ptr<BaseCustomOp> { return nullptr; });
   CustomOpCreatorRegister(
-      "MyCustomOp5", []() -> std::unique_ptr<BaseCustomOp> { return std::make_unique<MyCustomOp>(); });
+    "MyCustomOp5", []() -> std::unique_ptr<BaseCustomOp> { return nullptr; });
   EXPECT_EQ(true, CustomOpFactory::IsExistOp("MyCustomOp5"));
+  EXPECT_EQ(nullptr, CustomOpFactory::CreateOrGetCustomOp("MyCustomOp5"));
 }
+
+TEST(UtestCustomOpFactory, test_compilable_op) {
+  const auto my_custom_op_2 = CustomOpFactory::CreateOrGetCustomOp("MyEagerExecuteOp");
+  const auto my_custom_op_3 = CustomOpFactory::CreateOrGetCustomOp("MyCompilableOp");
+  const auto compilable_op_2 = dynamic_cast<CompilableOp *>(my_custom_op_2);
+  const auto compilable_op_3 = dynamic_cast<CompilableOp *>(my_custom_op_3);
+  EXPECT_EQ(true, compilable_op_2 == nullptr);
+  EXPECT_EQ(true, compilable_op_3 != nullptr);
+  compilable_op_3->Compile(nullptr);
+  const auto casted_my_custom_op_3 = dynamic_cast<MyCompilableOp *>(my_custom_op_3);
+  std::string res;
+  casted_my_custom_op_3->GetStubCompiledPath(res);
+  EXPECT_EQ("stub_compiled_path", res);
+}
+
+TEST(UtestCustomOpFactory, create_or_get_returns_same_instance) {
+  const auto base_custom_op = CustomOpFactory::CreateOrGetCustomOp("MyCompilableOp");
+  const auto base_custom_op2 = CustomOpFactory::CreateOrGetCustomOp("MyCompilableOp");
+  EXPECT_EQ(true, base_custom_op == base_custom_op2);
+}
+
 
 TEST(UtestCustomOpFactory, load_custom_kernels_partition_invalid_data) {
   uint8_t payload[1] = {0U};

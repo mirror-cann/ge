@@ -59,8 +59,10 @@ Tensor *EagerOpExecutionContext::MallocOutputTensor(size_t index, const StorageS
   GE_ASSERT_NOTNULL(gert_allocator);
 
   auto op_desc = GetOpDescPtr(*this);
-  auto output_name = op_desc->GetOutputNameByIndex(index);
-  GE_ASSERT_TRUE(op_desc->GetInputIndexByName(output_name) == -1, "[MallocOutputTensor] output name exists in input");
+  if (op_desc != nullptr) {
+    auto output_name = op_desc->GetOutputNameByIndex(index);
+    GE_ASSERT_TRUE(op_desc->GetInputIndexByName(output_name) == -1, "[MallocOutputTensor] output name exists in input");
+  }
 
   auto output_tensor = GetOutputPointer<Tensor>(index);
   GE_ASSERT_NOTNULL(output_tensor);
@@ -84,11 +86,11 @@ Tensor *EagerOpExecutionContext::MakeOutputRefInput(size_t output_index, size_t 
   GE_ASSERT_TRUE(additional_start_index >= 0);
 
   auto op_desc = GetOpDescPtr(*this);
-
-  auto input_name = op_desc->GetInputNameByIndex(input_index);
-  auto output_name = op_desc->GetOutputNameByIndex(output_index);
-  GE_ASSERT_TRUE(input_name == output_name, "[MakeOutputRefInput] output name does not exist in input");
-
+  if (op_desc != nullptr) {
+    auto input_name = op_desc->GetInputNameByIndex(input_index);
+    auto output_name = op_desc->GetOutputNameByIndex(output_index);
+    GE_ASSERT_TRUE(input_name == output_name, "[MakeOutputRefInput] output name does not exist in input");
+  }
   auto *output_tensor = const_cast<Tensor *>(GetOutputPointer<Tensor>(output_index));
   GE_ASSERT_NOTNULL(output_tensor);
 

@@ -18,8 +18,8 @@ graphStatus CustomOpFactory::RegisterCustomOpCreator(const AscendString &op_type
   return CustomOpFactoryImpl::GetInstance().RegisterCustomOpCreator(op_type, op_creator);
 }
 
-std::unique_ptr<BaseCustomOp> CustomOpFactory::CreateCustomOp(const AscendString &op_type) {
-  return CustomOpFactoryImpl::GetInstance().CreateCustomOp(op_type);
+BaseCustomOp *CustomOpFactory::CreateOrGetCustomOp(const AscendString &op_type) {
+  return CustomOpFactoryImpl::GetInstance().CreateOrGetCustomOp(op_type);
 }
 
 graphStatus CustomOpFactory::GetAllRegisteredOps(std::vector<AscendString> &all_registered_ops) {

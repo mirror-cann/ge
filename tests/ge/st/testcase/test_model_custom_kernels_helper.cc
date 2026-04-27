@@ -62,7 +62,7 @@ class TestableModelHelper : public ModelHelper {
   using ModelHelper::SerializeCustomOpKernel;
 };
 
-class PortableOpForSerializeSuccess : public PortableOp {
+class PortableOpForSerializeSuccess : public EagerExecuteOp, public PortableOp {
  public:
   graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
     (void)ctx;
@@ -80,7 +80,7 @@ class PortableOpForSerializeSuccess : public PortableOp {
   }
 };
 
-class PortableOpForSerializeEmpty : public PortableOp {
+class PortableOpForSerializeEmpty : public EagerExecuteOp, public PortableOp {
  public:
   graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
     (void)ctx;
@@ -98,7 +98,7 @@ class PortableOpForSerializeEmpty : public PortableOp {
   }
 };
 
-class PortableOpForSerializeFail : public PortableOp {
+class PortableOpForSerializeFail : public EagerExecuteOp, public PortableOp {
  public:
   graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
     (void)ctx;
@@ -116,7 +116,7 @@ class PortableOpForSerializeFail : public PortableOp {
   }
 };
 
-class NonPortableCustomOp : public BaseCustomOp {
+class NonPortableCustomOp : public EagerExecuteOp {
  public:
   graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
     (void)ctx;
@@ -124,7 +124,7 @@ class NonPortableCustomOp : public BaseCustomOp {
   }
 };
 
-class PortableOpForDeserializeRecord : public PortableOp {
+class PortableOpForDeserializeRecord : public EagerExecuteOp, public PortableOp {
  public:
   graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
     (void)ctx;

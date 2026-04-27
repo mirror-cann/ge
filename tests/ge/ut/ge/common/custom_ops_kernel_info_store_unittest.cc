@@ -21,7 +21,7 @@
 namespace ge {
 namespace custom {
 
-class MockCustomOp : public BaseCustomOp {
+class MockCustomOp : public EagerExecuteOp {
  public:
   graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
     (void)ctx;

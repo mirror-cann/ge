@@ -22,7 +22,7 @@
 
 namespace ge {
 namespace {
-class TestPortableOpForPartition : public PortableOp {
+class TestPortableOpForPartition : public EagerExecuteOp, public PortableOp {
  public:
   ge::graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
     (void)ctx;
@@ -40,7 +40,7 @@ class TestPortableOpForPartition : public PortableOp {
   }
 };
 
-class TestNonPortableOpForPartition : public BaseCustomOp {
+class TestNonPortableOpForPartition : public EagerExecuteOp {
  public:
   ge::graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
     (void)ctx;
@@ -48,7 +48,7 @@ class TestNonPortableOpForPartition : public BaseCustomOp {
   }
 };
 
-class TestPortableDeserializeFailOpForPartition : public PortableOp {
+class TestPortableDeserializeFailOpForPartition : public EagerExecuteOp, public PortableOp {
  public:
   ge::graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
     (void)ctx;

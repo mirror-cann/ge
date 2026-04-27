@@ -224,6 +224,7 @@ RETURN_STATEMENTS = {
     'OpsProtoManager* OpsProtoManager::': '    static OpsProtoManager instance;\n    return &instance;',
     'Operator': '    return Operator();',
     'std::unique_ptr<BaseCustomOp>': 'return nullptr;',
+    'BaseCustomOp*': 'return nullptr;',
     'std::map<size_t, std::pair<size_t, size_t>>': '    return {};',
     'GeTensor': '    return GeTensor();',
     'GeTensorPtr': '    return nullptr;',
