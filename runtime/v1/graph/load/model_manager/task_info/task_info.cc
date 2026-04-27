@@ -46,19 +46,14 @@ void TaskInfo::CacheLastTaskExtendInfoIfCollective(const std::string &op_name,
     return;
   }
 
-  /*  *
-   *  背景：GE接口依赖RTS，RTS该接口还没上库
-   *  临时规避方案：先注销该代码，GE先保证主体上库，等RTS上库后再重新打开。
-   *
-   */
   GELOGW("[Call][aclrtCacheLastTaskExtendInfo],op:%s(%s)", op_name.c_str(), op_type.c_str());
-  // static char_t kCommunicationTaskType[] = "taskType:communication";
+  static char_t kCommunicationTaskType[] = "{\"taskType\":\"communication\"}";
 
-  // const auto rt_ret = aclrtCacheLastTaskExtendInfo(kCommunicationTaskType, strlen(kCommunicationTaskType));
-  // if (rt_ret != RT_ERROR_NONE) {
-  //   GELOGW("[Call][aclrtCacheLastTaskExtendInfo] failed, op:%s(%s), extend info:%s, ret:%d",
-  //          op_name.c_str(), op_type.c_str(), kCommunicationTaskType, rt_ret);
-  // }
+  const auto rt_ret = aclrtCacheLastTaskExtendInfo(kCommunicationTaskType, strlen(kCommunicationTaskType));
+  if (rt_ret != RT_ERROR_NONE) {
+    GELOGW("[Call][aclrtCacheLastTaskExtendInfo] failed, op:%s(%s), extend info:%s, ret:%d",
+           op_name.c_str(), op_type.c_str(), kCommunicationTaskType, rt_ret);
+  }
 }
 
 const char_t *GetArgsPlacementStr(ArgsPlacement placement) {
