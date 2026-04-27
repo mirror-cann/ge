@@ -265,6 +265,7 @@ ge::Status GeApiWrapper_Session_RegisterExternalAllocator(
     void (*on_destroy_fn)(void *), void *prevent_gc_handle);
 ge::Status GeApiWrapper_Session_UnregisterExternalAllocator(const ge::Session *session, const void *stream);
 bool GeApiWrapper_HasExternalAllocator(const void *stream);
+bool GeApiWrapper_HasDefaultAllocator(const void *stream);
 ge::Format GeApiWrapper_Tensor_GetFormat(EsCTensor *tensor);
 EsCTensor *GeApiWrapper_Tensor_CreateTensor();
 void GeApiWrapper_Tensor_DestroyEsCTensor(EsCTensor *tensor);

@@ -38,6 +38,7 @@ struct PyCallbackAllocator : public ge::Allocator, public std::enable_shared_fro
   PyGetAddrFunc get_addr_func = nullptr;
   PyOnDestroyFunc on_destroy_func = nullptr;
   void *prevent_gc_handle = nullptr;
+  bool is_default_allocator = false;
   std::mutex mutex;
 
   ge::MemBlock *Malloc(size_t size) override;
@@ -204,6 +205,7 @@ Status GeApiWrapper_Session_RegisterDefaultAllocator(const Session *session, con
   allocator->malloc_func = DefaultMalloc;
   allocator->free_func = DefaultFree;
   allocator->get_addr_func = DefaultGetAddr;
+  allocator->is_default_allocator = true;
   return session->RegisterExternalAllocator(stream, allocator);
 }
 
@@ -234,6 +236,15 @@ Status GeApiWrapper_Session_UnregisterExternalAllocator(const Session *session, 
 
 bool GeApiWrapper_HasExternalAllocator(const void *stream) {
   return ge::ExternalAllocatorManager::GetExternalAllocator(stream) != nullptr;
+}
+
+bool GeApiWrapper_HasDefaultAllocator(const void *stream) {
+  auto allocator = ge::ExternalAllocatorManager::GetExternalAllocator(stream);
+  if (allocator == nullptr) {
+    return false;
+  }
+  const auto *py_allocator = dynamic_cast<PyCallbackAllocator *>(allocator.get());
+  return py_allocator != nullptr && py_allocator->is_default_allocator;
 }
 
 #ifdef __cplusplus

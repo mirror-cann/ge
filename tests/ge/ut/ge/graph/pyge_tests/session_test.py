@@ -201,6 +201,43 @@ class TestSession:
             session.unregister_external_allocator("not_int")
 
     @staticmethod
+    def test_register_external_allocator_forgets_default_stream(monkeypatch):
+        """custom allocator 覆盖 default 后，session 析构不再按 default 清理该 stream"""
+        class _StubAllocator(Allocator):
+            def malloc(self, size):
+                return MemBlock(0, size)
+
+            def free(self, block):
+                pass
+
+        def _register_external_allocator(*_args):
+            return 0
+
+        class _Callbacks:
+            c_malloc = None
+            c_free = None
+            c_get_addr = None
+
+        import importlib
+        session_module = importlib.import_module("ge.session.session")
+        monkeypatch.setattr(session_module, "create_allocator_c_callbacks",
+                            lambda _allocator: (_Callbacks(), 0, None))
+        monkeypatch.setattr(session_module.session_lib,
+                            "GeApiWrapper_Session_RegisterExternalAllocator",
+                            _register_external_allocator)
+
+        session = Session.__new__(Session)
+        session._handle = 1
+        session._owns_handle = False
+        session._default_allocator_streams = {0x1234}
+        session_module._stream_to_default_allocator_owner[0x1234] = session_module.weakref.ref(session)
+
+        session.register_external_allocator(0x1234, _StubAllocator())
+
+        assert 0x1234 not in session._default_allocator_streams
+        assert 0x1234 not in session_module._stream_to_default_allocator_owner
+
+    @staticmethod
     def test_ge_init_invaild():
         ge_api = GeApi()
         init_config = {}

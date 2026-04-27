@@ -14,13 +14,32 @@
 """Session module for GraphEngine graph operations."""
 
 import ctypes
+import threading
+import weakref
 from typing import List, Optional
 from ge._capi._allocator_callback_adapter import create_allocator_c_callbacks, rollback_allocator_c_callbacks
-from ge._capi.pygraph_wrapper import graph_lib
 from ge._capi.pysession_wrapper import session_lib
 from ge.allocator import Allocator
 from ge.graph.graph import Graph
 from ge.graph.tensor import Tensor
+
+
+_default_allocator_lock = threading.RLock()
+# stream -> weakref(session) that currently holds the default allocator for that stream.
+_stream_to_default_allocator_owner: dict = {}
+
+
+def _is_default_allocator_owner(session, stream: int) -> bool:
+    owner_ref = _stream_to_default_allocator_owner.get(stream)
+    if owner_ref is None:
+        return False
+
+    owner = owner_ref()
+    if owner is None:
+        _stream_to_default_allocator_owner.pop(stream, None)
+        return False
+
+    return owner is session
 
 
 def _str_list_to_c_array(python_list: list):
@@ -77,9 +96,7 @@ class Session:
 
     def __del__(self) -> None:
         """Clean up resources."""
-        if self._default_allocator_streams and session_lib.GeApiWrapper_IsGEInitialized():
-            for stream in list(self._default_allocator_streams):
-                self.unregister_external_allocator(stream)
+        self._unregister_default_allocators()
         self._default_allocator_streams.clear()
         if self._owns_handle:
             session_lib.GeApiWrapper_Session_DestroySession(self._handle)
@@ -105,11 +122,15 @@ class Session:
         if not isinstance(allocator, Allocator):
             raise TypeError("allocator must be an Allocator instance")
         cb, prevent_gc_key, c_on_allocator_destroy = create_allocator_c_callbacks(allocator)
-        ret = session_lib.GeApiWrapper_Session_RegisterExternalAllocator(
-            self._handle, ctypes.c_void_p(stream),
-            cb.c_malloc, cb.c_free, cb.c_get_addr,
-            c_on_allocator_destroy, ctypes.c_void_p(prevent_gc_key)
-        )
+        with _default_allocator_lock:
+            ret = session_lib.GeApiWrapper_Session_RegisterExternalAllocator(
+                self._handle, ctypes.c_void_p(stream),
+                cb.c_malloc, cb.c_free, cb.c_get_addr,
+                c_on_allocator_destroy, ctypes.c_void_p(prevent_gc_key)
+            )
+            if ret == 0:
+                self._default_allocator_streams.discard(stream)
+                _stream_to_default_allocator_owner.pop(stream, None)
         if ret != 0:
             rollback_allocator_c_callbacks(prevent_gc_key)
             raise RuntimeError(f"Failed to register allocator for stream 0x{stream:x}")
@@ -122,9 +143,12 @@ class Session:
         """
         if not isinstance(stream, int):
             raise TypeError("stream must be an integer")
-        ret = session_lib.GeApiWrapper_Session_UnregisterExternalAllocator(
-            self._handle, ctypes.c_void_p(stream))
-        self._default_allocator_streams.discard(stream)
+        with _default_allocator_lock:
+            ret = session_lib.GeApiWrapper_Session_UnregisterExternalAllocator(
+                self._handle, ctypes.c_void_p(stream))
+            if ret == 0:
+                self._default_allocator_streams.discard(stream)
+                _stream_to_default_allocator_owner.pop(stream, None)
         if ret != 0:
             raise RuntimeError(f"Failed to unregister allocator for stream 0x{stream:x}")
 
@@ -207,11 +231,29 @@ class Session:
 
     def _ensure_default_allocator(self, stream: int) -> None:
         """Register a default allocator if none exists."""
-        has_external = session_lib.GeApiWrapper_HasExternalAllocator(ctypes.c_void_p(stream))
-        if stream in self._default_allocator_streams or has_external:
-            return
-        ret = session_lib.GeApiWrapper_Session_RegisterDefaultAllocator(
-            self._handle, ctypes.c_void_p(stream))
+        with _default_allocator_lock:
+            has_external = session_lib.GeApiWrapper_HasExternalAllocator(ctypes.c_void_p(stream))
+            if stream in self._default_allocator_streams or has_external:
+                return
+            ret = session_lib.GeApiWrapper_Session_RegisterDefaultAllocator(
+                self._handle, ctypes.c_void_p(stream))
+            if ret == 0:
+                self._default_allocator_streams.add(stream)
+                _stream_to_default_allocator_owner[stream] = weakref.ref(self)
         if ret != 0:
             raise RuntimeError(f"Failed to register default allocator for stream {stream}")
-        self._default_allocator_streams.add(stream)
+
+    def _unregister_default_allocators(self) -> None:
+        if not self._default_allocator_streams or not session_lib.GeApiWrapper_IsGEInitialized():
+            return
+
+        with _default_allocator_lock:
+            for stream in list(self._default_allocator_streams):
+                if not _is_default_allocator_owner(self, stream):
+                    continue
+                if not session_lib.GeApiWrapper_HasDefaultAllocator(ctypes.c_void_p(stream)):
+                    _stream_to_default_allocator_owner.pop(stream, None)
+                    continue
+
+                session_lib.GeApiWrapper_Session_UnregisterExternalAllocator(self._handle, ctypes.c_void_p(stream))
+                _stream_to_default_allocator_owner.pop(stream, None)

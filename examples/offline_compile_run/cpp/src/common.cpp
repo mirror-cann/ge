@@ -13,6 +13,8 @@
 #include <memory>
 
 namespace {
+constexpr size_t kInferOutputFloatsPerLine = 3U;
+
 ge::Status PrintOneInferOutputBuffer(aclmdlDesc *model_desc, size_t buffer_index, aclDataBuffer *data_buffer) {
   void *data = aclGetDataBufferAddr(data_buffer);
   const size_t len = aclGetDataBufferSizeV2(data_buffer);
@@ -40,7 +42,7 @@ ge::Status PrintOneInferOutputBuffer(aclmdlDesc *model_desc, size_t buffer_index
   }
   std::cout << "\n data:";
   for (size_t j = 0; j < elem_count; ++j) {
-    std::cout << (j % 3 == 0 ? "\n " : " ") << out_data[j];
+    std::cout << (j % kInferOutputFloatsPerLine == 0U ? "\n " : " ") << out_data[j];
   }
   std::cout << std::endl;
   return ge::SUCCESS;

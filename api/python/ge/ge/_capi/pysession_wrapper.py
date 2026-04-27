@@ -85,6 +85,9 @@ session_lib.GeApiWrapper_Session_UnregisterExternalAllocator.restype = c_uint32
 session_lib.GeApiWrapper_HasExternalAllocator.argtypes = [c_void_p]
 session_lib.GeApiWrapper_HasExternalAllocator.restype = ctypes.c_bool
 
+session_lib.GeApiWrapper_HasDefaultAllocator.argtypes = [c_void_p]
+session_lib.GeApiWrapper_HasDefaultAllocator.restype = ctypes.c_bool
+
 session_lib.GeApiWrapper_IsGEInitialized.argtypes = []
 session_lib.GeApiWrapper_IsGEInitialized.restype = ctypes.c_bool
 

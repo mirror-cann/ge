@@ -16,6 +16,7 @@
 #include <string>
 
 namespace {
+constexpr int kArgIndexAfterCommand = 2;
 
 bool ParseSocVersion(int argc, char **argv, int start_index, std::string *soc_version) {
   for (int i = start_index; i < argc; ++i) {
@@ -41,7 +42,7 @@ int main(int argc, char **argv) {
   }
   const std::string cmd = argv[1];
   std::string soc_version;
-  if (!ParseSocVersion(argc, argv, 2, &soc_version)) {
+  if (!ParseSocVersion(argc, argv, kArgIndexAfterCommand, &soc_version)) {
     return -1;
   }
   if (cmd == "build-model") {
