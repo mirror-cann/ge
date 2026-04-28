@@ -34,7 +34,7 @@ Status SplitRegApiCall::ParseSplitDim(const Tensor &x, const Tensor &y0, size_t 
          VectorToStr(y0.vectorized_strides).c_str());
 
   GE_CHK_BOOL_RET_STATUS(x.vectorized_axis.size() == y0.vectorized_axis.size(), ge::FAILED,
-                         "Codegen split input output vectorized axis not equal");
+                         "Codegen split input output vectorized_axis not equal");
   // 遍历向量化轴, 确定split轴
   bool find_split_dim = false;
   for (size_t i = 0; i < y0.vectorized_axis.size(); i++) {

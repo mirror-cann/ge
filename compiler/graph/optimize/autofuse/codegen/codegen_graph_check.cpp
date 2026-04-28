@@ -198,7 +198,7 @@ Status IsRepeatStrideValid(const ascir::ImplGraph &graph) {
                      "does not match stride size %d, which is invalid.", node->GetNamePtr(), out->attr.axis.size(),
                      out->attr.strides.size());
       GE_ASSERT_TRUE(out->attr.vectorized_axis.size() == out->attr.vectorized_strides.size(), "Node(%s) output tensor "
-                     "vectorized axis size %d does not match vectorized stride size %d, which is invalid.",
+                     "vectorized_axis size %d does not match vectorized_strides size %d, which is invalid.",
                      node->GetNamePtr(), out->attr.vectorized_axis.size(), out->attr.vectorized_strides.size());
     }
   }

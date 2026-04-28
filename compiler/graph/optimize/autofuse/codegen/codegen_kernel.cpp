@@ -1691,7 +1691,7 @@ Status Kernel::GlobalTensorInit(std::string &result) const {
     std::string def_ub_scalar;
     GE_CHK_STATUS_RET(tensor->second.DefineUbScalar(def_ub_scalar));
     ss << def_ub_scalar;
-    GELOGI("Define ub_scalar var:", def_ub_scalar.c_str());
+    GELOGI("Define ub_scalar var: %s", def_ub_scalar.c_str());
   }
 
   std::stringstream offset_ss;
@@ -2984,7 +2984,7 @@ Status Kernel::GlobalTensorDefine(std::string &result) const {
     std::string def_ub_scalar;
     GE_CHK_STATUS_RET(tensor->second.DefineUbScalar(def_ub_scalar));
     ss << "    " << def_ub_scalar;
-    GELOGI("Define ub_scalar var:", def_ub_scalar.c_str());
+    GELOGI("Define ub_scalar var: %s", def_ub_scalar.c_str());
   }
   ss << std::endl;
   result = ss.str();
