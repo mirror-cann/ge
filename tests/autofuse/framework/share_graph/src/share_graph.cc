@@ -10696,6 +10696,155 @@ static void CreateRoundToIntFloatToInt32AscGraph(ge::AscGraph &graph, size_t dim
   ConstructVVAscGraphAxisInfo(graph, dims_size);
 }
 
+// ============================================================================
+// MaskRegChain 测试图：链式 MaskReg 位宽转换
+// 验证场景：
+// 1. UINT8 Load -> Where (UINT8→INT32) [MaskUnPack] - load直接作为mask输入
+// 2. INT32 Compare -> Where (INT32→INT16) [MaskPack]
+// 3. INT16 Compare -> Store
+// ============================================================================
+static void CreateMaskRegChainAscGraph(ge::AscGraph &graph, size_t dims_size) {
+  // ========== Data0: Input A (UINT8) - mask来源 ==========
+  ge::ascir_op::Data data0("data0", graph);
+  data0.y.dtype = ge::DT_UINT8;
+  data0.ir_attr.SetIndex(0);
+
+  ge::ascir_op::Load load0("load0");
+  load0.y.dtype = ge::DT_UINT8;
+  load0.x = data0.y;
+
+  // ========== Data1: Input B (INT32) - Where0 x2 ==========
+  ge::ascir_op::Data data1("data1", graph);
+  data1.y.dtype = ge::DT_INT32;
+  data1.ir_attr.SetIndex(1);
+
+  ge::ascir_op::Load load1("load1");
+  load1.y.dtype = ge::DT_INT32;
+  load1.x = data1.y;
+
+  // ========== Data2: Input C (INT32) - Where0 x3 ==========
+  ge::ascir_op::Data data2("data2", graph);
+  data2.y.dtype = ge::DT_INT32;
+  data2.ir_attr.SetIndex(2);
+
+  ge::ascir_op::Load load2("load2");
+  load2.y.dtype = ge::DT_INT32;
+  load2.x = data2.y;
+
+  // ========== Where0: UINT8→INT32 [MaskUnPack] ==========
+  // load0 (UINT8) 直接作为 mask 输入，无需 Compare 节点
+  ge::ascir_op::Where where0("where0");
+  where0.x1 = load0.y;
+  where0.x2 = load1.y;
+  where0.x3 = load2.y;
+  where0.y.dtype = ge::DT_INT32;
+
+  // ========== Data3: Input D (INT32) - Ge0 x2 ==========
+  ge::ascir_op::Data data3("data3", graph);
+  data3.y.dtype = ge::DT_INT32;
+  data3.ir_attr.SetIndex(3);
+
+  ge::ascir_op::Load load3("load3");
+  load3.y.dtype = ge::DT_INT32;
+  load3.x = data3.y;
+
+  // ========== Ge0: INT32 Compare → UINT8 ==========
+  ge::ascir_op::Ge ge0("ge0");
+  ge0.x1 = where0.y;
+  ge0.x2 = load3.y;
+  ge0.y.dtype = ge::DT_UINT8;
+
+  // ========== Data4: Input E (INT16) - Where1 x2 ==========
+  ge::ascir_op::Data data4("data4", graph);
+  data4.y.dtype = ge::DT_INT16;
+  data4.ir_attr.SetIndex(4);
+
+  ge::ascir_op::Load load4("load4");
+  load4.y.dtype = ge::DT_INT16;
+  load4.x = data4.y;
+
+  // ========== Data5: Input F (INT16) - Where1 x3 ==========
+  ge::ascir_op::Data data5("data5", graph);
+  data5.y.dtype = ge::DT_INT16;
+  data5.ir_attr.SetIndex(5);
+
+  ge::ascir_op::Load load5("load5");
+  load5.y.dtype = ge::DT_INT16;
+  load5.x = data5.y;
+
+  // ========== Where1: UINT8→INT16 [MaskPack] ==========
+  ge::ascir_op::Where where1("where1");
+  where1.x1 = ge0.y;
+  where1.x2 = load4.y;
+  where1.x3 = load5.y;
+  where1.y.dtype = ge::DT_INT16;
+
+  // ========== Data6: Input G (INT16) - Ge1 x2 ==========
+  ge::ascir_op::Data data6("data6", graph);
+  data6.y.dtype = ge::DT_INT16;
+  data6.ir_attr.SetIndex(6);
+
+  ge::ascir_op::Load load6("load6");
+  load6.y.dtype = ge::DT_INT16;
+  load6.x = data6.y;
+
+  // ========== Ge1: INT16 Compare → UINT8 ==========
+  ge::ascir_op::Ge ge1("ge1");
+  ge1.x1 = where1.y;
+  ge1.x2 = load6.y;
+  ge1.y.dtype = ge::DT_UINT8;
+
+  // ========== Store + Output ==========
+  ge::ascir_op::Store store0("store0");
+  store0.x = ge1.y;
+  store0.y.dtype = ge::DT_UINT8;
+
+  ge::ascir_op::Output output0("output0");
+  output0.x = store0.y;
+  output0.y.dtype = ge::DT_UINT8;
+  output0.ir_attr.SetIndex(0);
+
+  ConstructVVAscGraphAxisInfo(graph, dims_size);
+}
+
+ge::ComputeGraphPtr ShareGraph::MaskRegChainFusedGraph(size_t dims_size) {
+  auto builder = GraphBuilder("mask_reg_chain_test");
+
+  // 创建7个Data节点作为输入
+  for (int i = 0; i < 7; i++) {
+    auto data = builder.AddNode("data" + std::to_string(i), "Data", 0, 1);
+    ge::AttrUtils::SetInt(data->GetOpDescBarePtr(), "_parent_node_index", i);
+  }
+
+  // 创建AscGraph节点，7个输入，1个输出
+  auto ascbc = builder.AddNode("ascbc", "AscGraph", 7, 1);
+
+  // 创建1个NetOutput节点
+  auto netoutput = builder.AddNode("netoutput0", ge::NETOUTPUT, 1, 0);
+
+  // 连接边：Data -> AscGraph
+  for (int i = 0; i < 7; i++) {
+    builder.AddDataEdge(builder.GetGraph()->FindNode("data" + std::to_string(i)), 0, ascbc, i);
+  }
+
+  // 连接边：AscGraph -> NetOutput
+  builder.AddDataEdge(ascbc, 0, netoutput, 0);
+
+  ComputeGraphPtr compute_graph = builder.GetGraph();
+  if (compute_graph == nullptr) {
+    return nullptr;
+  }
+
+  auto ascbc_node = compute_graph->FindNode("ascbc");
+  ge::AscGraph sub_graph("mask_reg_chain");
+  CreateMaskRegChainAscGraph(sub_graph, dims_size);
+
+  std::string sub_graph_str;
+  ge::AscGraphUtils::SerializeToReadable(sub_graph, sub_graph_str);
+  ge::AttrUtils::SetStr(ascbc_node->GetOpDescBarePtr(), "ascgraph", sub_graph_str);
+  return compute_graph;
+}
+
 ge::ComputeGraphPtr ShareGraph::RoundToIntFloatToInt32FusedGraph(size_t dims_size) {
   auto builder = GraphBuilder("round_to_int_float_to_int32_test");
   auto data = builder.AddNode("data", "Data", 0, 1);
