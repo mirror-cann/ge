@@ -36,16 +36,16 @@ EsCTensorHolder *MyEsConv2D(EsCTensorHolder *x, ge::Format x_format,
   // 2. 根据算子原型构建合法Node实例并设置IR信息到节点上
   auto node = ge::es::CompliantNodeBuilder(ge_graph).OpType("Conv2D")
       .Name( builder.GenerateNodeName("Conv2D").GetString())
-      .IrDefInputs({
+      .IrDefInputsV2({
           {"x", ge::es::CompliantNodeBuilder::kEsIrInputRequired, ""},
           {"filter", ge::es::CompliantNodeBuilder::kEsIrInputRequired, ""},
           {"bias", ge::es::CompliantNodeBuilder::kEsIrInputOptional, ""},
           {"offset_w", ge::es::CompliantNodeBuilder::kEsIrInputOptional, ""},
       })
-      .IrDefOutputs({
+      .IrDefOutputsV2({
           {"y", ge::es::CompliantNodeBuilder::kEsIrOutputRequired, ""},
       })
-      .IrDefAttrs({
+      .IrDefAttrsV2({
           {
               "strides",
               ge::es::CompliantNodeBuilder::kEsAttrRequired,

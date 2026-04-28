@@ -132,9 +132,9 @@ class CompliantNodeBuilderLLT : public ::testing::Test {
   void TearDown() override {}
   es::EsGraphBuilder test_graph_builder_{"test_graph"};
   std::unique_ptr<Graph> test_graph_{nullptr};
-  std::vector<CompliantNodeBuilder::IrInputDef> input_defs_;
-  std::vector<CompliantNodeBuilder::IrOutputDef> output_defs_;
-  std::vector<CompliantNodeBuilder::IrAttrDef> attr_defs_;
+  std::vector<CompliantNodeBuilder::IrInputDefV2> input_defs_;
+  std::vector<CompliantNodeBuilder::IrOutputDefV2> output_defs_;
+  std::vector<CompliantNodeBuilder::IrAttrDefV2> attr_defs_;
   std::vector<int64_t> shape_;
   std::vector<std::string> subgraphs_;
 };
@@ -142,7 +142,11 @@ class CompliantNodeBuilderLLT : public ::testing::Test {
 // 测试完整的Build流程 - 基础情况
 TEST_F(CompliantNodeBuilderLLT, BuildBasic) {
   CompliantNodeBuilder builder(test_graph_.get());
-  builder.OpType("TestOp").Name("TestName").IrDefInputs(input_defs_).IrDefOutputs(output_defs_).IrDefAttrs(attr_defs_);
+  builder.OpType("TestOp")
+      .Name("TestName")
+      .IrDefInputsV2(input_defs_)
+      .IrDefOutputsV2(output_defs_)
+      .IrDefAttrsV2(attr_defs_);
 
   auto node = builder.Build();
   OpDescChecker checker(node);
@@ -274,12 +278,37 @@ TEST_F(CompliantNodeBuilderLLT, BuildBasic) {
   checker.CheckAll(golden);
 }
 
+TEST_F(CompliantNodeBuilderLLT, BuildWithV2PointerRange) {
+  auto attr_value = AttrValue();
+  attr_value.SetAttrValue(static_cast<int64_t>(8));
+  CompliantNodeBuilder::IrInputDefV2 inputs[] = {
+      CompliantNodeBuilder::IrInputDefV2().Name("x").InputType(CompliantNodeBuilder::kEsIrInputRequired)};
+  CompliantNodeBuilder::IrOutputDefV2 outputs[] = {
+      CompliantNodeBuilder::IrOutputDefV2().Name("y").OutputType(CompliantNodeBuilder::kEsIrOutputRequired)};
+  CompliantNodeBuilder::IrAttrDefV2 attrs[] = {
+      CompliantNodeBuilder::IrAttrDefV2()
+          .AttrName("index")
+          .AttrType(CompliantNodeBuilder::kEsAttrOptional)
+          .AttrDataType("Int")
+          .DefaultValue(attr_value)};
+
+  auto node = CompliantNodeBuilder(test_graph_.get())
+                  .OpType("TestOp")
+                  .Name("TestName")
+                  .IrDefInputsV2(inputs, sizeof(inputs) / sizeof(inputs[0]))
+                  .IrDefOutputsV2(outputs, sizeof(outputs) / sizeof(outputs[0]))
+                  .IrDefAttrsV2(attrs, sizeof(attrs) / sizeof(attrs[0]))
+                  .Build();
+
+  OpDescChecker(node).CheckInputIrInfo({{0, {0, 1}}}).CheckOutputIrInfo({{0, {0, 1}}}).CheckAttr({"index"});
+}
+
 // 测试Build流程 - 包含输出数据类型
 TEST_F(CompliantNodeBuilderLLT, BuildWithOutputDesc) {
   CompliantNodeBuilder builder(test_graph_.get());
   builder.OpType("TestOp")
       .Name("TestName")
-      .IrDefOutputs({{"output1", CompliantNodeBuilder::kEsIrOutputRequired, "out1"}})
+      .IrDefOutputsV2({{"output1", CompliantNodeBuilder::kEsIrOutputRequired, "out1"}})
       .InstanceOutputShape("output1", shape_)
       .InstanceOutputDataType("output1", DT_INT32)
       .InstanceOutputFormat("output1", FORMAT_NCHW);
@@ -297,9 +326,9 @@ TEST_F(CompliantNodeBuilderLLT, BuildComplete) {
   CompliantNodeBuilder builder(test_graph_.get());
   builder.OpType("TestOp")
       .Name("TestName")
-      .IrDefInputs(input_defs_)
-      .IrDefOutputs(output_defs_)
-      .IrDefAttrs(attr_defs_)
+      .IrDefInputsV2(input_defs_)
+      .IrDefOutputsV2(output_defs_)
+      .IrDefAttrsV2(attr_defs_)
       .InstanceDynamicInputNum("input3", 5)
       .InstanceDynamicOutputNum("output2", 3)
       .InstanceOutputShape("output1", shape_)
@@ -320,7 +349,7 @@ TEST_F(CompliantNodeBuilderLLT, BuildComplete) {
 // 测试边界情况 - 空输入
 TEST_F(CompliantNodeBuilderLLT, BuildWithEmptyInputs) {
   CompliantNodeBuilder builder(test_graph_.get());
-  builder.OpType("TestOp").Name("TestName").IrDefInputs({}).IrDefOutputs(output_defs_);
+  builder.OpType("TestOp").Name("TestName").IrDefInputsV2({}).IrDefOutputsV2(output_defs_);
 
   auto node = builder.Build();
   EXPECT_NE(ge::NodeAdapter::GNode2Node(node), nullptr);
@@ -329,7 +358,7 @@ TEST_F(CompliantNodeBuilderLLT, BuildWithEmptyInputs) {
 // 测试边界情况 - 空输出
 TEST_F(CompliantNodeBuilderLLT, BuildWithEmptyOutputs) {
   CompliantNodeBuilder builder(test_graph_.get());
-  builder.OpType("TestOp").Name("TestName").IrDefInputs(input_defs_).IrDefOutputs({});
+  builder.OpType("TestOp").Name("TestName").IrDefInputsV2(input_defs_).IrDefOutputsV2({});
 
   auto node = builder.Build();
   EXPECT_NE(ge::NodeAdapter::GNode2Node(node), nullptr);
@@ -338,7 +367,7 @@ TEST_F(CompliantNodeBuilderLLT, BuildWithEmptyOutputs) {
 // 测试边界情况 - 空属性
 TEST_F(CompliantNodeBuilderLLT, BuildWithEmptyAttrs) {
   CompliantNodeBuilder builder(test_graph_.get());
-  builder.OpType("TestOp").Name("TestName").IrDefInputs(input_defs_).IrDefOutputs(output_defs_).IrDefAttrs({});
+  builder.OpType("TestOp").Name("TestName").IrDefInputsV2(input_defs_).IrDefOutputsV2(output_defs_).IrDefAttrsV2({});
 
   auto node = builder.Build();
   EXPECT_NE(ge::NodeAdapter::GNode2Node(node), nullptr);
@@ -347,15 +376,15 @@ TEST_F(CompliantNodeBuilderLLT, BuildWithEmptyAttrs) {
 // 测试不同输入类型
 TEST_F(CompliantNodeBuilderLLT, DifferentInputTypes) {
   CompliantNodeBuilder builder(test_graph_.get());
-  std::vector<CompliantNodeBuilder::IrInputDef> mixed_inputs = {
+  std::vector<CompliantNodeBuilder::IrInputDefV2> mixed_inputs = {
       {"required_input", CompliantNodeBuilder::kEsIrInputRequired, "req"},
       {"optional_input", CompliantNodeBuilder::kEsIrInputOptional, "opt"},
       {"dynamic_input", CompliantNodeBuilder::kEsIrInputDynamic, "dyn"}};
 
   builder.OpType("TestOp")
       .Name("TestName")
-      .IrDefInputs(mixed_inputs)
-      .IrDefOutputs(output_defs_)
+      .IrDefInputsV2(mixed_inputs)
+      .IrDefOutputsV2(output_defs_)
       .InstanceDynamicInputNum("dynamic_input", 3);
 
   auto node = builder.Build();
@@ -365,14 +394,14 @@ TEST_F(CompliantNodeBuilderLLT, DifferentInputTypes) {
 // 测试不同输出类型
 TEST_F(CompliantNodeBuilderLLT, DifferentOutputTypes) {
   CompliantNodeBuilder builder(test_graph_.get());
-  std::vector<CompliantNodeBuilder::IrOutputDef> mixed_outputs = {
+  std::vector<CompliantNodeBuilder::IrOutputDefV2> mixed_outputs = {
       {"required_output", CompliantNodeBuilder::kEsIrOutputRequired, "req_out"},
       {"dynamic_output", CompliantNodeBuilder::kEsIrOutputDynamic, "dyn_out"}};
 
   builder.OpType("TestOp")
       .Name("TestName")
-      .IrDefInputs(input_defs_)
-      .IrDefOutputs(mixed_outputs)
+      .IrDefInputsV2(input_defs_)
+      .IrDefOutputsV2(mixed_outputs)
       .InstanceDynamicOutputNum("dynamic_output", 2);
 
   auto node = builder.Build();
@@ -390,12 +419,16 @@ TEST_F(CompliantNodeBuilderLLT, DifferentAttrTypes) {
   auto string_attr = AttrValue();
   string_attr.SetAttrValue(AscendString("test"));
 
-  std::vector<CompliantNodeBuilder::IrAttrDef> mixed_attrs = {
+  std::vector<CompliantNodeBuilder::IrAttrDefV2> mixed_attrs = {
       {"required_attr", CompliantNodeBuilder::kEsAttrRequired, "Int", required_attr},
       {"optional_attr", CompliantNodeBuilder::kEsAttrOptional, "Float", optional_attr},
       {"string_attr", CompliantNodeBuilder::kEsAttrOptional, "String", string_attr}};
 
-  builder.OpType("TestOp").Name("TestName").IrDefInputs(input_defs_).IrDefOutputs(output_defs_).IrDefAttrs(mixed_attrs);
+  builder.OpType("TestOp")
+      .Name("TestName")
+      .IrDefInputsV2(input_defs_)
+      .IrDefOutputsV2(output_defs_)
+      .IrDefAttrsV2(mixed_attrs);
 
   auto node = builder.Build();
   auto ge_node = ge::NodeAdapter::GNode2Node(node);
@@ -406,19 +439,19 @@ TEST_F(CompliantNodeBuilderLLT, DifferentAttrTypes) {
 // 测试多个动态输入输出
 TEST_F(CompliantNodeBuilderLLT, MultipleDynamicIO) {
   CompliantNodeBuilder builder(test_graph_.get());
-  std::vector<CompliantNodeBuilder::IrInputDef> multiple_dynamic_inputs = {
+  std::vector<CompliantNodeBuilder::IrInputDefV2> multiple_dynamic_inputs = {
       {"input1", CompliantNodeBuilder::kEsIrInputDynamic, "x"},
       {"input2", CompliantNodeBuilder::kEsIrInputDynamic, "y"},
       {"input3", CompliantNodeBuilder::kEsIrInputDynamic, "z"}};
 
-  std::vector<CompliantNodeBuilder::IrOutputDef> multiple_dynamic_outputs = {
+  std::vector<CompliantNodeBuilder::IrOutputDefV2> multiple_dynamic_outputs = {
       {"output1", CompliantNodeBuilder::kEsIrOutputDynamic, "out1"},
       {"output2", CompliantNodeBuilder::kEsIrOutputDynamic, "out2"}};
 
   builder.OpType("TestOp")
       .Name("TestName")
-      .IrDefInputs(multiple_dynamic_inputs)
-      .IrDefOutputs(multiple_dynamic_outputs)
+      .IrDefInputsV2(multiple_dynamic_inputs)
+      .IrDefOutputsV2(multiple_dynamic_outputs)
       .InstanceDynamicInputNum("input1", 2)
       .InstanceDynamicInputNum("input2", 3)
       .InstanceDynamicInputNum("input3", 4)

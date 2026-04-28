@@ -26,6 +26,8 @@
 
 IR输入定义结构体。
 
+> 说明：该结构体用于旧接口，包含 `std::string` 字段。新代码推荐使用ABI安全的 `IrInputDefV2`。
+
 ## 结构说明<a name="zh-cn_topic_0204328165_zh-cn_topic_0182636384_section136951948195410"></a>
 
 <a name="table2601186"></a>
@@ -64,4 +66,3 @@ IR输入定义结构体。
 ## 约束说明<a name="zh-cn_topic_0204328165_zh-cn_topic_0182636384_section62768825"></a>
 
 无
-

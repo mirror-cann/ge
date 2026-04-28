@@ -121,9 +121,9 @@ graph TB
 
 **主要方法**:
 - `OpType()` - 设置操作符类型
-- `IrDefInputs()` - 定义IR输入规范
-- `IrDefOutputs()` - 定义IR输出规范
-- `IrDefAttrs()` - 定义IR属性规范
+- `IrDefInputsV2()` - 定义ABI安全的IR输入规范
+- `IrDefOutputsV2()` - 定义ABI安全的IR输出规范
+- `IrDefAttrsV2()` - 定义ABI安全的IR属性规范
 - `Name()` - 设置节点名称
 - `InstanceDynamicInputNum()` - 设置动态输入实例数量
 - `InstanceDynamicOutputNum()` - 设置动态输出实例数量
@@ -153,5 +153,4 @@ graph TB
 ### 使用示例
 参考[sample](../../../examples/es)
 ```
-
 

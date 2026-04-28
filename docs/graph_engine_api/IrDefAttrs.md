@@ -31,10 +31,17 @@
 
 定义IR属性规范
 
+> 说明：`IrDefAttrs(std::vector<IrAttrDef>)` 已废弃，推荐使用ABI安全的 `IrDefAttrsV2` 接口。
+
 ## 函数原型<a name="section1831611148519"></a>
 
 ```
+// 旧接口（非ABI兼容，不推荐使用）
 CompliantNodeBuilder &IrDefAttrs(std::vector<IrAttrDef> attr_ir_def)
+
+// ABI安全的V2接口（推荐使用）
+CompliantNodeBuilder &IrDefAttrsV2(const IrAttrDefV2 *attr_ir_def, size_t attr_ir_def_num)
+CompliantNodeBuilder &IrDefAttrsV2(std::initializer_list<IrAttrDefV2> attr_ir_def)
 ```
 
 ## 参数说明<a name="section62999330"></a>
@@ -52,7 +59,7 @@ CompliantNodeBuilder &IrDefAttrs(std::vector<IrAttrDef> attr_ir_def)
 </td>
 <td class="cellrowborder" valign="top" width="10.57%" headers="mcps1.1.4.1.2 "><p id="p165822162612"><a name="p165822162612"></a><a name="p165822162612"></a>输入</p>
 </td>
-<td class="cellrowborder" valign="top" width="75.77000000000001%" headers="mcps1.1.4.1.3 "><p id="p14973185014018"><a name="p14973185014018"></a><a name="p14973185014018"></a>定义IR属性规范。</p>
+<td class="cellrowborder" valign="top" width="75.77000000000001%" headers="mcps1.1.4.1.3 "><p id="p14973185014018"><a name="p14973185014018"></a><a name="p14973185014018"></a>定义IR属性规范数组或初始化列表。</p>
 </td>
 </tr>
 </tbody>
@@ -82,4 +89,3 @@ CompliantNodeBuilder &IrDefAttrs(std::vector<IrAttrDef> attr_ir_def)
 ## 约束说明<a name="section24049039"></a>
 
 无
-

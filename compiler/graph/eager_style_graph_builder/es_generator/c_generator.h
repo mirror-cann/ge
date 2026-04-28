@@ -751,7 +751,7 @@ class CGenerator : public ICodeGenerator {
       attr_map[attr.name] = &attr;
     }
 
-    css << "      .IrDefAttrs({" << std::endl;
+    css << "      .IrDefAttrsV2({" << std::endl;
     // 按照原始的 ir 顺序构造 Node
     for (const auto &attr_name : op->GetIrAttrNames()) {
       auto it = attr_map.find(attr_name);
@@ -776,12 +776,12 @@ class CGenerator : public ICodeGenerator {
                                   std::stringstream &css) {
     css << "  auto node = ge::es::CompliantNodeBuilder(ge_graph).OpType(\"" << op->GetType() << "\")" << std::endl;
     css << "      .Name( builder.GenerateNodeName(\"" << op->GetType() << "\").GetString())" << std::endl;
-    css << "      .IrDefInputs({" << std::endl;
+    css << "      .IrDefInputsV2({" << std::endl;
     for (const auto &in : op->GetIrInputs()) {
       css << "          {\"" << in.first << "\", " << IrInputTypeToString(in.second) << ", \"\"}," << std::endl;
     }
     css << "      })" << std::endl;
-    css << "      .IrDefOutputs({" << std::endl;
+    css << "      .IrDefOutputsV2({" << std::endl;
     for (const auto &out : op->GetIrOutputs()) {
       css << "          {\"" << out.first << "\", " << IrOutputTypeToString(out.second) << ", \"\"}," << std::endl;
     }

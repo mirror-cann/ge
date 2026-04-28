@@ -380,14 +380,14 @@ EsCTensorHolder *EsAdd(EsCTensorHolder *x1, EsCTensorHolder *x2) {
 
   auto node = ge::es::CompliantNodeBuilder(ge_graph).OpType("Add")
       .Name( builder.GenerateNodeName("Add").GetString())
-      .IrDefInputs({
+      .IrDefInputsV2({
           {"x1", ge::es::CompliantNodeBuilder::kEsIrInputRequired, ""},
           {"x2", ge::es::CompliantNodeBuilder::kEsIrInputRequired, ""},
       })
-      .IrDefOutputs({
+      .IrDefOutputsV2({
           {"y", ge::es::CompliantNodeBuilder::kEsIrOutputRequired, ""},
       })
-      .IrDefAttrs({
+      .IrDefAttrsV2({
       })
       .Build();
 
@@ -558,13 +558,13 @@ EsCTensorHolder *Esphony_1i_1o(EsCTensorHolder *x, int64_t index) {
 
   auto node = ge::es::CompliantNodeBuilder(ge_graph).OpType("phony_1i_1o")
       .Name( builder.GenerateNodeName("phony_1i_1o").GetString())
-      .IrDefInputs({
+      .IrDefInputsV2({
           {"x", ge::es::CompliantNodeBuilder::kEsIrInputRequired, ""},
       })
-      .IrDefOutputs({
+      .IrDefOutputsV2({
           {"y", ge::es::CompliantNodeBuilder::kEsIrOutputRequired, ""},
       })
-      .IrDefAttrs({
+      .IrDefAttrsV2({
           {
               "index",
               ge::es::CompliantNodeBuilder::kEsAttrOptional,
@@ -732,14 +732,14 @@ EsCTensorHolder *Esphony_1i1dyi_1o(EsCTensorHolder *x, EsCTensorHolder **dx, int
 
   auto node = ge::es::CompliantNodeBuilder(ge_graph).OpType("phony_1i1dyi_1o")
       .Name( builder.GenerateNodeName("phony_1i1dyi_1o").GetString())
-      .IrDefInputs({
+      .IrDefInputsV2({
           {"x", ge::es::CompliantNodeBuilder::kEsIrInputRequired, ""},
           {"dx", ge::es::CompliantNodeBuilder::kEsIrInputDynamic, ""},
       })
-      .IrDefOutputs({
+      .IrDefOutputsV2({
           {"y", ge::es::CompliantNodeBuilder::kEsIrOutputRequired, ""},
       })
-      .IrDefAttrs({
+      .IrDefAttrsV2({
           {
               "index",
               ge::es::CompliantNodeBuilder::kEsAttrOptional,
@@ -920,14 +920,14 @@ EsCTensorHolder *Esphony_1i1opi_1o(EsCTensorHolder *x, EsCTensorHolder *dx, bool
 
   auto node = ge::es::CompliantNodeBuilder(ge_graph).OpType("phony_1i1opi_1o")
       .Name( builder.GenerateNodeName("phony_1i1opi_1o").GetString())
-      .IrDefInputs({
+      .IrDefInputsV2({
           {"x", ge::es::CompliantNodeBuilder::kEsIrInputRequired, ""},
           {"dx", ge::es::CompliantNodeBuilder::kEsIrInputOptional, ""},
       })
-      .IrDefOutputs({
+      .IrDefOutputsV2({
           {"y", ge::es::CompliantNodeBuilder::kEsIrOutputRequired, ""},
       })
-      .IrDefAttrs({
+      .IrDefAttrsV2({
           {
               "dt",
               ge::es::CompliantNodeBuilder::kEsAttrOptional,
@@ -1118,14 +1118,14 @@ Esphony_1i_2oOutput Esphony_1i_2o(EsCTensorHolder *x) {
 
   auto node = ge::es::CompliantNodeBuilder(ge_graph).OpType("phony_1i_2o")
       .Name( builder.GenerateNodeName("phony_1i_2o").GetString())
-      .IrDefInputs({
+      .IrDefInputsV2({
           {"x", ge::es::CompliantNodeBuilder::kEsIrInputRequired, ""},
       })
-      .IrDefOutputs({
+      .IrDefOutputsV2({
           {"y1", ge::es::CompliantNodeBuilder::kEsIrOutputRequired, ""},
           {"y2", ge::es::CompliantNodeBuilder::kEsIrOutputRequired, ""},
       })
-      .IrDefAttrs({
+      .IrDefAttrsV2({
       })
       .Build();
 
@@ -1425,14 +1425,14 @@ Esphony_1i_1o1dyoOutput Esphony_1i_1o1dyo(EsCTensorHolder *x, int64_t dy_num) {
 
   auto node = ge::es::CompliantNodeBuilder(ge_graph).OpType("phony_1i_1o1dyo")
       .Name( builder.GenerateNodeName("phony_1i_1o1dyo").GetString())
-      .IrDefInputs({
+      .IrDefInputsV2({
           {"x", ge::es::CompliantNodeBuilder::kEsIrInputRequired, ""},
       })
-      .IrDefOutputs({
+      .IrDefOutputsV2({
           {"y", ge::es::CompliantNodeBuilder::kEsIrOutputRequired, ""},
           {"dy", ge::es::CompliantNodeBuilder::kEsIrOutputDynamic, ""},
       })
-      .IrDefAttrs({
+      .IrDefAttrsV2({
       })
       .InstanceDynamicOutputNum("dy", static_cast<int32_t>(dy_num))
       .Build();
@@ -1624,15 +1624,15 @@ Esphony_1i_2o1dyoOutput Esphony_1i_2o1dyo(EsCTensorHolder *x, int64_t dy_num) {
 
   auto node = ge::es::CompliantNodeBuilder(ge_graph).OpType("phony_1i_2o1dyo")
       .Name( builder.GenerateNodeName("phony_1i_2o1dyo").GetString())
-      .IrDefInputs({
+      .IrDefInputsV2({
           {"x", ge::es::CompliantNodeBuilder::kEsIrInputRequired, ""},
       })
-      .IrDefOutputs({
+      .IrDefOutputsV2({
           {"y1", ge::es::CompliantNodeBuilder::kEsIrOutputRequired, ""},
           {"y2", ge::es::CompliantNodeBuilder::kEsIrOutputRequired, ""},
           {"dy", ge::es::CompliantNodeBuilder::kEsIrOutputDynamic, ""},
       })
-      .IrDefAttrs({
+      .IrDefAttrsV2({
       })
       .InstanceDynamicOutputNum("dy", static_cast<int32_t>(dy_num))
       .Build();
@@ -1991,11 +1991,11 @@ Esphony_1i1dyi_2o2dyo1oOutput Esphony_1i1dyi_2o2dyo1o(EsCTensorHolder *x, EsCTen
   ES_ASSERT_NOTNULL(value_stored);
   auto node = ge::es::CompliantNodeBuilder(ge_graph).OpType("phony_1i1dyi_2o2dyo1o")
       .Name( builder.GenerateNodeName("phony_1i1dyi_2o2dyo1o").GetString())
-      .IrDefInputs({
+      .IrDefInputsV2({
           {"x", ge::es::CompliantNodeBuilder::kEsIrInputRequired, ""},
           {"dx", ge::es::CompliantNodeBuilder::kEsIrInputDynamic, ""},
       })
-      .IrDefOutputs({
+      .IrDefOutputsV2({
           {"y1", ge::es::CompliantNodeBuilder::kEsIrOutputRequired, ""},
           {"y2", ge::es::CompliantNodeBuilder::kEsIrOutputRequired, ""},
           {"dy1", ge::es::CompliantNodeBuilder::kEsIrOutputDynamic, ""},
@@ -2003,7 +2003,7 @@ Esphony_1i1dyi_2o2dyo1oOutput Esphony_1i1dyi_2o2dyo1o(EsCTensorHolder *x, EsCTen
           {"y3", ge::es::CompliantNodeBuilder::kEsIrOutputRequired, ""},
           {"dy3", ge::es::CompliantNodeBuilder::kEsIrOutputDynamic, ""},
       })
-      .IrDefAttrs({
+      .IrDefAttrsV2({
           {
               "index",
               ge::es::CompliantNodeBuilder::kEsAttrOptional,
@@ -2240,11 +2240,11 @@ EsCTensorHolder *Esphony_multi_attr(EsCGraphBuilder *owner_graph_builder, const 
 
   auto node = ge::es::CompliantNodeBuilder(ge_graph).OpType("phony_multi_attr")
       .Name( builder.GenerateNodeName("phony_multi_attr").GetString())
-      .IrDefInputs({
+      .IrDefInputsV2({
       })
-      .IrDefOutputs({
+      .IrDefOutputsV2({
       })
-      .IrDefAttrs({
+      .IrDefAttrsV2({
           {
               "li",
               ge::es::CompliantNodeBuilder::kEsAttrOptional,
@@ -2450,13 +2450,13 @@ EsCTensorHolder *Esphony_req_attrs(EsCTensorHolder *x, C_DataType req_data_type,
   ES_ASSERT_NOTNULL(req_tensor_stored);
   auto node = ge::es::CompliantNodeBuilder(ge_graph).OpType("phony_req_attrs")
       .Name( builder.GenerateNodeName("phony_req_attrs").GetString())
-      .IrDefInputs({
+      .IrDefInputsV2({
           {"x", ge::es::CompliantNodeBuilder::kEsIrInputRequired, ""},
       })
-      .IrDefOutputs({
+      .IrDefOutputsV2({
           {"y", ge::es::CompliantNodeBuilder::kEsIrOutputRequired, ""},
       })
-      .IrDefAttrs({
+      .IrDefAttrsV2({
           {
               "req_data_type",
               ge::es::CompliantNodeBuilder::kEsAttrRequired,
@@ -2661,13 +2661,13 @@ EsCTensorHolder *Esphony_opt_attrs(EsCTensorHolder *x, C_DataType opt_data_type,
   ES_ASSERT_NOTNULL(opt_tensor_stored);
   auto node = ge::es::CompliantNodeBuilder(ge_graph).OpType("phony_opt_attrs")
       .Name( builder.GenerateNodeName("phony_opt_attrs").GetString())
-      .IrDefInputs({
+      .IrDefInputsV2({
           {"x", ge::es::CompliantNodeBuilder::kEsIrInputRequired, ""},
       })
-      .IrDefOutputs({
+      .IrDefOutputsV2({
           {"y", ge::es::CompliantNodeBuilder::kEsIrOutputRequired, ""},
       })
-      .IrDefAttrs({
+      .IrDefAttrsV2({
           {
               "opt_data_type",
               ge::es::CompliantNodeBuilder::kEsAttrOptional,
@@ -3307,13 +3307,13 @@ EsWhileOutput EsWhile(EsCTensorHolder **input, int64_t input_num, int64_t output
 
   auto node = ge::es::CompliantNodeBuilder(ge_graph).OpType("While")
       .Name( builder.GenerateNodeName("While").GetString())
-      .IrDefInputs({
+      .IrDefInputsV2({
           {"input", ge::es::CompliantNodeBuilder::kEsIrInputDynamic, ""},
       })
-      .IrDefOutputs({
+      .IrDefOutputsV2({
           {"output", ge::es::CompliantNodeBuilder::kEsIrOutputDynamic, ""},
       })
-      .IrDefAttrs({
+      .IrDefAttrsV2({
           {
               "parallel_iterations",
               ge::es::CompliantNodeBuilder::kEsAttrOptional,
@@ -3578,14 +3578,14 @@ Esphony_mix_subgraphsOutput Esphony_mix_subgraphs(EsCTensorHolder *opt_input, Es
 
   auto node = ge::es::CompliantNodeBuilder(ge_graph).OpType("phony_mix_subgraphs")
       .Name( builder.GenerateNodeName("phony_mix_subgraphs").GetString())
-      .IrDefInputs({
+      .IrDefInputsV2({
           {"opt_input", ge::es::CompliantNodeBuilder::kEsIrInputOptional, ""},
           {"input", ge::es::CompliantNodeBuilder::kEsIrInputDynamic, ""},
       })
-      .IrDefOutputs({
+      .IrDefOutputsV2({
           {"output", ge::es::CompliantNodeBuilder::kEsIrOutputDynamic, ""},
       })
-      .IrDefAttrs({
+      .IrDefAttrsV2({
       })
       .InstanceDynamicInputNum("input", static_cast<int32_t>(input_num))
       .InstanceDynamicOutputNum("output", static_cast<int32_t>(output_num))
@@ -3805,15 +3805,15 @@ Esphony_dup_nameOutput Esphony_dup_name(EsCTensorHolder *x, EsCTensorHolder **dx
   ES_ASSERT_NOTNULL(value_stored);
   auto node = ge::es::CompliantNodeBuilder(ge_graph).OpType("phony_dup_name")
       .Name( builder.GenerateNodeName("phony_dup_name").GetString())
-      .IrDefInputs({
+      .IrDefInputsV2({
           {"x", ge::es::CompliantNodeBuilder::kEsIrInputRequired, ""},
           {"dx", ge::es::CompliantNodeBuilder::kEsIrInputDynamic, ""},
       })
-      .IrDefOutputs({
+      .IrDefOutputsV2({
           {"x", ge::es::CompliantNodeBuilder::kEsIrOutputDynamic, ""},
           {"dx", ge::es::CompliantNodeBuilder::kEsIrOutputDynamic, ""},
       })
-      .IrDefAttrs({
+      .IrDefAttrsV2({
           {
               "index",
               ge::es::CompliantNodeBuilder::kEsAttrOptional,
@@ -4041,15 +4041,15 @@ EsCTensorHolder *Esphony_3opi_1o(EsCTensorHolder *x1, EsCTensorHolder *x2, EsCTe
 
   auto node = ge::es::CompliantNodeBuilder(ge_graph).OpType("phony_3opi_1o")
       .Name( builder.GenerateNodeName("phony_3opi_1o").GetString())
-      .IrDefInputs({
+      .IrDefInputsV2({
           {"x1", ge::es::CompliantNodeBuilder::kEsIrInputOptional, ""},
           {"x2", ge::es::CompliantNodeBuilder::kEsIrInputOptional, ""},
           {"x3", ge::es::CompliantNodeBuilder::kEsIrInputOptional, ""},
       })
-      .IrDefOutputs({
+      .IrDefOutputsV2({
           {"y", ge::es::CompliantNodeBuilder::kEsIrOutputRequired, ""},
       })
-      .IrDefAttrs({
+      .IrDefAttrsV2({
       })
       .Build();
 
@@ -4227,13 +4227,13 @@ EsCTensorHolder *Esphony_1opi_1o(EsCTensorHolder *x1, EsCGraphBuilder *owner_gra
 
   auto node = ge::es::CompliantNodeBuilder(ge_graph).OpType("phony_1opi_1o")
       .Name( builder.GenerateNodeName("phony_1opi_1o").GetString())
-      .IrDefInputs({
+      .IrDefInputsV2({
           {"x1", ge::es::CompliantNodeBuilder::kEsIrInputOptional, ""},
       })
-      .IrDefOutputs({
+      .IrDefOutputsV2({
           {"y", ge::es::CompliantNodeBuilder::kEsIrOutputRequired, ""},
       })
-      .IrDefAttrs({
+      .IrDefAttrsV2({
           {
               "flag",
               ge::es::CompliantNodeBuilder::kEsAttrRequired,

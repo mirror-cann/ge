@@ -10,6 +10,9 @@
 
 #ifndef AIR_CXX_COMPILER_GRAPH_EAGER_STYLE_GRAPH_BUILDER_COMPLIANT_NODE_BUILDER_H_
 #define AIR_CXX_COMPILER_GRAPH_EAGER_STYLE_GRAPH_BUILDER_COMPLIANT_NODE_BUILDER_H_
+#include <cstddef>
+#include <initializer_list>
+#include <memory>
 #include <vector>
 #include <string>
 #include <utility>
@@ -22,7 +25,7 @@
 #include "graph/attr_value.h"
 #include "graph/gnode.h"
 #include "graph/operator.h"
-#include "ge/ge_api_types.h"
+#include "ge/ge_api_error_codes.h"
 
 namespace ge {
 namespace es {
@@ -166,6 +169,9 @@ class CompliantNodeBuilder {
 
   /**
    * @brief IR属性定义结构体
+   * @note 非ABI兼容：结构体中包含std::string字段，若调用方与GE库使用不同的编译器ABI
+   *       （如不同的_std::__cxx11命名空间配置），会导致内存布局不一致。
+   *       请使用IrAttrDefV2代替。
    */
   struct IrAttrDef {
     std::string attr_name;
@@ -176,6 +182,9 @@ class CompliantNodeBuilder {
 
   /**
    * @brief IR输入定义结构体
+   * @note 非ABI兼容：结构体中包含std::string字段，若调用方与GE库使用不同的编译器ABI
+   *       （如不同的_std::__cxx11命名空间配置），会导致内存布局不一致。
+   *       请使用IrInputDefV2代替。
    */
   struct IrInputDef {
     std::string name;
@@ -185,11 +194,97 @@ class CompliantNodeBuilder {
 
   /**
    * @brief IR输出定义结构体
+   * @note 非ABI兼容：结构体中包含std::string字段，若调用方与GE库使用不同的编译器ABI
+   *       （如不同的_std::__cxx11命名空间配置），会导致内存布局不一致。
+   *       请使用IrOutputDefV2代替。
    */
   struct IrOutputDef {
     std::string name;
     IrOutputType ir_output_type;
     std::string symbol_id;
+  };
+
+  /**
+   * @brief ABI安全的IR输入定义结构体
+   *
+   * 对外仅暴露稳定大小的pimpl对象，内部拷贝字符串内容。
+   */
+  class IrInputDefV2 {
+   public:
+    IrInputDefV2();
+    IrInputDefV2(const char_t *name, IrInputType ir_input_type, const char_t *symbol_id);
+    ~IrInputDefV2();
+    IrInputDefV2(const IrInputDefV2 &other);
+    IrInputDefV2 &operator=(const IrInputDefV2 &other);
+    IrInputDefV2(IrInputDefV2 &&other) noexcept;
+    IrInputDefV2 &operator=(IrInputDefV2 &&other) noexcept;
+
+    IrInputDefV2 &Name(const char_t *name);
+    IrInputDefV2 &InputType(IrInputType ir_input_type);
+    IrInputDefV2 &SymbolId(const char_t *symbol_id);
+
+    const char_t *GetName() const;
+    IrInputType GetInputType() const;
+    const char_t *GetSymbolId() const;
+
+   private:
+    class Impl;
+    Impl *impl_;
+  };
+
+  /**
+   * @brief ABI安全的IR输出定义结构体
+   */
+  class IrOutputDefV2 {
+   public:
+    IrOutputDefV2();
+    IrOutputDefV2(const char_t *name, IrOutputType ir_output_type, const char_t *symbol_id);
+    ~IrOutputDefV2();
+    IrOutputDefV2(const IrOutputDefV2 &other);
+    IrOutputDefV2 &operator=(const IrOutputDefV2 &other);
+    IrOutputDefV2(IrOutputDefV2 &&other) noexcept;
+    IrOutputDefV2 &operator=(IrOutputDefV2 &&other) noexcept;
+
+    IrOutputDefV2 &Name(const char_t *name);
+    IrOutputDefV2 &OutputType(IrOutputType ir_output_type);
+    IrOutputDefV2 &SymbolId(const char_t *symbol_id);
+
+    const char_t *GetName() const;
+    IrOutputType GetOutputType() const;
+    const char_t *GetSymbolId() const;
+
+   private:
+    class Impl;
+    Impl *impl_;
+  };
+
+  /**
+   * @brief ABI安全的IR属性定义结构体
+   */
+  class IrAttrDefV2 {
+   public:
+    IrAttrDefV2();
+    IrAttrDefV2(const char_t *attr_name, IrAttrType ir_attr_type, const char_t *attr_data_type,
+                const AttrValue &attr_default_value);
+    ~IrAttrDefV2();
+    IrAttrDefV2(const IrAttrDefV2 &other);
+    IrAttrDefV2 &operator=(const IrAttrDefV2 &other);
+    IrAttrDefV2(IrAttrDefV2 &&other) noexcept;
+    IrAttrDefV2 &operator=(IrAttrDefV2 &&other) noexcept;
+
+    IrAttrDefV2 &AttrName(const char_t *attr_name);
+    IrAttrDefV2 &AttrType(IrAttrType ir_attr_type);
+    IrAttrDefV2 &AttrDataType(const char_t *attr_data_type);
+    IrAttrDefV2 &DefaultValue(const AttrValue &attr_default_value);
+
+    const char_t *GetAttrName() const;
+    IrAttrType GetAttrType() const;
+    const char_t *GetAttrDataType() const;
+    const AttrValue &GetDefaultValue() const;
+
+   private:
+    class Impl;
+    Impl *impl_;
   };
 
  public:
@@ -219,21 +314,72 @@ class CompliantNodeBuilder {
    * @param input_ir_def 输入IR定义向量
    * @return 当前构建器对象的引用，支持链式调用
    */
+  ATTRIBUTED_DEPRECATED(IrDefInputsV2(...))
   CompliantNodeBuilder &IrDefInputs(std::vector<IrInputDef> input_ir_def);
+
+  /**
+   * @brief 定义ABI安全的IR输入规范
+   * @param input_ir_def 输入IR定义数组，调用期间必须有效
+   * @param input_ir_def_num 输入IR定义数量
+   * @return 当前构建器对象的引用，支持链式调用
+   */
+  CompliantNodeBuilder &IrDefInputsV2(const IrInputDefV2 *input_ir_def, size_t input_ir_def_num);
+
+  CompliantNodeBuilder &IrDefInputsV2(std::initializer_list<IrInputDefV2> input_ir_def) {
+    return IrDefInputsV2(input_ir_def.begin(), input_ir_def.size());
+  }
+
+  CompliantNodeBuilder &IrDefInputsV2(const std::vector<IrInputDefV2> &input_ir_def) {
+    return IrDefInputsV2(input_ir_def.data(), input_ir_def.size());
+  }
 
   /**
    * @brief 定义IR输出规范
    * @param output_ir_def 输出IR定义向量
    * @return 当前构建器对象的引用，支持链式调用
    */
+  ATTRIBUTED_DEPRECATED(IrDefOutputsV2(...))
   CompliantNodeBuilder &IrDefOutputs(std::vector<IrOutputDef> output_ir_def);
+
+  /**
+   * @brief 定义ABI安全的IR输出规范
+   * @param output_ir_def 输出IR定义数组，调用期间必须有效
+   * @param output_ir_def_num 输出IR定义数量
+   * @return 当前构建器对象的引用，支持链式调用
+   */
+  CompliantNodeBuilder &IrDefOutputsV2(const IrOutputDefV2 *output_ir_def, size_t output_ir_def_num);
+
+  CompliantNodeBuilder &IrDefOutputsV2(std::initializer_list<IrOutputDefV2> output_ir_def) {
+    return IrDefOutputsV2(output_ir_def.begin(), output_ir_def.size());
+  }
+
+  CompliantNodeBuilder &IrDefOutputsV2(const std::vector<IrOutputDefV2> &output_ir_def) {
+    return IrDefOutputsV2(output_ir_def.data(), output_ir_def.size());
+  }
 
   /**
    * @brief 定义IR属性规范
    * @param attr_ir_def 属性IR定义向量
    * @return 当前构建器对象的引用，支持链式调用
    */
+  ATTRIBUTED_DEPRECATED(IrDefAttrsV2(...))
   CompliantNodeBuilder &IrDefAttrs(std::vector<IrAttrDef> attr_ir_def);
+
+  /**
+   * @brief 定义ABI安全的IR属性规范
+   * @param attr_ir_def 属性IR定义数组，调用期间必须有效
+   * @param attr_ir_def_num 属性IR定义数量
+   * @return 当前构建器对象的引用，支持链式调用
+   */
+  CompliantNodeBuilder &IrDefAttrsV2(const IrAttrDefV2 *attr_ir_def, size_t attr_ir_def_num);
+
+  CompliantNodeBuilder &IrDefAttrsV2(std::initializer_list<IrAttrDefV2> attr_ir_def) {
+    return IrDefAttrsV2(attr_ir_def.begin(), attr_ir_def.size());
+  }
+
+  CompliantNodeBuilder &IrDefAttrsV2(const std::vector<IrAttrDefV2> &attr_ir_def) {
+    return IrDefAttrsV2(attr_ir_def.data(), attr_ir_def.size());
+  }
 
   /**
    * @brief 设置节点名称

@@ -40,13 +40,13 @@ EsCTensorHolder *MyEsConcatD(EsCTensorHolder **x, int64_t x_num, int64_t concat_
   // 2. 根据算子原型构建合法Node实例并设置IR信息到节点上
   auto node = ge::es::CompliantNodeBuilder(ge_graph).OpType("ConcatD")
       .Name(builder.GenerateNodeName("ConcatD").GetString())
-      .IrDefInputs({
+      .IrDefInputsV2({
           {"x", ge::es::CompliantNodeBuilder::kEsIrInputDynamic, ""},
       })
-      .IrDefOutputs({
+      .IrDefOutputsV2({
           {"y", ge::es::CompliantNodeBuilder::kEsIrOutputRequired, ""},
       })
-      .IrDefAttrs({
+      .IrDefAttrsV2({
           {
               "concat_dim",
               ge::es::CompliantNodeBuilder::kEsAttrRequired,
