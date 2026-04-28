@@ -216,6 +216,18 @@ HcclResult DlHcclFunction::initHcclGraphModeFunctions() {
   dlHcclSetAivCoreLimitGraphModeFunc = (HcclResult (*)(const char *group, u32 aivCoreLimit))dlsym(dl_hccl_handle, "HcclSetAivCoreLimitGraphMode");
   CHK_PTR_NULL(dlHcclSetAivCoreLimitGraphModeFunc);
   return HCCL_SUCCESS;
+
+  dlHcclSelectAlgGraphModeFunc = (HcclResult (*)(const char *group, u64 count, HcclDataType dataType, HcclReduceOp op, HcclCMDType opType,
+      int32_t aivCoreLimit, bool *ifAiv, char **algName))dlsym(dl_hccl_handle, "HcclSelectAlgGraphMode");
+  CHK_PTR_NULL(dlHcclSelectAlgGraphModeFunc);
+
+  dlHcclCalcAivCoreNumGraphModeFunc = (HcclResult (*)(u32 aivCoreLimit, u32 *blockDim))dlsym(dl_hccl_handle, "HcclCalcAivCoreNumGraphMode");
+  CHK_PTR_NULL(dlHcclCalcAivCoreNumGraphModeFunc);
+
+  dlHcclGetAlgExecParamGraphModeFunc = (HcclResult (*)(const char *tag, const char *group, u64 count, void *inputPtr, void *outputPtr,
+      HcclCMDType opType, bool clearEnable, HcclDataType dataType, HcclReduceOp op,
+      void **commContext, u64 *len, u32 aivCoreLimit))dlsym(dl_hccl_handle, "HcclGetAlgExecParamGraphMode");
+  CHK_PTR_NULL(dlHcclGetAlgExecParamGraphModeFunc);
 }
 
 bool DlHcclFunction::isLoadHcclGraphModeFunctions() {
@@ -407,4 +419,19 @@ HcclResult DlHcclFunction::dlHcclReduceScatterGraphMode(void *sendBuf, void *rec
 
 HcclResult DlHcclFunction::dlHcclSetAivCoreLimitGraphMode(const char *group, u32 aivCoreLimit) {
     return dlHcclSetAivCoreLimitGraphModeFunc(group, aivCoreLimit);
+}
+
+HcclResult DlHcclFunction::dlHcclSelectAlgGraphMode(const char *group, u64 count, HcclDataType dataType, HcclReduceOp op, HcclCMDType opType,
+                           int32_t aivCoreLimit, bool *ifAiv, char **algName) {
+    return dlHcclSelectAlgGraphModeFunc(group, count, dataType, op, opType, aivCoreLimit, ifAiv, algName);
+}
+
+HcclResult DlHcclFunction::dlHcclCalcAivCoreNumGraphMode(u32 aivCoreLimit, u32 *blockDim) {
+    return dlHcclCalcAivCoreNumGraphModeFunc(aivCoreLimit, blockDim);
+}
+
+HcclResult DlHcclFunction::dlHcclGetAlgExecParamGraphMode(const char *tag, const char *group, u64 count, void *inputPtr, void *outputPtr,
+                                 HcclCMDType opType, bool clearEnable, HcclDataType dataType, HcclReduceOp op,
+                                 void **commContext, u64 *len, u32 aivCoreLimit) {
+    return dlHcclGetAlgExecParamGraphModeFunc(tag, group, count, inputPtr, outputPtr, opType, clearEnable, dataType, op, commContext, len, aivCoreLimit);
 }
