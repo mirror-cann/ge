@@ -125,6 +125,14 @@ class TestRegbaseApiFloorDiv :public testing::Test {
   }
 
   template <typename T>
+  static void FreeTensorInput(TensorFloorDivInputParam<T> &param) {
+    AscendC::GmFree(param.y);
+    AscendC::GmFree(param.exp);
+    AscendC::GmFree(param.src0);
+    AscendC::GmFree(param.src1);
+  }
+
+  template <typename T>
   static void FloorDivTest(uint32_t size) {
     TensorFloorDivInputParam<T> param{};
     param.size = size;
@@ -140,6 +148,9 @@ class TestRegbaseApiFloorDiv :public testing::Test {
     // 验证结果
     uint32_t diff_count = Valid(param.y, param.exp, param.size);
     EXPECT_EQ(diff_count, 0);
+
+    // 释放内存
+    FreeTensorInput(param);
   }
 };
 

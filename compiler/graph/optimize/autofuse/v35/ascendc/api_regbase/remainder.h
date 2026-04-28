@@ -10,7 +10,7 @@
 #ifndef __ASCENDC_API_REGBASE_REMAINDER_H
 #define __ASCENDC_API_REGBASE_REMAINDER_H
 
-// Remainder(x1, x2) = x1 - x2 * trunc(x1/x2)
+// Remainder(x1, x2) = x1 - x2 * floor(x1/x2)
 
 template <typename T>
 __aicore__ inline void RemainderImplVF(__ubuf__ T* dst, __ubuf__ T* src1, __ubuf__ T* src2,
@@ -32,13 +32,13 @@ __aicore__ inline void RemainderImplVF(__ubuf__ T* dst, __ubuf__ T* src1, __ubuf
         // Calculate x1 / x2
         AscendC::MicroAPI::Div(quotient, srcVreg1, srcVreg2, mask);
 
-        // Truncate to floor (trunc towards zero)
+        // Truncate to floor
         AscendC::MicroAPI::Truncate<T, AscendC::RoundMode::CAST_FLOOR>(truncatedQuotient, quotient, mask);
 
-        // Calculate x2 * trunc(x1/x2)
+        // Calculate x2 * floor(x1/x2)
         AscendC::MicroAPI::Mul(mulResult, srcVreg2, truncatedQuotient, mask);
 
-        // Calculate remainder: x1 - x2 * trunc(x1/x2)
+        // Calculate remainder: x1 - x2 * floor(x1/x2)
         AscendC::MicroAPI::Sub(dstVreg, srcVreg1, mulResult, mask);
 
         AscendC::MicroAPI::DataCopy(dst + i * oneRepElm, dstVreg, mask);

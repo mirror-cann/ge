@@ -76,6 +76,14 @@ class TestRegbaseApiBitwiseandUT : public testing::Test {
     }
   }
 
+  template <typename T>
+  static void FreeTensorInput(BinaryInputParam<T> &param) {
+    AscendC::GmFree(param.y);
+    AscendC::GmFree(param.exp);
+    AscendC::GmFree(param.x2);
+    AscendC::GmFree(param.x1);
+  }
+
   // Tensor - Tensor 测试
   template <typename T>
   static void BitwiseandTensorTensorTest(uint32_t size) {
@@ -92,6 +100,9 @@ class TestRegbaseApiBitwiseandUT : public testing::Test {
 
     uint32_t diff_count = Valid(param.y, param.exp, param.size);
     EXPECT_EQ(diff_count, 0);
+
+    // 释放内存
+    FreeTensorInput(param);
   }
 };
 
