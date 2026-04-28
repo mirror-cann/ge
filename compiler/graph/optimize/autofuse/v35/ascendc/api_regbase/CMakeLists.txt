@@ -37,6 +37,8 @@ set(ascendc_api_regbase_extend_src
         modified_bessel_k0.h
         modified_bessel_k1.h
         modified_bessel_utils.h
+        laguerre_polynomial_l.h
+        legendre_polynomial_p.h
 )
 
 set(generated_regbase_files)
