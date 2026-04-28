@@ -2789,16 +2789,13 @@ void ModelManager::TryAutoDumpDebugJson(const std::shared_ptr<DavinciModel> &dav
     GELOGW("[Auto][DumpDebugJson] Get output path failed, ret:%d, graph_id:%u.", path_ret, graph_id);
     return;
   }
-  /*
-  * 背景：GE接口依赖RTS，RTS该接口还没上库
-  * 临时规避方案：先注销该代码，GE先保证主体上库，等RTS上库后再重新打开。
-*/
-  // const aclError acl_ret = aclmdlRIDebugJsonPrint(davinci_model->GetRtModelHandle(), file_path.c_str(), 0U);
-  // if (acl_ret != ACL_SUCCESS) {
-  //   GELOGW("[Auto][DumpDebugJson] aclmdlRIDebugJsonPrint failed, ret:%d, graph_id:%u, file_path:%s.",
-  //          acl_ret, graph_id, file_path.c_str());
-  //   return;
-  // }
+
+  const aclError acl_ret = aclmdlRIDebugJsonPrint(davinci_model->GetRtModelHandle(), file_path.c_str(), 0U);
+  if (acl_ret != ACL_SUCCESS) {
+    GELOGW("[Auto][DumpDebugJson] aclmdlRIDebugJsonPrint failed, ret:%d, graph_id:%u, file_path:%s.",
+           acl_ret, graph_id, file_path.c_str());
+    return;
+  }
 
   GELOGI("[Auto][DumpDebugJson] auto dump success, graph_id:%u, file_path:%s.", graph_id, file_path.c_str());
 }
@@ -2874,24 +2871,18 @@ Status ModelManager::DumpDebugJSONPrint(uint32_t model_id, uint32_t graph_id,
   GE_CHK_STATUS_RET(GetDumpDebugJsonOutputPath(graph_id, file_path),
                     "[Get][DumpDebugJsonOutputPath] failed, model_id:%u, graph_id:%u.", model_id, graph_id);
 
-  /*
-  * 背景：GE接口依赖RTS，RTS该接口还没上库
-  * 临时规避方案：先注销该代码，GE先保证主体上库，等RTS上库后再重新打开。
-*/
-  // 临时规避编译告警，GE先保证主体上库，等RTS上库后再重新打开。
-  GELOGD("[DumpDebugJsonOutputPath] flags: %u", flags);
-  // const aclError acl_ret = aclmdlRIDebugJsonPrint(davinci_model->GetRtModelHandle(), file_path.c_str(), flags);
-  // GE_CHK_BOOL_RET_STATUS(acl_ret == ACL_SUCCESS, FAILED,
-  //                        "[Call][AclDump] aclmdlRIDebugJsonPrint failed, ret:%d, model_id:%u, graph_id:%u, flags:%u.",
-  //                        acl_ret, model_id, graph_id, flags);
+  const aclError acl_ret = aclmdlRIDebugJsonPrint(davinci_model->GetRtModelHandle(), file_path.c_str(), flags);
+  GE_CHK_BOOL_RET_STATUS(acl_ret == ACL_SUCCESS, FAILED,
+                         "[Call][AclDump] aclmdlRIDebugJsonPrint failed, ret:%d, model_id:%u, graph_id:%u, flags:%u.",
+                         acl_ret, model_id, graph_id, flags);
 
-  // std::string tmp_json;
-  // const Status read_status = ReadDumpDebugJsonFile(file_path, tmp_json);
-  // TryCleanupDumpDebugJsonFile(file_path);
-  // GE_CHK_BOOL_RET_STATUS(read_status == SUCCESS, read_status,
-  //                        "[Read][DumpDebugJsonFile] failed, model_id:%u, graph_id:%u, file_path:%s.",
-  //                        model_id, graph_id, file_path.c_str());
-  // json_result = AscendString(tmp_json.c_str(), tmp_json.length());
+  std::string tmp_json;
+  const Status read_status = ReadDumpDebugJsonFile(file_path, tmp_json);
+  TryCleanupDumpDebugJsonFile(file_path);
+  GE_CHK_BOOL_RET_STATUS(read_status == SUCCESS, read_status,
+                         "[Read][DumpDebugJsonFile] failed, model_id:%u, graph_id:%u, file_path:%s.",
+                         model_id, graph_id, file_path.c_str());
+  json_result = AscendString(tmp_json.c_str(), tmp_json.length());
 
   return SUCCESS;
 }

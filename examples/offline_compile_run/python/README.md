@@ -7,13 +7,10 @@
 ```angular2html
 python/
 ├── src/
-|   ├── __init__.py                 
 |   ├── single_model/               // 单模型样例
-|   |   ├── __init__.py             
 |   |   ├── build_add_model.py      // 离线编译 Add 图，生成 add_sample.om
 |   |   └── run_add_model.py        // 加载 add_sample.om 并推理
 |   ├── bundle_model/               // Bundle 模型样例
-|   |   ├── __init__.py             
 |   |   ├── build_bundle_model.py   // 将 Add/Mul 多图打成一包，生成 bundle_sample.om
 |   |   └── run_bundle_model.py     // 加载 bundle_sample.om，依次执行各子模型
 |   └── common.py                   // 公共逻辑

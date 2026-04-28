@@ -51,6 +51,9 @@ Status CalcTensorSize(const DataType data_type, const std::vector<int64_t> &shap
       "Shape size will overflow when add align.",
       tensor_size, GeShape(shape).ToString().c_str());
   tensor_size = (tensor_size + append_size - 1) / kAlignment * kAlignment;
+  if (tensor_size == 0) {
+    tensor_size = kAlignment;
+  }
   return SUCCESS;
 }
 

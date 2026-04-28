@@ -33,6 +33,9 @@ aclError GetAlignedAndPaddingSize(const size_t size, const bool isPadding, size_
   }
 
   alignedSize = (size + appendSize - 1UL) / DATA_MEMORY_ALIGN_SIZE * DATA_MEMORY_ALIGN_SIZE;
+  if (alignedSize == 0) {
+    alignedSize = DATA_MEMORY_ALIGN_SIZE;
+  }
   return ACL_SUCCESS;
 }
 }

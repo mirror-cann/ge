@@ -45,7 +45,7 @@ REG_OP(Const)
 }
 namespace gert {
 using namespace ge;
-class MyCustomOp : public BaseCustomOp {
+class MyCustomOp : public EagerExecuteOp {
   graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
     (void)ctx;
     return GRAPH_SUCCESS;

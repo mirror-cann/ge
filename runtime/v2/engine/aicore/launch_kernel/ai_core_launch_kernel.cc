@@ -382,7 +382,7 @@ static ge::graphStatus UpdateEachArgsInfo(const KernelContext *context, const ge
     if (io_arg->is_need_merged_copy) {
       auto io_shape = context->GetInputValue<StorageShape *>(addr_start + io_num + input_i);
       FE_ASSERT_NOTNULL(io_shape);
-      SetDynShape(io_shape->GetStorageShape(), host_addr, io_arg->dyn_desc, shape_offset);
+      FE_RETURN_IF_ERROR(SetDynShape(io_shape->GetStorageShape(), host_addr, io_arg->dyn_desc, shape_offset));
     }
   }
   return ge::GRAPH_SUCCESS;

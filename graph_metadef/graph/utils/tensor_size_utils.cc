@@ -145,6 +145,12 @@ TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(const GeTensorDesc &des
     GELOGW("[Util][CalcBytesSize] Mem size %" PRId64 " after alignment is bigger than INT64_MAX", size_temp);
   } else {
     size_temp = ((size_temp + append_size - 1) / kDataMemAlignSize) * kDataMemAlignSize;
+    // 空tensor size为0且append_size计算为kDataMemAlignSize时，为了保证后续tensor地址不为nullptr
+    // size_temp这里按照kDataMemAlignSize处理。
+    if (size_temp == 0) {
+      size_temp = kDataMemAlignSize;
+      return GRAPH_SUCCESS;
+    }
   }
   return GRAPH_SUCCESS;
 }

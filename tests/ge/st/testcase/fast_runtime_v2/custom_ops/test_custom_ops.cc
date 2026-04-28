@@ -31,6 +31,11 @@
 using namespace ge;
 using namespace gert::bg;
 
+namespace {
+std::string MockCompile() {
+  return "mock_compile_path";
+}
+}  // namespace
 namespace gert {
 namespace kernel {
 class TestCustomNodeKernel : public testing::Test {
@@ -41,7 +46,7 @@ class TestCustomNodeKernel : public testing::Test {
 
 void *output_addr = nullptr;
 
-class TestBaseCustomOp : public EagerExecuteOp {
+class TestBaseCustomOp : public EagerExecuteOp{
  public:
   graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
     auto input_tensor0 = ctx->GetInputTensor(0);
@@ -71,6 +76,19 @@ class TestBaseCustomOp : public EagerExecuteOp {
     GE_ASSERT_NOTNULL(output_addr);
     return SUCCESS;
   }
+};
+
+class TestCompilableCustomOp : public EagerExecuteOp, CompilableOp {
+ public:
+  graphStatus Execute(EagerOpExecutionContext *ctx) override {
+    return SUCCESS;
+  }
+  graphStatus Compile(OpCompileContext *ctx) override {
+    mock_compile_path_ = MockCompile();
+    return SUCCESS;
+  }
+private:
+  std::string mock_compile_path_;
 };
 
 REG_OP(CustomOp)

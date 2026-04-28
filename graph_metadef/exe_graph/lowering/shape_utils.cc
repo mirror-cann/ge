@@ -41,6 +41,9 @@ ge::graphStatus CalcAlignedSizeByShape(const Shape &shape, ge::DataType data_typ
   const uint64_t padding_size = static_cast<uint64_t>(ge::TensorUtilsEx::GetPaddingSize());
   // 不可能溢出，因为ret最大值也只有int64的最大值
   ret_tensor_size = ge::RoundUp(static_cast<uint64_t>(cal_size), kAlignBytes) + padding_size;
+  if (ret_tensor_size == 0) {
+    ret_tensor_size = kAlignBytes;
+  }
   return ge::GRAPH_SUCCESS;
 }
 }  // namespace gert

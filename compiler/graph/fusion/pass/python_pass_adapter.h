@@ -15,6 +15,7 @@
 #include <utility>
 #include <vector>
 
+#include "ge/ge_api_types.h"
 #include "ge/fusion/pass/decompose_pass.h"
 #include "ge/fusion/pass/fusion_base_pass.h"
 #include "ge/fusion/pass/pattern_fusion_pass.h"
@@ -24,17 +25,18 @@ namespace ge {
 namespace fusion {
 using PythonFusionBasePassHolderCreateFn = void *(*)(const PythonPassDescriptor *pass_desc);
 using PythonFusionBasePassHolderDestroyFn = void (*)(void *holder);
-using PythonFusionBasePassRunFn = Status (*)(void *holder, GraphPtr &graph, CustomPassContext &pass_context);
+using PythonFusionBasePassRunFn = Status (*)(const void *holder, GraphPtr &graph, CustomPassContext &pass_context);
 
 using PythonFusionPassGetMatcherConfigFn =
-    Status (*)(void *holder, std::unique_ptr<PatternMatcherConfig> &matcher_config);
-using PythonFusionPassPatternsFn = Status (*)(void *holder, std::vector<PatternUniqPtr> &patterns);
-using PythonFusionPassMeetRequirementsFn = bool (*)(void *holder, const std::unique_ptr<MatchResult> &match_result);
+    Status (*)(const void *holder, std::unique_ptr<PatternMatcherConfig> &matcher_config);
+using PythonFusionPassPatternsFn = Status (*)(const void *holder, std::vector<PatternUniqPtr> &patterns);
+using PythonFusionPassMeetRequirementsFn = bool (*)(const void *holder,
+                                                   const std::unique_ptr<MatchResult> &match_result);
 using PythonFusionPassReplacementFn =
-    Status (*)(void *holder, const std::unique_ptr<MatchResult> &match_result, GraphUniqPtr &replacement_graph);
-using PythonDecomposePassMeetRequirementsFn = bool (*)(void *holder, const GNode &matched_node);
+    Status (*)(const void *holder, const std::unique_ptr<MatchResult> &match_result, GraphUniqPtr &replacement_graph);
+using PythonDecomposePassMeetRequirementsFn = bool (*)(const void *holder, const GNode &matched_node);
 using PythonDecomposePassReplacementFn =
-    Status (*)(void *holder, const GNode &matched_node, GraphUniqPtr &replacement_graph);
+    Status (*)(const void *holder, const GNode &matched_node, GraphUniqPtr &replacement_graph);
 
 struct PythonFusionPassCallbacks {
   PythonFusionBasePassHolderCreateFn create{nullptr};

@@ -13,6 +13,7 @@
 #include <cerrno>
 #include <cstddef>
 #include <cstdint>
+#include <dlfcn.h>
 #include <unistd.h>
 #include <sys/syscall.h>
 #include <utility>
@@ -45,6 +46,9 @@ constexpr uint64_t kFnvPrime = 1099511628211ULL;
 constexpr int32_t kInvalidFd = -1;
 constexpr const char_t *kProcFdPrefix = "/proc/self/fd/";
 constexpr const char_t *kNoDiskFallbackHint = "strict no-disk-fallback is enabled.";
+constexpr const char *kReleaseOpsRegInfoSymbol = "ReleaseOpsRegInfo";
+
+using ReleaseOpsRegInfoFunc = void (*)();
 
 uint64_t CalculateFnv1a64(const uint8_t *data, const size_t data_len) {
   uint64_t hash = kFnvOffsetBasis;
@@ -64,6 +68,10 @@ int32_t CreateMemFdBySyscall(const std::string &name) {
   return kInvalidFd;
 #endif
 }
+
+ReleaseOpsRegInfoFunc GetReleaseOpsRegInfoFunc() {
+  return reinterpret_cast<ReleaseOpsRegInfoFunc>(mmDlsym(RTLD_DEFAULT, kReleaseOpsRegInfoSymbol));
+}
 }
 
 CustomOpSoLoader &CustomOpSoLoader::GetInstance() {
@@ -72,6 +80,12 @@ CustomOpSoLoader &CustomOpSoLoader::GetInstance() {
 }
 
 CustomOpSoLoader::~CustomOpSoLoader() {
+  if (!loaded_states_.empty()) {
+    const auto release_ops_reg_info = GetReleaseOpsRegInfoFunc();
+    if (release_ops_reg_info != nullptr) {
+      release_ops_reg_info();
+    }
+  }
   Cleanup();
 }
 

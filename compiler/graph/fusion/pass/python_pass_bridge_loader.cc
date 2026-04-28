@@ -18,6 +18,7 @@
 
 #include "ge/ge_api_types.h"
 #include "framework/common/debug/ge_log.h"
+#include "graph_metadef/graph/utils/file_utils.h"
 #include "pass_registry.h"
 #include "python_pass_adapter.h"
 #include "python_pass_bridge_c_api.h"
@@ -117,13 +118,18 @@ class PythonFusionPassBridgeLoader {
 
     const auto candidates = BuildBridgeLibraryCandidates();
     for (const auto &candidate : candidates) {
+      const auto real_path = RealPath(candidate.c_str());
+      if (real_path.empty()) {
+        GELOGI("Skip loading python pass bridge candidate[%s] because real path is invalid.", candidate.c_str());
+        continue;
+      }
       // bridge 会把 libpython 一并拉起并嵌入 CPython。这里使用 RTLD_GLOBAL，
       // 这样 embedded interpreter 后续导入标准库或 native extension 时，
       // 才能从已加载的 libpython 中继续解析 Python C-API 符号。
-      void *handle = dlopen(candidate.c_str(), RTLD_NOW | RTLD_GLOBAL);
+      void *handle = dlopen(real_path.c_str(), RTLD_NOW | RTLD_GLOBAL);
       if (handle == nullptr) {
         GELOGI("Skip loading python pass bridge candidate[%s]: %s",
-               candidate.c_str(),
+               real_path.c_str(),
                dlerror());
         continue;
       }
@@ -131,7 +137,7 @@ class PythonFusionPassBridgeLoader {
           dlsym(handle, kPythonFusionPassBridgeGetApiSymbol));
       if (get_api == nullptr) {
         GELOGW("Get python pass bridge api symbol failed from [%s]: %s",
-               candidate.c_str(),
+               real_path.c_str(),
                dlerror());
         (void)dlclose(handle);
         continue;
@@ -140,13 +146,13 @@ class PythonFusionPassBridgeLoader {
       if ((api == nullptr) || (api->abi_version != kPythonFusionPassBridgeAbiVersion) ||
           (api->register_passes == nullptr) || (api->reset_bridge_state == nullptr) ||
           (api->shutdown_bridge == nullptr)) {
-        GELOGW("Python pass bridge api is invalid from [%s].", candidate.c_str());
+        GELOGW("Python pass bridge api is invalid from [%s].", real_path.c_str());
         (void)dlclose(handle);
         continue;
       }
       handle_ = handle;
       api_ = api;
-      loaded_path_ = candidate;
+      loaded_path_ = real_path;
       GELOGI("Load python pass bridge from [%s] success.", loaded_path_.c_str());
       return SUCCESS;
     }

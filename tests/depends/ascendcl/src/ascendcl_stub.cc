@@ -1057,6 +1057,10 @@ aclError AclRuntimeStub::aclmdlRIBuildBegin(aclmdlRI *modelRI, uint32_t flag) {
   if (std::string(&record_path[0]).find("mock_fail") != std::string::npos) {
     return -1;
   }
+  // Set a mock handle to ensure rt_model_handle is not null
+  if (modelRI != nullptr) {
+    *modelRI = reinterpret_cast<aclmdlRI>(0x1);
+  }
   return ACL_SUCCESS;
 }
 

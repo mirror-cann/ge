@@ -895,7 +895,7 @@ TEST_F(UtestModelManagerModelManager, AutoDumpDebugJsonOnline_DumpGeGraphEnabled
       GetThreadLocalContext().GetAllOptions(), OptionRegistry::GetInstance().GetRegisteredOptTable());
   ASSERT_EQ(ret_oo, GRAPH_SUCCESS);
 
-  uint32_t model_id = 1;
+  uint32_t model_id = INVALID_MODEL_ID;  // Use INVALID_MODEL_ID to avoid conflicts with previous tests
   uint32_t device_id = 0;
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_auto_dump_online");
   GeRootModelPtr ge_root_model = make_shared<GeRootModel>();
@@ -916,12 +916,9 @@ TEST_F(UtestModelManagerModelManager, AutoDumpDebugJsonOnline_DumpGeGraphEnabled
       {RT_MEMORY_HBM, {RT_MEMORY_HBM, &mem, sizeof(mem), true, false, false, 0U, nullptr}});
 
   EXPECT_EQ(ModelManager::GetInstance().LoadModelOnline(model_id, ge_root_model, graph_node, device_id), SUCCESS);
-  /*
-* 背景：GE接口依赖RTS，RTS该接口还没上库
-* 临时规避方案：先注销该代码，GE先保证主体上库，等RTS上库后再重新打开。
-*/
-  // EXPECT_FALSE(g_acl_stub_debug_json_last_file_path.empty());
-  // EXPECT_NE(g_acl_stub_debug_json_last_file_path.find("debug_graph_"), std::string::npos);
+
+  EXPECT_FALSE(g_acl_stub_debug_json_last_file_path.empty());
+  EXPECT_NE(g_acl_stub_debug_json_last_file_path.find("debug_graph_"), std::string::npos);
   (void)ModelManager::GetInstance().Unload(model_id);
 
   GetThreadLocalContext().SetGraphOption(old_graph_options);
@@ -940,16 +937,12 @@ TEST_F(UtestModelManagerModelManager, AutoDumpDebugJsonOffline_DumpGeGraphEnable
   LoadStandardModelData(data);
   {
     ModelManager mm;
-    uint32_t model_id = std::numeric_limits<uint32_t>::max();
+    uint32_t model_id = INVALID_MODEL_ID;
     const ModelParam param;
     EXPECT_EQ(mm.LoadModelOffline(data, param, model_id), SUCCESS);
   }
-  /*
-* 背景：GE接口依赖RTS，RTS该接口还没上库
-* 临时规避方案：先注销该代码，GE先保证主体上库，等RTS上库后再重新打开。
-*/
-  // EXPECT_FALSE(g_acl_stub_debug_json_last_file_path.empty());
-  // EXPECT_NE(g_acl_stub_debug_json_last_file_path.find("debug_graph_"), std::string::npos);
+  EXPECT_FALSE(g_acl_stub_debug_json_last_file_path.empty());
+  EXPECT_NE(g_acl_stub_debug_json_last_file_path.find("debug_graph_"), std::string::npos);
 
   delete [] (uint8_t *)data.model_data;
   unsetenv("DUMP_GE_GRAPH");
@@ -964,7 +957,7 @@ TEST_F(UtestModelManagerModelManager, AutoDumpDebugJsonOffline_DumpGeGraphZeroNo
   LoadStandardModelData(data);
   {
     ModelManager mm;
-    uint32_t model_id = std::numeric_limits<uint32_t>::max();
+    uint32_t model_id = INVALID_MODEL_ID;
     const ModelParam param;
     EXPECT_EQ(mm.LoadModelOffline(data, param, model_id), SUCCESS);
   }
@@ -984,7 +977,7 @@ TEST_F(UtestModelManagerModelManager, AutoDumpDebugJsonOffline_FailSoftWhenDumpF
   LoadStandardModelData(data);
   {
     ModelManager mm;
-    uint32_t model_id = std::numeric_limits<uint32_t>::max();
+    uint32_t model_id = INVALID_MODEL_ID;
     const ModelParam param;
     EXPECT_EQ(mm.LoadModelOffline(data, param, model_id), SUCCESS);
   }

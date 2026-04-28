@@ -13,7 +13,6 @@
 #include "subscriber/profiler/base_executor_profiler.h"
 #include "exe_graph/lowering/graph_frame.h"
 #include "core/execution_data.h"
-#include "aprof_pub.h"
 
 namespace gert {
 class CannTracingProfiler : public BaseExecutorProfiler {

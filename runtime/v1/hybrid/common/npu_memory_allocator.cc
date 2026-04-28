@@ -225,6 +225,9 @@ void *NpuMemoryAllocator::AllocateHbmBuffer(const uint64_t size, const Allocatio
     const size_t platform_padding = static_cast<size_t>(ge::TensorUtilsEx::GetPaddingSize());
     const uint64_t append_size = kAlignSize + static_cast<uint64_t>(platform_padding);
     allocate_size = ((size + append_size - 1U) / kAlignSize) * kAlignSize;
+    if (allocate_size == 0) {
+      allocate_size = kAlignSize;
+    }
     GELOGD("Padding size [%" PRIu64 "] by platform padding [%zu]. final size = [%" PRIu64 "].",
            size, platform_padding, allocate_size);
   }

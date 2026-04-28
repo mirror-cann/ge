@@ -360,17 +360,17 @@ void DestroyPatternFusionPassHolderForUt(void *holder) {
   delete static_cast<PythonFusionBasePassHolderForUt *>(holder);
 }
 
-Status GetPatternsForUt(void *holder, std::vector<PatternUniqPtr> &patterns) {
+Status GetPatternsForUt(const void *holder, std::vector<PatternUniqPtr> &patterns) {
   ++g_pattern_fusion_runtime_snapshot.patterns_count;
   return g_pattern_fusion_runtime_snapshot.patterns_status;
 }
 
-bool MeetRequirementsForUt(void *holder, const std::unique_ptr<MatchResult> &match_result) {
+bool MeetRequirementsForUt(const void *holder, const std::unique_ptr<MatchResult> &match_result) {
   ++g_pattern_fusion_runtime_snapshot.meet_requirements_count;
   return g_pattern_fusion_runtime_snapshot.meet_requirements_result;
 }
 
-Status ReplacementForUt(void *holder, const std::unique_ptr<MatchResult> &match_result,
+Status ReplacementForUt(const void *holder, const std::unique_ptr<MatchResult> &match_result,
                         GraphUniqPtr &replacement_graph) {
   ++g_pattern_fusion_runtime_snapshot.replacement_count;
   return g_pattern_fusion_runtime_snapshot.replacement_status;
@@ -404,12 +404,12 @@ void DestroyDecomposePassHolderForUt(void *holder) {
   delete static_cast<PythonFusionBasePassHolderForUt *>(holder);
 }
 
-bool DecomposeMeetRequirementsForUt(void *holder, const GNode &matched_node) {
+bool DecomposeMeetRequirementsForUt(const void *holder, const GNode &matched_node) {
   ++g_decompose_runtime_snapshot.meet_requirements_count;
   return g_decompose_runtime_snapshot.meet_requirements_result;
 }
 
-Status DecomposeReplacementForUt(void *holder, const GNode &matched_node, GraphUniqPtr &replacement_graph) {
+Status DecomposeReplacementForUt(const void *holder, const GNode &matched_node, GraphUniqPtr &replacement_graph) {
   ++g_decompose_runtime_snapshot.replacement_count;
   return g_decompose_runtime_snapshot.replacement_status;
 }
@@ -432,9 +432,9 @@ void DestroyPythonFusionBasePassHolderForUt(void *holder) {
   delete static_cast<PythonFusionBasePassHolderForUt *>(holder);
 }
 
-Status RunPythonFusionBasePassHolderForUt(void *holder, GraphPtr &graph, CustomPassContext &pass_context) {
+Status RunPythonFusionBasePassHolderForUt(const void *holder, GraphPtr &graph, CustomPassContext &pass_context) {
   ++g_python_fusion_base_runtime_snapshot.run_count;
-  const auto *typed_holder = static_cast<PythonFusionBasePassHolderForUt *>(holder);
+  const auto *typed_holder = static_cast<const PythonFusionBasePassHolderForUt *>(holder);
   if (typed_holder != nullptr) {
     g_python_fusion_base_runtime_snapshot.last_descriptor_key = typed_holder->descriptor_key;
     g_python_fusion_base_runtime_snapshot.last_pass_name = typed_holder->pass_name;

@@ -434,7 +434,7 @@ enum class AllocLaunchArgOutputs {
   kNum
 };
 ge::graphStatus ProcFoldedDescArgs(const ge::NodePtr &compute_node, std::vector<ArgsInfosDesc::ArgsInfo> &args_infos);
-void SetDynShape(const Shape &shape, uint8_t *host_addr, const DynDesc &dyn_desc, size_t &shape_offset);
+ge::graphStatus SetDynShape(const Shape &shape, uint8_t *host_addr, const DynDesc &dyn_desc, size_t &shape_offset);
 void AssignDynamicDesc(DynDesc &dyn_desc, size_t j, int64_t index, size_t dyn_num);
 }  // namespace gert
 

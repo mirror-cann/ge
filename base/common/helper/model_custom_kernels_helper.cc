@@ -94,22 +94,19 @@ Status ModelHelper::SaveCustomOpsPartition(std::shared_ptr<OmFileSaveHelper> &om
   bool has_serializable_custom_op = false;
   bool has_non_serializable_custom_op = false;
   std::vector<std::pair<std::string, PortableOp *>> serializable_ops;
-  std::vector<std::unique_ptr<BaseCustomOp>> serializable_op_owners;
   serializable_ops.reserve(used_custom_op_types.size());
-  serializable_op_owners.reserve(used_custom_op_types.size());
   for (const auto &op_type_str : used_custom_op_types) {
-    auto op = CustomOpFactory::CreateCustomOp(AscendString(op_type_str.c_str()));
+    auto op = CustomOpFactory::CreateOrGetCustomOp(AscendString(op_type_str.c_str()));
     if (op == nullptr) {
       GELOGE(FAILED, "[CUSTOM OP] create custom op failed, op_type:%s", op_type_str.c_str());
       return FAILED;
     }
-    auto *serializable_op = dynamic_cast<PortableOp *>(op.get());
+    auto *serializable_op = dynamic_cast<PortableOp *>(op);
     if (serializable_op == nullptr) {
       has_non_serializable_custom_op = true;
     } else {
       has_serializable_custom_op = true;
       serializable_ops.emplace_back(op_type_str, serializable_op);
-      serializable_op_owners.emplace_back(std::move(op));
     }
     if (has_serializable_custom_op && has_non_serializable_custom_op) {
       GELOGE(FAILED,

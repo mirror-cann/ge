@@ -53,4 +53,22 @@ TEST_F(UtestThreadPool, WithContextSuccess) {
   GetThreadLocalContext().SetGraphOption(options_bk);
   error_message::SetErrMgrContext({work_stream_id_bk});
 }
+
+TEST_F(UtestThreadPool, WithoutContextDoesNotInheritThreadLocalOptions) {
+  auto options_bk = GetThreadLocalContext().GetAllGraphOptions();
+  GetThreadLocalContext().SetGraphOption({{"test_pool", "1"}});
+
+  ThreadPool pool("test_pool", 1, false);
+  auto fut = pool.commit([]() -> Status {
+    std::string option_value;
+    const auto ret = GetThreadLocalContext().GetOption("test_pool", option_value);
+    if (ret == GRAPH_SUCCESS) {
+      return FAILED;
+    }
+    return SUCCESS;
+  });
+  EXPECT_EQ(fut.get(), SUCCESS);
+
+  GetThreadLocalContext().SetGraphOption(options_bk);
+}
 }

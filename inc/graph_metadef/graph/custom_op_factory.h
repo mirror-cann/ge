@@ -10,19 +10,20 @@
 
 #ifndef CANN_GRAPH_ENGINE_CUSTOM_OP_REGISTRY_H
 #define CANN_GRAPH_ENGINE_CUSTOM_OP_REGISTRY_H
+#include <vector>
+
 #include "graph/custom_op.h"
 #include "graph/ascend_string.h"
 #include "graph/ge_error_codes.h"
 
 
 namespace ge {
-using BaseOpCreator = std::function<std::unique_ptr<BaseCustomOp>()>;
 
 class CustomOpFactory {
 public:
   static graphStatus RegisterCustomOpCreator(const AscendString &op_type, const BaseOpCreator &op_creator);
 
-  static std::unique_ptr<BaseCustomOp> CreateCustomOp(const AscendString &op_type);
+  static BaseCustomOp *CreateOrGetCustomOp(const AscendString &op_type);
 
   static graphStatus GetAllRegisteredOps(std::vector<AscendString> &all_registered_ops);
 

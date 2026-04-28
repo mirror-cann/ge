@@ -20,7 +20,7 @@ class CustomOpFactoryImpl {
 public:
   graphStatus RegisterCustomOpCreator(const AscendString &op_type, const BaseOpCreator &op_creator);
 
-  std::unique_ptr<BaseCustomOp> CreateCustomOp(const AscendString &op_type);
+  BaseCustomOp *CreateOrGetCustomOp(const AscendString &op_type);
 
   graphStatus GetAllRegisteredOps(std::vector<AscendString> &all_registered_ops);
 
@@ -36,6 +36,7 @@ public:
 private:
   std::mutex mu_;
   std::map<AscendString, BaseOpCreator> custom_op_creators_;
+  std::map<AscendString, std::unique_ptr<BaseCustomOp>> custom_ops_;
   CustomOpFactoryImpl();
 };
 }  // namespace ge

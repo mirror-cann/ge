@@ -31,23 +31,28 @@ Status CustomOpFactoryImpl::RegisterCustomOpCreator(const AscendString &op_type,
   return GRAPH_SUCCESS;
 }
 
-std::unique_ptr<BaseCustomOp> CustomOpFactoryImpl::CreateCustomOp(const AscendString &op_type) {
-  BaseOpCreator op_creator;
-  {
-    const std::lock_guard<std::mutex> lock(mu_);
-    const auto it = custom_op_creators_.find(op_type);
-    if (it == custom_op_creators_.cend()) {
-      GELOGW("[CUSTOM OP] get custom operator creator failed for %s.", op_type.GetString());
-      return nullptr;
-    }
-    if (it->second == nullptr) {
+BaseCustomOp *CustomOpFactoryImpl::CreateOrGetCustomOp(const AscendString &op_type) {
+  const std::lock_guard<std::mutex> lock(mu_);
+  if (const auto it = custom_ops_.find(op_type); it != custom_ops_.cend()) {
+    GELOGD("[CUSTOM OP] custom_op %s already created .", op_type.GetString());
+    return it->second.get();
+  }
+  if (const auto op_creator_it = custom_op_creators_.find(op_type); op_creator_it != custom_op_creators_.cend()) {
+    if (op_creator_it->second == nullptr) {
       GELOGE(GRAPH_PARAM_INVALID, "[Check][Param] custom op creator for %s is null.", op_type.GetString());
       return nullptr;
     }
-    op_creator = it->second;
+    auto base_custom_op = op_creator_it->second();
+    auto [ops_it, success] = custom_ops_.emplace(op_type, std::move(base_custom_op));
+    if (success) {
+      return ops_it->second.get();
+    }
+    GELOGW("[CUSTOM OP] custom op instance found, get failed for %s.", op_type.GetString());
   }
-  return op_creator();
+  GELOGW("[CUSTOM OP] get custom operator creator failed for %s.", op_type.GetString());
+  return nullptr;
 }
+
 Status CustomOpFactoryImpl::GetAllRegisteredOps(std::vector<AscendString> &all_registered_ops) {
   const std::lock_guard<std::mutex> lock(mu_);
   for (const auto &op_creator : custom_op_creators_) {
@@ -96,7 +101,7 @@ graphStatus CustomOpFactoryImpl::LoadCustomOpsPartition(const uint8_t *data, siz
     const std::string op_type(op_type_ptr, header->name_len);
 
     // 5. 创建算子实例
-    auto op = CreateCustomOp(AscendString(op_type.c_str()));
+    auto op = CreateOrGetCustomOp(AscendString(op_type.c_str()));
     if (op == nullptr) {
       GELOGE(GRAPH_FAILED, "[CUSTOM OP] Custom op '%s' not found in registry, "
              "environment mismatch detected", op_type.c_str());
@@ -104,7 +109,7 @@ graphStatus CustomOpFactoryImpl::LoadCustomOpsPartition(const uint8_t *data, siz
     }
 
     // 6. 能力检测
-    auto *serializable_op = dynamic_cast<PortableOp *>(op.get());
+    auto *serializable_op = dynamic_cast<PortableOp *>(op);
     if (serializable_op == nullptr) {
       GELOGE(GRAPH_FAILED, "[CUSTOM OP] Custom op '%s' is not PortableOp, "
              "type mismatch or version inconsistency detected", op_type.c_str());

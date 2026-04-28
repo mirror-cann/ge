@@ -11,16 +11,24 @@
 #ifndef METADEF_CXX_INC_GRAPH_BASE_CUSTOM_OP_H
 #define METADEF_CXX_INC_GRAPH_BASE_CUSTOM_OP_H
 #include "exe_graph/runtime/eager_op_execution_context.h"
+#include "exe_graph/runtime/op_compile_context.h"
+#include <functional>
+#include <memory>
+#include "graph/ge_error_codes.h"
 
 namespace ge {
+/**
+ * 自定义算子能力接口的公共基类。
+ * 用户可按需组合继承 CompilableOp、EagerExecuteOp、ShapeInferOp，
+ * 以声明算子支持的构图编译、Eager 执行和推理能力。
+ */
 class BaseCustomOp {
  public:
-  virtual graphStatus Execute(gert::EagerOpExecutionContext *ctx) = 0;
   virtual ~BaseCustomOp() = default;
 };
 
-class PortableOp : public BaseCustomOp {
- public:
+class PortableOp : virtual public BaseCustomOp {
+public:
   /**
    * 序列化自定义算子的 kernel bin 数据
    * @param buffer 输出的二进制数据，由算子自定义格式，GE 不解析只透传
@@ -38,18 +46,45 @@ class PortableOp : public BaseCustomOp {
   ~PortableOp() override = default;
 };
 
-class EagerExecuteOp : public BaseCustomOp {
+/**
+ * 自定义算子的构图编译接口。
+ * 当算子进入 GE 构图编译流程后，若实现该接口，GE 会回调 Compile
+ * 完成算子编译相关处理。
+ */
+class CompilableOp : virtual public BaseCustomOp {
+  public:
+  ~CompilableOp() override = default;
+  /**
+   * 自定义算子及时编译函数
+   * @param ctx 算子编译上下文
+   * @return 状态码
+   */
+  virtual graphStatus Compile(gert::OpCompileContext *ctx) = 0;
+};
+
+/**
+ * 自定义算子的 Eager 执行接口。
+ * 适用于算子基于运行时上下文执行的场景。
+ */
+class EagerExecuteOp : virtual public BaseCustomOp {
  public:
   /**
-   * Eager类自定义OP的执行函数
-   * @param ctx。执行时上下文，可通过上下文获取input tensor，分配输出内存，分配workspace等
+   * 自定义算子的执行函数
+   * @param ctx 执行时上下文，可通过上下文获取input tensor，分配输出内存，分配workspace等
    * @return 状态码
    */
   virtual graphStatus Execute(gert::EagerOpExecutionContext *ctx) = 0;
 };
 
+/**
+ * 自定义算子实例创建函数类型。
+ */
 using BaseOpCreator = std::function<std::unique_ptr<BaseCustomOp>()>;
 
+/**
+ * 自定义算子创建器注册辅助类。
+ * 通常配合 REG_AUTO_MAPPING_OP 宏静态注册算子类型和创建函数。
+ */
 class CustomOpCreatorRegister {
 public:
   CustomOpCreatorRegister(const AscendString &operator_type, const BaseOpCreator &op_creator);

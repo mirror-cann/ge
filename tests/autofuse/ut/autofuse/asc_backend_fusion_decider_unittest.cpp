@@ -1092,15 +1092,18 @@ static std::shared_ptr<AscGraph> CreatStridedSliceAscGraph(ge::AscGraph &graph) 
   x.attr.sched.loop_axis = c.id;
   *x.y.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   *x.y.repeats = {A + ONE, B + ONE, C, D, E, F};
-  *x.y.strides = {B * C * D * E * F, C * D * E * F, D * E * F, E * F, F, ONE};
+  *x.y.strides = {(B + ONE) * C * D * E * F, C * D * E * F, D * E * F, E * F, F, ONE};
   x.ir_attr.SetIndex(0);
 
   ge::ascir_op::Load xLocal("xLocal_stridedSlice");
   xLocal.x = x.y;
   xLocal.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   *xLocal.y.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
-  *xLocal.y.repeats = {A + ONE, B + ONE, C, D, E, F};
-  *xLocal.y.strides = {B * C * D * E * F, C * D * E * F, D * E * F, E * F, F, ONE};
+  *xLocal.y.repeats = {A, B, C, D, E, F};
+  *xLocal.y.strides = {(B + ONE) * C * D * E * F, C * D * E * F, D * E * F, E * F, F, ONE};
+  // slice: Load带offset和non-contiguous strides
+  // offset = start[0] * data_stride[0] = ONE * (B+1)*C*D*E*F
+  (void)xLocal.ir_attr.SetOffset(ONE * (B + ONE) * C * D * E * F);
 
   ge::ascir_op::Store x_store("x_store_stridedSlice");
   x_store.x = xLocal.y;
@@ -4340,6 +4343,96 @@ TEST_F(AscBackendFusionDeciderTest, AscBackendFusionDecider_GraphAndLoad_AxisNum
   ASSERT_NE(shape_env_attr, nullptr);
   AscBackendPostProcessor post_processor;
   EXPECT_EQ(post_processor.Do(graph), SUCCESS);
+}
+
+// 场景2: slice不含broadcast时，CanFuse允许与含broadcast的pointwise AscBackend垂直融合
+// 验证：CheckIfSliceNodeContainsBroadcast对不含broadcast的slice返回false → CanFuse不拦截
+TEST_F(AscBackendFusionDeciderTest, SliceWithoutBroadcast_CanFuseWithPointwiseWithBroadcast) {
+  AscBackendFusionDecider decider;
+  auto data = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
+      .OutNames({"y"}).Build("data");
+  auto slice_desc = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
+      .OutNames({"y"}).Build("SliceNode");
+  auto add_desc = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(2).OutCnt(1).InNames({"x1","x2"})
+      .OutNames({"y"}).Build("AddWithBroadcast");
+  auto d_desc = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
+      .OutNames({"y"}).Build("D");
+  DEF_GRAPH(g1) {
+    CHAIN(NODE(data)->EDGE(0, 0)->NODE(slice_desc));
+    CHAIN(NODE(slice_desc)->EDGE(0, 0)->NODE(add_desc));
+    CHAIN(NODE(data)->EDGE(0, 1)->NODE(add_desc));
+    CHAIN(NODE(add_desc)->EDGE(0, 0)->NODE(d_desc));
+    CHAIN(NODE(d_desc)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
+  };
+  auto compute_graph = ToComputeGraph(g1);
+  for (const auto &node : compute_graph->GetAllNodes()) {
+    SetAttrsGroup(node);
+  }
+
+  auto slice_node = compute_graph->FindNode("SliceNode");
+  ASSERT_NE(slice_node, nullptr);
+  auto add_node = compute_graph->FindNode("AddWithBroadcast");
+  ASSERT_NE(add_node, nullptr);
+
+  // slice_node: kSliceSplit，不含broadcast
+  ge::AscGraph slice_graph(slice_node->GetName().c_str());
+  auto slice_attr = GetOrCreateAutoFuseAttrs(slice_node->GetOpDescBarePtr());
+  ASSERT_NE(slice_attr, nullptr);
+  slice_attr->SetAscGraph(CreatStridedSliceAscGraph(slice_graph), loop::FuseType::kSliceSplit);
+
+  // add_node: 含broadcast
+  ge::AscGraph add_graph(add_node->GetName().c_str());
+  auto add_attr = GetOrCreateAutoFuseAttrs(add_node->GetOpDescBarePtr());
+  ASSERT_NE(add_attr, nullptr);
+  add_attr->SetAscGraph(CreatBroadcastAddAscGraph(add_graph));
+
+  // slice不含broadcast → 旁路broadcast不干扰slice与pointwise的融合
+  EXPECT_EQ(decider.CanFuseVertical(slice_node, add_node), true);
+}
+
+// 场景5: slice输出连接多个后续节点时，IsSliceOnly()和多输出分支场景的融合判断
+// 验证：slice AscBackend不包含broadcast时，与后续pointwise AscBackend垂直融合允许
+TEST_F(AscBackendFusionDeciderTest, SliceOutputToMultipleNodes_CanFuseWithPointwise) {
+  AscBackendFusionDecider decider;
+  auto data = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
+      .OutNames({"y"}).Build("data");
+  auto slice_desc = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
+      .OutNames({"y"}).Build("SliceNode");
+  auto abs_desc = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
+      .OutNames({"y"}).Build("AbsNode");
+  auto add_desc = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(2).OutCnt(1).InNames({"x1","x2"})
+      .OutNames({"y"}).Build("FinalAdd");
+  DEF_GRAPH(g1) {
+    CHAIN(NODE(data)->EDGE(0, 0)->NODE(slice_desc));
+    CHAIN(NODE(slice_desc)->EDGE(0, 0)->NODE(abs_desc));
+    CHAIN(NODE(slice_desc)->EDGE(0, 1)->NODE(add_desc));
+    CHAIN(NODE(abs_desc)->EDGE(0, 0)->NODE(add_desc));
+    CHAIN(NODE(add_desc)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
+  };
+  auto compute_graph = ToComputeGraph(g1);
+  for (const auto &node : compute_graph->GetAllNodes()) {
+    SetAttrsGroup(node);
+  }
+
+  auto slice_node = compute_graph->FindNode("SliceNode");
+  ASSERT_NE(slice_node, nullptr);
+  auto abs_node = compute_graph->FindNode("AbsNode");
+  ASSERT_NE(abs_node, nullptr);
+
+  // slice_node: kSliceSplit，不含broadcast
+  ge::AscGraph slice_graph(slice_node->GetName().c_str());
+  auto slice_attr = GetOrCreateAutoFuseAttrs(slice_node->GetOpDescBarePtr());
+  ASSERT_NE(slice_attr, nullptr);
+  slice_attr->SetAscGraph(CreatStridedSliceAscGraph(slice_graph), loop::FuseType::kSliceSplit);
+
+  // abs_node: kPointwise
+  ge::AscGraph abs_graph(abs_node->GetName().c_str());
+  auto abs_attr = GetOrCreateAutoFuseAttrs(abs_node->GetOpDescBarePtr());
+  ASSERT_NE(abs_attr, nullptr);
+  abs_attr->SetAscGraph(CreatAddAscGraph(abs_graph), loop::FuseType::kPointwise);
+
+  // 多输出分支场景：slice不含broadcast → 允许与abs融合
+  EXPECT_EQ(decider.CanFuseVertical(slice_node, abs_node), true);
 }
 
 }  // namespace ge

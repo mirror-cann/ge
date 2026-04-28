@@ -8,23 +8,19 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-#ifndef API_PYTHON_GE_GE_PASSES_NATIVE_BINDINGS_BINDING_COMMON_H_
-#define API_PYTHON_GE_GE_PASSES_NATIVE_BINDINGS_BINDING_COMMON_H_
+#ifndef CANN_GRAPH_ENGINE_OP_COMPILE_CONTEXT_H
+#define CANN_GRAPH_ENGINE_OP_COMPILE_CONTEXT_H
 
-#include "pybind11/detail/common.h"
-#ifdef ASCEND_CI_LIMITED_PY37
-#undef PyCFunction_NewEx
-#endif
-#include "pybind11/pybind11.h"
-#include "pybind11/stl.h"
+#include "exe_graph/runtime/extended_kernel_context.h"
+#include "platform/platform_infos_def.h"
 
-#undef PYBIND11_CHECK_PYTHON_VERSION
-#define PYBIND11_CHECK_PYTHON_VERSION
+namespace gert {
 
-namespace ge {
-namespace python_pass_native {
-namespace py = pybind11;
-}  // namespace python_pass_native
-}  // namespace ge
+class OpCompileContext : public ExtendedKernelContext {
+ public:
+  ge::graphStatus GetOption(const ge::AscendString &option_key, ge::AscendString &option) const;
+  ge::graphStatus GetPlatformInfos(fe::PlatFormInfos &platform_info, fe::OptionalInfos& optional_infos) const;
+};
 
-#endif  // API_PYTHON_GE_GE_PASSES_NATIVE_BINDINGS_BINDING_COMMON_H_
+}  // namespace gert
+#endif  // CANN_GRAPH_ENGINE_OP_COMPILE_CONTEXT_H

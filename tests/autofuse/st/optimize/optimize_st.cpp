@@ -4537,3 +4537,49 @@ TEST_F(OptimizerSt, SliceSliceConcatD) {
   unsetenv("AUTOFUSE_DFX_FLAGS");
   ::ascir::utils::ResetDumpConfig();
 }
+
+// ============================================================================
+// Multi-Transpose ST Tests (covering the multi-transpose-to-load feature)
+// ============================================================================
+
+TEST_F(OptimizerSt, multi_transpose_two_branch_dynamic) {
+  auto s0 = Sym("s0"), s1 = Sym("s1"), s2 = Sym("s2");
+  auto graph = AscGraphBuilder("multi_transpose_two_branch")
+                   .Loops({s0, s1, s2})
+                   .Data("data0", 0, ge::DT_FLOAT16)
+                   .Load("load0", "data0")
+                   .Transpose("transpose0", "load0", {1, 0, 2})
+                   .Data("data1", 1, ge::DT_FLOAT16)
+                   .Load("load1", "data1")
+                   .Transpose("transpose1", "load1", {2, 1, 0})
+                   .Mul("mul0", "transpose0", "transpose1")
+                   .Store("store0", "mul0")
+                   .Output("out0", "store0", 0)
+                   .Build();
+
+  ::ascir::FusedScheduledResult fused_scheduled_result;
+  EXPECT_EQ(optimizer.Optimize(graph, fused_scheduled_result), 0);
+  EXPECT_EQ(fused_scheduled_result.node_idx_to_scheduled_results[0].size(), 1);
+  EXPECT_EQ(fused_scheduled_result.node_idx_to_scheduled_results[0][0].schedule_groups.size(), 1);
+}
+
+TEST_F(OptimizerSt, multi_transpose_two_branch_static) {
+  auto s0 = Sym(16), s1 = Sym(86), s2 = Sym(36);
+  auto graph = AscGraphBuilder("multi_transpose_two_branch_static")
+                   .Loops({s0, s1, s2})
+                   .Data("data0", 0, ge::DT_FLOAT16)
+                   .Load("load0", "data0")
+                   .Transpose("transpose0", "load0", {1, 0, 2})
+                   .Data("data1", 1, ge::DT_FLOAT16)
+                   .Load("load1", "data1")
+                   .Transpose("transpose1", "load1", {2, 1, 0})
+                   .Mul("mul0", "transpose0", "transpose1")
+                   .Store("store0", "mul0")
+                   .Output("out0", "store0", 0)
+                   .Build();
+
+  ::ascir::FusedScheduledResult fused_scheduled_result;
+  EXPECT_EQ(optimizer.Optimize(graph, fused_scheduled_result), 0);
+  EXPECT_EQ(fused_scheduled_result.node_idx_to_scheduled_results[0].size(), 1);
+  EXPECT_EQ(fused_scheduled_result.node_idx_to_scheduled_results[0][0].schedule_groups.size(), 1);
+}

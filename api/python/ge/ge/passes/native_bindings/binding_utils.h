@@ -11,6 +11,7 @@
 #ifndef API_PYTHON_GE_GE_PASSES_NATIVE_BINDINGS_BINDING_UTILS_H_
 #define API_PYTHON_GE_GE_PASSES_NATIVE_BINDINGS_BINDING_UTILS_H_
 
+#include <memory>
 #include <stdexcept>
 #include <string>
 
@@ -82,11 +83,14 @@ inline void InvalidatePythonGraph(py::object graph_obj) {
 
 inline py::object BuildPythonNode(const GNode &node) {
   // new 失败, python会捕获异常
-  auto *node_copy = new GNode(node);
+  auto node_copy = std::make_unique<GNode>(node);
   py::module_ graph_module = py::module_::import("ge.graph");
   py::object node_type = graph_module.attr("Node");
-  return node_type.attr("_create_from")(BuildPointerObject(reinterpret_cast<uintptr_t>(node_copy)),
-                                        py::bool_(true));
+  py::object python_node =
+      node_type.attr("_create_from")(BuildPointerObject(reinterpret_cast<uintptr_t>(node_copy.get())),
+                                     py::bool_(true));
+  (void)node_copy.release();
+  return python_node;
 }
 
 inline py::object BuildPythonNodeIo(const NodeIo &node_output) {

@@ -13,7 +13,6 @@
 #include <atomic>
 #include <queue>
 #include <mutex>
-#include "aprof_pub.h"
 
 namespace gert {
   struct MemoryRecorder {

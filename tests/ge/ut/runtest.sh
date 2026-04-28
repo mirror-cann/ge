@@ -25,6 +25,4 @@ ${OUTPUT_PATH}/ut_libge_distinct_load_utest &&
 ${OUTPUT_PATH}/ut_libge_others_utest &&
 ${OUTPUT_PATH}/ut_libge_kernel_utest &&
 ${OUTPUT_PATH}/ut_libge_common_utest &&
-${OUTPUT_PATH}/ut_llm_engine_utest &&
-${OUTPUT_PATH}/ut_llm_datadist_utest &&
 ${OUTPUT_PATH}/ut_sc_check

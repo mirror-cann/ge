@@ -69,4 +69,4 @@ target_link_libraries(llm_engine_test
 )
 
 add_test(NAME llm_engine_test COMMAND llm_engine_test --gtest_output=xml:${CMAKE_INSTALL_PREFIX}/report/st/llm_engine_test.xml)
-set_tests_properties(llm_engine_test PROPERTIES LABELS "st;st_hetero;llm_engine_test")
+set_tests_properties(llm_engine_test PROPERTIES LABELS "st;st_dflow;llm_engine_test")

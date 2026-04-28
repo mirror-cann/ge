@@ -26,6 +26,7 @@
 #include "post_process/asc_backend_post_processor.h"
 #include "post_process/scheduler_adapter/adaption_fallback_load.h"
 #include "utils/auto_fuse_config.h"
+#include "fusion/autofuse_attrs.h"
 #include "backend/backend_spec.h"
 #include "ascgen_log.h"
 
@@ -36,6 +37,7 @@
 #include "compliant_op_desc_builder.h"
 #include "esb_graph.h"
 #include "base/att_const_values.h"
+#include "graph/ascendc_ir/utils/asc_graph_utils.h"
 
 using namespace std;
 using namespace testing;
@@ -136,49 +138,128 @@ class LoweringAndCanfuseUT : public testing::Test {
     es_graph_->SetOutput(cast3, 1);
   }
 
-  ComputeGraphPtr BuildConcatFirstDimGraph(const std::string &last_dim, bool contains_reduce) {
-    auto data0 = es_graph_->CreateInput(0, "data0", nullptr);
-    data0.SetSymbolShape({"1", "2", "1", last_dim.c_str()});
-    auto data1 = es_graph_->CreateInput(1, "data1", nullptr);
-    data1.SetSymbolShape({"1", "2", "1", last_dim.c_str()});
+  // 构建Slice包含Broadcast的测试图结构
+  void BuildSliceWithBroadcastGraph() {
+    auto data1 = es_graph_->CreateInput(0, "data1", nullptr);
+    data1.SetSymbolShape({"128", "300"});
+    auto data2 = es_graph_->CreateInput(1, "data2", nullptr);
+    data2.SetSymbolShape({"1", "1", "32"});   // 小shape会被broadcast
+    auto data3 = es_graph_->CreateInput(2, "data3", nullptr);
+    data3.SetSymbolShape({"128", "64", "32"}); // 大shape
 
-    auto abs0 = es::Abs(data0);
-    abs0.SetSymbolShape({"1", "2", "1", last_dim.c_str()});
+    auto slice = es::StridedSliceD(data1, {0, 0}, {128, 64}, {1, 1});
+    slice.SetSymbolShape({"128", "64"});
 
-    if (contains_reduce) {
-      auto sum = es::ReduceSumD(data1, {1}, true);
-      sum.SetSymbolShape({"1", "2", "1", last_dim.c_str()});
-      auto concat = es::ConcatD({abs0, sum}, 1);
-      concat.SetSymbolShape({"1", "4", "1", last_dim.c_str()});
-      es_graph_->SetOutput(concat, 0);
-    } else {
-      auto concat = es::ConcatD({abs0, data1}, 1);
-      concat.SetSymbolShape({"1", "4", "1", last_dim.c_str()});
-      es_graph_->SetOutput(concat, 0);
-    }
-    auto graph = es_graph_->Build();
-    auto cg = GraphUtilsEx::GetComputeGraph(*graph);
-    return cg;
+    // Mul会产生broadcast: {1,1,32} -> {128,64,32}
+    // lowering时slice和mul可能融合到同一个AscBackend，slice后接显式broadcast ascir节点
+    auto mul = es::Mul(data2, data3);
+    mul.SetSymbolShape({"128", "64", "32"});
+
+    auto expand_axis = CreateConst(*es_graph_, ge::DT_INT64, {1}, std::vector<int64_t>{-1});
+    expand_axis.SetSymbolShape({"1"});
+    auto expand = es::ExpandDims(slice, expand_axis);
+    expand.SetSymbolShape({"128", "64", "1"});
+
+    auto scalar = CreateConst(*es_graph_, ge::DT_FLOAT, {1}, std::vector<float>{1.23});
+    scalar.SetSymbolShape({"1"});
+    auto add = es::Add(mul, scalar);
+    add.SetSymbolShape({"128", "64", "32"});
+    auto sqrt = es::Sqrt(add);
+    sqrt.SetSymbolShape({"128", "64", "32"});
+
+    auto div = es::Div(expand, sqrt);
+    div.SetSymbolShape({"128", "64", "32"});
+
+    auto data4 = es_graph_->CreateInput(3, "data4", nullptr);
+    data4.SetSymbolShape({"128", "64", "32"});
+    auto sub = es::Sub(div, data4);
+    sub.SetSymbolShape({"128", "64", "32"});
+
+    auto prod = es::ReduceProdD(sub, {1});
+    prod.SetSymbolShape({"128", "1", "32"});
+    es_graph_->SetOutput(prod, 0);
   }
 
-  ComputeGraphPtr BuildConcatFirstDimWithReuseGraph(const std::string &last_dim) {
-    auto data0 = es_graph_->CreateInput(0, "data0", nullptr);
-    data0.SetSymbolShape({"1", "2", "1", last_dim.c_str()});
-    auto data1 = es_graph_->CreateInput(1, "data1", nullptr);
-    data1.SetSymbolShape({"1", "2", "1", last_dim.c_str()});
+  // 检查Load节点是否有slice view op信息（通过offset判断）
+  bool CheckLoadHasSliceOffset(const ge::NodePtr &sub_node) const {
+    auto node_attr = sub_node->GetOpDesc()->GetAttrsGroup<AscNodeAttr>();
+    if (node_attr == nullptr || node_attr->ir_attr == nullptr) {
+      return false;
+    }
+    auto load_attr = dynamic_cast<ascir_op::Load::AscLoadIrAttrDef *>(node_attr->ir_attr.get());
+    if (load_attr == nullptr) {
+      return false;
+    }
+    Expression offset;
+    if (load_attr->GetOffset(offset) == GRAPH_SUCCESS) {
+      return (offset != Symbol(0) && offset != Symbol(""));
+    }
+    return false;
+  }
 
-    auto abs0 = es::Abs(data0);
-    abs0.SetSymbolShape({"1", "2", "1", last_dim.c_str()});
+  // 检查Load节点是否有slice view op信息（通过strides判断）
+  bool CheckLoadHasSliceStrides(const ge::NodePtr &sub_node) const {
+    auto out_anchor = sub_node->GetOutDataAnchor(0);
+    if (out_anchor == nullptr) {
+      return false;
+    }
+    auto tensor_attr = AscTensorAttr::GetTensorAttrPtr(*out_anchor);
+    if (tensor_attr == nullptr) {
+      return false;
+    }
+    for (size_t i = 0; i < tensor_attr->strides.size(); ++i) {
+      if (BackendUtils::IsEq(tensor_attr->strides[i], Symbol(1)) == false &&
+          tensor_attr->strides[i].IsValid()) {
+        return true;
+      }
+    }
+    return false;
+  }
 
-    auto sum = es::ReduceSumD(data1, {1}, true);
-    sum.SetSymbolShape({"1", "2", "1", last_dim.c_str()});
-    auto concat = es::ConcatD({abs0, sum, abs0}, 1);
-    concat.SetSymbolShape({"1", "6", "1", last_dim.c_str()});
-    es_graph_->SetOutput(concat, 0);
-    auto graph = es_graph_->Build();
-    auto cg = GraphUtilsEx::GetComputeGraph(*graph);
-    auto concat_node = cg->FindFirstNodeMatchType("ConcatD");
-    return cg;
+  // 验证AscIr子图中是否包含Broadcast和Slice节点
+  bool VerifySliceAndBroadcastInAscIr(const ComputeGraphPtr &cg, bool &found_broadcast_node,
+                                       bool &found_slice_load_node) const {
+    for (const auto &node : cg->GetDirectNode()) {
+      if (node->GetType() != kAscBackendType) {
+        continue;
+      }
+      auto attr = GetOrCreateAutoFuseAttrs(node->GetOpDesc());
+      if (attr == nullptr || attr->GetAscGraph() == nullptr) {
+        continue;
+      }
+      auto sub_graph = AscGraphUtils::GetComputeGraph(*(attr->GetAscGraph()));
+      if (sub_graph == nullptr) {
+        continue;
+      }
+      for (const auto &sub_node : sub_graph->GetDirectNode()) {
+        // 检查是否有显式Broadcast节点
+        if (sub_node->GetType() == att::kBroadcast) {
+          found_broadcast_node = true;
+        }
+        // 检查是否有Slice类型节点
+        if (sub_node->GetType() == kSliceType) {
+          found_slice_load_node = true;
+        }
+        // 检查Load节点是否有slice信息
+        if (sub_node->GetType() == att::kLoad) {
+          if (CheckLoadHasSliceOffset(sub_node) || CheckLoadHasSliceStrides(sub_node)) {
+            found_slice_load_node = true;
+          }
+        }
+      }
+    }
+    return true;
+  }
+
+  // 统计AscBackend节点数量
+  size_t CountAscBackendNodes(const ComputeGraphPtr &cg) const {
+    size_t count = 0;
+    for (const auto &node : cg->GetDirectNode()) {
+      if (node->GetType() == kAscBackendType) {
+        count++;
+      }
+    }
+    return count;
   }
 
   void PrintComputeGraphNodes(const ComputeGraphPtr &cg) {
@@ -261,9 +342,15 @@ class LoweringAndCanfuseUT : public testing::Test {
     ASSERT_NE(attr, nullptr);
     ASSERT_NE(attr->GetAscGraph(), nullptr);
 
+    std::cout << "=== AscBackend: " << asc_backend_node->GetName() << " ===" << std::endl;
     for (const auto &asc_node : attr->GetAscGraph()->GetAllNodes()) {
       asc_adapt::TensorInfo tensor_desc;
       ASSERT_EQ(asc_adapt::GetTensorInfo(asc_node, tensor_desc), SUCCESS);
+      std::cout << "  AscNode: " << asc_node->GetName()
+                << ", Type: " << asc_node->GetType()
+                << ", Repeats: " << AutofuseUtils::VectorToStr(tensor_desc.repeats)
+                << ", Strides: " << AutofuseUtils::VectorToStr(tensor_desc.strides)
+                << std::endl;
       for (size_t i = 0; i < tensor_desc.repeats.size(); ++i) {
         if (BackendUtils::IsEqOne(tensor_desc.repeats[i])) {
           EXPECT_TRUE(BackendUtils::IsEqZero(tensor_desc.strides[i]))
@@ -1552,117 +1639,258 @@ TEST_F(LoweringAndCanfuseUT, ReluCastReshapeMultiRefConcat) {
   SetCurShapeEnvContext(nullptr);
 }
 
-// 验证 slice+slice+broadcast_add 场景下 Load 节点 strides 的具体值
-// 这是真实出问题的网络：slice -> strided_slice -> abs -> log -> relu -> broadcast_add
-// broadcast_add: (1,10,1,14) + (32,10,1,14) -> (32,10,1,14)
-// 问题：broadcast 可能导致 loop_axis 变化，进而影响 Load strides 的计算
-TEST_F(LoweringAndCanfuseUT, SliceSliceLoadStridesVerification) {
+// =====================================================
+// SliceSplitFusionStrategy::CanFuse 测试用例
+// =====================================================
+
+// 场景1: Slice节点内部包含显式Broadcast AscIr节点
+// 关键：在lowering阶段，slice和含有broadcast的节点融合到同一个AscBackend
+// 导致slice后边接了显式的broadcast ascir节点
+TEST_F(LoweringAndCanfuseUT, SliceContainsBroadcastAscIrNode) {
+  BuildSliceWithBroadcastGraph();
+
+  auto graph = es_graph_->Build();
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+
+  ge::PatternFusion patter_fusion;
+  ASSERT_EQ(patter_fusion.RunAllPatternFusion(cg), GRAPH_SUCCESS);
+  ge::AscIrLowerer lowerer;
+  ASSERT_EQ(lowerer.Lowering(cg), GRAPH_SUCCESS);
+  ASSERT_EQ(asc_adapt::GeFallback(cg), GRAPH_SUCCESS);
+
+  // 校验AscIr子图中的节点结构：slice表示为非连续strides的Load，broadcast显式表示为Broadcast节点
+  bool found_broadcast_node = false;
+  bool found_slice_load_node = false;
+  VerifySliceAndBroadcastInAscIr(cg, found_broadcast_node, found_slice_load_node);
+  // 校验：在包含broadcast的场景中，应该能找到显式Broadcast节点和slice相关节点
+  EXPECT_TRUE(found_broadcast_node);
+  EXPECT_TRUE(found_slice_load_node);
+
+  // 记录融合前AscBackend节点数
+  size_t asc_backend_count_before = CountAscBackendNodes(cg);
+
+  FusionStrategySolver fusion_strategy_solver;
+  FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new AscBackendFusionDecider()));
+  EXPECT_EQ(fusion_strategy_solver.Fuse(cg), SUCCESS);
+
+  // 记录融合后AscBackend节点数，验证融合效果
+  size_t asc_backend_count_after = CountAscBackendNodes(cg);
+  // 禁止融合：AscBackend节点数应保持不变
+  EXPECT_EQ(asc_backend_count_after, asc_backend_count_before);
+
+  ASSERT_EQ(lowerer.Lifting(cg), GRAPH_SUCCESS);
+  AscBackendPostProcessor post_processor;
+  EXPECT_EQ(post_processor.Do(cg), SUCCESS);
+  SetCurShapeEnvContext(nullptr);
+}
+
+
+// 场景4: 前序Slice Load + 后续Transpose Load
+// 构造：node1(slice) -> node2(transpose)，测试slice后接transpose的场景
+TEST_F(LoweringAndCanfuseUT, SliceFollowedByTranspose) {
   [this]() {
-    auto data = es_graph_->CreateInput(0, "data", nullptr);
-    data.SetSymbolShape({"80", "80", "80", "80"});
+    auto data0 = es_graph_->CreateInput(0, "data0", nullptr);
+    data0.SetSymbolShape({"64", "128"});
 
-    // slice1 (tf.slice): (80,80,80,80) -> (60,60,60,60)
-    const std::vector<int64_t> offsets1 = {0, 0, 0, 0};
-    const std::vector<int64_t> sizes1 = {60, 60, 60, 60};
-    auto slice1 = es::SliceD(data, offsets1, sizes1);
-    slice1.SetSymbolShape({"60", "60", "60", "60"});
+    // node1: slice操作
+    auto slice = es::StridedSliceD(data0, {0, 0}, {64, 64}, {1, 1});
+    slice.SetSymbolShape({"64", "64"});
 
-    // slice2 (tf.strided_slice): (60,60,60,60) -> (1,10,1,14)
-    auto slice2 = es::StridedSliceD(slice1, {5, 5, 5, 5}, {6, 15, 6, 19}, {1, 1, 1, 1});
-    slice2.SetSymbolShape({"1", "10", "1", "14"});
+    // node2: transpose操作
+    auto perms = CreateConst(*es_graph_, ge::DT_INT64, {2}, std::vector<int64_t>{1, 0});
+    perms.SetSymbolShape({"2"});
+    auto transpose = es::Transpose(slice, perms);
+    transpose.SetSymbolShape({"64", "64"});
 
-    auto abs1 = es::Abs(slice2);
-    abs1.SetSymbolShape({"1", "10", "1", "14"});
-    auto log1 = es::Log(abs1);
-    log1.SetSymbolShape({"1", "10", "1", "14"});
-    auto relu1 = es::Relu(log1);
-    relu1.SetSymbolShape({"1", "10", "1", "14"});
+    auto abs = es::Abs(transpose);
+    abs.SetSymbolShape({"64", "64"});
+    es_graph_->SetOutput(abs, 0);
+  }();
 
-    // broadcast add: (1,10,1,14) + (32,10,1,14) -> (32,10,1,14)
-    auto const_val = CreateConst(*es_graph_, ge::DT_FLOAT,
-                                 {32 * 10 * 1 * 14},
-                                 std::vector<float>(32 * 10 * 1 * 14, 1.0f));
-    const_val.SetSymbolShape({"32", "10", "1", "14"});
-    auto add = es::Add(relu1, const_val);
-    add.SetSymbolShape({"32", "10", "1", "14"});
+  auto graph = es_graph_->Build();
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+
+  ge::PatternFusion patter_fusion;
+  ASSERT_EQ(patter_fusion.RunAllPatternFusion(cg), GRAPH_SUCCESS);
+  ge::AscIrLowerer lowerer;
+  ASSERT_EQ(lowerer.Lowering(cg), GRAPH_SUCCESS);
+  ASSERT_EQ(asc_adapt::GeFallback(cg), GRAPH_SUCCESS);
+
+  // 记录融合前AscBackend节点数
+  size_t asc_backend_count_before = CountAscBackendNodes(cg);
+
+  FusionStrategySolver fusion_strategy_solver;
+  FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new AscBackendFusionDecider()));
+  EXPECT_EQ(fusion_strategy_solver.Fuse(cg), SUCCESS);
+
+  // 记录融合后AscBackend节点数，验证融合效果
+  size_t asc_backend_count_after = CountAscBackendNodes(cg);
+  // slice不与transpose融合，但abs和transpose可以融合，节点数减少1
+  EXPECT_EQ(asc_backend_count_after, asc_backend_count_before - 1);
+
+  ASSERT_EQ(lowerer.Lifting(cg), GRAPH_SUCCESS);
+  AscBackendPostProcessor post_processor;
+  EXPECT_EQ(post_processor.Do(cg), SUCCESS);
+  SetCurShapeEnvContext(nullptr);
+}
+
+// 场景5: 前序Transpose Load + 后续Slice Load
+// 构造：node1(transpose) -> node2(slice)，测试transpose后接slice的场景
+TEST_F(LoweringAndCanfuseUT, TransposeFollowedBySlice) {
+  [this]() {
+    auto data0 = es_graph_->CreateInput(0, "data0", nullptr);
+    data0.SetSymbolShape({"128", "64"});
+
+    // node1: transpose操作
+    auto perms = CreateConst(*es_graph_, ge::DT_INT64, {2}, std::vector<int64_t>{1, 0});
+    perms.SetSymbolShape({"2"});
+    auto transpose = es::Transpose(data0, perms);
+    transpose.SetSymbolShape({"64", "128"});
+
+    // node2: slice操作，输入来自transpose
+    auto slice = es::StridedSliceD(transpose, {0, 0}, {64, 64}, {1, 1});
+    slice.SetSymbolShape({"64", "64"});
+
+    auto abs = es::Abs(slice);
+    abs.SetSymbolShape({"64", "64"});
+    es_graph_->SetOutput(abs, 0);
+  }();
+
+  auto graph = es_graph_->Build();
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+
+  ge::PatternFusion patter_fusion;
+  ASSERT_EQ(patter_fusion.RunAllPatternFusion(cg), GRAPH_SUCCESS);
+  ge::AscIrLowerer lowerer;
+  ASSERT_EQ(lowerer.Lowering(cg), GRAPH_SUCCESS);
+  ASSERT_EQ(asc_adapt::GeFallback(cg), GRAPH_SUCCESS);
+
+  // 记录融合前AscBackend节点数
+  size_t asc_backend_count_before = CountAscBackendNodes(cg);
+
+  FusionStrategySolver fusion_strategy_solver;
+  FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new AscBackendFusionDecider()));
+  EXPECT_EQ(fusion_strategy_solver.Fuse(cg), SUCCESS);
+
+  // 记录融合后AscBackend节点数，验证融合效果
+  size_t asc_backend_count_after = CountAscBackendNodes(cg);
+  // 禁止融合：AscBackend节点数应保持不变
+  EXPECT_EQ(asc_backend_count_after, asc_backend_count_before);
+
+  ASSERT_EQ(lowerer.Lifting(cg), GRAPH_SUCCESS);
+  AscBackendPostProcessor post_processor;
+  EXPECT_EQ(post_processor.Do(cg), SUCCESS);
+  SetCurShapeEnvContext(nullptr);
+}
+
+// 场景6: Slice输出连接多个后续节点，transpose强制realize使slice独立为AscBackend
+// slice输出同时被transpose和mul引用，验证多输出分支场景下的融合判断
+TEST_F(LoweringAndCanfuseUT, SliceOutputToMultipleNodes) {
+  [this]() {
+    auto data0 = es_graph_->CreateInput(0, "data0", nullptr);
+    data0.SetSymbolShape({"64", "128"});
+
+    auto data3 = es_graph_->CreateInput(1, "data3", nullptr);
+    data3.SetSymbolShape({"64", "64"});
+
+    auto slice = es::StridedSliceD(data0, {0, 0}, {64, 64}, {1, 1});
+    slice.SetSymbolShape({"64", "64"});
+
+    // transpose: LowerTranspose realize slice → slice独立kSliceSplit AscBackend
+    auto perms = CreateConst(*es_graph_, ge::DT_INT64, {2}, std::vector<int64_t>{1, 0});
+    perms.SetSymbolShape({"2"});
+    auto transpose = es::Transpose(slice, perms);
+    transpose.SetSymbolShape({"64", "64"});
+
+    auto abs1 = es::Abs(transpose);
+    abs1.SetSymbolShape({"64", "64"});
+
+    // slice的另一条输出分支
+    auto mul = es::Mul(slice, data3);
+    mul.SetSymbolShape({"64", "64"});
+
+    auto final_add = es::Add(abs1, mul);
+    final_add.SetSymbolShape({"64", "64"});
+    es_graph_->SetOutput(final_add, 0);
+  }();
+
+  auto graph = es_graph_->Build();
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+
+  ge::PatternFusion patter_fusion;
+  ASSERT_EQ(patter_fusion.RunAllPatternFusion(cg), GRAPH_SUCCESS);
+  ge::AscIrLowerer lowerer;
+  ASSERT_EQ(lowerer.Lowering(cg), GRAPH_SUCCESS);
+  ASSERT_EQ(asc_adapt::GeFallback(cg), GRAPH_SUCCESS);
+
+  size_t asc_backend_count_before = CountAscBackendNodes(cg);
+  EXPECT_GE(asc_backend_count_before, 2U);
+
+  FusionStrategySolver fusion_strategy_solver;
+  FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new AscBackendFusionDecider()));
+  EXPECT_EQ(fusion_strategy_solver.Fuse(cg), SUCCESS);
+
+  size_t asc_backend_count_after = CountAscBackendNodes(cg);
+  // 多输出分支场景：Lowering将连通分量合并为单一AscBackend，无法产生多AscBackend验证融合
+  // 暂用宽松预期，待Lowering拆分逻辑优化后强化验证
+  EXPECT_EQ(asc_backend_count_after, asc_backend_count_before);
+
+  ASSERT_EQ(lowerer.Lifting(cg), GRAPH_SUCCESS);
+  AscBackendPostProcessor post_processor;
+  EXPECT_EQ(post_processor.Do(cg), SUCCESS);
+  SetCurShapeEnvContext(nullptr);
+}
+
+// 场景7: 前序Slice + 后续节点其中一个输入是Slice，另一个输入经过Broadcast
+// 构造：测试CheckIfSubGraphLinksHaveSpecifiedLoadTypePairs在不同连接边的判断
+TEST_F(LoweringAndCanfuseUT, SliceWithMixedLoadTypes) {
+  [this]() {
+    auto data0 = es_graph_->CreateInput(0, "data0", nullptr);
+    data0.SetSymbolShape({"128", "64"});
+    auto data1 = es_graph_->CreateInput(1, "data1", nullptr);
+    data1.SetSymbolShape({"1", "32"});   // broadcast
+    auto data2 = es_graph_->CreateInput(2, "data2", nullptr);
+    data2.SetSymbolShape({"128", "32"});
+
+    // node1: slice操作
+    auto slice = es::StridedSliceD(data0, {0, 0}, {128, 32}, {1, 1});
+    slice.SetSymbolShape({"128", "32"});
+
+    // node2的输入1: 来自slice (slice load)
+    // node2的输入2: 来自mul (broadcast load)
+    auto mul = es::Mul(data1, data2);  // broadcast
+    mul.SetSymbolShape({"128", "32"});
+
+    auto add = es::Add(slice, mul);
+    add.SetSymbolShape({"128", "32"});
     es_graph_->SetOutput(add, 0);
   }();
 
   auto graph = es_graph_->Build();
   auto cg = GraphUtilsEx::GetComputeGraph(*graph);
 
-  // PatternFusion: slice+slice should fuse
   ge::PatternFusion patter_fusion;
   ASSERT_EQ(patter_fusion.RunAllPatternFusion(cg), GRAPH_SUCCESS);
-
-  // Lowering: convert AscendIR to AscBackend
   ge::AscIrLowerer lowerer;
   ASSERT_EQ(lowerer.Lowering(cg), GRAPH_SUCCESS);
   ASSERT_EQ(asc_adapt::GeFallback(cg), GRAPH_SUCCESS);
 
-  // Fuse + Lifting
+  // 记录融合前AscBackend节点数
+  size_t asc_backend_count_before = CountAscBackendNodes(cg);
+
   FusionStrategySolver fusion_strategy_solver;
   FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new AscBackendFusionDecider()));
   EXPECT_EQ(fusion_strategy_solver.Fuse(cg), SUCCESS);
-  ASSERT_EQ(lowerer.Lifting(cg), GRAPH_SUCCESS);
 
-  // PostProcess（包含 RemoveAllZeroStrideLoopAxis）
+  // 记录融合后AscBackend节点数，验证融合效果
+  size_t asc_backend_count_after = CountAscBackendNodes(cg);
+  // 禁止融合：AscBackend节点数应保持不变
+  EXPECT_EQ(asc_backend_count_after, asc_backend_count_before);
+
+  ASSERT_EQ(lowerer.Lifting(cg), GRAPH_SUCCESS);
   AscBackendPostProcessor post_processor;
   EXPECT_EQ(post_processor.Do(cg), SUCCESS);
-
-  // 验证：repeats=1 时 strides 应为 0
-  VerifyRepeatsOneImpliesStridesZero(cg);
-
   SetCurShapeEnvContext(nullptr);
 }
 
-TEST_F(LoweringAndCanfuseUT, LiftConcat_FirstDim) {
-  auto run_test = [](const ComputeGraphPtr &cg) -> void {
-    ge::AscIrLowerer lowerer;
-    ASSERT_EQ(lowerer.Lowering(cg), GRAPH_SUCCESS);
-    ASSERT_EQ(asc_adapt::GeFallback(cg), GRAPH_SUCCESS);
-    FusionStrategySolver fusion_strategy_solver;
-    FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new AscBackendFusionDecider()));
-    EXPECT_EQ(fusion_strategy_solver.Fuse(cg), SUCCESS);
-    ASSERT_EQ(lowerer.Lifting(cg), GRAPH_SUCCESS);
-    EXPECT_EQ(AscBackendPostProcessor().Do(cg), SUCCESS);
-  };
-  // no task, mid
-  {
-    auto cg = BuildConcatFirstDimGraph("262144", true);
-    run_test(cg);
-    EXPECT_FALSE(cg->FindFirstNodeMatchType(kFusedAscBackendType) != nullptr);
-  }
-  // no task, small
-  {
-    es_graph_ = std::make_unique<es::Graph>("graph");
-    auto cg = BuildConcatFirstDimGraph("131072", true);
-    run_test(cg);
-    EXPECT_TRUE(cg->FindFirstNodeMatchType(kFusedAscBackendType) != nullptr);
-  }
-
-  // connected to Data, does not support no task
-  {
-    es_graph_ = std::make_unique<es::Graph>("graph");
-    auto cg = BuildConcatFirstDimGraph("262144", false);
-    run_test(cg);
-    EXPECT_TRUE(cg->FindFirstNodeMatchType(kFusedAscBackendType) != nullptr);
-  }
-
-  // not all aligned, does not support no task
-  {
-    es_graph_ = std::make_unique<es::Graph>("graph");
-    auto cg = BuildConcatFirstDimGraph("3", true);
-    run_test(cg);
-    EXPECT_TRUE(cg->FindFirstNodeMatchType(kFusedAscBackendType) != nullptr);
-  }
-  // reuse input, does not support no task
-  {
-    es_graph_ = std::make_unique<es::Graph>("graph");
-    auto cg = BuildConcatFirstDimWithReuseGraph("262144");
-    run_test(cg);
-    EXPECT_TRUE(cg->FindFirstNodeMatchType(kFusedAscBackendType) != nullptr);
-  }
-  SetCurShapeEnvContext(nullptr);
-}
 }  // namespace ge

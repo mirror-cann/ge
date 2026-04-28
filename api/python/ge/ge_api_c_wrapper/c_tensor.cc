@@ -11,6 +11,8 @@
 #include "graph/tensor.h"
 #include "common/checker.h"
 #include "ge_api_c_wrapper_utils.h"
+#include "graph/utils/tensor_adapter.h"
+#include "graph/utils/tensor_utils.h"
 #include "graph/utils/tensor_value_utils.h"
 #include "graph/utils/type_utils.h"
 #include <memory>
@@ -81,8 +83,24 @@ int32_t GeApiWrapper_Tensor_GetPlacement(EsCTensor *tensor) {
 graphStatus GeApiWrapper_Tensor_ToHost(EsCTensor *tensor) {
   GE_ASSERT_NOTNULL(tensor);
   auto *ts = static_cast<Tensor *>(static_cast<void *>(tensor));
-  const auto size = ts->GetSize();
+  const auto desc = ts->GetTensorDesc();
+  const auto ge_desc = TensorAdapter::TensorDesc2GeTensorDesc(desc);
+  int64_t mem_size = -1;
+  // 内存大小可能加了padding，根据shape重新计算大小，申请host内存
+  GE_ASSERT_GRAPH_SUCCESS(
+      TensorUtils::CalcTensorMemSize(ge_desc.GetShape(), ge_desc.GetFormat(), ge_desc.GetDataType(), mem_size));
+  GE_ASSERT_TRUE(mem_size >= 0L);
+  const auto size = static_cast<size_t>(mem_size);
+  if (ts->GetSize() < size) {
+    return GRAPH_FAILED;
+  }
+
   if (size == 0U) {
+    const uint8_t *empty_data = nullptr;
+    const auto ret = ts->SetData(empty_data, 0U);
+    if (ret != GRAPH_SUCCESS) {
+      return ret;
+    }
     return ts->SetPlacement(ge::Placement::kPlacementHost);
   }
 

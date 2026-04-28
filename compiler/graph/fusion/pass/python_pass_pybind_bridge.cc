@@ -202,7 +202,7 @@ class PythonFusionPassPybindBridge {
     delete holder;
   }
 
-  Status Run(PythonBridgeHolder *holder, const GraphPtr &graph, CustomPassContext &pass_context) {
+  Status Run(const PythonBridgeHolder *holder, const GraphPtr &graph, CustomPassContext &pass_context) {
     if (holder == nullptr) {
       pass_context.SetErrorMessage("python bridge holder is null");
       return FAILED;
@@ -357,9 +357,8 @@ class PythonFusionPassPybindBridge {
     return FAILED;
   }
 
-  static PythonFusionPassCallbacks GetCallbacks(const PythonPassKind kind) {
-    PythonFusionPassCallbacks callbacks;
-    callbacks.create = [](const PythonPassDescriptor *pass_desc) -> void* {
+  static void SetCommonCallbacks(PythonFusionPassCallbacks &callbacks) {
+    callbacks.create = [](const PythonPassDescriptor *pass_desc) -> void *{
       if (pass_desc == nullptr) {
         return nullptr;
       }
@@ -368,47 +367,64 @@ class PythonFusionPassPybindBridge {
     callbacks.destroy = [](void *holder) {
       PythonFusionPassPybindBridge::GetInstance().DestroyHolder(static_cast<PythonBridgeHolder *>(holder));
     };
+  }
+
+  static void SetFusionBaseCallbacks(PythonFusionPassCallbacks &callbacks) {
+    callbacks.run = [](const void *holder, GraphPtr &graph, CustomPassContext &pass_context) -> Status {
+      return PythonFusionPassPybindBridge::GetInstance().Run(static_cast<const PythonBridgeHolder *>(holder),
+                                                             graph,
+                                                             pass_context);
+    };
+  }
+
+  static void SetPatternFusionCallbacks(PythonFusionPassCallbacks &callbacks) {
+    callbacks.get_matcher_config = [](const void *holder,
+                                      std::unique_ptr<PatternMatcherConfig> &matcher_config) -> Status {
+      return PythonFusionPassPybindBridge::GetInstance().GetPatternMatcherConfig(
+          static_cast<const PythonBridgeHolder *>(holder), matcher_config);
+    };
+    callbacks.patterns = [](const void *holder, std::vector<PatternUniqPtr> &patterns) -> Status {
+      return PythonFusionPassPybindBridge::GetInstance().GetPatterns(
+          static_cast<const PythonBridgeHolder *>(holder), patterns);
+    };
+    callbacks.meet_requirements = [](const void *holder,
+                                      const std::unique_ptr<MatchResult> &match_result) -> bool {
+      return PythonFusionPassPybindBridge::GetInstance().CallMeetRequirements(
+          static_cast<const PythonBridgeHolder *>(holder), match_result);
+    };
+    callbacks.replacement =
+        [](const void *holder, const std::unique_ptr<MatchResult> &match_result,
+           GraphUniqPtr &replacement_graph) -> Status {
+          return PythonFusionPassPybindBridge::GetInstance().CallReplacement(
+              static_cast<const PythonBridgeHolder *>(holder), match_result, replacement_graph);
+        };
+  }
+
+  static void SetDecomposeCallbacks(PythonFusionPassCallbacks &callbacks) {
+    callbacks.decompose_meet_requirements = [](const void *holder, const GNode &matched_node) -> bool {
+      return PythonFusionPassPybindBridge::GetInstance().CallDecomposeMeetRequirements(
+          static_cast<const PythonBridgeHolder *>(holder), matched_node);
+    };
+    callbacks.decompose_replacement =
+        [](const void *holder, const GNode &matched_node, GraphUniqPtr &replacement_graph) -> Status {
+          return PythonFusionPassPybindBridge::GetInstance().CallDecomposeReplacement(
+              static_cast<const PythonBridgeHolder *>(holder), matched_node, replacement_graph);
+        };
+  }
+
+  static PythonFusionPassCallbacks GetCallbacks(const PythonPassKind kind) {
+    PythonFusionPassCallbacks callbacks;
+    SetCommonCallbacks(callbacks);
 
     switch (kind) {
       case PythonPassKind::kFusionBase:
-        callbacks.run = [](void *holder, GraphPtr &graph, CustomPassContext &pass_context) -> Status {
-          return PythonFusionPassPybindBridge::GetInstance().Run(static_cast<PythonBridgeHolder *>(holder),
-                                                                     graph,
-                                                                     pass_context);
-        };
+        SetFusionBaseCallbacks(callbacks);
         break;
       case PythonPassKind::kPatternFusion:
-        callbacks.get_matcher_config = [](void *holder,
-                                          std::unique_ptr<PatternMatcherConfig> &matcher_config) -> Status {
-          return PythonFusionPassPybindBridge::GetInstance().GetPatternMatcherConfig(
-              static_cast<PythonBridgeHolder *>(holder), matcher_config);
-        };
-        callbacks.patterns = [](void *holder, std::vector<PatternUniqPtr> &patterns) -> Status {
-          return PythonFusionPassPybindBridge::GetInstance().GetPatterns(
-              static_cast<PythonBridgeHolder *>(holder), patterns);
-        };
-        callbacks.meet_requirements = [](void *holder,
-                                          const std::unique_ptr<MatchResult> &match_result) -> bool {
-          return PythonFusionPassPybindBridge::GetInstance().CallMeetRequirements(
-              static_cast<PythonBridgeHolder *>(holder), match_result);
-        };
-        callbacks.replacement =
-            [](void *holder, const std::unique_ptr<MatchResult> &match_result,
-               GraphUniqPtr &replacement_graph) -> Status {
-              return PythonFusionPassPybindBridge::GetInstance().CallReplacement(
-                  static_cast<PythonBridgeHolder *>(holder), match_result, replacement_graph);
-            };
+        SetPatternFusionCallbacks(callbacks);
         break;
       case PythonPassKind::kDecompose:
-        callbacks.decompose_meet_requirements = [](void *holder, const GNode &matched_node) -> bool {
-          return PythonFusionPassPybindBridge::GetInstance().CallDecomposeMeetRequirements(
-              static_cast<PythonBridgeHolder *>(holder), matched_node);
-        };
-        callbacks.decompose_replacement =
-            [](void *holder, const GNode &matched_node, GraphUniqPtr &replacement_graph) -> Status {
-              return PythonFusionPassPybindBridge::GetInstance().CallDecomposeReplacement(
-                  static_cast<PythonBridgeHolder *>(holder), matched_node, replacement_graph);
-            };
+        SetDecomposeCallbacks(callbacks);
         break;
       default:
         break;
@@ -416,7 +432,7 @@ class PythonFusionPassPybindBridge {
     return callbacks;
   }
 
-  Status GetPatternMatcherConfig(PythonBridgeHolder *holder,
+  Status GetPatternMatcherConfig(const PythonBridgeHolder *holder,
                                  std::unique_ptr<PatternMatcherConfig> &matcher_config) {
     matcher_config.reset();
     if (holder == nullptr) {
@@ -449,7 +465,7 @@ class PythonFusionPassPybindBridge {
     }
   }
 
-  Status GetPatterns(PythonBridgeHolder *holder, std::vector<PatternUniqPtr> &patterns) {
+  Status GetPatterns(const PythonBridgeHolder *holder, std::vector<PatternUniqPtr> &patterns) {
     if (holder == nullptr) {
       return FAILED;
     }
@@ -482,7 +498,7 @@ class PythonFusionPassPybindBridge {
     }
   }
 
-  bool CallMeetRequirements(PythonBridgeHolder *holder,
+  bool CallMeetRequirements(const PythonBridgeHolder *holder,
                              const std::unique_ptr<MatchResult> &match_result) {
     if ((holder == nullptr) || (match_result == nullptr)) {
       return false;
@@ -505,7 +521,7 @@ class PythonFusionPassPybindBridge {
     }
   }
 
-  Status CallReplacement(PythonBridgeHolder *holder,
+  Status CallReplacement(const PythonBridgeHolder *holder,
                           const std::unique_ptr<MatchResult> &match_result,
                           GraphUniqPtr &replacement_graph) {
     if (holder == nullptr) {
@@ -542,7 +558,7 @@ class PythonFusionPassPybindBridge {
     }
   }
 
-  bool CallDecomposeMeetRequirements(PythonBridgeHolder *holder, const GNode &matched_node) {
+  bool CallDecomposeMeetRequirements(const PythonBridgeHolder *holder, const GNode &matched_node) {
     if (holder == nullptr) {
       return false;
     }
@@ -564,7 +580,7 @@ class PythonFusionPassPybindBridge {
     }
   }
 
-  Status CallDecomposeReplacement(PythonBridgeHolder *holder,
+  Status CallDecomposeReplacement(const PythonBridgeHolder *holder,
                                   const GNode &matched_node,
                                   GraphUniqPtr &replacement_graph) {
     if (holder == nullptr) {
