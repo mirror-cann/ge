@@ -531,7 +531,7 @@ TEST_F(AiKernelLaunchUT, AiCoreLaunchKernelWithHandle_need_overflow_and_workspac
   EXPECT_EQ(reinterpret_cast<uint64_t *>(args_host_buffer[overflow_offset + 1U]), nullptr);
 }
 
-TEST_F(AiKernelLaunchUT, test_AiCoreLaunchKernelWithHandle_input_check_faild) {
+TEST_F(AiKernelLaunchUT, test_AiCoreLaunchKernelWithHandle_input_check_failed) {
   auto run_context = BuildKernelRunContext(6, 1);
   ASSERT_NE(registry.FindKernelFuncs("LaunchKernelWithHandle"), nullptr);
   ASSERT_NE(registry.FindKernelFuncs("LaunchKernelWithHandle")->run_func(run_context), ge::GRAPH_SUCCESS);
@@ -610,7 +610,7 @@ TEST_F(AiKernelLaunchUT, test_AtomicLaunchKernelWithFlag_para_check_failed) {
   ASSERT_NE(registry.FindKernelFuncs("AtomicLaunchKernelWithFlag")->run_func(run_context), ge::GRAPH_SUCCESS);
 }
 
-TEST_F(AiKernelLaunchUT, test_AtomicLaunchKernelWithFlag_para_check_run_faild) {
+TEST_F(AiKernelLaunchUT, test_AtomicLaunchKernelWithFlag_para_check_run_failed) {
   AiKernelLaunchContext context(1, 1, 0x11, Shape({2, 2, 3}));
   struct FakeRuntime : RuntimeStubImpl {
     rtError_t rtKernelLaunchWithFlagV2(const void *stubFunc, uint32_t blockDim, rtArgsEx_t *argsInfo, rtSmDesc_t *smDesc,

@@ -330,7 +330,7 @@ Status QuantUtilImpl::UpdateBiasOutputDesc(const ge::NodePtr &cube_node, const g
   bias_output_desc.SetOriginDataType(ge::DT_INT32);
   bias_output_desc.SetDataType(ge::DT_INT32);
   if (bias_op_desc->UpdateOutputDesc(0, bias_output_desc) != ge::GRAPH_SUCCESS) {
-    GELOGE(ge::FAILED, "bias_op_desc faild");
+    GELOGE(ge::FAILED, "bias_op_desc update output desc failed.");
     return FAILED;
   }
   return SUCCESS;

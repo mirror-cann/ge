@@ -9,6 +9,7 @@
  */
 
 #include "graph/passes/control_flow_and_stream/switch_to_stream_switch_pass.h"
+#include <cinttypes>
 #include <stack>
 #include "common/plugin/ge_make_unique_util.h"
 #include "ge/ge_api_types.h"
@@ -354,7 +355,7 @@ NodePtr SwitchToStreamSwitchPass::CreateStreamSwitchNode(const ComputeGraphPtr &
   int64_t switch_type;
   if (AttrUtils::GetInt(switch_node->GetOpDesc(), ATTR_NAME_STREAM_SWITCH_TYPE, switch_type)) {
     (void)AttrUtils::SetInt(op_desc, ATTR_NAME_STREAM_SWITCH_TYPE, switch_type);
-    GELOGD("Set attr ATTR_NAME_STREAM_SWITCH_TYPE for Stream_Switch %s, value is %ld.", node_name.c_str(),
+    GELOGD("Set attr ATTR_NAME_STREAM_SWITCH_TYPE for Stream_Switch %s, value is %" PRId64 ".", node_name.c_str(),
            switch_type);
   }
 
@@ -429,9 +430,9 @@ Status SwitchToStreamSwitchPass::MarkBranches(const OutDataAnchorPtr &peer_cond_
       it->second[switch_group_id] = switch_list;
     } else {
       GE_IF_BOOL_EXEC(switch_group_it->second.size() != SWITCH_OUTPUT_NUM, {
-        REPORT_INNER_ERR_MSG("E19999", "switch group size:%zu not equal to %u, group_id:%ld, check invalid",
+        REPORT_INNER_ERR_MSG("E19999", "switch group size:%zu not equal to %u, group_id:%" PRId64 ", check invalid",
                            switch_group_it->second.size(), SWITCH_OUTPUT_NUM, switch_group_id);
-        GELOGE(INTERNAL_ERROR, "[Check][Param] switch group size:%zu not equal to %u, group_id:%ld",
+        GELOGE(INTERNAL_ERROR, "[Check][Param] switch group size:%zu not equal to %u, group_id:%" PRId64 "",
                switch_group_it->second.size(), SWITCH_OUTPUT_NUM, switch_group_id);
         return FAILED;
       });
@@ -483,7 +484,7 @@ int64_t SwitchToStreamSwitchPass::GetGroupId(const NodePtr &node) const {
     return 0;
   }
 
-  GELOGI("Hccl_group_id is %s, group_id is %ld", hccl_group_id.c_str(), num);
+  GELOGI("Hccl_group_id is %s, group_id is %" PRId64 "", hccl_group_id.c_str(), num);
   return num;
 }
 
@@ -970,7 +971,7 @@ Status SwitchToStreamSwitchPass::UpdateControlFlowGroup(const ComputeGraphPtr &g
       if (iter != old_2_new_group_index_.end()) {
         int64_t new_group_index = iter->second;
         SetControlFlowGroup(node, new_group_index);
-        GELOGD("Change control flow group of node[type: %s, name: %s] from %ld to %ld.", node->GetType().c_str(),
+        GELOGD("Change control flow group of node[type: %s, name: %s] from %" PRId64 " to %" PRId64 ".", node->GetType().c_str(),
                node->GetName().c_str(), old_group_index, new_group_index);
       }
     }

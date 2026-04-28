@@ -9,6 +9,7 @@
  */
 
 #include "graph/manager/graph_manager.h"
+#include <cinttypes>
 
 #include <pthread.h>
 #include <future>
@@ -1005,7 +1006,7 @@ Status GraphManager::OptimizeSubGraphWithMultiThreads(ComputeGraphPtr compute_gr
                                             error_message::GetErrMgrContext(),
                                             GetThreadLocalContext(), device_id);
     if (!f.valid()) {
-      GELOGE(FAILED, "[Call][Commit] failed, Future is invalid, session_id:%lu", session_id);
+      GELOGE(FAILED, "[Call][Commit] failed, Future is invalid, session_id:%" PRIu64 "", session_id);
       return FAILED;
     }
     vector_future.emplace_back(std::move(f));
@@ -1023,7 +1024,7 @@ Status GraphManager::OptimizeSubGraphWithMultiThreads(ComputeGraphPtr compute_gr
                                               error_message::GetErrMgrContext(),
                                               GetThreadLocalContext(), device_id);
       if (!f.valid()) {
-        GELOGE(FAILED, "[Call][Commit] failed, Future is invalid, session_id:%lu", session_id);
+        GELOGE(FAILED, "[Call][Commit] failed, Future is invalid, session_id:%" PRIu64 "", session_id);
         return FAILED;
       }
       vector_future.emplace_back(std::move(f));
@@ -1046,7 +1047,7 @@ Status GraphManager::SetSubgraph(uint64_t session_id, ComputeGraphPtr compute_gr
   auto sub_graph_map = partitioner.GetSubGraphMap();
   Status ret = OptimizeSubGraphWithMultiThreads(compute_graph, sub_graph_map, session_id);
   if (ret != SUCCESS) {
-    GELOGE(ret, "[Call][OptimizeSubGraphWithMultiThreads] failed, ret:%d, session_id:%lu", ret, session_id);
+    GELOGE(ret, "[Call][OptimizeSubGraphWithMultiThreads] failed, ret:%d, session_id:%" PRIu64 "", ret, session_id);
     return ret;
   }
   for (const auto &item : sub_graph_map) {
@@ -1321,13 +1322,13 @@ Status GraphManager::PreRun(const GraphNodePtr &graph_node, const std::vector<Ge
                     "[Refresh][OpsKernelInfo] failed.");
 
   compute_graph->SetSessionID(session_id);
-  GEEVENT("PreRun start: graph node size %zu, session id %lu, graph id %u, graph name %s.",
+  GEEVENT("PreRun start: graph node size %zu, session id %" PRIu64 ", graph id %u, graph name %s.",
           compute_graph->GetDirectNodesSize(), session_id, compute_graph->GetGraphID(),
           compute_graph->GetName().c_str());
   const uint32_t graph_id = graph_node->GetGraphId();
   auto analyzer_instance = Analyzer::GetInstance();
   GE_CHK_STATUS_RET(analyzer_instance->BuildJsonObject(session_id, graph_id),
-                    "[Build][JsonObject] Failed, session_id:%lu", session_id);
+                    "[Build][JsonObject] Failed, session_id:%" PRIu64 "", session_id);
 
   const auto ret = GeOptInfo::SetOptInfo();
   if (ret != SUCCESS) {
@@ -1340,7 +1341,7 @@ Status GraphManager::PreRun(const GraphNodePtr &graph_node, const std::vector<Ge
   GE_CHECK_NOTNULL(root_graph);
   graph_node->SetComputeGraph(root_graph);
   GE_CHK_STATUS_RET(BuildModel(graph_node, inputs, root_graph, ge_root_model),
-                    "[Build][Model] failed, session_id:%lu, graph_id:%u.", session_id, graph_id);
+                    "[Build][Model] failed, session_id:%" PRIu64 ", graph_id:%u.", session_id, graph_id);
   graph_node->SetGeRootModel(ge_root_model);
   GE_COMPILE_TRACE_TIMESTAMP_END(BuildModel, "ModelBuild");
   ReportTracingRecordDuration(ge::TracingModule::kModelCompile);
@@ -1602,7 +1603,7 @@ Status GraphManager::StartForRunGraph(const GraphNodePtr &graph_node, const std:
     }
     ret = PreRun(graph_node, ge_tensor_inputs, ge_root_model, session_id);
     if (ret != SUCCESS) {
-      GELOGE(ret, "[Call][PreRun] Failed, graph_id:%u, session_id:%lu.", graph_node->GetGraphId(), session_id);
+      GELOGE(ret, "[Call][PreRun] Failed, graph_id:%u, session_id:%" PRIu64 ".", graph_node->GetGraphId(), session_id);
       return ret;
     }
     graph_node->SetBuildFlag(true);
@@ -1687,7 +1688,7 @@ Status GraphManager::SetFrozenInputAttrs(const GeRootModelPtr &ge_root_model, co
     GE_ASSERT_TRUE(AttrUtils::SetListInt(op_desc, "origin_shape", org_input_shape), "Set origin_shape attr failed.");
     const auto &data_type = input_desc.GetDataType();
     GE_ASSERT_TRUE(AttrUtils::SetDataType(op_desc, "dtype", data_type), "Set data type attr failed.");
-    GELOGI("Set attrs for frozen input node[%s], addr[%lu], len[%lu], storage shape[%s], storage format[%d],"
+    GELOGI("Set attrs for frozen input node[%s], addr[%" PRIu64 "], len[%" PRIu64 "], storage shape[%s], storage format[%d],"
            " original shape[%s], original format[%d], datatype[%d].",
         node->GetName().c_str(), iter->second.first, iter->second.second,
         input_desc.GetShape().ToString().c_str(), static_cast<int32_t>(input_desc.GetFormat()),
@@ -1783,7 +1784,7 @@ Status GraphManager::NormalizeInputsOutputs(const ComputeGraphPtr &compute_graph
   for (size_t i = 0U; i < inputs.size(); i++) {
     normalized_inputs.emplace_back(TensorAdapter::NormalizeGeTensor(inputs[i]));
     if (logLevel_ <= DLOG_DEBUG) {
-      GELOGD("Normalize graph %s input %lu %s[%s] -> %s[%s] addr %lu size %lu", compute_graph->GetName().c_str(),
+      GELOGD("Normalize graph %s input %" PRIu64 " %s[%s] -> %s[%s] addr %" PRIu64 " size %" PRIu64 "", compute_graph->GetName().c_str(),
              i, ge::TypeUtils::FormatToSerialString(inputs[i].GetTensorDesc().GetFormat()).c_str(),
              inputs[i].GetTensorDesc().GetShape().ToString().c_str(),
              ge::TypeUtils::FormatToSerialString(normalized_inputs.back().MutableTensorDesc().GetFormat()).c_str(),
@@ -1798,7 +1799,7 @@ Status GraphManager::NormalizeInputsOutputs(const ComputeGraphPtr &compute_graph
   for (size_t i = 0U; i < outputs.size(); i++) {
     normalized_outputs.emplace_back(TensorAdapter::NormalizeGeTensor(outputs[i]));
     if (logLevel_ <= DLOG_DEBUG) {
-      GELOGD("Normalize graph %s output %lu %s[%s] -> %s[%s] addr %lu size %lu", compute_graph->GetName().c_str(),
+      GELOGD("Normalize graph %s output %" PRIu64 " %s[%s] -> %s[%s] addr %" PRIu64 " size %" PRIu64 "", compute_graph->GetName().c_str(),
              i, ge::TypeUtils::FormatToSerialString(outputs[i].GetTensorDesc().GetFormat()).c_str(),
              outputs[i].GetTensorDesc().GetShape().ToString().c_str(),
              ge::TypeUtils::FormatToSerialString(normalized_outputs.back().MutableTensorDesc().GetFormat()).c_str(),
@@ -1808,7 +1809,7 @@ Status GraphManager::NormalizeInputsOutputs(const ComputeGraphPtr &compute_graph
     }
   }
   if (compute_graph->GetGraphOutNodesInfo().size() != normalized_outputs.size()) {
-    GELOGE(GE_GRAPH_GET_IN_OUT_FAILED, "Run graph with stream async output size mismatch expect %lu but got %lu.",
+    GELOGE(GE_GRAPH_GET_IN_OUT_FAILED, "Run graph with stream async output size mismatch expect %" PRIu64 " but got %" PRIu64 ".",
            compute_graph->GetGraphOutNodesInfo().size(), normalized_outputs.size());
     return GE_GRAPH_GET_IN_OUT_FAILED;
   }
@@ -1961,7 +1962,7 @@ Status GraphManager::RunGraphWithStreamAsync(const GraphId &graph_id, const aclr
     ret = StartForRunGraph(graph_node, inputs, ge_root_model, session_id, stream);
   }
   if (ret != SUCCESS) {
-    GELOGE(ret, "[Call][StartForRunGraph] failed, session_id:%lu", session_id);
+    GELOGE(ret, "[Call][StartForRunGraph] failed, session_id:%" PRIu64 "", session_id);
     return ret;
   }
   return InnerRunGraphWithStream(graph_node, graph_id, stream, inputs, outputs);
@@ -1986,7 +1987,7 @@ Status GraphManager::RunGraph(const GraphId &graph_id, const std::vector<Tensor>
   }
   auto ret = StartForRunGraph(graph_node, ge_inputs, ge_root_model, session_id);
   if (ret != SUCCESS) {
-    GELOGE(ret, "[Call][StartForRunGraph] failed, session_id:%lu", session_id);
+    GELOGE(ret, "[Call][StartForRunGraph] failed, session_id:%" PRIu64 "", session_id);
     return ret;
   }
 
@@ -1995,13 +1996,13 @@ Status GraphManager::RunGraph(const GraphId &graph_id, const std::vector<Tensor>
   std::vector<gert::Tensor> gert_outputs;
   ret = RunGraph(graph_id, tensors_view, gert_outputs);
   if (ret != SUCCESS) {
-    GELOGE(ret, "[Run][Graph]failed, session_id:%lu graph_id=%u.", session_id, graph_id);
-    REPORT_INNER_ERR_MSG("E19999", "GraphManager RunGraph failed, session_id:%lu graph_id=%u.", session_id, graph_id);
+    GELOGE(ret, "[Run][Graph]failed, session_id:%" PRIu64 " graph_id=%u.", session_id, graph_id);
+    REPORT_INNER_ERR_MSG("E19999", "GraphManager RunGraph failed, session_id:%" PRIu64 " graph_id=%u.", session_id, graph_id);
     return ret;
   }
   outputs.clear();
   GE_ASSERT_SUCCESS(TensorTransUtils::GertTensors2Tensors(gert_outputs, outputs));
-  GELOGI("[session_id:%lu] run graph success, graph_id=%u.", session_id, graph_id);
+  GELOGI("[session_id:%" PRIu64 "] run graph success, graph_id=%u.", session_id, graph_id);
   return SUCCESS;
 }
 
@@ -3322,14 +3323,14 @@ Status GraphManager::OptimizeStage1(ge::ComputeGraphPtr &compute_graph) {
   for (auto &it : constant_folding_pass.GetOpConstantFoldingPerfStatistic()) {
     GE_CHK_STATUS_RET(CheckUint64AddOverflow(op_constant_folding_cost, it.second.second));
     op_constant_folding_cost += it.second.second;
-    GELOGI("The time cost of %s constant folding is [%lu] micro seconds, calls is %lu.",
+    GELOGI("The time cost of %s constant folding is [%" PRIu64 "] micro seconds, calls is %" PRIu64 ".",
            it.first.c_str(), it.second.second, it.second.first);
   }
-  GEEVENT("[GEPERFTRACE] The time cost of extern constant folding is [%lu] micro seconds.", op_constant_folding_cost);
+  GEEVENT("[GEPERFTRACE] The time cost of extern constant folding is [%" PRIu64 "] micro seconds.", op_constant_folding_cost);
   for (auto &it : constant_folding_pass.GetGeConstantFoldingPerfStatistic()) {
     GE_CHK_STATUS_RET(CheckUint64AddOverflow(op_constant_folding_cost, it.second.second));
     op_constant_folding_cost += it.second.second;
-    GELOGI("The time cost of %s constant folding is [%lu] micro seconds, calls is %lu.",
+    GELOGI("The time cost of %s constant folding is [%" PRIu64 "] micro seconds, calls is %" PRIu64 ".",
            it.first.c_str(), it.second.second, it.second.first);
   }
 
@@ -3615,7 +3616,7 @@ Status GraphManager::ProcessSubGraphWithMultiThreads(GraphManager *graph_manager
     ComputeGraphPtr compute_graph_tmp = sub_graph_info_ptr->GetSubGraph();
     GE_CHECK_NOTNULL(compute_graph_tmp);
     const std::string &engine_name = sub_graph_info_ptr->GetEngineName();
-    GELOGD("ProcessSubGraphWithMultiThreads start, graph name is %s, engine_name is %s, thread id is %lu",
+    GELOGD("ProcessSubGraphWithMultiThreads start, graph name is %s, engine_name is %s, thread id is %" PRIu64 "",
            compute_graph_tmp->GetName().c_str(), engine_name.c_str(), pthread_self());
     GE_DUMP(compute_graph_tmp, engine_name + "_OptimizeSubGraphBefore");
     if (!AttrUtils::SetInt(*compute_graph_tmp, ATTR_NAME_ROOT_GRAPH_ID, root_graph_id)) {
@@ -3645,7 +3646,7 @@ Status GraphManager::ProcessSubGraphWithMultiThreads(GraphManager *graph_manager
     GELOGD("SubGraph optimize success %s", engine_name.c_str());
     GE_DUMP(compute_graph_tmp, engine_name + "_OptimizeSubGraphAfter");
     sub_graph_info_ptr->SetSubGraph(compute_graph_tmp);
-    GELOGD("ProcessSubGraphWithMultiThreads end, graph name is %s, engine_name is %s, thread id is %lu",
+    GELOGD("ProcessSubGraphWithMultiThreads end, graph name is %s, engine_name is %s, thread id is %" PRIu64 "",
            compute_graph_tmp->GetName().c_str(), engine_name.c_str(), pthread_self());
   }
 
@@ -4013,7 +4014,7 @@ Status GraphManager::SubgraphPartitionAndOptimization(const GraphNodePtr &graph_
   auto &optimizer = GetCompilerStages(compute_graph->GetGraphID()).optimizer;
   GE_TRACE_START(SetSubgraphPreProc);
   GE_ASSERT_SUCCESS(optimizer.OptimizeSubgraphPreProc(*compute_graph),
-                    "[Set][SubgraphPreProc] failed for graph:%s, session_id:%lu",
+                    "[Set][SubgraphPreProc] failed for graph:%s, session_id:%" PRIu64 "",
                     compute_graph->GetName().c_str(), session_id);
   GE_COMPILE_TRACE_TIMESTAMP_END(SetSubgraphPreProc, "OptimizeSubgraph::SetSubgraphPreProc");
   GE_DUMP(compute_graph, "OptimizeSubgraphPreProc");
@@ -4022,14 +4023,14 @@ Status GraphManager::SubgraphPartitionAndOptimization(const GraphNodePtr &graph_
   TraceOwnerGuard guard1("GE", "SetSubgraph", compute_graph->GetName());
   ret = SetSubgraph(session_id, compute_graph, partitioner);
   if (ret != SUCCESS) {
-    GELOGE(ret, "[Set][Subgraph] failed for graph:%s, session_id:%lu", compute_graph->GetName().c_str(), session_id);
+    GELOGE(ret, "[Set][Subgraph] failed for graph:%s, session_id:%" PRIu64 "", compute_graph->GetName().c_str(), session_id);
     return ret;
   }
   GE_COMPILE_TRACE_TIMESTAMP_END(SetSubgraph, "OptimizeSubgraph::SetSubGraph");
 
   GE_TRACE_START(SetSubgraphPostProc);
   GE_ASSERT_SUCCESS(optimizer.OptimizeSubgraphPostProc(*compute_graph),
-                    "[Set][SubgraphPostProc] failed for graph:%s, session_id:%lu",
+                    "[Set][SubgraphPostProc] failed for graph:%s, session_id:%" PRIu64 "",
                     compute_graph->GetName().c_str(), session_id);
   GE_COMPILE_TRACE_TIMESTAMP_END(SetSubgraphPostProc, "OptimizeSubgraph::SetSubgraphPostProc");
   GE_DUMP(compute_graph, "OptimizeSubgraphPostProc");
@@ -4201,7 +4202,7 @@ Status GraphManager::Build(const GraphNodePtr &graph_node, ComputeGraphPtr &comp
 
   auto ret = GetCompilerStages(graph_node->GetGraphId()).builder.Build(compute_graph, ge_root_model, session_id);
   if (ret != SUCCESS) {
-    GELOGE(ret, "[Call][Build] failed, session_id:%lu.", session_id);
+    GELOGE(ret, "[Call][Build] failed, session_id:%" PRIu64 ".", session_id);
     return ret;
   }
 
@@ -4442,7 +4443,7 @@ Status GraphManager::OptimizeGraph(const std::vector<GeTensor> &inputs, ComputeG
   if (run_optimize_original_graph) {
     ret = PreRunOptimizeOriginalGraph(graph_node, inputs, compute_graph, session_id);
     if (ret != SUCCESS) {
-      GELOGE(ret, "[Run][PreRunOptimizeOriginalGraph] failed for graph:%s, session_id:%lu",
+      GELOGE(ret, "[Run][PreRunOptimizeOriginalGraph] failed for graph:%s, session_id:%" PRIu64 "",
              compute_graph->GetName().c_str(), session_id);
       return ret;
     }
@@ -4459,7 +4460,7 @@ Status GraphManager::OptimizeGraph(const std::vector<GeTensor> &inputs, ComputeG
   if (run_optimize_subgraph) {
     ret = PreRunOptimizeSubGraph(graph_node, compute_graph, session_id);
     if (ret != SUCCESS) {
-      GELOGE(ret, "[Run][PreRunOptimizeSubGraph] failed for graph:%s, session_id:%lu.",
+      GELOGE(ret, "[Run][PreRunOptimizeSubGraph] failed for graph:%s, session_id:%" PRIu64 ".",
           compute_graph->GetName().c_str(), session_id);
       return ret;
     }
@@ -4564,15 +4565,15 @@ Status GraphManager::GetGraphsMemInfo(std::map<uint32_t, std::vector<uint64_t>> 
       (void)AttrUtils::GetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, model_mem_size);
       (void)AttrUtils::GetInt(ge_model, ATTR_MODEL_WEIGHT_SIZE, model_weight_size);
       GE_CHK_STATUS_RET(CheckUint64AddOverflow(graph_feature_map_size, model_mem_size),
-                        "[OverFlow]Add uint64 overflow! graph_feature_map_size:%lu, model_mem_size:%lu",
+                        "[OverFlow]Add uint64 overflow! graph_feature_map_size:%" PRIu64 ", model_mem_size:%" PRIu64 "",
                         graph_feature_map_size, model_mem_size);
       graph_feature_map_size += model_mem_size;
       GE_CHK_STATUS_RET(CheckUint64AddOverflow(graph_weight_size, model_weight_size),
-                        "[OverFlow]Add uint64 overflow! graph_weight_size:%lu, model_weight_size:%lu",
+                        "[OverFlow]Add uint64 overflow! graph_weight_size:%" PRIu64 ", model_weight_size:%" PRIu64 "",
                         graph_weight_size, model_weight_size);
       graph_weight_size += model_weight_size;
     }
-    GELOGD("Graph:%u memory info: feature map size:%lu, weight size:%lu", item.first, graph_feature_map_size,
+    GELOGD("Graph:%u memory info: feature map size:%" PRIu64 ", weight size:%" PRIu64 "", item.first, graph_feature_map_size,
            graph_weight_size);
 
     std::vector<uint64_t> graph_mem_info{graph_feature_map_size, graph_weight_size};
@@ -5007,7 +5008,7 @@ Status GraphManager::UpdateInputWithHintShape(const std::vector<GeShape> &hint_s
 Status GraphManager::CompileGraph(uint32_t graph_id, uint64_t session_id, const vector<ge::Tensor> &inputs) {
   GraphNodePtr graph_node = nullptr;
   GE_ASSERT_SUCCESS(GetGraphNode(graph_id, graph_node), "get graph failed, graph_id:%u.", graph_id);
-  GE_ASSERT_NOTNULL(graph_node, "graph_node is nullptr, session_id:%lu, graph_id:%u.", session_id, graph_id);
+  GE_ASSERT_NOTNULL(graph_node, "graph_node is nullptr, session_id:%" PRIu64 ", graph_id:%u.", session_id, graph_id);
   if (graph_node->GetRunFlag()) {
     REPORT_INNER_ERR_MSG("E19999", "Graph is already running, can't be run again, graph_id:%u, "
                          "check invalid", graph_id);
@@ -5025,7 +5026,7 @@ Status GraphManager::CompileGraph(uint32_t graph_id, uint64_t session_id, const 
             "first, then AddGraph again and re-compile it.", graph_node->GetGraphId());
       return PARAM_INVALID;
     }
-    GELOGW("[Check][BuildFlag] Graph is already compiled, session_id:%lu, graph_id:%u, inputs size:%zu.",
+    GELOGW("[Check][BuildFlag] Graph is already compiled, session_id:%" PRIu64 ", graph_id:%u, inputs size:%zu.",
            session_id, graph_id, inputs.size());
     return SUCCESS;
   }
@@ -5058,7 +5059,7 @@ Status GraphManager::CompileGraph(uint32_t graph_id, uint64_t session_id, const 
 
   GeRootModelPtr ge_root_model = nullptr;
   const auto ret = PreRun(graph_node, ge_tensor_inputs, ge_root_model, session_id);
-  GE_ASSERT_SUCCESS(ret, "[Call][PreRun] Failed, graph_id:%u, session_id:%lu.", graph_node->GetGraphId(), session_id);
+  GE_ASSERT_SUCCESS(ret, "[Call][PreRun] Failed, graph_id:%u, session_id:%" PRIu64 ".", graph_node->GetGraphId(), session_id);
 
   graph_node->SetBuildFlag(true);
   GE_ASSERT_NOTNULL(graph_rebuild_state_ctrl_);
@@ -5067,7 +5068,7 @@ Status GraphManager::CompileGraph(uint32_t graph_id, uint64_t session_id, const 
   std::string refreshable = "0";  // default is not refreshable
   (void)GetContext().GetOption(OPTION_FEATURE_BASE_REFRESHABLE, refreshable);
   graph_node->SetFeatureBaseRefreshable(refreshable.compare("1") == 0);
-  GELOGI("compile graph success, graph_id:%u, session_id:%lu, is feature refreshable:%d.", graph_node->GetGraphId(),
+  GELOGI("compile graph success, graph_id:%u, session_id:%" PRIu64 ", is feature refreshable:%d.", graph_node->GetGraphId(),
          session_id, graph_node->IsFeatureBaseRefreshable());
   return SUCCESS;
 }

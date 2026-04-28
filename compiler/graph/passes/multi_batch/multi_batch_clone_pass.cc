@@ -491,7 +491,7 @@ Status MultiBatchClonePass::CreateIndexDataNode(const ComputeGraphPtr &graph, No
     return FAILED;
   }
   if (data_desc->AddOutputDesc(data_tensor) != GRAPH_SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "Add ouput desc to op:%s(%s) failed",
+    REPORT_INNER_ERR_MSG("E19999", "Add output desc to op:%s(%s) failed.",
                       data_desc->GetName().c_str(), data_desc->GetType().c_str());
     GELOGE(FAILED, "[Add][OutputDesc] to op:%s(%s) failed",
            data_desc->GetName().c_str(), data_desc->GetType().c_str());
@@ -556,7 +556,7 @@ Status MultiBatchClonePass::CreateIndexConstNode(const ComputeGraphPtr &graph, N
   }
 
   if (const_desc->AddOutputDesc(const_tensor) != GRAPH_SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "Add ouput desc to op:%s(%s) failed",
+    REPORT_INNER_ERR_MSG("E19999", "Add output desc to op:%s(%s) failed.",
                       const_desc->GetName().c_str(), const_desc->GetType().c_str());
     GELOGE(OUT_OF_MEMORY, "[Add][OutputDesc] to op:%s(%s) failed",
            const_desc->GetName().c_str(), const_desc->GetType().c_str());
@@ -1222,7 +1222,7 @@ Status MultiBatchClonePass::SetShapeToData(const std::vector<int64_t> &shapes, c
   }
 
   if (NodeUtils::UpdateOutputOriginalShapeAndShape(*data, out_anchor_index, data_shape) != GRAPH_SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "Update ouput desc shape to op:%s(%s) failed, index:%zu",
+    REPORT_INNER_ERR_MSG("E19999", "Update output desc shape to op:%s(%s) failed, index:%zu.",
                       data->GetName().c_str(), data->GetType().c_str(), out_anchor_index);
     GELOGE(INTERNAL_ERROR, "[Update][OutputShape] to op:%s(%s) failed, index:%zu",
            data->GetName().c_str(), data->GetType().c_str(), out_anchor_index);
@@ -1272,7 +1272,7 @@ Status MultiBatchClonePass::UpdateShapeOfShapeNode(const NodePtr &node, size_t o
   output_desc.SetOriginShape(output_shape);
   output_desc.SetDataType(DT_INT32);
   if (node->GetOpDesc()->UpdateOutputDesc(shape_index, output_desc) != SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "Update ouput desc to op:%s(%s) failed, index:%zu",
+    REPORT_INNER_ERR_MSG("E19999", "Update output desc to op:%s(%s) failed, index:%zu.",
                       node->GetName().c_str(), node->GetType().c_str(), shape_index);
     GELOGE(FAILED, "[Update][OutputDesc] to op:%s(%s) failed, index:%zu",
            node->GetName().c_str(), node->GetType().c_str(), shape_index);

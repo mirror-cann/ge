@@ -320,7 +320,7 @@ ge::graphStatus TilingForMaxPoolV3(TilingContext *context) {
                input_shape.GetDim(INDEX_4)),
         return ge::GRAPH_FAILED);
 
-  // check compile info paramters
+  // check compile info parameters
   CHECK((compile_info->ub_ele <= 0), GELOGE(ge::GRAPH_FAILED, "ub_ele must greater than 0."), return ge::GRAPH_SUCCESS);
   CHECK((compile_info->core_num <= 0), GELOGE(ge::GRAPH_FAILED, "core_num must greater than 0."),
         return ge::GRAPH_SUCCESS);

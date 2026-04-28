@@ -9,6 +9,7 @@
  */
 
 #include "dflow_session_impl.h"
+#include <cinttypes>
 #include <map>
 #include <memory>
 #include <vector>
@@ -150,7 +151,7 @@ DFlowSessionImpl::~DFlowSessionImpl() {
 
 Status DFlowSessionImpl::Initialize(const std::map<std::string, std::string> &options) {
   if (is_initialized_) {
-    GELOGI("[DFlowSessionImpl:%lu] session already initialize.", session_id_);
+    GELOGI("[DFlowSessionImpl:%" PRIu64 "] session already initialize.", session_id_);
     return SUCCESS;
   }
   
@@ -181,7 +182,7 @@ Status DFlowSessionImpl::Initialize(const std::map<std::string, std::string> &op
 Status DFlowSessionImpl::Finalize() {
   std::lock_guard<std::mutex> lock(resource_mutex_);
   if (!is_initialized_) {
-    GELOGW("[DFlowSessionImpl:%lu] session does not initialize.", session_id_);
+    GELOGW("[DFlowSessionImpl:%" PRIu64 "] session does not initialize.", session_id_);
     return SUCCESS;
   }
 
@@ -202,7 +203,7 @@ Status DFlowSessionImpl::AddGraph(uint32_t graph_id, const dflow::FlowGraph &gra
                                   const std::map<std::string, std::string> &options) {
   std::lock_guard<std::mutex> lock(resource_mutex_);
   for (const auto &item : options) {
-    GELOGI("DFlow option: %s, value: %s, dflowInnerSession:%lu, graph id: %u.", item.first.c_str(), item.second.c_str(),
+    GELOGI("DFlow option: %s, value: %s, dflowInnerSession:%" PRIu64 ", graph id: %u.", item.first.c_str(), item.second.c_str(),
            session_id_, graph_id);
   }
   const auto &ge_graph = graph.ToGeGraph();
@@ -219,8 +220,8 @@ Status DFlowSessionImpl::AddGraph(uint32_t graph_id, const dflow::FlowGraph &gra
   }
   UpdateThreadContext(options);
   GE_CHK_STATUS_RET(dflow_graph_manager_.AddGraph(graph_id, ge_graph, options),
-      "[Add][Graph] failed, DFlowSessionImpl:%lu graph id: %u.", session_id_, graph_id);
-  GELOGI("[DFlowSessionImpl:%lu] Add graph success, graph_id=%u.", session_id_, graph_id);
+      "[Add][Graph] failed, DFlowSessionImpl:%" PRIu64 " graph id: %u.", session_id_, graph_id);
+  GELOGI("[DFlowSessionImpl:%" PRIu64 "] Add graph success, graph_id=%u.", session_id_, graph_id);
   return SUCCESS;
 }
 
@@ -240,8 +241,8 @@ Status DFlowSessionImpl::AddGraph(uint32_t graph_id, const Graph &graph,
   }
   UpdateThreadContext(options);
   GE_CHK_STATUS_RET(dflow_graph_manager_.AddGraph(graph_id, graph, options), 
-    "FlowGraphManager AddGraph failed, DFlowInnerSession:%lu graph id: %u.", session_id_, graph_id);
-  GELOGI("[DFlowInnerSession:%lu] Add graph success, graph_id=%u.", session_id_, graph_id);
+    "FlowGraphManager AddGraph failed, DFlowInnerSession:%" PRIu64 " graph id: %u.", session_id_, graph_id);
+  GELOGI("[DFlowInnerSession:%" PRIu64 "] Add graph success, graph_id=%u.", session_id_, graph_id);
   return SUCCESS;
 }
 
@@ -255,11 +256,11 @@ Status DFlowSessionImpl::RemoveGraph(uint32_t graph_id) {
   }
   Status ret = dflow_graph_manager_.RemoveGraph(graph_id);
   if (ret != SUCCESS) {
-    GELOGE(ret, "[Remove][Graph] failed, DFlowSessionImpl:%lu graph id: %u.", session_id_, graph_id);
-    REPORT_INNER_ERR_MSG("E19999", "FlowGraphManager RemoveGraph failed, DFlowSessionImpl:%lu graph id: %u.", session_id_, graph_id);
+    GELOGE(ret, "[Remove][Graph] failed, DFlowSessionImpl:%" PRIu64 " graph id: %u.", session_id_, graph_id);
+    REPORT_INNER_ERR_MSG("E19999", "FlowGraphManager RemoveGraph failed, DFlowSessionImpl:%" PRIu64 " graph id: %u.", session_id_, graph_id);
     return ret;
   }
-  GELOGI("[DFlowSessionImpl:%lu] Remove graph success, graph_id=%u.", session_id_, graph_id);
+  GELOGI("[DFlowSessionImpl:%" PRIu64 "] Remove graph success, graph_id=%u.", session_id_, graph_id);
   return SUCCESS;
 }
 
@@ -303,8 +304,8 @@ FlowModelPtr DFlowSessionImpl::CompileAndLoadGraph(uint32_t graph_id, const std:
 Status DFlowSessionImpl::CompileGraph(uint32_t graph_id, const std::vector<GeTensor> &ge_inputs) {
   UpdateThreadContext(graph_id);
   GE_CHK_STATUS_RET(dflow_graph_manager_.CompileGraph(graph_id, ge_inputs),
-                    "[DFlowSessionImpl:%lu] compile graph failed, session_id_, graph_id=%u", graph_id);
-  GELOGI("[DFlowSessionImpl:%lu] Compile graph success, graph_id=%u.", session_id_, graph_id);
+                    "[DFlowSessionImpl:%" PRIu64 "] compile graph failed, session_id_, graph_id=%u", graph_id);
+  GELOGI("[DFlowSessionImpl:%" PRIu64 "] Compile graph success, graph_id=%u.", session_id_, graph_id);
   return SUCCESS;
 }
 
@@ -318,11 +319,11 @@ Status DFlowSessionImpl::BuildGraph(uint32_t graph_id, const std::vector<ge::GeT
   UpdateThreadContext(graph_id);
   const auto flow_model = CompileAndLoadGraph(graph_id, ge_inputs);
   if (flow_model == nullptr) {
-    GELOGE(FAILED, "[Compile][Load] failed, DFlowSessionImpl:%lu graph_id=%u.", session_id_, graph_id);
-    REPORT_INNER_ERR_MSG("E19999", "FlowGraphManager BuildGraph failed, DFlowSessionImpl:%lu graph_id=%u.", session_id_, graph_id);
+    GELOGE(FAILED, "[Compile][Load] failed, DFlowSessionImpl:%" PRIu64 " graph_id=%u.", session_id_, graph_id);
+    REPORT_INNER_ERR_MSG("E19999", "FlowGraphManager BuildGraph failed, DFlowSessionImpl:%" PRIu64 " graph_id=%u.", session_id_, graph_id);
     return FAILED;
   }
-  GELOGI("[DFlowSessionImpl:%lu] Build graph success, graph_id=%u.", session_id_, graph_id);
+  GELOGI("[DFlowSessionImpl:%" PRIu64 "] Build graph success, graph_id=%u.", session_id_, graph_id);
   return SUCCESS;
 }
 
@@ -332,8 +333,8 @@ Status DFlowSessionImpl::RunGraph(uint32_t graph_id, const std::vector<Tensor> &
   std::vector<ge::GeTensor> ge_inputs = ToGeTensors(inputs);
   const auto flow_model = CompileAndLoadGraph(graph_id, ge_inputs);
   if (flow_model == nullptr) {
-    GELOGE(FAILED, "[Compile][Load] failed, DFlowSessionImpl:%lu graph_id=%u.", session_id_, graph_id);
-    REPORT_INNER_ERR_MSG("E19999", "FlowGraphManager BuildGraph failed, DFlowSessionImpl:%lu graph_id=%u.", session_id_, graph_id);
+    GELOGE(FAILED, "[Compile][Load] failed, DFlowSessionImpl:%" PRIu64 " graph_id=%u.", session_id_, graph_id);
+    REPORT_INNER_ERR_MSG("E19999", "FlowGraphManager BuildGraph failed, DFlowSessionImpl:%" PRIu64 " graph_id=%u.", session_id_, graph_id);
     return FAILED;
   }
   if (!dflow_graph_manager_.GetOptionsRunGraphFlag()) {
@@ -355,7 +356,7 @@ Status DFlowSessionImpl::FeedDataFlowGraph(uint32_t graph_id, const std::vector<
   std::vector<GeTensor> ge_inputs = ToGeTensors(inputs);
   const auto flow_model = CompileAndLoadGraph(graph_id, ge_inputs);
   GE_CHK_BOOL_RET_STATUS(flow_model != nullptr, FAILED,
-                         "[Build][Graph] failed, DFlowSessionImpl:%lu graph_id=%u.", session_id_, graph_id);
+                         "[Build][Graph] failed, DFlowSessionImpl:%" PRIu64 " graph_id=%u.", session_id_, graph_id);
   if (!dflow_graph_manager_.GetOptionsRunGraphFlag()) {
     GEEVENT("Skip loading model result of run flag obtained is false.");
     return SUCCESS;
@@ -365,9 +366,9 @@ Status DFlowSessionImpl::FeedDataFlowGraph(uint32_t graph_id, const std::vector<
   GE_CHECK_NOTNULL(heterogeneous_executor, ", model_id:%u.", model_id);
   auto ret = heterogeneous_executor->FeedData(indexes, ge_inputs, info, timeout);
   if (ret != SUCCESS && ret != ACL_ERROR_GE_REDEPLOYING && ret != ACL_ERROR_GE_SUBHEALTHY) {
-    GELOGE(FAILED, "[Feed][Data]failed, DFlowSession:%lu, graph_id=%u, model_id=%u.", session_id_, graph_id, model_id);
+    GELOGE(FAILED, "[Feed][Data]failed, DFlowSession:%" PRIu64 ", graph_id=%u, model_id=%u.", session_id_, graph_id, model_id);
   } else {
-    GELOGI("[DFlowSessionImpl:%lu] feed data flow graph success, graph_id=%u, model_id=%u.", session_id_, graph_id,
+    GELOGI("[DFlowSessionImpl:%" PRIu64 "] feed data flow graph success, graph_id=%u, model_id=%u.", session_id_, graph_id,
            model_id);
   }
   return ret;
@@ -383,7 +384,7 @@ Status DFlowSessionImpl::FeedDataFlowGraph(uint32_t graph_id, const std::vector<
   const std::vector<GeTensor> input_no_use = {};
   const auto flow_model = CompileAndLoadGraph(graph_id, input_no_use);
   GE_CHK_BOOL_RET_STATUS(flow_model != nullptr, FAILED,
-                         "[Build][Graph] failed, DFlowSessionImpl:%lu graph_id=%u.", session_id_, graph_id);
+                         "[Build][Graph] failed, DFlowSessionImpl:%" PRIu64 " graph_id=%u.", session_id_, graph_id);
   if (!dflow_graph_manager_.GetOptionsRunGraphFlag()) {
     GEEVENT("Skip loading model result of run flag obtained is false.");
     return SUCCESS;
@@ -394,10 +395,10 @@ Status DFlowSessionImpl::FeedDataFlowGraph(uint32_t graph_id, const std::vector<
   GE_CHECK_NOTNULL(heterogeneous_executor, ", model_id:%u.", model_id);
   auto ret = heterogeneous_executor->FeedFlowMsg(indexes, inputs, timeout);
   GE_CHK_BOOL_RET_STATUS((ret == SUCCESS || ret == ACL_ERROR_GE_REDEPLOYING || ret == ACL_ERROR_GE_SUBHEALTHY),
-                         ret, "[Feed][FlowMsg]failed, DFlowSession:%lu, graph_id=%u, model_id=%u.",
+                         ret, "[Feed][FlowMsg]failed, DFlowSession:%" PRIu64 ", graph_id=%u, model_id=%u.",
                          session_id_, graph_id, model_id);
 
-  GELOGI("[DFlowSession:%lu] feed data flow graph success, graph_id=%u, model_id=%u.", session_id_, graph_id, model_id);
+  GELOGI("[DFlowSession:%" PRIu64 "] feed data flow graph success, graph_id=%u, model_id=%u.", session_id_, graph_id, model_id);
   return ret;
 }
 
@@ -407,8 +408,8 @@ Status DFlowSessionImpl::FetchDataFlowGraph(uint32_t graph_id, const std::vector
   uint32_t model_id = INVALID_MODEL_ID;
   Status ret = dflow_graph_manager_.GetGraphModelId(graph_id, model_id);
   if ((ret != SUCCESS) || (model_id == INVALID_MODEL_ID)) {
-    GELOGE(ret, "[Get][model] failed, DFlowSessionImpl:%lu graph_id=%u.", session_id_, graph_id);
-    REPORT_INNER_ERR_MSG("E19999", "Get model failed, DFlowSessionImpl:%lu graph_id=%u.", session_id_, graph_id);
+    GELOGE(ret, "[Get][model] failed, DFlowSessionImpl:%" PRIu64 " graph_id=%u.", session_id_, graph_id);
+    REPORT_INNER_ERR_MSG("E19999", "Get model failed, DFlowSessionImpl:%" PRIu64 " graph_id=%u.", session_id_, graph_id);
     return FAILED;
   }
   std::vector<GeTensor> ge_outputs;
@@ -417,10 +418,10 @@ Status DFlowSessionImpl::FetchDataFlowGraph(uint32_t graph_id, const std::vector
 
   ret = heterogeneous_executor->FetchData(indexes, ge_outputs, info, timeout);
   if (ret != SUCCESS && ret != ACL_ERROR_GE_REDEPLOYING && ret != ACL_ERROR_GE_SUBHEALTHY) {
-    GELOGE(FAILED, "[Fetch][Data]failed, DFlowSession:%lu, graph_id=%u, model_id=%u.", session_id_, graph_id, model_id);
+    GELOGE(FAILED, "[Fetch][Data]failed, DFlowSession:%" PRIu64 ", graph_id=%u, model_id=%u.", session_id_, graph_id, model_id);
   } else {
     outputs = ToTensors(ge_outputs);
-    GELOGI("[DFlowSession:%lu] Fetch data flow graph success, graph_id=%u, model_id=%u.", session_id_, graph_id,
+    GELOGI("[DFlowSession:%" PRIu64 "] Fetch data flow graph success, graph_id=%u, model_id=%u.", session_id_, graph_id,
            model_id);
   }
   return ret;
@@ -432,8 +433,8 @@ Status DFlowSessionImpl::FetchDataFlowGraph(uint32_t graph_id, const std::vector
   uint32_t model_id = INVALID_MODEL_ID;
   Status ret = dflow_graph_manager_.GetGraphModelId(graph_id, model_id);
   if ((ret != SUCCESS) || (model_id == INVALID_MODEL_ID)) {
-    GELOGE(ret, "[Get][model] failed, DFlowSessionImpl:%lu graph_id=%u.", session_id_, graph_id);
-    REPORT_INNER_ERR_MSG("E19999", "Get model failed, DFlowSessionImpl:%lu graph_id=%u.", session_id_, graph_id);
+    GELOGE(ret, "[Get][model] failed, DFlowSessionImpl:%" PRIu64 " graph_id=%u.", session_id_, graph_id);
+    REPORT_INNER_ERR_MSG("E19999", "Get model failed, DFlowSessionImpl:%" PRIu64 " graph_id=%u.", session_id_, graph_id);
     return FAILED;
   }
   auto heterogeneous_executor = FlowModelManager::GetInstance().GetHeterogeneousModelExecutor(model_id);
@@ -441,10 +442,10 @@ Status DFlowSessionImpl::FetchDataFlowGraph(uint32_t graph_id, const std::vector
 
   ret = heterogeneous_executor->FetchFlowMsg(indexes, outputs, timeout);
   GE_CHK_BOOL_RET_STATUS((ret == SUCCESS || ret == ACL_ERROR_GE_REDEPLOYING || ret == ACL_ERROR_GE_SUBHEALTHY),
-                         ret, "[Fetch][FlowMsg]failed, DFlowSession:%lu, graph_id=%u, model_id=%u.",
+                         ret, "[Fetch][FlowMsg]failed, DFlowSession:%" PRIu64 ", graph_id=%u, model_id=%u.",
                          session_id_, graph_id, model_id);
 
-  GELOGI("[DFlowSession:%lu] Fetch data flow graph success, graph_id=%u, model_id=%u.", session_id_, graph_id,
+  GELOGI("[DFlowSession:%" PRIu64 "] Fetch data flow graph success, graph_id=%u, model_id=%u.", session_id_, graph_id,
          model_id);
   return ret;
 }
@@ -455,25 +456,25 @@ Status DFlowSessionImpl::FeedRawData(uint32_t graph_id, const std::vector<RawDat
   FlowModelPtr flow_model = dflow_graph_manager_.GetFlowModel(graph_id);
   if (flow_model == nullptr) {
     GELOGE(FAILED, "[Get][FlowModel] failed. Please make sure graph has been build before feed raw data, "
-                   "DFlowSessionImpl:%lu graph_id=%u.", session_id_, graph_id);
+                   "DFlowSessionImpl:%" PRIu64 " graph_id=%u.", session_id_, graph_id);
     REPORT_INNER_ERR_MSG("E19999", "[Get][FlowModel] failed. Please make sure graph has been build before feed raw data, "
-                       "DFlowSessionImpl:%lu graph_id=%u.", session_id_, graph_id);
+                       "DFlowSessionImpl:%" PRIu64 " graph_id=%u.", session_id_, graph_id);
     return FAILED;
   }
   if (!dflow_graph_manager_.GetOptionsRunGraphFlag()) {
     GELOGI("Skip feed raw data as run flag is false.");
     return SUCCESS;
   }
-  GE_CHECK_NOTNULL(flow_model, ", DFlowSessionImpl:%lu graph_id=%u.", session_id_, graph_id);
+  GE_CHECK_NOTNULL(flow_model, ", DFlowSessionImpl:%" PRIu64 " graph_id=%u.", session_id_, graph_id);
   const auto model_id = flow_model->GetModelId();
   auto heterogeneous_executor = FlowModelManager::GetInstance().GetHeterogeneousModelExecutor(model_id);
   GE_CHECK_NOTNULL(heterogeneous_executor, ", model_id:%u.", model_id);
   const auto ret = heterogeneous_executor->FeedRawData(raw_data_list, index, info, timeout);
   if (ret != SUCCESS && ret != ACL_ERROR_GE_REDEPLOYING && ret != ACL_ERROR_GE_SUBHEALTHY) {
-    GELOGE(FAILED, "[Feed][Data]failed, DFlowSessionImpl:%lu, graph_id=%u, model_id=%u.", session_id_, graph_id,
+    GELOGE(FAILED, "[Feed][Data]failed, DFlowSessionImpl:%" PRIu64 ", graph_id=%u, model_id=%u.", session_id_, graph_id,
            model_id);
   } else {
-    GELOGI("[DFlowSessionImpl:%lu] feed raw data flow graph success, graph_id=%u, model_id=%u.", session_id_, graph_id,
+    GELOGI("[DFlowSessionImpl:%" PRIu64 "] feed raw data flow graph success, graph_id=%u, model_id=%u.", session_id_, graph_id,
            model_id);
   }
   return ret;

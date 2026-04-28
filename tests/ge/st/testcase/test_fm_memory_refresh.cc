@@ -3239,7 +3239,7 @@ TEST_F(FmMemoryRefreshTest, data_input_output_reuse_mem_03) {
   uint64_t data1_out_addr = task_io_addr[1];
   // get add2 output addr
   uint64_t add2_out_addr = task_io_addr[5];
-  // get add4 ouput addr
+  // get add4 output addr
   uint64_t add4_out_addr = task_io_addr[11];
 
 EXPECT_EQ(data1_out_addr, add2_out_addr);

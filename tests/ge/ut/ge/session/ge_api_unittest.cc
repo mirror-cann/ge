@@ -1427,7 +1427,7 @@ TEST_F(UtestGeApi, Construct_session) {
 
   // add graph test
   std::map<std::string, std::string> options1;
-  Session sess6(options1);  // contruct session successfully
+  Session sess6(options1);  // construct session successfully
   Graph g("hello");
   std::map<AscendString, AscendString> graph_options;
   graph_options[AscendString()] = "";  // graph option key is empty

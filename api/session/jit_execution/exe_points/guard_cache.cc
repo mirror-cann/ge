@@ -9,6 +9,7 @@
  */
 
 #include <algorithm>
+#include <cinttypes>
 #include <memory>
 
 #include "framework/common/debug/ge_log.h"
@@ -35,7 +36,7 @@ GuardedExecutionPoint *GuardCheckCache::FindGuardedExecutionPoint(const std::vec
       return item.get();
     }
   }
-  GELOGI("There is no hint GEP in EP[%ld] cache size(%lu)", ep_id, cache_models_.size());
+  GELOGI("There is no hint GEP in EP[%ld] cache size(%" PRIu64 ")", ep_id, cache_models_.size());
   return nullptr;
 }
 
@@ -56,7 +57,7 @@ GuardedExecutionPoint *GuardCheckCache::FindOrCreateGuarded(const std::vector<ge
     }
     // 第一个GEP依然是Guard Miss，走下面及CompileAndLoad流程进行编译
   }
-  REPORT_INNER_ERR_MSG("W18888", "There is no hint GEP, cache size(%lu). Guard miss reason in info log", cache_models_.size());
+  REPORT_INNER_ERR_MSG("W18888", "There is no hint GEP, cache size(%" PRIu64 "). Guard miss reason in info log", cache_models_.size());
   gep = new GuardedExecutionPoint(owner_point_);
   GE_ASSERT_SUCCESS(AddCompiledCompiledGraph(gep));
 

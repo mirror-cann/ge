@@ -335,7 +335,7 @@ NodePtr ControlTriggerPass::InsertMergeNode(ComputeGraphPtr &graph, NodePtr &nod
 
   if ((op_desc->AddInputDesc(data_desc) != GRAPH_SUCCESS) || (op_desc->AddInputDesc(data_desc) != GRAPH_SUCCESS) ||
       (op_desc->AddOutputDesc(data_desc) != GRAPH_SUCCESS) || (op_desc->AddOutputDesc(data_desc) != GRAPH_SUCCESS)) {
-    REPORT_INNER_ERR_MSG("E19999", "Add input or ouput desc to op:%s(%s) failed",
+    REPORT_INNER_ERR_MSG("E19999", "Add input or output desc to op:%s(%s) failed.",
                       op_desc->GetName().c_str(), op_desc->GetType().c_str());
     GELOGE(INTERNAL_ERROR, "[Add][GeTensorDesc] to op:%s(%s) failed",
            op_desc->GetName().c_str(), op_desc->GetType().c_str());
@@ -403,7 +403,7 @@ NodePtr ControlTriggerPass::InsertConstNode(ComputeGraphPtr &graph, NodePtr &mer
   }
 
   if (op_desc->AddOutputDesc(data_desc) != GRAPH_SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "Add ouput desc to op:%s(%s) failed",
+    REPORT_INNER_ERR_MSG("E19999", "Add output desc to op:%s(%s) failed.",
                       op_desc->GetName().c_str(), op_desc->GetType().c_str());
     GELOGE(INTERNAL_ERROR, "[Add][OutputDesc] to op:%s(%s) failed",
            op_desc->GetName().c_str(), op_desc->GetType().c_str());

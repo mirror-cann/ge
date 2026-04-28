@@ -120,7 +120,7 @@ void ParseConstShapeDescV2(const nlohmann::json &shape_json, ge::Operator &op_pa
   std::vector<uint8_t> value;
   const bool bres = CopyConstData(dtype_str, shape_json["const_value"], value);
   if (!bres) {
-    REPORT_INNER_ERR_MSG("E19999", "CopyConstData faild.  buffer is null");
+    REPORT_INNER_ERR_MSG("E19999", "CopyConstData failed, buffer is null.");
     return;
   }
   auto res = const_values.emplace(name, std::move(value));

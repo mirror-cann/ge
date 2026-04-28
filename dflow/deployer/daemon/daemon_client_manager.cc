@@ -9,6 +9,7 @@
  */
 
 #include "daemon/daemon_client_manager.h"
+#include <cinttypes>
 #include <fstream>
 #include "mmpa/mmpa_api.h"
 #include "base/err_msg.h"
@@ -91,7 +92,7 @@ Status DaemonClientManager::CreateAndInitClient(const std::string &peer_uri,
   ++client_id_gen_;
   client_id = new_client_id;
   GE_CHK_STATUS_RET_NOLOG(RecordClientInfo(new_client_id, peer_uri));
-  GELOGD("Client added, id = %ld", client_id);
+  GELOGD("Client added, id = %" PRId64 "", client_id);
   return SUCCESS;
 }
 
@@ -102,8 +103,8 @@ Status DaemonClientManager::CloseClient(const int64_t client_id) {
     std::lock_guard<std::mutex> lk(mu_);
     const auto it = clients_.find(client_id);
     if (it == clients_.cend()) {
-      REPORT_INNER_ERR_MSG("E19999", "Client[%ld] does not exist in client manager.", client_id);
-      GELOGE(FAILED, "[Close][Client]Client[%ld] does not exist in client manager.", client_id);
+      REPORT_INNER_ERR_MSG("E19999", "Client[%" PRId64 "] does not exist in client manager.", client_id);
+      GELOGE(FAILED, "[Close][Client]Client[%" PRId64 "] does not exist in client manager.", client_id);
       return FAILED;
     }
 
@@ -119,8 +120,8 @@ DeployerDaemonClient *DaemonClientManager::GetClient(const int64_t client_id) {
   std::lock_guard<std::mutex> lk(mu_);
   auto it = clients_.find(client_id);
   if (it == clients_.end()) {
-    REPORT_INNER_ERR_MSG("E19999", "Get client[%ld] failed.", client_id);
-    GELOGE(FAILED, "[Get][Client]Get client[%ld] failed.", client_id);
+    REPORT_INNER_ERR_MSG("E19999", "Get client[%" PRId64 "] failed.", client_id);
+    GELOGE(FAILED, "[Get][Client]Get client[%" PRId64 "] failed.", client_id);
     return nullptr;
   }
   return it->second.get();
@@ -196,7 +197,7 @@ Status DaemonClientManager::DeleteClientInfo(const int64_t client_id) {
   }
   client_addrs_.erase(it);
   GE_CHK_STATUS_RET_NOLOG(UpdateJsonFile());
-  GELOGI("Delete client[%ld] success.", client_id);
+  GELOGI("Delete client[%" PRId64 "] success.", client_id);
   return SUCCESS;
 }
 
@@ -217,16 +218,16 @@ void DaemonClientManager::EvictExpiredClients() {
     for (auto &it : clients_) {
       if (it.second->IsExpired()) {
         if (it.second->IsExecuting()) {
-          GELOGD("Client is still executing, check next time, client_id = %ld.", it.first);
+          GELOGD("Client is still executing, check next time, client_id = %" PRId64 ".", it.first);
         } else {
-          GELOGW("Client is not executing, client_id = %ld.", it.first);
+          GELOGW("Client is not executing, client_id = %" PRId64 ".", it.first);
           expired_clients.push_back(it.first);
         }
       }
     }
   }
   for (int64_t client_id : expired_clients) {
-    GEEVENT("Client expired, close it, client_id = %ld.", client_id);
+    GEEVENT("Client expired, close it, client_id = %" PRId64 ".", client_id);
     (void) CloseClient(client_id);
   }
 }

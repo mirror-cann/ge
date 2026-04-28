@@ -1877,7 +1877,7 @@ Status Kernel::ParseGraph(const ascir::ImplGraph &graph, const ascir::FusedSched
         std::string const_value;
         auto ir_attr = node->attr.ir_attr.get();
         if (ir_attr->GetAttrValue("value", const_value) != ge::GRAPH_SUCCESS) {
-          GELOGE(ge::FAILED, "GetAttrValue const value faild");
+          GELOGE(ge::FAILED, "GetAttrValue const value failed.");
           return ge::FAILED;
         }
         GELOGI("Scalar node const value %s", const_value.c_str());
@@ -1894,7 +1894,7 @@ Status Kernel::ParseGraph(const ascir::ImplGraph &graph, const ascir::FusedSched
         int64_t size_id = 0;
         auto ir_attr = node->attr.ir_attr.get();
         if (ir_attr->GetAttrValue("expr", size_id) != ge::GRAPH_SUCCESS) {
-          GELOGE(ge::FAILED, "GetAttrValue index expr faild, size_id = %lld", size_id);
+          GELOGE(ge::FAILED, "GetAttrValue index expr failed, size_id = %lld.", size_id);
           return ge::FAILED;
         }
         GELOGI("size_id = %lld", size_id);

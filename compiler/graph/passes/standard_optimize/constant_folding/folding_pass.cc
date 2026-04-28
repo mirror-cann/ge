@@ -9,6 +9,7 @@
  */
 
 #include "graph/passes/standard_optimize/constant_folding/folding_pass.h"
+#include <cinttypes>
 
 #include <memory>
 #include <string>
@@ -250,18 +251,18 @@ Status FoldingPass::AddConstNode(const NodePtr &node, IndexsToAnchors indexes_to
   for (auto &index_to_anchors : indexes_to_anchors) {
     auto index = static_cast<size_t>(index_to_anchors.first);
     if (index >= v_weight.size()) {
-      REPORT_INNER_ERR_MSG("E19999", "Index:%lu in param index_to_anchors >= param v_weight.size:%zu, "
+      REPORT_INNER_ERR_MSG("E19999", "Index:%" PRIu64 " in param index_to_anchors >= param v_weight.size:%zu, "
                          "check invalid", index, v_weight.size());
       GELOGE(INTERNAL_ERROR, "[Check][Param] Failed to constant fold on node %s type %s, "
-             "the out nodes num %lu calculated is less than the node out anchor index %zu",
+             "the out nodes num %" PRIu64 " calculated is less than the node out anchor index %zu",
              node->GetName().c_str(), node->GetType().c_str(), v_weight.size(), index);
       return INTERNAL_ERROR;
     }
     GeTensorPtr weight = v_weight[index];
     if (weight == nullptr) {
-      REPORT_INNER_ERR_MSG("E19999", "Index:%lu in param v_weight is nullptr check invalid", index);
+      REPORT_INNER_ERR_MSG("E19999", "Index:%" PRIu64 " in param v_weight is nullptr check invalid", index);
       GELOGE(INTERNAL_ERROR,
-             "[Check][Param] Failed to constant fold on node %s type %s, the %lust node calculated is null",
+             "[Check][Param] Failed to constant fold on node %s type %s, the %" PRIu64 "st node calculated is null",
              node->GetName().c_str(), node->GetType().c_str(), index);
       return INTERNAL_ERROR;
     }
@@ -278,10 +279,10 @@ Status FoldingPass::AddConstNode(const NodePtr &node, IndexsToAnchors indexes_to
     // add new const to re-pass node
     for (auto &in_anchor : index_to_anchors.second) {
       if (in_anchor == nullptr) {
-        REPORT_INNER_ERR_MSG("E19999", "Index:%lu in param index_to_anchors has nullptr member in_anchor, "
+        REPORT_INNER_ERR_MSG("E19999", "Index:%" PRIu64 " in param index_to_anchors has nullptr member in_anchor, "
                            "check invalid", index);
         GELOGE(INTERNAL_ERROR,
-               "[Check][Param] Index:%lu in param index_to_anchors has nullptr member in_anchor", index);
+               "[Check][Param] Index:%" PRIu64 " in param index_to_anchors has nullptr member in_anchor", index);
         return INTERNAL_ERROR;
       }
       auto ret = ConnectNodeToInAnchor(in_anchor, const_node, 0);

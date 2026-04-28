@@ -311,7 +311,7 @@ OpDescPtr ForPass::CreateConstDesc(const std::string &name, int32_t value) {
   }
 
   if (const_op_desc->AddOutputDesc("y", data_desc) != GRAPH_SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "Add ouput desc to op:%s(%s) failed, name:y",
+    REPORT_INNER_ERR_MSG("E19999", "Add output desc to op:%s(%s) failed, name:y.",
                       const_op_desc->GetName().c_str(), const_op_desc->GetType().c_str());
     GELOGE(FAILED, "[Add][OutputDesc] to op:%s(%s) failed, name:y",
            const_op_desc->GetName().c_str(), const_op_desc->GetType().c_str());

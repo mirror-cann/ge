@@ -300,7 +300,7 @@ TEST_F(UtestArgsFormatDesc, serialize_ascendcpp_hidden_input) {
   EXPECT_EQ(args_size, 16UL);
 }
 
-TEST_F(UtestArgsFormatDesc, deserialzie_hidden_input) {
+TEST_F(UtestArgsFormatDesc, deserialize_hidden_input) {
   auto op_desc = std::make_shared<OpDesc>("tmp_op", "Mul");
   std::vector<ArgDesc> descs;
   EXPECT_NE(ArgsFormatDesc::Parse(op_desc, "{hi.unsupported}", descs), SUCCESS);
@@ -337,7 +337,7 @@ TEST_F(UtestArgsFormatDesc, serialize_custom_val) {
   EXPECT_EQ(args_size, 8UL);
 }
 
-TEST_F(UtestArgsFormatDesc, deserialzie_custom_val) {
+TEST_F(UtestArgsFormatDesc, deserialize_custom_val) {
   auto op_desc = std::make_shared<OpDesc>("tmp_op", "Mul");
   std::vector<ArgDesc> descs;
   EXPECT_NE(ArgsFormatDesc::Parse(op_desc, "{xxx}", descs), SUCCESS);
@@ -352,7 +352,7 @@ TEST_F(UtestArgsFormatDesc, deserialzie_custom_val) {
   EXPECT_EQ(*(uint64_t *)descs[0UL].reserved, 0);
 }
 
-TEST_F(UtestArgsFormatDesc, deserialzie_placeholder) {
+TEST_F(UtestArgsFormatDesc, deserialize_placeholder) {
   auto op_desc = std::make_shared<OpDesc>("tmp_op", "Mul");
   std::string format1 = "{}";
   std::vector<ArgDesc> descs;
@@ -421,7 +421,7 @@ TEST_F(UtestArgsFormatDesc, invalid_args_format_width) {
   EXPECT_NE(desc.GetArgsSize(op_desc, size), GRAPH_SUCCESS);
 }
 
-TEST_F(UtestArgsFormatDesc, deserialzie_unsupported) {
+TEST_F(UtestArgsFormatDesc, deserialize_unsupported) {
 auto op_desc = std::make_shared<OpDesc>("tmp_op", "Mul");
   std::string format1 = "{hehe}";
   std::vector<ArgDesc> descs1;
@@ -436,7 +436,7 @@ auto op_desc = std::make_shared<OpDesc>("tmp_op", "Mul");
   EXPECT_NE(ArgsFormatDesc::Parse(op_desc, format3, descs3), SUCCESS);
 }
 
-TEST_F(UtestArgsFormatDesc, deserialzie_tiling_context) {
+TEST_F(UtestArgsFormatDesc, deserialize_tiling_context) {
   auto op_desc = std::make_shared<OpDesc>("tmp_op", "Mul");
   std::string format1 =
       "{tiling_context}{*op_type}{tiling_context.tiling_key}{tiling_context.tiling_data}{tiling_context.block_dim}";

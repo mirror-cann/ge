@@ -201,13 +201,13 @@ LowerResult LoweringFileConstantNode(const ge::NodePtr &node, const LowerInput &
   StorageShape storage_shape;
   LOWER_REQUIRE_SUCCESS(GetFileConstantStorageShapeFromOpdesc(op_desc, storage_shape));
 
-  auto output_shape_init_ouput =
+  auto output_shape_init_output =
       bg::FrameSelector::OnInitRoot([&storage_shape, op_desc]() -> std::vector<bg::ValueHolderPtr> {
         const auto storage_shape_holder =
             NodeConverterUtils::CreateOutputShape(op_desc->GetOutputDescPtr(0U), storage_shape);
         return {storage_shape_holder};
       });
-  CONVERTER_CHECK_HOLDERS_ALL_OK(output_shape_init_ouput, 1U);
+  CONVERTER_CHECK_HOLDERS_ALL_OK(output_shape_init_output, 1U);
 
   std::string tmp_file_path;
   size_t offset = 0U;
@@ -223,11 +223,11 @@ LowerResult LoweringFileConstantNode(const ge::NodePtr &node, const LowerInput &
     init_outputs), "lowering FileConstant node %s failed.", node->GetNamePtr());
   if (init_outputs.empty()) {
     init_outputs =
-        FileConstantConverter(node, lower_input, tmp_file_path, bg::HolderOnInit(output_shape_init_ouput[0U]));
+        FileConstantConverter(node, lower_input, tmp_file_path, bg::HolderOnInit(output_shape_init_output[0U]));
   }
   CONVERTER_CHECK_HOLDERS_ALL_OK(init_outputs, 1U);
   std::vector<bg::ValueHolderPtr> order_holders(init_outputs.cbegin(), init_outputs.cend());
-  return {HyperStatus::Success(), order_holders, output_shape_init_ouput, init_outputs};
+  return {HyperStatus::Success(), order_holders, output_shape_init_output, init_outputs};
 }
 
 REGISTER_NODE_CONVERTER("FileConstant", LoweringFileConstantNode);

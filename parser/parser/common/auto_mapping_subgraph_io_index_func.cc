@@ -9,6 +9,7 @@
  */
 
 #include "auto_mapping_subgraph_io_index_func.h"
+#include <cinttypes>
 #include <vector>
 #include "graph_metadef/register/graph_register.h"
 #include "graph/compute_graph.h"
@@ -52,8 +53,8 @@ Status AutoMappingSubgraphIndexByOutputNodesInfo(const ge::ComputeGraphPtr &comp
     int parent_index = -1;
     auto ret = output(index, parent_index);
     if (ret != SUCCESS) {
-      REPORT_INNER_ERR_MSG("E19999", "Get parent output index %ld failed, node:%s", index, out_node->GetName().c_str());
-      GELOGE(FAILED, "[Get][ParentOutputIndex] Get parent output index %ld failed, node:%s",
+      REPORT_INNER_ERR_MSG("E19999", "Get parent output index %" PRId64 " failed, node:%s", index, out_node->GetName().c_str());
+      GELOGE(FAILED, "[Get][ParentOutputIndex] Get parent output index %" PRId64 " failed, node:%s",
              index, out_node->GetName().c_str());
       return FAILED;
     }
@@ -77,7 +78,7 @@ Status AutoMappingSubgraphIndexByOutputNodesInfo(const ge::ComputeGraphPtr &comp
              ge::ATTR_NAME_PARENT_NODE_INDEX.c_str(), out_node->GetName().c_str(), parent_index);
       return FAILED;
     }
-    GELOGI("Generate subgraph output map for subgraph %s, out node index %ld, parent node index %d, node name:%s",
+    GELOGI("Generate subgraph output map for subgraph %s, out node index %" PRId64 ", parent node index %d, node name:%s",
            compute_graph->GetName().c_str(), index, parent_index, out_node->GetName().c_str());
   }
 

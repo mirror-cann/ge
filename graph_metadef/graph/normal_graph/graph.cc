@@ -143,7 +143,7 @@ class GraphImpl {
   }
 
   graphStatus SetOutputs(const std::vector<std::pair<Operator, std::string>> &outputs) {
-    GE_CHK_BOOL_RET_STATUS(compute_graph_ != nullptr, GRAPH_FAILED, "[Check][Param] set ComputeGraph faild.");
+    GE_CHK_BOOL_RET_STATUS(compute_graph_ != nullptr, GRAPH_FAILED, "[Check][Param] set ComputeGraph failed.");
     if (outputs.empty()) {
       GELOGI("set outputs size is 0.");
       return GRAPH_SUCCESS;
@@ -213,7 +213,7 @@ class GraphImpl {
   }
 
   graphStatus SetTargets(const std::vector<Operator> &targets) {
-    GE_CHK_BOOL_RET_STATUS(compute_graph_ != nullptr, GRAPH_FAILED, "[Check][Param] set ComputeGraph faild.");
+    GE_CHK_BOOL_RET_STATUS(compute_graph_ != nullptr, GRAPH_FAILED, "[Check][Param] set ComputeGraph failed.");
     if (targets.empty()) {
       GELOGI("set targets size is 0.");
       return GRAPH_SUCCESS;

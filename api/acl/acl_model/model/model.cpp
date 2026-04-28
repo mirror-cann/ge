@@ -1678,7 +1678,7 @@ static const char_t *TransTensorNameToReal(const aclmdlDesc *const modelDesc, co
         }
     }
 
-    ACL_LOG_INNER_ERROR("[Find][Attr]cannot find [input_%s] or [ouput_%s] in tensorName[%s]", valArr[4U].c_str(),
+    ACL_LOG_INNER_ERROR("[Find][Attr]cannot find [input_%s] or [output_%s] in tensorName[%s]", valArr[4U].c_str(),
         valArr[4U].c_str(), tensorName.c_str());
     return nullptr;
 }
@@ -3484,7 +3484,7 @@ aclError aclmdlCreateAndGetOpDescImpl(uint32_t deviceId, uint32_t streamId, uint
     ACL_LOG_DEBUG("call ge interface executor.GetOpDescInfo");
     const ge::Status geRet = executor.GetOpDescInfo(deviceId, streamId, taskId, opDescInfo);
     if (geRet != ge::SUCCESS) {
-        ACL_LOG_CALL_ERROR("[Get][OpDescInfo]get op desc faild, ge result[%d], deviceId[%u], streamId[%u], taskId[%u]",
+        ACL_LOG_CALL_ERROR("[Get][OpDescInfo]get op desc failed, ge result[%d], deviceId[%u], streamId[%u], taskId[%u]",
             geRet, deviceId, streamId, taskId);
         return ACL_GET_ERRCODE_GE(static_cast<int32_t>(geRet));
     }

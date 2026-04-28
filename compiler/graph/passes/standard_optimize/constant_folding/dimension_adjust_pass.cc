@@ -102,7 +102,7 @@ NodePtr DimensionAdjustPass::AddIdentityNodeToGraph(const std::string &name, con
   auto ret = desc->AddInputDesc(tensor);
   auto ret2 = desc->AddOutputDesc(tensor);
   if ((ret != GRAPH_SUCCESS) || (ret2 != GRAPH_SUCCESS)) {
-    REPORT_INNER_ERR_MSG("E19999", "Add input or ouput desc to op:%s(%s) failed",
+    REPORT_INNER_ERR_MSG("E19999", "Add input or output desc to op:%s(%s) failed.",
                       desc->GetName().c_str(), desc->GetType().c_str());
     GELOGE(INTERNAL_ERROR, "[Add][GeTensorDesc] to op:%s(%s) failed",
            desc->GetName().c_str(), desc->GetType().c_str());

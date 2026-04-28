@@ -10,6 +10,7 @@
 
 #include "deploy/flowrm/tsd_client.h"
 #include <atomic>
+#include <cinttypes>
 #include "aicpu/queue_schedule/dgw_client.h"
 #include "mmpa/mmpa_api.h"
 #include "plog.h"
@@ -382,7 +383,7 @@ Status TsdClient::CheckCapabilitySupport(int32_t device_id, int32_t capability, 
   std::unique_lock<std::mutex> guard(GetDeviceMutex(device_id));
   uint64_t value = 0UL;
   uint64_t ptr = static_cast<uint64_t>(reinterpret_cast<uintptr_t>(&value));
-  GE_CHK_STATUS_RET(tsd_capability_get_(device_id, capability, ptr), "tsd capability get faild, type=%d, ptr=%lu.",
+  GE_CHK_STATUS_RET(tsd_capability_get_(device_id, capability, ptr), "tsd capability get failed, type=%d, ptr=%" PRIu64 ".",
                     capability, ptr);
   GELOGI("Tsd capability get success, type=%d, value=%lu, required value=%lu.", capability, value, required);
   is_support = (value >= required);

@@ -1393,7 +1393,7 @@ Status MemLayoutConflictUtil::CheckWhileConflict(const NodePtr &ctrl_node,
   std::vector<NodePtr> data_nodes_change;
   std::set<uint32_t> bypass_index_no_change;
   GE_ASSERT_SUCCESS(GetWhileBodyDataToNetoutputNodes(while_body, data_nodes_change, bypass_index_no_change),
-                    "[Call][GetWhileBodyDataToNetoutputNodes] faild.");
+                    "[Call][GetWhileBodyDataToNetoutputNodes] failed.");
 
   const auto netoutput = while_body->GetOrUpdateNetOutputNode();
   GE_CHECK_NOTNULL(netoutput);

@@ -9,6 +9,7 @@
  */
 
 #include "graph/tensor.h"
+#include <cinttypes>
 #include "llm_engine_test_helper.h"
 #include "llm_string_util.h"
 #include "llm_test_helper.h"
@@ -364,8 +365,8 @@ graphStatus TensorImpl::SetData(const uint8_t *const data, const size_t size) {
   while (remain_size > SECUREC_MEM_MAX_LEN) {
     if (memcpy_s(llm::ValueToPtr(dst_addr), SECUREC_MEM_MAX_LEN,
                  llm::ValueToPtr(src_addr), SECUREC_MEM_MAX_LEN) != EOK) {
-      REPORT_INNER_ERR_MSG("E18888", "memcpy failed, size = %lu", SECUREC_MEM_MAX_LEN);
-      LLMLOGE(GRAPH_FAILED, "[Memcpy][Data] failed, size = %lu", SECUREC_MEM_MAX_LEN);
+      REPORT_INNER_ERR_MSG("E18888", "memcpy failed, size = %" PRIu64 "", SECUREC_MEM_MAX_LEN);
+      LLMLOGE(GRAPH_FAILED, "[Memcpy][Data] failed, size = %" PRIu64 "", SECUREC_MEM_MAX_LEN);
       return GRAPH_FAILED;
     }
     remain_size -= SECUREC_MEM_MAX_LEN;

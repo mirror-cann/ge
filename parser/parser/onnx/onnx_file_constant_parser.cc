@@ -9,6 +9,7 @@
  */
 
 #include "onnx_file_constant_parser.h"
+#include <cinttypes>
 #include <vector>
 
 #include "graph/ge_tensor.h"
@@ -84,8 +85,8 @@ Status OnnxFileConstantParser::ParseDataType(const ge::onnx::TensorProto &tensor
   int64_t data_type = tensor_proto.data_type();
   ge::DataType type = ge::OnnxUtil::ConvertOnnxDataType(data_type);
   if (type >= ge::DataType::DT_UNDEFINED) {
-    REPORT_INNER_ERR_MSG("E19999", "tensor_proto date type %ld is undefined.", data_type);
-    GELOGE(domi::PARAM_INVALID, "[Check][Param] tensor_proto date type %ld is undefined.", data_type);
+    REPORT_INNER_ERR_MSG("E19999", "tensor_proto data type %" PRId64 " is undefined.", data_type);
+    GELOGE(domi::PARAM_INVALID, "[Check][Param] tensor_proto data type %" PRId64 " is undefined.", data_type);
     return FAILED;
   }
 

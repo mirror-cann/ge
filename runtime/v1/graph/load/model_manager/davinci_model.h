@@ -1294,7 +1294,7 @@ class DavinciModel {
   Status CpuModelRepeat();
 
   /// @ingroup ge
-  /// @brief construct task for input not sopput zero copy.
+  /// @brief construct task for input not support zero copy.
   /// @return: 0 for success / others for fail
   Status CpuInputCopyProcess();
 

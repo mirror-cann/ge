@@ -247,7 +247,7 @@ Status ModelIntroduction::ConstructDynamicInfo() {
   std::vector<std::vector<int64_t>> batch_info;
   int32_t dynamic_type = NOT_DYNAMIC_MODE;
   const Status ret = GetDynamicInfoFromCase(dynamic_type, batch_info);
-  GE_RETURN_WITH_LOG_IF_ERROR(ret, "Get dynamic info faild.");
+  GE_RETURN_WITH_LOG_IF_ERROR(ret, "Get dynamic info failed.");
 
   GELOGD("dynamic type:%u, bathc_info size is %zu", dynamic_type, batch_info.size());
   switch (dynamic_type) {

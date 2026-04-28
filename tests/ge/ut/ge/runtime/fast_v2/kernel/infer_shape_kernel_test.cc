@@ -184,7 +184,7 @@ TEST_F(InferShapeKernelTest, test_find_InferShapeFunc_input_empty) {
   ASSERT_NE(registry.FindKernelFuncs("FindInferShapeFunc")->run_func(run_context), ge::GRAPH_SUCCESS);
 }
 
-TEST_F(InferShapeKernelTest, test_find_InferShapeFunc_find_infershape_func_faild) {
+TEST_F(InferShapeKernelTest, test_find_InferShapeFunc_find_infershape_func_failed) {
   auto run_context = BuildKernelRunContext(2, 1);
   std::string node_type = "null_infershape";
   auto space_registry = SpaceRegistryFaker().Build();

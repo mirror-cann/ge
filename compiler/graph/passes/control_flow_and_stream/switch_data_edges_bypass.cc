@@ -107,10 +107,10 @@ NodePtr AddIdentityAfterNode(const NodePtr &node, int32_t index) {
   auto ret2 = identity_opdesc->AddOutputDesc("y", *tensor);
   NodePtr identity = node->GetOwnerComputeGraph()->InsertNode(node, identity_opdesc);
   if (ret1 != GRAPH_SUCCESS || ret2 != GRAPH_SUCCESS || identity == nullptr) {
-    REPORT_INNER_ERR_MSG("E19999", "Add input ouput desc to op:%s(%s) failed or add it to graph:%s failed",
+    REPORT_INNER_ERR_MSG("E19999", "Add input output desc to op:%s(%s) failed or add it to graph:%s failed",
                       identity_opdesc->GetName().c_str(), identity_opdesc->GetType().c_str(),
                       node->GetOwnerComputeGraph()->GetName().c_str());
-    GELOGE(OUT_OF_MEMORY, "[Check][Param] Add input ouput desc to op:%s(%s) failed or add it to graph:%s failed",
+    GELOGE(OUT_OF_MEMORY, "[Check][Param] Add input output desc to op:%s(%s) failed or add it to graph:%s failed",
            identity_opdesc->GetName().c_str(), identity_opdesc->GetType().c_str(),
            node->GetOwnerComputeGraph()->GetName().c_str());
     return nullptr;
@@ -156,10 +156,10 @@ NodePtr AddMemcpyBeforeNode(const NodePtr &node, int32_t index) {
   auto ret2 = memcpy_opdesc->AddOutputDesc(*tensor);
   auto memcpy_node = node->GetOwnerComputeGraph()->AddNode(memcpy_opdesc);
   if (ret1 != GRAPH_SUCCESS || ret2 != GRAPH_SUCCESS || memcpy_node == nullptr) {
-    REPORT_INNER_ERR_MSG("E19999", "Add input ouput desc to op:%s(%s) failed or add it to graph:%s failed",
+    REPORT_INNER_ERR_MSG("E19999", "Add input output desc to op:%s(%s) failed or add it to graph:%s failed",
                       memcpy_opdesc->GetName().c_str(), memcpy_opdesc->GetType().c_str(),
                       node->GetOwnerComputeGraph()->GetName().c_str());
-    GELOGE(OUT_OF_MEMORY, "[Check][Param] Add input ouput desc to op:%s(%s) failed or add it to graph:%s failed",
+    GELOGE(OUT_OF_MEMORY, "[Check][Param] Add input output desc to op:%s(%s) failed or add it to graph:%s failed",
            memcpy_opdesc->GetName().c_str(), memcpy_opdesc->GetType().c_str(),
            node->GetOwnerComputeGraph()->GetName().c_str());
     return nullptr;

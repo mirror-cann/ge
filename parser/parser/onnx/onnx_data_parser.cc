@@ -9,6 +9,7 @@
  */
 
 #include "onnx_data_parser.h"
+#include <cinttypes>
 #include <unordered_map>
 #include "common/util.h"
 #include "graph/debug/ge_attr_define.h"
@@ -98,8 +99,8 @@ Status OnnxDataParser::ParseInputFromModel(const Message *op_src, ge::Operator &
   // Trans onnx type to ge type
   DataType type = OnnxUtil::ConvertOnnxDataType(data_type);
   if (type == ge::DataType::DT_UNDEFINED) {
-    REPORT_INNER_ERR_MSG("E19999", "tensor_proto date type %ld is undefined.", data_type);
-    GELOGE(domi::PARAM_INVALID, "[Check][Param]tensor_proto date type %ld is undefined.", data_type);
+    REPORT_INNER_ERR_MSG("E19999", "tensor_proto data type %" PRId64 " is undefined.", data_type);
+    GELOGE(domi::PARAM_INVALID, "[Check][Param]tensor_proto data type %" PRId64 " is undefined.", data_type);
     return FAILED;
   }
   op_def.SetAttr(ge::DATA_ATTR_NAME_DATA_TYPE.c_str(), static_cast<int64_t>(type));

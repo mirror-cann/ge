@@ -13452,7 +13452,7 @@ ComputeGraphPtr ShareGraph::BuildIfWithNestedPartitionedCall() {
                   .Attr("else_graph", else_graph)
                   .Build(main_graph);
 
-  auto output = NodeBuilder("ouput", NETOUTPUT).Input(if_node).Build(main_graph);
+  auto output = NodeBuilder("output", NETOUTPUT).Input(if_node).Build(main_graph);
   (void)main_graph->AddSubGraph(then_graph);
   (void)main_graph->AddSubGraph(else_graph);
   return main_graph;
@@ -13472,7 +13472,7 @@ ComputeGraphPtr ShareGraph::BuildCaseWithNestedPartitionedCall() {
     .Attr("batch1", batch1)
     .Attr("batch2",  batch2)
     .Build(main_graph);
-  auto output = NodeBuilder("ouput", NETOUTPUT).Input(case_node).Build(main_graph);
+  auto output = NodeBuilder("output", NETOUTPUT).Input(case_node).Build(main_graph);
   (void)main_graph->AddSubGraph(batch1);
   (void)main_graph->AddSubGraph(batch2);
   return main_graph;

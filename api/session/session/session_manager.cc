@@ -9,6 +9,7 @@
  */
 
 #include "session/session_manager.h"
+#include <cinttypes>
 #include <memory>
 #include <utility>
 #include "common/plugin/ge_make_unique_util.h"
@@ -92,7 +93,7 @@ Status SessionManager::CreateSession(const std::map<std::string, std::string> &o
 
 Status SessionManager::DestroySession(SessionId session_id) {
   if (!init_flag_) {
-    GELOGW("[Destroy][Session]Session manager is not initialized, session_id:%lu.", session_id);
+    GELOGW("[Destroy][Session]Session manager is not initialized, session_id:%" PRIu64 ".", session_id);
     return SUCCESS;
   }
 
@@ -124,16 +125,16 @@ Status SessionManager::DestroySession(SessionId session_id) {
 
 SessionPtr SessionManager::GetSession(SessionId session_id) {
   if (!init_flag_) {
-    GELOGE(GE_SESSION_MANAGER_NOT_INIT, "[Get][Session]fail for Session manager is not initialized, session_id:%lu.",
+    GELOGE(GE_SESSION_MANAGER_NOT_INIT, "[Get][Session]fail for Session manager is not initialized, session_id:%" PRIu64 ".",
            session_id);
-    REPORT_INNER_ERR_MSG("E19999", "GetSession fail for Session manager is not initialized, session_id:%lu.", session_id);
+    REPORT_INNER_ERR_MSG("E19999", "GetSession fail for Session manager is not initialized, session_id:%" PRIu64 ".", session_id);
     return nullptr;
   }
   const std::shared_lock<std::shared_mutex> lock(mutex_);
   const auto it = session_manager_map_.find(session_id);
   if (it == session_manager_map_.end()) {
-    GELOGE(GE_SESSION_NOT_EXIST, "[Find][InnerSession] fail for %lu does not exist", session_id);
-    REPORT_INNER_ERR_MSG("E19999", "GetSession fail for InnerSession does not exist, session_id:%lu.", session_id);
+    GELOGE(GE_SESSION_NOT_EXIST, "[Find][InnerSession] fail for %" PRIu64 " does not exist", session_id);
+    REPORT_INNER_ERR_MSG("E19999", "GetSession fail for InnerSession does not exist, session_id:%" PRIu64 ".", session_id);
     return nullptr;
   }
   return it->second;
@@ -154,7 +155,7 @@ Status SessionManager::GetVariables(SessionId session_id, const std::vector<std:
   // step 0: get session
   const SessionPtr &inner_session = GetSession(session_id);
   if (inner_session == nullptr) {
-    GELOGE(FAILED, "[Get][Session] failed, session_id:%lu.", session_id);
+    GELOGE(FAILED, "[Get][Session] failed, session_id:%" PRIu64 ".", session_id);
     return FAILED;
   }
 

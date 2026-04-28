@@ -126,7 +126,7 @@ Status FakeOpsKernelBuilder::CalcOpRunningParam(Node &ge_node) {
 
   if (calc_op_param_call.find(type) != calc_op_param_call.end()) {
     GE_ASSERT_SUCCESS(calc_op_param_call[type](ge_node),
-                      "[Call]calc_op_param_call faild, node name: %s, node type: %s.",
+                      "[Call]calc_op_param_call failed, node name: %s, node type: %s.",
                       name.c_str(), type.c_str());
   }
   GELOGD("Calc op[%s:%s] running param success.", name.c_str(), type.c_str());

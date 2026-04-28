@@ -202,7 +202,7 @@ aclError aclopCompileAndExecute(const char *opType, int numInputs, const aclTens
     RT2_PROFILING_SCOPE(gert::profiling::kUnknownName, gert::profiling::kAclCompileAndExecute);
     ACL_REQUIRES_OK(CheckInput(opType, numInputs, inputDesc, inputs, numOutputs, outputDesc, outputs, compileFlag));
     if (acl::array_utils::IsAllTensorEmpty(numOutputs, outputDesc)) {
-        ACL_LOG_INFO("all ouput tensor are empty");
+        ACL_LOG_INFO("all output tensor are empty");
         return ACL_SUCCESS;
     }
 
@@ -235,7 +235,7 @@ aclError aclopCompileAndExecuteV2(const char *opType, int numInputs, aclTensorDe
     RT2_PROFILING_SCOPE(gert::profiling::kUnknownName, gert::profiling::kAclCompileAndExecuteV2);
     ACL_REQUIRES_OK(CheckInput(opType, numInputs, inputDesc, inputs, numOutputs, outputDesc, outputs, compileFlag));
     if (acl::array_utils::IsAllTensorEmpty(numOutputs, outputDesc)) {
-        ACL_LOG_INFO("all ouput tensor are empty");
+        ACL_LOG_INFO("all output tensor are empty");
         return ACL_SUCCESS;
     }
     acl::AclOp aclOp;
@@ -355,7 +355,7 @@ aclError aclGenGraphAndDumpForOp(const char *opType, int numInputs, const aclTen
     ACL_REQUIRES_OK(acl::array_utils::CheckPtrArray(numInputs, inputDesc));
     ACL_REQUIRES_OK(acl::array_utils::CheckPtrArray(numOutputs, outputDesc));
     if (acl::array_utils::IsAllTensorEmpty(numOutputs, outputDesc)) {
-        ACL_LOG_INFO("all ouput tensor are empty");
+        ACL_LOG_INFO("all output tensor are empty");
         return ACL_SUCCESS;
     }
 

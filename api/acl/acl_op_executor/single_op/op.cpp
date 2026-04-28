@@ -170,7 +170,7 @@ aclError aclopExecWithHandleImpl(aclopHandle *handle,
     ACL_REQUIRES_OK(acl::array_utils::CheckPtrArray(numInputs, inputs));
     ACL_REQUIRES_OK(acl::array_utils::CheckPtrArray(numOutputs, outputs));
     if (acl::array_utils::IsAllTensorEmpty(numOutputs, outputs)) {
-        ACL_LOG_INFO("all ouput tensor are empty");
+        ACL_LOG_INFO("all output tensor are empty");
         return ACL_SUCCESS;
     }
 
@@ -216,7 +216,7 @@ aclError aclopExecuteImpl(const char *opType,
     ACL_REQUIRES_OK(acl::array_utils::CheckPtrArray(numInputs, inputDesc));
     ACL_REQUIRES_OK(acl::array_utils::CheckPtrArray(numOutputs, outputDesc));
     if (acl::array_utils::IsAllTensorEmpty(numOutputs, outputDesc)) {
-        ACL_LOG_INFO("all ouput tensor are empty");
+        ACL_LOG_INFO("all output tensor are empty");
         return ACL_SUCCESS;
     }
 
@@ -256,7 +256,7 @@ aclError aclopExecuteV2Impl(const char *opType,
     ACL_REQUIRES_OK(acl::array_utils::CheckPtrArray(numInputs, inputDesc));
     ACL_REQUIRES_OK(acl::array_utils::CheckPtrArray(numOutputs, outputDesc));
     if (acl::array_utils::IsAllTensorEmpty(numOutputs, outputDesc)) {
-        ACL_LOG_INFO("all ouput tensor are empty");
+        ACL_LOG_INFO("all output tensor are empty");
         return ACL_SUCCESS;
     }
 
