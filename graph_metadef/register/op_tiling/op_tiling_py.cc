@@ -128,8 +128,8 @@ struct ContextComponent {
   bool atomic_flag = true;
   int32_t tiling_cond = 0;
   uint32_t schedule_mode = 0;
+  std::vector<std::pair<uint32_t, std::unique_ptr<uint8_t[]>>> index_to_tensordatas;
 };
-
 
 bool FindImplFuncs(const ge::char_t *op_type, const gert::OpImplKernelRegistry::OpImplFunctionsV2 *&funcs) {
     auto registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
@@ -255,6 +255,26 @@ bool ParseAndSetListListInt64Attr(ge::OpDescPtr &op_desc, const nlohmann::json &
   return true;
 }
 
+void* GetTensorData(gert::Tensor *tensor) {
+  if (tensor->GetVersion() == gert::kTensorV1) {
+     return tensor->GetData<uint8_t>();
+  }
+
+  return reinterpret_cast<gert::TensorV2 *>(tensor)->GetData<uint8_t>();
+}
+
+size_t GetTensorObjSize(const size_t total_size, const gert::Tensor *tensor) {
+  if (tensor->GetPlacement() != gert::TensorPlacement::kFollowing) {
+    return tensor->GetSize();
+  }
+
+  if (tensor->GetVersion() == gert::kTensorV1) {
+    return total_size - sizeof(gert::Tensor);
+  } else {
+    return total_size - sizeof(gert::TensorV2);
+  }
+}
+
 template<typename T>
 bool GetConstData(const nlohmann::json &json_array, const size_t total_size,
                   std::unique_ptr<uint8_t[]> &tensor_holder) {
@@ -275,7 +295,8 @@ bool GetConstData(const nlohmann::json &json_array, const size_t total_size,
       }
     }
   }
-  if (memcpy_s(tensor->GetData<uint8_t>(), total_size - sizeof(gert::Tensor), value.data(), value.size() * sizeof(T)) !=
+
+  if (memcpy_s(GetTensorData(tensor), GetTensorObjSize(total_size, tensor), value.data(), value.size() * sizeof(T)) !=
       EOK) {
     GELOGE(ge::FAILED, "Call memcpy failed, total value size is %zu.", value.size() * sizeof(T));
     return false;
@@ -291,8 +312,9 @@ bool GetConstDataWithFloat16(const nlohmann::json &json_array, const size_t tota
     uint16_t const_data_uint16 = Float32ToFloat16(const_value[i]);
     (void)const_data_vec.emplace_back(const_data_uint16);
   }
+
   auto tensor = reinterpret_cast<gert::Tensor *>(tensor_holder.get());
-  if (memcpy_s(tensor->GetData<uint8_t>(), total_size - sizeof(gert::Tensor), const_data_vec.data(),
+  if (memcpy_s(GetTensorData(tensor), GetTensorObjSize(total_size, tensor), const_data_vec.data(),
                const_data_vec.size() * sizeof(uint16_t)) != EOK) {
     GELOGE(ge::FAILED, "Call memcpy failed, total value size is %zu.", const_data_vec.size() * sizeof(uint16_t));
     return false;
@@ -308,8 +330,9 @@ bool GetConstDataWithBF16(const nlohmann::json &json_array, const size_t total_s
     uint16_t const_data_uint16 = Float32ToBfloat16(const_value[i]);
     (void)const_data_vec.emplace_back(const_data_uint16);
   }
+
   auto tensor = reinterpret_cast<gert::Tensor *>(tensor_holder.get());
-  GE_CHK_BOOL_RET_STATUS((memcpy_s(tensor->GetData<uint8_t>(), total_size - sizeof(gert::Tensor), const_data_vec.data(),
+  GE_CHK_BOOL_RET_STATUS((memcpy_s(GetTensorData(tensor), GetTensorObjSize(total_size, tensor), const_data_vec.data(),
                                    const_data_vec.size() * sizeof(uint16_t)) == EOK),
                          false, "Call memcpy failed, total value size is %zu.",
                          const_data_vec.size() * sizeof(uint16_t));
@@ -402,9 +425,14 @@ void ParseStorageFormat(const nlohmann::json &json, ge::GeTensorDesc &tensor_des
   }
 }
 
-ge::graphStatus ParseConstValue(const nlohmann::json &input, const gert::StorageShape &storage_shape,
-                                const ge::GeTensorDesc &tensor_desc, const uint32_t index,
-                                std::vector<std::pair<uint32_t, std::unique_ptr<uint8_t[]>>> &index_to_tensor) {
+ge::graphStatus ParseInputTensorV1(const nlohmann::json &input, const gert::StorageShape &storage_shape,
+                                   const ge::GeTensorDesc &tensor_desc, const uint32_t index,
+                                   ContextComponent &context_com) {
+  if (input.contains("stride") || input.contains("offset")) {
+    GELOGE(ge::GRAPH_FAILED, "TensorV1 no support stride or offset.");
+    return ge::GRAPH_FAILED;
+  }
+
   if (input.contains("const_value")) {
     size_t total_size = 0UL;
     const size_t tensor_size = static_cast<size_t>(ge::GetSizeInBytes(storage_shape.GetStorageShape().GetShapeSize(),
@@ -426,7 +454,7 @@ ge::graphStatus ParseConstValue(const nlohmann::json &input, const gert::Storage
     tensor->SetDataType(tensor_desc.GetDataType());
     tensor->SetStorageFormat(tensor_desc.GetFormat());
     tensor->SetOriginFormat(tensor_desc.GetOriginFormat());
-    (void)index_to_tensor.emplace_back(index, std::move(tensor_holder));
+    (void)context_com.index_to_tensors.emplace_back(index, std::move(tensor_holder));
   } else {
     auto tensor_holder = std::unique_ptr<uint8_t[]>(new (std::nothrow) uint8_t[sizeof(gert::Tensor)]);
     GE_ASSERT_NOTNULL(tensor_holder);
@@ -434,19 +462,93 @@ ge::graphStatus ParseConstValue(const nlohmann::json &input, const gert::Storage
                                            gert::kOnHost, tensor_desc.GetDataType(), nullptr);
     reinterpret_cast<gert::Tensor *>(tensor_holder.get())->MutableStorageShape() = storage_shape.GetStorageShape();
     reinterpret_cast<gert::Tensor *>(tensor_holder.get())->MutableOriginShape() = storage_shape.GetOriginShape();
-    (void)index_to_tensor.emplace_back(index, std::move(tensor_holder));
+    (void)context_com.index_to_tensors.emplace_back(index, std::move(tensor_holder));
+  }
+  return ge::GRAPH_SUCCESS;
+}
+
+void ParseStride(const nlohmann::json &json, gert::Stride &stride) {
+  if (json.contains("stride")) {
+    const auto strides = json["stride"].get<std::vector<int64_t>>();
+    for (const int64_t &val : strides) {
+      (void)stride.AppendStride(val);
+    }
+  }
+}
+
+void ParseOffset(const nlohmann::json &json, int64_t &offset) {
+  if (json.contains("offset")) {
+    offset = json["offset"].get<int64_t>();
+  }
+}
+
+ge::graphStatus ParseInputTensorV2(const nlohmann::json &input, const gert::StorageShape &storage_shape,
+                                   const ge::GeTensorDesc &tensor_desc, const uint32_t index,
+                                   ContextComponent &context_com) {
+  gert::Stride stride;
+  ParseStride(input, stride);
+
+  int64_t offset = 0;
+  ParseOffset(input, offset);
+
+  auto tensor_holder = std::unique_ptr<uint8_t[]>(new (std::nothrow) uint8_t[sizeof(gert::TensorV2)]);
+  GE_ASSERT_NOTNULL(tensor_holder);
+  new (tensor_holder.get()) gert::TensorV2({{}, {}}, {tensor_desc.GetOriginFormat(), tensor_desc.GetFormat(), {}},
+                                            gert::kOnHost, tensor_desc.GetDataType(), nullptr, nullptr,
+                                            stride, offset);
+  reinterpret_cast<gert::TensorV2 *>(tensor_holder.get())->MutableStorageShape() = storage_shape.GetStorageShape();
+  reinterpret_cast<gert::TensorV2 *>(tensor_holder.get())->MutableOriginShape() = storage_shape.GetOriginShape();
+
+  if (input.contains("const_value")) {
+    const size_t tensor_size = static_cast<size_t>(ge::GetSizeInBytes(storage_shape.GetStorageShape().GetShapeSize(),
+                                                                      tensor_desc.GetDataType()));
+    if (tensor_size != 0UL) {
+      auto tensor_data_holder = std::unique_ptr<uint8_t[]>(new (std::nothrow) uint8_t[tensor_size]);
+      GE_CHECK_NOTNULL(tensor_data_holder);
+      gert::TensorData tensor_data(tensor_data_holder.get(), nullptr, tensor_size, gert::kOnHost) ;
+
+      auto tensor = reinterpret_cast<gert::TensorV2 *>(tensor_holder.get());
+      tensor->SetData(std::move(tensor_data));
+
+      auto func = kFuncTable.Find(tensor_desc.GetDataType());
+      GE_CHECK_NOTNULL(func);
+      if (!func(input, 0UL, tensor_holder)) {
+        GELOGE(ge::GRAPH_FAILED, "Make tensorv2 failed.");
+        return ge::GRAPH_FAILED;
+      }
+      context_com.index_to_tensordatas.emplace_back(index, std::move(tensor_data_holder));
+    }
+  }
+
+  context_com.index_to_tensors.emplace_back(index, std::move(tensor_holder));
+  return ge::GRAPH_SUCCESS;
+}
+
+ge::graphStatus ParseInputTensor(const nlohmann::json &input, const gert::StorageShape &storage_shape,
+                                 const ge::GeTensorDesc &tensor_desc, const uint32_t index,
+                                 ContextComponent &context_com) {
+  bool is_view = false;
+  if (input.contains("is_view")) {
+    is_view = input["is_view"].get<bool>();
+  }
+
+  if (is_view) {
+    GE_ASSERT_GRAPH_SUCCESS(ParseInputTensorV2(input, storage_shape, tensor_desc, index, context_com));
+  } else {
+    GE_ASSERT_GRAPH_SUCCESS(ParseInputTensorV1(input, storage_shape, tensor_desc, index, context_com));
   }
   return ge::GRAPH_SUCCESS;
 }
 
 ge::graphStatus ParseInput(const nlohmann::json &input, const uint32_t index, const ge::IrInputType input_type,
                            ContextComponent &context_com) {
+  GELOGD("inputs[%u] json[%s]", index, input.dump().c_str());
   ge::GeTensorDesc tensor_desc;
   gert::StorageShape storage_shape;
   ParseDtype(input, tensor_desc);
   ParseStorageShape(input, storage_shape, context_com.storage_shapes);
   ParseStorageFormat(input, tensor_desc);
-  const auto ret = ParseConstValue(input, storage_shape, tensor_desc, index, context_com.index_to_tensors);
+  const auto ret = ParseInputTensor(input, storage_shape, tensor_desc, index, context_com);
   if (ret != ge::GRAPH_SUCCESS) {
     return ret;
   }
@@ -510,12 +612,21 @@ ge::graphStatus ParseInputs(const char* inputs, ContextComponent& context_com) {
 }
 
 ge::graphStatus ProcNullOutput(const size_t ir_index, const ge::IrOutputType output_type,
-                                uint32_t &index, ContextComponent &context_com) {
+                               uint32_t &index, ContextComponent &context_com, uint32_t offset) {
   const gert::OpImplKernelRegistry::OpImplFunctionsV2 *funcs;
   if (FindImplFuncs(context_com.op_desc->GetType().c_str(), funcs) && funcs->IsNullableOutput(ir_index)) {
     ge::GeTensorDesc tensor_desc;
     gert::StorageShape storage_shape;
     context_com.storage_shapes.emplace_back(storage_shape);
+
+    auto tensor_holder = std::unique_ptr<uint8_t[]>(new (std::nothrow) uint8_t[sizeof(gert::Tensor)]);
+    GE_ASSERT_NOTNULL(tensor_holder);
+    new (tensor_holder.get()) gert::Tensor({{}, {}}, {tensor_desc.GetOriginFormat(), tensor_desc.GetFormat(), {}},
+                                            gert::kOnHost, tensor_desc.GetDataType(), nullptr);
+    reinterpret_cast<gert::Tensor *>(tensor_holder.get())->MutableStorageShape() = storage_shape.GetStorageShape();
+    reinterpret_cast<gert::Tensor *>(tensor_holder.get())->MutableOriginShape() = storage_shape.GetOriginShape();
+    (void)context_com.index_to_tensors.emplace_back(index + offset, std::move(tensor_holder));
+
     (void)ge::AttrUtils::SetBool(tensor_desc, kIsNullOutput, true);
     if (output_type == ge::kIrOutputRequired) {
       context_com.op_desc->AppendIrOutput(std::to_string(index), ge::kIrOutputRequired);
@@ -541,14 +652,32 @@ void ParseIsNullableOutputExist(const nlohmann::json &json, ge::GeTensorDesc &te
   }
 }
 
+ge::graphStatus ParseOutputTensor(const gert::StorageShape &storage_shape,
+                                  const ge::GeTensorDesc &tensor_desc, const uint32_t index,
+                                  std::vector<std::pair<uint32_t, std::unique_ptr<uint8_t[]>>> &index_to_tensor) {
+  auto tensor_holder = std::unique_ptr<uint8_t[]>(new (std::nothrow) uint8_t[sizeof(gert::Tensor)]);
+  GE_ASSERT_NOTNULL(tensor_holder);
+  new (tensor_holder.get()) gert::Tensor({{}, {}}, {tensor_desc.GetOriginFormat(), tensor_desc.GetFormat(), {}},
+                                          gert::kOnHost, tensor_desc.GetDataType(), nullptr);
+  reinterpret_cast<gert::Tensor *>(tensor_holder.get())->MutableStorageShape() = storage_shape.GetStorageShape();
+  reinterpret_cast<gert::Tensor *>(tensor_holder.get())->MutableOriginShape() = storage_shape.GetOriginShape();
+  (void)index_to_tensor.emplace_back(index, std::move(tensor_holder));
+  return ge::GRAPH_SUCCESS;
+}
+
 ge::graphStatus ParseOutput(const nlohmann::json &output, ge::IrOutputType output_type, const uint32_t index,
-                            ContextComponent &context_com) {
+                            ContextComponent &context_com, uint32_t offset) {
+  GELOGD("Outputs[%u] offset[%u], json[%s]", index, offset, output.dump().c_str());
   ge::GeTensorDesc tensor_desc;
   gert::StorageShape storage_shape;
   ParseDtype(output, tensor_desc);
   ParseStorageShape(output, storage_shape, context_com.storage_shapes);
   ParseStorageFormat(output, tensor_desc);
   ParseIsNullableOutputExist(output, tensor_desc);
+  const auto ret = ParseOutputTensor(storage_shape, tensor_desc, index + offset, context_com.index_to_tensors);
+  if (ret != ge::GRAPH_SUCCESS) {
+    return ret;
+  }
 
   if (output_type == ge::kIrOutputRequired) {
     (void) context_com.op_desc->AddOutputDesc(std::to_string(index), tensor_desc);
@@ -659,6 +788,7 @@ ge::graphStatus ParseOutputs(const char *outputs, ContextComponent &context_com)
     return ge::GRAPH_FAILED;
   }
   uint32_t index = 0;
+  uint32_t offset = static_cast<uint32_t>(context_com.index_to_tensors.size());
   for (size_t ir_index = 0U; ir_index < desc_list.size(); ir_index++) {
     const auto &desc = desc_list[ir_index];
     if (desc.is_array()) {
@@ -673,16 +803,16 @@ ge::graphStatus ParseOutputs(const char *outputs, ContextComponent &context_com)
           GELOGW("Empty output, cur index %u", index);
           continue;
         }
-        GE_ASSERT_GRAPH_SUCCESS(ParseOutput(ele, ge::kIrOutputDynamic, index, context_com));
+        GE_ASSERT_GRAPH_SUCCESS(ParseOutput(ele, ge::kIrOutputDynamic, index, context_com, offset));
         ++index;
       }
     } else {
       if (desc.is_null()) {
-        GE_ASSERT_GRAPH_SUCCESS(ProcNullOutput(ir_index, ge::kIrOutputRequired, index, context_com));
+        GE_ASSERT_GRAPH_SUCCESS(ProcNullOutput(ir_index, ge::kIrOutputRequired, index, context_com, offset));
         continue;
       }
       context_com.op_desc->AppendIrOutput(std::to_string(index), ge::kIrOutputRequired);
-      GE_ASSERT_GRAPH_SUCCESS(ParseOutput(desc, ge::kIrOutputRequired, index, context_com));
+      GE_ASSERT_GRAPH_SUCCESS(ParseOutput(desc, ge::kIrOutputRequired, index, context_com, offset));
       ++index;
     }
   }
