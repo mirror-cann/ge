@@ -9,6 +9,7 @@
  */
 
 #include "dflow_session_manager.h"
+#include <cinttypes>
 #include <memory>
 #include <utility>
 #include "common/util/mem_utils.h"
@@ -75,7 +76,7 @@ SessionPtr DFlowSessionManager::CreateSession(const std::map<std::string, std::s
 
 Status DFlowSessionManager::DestroySession(uint64_t session_id) {
   if (!init_flag_) {
-    GELOGW("[Destroy][Session]Session manager is not initialized, session_id:%lu.", session_id);
+    GELOGW("[Destroy][Session]Session manager is not initialized, session_id:%" PRIu64 ".", session_id);
     return SUCCESS;
   }
   const std::lock_guard<std::mutex> lock(mutex_);
@@ -96,16 +97,16 @@ Status DFlowSessionManager::DestroySession(uint64_t session_id) {
 SessionPtr DFlowSessionManager::GetSession(uint64_t session_id) {
   if (!init_flag_) {
     GELOGE(GE_SESSION_MANAGER_NOT_INIT,
-           "[Get][Session]fail for DFlowSession manager is not initialized, session_id:%lu.", session_id);
-    REPORT_INNER_ERR_MSG("E19999", "GetSession fail for DFlowSession manager is not initialized, session_id:%lu.",
+           "[Get][Session]fail for DFlowSession manager is not initialized, session_id:%" PRIu64 ".", session_id);
+    REPORT_INNER_ERR_MSG("E19999", "GetSession fail for DFlowSession manager is not initialized, session_id:%" PRIu64 ".",
                        session_id);
     return nullptr;
   }
   const std::lock_guard<std::mutex> lock(mutex_);
   const auto it = session_manager_map_.find(session_id);
   if (it == session_manager_map_.end()) {
-    GELOGE(GE_SESSION_NOT_EXIST, "[Find][InnerSession] fail for %lu does not exist", session_id);
-    REPORT_INNER_ERR_MSG("E19999", "GetSession fail for InnerSession does not exist, session_id:%lu.", session_id);
+    GELOGE(GE_SESSION_NOT_EXIST, "[Find][InnerSession] fail for %" PRIu64 " does not exist", session_id);
+    REPORT_INNER_ERR_MSG("E19999", "GetSession fail for InnerSession does not exist, session_id:%" PRIu64 ".", session_id);
     return nullptr;
   }
   return it->second;

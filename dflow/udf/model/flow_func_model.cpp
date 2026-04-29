@@ -331,9 +331,9 @@ int32_t FlowFuncModel::ConstructModelParam(const ff::deployer::ExecutorRequest_L
     if (flow_func_model_param.need_report_status || (model.enable_exception_catch())) {
         UDF_LOG_INFO("Need to report status or exception, root model id[%u], model id[%u].", model.root_model_id(),
             model.model_id());
-        // status ouput queues size must be 1 when need to report status
+        // status output queues size must be 1 when need to report status
         if (model.status_queues().output_queues_attrs_size() != 1U) {
-            UDF_LOG_ERROR("status ouput queues size[%zu] is not equal to 1.",
+            UDF_LOG_ERROR("status output queues size[%zu] is not equal to 1.",
                 model.status_queues().output_queues_attrs_size());
             return FLOW_FUNC_FAILED;
         }

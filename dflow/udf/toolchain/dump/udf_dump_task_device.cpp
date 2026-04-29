@@ -213,7 +213,7 @@ int32_t UdfDumpTaskDevice::ProcessDumpTensor(const std::string &dump_file_path) 
     buff_size_ = sizeof(uint64_t) + base_dump_data_.ByteSizeLong() + sizeof(uint64_t) + dump_file_path.length();
     buff_.reset(new (std::nothrow) char[buff_size_]);
     if (buff_ == nullptr) {
-        UDF_LOG_ERROR("op name[%s], malloc buffer for data dump faild, size[%llu]", op_name_.c_str(), buff_size_);
+        UDF_LOG_ERROR("op name[%s], malloc buffer for data dump failed, size[%llu].", op_name_.c_str(), buff_size_);
         return FLOW_FUNC_FAILED;
     }
     // for memory statistic

@@ -564,6 +564,8 @@ const char_t *const OPTION_TOPOSORTING_MODE = "ge.topoSortingMode";
 const char_t *const OPTION_EXEC_RANK_TABLE = "ge.exec.rankTable";
 const char_t *const OPTION_EXEC_HCOM_GROUPLIST = "ge.exec.hcomGrouplist";
 const char_t *const OPTION_EXEC_HCOM_RANK_MAPPING = "ge.exec.hcomRankMapping";
+const char_t *const OPTION_EXEC_HCOM_GROUPLIST_V2 = "ge.exec.hcomGrouplistV2";
+const char_t *const OPTION_EXEC_GLOBAL_HCCL_COMM_CONFIG = "ge.exec.globalHcclCommConfig";
 
 const char_t *const OPTION_NUMA_CONFIG = "ge.numaConfig";
 

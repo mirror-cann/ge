@@ -16,7 +16,256 @@ namespace es {
 using IrInputDef = CompliantNodeBuilder::IrInputDef;
 using IrOutputDef = CompliantNodeBuilder::IrOutputDef;
 using IrAttrDef = CompliantNodeBuilder::IrAttrDef;
+using IrInputDefV2 = CompliantNodeBuilder::IrInputDefV2;
+using IrOutputDefV2 = CompliantNodeBuilder::IrOutputDefV2;
+using IrAttrDefV2 = CompliantNodeBuilder::IrAttrDefV2;
 using AnyTypeOperator = CompliantNodeBuilder::AnyTypeOperator;
+
+namespace {
+std::string ToString(const char_t *value) {
+  return (value == nullptr) ? std::string() : std::string(value);
+}
+}  // namespace
+
+class CompliantNodeBuilder::IrInputDefV2::Impl {
+ public:
+  std::string name;
+  IrInputType ir_input_type = CompliantNodeBuilder::kEsIrInputRequired;
+  std::string symbol_id;
+};
+
+CompliantNodeBuilder::IrInputDefV2::IrInputDefV2() : impl_(new (std::nothrow) Impl()) {}
+
+CompliantNodeBuilder::IrInputDefV2::IrInputDefV2(const char_t *name, IrInputType ir_input_type,
+                                                 const char_t *symbol_id)
+    : impl_(new (std::nothrow) Impl{ToString(name), ir_input_type, ToString(symbol_id)}) {}
+
+CompliantNodeBuilder::IrInputDefV2::~IrInputDefV2() {
+  delete impl_;
+}
+
+CompliantNodeBuilder::IrInputDefV2::IrInputDefV2(const IrInputDefV2 &other)
+    : impl_((other.impl_ == nullptr) ? nullptr : new (std::nothrow) Impl(*other.impl_)) {}
+
+CompliantNodeBuilder::IrInputDefV2 &CompliantNodeBuilder::IrInputDefV2::operator=(const IrInputDefV2 &other) {
+  if (this != &other) {
+    auto *new_impl = (other.impl_ == nullptr) ? nullptr : new (std::nothrow) Impl(*other.impl_);
+    delete impl_;
+    impl_ = new_impl;
+  }
+  return *this;
+}
+
+CompliantNodeBuilder::IrInputDefV2::IrInputDefV2(IrInputDefV2 &&other) noexcept : impl_(other.impl_) {
+  other.impl_ = nullptr;
+}
+
+CompliantNodeBuilder::IrInputDefV2 &CompliantNodeBuilder::IrInputDefV2::operator=(IrInputDefV2 &&other) noexcept {
+  if (this != &other) {
+    delete impl_;
+    impl_ = other.impl_;
+    other.impl_ = nullptr;
+  }
+  return *this;
+}
+
+CompliantNodeBuilder::IrInputDefV2 &CompliantNodeBuilder::IrInputDefV2::Name(const char_t *name) {
+  if (impl_ != nullptr) {
+    impl_->name = ToString(name);
+  }
+  return *this;
+}
+
+CompliantNodeBuilder::IrInputDefV2 &CompliantNodeBuilder::IrInputDefV2::InputType(IrInputType ir_input_type) {
+  if (impl_ != nullptr) {
+    impl_->ir_input_type = ir_input_type;
+  }
+  return *this;
+}
+
+CompliantNodeBuilder::IrInputDefV2 &CompliantNodeBuilder::IrInputDefV2::SymbolId(const char_t *symbol_id) {
+  if (impl_ != nullptr) {
+    impl_->symbol_id = ToString(symbol_id);
+  }
+  return *this;
+}
+
+const char_t *CompliantNodeBuilder::IrInputDefV2::GetName() const {
+  return (impl_ == nullptr) ? "" : impl_->name.c_str();
+}
+
+CompliantNodeBuilder::IrInputType CompliantNodeBuilder::IrInputDefV2::GetInputType() const {
+  return (impl_ == nullptr) ? CompliantNodeBuilder::kEsIrInputRequired : impl_->ir_input_type;
+}
+
+const char_t *CompliantNodeBuilder::IrInputDefV2::GetSymbolId() const {
+  return (impl_ == nullptr) ? "" : impl_->symbol_id.c_str();
+}
+
+class CompliantNodeBuilder::IrOutputDefV2::Impl {
+ public:
+  std::string name;
+  IrOutputType ir_output_type = CompliantNodeBuilder::kEsIrOutputRequired;
+  std::string symbol_id;
+};
+
+CompliantNodeBuilder::IrOutputDefV2::IrOutputDefV2() : impl_(new (std::nothrow) Impl()) {}
+
+CompliantNodeBuilder::IrOutputDefV2::IrOutputDefV2(const char_t *name, IrOutputType ir_output_type,
+                                                   const char_t *symbol_id)
+    : impl_(new (std::nothrow) Impl{ToString(name), ir_output_type, ToString(symbol_id)}) {}
+
+CompliantNodeBuilder::IrOutputDefV2::~IrOutputDefV2() {
+  delete impl_;
+}
+
+CompliantNodeBuilder::IrOutputDefV2::IrOutputDefV2(const IrOutputDefV2 &other)
+    : impl_((other.impl_ == nullptr) ? nullptr : new (std::nothrow) Impl(*other.impl_)) {}
+
+CompliantNodeBuilder::IrOutputDefV2 &CompliantNodeBuilder::IrOutputDefV2::operator=(const IrOutputDefV2 &other) {
+  if (this != &other) {
+    auto *new_impl = (other.impl_ == nullptr) ? nullptr : new (std::nothrow) Impl(*other.impl_);
+    delete impl_;
+    impl_ = new_impl;
+  }
+  return *this;
+}
+
+CompliantNodeBuilder::IrOutputDefV2::IrOutputDefV2(IrOutputDefV2 &&other) noexcept : impl_(other.impl_) {
+  other.impl_ = nullptr;
+}
+
+CompliantNodeBuilder::IrOutputDefV2 &CompliantNodeBuilder::IrOutputDefV2::operator=(IrOutputDefV2 &&other) noexcept {
+  if (this != &other) {
+    delete impl_;
+    impl_ = other.impl_;
+    other.impl_ = nullptr;
+  }
+  return *this;
+}
+
+CompliantNodeBuilder::IrOutputDefV2 &CompliantNodeBuilder::IrOutputDefV2::Name(const char_t *name) {
+  if (impl_ != nullptr) {
+    impl_->name = ToString(name);
+  }
+  return *this;
+}
+
+CompliantNodeBuilder::IrOutputDefV2 &CompliantNodeBuilder::IrOutputDefV2::OutputType(IrOutputType ir_output_type) {
+  if (impl_ != nullptr) {
+    impl_->ir_output_type = ir_output_type;
+  }
+  return *this;
+}
+
+CompliantNodeBuilder::IrOutputDefV2 &CompliantNodeBuilder::IrOutputDefV2::SymbolId(const char_t *symbol_id) {
+  if (impl_ != nullptr) {
+    impl_->symbol_id = ToString(symbol_id);
+  }
+  return *this;
+}
+
+const char_t *CompliantNodeBuilder::IrOutputDefV2::GetName() const {
+  return (impl_ == nullptr) ? "" : impl_->name.c_str();
+}
+
+CompliantNodeBuilder::IrOutputType CompliantNodeBuilder::IrOutputDefV2::GetOutputType() const {
+  return (impl_ == nullptr) ? CompliantNodeBuilder::kEsIrOutputRequired : impl_->ir_output_type;
+}
+
+const char_t *CompliantNodeBuilder::IrOutputDefV2::GetSymbolId() const {
+  return (impl_ == nullptr) ? "" : impl_->symbol_id.c_str();
+}
+
+class CompliantNodeBuilder::IrAttrDefV2::Impl {
+ public:
+  std::string attr_name;
+  IrAttrType ir_attr_type = CompliantNodeBuilder::kEsAttrOptional;
+  std::string attr_data_type;
+  AttrValue attr_default_value;
+};
+
+CompliantNodeBuilder::IrAttrDefV2::IrAttrDefV2() : impl_(new (std::nothrow) Impl()) {}
+
+CompliantNodeBuilder::IrAttrDefV2::IrAttrDefV2(const char_t *attr_name, IrAttrType ir_attr_type,
+                                               const char_t *attr_data_type, const AttrValue &attr_default_value)
+    : impl_(new (std::nothrow) Impl{ToString(attr_name), ir_attr_type, ToString(attr_data_type), attr_default_value}) {
+}
+
+CompliantNodeBuilder::IrAttrDefV2::~IrAttrDefV2() {
+  delete impl_;
+}
+
+CompliantNodeBuilder::IrAttrDefV2::IrAttrDefV2(const IrAttrDefV2 &other)
+    : impl_((other.impl_ == nullptr) ? nullptr : new (std::nothrow) Impl(*other.impl_)) {}
+
+CompliantNodeBuilder::IrAttrDefV2 &CompliantNodeBuilder::IrAttrDefV2::operator=(const IrAttrDefV2 &other) {
+  if (this != &other) {
+    auto *new_impl = (other.impl_ == nullptr) ? nullptr : new (std::nothrow) Impl(*other.impl_);
+    delete impl_;
+    impl_ = new_impl;
+  }
+  return *this;
+}
+
+CompliantNodeBuilder::IrAttrDefV2::IrAttrDefV2(IrAttrDefV2 &&other) noexcept : impl_(other.impl_) {
+  other.impl_ = nullptr;
+}
+
+CompliantNodeBuilder::IrAttrDefV2 &CompliantNodeBuilder::IrAttrDefV2::operator=(IrAttrDefV2 &&other) noexcept {
+  if (this != &other) {
+    delete impl_;
+    impl_ = other.impl_;
+    other.impl_ = nullptr;
+  }
+  return *this;
+}
+
+CompliantNodeBuilder::IrAttrDefV2 &CompliantNodeBuilder::IrAttrDefV2::AttrName(const char_t *attr_name) {
+  if (impl_ != nullptr) {
+    impl_->attr_name = ToString(attr_name);
+  }
+  return *this;
+}
+
+CompliantNodeBuilder::IrAttrDefV2 &CompliantNodeBuilder::IrAttrDefV2::AttrType(IrAttrType ir_attr_type) {
+  if (impl_ != nullptr) {
+    impl_->ir_attr_type = ir_attr_type;
+  }
+  return *this;
+}
+
+CompliantNodeBuilder::IrAttrDefV2 &CompliantNodeBuilder::IrAttrDefV2::AttrDataType(const char_t *attr_data_type) {
+  if (impl_ != nullptr) {
+    impl_->attr_data_type = ToString(attr_data_type);
+  }
+  return *this;
+}
+
+CompliantNodeBuilder::IrAttrDefV2 &CompliantNodeBuilder::IrAttrDefV2::DefaultValue(
+    const AttrValue &attr_default_value) {
+  if (impl_ != nullptr) {
+    impl_->attr_default_value = attr_default_value;
+  }
+  return *this;
+}
+
+const char_t *CompliantNodeBuilder::IrAttrDefV2::GetAttrName() const {
+  return (impl_ == nullptr) ? "" : impl_->attr_name.c_str();
+}
+
+CompliantNodeBuilder::IrAttrType CompliantNodeBuilder::IrAttrDefV2::GetAttrType() const {
+  return (impl_ == nullptr) ? CompliantNodeBuilder::kEsAttrOptional : impl_->ir_attr_type;
+}
+
+const char_t *CompliantNodeBuilder::IrAttrDefV2::GetAttrDataType() const {
+  return (impl_ == nullptr) ? "" : impl_->attr_data_type.c_str();
+}
+
+const AttrValue &CompliantNodeBuilder::IrAttrDefV2::GetDefaultValue() const {
+  static const AttrValue kEmptyAttrValue;
+  return (impl_ == nullptr) ? kEmptyAttrValue : impl_->attr_default_value;
+}
 
 class CompliantNodeBuilder::CompliantNodeBuilderImpl {
  public:
@@ -32,6 +281,39 @@ class CompliantNodeBuilder::CompliantNodeBuilderImpl {
   }
   void IrDefAttrs(std::vector<IrAttrDef> attr_ir_def) {
     ir_def_attrs_ = std::move(attr_ir_def);
+  }
+  void IrDefInputsV2(const IrInputDefV2 *input_ir_def, size_t input_ir_def_num) {
+    ir_def_inputs_.clear();
+    if (input_ir_def == nullptr) {
+      return;
+    }
+    ir_def_inputs_.reserve(input_ir_def_num);
+    for (size_t i = 0U; i < input_ir_def_num; ++i) {
+      ir_def_inputs_.push_back({input_ir_def[i].GetName(), input_ir_def[i].GetInputType(),
+                                input_ir_def[i].GetSymbolId()});
+    }
+  }
+  void IrDefOutputsV2(const IrOutputDefV2 *output_ir_def, size_t output_ir_def_num) {
+    ir_def_outputs_.clear();
+    if (output_ir_def == nullptr) {
+      return;
+    }
+    ir_def_outputs_.reserve(output_ir_def_num);
+    for (size_t i = 0U; i < output_ir_def_num; ++i) {
+      ir_def_outputs_.push_back({output_ir_def[i].GetName(), output_ir_def[i].GetOutputType(),
+                                 output_ir_def[i].GetSymbolId()});
+    }
+  }
+  void IrDefAttrsV2(const IrAttrDefV2 *attr_ir_def, size_t attr_ir_def_num) {
+    ir_def_attrs_.clear();
+    if (attr_ir_def == nullptr) {
+      return;
+    }
+    ir_def_attrs_.reserve(attr_ir_def_num);
+    for (size_t i = 0U; i < attr_ir_def_num; ++i) {
+      ir_def_attrs_.push_back({attr_ir_def[i].GetAttrName(), attr_ir_def[i].GetAttrType(),
+                               attr_ir_def[i].GetAttrDataType(), attr_ir_def[i].GetDefaultValue()});
+    }
   }
   void Name(const char_t *name) {
     name_ = name;
@@ -169,6 +451,20 @@ CompliantNodeBuilder &CompliantNodeBuilder::IrDefOutputs(std::vector<IrOutputDef
 }
 CompliantNodeBuilder &CompliantNodeBuilder::IrDefAttrs(std::vector<IrAttrDef> attr_ir_def) {
   impl_->IrDefAttrs(attr_ir_def);
+  return *this;
+}
+CompliantNodeBuilder &CompliantNodeBuilder::IrDefInputsV2(const IrInputDefV2 *input_ir_def,
+                                                          size_t input_ir_def_num) {
+  impl_->IrDefInputsV2(input_ir_def, input_ir_def_num);
+  return *this;
+}
+CompliantNodeBuilder &CompliantNodeBuilder::IrDefOutputsV2(const IrOutputDefV2 *output_ir_def,
+                                                           size_t output_ir_def_num) {
+  impl_->IrDefOutputsV2(output_ir_def, output_ir_def_num);
+  return *this;
+}
+CompliantNodeBuilder &CompliantNodeBuilder::IrDefAttrsV2(const IrAttrDefV2 *attr_ir_def, size_t attr_ir_def_num) {
+  impl_->IrDefAttrsV2(attr_ir_def, attr_ir_def_num);
   return *this;
 }
 CompliantNodeBuilder &CompliantNodeBuilder::Name(const char_t *name) {

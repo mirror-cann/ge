@@ -9,6 +9,7 @@
  */
 
 #include "graph/build/run_context_util.h"
+#include <cinttypes>
 
 #include "framework/common/util.h"
 #include "framework/common/debug/ge_log.h"
@@ -22,15 +23,15 @@ Status RunContextUtil::InitMemInfo(uint8_t *data_mem_base, uint64_t data_mem_siz
                                    std::map<int64_t, uint64_t> mem_type_to_data_mem_size, uint8_t *weight_mem_base,
                                    uint64_t weight_mem_size) {
   if ((data_mem_size > 0) && (data_mem_base == nullptr)) {
-    REPORT_INNER_ERR_MSG("E19999", "InitMemInfo param data_mem_base is null but data_mem_size = %lu", data_mem_size);
-    GELOGE(PARAM_INVALID, "[Check][Param] InitMemInfo param data_mem_base is null but data_mem_size = %lu.",
+    REPORT_INNER_ERR_MSG("E19999", "InitMemInfo param data_mem_base is null but data_mem_size = %" PRIu64 "", data_mem_size);
+    GELOGE(PARAM_INVALID, "[Check][Param] InitMemInfo param data_mem_base is null but data_mem_size = %" PRIu64 ".",
            data_mem_size);
     return PARAM_INVALID;
   }
   if ((weight_mem_size > 0) && (weight_mem_base == nullptr)) {
-    REPORT_INNER_ERR_MSG("E19999", "InitMemInfo param weight_mem_base is null but weight_mem_size = %lu",
+    REPORT_INNER_ERR_MSG("E19999", "InitMemInfo param weight_mem_base is null but weight_mem_size = %" PRIu64 "",
                        weight_mem_size);
-    GELOGE(PARAM_INVALID, "[Check][Param] InitMemInfo param weight_mem_base is null but weight_mem_size = %lu.",
+    GELOGE(PARAM_INVALID, "[Check][Param] InitMemInfo param weight_mem_base is null but weight_mem_size = %" PRIu64 ".",
            weight_mem_size);
     return PARAM_INVALID;
   }
@@ -55,19 +56,19 @@ Status RunContextUtil::InitMemInfo(uint8_t *data_mem_base, uint64_t data_mem_siz
 
 Status RunContextUtil::CreateRunContext(Model &model, const ComputeGraphPtr &graph, Buffer &buffer,
                                         const uint64_t session_id) {
-  GELOGD("Begin to Create RunContext, session_id = %lu", session_id);
+  GELOGD("Begin to Create RunContext, session_id = %" PRIu64 "", session_id);
   // check params
   if (graph == nullptr) {
-    REPORT_INNER_ERR_MSG("E19999", "Check param graph nullptr, session_id:%lu,", session_id);
-    GELOGE(PARAM_INVALID, "[Check][Param] CreateRunContext param graph is null. session_id=%lu", session_id);
+    REPORT_INNER_ERR_MSG("E19999", "Check param graph nullptr, session_id:%" PRIu64 ",", session_id);
+    GELOGE(PARAM_INVALID, "[Check][Param] CreateRunContext param graph is null. session_id=%" PRIu64 "", session_id);
     return PARAM_INVALID;
   }
 
   uint32_t notify_num = 0;
   if (!AttrUtils::GetInt(&model, ATTR_MODEL_NOTIFY_NUM, notify_num)) {
-    REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s failed from model, session_id:%lu,", ATTR_MODEL_NOTIFY_NUM.c_str(),
+    REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s failed from model, session_id:%" PRIu64 ",", ATTR_MODEL_NOTIFY_NUM.c_str(),
                        session_id);
-    GELOGE(INTERNAL_ERROR, "[Get][Attr] %s failed from model, session_id:%lu,", ATTR_MODEL_NOTIFY_NUM.c_str(),
+    GELOGE(INTERNAL_ERROR, "[Get][Attr] %s failed from model, session_id:%" PRIu64 ",", ATTR_MODEL_NOTIFY_NUM.c_str(),
            session_id);
     return INTERNAL_ERROR;
   }
@@ -75,9 +76,9 @@ Status RunContextUtil::CreateRunContext(Model &model, const ComputeGraphPtr &gra
 
   uint32_t event_num = 0;
   if (!AttrUtils::GetInt(&model, ATTR_MODEL_EVENT_NUM, event_num)) {
-    REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s failed from model, session_id:%lu,",
+    REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s failed from model, session_id:%" PRIu64 ",",
                        ATTR_MODEL_EVENT_NUM.c_str(), session_id);
-    GELOGE(INTERNAL_ERROR, "[Get][Attr] %s failed from model, session_id:%lu,",
+    GELOGE(INTERNAL_ERROR, "[Get][Attr] %s failed from model, session_id:%" PRIu64 ",",
            ATTR_MODEL_EVENT_NUM.c_str(), session_id);
     return INTERNAL_ERROR;
   }
@@ -85,15 +86,15 @@ Status RunContextUtil::CreateRunContext(Model &model, const ComputeGraphPtr &gra
 
   uint32_t label_num = 0;
   if (!AttrUtils::GetInt(&model, ATTR_MODEL_LABEL_NUM, label_num)) {
-    REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s failed from model, session_id:%lu,",
+    REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s failed from model, session_id:%" PRIu64 ",",
                        ATTR_MODEL_LABEL_NUM.c_str(), session_id);
-    GELOGE(INTERNAL_ERROR, "[Get][Attr] %s failed from model, session_id:%lu,",
+    GELOGE(INTERNAL_ERROR, "[Get][Attr] %s failed from model, session_id:%" PRIu64 ",",
            ATTR_MODEL_LABEL_NUM.c_str(), session_id);
     return INTERNAL_ERROR;
   }
   GELOGD("Label_num = %u", label_num);
 
-  GELOGI("CreateRunContext: data_mem_base_ = %p, weight_mem_base_ = %p, memory_size = %lu, weight_size = %lu",
+  GELOGI("CreateRunContext: data_mem_base_ = %p, weight_mem_base_ = %p, memory_size = %" PRIu64 ", weight_size = %" PRIu64 "",
          data_mem_base_, weight_mem_base_, data_mem_size_, weight_mem_size_);
 
   PrintMemInfo();
@@ -115,7 +116,7 @@ void RunContextUtil::PrintMemInfo() const {
   }
 
   for (auto iter : mem_type_to_data_mem_size_) {
-    GELOGD("CreateRunContext: memory type = %ld, data memory size = %lu", iter.first, iter.second);
+    GELOGD("CreateRunContext: memory type = %ld, data memory size = %" PRIu64 "", iter.first, iter.second);
   }
 }
 

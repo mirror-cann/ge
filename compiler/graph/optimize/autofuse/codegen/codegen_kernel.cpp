@@ -1691,7 +1691,7 @@ Status Kernel::GlobalTensorInit(std::string &result) const {
     std::string def_ub_scalar;
     GE_CHK_STATUS_RET(tensor->second.DefineUbScalar(def_ub_scalar));
     ss << def_ub_scalar;
-    GELOGI("Define ub_scalar var:", def_ub_scalar.c_str());
+    GELOGI("Define ub_scalar var: %s", def_ub_scalar.c_str());
   }
 
   std::stringstream offset_ss;
@@ -1877,7 +1877,7 @@ Status Kernel::ParseGraph(const ascir::ImplGraph &graph, const ascir::FusedSched
         std::string const_value;
         auto ir_attr = node->attr.ir_attr.get();
         if (ir_attr->GetAttrValue("value", const_value) != ge::GRAPH_SUCCESS) {
-          GELOGE(ge::FAILED, "GetAttrValue const value faild");
+          GELOGE(ge::FAILED, "GetAttrValue const value failed.");
           return ge::FAILED;
         }
         GELOGI("Scalar node const value %s", const_value.c_str());
@@ -1894,7 +1894,7 @@ Status Kernel::ParseGraph(const ascir::ImplGraph &graph, const ascir::FusedSched
         int64_t size_id = 0;
         auto ir_attr = node->attr.ir_attr.get();
         if (ir_attr->GetAttrValue("expr", size_id) != ge::GRAPH_SUCCESS) {
-          GELOGE(ge::FAILED, "GetAttrValue index expr faild, size_id = %lld", size_id);
+          GELOGE(ge::FAILED, "GetAttrValue index expr failed, size_id = %lld.", size_id);
           return ge::FAILED;
         }
         GELOGI("size_id = %lld", size_id);
@@ -2984,7 +2984,7 @@ Status Kernel::GlobalTensorDefine(std::string &result) const {
     std::string def_ub_scalar;
     GE_CHK_STATUS_RET(tensor->second.DefineUbScalar(def_ub_scalar));
     ss << "    " << def_ub_scalar;
-    GELOGI("Define ub_scalar var:", def_ub_scalar.c_str());
+    GELOGI("Define ub_scalar var: %s", def_ub_scalar.c_str());
   }
   ss << std::endl;
   result = ss.str();

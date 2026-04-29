@@ -12,6 +12,7 @@
 #include <stack>
 #include <unordered_set>
 #include <queue>
+#include <limits>
 
 #include "graph/utils/graph_utils.h"
 #include "graph/utils/attr_utils.h"
@@ -27,6 +28,7 @@ namespace {
 struct TensorMoveDeleteContext {
   NodePtr tensor_move;
   std::vector<std::pair<NodePtr, OutDataAnchorPtr>> path_to_source_node;
+  std::vector<std::pair<NodePtr, NodePtr>> pending_control_edges;
 };
 using DeleteRule = std::function<bool(TensorMoveDeleteContext &)>;
 
@@ -153,6 +155,22 @@ void LogTraceRealSourcePath(const NodePtr &start_node, int32_t index,
   GELOGI("Trace reach real source: %s", ss.str().c_str());
 }
 
+std::string BuildControlEdgeDesc(const NodePtr &from_node, const NodePtr &to_node) {
+  return from_node->GetName() + "(type " + from_node->GetType() + ") -> " +
+         to_node->GetName() + "(type " + to_node->GetType() + ")";
+}
+
+std::string JoinControlEdgeDescs(const std::vector<std::string> &control_edge_descs) {
+  std::stringstream ss;
+  for (size_t i = 0U; i < control_edge_descs.size(); ++i) {
+    if (i != 0U) {
+      ss << "; ";
+    }
+    ss << control_edge_descs[i];
+  }
+  return ss.str();
+}
+
 /**
  * @brief 从指定节点的输入端口出发，逆向回溯数据流，寻找生成该数据的真正源头节点
  *
@@ -223,6 +241,8 @@ Status TraceRealSourceNode(const NodePtr &start_node, int32_t index, std::vector
     if (peer_out_anchor != nullptr) {
       int32_t reuse_in_idx = -1;
       if (GraphUtils::IsRefFromInput(peer_out_anchor, reuse_in_idx)) {
+        GELOGD("RefOp passthrough: node %s out:%d reuses input:%d, continue tracing from that input.",
+               cur_node->GetName().c_str(), peer_out_anchor->GetIdx(), reuse_in_idx);
         cur_in_anchor = cur_node->GetInDataAnchor(reuse_in_idx);
         continue;
       }
@@ -272,6 +292,370 @@ bool HasMultipleOutputsSharingSameInput(const NodePtr &node, const OutDataAnchor
   return false;
 }
 
+bool HasRefOutputFromInput(const NodePtr &node, const int32_t input_idx) {
+  GE_WARN_ASSERT((node) != nullptr);
+  for (const auto &out_anchor : node->GetAllOutDataAnchors()) {
+    int32_t reuse_in_idx = -1;
+    if (GraphUtils::IsRefFromInput(out_anchor, reuse_in_idx) && (reuse_in_idx == input_idx)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool HasInplaceWriteFromInput(const NodePtr &node, const int32_t input_idx) {
+  GE_WARN_ASSERT((node) != nullptr);
+  GE_WARN_ASSERT((node->GetOpDesc()) != nullptr);
+  for (const auto &output_desc : node->GetOpDesc()->GetAllOutputsDescPtr()) {
+    int32_t inplace_input_idx = -1;
+    if (AttrUtils::GetInt(output_desc, INPLACE_SUPPORT_INPUT_INDEX, inplace_input_idx) &&
+        (inplace_input_idx == input_idx)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool HasAtomicWriteFromInput(const NodePtr &node, const int32_t input_idx) {
+  GE_WARN_ASSERT((node) != nullptr);
+  GE_WARN_ASSERT((node->GetOpDesc()) != nullptr);
+  if (!node->GetOpDesc()->HasAttr(ATOMIC_ATTR_OUTPUT_INDEX)) {
+    return false;
+  }
+
+  std::vector<int64_t> atomic_output_indexes;
+  if (!AttrUtils::GetListInt(node->GetOpDesc(), ATOMIC_ATTR_OUTPUT_INDEX, atomic_output_indexes)) {
+    GELOGI("Node %s has attr %s but failed to parse output indexes, treat as source overwrite conservatively.",
+           node->GetName().c_str(), ATOMIC_ATTR_OUTPUT_INDEX.c_str());
+    return true;
+  }
+  for (const auto output_idx : atomic_output_indexes) {
+    if ((output_idx < 0) || (output_idx > static_cast<int64_t>(std::numeric_limits<int32_t>::max()))) {
+      GELOGI("Node %s has invalid atomic output index %ld, treat as source overwrite conservatively.",
+             node->GetName().c_str(), output_idx);
+      return true;
+    }
+    const auto out_anchor = node->GetOutDataAnchor(static_cast<int32_t>(output_idx));
+    if (out_anchor == nullptr) {
+      GELOGI("Node %s atomic output index %ld has no out anchor, treat as source overwrite conservatively.",
+             node->GetName().c_str(), output_idx);
+      return true;
+    }
+    int32_t reuse_in_idx = -1;
+    if (GraphUtils::IsRefFromInput(out_anchor, reuse_in_idx) && (reuse_in_idx == input_idx)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * @brief 检查"旁路消费者"（sibling consumer，即除 TensorMove 外另一个读同一份源数据的消费节点）
+ *        在结构上是否允许删除 TensorMove
+ *
+ * 这里只卡那些"无论图里有没有其他控制边都不能删"的硬约束：
+ *   1. 旁路消费者和 TensorMove 不在同一张子图里。本 pass 的重连和控制边只在单图内做。
+ *   2. 旁路消费者类型本身不适合：
+ *      - 旁路自身也是 TensorMove（即同一个 source 下挂了两个兄弟 TM）：这条规则的设计
+ *        定位是"TM + 一个非 TM 的纯读旁路"，靠补一条"旁路 → TM 后继"的控制边来约束
+ *        内存生命周期。如果旁路本身也是个 TM，它自身也应被消除，双 TM 的协同删除和
+ *        控制边搬移超出本规则的覆盖范围，保守拒绝不优化。注意：GEPass 的 re-pass 仅在
+ *        有节点被删/被改时触发，本轮两个 TM 若都因对方是旁路而被拒，队列为空就退出，
+ *        这个场景会永久留着两个 TM，除非更外层的 pass 组合先消化掉其中一个。实际模型
+ *        里极少出现同 source 两个 TM，这里 ROI 不高，不单独支持。
+ *      - 旁路是 NetOutput：代表全图输出，内存交给调用方，生命周期归框架管，补 ctrl 边
+ *        的语义和普通节点不同。
+ *      - 旁路是 If / Case / While 等多分支控制流算子：是否真的会读 source 要到运行期才
+ *        确定，"旁路先读完再让 TM 后继读"这个假设不一定成立。
+ *   3. 旁路消费者是输出复用输入算子。
+ *      这种情况下，源内存不仅被旁路消费者自己用，还会通过它的输出继续被下游节点使用。
+ *      即使后面让旁路消费者等 TensorMove 的下游先读完再执行，也管不到输出复用输入关系
+ *      继续传下去的那段生命周期；内存规划器照样可能提前回收源内存，旁路消费者的下游
+ *      就会读到被覆盖的脏数据。
+ *
+ * @return true 结构上允许删；false 结构上不能删，外部已有的控制边也救不回来。
+ */
+bool IsSiblingConsumerDeletable(const NodePtr &tensor_move_node, const InDataAnchorPtr &sibling_in_anchor) {
+  GE_WARN_ASSERT((tensor_move_node) != nullptr);
+  GE_WARN_ASSERT((sibling_in_anchor) != nullptr);
+  const auto sibling_node = sibling_in_anchor->GetOwnerNode();
+  GE_WARN_ASSERT((sibling_node) != nullptr);
+  GE_WARN_ASSERT((sibling_node->GetOpDesc()) != nullptr);
+
+  if (sibling_node->GetOwnerComputeGraph() != tensor_move_node->GetOwnerComputeGraph()) {
+    GELOGI("Sibling consumer %s and tensor move %s are not in the same compute graph, keep tensor move.",
+           sibling_node->GetName().c_str(), tensor_move_node->GetName().c_str());
+    return false;
+  }
+  if (IsTensorMove(sibling_node) || (sibling_node->GetType() == NETOUTPUT) ||
+      NodeUtils::IsMultiBranchControlFlowOp(sibling_node)) {
+    GELOGI("Sibling consumer %s(type %s) is TensorMove/NetOutput/control-flow, not supported by "
+           "multi-consumer delete rule of tensor move %s.",
+           sibling_node->GetName().c_str(), sibling_node->GetType().c_str(), tensor_move_node->GetName().c_str());
+    return false;
+  }
+
+  const auto sibling_input_idx = sibling_in_anchor->GetIdx();
+  if (HasRefOutputFromInput(sibling_node, sibling_input_idx)) {
+    GELOGI("Sibling consumer %s(type %s) reuses input %d on output (source memory reaches its "
+           "downstream), keep tensor move %s.",
+           sibling_node->GetName().c_str(), sibling_node->GetType().c_str(), sibling_input_idx,
+           tensor_move_node->GetName().c_str());
+    return false;
+  }
+  return true;
+}
+
+/**
+ * @brief 检查一个节点是否会通过指定输入端口覆写源节点的内存
+ *
+ * 覆盖两种写回情形：
+ *   1. 声明了 inplace 写回：输出 desc 上的 INPLACE_SUPPORT_INPUT_INDEX 指向该输入端口；
+ *   2. 带 atomic 输出属性，且对应 atomic 输出通过 Ref/ReuseInput 复用该输入端口。
+ *
+ * 这两种写回都只发生在节点自己执行的窗口内。上层既会在"旁路消费者"侧调用它（判断旁路
+ * 会不会改写 source，决定是否需要外部 ctrl 保序），也会在"TM 后继"侧调用它（判断删 TM
+ * 后 TM 后继会不会也盯着 source 写）。
+ *
+ * @return true 会覆写源内存；false 是纯读取，无覆写风险。
+ */
+bool WillNodeOverwriteSourceMemory(const NodePtr &node, const int32_t source_input_idx) {
+  GE_WARN_ASSERT((node) != nullptr);
+  GE_WARN_ASSERT((node->GetOpDesc()) != nullptr);
+  if (HasInplaceWriteFromInput(node, source_input_idx)) {
+    return true;
+  }
+  if (HasAtomicWriteFromInput(node, source_input_idx)) {
+    return true;
+  }
+  return false;
+}
+
+/**
+ * @brief 判断图里是否已经存在一条从 from 直接连到 to 的控制边
+ *
+ * 只看单跳的直接控制边，不做沿控制图的多跳可达性搜索：
+ *   - 多跳路径存在不等于执行顺序一定被保证，容易误放行；
+ *   - 图遍历代价也高；
+ *   - 这里只需要"外部是否已经明确写死了先后顺序"，直接边就足够。
+ */
+bool HasDirectControlOrdering(const NodePtr &from, const NodePtr &to) {
+  if ((from == nullptr) || (to == nullptr)) {
+    return false;
+  }
+  const auto from_out_ctrl = from->GetOutControlAnchor();
+  const auto to_in_ctrl = to->GetInControlAnchor();
+  if ((from_out_ctrl == nullptr) || (to_in_ctrl == nullptr)) {
+    return false;
+  }
+  return from_out_ctrl->IsLinkedWith(to_in_ctrl);
+}
+
+/**
+ * @brief 沿数据边和控制边的并集做 BFS，判断 from 是否能到达 to
+ *
+ * 供 WouldCreateControlCycle 复用：考察"若新增 from -> to 的控制边，是否会形成环"时，
+ * 等价于检测当前图里 to 是否已经能通过数据边或控制边到达 from。GetOutAllNodes 天然含数据+控制两类后继。
+ */
+bool IsReachableThroughDataOrControlEdges(const NodePtr &from, const NodePtr &to) {
+  if ((from == nullptr) || (to == nullptr)) {
+    return false;
+  }
+  if (from == to) {
+    return true;
+  }
+
+  std::queue<NodePtr> pending_nodes;
+  std::unordered_set<Node *> visited_nodes;
+  pending_nodes.push(from);
+  visited_nodes.emplace(from.get());
+  while (!pending_nodes.empty()) {
+    const auto cur_node = pending_nodes.front();
+    pending_nodes.pop();
+    for (const auto &out_node : cur_node->GetOutAllNodes()) {
+      if (out_node == nullptr) {
+        continue;
+      }
+      if (out_node == to) {
+        return true;
+      }
+      if (visited_nodes.emplace(out_node.get()).second) {
+        pending_nodes.push(out_node);
+      }
+    }
+  }
+  return false;
+}
+
+/**
+ * @brief 判断新增一条 from -> to 的控制边是否会把图变成有环图
+ *
+ * 要成环，必然需要 to 已能到达 from（通过数据或控制边），再补一条 from -> to 就闭合成环。
+ * 这里只做结构判断，不做实际 AddEdge；调用方据此决定是否保留该 pending 边。
+ */
+bool WouldCreateControlCycle(const NodePtr &from, const NodePtr &to) {
+  if ((from == nullptr) || (to == nullptr)) {
+    return false;
+  }
+  return IsReachableThroughDataOrControlEdges(to, from);
+}
+
+/**
+ * @brief 把一条 sibling -> tm_succ 的控制边登记到 ctx.pending_control_edges，等 rule 全过后再落地
+ *
+ * 做两件事：过滤 null 端点、按 (from, to) 去重（避免同一对被重复登记）。
+ * 真正的 AddEdge 延迟到 ApplyPendingControlEdges，以保证"任一 rule 拒绝时图保持零改动"。
+ */
+void AddPendingControlEdge(const NodePtr &from_node, const NodePtr &to_node, TensorMoveDeleteContext &ctx) {
+  if ((from_node == nullptr) || (to_node == nullptr)) {
+    GELOGW("Pending control edge has null endpoint, skip.");
+    return;
+  }
+  const auto exists = std::find_if(ctx.pending_control_edges.begin(), ctx.pending_control_edges.end(),
+                                   [&from_node, &to_node](const std::pair<NodePtr, NodePtr> &edge) {
+                                     return (edge.first == from_node) && (edge.second == to_node);
+                                   });
+  if (exists == ctx.pending_control_edges.end()) {
+    ctx.pending_control_edges.emplace_back(from_node, to_node);
+  }
+}
+
+/**
+ * @brief 收集 out_data_anchor 上除 tensor_move 本身外的其他消费者输入锚点
+ * @return true 仅当 TM 是该源的直接消费者，且确有 sibling 存在（即满足最基础的多消费者形态）
+ *
+ * 当前规则只处理最基础的多消费者形态：
+ *   source -> sibling
+ *   source -> TensorMove -> tm_succ
+ * 如果 TensorMove 挂在输出复用输入算子后面（source -> ref_op -> TensorMove），
+ * 则 source 的直接消费者是 ref_op 而非 TensorMove，本 pass 不做这类生命周期分析，保守返回 false。
+ */
+bool CollectSiblingConsumers(const NodePtr &tensor_move_node, const OutDataAnchorPtr &out_data_anchor,
+                             std::vector<InDataAnchorPtr> &sibling_in_anchors) {
+  bool tensor_move_is_direct_consumer = false;
+  for (const auto &peer_in_anchor : out_data_anchor->GetPeerInDataAnchors()) {
+    const auto owner_node = (peer_in_anchor == nullptr) ? nullptr : peer_in_anchor->GetOwnerNode();
+    if (owner_node == tensor_move_node) {
+      tensor_move_is_direct_consumer = true;
+      continue;
+    }
+    sibling_in_anchors.emplace_back(peer_in_anchor);
+  }
+  return tensor_move_is_direct_consumer && !sibling_in_anchors.empty();
+}
+
+/**
+ * @brief 旁路会覆写 source 内存时，对单对 (sibling, tm_succ) 做放行判定
+ *
+ * 要删 TM 需要保证 "TM 后继先读完、旁路再改写"：
+ *   - TM 后继本身也是写者：删 TM 后 tm_succ 会和旁路一起改写 source，语义不等价 → 拒绝。
+ *   - 已存在 "TM 后继 → 旁路" 的直接控制边：外部已保序，放行且无需补新边。
+ *   - 否则：无保序手段 → 拒绝。
+ *
+ * @return true 该对允许删（外部已保序）；false 结构上必须保留 TM
+ */
+bool CanDeleteWhenSiblingOverwritesSource(const NodePtr &tensor_move_node, const NodePtr &sibling_node,
+                                          const NodePtr &tensor_move_succ, const int32_t tm_succ_input_idx) {
+  if (HasRefOutputFromInput(tensor_move_succ, tm_succ_input_idx)) {
+    GELOGI("Keep TM %s: successor %s reuses source input %d on output, source memory reaches downstream.",
+           tensor_move_node->GetName().c_str(), tensor_move_succ->GetName().c_str(), tm_succ_input_idx);
+    return false;
+  }
+  if (WillNodeOverwriteSourceMemory(tensor_move_succ, tm_succ_input_idx)) {
+    GELOGI("Keep TM %s: sibling %s and successor %s both overwrite source memory.",
+           tensor_move_node->GetName().c_str(), sibling_node->GetName().c_str(),
+           tensor_move_succ->GetName().c_str());
+    return false;
+  }
+  if (HasDirectControlOrdering(tensor_move_succ, sibling_node)) {
+    GELOGI("Delete TM %s: sibling %s overwrites source, existing ctrl %s -> %s ensures read-before-write.",
+           tensor_move_node->GetName().c_str(), sibling_node->GetName().c_str(),
+           tensor_move_succ->GetName().c_str(), sibling_node->GetName().c_str());
+    return true;
+  }
+  GELOGI("Keep TM %s: sibling %s overwrites source, no ctrl %s -> %s for read-before-write.",
+         tensor_move_node->GetName().c_str(), sibling_node->GetName().c_str(),
+         tensor_move_succ->GetName().c_str(), sibling_node->GetName().c_str());
+  return false;
+}
+
+/**
+ * @brief 处理一个 sibling 相对全部 TM 后继的约束，必要时登记 sibling -> tm_succ 的待建控制边
+ * @return true 该 sibling 结构上允许删除 TM；false 必须保留 TM
+ */
+bool CheckSiblingAgainstSuccessors(const NodePtr &tensor_move_node, const InDataAnchorPtr &sibling_in_anchor,
+                                   const OutDataAnchorPtr &tensor_move_out_anchor, TensorMoveDeleteContext &ctx) {
+  if (!IsSiblingConsumerDeletable(tensor_move_node, sibling_in_anchor)) {
+    return false;
+  }
+  const auto sibling_node = sibling_in_anchor->GetOwnerNode();
+  const auto sibling_input_idx = sibling_in_anchor->GetIdx();
+  const bool sibling_overwrites_source = WillNodeOverwriteSourceMemory(sibling_node, sibling_input_idx);
+
+  for (const auto &tensor_move_succ_in_anchor : tensor_move_out_anchor->GetPeerInDataAnchors()) {
+    GE_WARN_ASSERT((tensor_move_succ_in_anchor) != nullptr);
+    const auto tensor_move_succ = tensor_move_succ_in_anchor->GetOwnerNode();
+    GE_WARN_ASSERT((tensor_move_succ) != nullptr);
+
+    if (sibling_overwrites_source) {
+      const auto tm_succ_input_idx = tensor_move_succ_in_anchor->GetIdx();
+      if (!CanDeleteWhenSiblingOverwritesSource(tensor_move_node, sibling_node, tensor_move_succ,
+                                                tm_succ_input_idx)) {
+        return false;
+      }
+      continue;
+    }
+
+    if (WouldCreateControlCycle(sibling_node, tensor_move_succ)) {
+      GELOGI("Keep TM %s: adding ctrl %s -> %s would create a cycle.",
+             tensor_move_node->GetName().c_str(), sibling_node->GetName().c_str(),
+             tensor_move_succ->GetName().c_str());
+      return false;
+    }
+    AddPendingControlEdge(sibling_node, tensor_move_succ, ctx);
+  }
+  return true;
+}
+
+/**
+ * @brief 多消费者场景下判断能否删除 TensorMove 的主入口
+ *
+ * 针对 "source 同一输出锚点同时被 TensorMove 和若干 sibling 消费" 的基础形态做结构性放行判定：
+ *   1. 先用 CollectSiblingConsumers 过滤，只处理 "TM 直接消费者 + 有 sibling" 的最基础形态；
+ *   2. 对每个 sibling 调用 CheckSiblingAgainstSuccessors：
+ *      - 检查 sibling 本身类型/同图性/是否输出复用输入等硬约束；
+ *      - 对 "sibling 覆写 source" 的情形要求外部已有 tm_succ -> sibling 的直接控制边；
+ *      - 其余情形登记 sibling -> tm_succ 的 pending 控制边（延迟在 ApplyPendingControlEdges 落地）。
+ *
+ * 任一 sibling 不通过即整体放弃删除 TM。
+ *
+ * @return true 结构上允许继续走删除流程；false 保留 TM
+ */
+bool TryHandleBasicMultiRefBranch(const NodePtr &tensor_move_node, const OutDataAnchorPtr &out_data_anchor,
+                                  TensorMoveDeleteContext &ctx) {
+  GE_WARN_ASSERT((tensor_move_node) != nullptr);
+  GE_WARN_ASSERT((out_data_anchor) != nullptr);
+
+  std::vector<InDataAnchorPtr> sibling_in_anchors;
+  if (!CollectSiblingConsumers(tensor_move_node, out_data_anchor, sibling_in_anchors)) {
+    GELOGI("Skip multi-consumer check: TM %s is not a direct consumer of %s out:%d, or has no sibling.",
+           tensor_move_node->GetName().c_str(), out_data_anchor->GetOwnerNode()->GetName().c_str(),
+           out_data_anchor->GetIdx());
+    return false;
+  }
+
+  const auto tensor_move_out_anchor = tensor_move_node->GetOutDataAnchor(0);
+  GE_WARN_ASSERT((tensor_move_out_anchor) != nullptr);
+  for (const auto &sibling_in_anchor : sibling_in_anchors) {
+    if (!CheckSiblingAgainstSuccessors(tensor_move_node, sibling_in_anchor, tensor_move_out_anchor, ctx)) {
+      return false;
+    }
+  }
+  GELOGI("TM %s passed multi-consumer check, %zu sibling(s) ordered via existing/new ctrl edges.",
+         tensor_move_node->GetName().c_str(), sibling_in_anchors.size());
+  return true;
+}
+
 /**
  * @brief 检查从TensorMove节点回溯到源节点的路径上，是否所有节点都仅有单一输出
  * @param tensor_move_node 当前的 TensorMove (数据拷贝) 节点
@@ -279,8 +663,10 @@ bool HasMultipleOutputsSharingSameInput(const NodePtr &node, const OutDataAnchor
  * @return true 路径上所有节点都只有单一输出
  * @return false 路径上存在被多处引用的节点
  */
-bool IsSourceNodeWithSinglePath(const NodePtr &tensor_move_node, const std::vector<std::pair<NodePtr, OutDataAnchorPtr>> &path_to_source_node) {
-  GE_ASSERT_TRUE(!path_to_source_node.empty());
+bool IsSourceNodeWithSinglePath(const NodePtr &tensor_move_node,
+                                const std::vector<std::pair<NodePtr, OutDataAnchorPtr>> &path_to_source_node,
+                                TensorMoveDeleteContext &ctx) {
+  GE_WARN_ASSERT(!path_to_source_node.empty());
 
   for (const auto &pairs : path_to_source_node) {
     const auto &node = pairs.first;
@@ -307,13 +693,15 @@ bool IsSourceNodeWithSinglePath(const NodePtr &tensor_move_node, const std::vect
     }
 
     // 单输出多引用
-    if (out_data_anchor->GetPeerInDataAnchorsPtr().size() > 1U) {
-      GELOGI("Out data anchor %d of node %s(type %s) has multiple peer intput data anchors, cannot delete tensor move %s.",
-             out_data_anchor->GetIdx(), node->GetName().c_str(), node->GetType().c_str(), tensor_move_node->GetName().c_str());
-      return false;
+    if (out_data_anchor->GetPeerInDataAnchors().size() > 1U) {
+      if (!TryHandleBasicMultiRefBranch(tensor_move_node, out_data_anchor, ctx)) {
+        GELOGI("Out data anchor %d of node %s(type %s) has multiple peer intput data anchors, cannot delete tensor move %s.",
+               out_data_anchor->GetIdx(), node->GetName().c_str(), node->GetType().c_str(), tensor_move_node->GetName().c_str());
+        return false;
+      }
     }
   }
-  GELOGI("All nodes in the path from node %s to source node %s have single output.",
+  GELOGI("All nodes in the path from node %s to source node %s pass single-path validation.",
          tensor_move_node->GetName().c_str(), path_to_source_node.back().first->GetName().c_str());
   return true;
 }
@@ -422,9 +810,83 @@ DeleteRule CheckSourceNodeReuse = [](const TensorMoveDeleteContext &ctx) {
   return true;
 };
 
-DeleteRule CheckSinglePath = [](const TensorMoveDeleteContext &ctx) {
-  return IsSourceNodeWithSinglePath(ctx.tensor_move, ctx.path_to_source_node);
+DeleteRule CheckSinglePath = [](TensorMoveDeleteContext &ctx) {
+  return IsSourceNodeWithSinglePath(ctx.tensor_move, ctx.path_to_source_node, ctx);
 };
+
+/**
+ * @brief 回滚本轮已经加到图里的控制边
+ *
+ * 与 ApplyPendingControlEdges 配对使用：加边中途失败、或加边成功后 IsolateAndDeleteNode 失败时，
+ * 调用方负责把 added_edges 里已经落地的边逐条移除，避免把多余的控制依赖留在图里。
+ */
+void RollbackAddedControlEdges(
+    const std::vector<std::pair<OutControlAnchorPtr, InControlAnchorPtr>> &added_control_edges) {
+  for (const auto &added_edge : added_control_edges) {
+    (void)GraphUtils::RemoveEdge(added_edge.first, added_edge.second);
+  }
+}
+
+/**
+ * @brief TensorMove 删除成功后的统一日志出口
+ *
+ * 根据本轮是否新增了控制边，打印两种不同的提示：有新增则把所有新边的 from->to 拼串落日志，
+ * 便于事后定位内存生命周期的保序来源；无新增则按"纯冗余拷贝被消除"打简要日志。
+ */
+void LogTensorMoveDeleted(const NodePtr &node,
+                          const std::vector<std::pair<OutControlAnchorPtr, InControlAnchorPtr>> &added_edges,
+                          const std::vector<std::string> &added_edge_descs) {
+  if (!added_edges.empty()) {
+    const auto desc = JoinControlEdgeDescs(added_edge_descs);
+    GELOGI("Node %s(type %s) deleted with %zu control edge(s) added: %s.", node->GetName().c_str(),
+           node->GetType().c_str(), added_edges.size(), desc.c_str());
+    return;
+  }
+  GELOGI("Node %s(type %s) deleted due to redundant copy.", node->GetName().c_str(), node->GetType().c_str());
+}
+
+/**
+ * @brief 把 pending_edges 中登记的 sibling -> tm_succ 控制边真正加到图里
+ *
+ * 已存在的同向边会被跳过（幂等），实际成功加入的边会被追加到 added_edges / added_edge_descs，
+ * 便于后续删点失败时调用方调用 RollbackAddedControlEdges 原路回滚。
+ *
+ * @return SUCCESS 全部处理完毕；FAILED 中途遇到 null 锚点或 AddEdge 失败，日志已由本函数打印，
+ *                 回滚由调用方负责。
+ */
+Status ApplyPendingControlEdges(
+    const NodePtr &tensor_move_node,
+    const std::vector<std::pair<NodePtr, NodePtr>> &pending_edges,
+    std::vector<std::pair<OutControlAnchorPtr, InControlAnchorPtr>> &added_edges,
+    std::vector<std::string> &added_edge_descs) {
+  added_edges.reserve(pending_edges.size());
+  added_edge_descs.reserve(pending_edges.size());
+  for (const auto &pending_edge : pending_edges) {
+    const auto &from_node = pending_edge.first;
+    const auto &to_node = pending_edge.second;
+    GE_WARN_ASSERT((from_node) != nullptr);
+    GE_WARN_ASSERT((to_node) != nullptr);
+
+    const auto out_ctrl_anchor = from_node->GetOutControlAnchor();
+    const auto in_ctrl_anchor = to_node->GetInControlAnchor();
+    if ((out_ctrl_anchor == nullptr) || (in_ctrl_anchor == nullptr)) {
+      GELOGW("Control anchor is null when deleting tensor move %s: %s -> %s.",
+             tensor_move_node->GetName().c_str(), from_node->GetName().c_str(), to_node->GetName().c_str());
+      return FAILED;
+    }
+    if (out_ctrl_anchor->IsLinkedWith(in_ctrl_anchor)) {
+      continue;
+    }
+    if (GraphUtils::AddEdge(out_ctrl_anchor, in_ctrl_anchor) != GRAPH_SUCCESS) {
+      GELOGW("Add control edge failed when deleting tensor move %s: %s -> %s, rollback added edges.",
+             tensor_move_node->GetName().c_str(), from_node->GetName().c_str(), to_node->GetName().c_str());
+      return FAILED;
+    }
+    added_edges.emplace_back(out_ctrl_anchor, in_ctrl_anchor);
+    added_edge_descs.emplace_back(BuildControlEdgeDesc(from_node, to_node));
+  }
+  return SUCCESS;
+}
 }
 
 Status TensorMoveDeletePass::Run(NodePtr &node) {
@@ -435,7 +897,7 @@ Status TensorMoveDeletePass::Run(NodePtr &node) {
     return SUCCESS;
   }
 
-  TensorMoveDeleteContext ctx{node, {}};
+  TensorMoveDeleteContext ctx{node, {}, {}};
 
   GE_ASSERT_SUCCESS(TraceRealSourceNode(ctx.tensor_move, 0, ctx.path_to_source_node));
   GE_ASSERT(!ctx.path_to_source_node.empty());
@@ -454,8 +916,21 @@ Status TensorMoveDeletePass::Run(NodePtr &node) {
     }
   }
 
-  GE_ASSERT_SUCCESS(IsolateAndDeleteNode(node, {0}));
-  GELOGI("Node %s(type %s) deleted due to redundant copy.", node->GetName().c_str(), node->GetType().c_str());
+  std::vector<std::pair<OutControlAnchorPtr, InControlAnchorPtr>> added_control_edges;
+  std::vector<std::string> added_control_edge_descs;
+  if (ApplyPendingControlEdges(node, ctx.pending_control_edges,
+                               added_control_edges, added_control_edge_descs) != SUCCESS) {
+    RollbackAddedControlEdges(added_control_edges);
+    return SUCCESS;
+  }
+
+  const auto delete_ret = IsolateAndDeleteNode(node, {0});
+  if (delete_ret != SUCCESS) {
+    RollbackAddedControlEdges(added_control_edges);
+    GELOGE(delete_ret, "[Delete][Node] IsolateAndDeleteNode failed for node %s.", node->GetName().c_str());
+    return delete_ret;
+  }
+  LogTensorMoveDeleted(node, added_control_edges, added_control_edge_descs);
   return SUCCESS;
 }
 

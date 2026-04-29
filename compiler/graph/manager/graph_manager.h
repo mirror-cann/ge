@@ -57,6 +57,11 @@ class GraphManager {
   Status Finalize();
 
   /// @ingroup ge_graph
+  /// @brief Set default HCCL options
+  /// @return Status result of function
+  Status SetDefaultHcclOptions() const;
+
+  /// @ingroup ge_graph
   /// @brief add specific graph
   /// @param [in] graph_id graph id
   /// @param [out] Graph output graph

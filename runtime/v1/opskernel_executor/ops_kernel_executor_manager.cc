@@ -68,6 +68,7 @@ Status OpsKernelExecutorManager::GetExecutor(const std::string &name, OpsKernelE
 
 void OpsKernelExecutorManager::Finalize() {
   GELOGI("ge invoke ops kernel executor finalize.");
+  executors_.clear();
   (void) executor_plugin_.InvokeAll<Status>(kExecutorPluginFuncFinalize);
   if (hccl_executor_plugin_ != nullptr) {
     (void) hccl_executor_plugin_->InvokeAll<Status>(kExecutorPluginFuncFinalize);

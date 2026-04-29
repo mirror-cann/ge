@@ -65,10 +65,10 @@ TEST_F(EsCGraphBuilderLLT, Test_CreateDynamicTensorHolderFromNode) {
   auto c_builder = builder.GetCGraphBuilder();
   auto node = ge::es::CompliantNodeBuilder(c_builder->GetGraph()).OpType("test_node")
       .Name( c_builder->GenerateNodeName("test_node").GetString())
-      .IrDefInputs({
+      .IrDefInputsV2({
           {"x", ge::es::CompliantNodeBuilder::kEsIrInputRequired, ""},
       })
-      .IrDefOutputs({
+      .IrDefOutputsV2({
           {"y", ge::es::CompliantNodeBuilder::kEsIrOutputDynamic, ""},
       })
       .InstanceDynamicOutputNum("y", static_cast<int32_t>(3))

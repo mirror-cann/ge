@@ -13,6 +13,7 @@
 #include <atomic>
 #include <set>
 #include <cstdlib>
+#include <graph/preprocess/hccl_offline_option_builder.h>
 
 #include "analyzer/analyzer.h"
 #include "common/plugin/ge_make_unique_util.h"
@@ -652,6 +653,13 @@ Status GeGenerator::GenerateModel(const Graph &graph, const std::string &file_na
   GeRootModelPtr ge_root_model = nullptr;
   GE_CHECK_NOTNULL_EXEC(impl_, return PARAM_INVALID);
   impl_->is_offline_ = is_offline;
+  std::string soc_version;
+  std::string hccl_sub_comm_config;
+  std::string cluster_config;
+  (void)GetContext().GetOption(SOC_VERSION, soc_version);
+  (void)GetContext().GetOption(HCCL_SUB_COMM_CONFIG, hccl_sub_comm_config);
+  (void)GetContext().GetOption(CLUSTER_CONFIG, cluster_config);
+  GE_CHK_STATUS_RET_NOLOG(HcclOfflineOptionBuilder::Instance().Initialize(soc_version, cluster_config, hccl_sub_comm_config));
   Status ret = impl_->BuildModel(graph, inputs, ge_root_model);
   if (ret != SUCCESS) {
     GELOGE(ret, "[Build][Model] failed, ret:%u.", ret);

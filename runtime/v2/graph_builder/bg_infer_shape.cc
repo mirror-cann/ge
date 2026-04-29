@@ -234,6 +234,25 @@ std::vector<ValueHolderPtr> InferStorageShape(const ge::NodePtr &node, const std
   return BuildCompatibleInferShapeGraph(node, input_shapes, global_data);
 }
 
+std::vector<ValueHolderPtr> InferCustomOpShape(const ge::NodePtr &node,
+                                               const std::vector<ValueHolderPtr> &input_shapes,
+                                               LoweringGlobalData &global_data) {
+  if (node == nullptr) {
+    return {};
+  }
+  const auto op_desc = node->GetOpDesc();
+  GE_ASSERT_NOTNULL(op_desc);
+  const std::string infer_rule = ge::InferenceRule::GetInferenceRule(op_desc);
+  if (infer_rule.empty()) {
+    return {};
+  }
+  ge::Buffer compiled_rule;
+  ge::AttrUtils::GetBytes(op_desc, ge::COMPILED_INFERENCE_RULE_BINARY, compiled_rule);
+  GELOGD("Node %s infer shape by rule: %s.", node->GetName().c_str(), infer_rule.c_str());
+  return BuildInferShapeGraphByRule(infer_rule, compiled_rule, input_shapes,
+                                    op_desc->GetOutputsSize(), global_data);
+}
+
 HyperStatus LowerInnerData(const ge::NodePtr &node, const std::vector<ValueHolderPtr> &input_shapes,
                            std::map<int64_t, LowerIOShapes> &node_2_shapes) {
   bg::ValueHolder::AddRelevantInputNode(node);

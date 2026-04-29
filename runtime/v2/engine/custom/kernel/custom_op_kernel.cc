@@ -16,6 +16,7 @@
 #include "kernel/memory/multi_stream_mem_block.h"
 #include "graph/def_types.h"
 #include "graph/utils/type_utils.h"
+#include "exe_graph/runtime/eager_op_execution_context.h"
 
 namespace gert {
 namespace kernel {
@@ -71,9 +72,7 @@ ge::graphStatus FindCustomOpFunc(KernelContext *context) {
   return ge::GRAPH_SUCCESS;
 }
 
-static ge::graphStatus CreateWorkspacesMemory(const ge::FastNode *node, KernelContext *context) {
-  (void)node;
-  auto *extended_kernel_context = reinterpret_cast<ExtendedKernelContext *>(context);
+static ge::graphStatus CreateOutputTensors(ExtendedKernelContext *extended_kernel_context, KernelContext *context) {
   const size_t node_output_num = extended_kernel_context->GetComputeNodeOutputNum();
   for (size_t index = 0; index < node_output_num; index++) {
     auto chain = context->GetOutput(index);
@@ -83,7 +82,12 @@ static ge::graphStatus CreateWorkspacesMemory(const ge::FastNode *node, KernelCo
     chain->SetWithDefaultDeleter(new (std::nothrow) Tensor(StorageShape(),
         output_desc->GetFormat(), output_desc->GetDataType()));
   }
+  return ge::GRAPH_SUCCESS;
+}
+
+static ge::graphStatus CreateWorkspaceHolder(KernelContext *context, size_t node_output_num) {
   auto workspace_memory_av = context->GetOutput(node_output_num);
+  GE_ASSERT_NOTNULL(workspace_memory_av);
   auto workspace_memory_holder = new (std::nothrow) std::vector<memory::MultiStreamMemBlock *>();
   GE_ASSERT_NOTNULL(workspace_memory_holder);
   // 节省MallocWorkspace时vector添加元素时动态扩容的开销
@@ -91,21 +95,56 @@ static ge::graphStatus CreateWorkspacesMemory(const ge::FastNode *node, KernelCo
   workspace_memory_av->SetWithDefaultDeleter(workspace_memory_holder);
   return ge::GRAPH_SUCCESS;
 }
-
-ge::graphStatus ExecuteCustomOpFunc(KernelContext *context) {
+  
+static ge::graphStatus CreateWorkspacesMemory(const ge::FastNode *node, KernelContext *context) {
+  (void)node;
   auto *extended_kernel_context = reinterpret_cast<ExtendedKernelContext *>(context);
   GE_ASSERT_NOTNULL(extended_kernel_context);
-  const size_t node_input_num = extended_kernel_context->GetComputeNodeInputNum();
+  const size_t node_output_num = extended_kernel_context->GetComputeNodeOutputNum();
+  GE_ASSERT_SUCCESS(CreateOutputTensors(extended_kernel_context, context));
+  GE_ASSERT_SUCCESS(CreateWorkspaceHolder(context, node_output_num));
+  return ge::GRAPH_SUCCESS;
+}
+
+static ge::graphStatus CopyShapeFromTemplateTensors(KernelContext *context, size_t node_input_num, size_t node_output_num) {
+  const size_t template_tensor_start = node_input_num + static_cast<size_t>(CustomOpInput::kEnd);
+  for (size_t index = 0; index < node_output_num; ++index) {
+    auto template_tensor = context->GetInputPointer<Tensor>(template_tensor_start + index);
+    auto output_tensor = context->GetOutputPointer<Tensor>(index);
+    GE_ASSERT_NOTNULL(template_tensor);
+    GE_ASSERT_NOTNULL(output_tensor);
+    output_tensor->MutableStorageShape() = template_tensor->GetStorageShape();
+    output_tensor->MutableOriginShape() = template_tensor->GetOriginShape();
+  }
+  return ge::GRAPH_SUCCESS;
+}
+
+static ge::graphStatus ExecuteCustomOpImpl(KernelContext *context) {
+  auto *eager_context = reinterpret_cast<EagerOpExecutionContext *>(context);
+  GE_ASSERT_NOTNULL(eager_context);
+  const size_t node_input_num = eager_context->GetComputeNodeInputNum();
   auto custom_op_ptr =
       context->GetInputValue<ge::BaseCustomOp *>(node_input_num + static_cast<size_t>(CustomOpInput::kFunc));
   GE_ASSERT_NOTNULL(custom_op_ptr);
   auto *eager_execute_op_ptr = dynamic_cast<ge::EagerExecuteOp *>(custom_op_ptr);
   if (eager_execute_op_ptr == nullptr) {
-    GELOGW("%s is custom op but did not implement EagerExecuteOp", extended_kernel_context->GetNodeType());
+    GELOGE(ge::FAILED, "%s is custom op but did not implement EagerExecuteOp", eager_context->GetNodeType());
     return ge::GRAPH_FAILED;
   }
   GE_ASSERT_SUCCESS(eager_execute_op_ptr->Execute(reinterpret_cast<EagerOpExecutionContext *>(context)));
   return ge::GRAPH_SUCCESS;
+}
+
+ge::graphStatus ExecuteCustomOpFunc(KernelContext *context) {
+  return ExecuteCustomOpImpl(context);
+}
+
+ge::graphStatus ExecuteCustomOpWithInferShapeFunc(KernelContext *context) {
+  auto *eager_context = reinterpret_cast<EagerOpExecutionContext *>(context);
+  GE_ASSERT_NOTNULL(eager_context);
+  GE_ASSERT_SUCCESS(CopyShapeFromTemplateTensors(context, eager_context->GetComputeNodeInputNum(),
+                                                   eager_context->GetComputeNodeOutputNum()));
+  return ExecuteCustomOpImpl(context);
 }
 
 ge::graphStatus FreeCustomOpWorkspacesFunc(KernelContext *context) {
@@ -200,6 +239,9 @@ ge::graphStatus CustomOpProfilingDataFill(const KernelContext *context, Profilin
 REGISTER_KERNEL(FindCustomOp).RunFunc(FindCustomOpFunc);
 REGISTER_KERNEL(ExecuteCustomOp).OutputsCreator(CreateWorkspacesMemory)
     .RunFunc(ExecuteCustomOpFunc).TracePrinter(CustomOpExecuteKernelTrace)
+    .ProfilingInfoFiller(CustomOpProfilingDataFill);
+REGISTER_KERNEL(ExecuteCustomOpWithInferShape).OutputsCreator(CreateWorkspacesMemory)
+    .RunFunc(ExecuteCustomOpWithInferShapeFunc).TracePrinter(CustomOpExecuteKernelTrace)
     .ProfilingInfoFiller(CustomOpProfilingDataFill);
 REGISTER_KERNEL(FreeCustomOpWorkspaces).RunFunc(FreeCustomOpWorkspacesFunc);
 }

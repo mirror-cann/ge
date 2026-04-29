@@ -9,6 +9,7 @@
  */
 
 #include "graph/build/memory/binary_block_mem_assigner.h"
+#include <cinttypes>
 #include <algorithm>
 #include "framework/common/debug/ge_log.h"
 #include "graph/utils/type_utils.h"
@@ -65,9 +66,9 @@ Status BinaryBlockMemAssigner::GetMemoryRanges(std::vector<int64_t> &range_ceils
     return SUCCESS;
   }
   if (all_memory_size.front() <= 0) {
-    GELOGE(FAILED, "[Check][MemRangeStep]first mem_range_step:%ld less than 0,invalid,"
+    GELOGE(FAILED, "[Check][MemRangeStep]first mem_range_step:%" PRId64 " less than 0,invalid,"
           "maybe has dynamic shape in graph", all_memory_size.front());
-    REPORT_INNER_ERR_MSG("E19999", "first mem_range_step:%ld less than 0,invalid,"
+    REPORT_INNER_ERR_MSG("E19999", "first mem_range_step:%" PRId64 " less than 0,invalid,"
           "maybe has dynamic shape in graph", all_memory_size.front());
     return FAILED;
   }

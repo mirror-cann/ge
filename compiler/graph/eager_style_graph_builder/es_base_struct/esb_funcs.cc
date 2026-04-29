@@ -266,9 +266,9 @@ EsCTensorHolder *EsCreateVariable(EsCGraphBuilder *graph, int32_t index, const c
   auto node = ge::es::CompliantNodeBuilder(graph->GetGraph())
                   .OpType("Variable")
                   .Name(name)
-                  .IrDefInputs({{kIrInputNameX, ge::es::CompliantNodeBuilder::kEsIrInputRequired, ""}})
-                  .IrDefOutputs({{kIrOutputNameY, ge::es::CompliantNodeBuilder::kEsIrOutputRequired, ""}})
-                  .IrDefAttrs({{kIrIndexAttrName, ge::es::CompliantNodeBuilder::kEsAttrOptional, kIrIntAttrType, av_index}})
+                  .IrDefInputsV2({{kIrInputNameX, ge::es::CompliantNodeBuilder::kEsIrInputRequired, ""}})
+                  .IrDefOutputsV2({{kIrOutputNameY, ge::es::CompliantNodeBuilder::kEsIrOutputRequired, ""}})
+                  .IrDefAttrsV2({{kIrIndexAttrName, ge::es::CompliantNodeBuilder::kEsAttrOptional, kIrIntAttrType, av_index}})
                   .Build();
 
   return graph->GetTensorHolderFromNode(node, 0);

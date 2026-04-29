@@ -325,6 +325,7 @@ set(COMPILER_SRC_LIST
     "graph/preprocess/insert_op/insert_aipp_op_util.cc"
     "graph/preprocess/multi_batch_copy_graph.cc"
     "graph/preprocess/multi_batch_options.cc" 
+    "graph/preprocess/hccl_offline_option_builder.cc"
     "graph/preprocess/checker/graph_lint.cc"
     "host_kernels/kernel_utils.cc"
     "host_kernels/array_ops/gathershapes_kernel.cc"

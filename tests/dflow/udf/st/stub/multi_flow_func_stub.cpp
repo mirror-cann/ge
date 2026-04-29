@@ -218,7 +218,7 @@ class MultiFlowFuncWithStreamInputStub : public MetaMultiFunc {
     auto ret1 = input_msg_queues[0]->Dequeue(input_flow_msg1, -1);
     auto ret2 = input_msg_queues[1]->Dequeue(input_flow_msg2, -1);
     if ((ret1 != FLOW_FUNC_SUCCESS) || (ret2 != FLOW_FUNC_SUCCESS)) {
-      FLOW_FUNC_LOG_ERROR("dequeue faild, ret1=%d, ret2=%d", ret1, ret2);
+      FLOW_FUNC_LOG_ERROR("dequeue failed, ret1=%d, ret2=%d.", ret1, ret2);
       return FLOW_FUNC_FAILED;
     }
 

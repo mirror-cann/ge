@@ -114,6 +114,56 @@ bool AddParentIndexForNetoutput(ComputeGraphPtr &root_graph, NetoutputParentInde
   return true;
 }
 
+void SetInplaceOutput(const NodePtr &node, const uint32_t output_idx = 0U, const int32_t input_idx = 0) {
+  auto out_desc = node->GetOpDescBarePtr()->MutableOutputDesc(output_idx);
+  AttrUtils::SetInt(out_desc, INPLACE_SUPPORT_INPUT_INDEX, input_idx);
+}
+
+size_t CountNodesByType(const ComputeGraphPtr &graph, const std::string &type) {
+  size_t count = 0U;
+  for (const auto &node : graph->GetAllNodes()) {
+    if (node->GetType() == type) {
+      ++count;
+    }
+  }
+  return count;
+}
+
+void SetMlaDumpReuseOptions() {
+  std::map<std::string, std::string> options;
+  options[OPTION_OUTPUT_REUSE_INPUT_MEM_INDEXES] = "0,0|1,1";
+  options["ge.oo.level"] = "O3";
+  ge::GetThreadLocalContext().SetGraphOption(options);
+}
+
+Status RunTensorMoveDeletePass(const ComputeGraphPtr &graph) {
+  graph->TopologicalSorting();
+  ge::GEPass pass(graph);
+  TensorMoveDeletePass tensor_move_delete_pass;
+  ge::NamesToPass names_to_pass;
+  names_to_pass.emplace_back("TensorMoveDeletePass", &tensor_move_delete_pass);
+  return pass.Run(names_to_pass);
+}
+
+NodePtr AddTestNode(const ComputeGraphPtr &graph, const std::string &name, const std::string &type, int in_cnt, int out_cnt,
+                    Format format = FORMAT_NCHW, DataType data_type = DT_FLOAT,
+                    const std::vector<int64_t> &shape = {1, 1, 224, 224}) {
+  auto tensor_desc = std::make_shared<GeTensorDesc>();
+  tensor_desc->SetShape(GeShape(shape));
+  tensor_desc->SetFormat(format);
+  tensor_desc->SetDataType(data_type);
+
+  auto op_desc = std::make_shared<OpDesc>(name, type);
+  for (int i = 0; i < in_cnt; ++i) {
+    op_desc->AddInputDesc(tensor_desc->Clone());
+  }
+  for (int i = 0; i < out_cnt; ++i) {
+    op_desc->AddOutputDesc(tensor_desc->Clone());
+  }
+  op_desc->AddInferFunc([](Operator &op) { return GRAPH_SUCCESS; });
+  return graph->AddNode(op_desc);
+}
+
 void SetWeightForConstNode(NodePtr &const_node) {
   // new a tensor
   ge::GeTensorPtr tensor = std::make_shared<GeTensor>();
@@ -238,6 +288,695 @@ TEST_F(TensorMoveTest, TensorMoveInSubgraph_FromParentData_Deleted) {
 
   // 清理环境
   ge::GetThreadLocalContext().SetGraphOption({});
+}
+
+/**
+ *         Relu
+ *        /    \
+ *      Add   TensorMove
+ *       |       |
+ *       +---- NetOutput
+ *
+ * 说明：
+ * - 基本单输出多引用场景
+ * - Add 只读取 Relu 输出，不透传也不 inplace
+ *
+ * 预期：
+ * - 删除 TensorMove
+ * - Add 到 NetOutput 新增控制边
+ */
+TEST_F(TensorMoveTest, TensorMove_BasicMultiRefBranch_DeletedAndAddControlEdge) {
+  auto graph = std::make_shared<ComputeGraph>("g1");
+  auto relu_node = AddTestNode(graph, "Relu", RELU, 1, 1);
+  auto add_node = AddTestNode(graph, "Add", ADD, 1, 1);
+  auto tensor_move_node = AddTestNode(graph, "TensorMove", TENSORMOVE, 1, 1);
+  auto netoutput_node = AddTestNode(graph, "NetOutput", NETOUTPUT, 2, 1);
+
+  GraphUtils::AddEdge(relu_node->GetOutDataAnchor(0), add_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(add_node->GetOutDataAnchor(0), netoutput_node->GetInDataAnchor(1));
+  GraphUtils::AddEdge(relu_node->GetOutDataAnchor(0), tensor_move_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tensor_move_node->GetOutDataAnchor(0), netoutput_node->GetInDataAnchor(0));
+
+  graph->TopologicalSorting();
+  ge::GEPass pass(graph);
+  TensorMoveDeletePass tensor_move_delete_pass;
+  ge::NamesToPass names_to_pass;
+  names_to_pass.emplace_back("TensorMoveDeletePass", &tensor_move_delete_pass);
+  EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
+
+  EXPECT_EQ(graph->FindNode("TensorMove"), nullptr);
+  EXPECT_TRUE(relu_node->GetOutDataAnchor(0)->IsLinkedWith(netoutput_node->GetInDataAnchor(0)));
+  EXPECT_TRUE(add_node->GetOutControlAnchor()->IsLinkedWith(netoutput_node->GetInControlAnchor()));
+}
+
+/**
+ *           Relu
+ *      /      |      \
+ *   Add0     Add1   TensorMove
+ *     |        |         |
+ *     +--------+----- NetOutput
+ *
+ * 说明：
+ * - Relu 单输出被多个普通读分支和 TensorMove 同时引用
+ *
+ * 预期：
+ * - 删除 TensorMove
+ * - 两个普通读分支都向 NetOutput 补控制边
+ */
+TEST_F(TensorMoveTest, TensorMove_MultipleBasicMultiRefBranches_DeletedAndAddControlEdges) {
+  auto graph = std::make_shared<ComputeGraph>("g1");
+  auto relu_node = AddTestNode(graph, "Relu", RELU, 1, 1);
+  auto add0_node = AddTestNode(graph, "Add0", ADD, 1, 1);
+  auto add1_node = AddTestNode(graph, "Add1", ADD, 1, 1);
+  auto tensor_move_node = AddTestNode(graph, "TensorMove", TENSORMOVE, 1, 1);
+  auto netoutput_node = AddTestNode(graph, "NetOutput", NETOUTPUT, 3, 1);
+
+  GraphUtils::AddEdge(relu_node->GetOutDataAnchor(0), add0_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(add0_node->GetOutDataAnchor(0), netoutput_node->GetInDataAnchor(1));
+  GraphUtils::AddEdge(relu_node->GetOutDataAnchor(0), add1_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(add1_node->GetOutDataAnchor(0), netoutput_node->GetInDataAnchor(2));
+  GraphUtils::AddEdge(relu_node->GetOutDataAnchor(0), tensor_move_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tensor_move_node->GetOutDataAnchor(0), netoutput_node->GetInDataAnchor(0));
+
+  graph->TopologicalSorting();
+  ge::GEPass pass(graph);
+  TensorMoveDeletePass tensor_move_delete_pass;
+  ge::NamesToPass names_to_pass;
+  names_to_pass.emplace_back("TensorMoveDeletePass", &tensor_move_delete_pass);
+  EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
+
+  EXPECT_EQ(graph->FindNode("TensorMove"), nullptr);
+  EXPECT_TRUE(relu_node->GetOutDataAnchor(0)->IsLinkedWith(netoutput_node->GetInDataAnchor(0)));
+  EXPECT_TRUE(add0_node->GetOutControlAnchor()->IsLinkedWith(netoutput_node->GetInControlAnchor()));
+  EXPECT_TRUE(add1_node->GetOutControlAnchor()->IsLinkedWith(netoutput_node->GetInControlAnchor()));
+}
+
+/**
+ *        Data
+ *         |
+ *  TensorMove0(保留)
+ *         |
+ *  ScatterNDUpdate0
+ *      /         \
+ * MlpLightningIndexer0 TensorMove1
+ *         |             |
+ * SparseFlashAttention0 ScatterNDUpdate1
+ *         |             |
+ *         +------ NetOutput ---- MlpLightningIndexer1
+ *
+ * 说明：
+ * - 待删节点是 TensorMove1
+ * - 分叉点位于 TensorMove1 的直接源节点 ScatterNDUpdate0，不是根 Data
+ * - 上游 TensorMove0 通过保留属性固定不删除
+ *
+ * 预期：
+ * - 删除 TensorMove1
+ * - ScatterNDUpdate0 直连 ScatterNDUpdate1
+ * - MlpLightningIndexer0 到 ScatterNDUpdate1 新增控制边
+ * - TensorMove0 保留
+ */
+TEST_F(TensorMoveTest, TensorMove_FromIntermediateSource_WithScatterBranch_DeletedAndAddControlEdge) {
+  auto graph = std::make_shared<ComputeGraph>("g1");
+  auto data_node = AddTestNode(graph, "Data", DATA, 1, 1);
+  auto tensor_move0_node = AddTestNode(graph, "TensorMove0", TENSORMOVE, 1, 1);
+  auto scatter0_node = AddTestNode(graph, "ScatterNDUpdate0", RELU, 1, 1);
+  auto mlp_indexer0_node = AddTestNode(graph, "MlpLightningIndexer0", RELU, 1, 1);
+  auto sfa0_node = AddTestNode(graph, "SparseFlashAttention0", RELU, 1, 1);
+  auto tensor_move1_node = AddTestNode(graph, "TensorMove1", TENSORMOVE, 1, 1);
+  auto scatter1_node = AddTestNode(graph, "ScatterNDUpdate1", RELU, 1, 1);
+  auto mlp_indexer1_node = AddTestNode(graph, "MlpLightningIndexer1", RELU, 1, 1);
+  auto netoutput_node = AddTestNode(graph, "NetOutput", NETOUTPUT, 3, 1);
+
+  AttrUtils::SetBool(tensor_move0_node->GetOpDesc(), ATTR_NAME_CANNOT_BE_DELETED, true);
+
+  GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), tensor_move0_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tensor_move0_node->GetOutDataAnchor(0), scatter0_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(scatter0_node->GetOutDataAnchor(0), mlp_indexer0_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(mlp_indexer0_node->GetOutDataAnchor(0), sfa0_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(scatter0_node->GetOutDataAnchor(0), tensor_move1_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tensor_move1_node->GetOutDataAnchor(0), scatter1_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(scatter1_node->GetOutDataAnchor(0), netoutput_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(sfa0_node->GetOutDataAnchor(0), netoutput_node->GetInDataAnchor(1));
+  GraphUtils::AddEdge(scatter1_node->GetOutDataAnchor(0), mlp_indexer1_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(mlp_indexer1_node->GetOutDataAnchor(0), netoutput_node->GetInDataAnchor(2));
+
+  graph->TopologicalSorting();
+  ge::GEPass pass(graph);
+  TensorMoveDeletePass tensor_move_delete_pass;
+  ge::NamesToPass names_to_pass;
+  names_to_pass.emplace_back("TensorMoveDeletePass", &tensor_move_delete_pass);
+  EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
+
+  EXPECT_NE(graph->FindNode("TensorMove0"), nullptr);
+  EXPECT_EQ(graph->FindNode("TensorMove1"), nullptr);
+  EXPECT_TRUE(scatter0_node->GetOutDataAnchor(0)->IsLinkedWith(scatter1_node->GetInDataAnchor(0)));
+  EXPECT_TRUE(mlp_indexer0_node->GetOutControlAnchor()->IsLinkedWith(scatter1_node->GetInControlAnchor()));
+}
+
+/**
+ *         Relu
+ *        /    \
+ *   Add(inplace) TensorMove
+ *        |          |
+ *        +------ NetOutput
+ *
+ * 说明：
+ * - 旁路分支会原地写回源 buffer
+ *
+ * 预期：
+ * - 保留 TensorMove
+ */
+TEST_F(TensorMoveTest, TensorMove_BasicMultiRefWithInplaceBranch_Kept) {
+  auto graph = std::make_shared<ComputeGraph>("g1");
+  auto relu_node = AddTestNode(graph, "Relu", RELU, 1, 1);
+  auto add_node = AddTestNode(graph, "Add", ADD, 1, 1);
+  auto tensor_move_node = AddTestNode(graph, "TensorMove", TENSORMOVE, 1, 1);
+  auto netoutput_node = AddTestNode(graph, "NetOutput", NETOUTPUT, 2, 1);
+
+  SetInplaceOutput(add_node, 0, 0);
+
+  GraphUtils::AddEdge(relu_node->GetOutDataAnchor(0), add_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(add_node->GetOutDataAnchor(0), netoutput_node->GetInDataAnchor(1));
+  GraphUtils::AddEdge(relu_node->GetOutDataAnchor(0), tensor_move_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tensor_move_node->GetOutDataAnchor(0), netoutput_node->GetInDataAnchor(0));
+
+  graph->TopologicalSorting();
+  ge::GEPass pass(graph);
+  TensorMoveDeletePass tensor_move_delete_pass;
+  ge::NamesToPass names_to_pass;
+  names_to_pass.emplace_back("TensorMoveDeletePass", &tensor_move_delete_pass);
+  EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
+
+  EXPECT_NE(graph->FindNode("TensorMove"), nullptr);
+  EXPECT_FALSE(add_node->GetOutControlAnchor()->IsLinkedWith(netoutput_node->GetInControlAnchor()));
+}
+
+/**
+ * 对应 bbit Test4/5/6 的 46/45/331 dump（MLA KV Cache 双分支主模式）。
+ *
+ * 备注：本用例验证通用 TensorMoveDeletePass 对 MLA 拓扑的兜底删除行为；
+ *       MLA 专用 pattern 识别由 UT 侧覆盖。
+ *
+ * 构图（pass 前）：
+ *
+ *   arg11_1 ──► TensorMove    ──┐
+ *                               ├──► MlaPrologV3[9]/[10]
+ *   arg12_1 ──► TensorMove_1  ──┘          │
+ *                                          ├─:2─► Reshape_60 ─► Reshape_61 ─► Reshape_62 ──┬─► TensorMove_2    ─► ScatterNdUpdate[0]
+ *                                          │                                               └─► IndexByTensor_2 ─► ScatterNdUpdate[2]
+ *                                          │
+ *                                          └─:3─► Squeeze_19 ─► Reshape_63 ─┬─► TensorMove_3    ─► ScatterNdUpdate_1[0]
+ *                                                                           └─► IndexByTensor_3 ─► ScatterNdUpdate_1[2]
+ *
+ *   arg19_1 ──► IndexByTensor_2[1]、IndexByTensor_3[1]
+ *   arg25_1 ──► ScatterNdUpdate[1]、ScatterNdUpdate_1[1]
+ *
+ *   ScatterNdUpdate   ──► NetOutput[0]
+ *   ScatterNdUpdate_1 ──► NetOutput[1]
+ *
+ * Pass 后预期：
+ *   - 4 个 TensorMove 全部删除
+ *   - arg11_1/arg12_1 直连 MlaPrologV3[9]/[10]
+ *   - Reshape_62/Reshape_63 直连 ScatterNdUpdate/_1[0]
+ *   - 多引用分支序列化：IndexByTensor_2 ─ctrl─► ScatterNdUpdate
+ *                       IndexByTensor_3 ─ctrl─► ScatterNdUpdate_1
+ */
+TEST_F(TensorMoveTest, TensorMove_MlaDump46ThreeReshapeAndSqueezeBranches_Deleted) {
+  SetMlaDumpReuseOptions();
+  auto graph = std::make_shared<ComputeGraph>("g1");
+
+  auto kv_cache = AddTestNode(graph, "arg11_1", DATA, 0, 1);
+  auto kr_cache = AddTestNode(graph, "arg12_1", DATA, 0, 1);
+  auto indices = AddTestNode(graph, "arg19_1", DATA, 0, 1);
+  auto update_indices = AddTestNode(graph, "arg25_1", DATA, 0, 1);
+  auto tensor_move_kv = AddTestNode(graph, "TensorMove", TENSORMOVE, 1, 1);
+  auto tensor_move_kr = AddTestNode(graph, "TensorMove_1", TENSORMOVE, 1, 1);
+  auto mla = AddTestNode(graph, "MlaPrologV3", "MlaPrologV3", 21, 7);
+  auto reshape0 = AddTestNode(graph, "Reshape_60", RESHAPE, 2, 1);
+  auto reshape1 = AddTestNode(graph, "Reshape_61", RESHAPE, 2, 1);
+  auto reshape2 = AddTestNode(graph, "Reshape_62", RESHAPE, 2, 1);
+  auto index_by_tensor0 = AddTestNode(graph, "IndexByTensor_2", "IndexByTensor", 2, 1);
+  auto tensor_move0 = AddTestNode(graph, "TensorMove_2", TENSORMOVE, 1, 1);
+  auto scatter0 = AddTestNode(graph, "ScatterNdUpdate", "ScatterNdUpdate", 3, 1);
+  auto squeeze = AddTestNode(graph, "Squeeze_19", SQUEEZE, 1, 1);
+  auto reshape3 = AddTestNode(graph, "Reshape_63", RESHAPE, 2, 1);
+  auto index_by_tensor1 = AddTestNode(graph, "IndexByTensor_3", "IndexByTensor", 2, 1);
+  auto tensor_move1 = AddTestNode(graph, "TensorMove_3", TENSORMOVE, 1, 1);
+  auto scatter1 = AddTestNode(graph, "ScatterNdUpdate_1", "ScatterNdUpdate", 3, 1);
+  auto netoutput = AddTestNode(graph, "NetOutput", NETOUTPUT, 2, 1);
+
+  AttrUtils::SetInt(kv_cache->GetOpDesc(), ATTR_NAME_INDEX, 0);
+  AttrUtils::SetInt(kr_cache->GetOpDesc(), ATTR_NAME_INDEX, 1);
+
+  GraphUtils::AddEdge(kv_cache->GetOutDataAnchor(0), tensor_move_kv->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tensor_move_kv->GetOutDataAnchor(0), mla->GetInDataAnchor(9));
+  GraphUtils::AddEdge(kr_cache->GetOutDataAnchor(0), tensor_move_kr->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tensor_move_kr->GetOutDataAnchor(0), mla->GetInDataAnchor(10));
+
+  GraphUtils::AddEdge(mla->GetOutDataAnchor(2), reshape0->GetInDataAnchor(0));
+  GraphUtils::AddEdge(reshape0->GetOutDataAnchor(0), reshape1->GetInDataAnchor(0));
+  GraphUtils::AddEdge(reshape1->GetOutDataAnchor(0), reshape2->GetInDataAnchor(0));
+  GraphUtils::AddEdge(reshape2->GetOutDataAnchor(0), index_by_tensor0->GetInDataAnchor(0));
+  GraphUtils::AddEdge(indices->GetOutDataAnchor(0), index_by_tensor0->GetInDataAnchor(1));
+  GraphUtils::AddEdge(index_by_tensor0->GetOutDataAnchor(0), scatter0->GetInDataAnchor(2));
+  GraphUtils::AddEdge(reshape2->GetOutDataAnchor(0), tensor_move0->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tensor_move0->GetOutDataAnchor(0), scatter0->GetInDataAnchor(0));
+  GraphUtils::AddEdge(update_indices->GetOutDataAnchor(0), scatter0->GetInDataAnchor(1));
+
+  GraphUtils::AddEdge(mla->GetOutDataAnchor(3), squeeze->GetInDataAnchor(0));
+  GraphUtils::AddEdge(squeeze->GetOutDataAnchor(0), reshape3->GetInDataAnchor(0));
+  GraphUtils::AddEdge(reshape3->GetOutDataAnchor(0), index_by_tensor1->GetInDataAnchor(0));
+  GraphUtils::AddEdge(indices->GetOutDataAnchor(0), index_by_tensor1->GetInDataAnchor(1));
+  GraphUtils::AddEdge(index_by_tensor1->GetOutDataAnchor(0), scatter1->GetInDataAnchor(2));
+  GraphUtils::AddEdge(reshape3->GetOutDataAnchor(0), tensor_move1->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tensor_move1->GetOutDataAnchor(0), scatter1->GetInDataAnchor(0));
+  GraphUtils::AddEdge(update_indices->GetOutDataAnchor(0), scatter1->GetInDataAnchor(1));
+
+  GraphUtils::AddEdge(scatter0->GetOutDataAnchor(0), netoutput->GetInDataAnchor(0));
+  GraphUtils::AddEdge(scatter1->GetOutDataAnchor(0), netoutput->GetInDataAnchor(1));
+
+  EXPECT_EQ(CountNodesByType(graph, TENSORMOVE), 4U);
+  EXPECT_EQ(RunTensorMoveDeletePass(graph), SUCCESS);
+
+  EXPECT_EQ(CountNodesByType(graph, TENSORMOVE), 0U);
+  EXPECT_TRUE(kv_cache->GetOutDataAnchor(0)->IsLinkedWith(mla->GetInDataAnchor(9)));
+  EXPECT_TRUE(kr_cache->GetOutDataAnchor(0)->IsLinkedWith(mla->GetInDataAnchor(10)));
+  EXPECT_TRUE(reshape2->GetOutDataAnchor(0)->IsLinkedWith(scatter0->GetInDataAnchor(0)));
+  EXPECT_TRUE(reshape3->GetOutDataAnchor(0)->IsLinkedWith(scatter1->GetInDataAnchor(0)));
+  EXPECT_TRUE(index_by_tensor0->GetOutControlAnchor()->IsLinkedWith(scatter0->GetInControlAnchor()));
+  EXPECT_TRUE(index_by_tensor1->GetOutControlAnchor()->IsLinkedWith(scatter1->GetInControlAnchor()));
+  ge::GetThreadLocalContext().SetGraphOption({});
+}
+
+/**
+ * 对应 bbit Test7 的 70 leftover dump（单 TM1 + 单层 Reshape 分支 + 直连分支）。
+ *
+ * 备注：本用例验证通用 TensorMoveDeletePass 对 MLA 拓扑的兜底删除行为；
+ *       MLA P3/P4 共用 TM1 的协调逻辑由 UT 侧覆盖。
+ *
+ * 构图（pass 前）：
+ *
+ *   arg11_1 ──► TensorMove ──► MlaPrologV3[9]
+ *                                    │
+ *                                    ├─:2─► Reshape_23 ──┬─► TensorMove_2    ─► ScatterNdUpdate[0]
+ *                                    │                   └─► IndexByTensor_2 ─► ScatterNdUpdate[2]
+ *                                    │
+ *                                    └─:3─► Squeeze_19 ─► Reshape_24 ──┬─► ScatterNdUpdate_1[0]   （无 TM，直连）
+ *                                                                      └─► IndexByTensor_3 ─► ScatterNdUpdate_1[2]
+ *
+ *   arg19_1 ──► IndexByTensor_2[1]、IndexByTensor_3[1]
+ *   arg25_1 ──► ScatterNdUpdate[1]、ScatterNdUpdate_1[1]
+ *
+ *   ScatterNdUpdate   ──► NetOutput[0]
+ *   ScatterNdUpdate_1 ──► NetOutput[1]
+ *
+ * Pass 后预期：
+ *   - 2 个 TensorMove（TM1 + TM2）全部删除
+ *   - arg11_1 直连 MlaPrologV3[9]
+ *   - Reshape_23 直连 ScatterNdUpdate[0]；Reshape_24 保持直连 ScatterNdUpdate_1[0]
+ *   - 多引用分支序列化：IndexByTensor_2 ─ctrl─► ScatterNdUpdate
+ */
+TEST_F(TensorMoveTest, TensorMove_MlaDump70LeftTmP3P4_Deleted) {
+  SetMlaDumpReuseOptions();
+  auto graph = std::make_shared<ComputeGraph>("g1");
+
+  auto kv_cache = AddTestNode(graph, "arg11_1", DATA, 0, 1);
+  auto indices = AddTestNode(graph, "arg19_1", DATA, 0, 1);
+  auto update_indices = AddTestNode(graph, "arg25_1", DATA, 0, 1);
+  auto tensor_move_kv = AddTestNode(graph, "TensorMove", TENSORMOVE, 1, 1);
+  auto mla = AddTestNode(graph, "MlaPrologV3", "MlaPrologV3", 21, 7);
+  auto reshape_p4 = AddTestNode(graph, "Reshape_23", RESHAPE, 2, 1);
+  auto index_by_tensor0 = AddTestNode(graph, "IndexByTensor_2", "IndexByTensor", 2, 1);
+  auto tensor_move0 = AddTestNode(graph, "TensorMove_2", TENSORMOVE, 1, 1);
+  auto scatter0 = AddTestNode(graph, "ScatterNdUpdate", "ScatterNdUpdate", 3, 1);
+  auto squeeze = AddTestNode(graph, "Squeeze_19", SQUEEZE, 1, 1);
+  auto reshape_p3 = AddTestNode(graph, "Reshape_24", RESHAPE, 2, 1);
+  auto index_by_tensor1 = AddTestNode(graph, "IndexByTensor_3", "IndexByTensor", 2, 1);
+  auto scatter1 = AddTestNode(graph, "ScatterNdUpdate_1", "ScatterNdUpdate", 3, 1);
+  auto netoutput = AddTestNode(graph, "NetOutput", NETOUTPUT, 2, 1);
+
+  AttrUtils::SetInt(kv_cache->GetOpDesc(), ATTR_NAME_INDEX, 0);
+
+  GraphUtils::AddEdge(kv_cache->GetOutDataAnchor(0), tensor_move_kv->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tensor_move_kv->GetOutDataAnchor(0), mla->GetInDataAnchor(9));
+
+  GraphUtils::AddEdge(mla->GetOutDataAnchor(2), reshape_p4->GetInDataAnchor(0));
+  GraphUtils::AddEdge(reshape_p4->GetOutDataAnchor(0), index_by_tensor0->GetInDataAnchor(0));
+  GraphUtils::AddEdge(indices->GetOutDataAnchor(0), index_by_tensor0->GetInDataAnchor(1));
+  GraphUtils::AddEdge(index_by_tensor0->GetOutDataAnchor(0), scatter0->GetInDataAnchor(2));
+  GraphUtils::AddEdge(reshape_p4->GetOutDataAnchor(0), tensor_move0->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tensor_move0->GetOutDataAnchor(0), scatter0->GetInDataAnchor(0));
+  GraphUtils::AddEdge(update_indices->GetOutDataAnchor(0), scatter0->GetInDataAnchor(1));
+
+  GraphUtils::AddEdge(mla->GetOutDataAnchor(3), squeeze->GetInDataAnchor(0));
+  GraphUtils::AddEdge(squeeze->GetOutDataAnchor(0), reshape_p3->GetInDataAnchor(0));
+  GraphUtils::AddEdge(reshape_p3->GetOutDataAnchor(0), index_by_tensor1->GetInDataAnchor(0));
+  GraphUtils::AddEdge(indices->GetOutDataAnchor(0), index_by_tensor1->GetInDataAnchor(1));
+  GraphUtils::AddEdge(index_by_tensor1->GetOutDataAnchor(0), scatter1->GetInDataAnchor(2));
+  GraphUtils::AddEdge(reshape_p3->GetOutDataAnchor(0), scatter1->GetInDataAnchor(0));
+  GraphUtils::AddEdge(update_indices->GetOutDataAnchor(0), scatter1->GetInDataAnchor(1));
+
+  GraphUtils::AddEdge(scatter0->GetOutDataAnchor(0), netoutput->GetInDataAnchor(0));
+  GraphUtils::AddEdge(scatter1->GetOutDataAnchor(0), netoutput->GetInDataAnchor(1));
+
+  EXPECT_EQ(CountNodesByType(graph, TENSORMOVE), 2U);
+  EXPECT_EQ(RunTensorMoveDeletePass(graph), SUCCESS);
+
+  EXPECT_EQ(CountNodesByType(graph, TENSORMOVE), 0U);
+  EXPECT_TRUE(kv_cache->GetOutDataAnchor(0)->IsLinkedWith(mla->GetInDataAnchor(9)));
+  EXPECT_TRUE(reshape_p4->GetOutDataAnchor(0)->IsLinkedWith(scatter0->GetInDataAnchor(0)));
+  EXPECT_TRUE(reshape_p3->GetOutDataAnchor(0)->IsLinkedWith(scatter1->GetInDataAnchor(0)));
+  EXPECT_TRUE(index_by_tensor0->GetOutControlAnchor()->IsLinkedWith(scatter0->GetInControlAnchor()));
+  ge::GetThreadLocalContext().SetGraphOption({});
+}
+
+/**
+ * 对应 bbit Test8 的 46 ctrl dump（Identity 承载 ctrl 边，插入 Reshape 与 TM 之间）。
+ *
+ * 备注：本用例验证通用 TensorMoveDeletePass 对 MLA 拓扑的兜底删除行为；
+ *       依赖 mock 节点未配置 ref 输出属性 —— 源头回溯在 Identity 处停止，
+ *       真实 RefOp 场景（Reshape/Identity 均透传）请在 UT 侧覆盖。
+ *
+ * 构图（pass 前）：
+ *
+ *   arg11_1 ──► TensorMove    ──┐
+ *                               ├──► MlaPrologV3[9]/[10]
+ *   arg12_1 ──► TensorMove_1  ──┘          │
+ *                                          ├─:2─► Reshape_60 ─► Reshape_61 ─► Reshape_62 ──┬─► Identity_28     ─► TensorMove_2 ─► ScatterNdUpdate[0]
+ *                                          │                                               └─► IndexByTensor_2                  ─► ScatterNdUpdate[2]
+ *                                          │
+ *                                          └─:3─► Squeeze_19 ─► Reshape_63 ─┬─► Identity_29     ─► TensorMove_3 ─► ScatterNdUpdate_1[0]
+ *                                                                           └─► IndexByTensor_3                  ─► ScatterNdUpdate_1[2]
+ *
+ *   arg19_1 ──► IndexByTensor_2[1]、IndexByTensor_3[1]
+ *   arg25_1 ──► ScatterNdUpdate[1]、ScatterNdUpdate_1[1]
+ *
+ *   FusedInferAttentionScore ─ctrl─► Identity_28
+ *                            ─ctrl─► Identity_29
+ *
+ *   ScatterNdUpdate   ──► NetOutput[0]
+ *   ScatterNdUpdate_1 ──► NetOutput[1]
+ *
+ * Pass 后预期：
+ *   - 4 个 TensorMove 全部删除
+ *   - Identity_28/_29 保留，分别直连 ScatterNdUpdate/_1[0]
+ *   - FusedInferAttentionScore ─ctrl─► Identity_28/_29 保持
+ */
+TEST_F(TensorMoveTest, TensorMove_MlaDump46CtrlIdentityBranches_Deleted) {
+  SetMlaDumpReuseOptions();
+  auto graph = std::make_shared<ComputeGraph>("g1");
+
+  auto kv_cache = AddTestNode(graph, "arg11_1", DATA, 0, 1);
+  auto kr_cache = AddTestNode(graph, "arg12_1", DATA, 0, 1);
+  auto indices = AddTestNode(graph, "arg19_1", DATA, 0, 1);
+  auto update_indices = AddTestNode(graph, "arg25_1", DATA, 0, 1);
+  auto tensor_move_kv = AddTestNode(graph, "TensorMove", TENSORMOVE, 1, 1);
+  auto tensor_move_kr = AddTestNode(graph, "TensorMove_1", TENSORMOVE, 1, 1);
+  auto mla = AddTestNode(graph, "MlaPrologV3", "MlaPrologV3", 21, 7);
+  auto reshape0 = AddTestNode(graph, "Reshape_60", RESHAPE, 2, 1);
+  auto reshape1 = AddTestNode(graph, "Reshape_61", RESHAPE, 2, 1);
+  auto reshape2 = AddTestNode(graph, "Reshape_62", RESHAPE, 2, 1);
+  auto index_by_tensor0 = AddTestNode(graph, "IndexByTensor_2", "IndexByTensor", 2, 1);
+  auto identity0 = AddTestNode(graph, "Identity_28", IDENTITY, 1, 1);
+  auto tensor_move0 = AddTestNode(graph, "TensorMove_2", TENSORMOVE, 1, 1);
+  auto scatter0 = AddTestNode(graph, "ScatterNdUpdate", "ScatterNdUpdate", 3, 1);
+  auto squeeze = AddTestNode(graph, "Squeeze_19", SQUEEZE, 1, 1);
+  auto reshape3 = AddTestNode(graph, "Reshape_63", RESHAPE, 2, 1);
+  auto index_by_tensor1 = AddTestNode(graph, "IndexByTensor_3", "IndexByTensor", 2, 1);
+  auto identity1 = AddTestNode(graph, "Identity_29", IDENTITY, 1, 1);
+  auto tensor_move1 = AddTestNode(graph, "TensorMove_3", TENSORMOVE, 1, 1);
+  auto scatter1 = AddTestNode(graph, "ScatterNdUpdate_1", "ScatterNdUpdate", 3, 1);
+  auto ctrl_src = AddTestNode(graph, "FusedInferAttentionScore", "FusedInferAttentionScore", 0, 1);
+  auto netoutput = AddTestNode(graph, "NetOutput", NETOUTPUT, 2, 1);
+
+  AttrUtils::SetInt(kv_cache->GetOpDesc(), ATTR_NAME_INDEX, 0);
+  AttrUtils::SetInt(kr_cache->GetOpDesc(), ATTR_NAME_INDEX, 1);
+
+  GraphUtils::AddEdge(kv_cache->GetOutDataAnchor(0), tensor_move_kv->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tensor_move_kv->GetOutDataAnchor(0), mla->GetInDataAnchor(9));
+  GraphUtils::AddEdge(kr_cache->GetOutDataAnchor(0), tensor_move_kr->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tensor_move_kr->GetOutDataAnchor(0), mla->GetInDataAnchor(10));
+
+  GraphUtils::AddEdge(mla->GetOutDataAnchor(2), reshape0->GetInDataAnchor(0));
+  GraphUtils::AddEdge(reshape0->GetOutDataAnchor(0), reshape1->GetInDataAnchor(0));
+  GraphUtils::AddEdge(reshape1->GetOutDataAnchor(0), reshape2->GetInDataAnchor(0));
+  GraphUtils::AddEdge(reshape2->GetOutDataAnchor(0), index_by_tensor0->GetInDataAnchor(0));
+  GraphUtils::AddEdge(indices->GetOutDataAnchor(0), index_by_tensor0->GetInDataAnchor(1));
+  GraphUtils::AddEdge(index_by_tensor0->GetOutDataAnchor(0), scatter0->GetInDataAnchor(2));
+  GraphUtils::AddEdge(reshape2->GetOutDataAnchor(0), identity0->GetInDataAnchor(0));
+  GraphUtils::AddEdge(ctrl_src->GetOutControlAnchor(), identity0->GetInControlAnchor());
+  GraphUtils::AddEdge(identity0->GetOutDataAnchor(0), tensor_move0->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tensor_move0->GetOutDataAnchor(0), scatter0->GetInDataAnchor(0));
+  GraphUtils::AddEdge(update_indices->GetOutDataAnchor(0), scatter0->GetInDataAnchor(1));
+
+  GraphUtils::AddEdge(mla->GetOutDataAnchor(3), squeeze->GetInDataAnchor(0));
+  GraphUtils::AddEdge(squeeze->GetOutDataAnchor(0), reshape3->GetInDataAnchor(0));
+  GraphUtils::AddEdge(reshape3->GetOutDataAnchor(0), index_by_tensor1->GetInDataAnchor(0));
+  GraphUtils::AddEdge(indices->GetOutDataAnchor(0), index_by_tensor1->GetInDataAnchor(1));
+  GraphUtils::AddEdge(index_by_tensor1->GetOutDataAnchor(0), scatter1->GetInDataAnchor(2));
+  GraphUtils::AddEdge(reshape3->GetOutDataAnchor(0), identity1->GetInDataAnchor(0));
+  GraphUtils::AddEdge(ctrl_src->GetOutControlAnchor(), identity1->GetInControlAnchor());
+  GraphUtils::AddEdge(identity1->GetOutDataAnchor(0), tensor_move1->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tensor_move1->GetOutDataAnchor(0), scatter1->GetInDataAnchor(0));
+  GraphUtils::AddEdge(update_indices->GetOutDataAnchor(0), scatter1->GetInDataAnchor(1));
+
+  GraphUtils::AddEdge(scatter0->GetOutDataAnchor(0), netoutput->GetInDataAnchor(0));
+  GraphUtils::AddEdge(scatter1->GetOutDataAnchor(0), netoutput->GetInDataAnchor(1));
+
+  EXPECT_EQ(CountNodesByType(graph, TENSORMOVE), 4U);
+  EXPECT_EQ(RunTensorMoveDeletePass(graph), SUCCESS);
+
+  EXPECT_EQ(CountNodesByType(graph, TENSORMOVE), 0U);
+  EXPECT_TRUE(identity0->GetOutDataAnchor(0)->IsLinkedWith(scatter0->GetInDataAnchor(0)));
+  EXPECT_TRUE(identity1->GetOutDataAnchor(0)->IsLinkedWith(scatter1->GetInDataAnchor(0)));
+  EXPECT_TRUE(ctrl_src->GetOutControlAnchor()->IsLinkedWith(identity0->GetInControlAnchor()));
+  EXPECT_TRUE(ctrl_src->GetOutControlAnchor()->IsLinkedWith(identity1->GetInControlAnchor()));
+  ge::GetThreadLocalContext().SetGraphOption({});
+}
+
+/**
+ * 对应 bbit Test9 的 58 ctrl dump（Identity ctrl 边 + 单层 Reshape + Squeeze 分支）。
+ *
+ * 备注：本用例验证通用 TensorMoveDeletePass 对 MLA 拓扑的兜底删除行为；
+ *       依赖 mock 节点未配置 ref 输出属性 —— 源头回溯在 Identity 处停止，
+ *       真实 RefOp 场景请在 UT 侧覆盖。
+ *
+ * 构图（pass 前）：
+ *
+ *   arg11_1 ──► TensorMove    ──┐
+ *                               ├──► MlaPrologV3[9]/[10]
+ *   arg12_1 ──► TensorMove_1  ──┘          │
+ *                                          ├─:2─► Reshape_23 ──┬─► Identity_28     ─► TensorMove_2 ─► ScatterNdUpdate[0]
+ *                                          │                   └─► IndexByTensor_2                  ─► ScatterNdUpdate[2]
+ *                                          │
+ *                                          └─:3─► Squeeze_19 ─► Reshape_24 ─┬─► Identity_29     ─► TensorMove_3 ─► ScatterNdUpdate_1[0]
+ *                                                                           └─► IndexByTensor_3                  ─► ScatterNdUpdate_1[2]
+ *
+ *   arg19_1 ──► IndexByTensor_2[1]、IndexByTensor_3[1]
+ *   arg25_1 ──► ScatterNdUpdate[1]、ScatterNdUpdate_1[1]
+ *
+ *   FusedInferAttentionScore ─ctrl─► Identity_28
+ *                            ─ctrl─► Identity_29
+ *
+ *   ScatterNdUpdate   ──► NetOutput[0]
+ *   ScatterNdUpdate_1 ──► NetOutput[1]
+ *
+ * Pass 后预期：
+ *   - 4 个 TensorMove 全部删除
+ *   - arg11_1/arg12_1 直连 MlaPrologV3[9]/[10]
+ *   - Identity_28/_29 保留，分别直连 ScatterNdUpdate/_1[0]
+ *   - FusedInferAttentionScore ─ctrl─► Identity_28/_29 保持
+ */
+TEST_F(TensorMoveTest, TensorMove_MlaDump58CtrlSingleReshapeAndSqueezeBranches_Deleted) {
+  SetMlaDumpReuseOptions();
+  auto graph = std::make_shared<ComputeGraph>("g1");
+
+  auto kv_cache = AddTestNode(graph, "arg11_1", DATA, 0, 1);
+  auto kr_cache = AddTestNode(graph, "arg12_1", DATA, 0, 1);
+  auto indices = AddTestNode(graph, "arg19_1", DATA, 0, 1);
+  auto update_indices = AddTestNode(graph, "arg25_1", DATA, 0, 1);
+  auto tensor_move_kv = AddTestNode(graph, "TensorMove", TENSORMOVE, 1, 1);
+  auto tensor_move_kr = AddTestNode(graph, "TensorMove_1", TENSORMOVE, 1, 1);
+  auto mla = AddTestNode(graph, "MlaPrologV3", "MlaPrologV3", 21, 7);
+  auto reshape_p4 = AddTestNode(graph, "Reshape_23", RESHAPE, 2, 1);
+  auto index_by_tensor0 = AddTestNode(graph, "IndexByTensor_2", "IndexByTensor", 2, 1);
+  auto identity0 = AddTestNode(graph, "Identity_28", IDENTITY, 1, 1);
+  auto tensor_move0 = AddTestNode(graph, "TensorMove_2", TENSORMOVE, 1, 1);
+  auto scatter0 = AddTestNode(graph, "ScatterNdUpdate", "ScatterNdUpdate", 3, 1);
+  auto squeeze = AddTestNode(graph, "Squeeze_19", SQUEEZE, 1, 1);
+  auto reshape_p2 = AddTestNode(graph, "Reshape_24", RESHAPE, 2, 1);
+  auto index_by_tensor1 = AddTestNode(graph, "IndexByTensor_3", "IndexByTensor", 2, 1);
+  auto identity1 = AddTestNode(graph, "Identity_29", IDENTITY, 1, 1);
+  auto tensor_move1 = AddTestNode(graph, "TensorMove_3", TENSORMOVE, 1, 1);
+  auto scatter1 = AddTestNode(graph, "ScatterNdUpdate_1", "ScatterNdUpdate", 3, 1);
+  auto ctrl_src = AddTestNode(graph, "FusedInferAttentionScore", "FusedInferAttentionScore", 0, 1);
+  auto netoutput = AddTestNode(graph, "NetOutput", NETOUTPUT, 2, 1);
+
+  AttrUtils::SetInt(kv_cache->GetOpDesc(), ATTR_NAME_INDEX, 0);
+  AttrUtils::SetInt(kr_cache->GetOpDesc(), ATTR_NAME_INDEX, 1);
+
+  GraphUtils::AddEdge(kv_cache->GetOutDataAnchor(0), tensor_move_kv->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tensor_move_kv->GetOutDataAnchor(0), mla->GetInDataAnchor(9));
+  GraphUtils::AddEdge(kr_cache->GetOutDataAnchor(0), tensor_move_kr->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tensor_move_kr->GetOutDataAnchor(0), mla->GetInDataAnchor(10));
+
+  GraphUtils::AddEdge(mla->GetOutDataAnchor(2), reshape_p4->GetInDataAnchor(0));
+  GraphUtils::AddEdge(reshape_p4->GetOutDataAnchor(0), index_by_tensor0->GetInDataAnchor(0));
+  GraphUtils::AddEdge(indices->GetOutDataAnchor(0), index_by_tensor0->GetInDataAnchor(1));
+  GraphUtils::AddEdge(index_by_tensor0->GetOutDataAnchor(0), scatter0->GetInDataAnchor(2));
+  GraphUtils::AddEdge(reshape_p4->GetOutDataAnchor(0), identity0->GetInDataAnchor(0));
+  GraphUtils::AddEdge(ctrl_src->GetOutControlAnchor(), identity0->GetInControlAnchor());
+  GraphUtils::AddEdge(identity0->GetOutDataAnchor(0), tensor_move0->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tensor_move0->GetOutDataAnchor(0), scatter0->GetInDataAnchor(0));
+  GraphUtils::AddEdge(update_indices->GetOutDataAnchor(0), scatter0->GetInDataAnchor(1));
+
+  GraphUtils::AddEdge(mla->GetOutDataAnchor(3), squeeze->GetInDataAnchor(0));
+  GraphUtils::AddEdge(squeeze->GetOutDataAnchor(0), reshape_p2->GetInDataAnchor(0));
+  GraphUtils::AddEdge(reshape_p2->GetOutDataAnchor(0), index_by_tensor1->GetInDataAnchor(0));
+  GraphUtils::AddEdge(indices->GetOutDataAnchor(0), index_by_tensor1->GetInDataAnchor(1));
+  GraphUtils::AddEdge(index_by_tensor1->GetOutDataAnchor(0), scatter1->GetInDataAnchor(2));
+  GraphUtils::AddEdge(reshape_p2->GetOutDataAnchor(0), identity1->GetInDataAnchor(0));
+  GraphUtils::AddEdge(ctrl_src->GetOutControlAnchor(), identity1->GetInControlAnchor());
+  GraphUtils::AddEdge(identity1->GetOutDataAnchor(0), tensor_move1->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tensor_move1->GetOutDataAnchor(0), scatter1->GetInDataAnchor(0));
+  GraphUtils::AddEdge(update_indices->GetOutDataAnchor(0), scatter1->GetInDataAnchor(1));
+
+  GraphUtils::AddEdge(scatter0->GetOutDataAnchor(0), netoutput->GetInDataAnchor(0));
+  GraphUtils::AddEdge(scatter1->GetOutDataAnchor(0), netoutput->GetInDataAnchor(1));
+
+  EXPECT_EQ(CountNodesByType(graph, TENSORMOVE), 4U);
+  EXPECT_EQ(RunTensorMoveDeletePass(graph), SUCCESS);
+
+  EXPECT_EQ(CountNodesByType(graph, TENSORMOVE), 0U);
+  EXPECT_TRUE(kv_cache->GetOutDataAnchor(0)->IsLinkedWith(mla->GetInDataAnchor(9)));
+  EXPECT_TRUE(kr_cache->GetOutDataAnchor(0)->IsLinkedWith(mla->GetInDataAnchor(10)));
+  EXPECT_TRUE(identity0->GetOutDataAnchor(0)->IsLinkedWith(scatter0->GetInDataAnchor(0)));
+  EXPECT_TRUE(identity1->GetOutDataAnchor(0)->IsLinkedWith(scatter1->GetInDataAnchor(0)));
+  EXPECT_TRUE(ctrl_src->GetOutControlAnchor()->IsLinkedWith(identity0->GetInControlAnchor()));
+  EXPECT_TRUE(ctrl_src->GetOutControlAnchor()->IsLinkedWith(identity1->GetInControlAnchor()));
+  ge::GetThreadLocalContext().SetGraphOption({});
+}
+
+/**
+ * 单引用多输出 + 外部已有 reader-before-writer ctrl 边，inplace 分支也可放行删 TM。
+ *
+ * 构图（pass 前）：
+ *
+ *                        ┌─► TensorMove ──► Reader ──► NetOutput
+ *                Relu ───┤                     │
+ *                        │                     └─ctrl─► InplaceWriter
+ *                        └─────────────────────► InplaceWriter
+ *                                             （INPLACE_SUPPORT_INPUT_INDEX=0）
+ *
+ * Pass 后预期：
+ *   - TensorMove 被删除
+ *   - Relu ─► Reader、Relu ─► InplaceWriter 数据边保留
+ *   - 外部已有的 Reader ─ctrl─► InplaceWriter 保留，保证 reader-before-writer 语义
+ */
+TEST_F(TensorMoveTest, TensorMove_InplaceBranchWithExistingReaderCtrl_Deleted) {
+  auto graph = std::make_shared<ComputeGraph>("g1");
+  auto relu = AddTestNode(graph, "Relu", RELU, 1, 1);
+  auto tm = AddTestNode(graph, "TensorMove", TENSORMOVE, 1, 1);
+  auto reader = AddTestNode(graph, "Reader", ADD, 1, 1);
+  auto writer = AddTestNode(graph, "InplaceWriter", ADD, 1, 1);
+  auto netoutput = AddTestNode(graph, "NetOutput", NETOUTPUT, 1, 1);
+
+  SetInplaceOutput(writer, 0U, 0);
+
+  GraphUtils::AddEdge(relu->GetOutDataAnchor(0), tm->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tm->GetOutDataAnchor(0), reader->GetInDataAnchor(0));
+  GraphUtils::AddEdge(relu->GetOutDataAnchor(0), writer->GetInDataAnchor(0));
+  GraphUtils::AddEdge(reader->GetOutDataAnchor(0), netoutput->GetInDataAnchor(0));
+  GraphUtils::AddEdge(reader->GetOutControlAnchor(), writer->GetInControlAnchor());
+
+  EXPECT_EQ(CountNodesByType(graph, TENSORMOVE), 1U);
+  EXPECT_EQ(RunTensorMoveDeletePass(graph), SUCCESS);
+  EXPECT_EQ(CountNodesByType(graph, TENSORMOVE), 0U);
+  EXPECT_TRUE(relu->GetOutDataAnchor(0)->IsLinkedWith(reader->GetInDataAnchor(0)));
+  EXPECT_TRUE(relu->GetOutDataAnchor(0)->IsLinkedWith(writer->GetInDataAnchor(0)));
+  EXPECT_TRUE(reader->GetOutControlAnchor()->IsLinkedWith(writer->GetInControlAnchor()));
+}
+
+/**
+ * 同上拓扑，但无预置 ctrl 边。回归：inplace 分支无外部保序证据，TM 必须保留。
+ */
+TEST_F(TensorMoveTest, TensorMove_InplaceBranchWithoutReaderCtrl_Kept) {
+  auto graph = std::make_shared<ComputeGraph>("g1");
+  auto relu = AddTestNode(graph, "Relu", RELU, 1, 1);
+  auto tm = AddTestNode(graph, "TensorMove", TENSORMOVE, 1, 1);
+  auto reader = AddTestNode(graph, "Reader", ADD, 1, 1);
+  auto writer = AddTestNode(graph, "InplaceWriter", ADD, 1, 1);
+  auto netoutput = AddTestNode(graph, "NetOutput", NETOUTPUT, 1, 1);
+
+  SetInplaceOutput(writer, 0U, 0);
+
+  GraphUtils::AddEdge(relu->GetOutDataAnchor(0), tm->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tm->GetOutDataAnchor(0), reader->GetInDataAnchor(0));
+  GraphUtils::AddEdge(relu->GetOutDataAnchor(0), writer->GetInDataAnchor(0));
+  GraphUtils::AddEdge(reader->GetOutDataAnchor(0), netoutput->GetInDataAnchor(0));
+
+  EXPECT_EQ(CountNodesByType(graph, TENSORMOVE), 1U);
+  EXPECT_EQ(RunTensorMoveDeletePass(graph), SUCCESS);
+  EXPECT_EQ(CountNodesByType(graph, TENSORMOVE), 1U);
+}
+
+/**
+ * atomic 输出分支（ATOMIC_ATTR_OUTPUT_INDEX 存在）但输出不复用输入时，
+ * 不代表旁路会覆写 source 内存，可按普通旁路分支删除 TM。
+ */
+TEST_F(TensorMoveTest, TensorMove_AtomicIndependentOutputBranch_Deleted) {
+  auto graph = std::make_shared<ComputeGraph>("g1");
+  auto relu = AddTestNode(graph, "Relu", RELU, 1, 1);
+  auto tm = AddTestNode(graph, "TensorMove", TENSORMOVE, 1, 1);
+  auto reader = AddTestNode(graph, "Reader", ADD, 1, 1);
+  auto atomic_branch = AddTestNode(graph, "AtomicBranch", ADD, 1, 1);
+  auto netoutput = AddTestNode(graph, "NetOutput", NETOUTPUT, 1, 1);
+
+  AttrUtils::SetListInt(atomic_branch->GetOpDesc(), ATOMIC_ATTR_OUTPUT_INDEX, std::vector<int64_t>{0});
+
+  GraphUtils::AddEdge(relu->GetOutDataAnchor(0), tm->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tm->GetOutDataAnchor(0), reader->GetInDataAnchor(0));
+  GraphUtils::AddEdge(relu->GetOutDataAnchor(0), atomic_branch->GetInDataAnchor(0));
+  GraphUtils::AddEdge(reader->GetOutDataAnchor(0), netoutput->GetInDataAnchor(0));
+
+  EXPECT_EQ(CountNodesByType(graph, TENSORMOVE), 1U);
+  EXPECT_EQ(RunTensorMoveDeletePass(graph), SUCCESS);
+  EXPECT_EQ(CountNodesByType(graph, TENSORMOVE), 0U);
+  EXPECT_TRUE(relu->GetOutDataAnchor(0)->IsLinkedWith(reader->GetInDataAnchor(0)));
+  EXPECT_TRUE(relu->GetOutDataAnchor(0)->IsLinkedWith(atomic_branch->GetInDataAnchor(0)));
+  EXPECT_TRUE(atomic_branch->GetOutControlAnchor()->IsLinkedWith(reader->GetInControlAnchor()));
+}
+
+/**
+ * 旁路和 TM 后继都会 inplace 覆写源内存。即使外部已经有 "TM 后继 → 旁路" 的 ctrl 边，
+ * 删 TM 后两者会抢同一块 source 内存，语义不等价，必须保留 TM。
+ *
+ *                          ┌─► TensorMove ──► InplaceWriterA ──► NetOutput
+ *                  Relu ───┤                         │
+ *                          │                         └─ctrl─► InplaceWriterB
+ *                          └─────────────────────► InplaceWriterB
+ *                                            （两者都 INPLACE_SUPPORT_INPUT_INDEX=0）
+ */
+TEST_F(TensorMoveTest, TensorMove_BothTmSuccAndSiblingOverwriteSource_Kept) {
+  auto graph = std::make_shared<ComputeGraph>("g1");
+  auto relu = AddTestNode(graph, "Relu", RELU, 1, 1);
+  auto tm = AddTestNode(graph, "TensorMove", TENSORMOVE, 1, 1);
+  auto writer_a = AddTestNode(graph, "InplaceWriterA", ADD, 1, 1);
+  auto writer_b = AddTestNode(graph, "InplaceWriterB", ADD, 1, 1);
+  auto netoutput = AddTestNode(graph, "NetOutput", NETOUTPUT, 1, 1);
+
+  SetInplaceOutput(writer_a, 0U, 0);
+  SetInplaceOutput(writer_b, 0U, 0);
+
+  GraphUtils::AddEdge(relu->GetOutDataAnchor(0), tm->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tm->GetOutDataAnchor(0), writer_a->GetInDataAnchor(0));
+  GraphUtils::AddEdge(relu->GetOutDataAnchor(0), writer_b->GetInDataAnchor(0));
+  GraphUtils::AddEdge(writer_a->GetOutDataAnchor(0), netoutput->GetInDataAnchor(0));
+  GraphUtils::AddEdge(writer_a->GetOutControlAnchor(), writer_b->GetInControlAnchor());
+
+  EXPECT_EQ(CountNodesByType(graph, TENSORMOVE), 1U);
+  EXPECT_EQ(RunTensorMoveDeletePass(graph), SUCCESS);
+  EXPECT_EQ(CountNodesByType(graph, TENSORMOVE), 1U);
 }
 
 /**

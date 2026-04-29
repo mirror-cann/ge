@@ -31,7 +31,7 @@ using NodeTypeToMemoryBaseType = std::unordered_map<std::string, kernel::MemoryB
 // 1 If 条件语句的两个子图，一个是ariable内存，一个是feature map内存
 NodeTypeToMemoryBaseType kNodeType2MemoryBaseTypeMap = {
     {ge::CONSTANT, kernel::MemoryBaseType::kMemoryBaseTypeWeight}
-    // todo 当前子图内FileConstant直连netouput支持还有问题，后续整改
+    // todo 当前子图内FileConstant直连netoutput支持还有问题，后续整改
 };
 
 ge::Status GetDataNodes(const ge::ComputeGraph &graph, std::map<int64_t, int32_t> &data_address_2_index) {

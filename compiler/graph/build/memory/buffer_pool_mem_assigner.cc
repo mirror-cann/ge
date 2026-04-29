@@ -9,6 +9,7 @@
  */
 
 #include "graph/build/memory/buffer_pool_mem_assigner.h"
+#include <cinttypes>
 #include "common/omg_util/omg_util.h"
 #include "graph/utils/tensor_utils.h"
 #include "framework/common/util.h"
@@ -98,7 +99,7 @@ Status BufferPoolMemAssigner::InitAssigner(const ComputeGraphPtr &graph) {
       batch_offset += (buffer_pool_size + kBufferPoolMemAlignSize);
     }
     int64_t batch_mem_size = batch_offset - mem_offset_base_;
-    GELOGI("[Init][Assigner]Get batch mem size, batch label:%s, mem size:%ld.", batch_label.c_str(), batch_mem_size);
+    GELOGI("[Init][Assigner]Get batch mem size, batch label:%s, mem size:%" PRId64 ".", batch_label.c_str(), batch_mem_size);
     if (max_size < batch_mem_size) {
       max_size = batch_mem_size;
     }
@@ -106,7 +107,7 @@ Status BufferPoolMemAssigner::InitAssigner(const ComputeGraphPtr &graph) {
   FMK_INT64_ADDCHECK(mem_offset_base_, max_size);
   mem_offset_ = static_cast<size_t>(mem_offset_base_ + max_size);
   GELOGI("[Init][Assigner]Init buffer pool mem assigner successfully, "
-         "mem type:%ld, mem offset base:%ld, mem offset:%zu.", mem_type_, mem_offset_base_, mem_offset_);
+         "mem type:%" PRId64 ", mem offset base:%" PRId64 ", mem offset:%zu.", mem_type_, mem_offset_base_, mem_offset_);
   return SUCCESS;
 }
 
@@ -121,17 +122,17 @@ Status BufferPoolMemAssigner::InitMemOffsetBase(const NodePtr &node) {
   }
   if (mem_type_ != mem_type && init_offset_base_) {
     GELOGE(PARAM_INVALID, "[Check][MemType]The memory type of all buffer pool nodes must be the same, node:%s, "
-           "required:%ld, actually: %ld", node->GetName().c_str(), mem_type_, mem_type);
+           "required:%" PRId64 ", actually: %" PRId64 "", node->GetName().c_str(), mem_type_, mem_type);
     REPORT_INNER_ERR_MSG("E19999", "The memory type of all buffer pool nodes must be the same, node:%s, "
-                                 "required:%ld, actually: %ld", node->GetName().c_str(), mem_type_, mem_type);
+                                 "required:%" PRId64 ", actually: %" PRId64 "", node->GetName().c_str(), mem_type_, mem_type);
     return PARAM_INVALID;
   }
   if (!init_offset_base_) {
     std::map<int64_t, size_t>::const_iterator iter = mem_type_to_offset_.find(mem_type);
     if (iter == mem_type_to_offset_.cend()) {
-      GELOGE(PARAM_INVALID, "[Check][MemType]Memory type is not supported, node:%s, mem type:%ld.",
+      GELOGE(PARAM_INVALID, "[Check][MemType]Memory type is not supported, node:%s, mem type:%" PRId64 ".",
              node->GetName().c_str(), mem_type);
-      REPORT_INNER_ERR_MSG("E19999", "Memory type is not supported, node:%s, mem type:%ld.",
+      REPORT_INNER_ERR_MSG("E19999", "Memory type is not supported, node:%s, mem type:%" PRId64 ".",
                          node->GetName().c_str(), mem_type);
       return PARAM_INVALID;
     }
@@ -142,7 +143,7 @@ Status BufferPoolMemAssigner::InitMemOffsetBase(const NodePtr &node) {
     mem_offset_base_ += kBufferPoolMemAlignSize;
     mem_type_ = mem_type;
     init_offset_base_ = true;
-    GELOGI("[Init][MemOffsetBase]Init offset base:%ld, memory type:%ld", mem_offset_base_, mem_type);
+    GELOGI("[Init][MemOffsetBase]Init offset base:%" PRId64 ", memory type:%" PRId64 "", mem_offset_base_, mem_type);
   }
   return SUCCESS;
 }
@@ -155,25 +156,25 @@ Status BufferPoolMemAssigner::AssignOutput() {
       std::map<int64_t, int64_t>::const_iterator iter_buffer_id_size =
         buffer_pool_size_[batch_label].find(buffer_pool_id);
       if (iter_buffer_id_size == buffer_pool_size_[batch_label].end()) {
-        GELOGE(INTERNAL_ERROR, "[Get][BufferPoolSize]Pool id:%ld.", buffer_pool_id);
-        REPORT_INNER_ERR_MSG("E19999", "Failed to get buffer pool size, pool id:%ld.", buffer_pool_id);
+        GELOGE(INTERNAL_ERROR, "[Get][BufferPoolSize]Pool id:%" PRId64 ".", buffer_pool_id);
+        REPORT_INNER_ERR_MSG("E19999", "Failed to get buffer pool size, pool id:%" PRId64 ".", buffer_pool_id);
         return INTERNAL_ERROR;
       }
       auto iter_buffer_id_offset = buffer_pool_offset_base_[batch_label].find(buffer_pool_id);
       if (iter_buffer_id_offset == buffer_pool_offset_base_[batch_label].end()) {
-        GELOGE(INTERNAL_ERROR, "[Get][BufferPoolBaseOffset]Pool id:%ld.", buffer_pool_id);
-        REPORT_INNER_ERR_MSG("E19999", "Failed to get buffer pool base offset, pool id:%ld.", buffer_pool_id);
+        GELOGE(INTERNAL_ERROR, "[Get][BufferPoolBaseOffset]Pool id:%" PRId64 ".", buffer_pool_id);
+        REPORT_INNER_ERR_MSG("E19999", "Failed to get buffer pool base offset, pool id:%" PRId64 ".", buffer_pool_id);
         return INTERNAL_ERROR;
       }
       int64_t buffer_pool_size = iter_buffer_id_size->second;
       int64_t output_offset_base = iter_buffer_id_offset->second;
       Status ret = AssignOutputInOneBufferPool(batch_label, output_offset_base, pool_nodes_map.second);
       if (ret != SUCCESS) {
-        GELOGE(ret, "[Assign][OneBufferPool]Batch label:%s, pool id:%ld, pool size:%ld, offset base:%ld.",
+        GELOGE(ret, "[Assign][OneBufferPool]Batch label:%s, pool id:%" PRId64 ", pool size:%" PRId64 ", offset base:%" PRId64 ".",
                batch_label.c_str(), buffer_pool_id, buffer_pool_size, output_offset_base);
         return ret;
       }
-      GELOGI("[Assign][Output]Assign output successfully, batch label:%s, pool id:%ld, pool size:%ld, offset base:%ld.",
+      GELOGI("[Assign][Output]Assign output successfully, batch label:%s, pool id:%" PRId64 ", pool size:%" PRId64 ", offset base:%" PRId64 ".",
              batch_label.c_str(), buffer_pool_id, buffer_pool_size, output_offset_base);
     }
   }
@@ -203,9 +204,9 @@ Status BufferPoolMemAssigner::AssignOutputInOneBufferPool(const std::string &bat
       return PARAM_INVALID;
     }
     if (output_size != memory_size_and_offset[kBufferPoolNodeOutputSizeIndex]) {
-      GELOGE(PARAM_INVALID, "[Check][MemSize]Something wrong with memory size, pre size:%ld, curr size:%ld, node:%s.",
+      GELOGE(PARAM_INVALID, "[Check][MemSize]Something wrong with memory size, pre size:%" PRId64 ", curr size:%" PRId64 ", node:%s.",
              memory_size_and_offset[kBufferPoolNodeOutputSizeIndex], output_size, node->GetName().c_str());
-      REPORT_INNER_ERR_MSG("E19999", "Something wrong with memory size, pre size:%ld, curr size:%ld, node:%s.",
+      REPORT_INNER_ERR_MSG("E19999", "Something wrong with memory size, pre size:%" PRId64 ", curr size:%" PRId64 ", node:%s.",
                          memory_size_and_offset[kBufferPoolNodeOutputSizeIndex], output_size, node->GetName().c_str());
       return PARAM_INVALID;
     }
@@ -214,7 +215,7 @@ Status BufferPoolMemAssigner::AssignOutputInOneBufferPool(const std::string &bat
     std::vector<int64_t> output_list = {(output_offset_base + logical_offset)};
     op_desc->SetOutputOffset(output_list);
     // log for IMAS tools
-    GELOGI("[IMAS]Set %s name[%s] optype[%s] %s[%u] offset to [%ld] streamid[%ld] memtype[%ld] "
+    GELOGI("[IMAS]Set %s name[%s] optype[%s] %s[%u] offset to [%" PRId64 "] streamid[%" PRId64 "] memtype[%" PRId64 "] "
         "size[%zu] realsize[%zu] noalignsize[%zu] life time begin[%d] life time end[%d] "
         "child[%d:%d:%d:%d:%d] isref[%d] batch[%s]", MemReuseUtils::GetGraphNameId(compute_graph_.get()).c_str(),
         op_desc->GetName().c_str(), op_desc->GetType().c_str(), "output", kBufferPoolNodeOutIndex,

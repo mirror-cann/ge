@@ -9,6 +9,7 @@
  */
 
 #include "graph/passes/feature/buffer_pool_memory_pass.h"
+#include <cinttypes>
 
 #include <string>
 #include <vector>
@@ -119,9 +120,9 @@ Status BufferPoolMemoryPass::CheckBufferPoolSize(int64_t total_size, int64_t poo
   }
   if (calc_total_size[pool_id] > buffer_pool_size) {
     GELOGE(INTERNAL_ERROR, "[Check][Size]The memory required at the same is greater than buffer pool size, "
-          "pool id:%ld, pool size:%ld, required size:%ld.", pool_id, buffer_pool_size, calc_total_size[pool_id]);
-    REPORT_INNER_ERR_MSG("E19999", "The memory required at the same is greater than buffer pool size, pool id:%ld,"
-                       " pool size:%ld, required size:%ld.", pool_id, buffer_pool_size, calc_total_size[pool_id]);
+          "pool id:%" PRId64 ", pool size:%" PRId64 ", required size:%" PRId64 ".", pool_id, buffer_pool_size, calc_total_size[pool_id]);
+    REPORT_INNER_ERR_MSG("E19999", "The memory required at the same is greater than buffer pool size, pool id:%" PRId64 ","
+                       " pool size:%" PRId64 ", required size:%" PRId64 ".", pool_id, buffer_pool_size, calc_total_size[pool_id]);
     return INTERNAL_ERROR;
   }
   return SUCCESS;
@@ -268,9 +269,9 @@ Status BufferPoolMemoryPass::SetBufferPoolSize(const std::string &batch_label, i
   auto iter = buffer_pool_size_[batch_label].find(id);
   if (iter != buffer_pool_size_[batch_label].end() && iter->second != size) {
     GELOGE(PARAM_INVALID, "[Check][BufferPoolSize]Get different size with the same id, "
-           "id:%ld, original size:%ld, this size:%ld.", id, iter->second, size);
+           "id:%" PRId64 ", original size:%" PRId64 ", this size:%" PRId64 ".", id, iter->second, size);
     REPORT_INNER_ERR_MSG("E19999", "Get different size with the same id, "
-                       "id:%ld, original size:%ld, this size:%ld.", id, iter->second, size);
+                       "id:%" PRId64 ", original size:%" PRId64 ", this size:%" PRId64 ".", id, iter->second, size);
     return PARAM_INVALID;
   }
   buffer_pool_size_[batch_label][id] = size;
@@ -305,12 +306,12 @@ Status BufferPoolMemoryPass::AllocateSpaceInBatch(
     BufferPool buffer_pool(pool_id, buffer_pool_size, buffer_node_to_calc);
     Status ret = AllocateSpaceInBufferPool(buffer_pool, calc_node_in_pool.second);
     if (ret != SUCCESS) {
-      GELOGE(ret, "[Alloc][InBufferPool]Pool id:%ld, pool size:%ld.", pool_id, buffer_pool_size);
-      REPORT_INNER_ERR_MSG("E19999", "Failed to allocate space in buffer pool, id:%ld, pool size:%ld.",
+      GELOGE(ret, "[Alloc][InBufferPool]Pool id:%" PRId64 ", pool size:%" PRId64 ".", pool_id, buffer_pool_size);
+      REPORT_INNER_ERR_MSG("E19999", "Failed to allocate space in buffer pool, id:%" PRId64 ", pool size:%" PRId64 ".",
                          pool_id, buffer_pool_size);
       return ret;
     }
-    GELOGI("[Alloc][InBufferPool]Alloc space in buffer pool successfully, pool id:%ld.", pool_id);
+    GELOGI("[Alloc][InBufferPool]Alloc space in buffer pool successfully, pool id:%" PRId64 ".", pool_id);
   }
   return SUCCESS;
 }
@@ -393,7 +394,7 @@ Status BufferPoolMemoryPass::AllocateSpaceForBufferPoolNode(int64_t &next_start,
     node_event_multiplexing_[buffer_node].push_back(string("SendTo;" + calc_node->GetName() +
         ";" + std::to_string(logic_event)));
     mem_ctrl_event_.emplace(calc_node->GetName(), logic_event);
-    GELOGI("[Alloc][ForNode]Buffer pool node %s send to %s, offset start:%ld, send event id:%u.",
+    GELOGI("[Alloc][ForNode]Buffer pool node %s send to %s, offset start:%" PRId64 ", send event id:%u.",
            buffer_node->GetName().c_str(), calc_node->GetName().c_str(),
            buffer_pool_node_item.offset_start, logic_event);
   }
@@ -406,7 +407,7 @@ Status BufferPoolMemoryPass::AllocateSpaceForBufferPoolNode(int64_t &next_start,
                                                        node_mem_range_in_pool);
   if (buffer_pool_node_item.is_first_in_group && (dependent_calc_node != nullptr)) {
     GE_CHK_STATUS_RET(FixTheTimingOfDependentNodes(dependent_calc_node, buffer_node),
-                      "[Fix][Timing]Pool_id:%ld, pool node:%s, dependent node:%s.",
+                      "[Fix][Timing]Pool_id:%" PRId64 ", pool node:%s, dependent node:%s.",
                       buffer_pool.pool_id, buffer_node->GetName().c_str(), dependent_calc_node->GetName().c_str());
   }
 

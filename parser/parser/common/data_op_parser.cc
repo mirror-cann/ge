@@ -9,6 +9,7 @@
  */
 
 #include "parser/common/data_op_parser.h"
+#include <cinttypes>
 #include <cstdlib>
 #include "parser/common/acl_graph_parser_util.h"
 #include "omg/parser/parser_inner_ctx.h"
@@ -204,18 +205,18 @@ Status DataOpParser::InitOutputTensor(const std::vector<int64_t> &shape, ge::GeT
   }
 
   if (output_size == kDynamicBatchInputSize) {
-    GELOGI("After calc tensor memory size, output_mem_size = %ld", output_size);
+    GELOGI("After calc tensor memory size, output_mem_size = %" PRId64 "", output_size);
     return SUCCESS;
   }
 
   int64_t size = output_size;
   auto valid_max_size = INT64_MAX - kTwoTimesAlign * kDataMemAlignSize;
   if (size > valid_max_size || size < 0) {
-    REPORT_INNER_ERR_MSG("E19999", "updated mem size is out of data range [0, %ld], shape:%s, format:%s, datatype:%s",
+    REPORT_INNER_ERR_MSG("E19999", "updated mem size is out of data range [0, %" PRId64 "], shape:%s, format:%s, datatype:%s",
                        valid_max_size, output_shape.ToString().c_str(),
                        ge::TypeUtils::FormatToSerialString(format).c_str(),
                        ge::TypeUtils::DataTypeToSerialString(data_type).c_str());
-    GELOGE(FAILED, "[Check][Size] updated mem size is out of data range [0, %ld], shape:%s, format:%s, datatype:%s",
+    GELOGE(FAILED, "[Check][Size] updated mem size is out of data range [0, %" PRId64 "], shape:%s, format:%s, datatype:%s",
            valid_max_size, output_shape.ToString().c_str(),
            ge::TypeUtils::FormatToSerialString(format).c_str(),
            ge::TypeUtils::DataTypeToSerialString(data_type).c_str());

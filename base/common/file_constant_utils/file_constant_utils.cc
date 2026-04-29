@@ -152,9 +152,9 @@ Status FileConstantUtils::CopyOneWeightFromFileWithFilehandler(const void *const
       copy_len_once = file_constant_size - used_memory;
     }
     if (left_size < (used_memory + copy_len_once)) {
-      GELOGE(GRAPH_FAILED, "copy failed for lack memory, free size is %zu, need memroy is %zu.", left_size,
+      GELOGE(GRAPH_FAILED, "copy failed for lack memory, free size is %zu, need memory is %zu.", left_size,
              used_memory + copy_len_once);
-      REPORT_INNER_ERR_MSG("E19999", "copy failed for lack memory, free size is %zu, need memroy is %zu.", left_size,
+      REPORT_INNER_ERR_MSG("E19999", "copy failed for lack memory, free size is %zu, need memory is %zu.", left_size,
                         used_memory + copy_len_once);
       ret = FAILED;
       break;

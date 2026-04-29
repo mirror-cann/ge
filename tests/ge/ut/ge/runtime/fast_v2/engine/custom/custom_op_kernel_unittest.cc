@@ -25,6 +25,15 @@
 #include "operator_reg.h"
 #include "common/executor_tracer_on.h"
 #include "common/global_variables/diagnose_switch.h"
+#include "graph/utils/inference_rule.h"
+#include "graph/utils/execute_graph_utils.h"
+#include "graph/debug/ge_attr_define.h"
+#include "register/kernel_registry.h"
+#include "register/kernel_registry_impl.h"
+#include "exe_graph/runtime/extended_kernel_context.h"
+#include "exe_graph/runtime/storage_shape.h"
+#include "exe_graph/runtime/gert_tensor_data.h"
+#include "kernel/common_kernel_impl/infer_shape.h"
 
 using namespace ge;
 using namespace gert::bg;
@@ -63,12 +72,129 @@ class TestBaseCustomOp : public EagerExecuteOp {
   }
 };
 
+class TestBaseCustomOpWithInferShape : public EagerExecuteOp {
+ public:
+  graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
+    auto input_tensor0 = ctx->GetInputTensor(0);
+    GE_ASSERT_NOTNULL(input_tensor0);
+    auto input_tensor1 = ctx->GetInputTensor(1);
+    GE_ASSERT_NOTNULL(input_tensor1);
+    auto input_tensor2 = ctx->GetInputTensor(2);
+    GE_ASSERT_NOTNULL(input_tensor2);
+    auto workspaces = ctx->MallocWorkSpace(1024);
+    GE_ASSERT_NOTNULL(workspaces);
+
+    const gert::Tensor* output_desc_0 = ctx->GetOutputTensor(0);
+    GE_ASSERT_NOTNULL(output_desc_0);
+    gert::StorageShape out_shape_0 = output_desc_0->GetShape();
+    GE_ASSERT_TRUE(out_shape_0.GetStorageShape().GetDimNum() == 1);
+    GE_ASSERT_TRUE(out_shape_0.GetStorageShape().GetDim(0) == 2048);
+    ge::DataType out_dtype_0 = output_desc_0->GetDataType();
+    gert::StorageFormat out_format_0 = output_desc_0->GetFormat();
+    gert::Tensor* ge_output_0 = ctx->MallocOutputTensor(0, out_shape_0, out_format_0, out_dtype_0);
+    GE_ASSERT_NOTNULL(ge_output_0);
+    return SUCCESS;
+  }
+};
+
 REG_OP(CustomOp)
   .INPUT(x1, TensorType::BasicType())
   .INPUT(x2, TensorType::BasicType())
   .INPUT(x3, TensorType::BasicType())
   .OUTPUT(y, TensorType::BasicType())
   .OP_END_FACTORY_REG(CustomOp)
+
+static void RegisterInferShapeByRuleKernel() {
+  KernelRegistry::KernelFuncs infer_shape_funcs = {};
+  infer_shape_funcs.run_func = [](KernelContext *context) -> ge::graphStatus {
+    const auto ctx = reinterpret_cast<ExtendedKernelContext *>(context);
+    const auto input_num = context->GetInputNum();
+    GE_ASSERT(input_num > 0U);
+    const auto compute_node_info = ctx->GetComputeNodeInfo();
+    GE_ASSERT_NOTNULL(compute_node_info);
+
+    const auto *rule = context->GetInputValue<std::shared_ptr<ge::ShapeInferenceRule> *>(input_num - 1);
+    GE_ASSERT_NOTNULL(rule);
+    GE_ASSERT_NOTNULL(*rule);
+    GE_ASSERT_EQ((*rule)->Error(), "");
+    auto ret = (*rule)->InferOnRuntime(reinterpret_cast<InferShapeContext *>(context));
+    if (ret != ge::GRAPH_SUCCESS) {
+      return ret;
+    }
+    ret = kernel::TransformAllOutputsShape(compute_node_info, context);
+    if (ret != ge::GRAPH_SUCCESS) {
+      return ret;
+    }
+    return ge::GRAPH_SUCCESS;
+  };
+  infer_shape_funcs.outputs_creator = [](const ge::FastNode *n, KernelContext *context) -> ge::graphStatus {
+    (void)n;
+    auto extend_context = reinterpret_cast<ExtendedKernelContext *>(context);
+    GE_ASSERT_NOTNULL(extend_context);
+    for (size_t index = 0; index < context->GetOutputNum(); index++) {
+      auto chain = context->GetOutput(index);
+      GE_ASSERT_NOTNULL(chain);
+      auto output_desc = extend_context->GetOutputDesc(index);
+      GE_ASSERT_NOTNULL(output_desc);
+      chain->SetWithDefaultDeleter(new (std::nothrow) Tensor(StorageShape(),
+          output_desc->GetFormat(), output_desc->GetDataType()));
+    }
+    return ge::GRAPH_SUCCESS;
+  };
+  KernelRegistry::GetInstance().RegisterKernel("InferShapeByRule", {infer_shape_funcs, ""});
+}
+
+static void RegisterLoadShapeRuleKernels() {
+  KernelRegistry::KernelFuncs load_rule_funcs = {};
+  load_rule_funcs.run_func = [](KernelContext *context) -> ge::graphStatus {
+    const auto input_num = context->GetInputNum();
+    auto *handle = context->GetOutputPointer<std::shared_ptr<ge::ShapeInferenceRule>>(0);
+    GE_ASSERT_NOTNULL(handle);
+
+    if (input_num == 1U) {
+      auto *rule_json = context->GetInputValue<const char *>(0);
+      GE_ASSERT_NOTNULL(rule_json);
+      auto rule = ge::ShapeInferenceRule::FromJsonString(rule_json);
+      handle->swap(rule);
+    } else if (input_num == 3U) {
+      auto *compiled_rule = context->GetInputValue<const uint8_t *>(0);
+      const auto compiled_rule_size = context->GetInputValue<const size_t>(1);
+      GE_ASSERT_NOTNULL(compiled_rule);
+      auto *rule_json = context->GetInputValue<const char *>(2);
+      GE_ASSERT_NOTNULL(rule_json);
+      auto rule = std::make_shared<ge::ShapeInferenceRule>(
+          ge::ShapeInferenceRule::FromCompiledBinary(compiled_rule, compiled_rule_size));
+      handle->swap(rule);
+    }
+    return ge::GRAPH_SUCCESS;
+  };
+  load_rule_funcs.outputs_creator = [](const ge::FastNode *n, KernelContext *context) -> ge::graphStatus {
+    GE_ASSERT_NOTNULL(context->GetOutput(0));
+    context->GetOutput(0)->SetWithDefaultDeleter(new (std::nothrow) std::shared_ptr<ge::ShapeInferenceRule>());
+    return ge::GRAPH_SUCCESS;
+  };
+  KernelRegistry::GetInstance().RegisterKernel("LoadShapeRuleFromJson", {load_rule_funcs, ""});
+  KernelRegistry::GetInstance().RegisterKernel("LoadShapeRuleFromBinary", {load_rule_funcs, ""});
+}
+
+static void RegisterInferShapeKernels() {
+  RegisterInferShapeByRuleKernel();
+  RegisterLoadShapeRuleKernels();
+}
+
+static ComputeGraphPtr BuildCustomOpGraphWithInferRule(const std::string &rule) {
+  auto graph = ShareGraph::BuildCustomOpGraph();
+  auto custom_op = graph->FindNode("custom_op");
+  AttrUtils::SetStr(custom_op->GetOpDesc(), ge::ATTR_NAME_INFER_RULE, rule);
+  std::vector<uint8_t> binary;
+  if (ShapeInferenceRule::CompileJsonString(rule, binary) != ge::GRAPH_SUCCESS) {
+    return nullptr;
+  }
+  AttrUtils::SetBytes(custom_op->GetOpDesc(), ge::COMPILED_INFERENCE_RULE_BINARY,
+                      ge::Buffer::CopyFrom(binary.data(), binary.size()));
+  graph->TopologicalSorting();
+  return graph;
+}
 
 TEST_F(CustomNodeKernelUT, custom_op_kernel_execute_test) {
   auto graph = ShareGraph::BuildCustomOpGraph();
@@ -96,10 +222,48 @@ TEST_F(CustomNodeKernelUT, custom_op_kernel_execute_test) {
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   auto ess = StartExecutorStatistician(model_executor);
-  // 第一次执行，无缓存，全部算子调用tiling_func
   ess->Clear();
-  // 打开info日志验证traceprinter
-  ExecutorTracerOn executor_tracer_on;  // 开启trace
+  ExecutorTracerOn executor_tracer_on;
+  ge::diagnoseSwitch::EnableProfiling({gert::ProfilingType::kTaskTime, gert::ProfilingType::kDevice});
+  ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(),
+                                    reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
+            GRAPH_SUCCESS);
+  ge::diagnoseSwitch::DisableProfiling();
+  rtStreamDestroy(stream);
+}
+
+TEST_F(CustomNodeKernelUT, custom_op_with_inference_rule_execute_test) {
+  RegisterInferShapeKernels();
+  const std::string rule = R"({"shape":{"inputs":[["s0"],["s1"],["s2"]],"outputs":[["s0"]]}})";
+  auto graph = BuildCustomOpGraphWithInferRule(rule);
+  if (graph == nullptr) {
+    GTEST_SKIP() << "JIT compiler not available, skip test";
+  }
+
+  CustomOpFactory::RegisterCustomOpCreator("CustomOp", []()->std::unique_ptr<BaseCustomOp> {
+    return std::make_unique<TestBaseCustomOpWithInferShape>();
+  });
+  GeModelBuilder builder(graph);
+  auto ge_root_model = builder.BuildGeRootModel();
+  bg::ValueHolder::PopGraphFrame();
+  auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model, {});
+  ASSERT_NE(exe_graph, nullptr);
+
+  TaskProducerFactory::GetInstance().SetProducerType(TaskProducerType::KERNEL);
+  auto model_executor = ModelV2Executor::Create(exe_graph,
+      ExecutorOption(ExecutorType::kTopologicalPriority), ge_root_model);
+  ASSERT_NE(model_executor, nullptr);
+  ASSERT_EQ(model_executor->Load(), GRAPH_SUCCESS);
+
+  auto outputs = FakeTensors({2048}, 1);
+  auto inputs = FakeTensors({2048}, 3);
+  rtStream_t stream;
+  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
+
+  auto ess = StartExecutorStatistician(model_executor);
+  ess->Clear();
+  ExecutorTracerOn executor_tracer_on;
   ge::diagnoseSwitch::EnableProfiling({gert::ProfilingType::kTaskTime, gert::ProfilingType::kDevice});
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(),
                                     reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),

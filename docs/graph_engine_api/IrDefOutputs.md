@@ -31,10 +31,17 @@
 
 定义IR输出规范。
 
+> 说明：`IrDefOutputs(std::vector<IrOutputDef>)` 已废弃，推荐使用ABI安全的 `IrDefOutputsV2` 接口。
+
 ## 函数原型<a name="section1831611148519"></a>
 
 ```
+// 旧接口（非ABI兼容，不推荐使用）
 CompliantNodeBuilder &IrDefOutputs(std::vector<IrOutputDef> output_ir_def)
+
+// ABI安全的V2接口（推荐使用）
+CompliantNodeBuilder &IrDefOutputsV2(const IrOutputDefV2 *output_ir_def, size_t output_ir_def_num)
+CompliantNodeBuilder &IrDefOutputsV2(std::initializer_list<IrOutputDefV2> output_ir_def)
 ```
 
 ## 参数说明<a name="section62999330"></a>
@@ -52,7 +59,7 @@ CompliantNodeBuilder &IrDefOutputs(std::vector<IrOutputDef> output_ir_def)
 </td>
 <td class="cellrowborder" valign="top" width="10.57%" headers="mcps1.1.4.1.2 "><p id="p165822162612"><a name="p165822162612"></a><a name="p165822162612"></a>输入</p>
 </td>
-<td class="cellrowborder" valign="top" width="75.77000000000001%" headers="mcps1.1.4.1.3 "><p id="p346462423715"><a name="p346462423715"></a><a name="p346462423715"></a>输入IR定义向量。</p>
+<td class="cellrowborder" valign="top" width="75.77000000000001%" headers="mcps1.1.4.1.3 "><p id="p346462423715"><a name="p346462423715"></a><a name="p346462423715"></a>输入IR定义数组或初始化列表。</p>
 </td>
 </tr>
 </tbody>
@@ -82,4 +89,3 @@ CompliantNodeBuilder &IrDefOutputs(std::vector<IrOutputDef> output_ir_def)
 ## 约束说明<a name="section24049039"></a>
 
 无
-

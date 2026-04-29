@@ -9,6 +9,7 @@
  */
 
 #include "graph/passes/variable_optimize/variable_op_pass.h"
+#include <cinttypes>
 #include <string>
 #include <vector>
 
@@ -144,7 +145,7 @@ Status VariableOpPass::Run(ge::ComputeGraphPtr graph) {
   }
 
   auto graph_id = graph->GetGraphID();
-  GELOGD("Begin to run variable op pass on graph %s, session %lu, graph id %u", graph->GetName().c_str(),
+  GELOGD("Begin to run variable op pass on graph %s, session %" PRIu64 ", graph id %u", graph->GetName().c_str(),
          GetContext().SessionId(), graph_id);
 
   if (var_accelerate_ctrl_ == nullptr) {
@@ -198,17 +199,17 @@ Status VariableOpPass::Run(ge::ComputeGraphPtr graph) {
 
     ret = VarManager::Instance(graph->GetSessionID())->SetTransRoad(var_to_refs.first->var_name, fusion_road);
     if (ret != SUCCESS) {
-      REPORT_INNER_ERR_MSG("E19999", "Set Trans road for node:%s(Variable) failed, session_id:%lu",
+      REPORT_INNER_ERR_MSG("E19999", "Set Trans road for node:%s(Variable) failed, session_id:%" PRIu64 "",
                         var_to_refs.first->var_name.c_str(), graph->GetSessionID());
-      GELOGE(INTERNAL_ERROR, "[Set][TransRoad] for node:%s(Variable) failed, session_id:%lu",
+      GELOGE(INTERNAL_ERROR, "[Set][TransRoad] for node:%s(Variable) failed, session_id:%" PRIu64 "",
              var_to_refs.first->var_name.c_str(), graph->GetSessionID());
       return INTERNAL_ERROR;
     }
     ret = VarManager::Instance(graph->GetSessionID())->SetChangedGraphId(var_to_refs.first->var_name, graph_id);
     if (ret != SUCCESS) {
-      REPORT_INNER_ERR_MSG("E19999", "Update graph_id:%u for node:%s(Variable) failed, session_id:%lu",
+      REPORT_INNER_ERR_MSG("E19999", "Update graph_id:%u for node:%s(Variable) failed, session_id:%" PRIu64 "",
                         graph_id, var_to_refs.first->var_name.c_str(), graph->GetSessionID());
-      GELOGE(INTERNAL_ERROR, "[Update][GraphId] %u for node:%s(Variable) failed, session_id:%lu",
+      GELOGE(INTERNAL_ERROR, "[Update][GraphId] %u for node:%s(Variable) failed, session_id:%" PRIu64 "",
              graph_id, var_to_refs.first->var_name.c_str(), graph->GetSessionID());
       return INTERNAL_ERROR;
     }
@@ -418,19 +419,19 @@ Status VariableOpPass::UpdateVarAndRefOutputFormatInfo(const GeTensorDesc &final
   const Format &format = final_output.GetFormat();
   const DataType &data_type = final_output.GetDataType();
   const GeShape &shape = final_output.GetShape();
-  GELOGD("last ref is (%s, %s, %lu), var_ref_name is %s.", TypeUtils::DataTypeToSerialString(data_type).c_str(),
+  GELOGD("last ref is (%s, %s, %" PRIu64 "), var_ref_name is %s.", TypeUtils::DataTypeToSerialString(data_type).c_str(),
          TypeUtils::FormatToSerialString(format).c_str(), shape.GetDims().size(), node->GetName().c_str());
 
   auto node_desc = node->GetOpDesc()->GetOutputDesc(0);
   CopyVariableFormatDataTypeAndShape(final_output, node_desc);
   if (node->GetOpDesc()->UpdateOutputDesc(0, node_desc) != GRAPH_SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "Update ouput:0 desc in op:%s(%s) failed",
+    REPORT_INNER_ERR_MSG("E19999", "Update output:0 desc in op:%s(%s) failed.",
                       node->GetName().c_str(), node->GetType().c_str());
     GELOGE(FAILED, "[Update][OutputDesc] in op:%s(%s) failed, index:0",
            node->GetName().c_str(), node->GetType().c_str());
     return FAILED;
   }
-  GELOGD("node ref is (%s, %s, %lu), var_ref_name is %s.",
+  GELOGD("node ref is (%s, %s, %" PRIu64 "), var_ref_name is %s.",
          TypeUtils::DataTypeToSerialString(node->GetOpDesc()->GetOutputDesc(0).GetDataType()).c_str(),
          TypeUtils::FormatToSerialString(node->GetOpDesc()->GetOutputDesc(0).GetFormat()).c_str(),
          node->GetOpDesc()->GetOutputDesc(0).GetShape().GetDims().size(), node->GetName().c_str());
@@ -683,9 +684,9 @@ Status VariableOpPass::RenewVarDesc(const ge::ComputeGraphPtr &graph) const {
       GE_CHECK_NOTNULL(node->GetOpDesc());
       ret = var_manager->RenewCurVarDesc(node->GetName(), node->GetOpDesc());
       if (ret != SUCCESS) {
-        REPORT_INNER_ERR_MSG("E19999", "Renew descriptor for node:%s(%s) failed, session_id:%lu",
+        REPORT_INNER_ERR_MSG("E19999", "Renew descriptor for node:%s(%s) failed, session_id:%" PRIu64 "",
                           node->GetName().c_str(), node->GetType().c_str(), graph->GetSessionID());
-        GELOGE(FAILED, "[Renew][Descriptor] for node:%s(%s) failed, session_id:%lu",
+        GELOGE(FAILED, "[Renew][Descriptor] for node:%s(%s) failed, session_id:%" PRIu64 "",
                node->GetName().c_str(), node->GetType().c_str(), graph->GetSessionID());
         return FAILED;
       }
@@ -694,9 +695,9 @@ Status VariableOpPass::RenewVarDesc(const ge::ComputeGraphPtr &graph) const {
                                                                                  node->GetName(),
                                                                                  node->GetOpDesc()->GetOutputDesc(0U));
       if (ret != SUCCESS) {
-        REPORT_INNER_ERR_MSG("E19999", "Record staged descriptor for node:%s(%s) failed, session_id:%lu",
+        REPORT_INNER_ERR_MSG("E19999", "Record staged descriptor for node:%s(%s) failed, session_id:%" PRIu64 "",
                           node->GetName().c_str(), node->GetType().c_str(), graph->GetSessionID());
-        GELOGE(FAILED, "[Record][Descriptor] for node:%s(%s) failed, session_id:%lu",
+        GELOGE(FAILED, "[Record][Descriptor] for node:%s(%s) failed, session_id:%" PRIu64 "",
                node->GetName().c_str(), node->GetType().c_str(), graph->GetSessionID());
         return FAILED;
       }
@@ -721,9 +722,9 @@ Status VariableOpPass::RenewVarDesc(uint64_t session_id, const NodePtr &node, co
   GE_CHECK_NOTNULL(node->GetOpDesc());
   Status ret = ge::VarManager::Instance(session_id)->RenewCurVarDesc(node->GetName(), node->GetOpDesc());
   if (ret != SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "Renew descriptor for node:%s(%s) failed, session_id:%lu",
+    REPORT_INNER_ERR_MSG("E19999", "Renew descriptor for node:%s(%s) failed, session_id:%" PRIu64 "",
                       node->GetName().c_str(), node->GetType().c_str(), session_id);
-    GELOGE(FAILED, "[Renew][Descriptor] for node:%s(%s) failed, session_id:%lu",
+    GELOGE(FAILED, "[Renew][Descriptor] for node:%s(%s) failed, session_id:%" PRIu64 "",
            node->GetName().c_str(), node->GetType().c_str(), session_id);
     return FAILED;
   }

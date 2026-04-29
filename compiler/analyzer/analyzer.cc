@@ -9,6 +9,7 @@
  */
 
 #include "analyzer/analyzer.h"
+#include <cinttypes>
 
 #include <cstdlib>
 #include <cstdio>
@@ -67,7 +68,7 @@ Analyzer* Analyzer::GetInstance() {
 }
 
 Status Analyzer::BuildJsonObject(uint64_t session_id, uint64_t graph_id) {
-  GELOGD("Start to build map. SessionId:%lu GraphId:%lu", session_id, graph_id);
+  GELOGD("Start to build map. SessionId:%" PRIu64 " GraphId:%" PRIu64 "", session_id, graph_id);
   std::lock_guard<std::recursive_mutex> lg(mutex_);
   auto iter = graph_infos_.find(session_id);
   if (iter == graph_infos_.end()) {
@@ -87,7 +88,7 @@ Status Analyzer::BuildJsonObject(uint64_t session_id, uint64_t graph_id) {
       graph_info->graph_id = graph_id;
       (iter->second).insert({graph_id, graph_info});
     } else {
-      GELOGI("session_id:%lu graph_id:%lu already existed json object", session_id, graph_id);
+      GELOGI("session_id:%" PRIu64 " graph_id:%" PRIu64 " already existed json object", session_id, graph_id);
     }
   }
   return SUCCESS;
@@ -125,7 +126,7 @@ void Analyzer::DestroySessionJsonObject(uint64_t session_id) {
   std::map<uint64_t, std::map<uint64_t, std::shared_ptr<analyzer::GraphInfo>>>::const_iterator iter =
     graph_infos_.find(session_id);
   if (iter == graph_infos_.end()) {
-    GELOGW("can not find the stored object by session_id[%lu].Do nothing", session_id);
+    GELOGW("can not find the stored object by session_id[%" PRIu64 "].Do nothing", session_id);
   } else {
     graph_infos_.erase(iter);
   }
@@ -135,11 +136,11 @@ void Analyzer::DestroyGraphJsonObject(uint64_t session_id, uint64_t graph_id) {
   std::lock_guard<std::recursive_mutex> lg(mutex_);
   auto iter = graph_infos_.find(session_id);
   if (iter == graph_infos_.end()) {
-    GELOGW("can not find the stored object by session_id[%lu].Do nothing", session_id);
+    GELOGW("can not find the stored object by session_id[%" PRIu64 "].Do nothing", session_id);
   } else {
     std::map<uint64_t, std::shared_ptr<analyzer::GraphInfo>>::const_iterator iter1 = (iter->second).find(graph_id);
     if (iter1 == (iter->second).end()) {
-      GELOGW("Can not find the graph json object by session_id[%lu] and graph_id[%lu]. Do nothing.", session_id,
+      GELOGW("Can not find the graph json object by session_id[%" PRIu64 "] and graph_id[%" PRIu64 "]. Do nothing.", session_id,
              graph_id);
       return;
     }
@@ -151,21 +152,21 @@ std::shared_ptr<GraphInfo> Analyzer::GetJsonObject(uint64_t session_id, uint64_t
   std::lock_guard<std::recursive_mutex> lg(mutex_);
   auto iter = graph_infos_.find(session_id);
   if (iter == graph_infos_.end()) {
-    GELOGE(PARAM_INVALID, "[Check][SessionId]session_id:%lu does not exist! "
-           "graph_id:%lu", session_id, graph_id);
-    REPORT_INNER_ERR_MSG("E19999", "Sessin_id %lu does not exist, graph_id %lu",
+    GELOGE(PARAM_INVALID, "[Check][SessionId]session_id:%" PRIu64 " does not exist! "
+           "graph_id:%" PRIu64 "", session_id, graph_id);
+    REPORT_INNER_ERR_MSG("E19999", "Sessin_id %" PRIu64 " does not exist, graph_id %" PRIu64 "",
                        session_id, graph_id);
     return nullptr;
   } else {
     auto iter1 = (iter->second).find(graph_id);
     if (iter1 == (iter->second).end()) {
-      GELOGE(PARAM_INVALID, "[Check][GraphId]graph_id:%lu does not exist! "
-             "session_id:%lu.", graph_id, session_id);
-      REPORT_INNER_ERR_MSG("E19999", "Graph_id %lu does not exist, session_id %lu",
+      GELOGE(PARAM_INVALID, "[Check][GraphId]graph_id:%" PRIu64 " does not exist! "
+             "session_id:%" PRIu64 ".", graph_id, session_id);
+      REPORT_INNER_ERR_MSG("E19999", "Graph_id %" PRIu64 " does not exist, session_id %" PRIu64 "",
                          graph_id, session_id);
       return nullptr;
     }
-    GELOGI("GetJsonObject Success!session_id:%lu graph_id:%lu", session_id, graph_id);
+    GELOGI("GetJsonObject Success!session_id:%" PRIu64 " graph_id:%" PRIu64 "", session_id, graph_id);
     return iter1->second;
   }
 }
@@ -211,7 +212,7 @@ ge::Status Analyzer::SaveAnalyzerDataToFile(uint64_t session_id, uint64_t graph_
   auto graph_info = GetJsonObject(session_id, graph_id);
   GE_CHECK_NOTNULL(graph_info);
   if (graph_info->op_info.size() == 0) {
-    GELOGD("session_id:%lu graph_id:%lu does not owner op info, break it!", session_id, graph_id);
+    GELOGD("session_id:%" PRIu64 " graph_id:%" PRIu64 " does not owner op info, break it!", session_id, graph_id);
     return SUCCESS;
   }
   std::lock_guard<std::mutex> lg(file_mutex_);
@@ -231,10 +232,10 @@ ge::Status Analyzer::SaveAnalyzerDataToFile(uint64_t session_id, uint64_t graph_
   } catch (nlohmann::detail::type_error &e) {
     GELOGE(FAILED,
            "[Json.dump][GraphInfo]Dump analyze file [%s] failed because [%s],"
-           "session_id:%lu, graph_id:%lu",
+           "session_id:%" PRIu64 ", graph_id:%" PRIu64 "",
            json_file_name_.c_str(), e.what(), session_id, graph_id);
     REPORT_INNER_ERR_MSG("E19999", "Dump analyze file %s failed because %s, "
-                       "session_id %lu, graph_id %lu",
+                       "session_id %" PRIu64 ", graph_id %" PRIu64 "",
                        json_file_name_.c_str(), e.what(), session_id, graph_id);
     ret_failed = true;
   }

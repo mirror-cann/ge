@@ -856,7 +856,7 @@ TEST_F(UtestModelExecutorTest, test_check_and_release_memory_extend_size_static_
   EXPECT_EQ(sum_size, memory_size - zero_copy_memory_size + weight_size);
   EXPECT_FALSE(is_resuse);
 
-  // malloc static memory, reuse static memroy
+  // malloc static memory, reuse static memory
   auto mem_instance = SessionMemAllocator<ActiveMemoryAllocator>::Instance().GetMemAllocator(0, 0);
   LogicalMemorys logical_memorys;
   logical_memorys.emplace_back(0, memory_size);

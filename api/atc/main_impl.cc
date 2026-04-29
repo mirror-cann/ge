@@ -392,6 +392,10 @@ DEFINE_string(cluster_config, "",
 "Optional;"
 "target execute logic device info to generate hccl tasks.");
 
+DEFINE_string(hccl_sub_comm_config, "",
+"Optional;"
+"HCCL sub-communication configuration file path.");
+
 DEFINE_string(quant_dumpable, "",
 "Optional;"
 "Ensure that the input and output of quant nodes can be dumped. 1: enable; 0(default): disable.");
@@ -548,6 +552,9 @@ class GFlagUtils {
         "  --tiling_schedule_optimize Enable tiling schedule optimize. 1: enable; 0(default): disable\n"
         "  --quant_dumpable          Ensure that the input and output of quant nodes can be dumped. "
         "1: enable; 0(default): disable.\n"
+        "  --cluster_config          Set the path of cluster configuration file for target execute logic device info to generate hccl tasks.\n"
+        "  --hccl_sub_comm_config  Set the path of HCCL sub-communication configuration file.\n"
+        "                           Used to configure HCCL sub-communication parameters.\n"
         "  --enable_small_channel    Set enable small channel. 0(default): disable; 1: enable\n"
         "  --enable_compress_weight  Enable compress weight. true: enable; false(default): disable\n"
         "  --compress_weight_conf    Config file to compress weight\n"
@@ -1488,8 +1495,7 @@ Status GenerateModelBySingleGraph(GeGenerator &ge_generator, const std::string &
     graph = GraphUtilsEx::CreateGraphFromComputeGraph(load_model.GetGraph());
 
     GE_CHK_STATUS_EXEC(InitDomiOmgContext(FLAGS_input_shape, FLAGS_input_format, "", is_dynamic_input),
-                       GELOGE(FAILED, "[Init][DomiOmgContext]ATC Generate call InitDomiOmgContext ret fail");
-                       return FAILED);
+                       return FAILED, "[Init][DomiOmgContext]ATC Generate call InitDomiOmgContext ret fail");
     GE_ASSERT_SUCCESS(CheckParamForAirInput(graph));
     ret = CreateInputsForInference(graph, inputs);
     if (ret != SUCCESS) {
@@ -1529,8 +1535,7 @@ Status GenerateModelBySingleGraph(GeGenerator &ge_generator, const std::string &
   }
 
   GE_CHK_STATUS_EXEC(CallAmctInterface(graph, options),
-                     GELOGE(FAILED, "[Call][AmctInterface]ATC Generate call AmctInterface ret fail");
-                     return FAILED);
+                     return FAILED, "[Call][AmctInterface]ATC Generate call AmctInterface ret fail");
   ret = GenerateOfflineModel(ge_generator, graph, output, inputs);
   if (ret != SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "GE GenerateOfflineModel execute failed");
@@ -1845,6 +1850,7 @@ Status GenerateOmModel() {
   options.insert(std::pair<std::string, std::string>(std::string(OPTION_HOST_ENV_CPU), FLAGS_host_env_cpu));
   options.insert(std::pair<std::string, std::string>("ge.is_weight_clip", FLAGS_is_weight_clip));
   options.insert(std::pair<std::string, std::string>(std::string(CLUSTER_CONFIG), FLAGS_cluster_config));
+  options.insert(std::pair<std::string, std::string>(std::string("ge.hccl_sub_comm_config"), FLAGS_hccl_sub_comm_config));
   if (!FLAGS_input_hint_shape.empty()) {
     options.insert(std::pair<std::string, std::string>(std::string(INPUT_HINT_SHAPE), FLAGS_input_hint_shape));
   }

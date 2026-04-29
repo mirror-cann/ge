@@ -41,13 +41,13 @@ EsIdentityNOutput MyEsIdentityN(EsCTensorHolder **x, int64_t x_num) {
   // 2. 根据算子原型构建合法Node实例并设置IR信息到节点上
   auto node = ge::es::CompliantNodeBuilder(ge_graph).OpType("IdentityN")
       .Name( builder.GenerateNodeName("IdentityN").GetString())
-      .IrDefInputs({
+      .IrDefInputsV2({
           {"x", ge::es::CompliantNodeBuilder::kEsIrInputDynamic, ""},
       })
-      .IrDefOutputs({
+      .IrDefOutputsV2({
           {"y", ge::es::CompliantNodeBuilder::kEsIrOutputDynamic, ""},
       })
-      .IrDefAttrs({
+      .IrDefAttrsV2({
       })
       .InstanceDynamicInputNum("x", static_cast<int32_t>(x_num))
       .InstanceDynamicOutputNum("y", static_cast<int32_t>(y_num))

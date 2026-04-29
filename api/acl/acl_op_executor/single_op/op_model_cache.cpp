@@ -98,7 +98,7 @@ aclError OpModelCache::UpdateCachedExecutor(const uint64_t &id,
     const std::lock_guard<std::recursive_mutex> locker(mutex_);
     const auto &iter = cachedModels_.find(id);
     if (iter == cachedModels_.end()) {
-        ACL_LOG_INNER_ERROR("search model cache faild when update runtime v2 stream executor, key is %lu",
+        ACL_LOG_INNER_ERROR("search model cache failed when update runtime v2 stream executor, key is %lu",
                             id);
         return ACL_ERROR_FAILURE;
     }
@@ -122,7 +122,7 @@ aclError OpModelCache::UnloadCachedModelData(const uint64_t &id)
     const std::lock_guard<std::recursive_mutex> locker(mutex_);
     const auto &iter = cachedModels_.find(id);
     if (iter == cachedModels_.end()) {
-        ACL_LOG_INNER_ERROR("search model cache faild when remove model data, key is %lu", id);
+        ACL_LOG_INNER_ERROR("search model cache failed when remove model data, key is %lu", id);
         return ACL_ERROR_FAILURE;
     }
     iter->second.data = nullptr;

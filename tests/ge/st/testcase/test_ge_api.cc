@@ -800,7 +800,7 @@ TEST_F(GeApiTest, tes_AddGraph_fail_log) {
 
   // add graph test
   std::map<std::string, std::string> options;
-  Session sess(options);  // contruct session successfully
+  Session sess(options);  // construct session successfully
   std::map<AscendString, AscendString> graph_options;
 
   // empty graph, get graph name failed
@@ -1225,7 +1225,7 @@ TEST_F(GeApiTest, test_RunGraphWithStreamAsync_fail_log) {
   ReInitGe();
 
   std::map<std::string, std::string> options;
-  Session sess(options);  // contruct session successfully
+  Session sess(options);  // construct session successfully
 
   std::vector<Tensor> inputs;
   std::vector<Tensor> outputs;
@@ -1241,7 +1241,7 @@ TEST_F(GeApiTest, test_RemoveGraph_fail_log) {
   ReInitGe();
 
   std::map<std::string, std::string> options;
-  Session sess(options);  // contruct session successfully
+  Session sess(options);  // construct session successfully
 
   Status ret = sess.RemoveGraph(10000);  // invalid graph id
   EXPECT_NE(ret, SUCCESS);
@@ -1255,7 +1255,7 @@ TEST_F(GeApiTest, test_RunGraph_fail_log) {
   ReInitGe();
 
   std::map<std::string, std::string> options;
-  Session sess(options);  // contruct session successfully
+  Session sess(options);  // construct session successfully
 
   std::vector<Tensor> inputs;
   std::vector<Tensor> outputs;

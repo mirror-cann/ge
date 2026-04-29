@@ -151,6 +151,7 @@ const std::string DISTRIBUTED_CLUSTER_BUILD = "ge.distributed_cluster_build";
 const std::string MODEL_RELATION_CONFIG = "ge.offline_model_relation";
 const std::string CLUSTER_CONFIG = "ge.cluster_config";
 const std::string OPTION_HCCL_COMPILER_OFFLINE = "ge.offline_hccl_compile";
+const std::string HCCL_SUB_COMM_CONFIG = "ge.hccl_sub_comm_config";
 
 // option for screen log
 constexpr const char_t *OPTION_SCREEN_PRINT_MODE = "ge.screen_print_mode";
@@ -665,6 +666,7 @@ static const char_t *const DETERMINISTIC_LEVEL = ge::DETERMINISTIC_LEVEL.c_str()
 static const char_t *const DISTRIBUTED_CLUSTER_BUILD = ge::DISTRIBUTED_CLUSTER_BUILD.c_str();
 static const char_t *const MODEL_RELATION_CONFIG = ge::MODEL_RELATION_CONFIG.c_str();
 static const char_t *const CLUSTER_CONFIG = ge::CLUSTER_CONFIG.c_str();
+static const char_t *const HCCL_SUB_COMM_CONFIG = ge::HCCL_SUB_COMM_CONFIG.c_str();
 static const char_t *const ENABLE_GRAPH_PARALLEL = "ge.enableGraphParallel";
 static const char_t *const GRAPH_PARALLEL_OPTION_PATH = "ge.graphParallelOptionPath";
 static const char_t *const QUANT_DUMPABLE = ge::QUANT_DUMPABLE.c_str();
@@ -770,6 +772,7 @@ const std::set<std::string> global_options = {CORE_TYPE,
                                               DETERMINISTIC,
                                               DETERMINISTIC_LEVEL,
                                               CLUSTER_CONFIG,
+                                              HCCL_SUB_COMM_CONFIG,
                                               OP_DEPENDENCY_IN_OM,
                                               TILING_SCHEDULE_OPTIMIZE,
                                               GRAPH_MAX_PARALLEL_MODEL_NUM,

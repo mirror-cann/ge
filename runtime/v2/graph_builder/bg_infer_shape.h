@@ -23,6 +23,9 @@ namespace bg {
 // 使用新接口后，对于相同optype的infershape节点，不必产生多个infershape函数，只需产生一个infershape函数即可,存储与global_data中
 std::vector<ValueHolderPtr> InferStorageShape(const ge::NodePtr &node, const std::vector<ValueHolderPtr> &input_shapes,
                                               LoweringGlobalData &global_data);
+std::vector<ValueHolderPtr> InferCustomOpShape(const ge::NodePtr &node,
+                                                const std::vector<ValueHolderPtr> &input_shapes,
+                                                LoweringGlobalData &global_data);
 std::vector<ValueHolderPtr> InferUbGraphShape(const ge::ComputeGraphPtr &compute_graph,
                                               const std::vector<ValueHolderPtr> &input_shapes,
                                               LoweringGlobalData &global_data);

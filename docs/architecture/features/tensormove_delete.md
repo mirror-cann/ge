@@ -166,20 +166,64 @@ Pass 的注册和集成：
 
 **Rule 3：CheckSinglePath — 单通路校验**
 
-这是最关键的规则，通过 `IsSourceNodeWithSinglePath` 函数实现。它检查从源头到 TensorMove 的路径上，每个节点是否都只有单一输出。如果某个中间节点同时将数据分发给其他消费者，删除 TensorMove 会导致这些消费者之间的写冲突。
+该规则由 `IsSourceNodeWithSinglePath` 实现，用于证明删除 `TensorMove` 后，源内存的读写顺序仍然可控。校验对象是从真实源节点到当前 `TensorMove` 的回溯路径；路径上任一节点不满足条件时，保留 `TensorMove`。
 
-单通路校验包含三个子检查：
-- 中间节点不能是多分支控制流算子
-- RefOp 的多个输出不能复用同一个输入（`HasMultipleOutputsSharingSameInput`）：如果 RefOp 的两个输出端口都引用同一个输入端口，且两个输出都有下游消费者，说明同一块内存被两条路径同时使用，不能删除
-- 每个输出锚点只能连接一个下游消费者（`GetPeerInDataAnchorsPtr().size() > 1` 检查）
+基础校验包括：
+- 路径节点不能是 `IF` / `CASE` / `WHILE` 等多分支控制流算子。
+- RefOp 不能存在多个已连接输出复用同一个输入（`HasMultipleOutputsSharingSameInput`）。否则同一块输入内存被多条输出路径继续引用，当前规则无法证明完整生命周期。
+- 输出锚点的消费者数量超过 1 时，进入“单输出多引用”分支处理，而不是简单按单通路放行。
+
+单输出多引用的基础形态如下：
+
+```mermaid
+graph LR
+    S[Source.out] --> Sib[Sibling]
+    S --> TM[TensorMove]
+    TM --> Succ[TM successor]
+```
+
+这里 `Sibling` 是与 `TensorMove` 共享同一个源输出锚点的旁路消费者。原先实现遇到 `Source.out` 被多个消费者引用会直接拒绝；当前实现通过 `TryHandleBasicMultiRefBranch` 对基础多引用形态做有条件放行：只要能证明或补充必要的执行顺序，使旁路消费者与 `TensorMove` 后继不会并发读写同一块源内存，就允许删除 `TensorMove`。
+
+放行边界如下：
+- `TensorMove` 必须是该源输出锚点的直接消费者；不处理 `Source -> RefOp -> TensorMove` 这类间接链路。
+- `Sibling` 与 `TensorMove` 必须位于同一张 `ComputeGraph`。
+- `Sibling` 不能是 `TensorMove`、`NetOutput` 或多分支控制流算子。
+- `Sibling` 不能通过输出继续复用该输入（`HasRefOutputFromInput`），否则源内存生命周期会向其下游扩散。
+
+对每个 `(Sibling, TM successor)` 组合，按是否覆写源内存决策：
+
+| Sibling 行为 | TM successor 行为 | 处理方式 |
+|-------------|-------------------|----------|
+| 纯读 | 纯读或覆写 | 登记 `Sibling -> TM successor` 控制边，先通过成环检查 |
+| 覆写 | 纯读 | 仅当图中已存在 `TM successor -> Sibling` 直接控制边时放行 |
+| 覆写 | 覆写 | 保留 `TensorMove` |
+
+其中“覆写源内存”由 `WillNodeOverwriteSourceMemory` 判定，覆盖两类场景：输出描述上的 `INPLACE_SUPPORT_INPUT_INDEX` 指向该输入端口，或 atomic 输出通过 Ref/ReuseInput 复用该输入端口。
+
+主动新增的控制边只采用 `Sibling -> TM successor` 方向，用于保证旁路先读完源内存，再允许 `TensorMove` 后继读取或覆写源内存：
+
+```mermaid
+graph LR
+    S[Source.out] --> Sib[Sibling]
+    S --> Succ[TM successor]
+    Sib -. ctrl .-> Succ
+```
+
+新增控制边不会立即落图，而是先登记到 `ctx.pending_control_edges`。三条删除规则全部通过后，`Run` 统一调用 `ApplyPendingControlEdges` 落地；如果补边或后续 `IsolateAndDeleteNode` 失败，则回滚本轮新增的控制边。
+
+为避免破坏 DAG，登记 `Sibling -> TM successor` 前会调用 `WouldCreateControlCycle`：当 `Sibling == TM successor`，或当前图中已存在 `TM successor -> ... -> Sibling` 的数据/控制可达路径时，保留 `TensorMove`，不新增控制边。
+
+整体流程如下：
 
 ```mermaid
 flowchart LR
     R1[Rule 1: 路径有效性] --> R2[Rule 2: 内存复用]
     R2 --> R3[Rule 3: 单通路]
-    R3 --> D{全部通过?}
-    D -- 是 --> DEL[执行删除]
-    D -- 否 --> KEEP[保留 TensorMove]
+    R3 --> M{存在单输出多引用?}
+    M -- 否 --> DEL[执行删除]
+    M -- 是 --> H[TryHandleBasicMultiRefBranch]
+    H -- 通过 --> E[补 pending 控制边后删除]
+    H -- 拒绝 --> KEEP[保留 TensorMove]
 ```
 
 ### 4.5 阶段三：拓扑重连（IsolateAndDeleteNode）

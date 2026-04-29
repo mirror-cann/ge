@@ -9,6 +9,7 @@
  */
 
 #include "graph/build/memory/block_mem_assigner.h"
+#include <cinttypes>
 #include <algorithm>
 #include <sstream>
 #include <stack>
@@ -370,7 +371,7 @@ bool IsAtomicWorkSpace(const int64_t index, const std::map<std::string, std::map
     }
     for (const auto &workspae_info : it.second) {
       if (workspae_info.first == index) {
-        GELOGD("Node:%s's workspace:%ld is atomic.", it.first.c_str(), index);
+        GELOGD("Node:%s's workspace:%" PRId64 " is atomic.", it.first.c_str(), index);
         return true;
       }
     }
@@ -414,7 +415,7 @@ void HandleDependentStreamRedundantInfo(
     }
     for (auto iter = depend_stream_info.second.begin(); iter != depend_stream_info.second.end();) {
       if ((iter->node_id >= in_node_id) && (iter->peer_node_id <= out_node_id)) {
-        GELOGI("[StreamEdge]In depend Node: stream_id:[%ld<-%ld] life_time:[%zu<-%zu] delete", in_stream_edge.first,
+        GELOGI("[StreamEdge]In depend Node: stream_id:[%" PRId64 "<-%" PRId64 "] life_time:[%zu<-%zu] delete", in_stream_edge.first,
                depend_stream_info.first, iter->node_id, iter->peer_node_id);
         iter = depend_stream_info.second.erase(iter);
         continue;
@@ -550,7 +551,7 @@ static void GetDiffStreamMinLifeTime(const Node *const node, const int64_t src_s
   const auto dst_stream = GetStreamId(node_op_desc);
   if (dst_stream == src_stream) {
     min_life_time = node_op_desc->GetId();
-    GELOGI("same stream, node[%s] id as min life[%ld]", node_op_desc->GetNamePtr(), min_life_time);
+    GELOGI("same stream, node[%s] id as min life[%" PRId64 "]", node_op_desc->GetNamePtr(), min_life_time);
     return;
   }
 
@@ -565,7 +566,7 @@ static void GetDiffStreamMinLifeTime(const Node *const node, const int64_t src_s
         }
         if (edge_it->node_id <= static_cast<size_t>(node_op_desc->GetId())) {
           min_life_time = (*edge_it).peer_node_id;
-          GELOGI("diff stream, get min life[%ld], node[%s], id[%ld], stream_id:[%ld<-%ld] life_time:[%zu<-%zu]",
+          GELOGI("diff stream, get min life[%" PRId64 "], node[%s], id[%" PRId64 "], stream_id:[%" PRId64 "<-%" PRId64 "] life_time:[%zu<-%zu]",
                  min_life_time, node_op_desc->GetNamePtr(), node_op_desc->GetId(), dst_stream, src_stream,
                  (*edge_it).node_id, min_life_time);
           return;
@@ -574,7 +575,7 @@ static void GetDiffStreamMinLifeTime(const Node *const node, const int64_t src_s
     }
   }
   min_life_time = kMinLifeTime;
-  GELOGI("diff stream, get default min life[%ld], node[%s], id[%ld], stream_id[%ld<-%ld]",
+  GELOGI("diff stream, get default min life[%" PRId64 "], node[%s], id[%" PRId64 "], stream_id[%" PRId64 "<-%" PRId64 "]",
          min_life_time, node_op_desc->GetNamePtr(), node_op_desc->GetId(), dst_stream, src_stream);
 }
 
@@ -583,7 +584,7 @@ void GetDiffStreamMaxLifeTime(const Node *const node, const int64_t stream_id,
   max_life_time = kMaxLifeTime;
   auto node_op_desc = node->GetOpDescBarePtr();
   GE_CHECK_NOTNULL_JUST_RETURN(node_op_desc);
-  GELOGD("Out depend node:[%s] life begin:%ld stream_id:[%ld->%ld]", node_op_desc->GetNamePtr(),
+  GELOGD("Out depend node:[%s] life begin:%" PRId64 " stream_id:[%" PRId64 "->%" PRId64 "]", node_op_desc->GetNamePtr(),
          node_op_desc->GetId(), GetStreamId(node_op_desc), stream_id);
   if (GetStreamId(node_op_desc) == stream_id) {
     max_life_time = node_op_desc->GetId();
@@ -602,7 +603,7 @@ void GetDiffStreamMaxLifeTime(const Node *const node, const int64_t stream_id,
   if (edge_it == edges_it->second.end()) {
     return;
   }
-  GELOGD("Node:[%s] life begin:%ld stream_id:[%ld->%ld] life_time:[%ld->%ld]", node_op_desc->GetNamePtr(),
+  GELOGD("Node:[%s] life begin:%" PRId64 " stream_id:[%" PRId64 "->%" PRId64 "] life_time:[%" PRId64 "->%" PRId64 "]", node_op_desc->GetNamePtr(),
          node_op_desc->GetId(), GetStreamId(node_op_desc), stream_id, (*edge_it).node_id, (*edge_it).peer_node_id);
   max_life_time = (*edge_it).peer_node_id;
 }
@@ -631,7 +632,7 @@ int64_t GetNodeMaxLifeBySymbol(const SymbolToAnchors &symbol_to_anchors, const N
         max_node_life_time_by_symbol = node_index_io.node_ptr_->GetOpDescBarePtr()->GetId();
         max_node_life_time = (max_node_life_time_by_symbol > max_node_life_time)
             ? max_node_life_time_by_symbol : max_node_life_time;
-        GELOGI("Node[%s] stream[%ld] output[%u]'s life time by symbol [%ld][%ld], node_io[%s], stream_id[%ld].",
+        GELOGI("Node[%s] stream[%" PRId64 "] output[%u]'s life time by symbol [%" PRId64 "][%" PRId64 "], node_io[%s], stream_id[%" PRId64 "].",
             n->GetNamePtr(), n_stream_id, out_index, max_node_life_time_by_symbol, max_node_life_time,
             node_index_io.node_ptr_->GetNamePtr(), in_anchor_stream_id);
       }
@@ -639,7 +640,7 @@ int64_t GetNodeMaxLifeBySymbol(const SymbolToAnchors &symbol_to_anchors, const N
         int64_t diff_stream_life_time_end = kMaxLifeTime;
         GetDiffStreamMaxLifeTime(node_index_io.node_ptr_, n_stream_id, diff_stream_edge_life,
                                  diff_stream_life_time_end);
-        GELOGI("Node[%s] stream[%ld] output[%u]'s life time is max of [%ld][%ld][%ld], node_io[%s], stream_id[%ld].",
+        GELOGI("Node[%s] stream[%" PRId64 "] output[%u]'s life time is max of [%" PRId64 "][%" PRId64 "][%" PRId64 "], node_io[%s], stream_id[%" PRId64 "].",
             n->GetNamePtr(), n_stream_id, out_index, max_node_life_time_by_symbol, max_node_life_time,
             diff_stream_life_time_end, node_index_io.node_ptr_->GetNamePtr(), in_anchor_stream_id);
         /* max_node_life_time_by_symbol 在此分支中不能赋值,此分支只影响最大值 */
@@ -650,7 +651,7 @@ int64_t GetNodeMaxLifeBySymbol(const SymbolToAnchors &symbol_to_anchors, const N
   }
 
   // info日志, 打印node的生命周期
-  GELOGI("Node[%s] output[%u]'s max life time[%ld][%ld].", n->GetNamePtr(), out_index, max_node_life_time_by_symbol,
+  GELOGI("Node[%s] output[%u]'s max life time[%" PRId64 "][%" PRId64 "].", n->GetNamePtr(), out_index, max_node_life_time_by_symbol,
          max_node_life_time);
 
   return max_node_life_time;
@@ -661,7 +662,7 @@ int64_t GetNodeMaxLife(const SymbolToAnchors &symbol_to_anchors,
   int64_t &max_node_life_time_by_symbol, std::set<int64_t> &streams, int64_t stream_id = kInvalidStreamId) {
   const int64_t max_node_life_time = GetNodeMaxLifeBySymbol(symbol_to_anchors, n, out_index,
     max_node_life_time_by_symbol, streams, diff_stream_edge_life, stream_id);
-  GELOGD("Node[%s] output[%u]'s max life time[%ld].", n->GetNamePtr(), out_index, max_node_life_time);
+  GELOGD("Node[%s] output[%u]'s max life time[%" PRId64 "].", n->GetNamePtr(), out_index, max_node_life_time);
   return max_node_life_time;
 }
 
@@ -677,7 +678,7 @@ void GetContinuousOutputMaxLife(const NodePtr &node, const SymbolToAnchors &symb
       max_life_time = life_time;
     }
   }
-  GELOGI("Continuous output node:%s max life time:%ld", node->GetNamePtr(), max_life_time);
+  GELOGI("Continuous output node:%s max life time:%" PRId64 "", node->GetNamePtr(), max_life_time);
 }
 
 void GetContinuousOutputMaxLifeBySymbol(const Node *const node,
@@ -691,7 +692,7 @@ void GetContinuousOutputMaxLifeBySymbol(const Node *const node,
     /* max_life_time 在此函数中已经进行最大值的赋值处理 */
     (void)GetNodeMaxLifeBySymbol(symbol_to_anchors, node, index, max_life_time, streams, diff_stream_edge_life);
   }
-  GELOGI("Continuous output node:%s max life time:%ld by symbol", node->GetNamePtr(), max_life_time);
+  GELOGI("Continuous output node:%s max life time:%" PRId64 " by symbol", node->GetNamePtr(), max_life_time);
 }
 
 Status SetChildHeadOffset(size_t offset, size_t max_offset, std::vector<MemoryBlock *> &blocks) {
@@ -859,8 +860,8 @@ void MemoryBlock::AddContinuousLifeReuseBlock(MemoryBlock &block) {
   parent->child_offset_ += child->AlignSize();
   child->child_block_ = true;
   GELOGI("[no_align_size_block_reuse]"
-         "Add block[%s size:%zu, stream id:%ld, life time[begin:%zu, end:%zu], continuous:%d]"
-         " to block[%s size:%zu, stream id:%ld, life time[begin:%zu, end:%zu], continuous:%d]",
+         "Add block[%s size:%zu, stream id:%" PRId64 ", life time[begin:%zu, end:%zu], continuous:%d]"
+         " to block[%s size:%zu, stream id:%" PRId64 ", life time[begin:%zu, end:%zu], continuous:%d]",
          GetName(*child).c_str(), child->block_size_, child->stream_id_, child->GetLifeBegin(),
          child->GetLifeEnd(child->stream_id_), child->GetContinuousFlag(),
          GetName(*parent).c_str(), parent->block_size_, parent->stream_id_, parent->GetLifeBegin(),
@@ -913,8 +914,8 @@ void MemoryBlock::AddZeroCopyLifeReuseBlock(MemoryBlock &block) {
   child->child_block_ = true;
   parent->is_reuse_zero_copy_ = (child->is_reuse_zero_copy_ && parent->is_reuse_zero_copy_);
   GELOGI("[zero_copy_size_block_reuse]"
-         "Add block[%s size:%zu, stream id:%ld, life time[begin:%zu, end:%zu], continuous:%d, is_zero_copy:%d]"
-         " to block[%s size:%zu, stream id:%ld, life time[begin:%zu, end:%zu], continuous:%d, is_zero_copy:%d]",
+         "Add block[%s size:%zu, stream id:%" PRId64 ", life time[begin:%zu, end:%zu], continuous:%d, is_zero_copy:%d]"
+         " to block[%s size:%zu, stream id:%" PRId64 ", life time[begin:%zu, end:%zu], continuous:%d, is_zero_copy:%d]",
          GetName(*child).c_str(), child->block_size_, child->stream_id_, child->GetLifeBegin(),
          child->GetLifeEnd(child->stream_id_), child->GetContinuousFlag(), child->is_zero_copy_,
          GetName(*parent).c_str(), parent->block_size_, parent->stream_id_, parent->GetLifeBegin(),
@@ -980,8 +981,8 @@ bool CanBlockLifeReuse(const BlockMemAssigner *const mem_assigner,
 bool MemoryBlock::AddLifeReuseBlock(const BlockMemAssigner *const mem_assigner,
                                     MemoryBlock *block, std::vector<MemoryBlock *> &clone_blocks, uint32_t depth,
                                     DiffStreamEdgeLife &diff_stream_edge_life, bool child_reuse) {
-  GELOGD("this[%s size:%zu, stream id:%ld life time[begin:%zu, end:%zu] childs:%zu] "
-    "block[%s size:%zu, stream id:%ld, life time[begin:%zu, end:%zu] childs:%zu]", GetName(*this).c_str(),
+  GELOGD("this[%s size:%zu, stream id:%" PRId64 " life time[begin:%zu, end:%zu] childs:%zu] "
+    "block[%s size:%zu, stream id:%" PRId64 ", life time[begin:%zu, end:%zu] childs:%zu]", GetName(*this).c_str(),
     block_size_, stream_id_, GetLifeBegin(), GetLifeEnd(block->stream_id_), child_blocks_.size(),
     GetName(*block).c_str(), block->block_size_, block->stream_id_, block->GetLifeBegin(),
     block->GetLifeEnd(stream_id_), block->child_blocks_.size());
@@ -1053,8 +1054,8 @@ bool MemoryBlock::AddLifeReuseBlock(const BlockMemAssigner *const mem_assigner,
   is_reuse_zero_copy_ = (block->is_reuse_zero_copy_ && is_reuse_zero_copy_);
   child_offset_ += block->AlignSize();
   block->child_block_ = true;
-  GELOGI("Add block[%s size:%zu, stream id:%ld life time[begin:%zu, end:%zu]] to"
-    " block[%s size:%zu, stream id:%ld, life time[begin:%zu, end:%zu]]", GetName(*block).c_str(), block->block_size_,
+  GELOGI("Add block[%s size:%zu, stream id:%" PRId64 " life time[begin:%zu, end:%zu]] to"
+    " block[%s size:%zu, stream id:%" PRId64 ", life time[begin:%zu, end:%zu]]", GetName(*block).c_str(), block->block_size_,
     block->stream_id_, block->GetLifeBegin(), block->GetLifeEnd(stream_id_), GetName(*this).c_str(), block_size_,
     stream_id_, GetLifeBegin(), GetLifeEnd(block->stream_id_));
   return true;
@@ -1077,7 +1078,7 @@ size_t MemoryBlock::GetLifeBegin(bool for_sort) const {
 /// |--block---|   |--block---|
 /// block7's first node's input node's life begin > block2's life end, block7 can reuse block1~block2
 size_t MemoryBlock::GetDependLifeBegin(int64_t stream_id, DiffStreamEdgeLife &diff_stream_edge_life) const {
-  GELOGD("In depend node:[%s] stream_id:[%ld->%ld] self life time[%ld-%ld]",
+  GELOGD("In depend node:[%s] stream_id:[%" PRId64 "->%" PRId64 "] self life time[%" PRId64 "-%" PRId64 "]",
          NodeTypeIndexList().front().node_->GetNamePtr(), stream_id_, stream_id, GetLifeBegin(),
          GetLifeEnd(stream_id));
   const auto it = diff_stream_edge_life.find(stream_id_);
@@ -1105,7 +1106,7 @@ size_t MemoryBlock::GetDependLifeBegin(int64_t stream_id, DiffStreamEdgeLife &di
   if ((edge_it == edges_it->second.end()) || ((*edge_it).node_id > first_node_id)) {
     // lower_bound find node7, get node11-->node6, because node11 > node7, so return no depend node
     if (edge_it == edges_it->second.begin()) {
-      GELOGD("Depend lower node id:%ld > node id:%ld.", (*edge_it).node_id, GetLifeBegin());
+      GELOGD("Depend lower node id:%" PRId64 " > node id:%" PRId64 ".", (*edge_it).node_id, GetLifeBegin());
       return 0UL;
     }
     // not found, use tail data
@@ -1113,7 +1114,7 @@ size_t MemoryBlock::GetDependLifeBegin(int64_t stream_id, DiffStreamEdgeLife &di
   }
 
   // lower_bound find node11, get node11-->node6
-  GELOGD("Node:[%s] life begin:%ld stream_id:[%ld->%ld] depend life_time:[%ld->%ld]",
+  GELOGD("Node:[%s] life begin:%" PRId64 " stream_id:[%" PRId64 "->%" PRId64 "] depend life_time:[%" PRId64 "->%" PRId64 "]",
          NodeTypeIndexList().front().node_->GetNamePtr(), first_node_id, stream_id_, stream_id, (*edge_it).node_id,
          (*edge_it).peer_node_id);
   return (*edge_it).peer_node_id;
@@ -1126,12 +1127,12 @@ size_t MemoryBlock::GetLifeEnd(int64_t stream_id) const {
         && (node_type_index_list_.back().diff_stream_life_time_.size() == 1U);
     const auto it = node_type_index_list_.back().diff_stream_life_time_.find(stream_id);
     if (only_to_one_stream && (it != node_type_index_list_.back().diff_stream_life_time_.cend())) {
-      GELOGD("block %s stream[%ld] [%ld] life[%ld]", GetName(*this).c_str(), stream_id_,
+      GELOGD("block %s stream[%" PRId64 "] [%" PRId64 "] life[%" PRId64 "]", GetName(*this).c_str(), stream_id_,
              stream_id, it->second);
       return it->second;
     }
 
-    GELOGD("block %s stream[%ld] [%ld] life[%ld]", GetName(*this).c_str(), stream_id_, stream_id,
+    GELOGD("block %s stream[%" PRId64 "] [%" PRId64 "] life[%" PRId64 "]", GetName(*this).c_str(), stream_id_, stream_id,
            node_type_index_list_.back().life_time_end_);
     return node_type_index_list_.back().life_time_end_;
   }
@@ -1156,7 +1157,7 @@ size_t MemoryBlock::GetLifeEnd(int64_t stream_id, int64_t &end_stream_id) const 
         && (node_type_index_list_.back().diff_stream_life_time_.size() == 1U);
     if (!only_to_one_stream) {
       // stream_id is 1, return normal end life time in stream 1 or kMaxLifeTime
-      GELOGD("block %s stream[%ld] [%ld] life[%ld]",
+      GELOGD("block %s stream[%" PRId64 "] [%" PRId64 "] life[%" PRId64 "]",
              GetName(*this).c_str(), stream_id_, stream_id,
              node_type_index_list_.back().life_time_end_);
       return node_type_index_list_.back().life_time_end_;
@@ -1164,7 +1165,7 @@ size_t MemoryBlock::GetLifeEnd(int64_t stream_id, int64_t &end_stream_id) const 
     const auto it = node_type_index_list_.back().diff_stream_life_time_.find(stream_id);
     // out to only one diff stream, stream_id is 2, end_stream_id is 2, return node11
     if (it != node_type_index_list_.back().diff_stream_life_time_.cend()) {
-      GELOGD("block %s stream[%ld] [%ld] life[%ld]",
+      GELOGD("block %s stream[%" PRId64 "] [%" PRId64 "] life[%" PRId64 "]",
              GetName(*this).c_str(), stream_id_, stream_id, it->second);
       end_stream_id = stream_id;
       return it->second;
@@ -1172,7 +1173,7 @@ size_t MemoryBlock::GetLifeEnd(int64_t stream_id, int64_t &end_stream_id) const 
     // out to only one diff stream, stream_id is 3, end_stream_id is 2, return node11
     if (stream_id != stream_id_) {
       end_stream_id = node_type_index_list_.back().diff_stream_life_time_.begin()->first;
-      GELOGD("block %s stream[%ld] [%ld] [%ld] life[%ld]",
+      GELOGD("block %s stream[%" PRId64 "] [%" PRId64 "] [%" PRId64 "] life[%" PRId64 "]",
              GetName(*this).c_str(), stream_id_, end_stream_id, stream_id,
              node_type_index_list_.back().diff_stream_life_time_.begin()->second);
       return node_type_index_list_.back().diff_stream_life_time_.begin()->second;
@@ -1223,7 +1224,7 @@ void MemoryBlock::SetOutStreamLifeTime(size_t out_time, size_t end_time, int64_t
   const size_t symbol_life_time = GetSymbolLifeEnd();
   if ((symbol_life_time != kDefaultLifeTime) && (end_time < symbol_life_time)) {
     end_time = symbol_life_time;
-    GELOGI("Block %s has continuous input node, which include multiple ref, end time is: %ld",
+    GELOGI("Block %s has continuous input node, which include multiple ref, end time is: %" PRId64 "",
            GetName(*this, true).c_str(), end_time);
   }
   end_time = (end_time < out_time) ? kMaxLifeTime : end_time;
@@ -1408,7 +1409,7 @@ void GetMaxBatchAllMemorySize(std::map<std::string, std::vector<int64_t>> &batch
   // use max batch all memory size for reuse range
   int64_t max_batch_size = 0;
   for (const auto &it : batch_total_size) {
-    GELOGI("Batch[%s] total memory size[%ld]", it.first.c_str(), it.second);
+    GELOGI("Batch[%s] total memory size[%" PRId64 "]", it.first.c_str(), it.second);
     // no batch label
     if (it.first.empty()) {
       continue;
@@ -1418,7 +1419,7 @@ void GetMaxBatchAllMemorySize(std::map<std::string, std::vector<int64_t>> &batch
       max_batch_label = it.first;
     }
   }
-  GELOGI("Max batch[%s] total memory size[%ld]", max_batch_label.c_str(), max_batch_size);
+  GELOGI("Max batch[%s] total memory size[%" PRId64 "]", max_batch_label.c_str(), max_batch_size);
 
   for (const auto &it : batch_all_memory_size) {
     if (it.first.empty() || (it.first == max_batch_label)) {
@@ -1449,7 +1450,7 @@ void BlockMemAssigner::InsertStreamOutEdge() {
       auto &out_stream_edge_set = out_stream_edges_[src_stream_id][dst_stream_id];
       for (const auto &edge : src_stream_to_edges.second) {
         out_stream_edge_set.insert({edge.peer_node_id, edge.node_id});
-        GELOGI("[StreamEdge]Out depend Node: stream_id:[%ld->%ld] life_time:[%zu->%zu], only insert.",
+        GELOGI("[StreamEdge]Out depend Node: stream_id:[%" PRId64 "->%" PRId64 "] life_time:[%zu->%zu], only insert.",
                src_stream_id, dst_stream_id, edge.peer_node_id, edge.node_id);
       }
     }
@@ -1478,23 +1479,23 @@ void BlockMemAssigner::InsertStreamInEdge(const EdgeLife &new_in_edge, const int
       in_edge_set.erase(old_in_edge_iter); // after erase, can not use old_peer_node_id below
       in_edge_set.insert(new_in_edge);
       if ((src_name != nullptr) && (dst_name != nullptr)) {
-        GELOGI("[StreamEdge]In depend Node: [%s<-%s] stream_id:[%ld<-%ld] life_time:[%zu<-%zu], erase and insert,"
+        GELOGI("[StreamEdge]In depend Node: [%s<-%s] stream_id:[%" PRId64 "<-%" PRId64 "] life_time:[%zu<-%zu], erase and insert,"
             " old_peer_node_id[%zu].", dst_name, src_name,
             dst_stream_id, src_stream_id, new_in_edge.node_id, new_in_edge.peer_node_id,
             old_peer_node_id);
       } else {
-        GELOGI("[StreamEdge]In depend Node: stream_id:[%ld<-%ld] life_time:[%zu<-%zu], erase and insert,"
+        GELOGI("[StreamEdge]In depend Node: stream_id:[%" PRId64 "<-%" PRId64 "] life_time:[%zu<-%zu], erase and insert,"
             " old_peer_node_id[%zu].", dst_stream_id, src_stream_id, new_in_edge.node_id, new_in_edge.peer_node_id,
             old_peer_node_id);
       }
     } else {
       if ((src_name != nullptr) && (dst_name != nullptr)) {
-        GELOGI("[StreamEdge]In depend Node: [%s<-%s] stream_id:[%ld<-%ld] life_time:[%zu<-%zu], not erase, not insert, "
+        GELOGI("[StreamEdge]In depend Node: [%s<-%s] stream_id:[%" PRId64 "<-%" PRId64 "] life_time:[%zu<-%zu], not erase, not insert, "
             "old_peer_node_id[%zu] >= new_peer_node_id[%zu].", dst_name, src_name,
             dst_stream_id, src_stream_id, new_in_edge.node_id, new_in_edge.peer_node_id,
             old_in_edge_iter->peer_node_id, new_in_edge.peer_node_id);
       } else {
-        GELOGI("[StreamEdge]In depend Node: stream_id:[%ld<-%ld] life_time:[%zu<-%zu], not erase, not insert, "
+        GELOGI("[StreamEdge]In depend Node: stream_id:[%" PRId64 "<-%" PRId64 "] life_time:[%zu<-%zu], not erase, not insert, "
             "old_peer_node_id[%zu] >= new_peer_node_id[%zu].", dst_stream_id, src_stream_id, new_in_edge.node_id,
             new_in_edge.peer_node_id, old_in_edge_iter->peer_node_id, new_in_edge.peer_node_id);
       }
@@ -1502,11 +1503,11 @@ void BlockMemAssigner::InsertStreamInEdge(const EdgeLife &new_in_edge, const int
   } else {
     in_edge_set.insert(new_in_edge);
     if ((src_name != nullptr) && (dst_name != nullptr)) {
-      GELOGI("[StreamEdge]In depend Node: [%s<-%s] stream_id:[%ld<-%ld] life_time:[%zu<-%zu], only insert.",
+      GELOGI("[StreamEdge]In depend Node: [%s<-%s] stream_id:[%" PRId64 "<-%" PRId64 "] life_time:[%zu<-%zu], only insert.",
              dst_name, src_name, dst_stream_id, src_stream_id,
              new_in_edge.node_id, new_in_edge.peer_node_id);
     } else {
-      GELOGI("[StreamEdge]In depend Node: stream_id:[%ld<-%ld] life_time:[%zu<-%zu], only insert.",
+      GELOGI("[StreamEdge]In depend Node: stream_id:[%" PRId64 "<-%" PRId64 "] life_time:[%zu<-%zu], only insert.",
              dst_stream_id, src_stream_id, new_in_edge.node_id, new_in_edge.peer_node_id);
     }
   }
@@ -1530,7 +1531,7 @@ static void EraseIntersectedEdge(std::set<EdgeLife, CompareEdgeLife> &in_edge_se
                           const int64_t dst_node_stream_id) {
   if (((old_in_edge.node_id > new_in_edge.node_id) && (old_in_edge.peer_node_id < new_in_edge.peer_node_id)) ||
       ((old_in_edge.node_id < new_in_edge.node_id) && (old_in_edge.peer_node_id > new_in_edge.peer_node_id))) {
-    GELOGI("[StreamEdge]In depend Node: stream_id:[%ld<-%ld] erase life_time:[%zu<-%zu], will insert new "
+    GELOGI("[StreamEdge]In depend Node: stream_id:[%" PRId64 "<-%" PRId64 "] erase life_time:[%zu<-%zu], will insert new "
         "life_time:[%zu<-%zu].", dst_node_stream_id, src_node_stream_id, old_in_edge.node_id, old_in_edge.peer_node_id,
         new_in_edge.node_id, new_in_edge.peer_node_id);
     auto it = in_edge_set.find(old_in_edge);
@@ -1631,7 +1632,7 @@ void BlockMemAssigner::GetDiffStreamEdgeLife(const NodePtr &node, const std::set
 
       if (exclude_merge_streams.find(stream_id) != exclude_merge_streams.cend() ||
           exclude_merge_streams.find(peer_in_stream_id) != exclude_merge_streams.cend()) {
-        GELOGI("Stream [%ld->%ld] will interrupt memory reuse among streams", stream_id,
+        GELOGI("Stream [%" PRId64 "->%" PRId64 "] will interrupt memory reuse among streams", stream_id,
                peer_in_stream_id);
         continue;
       }
@@ -1793,11 +1794,11 @@ std::set<int64_t> GetStreamMergeAndOutStreams(const ge::ComputeGraphPtr &graph) 
       continue;
     }
     if (merge_and_out_streams.insert(GetStreamId(node->GetOpDescBarePtr())).second) {
-      GELOGD("Stream %ld not reuse memory with other streams", GetStreamId(node->GetOpDescBarePtr()));
+      GELOGD("Stream %" PRId64 " not reuse memory with other streams", GetStreamId(node->GetOpDescBarePtr()));
     }
     for (const auto &out_node : node->GetOutAllNodes()) {
       if (merge_and_out_streams.insert(GetStreamId(out_node->GetOpDescBarePtr())).second) {
-        GELOGD("Stream %ld not reuse memory with other streams", GetStreamId(out_node->GetOpDescBarePtr()));
+        GELOGD("Stream %" PRId64 " not reuse memory with other streams", GetStreamId(out_node->GetOpDescBarePtr()));
       }
     }
   }
@@ -1848,7 +1849,7 @@ Status BlockMemAssigner::GetOutAndWorkSpaceMem(std::vector<int64_t> &all_memory_
       int64_t size = 0;
       (void)MemReuseUtils::GetTensorSize(*output_desc, size,
                                          MemReuseUtils::IsNeedSplitSize(n, out_anchor->GetIdx()));
-      GE_ASSERT_TRUE(size >= 0, "[Check][TensorSize]tensor_size:%ld is invalid, "
+      GE_ASSERT_TRUE(size >= 0, "[Check][TensorSize]tensor_size:%" PRId64 " is invalid, "
                      "maybe it is unknown shape node, Node_name:%s",
                      size, node_op_desc->GetNamePtr());
       batch_all_memory_size[batch_label].emplace_back(size);
@@ -1879,7 +1880,7 @@ Status BlockMemAssigner::GetOutAndWorkSpaceMem(std::vector<int64_t> &all_memory_
   HandleInStreamRedundantDependence(in_stream_edges_);
   InsertStreamOutEdge();
 
-  GELOGI("The last atomic_addr_clean node id: %ld", atomic_addr_clean_id_);
+  GELOGI("The last atomic_addr_clean node id: %" PRId64 "", atomic_addr_clean_id_);
   GetMaxBatchAllMemorySize(batch_all_memory_size, batch_total_size, all_memory_size, max_batch_label_);
   InitReuseFlag();
   GE_ASSERT_SUCCESS(continuous_mem_mng_.Init(compute_graph_), "continuous memory manager init failed, graph: %s",
@@ -2036,7 +2037,7 @@ void BlockMemAssigner::GetContinuousNodeLifeTimeBegin(const Node *const org_node
     if (index == 0) {
       cascade_min_life_time_[node_op_desc->GetNamePtr()] = node_op_desc->GetId();
     }
-    GELOGD("Find node:%s life time begin:%ld by ref node:%s index:%d.", node_op_desc->GetNamePtr(),
+    GELOGD("Find node:%s life time begin:%" PRId64 " by ref node:%s index:%d.", node_op_desc->GetNamePtr(),
            node_op_desc->GetId(), org_node_desc->GetNamePtr(), index);
   }
   return;
@@ -2283,8 +2284,8 @@ Status BlockMemAssigner::CalNodeAsContinuousInputMaxLife(const Node *const n, ui
     if (static_cast<size_t>(min_life_time) < life_begin_) {
       life_begin_ = static_cast<size_t>(min_life_time);
       GELOGI(
-          "Node[%s] life[%ld] output[%u] is not continuous input node[%s] life[%ld]'s min life time, "
-          "min is life[%zu], src_node[%s], life[%ld], stream_id[%ld]",
+          "Node[%s] life[%" PRId64 "] output[%u] is not continuous input node[%s] life[%" PRId64 "]'s min life time, "
+          "min is life[%zu], src_node[%s], life[%" PRId64 "], stream_id[%" PRId64 "]",
           n->GetNamePtr(), node_desc->GetId(), out_index, peer_node_desc->GetNamePtr(), peer_node_desc->GetId(),
           min_life_time, src_node->GetNamePtr(), src_node->GetOpDescBarePtr()->GetId(),
           GetStreamId(src_node->GetOpDescBarePtr()));
@@ -2298,7 +2299,7 @@ Status BlockMemAssigner::CalNodeAsContinuousInputMaxLife(const Node *const n, ui
     if (node_max_life > first_node_max_life) {
       first_node_max_life = node_max_life;
       GELOGI(
-          "Node[%s] life[%ld] output[%u]'s continuous input node[%s] life[%ld]'s is not node[%s] output[%d]'s "
+          "Node[%s] life[%" PRId64 "] output[%u]'s continuous input node[%s] life[%" PRId64 "]'s is not node[%s] output[%d]'s "
           "max life node",
           n->GetNamePtr(), node_desc->GetId(), out_index, peer_node_desc->GetNamePtr(), peer_node_desc->GetId(),
           peer_out_node_desc->GetNamePtr(), in_anchor->GetPeerOutAnchor()->GetIdx());
@@ -2390,7 +2391,7 @@ void BlockMemAssigner::InitReuseFlag() {
     GetSymbolMemType(pair.second, mem_type);
     AddSymbolMemType(symbol, mem_type);
     GetRefContinuousInputNodeAndFixedAddrPriorFlag(symbol, pair.second);
-    GELOGD("The memory type of symbol[%s] is [%ld].", symbol.c_str(), mem_type);
+    GELOGD("The memory type of symbol[%s] is [%" PRId64 "].", symbol.c_str(), mem_type);
     if (mem_type == RT_MEMORY_P2P_DDR) {
       UpdateOpTensorMemType(pair.second, mem_type);
     }
@@ -2611,7 +2612,7 @@ void BlockMemAssigner::PrintSymbolMap() {
            symbol_mem_reuse_info_[pair.first].pre_reuse_flag_ ? "true" : "false",
            symbol_mem_reuse_info_[pair.first].post_reuse_flag_ ? "true" : "false");
     for (const auto &node_index_io : pair.second) {
-      GELOGD("anchor:%s id:%ld", node_index_io.ToString().c_str(),
+      GELOGD("anchor:%s id:%" PRId64 "", node_index_io.ToString().c_str(),
              ((node_index_io.node_ptr_ != nullptr) && (node_index_io.node_ptr_->GetOpDescBarePtr() != nullptr))
              ? node_index_io.node_ptr_->GetOpDescBarePtr()->GetId() : 0);
     }
@@ -2629,7 +2630,7 @@ void BlockMemAssigner::GetSymbolMemType(const std::list<NodeIndexIO> &node_index
       (void) ge::AttrUtils::GetListInt(op_desc, ATTR_NAME_INPUT_MEM_TYPE_LIST, input_memory_types);
       if (!input_memory_types.empty() && node_index_io.index_ < input_memory_types.size()) {
         int64_t input_memory_type = input_memory_types[node_index_io.index_];
-        GELOGD("Node[%s]: the memory type of input index [%u] is [%ld]].", op_desc->GetNamePtr(),
+        GELOGD("Node[%s]: the memory type of input index [%u] is [%" PRId64 "]].", op_desc->GetNamePtr(),
                node_index_io.index_, input_memory_type);
         memory_types.emplace_back(input_memory_type);
       }
@@ -2639,7 +2640,7 @@ void BlockMemAssigner::GetSymbolMemType(const std::list<NodeIndexIO> &node_index
       (void) ge::AttrUtils::GetListInt(op_desc, ATTR_NAME_OUTPUT_MEM_TYPE_LIST, output_memory_types);
       if (!output_memory_types.empty() && node_index_io.index_ < output_memory_types.size()) {
         int64_t output_memory_type = output_memory_types[node_index_io.index_];
-        GELOGD("Node[%s]: the memory type of output index [%u] is [%ld].", op_desc->GetNamePtr(),
+        GELOGD("Node[%s]: the memory type of output index [%u] is [%" PRId64 "].", op_desc->GetNamePtr(),
                node_index_io.index_, output_memory_type);
         memory_types.emplace_back(output_memory_type);
       }
@@ -3027,7 +3028,7 @@ Status BlockMemAssigner::ApplyContinuousMemory(const NodePtr &n, const std::vect
       std::map<std::string, MemoryReuseInfo>::const_iterator it = symbol_mem_reuse_info_.find(symbol);
       if (it != symbol_mem_reuse_info_.cend()) {
         memory_type = it->second.mem_type_;
-        GELOGD("Continuous out memory symbol is [%s], memory type is [%ld]", symbol.c_str(), memory_type);
+        GELOGD("Continuous out memory symbol is [%s], memory type is [%" PRId64 "]", symbol.c_str(), memory_type);
       }
     }
   }
@@ -3069,9 +3070,9 @@ Status BlockMemAssigner::ApplyContinuousMemory(const NodePtr &n, const std::vect
              GetName(*block).c_str(), block->is_fixed_addr_prior_);
     }
   } else {
-    REPORT_INNER_ERR_MSG("E19999", "apply continuousMemory failed, node_name:%s, total_size:%ld",
+    REPORT_INNER_ERR_MSG("E19999", "apply continuousMemory failed, node_name:%s, total_size:%" PRId64 "",
                       n->GetNamePtr(), total_size);
-    GELOGE(INTERNAL_ERROR, "[Apply][ContinuousMemory]node_name:%s, total_size:%ld", n->GetNamePtr(), total_size);
+    GELOGE(INTERNAL_ERROR, "[Apply][ContinuousMemory]node_name:%s, total_size:%" PRId64 "", n->GetNamePtr(), total_size);
     return INTERNAL_ERROR;
   }
   return SUCCESS;
@@ -3272,7 +3273,7 @@ Status BlockMemAssigner::GetOutputTotalSizeAndOutCount(const NodePtr &n, uint32_
     int64_t size = 0;
     GE_CHK_STATUS_RET(MemReuseUtils::GetTensorSize(*output_op_desc, size,
                                                    MemReuseUtils::IsNeedSplitSize(n, output_index)),
-                      "Get node %s output %ld size failed", node_op_desc->GetNamePtr(), output_index);
+                      "Get node %s output %" PRId64 " size failed", node_op_desc->GetNamePtr(), output_index);
     max_size = static_cast<size_t>(size);
     GE_CHK_STATUS_RET(MemReuseUtils::GetOutputNoAlignSize(*node_op_desc, output_index, no_align_size),
                       "Get node_name:%s, output_index:%u no align size failed", n->GetNamePtr(), output_index);
@@ -3302,7 +3303,7 @@ Status BlockMemAssigner::GetOutputTotalSizeAndOutCount(const NodePtr &n, uint32_
       int64_t size = 0;
       GE_CHK_STATUS_RET(MemReuseUtils::GetTensorSize(*output_op_desc, size,
                                                      MemReuseUtils::IsNeedSplitSize(n, output_index)),
-                        "Get node %s out %ld size failed", in_node->GetNamePtr(), in_node_out_anchor->GetIdx());
+                        "Get node %s out %" PRId64 " size failed", in_node->GetNamePtr(), in_node_out_anchor->GetIdx());
       size_t align_size = static_cast<size_t>(size);
       MemReuseUtils::AlignMemOffset(align_size);
       total_size += align_size;
@@ -3558,9 +3559,9 @@ MemoryBlock *BlockMemAssigner::ApplyOutDescMemory(const NodePtr &n, uint32_t ind
     ApplyMemoryParam param = {block_size, size, size, kOutputDesc, index, false, false, RT_MEMORY_HBM, false};
     block = ApplyMemory(n, workspace_reuse_flag, param);
     if (block == nullptr) {
-      REPORT_INNER_ERR_MSG("E19999", "apply out desc Memory failed, node_name:%s, block_size:%ld, out_index:%u",
+      REPORT_INNER_ERR_MSG("E19999", "apply out desc Memory failed, node_name:%s, block_size:%" PRId64 ", out_index:%u",
                         n->GetNamePtr(), block_size, index);
-      GELOGE(FAILED, "[Apply][Memory]node_name:%s, block_size:%ld, out_index:%u", n->GetNamePtr(),
+      GELOGE(FAILED, "[Apply][Memory]node_name:%s, block_size:%" PRId64 ", out_index:%u", n->GetNamePtr(),
              block_size, index);
       return nullptr;
     }
@@ -3624,7 +3625,7 @@ bool BlockMemAssigner::IsAtomicOutputMemory(const ge::NodePtr &node, uint32_t ou
     for (auto &index : atomic_output_index) {
       if (static_cast<uint32_t>(index) == output_index) {
         if (node->GetOwnerComputeGraphBarePtr() != nullptr) {
-          GELOGD("Atomic no assign %s name[%s] output[%ld] streamid[%ld].",
+          GELOGD("Atomic no assign %s name[%s] output[%" PRId64 "] streamid[%" PRId64 "].",
                  node->GetOwnerComputeGraphBarePtr()->GetName().c_str(), op_desc->GetNamePtr(), index,
                  GetStreamId(op_desc));
         }
@@ -3712,14 +3713,14 @@ void BlockMemAssigner::ReleaseMemory(MemoryBlock *const to_release, std::vector<
       if (node_type_index_list.back().ref_input_) {
         to_release->SetOutStreamCount(streams.size());
       }
-      GELOGI("Diff stream output node:%s max life time:%ld, back is ref: %d, streams size: %zu",
+      GELOGI("Diff stream output node:%s max life time:%" PRId64 ", back is ref: %d, streams size: %zu",
              node_type_index.node_->GetNamePtr(), max_life_time, node_type_index_list.back().ref_input_,
              streams.size());
       if (to_release->GetFirstContinuousFlag() && to_release->GetLastContinuousFlag()) {
         GetContinuousOutputMaxLifeBySymbol(node_type_index.node_, symbol_to_anchors_, max_node_life_time_by_symbol,
             out_stream_edges_);
       }
-      GELOGI("Diff stream output node:%s max life time:%ld by symbol", node_type_index.node_->GetNamePtr(),
+      GELOGI("Diff stream output node:%s max life time:%" PRId64 " by symbol", node_type_index.node_->GetNamePtr(),
              max_node_life_time_by_symbol);
     }
   }
@@ -3753,7 +3754,7 @@ void BlockMemAssigner::ReleaseMemory(MemoryBlock *const to_release, std::vector<
   reusable_memory.emplace_back(to_release);
   to_release->ClearOutStreamLifeInfo();
   to_release->used_by_diff_streams_ = false;
-  GELOGD("Put block:%s to pool stream:%ld max life time:%ld", GetName(*to_release, true).c_str(),
+  GELOGD("Put block:%s to pool stream:%" PRId64 " max life time:%" PRId64 "", GetName(*to_release, true).c_str(),
          to_release->stream_id_, max_life_time);
 }
 
@@ -3770,7 +3771,7 @@ void BlockMemAssigner::ReleaseMemorys(StreamIdToBlocks &to_releases,
                       output ? mem_block->SymbolList().back() : "", false);
       }
     }
-    GELOGD("Clear stream:%ld workspace blocks", stream_blocks.first);
+    GELOGD("Clear stream:%" PRId64 " workspace blocks", stream_blocks.first);
     stream_blocks.second.clear();
   }
 }
@@ -3848,7 +3849,7 @@ void BlockMemAssigner::CheckAndReleaseSuspendedBlock(const NodePtr &node, uint32
     block->ref_count_ = 1;
     stream_workspace_blocks_[block->memory_type_][block->stream_id_].emplace_back(block);
     GELOGI("The output is suspended, and will be released in allocation of next node. Name:%s, index:%u, "
-           "size:%zu, ref_count:%d, batch:%s, stream:%ld, reuse_mem:%d.", node->GetNamePtr(), idx, block->Size(),
+           "size:%zu, ref_count:%d, batch:%s, stream:%" PRId64 ", reuse_mem:%d.", node->GetNamePtr(), idx, block->Size(),
            block->ref_count_, block->batch_label_.c_str(), block->stream_id_, block->reuse_mem_);
   }
 }
@@ -3924,7 +3925,7 @@ Status BlockMemAssigner::AssignOutputMemoryWithReuse(const NodePtr &node, std::v
 
     // fusion: other type's size not means malloc HBM memory
     if (has_mem_type_attr && ((memorys_type[i] == RT_MEMORY_L1) || (memorys_type[i] == kRtMemoryUB))) {
-      GELOGI("fusion: node[%s], output[%s], output memory type [%ld]",
+      GELOGI("fusion: node[%s], output[%s], output memory type [%" PRId64 "]",
              op_desc->GetNamePtr(), op_desc->GetOutputNameByIndex(i).c_str(), memorys_type[i]);
       size = 0;  // no need assgin block memory
     }
@@ -4041,7 +4042,7 @@ Status BlockMemAssigner::AssignWorkSpaceMemoryWithReuse(const NodePtr &node, std
     if (has_tvm_workspace_mem_type_attr && ((tvm_workspace_types[i] == RT_MEMORY_L1)
                                             || (tvm_workspace_types[i] == kRtMemoryUB))) {
       GELOGI(
-          "fusion:node[%s]workspace index[%zu] is not hbm type, add to zero_memory_list, workspace memory type [%ld]",
+          "fusion:node[%s]workspace index[%zu] is not hbm type, add to zero_memory_list, workspace memory type [%" PRId64 "]",
           node_op_desc->GetNamePtr(), i, tvm_workspace_types[i]);
       workspace_skip_flag = true;
     }
@@ -4252,10 +4253,10 @@ void BlockMemAssigner::GetNodeWorkSpaceSize(const NodePtr &node, std::vector<int
   for (int64_t byte_size : workspace_byte_nums) {
     if ((byte_size < 0) && (byte_size != -1)) {
       // 后面校验range时会返回流程失败，这里只是补充日志
-      GELOGE(FAILED, "[Check][Workspace]workspace_size:%ld is invalid, "
+      GELOGE(FAILED, "[Check][Workspace]workspace_size:%" PRId64 " is invalid, "
                      "maybe it is unknown shape node, Node_name:%s",
              byte_size, node->GetOpDescBarePtr()->GetNamePtr());
-      REPORT_INNER_ERR_MSG("E19999", "workspace_size:%ld is invalid, "
+      REPORT_INNER_ERR_MSG("E19999", "workspace_size:%" PRId64 " is invalid, "
                                    "maybe it is unknown shape node, Node_name:%s",
                          byte_size, node->GetOpDescBarePtr()->GetNamePtr());
       workspace_memory.emplace_back(byte_size);
@@ -4264,7 +4265,7 @@ void BlockMemAssigner::GetNodeWorkSpaceSize(const NodePtr &node, std::vector<int
     byte_size = (byte_size < 0) ? 0 : byte_size;
     workspace_memory.emplace_back(byte_size);
     total_size += byte_size;
-    GELOGI("node[%s] workspace_byte_nums:%zu, push back size:%ld", node->GetOpDescBarePtr()->GetNamePtr(),
+    GELOGI("node[%s] workspace_byte_nums:%zu, push back size:%" PRId64 "", node->GetOpDescBarePtr()->GetNamePtr(),
            workspace_byte_nums.size(), byte_size);
   }
 }
@@ -4327,7 +4328,7 @@ void BlockMemAssigner::AssignContinuousBlocks() {
     const auto it = node_continuous_input_counts_.find(block_map.first);
     GE_IF_BOOL_EXEC(it == node_continuous_input_counts_.end(), continue);
     const bool size_independent = SizeIndependentOfBatch(it->second.first);
-    GELOGI("Node %ld continuous input block count:%zu input count:%u, size_independent:%d", block_map.first,
+    GELOGI("Node %" PRId64 " continuous input block count:%zu input count:%u, size_independent:%d", block_map.first,
            block_map.second.size(), it->second.second, static_cast<int32_t>(size_independent));
     GE_IF_BOOL_EXEC(it->second.second != block_map.second.size(), continue);
 
@@ -4340,7 +4341,7 @@ void BlockMemAssigner::AssignContinuousBlocks() {
       }
     }
     if (continuous_block_map.size() != continuous_blocks.size()) {
-      GELOGW("Node %ld continuous input map size:%zu vector size:%zu", block_map.first,
+      GELOGW("Node %" PRId64 " continuous input map size:%zu vector size:%zu", block_map.first,
              continuous_block_map.size(), continuous_blocks.size());
       continue;
     }
@@ -4540,7 +4541,7 @@ void BlockMemAssigner::SetOffsetSize(const NodeTypeIndex &node_type, const Memor
                     (void)AttrUtils::SetInt(tensor, ATTR_NAME_TENSOR_DESC_MEM_OFFSET, offset));
   }
   GELOGI(
-      "[IMAS]Set %s name[%s] optype[%s] %s[%u] offset to [%ld] streamid[%s] memtype[%lu] size[%zu] realsize[%zu] "
+      "[IMAS]Set %s name[%s] optype[%s] %s[%u] offset to [%" PRId64 "] streamid[%s] memtype[%lu] size[%zu] realsize[%zu] "
       "noalignsize[%zu] life time begin[%s] life time end[%s] child[%d:%d:%d:%d:%d] isref[%d] batch[%s], "
       "block_type[%s]",
       MemReuseUtils::GetGraphNameId(compute_graph_.get()).c_str(), op_desc->GetName().substr(0, kMaxLogLen).c_str(),
@@ -4611,10 +4612,10 @@ void BlockMemAssigner::SetOpMemOffset(bool is_zero_copy) const {
 
     for (const auto &attr : int_attr_) {
       if (!ge::AttrUtils::SetInt(attr.ptr_, attr.name_, attr.value_)) {
-        GELOGW("Set %s attr %s to %ld failed.", attr.desc_->GetNamePtr(), attr.name_.c_str(), attr.value_);
+        GELOGW("Set %s attr %s to %" PRId64 " failed.", attr.desc_->GetNamePtr(), attr.name_.c_str(), attr.value_);
         continue;
       }
-      GELOGD("Set %s attr %s to %ld success.", attr.desc_->GetNamePtr(), attr.name_.c_str(), attr.value_);
+      GELOGD("Set %s attr %s to %" PRId64 " success.", attr.desc_->GetNamePtr(), attr.name_.c_str(), attr.value_);
     }
   }
   for (MemoryBlock *memory_block : memory_blocks_) {
@@ -4660,8 +4661,8 @@ void BlockMemAssigner::SetOffsetForContinuousMem() const {
         out_offsets[node_index.index_] = offset;
         op_desc->SetOutputOffset(out_offsets);
         const auto align_size = continuous_mem.GetAlignedSizes().at(i);
-        GELOGI("[ContinuousMem][IMAS]Continuous input : Set %s name[%s] optype[%s] output[%d] offset to [%ld] "
-            "stream_id[%ld] memtype[%ld] size[%zu] realsize[%ld] nopadding[%d], block_type[%s]",
+        GELOGI("[ContinuousMem][IMAS]Continuous input : Set %s name[%s] optype[%s] output[%d] offset to [%" PRId64 "] "
+            "stream_id[%" PRId64 "] memtype[%" PRId64 "] size[%zu] realsize[%" PRId64 "] nopadding[%d], block_type[%s]",
             MemReuseUtils::GetGraphNameId(compute_graph_.get()).c_str(),
             op_desc->GetName().substr(0, kMaxLogLen).c_str(),
             op_desc->GetType().c_str(), node_index.index_, offset,

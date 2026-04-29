@@ -86,9 +86,9 @@ Status CtrlNodeConflict::SolveNodesConflict(const ComputeGraphPtr &graph,
 Status CtrlNodeConflict::SolveOneSubGraphConflict(const ComputeGraphPtr &sub_graph) {
   std::vector<InDataAnchorPtr> in_data_anchors;
   GE_ASSERT_SUCCESS(MemLayoutConflictUtil::CheckOneSubGraphConflict(sub_graph, in_data_anchors),
-                    "[Call][CheckOneSubGraphConflict] faild.");
+                    "[Call][CheckOneSubGraphConflict] failed.");
   if (!in_data_anchors.empty()) {
-    GE_ASSERT_SUCCESS(SolveNodesConflict(sub_graph, in_data_anchors), "[Call][SolveOneNodeConflict] faild.");
+    GE_ASSERT_SUCCESS(SolveNodesConflict(sub_graph, in_data_anchors), "[Call][SolveOneNodeConflict] failed.");
     GELOGD("[MemConflict][Conflict] Insert identity node at input of subgraph[%s].", sub_graph->GetName().c_str());
     return SUCCESS;
   }
@@ -111,7 +111,7 @@ Status CtrlNodeConflict::InsertInputIdentity(const ComputeGraphPtr &graph, const
     in_data_anchors.emplace_back(in_data_anchor);
   }
 
-  GE_ASSERT_SUCCESS(SolveNodesConflict(graph, in_data_anchors), "[Call][SolveOneNodeConflict] faild.");
+  GE_ASSERT_SUCCESS(SolveNodesConflict(graph, in_data_anchors), "[Call][SolveOneNodeConflict] failed.");
   GELOGI("[MemConflict][Conflict] Data to netoutput with exchange order, inserted identity node"
          " at input of while_body [%s].", graph->GetName().c_str());
   return SUCCESS;
@@ -171,7 +171,7 @@ Status CtrlNodeConflict::SolveWhileConflict(const NodePtr &ctrl_node) {
   std::set<uint32_t> bypass_index_no_change;
   GE_ASSERT_SUCCESS(MemLayoutConflictUtil::GetWhileBodyDataToNetoutputNodes(
                       while_body, data_nodes_change, bypass_index_no_change),
-                      "[Call][GetWhileBodyDataToNetoutputNodes] faild.");
+                      "[Call][GetWhileBodyDataToNetoutputNodes] failed.");
 
   const auto netoutput = while_body->GetOrUpdateNetOutputNode();
   GE_CHECK_NOTNULL(netoutput);
@@ -180,11 +180,11 @@ Status CtrlNodeConflict::SolveWhileConflict(const NodePtr &ctrl_node) {
   GE_ASSERT_SUCCESS(MemLayoutConflictUtil::IsWhileNeedInsertIdentityAtOutput(while_body, is_need_insert));
   if (is_need_insert) {
     GE_ASSERT_SUCCESS(InsertOutputIdentity(while_body, netoutput, bypass_index_no_change),
-                      "[Call][InsertOutputIdentity] faild.");
+                      "[Call][InsertOutputIdentity] failed.");
   }
 
   // 先插输出的identity，后插输入的identity。插输出的时候会判断前一个如果是identity就不插了
-  GE_ASSERT_SUCCESS(InsertInputIdentity(while_body, data_nodes_change), "[Call][InsertInputIdentity] faild.");
+  GE_ASSERT_SUCCESS(InsertInputIdentity(while_body, data_nodes_change), "[Call][InsertInputIdentity] failed.");
 
   return SUCCESS;
 }
@@ -195,7 +195,7 @@ Status CtrlNodeConflict::SolveCtrlNodeSubGraphConflict(const ComputeGraphPtr &gr
     const auto node_type = node->GetType();
     if (get_subgraph_solve_call.find(node_type) != get_subgraph_solve_call.end()) {
       GE_ASSERT_SUCCESS(get_subgraph_solve_call[node_type](node),
-                        "[Call]subgraph_solve_call faild, node name: %s, node type: %s.",
+                        "[Call]subgraph_solve_call failed, node name: %s, node type: %s.",
                         node->GetName().c_str(), node->GetType().c_str());
     }
   }

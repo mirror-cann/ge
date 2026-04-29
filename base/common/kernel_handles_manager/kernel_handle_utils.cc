@@ -18,7 +18,7 @@ void LogLaunchKernelParam(const LaunchKernelParam &launch_param) {
       launch_param.block_dim, launch_param.args_size, launch_param.is_host_args);
   GELOGI("LaunchKernelConfig info: schedule_mode = %u, local_memory_size = %u, " 
       "engine_type = %d, block_dim_offset = %u, is_block_task_prefetch = %d, " 
-      "is_data_dump = %d, time_out = %u",
+      "is_data_dump = %d, time_out = %d s",
       static_cast<uint32_t>(launch_param.launch_config.schedule_mode),
       launch_param.launch_config.local_memory_size,
       static_cast<int32_t>(launch_param.launch_config.engine_type),

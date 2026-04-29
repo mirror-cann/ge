@@ -9,6 +9,7 @@
  */
 
 #include "graph/build/graph_builder.h"
+#include <cinttypes>
 #include "graph/build/memory/graph_mem_assigner.h"
 #include "common/plugin/ge_make_unique_util.h"
 #include "framework/common/helper/model_helper.h"
@@ -278,8 +279,8 @@ Status GraphBuilder::UpdateParentNodeOutputSize(const ge::ComputeGraphPtr &graph
 Status GraphBuilder::Build(ComputeGraphPtr &comp_graph, GeRootModelPtr &ge_root_model_ptr, uint64_t session_id) {
   FuncPerfScope func_perf_scope("GraphBuilder", __FUNCTION__);
   if (comp_graph == nullptr) {
-    REPORT_INNER_ERR_MSG("E19999", "check compute_graph nullptr, session_id:%lu", session_id);
-    GELOGE(GE_GRAPH_PARAM_NULLPTR, "[Check][Param] comp_graph is null, session_id:%lu", session_id);
+    REPORT_INNER_ERR_MSG("E19999", "check compute_graph nullptr, session_id:%" PRIu64 "", session_id);
+    GELOGE(GE_GRAPH_PARAM_NULLPTR, "[Check][Param] comp_graph is null, session_id:%" PRIu64 "", session_id);
     return GE_GRAPH_PARAM_NULLPTR;
   }
   ge_root_model_ptr = MakeShared<ge::GeRootModel>();
@@ -299,11 +300,11 @@ Status GraphBuilder::Build(ComputeGraphPtr &comp_graph, GeRootModelPtr &ge_root_
   if (is_dynamic_shape || comp_graph->GetGraphUnknownFlag()) {
     GE_CHK_STATUS_RET(
         BuildForDynamicShapeGraph(comp_graph, ge_root_model_ptr, ge_model_ptr, session_id, true),
-        "[Build][DynamicShapeGraph] failed, graph:%s, session id:%lu.", comp_graph->GetName().c_str(), session_id);
+        "[Build][DynamicShapeGraph] failed, graph:%s, session id:%" PRIu64 ".", comp_graph->GetName().c_str(), session_id);
     GE_ASSERT_SUCCESS(ge_root_model_ptr->Initialize(comp_graph));
   } else {
     GE_CHK_STATUS_RET(BuildForKnownShapeGraph(comp_graph, ge_model_ptr, session_id, true),
-                      "[Build][KnownShapeGraph] failed, graph:%s, session id:%lu.",
+                      "[Build][KnownShapeGraph] failed, graph:%s, session id:%" PRIu64 ".",
                       comp_graph->GetName().c_str(), session_id);
     GE_ASSERT_SUCCESS(ge_root_model_ptr->Initialize(comp_graph));
     ge_root_model_ptr->SetModelName(ge_model_ptr->GetName());
@@ -673,7 +674,7 @@ Status GraphBuilder::BuildForUnknownShapeAllGraphs(ComputeGraphPtr &comp_graph,
     if (sub_graph->GetGraphUnknownFlag()) {
       // unknown shape build flow
       GE_CHK_STATUS_RET(BuildForUnknownShapeGraph(sub_graph, ge_model_ptr, session_id),
-                        "[Build][Graph] as unknown shape failed, session id:%lu.", session_id);
+                        "[Build][Graph] as unknown shape failed, session id:%" PRIu64 ".", session_id);
     } else {
       // reset functional subgraph parent graph as known subgraph
       for (const auto &node : sub_graph->GetAllNodes()) {
@@ -686,7 +687,7 @@ Status GraphBuilder::BuildForUnknownShapeAllGraphs(ComputeGraphPtr &comp_graph,
       }
       // known shape build flow
       GE_CHK_STATUS_RET(BuildForKnownShapeGraph(sub_graph, ge_model_ptr, session_id, has_assigned_var_mem),
-                        "[Build][Graph] for known shape failed, session id:%lu.", session_id);
+                        "[Build][Graph] for known shape failed, session id:%" PRIu64 ".", session_id);
     }
     const auto &model_info = ge_root_model_ptr->GetSubgraphInstanceNameToModel();
     GE_ASSERT_TRUE(model_info.find(sub_graph->GetName()) == model_info.end());
@@ -746,7 +747,7 @@ Status GraphBuilder::GetCurrentRunContext(const ge::ModelBuilder &builder, const
                                           ComputeGraphPtr &comp_graph, uint64_t session_id) {
   int64_t memory_size = 0;
   GE_ASSERT_TRUE(AttrUtils::GetInt(model_ptr, ATTR_MODEL_MEMORY_SIZE, memory_size),
-                 "[Get][Attr] memory size fail, graph:%s, session id:%lu.", comp_graph->GetName().c_str(), session_id);
+                 "[Get][Attr] memory size fail, graph:%s, session id:%" PRIu64 ".", comp_graph->GetName().c_str(), session_id);
 
   int64_t p2p_memory_size = 0;
   GE_ASSERT_TRUE(AttrUtils::GetInt(model_ptr, ATTR_MODEL_P2P_MEMORY_SIZE, p2p_memory_size),

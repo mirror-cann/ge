@@ -72,14 +72,14 @@ ge::GNode Build() const
 auto ge_graph = std::make_unique<ge::Graph>("graph");
 auto add_node = ge::es::CompliantNodeBuilder(ge_graph.get()).OpType("Add")
       .Name("add_0")
-      .IrDefInputs({
+      .IrDefInputsV2({
           {"x1", ge::es::CompliantNodeBuilder::kEsIrInputRequired, ""},
           {"x2", ge::es::CompliantNodeBuilder::kEsIrInputRequired, ""},
       })  
-      .IrDefOutputs({
+      .IrDefOutputsV2({
           {"y", ge::es::CompliantNodeBuilder::kEsIrOutputRequired, ""},
       })  
-      .IrDefAttrs({
+      .IrDefAttrsV2({
       })  
       .Build();
 // 示例中通过链式调用根据Add的ir原型，在图中创建了一个Add算子的实例add_0

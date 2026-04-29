@@ -9,6 +9,8 @@
  */
 
 #include <gtest/gtest.h>
+#include <cstdio>
+#include <fstream>
 #include <memory>
 #include "ge_graph_dsl/graph_dsl.h"
 
@@ -26,6 +28,7 @@
 
 #include "graph/node.h"
 #include "graph/preprocess/graph_prepare.h"
+#include "graph/preprocess/hccl_offline_option_builder.h"
 #include "ge/ge_api.h"
 #include "macro_utils/dt_public_unscope.h"
 #include "common/share_graph.h"
@@ -41,6 +44,17 @@ class UtestGraphPreproces : public testing::Test {
   void TearDown() {
   }
 };
+
+namespace {
+bool WriteTextFile(const std::string &file_path, const std::string &content) {
+  std::ofstream ofs(file_path, std::ios::out | std::ios::trunc);
+  if (!ofs.is_open()) {
+    return false;
+  }
+  ofs << content;
+  return ofs.good();
+}
+}
 
 static ge::OpDescPtr CreateOpDesc(string name = "", string type = "") {
   auto op_desc = std::make_shared<ge::OpDesc>(name, type);
@@ -1885,6 +1899,52 @@ TEST_F(UtestGraphPreproces, test_verify_const_op) {
   // shape = [x, y, 0,...], type = DT_INT4
   node = construct_constant_node({}, {1, 0}, DT_INT4);
   EXPECT_EQ(graph_prepare.VerifyConstOp(node), SUCCESS);
+}
+
+TEST_F(UtestGraphPreproces, hccl_offline_option_builder_initialize_success) {
+  const std::string logic_topo_config = "./hccl_offline_option_builder_logic_ut.json";
+  const std::string hccl_sub_comm_config = "./hccl_offline_option_builder_sub_ut.json";
+  ASSERT_TRUE(WriteTextFile(logic_topo_config,
+                            R"({"RankTable":[{"rank_id":"0"}],"HcclCommConfig":{"graph_mode":"0"}})"));
+  ASSERT_TRUE(WriteTextFile(hccl_sub_comm_config,
+                            R"({"group_list":[{"group_name":"g0","group_rank_list":[0,1]}]})"));
+
+  auto &builder = HcclOfflineOptionBuilder::Instance();
+  builder.Finalize();
+  EXPECT_EQ(builder.Initialize("Ascend910B1", logic_topo_config, hccl_sub_comm_config), SUCCESS);
+  EXPECT_TRUE(builder.IsInitialized());
+  EXPECT_EQ(builder.GetLogicRankTable(), R"([{"rank_id":"0"}])");
+  EXPECT_EQ(builder.GetHcclCommConfig(), R"({"graph_mode":"0"})");
+  EXPECT_EQ(builder.GetHcomGrouplist(), R"({"group_list":[{"group_name":"g0","group_rank_list":[0,1]}]})");
+  EXPECT_EQ(builder.GetSocVersion(), "Ascend910B1");
+
+  builder.Finalize();
+  EXPECT_FALSE(builder.IsInitialized());
+  EXPECT_TRUE(builder.GetLogicRankTable().empty());
+  EXPECT_TRUE(builder.GetHcclCommConfig().empty());
+  EXPECT_TRUE(builder.GetHcomGrouplist().empty());
+  EXPECT_TRUE(builder.GetSocVersion().empty());
+
+  (void)std::remove(logic_topo_config.c_str());
+  (void)std::remove(hccl_sub_comm_config.c_str());
+}
+
+TEST_F(UtestGraphPreproces, hccl_offline_option_builder_skip_when_sub_comm_config_empty) {
+  const std::string logic_topo_config = "./hccl_offline_option_builder_logic_skip_ut.json";
+  ASSERT_TRUE(WriteTextFile(logic_topo_config,
+                            R"({"RankTable":[{"rank_id":"0"}],"HcclCommConfig":{"graph_mode":"0"}})"));
+
+  auto &builder = HcclOfflineOptionBuilder::Instance();
+  builder.Finalize();
+  EXPECT_EQ(builder.Initialize("Ascend910B1", logic_topo_config, ""), SUCCESS);
+  EXPECT_FALSE(builder.IsInitialized());
+  EXPECT_TRUE(builder.GetLogicRankTable().empty());
+  EXPECT_TRUE(builder.GetHcclCommConfig().empty());
+  EXPECT_TRUE(builder.GetHcomGrouplist().empty());
+  EXPECT_EQ(builder.GetSocVersion(), "Ascend910B1");
+
+  builder.Finalize();
+  (void)std::remove(logic_topo_config.c_str());
 }
 // test storage format end
 }

@@ -9,6 +9,7 @@
  */
 
 #include "stream_allocator.h"
+#include <cinttypes>
 #include <algorithm>
 #include <memory>
 #include "common/plugin/ge_make_unique_util.h"
@@ -244,7 +245,7 @@ ge::Status GetDependNodesByValueList(const ge::NodePtr &cur_node, const std::vec
   for (const auto &index : index_list) {
     auto iter = ir_input_2_range.find(static_cast<size_t>(index));
     GE_ASSERT(iter != ir_input_2_range.end());
-    GELOGI("node name[%s], type[%s], ir index[%ld], instance index[%zu][%zu]",
+    GELOGI("node name[%s], type[%s], ir index[%" PRId64 "], instance index[%zu][%zu]",
             cur_node->GetNamePtr(), cur_node->GetTypePtr(), index, iter->second.first, iter->second.second);
     for (size_t i = iter->second.first; i < iter->second.first + iter->second.second; ++i) {
       const auto &in_data_anchor = cur_node->GetInDataAnchor(i);
@@ -297,7 +298,7 @@ void CollectSubgraphStreams(const OpDescPtr &op_desc, std::set<int64_t> &subgrap
   for (auto stream_id : all_streams) {
     if (stream_id != kInvalidStream) {
       subgraph_streams.emplace(stream_id);
-      GELOGI("Get valid stream %ld from node %s %s", stream_id, op_desc->GetNamePtr(), op_desc->GetTypePtr());
+      GELOGI("Get valid stream %" PRId64 " from node %s %s", stream_id, op_desc->GetNamePtr(), op_desc->GetTypePtr());
     }
   }
 }
@@ -569,15 +570,15 @@ Status StreamAllocator::InsertOneEventInTwoNodesWithAttachedStream(const EventTy
   if (src_attached_stream_id == kInvalidStream && dst_attached_stream_id != kInvalidStream) {
     // Add send and receive events.
     GE_ASSERT_SUCCESS(AddEventPair(src_node, dst_node, node_to_send_events_, attached_node_to_recv_events_));
-    GELOGI("Insert event %u between node %s(stream %ld) and %s(stream %ld)", event_num_, src_node->GetName().c_str(),
+    GELOGI("Insert event %u between node %s(stream %" PRId64 ") and %s(stream %" PRId64 ")", event_num_, src_node->GetName().c_str(),
             src_desc->GetStreamId(), dst_node->GetName().c_str(), dst_attached_stream_id);
   } else if (src_attached_stream_id != kInvalidStream && dst_attached_stream_id != kInvalidStream) {
     GE_ASSERT_SUCCESS(AddEventPair(src_node, dst_node, attached_node_to_send_events_, attached_node_to_recv_events_));
-    GELOGI("Insert event %u between node %s(stream %ld) and %s(stream %ld)", event_num_, src_node->GetName().c_str(),
+    GELOGI("Insert event %u between node %s(stream %" PRId64 ") and %s(stream %" PRId64 ")", event_num_, src_node->GetName().c_str(),
             src_attached_stream_id, dst_node->GetName().c_str(), dst_attached_stream_id);
   } else {
     GE_ASSERT_SUCCESS(AddEventPair(src_node, dst_node, attached_node_to_send_events_, node_to_recv_events_));
-    GELOGI("Insert event %u between node %s(stream %ld) and %s(stream %ld)", event_num_, src_node->GetName().c_str(),
+    GELOGI("Insert event %u between node %s(stream %" PRId64 ") and %s(stream %" PRId64 ")", event_num_, src_node->GetName().c_str(),
             src_attached_stream_id, dst_node->GetName().c_str(), dst_desc->GetStreamId());
   }
   return SUCCESS;
@@ -668,7 +669,7 @@ Status StreamAllocator::InsertSyncNodesByLogicStream(int64_t &stream_num, int64_
   event_num = static_cast<int64_t>(event_num_);
   notify_num = static_cast<int64_t>(notify_num_);
 
-  GELOGI("After InsertSyncNodesByLogicStream, graph:%s, stream num:%ld, notify num:%u, event num:%u.",
+  GELOGI("After InsertSyncNodesByLogicStream, graph:%s, stream num:%" PRId64 ", notify num:%u, event num:%u.",
          whole_graph_->GetName().c_str(), stream_num_, notify_num_, event_num_);
   return SUCCESS;
 }
@@ -706,7 +707,7 @@ Status StreamAllocator::SplitStreamAndRefreshTaskDef(
   stream_num = stream_num_;
   event_num = static_cast<int64_t>(event_num_);
   notify_num = static_cast<int64_t>(notify_num_);
-  GELOGI("After SplitStreamAndRefreshTaskDef, graph:%s, stream num:%ld, notify num:%u, event num:%u.",
+  GELOGI("After SplitStreamAndRefreshTaskDef, graph:%s, stream num:%" PRId64 ", notify num:%u, event num:%u.",
          whole_graph_->GetName().c_str(), stream_num_, notify_num_, event_num_);
   return SUCCESS;
 }
@@ -740,9 +741,9 @@ Status StreamAllocator::AssignSingleStream(
   }
 
   if (main_stream_num_ > 1) {
-    REPORT_INNER_ERR_MSG("E19999", "The number of ts streams is %ld, only one is supported",
+    REPORT_INNER_ERR_MSG("E19999", "The number of ts streams is %" PRId64 ", only one is supported",
                        main_stream_num_);
-    GELOGE(FAILED, "[Check][Param] The number of ts streams is %ld, only one is supported.", main_stream_num_);
+    GELOGE(FAILED, "[Check][Param] The number of ts streams is %" PRId64 ", only one is supported.", main_stream_num_);
     return FAILED;
   }
 
@@ -777,11 +778,11 @@ Status StreamAllocator::AssignSingleStream(
     status = GetMaxStreamAndTask(true, max_huge_stream_count, max_huge_task_count);
     if (status == SUCCESS) {
       int64_t huge_stream = 0;
-      GELOGI("Use huge stream %ld.", huge_stream);
+      GELOGI("Use huge stream %" PRId64 ".", huge_stream);
       huge_streams_.emplace_back(huge_stream);
     } else {
       GELOGW(
-          "The estimated task count %ld is greater than the max count of normal stream,"
+          "The estimated task count %" PRId64 " is greater than the max count of normal stream,"
           " but the huge stream is not supported.",
           task_count);
     }
@@ -818,7 +819,7 @@ Status StreamAllocator::SetActiveStreamsByLabel() {
         activated_stream_list.push_back(static_cast<uint32_t>(activated_stream));
         specific_activated_streams_.emplace(activated_stream);
         specific_activated_streams_nodes_map_[activated_stream].emplace(node);
-        GELOGI("Node %s active stream %ld by %s.", node->GetName().c_str(), activated_stream, activated_label.c_str());
+        GELOGI("Node %s active stream %" PRId64 " by %s.", node->GetName().c_str(), activated_stream, activated_label.c_str());
       }
     }
     GE_CHK_BOOL_EXEC(AttrUtils::SetListInt(node->GetOpDesc(), ATTR_NAME_ACTIVE_STREAM_LIST, activated_stream_list),
@@ -994,14 +995,14 @@ Status StreamAllocator::InsertOneEventInTwoNodes(const EventType insert_event_ty
     StreamUtils::AddSendEventId(cur_node, notify_num_, node_to_send_notifies_);
     StreamUtils::AddRecvEventId(next_node, notify_num_, node_to_recv_notifies_);
     ++notify_num_;
-    GELOGI("Insert notify %u between node %s(stream %ld) and %s(stream %ld)", notify_num_, cur_node->GetName().c_str(),
+    GELOGI("Insert notify %u between node %s(stream %" PRId64 ") and %s(stream %" PRId64 ")", notify_num_, cur_node->GetName().c_str(),
            cur_stream_id, next_node->GetName().c_str(), next_stream_id);
   } else {
     // Add send and receive events.
     StreamUtils::AddSendEventId(cur_node, event_num_, node_to_send_events_);
     StreamUtils::AddRecvEventId(next_node, event_num_, node_to_recv_events_);
     ++event_num_;
-    GELOGI("Insert event %u between node %s(stream %ld) and %s(stream %ld)", event_num_, cur_node->GetName().c_str(),
+    GELOGI("Insert event %u between node %s(stream %" PRId64 ") and %s(stream %" PRId64 ")", event_num_, cur_node->GetName().c_str(),
            cur_stream_id, next_node->GetName().c_str(), next_stream_id);
   }
 
@@ -1226,12 +1227,12 @@ Status StreamAllocator::SplitStreamForOneNode(StreamSplitNodeInfo &stream_split_
   const auto &op_desc = cur_node->GetOpDesc();
   GE_ASSERT_NOTNULL(op_desc);
   const int64_t stream_id = stream_split_node_info.stream_id;
-  GELOGD("Try split stream for node {%s %s} with stream_id: %ld, is_split_for_attached_stream: %d",
+  GELOGD("Try split stream for node {%s %s} with stream_id: %" PRId64 ", is_split_for_attached_stream: %d",
          op_desc->GetNamePtr(), op_desc->GetTypePtr(), stream_id, stream_split_node_info.split_for_attached_stream);
   if (stream_id == kInvalidStream) {
     return SUCCESS;
   }
-  GE_ASSERT_TRUE(stream_id <= helper.last_stream_id, "op %s type %s stream_id(%ld) should <= last_stream_id(%ld)",
+  GE_ASSERT_TRUE(stream_id <= helper.last_stream_id, "op %s type %s stream_id(%" PRId64 ") should <= last_stream_id(%" PRId64 ")",
                  op_desc->GetNamePtr(), op_desc->GetTypePtr(), stream_id, helper.last_stream_id);
   stream_split_node_info.is_stream_first_node = (helper.stream_task_num_vec[stream_id] == 0);
   AddTaskNum(cur_node, helper.stream_task_num_vec[stream_id], stream_split_node_info.assigned_task_num,
@@ -1307,7 +1308,7 @@ Status StreamAllocator::CollectTaskSize(
       // const或者data节点的stream是-1，所以可能导致在其后面插入的event的stream是-1，不过流拆分的最后会把所有-1刷成0，
       // 所以这里计算task数量时针对有task的算子，需要将其stream id设置成0
       if (op_desc->GetStreamId() == kInvalidStream) {
-        GELOGW("node %s task size %zu, stream id %ld is invalid, will set 0", op_desc->GetNamePtr(), task_defs.size(),
+        GELOGW("node %s task size %zu, stream id %" PRId64 " is invalid, will set 0", op_desc->GetNamePtr(), task_defs.size(),
                op_desc->GetStreamId());
         op_desc->SetStreamId(0);
       }
@@ -1372,7 +1373,7 @@ Status StreamAllocator::SplitStreams(
     GE_ASSERT_NOTNULL(op_desc);
     auto &task_defs = node_id_2_node_tasks[op_desc->GetId()];
     const auto stream_id_to_task_size = node_id_to_task_num_infos_[op_desc->GetId()];
-    GELOGI("node: %s, type %s, topo id: %ld, logical stream id: %ld, real stream size: %zu, stream id to task size: %s",
+    GELOGI("node: %s, type %s, topo id: %" PRId64 ", logical stream id: %" PRId64 ", real stream size: %zu, stream id to task size: %s",
            op_desc->GetNamePtr(), op_desc->GetTypePtr(), op_desc->GetId(), op_desc->GetStreamId(),
            stream_id_to_task_size.size(), PrintStreamIdToTaskSize(stream_id_to_task_size).c_str());
 
@@ -1408,7 +1409,7 @@ Status StreamAllocator::SplitNodesToNewStream(const StreamSplitNodeInfo &stream_
                          stream_split_node_info.is_stream_first_node)) {
     helper.last_stream_id++;
     GELOGI(
-        "stream[%ld]'s task num[%ld] > max_task_num_one_stream[%u], split stream to %ld, first node[name: %s, "
+        "stream[%" PRId64 "]'s task num[%" PRId64 "] > max_task_num_one_stream[%u], split stream to %" PRId64 ", first node[name: %s, "
         "type: %s, owner graph: %s].",
         stream_id, (helper.stream_task_num_vec[stream_id] + kReservedTaskNum), helper.max_task_count,
         helper.last_stream_id, op_desc->GetName().c_str(), op_desc->GetType().c_str(),
@@ -1612,7 +1613,7 @@ Status StreamAllocator::UpdateActiveStreamsForActiveNode(const std::vector<std::
           if (split_stream == node_stream.second) {
             if (node_stream.first->GetOwnerComputeGraph() == node->GetOwnerComputeGraph()) {
               new_active_streams.emplace_back(static_cast<uint32_t>(split_stream));
-              GELOGI("Add stream %ld to active_stream_list of node %s of graph %s", split_stream,
+              GELOGI("Add stream %" PRId64 " to active_stream_list of node %s of graph %s", split_stream,
                      node->GetName().c_str(), node->GetOwnerComputeGraph()->GetName().c_str());
             }
             break;
@@ -1658,7 +1659,7 @@ Status StreamAllocator::UpdateActiveStreamsForSubgraphs() {
     }
     specific_activated_streams_.emplace(new_split_stream);
     if (new_split_stream == active_op->GetStreamId()) {
-      GELOGD("Node[%s] can not active its own stream[%ld].", active_op->GetName().c_str(), new_split_stream);
+      GELOGD("Node[%s] can not active its own stream[%" PRId64 "].", active_op->GetName().c_str(), new_split_stream);
       continue;
     }
     new_active_streams.emplace(static_cast<uint32_t>(new_split_stream));
@@ -1672,8 +1673,8 @@ Status StreamAllocator::UpdateActiveStreamsForSubgraphs() {
 bool StreamAllocator::IsActivated(int64_t stream_id) const {
   const auto &iter = split_stream_id_to_logic_stream_id_.find(stream_id);
   if (iter == split_stream_id_to_logic_stream_id_.end()) {
-    REPORT_INNER_ERR_MSG("E19999", "Find original stream_id failed, split_stream_id=%ld", stream_id);
-    GELOGE(INTERNAL_ERROR, "[CheckActivated][Check] Find original stream_id failed, split_stream_id=%ld", stream_id);
+    REPORT_INNER_ERR_MSG("E19999", "Find original stream_id failed, split_stream_id=%" PRId64 "", stream_id);
+    GELOGE(INTERNAL_ERROR, "[CheckActivated][Check] Find original stream_id failed, split_stream_id=%" PRId64 "", stream_id);
     return false;
   }
   for (const auto &node : whole_graph_->GetNodes(whole_graph_->GetGraphUnknownFlag())) {
@@ -1683,7 +1684,7 @@ bool StreamAllocator::IsActivated(int64_t stream_id) const {
       continue;
     }
     if (std::find(active_streams.begin(), active_streams.end(), stream_id) != active_streams.end()) {
-      GELOGD("Stream: %ld is activated by %s.", stream_id, node->GetName().c_str());
+      GELOGD("Stream: %" PRId64 " is activated by %s.", stream_id, node->GetName().c_str());
       return true;
     }
   }
@@ -1768,16 +1769,16 @@ Status StreamAllocator::SetActiveStreamsForLoop(bool is_before_split_stream,
           auto stream_id = iter.first;
           if (!is_before_split_stream && (static_cast<size_t>(stream_id) < split_streams.size()) &&
               split_streams[stream_id].empty()) {
-            GELOGI("Skip stream %ld which has add event to next iterator active node before split stream", iter.first);
+            GELOGI("Skip stream %" PRId64 " which has add event to next iterator active node before split stream", iter.first);
             continue;
           }
           if (streams_skip_iterator_event.find(iter.first) != streams_skip_iterator_event.end()) {
-            GELOGI("Skip stream %ld which has streamswitch node when adding event to next iterator active node",
+            GELOGI("Skip stream %" PRId64 " which has streamswitch node when adding event to next iterator active node",
                    iter.first);
             continue;
           }
           if (iter.second->GetOwnerComputeGraph()->GetParentGraph() != nullptr) {
-            GELOGI("Skip stream %ld which is last node in subgraph when adding event to next iterator active node",
+            GELOGI("Skip stream %" PRId64 " which is last node in subgraph when adding event to next iterator active node",
                    iter.first);
             continue;
           }
@@ -1857,7 +1858,7 @@ Status StreamAllocator::ReuseEvent(
 
 // Refresh (events && notifies) to reuse (events && notifies)
 Status StreamAllocator::RefreshEventsAndNotifiesWithReuse() {
-  GELOGI("[Refresh][Events]Refresh events with reuse, stream num:%ld, original event num:%u, original notify num:%u.",
+  GELOGI("[Refresh][Events]Refresh events with reuse, stream num:%" PRId64 ", original event num:%u, original notify num:%u.",
          stream_num_, event_num_, notify_num_);
 
   GE_CHK_STATUS_RET(ReuseEventForMultiDims(EventType::kEvent, node_to_send_events_, node_to_recv_events_),
@@ -2156,7 +2157,7 @@ Status StreamAllocator::InsertSyncSendEventNode(const NodePtr &node, const std::
     // topo id设置为当前图的最后，后面插完所有event可能会调用topo排序重新排序
     recv_node->GetOpDesc()->SetId(new_topo_id_);
     ++total_num;
-    GELOGI("Insert recv event node %s topo id %ld event id %u before node: %s with stream %ld.", recv_node_name.c_str(),
+    GELOGI("Insert recv event node %s topo id %" PRId64 " event id %u before node: %s with stream %" PRId64 ".", recv_node_name.c_str(),
            new_topo_id_, event_id, node->GetName().c_str(), temp_stream_id);
     new_topo_id_++;
   }
@@ -2200,7 +2201,7 @@ Status StreamAllocator::InsertSyncRecvEventNode(const NodePtr &node, const std::
     // topo id设置为当前图的最后，后面插完所有event可能会调用topo排序重新排序
     send_node->GetOpDesc()->SetId(new_topo_id_);
     ++total_num;
-    GELOGI("Insert send event node: %s topo id %ld event id %u after node: %s with stream: %ld.",
+    GELOGI("Insert send event node: %s topo id %" PRId64 " event id %u after node: %s with stream: %" PRId64 ".",
            send_node_name.c_str(), new_topo_id_, event_id, node->GetName().c_str(), temp_stream_id);
     new_topo_id_++;
   }
@@ -2249,7 +2250,7 @@ Status StreamAllocator::InsertSyncSendNotifyNode(const NodePtr &node, int32_t &t
     // topo id设置为当前图的最后，后面插完所有event可能会调用topo排序重新排序
     send_node->GetOpDesc()->SetId(new_topo_id_);
     ++total_num;
-    GELOGI("Insert send notify %u topo id %ld after node: %s.", notify_id, new_topo_id_, node->GetName().c_str());
+    GELOGI("Insert send notify %u topo id %" PRId64 " after node: %s.", notify_id, new_topo_id_, node->GetName().c_str());
     new_topo_id_++;
   }
   return SUCCESS;
@@ -2299,7 +2300,7 @@ Status StreamAllocator::InsertSyncRecvNotifyNode(const NodePtr &node, int32_t &t
     // topo id设置为当前图的最后，后面插完所有event可能会调用topo排序重新排序
     recv_node->GetOpDesc()->SetId(new_topo_id_);
     ++total_num;
-    GELOGI("Insert recv notify %u topo id %ld before node: %s.", notify_id, new_topo_id_, node->GetName().c_str());
+    GELOGI("Insert recv notify %u topo id %" PRId64 " before node: %s.", notify_id, new_topo_id_, node->GetName().c_str());
     new_topo_id_++;
   }
   return SUCCESS;
@@ -2386,7 +2387,7 @@ void StreamAllocator::DumpEvents(const EventType event_type,
 
   for (const auto &one_pair : after_refresh_stream_nodes) {
     int64_t stream_id = one_pair.first;
-    GELOGD("After RefreshRealStream: stream %ld.", stream_id);
+    GELOGD("After RefreshRealStream: stream %" PRId64 ".", stream_id);
 
     for (const auto &node : one_pair.second) {
       if (node == nullptr || node->GetOpDesc() == nullptr) {
@@ -2397,7 +2398,7 @@ void StreamAllocator::DumpEvents(const EventType event_type,
         send_event_str += " " + to_string(send_event_id);
       }
       if (!send_event_str.empty()) {
-        GELOGI("node: %s, id: %ld, stream id: %ld, send %ss:%s.", node->GetName().c_str(), node->GetOpDesc()->GetId(),
+        GELOGI("node: %s, id: %" PRId64 ", stream id: %" PRId64 ", send %ss:%s.", node->GetName().c_str(), node->GetOpDesc()->GetId(),
                node->GetOpDesc()->GetStreamId(), GetEventTypeStr(event_type).c_str(), send_event_str.c_str());
       }
 
@@ -2406,7 +2407,7 @@ void StreamAllocator::DumpEvents(const EventType event_type,
         recv_event_str += " " + to_string(recv_event_id);
       }
       if (!recv_event_str.empty()) {
-        GELOGI("node: %s, id: %ld, stream id: %ld, recv %ss:%s.", node->GetName().c_str(), node->GetOpDesc()->GetId(),
+        GELOGI("node: %s, id: %" PRId64 ", stream id: %" PRId64 ", recv %ss:%s.", node->GetName().c_str(), node->GetOpDesc()->GetId(),
                node->GetOpDesc()->GetStreamId(), GetEventTypeStr(event_type).c_str(), recv_event_str.c_str());
       }
     }
@@ -2466,7 +2467,7 @@ Status StreamAllocator::AddEventPairBetweenAttachedAndMain(const NodePtr &send_n
                                                            Node2AttachedStreamId2EventId &nodes_2_send_event,
                                                            Nodes2SyncInfos &nodes_2_recv_event) {
   GE_ASSERT_NOTNULL(send_node);
-  GELOGI("Add send event %u for attached stream %ld node %s", event_num_, pre_stream_id, send_node->GetName().c_str());
+  GELOGI("Add send event %u for attached stream %" PRId64 " node %s", event_num_, pre_stream_id, send_node->GetName().c_str());
   auto &attached_stream_id_to_send_event_id = nodes_2_send_event[send_node];
   attached_stream_id_to_send_event_id[pre_stream_id].emplace_back(event_num_);
 
@@ -2482,12 +2483,12 @@ Status StreamAllocator::AddAttachedStreamEventPair(const NodePtr &send_node, con
                                                    Node2AttachedStreamId2EventId &nodes_2_send_event,
                                                    Node2AttachedStreamId2EventId &nodes_2_recv_event) {
   GE_ASSERT_NOTNULL(send_node);
-  GELOGI("Add send event %u for attached stream %ld node %s", event_num_, pre_stream_id, send_node->GetName().c_str());
+  GELOGI("Add send event %u for attached stream %" PRId64 " node %s", event_num_, pre_stream_id, send_node->GetName().c_str());
   auto &attached_stream_id_to_send_event_id = nodes_2_send_event[send_node];
   attached_stream_id_to_send_event_id[pre_stream_id].emplace_back(event_num_);
 
   GE_ASSERT_NOTNULL(recv_node);
-  GELOGI("Add recv event %u for attached stream %ld node %s", event_num_, next_stream_id, recv_node->GetName().c_str());
+  GELOGI("Add recv event %u for attached stream %" PRId64 " node %s", event_num_, next_stream_id, recv_node->GetName().c_str());
   auto &attached_stream_id_to_recv_event_id = nodes_2_recv_event[recv_node];
   attached_stream_id_to_recv_event_id[next_stream_id].emplace_back(event_num_);
   ++event_num_;

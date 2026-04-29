@@ -40,7 +40,7 @@ const char *const kModifyInput = "_input_mutable";
 enum class InputRWType {
   kReadOnly,        // Normal op input only read
   kWriteable,       // Op like Assign/ApplyMomentum
-  kScopeWriteable,  // Op like hcom_allreduce/while, it will modify input ,but not expect take effect on pre ouput
+  kScopeWriteable,  // Op like hcom_allreduce/while, it will modify input ,but not expect take effect on pre output
   kInvalidRWType
 };
 // rw type of output

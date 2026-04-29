@@ -9,6 +9,7 @@
  */
 
 #include "graph/build/task_generator.h"
+#include <cinttypes>
 #include <string>
 #include "graph/passes/memory_conflict/atomic_addr_clean_pass.h"
 #include "graph/ge_context.h"
@@ -850,7 +851,7 @@ Status TaskGenerator::SetNetOutputNodeInAnchorAndPeerOffset(const InDataAnchorPt
   const int64_t ori_offset = ori_offset_list.at(out_node_inanchor_index);
   const auto zero_copy_offset_to_ids = PreModelPartitionUtils::GetInstance().GetZeroCopyTable();
   GE_ASSERT_TRUE(zero_copy_offset_to_ids.find(ori_offset) != zero_copy_offset_to_ids.end(),
-                 "NetOutput input no[%d] offset[%ld] get zerocopy offset id faild", out_node_inanchor_index,
+                 "NetOutput input no[%d] offset[%" PRId64 "] get zerocopy offset id failed.", out_node_inanchor_index,
                  ori_offset);
   const uint32_t offset_to_id = zero_copy_offset_to_ids.find(ori_offset)->second;
 

@@ -11,6 +11,7 @@
 #include "custom_node_converter.h"
 #include "graph_builder/converter_checker.h"
 #include "graph_builder/bg_tensor.h"
+#include "graph_builder/bg_infer_shape.h"
 #include "common/checker.h"
 #include "exe_graph/lowering/frame_selector.h"
 #include "kernel/common_kernel_impl/build_tensor.h"
@@ -18,6 +19,7 @@
 #include "lowering/placement/placed_lowering_result.h"
 #include "exe_graph/lowering/lowering_definitions.h"
 #include "common/ge_common/ge_types.h"
+#include "graph/utils/inference_rule.h"
 
 namespace gert {
 namespace {
@@ -77,12 +79,21 @@ LowerResult LoweringCustomNode(const ge::NodePtr &node, const LowerInput &lower_
   input_holders.emplace_back(allocator_holder);
   input_holders.emplace_back(lower_input.global_data->GetStream());
   input_holders.emplace_back(custom_executor_func);
+  // Check inference_rule
+  const auto op_desc = node->GetOpDesc();
+  LOWER_REQUIRE_NOTNULL(op_desc);
+  const std::string infer_rule = ge::InferenceRule::GetInferenceRule(op_desc);
+  std::string kernel_type = "ExecuteCustomOp";
+  std::vector<bg::ValueHolderPtr> infer_output_shapes;
+  if (!infer_rule.empty()) {
+    kernel_type = "ExecuteCustomOpWithInferShape";
+    infer_output_shapes = bg::InferCustomOpShape(node, lower_input.input_shapes, *lower_input.global_data);
+    input_holders.insert(input_holders.end(), infer_output_shapes.begin(), infer_output_shapes.end());
+  }
   // 最后需要一个workspace地址
   std::vector<bg::ValueHolderPtr> output_tensor_holders =
-      bg::ValueHolder::CreateDataOutput("ExecuteCustomOp",
+      bg::ValueHolder::CreateDataOutput(kernel_type.c_str(),
       input_holders, node->GetAllOutDataAnchorsSize() + 1);
-  auto op_desc = node->GetOpDesc();
-  LOWER_REQUIRE_NOTNULL(op_desc);
   std::vector<bg::ValueHolderPtr> output_shapes;
   std::vector<bg::DevMemValueHolderPtr> output_addrs;
   for (size_t i = 0UL; i < node->GetAllOutDataAnchorsSize(); i++) {

@@ -390,7 +390,7 @@ std::string DNNEngineManager::GetDNNEngineName(const ge::NodePtr &node_ptr,
         checksupport_cost_[kernel_name] += GetCurrentTimestamp() - start_time;
       }
       unsupported_reasons.emplace(kernel_name, unsupported_reason);
-      GELOGI("DNNEngineManager: op not support, kernel_name is %s, op type is %s, op name is %s",
+      GELOGI("DNNEngineManager: op does not support, kernel_name is %s, op type is %s, op name is %s",
              kernel_name.c_str(), op_desc->GetType().c_str(), op_desc->GetName().c_str());
       if (!op_desc->HasAttr("_is_ge_op")) {
         REPORT_PREDEFINED_ERR_MSG("W11001", std::vector<const char *>({"opname"}),

@@ -48,7 +48,7 @@ Status ConcatOffsetKernel::Compute(const OpDescPtr op_desc_ptr, const std::vecto
     return NOT_CHANGED;
   }
 
-  // calculate ouput dim
+  // calculate output dim
   GeShape output_shape = input[kConcatOffsetInputIndexOne]->GetTensorDesc().GetShape();
   int64_t output_size = output_shape.GetShapeSize();
   if (concat_dim >= output_size) {

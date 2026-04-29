@@ -24,7 +24,9 @@ ge::graphStatus ExecutorStatistician::OnEvent(ExecutorEvent event, const ::Node 
   GE_ASSERT_NOTNULL(kernel);
 
   auto compute_node = static_cast<const ComputeNodeInfo *>(node->context.compute_node_info);
-  GE_ASSERT_NOTNULL(compute_node);
+  if (compute_node == nullptr) {
+    return ge::GRAPH_SUCCESS;
+  }
 
   node_names_to_run_stat_[compute_node->GetNodeName()].kernel_types_to_run_count_[kernel->GetKernelType()]++;
   node_types_to_names_[compute_node->GetNodeType()].insert(compute_node->GetNodeName());

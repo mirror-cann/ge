@@ -184,7 +184,7 @@ TEST_F(UtestArgsFormatDescUtils, serialize_dynamic_args) {
   EXPECT_EQ(descs[7].folded, false);
 }
 
-TEST_F(UtestArgsFormatDescUtils, deserialzie_placeholder) {
+TEST_F(UtestArgsFormatDescUtils, deserialize_placeholder) {
   auto op_desc = std::make_shared<OpDesc>("tmp_op", "Mul");
   std::string format1 = "{}";
   std::vector<ArgDesc> descs;
@@ -193,7 +193,7 @@ TEST_F(UtestArgsFormatDescUtils, deserialzie_placeholder) {
   EXPECT_EQ(descs[0UL].addr_type, AddrType::PLACEHOLDER);
 }
 
-TEST_F(UtestArgsFormatDescUtils, deserialzie_unsupported) {
+TEST_F(UtestArgsFormatDescUtils, deserialize_unsupported) {
 auto op_desc = std::make_shared<OpDesc>("tmp_op", "Mul");
   std::string format1 = "{hehe}";
   std::vector<ArgDesc> descs1;
@@ -208,7 +208,7 @@ auto op_desc = std::make_shared<OpDesc>("tmp_op", "Mul");
   EXPECT_NE(ArgsFormatDescUtils::Parse(format3, descs3), SUCCESS);
 }
 
-TEST_F(UtestArgsFormatDescUtils, deserialzie_tiling_context) {
+TEST_F(UtestArgsFormatDescUtils, deserialize_tiling_context) {
   auto op_desc = std::make_shared<OpDesc>("tmp_op", "Mul");
   std::string format1 =
       "{tiling_context}{*op_type}{tiling_context.tiling_key}{tiling_context.tiling_data}{tiling_context.block_dim}";

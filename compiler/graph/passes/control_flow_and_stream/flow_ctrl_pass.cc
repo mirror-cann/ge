@@ -9,6 +9,7 @@
  */
 
 #include "graph/passes/control_flow_and_stream/flow_ctrl_pass.h"
+#include <cinttypes>
 
 #include <memory>
 #include <string>
@@ -226,14 +227,14 @@ NodePtr FlowCtrlPass::AddVariableNode(ComputeGraphPtr &compute_graph, const std:
   // fetch and set tensor desc
   GeTensorDesc tensor_desc;
   if (ge::VarManager::Instance(compute_graph->GetSessionID()) == nullptr) {
-    REPORT_INNER_ERR_MSG("E19999", "Get VarManager by session_id:%lu failed", compute_graph->GetSessionID());
+    REPORT_INNER_ERR_MSG("E19999", "Get VarManager by session_id:%" PRIu64 " failed", compute_graph->GetSessionID());
     return nullptr;
   }
   Status ret = ge::VarManager::Instance(compute_graph->GetSessionID())->GetCurVarDesc(name, tensor_desc);
   if (ret != SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "Get var tensor from VarManager by name:%s failed, session_id:%lu",
+    REPORT_INNER_ERR_MSG("E19999", "Get var tensor from VarManager by name:%s failed, session_id:%" PRIu64 "",
                        name.c_str(), compute_graph->GetSessionID());
-    GELOGE(FAILED, "[Get][CurVarDesc] failed, name:%s, session_id:%lu", name.c_str(), compute_graph->GetSessionID());
+    GELOGE(FAILED, "[Get][CurVarDesc] failed, name:%s, session_id:%" PRIu64 "", name.c_str(), compute_graph->GetSessionID());
     return nullptr;
   }
   std::vector<GeTensorDesc> input_desc_list;

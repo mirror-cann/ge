@@ -208,7 +208,7 @@ class FastNode {
   void UpdateDataInNum(size_t new_num);
 
   /**
-   * update the number of data ouput in the node.
+   * update the number of data output in the node.
    */
   void UpdateDataOutNum(size_t new_num);
 

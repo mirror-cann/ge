@@ -9,6 +9,7 @@
  */
 
 #include "graph/passes/standard_optimize/constant_folding/potential_folding_pass.h"
+#include <cinttypes>
 #include "common/checker.h"
 #include <vector>
 #include <numeric>
@@ -164,9 +165,9 @@ Status PotentialFoldingPass::UpdatePeerShapeIfChanged(const NodePtr &node,
 
   for (size_t i = 0; i < outputs.size(); ++i) {
     if (outputs[i] == nullptr) {
-      REPORT_INNER_ERR_MSG("E19999", "Index:%lu in param v_weight is nullptr check invalid", i);
+      REPORT_INNER_ERR_MSG("E19999", "Index:%" PRIu64 " in param v_weight is nullptr check invalid", i);
       GELOGE(INTERNAL_ERROR,
-             "[Check][Param] Failed to constant fold on node %s type %s, the %lust node calculated is null",
+             "[Check][Param] Failed to constant fold on node %s type %s, the %" PRIu64 "st node calculated is null",
              node->GetName().c_str(), node->GetType().c_str(), i);
       return INTERNAL_ERROR;
     }

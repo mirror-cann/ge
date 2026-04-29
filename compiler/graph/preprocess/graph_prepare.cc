@@ -1546,7 +1546,7 @@ Status GraphPrepare::AdjustDataOpOutput(const NodePtr &node) const {
   int64_t tensor_size = 0;
   graphStatus graph_status = TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(output, tensor_size);
   if (graph_status != GRAPH_SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "GetTensorMemorySize by ouput index:0 of op:%s(%s) failed",
+    REPORT_INNER_ERR_MSG("E19999", "GetTensorMemorySize by output index:0 of op:%s(%s) failed.",
                       op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
     GELOGE(graph_status, "[Call][GetTensorMemorySizeInBytesWithAutoPadding] failed, op:%s", node->GetName().c_str());
     return FAILED;

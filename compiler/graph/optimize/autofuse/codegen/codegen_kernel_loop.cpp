@@ -1460,13 +1460,13 @@ bool ApiCall::IsUnitLastRead(const ApiTensor &tensor) const {
 }
 
 namespace {
-static void GenTemplateParams(const CodegenApiParamPtr api_param, stringstream &ss) {
-  if (api_param->template_params.empty()) {
+static void GenTemplateParams(const CodegenApiParam &api_param, stringstream &ss) {
+  if (api_param.template_params.empty()) {
     return;
   }
   ss << "<";
   bool first = true;
-  for (const auto &template_param : api_param->template_params) {
+  for (const auto &template_param : api_param.template_params) {
     if (first) {
       first = false;
     } else {
@@ -1477,62 +1477,62 @@ static void GenTemplateParams(const CodegenApiParamPtr api_param, stringstream &
   ss << ">";
 }
 
-static void GenOuterLoopAxesPreProcess(const CodegenApiParamPtr api_param, stringstream &ss) {
-  if (api_param->outer_loop_axes.empty()) {
+static void GenOuterLoopAxesPreProcess(const CodegenApiParam &api_param, stringstream &ss) {
+  if (api_param.outer_loop_axes.empty()) {
     return;
   }
-  for (size_t i = 0; i < api_param->outer_loop_axes.size(); i++) {
+  for (size_t i = 0; i < api_param.outer_loop_axes.size(); i++) {
     std::string loop_iter = "outer_for_" + std::to_string(i);
-    ss << "for (int " << loop_iter << " = 0; " << loop_iter << " < " << api_param->outer_loop_axes[i] << "; "
+    ss << "for (int " << loop_iter << " = 0; " << loop_iter << " < " << api_param.outer_loop_axes[i] << "; "
        << loop_iter << "++) {" << std::endl;
   }
 }
 
-static void GenOuterLoopAxesPostProcess(const CodegenApiParamPtr api_param, stringstream &ss) {
-  if (api_param->outer_loop_axes.empty()) {
+static void GenOuterLoopAxesPostProcess(const CodegenApiParam &api_param, stringstream &ss) {
+  if (api_param.outer_loop_axes.empty()) {
     return;
   }
-  for (size_t i = 0; i < api_param->outer_loop_axes.size(); i++) {
+  for (size_t i = 0; i < api_param.outer_loop_axes.size(); i++) {
     ss << "}" << std::endl;
   }
 }
 
-static void GenApiCallCommon(const CodegenApiParamPtr api_param, stringstream &ss) {
-  ss << api_param->api_name;
+static void GenApiCallCommon(const CodegenApiParam &api_param, stringstream &ss) {
+  ss << api_param.api_name;
   GenTemplateParams(api_param, ss);
   ss << "(";
-  for (const auto &output : api_param->output_params) {
+  for (const auto &output : api_param.output_params) {
     ss << output.name << (output.is_tensor ? "[" + output.offset + "]" : "") << ", ";
   }
-  for (const auto &input : api_param->input_params) {
+  for (const auto &input : api_param.input_params) {
     ss << input.name << (input.is_tensor ? "[" + input.offset + "]" : "") << ", ";
   }
-  if (!api_param->tmp_buf_name.empty()) {
-    ss << api_param->tmp_buf_name << ", ";
+  if (!api_param.tmp_buf_name.empty()) {
+    ss << api_param.tmp_buf_name << ", ";
   }
 }
 
-static void GenApiCallPreProcess(const CodegenApiParamPtr api_param, stringstream &ss) {
-  if (api_param->api_pre_process.empty()) {
+static void GenApiCallPreProcess(const CodegenApiParam &api_param, stringstream &ss) {
+  if (api_param.api_pre_process.empty()) {
     return;
   }
-  for (const auto &pre_process : api_param->api_pre_process) {
-    ss << pre_process << std::endl;
+  for (const auto &pre_process : api_param.api_pre_process) {
+    ss << pre_process;
   }
 }
 
-static void GenApiCallPostProcess(const CodegenApiParamPtr api_param, stringstream &ss) {
-  if (api_param->api_post_process.empty()) {
+static void GenApiCallPostProcess(const CodegenApiParam &api_param, stringstream &ss) {
+  if (api_param.api_post_process.empty()) {
     return;
   }
-  for (const auto &post_process : api_param->api_post_process) {
-    ss << post_process << std::endl;
+  for (const auto &post_process : api_param.api_post_process) {
+    ss << post_process;
   }
 }
 }
 
-Status ApiCall::GenDimensionParam(const CodegenApiParamPtr api_param, stringstream &ss) const {
-  ss << api_param->cal_count << ");" << std::endl;
+Status ApiCall::GenDimensionParam(const CodegenApiParam &api_param, stringstream &ss) const {
+  ss << api_param.cal_count << ");" << std::endl;
   return ge::SUCCESS;
 }
 
@@ -1540,13 +1540,13 @@ Status ApiCall::GenerateApiCallString(std::string &result) const {
   auto api_param = CodegenApiParam::GetNodeApiParam(this->node);
   GE_ASSERT_NOTNULL(api_param, "ApiParam of graph %s node %s is null", graph_name.c_str(), node_name.c_str());
   stringstream ss;
-  GenOuterLoopAxesPreProcess(api_param, ss);
-  GenApiCallPreProcess(api_param, ss);
-  GenApiCallCommon(api_param, ss);
-  GE_CHK_STATUS_RET(GenDimensionParam(api_param, ss), "GenDimensionParam failed, graph name: %s, node name: %s",
+  GenOuterLoopAxesPreProcess(*api_param, ss);
+  GenApiCallPreProcess(*api_param, ss);
+  GenApiCallCommon(*api_param, ss);
+  GE_CHK_STATUS_RET(GenDimensionParam(*api_param, ss), "GenDimensionParam failed, graph name: %s, node name: %s",
                     graph_name.c_str(), node_name.c_str());
-  GenApiCallPostProcess(api_param, ss);
-  GenOuterLoopAxesPostProcess(api_param, ss);
+  GenApiCallPostProcess(*api_param, ss);
+  GenOuterLoopAxesPostProcess(*api_param, ss);
   result = ss.str();
   return ge::SUCCESS;
 }

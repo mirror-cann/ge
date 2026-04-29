@@ -20,6 +20,7 @@
 #include "common/bg_test.h"
 #include "register/op_impl_registry.h"
 #include "common/const_data_helper.h"
+#include "graph/utils/inference_rule.h"
 
 #include "graph/detail/model_serialize_imp.h"
 #include "proto/ge_ir.pb.h"
@@ -326,6 +327,26 @@ auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   ASSERT_TRUE(ExeGraphComparer::GetAttr(node_type, buffer));
   ASSERT_NE(buffer.GetData(), nullptr);
   EXPECT_STREQ(reinterpret_cast<char *>(buffer.GetData()), "TestCompatibleNodeType");
+}
+
+TEST_F(BgInferShapeUT, InferCustomOpShapeWithoutRule) {
+  auto graph = ShareGraph::BuildCustomOpGraph();
+  auto custom_op = graph->FindNode("custom_op");
+
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto global_data = GlobalDataFaker(root_model).Build();
+  bg::LowerConstDataNode(global_data);
+  LowerInput data_input = {{}, {}, &global_data};
+  auto data0_ret = LoweringDataNode(graph->FindNode("data0"), data_input);
+  auto data1_ret = LoweringDataNode(graph->FindNode("data1"), data_input);
+  auto data2_ret = LoweringDataNode(graph->FindNode("data2"), data_input);
+
+  auto out_shapes = InferCustomOpShape(custom_op,
+      {data0_ret.out_shapes[0], data1_ret.out_shapes[0], data2_ret.out_shapes[0]}, global_data);
+  ASSERT_EQ(out_shapes.size(), 0);
+
+  auto main_frame = ValueHolder::PopGraphFrame({}, {}, "NetOutput");
+  auto root_frame = ValueHolder::PopGraphFrame();
 }
 }  // namespace bg
 }  // namespace gert

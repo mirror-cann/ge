@@ -9,6 +9,7 @@
  */
 
 #include "graph/ge_tensor.h"
+#include <cinttypes>
 
 #include <cstring>
 #include <map>
@@ -1064,8 +1065,8 @@ graphStatus TensorDataImpl::SetData(const uint8_t *const data, const size_t size
   while (remain_size > SECUREC_MEM_MAX_LEN) {
     if (memcpy_s(ValueToPtr(dst_addr), SECUREC_MEM_MAX_LEN,
                  ValueToPtr(src_addr), SECUREC_MEM_MAX_LEN) != EOK) {
-      REPORT_INNER_ERR_MSG("E18888", "memcpy failed, size = %lu", SECUREC_MEM_MAX_LEN);
-      GELOGE(INTERNAL_ERROR, "[Memcpy][Data] failed, size = %lu", SECUREC_MEM_MAX_LEN);
+      REPORT_INNER_ERR_MSG("E18888", "memcpy failed, size = %" PRIu64 "", SECUREC_MEM_MAX_LEN);
+      GELOGE(INTERNAL_ERROR, "[Memcpy][Data] failed, size = %" PRIu64 "", SECUREC_MEM_MAX_LEN);
       return GRAPH_FAILED;
     }
     remain_size -= SECUREC_MEM_MAX_LEN;

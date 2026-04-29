@@ -408,7 +408,7 @@ Status SubgraphMultiDimsClonePass::CreateIndexConstNode(const ComputeGraphPtr &s
   }
 
   if (const_desc->AddOutputDesc(const_tensor) != GRAPH_SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "Add ouput desc to op:%s(%s) failed",
+    REPORT_INNER_ERR_MSG("E19999", "Add output desc to op:%s(%s) failed.",
                       const_desc->GetName().c_str(), const_desc->GetType().c_str());
     GELOGE(OUT_OF_MEMORY, "[Add][OutputDesc] to op:%s(%s) failed",
            const_desc->GetName().c_str(), const_desc->GetType().c_str());

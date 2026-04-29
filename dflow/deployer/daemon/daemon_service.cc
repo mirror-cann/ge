@@ -9,6 +9,7 @@
  */
 
 #include "daemon/daemon_service.h"
+#include <cinttypes>
 #include <fstream>
 #include <regex>
 #include "ge/ge_api_error_codes.h"
@@ -135,7 +136,7 @@ void DaemonService::ProcessInitRequest(const std::string &peer_uri,
   int32_t dev_count = 1;
   int32_t offset = 0;
   client_manager_->GenDgwPortOffset(dev_count, offset);
-  GEEVENT("[Process][Request] init request success, client_id = %ld, "
+  GEEVENT("[Process][Request] init request success, client_id = %" PRId64 ", "
           "address = %s, device count = %d, dwg port offset = %d.",
           client_id, peer_uri.c_str(), dev_count, offset);
   response.mutable_init_response()->set_client_id(client_id);
@@ -148,12 +149,12 @@ void DaemonService::ProcessDisconnectRequest(const std::string &peer_uri,
                                              const deployer::DeployerRequest &request,
                                              deployer::DeployerResponse &response) {
   int64_t client_id = request.client_id();
-  GEEVENT("[Process][Request] disconnect request start, client_id = %ld, addr = %s.", client_id, peer_uri.c_str());
+  GEEVENT("[Process][Request] disconnect request start, client_id = %" PRId64 ", addr = %s.", client_id, peer_uri.c_str());
   DeployerDaemonClient *client = nullptr;
   if (GetClient(client_id, &client, response)) {
     (void)client_manager_->CloseClient(client_id);
   }
-  GEEVENT("[Process][Request] disconnect request succeeded, client_id = %ld, addr = %s.", client_id, peer_uri.c_str());
+  GEEVENT("[Process][Request] disconnect request succeeded, client_id = %" PRId64 ", addr = %s.", client_id, peer_uri.c_str());
 }
 
 void DaemonService::ProcessHeartbeatRequest(const deployer::DeployerRequest &request,
@@ -181,8 +182,8 @@ bool DaemonService::GetClient(int64_t client_id, DeployerDaemonClient **client, 
     return true;
   }
 
-  REPORT_INNER_ERR_MSG("E19999", "Get client[%ld] failed.", client_id);
-  GELOGE(FAILED, "[Get][Client] Get client[%ld] failed.", client_id);
+  REPORT_INNER_ERR_MSG("E19999", "Get client[%" PRId64 "] failed.", client_id);
+  GELOGE(FAILED, "[Get][Client] Get client[%" PRId64 "] failed.", client_id);
   response.set_error_code(FAILED);
   response.set_error_message("Not exist client id");
   return false;
@@ -193,15 +194,15 @@ void DaemonService::ProcessDeployRequest(const deployer::DeployerRequest &reques
   int64_t client_id = request.client_id();
   DeployerDaemonClient *client = nullptr;
   if (GetClient(client_id, &client, response)) {
-    GELOGI("[Process][Request] process deploy request begin, client_id = %ld, type = %s.", client_id,
+    GELOGI("[Process][Request] process deploy request begin, client_id = %" PRId64 ", type = %s.", client_id,
            deployer::DeployerRequestType_Name(request.type()).c_str());
     GE_CHK_STATUS(client->ProcessDeployRequest(request, response),
-                  "[Process][Request] process deploy request failed, client_id = %ld, type = %s", client_id,
+                  "[Process][Request] process deploy request failed, client_id = %" PRId64 ", type = %s", client_id,
                   deployer::DeployerRequestType_Name(request.type()).c_str());
     GE_CHK_STATUS(response.error_code(),
-                  "[Process][Request] check response failed, client_id = %ld, type = %s, error code = %u", client_id,
+                  "[Process][Request] check response failed, client_id = %" PRId64 ", type = %s, error code = %u", client_id,
                   deployer::DeployerRequestType_Name(request.type()).c_str(), response.error_code());
-    GELOGI("[Process][Request] process deploy request end, client_id = %ld, type = %s, ret = %u.", client_id,
+    GELOGI("[Process][Request] process deploy request end, client_id = %" PRId64 ", type = %s, ret = %u.", client_id,
            deployer::DeployerRequestType_Name(request.type()).c_str(), response.error_code());
   }
 }

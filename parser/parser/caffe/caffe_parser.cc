@@ -1104,7 +1104,7 @@ Status CaffeModelParser::AddUserOutNodesTop() {
             "E11016", std::vector<const char *>({"opname", "outputindex", "totlaloutputindex", "inputindex", "totlalinputindex"}),
             std::vector<const char *>({out_pair.first.c_str(), std::to_string(out_pair.second).c_str(), std::to_string((layer_iter->second).size()).c_str(),
              std::to_string(index).c_str(), std::to_string(net_output_num).c_str()}));
-        GELOGE(INTERNAL_ERROR, "[Check][Size]Add op %s to NetOutput faild, current node output index:%d should < %zu. "
+        GELOGE(INTERNAL_ERROR, "[Check][Size]Add op %s to NetOutput failed, current node output index:%d should < %zu. "
                "NetOutput input_index:%d should < %u.", out_pair.first.c_str(), out_pair.second,
                (layer_iter->second).size(), index, net_output_num);
         return INTERNAL_ERROR;

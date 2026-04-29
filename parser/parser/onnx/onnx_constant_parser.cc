@@ -9,6 +9,7 @@
  */
 
 #include "onnx_constant_parser.h"
+#include <cinttypes>
 #include <map>
 #include <vector>
 #include "parser/common/acl_graph_parser_util.h"
@@ -34,8 +35,8 @@ namespace {
 Status OnnxConstantParser::ParseConvertData(const ge::onnx::TensorProto &tensor_proto, ge::Tensor &tensor, int count) {
   int64_t data_type = tensor_proto.data_type();
   if (ge::OnnxUtil::ConvertOnnxDataType(data_type) == ge::DataType::DT_UNDEFINED) {
-    REPORT_INNER_ERR_MSG("E19999", "data_type %ld not support.", data_type);
-    GELOGE(FAILED, "[Check][Param] data_type %ld not support.", data_type);
+    REPORT_INNER_ERR_MSG("E19999", "data_type %" PRId64 " not support.", data_type);
+    GELOGE(FAILED, "[Check][Param] data_type %" PRId64 " not support.", data_type);
     return FAILED;
   }
 
@@ -68,8 +69,8 @@ Status OnnxConstantParser::ParseConvertData(const ge::onnx::TensorProto &tensor_
   if (iter != datatype_val_size_map.end()) {
     datatype_val_size = iter->second;
   } else {
-    REPORT_INNER_ERR_MSG("E19999", "data_type %ld not support.", data_type);
-    GELOGE(domi::PARAM_INVALID, "[Find][DataType]data_type %ld not support.", data_type);
+    REPORT_INNER_ERR_MSG("E19999", "data_type %" PRId64 " not support.", data_type);
+    GELOGE(domi::PARAM_INVALID, "[Find][DataType]data_type %" PRId64 " not support.", data_type);
     return FAILED;
   }
 
@@ -180,8 +181,8 @@ Status OnnxConstantParser::ParseConvertDataType(const ge::onnx::TensorProto &ten
   int64_t data_type = tensor_proto.data_type();
   ge::DataType type = ge::OnnxUtil::ConvertOnnxDataType(data_type);
   if (type == ge::DataType::DT_UNDEFINED) {
-    REPORT_INNER_ERR_MSG("E19999", "tensor_proto date type %ld is undefined.", data_type);
-    GELOGE(domi::PARAM_INVALID, "[Check][Param] tensor_proto date type %ld is undefined.", data_type);
+    REPORT_INNER_ERR_MSG("E19999", "tensor_proto data type %" PRId64 " is undefined.", data_type);
+    GELOGE(domi::PARAM_INVALID, "[Check][Param] tensor_proto data type %" PRId64 " is undefined.", data_type);
     return FAILED;
   }
 
@@ -203,7 +204,7 @@ Status OnnxConstantParser::ParseConstFromInput(const ge::onnx::NodeProto *op_src
     }
     const ::ge::onnx::TensorProto it_tensor = it.t();
     if (ParseConvertDataType(it_tensor, tensor) != SUCCESS) {
-      GELOGE(FAILED, "[Check][Param] Convert ge tensor date type failed, attribute name is %s.", it.name().c_str());
+      GELOGE(FAILED, "[Check][Param] Convert ge tensor data type failed, attribute name is %s.", it.name().c_str());
       return FAILED;
     }
 

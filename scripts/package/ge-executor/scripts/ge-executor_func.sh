@@ -90,7 +90,7 @@ remove_stub_softlink() {
     fi
     local arch_name="$pkg_arch_name"
     ([ -d "$install_path/${arch_name}-linux/devlib" ] && cd "$install_path/${arch_name}-linux/devlib" && {
-        chmod u+w . && basename --multiple $(get_stub_libs_from_filelist) | xargs --no-run-if-empty rm -rf
+        chmod u+w . && get_stub_libs_from_filelist | while read -r line; do basename "$line"; done | xargs rm -rf
         chmod u-w .
     })
 }
