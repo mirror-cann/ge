@@ -1522,12 +1522,6 @@ static void DumpNodeOutputs(std::stringstream &ss, const ascir::Graph &graph,
                             const ge::AscNodePtr &node,
                             const std::map<ge::AxisId, std::string> &axis_id_to_name,
                             bool verbose, bool is_subgraph) {
-  auto node_type = node->GetType();
-  // 子图模式下，只输出 Data 和 Output 节点的输出信息
-  if (is_subgraph && node_type != "Data" && node_type != "Output") {
-    return;
-  }
-
   size_t output_count = node->outputs().size();
   for (size_t i = 0; i < output_count; ++i) {
     auto &output_attr = node->outputs()[i]->attr;
