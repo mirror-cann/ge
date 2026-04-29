@@ -314,7 +314,6 @@ class CompliantNodeBuilder {
    * @param input_ir_def 输入IR定义向量
    * @return 当前构建器对象的引用，支持链式调用
    */
-  ATTRIBUTED_DEPRECATED(IrDefInputsV2(...))
   CompliantNodeBuilder &IrDefInputs(std::vector<IrInputDef> input_ir_def);
 
   /**
@@ -338,7 +337,6 @@ class CompliantNodeBuilder {
    * @param output_ir_def 输出IR定义向量
    * @return 当前构建器对象的引用，支持链式调用
    */
-  ATTRIBUTED_DEPRECATED(IrDefOutputsV2(...))
   CompliantNodeBuilder &IrDefOutputs(std::vector<IrOutputDef> output_ir_def);
 
   /**
@@ -362,7 +360,6 @@ class CompliantNodeBuilder {
    * @param attr_ir_def 属性IR定义向量
    * @return 当前构建器对象的引用，支持链式调用
    */
-  ATTRIBUTED_DEPRECATED(IrDefAttrsV2(...))
   CompliantNodeBuilder &IrDefAttrs(std::vector<IrAttrDef> attr_ir_def);
 
   /**
