@@ -2075,6 +2075,10 @@ ge::Status TilingCodeGenImpl::GenPGODefaultTiling() {
   }
   
   tiling_func_.AddLine("    void* memory = malloc(malloc_size);");
+  tiling_func_.AddLine("    if (memory == nullptr) {");
+  tiling_func_.AddLine("      OP_LOGE(OP_NAME, \"Failed to allocate memory for tiling case, malloc_size = %zu.\", malloc_size);");
+  tiling_func_.AddLine("      return false;");
+  tiling_func_.AddLine("    }");
   tiling_func_.AddLine("    TilingCaseImpl *tilingCaseImplPtr;");
   tiling_func_.AddLine("    double best_perf = DBL_MAX;");
   tiling_func_.AddLine("    double cur_perf = DBL_MAX;");

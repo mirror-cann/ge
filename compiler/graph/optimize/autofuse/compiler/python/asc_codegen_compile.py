@@ -603,20 +603,32 @@ def check_dir_permissions(path):
     import stat
     # 检查是否为软链接
     if path.is_symlink():
-        raise Exception(f"Warning: {path} is a symbolic link")
+        raise Exception(f"Warning: {path} is a symbolic link. Please configure --replace_kernel to a real directory.")
 
     # 检查目录是否存在
     if not path.exists():
-        raise FileNotFoundError(f"Directory {path} does not exist")
+        raise FileNotFoundError(
+            f"Directory {path} does not exist. "
+            f"Please configure --replace_kernel to an existing directory via AUTOFUSE_DFX_FLAGS."
+        )
 
     # 检查读写执行权限
     mode = path.stat().st_mode
     if not (mode & stat.S_IRUSR):
-        raise PermissionError(f"No read permission for {path}")
+        raise PermissionError(
+            f"No read permission for {path}. "
+            f"Please check the directory permissions configured by --replace_kernel in AUTOFUSE_DFX_FLAGS."
+        )
     if not (mode & stat.S_IWUSR):
-        raise PermissionError(f"No write permission for {path}")
+        raise PermissionError(
+            f"No write permission for {path}. "
+            f"Please check the directory permissions configured by --replace_kernel in AUTOFUSE_DFX_FLAGS."
+        )
     if not (mode & stat.S_IXUSR):
-        raise PermissionError(f"No execute permission for {path}")
+        raise PermissionError(
+            f"No execute permission for {path}. "
+            f"Please check the directory permissions configured by --replace_kernel in AUTOFUSE_DFX_FLAGS."
+        )
 
 
 def get_replace_kernel_root():
