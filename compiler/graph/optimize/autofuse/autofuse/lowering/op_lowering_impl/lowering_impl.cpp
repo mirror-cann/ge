@@ -545,7 +545,7 @@ bool CheckEndDimHasOne(const NodePtr &node) {
 
 graphStatus LowerSplitToStridedSlices(const NodePtr &node, const vector<Expression> &x_dims,
                                      int64_t &split_dim, const InDataAnchorPtr &x_anchor) {
-  GELOGI("lowering split node %s as StridedSlices", node->GetName().c_str());
+  GELOGI("Start lowering split node %s as StridedSlices", node->GetName().c_str());
   vector<Expression> start;
   vector<Expression> stride;
   vector<Expression> size_splits;
@@ -566,10 +566,10 @@ graphStatus LowerSplitToStridedSlices(const NodePtr &node, const vector<Expressi
   string not_lowering_reason;
   for (const auto &out_anchor : node->GetAllOutDataAnchors()) {
     start[split_dim] = offset;
-    // LOWERING_WARN_RECORD_REASON 兼容
     auto split_lowering = loop::StoreStridedSlice(out_anchor, x_anchor, start, stride, x_dims, not_lowering_reason);
     if (!not_lowering_reason.empty()) {
-      GELOGI("Skip lowering node %s, as: %s", node->GetNamePtr(), not_lowering_reason.c_str());
+      GraphFusionReasonStore::CountNodeFuseFailReason(node->GetName(), not_lowering_reason,
+                                                      GraphFusionReasonStore::FailReasonCategory::NODE_INFO_ERROR);
       loop::StoreExtern(out_anchor);
       continue;
     }
@@ -593,31 +593,24 @@ bool InputIsConditionNode(const NodePtr &node) {
 }
 
 graphStatus LowerSplitToNormalSplit(const NodePtr &node, std::vector<ge::Expression> &x_dims, int64_t split_dim, const InDataAnchorPtr &x_anchor) {
-  GELOGI("split node %s do normal split lowering.", node->GetName().c_str());
-  // TODO: LOWERING_WARN_RECORD_REASON
-  bool input_is_condition_node = InputIsConditionNode(node);
-  if ((input_is_condition_node)
-      || (node->GetAllOutDataAnchorsSize() > loop::StoreSplitOp::kSplitCanFuseMaxOutput)
-      || ((x_dims.size() != 1U) && (static_cast<uint32_t>(split_dim) == (x_dims.size() - 1))
-          && (CheckEndDimHasOne(node) == true) && (node->GetAllOutDataAnchorsSize() > loop::StoreSplitOp::kSplitCanLowerEndDimMaxOutput))) {
-    GELOGI("Skip lowering node %s(%s), as: Conditions: input_is_condition_node(%s); split node %s has output size %zu > %zu",
-           node->GetName().c_str(), node->GetType().c_str(), input_is_condition_node ? "true" : "false",
-           node->GetName().c_str(), node->GetAllOutDataAnchorsSize(), loop::StoreSplitOp::kSplitCanFuseMaxOutput);
-    return GRAPH_FAILED;
+  GELOGI("Start lowering split node %s as normal split.", node->GetNamePtr());
+  LOWERING_WARN_RECORD_REASON(!InputIsConditionNode(node), node, "Input is condition node.");
+  LOWERING_WARN_RECORD_REASON((node->GetAllOutDataAnchorsSize() < loop::StoreSplitOp::kSplitCanFuseMaxOutput),
+                              node, "Split node outdata anchors size exceed kSplitCanFuseMaxOutput %zu", loop::StoreSplitOp::kSplitCanFuseMaxOutput);
+  if ((x_dims.size() != 1U) && (static_cast<uint32_t>(split_dim) == (x_dims.size() - 1))
+      && (CheckEndDimHasOne(node) == true) && (node->GetAllOutDataAnchorsSize() > loop::StoreSplitOp::kSplitCanLowerEndDimMaxOutput)) {
+    LOWERING_WARN_RECORD_REASON(false, node, "Split node meet (1) x_dims size is not 1,(2) end dim has one,"
+                                "(3) node outdata anchors size exceed kSplitCanLowerEndDimMaxOutput %zu",
+                                loop::StoreSplitOp::kSplitCanLowerEndDimMaxOutput);
   }
 
   vector<OutDataAnchorPtr> outputs;
   for (const auto &out_anchor : node->GetAllOutDataAnchors()) {
     outputs.emplace_back(out_anchor);
   }
-
   string not_lowering_reason;
   auto split = loop::StoreSplit(outputs, x_anchor, static_cast<size_t>(split_dim), not_lowering_reason);
-  if (!not_lowering_reason.empty()) {
-    GELOGI("Skip lowering node %s, as: %s", node->GetNamePtr(), not_lowering_reason.c_str());
-    loop::StoreExtern(node->GetOutDataAnchor(0));
-  }
-
+  LOWERING_WARN_RECORD_REASON(not_lowering_reason.empty(), node, not_lowering_reason.c_str());
   return GRAPH_SUCCESS;
 }
 }  // namespace
@@ -678,7 +671,6 @@ graphStatus LowerPointwise(const NodePtr &node,
   GE_ASSERT_NOTNULL(out_anchor);
 
   (void)loop::Store(out_anchor, kernel(vars));
-
   return GRAPH_SUCCESS;
 }
 
@@ -694,7 +686,7 @@ graphStatus GetReduceDims(const NodePtr &node, std::vector<int64_t> &reduce_axes
   const auto op = ge::OpDescUtils::CreateOperatorFromNode(node);
   ge::Tensor axes_tensor;
   LOWERING_WARN_RECORD_REASON(op.GetInputConstData(input.c_str(), axes_tensor) == ge::SUCCESS, node,
-                              "GetInputConstData failed, input is dynamic axes");
+                              "Failed to get input const data, input is dynamic axes");
 
   const std::vector<int64_t> dims = axes_tensor.GetTensorDesc().GetShape().GetDims();
   LOWERING_WARN_RECORD_REASON(dims.size() <= 1U, node, "Reduce axis must be a scalar or vector");
@@ -736,12 +728,12 @@ graphStatus LowerReduction(const NodePtr &node, loop::ReduceType reduce_type) {
   const auto out_anchor = node->GetOutDataAnchor(0);
   std::vector<Expression> dst_dims;
   LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(out_anchor, dst_dims) == GRAPH_SUCCESS, node,
-                              "Output %s no sym shape",	loop::BufferName(out_anchor).c_str());
+                              "Output %s has no sym shape",	loop::BufferName(out_anchor).c_str());
   vector<size_t> reduce_axes_u;
   for (auto reduce_dim : reduce_axes) {
     if (reduce_dim < 0) {
       LOWERING_WARN_RECORD_REASON(reduce_dim + static_cast<int64_t>(src_dims.size()) >= 0, node,
-                                 "Reduce axis %ld over rank %zu", reduce_dim, src_dims.size());
+                                  "Reduce axis %ld over rank %zu", reduce_dim, src_dims.size());
       reduce_dim += static_cast<int64_t>(src_dims.size());
     }
     LOWERING_WARN_RECORD_REASON(
@@ -779,13 +771,8 @@ graphStatus LowerSlice(const NodePtr &node) {
   }
 
   string not_lowering_reason;
-  // TODO: LOWERING_WARN_RECORD_REASON
   auto slice = loop::StoreStridedSlice(node->GetOutDataAnchor(0), x_anchor, start, stride, x_dims, not_lowering_reason);
-  if (!not_lowering_reason.empty()) {
-    GELOGI("Skip lowering node %s, as: %s", node->GetNamePtr(), not_lowering_reason.c_str());
-    loop::StoreExtern(node->GetOutDataAnchor(0));
-    return GRAPH_SUCCESS;
-  }
+  LOWERING_WARN_RECORD_REASON(not_lowering_reason.empty(), node, not_lowering_reason.c_str());
   loop::Store(node->GetOutDataAnchor(0), slice);
   return GRAPH_SUCCESS;
 }
@@ -829,18 +816,16 @@ graphStatus LowerStridedSlice(const NodePtr &node) {
   GE_ASSERT(!x_dims.empty());
   bool is_redundant_node = IsRedundantNode(node, x_dims);
   if (is_redundant_node) {
-    LOWERING_WARN_RECORD_REASON(ConvertToDirectLoad(node) == GRAPH_SUCCESS, node, "ConvertToDirectLoad failed");
+    LOWERING_WARN_RECORD_REASON(ConvertToDirectLoad(node) == GRAPH_SUCCESS, node, "Failed to convert to direct load when this node is redundant.");
     return GRAPH_SUCCESS;
   }
   vector<int64_t> begin_list = {};
   vector<int64_t> stride_list = {};
-  LOWERING_WARN_RECORD_REASON(
-    AutofuseUtils::GetListIntByInputOrAttr(node, begin_list, "begin", "begin") == GRAPH_SUCCESS,
-    node, "Failed to get begin.");
+  LOWERING_WARN_RECORD_REASON(AutofuseUtils::GetListIntByInputOrAttr(node, begin_list, "begin", "begin") == GRAPH_SUCCESS,
+                              node, "Failed to get begin.");
   GE_ASSERT(!begin_list.empty());
-  LOWERING_WARN_RECORD_REASON(
-    AutofuseUtils::GetListIntByInputOrAttr(node, stride_list, "strides", "strides") == GRAPH_SUCCESS,
-    node, "Failed to get strides.");
+  LOWERING_WARN_RECORD_REASON(AutofuseUtils::GetListIntByInputOrAttr(node, stride_list, "strides", "strides") == GRAPH_SUCCESS,
+                              node, "Failed to get strides.");
   GE_ASSERT(!stride_list.empty());
   StridedSliceMaskAttr mask_attr;
   StrdedSliceIndexInputs index_input;
@@ -852,7 +837,8 @@ graphStatus LowerStridedSlice(const NodePtr &node) {
 
   auto stride_list_end_index = stride_list.size() - 1;
   LOWERING_WARN_RECORD_REASON(stride_list[stride_list_end_index] == 1, node,
-    "The end stride is %ld, it must be equal to one.", stride_list[stride_list_end_index]);
+                              "The end stride is %ld, it must be equal to one.",
+                              stride_list[stride_list_end_index]);
 
   for (size_t i = 0; i < begin_list.size(); ++i) {
     LOWERING_WARN_RECORD_REASON(stride_list[i] >= 0, node,
@@ -863,21 +849,14 @@ graphStatus LowerStridedSlice(const NodePtr &node) {
   LOWERING_WARN_RECORD_REASON(InferShapeStridedSlice(x_dims, mask_attr, index_input) == GRAPH_SUCCESS, node,
     "Failed to InferShapeStridedSlice, please see stridedslice.cpp log");
   string not_lowering_reason;
-  // TODO: LOWERING_WARN_RECORD_REASON
   auto stride_slice = loop::StoreStridedSlice(node->GetOutDataAnchor(0), x_anchor, index_input.start_indexes,
                                               index_input.strides_indexes, x_dims, not_lowering_reason);
-  if (!not_lowering_reason.empty()) {
-    GELOGI("Skip lowering node %s, as: %s", node->GetNamePtr(), not_lowering_reason.c_str());
-    loop::StoreExtern(node->GetOutDataAnchor(0));
-    return GRAPH_SUCCESS;
-  }
+  LOWERING_WARN_RECORD_REASON(not_lowering_reason.empty(), node, not_lowering_reason.c_str());
   loop::Store(node->GetOutDataAnchor(0), stride_slice);
   return GRAPH_SUCCESS;
 }
 
 graphStatus LowerSplit(const NodePtr &node) {
-  GELOGI("LowerSplit start lowering node %s.", node->GetNamePtr());
-  string not_lowering_reason;
   int64_t split_dim = 0L;
   InDataAnchorPtr x_anchor;
   vector<ge::Expression> x_dims;
@@ -1810,7 +1789,7 @@ REGISTER_LOWERING(Unsqueeze) {
   for (const auto vec_axe : vec_axes) {
     x = loop::Unsqueeze(x, vec_axe);
   }
-  loop::Store(node->GetOutDataAnchor(0), x);
+  loop::StoreReshape(node->GetOutDataAnchor(0), x);
   return GRAPH_SUCCESS;
 }
 
@@ -2061,7 +2040,7 @@ REGISTER_LOWERING(ExpandDims) {
   }
 
   x = loop::Unsqueeze(x, dim);
-  loop::Store(node->GetOutDataAnchor(0), x);
+  loop::StoreReshape(node->GetOutDataAnchor(0), x);
   return GRAPH_SUCCESS;
 }
 
