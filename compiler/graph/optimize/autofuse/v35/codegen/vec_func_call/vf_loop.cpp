@@ -255,13 +255,13 @@ Status VFLoop::GenerateBody(const TPipe &tpipe, const TensorManager &tensor_mgr,
         const Tensor *ub_tensor_ptr = tpipe.GetTensor(body.call_->GetInputTensorIdByIndex(0));
         ub_offset = GetUbAddrOffset(tpipe, reg_tensor_ptr, ub_tensor_ptr);
       } else if (body.call_->GetMicroApiName() == "Store") {
-        const MicroApiTensor *reg_tensor_ptr = tensor_mgr.GetTensor(body.call_->GetInputTensorIdByIndex(0));
         const Tensor *ub_tensor_ptr = tpipe.GetTensor(body.call_->GetOutputTensorIdByIndex(0));
+        const MicroApiTensor *reg_tensor_ptr = tensor_mgr.GetTensor(body.call_->GetOutputTensorIdByIndex(1));
         ub_offset = GetUbAddrOffset(tpipe, reg_tensor_ptr, ub_tensor_ptr);
         GetUbStorePreg(ub_tensor_ptr, preg_name);
       }
       std::string micro_api_call_str;
-      CallParam param = {preg_name, ub_offset, this->max_dtype_size_};
+      CallParam param = {preg_name, ub_offset};
       body.call_->Generate(tensor_mgr, tpipe, param, micro_api_call_str);
       ss << micro_api_call_str;
       has_call = true;
@@ -271,31 +271,5 @@ Status VFLoop::GenerateBody(const TPipe &tpipe, const TensorManager &tensor_mgr,
     only_loop_max_depth = std::max(only_loop_max_depth, static_cast<int32_t>(current_axis.size()));
   }
   return ge::SUCCESS;
-}
-
-void VFLoop::CollectMaskRegTempTensors(const TPipe &tpipe, const TensorManager &tensor_mgr,
-                                       std::vector<std::string> &temp_tensors) const {
-  for (const auto &body : this->bodys_) {
-    if (body.type_ == LoopType::LOOP) {
-      body.loop_->CollectMaskRegTempTensors(tpipe, tensor_mgr, temp_tensors);
-    } else if (body.type_ == LoopType::CALL) {
-      std::string api_name = body.call_->GetMicroApiName();
-      // Compare 输出不是 MaskReg：需要临时 MaskReg 用于转换
-      if (api_name == "GE" || api_name == "EQ" || api_name == "NE" || api_name == "LE" || api_name == "LT" ||
-          api_name == "GT") {
-        const MicroApiTensor *output_tensor = tensor_mgr.GetTensor(body.call_->GetOutputTensorIdByIndex(0));
-        if (output_tensor && !output_tensor->init_as_mask_reg_) {
-          temp_tensors.push_back(output_tensor->name);
-        }
-      }
-      // Where/Select mask 输入不是 MaskReg：需要临时 MaskReg 用于转换
-      if (api_name == "Select") {
-        const MicroApiTensor *input_tensor = tensor_mgr.GetTensor(body.call_->GetInputTensorIdByIndex(0));
-        if (input_tensor && !input_tensor->init_as_mask_reg_) {
-          temp_tensors.push_back(input_tensor->name);
-        }
-      }
-    }
-  }
 }
 }  // namespace codegen

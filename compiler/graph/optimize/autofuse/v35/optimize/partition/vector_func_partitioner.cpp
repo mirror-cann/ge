@@ -559,6 +559,11 @@ ClusterPtr VectorFuncPartitioner::CreateAndInitCluster(const ge::AscNodePtr &nod
     GE_ASSERT_SUCCESS(InitClusterAttr(codegen_impl, node, cluster));
   }
 
+  // 特殊处理：Compare 节点尝试合并所有输出
+  if (IsCompareOp(node) && cluster->meta_data_.enable_vf) {
+    TryMergeCompareOutputs(node, cluster);
+  }
+
   return cluster;
 }
 
@@ -588,6 +593,60 @@ void VectorFuncPartitioner::FixAllCompareClusterConnections() {
       FixCompareClusterConnections(cluster, compare_node);
     }
   }
+}
+
+bool VectorFuncPartitioner::TryMergeCompareOutputs(const ge::AscNodePtr &compare_node, ClusterPtr &cluster) {
+  bool all_outputs_enabled = true;
+  struct OutputInfo {
+    ge::AscNodePtr node;
+    uint32_t ins_num;
+  };
+  std::vector<OutputInfo> output_info;
+
+  for (const auto &out_node: compare_node->GetOutDataNodes()) {
+    auto asc_out_node = std::dynamic_pointer_cast<ge::AscNode>(out_node);
+    GE_ASSERT_NOTNULL(asc_out_node);
+    auto out_codegen_impl = ascgen_utils::GetAscIrCodegenImpl(asc_out_node->GetType());
+    GE_ASSERT_NOTNULL(out_codegen_impl, "Cannot find impl for ir type:[%s].", asc_out_node->GetTypePtr());
+    bool out_enable_vf = out_codegen_impl->IsVectorFunctionSupported(*asc_out_node);
+    RefineEnableVFFlag(asc_out_node, out_enable_vf);
+
+    if (!out_enable_vf || (compare_node->attr.sched.loop_axis != asc_out_node->attr.sched.loop_axis)) {
+      all_outputs_enabled = false;
+      break;
+    }
+    output_info.push_back(OutputInfo{asc_out_node, out_codegen_impl->GetInstNum()});
+  }
+
+  // 只有所有输出都是 enable_vf 才合并
+  if (all_outputs_enabled && !output_info.empty()) {
+    cluster->out_nodes_.clear();
+    for (const auto &info: output_info) {
+      const auto &out_node = info.node;
+      cluster->nodes_.push_back(out_node);
+      cluster->node_set_.insert(out_node);
+      cluster_dict_.SetNodeClusterPair(out_node, cluster);
+      // 更新cluster信息
+      cluster->meta_data_.ins_num += info.ins_num;
+      cluster->out_nodes_.emplace(out_node);
+
+      // 将输出节点的输入（非Compare本身）添加到in_nodes_
+      for (const auto &input: out_node->inputs()) {
+        auto in_node = std::dynamic_pointer_cast<ge::AscNode>(input->anchor.GetOwnerNode());
+        GE_ASSERT_NOTNULL(in_node);
+        if (in_node != compare_node) {
+          cluster->in_nodes_.insert(in_node);
+        }
+      }
+    }
+    return true;
+  }
+
+  // 有输出不是 enable_vf，整个 Compare cluster 设为 disable
+  if (!all_outputs_enabled) {
+    cluster->meta_data_.enable_vf = false;
+  }
+  return false;
 }
 
 void VectorFuncPartitioner::FixCompareClusterConnections(const ClusterPtr &cluster, const ge::AscNodePtr &compare_node) {

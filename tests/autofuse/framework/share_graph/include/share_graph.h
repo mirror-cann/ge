@@ -148,7 +148,6 @@ struct ShareGraph {
   static ge::ComputeGraphPtr XorUint8FusedGraph(size_t dims_size);
   static ge::ComputeGraphPtr TruncBf16FusedGraph(size_t dims_size);
   static ge::ComputeGraphPtr TruncDivBf16FusedGraph(size_t dims_size);
-  static ge::ComputeGraphPtr MaskRegChainFusedGraph(size_t dims_size);
   static ge::ComputeGraphPtr RoundToIntFloatToInt32FusedGraph(size_t dims_size);
   static ge::ComputeGraphPtr TruncToIntBf16ToInt32FusedGraph(size_t dims_size);
   static ge::ComputeGraphPtr VfScalarFusionComprehensiveFusedGraph();
