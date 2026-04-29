@@ -34,7 +34,7 @@ Status CustomOpFactoryImpl::RegisterCustomOpCreator(const AscendString &op_type,
 BaseCustomOp *CustomOpFactoryImpl::CreateOrGetCustomOp(const AscendString &op_type) {
   const std::lock_guard<std::mutex> lock(mu_);
   if (const auto it = custom_ops_.find(op_type); it != custom_ops_.cend()) {
-    GELOGD("[CUSTOM OP] custom_op %s already created.", op_type.GetString());
+    GELOGD("[CUSTOM OP] custom_op %s already created .", op_type.GetString());
     return it->second.get();
   }
   if (const auto op_creator_it = custom_op_creators_.find(op_type); op_creator_it != custom_op_creators_.cend()) {

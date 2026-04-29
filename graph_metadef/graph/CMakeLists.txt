@@ -86,18 +86,10 @@ set(GRAPH_BASE_SOURCE_LIST
     "normal_graph/tensor.cc"
     "utils/readable_dump.cc"
     "utils/tensor_value_utils.cc"
-    "utils/op_desc_utils.cc"
-    "normal_graph/operator_factory.cc"
-    "normal_graph/operator_factory_impl.cc"
-    "ir/ir_definitions_recover.cc"
     "${GE_METADEF_DIR}/base/utils/type_utils_inner.cc"
     "${GE_METADEF_DIR}/base/utils/file_utils.cc"
     "${GE_METADEF_DIR}/base/utils/aligned_ptr.cc"
     "${GE_METADEF_DIR}/base/common/plugin/plugin_manager.cc"
-    "${GE_METADEF_DIR}/exe_graph/lowering/kernel_run_context_builder.cc"
-    "${GE_METADEF_DIR}/exe_graph/lowering/bg_kernel_context_extend.cc"
-    "${GE_METADEF_DIR}/exe_graph/lowering/buffer_pool.cc"
-    "${GE_METADEF_DIR}/exe_graph/lowering/bg_ir_attrs.cc"
 )
 
 SET(GRAPH_SOURCE_LIST
@@ -128,7 +120,6 @@ SET(GRAPH_SOURCE_LIST
     "utils/graph_utils_ex.cc"
     "utils/node_utils_ex.cc"
     "utils/op_desc_utils_ex.cc"
-    "utils/prepare_infer_shape_context.cc"
     "utils/graph_thread_pool.cc"
     "utils/multi_thread_graph_builder.cc"
     "utils/type_utils_ex.cc"
@@ -199,7 +190,7 @@ target_link_libraries(graph_base
         metadef_headers
 )
 
-target_link_libraries(graph_base PRIVATE ascend_protobuf error_manager opp_registry)
+target_link_libraries(graph_base PRIVATE ascend_protobuf error_manager)
 target_compile_options(graph_base PRIVATE ${OPTIMIZE_OPTION} -DNO_METADEF_ABI_COMPATIABLE)
 
 ######### libgraph_base.a #############
@@ -237,7 +228,6 @@ target_compile_definitions(graph PRIVATE
     google=ascend_private
     $<IF:$<STREQUAL:${TARGET_SYSTEM_NAME},Windows>,OS_TYPE=WIN,OS_TYPE=0>
     $<$<STREQUAL:${TARGET_SYSTEM_NAME},Windows>:SECUREC_USING_STD_SECURE_LIB=0 NOMINMAX>
-    FUNC_VISIBILITY
 )
 
 target_include_directories(graph PRIVATE

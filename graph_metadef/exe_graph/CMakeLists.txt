@@ -12,9 +12,13 @@ set(LOWERING_SRCS
     lowering/data_dependent_interpreter.cc
     lowering/device_tiling_context_builder.cc
     lowering/getcdim.cc
+    lowering/kernel_run_context_builder.cc
     lowering/shape_utils.cc
     lowering/tiling_context_builder.cc
     lowering/tiling_parse_context_builder.cc
+    lowering/bg_ir_attrs.cc
+    lowering/bg_kernel_context_extend.cc
+    lowering/buffer_pool.cc
     lowering/dev_mem_value_holder.cc
     lowering/frame_selector.cc
     lowering/generate_exe_graph.cc

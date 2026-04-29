@@ -9,6 +9,7 @@
  */
 
 #include "graph/utils/op_desc_utils_ex.h"
+
 #include "graph_metadef/common/ge_common/util.h"
 #include "common/util/trace_manager/trace_manager.h"
 #include "graph/normal_graph/operator_impl.h"
@@ -17,6 +18,7 @@
 #include "graph/ge_context.h"
 #include "graph/debug/ge_attr_define.h"
 #include "graph/utils/node_utils.h"
+#include "graph/utils/graph_utils.h"
 #include "graph/utils/op_desc_utils.h"
 #include "graph/utils/tensor_utils.h"
 #include "graph/utils/transformer_utils.h"
@@ -27,13 +29,10 @@
 #include "debug/ge_op_types.h"
 #include "mmpa/mmpa_api.h"
 #include "graph/custom_op_factory.h"
-#include "exe_graph/lowering/kernel_run_context_builder.h"
-#include "graph/utils/prepare_infer_shape_context.h"
-#include "graph_metadef/graph/debug/ge_util.h"
 
 namespace ge {
 namespace {
-std::function<graphStatus(Operator &)> TryGetV1InferFunc(const OpDescPtr &op_desc) {
+std::function<ge::graphStatus(ge::Operator &)> TryGetV1InferFunc(const OpDescPtr &op_desc) {
   auto infer_func = op_desc->GetInferFunc();
   if (infer_func != nullptr) {
     return infer_func;
@@ -113,8 +112,15 @@ graphStatus OpDescUtilsEx::CallInferFuncV1(const OpDescPtr &op_desc, Operator &o
   return graph_status;
 }
 
+graphStatus OpDescUtilsEx::InferCustomOpShape(const OpDescPtr &op_desc, Operator &op) {
+  GE_ASSERT_NOTNULL(op_desc);
+  GELOGI("[%s][%s] Infer Custom op shape.", op_desc->GetNamePtr(), op_desc->GetTypePtr());
 
-graphStatus UpdateOutputDescFromOriginShape(const OpDescPtr &op_desc) {
+  const auto is_infer_shape_v2_registered_func = OperatorFactoryImpl::GetIsInferShapeV2RegisteredFunc();
+  if ((is_infer_shape_v2_registered_func != nullptr) && is_infer_shape_v2_registered_func(op_desc))  {
+    GELOGI("[Call][InferFunc] call V2 func for op [%s][%s]", op_desc->GetNamePtr(), op_desc->GetTypePtr());
+    return CallInferFuncV2(op_desc, op);
+  }
   for (size_t index = 0UL; index < op_desc->GetOutputsSize(); index++) {
     auto output_tensor = op_desc->MutableOutputDesc(index);
     GE_ASSERT_NOTNULL(output_tensor);
@@ -134,56 +140,6 @@ graphStatus UpdateOutputDescFromOriginShape(const OpDescPtr &op_desc) {
     }
   }
   return GRAPH_SUCCESS;
-}
-
-graphStatus CallShapeInferOp(ShapeInferOp *shape_infer_op, const OpDescPtr &op_desc, Operator &op) {
-  std::vector<std::unique_ptr<uint8_t[]>> inputs_holder;
-  std::vector<std::unique_ptr<uint8_t[]>> outputs_holder;
-  std::vector<std::unique_ptr<ge::Tensor>> ge_tensors_holder;
-  GE_CHK_STATUS_RET(gert::PrepareInferShapeContext(op, op_desc, inputs_holder, outputs_holder, ge_tensors_holder),
-                  "PrepareInferShapeContext failed for op_desc[%s]", op_desc->GetName().c_str());
-  const auto kernel_context_holder = gert::KernelRunContextBuilder()
-                                     .Inputs(gert::GetInputs(op, inputs_holder))
-                                     .Outputs(gert::GetOutputs(outputs_holder))
-                                     .Build(op_desc);
-  auto infer_shape_ctx = reinterpret_cast<gert::InferShapeContext *>(kernel_context_holder.context_);
-  const graphStatus infer_shape_ret = shape_infer_op->InferShape(infer_shape_ctx);
-  GE_CHK_STATUS_RET(infer_shape_ret, "[Check][InferShape] result failed, op_desc[%s], ret[%d]", op_desc->GetName().c_str(), infer_shape_ret);
-  GE_ASSERT_GRAPH_SUCCESS(gert::UpdateOpDescOutShape(op_desc, infer_shape_ctx),
-                      "UpdateOpDescOutShape failed, OutputShape is nullptr. op_desc[%s]",
-                      op_desc->GetName().c_str());
-  std::vector<void *> inputs;
-  std::vector<void *> outputs;
-  gert::ConstructDataTypeContextInputs(op_desc, inputs);
-  gert::ConstructDataTypeContextOutputs(op_desc, outputs);
-  const auto kernel_context_holder1 = gert::KernelRunContextBuilder().Inputs(inputs).Outputs(outputs).Build(op_desc);
-  const auto kernel_context = reinterpret_cast<gert::InferDataTypeContext *>(kernel_context_holder1.context_);
-  const graphStatus infer_shape_type_ret = shape_infer_op->InferDataType(kernel_context);
-  GE_CHK_STATUS_RET(infer_shape_type_ret, "[Check][InferDataType] result failed, op_desc[%s], ret[%d]", op_desc->GetName().c_str(), infer_shape_type_ret);
-  for (size_t i = 0UL; i < op_desc->GetOutputsSize(); i++) {
-    const auto &out_desc = op_desc->MutableOutputDesc(static_cast<size_t>(i));
-    out_desc->SetDataType(kernel_context->GetOutputDataType(i));
-  }
-  return GRAPH_SUCCESS;
-}
-
-graphStatus OpDescUtilsEx::InferCustomOpShape(const OpDescPtr &op_desc, Operator &op) {
-  GE_ASSERT_NOTNULL(op_desc);
-  GELOGI("[%s][%s] Infer Custom op shape.", op_desc->GetNamePtr(), op_desc->GetTypePtr());
-  AscendString op_type(op_desc->GetType().c_str());
-  auto custom_op_ptr = CustomOpFactory::CreateOrGetCustomOp(op_type);
-  auto *shape_infer_op = dynamic_cast<ShapeInferOp *>(custom_op_ptr);
-  if (shape_infer_op != nullptr) {
-    return CallShapeInferOp(shape_infer_op, op_desc, op);
-  }
-  // todo 自定义算子和内置算子重名时，需要静默掉内置算子的 InferDataType 和 InferShape 函数，不使用内置算子的InferDataType 和 InferShape（期望方案）
-  // 当前自定义算子和内置算子重名时，未静默掉内置算子的 InferDataType 和 InferShape 函数，若内置算子的 InferDataType 和 InferShape 存在则直接使用（当前方案）
-  const auto is_infer_shape_v2_registered_func = OperatorFactoryImpl::GetIsInferShapeV2RegisteredFunc();
-  if ((is_infer_shape_v2_registered_func != nullptr) && is_infer_shape_v2_registered_func(op_desc))  {
-    GELOGI("[Call][InferFunc] call V2 func for op [%s][%s]", op_desc->GetNamePtr(), op_desc->GetTypePtr());
-    return CallInferFuncV2(op_desc, op);
-  }
-  return UpdateOutputDescFromOriginShape(op_desc);
 }
 
 graphStatus OpDescUtilsEx::CallInferFunc(const OpDescPtr &op_desc, Operator &op) {

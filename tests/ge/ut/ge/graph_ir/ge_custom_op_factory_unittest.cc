@@ -50,7 +50,6 @@ TEST(UtestCustomOpFactory, get_all_ops) {
       [](const AscendString &op_name) { return op_name == "MyPortableOp"; });
   EXPECT_EQ(true, has_my_custom_op);
   EXPECT_EQ(true, has_my_serializable_custom_op);
-  EXPECT_GE(all_registered_ops.size(), 4U);
 }
 
 TEST(UtestCustomOpFactory, register_custom_op_creator) {

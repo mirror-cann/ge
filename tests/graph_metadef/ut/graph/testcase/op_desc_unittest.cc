@@ -26,8 +26,6 @@
 #include "graph/debug/ge_attr_define.h"
 #include "base/registry/op_impl_space_registry_v2.h"
 #include "faker/space_registry_faker.h"
-#include "graph/custom_op_factory.h"
-#include "graph/custom_op.h"
 
 #include "mmpa/mmpa_api.h"
 
@@ -1138,41 +1136,5 @@ TEST_F(UtestOpDesc, TestGetOrderedSubgraphs) {
   EXPECT_EQ(kDynamic, subgraph_pair[0].second);
   EXPECT_EQ("static_graph", subgraph_pair[1].first);
   EXPECT_EQ(kStatic, subgraph_pair[1].second);
-}
-
-class TestShapeInferOp : public ShapeInferOp {
-public:
-  graphStatus InferShape(gert::InferShapeContext *ctx) override {
-    auto input_shape = ctx->GetInputShape(0);
-    auto output = ctx->GetOutputShape(0);
-    for (size_t dim = 0UL; dim < input_shape->GetDimNum(); dim++) {
-      output->AppendDim(input_shape->GetDim(dim));
-    }
-    return ge::GRAPH_SUCCESS;
-  }
-
-  graphStatus InferDataType(gert::InferDataTypeContext *ctx) override {
-    auto input_dtype = ctx->GetInputDataType(0);
-    ctx->SetOutputDataType(0, input_dtype);
-    return ge::GRAPH_SUCCESS;
-  }
-};
-
-TEST_F(UtestOpDesc, TestInferCustomOpShape_Success) {
-  auto op_desc = std::make_shared<OpDesc>("test_custom_op", "TestShapeInferOp");
-  auto tensor_desc = std::make_shared<GeTensorDesc>();
-  tensor_desc->SetShape(GeShape({2, 3, 4}));
-  tensor_desc->SetFormat(FORMAT_NCHW);
-  tensor_desc->SetDataType(DT_FLOAT);
-  op_desc->AddInputDesc(tensor_desc->Clone());
-  op_desc->AddOutputDesc(tensor_desc->Clone());
-
-  CustomOpFactory::RegisterCustomOpCreator(
-      "TestShapeInferOp", []() -> std::unique_ptr<ge::BaseCustomOp> { return std::make_unique<TestShapeInferOp>(); });
-
-  auto op = OperatorFactory::CreateOperator("test_custom_op", "TestShapeInferOp");
-  auto ret = OpDescUtilsEx::InferCustomOpShape(op_desc, op);
-
-  EXPECT_EQ(ge::GRAPH_SUCCESS, ret);
 }
 }
