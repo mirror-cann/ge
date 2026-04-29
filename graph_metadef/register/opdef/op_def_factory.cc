@@ -13,48 +13,33 @@
 #include <map>
 #include <set>
 #include "register/op_def.h"
-#include "op_def_impl.h"
+#include "base/asc/opdef/op_def_impl.h"
 #include "register/op_def_factory.h"
+#include "base/asc/opdef/op_def_factory_impl.h"
 
 namespace ops {
-static std::map<ge::AscendString, OpDefCreator> g_opsdef_creator;
-static std::map<ge::AscendString, OpDefFuncPtr> g_opsdef_creator_v2;
-static std::vector<ge::AscendString> g_ops_list;
-static std::set<ge::AscendString> g_ops_sink_list;
 
 int OpDefFactory::OpDefRegister(const char *name, OpDefCreator creator) {
-  g_opsdef_creator.emplace(name, creator);
-  g_ops_list.emplace_back(name);
-  return 0;
+  return OpDefFactoryImpl::GetInstance().OpDefRegister(name, creator);
 }
 
 int __attribute__((weak)) OpDefFactory::OpDefRegisterV2(const char *name, OpDefFuncPtr ptr) {
-  g_opsdef_creator_v2.emplace(name, ptr);
-  g_ops_list.emplace_back(name);
-  return 0;
+  return OpDefFactoryImpl::GetInstance().OpDefRegisterV2(name, ptr);
 }
 
 OpDef OpDefFactory::OpDefCreate(const char *name) {
-  auto it_v2 = g_opsdef_creator_v2.find(name);
-  if (it_v2 != g_opsdef_creator_v2.cend()) {
-    return it_v2->second(name);
-  }
-  auto it = g_opsdef_creator.find(name);
-  if (it != g_opsdef_creator.cend()) {
-    return it->second(name);
-  }
-  return OpDef("default");
+  return OpDefFactoryImpl::GetInstance().OpDefCreate(name);
 }
 
 std::vector<ge::AscendString> &OpDefFactory::GetAllOp(void) {
-  return g_ops_list;
+  return OpDefFactoryImpl::GetInstance().GetAllOp();
 }
 
 void OpDefFactory::OpTilingSinkRegister(const char *opType) {
-  g_ops_sink_list.emplace(opType);
+  OpDefFactoryImpl::GetInstance().OpTilingSinkRegister(opType);
 }
 
 bool OpDefFactory::OpIsTilingSink(const char *opType) {
-  return g_ops_sink_list.find(opType) != g_ops_sink_list.end();
+  return OpDefFactoryImpl::GetInstance().OpIsTilingSink(opType);
 }
 }  // namespace ops

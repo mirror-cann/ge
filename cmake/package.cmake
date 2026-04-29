@@ -353,10 +353,6 @@ if("ge-executor" IN_LIST BUILD_COMPONENT)
         ${CMAKE_SOURCE_DIR}/inc/graph_metadef/external/register/op_lib_register.h
         ${CMAKE_SOURCE_DIR}/inc/graph_metadef/external/register/register_custom_pass.h
         ${CMAKE_SOURCE_DIR}/inc/graph_metadef/external/register/op_binary_resource_manager.h
-        ${CMAKE_SOURCE_DIR}/inc/graph_metadef/external/register/op_config_registry.h
-        ${CMAKE_SOURCE_DIR}/inc/graph_metadef/external/register/op_def.h
-        ${CMAKE_SOURCE_DIR}/inc/graph_metadef/external/register/op_def_registry.h
-        ${CMAKE_SOURCE_DIR}/inc/graph_metadef/external/register/op_def_factory.h
     )
     install(FILES ${EXTERNAL_REGISTER_FILES}
         DESTINATION ge-executor/include/register COMPONENT ge-executor

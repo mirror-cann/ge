@@ -9,40 +9,27 @@
  */
 
 #include <algorithm>
-#include "op_def_impl.h"
+#include "base/asc/opdef/op_def_impl.h"
 
 namespace ops {
 OpMC2Def::OpMC2Def() : impl_(new(std::nothrow) OpMC2DefImpl) {}
 
 OpMC2Def::OpMC2Def(const OpMC2Def &mc2_def) : impl_(new(std::nothrow) OpMC2DefImpl) {
-  this->impl_->group_list = mc2_def.impl_->group_list;
+  this->impl_->Construct(this, mc2_def);
 }
 
 OpMC2Def::~OpMC2Def() = default;
 
 OpMC2Def &OpMC2Def::operator=(const OpMC2Def &mc2_def) {
-  if (this != &mc2_def) {
-    *this->impl_ = *mc2_def.impl_;
-  }
-  return *this;
+  return this->impl_->Eq(this, mc2_def);
 }
 
 OpMC2Def &OpMC2Def::HcclGroup(const char *value) {
-  if (std::find(this->impl_->group_list.begin(), this->impl_->group_list.end(), value) ==
-      this->impl_->group_list.end()) {
-    this->impl_->group_list.emplace_back(value);
-  }
-  return *this;
+  return this->impl_->HcclGroup(this, value);
 }
 
 OpMC2Def &OpMC2Def::HcclGroup(std::vector<const char *> value) {
-  for (const char *val : value) {
-    if (std::find(this->impl_->group_list.begin(), this->impl_->group_list.end(), val) ==
-        this->impl_->group_list.end()) {
-      this->impl_->group_list.emplace_back(val);
-    }
-  }
-  return *this;
+  return this->impl_->HcclGroup(this, value);
 }
 
 std::vector<ge::AscendString> &OpMC2Def::GetHcclGroups(void) const {
@@ -50,13 +37,7 @@ std::vector<ge::AscendString> &OpMC2Def::GetHcclGroups(void) const {
 }
 
 void OpMC2Def::HcclServerType(enum HcclServerType type, const char* soc) {
-  ge::AscendString soc_version;
-  if (soc == nullptr || strlen(soc) == 0) {
-    soc_version = "";
-  } else {
-    soc_version = soc;
-  }
-  this->impl_->server_type_[soc_version] = type;
+  this->impl_->HcclServerTypeImpl(this, type, soc);
 }
 
 /**
@@ -66,19 +47,7 @@ void OpMC2Def::HcclServerType(enum HcclServerType type, const char* soc) {
            For scenarios where soc version is empty, return MAX if not set, AICPU if set.
  */
 enum HcclServerType OpMC2Def::GetHcclServerType(const ge::AscendString &soc_version) const {
-  if (this->impl_->server_type_.empty()) {
-    return HcclServerType::MAX;
-  }
-  if (soc_version.GetLength() == 0) {
-    return HcclServerType::AICPU;
-  }
-  if (this->impl_->server_type_.find(soc_version) != this->impl_->server_type_.end()) {
-    return this->impl_->server_type_[soc_version];
-  }
-  if (this->impl_->server_type_.find("") != this->impl_->server_type_.end()) {
-    return this->impl_->server_type_[""];
-  }
-  return HcclServerType::MAX;
+  return this->impl_->GetHcclServerType(this, soc_version);
 }
 
 }  // namespace ops

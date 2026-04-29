@@ -118,6 +118,8 @@ target_include_directories(register PRIVATE
     ${TOP_DIR}/metadef/inc
     ${TOP_DIR}/runtime/include/external
     ${TOP_DIR}/runtime/include/external/acl
+    ${ASCEND_INSTALL_PATH}/include/register
+    ${ASCEND_INSTALL_PATH}/pkg_inc
 )
 
 target_link_options(register PRIVATE
@@ -281,8 +283,6 @@ if(NOT BUILD_PKG_COMPONENT)
         ${GE_METADEF_INC_DIR}/register/op_lib_register_impl.h
         ${GE_METADEF_INC_DIR}/register/optimization_option_registry.h
         ${GE_METADEF_INC_DIR}/register/core_num_utils.h
-        ${GE_METADEF_INC_DIR}/external/register/op_def.h
-        ${GE_METADEF_INC_DIR}/external/register/op_def_factory.h
         ${GE_METADEF_INC_DIR}/external/register/op_lib_register.h
         ${GE_METADEF_INC_DIR}/external/register/register_base.h
         ${GE_METADEF_INC_DIR}/external/register/op_tiling_info.h
@@ -304,8 +304,6 @@ else()
         ${GE_METADEF_INC_DIR}/register/core_num_utils.h
         ${GE_METADEF_INC_DIR}/register/op_tiling.h
         ${GE_METADEF_INC_DIR}/register/stream_manage_func_registry.h
-        ${GE_METADEF_INC_DIR}/external/register/op_def.h
-        ${GE_METADEF_INC_DIR}/external/register/op_def_factory.h
         ${GE_METADEF_INC_DIR}/external/register/op_lib_register.h
         ${GE_METADEF_INC_DIR}/external/register/op_tiling_info.h
         ${GE_METADEF_INC_DIR}/external/register/op_tiling_registry.h
