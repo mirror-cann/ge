@@ -279,4 +279,18 @@ IMPL_OP(RandomUniform).InputsDataDependency({0});
 IMPL_OP(TruncatedNormal).InputsDataDependency({0});
 IMPL_OP(UnsortedSegmentSum).InputsDataDependency({2});
 IMPL_OP(DynamicStitch).InputsDataDependency({0});
+IMPL_OP(BatchMatMulV3).InputsDataDependency({});
+IMPL_OP(EmbeddingHashTableLookupOrInsert).InputsDataDependency({});
+IMPL_OP(TopKV2).InputsDataDependency({1});
+IMPL_OP(ArgMaxWithValue).InputsDataDependency({});
+IMPL_OP(ArgMinWithValue).InputsDataDependency({});
+IMPL_OP(ScatterElements).InputsDataDependency({});
+IMPL_OP(Cos).InputsDataDependency({});
+IMPL_OP(ViewCopy).InputsDataDependency({});
+IMPL_OP(InplaceIndexAdd).InputsDataDependency({});
+IMPL_OP(Swish).InputsDataDependency({});
+IMPL_OP(LayerNormV4).InputsDataDependency({1});
+IMPL_OP(Index).InputsDataDependency({1});
+IMPL_OP(FlashAttentionScore).InputsDataDependency({});
+IMPL_OP(FusedInferAttentionScore).InputsDataDependency({});
 }  // namespace ops
