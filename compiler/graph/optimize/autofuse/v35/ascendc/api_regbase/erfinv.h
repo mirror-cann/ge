@@ -185,7 +185,7 @@ __simd_callee__ inline void ErfinvHandleOneCases(
 
 template <typename T, bool isReuseSource = false>
 __simd_vf__ inline void ErfinvCoreImpl(
-    __ubuf__ T* dstUb, __ubuf__ T* srcUb, __ubuf__ float* workUb, uint32_t calCount, uint16_t repeatTimes)
+    __ubuf__ T* dstUb, __ubuf__ T* srcUb, uint32_t calCount, uint16_t repeatTimes)
 {
     Reg::MaskReg mask, thresholdMask;
     Reg::RegTensor<T> srcReg;
@@ -208,8 +208,10 @@ __simd_vf__ inline void ErfinvCoreImpl(
         Reg::Compare<float, CMPMODE::GE>(thresholdMask, log2Reg, constTempReg, mask);
         ErfinvComputeMiddle1(dstReg, negLog2Reg, thresholdMask);
 
-        Reg::StoreAlign(workUb + i * B32_DATA_NUM_PER_REPEAT, dstReg, mask);
+        Reg::StoreAlign(dstUb + i * B32_DATA_NUM_PER_REPEAT, dstReg, mask);
     }
+
+    Reg::LocalMemBar<Reg::MemType::VEC_STORE, Reg::MemType::VEC_LOAD>();
 
     for (uint16_t i = 0; i < repeatTimes; ++i) {
         Reg::RegTensor<float> tempResultReg;
@@ -224,7 +226,7 @@ __simd_vf__ inline void ErfinvCoreImpl(
         ErfinvPrepareMiddleInput(castReg, log2Reg, negLog2Reg, mask);
         Reg::Duplicate(constTempReg, ERFINV_LOG2_THRESHOLD, mask);
         Reg::Compare<float, CMPMODE::GE>(thresholdMask, log2Reg, constTempReg, mask);
-        Reg::LoadAlign(dstReg, workUb + i * B32_DATA_NUM_PER_REPEAT);
+        Reg::LoadAlign(dstReg, dstUb + i * B32_DATA_NUM_PER_REPEAT);
         ErfinvComputeMiddle2(dstReg, castReg, negLog2Reg, thresholdMask);
         // compute near one case
         Reg::Compare<float, CMPMODE::LT>(thresholdMask, log2Reg, constTempReg, mask);
@@ -269,12 +271,10 @@ __aicore__ inline void Erfinv(
     }
 
     ErfinvCheckParams<T, isReuseSource>(dstTensor, srcTensor, sharedTmpBuffer, calCount);
-    auto workLocal = sharedTmpBuffer.ReinterpretCast<float>();
     __ubuf__ T* dstUb = (__ubuf__ T*)dstTensor.GetPhyAddr();
     __ubuf__ T* srcUb = (__ubuf__ T*)srcTensor.GetPhyAddr();
-    __ubuf__ float* workUb = (__ubuf__ float*)workLocal.GetPhyAddr();
     uint16_t repeatTimes = CeilDivision(calCount, B32_DATA_NUM_PER_REPEAT);
-    ErfinvAPI::ErfinvCoreImpl<T, isReuseSource>(dstUb, srcUb, workUb, calCount, repeatTimes);
+    ErfinvAPI::ErfinvCoreImpl<T, isReuseSource>(dstUb, srcUb, calCount, repeatTimes);
 }
 
 template <typename T, bool isReuseSource = false>
