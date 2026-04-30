@@ -161,12 +161,12 @@ void SetNddmaParams(const TPipe &tpipe, const DataCopyParams &data_copy_param, N
   size_t j = std::min(data_copy_param.repeats.size(), kFiveAxisNum);
   while (j > 0UL) {
     if (j == 1UL) {
-      nddma_param.ss_output_dims << data_copy_param.repeats_str[i];
+      nddma_param.ss_output_dims << tpipe.tiler.ActualSize(data_copy_param.repeats[i]);
       nddma_param.ss_output_stride << tpipe.tiler.Size(data_copy_param.ub_strides[i]);
       nddma_param.ss_input_stride << tpipe.tiler.Size(data_copy_param.gm_strides[i]);
       break;
     }
-    nddma_param.ss_output_dims << data_copy_param.repeats_str[i] << ", ";
+    nddma_param.ss_output_dims << tpipe.tiler.ActualSize(data_copy_param.repeats[i]) << ", ";
     nddma_param.ss_output_stride << tpipe.tiler.Size(data_copy_param.ub_strides[i]) << ", ";
     nddma_param.ss_input_stride << tpipe.tiler.Size(data_copy_param.gm_strides[i]) << ", ";
     i++;
