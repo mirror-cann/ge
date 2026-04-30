@@ -20,6 +20,10 @@ from ._ge_pass_native import MatchResult
 from ._ge_pass_native import PassContext
 from ._ge_pass_native import PatternMatcherConfig
 from ._ge_pass_native import PatternMatcherConfigBuilder
+from ._ge_pass_native import SubgraphInput
+from ._ge_pass_native import SubgraphOutput
+from ._ge_pass_native import SubgraphBoundary
+from ._ge_pass_native import SubgraphRewriter
 
 if TYPE_CHECKING:
     from ge.graph.graph import Graph

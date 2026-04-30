@@ -53,6 +53,10 @@ bool GetExpectedElfMachine(const std::string &target_cpu, uint16_t &expected_mac
     expected_machine = EM_AARCH64;
     return true;
   }
+  if (normalized_target_cpu == "arm") {
+    expected_machine = EM_ARM;
+    return true;
+  }
   return false;
 }
 
@@ -110,6 +114,10 @@ void FallbackHostEnvByCompileTime(std::string &host_env_os, std::string &host_en
     host_env_cpu = "aarch64";
 #elif defined(__x86_64__) || defined(__amd64__)
     host_env_cpu = "x86_64";
+#elif defined(__arm__)
+    host_env_cpu = "arm";
+#else
+    GELOGW("[CustomOp] Unknown CPU architecture, unable to determine host env CPU, will use empty string.");
 #endif
   }
 }

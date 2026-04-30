@@ -89,6 +89,20 @@ const std::string kCubeTilingHeadInclude = "#include \"autofuse_cube_tiling_data
                       const std::string tiling, const std::string &core_num) const;
     std::string GenTilingFuncForInductor(const ::ascir::FusedScheduledResult& fused_schedule_result,
                                          const std::string func, const std::string tiling) const;
+    std::string GenGetTopnSolutionsFuncForInductor(const ::ascir::FusedScheduledResult &fused_schedule_result,
+                                                   const std::string &tiling) const;
+    std::string GenGetTilingDataReprFuncForInductor(const ::ascir::FusedScheduledResult &fused_schedule_result,
+                                                    const std::string &tiling) const;
+    void GenReprScheduleGroupFields(std::stringstream &ss, const ::ascir::ScheduleGroup &sg,
+                                    const std::string &field_prefix, const std::string &emit_fn,
+                                    const std::string &indent, bool emit_first_arg) const;
+    void GenReprApiTilingFields(std::stringstream &ss, const ::ascir::ScheduleGroup &sg,
+                                const std::string &field_prefix, const std::string &indent,
+                                const std::string &first_flag) const;
+    void GenReprSingleGroup(std::stringstream &ss,
+                            const ::ascir::FusedScheduledResult &fused_schedule_result) const;
+    void GenReprMultiGroup(std::stringstream &ss,
+                           const ::ascir::FusedScheduledResult &fused_schedule_result) const;
     std::string GenPgoTilingFunc(const ::ascir::FusedScheduledResult& fused_schedule_result,
                                  const std::string& tiling,
                                  codegen::PgoShapeStringStream &pgo_shape_dim,

@@ -50,7 +50,7 @@ function(do_backend_e2e_st_test)
                           GTest::gtest_main)
 
 
-    list (JOIN ARG_KERNEL_SRC ":" KERNEL_SRC_LIST)
+    list (JOIN KERNEL_SRC ":" KERNEL_SRC_LIST)
     message(STATUS "KERNEL_SRC_LIST = ${KERNEL_SRC_LIST}")
 
     target_compile_definitions(${E2E_ST1_GENERATOR_EXE_NAME} PRIVATE

@@ -15,6 +15,7 @@ set(_ge_pass_native_sources
         native_bindings/match_result_binding.cc
         native_bindings/pattern_matcher_config_binding.cc
         native_bindings/graph_handle_binding.cc
+        native_bindings/graph_rewriter_binding.cc
 )
 
 add_library(_ge_pass_native MODULE ${_ge_pass_native_sources})

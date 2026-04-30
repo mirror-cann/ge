@@ -44,6 +44,7 @@
 #include "graph/load/model_manager/kernel/kernel_register_info_builder.h"
 #include "common/kernel_handles_manager/aicpu_kernel_handles_manager.h"
 #include "acl/acl_rt.h"
+#include "mmpa/mmpa_api.h"
 #include "runtime/v1/common/aclrt_malloc_helper.h"
 
 namespace ge {
@@ -2830,7 +2831,7 @@ Status ModelManager::GetDumpDebugJsonOutputPath(
   const uint64_t unique_seq = ++dump_seq;
   std::stringstream file_name_stream;
   file_name_stream << output_dir << kPathSeparator << kDumpDebugJsonFilePrefix
-    << graph_id << "_"<< static_cast<long long>(now) << "_" << unique_seq << ".json";
+    << graph_id << "_" << static_cast<long long>(now) << "_" << mmGetPid() << "_" << unique_seq << ".json";
   file_path = file_name_stream.str();
   return SUCCESS;
 }

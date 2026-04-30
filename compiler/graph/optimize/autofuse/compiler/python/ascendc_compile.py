@@ -246,7 +246,7 @@ def main_with_except(argv: List[str]):
     try:
         print("Enter main func")
         return main(argv)
-    except ArgumentError as ex:
+    except argparse.ArgumentError as ex:
         print(f'error: check arguments error, {ex}')
         return False
 

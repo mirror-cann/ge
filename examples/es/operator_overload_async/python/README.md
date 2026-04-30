@@ -20,8 +20,8 @@ python/
 ### 3.1、准备cann包
 - 本样例需要同时安装两套 CANN：最新开发包用于图编译，官网正式发布包提供 [`pyACL`](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/900beta1/appdevg/acldevg/aclpythondevg_0096.html) 模块用于图执行。本文中的“编译”和“执行”均特指图编译和图执行，不指 GE 工程源码编译。
 - 安装请参考：
-  - 最新开发包，用于图编译，提供本样例依赖的最新 GE/Python 能力。安装请参考 [安装指导](../../../docs/quick_install.md) 中“方式三：手动安装软件包 > 场景1：体验master版本能力或基于master版本进行开发”，安装最新版本的 `toolkit` 和 `ops` 包
-  - 官网正式发布的 CANN `toolkit` 和 `ops` 包，用于图执行，提供 `pyACL`。安装请参考 [安装指导](../../../docs/quick_install.md) 中“方式三：手动安装软件包 > 场景2：体验已发布版本能力或基于已发布版本进行开发”，安装官网正式发布版本的软件包
+  - 最新开发包，用于图编译，提供本样例依赖的最新 GE/Python 能力。安装请参考 [环境准备](../../../../docs/quick_install.md) 中“方式三：手动安装软件包 > 场景1：体验master版本能力或基于master版本进行开发”，安装最新版本的 `toolkit` 和 `ops` 包
+  - 官网正式发布的 CANN `toolkit` 和 `ops` 包，用于图执行，提供 `pyACL`。安装请参考 [环境准备](../../../../docs/quick_install.md) 中“方式三：手动安装软件包 > 场景2：体验已发布版本能力或基于已发布版本进行开发”，安装官网正式发布版本的软件包
 - 设置环境变量 (假设最新开发包安装在/usr/local/Ascend/，官网正式发布包安装在/usr/local/Ascend-release/)
 ```
 source /usr/local/Ascend/cann/set_env.sh

@@ -76,8 +76,35 @@ class TestCodegenTiling : public testing::Test, public codegen::TilingLib {
   }
   void TearDown() override {
   }
-  std::map<std::string, std::string> GenTilingCode(const std::vector<ge::Expression> &origin_vars = {},
-                                                   const std::map<std::string, std::string> &shape_info = {}) {
+  void SetupLoadAttrs(ge::AscNode &load, uint64_t z0_id, const ge::Expression &z0_size) {
+    auto &attr = load.outputs[0].attr;
+    attr.axis = {z0_id};
+    attr.vectorized_axis = {z0_id};
+    attr.vectorized_strides = {ge::ops::One};
+    attr.repeats = {z0_size};
+    attr.strides = {ge::ops::One};
+    attr.mem.position = ge::Position::kPositionVecIn;
+    attr.mem.alloc_type = ge::AllocType::kAllocTypeQueue;
+    attr.mem.tensor_id = 1;
+    attr.que.id = 0;
+    attr.mem.reuse_id = 0;
+    attr.que.depth = 2;
+    attr.que.buf_num = 2;
+    attr.opt.merge_scope = ge::kIdNone;
+  }
+
+  void SetupStoreAttrs(ge::AscNode &store, uint64_t z0_id, const ge::Expression &z0_size) {
+    auto &attr = store.outputs[0].attr;
+    attr.mem.alloc_type = ge::AllocType::kAllocTypeGlobal;
+    attr.mem.tensor_id = 2;
+    attr.axis = {z0_id};
+    attr.vectorized_axis = {z0_id};
+    attr.vectorized_strides = {ge::ops::One};
+    attr.repeats = {z0_size};
+    attr.strides = {ge::ops::One};
+  }
+
+  ascir::FusedScheduledResult GenBasicFusedScheduleResult(const std::vector<ge::Expression> &origin_vars = {}) {
     ge::AscGraph graph("test_graph");
     auto s0 = graph.CreateSizeVar("s0");
     auto z0 = graph.CreateAxis("z0", ge::ops::Zero);
@@ -107,27 +134,8 @@ class TestCodegenTiling : public testing::Test, public codegen::TilingLib {
     x->attr.api.unit = ge::ComputeUnit::kUnitNone;
     y->attr.api.unit = ge::ComputeUnit::kUnitNone;
 
-    load->outputs[0].attr.axis = {z0.id};
-    load->outputs[0].attr.vectorized_axis = {z0.id};
-    load->outputs[0].attr.vectorized_strides = {ge::ops::One};
-    load->outputs[0].attr.repeats = {z0.size};
-    load->outputs[0].attr.strides = {ge::ops::One};
-    load->outputs[0].attr.mem.position = ge::Position::kPositionVecIn;
-    load->outputs[0].attr.mem.alloc_type = ge::AllocType::kAllocTypeQueue;
-    load->outputs[0].attr.mem.tensor_id = 1;
-    load->outputs[0].attr.que.id = 0;
-    load->outputs[0].attr.mem.reuse_id = 0;
-    load->outputs[0].attr.que.depth = 2;
-    load->outputs[0].attr.que.buf_num = 2;
-    load->outputs[0].attr.opt.merge_scope = ge::kIdNone;
-
-    store->outputs[0].attr.mem.alloc_type = ge::AllocType::kAllocTypeGlobal;
-    store->outputs[0].attr.mem.tensor_id = 2;
-    store->outputs[0].attr.axis = {z0.id};
-    store->outputs[0].attr.vectorized_axis = {z0.id};
-    store->outputs[0].attr.vectorized_strides = {ge::ops::One};
-    store->outputs[0].attr.repeats = {z0.size};
-    store->outputs[0].attr.strides = {ge::ops::One};
+    SetupLoadAttrs(*load, z0.id, z0.size);
+    SetupStoreAttrs(*store, z0.id, z0.size);
 
     ::ascir::ScheduledResult schedule_result;
     schedule_result.schedule_groups.resize(1);
@@ -144,7 +152,18 @@ class TestCodegenTiling : public testing::Test, public codegen::TilingLib {
     fused_schedule_result.output_nodes.push_back(y);
     fused_schedule_result.node_idx_to_scheduled_results.push_back(schedule_results);
     fused_schedule_result.origin_vars = origin_vars;
+    return fused_schedule_result;
+  }
+
+  std::map<std::string, std::string> GenTilingCode(const std::vector<ge::Expression> &origin_vars = {},
+                                                   const std::map<std::string, std::string> &shape_info = {}) {
+    auto fused_schedule_result = GenBasicFusedScheduleResult(origin_vars);
     return this->Generate(fused_schedule_result, shape_info, "", "0");
+  }
+
+  std::map<std::string, std::string> GenTilingCodeForInductor(const std::vector<ge::Expression> &origin_vars = {}) {
+    auto fused_schedule_result = GenBasicFusedScheduleResult(origin_vars);
+    return this->GenerateForInductor(fused_schedule_result);
   }
 
   protected:
@@ -1256,4 +1275,135 @@ TEST_F(TestCodegenTiling, TestMatmulElemwiseFuse) {
 
   auto pos = res["tiling_def_and_tiling_const"].find("extern \"C\" int64_t FindBestTilingKey(AutofuseTilingData &t)");
   ASSERT_NE(pos, std::string::npos);
+}
+
+namespace {
+static ascir::FusedScheduledResult GenMultiGroupFusedScheduleResult() {
+  ge::AscGraph graph1("graph1");
+  ge::AscGraph graph2("graph2");
+
+  ascir::ScheduleGroup schedule_group1;
+  schedule_group1.impl_graphs.push_back(graph1);
+
+  ascir::ScheduleGroup schedule_group2;
+  schedule_group2.impl_graphs.push_back(graph1);
+  schedule_group2.impl_graphs.push_back(graph2);
+
+  ascir::ScheduledResult schedule_result;
+  schedule_result.schedule_groups.push_back(schedule_group1);
+  schedule_result.schedule_groups.push_back(schedule_group2);
+
+  ascir::FusedScheduledResult fused_schedule_result;
+  std::vector<ascir::ScheduledResult> graph0_results = {schedule_result};
+  fused_schedule_result.node_idx_to_scheduled_results.emplace_back(std::move(graph0_results));
+  return fused_schedule_result;
+}
+}  // namespace
+
+TEST_F(TestCodegenTiling, GenerateForInductorGetTilingDataReprShouldContainStableFields) {
+  auto fused_schedule_result = this->GenBasicFusedScheduleResult({ge::Symbol("s0"), ge::Symbol("s1")});
+  auto tiling_files = this->GenerateForInductor(fused_schedule_result);
+  ASSERT_TRUE(tiling_files.find(codegen::kTilingDefAndConstIdentify) != tiling_files.end());
+  const auto &tiling_impl = tiling_files.at(codegen::kTilingDefAndConstIdentify);
+  EXPECT_NE(tiling_impl.find("GetTilingDataRepr returns a valid C++ designated initializer string"),
+            std::string::npos);
+  EXPECT_NE(tiling_impl.find("emit_field(\"block_dim\", tiling_data->get_block_dim()"), std::string::npos);
+  EXPECT_NE(tiling_impl.find("emit_field(\"corenum\", tiling_data->get_corenum()"), std::string::npos);
+  EXPECT_NE(tiling_impl.find("emit_field(\"ub_size\", tiling_data->get_ub_size()"), std::string::npos);
+  EXPECT_NE(tiling_impl.find("emit_field(\"hbm_size\", tiling_data->get_hbm_size()"), std::string::npos);
+  EXPECT_TRUE(tiling_impl.find("emit_field(\"tiling_key\"") != std::string::npos ||
+              tiling_impl.find("emit_field(\"graph0_tiling_key\"") != std::string::npos);
+}
+
+TEST_F(TestCodegenTiling, GenerateForInductorGetTilingDataReprShouldKeepWorkspaceBeforeSymbols) {
+  auto fused_schedule_result = this->GenBasicFusedScheduleResult({ge::Symbol("s1"), ge::Symbol("s0")});
+  auto tiling_files = this->GenerateForInductor(fused_schedule_result);
+  ASSERT_TRUE(tiling_files.find(codegen::kTilingDefAndConstIdentify) != tiling_files.end());
+  const auto &tiling_impl = tiling_files.at(codegen::kTilingDefAndConstIdentify);
+  size_t tiling_key_pos = tiling_impl.find("emit_field(\"tiling_key\"");
+  if (tiling_key_pos == std::string::npos) {
+    tiling_key_pos = tiling_impl.find("emit_field(\"graph0_tiling_key\"");
+  }
+  const auto s0_pos = tiling_impl.find("emit_field(\"s0\"");
+  const auto s1_pos = tiling_impl.find("emit_field(\"s1\"");
+  ASSERT_NE(tiling_key_pos, std::string::npos);
+  if (s0_pos != std::string::npos) {
+    EXPECT_LT(tiling_key_pos, s0_pos);
+  }
+  if (s1_pos != std::string::npos) {
+    EXPECT_LT(tiling_key_pos, s1_pos);
+  }
+}
+
+TEST_F(TestCodegenTiling, GenerateForInductorGetTilingDataReprShouldUseGraphLevelTilingKeysForMultiGroup) {
+  auto fused_schedule_result = GenMultiGroupFusedScheduleResult();
+  auto tiling_files = this->GenerateForInductor(fused_schedule_result);
+  ASSERT_TRUE(tiling_files.find(codegen::kTilingDefAndConstIdentify) != tiling_files.end());
+  const auto &tiling_impl = tiling_files.at(codegen::kTilingDefAndConstIdentify);
+  EXPECT_NE(tiling_impl.find("emit_field(\"graph0_tiling_key\""),
+            std::string::npos);
+  EXPECT_EQ(tiling_impl.find("emit_field(\"tiling_key\""), std::string::npos);
+}
+
+TEST_F(TestCodegenTiling, GenerateForInductorGetTilingDataReprShouldKeepZeroValuedStableFields) {
+  auto fused_schedule_result = this->GenBasicFusedScheduleResult({ge::Symbol("s0")});
+  auto tiling_files = this->GenerateForInductor(fused_schedule_result);
+  ASSERT_TRUE(tiling_files.find(codegen::kTilingDefAndConstIdentify) != tiling_files.end());
+  const auto &tiling_impl = tiling_files.at(codegen::kTilingDefAndConstIdentify);
+  EXPECT_NE(tiling_impl.find("emit_field(\"block_dim\", tiling_data->get_block_dim()"), std::string::npos);
+  EXPECT_NE(tiling_impl.find("emit_field(\"corenum\", tiling_data->get_corenum()"), std::string::npos);
+  EXPECT_NE(tiling_impl.find("emit_field(\"ub_size\", tiling_data->get_ub_size()"), std::string::npos);
+  EXPECT_NE(tiling_impl.find("emit_field(\"hbm_size\", tiling_data->get_hbm_size()"), std::string::npos);
+  EXPECT_EQ(tiling_impl.find("if (tiling_data->get_block_dim() != 0)"), std::string::npos);
+  EXPECT_EQ(tiling_impl.find("if (tiling_data->get_corenum() != 0)"), std::string::npos);
+  EXPECT_EQ(tiling_impl.find("if (tiling_data->get_ub_size() != 0)"), std::string::npos);
+  EXPECT_EQ(tiling_impl.find("if (tiling_data->get_hbm_size() != 0)"), std::string::npos);
+}
+
+TEST_F(TestCodegenTiling, GenerateForInductorShouldContainTopnMainOutputAbi) {
+  auto fused_schedule_result = this->GenBasicFusedScheduleResult({ge::Symbol("s0"), ge::Symbol("s1")});
+  auto tiling_files = this->GenerateForInductor(fused_schedule_result);
+  ASSERT_TRUE(tiling_files.find(codegen::kTilingDefAndConstIdentify) != tiling_files.end());
+  const auto &tiling_impl = tiling_files.at(codegen::kTilingDefAndConstIdentify);
+  EXPECT_NE(tiling_impl.find("extern \"C\" int64_t GenerateTopnSolutions("), std::string::npos);
+  EXPECT_NE(tiling_impl.find("GetTilingDataRepr("), std::string::npos);
+}
+
+TEST_F(TestCodegenTiling, GenerateForInductorShouldUseGetTilingDataReprAsTilingDataValidationAid) {
+  auto fused_schedule_result = this->GenBasicFusedScheduleResult({ge::Symbol("s0"), ge::Symbol("s1")});
+  auto tiling_files = this->GenerateForInductor(fused_schedule_result);
+  ASSERT_TRUE(tiling_files.find(codegen::kTilingDefAndConstIdentify) != tiling_files.end());
+  const auto &tiling_impl = tiling_files.at(codegen::kTilingDefAndConstIdentify);
+  EXPECT_NE(tiling_impl.find("GetTilingDataRepr("), std::string::npos);
+}
+
+TEST_F(TestCodegenTiling, GenerateForInductorTopnAbiShouldNotEmitOutputConfigsMetadataLogic) {
+  auto fused_schedule_result = this->GenBasicFusedScheduleResult({ge::Symbol("s0"), ge::Symbol("s1")});
+  auto tiling_files = this->GenerateForInductor(fused_schedule_result);
+  ASSERT_TRUE(tiling_files.find(codegen::kTilingDefAndConstIdentify) != tiling_files.end());
+  const auto &tiling_impl = tiling_files.at(codegen::kTilingDefAndConstIdentify);
+  EXPECT_EQ(tiling_impl.find("std::map<std::string, std::string> solution_config;"), std::string::npos);
+  EXPECT_EQ(tiling_impl.find("configs.push_back(solution_config);"), std::string::npos);
+  EXPECT_EQ(tiling_impl.find("solution_config[\"canonical_repr\"]"), std::string::npos);
+  EXPECT_EQ(tiling_impl.find("solution_config[\"topn_status\"]"), std::string::npos);
+}
+
+TEST_F(TestCodegenTiling, MultiGroupInductorShouldContainTopnMainOutputAbi) {
+  auto fused_schedule_result = GenMultiGroupFusedScheduleResult();
+  auto res = this->GenerateForInductor(fused_schedule_result);
+  ASSERT_TRUE(res.find(codegen::kTilingDefAndConstIdentify) != res.end());
+  const auto &tiling_impl = res.at(codegen::kTilingDefAndConstIdentify);
+  EXPECT_NE(tiling_impl.find("extern \"C\" int64_t GenerateTopnSolutions("), std::string::npos);
+  EXPECT_NE(tiling_impl.find("const std::vector<std::map<std::string, std::string>> &input_configs"), std::string::npos);
+  EXPECT_NE(tiling_impl.find("std::vector<AutofuseTilingData> &tiling_datas"), std::string::npos);
+  EXPECT_NE(tiling_impl.find("std::vector<int64_t> &workspaces"), std::string::npos);
+  EXPECT_NE(tiling_impl.find("std::vector<int64_t> &block_dims"), std::string::npos);
+}
+
+TEST_F(TestCodegenTiling, MultiGroupInductorShouldContainReprAbi) {
+  auto fused_schedule_result = GenMultiGroupFusedScheduleResult();
+  auto res = this->GenerateForInductor(fused_schedule_result);
+  ASSERT_TRUE(res.find(codegen::kTilingDefAndConstIdentify) != res.end());
+  const auto &tiling_impl = res.at(codegen::kTilingDefAndConstIdentify);
+  EXPECT_NE(tiling_impl.find("std::string GetTilingDataRepr(const AutofuseTilingData *tiling_data)"), std::string::npos);
 }

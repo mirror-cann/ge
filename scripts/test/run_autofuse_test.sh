@@ -673,7 +673,9 @@ build_backend() {
                     matmul_elemwise_test_e2e \
                     axpy_abs_test_e2e \
                     argmax_test_e2e \
-                    load_logical_not_store_test_e2e"
+                    load_logical_not_store_test_e2e \
+                    inductor_topn_concat_test_e2e \
+                    inductor_topn_test_e2e"
   if [[ "X$RUN_V35_TESTS" = "Xon" ]]; then
     MAKE_TARGET_LIST="${MAKE_TARGET_LIST} \
                       load_loop_mode_test_e2e_v2\
@@ -786,7 +788,9 @@ build_backend() {
   echo "$(date '+%F %T') make build_backend_test1 end"
 
   export LD_LIBRARY_PATH=${METADEF_LIB_PATH}:${ASCEND_INSTALL_LIB_PATH}:${LD_LIBRARY_PATH}
-  ctest --output-on-failure -j${THREAD_NUM} -L st -L build_backend_test1 --test-dir ${BUILD_PATH}/tests/autofuse --no-tests=error \
+  CODEGEN_TEST_PATTERN=$(echo "${MAKE_TARGET_LIST_CODEGEN}" | sed 's/  */|/g' | sed 's/|*$//')
+  ctest --output-on-failure -j${THREAD_NUM} --test-dir ${BUILD_PATH}/tests/autofuse --no-tests=error \
+        -R "^(${CODEGEN_TEST_PATTERN})$" \
         -O ${BUILD_PATH}/ctest_build_backend_test1.log
   if [ $? -ne 0 ]; then
     echo "execute command: run build_backend_test1 failed."
@@ -801,8 +805,11 @@ build_backend() {
   fi
   echo "$(date '+%F %T') make build_backend_test2 end"
 
-  export LD_LIBRARY_PATH=${METADEF_LIB_PATH}:${ASCEND_INSTALL_LIB_PATH}:${LD_LIBRARY_PATH}
-  ctest --output-on-failure -j${THREAD_NUM} -L st -L build_backend_test2 --test-dir ${BUILD_PATH}/tests/autofuse --no-tests=error \
+  ASCEND_DEVLIB_PATH=${ASCEND_INSTALL_PATH}/$(uname -m)-linux/devlib
+  export LD_LIBRARY_PATH=${METADEF_LIB_PATH}:${ASCEND_INSTALL_LIB_PATH}:${ASCEND_DEVLIB_PATH}:${LD_LIBRARY_PATH}
+  E2E_TEST_PATTERN=$(echo "${MAKE_TARGET_LIST}" | sed 's/  */|/g' | sed 's/|*$//')
+  ctest --output-on-failure -j${THREAD_NUM} --test-dir ${BUILD_PATH}/tests/autofuse --no-tests=error \
+        -R "^(${E2E_TEST_PATTERN})$" \
         -O ${BUILD_PATH}/ctest_build_backend_test2.log
   if [ $? -ne 0 ]; then
     echo "execute command: run build_backend_test2 failed."

@@ -61,10 +61,6 @@
     <file_info value="include" copy_type="source" dst_path="include/register" install_path="$(TARGET_ENV)/include/register" install_type="devel" install_mod="440">
         <file value="register_custom_pass.h"/>
         <file value="op_binary_resource_manager.h"/>
-        <file value="op_config_registry.h"/>
-        <file value="op_def.h"/>
-        <file value="op_def_registry.h"/>
-        <file value="op_def_factory.h"/>
     </file_info>
     <file_info value="include" copy_type="source" dst_path="include/register/scope" install_path="$(TARGET_ENV)/include/register/scope" install_type="devel" install_mod="440">
         <file value="scope_fusion_pass_register.h"/>

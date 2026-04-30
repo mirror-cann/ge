@@ -41,6 +41,10 @@ from .base import PassContext
 from .base import PatternMatcherConfig
 from .base import PatternMatcherConfigBuilder
 from .base import PatternFusionPass
+from .base import SubgraphInput
+from .base import SubgraphOutput
+from .base import SubgraphBoundary
+from .base import SubgraphRewriter
 from .pattern import NodeIo
 from .pattern import Pattern
 from .pattern import capture_tensor

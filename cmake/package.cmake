@@ -353,10 +353,6 @@ if("ge-executor" IN_LIST BUILD_COMPONENT)
         ${CMAKE_SOURCE_DIR}/inc/graph_metadef/external/register/op_lib_register.h
         ${CMAKE_SOURCE_DIR}/inc/graph_metadef/external/register/register_custom_pass.h
         ${CMAKE_SOURCE_DIR}/inc/graph_metadef/external/register/op_binary_resource_manager.h
-        ${CMAKE_SOURCE_DIR}/inc/graph_metadef/external/register/op_config_registry.h
-        ${CMAKE_SOURCE_DIR}/inc/graph_metadef/external/register/op_def.h
-        ${CMAKE_SOURCE_DIR}/inc/graph_metadef/external/register/op_def_registry.h
-        ${CMAKE_SOURCE_DIR}/inc/graph_metadef/external/register/op_def_factory.h
     )
     install(FILES ${EXTERNAL_REGISTER_FILES}
         DESTINATION ge-executor/include/register COMPONENT ge-executor
@@ -433,6 +429,10 @@ endfunction()
 
 collect_all_targets(all_targets)
 foreach(target IN LISTS all_targets)
+    get_target_property(target_type "${target}" TYPE)
+    if(target_type STREQUAL "INTERFACE_LIBRARY")
+        continue()
+    endif()
     if("${target}" IN_LIST BUILD_COMPONENT)
         set_target_properties(${target} PROPERTIES EXCLUDE_FROM_ALL FALSE)
     else()

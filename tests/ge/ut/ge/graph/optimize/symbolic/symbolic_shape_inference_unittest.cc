@@ -4556,4 +4556,562 @@ TEST_F(SymbolicShapeInferenceUT, test_matrixdiagv2_row_less_than_min) {
   expect_node_vec.push_back(expect_node);
   ASSERT_NE(RunSymbolInferenceTest(cg, expect_node_vec, {}), SUCCESS);
 }
+
+// Helper function to create FusedInferAttentionScore node
+ge::es::FusedInferAttentionScoreOutput CreateFusedInferAttentionScoreNode(
+    es::EsGraphBuilder &builder, const std::vector<const char *> &query_shape,
+    const std::vector<const char *> &key_shape, const std::vector<const char *> &value_shape,
+    const std::vector<const char *> &block_table_shape, int64_t num_heads, const std::string &input_layout,
+    int64_t num_key_value_heads, bool softmax_lse_flag) {
+  // Create input tensors
+  auto query = builder.CreateInput(0, "query");
+  auto key = builder.CreateInput(1, "key");
+  auto value = builder.CreateInput(2, "value");
+  auto pse_shift = builder.CreateInput(3, "pse_shift");
+  auto atten_mask = builder.CreateInput(4, "atten_mask");
+  auto actual_seq_lengths = builder.CreateInput(5, "actual_seq_lengths");
+  auto actual_seq_lengths_kv = builder.CreateInput(6, "actual_seq_lengths_kv");
+  auto dequant_scale1 = builder.CreateInput(7, "dequant_scale1");
+  auto quant_scale1 = builder.CreateInput(8, "quant_scale1");
+  auto dequant_scale2 = builder.CreateInput(9, "dequant_scale2");
+  auto quant_scale2 = builder.CreateInput(10, "quant_scale2");
+  auto quant_offset2 = builder.CreateInput(11, "quant_offset2");
+  auto antiquant_scale2 = builder.CreateInput(12, "antiquant_scale2");
+  auto antiquant_offset2 = builder.CreateInput(13, "antiquant_offset2");
+  auto block_table = builder.CreateInput(14, "block_table");
+
+  // Set symbolic shapes
+  query.SetOriginSymbolShape(query_shape);
+  key.SetOriginSymbolShape(key_shape);
+  value.SetOriginSymbolShape(value_shape);
+  if (!block_table_shape.empty()) {
+    block_table.SetOriginSymbolShape(block_table_shape);
+  }
+
+  // Create FusedInferAttentionScore node
+  std::vector<ge::es::EsTensorHolder> key_array = {key};
+  std::vector<ge::es::EsTensorHolder> value_array = {value};
+  return es::FusedInferAttentionScore(
+      query, key_array, value_array, pse_shift, atten_mask, actual_seq_lengths, actual_seq_lengths_kv, dequant_scale1,
+      quant_scale1, dequant_scale2, quant_scale2, quant_offset2, antiquant_scale2, antiquant_offset2, block_table,
+      builder.CreateInput(15, "query_padding_size"), builder.CreateInput(16, "kv_padding_size"),
+      builder.CreateInput(17, "key_antiquant_scale"), builder.CreateInput(18, "key_antiquant_offset"),
+      builder.CreateInput(19, "value_antiquant_scale"), builder.CreateInput(20, "value_antiquant_offset"),
+      builder.CreateInput(21, "key_shared_prefix"), builder.CreateInput(22, "value_shared_prefix"),
+      builder.CreateInput(23, "actual_shared_prefix_len"), builder.CreateInput(24, "query_rope"),
+      builder.CreateInput(25, "key_rope"), builder.CreateInput(26, "key_rope_antiquant_scale"),
+      builder.CreateInput(27, "dequant_scale_query"), builder.CreateInput(28, "learnable_sink"),
+      builder.CreateInput(29, "q_start_idx"), builder.CreateInput(30, "kv_start_idx"), num_heads, 1.0f, 0, 0,
+      input_layout.c_str(), num_key_value_heads, 0, 0, 128, 0, softmax_lse_flag, 0, 0, 0, 0, 0);
+}
+
+// Helper function to verify output shapes
+void VerifyFusedInferAttentionScoreOutputShape(const ge::ComputeGraphPtr &cg,
+                                               const gert::SymbolShape *expected_attention_out_shape,
+                                               const gert::SymbolShape *expected_softmax_lse_shape) {
+  auto fused_attention_node = cg->FindFirstNodeMatchType("FusedInferAttentionScore");
+  ASSERT_NE(fused_attention_node, nullptr);
+  auto op_desc = fused_attention_node->GetOpDesc();
+  ASSERT_NE(op_desc, nullptr);
+
+  auto attention_out_attr = op_desc->GetOutputDesc(0).GetAttrsGroup<SymbolicDescAttr>();
+  ASSERT_NE(attention_out_attr, nullptr);
+  EXPECT_EQ(attention_out_attr->symbolic_tensor.GetOriginSymbolShape().GetDims(),
+            expected_attention_out_shape->GetDims());
+
+  auto softmax_lse_attr = op_desc->GetOutputDesc(1).GetAttrsGroup<SymbolicDescAttr>();
+  ASSERT_NE(softmax_lse_attr, nullptr);
+  EXPECT_EQ(softmax_lse_attr->symbolic_tensor.GetOriginSymbolShape().GetDims(), expected_softmax_lse_shape->GetDims());
+}
+
+void TestFusedInferAttentionScoreCommon(const std::vector<const char *> &query_shape,
+                                        const std::vector<const char *> &key_shape,
+                                        const std::vector<const char *> &value_shape, int64_t num_heads,
+                                        const std::string &input_layout, int64_t num_key_value_heads,
+                                        bool softmax_lse_flag, const std::vector<const char *> &block_table_shape,
+                                        bool expect_success,
+                                        const gert::SymbolShape *expected_attention_out_shape = nullptr,
+                                        const gert::SymbolShape *expected_softmax_lse_shape = nullptr) {
+  es::EsGraphBuilder builder("cpp_graph");
+
+  // Create FusedInferAttentionScore node
+  auto fused_attention =
+      CreateFusedInferAttentionScoreNode(builder, query_shape, key_shape, value_shape, block_table_shape, num_heads,
+                                         input_layout, num_key_value_heads, softmax_lse_flag);
+
+  // Set graph output
+  ASSERT_EQ(es::EsGraphBuilder::SetOutput(fused_attention.attention_out, 0), 0);
+  ASSERT_EQ(es::EsGraphBuilder::SetOutput(fused_attention.softmax_lse, 1), 0);
+
+  // Build graph and get compute graph
+  auto graph = builder.BuildAndReset();
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+  ASSERT_NE(cg, nullptr);
+
+  // Run symbolic shape inference
+  SymbolicShapeInference ssi;
+  if (expect_success) {
+    ASSERT_EQ(ssi.Infer(cg), ge::SUCCESS);
+    VerifyFusedInferAttentionScoreOutputShape(cg, expected_attention_out_shape, expected_softmax_lse_shape);
+  } else {
+    ASSERT_NE(ssi.Infer(cg), ge::SUCCESS);
+  }
+}
+
+void TestFusedInferAttentionScore(const std::vector<const char *> &query_shape,
+                                  const std::vector<const char *> &key_shape,
+                                  const std::vector<const char *> &value_shape, int64_t num_heads,
+                                  const std::string &input_layout,
+                                  const gert::SymbolShape &expected_attention_out_shape,
+                                  const gert::SymbolShape &expected_softmax_lse_shape, int64_t num_key_value_heads = 8,
+                                  bool softmax_lse_flag = true,
+                                  const std::vector<const char *> &block_table_shape = {}) {
+  TestFusedInferAttentionScoreCommon(query_shape, key_shape, value_shape, num_heads, input_layout, num_key_value_heads,
+                                     softmax_lse_flag, block_table_shape, true, &expected_attention_out_shape,
+                                     &expected_softmax_lse_shape);
+}
+
+void TestFusedInferAttentionScoreException(const std::vector<const char *> &query_shape,
+                                           const std::vector<const char *> &key_shape,
+                                           const std::vector<const char *> &value_shape, int64_t num_heads,
+                                           const std::string &input_layout, int64_t num_key_value_heads = 8,
+                                           bool softmax_lse_flag = true,
+                                           const std::vector<const char *> &block_table_shape = {}) {
+  TestFusedInferAttentionScoreCommon(query_shape, key_shape, value_shape, num_heads, input_layout, num_key_value_heads,
+                                     softmax_lse_flag, block_table_shape, false);
+}
+
+TEST_F(SymbolicShapeInferenceUT, InferSymbolicShapeForFusedInferAttentionScoreBSH) {
+  // Test BSH layout
+  // Input:
+  //   query/key/value shape = [batch, seq_len, hidden]
+  //   num_heads = 8
+  //   input_layout = "BSH"
+  // Expected output:
+  //   attention_out: [batch, seq_len, hidden]
+  //   softmax_lse: [batch, Symbol(num_heads), seq_len, Symbol(1)]
+  int64_t num_heads = 8;
+  std::string input_layout = "BSH";
+
+  std::vector<const char *> query_shape = {"batch", "seq_len", "hidden"};
+  std::vector<const char *> key_shape = {"batch", "seq_len", "hidden"};
+  std::vector<const char *> value_shape = {"batch", "seq_len", "hidden"};
+
+  auto expected_attention_out = gert::SymbolShape({ge::Symbol("batch"), ge::Symbol("seq_len"), ge::Symbol("hidden")});
+  auto expected_softmax_lse =
+      gert::SymbolShape({ge::Symbol("batch"), ge::Symbol(num_heads), ge::Symbol("seq_len"), ge::Symbol(1)});
+
+  TestFusedInferAttentionScore(query_shape, key_shape, value_shape, num_heads, input_layout, expected_attention_out,
+                               expected_softmax_lse);
+}
+
+TEST_F(SymbolicShapeInferenceUT, InferSymbolicShapeForFusedInferAttentionScoreBSND) {
+  // Test BSND layout
+  // Input:
+  //   query/key shape = [batch, seq_len, num_heads, head_dim]
+  //   value shape = [batch, seq_len, num_heads, head_dim_v]
+  //   num_heads = 8
+  //   input_layout = "BSND"
+  // Expected output:
+  //   attention_out: [batch, seq_len, num_heads, head_dim_v]
+  //   softmax_lse: [batch, num_heads, seq_len, Symbol(1)]
+  int64_t num_heads = 8;
+  std::string input_layout = "BSND";
+
+  std::vector<const char *> query_shape = {"batch", "seq_len", "num_heads", "head_dim"};
+  std::vector<const char *> key_shape = {"batch", "seq_len", "num_heads", "head_dim"};
+  std::vector<const char *> value_shape = {"batch", "seq_len", "num_heads", "head_dim_v"};
+
+  auto expected_attention_out = gert::SymbolShape(
+      {ge::Symbol("batch"), ge::Symbol("seq_len"), ge::Symbol("num_heads"), ge::Symbol("head_dim_v")});
+  auto expected_softmax_lse = 
+      gert::SymbolShape({ge::Symbol("batch"), ge::Symbol("num_heads"), ge::Symbol("seq_len"), ge::Symbol(1)});
+
+  TestFusedInferAttentionScore(query_shape, key_shape, value_shape, num_heads, input_layout, expected_attention_out,
+                               expected_softmax_lse);
+}
+
+TEST_F(SymbolicShapeInferenceUT, InferSymbolicShapeForFusedInferAttentionScoreBNSD) {
+  // Test BNSD layout
+  // Input:
+  //   query/key shape = [batch, num_heads, seq_len, head_dim]
+  //   value shape = [batch, num_heads, seq_len, head_dim_v]
+  //   num_heads = 8
+  //   input_layout = "BNSD"
+  // Expected output:
+  //   attention_out: [batch, num_heads, seq_len, head_dim_v]
+  //   softmax_lse: [batch, num_heads, seq_len, Symbol(1)]
+  int64_t num_heads = 8;
+  std::string input_layout = "BNSD";
+
+  std::vector<const char *> query_shape = {"batch", "num_heads", "seq_len", "head_dim"};
+  std::vector<const char *> key_shape = {"batch", "num_heads", "seq_len", "head_dim"};
+  std::vector<const char *> value_shape = {"batch", "num_heads", "seq_len", "head_dim_v"};
+
+  auto expected_attention_out = gert::SymbolShape(
+      {ge::Symbol("batch"), ge::Symbol("num_heads"), ge::Symbol("seq_len"), ge::Symbol("head_dim_v")});
+  auto expected_softmax_lse =
+      gert::SymbolShape({ge::Symbol("batch"), ge::Symbol("num_heads"), ge::Symbol("seq_len"), ge::Symbol(1)});
+
+  TestFusedInferAttentionScore(query_shape, key_shape, value_shape, num_heads, input_layout, expected_attention_out,
+                               expected_softmax_lse);
+}
+
+TEST_F(SymbolicShapeInferenceUT, InferSymbolicShapeForFusedInferAttentionScoreTND) {
+  // Test TND layout
+  // Input:
+  //   query/key shape = [seq_len, num_heads, head_dim]
+  //   value shape = [seq_len, num_heads, head_dim_v]
+  //   num_heads = 8
+  //   input_layout = "TND"
+  // Expected output:
+  //   attention_out: [seq_len, num_heads, head_dim_v]
+  //   softmax_lse: [seq_len, num_heads, 1]
+  int64_t num_heads = 8;
+  std::string input_layout = "TND";
+
+  std::vector<const char *> query_shape = {"seq_len", "num_heads", "head_dim"};
+  std::vector<const char *> key_shape = {"seq_len", "num_heads", "head_dim"};
+  std::vector<const char *> value_shape = {"seq_len", "num_heads", "head_dim_v"};
+
+  auto expected_attention_out = gert::SymbolShape(
+      {ge::Symbol("seq_len"), ge::Symbol("num_heads"), ge::Symbol("head_dim_v")});
+  auto expected_softmax_lse = 
+      gert::SymbolShape({ge::Symbol("seq_len"), ge::Symbol("num_heads"), ge::Symbol(1)});
+
+  TestFusedInferAttentionScore(query_shape, key_shape, value_shape, num_heads, input_layout, expected_attention_out,
+                               expected_softmax_lse);
+}
+
+TEST_F(SymbolicShapeInferenceUT, InferSymbolicShapeForFusedInferAttentionScoreNTD) {
+  // Test NTD layout
+  // Input:
+  //   query/key shape = [num_heads, seq_len, head_dim]
+  //   value shape = [num_heads, seq_len, head_dim_v]
+  //   num_heads = 8
+  //   input_layout = "NTD"
+  // Expected output:
+  //   attention_out: [num_heads, seq_len, head_dim_v]
+  //   softmax_lse: [seq_len, num_heads, 1]
+  int64_t num_heads = 8;
+  std::string input_layout = "NTD";
+
+  std::vector<const char *> query_shape = {"num_heads", "seq_len", "head_dim"};
+  std::vector<const char *> key_shape = {"num_heads", "seq_len", "head_dim"};
+  std::vector<const char *> value_shape = {"num_heads", "seq_len", "head_dim_v"};
+
+  auto expected_attention_out = gert::SymbolShape(
+      {ge::Symbol("num_heads"), ge::Symbol("seq_len"), ge::Symbol("head_dim_v")});
+  auto expected_softmax_lse = 
+      gert::SymbolShape({ge::Symbol("seq_len"), ge::Symbol("num_heads"), ge::Symbol(1)});
+
+  TestFusedInferAttentionScore(query_shape, key_shape, value_shape, num_heads, input_layout, expected_attention_out,
+                               expected_softmax_lse);
+}
+
+TEST_F(SymbolicShapeInferenceUT, InferSymbolicShapeForFusedInferAttentionScoreNSD) {
+  // Test NSD layout
+  // Input:
+  //   query/key shape = [num_heads, seq_len, head_dim]
+  //   value shape = [num_heads, seq_len, head_dim_v]
+  //   num_heads = 8
+  //   input_layout = "NSD"
+  // Expected output:
+  //   attention_out: [num_heads, seq_len, head_dim_v]
+  //   softmax_lse: [Symbol(1), num_heads, seq_len, Symbol(1)]
+  int64_t num_heads = 8;
+  std::string input_layout = "NSD";
+
+  std::vector<const char *> query_shape = {"num_heads", "seq_len", "head_dim"};
+  std::vector<const char *> key_shape = {"num_heads", "seq_len", "head_dim"};
+  std::vector<const char *> value_shape = {"num_heads", "seq_len", "head_dim_v"};
+
+  auto expected_attention_out = gert::SymbolShape(
+      {ge::Symbol("num_heads"), ge::Symbol("seq_len"), ge::Symbol("head_dim_v")});
+  auto expected_softmax_lse = 
+      gert::SymbolShape({ge::Symbol(1), ge::Symbol("num_heads"), ge::Symbol("seq_len"), ge::Symbol(1)});
+
+  TestFusedInferAttentionScore(query_shape, key_shape, value_shape, num_heads, input_layout, expected_attention_out,
+                               expected_softmax_lse);
+}
+
+TEST_F(SymbolicShapeInferenceUT, InferSymbolicShapeForFusedInferAttentionScoreBNSD_BSND) {
+  // Test BNSD_BSND layout
+  // Input:
+  //   query/key shape = [batch, num_heads, seq_len, head_dim]
+  //   value shape = [batch, seq_len, num_heads, head_dim_v]
+  //   num_heads = 8
+  //   input_layout = "BNSD_BSND"
+  // Expected output:
+  //   attention_out: [batch, seq_len, num_heads, head_dim_v]
+  //   softmax_lse: [batch, num_heads, seq_len, Symbol(1)]
+  int64_t num_heads = 8;
+  std::string input_layout = "BNSD_BSND";
+
+  std::vector<const char *> query_shape = {"batch", "num_heads", "seq_len", "head_dim"};
+  std::vector<const char *> key_shape = {"batch", "num_heads", "seq_len", "head_dim"};
+  std::vector<const char *> value_shape = {"batch", "seq_len", "num_heads", "head_dim_v"};
+
+  auto expected_attention_out = gert::SymbolShape(
+      {ge::Symbol("batch"), ge::Symbol("seq_len"), ge::Symbol("num_heads"), ge::Symbol("head_dim_v")});
+  auto expected_softmax_lse = 
+      gert::SymbolShape({ge::Symbol("batch"), ge::Symbol("num_heads"), ge::Symbol("seq_len"), ge::Symbol(1)});
+
+  TestFusedInferAttentionScore(query_shape, key_shape, value_shape, num_heads, input_layout, expected_attention_out,
+                               expected_softmax_lse);
+}
+
+TEST_F(SymbolicShapeInferenceUT, InferSymbolicShapeForFusedInferAttentionScoreBSH_BNSD) {
+  // Test BSH_BNSD layout
+  // Input:
+  //   query/key/value shape = [batch, seq_len, hidden]
+  //   num_heads = 8
+  //   input_layout = "BSH_BNSD"
+  // Expected output:
+  //   attention_out: [batch, num_heads, seq_len, hidden / num_heads]
+  //   softmax_lse: [batch, num_heads, seq_len, Symbol(1)]
+  int64_t num_heads = 8;
+  std::string input_layout = "BSH_BNSD";
+
+  std::vector<const char *> query_shape = {"batch", "seq_len", "hidden"};
+  std::vector<const char *> key_shape = {"batch", "seq_len", "hidden"};
+  std::vector<const char *> value_shape = {"batch", "seq_len", "hidden"};
+
+  auto expected_attention_out = gert::SymbolShape(
+      {ge::Symbol("batch"), ge::Symbol(num_heads), ge::Symbol("seq_len"), ge::Symbol("hidden") / ge::Symbol(num_heads)});
+  auto expected_softmax_lse = 
+      gert::SymbolShape({ge::Symbol("batch"), ge::Symbol(num_heads), ge::Symbol("seq_len"), ge::Symbol(1)});
+
+  TestFusedInferAttentionScore(query_shape, key_shape, value_shape, num_heads, input_layout, expected_attention_out,
+                               expected_softmax_lse);
+}
+
+TEST_F(SymbolicShapeInferenceUT, InferSymbolicShapeForFusedInferAttentionScoreNTD_TND) {
+  // Test NTD_TND layout
+  // Input:
+  //   query/key shape = [num_heads, seq_len, head_dim]
+  //   value shape = [seq_len, num_heads, head_dim_v]
+  //   num_heads = 8
+  //   input_layout = "NTD_TND"
+  // Expected output:
+  //   attention_out: [seq_len, num_heads, head_dim]
+  //   softmax_lse: [seq_len, num_heads, Symbol(1)]
+  int64_t num_heads = 8;
+  std::string input_layout = "NTD_TND";
+
+  std::vector<const char *> query_shape = {"num_heads", "seq_len", "head_dim"};
+  std::vector<const char *> key_shape = {"num_heads", "seq_len", "head_dim"};
+  std::vector<const char *> value_shape = {"seq_len", "num_heads", "head_dim_v"};
+
+  auto expected_attention_out = gert::SymbolShape(
+      {ge::Symbol("seq_len"), ge::Symbol("num_heads"), ge::Symbol("head_dim_v")});
+  auto expected_softmax_lse = 
+      gert::SymbolShape({ge::Symbol("seq_len"), ge::Symbol("num_heads"), ge::Symbol(1)});
+
+  TestFusedInferAttentionScore(query_shape, key_shape, value_shape, num_heads, input_layout, expected_attention_out,
+                               expected_softmax_lse);
+}
+
+TEST_F(SymbolicShapeInferenceUT, InferSymbolicShapeForFusedInferAttentionScoreBSH_NBSD) {
+  // Test BSH_NBSD layout
+  // Input:
+  //   query/key/value shape = [batch, seq_len, hidden]
+  //   num_heads = 8
+  //   input_layout = "BSH_NBSD"
+  // Expected output:
+  //   attention_out: [num_heads, batch, seq_len, hidden / num_heads]
+  //   softmax_lse: [batch, num_heads, seq_len, Symbol(1)]
+  int64_t num_heads = 8;
+  std::string input_layout = "BSH_NBSD";
+
+  std::vector<const char *> query_shape = {"batch", "seq_len", "hidden"};
+  std::vector<const char *> key_shape = {"batch", "seq_len", "hidden"};
+  std::vector<const char *> value_shape = {"batch", "seq_len", "hidden"};
+
+  auto expected_attention_out = gert::SymbolShape(
+      {ge::Symbol(num_heads), ge::Symbol("batch"), ge::Symbol("seq_len"), ge::Symbol("hidden") / ge::Symbol(num_heads)});
+  auto expected_softmax_lse = 
+      gert::SymbolShape({ge::Symbol("batch"), ge::Symbol(num_heads), ge::Symbol("seq_len"), ge::Symbol(1)});
+
+  TestFusedInferAttentionScore(query_shape, key_shape, value_shape, num_heads, input_layout, expected_attention_out,
+                               expected_softmax_lse);
+}
+
+TEST_F(SymbolicShapeInferenceUT, InferSymbolicShapeForFusedInferAttentionScoreBSND_NBSD) {
+  // Test BSND_NBSD layout
+  // Input:
+  //   query/key shape = [batch, seq_len, num_heads, head_dim]
+  //   value shape = [num_heads, batch, seq_len, head_dim_v]
+  //   num_heads = 8
+  //   input_layout = "BSND_NBSD"
+  // Expected output:
+  //   attention_out: [num_heads, batch, seq_len, head_dim_v]
+  //   softmax_lse: [batch, num_heads, seq_len, Symbol(1)]
+  int64_t num_heads = 8;
+  std::string input_layout = "BSND_NBSD";
+
+  std::vector<const char *> query_shape = {"batch", "seq_len", "num_heads", "head_dim"};
+  std::vector<const char *> key_shape = {"batch", "seq_len", "head_dim"};
+  std::vector<const char *> value_shape = {"num_heads", "batch", "seq_len", "head_dim_v"};
+
+  auto expected_attention_out = gert::SymbolShape(
+      {ge::Symbol("num_heads"), ge::Symbol("batch"), ge::Symbol("seq_len"), ge::Symbol("head_dim_v")});
+  auto expected_softmax_lse = 
+      gert::SymbolShape({ge::Symbol("batch"), ge::Symbol("num_heads"), ge::Symbol("seq_len"), ge::Symbol(1)});
+
+  TestFusedInferAttentionScore(query_shape, key_shape, value_shape, num_heads, input_layout, expected_attention_out,
+                               expected_softmax_lse);
+}
+
+TEST_F(SymbolicShapeInferenceUT, InferSymbolicShapeForFusedInferAttentionScoreDifferentKeyValueHeads) {
+  // Test Different key_value_heads
+  // Input:
+  //   query/key/value shape = [batch, seq_len, hidden]
+  //   num_heads = 8
+  //   num_key_value_heads = 2
+  //   input_layout = "BSH"
+  // Expected output:
+  //   attention_out: [batch, seq_len, num_heads * hidden / num_key_value_heads)]
+  //   softmax_lse: [batch, num_heads, seq_len, 1]
+  int64_t num_heads = 8;
+  int64_t num_key_value_heads = 2;
+  std::string input_layout = "BSH";
+
+  std::vector<const char *> query_shape = {"batch", "seq_len", "hidden"};
+  std::vector<const char *> key_shape = {"batch", "seq_len", "hidden"};
+  std::vector<const char *> value_shape = {"batch", "seq_len", "hidden"};
+
+  auto expected_attention_out =
+      gert::SymbolShape({ge::Symbol("batch"), ge::Symbol("seq_len"),
+                         ge::Symbol(num_heads) * (ge::Symbol("hidden") / ge::Symbol(num_key_value_heads))});
+  auto expected_softmax_lse =
+      gert::SymbolShape({ge::Symbol("batch"), ge::Symbol(num_heads), ge::Symbol("seq_len"), ge::Symbol(1)});
+
+  TestFusedInferAttentionScore(query_shape, key_shape, value_shape, num_heads, input_layout, expected_attention_out,
+                               expected_softmax_lse, num_key_value_heads, true);
+}
+
+TEST_F(SymbolicShapeInferenceUT, InferSymbolicShapeForFusedInferAttentionScoreDisableSoftmaxLseOutput) {
+  // Test Disable softmax_lse output
+  // Input:
+  //   query/key/value shape = [batch, seq_len, hidden]
+  //   num_heads = 8
+  //   input_layout = "BSH"
+  //   softmax_lse_flag = false
+  // Expected output:
+  //   attention_out: [batch, seq_len, hidden]
+  //   softmax_lse: [Symbol(0)]
+  int64_t num_heads = 8;
+  bool softmax_lse_flag = false;
+  std::string input_layout = "BSH";
+
+  std::vector<const char *> query_shape = {"batch", "seq_len", "hidden"};
+  std::vector<const char *> key_shape = {"batch", "seq_len", "hidden"};
+  std::vector<const char *> value_shape = {"batch", "seq_len", "hidden"};
+
+  auto expected_attention_out = gert::SymbolShape({ge::Symbol("batch"), ge::Symbol("seq_len"), ge::Symbol("hidden")});
+  auto expected_softmax_lse = gert::SymbolShape({ge::Symbol(0)});
+
+  TestFusedInferAttentionScore(query_shape, key_shape, value_shape, num_heads, input_layout, expected_attention_out,
+                               expected_softmax_lse, num_heads, softmax_lse_flag);
+}
+
+TEST_F(SymbolicShapeInferenceUT, InferSymbolicShapeForFusedInferAttentionScoreIsPageAttentionValueDimNum3) {
+  // Test Disable softmax_lse output
+  // Input:
+  //   query/key/value shape = [batch, seq_len, hidden]
+  //   num_heads = 8
+  //   input_layout = "BSH"
+  //   softmax_lse_flag = false
+  // Expected output:
+  //   attention_out: [batch, seq_len, hidden]
+  //   softmax_lse: [Symbol(0)]
+  int64_t num_heads = 8;
+  bool softmax_lse_flag = false;
+  std::string input_layout = "BSH";
+
+  std::vector<const char *> query_shape = {"batch", "seq_len", "hidden"};
+  std::vector<const char *> key_shape = {"batch", "seq_len", "hidden"};
+  std::vector<const char *> value_shape = {"batch", "seq_len", "hidden"};
+  std::vector<const char *> block_table_shape = {"batch", "seq_len", "hidden"};
+
+  auto expected_attention_out = gert::SymbolShape({ge::Symbol("batch"), ge::Symbol("seq_len"), ge::Symbol("hidden")});
+  auto expected_softmax_lse = gert::SymbolShape({ge::Symbol(0)});
+
+  TestFusedInferAttentionScore(query_shape, key_shape, value_shape, num_heads, input_layout, expected_attention_out,
+                               expected_softmax_lse, num_heads, softmax_lse_flag, block_table_shape);
+}
+
+TEST_F(SymbolicShapeInferenceUT, InferSymbolicShapeForFusedInferAttentionScoreInvalidLayout) {
+  // Test invalid layout
+  int64_t num_heads = 8;
+  bool softmax_lse_flag = true;
+  std::string input_layout = "INVALID_LAYOUT";
+
+  std::vector<const char *> query_shape = {"batch", "seq_len", "hidden"};
+  std::vector<const char *> key_shape = {"batch", "seq_len", "hidden"};
+  std::vector<const char *> value_shape = {"batch", "seq_len", "hidden"};
+
+  // This test should fail due to invalid layout
+  TestFusedInferAttentionScoreException(query_shape, key_shape, value_shape, num_heads, input_layout, num_heads, softmax_lse_flag);
+}
+
+TEST_F(SymbolicShapeInferenceUT, InferSymbolicShapeForFusedInferAttentionScoreQueryShapeDimMismatch) {
+  // Test query shape dimension mismatch with layout
+  int64_t num_heads = 8;
+  bool softmax_lse_flag = true;
+  std::string input_layout = "BSH"; // BSH layout expects 3 dimensions
+
+  // Query shape with 2 dimensions (should mismatch with BSH layout)
+  std::vector<const char *> query_shape = {"batch", "seq_len"};
+  std::vector<const char *> key_shape = {"batch", "seq_len", "hidden"};
+  std::vector<const char *> value_shape = {"batch", "seq_len", "hidden"};
+
+  // This test should fail due to dimension mismatch
+  TestFusedInferAttentionScoreException(query_shape, key_shape, value_shape, num_heads, input_layout, num_heads, softmax_lse_flag);
+}
+
+TEST_F(SymbolicShapeInferenceUT, InferSymbolicShapeForFusedInferAttentionScoreZeroNumHeads) {
+  // Test num_heads = 0
+  int64_t num_heads = 0; // Invalid num_heads
+  bool softmax_lse_flag = true;
+  std::string input_layout = "BSH";
+
+  std::vector<const char *> query_shape = {"batch", "seq_len", "hidden"};
+  std::vector<const char *> key_shape = {"batch", "seq_len", "hidden"};
+  std::vector<const char *> value_shape = {"batch", "seq_len", "hidden"};
+
+  // This test should fail due to num_heads = 0
+  TestFusedInferAttentionScoreException(query_shape, key_shape, value_shape, num_heads, input_layout, num_heads, softmax_lse_flag);
+}
+
+TEST_F(SymbolicShapeInferenceUT, InferSymbolicShapeForFusedInferAttentionScoreValueShapeDimMismatch) {
+  // Test value shape dimension mismatch with query shape in non-PA scenario
+  int64_t num_heads = 8;
+  bool softmax_lse_flag = true;
+  std::string input_layout = "BSH";
+
+  std::vector<const char *> query_shape = {"batch", "seq_len", "hidden"}; // 3 dimensions
+  std::vector<const char *> key_shape = {"batch", "seq_len", "hidden"};
+  std::vector<const char *> value_shape = {"batch", "seq_len"}; // 2 dimensions (should mismatch)
+
+  // This test should fail due to dimension mismatch
+  TestFusedInferAttentionScoreException(query_shape, key_shape, value_shape, num_heads, input_layout, num_heads, softmax_lse_flag);
+}
+
+TEST_F(SymbolicShapeInferenceUT, InferSymbolicShapeForFusedInferAttentionScorePageAttentionValueDimInvalid) {
+  // Test invalid value dimension in Page Attention scenario
+  int64_t num_heads = 8;
+  bool softmax_lse_flag = true;
+  std::string input_layout = "BSH";
+
+  std::vector<const char *> query_shape = {"batch", "seq_len", "hidden"};
+  std::vector<const char *> key_shape = {"batch", "seq_len", "hidden"};
+  std::vector<const char *> value_shape = {"batch", "seq_len", "hidden", "extra", "extra", "extra"}; // 6 dimensions (should be 3/4/5)
+  std::vector<const char *> block_table_shape = {"batch", "seq_len", "hidden"}; // Enable Page Attention
+
+  // This test should fail due to invalid value dimension in Page Attention
+  TestFusedInferAttentionScoreException(query_shape, key_shape, value_shape, num_heads, input_layout, num_heads, softmax_lse_flag, block_table_shape);
+}
+
 } // namespace ge

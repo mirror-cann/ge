@@ -1754,7 +1754,7 @@ TEST_F(LoopNodeLoweringUT, LoweringUnsqueeze) {
             "tmp0 = ops.Load(\"data0:0\")\n"
             "tmp1 = ops.Unsqueeze(tmp0, 0)\n"
             "tmp2 = ops.Unsqueeze(tmp1, 1)\n"
-            "tmp3 = ops.Store(\"Unsqueeze_0:0\", tmp2)\n");
+            "tmp3 = ops.StoreReshape(\"Unsqueeze_0:0\", tmp2)\n");
 }
 
 TEST_F(LoopNodeLoweringUT, LoweringSqueeze) {
@@ -2262,14 +2262,14 @@ TEST_F(LoopNodeLoweringUT, LoweringExpandDims) {
   EXPECT_EQ(kernel.Readable(),
             "tmp0 = ops.Load(\"data0:0\")\n"
             "tmp1 = ops.Unsqueeze(tmp0, 2)\n"
-            "tmp2 = ops.Store(\"ExpandDims_1:0\", tmp1)\n");
+            "tmp2 = ops.StoreReshape(\"ExpandDims_1:0\", tmp1)\n");
 
   auto kernel1 = ge::loop::GetKernelBox(expanddims1->GetOutDataAnchor(0));
   ASSERT_FALSE(kernel1.IsExternKernel());
   EXPECT_EQ(kernel1.Readable(),
           "tmp0 = ops.Load(\"data0:0\")\n"
           "tmp1 = ops.Unsqueeze(tmp0, 2)\n"
-          "tmp2 = ops.Store(\"ExpandDims_3:0\", tmp1)\n");
+          "tmp2 = ops.StoreReshape(\"ExpandDims_3:0\", tmp1)\n");
 
   auto kernel2 = ge::loop::GetKernelBox(expanddims2->GetOutDataAnchor(0));
   ASSERT_TRUE(kernel2.IsExternKernel());

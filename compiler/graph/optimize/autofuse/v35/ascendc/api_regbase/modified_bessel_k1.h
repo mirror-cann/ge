@@ -119,6 +119,8 @@ __simd_vf__ inline void ModifiedBesselK1ImplVF(__ubuf__ T* dst, __ubuf__ T* src,
         ModifiedBesselK1BigSliceCompute<T, 1, 12, 0>(srcReg, bigDstReg, branchMask, dst, tmpBuf, i * vlSize, tensorLen);
     }
 
+    Reg::LocalMemBar<Reg::MemType::VEC_STORE, Reg::MemType::VEC_LOAD>();
+
     for (uint16_t i = 0U; i < repeatTime; ++i) {
         mask = AscendC::Reg::UpdateMask<T>(calCount2);
         AscendC::Reg::LoadAlign(srcReg, src + i * vlSize);

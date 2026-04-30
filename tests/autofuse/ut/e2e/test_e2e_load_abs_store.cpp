@@ -130,7 +130,7 @@ TEST_F(E2E_LoadAbsStore, Codegen_TilingData)
 #define TILING_DATA_FIELD_DEF_T(type, name) \
   type name; \
   inline void set_##name(type value) { name = value; } \
-  inline type get_##name() { return name; } \
+  inline type get_##name() const { return name; } \
   inline type* get_addr_##name() {return &name;}
 #define END_TILING_DATA_DEF_T };
 #define TILING_DATA_FIELD_DEF_T_STRUCT(struct_type, filed_name) \
@@ -465,7 +465,7 @@ extern "C" const char* GenConstTilingData(char* config_file, int aiv_num, int ub
 #define TILING_DATA_FIELD_DEF_T(type, name) \
   type name; \
   inline void set_##name(type value) { name = value; } \
-  inline type get_##name() { return name; } \
+  inline type get_##name() const { return name; } \
   inline type* get_addr_##name() {return &name;}
 #define END_TILING_DATA_DEF_T };
 #define TILING_DATA_FIELD_DEF_T_STRUCT(struct_type, filed_name) \
@@ -1873,7 +1873,7 @@ extern "C" const char* GenConstTilingData(char* config_file, int aiv_num, int ub
 #define TILING_DATA_FIELD_DEF_T(type, name) \
   type name; \
   inline void set_##name(type value) { name = value; } \
-  inline type get_##name() { return name; } \
+  inline type get_##name() const { return name; } \
   inline type* get_addr_##name() {return &name;}
 #define END_TILING_DATA_DEF_T };
 #define TILING_DATA_FIELD_DEF_T_STRUCT(struct_type, filed_name) \
