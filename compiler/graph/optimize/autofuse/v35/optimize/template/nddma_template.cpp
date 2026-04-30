@@ -195,6 +195,31 @@ Status NddmaTemplate::TransposeToNddmaNode(const ge::AscNodePtr &transpose_node,
   return ge::SUCCESS;
 }
 
+ge::Status NddmaTemplate::ProcessSliceToNddma(const ge::AscNodePtr &node_load, 
+                                              bool &is_nddma_generated_cur) {
+  if (is_nddma_generated_cur) {
+    GELOGD("Node [%s] has already converted to Nddma.", node_load->GetNamePtr());
+    return ge::SUCCESS;
+  }
+  GE_CHECK_NOTNULL(node_load);
+  GE_CHECK_NOTNULL(node_load->GetOpDesc());
+
+  const std::vector<int64_t> &node_axis = node_load->attr.sched.axis;
+  const std::vector<int64_t> &tensor_axis = node_load->outputs[0].attr.axis;
+  bool is_axis_consistent = (node_axis == tensor_axis);
+
+  if (is_axis_consistent && !(IsTailAxisTransposeV2(node_load) || IsTailAxisTranspose(node_load->outputs[0].attr))) {
+    if (!ScheduleUtils::IsVectorizedAxisContinuousInGM(node_load->outputs[0].attr)) {
+      node_load->GetOpDesc()->SetType("Nddma");
+      node_load->attr.type = "Nddma";
+      is_nddma_generated_cur = true;
+      GELOGD("Node [%s] is a slice load, converted to Nddma.", node_load->GetNamePtr());
+    }
+  }
+
+  return ge::SUCCESS;
+}
+
 /**
  * 生成NDDMA模版，具体逻辑如下：
  * 1. 遍历图找到Transpose节点，将transpose前移并随路更新路过节点的属性，最终与load或nddma节点融合成新的nddma节点
@@ -236,6 +261,7 @@ ge::Status NddmaTemplate::Generate([[maybe_unused]] const ge::AscGraph &origin_g
         SwapCastBrcAndGenNddma(std::dynamic_pointer_cast<ge::AscNode>(out_node), node, new_case) == ge::SUCCESS) {
       is_nddma_generated_cur = true;
     }
+    GE_ASSERT_SUCCESS(ProcessSliceToNddma(node, is_nddma_generated_cur));
     is_nddma_generated = is_nddma_generated || is_nddma_generated_cur;
     DiscontinuityInfo info;
     GE_ASSERT_SUCCESS(TensorLayoutUtils::AnalyzeLoadDiscontinuity(node->outputs[0].attr, info),
