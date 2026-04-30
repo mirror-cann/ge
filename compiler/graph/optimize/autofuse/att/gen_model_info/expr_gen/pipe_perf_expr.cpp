@@ -343,7 +343,7 @@ ge::Status PipePerfExpr::GetNodePerf(const NodeInfo &node, std::map<PipeType, Ex
                                      std::map<Expr, TernaryOp, ExprCmp> &ternary_ops, bool tail_shape) const {
   std::string tail_annotation;
   if (tail_shape) {
-    tail_annotation = "tail ";
+    tail_annotation = "tail";
   }
   const auto &node_type = node.node_type;
   const auto &node_unit = node.node_unit;

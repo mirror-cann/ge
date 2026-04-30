@@ -212,7 +212,7 @@ void AxesReorderSolverGen::GetLocalBufferTilingVars() {
       local_buffer_tiling_vars_.push_back(arg);
     }
   }
-  GELOGD("Got local buffer tiling vars: %s, input args: %s", GetVecString(local_buffer_tiling_vars_).c_str(),
+  GELOGD("Got local buffer tiling vars: %s input args: %s", GetVecString(local_buffer_tiling_vars_).c_str(),
          GetVecString(input_args_).c_str());
 }
 
@@ -1135,7 +1135,7 @@ std::string AxesReorderSolverGen::GenInputInfo(std::vector<Expr> &all_cons, std:
       mc_mixed_cons.emplace_back(cut_cons);
     }
   }
-  GELOGD("Got all cut cons: %s, mc_mixed_cons: %s, all_cons: %s", GetVecString(total_cut_cons_).c_str(),
+  GELOGD("Got all cut cons: %s mc_mixed_cons: %s all_cons: %s", GetVecString(total_cut_cons_).c_str(),
          GetVecString(mc_mixed_cons).c_str(), GetVecString(all_cons).c_str());
   for (const auto &mc_var : mc_args_) {
     strs += GenUpperBoundFunc(mc_var);
