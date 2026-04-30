@@ -86,6 +86,9 @@ class TestApiDuplicateUT : public testing::Test {
     // 验证结果
     uint32_t diff_count = Valid(param);
     EXPECT_EQ(diff_count, 0);
+
+    AscendC::GmFree(param.y);
+    AscendC::GmFree(param.src);
   }
 };
 
