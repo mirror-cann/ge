@@ -523,7 +523,7 @@ HcclResult HcomSetAttachedStream(const char *group, u32 graphId, const rtStream_
 }
 HcclResult HcomSelectAlg(s64 comm, const char *group, u64 count, void* counts,
     HcclDataType dataType, HcclReduceOp op, HcclCMDType opType, int32_t aivCoreLimit,
-    bool &ifAiv, char *algName)
+    bool *ifAiv, char *algName)
 {
     return HCCL_SUCCESS;
 }

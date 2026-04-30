@@ -432,10 +432,16 @@ HcclResult HcomOpsKernelBuilder::SetSuperKernelScopeAttr(ge::Node &node) {
   
   // 用于判断是否走 Aiv 的参数准备
   CHK_RET(PrepareSelectAivParam(node, sCollectiveType, hcomComm, sGroup, rankSize,
-          count, counts, dataType, opType, reduction, aivCoreLimit));
+          count, counts, dataType, opType, reduction, aivCoreLimit)); 
   void *countsPtr = counts.data();
-  CHK_RET(HcomSelectAlg(hcomComm, sGroup.c_str(), count, countsPtr, dataType, reduction, opType, aivCoreLimit, ifAiv,
-                          algName)); 
+  #ifdef HCOM_SELECT_ALG_POINTER_MODE
+    CHK_RET(HcomSelectAlg(hcomComm, sGroup.c_str(), count, countsPtr, dataType, reduction, opType, aivCoreLimit, &ifAiv,
+                          algName));
+  #else
+    // 默认模式：使用旧接口（传引用）
+    CHK_RET(HcomSelectAlg(hcomComm, sGroup.c_str(), count, countsPtr, dataType, reduction, opType, aivCoreLimit, ifAiv,
+                          algName));
+  #endif 
   
   if (!ifAiv) {
     HCCL_INFO("no support aiv, del superKernelScope attr");
@@ -730,9 +736,13 @@ HcclResult HcomOpsKernelBuilder::TaskDefSetNumBlocks(const ge::Node &node, domi:
 
   std::vector<int64_t> counts;
   CHK_RET(GetCountsFromOpDesc(node, counts, opType));
-
   void *countsPtr = counts.data();
-  CHK_RET(HcomSelectAlg(comm, group.c_str(), count, countsPtr, dataType, reduction, opType, aivCoreLimit, ifAiv, algName));
+  #ifdef HCOM_SELECT_ALG_POINTER_MODE
+    CHK_RET(HcomSelectAlg(comm, group.c_str(), count, countsPtr, dataType, reduction, opType, aivCoreLimit, &ifAiv, algName));
+  #else
+    // 默认模式：使用旧接口（传引用）
+    CHK_RET(HcomSelectAlg(comm, group.c_str(), count, countsPtr, dataType, reduction, opType, aivCoreLimit, ifAiv, algName));
+  #endif
 
   // 非AIV算法不设置核数
   if (!ifAiv) {
@@ -984,8 +994,14 @@ HcclResult HcomOpsKernelBuilder::JudgeIsAivMode(ge::Node &node, const std::strin
   DevType devType = HcomGetDeviceType();
   if (devType != DevType::DEV_TYPE_950) {
     void *countsPtr = counts.data();
-    CHK_RET(HcomSelectAlg(hcomComm, sGroup.c_str(), count, countsPtr, dataType, reduction, opType, aivCoreLimit, ifAiv,
+    #ifdef HCOM_SELECT_ALG_POINTER_MODE
+      CHK_RET(HcomSelectAlg(hcomComm, sGroup.c_str(), count, countsPtr, dataType, reduction, opType, aivCoreLimit, &ifAiv,
                           algName));
+    #else
+      // 默认模式：使用旧接口（传引用）
+      CHK_RET(HcomSelectAlg(hcomComm, sGroup.c_str(), count, countsPtr, dataType, reduction, opType, aivCoreLimit, ifAiv,
+                          algName));
+    #endif
   } else {
     // 950按照原先流程，如果是 SuperKernel 那就肯定是 Aiv 模式了
     std::string superKernel{};
@@ -1290,7 +1306,8 @@ HcclResult HcomOpsKernelBuilder::SetOpMemAttr(ge::Node &node, const std::string 
   // 板卡推理不需要设置申请内存为p2p
   u32 memType = 0;
   u32 p2pMemType = RT_MEMORY_P2P_DDR;
-  CHK_RET(HcomGetMemType(sGroup.c_str(), socVersion.c_str(), false, &memType, nullptr, withoutImplCompile));
+  bool isTsMem = false;
+  CHK_RET(HcomGetMemType(sGroup.c_str(), socVersion.c_str(), false, &memType, &isTsMem, withoutImplCompile));
   if (memType == p2pMemType) {
     vector<int64_t> memTypeInput(node.GetOpDesc()->GetInputsSize(), p2pMemType);
     vector<int64_t> memTypeOutput(node.GetOpDesc()->GetOutputsSize(), p2pMemType);

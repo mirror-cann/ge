@@ -694,8 +694,12 @@ HcclResult HcomOpsKernelInfoStore::CleanIntervalMemoryOpKernel(const ge::GETaskI
     CHK_RET(GetCountFromTaskInfo(hcclInfo, count));
     CHK_RET(GetDataTypeFromTaskInfo(task, dataType));
     CHK_RET(GetReduceTypeFromTaskInfo(hcclInfo, reduceType));
-    CHK_RET(HcomSelectAlg(comm, group.c_str(), count, nullptr, dataType, reduceType, opType, MAX_BLOCK_DIM, ifAiv, algName));
-
+    #ifdef HCOM_SELECT_ALG_POINTER_MODE
+      CHK_RET(HcomSelectAlg(comm, group.c_str(), count, nullptr, dataType, reduceType, opType, MAX_BLOCK_DIM, &ifAiv, algName));
+    #else
+      // 默认模式：使用旧接口（传引用）
+      CHK_RET(HcomSelectAlg(comm, group.c_str(), count, nullptr, dataType, reduceType, opType, MAX_BLOCK_DIM, ifAiv, algName));
+    #endif
     if (crackNum == 0 || (crackNum == 1 && ifAiv)) {
       HCCL_WARNING("[CleanIntervalMemoryOpKernel]The number of tensors to be cleared is 0.");
       return HCCL_SUCCESS;

@@ -921,7 +921,8 @@ HcclResult HcomGraphOptimizer::SetOpMemAttr(ge::Node &node, const std::string &s
   // 板卡推理不需要设置申请内存为p2p
   u32 memType = 0;
   u32 p2pMemType = RT_MEMORY_P2P_DDR;
-  CHK_RET(HcomGetMemType(sGroup.c_str(), socVersion.c_str(), false, &memType, nullptr, withoutImplCompile));
+  bool isTsMem = false;
+  CHK_RET(HcomGetMemType(sGroup.c_str(), socVersion.c_str(), false, &memType, &isTsMem, withoutImplCompile));
   if (memType == p2pMemType) {
     vector<int64_t> memTypeInput(node.GetOpDesc()->GetInputsSize(), p2pMemType);
     vector<int64_t> memTypeOutput(node.GetOpDesc()->GetOutputsSize(), p2pMemType);

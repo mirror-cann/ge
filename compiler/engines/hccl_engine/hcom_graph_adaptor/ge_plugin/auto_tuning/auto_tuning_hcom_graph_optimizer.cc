@@ -407,7 +407,8 @@ HcclResult AutoTuningHcomGraphOptimizer::SetOpMemAttr(ge::Node &node, const std:
   }
   u32 memType = 0;
   u32 p2pMemType = RT_MEMORY_P2P_DDR;
-  CHK_RET(HcomGetMemType(sGroup.c_str(), socVersion.c_str(), false, &memType, nullptr, true));
+  bool isTsMem = false;
+  CHK_RET(HcomGetMemType(sGroup.c_str(), socVersion.c_str(), false, &memType, &isTsMem, true));
   if (memType == p2pMemType) {
     vector<int64_t> memTypeInput(node.GetOpDesc()->GetInputsSize(), p2pMemType);
     vector<int64_t> memTypeOutput(node.GetOpDesc()->GetOutputsSize(), p2pMemType);
