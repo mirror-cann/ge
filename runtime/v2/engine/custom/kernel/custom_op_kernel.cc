@@ -17,6 +17,7 @@
 #include "graph/def_types.h"
 #include "graph/utils/type_utils.h"
 #include "exe_graph/runtime/eager_op_execution_context.h"
+#include "runtime/kernel.h"
 
 namespace gert {
 namespace kernel {
@@ -59,6 +60,20 @@ void PrintTensor(std::stringstream &ss, const gert::Tensor *tensor) {
   ShapeToStringStream(ss, tensor->GetStorageShape());
   ss << ", addr: " << ge::PtrToValue(tensor->GetAddr());
 }
+}
+
+// call after kernel launch
+std::string PrintStreamIdAndTaskId() {
+  std::stringstream ss;
+  uint32_t stream_id = 0U;
+  uint32_t flip_task_id = 0U;
+  if (rtGetTaskIdAndStreamID(&flip_task_id, &stream_id) == RT_ERROR_NONE) {
+    const uint32_t task_id = flip_task_id & 0xFFFFU; // lower 16bits
+    const uint32_t flip_num = flip_task_id >> 16U;   // high 16bits
+    ss << "stream_id=" << stream_id << ", task_id=" << task_id << ", flip_num=" << flip_num
+       << ", flip_task_id=" << flip_task_id;
+  }
+  return ss.str();
 }
 
 ge::graphStatus FindCustomOpFunc(KernelContext *context) {
@@ -198,7 +213,7 @@ static std::vector<std::string> CustomOpExecuteKernelTrace(const KernelContext *
       output_tensor_ss << ", ";
     }
   }
-  return {PrintNodeType(context), input_tensor_ss.str(), output_tensor_ss.str()};  
+  return {PrintNodeType(context), input_tensor_ss.str(), output_tensor_ss.str(), PrintStreamIdAndTaskId()};  
 }
 
 ge::graphStatus CustomOpProfilingDataFill(const KernelContext *context, ProfilingInfoWrapper &prof_info) {
