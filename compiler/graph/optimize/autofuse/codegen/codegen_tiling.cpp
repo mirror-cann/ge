@@ -14,6 +14,7 @@
 #include <string>
 #include <cstdlib>
 #include <fstream>
+#include <securec.h>
 
 #include "dlfcn.h"
 
@@ -431,6 +432,7 @@ void TilingLib::GenPgoHeaders(std::stringstream &ss) const {
   ss << "#include <cstdint>" << std::endl;
   ss << "#include <cerrno>" << std::endl;
   ss << "#include <cstring>" << std::endl;
+  ss << "#include <securec.h>" << std::endl;
   ss << "#include <fstream>" << std::endl;
   ss << "#include <map>" << std::endl;
   ss << "#include <string>" << std::endl;
@@ -520,7 +522,7 @@ void TilingLib::GenPgoSaveTilingKey(std::stringstream &ss) const {
   const size_t tiling_bytes = sizeof(tiling_data);
   const size_t tiling_bytes_align = (tiling_bytes + sizeof(int32_t) - 1) / sizeof(int32_t);
   std::vector<int32_t> tiling_i32(tiling_bytes_align, 0);
-  std::memcpy(tiling_i32.data(), &tiling_data, tiling_bytes);
+  memcpy_s(tiling_i32.data(), tiling_i32.size() * sizeof(int32_t), &tiling_data, tiling_bytes);
   for (size_t idx = 0; idx < tiling_i32.size(); ++idx) {
     out_file << tiling_i32[idx] << " ";
   }
@@ -898,6 +900,13 @@ void TilingLib::GenPgoMsptiRequest(std::stringstream &ss) const {
 void UserBufferRequest(uint8_t **buffer, size_t *size, size_t *records_num) {
   DLOGD("[mspti] UserBufferRequest...");
   uint8_t *mspti_buffer = reinterpret_cast<uint8_t *>(malloc(mspti_buffer_size + ALIGN_SIZE));
+  if (mspti_buffer == nullptr) {
+    DLOGE("[mspti] malloc mspti_buffer failed");
+    *buffer = nullptr;
+    *size = 0;
+    *records_num = 0;
+    return;
+  }
   *buffer = ALIGN_BUFFER(mspti_buffer, ALIGN_SIZE);
   *size = mspti_buffer_size;
   *records_num = 0;
@@ -1519,6 +1528,7 @@ std::string TilingLib::StubHeadersWithoutCodegenFunc() const {
 	ss << "#include <cinttypes>" << std::endl;
 	ss << "#include <sys/syscall.h>" << std::endl;
 	ss << "#include <unistd.h>" << std::endl;
+	ss << "#include <securec.h>" << std::endl;
 	ss << "#include \"toolchain/slog.h\"" << std::endl;
 	ss << "#define OP_LOGD(name, fmt, ...)" << std::endl;
 	ss << "#define OP_LOGI(name, fmt, ...)" << std::endl;
@@ -2198,7 +2208,7 @@ std::string TilingLib::GenPGOGetTilingKey(const std::string tiling) const {
   ss << "    }" << std::endl;
   ss << "    const size_t expect_num = (sizeof(tiling_data) + sizeof(int32_t) - 1) / sizeof(int32_t);" << std::endl;
   ss << "    tiling_i32.resize(expect_num, 0);" << std::endl;
-  ss << "    std::memcpy(&tiling_data, tiling_i32.data(), sizeof(tiling_data));" << std::endl;
+  ss << "    memcpy_s(&tiling_data, sizeof(tiling_data), tiling_i32.data(), sizeof(tiling_data));" << std::endl;
   ss << "    config_file.close();" << std::endl;
   ss << "    if (flag == 1) {" << std::endl;
   ss << "      best_tiling = tiling_data;" << std::endl;
