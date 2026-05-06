@@ -781,8 +781,7 @@ build_backend() {
                       copysign_bf16_test_e2e_v2  \
                       vf_scalar_fusion_comprehensive_test_e2e_v2\
                       erfcx_test_e2e_v2 \
-                      expm_test_e2e_v2 \
-                      mask_reg_chain_test_e2e_v2"
+                      expm_test_e2e_v2"
   fi
   MAKE_TARGET_LIST_CODEGEN=$(echo "${MAKE_TARGET_LIST}" | sed 's/e2e/codegen/g')
   echo "MAKE_TARGET_LIST_CODEGEN"

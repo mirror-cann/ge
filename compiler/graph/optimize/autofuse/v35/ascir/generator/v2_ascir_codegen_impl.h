@@ -1298,8 +1298,7 @@ class AllAscIrCodegenImplV2 : public AscIrCodegenV2 {
   }
 };
 
-/*********************************************************************************/
-class CompareAscIrCodegenImplV2 : public AscIrCodegenV2 {
+class GeAscIrCodegenImplV2 : public AscIrCodegenV2 {
  public:
   std::vector<std::unique_ptr<ge::TmpBufDesc>> CalcTmpBufSize(const ge::AscNode &node) override {
     return GetCompareSizeV2(node);
@@ -1307,16 +1306,168 @@ class CompareAscIrCodegenImplV2 : public AscIrCodegenV2 {
   [[nodiscard]] std::string GetApiCallName() const override {
     return "CompareV2ApiCall";
   }
+  [[nodiscard]] std::string GetApiName() const override {
+    return "GE";
+  }
   [[nodiscard]] std::vector<std::string> LoadApiHeaderFiles() const override {
     return {"compare_reg_base.h"};
   }
+
+  [[nodiscard]] bool IsScalarInputSupported(const std::vector<bool> &is_scalar_list) const override {
+    return OnlySecondInputSupportScalar(is_scalar_list); // 不支持调换
+  }
+  [[nodiscard]] std::string GetMicroApiCallName() const override {
+    return "MicroCompareApiCall";
+  }
+  [[nodiscard]] std::string GetMicroApiName() const override {
+    return "GE";
+  }
+  [[nodiscard]] bool IsVectorFunctionSupported(const ge::AscNode &node) const override {
+    if (!IsAllVecAxisContinuous(node)) {
+      return false;
+    }
+    AscNodeInputs compare_inputs = node.inputs;
+    for (const auto &out_node : node.GetOutNodes()) {
+      AscNodeInputs where_inputs = std::dynamic_pointer_cast<ge::AscNode>(out_node)->inputs;
+      if (((out_node->GetType() == "Where") || (out_node->GetType() == "Select")) &&
+          (compare_inputs[0].attr.dtype == where_inputs[1].attr.dtype)) {
+        continue;
+      }
+      return false;
+    }
+    if (node.GetInDataNodes().at(0)->GetType() == "Scalar") {
+      return false;
+    }
+    return true;
+  }
+  [[nodiscard]] std::vector<std::string> IncludeApiHeaderFiles() const override {
+    return {
+      "basic_api/reg_compute/kernel_reg_compute_intf.h",
+    };
+  }
+  [[nodiscard]] bool IsNodeValid(const ge::AscNode &node) const override {
+    GE_ASSERT_TRUE(!IsNodeFirstInputScalar(node), "Node %s[%s] not support first input scalar", node.GetTypePtr(),
+                   node.GetNamePtr());
+    GE_ASSERT_SUCCESS(ValidateShapeConsistencyWithSingleOutput(node, {false, {1}}), "Node %s[%s] check shape consistency failed", node.GetTypePtr(),
+                      node.GetNamePtr());
+    return true;
+  }
+};
+
+class EqAscIrCodegenImplV2 : public AscIrCodegenV2 {
+ public:
+  std::vector<std::unique_ptr<ge::TmpBufDesc>> CalcTmpBufSize(const ge::AscNode &node) override {
+    return GetCompareSizeV2(node);
+  }
   [[nodiscard]] bool IsScalarInputSupported(const std::vector<bool> &is_scalar_list) const override {
     return OnlySecondInputSupportScalar(is_scalar_list);
+  }
+  [[nodiscard]] bool IsScalarInputSupportedIfExchangeInputs(const std::vector<bool> &is_scalar_list) const override {
+    GE_ASSERT_EQ(is_scalar_list.size(), 2UL);
+    return OnlySecondInputSupportScalar({is_scalar_list[1], is_scalar_list[0]});
+  }
+
+  [[nodiscard]] std::string GetApiCallName() const override {
+    return "CompareV2ApiCall";
+  }
+  [[nodiscard]] std::string GetApiName() const override {
+    return "EQ";
+  }
+  [[nodiscard]] std::vector<std::string> LoadApiHeaderFiles() const override {
+    return {"compare_reg_base.h"};
+  }
+  [[nodiscard]] std::string GetMicroApiName() const override {
+    return "EQ";
   }
   [[nodiscard]] std::string GetMicroApiCallName() const override {
     return "MicroCompareApiCall";
   }
   [[nodiscard]] bool IsVectorFunctionSupported(const ge::AscNode &node) const override {
+    if (!IsAllVecAxisContinuous(node)) {
+      return false;
+    }
+    if (node.GetInDataNodes().at(0)->GetType() == "Scalar") {
+      return false;
+    }
+    AscNodeInputs compare_inputs = node.inputs;
+    for (const auto &out_node : node.GetOutNodes()) {
+      AscNodeInputs where_inputs = std::dynamic_pointer_cast<ge::AscNode>(out_node)->inputs;
+      if (((out_node->GetType() == "Where") || (out_node->GetType() == "Select")) &&
+          (compare_inputs[0].attr.dtype == where_inputs[1].attr.dtype)) {
+        continue;
+      }
+      return false;
+    }
+    return true;
+  }
+  [[nodiscard]] std::vector<std::string> IncludeApiHeaderFiles() const override {
+    return {
+      "basic_api/reg_compute/kernel_reg_compute_intf.h",
+    };
+  }
+  [[nodiscard]] bool IsNodeValid(const ge::AscNode &node) const override {
+    GE_ASSERT_TRUE(!IsNodeFirstInputScalar(node), "Node %s[%s] not support first input scalar", node.GetTypePtr(),
+                   node.GetNamePtr());
+    GE_ASSERT_SUCCESS(ValidateShapeConsistencyWithSingleOutput(node, {false, {1}}), "Node %s[%s] check shape consistency failed", node.GetTypePtr(),
+                      node.GetNamePtr());
+    return true;
+  }
+};
+
+class NeAscIrCodegenImplV2 : public AscIrCodegenV2 {
+ public:
+  std::vector<std::unique_ptr<ge::TmpBufDesc>> CalcTmpBufSize(const ge::AscNode &node) override {
+    return GetCompareSizeV2(node);
+  }
+  [[nodiscard]] std::string GetApiCallName() const override {
+    return "CompareV2ApiCall";
+  }
+  [[nodiscard]] std::string GetApiName() const override {
+    return "NE";
+  }
+  [[nodiscard]] std::vector<std::string> LoadApiHeaderFiles() const override {
+    return {"compare_reg_base.h"};
+  }
+
+  [[nodiscard]] bool IsScalarInputSupported(const std::vector<bool> &is_scalar_list) const override {
+    return OnlySecondInputSupportScalar(is_scalar_list);
+  }
+  [[nodiscard]] bool IsScalarInputSupportedIfExchangeInputs(const std::vector<bool> &is_scalar_list) const override {
+    GE_ASSERT_EQ(is_scalar_list.size(), 2UL);
+    return OnlySecondInputSupportScalar({is_scalar_list[1], is_scalar_list[0]});
+  }
+  [[nodiscard]] std::pair<std::vector<ge::DataType>, std::vector<ge::DataType>> GetConversionDtype(const ge::AscNode &node) {
+    std::pair<std::vector<ge::DataType>, std::vector<ge::DataType>> conversion_dtype;
+    AscNodeInputs node_inputs = node.inputs;
+    AscNodeOutputs node_outputs = node.outputs;
+    for (size_t i = 0; i < node_inputs().size(); i++) {
+      if (node_inputs[i].attr.dtype == ge::DataType::DT_UINT8) {
+        conversion_dtype.first.emplace_back(ge::DataType::DT_INT16);
+      } else {
+        conversion_dtype.first.emplace_back(node_inputs[i].attr.dtype);
+      }
+    }
+    for (size_t i = 0; i < node_outputs().size(); i++) {
+      conversion_dtype.second.emplace_back(node_outputs[i].attr.dtype);
+    }
+    return conversion_dtype;
+  }
+  [[nodiscard]] std::string GetMicroApiName() const override {
+    return "NE";
+  }
+  [[nodiscard]] std::string GetMicroApiCallName() const override {
+    return "MicroCompareApiCall";
+  }
+  [[nodiscard]] bool IsVectorFunctionSupported(const ge::AscNode &node) const override {
+    AscNodeInputs compare_inputs = node.inputs;
+    for (const auto &out_node : node.GetOutNodes()) {
+      AscNodeInputs where_inputs = std::dynamic_pointer_cast<ge::AscNode>(out_node)->inputs;
+      if (((out_node->GetType() == "Where") || (out_node->GetType() == "Select")) &&
+          (compare_inputs[0].attr.dtype == where_inputs[1].attr.dtype)) {
+        continue;
+      }
+      return false;
+    }
     if (!IsAllVecAxisContinuous(node)) {
       return false;
     }
@@ -1333,94 +1484,178 @@ class CompareAscIrCodegenImplV2 : public AscIrCodegenV2 {
   [[nodiscard]] bool IsNodeValid(const ge::AscNode &node) const override {
     GE_ASSERT_TRUE(!IsNodeFirstInputScalar(node), "Node %s[%s] not support first input scalar", node.GetTypePtr(),
                    node.GetNamePtr());
-    GE_ASSERT_SUCCESS(ValidateShapeConsistencyWithSingleOutput(node, {false, {1}}),
-                      "Node %s[%s] check shape consistency failed", node.GetTypePtr(), node.GetNamePtr());
+    GE_ASSERT_SUCCESS(ValidateShapeConsistencyWithSingleOutput(node, {false, {1}}), "Node %s[%s] check shape consistency failed", node.GetTypePtr(),
+                      node.GetNamePtr());
     return true;
   }
 };
 
-class GeAscIrCodegenImplV2 : public CompareAscIrCodegenImplV2 {
+class GtAscIrCodegenImplV2 : public AscIrCodegenV2 {
  public:
-  [[nodiscard]] std::string GetApiName() const override {
-    return "GE";
+  std::vector<std::unique_ptr<ge::TmpBufDesc>> CalcTmpBufSize(const ge::AscNode &node) override {
+    return GetCompareSizeV2(node);
   }
-  [[nodiscard]] std::string GetMicroApiName() const override {
-    return "GE";
-  }
-};
-
-class EqAscIrCodegenImplV2 : public CompareAscIrCodegenImplV2 {
- public:
-  [[nodiscard]] bool IsScalarInputSupportedIfExchangeInputs(const std::vector<bool> &is_scalar_list) const override {
-    GE_ASSERT_EQ(is_scalar_list.size(), 2UL);
-    return OnlySecondInputSupportScalar({is_scalar_list[1], is_scalar_list[0]});
+  [[nodiscard]] std::string GetApiCallName() const override {
+    return "CompareV2ApiCall";
   }
   [[nodiscard]] std::string GetApiName() const override {
-    return "EQ";
+    return "GT";
+  }
+  [[nodiscard]] std::vector<std::string> LoadApiHeaderFiles() const override {
+    return {"compare_reg_base.h"};
+  }
+
+  [[nodiscard]] bool IsScalarInputSupported(const std::vector<bool> &is_scalar_list) const override {
+    return OnlySecondInputSupportScalar(is_scalar_list); // 不支持调换
+  }
+  [[nodiscard]] std::string GetMicroApiCallName() const override {
+    return "MicroCompareApiCall";
   }
   [[nodiscard]] std::string GetMicroApiName() const override {
-    return "EQ";
+    return "GT";
   }
-};
-
-class NeAscIrCodegenImplV2 : public CompareAscIrCodegenImplV2 {
- public:
-  [[nodiscard]] bool IsScalarInputSupportedIfExchangeInputs(const std::vector<bool> &is_scalar_list) const override {
-    GE_ASSERT_EQ(is_scalar_list.size(), 2UL);
-    return OnlySecondInputSupportScalar({is_scalar_list[1], is_scalar_list[0]});
-  }
-  [[nodiscard]] std::pair<std::vector<ge::DataType>, std::vector<ge::DataType>> GetConversionDtype(
-      const ge::AscNode &node) {
-    std::pair<std::vector<ge::DataType>, std::vector<ge::DataType>> conversion_dtype;
-    AscNodeInputs node_inputs = node.inputs;
-    AscNodeOutputs node_outputs = node.outputs;
-    for (size_t i = 0; i < node_inputs().size(); i++) {
-      if (node_inputs[i].attr.dtype == ge::DataType::DT_UINT8) {
-        conversion_dtype.first.emplace_back(ge::DataType::DT_INT16);
-      } else {
-        conversion_dtype.first.emplace_back(node_inputs[i].attr.dtype);
+  [[nodiscard]] bool IsVectorFunctionSupported(const ge::AscNode &node) const override {
+    AscNodeInputs compare_inputs = node.inputs;
+    for (const auto &out_node : node.GetOutNodes()) {
+      AscNodeInputs where_inputs = std::dynamic_pointer_cast<ge::AscNode>(out_node)->inputs;
+      if (((out_node->GetType() == "Select") || (out_node->GetType() == "Where")) &&
+          (compare_inputs[0].attr.dtype == where_inputs[1].attr.dtype)) {
+        continue;
       }
+      return false;
     }
-    for (size_t i = 0; i < node_outputs().size(); i++) {
-      conversion_dtype.second.emplace_back(node_outputs[i].attr.dtype);
+    if (node.GetInDataNodes().at(0)->GetType() == "Scalar") {
+      return false;
     }
-    return conversion_dtype;
+    if (!IsAllVecAxisContinuous(node)) {
+      return false;
+    }
+    return true;
   }
-  [[nodiscard]] std::string GetApiName() const override {
-    return "NE";
+  [[nodiscard]] std::vector<std::string> IncludeApiHeaderFiles() const override {
+    return {
+      "basic_api/reg_compute/kernel_reg_compute_intf.h",
+    };
   }
-  [[nodiscard]] std::string GetMicroApiName() const override {
-    return "NE";
+  [[nodiscard]] bool IsNodeValid(const ge::AscNode &node) const override {
+    GE_ASSERT_TRUE(!IsNodeFirstInputScalar(node), "Node %s[%s] not support first input scalar", node.GetTypePtr(),
+                   node.GetNamePtr());
+    GE_ASSERT_SUCCESS(ValidateShapeConsistencyWithSingleOutput(node, {false, {1}}), "Node %s[%s] check shape consistency failed", node.GetTypePtr(),
+                      node.GetNamePtr());
+    return true;
   }
 };
 
-class GtAscIrCodegenImplV2 : public CompareAscIrCodegenImplV2 {
+class LeAscIrCodegenImplV2 : public AscIrCodegenV2 {
  public:
-  [[nodiscard]] std::string GetApiName() const override {
-    return "GT";
+  std::vector<std::unique_ptr<ge::TmpBufDesc>> CalcTmpBufSize(const ge::AscNode &node) override {
+    return GetCompareSizeV2(node);
   }
-  [[nodiscard]] std::string GetMicroApiName() const override {
-    return "GT";
+  [[nodiscard]] std::string GetApiCallName() const override {
+    return "CompareV2ApiCall";
   }
-};
 
-class LeAscIrCodegenImplV2 : public CompareAscIrCodegenImplV2 {
- public:
   [[nodiscard]] std::string GetApiName() const override {
     return "LE";
   }
+  [[nodiscard]] std::vector<std::string> LoadApiHeaderFiles() const override {
+    return {"compare_reg_base.h"};
+  }
+
+  [[nodiscard]] bool IsScalarInputSupported(const std::vector<bool> &is_scalar_list) const override {
+    return OnlySecondInputSupportScalar(is_scalar_list); // 不支持调换
+  }
+  [[nodiscard]] std::string GetMicroApiCallName() const override {
+    return "MicroCompareApiCall";
+  }
   [[nodiscard]] std::string GetMicroApiName() const override {
     return "LE";
   }
+  [[nodiscard]] bool IsVectorFunctionSupported(const ge::AscNode &node) const override {
+    if (node.GetInDataNodes().at(0)->GetType() == "Scalar") {
+      return false;
+    }
+    if (!IsAllVecAxisContinuous(node)) {
+      return false;
+    }
+    AscNodeInputs compare_inputs = node.inputs;
+    for (const auto &out_node : node.GetOutNodes()) {
+      AscNodeInputs where_inputs = std::dynamic_pointer_cast<ge::AscNode>(out_node)->inputs;
+      if (((out_node->GetType() == "Where") || (out_node->GetType() == "Select")) &&
+          (compare_inputs[0].attr.dtype == where_inputs[1].attr.dtype)) {
+        continue;
+      }
+      return false;
+    }
+    return true;
+  }
+  [[nodiscard]] std::vector<std::string> IncludeApiHeaderFiles() const override {
+    return {
+      "basic_api/reg_compute/kernel_reg_compute_intf.h",
+    };
+  }
+  [[nodiscard]] bool IsNodeValid(const ge::AscNode &node) const override {
+    GE_ASSERT_TRUE(!IsNodeFirstInputScalar(node), "Node %s[%s] not support first input scalar", node.GetTypePtr(),
+                   node.GetNamePtr());
+    GE_ASSERT_SUCCESS(ValidateShapeConsistencyWithSingleOutput(node, {false, {1}}), "Node %s[%s] check shape consistency failed", node.GetTypePtr(),
+                      node.GetNamePtr());
+    return true;
+  }
 };
 
-class LtAscIrCodegenImplV2 : public CompareAscIrCodegenImplV2 {
+class LtAscIrCodegenImplV2 : public AscIrCodegenV2 {
  public:
+  std::vector<std::unique_ptr<ge::TmpBufDesc>> CalcTmpBufSize(const ge::AscNode &node) override {
+    return GetCompareSizeV2(node);
+  }
+  [[nodiscard]] std::string GetApiCallName() const override {
+    return "CompareV2ApiCall";
+  }
   [[nodiscard]] std::string GetApiName() const override {
     return "LT";
   }
+  [[nodiscard]] std::vector<std::string> LoadApiHeaderFiles() const override {
+    return {"compare_reg_base.h"};
+  }
+
+  [[nodiscard]] bool IsScalarInputSupported(const std::vector<bool> &is_scalar_list) const override {
+    return OnlySecondInputSupportScalar(is_scalar_list); // 不支持调换
+  }
   [[nodiscard]] std::string GetMicroApiName() const override {
     return "LT";
+  }
+  [[nodiscard]] std::string GetMicroApiCallName() const override {
+    return "MicroCompareApiCall";
+  }
+  [[nodiscard]] bool IsVectorFunctionSupported(const ge::AscNode &node) const override {
+    if (node.GetInDataNodes().at(0)->GetType() == "Scalar") {
+      return false;
+    }
+    AscNodeInputs compare_inputs = node.inputs;
+    for (const auto &out_node : node.GetOutNodes()) {
+      AscNodeInputs where_inputs = std::dynamic_pointer_cast<ge::AscNode>(out_node)->inputs;
+      if (((out_node->GetType() == "Where") || (out_node->GetType() == "Select")) &&
+          (compare_inputs[0].attr.dtype == where_inputs[1].attr.dtype)) {
+        continue;
+      }
+      return false;
+    }
+    if (!IsAllVecAxisContinuous(node)) {
+      return false;
+    }
+    return true;
+  }
+  [[nodiscard]] std::vector<std::string> IncludeApiHeaderFiles() const override {
+    return {
+      "basic_api/reg_compute/kernel_reg_compute_intf.h",
+    };
+  }
+  [[nodiscard]] bool IsNodeValid(const ge::AscNode &node) const override {
+    GE_ASSERT_TRUE(!IsNodeFirstInputScalar(node), "Node %s[%s] not support first input scalar", node.GetTypePtr(),
+                   node.GetNamePtr());
+    GE_ASSERT_SUCCESS(ValidateShapeConsistencyWithSingleOutput(node, {false, {1}}), "Node %s[%s] check shape consistency failed", node.GetTypePtr(),
+                      node.GetNamePtr());
+    return true;
   }
 };
 
@@ -1876,6 +2111,22 @@ class WhereAscIrCodegenImplV2 : public AscIrCodegenV2 {
     if (!IsAllVecAxisContinuous(node)) {
       return false;
     }
+    auto in_node = std::dynamic_pointer_cast<ge::AscNode>(node.GetInDataNodes().at(0));
+    // 当前节点的第一个输入节点必须是比较算子
+    if (in_node->GetType() != "Ge" && in_node->GetType() != "Eq" && in_node->GetType() != "Ne" &&
+        in_node->GetType() != "Le" && in_node->GetType() != "Lt" && in_node->GetType() != "Gt") {
+      return false;
+    }
+    AscNodeInputs compare_inputs = in_node->inputs;
+    // 当前节点的第一个输入节点的所有输出节点必须全部是Where算子或Select算子，并且输入tensor类型和compare算子一致
+    for (const auto &out_node : in_node->GetOutNodes()) {
+      AscNodeInputs where_inputs = std::dynamic_pointer_cast<ge::AscNode>(out_node)->inputs;
+      if (((out_node->GetType() == "Where") || (out_node->GetType() == "Select")) &&
+          (compare_inputs[0].attr.dtype == where_inputs[1].attr.dtype)) {
+        continue;
+      }
+      return false;
+    }
     return true;
   }
   [[nodiscard]] std::vector<std::string> IncludeApiHeaderFiles() const override {
@@ -1920,6 +2171,22 @@ class SelectAscIrCodegenImplV2 : public AscIrCodegenV2 {
   }
   [[nodiscard]] bool IsVectorFunctionSupported(const ge::AscNode &node) const override {
     if (!IsAllVecAxisContinuous(node)) {
+      return false;
+    }
+    auto in_node = node.GetInDataNodes().at(0);
+    // 当前节点的第一个输入节点必须是比较算子
+    if (in_node->GetType() != "Lt" && in_node->GetType() != "Eq" && in_node->GetType() != "Ne" &&
+        in_node->GetType() != "Le" && in_node->GetType() != "Ge" && in_node->GetType() != "Gt") {
+      return false;
+    }
+    AscNodeInputs compare_inputs = std::dynamic_pointer_cast<ge::AscNode>(in_node)->inputs;
+    // 当前节点的第一个输入节点的所有输出节点必须全部是Where算子或Select算子，并且输入tensor类型和compare算子一致
+    for (const auto &out_node : in_node->GetOutNodes()) {
+      AscNodeInputs where_inputs = std::dynamic_pointer_cast<ge::AscNode>(out_node)->inputs;
+      if (((out_node->GetType() == "Where") || (out_node->GetType() == "Select")) &&
+          (compare_inputs[0].attr.dtype == where_inputs[1].attr.dtype)) {
+        continue;
+      }
       return false;
     }
     return true;
