@@ -953,6 +953,9 @@ static bool ReadProtoFromBinaryFile(const uint8_t *const data, const size_t len,
                    return false, "[Check][Param] data is null.");
   GE_CHK_BOOL_EXEC(proto != nullptr, REPORT_INNER_ERR_MSG("E18888", "param proto is nullptr, check invalid.");
                    return false, "[Check][Param] proto is null.");
+  GE_CHK_BOOL_EXEC(len <= static_cast<size_t>(INT32_MAX),
+                   REPORT_INNER_ERR_MSG("E18888", "param len %zu exceeds INT32_MAX, check invalid.", len);
+                   return false, "[Check][Param] len %zu exceeds INT32_MAX.", len);
 
   google::protobuf::io::CodedInputStream coded_stream(data, static_cast<int32_t>(len));
   // 2048M -1
