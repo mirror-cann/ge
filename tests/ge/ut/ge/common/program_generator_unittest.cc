@@ -990,6 +990,9 @@ void AssembleLaunchConfig(LaunchKernelCfgHolder &holder, const LaunchKernelConfi
   holder.attrs[actual_cfg_num].id = ACL_RT_LAUNCH_KERNEL_ATTR_DATA_DUMP;
   holder.attrs[actual_cfg_num].value.isDataDump = static_cast<uint8_t>(launch_config.is_data_dump);
   actual_cfg_num++;
+  holder.attrs[actual_cfg_num].id = ACL_RT_LAUNCH_KERNEL_ATTR_DYN_UBUF_SIZE;
+  holder.attrs[actual_cfg_num].value.dynUBufSize = launch_config.local_memory_size;
+  actual_cfg_num++;
   holder.attrs[actual_cfg_num].id = ACL_RT_LAUNCH_KERNEL_ATTR_TIMEOUT;
   holder.attrs[actual_cfg_num].value.timeout = launch_config.time_out;
   actual_cfg_num++;
@@ -1055,7 +1058,7 @@ aclError Om2Model::Load() {
   auto op2_output0 = GET_ADDR(total_dev_mem_ptr_, 1024);
   auto op2_ws0 = GET_ADDR(total_dev_mem_ptr_, 0);
   LaunchKernelCfgHolder op2_cfg_holder;
-  AssembleLaunchConfig(op2_cfg_holder, {0U, ACL_RT_ENGINE_TYPE_AIC, 0U, false, false, 0U});
+  AssembleLaunchConfig(op2_cfg_holder, {0U, ACL_RT_ENGINE_TYPE_AIC, 0U, false, false, 0U, 0U});
   OM2_CHK_STATUS(KernelTaskDistribute(FlattenHostArgs(op2_input0, op2_input1, op2_output0, op2_ws0), args_table_.GetArgsInfo(0), func_handles_[0], 8, stream_list_[0], &op2_cfg_holder.cfg));
 
   OM2_CHK_STATUS(aclmdlRIBuildEnd(model_handle_, nullptr));
@@ -1182,6 +1185,9 @@ void AssembleLaunchConfig(LaunchKernelCfgHolder &holder, const LaunchKernelConfi
   holder.attrs[actual_cfg_num].id = ACL_RT_LAUNCH_KERNEL_ATTR_DATA_DUMP;
   holder.attrs[actual_cfg_num].value.isDataDump = static_cast<uint8_t>(launch_config.is_data_dump);
   actual_cfg_num++;
+  holder.attrs[actual_cfg_num].id = ACL_RT_LAUNCH_KERNEL_ATTR_DYN_UBUF_SIZE;
+  holder.attrs[actual_cfg_num].value.dynUBufSize = launch_config.local_memory_size;
+  actual_cfg_num++;
   holder.attrs[actual_cfg_num].id = ACL_RT_LAUNCH_KERNEL_ATTR_TIMEOUT;
   holder.attrs[actual_cfg_num].value.timeout = launch_config.time_out;
   actual_cfg_num++;
@@ -1247,7 +1253,7 @@ aclError Om2Model::Load() {
   auto op2_output0 = GET_ADDR(total_dev_mem_ptr_, 1024);
   auto op2_ws0 = GET_ADDR(total_dev_mem_ptr_, 0);
   LaunchKernelCfgHolder op2_cfg_holder;
-  AssembleLaunchConfig(op2_cfg_holder, {0U, ACL_RT_ENGINE_TYPE_AIC, 0U, false, false, 0U});
+  AssembleLaunchConfig(op2_cfg_holder, {0U, ACL_RT_ENGINE_TYPE_AIC, 0U, false, false, 0U, 0U});
   OM2_CHK_STATUS(KernelTaskDistribute(FlattenHostArgs(op2_input0, op2_input1, op2_output0, op2_ws0), args_table_.GetArgsInfo(0), func_handles_[0], 8, stream_list_[0], &op2_cfg_holder.cfg));
 
   OM2_CHK_STATUS(aclmdlRIBuildEnd(model_handle_, nullptr));
@@ -1374,6 +1380,9 @@ void AssembleLaunchConfig(LaunchKernelCfgHolder &holder, const LaunchKernelConfi
   holder.attrs[actual_cfg_num].id = ACL_RT_LAUNCH_KERNEL_ATTR_DATA_DUMP;
   holder.attrs[actual_cfg_num].value.isDataDump = static_cast<uint8_t>(launch_config.is_data_dump);
   actual_cfg_num++;
+  holder.attrs[actual_cfg_num].id = ACL_RT_LAUNCH_KERNEL_ATTR_DYN_UBUF_SIZE;
+  holder.attrs[actual_cfg_num].value.dynUBufSize = launch_config.local_memory_size;
+  actual_cfg_num++;
   holder.attrs[actual_cfg_num].id = ACL_RT_LAUNCH_KERNEL_ATTR_TIMEOUT;
   holder.attrs[actual_cfg_num].value.timeout = launch_config.time_out;
   actual_cfg_num++;
@@ -1445,7 +1454,7 @@ aclError Om2Model::Load() {
   AssembleAicpuExtInfo(reinterpret_cast<uint8_t *>(const_cast<char *>(op2_ext_info_str)), 285, 228, session_id_, &kernel_id_, dev_ext_info_mem_ptrs_, 0);
   AssembleAicpuArgs(reinterpret_cast<uint8_t *>(const_cast<char *>(op2_args_str)), 68, dev_ext_info_mem_ptrs_[0], 285, op2_iow_addr, op2_args.data());
   LaunchKernelCfgHolder op2_cfg_holder;
-  AssembleLaunchConfig(op2_cfg_holder, {0U, ACL_RT_ENGINE_TYPE_AIC, 0U, false, false, 0U});
+  AssembleLaunchConfig(op2_cfg_holder, {0U, ACL_RT_ENGINE_TYPE_AIC, 0U, false, false, 0U, 0U});
   OM2_CHK_STATUS(AicpuKernelTaskDistribute(op2_args, args_table_.GetArgsInfo(0), func_handles_[0], 8, stream_list_[0], &op2_cfg_holder.cfg));
 
   // ============================= add2 ===============================
@@ -1458,7 +1467,7 @@ aclError Om2Model::Load() {
   AssembleAicpuExtInfo(reinterpret_cast<uint8_t *>(const_cast<char *>(op3_ext_info_str)), 285, 228, session_id_, &kernel_id_, dev_ext_info_mem_ptrs_, 1);
   AssembleAicpuArgs(reinterpret_cast<uint8_t *>(const_cast<char *>(op3_args_str)), 68, dev_ext_info_mem_ptrs_[1], 285, op3_iow_addr, op3_args.data());
   LaunchKernelCfgHolder op3_cfg_holder;
-  AssembleLaunchConfig(op3_cfg_holder, {0U, ACL_RT_ENGINE_TYPE_AIC, 0U, false, false, 0U});
+  AssembleLaunchConfig(op3_cfg_holder, {0U, ACL_RT_ENGINE_TYPE_AIC, 0U, false, false, 0U, 0U});
   OM2_CHK_STATUS(AicpuKernelTaskDistribute(op3_args, args_table_.GetArgsInfo(1), func_handles_[0], 8, stream_list_[0], &op3_cfg_holder.cfg));
 
   OM2_CHK_STATUS(aclmdlRIBuildEnd(model_handle_, nullptr));
@@ -1586,6 +1595,9 @@ void AssembleLaunchConfig(LaunchKernelCfgHolder &holder, const LaunchKernelConfi
   holder.attrs[actual_cfg_num].id = ACL_RT_LAUNCH_KERNEL_ATTR_DATA_DUMP;
   holder.attrs[actual_cfg_num].value.isDataDump = static_cast<uint8_t>(launch_config.is_data_dump);
   actual_cfg_num++;
+  holder.attrs[actual_cfg_num].id = ACL_RT_LAUNCH_KERNEL_ATTR_DYN_UBUF_SIZE;
+  holder.attrs[actual_cfg_num].value.dynUBufSize = launch_config.local_memory_size;
+  actual_cfg_num++;
   holder.attrs[actual_cfg_num].id = ACL_RT_LAUNCH_KERNEL_ATTR_TIMEOUT;
   holder.attrs[actual_cfg_num].value.timeout = launch_config.time_out;
   actual_cfg_num++;
@@ -1646,11 +1658,11 @@ aclError AicpuKernelTaskDistribute(const std::vector<uint8_t> &args, ArgsInfo *a
 aclError Om2Model::Load() {
   dev_ext_info_mem_ptrs_.resize(0);
   // ============================= add1 ===============================
-  auto op2_io_desc0 = args_table_.GetDevArgAddr(0);
+  auto op2_io_desc0 = args_table_.GetDevArgAddr(24);
   OM2_CHK_NOTNULL(op2_io_desc0);
-  auto op2_io_desc1 = args_table_.GetDevArgAddr(56);
+  auto op2_io_desc1 = args_table_.GetDevArgAddr(80);
   OM2_CHK_NOTNULL(op2_io_desc1);
-  auto op2_io_desc2 = args_table_.GetDevArgAddr(112);
+  auto op2_io_desc2 = args_table_.GetDevArgAddr(136);
   OM2_CHK_NOTNULL(op2_io_desc2);
   std::vector<int64_t> op2_shape_info0 = {48, 4294967300, 1, 1, 224, 224};
   auto op2_input0 = GET_ADDR(total_dev_mem_ptr_, 1024);
@@ -1659,7 +1671,7 @@ aclError Om2Model::Load() {
   std::vector<int64_t> op2_shape_info2 = {48, 4294967300, 1, 1, 224, 224};
   auto op2_output0 = GET_ADDR(total_dev_mem_ptr_, 1024);
   LaunchKernelCfgHolder op2_cfg_holder;
-  AssembleLaunchConfig(op2_cfg_holder, {0U, ACL_RT_ENGINE_TYPE_AIC, 0U, false, false, 0U});
+  AssembleLaunchConfig(op2_cfg_holder, {0U, ACL_RT_ENGINE_TYPE_AIC, 0U, false, false, 0U, 0U});
   OM2_CHK_STATUS(KernelTaskDistribute(FlattenHostArgs(op2_io_desc0, op2_io_desc1, op2_io_desc2, op2_shape_info0, op2_input0, op2_shape_info1, op2_input1, op2_shape_info2, op2_output0), args_table_.GetArgsInfo(0), func_handles_[0], 8, stream_list_[0], &op2_cfg_holder.cfg));
 
   OM2_CHK_STATUS(aclmdlRIBuildEnd(model_handle_, nullptr));

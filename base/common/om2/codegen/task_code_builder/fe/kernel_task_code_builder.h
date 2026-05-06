@@ -77,7 +77,7 @@ class KernelTaskCodeBuilder : public TaskCodeBuilder {
   size_t GetExtraArgsSize(const OpDescPtr &op_desc, const ccKernelType kernel_type,
                           const ArgsFormatInfo &args_format_holder) const;
   void InitArgsTableEntry(const TaskSemanticContributeContext &context, const uint32_t args_size);
-  Status FillLevel1DescTargetOffsets();
+  Status ValidateLevel1DescTargetOffsets() const;
   std::vector<size_t> BuildMaterializedOutputIndices(const KernelTaskSemantic &kernel_semantic) const;
   void AppendOrderedPlaceholder(const TaskSemanticContributeContext &context);
   void AppendOrderedCustomValue(const TaskSemanticContributeContext &context, const uint64_t custom_value);
@@ -86,10 +86,12 @@ class KernelTaskCodeBuilder : public TaskCodeBuilder {
                                        const TaskSemanticContributeContext &context);
   Status AppendOrderedWorkspace(const ArgDesc &arg_format);
   Status AppendOrderedArgsByFormat(const TaskSemanticContributeContext &context, const ArgsFormatInfo &args_format_holder,
-                                   std::vector<ArgDesc> &dynamic_args_desc);
+                                   std::vector<ArgDesc> &dynamic_args_desc,
+                                   std::vector<size_t> &level1_desc_indices);
   Status AppendShapeInfoOrderedArgs(const TaskSemanticContributeContext &context,
                                     const ArgsFormatInfo &args_format_holder,
-                                    const std::vector<ArgDesc> &dynamic_args_desc);
+                                    const std::vector<ArgDesc> &dynamic_args_desc,
+                                    const std::vector<size_t> &level1_desc_indices);
   Status BuildOrderedArgValuesForAicore(const TaskSemanticContributeContext &context,
                                         ArgsFormatInfo &args_format_holder);
   Status BuildOrderedArgValuesForAicpu(const TaskSemanticContributeContext &context);

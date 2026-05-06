@@ -32,6 +32,7 @@ const std::string kWspFoldedMode = "folded";
 const std::string kAttrNameAtomicWspMode = "wspMode";
 constexpr char_t const *kMaxTilingSize = "op_para_size";
 constexpr char_t const *kMaxAtomicCleanTilingSize = "atomic_op_para_size";
+constexpr char_t const *kLocalMemorySize = "local_memory_size";
 constexpr uint32_t kUBAlignedLen = 32U;
 constexpr int32_t kSessionInfoOffset = 8;
 constexpr int32_t kWidthPerChar = 3;
@@ -84,13 +85,18 @@ bool IsAicpuTask(const KernelTaskSemantic &semantic) {
 }
 
 uint64_t GetOrderedArgByteSize(const AddrSemantic &semantic) {
-  if (semantic.kind == AddrValueKind::kLevel1DescPtr) {
-    return 0U;
-  }
   if ((semantic.kind == AddrValueKind::kShapeInfoBuffer) && semantic.shape_info.has_value()) {
     return semantic.shape_info->size() * kAddressLen;
   }
   return kAddressLen;
+}
+
+uint64_t GetOrderedArgsByteSize(const std::vector<AddrSemantic> &ordered_args) {
+  uint64_t size = 0U;
+  for (const auto &ordered_arg : ordered_args) {
+    size += GetOrderedArgByteSize(ordered_arg);
+  }
+  return size;
 }
 
 }  // namespace
@@ -130,24 +136,15 @@ void KernelTaskCodeBuilder::AppendOrderedArgValueForAicpu(const AddrSemantic &se
   semantic_.ordered_arg_values.push_back(semantic);
 }
 
-Status KernelTaskCodeBuilder::FillLevel1DescTargetOffsets() {
-  size_t level1_desc_count = 0UL;
-  while ((level1_desc_count < semantic_.ordered_arg_values.size()) &&
-         (semantic_.ordered_arg_values[level1_desc_count].kind == AddrValueKind::kLevel1DescPtr)) {
-    ++level1_desc_count;
-  }
-  uint64_t current_offset = 0U;
-  size_t level1_desc_index = 0UL;
-  for (size_t i = level1_desc_count; i < semantic_.ordered_arg_values.size(); ++i) {
-    if ((semantic_.ordered_arg_values[i].kind == AddrValueKind::kShapeInfoBuffer) &&
-        (level1_desc_index < level1_desc_count)) {
-      semantic_.ordered_arg_values[level1_desc_index++].level1_target_offset = current_offset;
+Status KernelTaskCodeBuilder::ValidateLevel1DescTargetOffsets() const {
+  for (size_t i = 0UL; i < semantic_.ordered_arg_values.size(); ++i) {
+    const auto &ordered_arg = semantic_.ordered_arg_values[i];
+    if (ordered_arg.kind == AddrValueKind::kLevel1DescPtr) {
+      GE_ASSERT_TRUE(ordered_arg.level1_target_offset.has_value(),
+                     "[OM2] Level1 desc target offset is missing, index[%zu], symbol[%s].",
+                     i, ordered_arg.symbol_hint.c_str());
     }
-    current_offset += GetOrderedArgByteSize(semantic_.ordered_arg_values[i]);
   }
-  GE_ASSERT_TRUE(level1_desc_index == level1_desc_count,
-                 "[OM2] Filled level1 desc count [%zu] mismatch expected [%zu].", level1_desc_index,
-                 level1_desc_count);
   return SUCCESS;
 }
 
@@ -211,6 +208,7 @@ Status KernelTaskCodeBuilder::BuildLaunchSemantic(const TaskSemanticContributeCo
       op_exec_never_timeout) {
     launch_semantic.config.time_out = op_exec_never_timeout;
   }
+  (void)AttrUtils::GetInt(context.op_desc, kLocalMemorySize, launch_semantic.config.local_memory_size);
   if (IsAllKernelTask(semantic_)) {
     const auto &kernel_def = context.task_def.kernel_with_handle();
     launch_semantic.config.block_dim_offset = kernel_def.block_dim_offset();
@@ -375,6 +373,10 @@ FunctionDef *KernelTaskCodeBuilder::BuildAssembleLaunchConfig() const {
       ast_.Assign(attrs[actual_cfg_num].Attr("id"), "ACL_RT_LAUNCH_KERNEL_ATTR_DATA_DUMP"),
       ast_.Assign(attrs[actual_cfg_num].Attr("value").Attr("isDataDump"),
                   ast_.StaticCast("uint8_t", launch_config.Attr("is_data_dump"))),
+      ast_.PostInc(actual_cfg_num),
+      ast_.Assign(attrs[actual_cfg_num].Attr("id"), "ACL_RT_LAUNCH_KERNEL_ATTR_DYN_UBUF_SIZE"),
+      ast_.Assign(attrs[actual_cfg_num].Attr("value").Attr("dynUBufSize"),
+                  launch_config.Attr("local_memory_size")),
       ast_.PostInc(actual_cfg_num),
       ast_.Assign(attrs[actual_cfg_num].Attr("id"), "ACL_RT_LAUNCH_KERNEL_ATTR_TIMEOUT"),
       ast_.Assign(attrs[actual_cfg_num].Attr("value").Attr("timeout"), launch_config.Attr("time_out")),
@@ -656,7 +658,8 @@ Expr *KernelTaskCodeBuilder::BuildLaunchConfigExpr(const LaunchConfigSemantic &l
       ast_.UInt(launch_config.block_dim_offset),
       launch_config.is_block_task_prefetch,
       launch_config.is_data_dump,
-      ast_.UInt(launch_config.time_out)});
+      ast_.UInt(launch_config.time_out),
+      ast_.UInt(launch_config.local_memory_size)});
 }
 
 VarRef KernelTaskCodeBuilder::AppendLaunchConfigSetup(size_t op_index, std::vector<BodyItem> &items) const {
@@ -1095,7 +1098,7 @@ Status KernelTaskCodeBuilder::AppendOrderedWorkspace(const ArgDesc &arg_format) 
 
 Status KernelTaskCodeBuilder::AppendOrderedArgsByFormat(
     const TaskSemanticContributeContext &context, const ArgsFormatInfo &args_format_holder,
-    std::vector<ArgDesc> &dynamic_args_desc) {
+    std::vector<ArgDesc> &dynamic_args_desc, std::vector<size_t> &level1_desc_indices) {
   place_holder_var_index_ = 0;
   cust_value_var_index_ = 0;
   for (const auto &arg_format : args_format_holder.arg_descs) {
@@ -1121,6 +1124,7 @@ Status KernelTaskCodeBuilder::AppendOrderedArgsByFormat(
       case AddrType::OUTPUT_DESC: {
         const size_t dynamic_idx = dynamic_args_desc.size();
         dynamic_args_desc.push_back(arg_format);
+        level1_desc_indices.push_back(semantic_.ordered_arg_values.size());
         AddrSemantic level1_desc_ptr;
         level1_desc_ptr.kind = AddrValueKind::kLevel1DescPtr;
         level1_desc_ptr.symbol_hint =
@@ -1141,9 +1145,16 @@ Status KernelTaskCodeBuilder::AppendOrderedArgsByFormat(
 
 Status KernelTaskCodeBuilder::AppendShapeInfoOrderedArgs(
     const TaskSemanticContributeContext &context, const ArgsFormatInfo &args_format_holder,
-    const std::vector<ArgDesc> &dynamic_args_desc) {
+    const std::vector<ArgDesc> &dynamic_args_desc, const std::vector<size_t> &level1_desc_indices) {
   GE_ASSERT(dynamic_args_desc.size() == args_format_holder.shape_infos.size());
+  GE_ASSERT(dynamic_args_desc.size() == level1_desc_indices.size());
   for (size_t i = 0UL; i < dynamic_args_desc.size(); ++i) {
+    const size_t level1_desc_index = level1_desc_indices[i];
+    GE_ASSERT(level1_desc_index < semantic_.ordered_arg_values.size());
+    auto &level1_desc = semantic_.ordered_arg_values[level1_desc_index];
+    GE_ASSERT(level1_desc.kind == AddrValueKind::kLevel1DescPtr);
+    level1_desc.level1_target_offset = GetOrderedArgsByteSize(semantic_.ordered_arg_values);
+
     AddrSemantic shape_info_buffer;
     shape_info_buffer.kind = AddrValueKind::kShapeInfoBuffer;
     shape_info_buffer.symbol_hint = "op" + std::to_string(context.op_index) + "_shape_info" + std::to_string(i);
@@ -1197,9 +1208,10 @@ Status KernelTaskCodeBuilder::BuildOrderedArgValuesForAicore(const TaskSemanticC
   InitArgsTableEntry(context, args_size);
   materialized_output_indices_ = BuildMaterializedOutputIndices(semantic_);
   std::vector<ArgDesc> dynamic_args_desc;
-  GE_ASSERT_SUCCESS(AppendOrderedArgsByFormat(context, args_format_holder, dynamic_args_desc));
-  GE_ASSERT_SUCCESS(AppendShapeInfoOrderedArgs(context, args_format_holder, dynamic_args_desc));
-  GE_ASSERT_SUCCESS(FillLevel1DescTargetOffsets());
+  std::vector<size_t> level1_desc_indices;
+  GE_ASSERT_SUCCESS(AppendOrderedArgsByFormat(context, args_format_holder, dynamic_args_desc, level1_desc_indices));
+  GE_ASSERT_SUCCESS(AppendShapeInfoOrderedArgs(context, args_format_holder, dynamic_args_desc, level1_desc_indices));
+  GE_ASSERT_SUCCESS(ValidateLevel1DescTargetOffsets());
   return SUCCESS;
 }
 

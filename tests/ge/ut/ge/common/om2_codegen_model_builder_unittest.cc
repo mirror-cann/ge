@@ -198,7 +198,8 @@ GeRootModelPtr CreateGeRootModelWithConstInputOp() {
   return ge_root_model;
 }
 
-GeRootModelPtr CreateGeRootModelWithAicoreOpOfDynamicIo() {
+GeRootModelPtr CreateGeRootModelWithAicoreOpOfDynamicIo(
+    const std::string &args_format = "{i_desc0}{i_desc1}{o_desc0}") {
   auto graph = std::make_shared<ComputeGraph>("g1");
   GeTensorDesc tensor_desc(GeShape({1, 1, 224, 224}), FORMAT_NCHW, DT_FLOAT);
   auto data_x_desc = std::make_shared<OpDesc>("data_x", DATA);
@@ -233,7 +234,7 @@ GeRootModelPtr CreateGeRootModelWithAicoreOpOfDynamicIo() {
   graph->TopologicalSorting();
   gert::GeModelBuilder builder(graph);
   auto ge_root_model =
-      builder.AddTaskDef("Add", gert::AiCoreTaskDefFaker("add_stub").ArgsFormat("{i_desc0}{i_desc1}{o_desc0}"))
+      builder.AddTaskDef("Add", gert::AiCoreTaskDefFaker("add_stub").ArgsFormat(args_format))
           .FakeTbeBin({"Add"})
           .BuildGeRootModel();
   auto &compute_graph = ge_root_model->GetRootGraph();
@@ -911,11 +912,34 @@ TEST_F(Om2CodegenModelBuilderUt, BuildTaskSemantics_KernelLaunchAndArgs_DynamicI
   ASSERT_TRUE(kernel_task.ordered_arg_values[0].level1_target_offset.has_value());
   ASSERT_TRUE(kernel_task.ordered_arg_values[1].level1_target_offset.has_value());
   ASSERT_TRUE(kernel_task.ordered_arg_values[2].level1_target_offset.has_value());
-  EXPECT_EQ(*kernel_task.ordered_arg_values[0].level1_target_offset, 0U);
+  EXPECT_EQ(*kernel_task.ordered_arg_values[0].level1_target_offset, 24U);
   EXPECT_LT(*kernel_task.ordered_arg_values[0].level1_target_offset,
             *kernel_task.ordered_arg_values[1].level1_target_offset);
   EXPECT_LT(*kernel_task.ordered_arg_values[1].level1_target_offset,
             *kernel_task.ordered_arg_values[2].level1_target_offset);
+}
+
+TEST_F(Om2CodegenModelBuilderUt, BuildTaskSemantics_KernelLaunchAndArgs_NonPrefixDesc_Ok) {
+  GeRootModelPtr ge_root_model = CreateGeRootModelWithAicoreOpOfDynamicIo("{i0}{i_desc1}{o_desc0}");
+  ASSERT_NE(ge_root_model, nullptr);
+  Om2CodegenModel doc;
+  std::vector<TaskCodeBuilderPtr> task_builders;
+  ASSERT_EQ(BuildCodegenModel(ge_root_model, doc, &task_builders), SUCCESS);
+
+  const auto *kernel_builder = dynamic_cast<KernelTaskCodeBuilder *>(task_builders[0].get());
+  ASSERT_NE(kernel_builder, nullptr);
+  const auto &ordered_args = kernel_builder->GetTaskSemantic().ordered_arg_values;
+
+  ASSERT_GE(ordered_args.size(), 7U);
+  EXPECT_EQ(ordered_args[0].kind, AddrValueKind::kInputInstance);
+  EXPECT_EQ(ordered_args[1].kind, AddrValueKind::kLevel1DescPtr);
+  EXPECT_EQ(ordered_args[2].kind, AddrValueKind::kLevel1DescPtr);
+  EXPECT_EQ(ordered_args[3].kind, AddrValueKind::kShapeInfoBuffer);
+  EXPECT_EQ(ordered_args[5].kind, AddrValueKind::kShapeInfoBuffer);
+  ASSERT_TRUE(ordered_args[1].level1_target_offset.has_value());
+  ASSERT_TRUE(ordered_args[2].level1_target_offset.has_value());
+  EXPECT_EQ(*ordered_args[1].level1_target_offset, 24U);
+  EXPECT_EQ(*ordered_args[2].level1_target_offset, 80U);
 }
 
 TEST_F(Om2CodegenModelBuilderUt, BuildTaskSemantics_KernelLaunchAndArgs_Aicpu_Ok) {
