@@ -428,7 +428,27 @@ GeApi.ge_finalize()
 - `get_pattern_graph_name()` - 获取 pattern graph 名称
 - `__str__()` - 返回可读字符串表示
 
-##### 4. Pattern / NodeIo / PatternMatcherConfig
+##### 4. SubgraphRewriter native-backed wrappers
+
+**文件位置**: `graph_rewriter_binding.cc`
+
+**功能**: Python 侧的子图边界描述与子图替换接口，用于支持 graph base 类 pass 的“子图替换”能力。
+
+**主要类/方法**:
+- `SubgraphInput` - 描述一个 subgraph 输入（一个输入可对应多个边界上的 node input）
+  - `SubgraphInput() / SubgraphInput([(node, out_index), ...])` - 构造 subgraph 输入
+  - `add_input(node, out_index)` - 追加一个输入锚点（`node` 为 `ge.graph.Node`，`out_index` 为其输出 index）
+- `SubgraphOutput` - 描述一个 subgraph 输出
+  - `SubgraphOutput() / SubgraphOutput(node, out_index)` - 构造 subgraph 输出
+  - `set_output(node, out_index)` - 设置输出锚点
+- `SubgraphBoundary` - 描述待替换子图的输入/输出边界
+  - `add_input(index, input)` - 绑定第 `index` 个 boundary input 到 `SubgraphInput`
+  - `add_output(index, output)` - 绑定第 `index` 个 boundary output 到 `SubgraphOutput`
+- `SubgraphRewriter.replace(boundary, replacement)` - 执行子图替换
+  - `boundary`：`SubgraphBoundary`
+  - `replacement`：`ge.graph.Graph`（replacement 图会在 C++ 侧拷贝并完成重连）
+
+##### 5. Pattern / NodeIo / PatternMatcherConfig
 
 **文件位置**: `pattern.py`、`base.py`
 
@@ -447,7 +467,7 @@ GeApi.ge_finalize()
 - `PatternMatcherConfigBuilder.enable_ir_attr_match()` - 打开 IR 属性匹配
 - `PatternMatcherConfigBuilder.build()` - 生成配置对象
 
-##### 5. FusionBasePass 类
+##### 6. FusionBasePass 类
 
 **文件位置**: `base.py`
 
@@ -460,7 +480,7 @@ GeApi.ge_finalize()
 - `PatternFusionPass` 和 `DecomposePass` 的父类
 - 通过 `register_fusion_pass` 装饰器注册到全局 Pass 注册中心
 
-##### 6. PatternFusionPass 类
+##### 7. PatternFusionPass 类
 
 **文件位置**: `base.py`
 
@@ -484,7 +504,7 @@ GeApi.ge_finalize()
 - 继承自 `FusionBasePass`
 - 通过 `register_fusion_pass` 装饰器注册
 
-##### 7. DecomposePass 类
+##### 8. DecomposePass 类
 
 **文件位置**: `base.py`
 
@@ -507,7 +527,7 @@ GeApi.ge_finalize()
 - 继承自 `FusionBasePass`
 - 通过 `register_decompose_pass` 装饰器注册
 
-##### 8. PassDescriptor 数据类
+##### 9. PassDescriptor 数据类
 
 **文件位置**: `registry.py`
 
