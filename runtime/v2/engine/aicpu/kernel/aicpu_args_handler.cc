@@ -116,8 +116,8 @@ ge::graphStatus AicpuArgsHandler::AddHostInput(const size_t idx, void *data, con
 
   args_.hostInputInfoNum += 1U;
   auto host_addr_offset = io_addr_offset_ + idx * sizeof(void *);
-  host_input_info_.emplace_back(rtHostInputInfo_t({static_cast<uint16_t>(host_addr_offset),
-                                                   static_cast<uint16_t>(host_data_offset)}));
+  host_input_info_.emplace_back(rtHostInputInfo_t({static_cast<uint32_t>(host_addr_offset),
+                                                   static_cast<uint32_t>(host_data_offset)}));
   args_.hostInputInfoPtr = host_input_info_.data();
   GE_ASSERT_TRUE(args_.hostInputInfoNum == host_input_info_.size());
 
