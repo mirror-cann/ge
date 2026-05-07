@@ -9,16 +9,20 @@
 # -----------------------------------------------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 3.16)
+include(cmake/fetch_cann_cmake.cmake)
 project(CANN-GRAPH-ENGINE)
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+init_cann_project()
+
 set(BASE_DIR ${CMAKE_CURRENT_LIST_DIR})
 
-find_program(CCACHE_PROGRAM ccache)
-if(CCACHE_PROGRAM)
-    set(CMAKE_C_COMPILER_LAUNCHER ${CCACHE_PROGRAM})
-    set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE_PROGRAM})
-endif(CCACHE_PROGRAM)
+# init_cann_project() redefines __FILE__ to filename-only via $(notdir), which breaks
+# tests that derive source directory paths from __FILE__ and fails on filenames with spaces.
+# In test mode, restore default compile commands to preserve __FILE__ full path.
+if(ENABLE_TEST OR ENABLE_GE_UT OR ENABLE_RT2_UT OR RUN_TEST)
+    set(CMAKE_CXX_COMPILE_OBJECT "<CMAKE_CXX_COMPILER> <DEFINES> <INCLUDES> <FLAGS> -o <OBJECT> -c <SOURCE>")
+    set(CMAKE_C_COMPILE_OBJECT "<CMAKE_C_COMPILER> <DEFINES> <INCLUDES> <FLAGS> -o <OBJECT> -c <SOURCE>")
+endif()
 
 set(SUPPORTED_COMPONENTS "ge-compiler;ge-executor;dflow-executor")
 if(DEFINED CANN_PACKAGES)
@@ -212,15 +216,15 @@ endif ()
 
 include(version.cmake)
 if("ge-compiler" IN_LIST BUILD_COMPONENT)
-    check_pkg_build_deps(ge-compiler)
+    check_cann_pkg_build_deps(ge-compiler)
 endif()
 if("ge-executor" IN_LIST BUILD_COMPONENT)
-    check_pkg_build_deps(ge-executor)
+    check_cann_pkg_build_deps(ge-executor)
 endif()
 if("dflow-executor" IN_LIST BUILD_COMPONENT)
-    check_pkg_build_deps(dflow-executor)
+    check_cann_pkg_build_deps(dflow-executor)
 endif()
-add_version_info_targets()
+add_cann_version_info_targets()
 
 if (BUILD_OPEN_PROJECT OR ENABLE_OPEN_SRC)
     if (NOT DEFINED HI_PYTHON)
@@ -562,9 +566,9 @@ elseif (BUILD_OPEN_PROJECT OR ENABLE_OPEN_SRC)
         add_dependencies(ge-compiler version_ge-compiler_info)
         add_dependencies(ge-executor version_ge-executor_info)
 
-        add_custom_target(dflow-executor)	 
-        add_dependencies(dflow-executor deployer_daemon npu_executor_main host_cpu_executor_main udf_dump	 
-                reader_writer udf_profiling flow_func built_in_flowfunc udf_executor) 
+        add_custom_target(dflow-executor)
+        add_dependencies(dflow-executor deployer_daemon npu_executor_main host_cpu_executor_main udf_dump
+                reader_writer udf_profiling flow_func built_in_flowfunc udf_executor)
         add_dependencies(dflow-executor version_dflow-executor_info)
         if (ENABLE_BUILD_DEVICE)
             set(CHILD_INSTALL_DIR ${CMAKE_BINARY_DIR}/device_install)
