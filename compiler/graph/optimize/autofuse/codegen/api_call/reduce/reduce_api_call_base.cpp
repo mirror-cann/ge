@@ -44,6 +44,16 @@ static void ReplaceSSWithSwappingFirstAndLast(std::string firstAndFirst_actual, 
   return;
 }
 
+size_t GetAxesNumExceptZeroTail(const Tensor &src, const Tensor &dst)
+{
+  size_t num_axes = src.vectorized_axis.size();
+  for (; num_axes > 0; num_axes--) {
+    if (src.vectorized_strides[num_axes - 1] != 0 || dst.vectorized_strides[num_axes - 1] != 0) {
+      break;
+    }
+  }
+  return num_axes;
+}
 /*  
   返回AR或者RA的fist_size和last_size；
   为了避免由于存在src[i].axis_size=1(此时strides=0)导致误判为R轴，所以在遍历过程中过滤掉了src[i].axis_size为1的情况；
@@ -62,7 +72,7 @@ void ReduceMergedSizeCodeGen(const TPipe &tpipe, std::stringstream &ss, const Te
   std::string dtype_name;
   Tensor::DtypeName(dst.dtype, dtype_name);
   bool is_first = true;
-  const size_t num_axes = src.vectorized_axis.size();
+  const size_t num_axes = GetAxesNumExceptZeroTail(src, dst); // 从后往前过滤无效轴，防止{R, 1} + {A, B}水平融合时没有尾轴对齐
   ascir::SizeExpr lastNonZeroStride = Zero;
   size_t last_not_1_axis_size_index = 0xFFFFFFFF;
   bool isAllAxisReduce = true;
@@ -83,7 +93,7 @@ void ReduceMergedSizeCodeGen(const TPipe &tpipe, std::stringstream &ss, const Te
       }
       break;
     }
-    if (axis_size == "1") {
+    if (src.vectorized_strides[i] == 0 && dst.vectorized_strides[i] == 0) {
       continue;
     }
     if (is_first && last_not_1_axis_size_index != 0xFFFFFFFF) {
