@@ -120,7 +120,7 @@ static std::string GetCodegenTilingWithLambdaExpectCode() {
 #include <sys/syscall.h>
 #include <unistd.h>
 #include <securec.h>
-#include "toolchain/slog.h"
+#include "dlog_pub.h"
 #define OP_LOGD(name, fmt, ...)
 #define OP_LOGI(name, fmt, ...)
 #define GE_MODULE_NAME static_cast<int32_t>(45)
@@ -443,7 +443,7 @@ static std::string GetCodegenPGOCodeExpectCode() {
 #include <vector>
 
 #include "acl/acl.h"
-#include "toolchain/slog.h"
+#include "dlog_pub.h"
 #include "mspti.h"
 #include "tiling/platform/platform_ascendc.h"
 
@@ -1215,7 +1215,7 @@ private:
 #include <sys/syscall.h>
 #include <unistd.h>
 #include <securec.h>
-#include "toolchain/slog.h"
+#include "dlog_pub.h"
 #define OP_LOGD(name, fmt, ...)
 #define OP_LOGI(name, fmt, ...)
 #define GE_MODULE_NAME static_cast<int32_t>(45)

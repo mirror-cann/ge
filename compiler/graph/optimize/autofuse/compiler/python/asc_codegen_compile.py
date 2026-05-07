@@ -87,6 +87,7 @@ def generate_cmake_lists(asc_graph_name, kernel_name, host_build_dir, is_last_co
     source += f"    {ASCEND_PATH}/include/base\n"
     source += f"    {ASCEND_PATH}/include/experiment\n"
     source += f"    {ASCEND_PATH}/{machine}-linux/include\n"
+    source += f"    {ASCEND_PATH}/{machine}-linux/pkg_inc/base\n"
     source += f"    {ASCEND_PATH}/{machine}-linux/ascendc/include/highlevel_api/tiling/platform\n"
     source += f"    {ASCEND_PATH}/{machine}-linux/ascendc/include/highlevel_api\n"
     if is_cube:
@@ -773,6 +774,7 @@ def build_pgo_compile_command(source_file, output_file, mspti_dir, mspti_link_fl
         f"-I{ASCEND_PATH}/include/experiment/runtime",
         f"-I{ASCEND_PATH}/include/experiment/msprof",
         f"-I{ASCEND_PATH}/{machine}-linux/include/toolchain",
+        f"-I{ASCEND_PATH}/{machine}-linux/pkg_inc/base",
         f"-I{mspti_dir}/include"
     ]
     libs = [

@@ -72,6 +72,7 @@ def compile_host_obj(args: argparse.Namespace, temp_dir):
         "-I", f"{ASCEND_PATH}/include",
         "-I", f"{ASCEND_PATH}/include/base",
         "-I", f"{ASCEND_PATH}/include/experiment",
+        "-I", f"{ASCEND_PATH}/{machine}-linux/pkg_inc/base",
         "-I", f"{ASCEND_PATH}/{machine}-linux/include",
         "-I", f"{ASCEND_PATH}/{machine}-linux/ascendc/include/highlevel_api/tiling/platform",
         "-fPIC", f"--npu-arch={soc_version}", "-O2", "-fno-common", "-Wextra", "-Wfloat-equal", "-fvisibility=default",
