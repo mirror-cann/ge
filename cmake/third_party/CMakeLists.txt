@@ -82,11 +82,13 @@ if(CMAKE_BUILD_COMPONENT STREQUAL "ge-compiler")
     find_package(abseil-cpp MODULE REQUIRED)
     find_package(protoc MODULE REQUIRED)
     find_package(ascend_protobuf_shared MODULE REQUIRED)
+    find_package(ascend_protobuf_static MODULE REQUIRED)
     find_package(boost MODULE REQUIRED)
     find_package(symengine MODULE REQUIRED)
     find_package(zlib_bin MODULE REQUIRED)
     set(selected_targets
             ascend_protobuf_build
+            ascend_protobuf_static_build
             json_build
             openssl_build
             protoc_build
