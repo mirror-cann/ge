@@ -238,6 +238,8 @@ class TilingCodeGenImpl {
   virtual ge::Status GenToolFuncs();
   // 生成tilingimpl的基类public函数
   virtual ge::Status GenTilingImplPublicFunc();
+  // 生成基类中GetTilingData/SetTilingData/SetWorkspaceSize的虚函数默认实现
+  ge::Status GenVirtualDataTransferFuncs();
   // 生成求解器子类
   virtual ge::Status GenTilingCaseImpl(const ModelInfo &model_info);
   // 生成预处理函数

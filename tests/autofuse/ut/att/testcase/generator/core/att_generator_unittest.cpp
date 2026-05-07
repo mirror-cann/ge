@@ -305,16 +305,16 @@ TEST(GeneratorUT, TilingCodeGenImplPGO) {
     TilingSummary(tiling_data);
     return true;
   }
-  virtual double GetPerf(TilingData &tiling_data) { return 0.0; }
+  virtual double GetPerf(TilingData &tiling_data) { (void)tiling_data; return 0.0; }
   virtual const char* GetScheduleName() { return ""; }
   virtual void TilingSummary(TilingData &tiling_data) = 0;
   virtual bool ExecutePGOSolver(TilingData &tiling_data, std::vector<AutofuseTilingDataPerf>& tiling_data_list, AutofuseTilingData* autofuse_tiling_data, void* stream, std::unordered_map<int64_t, uint64_t> &workspace_map, std::vector<uint32_t*> block_dim_vec={}) {
     return false;
   }
-  virtual int32_t CalcScore(const TilingData &tiling_data) { return 0;}
-  virtual void GetTilingData(TilingDataCopy &from_tiling, TilingData &to_tiling) {};
-  virtual void SetTilingData(TilingData &from_tiling, TilingDataCopy &to_tiling) {};
-  virtual void SetWorkspaceSize(TilingData &tiling_data, std::unordered_map<int64_t, uint64_t> &workspace_map) {};
+  virtual int32_t CalcScore(const TilingData &tiling_data) { (void)tiling_data; return 0;}
+  virtual void GetTilingData(TilingDataCopy &from_tiling, TilingData &to_tiling) { (void)from_tiling; (void)to_tiling; }
+  virtual void SetTilingData(TilingData &from_tiling, TilingDataCopy &to_tiling) { (void)from_tiling; (void)to_tiling; }
+  virtual void SetWorkspaceSize(TilingData &tiling_data, std::unordered_map<int64_t, uint64_t> &workspace_map) { (void)tiling_data; (void)workspace_map; }
 )rawliteral";
   EXPECT_EQ(genImpl.tiling_func_.output_.str(), expectCode);
 }

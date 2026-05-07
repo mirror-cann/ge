@@ -187,6 +187,7 @@ extern "C" int64_t AutofuseTilingWithConfig(const char *config_file, AutofuseTil
  const ResLimit *limit = (res_limit == nullptr) ? &g_no_limit_res : res_limit;
   tiling->set_block_dim(limit->aiv_num);
   tiling->set_ub_size(limit->ub_size);
+  (void)config_file;
   if (!optiling::GetTiling(*tiling, tiling_case_id)) {
     return -1;
   }

@@ -1050,8 +1050,10 @@ ge::Status TilingCodeGenImpl::GenCacheHashMapDef() {
      tiling_func_.AddLine("  virtual bool TrySmallShapeTiling(" + data_type + " &tiling_data) { return false;}");
    }
    tiling_func_.AddLine("  virtual bool DoTiling(" + data_type + " &tiling_data) = 0;");
-   tiling_func_.AddLine("  virtual void DoApiTiling(" + data_type + " &tiling_data) {}");
-   tiling_func_.AddLine("  virtual void GeneralTiling(" + data_type + "& tiling_data) {}");
+   tiling_func_.AddLine("  virtual void DoApiTiling(" + data_type +
+                        " &tiling_data) { (void)tiling_data; }");
+   tiling_func_.AddLine("  virtual void GeneralTiling(" + data_type +
+                        "& tiling_data) { (void)tiling_data; }");
    if (config_.gen_extra_infos) {
      tiling_func_.AddLine("  virtual void GetWorkSpaceSize(" + data_type + "& tiling_data) {}");
      tiling_func_.AddLine("  virtual void ExtraTilingData(" + data_type + " &tiling_data) {}");
@@ -1469,7 +1471,8 @@ enum class PipeType : uint8_t {
  ge::Status TilingCodeGenImpl::GenTilingImplPublicFunc() {
    std::string data_type = config_.tiling_data_type_name;
    GE_ASSERT_SUCCESS(GenGetTiling(), "Generate get tiling failed.");
-   tiling_func_.AddLine("  virtual double GetPerf(" + data_type + " &tiling_data) { return 0.0; }");
+   tiling_func_.AddLine("  virtual double GetPerf(" + data_type +
+                        " &tiling_data) { (void)tiling_data; return 0.0; }");
    if (!is_uniq_group_) {
      tiling_func_.AddLine("  virtual const char* GetScheduleName() { return \"\"; }");
    }
@@ -1488,9 +1491,22 @@ enum class PipeType : uint8_t {
       tiling_func_.AddLine("    return false;");
       tiling_func_.AddLine("  }");
    }
-   tiling_func_.AddLine("  virtual int32_t CalcScore(const " + data_type + " &tiling_data) { return 0;}");
+   tiling_func_.AddLine("  virtual int32_t CalcScore(const " + data_type +
+                        " &tiling_data) { (void)tiling_data; return 0;}");
    return ge::SUCCESS;
  }
+
+ge::Status TilingCodeGenImpl::GenVirtualDataTransferFuncs() {
+  const std::string &data_type = config_.tiling_data_type_name;
+  tiling_func_.AddLine("  virtual void GetTilingData(TilingDataCopy &from_tiling, " + data_type +
+                       " &to_tiling) { (void)from_tiling; (void)to_tiling; }");
+  tiling_func_.AddLine("  virtual void SetTilingData(" + data_type +
+                       " &from_tiling, TilingDataCopy &to_tiling) { (void)from_tiling; (void)to_tiling; }");
+  tiling_func_.AddLine("  virtual void SetWorkspaceSize(" + data_type +
+                       " &tiling_data, std::unordered_map<int64_t, uint64_t> &workspace_map)" +
+                       " { (void)tiling_data; (void)workspace_map; }");
+  return ge::SUCCESS;
+}
  
  ge::Status TilingCodeGenImpl::GenVariableAnnotation(const ArgsManager &args_manager) {
    const std::string tiling_id = std::to_string(args_manager.GetTilingCaseId());
@@ -1603,6 +1619,9 @@ enum class PipeType : uint8_t {
      tiling_func_.AddLine("");
    }
    tiling_func_.AddLine("void DoApiTiling(" + config_.tiling_data_type_name + " &tiling_data) {");
+   if (model_info.node_name_to_api_code.empty()) {
+     tiling_func_.AddLine("  (void)tiling_data;");
+   }
    for (const auto &tiling_api_code : model_info.node_name_to_api_code) {
      tiling_func_.AddLine(tiling_api_code.second.function_invoke);
    }
@@ -1818,7 +1837,12 @@ enum class PipeType : uint8_t {
    tiling_func_.AddLine("  }");
    tiling_func_.AddLine("  void SetWorkspaceSize(" + data_type +
    " &tiling_data, std::unordered_map<int64_t, uint64_t> &workspace_map) {");
-   tiling_func_.AddLine(GenWorkspaceRelatedVars(model_info.workspace_size_map, args_manager.GetContainerMap()));
+   auto ws_vars = GenWorkspaceRelatedVars(model_info.workspace_size_map, args_manager.GetContainerMap());
+   if (ws_vars.empty()) {
+     tiling_func_.AddLine("    (void)tiling_data; (void)workspace_map;");
+   } else {
+     tiling_func_.AddLine(ws_vars);
+   }
    tiling_func_.AddLine("  }");
    return ge::SUCCESS;
  }
@@ -2344,6 +2368,9 @@ ge::Status TilingCodeGenImpl::GenFindPerfBetterTilingbyCaseId(bool enable_group_
        config_.tiling_data_type_name + " &tiling_data, " +
        (is_uniq_group_ ? "" : "std::unordered_map<int64_t, uint64_t> &workspace_map, ") +
        "uint32_t tiling_case_id, bool is_sub_case, bool &sub_case_flag" + core_num_param + ") {");
+   if (!add_core_num_param) {
+     tiling_func_.AddLine("  (void)core_num;");
+   }
    tiling_func_.AddLine("  double cur_obj;");
    if (hardware_has_ub_) {
      tiling_func_.AddLine("  double cur_ub_ratio;");

@@ -836,6 +836,7 @@ std::string AxesReorderSolverGen::GenConsUbFunc(uint32_t cons_idx, const std::ve
   strs += "    auto cons" + std::to_string(cons_idx) + "Eval = [](TilingVariable **rel_tiling_vars, "
                                                        "Variable **rel_in_shapes, int64_t rel_hw_spec) {\n";
   strs += SetRelatedVars(rel_tiling_vars, rel_cons_vars);
+  strs += "      (void)rel_in_shapes;\n";
   strs += "      int64_t value = AxesReorderSolver" + tiling_case_id_ + "::GetUbSizeStatic(" +
       GenGetStaticInputParam(HardwareDef::UB, true) + ") - rel_hw_spec;\n";
   strs += "      return value;\n";
@@ -858,6 +859,7 @@ std::string AxesReorderSolverGen::GenConsFunc(uint32_t cons_idx, ConsType cons_t
     strs += tmp_def;
     strs += "      int64_t value = " + func_return_expr + "- rel_hw_spec;\n";
   } else if (cons_type == ConsType::CUT) {
+    strs += "      (void)rel_hw_spec;\n";
     strs += GenOriginExpr({cons}, "      ");
     strs += "      int64_t value = " + Str(cons) + ";\n";
   }

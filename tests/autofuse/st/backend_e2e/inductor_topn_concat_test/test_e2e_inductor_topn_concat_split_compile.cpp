@@ -115,7 +115,8 @@ int RunHostCompile(const std::string &tiling_def, const std::string &host_code, 
     "        '--graph_name=inductor_topn_concat',\n"
     "        '--output_file=" + output_file + "',\n"
     "        '--output_path=" + std::string(OUTPUT_DIR) + "/host_out',\n"
-    "        '--soc_version=Ascend910B'])\n"
+    "        '--soc_version=Ascend910B',\n"
+    "        '--compile_options=-Werror'])\n"
     "except Exception:\n"
     "    traceback.print_exc()\n"
     "    sys.exit(1)\n");

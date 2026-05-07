@@ -343,7 +343,7 @@ ge::Status PipePerfExpr::GetNodePerf(const NodeInfo &node, std::map<PipeType, Ex
                                      std::map<Expr, TernaryOp, ExprCmp> &ternary_ops, bool tail_shape) const {
   std::string tail_annotation;
   if (tail_shape) {
-    tail_annotation = "tail";
+    tail_annotation = "tail ";
   }
   const auto &node_type = node.node_type;
   const auto &node_unit = node.node_unit;
@@ -351,11 +351,11 @@ ge::Status PipePerfExpr::GetNodePerf(const NodeInfo &node, std::map<PipeType, Ex
   std::vector<TensorShapeInfo> outputs;
   GE_ASSERT_SUCCESS(GetTensorShapes(node, inputs, outputs, ternary_ops, tail_shape), "Get tensor shape failed!");
   for (size_t i = 0; i < inputs.size(); i++) {
-    GELOGD("node[%s, %s] input[%zu] %s shape: {%s}", node.name.c_str(), node.node_type.c_str(), i,
+    GELOGD("node[%s, %s] input[%zu] %sshape: {%s}", node.name.c_str(), node.node_type.c_str(), i,
            tail_annotation.c_str(), inputs[i].GetDimExpr().c_str());
   }
   for (size_t i = 0; i < outputs.size(); i++) {
-    GELOGD("node[%s, %s] output[%zu] %s shape: {%s}", node.name.c_str(), node.node_type.c_str(), i,
+    GELOGD("node[%s, %s] output[%zu] %sshape: {%s}", node.name.c_str(), node.node_type.c_str(), i,
            tail_annotation.c_str(), outputs[i].GetDimExpr().c_str());
   }
   PerfOutputInfo perf_res;
