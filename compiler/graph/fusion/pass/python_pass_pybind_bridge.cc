@@ -142,14 +142,6 @@ class PythonFusionPassPybindBridge {
     if (Py_IsInitialized() != 0) {
       py::gil_scoped_acquire gil;
       ResetBridgeStateUnlocked();
-      // 先释放 bridge 持有的 Python 对象引用，再决定是否回收解释器。
-      bridge_module_ = py::object();
-      // 打破 Python 对象循环引用，让 finalize 前尽可能多的对象可回收。
-      try {
-        (void)py::module_::import("gc").attr("collect")();
-      } catch (const py::error_already_set &err) {
-        GELOGW("Python gc.collect() during shutdown failed: %s", err.what());
-      }
     }
     if (owns_interpreter_ && (Py_IsInitialized() != 0)) {
       try {
@@ -268,24 +260,32 @@ class PythonFusionPassPybindBridge {
     } catch (const py::error_already_set &err) {
       GELOGW("Reset python pybind bridge state failed: %s", err.what());
     }
+    bridge_module_ = py::object();
+    try {
+      (void)py::module_::import("gc").attr("collect")();
+    } catch (const py::error_already_set &err) {
+      GELOGW("Python gc.collect() during reset failed: %s", err.what());
+    }
   }
 
   static void ClearPythonEnvVarUnlocked() {
     py::module_ os = py::module_::import("os");
-    py::dict environ = os.attr("environ");
+    py::object environ = os.attr("environ");
     (void)environ.attr("pop")(py::str(kEnvPythonPassPath), py::none());
   }
 
   static void SyncProcessEnvToPythonUnlocked() {
     const char *env_value = std::getenv(kEnvPythonPassPath);
-    if (env_value == nullptr) {
-      ClearPythonEnvVarUnlocked();
+    const bool has_env_value = (env_value != nullptr);
+    const std::string env_value_str = has_env_value ? std::string(env_value) : std::string();
+    // os.environ.pop may call unsetenv(), so keep the current C env value before clearing Python's cache.
+    ClearPythonEnvVarUnlocked();
+    if (!has_env_value) {
       return;
     }
     py::module_ os = py::module_::import("os");
-    py::dict environ = os.attr("environ");
-    environ[py::str(kEnvPythonPassPath)] = py::str(env_value);
-    os.attr("putenv")(py::str(kEnvPythonPassPath), py::str(env_value));
+    py::object environ = os.attr("environ");
+    environ[py::str(kEnvPythonPassPath)] = py::str(env_value_str);
   }
 
   std::string BuildInstanceId(const std::string &descriptor_key) {

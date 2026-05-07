@@ -297,7 +297,7 @@ V1 采用“两层绑定”策略，而不是把所有 Python 接口一次性迁
 5. bridge loader 通过 `dladdr + dlopen` 定位并装载同目录下的 `libge_python_pass_bridge.so`
 6. bridge loader 通过 `GeGetPythonFusionBasePassBridgeApi()` 获取 bridge 导出的稳定入口，并把 registrar 回调传给 bridge
 7. `libge_python_pass_bridge.so` 初始化 Python 运行时并导入 `ge.passes._bridge`
-8. bridge 调用 `load_and_get_pass_descriptors()`；Python 侧 bootstrap 直接读取进程环境中的 `ASCEND_GE_PY_PASS_PATH`
+8. bridge 将当前进程环境中的 `ASCEND_GE_PY_PASS_PATH` 同步到 Python `os.environ`，再调用 `load_and_get_pass_descriptors()`
 9. bootstrap 发现并导入用户 pass 模块
 10. 用户 pass 模块通过装饰器把 pass 注册到 `ge.passes.registry`
 11. bridge 读取注册表并通过 registrar 回调把 descriptor 动态注册回 `PassRegistry`
@@ -408,6 +408,8 @@ Python 侧统一提供：
 
 - `ge.passes.bootstrap.load_pass_plugins()`
 - `ge.passes.bootstrap.get_registered_passes()`
+
+bridge 注册链路在每轮加载前先由 C++ 按当前进程环境刷新 Python `os.environ` 中的 `ASCEND_GE_PY_PASS_PATH`，避免常驻 Python 解释器中的环境缓存影响下一轮 pass 发现。
 
 ### 7.2 发现优先级
 
@@ -806,7 +808,7 @@ UnloadPassPlugins()
   → PassPluginLoader::Unload()                              [pass_plugin_loader.cc]
     ├─ UnloadPythonFusionBasePasses()                        // 仅在 python_pass_loaded_ 为 true 时执行
     │   → BridgeLoader::Unload()                             [bridge_loader.cc]
-    │     ├─ api_->reset_bridge_state()                      // 通知 bridge 清理 Python 侧注册表与 holder
+    │     ├─ api_->reset_bridge_state()                      // 通知 bridge 清理 Python 侧状态并释放 bridge 模块引用
     │     ├─ ClearPythonFusionBasePassRuntimeRegistry()      // 清理 C++ 侧 runtime 注册表
     │     └─ PassRegistry::ClearPythonPasses()               // 清理 C++ 侧 pass 注册表
     │   python_pass_loaded_ = false
@@ -844,9 +846,7 @@ ShutdownPassPluginsForProcess()
     │     ├─ if (api_ != nullptr):
     │     │   api_->shutdown_bridge()                        // 调用 bridge so 导出的 shutdown
     │     │     → PybindBridge::Shutdown()                   [pybind_bridge.cc]
-    │     │       ├─ ResetBridgeStateUnlocked()              // 清理 Python 侧 holder 和注册表
-    │     │       ├─ bridge_module_ = py::object()           // 释放 bridge 持有的 Python 模块引用
-    │     │       ├─ gc.collect()                            // 打破循环引用，回收 Python 对象
+    │     │       ├─ ResetBridgeStateUnlocked()              // 清理 Python 侧状态、释放 bridge 模块引用并 gc.collect()
     │     │       └─ if (owns_interpreter_):                 // 仅当解释器由 bridge 自己拉起时
     │     │           py::finalize_interpreter()             // 终结 Python 解释器
     │     │     owns_interpreter_ = false
@@ -872,7 +872,7 @@ ShutdownPassPluginsForProcess()
 当前实现遵循以下顺序原则：
 
 1. **先清理 C++ 注册表，再 dlclose bridge so** — `UnloadPythonFusionBasePasses()` 先清理 `PassRegistry` 和 `PythonFusionBasePassRuntimeRegistry`，之后才执行 `ShutdownForProcess()` 进行 `dlclose`。这保证 dlclose 时没有任何 C++ 对象仍在持有 bridge 侧的回调函数指针。
-2. **先清理 Python 对象，再终结解释器** — `PybindBridge::Shutdown()` 先调用 `ResetBridgeStateUnlocked()` 清理 Python 侧注册表和 holder，再执行 `bridge_module_ = py::object()` 释放模块引用，然后调用 `gc.collect()` 打破循环引用，最后才调用 `py::finalize_interpreter()`。
+2. **先清理 Python 对象，再终结解释器** — `PybindBridge::Shutdown()` 先调用 `ResetBridgeStateUnlocked()` 清理 Python 侧注册表、holder 和动态加载的 pass 模块，并在 reset 内释放 `bridge_module_` 引用、调用 `gc.collect()` 打破循环引用，最后才调用 `py::finalize_interpreter()`。
 3. **先终结解释器，再 dlclose so** — `shutdown_bridge()` 在 `BridgeLoader::ShutdownForProcess()` 中先于 `dlclose(handle_)` 执行，保证 dlclose 时 Python 解释器已不再运行。
 4. **如果解释器已被外部终结** — `Py_IsInitialized()` 返回 0，bridge 跳过所有 Python 清理逻辑，仅清理 C++ 侧状态，不会对已释放的 Python 对象做 `DECREF`。
 

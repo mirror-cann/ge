@@ -13,7 +13,6 @@
 #include <mutex>
 #include <sstream>
 #include <cstdio>
-#include <cstdlib>
 #include <unistd.h>
 #include "common/share_graph.h"
 #include "es_ge_test_ops.h"
@@ -50,6 +49,17 @@ std::string GetCodeDir() {
 }
 
 constexpr const char *kEnvPythonPassPath = "ASCEND_GE_PY_PASS_PATH";
+
+class PythonPassProcessShutdownEnvironment final : public ::testing::Environment {
+ public:
+  void TearDown() override {
+    (void)unsetenv(kEnvPythonPassPath);
+    ShutdownPythonPassesForProcess();
+  }
+};
+
+::testing::Environment *const kPythonPassProcessShutdownEnvironment =
+    ::testing::AddGlobalTestEnvironment(new PythonPassProcessShutdownEnvironment());
 
 class ScopedTempDir {
  public:
@@ -450,7 +460,8 @@ class UtestFusionPassExecutor : public testing::Test {
   void SetUp() override {
     PreparePythonPathForSt();
     (void)unsetenv(kEnvPythonPassPath);
-    ShutdownPythonPassesForProcess();
+    // 逐 case 只清理 Python pass 业务态，避免在同一测试进程内反复 finalize/dlclose。
+    UnloadPythonPasses();
     PassRegistry::GetInstance().name_2_fusion_pass_regs_.clear();
     PassRegistry::GetInstance().descriptor_key_2_python_pass_descs_.clear();
     PassRegistry::GetInstance().pass_name_2_python_pass_create_contexts_.clear();
@@ -465,7 +476,7 @@ class UtestFusionPassExecutor : public testing::Test {
   }
   void TearDown() override {
     (void)unsetenv(kEnvPythonPassPath);
-    ShutdownPythonPassesForProcess();
+    UnloadPythonPasses();
     PassRegistry::GetInstance().name_2_fusion_pass_regs_.clear();
     PassRegistry::GetInstance().descriptor_key_2_python_pass_descs_.clear();
     PassRegistry::GetInstance().pass_name_2_python_pass_create_contexts_.clear();
