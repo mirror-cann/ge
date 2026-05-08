@@ -20,6 +20,7 @@ namespace codegen {
 struct CallParam {
   std::string p_reg;
   std::string offset;
+  std::string max_dtype_size;
 };
 
 enum class TensorType : int8_t {
