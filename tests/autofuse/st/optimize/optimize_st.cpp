@@ -4583,3 +4583,23 @@ TEST_F(OptimizerSt, multi_transpose_two_branch_static) {
   EXPECT_EQ(fused_scheduled_result.node_idx_to_scheduled_results[0].size(), 1);
   EXPECT_EQ(fused_scheduled_result.node_idx_to_scheduled_results[0][0].schedule_groups.size(), 1);
 }
+
+// ==================== Broadcast Reorder Tests ====================
+
+TEST_F(OptimizerSt, broadcast_reorder_elementwise) {
+  auto s0 = Sym(4);
+  auto s1 = Sym(512 * 1024);  // > 256*1024
+  auto graph = AscGraphBuilder("broadcast_reorder_elementwise")
+                   .Loops({s0, s1})
+                   .Data("data0", 0, {ge::ops::One, s1}, {ge::ops::Zero, ge::ops::One}, ge::DT_FLOAT16)
+                   .Load("load0", "data0", {ge::ops::One, s1}, {ge::ops::Zero, ge::ops::One})
+                   .Abs("abs0", "load0")
+                   .Store("store0", "abs0")
+                   .Output("y", "store0", 0, ge::DT_FLOAT16)
+                   .Build();
+
+  ::ascir::FusedScheduledResult fused_scheduled_result;
+  EXPECT_EQ(optimizer.Optimize(graph, fused_scheduled_result), 0);
+  EXPECT_EQ(fused_scheduled_result.node_idx_to_scheduled_results[0].size(), 1);
+  EXPECT_EQ(fused_scheduled_result.node_idx_to_scheduled_results[0][0].schedule_groups.size(), 1);
+}

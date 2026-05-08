@@ -13,6 +13,7 @@
 #include "asc_graph_builder.h"
 #include "graph/ascendc_ir/utils/asc_graph_utils.h"
 #include "pre_process/scalar_broadcast_insert.h"
+#include "autoschedule/autoschedule.h"
 #include "ascgraph_info_complete.h"
 #include "platform_context.h"
 #include "runtime_stub.h"
@@ -20,6 +21,7 @@
 using namespace ge;
 using namespace ge::testing;
 using namespace optimize::pre_process;
+using namespace optimize::autoschedule;
 
 namespace {
 
@@ -387,4 +389,87 @@ TEST_F(TestScalarBroadcastInsert, ScalarToBothComputeAndOutput_OnlyInterceptsCom
   // scalar 不再直连 add0（经过 broadcast）
   EXPECT_FALSE(IsConnected(graph, "scalar0", "add0"));
   EXPECT_TRUE(IsConnected(graph, "scalar0", "output1"));
+}
+
+// ==================== Broadcast Reorder Tests ====================
+
+TEST_F(TestScalarBroadcastInsert, BroadcastReorderBasic) {
+  auto s0 = Sym(4);
+  auto s1 = Sym(512 * 1024);  // > 256*1024
+  auto graph = AscGraphBuilder("broadcast_reorder_basic")
+                   .Loops({s0, s1})
+                   .Data("data0", 0, {ge::sym::kSymbolOne, s1}, {ge::sym::kSymbolZero, ge::sym::kSymbolOne}, ge::DT_FLOAT16)
+                   .Load("load0", "data0", {ge::sym::kSymbolOne, s1}, {ge::sym::kSymbolZero, ge::sym::kSymbolOne})
+                   .Abs("abs0", "load0")
+                   .Store("store0", "abs0")
+                   .Output("y", "store0", 0, ge::DT_FLOAT16)
+                   .Build();
+  optimize::AscGraphInfoComplete::CompleteApiInfo(graph);
+
+  auto load_node = graph.FindNode("load0");
+  ASSERT_NE(load_node, nullptr);
+  auto original_axis = load_node->attr.sched.axis;
+  ASSERT_EQ(original_axis.size(), 2UL);
+
+  std::vector<AutoScheduleOutput> results;
+  AutoSchedule schedule(graph, results);
+  EXPECT_EQ(schedule.DoAutoSchedule(), ge::SUCCESS);
+
+  // broadcast axis (z0, stride=0) moved to inner: expected [z1, z0]
+  std::vector<int64_t> expected_order = {original_axis[1], original_axis[0]};
+  EXPECT_EQ(load_node->attr.sched.axis, expected_order);
+
+  auto abs_node = graph.FindNode("abs0");
+  ASSERT_NE(abs_node, nullptr);
+  EXPECT_EQ(abs_node->attr.sched.axis, expected_order);
+}
+
+TEST_F(TestScalarBroadcastInsert, BroadcastReorderSkipBrcTooLarge) {
+  auto s0 = Sym(32);
+  auto s1 = Sym(512 * 1024);
+  auto graph = AscGraphBuilder("broadcast_reorder_large_brc")
+                   .Loops({s0, s1})
+                   .Data("data0", 0, {ge::sym::kSymbolOne, s1}, {ge::sym::kSymbolZero, ge::sym::kSymbolOne}, ge::DT_FLOAT16)
+                   .Load("load0", "data0", {ge::sym::kSymbolOne, s1}, {ge::sym::kSymbolZero, ge::sym::kSymbolOne})
+                   .Abs("abs0", "load0")
+                   .Store("store0", "abs0")
+                   .Output("y", "store0", 0, ge::DT_FLOAT16)
+                   .Build();
+  optimize::AscGraphInfoComplete::CompleteApiInfo(graph);
+
+  auto load_node = graph.FindNode("load0");
+  ASSERT_NE(load_node, nullptr);
+  auto original_axis = load_node->attr.sched.axis;
+
+  std::vector<AutoScheduleOutput> results;
+  AutoSchedule schedule(graph, results);
+  EXPECT_EQ(schedule.DoAutoSchedule(), ge::SUCCESS);
+
+  // brc_size=32 > 16, reorder skipped
+  EXPECT_EQ(load_node->attr.sched.axis, original_axis);
+}
+
+TEST_F(TestScalarBroadcastInsert, BroadcastReorderSkipDataTooSmall) {
+  auto s0 = Sym(4);
+  auto s1 = Sym(8);
+  auto graph = AscGraphBuilder("broadcast_reorder_small_data")
+                   .Loops({s0, s1})
+                   .Data("data0", 0, {ge::sym::kSymbolOne, s1}, {ge::sym::kSymbolZero, ge::sym::kSymbolOne}, ge::DT_FLOAT16)
+                   .Load("load0", "data0", {ge::sym::kSymbolOne, s1}, {ge::sym::kSymbolZero, ge::sym::kSymbolOne})
+                   .Abs("abs0", "load0")
+                   .Store("store0", "abs0")
+                   .Output("y", "store0", 0, ge::DT_FLOAT16)
+                   .Build();
+  optimize::AscGraphInfoComplete::CompleteApiInfo(graph);
+
+  auto load_node = graph.FindNode("load0");
+  ASSERT_NE(load_node, nullptr);
+  auto original_axis = load_node->attr.sched.axis;
+
+  std::vector<AutoScheduleOutput> results;
+  AutoSchedule schedule(graph, results);
+  EXPECT_EQ(schedule.DoAutoSchedule(), ge::SUCCESS);
+
+  // non_brc_size=8 < 256*1024, reorder skipped
+  EXPECT_EQ(load_node->attr.sched.axis, original_axis);
 }
