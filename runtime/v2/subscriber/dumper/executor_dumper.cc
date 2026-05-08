@@ -486,7 +486,7 @@ ge::Status ExecutorDumper::InitInputAddrs(const LowerInputInfo &input_info, Node
   auto &out_addrs = input_info.input_addrs;  // lower input is peer node's lower output
   std::vector<Chain *> input_addrs;
   const auto op_desc = dump_unit->node->GetOpDescBarePtr();
-  GELOGI("[Dumper] node %s inpu size %zu, input addr num %zu.", dump_unit->node->GetNamePtr(),
+  GELOGI("[Dumper] node %s input size %zu, input addr num %zu.", dump_unit->node->GetNamePtr(),
          op_desc->GetAllInputsSize(), out_addrs.size());
   for (const auto &out_addr : out_addrs) {
     if (out_addr == nullptr) {
