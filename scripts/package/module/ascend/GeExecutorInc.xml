@@ -35,7 +35,7 @@
     <file_info value="include" copy_type="source" dst_path="include/acl/ops" install_path="$(TARGET_ENV)/include/acl/ops" install_type="devel" install_mod="440">
         <file value="acl_cblas.h"/>
     </file_info>
-    <file_info value="include" copy_type="source" dst_path="include/graph" install_path="$(TARGET_ENV)/include/graph" install_type="devel" install_mod="440">
+    <file_info value="include" copy_type="source" dst_path="include/graph" install_path="$(TARGET_ENV)/include/graph" install_type="devel" install_mod="440"  optional="true">
         <file value="graph.h"/>
     </file_info>
     <file_info value="include" copy_type="source" dst_path="include/graph" install_path="$(TARGET_ENV)/include/graph" install_type="devel" install_mod="440">

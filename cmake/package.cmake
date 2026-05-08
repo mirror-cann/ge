@@ -283,6 +283,9 @@ if("ge-executor" IN_LIST BUILD_COMPONENT)
                     DESTINATION ge-executor/lib64 COMPONENT ge-executor
             )
         endif()
+        install(FILES ${CMAKE_SOURCE_DIR}/inc/graph_metadef/external/graph/graph.h
+            DESTINATION ge-executor/include/graph COMPONENT ge-executor
+        )
     else()
        # MDC 运行态编译
         install(TARGETS ge_common ge_common_base davinci_executor hybrid_executor gert register graph graph_base acl_cblas
@@ -315,7 +318,6 @@ if("ge-executor" IN_LIST BUILD_COMPONENT)
             DESTINATION ge-executor/include/exe_graph/runtime COMPONENT ge-executor
     )
     set(EXTERNAL_GRAPH_FILES
-        ${CMAKE_SOURCE_DIR}/inc/graph_metadef/external/graph/graph.h
         ${CMAKE_SOURCE_DIR}/inc/graph_metadef/external/graph/ct_infer_shape_range_context.h
         ${CMAKE_SOURCE_DIR}/inc/graph_metadef/external/graph/ct_infer_shape_context.h
         ${CMAKE_SOURCE_DIR}/inc/graph_metadef/external/graph/operator_reg.h
