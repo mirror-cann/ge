@@ -180,7 +180,10 @@ TEST_F(Runtime2AllocatorSystemTest, test_allocate_mem_block_try_recycle_then_mal
   static uint64_t total_size = 0;
   static uint8_t malloc_count = 0;
   struct FakeRuntime : RuntimeStubImpl {
-    rtError_t rtMalloc(void **dev_ptr, uint64_t size, rtMemType_t type, uint16_t moduleId) {
+  };
+
+  struct FakeAclRuntime : AclRuntimeStubImpl {
+    rtError_t aclrtMalloc(void **dev_ptr, size_t size, aclrtMemMallocPolicy policy) {
       malloc_count++;
       total_size += size;
       if (total_size > 32 * 1024UL * 1024UL * 1024UL){
@@ -191,19 +194,10 @@ TEST_F(Runtime2AllocatorSystemTest, test_allocate_mem_block_try_recycle_then_mal
       *dev_ptr = new uint8_t [1];
       return RT_ERROR_NONE;
     }
-    rtError_t rtFree(void *dev_ptr) {
+    rtError_t aclrtFree(void *dev_ptr) {
       delete[](uint8_t *) dev_ptr;
       return RT_ERROR_NONE;
     }
-    rtError_t rtMemGetInfoEx(rtMemInfoType_t memInfoType, size_t *free, size_t *total) override {
-      *free = 60UL * 1024UL * 1024UL * 1024UL;
-      *total = 60UL * 1024UL * 1024UL * 1024UL;
-      return RT_ERROR_NONE;
-    }
-
-  };
-
-  struct FakeAclRuntime : AclRuntimeStubImpl {
     aclError aclrtGetMemInfo(aclrtMemAttr attr, size_t *free, size_t *total) {
       *free = 60UL * 1024UL * 1024UL * 1024UL;
       *total = 60UL * 1024UL * 1024UL * 1024UL;
@@ -287,9 +281,10 @@ TEST_F(Runtime2AllocatorSystemTest, test_set_memory_pool_threshold) {
 }
 
 TEST_F(Runtime2AllocatorSystemTest, expandable_memory_allocator_fail) {
-  class MockRuntime : public ge::RuntimeStub {
+  struct FakeAclRuntime : AclRuntimeStubImpl {
    public:
-    rtError_t rtMallocPhysical(rtDrvMemHandle* handle, size_t size, rtDrvMemProp_t* prop, uint64_t flags) {
+    rtError_t aclrtMallocPhysical(aclrtDrvMemHandle *handle, size_t size, const aclrtPhysicalMemProp *prop,
+                                  uint64_t flags) {
       static size_t cnt = 0U;
       ++cnt;
       if (cnt >= 3U) {
@@ -298,8 +293,8 @@ TEST_F(Runtime2AllocatorSystemTest, expandable_memory_allocator_fail) {
       return 0;
     }
   };
-  auto mock_runtime = std::make_shared<MockRuntime>();
-  ge::RuntimeStub::SetInstance(mock_runtime);
+  auto mock_runtime = std::make_shared<FakeAclRuntime>();
+  ge::AclRuntimeStub::SetInstance(mock_runtime);
   std::map<std::string, std::string> graph_options;
   graph_options[ge::STATIC_MEMORY_POLICY] = "3";
   ge::GetThreadLocalContext().SetGraphOption(graph_options);
@@ -309,7 +304,7 @@ TEST_F(Runtime2AllocatorSystemTest, expandable_memory_allocator_fail) {
   auto span1 = caching_allocator->Malloc(alloc_size);
   ASSERT_EQ(span1, nullptr);
   caching_allocator.reset(nullptr);
-  ge::RuntimeStub::Reset();
+  ge::AclRuntimeStub::Reset();
 }
 
 /**

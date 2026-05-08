@@ -51,7 +51,7 @@ ge::graphStatus SplitRtStreams(KernelContext *context) {
     }
     *rts_stream = logic_streams_to_rts_stream->GetData()[i];
     int32_t rt_stream_id = -1;
-    (void)rtGetStreamId(*rts_stream, &rt_stream_id);
+    (void)aclrtStreamGetId(*rts_stream, &rt_stream_id);
     KERNEL_TRACE("Get rts stream %p from logical stream %lld, rts stream_id: %d", *rts_stream, i, rt_stream_id);
   }
   return ge::GRAPH_SUCCESS;

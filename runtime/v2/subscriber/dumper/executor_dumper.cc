@@ -53,7 +53,7 @@
 #include "runtime/rts/rts_stream.h"
 #include "runtime/rts/rts_kernel.h"
 #include "acl/acl_rt.h"
-#include "runtime/v1/common/aclrt_malloc_helper.h"
+#include "common/aclrt_malloc_helper.h"
 
 namespace gert {
 namespace {

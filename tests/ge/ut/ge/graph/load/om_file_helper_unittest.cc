@@ -50,6 +50,8 @@ TEST_F(UtestOmFileHelper, LoadInit)
   header->model_length = md.model_len - sizeof(ModelFileHeader);
   header->magic = MODEL_FILE_MAGIC_NUM;
   header->modeltype = MODEL_TYPE_FLOW_MODEL;
+  ModelPartitionTable *partition_table = reinterpret_cast<ModelPartitionTable*>(data + sizeof(ModelFileHeader));
+  partition_table->num = 5000;
   EXPECT_EQ(loader.Init(md), ACL_ERROR_GE_PARAM_INVALID);
   delete [] data;
 }

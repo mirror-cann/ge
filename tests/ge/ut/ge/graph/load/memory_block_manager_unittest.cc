@@ -21,9 +21,9 @@ namespace ge {
 class UtestMemoryBlockManager : public testing::Test {};
 
 TEST_F(UtestMemoryBlockManager, MallocSuccess) {
-  class MockRuntime : public ge::RuntimeStub {
+  class MockAclRuntime : public ge::AclRuntimeStub {
    public:
-    rtError_t rtMalloc(void **dev_ptr, uint64_t size, rtMemType_t type, uint16_t moduleId) override {
+    aclError aclrtMalloc(void **dev_ptr, size_t size, aclrtMemMallocPolicy policy) override {
       size_local += size;
       alloc_count++;
       *dev_ptr = new uint8_t[size];
@@ -31,7 +31,7 @@ TEST_F(UtestMemoryBlockManager, MallocSuccess) {
       return RT_ERROR_NONE;
     }
 
-    rtError_t rtFree(void *dev_ptr) override {
+    rtError_t aclrtFree(void *dev_ptr) override {
       free_count++;
       delete[](uint8_t *) dev_ptr;
       return RT_ERROR_NONE;
@@ -41,15 +41,15 @@ TEST_F(UtestMemoryBlockManager, MallocSuccess) {
     uint32_t size_local = 0U;
     uint32_t free_count = 0U;
   };
-  auto mock_runtime = std::make_shared<MockRuntime>();
-  ge::RuntimeStub::SetInstance(mock_runtime);
+  auto mock_acl_runtime = std::make_shared<MockAclRuntime>();
+  ge::AclRuntimeStub::SetInstance(mock_acl_runtime);
 
   MemoryBlockManager manager(RT_MEMORY_HBM);
   void *last_ptr = nullptr;
   for (size_t i = 0U; i < 2 * 1024 * 1024 / 512; ++i) {
     auto ptr = manager.Malloc("", 1);
     ASSERT_NE(ptr, nullptr);
-    EXPECT_EQ(mock_runtime->alloc_count, 1);
+    EXPECT_EQ(mock_acl_runtime->alloc_count, 1);
 
     if (last_ptr != nullptr) {
       EXPECT_EQ(PtrToValue(ptr)- PtrToValue(last_ptr), 512);
@@ -58,26 +58,26 @@ TEST_F(UtestMemoryBlockManager, MallocSuccess) {
   }
   auto ptr = manager.Malloc("", 1);
   ASSERT_NE(ptr, nullptr);
-  EXPECT_EQ(mock_runtime->alloc_count, 2);
+  EXPECT_EQ(mock_acl_runtime->alloc_count, 2);
 
   manager.Release();
-  EXPECT_EQ(mock_runtime->free_count, 2);
+  EXPECT_EQ(mock_acl_runtime->free_count, 2);
 
   ptr = manager.Malloc("", 2 * 1024 * 1024 + 1);
   ASSERT_NE(ptr, nullptr);
-  EXPECT_EQ(mock_runtime->alloc_count, 3);
+  EXPECT_EQ(mock_acl_runtime->alloc_count, 3);
 
   ptr = manager.Malloc("", 1025);
   ASSERT_NE(ptr, nullptr);
-  EXPECT_EQ(mock_runtime->alloc_count, 3);
+  EXPECT_EQ(mock_acl_runtime->alloc_count, 3);
   manager.Release();
-  EXPECT_EQ(mock_runtime->free_count, 3);
+  EXPECT_EQ(mock_acl_runtime->free_count, 3);
 
   ptr = manager.Malloc("", 1025);
   ASSERT_NE(ptr, nullptr);
-  EXPECT_EQ(mock_runtime->alloc_count, 4);
+  EXPECT_EQ(mock_acl_runtime->alloc_count, 4);
   manager.Release();
-  EXPECT_EQ(mock_runtime->free_count, 4);
-  ge::RuntimeStub::Reset();
+  EXPECT_EQ(mock_acl_runtime->free_count, 4);
+  ge::AclRuntimeStub::Reset();
 }
 }  // namespace ge

@@ -22,7 +22,7 @@
 #include "framework/common/debug/ge_log.h"
 #include "runtime/mem.h"
 #include "graph_metadef/common/ge_common/util.h"
-#include "runtime/v1/common/aclrt_malloc_helper.h"
+#include "common/aclrt_malloc_helper.h"
 
 #include <set>
 #include <utility>

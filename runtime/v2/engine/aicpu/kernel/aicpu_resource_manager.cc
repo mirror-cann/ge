@@ -22,6 +22,7 @@
 #include "register/host_cpu_context.h"
 #include "mmpa/mmpa_api.h"
 #include "graph/load/model_manager/model_manager.h"
+#include "common/aclrt_malloc_helper.h"
 
 namespace gert {
 namespace {
@@ -213,7 +214,8 @@ ge::graphStatus CreateOutputForStepId(const ge::FastNode *node, KernelContext *c
   GE_CHECK_NOTNULL(chain);
 
   void *step_id = nullptr;
-  GE_ASSERT_RT_OK(rtMalloc(&step_id, sizeof(int64_t), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+  GE_ASSERT_RT_OK(ge::AclrtMalloc(&step_id, sizeof(int64_t), RT_MEMORY_HBM,
+                                  GE_MODULE_NAME_U16));
   chain->Set(step_id, FreeHbmMem);
   return ge::GRAPH_SUCCESS;
 }

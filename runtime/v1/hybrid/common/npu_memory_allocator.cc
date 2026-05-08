@@ -17,7 +17,7 @@
 #include "graph/manager/mem_manager.h"
 #include "graph/utils/tensor_utils_ex.h"
 #include "runtime/rt.h"
-#include "runtime/v1/common/aclrt_malloc_helper.h"
+#include "common/aclrt_malloc_helper.h"
 #include "hybrid/common/npu_memory_allocator.h"
 #include "acl/acl_rt.h"
 

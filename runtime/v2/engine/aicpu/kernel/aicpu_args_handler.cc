@@ -23,6 +23,7 @@
 #include "aicpu_engine_struct.h"
 #include "runtime/mem.h"
 #include "common/checker.h"
+#include "common/aclrt_malloc_helper.h"
 #include "aicpu_task_struct.h"
 #include "framework/common/taskdown_common.h"
 #include "proto/task.pb.h"
@@ -78,7 +79,7 @@ const std::string kAttrSoName = "kernelSo";
 
 AicpuArgsHandler::~AicpuArgsHandler() {
   if (ext_info_device_buffer_ != nullptr) {
-    (void) rtFree(ext_info_device_buffer_);
+    (void) aclrtFree(ext_info_device_buffer_);
     ext_info_device_buffer_ = nullptr;
   }
 }
@@ -87,7 +88,8 @@ ge::graphStatus AicpuArgsHandler::MallocMem() {
   host_buffer_ = ge::MakeUnique<uint8_t[]>(buffer_size_);
   GE_ASSERT_NOTNULL(host_buffer_);
   if (need_device_ext_) {
-    GE_ASSERT_RT_OK(rtMalloc(&ext_info_device_buffer_, ext_info_size_, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+    GE_ASSERT_RT_OK(ge::AclrtMalloc(&ext_info_device_buffer_, ext_info_size_, RT_MEMORY_HBM,
+                                    GE_MODULE_NAME_U16));
   }
   args_.args = host_buffer_.get();
   args_.argsSize = buffer_size_;

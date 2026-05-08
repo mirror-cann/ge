@@ -1177,14 +1177,14 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case11_rtMalloc_Failed) {
 
   GertRuntimeStub runtime_stub;
   runtime_stub.GetKernelStub().StubTiling();
-  class MockRuntime : public RuntimeStubImpl {
-    rtError_t rtMalloc(void **dev_ptr, uint64_t size, rtMemType_t type, uint16_t moduleId) {
+  class MockRuntime : public AclRuntimeStubImpl {
+    rtError_t aclrtMalloc(void **devPtr, size_t size, aclrtMemMallocPolicy policy) {
       return -1;
     }
   };
 
   auto mock_runtime = std::make_shared<MockRuntime>();
-  ge::RuntimeStub::Install(mock_runtime.get());
+  ge::AclRuntimeStub::Install(mock_runtime.get());
   {
     auto model_executor = ModelV2Executor::Create(exe_graph, ge_root_model);
 
@@ -1208,6 +1208,7 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case11_rtMalloc_Failed) {
               ge::GRAPH_SUCCESS);
     ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   }
+  ge::AclRuntimeStub::Reset();
 }
 // todo multi stream profiling case
 }  // namespace gert

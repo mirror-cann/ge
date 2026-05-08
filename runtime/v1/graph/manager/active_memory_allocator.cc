@@ -14,6 +14,7 @@
 #include "common/checker.h"
 #include "graph/load/model_manager/model_utils.h"
 #include "graph/manager/graph_var_manager.h"
+#include "common/aclrt_malloc_helper.h"
 
 namespace {
 const std::string k1gHugePageFirstMallocFail = "The option ge.variableUse1gHugePage was set to 2, but the "
@@ -25,6 +26,11 @@ const std::string k1gHugePageFirstMallocFail = "The option ge.variableUse1gHugeP
 const std::string k1gHugePageOnlyMallocFail = "The option ge.variableUse1gHugePage was set to 1, but the "
     "allocation of 1GB of super large page memory failed.";
 
+// align_size是2的n次方
+size_t AlignSize(const size_t size, const size_t align_size) {
+  return ((size + align_size - 1U) & (~(align_size - 1U)));
+}
+
 std::string GetPgType(size_t pg_type) {
   if (pg_type == ge::kDrvMemPropPgType2M) {
     return "2M";
@@ -33,9 +39,48 @@ std::string GetPgType(size_t pg_type) {
   }
   return "unknown";
 }
-// align_size是2的n次方
-size_t AlignSize(const size_t size, const size_t align_size) {
-  return ((size + align_size - 1U) & (~(align_size - 1U)));
+
+aclrtMemAttr ConvertToMemAttr(rtMemType_t mem_type, size_t page_size) {
+  const bool is_1g = (page_size == ge::kDrv1GPageSize);
+  const bool is_2m = (page_size == ge::kDrvPageSize);
+
+  switch (mem_type) {
+    case RT_MEMORY_HBM:
+    case RT_MEMORY_DEFAULT:
+      if (is_1g) {
+        return ACL_HBM_MEM_HUGE1G;
+      }
+      return is_2m ? ACL_HBM_MEM_HUGE : ACL_HBM_MEM_NORMAL;
+    case RT_MEMORY_DDR:
+    case RT_MEMORY_DDR_NC:
+      return is_2m ? ACL_DDR_MEM_HUGE : ACL_DDR_MEM_NORMAL;
+    case RT_MEMORY_P2P_HBM:
+      if (is_1g) {
+        return ACL_HBM_MEM_P2P_HUGE1G;
+      }
+      return is_2m ? ACL_HBM_MEM_P2P_HUGE : ACL_HBM_MEM_P2P_NORMAL;
+    case RT_MEMORY_P2P_DDR:
+      return is_2m ? ACL_DDR_MEM_P2P_HUGE : ACL_DDR_MEM_P2P_NORMAL;
+    default:
+      return is_1g ? ACL_HBM_MEM_HUGE1G : ACL_HBM_MEM_HUGE;
+  }
+}
+
+size_t GetPgTypeValue(aclrtMemAttr mem_attr) {
+  switch (mem_attr) {
+    case ACL_HBM_MEM_HUGE1G:
+    case ACL_HBM_MEM_P2P_HUGE1G:
+    case ACL_MEM_HUGE1G:
+      return ge::kDrvMemPropPgType1G;
+    case ACL_HBM_MEM_HUGE:
+    case ACL_DDR_MEM_HUGE:
+    case ACL_HBM_MEM_P2P_HUGE:
+    case ACL_DDR_MEM_P2P_HUGE:
+    case ACL_MEM_HUGE:
+      return ge::kDrvMemPropPgType2M;
+    default:
+      return 0U;
+  }
 }
 
 uint8_t *Malloc(const std::string &purpose, const rtMemType_t memory_type, const uint32_t device_id,
@@ -47,11 +92,12 @@ uint8_t *Malloc(const std::string &purpose, const rtMemType_t memory_type, const
     malloc_size = AlignSize(malloc_size, align_size);
   }
 
-  if (rtMalloc(&memory_addr, malloc_size, memory_type, GE_MODULE_NAME_U16) != RT_ERROR_NONE) {
+  const aclError rt_ret = ge::AclrtMalloc(&memory_addr, malloc_size, memory_type, GE_MODULE_NAME_U16);
+  if (rt_ret != ACL_SUCCESS) {
     memory_addr = nullptr;
   }
 
-  GE_PRINT_DYNAMIC_MEMORY(rtMalloc, ge::ToMallocMemInfo(purpose, memory_addr, device_id, GE_MODULE_NAME_U16).c_str(),
+  GE_PRINT_DYNAMIC_MEMORY(aclrtMalloc, ge::ToMallocMemInfo(purpose, memory_addr, device_id, GE_MODULE_NAME_U16).c_str(),
                           malloc_size);
   return reinterpret_cast<uint8_t *>(memory_addr);
 }
@@ -63,20 +109,6 @@ static bool CompareSize(const ge::LogicalMemoryBlock &left, const ge::LogicalMem
 bool HasIntersection(const ge::PageRecord &left, const ge::PageRecord &right) {
   return (left.head_offset < (right.head_offset + right.using_size)) &&
       (right.head_offset < (left.head_offset + left.using_size));
-}
-
-uint32_t TransMemType(const uint32_t mem_type) {
-  const std::map<uint32_t, uint32_t> kRtMemTypeToDrvMemType = {{RT_MEMORY_HBM, 0U}, // 0: MEM_HBM_TYPE
-                                                               {RT_MEMORY_DDR, 1U}, // 1: MEM_DDR_TYPE
-                                                               {RT_MEMORY_P2P_HBM, 2U}, // 2: MEM_P2P_HBM_TYPE
-                                                               {RT_MEMORY_P2P_DDR, 3U}, // 3: MEM_P2P_DDR_TYPE
-                                                               {RT_MEMORY_TS, 4U}}; // 4: MEM_TS_DDR_TYPE
-  const std::map<uint32_t, uint32_t>::const_iterator it = kRtMemTypeToDrvMemType.find(mem_type);
-  if (it == kRtMemTypeToDrvMemType.cend()) {
-    return 0U;
-  } else {
-    return it->second;
-  }
 }
 }
 
@@ -135,7 +167,7 @@ Status ActiveMemoryAllocator::FreeMemory(const uint32_t device_id) {
       expandable_memory_allocator_.FreeMemory();
     } else {
       for (auto memory : active_memorys_) {
-        (void)rtFree(reinterpret_cast<void *>(memory.active_addr));
+        (void)aclrtFree(reinterpret_cast<void *>(memory.active_addr));
       }
     }
     active_memorys_.clear();
@@ -1031,14 +1063,11 @@ Status PhysicalMemoryAllocator::Initialize(size_t page_size, size_t max_page_cou
     GE_ASSERT_EQ(page_size_, page_size);
   } else {
     page_size_ = page_size;
-    prop_.side = 1U; // device memory
-    prop_.devid = device_id_;
-    prop_.module_id = GE_MODULE_NAME_U16;
-    prop_.pg_type = kDrvMemPropPgType2M;
-    if (page_size == kDrv1GPageSize) {
-      prop_.pg_type = kDrvMemPropPgType1G;
-    }
-    prop_.mem_type = TransMemType(memory_type_);
+    prop_.handleType = ACL_MEM_HANDLE_TYPE_NONE;
+    prop_.allocationType = ACL_MEM_ALLOCATION_TYPE_PINNED;
+    prop_.location.type = ACL_MEM_LOCATION_TYPE_DEVICE;
+    prop_.location.id = device_id_;
+    prop_.memAttr = ConvertToMemAttr(memory_type_, page_size);
     prop_.reserve = 0U;
     if (max_page_count > physical_memorys_.capacity()) {
       physical_memorys_.reserve(max_page_count);
@@ -1077,11 +1106,11 @@ Status PhysicalMemoryAllocator::Finalize(uint8_t *const va, size_t size) {
 
 void PhysicalMemoryAllocator::FreePhysicalPage(PhysicalMemoryInfo &physical_memory) {
   if (physical_memory.handle != nullptr) {
-    (void) rtFreePhysical(physical_memory.handle);
+    (void) aclrtFreePhysical(physical_memory.handle);
     physical_memory.handle = nullptr;
     physical_memory_size_ -= page_size_;
-    HP_LOGI("rtFreePhysical success pa_index:%zu, current physical memory size:%zu, pg_type:%s",
-            physical_memory.index, physical_memory_size_, GetPgType(prop_.pg_type).c_str());
+    HP_LOGI("aclrtFreePhysical success pa_index:%zu, current physical memory size:%zu, pg_type:%s",
+            physical_memory.index, physical_memory_size_, GetPgType(GetPgTypeValue(prop_.memAttr)).c_str());
   }
 }
 
@@ -1092,36 +1121,38 @@ Status PhysicalMemoryAllocator::MallocPhysicalPage(const std::string &purpose, s
   malloc_physical_memory.index = pa_index;
   malloc_physical_memory.ref_count = 1UL;
 
-  rtDrvMemHandle handle = nullptr;
-  auto ret = rtMallocPhysical(&handle, page_size_, &prop_, 0U);
-  if (ret != RT_ERROR_NONE) {
-    if (prop_.pg_type == kDrvMemPropPgType1G) {
+  aclrtDrvMemHandle handle = nullptr;
+  auto ret = aclrtMallocPhysical(&handle, page_size_, &prop_, 0U);
+  if (ret != ACL_SUCCESS) {
+    if (GetPgTypeValue(prop_.memAttr) == ge::kDrvMemPropPgType1G) {
       const bool use_1g_only = VarManager::IsVariableUse1gHugePageOnly();
       const auto failed_log = use_1g_only ? k1gHugePageOnlyMallocFail : k1gHugePageFirstMallocFail;
-      REPORT_INNER_ERR_MSG("E19999", "call rtMallocPhysical failed, size:%zu, pg_type: %s, %s", page_size_,
-                         GetPgType(prop_.pg_type).c_str(), failed_log.c_str());
-      GELOGE(FAILED, "call rtMallocPhysical failed, size:%zu, pg_type: %s, %s", page_size_,
-             GetPgType(prop_.pg_type).c_str(), failed_log.c_str());
+      REPORT_INNER_ERR_MSG("E19999", "call aclrtMallocPhysical failed, size:%zu, pg_type: %s, %s", page_size_,
+                         GetPgType(GetPgTypeValue(prop_.memAttr)).c_str(), failed_log.c_str());
+      GELOGE(FAILED, "call aclrtMallocPhysical failed, size:%zu, pg_type: %s, %s", page_size_,
+             GetPgType(GetPgTypeValue(prop_.memAttr)).c_str(), failed_log.c_str());
       if (use_1g_only) {
         return FAILED;
       }
-      prop_.pg_type = kDrvMemPropPgType2M;
-      ret = rtMallocPhysical(&handle, page_size_, &prop_, 0U);
+      prop_.memAttr = ConvertToMemAttr(memory_type_, ge::kDrvPageSize);  // fallback to 2M
+      ret = aclrtMallocPhysical(&handle, page_size_, &prop_, 0U);
     }
   }
-  if (ret != RT_ERROR_NONE) {
-    REPORT_INNER_ERR_MSG("E19999", "call rtMallocPhysical failed, size:%zu,  pg_type: %s", page_size_,
-                       GetPgType(prop_.pg_type).c_str());
-    GELOGE(FAILED, "call rtMallocPhysical failed, size:%zu, pg_type: %s", page_size_, GetPgType(prop_.pg_type).c_str());
+  if (ret != ACL_SUCCESS) {
+    REPORT_INNER_ERR_MSG("E19999", "call aclrtMallocPhysical failed, size:%zu, pg_type: %s", page_size_,
+                       GetPgType(GetPgTypeValue(prop_.memAttr)).c_str());
+    GELOGE(FAILED, "call aclrtMallocPhysical failed, size:%zu, pg_type: %s", page_size_,
+           GetPgType(GetPgTypeValue(prop_.memAttr)).c_str());
     return FAILED;
   }
   malloc_physical_memory.handle = handle;
 
   physical_memorys_.emplace_back(std::move(malloc_physical_memory));
   physical_memory_size_ += page_size_;
-  GE_PRINT_DYNAMIC_MEMORY(rtMalloc, ToMallocMemInfo(purpose, va, device_id_, GE_MODULE_NAME_U16).c_str(), page_size_);
-  HP_LOGI("rtMallocPhysical success pa_index:%zu, current physical memory size:%zu reuse:%d, memory_type:%u,"
-      " pg_type:%s.", pa_index, physical_memory_size_, reuse, memory_type_, GetPgType(prop_.pg_type).c_str());
+  GE_PRINT_DYNAMIC_MEMORY(aclrtMalloc, ToMallocMemInfo(purpose, va, device_id_, GE_MODULE_NAME_U16).c_str(), page_size_);
+  HP_LOGI("aclrtMallocPhysical success pa_index:%zu, current physical memory size:%zu reuse:%d, memory_type:%u,"
+      " pg_type:%s.", pa_index, physical_memory_size_, reuse, memory_type_,
+      GetPgType(GetPgTypeValue(prop_.memAttr)).c_str());
   return SUCCESS;
 }
 
@@ -1141,8 +1172,8 @@ Status PhysicalMemoryAllocator::MallocPhysical(const std::string &purpose, size_
         auto it = physical_memory.map_addrs.find(va);
         GE_ASSERT_TRUE(it != physical_memory.map_addrs.end());
         physical_memory.map_addrs.erase(it);
-        (void) rtUnmapMem(va);
-        HP_LOGI("rtUnmapMem success pa_index:%zu va:%p.", pa_index, va);
+        (void) aclrtUnmapMem(va);
+        HP_LOGI("aclrtUnmapMem success pa_index:%zu va:%p.", pa_index, va);
       }
     }
   }
@@ -1227,13 +1258,13 @@ Status PhysicalMemoryAllocator::MapMem(void *const va, size_t pa_index) {
     HP_LOGI("pa_index:%zu addr:%p has been mapped.", pa_index, *it);
     return SUCCESS;
   }
-  if (rtMapMem(va, page_size_, 0U, physical_memory.handle, 0U) != RT_ERROR_NONE) {
-    REPORT_INNER_ERR_MSG("E19999", "call rtMapMem failed, map_addr:%p.", va);
-    GELOGE(FAILED, "call rtMapMem failed, map_addr:%p.", va);
+  if (aclrtMapMem(va, page_size_, 0U, physical_memory.handle, 0U) != ACL_SUCCESS) {
+    REPORT_INNER_ERR_MSG("E19999", "call aclrtMapMem failed, map_addr:%p.", va);
+    GELOGE(FAILED, "call aclrtMapMem failed, map_addr:%p.", va);
     return FAILED;
   }
   physical_memory.map_addrs.insert(va);
-  HP_LOGI("rtMapMem success pa_index:%zu addr:%p.", pa_index, va);
+  HP_LOGI("aclrtMapMem success pa_index:%zu addr:%p.", pa_index, va);
   return SUCCESS;
 }
 
@@ -1249,8 +1280,8 @@ Status PhysicalMemoryAllocator::UnmapMem(void *const va, size_t pa_index) {
 }
 
 Status PhysicalMemoryAllocator::ReserveMemAddress(void **va, size_t size) const {
-  GE_WARN_ASSERT(rtReserveMemAddress(va, size, 0U, nullptr, 1U) == RT_ERROR_NONE);
-  HP_LOGI("rtReserveMemAddress success va:%p size:%zu, device:%u, memory_type:%u.", *va, size, device_id_, memory_type_);
+  GE_WARN_ASSERT(aclrtReserveMemAddress(va, size, 0U, nullptr, 1U) == ACL_SUCCESS);
+  HP_LOGI("aclrtReserveMemAddress success va:%p size:%zu, device:%u, memory_type:%u.", *va, size, device_id_, memory_type_);
   return SUCCESS;
 }
 
@@ -1264,17 +1295,17 @@ Status PhysicalMemoryAllocator::ReleaseMemAddress(void *const va, size_t size) {
       const auto map_addr_value = PtrToValue(map_addr);
       const auto base_addr_value = PtrToValue(va);
       if ((map_addr_value >= base_addr_value) && ((map_addr_value - base_addr_value) < size)) {
-        (void) rtUnmapMem(map_addr);
+        (void) aclrtUnmapMem(map_addr);
         it = physical_memory.map_addrs.erase(it);
-        HP_LOGI("rtUnmapMem pa_index:%zu addr:%p.", physical_memory.index, map_addr);
+        HP_LOGI("aclrtUnmapMem pa_index:%zu addr:%p.", physical_memory.index, map_addr);
       } else {
         ++it;
       }
       HP_LOGD("pa_index:%zu map_addrs:%zu addr:%p.", physical_memory.index, physical_memory.map_addrs.size(), map_addr);
     }
   }
-  GE_WARN_ASSERT(rtReleaseMemAddress(va) == RT_ERROR_NONE);
-  HP_LOGI("rtReleaseMemAddress success va:%p size:%zu, device:%u, memory_type:%u.", va, size, device_id_, memory_type_);
+  GE_WARN_ASSERT(aclrtReleaseMemAddress(va) == ACL_SUCCESS);
+  HP_LOGI("aclrtReleaseMemAddress success va:%p size:%zu, device:%u, memory_type:%u.", va, size, device_id_, memory_type_);
   return SUCCESS;
 }
 

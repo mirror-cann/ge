@@ -20,6 +20,7 @@
 #include "graph/utils/type_utils.h"
 #include "graph_metadef/common/ge_common/util.h"
 #include "runtime/mem.h"
+#include "common/aclrt_malloc_helper.h"
 #include "common/helper/om2/json_file.h"
 #include "common/compile_profiling/ge_call_wrapper.h"
 #include "file_const_loader.h"
@@ -165,9 +166,9 @@ ge::Status RtMallocBuffer(size_t size, void *&ptr) {
   if (size == 0U) {
     return ge::SUCCESS;
   }
-  const auto rt_ret = rtMalloc(&ptr, size, RT_MEMORY_HBM, 0);
-  if (rt_ret != RT_ERROR_NONE) {
-    GELOGE(ge::FAILED, "[OM2][Alloc] rtMalloc failed, size=%zu, rt_ret=%u", size, rt_ret);
+  const auto rt_ret = ge::AclrtMalloc(&ptr, size, RT_MEMORY_HBM, 0);
+  if (rt_ret != ACL_SUCCESS) {
+    GELOGE(ge::FAILED, "[OM2][Alloc] aclrtMalloc failed, size=%zu, rt_ret=%u", size, rt_ret);
     return ge::FAILED;
   }
   return ge::SUCCESS;
@@ -177,8 +178,8 @@ ge::Status RtMemcpyH2D(void *dst, size_t dst_size, const void *src, size_t size)
   if (size == 0U) {
     return ge::SUCCESS;
   }
-  const auto rt_ret = rtMemcpy(dst, dst_size, src, size, RT_MEMCPY_HOST_TO_DEVICE);
-  if (rt_ret != RT_ERROR_NONE) {
+  const auto rt_ret = aclrtMemcpy(dst, dst_size, src, size, ACL_MEMCPY_HOST_TO_DEVICE);
+  if (rt_ret != ACL_SUCCESS) {
     GELOGE(ge::FAILED, "[OM2][Memcpy] rtMemcpy H2D failed, size=%zu, rt_ret=%u", size, rt_ret);
     return ge::FAILED;
   }
@@ -561,7 +562,7 @@ class Om2ModelExecutor::Impl {
   void ReleaseOwnedMemory() {
     for (auto iter = owned_buffers_.rbegin(); iter != owned_buffers_.rend(); ++iter) {
       if (*iter != nullptr) {
-        (void)rtFree(*iter);
+        (void)aclrtFree(*iter);
       }
     }
     owned_buffers_.clear();

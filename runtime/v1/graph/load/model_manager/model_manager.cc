@@ -45,7 +45,7 @@
 #include "common/kernel_handles_manager/aicpu_kernel_handles_manager.h"
 #include "acl/acl_rt.h"
 #include "mmpa/mmpa_api.h"
-#include "runtime/v1/common/aclrt_malloc_helper.h"
+#include "common/aclrt_malloc_helper.h"
 
 namespace ge {
 namespace {

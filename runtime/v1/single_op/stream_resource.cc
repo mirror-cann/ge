@@ -12,7 +12,7 @@
 
 #include "framework/common/debug/log.h"
 #include "runtime/rt.h"
-#include "runtime/v1/common/aclrt_malloc_helper.h"
+#include "common/aclrt_malloc_helper.h"
 #include "single_op/single_op_model.h"
 #include "framework/runtime/device_memory_recorder.h"
 #include "acl/acl_rt.h"
@@ -53,18 +53,18 @@ MemBlock *InternalAllocator::Malloc(size_t size) {
   }
 
   uint8_t *buffer = nullptr;
-auto ret = ge::AclrtMalloc(PtrToPtr<uint8_t *, void *>(&buffer), size, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
-  if (ret != RT_ERROR_NONE) {
+  auto ret = ge::AclrtMalloc(PtrToPtr<uint8_t *, void *>(&buffer), size, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  if (ret != ACL_SUCCESS) {
     GELOGE(RT_FAILED, "[RtMalloc][Memory] failed, size = %zu, ret = %d", size, ret);
     REPORT_INNER_ERR_MSG("E19999", "aclrtMalloc failed, size = %zu, ret = %d.", size, ret);
     return nullptr;
   }
   ret = aclrtMemset(buffer, size, 0U, size);
-  if (ret != RT_ERROR_NONE) {
+  if (ret != ACL_SUCCESS) {
     GELOGE(RT_FAILED, "[RtMemset][Memory] failed, ret = %d", ret);
     REPORT_INNER_ERR_MSG("E19999", "aclrtMemset failed, ret = %d.", ret);
     const auto rt_ret = aclrtFree(buffer);
-    GE_IF_BOOL_EXEC(rt_ret != RT_ERROR_NONE, GELOGE(RT_FAILED, "[RtFree][Memory] failed"));
+    GE_IF_BOOL_EXEC(rt_ret != ACL_SUCCESS, GELOGE(RT_FAILED, "[RtFree][Memory] failed"));
     return nullptr;
   }
 

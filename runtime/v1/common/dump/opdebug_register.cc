@@ -10,7 +10,7 @@
 
 #include "common/dump/opdebug_register.h"
 #include "graph/def_types.h"
-#include "runtime/v1/common/aclrt_malloc_helper.h"
+#include "common/aclrt_malloc_helper.h"
 
 namespace ge {
 namespace {

@@ -12,6 +12,7 @@
 #include <string>
 #include "common/math/math_util.h"
 #include "graph/manager/mem_manager.h"
+#include "common/aclrt_malloc_helper.h"
 
 namespace ge {
 Status MemoryAllocator::Initialize() {
@@ -60,13 +61,14 @@ uint8_t *MemoryAllocator::MallocMemory(const std::string &purpose, const size_t 
       }
     }
   } else {
-    if (rtMalloc(&memory_addr, memory_size, memory_type_, GE_MODULE_NAME_U16) != RT_ERROR_NONE) {
+    const aclError rt_ret = ge::AclrtMalloc(&memory_addr, memory_size, memory_type_, GE_MODULE_NAME_U16);
+    if (rt_ret != ACL_SUCCESS) {
       memory_addr = nullptr;
     }
   }
 
   if (memory_addr == nullptr) {
-    REPORT_INNER_ERR_MSG("E19999", "Call rtMalloc fail, purpose:%s, size:%zu, device_id:%u",
+    REPORT_INNER_ERR_MSG("E19999", "Call aclrtMalloc fail, purpose:%s, size:%zu, device_id:%u",
                       purpose.c_str(), memory_size, device_id);
     GELOGE(ge::INTERNAL_ERROR, "[Malloc][Memory] failed, device_id = %u, size= %" PRIu64,
            device_id, memory_size);
@@ -75,7 +77,7 @@ uint8_t *MemoryAllocator::MallocMemory(const std::string &purpose, const size_t 
   }
 
   GELOGI("MemoryAllocator::MallocMemory device_id = %u, size= %" PRIu64 ".", device_id, memory_size);
-  GE_PRINT_DYNAMIC_MEMORY(rtMalloc, ToMallocMemInfo(purpose, memory_addr, device_id, GE_MODULE_NAME_U16).c_str(),
+  GE_PRINT_DYNAMIC_MEMORY(aclrtMalloc, ToMallocMemInfo(purpose, memory_addr, device_id, GE_MODULE_NAME_U16).c_str(),
                           memory_size);
   return static_cast<uint8_t *>(memory_addr);
 }
@@ -96,7 +98,7 @@ Status MemoryAllocator::FreeMemory(void *memory_addr, const uint32_t device_id) 
       GELOGW("Can't Find block memory addr device_id = %u", device_id);
     }
   }
-  GE_CHK_RT_RET(rtFree(memory_addr));
+  GE_CHK_RT_RET(aclrtFree(memory_addr));
   memory_addr = nullptr;
   return ge::SUCCESS;
 }

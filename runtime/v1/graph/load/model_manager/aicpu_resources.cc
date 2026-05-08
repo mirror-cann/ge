@@ -15,7 +15,7 @@
 #include "graph/utils/tensor_utils.h"
 #include "graph/utils/node_utils.h"
 #include "runtime/rt.h"
-#include "runtime/v1/common/aclrt_malloc_helper.h"
+#include "common/aclrt_malloc_helper.h"
 #include "aicpu_resources.h"
 
 namespace ge {

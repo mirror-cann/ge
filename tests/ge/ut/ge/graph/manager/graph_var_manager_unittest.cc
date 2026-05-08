@@ -25,6 +25,7 @@
 #include "graph/manager/active_memory_allocator.h"
 #include "graph/debug/ge_attr_define.h"
 #include "graph/utils/attr_utils.h"
+#include "tests/depends/ascendcl/src/ascendcl_stub.h"
 
 namespace ge {
 namespace {
@@ -151,38 +152,26 @@ TEST_F(UtestGraphVarManagerTest, test_var_manager_addr_and_free) {
 }
 
 TEST_F(UtestGraphVarManagerTest, Malloc1GHugePageFailed_Return) {
-  class MockRuntime : public ge::RuntimeStub {
+  class AclRuntimeMock : public ge::AclRuntimeStub {
    public:
-    rtError_t rtMallocPhysical(rtDrvMemHandle* handle, size_t size, rtDrvMemProp_t* prop, uint64_t flags) {
-      pg_type_local = prop->pg_type;
-      ++call_count;
-      size_local = size;
-      if (prop->pg_type == 2) {
+    aclError aclrtMallocPhysical(aclrtDrvMemHandle *handle, size_t size, const aclrtPhysicalMemProp *prop,
+                                  uint64_t flags) {
+      if (prop->memAttr == ACL_HBM_MEM_HUGE1G || prop->memAttr == ACL_HBM_MEM_P2P_HUGE1G
+          || prop->memAttr == ACL_MEM_HUGE1G) {
         return -1;
       }
       *handle = (rtDrvMemHandle) new uint8_t[8];
       return 0;
     }
-    rtError_t rtMemGetInfoEx(rtMemInfoType_t memInfoType, size_t *free, size_t *total) {
-      *free = 64UL * 1024U * 1024U * 1024U;
-      *total = 64UL * 1024U * 1024U * 1024U;
-      return 0;
-    }
-    rtError_t rtGetRtCapability(rtFeatureType_t featureType, int32_t featureInfo, int64_t *value) {
-      *value = 0;
-      return 0;
-    }
-    uint32_t call_count = 0U;
-    uint32_t pg_type_local = 0U;
-    uint32_t size_local = 0;
   };
   auto old_options = ge::GetThreadLocalContext().GetAllSessionOptions();
   std::map<std::string, std::string> options;
   options.insert(pair<string, string>(OPTION_VARIABLE_USE_1G_HUGE_PAGE, "1"));
   ge::GetThreadLocalContext().SetSessionOption(options);
 
-  auto mock_runtime = std::make_shared<MockRuntime>();
-  ge::RuntimeStub::SetInstance(mock_runtime);
+  auto alc_runtime_stub = std::make_shared<AclRuntimeMock>();
+  ge::AclRuntimeStub::SetInstance(alc_runtime_stub);
+
   const std::vector<rtMemType_t> memory_types({RT_MEMORY_HBM, RT_MEMORY_P2P_DDR});
   EXPECT_EQ(MemManager::Instance().Initialize(memory_types), SUCCESS);
   VarManager::Instance(5)->SetMemManager(&MemManager::Instance());
@@ -214,7 +203,7 @@ TEST_F(UtestGraphVarManagerTest, Malloc1GHugePageFailed_Return) {
   EXPECT_EQ(VarManager::Instance(5)->GetVarMemoryAddr(PtrToPtr<void, uint8_t>(ValueToPtr(34359738368)), RT_MEMORY_HBM), nullptr);
   EXPECT_EQ(VarManager::Instance(5)->FreeVarMemory(), SUCCESS);
   VarManager::Instance(5)->var_resource_->device_id_to_var_dev_addr_mgr_map_.clear();
-  ge::RuntimeStub::Reset();
+  ge::AclRuntimeStub::Reset();
   ge::GetThreadLocalContext().SetSessionOption(old_options);
 }
 

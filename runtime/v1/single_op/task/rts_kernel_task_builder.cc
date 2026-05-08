@@ -12,7 +12,7 @@
 #include "graph/def_types.h"
 #include "single_op/task/build_task_utils.h"
 #include "common/plugin/ge_make_unique_util.h"
-#include "runtime/v1/common/aclrt_malloc_helper.h"
+#include "common/aclrt_malloc_helper.h"
 
 namespace ge {
 namespace {

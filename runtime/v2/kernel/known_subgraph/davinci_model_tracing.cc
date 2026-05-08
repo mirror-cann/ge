@@ -34,7 +34,7 @@ std::vector<std::string> PrintModelCreate(const KernelContext * context) {
   ss << ", rt stream num: " << rt_streams.size() << ", list: [";
   for (const auto &stream : rt_streams) {
     int32_t rt_stream_id = kInvalidStream;
-    (void)rtGetStreamId(stream, &rt_stream_id);
+    (void)aclrtStreamGetId(stream, &rt_stream_id);
     ss << rt_stream_id << ", ";
   }
   ss << "]";

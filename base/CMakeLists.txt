@@ -78,6 +78,7 @@ set(SRC_BASE_LIST
     "common/dump/exception_dumper.cc"
     "common/dump/dump_properties.cc"
     "common/fmk_error_codes.cc"
+    "common/aclrt_malloc_helper.cc"
     "common/const_place_holder_utils/const_place_holder_utils.cc"
     "common/datatype_transfer/datatype_transfer.cc"
     "common/fp16_t/fp16_t.cc"

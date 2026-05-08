@@ -734,7 +734,7 @@ TEST_F(UtestSingleOp, test_UpdateArgTable) {
   tbe_task->max_tiling_size_ = 0;
   tbe_task->need_tiling_ = false;
 
-  tbe_task->sm_desc_ = malloc(10);
+  tbe_task->sm_desc_ = new uint8_t[10];
 
   EXPECT_EQ(tbe_task->UpdateArgTable(param), SUCCESS);
 

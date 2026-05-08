@@ -10,6 +10,7 @@
 
 #include "hybrid/node_executor/rts/rts_node_executor.h"
 #include "hybrid/node_executor/rts/rts_task_factory.h"
+#include "common/aclrt_malloc_helper.h"
 
 #include "common/plugin/ge_make_unique_util.h"
 #include "graph/utils/tensor_utils.h"
@@ -77,10 +78,10 @@ Status NpuGetFloatStatusTask::ExecuteAsync(TaskContext &context, const std::func
   const auto output_addr = output->MutableData();
   const size_t args_size = sizeof(uint8_t *);
   if (args_ == nullptr) {
-    GE_CHK_RT_RET(rtMalloc(&args_, args_size, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+    GE_CHK_RT_RET(ge::AclrtMalloc(&args_, args_size, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
   }
-  GE_CHK_RT_RET(
-      rtMemcpyAsync(args_, args_size, &output_addr, args_size, RT_MEMCPY_HOST_TO_DEVICE_EX, context.GetStream()));
+  GE_CHK_RT_RET(aclrtMemcpyAsync(args_, args_size, &output_addr, args_size, ACL_MEMCPY_HOST_TO_BUF_TO_DEVICE,
+                       context.GetStream()));
 
   const uint32_t mode = 0U;
   GE_CHK_RT_RET(ge::rtNpuGetFloatStatus(args_, output->GetSize(), mode, context.GetStream()));

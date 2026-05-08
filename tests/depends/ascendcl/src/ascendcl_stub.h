@@ -98,6 +98,8 @@ public:
   virtual aclError aclrtMemset(void *devPtr, size_t maxCount, int32_t value, size_t count);
   virtual aclError aclrtFree(void *devPtr);
   virtual aclError aclrtFreeHost(void *devPtr);
+  virtual aclError aclrtHostRegister(void *ptr, uint64_t size, aclrtHostRegisterType type, void **devPtr);
+  virtual aclError aclrtHostUnregister(void *ptr);
   virtual aclError aclrtMemcpy(void *dst, size_t dest_max, const void *src, size_t count, aclrtMemcpyKind kind);
   virtual aclError aclrtMemcpyAsync(void *dst,
                     size_t dest_max,

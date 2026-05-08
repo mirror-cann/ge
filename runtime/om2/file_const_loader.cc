@@ -22,6 +22,7 @@
 #include "common/ge_inner_error_codes.h"
 #include "om2_external_weight_manager.h"
 #include "om2_var_manager.h"
+#include "common/aclrt_malloc_helper.h"
 #include "om2_file_utils.h"
 #include "om2_thread_pool.h"
 #include "runtime/mem.h"
@@ -32,8 +33,8 @@ ge::Status RtMemcpyToDevice(const void *const host_addr, const size_t size, void
   if ((size == 0U) || (device_addr == nullptr)) {
     return ge::SUCCESS;
   }
-  const auto memcpy_ret = rtMemcpy(device_addr, size, host_addr, size, RT_MEMCPY_HOST_TO_DEVICE);
-  if (memcpy_ret != RT_ERROR_NONE) {
+  const auto memcpy_ret = aclrtMemcpy(device_addr, size, host_addr, size, ACL_MEMCPY_HOST_TO_DEVICE);
+  if (memcpy_ret != ACL_SUCCESS) {
     GELOGE(ge::FAILED, "[OM2][Memcpy] rtMemcpy H2D failed, size=%zu, rt_ret=%u", size, memcpy_ret);
     return ge::FAILED;
   }
@@ -46,14 +47,14 @@ ge::Status RtMallocAndCopyToDevice(const void *const host_addr, const size_t siz
   if (size == 0U) {
     return ge::SUCCESS;
   }
-  const auto malloc_ret = rtMalloc(&device_addr, size, RT_MEMORY_HBM, 0);
-  if (malloc_ret != RT_ERROR_NONE) {
-    GELOGE(ge::FAILED, "[OM2][Alloc] rtMalloc failed, size=%zu, rt_ret=%u", size, malloc_ret);
+  const auto malloc_ret = ge::AclrtMalloc(&device_addr, size, RT_MEMORY_HBM, 0);
+  if (malloc_ret != ACL_SUCCESS) {
+    GELOGE(ge::FAILED, "[OM2][Alloc] aclrtMalloc failed, size=%zu, rt_ret=%u", size, malloc_ret);
     return ge::FAILED;
   }
   const auto memcpy_ret = RtMemcpyToDevice(host_addr, size, device_addr);
   if (memcpy_ret != ge::SUCCESS) {
-    (void)rtFree(device_addr);
+    (void)aclrtFree(device_addr);
     device_addr = nullptr;
     return memcpy_ret;
   }

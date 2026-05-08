@@ -59,12 +59,12 @@ class MockRtsCachingMemAllocator : public gert::memory::RtsCachingMemAllocator {
     }
 };
 
-// stub rtMalloc, always return failed
-class RuntimeMock : public ge::RuntimeStub {
+// stub aclrtMalloc, always return failed
+class RuntimeMock : public ge::AclRuntimeStub {
  public:
-  rtError_t rtMalloc(void **dev_ptr, uint64_t size, rtMemType_t type, uint16_t moduleId) override {
+  aclError aclrtMalloc(void **dev_ptr, size_t size, aclrtMemMallocPolicy policy) override {
     *dev_ptr = nullptr;
-    return -1;
+    return ACL_ERROR_RT_MEMORY_ALLOCATION;
   }
 };
 
@@ -979,19 +979,20 @@ TEST_F(ScaleAllocatorTest, rts_caching_allocator_alloc_multiple_times_by_same_si
 }
 
 TEST_F(ScaleAllocatorTest, rts_caching_allocator_alloc_fail) {
-  class MockRuntime : public ge::RuntimeStub {
+  class MockAclRuntime : public ge::AclRuntimeStub {
    public:
-    rtError_t rtMalloc(void **dev_ptr, uint64_t size, rtMemType_t type, uint16_t moduleId) {
-      return -1;
+    aclError aclrtMalloc(void **dev_ptr, size_t size, aclrtMemMallocPolicy policy) override {
+      *dev_ptr = nullptr;
+      return ACL_ERROR_RT_MEMORY_ALLOCATION;
     }
   };
-  auto mock_runtime = std::make_shared<MockRuntime>();
-  ge::RuntimeStub::SetInstance(mock_runtime);
+  auto mock_acl_runtime = std::make_shared<MockAclRuntime>();
+  ge::AclRuntimeStub::SetInstance(mock_acl_runtime);
   gert::memory::RtsCachingMemAllocator allocator(0U, RT_MEMORY_HBM);
   auto span = allocator.Malloc(1024U);
   ASSERT_TRUE(span == nullptr);
   ASSERT_EQ(ge::GRAPH_SUCCESS, allocator.Finalize());
-  ge::RuntimeStub::Reset();
+  ge::AclRuntimeStub::Reset();
 }
 
 TEST_F(ScaleAllocatorTest, rts_caching_allocator_block_alloc_fail) {
@@ -1233,20 +1234,20 @@ TEST_F(ScaleAllocatorTest, expandable_memory_allocator_reuse_ref_count_test) {
 }
 
 TEST_F(ScaleAllocatorTest, expandable_memory_allocator_fail) {
-  class MockRuntime : public ge::RuntimeStub {
+  class MockAclRuntime : public ge::AclRuntimeStub {
    public:
-    rtError_t rtMallocPhysical(rtDrvMemHandle* handle, size_t size, rtDrvMemProp_t* prop, uint64_t flags) {
+    aclError aclrtMallocPhysical(aclrtDrvMemHandle* handle, size_t size, const aclrtPhysicalMemProp* prop, uint64_t flags) override {
       static size_t cnt = 0U;
       ++cnt;
       if (cnt >= 3U) {
-        return -1;
+        return ACL_ERROR_RT_MEMORY_ALLOCATION;
       }
-      *handle = (rtDrvMemHandle) new uint8_t[8];;
-      return 0;
+      *handle = (aclrtDrvMemHandle) new uint8_t[8];
+      return ACL_SUCCESS;
     }
   };
-  auto mock_runtime = std::make_shared<MockRuntime>();
-  ge::RuntimeStub::SetInstance(mock_runtime);
+  auto mock_acl_runtime = std::make_shared<MockAclRuntime>();
+  ge::AclRuntimeStub::SetInstance(mock_acl_runtime);
   std::map<std::string, std::string> graph_options;
   graph_options[ge::STATIC_MEMORY_POLICY] = "3";
   ge::GetThreadLocalContext().SetGraphOption(graph_options);
@@ -1263,7 +1264,7 @@ TEST_F(ScaleAllocatorTest, expandable_memory_allocator_fail) {
   scalable_allocator->Recycle();
   ASSERT_EQ(scalable_allocator->device_allocator_.GetOccupiedSize(), 0U);
   caching_allocator.reset(nullptr);
-  ge::RuntimeStub::Reset();
+  ge::AclRuntimeStub::Reset();
 }
 
 TEST_F(ScaleAllocatorTest, expandable_memory_allocator_hole_12M) {
@@ -1607,19 +1608,19 @@ TEST_F(ScaleAllocatorTest, expandable_memory_allocator_hole_oom) {
 }
 
 TEST_F(ScaleAllocatorTest, expandable_memory_allocator_hole_map_fail) {
-  class MockRuntime : public ge::RuntimeStub {
+  class MockAclRuntime : public ge::AclRuntimeStub {
    public:
-    rtError_t rtMapMem(void* devPtr, size_t size, size_t offset, rtDrvMemHandle handle, uint64_t flags) {
+    aclError aclrtMapMem(void* devPtr, size_t size, size_t offset, aclrtDrvMemHandle handle, uint64_t flags) override {
       static size_t cnt = 0U;
       ++cnt;
       if (cnt >= 4U) {
-        return -1;
+        return ACL_ERROR_RT_MEMORY_ALLOCATION;
       }
-      return RT_ERROR_NONE;
+      return ACL_SUCCESS;
     }
   };
-  auto mock_runtime = std::make_shared<MockRuntime>();
-  ge::RuntimeStub::SetInstance(mock_runtime);
+  auto mock_acl_runtime = std::make_shared<MockAclRuntime>();
+  ge::AclRuntimeStub::SetInstance(mock_acl_runtime);
   std::map<std::string, std::string> graph_options;
   graph_options[ge::STATIC_MEMORY_POLICY] = "3";
   ge::GetThreadLocalContext().SetGraphOption(graph_options);
@@ -1651,7 +1652,7 @@ TEST_F(ScaleAllocatorTest, expandable_memory_allocator_hole_map_fail) {
   caching_allocator.reset(nullptr);
   graph_options[ge::STATIC_MEMORY_POLICY] = "0";
   ge::GetThreadLocalContext().SetGraphOption(graph_options);
-  ge::RuntimeStub::Reset();
+  ge::AclRuntimeStub::Reset();
 }
 
 TEST_F(ScaleAllocatorTest, expandable_memory_allocator_recycle_full) {
@@ -2073,20 +2074,20 @@ TEST_F(ScaleAllocatorTest, expandable_memory_allocator_ProcPageRecordByPaList_Se
 }
 
 TEST_F(ScaleAllocatorTest, expandable_memory_allocator_physical_malloc_fail) {
-  class MockRuntime : public ge::RuntimeStub {
+  class MockAclRuntime : public ge::AclRuntimeStub {
    public:
-    rtError_t rtMallocPhysical(rtDrvMemHandle* handle, size_t size, rtDrvMemProp_t* prop, uint64_t flags) {
+    aclError aclrtMallocPhysical(aclrtDrvMemHandle* handle, size_t size, const aclrtPhysicalMemProp* prop, uint64_t flags) override {
       static size_t cnt = 0U;
       ++cnt;
       if (cnt >= 3U) {
-        return -1;
+        return ACL_ERROR_RT_MEMORY_ALLOCATION;
       }
-      *handle = (rtDrvMemHandle) new uint8_t[8];
-      return RT_ERROR_NONE;
+      *handle = (aclrtDrvMemHandle) new uint8_t[8];
+      return ACL_SUCCESS;
     }
   };
-  auto mock_runtime = std::make_shared<MockRuntime>();
-  ge::RuntimeStub::SetInstance(mock_runtime);
+  auto mock_acl_runtime = std::make_shared<MockAclRuntime>();
+  ge::AclRuntimeStub::SetInstance(mock_acl_runtime);
   std::map<std::string, std::string> graph_options;
   graph_options[ge::STATIC_MEMORY_POLICY] = "3";
   ge::GetThreadLocalContext().SetGraphOption(graph_options);
@@ -2378,7 +2379,7 @@ TEST_F(ScaleAllocatorTest, multithread_allocator_recycle) {
   gert::memory::CachingMemAllocator allocator(0);
   const auto old_object_size = allocator.all_caching_mem_allocators_.size();
   auto stub = std::make_shared<RuntimeMock>();
-  ge::RuntimeStub::SetInstance(stub);
+  ge::AclRuntimeStub::SetInstance(stub);
   const int num_threads = 10;
   std::vector<std::thread> threads;
 
@@ -2393,5 +2394,5 @@ TEST_F(ScaleAllocatorTest, multithread_allocator_recycle) {
   }
 
   EXPECT_TRUE(allocator.all_caching_mem_allocators_.size() == old_object_size);
-  ge::RuntimeStub::Reset();
+  ge::AclRuntimeStub::Reset();
 }

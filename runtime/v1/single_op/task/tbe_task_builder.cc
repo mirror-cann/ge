@@ -24,7 +24,7 @@
 #include "runtime/rt.h"
 #include "single_op/task/build_task_utils.h"
 #include "acl/acl_rt.h"
-#include "runtime/v1/common/aclrt_malloc_helper.h"
+#include "common/aclrt_malloc_helper.h"
 
 namespace ge {
 namespace {

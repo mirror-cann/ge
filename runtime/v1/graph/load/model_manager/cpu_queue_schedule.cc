@@ -12,7 +12,7 @@
 #include "securec.h"
 #include "framework/common/runtime_tensor_desc.h"
 #include "framework/common/debug/log.h"
-#include "runtime/v1/common/aclrt_malloc_helper.h"
+#include "common/aclrt_malloc_helper.h"
 
 namespace {
 constexpr uint32_t kCoreDim = 1U;  // for rtCpuKernelLaunch
@@ -663,7 +663,7 @@ Status CpuTaskModelGatherDequeue::Init(const std::vector<QueueAttrs> &queues,
   const size_t device_type_size = sizeof(uint32_t) * queue_num;
   args_size_ += static_cast<uint32_t>(device_type_size);
 
-  const uint64_t mbufs_offset = args_size_;
+  const uint64_t mbufs_addr_offset = args_size_;
   const size_t mbuff_size = sizeof(uint64_t) * queue_num;
   args_size_ += static_cast<uint32_t>(mbuff_size);
 
@@ -673,7 +673,7 @@ Status CpuTaskModelGatherDequeue::Init(const std::vector<QueueAttrs> &queues,
   kernel_args.mbuf_addrs_addr = PtrToValue(args_) + mbuf_addrs_offset;
   kernel_args.queue_device_ids_addr = PtrToValue(args_) + device_ids_offset;
   kernel_args.queue_device_type_addr = PtrToValue(args_) + device_type_offset;
-  const uint64_t mbufs_addr = PtrToValue(args_) + mbufs_offset;
+  const uint64_t mbufs_addr = PtrToValue(args_) + mbufs_addr_offset;
   std::vector<uint32_t> queue_ids;
   std::vector<uint32_t> device_ids;
   std::vector<uint32_t> device_types;

@@ -27,7 +27,7 @@
 #include "common/checker.h"
 #include "common/dump/kernel_tracing_utils.h"
 #include "runtime/kernel.h"
-#include "runtime/v1/common/aclrt_malloc_helper.h"
+#include "common/aclrt_malloc_helper.h"
 #include "common/dump/dump_utils.h"
 #include "common/error_tracking/error_tracking.h"
 #include "runtime/rts/rts_kernel.h"
@@ -353,7 +353,7 @@ Status OpTask::UpdateHostMemInputArgs(const std::vector<DataBuffer> &inputs, con
 
 TbeOpTask::~TbeOpTask() noexcept {
   if (sm_desc_ != nullptr) {
-    (void)rtMemFreeManaged(sm_desc_);
+    (void)aclrtFree(sm_desc_);
   }
 }
 

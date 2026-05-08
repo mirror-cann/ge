@@ -2749,14 +2749,15 @@ Status ConstructSession(std::shared_ptr<Session> &session) {
 }
 
 TEST_F(GraphCompilerTest, ReleasePhysicalMemoryWhenSessionFinalize_Success_MultiSession) {
-  class MockRuntime : public ge::RuntimeStub {
-  public:
-    rtError_t rtMallocPhysical(rtDrvMemHandle* handle, size_t size, rtDrvMemProp_t* prop, uint64_t flags) override {
+  class MockAclRuntime : public ge::AclRuntimeStub {
+   public:
+    rtError_t aclrtMallocPhysical(aclrtDrvMemHandle *handle, size_t size, const aclrtPhysicalMemProp *prop,
+                                  uint64_t flags) override {
       ++alloc_count;
       *handle = (rtDrvMemHandle) new uint8_t[8];
       return 0;
     }
-    rtError_t rtFreePhysical(rtDrvMemHandle handle) override {
+    rtError_t aclrtFreePhysical(aclrtDrvMemHandle handle) override {
       ++free_count;
       delete[] (uint8_t *)handle;
       return 0;
@@ -2764,8 +2765,8 @@ TEST_F(GraphCompilerTest, ReleasePhysicalMemoryWhenSessionFinalize_Success_Multi
     uint32_t alloc_count = 0U;
     uint32_t free_count = 0U;
   };
-  auto mock_runtime = std::make_shared<MockRuntime>();
-  ge::RuntimeStub::SetInstance(mock_runtime);
+  auto mock_acl_runtime = std::make_shared<MockAclRuntime>();
+  ge::AclRuntimeStub::SetInstance(mock_acl_runtime);
   GeRunningEnvFaker ge_env;
   FakeMultiDimsEngine(ge_env);
 
@@ -2774,10 +2775,10 @@ TEST_F(GraphCompilerTest, ReleasePhysicalMemoryWhenSessionFinalize_Success_Multi
   ASSERT_EQ(ConstructSession(session1), SUCCESS);
   ASSERT_EQ(ConstructSession(session2), SUCCESS);
 
-  const auto occupy_num = mock_runtime->alloc_count - mock_runtime->free_count;
+  const auto occupy_num = mock_acl_runtime->alloc_count - mock_acl_runtime->free_count;
   ASSERT_NE(occupy_num, 0);
-  ASSERT_NE(mock_runtime->alloc_count, 0);
-  ASSERT_EQ(mock_runtime->free_count, 0);
+  ASSERT_NE(mock_acl_runtime->alloc_count, 0);
+  ASSERT_EQ(mock_acl_runtime->free_count, 0);
   for (size_t i = 0; i < 5; i++) {
     session2.reset();
     ASSERT_EQ(ConstructSession(session2), SUCCESS);
@@ -2785,12 +2786,13 @@ TEST_F(GraphCompilerTest, ReleasePhysicalMemoryWhenSessionFinalize_Success_Multi
     ASSERT_EQ(ConstructSession(session1), SUCCESS);
   }
   // 校验物理内存没有增长
-  EXPECT_EQ(occupy_num, mock_runtime->alloc_count - mock_runtime->free_count);
+  EXPECT_EQ(occupy_num, mock_acl_runtime->alloc_count - mock_acl_runtime->free_count);
   session1.reset();
   session2.reset();
 
   ge_env.Reset();
   ge_env.InstallDefault();
+  ge::AclRuntimeStub::Reset();
 }
 
 TEST_F(GraphCompilerTest, test_dynamic_stack_handle_and_engine) {

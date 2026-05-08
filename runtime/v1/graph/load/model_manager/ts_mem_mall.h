@@ -20,6 +20,7 @@
 #include "framework/common/debug/ge_log.h"
 #include "runtime/mem.h"
 #include "graph_metadef/common/ge_common/util.h"
+#include "common/aclrt_malloc_helper.h"
 
 namespace ge {
 class TsMemMall {
@@ -66,7 +67,8 @@ class TsMemMall {
     }
 
     void *addr = nullptr;
-    GE_CHK_RT_EXEC(rtMalloc(&addr, bytes, mem_type_, GE_MODULE_NAME_U16), return nullptr);
+    GE_CHK_RT_EXEC(ge::AclrtMalloc(&addr, bytes, mem_type_, GE_MODULE_NAME_U16),
+                   return nullptr);
 
     GELOGI("Acquire TS memory: %p, offset: %" PRId64 ", size: %" PRIu64 ", align: %" PRIu64,
       addr, offset, size, bytes);

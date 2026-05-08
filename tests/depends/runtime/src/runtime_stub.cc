@@ -19,6 +19,7 @@
 #include "runtime/rt_preload_task.h"
 #include "aicpu/aicpu_schedule/aicpusd_info.h"
 #include "rt_error_codes.h"
+#include "acl/acl_rt.h"
 #include <iostream>
 #include "runtime/rts/rts_dqs.h"
 
@@ -760,9 +761,9 @@ rtError_t rtCtxSetCurrent(rtContext_t ctx)
   return RT_ERROR_NONE;
 }
 
-rtError_t rtGetStreamId(rtStream_t stream, int32_t *stream_id) {
+aclError aclrtStreamGetId(aclrtStream stream, int32_t *stream_id) {
   *stream_id = 0;
-  return RT_ERROR_NONE;
+  return ACL_SUCCESS;
 }
 
 rtError_t rtCtxGetCurrent(rtContext_t *ctx) {
@@ -1967,6 +1968,7 @@ rtError_t rtReleaseMemAddress(void* devPtr) {
 rtError_t rtMallocPhysical(rtDrvMemHandle* handle, size_t size, rtDrvMemProp_t* prop, uint64_t flags) {
   return ge::RuntimeStub::GetInstance()->rtMallocPhysical(handle, size, prop, flags);
 }
+
 
 rtError_t rtFreePhysical(rtDrvMemHandle handle) {
   return ge::RuntimeStub::GetInstance()->rtFreePhysical(handle);

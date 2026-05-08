@@ -94,18 +94,19 @@ class MultiStreamL2AllocatorUT : public testing::Test {
 TEST_F(MultiStreamL2AllocatorUT, malloc_failed) {
   auto holder = MultiStreamL2AllocatorsFaker().StreamNum(1).Build();
 
-  class MockRuntime : public ge::RuntimeStub {
-    rtError_t rtMalloc(void **dev_ptr, uint64_t size, rtMemType_t type, uint16_t moduleId) {
-      return -1;
+  class MockAclRuntime : public ge::AclRuntimeStub {
+    aclError aclrtMalloc(void **dev_ptr, size_t size, aclrtMemMallocPolicy policy) override {
+      *dev_ptr = nullptr;
+      return ACL_ERROR_RT_MEMORY_ALLOCATION;
     }
   };
-  auto mock_runtime = std::make_shared<MockRuntime>();
-  ge::RuntimeStub::SetInstance(mock_runtime);
+  auto mock_acl_runtime = std::make_shared<MockAclRuntime>();
+  ge::AclRuntimeStub::SetInstance(mock_acl_runtime);
 
   auto multi_stream_mem_block_0 = holder.AllocBlock(0, kMemSize);
   ASSERT_EQ(multi_stream_mem_block_0, nullptr);
 
-  ge::RuntimeStub::Reset();
+  ge::AclRuntimeStub::Reset();
 }
 
 TEST_F(MultiStreamL2AllocatorUT, l2_allocator_cached_memory_success) {
@@ -118,13 +119,14 @@ TEST_F(MultiStreamL2AllocatorUT, l2_allocator_cached_memory_success) {
   ASSERT_EQ(multi_stream_mem_block_0->GetMemBlock(), nullptr);
   multi_stream_mem_block_0.release();
 
-  class MockRuntime : public ge::RuntimeStub {
-    rtError_t rtMalloc(void **dev_ptr, uint64_t size, rtMemType_t type, uint16_t moduleId) {
-      return -1;
+  class MockAclRuntime : public ge::AclRuntimeStub {
+    aclError aclrtMalloc(void **dev_ptr, size_t size, aclrtMemMallocPolicy policy) override {
+      *dev_ptr = nullptr;
+      return ACL_ERROR_RT_MEMORY_ALLOCATION;
     }
   };
-  auto mock_runtime = std::make_shared<MockRuntime>();
-  ge::RuntimeStub::SetInstance(mock_runtime);
+  auto mock_acl_runtime = std::make_shared<MockAclRuntime>();
+  ge::AclRuntimeStub::SetInstance(mock_acl_runtime);
 
   multi_stream_mem_block_0 = holder.AllocBlock(0, kMemSize);
   ASSERT_NE(multi_stream_mem_block_0, nullptr);
@@ -132,7 +134,7 @@ TEST_F(MultiStreamL2AllocatorUT, l2_allocator_cached_memory_success) {
   multi_stream_mem_block_0->Free(0);
   ASSERT_EQ(multi_stream_mem_block_0->GetMemBlock(), nullptr);
 
-  ge::RuntimeStub::Reset();
+  ge::AclRuntimeStub::Reset();
 }
 
 TEST_F(MultiStreamL2AllocatorUT, own_malloc_free_success) {
@@ -190,13 +192,14 @@ TEST_F(MultiStreamL2AllocatorUT, own_malloc_failed_but_using_borrow_success) {
   // free on stream 1, stream 1 recycle the block, recycle type is borrow
   multi_stream_mem_block_0->Free(1);
 
-  class MockRuntime : public ge::RuntimeStub {
-    rtError_t rtMalloc(void **dev_ptr, uint64_t size, rtMemType_t type, uint16_t moduleId) {
-      return -1;
+  class MockAclRuntime : public ge::AclRuntimeStub {
+    aclError aclrtMalloc(void **dev_ptr, size_t size, aclrtMemMallocPolicy policy) override {
+      *dev_ptr = nullptr;
+      return ACL_ERROR_RT_MEMORY_ALLOCATION;
     }
   };
-  auto mock_runtime = std::make_shared<MockRuntime>();
-  ge::RuntimeStub::SetInstance(mock_runtime);
+  auto mock_acl_runtime = std::make_shared<MockAclRuntime>();
+  ge::AclRuntimeStub::SetInstance(mock_acl_runtime);
 
   // stream 1 malloc, using borrow block
   auto multi_stream_mem_block_1 = reinterpret_cast<MultiStreamMemBlock *>(holders.at(1)->Malloc(kMemSize));
@@ -216,7 +219,7 @@ TEST_F(MultiStreamL2AllocatorUT, own_malloc_failed_but_using_borrow_success) {
   // gert mem block 's mem block is null
   ASSERT_EQ(multi_stream_mem_block_0->GetMemBlock(), nullptr);
 
-  ge::RuntimeStub::Reset();
+  ge::AclRuntimeStub::Reset();
 }
 
 /**
@@ -381,23 +384,23 @@ TEST_F(MultiStreamL2AllocatorUT, Free_BirthRecycle_SingleStream) {
   ASSERT_TRUE(runtime_stub.GetSlogStub().FindInfoLogRegex(kBirthRecycleRe, {{2, "0"}, {3, addr}}) >= 0);
 }
 TEST_F(MultiStreamL2AllocatorUT, All_L2MemPool_Recycle_When_L1_Malloc_Fail) {
-  static uint64_t total_mem_size = 0;
-  static uint8_t rt_malloc_count = 0;
-  class MockRuntime : public RuntimeStubImpl {
-    rtError_t rtMalloc(void **dev_ptr, uint64_t size, rtMemType_t type, uint16_t moduleId) {
+  class MockAclRuntimeImpl : public AclRuntimeStubImpl {
+    aclError aclrtMalloc(void **dev_ptr, size_t size, aclrtMemMallocPolicy policy) override {
       rt_malloc_count++;
       total_mem_size += size;
       if (total_mem_size > 30 * 1024UL * 1024UL) {
         total_mem_size = (rt_malloc_count == 15) ? 0 : total_mem_size;
         *dev_ptr = nullptr;
-        return -1;
+        return ACL_ERROR_RT_MEMORY_ALLOCATION;
       }
       *dev_ptr = new uint8_t[1];
-      return RT_ERROR_NONE;
+      return ACL_SUCCESS;
     }
+    uint64_t total_mem_size = 0;
+    uint8_t rt_malloc_count = 0;
   };
 
-  auto runtime_stub = GertRuntimeStub{std::make_unique<MockRuntime>()};
+  GertRuntimeStub runtime_stub(std::make_unique<RuntimeStubImpl>(), true, std::make_unique<MockAclRuntimeImpl>());
   runtime_stub.GetSlogStub().SetLevel(1);
   int64_t stream_num = 3;
   auto l1_allocator = std::make_shared<CachingMemAllocator>(0, RT_MEMORY_HBM);
@@ -431,6 +434,7 @@ TEST_F(MultiStreamL2AllocatorUT, All_L2MemPool_Recycle_When_L1_Malloc_Fail) {
   }
   runtime_stub.Clear();
 }
+
 TEST_F(MultiStreamL2AllocatorUT, Free_BirthRecycle_AfterSync) {
   auto holder = MultiStreamL2AllocatorsFaker().StreamNum(2).Build();
   auto block = holder.AllocBlock(0, 1024);

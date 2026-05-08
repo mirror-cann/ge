@@ -29,7 +29,7 @@
 #include "runtime/subscriber/global_dumper.h"
 #include "runtime/subscriber/built_in_subscriber_definitions.h"
 #include "framework/common/util.h"
-#include "runtime/v1/common/aclrt_malloc_helper.h"
+#include "common/aclrt_malloc_helper.h"
 
 namespace {
 constexpr int32_t kDecimal = 10;

@@ -55,7 +55,6 @@ class FftsPlusTaskInfo : public TaskInfo {
 
  private:
   void SetTransferCallback(FftsPlusProtoTransfer &transfer);
-  Status SetCachePersistentWay(const OpDescPtr &op_desc) const;
   void InitDumpArgs(const OpDescPtr &op_desc, const uintptr_t op_args, const size_t args_offset,
                     const std::vector<uintptr_t> &first_level_args);
   uintptr_t FindDumpArgs(const std::string &op_name) const;

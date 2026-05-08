@@ -18,6 +18,7 @@
 #include "common/profiling/profiling_manager.h"
 #include "common/utils/executor_utils.h"
 #include "common/runtime_api_wrapper.h"
+#include "common/aclrt_malloc_helper.h"
 #include "framework/common/runtime_tensor_desc.h"
 #include "rt_error_codes.h"
 #include "common/file_constant_utils/file_constant_utils.h"
@@ -796,7 +797,7 @@ Status DavinciModel::CreateHcclGroupOrderedEvent() {
     GE_CHK_RT_RET(aclrtCreateEventExWithFlag(
       &rt_event, static_cast<uint32_t>(ACL_EVENT_SYNC | ACL_EVENT_CAPTURE_STREAM_PROGRESS | ACL_EVENT_TIME_LINE)));
     hccl_group_ordered_event_list_.push_back(rt_event);
-    (void)rtGetStreamId(hccl_group_ordered_stream_list_[i], &stream_id);
+    (void)aclrtStreamGetId(hccl_group_ordered_stream_list_[i], &stream_id);
     GELOGI("hccl group ordered stream id:%d, stream:%p", stream_id, hccl_group_ordered_stream_list_[i]);
     ++i;
   }
@@ -1480,7 +1481,7 @@ Status DavinciModel::InitRuntimeResource() {
     stream_list_.push_back(stream);
     stream_flag_list_.push_back(stream_flags);
     int32_t rt_stream_id = kInvalidStream;
-    (void)rtGetStreamId(stream, &rt_stream_id);
+    (void)aclrtStreamGetId(stream, &rt_stream_id);
     GELOGI("Logical stream index: %u, rtstream: %d, model: %u, stream flag: %u.",
            i, rt_stream_id, model_id_, stream_flags);
   }
@@ -2735,16 +2736,16 @@ void DavinciModel::InitModelInputsMergeCopyHostMem() {
   // init host buff for merge copy, if fail just return and run with no merge copy
   input_merge_copy_mem_size_ = last_input.second + last_input_size - first_input.second;
   void *host_mem = nullptr;
-  const rtError_t rt_ret = rtMallocHost(&host_mem, input_merge_copy_mem_size_, GE_MODULE_NAME_U16);
-  if (rt_ret != RT_ERROR_NONE) {
+  const aclError rt_ret = ge::AclrtMallocHost(&host_mem, input_merge_copy_mem_size_, GE_MODULE_NAME_U16);
+  if (rt_ret != ACL_SUCCESS) {
     input_merge_copy_mem_base_.reset();
-    GELOGW("[InputMergeCopy][rtMallocHost] host buffer alloc failed, size:%" PRIu64 ", ret:%d",
+    GELOGW("[InputMergeCopy][aclrtMallocHost] host buffer alloc failed, size:%" PRIu64 ", ret:%d",
            input_merge_copy_mem_size_, static_cast<int32_t>(rt_ret));
     return;
   }
   if (host_mem == nullptr) {
     input_merge_copy_mem_base_.reset();
-    GELOGW("[InputMergeCopy][rtMallocHost] host buffer is nullptr, size:%" PRIu64 ", ret:%d",
+    GELOGW("[InputMergeCopy][aclrtMallocHost] host buffer is nullptr, size:%" PRIu64 ", ret:%d",
            input_merge_copy_mem_size_, static_cast<int32_t>(rt_ret));
     return;
   }
@@ -2752,9 +2753,9 @@ void DavinciModel::InitModelInputsMergeCopyHostMem() {
     if (ptr == nullptr) {
       return;
     }
-    const rtError_t free_ret = rtFreeHost(ptr);
-    if (free_ret != RT_ERROR_NONE) {
-      GELOGW("[InputMergeCopy][rtFreeHost] host buffer free failed, ptr:%p, ret:%d", ptr,
+    const aclError free_ret = aclrtFreeHost(ptr);
+    if (free_ret != ACL_SUCCESS) {
+      GELOGW("[InputMergeCopy][aclrtFreeHost] host buffer free failed, ptr:%p, ret:%d", ptr,
              static_cast<int32_t>(free_ret));
     }
   });
@@ -8395,7 +8396,7 @@ Status DavinciModel::AllocateDvppChlResource(const OpDescPtr &op_desc) {
   const size_t stream_id = static_cast<size_t>(op_desc->GetStreamId());
   GE_CHK_STATUS_RET_NOLOG(GetOpStream(op_desc, stream_id, stream));
   int32_t rt_stream_id = kInvalidStream;
-  (void)rtGetStreamId(stream, &rt_stream_id);
+  (void)aclrtStreamGetId(stream, &rt_stream_id);
   GE_CHK_STATUS_RET_NOLOG(aicpu_resources_.AllocateChannelResource(op_desc, rt_stream_id));
   GELOGD("[%s] Channel resource allocation with stream id [%d] is complete",
          op_desc->GetName().c_str(), rt_stream_id);
@@ -8407,7 +8408,7 @@ Status DavinciModel::AllocateVdecChlResource(const OpDescPtr &op_desc) {
   const size_t stream_id = static_cast<size_t>(op_desc->GetStreamId());
   GE_CHK_STATUS_RET_NOLOG(GetOpStream(op_desc, stream_id, stream));
   int32_t rt_stream_id = kInvalidStream;
-  (void)rtGetStreamId(stream, &rt_stream_id);
+  (void)aclrtStreamGetId(stream, &rt_stream_id);
   GE_CHK_STATUS_RET_NOLOG(aicpu_resources_.AllocateVdecChannelResource(op_desc, rt_stream_id));
   GELOGD("[%s] Vdec channel resource allocation with stream id [%d] is complete",
          op_desc->GetName().c_str(), rt_stream_id);

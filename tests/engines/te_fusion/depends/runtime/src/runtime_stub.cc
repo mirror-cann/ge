@@ -329,7 +329,7 @@ rtError_t rtGetAvailEventNum(uint32_t * const eventCount) {
   return RT_ERROR_NONE;
 }
 
-rtError_t rtGetStreamId(rtStream_t stream, int32_t *stream_id) {
+rtError_t aclrtStreamGetId(rtStream_t stream, int32_t *stream_id) {
   *stream_id = 0;
   return RT_ERROR_NONE;
 }

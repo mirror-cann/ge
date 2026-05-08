@@ -77,7 +77,7 @@ struct GertStreamStub {
 
  private:
   int64_t stream_num = 0;
-  int64_t g_rtstream_id;
+  int64_t g_rtstream_id = 0;
   std::mutex mtx_;
 };
 

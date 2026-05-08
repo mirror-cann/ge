@@ -23,7 +23,7 @@ rtError_t rtCtxSetCurrent(rtContext_t ctx)
     return RT_ERROR_NONE;
 }
 
-rtError_t rtGetStreamId(rtStream_t stream, int32_t *streamId)
+rtError_t aclrtStreamGetId(rtStream_t stream, int32_t *streamId)
 {
     *streamId = 0;
     return RT_ERROR_NONE;

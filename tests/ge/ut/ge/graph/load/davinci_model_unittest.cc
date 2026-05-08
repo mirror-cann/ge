@@ -1946,7 +1946,7 @@ TEST_F(UtestDavinciModel, Preprocess_Fileconstant_Op_Memory_Allocation_Failed) {
   out1.close();
 
   model.file_id_and_path_map_.insert(std::pair<std::string, std::string>("file", "tmp_weight_file.bin"));
-  g_runtime_stub_mock = "rtMalloc";
+  g_runtime_stub_mock = "aclrtMallocWithCfg";
   auto status = model.PreProcessFileConstants(graph, default_parm);
   EXPECT_EQ(status, ACL_ERROR_GE_MEMORY_ALLOCATION);
 }
@@ -5738,7 +5738,7 @@ TEST_F(UtestDavinciModel, InitWeightMem_fail) {
   model.FreeWeightsMem();
   model.is_weight_mem_has_inited_ = false;
   weight_size = 30;
-  g_runtime_stub_mock = "rtMalloc";
+  g_runtime_stub_mock = "aclrtMallocWithCfg";
   EXPECT_EQ(model.InitWeightMem(mem_ptr, weight_ptr, weight_size), ACL_ERROR_GE_MEMORY_ALLOCATION);
 
   model.is_weight_mem_has_inited_ = false;
@@ -5767,7 +5767,7 @@ TEST_F(UtestDavinciModel, InitFeatureMapAndP2PMem_fail) {
   mem_ptr = 0;
   model.runtime_param_.mem_size = 20;
   model.runtime_param_.zero_copy_size = 10;
-  g_runtime_stub_mock = "rtMalloc";
+  g_runtime_stub_mock = "aclrtMallocWithCfg";
 
   EXPECT_NE(model.InitFeatureMapAndP2PMem(mem_ptr, mem_size), SUCCESS); // call more than once
   param[OPTION_EXEC_REUSE_ZERO_COPY_MEMORY] = "";
@@ -7502,7 +7502,16 @@ TEST_F(UtestDavinciModel, InputMergeCopy) {
 }
 
 TEST_F(UtestDavinciModel, InitModelInputsMergeCopyHostMem_rtMallocHost_fail) {
-  RTS_STUB_RETURN_VALUE(rtMallocHost, rtError_t, ACL_ERROR_RT_PARAM_INVALID);
+  class MockAclRuntime : public ge::AclRuntimeStub {
+   public:
+    rtError_t aclrtMallocHost(void **hostPtr, size_t size) {
+      return ACL_ERROR_RT_PARAM_INVALID;
+    }
+  };
+
+  auto mock_acl_runtime = std::make_shared<MockAclRuntime>();
+  ge::AclRuntimeStub::SetInstance(mock_acl_runtime);
+
   const uint64_t input_fusion_size = 25600U;
   const uint64_t start_logic_addr = 30902000U;  // random value for test
   std::map<std::string, std::string> options_map;
@@ -7535,6 +7544,7 @@ TEST_F(UtestDavinciModel, InitModelInputsMergeCopyHostMem_rtMallocHost_fail) {
   EXPECT_EQ(davinci_model.input_merge_copy_mem_base_, nullptr);
   EXPECT_TRUE(davinci_model.input_index_to_merge_copy_offset_.empty());
   ge::GetThreadLocalContext().SetGraphOption({});
+  ge::AclRuntimeStub::Reset();
 }
 
 TEST_F(UtestDavinciModel, InitModelInputsMergeCopyHostMem_rtFreeHost_fail) {
@@ -7935,7 +7945,7 @@ TEST_F(UtestDavinciModel, static_graph_memory_extend_fail) {
     sub_memory_infos.push_back({RT_MEMORY_HBM, 5120 + 1024 * 1024 * 2, 1024});
     (void) AttrUtils::SetListListInt(ge_model, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos);
 
-    g_runtime_stub_mock = "rtMalloc";
+    g_runtime_stub_mock = "aclrtMallocWithCfg";
     model2.Assign(ge_model);
     EXPECT_EQ(model2.Init(), ACL_ERROR_GE_MEMORY_ALLOCATION);
   }
@@ -8298,23 +8308,25 @@ TEST_F(UtestDavinciModel, expandable_memory_allocator) {
 }
 
 TEST_F(UtestDavinciModel, ExpandableActiveMemoryAllocator_Use1GSuccess_CheckPgType) {
-  class MockRuntime : public ge::RuntimeStub {
+  class AclRuntimeMock : public ge::AclRuntimeStub {
    public:
-    rtError_t rtMallocPhysical(rtDrvMemHandle* handle, size_t size, rtDrvMemProp_t* prop, uint64_t flags) {
+    rtError_t aclrtMallocPhysical(aclrtDrvMemHandle *handle, size_t size, const aclrtPhysicalMemProp *prop,
+                                  uint64_t flags) {
       *handle = (rtDrvMemHandle) new uint8_t[8];
-      pg_type_local = prop->pg_type;
+      pg_type_local = prop->memAttr;
       return 0;
     }
     uint32_t pg_type_local = 0U;
   };
-  auto mock_runtime = std::make_shared<MockRuntime>();
-  ge::RuntimeStub::SetInstance(mock_runtime);
+  auto alc_runtime_stub = std::make_shared<AclRuntimeMock>();
+  ge::AclRuntimeStub::SetInstance(alc_runtime_stub);
+
   auto mem_allocator1 =
       SessionMemAllocator<ExpandableActiveMemoryAllocator>::Instance().GetMemAllocator(0, 1, RT_MEMORY_HBM, kDrv1GPageSize);
   ASSERT_NE(mem_allocator1, nullptr);
   auto ptr = mem_allocator1->MallocMemory("test", 4096UL);
   ASSERT_NE(ptr, nullptr);
-  EXPECT_EQ(mock_runtime->pg_type_local, 2U);
+  EXPECT_EQ(alc_runtime_stub->pg_type_local, ACL_HBM_MEM_HUGE1G);
   EXPECT_EQ(mem_allocator1->FreeMemory(), ge::SUCCESS);
 
   auto mem_allocator2 =
@@ -8322,30 +8334,19 @@ TEST_F(UtestDavinciModel, ExpandableActiveMemoryAllocator_Use1GSuccess_CheckPgTy
   ASSERT_NE(mem_allocator2, nullptr);
   ptr = mem_allocator2->MallocMemory("test", 1024UL, true);
   ASSERT_NE(ptr, nullptr);
-  EXPECT_EQ(mock_runtime->pg_type_local, 1U);
+  EXPECT_EQ(alc_runtime_stub->pg_type_local, ACL_HBM_MEM_HUGE);
 
   EXPECT_EQ(mem_allocator2->FreeMemory(), ge::SUCCESS);
-  ge::RuntimeStub::Reset();
+  ge::AclRuntimeStub::Reset();
 }
 
 TEST_F(UtestDavinciModel, ExpandableActiveMemoryAllocator_Use1GMallocSuccessThenFailed) {
   class MockRuntime : public ge::RuntimeStub {
    public:
-    rtError_t rtMallocPhysical(rtDrvMemHandle* handle, size_t size, rtDrvMemProp_t* prop, uint64_t flags) {
-      pg_type_local = prop->pg_type;
-      ++call_count;
-      if (call_count == 2 && prop->pg_type == 2) {
-        return -1;
-      }
-      *handle = (rtDrvMemHandle) new uint8_t[8];
-      return 0;
-    }
     rtError_t rtGetRtCapability(rtFeatureType_t featureType, int32_t featureInfo, int64_t *value) {
       *value = 1;
       return 0;
     }
-    uint32_t call_count = 0U;
-    uint32_t pg_type_local = 0U;
   };
   class MockAclRuntime : public ge::AclRuntimeStub {
   public:
@@ -8354,6 +8355,18 @@ TEST_F(UtestDavinciModel, ExpandableActiveMemoryAllocator_Use1GMallocSuccessThen
       *total = 64UL * 1024U * 1024U * 1024U;
       return 0;
     }
+    rtError_t aclrtMallocPhysical(aclrtDrvMemHandle *handle, size_t size, const aclrtPhysicalMemProp *prop,
+                                  uint64_t flags) {
+      pg_type_local = prop->memAttr;
+      ++call_count;
+      if (call_count == 2 && prop->memAttr == ACL_HBM_MEM_HUGE1G) {
+        return -1;
+      }
+      *handle = (rtDrvMemHandle) new uint8_t[8];
+      return 0;
+    }
+    uint32_t call_count = 0U;
+    uint32_t pg_type_local = 0U;
   };
   auto mock_runtime = std::make_shared<MockRuntime>();
   auto mock_acl_runtime = std::make_shared<MockAclRuntime>();
@@ -8364,14 +8377,14 @@ TEST_F(UtestDavinciModel, ExpandableActiveMemoryAllocator_Use1GMallocSuccessThen
   ASSERT_NE(mem_allocator1, nullptr);
   auto ptr = mem_allocator1->MallocMemory("test", 1 *  1024U * 1024U * 1024U, true);
   ASSERT_NE(ptr, nullptr);
-  EXPECT_EQ(mock_runtime->pg_type_local, 2U);
-  EXPECT_EQ(mock_runtime->call_count, 1U);
+  EXPECT_EQ(mock_acl_runtime->pg_type_local, ACL_HBM_MEM_HUGE1G);
+  EXPECT_EQ(mock_acl_runtime->call_count, 1U);
 
   // 预期申请1G 大页失败后，转为申请2M大页，最后申请成功。
   auto ptr2 = mem_allocator1->MallocMemory("test", 1 *  1024U * 1024U * 1024U, true);
   ASSERT_NE(ptr2, nullptr);
-  EXPECT_EQ(mock_runtime->pg_type_local, 1U);
-  EXPECT_EQ(mock_runtime->call_count, 3U);
+  EXPECT_EQ(mock_acl_runtime->pg_type_local, ACL_HBM_MEM_HUGE);
+  EXPECT_EQ(mock_acl_runtime->call_count, 3U);
 
   EXPECT_EQ(mem_allocator1->FreeMemory(), ge::SUCCESS);
   ge::RuntimeStub::Reset();
@@ -8381,23 +8394,10 @@ TEST_F(UtestDavinciModel, ExpandableActiveMemoryAllocator_Use1GMallocSuccessThen
 TEST_F(UtestDavinciModel, ExpandableActiveMemoryAllocator_Use1GMallocFailed_NotSupport) {
   class MockRuntime : public ge::RuntimeStub {
    public:
-    rtError_t rtMallocPhysical(rtDrvMemHandle* handle, size_t size, rtDrvMemProp_t* prop, uint64_t flags) {
-      pg_type_local = prop->pg_type;
-      ++call_count;
-      size_local = size;
-      if (prop->pg_type == 2) {
-        return -1;
-      }
-      *handle = (rtDrvMemHandle) new uint8_t[8];
-      return 0;
-    }
     rtError_t rtGetRtCapability(rtFeatureType_t featureType, int32_t featureInfo, int64_t *value) {
       *value = 0;
       return 0;
     }
-    uint32_t call_count = 0U;
-    uint32_t pg_type_local = 0U;
-    uint32_t size_local = 0;
   };
   class MockAclRuntime : public ge::AclRuntimeStub {
   public:
@@ -8406,6 +8406,20 @@ TEST_F(UtestDavinciModel, ExpandableActiveMemoryAllocator_Use1GMallocFailed_NotS
       *total = 64UL * 1024U * 1024U * 1024U;
       return 0;
     }
+    rtError_t aclrtMallocPhysical(aclrtDrvMemHandle *handle, size_t size, const aclrtPhysicalMemProp *prop,
+                                  uint64_t flags) {
+      pg_type_local = prop->memAttr;
+      size_local = size;
+      ++call_count;
+      if (prop->memAttr == ACL_HBM_MEM_HUGE1G) {
+        return -1;
+      }
+      *handle = (rtDrvMemHandle) new uint8_t[8];
+      return 0;
+    }
+    uint32_t call_count = 0U;
+    uint32_t pg_type_local = 0U;
+    uint32_t size_local = 0;
   };
   auto mock_runtime = std::make_shared<MockRuntime>();
   auto mock_acl_runtime = std::make_shared<MockAclRuntime>();
@@ -8416,23 +8430,24 @@ TEST_F(UtestDavinciModel, ExpandableActiveMemoryAllocator_Use1GMallocFailed_NotS
   ASSERT_NE(mem_allocator1, nullptr);
   auto ptr = mem_allocator1->MallocMemory("test", 20480, true);
   ASSERT_NE(ptr, nullptr);
-  EXPECT_EQ(mock_runtime->pg_type_local, 1U);
-  EXPECT_EQ(mock_runtime->call_count, 2U);
-  EXPECT_EQ(mock_runtime->size_local, kDrv1GPageSize);
+  EXPECT_EQ(mock_acl_runtime->pg_type_local, ACL_HBM_MEM_HUGE);
+  EXPECT_EQ(mock_acl_runtime->call_count, 2U);
+  EXPECT_EQ(mock_acl_runtime->size_local, kDrv1GPageSize);
   EXPECT_EQ(mem_allocator1->FreeMemory(), ge::SUCCESS);
   ge::RuntimeStub::Reset();
   ge::AclRuntimeStub::Reset();
 }
 
 TEST_F(UtestDavinciModel, not_support_expandable_memory_allocator) {
-  class MockRuntime : public ge::RuntimeStub {
+  class MockAclRuntime : public ge::AclRuntimeStub {
    public:
-    rtError_t rtReserveMemAddress(void** devPtr, size_t size, size_t alignment, void *devAddr, uint64_t flags) {
+    rtError_t aclrtReserveMemAddress(void **virPtr, size_t size, size_t alignment, void *expectPtr,
+                                     uint64_t flags) {
       return -1;
     }
   };
-  auto mock_runtime = std::make_shared<MockRuntime>();
-  ge::RuntimeStub::SetInstance(mock_runtime);
+  auto mock_acl_runtime = std::make_shared<MockAclRuntime>();
+  ge::AclRuntimeStub::SetInstance(mock_acl_runtime);
   auto mem_allocator1 =
       SessionMemAllocator<ExpandableActiveMemoryAllocator>::Instance().GetMemAllocator(1, 1);
   ASSERT_NE(mem_allocator1, nullptr);
@@ -8448,18 +8463,18 @@ TEST_F(UtestDavinciModel, not_support_expandable_memory_allocator) {
   EXPECT_EQ(SessionMemAllocator<ActiveMemoryAllocator>::Instance()
       .GetMemAllocator(1, 7)->memory_type_, RT_MEMORY_HBM);
   mem_allocator1->FreeMemory();
-  ge::RuntimeStub::Reset();
+  ge::AclRuntimeStub::Reset();
 }
 
 TEST_F(UtestDavinciModel, expandable_memory_allocator_fail) {
-  class MockRuntime : public ge::RuntimeStub {
+  class MockAclRuntime : public ge::AclRuntimeStub {
    public:
-    rtError_t rtMapMem(void* devPtr, size_t size, size_t offset, rtDrvMemHandle handle, uint64_t flags) {
+    rtError_t aclrtMapMem(void *virPtr, size_t size, size_t offset, aclrtDrvMemHandle handle, uint64_t flags) {
       return -1;
     }
   };
-  auto mock_runtime = std::make_shared<MockRuntime>();
-  ge::RuntimeStub::SetInstance(mock_runtime);
+  auto mock_acl_runtime = std::make_shared<MockAclRuntime>();
+  ge::AclRuntimeStub::SetInstance(mock_acl_runtime);
   auto mem_allocator1 =
       SessionMemAllocator<ExpandableActiveMemoryAllocator>::Instance().GetMemAllocator(2, 1);
   ASSERT_NE(mem_allocator1, nullptr);
@@ -8469,21 +8484,21 @@ TEST_F(UtestDavinciModel, expandable_memory_allocator_fail) {
   EXPECT_EQ(ptr, nullptr);
   ptr = mem_allocator1->MallocMemory("test", 60UL * 1024UL * 1024UL * 1024UL);
   EXPECT_EQ(ptr, nullptr);
-  ge::RuntimeStub::Reset();
+  ge::AclRuntimeStub::Reset();
   mem_allocator1->FreeMemory();
 }
 
 TEST_F(UtestDavinciModel, MallocDynamicMemorySuccess) {
-  class MockRuntime : public ge::RuntimeStub {
+  class MockAclRuntime : public ge::AclRuntimeStub {
    public:
-    rtError_t rtMalloc(void **dev_ptr, uint64_t size, rtMemType_t type, uint16_t moduleId) override {
+    aclError aclrtMalloc(void **dev_ptr, size_t size, aclrtMemMallocPolicy policy) override {
       call_count++;
       *dev_ptr = new uint8_t[size];
       memset_s(*dev_ptr, size, 0, size);
       return RT_ERROR_NONE;
     }
 
-    rtError_t rtFree(void *dev_ptr) override {
+    rtError_t aclrtFree(void *dev_ptr) override {
       --call_count;
       delete[](uint8_t *) dev_ptr;
       return RT_ERROR_NONE;
@@ -8491,22 +8506,22 @@ TEST_F(UtestDavinciModel, MallocDynamicMemorySuccess) {
     uint32_t call_count = 0U;
     uint32_t size_local = 0;
   };
-  auto mock_runtime = std::make_shared<MockRuntime>();
-  ge::RuntimeStub::SetInstance(mock_runtime);
+  auto mock_acl_runtime = std::make_shared<MockAclRuntime>();
+  ge::AclRuntimeStub::SetInstance(mock_acl_runtime);
 
   DavinciModel model(0, nullptr);
   for (size_t i = 0U; i < 2 * 1024 * 1024 / 512; ++i) {
     auto ptr = model.MallocDynamicMemory(1U);
     ASSERT_NE(ptr, nullptr);
-    EXPECT_EQ(mock_runtime->call_count, 1);
+    EXPECT_EQ(mock_acl_runtime->call_count, 1);
   }
   auto ptr = model.MallocDynamicMemory(1U);
   ASSERT_NE(ptr, nullptr);
-  EXPECT_EQ(mock_runtime->call_count, 2);
+  EXPECT_EQ(mock_acl_runtime->call_count, 2);
 
   model.FreeDynamicWorkspaceMemory();
-  EXPECT_EQ(mock_runtime->call_count, 0);
-  ge::RuntimeStub::Reset();
+  EXPECT_EQ(mock_acl_runtime->call_count, 0);
+  ge::AclRuntimeStub::Reset();
 }
 
 TEST_F(UtestDavinciModel, test_restore_variable) {

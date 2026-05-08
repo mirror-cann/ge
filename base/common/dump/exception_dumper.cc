@@ -37,7 +37,7 @@
 #include "common/checker.h"
 #include "graph/serialization/attr_serializer_registry.h"
 #include "framework/runtime/subscriber/global_dumper.h"
-#include "runtime/v1/common/aclrt_malloc_helper.h"
+#include "common/aclrt_malloc_helper.h"
 
 #include "adump_opinfo_builder.h"
 #include "exe_graph/runtime/tensor.h"

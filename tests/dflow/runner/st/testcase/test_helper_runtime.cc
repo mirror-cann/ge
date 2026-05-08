@@ -198,6 +198,11 @@ class MockRuntime : public RuntimeStub {
     mbuf_tensor_desc.shape[2] = 1;
     mbuf_tensor_desc.shape[3] = 224;
     mbuf_tensor_desc.shape[4] = 224;
+    mbuf_tensor_desc.original_shape[0] = 4;
+    mbuf_tensor_desc.original_shape[1] = 1;
+    mbuf_tensor_desc.original_shape[2] = 1;
+    mbuf_tensor_desc.original_shape[3] = 224;
+    mbuf_tensor_desc.original_shape[4] = 224;
     mbuf_tensor_desc.dtype = static_cast<int64_t>(DT_INT64);
     mbuf_tensor_desc.data_addr = static_cast<int64_t>(reinterpret_cast<intptr_t>(outBuf->buffInfo->addr));
     if (memcpy_s(outBuf->buffInfo->addr, sizeof(RuntimeTensorDesc), &mbuf_tensor_desc, sizeof(RuntimeTensorDesc)) !=

@@ -28,7 +28,7 @@
 #include "runtime/rts/rts_device.h"
 #include "runtime/rts/rts_stream.h"
 #include "acl/acl_rt.h"
-#include "runtime/v1/common/aclrt_malloc_helper.h"
+#include "common/aclrt_malloc_helper.h"
 
 namespace {
 constexpr uint32_t kAicpuLoadFlag = 1U;

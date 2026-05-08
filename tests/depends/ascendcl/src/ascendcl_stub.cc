@@ -20,6 +20,7 @@
 extern std::string g_acl_stub_mock;
 extern std::string g_acl_stub_mock_v2;
 extern std::string g_acl_stub_debug_json_last_file_path;
+extern std::string g_runtime_stub_mock;
 std::string g_acl_stub_mock = "";
 std::string g_acl_stub_mock_v2 = "";
 std::string g_acl_stub_debug_json_last_file_path = "";
@@ -638,6 +639,18 @@ aclError AclRuntimeStub::aclrtFreeHost(void *devPtr) {
   return ACL_SUCCESS;
 }
 
+aclError AclRuntimeStub::aclrtHostRegister(void *ptr, uint64_t size, aclrtHostRegisterType type, void **devPtr) {
+  if (std::string(__FUNCTION__) == g_acl_stub_mock) {
+    return ACL_ERROR_RT_INTERNAL_ERROR;
+  }
+  *devPtr = ptr;
+  return ACL_SUCCESS;
+}
+
+aclError AclRuntimeStub::aclrtHostUnregister(void *ptr) {
+  return ACL_SUCCESS;
+}
+
 aclError AclRuntimeStub::aclrtMemcpy(void *dst, size_t dest_max, const void *src, size_t count, aclrtMemcpyKind kind) {
   const char * const kEnvRecordPath = "CONSTANT_FOLDING_PASS";
   char record_path[MMPA_MAX_PATH] = {};
@@ -864,8 +877,16 @@ aclError AclRuntimeStub::aclrtSynchronizeEventWithTimeout(aclrtEvent event, int3
   return ACL_SUCCESS;
 }
 
-aclError AclRuntimeStub::aclrtMallocForTaskScheduler(void **devPtr, size_t size, aclrtMemMallocPolicy policy,
+aclError AclRuntimeStub::aclrtMallocForTaskScheduler(void **dev_ptr, size_t size, aclrtMemMallocPolicy policy,
                                                      aclrtMallocConfig *cfg) {
+  if (std::string(__FUNCTION__) == g_acl_stub_mock) {
+    return ACL_ERROR_RT_INTERNAL_ERROR;
+  }
+  *dev_ptr = new (std::nothrow) uint8_t[size];
+  if (*dev_ptr == nullptr) {
+    return ACL_ERROR_RT_INTERNAL_ERROR;
+  }
+  memset_s(*dev_ptr, size, 0, size);
   return ACL_SUCCESS;
 }
 
@@ -1488,15 +1509,21 @@ aclError aclrtSynchronizeStreamWithTimeout(aclrtStream stream, int32_t timeout) 
 }
 
 aclError aclrtMalloc(void **devPtr, size_t size, aclrtMemMallocPolicy policy) {
+  if (std::string(__FUNCTION__) == g_runtime_stub_mock) {
+    return -1;
+  }
   return ge::AclRuntimeStub::GetInstance()->aclrtMalloc(devPtr, size, policy);
+}
+
+aclError aclrtMallocWithCfg(void **devPtr, size_t size, aclrtMemMallocPolicy policy, aclrtMallocConfig* cfg) {
+  if (std::string(__FUNCTION__) == g_runtime_stub_mock) {
+    return -1;
+  }
+  return ge::AclRuntimeStub::GetInstance()->aclrtMallocWithCfg(devPtr, size, policy, cfg);
 }
 
 aclError aclrtMallocHost(void **hostPtr, size_t size) {
   return ge::AclRuntimeStub::GetInstance()->aclrtMallocHost(hostPtr, size);
-}
-
-aclError aclrtMallocWithCfg(void **devPtr, size_t size, aclrtMemMallocPolicy policy, aclrtMallocConfig *cfg) {
-  return ge::AclRuntimeStub::GetInstance()->aclrtMallocWithCfg(devPtr, size, policy, cfg);
 }
 
 aclError aclrtMallocHostWithCfg(void **hostPtr, size_t size, aclrtMallocConfig *cfg) {
@@ -1513,6 +1540,14 @@ aclError aclrtFree(void *devPtr) {
 
 aclError aclrtFreeHost(void *devPtr) {
   return ge::AclRuntimeStub::GetInstance()->aclrtFreeHost(devPtr);
+}
+
+aclError aclrtHostRegister(void *ptr, uint64_t size, aclrtHostRegisterType type, void **devPtr) {
+  return ge::AclRuntimeStub::GetInstance()->aclrtHostRegister(ptr, size, type, devPtr);
+}
+
+aclError aclrtHostUnregister(void *ptr) {
+  return ge::AclRuntimeStub::GetInstance()->aclrtHostUnregister(ptr);
 }
 
 aclError aclrtMemcpy(void *dst, size_t dest_max, const void *src, size_t count, aclrtMemcpyKind kind) {

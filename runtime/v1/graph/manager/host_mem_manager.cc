@@ -18,11 +18,8 @@
 #include "runtime/rt.h"
 #include "acl/acl_rt.h"
 #include "base/err_msg.h"
-#include "acl/acl_rt.h"
+#include "common/aclrt_malloc_helper.h"
 
-namespace {
-constexpr uint32_t kMallocHostMemFlag = 0U;
-}  // namespace
 namespace ge {
 Status SharedMemAllocator::Allocate(SharedMemInfo &mem_info) {
   const auto device_id = GetContext().DeviceId();
@@ -33,32 +30,32 @@ Status SharedMemAllocator::Allocate(SharedMemInfo &mem_info) {
   // DeviceReset before memory finished!
   GE_MAKE_GUARD(not_used_var, [&dev_id]() { GE_CHK_RT(aclrtResetDevice(dev_id)); });
 
-  rtMallocHostSharedMemoryIn input_para = {mem_info.shm_name.c_str(), mem_info.mem_size, kMallocHostMemFlag};
-  rtMallocHostSharedMemoryOut output_para;
-  const rtError_t rt_ret = rtMallocHostSharedMemory(&input_para, &output_para);
-  if (rt_ret != RT_ERROR_NONE) {
-    REPORT_INNER_ERR_MSG("E19999", "Call rtMallocHostSharedMemory fail, ret:%d", rt_ret);
-    GELOGE(RT_FAILED, "[Call][RtMallocHostSharedMemory] failed, devid:[%u].", device_id);
+  int32_t fd = -1;
+  void *ptr = nullptr;
+  void *dev_ptr = nullptr;
+  const aclError acl_ret = AclrtMallocHostSharedMemory(mem_info.shm_name.c_str(), mem_info.mem_size, &fd, &ptr, &dev_ptr);
+  if (acl_ret != ACL_SUCCESS) {
+    REPORT_INNER_ERR_MSG("E19999", "Call AclrtMallocHostSharedMemory fail, ret:%d", acl_ret);
+    GELOGE(RT_FAILED, "[Call][AclrtMallocHostSharedMemory] failed, devid:[%u], ret:%d.", device_id, acl_ret);
     return GE_GRAPH_MEMORY_ALLOC_FAILED;
   }
-  mem_info.fd = output_para.fd;
+  mem_info.fd = fd;
   mem_info.host_aligned_ptr = AlignedPtr::BuildFromAllocFunc(
-      [&output_para](std::unique_ptr<uint8_t[], AlignedPtr::Deleter> &ptr) {
-        ptr.reset(PtrToPtr<void, uint8_t>(output_para.ptr));
+      [ptr](std::unique_ptr<uint8_t[], AlignedPtr::Deleter> &host_ptr) {
+        host_ptr.reset(PtrToPtr<void, uint8_t>(ptr));
       },
       [](const uint8_t *const ptr) { (void)ptr; });
-  mem_info.device_address = PtrToPtr<void, uint8_t>(output_para.devPtr);
+  mem_info.device_address = PtrToPtr<void, uint8_t>(dev_ptr);
   return SUCCESS;
 }
 
 Status SharedMemAllocator::DeAllocate(const SharedMemInfo &mem_info) {
   GELOGD("SharedMemAllocator::DeAllocate");
-  rtFreeHostSharedMemoryIn free_para = {mem_info.shm_name.c_str(), mem_info.mem_size, mem_info.fd,
-                                        mem_info.host_aligned_ptr->MutableGet(), mem_info.device_address};
-  const rtError_t rt_ret = rtFreeHostSharedMemory(&free_para);
-  if (rt_ret != RT_ERROR_NONE) {
-    REPORT_INNER_ERR_MSG("E19999", "Call rtFreeHostSharedMemory fail, ret:%d", rt_ret);
-    GELOGE(RT_FAILED, "[Call][RtFreeHostSharedMemory] failed, ret:%d.", rt_ret);
+  const aclError acl_ret = AclrtFreeHostSharedMemory(mem_info.shm_name.c_str(), mem_info.mem_size, mem_info.fd,
+                                                      mem_info.host_aligned_ptr->MutableGet());
+  if (acl_ret != ACL_SUCCESS) {
+    REPORT_INNER_ERR_MSG("E19999", "Call AclrtFreeHostSharedMemory fail, ret:%d", acl_ret);
+    GELOGE(RT_FAILED, "[Call][AclrtFreeHostSharedMemory] failed, ret:%d.", acl_ret);
     return RT_FAILED;
   }
   return ge::SUCCESS;

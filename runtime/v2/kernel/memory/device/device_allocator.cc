@@ -14,6 +14,7 @@
 #include "subscriber/profiler/cann_memory_profiler.h"
 #include "kernel/memory/rts_caching_mem_allocator.h"
 #include "graph/manager/mem_manager.h"
+#include "common/aclrt_malloc_helper.h"
 
 namespace gert {
 DeviceAllocator::DeviceAllocator(DeviceMemAllocator &mem_allocator)
@@ -58,10 +59,10 @@ RtMemAllocator::RtMemAllocator(ge::Allocator &allocator, const DeviceId device_i
 
 BlockAddr RtMemAllocator::Alloc(const MemSize size) {
   void *ptr = nullptr;
-  const auto rt_ret = rtMalloc(&ptr, size, mem_type_, GE_MODULE_NAME_U16);
-  if (rt_ret == RT_ERROR_NONE) {
+  const auto rt_ret = ge::AclrtMalloc(&ptr, size, mem_type_, GE_MODULE_NAME_U16);
+  if (rt_ret == ACL_SUCCESS) {
     DeviceMemoryRecorder::AddTotalReserveMemory(static_cast<uint64_t>(size));
-    GE_PRINT_DYNAMIC_MEMORY(rtMalloc, ge::ToMallocMemInfo("page caching", ptr, device_id_, GE_MODULE_NAME_U16).c_str(),
+    GE_PRINT_DYNAMIC_MEMORY(aclrtMalloc, ge::ToMallocMemInfo("page caching", ptr, device_id_, GE_MODULE_NAME_U16).c_str(),
                             size);
 
     // The construction of the MemBlock class requires a reference to the allocator
@@ -69,7 +70,7 @@ BlockAddr RtMemAllocator::Alloc(const MemSize size) {
     auto block = new (block_allocator_.Alloc()) ge::MemBlock{allocator_, ptr, static_cast<size_t>(size)};
     return block;
   }
-  REPORT_INNER_ERR_MSG("E19999", "Call rtMalloc fail, purpose: page caching, type = %u, size:%llu, device_id:%u",
+  REPORT_INNER_ERR_MSG("E19999", "Call aclrtMalloc fail, purpose: page caching, type = %u, size:%llu, device_id:%u",
                     mem_type_, size, device_id_);
   GELOGE(ge::INTERNAL_ERROR, "[Malloc][Memory] failed, rt_ret:%d, device_id:%u, size:%llu", rt_ret, device_id_,
          size);
@@ -79,8 +80,8 @@ BlockAddr RtMemAllocator::Alloc(const MemSize size) {
 bool RtMemAllocator::Free(ge::MemBlock *const addr) {
   auto size = addr->GetSize();
   GELOGI("RtMemAllocator::free device_id:%u ,size:%llu, mem_addr:%p", GetDeviceId(), size, addr->GetAddr());
-  const auto rt_ret = rtFree(addr->GetAddr());
-  if (rt_ret == RT_ERROR_NONE) {
+  const auto rt_ret = aclrtFree(addr->GetAddr());
+  if (rt_ret == ACL_SUCCESS) {
     block_allocator_.Free(dynamic_cast<ge::MemBlock &>(*addr));
     DeviceMemoryRecorder::ReduceTotalReserveMemory(static_cast<uint64_t>(size));
     return true;

@@ -76,11 +76,11 @@ using namespace optiling::utils;
 using namespace ge::hybrid;
 
 namespace {
-class MockStreamSync : public ge::RuntimeStub {
+class MockStreamSync : public ge::AclRuntimeStub {
  public:
-  MOCK_METHOD2(rtStreamSynchronizeWithTimeout, int32_t(rtStream_t stm, int32_t timeout));
-  MOCK_METHOD4(rtMalloc, int32_t(void **dev_ptr, uint64_t size, rtMemType_t type, uint16_t moduleId));
-  MOCK_METHOD1(rtFree, int32_t(void *dev_ptr));
+  MOCK_METHOD2(aclrtSynchronizeStreamWithTimeout, int32_t(aclrtStream stream, int32_t timeout));
+  MOCK_METHOD3(aclrtMalloc, int32_t(void **dev_ptr, size_t size, aclrtMemMallocPolicy policy));
+  MOCK_METHOD1(aclrtFree, int32_t(void *dev_ptr));
 };
   REG_OP(ReduceSum)
     .INPUT(x, TensorType::NumberType())
@@ -136,9 +136,9 @@ ge::Status CreateFileConstantFile(const std::string &file_location, const ge::fl
   return ge::SUCCESS;
 }
 
-class MockMallocFailed : public RuntimeStub {
+class MockMallocFailed : public AclRuntimeStub {
  public:
-  rtError_t rtMalloc(void **dev_ptr, uint64_t size, rtMemType_t type, uint16_t moduleId) override {
+  aclError aclrtMalloc(void **devPtr, size_t size, aclrtMemMallocPolicy policy) override {
     return -1;
   }
 };
@@ -193,9 +193,9 @@ TEST_F(HybridModelAsyncTest, test_hybrid_model_malloc_failed) {
   ge::DynamicSingleOp *singleOp = nullptr;
   EXPECT_EQ(ge::GeExecutor::LoadDynamicSingleOpV2("dynamic_op_fail", modelData, nullptr, &singleOp, 6), SUCCESS);
   auto malloc_mock = std::make_shared<MockMallocFailed>();
-  RuntimeStub::SetInstance(malloc_mock);
+  AclRuntimeStub::SetInstance(malloc_mock);
   EXPECT_EQ(singleOp->ExecuteAsync(input_desc, input_buffers, output_desc, output_buffers), ACL_ERROR_GE_DEVICE_MEMORY_OPERATE_FAILED);
-  RuntimeStub::SetInstance(nullptr);
+  AclRuntimeStub::SetInstance(nullptr);
 }
 
 TEST_F(HybridModelAsyncTest, test_hybrid_model_dynamic_shape_success) {
@@ -2327,7 +2327,7 @@ TEST_F(StestHybridRt2Executor, run_graph_with_recycle_memory_success) {
     output_tensors[i].SetData(nullptr, 0U);
   }
 
-  auto sync_check = [](rtStream_t stm, int32_t timeout) -> int {
+  auto sync_check = [](aclrtStream stm, int32_t timeout) -> int {
     if (stm != nullptr) {
       return 0;
     }
@@ -2336,7 +2336,7 @@ TEST_F(StestHybridRt2Executor, run_graph_with_recycle_memory_success) {
   };
 
   size_t malloc_cnt = 0U;
-  auto malloc_failed = [&malloc_cnt](void **dev_ptr, uint64_t size, rtMemType_t type, uint16_t moduleId) -> int {
+  auto malloc_failed = [&malloc_cnt](void **dev_ptr, size_t size, aclrtMemMallocPolicy policy) -> int {
     ++malloc_cnt;
     if (malloc_cnt == 1) {
       *dev_ptr = nullptr;
@@ -2348,9 +2348,9 @@ TEST_F(StestHybridRt2Executor, run_graph_with_recycle_memory_success) {
   };
 
   auto rts_stub = std::make_shared<MockStreamSync>();
-  ge::RuntimeStub::SetInstance(rts_stub);
-  EXPECT_CALL(*rts_stub, rtStreamSynchronizeWithTimeout).WillRepeatedly(sync_check);
-  EXPECT_CALL(*rts_stub, rtMalloc).WillRepeatedly(malloc_failed);
+  ge::AclRuntimeStub::SetInstance(rts_stub);
+  EXPECT_CALL(*rts_stub, aclrtSynchronizeStreamWithTimeout).WillRepeatedly(sync_check);
+  EXPECT_CALL(*rts_stub, aclrtMalloc).WillRepeatedly(malloc_failed);
 
   auto slog_sub = std::make_shared<SlogStubImpl>();
   ge::SlogStub::SetInstance(slog_sub);
@@ -2364,7 +2364,7 @@ TEST_F(StestHybridRt2Executor, run_graph_with_recycle_memory_success) {
     EXPECT_EQ(output_tensors[i].GetData().GetSize(), 1536);
   }
   EXPECT_TRUE(slog_sub->FindWarnLogEndsWith("Failed to apply for memory. We will try to free memory from memory pool, the above warning log can be ignored. Try to free cached memory...") >= 0);
-  ge::RuntimeStub::Reset();
+  ge::AclRuntimeStub::Reset();
   dlog_setlevel(GE_MODULE_NAME, 3, 0);
 }
 TEST_F(StestHybridRt2Executor, Test_multiStream_execute_by_runGraph_with_rtv2) {

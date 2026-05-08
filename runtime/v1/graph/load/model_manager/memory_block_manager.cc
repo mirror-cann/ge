@@ -14,6 +14,7 @@
 #include "runtime/rt.h"
 #include "graph/manager/mem_manager.h"
 #include "acl/acl_rt.h"
+#include "common/aclrt_malloc_helper.h"
 
 namespace ge {
 namespace {
@@ -26,15 +27,15 @@ void *MemoryBlockManager::Malloc(const std::string &purpose, const size_t size) 
     return ptr;
   }
   const auto block_size = (aligned_size + block_size_ - 1U) / block_size_ * block_size_;
-  const auto rt_ret = rtMalloc(&ptr, block_size, mem_type_, GE_MODULE_NAME_U16);
-  GE_ASSERT_TRUE((rt_ret == RT_ERROR_NONE) && (ptr != nullptr),
-                 "call rtMalloc failed, size: %zu, memory type: %u, rt_ret: %d",
+  const auto rt_ret = ge::AclrtMalloc(&ptr, block_size, mem_type_, GE_MODULE_NAME_U16);
+  GE_ASSERT_TRUE((rt_ret == ACL_SUCCESS) && (ptr != nullptr),
+                 "call aclrtMallocWithCfg failed, size: %zu, memory type: %u, rt_ret: %d",
                  block_size, mem_type_, rt_ret);
-  GE_ASSERT(aclrtMemset(ptr, block_size, 0U, block_size) == RT_ERROR_NONE);
+  GE_ASSERT(aclrtMemset(ptr, block_size, 0U, block_size) == ACL_SUCCESS);
   mem_blocks_.emplace_back(RtMemBlock{ptr, block_size, aligned_size});
   int32_t device_id = 0;
   (void)aclrtGetDevice(&device_id);
-  GE_PRINT_DYNAMIC_MEMORY(rtMalloc, ge::ToMallocMemInfo(purpose, ptr, device_id, GE_MODULE_NAME_U16).c_str(),
+  GE_PRINT_DYNAMIC_MEMORY(aclrtMalloc, ge::ToMallocMemInfo(purpose, ptr, device_id, GE_MODULE_NAME_U16).c_str(),
                           block_size);
   GELOGI("malloc memory success, ptr: %p, size: %zu, aligned size: %zu, block_size: %zu, memory type: %u",
          ptr, size, aligned_size, block_size, mem_type_);
@@ -56,7 +57,7 @@ void *MemoryBlockManager::FindFreeMem(const size_t aligned_size) {
 
 void MemoryBlockManager::Release() {
   for (auto &block : mem_blocks_) {
-    (void)rtFree(block.addr);
+    (void)aclrtFree(block.addr);
     GELOGI("free memory success, ptr: %p, size: %zu, memory type: %u", block.addr, block.size, mem_type_);
   }
   mem_blocks_.clear();

@@ -442,36 +442,6 @@ Status FftsPlusTaskInfo::Release() {
   return SUCCESS;
 }
 
-Status FftsPlusTaskInfo::SetCachePersistentWay(const OpDescPtr &op_desc) const {
-  const vector<void *> input_addrs = ModelUtils::GetInputDataAddrs(davinci_model_->GetRuntimeParam(), op_desc);
-  const size_t input_addr_size = input_addrs.size();
-  size_t j = 0UL;
-  for (size_t i = 0UL; i < op_desc->GetAllInputsSize(); ++i) {
-    const GeTensorDescPtr tensor_desc = op_desc->MutableInputDesc(static_cast<uint32_t>(i));
-    if (tensor_desc == nullptr) {
-      continue;
-    }
-    ++j;
-
-    uint32_t persistent_id = std::numeric_limits<uint32_t>::max();
-    (void)AttrUtils::GetInt(tensor_desc, ATTR_NAME_CACHE_PERSIST, persistent_id);
-    if (persistent_id == std::numeric_limits<uint32_t>::max()) {
-      continue;
-    }
-
-    GE_ASSERT_TRUE(j <= input_addr_size, "Invalid addr index %zu, max %zu", j, input_addr_size);
-
-    int64_t tensor_size = 0;
-    (void)TensorUtils::GetSize(*tensor_desc, tensor_size);
-    constexpr uint32_t advise = 0U;
-    const rtError_t ret = rtMemAdvise(input_addrs[j - 1UL], static_cast<uint64_t>(tensor_size), advise);
-    GE_ASSERT_TRUE(ret == RT_ERROR_NONE,
-                   "Failed to advise memory, persis id %u, error code %d, ptr addr %p, size %" PRIu64 ".",
-                   persistent_id, ret, input_addrs[j - 1UL], static_cast<uint64_t>(tensor_size));
-  }
-  return SUCCESS;
-}
-
 Status FftsPlusTaskInfo::CalculateTilingDataSize(const OpDescPtr &op_desc, const bool is_atomic_op_type) {
   GE_CHECK_NOTNULL(op_desc);
   std::shared_ptr<optiling::utils::OpRunInfo> tiling_info = nullptr;
@@ -696,10 +666,6 @@ Status FftsPlusTaskInfo::PrePareForTransfer(const domi::TaskDef &task_def) {
     }
     if (ctx_type == RT_CTX_TYPE_DSA) {
         dsa_ctx_num++;
-    }
-    if ((sub_op_desc != nullptr) && (!davinci_model_->IsFeatureBaseRefreshable())) {
-      GE_ASSERT_SUCCESS(SetCachePersistentWay(sub_op_desc), "[Call][SetCachePersistentWay] failed, node:%s.",
-                        sub_op_desc->GetName().c_str());
     }
   }
   GE_ASSERT_SUCCESS(InitTilingInfo());

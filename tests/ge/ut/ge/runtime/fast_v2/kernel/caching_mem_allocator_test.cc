@@ -155,56 +155,50 @@ TEST_F(CacheMemoryAllocatorTest, test_allocate_hbm_first_success_second_failed) 
   mem_block->Free();
   ASSERT_EQ(ge::GRAPH_SUCCESS, allocator.Finalize());
   RtsCachingMemAllocator::GetAllocator(0, RT_MEMORY_HBM)->Recycle();
-  struct FakeRuntime : RuntimeStubImpl {
-    rtError_t rtMalloc(void **dev_ptr, uint64_t size, rtMemType_t type, uint16_t moduleId) {
-      return -1;
+  struct FakeAclRuntime : ge::AclRuntimeStub {
+    aclError aclrtMalloc(void **dev_ptr, size_t size, aclrtMemMallocPolicy policy) override {
+      *dev_ptr = nullptr;
+      return ACL_ERROR_RT_MEMORY_ALLOCATION;
     }
-    rtError_t rtFree(void *dev_ptr) {
-      return -1;
+    aclError aclrtFree(void *dev_ptr) override {
+      return ACL_SUCCESS;
     }
   };
-  GertRuntimeStub stub(std::unique_ptr<RuntimeStubImpl>(new FakeRuntime()));
+  auto mock_runtime = std::make_shared<FakeAclRuntime>();
+  ge::AclRuntimeStub::SetInstance(mock_runtime);
   mem_block = allocator.Malloc(4816896UL);
   ASSERT_EQ(mem_block, nullptr);
+  ge::AclRuntimeStub::Reset();
 }
 
 TEST_F(CacheMemoryAllocatorTest, test_allocate_mem_block_try_recycle_then_malloc_when_mem_cannot_alloc) {
   static uint64_t total_size = 0;
   static uint8_t malloc_count = 0;
-  class MockRuntime : public ge::RuntimeStub {
-    rtError_t rtMalloc(void **dev_ptr, uint64_t size, rtMemType_t type, uint16_t moduleId) {
+  class MockAclRuntime : public ge::AclRuntimeStub {
+   public:
+    aclError aclrtMalloc(void **dev_ptr, size_t size, aclrtMemMallocPolicy policy) override {
       malloc_count++;
       total_size += size;
       if (total_size > 32 * 1024UL * 1024UL * 1024UL) {
         total_size = (malloc_count == 2) ? 0 : total_size;
         *dev_ptr = nullptr;
-        return -1;
+        return ACL_ERROR_RT_MEMORY_ALLOCATION;
       }
       *dev_ptr = new uint8_t[1];
-      return RT_ERROR_NONE;
+      return ACL_SUCCESS;
     }
-    rtError_t rtFree(void *dev_ptr) {
+    aclError aclrtFree(void *dev_ptr) override {
       delete[](uint8_t *) dev_ptr;
-      return RT_ERROR_NONE;
+      return ACL_SUCCESS;
     }
-    rtError_t rtMemGetInfoEx(rtMemInfoType_t memInfoType, size_t *free, size_t *total) override {
-      *free = 56UL * 1024UL * 1024UL;
-      *total = 56UL * 1024UL * 1024UL * 1024UL;
-      return RT_ERROR_NONE;
-    }
-  };
-
-  class MockAclRuntime : public ge::AclRuntimeStub {
-    aclError aclrtGetMemInfo(aclrtMemAttr attr, size_t *free_size, size_t *total) {
+    aclError aclrtGetMemInfo(aclrtMemAttr attr, size_t *free_size, size_t *total) override {
       *free_size = 56UL * 1024UL * 1024UL;
       *total = 56UL * 1024UL * 1024UL * 1024UL;
       return ACL_SUCCESS;
     }
   };
 
-  auto mock_runtime = std::make_shared<MockRuntime>();
   auto mock_acl_runtime = std::make_shared<MockAclRuntime>();
-  ge::RuntimeStub::SetInstance(mock_runtime);
   ge::AclRuntimeStub::SetInstance(mock_acl_runtime);
   CachingMemAllocator allocator(0, RT_MEMORY_HBM);
   allocator.SetStream((void *)1);
@@ -215,46 +209,37 @@ TEST_F(CacheMemoryAllocatorTest, test_allocate_mem_block_try_recycle_then_malloc
   mem_block->Free();
   mem_block1->Free();
   ASSERT_EQ(ge::GRAPH_SUCCESS, allocator.Finalize());
-  ge::RuntimeStub::Reset();
   ge::AclRuntimeStub::Reset();
 }
 
 TEST_F(CacheMemoryAllocatorTest, test_allocate_mem_block_try_recycle_other_then_malloc_when_mem_cannot_alloc) {
   static uint64_t total_size = 0;
   static uint8_t malloc_count = 0;
-  class MockRuntime : public ge::RuntimeStub {
-    rtError_t rtMalloc(void **dev_ptr, uint64_t size, rtMemType_t type, uint16_t moduleId) {
+  class MockAclRuntime : public ge::AclRuntimeStub {
+   public:
+    aclError aclrtMalloc(void **dev_ptr, size_t size, aclrtMemMallocPolicy policy) override {
       malloc_count++;
       total_size += size;
       if (total_size > 32 * 1024UL * 1024UL * 1024UL) {
         total_size = (malloc_count == 3) ? 0 : total_size;
         *dev_ptr = nullptr;
-        return -1;
+        return ACL_ERROR_RT_MEMORY_ALLOCATION;
       }
       *dev_ptr = new uint8_t[1];
-      return RT_ERROR_NONE;
+      return ACL_SUCCESS;
     }
-    rtError_t rtFree(void *dev_ptr) {
+    aclError aclrtFree(void *dev_ptr) override {
       delete[](uint8_t *) dev_ptr;
-      return RT_ERROR_NONE;
+      return ACL_SUCCESS;
     }
-    rtError_t rtMemGetInfoEx(rtMemInfoType_t memInfoType, size_t *free, size_t *total) override {
-      *free = 56UL * 1024UL * 1024UL;
-      *total = 56UL * 1024UL * 1024UL * 1024UL;
-      return RT_ERROR_NONE;
-    }
-  };
-  class MockAclRuntime : public ge::AclRuntimeStub {
-    aclError aclrtGetMemInfo(aclrtMemAttr attr, size_t *free_size, size_t *total) {
+    aclError aclrtGetMemInfo(aclrtMemAttr attr, size_t *free_size, size_t *total) override {
       *free_size = 56UL * 1024UL * 1024UL;
       *total = 56UL * 1024UL * 1024UL * 1024UL;
       return ACL_SUCCESS;
     }
   };
 
-  auto mock_runtime = std::make_shared<MockRuntime>();
   auto mock_acl_runtime = std::make_shared<MockAclRuntime>();
-  ge::RuntimeStub::SetInstance(mock_runtime);
   ge::AclRuntimeStub::SetInstance(mock_acl_runtime);
   CachingMemAllocator allocator(0, RT_MEMORY_HBM);
   CachingMemAllocator allocator1(0, RT_MEMORY_HBM);
@@ -266,7 +251,6 @@ TEST_F(CacheMemoryAllocatorTest, test_allocate_mem_block_try_recycle_other_then_
   ASSERT_EQ(ge::GRAPH_SUCCESS, allocator.Finalize());
   mem_block1->Free();
   ASSERT_EQ(ge::GRAPH_SUCCESS, allocator1.Finalize());
-  ge::RuntimeStub::Reset();
   ge::AclRuntimeStub::Reset();
 }
 }  // namespace memory
