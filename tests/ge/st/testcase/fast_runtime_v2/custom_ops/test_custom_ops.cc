@@ -84,6 +84,13 @@ class TestCompilableCustomOp : public EagerExecuteOp, CompilableOp {
     return SUCCESS;
   }
   graphStatus Compile(OpCompileContext *ctx) override {
+    auto input_tensor0 = ctx->GetInputTensor(0);
+    GE_ASSERT_NOTNULL(input_tensor0);
+    auto input_shape0 = input_tensor0->GetShape().GetStorageShape();
+    GE_ASSERT_TRUE(input_shape0.GetDimNum() == 1);
+    GE_ASSERT_TRUE(input_shape0.GetDim(0) == 2048);
+    GE_ASSERT_TRUE(input_tensor0->GetDataType() == DT_FLOAT);
+    GE_ASSERT_TRUE(input_tensor0->GetStorageFormat() == FORMAT_ND);
     mock_compile_path_ = MockCompile();
     return SUCCESS;
   }

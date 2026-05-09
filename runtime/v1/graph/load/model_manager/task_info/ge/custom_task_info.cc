@@ -32,14 +32,17 @@ bool IsInputDescValid(const ge::GeTensorDesc &input_desc, size_t &invalid_index_
   return true;
 }
 
-void GetStorageShape(const ge::GeTensorDesc &input_desc, gert::StorageShape &storage_shape) {
-  const auto &dims = input_desc.GetShape().GetDims();
-  GELOGI("shape is %s", input_desc.GetShape().ToString().c_str());
-  for (const auto &dim : dims) {
-    (void)storage_shape.MutableOriginShape().AppendDim(dim);
+void GetStorageShape(const ge::GeTensorDesc &tensor_desc, gert::StorageShape &storage_shape) {
+  const auto &storage_dims = tensor_desc.GetShape().GetDims();
+  for (const auto &dim : storage_dims) {
     (void)storage_shape.MutableStorageShape().AppendDim(dim);
   }
+  const auto &origin_dims = tensor_desc.GetOriginShape().GetDims();
+  for (const auto &dim : origin_dims) {
+    (void)storage_shape.MutableOriginShape().AppendDim(dim);
+  }
 }
+
 // inputs layout is input tensors
 std::vector<void *> GetHoldersRawPtr(const std::vector<std::unique_ptr<uint8_t[]>> &holders) {
   std::vector<void *> holderRawPtr;

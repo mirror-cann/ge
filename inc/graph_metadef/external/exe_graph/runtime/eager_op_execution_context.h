@@ -12,7 +12,7 @@
 #define METADEF_CXX_INC_EXE_GRAPH_RUNTIME_EAGER_OP_EXECUTION_CONTEXT_H_
 
 #include <type_traits>
-#include "tensor.h"
+#include "graph/tensor.h"
 #include "exe_graph/runtime/extended_kernel_context.h"
 
 namespace gert {

@@ -13,6 +13,29 @@
 #include "platform/platform_info.h"
 
 namespace gert {
+const Tensor *OpCompileContext::GetInputTensor(size_t index) const {
+  const auto compute_node_info = GetComputeNodeInfo();
+  if (compute_node_info == nullptr) {
+    return nullptr;
+  }
+  if (index >= compute_node_info->GetInputsNum()) {
+    return nullptr;
+  }
+  return GetInputPointer<Tensor>(index);
+}
+
+const Tensor *OpCompileContext::GetRequiredInputTensor(size_t ir_index) const {
+  return GetDynamicInputPointer<Tensor>(ir_index, 0);
+}
+
+const Tensor *OpCompileContext::GetOptionalInputTensor(size_t ir_index) const {
+  return GetDynamicInputPointer<Tensor>(ir_index, 0);
+}
+
+const Tensor *OpCompileContext::GetDynamicInputTensor(size_t ir_index, size_t relative_index) const {
+  return GetDynamicInputPointer<Tensor>(ir_index, relative_index);
+}
+
 ge::graphStatus OpCompileContext::GetOption(const ge::AscendString &option_key, ge::AscendString &option) const {
   std::string option_str;
   const auto ret = ge::GetContext().GetOption(option_key.GetString(), option_str);
