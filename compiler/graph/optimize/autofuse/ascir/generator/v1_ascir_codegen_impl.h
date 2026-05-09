@@ -647,6 +647,7 @@ class ArgMaxAscIrCodegenImpl : public AscIrCodegen {
       "basic_api/kernel_operator_vec_brcb_intf.h",
       "adv_api/reduce/reduce.h",
       "basic_api/kernel_operator_vec_gather_mask_intf.h",
+      "basic_api/kernel_operator_vec_unary_intf.h",
     };
   }
 };
@@ -674,6 +675,7 @@ class ArgMaxMultiRPhase1AscIrCodegenImpl : public AscIrCodegen {
       "basic_api/kernel_operator_vec_brcb_intf.h",
       "basic_api/kernel_operator_vec_gather_mask_intf.h",
       "adv_api/reduce/reduce.h",
+      "basic_api/kernel_operator_vec_unary_intf.h",
     };
   }
 };
@@ -701,6 +703,7 @@ class ArgMaxMultiRPhase2AscIrCodegenImpl : public AscIrCodegen {
       "basic_api/kernel_operator_vec_binary_scalar_intf.h",
       "basic_api/kernel_operator_vec_brcb_intf.h",
       "basic_api/kernel_operator_vec_gather_mask_intf.h",
+      "basic_api/kernel_operator_vec_unary_intf.h",
     };
   }
 };
@@ -923,6 +926,7 @@ class GeAscIrCodegenImpl : public AscIrCodegen {
       "basic_api/kernel_operator_vec_binary_scalar_intf.h",
       "basic_api/kernel_operator_vec_duplicate_intf.h",
       "basic_api/kernel_operator_vec_reduce_intf.h",
+      "basic_api/kernel_operator_vec_unary_intf.h",
     };
   }
   [[nodiscard]] bool IsNodeValid(const ge::AscNode &node) const override {
@@ -965,6 +969,7 @@ class EqAscIrCodegenImpl : public AscIrCodegen {
       "basic_api/kernel_operator_vec_binary_scalar_intf.h",
       "basic_api/kernel_operator_vec_duplicate_intf.h",
       "basic_api/kernel_operator_vec_reduce_intf.h",
+      "basic_api/kernel_operator_vec_unary_intf.h",
     };
   }
   [[nodiscard]] bool IsNodeValid(const ge::AscNode &node) const override {
@@ -1006,6 +1011,7 @@ class NeAscIrCodegenImpl : public AscIrCodegen {
       "basic_api/kernel_operator_vec_binary_scalar_intf.h",
       "basic_api/kernel_operator_vec_duplicate_intf.h",
       "basic_api/kernel_operator_vec_reduce_intf.h",
+      "basic_api/kernel_operator_vec_unary_intf.h",
     };
   }
   [[nodiscard]] bool IsNodeValid(const ge::AscNode &node) const override {
@@ -1043,6 +1049,7 @@ class GtAscIrCodegenImpl : public AscIrCodegen {
       "basic_api/kernel_operator_vec_binary_scalar_intf.h",
       "basic_api/kernel_operator_vec_duplicate_intf.h",
       "basic_api/kernel_operator_vec_reduce_intf.h",
+      "basic_api/kernel_operator_vec_unary_intf.h",
     };
   }
   [[nodiscard]] bool IsNodeValid(const ge::AscNode &node) const override {
@@ -1080,6 +1087,7 @@ class LeAscIrCodegenImpl : public AscIrCodegen {
       "basic_api/kernel_operator_vec_binary_scalar_intf.h",
       "basic_api/kernel_operator_vec_duplicate_intf.h",
       "basic_api/kernel_operator_vec_reduce_intf.h",
+      "basic_api/kernel_operator_vec_unary_intf.h",
     };
   }
   [[nodiscard]] bool IsNodeValid(const ge::AscNode &node) const override {
@@ -1117,6 +1125,7 @@ class LtAscIrCodegenImpl : public AscIrCodegen {
       "basic_api/kernel_operator_vec_binary_scalar_intf.h",
       "basic_api/kernel_operator_vec_duplicate_intf.h",
       "basic_api/kernel_operator_vec_reduce_intf.h",
+      "basic_api/kernel_operator_vec_unary_intf.h",
     };
   }
   [[nodiscard]] bool IsNodeValid(const ge::AscNode &node) const override {
