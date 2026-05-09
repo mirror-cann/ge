@@ -19,6 +19,7 @@
 #include "common_utils.h"
 #include "common/ge_common/debug/log.h"
 #include "codegen_infershape.h"
+#include "common/platform_context.h"
 
 using namespace codegen;
 using namespace ascgen_utils;
@@ -39,7 +40,17 @@ std::string GetKernelTaskType(const ascir::FusedScheduledResult &schedule_result
   if (ascgen_utils::IsJustCubeFixpip(schedule_results)) {
     return kKernelTaskTypeAICOnly;
   } else if (ascgen_utils::IsCubeFusedScheduled(schedule_results)) {
-    return kKernelTaskTypeMixAICOneTwo;
+    if (ascgen_utils::IsConv2DFusedScheduled(schedule_results)) {
+      std::string npu_arch;
+      GE_ASSERT_SUCCESS(ge::PlatformContext::GetInstance().GetCurrentPlatformString(npu_arch));
+      if (npu_arch == "5102") {
+        return kKernelTaskTypeMixAICOneOne;
+      } else {
+        return kKernelTaskTypeMixAICOneTwo;
+      }
+    } else {
+      return kKernelTaskTypeMixAICOneTwo;
+    }
   }
   return schedule_results.workspace_nodes.size() != 0 ? kKernelTaskTypeMixAIVOneZero : kKernelTaskTypeAIVOnly;
 }
@@ -384,7 +395,7 @@ std::string Codegen::GenGetKernelAndJson(const std::string &kernel_path, const s
     ss << "  std::vector<uint8_t> temp_kernel = {};" << std::endl;
     ss << "  return;" << std::endl;
   } else {
-    ss << "  std::vector<uint8_t> temp_kernel = {";
+    ss << "  static const uint8_t temp_kernel[] = {";
     for (uint32_t i = 0; i < kernel_file_size; i++) {
       if (i % ELEMENTS_PER_LINE == 0) {
         ss << std::endl << "    ";
@@ -393,8 +404,8 @@ std::string Codegen::GenGetKernelAndJson(const std::string &kernel_path, const s
     }
     ss << "};" << std::endl;
 
-    ss << "  kernel_bin.resize(temp_kernel.size());" << std::endl;
-    ss << "  std::memcpy(kernel_bin.data(), temp_kernel.data(), temp_kernel.size() * sizeof(uint8_t));" << std::endl;
+    ss << "  kernel_bin.resize(sizeof(temp_kernel));" << std::endl;
+    ss << "  std::memcpy(kernel_bin.data(), temp_kernel, sizeof(temp_kernel));" << std::endl;
   }
   ss << "}";
   return ss.str();

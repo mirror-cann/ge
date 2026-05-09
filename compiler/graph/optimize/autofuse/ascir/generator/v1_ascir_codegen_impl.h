@@ -103,7 +103,7 @@ class LoadAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "Load";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"datacopy.h"};
   }
   std::vector<std::string> IncludeApiHeaderFiles() const override {
@@ -128,7 +128,7 @@ class BroadcastAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "Broadcast";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"duplicate.h", "broadcast.h"};
   }
   std::vector<std::string> IncludeApiHeaderFiles() const override {
@@ -167,7 +167,7 @@ class CastAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "Cast";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"cast.h"};
   }
   std::vector<std::string> IncludeApiHeaderFiles() const override {
@@ -198,7 +198,7 @@ class AbsAscIrCodegenImpl : public AscIrCodegen {
     (void) abs_node;
     return true;
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"abs.h"};
   }
   std::vector<std::string> IncludeApiHeaderFiles() const override {
@@ -251,7 +251,7 @@ class RemovePadAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "RemovePad";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"removepad.h"};
   }
   std::vector<std::string> IncludeApiHeaderFiles() const override {
@@ -357,7 +357,7 @@ class RsqrtAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "RsqrtExtend";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"rsqrt.h"};
   }
   bool IsInplaceSupported(const ge::AscNode &rsqrt_node) const override {
@@ -443,7 +443,7 @@ class ReciprocalAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "ReciprocalExtend";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"reciprocal.h"};
   }
   bool IsInplaceSupported(const ge::AscNode &reciprocal_node) const override {
@@ -476,7 +476,7 @@ class SignAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "SignExtend";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"cast.h", "sign.h"};
   }
   std::vector<std::string> IncludeApiHeaderFiles() const override {
@@ -506,7 +506,7 @@ class IsnanAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "IsnanExtend";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"isnan.h"};
   }
   std::vector<std::string> IncludeApiHeaderFiles() const override {
@@ -537,7 +537,7 @@ class IsFiniteAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "IsFiniteExtend";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"isfinite.h"};
   }
   std::vector<std::string> IncludeApiHeaderFiles() const override {
@@ -569,7 +569,7 @@ class LogicalNotAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "LogicalNot";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"logical_not.h"};
   }
   bool IsInplaceSupported(const ge::AscNode &not_node) const override {
@@ -603,7 +603,7 @@ class MaxAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "Max";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"reduce_init.h", "reduce.h"};
   }
   std::vector<std::string> IncludeApiHeaderFiles() const override {
@@ -635,7 +635,7 @@ class ArgMaxAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "ArgMax";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"reduce_init.h", "reduce.h", "argmax.h", "compare.h", "compare_v2.h", "duplicate.h", "where.h", "argmax_with_value.h"};
   }
   std::vector<std::string> IncludeApiHeaderFiles() const override {
@@ -662,7 +662,7 @@ class ArgMaxMultiRPhase1AscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "ArgMaxMultiRPhase1";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"reduce_init.h", "reduce.h", "argmax.h", "compare.h", "compare_v2.h", "duplicate.h", "where.h", "argmax_with_value.h"};
   }
   std::vector<std::string> IncludeApiHeaderFiles() const override {
@@ -689,7 +689,7 @@ class ArgMaxMultiRPhase2AscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "ArgMaxMultiRPhase2";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"reduce_init.h", "reduce.h", "argmax.h", "compare.h", "compare_v2.h", "duplicate.h", "where.h", "argmax_with_value.h"};
   }
   std::vector<std::string> IncludeApiHeaderFiles() const override {
@@ -716,7 +716,7 @@ class SumAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "Sum";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"reduce_init.h", "reduce.h"};
   }
   std::vector<std::string> IncludeApiHeaderFiles() const override {
@@ -748,7 +748,7 @@ class MinAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "Min";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"reduce_init.h", "reduce.h"};
   }
   std::vector<std::string> IncludeApiHeaderFiles() const override {
@@ -780,7 +780,7 @@ class MeanAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "Mean";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"reduce_init.h", "reduce.h"};
   }
   std::vector<std::string> IncludeApiHeaderFiles() const override {
@@ -812,7 +812,7 @@ class ProdAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "Prod";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"reduce_init.h", "reduce.h"};
   }
   std::vector<std::string> IncludeApiHeaderFiles() const override {
@@ -844,7 +844,7 @@ class AnyAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "Any";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"reduce_init.h", "reduce.h"};
   }
   std::vector<std::string> IncludeApiHeaderFiles() const override {
@@ -876,7 +876,7 @@ class AllAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "All";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"reduce_init.h", "reduce.h"};
   }
   std::vector<std::string> IncludeApiHeaderFiles() const override {
@@ -908,7 +908,7 @@ class GeAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "GE";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"compare.h", "compare_v2.h"};
   }
   bool IsScalarInputSupported(const std::vector<bool> &is_scalar_list) const override {
@@ -953,7 +953,7 @@ class EqAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "EQ";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"compare.h", "compare_v2.h"};
   }
   std::vector<std::string> IncludeApiHeaderFiles() const override {
@@ -987,7 +987,7 @@ class NeAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "NE";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"compare.h", "compare_v2.h"};
   }
   bool IsScalarInputSupportedIfExchangeInputs(const std::vector<bool> &is_scalar_list) const override {
@@ -1028,7 +1028,7 @@ class GtAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "GT";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"compare.h", "compare_v2.h"};
   }
   bool IsScalarInputSupported(const std::vector<bool> &is_scalar_list) const override {
@@ -1065,7 +1065,7 @@ class LeAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "LE";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"compare.h", "compare_v2.h"};
   }
   bool IsScalarInputSupported(const std::vector<bool> &is_scalar_list) const override {
@@ -1102,7 +1102,7 @@ class LtAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "LT";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"compare.h", "compare_v2.h"};
   }
   bool IsScalarInputSupported(const std::vector<bool> &is_scalar_list) const override {
@@ -1139,7 +1139,7 @@ class SigmoidAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "SigmoidExtend";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"sigmoid.h"};
   }
   std::vector<std::string> IncludeApiHeaderFiles() const override {
@@ -1191,7 +1191,7 @@ class DivAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "Div";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"scalar_div.h"};
   }
 
@@ -1232,7 +1232,7 @@ class SubAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "Sub";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"scalar_sub.h"};
   }
 
@@ -1270,7 +1270,7 @@ class AddAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "Add";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"scalar_add.h"};
   }
   bool IsBrcInlineSupported(const ge::AscNode &node) const override {
@@ -1309,7 +1309,7 @@ class MulAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "Mul";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"scalar_mul.h"};
   }
   bool IsScalarInputSupported(const std::vector<bool> &is_scalar_list) const override {
@@ -1351,7 +1351,7 @@ class TrueDivAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "TrueDivExtend";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"scalar_div.h", "true_div.h"};
   }
   bool IsScalarInputSupported(const std::vector<bool> &is_scalar_list) const override {
@@ -1384,7 +1384,7 @@ class RemainderAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "RemainderExtend";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"remainder.h"};
   }
   std::vector<std::string> IncludeApiHeaderFiles() const override {
@@ -1412,7 +1412,7 @@ class MinimumAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "AscendC::Min";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"scalar_minimum.h"};
   }
   bool IsScalarInputSupported(const std::vector<bool> &is_scalar_list) const override {
@@ -1451,7 +1451,7 @@ class MaximumAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "AscendC::Max";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"scalar_maximum.h"};
   }
   bool IsScalarInputSupported(const std::vector<bool> &is_scalar_list) const override {
@@ -1494,7 +1494,7 @@ class WhereAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "Where";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"duplicate.h", "where.h"};
   }
   bool IsScalarInputSupported(const std::vector<bool> &is_scalar_list) const override {
@@ -1531,7 +1531,7 @@ class SelectAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "Select";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"duplicate.h", "where.h"};
   }
   bool IsScalarInputSupported(const std::vector<bool> &is_scalar_list) const override {
@@ -1594,7 +1594,7 @@ class ClipByValueAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "ClipByValue";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"clipbyvalue.h"};
   }
   bool IsScalarInputSupported(const std::vector<bool> &is_scalar_list) const override {
@@ -1624,7 +1624,7 @@ class StoreAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "Store";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"datacopy.h"};
   }
   std::vector<std::string> IncludeApiHeaderFiles() const override {
@@ -1648,7 +1648,7 @@ class ConcatAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "Concat";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"concat.h"};
   }
   std::vector<std::string> IncludeApiHeaderFiles() const override {
@@ -1675,7 +1675,7 @@ class GatherAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "GatherExtend";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"gather.h"};
   }
   std::vector<std::string> IncludeApiHeaderFiles() const override {
@@ -1707,7 +1707,7 @@ class TransposeAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "Transpose";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"transpose_base_type.h", "transpose.h"};
   }
   std::vector<std::string> IncludeApiHeaderFiles() const override {
@@ -1811,7 +1811,7 @@ class LogicalOrAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "LogicalOr";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"logical.h"};
   }
   bool IsScalarInputSupportedIfExchangeInputs(const std::vector<bool> &is_scalar_list) const override {
@@ -1847,7 +1847,7 @@ class LogicalAndAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "LogicalAnd";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"logical.h"};
   }
   bool IsScalarInputSupported(const std::vector<bool> &is_scalar_list) const override {
@@ -1884,7 +1884,7 @@ class BitwiseAndAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "BitwiseAndExtend";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"bitwise_and.h"};
   }
   std::vector<std::string> IncludeApiHeaderFiles() const override {
@@ -1913,7 +1913,7 @@ class FloorDivAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "FloorDivExtend";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"floor_div.h"};
   }
   std::vector<std::string> IncludeApiHeaderFiles() const override {
@@ -1944,7 +1944,7 @@ class PowAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "Pow";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"pow.h"};
   }
   bool IsScalarInputSupported(const std::vector<bool> &is_scalar_list) const override {
@@ -1975,7 +1975,7 @@ class AxpyAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "AxpyExtend";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"axpy.h"};
   }
   bool IsInplaceSupported(const ge::AscNode &axpy_node) const override {
@@ -2006,11 +2006,18 @@ class MatMulAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "MatMul";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
-    return {"mat_mul_tiling_key.h",
-            "matmul_include_headers.h",
-            "mat_mul_pingpong_basic_cmct.h",
-            "matmul.h"};
+  std::vector<std::string> LoadApiHeaderFiles(bool is_dynamic) const override {
+    if (is_dynamic) {
+      return {"mat_mul_tiling_key_dynamic.h",
+              "matmul_include_headers.h",
+              "mat_mul_pingpong_basic_cmct_dynamic.h",
+              "matmul_dynamic.h"};
+    } else {
+      return {"mat_mul_tiling_key.h",
+              "matmul_include_headers.h",
+              "mat_mul_pingpong_basic_cmct.h",
+              "matmul.h"};
+    }
   }
   std::vector<std::string> IncludeApiHeaderFiles() const override {
     return {
@@ -2035,11 +2042,18 @@ class BatchMatMulAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "BatchMatMul";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
-    return {"batch_mat_mul_v3_tiling_key.h",
-            "batch_matmul_include_headers.h",
-            "mat_mul_pingpong_basic_cmct.h",
-            "batch_matmul.h"};
+  std::vector<std::string> LoadApiHeaderFiles(bool is_dynamic) const override {
+    if (is_dynamic) {
+      return {"batch_mat_mul_v3_tiling_key_dynamic.h",
+              "batch_matmul_include_headers.h",
+              "mat_mul_pingpong_basic_cmct_dynamic.h",
+              "batch_matmul_dynamic.h"};
+    } else {
+      return {"batch_mat_mul_v3_tiling_key.h",
+              "batch_matmul_include_headers.h",
+              "mat_mul_pingpong_basic_cmct.h",
+              "batch_matmul.h"};
+    }
   }
   std::vector<std::string> IncludeApiHeaderFiles() const override {
     return {
@@ -2064,9 +2078,9 @@ class Conv2DAscIrCodegenImpl : public AscIrCodegen {
   std::string GetApiName() const override {
     return "Conv2D";
   }
-  std::vector<std::string> LoadApiHeaderFiles() const override {
+  std::vector<std::string> LoadApiHeaderFiles([[maybe_unused]] bool is_dynamic) const override {
     return {"conv2d_include_headers.h",
-            "conv2d_v2_tilingkey.h",
+            "conv2d_v2_tilingkey_cv.h",
             "conv_pingpong_basic_atcos.h",
             "conv2d.h"};
   }

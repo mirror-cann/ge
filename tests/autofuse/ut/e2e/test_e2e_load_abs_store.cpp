@@ -273,10 +273,10 @@ extern "C" ge::graphStatus TilingFunc(gert::TilingSymbolEvalContext *context)
   auto extend_context = reinterpret_cast<const gert::KernelContext *>(context);
   auto input_data_num =  extend_context->GetInputValue<size_t>(0U);
   auto parse = extend_context->GetInputValue<AfTilingParseData*>(input_data_num + 1);
-  auto tiling_data =  context->GetTilingData<AutofuseTilingData>();
   uint32_t workspace_size;
   uint32_t block_dim;
   static const char* config_file = nullptr;
+  auto tiling_data =  context->GetTilingData<AutofuseTilingData>();
   ResLimit limit;
   limit.aiv_num = parse->aiv_num;
   limit.ub_size = (uint32_t)parse->ub_size;
@@ -1568,10 +1568,10 @@ extern "C" ge::graphStatus TilingFunc(gert::TilingSymbolEvalContext *context)
   auto extend_context = reinterpret_cast<const gert::KernelContext *>(context);
   auto input_data_num =  extend_context->GetInputValue<size_t>(0U);
   auto parse = extend_context->GetInputValue<AfTilingParseData*>(input_data_num + 1);
-  auto tiling_data =  context->GetTilingData<AutofuseTilingData>();
   uint32_t workspace_size;
   uint32_t block_dim;
   static const char* config_file = "/test_graph_config.txt";
+  auto tiling_data =  context->GetTilingData<AutofuseTilingData>();
   ResLimit limit;
   limit.aiv_num = parse->aiv_num;
   limit.ub_size = (uint32_t)parse->ub_size;

@@ -76,6 +76,7 @@ graphStatus CreateConvSubgraphAttr(const NodePtr &node, vector<const Node *> &co
         conv_input_desc->SetFormat(data_format); // 2.conv节点的输入更新为与输出一致（filter输入会不一样，单算子执行时tiling会校验这个format一致）
         const auto new_shape = TransferShapeBetweenHwcnNchw(conv_input_desc->GetShape(), old_format, data_format);
         conv_input_desc->SetShape(new_shape);
+        conv_input_desc->SetOriginShape(new_shape);
         const auto &src_anchor = node->GetInDataAnchor(i);
         GE_ASSERT_NOTNULL(src_anchor);
         auto peer_anchor = src_anchor->GetPeerOutAnchor();

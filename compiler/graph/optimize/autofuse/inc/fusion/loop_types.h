@@ -95,7 +95,6 @@ inline typename std::enable_if<std::is_integral<T>::value && !std::is_same<T, bo
 StrJoin(const std::vector<T> &vec, const std::string &sep = ", ") {
   return StrJoin(vec, [](const T &s) { return std::to_string(s); }, sep);
 }
-
 }  // namespace loop
 }  // namespace ge
 

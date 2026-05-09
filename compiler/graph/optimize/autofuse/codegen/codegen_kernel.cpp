@@ -1143,8 +1143,12 @@ Status TPipe::InitTQueBuffers(const TQue &que, std::string &result) const {
   std::string blk_align;
   GE_CHK_STATUS_RET(KernelUtils::BlkAlign(ge::DT_UINT8, blk_align), "Codegen blk align failed");
   if (this->cv_fusion_type == ascir::CubeTemplateType::kUBFuse || !using_att_calc_qbt_size_) {
-    ss << this->name << "."
-       << "InitBuffer(" << que << ", " << que.buf_num << ", " << blk_align << "(" << que.size << "));";
+    if (using_global_tpipe_) {
+      ss << "GetTPipePtr()->InitBuffer(" << que << ", " << que.buf_num << ", " << blk_align << "(" << que.size << "));";
+    } else {
+      ss << this->name << "."
+         << "InitBuffer(" << que << ", " << que.buf_num << ", " << blk_align << "(" << que.size << "));";
+    }
   } else {
     ss << "// ";
     ss << this->name << "."
@@ -1161,8 +1165,11 @@ Status TPipe::InitTBufBuffer(const TBuf &buf, std::string &result) const {
   std::string blk_align;
   GE_CHK_STATUS_RET(KernelUtils::BlkAlign(ge::DT_UINT8, blk_align), "Codegen blk align failed");
   if (this->cv_fusion_type == ascir::CubeTemplateType::kUBFuse || !using_att_calc_qbt_size_) {
-    ss << this->name << "."
-       << "InitBuffer(" << buf << ", " << blk_align << "(" << buf.size << "));";
+    if (using_global_tpipe_) {
+      ss << "GetTPipePtr()->InitBuffer(" << buf << ", " << blk_align << "(" << buf.size << "));";
+    } else {
+      ss << this->name << "." << "InitBuffer(" << buf << ", " << blk_align << "(" << buf.size << "));";
+    }
   } else {
     ss << "// ";
     ss << this->name << "."
@@ -1369,8 +1376,13 @@ Status TPipe::BlkTensorAllocAndInit(std::string &result) const {
     std::string scalar_t_buf_name = tensor_ptr->name + "_tbuf";
     std::string scalar_local_blk_tensor_name = "local_blk_tensor_of_" + tensor_ptr->name;
     ss << "TBuf<TPosition::VECCALC> " << scalar_t_buf_name << ";" << std::endl;
-    ss << "tpipe.InitBuffer(" << scalar_t_buf_name << ", 32);" << std::endl;
-    ss << "LocalTensor<" << tensor_ptr->type << "> " << scalar_local_blk_tensor_name << " = " << scalar_t_buf_name << ".Get<" << tensor_ptr->type << ">();" << std::endl;
+    if (using_global_tpipe_) {
+      ss << "GetTPipePtr()->InitBuffer(" << scalar_t_buf_name << ", 32);" << std::endl;
+    } else {
+      ss << "tpipe.InitBuffer(" << scalar_t_buf_name << ", 32);" << std::endl;
+    }
+    ss << "LocalTensor<" << tensor_ptr->type << "> " << scalar_local_blk_tensor_name << " = " << scalar_t_buf_name
+       << ".Get<" << tensor_ptr->type << ">();" << std::endl;
 
     ss << "Duplicate(" << scalar_local_blk_tensor_name << "[0], static_cast<" << tensor_ptr->type
        << ">(" << tensor_ptr->const_value << "), static_cast<uint64_t>(32/"
@@ -1387,7 +1399,11 @@ std::string TPipe::GenDuplicateBufAlloc(const std::set<std::pair<std::string, st
   for (auto [const_val, const_dtype] : pre_api_extract_dup) {
     const std::string index_str = std::to_string(i);
     ss << "TBuf<TPosition::VECCALC> builtin_tmp_buffer_" << index_str << ";" << std::endl;
-    ss << "tpipe.InitBuffer(builtin_tmp_buffer_" << index_str << ", ONE_BLK_SIZE);" << std::endl;
+    if (using_global_tpipe_) {
+      ss << "GetTPipePtr()->InitBuffer(builtin_tmp_buffer_" << index_str << ", ONE_BLK_SIZE);" << std::endl;
+    } else {
+      ss << "tpipe.InitBuffer(builtin_tmp_buffer_" << index_str << ", ONE_BLK_SIZE);" << std::endl;
+    }
     ss << "LocalTensor<uint8_t> builtin_tmp_buf_" << index_str << " = builtin_tmp_buffer_" << index_str <<
         ".Get<uint8_t>();" << std::endl;
     std::string local_tensor_name = "local_blk_tensor_of_" + const_dtype + "_" + const_val;
@@ -1580,6 +1596,10 @@ Status TPipe::CollectQues(const ascir::ImplGraph &graph) {
 
 void TPipe::SetUsingAttCalcQBTSizeConfig(bool using_att_calc_qbt_size) {
   using_att_calc_qbt_size_ = using_att_calc_qbt_size;
+}
+
+void TPipe::SetUsingGlobalTpipe(bool using_global_tpipe) {
+  using_global_tpipe_ = using_global_tpipe;
 }
 
 Kernel::Kernel(const std::string &kernel_name)
@@ -2112,11 +2132,19 @@ std::string Kernel::IncludeAndDefines(const ascir::FusedScheduledResult &fused_s
 
 std::string Kernel::KernelFuncDeclare(const std::string &graph_name,
                                       const ascir::FusedScheduledResult &fused_schedule_result, bool use_list_tensor,
-                                      bool is_inductor) {
+                                      bool is_inductor, bool is_conv2d) {
   std::stringstream ss;
   if (ascgen_utils::IsCubeFusedScheduled(fused_schedule_result)) {
-    ss << "template <int8_t API_LEVEL, int8_t A_TRANS, int8_t B_TRANS, int8_t BATCH_MODEL, int8_t MODEL, int8_t "
-          "FULL_LOAD, int8_t L0C2OUT_MODEL>" << std::endl;
+    if (is_conv2d) {
+      ss << "template<int8_t FmapTiling, int8_t WeightTiling, int8_t L1PingPong, int8_t L0PingPong, int8_t "
+            "OutputOrder, int8_t IterOrder, int8_t GroupType, int8_t EnableSmallChannel, int8_t WeightUbTrans, int8_t "
+            "FmapCopyMode, int8_t InnerBatch, int8_t DisContinuous > "
+         << std::endl;
+    } else {
+      ss << "template <int8_t API_LEVEL, int8_t A_TRANS, int8_t B_TRANS, int8_t BATCH_MODEL, int8_t MODEL, int8_t "
+            "FULL_LOAD, int8_t L0C2OUT_MODEL>"
+         << std::endl;
+    }
     const char *flags[] = {"__global__", "__aicore__"};
     for (auto flag : flags) {
       ss << flag << " ";
@@ -2127,13 +2155,10 @@ std::string Kernel::KernelFuncDeclare(const std::string &graph_name,
       ss << flag << " ";
     }
   }
-  const char *return_type = "void";
-  ss << return_type << " ";
-  ss << CamelToLowerSneak(graph_name) << "(";
+  ss << "void " << CamelToLowerSneak(graph_name) << "(";
 
   if (use_list_tensor) {
-    ss << GM_ADDR("inputs").AsArg() << ", ";
-    ss << GM_ADDR("outputs").AsArg() << ", ";
+    ss << GM_ADDR("inputs").AsArg() << ", " << GM_ADDR("outputs").AsArg() << ", ";
   } else {
     for (auto &input : fused_schedule_result.input_nodes) {
       if (IsOps<ScalarData>(input)) {
@@ -2230,7 +2255,8 @@ Status Kernel::GenSingleGroupKernelWithRegTilingKey(const ascir::FusedScheduledR
     kernel.SetUseListTensor(use_list_tensor);
     GE_CHK_STATUS_RET(Kernel::ParseGraph(schedule_graphs[i], fused_schedule_result, kernel),
                       "Codegen parse graph failed");
-    GE_CHK_STATUS_RET(kernel.GenerateKernelByNode(schedule_graphs[i], ss, kernel_file_ptr));
+    auto is_dynamic = !IsStaticSchedResult(fused_schedule_result);
+    GE_CHK_STATUS_RET(kernel.GenerateKernelByNode(schedule_graphs[i], ss, kernel_file_ptr, is_dynamic));
     std::string tmp;
     GE_CHK_STATUS_RET(kernel.Generate(schedule_graphs[i].GetName(), tiling_data_type, tmp, schedule_graphs[i]),
                       "Codegen generate kernel for %s failed", schedule_graphs[i].GetName().c_str());
@@ -2281,9 +2307,12 @@ Status Kernel::GenMulGroupKernelWithRegTilingKey(const ascir::FusedScheduledResu
           kernel.tpipe.cv_fusion_type = cv_fusion_type;
           GE_CHK_STATUS_RET(Kernel::ParseGraph(schedule_graphs[k], fused_schedule_result, kernel),
                             "Codegen parse graph failed");
-          GE_CHK_STATUS_RET(kernel.GenerateKernelByNode(schedule_graphs[k], ss, kernel_file_ptr));
+          auto is_dynamic = !IsStaticSchedResult(fused_schedule_result);
+          GE_CHK_STATUS_RET(kernel.GenerateKernelByNode(schedule_graphs[k], ss, kernel_file_ptr, is_dynamic));
           if (IsCVFusionUBGraph(schedule_graphs[k], cv_fusion_type)) {
-            GE_CHK_STATUS_RET(kernel.GenerateVecFuncOfCVFusion(ss, vector_no_db_flag), "Gen CV fusion Func failed");
+            GE_CHK_STATUS_RET(
+                kernel.GenerateVecFuncOfCVFusion(ss, vector_no_db_flag, IsConv2DFusedScheduled(fused_schedule_result)),
+                "Gen CV fusion Func failed");
           } else {
             std::string tmp;
             GE_CHK_STATUS_RET(kernel.Generate(schedule_graphs[k].GetName(), tiling_data, tmp, schedule_graphs[k]),
@@ -2339,7 +2368,8 @@ Status Kernel::GenSingleGroupKernelWithParseTilingData(const ascir::FusedSchedul
     kernel.tiler.SetTilingCaseId(i);
     GE_CHK_STATUS_RET(Kernel::ParseGraph(schedule_graphs[i], fused_schedule_result, kernel),
                       "Codegen parse graph failed");
-    GE_CHK_STATUS_RET(kernel.GenerateKernelByNode(schedule_graphs[i], ss, kernel_file_ptr));
+    auto is_dynamic = !IsStaticSchedResult(fused_schedule_result);
+    GE_CHK_STATUS_RET(kernel.GenerateKernelByNode(schedule_graphs[i], ss, kernel_file_ptr, is_dynamic));
     std::string tmp;
     GE_CHK_STATUS_RET(kernel.Generate(schedule_graphs[i].GetName(), "AutofuseTilingData", tmp, schedule_graphs[i]),
                       "Codegen generate kernel for %s failed", schedule_graphs[i].GetName().c_str());
@@ -2373,7 +2403,9 @@ Status Kernel::GenCubeCommonFuncForScheduleGroup(const ascir::FusedScheduledResu
     kernel.tpipe.cv_fusion_type = cv_fusion_type;
     GE_CHK_STATUS_RET(Kernel::ParseGraph(schedule_graphs[k], fused_schedule_result, kernel),
                       "Codegen parse graph failed");
-    GE_CHK_STATUS_RET(kernel.GenerateKernelByNode(schedule_graphs[k], ss, kernel_file_ptr), "Gen api headers failed");
+    auto is_dynamic = !IsStaticSchedResult(fused_schedule_result);
+    GE_CHK_STATUS_RET(kernel.GenerateKernelByNode(schedule_graphs[k], ss, kernel_file_ptr, is_dynamic),
+                      "Gen api headers failed");
 
     if (ascgen_utils::IsCubeType(schedule_graphs[k])) {
       res_ss << kernel.GenCubeCommonTilingSingleFuncCall(schedule_graphs[k]);
@@ -2535,7 +2567,8 @@ Status Kernel::GenMulGroupKernelWithParseTilingData(const ascir::FusedScheduledR
         kernel.tpipe.cv_fusion_type = cv_fusion_type;
         GE_CHK_STATUS_RET(Kernel::ParseGraph(schedule_graphs[k], fused_schedule_result, kernel),
                           "Codegen parse graph failed");
-        GE_CHK_STATUS_RET(kernel.GenerateKernelByNode(schedule_graphs[k], ss, kernel_file_ptr),
+        auto is_dynamic = !IsStaticSchedResult(fused_schedule_result);
+        GE_CHK_STATUS_RET(kernel.GenerateKernelByNode(schedule_graphs[k], ss, kernel_file_ptr, is_dynamic),
                           "Gen api headers failed");
 
         std::string filed_name = "t.graph" + std::to_string(graph_id) + "_result" + std::to_string(i) + "_g" +
@@ -2544,7 +2577,9 @@ Status Kernel::GenMulGroupKernelWithParseTilingData(const ascir::FusedScheduledR
         if (ascgen_utils::IsCubeType(schedule_graphs[k])) {
           func_calls.emplace_back(kernel.GenCubeTilingFuncCall(schedule_graphs[k]));
         } else if (cv_fusion_type == ascir::CubeTemplateType::kUBFuse) {
-          GE_CHK_STATUS_RET(kernel.GenerateVecFuncOfCVFusion(ss, vector_no_db_flag), "Gen CV fusion Func failed");
+          GE_CHK_STATUS_RET(
+              kernel.GenerateVecFuncOfCVFusion(ss, vector_no_db_flag, IsConv2DFusedScheduled(fused_schedule_result)),
+              "Gen CV fusion Func failed");
           GE_CHK_STATUS_RET(kernel.InitCVFusionAddr(ss1, vector_no_db_flag), "Init CV Fusion Addr failed");
           vector_no_db_flag = false;  // 和schedule约定，不开db的vector在前面
           continue;
@@ -2609,21 +2644,28 @@ int64_t Kernel::GetMaxGroupPerCompileUnit(bool enable_parallel_compile) {
   return max_group_per_compile_unit;
 }
 
-ge::Status Kernel::GenCubeCommonTiling(std::stringstream &ss, const bool is_batch) const {
-  if (is_batch) {
-    ss << "  batch_mat_mul_v3<";
+ge::Status Kernel::GenCubeCommonTiling(std::stringstream &ss, const bool is_batch, bool is_conv2d) const {
+  if (is_conv2d) {
+    // conv2d
+    ss << "AscendC::TPipe pipe;" << std::endl;
+    ss << "  conv2d_v2<";
+    ss << "FmapTiling, WeightTiling, L1PingPong, L0PingPong, OutputOrder, IterOrder, GroupType, EnableSmallChannel, "
+          "WeightUbTrans, FmapCopyMode, InnerBatch, DisContinuous>(";
   } else {
-    ss << "  mat_mul_v3<";
+    if (is_batch) {
+      ss << "  batch_mat_mul_v3<";
+    } else {
+      ss << "  mat_mul_v3<";
+    }
+    ss << "API_LEVEL, A_TRANS, B_TRANS, BATCH_MODEL, MODEL, FULL_LOAD, L0C2OUT_MODEL>(";
   }
-
-  ss << "API_LEVEL, A_TRANS, B_TRANS, BATCH_MODEL, MODEL, FULL_LOAD, L0C2OUT_MODEL>(";
   return ge::SUCCESS;
 }
 
 std::string Kernel::GenCubeTilingSingleFuncCall(const bool is_batch, const bool is_cv_fuse, bool is_bias,
-                                                bool is_offset_w) const {
+                                                bool is_offset_w, bool is_conv2d) const {
   std::stringstream ss;
-  GE_CHK_STATUS(GenCubeCommonTiling(ss, is_batch), "GenCubeCommonTilingHead failed");
+  GE_CHK_STATUS(GenCubeCommonTiling(ss, is_batch, is_conv2d), "GenCubeCommonTilingHead failed");
 
   if (use_list_tensor_) {
     ss << kInputTensorDescName << ", " << kOutputTensorDescName << ", ";
@@ -2655,11 +2697,20 @@ std::string Kernel::GenCubeTilingSingleFuncCall(const bool is_batch, const bool 
 }
 
 std::string Kernel::GenCubeCommonTilingSingleFuncCall(const ascir::ImplGraph &impl_graph) const {
-  auto is_batch = ascgen_utils::IsCubeTypeWithBatch(impl_graph);
-  auto has_bias = ascgen_utils::IsCubeTypeWithBias(impl_graph);
-  auto has_offset_w = ascgen_utils::IsCubeTypeWithOffsetW(impl_graph);
+  bool is_batch = false;
+  bool has_bias = false;
+  bool has_offset_w = false;
+  bool is_conv2d = IsConv2DGraphType(impl_graph);
+  if (is_conv2d) {
+    has_bias = ascgen_utils::IsConv2DTypeWithBias(impl_graph);
+    has_offset_w = ascgen_utils::IsConv2DTypeWithOffsetW(impl_graph);
+  } else {
+    is_batch = ascgen_utils::IsMatMulTypeWithBatch(impl_graph);
+    has_bias = ascgen_utils::IsMatMulTypeWithBias(impl_graph);
+    has_offset_w = ascgen_utils::IsMatMulTypeWithOffsetW(impl_graph);
+  }
   std::stringstream ss;
-  GE_CHK_STATUS(GenCubeCommonTiling(ss, is_batch), "GenCubeCommonTilingHead failed");
+  GE_CHK_STATUS(GenCubeCommonTiling(ss, is_batch, is_conv2d), "GenCubeCommonTilingHead failed");
   if (use_list_tensor_) {
     ss << kInputTensorDescName << ", " << kOutputTensorDescName << ", ";
   } else {
@@ -2691,14 +2742,23 @@ std::string Kernel::GenCubeCommonTilingSingleFuncCall(const ascir::ImplGraph &im
 }
 
 std::string Kernel::GenCubeTilingFuncCall(const ascir::ImplGraph &impl_graph) const {
-  auto is_batch = ascgen_utils::IsCubeTypeWithBatch(impl_graph);
-  auto is_bias = ascgen_utils::IsCubeTypeWithBias(impl_graph);
-  auto is_offset_w = ascgen_utils::IsCubeTypeWithOffsetW(impl_graph);
+  bool is_batch = false;
+  bool is_bias = false;
+  bool is_offset_w = false;
+  bool is_conv2d = IsConv2DGraphType(impl_graph);
+  if (is_conv2d) {
+    is_bias = ascgen_utils::IsConv2DTypeWithBias(impl_graph);
+    is_offset_w = ascgen_utils::IsConv2DTypeWithOffsetW(impl_graph);
+  } else {
+    is_batch = ascgen_utils::IsMatMulTypeWithBatch(impl_graph);
+    is_bias = ascgen_utils::IsMatMulTypeWithBias(impl_graph);
+    is_offset_w = ascgen_utils::IsMatMulTypeWithOffsetW(impl_graph);
+  }
   std::stringstream ss;
   ss << "#ifdef CV_UB_FUSION" << std::endl;
-  ss << GenCubeTilingSingleFuncCall(is_batch, true, is_bias, is_offset_w);
+  ss << GenCubeTilingSingleFuncCall(is_batch, true, is_bias, is_offset_w, is_conv2d);
   ss << "#else" << std::endl;
-  ss << GenCubeTilingSingleFuncCall(is_batch, false, is_bias, is_offset_w);
+  ss << GenCubeTilingSingleFuncCall(is_batch, false, is_bias, is_offset_w, is_conv2d);
   ss << "#endif" << std::endl;
   return ss.str();
 }
@@ -2709,12 +2769,14 @@ Status Kernel::GenKernelFuncByTilingKey(const ascir::FusedScheduledResult &fused
   std::stringstream ss1;
   std::string graph_name = GenValidName(fused_schedule_result.fused_graph_name.GetString());
   if (config.is_inductor) {
-    ss1 << Kernel::KernelFuncDeclare(graph_name, fused_schedule_result, use_list_tensor, config.is_inductor) << " {"
-        << std::endl;
+    ss1 << Kernel::KernelFuncDeclare(graph_name, fused_schedule_result, use_list_tensor, config.is_inductor,
+                                     IsConv2DFusedScheduled(fused_schedule_result))
+        << " {" << std::endl;
     ss1 << "    KERNEL_TASK_TYPE_DEFAULT(" << kernel_task_type << ");" << std::endl;
   } else {
-    ss1 << Kernel::KernelFuncDeclare(graph_name, fused_schedule_result, use_list_tensor, config.is_inductor) << " {"
-        << std::endl;
+    ss1 << Kernel::KernelFuncDeclare(graph_name, fused_schedule_result, use_list_tensor, config.is_inductor,
+                                     IsConv2DFusedScheduled(fused_schedule_result))
+        << " {" << std::endl;
     if (!ascgen_utils::IsCubeFusedScheduled(fused_schedule_result)) {
       ss1 << "  REGISTER_TILING_DEFAULT(" << "AutofuseTilingData);" << std::endl;
       if (IsEmptyTensorSence(fused_schedule_result)) {
@@ -2917,7 +2979,8 @@ Status Kernel::GenerateMacro(stringstream &ss) {
 }
 
 Status Kernel::GenerateKernelByNode(const ascir::ImplGraph &graph, stringstream &ss,
-                                    std::unordered_set<const std::string *> &kernel_file_ptr) {
+                                    std::unordered_set<const std::string *> &kernel_file_ptr,
+                                    bool is_dynamic) {
   GE_CHK_STATUS_RET(GenerateMacro(ss), "Generate Macro failed");
   std::string npu_arch;
   GE_ASSERT_SUCCESS(ge::PlatformContext::GetInstance().GetCurrentPlatformString(npu_arch));
@@ -2929,7 +2992,7 @@ Status Kernel::GenerateKernelByNode(const ascir::ImplGraph &graph, stringstream 
   for (const auto &node : graph.GetAllNodes()) {
     auto impl = ascgen_utils::GetAscIrCodegenImpl(node->GetType());
     GE_ASSERT_NOTNULL(impl, "GetAscIrCodegenImpl of node %s[%s] is null", node->GetTypePtr(), node->GetNamePtr());
-    for (const auto &header_str : impl->LoadApiHeaderFiles()) {
+    for (const auto &header_str : impl->LoadApiHeaderFiles(is_dynamic)) {
       const auto &file = AscendCApiRegistry::GetInstance().GetFileContent(header_str);
       if (!file.empty()) {
         if (kernel_file_ptr.find(&(file)) == kernel_file_ptr.end()) {
@@ -3165,7 +3228,11 @@ std::string TPipe::GenDuplicateBufAssign(const std::set<std::pair<std::string, s
   int32_t i = 1;
   for (auto [const_val, const_dtype] : pre_api_extract_dup) {
     const std::string index_str = std::to_string(i);
-    ss << "tpipe.InitBuffer(builtin_tmp_buffer_" << index_str << ", ONE_BLK_SIZE);" << std::endl;
+    if (using_global_tpipe_) {
+      ss << "GetTPipePtr()->InitBuffer(builtin_tmp_buffer_" << index_str << ", ONE_BLK_SIZE);" << std::endl;
+    } else {
+      ss << "tpipe.InitBuffer(builtin_tmp_buffer_" << index_str << ", ONE_BLK_SIZE);" << std::endl;
+    }
     ss << "LocalTensor<uint8_t> builtin_tmp_buf_" << index_str << " = builtin_tmp_buffer_" << index_str
        << ".Get<uint8_t>();" << std::endl;
     std::string local_tensor_name = "local_blk_tensor_of_" + const_dtype + "_" + const_val;
@@ -3205,8 +3272,13 @@ Status TPipe::BlkTensorAssign(std::string &result) const {
     GE_CHK_BOOL_RET_STATUS(tensor_ptr != nullptr, ge::FAILED, "BlkTensorAllocAndInit need_gen_blk_tensors failed");
     std::string scalar_t_buf_name = tensor_ptr->name + "_tbuf";
     std::string scalar_local_blk_tensor_name = "local_blk_tensor_of_" + tensor_ptr->name;
-    ss << "tpipe.InitBuffer(" << scalar_t_buf_name << ", 32);" << std::endl;
-    ss << scalar_local_blk_tensor_name << " = " << scalar_t_buf_name << ".Get<" << tensor_ptr->type << ">();" << std::endl;
+    if (using_global_tpipe_) {
+      ss << "GetTPipePtr()->InitBuffer(" << scalar_t_buf_name << ", 32);" << std::endl;
+    } else {
+      ss << "tpipe.InitBuffer(" << scalar_t_buf_name << ", 32);" << std::endl;
+    }
+    ss << scalar_local_blk_tensor_name << " = " << scalar_t_buf_name << ".Get<" << tensor_ptr->type << ">();"
+       << std::endl;
 
     ss << "Duplicate(" << scalar_local_blk_tensor_name << "[0], static_cast<" << tensor_ptr->type
        << ">(" << tensor_ptr->const_value << "), static_cast<uint64_t>(32/"
@@ -3218,15 +3290,22 @@ Status TPipe::BlkTensorAssign(std::string &result) const {
   return ge::SUCCESS;
 }
 
-Status Kernel::GenerateVecFuncOfCVFusion(std::stringstream &result, bool vector_no_db_flag) {
+Status Kernel::GenerateVecFuncOfCVFusion(std::stringstream &result, bool vector_no_db_flag, bool is_conv2d) {
   std::string tiling_data_type = "AutofuseTilingData";
   if (vector_no_db_flag) {
-    result << R"(
+    if (is_conv2d) {
+      result << R"(
+// conv2d
+#include "autofuse_cube_tiling_data.h"
+)" << std::endl;
+    } else {
+      result << R"(
 #include "cmct/block/block_scheduler_policy.h"
 #include "cmct/block/block_scheduler_utils.h"
 #include "cmct/utils/status_utils.h"
 #include "autofuse_cube_tiling_data.h"
 )" << std::endl;
+    }
     result << "#ifdef CV_UB_NO_DB" << std::endl;
   } else {
     result << "#ifdef CV_UB_DB" << std::endl;
@@ -3269,7 +3348,11 @@ class AutoFusionVector {
   std::string tmp;
   GE_CHK_STATUS_RET(this->tpipe.LocalTensorDefine(tmp), "Local tbuf define failed");
   result << tmp;
-  result << "    TPipe tpipe;" << std::endl << std::endl;
+  if (!is_conv2d) {
+    result << "    TPipe tpipe;" << std::endl << std::endl;
+  } else {
+    this->tpipe.SetUsingGlobalTpipe(true);
+  }
   for (auto &[id, que] : this->tpipe.ques) {
     if (id == this->tpipe.cube_output_que_id) {
       continue;
@@ -3300,29 +3383,56 @@ class AutoFusionVector {
 
   result << this->tpipe.TensorSizeDefine() << std::endl;
   result << "    LocalTensor<" << dtype_name << "> cLocal_;" << std::endl;
-
-  result << "__aicore__ inline void Init(Params const& params, AscendC::LocalTensor<" << dtype_name
-         << ">& cLocal, int64_t l1M, int64_t l1NAlign, int64_t ubOffset, int64_t &stage_size_type) {";
-  result << std::endl;
-  result << "GET_TILING_DATA_WITH_STRUCT(MatMulV3BasicTilingData, tmpTilingData, tmpTilingGM);" << std::endl;
-  result << "const int32_t ub_align_value = 32 / sizeof(" << dtype_name << ");" << std::endl;
-  result << "const int32_t basen_align = (tmpTilingData.baseN + ub_align_value - 1) / ub_align_value * ub_align_value;"
-         << std::endl;
-  result << "const int32_t basen_basem_align = (tmpTilingData.baseM * basen_align * sizeof(" << dtype_name
-         << ")) / 2 + basen_align * sizeof(" << dtype_name << ");" << std::endl;
-  result << "AutofuseTilingData autofuse_tiling_size;" << std::endl;
-  // 下面的144为16*16/2+16，按照cube tiling最小块16*16计算得到
-  result << "int32_t stage_size = autofuse_tiling_size.STAGE_SIZE_NAME > 144 ? " << std::endl;
-  result << "autofuse_tiling_size.STAGE_SIZE_NAME * sizeof(" << dtype_name
-         << ") : basen_basem_align;" << std::endl;
-  result << "stage_size_type = static_cast<int64_t>(autofuse_tiling_size.STAGE_SIZE_NAME > 144 ? " << std::endl;
-  result << "autofuse_tiling_size.STAGE_SIZE_NAME : basen_basem_align / sizeof(" << dtype_name << "));" << std::endl;
-
-  GE_CHK_STATUS_RET(this->root_loop.ActualSizeDefine(this->tiler, this->tpipe, dtype_name, tmp), "actual size define failed");
+  if (is_conv2d) {
+    // conv2d
+    result
+        << "__aicore__ inline void Init(Params const& params, AscendC::LocalTensor<" << dtype_name
+        << ">& cLocal, int64_t &stage_size1, int64_t &stage_size2) {";
+    result << std::endl;
+    result << "GET_TILING_DATA_WITH_STRUCT(Conv2DTilingData, tmpTilingData, tmpTilingGM);" << std::endl;
+    result << "const int32_t ub_align_value = 32 / sizeof(" << dtype_name << ");" << std::endl;
+    result << "const int32_t basen_align = (tmpTilingData.conv2dApiTiling.hoL0 + ub_align_value - 1) / "
+              "ub_align_value * ub_align_value;"
+           << std::endl;
+    result << "AutofuseTilingData autofuse_tiling_size;" << std::endl;
+    std::string npu_arch;
+    int32_t vec_num = 2;
+    GE_ASSERT_SUCCESS(ge::PlatformContext::GetInstance().GetCurrentPlatformString(npu_arch));
+    if (npu_arch == "5102") {
+      vec_num = 1;
+    }
+    result << "stage_size1 = KernelUtils::Max(tmpTilingData.conv2dApiTiling.nL0 / " << vec_num << ", 16) * basen_align;" << std::endl;
+    result << "const int32_t compute_size = autofuse_tiling_size.STAGE_SIZE_NAME > 144 ? "
+              "autofuse_tiling_size.STAGE_SIZE_NAME : 144;"
+           << std::endl;
+    result << "int32_t stage_size = compute_size * sizeof(" << dtype_name << ");" << std::endl;
+    result << "stage_size2 = compute_size;" << std::endl;
+  } else {
+    result << "__aicore__ inline void Init(Params const& params, AscendC::LocalTensor<" << dtype_name
+           << ">& cLocal, int64_t l1M, int64_t l1NAlign, int64_t ubOffset, int64_t &stage_size_type) {";
+    result << std::endl;
+    result << "GET_TILING_DATA_WITH_STRUCT(MatMulV3BasicTilingData, tmpTilingData, tmpTilingGM);" << std::endl;
+    result << "const int32_t ub_align_value = 32 / sizeof(" << dtype_name << ");" << std::endl;
+    result
+        << "const int32_t basen_align = (tmpTilingData.baseN + ub_align_value - 1) / ub_align_value * ub_align_value;"
+        << std::endl;
+    result << "const int32_t basen_basem_align = (tmpTilingData.baseM * basen_align * sizeof(" << dtype_name
+           << ")) / 2 + basen_align * sizeof(" << dtype_name << ");" << std::endl;
+    result << "AutofuseTilingData autofuse_tiling_size;" << std::endl;
+    // 下面的144为16*16/2+16，按照cube tiling最小块16*16计算得到
+    result << "int32_t stage_size = autofuse_tiling_size.STAGE_SIZE_NAME > 144 ? " << std::endl;
+    result << "autofuse_tiling_size.STAGE_SIZE_NAME * sizeof(" << dtype_name << ") : basen_basem_align;" << std::endl;
+    result << "stage_size_type = static_cast<int64_t>(autofuse_tiling_size.STAGE_SIZE_NAME > 144 ? " << std::endl;
+    result << "autofuse_tiling_size.STAGE_SIZE_NAME : basen_basem_align / sizeof(" << dtype_name << "));" << std::endl;
+  }
+  GE_CHK_STATUS_RET(this->root_loop.ActualSizeDefine(this->tiler, this->tpipe, dtype_name, tmp),
+                    "actual size define failed");
   result << tmp;
-
-  result << ub_tensor->Str() << "_actual_size =  stage_size_type;" << std::endl << std::endl;
-
+  if (is_conv2d) {
+    result << ub_tensor->Str() << "_actual_size =  stage_size2;" << std::endl << std::endl;
+  } else {
+    result << ub_tensor->Str() << "_actual_size =  stage_size_type;" << std::endl << std::endl;
+  }
   GE_CHK_STATUS_RET(this->tpipe.TensorSizeAssign(dtype_name, tmp), "Tensor size assign failed");
   result << tmp;
 
@@ -3334,7 +3444,11 @@ class AutoFusionVector {
   }
   GE_CHK_STATUS_RET(this->GlobalTensorAssign(tmp), "Global tensor assign in cv-ub-fuse case failed");
   result << tmp;
-  result << "tpipe.InitBuffer(buf_cube, basen_basem_align);" << std::endl;
+  if (is_conv2d) {
+    result << "GetTPipePtr()->InitBuffer(buf_cube, stage_size1 *  sizeof(" << dtype_name << "));" << std::endl;
+  } else {
+    result << "tpipe.InitBuffer(buf_cube, basen_basem_align);" << std::endl;
+  }
   result << ub_tensor->name << " = buf_cube.Get<" << dtype_name << ">();" << std::endl;
   result << "cLocal = " << ub_tensor->name << ";" << std::endl << std::endl;
   result << "cLocal_ = " << ub_tensor->name << ";" << std::endl << std::endl;
@@ -3356,26 +3470,48 @@ class AutoFusionVector {
   stringstream ss;
   GE_ASSERT_SUCCESS(this->GenerateSubGraphFuncDef(&(this->root_loop), ss));
   result << ss.str() << std::endl;
-
-  result << "inline __aicore__ void auto_fusion_vector_stage1(int64_t offset, int64_t curAivM, int64_t curAivN, "
-            "int64_t shapeN, int64_t shapeM, int64_t curAlignN, int64_t stageSize) {";
+  if (is_conv2d) {
+    result << "inline __aicore__ void auto_fusion_vector_stage1(int64_t offset, int64_t offsetH, int64_t offsetW, "
+              "int64_t offsetCout, int64_t curAivN, int64_t curAlignN, int64_t shapeN, "
+              "int64_t curAivM, int64_t shapeM, int64_t stageSize, int64_t stageOffset) {";
+    result << "}" << std::endl;
+    result << "inline __aicore__ void auto_fusion_vector_stage2(int64_t offset, int64_t offsetH, int64_t offsetW, "
+              "int64_t offsetCout, int64_t curAivN, int64_t curAlignN, int64_t shapeN, "
+              "int64_t curAivM, int64_t shapeM, int64_t stageSize, int64_t stageOffset) {";
+  } else {
+    result << "inline __aicore__ void auto_fusion_vector_stage1(int64_t offset, int64_t curAivM, int64_t curAivN, "
+              "int64_t shapeN, int64_t shapeM, int64_t curAlignN, int64_t stageSize) {";
+  }
   result << std::endl;
   result << "int64_t batch_num = offset / shapeN / shapeM;" << std::endl;
-  result << "int64_t load_block_len = curAlignN;" << std::endl;
-  result << "int64_t load_src_stride = shapeN - curAlignN;" << std::endl;
-  result << "int64_t load_dst_stride = 0;" << std::endl;
-  result << "if (shapeN < curAlignN) {" << std::endl;
-  result << "load_block_len = curAivN;" << std::endl;
-  result << "load_src_stride = 0;" << std::endl;
-  result << "load_dst_stride = curAlignN - shapeN;" << std::endl;
-  result << "}" << std::endl;
+  if (is_conv2d) {
+    result << "int64_t load_block_len = curAivN;" << std::endl;
+    result << "int64_t load_src_stride = shapeN - curAivN;" << std::endl;
+    result << "int64_t load_dst_stride = curAlignN - curAivN;" << std::endl;
+  } else {
+    result << "int64_t load_block_len = curAlignN;" << std::endl;
+    result << "int64_t load_src_stride = shapeN - curAlignN;" << std::endl;
+    result << "int64_t load_dst_stride = 0;" << std::endl;
+    result << "if (shapeN < curAlignN) {" << std::endl;
+    result << "load_block_len = curAivN;" << std::endl;
+    result << "load_src_stride = 0;" << std::endl;
+    result << "load_dst_stride = curAlignN - shapeN;" << std::endl;
+    result << "}" << std::endl;
+  }
+
   GE_CHK_STATUS_RET(this->root_loop.Generate(this->tiler, this->tpipe, tmp, ComputeStage::kCVFuseStage1),
                     "Codegen root loop Generate failed");
   result << tmp;
   result << "}" << std::endl;
 
-  result << "inline __aicore__ void auto_fusion_vector_stage2(int64_t offset, int64_t curAivM, int64_t curAivN, "
-            "int64_t shapeN, int64_t shapeM, int64_t curAlignN, int64_t stageSize) {";
+  if (is_conv2d) {
+    result << "inline __aicore__ void auto_fusion_vector_stage3(int64_t offset, int64_t offsetH, int64_t offsetW, "
+              "int64_t offsetCout, int64_t curAivN, int64_t curAlignN, int64_t shapeN, "
+              "int64_t curAivM, int64_t shapeM, int64_t stageSize, int64_t stageOffset) {";
+  } else {
+    result << "inline __aicore__ void auto_fusion_vector_stage2(int64_t offset, int64_t curAivM, int64_t curAivN, "
+              "int64_t shapeN, int64_t shapeM, int64_t curAlignN, int64_t stageSize) {";
+  }
   result << std::endl;
   result << "int64_t batch_num = offset / shapeN / shapeM;" << std::endl;
   result << "int64_t load_block_len = curAlignN;" << std::endl;
@@ -3391,22 +3527,59 @@ class AutoFusionVector {
   result << tmp;
   result << "}" << std::endl;
 
-  result << "inline __aicore__ void operator()(int64_t offset, int64_t curAivM, int64_t curAivN, int64_t shapeN, "
-            "int64_t shapeM, int64_t curAlignN, int64_t stageSize, int64_t stageOffset, uint8_t stage = 0) {"
-         << std::endl
-         << ub_tensor->name << " = cLocal_[stageOffset].template ReinterpretCast<" << dtype_name << ">();" << std::endl
-         << "if (stage == 1) {" << std::endl
-         << "  auto_fusion_vector_stage1(offset, curAivM, curAivN, shapeN, shapeM, curAlignN, stageSize);" << std::endl
-         << "} else if (stage == 2) {" << std::endl
-         << "  auto_fusion_vector_stage2(offset, curAivM, curAivN, shapeN, shapeM, curAlignN, stageSize);" << std::endl
-         << "} else {" << std::endl
-         << "  auto_fusion_vector_stage1(offset, curAivM, curAivN, shapeN, shapeM, curAlignN, stageSize);" << std::endl
-         << "  auto_fusion_vector_stage2(offset, curAivM, curAivN, shapeN, shapeM, curAlignN, stageSize);" << std::endl
-         << "}" << std::endl
-         << "}" << std::endl;
-
+  if (is_conv2d) {
+    result << "inline __aicore__ void operator()(int64_t offset, int64_t offsetH, int64_t offsetW, int64_t "
+              "offsetCout, int64_t curAivN, int64_t curAlignN, int64_t shapeN, "
+              "int64_t curAivM, int64_t shapeM, int64_t stageSize, int64_t stageOffset, uint8_t stage = 0) {"
+           << std::endl
+           << ub_tensor->name << " = cLocal_[stageOffset].template ReinterpretCast<" << dtype_name << ">();"
+           << std::endl
+           << "if (stage == 1) {" << std::endl
+           << "  auto_fusion_vector_stage1(offset, offsetH, offsetW, offsetCout, curAivN, curAlignN, shapeN, curAivM, "
+              "shapeM, stageSize, int64_t stageOffset);"
+           << std::endl
+           << "} else if (stage == 2) {" << std::endl
+           << "  auto_fusion_vector_stage2(offset, offsetH, offsetW, offsetCout, curAivN, curAlignN, shapeN, curAivM, "
+              "shapeM, stageSize, int64_t stageOffset);"
+           << std::endl
+           << "} else if (stage == 3) {" << std::endl
+           << "  auto_fusion_vector_stage3(offset, offsetH, offsetW, offsetCout, curAivN, curAlignN, shapeN, curAivM, "
+              "shapeM, stageSize, int64_t stageOffset);"
+           << std::endl
+           << "} else {" << std::endl
+           << "  auto_fusion_vector_stage1(offset, offsetH, offsetW, offsetCout, curAivN, curAlignN, shapeN, curAivM, "
+              "shapeM, stageSize, int64_t stageOffset);"
+           << std::endl
+           << "  auto_fusion_vector_stage2(offset, offsetH, offsetW, offsetCout, curAivN, curAlignN, shapeN, curAivM, "
+              "shapeM, stageSize, int64_t stageOffset);"
+           << std::endl
+           << "  auto_fusion_vector_stage3(offset, offsetH, offsetW, offsetCout, curAivN, curAlignN, shapeN, curAivM, "
+              "shapeM, stageSize, int64_t stageOffset);"
+           << std::endl
+           << "}" << std::endl
+           << "}" << std::endl;
+  } else {
+    result << "inline __aicore__ void operator()(int64_t offset, int64_t curAivM, int64_t curAivN, int64_t shapeN, "
+              "int64_t shapeM, int64_t curAlignN, int64_t stageSize, int64_t stageOffset, uint8_t stage = 0) {"
+           << std::endl
+           << ub_tensor->name << " = cLocal_[stageOffset].template ReinterpretCast<" << dtype_name << ">();"
+           << std::endl
+           << "if (stage == 1) {" << std::endl
+           << "  auto_fusion_vector_stage1(offset, curAivM, curAivN, shapeN, shapeM, curAlignN, stageSize);"
+           << std::endl
+           << "} else if (stage == 2) {" << std::endl
+           << "  auto_fusion_vector_stage2(offset, curAivM, curAivN, shapeN, shapeM, curAlignN, stageSize);"
+           << std::endl
+           << "} else {" << std::endl
+           << "  auto_fusion_vector_stage1(offset, curAivM, curAivN, shapeN, shapeM, curAlignN, stageSize);"
+           << std::endl
+           << "  auto_fusion_vector_stage2(offset, curAivM, curAivN, shapeN, shapeM, curAlignN, stageSize);"
+           << std::endl
+           << "}" << std::endl
+           << "}" << std::endl;
+  }
   result << "};" << std::endl;
-  result << "#endif" << std::endl; // CV_UB_NO_DB/CV_UB_DB
+  result << "#endif" << std::endl;  // CV_UB_NO_DB/CV_UB_DB
   return ge::SUCCESS;
 }
 
