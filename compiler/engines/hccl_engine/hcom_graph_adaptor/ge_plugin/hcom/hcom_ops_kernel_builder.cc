@@ -444,7 +444,7 @@ HcclResult HcomOpsKernelBuilder::SetSuperKernelScopeAttr(ge::Node &node) {
   CHK_RET(IsUsingOpenSource(openSourceTag));
   if (openSourceTag) {
     CHK_RET(HcceSelectAlgGraphMode(sGroup.c_str(), count, dataType, reduction, opType, aivCoreLimit, &ifAiv,
-                          &algName));
+                          algName));
   } else {
     #ifdef HCOM_SELECT_ALG_POINTER_MODE
       CHK_RET(HcomSelectAlg(hcomComm, sGroup.c_str(), count, countsPtr, dataType, reduction, opType, aivCoreLimit, &ifAiv,

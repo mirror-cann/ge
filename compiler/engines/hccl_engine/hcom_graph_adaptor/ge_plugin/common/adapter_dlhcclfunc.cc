@@ -302,11 +302,11 @@ HcclResult HcceSetAivCoreLimitGraphMode(const char *group, u32 aivCoreLimit)
 }
 
 HcclResult HcceSelectAlgGraphMode(const char *group, u64 count, HcclDataType dataType, HcclReduceOp op, HcclCMDType opType,
-                           int32_t aivCoreLimit, bool *ifAiv, char **algName)
+                           int32_t aivCoreLimit, bool *ifAiv, char *algName)
 {
     CHK_PRT_RET(DlHcclFunction::get_instance().init() != HCCL_SUCCESS, HCCL_ERROR("DlHcclFunction::get_instance().init() fail \n"),
                 HCCL_E_PARA);
-    return DlHcclFunction::get_instance().dlHcclSelectAlgGraphMode(group, count, dataType, op, opType, aivCoreLimit, ifAiv, algName);
+    return DlHcclFunction::get_instance().dlHcclSelectAlgGraphMode(group, count, dataType, op, opType, aivCoreLimit, ifAiv, &algName);
 }
 
 HcclResult HcceCalcAivCoreNumGraphMode(u32 aivCoreLimit, u32 *blockDim)
