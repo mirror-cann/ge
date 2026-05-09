@@ -49,7 +49,6 @@ bool OpsProtoManager::Initialize(const std::map<std::string, std::string> &optio
 
 void OpsProtoManager::Finalize() {
   const std::lock_guard<std::mutex> lock(mutex_);
-
   if (!is_init_) {
     GELOGI("OpsProtoManager is not initialized.");
     return;
@@ -68,7 +67,6 @@ void OpsProtoManager::Finalize() {
       GELOGW("[Finalize][CheckHandle] handler is null");
     }
   }
-
   is_init_ = false;
 }
 
@@ -136,7 +134,7 @@ void OpsProtoManager::LoadOpsProtoPluginSo(const std::string &path) {
          "trusted.");
   OperatorFactoryImpl::SetRegisterOverridable(true);
   void *const handle = mmDlopen(path.c_str(), static_cast<int32_t>(static_cast<uint32_t>(MMPA_RTLD_NOW) |
-      static_cast<uint32_t>(MMPA_RTLD_GLOBAL)));
+      static_cast<uint32_t>(MMPA_RTLD_GLOBAL) | static_cast<uint32_t>(MMPA_RTLD_NODELETE)));
   OperatorFactoryImpl::SetRegisterOverridable(false);
   if (handle == nullptr) {
     const char_t *error = mmDlerror();

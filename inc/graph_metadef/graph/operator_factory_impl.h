@@ -22,12 +22,15 @@
 #include "graph/op_desc.h"
 
 namespace ge {
+class ShapeInferOp;
 using InferShapeV2Func = uint32_t (*)(const ge::Operator &op, const OpDescPtr &);
 using InferDataTypeFunc = uint32_t (*)(const OpDescPtr &);
 using InferShapeRangeFunc = uint32_t (*)(const ge::Operator &op, const OpDescPtr &);
 using InferFormatV2Func = uint32_t (*)(const ge::Operator &, const OpDescPtr &);
 using IsInferFormatV2RegisteredFunc = bool (*)(const OpDescPtr &);
 using IsInferShapeV2RegisteredFunc = bool (*)(const OpDescPtr &);
+using CustomOpInferShapeFunc = uint32_t (*)(ShapeInferOp *, const Operator &, const OpDescPtr &);
+using CustomOpInferDataTypeFunc = uint32_t (*)(ShapeInferOp *, const OpDescPtr &);
 
 struct InferValueRangePara {
  public:
@@ -124,6 +127,14 @@ class GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY OperatorFactoryImpl {
 
   static IsInferShapeV2RegisteredFunc GetIsInferShapeV2RegisteredFunc();
 
+  static void RegisterCustomOpInferShapeFunc(CustomOpInferShapeFunc const custom_op_infer_shape_func);
+
+  static CustomOpInferShapeFunc GetCustomOpInferShapeFunc();
+
+  static void RegisterCustomOpInferDataTypeFunc(CustomOpInferDataTypeFunc const custom_op_infer_datatype_func);
+
+  static CustomOpInferDataTypeFunc GetCustomOpInferDataTypeFunc();
+
   static void ReleaseRegInfo();
 
   static std::shared_ptr<std::map<std::string, OpCreator>> operator_creators_;
@@ -141,6 +152,8 @@ class GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY OperatorFactoryImpl {
   static InferFormatV2Func operator_infer_format_v2_func_;
   static IsInferFormatV2RegisteredFunc is_infer_format_v2_registered_func_;
   static IsInferShapeV2RegisteredFunc is_infer_shape_v2_registered_func_;
+  static CustomOpInferShapeFunc custom_op_infer_shape_func_;
+  static CustomOpInferDataTypeFunc custom_op_infer_datatype_func_;
 };
 }  // namespace ge
 

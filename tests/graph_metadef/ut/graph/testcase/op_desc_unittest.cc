@@ -26,6 +26,8 @@
 #include "graph/debug/ge_attr_define.h"
 #include "base/registry/op_impl_space_registry_v2.h"
 #include "faker/space_registry_faker.h"
+#include "graph/custom_op_factory.h"
+#include "graph/custom_op.h"
 
 #include "mmpa/mmpa_api.h"
 
