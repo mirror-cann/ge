@@ -1006,7 +1006,6 @@ class NeAscIrCodegenImpl : public AscIrCodegen {
       "basic_api/kernel_operator_vec_binary_scalar_intf.h",
       "basic_api/kernel_operator_vec_duplicate_intf.h",
       "basic_api/kernel_operator_vec_reduce_intf.h",
-      "basic_api/kernel_operator_vec_unary_intf.h",
     };
   }
   [[nodiscard]] bool IsNodeValid(const ge::AscNode &node) const override {
