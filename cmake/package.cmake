@@ -143,6 +143,9 @@ if("ge-compiler" IN_LIST BUILD_COMPONENT)
         install(FILES ${CMAKE_SOURCE_DIR}/api/atc/atc
             DESTINATION ge-compiler/bin COMPONENT ge-compiler
         )
+        install(PROGRAMS ${CMAKE_SOURCE_DIR}/api/atc/pyatc
+            DESTINATION ge-compiler/bin COMPONENT ge-compiler
+        )
         install(FILES ${CMAKE_CURRENT_BINARY_DIR}/api/python/wheel2/dist/llm_datadist_v1-0.0.1-py3-none-any.whl
             DESTINATION ge-compiler/lib64 COMPONENT ge-compiler
         )

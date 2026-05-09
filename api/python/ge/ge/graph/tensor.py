@@ -14,6 +14,7 @@ import ctypes
 from typing import Optional, List, Any, Union, TYPE_CHECKING
 from ge._capi.pygraph_wrapper import graph_lib
 from ge._capi.pyes_graph_builder_wrapper import esb_lib
+from ge._capi.pytensor_runtime_wrapper import tensor_runtime_lib
 from .types import DataType, Format, Placement
 from ._numeric import float_list_to_fp16_bits
 
@@ -318,7 +319,7 @@ class Tensor:
         if self.get_placement() != Placement.PLACEMENT_DEVICE:
             raise ValueError("to_host() only supports device tensors")
 
-        ret = graph_lib.GeApiWrapper_Tensor_ToHost(self._handle)
+        ret = tensor_runtime_lib.GeApiWrapper_Tensor_ToHost(self._handle)
         if ret != 0:
             raise RuntimeError(f"Failed to move tensor from device to host, ret={ret}")
         return self
@@ -328,7 +329,7 @@ class Tensor:
         if self.get_placement() != Placement.PLACEMENT_HOST:
             raise ValueError("to_device() only supports host tensors")
 
-        ret = graph_lib.GeApiWrapper_Tensor_ToDevice(self._handle)
+        ret = tensor_runtime_lib.GeApiWrapper_Tensor_ToDevice(self._handle)
         if ret != 0:
             raise RuntimeError(f"Failed to move tensor from host to device, ret={ret}")
         return self

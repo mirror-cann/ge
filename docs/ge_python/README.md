@@ -13,6 +13,7 @@ GE-PY 模块包含以下核心组件：
 - **session 模块** - 图编译执行接口
 - **allocator 模块** - 内存分配器抽象，供异步执行场景注册外置 allocator
 - **es 模块** - Eager-Style 图构建接口，提供函数式风格的图构建方式
+- **pyatc 模块** - `atc` 命令行等价入口，便于指定 ATC 进程内的 python 解释器
 
 ## 文档导航
 
@@ -38,6 +39,8 @@ GE-PY 模块包含以下核心组件：
   - Pass 注册与发现机制
   - Bridge 架构、native helper 与多版本产物装载设计
 
+- **[pyatc CLI 设计文档](design/pyatc_cli_design.md)** - pyatc 命令行的详细设计说明
+
 ## 模块关系
 
 - **graph 模块** - 提供图的基础操作能力，是其他模块的基础
@@ -47,6 +50,7 @@ GE-PY 模块包含以下核心组件：
 - **session 模块** - 使用 graph 模块构建的图进行编译和执行，编译过程中会加载并执行 passes 模块注册的 Pass
 - **ge_global 模块** - 提供全局初始化和资源管理
 - **offline_compile 模块** - 提供离线模型构建、导出能力
+- **pyatc 模块** - 提供与 `atc` 等价的命令行入口，便于指定 ATC 进程内的 python 解释器
 
 ## 使用示例
 

@@ -435,6 +435,43 @@ const std::unordered_set<std::string> kOm2UnsuppotedFlag = {
 };
 
 namespace ge {
+const std::string kAtcUsageCommand = "atc";
+const std::string kPyatcUsageCommand = "pyatc";
+const std::string kPyatcModuleUsageCommand = "python3 -m ge.pyatc";
+const std::string kPyatcModuleCommandSuffix = " -m ge.pyatc";
+std::string g_usage_command = kAtcUsageCommand;
+
+std::string GetFileName(const std::string &path) {
+  const auto pos = path.find_last_of("/\\");
+  return (pos == std::string::npos) ? path : path.substr(pos + 1U);
+}
+
+bool IsPyatcBinaryCommand(const std::string &argv0) {
+  return GetFileName(argv0) == kPyatcUsageCommand;
+}
+
+bool IsPyatcModuleCommand(const std::string &argv0) {
+  if (argv0.size() < kPyatcModuleCommandSuffix.size()) {
+    return false;
+  }
+  return argv0.compare(argv0.size() - kPyatcModuleCommandSuffix.size(),
+                       kPyatcModuleCommandSuffix.size(), kPyatcModuleCommandSuffix) == 0;
+}
+
+std::string ResolveUsageCommand(int32_t argc, char *argv[]) {
+  if ((argc <= 0) || (argv == nullptr) || (argv[0] == nullptr)) {
+    return kAtcUsageCommand;
+  }
+  const std::string argv0(argv[0]);
+  if (IsPyatcBinaryCommand(argv0)) {
+    return kPyatcUsageCommand;
+  }
+  if (IsPyatcModuleCommand(argv0)) {
+    return kPyatcModuleUsageCommand;
+  }
+  return kAtcUsageCommand;
+}
+
 class GFlagUtils {
  public:
   /**
@@ -453,12 +490,14 @@ class GFlagUtils {
     if (ret == flgs::GF_FAILED) {
       return ret;
     }
+    g_usage_command = ResolveUsageCommand(argc, argv);
     flgs::SetUsageMessage(
-        "usage: atc <args>\n"
-        "generate offline model example:\n"
-        "atc --model=./alexnet.prototxt --weight=./alexnet.caffemodel --framework=0 --output=./domi --soc_version=<soc_version> \n"
-        "generate offline model for single op example:\n"
-        "atc --singleop=./op_list.json --output=./op_model --soc_version=<soc_version> \n"
+        "usage: " + g_usage_command + " <args>\n"
+        "generate offline model example:\n" +
+        g_usage_command +
+        " --model=./alexnet.prototxt --weight=./alexnet.caffemodel --framework=0 --output=./domi --soc_version=<soc_version> \n"
+        "generate offline model for single op example:\n" +
+        g_usage_command + " --singleop=./op_list.json --output=./op_model --soc_version=<soc_version> \n"
         "\n===== Basic Functionality =====\n"
         "[General]\n"
         "  --h/help            Show this help message\n"
@@ -2054,7 +2093,8 @@ Status CheckRet(Status ret) {
   }
   if (ret != SUCCESS) {
     GELOGW("%s", (info + "failed.").c_str());
-    std::cout << "ATC run failed, Please check the detail log, Try \'atc --help\' for more information" << std::endl;
+    std::cout << "ATC run failed, Please check the detail log, Try \'" << g_usage_command
+              << " --help\' for more information" << std::endl;
     int32_t result = OutputErrMessageToStdout();
     if (result != 0) {
       DOMI_LOGE("ErrorManager outputErrMessage fail !");

@@ -17,7 +17,7 @@ import sys
 
 from ._lib_loader import load_lib_from_path
 
-LIB_NAME = "libgraph_wrapper.so"
+LIB_NAME = "libge_runtime_wrapper.so"
 _dir = os.path.dirname(os.path.abspath(__file__))
 session_lib = load_lib_from_path(LIB_NAME, _dir)
 
@@ -96,7 +96,7 @@ def get_session_lib():
     """Get the session wrapper library handle.
 
     Returns:
-        ctypes.CDLL: The loaded libgraph_wrapper.so library handle.
+        ctypes.CDLL: The loaded libge_runtime_wrapper.so library handle.
     """
     return session_lib
 
