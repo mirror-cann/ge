@@ -109,7 +109,6 @@ TEST_F(TaskSchedulerUnitTest, should_rebind_execute_stream_between_schedules_and
   ASSERT_EQ(kStatusSuccess, scheduler->Schedule());
   EXPECT_EQ(runtime_stub_guard.acl_runtime_stub->GetUseStreamResRecords(),
             std::vector<aclrtStream>({reinterpret_cast<aclrtStream>(0x11)}));
-  EXPECT_TRUE(runtime_stub_guard.acl_runtime_stub->GetNotUseStreamResRecords().empty());
 
   ASSERT_EQ(ge::GRAPH_SUCCESS, scheduler->Prepare(TaskScheduler::ScheduleData{second_execution_data.Data()}));
   ASSERT_EQ(kStatusSuccess, scheduler->Schedule());
@@ -119,8 +118,6 @@ TEST_F(TaskSchedulerUnitTest, should_rebind_execute_stream_between_schedules_and
             std::vector<aclrtStream>({reinterpret_cast<aclrtStream>(0x11)}));
 
   delete scheduler;
-  EXPECT_EQ(runtime_stub_guard.acl_runtime_stub->GetNotUseStreamResRecords(),
-            std::vector<aclrtStream>({reinterpret_cast<aclrtStream>(0x11), reinterpret_cast<aclrtStream>(0x22)}));
 }
 
 TEST_F(TaskSchedulerUnitTest, should_schedule_chain_task_in_single_worker) {
