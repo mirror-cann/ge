@@ -27,11 +27,11 @@ constexpr size_t kHostFileIndex = 1;
 constexpr size_t kDeviceFileIndex = 2;
 constexpr size_t kExpectedKernelSrcCount = 3;
 
-class TestBackendInductorTopnE2e : public testing::Test {
+class TestBackendPgoAddAbsInductorE2e : public testing::Test {
 };
 
-TEST_F(TestBackendInductorTopnE2e, InductorTopnE2eCodegen) {
-  auto graph = ascir::ShareGraph::BrcInlineFusedGraph(2);
+TEST_F(TestBackendPgoAddAbsInductorE2e, PgoAddAbsInductorE2eCodegen) {
+  auto graph = ascir::ShareGraph::AddAbsFusedGraph(3);
   auto parts = splitString(KERNEL_SRC_LIST, ':');
   ASSERT_EQ(parts.size(), kExpectedKernelSrcCount);
 
@@ -66,7 +66,7 @@ TEST_F(TestBackendInductorTopnE2e, InductorTopnE2eCodegen) {
   } catch (const std::exception &e) {
     FAIL() << e.what();
   } catch (...) {
-    FAIL() << "inductor topn codegen failed";
+    FAIL() << "pgo_add_abs inductor codegen failed";
   }
 }
 }  // namespace

@@ -24,7 +24,16 @@ set_tests_properties(inductor_topn_concat_test_codegen PROPERTIES LABELS "st;bui
 
 # e2e target: split compile chain verification
 file(MAKE_DIRECTORY ${CONCAT_OUTPUT_DIR})
+add_custom_command(
+    OUTPUT ${CONCAT_TILING_DEF} ${CONCAT_HOST_CODE} ${CONCAT_DEVICE_CODE}
+    COMMAND $<TARGET_FILE:inductor_topn_concat_test_codegen>
+            --gtest_output=xml:${CMAKE_INSTALL_PREFIX}/report/st/inductor_topn_concat_test_codegen.xml
+    DEPENDS inductor_topn_concat_test_codegen
+    VERBATIM)
+add_custom_target(inductor_topn_concat_test_codegen_outputs
+    DEPENDS ${CONCAT_TILING_DEF} ${CONCAT_HOST_CODE} ${CONCAT_DEVICE_CODE})
 add_executable(inductor_topn_concat_test_e2e test_e2e_inductor_topn_concat_split_compile.cpp)
+add_dependencies(inductor_topn_concat_test_e2e inductor_topn_concat_test_codegen_outputs)
 target_link_libraries(inductor_topn_concat_test_e2e dl GTest::gtest GTest::gtest_main unified_dlog)
 target_include_directories(inductor_topn_concat_test_e2e PRIVATE ${CONCAT_WORKDIR})
 target_compile_definitions(inductor_topn_concat_test_e2e PRIVATE

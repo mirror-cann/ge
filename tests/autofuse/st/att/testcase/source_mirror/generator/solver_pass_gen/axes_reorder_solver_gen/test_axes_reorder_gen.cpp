@@ -182,6 +182,7 @@ TEST_F(TestAxesReorderSolverGen, GenUpperBoundFunc_ConstExpr) {
     std::string result = solver_gen.GenUpperBoundFunc(var);
     
     std::string expected = R"(    GetUpperBoundFuncPtr var_upper_bound = [](Variable **parent_vars) {
+      (void)parent_vars;
       int64_t upper_bound = 1;
       upper_bound *= 2;
       upper_bound *= 3;
@@ -398,7 +399,7 @@ TEST_F(TestAxesReorderSolverGen, GenUBThresholdFunc_WithUBAndVariables) {
   solver.mc_args_ = mc_args_;
   solver.local_buffer_tiling_vars_ = local_buffer_tiling_vars_;
   solver.hardware_use_map_ = hardware_use_map_;
-  solver.enable_multicore_ub_tradeoff_ = true;
+  solver.SetEnableMulticoreUBTradeoff(true);
   std::string actual = solver.GenUBThresholdFunc();
   EXPECT_TRUE(actual.find("return (ub_size - 0) > static_cast<uint32_t>(input_.ub_threshold * input_.ub_size);") != std::string::npos);
 }
@@ -426,7 +427,7 @@ TEST_F(TestAxesReorderSolverGen, GenSolverFuncImpl_WithUBAndVariables) {
   solver.mc_args_ = mc_args_;
   solver.local_buffer_tiling_vars_ = local_buffer_tiling_vars_;
   solver.hardware_use_map_ = hardware_use_map_;
-  solver.enable_multicore_ub_tradeoff_ = true;
+  solver.SetEnableMulticoreUBTradeoff(true);
   std::string actual = solver.GenSolverFuncImpl();
   EXPECT_TRUE(actual.find("solver.Run(true, ") != std::string::npos);
 }
@@ -453,7 +454,7 @@ TEST_F(TestAxesReorderSolverGen, test_contain_heavy_op) {
   solver.mc_args_ = mc_args_;
   solver.local_buffer_tiling_vars_ = local_buffer_tiling_vars_;
   solver.hardware_use_map_ = hardware_use_map_;
-  solver.enable_multicore_ub_tradeoff_ = true;
+  solver.SetEnableMulticoreUBTradeoff(true);
   std::string actual = solver.GenSolverFuncImpl();
   EXPECT_TRUE(actual.find("solver.Run(true, ") != std::string::npos);
 }

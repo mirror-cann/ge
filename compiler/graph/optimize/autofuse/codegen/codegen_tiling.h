@@ -139,8 +139,31 @@ struct CompileInfo {
                                          const std::string func, const std::string tiling) const;
     std::string GenGetTopnSolutionsFuncForInductor(const ::ascir::FusedScheduledResult &fused_schedule_result,
                                                    const std::string &tiling) const;
+    void GenTopnInitSearchTiling(std::stringstream &ss, const ::ascir::FusedScheduledResult &fused_schedule_result,
+                                 const std::string &tiling, int symbol_value_count) const;
+    void GenTopnGetTilingFunc(std::stringstream &ss, const ::ascir::FusedScheduledResult &fused_schedule_result,
+                              const std::string &tiling, int symbol_value_count) const;
+    void GenTopnSearchTilingSetup(std::stringstream &ss, const std::string &tiling,
+                                  const ::ascir::FusedScheduledResult &fused_schedule_result) const;
+    void GenTopnCollectCandidates(std::stringstream &ss, const std::string &tiling) const;
+    void GenTopnSearchTilingKeyCall(std::stringstream &ss, const ::ascir::FusedScheduledResult &fused_schedule_result) const;
+    void GenGenerateTopnSolutionsEntry(std::stringstream &ss,
+                                       const ::ascir::FusedScheduledResult &fused_schedule_result,
+                                       const std::string &tiling, const codegen::PgoShapeStringStream &pgo_shape_dim) const;
+    std::string GenCandidateSolutionProtocolForInductor(const std::string &tiling) const;
+    void GenDeduplicateCandidateSolutions(std::stringstream &ss) const;
+    std::string GenTopnSelectorHelpersForInductor() const;
+    std::string GenSearchConfigProtocolForInductor() const;
+    std::string GenBuiltinTfPgoConfigsForInductor() const;
+    std::string GenInductorConfigParserForInductor() const;
     std::string GenGetTilingDataReprFuncForInductor(const ::ascir::FusedScheduledResult &fused_schedule_result,
                                                     const std::string &tiling) const;
+    std::string GenEvaluateModeledPerfForInductor(const std::string &tiling,
+                                                   const ::ascir::FusedScheduledResult &fused_schedule_result) const;
+    void GenMultiGroupPerfAggregation(std::stringstream &ss, const ::ascir::FusedScheduledResult &fused_schedule_result) const;
+    void GenGroupPerfForScheduleResult(std::stringstream &ss, size_t asc_graph_id, size_t result_id,
+                                       const ::ascir::ScheduledResult &sched_result) const;
+    std::string GenUpdateCurPerfAndBlockByGroupHelper() const;
     void GenReprScheduleGroupFields(std::stringstream &ss, const ::ascir::ScheduleGroup &sg,
                                     const std::string &field_prefix, const std::string &emit_fn,
                                     const std::string &indent, bool emit_first_arg) const;

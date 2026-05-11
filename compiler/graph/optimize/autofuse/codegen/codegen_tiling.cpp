@@ -219,6 +219,20 @@ std::map<std::string, std::string> TilingLib::GenerateForInductor(
   ss << "extern \"C\" std::string GetTilingDataRepr(const AutofuseTilingData *tiling_data);\n";
   ss << "#pragma GCC diagnostic pop\n";
   ss << TilingFuncDefForInductor(fused_schedule_result) << std::endl;
+  ss << this->GenCandidateSolutionProtocolForInductor("AutofuseTilingData") << std::endl;
+  ss << this->GenTopnSelectorHelpersForInductor() << std::endl;
+  ss << this->GenBuiltinTfPgoConfigsForInductor() << std::endl;
+  ss << this->GenInductorConfigParserForInductor() << std::endl;
+  ss << GenGetTilingKeyCount(fused_schedule_result) << std::endl;
+  if (!ascgen_utils::IsSingleGroup(fused_schedule_result)) {
+    ss << GenUpdateCurPerfAndBlockByGroupHelper() << std::endl;
+  }
+  ss << this->GenEvaluateModeledPerfForInductor("AutofuseTilingData", fused_schedule_result) << std::endl;
+  ss << "extern \"C\" double GetModeledPerfForTesting(const AutofuseTilingData *tiling_data) {\n"
+     << "  if (tiling_data == nullptr) { return 0.0; }\n"
+     << "  double modeled_perf = EvaluateModeledPerf(*tiling_data);\n"
+     << "  return std::isfinite(modeled_perf) ? modeled_perf : DBL_MAX;\n"
+     << "}\n" << std::endl;
   ss << this->GenGetTopnSolutionsFuncForInductor(fused_schedule_result, "AutofuseTilingData") << std::endl;
   ss << this->GenGetTilingDataReprFuncForInductor(fused_schedule_result, "AutofuseTilingData") << std::endl;
   // 生成GenConstTilingData方法
@@ -1967,10 +1981,13 @@ std::string TilingLib::GetStubTilingHeaders(const ascir::FusedScheduledResult &f
   ss << "  return true;" << std::endl;
   ss << "}" << std::endl;
   if (enable_autofuse_pgo_) {
+    ss << "struct SearchConfig;" << std::endl;
     ss << "bool PGOSearchTilingKey(std::vector<AutofuseTilingDataPerf>& tiling_data_list, "
-       << "AutofuseTilingData &tiling_data, int32_t tilingCaseId, AutofuseTilingData* autofuseTilingData, "
+       << "AutofuseTilingData &tiling_data, int32_t tilingCaseId, AutofuseTilingData* output_tiling_data, "
        << PGOSearchFuncInputOutputCallBackDef(fused_schedule_result)
-       << "void* stream, uint32_t workspaceSize, double& out_best_perf) {" << std::endl;
+       << "void* stream, uint32_t workspaceSize, double& out_best_perf, "
+       << "std::unordered_map<int64_t, uint64_t> &workspace_map, "
+       << "std::vector<uint32_t*> block_dim_vec={}, const SearchConfig *search_cfg=nullptr) {" << std::endl;
     ss << "  return true;" << std::endl;
     ss << "}" << std::endl;
     ss << "bool PGOByCoreNumSearchTilingKey(std::vector<AutofuseTilingData>& tiling_data_list, "
@@ -2024,7 +2041,7 @@ std::map<std::string, std::string> TilingLib::GetTilingHeaders(const ascir::Fuse
     return tiling_file_name_to_content;
   }
 
-  if (enable_autofuse_pgo_){
+  if (enable_autofuse_pgo_ || is_inductor_scene){
     ss << PGOProfilingCallbackDef(fused_schedule_result, tiling_name);
   }
   if (this->codegen_func_ != nullptr && !IsEmptyTensorSence(fused_schedule_result)) {
@@ -3079,6 +3096,12 @@ std::string TilingLib::PGOProfilingCallbackDef(const ascir::FusedScheduledResult
   ss << "    static PgoConfig instance;" << std::endl;
   ss << "    return instance;" << std::endl;
   ss << "  }" << std::endl;
+  ss << "  void ResetRuntimeOverrides() {" << std::endl;
+  ss << "    need_change_solver_run = false;" << std::endl;
+  ss << "    pgo_threshold_index = 0;" << std::endl;
+  ss << "    pgo_ub_threshold_list = {0.2, 0.1, 0, 0.05, 0.1};" << std::endl;
+  ss << "    pgo_corenum_threshold_list = {0.4, 0.4, 1, 1, 0.8};" << std::endl;
+  ss << "  }" << std::endl;
   ss << "  ProfilingCallback single_callback;" << std::endl;
   ss << "  ProfilingBatchCallback batch_callback;" << std::endl;
   ss << "  int32_t pgo_algorithm = 1; // 0 for pruning, 1 for core num" << std::endl;
@@ -3092,6 +3115,11 @@ std::string TilingLib::PGOProfilingCallbackDef(const ascir::FusedScheduledResult
   ss << "  ~PgoConfig() = default;" << std::endl;
   ss << "  PgoConfig(const PgoConfig &) = delete;" << std::endl;
   ss << "  PgoConfig &operator=(const PgoConfig &) = delete;" << std::endl;
+  ss << "};" << std::endl;
+  ss << "class PgoConfigRuntimeGuard {" << std::endl;
+  ss << "public:" << std::endl;
+  ss << "  PgoConfigRuntimeGuard() { PgoConfig::Instance().ResetRuntimeOverrides(); }" << std::endl;
+  ss << "  ~PgoConfigRuntimeGuard() { PgoConfig::Instance().ResetRuntimeOverrides(); }" << std::endl;
   ss << "};" << std::endl;
   ss << std::endl;
 
@@ -3670,45 +3698,446 @@ void TilingLib::GenReprMultiGroup(std::stringstream &ss,
   }
 }
 
+std::string TilingLib::GenUpdateCurPerfAndBlockByGroupHelper() const {
+  return ascgen_utils::GenUpdateCurPerfAndBlockByGroupHelper(false, true);
+}
+
+std::string TilingLib::GenEvaluateModeledPerfForInductor(
+    const std::string &tiling, const ::ascir::FusedScheduledResult &fused_schedule_result) const {
+  std::stringstream ss;
+  bool is_single_group = ascgen_utils::IsSingleGroup(fused_schedule_result);
+  ss << "static double EvaluateModeledPerf(const " << tiling << " &tiling_data) {" << std::endl;
+  if (is_single_group) {
+    ss << "  TilingCaseImplPtr impl = GetTilingImplPtr(tiling_data.get_tiling_key(), "
+       << "tiling_data.get_block_dim());" << std::endl;
+    ss << "  if (impl == nullptr) { return DBL_MAX; }" << std::endl;
+    ss << "  " << tiling << " tmp = tiling_data;" << std::endl;
+    ss << "  return impl->GetPerf(tmp);" << std::endl;
+  } else {
+    GenMultiGroupPerfAggregation(ss, fused_schedule_result);
+  }
+  ss << "}" << std::endl;
+  return ss.str();
+}
+
+void TilingLib::GenMultiGroupPerfAggregation(std::stringstream &ss,
+                                             const ::ascir::FusedScheduledResult &fused_schedule_result) const {
+  const auto &node_results = fused_schedule_result.node_idx_to_scheduled_results;
+  ss << "  double cur_perf = 0.0;" << std::endl;
+  ss << "  double cur_tmp_perf = 0.0;" << std::endl;
+  ss << "  uint32_t cur_block = 0;" << std::endl;
+  ss << "  uint32_t limited_block = tiling_data.get_block_dim();" << std::endl;
+  bool first_result = true;
+  for (size_t asc_graph_id = 0; asc_graph_id < node_results.size(); ++asc_graph_id) {
+    const auto &scheduled_results = node_results[asc_graph_id];
+    for (size_t result_id = 0; result_id < scheduled_results.size(); ++result_id) {
+      if (first_result) {
+        ss << "  if (tiling_data.get_graph" << asc_graph_id << "_tiling_key() == "
+           << result_id << ") {" << std::endl;
+        first_result = false;
+      } else {
+        ss << "  } else if (tiling_data.get_graph" << asc_graph_id << "_tiling_key() == "
+           << result_id << ") {" << std::endl;
+      }
+      GenGroupPerfForScheduleResult(ss, asc_graph_id, result_id, scheduled_results[result_id]);
+    }
+    if (!scheduled_results.empty()) {
+      ss << "  }" << std::endl;
+    }
+  }
+  ss << "  return cur_perf;" << std::endl;
+}
+
+void TilingLib::GenGroupPerfForScheduleResult(std::stringstream &ss, size_t asc_graph_id, size_t result_id,
+                                              const ::ascir::ScheduledResult &sched_result) const {
+  const auto &schedule_groups = sched_result.schedule_groups;
+  bool enable_group_parallel = sched_result.enable_group_parallel && schedule_groups.size() > 1;
+  if (schedule_groups.size() == 1 || !enable_group_parallel) {
+    bool first_group = true;
+    for (size_t group_id = 0; group_id < schedule_groups.size(); ++group_id) {
+      std::string ns = "AscGraph" + std::to_string(asc_graph_id) + "ScheduleResult" +
+                       std::to_string(result_id) + "G" + std::to_string(group_id);
+      std::string item = "graph" + std::to_string(asc_graph_id) + "_result" + std::to_string(result_id) +
+                         "_g" + std::to_string(group_id) + "_tiling_data";
+      ss << "    { auto _tmp = tiling_data." << item << "; ";
+      if (first_group) {
+        ss << "cur_perf = " << ns << "::GetPerf(_tmp); }" << std::endl;
+        first_group = false;
+      } else {
+        ss << "cur_perf += " << ns << "::GetPerf(_tmp); }" << std::endl;
+      }
+    }
+  } else {
+    bool first_group = true;
+    for (size_t group_id = 0; group_id < schedule_groups.size(); ++group_id) {
+      std::string ns = "AscGraph" + std::to_string(asc_graph_id) + "ScheduleResult" +
+                       std::to_string(result_id) + "G" + std::to_string(group_id);
+      std::string item = "graph" + std::to_string(asc_graph_id) + "_result" + std::to_string(result_id) +
+                         "_g" + std::to_string(group_id) + "_tiling_data";
+      if (first_group) {
+        ss << "    { auto _tmp = tiling_data." << item << "; "
+           << "cur_tmp_perf = " << ns << "::GetPerf(_tmp); }" << std::endl;
+        ss << "    cur_block = tiling_data." << item << ".get_block_dim();" << std::endl;
+        first_group = false;
+      } else {
+        ss << "    { auto _tmp = tiling_data." << item << "; "
+           << "(void)UpdateCurPerfAndBlockByGroup({tiling_data." << item << ".get_block_dim(), "
+           << ns << "::GetPerf(_tmp)}, limited_block, cur_block, cur_perf, "
+           << "cur_tmp_perf); }" << std::endl;
+      }
+    }
+    ss << "    cur_perf += cur_tmp_perf;" << std::endl;
+  }
+}
+
 std::string TilingLib::GenGetTopnSolutionsFuncForInductor(const ascir::FusedScheduledResult &fused_schedule_result,
                                                           const std::string &tiling) const {
   std::stringstream ss;
   codegen::PgoShapeStringStream pgo_shape_dim;
+  int symbol_value_count = 0;
   for (auto vars : fused_schedule_result.origin_vars) {
     if (!(vars.IsConstExpr())) {
       std::string var_define = std::string(vars.Str().get());
       pgo_shape_dim.shape_dim_def << "int64_t " << var_define << ", ";
       pgo_shape_dim.shape_dim_use << var_define << ", ";
       TilingSetShapeDim(pgo_shape_dim.tiling_set_shape_dim, var_define, fused_schedule_result);
+      symbol_value_count++;
     }
   }
 
-  // Stage1: GenerateTopnSolutions always returns exactly 1 default solution regardless of topn value.
+  GenTopnGetTilingFunc(ss, fused_schedule_result, tiling, symbol_value_count);
+  GenGenerateTopnSolutionsEntry(ss, fused_schedule_result, tiling, pgo_shape_dim);
+  return ss.str();
+}
+
+void TilingLib::GenTopnInitSearchTiling(std::stringstream &ss,
+                                         const ascir::FusedScheduledResult &fused_schedule_result,
+                                         const std::string &tiling, int symbol_value_count) const {
+  ss << "  const ResLimit *limit = (request.res_limit == nullptr || request.res_limit->aiv_num == 0) "
+     << "? &g_no_limit_res : request.res_limit;" << std::endl;
+  ss << "  if (request.symbol_values.size() != " << symbol_value_count << "ULL) { return -1; }" << std::endl;
+  ss << "  const bool is_default_config_request = internal_no_config_path || "
+     << "(request.input_configs != nullptr && request.input_configs->size() == 1 && request.input_configs->front().empty());"
+     << std::endl;
+  ss << std::endl;
+  ss << "  " << tiling << " search_tiling = {};" << std::endl;
+  ss << "  search_tiling.set_block_dim(limit->aiv_num);" << std::endl;
+  ss << "  search_tiling.set_ub_size(limit->ub_size - 256);" << std::endl;
+  {
+    int idx = 0;
+    for (auto vars : fused_schedule_result.origin_vars) {
+      if (!(vars.IsConstExpr())) {
+        std::string var_define = std::string(vars.Str().get());
+        ss << "  search_tiling.set_" << var_define << "(static_cast<uint32_t>(request.symbol_values[" << idx << "]));"
+           << std::endl;
+        idx++;
+      }
+    }
+  }
+  ss << std::endl;
+}
+
+void TilingLib::GenTopnGetTilingFunc(std::stringstream &ss, const ascir::FusedScheduledResult &fused_schedule_result,
+                                     const std::string &tiling, int symbol_value_count) const {
+  ss << "static int64_t GetTopnCandidateSolutions(const GetTilingRequest &request, GetTilingResponse &response) {" << std::endl;
+  ss << "  response.candidate_solutions.clear();" << std::endl;
+  ss << "  OP_LOGI(OP_NAME, \"GetTopnCandidateSolutions enter: topn=%ld, symbol_values.size=%zu, input_configs=%s\", "
+     << "static_cast<long>(request.topn), request.symbol_values.size(), "
+     << "request.input_configs == nullptr ? \"null\" : \"present\");" << std::endl;
+  ss << "  if (request.topn <= 0) { return -1; }" << std::endl;
+  ss << "  std::vector<SearchConfig> configs;" << std::endl;
+  ss << "  const bool internal_no_config_path = (request.input_configs == nullptr);" << std::endl;
+  ss << "  if (internal_no_config_path) {" << std::endl;
+  ss << "    configs.push_back(SearchConfig());" << std::endl;
+  ss << "  } else {" << std::endl;
+  ss << "    configs = ParseSearchConfigs(*request.input_configs);" << std::endl;
+  ss << "    if (configs.empty()) { return -1; }" << std::endl;
+  ss << "  }" << std::endl;
+  ss << std::endl;
+
+  GenTopnInitSearchTiling(ss, fused_schedule_result, tiling, symbol_value_count);
+
+  ss << "  PgoConfig::Instance().ResetRuntimeOverrides();" << std::endl;
+  ss << "  std::string default_repr;" << std::endl;
+  ss << "  bool found_default_candidate = false;" << std::endl;
+  ss << "  " << tiling << " default_tiling = search_tiling;" << std::endl;
+  ss << "  if (is_default_config_request) {" << std::endl;
+  ss << "    if (GetTiling(default_tiling, -1)) {" << std::endl;
+  ss << "      default_repr = GetTilingDataRepr(&default_tiling);" << std::endl;
+  ss << "    }" << std::endl;
+  ss << "  }" << std::endl;
+  GenTopnSearchTilingSetup(ss, tiling, fused_schedule_result);
+  GenTopnCollectCandidates(ss, tiling);
+  ss << "  if (is_default_config_request && !found_default_candidate) { return -1; }" << std::endl;
+  ss << "  OP_LOGI(OP_NAME, \"GetTopnCandidateSolutions collected %zu candidates\", response.candidate_solutions.size());" << std::endl;
+  ss << "  return response.candidate_solutions.empty() ? -1 : 0;" << std::endl;
+  ss << "}" << std::endl;
+  ss << std::endl;
+}
+
+void TilingLib::GenTopnSearchTilingSetup(std::stringstream &ss, const std::string &tiling,
+                                         const ascir::FusedScheduledResult &fused_schedule_result) const {
+  ss << "  for (const auto &cfg : configs) {" << std::endl;
+  ss << "    OP_LOGI(OP_NAME, \"config: ub_thresh=%.3f(enabled=%d), corenum_thresh=%.3f(enabled=%d), "
+     << "multicore_ub_tradeoff=%d\", cfg.ub_threshold, cfg.ub_threshold_enabled, "
+     << "cfg.corenum_threshold, cfg.corenum_threshold_enabled, cfg.enable_multicore_ub_tradeoff);" << std::endl;
+  ss << "    std::vector<AutofuseTilingDataPerf> raw_candidates;" << std::endl;
+  ss << "    " << tiling << " cur_search_tiling = search_tiling;" << std::endl;
+  ss << "    double best_perf = DBL_MAX;" << std::endl;
+  ss << "    bool helper_ret = false;" << std::endl;
+  const bool is_single_group = ascgen_utils::IsSingleGroup(fused_schedule_result);
+  if (is_single_group) {
+    ss << "    std::unordered_map<int64_t, uint64_t> workspace_map;" << std::endl;
+  }
+  GenTopnSearchTilingKeyCall(ss, fused_schedule_result);
+  ss << "    if (!helper_ret) { continue; }" << std::endl;
+  ss << "    OP_LOGI(OP_NAME, \"PGOSearchTilingKey returned %zu raw_candidates, best_perf=%.6f\", "
+     << "raw_candidates.size(), best_perf);" << std::endl;
+}
+
+void TilingLib::GenTopnCollectCandidates(std::stringstream &ss, const std::string &tiling) const {
+  (void)tiling;
+  ss << "    for (const auto &raw_candidate : raw_candidates) {" << std::endl;
+  ss << "      CandidateSolution solution;" << std::endl;
+  ss << "      solution.tiling_data = raw_candidate.tiling_data;" << std::endl;
+  ss << "      solution.canonical_repr = GetTilingDataRepr(&raw_candidate.tiling_data);" << std::endl;
+  ss << "      if (solution.canonical_repr.empty()) { continue; }" << std::endl;
+  ss << "      double final_modeled_perf = EvaluateModeledPerf(raw_candidate.tiling_data);" << std::endl;
+  ss << "      if (!std::isfinite(final_modeled_perf)) { final_modeled_perf = DBL_MAX; }" << std::endl;
+  ss << "      solution.modeled_perf = final_modeled_perf;" << std::endl;
+  ss << "      solution.is_default = is_default_config_request && !default_repr.empty() && (solution.canonical_repr == default_repr);" << std::endl;
+  ss << "      if (solution.is_default) { found_default_candidate = true; }" << std::endl;
+  ss << "      OP_LOGI(OP_NAME, \"candidate: repr=%.80s perf=%.6f is_default=%d\", "
+     << "solution.canonical_repr.c_str(), solution.modeled_perf, solution.is_default);" << std::endl;
+  ss << "      response.candidate_solutions.push_back(solution);" << std::endl;
+  ss << "    }" << std::endl;
+  ss << "  }" << std::endl;
+  ss << "  if (is_default_config_request && !default_repr.empty() && !found_default_candidate) {" << std::endl;
+  ss << "    CandidateSolution default_solution;" << std::endl;
+  ss << "    default_solution.tiling_data = default_tiling;" << std::endl;
+  ss << "    default_solution.canonical_repr = default_repr;" << std::endl;
+  ss << "    default_solution.modeled_perf = DBL_MAX;" << std::endl;
+  ss << "    default_solution.is_default = true;" << std::endl;
+  ss << "    found_default_candidate = true;" << std::endl;
+  ss << "    response.candidate_solutions.push_back(default_solution);" << std::endl;
+  ss << "  }" << std::endl;
+  ss << std::endl;
+}
+
+void TilingLib::GenTopnSearchTilingKeyCall(std::stringstream &ss,
+                                           const ascir::FusedScheduledResult &fused_schedule_result) const {
+  ss << "    helper_ret = optiling::PGOSearchTilingKey(raw_candidates, cur_search_tiling, -1, &cur_search_tiling, ";
+  for (auto input : fused_schedule_result.input_nodes) {
+    (void)input;
+    ss << "nullptr, ";
+  }
+  for (auto node : fused_schedule_result.output_nodes) {
+    if (IsOps<Output>(node)) {
+      ss << "nullptr, ";
+    }
+  }
+  const bool is_single_group = ascgen_utils::IsSingleGroup(fused_schedule_result);
+  if (is_single_group) {
+    ss << "nullptr, 0, best_perf, workspace_map, {}, &cfg);" << std::endl;
+  } else {
+    ss << "nullptr, 0, best_perf, &cfg);" << std::endl;
+  }
+}
+
+void TilingLib::GenGenerateTopnSolutionsEntry(std::stringstream &ss,
+                                              const ascir::FusedScheduledResult &fused_schedule_result,
+                                              const std::string &tiling,
+                                              const codegen::PgoShapeStringStream &pgo_shape_dim) const {
   ss << "extern \"C\" int64_t GenerateTopnSolutions(";
   ss << pgo_shape_dim.shape_dim_def.str();
   ss << "const std::vector<std::map<std::string, std::string>> &input_configs, int64_t topn, ";
   ss << "std::vector<" << tiling << "> &tiling_datas, std::vector<int64_t> &workspaces, ";
   ss << "std::vector<int64_t> &block_dims, ResLimit *res_limit = nullptr)" << std::endl;
   ss << "{" << std::endl;
-  ss << "  (void)input_configs;" << std::endl;
   ss << "  tiling_datas.clear();" << std::endl;
   ss << "  workspaces.clear();" << std::endl;
   ss << "  block_dims.clear();" << std::endl;
-  ss << "  if (topn <= 0) {" << std::endl;
-  ss << "    return -1;" << std::endl;
+  ss << "  if (topn <= 0) { return -1; }" << std::endl;
+  ss << "  OP_LOGI(OP_NAME, \"GenerateTopnSolutions enter: topn=%ld, input_configs.size=%zu\", "
+     << "static_cast<long>(topn), input_configs.size());" << std::endl;
+  ss << "  GetTilingRequest request;" << std::endl;
+  (void)fused_schedule_result;  // symbol_values already captured in pgo_shape_dim
+  ss << "  request.symbol_values = {" << pgo_shape_dim.shape_dim_use.str() << "};" << std::endl;
+  ss << "  if (input_configs.empty()) {" << std::endl;
+  ss << "    request.input_configs = nullptr;" << std::endl;
+  ss << "  } else {" << std::endl;
+  ss << "    request.input_configs = &input_configs;" << std::endl;
   ss << "  }" << std::endl;
-  ss << "  " << tiling << " default_tiling_data = {};" << std::endl;
-  ss << "  uint32_t default_workspace = 0;" << std::endl;
-  ss << "  uint32_t default_block_dim = 0;" << std::endl;
-  ss << "  if (AutofuseTiling(" << pgo_shape_dim.shape_dim_use.str()
-     << "&default_tiling_data, &default_workspace, &default_block_dim, res_limit) != 0) {" << std::endl;
-  ss << "    return -1;" << std::endl;
+  ss << "  request.res_limit = res_limit;" << std::endl;
+  ss << "  request.topn = topn;" << std::endl;
+  ss << "  GetTilingResponse response;" << std::endl;
+  ss << "  if (GetTopnCandidateSolutions(request, response) != 0) { return -1; }" << std::endl;
+  ss << "  SelectTopnCandidateSolutions(response.candidate_solutions, topn);" << std::endl;
+  ss << "  if (response.candidate_solutions.empty()) { return -1; }" << std::endl;
+  ss << "  OP_LOGI(OP_NAME, \"SelectTopn: %zu solutions after dedup+sort+truncate (topn=%ld)\", "
+     << "response.candidate_solutions.size(), static_cast<long>(topn));" << std::endl;
+  ss << "  for (const auto &sol : response.candidate_solutions) {" << std::endl;
+  ss << "    tiling_datas.push_back(sol.tiling_data);" << std::endl;
+  ss << "    workspaces.push_back(static_cast<int64_t>(GetWorkspaceSize(sol.tiling_data)));" << std::endl;
+  ss << "    block_dims.push_back(static_cast<int64_t>(sol.tiling_data.get_block_dim()));" << std::endl;
+  ss << "    OP_LOGI(OP_NAME, \"output[%zu]: perf=%.6f is_default=%d block_dim=%ld repr=%.80s\", "
+     << "tiling_datas.size() - 1, sol.modeled_perf, sol.is_default, "
+     << "static_cast<long>(sol.tiling_data.get_block_dim()), sol.canonical_repr.c_str());" << std::endl;
   ss << "  }" << std::endl;
-  ss << "  tiling_datas.push_back(default_tiling_data);" << std::endl;
-  ss << "  workspaces.push_back(static_cast<int64_t>(default_workspace));" << std::endl;
-  ss << "  block_dims.push_back(static_cast<int64_t>(default_block_dim));" << std::endl;
   ss << "  return 0;" << std::endl;
   ss << "}" << std::endl;
+}
+
+std::string TilingLib::GenCandidateSolutionProtocolForInductor(const std::string &tiling) const {
+  std::stringstream ss;
+  ss << "// Candidate solution protocol for Inductor topn selection." << std::endl;
+  ss << "struct CandidateSolution {" << std::endl;
+  ss << "  " << tiling << " tiling_data;" << std::endl;
+  ss << "  double modeled_perf = 0.0;" << std::endl;
+  ss << "  bool is_default = false;" << std::endl;
+  ss << "  std::string canonical_repr;" << std::endl;
+  ss << "};" << std::endl;
+  ss << std::endl;
+  ss << "struct GetTilingRequest {" << std::endl;
+  ss << "  std::vector<int64_t> symbol_values;" << std::endl;
+  ss << "  const std::vector<std::map<std::string, std::string>> *input_configs = nullptr;" << std::endl;
+  ss << "  ResLimit *res_limit = nullptr;" << std::endl;
+  ss << "  int64_t topn = 1;" << std::endl;
+  ss << "};" << std::endl;
+  ss << std::endl;
+  ss << "struct GetTilingResponse {" << std::endl;
+  ss << "  std::vector<CandidateSolution> candidate_solutions;" << std::endl;
+  ss << "};" << std::endl;
+  ss << std::endl;
+  return ss.str();
+}
+
+void TilingLib::GenDeduplicateCandidateSolutions(std::stringstream &ss) const {
+  ss << "inline void DeduplicateCandidateSolutions(std::vector<CandidateSolution> &solutions) {" << std::endl;
+  ss << "  std::unordered_map<std::string, size_t> repr_to_index;" << std::endl;
+  ss << "  std::vector<CandidateSolution> deduplicated;" << std::endl;
+  ss << "  deduplicated.reserve(solutions.size());" << std::endl;
+  ss << "  for (const auto &solution : solutions) {" << std::endl;
+  ss << "    if (solution.canonical_repr.empty()) { continue; }" << std::endl;
+  ss << "    const auto iter = repr_to_index.find(solution.canonical_repr);" << std::endl;
+  ss << "    if (iter == repr_to_index.end()) {" << std::endl;
+  ss << "      repr_to_index.emplace(solution.canonical_repr, deduplicated.size());" << std::endl;
+  ss << "      deduplicated.push_back(solution);" << std::endl;
+  ss << "      continue;" << std::endl;
+  ss << "    }" << std::endl;
+  ss << "    auto &kept = deduplicated[iter->second];" << std::endl;
+  ss << "    if (!IsEqual(kept.modeled_perf, solution.modeled_perf)) {" << std::endl;
+  ss << "      OP_LOGW(OP_NAME, \"same repr with different modeled_perf, keep first: kept=%.6f, current=%.6f, repr=%.80s\", "
+     << "kept.modeled_perf, solution.modeled_perf, solution.canonical_repr.c_str());" << std::endl;
+  ss << "      continue;" << std::endl;
+  ss << "    }" << std::endl;
+  ss << "    if (!kept.is_default && solution.is_default) {" << std::endl;
+  ss << "      kept = solution;" << std::endl;
+  ss << "    }" << std::endl;
+  ss << "  }" << std::endl;
+  ss << "  solutions.swap(deduplicated);" << std::endl;
+  ss << "}" << std::endl;
+  ss << std::endl;
+}
+
+std::string TilingLib::GenTopnSelectorHelpersForInductor() const {
+  std::stringstream ss;
+  ss << "// Topn selector helpers: default-first, modeled_perf ascending, canonical_repr tiebreak." << std::endl;
+  ss << "inline bool CompareCandidateSolution(const CandidateSolution &lhs, const CandidateSolution &rhs) {" << std::endl;
+  ss << "  if (lhs.is_default != rhs.is_default) { return lhs.is_default; }" << std::endl;
+  ss << "  if (lhs.modeled_perf < rhs.modeled_perf || rhs.modeled_perf < lhs.modeled_perf) { return lhs.modeled_perf < rhs.modeled_perf; }" << std::endl;
+  ss << "  return lhs.canonical_repr < rhs.canonical_repr;" << std::endl;
+  ss << "}" << std::endl;
+  ss << std::endl;
+  GenDeduplicateCandidateSolutions(ss);
+  ss << "inline void SelectTopnCandidateSolutions(std::vector<CandidateSolution> &solutions, int64_t topn) {" << std::endl;
+  ss << "  const size_t before_dedup = solutions.size();" << std::endl;
+  ss << "  DeduplicateCandidateSolutions(solutions);" << std::endl;
+  ss << "  OP_LOGI(OP_NAME, \"DeduplicateCandidateSolutions: %zu -> %zu\", before_dedup, solutions.size());" << std::endl;
+  ss << "  std::sort(solutions.begin(), solutions.end(), CompareCandidateSolution);" << std::endl;
+  ss << "  for (size_t i = 0; i < solutions.size(); ++i) {" << std::endl;
+  ss << "    OP_LOGD(OP_NAME, \"sorted[%zu]: perf=%.6f is_default=%d repr=%.80s\", "
+     << "i, solutions[i].modeled_perf, solutions[i].is_default, solutions[i].canonical_repr.c_str());" << std::endl;
+  ss << "  }" << std::endl;
+  ss << "  if (topn > 0 && static_cast<int64_t>(solutions.size()) > topn) {" << std::endl;
+  ss << "    OP_LOGI(OP_NAME, \"truncate %zu -> %ld\", solutions.size(), static_cast<long>(topn));" << std::endl;
+  ss << "    solutions.resize(static_cast<size_t>(topn));" << std::endl;
+  ss << "  }" << std::endl;
+  ss << "}" << std::endl;
+  ss << std::endl;
+  return ss.str();
+}
+
+std::string TilingLib::GenSearchConfigProtocolForInductor() const {
+  std::stringstream ss;
+  ss << "// SearchConfig for dual-path PGO: TF builtin and Inductor request configs." << std::endl;
+  ss << "struct SearchConfig {" << std::endl;
+  ss << "  bool ub_threshold_enabled = false;" << std::endl;
+  ss << "  double ub_threshold = 0.0;" << std::endl;
+  ss << "  bool corenum_threshold_enabled = false;" << std::endl;
+  ss << "  double corenum_threshold = 1.0;" << std::endl;
+  ss << "  bool enable_multicore_ub_tradeoff = false;" << std::endl;
+  ss << "};" << std::endl;
+  ss << std::endl;
+  return ss.str();
+}
+
+std::string TilingLib::GenBuiltinTfPgoConfigsForInductor() const {
+  std::stringstream ss;
+  ss << "// Builtin TF PGO search configs: 5 fixed threshold configurations." << std::endl;
+  ss << "inline std::vector<SearchConfig> GetBuiltinTfPgoConfigs() {" << std::endl;
+  ss << "  return {" << std::endl;
+  ss << "    {true, 0.2, true, 0.4, false}," << std::endl;
+  ss << "    {true, 0.1, true, 0.4, false}," << std::endl;
+  ss << "    {true, 0.0, true, 1.0, false}," << std::endl;
+  ss << "    {true, 0.05, true, 1.0, false}," << std::endl;
+  ss << "    {true, 0.1, true, 0.8, false}," << std::endl;
+  ss << "  };" << std::endl;
+  ss << "}" << std::endl;
+  ss << std::endl;
+  return ss.str();
+}
+
+std::string TilingLib::GenInductorConfigParserForInductor() const {
+  std::stringstream ss;
+  ss << "// Parse Inductor request configs from interface input." << std::endl;
+  ss << "inline bool ParseSearchConfig(const std::map<std::string, std::string> &raw, SearchConfig &out) {" << std::endl;
+  ss << "  out = SearchConfig();" << std::endl;
+  ss << "  auto ub_it = raw.find(\"ub_threshold\");" << std::endl;
+  ss << "  if (ub_it != raw.end()) {" << std::endl;
+  ss << "    out.ub_threshold_enabled = true;" << std::endl;
+  ss << "    try { out.ub_threshold = std::stod(ub_it->second); } catch (...) { return false; }" << std::endl;
+  ss << "  }" << std::endl;
+  ss << "  auto cn_it = raw.find(\"corenum_threshold\");" << std::endl;
+  ss << "  if (cn_it != raw.end()) {" << std::endl;
+  ss << "    out.corenum_threshold_enabled = true;" << std::endl;
+  ss << "    try { out.corenum_threshold = std::stod(cn_it->second); } catch (...) { return false; }" << std::endl;
+  ss << "  }" << std::endl;
+  ss << "  auto mc_it = raw.find(\"enable_multicore_ub_tradeoff\");" << std::endl;
+  ss << "  if (mc_it != raw.end()) {" << std::endl;
+  ss << "    if (mc_it->second == \"true\") { out.enable_multicore_ub_tradeoff = true; }" << std::endl;
+  ss << "    else if (mc_it->second == \"false\") { out.enable_multicore_ub_tradeoff = false; }" << std::endl;
+  ss << "    else { return false; }" << std::endl;
+  ss << "  }" << std::endl;
+  ss << "  for (const auto &kv : raw) {" << std::endl;
+  ss << "    if (kv.first != \"ub_threshold\" && kv.first != \"corenum_threshold\"" << std::endl;
+  ss << "        && kv.first != \"enable_multicore_ub_tradeoff\") { return false; }" << std::endl;
+  ss << "  }" << std::endl;
+  ss << "  return true;" << std::endl;
+  ss << "}" << std::endl;
+  ss << std::endl;
+  ss << "inline std::vector<SearchConfig> ParseSearchConfigs(" << std::endl;
+  ss << "    const std::vector<std::map<std::string, std::string>> &raws) {" << std::endl;
+  ss << "  std::vector<SearchConfig> result;" << std::endl;
+  ss << "  for (const auto &raw : raws) {" << std::endl;
+  ss << "    SearchConfig cfg;" << std::endl;
+  ss << "    if (!ParseSearchConfig(raw, cfg)) { return {};" << std::endl;
+  ss << "    }" << std::endl;
+  ss << "    result.push_back(cfg);" << std::endl;
+  ss << "  }" << std::endl;
+  ss << "  return result;" << std::endl;
+  ss << "}" << std::endl;
+  ss << std::endl;
   return ss.str();
 }
 

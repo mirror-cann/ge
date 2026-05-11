@@ -114,6 +114,38 @@ ge::Status GetApiTilingFieldName(const ascir::NodeView& node, std::string& field
   return ge::SUCCESS;
 }
 
+std::string GenUpdateCurPerfAndBlockByGroupHelper(bool with_log, bool use_std_max) {
+  std::stringstream ss;
+  const std::string max_func = use_std_max ? "std::max" : "Max";
+  ss << R"(
+inline bool UpdateCurPerfAndBlockByGroup(std::pair<uint32_t, double> group_block_and_perf,
+                                         const uint32_t limited_block,
+                                         uint32_t &cur_block,
+                                         double &cur_perf,
+                                         double &cur_tmp_perf) {
+  const auto &group_block = group_block_and_perf.first;
+  const auto &group_perf = group_block_and_perf.second;
+  if ((cur_block + group_block) > limited_block) {
+)";
+  if (with_log) {
+    ss << R"(    OP_LOGD(OP_NAME, "Cur block %u + group block %u > limited block %u, need to update cur perf %lf.",
+             cur_block, group_block, limited_block, cur_tmp_perf);
+)";
+  }
+  ss << R"(    cur_block = group_block;
+    cur_perf += cur_tmp_perf;
+    cur_tmp_perf = group_perf;
+    return true;
+  } else {
+    cur_block += group_block;
+    cur_tmp_perf = )" << max_func << R"((cur_tmp_perf, group_perf);
+    return false;
+  }
+}
+)";
+  return ss.str();
+}
+
 ge::Expression GetTensorSize(const ge::AscTensor &tensor) {
   if (tensor.attr.repeats.size() == 0U) {
     return ge::Symbol(0);

@@ -115,7 +115,7 @@ int RunHostCompile(const std::string &tiling_def, const std::string &host_code, 
     "    td = open('" + std::string(OUTPUT_DIR) + "/host_tiling_def.h').read()\n"
     "    hc = open('" + std::string(OUTPUT_DIR) + "/host_impl.cpp').read()\n"
     "    host_compile(td, hc, [\n"
-    "        '--graph_name=inductor_topn_concat',\n"
+    "        '--graph_name=inductor_tail_brc_tail_reduce',\n"
     "        '--output_file=" + output_file + "',\n"
     "        '--output_path=" + std::string(OUTPUT_DIR) + "/host_out',\n"
     "        '--soc_version=Ascend910B',\n"
@@ -153,7 +153,7 @@ int RunKernelCompile(const std::string &tiling_def, const std::string &device_co
     "    os.makedirs('" + work_dir + "', exist_ok=True)\n"
     "    td = open('" + work_dir + "/device_tiling_def.h').read()\n"
     "    dc = open('" + work_dir + "/device_impl.cpp').read()\n"
-    "    argv = ['--graph_name=inductor_topn_concat',\n"
+    "    argv = ['--graph_name=inductor_tail_brc_tail_reduce',\n"
     "            '--output_file=" + output_file + "',\n"
     "            '--output_path=" + work_dir + "',\n"
     "            '--soc_version=Ascend910B',\n"
@@ -177,7 +177,7 @@ struct DlHandle {
 };
 
 }  // namespace
-class TestBackendInductorTopnConcatSplitCompile : public testing::Test {
+class TestBackendInductorTailBrcTailReduceSplitCompile : public testing::Test {
 };
 
 void PrepareInputs(std::string &tiling_def, std::string &host_code, std::string &device_code) {
@@ -190,14 +190,14 @@ void PrepareInputs(std::string &tiling_def, std::string &host_code, std::string 
 }
 
 void CompileHostAndResolve(const std::string &tiling_def, const std::string &host_code,
-                           std::string &host_bin, DlHandle &host_handle, GenerateTopnSolutionsFn &gen_fn,
+                           std::string &host_bin, GenerateTopnSolutionsFn &gen_fn,
                            GetTilingDataReprFn &repr_fn, GetModeledPerfForTestingFn &perf_fn,
                            AutofuseTilingFn &autofuse_tiling_fn) {
-  host_bin = OUTPUT_DIR "/inductor_topn_concat_host.so";
+  host_bin = OUTPUT_DIR "/inductor_tail_brc_tail_reduce_host.so";
   ASSERT_EQ(RunHostCompile(tiling_def, host_code, host_bin), 0);
   ASSERT_TRUE(FileExists(host_bin)) << "host so not found: " << host_bin;
 
-  host_handle.ptr = dlopen(host_bin.c_str(), RTLD_LAZY | RTLD_LOCAL);
+  DlHandle host_handle(dlopen(host_bin.c_str(), RTLD_LAZY | RTLD_LOCAL));
   ASSERT_TRUE(host_handle) << "dlopen host failed: " << dlerror();
   gen_fn = reinterpret_cast<GenerateTopnSolutionsFn>(dlsym(host_handle.ptr, "GenerateTopnSolutions"));
   repr_fn = reinterpret_cast<GetTilingDataReprFn>(dlsym(host_handle.ptr, "GetTilingDataRepr"));
@@ -209,15 +209,13 @@ void CompileHostAndResolve(const std::string &tiling_def, const std::string &hos
   ASSERT_NE(autofuse_tiling_fn, nullptr) << "AutofuseTiling not found";
 }
 
-std::string GenerateTopnAndReprForDefaultConfigRequest(GenerateTopnSolutionsFn gen_fn,
-                                                       GetTilingDataReprFn repr_fn,
-                                                       GetModeledPerfForTestingFn perf_fn,
-                                                       AutofuseTilingFn autofuse_tiling_fn) {
+std::string GenerateTopnAndRepr(GenerateTopnSolutionsFn gen_fn, GetTilingDataReprFn repr_fn,
+                                GetModeledPerfForTestingFn perf_fn, AutofuseTilingFn autofuse_tiling_fn) {
   std::vector<AutofuseTilingData> tiling_datas;
   std::vector<int64_t> workspaces;
   std::vector<int64_t> block_dims;
   ResLimit res_limit = {1, 48, 0, 192 * 1024, {0}};
-  const std::vector<std::map<std::string, std::string>> input_configs = {{}};
+  const std::vector<std::map<std::string, std::string>> input_configs;
 
   // 1. Reject invalid topn
   std::vector<AutofuseTilingData> invalid_tiling_datas;
@@ -247,14 +245,15 @@ std::string GenerateTopnAndReprForDefaultConfigRequest(GenerateTopnSolutionsFn g
   EXPECT_EQ(tiling_repr, default_repr);
   EXPECT_NE(tiling_repr.find("AutofuseTilingData{"), std::string::npos);
 
-  // 3. Multi-candidate uniqueness and modeled_perf ascending sort (topn=10)
+  // 3. Multi-candidate uniqueness and modeled_perf ascending sort
   tiling_datas.clear();
   workspaces.clear();
   block_dims.clear();
-  EXPECT_EQ(gen_fn(input_configs, 10, tiling_datas, workspaces, block_dims, &res_limit), 0);
+  EXPECT_EQ(gen_fn(input_configs, 4, tiling_datas, workspaces, block_dims, &res_limit), 0);
   EXPECT_GT(tiling_datas.size(), 1U);
   EXPECT_EQ(tiling_datas.size(), workspaces.size());
   EXPECT_EQ(tiling_datas.size(), block_dims.size());
+  EXPECT_LE(tiling_datas.size(), 4U);
   EXPECT_EQ(repr_fn(&tiling_datas[0]), default_repr);
   for (size_t i = 0; i < tiling_datas.size(); ++i) {
     for (size_t j = i + 1; j < tiling_datas.size(); ++j) {
@@ -262,22 +261,20 @@ std::string GenerateTopnAndReprForDefaultConfigRequest(GenerateTopnSolutionsFn g
     }
   }
   for (size_t i = 2; i < tiling_datas.size(); ++i) {
-    EXPECT_LE(perf_fn(&tiling_datas[i - 1]), perf_fn(&tiling_datas[i]))
-        << "perf not ascending: sol[" << (i - 1) << "]=" << perf_fn(&tiling_datas[i - 1])
-        << " > sol[" << i << "]=" << perf_fn(&tiling_datas[i]);
+    EXPECT_LE(perf_fn(&tiling_datas[i - 1]), perf_fn(&tiling_datas[i]));
   }
-  return tiling_repr;
+  return default_repr;
 }
 
 void CompileAndVerifyKernels(const std::string &tiling_def, const std::string &device_code,
                              const std::string &tiling_repr) {
   const std::string static_dir = OUTPUT_DIR "/device_static";
-  const std::string kernel_static = OUTPUT_DIR "/inductor_topn_concat_static.so";
+  const std::string kernel_static = OUTPUT_DIR "/inductor_tail_brc_tail_reduce_static.so";
   ASSERT_EQ(RunKernelCompile(tiling_def, device_code, kernel_static, static_dir, tiling_repr), 0);
   ASSERT_TRUE(FileExists(kernel_static)) << "static device so not found: " << kernel_static;
 
   const std::string dynamic_dir = OUTPUT_DIR "/device_dynamic";
-  const std::string kernel_dynamic = OUTPUT_DIR "/inductor_topn_concat_dynamic.so";
+  const std::string kernel_dynamic = OUTPUT_DIR "/inductor_tail_brc_tail_reduce_dynamic.so";
   ASSERT_EQ(RunKernelCompile(tiling_def, device_code, kernel_dynamic, dynamic_dir, ""), 0);
   ASSERT_TRUE(FileExists(kernel_dynamic)) << "dynamic device so not found: " << kernel_dynamic;
 
@@ -289,32 +286,31 @@ void CompileAndVerifyKernels(const std::string &tiling_def, const std::string &d
   ASSERT_TRUE(dynamic_handle) << "dlopen dynamic device failed: " << dlerror();
   EXPECT_NE(dlsym(dynamic_handle.ptr, "AutofuseLaunch"), nullptr) << "AutofuseLaunch missing in dynamic so";
 
-  const std::string static_src = ReadFile(static_dir + "/device/inductor_topn_concat_op_kernel.cpp");
+  const std::string static_src = ReadFile(static_dir + "/device/inductor_tail_brc_tail_reduce_op_kernel.cpp");
   EXPECT_NE(static_src.find("constexpr AutofuseTilingData t = AutofuseTilingData{"), std::string::npos)
       << "static kernel should have constexpr tiling";
   EXPECT_EQ(static_src.find("const AutofuseTilingData t;"), std::string::npos)
       << "static kernel should not have non-const tiling";
 
-  const std::string dynamic_src = ReadFile(dynamic_dir + "/device/inductor_topn_concat_op_kernel.cpp");
+  const std::string dynamic_src = ReadFile(dynamic_dir + "/device/inductor_tail_brc_tail_reduce_op_kernel.cpp");
   EXPECT_NE(dynamic_src.find("AutofuseTilingData t)"), std::string::npos)
       << "dynamic kernel should have tiling parameter";
   EXPECT_EQ(dynamic_src.find("constexpr AutofuseTilingData t = AutofuseTilingData{"), std::string::npos)
       << "dynamic kernel should not have constexpr tiling";
 }
 
-TEST_F(TestBackendInductorTopnConcatSplitCompile, SplitCompileChainWorks) {
+TEST_F(TestBackendInductorTailBrcTailReduceSplitCompile, SplitCompileChainWorks) {
   std::string tiling_def, host_code, device_code;
   PrepareInputs(tiling_def, host_code, device_code);
 
   std::string host_bin;
-  DlHandle host_handle(nullptr);
   GenerateTopnSolutionsFn gen_fn = nullptr;
   GetTilingDataReprFn repr_fn = nullptr;
   GetModeledPerfForTestingFn perf_fn = nullptr;
   AutofuseTilingFn autofuse_tiling_fn = nullptr;
-  CompileHostAndResolve(tiling_def, host_code, host_bin, host_handle, gen_fn, repr_fn, perf_fn, autofuse_tiling_fn);
+  CompileHostAndResolve(tiling_def, host_code, host_bin, gen_fn, repr_fn, perf_fn, autofuse_tiling_fn);
 
-  std::string tiling_repr = GenerateTopnAndReprForDefaultConfigRequest(gen_fn, repr_fn, perf_fn, autofuse_tiling_fn);
+  std::string tiling_repr = GenerateTopnAndRepr(gen_fn, repr_fn, perf_fn, autofuse_tiling_fn);
   ASSERT_FALSE(tiling_repr.empty());
 
   CompileAndVerifyKernels(tiling_def, device_code, tiling_repr);

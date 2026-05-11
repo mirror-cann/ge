@@ -27,11 +27,29 @@ constexpr size_t kHostFileIndex = 1;
 constexpr size_t kDeviceFileIndex = 2;
 constexpr size_t kExpectedKernelSrcCount = 3;
 
-class TestBackendInductorTopnE2e : public testing::Test {
+class TestBackendInductorTailBrcTailReduceE2e : public testing::Test {
 };
 
-TEST_F(TestBackendInductorTopnE2e, InductorTopnE2eCodegen) {
-  auto graph = ascir::ShareGraph::BrcInlineFusedGraph(2);
+void AssertMultiGroupOrMultiImpl(const std::vector<::ascir::ScheduledResult> &graph_results) {
+  ASSERT_FALSE(graph_results.empty());
+  EXPECT_GE(graph_results.size(), 2U);
+  bool has_multi_group_result = false;
+  bool has_multi_impl_group = false;
+  for (const auto &schedule_result : graph_results) {
+    if (schedule_result.schedule_groups.size() > 1U) {
+      has_multi_group_result = true;
+    }
+    for (const auto &schedule_group : schedule_result.schedule_groups) {
+      if (schedule_group.impl_graphs.size() > 1U) {
+        has_multi_impl_group = true;
+      }
+    }
+  }
+  EXPECT_TRUE(has_multi_group_result || has_multi_impl_group);
+}
+
+TEST_F(TestBackendInductorTailBrcTailReduceE2e, InductorTailBrcTailReduceE2eCodegen) {
+  auto graph = ascir::ShareGraph::TailBrcTailReduceFusedGraph(3);
   auto parts = splitString(KERNEL_SRC_LIST, ':');
   ASSERT_EQ(parts.size(), kExpectedKernelSrcCount);
 
@@ -43,6 +61,9 @@ TEST_F(TestBackendInductorTopnE2e, InductorTopnE2eCodegen) {
     fused_schedule_result.node_idx_to_scheduled_results.push_back(schedule_results);
     ASSERT_EQ(optimizer.Optimize(graph, fused_schedule_result), 0);
 
+    ASSERT_EQ(fused_schedule_result.node_idx_to_scheduled_results.size(), 1U);
+    AssertMultiGroupOrMultiImpl(fused_schedule_result.node_idx_to_scheduled_results[0]);
+
     codegen::CodegenResult result;
     ASSERT_EQ(codegen.GenerateForInductor(fused_schedule_result, result), 0);
 
@@ -52,6 +73,7 @@ TEST_F(TestBackendInductorTopnE2e, InductorTopnE2eCodegen) {
     EXPECT_NE(result.tiling.find("extern \"C\" int64_t GenerateTopnSolutions("), std::string::npos);
     EXPECT_NE(result.tiling.find("std::string GetTilingDataRepr("), std::string::npos);
     EXPECT_NE(result.kernel.find("AutofuseLaunch"), std::string::npos);
+    EXPECT_NE(result.tiling.find("GetScheduleResult"), std::string::npos);
 
     std::fstream tiling_data_file(parts[kTilingDataFileIndex], std::ios::out);
     std::fstream host_file(parts[kHostFileIndex], std::ios::out);
@@ -66,7 +88,7 @@ TEST_F(TestBackendInductorTopnE2e, InductorTopnE2eCodegen) {
   } catch (const std::exception &e) {
     FAIL() << e.what();
   } catch (...) {
-    FAIL() << "inductor topn codegen failed";
+    FAIL() << "inductor tail brc tail reduce codegen failed";
   }
 }
 }  // namespace

@@ -710,7 +710,9 @@ build_backend() {
                     argmax_test_e2e \
                     load_logical_not_store_test_e2e \
                     inductor_topn_concat_test_e2e \
-                    inductor_topn_test_e2e"
+                    inductor_topn_test_e2e \
+                    pgo_add_abs_inductor_concat_test_e2e \
+                    pgo_add_abs_inductor_test_e2e"
   if [[ "X$RUN_V35_TESTS" = "Xon" ]]; then
     MAKE_TARGET_LIST="${MAKE_TARGET_LIST} \
                       load_loop_mode_test_e2e_v2\

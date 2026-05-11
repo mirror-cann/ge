@@ -20,6 +20,7 @@
 #include "codegen.h"
 #include "optimize.h"
 #include "share_graph.h"
+#include "ascir_ops.h"
 
 namespace {
 constexpr size_t kTilingDataFileIndex = 0;
@@ -27,11 +28,13 @@ constexpr size_t kHostFileIndex = 1;
 constexpr size_t kDeviceFileIndex = 2;
 constexpr size_t kExpectedKernelSrcCount = 3;
 
-class TestBackendInductorTopnE2e : public testing::Test {
+class TestBackendPgoAddAbsInductorConcatE2e : public testing::Test {
 };
 
-TEST_F(TestBackendInductorTopnE2e, InductorTopnE2eCodegen) {
-  auto graph = ascir::ShareGraph::BrcInlineFusedGraph(2);
+TEST_F(TestBackendPgoAddAbsInductorConcatE2e, PgoAddAbsInductorConcatE2eCodegen) {
+  ge::AscGraph graph("pgo_add_abs_inductor_concat");
+  ascir::ShareGraph::ConcatAscGraph(graph, {"100", "51"});
+
   auto parts = splitString(KERNEL_SRC_LIST, ':');
   ASSERT_EQ(parts.size(), kExpectedKernelSrcCount);
 
@@ -66,7 +69,7 @@ TEST_F(TestBackendInductorTopnE2e, InductorTopnE2eCodegen) {
   } catch (const std::exception &e) {
     FAIL() << e.what();
   } catch (...) {
-    FAIL() << "inductor topn codegen failed";
+    FAIL() << "pgo_add_abs inductor concat codegen failed";
   }
 }
 }  // namespace
