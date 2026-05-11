@@ -434,7 +434,7 @@ Status OptimizeTensorMove(ge::ComputeGraphPtr &compute_graph) {
 
 }  // namespace
 GraphManager::~GraphManager() {
-  // set threal local omg_contex to defaut, to avoid other use invalid memory
+  // set thread local omg_contex to default, to avoid other use invalid memory
   SetLocalOmgContext(domi::GetContext());
 }
 
@@ -650,7 +650,7 @@ Status GraphManager::CheckRepeatAdd(uint32_t graph_id, bool &is_added) {
   // previous thread owns same graph_id has been in the middle of the AddGraph procession
   if (count > 1 && GetAddGraphCondition(graph_id) == kStartAdd) {
     std::unique_lock<std::mutex> lock(add_graph_mutex_);
-    GELOGD("Waitting for build end of previous thread.");
+    GELOGD("Waiting for build end of previous thread.");
     while (GetAddGraphCondition(graph_id) != kDoneAdded) {
       add_graph_cv_.wait(lock);
     }
@@ -803,7 +803,7 @@ Status GraphManager::CheckOptionsValid(const ComputeGraphPtr &compute_graph,
 
 Status GraphManager::CheckGraphExisted(const GraphId &graph_id, bool &is_added) {
   IncreaseGraphCount(graph_id);
-  // validation for adding graphs of same graph_id in multi-thread secenario
+  // validation for adding graphs of same graph_id in multi-thread scenario
   // 1.previous thread owns same graph_id has finished the AddGraph procession
   if (GetAddGraphCondition(graph_id) == kDoneAdded) {
     GraphNodePtr graph_node;
@@ -819,7 +819,7 @@ Status GraphManager::CheckGraphExisted(const GraphId &graph_id, bool &is_added) 
   }
   // In multi-thread scenario, former thread owns same graph_id has been
   // in the middle of the AddGraph procession while following threads have to wait until
-  // done adding graph of the former graph, avoiding repeatively adding same graph.
+  // done adding graph of the former graph, avoiding repeatedly adding same graph.
   is_added = false;
   if (CheckRepeatAdd(graph_id, is_added) != SUCCESS) {
     GELOGE(INTERNAL_ERROR, "[Check][RepeatAdd] for graph[id:%u] failed.", graph_id);
@@ -864,7 +864,7 @@ Status GraphManager::AddGraph(const GraphId &graph_id, const Graph &graph,
   GE_CHK_STATUS_RET_NOLOG(AddGraphForBuild(graph_id, compute_graph, options));
 
   SetAddGraphCondition(graph_id, kDoneAdded);
-  // There are threads waitting for adding same graph
+  // There are threads waiting for adding same graph
   if (NotifyWaittingGraph(graph_id) != SUCCESS) {
     GELOGE(INTERNAL_ERROR, "[Notify][WaittingGraph] failed, graph id:%u.", graph_id);
     return INTERNAL_ERROR;
@@ -1223,7 +1223,7 @@ Status GraphManager::PreRunAfterOptimizeSubGraph(const GraphNodePtr &graph_node,
 
   if (build_step == BUILD_STEP_BEFORE_BUILD) {
     GE_DUMP(compute_graph, "GraphBeforeBuildForQos");
-    GELOGI("Dump graph before build in stpe: %s.", build_step.c_str());
+    GELOGI("Dump graph before build in step: %s.", build_step.c_str());
     return SUCCESS;
   }
 
@@ -1567,7 +1567,7 @@ Status GraphManager::SubexpressionMigration(ComputeGraphPtr &compute_graph) cons
 
 Status GraphManager::StartForRunGraph(const GraphNodePtr &graph_node, const std::vector<GeTensor> &inputs,
                                       GeRootModelPtr &ge_root_model, uint64_t session_id, const aclrtStream stream) {
-  // it will not execute graph prreprocess, optimize, parition, build if the graph has built successful.
+  // it will not execute graph pre-process, optimize, partition, build if the graph has built successful.
   GE_CHECK_NOTNULL(graph_node);
   GE_CHECK_NOTNULL(graph_node->GetGraph());
   Status ret = SUCCESS;
@@ -1590,7 +1590,7 @@ Status GraphManager::StartForRunGraph(const GraphNodePtr &graph_node, const std:
     bool is_enable_autofuse = GetAutofuseFlagValue(kAutoFuseEnableOption) == "true";
     // Adapt to offline compile autofuse scenarios
     if (is_enable_autofuse && inputs.empty()) {
-      // static scence & dynamic atc scene
+      // static scene & dynamic atc scene
       GE_ASSERT_SUCCESS(ConstructInputTensors(compute_graph_ptr, hint_shape, ge_tensor_inputs),
                         "Construct model input tensor desc failed, maybe the input tensor desc is invalid.");
     } else if (is_enable_autofuse && !inputs.empty()){
@@ -2043,7 +2043,7 @@ Status GraphManager::RunGraph(const GraphId &graph_id, const std::vector<gert::T
                                   GELOGE(GE_GRAPH_GRAPH_NODE_NULL, "[Get][ComputeGraph] failed, "
                                          "compute_graph_tmp is NULL, graph id = %u.", graph_id);
                                   return GE_GRAPH_GRAPH_NODE_NULL;))
-  // excute graph
+  // execute graph
   GE_CHECK_NOTNULL(executor_);
   auto ret = executor_->RunGraph(graph_node, graph_id, inputs, outputs);
   if (ret != SUCCESS) {
@@ -2270,7 +2270,7 @@ Status GraphManager::BuildGraphWithoutLoad(const GraphId &graph_id, const std::v
 ///
 /// @ingroup ge_graph
 /// @brief Save extra attribute to Model
-/// @param [in] model: Model attribues will save to.
+/// @param [in] model: Model attributes will save to.
 /// @param [in] type: type of OpDesc.
 /// @param [in] attrs: attributes of OpDesc.
 /// @param [in] inputs: inputs tensor.
@@ -3236,7 +3236,7 @@ Status GraphManager::OptimizeStage1(ge::ComputeGraphPtr &compute_graph) {
    *   cast1  transdata2
    *      \    /
    *        var
-   * the node `transdata1` should be moved to the front of the ndoe `cast1`,
+   * the node `transdata1` should be moved to the front of the node `cast1`,
    * to ensure that `transdata1` and `transdata2` can be fusion with `var`.
    * But it is a temp solution, because the `SameTransdataBreadthFusionPass`
    * can only move `TransData` but not `Cast` nodes.
@@ -3739,10 +3739,10 @@ void GraphManager::PreRunThreadV2() {
       GELOGE(INTERNAL_ERROR, "[Get][GraphCount] failed, graph id:%u.", graph_id);
       return;
     }
-    // Avoid repeatively prerun for graphs owns same graph_id in online inference concurrency
+    // Avoid repeatedly pre-run for graphs owns same graph_id in online inference concurrency
     if (count > 1 && graph_node->GetBuildFlag()) {
-      GELOGD("Avoid repeatively prerun, graph_id:%u.", graph_id);
-      // In online inference concurrency senario, graph_node is allowed to be locked for 'count' times
+      GELOGD("Avoid repeatedly pre-run, graph_id:%u.", graph_id);
+      // In online inference concurrency scenario, graph_node is allowed to be locked for 'count' times
       graph_node->SetSemSize(count);
       graph_node->Lock();
       PushRunArgs(args);
@@ -3752,7 +3752,7 @@ void GraphManager::PreRunThreadV2() {
 
     GetThreadLocalContext() = args->context;
     UpdateLocalOmgContext(graph_id);
-    // Cannot be put ahead of the repeatively prerun judgement
+    // Cannot be put ahead of the repeatedly pre-run judgement
     graph_node->Lock();
 
     if (graph_node->GetRunFlag()) {
@@ -4902,7 +4902,7 @@ Status GraphManager::UpdateRefreshableFeatureMemoryBase(uint32_t graph_id, const
     GE_ASSERT_SUCCESS(executor_->UpdateFeatureMemoryBase(graph_node, PtrToValue(memory), size), "update mem failed.");
   } else {
     if ((queryed.first != nullptr) && !is_refreshable) {
-      GELOGE(GE_GRAPH_REPEAT_OPERATION, "[Check][Memory] Refreshable reature memory base has been set, graph_id:%u.",
+      GELOGE(GE_GRAPH_REPEAT_OPERATION, "[Check][Memory] Refreshable feature memory base has been set, graph_id:%u.",
              graph_id);
       return GE_GRAPH_REPEAT_OPERATION;
     }
