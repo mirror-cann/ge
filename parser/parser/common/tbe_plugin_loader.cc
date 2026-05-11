@@ -93,7 +93,7 @@ FMK_FUNC_HOST_VISIBILITY FMK_FUNC_DEV_VISIBILITY void TBEPluginLoader::LoadPlugi
   //  No file
   if (file_list.empty()) {
     // Print log
-    GELOGW("Can not find any plugin file in plugin_path: %s", plugin_path.c_str());
+    GELOGW("Cannot find any plugin file in plugin_path: %s", plugin_path.c_str());
   }
 
   GELOGW("The shared library will not be checked. Please ensure that the source of the shared library is trusted.");
@@ -149,7 +149,7 @@ Status TBEPluginLoader::GetOppPluginVendors(const std::string &vendors_config, s
   GELOGI("Enter get opp plugin config file schedule, config file is '%s'", vendors_config.c_str());
   std::ifstream config(vendors_config);
   if (!config.good()) {
-    GELOGI("Can not open file '%s'!", vendors_config.c_str());
+    GELOGI("Cannot open file '%s'!", vendors_config.c_str());
     return FAILED;
   }
   std::string content;
@@ -189,7 +189,7 @@ Status TBEPluginLoader::GetOppPluginPathNew(const std::string &opp_path,
   const std::string vendors_config = opp_path + kVendors + "/" + kConfig;
   std::vector<std::string> vendors;
   if (GetOppPluginVendors(vendors_config, vendors) != SUCCESS) {
-    GELOGI("Can not get opp plugin vendors!");
+    GELOGI("Cannot get opp plugin vendors!");
     plugin_path += opp_path + old_custom_path + ":";
   } else {
     const std::string &fmt_custom  = path_fmt_custom.empty() ? path_fmt : path_fmt_custom;
@@ -261,7 +261,7 @@ Status TBEPluginLoader::GetCustomCaffeProtoPath(std::string &customcaffe_path) {
     const std::string vendors_config = opp_path + kVendors + "/" + kConfig;
     std::vector<std::string> vendors;
     if (GetOppPluginVendors(vendors_config, vendors) != SUCCESS) {
-      GELOGI("Can not get opp plugin vendors!");
+      GELOGI("Cannot get opp plugin vendors!");
       customcaffe_path += opp_path + "framework/custom/caffe/";
     } else {
       for (const auto &vendor : vendors) {
@@ -368,7 +368,7 @@ bool TBEPluginLoader::TryOnceAfterLoadRegisterSo(const std::string &opp_path, vo
     tmp_path.append(kLibRegisterSo);
     std::string register_path = RealPath(tmp_path.c_str());
     if (register_path.empty()) {
-      GELOGW("Can not find libregister from path:%s", register_path.c_str());
+      GELOGW("Cannot find libregister from path:%s", register_path.c_str());
       return false;
     }
     handle_reg_ = mmDlopen(register_path.c_str(), RTLD_NOW | RTLD_GLOBAL | RTLD_NODELETE);

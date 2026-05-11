@@ -60,7 +60,7 @@ bool IsIndirectLinksWithoutBatchBroadcast(const NodePtr &node1, const NodePtr &n
       if (!BackendUtils::CurNodeInputIsSimplestLoad(node2, index, attr_infos, false) &&
           HasBatchBroadcast(axis_size, attr_infos, node2)) {
         GELOGI(
-            "node1 %s(%s) and node2 %s(%s) can not fuse, the reason is[%s] [node1 is Cube, node2 is Pointwise but "
+            "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is[%s] [node1 is Cube, node2 is Pointwise but "
             "node2 has batch axis broadcast].",
             node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
             ge::NotFuseReasonCode(ge::NotFuseReason::kCubeCanNotFuseWithViewElementwise));
@@ -79,7 +79,7 @@ bool CanFuseWithElementwise(const NodePtr &node1, const NodePtr &node2) {
   // cube不支持水平融合
   if (!BackendUtils::IsVertical(node1, node2)) {
     GELOGI(
-        "node1 %s(%s) and node2 %s(%s) can not fuse, the reason is[%s] [node1 is Cube, node2 is Pointwise but "
+        "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is[%s] [node1 is Cube, node2 is Pointwise but "
         "node1 and node2 is not vertical relation].",
         node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
         ge::NotFuseReasonCode(ge::NotFuseReason::kCubeCanNotFuseHoriZontal));
@@ -92,7 +92,7 @@ bool CanFuseWithElementwise(const NodePtr &node1, const NodePtr &node2) {
     std::vector<ViewOpAttrInfo> attr_infos;
     if (!BackendUtils::CurNodeInputIsSimplestLoad(node2, subgraph_link.second, attr_infos)) {
       GELOGI(
-          "node1 %s(%s) and node2 %s(%s) can not fuse, the reason is[%s] [node1 is Cube, node2 is Pointwise but "
+          "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is[%s] [node1 is Cube, node2 is Pointwise but "
           "node2 input, which link to node1 has view op].",
           node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
           ge::NotFuseReasonCode(ge::NotFuseReason::kCubeCanNotFuseWithViewElementwise));
@@ -106,7 +106,7 @@ bool CanFuseWithElementwise(const NodePtr &node1, const NodePtr &node2) {
   std::vector<std::string> target_types1 = {}; // 如果不支持有某个node类型，可以加在这里例如 kScalarType
   if (BackendUtils::HasTypesInAscgraph(node2, target_types1)) {
     GELOGI(
-        "node1 %s(%s) and node2 %s(%s) can not fuse, the reason is[%s] [node1 is Cube, node2 is Pointwise but "
+        "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is[%s] [node1 is Cube, node2 is Pointwise but "
         "node2 has type(scalar or cast), which is unsupported].",
         node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
         ge::NotFuseReasonCode(ge::NotFuseReason::kCubeCanNotFuseWithUnsupportedType));
@@ -116,7 +116,7 @@ bool CanFuseWithElementwise(const NodePtr &node1, const NodePtr &node2) {
   std::vector<std::string> target_types2 = {kExpandDimsType, kReshapeType, kSqueezeType, kUnsqueezeType};
   if (BackendUtils::OnlyHasTypesInAscgraph(node2, target_types2)) {
     GELOGI(
-        "node1 %s(%s) and node2 %s(%s) can not fuse, the reason is[%s] [node1 is Cube, node2 is Pointwise but "
+        "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is[%s] [node1 is Cube, node2 is Pointwise but "
         "node2 has only ExpandDims or Reshape or Squeeze or Unsqueeze].",
         node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
         ge::NotFuseReasonCode(ge::NotFuseReason::kCubeCanNotFuseWithNotComputeNode));
@@ -130,7 +130,7 @@ bool CubeFusionStrategy::CanFuse(const NodePtr &node1, const NodePtr &node2) {
   const auto backend_spec = optimize::BackendSpec::GetInstance();
   GE_ASSERT_NOTNULL(backend_spec);
   if (!backend_spec->enable_matmul_lowering_to_matmul) {
-    GELOGI("node1 %s(%s) and node2 %s(%s) can not fuse, the reason is[%s] [Cube can not fuse in this chip type].",
+    GELOGI("node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is[%s] [Cube cannot fuse in this chip type].",
            node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
            ge::NotFuseReasonCode(ge::NotFuseReason::kCubeCanNotFuseInThisChip));
     return false;
@@ -142,7 +142,7 @@ bool CubeFusionStrategy::CanFuse(const NodePtr &node1, const NodePtr &node2) {
 
   // 2.cube不能前融合
   if (attr2->HasFuseType(loop::FuseType::kCube)) {
-    GELOGI("node1 %s(%s) and node2 %s(%s) can not fuse, the reason is[%s] [Cube can not fuse forward].",
+    GELOGI("node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is[%s] [Cube cannot fuse forward].",
            node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
            ge::NotFuseReasonCode(ge::NotFuseReason::kCubeCanNotFuseForward));
     return false;
@@ -150,7 +150,7 @@ bool CubeFusionStrategy::CanFuse(const NodePtr &node1, const NodePtr &node2) {
 
   // 3.cube不能和非elementwise融合
   if (!(attr1->HasFuseType(loop::FuseType::kCube) && BackendUtils::IsOnlyPointwise(node2))) {
-    GELOGI("node1 %s(%s) and node2 %s(%s) can not fuse, reason is[%s] [node1 is Cube, node2 is not Pointwise or Reshape].",
+    GELOGI("node1 %s(%s) and node2 %s(%s) cannot fuse, reason is[%s] [node1 is Cube, node2 is not Pointwise or Reshape].",
            node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
            ge::NotFuseReasonCode(ge::NotFuseReason::kCubeCanNotFuseWithNotElementwise));
     return false;

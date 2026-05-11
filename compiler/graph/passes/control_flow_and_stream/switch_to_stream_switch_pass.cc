@@ -473,7 +473,7 @@ int64_t SwitchToStreamSwitchPass::GetGroupId(const NodePtr &node) const {
 
   std::string hccl_group_id;
   if (!AttrUtils::GetStr(node->GetOpDesc(), ATTR_NAME_HCCL_FUSED_GROUP, hccl_group_id)) {
-    GELOGI("Node %s can not find hccl group id.", node->GetName().c_str());
+    GELOGI("Node %s cannot find hccl group id.", node->GetName().c_str());
     return 0;
   }
   auto key_index = hccl_group_id.find_last_of('_');
@@ -666,7 +666,7 @@ NodePtr SwitchToStreamSwitchPass::CreateCastOp(const ComputeGraphPtr &graph, con
     return nullptr;
   }
 
-  // Cast can not be merged into sgt graph, since it's used to distinguish different branches after switch
+  // Cast cannot be merged into sgt graph, since it's used to distinguish different branches after switch
   (void)AttrUtils::SetBool(cast_desc, ATTR_NAME_IS_FFTS_UNSUPPORTED, true);
 
   GeTensorDesc tensor_desc = cond_desc->GetOutputDesc(peer_cond_anchor->GetIdx());

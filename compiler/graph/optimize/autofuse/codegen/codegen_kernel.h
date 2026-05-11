@@ -337,6 +337,7 @@ class TPipe : public Variable {
   }
   Status BlkTensorAllocAndInit(std::string &result) const;
   void SetUsingAttCalcQBTSizeConfig(bool using_att_calc_qbt_size);
+  void SetUsingGlobalTpipe(bool using_global_tpipe);
   Status GetCVFusionCubeOutputUBTensorIdAndQueId(const ascir::ImplGraph &graph);
   Status LocalTensorDefine(std::string &result) const;
   std::string TensorSizeDefine() const;
@@ -349,6 +350,7 @@ class TPipe : public Variable {
   Status ParseTBufReuse(TBuf buf, std::string& reuse_dtype_name, bool& is_buf_reuse,
                         std::vector<const Tensor *>& reuse_buf_tensors, std::stringstream &tensor_size_max) const;
   bool using_att_calc_qbt_size_ = true;
+  bool using_global_tpipe_ = false;
 };
 
 struct CodegenConfig {
@@ -410,12 +412,12 @@ class Kernel {
   std::string GenTilingFuncCall(const std::string &impl_graph_name, const std::string &tiling_data) const;
   std::string GenCubeTilingFuncCall(const ascir::ImplGraph &impl_graph) const;
   std::string GenCubeTilingSingleFuncCall(const bool is_batch, const bool is_cv_fuse, bool is_bias,
-                                          bool is_offset_w) const;
-  ge::Status GenCubeCommonTiling(std::stringstream &ss, const bool is_batch) const;
+                                          bool is_offset_w, bool is_conv2d) const;
+  ge::Status GenCubeCommonTiling(std::stringstream &ss, const bool is_batch, bool is_conv2d = false) const;
   std::string GenCubeCommonTilingSingleFuncCall(const ascir::ImplGraph &impl_graph) const;
   static std::string KernelFuncDeclare(const std::string &graph_name,
                                        const ascir::FusedScheduledResult &fused_schedule_result,
-                                       bool use_list_tensor = false, bool is_inductor = false);
+                                       bool use_list_tensor = false, bool is_inductor = false, bool is_conv2d = false);
   Status GlobalTensorInit(std::string &result) const;
   Status GlobalTensorAssign(std::string &result) const;
   Status GlobalTensorDefine(std::string &result) const;
@@ -429,13 +431,13 @@ class Kernel {
   Status ParseScalarNeedGenBlkTensors(const ascir::NodeView &node, ascir::TensorId id);
   Status OutputTensorIsUbScalar(const ascir::NodeView &node, bool &is_ub_scalar) const;
   Status GenerateKernelByNode(const ascir::ImplGraph &graph, std::stringstream &ss,
-                              std::unordered_set<const std::string *> &kernel_file_ptr);
+                              std::unordered_set<const std::string *> &kernel_file_ptr, bool is_dynamic);
   Status GenerateMacro(std::stringstream &ss);
   Status GenerateSubGraphFuncDef(const Loop *loop, std::stringstream &ss) const;
   void SetUsingAttCalcQBTSizeConfig(bool using_att_calc_qbt_size);
   void SetEnableParallelCompile(bool enable_parallel_compile);
   bool GetEnableParallelCompile() const;
-  Status GenerateVecFuncOfCVFusion(std::stringstream &result, bool vector_no_db_flag);
+  Status GenerateVecFuncOfCVFusion(std::stringstream &result, bool vector_no_db_flag, bool is_conv2d);
   Status InitCVFusionAddr(std::stringstream &result, bool vector_no_db_flag);
   static std::string GenKernelFuncCallForInductor(const ascir::FusedScheduledResult &fused_schedule_result);
   Status ParseUbScalarOptimizationInfo(const ascir::NodeView& node, Tensor& t, ascir::TensorId id, bool is_all_link_vf);

@@ -141,7 +141,7 @@ Status RemoveInRwConflicts(const NodePtr &node,
              node->GetName().c_str(), input_index, in_indexes.size());
       const auto input_symbol = mem_assist_info.anchor_to_symbol.find(cur_node_input_info.ToString())->second;
       if (read_only_symbols.find(input_symbol) != read_only_symbols.end()) {
-        GELOGD("Node %s input symbol is read only, can not inplace, input index[%zu], input list size[%zu].",
+        GELOGD("Node %s input symbol is read only, cannot inplace, input index[%zu], input list size[%zu].",
                node->GetName().c_str(), input_index, in_indexes.size());
       } else {
         no_rw_conflict_indexes[out_index].push_back(input_index);
@@ -173,7 +173,7 @@ Status RemoveOutRwConflicts(const NodePtr &node,
     std::string var_shared_memory;
     (void)ge::AttrUtils::GetStr(output_desc, REF_VAR_SRC_VAR_NAME, var_shared_memory);
     if (!var_shared_memory.empty()) {
-      GELOGD("Node %s output index[%zu] has var shared memory, can not inplace.",
+      GELOGD("Node %s output index[%zu] has var shared memory, cannot inplace.",
              node->GetName().c_str(), out_iter->first);
       out_iter = out_index_to_refable_in_indexes.erase(out_iter);
     } else {
@@ -210,7 +210,7 @@ Status RemoveSymbolConflicts(const MemAssistInfo &mem_assist_info, const NodePtr
       GE_ASSERT_SUCCESS(MemLayoutConflictUtil::IsGraphExistMemConflictSymbol(mem_assist_info.compute_graph,
                         anchor_to_symbol, symbol_to_anchors, is_conflict));
       if (is_conflict) {
-        GELOGI("Symbol conflict, node %s can not inplace, input index[%zu], output index[%zu].",
+        GELOGI("Symbol conflict, node %s cannot inplace, input index[%zu], output index[%zu].",
           node->GetName().c_str(), input_index, output_index);
       } else {
         no_symblo_conflict_indexes[output_index].push_back(input_index);
@@ -256,7 +256,7 @@ Status MergeSymbolTable(const std::map<InDataAnchorPtr, OutDataAnchorPtr> &in_an
   // 当前如果子图出现新的冲突则不进行inplace操作，主要是为了编译性能考虑，当前没有为单个算子也传入子图进行判断，而是整体判断
   if (MemLayoutConflictUtil::IsCtrlNodeSubgraphExistMemConflictSymbol(mem_assist_info.compute_graph)) {
     RecoverReuseInput(in_anchor_to_out_anchors);
-    GELOGI("Ctrl node subgraph conflict, can not inplace.");
+    GELOGI("Ctrl node subgraph conflict, cannot inplace.");
   } else {
     // 合并符号表
     for (const auto &input_anchor_to_output_anchor : in_anchor_to_out_anchors) {

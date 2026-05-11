@@ -911,7 +911,7 @@ Status TensorMoveDeletePass::Run(NodePtr &node) {
 
   for (const auto &rule : rules) {
     if (!rule(ctx)) {
-      GELOGD("Node %s(type %s) can not be deleted.", node->GetName().c_str(), node->GetType().c_str());
+      GELOGD("Node %s(type %s) cannot be deleted.", node->GetName().c_str(), node->GetType().c_str());
       return SUCCESS;
     }
   }

@@ -1,107 +1,199 @@
-# README
+# Triton 自定义算子通过 TensorFlow 入图样例
 
-# 1. 自定义算子编译工程
+## 样例概述
 
-## 1.1 前置步骤
-1. 安装 CANN 软件，通过[安装指导](../../../docs/build.md#2-安装软件包)正确安装toolkit和ops包, 并正确配置环境变量
-2. 安装 Triton-Ascend，进入 [Triton-Ascend 的官网](https://gitcode.com/Ascend/triton-ascend/blob/main/docs/zh/installation_guide.md)，按照指导进行 Triton-Ascend 以及其所需依赖的安装。在您安装完毕后，强烈建议您运行此[链接](https://gitcode.com/Ascend/triton-ascend/blob/main/docs/zh/quick_start.md)对应的 Triton-Ascend 的[入门用例](https://gitcode.com/Ascend/triton-ascend/blob/main/docs/zh/quick_start.md)，以确保您环境安装正确。
-3. 安装 TensorFlow 以及对应的框架插件包，可点击如下链接按需进行操作
+- 构图入口：`TensorFlow`
+- 算子编成语言：`Triton`
+- 编译方式：`预编译为 npubin`
+- 模型下沉能力：`不涉及`
+- 核心链路：`Triton kernel -> TensorFlow 交付件 + GE 交付件 -> TensorFlow 入图执行`
+- 与其他 sample 的区别：本样例聚焦 Triton kernel 与 TensorFlow/GE 交付件协同，不涉及 TorchAir，也不涉及 `ATC离线编译 -> om离线模型` 模型下沉。
 
-   1. TensorFlow 1.15：[开源框架 TensorFlow 1.15](https://www.hiascend.com/document/detail/zh/TensorFlowCommunity/850/migration/tfmigr1/tfmigr1_000008.html)，[框架插件包](https://www.hiascend.com/document/detail/zh/TensorFlowCommunity/850/migration/tfmigr1/tfmigr1_000009.html)
-   2. TensorFlow 2.6.5：[开源框架 TensorFlow 2.6.5](https://www.hiascend.com/document/detail/zh/TensorFlowCommunity/850/migration/tfmigr2/tfmigr2_000007.html)，[框架插件包](https://www.hiascend.com/document/detail/zh/TensorFlowCommunity/850/migration/tfmigr2/tfmigr2_000008.html)
+本样例展示如何把 Triton Add kernel 接入 TensorFlow，并通过 GE 自定义算子交付件完成 NPU 执行。链路包含 `npubin` 生成、TensorFlow 自定义算子 so 构建、GE 交付件构建，以及最终的 TensorFlow 脚本结果校验。
 
-## 1.2 实现步骤
+## 适用场景
 
-1. <a id="implement-step-1"></a>生成算子 kernel 的 npubin 文件，以 AddCustom 算子为例，其 kernel 的实现见：`custom_op/triton_add_custom/add_custom_kernel/add_custom_kernel.py`，执行该文件以生成 npubin
+- 想看 `TensorFlow + Triton` 场景下的自定义算子入图示例。
+- 想参考 `npubin`、TensorFlow 交付件和 GE 交付件之间的配合方式。
+- 想验证 Triton kernel 在 TensorFlow 图中的数值正确性。
+- 不适合用于了解 `TorchAir` 或 `ATC离线编译 -> om离线模型` 链路。
 
-   ```bash
-   python3 add_custom_kernel.py
-   ```
+## 前置依赖
 
-   命令执行完成后，若无报错信息，则表明 npubin 已经生成，其生成路径默认在 `~/.triton/cache`，实际使用过程中，可以通过 `TRITON_CACHE_DIR` 这个环境变量来指定 npubin 的生成位置
-2. 提供 TF 的入图交付件，其实现如下，其路径为：`custom_op/triton_add_custom/tensorflow/add_custom_triton_tf.cc`，可执行同级目录下的 `build.sh` 进行编译
+### CANN
 
-   ```cpp
-   bash build_tf.sh
-   ```
+- 已安装并配置 CANN toolkit 和 ops 包。
+- `ASCEND_HOME_PATH` 已设置。
+- 参考 [安装指导](../../../docs/build.md#2-安装软件包) 完成 toolkit 和 ops 包安装。
 
-   执行完成后，会在当前路径下生成：`./outputs/libcustom_ops.so`
-3. 实现 GE 的入图交付件，路径为：`custom_op/triton_add_custom/src/custom_op.cpp`
+### 框架与插件
 
-   1. 实现继承类 `class AddCustom : public EagerExecuteOp`. 注意: 示例`custom_op.cpp`中的`bin_path`需要设置成[步骤1](#implement-step-1)中的npubin的生成路径.
-   2. 注册宏 `REG_AUTO_MAPPING_OP(OP_CLASS)` ：注意: OP_CLASS 为类名, 命名空间需注意, 因为宏注册时直接将 OP_CLASS 作为字符串传入作为 Key 值.
-   3. 执行 `bash run.sh`
-   4. 根据 `run.sh` 的执行控制台输出添加环境变量至 `ASCEND_CUSTOM_OPP_PATH`
+- 已安装 `Triton-Ascend`。
+- 已安装 `TensorFlow 1.15` 或 `TensorFlow 2.6.5` 及其对应框架插件包。
 
-      ```shell
-      # CUSTOM_INSTALL_PATH 应为 ${CMAKE_SOURCE_DIR}/build_out,以当前用例为例，CMAKE_SOURCE_DIR为custom_op/triton_add_custom
-      export ASCEND_CUSTOM_OPP_PATH=${CUSTOM_INSTALL_PATH}:$ASCEND_CUSTOM_OPP_PATH
-      ```
-4. 配置测试脚本, 测试脚本路径：`custom_op/triton_add_custom/script/run_add_custom_tf_1.15.py`
-   - 动态或静态shape配置（默认走静态，添加以下配置则走动态）
-   ```
-   custom_op.parameter_map["compile_dynamic_mode"].b = True
-   ```
-   - Profiling开关, 见[如何开启Profiling](#profiling-on)
-5. 执行测试脚本, 执行如下命令
-   ```bash
-   cd your_path/custom_op/triton_add_custom/script/
-   python3 run_add_custom_tf_1.15.py &> triton_add.log
-   grep "The result of tf and ac is" triton_add.log
-   ```
+参考：
 
-   屏幕上若显示：`The result of tf and ac is the same.` 则表示用例执行成功
+- [Triton-Ascend 安装说明](https://gitcode.com/Ascend/triton-ascend/blob/main/docs/zh/installation_guide.md)
+- [Triton-Ascend 快速开始](https://gitcode.com/Ascend/triton-ascend/blob/main/docs/zh/quick_start.md)
+- [TensorFlow 1.15 迁移说明](https://www.hiascend.com/document/detail/zh/TensorFlowCommunity/850/migration/tfmigr1/tfmigr1_000008.html)
+- [TensorFlow 2.6.5 迁移说明](https://www.hiascend.com/document/detail/zh/TensorFlowCommunity/850/migration/tfmigr2/tfmigr2_000007.html)
 
-## 1.3 生成产物
+### 环境变量
 
-- `libcustom_ops.so` - 用于将自定义算子入 TensorFlow 图  
-  `${CUSTOM_INSTALL_PATH}/tensorflow/output/libcustom_ops.so`
-- npu_supported_ops.json - 用于 TensorflowAdapter 加载自定义算子支持  
-  `${CUSTOM_INSTALL_PATH}/framework/tensorflow/npu_supported_ops.json`
-- libcust_opapi.so - 用于 GE 注册自定义算子  
-  `${CUSTOM_INSTALL_PATH}/libcust_opapi.so`
+- `ASCEND_HOME_PATH`
+- `ASCEND_CUSTOM_OPP_PATH`
+- 如需自定义 `npubin` 输出目录，可设置 `TRITON_CACHE_DIR`
 
-## 1.4 目录结构
+### 额外依赖
 
-```txt
-custom_op/
-└── triton_add_custom/
-    ├── add_custom_kernel/                // Triton算子相关交付件
-    │   └── add_custom_kernel.py          // Triton 算子的实现 kernel
-    ├── ge/                               // 图GE相关交付件
-    │   ├── gen_npu_supported_ops_json.sh // 生成文件脚本
-    │   ├── run.sh                        // GE 交付件编译脚本
-    │   ├── CMakeLists.txt                // cmake文件
-    │   └── src/                          // 代码目录
-    │       └── custom_op.cpp             // Triton 算子入 GE 交付件
-    ├── tensorflow/                       // Tensorflow相关交付件
-    │   ├── add_custom_triton_tf.cc       // Triton 算子入 TF 交付件
-    │   └── build_tf.sh                   // 编译入 TF 图的 so 的脚本
-    ├── script/                           // 测试脚本
-    │   └── run_add_custom_tf_1.15.py     // TF 1.15的测试脚本
-    └── README.md                         // README   
+- `python3`
+- `g++`
+- `cmake`
+
+## 快速运行
+
+在 `examples/custom_op/triton_add_custom` 目录下执行以下最短路径：
+
+### 推荐方式
+
+```bash
+cd add_custom_kernel
+python3 add_custom_kernel.py
+
+cd ../tensorflow
+bash build_tf.sh
+
+cd ../ge
+bash run.sh
+export ASCEND_CUSTOM_OPP_PATH="$(pwd)/build_out:$ASCEND_CUSTOM_OPP_PATH"
+
+cd ../tensorflow
+python3 ../script/run_add_custom_tf_1.15.py
 ```
-## 1.5 调测相关
-   1. <a id="profiling-on"></a>如何开启Profiling
-      ```python
-      custom_op.parameter_map["profiling_mode"].b = True
-      custom_op.parameter_map["profiling_options"].s = tf.compat.as_bytes('{"output":".","training_trace":"on","task_trace":"on","hccl":"on","aicpu":"on","aic_metrics":"PipeUtilization","msproftx":"off"}')
-      ```
-   2、sample在动态和静态shape配置下的 profiling 结果观测
-    sample
-   ```bash
-      msprof --export=on --output=${profiling_path}
-      cd ${profiling_path}/mindstudio_profiler_output
-   ```
--   `${profiling_path}`：表示生成 profiling 数据路径，请自行指定
 
-找到该路径下 msprof_XXX.json 文件并使用profiling查看工具例如（chrome://tracing/） 加载该json文件
+执行前请确认 `ge/src/custom_op.cpp` 中的 `bin_path` 能访问步骤 1 生成的 `add_kernel.npubin`。若运行成功，终端会打印 `The result of tf and ac is the same.`。
 
-1）静态shape下sample运行profiling结果如图所示：![static_shape.png](./static_shape.png) 
-静态shape在profiling中可观测到MODEL_EXECUTE、EVENT_WAIT等流同步和MEMCPY_ASYNC等数据传输过程
+### 分步方式
 
-2）动态shape下sample运行profiling结果如图所示：![dynamic_shape.png](./dynamic_shape.png)
-动态shape在profiling中无EVENT_WAIT等流同步和MEMCPY_ASYNC过程
+1. 先在 `add_custom_kernel/` 下执行 `python3 add_custom_kernel.py` 生成 `npubin`。
+2. 再在 `tensorflow/` 下执行 `bash build_tf.sh` 生成 `outputs/libcustom_ops.so`。
+3. 接着在 `ge/` 下执行 `bash run.sh`，生成 `build_out/libcust_opapi.so` 和 `framework/tensorflow/npu_supported_ops.json`。
+4. 执行 `export ASCEND_CUSTOM_OPP_PATH="$(pwd)/build_out:$ASCEND_CUSTOM_OPP_PATH"`，将 `libcust_opapi.so` 所在目录加入环境变量。
+5. 最后回到 `tensorflow/` 目录执行 `python3 ../script/run_add_custom_tf_1.15.py`。
 
-# 2. 特性约束
-该特性依赖triton-ascend对应的支持范围，您可查看此[链接](https://gitcode.com/Ascend/triton-ascend#%E7%A1%AC%E4%BB%B6%E6%94%AF%E6%8C%81)来获取您当前产品的支持情况
+若需要调整 `npubin` 输出位置，可先设置 `TRITON_CACHE_DIR`；若需要重新指定 `npubin` 路径，可按实际缓存位置修改 `ge/src/custom_op.cpp` 中的 `bin_path`。
+
+## 目录结构与关键文件
+
+```text
+triton_add_custom
+├── README.md
+├── add_custom_kernel
+│   └── add_custom_kernel.py        // Triton Add kernel 实现与编译入口
+├── ge
+│   ├── CMakeLists.txt              // GE 交付件构建脚本
+│   ├── gen_npu_supported_ops_json.sh
+│   ├── run.sh
+│   └── src
+│       └── custom_op.cpp           // Triton 算子入 GE 交付件
+├── tensorflow
+│   ├── add_custom_triton_tf.cc     // TensorFlow 侧自定义算子声明
+│   └── build_tf.sh                 // TensorFlow 交付件构建脚本
+├── script
+│   └── run_add_custom_tf_1.15.py   // TensorFlow 测试脚本
+├── static_shape.png
+└── dynamic_shape.png
+```
+
+重点文件：
+
+- `add_custom_kernel/add_custom_kernel.py`
+  Triton Add kernel 的实现与编译入口。
+- `tensorflow/add_custom_triton_tf.cc`
+  TensorFlow 侧自定义算子声明。
+- `tensorflow/build_tf.sh`
+  编译 `libcustom_ops.so`。
+- `ge/src/custom_op.cpp`
+  GE 自定义算子交付件，实现加载 `npubin` 并发起 kernel 执行。
+- `ge/CMakeLists.txt`
+  构建 `libcust_opapi.so` 并生成 `npu_supported_ops.json`。
+- `ge/run.sh`
+  GE 子步骤的一键脚本，负责 configure、build 和 install。
+- `script/run_add_custom_tf_1.15.py`
+  TensorFlow 图执行脚本，负责数值一致性校验。
+
+## 核心链路
+
+1. `add_custom_kernel/add_custom_kernel.py` 负责生成 Triton kernel 对应的 `npubin`。
+2. `tensorflow/build_tf.sh` 构建 TensorFlow 侧 `libcustom_ops.so`。
+3. `ge/CMakeLists.txt` 构建 GE 交付件 `libcust_opapi.so`，并生成 `npu_supported_ops.json` 供TensorFlow使用。
+4. `script/run_add_custom_tf_1.15.py` 加载 TensorFlow 侧 so，并通过 TensorFlow 图执行自定义 AddCustom 算子。
+
+## 构建产物
+
+- `tensorflow/outputs/libcustom_ops.so`
+  TensorFlow 侧自定义算子交付件。
+- `ge/build_out/libcust_opapi.so`
+  GE 侧自定义算子交付件。
+- `ge/build_out/framework/tensorflow/npu_supported_ops.json`
+  TensorFlow Adapter 加载自定义算子支持信息时使用的描述文件。
+- `add_kernel.npubin`
+  Triton kernel 编译后的二进制文件，默认由 Triton 写入缓存目录，路径可通过 `TRITON_CACHE_DIR` 控制。
+
+## 结果校验
+
+成功时可观察到：
+
+- `tensorflow/outputs/libcustom_ops.so` 已生成。
+- `ge/build_out/libcust_opapi.so` 已生成。
+- `ge/build_out/framework/tensorflow/npu_supported_ops.json` 已生成。
+- 终端输出包含 `The result of tf and ac is the same.`。
+
+若失败，优先检查：
+
+- `ge/src/custom_op.cpp` 中的 `bin_path` 是否能正确访问生成的 `npubin`。
+- `ASCEND_CUSTOM_OPP_PATH` 是否已包含 `ge/build_out`。
+- 测试脚本启动目录下是否能访问 `./outputs/libcustom_ops.so`。
+- TensorFlow、框架插件包和 Triton-Ascend 安装是否匹配。
+
+## 注意事项 / 限制
+
+- 当前样例依赖 Triton-Ascend 对目标硬件的支持范围，请参考 [Triton-Ascend 项目说明](https://gitcode.com/Ascend/triton-ascend#硬件支持)。
+- `ge/src/custom_op.cpp` 中的 `bin_path` 需要与实际生成的 `npubin` 路径保持一致。
+- 测试脚本默认从当前工作目录的 `./outputs/libcustom_ops.so` 加载 TensorFlow 侧 so，建议在 `tensorflow/` 目录下运行测试脚本。
+- 样例默认使用静态 shape；如需动态 shape，可在测试脚本中打开 `compile_dynamic_mode` 配置。
+
+## 附录
+
+### 动态 / 静态 shape 调测开关
+
+在 `script/run_add_custom_tf_1.15.py` 中可通过以下配置启用动态 shape：
+
+```python
+custom_op.parameter_map["compile_dynamic_mode"].b = True
+```
+
+### Profiling 开关
+
+```python
+custom_op.parameter_map["profiling_mode"].b = True
+custom_op.parameter_map["profiling_options"].s = tf.compat.as_bytes(
+    '{"output":".","training_trace":"on","task_trace":"on","hccl":"on","aicpu":"on","aic_metrics":"PipeUtilization","msproftx":"off"}'
+)
+```
+
+导出 profiling 数据后，可使用如下命令查看结果目录：
+
+```bash
+msprof --export=on --output=${profiling_path}
+cd ${profiling_path}/mindstudio_profiler_output
+```
+
+然后找到 `msprof_*.json` 并使用如 `chrome://tracing/` 的工具加载。
+
+### Profiling 现象说明
+
+- 静态 shape 结果示意：![static_shape.png](./static_shape.png)
+- 动态 shape 结果示意：![dynamic_shape.png](./dynamic_shape.png)
+
+静态 shape 下可观测到 `MODEL_EXECUTE`、`EVENT_WAIT`、`MEMCPY_ASYNC` 等流同步和数据传输过程；动态 shape 下这些现象会有所不同。

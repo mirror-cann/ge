@@ -86,12 +86,12 @@ class LoopOp {
   [[nodiscard]] virtual graphStatus ReIndex(const Index &index, Index &reindex) const {
     static_cast<void>(index);
     static_cast<void>(reindex);
-    GE_WARN_ASSERT(false, "LoopOp %s can not reindex", Type().c_str());
+    GE_WARN_ASSERT(false, "LoopOp %s cannot reindex", Type().c_str());
   }
   [[nodiscard]] virtual const std::string &Type() const = 0;
   [[nodiscard]] virtual LoopOpPtr CloneImpl() const = 0;
   virtual graphStatus RealizeImpl() {
-    GE_WARN_ASSERT(false, "LoopOp %s can not realize", Type().c_str());
+    GE_WARN_ASSERT(false, "LoopOp %s cannot realize", Type().c_str());
   }
   [[nodiscard]] virtual bool IsReduction() const {
     return false;

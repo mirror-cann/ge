@@ -594,7 +594,7 @@ ExecuteGraphUtils::RemoveSubgraphRecursively(ExecuteGraph *execute_graph, FastNo
 
   if ((remove_extend_info->GetOwnerGraphBarePtr() != execute_graph) &&
       !execute_graph->CheckNodeIsInGraph(remove_node)) {
-    GELOGW("Can not find node %s in graph %s.", remove_node->GetName().c_str(), execute_graph->GetName().c_str());
+    GELOGW("Cannot find node %s in graph %s.", remove_node->GetName().c_str(), execute_graph->GetName().c_str());
     return GRAPH_FAILED;
   }
   // find all subgraphs connecting to remove_node

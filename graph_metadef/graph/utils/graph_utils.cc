@@ -350,7 +350,7 @@ GraphUtils::RemoveSubgraphRecursively(const ComputeGraphPtr &compute_graph, cons
   if ((remove_node->GetOwnerComputeGraph() != compute_graph) &&
       (std::find(compute_graph->impl_->nodes_.begin(), compute_graph->impl_->nodes_.end(), remove_node) ==
        compute_graph->impl_->nodes_.end())) {
-    GELOGW("Can not find node %s in graph %s.", remove_node->GetName().c_str(), compute_graph->GetName().c_str());
+    GELOGW("Cannot find node %s in graph %s.", remove_node->GetName().c_str(), compute_graph->GetName().c_str());
     return GRAPH_FAILED;
   }
   if (remove_node->GetOpDesc()->GetSubgraphInstanceNames().empty()) {
@@ -1344,7 +1344,7 @@ GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY void GraphUtils::WriteProtoToText
     thread_local int64_t max_dump_file_size = 0;
     if (max_dump_file_size == 0) {
       std::string opt = "0";
-      // Can not check return value
+      // Cannot check return value
       (void)GetContext().GetOption(OPTION_GE_MAX_DUMP_FILE_SIZE, opt);
       max_dump_file_size = std::strtol(opt.c_str(), nullptr, kBaseOfIntegerValue);
     }
@@ -1964,7 +1964,7 @@ graphStatus CheckIsRefFromRefData(const OutDataAnchorPtr &out_data_anchor, NodeP
   GE_ASSERT_NOTNULL(ower_graph);
   const auto ref_data_node = ower_graph->FindNode(ref_var_src_var_name);
   if (ref_data_node == nullptr) {
-    GELOGW("Can not find refdata named %s. Please check ref relation on graph.", ref_var_src_var_name.c_str());
+    GELOGW("Cannot find refdata named %s. Please check ref relation on graph.", ref_var_src_var_name.c_str());
     return GRAPH_SUCCESS;
   }
   if (ref_data_node->GetType() != REFDATA) {
@@ -2908,7 +2908,7 @@ ComputeGraphPtr GraphUtils::CloneGraph(const ComputeGraphPtr &graph, const std::
     if (is_const_op) {
       GeTensorPtr weight = nullptr;
       if (!AttrUtils::MutableTensor(n->GetOpDesc(), ATTR_NAME_WEIGHTS, weight)) {
-        GELOGI("Can not find attr ATTR_NAME_WEIGHTS for node:%s.", n->GetName().c_str());
+        GELOGI("Cannot find attr ATTR_NAME_WEIGHTS for node:%s.", n->GetName().c_str());
         continue;
       }
       const GeTensor copy_weight = weight->Clone();

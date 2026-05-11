@@ -154,8 +154,8 @@ bool IsDynamicBatchSizeMatchModel(const uint64_t batch_size, const std::vector<s
       return true;
     }
   }
-  REPORT_INNER_ERR_MSG("E19999", "Dynamic batch %" PRIu64 " can not match the gear of model.", batch_size);
-  GELOGE(ge::FAILED, "[Check][Param] Dynamic batch %" PRIu64 " can not match the gear of model.", batch_size);
+  REPORT_INNER_ERR_MSG("E19999", "Dynamic batch %" PRIu64 " cannot match the gear of model.", batch_size);
+  GELOGE(ge::FAILED, "[Check][Param] Dynamic batch %" PRIu64 " cannot match the gear of model.", batch_size);
   return false;
 }
 
@@ -180,9 +180,9 @@ bool IsDynamicImageSizeMatchModel(const uint64_t image_height, const uint64_t im
       return true;
     }
   }
-  REPORT_INNER_ERR_MSG("E19999", "Dynamic resolution (%" PRIu64 ",%" PRIu64 ") can not match the gear of model.",
+  REPORT_INNER_ERR_MSG("E19999", "Dynamic resolution (%" PRIu64 ",%" PRIu64 ") cannot match the gear of model.",
                      image_height, image_width);
-  GELOGE(ge::FAILED, "[Check][Param]Dynamic resolution (%" PRIu64 ",%" PRIu64 ") can not match the gear of model.",
+  GELOGE(ge::FAILED, "[Check][Param]Dynamic resolution (%" PRIu64 ",%" PRIu64 ") cannot match the gear of model.",
          image_height, image_width);
   return false;
 }
@@ -218,7 +218,7 @@ bool IsDynmaicDimsSizeMatchModel(const std::vector<uint64_t> &cur_dynamic_dims,
     }
   }
   if (!find_match) {
-    GELOGE(ACL_ERROR_GE_PARAM_INVALID, "[Check][Param] choose dynamic dims can not match the gear of model.");
+    GELOGE(ACL_ERROR_GE_PARAM_INVALID, "[Check][Param] choose dynamic dims cannot match the gear of model.");
   }
   return find_match;
 }
@@ -708,7 +708,7 @@ Status GeExecutor::UnloadModel(const uint32_t model_id) {
     SessionMemAllocator<ActiveMemoryAllocator>::Instance().RemoveAllocator(session_id, GetContext().DeviceId());
   } else {
     const auto davinci_model = ModelManager::GetInstance().GetModel(model_id);
-    // if session is shared, can not destroy resource here
+    // if session is shared, cannot destroy resource here
     if ((davinci_model != nullptr) && (!ModelManager::GetInstance().IsModelSharedSession(model_id))) {
       const uint64_t session_id = davinci_model->GetSessionId();
       VarManagerPool::Instance().RemoveVarManager(session_id);

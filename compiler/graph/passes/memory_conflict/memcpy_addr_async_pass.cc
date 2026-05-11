@@ -74,7 +74,7 @@ Status MemcpyAddrAsyncPass::Run(ComputeGraphPtr graph) {
       }
     }
     // Tmp solution: FM not refreshable, node like hccl and ffts, only when loading tell davinci model its task not
-    // support zero copy. it could make refdata addr not zero copy, which cause refdata can not be updated directly. Can
+    // support zero copy. it could make refdata addr not zero copy, which cause refdata cannot be updated directly. Can
     // cause precision problem.
     // Tmp solution is to insert identity. Final solution is to wait davinci model refactoring.
     // Hccl tell ge through task def. In this stage, no way to

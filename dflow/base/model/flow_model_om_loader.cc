@@ -117,7 +117,7 @@ Status LoadModeldata(const flow_model::proto::SubmodelDef &flow_submodel_def,
   ge::ModelData model;
   const auto &om_data_file_name = flow_submodel_def.om_data_file_path();
   if (!om_data_file_name.empty()) {
-    GE_ASSERT_TRUE(!split_om_data_base_dir.empty(), "Split om data base can not be empty while data file path exist.");
+    GE_ASSERT_TRUE(!split_om_data_base_dir.empty(), "Split om data base cannot be empty while data file path exist.");
     const auto submodel_file_path = split_om_data_base_dir + om_data_file_name;
     GELOGI("Load submodel data by file %s.", submodel_file_path.c_str());
     GE_CHK_STATUS_RET(ModelParserBase::LoadFromFile(submodel_file_path.c_str(), 0, model),

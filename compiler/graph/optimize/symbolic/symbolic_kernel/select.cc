@@ -77,13 +77,13 @@ bool Broadcast(const std::vector<Expression> &src_data, const std::vector<int64_
                std::vector<Expression> &dst_data) {
   std::vector<int64_t> aligned_src = AlignShape(src_shape, dst_shape);
   if (aligned_src.size() != dst_shape.size()) {
-    GELOGW("Can not broadcast, after aligned shape size is not equal, aligned_size: %zu , dst_size: %zu",
+    GELOGW("Cannot broadcast, after aligned shape size is not equal, aligned_size: %zu , dst_size: %zu",
            aligned_src.size(), dst_shape.size());
     return false;
   }
   for (size_t i = 0U; i < dst_shape.size(); ++i) {
     if (aligned_src[i] != 1 && aligned_src[i] != dst_shape[i]) {
-      GELOGW("Dim: %zu can not broadcast, src_value: %lld , dst_value: %lld", i, aligned_src[i], dst_shape[i]);
+      GELOGW("Dim: %zu cannot broadcast, src_value: %lld , dst_value: %lld", i, aligned_src[i], dst_shape[i]);
       return false;
     }
   }

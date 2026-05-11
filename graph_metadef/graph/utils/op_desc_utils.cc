@@ -918,7 +918,7 @@ ge::graphStatus IrInputRequiredCall(const OpDescPtr &op_desc, size_t ir_index, s
   }
   const auto name = valid_index_2_names.at(start_index);
   if (name != ir_name) {
-    GELOGW("Failed to get instance num for node %s, can not find the input for ir name %s, current index %zu, "
+    GELOGW("Failed to get instance num for node %s, cannot find the input for ir name %s, current index %zu, "
            "current name %s",
            op_desc->GetName().c_str(), ir_name.c_str(), start_index, name.c_str());
     if (FindSubsequentMatches(valid_index_2_names, start_index + 1U, ir_name)) {

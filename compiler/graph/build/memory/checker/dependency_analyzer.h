@@ -67,7 +67,7 @@ class DependencyAnalyzer {
   bool CanAReuseB(const Node *const a, uint32_t a_output_index, const Node *const b, uint32_t b_output_index) const;
 
   /// @ingroup GE
-  /// @brief tell why a can not reuse b
+  /// @brief tell why a cannot reuse b
   /// @param [in] a
   /// @param [in] a_output_index, output index of a
   /// @param [in] b

@@ -398,7 +398,7 @@ FlowNodeDef LlmFlowService::BuildFlowNodeDef(const std::string &role) {
       {FlowFuncType::kCheckLink, "_BuiltIn_check_link_func"},
   };
 
-  // can not change kGetTensorSummary position which is 3, GetCacheTensors hard code to 3 in this file.
+  // cannot change kGetTensorSummary position which is 3, GetCacheTensors hard code to 3 in this file.
   std::vector<FlowFuncType> enabled_flow_funcs = {FlowFuncType::kAllocate, FlowFuncType::kDeallocate,
                                                   FlowFuncType::kCopy, FlowFuncType::kGetTensorSummary,
                                                   FlowFuncType::kUnlink};

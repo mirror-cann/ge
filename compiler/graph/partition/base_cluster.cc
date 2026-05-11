@@ -564,7 +564,7 @@ Status BaseCluster::BuildPartitionSubgraph() {
     GE_ASSERT_TRUE(AttrUtils::SetInt(data_op, ATTR_NAME_PARENT_NODE_INDEX, parent_node_index),
                    "[Set][Attr] %s on subgraph data node:%s failed.", ATTR_NAME_PARENT_NODE_INDEX.c_str(),
                    data_op->GetName().c_str());
-    // node and opdesc can not be nullptr
+    // node and opdesc cannot be nullptr
     GE_CHK_STATUS_RET(CopyOpAttr(anchor->GetOwnerNode()->GetOpDesc(), data_op), "[Call][CopyOpAttr] data op failed.");
     auto data_node = subgraph_->AddNode(data_op);
     GE_ASSERT_NOTNULL(data_node, "[Add][Node] %s to subgraph:%s failed.", data_op->GetName().c_str(),
@@ -640,7 +640,7 @@ void BaseCluster::SetMergeInputs(bool merge_inputs) {
 
 Status BaseCluster::SetGraphId(const uint32_t graph_id) const {
   if (subgraph_ == nullptr) {
-    GELOGW("Subgraph is null, can not set graph id, graph_id=%u.", graph_id);
+    GELOGW("Subgraph is null, cannot set graph id, graph_id=%u.", graph_id);
     return SUCCESS;
   }
   subgraph_->SetGraphID(graph_id);

@@ -239,7 +239,7 @@ ge::graphStatus TilingPrepareForTransdata(KernelContext *context) {
   }
   compile_info->vnc_fp32_flag = 0;
   if (!GetCompileValue(allVars, "vnc_fp32_flag", compile_info->vnc_fp32_flag)) {
-    GELOGD("Can not find vnc_fp32_flag in json, use default value %ld", compile_info->vnc_fp32_flag);
+    GELOGD("Cannot find vnc_fp32_flag in json, use default value %ld", compile_info->vnc_fp32_flag);
   }
 
   GELOGD("Parsed TransData compile info(ub, block, group, vnc): %ld, %ld, %ld, %ld", compile_info->ub_size,

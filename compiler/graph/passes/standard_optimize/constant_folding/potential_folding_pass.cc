@@ -135,7 +135,7 @@ bool PotentialFoldingPass::AreAllOutputsEmptyShape(const OpDescPtr &op_desc) con
       return false;
     }
     if (!IsKnownEmptyTenor(output_desc_ptr->GetShape())) {
-      GELOGD("Node %s has no-empty output, can not be potential empty const.", op_desc->GetName().c_str());
+      GELOGD("Node %s has no-empty output, cannot be potential empty const.", op_desc->GetName().c_str());
       return false;
     }
   }

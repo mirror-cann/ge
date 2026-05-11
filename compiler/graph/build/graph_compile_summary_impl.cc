@@ -44,7 +44,7 @@ bool CompiledGraphSummary::IsStatic() const {
 
 Status CompiledGraphSummary::GetConstMemorySize(size_t &size) const {
   if (!data_->IsStatic()) {
-    GELOGW("Compiled graph is not static, can not get const memory size!");
+    GELOGW("Compiled graph is not static, cannot get const memory size!");
     size = 0ULL;
     return FAILED;
   }
@@ -54,7 +54,7 @@ Status CompiledGraphSummary::GetConstMemorySize(size_t &size) const {
 
 Status CompiledGraphSummary::GetFeatureMemorySize(size_t &size) const {
   if (!data_->IsStatic()) {
-    GELOGW("Compiled graph is not static, can not get feature memory size!");
+    GELOGW("Compiled graph is not static, cannot get feature memory size!");
     size = 0ULL;
     return FAILED;
   }
@@ -75,7 +75,7 @@ std::vector<FeatureMemoryPtr> CompiledGraphSummary::GetAllFeatureMemoryTypeSize(
 
 Status CompiledGraphSummary::GetRefreshableFeatureMemorySize(size_t &size) const {
   if (!data_->IsStatic()) {
-    GELOGW("Compiled graph is not static, can not get feature memory size!");
+    GELOGW("Compiled graph is not static, cannot get feature memory size!");
     size = 0ULL;
     return FAILED;
   }
@@ -85,7 +85,7 @@ Status CompiledGraphSummary::GetRefreshableFeatureMemorySize(size_t &size) const
 
 Status CompiledGraphSummary::GetFeatureMemoryBaseRefreshable (bool &v) const {
   if (!data_->IsStatic()) {
-    GELOGW("Compiled graph is not static, can not get feature memory refreshable!");
+    GELOGW("Compiled graph is not static, cannot get feature memory refreshable!");
     v = false;
     return FAILED;
   }
@@ -100,7 +100,7 @@ Status CompiledGraphSummary::GetStreamNum(size_t &num) const {
 
 Status CompiledGraphSummary::GetEventNum(size_t &num) const {
   if (!data_->IsStatic()) {
-    GELOGW("Compiled graph is not static, can not get event number!");
+    GELOGW("Compiled graph is not static, cannot get event number!");
     num = 0ULL;
     return FAILED;
   }
@@ -110,7 +110,7 @@ Status CompiledGraphSummary::GetEventNum(size_t &num) const {
 
 Status CompiledGraphSummary::GetOutputShapes(std::vector<ge::Shape> &shapes) const {
   if (!data_->IsStatic()) {
-    GELOGW("Compiled graph is not static, can not get output shapes!");
+    GELOGW("Compiled graph is not static, cannot get output shapes!");
     return FAILED;
   }
   shapes = data_->GetOutputShapes();
@@ -119,7 +119,7 @@ Status CompiledGraphSummary::GetOutputShapes(std::vector<ge::Shape> &shapes) con
 
 Status CompiledGraphSummary::GetOutputDtypes(std::vector<ge::DataType> &dtypes) const {
   if (!data_->IsStatic()) {
-    GELOGW("Compiled graph is not static, can not get output dtypes!");
+    GELOGW("Compiled graph is not static, cannot get output dtypes!");
     return FAILED;
   }
   dtypes = data_->GetOutputDtypes();
@@ -128,7 +128,7 @@ Status CompiledGraphSummary::GetOutputDtypes(std::vector<ge::DataType> &dtypes) 
 
 Status CompiledGraphSummary::GetIOIndexesWithSameAddr(std::vector<std::pair<uint32_t, uint32_t>> &io_indexes) const {
   if (!data_->IsStatic()) {
-    GELOGW("Compiled graph is not static, can not get IO indexes with same address!");
+    GELOGW("Compiled graph is not static, cannot get IO indexes with same address!");
     return FAILED;
   }
   io_indexes = data_->GetIOIndexesWithSameAddr();

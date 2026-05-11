@@ -1045,7 +1045,7 @@ graphStatus Impl::GenerateVariableInferGraph(const ComputeGraphPtr &origin_graph
   }
   for (const auto &cur_name : const_names) {
     auto it = const_nodes_map.find(cur_name);
-    GE_ASSERT_TRUE((it != const_nodes_map.end()), "can not find const node by name %s", cur_name.c_str());
+    GE_ASSERT_TRUE((it != const_nodes_map.end()), "cannot find const node by name %s", cur_name.c_str());
     GELOGI("find const node %s need to be change to var", cur_name.c_str());
     const_nodes.emplace_back(it->second);
   }
@@ -1341,7 +1341,7 @@ graphStatus aclgrphConvertToWeightRefreshableGraphs(const ge::Graph &origin_grap
                                                     WeightRefreshableGraphs &weight_refreshable_graphs) {
   GELOGI("start to execute aclgrphConvertToWeightRefreshableGraphs");
   if (const_names.empty()) {
-    GELOGE(GRAPH_PARAM_INVALID, "const_names can not be empty");
+    GELOGE(GRAPH_PARAM_INVALID, "const_names cannot be empty");
     return GRAPH_PARAM_INVALID;
   }
   std::vector<std::string> const_names_tmp;
@@ -1363,13 +1363,13 @@ graphStatus aclgrphConvertToWeightRefreshableGraphs(const ge::Graph &origin_grap
     // check const name in graph
     auto it = const_nodes_map.find(tmp_name);
     if (it == const_nodes_map.end()) {
-      GELOGE(GRAPH_PARAM_INVALID, "can not find const name %s in graph", tmp_name.c_str());
+      GELOGE(GRAPH_PARAM_INVALID, "cannot find const name %s in graph", tmp_name.c_str());
       return GRAPH_PARAM_INVALID;
     }
     const_names_tmp.emplace_back(tmp_name);
     // check repeated name
     if (!const_names_tmp_set.insert(tmp_name).second) {
-      GELOGE(GRAPH_PARAM_INVALID, "can not insert repeat name %s", tmp_name.c_str());
+      GELOGE(GRAPH_PARAM_INVALID, "cannot insert repeat name %s", tmp_name.c_str());
       return GRAPH_PARAM_INVALID;
     }
   }

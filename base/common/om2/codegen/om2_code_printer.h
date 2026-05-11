@@ -13,6 +13,7 @@
 #include <string>
 #include <sstream>
 #include "ge_common/ge_api_error_codes.h"
+#include "common/om2/codegen/om2_codegen_types.h"
 
 namespace ge {
 enum class GeneratedFileIndex {
@@ -26,23 +27,21 @@ enum class GeneratedFileIndex {
 };
 struct GeneratedFileInfo {
   std::string file_name;
-  std::string file_path;
   std::stringstream content;
 };
 class Om2CodePrinter {
  public:
-  Om2CodePrinter(const std::string &model_name, const std::string &base_dir) {
+  explicit Om2CodePrinter(const std::string &model_name) {
     output_.resize(static_cast<size_t>(GeneratedFileIndex::kEnd));
-    InitDefaultFileInfo(model_name, base_dir);
+    InitDefaultFileInfo(model_name);
   }
   ~Om2CodePrinter() = default;
   void AddContent(GeneratedFileIndex generated_file_index, const std::string &input_string);
-  Status WriteFiles(const std::string &target_path);
-  void GetOutputFilePaths(std::vector<std::string> &file_paths);
+  void GetOutputFiles(Om2CodegenArtifacts &artifacts) const;
 
  private:
-  void SetFileInfo(GeneratedFileIndex generated_file_index, const std::string &file_name, const std::string &base_dir);
-  void InitDefaultFileInfo(const std::string &model_name, const std::string &base_dir);
+  void SetFileInfo(GeneratedFileIndex generated_file_index, const std::string &file_name);
+  void InitDefaultFileInfo(const std::string &model_name);
 
  private:
   std::vector<GeneratedFileInfo> output_;

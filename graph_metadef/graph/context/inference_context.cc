@@ -143,7 +143,7 @@ graphStatus InferenceContext::SetResourceContext(const ge::AscendString &key, Re
     return GRAPH_PARAM_INVALID;
   }
   if (inner_inference_context_->resource_context_mgr == nullptr) {
-    GELOGE(GRAPH_FAILED, "No resource context mgr exist, resource context can not deliver in graph."
+    GELOGE(GRAPH_FAILED, "No resource context mgr exist, resource context cannot deliver in graph."
                          "Please check session initialized success or not.");
     return GRAPH_FAILED;
   }

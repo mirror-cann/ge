@@ -111,7 +111,7 @@ bool CanGetNodeIdByShapes(const NodePtr &node) {
     for (size_t index = kDataInputNum; index < in_nodes.size(); ++index) {
       auto in_node = in_nodes.at(index);
       if ((in_node != nullptr) && (!PassUtils::IsConstant(in_node))) {
-        GELOGD("Can not get node id by shapes for node:%s, as having non const input node:%s.",
+        GELOGD("Cannot get node id by shapes for node:%s, as having non const input node:%s.",
                node->GetName().c_str(), in_node->GetName().c_str());
         return false;
       }
@@ -195,7 +195,7 @@ std::string TransOpBreadthFusionPass::GetNodeId(const int32_t anchor_index, cons
   for (const auto &in_ctrl_node : node->GetInControlNodes()) {
     //                    c
     // switch-->Identity ---> node
-    // the control edge from a identity node can not be removed
+    // the control edge from a identity node cannot be removed
     if (in_ctrl_node->GetType() == IDENTITY || memory_optimization_policy == kMemoryPriority) {
       id << "-control-in-" << in_ctrl_node->GetName();
     }

@@ -312,7 +312,7 @@ void EngineDaemon::TransArray2ArgsOption(const int32_t start, const int32_t end,
     constexpr size_t kValuePos = 1UL;
     std::vector<std::string> pair = StringUtils::Split(str, '=');
     if (pair.size() != kPairArgsNum) {
-      GELOGW("Can not parse args in %s.", argv[var_id]);
+      GELOGW("Cannot parse args in %s.", argv[var_id]);
       continue;
     }
     args_option.emplace(pair[kKeyPos], pair[kValuePos]);

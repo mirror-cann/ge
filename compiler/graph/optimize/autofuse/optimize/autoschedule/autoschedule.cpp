@@ -209,7 +209,7 @@ Status AutoSchedule::SelectLoopAxis(ascir::ImplGraph &impl_graph, bool is_reduce
     if (it != axis.rend()) {
       node->attr.sched.loop_axis = *it;
     }
-    GE_ASSERT_TRUE((node->attr.sched.loop_axis != ge::kIdNone), "Can not find loop axis for node: [%s].",
+    GE_ASSERT_TRUE((node->attr.sched.loop_axis != ge::kIdNone), "Cannot find loop axis for node: [%s].",
                    node->GetNamePtr());
   }
   return ge::SUCCESS;

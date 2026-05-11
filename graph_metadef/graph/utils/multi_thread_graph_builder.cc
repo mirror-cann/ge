@@ -81,7 +81,7 @@ void MultiThreadGraphBuilder::ResetOpSubgraphBuilder(const OpDescPtr &op_desc, O
       ge::Graph graph;
       if (future_graph_ptr->valid()) {
         graph = future_graph_ptr->get();
-        // reset shared_future to release graph ownner, can not be invoked twice
+        // reset shared_future to release graph ownner, cannot be invoked twice
         *future_graph_ptr = std::shared_future<ge::Graph>();
       } else {
         // use default builder

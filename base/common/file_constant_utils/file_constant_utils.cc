@@ -622,7 +622,7 @@ Status FileConstantUtils::ConvertToFileConstants(const ConstNodeWeightHashMap &c
 Status FileConstantUtils::ConvertConstToFileConst(const ComputeGraphPtr &compute_graph, bool all_in_one) {
   const auto &const_to_weight_hash_map = GetAllConstNodesAndWeightHash(compute_graph);
   if (const_to_weight_hash_map.empty()) {
-    GELOGI("Can not find valid const nodes on graph:%s, skip conversion", compute_graph->GetName().c_str());
+    GELOGI("Cannot find valid const nodes on graph:%s, skip conversion", compute_graph->GetName().c_str());
     return SUCCESS;
   }
   const auto &external_weight_manager = ExternalWeightManagerPool::Instance().GetManager(GetContext().SessionId());
@@ -766,8 +766,8 @@ Status FileConstantUtils::MoveFilePath(const std::map<std::string, std::string> 
   for (const auto &file_path : old_file_to_new_file) {
     const auto &old_path = file_path.first;
     const auto &new_path = file_path.second;
-    GE_ASSERT_TRUE(!old_path.empty(), "Old fileconstant path can not be null");
-    GE_ASSERT_TRUE(!new_path.empty(), "New fileconstant path can not be null");
+    GE_ASSERT_TRUE(!old_path.empty(), "Old fileconstant path cannot be null");
+    GE_ASSERT_TRUE(!new_path.empty(), "New fileconstant path cannot be null");
 
     auto pos = old_path.rfind('/');
     GE_ASSERT_TRUE(pos != std::string::npos, "File path:%s is invalid.", old_path.c_str());

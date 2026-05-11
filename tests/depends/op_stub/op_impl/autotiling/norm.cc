@@ -785,7 +785,7 @@ bool Norm::JudgeCurDimSplitBlock(const int64_t &right_product, const std::size_t
   }
 
   for (; cur_block_factor <= input_shape[index]; cur_block_factor++) {
-    // elements in tail core > block can not be considered in continuous_data_move case
+    // elements in tail core > block cannot be considered in continuous_data_move case
     bool is_tail_considered_as_entire = (input_shape[index] % cur_block_factor == 0) || is_continuous_data_move;
     int64_t tail_block_factor = is_tail_considered_as_entire ? cur_block_factor : input_shape[index] % cur_block_factor;
     int64_t tail_block_inner_elem_count = tail_block_factor * (right_product / input_shape[index]);
@@ -889,7 +889,7 @@ bool Norm::GetWorkspaceBlockTilingInfo() {
     int64_t post_right_product = right_product / input_shape[i];
     int64_t post_right_align_product = right_align_product / input_align_shape[i];
 
-    // the A after reduce can not put in ub
+    // the A after reduce cannot put in ub
     if (post_right_align_product > ub_size) {
       left_product = post_left_product;
       right_product = post_right_product;
@@ -1144,9 +1144,9 @@ bool Norm::CheckNormalCurUbFactor(const int64_t &cur_ub_factor, const int64_t &c
       cur_dim_tail % cur_ub_factor == 0 ? block_size : (cur_dim_tail % cur_ub_factor) * right_product;
 
   if (is_continuous_data_move) {
-    // tail_tail_ub_elem_count can not be considered in continuous_data_move case
+    // tail_tail_ub_elem_count cannot be considered in continuous_data_move case
     tail_tail_ub_elem_count = block_size;
-    // further, entire_ub_elem_count and tail_ub_elem_count can not be considered when block dim is 1
+    // further, entire_ub_elem_count and tail_ub_elem_count cannot be considered when block dim is 1
     if (tilingInfo.block_dim == 1) {
       entire_ub_elem_count = block_size;
       tail_ub_elem_count = block_size;
@@ -1155,7 +1155,7 @@ bool Norm::CheckNormalCurUbFactor(const int64_t &cur_ub_factor, const int64_t &c
   if (cur_dim_tail != 0) {
     // if index is equal to block_tiling_axis_index_in_reorder, the tail of entire core is considered as entire size;
     // else, the tail of entire core is considered as the tail of tail core;
-    // the tail of entire core can not be considered except that the tail of tail core is zero.
+    // the tail of entire core cannot be considered except that the tail of tail core is zero.
     tail_ub_elem_count = block_size;
   }
 

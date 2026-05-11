@@ -253,7 +253,7 @@ bool IsMemoryAndTypeSupport(const ge::GraphNodePtr &graph_node, const ge::Memory
   const auto queryed = graph_node->GetFeatureMemoryBase();
   if ((queryed.first != nullptr) && (type == ge::MemoryType::MEMORY_TYPE_DEFAULT)) {
     reason = "[Check][Memory] UpdateGraphFeatureMemoryBase has already been called, and SetGraphFixedFeatureMemoryBase"
-             " can not be called or SetGraphFixedFeatureMemoryBaseWithType can be called using the"
+             " cannot be called or SetGraphFixedFeatureMemoryBaseWithType can be called using the"
              " MEMORY_TYPEDEFAULT parameter, please refer to the guide, graph_id:" + std::to_string(graph_id);
     return false;
   }
@@ -1671,7 +1671,7 @@ Status GraphManager::SetFrozenInputAttrs(const GeRootModelPtr &ge_root_model, co
       continue;
     }
     const auto iter = index_to_node_info.find(static_cast<uint32_t>(index));
-    GE_ASSERT_TRUE(iter != index_to_node_info.cend(), "Can not find frozen addr and length for input[%d]", index);
+    GE_ASSERT_TRUE(iter != index_to_node_info.cend(), "Cannot find frozen addr and length for input[%d]", index);
     GE_ASSERT_TRUE(AttrUtils::SetBool(op_desc, "frozen_input", true), "Set frozen input attr failed.");
     GE_ASSERT_TRUE(AttrUtils::SetInt(op_desc, "addr", iter->second.first), "Set frozen input addr attr failed.");
     GE_ASSERT_TRUE(AttrUtils::SetInt(op_desc, "size", iter->second.second), "Set frozen input size attr failed.");
@@ -2525,7 +2525,7 @@ Status GraphManager::ParseOptions(const std::map<std::string, std::string> &opti
 }
 
 // OPTION_GRAPH_RUN_MODE is supposed to be a session-level option, but it used to be set to global-level in the past.
-// If can not parse from session, it can parse from global by GetContext().
+// If cannot parse from session, it can parse from global by GetContext().
 Status GraphManager::ParseTrainGraphFlag(bool &train_flag) {
   train_flag = false;
   std::string run_mode;
@@ -4659,14 +4659,14 @@ Status GraphManager::UpdateFeatureMemoryBase(uint32_t graph_id, const void *cons
   if (user_alloc) {
     GELOGE(GE_GRAPH_UNSUPPORTED,
            "[Check][Memory] after set fixed_feature_memory, the function UpdateGraphFeatureMemoryBase"
-           " can not be called, please refer to the guide, graph_id:%u.", graph_id);
+           " cannot be called, please refer to the guide, graph_id:%u.", graph_id);
     return GE_GRAPH_UNSUPPORTED;
   }
 
   if (graph_node->IsAppRefreshFeatureMemory() && graph_node->GetRefreshableFeatureMemoryBase().first != nullptr) {
     GELOGE(GE_GRAPH_UNSUPPORTED,
            "[Check][Memory] after call UpdateGraphRefreshableFeatureMemoryBase, the function"
-           " UpdateGraphFeatureMemoryBase can not be called, please refer to the guide, graph_id:%u.", graph_id);
+           " UpdateGraphFeatureMemoryBase cannot be called, please refer to the guide, graph_id:%u.", graph_id);
     return GE_GRAPH_UNSUPPORTED;
   }
   if (memory == nullptr) {
@@ -4758,7 +4758,7 @@ Status GraphManager::CheckFixedFeatureMemoryBase(const uint32_t graph_id, const 
   }
   if (summary_fixed_mem == nullptr) {
     fixed_mem_not_exist = true;
-    GELOGW("[Check][Param] can not find fix feature memory for type:%s, graph_id:%u.",
+    GELOGW("[Check][Param] cannot find fix feature memory for type:%s, graph_id:%u.",
            MemTypeUtils::ToString(type).c_str(), graph_id);
     return SUCCESS;
   }
@@ -4805,7 +4805,7 @@ Status GraphManager::SetFixedFeatureMemoryBase(uint32_t graph_id, MemoryType typ
     return PARAM_INVALID;
   }
   if (fixed_mem_not_exist) {
-    GELOGW("[Check][Param] can not find fix feature memory for type:%s, graph_id:%u.",
+    GELOGW("[Check][Param] cannot find fix feature memory for type:%s, graph_id:%u.",
            MemTypeUtils::ToString(type).c_str(), graph_id);
     return SUCCESS;
   }
@@ -4881,7 +4881,7 @@ Status GraphManager::UpdateRefreshableFeatureMemoryBase(uint32_t graph_id, const
   if (graph_node->IsAppRefreshFeatureMemory() && graph_node->GetFeatureMemoryBase().first != nullptr) {
     GELOGE(GE_GRAPH_UNSUPPORTED,
            "[Check][Memory] after call UpdateGraphFeatureMemoryBase, the function"
-           " UpdateGraphRefreshableFeatureMemoryBase can not be called, please refer to the guide, graph_id:%u.",
+           " UpdateGraphRefreshableFeatureMemoryBase cannot be called, please refer to the guide, graph_id:%u.",
            graph_id);
     return GE_GRAPH_UNSUPPORTED;
   }

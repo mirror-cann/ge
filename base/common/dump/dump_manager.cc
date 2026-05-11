@@ -149,7 +149,7 @@ Status DumpManager::RegisterCallBackFunc(const std::string &func,
 Status DumpManager::ReloadDumpInfo(const DumpProperties &dump_properties) {
   const auto iter = callback_map_.find(kReloadDumpFuncName);
   if (iter == callback_map_.end()) {
-    GELOGW("Can not find Load func.");
+    GELOGW("Cannot find Load func.");
     return SUCCESS;
   }
   return iter->second(dump_properties);
@@ -162,7 +162,7 @@ Status DumpManager::UnloadDumpInfo(const DumpProperties &dump_properties) {
   }
   const auto iter = callback_map_.find(kUnloadDumpFuncName);
   if (iter == callback_map_.end()) {
-    GELOGW("Can not find Unload func.");
+    GELOGW("Cannot find Unload func.");
     return SUCCESS;
   }
   return iter->second(dump_properties);

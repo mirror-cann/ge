@@ -289,8 +289,8 @@ graphStatus TransOpCreator::CheckAccuracySupported(const OpDescPtr &op_desc, con
   OpsKernelManager &ops_kernel_manager = instance->OpsKernelManagerObj();
   std::vector<OpInfo> op_infos = ops_kernel_manager.GetOpsKernelInfo(op_desc->GetType());
   if (op_infos.empty()) {
-    unsupported_reason = "Can not get op info by op type " + op_desc->GetType();
-    GELOGI("Can not get op info by op type:%s", op_desc->GetType().c_str());
+    unsupported_reason = "Cannot get op info by op type " + op_desc->GetType();
+    GELOGI("Cannot get op info by op type:%s", op_desc->GetType().c_str());
     return GRAPH_FAILED;
   }
 

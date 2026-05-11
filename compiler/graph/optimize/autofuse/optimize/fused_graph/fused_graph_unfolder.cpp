@@ -252,7 +252,7 @@ Status FusedGraphUnfolder::RemoveRedundantLoads(const ge::ComputeGraphPtr &graph
     RemoveUnusedNode(graph, output_node);
     RemoveUnusedNode(graph, store_node);
   }
-  // step6: Remove NetOutput. Can not merge two for loop because this depends on the results of previous loop.
+  // step6: Remove NetOutput. Cannot merge two for loop because this depends on the results of previous loop.
   for (auto &node : graph->GetAllNodes()) {
     if (node->GetType() == ge::NETOUTPUT) {
       RemoveUnusedNode(graph, node);

@@ -47,7 +47,7 @@ uintptr_t GetRunMemory(const ge::DavinciModel &davinci_model, const MemoryBaseTy
       if (param.fileconstant_addr_mapping.find(type_offset_pair.offset) != param.fileconstant_addr_mapping.cend()) {
         return param.fileconstant_addr_mapping.at(type_offset_pair.offset);
       }
-      GELOGE(ge::FAILED, "can not find offset[%ld] in fileconstant_addr_mapping", type_offset_pair.offset);
+      GELOGE(ge::FAILED, "cannot find offset[%ld] in fileconstant_addr_mapping", type_offset_pair.offset);
       return 0;
     default:
       return 0;

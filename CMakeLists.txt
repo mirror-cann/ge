@@ -16,6 +16,9 @@ init_cann_project()
 
 set(BASE_DIR ${CMAKE_CURRENT_LIST_DIR})
 
+include(cmake/function.cmake)
+set_common_params()
+
 # init_cann_project() redefines __FILE__ to filename-only via $(notdir), which breaks
 # tests that derive source directory paths from __FILE__ and fails on filenames with spaces.
 # In test mode, restore default compile commands to preserve __FILE__ full path.
@@ -449,9 +452,9 @@ if (NOT BUILD_OPEN_PROJECT)
                 ge_runner_v2 dflow_runner data_flow_base
                 ge_compiler slice air_headers _caffe_parser fmk_onnx_parser fmk_parser parser_common func2graph
                 EXPORT air-targets
-                LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR} ${INSTALL_OPTIONAL} COMPONENT opensdk
-                ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR} ${INSTALL_OPTIONAL} COMPONENT opensdk
-                RUNTIME DESTINATION ${INSTALL_RUNTIME_DIR} ${INSTALL_OPTIONAL} COMPONENT opensdk
+                LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR} ${INSTALL_OPTIONAL}
+                ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR} ${INSTALL_OPTIONAL}
+                RUNTIME DESTINATION ${INSTALL_RUNTIME_DIR} ${INSTALL_OPTIONAL}
                 )
     # yellow zone for ge/fe/others
     else ()
@@ -462,9 +465,9 @@ if (NOT BUILD_OPEN_PROJECT)
                 # 开发环境某些没有下载parser目录
                 # _caffe_parser fmk_onnx_parser fmk_parser parser_common
                 EXPORT air-targets
-                LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR} ${INSTALL_OPTIONAL} COMPONENT opensdk
-                ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR} ${INSTALL_OPTIONAL} COMPONENT opensdk
-                RUNTIME DESTINATION ${INSTALL_RUNTIME_DIR} ${INSTALL_OPTIONAL} COMPONENT opensdk
+                LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR} ${INSTALL_OPTIONAL}
+                ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR} ${INSTALL_OPTIONAL}
+                RUNTIME DESTINATION ${INSTALL_RUNTIME_DIR} ${INSTALL_OPTIONAL}
                 )
 
         if ("${PRODUCT}" STREQUAL "ascend031")
@@ -480,15 +483,15 @@ if (NOT BUILD_OPEN_PROJECT)
 
     install(TARGETS fwk_stub_ge_runner
         EXPORT air-targets
-        LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}/stub ${INSTALL_OPTIONAL} COMPONENT opensdk
-        ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR}/stub ${INSTALL_OPTIONAL} COMPONENT opensdk
-        RUNTIME DESTINATION ${INSTALL_RUNTIME_DIR}/stub ${INSTALL_OPTIONAL} COMPONENT opensdk
+        LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}/stub ${INSTALL_OPTIONAL}
+        ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR}/stub ${INSTALL_OPTIONAL}
+        RUNTIME DESTINATION ${INSTALL_RUNTIME_DIR}/stub ${INSTALL_OPTIONAL}
     )
     install(TARGETS fwk_stub_ge_runner_v2
         EXPORT air-targets
-        LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}/stub ${INSTALL_OPTIONAL} COMPONENT opensdk
-        ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR}/stub ${INSTALL_OPTIONAL} COMPONENT opensdk
-        RUNTIME DESTINATION ${INSTALL_RUNTIME_DIR}/stub ${INSTALL_OPTIONAL} COMPONENT opensdk
+        LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}/stub ${INSTALL_OPTIONAL}
+        ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR}/stub ${INSTALL_OPTIONAL}
+        RUNTIME DESTINATION ${INSTALL_RUNTIME_DIR}/stub ${INSTALL_OPTIONAL}
     )
     install(FILES   ${AIR_CODE_DIR}/compiler/engines/nn_engine/inc/common/aicore_util_attr_define.h
             ${AIR_CODE_DIR}/compiler/engines/nn_engine/inc/common/aicore_util_types.h
@@ -497,17 +500,17 @@ if (NOT BUILD_OPEN_PROJECT)
             ${AIR_CODE_DIR}/compiler/engines/nn_engine/inc/common/lxfusion_json_util.h
             ${AIR_CODE_DIR}/compiler/engines/nn_engine/inc/common/base_config_parser.h
             ${AIR_CODE_DIR}/compiler/engines/nn_engine/inc/common/configuration.h
-    DESTINATION ${INSTALL_INCLUDE_DIR}/air/nn_engine/common COMPONENT opensdk EXCLUDE_FROM_ALL
+    DESTINATION ${INSTALL_INCLUDE_DIR}/air/nn_engine/common EXCLUDE_FROM_ALL
     )
 
     install(DIRECTORY ${AIR_CODE_DIR}/inc/ DESTINATION ${INSTALL_INCLUDE_DIR}/air
-        COMPONENT opensdk EXCLUDE_FROM_ALL FILES_MATCHING PATTERN "*.h"
+        EXCLUDE_FROM_ALL FILES_MATCHING PATTERN "*.h"
     )
 endif()
 
 if (PACKAGE STREQUAL "opensdk")
     install(EXPORT air-targets DESTINATION ${INSTALL_CONFIG_DIR}
-        FILE air-targets.cmake COMPONENT opensdk EXCLUDE_FROM_ALL
+        FILE air-targets.cmake EXCLUDE_FROM_ALL
     )
     set(PKG_NAME air)
     configure_package_config_file(${TOP_DIR}/cmake/config/pkg_config_template.cmake.in
@@ -518,7 +521,7 @@ if (PACKAGE STREQUAL "opensdk")
     )
     unset(PKG_NAME)
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/air-config.cmake
-        DESTINATION ${INSTALL_CONFIG_DIR} COMPONENT opensdk EXCLUDE_FROM_ALL
+        DESTINATION ${INSTALL_CONFIG_DIR} EXCLUDE_FROM_ALL
     )
 endif()
 

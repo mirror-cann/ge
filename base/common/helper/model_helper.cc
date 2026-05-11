@@ -452,7 +452,7 @@ Status ModelHelper::LoadAndStoreOppSo(const string &path, bool is_split, bool is
   }
 
   if (is_built_in_path && op_so_list.empty()) {
-    GELOGE(FAILED, "Can not find any op so in path:%s", path.c_str());
+    GELOGE(FAILED, "Cannot find any op so in path:%s", path.c_str());
     return FAILED;
   }
 
@@ -1131,7 +1131,7 @@ Status ModelHelper::GetModelFileHead(const ge::ModelData &model_data, const Mode
   if (model_data.model_data == nullptr) {
     (void)REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char*>({"parameter", "value", "reason"}),
                        std::vector<const char*>({"om", model_data.om_name.c_str(), "Model data cannot be nullptr."}));
-    GELOGE(ACL_ERROR_GE_PARAM_INVALID, "[Check][Param] Invalid model. Model data can not be nullptr.");
+    GELOGE(ACL_ERROR_GE_PARAM_INVALID, "[Check][Param] Invalid model. Model data cannot be nullptr.");
     return ACL_ERROR_GE_PARAM_INVALID;
   }
   if (model_data.model_len < sizeof(ModelFileHeader)) {

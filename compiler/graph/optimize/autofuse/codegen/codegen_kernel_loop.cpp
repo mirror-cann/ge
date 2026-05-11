@@ -61,10 +61,10 @@ bool IsShareInputs(const ge::AscNodePtr &node) {
 
 Status RequireContiguousInputBufs(const ge::AscNodePtr &node, ApiCall &api_call, TPipe &tpipe) {
   GE_CHK_BOOL_RET_SPECIAL_STATUS((!ascir::utils::AreAllInputDistinct(node)), ge::SUCCESS,
-                                 "%s can not require contiguous inputs, contain multi-ref input", node->GetNamePtr());
+                                 "%s cannot require contiguous inputs, contain multi-ref input", node->GetNamePtr());
   if (ascir::utils::AreAllInputsFromPosition(node, ge::Position::kPositionVecIn)) {
     GE_CHK_BOOL_RET_SPECIAL_STATUS((!IsShareInputs(node)), ge::SUCCESS,
-                                   "%s(%s) can not require contiguous inputs, not sharing single input TQue",
+                                   "%s(%s) cannot require contiguous inputs, not sharing single input TQue",
                                    node->GetNamePtr(), api_call.api_name_.c_str());
     for (size_t i = 0; i < api_call.inputs.size(); ++i) {
       auto &in_tensor = api_call.inputs[i];
@@ -76,25 +76,25 @@ Status RequireContiguousInputBufs(const ge::AscNodePtr &node, ApiCall &api_call,
 
   GE_CHK_BOOL_RET_SPECIAL_STATUS((!ascir::utils::AreAllInputsFromPosition(node, ge::Position::kPositionVecCalc)),
                                  ge::SUCCESS,
-                                 "%s(%s) can not require contiguous inputs, inputs come from multiple position",
+                                 "%s(%s) cannot require contiguous inputs, inputs come from multiple position",
                                  node->GetNamePtr(), api_call.api_name_.c_str());
   std::vector<ascir::BufId> input_buf_ids;
   for (const auto &input : api_call.inputs) {
     const auto input_tensor = tpipe.GetTensor(input->id);
     GE_ASSERT_NOTNULL(input_tensor);
     GE_CHK_BOOL_RET_SPECIAL_STATUS(input_tensor->alloc_type != ge::AllocType::kAllocTypeBuffer, ge::SUCCESS,
-                                   "%s(%s) can not require contiguous TBufs, input contains non-TBuf",
+                                   "%s(%s) cannot require contiguous TBufs, input contains non-TBuf",
                                    node->GetNamePtr(), api_call.api_name_.c_str());
     const auto &buf = tpipe.GetBuf(input_tensor->buf_id);
     const auto ref_count = buf.merge_scopes.size() + buf.not_merge_tensors.size() + buf.tmp_buf_size_list.size();
     GE_CHK_BOOL_RET_SPECIAL_STATUS(
         (ref_count > 1UL), ge::SUCCESS,
-        "%s(%s) can not require contiguous TBufs, input buf is reused with other tensors, buf_id = %ld",
+        "%s(%s) cannot require contiguous TBufs, input buf is reused with other tensors, buf_id = %ld",
         node->GetNamePtr(), api_call.api_name_.c_str(), input_tensor->buf_id);
     input_buf_ids.emplace_back(input_tensor->buf_id);
   }
   GE_CHK_BOOL_RET_SPECIAL_STATUS((!tpipe.contiguous_buf_ids.empty()), ge::SUCCESS,
-                                 "%s(%s) can not require contiguous tbufs, already required by other ApiCall",
+                                 "%s(%s) cannot require contiguous tbufs, already required by other ApiCall",
                                  node->GetNamePtr(), api_call.api_name_.c_str());
   tpipe.contiguous_buf_ids = std::move(input_buf_ids);
   api_call.is_input_tbuf_contiguous = true;

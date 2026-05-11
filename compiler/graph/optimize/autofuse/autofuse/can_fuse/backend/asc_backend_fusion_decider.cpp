@@ -114,8 +114,8 @@ bool AscBackendSubGraphFusionDecider::CanFuse(const NodePtr &node1, const NodePt
   }
   if (CanMergeAscGraph(graph1, graph2, node1, node2) != SUCCESS) {
     GELOGD(
-        "AscBackendGraphFuse: node1 %s(%s) and node2 %s(%s) can not fuse, the reason is [%s][Node1 and node2's "
-        "ascgraph can not merge]", node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(),
+        "AscBackendGraphFuse: node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][Node1 and node2's "
+        "ascgraph cannot merge]", node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(),
         node2->GetType().c_str(), ge::NotFuseReasonCode(ge::NotFuseReason::kCanNotMergeAscGraph));
     return false;
   }
@@ -990,27 +990,27 @@ bool AscBackendFusionDecider::CanFuse(const NodePtr &node1, const NodePtr &node2
   }
 
   if (BackendUtils::GetNodeFusedGraph(node1, graph1) != SUCCESS) {
-    GELOGI("node1 %s(%s) and node2 %s(%s) can not fuse, the reason is [%s][node1(%s) can't get subgraph]",
+    GELOGI("node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][node1(%s) can't get subgraph]",
            node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
            ge::NotFuseReasonCode(ge::NotFuseReason::kGetSubgraphFailed), node1->GetNamePtr());
     return false;
   }
   if (BackendUtils::GetNodeFusedGraph(node2, graph2) != SUCCESS) {
-    GELOGI("node1 %s(%s) and node2 %s(%s) can not fuse, the reason is [%s][node2(%s) can't get subgraph]",
+    GELOGI("node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][node2(%s) can't get subgraph]",
            node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
            ge::NotFuseReasonCode(ge::NotFuseReason::kGetSubgraphFailed), node2->GetNamePtr());
     return false;
   }
   if (BackendUtils::UpdateSubgraphOutputAttr(graph1, node1) != SUCCESS) {
     GELOGI(
-        "node1 %s(%s) and node2 %s(%s) can not fuse, the reason is [%s][node1(%s) can't update subgraph output attr]",
+        "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][node1(%s) can't update subgraph output attr]",
         node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
         ge::NotFuseReasonCode(ge::NotFuseReason::kUpdateSubgraphOutputAttrFailed), node1->GetNamePtr());
     return false;
   }
   if (BackendUtils::UpdateSubgraphOutputAttr(graph2, node2) != SUCCESS) {
     GELOGI(
-        "node1 %s(%s) and node2 %s(%s) can not fuse, the reason is [%s][node2(%s) can't update subgraph output attr]",
+        "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][node2(%s) can't update subgraph output attr]",
         node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
         ge::NotFuseReasonCode(ge::NotFuseReason::kUpdateSubgraphOutputAttrFailed), node2->GetNamePtr());
     return false;
@@ -1035,7 +1035,7 @@ bool AscBackendFusionDecider::CanFuse(const NodePtr &node1, const NodePtr &node2
   }
   if (UnifySubgraphAxis(node1, node2, node_fuse_info, graph_axis_map, false) != SUCCESS) {
     GELOGI(
-        "node1 %s(%s) and node2 %s(%s) can not fuse, the reason is [%s][node1 and node2 can't unify subgraph axis]",
+        "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][node1 and node2 can't unify subgraph axis]",
         node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
         ge::NotFuseReasonCode(ge::NotFuseReason::kUnifySubgraphAxisFailed));
     return false;
@@ -1045,7 +1045,7 @@ bool AscBackendFusionDecider::CanFuse(const NodePtr &node1, const NodePtr &node2
   if (!BackendUtils::CheckSameSchedAxis(node1, node2, graph_axis_map.GetNode1AxisMap(),
                                         graph_axis_map.GetNode2AxisMap(), node_fuse_info)) {
     GELOGI(
-        "node1 %s(%s) and node2 %s(%s) can not fuse, the reason is [%s][In concat fusion occasion, node1 and node2's "
+        "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][In concat fusion occasion, node1 and node2's "
         "schedule axis not equal]", node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), 
         node2->GetType().c_str(), ge::NotFuseReasonCode(ge::NotFuseReason::kConcatNodeSchedAxisNotEqual));
     return false;
@@ -1054,7 +1054,7 @@ bool AscBackendFusionDecider::CanFuse(const NodePtr &node1, const NodePtr &node2
   // 当融合后节点的最大输入个数超过阈值就不融合
   if (node_fuse_info.GetNode2InputMap().size() > max_fusion_node_input_size) {
     GELOGI(
-        "node1 %s(%s) and node2 %s(%s) can not fuse, the reason is [%s][fused node input data nums(%zu) exceed "
+        "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][fused node input data nums(%zu) exceed "
         "threshold(%u) after fuse]", node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(),
         node2->GetType().c_str(), ge::NotFuseReasonCode(ge::NotFuseReason::kInputNumsExceedThreshold),
         node_fuse_info.GetNode2InputMap().size(), max_fusion_node_input_size);
@@ -1065,7 +1065,7 @@ bool AscBackendFusionDecider::CanFuse(const NodePtr &node1, const NodePtr &node2
   optimize::autoschedule::AxisGroup axes_group1;
   if (BackendUtils::GetAscGraphAxisGroup(node1, axes_group1, graph_axis_map.GetNode1AxisMap()) != SUCCESS) {
     GELOGI(
-        "node1 %s(%s) and node2 %s(%s) can not fuse, the reason is [%s][node1(%s) can't get ascgraph axis group]",
+        "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][node1(%s) can't get ascgraph axis group]",
         node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
         ge::NotFuseReasonCode(ge::NotFuseReason::kGetAscgraphAxisGroupFailed), node1->GetNamePtr());
     return false;
@@ -1073,7 +1073,7 @@ bool AscBackendFusionDecider::CanFuse(const NodePtr &node1, const NodePtr &node2
   optimize::autoschedule::AxisGroup axes_group2;
   if (BackendUtils::GetAscGraphAxisGroup(node2, axes_group2, graph_axis_map.GetNode2AxisMap()) != SUCCESS) {
     GELOGI(
-        "node1 %s(%s) and node2 %s(%s) can not fuse, the reason is [%s][node2(%s) can't get ascgraph axis group]",
+        "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][node2(%s) can't get ascgraph axis group]",
         node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
         ge::NotFuseReasonCode(ge::NotFuseReason::kGetAscgraphAxisGroupFailed), node2->GetNamePtr());
     return false;
@@ -1081,7 +1081,7 @@ bool AscBackendFusionDecider::CanFuse(const NodePtr &node1, const NodePtr &node2
   optimize::autoschedule::AxisGroup merged_axes_group;
   if (!BackendUtils::IsCanMergeAxisGroup(axes_group1, axes_group2, merged_axes_group)) {
     GELOGI(
-        "node1 %s(%s) and node2 %s(%s) can not fuse, the reason is [%s][node1 and node2 can't merge axis group]",
+        "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][node1 and node2 can't merge axis group]",
         node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
         ge::NotFuseReasonCode(ge::NotFuseReason::kMergeAxisGroupFailed));
     return false;

@@ -204,7 +204,7 @@ Status PluginManager::GetOppPluginVendors(const std::string &vendors_config, std
   GELOGI("Enter get opp plugin config file schedule, config file is '%s'", vendors_config.c_str());
   std::ifstream config(vendors_config);
   if (!config.good()) {
-    GELOGI("Can not open file '%s'!", vendors_config.c_str());
+    GELOGI("Cannot open file '%s'!", vendors_config.c_str());
     return FAILED;
   }
   std::string content;
@@ -355,7 +355,7 @@ bool PluginManager::GetEffectiveVersion(const std::string &opp_version, uint32_t
   ss << split_version[1];        // C version
   ss >> effective_version;
   if (ss.fail() || !ss.eof()) {
-    GELOGW("Can not convert [%s] to number from %s", ss.str().c_str(), opp_version.c_str());
+    GELOGW("Cannot convert [%s] to number from %s", ss.str().c_str(), opp_version.c_str());
     return false;
   }
   GELOGD("Get effective version:%u from %s", effective_version, opp_version.c_str());
@@ -478,7 +478,7 @@ Status PluginManager::GetOppPluginPathNew(const std::string &opp_path,
   const std::string vendors_config = opp_path + kVendors + "/" + kConfig;
   std::vector<std::string> vendors;
   if (GetOppPluginVendors(vendors_config, vendors) != SUCCESS) {
-    GELOGI("Can not get opp plugin vendors!");
+    GELOGI("Cannot get opp plugin vendors!");
     plugin_path += opp_path + old_custom_path + ":";
   } else {
     const std::string &fmt_custom  = path_fmt_custom.empty() ? path_fmt : path_fmt_custom;
@@ -654,7 +654,7 @@ Status PluginManager::GetCustomCaffeProtoPath(std::string &customcaffe_path) {
     const std::string vendors_config = opp_path + kVendors + "/" + kConfig;
     std::vector<std::string> vendors;
     if (GetOppPluginVendors(vendors_config, vendors) != SUCCESS) {
-      GELOGI("Can not get opp plugin vendors!");
+      GELOGI("Cannot get opp plugin vendors!");
       customcaffe_path += opp_path + "framework/custom/caffe/";
     } else {
       for (const auto &vendor : vendors) {
@@ -993,7 +993,7 @@ void PluginManager::GetOppSupportedOsAndCpuType(
 
   char_t real_path[MMPA_MAX_PATH] = {};
   if (mmRealPath(opp_path.c_str(), &(real_path[0U]), MMPA_MAX_PATH) != EN_OK) {
-    GELOGW("Can not get real path:%s, it may be an old version", opp_path.c_str());
+    GELOGW("Cannot get real path:%s, it may be an old version", opp_path.c_str());
     return;
   }
 
@@ -1005,7 +1005,7 @@ void PluginManager::GetOppSupportedOsAndCpuType(
   mmDirent **entries = nullptr;
   const auto ret = Scandir(&(real_path[0U]), &entries, nullptr, nullptr);
   if (ret < EN_OK) {
-    GELOGW("Can not open directory %s, it may be an old version, ret = %d", real_path, ret);
+    GELOGW("Cannot open directory %s, it may be an old version, ret = %d", real_path, ret);
     return;
   }
   for (int32_t i = 0; i < ret; ++i) {
@@ -1050,7 +1050,7 @@ void PluginManager::GetCurEnvPackageOsAndCpuType(std::string &host_env_os, std::
   GELOGI("extract os and cpu info from %s", scene.c_str());
   std::ifstream ifs(scene);
   if (!ifs.good()) {
-    GELOGW("Can not open file:%s", scene.c_str());
+    GELOGW("Cannot open file:%s", scene.c_str());
     return;
   }
   std::string line;

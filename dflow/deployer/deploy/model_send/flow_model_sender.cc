@@ -373,7 +373,7 @@ Status FlowModelSender::DeployDevCfg(int32_t dev_id, DeviceDebugConfig::ConfigTy
       {DeviceDebugConfig::ConfigType::kProfilingConfigType, deployer::kProfilingConfig},
   };
   if (conf_type_map.find(conf_type) == conf_type_map.end()) {
-    GELOGW("Init device config failed, can not find config type=%d.", static_cast<int32_t>(conf_type));
+    GELOGW("Init device config failed, cannot find config type=%d.", static_cast<int32_t>(conf_type));
     return SUCCESS;
   }
   std::string conf_data;

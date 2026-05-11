@@ -192,7 +192,7 @@ Status EnsureOrder(std::vector<NodePtr> &origin_nodes, NodePtr &a, NodePtr &b) {
   auto a_iter = std::find(origin_nodes.begin(), origin_nodes.end(), a);
   auto b_iter = std::find(origin_nodes.begin(), origin_nodes.end(), b);
   if (a_iter == origin_nodes.end() || b_iter == origin_nodes.end()) {
-    std::cerr << "EnsureOrder failed, can not find a or b"  << std::endl;
+    std::cerr << "EnsureOrder failed, cannot find a or b"  << std::endl;
     return FAILED;
   }
   if (a_iter < b_iter) {
@@ -214,7 +214,7 @@ Status MemConflictShareGraph::TopologicalSortingMock(const ComputeGraphPtr &grap
   for (size_t i = 0U; i < node_names.size(); ++i) {
     auto node = graph->FindNode(node_names.at(i));
     if (node == nullptr) {
-      std::cerr << "TopologicalSortingMock failed, because can not find node: " << node_names.at(i) << std::endl;
+      std::cerr << "TopologicalSortingMock failed, because cannot find node: " << node_names.at(i) << std::endl;
       return FAILED;
     }
     param_nodes.emplace_back(node);

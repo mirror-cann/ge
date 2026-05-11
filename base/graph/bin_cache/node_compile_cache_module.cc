@@ -352,7 +352,7 @@ Status NodeCompileCacheModule::GetAttrTotalSize(const std::map<std::string, AnyV
       FMK_SIZET_ADDCHECK(attr_size, current_attr_size);
       attr_size += current_attr_size;
     } else {
-      GELOGD("can not get attr name %s", name.c_str());
+      GELOGD("cannot get attr name %s", name.c_str());
     }
   }
   return SUCCESS;
@@ -534,7 +534,7 @@ NodeCompileCacheItem *NodeCompileCacheModule::FindCompileCache(const NodePtr &no
   const std::lock_guard<std::mutex> lk(ids_to_cci_mu_);
   const auto it = ids_to_cci_.find(id);
   if (it == ids_to_cci_.end()) {
-    GELOGD("can not find id %lu", id);
+    GELOGD("cannot find id %lu", id);
     return nullptr;
   } else {
     return &it->second;
@@ -546,7 +546,7 @@ std::shared_ptr<CompileCacheDesc> NodeCompileCacheModule::GetCompileCacheDesc(co
   const std::lock_guard<std::mutex> lk(node_to_cache_desc_map_mu_);
   const auto it = node_to_cache_desc_map_.find(node_id);
   if (it == node_to_cache_desc_map_.end()) {
-    GELOGW("can not get cache desc from map, node_id is %lu", node_id);
+    GELOGW("cannot get cache desc from map, node_id is %lu", node_id);
     return nullptr;
   }
   return it->second;

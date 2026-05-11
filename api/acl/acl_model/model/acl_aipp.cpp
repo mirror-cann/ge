@@ -309,7 +309,7 @@ static bool TryGetDynamicAippInfo(const uint32_t modelId, const size_t idx, ge::
     ACL_LOG_DEBUG("TryGetDynamicAippInfo");
     const ge::Status ret = GetDynamicAippInfo(modelId, idx, aippParams);
     if (ret != ge::SUCCESS) {
-        ACL_LOG_DEBUG("Can not get dynamic aippInfo, the model may be old model, ge result[%u]", ret);
+        ACL_LOG_DEBUG("Cannot get dynamic aippInfo, the model may be old model, ge result[%u]", ret);
         return false;
     }
     ACL_LOG_INFO("GetDynamicAippInfo success");
@@ -411,7 +411,7 @@ static aclError GetAndCheckAippOutputShape(const uint32_t modelId, const aclmdlD
 {
     const int64_t batchSize = static_cast<int64_t>(aippParmsSet->batchSize);
     if (idx >= modelDesc.inputDesc.size()) {
-        ACL_LOG_INNER_ERROR("[Check][Params]index[%zu] can not greater than or equal to tensor "
+        ACL_LOG_INNER_ERROR("[Check][Params]index[%zu] cannot greater than or equal to tensor "
             "size[%zu]", idx, modelDesc.inputDesc.size());
         return ACL_ERROR_INVALID_PARAM;
     }

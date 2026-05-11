@@ -348,7 +348,7 @@ ge::graphStatus TilingForMaxPoolV3(TilingContext *context) {
     CHECK(((param->output_w - 1) * compile_info->strides_w >= param->input_w + compile_info->pad_left) ||
               ((param->output_h - 1) * compile_info->strides_h >= param->input_h + compile_info->pad_top),
           GELOGE(ge::GRAPH_FAILED,
-                 "Can not ensure that the last pooling starts strictly inside the image even after clip the last."),
+                 "Cannot ensure that the last pooling starts strictly inside the image even after clip the last."),
           return ge::GRAPH_SUCCESS);
   }
 

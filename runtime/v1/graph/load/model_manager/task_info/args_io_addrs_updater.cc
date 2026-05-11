@@ -50,8 +50,8 @@ Status ArgsIoAddrsUpdater::Init(std::vector<MemAllocation> &logical_mem_allocati
     const size_t id_addr_matched = match_id(addr);
     const size_t id = (refreshable_flag == 1U) ? id_addr_matched : (logical_mem_allocations.size() - 1U);
     if (id_addr_matched >= logical_mem_allocations.size()) {
-      REPORT_INNER_ERR_MSG("E19999", "Can not match any logic mem item");
-      GELOGE(INTERNAL_ERROR, "addr:0x%" PRIx64 " can not match any logic mem item", addr);
+      REPORT_INNER_ERR_MSG("E19999", "Cannot match any logic mem item");
+      GELOGE(INTERNAL_ERROR, "addr:0x%" PRIx64 " cannot match any logic mem item", addr);
       return INTERNAL_ERROR;
     }
 

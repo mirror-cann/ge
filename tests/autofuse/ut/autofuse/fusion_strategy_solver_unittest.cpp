@@ -2616,7 +2616,7 @@ TEST_F(UtestFusionStrategySolver, Fuse_gather_and_other) {
   AutoFuseConfig::MutableConfig().GetMutableFusionStrategySolver().max_fuse_rounds = rounds;
 }
 
-// node2 BroadcastWith5Axis(Pointwise with Broadcast) can not fuse
+// node2 BroadcastWith5Axis(Pointwise with Broadcast) cannot fuse
 TEST_F(UtestFusionStrategySolver, Fuse_gather_and_Broadcast_Failed0) {
   class GatherFusionDecider : public AscBackendFusionDecider {
     NodePtr Fuse(const NodePtr &node1, const NodePtr &node2, const CounterPtr &counter) {
@@ -2661,7 +2661,7 @@ TEST_F(UtestFusionStrategySolver, Fuse_gather_and_Broadcast_Failed0) {
   AutoFuseConfig::MutableConfig().GetMutableFusionStrategySolver().max_fuse_rounds = rounds;
 }
 
-// can not fuse cause node1 axis size(5) != node2 axis size(6)
+// cannot fuse cause node1 axis size(5) != node2 axis size(6)
 TEST_F(UtestFusionStrategySolver, Fuse_gather_and_Broadcast_Failed1) {
   class GatherFusionDecider : public AscBackendFusionDecider {
     NodePtr Fuse(const NodePtr &node1, const NodePtr &node2, const CounterPtr &counter) {

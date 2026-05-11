@@ -90,7 +90,7 @@ class MemoryTraceChecker {
   MemoryTraceChecker &AppendExpectEvent(const std::string &event, int64_t logic_stream_id) {
     auto iter = kRegexs2CheckerTemplates.find(event);
     if (iter == kRegexs2CheckerTemplates.cend()) {
-      std::cout << "Can not find Checker Template of event: " << event.c_str() << std::endl;
+      std::cout << "Cannot find Checker Template of event: " << event.c_str() << std::endl;
       EXPECT_TRUE(false);
       return *this;
     }

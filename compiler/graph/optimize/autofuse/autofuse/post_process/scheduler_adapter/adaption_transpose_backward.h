@@ -418,7 +418,7 @@ inline Status TransposePlaceUpdateForDtype(AscGraph &asc_graph) {
     nodes_need_update_tensor.clear();
   }
   if (dtype_supported_node == nullptr) {
-    GELOGI("graph %s can not find a place to insert transpose with supported dtype.", asc_graph.GetName().c_str());
+    GELOGI("graph %s cannot find a place to insert transpose with supported dtype.", asc_graph.GetName().c_str());
     return SUCCESS;
   }
   // 找到后插入transpose，并更新原transpose和找到的位置之间的节点tensor信息

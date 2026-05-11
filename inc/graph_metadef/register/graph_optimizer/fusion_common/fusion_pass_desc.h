@@ -14,7 +14,7 @@
 #include "graph/option/optimization_option_info.h"
 namespace fe {
 using PassAttr = uint64_t;
-const PassAttr FORBIDDEN_CLOSE = 0x01UL;  // forbidden close, can not be closed by fusion switch
+const PassAttr FORBIDDEN_CLOSE = 0x01UL;  // forbidden close, cannot be closed by fusion switch
 const PassAttr NEED_SORT = 0x02UL;  // need topological sorting before executing
 const PassAttr SINGLE_SCENE_OPEN = 0x04UL;  // open for single op scene, can be close by fusion switch
 const PassAttr FE_PASS = 0x08UL;  // graph passes and ub passes in air project

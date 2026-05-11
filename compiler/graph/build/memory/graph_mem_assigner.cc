@@ -1786,11 +1786,11 @@ Status GraphMemoryAssigner::GetMemType(const Node *const node, const IOType &io_
   NodeIndexIO node_index_io{node, index, io_type};
   const auto &anchor_str = node_index_io.ToString();
   const auto symbol_anchor_iter = GetMemAssignerPtr()->anchor_to_symbol_.find(anchor_str);
-  GE_ASSERT_TRUE(symbol_anchor_iter != GetMemAssignerPtr()->anchor_to_symbol_.end(), "can not find symbol by anchor %s",
+  GE_ASSERT_TRUE(symbol_anchor_iter != GetMemAssignerPtr()->anchor_to_symbol_.end(), "cannot find symbol by anchor %s",
                  anchor_str.c_str());
 
   const auto &anchor_iter = GetMemAssignerPtr()->symbol_to_anchors_.find(symbol_anchor_iter->second);
-  GE_ASSERT_TRUE(anchor_iter != GetMemAssignerPtr()->symbol_to_anchors_.end(), "can not find anchor by symbol %s",
+  GE_ASSERT_TRUE(anchor_iter != GetMemAssignerPtr()->symbol_to_anchors_.end(), "cannot find anchor by symbol %s",
                  symbol_anchor_iter->second.c_str());
 
   int64_t type = RT_MEMORY_HBM;
@@ -2070,12 +2070,12 @@ Status GraphMemoryAssigner::UpdateParentNodeOutputOffset(const ge::NodePtr &node
   NodeIndexIO node_index_io{node, output_index, kOut};
   const auto &anchor_str = node_index_io.ToString();
   const auto symbol_anchor_iter = GetMemAssignerPtr()->anchor_to_symbol_.find(anchor_str);
-  GE_ASSERT_TRUE(symbol_anchor_iter != GetMemAssignerPtr()->anchor_to_symbol_.end(), "can not find symbol by anchor %s",
+  GE_ASSERT_TRUE(symbol_anchor_iter != GetMemAssignerPtr()->anchor_to_symbol_.end(), "cannot find symbol by anchor %s",
                  anchor_str.c_str());
 
   const auto &anchor_iter =
       GetMemAssignerPtr()->symbol_to_anchors_.find(symbol_anchor_iter->second);
-  GE_ASSERT_TRUE(anchor_iter != GetMemAssignerPtr()->symbol_to_anchors_.end(), "can not find anchor by symbol %s",
+  GE_ASSERT_TRUE(anchor_iter != GetMemAssignerPtr()->symbol_to_anchors_.end(), "cannot find anchor by symbol %s",
                  symbol_anchor_iter->second.c_str());
   for (const auto &anchor : anchor_iter->second) {
     auto op_desc = anchor.node_ptr_->GetOpDescBarePtr();
@@ -2974,7 +2974,7 @@ bool GraphMemoryAssigner::IsAssignContinuousInputMemoryDirectly(
       return true;
     }
     std::map<NodePtr, uint32_t>::const_iterator iter = node_2_continuous_type.find(in_node);
-    // In node's topo order in the front, so function can not be exception
+    // In node's topo order in the front, so function cannot be exception
     auto continuous_type = iter->second;
     bool continuous_input = ((continuous_type & ContinuousType::kTypeInput) != 0) ||
                             ((continuous_type & ContinuousType::kTypeInputNoPadding) != 0);

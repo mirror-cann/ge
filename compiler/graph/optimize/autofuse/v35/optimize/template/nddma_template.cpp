@@ -50,7 +50,7 @@ ge::Status NddmaTemplate::ReAlignVectorizedStrides(const ge::AscNodePtr &node) {
     const auto axis = output_vec_axis.at(vec_axis_id);
     auto axis_tensor_iter = std::find(output_attr.axis.begin(), output_attr.axis.end(), axis);
     GE_ASSERT_TRUE(axis_tensor_iter != output_attr.axis.end(),
-           "Can not find vectorized axis [%ld] in [%s]'s output tensor.", axis, node->GetNamePtr());
+           "Cannot find vectorized axis [%ld] in [%s]'s output tensor.", axis, node->GetNamePtr());
     const int64_t axis_index = std::distance(output_attr.axis.begin(), axis_tensor_iter);
     const auto &repeat = output_attr.repeats.at(axis_index);
     // 对次尾轴做对齐

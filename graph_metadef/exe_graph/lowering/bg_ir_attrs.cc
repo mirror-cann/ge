@@ -96,7 +96,7 @@ bool GetAllIrAttrs(const ge::NodePtr &node, std::vector<std::vector<uint8_t>> &r
     const std::map<std::string, ge::AnyValue>::const_iterator &iter = all_attrs.find(attr_name);
     if (iter == all_attrs.cend()) {
       runtime_attrs.clear();
-      GELOGI("Can not find the IR attr %s from node %s(%s), clear all attrs",
+      GELOGI("Cannot find the IR attr %s from node %s(%s), clear all attrs",
              attr_name.c_str(), node->GetNamePtr(), node->GetTypePtr());
       return true;
     }

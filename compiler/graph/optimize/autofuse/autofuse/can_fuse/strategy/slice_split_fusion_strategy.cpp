@@ -197,7 +197,7 @@ bool SliceSplitFusionStrategy::CanFuse(const NodePtr &node1, const NodePtr &node
   // 同一个AscBackend内同时含slice与broadcast时，如果CanFuse进行了融合，会产生反推导致错误
   if ((attr1->HasFuseType(loop::FuseType::kSliceSplit) && CheckIfSliceNodeContainsBroadcast(node1)) ||
       (attr2->HasFuseType(loop::FuseType::kSliceSplit) && CheckIfSliceNodeContainsBroadcast(node2))) {
-    GELOGI("node1 %s(%s) and node2 %s(%s) can not fuse, the reason is [%s][This fusion introduces slice node with view op]",
+    GELOGI("node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][This fusion introduces slice node with view op]",
            node1->GetName().c_str(), node1->GetType().c_str(), node2->GetName().c_str(), node2->GetType().c_str(),
            ge::NotFuseReasonCode(ge::NotFuseReason::kFusedSliceHasViewOp));
     return false;
@@ -205,7 +205,7 @@ bool SliceSplitFusionStrategy::CanFuse(const NodePtr &node1, const NodePtr &node
   bool is_vertical = BackendUtils::IsVertical(node1, node2);
   // slice不做水平融合，但是既有水平又有垂直连接的情况可以继续处理，slice与非slice类节点不发生横向融合，由框架判断处理
   if (!is_vertical && attr1->HasFuseType(loop::FuseType::kSliceSplit) && attr2->HasFuseType(loop::FuseType::kSliceSplit)) {
-    GELOGI("node1 %s(%s) and node2 %s(%s) can not fuse, the reason is [%s][horizontal slice/split without vertical link]",
+    GELOGI("node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][horizontal slice/split without vertical link]",
            node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
            ge::NotFuseReasonCode(ge::NotFuseReason::kSliceHasOnlyHorizontalLink));
     return false;
@@ -216,7 +216,7 @@ bool SliceSplitFusionStrategy::CanFuse(const NodePtr &node1, const NodePtr &node
       std::set prev_load_types = {LoadViewType::NonViewLoad, LoadViewType::ViewLoadBroadcast, LoadViewType::ViewLoadTranspose};
       std::set post_load_types = {LoadViewType::ViewLoadSlice};
       if (CheckIfSubGraphLinksHaveSpecifiedLoadTypePairs(node1, node2, prev_load_types, post_load_types)) {
-        GELOGI("node1 %s(%s) and node2 %s(%s) can not fuse, the reason is [%s][In slice/split fusion occasion, "
+        GELOGI("node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][In slice/split fusion occasion, "
                "node2 %s(%s) connected input contains slice/split]", node1->GetNamePtr(), node1->GetType().c_str(),
                node2->GetName().c_str(), node2->GetType().c_str(), ge::NotFuseReasonCode(ge::NotFuseReason::kNodeInputHasSplit),
                node2->GetNamePtr(), node2->GetType().c_str());
@@ -234,7 +234,7 @@ bool SliceSplitFusionStrategy::CanFuse(const NodePtr &node1, const NodePtr &node
     std::set post_load_types = {LoadViewType::ViewLoadBroadcast, LoadViewType::ViewLoadTranspose};
     if (attr1->HasFuseType(loop::FuseType::kSliceSplit) &&
         CheckIfSubGraphLinksHaveSpecifiedLoadTypePairs(node1, node2, prev_load_types, post_load_types)) {
-      GELOGI("node1 %s(%s) and node2 %s(%s) can not fuse, the reason is [%s][This fusion introduces slice node with view op]",
+      GELOGI("node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][This fusion introduces slice node with view op]",
              node1->GetName().c_str(), node1->GetType().c_str(), node2->GetName().c_str(), node2->GetType().c_str(),
              ge::NotFuseReasonCode(ge::NotFuseReason::kFusedSliceHasViewOp));
       return false;

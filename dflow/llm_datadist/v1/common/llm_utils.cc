@@ -163,9 +163,9 @@ ge::Status LLMUtils::ParseDeviceId(const std::map<ge::AscendString, ge::AscendSt
     LLMLOGW("%s is not set, default value is 0.", option);
     return ge::SUCCESS;
   }
-  LLM_CHK_BOOL_RET_STATUS(it->second.GetLength() > 0UL, ge::LLM_PARAM_INVALID, "option %s can not be empty.", option);
+  LLM_CHK_BOOL_RET_STATUS(it->second.GetLength() > 0UL, ge::LLM_PARAM_INVALID, "option %s cannot be empty.", option);
   const auto items = llm::StringUtils::Split(it->second.GetString(), ';');
-  LLM_CHK_BOOL_RET_STATUS(!items.empty(), ge::LLM_PARAM_INVALID, "option %s can not be empty.", option);
+  LLM_CHK_BOOL_RET_STATUS(!items.empty(), ge::LLM_PARAM_INVALID, "option %s cannot be empty.", option);
   for (const auto &item : items) {
     int32_t device_id = -1;
     LLM_CHK_STATUS_RET(llm::LLMUtils::ToNumber(item, device_id),

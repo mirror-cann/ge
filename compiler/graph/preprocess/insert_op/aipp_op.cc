@@ -296,7 +296,7 @@ NodePtr AippOp::CreateAipp(const OutDataAnchorPtr &out_anchor,
   // We must get the TensorDesc from the output anchor on the Data node,
   // and update the TensorDesc to the input anchor on the Aipp node.
   // Because the InferShape function for the Aipp node needs the input tensor format,
-  // but the InferFormat process before InferShape can not infer the format
+  // but the InferFormat process before InferShape cannot infer the format
   // if the tensor on the Aipp has an unknown shape
   if (aipp_opdesc_ptr->UpdateInputDesc(kAippImageInputIndex, opdesc_in_src_data) != GRAPH_SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Update the output desc from node:%s(%s) to aipp:%s(%s) failed",
@@ -499,7 +499,7 @@ NodePtr AippOp::FindDataByIndex(const ComputeGraphPtr &graph, int32_t rank) cons
     }
     return node;
   }
-  std::string error_msg = "Can not find the data node by aipp parameter related_input_rank " + to_string(rank);
+  std::string error_msg = "Cannot find the data node by aipp parameter related_input_rank " + to_string(rank);
   REPORT_PREDEFINED_ERR_MSG("E10052", std::vector<const char *>({"reason"}), std::vector<const char *>({error_msg.c_str()}));
   GELOGE(PARAM_INVALID, "[Check][aipp]%s", error_msg.c_str());
   return nullptr;
@@ -521,7 +521,7 @@ Status AippOp::GetAndCheckTarget(const ComputeGraphPtr &graph, int32_t rank, Nod
     REPORT_PREDEFINED_ERR_MSG("E10034", std::vector<const char *>({"opname"}),
                               std::vector<const char *>({data_opdesc->GetName().c_str()}));
     GELOGE(INTERNAL_ERROR,
-           "[Get][Attr] This input op [%s] is linked to aipp, can not be set to fp16, "
+           "[Get][Attr] This input op [%s] is linked to aipp, cannot be set to fp16, "
            "please check your atc parameter --insert_op_conf, --input_fp16_nodes.",
            data_opdesc->GetName().c_str());
     return PARAM_INVALID;
@@ -711,48 +711,48 @@ Status AippOp::ValidateParams() {
                           "When insert AIPP op, aipp_mode must be configured as static or dynamic");
 
   GE_CHK_LOG_AND_ERRORMSG(aipp_params_->var_reci_chn_0_size() <= 1, PARAM_INVALID,
-                          "The parameter var_reci_chn_0 can not be configured repeatedly");
+                          "The parameter var_reci_chn_0 cannot be configured repeatedly");
   GE_CHK_LOG_AND_ERRORMSG(aipp_params_->var_reci_chn_1_size() <= 1, PARAM_INVALID,
-                          "The parameter var_reci_chn_1 can not be configured repeatedly");
+                          "The parameter var_reci_chn_1 cannot be configured repeatedly");
   GE_CHK_LOG_AND_ERRORMSG(aipp_params_->var_reci_chn_2_size() <= 1, PARAM_INVALID,
-                          "The parameter var_reci_chn_2 can not be configured repeatedly");
+                          "The parameter var_reci_chn_2 cannot be configured repeatedly");
   GE_CHK_LOG_AND_ERRORMSG(aipp_params_->var_reci_chn_3_size() <= 1, PARAM_INVALID,
-                          "The parameter var_reci_chn_3 can not be configured repeatedly");
+                          "The parameter var_reci_chn_3 cannot be configured repeatedly");
 
   GE_CHK_LOG_AND_ERRORMSG(aipp_params_->matrix_r0c0_size() <= 1, PARAM_INVALID,
-                          "The parameter matrix_r0c0 can not be configured repeatedly");
+                          "The parameter matrix_r0c0 cannot be configured repeatedly");
   GE_CHK_LOG_AND_ERRORMSG(aipp_params_->matrix_r0c1_size() <= 1, PARAM_INVALID,
-                          "The parameter matrix_r0c1 can not be configured repeatedly");
+                          "The parameter matrix_r0c1 cannot be configured repeatedly");
   GE_CHK_LOG_AND_ERRORMSG(aipp_params_->matrix_r0c2_size() <= 1, PARAM_INVALID,
-                          "The parameter matrix_r0c2 can not be configured repeatedly");
+                          "The parameter matrix_r0c2 cannot be configured repeatedly");
 
   GE_CHK_LOG_AND_ERRORMSG(aipp_params_->matrix_r1c0_size() <= 1, PARAM_INVALID,
-                          "The parameter matrix_r1c0 can not be configured repeatedly");
+                          "The parameter matrix_r1c0 cannot be configured repeatedly");
   GE_CHK_LOG_AND_ERRORMSG(aipp_params_->matrix_r1c1_size() <= 1, PARAM_INVALID,
-                          "The parameter matrix_r1c1 can not be configured repeatedly");
+                          "The parameter matrix_r1c1 cannot be configured repeatedly");
   GE_CHK_LOG_AND_ERRORMSG(aipp_params_->matrix_r1c2_size() <= 1, PARAM_INVALID,
-                          "The parameter matrix_r1c2 can not be configured repeatedly");
+                          "The parameter matrix_r1c2 cannot be configured repeatedly");
 
   GE_CHK_LOG_AND_ERRORMSG(aipp_params_->matrix_r2c0_size() <= 1, PARAM_INVALID,
-                          "The parameter matrix_r2c0 can not be configured repeatedly");
+                          "The parameter matrix_r2c0 cannot be configured repeatedly");
   GE_CHK_LOG_AND_ERRORMSG(aipp_params_->matrix_r2c1_size() <= 1, PARAM_INVALID,
-                          "The parameter matrix_r2c1 can not be configured repeatedly");
+                          "The parameter matrix_r2c1 cannot be configured repeatedly");
   GE_CHK_LOG_AND_ERRORMSG(aipp_params_->matrix_r2c2_size() <= 1, PARAM_INVALID,
-                          "The parameter matrix_r2c2 can not be configured repeatedly");
+                          "The parameter matrix_r2c2 cannot be configured repeatedly");
 
   GE_CHK_LOG_AND_ERRORMSG(aipp_params_->output_bias_0_size() <= 1, PARAM_INVALID,
-                          "The parameter output_bias_0 can not be configured repeatedly");
+                          "The parameter output_bias_0 cannot be configured repeatedly");
   GE_CHK_LOG_AND_ERRORMSG(aipp_params_->output_bias_1_size() <= 1, PARAM_INVALID,
-                          "The parameter output_bias_1 can not be configured repeatedly");
+                          "The parameter output_bias_1 cannot be configured repeatedly");
   GE_CHK_LOG_AND_ERRORMSG(aipp_params_->output_bias_2_size() <= 1, PARAM_INVALID,
-                          "The parameter output_bias_2 can not be configured repeatedly");
+                          "The parameter output_bias_2 cannot be configured repeatedly");
 
   GE_CHK_LOG_AND_ERRORMSG(aipp_params_->input_bias_0_size() <= 1, PARAM_INVALID,
-                          "The parameter input_bias_0 can not be configured repeatedly");
+                          "The parameter input_bias_0 cannot be configured repeatedly");
   GE_CHK_LOG_AND_ERRORMSG(aipp_params_->input_bias_1_size() <= 1, PARAM_INVALID,
-                          "The parameter input_bias_1 can not be configured repeatedly");
+                          "The parameter input_bias_1 cannot be configured repeatedly");
   GE_CHK_LOG_AND_ERRORMSG(aipp_params_->input_bias_2_size() <= 1, PARAM_INVALID,
-                          "The parameter input_bias_2 can not be configured repeatedly");
+                          "The parameter input_bias_2 cannot be configured repeatedly");
 
   const domi::AippOpParams::AippMode aipp_mode = aipp_params_->aipp_mode();
   if (aipp_mode == domi::AippOpParams::dynamic) {

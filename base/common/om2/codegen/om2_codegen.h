@@ -20,16 +20,8 @@
 namespace ge {
 class Om2Codegen {
 public:
-  ~Om2Codegen();
-
-  Status Om2CodegenAndCompile(const GeModelPtr &ge_model, std::vector<std::string> &output_file_paths,
+  Status Om2CodegenAndCompile(const GeModelPtr &ge_model, Om2CodegenArtifacts &artifacts,
                               Om2ConstMetas &const_metas);
-
-private:
-  void CleanOm2WorkDir() const;
-
-private:
-  std::string ws_dir_;
 };
 }  // namespace ge
 

@@ -37,8 +37,8 @@ FMK_FUNC_HOST_VISIBILITY FMK_FUNC_DEV_VISIBILITY void Pb2Json::Message2Json(cons
                                                                             const set<string> &black_fields, Json &json,
                                                                             bool enum2str, int depth) {
   if (depth > kMaxParseDepth) {
-    REPORT_INNER_ERR_MSG("E19999", "Message depth:%d can not exceed %d.", depth, kMaxParseDepth);
-    GELOGE(FAILED, "[Check][Param]Message depth can not exceed %d.", kMaxParseDepth);
+    REPORT_INNER_ERR_MSG("E19999", "Message depth:%d cannot exceed %d.", depth, kMaxParseDepth);
+    GELOGE(FAILED, "[Check][Param]Message depth cannot exceed %d.", kMaxParseDepth);
     return;
   }
 

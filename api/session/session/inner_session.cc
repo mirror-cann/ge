@@ -823,7 +823,7 @@ Status InnerSession::PaRemapped(const uint64_t va, const uint64_t new_pa, const 
   for (const GraphId graph_id : ordered_graph_ids) {
     ret = graph_manager_.PaRemapped(graph_id, va, new_pa, len, cross_ranges);
     if (ret == FAILED) {
-      GELOGW("[PaRemapped] va[%" PRIu64 "] pa[%" PRIu64 "] can not remap, graph id:%u.", va, new_pa, graph_id);
+      GELOGW("[PaRemapped] va[%" PRIu64 "] pa[%" PRIu64 "] cannot remap, graph id:%u.", va, new_pa, graph_id);
       return FAILED;
     }
   }

@@ -41,7 +41,7 @@ ModelPp::ModelPp(const char_t *pp_name, const char_t *model_path) : InnerPp(pp_n
 }
 void ModelPp::InnerSerialize(std::map<ge::AscendString, ge::AscendString> &serialize_map) const {
   if (impl_ == nullptr) {
-    REPORT_INNER_ERR_MSG("E18888", "InnerSerialize failed: ModelPpImpl can not be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "InnerSerialize failed: ModelPpImpl cannot be used, impl is nullptr.");
     return;
   }
   serialize_map[INNER_PP_CUSTOM_ATTR_MODEL_PP_MODEL_PATH] = impl_->GetModelPath().c_str();

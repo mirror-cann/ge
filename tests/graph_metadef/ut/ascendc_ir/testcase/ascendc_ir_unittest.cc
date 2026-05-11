@@ -1949,8 +1949,8 @@ TEST_F(UtestAscendCIR, CheckInferDtypeImplementation_StubOp4_InferDataType) {
 
     // 输出外部不指定的时候，生成推导的代码
     if (expect_output_dtypes.empty()) {
-      GELOGW("Output ir_index [0] has multi result {DT_DOUBLE, DT_BOOL}, can not infer.");
-      GELOGW("Output ir_index [1] has multi result {DT_DOUBLE, DT_BOOL}, can not infer.");
+      GELOGW("Output ir_index [0] has multi result {DT_DOUBLE, DT_BOOL}, cannot infer.");
+      GELOGW("Output ir_index [1] has multi result {DT_DOUBLE, DT_BOOL}, cannot infer.");
       return FAILED;
     }
     // 输出外部指定，生成校验的代码
@@ -2014,8 +2014,8 @@ TEST_F(UtestAscendCIR, CheckInferDataTypeWithNoCheckImplementation_StubOp4_Infer
 
     // 校验同sym的输入的dtype是否一致
 
-    GELOGW("Output ir_index [0] has multi result {DT_DOUBLE, DT_BOOL}, can not infer.");
-    GELOGW("Output ir_index [1] has multi result {DT_DOUBLE, DT_BOOL}, can not infer.");
+    GELOGW("Output ir_index [0] has multi result {DT_DOUBLE, DT_BOOL}, cannot infer.");
+    GELOGW("Output ir_index [1] has multi result {DT_DOUBLE, DT_BOOL}, cannot infer.");
     return FAILED;
   };
 )EXPECT";
@@ -2096,8 +2096,8 @@ TEST_F(UtestAscendCIR, CheckInferDtypeImplementation_StubOp4New_InferDataType) {
 
     // 输出外部不指定的时候，生成推导的代码
     if (expect_output_dtypes.empty()) {
-      GELOGW("Output ir_index [0] has multi result {DT_DOUBLE, DT_BOOL}, can not infer.");
-      GELOGW("Output ir_index [1] has multi result {DT_DOUBLE, DT_BOOL}, can not infer.");
+      GELOGW("Output ir_index [0] has multi result {DT_DOUBLE, DT_BOOL}, cannot infer.");
+      GELOGW("Output ir_index [1] has multi result {DT_DOUBLE, DT_BOOL}, cannot infer.");
       return FAILED;
     }
     // 输出外部指定，生成校验的代码
@@ -2181,8 +2181,8 @@ TEST_F(UtestAscendCIR, CheckInferDataTypeWithNoCheckImplementation_StubOp4New_In
 
     // 校验同sym的输入的dtype是否一致
 
-    GELOGW("Output ir_index [0] has multi result {DT_DOUBLE, DT_BOOL}, can not infer.");
-    GELOGW("Output ir_index [1] has multi result {DT_DOUBLE, DT_BOOL}, can not infer.");
+    GELOGW("Output ir_index [0] has multi result {DT_DOUBLE, DT_BOOL}, cannot infer.");
+    GELOGW("Output ir_index [1] has multi result {DT_DOUBLE, DT_BOOL}, cannot infer.");
     return FAILED;
   };
 )EXPECT";

@@ -109,7 +109,7 @@ Status ProcessUtils::DoMkdir(const char_t *tmp_dir_path, mmMode_t mode) {
       // may create dir multi thread
       if (mmAccess2(tmp_dir_path, M_F_OK) != EN_OK) {
         REPORT_INNER_ERR_MSG("E18888",
-                          "Can not create directory %s. Make sure the directory "
+                          "Cannot create directory %s. Make sure the directory "
                           "exists and writable. errmsg:%s",
                           tmp_dir_path, GetErrorNumStr(create_errno).c_str());
         GELOGE(FAILED, "Create directory %s failed, reason:%s. Make sure the "

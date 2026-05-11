@@ -449,7 +449,7 @@ Status NanoHostfuncParam::SaveAttrListValue(const uint32_t type, const GeAttrVal
   GE_ASSERT_TRUE((UpdateBuffer(PtrToPtr<const uint32_t, const void>(&value_len), sizeof(uint32_t)) == SUCCESS),
                  "UpdateBuffer value_len failed");
 
-  for (const T &value : values) {  // vector<bool> is a special vector, can not be memcpy
+  for (const T &value : values) {  // vector<bool> is a special vector, cannot be memcpy
     GE_ASSERT_TRUE((UpdateBuffer(PtrToPtr<const T, const void>(&value), sizeof(T)) == SUCCESS),
                    "UpdateBuffer value failed");
   }

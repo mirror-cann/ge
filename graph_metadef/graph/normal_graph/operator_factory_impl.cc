@@ -52,6 +52,8 @@ InferShapeRangeFunc OperatorFactoryImpl::operator_infer_shape_range_func_ = null
 InferFormatV2Func OperatorFactoryImpl::operator_infer_format_v2_func_ = nullptr;
 IsInferFormatV2RegisteredFunc OperatorFactoryImpl::is_infer_format_v2_registered_func_ = nullptr;
 IsInferShapeV2RegisteredFunc OperatorFactoryImpl::is_infer_shape_v2_registered_func_ = nullptr;
+CustomOpInferShapeFunc OperatorFactoryImpl::custom_op_infer_shape_func_ = nullptr;
+CustomOpInferDataTypeFunc OperatorFactoryImpl::custom_op_infer_datatype_func_ = nullptr;
 
 Operator OperatorFactoryImpl::CreateOperator(const std::string &operator_name, const std::string &operator_type) {
   if (operator_creators_v2_ != nullptr) {
@@ -435,6 +437,29 @@ void OperatorFactoryImpl::RegisterIsInferShapeV2RegisteredFunc(
 
 IsInferShapeV2RegisteredFunc OperatorFactoryImpl::GetIsInferShapeV2RegisteredFunc() {
   return is_infer_shape_v2_registered_func_;
+}
+
+void OperatorFactoryImpl::RegisterCustomOpInferShapeFunc(CustomOpInferShapeFunc const custom_op_infer_shape_func) {
+  if (custom_op_infer_shape_func_ == nullptr) {
+    GELOGI("operator custom op infer shape func init");
+    custom_op_infer_shape_func_ = custom_op_infer_shape_func;
+  }
+}
+
+CustomOpInferShapeFunc OperatorFactoryImpl::GetCustomOpInferShapeFunc() {
+  return custom_op_infer_shape_func_;
+}
+
+void OperatorFactoryImpl::RegisterCustomOpInferDataTypeFunc(
+    CustomOpInferDataTypeFunc const custom_op_infer_datatype_func) {
+  if (custom_op_infer_datatype_func_ == nullptr) {
+    GELOGI("operator custom op infer datatype func init");
+    custom_op_infer_datatype_func_ = custom_op_infer_datatype_func;
+  }
+}
+
+CustomOpInferDataTypeFunc OperatorFactoryImpl::GetCustomOpInferDataTypeFunc() {
+  return custom_op_infer_datatype_func_;
 }
 
 void OperatorFactoryImpl::ReleaseRegInfo() {

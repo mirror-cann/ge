@@ -32,7 +32,7 @@ inline int32_t CheckAndMkdir(const char_t *tmp_dir_path, mmMode_t mode) {
     const int32_t ret = mmMkdir(tmp_dir_path, mode);
     if (ret != 0) {
       REPORT_INNER_ERR_MSG("E18888",
-                        "Can not create directory %s. Make sure the directory "
+                        "Cannot create directory %s. Make sure the directory "
                         "exists and writable. errmsg:%s",
                         tmp_dir_path, strerror(errno));
       LLMLOGW(

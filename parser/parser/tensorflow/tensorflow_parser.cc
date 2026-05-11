@@ -546,7 +546,7 @@ Status TensorFlowModelParser::AddNode(const domi::tensorflow::NodeDef *node_def,
   string node_op = node_def->op();
   std::map<std::string, std::string>::const_iterator type_it = tensorflow_op_map.find(node_op);
   if (type_it == tensorflow_op_map.end()) {
-    GELOGI("Can not find, maybe this node has no plugin node_name is %s, node_op is %s ", node_name.c_str(),
+    GELOGI("Cannot find, maybe this node has no plugin node_name is %s, node_op is %s ", node_name.c_str(),
            node_op.c_str());
     ge::OpDescPtr op_desc;
     GE_RETURN_IF_ERROR(TransNodeToOpDesc(node_def, op_desc, node_op));
@@ -2964,7 +2964,7 @@ Status TensorFlowModelParser::RemoveIsolateNode(const ge::ComputeGraphPtr &graph
     }
     if ((n->GetType() == ge::parser::DATA) ||
         (ge::GetParserContext().out_nodes_map.find(n->GetName()) != ge::GetParserContext().out_nodes_map.end())) {
-      GELOGI("Can not remove op [%s] because it is data or out node.", n->GetName().c_str());
+      GELOGI("Cannot remove op [%s] because it is data or out node.", n->GetName().c_str());
       continue;
     }
     GE_IF_BOOL_EXEC((((n->GetInAllNodes().size() == 0) && (n->GetOutDataNodes().size() == 0)) ||
@@ -3332,7 +3332,7 @@ Status TensorFlowModelParser::FusionNodeParseParams(shared_ptr<OpParser> &op_par
       std::dynamic_pointer_cast<TensorFlowFusionOpParser>(op_parser);
   GE_IF_BOOL_EXEC(tensorflow_fusion_op_parser == nullptr,
                   REPORT_INNER_ERR_MSG("E19999", "Param op_parser is not TensorFlowFusionOpParser Type, check invalid");
-                  GELOGE(FAILED, "node [%s] can not get fusion parser, please check!", node_def->name().c_str());
+                  GELOGE(FAILED, "node [%s] cannot get fusion parser, please check!", node_def->name().c_str());
                   return INTERNAL_ERROR);
 
   // Find all children of the fusion operator
@@ -3511,7 +3511,7 @@ Status TensorFlowModelParser::AddControlEdgeAfterRemoveInputs(domi::tensorflow::
     auto it = all_node_map.find(input_node_name);
     if (it == all_node_map.end()) {
       REPORT_INNER_ERR_MSG("E19999", "Node:%s can't find in all_node_map, check invalid", input_node_name.c_str());
-      GELOGE(FAILED, "Can not find node name:%s in all node map.", input_node_name.c_str());
+      GELOGE(FAILED, "Cannot find node name:%s in all node map.", input_node_name.c_str());
       return FAILED;
     }
     NodeDef *input_node_def = it->second;
@@ -3659,7 +3659,7 @@ Status TensorFlowModelParser::RemoveIsolateNode(domi::tensorflow::GraphDef *grap
     const string &node_name = node->name();
     if (node_inputs_outputs_map_.find(node_name) == node_inputs_outputs_map_.end()) {
       REPORT_INNER_ERR_MSG("E19999", "Node:%s can't find in node_inputs_outputs_map_, check invalid", node_name.c_str());
-      GELOGE(FAILED, "Can not find input output context, node:%s.", node_name.c_str());
+      GELOGE(FAILED, "Cannot find input output context, node:%s.", node_name.c_str());
       return FAILED;
     }
     if ((node_inputs_outputs_map_[node_name].first.empty() && node_inputs_outputs_map_[node_name].second.empty() &&

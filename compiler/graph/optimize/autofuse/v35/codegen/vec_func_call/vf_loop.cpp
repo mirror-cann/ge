@@ -140,7 +140,7 @@ Status VFLoop::ConstructFromNodes(ascir::NodeViewVisitorConst nodes, const ascir
       GE_CHK_BOOL_RET_STATUS(data_node != nullptr, ge::FAILED, "Codegen node[%s] data_node is nullptr",
                              node->GetNamePtr());
       if (IsOps<Data>(data_node) || IsOps<Scalar>(data_node)) {
-        int64_t index;
+        int64_t index = 0;
         GE_CHK_BOOL_RET_STATUS(data_node->attr.ir_attr != nullptr, ge::FAILED,
                                "Codegen node[%s] data_node->attr.ir_attr is nullptr", node->GetNamePtr());
         GE_CHK_GRAPH_STATUS_RET(data_node->attr.ir_attr->GetAttrValue("index", index),

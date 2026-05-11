@@ -322,7 +322,7 @@ FsmStatus SendState::QueryKvTensorByCacheId(const SyncKvReqInfo &req_info, std::
 void SendState::ReleaseKvCacheForPrompt(const LlmCommEntity &entity) {
     if (CacheManager::GetInstance().IsEnabled()) {
         bool is_prefix = (entity.GetCurPrefixId() != UINT64_MAX);
-        // prompt pa can not release kv tensor
+        // prompt pa cannot release kv tensor
         if (is_prefix || entity.GetCurIsPullBlock() || entity.GetCurIsPullWithOffset()) {
             return;
         }

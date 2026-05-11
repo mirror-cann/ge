@@ -35,7 +35,7 @@ std::shared_ptr<TuningTilingDef> TuningTilingClassFactory::CreateTilingDataInsta
   const auto &instance = TuningTilingClassFactory::RegisterInfo();
   const auto it = instance.find(optype);
   if (it == instance.cend()) {
-    GELOGW("can not find optype: %s", optype.GetString());
+    GELOGW("cannot find optype: %s", optype.GetString());
     return nullptr;
   }
 

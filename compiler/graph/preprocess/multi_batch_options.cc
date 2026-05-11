@@ -561,7 +561,7 @@ Status ParserDataToDynamicInfo(const std::vector<std::vector<int64_t>> &shapes,
         REPORT_PREDEFINED_ERR_MSG("E10046", std::vector<const char *>({"name", "shape"}),
                                   std::vector<const char *>({data_name.c_str(), ToString(data_shape).c_str()}));
         GELOGE(PARAM_INVALID, "[Check][Param] Dynamic dims num of data: %s shape: %s "
-               "can not be more than one gear dynamic info size",
+               "cannot be more than one gear dynamic info size",
                data_name.c_str(), ToString(data_shape).c_str());
         return FAILED;
       }
@@ -754,7 +754,7 @@ Status ParseInputShapes(const std::string &input_shapes,
     }
 
     if (shape_pair_vec[1].empty()) {
-      GELOGE(INTERNAL_ERROR, "The shape [%s] has a name, it's value can not be empty", shape.c_str());
+      GELOGE(INTERNAL_ERROR, "The shape [%s] has a name, it's value cannot be empty", shape.c_str());
       return INTERNAL_ERROR;
     }
 
@@ -864,7 +864,7 @@ Status ParseDynamicDims(const std::string &dynamic_dims, DimsVector &dynamic_dim
   }
   GELOGI("dynamic dim num: %ld.", dynamic_dim_num);
   if (dynamic_dims.empty()) {
-    GELOGE(INTERNAL_ERROR, "dynamic_dims can not be empty.");
+    GELOGE(INTERNAL_ERROR, "dynamic_dims cannot be empty.");
     return INTERNAL_ERROR;
   }
   // Different parameter sets are split by ';'

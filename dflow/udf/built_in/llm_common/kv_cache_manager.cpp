@@ -32,7 +32,7 @@ std::shared_ptr<FlowMsg> KvCacheManager::QueryDecoderKvCache(const ReqKey &req_k
     const auto iter = decoder_req_to_kv_cache_.find(req_key);
     if (iter == decoder_req_to_kv_cache_.end()) {
         uint64_t cached_req_id = decoder_req_to_kv_cache_.empty() ? UINT64_MAX : decoder_req_to_kv_cache_.begin()->first.req_id;
-        UDF_LOG_ERROR("Can not find kv cache for req_id:%lu, current cached req_id:%lu.", req_key.req_id, cached_req_id);
+        UDF_LOG_ERROR("Cannot find kv cache for req_id:%lu, current cached req_id:%lu.", req_key.req_id, cached_req_id);
         return nullptr;
     }
     return iter->second;

@@ -378,12 +378,12 @@ TEST_F(HeterogeneousExchangeServiceTest, check_gen_trans_id) {
   EXPECT_EQ(msg_info_ret.trans_id, expect_trans_id);
 
   msg_info.trans_id = 100;
-  // trans id can not change small
+  // trans id cannot change small
   EXPECT_EQ(exchange_service.InitHeadInfo(control_info, m_buf), SUCCESS);
   EXPECT_NE(exchange_service.SetTransId(0, 0 , m_buf), SUCCESS);
 
   msg_info.trans_id = UINT64_MAX;
-  // trans id can not be UINT64_MAX
+  // trans id cannot be UINT64_MAX
   EXPECT_EQ(exchange_service.InitHeadInfo(control_info, m_buf), SUCCESS);
   EXPECT_NE(exchange_service.SetTransId(0, 0 , m_buf), SUCCESS);
 

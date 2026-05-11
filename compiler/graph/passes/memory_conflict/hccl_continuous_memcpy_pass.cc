@@ -185,7 +185,7 @@ OpDescPtr HcclContinuousMemcpyPass::CreateIdentityOpDesc(const OutDataAnchorPtr 
   if (identity_op_desc == nullptr) {
     return nullptr;
   }
-  // because history reason ,this pass can not do work after constant fold so mark it
+  // because history reason ,this pass cannot do work after constant fold so mark it
   (void)AttrUtils::SetBool(identity_op_desc, ATTR_NO_NEED_CONSTANT_FOLDING, false);
   (void)AttrUtils::SetBool(identity_op_desc, ATTR_NAME_CANNOT_BE_DELETED, true);
   return identity_op_desc;

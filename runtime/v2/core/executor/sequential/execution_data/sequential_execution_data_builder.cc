@@ -180,7 +180,7 @@ ge::graphStatus SequentialExecutionDataBuilder::ReadInNodesByPriority(GraphNode 
     }
     const auto out_node = edge->dst;
     const auto it = indegree_map.find(out_node);
-    GE_ASSERT_TRUE(it != indegree_map.end(), "can not find node %s", out_node->GetName().c_str());
+    GE_ASSERT_TRUE(it != indegree_map.end(), "cannot find node %s", out_node->GetName().c_str());
     --it->second;
     if (it->second > 0U) {
       return ge::GRAPH_SUCCESS;

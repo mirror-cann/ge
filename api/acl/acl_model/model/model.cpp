@@ -240,21 +240,21 @@ static aclError GetDynamicTensorInfo(aclmdlDesc * const modelDesc)
     if (om2Executor != nullptr) {
       ge::Status ret = om2Executor->GetDynamicBatchInfo(batchInfo, dynamicType);
       if (ret != ge::SUCCESS) {
-        ACL_LOG_WARN("can not get dynamic model info, ge result[%u], model id[%u]", ret, modelId);
+        ACL_LOG_WARN("cannot get dynamic model info, ge result[%u], model id[%u]", ret, modelId);
       }
       ret = om2Executor->GetUserDesignateShapeOrder(userDesignateShapeOrder);
       if (ret != ge::SUCCESS) {
-        ACL_LOG_WARN("can not get user designate shape order, ge result[%u], model id[%u]", ret, modelId);
+        ACL_LOG_WARN("cannot get user designate shape order, ge result[%u], model id[%u]", ret, modelId);
       }
     } else {
       ge::GeExecutor executor;
       ge::Status ret = executor.GetDynamicBatchInfo(modelId, batchInfo, dynamicType);
       if (ret != ge::SUCCESS) {
-        ACL_LOG_WARN("can not get dynamic model info, ge result[%u], model id[%u]", ret, modelId);
+        ACL_LOG_WARN("cannot get dynamic model info, ge result[%u], model id[%u]", ret, modelId);
       }
       ret = executor.GetUserDesignateShapeOrder(modelId, userDesignateShapeOrder);
       if (ret != ge::SUCCESS) {
-        ACL_LOG_WARN("can not get user designate shape order, ge result[%u], model id[%u]", ret, modelId);
+        ACL_LOG_WARN("cannot get user designate shape order, ge result[%u], model id[%u]", ret, modelId);
       }
     }
     modelDesc->dataNameOrder = userDesignateShapeOrder;
@@ -643,8 +643,8 @@ static aclError CheckIsRuntimeV2WithConfig(const aclmdlConfigHandle* handle, con
   if (isSupportRuntimeV2) {
     ACL_REQUIRES_NOT_NULL(handle);
     if (handle->attrState.find(ACL_MDL_WITHOUT_GRAPH_INT32) != handle->attrState.end()) {
-      ACL_LOG_ERROR("ACL_MDL_WITHOUT_GRAPH_INT32 can not be configured when model is dynamic");
-      const std::string errMsg = "ACL_MDL_WITHOUT_GRAPH_INT32 can not be configured when model is dynamic";
+      ACL_LOG_ERROR("ACL_MDL_WITHOUT_GRAPH_INT32 cannot be configured when model is dynamic");
+      const std::string errMsg = "ACL_MDL_WITHOUT_GRAPH_INT32 cannot be configured when model is dynamic";
       acl::AclErrorLogManager::ReportInputError(acl::INVALID_PARAM_MSG,
           std::vector<const char *>({"param", "value", "reason"}),
           std::vector<const char *>({"aclmdlConfigHandle", "ACL_MDL_WITHOUT_GRAPH_INT32", errMsg.c_str()}));
@@ -837,7 +837,7 @@ static aclError RuntimeV2ModelExecute(const uint32_t modelId, const aclmdlDatase
     const size_t inputNum = desc.GetInputNum();
     ACL_LOG_INFO("get model input num %zu, input num %zu", inputNum, input->blobs.size());
     if (input->blobs.size() < inputNum) {
-        ACL_LOG_ERROR("intput blobs %zu can not be smaller than intput desc size %zu",
+        ACL_LOG_ERROR("input blobs %zu cannot be smaller than intput desc size %zu",
             input->blobs.size(), inputNum);
         return static_cast<aclError>(ACL_ERROR_INVALID_PARAM);
     }
@@ -1382,7 +1382,7 @@ static aclError GetDims(const aclmdlDesc *const modelDesc, const TensorType tens
 
     const size_t descSize = desc.size();
     if (idx >= descSize) {
-        ACL_LOG_INNER_ERROR("[Check][Params]GetDims failed, index[%zu] can not greater than or equal to tensor "
+        ACL_LOG_INNER_ERROR("[Check][Params]GetDims failed, index[%zu] cannot greater than or equal to tensor "
             "size[%zu]", idx, descSize);
         return ACL_ERROR_INVALID_PARAM;
     }
@@ -1405,7 +1405,7 @@ static aclError GetDims(const aclmdlDesc *const modelDesc, const TensorType tens
 
     const size_t dimSize = tensorDims.size();
     if (dimSize > static_cast<size_t>(ACL_MAX_DIM_CNT)) {
-        ACL_LOG_INNER_ERROR("[Check][dimSize]get dims failed, dims count[%zu] can not larger than max[%d]",
+        ACL_LOG_INNER_ERROR("[Check][dimSize]get dims failed, dims count[%zu] cannot larger than max[%d]",
             dims->dimCount, ACL_MAX_DIM_CNT);
         return ACL_ERROR_STORAGE_OVER_LIMIT;
     }
@@ -1439,7 +1439,7 @@ static aclError GetDimsRange(const aclmdlDesc *const modelDesc, const TensorType
 
     const size_t descSize = desc.size();
     if (idx >= descSize) {
-        ACL_LOG_INNER_ERROR("[Check][Params]GetDimsRange failed, index[%zu] can not greater than or equal to tensor "
+        ACL_LOG_INNER_ERROR("[Check][Params]GetDimsRange failed, index[%zu] cannot greater than or equal to tensor "
             "size[%zu]", idx, descSize);
         return ACL_ERROR_INVALID_PARAM;
     }
@@ -1450,7 +1450,7 @@ static aclError GetDimsRange(const aclmdlDesc *const modelDesc, const TensorType
     constexpr size_t MIN = 0U;
     constexpr size_t MAX = 1U;
     if (dynamicDimSize > static_cast<size_t>(ACL_MAX_DIM_CNT)) {
-        ACL_LOG_INNER_ERROR("[Check][dynamicDimSize]GetDimsRange failed, dim size[%zu] can not larger than max[%d]",
+        ACL_LOG_INNER_ERROR("[Check][dynamicDimSize]GetDimsRange failed, dim size[%zu] cannot larger than max[%d]",
                             dynamicDimSize, ACL_MAX_DIM_CNT);
         return ACL_ERROR_INTERNAL_ERROR;
     }
@@ -1458,7 +1458,7 @@ static aclError GetDimsRange(const aclmdlDesc *const modelDesc, const TensorType
         const auto &staticDims = tensorDesc.dims;
         const size_t staticDimSize = staticDims.size();
         if (staticDimSize > static_cast<size_t>(ACL_MAX_DIM_CNT)) {
-            ACL_LOG_INNER_ERROR("[Check][staticDimSize]GetDimsRange failed, dim size[%zu] can not larger than max[%d]",
+            ACL_LOG_INNER_ERROR("[Check][staticDimSize]GetDimsRange failed, dim size[%zu] cannot larger than max[%d]",
                                 staticDimSize, ACL_MAX_DIM_CNT);
             return ACL_ERROR_INTERNAL_ERROR;
         }
@@ -2142,7 +2142,7 @@ static aclError UnloadRt2Model(const uint32_t modelId, const bool isSessionShare
         return ACL_GET_ERRCODE_GE(static_cast<int32_t>(ret));
     }
     auto session = acl::AclResourceManager::GetInstance().GetRtSession(modelId);
-    // shared session can not destroy
+    // cannot destroy shared session
     if ((session != nullptr ) && !isSessionShared) {
       session->DestroyResources();
     }
@@ -2947,7 +2947,7 @@ aclError aclmdlSetDynamicBatchSizeImpl(uint32_t modelId, aclmdlDataset *dataset,
 
     void *const devPtr = aclGetDataBufferAddr(buf);
     if (devPtr == nullptr) {
-        ACL_LOG_INNER_ERROR("[Check][devPtr]get addr by index[%zu] failed, data buffer addr can not be null", index);
+        ACL_LOG_INNER_ERROR("[Check][devPtr]get addr by index[%zu] failed, data buffer addr cannot be null", index);
         return ACL_ERROR_INVALID_PARAM;
     }
     const uint64_t memSize = aclGetDataBufferSizeV2(buf);
@@ -2983,14 +2983,14 @@ aclError aclmdlSetDynamicHWSizeImpl(uint32_t modelId, aclmdlDataset *dataset, si
 
     aclDataBuffer *const buffer = aclmdlGetDatasetBufferImpl(dataset, index);
     if (buffer == nullptr) {
-        ACL_LOG_INNER_ERROR("[Check][buffer]get data buffer by index[%zu] failed, dataset buffer can not be null",
+        ACL_LOG_INNER_ERROR("[Check][buffer]get data buffer by index[%zu] failed, dataset buffer cannot be null",
             index);
         return ACL_ERROR_INVALID_PARAM;
     }
 
     void *const devPtr = aclGetDataBufferAddr(buffer);
     if (devPtr == nullptr) {
-        ACL_LOG_INNER_ERROR("[Check][devPtr]get addr by index[%zu] failed, data buffer addr can not be nullptr", index);
+        ACL_LOG_INNER_ERROR("[Check][devPtr]get addr by index[%zu] failed, data buffer addr cannot be nullptr", index);
         return ACL_ERROR_INVALID_PARAM;
     }
     const uint64_t memSize = aclGetDataBufferSizeV2(buffer);
@@ -3029,11 +3029,11 @@ aclError aclmdlSetInputDynamicDimsImpl(uint32_t modelId, aclmdlDataset *dataset,
                  modelId, index, dims->dimCount);
     aclDataBuffer *const buffer = aclmdlGetDatasetBufferImpl(dataset, index);
     ACL_CHECK_WITH_INNER_MESSAGE_AND_RETURN(buffer != nullptr, ACL_ERROR_INVALID_PARAM,
-        "[Check][buffer]get data buffer by index[%zu] failed, dataset buffer can not be null", index);
+        "[Check][buffer]get data buffer by index[%zu] failed, dataset buffer cannot be null", index);
 
     void *const devPtr = aclGetDataBufferAddr(buffer);
     ACL_CHECK_WITH_INNER_MESSAGE_AND_RETURN(devPtr != nullptr, ACL_ERROR_INVALID_PARAM,
-        "[Get][devPtr]get addr by index[%zu] failed, data buffer addr can not be null", index);
+        "[Get][devPtr]get addr by index[%zu] failed, data buffer addr cannot be null", index);
     const uint64_t memSize = aclGetDataBufferSizeV2(buffer);
 
     dataset->dynamicBatchSize = 0U;
@@ -3143,7 +3143,7 @@ aclError aclmdlGetCurOutputDimsImpl(const aclmdlDesc *modelDesc, size_t index, a
     int32_t dynamicType = static_cast<int32_t>(ge::FIXED);
     const ge::Status geRet = executor.GetCurShape(modelId, geShapeInfo, dynamicType);
     if (geRet != ge::SUCCESS) {
-        ACL_LOG_CALL_ERROR("[Get][CurShape]can not get current shape, ge result[%d], modelId[%u]", geRet, modelId);
+        ACL_LOG_CALL_ERROR("[Get][CurShape]cannot get current shape, ge result[%d], modelId[%u]", geRet, modelId);
         return ACL_GET_ERRCODE_GE(static_cast<int32_t>(geRet));
     }
     // dynamic batch type is 1, dynamic hw type is 2, dynamic dims type is 3;
@@ -3431,7 +3431,7 @@ aclError aclmdlGetInputDynamicDimsImpl(const aclmdlDesc *modelDesc, size_t index
         return ACL_ERROR_INVALID_PARAM;
     }
     if (gearCount < modelDesc->dynamicDims.size()) {
-        ACL_LOG_INNER_ERROR("[Check][gearCount]Gear count[%zu] can not less than model's dynamic gear count[%zu]",
+        ACL_LOG_INNER_ERROR("[Check][gearCount]Gear count[%zu] cannot less than model's dynamic gear count[%zu]",
             gearCount, modelDesc->dynamicDims.size());
         return ACL_ERROR_INVALID_PARAM;
     }
@@ -3444,7 +3444,7 @@ aclError aclmdlGetInputDynamicDimsImpl(const aclmdlDesc *modelDesc, size_t index
         }
     }
     if (allRawDims.size() > ACL_MAX_DIM_CNT) {
-        ACL_LOG_ERROR("current dynamic dims size %zu can not be larger than %d", allRawDims.size(), ACL_MAX_DIM_CNT);
+        ACL_LOG_ERROR("current dynamic dims size %zu cannot be larger than %d", allRawDims.size(), ACL_MAX_DIM_CNT);
         return ACL_ERROR_FAILURE;
     }
 

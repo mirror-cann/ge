@@ -184,7 +184,7 @@ Status UserHybridGraphManager::BuildGraph(uint32_t user_graph_id, const std::vec
 Status UserHybridGraphManager::GetDynamicGearInfo(const uint32_t graph_id, HybridDynamicDimsInfo &dynamic_dims_info) {
   const std::lock_guard<std::mutex> locker(dynamic_dims_info_mu_);
   const auto it = dynamic_dims_info_map_.find(graph_id);
-  GE_ASSERT_TRUE(it != dynamic_dims_info_map_.end(), "can not find graph %u dynamic dims info", graph_id);
+  GE_ASSERT_TRUE(it != dynamic_dims_info_map_.end(), "cannot find graph %u dynamic dims info", graph_id);
   dynamic_dims_info = it->second;
   return SUCCESS;
 }
@@ -194,7 +194,7 @@ Status UserHybridGraphManager::SelectExecuteGraph(const uint32_t dynamic_gear_gr
   select_graph_id = dynamic_shape_graph_id;
   HybridDynamicDimsInfo dynamic_dims_info;
   GE_ASSERT_SUCCESS(GetDynamicGearInfo(dynamic_gear_graph_id, dynamic_dims_info),
-    "can not get %u dynamic dims", dynamic_gear_graph_id);
+    "cannot get %u dynamic dims", dynamic_gear_graph_id);
   std::vector<std::vector<int64_t>> cur_shapes;
   for (size_t i = 0U; i < inputs.size(); ++i) {
     const auto &input_shape = inputs[i].GetStorageShape();

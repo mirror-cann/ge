@@ -26,7 +26,7 @@ class PluginCaller {
   template <typename RetType, typename FuncType, typename... Args>
   auto CallFunction(const std::string &function_name, Args... args) -> RetType {
     const Status ret = LoadLib();
-    GE_CHK_BOOL_RET_SPECIAL_STATUS(ret == NOT_CHANGED, SUCCESS, "Can not open lib, function_name = %s.",
+    GE_CHK_BOOL_RET_SPECIAL_STATUS(ret == NOT_CHANGED, SUCCESS, "Cannot open lib, function_name = %s.",
                                    function_name.c_str());
     GE_ASSERT_SUCCESS(ret);
     GE_MAKE_GUARD(unload_libs, [this]() { UnloadLib(); });

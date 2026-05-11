@@ -106,7 +106,7 @@ std::string WhyRealizeByNodeCategory(const ge::NodePtr &node) {
     return "is heavy op";
   }
   if (KernelBoxHasSliceAndReduce(node)) {
-    return "slice can not fuse reduce at lowering";
+    return "slice cannot fuse reduce at lowering";
   }
   return "";
 }

@@ -211,8 +211,8 @@ domi::Status RemapFunctionDef(FunctionDef *fdef, const string &name, NameMapHelp
 
     const auto iter = tensor_renaming.find(return_value);
     if (iter == tensor_renaming.end()) {
-      REPORT_INNER_ERR_MSG("E19999", "can not find value[%s] in tensor_renaming map", return_value.c_str());
-      GELOGE(FAILED, "can not find value[%s] in tensor_renaming map.", return_value.c_str());
+      REPORT_INNER_ERR_MSG("E19999", "cannot find value[%s] in tensor_renaming map", return_value.c_str());
+      GELOGE(FAILED, "cannot find value[%s] in tensor_renaming map.", return_value.c_str());
       return domi::INTERNAL_ERROR;
     }
 

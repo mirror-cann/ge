@@ -130,7 +130,7 @@ ge::ComputeGraphPtr BuildGraphWithUBfusion() {
         .Attr("_original_fusion_graph", fuse_origin_graph)
         .Build("conv2d_fused");
   conv2d_fused->SetOpEngineName("AIcoreEngine");
-  conv2d_fused->SetOpKernelLibName("AIcoreEngine");  // fake op can not do that?
+  conv2d_fused->SetOpKernelLibName("AIcoreEngine");  // fake op cannot do that?
   
 
   DEF_GRAPH(g1) {

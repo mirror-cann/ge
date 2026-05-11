@@ -212,7 +212,7 @@ ge::Status HostExecutorDumper::DoHostDataDump(NodeDumpUnit &dump_unit, const ge:
                 worker_id + "/" + std::to_string(iteration_num) + "/";
     const int32_t directory_ret = ge::CreateDirectory(file_path);
     if (directory_ret != 0) {
-        GELOGW("Can not create directory[%s].", file_path.c_str());
+        GELOGW("Cannot create directory[%s].", file_path.c_str());
         return ge::SUCCESS;
     }
   }

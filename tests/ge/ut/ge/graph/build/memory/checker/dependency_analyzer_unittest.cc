@@ -51,7 +51,7 @@ bool CheckAllReusableNodes(const std::unordered_map<std::string, NodePtr> &name_
     const auto iter = name_to_node.find(node_out_index.name);
     if ((iter == name_to_node.end()) || (iter->second == nullptr)) {
       success_flag = false;
-      std::cout << "can not find " << node_out_index.name << std::endl;
+      std::cout << "cannot find " << node_out_index.name << std::endl;
       continue;
     }
     const auto node = iter->second;
@@ -162,7 +162,7 @@ bool AddParentIndexForNetoutput(ComputeGraphPtr &root_graph, NetoutputParentInde
     const auto iter = netoutput_map.find(name_indexes_pair.first);
     if (iter == netoutput_map.end()) {
       std::cout << "========================================" << std::endl;
-      std::cout << "can not find " << name_indexes_pair.first << std::endl;
+      std::cout << "cannot find " << name_indexes_pair.first << std::endl;
       std::cout << "========================================" << std::endl;
       GE_DUMP(root_graph, "AddParentIndexForNetoutput_failed");
       return false;
@@ -783,7 +783,7 @@ TEST_F(UtestDependencyAnalyzer, CanAReuseB_ReturnTrue_WhenSymbolNotFound) {
   dlog_setlevel(GE_MODULE_NAME, 2, 0); // 需要warning校验日志
   EXPECT_TRUE(nmda.CanAReuseB(b.get(), 0, a.get(), 0));
   // 接口无法返回error，需要校验日志。
-  EXPECT_GE(stub.GetSlogStub().FindWarnLogEndsWith("b can not find symbol. b: A, b_out_index: 0"), 0);
+  EXPECT_GE(stub.GetSlogStub().FindWarnLogEndsWith("b cannot find symbol. b: A, b_out_index: 0"), 0);
   dlog_setlevel(GE_MODULE_NAME, 3, 0);
 }
 
@@ -819,7 +819,7 @@ TEST_F(UtestDependencyAnalyzer, CanAReuseB_ReturnTrue_WhenAnchorIdNotFound) {
   dlog_setlevel(GE_MODULE_NAME, 2, 0); // 需要warning校验日志
   EXPECT_TRUE(nmda.CanAReuseB(d.get(), 0, a.get(), 0));
   // 接口无法返回error，需要校验日志。
-  EXPECT_GE(stub.GetSlogStub().FindWarnLogEndsWith("can not find id for out anchor, node: D, out_index: 0"), 0);
+  EXPECT_GE(stub.GetSlogStub().FindWarnLogEndsWith("cannot find id for out anchor, node: D, out_index: 0"), 0);
   dlog_setlevel(GE_MODULE_NAME, 3, 0);
 }
 

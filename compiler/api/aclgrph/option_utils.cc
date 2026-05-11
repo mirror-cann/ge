@@ -247,7 +247,7 @@ bool CheckDynamicBatchSizeInputShapeValid(std::map<std::string, std::vector<int6
     if (shape.empty()) {
       REPORT_PREDEFINED_ERR_MSG("E10012", std::vector<const char *>({}), std::vector<const char *>({}));
       GELOGE(ge::PARAM_INVALID,
-          "[Check][DynamicBatchSizeInputShape] shape size can not be less than 1 when set --dynamic_batch_size.");
+          "[Check][DynamicBatchSizeInputShape] shape size cannot be less than 1 when set --dynamic_batch_size.");
       return false;
     }
 
@@ -288,7 +288,7 @@ bool CheckDynamicImagesizeInputShapeValid(std::map<std::string, std::vector<int6
                                           const std::string &input_format, std::string &dynamic_image_size) {
   if (!input_format.empty() && !ge::TypeUtilsInner::IsFormatValid(input_format.c_str())) {
     GELOGE(ge::PARAM_INVALID,
-        "[Check][DynamicImagesizeInputShape] input_format [%s] invalid, can not support now.", input_format.c_str());
+        "[Check][DynamicImagesizeInputShape] input_format [%s] invalid, cannot support now.", input_format.c_str());
     REPORT_PREDEFINED_ERR_MSG("E10003", std::vector<const char *>({"parameter", "value", "reason"}),
                        std::vector<const char *>({"input_format", input_format.c_str(), "This format is not supported."}));
     return false;
@@ -385,7 +385,7 @@ bool CheckAndParseDynamicDims(int32_t dynamic_dim_num, std::string &dynamic_dims
   if (dynamic_dims.empty()) {
     REPORT_PREDEFINED_ERR_MSG("E10058", std::vector<const char *>({"parameter"}),
                               std::vector<const char *>({"--dynamic_dims"}));
-    GELOGE(ge::PARAM_INVALID, "[CheckAndParse][DynamicDims]--dynamic_dims can not be empty.");
+    GELOGE(ge::PARAM_INVALID, "[CheckAndParse][DynamicDims]--dynamic_dims cannot be empty.");
     return false;
   }
   // Different parameter sets are split by ';'
@@ -732,7 +732,7 @@ Status CheckDynamicInputParamValid(std::string &dynamic_batch_size, std::string 
     REPORT_PREDEFINED_ERR_MSG(
         "E10004", std::vector<const char *>({"parameter"}), std::vector<const char *>({"input_shape"}));
     GELOGE(ge::PARAM_INVALID,
-           "[Check][Parameter:input_shape]The input_shape can not be empty in dynamic input size scenario.");
+           "[Check][Parameter:input_shape]The input_shape cannot be empty in dynamic input size scenario.");
     return ge::PARAM_INVALID;
   }
   if (!ParseInputShape(input_shape, shape_map, user_shape_map, is_dynamic_input)) {
@@ -903,7 +903,7 @@ Status CheckCompressWeightParamValid(const std::string &enable_compress_weight,
         "E10047", std::vector<const char *>({"parameter0", "parameter1"}),
         std::vector<const char *>({"enable_compress_weight", "compress_weight_conf"}));
     GELOGE(ge::PARAM_INVALID,
-           "[Check][CompressWeight]enable_compress_weight and compress_weight_conf can not both exist!!");
+           "[Check][CompressWeight]enable_compress_weight and compress_weight_conf cannot both exist!!");
     return ge::PARAM_INVALID;
   }
   return ge::SUCCESS;

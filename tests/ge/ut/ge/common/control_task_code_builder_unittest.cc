@@ -10,7 +10,6 @@
 
 #include <gtest/gtest.h>
 
-#include <fstream>
 #include <map>
 #include <memory>
 #include <sstream>
@@ -20,7 +19,6 @@
 #include "common/om2/codegen/om2_codegen_model_builder.h"
 #include "common/om2/codegen/om2_code_printer.h"
 #include "common/om2/codegen/program_generator.h"
-#include "common/env_path.h"
 #include "framework/common/taskdown_common.h"
 #include "ge_runtime_stub/include/common/share_graph.h"
 #include "ge_runtime_stub/include/faker/ge_model_builder.h"
@@ -187,16 +185,19 @@ const std::map<GeneratedFileIndex, std::string> kGeneratedFileNames = {
     {GeneratedFileIndex::kCMakeListsFile, "Makefile"},
 };
 
-Status ReadGeneratedFile(const std::string &base_dir, const GeneratedFileIndex file_index, std::string &output) {
+Status ReadGeneratedArtifact(const Om2CodegenArtifacts &artifacts, const GeneratedFileIndex file_index,
+                             std::string &output) {
   const auto iter = kGeneratedFileNames.find(file_index);
   GE_ASSERT_TRUE(iter != kGeneratedFileNames.end(), "[OM2] unknown generated file index: %zu",
                  static_cast<size_t>(file_index));
-  std::ifstream file(base_dir + "/" + iter->second, std::ios::binary);
-  GE_ASSERT_TRUE(file.good(), "[OM2] failed to open generated file: %s", iter->second.c_str());
-  std::ostringstream oss;
-  oss << file.rdbuf();
-  output = oss.str();
-  return SUCCESS;
+  for (const auto &artifact : artifacts) {
+    if (artifact.file_name == iter->second) {
+      output = artifact.data;
+      return SUCCESS;
+    }
+  }
+  GELOGE(FAILED, "[OM2] failed to find generated artifact: %s", iter->second.c_str());
+  return FAILED;
 }
 
 class ControlTaskCodeGeneratorUt : public testing::Test {
@@ -235,28 +236,28 @@ TEST_F(ControlTaskCodeGeneratorUt, GenerateControlTaskFiles_Ok) {
 
   ProgramGenerator generator(ast, task_code_builders, codegen_model);
   std::cout << "=== CONTROL_STAGE: generate_program ===" << std::endl;
-  const std::string work_dir = EnvPath().GetOrCreateCaseTmpPath("ControlTaskCodeGeneratorUt");
-  Om2CodePrinter code_printer("g1", work_dir + "/");
+  Om2CodePrinter code_printer("g1");
   ASSERT_EQ(generator.GenerateProgram(code_printer), SUCCESS);
-  ASSERT_EQ(code_printer.WriteFiles(work_dir), SUCCESS);
+  Om2CodegenArtifacts artifacts;
+  code_printer.GetOutputFiles(artifacts);
 
   std::cout << "=== CONTROL_STAGE: emit_interface ===" << std::endl;
   std::string header_file;
-  ASSERT_EQ(ReadGeneratedFile(work_dir, GeneratedFileIndex::kInterfaceHeaderFile, header_file), SUCCESS);
+  ASSERT_EQ(ReadGeneratedArtifact(artifacts, GeneratedFileIndex::kInterfaceHeaderFile, header_file), SUCCESS);
   ASSERT_FALSE(header_file.empty());
   std::cout << "=== CONTROL_INTERFACE_BEGIN ===\n" << header_file
             << "=== CONTROL_INTERFACE_END ===\n";
 
   std::cout << "=== CONTROL_STAGE: emit_resources ===" << std::endl;
   std::string resources_file;
-  ASSERT_EQ(ReadGeneratedFile(work_dir, GeneratedFileIndex::kResourcesFile, resources_file), SUCCESS);
+  ASSERT_EQ(ReadGeneratedArtifact(artifacts, GeneratedFileIndex::kResourcesFile, resources_file), SUCCESS);
   ASSERT_FALSE(resources_file.empty());
   std::cout << "=== CONTROL_RESOURCES_BEGIN ===\n" << resources_file
             << "=== CONTROL_RESOURCES_END ===\n";
 
   std::cout << "=== CONTROL_STAGE: emit_load_and_run ===" << std::endl;
   std::string load_file;
-  ASSERT_EQ(ReadGeneratedFile(work_dir, GeneratedFileIndex::kLoadingAndRunningFile, load_file), SUCCESS);
+  ASSERT_EQ(ReadGeneratedArtifact(artifacts, GeneratedFileIndex::kLoadingAndRunningFile, load_file), SUCCESS);
   ASSERT_FALSE(load_file.empty());
   std::cout << "=== CONTROL_LOAD_AND_RUN_BEGIN ===\n" << load_file
             << "=== CONTROL_LOAD_AND_RUN_END ===\n";

@@ -86,7 +86,7 @@ namespace acl {
         AclblasCreateHandleForHgemv,
         AclblasCreateHandleForS8gemv,
         AclblasS8gemv,
-        // this is the end, can not add after ProfTypeEnd
+        // this is the end, cannot add after ProfTypeEnd
         ProfTypeEnd
     };
 

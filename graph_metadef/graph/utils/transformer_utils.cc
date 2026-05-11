@@ -114,7 +114,7 @@ bool NodeShapeTransUtils::UpdateFormatAndShape() {
     if (tensor_desc_input == nullptr) {
       continue;
     }
-    // if can not find saved info, it says format and origin format is same when catched
+    // if cannot find saved info, it says format and origin format is same when catched
     if (map_format_in_[i] == FORMAT_RESERVED) {
       GELOGD("Node is [%s], input tensor idx [%zu] is not been catched.Skip update action for it!",
              op_desc_->GetName().c_str(), i);
@@ -153,7 +153,7 @@ bool NodeShapeTransUtils::UpdateFormatAndShape() {
     if (tensor_desc_output == nullptr) {
       continue;
     }
-    // if can not find saved info, it says format and origin format is same when catched
+    // if cannot find saved info, it says format and origin format is same when catched
     if (map_ori_format_out_[i] == FORMAT_RESERVED) {
       GELOGD("Node is [%s], output tensor idx [%zu] is not been catched.Skip update action for it!",
              op_desc_->GetName().c_str(), i);

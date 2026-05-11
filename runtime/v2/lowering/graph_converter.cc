@@ -60,7 +60,7 @@ HyperStatus CollectLowerResultOfInDataNodes(const ge::NodePtr &node, int32_t inp
     if (lower_result == nullptr) {
       return HyperStatus::ErrorStatus(
           static_cast<const char *>(
-              "Failed to construct LowerInput for node %s, because can not find the lower result on input node name:%s,"
+              "Failed to construct LowerInput for node %s, because cannot find the lower result on input node name:%s,"
               " type:%s, engine:%s."), node->GetNamePtr(), peer_node->GetNamePtr(), peer_node->GetTypePtr(),
               peer_node->GetOpDescBarePtr()->GetOpKernelLibName().c_str());
     }
@@ -123,7 +123,7 @@ HyperStatus CollectOrderHoldersOfInControlNodes(const ge::NodePtr &node, OrderIn
     if (const_lower_result == nullptr) {
       return HyperStatus::ErrorStatus(
           static_cast<const char *>(
-              "Failed to construct LowerInput for node %s, because can not find the lower result on input node %s."),
+              "Failed to construct LowerInput for node %s, because cannot find the lower result on input node %s."),
           node->GetName().c_str(), peer_control_node->GetName().c_str());
     }
     auto result = const_lower_result->GetResult();
@@ -346,12 +346,12 @@ ge::graphStatus AddInitContainerNode(LoweringGlobalData &global_data) {
 }
 
 ge::graphStatus ValidateExeGraph(const std::vector<ge::FastNode *> &main_graph_nodes) {
-  // check main graph can not hold ConstData
+  // check main graph cannot hold ConstData
   for (const auto node : main_graph_nodes) {
     GE_ASSERT_NOTNULL(node);
     if (IsConstFeedType(node->GetTypePtr())) {
       GELOGE(ge::INTERNAL_ERROR,
-             "Main graph can not hold ConstData %s. Because ConstData only can held by init graph. Please check "
+             "Main graph cannot hold ConstData %s. Because ConstData only can held by init graph. Please check "
              "lowering logic.",
              node->GetName().c_str());
       return ge::GRAPH_FAILED;

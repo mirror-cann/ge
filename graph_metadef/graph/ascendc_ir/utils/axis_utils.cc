@@ -182,7 +182,7 @@ std::pair<bool, View> ApplyReadyTransInfos(const std::vector<int64_t> &my_api_sc
   std::tie(to_apply_trans, not_ready_trans) = UpdateReadyTransInfos(tensor_view_to_update, not_ready_trans);
   std::pair<bool, View> pair0{true, tensor_view_to_update};
   // break loop condition:
-  // current axes can not find any transform info to apply
+  // current axes cannot find any transform info to apply
   while (!to_apply_trans.empty()) {
     pair0 = ApplyViewTrans(to_apply_trans, revert, tensor_view_to_update);
     if (pair0.first) {

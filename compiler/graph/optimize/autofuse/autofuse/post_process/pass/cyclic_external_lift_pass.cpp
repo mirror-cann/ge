@@ -259,7 +259,7 @@ Status CyclicExternalLift(AscGraph &graph, [[maybe_unused]] const NodePtr &asc_n
   DataType output_dtype;
   if (IsDtypeNotSupport(graph, output_dtype)) {
     // Broadcast不支持的dtype不进行外提
-    GELOGI("Graph %s cannot do cyclic external lift with dtype(%s).", graph.GetName().c_str(),
+    GELOGI("Graph %s cannot do cyclic external lift with dtype(%s)", graph.GetName().c_str(),
            TypeUtils::DataTypeToSerialString(output_dtype).c_str());
     return SUCCESS;
   }

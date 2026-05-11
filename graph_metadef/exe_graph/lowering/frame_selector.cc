@@ -417,7 +417,7 @@ ValueHolderPtr HolderOnInit(const ValueHolderPtr &holder) {
     const auto init_graph = ge::FastNodeUtils::GetSubgraphFromNode(holder_node, 0U);
     GE_ASSERT_NOTNULL(init_graph);
     const auto netoutput = ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_graph, kInnerNetOutput);
-    GE_ASSERT_NOTNULL(netoutput, "Can not find the InnerNetOutput node on the Init graph");
+    GE_ASSERT_NOTNULL(netoutput, "Cannot find the InnerNetOutput node on the Init graph");
     
     auto edge = netoutput->GetInDataEdgeByIndex(index);
     GE_ASSERT_NOTNULL(edge, "The InnerNetOutput does not have the in edge %d", index);

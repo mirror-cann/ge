@@ -330,11 +330,11 @@ class SrcNode {
       node = src_anchor->GetOwnerNode();
     }
     if (node == nullptr) {
-      ss << "Can not find the Init node from InnerData";
+      ss << "Cannot find the Init node from InnerData";
       return {};
     }
     if (node->GetType() != "Init") {
-      ss << "Can not find the Init node from InnerData, find node " << node->GetName() << "(" << node->GetType()
+      ss << "Cannot find the Init node from InnerData, find node " << node->GetName() << "(" << node->GetType()
          << "). ";
       return {};
     }
@@ -962,11 +962,11 @@ class FastSrcNode {
       src_index = in_data_edge->src_output;
     }
     if (node == nullptr) {
-      ss << "Can not find the Init node from InnerData";
+      ss << "Cannot find the Init node from InnerData";
       return {};
     }
     if (node->GetType() != "Init") {
-      ss << "Can not find the Init node from InnerData, find node " << node->GetName() << "(" << node->GetType()
+      ss << "Cannot find the Init node from InnerData, find node " << node->GetName() << "(" << node->GetType()
          << "). ";
       return {};
     }

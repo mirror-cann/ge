@@ -266,7 +266,7 @@ ge::graphStatus ModelOutTensorZeroCopy::Run(ge::ExecuteGraph *const graph, bool 
     GE_ASSERT_SUCCESS(GetAllAllocNodes(copy_node, alloc_nodes));
 
     if (alloc_nodes.empty()) {
-      GELOGD("Can not enable zero copy because the alloc node can not be found.");
+      GELOGD("Cannot enable zero copy because the alloc node cannot be found.");
       continue;
     }
     changed = true;

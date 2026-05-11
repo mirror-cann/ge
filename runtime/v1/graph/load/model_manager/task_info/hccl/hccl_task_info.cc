@@ -254,7 +254,7 @@ Status HcclTaskInfo::CreateStream(const int64_t stream_num, const int64_t main_s
   GELOGI("Start to create %" PRId64 " hccl stream.", stream_num);
   const bool isOverflowDetectionOpen = GetContext().IsOverflowDetectionOpen();
   GE_ASSERT_NOTNULL(davinci_model_->GetReusableStreamAllocator());
-  // task num of follow stream can not exceed that of main stream
+  // task num of follow stream cannot exceed that of main stream
   const int32_t task_num = davinci_model_->GetTaskNumOfStream(logic_stream_id_);
   for (int64_t i = 0; i < stream_num; ++i) {
     aclrtStream stream = nullptr;

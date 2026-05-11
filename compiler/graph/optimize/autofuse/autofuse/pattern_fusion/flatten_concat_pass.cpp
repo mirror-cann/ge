@@ -257,7 +257,7 @@ bool CheckApproxFieldNum(const std::vector<Expression> &output_shape, size_t con
   for (size_t i = concat_dim; i < output_shape.size(); ++i) {
     if (!output_shape[i].IsConstExpr()) {
       can_group_concat = false;
-      GELOGD("dim[%zu] is dynamic, can not group concat to sub concats", i);
+      GELOGD("dim[%zu] is dynamic, cannot group concat to sub concats", i);
       break;
     }
   }

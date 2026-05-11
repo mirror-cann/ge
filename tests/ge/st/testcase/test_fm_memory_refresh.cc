@@ -1391,13 +1391,13 @@ TEST_F(FmMemoryRefreshTest, unrefreshable_graph_update_fm_failed) {
   // unfreshable graph
   EXPECT_EQ(SUCCESS, session1.UpdateGraphFeatureMemoryBase(graph_id, feature_mem.data(), feature_size)); // set success
   EXPECT_NE(SUCCESS, session1.UpdateGraphFeatureMemoryBase(graph_id, feature_mem.data(), feature_size)); // repeated
-  // Update Graph Feature Memory can not set fix memory
+  // Update Graph Feature Memory cannot set fix memory
   std::vector<uint8_t> fix_feature_mem(20, 0);
   EXPECT_NE(SUCCESS, session1.SetGraphFixedFeatureMemoryBase(graph_id, fix_feature_mem.data(), 20));
   // freshable graph
   EXPECT_EQ(SUCCESS, session1.UpdateGraphFeatureMemoryBase(1, feature_mem.data(), feature_size));
   EXPECT_EQ(SUCCESS, session1.UpdateGraphFeatureMemoryBase(1, feature_mem.data(), feature_size));
-  // Update Graph Feature Memory can not set fix memory
+  // Update Graph Feature Memory cannot set fix memory
   EXPECT_NE(SUCCESS, session1.SetGraphFixedFeatureMemoryBase(1, fix_feature_mem.data(), 20));
 
   std::vector<ge::Tensor> inputs, outputs;

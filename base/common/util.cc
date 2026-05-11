@@ -302,7 +302,7 @@ bool CheckOutputPathValid(const std::string &file_path, const std::string &atc_p
         const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrorStrLength);
         std::string reason = FormatErrnoReason(mmGetErrorCode(), err_msg);
         PathValidErrReport(file_path, atc_param, reason);
-        GELOGW("Can not create directory[%s].", file_path.c_str());
+        GELOGW("Cannot create directory[%s].", file_path.c_str());
         return false;
       }
     }

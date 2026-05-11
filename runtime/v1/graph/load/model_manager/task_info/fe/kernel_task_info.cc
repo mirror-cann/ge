@@ -1682,7 +1682,7 @@ Status KernelTaskInfo::FindSkSubNode(const OpDescPtr &sk_op, const int32_t id,  
       return SUCCESS;
     }
   }
-  GELOGE(FAILED, "can not find %d sub node from sk node %s", id, sk_op->GetNamePtr());
+  GELOGE(FAILED, "cannot find %d sub node from sk node %s", id, sk_op->GetNamePtr());
   return FAILED;
 }
 

@@ -99,7 +99,7 @@ Status LinkGenMaskNodesPass::Run(ComputeGraphPtr graph) {
   return SUCCESS;
 }
 
-// [pointer can not be null]
+// [pointer cannot be null]
 bool LinkGenMaskNodesPass::AreAllInputsConst(const NodePtr &node) const {
   for (const NodePtr &in_node : node->GetInDataNodes()) {
     std::string op_type = NodeUtils::GetInConstNodeTypeCrossSubgraph(in_node);

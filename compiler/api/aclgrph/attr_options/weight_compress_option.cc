@@ -27,7 +27,7 @@ graphStatus WeightCompressFunc(const ComputeGraphPtr &graph, const std::string &
   }
   std::string real_path = RealPath(cfg_path.c_str());
   if (real_path.empty()) {
-    GELOGE(GRAPH_PARAM_INVALID, "[Get][Path]Can not get real path for %s.", cfg_path.c_str());
+    GELOGE(GRAPH_PARAM_INVALID, "[Get][Path]Cannot get real path for %s.", cfg_path.c_str());
     REPORT_PREDEFINED_ERR_MSG("E10410", std::vector<const char_t *>({"cfgpath"}), std::vector<const char_t *>({cfg_path.c_str()}));
     return GRAPH_PARAM_INVALID;
   }

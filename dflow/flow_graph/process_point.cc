@@ -65,7 +65,7 @@ ProcessPoint::~ProcessPoint() {}
 ProcessPointType ProcessPoint::GetProcessPointType() const {
   if (impl_ == nullptr) {
     GELOGE(GRAPH_FAILED, "[Check][Param] ProcessPointImpl is nullptr, check failed");
-    REPORT_INNER_ERR_MSG("E18888", "GetProcessPointType failed: ProcessPoint can not be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "GetProcessPointType failed: ProcessPoint cannot be used, impl is nullptr.");
     return ProcessPointType::INVALID;
   }
   return impl_->GetProcessPointType();
@@ -74,7 +74,7 @@ ProcessPointType ProcessPoint::GetProcessPointType() const {
 const char_t *ProcessPoint::GetProcessPointName() const {
   if (impl_ == nullptr) {
     GELOGE(GRAPH_FAILED, "[Check][Param] ProcessPointImpl is nullptr, check failed");
-    REPORT_INNER_ERR_MSG("E18888", "GetProcessPointName failed: ProcessPoint can not be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "GetProcessPointName failed: ProcessPoint cannot be used, impl is nullptr.");
     return nullptr;
   }
   return impl_->GetProcessPointName();
@@ -83,7 +83,7 @@ const char_t *ProcessPoint::GetProcessPointName() const {
 void ProcessPoint::SetCompileConfigFile(const char_t *json_file_path) {
   if (impl_ == nullptr) {
     GELOGE(GRAPH_PARAM_INVALID, "[Check][Param] ProcessPointImpl is nullptr, check failed");
-    REPORT_INNER_ERR_MSG("E18888", "SetCompileConfigFile failed: ProcessPoint can not be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "SetCompileConfigFile failed: ProcessPoint cannot be used, impl is nullptr.");
     return;
   }
   if (json_file_path == nullptr) {
@@ -149,7 +149,7 @@ GraphPp::~GraphPp() = default;
 GraphPp &GraphPp::SetCompileConfig(const char_t *json_file_path) {
   if (impl_ == nullptr) {
     GELOGE(GRAPH_FAILED, "[Check][Param] GraphPpImpl is nullptr, check failed");
-    REPORT_INNER_ERR_MSG("E18888", "SetCompileConfig failed: GraphPp can not be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "SetCompileConfig failed: GraphPp cannot be used, impl is nullptr.");
     return *this;
   }
   if (json_file_path == nullptr) {
@@ -169,7 +169,7 @@ GraphPp &GraphPp::SetCompileConfig(const char_t *json_file_path) {
 void GraphPp::Serialize(ge::AscendString &str) const {
   if (impl_ == nullptr) {
     GELOGE(GRAPH_PARAM_INVALID, "[Check][Param] GraphPpImpl is nullptr, check failed");
-    REPORT_INNER_ERR_MSG("E18888", "Serialize failed: GraphPp can not be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "Serialize failed: GraphPp cannot be used, impl is nullptr.");
     return;
   }
   dataflow::ProcessPoint process_point;
@@ -186,7 +186,7 @@ void GraphPp::Serialize(ge::AscendString &str) const {
 GraphBuilder GraphPp::GetGraphBuilder() const {
   if (impl_ == nullptr) {
     GELOGE(GRAPH_FAILED, "[Check][Param] GraphPpImpl is nullptr, check failed");
-    REPORT_INNER_ERR_MSG("E18888", "GetGraphBuilder failed: GraphPp can not be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "GetGraphBuilder failed: GraphPp cannot be used, impl is nullptr.");
     return nullptr;
   }
   return impl_->GetGraphBuilder();
@@ -239,7 +239,7 @@ FlowGraphPp::~FlowGraphPp() = default;
 FlowGraphPp &FlowGraphPp::SetCompileConfig(const char_t *json_file_path) {
   if (impl_ == nullptr) {
     GELOGE(GRAPH_FAILED, "[Check][Param] FlowGraphPpImpl is nullptr, check failed");
-    REPORT_INNER_ERR_MSG("E18888", "SetCompileConfig failed: FlowGraphPp can not be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "SetCompileConfig failed: FlowGraphPp cannot be used, impl is nullptr.");
     return *this;
   }
   if (json_file_path == nullptr) {
@@ -259,7 +259,7 @@ FlowGraphPp &FlowGraphPp::SetCompileConfig(const char_t *json_file_path) {
 void FlowGraphPp::Serialize(ge::AscendString &str) const {
   if (impl_ == nullptr) {
     GELOGE(GRAPH_PARAM_INVALID, "[Check][Param] FlowGraphPpImpl is nullptr, check failed");
-    REPORT_INNER_ERR_MSG("E18888", "Serialize failed: FlowGraphPpImpl can not be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "Serialize failed: FlowGraphPpImpl cannot be used, impl is nullptr.");
     return;
   }
   dataflow::ProcessPoint process_point;
@@ -276,7 +276,7 @@ void FlowGraphPp::Serialize(ge::AscendString &str) const {
 GraphBuilder FlowGraphPp::GetGraphBuilder() const {
   if (impl_ == nullptr) {
     GELOGE(GRAPH_FAILED, "[Check][Param] FlowGraphPpImpl is nullptr, check failed");
-    REPORT_INNER_ERR_MSG("E18888", "GetGraphBuilder failed: FlowGraphPp can not be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "GetGraphBuilder failed: FlowGraphPp cannot be used, impl is nullptr.");
     return nullptr;
   }
   return impl_->GetGraphBuilder();
@@ -480,7 +480,7 @@ FunctionPp::~FunctionPp() = default;
 FunctionPp &FunctionPp::SetCompileConfig(const char_t *json_file_path) {
   if (impl_ == nullptr) {
     GELOGE(GRAPH_FAILED, "[Check][Param] FunctionPpImpl is nullptr, check failed.");
-    REPORT_INNER_ERR_MSG("E18888", "SetCompileConfig failed: FunctionPp can not be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "SetCompileConfig failed: FunctionPp cannot be used, impl is nullptr.");
     return *this;
   }
   if (json_file_path == nullptr) {
@@ -500,7 +500,7 @@ FunctionPp &FunctionPp::SetCompileConfig(const char_t *json_file_path) {
 FunctionPp &FunctionPp::SetInitParam(const char_t *attr_name, const ge::AscendString &value) {
   if (impl_ == nullptr) {
     GELOGE(GRAPH_FAILED, "[Check][Param] FunctionPpImpl is nullptr, check failed.");
-    REPORT_INNER_ERR_MSG("E18888", "SetInitParam failed: FunctionPp can not be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "SetInitParam failed: FunctionPp cannot be used, impl is nullptr.");
     return *this;
   }
 
@@ -517,7 +517,7 @@ FunctionPp &FunctionPp::SetInitParam(const char_t *attr_name, const ge::AscendSt
 FunctionPp &FunctionPp::SetInitParam(const char_t *attr_name, const char_t *value) {
   if (impl_ == nullptr) {
     GELOGE(GRAPH_FAILED, "[Check][Param] FunctionPpImpl is nullptr, check failed.");
-    REPORT_INNER_ERR_MSG("E18888", "SetInitParam failed: FunctionPp can not be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "SetInitParam failed: FunctionPp cannot be used, impl is nullptr.");
     return *this;
   }
 
@@ -540,7 +540,7 @@ FunctionPp &FunctionPp::SetInitParam(const char_t *attr_name, const char_t *valu
 FunctionPp &FunctionPp::SetInitParam(const char_t *attr_name, const std::vector<ge::AscendString> &value) {
   if (impl_ == nullptr) {
     GELOGE(GRAPH_FAILED, "[Check][Param] FunctionPpImpl is nullptr, check failed.");
-    REPORT_INNER_ERR_MSG("E18888", "SetInitParam failed: FunctionPp can not be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "SetInitParam failed: FunctionPp cannot be used, impl is nullptr.");
     return *this;
   }
 
@@ -560,7 +560,7 @@ FunctionPp &FunctionPp::SetInitParam(const char_t *attr_name, const std::vector<
 FunctionPp &FunctionPp::SetInitParam(const char_t *attr_name, const int64_t &value) {
   if (impl_ == nullptr) {
     GELOGE(GRAPH_FAILED, "[Check][Param] FunctionPpImpl is nullptr, check failed.");
-    REPORT_INNER_ERR_MSG("E18888", "SetInitParam failed: FunctionPp can not be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "SetInitParam failed: FunctionPp cannot be used, impl is nullptr.");
     return *this;
   }
 
@@ -576,7 +576,7 @@ FunctionPp &FunctionPp::SetInitParam(const char_t *attr_name, const int64_t &val
 FunctionPp &FunctionPp::SetInitParam(const char_t *attr_name, const std::vector<int64_t> &value) {
   if (impl_ == nullptr) {
     GELOGE(GRAPH_FAILED, "[Check][Param] FunctionPpImpl is nullptr, check failed.");
-    REPORT_INNER_ERR_MSG("E18888", "SetInitParam failed: FunctionPp can not be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "SetInitParam failed: FunctionPp cannot be used, impl is nullptr.");
     return *this;
   }
 
@@ -592,7 +592,7 @@ FunctionPp &FunctionPp::SetInitParam(const char_t *attr_name, const std::vector<
 FunctionPp &FunctionPp::SetInitParam(const char_t *attr_name, const std::vector<std::vector<int64_t>> &value) {
   if (impl_ == nullptr) {
     GELOGE(GRAPH_FAILED, "[Check][Param] FunctionPpImpl is nullptr, check failed.");
-    REPORT_INNER_ERR_MSG("E18888", "SetInitParam failed: FunctionPp can not be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "SetInitParam failed: FunctionPp cannot be used, impl is nullptr.");
     return *this;
   }
 
@@ -608,7 +608,7 @@ FunctionPp &FunctionPp::SetInitParam(const char_t *attr_name, const std::vector<
 FunctionPp &FunctionPp::SetInitParam(const char_t *attr_name, const float &value) {
   if (impl_ == nullptr) {
     GELOGE(GRAPH_FAILED, "[Check][Param] FunctionPpImpl is nullptr, check failed.");
-    REPORT_INNER_ERR_MSG("E18888", "SetInitParam failed: FunctionPp can not be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "SetInitParam failed: FunctionPp cannot be used, impl is nullptr.");
     return *this;
   }
 
@@ -624,7 +624,7 @@ FunctionPp &FunctionPp::SetInitParam(const char_t *attr_name, const float &value
 FunctionPp &FunctionPp::SetInitParam(const char_t *attr_name, const std::vector<float> &value) {
   if (impl_ == nullptr) {
     GELOGE(GRAPH_FAILED, "[Check][Param] FunctionPpImpl is nullptr, check failed.");
-    REPORT_INNER_ERR_MSG("E18888", "SetInitParam failed: FunctionPp can not be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "SetInitParam failed: FunctionPp cannot be used, impl is nullptr.");
     return *this;
   }
 
@@ -640,7 +640,7 @@ FunctionPp &FunctionPp::SetInitParam(const char_t *attr_name, const std::vector<
 FunctionPp &FunctionPp::SetInitParam(const char_t *attr_name, const bool &value) {
   if (impl_ == nullptr) {
     GELOGE(GRAPH_FAILED, "[Check][Param] FunctionPpImpl is nullptr, check failed.");
-    REPORT_INNER_ERR_MSG("E18888", "SetInitParam failed: FunctionPp can not be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "SetInitParam failed: FunctionPp cannot be used, impl is nullptr.");
     return *this;
   }
 
@@ -656,7 +656,7 @@ FunctionPp &FunctionPp::SetInitParam(const char_t *attr_name, const bool &value)
 FunctionPp &FunctionPp::SetInitParam(const char_t *attr_name, const std::vector<bool> &value) {
   if (impl_ == nullptr) {
     GELOGE(GRAPH_FAILED, "[Check][Param] FunctionPpImpl is nullptr, check failed.");
-    REPORT_INNER_ERR_MSG("E18888", "SetInitParam failed: FunctionPp can not be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "SetInitParam failed: FunctionPp cannot be used, impl is nullptr.");
     return *this;
   }
 
@@ -672,7 +672,7 @@ FunctionPp &FunctionPp::SetInitParam(const char_t *attr_name, const std::vector<
 FunctionPp &FunctionPp::SetInitParam(const char_t *attr_name, const ge::DataType &value) {
   if (impl_ == nullptr) {
     GELOGE(GRAPH_FAILED, "[Check][Param] FunctionPpImpl is nullptr, check failed.");
-    REPORT_INNER_ERR_MSG("E18888", "SetInitParam failed: FunctionPp can not be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "SetInitParam failed: FunctionPp cannot be used, impl is nullptr.");
     return *this;
   }
 
@@ -688,7 +688,7 @@ FunctionPp &FunctionPp::SetInitParam(const char_t *attr_name, const ge::DataType
 FunctionPp &FunctionPp::SetInitParam(const char_t *attr_name, const std::vector<ge::DataType> &value) {
   if (impl_ == nullptr) {
     GELOGE(GRAPH_FAILED, "[Check][Param] FunctionPpImpl is nullptr, check failed.");
-    REPORT_INNER_ERR_MSG("E18888", "SetInitParam failed: FunctionPp can not be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "SetInitParam failed: FunctionPp cannot be used, impl is nullptr.");
     return *this;
   }
 
@@ -704,7 +704,7 @@ FunctionPp &FunctionPp::SetInitParam(const char_t *attr_name, const std::vector<
 FunctionPp &FunctionPp::AddInvokedClosure(const char_t *name, const GraphPp &graph_pp) {
   if (impl_ == nullptr) {
     GELOGE(GRAPH_FAILED, "[Check][Param] FunctionPpImpl is nullptr, check failed.");
-    REPORT_INNER_ERR_MSG("E18888", "AddInvokedClosure failed: FunctionPp can not be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "AddInvokedClosure failed: FunctionPp cannot be used, impl is nullptr.");
     return *this;
   }
 
@@ -717,7 +717,7 @@ FunctionPp &FunctionPp::AddInvokedClosure(const char_t *name, const GraphPp &gra
 FunctionPp &FunctionPp::AddInvokedClosure(const char_t *name, const FlowGraphPp &graph_pp) {
   if (impl_ == nullptr) {
     GELOGE(GRAPH_FAILED, "[Check][Param] FunctionPpImpl is nullptr, check failed.");
-    REPORT_INNER_ERR_MSG("E18888", "AddInvokedClosure failed: FunctionPp can not be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "AddInvokedClosure failed: FunctionPp cannot be used, impl is nullptr.");
     return *this;
   }
 
@@ -729,7 +729,7 @@ FunctionPp &FunctionPp::AddInvokedClosure(const char_t *name, const FlowGraphPp 
 
 FunctionPp &FunctionPp::AddInvokedClosure(const char_t *name, const ProcessPoint &pp) {
   if (impl_ == nullptr) {
-    REPORT_INNER_ERR_MSG("E18888", "AddInvokedClosure failed: FunctionPp can not be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "AddInvokedClosure failed: FunctionPp cannot be used, impl is nullptr.");
     return *this;
   }
 
@@ -751,7 +751,7 @@ const std::map<const std::string, const GraphPp> &FunctionPp::GetInvokedClosures
 void FunctionPp::Serialize(ge::AscendString &str) const {
   if (impl_ == nullptr) {
     GELOGE(GRAPH_PARAM_INVALID, "[Check][Param] FunctionPpImpl is nullptr, check failed");
-    REPORT_INNER_ERR_MSG("E18888", "Serialize failed: FunctionPp can not be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "Serialize failed: FunctionPp cannot be used, impl is nullptr.");
     return;
   }
   dataflow::ProcessPoint process_point;

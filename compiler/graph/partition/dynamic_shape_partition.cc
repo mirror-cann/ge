@@ -341,7 +341,7 @@ Status DynamicShapePartitioner::Initialize() {
   GE_ASSERT_TRUE(!((got_status == GRAPH_SUCCESS) && (option_value.empty())), "[Get][Option] failed, %s value is empty",
                  OPTION_STATIC_MODEL_OPS_LOWER_LIMIT);
   if (option_value.empty()) {
-    GELOGI("Can not get option[%s], ignore initialize.", OPTION_STATIC_MODEL_OPS_LOWER_LIMIT);
+    GELOGI("Cannot get option[%s], ignore initialize.", OPTION_STATIC_MODEL_OPS_LOWER_LIMIT);
     return SUCCESS;
   }
   constexpr int64_t kMinimumOptionValue = -1;

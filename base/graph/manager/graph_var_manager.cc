@@ -1370,9 +1370,9 @@ uint8_t *VarManager::GetVarMemoryAddr(const std::string &graph_name,
 
   if ((external_var_addr_ != nullptr) && (memory_type == RT_MEMORY_HBM)) {
     const uint64_t inner_var_size = static_cast<uint64_t>(GetVarMemSize(RT_MEMORY_HBM));
-    GE_ASSERT_TRUE(external_var_size_ >= inner_var_size, "external var size %ld can not be smaller than %ld",
+    GE_ASSERT_TRUE(external_var_size_ >= inner_var_size, "external var size %ld cannot be smaller than %ld",
                    external_var_size_, inner_var_size);
-    GE_ASSERT_TRUE(PtrToValue(logic_addr) >= var_mem_logic_base_, "logic offset %lu can not be smaller than logic base %lu",
+    GE_ASSERT_TRUE(PtrToValue(logic_addr) >= var_mem_logic_base_, "logic offset %lu cannot be smaller than logic base %lu",
                    PtrToValue(logic_addr), var_mem_logic_base_);
     const uint64_t real_offset = PtrToValue(logic_addr) - var_mem_logic_base_;
     GE_ASSERT_TRUE(real_offset < external_var_size_, "real offset %lu should be smaller than external var size %lu",
@@ -1618,9 +1618,9 @@ Status VarManager::SetAllMemoryMaxValue(const std::map<std::string, std::string>
   FMK_SIZET_ADDCHECK(graph_mem_max_size_, var_mem_max_size_);
   use_max_mem_size_ = graph_mem_max_size_ + var_mem_max_size_;
   if (use_max_mem_size_ > kMaxMemorySize) {
-    REPORT_INNER_ERR_MSG("E19999", "all mem_use size:%" PRIu64 " can not exeed limit:%" PRIu64 ", "
+    REPORT_INNER_ERR_MSG("E19999", "all mem_use size:%" PRIu64 " cannot exeed limit:%" PRIu64 ", "
 		       "session_id:%" PRIu64 ", check invalid", use_max_mem_size_, kMaxMemorySize, session_id_);
-    GELOGE(ge::GE_GRAPH_OPTIONS_INVALID, "[Check][Param] kUseMaxMemorySize:%zu can not exceed "
+    GELOGE(ge::GE_GRAPH_OPTIONS_INVALID, "[Check][Param] kUseMaxMemorySize:%zu cannot exceed "
            "max memory size:%zu, session_id:%" PRIu64 ".", use_max_mem_size_, kMaxMemorySize, session_id_);
     return ge::GE_GRAPH_OPTIONS_INVALID;
   }

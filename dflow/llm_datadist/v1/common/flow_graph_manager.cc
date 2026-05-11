@@ -71,7 +71,7 @@ ge::Status GetDataFlowDeployInfoPath(const std::map<std::string, std::vector<std
   output_path = kPrefixPath + file_name;
   std::ofstream output_file(output_path);
   if (!output_file.is_open()) {
-    LLMLOGE(ge::FAILED, "can not open %s to write json data.", output_path.c_str());
+    LLMLOGE(ge::FAILED, "cannot open %s to write json data.", output_path.c_str());
     return ge::FAILED;
   }
   try {
@@ -217,15 +217,15 @@ ge::Status ProcessPointCompileConfig::CreateFuncPpCompileConfig(const std::strin
     file.close();
     LLMLOGI("json data already write to %s success.", compile_config_file.c_str());
   } else {
-    LLMLOGE(ge::LLM_PARAM_INVALID, "can not open file:%s to write json data.", compile_config_file.c_str());
+    LLMLOGE(ge::LLM_PARAM_INVALID, "cannot open file:%s to write json data.", compile_config_file.c_str());
     return ge::LLM_PARAM_INVALID;
   }
   return ge::SUCCESS;
 }
 
 ge::Status ProcessPointCompileConfig::CheckBufCfgValue(const BufCfg &buf_cfg) const {
-  LLM_ASSERT_TRUE(buf_cfg.total_size != 0U, "Total size can not be zero or larger than UINT32_MAX");
-  LLM_ASSERT_TRUE(buf_cfg.max_buf_size != 0U, "max buf size can not be zero or larger than UINT32_MAX");
+  LLM_ASSERT_TRUE(buf_cfg.total_size != 0U, "Total size cannot be zero or larger than UINT32_MAX");
+  LLM_ASSERT_TRUE(buf_cfg.max_buf_size != 0U, "max buf size cannot be zero or larger than UINT32_MAX");
   LLM_ASSERT_TRUE(buf_cfg.blk_size != 0U, "blk size not be zero or larger than UINT32_MAX");
   LLM_ASSERT_TRUE((buf_cfg.total_size > buf_cfg.max_buf_size) && (buf_cfg.max_buf_size >= buf_cfg.blk_size),
       "The following three params not meet the requirement: total_size[%u] > max_buf_size[%u] >= blk_size[%u]",
@@ -262,7 +262,7 @@ ge::Status ProcessPointCompileConfig::CheckAndConstructBufCfg(
     return ge::SUCCESS;
   }
   std::string buf_cfg_str = iter->second.GetString();
-  LLM_ASSERT_TRUE(!buf_cfg_str.empty(), "Buffer pool config can not be empty while this option is set.");
+  LLM_ASSERT_TRUE(!buf_cfg_str.empty(), "Buffer pool config cannot be empty while this option is set.");
   try {
     nlohmann::json cfg_json = nlohmann::json::parse(buf_cfg_str);
     LLM_ASSERT_TRUE(cfg_json.contains(kFuncPpBufCfg),

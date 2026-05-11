@@ -56,7 +56,7 @@ TEST_F(UtestGeUtils, CheckNodeSupportOnAicore_NotSupport) {
   AscendString unsupported_reason;
   EXPECT_NE(GeUtils::CheckNodeSupportOnAicore(add_gnode, is_support, unsupported_reason), SUCCESS);
   EXPECT_TRUE(!is_support);
-  EXPECT_STREQ(unsupported_reason.GetString(), "Can not get op info by op type Add");
+  EXPECT_STREQ(unsupported_reason.GetString(), "Cannot get op info by op type Add");
 }
 
 TEST_F(UtestGeUtils, InferShape_SUCCESS) {

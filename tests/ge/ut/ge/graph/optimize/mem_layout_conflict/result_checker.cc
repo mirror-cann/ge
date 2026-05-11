@@ -24,7 +24,7 @@ graphStatus ResultChecker::CheckIdentityBefore(const ComputeGraphPtr &graph, con
     const auto node_iter = name_to_node.find(node_io.name);
     if (node_iter == name_to_node.end()) {
       check_result = GRAPH_FAILED;
-      std::cerr << "can not find node " << node_io.name << std::endl;
+      std::cerr << "cannot find node " << node_io.name << std::endl;
       continue;
     }
     if (node_io.index >= node_iter->second->GetAllInDataAnchorsSize()) {

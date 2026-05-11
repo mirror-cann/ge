@@ -274,7 +274,7 @@ void ModelRelationBuilder::GetFlowAttr(const std::string &queue_name, const GeTe
     return;
   }
 
-  GELOGD("[%s] Can not get flow attr from tensor, node[%s] and graph[%s].", queue_name.c_str(), node.GetNamePtr(),
+  GELOGD("[%s] Cannot get flow attr from tensor, node[%s] and graph[%s].", queue_name.c_str(), node.GetNamePtr(),
          (graph == nullptr) ? "NULL" : graph->GetName().c_str());
 }
 

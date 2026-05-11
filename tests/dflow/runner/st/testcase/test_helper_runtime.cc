@@ -2864,7 +2864,7 @@ TEST_F(STEST_helper_runtime, TestDeployWithCompileRes) {
   flow_model->SetCompileResource(compile_res1);
   ASSERT_EQ(MasterModelDeployer().DeployModel(flow_model, deploy_result), FAILED);
 
-  // host resource type is correct, can not found device
+  // host resource type is correct, cannot found device
   const auto compile_res2 = MakeShared<ModelCompileResource>();
   compile_res2->host_resource_type = ResourceManager::GetInstance().compile_resource_.host_resource_type;
   compile_res2->logic_dev_id_to_res_type["0:1:0"] = "ERROR";
@@ -2938,7 +2938,7 @@ TEST_F(STEST_helper_runtime, TestDeployWithFlow) {
   resources.device_info_map_[1][1][NPU] = &npu_device1;
 
   DeployResult deploy_result;
-  // can not transfer submodel
+  // cannot transfer submodel
   ASSERT_EQ(MasterModelDeployer().DeployModel(flow_model, deploy_result), FAILED);
   DeployerProxy::GetInstance().deployers_.clear();
   ResourceManager::GetInstance().Finalize();
@@ -5535,7 +5535,7 @@ TEST_F(STEST_helper_runtime, TestDynamicSchedDeployWithFlow) {
   resources.device_info_map_[1][1][NPU] = &npu_device1;
 
   DeployResult deploy_result;
-  // can not transfer submodel
+  // cannot transfer submodel
   ASSERT_EQ(MasterModelDeployer().DeployModel(flow_model, deploy_result), FAILED);
   DeployerProxy::GetInstance().deployers_.clear();
   ResourceManager::GetInstance().Finalize();

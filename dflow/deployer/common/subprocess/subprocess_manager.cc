@@ -257,7 +257,7 @@ void SubprocessManager::FormatKvArgs(const std::map<std::string, std::string> &k
 Status SubprocessManager::ToCmdlineArgs(const std::vector<std::string> &args_strings,
                                         char_t *var_args[]) {
   if ((args_strings.size()) >= kMaxArgsSize) {
-    GELOGE(FAILED, "too many args size, var_args_size=%zu, var_args_size can not above %zu.",
+    GELOGE(FAILED, "too many args size, var_args_size=%zu, var_args_size cannot above %zu.",
            args_strings.size(), kMaxArgsSize);
     return FAILED;
   }

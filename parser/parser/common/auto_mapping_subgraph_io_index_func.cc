@@ -65,9 +65,9 @@ Status AutoMappingSubgraphIndexByOutputNodesInfo(const ge::ComputeGraphPtr &comp
     }
     auto output_desc = op_desc->MutableOutputDesc(output_index);
     if (output_desc == nullptr) {
-      REPORT_INNER_ERR_MSG("E19999", "Can not find output tensor desc from node:%s, index %d",
+      REPORT_INNER_ERR_MSG("E19999", "Cannot find output tensor desc from node:%s, index %d",
                         out_node->GetName().c_str(), output_index);
-      GELOGE(FAILED, "[Get][OutputDesc] Can not find output tensor desc from node:%s, index %d",
+      GELOGE(FAILED, "[Get][OutputDesc] Cannot find output tensor desc from node:%s, index %d",
              out_node->GetName().c_str(), output_index);
       return FAILED;
     }

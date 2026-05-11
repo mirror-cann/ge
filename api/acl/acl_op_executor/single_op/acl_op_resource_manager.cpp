@@ -536,7 +536,7 @@ aclError AclOpResourceManager::ReadModelDefs(const std::string &configPath,
         modelDef.opModelId = atomicModelId++;
         const auto ret = OpModelParser::ParseOpModel(opModel, modelDef);
         if (ret != ACL_SUCCESS) {
-            ACL_LOG_WARN("can not parse model, errorCode = %d, model = %s, skip it", ret, modelDef.modelPath.c_str());
+            ACL_LOG_WARN("cannot parse model, errorCode = %d, model = %s, skip it", ret, modelDef.modelPath.c_str());
             continue;
         }
 

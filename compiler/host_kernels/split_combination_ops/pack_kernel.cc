@@ -33,7 +33,7 @@ Status PackKernel::Compute(const ge::OpDescPtr op_desc_ptr, const std::vector<ge
   GELOGD("Pack kernel in.");
   Status validate_ret = ValidateKernelParams(op_desc_ptr, input);
   if (validate_ret != SUCCESS) {
-    GELOGW("Pack kernel input is invalid , can not continue compute.");
+    GELOGW("Pack kernel input is invalid , cannot continue compute.");
     return NOT_CHANGED;
   }
 

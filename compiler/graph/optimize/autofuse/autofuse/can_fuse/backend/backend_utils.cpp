@@ -160,7 +160,7 @@ bool CanFuseByStrategyPro(const NodePtr &node1, const NodePtr &node2, uint32_t &
   GE_ASSERT_NOTNULL(attr2);
 
   if (attr1->GetVectorCoreNum() != attr2->GetVectorCoreNum()) {
-    GELOGI("node1 %s(%s) and node2 %s(%s) can not fuse, the reason is [%s][It has different vector core num scope, "
+    GELOGI("node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][It has different vector core num scope, "
            "node1 vector core num is %d, node2 vector core num is %d]", node1->GetNamePtr(), node1->GetType().c_str(),
            node2->GetNamePtr(), node2->GetType().c_str(), ge::NotFuseReasonCode(ge::NotFuseReason::kVectorCoreNumNotEqual),
            attr1->GetVectorCoreNum(), attr2->GetVectorCoreNum());
@@ -169,7 +169,7 @@ bool CanFuseByStrategyPro(const NodePtr &node1, const NodePtr &node2, uint32_t &
   // 融合后节点数超过总数限制不做融合
   if ((attr1->GetFusionNodesSize() + attr2->GetFusionNodesSize()) > max_fusion_nodes_size) {
     GELOGI(
-        "node1 %s(%s) and node2 %s(%s) can not fuse, the reason is [%s][node1 size(%" PRIu64 ") plus node2 size(%" PRIu64 ")"
+        "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][node1 size(%" PRIu64 ") plus node2 size(%" PRIu64 ")"
         " exceeds max fusion nodes size(%" PRIu64 ")]", node1->GetNamePtr(), node1->GetType().c_str(),
         node2->GetNamePtr(), node2->GetType().c_str(),
         ge::NotFuseReasonCode(ge::NotFuseReason::kMaxFusionNodesSizeExceedThreshold), attr1->GetFusionNodesSize(),
@@ -256,7 +256,7 @@ bool IsSplitLowFusionRatio(const NodePtr &node, uint32_t &max_fusion_node_input_
     attr->SetSplitLowFusionRatioRequirementState(SplitFusionRatioRequirementState::SATISFIED);
     return false;
   }
-  GELOGD("node %s has low fuse ratio, can not fuse", node->GetName().c_str());
+  GELOGD("node %s has low fuse ratio, cannot fuse", node->GetName().c_str());
   // 缓存判断结果避免重复判断
   attr->SetSplitLowFusionRatioRequirementState(SplitFusionRatioRequirementState::NOT_SATISFIED);
   return true;
@@ -2278,7 +2278,7 @@ bool BackendUtils::CanFuseByStrategy(const NodePtr &node1, const NodePtr &node2,
   if ((attr1->GetFuseType() == loop::FuseType::kSplit) && IsSplitComplete(node1) &&
       IsSplitLowFusionRatio(node1, max_fusion_node_input_size)) {
       // Split类型不支持低融合比例, 当前只支持split后向融合
-      GELOGI("node1 %s(%s) and node2 %s(%s) can not fuse, the reason is [%s][node1 or node2 has low fuse ratio]",
+      GELOGI("node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][node1 or node2 has low fuse ratio]",
              node1->GetName().c_str(), node1->GetType().c_str(), node2->GetName().c_str(), node2->GetType().c_str(),
              ge::NotFuseReasonCode(ge::NotFuseReason::kSplitLowFuseRatio));
       return false;

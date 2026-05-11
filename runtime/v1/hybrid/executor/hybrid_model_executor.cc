@@ -475,7 +475,7 @@ Status HybridModelExecutor::HandleResult(const Status exec_ret, const uint32_t d
 void HybridModelExecutor::ParserContextOption(const string &option_name, string &option_value) {
   auto result = ge::GetContext().GetOption(option_name, option_value);
   if (result != SUCCESS) {
-    GELOGW("Can not get %s attr.", option_name.c_str());
+    GELOGW("Cannot get %s attr.", option_name.c_str());
   }
   GELOGD("The %s is %s.", option_name.c_str(), option_value.c_str());
 }

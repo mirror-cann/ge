@@ -535,7 +535,7 @@ static bool CheckIntValueRange(const std::map<AttrRangeType, ge::GeAttrValue> &v
                 valRangeInt.push_back(tmpInt);
                 return CheckValRange(valRangeInt, inputIntData);
             } else {
-                ACL_LOG_WARN("can not find listlist or list data struct");
+                ACL_LOG_WARN("cannot find listlist or list data struct");
                 return false;
             }
         }

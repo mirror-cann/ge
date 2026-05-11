@@ -730,7 +730,7 @@ void FlowFuncExecutor::MonitorParentExit() {
                 Stop();
                 ++stop_times;
             } else {
-                UDF_RUN_LOG_INFO("parent pid[%d] exit, but udf can not stop normally, so kill itself.", start_parent_pid);
+                UDF_RUN_LOG_INFO("parent pid[%d] exit, but udf cannot stop normally, so kill itself.", start_parent_pid);
                 (void)kill(getpid(), SIGKILL);
             }
         }

@@ -685,9 +685,9 @@ Status CheckIfDynamicBatchScene(const NodePtr &data_node, bool &is_dynamic_batch
     }
 
     if (mbatch_case_node == nullptr) {
-      REPORT_INNER_ERR_MSG("E19999", "The data node %s has switchn node %s, but can not find it on the graph",
+      REPORT_INNER_ERR_MSG("E19999", "The data node %s has switchn node %s, but cannot find it on the graph",
                          data_node->GetName().c_str(), related_node_name.c_str());
-      GELOGE(INTERNAL_ERROR, "[Check][Param] The data node %s has switchn node %s, but can not find it on the graph",
+      GELOGE(INTERNAL_ERROR, "[Check][Param] The data node %s has switchn node %s, but cannot find it on the graph",
              data_node->GetName().c_str(), related_node_name.c_str());
       return INTERNAL_ERROR;
     }
@@ -1602,7 +1602,7 @@ Status GraphPrepare::UpdateDataInputOutputDesc(int64_t index, const OpDescPtr &o
   GE_IF_BOOL_EXEC(shape_size == 0 && desc.GetShape().GetDimNum() == 0, shape_size = static_cast<int64_t>(length));
   ge::TensorUtils::SetSize(desc, shape_size);
 
-  // this attr set by tune moudle, because in tune mode ge can not decide when to refresh data format
+  // this attr set by tune moudle, because in tune mode ge cannot decide when to refresh data format
   // by user input.
   bool skip_refresh_data_format = false;
   (void) AttrUtils::GetBool(op, "_skip_refresh_data_format", skip_refresh_data_format);

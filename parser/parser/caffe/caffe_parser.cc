@@ -277,7 +277,7 @@ Status CaffeModelParser::ParseInput(domi::caffe::NetParameter &proto_message, bo
   if (proto_message.input_dim_size() > 0) {
     if (proto_message.input_shape_size() > 0) {
       REPORT_PREDEFINED_ERR_MSG("E11001", std::vector<const char *>({}), std::vector<const char *>({}));
-      GELOGE(FAILED, "[Check][Size]input_dim and input_shape can not both exist!");
+      GELOGE(FAILED, "[Check][Size]input_dim and input_shape cannot both exist!");
       return FAILED;
     }
 
@@ -1120,7 +1120,7 @@ Status CaffeModelParser::AddUserOutNodesTop() {
     } else {
       REPORT_PREDEFINED_ERR_MSG("E11017", std::vector<const char *>({"opname"}),
                                 std::vector<const char *>({out_pair.first.c_str()}));
-      GELOGE(PARAM_INVALID, "[Find][Node]Can not find out_node:%s, you should check --out_nodes.",
+      GELOGE(PARAM_INVALID, "[Find][Node]Cannot find out_node:%s, you should check --out_nodes.",
              out_pair.first.c_str());
       return PARAM_INVALID;
     }
@@ -1410,7 +1410,7 @@ Status CaffeModelParser::SaveDataLayerTops(const domi::caffe::LayerParameter &la
   string name = layer.name();
   if (node_map.find(name) == node_map.end()) {
     REPORT_INNER_ERR_MSG("E19999", "layer:%s not find in node_map after AddNode, exist error before", name.c_str());
-    GELOGE(FAILED, "[Find][Node]Node can not be found by layer name: %s", name.c_str());
+    GELOGE(FAILED, "[Find][Node]Node cannot be found by layer name: %s", name.c_str());
     return FAILED;
   }
 
@@ -1430,7 +1430,7 @@ Status CaffeModelParser::SaveDataLayerTops(const domi::caffe::LayerParameter &la
     if (find(data_tensor_names.begin(), data_tensor_names.end(), top_name) != data_tensor_names.end()) {
       REPORT_PREDEFINED_ERR_MSG("E11036", std::vector<const char *>({"topname"}),
                                 std::vector<const char *>({top_name.c_str()}));
-      GELOGE(FAILED, "[Check][Node]Different data node can not have same top name: %s.", top_name.c_str());
+      GELOGE(FAILED, "[Check][Node]Different data node cannot have same top name: %s.", top_name.c_str());
       return FAILED;
     }
     ge::GetParserContext().data_tensor_names.push_back(top_name);

@@ -110,7 +110,7 @@ Status SuperKernelPass::Run(ge::ComputeGraphPtr graph) {
     std::string check_val;
     GE_ASSERT_SUCCESS(ParseSuperKernelOptions(super_scope_name, super_kernel_options, check_val));
     const bool no_support_sk_fusion = ((support != 1) || (is_simt_op)) && !IsHcomOpSupportSk(op_desc);
-    // can not delete _super_kernel_scope attr when strict-scope-check is not empty,
+    // cannot delete _super_kernel_scope attr when strict-scope-check is not empty,
     // because strict-scope-check logic need this attr to verify
     const bool need_del_attr = no_support_sk_fusion && check_val.empty();
     // 此处不支持融合的算子直接删除属性是为了自动拆分时便于处理
@@ -119,8 +119,8 @@ Status SuperKernelPass::Run(ge::ComputeGraphPtr graph) {
     if (need_del_attr) {
       op_desc->DelAttr(super_scope_key);
       std::string unsupported_reason = no_support_sk_fusion ?
-           "can not fusion, maybe it is tbe or tik operator, please replace to ascendc operator and specify super_kernel_scope" :
-           "can not fusion, please check your super_kernel_scope";
+           "cannot fusion, maybe it is tbe or tik operator, please replace to ascendc operator and specify super_kernel_scope" :
+           "cannot fusion, please check your super_kernel_scope";
       GEEVENT("find super kernel sub op %s(%s) %s, local_memory_size %ld, super_scope_name %s, stream_id %ld, "
           "cur_pos %zu, topo id %ld, so delete attr",
           op_desc->GetNamePtr(), op_desc->GetTypePtr(), unsupported_reason.c_str(), local_memory_size, super_scope_name.c_str(), stream_id,
@@ -294,8 +294,8 @@ Status SuperKernelPass::SelectFusionScope() {
         const bool is_simt_op = local_memory_size > 0;
         const bool no_support_sk_fusion = ((support != 1) || (is_simt_op)) && !IsHcomOpSupportSk(cur_node->GetOpDescBarePtr());
         std::string unsupported_reason = no_support_sk_fusion ?
-            "can not fusion, maybe it is tbe or tik operator, please replace to ascendc operator and specify super_kernel_scope" :
-            "can not fusion, please check your super_kernel_scope";
+            "cannot fusion, maybe it is tbe or tik operator, please replace to ascendc operator and specify super_kernel_scope" :
+            "cannot fusion, please check your super_kernel_scope";
         const bool need_cut = (super_scope_name != cur_scope_str) || no_support_sk_fusion;
         if (need_cut) {
           const auto check_val = super_kernel_scope_options_[cur_scope_str];
@@ -399,7 +399,7 @@ Status SuperKernelScope::RecordSendInfo(const NodePtr &send_node) {
   uint32_t event_id = 0;
   std::string event_key = (send_node->GetType() == SENDNOTIFY) ? SEND_ATTR_NOTIFY_ID : SEND_ATTR_EVENT_ID;
   GE_ASSERT_TRUE(AttrUtils::GetInt(send_node->GetOpDesc(), event_key, event_id),
-                 "%s can not get event id", send_node->GetNamePtr());
+                 "%s cannot get event id", send_node->GetNamePtr());
   GELOGI("start to record send info from %s, event id %u", send_node->GetNamePtr(), event_id);
   auto in_control_anchor = send_node->GetInControlAnchor();
   GE_ASSERT_NOTNULL(in_control_anchor);
@@ -425,7 +425,7 @@ Status SuperKernelScope::RecordRcvInfo(const NodePtr &rcv_node) {
   uint32_t event_id = 0;
   std::string event_key = (rcv_node->GetType() == RECVNOTIFY) ? RECV_ATTR_NOTIFY_ID : RECV_ATTR_EVENT_ID;
   GE_ASSERT_TRUE(AttrUtils::GetInt(rcv_node->GetOpDesc(), event_key, event_id),
-                 "%s can not get event id", rcv_node->GetNamePtr());
+                 "%s cannot get event id", rcv_node->GetNamePtr());
   GELOGI("start to record recv info from %s, event id %u", rcv_node->GetNamePtr(), event_id);
   auto out_control_anchor = rcv_node->GetOutControlAnchor();
   GE_ASSERT_NOTNULL(out_control_anchor);
@@ -460,15 +460,15 @@ Status SuperKernelScope::UpdateWholeSendRcvMap(const std::vector<NodePtr> &send_
     for (auto &send_pair : send_ele.second) {
       const uint32_t event_id = send_pair.second;
       auto it = event_nodes_list_.find(event_id);
-      GE_ASSERT_TRUE(it != event_nodes_list_.end(), "%u can not find in event map for src_node %s",
+      GE_ASSERT_TRUE(it != event_nodes_list_.end(), "%u cannot find in event map for src_node %s",
                      event_id, send_ele.first->GetNamePtr());
-      GE_ASSERT_NOTNULL(it->second.src_node, "event id %u src_node can not be null for src_node %s",
+      GE_ASSERT_NOTNULL(it->second.src_node, "event id %u src_node cannot be null for src_node %s",
                         event_id, send_ele.first->GetNamePtr());
-      GE_ASSERT_NOTNULL(it->second.send_node, "event id %u send_node can not be null for src_node %s",
+      GE_ASSERT_NOTNULL(it->second.send_node, "event id %u send_node cannot be null for src_node %s",
                         event_id, send_ele.first->GetNamePtr());
-      GE_ASSERT_NOTNULL(it->second.dst_node, "event id %u dst_node can not be null for src_node %s",
+      GE_ASSERT_NOTNULL(it->second.dst_node, "event id %u dst_node cannot be null for src_node %s",
                         event_id, send_ele.first->GetNamePtr());
-      GE_ASSERT_NOTNULL(it->second.rcv_node, "event id %u rcv_node can not be null for src_node %s",
+      GE_ASSERT_NOTNULL(it->second.rcv_node, "event id %u rcv_node cannot be null for src_node %s",
                         event_id, send_ele.first->GetNamePtr());
       send_pair.first = it->second.dst_node;
       GELOGI("get src_node %s, event id %u src_node %s, send_node %s, rcv_node %s, dst_node %s",
@@ -481,15 +481,15 @@ Status SuperKernelScope::UpdateWholeSendRcvMap(const std::vector<NodePtr> &send_
     for (auto &rcv_pair : rcv_ele.second) {
       const uint32_t event_id = rcv_pair.second;
       auto it = event_nodes_list_.find(event_id);
-      GE_ASSERT_TRUE(it != event_nodes_list_.end(), "%u can not find in event map for dst_node %s",
+      GE_ASSERT_TRUE(it != event_nodes_list_.end(), "%u cannot find in event map for dst_node %s",
                      event_id, rcv_ele.first->GetNamePtr());
-      GE_ASSERT_NOTNULL(it->second.src_node, "event id %u src_node can not be null for dst_node %s",
+      GE_ASSERT_NOTNULL(it->second.src_node, "event id %u src_node cannot be null for dst_node %s",
                         event_id, rcv_ele.first->GetNamePtr());
-      GE_ASSERT_NOTNULL(it->second.send_node, "event id %u send_node can not be null for dst_node %s",
+      GE_ASSERT_NOTNULL(it->second.send_node, "event id %u send_node cannot be null for dst_node %s",
                         event_id, rcv_ele.first->GetNamePtr());
-      GE_ASSERT_NOTNULL(it->second.dst_node, "event id %u dst_node can not be null for dst_node %s",
+      GE_ASSERT_NOTNULL(it->second.dst_node, "event id %u dst_node cannot be null for dst_node %s",
                         event_id, rcv_ele.first->GetNamePtr());
-      GE_ASSERT_NOTNULL(it->second.rcv_node, "event id %u rcv_node can not be null for dst_node %s",
+      GE_ASSERT_NOTNULL(it->second.rcv_node, "event id %u rcv_node cannot be null for dst_node %s",
                         event_id, rcv_ele.first->GetNamePtr());
       rcv_pair.first = it->second.src_node;
       GELOGI("get dst_node %s, event id %u src_node %s, send_node %s, rcv_node %s, dst_node %s",

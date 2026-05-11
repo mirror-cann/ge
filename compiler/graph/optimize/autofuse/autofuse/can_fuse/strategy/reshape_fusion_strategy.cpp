@@ -24,7 +24,7 @@ bool ReshapeFusionStrategy::CanFuse(const NodePtr &node1, const NodePtr &node2) 
 
   if (attr1->GetAllFuseType() == reshape_type && attr2->GetAllFuseType() == reshape_type) {
     GELOGI(
-        "node1 %s(%s) and node2 %s(%s) can not fuse, the reason is [Both nodes only have reshape fuse type]",
+        "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [Both nodes only have reshape fuse type]",
         node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str());
     return false;
   }

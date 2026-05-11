@@ -457,7 +457,7 @@ TEST_F(UtestDynamicStreamAllocator, invalid_ac_parallel_enable) {
   AcParallelDisable();
 }
 
-// aicpu can not reuse input and can assign a stream
+// aicpu cannot reuse input and can assign a stream
 TEST_F(UtestDynamicStreamAllocator, aicore_gelocal_aicpu_ac_parallel_enable) {
   AcParallelEnable();
   DEF_GRAPH(g1) {
@@ -521,7 +521,7 @@ TEST_F(UtestDynamicStreamAllocator, aicore_aicpu_single_stream) {
   EXPECT_EQ(allocator.GetEventNum(), 0);
 }
 
-// aicpu can not attach to aicore when ac parallel enable
+// aicpu cannot attach to aicore when ac parallel enable
 TEST_F(UtestDynamicStreamAllocator, aicore_aicpu_ac_parallel_enable_multi_stream) {
   AcParallelEnable();
   DEF_GRAPH(g1) {
@@ -641,7 +641,7 @@ TEST_F(UtestDynamicStreamAllocator, dsa_aicore_gelocal_multi_stream) {
   EXPECT_EQ(GetRecvEventNum(graph, "reshape"), 1);
 }
 
-// aicpu can not attach to hccl
+// aicpu cannot attach to hccl
 TEST_F(UtestDynamicStreamAllocator, hccl_aicpu_multi_stream) {
   DEF_GRAPH(g1) { CHAIN(NODE("allreduce", HCOMALLREDUCE)->NODE("where", WHERE)); };
   auto graph = ToComputeGraph(g1);

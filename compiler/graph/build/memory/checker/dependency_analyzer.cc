@@ -180,7 +180,7 @@ bool DependencyAnalyzer::CanAReuseBInner(const Node *const a, uint32_t a_output_
                                          uint32_t b_output_index) const {
   const auto &b_node_index_ios = GetSymbolNodeIndexIOList(b, b_output_index);
   if (b_node_index_ios.empty()) {
-    GELOGW("b can not find symbol. b: %s, b_out_index: %u", b->GetNamePtr(), b_output_index);
+    GELOGW("b cannot find symbol. b: %s, b_out_index: %u", b->GetNamePtr(), b_output_index);
     return true;
   }
   bool suspended = true;
@@ -211,7 +211,7 @@ bool DependencyAnalyzer::CanReachAllSameBlockAnchor(const Node *const a, const u
   const auto a_out_anchor = a->GetOutDataAnchor(a_output_index);
   const auto &id_iter = out_data_anchor_2_id_map_.find(a_out_anchor);
   if (id_iter == out_data_anchor_2_id_map_.end()) {
-    GELOGW("can not find id for out anchor, node: %s, out_index: %u", a->GetNamePtr(), a_output_index);
+    GELOGW("cannot find id for out anchor, node: %s, out_index: %u", a->GetNamePtr(), a_output_index);
     return true;
   }
   if (same_block_anchor_ids_[id_iter->second] != nullptr) {
@@ -247,7 +247,7 @@ std::string DependencyAnalyzer::WhyACannotReuseB(const ge::Node *a, uint32_t a_o
   }
   ErrorLogReachNodes(b);
   if (!reach_nodes_bit_map_table_[GetTopoId(b)].GetBit(GetTopoId(a))) {
-    return NodeName(b) + " can not reach " + NodeName(a);
+    return NodeName(b) + " cannot reach " + NodeName(a);
   }
   std::stringstream ss;
   auto b_output_nodes = GetAllUseSameInBlockNodes(b, b_output_index);
@@ -264,10 +264,10 @@ std::string DependencyAnalyzer::WhyACannotReuseB(const ge::Node *a, uint32_t a_o
     }
     if (!reach_nodes_bit_map_table_[GetTopoId(out_node)].GetBit(GetTopoId(a))) {
       if (out_node != a) {
-        ss << GetTopoId(b) << "\'s output node " << NodeName(out_node) << " can not reach " << NodeName(a) << ", "
+        ss << GetTopoId(b) << "\'s output node " << NodeName(out_node) << " cannot reach " << NodeName(a) << ", "
            << kOutNodeMeaning;
       } else {
-        ss << GetTopoId(b) << "\'s output node " << NodeName(out_node) << " can not reuse its input, "
+        ss << GetTopoId(b) << "\'s output node " << NodeName(out_node) << " cannot reuse its input, "
            << kOutNodeMeaning;
       }
       ErrorLogOutSymbol(b, b_output_index);
@@ -295,7 +295,7 @@ void DependencyAnalyzer::WhyACannotReuseBInner(const MemCheckParam &param,
         if (out_node != param.b) {
           ss << GetTopoId(param.b) << "\'s output ";
         }
-        ss << "node " << NodeName(out_node) << " can not reach "
+        ss << "node " << NodeName(out_node) << " cannot reach "
            << NodeNameOut(dst_anchor->GetOwnerNodeBarePtr(), dst_anchor->GetIdx());
         if (dst_anchor->GetOwnerNodeBarePtr() != param.a) {
           ss << ", which use same memory block with " << NodeNameOut(param.a, param.a_output_index);
@@ -434,7 +434,7 @@ const std::list<NodeIndexIO> &DependencyAnalyzer::GetSymbolNodeIndexIOList(const
       return anchor_iter->second;
     }
   }
-  GELOGW("can not find symbol for node %s, out_index: %u", node->GetNamePtr(), output_index);
+  GELOGW("cannot find symbol for node %s, out_index: %u", node->GetNamePtr(), output_index);
   return dummy_ret;
 }
 

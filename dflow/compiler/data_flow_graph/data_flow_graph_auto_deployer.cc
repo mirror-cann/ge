@@ -201,7 +201,7 @@ Status DataFlowGraphAutoDeployer::SelectResourceType(const std::vector<std::stri
                                                      const std::string &logic_device_id, std::string &resources_type,
                                                      bool is_heavy_load) {
   if (runnable_resources_type.empty()) {
-    GELOGE(FAILED, "runnable resource info is empty, can not select.");
+    GELOGE(FAILED, "runnable resource info is empty, cannot select.");
     return FAILED;
   }
   // if no logic device id is specified, ascend is preferred.
@@ -771,7 +771,7 @@ Status DataFlowGraphAutoDeployer::UpdateFlowNodeSubGraphDeployInfo(const OpDescP
   const auto &node_subgraphs = graph.GetNodeSubgraphs();
   const auto &find_ret = node_subgraphs.find(flow_node_op_desc->GetName());
   if (find_ret == node_subgraphs.cend()) {
-    GELOGE(FAILED, "can not find subgraph of node[%s]", flow_node_op_desc->GetName().c_str());
+    GELOGE(FAILED, "cannot find subgraph of node[%s]", flow_node_op_desc->GetName().c_str());
     return FAILED;
   }
   bool is_host = (logic_device_id.find("-1") != std::string::npos);

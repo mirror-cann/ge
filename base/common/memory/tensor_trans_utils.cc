@@ -56,7 +56,7 @@ public:
 
   [[nodiscard]] const std::shared_ptr<T> &GetTensor() const { return tensor_; }
 
-  // executor not support multi thread, so same addr can not exist in different threads
+  // executor not support multi thread, so same addr cannot exist in different threads
   static graphStatus Manager(gert::TensorAddress const addr, gert::TensorOperateType operate_type, void **out) {
     GE_ASSERT_NOTNULL(addr);
     if (operate_type == gert::TensorOperateType::kFreeTensor) {

@@ -1666,7 +1666,7 @@ Status StreamAllocator::UpdateActiveStreamsForSubgraphs() {
     }
     specific_activated_streams_.emplace(new_split_stream);
     if (new_split_stream == active_op->GetStreamId()) {
-      GELOGD("Node[%s] can not active its own stream[%" PRId64 "].", active_op->GetName().c_str(), new_split_stream);
+      GELOGD("Node[%s] cannot active its own stream[%" PRId64 "].", active_op->GetName().c_str(), new_split_stream);
       continue;
     }
     new_active_streams.emplace(static_cast<uint32_t>(new_split_stream));
@@ -2542,8 +2542,8 @@ Status StreamAllocator::AddActiveNodes(const NodePtr &switch_node,
         active_label_list.emplace_back(active_label);
         continue;
       }
-      REPORT_INNER_ERR_MSG("E19999", "can not find stream label:%s", active_label.c_str());
-      GELOGE(FAILED, "[Check][Param] can not find stream label %s", active_label.c_str());
+      REPORT_INNER_ERR_MSG("E19999", "cannot find stream label:%s", active_label.c_str());
+      GELOGE(FAILED, "[Check][Param] cannot find stream label %s", active_label.c_str());
       return FAILED;
     }
     if (labeled_streams_[active_label].size() <= 1) {
@@ -2615,8 +2615,8 @@ Status StreamAllocator::AddActiveNodes(const NodePtr &switch_node,
 
 Status StreamAllocator::SetActiveStreamList(const NodePtr &active_node, const std::string &active_label) {
   if (labeled_streams_.find(active_label) == labeled_streams_.end()) {
-    REPORT_INNER_ERR_MSG("E19999", "Can not find stream label:%s", active_label.c_str());
-    GELOGE(FAILED, "[Check][Param] Can not find stream label %s.", active_label.c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Cannot find stream label:%s", active_label.c_str());
+    GELOGE(FAILED, "[Check][Param] Cannot find stream label %s.", active_label.c_str());
     return FAILED;
   }
   std::set<int64_t> &streams = labeled_streams_[active_label];

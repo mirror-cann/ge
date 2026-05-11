@@ -157,7 +157,7 @@ Status VariablePrepareOpPass::GetPeerNodeOfRefOutput(const NodePtr &node, int32_
     return SUCCESS;
   }
   if (output_index >= static_cast<int32_t>(node->GetAllOutDataAnchorsSize())) {
-    GELOGW("Can not get %d th output anchor of %s", output_index, node->GetName().c_str());
+    GELOGW("Cannot get %d th output anchor of %s", output_index, node->GetName().c_str());
     return SUCCESS;
   }
   const auto &out_anchor = node->GetOutDataAnchor(output_index);
@@ -182,7 +182,7 @@ Status VariablePrepareOpPass::AddVariableRef(NodePtr &final_writable_node, const
   GE_CHECK_NOTNULL(final_writable_node);
   GE_CHECK_NOTNULL(var_node);
   if (index >= static_cast<int32_t>(final_writable_node->GetAllOutDataAnchorsSize())) {
-    GELOGW("Can not get %d th output anchor of %s", index, final_writable_node->GetName().c_str());
+    GELOGW("Cannot get %d th output anchor of %s", index, final_writable_node->GetName().c_str());
     return SUCCESS;
   }
   // Check for duplicate creation

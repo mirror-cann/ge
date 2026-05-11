@@ -536,15 +536,15 @@ Status OnnxModelParser::SetOperatorInputs() {
       for (auto out_node_index : output_node_indexs) {
         std::map<std::string, ge::Operator>::const_iterator input_op_iter = name_operator_.find(input_node_index.first);
         if (input_op_iter == name_operator_.end()) {
-          REPORT_INNER_ERR_MSG("E19999", "Node: %s can not find in name_operator map.", input_node_index.first.c_str());
-          GELOGE(INTERNAL_ERROR, "[Check][Param] Node: %s can not find in name_operator map.",
+          REPORT_INNER_ERR_MSG("E19999", "Node: %s cannot find in name_operator map.", input_node_index.first.c_str());
+          GELOGE(INTERNAL_ERROR, "[Check][Param] Node: %s cannot find in name_operator map.",
                  input_node_index.first.c_str());
           return INTERNAL_ERROR;
         }
         std::map<std::string, ge::Operator>::const_iterator output_op_iter = name_operator_.find(out_node_index.first);
         if (output_op_iter == name_operator_.end()) {
-          REPORT_INNER_ERR_MSG("E19999", "Node: %s can not find in name_operator map.", out_node_index.first.c_str());
-          GELOGE(INTERNAL_ERROR, "[Check][Param] Node: %s can not find in name_operator map.",
+          REPORT_INNER_ERR_MSG("E19999", "Node: %s cannot find in name_operator map.", out_node_index.first.c_str());
+          GELOGE(INTERNAL_ERROR, "[Check][Param] Node: %s cannot find in name_operator map.",
                  out_node_index.first.c_str());
           return INTERNAL_ERROR;
         }
@@ -708,9 +708,9 @@ Status OnnxModelParser::GetGraphInputs(ge::onnx::GraphProto &onnx_graph, std::ve
   for (auto in_name : input_node_names_) {
     std::map<std::string, ge::Operator>::const_iterator in_op = name_operator_.find(in_name);
     if (in_op == name_operator_.end()) {
-      GELOGE(PARAM_INVALID, "[Get][Inputs] Model assigned input node name: %s can not find in graph.",
+      GELOGE(PARAM_INVALID, "[Get][Inputs] Model assigned input node name: %s cannot find in graph.",
              in_name.c_str());
-      REPORT_INNER_ERR_MSG("E19999", "Model assigned input node name: %s can not find in graph.",
+      REPORT_INNER_ERR_MSG("E19999", "Model assigned input node name: %s cannot find in graph.",
                          in_name.c_str());
       return PARAM_INVALID;
     }
@@ -739,8 +739,8 @@ Status OnnxModelParser::GetGraphOutputs(std::vector<std::pair<Operator, std::vec
     std::map<std::string, std::vector<std::pair<std::string, int>>>::const_iterator itr =
       outputs_map_.find(output_name);
     if (itr == outputs_map_.end()) {
-      GELOGE(PARAM_INVALID, "[Get][Outputs] Can not find output:%s in graph.", output_name.c_str());
-      REPORT_INNER_ERR_MSG("E19999", "[Get][Outputs] Can not find output:%s in graph.", output_name.c_str());
+      GELOGE(PARAM_INVALID, "[Get][Outputs] Cannot find output:%s in graph.", output_name.c_str());
+      REPORT_INNER_ERR_MSG("E19999", "[Get][Outputs] Cannot find output:%s in graph.", output_name.c_str());
       return PARAM_INVALID;
     }
 
@@ -749,8 +749,8 @@ Status OnnxModelParser::GetGraphOutputs(std::vector<std::pair<Operator, std::vec
       auto node_name = node_name_index.first;
       std::map<std::string, ge::Operator>::const_iterator out_op_itr = name_operator_.find(node_name);
       if (out_op_itr == name_operator_.end()) {
-        GELOGE(PARAM_INVALID, "[Get][Operator] Can not find operator: %s in graph.", node_name.c_str());
-        REPORT_INNER_ERR_MSG("E19999", "Can not find operator: %s in graph.", node_name.c_str());
+        GELOGE(PARAM_INVALID, "[Get][Operator] Cannot find operator: %s in graph.", node_name.c_str());
+        REPORT_INNER_ERR_MSG("E19999", "Cannot find operator: %s in graph.", node_name.c_str());
         return PARAM_INVALID;
       }
       int index = node_name_index.second;

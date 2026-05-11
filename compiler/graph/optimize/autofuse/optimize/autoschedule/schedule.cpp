@@ -280,7 +280,7 @@ Status Scheduler::ModifyStoreAfterReduce(ascir::NodeView &node, ascir::AxisId re
       size_product = size_product * repeat;
     }
     auto iter = std::find(output_attr.axis.begin(), output_attr.axis.end(), reduce_block_id);
-    GE_ASSERT_TRUE(iter != output_attr.axis.end(), "Can not find axis [%ld] from [%s]'s output tensor.",
+    GE_ASSERT_TRUE(iter != output_attr.axis.end(), "Cannot find axis [%ld] from [%s]'s output tensor.",
                    reduce_block_id, node->GetNamePtr());
     size_t index = std::distance(output_attr.axis.begin(), iter);
     GE_ASSERT_TRUE(index < output_attr.repeats.size(), "Repeats of [%s]'s output tensor not greater than [%lu].",

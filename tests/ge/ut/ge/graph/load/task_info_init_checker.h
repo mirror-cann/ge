@@ -139,7 +139,7 @@ class TaskInfoInitChecker {
         found_and_ok = true;
       }
       if (!found_and_ok) {
-        ss << "The args addr 0x" << std::hex << arg.dev_addr << " can not be found in model args table" << std::endl;
+        ss << "The args addr 0x" << std::hex << arg.dev_addr << " cannot be found in model args table" << std::endl;
         return false;
       }
     }

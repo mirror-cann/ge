@@ -502,7 +502,7 @@ graphStatus InferValueRangePass::ConstructInputAndInferValueRange(const NodePtr 
     auto upper_boundary_shape = upper_boundary_tensor->GetTensorDesc().GetShape();
     if (lower_boundary_shape.GetShapeSize() != output_shape_size ||
         upper_boundary_shape.GetShapeSize() != output_shape_size) {
-      GELOGD("Cpu kernel result shapes %s, %s and output shape %s do not match, can not infer value range for "
+      GELOGD("Cpu kernel result shapes %s, %s and output shape %s do not match, cannot infer value range for "
              "output %s.", formats::ShapeToString(lower_boundary_shape).c_str(),
              formats::ShapeToString(upper_boundary_shape).c_str(),
              formats::ShapeToString(output_tensor_desc->GetShape()).c_str(),

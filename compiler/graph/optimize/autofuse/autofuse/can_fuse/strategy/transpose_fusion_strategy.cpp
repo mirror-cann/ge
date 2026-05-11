@@ -91,7 +91,7 @@ bool TransposeFusionStrategy::CheckVerticalFusion(const NodePtr &node1, const No
     return true;
   }
 
-  GELOGI("node1 %s(%s) and node2 %s(%s) can not fuse, the reason is [%s]"
+  GELOGI("node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s]"
          "Transpose can only undergo vertical fusion with Pointwise.",
          node1->GetName().c_str(), node1->GetType().c_str(),
          node2->GetName().c_str(), node2->GetType().c_str(),

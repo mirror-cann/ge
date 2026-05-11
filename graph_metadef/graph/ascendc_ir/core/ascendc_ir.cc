@@ -580,7 +580,7 @@ bool AscGraphImpl::DoApplySchedAxisReorder(const AscNodePtr &node, const std::ve
   for (const auto axis_id : reordered_axis) {
     const auto it = std::find(node_axis.begin(), node_axis.end(), axis_id);
     GE_ASSERT_TRUE(it != node_axis.end(),
-                   "can not find axis_id[%ld] of reordered_axis, node[%s,%s]", axis_id,
+                   "cannot find axis_id[%ld] of reordered_axis, node[%s,%s]", axis_id,
                    node->GetNamePtr(), node->GetTypePtr());
   }
   node->attr.sched.axis = reordered_axis;
@@ -591,7 +591,7 @@ bool AscGraphImpl::DoApplyTensorAxisReorder(const AscNodePtr &node, const std::v
   const auto &node_axis = node->attr.sched.axis;
   for (const auto axis_id : reordered_axis) {
     const auto it = std::find(node_axis.begin(), node_axis.end(), axis_id);
-    GE_ASSERT_TRUE(it != node_axis.end(), "can not find axis_id[%ld] of reordered_axis, node[%s,%s]", axis_id,
+    GE_ASSERT_TRUE(it != node_axis.end(), "cannot find axis_id[%ld] of reordered_axis, node[%s,%s]", axis_id,
                    node->GetNamePtr(), node->GetTypePtr());
   }
   for (const auto output_ptr : node->outputs()) {
@@ -1319,7 +1319,7 @@ int64_t AscOpOutput::GenNextReuseId() {
 
 bool AscOpOutput::UseTQue(const Position pos, const int64_t depth, const int64_t buf_num, const int64_t id) {
   GE_ASSERT_TRUE(!HasBindToContainer(),
-                 " this tensor has been bound to a que, can not use any other que.");
+                 " this tensor has been bound to a que, cannot use any other que.");
   GE_ASSERT_TRUE(buf_num > 0, "input buf_num should be greater than 0.");
   GE_ASSERT_TRUE(buf_num < static_cast<int64_t>(INT32_MAX),
                  "input buf_num should be less than INT32_MAX.");
@@ -1341,7 +1341,7 @@ bool AscOpOutput::UseTQue(const Position pos, const int64_t depth, const int64_t
 
 bool AscOpOutput::UseTBuf(const Position pos, const int64_t id) {
   GE_ASSERT_TRUE(!HasBindToContainer(),
-                 " this tensor has been bound to a buf, can not use any other buf.");
+                 " this tensor has been bound to a buf, cannot use any other buf.");
   mem->position = pos;
   mem->alloc_type = AllocType::kAllocTypeBuffer;
   que->id = kIdNone;

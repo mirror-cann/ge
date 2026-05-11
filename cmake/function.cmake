@@ -287,3 +287,19 @@ function(target_clone original_library target_library libray_type)
     endif()
     target_clone_compile_and_link_options(${original_library} ${target_library})
 endfunction()
+
+# 设置公共参数
+macro(set_common_params)
+    if(ENABLE_OPEN_SRC OR BUILD_OPEN_PROJECT)
+        # install时不添加OPTIONAL选项，以保证打包产物完整
+        set(INSTALL_OPTIONAL)
+    endif()
+
+    if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+        # 单仓编译
+        set(TOPLEVEL_PROJECT ON)
+    else()
+        # 多仓联编
+        set(TOPLEVEL_PROJECT OFF)
+    endif()
+endmacro()

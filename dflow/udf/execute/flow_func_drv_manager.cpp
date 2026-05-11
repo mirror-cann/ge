@@ -110,7 +110,7 @@ int32_t FlowFuncDrvManager::InitBuff() const {
     BuffCfg default_cfg = {};
     const auto &buf_cfg = GlobalConfig::Instance().GetBufCfg();
     if (buf_cfg.size() > BUFF_MAX_CFG_NUM) {
-        UDF_LOG_ERROR("Buf cfg number[%zu] can not be larger than max limit[%d].", buf_cfg.size(), BUFF_MAX_CFG_NUM);
+        UDF_LOG_ERROR("Buf cfg number[%zu] cannot be larger than max limit[%d].", buf_cfg.size(), BUFF_MAX_CFG_NUM);
         return FLOW_FUNC_ERR_PARAM_INVALID;
     }
     for (size_t i = 0UL; i < buf_cfg.size(); ++i) {

@@ -695,7 +695,7 @@ Status SingleOpModel::BuildOp(StreamResource &resource, SingleOpImpl &single_op)
         gert::GlobalProfilingWrapper::GetInstance()->RegisterString(
             single_op_type));
   } else {
-    GELOGW("Can not find single op type from GeModel");
+    GELOGW("Cannot find single op type from GeModel");
   }
 
   GE_CHK_STATUS_RET(ParseTasks(), "[Parse][Tasks] failed.");
@@ -855,7 +855,7 @@ Status SingleOpModel::BuildDynamicOp(StreamResource &resource, DynamicSingleOpIm
     ProfilingManager::Instance().RegisterElement(single_op.profiling_node_type_index_, *single_op_type);
   } else {
     single_op.profiling_node_type_index_ = -1;
-    GELOGW("Can not find single op type from GeModel");
+    GELOGW("Cannot find single op type from GeModel");
   }
 
   bool need_hybrid_model = false;

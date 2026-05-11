@@ -382,7 +382,7 @@ static aclError GetOppPluginVendors(const std::string &vendorsConfig, std::vecto
     ACL_LOG_DEBUG("Enter get opp plugin vendors schedule, config file is '%s'", vendorsConfig.c_str());
     std::ifstream config(vendorsConfig);
     if (!config.good()) {
-        ACL_LOG_INFO("Can not open file '%s', %s", vendorsConfig.c_str(), strerror(errno));
+        ACL_LOG_INFO("Cannot open file '%s', %s", vendorsConfig.c_str(), strerror(errno));
         return ACL_ERROR_FAILURE;
     }
     std::string content;
@@ -459,7 +459,7 @@ static bool GetOpsProtoPath(std::string &opsProtoPath)
             const std::string pathVendors = filePath + "/vendors";
             const aclError ret = GetOppPluginVendors(pathVendors + "/config.ini", vendors);
             if (ret != ACL_SUCCESS) {
-                ACL_LOG_INFO("Can not get opp plugin vendors!");
+                ACL_LOG_INFO("Cannot get opp plugin vendors!");
                 opsProtoPath += filePath + "/op_proto/custom/:";
             } else {
                 for (const auto &vendor : vendors) {

@@ -71,7 +71,7 @@ Status InsertAippOpUtil::CheckAndCopyAippOpParams(const GraphManagerOptions& opt
                             ((aipp_op_params->src_image_size_w() != 0) || (aipp_op_params->src_image_size_h() != 0));
       if (crop_padding || size_w_h) {
         std::string reason("When --dynamic_image_size is set, ");
-        reason += (crop_padding ? "crop and padding can not be set to 'true'"
+        reason += (crop_padding ? "crop and padding cannot be set to 'true'"
                                 : "src_image_size_w and src_image_size_h must be set to '0'");
         REPORT_PREDEFINED_ERR_MSG("E10052", std::vector<const char *>({"reason"}), std::vector<const char *>({reason.c_str()}));
         GELOGE(PARAM_INVALID, "%s", reason.c_str());
@@ -151,7 +151,7 @@ Status InsertAippOpUtil::CheckInputNamePositionNotRepeat() const {
       }
       if (item->related_input_name() == another_item->related_input_name()) {
         std::string error_msg =
-            "Can not insert aipp to the same position! Please ensure related_input_name"
+            "Cannot insert aipp to the same position! Please ensure related_input_name"
             " param is different in different aipp config";
         GELOGE(PARAM_INVALID, "[Check][InputParam]%s", error_msg.c_str());
         REPORT_PREDEFINED_ERR_MSG("E10052", std::vector<const char_t *>({"reason"}),
@@ -174,7 +174,7 @@ Status InsertAippOpUtil::CheckInputRankPositionNoRepeat() const {
       GE_CHECK_NOTNULL(another_item);
       if (!another_item->related_input_name().empty()) {
         std::string error_msg =
-            "Can not both set related_input_rank and related_input_name!"
+            "Cannot both set related_input_rank and related_input_name!"
             " Please ensure param is the same with the first aipp config(related_input_rank)";
         GELOGE(PARAM_INVALID, "[Check][InputParam]%s", error_msg.c_str());
         REPORT_PREDEFINED_ERR_MSG("E10052", std::vector<const char_t *>({"reason"}),
@@ -183,7 +183,7 @@ Status InsertAippOpUtil::CheckInputRankPositionNoRepeat() const {
       }
       if (item->related_input_rank() == another_item->related_input_rank()) {
         std::string error_msg =
-            "Can not insert aipp to the same position! Please ensure related_input_rank"
+            "Cannot insert aipp to the same position! Please ensure related_input_rank"
             " param is different in different aipp config";
         GELOGE(PARAM_INVALID, "[Check][InputParam]%s", error_msg.c_str());
         REPORT_PREDEFINED_ERR_MSG("E10052", std::vector<const char_t *>({"reason"}),
@@ -243,7 +243,7 @@ Status InsertAippOpUtil::CheckGraph(const ComputeGraphPtr &graph) const {
     }
     GE_CHK_LOG_AND_ERRORMSG((aippNodes.size() == 0) || (aippNodes.size() == next_nodes_cnt),
         PARAM_INVALID,
-        "Can not config part of outputs of Data node to support AIPP, config all "
+        "Cannot config part of outputs of Data node to support AIPP, config all "
         "of the outputs of Data to support AIPP, or config none of them");
 
     auto aippParams = MakeUnique<domi::AippOpParams>();

@@ -327,7 +327,7 @@ aclError OpCompiler::MakeCompileParam(const AclOp &op, CompileParam &param, cons
     array_utils::DynamicInputIndexPair indexPair;
     const bool ret = array_utils::GetDynamicInputIndex(op.numInputs, op.inputDesc, indexPair);
     if (!ret) {
-        ACL_LOG_ERROR("Can not get dynamic input index, invalid dynamic input attr, op type: %s",
+        ACL_LOG_ERROR("Cannot get dynamic input index, invalid dynamic input attr, op type: %s",
             op.opType.c_str());
         return ACL_ERROR_INVALID_PARAM;
     }

@@ -234,7 +234,7 @@ class BgTest : public testing::Test {
       if (node->GetType() == "Data" || node->GetType() == "InnerData") {
         int32_t index;
         ASSERT_TRUE(ge::AttrUtils::GetInt(node->GetOpDesc(), "index", index))
-            << "Can not get index attr on data " << node->GetName();
+            << "Cannot get index attr on data " << node->GetName();
         ASSERT_TRUE(indexes_to_name.emplace(index, node->GetName()).second)
             << "Duplicated index on data " << node->GetName() << " and data " << indexes_to_name[index] << ", on graph "
             << graph.GetName();
@@ -247,7 +247,7 @@ class BgTest : public testing::Test {
       if (node->GetType() == "Data" || node->GetType() == "InnerData") {
         int32_t index;
         ASSERT_TRUE(ge::AttrUtils::GetInt(node->GetOpDescBarePtr(), "index", index))
-            << "Can not get index attr on data " << node->GetName();
+            << "Cannot get index attr on data " << node->GetName();
         ASSERT_TRUE(indexes_to_name.emplace(index, node->GetName()).second)
             << "Duplicated index on data " << node->GetName() << " and data " << indexes_to_name[index] << ", on graph "
             << graph->GetName();

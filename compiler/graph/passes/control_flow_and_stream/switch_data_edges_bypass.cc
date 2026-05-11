@@ -180,7 +180,7 @@ Status BypassSwitchOut(const NodePtr &switch_node, int32_t out_index) {
 
   auto data_node_and_anchor = GetInDataNodeByIndex(switch_node, SWITCH_DATA_INPUT);
   if (data_node_and_anchor.first == nullptr) {
-    GELOGW("Can not bypass switch node %s, the node does not has a data input", switch_node->GetName().c_str());
+    GELOGW("Cannot bypass switch node %s, the node does not has a data input", switch_node->GetName().c_str());
     return SUCCESS;
   }
 

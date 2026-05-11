@@ -93,11 +93,11 @@ int32_t TimeBatchFlowFunc::CheckFlowInfo(const std::vector<std::shared_ptr<FlowM
     const uint64_t start_time0 = input_msg0->GetStartTime();
     const uint64_t end_time0 = input_msg0->GetEndTime();
     if (start_time0 > end_time0) {
-        UDF_LOG_ERROR("The input start time[%lu] can not be greater than end time[%lu].", start_time0, end_time0);
+        UDF_LOG_ERROR("The input start time[%lu] cannot be greater than end time[%lu].", start_time0, end_time0);
         return FLOW_FUNC_ERR_PARAM_INVALID;
     }
     if ((!input_cache_.empty()) && (start_time0 < end_time_)) {
-        UDF_LOG_ERROR("The current input start time[%lu] can not be less than last input end time[%lu].",
+        UDF_LOG_ERROR("The current input start time[%lu] cannot be less than last input end time[%lu].",
             start_time0, end_time_);
         return FLOW_FUNC_ERR_PARAM_INVALID;
     }

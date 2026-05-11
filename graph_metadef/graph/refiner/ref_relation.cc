@@ -43,7 +43,7 @@ public:
       }
       return GRAPH_SUCCESS;
     }
-    GELOGD("[RefRelations][Check] can not find any relations! key value of dest relation is %s", key.hash_key.c_str());
+    GELOGD("[RefRelations][Check] cannot find any relations! key value of dest relation is %s", key.hash_key.c_str());
     return GRAPH_SUCCESS;
   };
   graphStatus BuildRefRelations(ge::ComputeGraph &graph);
@@ -253,7 +253,7 @@ void RefRelations::Impl::GetDataAndNetoutputOfSubGraph(const ge::ComputeGraph &r
   for (const auto &name : sub_graph_names) {
     const auto &sub_graph = root_graph.GetSubgraph(name);
     if (sub_graph == nullptr) {
-      GELOGW("[RefRelations][Check] Can not find sub graph %s, root graph: %s.", name.c_str(),
+      GELOGW("[RefRelations][Check] Cannot find sub graph %s, root graph: %s.", name.c_str(),
              root_graph.GetName().c_str());
       continue;
     }

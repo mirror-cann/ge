@@ -1415,7 +1415,7 @@ TEST_F(GraphCompilerTest, test_build_no_tiling) {
         EXPECT_EQ(
           AttrUtils::GetBool(node->GetOpDesc(), ATTR_NAME_OP_NO_TILING, is_no_tiling),
           true);
-        // need expect true, but this case can not construct unknown shape of add_1 and add_2
+        // need expect true, but this case cannot construct unknown shape of add_1 and add_2
       }
     }
   };
@@ -3247,7 +3247,7 @@ TEST_F(GraphCompilerTest, test_compile_var_read_first_then_write_var_then_read_v
   };
   // `graph` is a para of lambda
   CHECK_GRAPH(PrepareAfterPrepareOptimize) {
-    // read_var is for cache, can not remove
+    // read_var is for cache, cannot remove
     auto read_variable_op = graph->FindNode("read_var");
     EXPECT_NE(read_variable_op, nullptr);
     auto read_node = graph->FindNode("mul");

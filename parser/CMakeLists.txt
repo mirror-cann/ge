@@ -157,27 +157,27 @@ endif()
 
 install(TARGETS _caffe_parser parser_common fmk_onnx_parser fmk_parser func2graph parser_headers
     EXPORT parser-targets
-    LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR} ${INSTALL_OPTIONAL} COMPONENT opensdk
-    ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR} ${INSTALL_OPTIONAL} COMPONENT opensdk
-    RUNTIME DESTINATION ${INSTALL_RUNTIME_DIR} ${INSTALL_OPTIONAL} COMPONENT opensdk
+    LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR} ${INSTALL_OPTIONAL}
+    ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR} ${INSTALL_OPTIONAL}
+    RUNTIME DESTINATION ${INSTALL_RUNTIME_DIR} ${INSTALL_OPTIONAL}
 )
 install(FILES   ${AIR_CODE_DIR}/inc/parser/external/parser/onnx_parser.h
                 ${AIR_CODE_DIR}/inc/parser/external/parser/caffe_parser.h
                 ${AIR_CODE_DIR}/inc/parser/external/parser/tensorflow_parser.h
-        DESTINATION ${INSTALL_INCLUDE_DIR}/parser/external/parser COMPONENT opensdk EXCLUDE_FROM_ALL
+        DESTINATION ${INSTALL_INCLUDE_DIR}/parser/external/parser EXCLUDE_FROM_ALL
 )
 # 下列头文件发布是非法的，需要在后续整改中删掉
 # --------------------start------------------------
 install(FILES   ${PARSER_DIR}/parser/common/pre_checker.h
-        DESTINATION ${INSTALL_INCLUDE_DIR}/parser/parser/common COMPONENT opensdk EXCLUDE_FROM_ALL
+        DESTINATION ${INSTALL_INCLUDE_DIR}/parser/parser/common EXCLUDE_FROM_ALL
 )
 install(FILES   ${PARSER_DIR}/parser/common/convert/pb2json.h
-        DESTINATION ${INSTALL_INCLUDE_DIR}/parser/parser/common/convert COMPONENT opensdk EXCLUDE_FROM_ALL
+        DESTINATION ${INSTALL_INCLUDE_DIR}/parser/parser/common/convert EXCLUDE_FROM_ALL
 )
 # ---------------------end-------------------------
 if (PACKAGE STREQUAL "opensdk")
     install(EXPORT parser-targets DESTINATION ${INSTALL_CONFIG_DIR}
-        FILE parser-targets.cmake COMPONENT opensdk EXCLUDE_FROM_ALL
+        FILE parser-targets.cmake EXCLUDE_FROM_ALL
     )
     set(PKG_NAME parser)
     configure_package_config_file(${TOP_DIR}/cmake/config/pkg_config_template.cmake.in
@@ -188,6 +188,6 @@ if (PACKAGE STREQUAL "opensdk")
     )
     unset(PKG_NAME)
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/parser-config.cmake
-        DESTINATION ${INSTALL_CONFIG_DIR} COMPONENT opensdk EXCLUDE_FROM_ALL
+        DESTINATION ${INSTALL_CONFIG_DIR} EXCLUDE_FROM_ALL
     )
 endif()

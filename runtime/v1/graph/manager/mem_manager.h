@@ -137,7 +137,7 @@ class MemManager : public MemoryManager {
 
     // Usually impossible
     if (allocator == nullptr) {
-      GELOGW("can not get allocator, return default allocator, memory type is %u.", memory_type);
+      GELOGW("cannot get allocator, return default allocator, memory type is %u.", memory_type);
       static T default_allocator(RT_MEMORY_RESERVED);
       return default_allocator;
     }

@@ -224,7 +224,7 @@ TEST_F(UtestControlOpExecutor, test_WhileOpNodeTask) {
   NodePtr cond_node = CreateNode(*graph, "data", DATA, 1, 1);
   ASSERT_EQ(NodeItem::Create(cond_node, new_cond_node), SUCCESS);
   NodeItem *cond_node_item = new_cond_node.get();
-  // this attr is requrid, otherwise task_context on node state can not init successfully
+  // this attr is requrid, otherwise task_context on node state cannot init successfully
   cond_node_item->input_start = 0; 
   cond_node_item->output_start = 0;
   cond_node_item->num_outputs = 1;

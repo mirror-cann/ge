@@ -198,7 +198,7 @@ namespace {
         AclRegProfCallback() {
             const auto profRet = MsprofRegisterCallback(ASCENDCL, &AclProfCtrlHandle);
             if (profRet != 0) {
-                ACL_LOG_ERROR("can not register Callback, prof result = %d", profRet);
+                ACL_LOG_ERROR("cannot register Callback, prof result = %d", profRet);
             }
         }
         ~AclRegProfCallback() {}

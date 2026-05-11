@@ -301,7 +301,7 @@ uint32_t EsSetFormat(EsCTensorHolder *tensor, C_Format format) {
     GE_ASSERT_NOTNULL(graph);                                                                           \
     auto ge_graph = graph->GetGraph();                                                                  \
     GE_ASSERT_NOTNULL(ge_graph, "Graph has been build and reset, cannot set attr for graph");           \
-    GE_ASSERT_TRUE(ge_graph->IsValid(), "You can not set attr for empty graph, add some node firstly"); \
+    GE_ASSERT_TRUE(ge_graph->IsValid(), "You cannot set attr for empty graph, add some node firstly"); \
     ge::AttrValue av;                                                                                   \
     GE_ASSERT_GRAPH_SUCCESS(av.SetAttrValue(value_expr));                                               \
     return static_cast<uint32_t>(ge_graph->SetAttr(attr_name, av));                                     \

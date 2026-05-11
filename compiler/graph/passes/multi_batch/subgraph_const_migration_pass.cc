@@ -234,7 +234,7 @@ void SubgraphConstMigrationPass::GetPeerNameList(const NodePtr &node, std::set<s
     std::string node_full_name = peer_node->GetName();
     size_t pos = node_full_name.find(kMbatchNodeNameMark);
     if (pos == std::string::npos) {
-      GELOGI("Can not find: %s of multi-batch in node: %s", kMbatchNodeNameMark.c_str(), node_full_name.c_str());
+      GELOGI("Cannot find: %s of multi-batch in node: %s", kMbatchNodeNameMark.c_str(), node_full_name.c_str());
       continue;
     }
 

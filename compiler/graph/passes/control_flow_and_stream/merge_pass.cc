@@ -92,7 +92,7 @@ Status MergePass::DealWithMergeNode(NodePtr &node) {
       return IsolateAndDeleteNode(node, merge_io_map);
     }
     default: {
-      // Case C: input_count > 1, the merge node can not be optimized
+      // Case C: input_count > 1, the merge node cannot be optimized
       return SUCCESS;
     }
   }

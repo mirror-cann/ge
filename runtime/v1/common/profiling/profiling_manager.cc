@@ -223,7 +223,7 @@ void ProfilingManager::ProfOpDetailProfiling(const uint64_t module, const uint32
         continue;
       }
       if (davinci_model->NeedClearDfxCacheFlagAfterInit()) {
-        GELOGW("Can not report profiling data due to cache is clear, model id is %u", model_id);
+        GELOGW("Cannot report profiling data due to cache is clear, model id is %u", model_id);
         continue;
       }
       (void)davinci_model->ReportProfilingData();

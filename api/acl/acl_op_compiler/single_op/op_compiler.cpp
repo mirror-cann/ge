@@ -270,7 +270,7 @@ aclError aclSetCompileopt(aclCompileOpt opt, const char *value)
 
     std::string optStr = compileOptMap.find(opt) != compileOptMap.cend() ? compileOptMap[opt] : "";
     if (optStr.empty()) {
-        ACL_LOG_INNER_ERROR("[Check][Opt]Can not find any options[%d] valid in enum aclCompileOpt, "
+        ACL_LOG_INNER_ERROR("[Check][Opt]Cannot find any options[%d] valid in enum aclCompileOpt, "
                             "please check input option.",
                             opt);
         return ACL_ERROR_INTERNAL_ERROR;

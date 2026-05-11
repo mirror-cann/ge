@@ -599,7 +599,7 @@ void GeGenerator::Impl::SetOmSystemInfo(AttrHolder &obj) const {
   (void)ge::GetContext().GetOption(ge::FRAMEWORK_TYPE, framework_type);
   auto iter = ge::kFwkTypeToStr.find(framework_type);
   if (iter == ge::kFwkTypeToStr.end()) {
-    GELOGW("Can not find framework_type in the map.");
+    GELOGW("Cannot find framework_type in the map.");
   } else {
     set_model_attr_func(kFrameWorkType, iter->second);
   }
@@ -1437,7 +1437,7 @@ Status GeGenerator::CheckEngineTypeSupport(const NodePtr &node, OpEngineType eng
                               std::vector<const char *>({op_desc->GetName().c_str(), op_desc->GetType().c_str(),
                                                          ("engine name" + FmtToStr(op_engine_name)).c_str(),
                                                          "This optype is not registed"}));
-    GELOGE(FAILED, "[Check][Param] Can not find ops kernel, engine name:%s. op:%s(%s)", op_engine_name.c_str(),
+    GELOGE(FAILED, "[Check][Param] Cannot find ops kernel, engine name:%s. op:%s(%s)", op_engine_name.c_str(),
            op_desc->GetName().c_str(), op_desc->GetType().c_str());
     return FAILED;
   }
@@ -1464,7 +1464,7 @@ Status GeGenerator::CheckEngineTypeSupport(const NodePtr &node, OpEngineType eng
         "EZ3003", std::vector<const char *>({"opname", "optype"}),
         std::vector<const char *>({op_desc->GetName().c_str(), op_desc->GetType().c_str()}));
     GELOGE(FAILED,
-           "[Check][Param] Can not find any supported ops kernel info store by kernel_name %s,"
+           "[Check][Param] Cannot find any supported ops kernel info store by kernel_name %s,"
            "op type is %s, op name is %s",
            kernel_name.c_str(), op_desc->GetType().c_str(), op_desc->GetName().c_str());
   }

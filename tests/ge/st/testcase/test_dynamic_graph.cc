@@ -343,7 +343,7 @@ Graph BuildFuzzCompileUnknownRankGraph() {
         .Attr("offset_x", (int32_t)1)
         .Build("conv2d");
   conv2d->SetOpEngineName("AIcoreEngine");
-  conv2d->SetOpKernelLibName("AIcoreEngine");  // fake op can not do that?
+  conv2d->SetOpKernelLibName("AIcoreEngine");  // fake op cannot do that?
 
   auto netoutput = OP_CFG(NETOUTPUT)
         .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
@@ -374,12 +374,12 @@ Graph BuildFuzzCompileOriginGraphWithUBfusion() {
         .Attr("dilations", test_int64_list_attr).Attr("groups", (int32_t)1).Attr("offset_x", (int32_t)1)
         .Build("conv2d");
   conv2d->SetOpEngineName("AIcoreEngine");
-  conv2d->SetOpKernelLibName("AIcoreEngine");  // fake op can not do that?
+  conv2d->SetOpKernelLibName("AIcoreEngine");  // fake op cannot do that?
 
   auto relu = OP_CFG(RELU).TensorDesc(FORMAT_NCHW, DT_FLOAT, unknown_shape)
         .InCnt(1).OutCnt(1).Build("relu");
   relu->SetOpEngineName("AIcoreEngine");
-  relu->SetOpKernelLibName("AIcoreEngine");  // fake op can not do that? // fe should insure kernel lib name
+  relu->SetOpKernelLibName("AIcoreEngine");  // fake op cannot do that? // fe should insure kernel lib name
 
   auto netoutput_sub = OP_CFG("_RetVal").TensorDesc(FORMAT_NCHW, DT_FLOAT, unknown_shape)
         .InCnt(1).OutCnt(1).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0).Build("netoutput_sub");
@@ -396,7 +396,7 @@ Graph BuildFuzzCompileOriginGraphWithUBfusion() {
         .Attr("dilations", test_int64_list_attr).Attr("groups", (int32_t)1).Attr("offset_x", (int32_t)1)
         .Attr("_original_fusion_graph", fuse_origin_graph).Build("conv2d_fused");
   conv2d_fused->SetOpEngineName("AIcoreEngine");
-  conv2d_fused->SetOpKernelLibName("AIcoreEngine");  // fake op can not do that?
+  conv2d_fused->SetOpKernelLibName("AIcoreEngine");  // fake op cannot do that?
 
   DEF_GRAPH(g1) {
     CHAIN(NODE(data_a)->NODE(conv2d_fused)->NODE("netoutput", NETOUTPUT));
@@ -2793,7 +2793,7 @@ TEST_F(DynamicGraphTest, TestInferShapeForSubgraph) {
 
     fake_type2_op->SetOpInferDepends({"__input0"});
     fake_type2_op->SetOpEngineName("AIcoreEngine");
-    fake_type2_op->SetOpKernelLibName("AIcoreEngine");  // fake op can not do that?
+    fake_type2_op->SetOpKernelLibName("AIcoreEngine");  // fake op cannot do that?
 
     auto ret_val = OP_CFG("_RetVal")
         .InCnt(1)

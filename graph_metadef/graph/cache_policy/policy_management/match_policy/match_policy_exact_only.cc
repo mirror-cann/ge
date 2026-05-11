@@ -14,7 +14,7 @@ CacheItemId MatchPolicyExactOnly::GetCacheItemId(const CCStatType &cc_state, con
   const CacheHashKey hash_key = desc->GetCacheDescHash();
   const auto &iter = cc_state.find(hash_key);
   if (iter == cc_state.end()) {
-    GELOGD("can not find without shape hash %lu", hash_key);
+    GELOGD("cannot find without shape hash %lu", hash_key);
     return KInvalidCacheItemId;
   }
   const auto &info_vec = iter->second;

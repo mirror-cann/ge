@@ -16,7 +16,7 @@ import os
 
 from ._lib_loader import load_lib_from_path
 
-LIB_NAME = "libgraph_wrapper.so"
+LIB_NAME = "liboffline_compile_wrapper.so"
 _dir = os.path.dirname(os.path.abspath(__file__))
 offline_compile_lib = load_lib_from_path(LIB_NAME, _dir)
 
@@ -74,7 +74,7 @@ def get_offline_compile_lib():
     """Get the offline compile wrapper library handle.
 
     Returns:
-        ctypes.CDLL: The loaded libgraph_wrapper.so library handle.
+        ctypes.CDLL: The loaded liboffline_compile_wrapper.so library handle.
     """
     return offline_compile_lib
 

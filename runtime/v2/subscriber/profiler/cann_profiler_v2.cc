@@ -529,16 +529,16 @@ Chain *CannProfilerV2::InitOutputChainFromEquivalentDataEdges(
   if (iter != kernel_names_2_exe_nodes.cend()) {
     node = iter->second;
   } else {
-    GELOGW("[Cann profiling] Can not find node %s", name_and_idx.kernel_name.c_str());
+    GELOGW("[Cann profiling] Cannot find node %s", name_and_idx.kernel_name.c_str());
     return nullptr;
   }
   GE_ASSERT_NOTNULL(node->GetExtendInfo());
   const auto symbol = node->GetExtendInfo()->GetOutputSymbol(name_and_idx.idx);
   GE_ASSERT_TRUE(symbol != ge::kInvalidSymbol,
-                 "[Cann Profiling] Can not find out kernel [%s] from equivalent data edges.", node->GetNamePtr());
+                 "[Cann Profiling] Cannot find out kernel [%s] from equivalent data edges.", node->GetNamePtr());
   const auto value_iter = extend_info_->symbols_to_value.find(symbol);
   GE_ASSERT_TRUE(value_iter != extend_info_->symbols_to_value.end(),
-                 "[Cann Profiling] Can not find out kernel [%s] from symbol to values.", node->GetNamePtr());
+                 "[Cann Profiling] Cannot find out kernel [%s] from symbol to values.", node->GetNamePtr());
   return reinterpret_cast<Chain *>(value_iter->second);
 }
 

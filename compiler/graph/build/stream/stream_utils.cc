@@ -37,7 +37,7 @@ Status StreamUtils::ConvertSubgraphs(const ComputeGraphPtr &graph, const Graph2S
                                      const std::map<std::string, int32_t> &max_parallel_num,
                                      std::vector<SubgraphPtr> &subgraphs) {
   const auto iter = subgraph_map.find(graph);
-  GE_ASSERT_TRUE(iter != subgraph_map.end(), "Can not find graph: %s.", graph->GetName().c_str());
+  GE_ASSERT_TRUE(iter != subgraph_map.end(), "Cannot find graph: %s.", graph->GetName().c_str());
 
   const std::vector<SubGraphInfoPtr> &subgraph_infos = iter->second;
   for (auto &subgraph_info : subgraph_infos) {
@@ -51,7 +51,7 @@ Status StreamUtils::ConvertSubgraphs(const ComputeGraphPtr &graph, const Graph2S
 
     const std::string &engine_name = subgraph_info->GetEngineName();
     auto engine_conf_iter = engine_confs.find(engine_name);
-    GE_ASSERT_TRUE(engine_conf_iter != engine_confs.end(), "Can not find engine: %s.", engine_name.c_str());
+    GE_ASSERT_TRUE(engine_conf_iter != engine_confs.end(), "Cannot find engine: %s.", engine_name.c_str());
     GE_CHECK_NOTNULL(engine_conf_iter->second);
 
     SubgraphPtr subgraph = MakeShared<Subgraph>(*subgraph_info, *engine_conf_iter->second);
@@ -530,7 +530,7 @@ Status StreamUtils::RefreshEventByReuseMap(
     std::vector<uint32_t> &send_events = one_pair.second;
     for (size_t i = 0U; i < send_events.size(); i++) {
       std::map<uint32_t, uint32_t>::const_iterator find_it = old_to_new_events.find(send_events[i]);
-      GE_ASSERT_TRUE(find_it != old_to_new_events.cend(), "Can not find send id: %u.", send_events[i]);
+      GE_ASSERT_TRUE(find_it != old_to_new_events.cend(), "Cannot find send id: %u.", send_events[i]);
       send_events[i] = find_it->second;
     }
   }
@@ -540,7 +540,7 @@ Status StreamUtils::RefreshEventByReuseMap(
     std::vector<uint32_t> &recv_events = one_pair.second;
     for (size_t i = 0U; i < recv_events.size(); i++) {
       std::map<uint32_t, uint32_t>::const_iterator find_it = old_to_new_events.find(recv_events[i]);
-      GE_ASSERT_TRUE(find_it != old_to_new_events.cend(), "Can not find recv id: %u.", recv_events[i]);
+      GE_ASSERT_TRUE(find_it != old_to_new_events.cend(), "Cannot find recv id: %u.", recv_events[i]);
       recv_events[i] = find_it->second;
     }
   }

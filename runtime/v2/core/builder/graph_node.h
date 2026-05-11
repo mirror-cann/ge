@@ -88,7 +88,7 @@ struct GraphNode {
       return ge::PARAM_INVALID;
     }
     if (output_values.empty()) {
-      GELOGE(ge::FAILED, "Can not find the output any value for node %s", node->GetName().c_str());
+      GELOGE(ge::FAILED, "Cannot find the output any value for node %s", node->GetName().c_str());
       return ge::GRAPH_FAILED;
     }
     indexes_to_feed_input[feed_index] = output_values[0];
@@ -158,7 +158,7 @@ struct GraphNode {
   ge::graphStatus GetExeNodeId(const ge::FastNode *node, NodeIdentity &node_id) {
     const auto iter = graph_nodes_to_executor_node.find(node);
     GE_ASSERT_TRUE(iter != graph_nodes_to_executor_node.end(),
-                   "Can not find the executor node from graph node %s(%s) when create watcher",
+                   "Cannot find the executor node from graph node %s(%s) when create watcher",
                    node->GetName().c_str(), node->GetType().c_str());
     node_id = iter->second->node_id;
     return ge::GRAPH_SUCCESS;

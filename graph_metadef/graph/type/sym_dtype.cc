@@ -350,7 +350,7 @@ graphStatus SymDtype::Eval(const OpDesc &op, std::vector<DataType> &dtypes) cons
                  op.GetName().c_str(), op.GetType().c_str());
 
   for (auto &backend : ir_inputs_) {
-    GE_WARN_ASSERT(backend.type == kIrInputDynamic, "List-type sym %s can not bind to %s input %s", id_.c_str(),
+    GE_WARN_ASSERT(backend.type == kIrInputDynamic, "List-type sym %s cannot bind to %s input %s", id_.c_str(),
                    ToString(backend.type), backend.name.c_str());
     auto &input_range = ir_input_2_range[backend.index];
     size_t start = input_range.first;

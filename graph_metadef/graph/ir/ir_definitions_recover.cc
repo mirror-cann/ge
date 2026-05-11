@@ -284,7 +284,7 @@ graphStatus RecoverIrUtils::RecoverIrAttrDefaultValue(const ge::OpDescPtr &desc,
     const std::map<std::string, ge::AnyValue>::const_iterator iter = ir_def.attr_value.find(name);
     if (iter == ir_def.attr_value.cend()) {
       GELOGI(
-          "node[%s(%s)] missing attr name[%s], and can not find default value for the attr,"
+          "node[%s(%s)] missing attr name[%s], and cannot find default value for the attr,"
           " it may be REQUIRED_ATTR.",
           desc->GetName().c_str(), op_type.c_str(), name.c_str());
       continue;
@@ -479,7 +479,7 @@ bool CheckIrSpec(const ge::OpDescPtr &desc) {
     }
     const std::map<std::string, ge::AnyValue>::const_iterator iter = ir_def.attr_value.find(name);
     if (iter == ir_def.attr_value.cend()) {
-      GELOGI("node[%s(%s)] missing attr name[%s], and can not find default value for the attr,"
+      GELOGI("node[%s(%s)] missing attr name[%s], and cannot find default value for the attr,"
              " it may be REQUIRED_ATTR.",
              desc->GetName().c_str(), op_type.c_str(), name.c_str());
       return false;

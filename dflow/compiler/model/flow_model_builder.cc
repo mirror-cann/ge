@@ -267,14 +267,14 @@ Status FlowModelBuilder::UpdateTensorDescByOption(std::vector<GeTensorDesc> &inp
   auto mode_iter = options.find(OPTION_EXEC_DYNAMIC_EXECUTE_MODE);
   bool enable_dynamic_execute_mode = (mode_iter != options.end()) && (mode_iter->second == "dynamic_execute");
   if (!enable_dynamic_execute_mode) {
-    GELOGD("no need update by shape range, as can not find %s option in graph options or option value is empty.",
+    GELOGD("no need update by shape range, as cannot find %s option in graph options or option value is empty.",
            OPTION_EXEC_DYNAMIC_EXECUTE_MODE);
     return SUCCESS;
   }
   auto iter = options.find(OPTION_EXEC_DATA_INPUTS_SHAPE_RANGE);
   bool enable_input_shape_range = (iter != options.end()) && (!iter->second.empty());
   if (!enable_input_shape_range) {
-    GELOGD("no need update by shape range, as can not find %s option in graph options or option value is empty.",
+    GELOGD("no need update by shape range, as cannot find %s option in graph options or option value is empty.",
            OPTION_EXEC_DATA_INPUTS_SHAPE_RANGE);
     return SUCCESS;
   }

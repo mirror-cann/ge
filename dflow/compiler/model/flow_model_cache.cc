@@ -278,7 +278,7 @@ void FlowModelCache::TryRecordSuspendGraph(const std::string &suspend_graph_name
 bool FlowModelCache::TryLoadCompileResultFromCache(CacheCompileResult &cache_compile_result) const {
   auto buildinfo_exist = CheckFileExist(build_info_path_);
   if (!cache_enable_ || !buildinfo_exist) {
-    GELOGI("Can not load compile result from cache, enable cache = %d, buildinfo exist = %d.",
+    GELOGI("Cannot load compile result from cache, enable cache = %d, buildinfo exist = %d.",
            static_cast<int32_t>(cache_enable_), static_cast<int32_t>(buildinfo_exist));
     return false;
   }
@@ -671,7 +671,7 @@ Status FlowModelCache::TryMatchCacheForUdfSubGraph(bool &is_match) const {
     GEEVENT("Match cache successfully for udf graph[%s].", root_graph_->GetName().c_str());
     is_match = true;
   } else {
-    GELOGI("Can not match cache for udf graph[%s], cache need manual check = %d, cache exist = %d.",
+    GELOGI("Cannot match cache for udf graph[%s], cache need manual check = %d, cache exist = %d.",
            root_graph_->GetName().c_str(),
            static_cast<int32_t>(cache_manual_check_), static_cast<int32_t>(cache_file_exist));
     is_match = false;

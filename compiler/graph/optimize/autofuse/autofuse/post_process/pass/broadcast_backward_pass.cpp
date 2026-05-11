@@ -301,7 +301,7 @@ bool CheckBackwardCommon(const NodePtr &next_node) {
   DataType output_dtype;
   if (IsDtypeNotSupportOp(next_node, output_dtype)) {
     // Broadcast不支持的dtype不进行后移
-    GELOGI("Node %s(%s) can not backward with dtype(%s)", next_node->GetName().c_str(), next_node->GetType().c_str(),
+    GELOGI("Node %s(%s) cannot backward with dtype(%s)", next_node->GetName().c_str(), next_node->GetType().c_str(),
            TypeUtils::DataTypeToSerialString(output_dtype).c_str());
     return false;
   }

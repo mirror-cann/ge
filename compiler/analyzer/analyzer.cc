@@ -126,7 +126,7 @@ void Analyzer::DestroySessionJsonObject(uint64_t session_id) {
   std::map<uint64_t, std::map<uint64_t, std::shared_ptr<analyzer::GraphInfo>>>::const_iterator iter =
     graph_infos_.find(session_id);
   if (iter == graph_infos_.end()) {
-    GELOGW("can not find the stored object by session_id[%" PRIu64 "].Do nothing", session_id);
+    GELOGW("cannot find the stored object by session_id[%" PRIu64 "].Do nothing", session_id);
   } else {
     graph_infos_.erase(iter);
   }
@@ -136,11 +136,11 @@ void Analyzer::DestroyGraphJsonObject(uint64_t session_id, uint64_t graph_id) {
   std::lock_guard<std::recursive_mutex> lg(mutex_);
   auto iter = graph_infos_.find(session_id);
   if (iter == graph_infos_.end()) {
-    GELOGW("can not find the stored object by session_id[%" PRIu64 "].Do nothing", session_id);
+    GELOGW("cannot find the stored object by session_id[%" PRIu64 "].Do nothing", session_id);
   } else {
     std::map<uint64_t, std::shared_ptr<analyzer::GraphInfo>>::const_iterator iter1 = (iter->second).find(graph_id);
     if (iter1 == (iter->second).end()) {
-      GELOGW("Can not find the graph json object by session_id[%" PRIu64 "] and graph_id[%" PRIu64 "]. Do nothing.", session_id,
+      GELOGW("Cannot find the graph json object by session_id[%" PRIu64 "] and graph_id[%" PRIu64 "]. Do nothing.", session_id,
              graph_id);
       return;
     }

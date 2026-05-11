@@ -1036,7 +1036,7 @@ int32_t FlowFuncProcessor::WriteStatusOutputQueue(uint64_t trans_id,
             return FLOW_FUNC_SUCCESS;
         }
     }
-    // mbuf header can not be got while input is empty
+    // mbuf header cannot be got while input is empty
     if (input_queue_infos_.empty()) {
         UDF_LOG_ERROR("Current udf is not allowed raising exception result of inputs is empty.");
         return FLOW_FUNC_FAILED;
@@ -1206,7 +1206,7 @@ bool FlowFuncProcessor::PreCheckSpecialStatus() {
         TryClearAndRecover();
         return true;
     } else {
-        UDF_LOG_ERROR("Suspend status and recover status can not be both true. Recover should be done after suspend.");
+        UDF_LOG_ERROR("Suspend status and recover status cannot be both true. Recover should be done after suspend.");
         status_ = FlowFuncProcessorStatus::kProcError;
         return false;
     }

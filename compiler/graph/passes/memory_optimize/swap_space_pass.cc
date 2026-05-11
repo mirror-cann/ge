@@ -156,7 +156,7 @@ Status SwapSpacePass::GetAllSwapCandidates(const ComputeGraphPtr &graph,
     }
     REQUIRE_NOT_NULL(node, "[SWAP][Get] invalid swap_space_nodes option %s, which %s does not exist in graph %s",
                      swap_space_nodes.c_str(), node_name.c_str(), graph->GetName().c_str());
-    REQUIRE_SUCCESS(CheckNodeCouldSwap(node), "[SWAP][Check]Node %s need assign special memory, which can not swap out",
+    REQUIRE_SUCCESS(CheckNodeCouldSwap(node), "[SWAP][Check]Node %s need assign special memory, which cannot swap out",
                     node_name.c_str());
     int input_index = 0;
     REQUIRE_SUCCESS(ConvertToInt32(StringUtils::Trim(node_and_input_index.back()), input_index),

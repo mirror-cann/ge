@@ -438,7 +438,7 @@ Status UdfExecutorClient::GetModelMessageClients(
   std::unique_lock<std::mutex> guard(mutex_);
   const auto pid_iter = model_id_to_pids_.find(root_model_id);
   if (pid_iter == model_id_to_pids_.cend()) {
-    GELOGE(FAILED, "Can not find udf execute process for model %u.", root_model_id);
+    GELOGE(FAILED, "Cannot find udf execute process for model %u.", root_model_id);
     return FAILED;
   }
   for (const auto &pid : pid_iter->second) {
@@ -509,7 +509,7 @@ Status UdfExecutorClient::UnloadModel(uint32_t model_id) {
       (void)model_id_to_pids_.erase(iter);
     }
   }
-  // can not merge to ShutdownSubprocess loop, as it will be shutdown one by one.
+  // cannot merge to ShutdownSubprocess loop, as it will be shutdown one by one.
   for (const auto &pid : pids) {
     NotifySubprocessShutdown(pid);
     const auto iter_handle = pid_to_message_client_.find(pid);

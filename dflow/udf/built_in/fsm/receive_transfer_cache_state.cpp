@@ -69,7 +69,7 @@ FsmStatus ReceiveTransferCacheState::RecvKv(LlmCommEntity &entity) {
     auto &count = record_info.last_probed_count;
     auto &dst_addrs = entity.GetPushDstAddrs();
     while (transfer_index < send_nums_per_layer) {
-        // if last probed msg not receive complete, can not need to probe again.
+        // if last probed msg not receive complete, cannot need to probe again.
         if (count == -1) {
             auto probe_ret = ProbeState::ProbeAndGetCountAsync(entity, count);
             if (probe_ret != FsmStatus::kFsmSuccess) {

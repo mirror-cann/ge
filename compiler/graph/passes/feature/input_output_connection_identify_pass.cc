@@ -92,7 +92,7 @@ Status InputOutputConnectionIdentifyPass::ProcessInputNode(const NodePtr &node, 
     // The return ptr of GetAllOutDataAnchors is always valid.
     const auto anchor_iter = anchor_to_symbol_.find(NodeIndexIO(node, out_data_anchor->GetIdx(), kOut).ToString());
     if (anchor_iter == anchor_to_symbol_.end()) {
-      GELOGW("Current node: %s out_data_anchor: %d is invalid, can not find related symbol.", node->GetName().c_str(),
+      GELOGW("Current node: %s out_data_anchor: %d is invalid, cannot find related symbol.", node->GetName().c_str(),
              out_data_anchor->GetIdx());
       continue;
     }
@@ -137,7 +137,7 @@ Status InputOutputConnectionIdentifyPass::ProcessOutputNode(const NodePtr &node,
     // The return ptr of GetAllInDataAnchors is always valid.
     const auto anchor_iter = anchor_to_symbol_.find(NodeIndexIO(node, in_data_anchor->GetIdx(), kIn).ToString());
     if (anchor_iter == anchor_to_symbol_.end()) {
-      GELOGW("Current node: %s in_data_anchor: %d is invalid, can not find related symbol.", node->GetName().c_str(),
+      GELOGW("Current node: %s in_data_anchor: %d is invalid, cannot find related symbol.", node->GetName().c_str(),
              in_data_anchor->GetIdx());
       continue;
     }

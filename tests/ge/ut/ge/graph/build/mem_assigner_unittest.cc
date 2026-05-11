@@ -2133,7 +2133,7 @@ void MakeContinuousReuseGraphDiffStream(ge::ComputeGraphPtr graph) {
     auto node_iter = name_to_node_map.find(node_name);
     ge::Node *node = nullptr;
     if (node_iter == name_to_node_map.end()) {
-      std::cerr << "can not find node " << node_name << std::endl;
+      std::cerr << "cannot find node " << node_name << std::endl;
       return false;
     }
     node = const_cast<ge::Node *>(node_iter->second);

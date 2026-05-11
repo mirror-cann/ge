@@ -13,14 +13,42 @@
 #include "common/om2/codegen/ast/ast_build_context.h"
 #include "common/om2/codegen/ast/ast_nodes.h"
 #include "common/om2/codegen/emitter/stable_parts/stable_part_provider.h"
+#include "common/helper/om2/om2_utils.h"
 
 #include <gtest/gtest.h>
 
+#include <cstdlib>
 #include <cstdint>
+#include <string>
 #include <vector>
 
 namespace ge {
 namespace {
+class ScopedEnvVar {
+ public:
+  ScopedEnvVar(const char *name, const char *value) : name_(name) {
+    const char *old_value = getenv(name);
+    if (old_value != nullptr) {
+      old_value_ = old_value;
+      has_old_value_ = true;
+    }
+    (void)setenv(name, value, 1);
+  }
+
+  ~ScopedEnvVar() {
+    if (has_old_value_) {
+      (void)setenv(name_.c_str(), old_value_.c_str(), 1);
+      return;
+    }
+    (void)unsetenv(name_.c_str());
+  }
+
+ private:
+  std::string name_;
+  std::string old_value_;
+  bool has_old_value_ = false;
+};
+
 std::string EmitNode(const AstNode &node) {
   CppEmitter emitter;
   std::string output;
@@ -620,6 +648,46 @@ TEST_F(Om2CodegenUt, Arg_AutoPromoteInitList_Ok) {
       "void Build() {\n",
       "value = {{1, 2, 3}, {4, 5, 6}};\n",
   });
+}
+
+TEST_F(Om2CodegenUt, CompileGeneratedCppToSo_MakefileVariableContinuation_Ok) {
+  ScopedEnvVar asan_guard("ASAN_OPTIONS", "detect_leaks=0:halt_on_error=0");
+  ScopedEnvVar lsan_guard("LSAN_OPTIONS", "exitcode=0");
+  const std::string model_name = "continuation_test";
+  const std::string interface_name = model_name + "_interface.h";
+  const std::string include_line = "#include \"" + interface_name + "\"\n";
+  Om2CodegenArtifacts artifacts = {
+      {interface_name, "#pragma once\n#define CONTINUATION_TEST_VALUE 7\n"},
+      {model_name + "_resources.cpp",
+       include_line + "extern \"C\" int ContinuationTestResources() { return CONTINUATION_TEST_VALUE; }\n"},
+      {model_name + "_kernel_reg.cpp",
+       include_line + "extern \"C\" int ContinuationTestKernelReg() { return CONTINUATION_TEST_VALUE; }\n"},
+      {model_name + "_load_and_run.cpp",
+       include_line + "extern \"C\" int ContinuationTestLoadAndRun() { return CONTINUATION_TEST_VALUE; }\n"},
+      {model_name + "_args_manager.cpp",
+       include_line + "extern \"C\" int ContinuationTestArgsManager() { return CONTINUATION_TEST_VALUE; }\n"},
+      {"Makefile", R"(CXX := g++
+TARGET := libcontinuation_test_om2.so
+SRC_FILES := continuation_test_resources.cpp \
+  \
+  continuation_test_kernel_reg.cpp \
+  continuation_test_load_and_run.cpp \
+  continuation_test_args_manager.cpp
+
+CXXFLAGS := -std=c++17 -fPIC
+LDFLAGS := -shared
+
+all: $(TARGET)
+
+$(TARGET): $(SRC_FILES)
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
+)"},
+  };
+
+  Om2CodegenArtifact so_artifact;
+  ASSERT_EQ(Om2Utils::CompileGeneratedCppToSo(artifacts, model_name, so_artifact, false), SUCCESS);
+  EXPECT_EQ(so_artifact.file_name, "lib" + model_name + "_om2.so");
+  EXPECT_FALSE(so_artifact.data.empty());
 }
 
 TEST_F(Om2CodegenUt, StablePartProvider_AllIds_Ok) {

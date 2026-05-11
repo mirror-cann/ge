@@ -50,14 +50,14 @@ bool IsIdentityUsefulForVarCache(const NodePtr &node) {
 ///
 /// 1. A `Identity` node may after a `Switch` node and has control-dependency-out nodes.
 /// Or a `Identity` node may before a `Merge` node and has control-dependency-in nodes.
-/// The identity nodes are used to represent control dependencies in condition branch, and can not be deleted.
+/// The identity nodes are used to represent control dependencies in condition branch, and cannot be deleted.
 /// 2. Check identity is near subgraph.
 ///    Eg. As output of Data node in subgraph
 ///        or as input of Netoutput of subgraph
 ///        or as input of one node with subgraph
 ///        or as output of one node with subgraph
 /// 3. identity with attr no_need_constant_folding should not be deleted too
-/// 4. identity for var cache can not be deleted
+/// 4. identity for var cache cannot be deleted
 Status CheckIdentityUsable(const NodePtr &node, bool &usable) {
   std::string node_type;
   if (node->GetOpDesc()->HasAttr(ATTR_NO_NEED_CONSTANT_FOLDING) ||

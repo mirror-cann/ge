@@ -158,7 +158,7 @@ Status AiCoreTaskBuilder::BuildTask() {
 
   const auto selector = NodeBinSelectorFactory::GetInstance().GetNodeBinSelector(model_.GetNodeBinMode());
   if (selector == nullptr) {
-    GELOGE(ACL_ERROR_GE_INTERNAL_ERROR, "Can not find the handler for bin mode %d", model_.GetNodeBinMode());
+    GELOGE(ACL_ERROR_GE_INTERNAL_ERROR, "Cannot find the handler for bin mode %d", model_.GetNodeBinMode());
     return FAILED;
   }
 

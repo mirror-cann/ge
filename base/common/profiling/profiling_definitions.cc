@@ -153,7 +153,7 @@ void ProfilingContext::UpdateHashByStr(const std::string &str, const uint64_t ha
   if (index != 0) {
     profiler_->UpdateHashByIndex(index, hash);
   } else {
-    // update operation can not add new element, strings_to_index_ size can not increase in this function
+    // update operation cannot add new element, strings_to_index_ size cannot increase in this function
     (void) strings_to_index_.erase(str);
   }
   GELOGD("[Update][hash] element=%s, hash=%lu, index=%ld", str.c_str(), hash, index);

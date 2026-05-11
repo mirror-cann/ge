@@ -372,23 +372,26 @@ const std::map<GeneratedFileIndex, std::string> kGeneratedFileNames = {
     {GeneratedFileIndex::kCMakeListsFile, "Makefile"},
 };
 
-Status ReadGeneratedFile(const std::string &base_dir, const GeneratedFileIndex file_index, std::string &output) {
+Status ReadGeneratedArtifact(const Om2CodegenArtifacts &artifacts, const GeneratedFileIndex file_index,
+                             std::string &output) {
   const auto iter = kGeneratedFileNames.find(file_index);
   GE_ASSERT_TRUE(iter != kGeneratedFileNames.end(), "[OM2] unknown generated file index: %zu",
                  static_cast<size_t>(file_index));
-  std::ifstream file(base_dir + "/" + iter->second, std::ios::binary);
-  GE_ASSERT_TRUE(file.good(), "[OM2] failed to open generated file: %s", iter->second.c_str());
-  std::ostringstream oss;
-  oss << file.rdbuf();
-  output = oss.str();
-  return SUCCESS;
+  for (const auto &artifact : artifacts) {
+    if (artifact.file_name == iter->second) {
+      output = artifact.data;
+      return SUCCESS;
+    }
+  }
+  GELOGE(FAILED, "[OM2] failed to find generated artifact: %s", iter->second.c_str());
+  return FAILED;
 }
 
 Status GenerateProgramFiles(ProgramGenerator &generator, std::map<GeneratedFileIndex, std::string> &outputs) {
-  const std::string work_dir = EnvPath().GetOrCreateCaseTmpPath("ProgramGeneratorUt");
-  Om2CodePrinter code_printer("g1", work_dir + "/");
+  Om2CodePrinter code_printer("g1");
   GE_ASSERT_SUCCESS(generator.GenerateProgram(code_printer));
-  GE_ASSERT_SUCCESS(code_printer.WriteFiles(work_dir));
+  Om2CodegenArtifacts artifacts;
+  code_printer.GetOutputFiles(artifacts);
   outputs.clear();
   for (const auto file_index : {GeneratedFileIndex::kKernelRegistryFile,
                                 GeneratedFileIndex::kResourcesFile,
@@ -397,7 +400,7 @@ Status GenerateProgramFiles(ProgramGenerator &generator, std::map<GeneratedFileI
                                 GeneratedFileIndex::kInterfaceHeaderFile,
                                 GeneratedFileIndex::kCMakeListsFile}) {
     std::string output;
-    GE_ASSERT_SUCCESS(ReadGeneratedFile(work_dir, file_index, output));
+    GE_ASSERT_SUCCESS(ReadGeneratedArtifact(artifacts, file_index, output));
     outputs.emplace(file_index, std::move(output));
   }
   return SUCCESS;

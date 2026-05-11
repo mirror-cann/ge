@@ -114,7 +114,7 @@ Status SplitVariableIntoSubgraphPass::Run(NodePtr &node) {
     }
 
     if (kWhileOpTypes.count(peer_in_node->GetType()) > 0U) {
-      // keep input edge from var to while, because node input can not be empty
+      // keep input edge from var to while, because node input cannot be empty
       auto while_out_anchor = peer_in_node->GetOutDataAnchor(parent_node_input_idx);
       GE_ASSERT_NOTNULL(while_out_anchor);
       for (auto peer_in_anchors : while_out_anchor->GetPeerInDataAnchors()) {
@@ -184,7 +184,7 @@ Status SplitVariableIntoSubgraphPass::CopyVarToSubgraph(const NodePtr &var, int3
                                                         const ComputeGraphPtr &subgraph) const {
   auto inner_data = FindSubgraphDataByIndex(parent_input_index, subgraph);
   if ((inner_data == nullptr) || (inner_data->GetOutDataNodesSize() == 0U)) {
-    GELOGI("Can not find inner data %d of subgraph %s.", parent_input_index, subgraph->GetName().c_str());
+    GELOGI("Cannot find inner data %d of subgraph %s.", parent_input_index, subgraph->GetName().c_str());
     return NOT_CHANGED;
   }
   // 1.create or get var in subgraph

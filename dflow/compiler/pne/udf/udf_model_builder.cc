@@ -306,7 +306,7 @@ Status UdfModelBuilder::GetAndCheckAttrs(const OpDescPtr &op_desc, const Compute
     std::string &release_pkg_path, std::string &cache_release_info, std::string &om_model_file) const {
   (void)AttrUtils::GetStr(op_desc, kUdfAttrNameReleaseLib, release_pkg_path);
   GE_CHK_BOOL_RET_STATUS(!release_pkg_path.empty(), PARAM_INVALID,
-                         "release pkg path can not be empty in user define udf.");
+                         "release pkg path cannot be empty in user define udf.");
   std::regex dir_pattern(R"([A-Za-z0-9./+\-_]+)");
   std::smatch match_result;
   GE_CHK_BOOL_RET_STATUS(std::regex_match(release_pkg_path, match_result, dir_pattern), PARAM_INVALID,
@@ -375,7 +375,7 @@ Status UdfModelBuilder::GenReleasePackageForUserDefineFunc(UdfModel &udf_model, 
       GE_CHK_BOOL_RET_STATUS(graph->SetExtAttr("_graph_info_for_data_flow_cache", release_info), FAILED,
                               "Failed to set graph info, graph[%s].", graph->GetName().c_str());
       const std::string real_pkg_path = RealPath(release_pkg_path.c_str());
-      GE_ASSERT_TRUE(!real_pkg_path.empty(), "Real path can not be empty.");
+      GE_ASSERT_TRUE(!real_pkg_path.empty(), "Real path cannot be empty.");
       udf_model.SetSavedModelPath(real_pkg_path + "/" + normalize_name + ".tar.gz");
       udf_model.SetNormalizedModelName(normalize_name);
       GE_CHK_BOOL_RET_STATUS(graph->SetExtAttr("_udf_om_file_for_data_flow_cache",

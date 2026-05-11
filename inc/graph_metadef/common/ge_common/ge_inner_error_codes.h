@@ -63,7 +63,7 @@ GE_ERRORNO_SESSION(GE_SESS_ALREADY_RUNNING, 1, "Session already running,not supp
 GE_ERRORNO_SESSION(GE_SESS_GRAPH_NOT_EXIST, 2, "Graph ID does not exist.");                                // 1343238146
 GE_ERRORNO_SESSION(GE_SESS_GRAPH_ALREADY_EXIST, 3, "Graph ID already exist.");                        // 1343238147
 GE_ERRORNO_SESSION(GE_SESS_GRAPH_IS_RUNNING, 4, "Graph is running.");                                 // 1343238148
-GE_ERRORNO_SESSION(GE_SESSION_NOT_EXIST, 5, "Can not find session with specific session id.");        // 1343238149
+GE_ERRORNO_SESSION(GE_SESSION_NOT_EXIST, 5, "Cannot find session with specific session id.");        // 1343238149
 GE_ERRORNO_SESSION(GE_SESSION_MANAGER_NOT_INIT, 6, "Session manager has not been initialized.");      // 1343238150
 
 // Graph module error code definition

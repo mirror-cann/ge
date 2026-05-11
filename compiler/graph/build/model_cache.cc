@@ -314,14 +314,14 @@ bool ModelCache::CompareVarDesc(uint64_t session_id, const VarDescCache &var_des
     GeTensorDesc current_tensor_desc;
     GE_CHECK_NOTNULL(VarManager::Instance(session_id));
     if (VarManager::Instance(session_id)->GetCurVarDesc(var_name, current_tensor_desc) != SUCCESS) {
-      GELOGI("The var[%s] does not exist in var manager, can not load from cache.", var_name.c_str());
+      GELOGI("The var[%s] does not exist in var manager, cannot load from cache.", var_name.c_str());
       return false;
     }
 
     if (var_desc == current_tensor_desc) {
       continue;
     } else {
-      GELOGI("The var[%s] desc of var manager is not the same with cache, can not load from cache.", var_name.c_str());
+      GELOGI("The var[%s] desc of var manager is not the same with cache, cannot load from cache.", var_name.c_str());
       return false;
     }
   }
@@ -517,7 +517,7 @@ Status ModelCache::CheckCacheFile(const ComputeGraphPtr &root_graph, bool &need_
   VarDescCache update_var_desc;
   GE_CHK_STATUS_RET(TryMatchVarDescWithCache(is_matched, update_var_desc), "Failed to match Var desc with cache.");
   if (!is_matched) {
-    GELOGI("cache var desc file is not matched, can not load cache.");
+    GELOGI("cache var desc file is not matched, cannot load cache.");
     return SUCCESS;
   }
   GE_CHK_STATUS_RET(RefreshVariableDesc(root_graph, update_var_desc),

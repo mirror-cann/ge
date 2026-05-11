@@ -614,7 +614,7 @@ TEST_F(FlowFuncRunContextUTest, AllocTensorMsgWithAlign_RANGE_CHECK) {
   EXPECT_EQ(flow_func_run_context->AllocTensorMsgWithAlign({1, 2, 3}, TensorDataType::DT_FLOAT, 1), nullptr);
   EXPECT_EQ(flow_func_run_context->AllocTensorMsgWithAlign({1, 2, 3}, TensorDataType::DT_FLOAT, 16), nullptr);
   EXPECT_NE(flow_func_run_context->AllocTensorMsgWithAlign({1, 2, 3}, TensorDataType::DT_FLOAT, 32), nullptr);
-  // can not be divide by 1024
+  // cannot be divide by 1024
   EXPECT_EQ(flow_func_run_context->AllocTensorMsgWithAlign({1, 2, 3}, TensorDataType::DT_FLOAT, 48), nullptr);
   EXPECT_NE(flow_func_run_context->AllocTensorMsgWithAlign({1, 2, 3}, TensorDataType::DT_FLOAT, 64), nullptr);
   EXPECT_NE(flow_func_run_context->AllocTensorMsgWithAlign({1, 2, 3}, TensorDataType::DT_FLOAT, 128), nullptr);

@@ -329,7 +329,7 @@ void ShapeEnvAttr::AppendInitReplacement(const ge::Expression &expr) {
 graphStatus ShapeEnvAttr::FindRootExpr(const ge::Expression &expr, ge::Expression &root_expr) const {
   const auto &iter = replacements_.find(expr);
   GE_ASSERT_TRUE(iter != replacements_.end(),
-    "Can not find replacement of expr: %s", SymbolicUtils::ToString(expr).c_str());
+    "Cannot find replacement of expr: %s", SymbolicUtils::ToString(expr).c_str());
   if (iter->second.replace_expr == expr) {
     root_expr = expr;
     return GRAPH_SUCCESS;

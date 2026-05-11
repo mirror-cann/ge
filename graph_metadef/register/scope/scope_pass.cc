@@ -151,7 +151,7 @@ Status ScopeBasePass::ScopeBasePassImpl::Run(std::shared_ptr<ScopeGraph> &scope_
 
   ret = PrintFusionScopeInfo(scope_graph);
   if (ret != SUCCESS) {
-    GELOGI("[scope_fusion] Can not print scope pass %s fusion info.", parent_->PassName().c_str());
+    GELOGI("[scope_fusion] Cannot print scope pass %s fusion info.", parent_->PassName().c_str());
     return FAILED;
   }
 

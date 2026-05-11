@@ -66,7 +66,7 @@ Status EnginePlacer::SelectEngine(const NodePtr &node, const std::set<std::strin
         REPORT_PREDEFINED_ERR_MSG(
             "EZ3003", std::vector<const char *>({"opname", "optype"}),
             std::vector<const char *>({op_desc->GetName().c_str(), op_desc->GetType().c_str()}));
-        GELOGE(GE_GRAPH_ASSIGN_ENGINE_FAILED, "[Check][Param] Can not find engine of op name %s type %s",
+        GELOGE(GE_GRAPH_ASSIGN_ENGINE_FAILED, "[Check][Param] Cannot find engine of op name %s type %s",
                op_desc->GetName().c_str(), op_desc->GetType().c_str());
         return FAILED;
       }

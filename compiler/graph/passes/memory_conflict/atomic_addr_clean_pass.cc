@@ -251,7 +251,7 @@ Status AtomicAddrCleanPass::HandleNormalGraph(ComputeGraphPtr &graph,
 
 // Add control edges from atomic clean node to all potential precedence nodes which may execute before atomic clean
 // node. We hope that atomic clean node can execute with the highest priority in the entire graph. Because of stream
-// concurrency mechanism, only placing it at the head can not ensure that priority. Therefore, we need to add control
+// concurrency mechanism, only placing it at the head cannot ensure that priority. Therefore, we need to add control
 // edges from atomic clean node to the nodes that may be the first node on each stream. Generally, the first nodes on
 // each stream are successors of Data/Variable, and Data/Variable won't generate task or execute, so we link to the
 // successors of Data/Variable.
@@ -357,7 +357,7 @@ bool AtomicAddrCleanPass::CheckAccuracySupported(const OpDescPtr &op_desc) {
   OpsKernelManager &ops_kernel_manager = instance->OpsKernelManagerObj();
   std::vector<OpInfo> op_infos = ops_kernel_manager.GetOpsKernelInfo(op_desc->GetType());
   if (op_infos.empty()) {
-    GELOGI("Can not get op info by op type:%s", op_desc->GetType().c_str());
+    GELOGI("Cannot get op info by op type:%s", op_desc->GetType().c_str());
     return false;
   }
   std::string unsupported_reason;

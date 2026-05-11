@@ -349,7 +349,7 @@ bool NotaskPassBase::IsLxFusionOp(const ge::NodePtr &node) const {
   std::string op_name = node->GetName();
   size_t pos = op_name.find(kNotaskLxSlice);
   if (pos != std::string::npos) {
-    GELOGD("Node [%s] is lxfusion op, can not optimize.", node->GetName().c_str());
+    GELOGD("Node [%s] is lxfusion op, cannot optimize.", node->GetName().c_str());
     return true;
   }
   return false;
@@ -421,7 +421,7 @@ bool NotaskPassBase::InputCheck(const ge::NodePtr &node) {
     }
 
     if (!IsPreOutAnchorCanReuse(pre_out_anchor)) {
-      GELOGD("node [%s] pre node [%s] can not reused.", node->GetName().c_str(), pre_node->GetName().c_str());
+      GELOGD("node [%s] pre node [%s] cannot reused.", node->GetName().c_str(), pre_node->GetName().c_str());
       return false;
     }
 
@@ -560,7 +560,7 @@ bool NotaskPassBase::IsPreNodeAttrValid(const ge::OpDescPtr &pre_op_desc) {
     return false;
   }
   if (!output_index.empty()) {
-    GELOGD("Previous node %s has atomic output, %s can not optimize.", pre_node_name.c_str(),
+    GELOGD("Previous node %s has atomic output, %s cannot optimize.", pre_node_name.c_str(),
            cur_pro_node_name_.c_str());
     return false;
   }

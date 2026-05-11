@@ -137,7 +137,7 @@ void GraphPassUtil::SetOutputDescAttr(ge::ConstGeTensorDescPtr &origin_tensor_de
 ge::Format GraphPassUtil::GetDataDumpOriginFormat(const ge::GeTensorDescPtr &tensor_desc) {
   std::string origin_format_str;
   if (!ge::AttrUtils::GetStr(tensor_desc, ge::ATTR_NAME_DATA_DUMP_ORIGIN_FORMAT, origin_format_str)) {
-    // Can not get the certificate and it's not set,return directly
+    // Cannot get the certificate and it's not set,return directly
     return ge::FORMAT_RESERVED;
   }
   if (origin_format_str == "RESERVED") {
@@ -149,7 +149,7 @@ ge::Format GraphPassUtil::GetDataDumpOriginFormat(const ge::GeTensorDescPtr &ten
 ge::Format GraphPassUtil::GetDataDumpOriginFormat(ge::ConstGeTensorDescPtr &tensor_desc) {
   std::string origin_format_str;
   if (!ge::AttrUtils::GetStr(tensor_desc, ge::ATTR_NAME_DATA_DUMP_ORIGIN_FORMAT, origin_format_str)) {
-    // Can not get the certificate and it's not set,return directly
+    // Cannot get the certificate and it's not set,return directly
     return ge::FORMAT_RESERVED;
   }
   if (origin_format_str == "RESERVED") {

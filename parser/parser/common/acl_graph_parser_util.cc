@@ -128,7 +128,7 @@ bool ConvertStringToNumber(const std::string &num_str, int64_t &value) {
   std::stringstream ss(num_str);
   ss >> value;
   if (ss.fail() || !ss.eof()) {
-    GELOGW("Can not convert [%s] to number", num_str.c_str());
+    GELOGW("Cannot convert [%s] to number", num_str.c_str());
     return false;
   }
   GELOGD("Convert str %s to num %ld", num_str.c_str(), value);
@@ -163,7 +163,7 @@ static Status CheckOutNode(ge::OpDescPtr op_desc, int32_t index) {
   int32_t out_size = op_desc->GetOutputsSize();
   if (index < 0 || index >= out_size) {
     GELOGE(domi::FAILED, "[Check][Param]out_node [%s] output index:%d must be smaller "
-           "than node output size:%d and can not be negative!", op_desc->GetName().c_str(), index, out_size);
+           "than node output size:%d and cannot be negative!", op_desc->GetName().c_str(), index, out_size);
     std::string fail_reason = "Output index:\"" + to_string(index) +
                               "\" must be smaller than output size:" + to_string(out_size) + " and cannot be negative.";
     REPORT_PREDEFINED_ERR_MSG(
@@ -572,7 +572,7 @@ domi::Status AclGraphParserUtil::SetOutputNodeInfo(ge::Graph &graph,
     if (out_node == nullptr) {
       REPORT_PREDEFINED_ERR_MSG("E10016", std::vector<const char *>({"parameter", "opname"}),
                                 std::vector<const char *>({"out_nodes", user_out_nodes[i].first.c_str()}));
-      GELOGE(domi::FAILED, "[Check][Param] Can not find out_nodes(%d) (%s) in graph.",
+      GELOGE(domi::FAILED, "[Check][Param] Cannot find out_nodes(%d) (%s) in graph.",
              i, user_out_nodes[i].first.c_str());
       return domi::FAILED;
     }

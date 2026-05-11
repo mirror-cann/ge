@@ -445,7 +445,7 @@ ge::Status GraphVarVisitor::LoadFileConstantToAddr(const ge::OpDescPtr &op_desc,
     int64_t weight_size = 0;
     GE_ASSERT_GRAPH_SUCCESS(TensorUtils::GetTensorSizeInBytes(var_instance.desc, weight_size),
                             "Failed to get file constant size by tensor desc.");
-    GE_ASSERT_TRUE(weight_size <= var_instance.size, "Weight size[%ld] can not be larger than mem size[%ld].",
+    GE_ASSERT_TRUE(weight_size <= var_instance.size, "Weight size[%ld] cannot be larger than mem size[%ld].",
                    weight_size, var_instance.size);
     const size_t file_length = (length == 0U ? static_cast<size_t>(weight_size) : length);
     size_t left_size = static_cast<size_t>(var_instance.size);
@@ -495,7 +495,7 @@ Status GraphVarVisitor::PreLoadFileConstant(const ge::OpDescPtr &op_desc, const 
   int64_t weight_size = 0;
   GE_ASSERT_GRAPH_SUCCESS(TensorUtils::GetTensorSizeInBytes(var_instance.desc, weight_size),
                           "Failed to get file constant size by tensor desc.");
-  GE_ASSERT_TRUE(weight_size <= var_instance.size, "Weight size[%ld] can not be larger than mem size[%ld].",
+  GE_ASSERT_TRUE(weight_size <= var_instance.size, "Weight size[%ld] cannot be larger than mem size[%ld].",
                  weight_size, var_instance.size);
   helper.file_length = (length == 0U ? static_cast<size_t>(weight_size) : length);
   helper.left_size = static_cast<size_t>(var_instance.size);

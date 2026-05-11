@@ -152,14 +152,14 @@ Status DeviceMaintenanceMasterCfg::GetJsonDataByType(ConfigType config_type, std
   // check global config
   if (config_type == ConfigType::kLogConfigType) {
     if (DeviceDebugConfig::global_configs_.is_null()) {
-      GELOGW("Can not find global config");
+      GELOGW("Cannot find global config");
       return FAILED;
     }
     js = DeviceDebugConfig::global_configs_;
   } else {
     // check device config
     if (configs_.find(config_type) == configs_.end()) {
-      GELOGW("Can not find config of type = %d", static_cast<int32_t>(config_type));
+      GELOGW("Cannot find config of type = %d", static_cast<int32_t>(config_type));
       return FAILED;
     }
     js = configs_[config_type];
@@ -215,7 +215,7 @@ Status DeviceMaintenanceClientCfg::LoadJsonData(const std::string &data) {
   }
   const auto &type_it = std::find(kConfigNames.begin(), kConfigNames.end(), type);
   if (type_it == kConfigNames.end()) {
-    GELOGW("[Check][Config]Can not find the type:%s.", type.c_str());
+    GELOGW("[Check][Config]Cannot find the type:%s.", type.c_str());
     return FAILED;
   }
   if (!param_list.is_array()) {
@@ -423,7 +423,7 @@ void DeviceMaintenanceCfgManager::CloseDevMaintenanceConfig(int32_t device_id) {
   std::lock_guard<std::mutex> lk(mu_);
   const auto &iter = device_configs_.find(device_id);
   if (iter == device_configs_.end()) {
-    GELOGW("Can not find device config, device id[%d].", device_id);
+    GELOGW("Cannot find device config, device id[%d].", device_id);
     return;
   }
   

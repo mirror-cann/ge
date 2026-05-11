@@ -437,7 +437,7 @@ Status BufQueAllocator::InitTensorMemInfo(ge::AscGraph &graph, const ge::AscTens
     GE_ASSERT_NOTNULL(graph_axis);
 
     auto axis_tensor_iter = std::find(axis.begin(), axis.end(), axis_id);
-    GE_ASSERT_TRUE(axis_tensor_iter != axis.end(), "Can not find vectorized axis [%ld]", axis_id);
+    GE_ASSERT_TRUE(axis_tensor_iter != axis.end(), "Cannot find vectorized axis [%ld]", axis_id);
 
     const int64_t axis_index = std::distance(axis.begin(), axis_tensor_iter);
     const auto &repeat = repeats[axis_index];

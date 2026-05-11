@@ -186,9 +186,9 @@ Status ReuseChecker::CheckReuseNodes(OffsetReuseNodes &offset_reuse_nodes_map) {
         ++print_count;
         auto reason =
             deps_analyzer_.WhyACannotReuseB(iter_next->node, iter_next->out_index, iter->node, iter->out_index);
-        REPORT_INNER_ERR_MSG("E19999", "can not reuse memory, %s and %s", NodeOutMemStr(*iter).c_str(),
+        REPORT_INNER_ERR_MSG("E19999", "cannot reuse memory, %s and %s", NodeOutMemStr(*iter).c_str(),
                            NodeOutMemStr(*iter_next).c_str());
-        GELOGE(FAILED, "can not reuse memory, %s and %s", NodeOutMemStr(*iter).c_str(),
+        GELOGE(FAILED, "cannot reuse memory, %s and %s", NodeOutMemStr(*iter).c_str(),
                NodeOutMemStr(*iter_next).c_str());
         REPORT_INNER_ERR_MSG("E19999", "reason: %s", reason.c_str());
         GELOGE(FAILED, "reason: %s", reason.c_str());

@@ -946,19 +946,19 @@ inline Status CheckInt32DivOverflow(const int32_t a, const int32_t b) {
 
 #define FMK_FP16_ZEROCHECK(a)                                                                            \
   if ((fabs((a)) < DBL_EPSILON) || ((a) < 0)) {                                                        \
-    GELOGW("Fp16 %f can not less than or equal to zero! ", (a));                                         \
+    GELOGW("Fp16 %f cannot be less than or equal to zero! ", (a));                                         \
     return INTERNAL_ERROR;                                                                               \
   }
 
 #define FMK_FLOAT_ZEROCHECK(a)                                                                           \
   if ((fabs((a)) < FLT_EPSILON) || ((a) < 0)) {                                                       \
-    GELOGW("Float %f can not less than or equal to zero! ", (a));                                        \
+    GELOGW("Float %f cannot be less than or equal to zero! ", (a));                                        \
     return INTERNAL_ERROR;                                                                               \
   }
 
 #define FMK_DOUBLE_ZEROCHECK(a)                                                                          \
   if ((fabs((a)) < DBL_EPSILON) || ((a) < 0)) {                                                        \
-    GELOGW("Double %lf can not less than or equal to zero! ", (a));                                      \
+    GELOGW("Double %lf cannot be less than or equal to zero! ", (a));                                      \
     return INTERNAL_ERROR;                                                                               \
   }
 

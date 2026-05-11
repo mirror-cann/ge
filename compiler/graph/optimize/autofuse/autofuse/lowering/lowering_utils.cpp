@@ -389,7 +389,7 @@ void GraphFusionReasonStore::StartProcessGraph(const std::string &graph_name) {
     return;
   }
   if (graph_name.empty()) {
-    GELOGW("Graph name can not be null");
+    GELOGW("Graph name cannot be null");
     return;
   }
   Storage& storage = GetGlobalStorage();
@@ -413,7 +413,7 @@ void GraphFusionReasonStore::AddCurrentGraphNode(const std::string &node_name, c
     return;
   }
   if (node_name.empty() || node_type.empty()) {
-    GELOGW("Node name or node type can not be null");
+    GELOGW("Node name or node type cannot be null");
     return;
   }
   storage.graph_node_info_[storage.current_graph_][node_name] = {node_type, storage.global_node_order_.fetch_add(1)};

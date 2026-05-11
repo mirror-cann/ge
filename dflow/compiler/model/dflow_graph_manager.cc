@@ -124,7 +124,7 @@ Status DflowGraphManager::CompileGraph(uint32_t graph_id, const std::vector<GeTe
     const auto iter = graph_options_map_.find(graph_id);
     const auto graph_iter = flow_graph_map_.find(graph_id);
     if ((graph_iter == flow_graph_map_.end()) || (iter == graph_options_map_.end())) {
-      GELOGE(FAILED, "Graph id[%u] can not be found in graph map. AddGraph should be called before CompileGraph.",
+      GELOGE(FAILED, "Graph id[%u] cannot be found in graph map. AddGraph should be called before CompileGraph.",
             graph_id);
       return GE_GRAPH_GRAPH_NOT_EXIST;
     }

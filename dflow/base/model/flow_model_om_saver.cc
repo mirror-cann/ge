@@ -148,7 +148,7 @@ Status SaveOmDataToFile(const std::shared_ptr<PneModel> &submodel,
   if ((submodel->GetModelType() == PNE_ID_UDF) && (!submodel->GetIsBuiltinModel())) {
     const std::string release_pkg = submodel->GetSavedModelPath();
     if (mmAccess(release_pkg.c_str()) != EN_OK) {
-      GELOGE(FAILED, "Can not find release pkg file by path:%s.", release_pkg.c_str());
+      GELOGE(FAILED, "Cannot find release pkg file by path:%s.", release_pkg.c_str());
       return FAILED;
     }
     if (release_pkg != om_file_name) {

@@ -6,5 +6,6 @@
     </file_info>
     <file_info value="script" copy_type="source" dst_path="bin" install_path="$(TARGET_ENV)/bin" install_type="devel" install_mod="550" optional="true">
         <file value="atc"/>
+        <file value="pyatc"/>
     </file_info>
 </block>

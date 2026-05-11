@@ -684,7 +684,7 @@ TEST_F(UtestHybridModelBuilder, init_data_aipp_info_and_type_failed) {
     EXPECT_EQ(ret, INTERNAL_ERROR);
   }
 
-  // Can not find releated AippData node
+  // Cannot find releated AippData node
   {
     AttrUtils::SetNamedAttrs(data_op_desc, ATTR_NAME_AIPP, aipp_attr);
     AttrUtils::SetStr(data_op_desc, ATTR_DATA_RELATED_AIPP_MODE, "dynamic_aipp");

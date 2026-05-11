@@ -499,7 +499,7 @@ Status GEPass::RunPassesOnSubGraph(const NodePtr &node, const NamesToPass &names
   for (const auto &name : sub_graph_names) {
     auto graph = root_graph_->GetSubgraph(name);
     if (graph == nullptr) {
-      GELOGW("Can not find the sub graph %s from node %s, the pass-process will skip it",
+      GELOGW("Cannot find the sub graph %s from node %s, the pass-process will skip it",
           name.c_str(), node->GetName().c_str());
       continue;
     }

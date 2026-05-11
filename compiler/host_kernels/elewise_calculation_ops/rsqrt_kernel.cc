@@ -68,7 +68,7 @@ Status RsqrtKernel::RsqrtCompute(ConstGeTensorPtr &input_tensor_ptr, GeTensorPtr
     auto ptr = const_cast<T *>(reinterpret_cast<const T *>(input_tensor_ptr->GetData().data()));
     for (size_t i = 0; i < data_count; i++) {
       if (ZeroCheck(*(ptr + i), data_type) != SUCCESS) {
-        GELOGW("Rsqrt: The input data can not less than or equal to zero, rsqrt folding failed.");
+        GELOGW("Rsqrt: The input data cannot less than or equal to zero, rsqrt folding failed.");
         return NOT_CHANGED;
       }
       switch (data_type) {

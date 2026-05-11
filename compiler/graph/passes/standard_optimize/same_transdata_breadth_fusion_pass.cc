@@ -1045,7 +1045,7 @@ graphStatus SameTransdataBreadthFusionPass::UpdateTensorDescForConnectWrapper(
       netoutput_input_index = i;
     }
     GE_ASSERT_TRUE(netoutput_input_index != input_size,
-                   "can not find correspond input. netoutput: %s input_size: %u, parent_node: %s, parent output: %u",
+                   "cannot find correspond input. netoutput: %s input_size: %u, parent_node: %s, parent output: %u",
                    netoutput->GetNamePtr(), input_size, wrapper_node->GetNamePtr(), wrapper_node_output_index);
     auto netoutput_in_tensor_desc = netoutput_op_desc->MutableInputDesc(netoutput_input_index);
     GE_ASSERT_SUCCESS(CopyTensorDesc(trans_out_tensor_desc, netoutput_in_tensor_desc));

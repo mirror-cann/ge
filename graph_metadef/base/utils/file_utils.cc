@@ -44,7 +44,7 @@ std::string RealPath(const char_t *path) {
   if (mmRealPath(path, &(resolved_path[0U]), MMPA_MAX_PATH) == EN_OK) {
     res = &(resolved_path[0]);
   } else {
-    GELOGW("[Util][realpath] Can not get real_path for [%s], reason:%s", path, strerror(errno));
+    GELOGW("[Util][realpath] Cannot get real_path for [%s], reason:%s", path, strerror(errno));
   }
   return res;
 }

@@ -168,7 +168,7 @@ static graphStatus AnchorsInferProcess(std::deque<ge::NodePtr> &nodes, const Out
 
     bool format_locked = false;
     (void)AttrUtils::GetBool(peer_in_data_opdesc, ATTR_NAME_FORMAT_LOCKED, format_locked);
-    GELOGD("Get format locked flag:%u (shape can not be changed while value is equal to 1) from peer in node:%s.",
+    GELOGD("Get format locked flag:%u (shape cannot be changed while value is equal to 1) from peer in node:%s.",
            static_cast<uint32_t>(format_locked), peer_in_data_node->GetName().c_str());
 
     auto ge_tensor_desc = peer_in_data_opdesc->MutableInputDesc(static_cast<uint32_t>(idx));
@@ -508,7 +508,7 @@ graphStatus FormatRefiner::InferOrigineFormat(const ge::ComputeGraphPtr &graph) 
     }
   }
   /// According to discuss with sys-enginer, data node default format is ND.Its format
-  /// should be set by infered.But if some data-node can not be got by infer, set context's
+  /// should be set by infered.But if some data-node cannot be got by infer, set context's
   /// format for these data nodes.
   /// Notice: ignore 5D formats
   const auto data_format = graph->GetDataFormat();

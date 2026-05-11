@@ -63,7 +63,7 @@ FlowModelPtr FlowModelManager::GetFlowModelByModelId(uint32_t model_id) {
   const std::lock_guard<std::mutex> lk(map_mutex_);
   const auto iter = heterogeneous_model_map_.find(model_id);
   if ((iter == heterogeneous_model_map_.cend()) || (iter->second == nullptr)) {
-    GELOGW("Can not get valid flow model.");
+    GELOGW("Cannot get valid flow model.");
     return nullptr;
   }
   return iter->second->GetFlowModel();

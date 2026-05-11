@@ -2863,7 +2863,7 @@ Status DavinciModel::InitNetOutput(const ComputeGraphPtr &graph, const NodePtr &
     const int64_t input_offset = input_offset_list.at(idx);
     if (output_outside_addrs.count(addr) > 0UL) {
       GELOGI("same output_tensor_addr %" PRIu64 " to different input_tensor of %s", addr, op_desc->GetName().c_str());
-      // TEMP SOLUTION: refdata can not disable zero copy. This code will be discard when static execution
+      // TEMP SOLUTION: refdata cannot disable zero copy. This code will be discard when static execution
       // refactoring
       if (!copy_only_addrs_.IsRefDataAddr(addr)) {
         GE_ASSERT_SUCCESS(DisableZeroCopy(ValueToPtr(addr)));
@@ -2879,10 +2879,10 @@ Status DavinciModel::InitNetOutput(const ComputeGraphPtr &graph, const NodePtr &
       }
       if (!is_reuse_zero_copy_memory) {
         for (const auto &real_addr : tensor_addrs) {
-          // TEMP SOLUTION: refdata can not disable zero copy. This code will be discard when static execution
+          // TEMP SOLUTION: refdata cannot disable zero copy. This code will be discard when static execution
           // refactoring
           if (copy_only_addrs_.IsRefDataAddr(real_addr)) {
-            GELOGW("Refdata op %s virtual addr:[%p] as netoutput can not disable zero copy,"
+            GELOGW("Refdata op %s virtual addr:[%p] as netoutput cannot disable zero copy,"
                    " may cause precision problem.",
                    op_desc->GetName().c_str(), ValueToPtr(real_addr));
             continue;
@@ -3070,7 +3070,7 @@ Status DavinciModel::GetGearAndRealOutShapeInfo(const NodePtr &node) {
       if ((peer_node->GetType() == CASE) && (op_desc->HasAttr(ATTR_INSERT_BY_MBATCH))) {
         std::vector<std::string> dynamic_output_shape_info;
         if (!AttrUtils::GetListStr(node->GetOpDesc(), ATTR_NAME_DYNAMIC_OUTPUT_DIMS, dynamic_output_shape_info)) {
-          GELOGD("Can not get dynamic output dims attr from %s", node->GetName().c_str());
+          GELOGD("Cannot get dynamic output dims attr from %s", node->GetName().c_str());
           return SUCCESS;
         }
         GELOGI("Dynamic output shape info is %s", ToString(dynamic_output_shape_info).c_str());
@@ -4195,7 +4195,7 @@ Status DavinciModel::InitAippType(const uint32_t index, const OpDescPtr &op_desc
     }
 
     if (aipp_index == 0xFFFFFFFFU) {
-      GELOGW("Can not find aipp data node from index %u", index);
+      GELOGW("Cannot find aipp data node from index %u", index);
       return SUCCESS;
     }
   }
@@ -6539,7 +6539,7 @@ bool DavinciModel::CheckUserAndModelSize(const int64_t size, const int64_t op_si
             model_io_type, size, op_size);
     return true;
   }
-  // The input and model input size can not be exactly equal because user input is not definite.
+  // The input and model input size cannot be exactly equal because user input is not definite.
   if ((size + kDataMemAlignSizeCompare) < op_size) {
     std::string model_id_type_str = model_io_type;
     const std::string reason = "The input memory size set by the user is invalid.The provided " + std::to_string(size) +
@@ -8876,7 +8876,7 @@ bool DavinciModel::CopyOnlyAddrCheck() const {
         }
       }
       GELOGW(
-          "[CopyOnlyAddrCheck][null] copy only addr:0x%" PRIx64 " can not find in copy info and logical mem allocations table!",
+          "[CopyOnlyAddrCheck][null] copy only addr:0x%" PRIx64 " cannot find in copy info and logical mem allocations table!",
           copy_only_addr);
       return;
     };

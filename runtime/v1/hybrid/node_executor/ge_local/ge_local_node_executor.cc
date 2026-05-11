@@ -55,9 +55,9 @@ Status RefInputTask::UpdateArgs(TaskContext &context) {
 Status RefInputTask::Execute(const TaskContext &context) const {
   const auto iter = out_ref_input_index_.find(node_type_);
   if (iter == out_ref_input_index_.end()) {
-    REPORT_INNER_ERR_MSG("E19999", "node %s type %s can not use RefInputTask.",
+    REPORT_INNER_ERR_MSG("E19999", "node %s type %s cannot use RefInputTask.",
                        node_name_.c_str(), node_type_.c_str());
-    GELOGE(UNSUPPORTED, "[Find][Node]node %s type %s can not use RefInputTask.",
+    GELOGE(UNSUPPORTED, "[Find][Node]node %s type %s cannot use RefInputTask.",
            node_name_.c_str(), node_type_.c_str());
     return UNSUPPORTED;
   }

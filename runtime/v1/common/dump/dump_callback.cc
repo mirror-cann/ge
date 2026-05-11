@@ -302,7 +302,7 @@ bool DumpConfigValidator::ValidateIpAddress(const std::string& ipAddress) {
         GELOGI("ip address[%s] is valid in dump_path field.", ipAddress.c_str());
         return true;
     } catch (...) {
-        GELOGD("ip address[%s] can not convert to digital in dump_path field", ipAddress.c_str());
+        GELOGD("ip address[%s] cannot convert to digital in dump_path field", ipAddress.c_str());
         return false;
     }
 }

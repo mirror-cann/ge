@@ -504,7 +504,7 @@ void ExceptionDumper::SaveOpDescInfo(const OpDescPtr &op, const OpDescInfoId &id
   op_desc_info.id.device_id = id.device_id;
   op_desc_info.all_attrs = AttrUtils::GetAllAttrsStr(op);
 
-  // Maybe can not get current_context_id from attribute, default value should be a INVALID value
+  // Maybe cannot get current_context_id from attribute, default value should be a INVALID value
   op_desc_info.id.context_id = id.context_id;
   if (id.context_id == UINT32_MAX) {
     (void)AttrUtils::GetInt(op, "current_context_id", op_desc_info.id.context_id);

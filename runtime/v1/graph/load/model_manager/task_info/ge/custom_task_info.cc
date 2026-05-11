@@ -32,14 +32,17 @@ bool IsInputDescValid(const ge::GeTensorDesc &input_desc, size_t &invalid_index_
   return true;
 }
 
-void GetStorageShape(const ge::GeTensorDesc &input_desc, gert::StorageShape &storage_shape) {
-  const auto &dims = input_desc.GetShape().GetDims();
-  GELOGI("shape is %s", input_desc.GetShape().ToString().c_str());
-  for (const auto &dim : dims) {
-    (void)storage_shape.MutableOriginShape().AppendDim(dim);
+void GetStorageShape(const ge::GeTensorDesc &tensor_desc, gert::StorageShape &storage_shape) {
+  const auto &storage_dims = tensor_desc.GetShape().GetDims();
+  for (const auto &dim : storage_dims) {
     (void)storage_shape.MutableStorageShape().AppendDim(dim);
   }
+  const auto &origin_dims = tensor_desc.GetOriginShape().GetDims();
+  for (const auto &dim : origin_dims) {
+    (void)storage_shape.MutableOriginShape().AppendDim(dim);
+  }
 }
+
 // inputs layout is input tensors
 std::vector<void *> GetHoldersRawPtr(const std::vector<std::unique_ptr<uint8_t[]>> &holders) {
   std::vector<void *> holderRawPtr;
@@ -145,7 +148,7 @@ Status CustomTaskInfo::ConstructCustomKernelContextInputsOutputs(
     auto input_desc = op_desc->MutableInputDesc(i);
     GE_ASSERT_NOTNULL(input_desc);
     GetStorageShape(*input_desc, storage_shape);
-    // init tensor address, if can not get const tensor input, set it to nullptr
+    // init tensor address, if cannot get const tensor input, set it to nullptr
     const size_t instance_index = i - invalid_index_num;
     GE_ASSERT_TRUE((input_data_addrs_.size() > instance_index),
                    "instance_index %zu is invalid, %zu - %zu, total input size %zu",

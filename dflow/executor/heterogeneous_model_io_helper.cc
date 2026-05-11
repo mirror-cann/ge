@@ -262,7 +262,7 @@ Status HeterogeneousModelIoHelper::FetchFlowMsg(const DeployQueueAttr &queue_att
                                                 const GeTensorDescPtr &output_desc,
                                                 FlowMsgBasePtr &flow_msg) const {
   rtMbufPtr_t mbuf = nullptr;
-  // queue empty is normal, can not print error
+  // queue empty is normal, cannot print error
   GE_CHK_STATUS_RET_NOLOG(exchange_service_->DequeueMbuf(queue_attr.device_id, queue_attr.queue_id,
                                                          &mbuf, control_info.timeout));
   GE_DISMISSABLE_GUARD(mbuf, ([mbuf]() { GE_CHK_RT(rtMbufFree(mbuf)); }));

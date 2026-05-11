@@ -9,7 +9,6 @@
  */
 
 #include "graph/utils/op_desc_utils_ex.h"
-
 #include "graph_metadef/common/ge_common/util.h"
 #include "common/util/trace_manager/trace_manager.h"
 #include "graph/normal_graph/operator_impl.h"
@@ -18,7 +17,6 @@
 #include "graph/ge_context.h"
 #include "graph/debug/ge_attr_define.h"
 #include "graph/utils/node_utils.h"
-#include "graph/utils/graph_utils.h"
 #include "graph/utils/op_desc_utils.h"
 #include "graph/utils/tensor_utils.h"
 #include "graph/utils/transformer_utils.h"
@@ -43,7 +41,7 @@ bool EnableIgnoreInferError() {
   const char_t *env_value = nullptr;
   MM_SYS_GET_ENV(MM_ENV_IGNORE_INFER_ERROR, env_value);
   if (env_value == nullptr) {
-    GELOGD("Can not get env [IGNORE_INFER_ERROR]. Disable ignore infer validation.");
+    GELOGD("Cannot get env [IGNORE_INFER_ERROR]. Disable ignore infer validation.");
     return false;
   }
 
@@ -115,6 +113,23 @@ graphStatus OpDescUtilsEx::CallInferFuncV1(const OpDescPtr &op_desc, Operator &o
 graphStatus OpDescUtilsEx::InferCustomOpShape(const OpDescPtr &op_desc, Operator &op) {
   GE_ASSERT_NOTNULL(op_desc);
   GELOGI("[%s][%s] Infer Custom op shape.", op_desc->GetNamePtr(), op_desc->GetTypePtr());
+
+  auto custom_op = CustomOpFactory::CreateOrGetCustomOp(AscendString(op_desc->GetType().c_str()));
+  auto shape_infer_op = dynamic_cast<ShapeInferOp *>(custom_op);
+  if (shape_infer_op != nullptr) {
+    const auto custom_op_infer_datatype_func = OperatorFactoryImpl::GetCustomOpInferDataTypeFunc();
+    const auto custom_op_infer_shape_func = OperatorFactoryImpl::GetCustomOpInferShapeFunc();
+    if ((custom_op_infer_datatype_func != nullptr) && (custom_op_infer_shape_func != nullptr)) {
+      GE_WARN_ASSERT_GRAPH_SUCCESS(custom_op_infer_datatype_func(shape_infer_op, op_desc),
+                                   "[Call][CustomOpInferDataType] failed, op_desc[%s].", op_desc->GetNamePtr());
+      GE_WARN_ASSERT_GRAPH_SUCCESS(custom_op_infer_shape_func(shape_infer_op, op, op_desc),
+                                   "[Call][CustomOpInferShape] failed, op_desc[%s].", op_desc->GetNamePtr());
+      return GRAPH_SUCCESS;
+    }
+    GELOGW("[Call][CustomOpInferShape] custom op infer adapt function is not fully registered in GE, op[%s][%s], "
+           "infer_datatype_func[%p], infer_shape_func[%p].", op_desc->GetNamePtr(), op_desc->GetTypePtr(),
+           custom_op_infer_datatype_func, custom_op_infer_shape_func);
+  }
 
   const auto is_infer_shape_v2_registered_func = OperatorFactoryImpl::GetIsInferShapeV2RegisteredFunc();
   if ((is_infer_shape_v2_registered_func != nullptr) && is_infer_shape_v2_registered_func(op_desc))  {

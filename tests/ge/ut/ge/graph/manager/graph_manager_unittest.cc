@@ -4728,7 +4728,7 @@ TEST_F(UtestGraphManagerTest, test_CompileGraph_NormalizeIO_with_input_storage_f
   EXPECT_EQ(ret_add_graph, SUCCESS);
 
   // compile graph
-  // here can not ensure compileGraph is success, we just need check graph after PrepareRunningFormatRefiner
+  // here cannot ensure compileGraph is success, we just need check graph after PrepareRunningFormatRefiner
   EXPECT_NE(graph_manager.CompileGraph(graph_id, session_id, std::vector<ge::Tensor>{}), SUCCESS);
 
   // check attrs on node of graph
@@ -4878,7 +4878,7 @@ TEST_F(UtestGraphManagerTest, test_CompileGraph_NormalizeIO_with_normal_node_sto
   EXPECT_EQ(ret_add_graph, SUCCESS);
 
   // compile graph
-  // here can not ensure compileGraph is success, we just need check graph after PrepareRunningFormatRefiner
+  // here cannot ensure compileGraph is success, we just need check graph after PrepareRunningFormatRefiner
   EXPECT_NE(graph_manager.CompileGraph(graph_id, session_id, std::vector<ge::Tensor>{}), SUCCESS);
 
   // check attrs on node of graph

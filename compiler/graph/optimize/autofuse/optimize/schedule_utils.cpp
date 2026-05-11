@@ -764,7 +764,7 @@ Status ScheduleUtils::GetInputForTranspose(ge::AscNode &node, std::vector<ascir:
 bool ScheduleUtils::IsNeedDiscontinuousAligned(const ge::AscTensorAttr &attr) {
   for (auto id = attr.vectorized_axis.rbegin(); id != attr.vectorized_axis.rend(); ++id) {
     auto iter = std::find(attr.axis.begin(), attr.axis.end(), *id);
-    GE_ASSERT_TRUE(iter != attr.axis.end(), "Can not find vectorized axis [%ld], axis attr may be invalid.", *id);
+    GE_ASSERT_TRUE(iter != attr.axis.end(), "Cannot find vectorized axis [%ld], axis attr may be invalid.", *id);
     const size_t index = std::distance(attr.axis.begin(), iter);
     // 考虑到通用模板要兼顾reduce的限制, 因此,尾轴为1的非连续load,不会当成DisContinuous处理
     if ((index == attr.repeats.size() - 1UL) &&

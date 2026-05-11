@@ -453,6 +453,30 @@ std::string PtrToHexString(const void *ptr) {
   return oss.str();
 }
 
+class EnvValueGuard {
+ public:
+  explicit EnvValueGuard(const char *name) : name_(name) {
+    const char *value = std::getenv(name_.c_str());
+    if (value != nullptr) {
+      old_value_ = value;
+      had_value_ = true;
+    }
+  }
+
+  ~EnvValueGuard() {
+    if (had_value_) {
+      (void)setenv(name_.c_str(), old_value_.c_str(), 1);
+    } else {
+      (void)unsetenv(name_.c_str());
+    }
+  }
+
+ private:
+  std::string name_;
+  std::string old_value_;
+  bool had_value_ = false;
+};
+
 gert::Om2ModelLoadArg MakeOm2LoadArg() {
   gert::Om2ModelLoadArg load_arg;
   load_arg.device_id = 0;
@@ -882,6 +906,23 @@ TEST_F(Om2ModelExecutorUt, load_ok) {
   gert::Om2ModelExecutor executor;
   auto load_arg = MakeOm2LoadArg();
   EXPECT_EQ(executor.Load(model_data_holder.model_data, load_arg, 1U), SUCCESS);
+}
+
+TEST_F(Om2ModelExecutorUt, load_runtime_so_without_creating_workspace) {
+  auto model_data_holder = LoadValidModelData();
+  const std::string ascend_work_path = PathUtils::Join({test_work_dir_, "load_without_workspace"});
+  const std::string workspace_root =
+      PathUtils::Join({ascend_work_path, ".ascend_temp/.tmp_om2_workspace"});
+  (void)PathUtils::RemoveDirectories(ascend_work_path);
+  ASSERT_EQ(CreateDir(ascend_work_path), 0);
+
+  EnvValueGuard ascend_work_path_guard("ASCEND_WORK_PATH");
+  ASSERT_EQ(setenv("ASCEND_WORK_PATH", ascend_work_path.c_str(), 1), 0);
+
+  gert::Om2ModelExecutor executor;
+  auto load_arg = MakeOm2LoadArg();
+  ASSERT_EQ(executor.Load(model_data_holder.model_data, load_arg, 1U), SUCCESS);
+  EXPECT_NE(mmAccess2(workspace_root.c_str(), M_F_OK), EOK);
 }
 
 TEST_F(Om2ModelExecutorUt, load_generates_session_id_without_rt_session) {

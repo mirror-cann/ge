@@ -474,7 +474,7 @@ Status FusionStrategySolver::FuseNodesOnce(const uint32_t round, const ComputeGr
 
     if (WillFusionCreateCycle(cycle_detector, fused_node1, fused_node2)) {
       GELOGI(
-          "node1 %s(%s) and node2 %s(%s) can not fuse, the reason is [%s][it will create cycle after fuse]",
+          "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][it will create cycle after fuse]",
           fused_node1->GetNamePtr(), fused_node1->GetOrgNode()->GetType().c_str(), fused_node2->GetNamePtr(),
           fused_node2->GetOrgNode()->GetType().c_str(), ge::NotFuseReasonCode(ge::NotFuseReason::kWillCreateCycle));
       continue;
@@ -599,7 +599,7 @@ bool FusionStrategySolver::CanFuse(const ComputeGraphPtr &graph, const FusingNod
   // 融合后节省的内存读写大小为0不做融合
   if (BackendUtils::IsEqZero(ScoreFusion::ScoreFusionMemory(*node1, *node2))) {
     GELOGI(
-        "node1 %s(%s) and node2 %s(%s) can not fuse, the reason is [%s][node1 and node2 have no shared data]",
+        "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][node1 and node2 have no shared data]",
         node1->GetNamePtr(), node1->GetOrgNode()->GetType().c_str(), node2->GetNamePtr(),
         node2->GetOrgNode()->GetType().c_str(), ge::NotFuseReasonCode(ge::NotFuseReason::kNoSharedData));
     can_not_fuse_nodes.insert({node1.get(), node2.get()});
@@ -617,7 +617,7 @@ bool FusionStrategySolver::CanFuse(const ComputeGraphPtr &graph, const FusingNod
     // 横向融合导致内存峰值增加的不做融合
     if (CanFusionIncreasePeakMemory(node1, node2) || CheckWriteMemoryAfterFusion(node1, node2)) {
       GELOGI(
-          "node1 %s(%s) and node2 %s(%s) can not fuse, the reason is [%s][it will increase peak memory after fuse]",
+          "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][it will increase peak memory after fuse]",
           node1->GetNamePtr(), node1->GetOrgNode()->GetType().c_str(), node2->GetNamePtr(),
           node2->GetOrgNode()->GetType().c_str(), ge::NotFuseReasonCode(ge::NotFuseReason::kIncreasePeakMemory));
       return false;

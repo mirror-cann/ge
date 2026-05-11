@@ -167,7 +167,7 @@ Status QuantUtilImpl::PadShapeTo4Dim(const ge::Format &filter_format, const std:
       } else if (filter_format == ge::Format::FORMAT_ND) {
         (void)filter_dims4_d.emplace_back(0);
       } else {
-        GELOGE(ge::FAILED, "[GraphOpt][Quant][PadShpTo4Dim] format %s can not pad shape.",
+        GELOGE(ge::FAILED, "[GraphOpt][Quant][PadShpTo4Dim] format %s cannot pad shape.",
                ge::TypeUtils::FormatToSerialString(filter_format).c_str());
         return FAILED;
       }

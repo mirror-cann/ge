@@ -9,8 +9,9 @@
  */
 
 #include "om2_codegen.h"
+#include <cerrno>
 #include <fstream>
-#include <sstream>
+#include <sys/stat.h>
 #include "common/helper/om2/om2_utils.h"
 #include "common/compile_profiling/ge_call_wrapper.h"
 #include "common/om2/codegen/ast/ast_build_context.h"
@@ -19,46 +20,45 @@
 #include "common/om2/codegen/om2_codegen_utils.h"
 #include "program_generator.h"
 #include "om2_code_printer.h"
-#include "graph_metadef/graph/utils/file_utils.h"
-#include "mmpa/mmpa_api.h"
-
 
 namespace ge {
 namespace {
-constexpr int32_t kCppFileExtLen = 4;
+constexpr const char *kTmpDir = "/tmp";
+constexpr const char *kOm2DumpDir = "/tmp/.tmp_om2_workspace";
 
-Status WriteGeneratedFiles(Om2CodePrinter &code_printer, const std::string &ws_dir, const std::string &model_name,
-                           std::vector<std::string> &output_file_paths) {
-  GE_ASSERT_SUCCESS(code_printer.WriteFiles(ws_dir));
-  code_printer.GetOutputFilePaths(output_file_paths);
-  GELOGI("[OM2] Model %s has finished the codegen process.", model_name.c_str());
-
-  return SUCCESS;
+bool IsDirExists(const std::string &path) {
+  struct stat path_stat = {};
+  return (stat(path.c_str(), &path_stat) == 0) && S_ISDIR(path_stat.st_mode);
 }
 
+void DumpGeneratedFiles(const Om2CodegenArtifacts &artifacts) {
+  if (!IsDirExists(kTmpDir)) {
+    GELOGW("[OM2] Skip dumping generated files because /tmp does not exist.");
+    return;
+  }
+  if ((mkdir(kOm2DumpDir, S_IRWXU) != 0) && (errno != EEXIST)) {
+    GELOGW("[OM2] Failed to create dump directory %s, errno: %d.", kOm2DumpDir, errno);
+    return;
+  }
+
+  for (const auto &artifact : artifacts) {
+    const std::string dump_path = std::string(kOm2DumpDir) + "/" + artifact.file_name;
+    std::ofstream output(dump_path, std::ios::out | std::ios::binary | std::ios::trunc);
+    if (!output.is_open()) {
+      GELOGW("[OM2] Failed to open generated file dump path: %s.", dump_path.c_str());
+      continue;
+    }
+    output.write(artifact.data.data(), static_cast<std::streamsize>(artifact.data.size()));
+    if (!output.good()) {
+      GELOGW("[OM2] Failed to dump generated file: %s.", dump_path.c_str());
+    }
+  }
+}
 }  // namespace
 
-Om2Codegen::~Om2Codegen() {
-  CleanOm2WorkDir();
-}
-
-void Om2Codegen::CleanOm2WorkDir() const {
-  if (mmAccess2(ws_dir_.c_str(), M_F_OK) != EN_OK) {
-    return;
-  }
-
-  // 临时环境变量，调试用
-  const char *keep_ws = std::getenv("OM2_KEEP_WORKSPACE");
-  if (keep_ws != nullptr && std::strcmp(keep_ws, "1") == 0) {
-    GELOGI("[OM2] Keep workspace directory (OM2_KEEP_WORKSPACE=1): %s", ws_dir_.c_str());
-    return;
-  }
-
-  (void)Om2Utils::RmOm2WorkspaceDir(ws_dir_);
-}
-
-Status Om2Codegen::Om2CodegenAndCompile(const ge::GeModelPtr &ge_model, vector<std::string> &output_file_paths,
+Status Om2Codegen::Om2CodegenAndCompile(const ge::GeModelPtr &ge_model, Om2CodegenArtifacts &artifacts,
                                         Om2ConstMetas &const_metas) {
+  artifacts.clear();
   const_metas.clear();
   AstContext ast_ctx;
   AstBuildContext ast(ast_ctx);
@@ -68,31 +68,24 @@ Status Om2Codegen::Om2CodegenAndCompile(const ge::GeModelPtr &ge_model, vector<s
   Om2CodegenModelBuilder builder;
   GE_ASSERT_SUCCESS(builder.Build(ge_model, task_code_builders, codegen_model, const_metas));
   ProgramGenerator generator(ast, task_code_builders, codegen_model);
-  GE_ASSERT_SUCCESS(Om2Utils::CreateOm2WorkspaceDir(ws_dir_));
-  const std::string runtime_ws_dir = ws_dir_ + "runtime/";
-  GE_ASSERT_SUCCESS(ge::CreateDir(runtime_ws_dir), "Failed to create om2 work dir: [%s]", runtime_ws_dir.c_str());
 
-  Om2CodePrinter code_printer(ge_model->GetName(), runtime_ws_dir);
+  Om2CodePrinter code_printer(ge_model->GetName());
   GE_ASSERT_SUCCESS(generator.GenerateProgram(code_printer));
+  Om2CodegenArtifacts source_artifacts;
+  code_printer.GetOutputFiles(source_artifacts);
 
-  std::vector<std::string> all_file_paths;
-  GE_ASSERT_SUCCESS(WriteGeneratedFiles(code_printer, runtime_ws_dir, ge_model->GetName(), all_file_paths));
-
-  std::vector<std::string> cpp_file_paths;
-  for (const auto &path : all_file_paths) {
-    if (!path.empty() && path.size() >= kCppFileExtLen &&
-        path.compare(path.size() - kCppFileExtLen, kCppFileExtLen, ".cpp") == 0) {
-      cpp_file_paths.push_back(path);
-    }
+  Om2CodegenArtifact so_artifact;
+  so_artifact.file_name = "lib" + ge_model->GetName() + "_om2.so";
+  const Status compile_ret = Om2Utils::CompileGeneratedCppToSo(source_artifacts, ge_model->GetName(), so_artifact,
+                                                               false);
+  if (compile_ret != SUCCESS) {
+    DumpGeneratedFiles(source_artifacts);
+    return compile_ret;
   }
-
-  const std::string so_file_path = runtime_ws_dir + "lib" + ge_model->GetName() + "_om2.so";
-  GE_ASSERT_SUCCESS(Om2Utils::CompileGeneratedCppToSo(cpp_file_paths, so_file_path, false));
   GELOGI("[OM2] Model %s has finished generating source code files and compiling to the shared library.",
          ge_model->GetName().c_str());
-  GE_ASSERT_TRUE(mmAccess2(so_file_path.c_str(), M_F_OK) == EN_OK);
-  output_file_paths.insert(output_file_paths.end(), all_file_paths.begin(), all_file_paths.end());
-  output_file_paths.push_back(so_file_path);
+  artifacts = std::move(source_artifacts);
+  artifacts.push_back(std::move(so_artifact));
   return SUCCESS;
 }
 }  // namespace ge

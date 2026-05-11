@@ -851,7 +851,7 @@ TEST_F(UtestModelExecutorTest, test_check_and_release_memory_extend_size_static_
 
   int64_t sum_size = 0;
   bool is_resuse = false;
-  // static memory is not malloced, can not reuse static memory
+  // static memory is not malloced, cannot reuse static memory
   EXPECT_EQ(model_executor.GetMemorySizeAfterReuse({ge_model}, graph_node, sum_size, is_resuse), SUCCESS);
   EXPECT_EQ(sum_size, memory_size - zero_copy_memory_size + weight_size);
   EXPECT_FALSE(is_resuse);

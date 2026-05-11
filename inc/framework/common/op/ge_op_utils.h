@@ -87,7 +87,7 @@ class GE_FUNC_VISIBILITY OpUtils {
   static Status GetShapeDataFromConstTensor(const ConstGeTensorPtr &tensor, const DataType type,
                                             std::vector<int64_t> &dims);
   /// Return true if node is hcom node and does not support addr refresh
-  /// which means its io can not support zero copy
+  /// which means its io cannot support zero copy
   /// \param node
   /// \return
   static bool IsHcomNodeNotSupportAddrRefresh(const OpDescPtr &op_desc);

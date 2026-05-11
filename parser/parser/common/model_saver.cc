@@ -151,9 +151,9 @@ FMK_FUNC_HOST_VISIBILITY FMK_FUNC_DEV_VISIBILITY int ModelSaver::CreateDirectory
             const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrStrLen);
             const std::string reason = FormatErrnoReason(mmGetErrorCode(), err_msg);
             REPORT_INNER_ERR_MSG("E19999",
-                                 "Can not create directory %s. Make sure the directory exists and writable. reason:%s",
+                                 "Cannot create directory %s. Make sure the directory exists and writable. reason:%s",
                                  directory_path.c_str(), reason.c_str());
-            GELOGW("Can not create directory %s. Make sure the directory exists and writable. errmsg:%s",
+            GELOGW("Cannot create directory %s. Make sure the directory exists and writable. errmsg:%s",
                    directory_path.c_str(), err_msg);
             return ret;
           }
@@ -168,9 +168,9 @@ FMK_FUNC_HOST_VISIBILITY FMK_FUNC_DEV_VISIBILITY int ModelSaver::CreateDirectory
       const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrStrLen);
       const std::string reason = FormatErrnoReason(mmGetErrorCode(), err_msg);
       REPORT_INNER_ERR_MSG("E19999",
-                           "Can not create directory %s. Make sure the directory exists and writable. reason:%s",
+                           "Cannot create directory %s. Make sure the directory exists and writable. reason:%s",
                            directory_path.c_str(), reason.c_str());
-      GELOGW("Can not create directory %s. Make sure the directory exists and writable. errmsg:%s",
+      GELOGW("Cannot create directory %s. Make sure the directory exists and writable. errmsg:%s",
              directory_path.c_str(), err_msg);
       return ret;
     }

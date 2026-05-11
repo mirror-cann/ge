@@ -195,7 +195,7 @@ bool IsCeGuarderStart(ge::FastNode *const node, const std::unordered_set<ge::Fas
   }
   auto in_node = ge::FastNodeUtils::GetInDataNodeByIndex(node, release_index);
   if (in_node == nullptr) {
-    GELOGW("Release node %s index %d can not find the input node.", node->GetName().c_str(), release_index);
+    GELOGW("Release node %s index %d cannot find the input node.", node->GetName().c_str(), release_index);
     return false;
   }
   if (init_nodes.count(in_node) == 0U) {

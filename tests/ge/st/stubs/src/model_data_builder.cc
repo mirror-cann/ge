@@ -192,7 +192,7 @@ ModelDataBuilder &ModelDataBuilder::AddTask(int kernel_type, const char *node_na
   auto graph = GraphUtilsEx::GetComputeGraph(graph_);
   auto node = graph->FindNode(node_name);
   if (node == nullptr) {
-    std::cout << "ERROR: Can not find op by name " << node_name << " when AddTask" << std::endl;
+    std::cout << "ERROR: Cannot find op by name " << node_name << " when AddTask" << std::endl;
     return *this;
   }
   return AddTask(kernel_type, node->GetOpDesc()->GetId());

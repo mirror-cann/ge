@@ -221,8 +221,8 @@ graphStatus UpdateSubGraphDataNodes(const ConstNodePtr &node) {
   for (const auto &name : sub_graph_names) {
     const auto sub_graph = root_graph->GetSubgraph(name);
     if (sub_graph == nullptr) {
-      REPORT_INNER_ERR_MSG("E18888", "Can not find the subgrpah %s for node %s", name.c_str(), node->GetName().c_str());
-      GE_LOGE("[Get][Graph] can not find the subgrpah %s for node %s", name.c_str(), node->GetName().c_str());
+      REPORT_INNER_ERR_MSG("E18888", "Cannot find the subgrpah %s for node %s", name.c_str(), node->GetName().c_str());
+      GE_LOGE("[Get][Graph] cannot find the subgrpah %s for node %s", name.c_str(), node->GetName().c_str());
       return GRAPH_FAILED;
     }
     for (const auto &node_sub : sub_graph->GetDirectNode()) {
@@ -350,8 +350,8 @@ graphStatus UpdateParentNodeOutTensor(const ConstNodePtr &node) {
   for (const auto &name : sub_graph_names) {
     const auto sub_graph = root_graph->GetSubgraph(name);
     if (sub_graph == nullptr) {
-      REPORT_INNER_ERR_MSG("E18888", "Can not find the subgraph %s for node %s", name.c_str(), node->GetName().c_str());
-      GE_LOGE("[Get][Subgraph] Can not find the subgraph %s for node %s", name.c_str(), node->GetName().c_str());
+      REPORT_INNER_ERR_MSG("E18888", "Cannot find the subgraph %s for node %s", name.c_str(), node->GetName().c_str());
+      GE_LOGE("[Get][Subgraph] Cannot find the subgraph %s for node %s", name.c_str(), node->GetName().c_str());
       return GRAPH_FAILED;
     }
     NodePtr netoutput = nullptr;
@@ -379,9 +379,9 @@ graphStatus UpdateParentNodeOutTensor(const ConstNodePtr &node) {
       if (edge_desc == nullptr) {
         REPORT_INNER_ERR_MSG("E18888",
                              "Invalid NetOutput node on sub graph %s, parent node %s, "
-                             "can not find input tensor %d",
+                             "cannot find input tensor %d",
                              name.c_str(), node->GetName().c_str(), edge_anchor->GetIdx());
-        GE_LOGE("[Get][Tensor] Invalid NetOutput node on sub graph %s, parent node %s, can not find input tensor %d",
+        GE_LOGE("[Get][Tensor] Invalid NetOutput node on sub graph %s, parent node %s, cannot find input tensor %d",
                 name.c_str(), node->GetName().c_str(), edge_anchor->GetIdx());
         return GRAPH_FAILED;
       }
@@ -963,7 +963,7 @@ graphStatus ShapeRefiner::InferShapeAndType(const NodePtr &node, const bool befo
   const bool is_unknown_graph = node->GetOwnerComputeGraph()->GetGraphUnknownFlag();
   const auto op_desc = node->GetOpDesc();
   GE_CHECK_NOTNULL(op_desc);
-  // some op can not infershape twice such as aipp
+  // some op cannot infershape twice such as aipp
   const bool need_update_input = (!is_unknown_graph) && (!op_desc->HasAttr("has_infered_verified"));
   if (need_update_input) {
     const auto status = UpdateOpInputDesc(node);

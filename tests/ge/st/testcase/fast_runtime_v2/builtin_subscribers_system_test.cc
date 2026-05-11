@@ -557,7 +557,7 @@ class BuiltinSubscribersST : public bg::BgTest {
     ge::diagnoseSwitch::MutableDumper().SetEnableFlag(0);
     GlobalDumper::GetInstance()->ClearInnerExceptionDumpers();
     GlobalProfilingWrapper::GetInstance()->Free();
-    ge::DumpManager::GetInstance().RemoveDumpProperties(ge::kInferSessionId); // need clear otherwise can not emplace
+    ge::DumpManager::GetInstance().RemoveDumpProperties(ge::kInferSessionId); // need clear otherwise cannot emplace
   }
 };
 

@@ -23,7 +23,7 @@ inline size_t CalcArgIndex(size_t total_num, ExecuteArgIndex arg_index) {
 inline void SetPriorityForNode(std::pair<ge::FastNode *, Node *> &graph_to_exe_nodes) {
   int64_t priority = std::numeric_limits<int64_t>::max();
   if (!ge::AttrUtils::GetInt(graph_to_exe_nodes.first->GetOpDescBarePtr(), "priority", priority)) {
-    GELOGW("Can not get the priority of node %s, the node will be run at the lowest priority",
+    GELOGW("Cannot get the priority of node %s, the node will be run at the lowest priority",
            graph_to_exe_nodes.first->GetName().c_str());
   }
   reinterpret_cast<PriorityQueueElementHead *>(graph_to_exe_nodes.second)->priority = priority;

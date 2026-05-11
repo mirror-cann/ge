@@ -185,10 +185,10 @@ static aclError AippCropSizeCheck(const aclmdlAIPP *const aippParmsSet, const si
     const int32_t cropSizeH = aippParmsSet->aippBatchPara[batchIndex].cropSizeH;
 
     ACL_CHECK_WITH_INNER_MESSAGE_AND_RETURN((cropStartPosW + cropSizeW) <= srcImageSizeW, ACL_ERROR_INVALID_PARAM,
-                                            "[Check][Params]the sum of cropStartPosW[%d] and cropSizeW[%d] can not be "
+                                            "[Check][Params]the sum of cropStartPosW[%d] and cropSizeW[%d] cannot be "
                                             "larger than srcImageSizeW[%d]", cropStartPosW, cropSizeW, srcImageSizeW);
     ACL_CHECK_WITH_INNER_MESSAGE_AND_RETURN((cropStartPosH + cropSizeH) <= srcImageSizeH, ACL_ERROR_INVALID_PARAM,
-                                            "[Check][Params]the sum of cropStartPosH[%d] and cropSizeH[%d] can not be "
+                                            "[Check][Params]the sum of cropStartPosH[%d] and cropSizeH[%d] cannot be "
                                             "larger than srcImageSizeH[%d]", cropStartPosH, cropSizeH, srcImageSizeH);
 
     const enum CceAippInputFormat inputFormat =

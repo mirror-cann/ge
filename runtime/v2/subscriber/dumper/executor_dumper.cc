@@ -334,17 +334,17 @@ ge::Status ExecutorDumper::InitOutputChainFromEquivalentDataEdges(const KernelNa
   const auto exe_graph = extend_info_->exe_graph;
   const auto node = SubscriberUtils::FindNodeFromExeGraph(exe_graph.get(), kernel_name_and_idx.kernel_name);
   if (node == nullptr) {
-    GELOGW("[Dumper] Can not find kernel %s", kernel_name_and_idx.kernel_name.c_str());
+    GELOGW("[Dumper] Cannot find kernel %s", kernel_name_and_idx.kernel_name.c_str());
     output_chain.emplace_back(nullptr);
     return ge::SUCCESS;
   }
   GE_ASSERT_NOTNULL(node->GetExtendInfo());
   const auto symbol = node->GetExtendInfo()->GetOutputSymbol(kernel_name_and_idx.idx);
-  GE_ASSERT_TRUE(symbol != ge::kInvalidSymbol, "[Dumper] Can not find out kernel [%s][%d] from equivalent data edges.",
+  GE_ASSERT_TRUE(symbol != ge::kInvalidSymbol, "[Dumper] Cannot find out kernel [%s][%d] from equivalent data edges.",
                  node->GetNamePtr(), kernel_name_and_idx.idx);
   const auto value_iter = extend_info_->symbols_to_value.find(symbol);
   GE_ASSERT_TRUE(value_iter != extend_info_->symbols_to_value.cend(),
-                 "[Dumper] Can not find out kernel [%s] from symbol to values.", node->GetNamePtr());
+                 "[Dumper] Cannot find out kernel [%s] from symbol to values.", node->GetNamePtr());
   output_chain.emplace_back(reinterpret_cast<Chain *>(value_iter->second));
   return ge::SUCCESS;
 }
@@ -365,7 +365,7 @@ ge::Status ExecutorDumper::InitOutputShapes(const PlacedLoweringResult &placed_l
       GELOGI("[Dumper] Find out shape kernel [%s] of node [%s] from equivalent data edges.",
              bg::ValueHolderUtils::GetNodeNameBarePtr(out_shape), dump_unit->node->GetNamePtr());
       GE_ASSERT_SUCCESS(InitOutputChainFromEquivalentDataEdges(name_and_idx, dump_unit->output_shapes),
-                        "[Dumper] Can not find out shape kernel [%s] of node [%s] from equivalent data edges.",
+                        "[Dumper] Cannot find out shape kernel [%s] of node [%s] from equivalent data edges.",
                         bg::ValueHolderUtils::GetNodeNameBarePtr(out_shape), dump_unit->node->GetNamePtr());
     }
   }
@@ -440,7 +440,7 @@ ge::Status ExecutorDumper::InitInputShapes(const LowerInputInfo &input_info, Nod
       continue;
     } else {
       GE_ASSERT_SUCCESS(InitOutputChainFromEquivalentDataEdges(name_and_idx, input_shapes),
-                        "[Dumper] Can not find out shape kernel [%s][%d] for node [%s] from equivalent data edges.",
+                        "[Dumper] Cannot find out shape kernel [%s][%d] for node [%s] from equivalent data edges.",
                         peer_op_name.c_str(), output_index, dump_unit->node->GetNamePtr());
       GELOGI("[Dumper][InitInput] shape for node [%s][%zu] from kernel[%s][%d] from equivalent data edges.",
              dump_unit->node->GetNamePtr(), input_shapes.size() - 1U, name_and_idx.kernel_name.c_str(),
@@ -475,7 +475,7 @@ ge::Status ExecutorDumper::InitOutputAddrs(const PlacedLoweringResult &placed_lo
       GELOGI("[Dumper] Find out addr kernel [%s] of node [%s] from equivalent data edges.",
              name_and_idx.kernel_name.c_str(), dump_unit->node->GetNamePtr());
       GE_ASSERT_SUCCESS(InitOutputChainFromEquivalentDataEdges(name_and_idx, dump_unit->output_addrs),
-                        "[Dumper] Can not find out addr kernel [%s] of node [%s] from equivalent data edges.",
+                        "[Dumper] Cannot find out addr kernel [%s] of node [%s] from equivalent data edges.",
                         name_and_idx.kernel_name.c_str(), dump_unit->node->GetNamePtr());
     }
   }
@@ -502,7 +502,7 @@ ge::Status ExecutorDumper::InitInputAddrs(const LowerInputInfo &input_info, Node
       continue;
     } else {
       GE_ASSERT_SUCCESS(InitOutputChainFromEquivalentDataEdges(name_and_idx, input_addrs),
-                        "[Dumper] Can not find out addr kernel [%s][%d] for node [%s] from equivalent data edges.",
+                        "[Dumper] Cannot find out addr kernel [%s][%d] for node [%s] from equivalent data edges.",
                         peer_op_name.c_str(), output_index, dump_unit->node->GetNamePtr());
       GELOGI("[Dumper][InitInput] addr for node [%s][%zu] from kernel[%s][%d] from equivalent data edges.",
              dump_unit->node->GetNamePtr(), input_addrs.size() - 1U, name_and_idx.kernel_name.c_str(),
@@ -559,16 +559,16 @@ ge::Status ExecutorDumper::InitOrderHoldersFromControlNodes(const bg::ValueHolde
     std::string name;
     GE_ASSERT_SUCCESS(FindNodeNameFromSubGraph(order_holder, kWaitAnyMoreType, name));
     GE_ASSERT_SUCCESS(InitOrderHoldersFromExeGraph(name, dump_unit),
-                      "[Dumper]Can not find order holder [%s] of node [%s] from subgraph of control nodes.",
+                      "[Dumper]Cannot find order holder [%s] of node [%s] from subgraph of control nodes.",
                       node_name.c_str(), dump_unit->node->GetNamePtr());
   } else if (node_type == kWhileNodeType) {
     std::string name;
     GE_ASSERT_SUCCESS(FindNodeNameFromSubGraph(order_holder, kExitType, name));
     GE_ASSERT_SUCCESS(InitOrderHoldersFromExeGraph(name, dump_unit),
-                      "[Dumper]Can not find order holder [%s] of node [%s] from subgraph of control nodes.",
+                      "[Dumper]Cannot find order holder [%s] of node [%s] from subgraph of control nodes.",
                       node_name.c_str(), dump_unit->node->GetNamePtr());
   } else {
-    GELOGW("[Dumper]Can not find order holder [%s] of node [%s] from subgraph of control nodes.", node_name.c_str(),
+    GELOGW("[Dumper]Cannot find order holder [%s] of node [%s] from subgraph of control nodes.", node_name.c_str(),
            dump_unit->node->GetNamePtr());
   }
   return ge::SUCCESS;

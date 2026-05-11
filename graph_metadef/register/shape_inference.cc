@@ -20,6 +20,7 @@
 #include "base/registry/op_impl_space_registry_v2.h"
 #include "common/checker.h"
 #include "graph/utils/inference_rule.h"
+#include "graph/custom_op.h"
 
 namespace gert {
 namespace {
@@ -37,11 +38,14 @@ bool IsInputDescValid(const ge::GeTensorDesc &input_desc, size_t &invalid_index_
   return true;
 }
 
-void GetStorageShape(const ge::GeTensorDesc &input_desc, gert::StorageShape &storage_shape) {
-  const auto &dims = input_desc.GetOriginShape().GetDims();
-  for (const auto &dim : dims) {
-    (void)storage_shape.MutableOriginShape().AppendDim(dim);
+void GetStorageShape(const ge::GeTensorDesc &tensor_desc, gert::StorageShape &storage_shape) {
+  const auto &storage_dims = tensor_desc.GetShape().GetDims();
+  for (const auto &dim : storage_dims) {
     (void)storage_shape.MutableStorageShape().AppendDim(dim);
+  }
+  const auto &origin_dims = tensor_desc.GetOriginShape().GetDims();
+  for (const auto &dim : origin_dims) {
+    (void)storage_shape.MutableOriginShape().AppendDim(dim);
   }
 }
 
@@ -154,7 +158,7 @@ ge::graphStatus ConstructCompileKernelContextInputs(const ge::Operator &op, cons
     }
     gert::StorageShape storage_shape;
     GetStorageShape(op_desc->GetInputDesc(static_cast<uint32_t>(i)), storage_shape);
-    // init tensor address, if can not get const tensor input, set it to nullptr
+    // init tensor address, if cannot get const tensor input, set it to nullptr
     TensorAddress address = nullptr;
     Index index;
     index.input_index = i;
@@ -182,6 +186,18 @@ ge::graphStatus ConstructInferShapeContextInputs(const ge::Operator &op, const g
   return ge::GRAPH_SUCCESS;
 }
 
+ge::graphStatus PrepareInferShapeCompileContext(const ge::Operator &op, const ge::OpDescPtr &op_desc,
+                                                ge::NodeShapeTransUtils &transformer,
+                                                std::vector<std::unique_ptr<uint8_t[]>> &inputs_holder,
+                                                std::vector<std::unique_ptr<ge::Tensor>> &ge_tensors_holder) {
+  GE_CHK_BOOL_RET_STATUS(transformer.Init(), ge::GRAPH_FAILED, "Failed to init transformer for %s",
+                         op_desc->GetNamePtr());
+  GE_CHK_BOOL_RET_STATUS(transformer.CatchFormatAndShape(), ge::GRAPH_FAILED,
+                         "Failed to catch format and shape for %s", op_desc->GetNamePtr());
+  ge_tensors_holder.resize(op_desc->GetAllInputsSize());
+  return ConstructInferShapeContextInputs(op, op_desc, inputs_holder, ge_tensors_holder);
+}
+
 ge::graphStatus ConstructInferShapeRangeContextInputs(
     const ge::Operator &op, const ge::OpDescPtr &op_desc, std::vector<std::unique_ptr<uint8_t[]>> &inputs,
     std::vector<std::unique_ptr<ge::Tensor>> &ge_tensors_holder,
@@ -205,7 +221,7 @@ ge::graphStatus ConstructInferShapeRangeContextInputs(
     input_tensor_ranges_holder[i].second.SetStorageFormat(input_desc.GetFormat());
     input_tensor_ranges_holder[i].second.SetDataType(input_desc.GetDataType());
 
-    // init tensor address, if can not get const tensor input, set it to nullptr
+    // init tensor address, if cannot get const tensor input, set it to nullptr
     TensorAddress address = nullptr;
     Index index;
     index.input_index = i;
@@ -246,7 +262,7 @@ ge::graphStatus ConstructInferShapeContextInputs(const ge::Operator &op, const g
     gert::StorageShape max_storage_shape;
     GetMinMaxStorageShape(op_desc->GetInputDesc(static_cast<size_t>(i)), min_storage_shape, max_storage_shape);
 
-    // init tensor address, if can not get const tensor input, set it to nullptr
+    // init tensor address, if cannot get const tensor input, set it to nullptr
     TensorAddress address = nullptr;
     Index index;
     index.input_index = i;
@@ -541,12 +557,12 @@ ge::graphStatus InferShapeByRegisteredFuncOrRule(const OpImplKernelRegistry::OpI
   const auto shape_infer_rule = ge::ShapeInferenceRule::FromOpDesc(op_desc);
   if (shape_infer_rule == nullptr) {
     REPORT_INNER_ERR_MSG("EZ9999",
-                         "Can not find infer_shape func of node %s[%s]. Please confirm whether the op_proto shared "
+                         "Cannot find infer_shape func of node %s[%s]. Please confirm whether the op_proto shared "
                          "library (.so) has been loaded "
                          "successfully, and that you have already developed the infer_shape func.",
                          op_desc->GetNamePtr(), op_desc->GetTypePtr());
     GELOGE(ge::GRAPH_FAILED,
-           "Can not find infer_shape func of node %s[%s]. Please confirm whether the op_proto shared library (.so) "
+           "Cannot find infer_shape func of node %s[%s]. Please confirm whether the op_proto shared library (.so) "
            "has been loaded "
            "successfully, and that you have already developed the infer_shape func.",
            op_desc->GetNamePtr(), op_desc->GetTypePtr());
@@ -578,13 +594,13 @@ ge::graphStatus InferDtypeByRegisteredFuncOrRule(const OpImplKernelRegistry::OpI
   const auto dtype_infer_rule = ge::DtypeInferenceRule::FromOpDesc(op_desc);
   if (dtype_infer_rule == nullptr) {
     REPORT_INNER_ERR_MSG("EZ9999",
-                         "Can not find Node %s[%s] custom infer_datatype func. Please confirm whether the op_proto "
+                         "Cannot find Node %s[%s] custom infer_datatype func. Please confirm whether the op_proto "
                          "shared library (.so) has been "
                          "loaded successfully, and that you have already developed the infer_datatype func or marked "
                          "the T-derivation rules on the IR.",
                          op_desc->GetNamePtr(), op_desc->GetTypePtr());
     GELOGE(ge::GRAPH_FAILED,
-           "Can not find Node %s[%s] custom infer_datatype func. Please confirm whether the op_proto shared library "
+           "Cannot find Node %s[%s] custom infer_datatype func. Please confirm whether the op_proto shared library "
            "(.so) has been "
            "loaded successfully, and that you have already developed the infer_datatype func or marked "
            "the T-derivation rules on the IR.",
@@ -606,6 +622,57 @@ ge::graphStatus InferDtypeByRegisteredFuncOrRule(const OpImplKernelRegistry::OpI
   GELOGD("Infer dtype for %s[%s] by inference rule", op_desc->GetNamePtr(), op_desc->GetTypePtr());
   return dtype_infer_rule->InferDtype(infer_dtype_ctx);
 }
+
+ge::graphStatus CustomOpInferShapeOnCompile(ge::ShapeInferOp *shape_infer_op, const ge::Operator &op,
+                                            const ge::OpDescPtr &op_desc) {
+  GE_ASSERT_NOTNULL(shape_infer_op);
+  ge::NodeShapeTransUtils transformer(op_desc);
+  std::vector<std::unique_ptr<uint8_t[]>> inputs_holder;
+  std::vector<std::unique_ptr<uint8_t[]>> outputs_holder;
+  std::vector<std::unique_ptr<ge::Tensor>> ge_tensors_holder;
+  auto ret = PrepareInferShapeCompileContext(op, op_desc, transformer, inputs_holder, ge_tensors_holder);
+  if (ret == ge::GRAPH_PARAM_INVALID) {
+    return ret;
+  }
+  GE_ASSERT_GRAPH_SUCCESS(ConstructCompileKernelContextOutputs(op_desc, outputs_holder),
+                          "[Construct][CustomOpInferShapeContextOutputs] failed, op_desc[%s]",
+                          op_desc->GetName().c_str());
+  const auto kernel_context_holder = gert::KernelRunContextBuilder()
+                                         .Inputs(GetInputs(op, inputs_holder))
+                                         .Outputs(GetOutputs(outputs_holder))
+                                         .Build(op_desc);
+  auto infer_shape_ctx = reinterpret_cast<gert::InferShapeContext *>(kernel_context_holder.context_);
+
+  ret = shape_infer_op->InferShape(infer_shape_ctx);
+  GE_CHK_STATUS_RET(ret, "[Call][CustomOpInferShape] failed, op_desc[%s], ret[%d]",
+                    op_desc->GetName().c_str(), ret);
+  GE_ASSERT_GRAPH_SUCCESS(UpdateOpDescOutShape(op_desc, infer_shape_ctx),
+                          "UpdateOpDescOutShape failed, OutputShape is nullptr. op_desc[%s]",
+                          op_desc->GetName().c_str());
+  GE_CHK_BOOL_RET_STATUS(transformer.UpdateFormatAndShape(), ge::GRAPH_FAILED,
+                         "Failed to update format and shape for %s", op_desc->GetNamePtr());
+  return ge::GRAPH_SUCCESS;
+}
+
+ge::graphStatus CustomOpInferDataTypeOnCompile(ge::ShapeInferOp *shape_infer_op, const ge::OpDescPtr &op_desc) {
+  GE_ASSERT_NOTNULL(shape_infer_op);
+  std::vector<void *> inputs;
+  std::vector<void *> outputs;
+  ConstructDataTypeContextInputs(op_desc, inputs);
+  ConstructDataTypeContextOutputs(op_desc, outputs);
+  const auto kernel_context_holder = gert::KernelRunContextBuilder().Inputs(inputs).Outputs(outputs).Build(op_desc);
+  const auto kernel_context = reinterpret_cast<gert::InferDataTypeContext *>(kernel_context_holder.context_);
+
+  const ge::graphStatus ret = shape_infer_op->InferDataType(kernel_context);
+  GE_CHK_STATUS_RET(ret, "[Check][CustomOpInferDataType] result failed, op_desc[%s], ret[%d]",
+                    op_desc->GetName().c_str(), ret);
+  for (size_t i = 0UL; i < op_desc->GetOutputsSize(); i++) {
+    const auto &out_desc = op_desc->MutableOutputDesc(static_cast<size_t>(i));
+    out_desc->SetDataType(kernel_context->GetOutputDataType(i));
+    out_desc->SetOriginDataType(kernel_context->GetOutputDataType(i));
+  }
+  return ge::GRAPH_SUCCESS;
+}
 }
 
 ge::graphStatus InferShapeRangeOnCompile(const ge::Operator &op, const ge::OpDescPtr &op_desc) {
@@ -625,7 +692,7 @@ ge::graphStatus InferShapeRangeOnCompile(const ge::Operator &op, const ge::OpDes
     return InferShapeRangeCustom(op, op_desc, functions->infer_shape_range);
   }
   if (functions->infer_shape != nullptr) {
-    GELOGD("Can not get infer shape range func op[%s], type[%s], will use an automatic derivation strategy.",
+    GELOGD("Cannot get infer shape range func op[%s], type[%s], will use an automatic derivation strategy.",
            op_desc->GetName().c_str(), op_desc->GetType().c_str());
     return InferShapeRangeAutomaticly(op, op_desc, functions->infer_shape);
   }
@@ -642,15 +709,10 @@ ge::graphStatus InferShapeOnCompile(const ge::Operator &op, const ge::OpDescPtr 
   GE_ASSERT_NOTNULL(space_registry);
 
   ge::NodeShapeTransUtils transformer(op_desc);
-  GE_CHK_BOOL_RET_STATUS(transformer.Init(), ge::GRAPH_FAILED, "Failed to init transformer for %s",
-                         op_desc->GetNamePtr());
-  GE_CHK_BOOL_RET_STATUS(transformer.CatchFormatAndShape(), ge::GRAPH_FAILED, "Failed to catch format and shape for %s",
-                         op_desc->GetNamePtr());
   std::vector<std::unique_ptr<uint8_t[]>> inputs_holder;
   std::vector<std::unique_ptr<uint8_t[]>> outputs_holder;
   std::vector<std::unique_ptr<ge::Tensor>> ge_tensors_holder;
-  ge_tensors_holder.resize(op_desc->GetAllInputsSize());
-  auto ret = ConstructInferShapeContextInputs(op, op_desc, inputs_holder, ge_tensors_holder);
+  auto ret = PrepareInferShapeCompileContext(op, op_desc, transformer, inputs_holder, ge_tensors_holder);
   if (ret == ge::GRAPH_PARAM_INVALID) {
     return ret;
   }
@@ -723,13 +785,13 @@ ge::graphStatus InferFormatOnCompile(const ge::Operator &op, const ge::OpDescPtr
   const auto &functions = space_registry->GetOpImpl(op_desc->GetType().c_str());
   if ((functions == nullptr) || (functions->infer_format_func == nullptr)) {
     REPORT_INNER_ERR_MSG("EZ9999",
-                         "Can not find infer_format func of node %s[%s]. Please confirm whether the op_proto shared "
+                         "Cannot find infer_format func of node %s[%s]. Please confirm whether the op_proto shared "
                          "library (.so) has been loaded "
                          "successfully, and that you have already developed the infer_format func.",
                          op_desc->GetNamePtr(), op_desc->GetTypePtr());
     GELOGE(
         ge::GRAPH_FAILED,
-        "Can not find infer_format func of node %s[%s]. Please confirm whether the op_proto shared library (.so) has been loaded "
+        "Cannot find infer_format func of node %s[%s]. Please confirm whether the op_proto shared library (.so) has been loaded "
         "successfully, and that you have already developed the infer_format func.",
         op_desc->GetNamePtr(), op_desc->GetTypePtr());
     return ge::GRAPH_FAILED;
@@ -804,6 +866,8 @@ class CompileAdaptFunctionsRegister {
     (void) ge::OperatorFactoryImpl::RegisterInferFormatV2Func(&gert::InferFormatOnCompile);
     (void) ge::OperatorFactoryImpl::RegisterIsInferFormatV2RegisteredFunc(&gert::IsInferFormatV2Registered);
     (void) ge::OperatorFactoryImpl::RegisterIsInferShapeV2RegisteredFunc(&gert::IsInferShapeV2Registered);
+    (void) ge::OperatorFactoryImpl::RegisterCustomOpInferShapeFunc(&CustomOpInferShapeOnCompile);
+    (void) ge::OperatorFactoryImpl::RegisterCustomOpInferDataTypeFunc(&CustomOpInferDataTypeOnCompile);
   }
 };
 static CompileAdaptFunctionsRegister VAR_UNUSED g_register_adapt_funcs;

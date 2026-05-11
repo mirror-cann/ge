@@ -73,13 +73,13 @@ Status NetworkManager::BindMainPort() {
       GELOGD("Bind main port[%d] success.", main_port_);
       return SUCCESS;
     } else {
-      GELOGW("Can not bind main port[%d], it may bind by other process, continue.", main_port);
+      GELOGW("Cannot bind main port[%d], it may bind by other process, continue.", main_port);
       continue;
     }
   }
 
-  REPORT_INNER_ERR_MSG("E19999", "[Bind][Port]All main port can not be bind, all prots in data panel can not be used.");
-  GELOGE(FAILED, "[Bind][Port]All main port can not be bind, all prots in data panel can not be used.");
+  REPORT_INNER_ERR_MSG("E19999", "[Bind][Port]All main port cannot be bind, all prots in data panel cannot be used.");
+  GELOGE(FAILED, "[Bind][Port]All main port cannot be bind, all prots in data panel cannot be used.");
   return FAILED;
 }
 

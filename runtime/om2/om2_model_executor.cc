@@ -11,6 +11,8 @@
 #include <string>
 #include <fstream>
 #include <regex>
+#include <sys/syscall.h>
+#include <unistd.h>
 #include "acl/acl_rt.h"
 #include "registry/op_impl_space_registry_v2.h"
 #include "framework/runtime/rt_session.h"
@@ -19,13 +21,13 @@
 #include "mmpa/mmpa_api.h"
 #include "graph/utils/type_utils.h"
 #include "graph_metadef/common/ge_common/util.h"
+#include "framework/common/scope_guard.h"
 #include "runtime/mem.h"
 #include "common/aclrt_malloc_helper.h"
 #include "common/helper/om2/json_file.h"
 #include "common/compile_profiling/ge_call_wrapper.h"
 #include "file_const_loader.h"
 #include "om2_external_weight_manager.h"
-#include "om2_executor_utils.h"
 #include "om2_file_utils.h"
 #include "om2_var_manager.h"
 #include "zip_archive_reader.h"
@@ -45,6 +47,7 @@ using RunAsyncFunc = ge::graphStatus (*)(Om2ModelHandle *, rtStream_t, int, void
 
 struct RunModelInfo {
   std::string so_file;
+  int32_t so_fd = -1;
   ge::JsonFile model_meta_json;
   ge::JsonFile constants_json;
   void *so_handle = nullptr;
@@ -81,6 +84,35 @@ std::pair<std::string, std::string> ExtractParentDirAndFileName(const std::strin
     return {"/", abs_path.substr(1)};
   }
   return {abs_path.substr(0, last_slash + 1), abs_path.substr(last_slash + 1)};
+}
+
+void CloseMemFd(int32_t &fd) {
+  if (fd >= 0) {
+    (void)mmClose(fd);
+    fd = -1;
+  }
+}
+
+ge::Status CreateSoMemFd(const std::string &file_name, const void *data, const size_t size,
+                         std::string &fd_path, int32_t &fd) {
+  GE_ASSERT_NOTNULL(data);
+  GE_ASSERT_TRUE(size > 0U);
+  CloseMemFd(fd);
+
+  const auto short_name = ExtractParentDirAndFileName(file_name).second;
+  fd = static_cast<int32_t>(syscall(__NR_memfd_create, short_name.c_str(), 0));
+  GE_ASSERT_TRUE(fd >= 0, "[OM2][Create][MemFd] Failed, file=%s", file_name.c_str());
+  GE_DISMISSABLE_GUARD(memfd_cleanup, [&]() { CloseMemFd(fd); });
+
+  const auto write_count = mmWrite(fd, const_cast<void *>(data), size);
+  GE_ASSERT_TRUE(write_count == static_cast<mmSsize_t>(size),
+                 "[OM2][Write][MemFd] Failed, file=%s, size=%zu, write_count=%lld",
+                 file_name.c_str(), size, static_cast<long long>(write_count));
+  GE_ASSERT_TRUE(lseek(fd, 0, SEEK_SET) >= 0, "[OM2][Seek][MemFd] Failed, file=%s", file_name.c_str());
+
+  fd_path = "/proc/self/fd/" + std::to_string(fd);
+  GE_DISMISS_GUARD(memfd_cleanup);
+  return ge::SUCCESS;
 }
 
 bool IsFileNameEndsWith(const std::string &file_name, const std::string &ext) {
@@ -244,11 +276,11 @@ class Om2ModelExecutor::Impl {
   ge::Status ParseModel(ge::ModelData &model_data, ge::ReadonlyByteBuffer &weight_buf,
                         std::vector<KernelBinInfo> &kernel_bin_info) {
     has_model_ = false;
+    CloseMemFd(run_model_info_.so_fd);
     run_model_info_ = RunModelInfo();
     weight_buf.reset(nullptr);
     kernel_bin_info.clear();
 
-    GE_ASSERT_SUCCESS(ge::om2::CreateOm2WorkspaceDir(ws_dir_));
     ge::RAIIZipArchive archive(static_cast<uint8_t *>(model_data.model_data), model_data.model_len);
     if (!archive.IsGood()) {
       GELOGE(ACL_ERROR_GE_PARAM_INVALID,
@@ -302,13 +334,15 @@ class Om2ModelExecutor::Impl {
       if (IsFileNameEndsWith(file_name, ".o")) {
         auto buff_data = archive.ExtractToMem(file_name, buff_size);
         GE_ASSERT_TRUE(buff_data != nullptr && buff_size != 0U);
-        auto file_info = ExtractParentDirAndFileName(ws_dir_ + file_name);
+        auto file_info = ExtractParentDirAndFileName(file_name);
         kernel_bin_info.push_back({file_info.second, std::move(buff_data), buff_size});
         continue;
       }
       if (IsFileNameEndsWith(file_name, "lib" + run_model_info_.model_name + "_om2.so")) {
-        GE_ASSERT_TRUE(archive.ExtractToFile(file_name, ws_dir_));
-        run_model_info_.so_file = ws_dir_ + file_name;
+        auto buff_data = archive.ExtractToMem(file_name, buff_size);
+        GE_ASSERT_TRUE(buff_data != nullptr && buff_size != 0U);
+        GE_ASSERT_SUCCESS(CreateSoMemFd(file_name, buff_data.get(), buff_size, run_model_info_.so_file,
+                                        run_model_info_.so_fd));
       }
     }
     return ge::SUCCESS;
@@ -443,14 +477,12 @@ class Om2ModelExecutor::Impl {
       }
       run_model_info_.so_handle = nullptr;
     }
+    CloseMemFd(run_model_info_.so_fd);
     ReleaseOwnedMemory();
     // Currently only the non-shared OM2 path is supported, so the executor releases session-level managers here.
     // When bundle model or shared RtSession is supported, add a condition to avoid releasing shared resources.
     Om2VarManagerPool::Instance().RemoveManager(session_id_);
     Om2ExternalWeightManagerPool::Instance().RemoveManager(session_id_);
-    if (mmAccess2(ws_dir_.c_str(), M_F_OK) == EN_OK) {
-      ge::om2::RmOm2WorkspaceDir(ws_dir_);
-    }
   }
 
  private:
@@ -568,7 +600,6 @@ class Om2ModelExecutor::Impl {
     owned_buffers_.clear();
   }
 
-  std::string ws_dir_;
   RunModelInfo run_model_info_;
   std::vector<void *> owned_buffers_;
   int32_t device_id_ = -1;
@@ -706,7 +737,7 @@ ge::Status IsOm2Model(const void *data, size_t size, bool &is_support) {
   if (data == nullptr) {
     REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char *>({"parameter", "value", "reason"}),
                                     std::vector<const char *>({"data", "nullptr", "Model data cannot be nullptr."}));
-    GELOGE(ACL_ERROR_GE_PARAM_INVALID, "[Check][Param] Invalid om2 model. Model data can not be nullptr.");
+    GELOGE(ACL_ERROR_GE_PARAM_INVALID, "[Check][Param] Invalid om2 model. Model data cannot be nullptr.");
     return ACL_ERROR_GE_PARAM_INVALID;
   }
 

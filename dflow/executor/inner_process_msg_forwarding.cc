@@ -28,7 +28,7 @@ Status InnerProcessMsgForwarding::Initialize(const std::vector<DeployQueueAttr> 
   exchange_service_ = &execution_runtime->GetExchangeService();
   GE_CHECK_NOTNULL(exchange_service_);
   if (status_input_queue_attrs.empty()) {
-    GELOGE(FAILED, "Status queue size can not be 0.");
+    GELOGE(FAILED, "Status queue size cannot be 0.");
     return FAILED;
   }
   status_input_queue_attrs_ = status_input_queue_attrs;

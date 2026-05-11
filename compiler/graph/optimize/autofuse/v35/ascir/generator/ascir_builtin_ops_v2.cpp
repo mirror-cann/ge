@@ -11,6 +11,30 @@
 #include "v2_ascir_codegen_impl.h"
 #include "v2_ascir_att_impl.h"
 #include "graph/types.h"
+#include <utility>
+#include <type_traits>
+
+template <size_t N, size_t... Is>
+static ge::OrderedTensorTypeList MakeT1ListImpl(const std::pair<ge::DataType, ge::DataType> (&pairs)[N],
+                                                std::index_sequence<Is...>) {
+  return ge::OrderedTensorTypeList{pairs[Is].first...};
+}
+
+template <size_t N>
+static ge::OrderedTensorTypeList MakeT1List(const std::pair<ge::DataType, ge::DataType> (&pairs)[N]) {
+  return MakeT1ListImpl(pairs, std::make_index_sequence<N>{});
+}
+
+template <size_t N, size_t... Is>
+static ge::OrderedTensorTypeList MakeT2ListImpl(const std::pair<ge::DataType, ge::DataType> (&pairs)[N],
+                                                std::index_sequence<Is...>) {
+  return ge::OrderedTensorTypeList{pairs[Is].second...};
+}
+
+template <size_t N>
+static ge::OrderedTensorTypeList MakeT2List(const std::pair<ge::DataType, ge::DataType> (&pairs)[N]) {
+  return MakeT2ListImpl(pairs, std::make_index_sequence<N>{});
+}
 
 namespace ge {
 namespace ascir {
@@ -36,6 +60,10 @@ REG_ASC_IR(Square)
                             ge::ascir::AscIrImplCreator<ge::ascir::SquareAscIrCodegenImplV2>(),
                             {{"T", TensorType{DT_FLOAT, DT_FLOAT16, DT_INT32, DT_INT16, DT_UINT16, DT_UINT32, DT_INT64, DT_UINT64, DT_BF16, DT_UINT8}}}});
 
+constexpr std::pair<ge::DataType, ge::DataType> kRoundToIntTypePairs[] = {
+    {DT_FLOAT, DT_INT64},   {DT_FLOAT, DT_INT32},  {DT_FLOAT, DT_INT16},   {DT_FLOAT16, DT_INT16},
+    {DT_FLOAT16, DT_INT32}, {DT_FLOAT16, DT_INT8}, {DT_FLOAT16, DT_UINT8}, {DT_BF16, DT_INT32},
+};
 REG_ASC_IR(RoundToInt)
     .Input("x", "T1")
     .Output("y", "T2")
@@ -43,9 +71,12 @@ REG_ASC_IR(RoundToInt)
     .Impl(v2_soc_versions,
           {ge::ascir::AscIrImplCreator<ge::ascir::RoundToIntAscIrAttImplV2>(),
            ge::ascir::AscIrImplCreator<ge::ascir::RoundToIntAscIrCodegenImplV2>(),
-           {{"T1", OrderedTensorTypeList{DT_FLOAT, DT_FLOAT, DT_FLOAT, DT_FLOAT16, DT_FLOAT16, DT_FLOAT16, DT_FLOAT16, DT_BF16}},
-             {"T2", OrderedTensorTypeList{DT_INT64, DT_INT32, DT_INT16, DT_INT16, DT_INT32, DT_INT8, DT_UINT8, DT_INT32}}}});
+           {{"T1", MakeT1List(kRoundToIntTypePairs)}, {"T2", MakeT2List(kRoundToIntTypePairs)}}});
 
+constexpr std::pair<ge::DataType, ge::DataType> TruncToIntTypePairs[] = {
+    {DT_FLOAT, DT_INT64},   {DT_FLOAT, DT_INT32},  {DT_FLOAT, DT_INT16},   {DT_FLOAT16, DT_INT16},
+    {DT_FLOAT16, DT_INT32}, {DT_FLOAT16, DT_INT8}, {DT_FLOAT16, DT_UINT8}, {DT_BF16, DT_INT32},
+};
 REG_ASC_IR(TruncToInt)
     .Input("x", "T1")
     .Output("y", "T2")
@@ -53,8 +84,7 @@ REG_ASC_IR(TruncToInt)
     .Impl(v2_soc_versions,
           {ge::ascir::AscIrImplCreator<ge::ascir::TruncToIntAscIrAttImplV2>(),
            ge::ascir::AscIrImplCreator<ge::ascir::TruncToIntAscIrCodegenImplV2>(),
-           {{"T1", OrderedTensorTypeList{DT_FLOAT, DT_FLOAT, DT_FLOAT, DT_FLOAT16, DT_FLOAT16, DT_FLOAT16, DT_FLOAT16, DT_BF16}},
-             {"T2", OrderedTensorTypeList{DT_INT64, DT_INT32, DT_INT16, DT_INT16, DT_INT32, DT_INT8, DT_UINT8, DT_INT32}}}});
+           {{"T1", MakeT1List(TruncToIntTypePairs)}, {"T2", MakeT2List(TruncToIntTypePairs)}}});
 
 REG_ASC_IR(Xor)
     .Input("x1", "T")
@@ -211,24 +241,24 @@ REG_ASC_IR(Nop)
  * T1:DT_INT64, DT_INT64, DT_INT64, DT_INT64,
  * T2:DT_FLOAT, DT_UINT8, DT_FLOAT16, DT_UINT64,
  */
+constexpr std::pair<ge::DataType, ge::DataType> kCastTypePairs[] = {
+    {DT_FLOAT, DT_FLOAT},   {DT_FLOAT, DT_FLOAT16}, {DT_FLOAT, DT_INT64},  {DT_FLOAT, DT_INT32},
+    {DT_FLOAT, DT_INT16},   {DT_FLOAT, DT_BF16},    {DT_FLOAT, DT_INT8},   {DT_FLOAT16, DT_FLOAT},
+    {DT_FLOAT16, DT_INT32}, {DT_FLOAT16, DT_INT16}, {DT_FLOAT16, DT_INT8}, {DT_FLOAT16, DT_UINT8},
+    {DT_UINT64, DT_INT64},  {DT_FLOAT16, DT_INT64}, {DT_UINT16, DT_INT16}, {DT_UINT8, DT_FLOAT16},
+    {DT_UINT8, DT_FLOAT},   {DT_UINT8, DT_INT32},   {DT_UINT8, DT_INT16},  {DT_UINT8, DT_INT8},
+    {DT_UINT32, DT_INT32},  {DT_INT8, DT_FLOAT16},  {DT_INT8, DT_UINT8},   {DT_INT8, DT_FLOAT},
+    {DT_INT8, DT_INT16},    {DT_INT16, DT_FLOAT16}, {DT_INT16, DT_FLOAT},  {DT_INT16, DT_UINT16},
+    {DT_INT16, DT_INT8},    {DT_INT16, DT_UINT8},   {DT_INT32, DT_FLOAT},  {DT_INT32, DT_INT64},
+    {DT_INT32, DT_INT16},   {DT_INT32, DT_FLOAT16}, {DT_INT32, DT_UINT32}, {DT_INT64, DT_INT32},
+    {DT_INT64, DT_FLOAT},   {DT_INT64, DT_UINT8},   {DT_INT64, DT_UINT64}, {DT_INT64, DT_FLOAT16},
+    {DT_BF16, DT_FLOAT},    {DT_BF16, DT_INT32},
+};
 REG_ASC_IR(Cast)
     .Impl(v2_soc_versions,
           {ge::ascir::AscIrImplCreator<ge::ascir::CastAscIrAttImplV2>(),
            ge::ascir::AscIrImplCreator<ge::ascir::CastAscIrCodegenImplV2>(),
-           {{"T1", OrderedTensorTypeList{DT_FLOAT,   DT_FLOAT,   DT_FLOAT,   DT_FLOAT,   DT_FLOAT,   DT_FLOAT,
-                                         DT_FLOAT,   DT_FLOAT16, DT_FLOAT16, DT_FLOAT16, DT_FLOAT16, DT_FLOAT16,
-                                         DT_UINT64,  DT_FLOAT16, DT_UINT16,  DT_UINT8,   DT_UINT8,   DT_UINT8,
-                                         DT_UINT8,   DT_UINT8,   DT_UINT32,  DT_INT8,    DT_INT8,    DT_INT8,
-                                         DT_INT8,    DT_INT16,   DT_INT16,   DT_INT16,   DT_INT16,   DT_INT16,
-                                         DT_INT32,   DT_INT32,   DT_INT32,   DT_INT32,   DT_INT32,   DT_INT64,
-                                         DT_INT64,   DT_INT64,   DT_INT64,   DT_INT64,   DT_BF16,    DT_BF16}},
-            {"T2", OrderedTensorTypeList{DT_FLOAT,   DT_FLOAT16, DT_INT64,   DT_INT32,   DT_INT16,   DT_BF16,
-                                         DT_INT8,    DT_FLOAT,   DT_INT32,   DT_INT16,   DT_INT8,    DT_UINT8,
-                                         DT_INT64,   DT_INT64,   DT_INT16,   DT_FLOAT16, DT_FLOAT,   DT_INT32,
-                                         DT_INT16,   DT_INT8,    DT_INT32,   DT_FLOAT16, DT_UINT8,   DT_FLOAT,
-                                         DT_INT16,   DT_FLOAT16, DT_FLOAT,   DT_UINT16,  DT_INT8,    DT_UINT8,
-                                         DT_FLOAT,   DT_INT64,   DT_INT16,   DT_FLOAT16, DT_UINT32,  DT_INT32,
-                                         DT_FLOAT,   DT_UINT8,   DT_UINT64,  DT_FLOAT16, DT_FLOAT,   DT_INT32}}}});
+          {{"T1", MakeT1List(kCastTypePairs)}, {"T2", MakeT2List(kCastTypePairs)}}});
 
 REG_ASC_IR(Abs)
     .Impl(v2_soc_versions, {ge::ascir::AscIrImplCreator<ge::ascir::AbsAscIrAttImplV2>(),
@@ -288,6 +318,10 @@ REG_ASC_IR(Log2)
                             ge::ascir::AscIrImplCreator<ge::ascir::Log2AscIrCodegenImplV2>(),
                             {{"T", TensorType{DT_FLOAT16, DT_FLOAT, DT_BF16}}}});
 
+constexpr std::pair<ge::DataType, ge::DataType> kLShiftTypePairs[] = {
+    {DT_INT8, DT_INT8},  {DT_INT16, DT_INT16},  {DT_INT32, DT_INT32},  {DT_INT64, DT_INT64},
+    {DT_UINT8, DT_INT8}, {DT_UINT16, DT_INT16}, {DT_UINT32, DT_INT32}, {DT_UINT64, DT_INT64},
+};
 REG_ASC_IR(LShift)
     .Input("x1", "T1")
     .Input("x2", "T2")
@@ -295,10 +329,7 @@ REG_ASC_IR(LShift)
     .ComputeType(ge::ComputeType::kComputeElewise)
     .Impl(v2_soc_versions, {ge::ascir::AscIrImplCreator<ge::ascir::LShiftAscIrAttImplV2>(),
                             ge::ascir::AscIrImplCreator<ge::ascir::LShiftAscIrCodegenImplV2>(),
-                            {{"T1", OrderedTensorTypeList{DT_INT8, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16,
-                                                          DT_UINT32, DT_UINT64}},
-                             {"T2", OrderedTensorTypeList{DT_INT8, DT_INT16, DT_INT32, DT_INT64, DT_INT8, DT_INT16,
-                                                          DT_INT32, DT_INT64}}}});
+                            {{"T1", MakeT1List(kLShiftTypePairs)}, {"T2", MakeT2List(kLShiftTypePairs)}}});
 
 REG_ASC_IR(Mod)
     .Input("x1", "T")
@@ -360,13 +391,15 @@ REG_ASC_IR(Neg)
                             {{"T", TensorType{DT_BF16, DT_INT8, DT_INT64, DT_INT16, DT_INT32, DT_FLOAT16, DT_FLOAT}}}});
 
 // todo: LogicalNot DT_INT64 后面根据需要放开
+constexpr std::pair<ge::DataType, ge::DataType> kLogicalNotTypePairs[] = {
+    {DT_FLOAT16, DT_UINT8}, {DT_FLOAT, DT_UINT8},  {DT_UINT8, DT_UINT8},  {DT_INT16, DT_UINT8},
+    {DT_INT32, DT_UINT8},   {DT_INT8, DT_UINT8},   {DT_INT64, DT_UINT8},  {DT_BF16, DT_UINT8},
+    {DT_UINT16, DT_UINT8},  {DT_UINT32, DT_UINT8}, {DT_UINT64, DT_UINT8},
+};
 REG_ASC_IR(LogicalNot)
     .Impl(v2_soc_versions, {ge::ascir::AscIrImplCreator<ge::ascir::LogicalNotAscIrAttImplV2>(),
                             ge::ascir::AscIrImplCreator<ge::ascir::LogicalNotAscIrCodegenImplV2>(),
-                            {{"T1", OrderedTensorTypeList{DT_FLOAT16, DT_FLOAT, DT_UINT8, DT_INT16, DT_INT32, DT_INT8, DT_INT64,
-                                                          DT_BF16, DT_UINT16, DT_UINT32, DT_UINT64}},
-                             {"T2", OrderedTensorTypeList{DT_UINT8, DT_UINT8, DT_UINT8, DT_UINT8, DT_UINT8, DT_UINT8, DT_UINT8,
-                                                          DT_UINT8, DT_UINT8, DT_UINT8, DT_UINT8}}}});
+                            {{"T1", MakeT1List(kLogicalNotTypePairs)}, {"T2", MakeT2List(kLogicalNotTypePairs)}}});
 
 REG_ASC_IR(Max)
     .Impl(v2_soc_versions, {ge::ascir::AscIrImplCreator<ge::ascir::MaxAscIrAttImplV2>(),
@@ -442,11 +475,15 @@ REG_ASC_IR(Maximum)
                             {{"T", TensorType{DT_BF16, DT_INT8, DT_INT16, DT_INT64, DT_INT32, DT_FLOAT16, DT_FLOAT, DT_UINT8,
                                               DT_UINT16, DT_UINT32, DT_UINT64}}}});
 
+constexpr std::pair<ge::DataType, ge::DataType> kTrueDivTypePairs[] = {
+    {DT_FLOAT16, DT_FLOAT16},
+    {DT_FLOAT, DT_FLOAT},
+    {DT_BF16, DT_BF16},
+};
 REG_ASC_IR(TrueDiv)
     .Impl(v2_soc_versions, {ge::ascir::AscIrImplCreator<ge::ascir::TrueDivAscIrAttImplV2>(),
                             ge::ascir::AscIrImplCreator<ge::ascir::TrueDivAscIrCodegenImplV2>(),
-                            {{"T1", OrderedTensorTypeList{DT_FLOAT16, DT_FLOAT, DT_BF16}},
-                             {"T2", OrderedTensorTypeList{DT_FLOAT16, DT_FLOAT, DT_BF16}}}});
+                            {{"T1", MakeT1List(kTrueDivTypePairs)}, {"T2", MakeT2List(kTrueDivTypePairs)}}});
 
 // todo:LogicalOr DT_INT64 后面根据需要放开
 REG_ASC_IR(LogicalOr)
@@ -965,6 +1002,10 @@ REG_ASC_IR(Atanh)
                             ge::ascir::AscIrImplCreator<ge::ascir::AtanhAscIrCodegenImplV2>(),
                             {{"T", TensorType{DT_FLOAT, DT_FLOAT16, DT_BF16}}}});
 
+constexpr std::pair<ge::DataType, ge::DataType> kRShiftTypePairs[] = {
+    {DT_INT8, DT_INT8},  {DT_INT16, DT_INT16},  {DT_INT32, DT_INT32},  {DT_INT64, DT_INT64},
+    {DT_UINT8, DT_INT8}, {DT_UINT16, DT_INT16}, {DT_UINT32, DT_INT32}, {DT_UINT64, DT_INT64},
+};
 REG_ASC_IR(RShift)
     .Input("x1", "T1")
     .Input("x2", "T2")
@@ -972,9 +1013,6 @@ REG_ASC_IR(RShift)
     .ComputeType(ge::ComputeType::kComputeElewise)
     .Impl(v2_soc_versions, {ge::ascir::AscIrImplCreator<ge::ascir::RShiftAscIrAttImplV2>(),
                             ge::ascir::AscIrImplCreator<ge::ascir::RShiftAscIrCodegenImplV2>(),
-                            {{"T1", OrderedTensorTypeList{DT_INT8, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16,
-                                                          DT_UINT32, DT_UINT64}},
-                             {"T2", OrderedTensorTypeList{DT_INT8, DT_INT16, DT_INT32, DT_INT64, DT_INT8, DT_INT16,
-                                                          DT_INT32, DT_INT64}}}});
+                            {{"T1", MakeT1List(kRShiftTypePairs)}, {"T2", MakeT2List(kRShiftTypePairs)}}});
 }  // namespace ascir
 }

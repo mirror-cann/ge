@@ -666,7 +666,7 @@ Status ConcatFusionCaseGenerator::AddTemplateIfCanFitInOneKernel(const ge::AscNo
                                                                  ascir::HintGraph &graph,
                                                                  std::vector<ascir::ImplGraph> &graphs) {
   GE_CHK_BOOL_RET_SPECIAL_STATUS(concat_node->inputs.Size() > kMaxInputNum, ge::SUCCESS,
-                                 "input num(%u) > max_input_num(%u), can not fit in one kernel",
+                                 "input num(%u) > max_input_num(%u), cannot fit in one kernel",
                                  concat_node->inputs.Size(), kMaxInputNum);
   const auto data_type_size = ge::GetSizeByDataType(concat_node->outputs[0].attr.dtype);
   GE_ASSERT_TRUE(data_type_size > 0);

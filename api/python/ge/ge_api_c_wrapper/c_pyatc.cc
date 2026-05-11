@@ -7,19 +7,27 @@
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
-
-#ifndef GE_RUNTIME_OM2_OM2_EXECUTOR_UTILS_H_
-#define GE_RUNTIME_OM2_OM2_EXECUTOR_UTILS_H_
-
 #include <string>
+#include <vector>
 
-#include "ge/ge_api_types.h"
+#include "main_impl.h"
 
-namespace ge {
-namespace om2 {
-Status CreateOm2WorkspaceDir(std::string &ws_dir);
-Status RmOm2WorkspaceDir(const std::string &ws_dir);
-}  // namespace om2
-}  // namespace ge
-
-#endif  // GE_RUNTIME_OM2_OM2_EXECUTOR_UTILS_H_
+extern "C" int GeApiWrapper_Atc_Main(int argc, const char *const *argv) {
+  if ((argc <= 0) || (argv == nullptr)) {
+    return 1;
+  }
+  std::vector<std::string> owned_args;
+  std::vector<char *> mutable_argv;
+  owned_args.reserve(static_cast<size_t>(argc));
+  mutable_argv.reserve(static_cast<size_t>(argc));
+  for (int i = 0; i < argc; ++i) {
+    if (argv[i] == nullptr) {
+      return 1;
+    }
+    owned_args.emplace_back(argv[i]);
+  }
+  for (auto &arg : owned_args) {
+    mutable_argv.push_back(arg.data());
+  }
+  return ge::main_impl(argc, mutable_argv.data());
+}

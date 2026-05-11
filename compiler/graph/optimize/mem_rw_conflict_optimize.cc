@@ -260,14 +260,14 @@ OutputRWType GetOutputRWTypeByIndex(const NodePtr &node, uint32_t index, bool us
     std::unordered_map<std::string, NodeInputOutputRWType>::const_iterator iter =
         node_rwtype_map_.find(output_node_vec.at(0)->GetName());
     if (iter == node_rwtype_map_.cend()) {
-      GELOGW("Can not find rw type of node %s from map.It could take some effect on following preprocess.",
+      GELOGW("Cannot find rw type of node %s from map. It could take some effect on following preprocess.",
              output_node_vec.at(0)->GetName().c_str());
       return OutputRWType::kInvalidRWType;
     }
     std::unordered_map<uint32_t, OutputRWType>::const_iterator index_2_output_rw_type =
         iter->second.output_rw_type_map.find(index);
     if (index_2_output_rw_type == iter->second.output_rw_type_map.cend()) {
-      GELOGW("Can not find rw type of node %s from map.It could take some effect on following preprocess.",
+      GELOGW("Cannot find rw type of node %s from map.It could take some effect on following preprocess.",
              output_node_vec.at(0)->GetName().c_str());
       return OutputRWType::kInvalidRWType;
     }
@@ -373,14 +373,14 @@ InputRWType GetInputRWTypeByIndex(const NodePtr &node, uint32_t index, bool use_
     std::unordered_map<std::string, NodeInputOutputRWType>::const_iterator iter =
         node_rwtype_map_.find(data_op_desc->GetName());
     if (iter == node_rwtype_map_.cend()) {
-      GELOGW("Can not find rw type of node %s from map.It could take some effect on following preprocess.",
+      GELOGW("Cannot find rw type of node %s from map.It could take some effect on following preprocess.",
              data_op_desc->GetName().c_str());
       return InputRWType::kInvalidRWType;
     }
     std::unordered_map<uint32_t, InputRWType>::const_iterator input_rw_type =
         iter->second.input_rw_type_map.find(out_data_anchor->GetIdx());
     if (input_rw_type == iter->second.input_rw_type_map.cend()) {
-      GELOGW("Can not find rw type of node %s from map.It could take some effect on following preprocess.",
+      GELOGW("Cannot find rw type of node %s from map.It could take some effect on following preprocess.",
              data_op_desc->GetName().c_str());
       return InputRWType::kInvalidRWType;
     }

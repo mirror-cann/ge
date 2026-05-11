@@ -270,7 +270,7 @@ Status LlmDataDist::LlmDataDistImpl::Initialize(const std::map<AscendString, Asc
   });
   LLM_CHK_STATUS_RET(llm::LLMUtils::ParseDeviceId(options, device_ids_, llm_datadist::OPTION_DEVICE_ID),
                     "Failed to get device_id from options");
-  LLM_CHK_BOOL_RET_STATUS(!device_ids_.empty(), ge::LLM_PARAM_INVALID, "option %s can not be empty.",
+  LLM_CHK_BOOL_RET_STATUS(!device_ids_.empty(), ge::LLM_PARAM_INVALID, "option %s cannot be empty.",
                          llm_datadist::OPTION_DEVICE_ID);
   auto init_options = options;
   // set ge.exec.deviceId
@@ -344,7 +344,7 @@ Status LlmDataDist::LlmDataDistImpl::ParseBufConfig(std::map<AscendString, Ascen
   const std::string buf_cfg_str = it->second.GetString();
   LLM_CHK_BOOL_RET_STATUS(!buf_cfg_str.empty(),
                          LLM_PARAM_INVALID,
-                         "Buffer pool config can not be empty while this option is set.");
+                         "Buffer pool config cannot be empty while this option is set.");
   try {
     nlohmann::json cfg_json = nlohmann::json::parse(buf_cfg_str);
     if (cfg_json.contains(kKeyBufSize)) {

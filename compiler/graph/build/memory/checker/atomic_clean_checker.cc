@@ -356,7 +356,7 @@ bool AtomicCleanChecker::FindInMemSetOffsets(const std::vector<Node *> &memset_n
   for (const auto memset_node : memset_nodes) {
     const auto &memset_iter = memset_to_clean_infos_.find(memset_node);
     GE_ASSERT_TRUE(memset_iter != memset_to_clean_infos_.end(),
-                   "can not find %s in memset_to_clean_infos_", memset_node->GetNamePtr());
+                   "cannot find %s in memset_to_clean_infos_", memset_node->GetNamePtr());
     const auto &memset_clean_infos = memset_iter->second;
     // 找到第一个大于等于被清理的offset的
     auto mem_info_iter = memset_clean_infos.lower_bound(addr_size_type.mem_info);

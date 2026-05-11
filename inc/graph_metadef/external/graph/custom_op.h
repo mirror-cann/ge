@@ -11,10 +11,12 @@
 #ifndef METADEF_CXX_INC_GRAPH_BASE_CUSTOM_OP_H
 #define METADEF_CXX_INC_GRAPH_BASE_CUSTOM_OP_H
 #include "exe_graph/runtime/eager_op_execution_context.h"
-#include "exe_graph/runtime/op_compile_context.h"
 #include <functional>
 #include <memory>
 #include "graph/ge_error_codes.h"
+#include "exe_graph/runtime/infer_datatype_context.h"
+#include "exe_graph/runtime/infer_shape_context.h"
+#include "exe_graph/runtime/op_compile_context.h"
 
 namespace ge {
 /**
@@ -77,8 +79,25 @@ class EagerExecuteOp : virtual public BaseCustomOp {
 };
 
 /**
- * 自定义算子实例创建函数类型。
+ * 自定义算子的 Shape 推理接口。
+ * 适用于算子基于推理上下文执行形状和数据类型推导的场景。
  */
+class ShapeInferOp : virtual public BaseCustomOp {
+ public:
+  /**
+   * 形状推理函数，用于推导算子输出的形状
+   * @param ctx 形状推理上下文，可通过上下文获取输入张量形状，设置输出张量形状等
+   * @return 状态码
+   */
+  virtual graphStatus InferShape(gert::InferShapeContext *ctx) = 0;
+  /**
+   * 数据类型推理函数，用于推导算子输出的数据类型
+   * @param ctx 数据类型推理上下文，可通过上下文获取输入张量数据类型，设置输出张量数据类型等
+   * @return 状态码
+   */
+  virtual graphStatus InferDataType(gert::InferDataTypeContext *ctx) = 0;
+};
+
 using BaseOpCreator = std::function<std::unique_ptr<BaseCustomOp>()>;
 
 /**

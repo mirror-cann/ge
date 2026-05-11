@@ -386,20 +386,20 @@ Graph::Graph(const char_t *name) {
 }
 
 graphStatus Graph::AddOp(const ge::Operator &op) {
-  GE_CHK_BOOL_EXEC(impl_ != nullptr, REPORT_INNER_ERR_MSG("E18888", "graph can not be used, impl is nullptr.");
-                   return GRAPH_FAILED, "[Check][Param] AddOp failed: graph can not be used, impl is nullptr.");
+  GE_CHK_BOOL_EXEC(impl_ != nullptr, REPORT_INNER_ERR_MSG("E18888", "graph cannot be used, impl is nullptr.");
+                   return GRAPH_FAILED, "[Check][Param] AddOp failed: graph cannot be used, impl is nullptr.");
   return impl_->AddOp(op);
 }
 
 graphStatus Graph::GetAllOpName(std::vector<std::string> &op_name) const {
-  GE_CHK_BOOL_EXEC(impl_ != nullptr, REPORT_INNER_ERR_MSG("E18888", "graph can not be used, impl is nullptr.");
-                   return GRAPH_FAILED, "[Check][Param] GetAllOpName failed: graph can not be used, impl is nullptr.");
+  GE_CHK_BOOL_EXEC(impl_ != nullptr, REPORT_INNER_ERR_MSG("E18888", "graph cannot be used, impl is nullptr.");
+                   return GRAPH_FAILED, "[Check][Param] GetAllOpName failed: graph cannot be used, impl is nullptr.");
   return impl_->GetAllOpName(op_name);
 }
 
 graphStatus Graph::GetAllOpName(std::vector<AscendString> &names) const {
-  GE_CHK_BOOL_EXEC(impl_ != nullptr, REPORT_INNER_ERR_MSG("E18888", "graph can not be used, impl is nullptr.");
-                   return GRAPH_FAILED, "[Check][Param] GetAllOpName failed: graph can not be used, impl is nullptr.");
+  GE_CHK_BOOL_EXEC(impl_ != nullptr, REPORT_INNER_ERR_MSG("E18888", "graph cannot be used, impl is nullptr.");
+                   return GRAPH_FAILED, "[Check][Param] GetAllOpName failed: graph cannot be used, impl is nullptr.");
   std::vector<std::string> op_names;
   if (impl_->GetAllOpName(op_names) != GRAPH_SUCCESS) {
     GELOGE(GRAPH_FAILED, "[Get][AllOpName] failed.");
@@ -416,8 +416,8 @@ graphStatus Graph::GetAllOpName(std::vector<AscendString> &names) const {
 graphStatus Graph::FindOpByName(const std::string &name, Operator &op) const {
   const Operator op_find_op_def("NULL");
   op = op_find_op_def;
-  GE_CHK_BOOL_EXEC(impl_ != nullptr, REPORT_INNER_ERR_MSG("E18888", "graph can not be used, impl is nullptr.");
-                   return GRAPH_FAILED, "[Check][Param] FindOpByName failed: graph can not be used, impl is nullptr.");
+  GE_CHK_BOOL_EXEC(impl_ != nullptr, REPORT_INNER_ERR_MSG("E18888", "graph cannot be used, impl is nullptr.");
+                   return GRAPH_FAILED, "[Check][Param] FindOpByName failed: graph cannot be used, impl is nullptr.");
   return impl_->FindOpByName(name, op);
 }
 
@@ -429,8 +429,8 @@ graphStatus Graph::FindOpByName(const char_t *name, Operator &op) const {
   }
   const Operator op_find_op_def("NULL");
   op = op_find_op_def;
-  GE_CHK_BOOL_EXEC(impl_ != nullptr, REPORT_INNER_ERR_MSG("E18888", "graph can not be used, impl is nullptr.");
-                   return GRAPH_FAILED, "[Check][Param] FindOpByName failed: graph can not be used, impl is nullptr.");
+  GE_CHK_BOOL_EXEC(impl_ != nullptr, REPORT_INNER_ERR_MSG("E18888", "graph cannot be used, impl is nullptr.");
+                   return GRAPH_FAILED, "[Check][Param] FindOpByName failed: graph cannot be used, impl is nullptr.");
   const std::string op_name = name;
   return impl_->FindOpByName(op_name, op);
 }
@@ -452,10 +452,10 @@ graphStatus Graph::FindOpByType(const char_t *type, std::vector<ge::Operator> &o
 }
 
 Graph &Graph::SetInputs(const std::vector<ge::Operator> &inputs) {
-  GE_CHK_BOOL_EXEC(impl_ != nullptr, REPORT_INNER_ERR_MSG("E18888", "graph can not be used, impl is nullptr.");
-                   return *this, "[Check][Param] SetInputs failed: graph can not be used, impl is nullptr.");
-  GE_CHK_BOOL_EXEC(!inputs.empty(), REPORT_INNER_ERR_MSG("E18888", "input operator size can not be 0");
-                   return *this, "[Check][Param] SetInputs failed: input operator size can not be 0, graph: %s",
+  GE_CHK_BOOL_EXEC(impl_ != nullptr, REPORT_INNER_ERR_MSG("E18888", "graph cannot be used, impl is nullptr.");
+                   return *this, "[Check][Param] SetInputs failed: graph cannot be used, impl is nullptr.");
+  GE_CHK_BOOL_EXEC(!inputs.empty(), REPORT_INNER_ERR_MSG("E18888", "input operator size cannot be 0");
+                   return *this, "[Check][Param] SetInputs failed: input operator size cannot be 0, graph: %s",
                    impl_->GetName().c_str());
   (void)impl_->SetInputs(inputs);
   return *this;
@@ -463,8 +463,8 @@ Graph &Graph::SetInputs(const std::vector<ge::Operator> &inputs) {
 
 Graph &Graph::SetOutputs(const std::vector<ge::Operator> &outputs) {
   if (impl_ == nullptr) {
-    REPORT_INNER_ERR_MSG("E18888", "graph can not be used, impl is nullptr.");
-    GELOGE(GRAPH_FAILED, "[Check][Param] SetOutputs failed: graph can not be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "graph cannot be used, impl is nullptr.");
+    GELOGE(GRAPH_FAILED, "[Check][Param] SetOutputs failed: graph cannot be used, impl is nullptr.");
     return *this;
   }
   (void)impl_->SetOutputs(outputs);
@@ -478,8 +478,8 @@ graphStatus Graph::SetOutputs(const std::vector<std::pair<GNode, int32_t>> &outp
 
 Graph &Graph::SetOutputs(const std::vector<std::pair<Operator, std::vector<size_t>>> &output_indexs) {
   if (impl_ == nullptr) {
-    REPORT_INNER_ERR_MSG("E18888", "graph can not be used, impl is nullptr.");
-    GELOGE(GRAPH_FAILED, "[Check][Param] SetOutputs failed: graph can not be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "graph cannot be used, impl is nullptr.");
+    GELOGE(GRAPH_FAILED, "[Check][Param] SetOutputs failed: graph cannot be used, impl is nullptr.");
     return *this;
   }
   (void)impl_->SetOutputs(output_indexs);
@@ -487,15 +487,15 @@ Graph &Graph::SetOutputs(const std::vector<std::pair<Operator, std::vector<size_
 }
 
 Graph &Graph::SetOutputs(const std::vector<std::pair<Operator, std::string>> &outputs) {
-  GE_CHK_BOOL_EXEC(impl_ != nullptr, REPORT_INNER_ERR_MSG("E18888", "graph can not be used, impl is nullptr.");
-                   return *this, "[Check][Param] SetOutputs failed: graph can not be used, impl is nullptr.");
+  GE_CHK_BOOL_EXEC(impl_ != nullptr, REPORT_INNER_ERR_MSG("E18888", "graph cannot be used, impl is nullptr.");
+                   return *this, "[Check][Param] SetOutputs failed: graph cannot be used, impl is nullptr.");
   (void)impl_->SetOutputs(outputs);
   return *this;
 }
 
 Graph &Graph::SetOutputs(const std::vector<std::pair<ge::Operator, AscendString>> &outputs) {
-  GE_CHK_BOOL_EXEC(impl_ != nullptr, REPORT_INNER_ERR_MSG("E18888", "graph can not be used, impl is nullptr.");
-                   return *this, "[Check][Param] SetOutputs failed: graph can not be used, impl is nullptr.");
+  GE_CHK_BOOL_EXEC(impl_ != nullptr, REPORT_INNER_ERR_MSG("E18888", "graph cannot be used, impl is nullptr.");
+                   return *this, "[Check][Param] SetOutputs failed: graph cannot be used, impl is nullptr.");
   std::vector<std::pair<ge::Operator, std::string>> graph_outputs;
   for (auto &item : outputs) {
     const char_t * const name = item.second.GetString();
@@ -512,8 +512,8 @@ Graph &Graph::SetOutputs(const std::vector<std::pair<ge::Operator, AscendString>
 
 Graph &Graph::SetTargets(const std::vector<ge::Operator> &targets) {
   if (impl_ == nullptr) {
-    REPORT_INNER_ERR_MSG("E18888", "graph can not be used, impl is nullptr.");
-    GELOGE(GRAPH_FAILED, "[Check][Param] SetTargets failed: graph can not be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "graph cannot be used, impl is nullptr.");
+    GELOGE(GRAPH_FAILED, "[Check][Param] SetTargets failed: graph cannot be used, impl is nullptr.");
     return *this;
   }
   (void)impl_->SetTargets(targets);
@@ -529,7 +529,7 @@ bool Graph::IsValid() const {
 
 void Graph::SetNeedIteration(bool need_iteration) {
   if (impl_ == nullptr) {
-    REPORT_INNER_ERR_MSG("E18888", "graph can not be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "graph cannot be used, impl is nullptr.");
     GELOGE(GRAPH_FAILED, "[Check][Param] Set need iteration failed, as impl is null.");
     return;
   }
@@ -539,8 +539,8 @@ void Graph::SetNeedIteration(bool need_iteration) {
 std::vector<GNode> Graph::GetAllNodes() const {
   std::vector<GNode> graph_nodes;
   if (impl_ == nullptr) {
-    REPORT_INNER_ERR_MSG("E18888", "graph can not be used, impl is nullptr.");
-    GELOGE(GRAPH_FAILED, "[Check][Param] GetAllNodes: graph can not be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "graph cannot be used, impl is nullptr.");
+    GELOGE(GRAPH_FAILED, "[Check][Param] GetAllNodes: graph cannot be used, impl is nullptr.");
     return graph_nodes;
   }
 
@@ -604,8 +604,8 @@ graphStatus Graph::RemoveSubgraph(const char *name) {
 std::vector<GNode> Graph::GetDirectNode() const {
   std::vector<GNode> graph_nodes;
   if (impl_ == nullptr) {
-    REPORT_INNER_ERR_MSG("E18888", "graph can not be used, impl is nullptr.");
-    GELOGE(GRAPH_FAILED, "[Check][Param] GetDirectNode: graph can not be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "graph cannot be used, impl is nullptr.");
+    GELOGE(GRAPH_FAILED, "[Check][Param] GetDirectNode: graph cannot be used, impl is nullptr.");
     return graph_nodes;
   }
   const ComputeGraphPtr compute_graph_ptr = impl_->GetComputeGraph();
@@ -674,8 +674,8 @@ graphStatus Graph::RemoveNode(GNode &node, bool contain_subgraph) {
 graphStatus Graph::RemoveEdge(GNode &src_node, const int32_t src_port_index,
                               GNode &dst_node, const int32_t dst_port_index) {
   if (impl_ == nullptr) {
-    REPORT_INNER_ERR_MSG("E18888", "graph can not be used, impl is nullptr.");
-    GELOGE(GRAPH_FAILED, "[Check][Param] graph can not be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "graph cannot be used, impl is nullptr.");
+    GELOGE(GRAPH_FAILED, "[Check][Param] graph cannot be used, impl is nullptr.");
     return GRAPH_FAILED;
   }
 
@@ -724,8 +724,8 @@ graphStatus Graph::RemoveEdge(GNode &src_node, const int32_t src_port_index,
 
 GNode Graph::AddNodeByOp(const Operator &op) {
   if (impl_ == nullptr) {
-    REPORT_INNER_ERR_MSG("E18888", "graph can not be used, impl is nullptr.");
-    GELOGE(GRAPH_FAILED, "[Check][Param] graph can not be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "graph cannot be used, impl is nullptr.");
+    GELOGE(GRAPH_FAILED, "[Check][Param] graph cannot be used, impl is nullptr.");
     return GNode();
   }
 
@@ -750,8 +750,8 @@ GNode Graph::AddNodeByOp(const Operator &op) {
 graphStatus Graph::AddDataEdge(GNode &src_node, const int32_t src_port_index,
                                GNode &dst_node, const int32_t dst_port_index) {
   if (impl_ == nullptr) {
-    REPORT_INNER_ERR_MSG("E18888", "graph can not be used, impl is nullptr.");
-    GELOGE(GRAPH_FAILED, "[Check][Param] graph can not be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "graph cannot be used, impl is nullptr.");
+    GELOGE(GRAPH_FAILED, "[Check][Param] graph cannot be used, impl is nullptr.");
     return GRAPH_FAILED;
   }
 
@@ -796,8 +796,8 @@ graphStatus Graph::AddDataEdge(GNode &src_node, const int32_t src_port_index,
 
 graphStatus Graph::AddControlEdge(GNode &src_node, GNode &dst_node) {
   if (impl_ == nullptr) {
-    REPORT_INNER_ERR_MSG("E18888", "graph can not be used, impl is nullptr.");
-    GELOGE(GRAPH_FAILED, "[Check][Param] graph can not be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "graph cannot be used, impl is nullptr.");
+    GELOGE(GRAPH_FAILED, "[Check][Param] graph cannot be used, impl is nullptr.");
     return GRAPH_FAILED;
   }
 
@@ -848,8 +848,8 @@ GraphPtr Graph::ConstructFromInputs(const std::vector<Operator> &inputs, const A
   }
 
   if (inputs.empty()) {
-    REPORT_INNER_ERR_MSG("E18888", "inputs size can not be 0.");
-    GELOGE(GRAPH_FAILED, "[Check][Param] inputs size can not be 0, graph: %s", ascend_name);
+    REPORT_INNER_ERR_MSG("E18888", "inputs size cannot be 0.");
+    GELOGE(GRAPH_FAILED, "[Check][Param] inputs size cannot be 0, graph: %s", ascend_name);
     return nullptr;
   }
 

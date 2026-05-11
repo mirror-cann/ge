@@ -74,7 +74,7 @@ Status CollectPeerCandidateNodesWithType(
   for (const auto &peer_in_data_anchor : out_data_anchor->GetPeerInDataAnchors()) {
     const auto &peer_in_node = peer_in_data_anchor->GetOwnerNode();
     GE_ASSERT_NOTNULL(peer_in_node);
-    // this attr mean node is inserted by ge， can not be optimized
+    // this attr mean node is inserted by ge， cannot be optimized
     // 这个属性后续需要逐渐演变为标记由ge的插入算子，后续的优化跳过ge插入的算子。
     if (AttrUtils::HasAttr(peer_in_node->GetOpDesc(), ATTR_NO_NEED_CONSTANT_FOLDING)) {
       continue;

@@ -284,7 +284,7 @@ BufferFusionPattern &BufferFusionPattern::SetHead(const std::vector<string> &hea
       IncreaseErrorCount();
       return *this;
     }
-    // Head desc repeat number can not exceed 1
+    // Head desc repeat number cannot exceed 1
     // if must be exceed 1, it can be realized by several descs
     if (head_op_desc->repeate_max > 1) {
       GELOGW("[SetHead][Check] Head description named %s repeats more than once, current max repeat count is %ld", head_id.c_str(),
@@ -299,7 +299,7 @@ BufferFusionPattern &BufferFusionPattern::SetHead(const std::vector<string> &hea
     head_.push_back(head_op_desc);
   }
 
-  // check head desc repeat min total value, it can not excceed 1
+  // check head desc repeat min total value, it cannot excceed 1
   int64_t desc_total_min = 0;
   for (const auto &desc : head_) {
     if (IsAddOverflow(desc_total_min, desc->repeate_min) != SUCCESS) {

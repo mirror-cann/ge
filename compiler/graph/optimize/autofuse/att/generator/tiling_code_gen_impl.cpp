@@ -62,7 +62,7 @@ namespace att {
    T max_value{};
    (void)min_expr.GetConstValue(min_value);
    (void)max_expr.GetConstValue(max_value);
-   GE_ASSERT_TRUE(min_value <= max_value, "Args manager process failed, min[%u] can not be less than max[%u].",
+   GE_ASSERT_TRUE(min_value <= max_value, "Args manager process failed, min[%u] cannot be less than max[%u].",
                   min_value, max_value);
    return ge::SUCCESS;
  }
@@ -3429,7 +3429,7 @@ ge::Status TilingCodeGenImpl::GenPGOGetScheduleResult(const size_t asc_graph_id,
                           "best_perf, cur_block_dim);");
      tiling_func_.AddLine("  if (!got_result) {");
      tiling_func_.AddLine("    OP_LOGW(OP_NAME, \"Schedule result" + std::to_string(config_.force_schedule_result) +
-                          " can not found for op\");");
+                          " cannot found for op\");");
      tiling_func_.AddLine("    return false;");
      tiling_func_.AddLine("  }");
      return ge::SUCCESS;

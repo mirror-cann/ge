@@ -2431,7 +2431,7 @@ Status ModelManager::GetOpDescInfo(const uint32_t device_id, const uint32_t stre
       }
     }
   }
-  GELOGE(FAILED, "can not find exception info from device_id %u, stream_id %u, task_id %u, please check these params",
+  GELOGE(FAILED, "cannot find exception info from device_id %u, stream_id %u, task_id %u, please check these params",
          device_id, stream_id, task_id);
   return FAILED;
 }

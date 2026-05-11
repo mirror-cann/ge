@@ -655,7 +655,7 @@ Status DeployPlannerBase::ResolveModelFusion(const std::string &model_instance_n
     const auto *queue_def = model_output_endpoints[i];
     const auto &queue_name = queue_def->GetName();
     if (!CanBeFused(fusion_name, queue_name)) {
-      GELOGI("Endpoint[%s] can not be fused.", queue_name.c_str());
+      GELOGI("Endpoint[%s] cannot be fused.", queue_name.c_str());
       break;
     }
     auto index = submodel_info.output_queue_indices[i];
@@ -670,7 +670,7 @@ Status DeployPlannerBase::ResolveModelFusion(const std::string &model_instance_n
 
 bool DeployPlannerBase::CanBeFused(const std::string &fusion_name, const std::string &endpoint_name) {
   if (disable_fusion_queues_.find(endpoint_name) != disable_fusion_queues_.end()) {
-    GELOGI("Endpoint[%s] can not be fused.", endpoint_name.c_str());
+    GELOGI("Endpoint[%s] cannot be fused.", endpoint_name.c_str());
     return false;
   }
   return dequeue_placements_[fusion_name] == dequeue_placements_[endpoint_name];
@@ -764,7 +764,7 @@ bool DeployPlannerBase::CheckSkipBinding(const std::string &src_model_instance_n
   const auto &src_it = instance_to_model_name_.find(src_model_instance_name);
   const auto &dst_it = instance_to_model_name_.find(dst_model_instance_name);
   if (src_it == instance_to_model_name_.cend() || dst_it == instance_to_model_name_.cend()) {
-    GELOGI("Can not find model name according instance, src[%s], dst[%s].",
+    GELOGI("Cannot find model name according instance, src[%s], dst[%s].",
            src_model_instance_name.c_str(), dst_model_instance_name.c_str());
     return false;
   }
@@ -796,7 +796,7 @@ bool DeployPlannerBase::CheckSkipBinding(const std::string &src_model_instance_n
   const bool has_invoked = IsContainInvokedModel(src_model_instance_name, dst_model_instance_name);
   for (size_t i = 0U; i < src_model_location.size(); ++i) {
     if (!has_invoked && !CanConnectWithQ(src_model_location[i].second, dst_model_location[i].second)) {
-      GELOGI("Model instances can not connect with queue.");
+      GELOGI("Model instances cannot connect with queue.");
       return false;
     }
     if (src_model_location[i].first == src_model_instance_name) {

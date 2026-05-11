@@ -47,7 +47,7 @@ class LoweringResultAttrs : public ge::AttrGroupsBase {
   }
 
   std::unique_ptr<AttrGroupsBase> Clone() override {
-    // do nothing as can not serialize/deserialize
+    // do nothing as cannot serialize/deserialize
     return std::make_unique<LoweringResultAttrs>();
   }
 

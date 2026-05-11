@@ -276,7 +276,7 @@ FlowGraph &FlowGraph::SetOutputs(const std::vector<std::pair<FlowOperator, std::
 const ge::Graph &FlowGraph::ToGeGraph() const {
   LLMLOGI("stub FlowGraph::ToGeGraph");
   if (impl_ == nullptr) {
-    LLMLOGW("ToGeGraph failed: graph can not be used, impl is nullptr.");
+    LLMLOGW("ToGeGraph failed: graph cannot be used, impl is nullptr.");
     static ge::Graph graph;
     return graph;
   }
@@ -286,7 +286,7 @@ const ge::Graph &FlowGraph::ToGeGraph() const {
 const char *FlowGraph::GetName() const {
   LLMLOGI("stub FlowGraph::GetName");
   if (impl_ == nullptr) {
-    LLMLOGW("GetName failed: graph can not be used, impl is nullptr.");
+    LLMLOGW("GetName failed: graph cannot be used, impl is nullptr.");
     return nullptr;
   }
   return impl_->GetName();

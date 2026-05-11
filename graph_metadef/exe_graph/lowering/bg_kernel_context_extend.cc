@@ -141,7 +141,7 @@ bool GetPrivateAttrsList(const ge::NodePtr &node, const gert::OpImplRegisterV2::
         runtime_attrs_list.push_back(private_attr.second);
         continue;
       }
-      GELOGE(ge::FAILED, "Can not find the private attr %s from node %s",
+      GELOGE(ge::FAILED, "Cannot find the private attr %s from node %s",
              private_attr_name.GetString(), node->GetName().c_str());
       return false;
     }

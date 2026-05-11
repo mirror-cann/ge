@@ -175,7 +175,7 @@ void DelayTopoSort(std::vector<FastNode *> &nodes, const ExecuteGraph *execute_g
       delay_nodes[delay_to_index].second.insert(delay_nodes[delay_to_index].second.begin(),
                                                 delay_nodes[i].second.begin(), delay_nodes[i].second.end());
       if (out_count > 1UL) {
-        // last node can not be delay
+        // last node cannot be delay
         delay_nodes[delay_to_index].first = false;
       }
       delay_nodes[i].second.clear();
@@ -749,7 +749,7 @@ graphStatus ExecuteGraph::TopologicalSortingGraph(const ExecuteGraph *const exec
   const auto use_topo_strategy = GetTopoSortingStrategy();
   const auto it = topo_sorting_strategy.find(use_topo_strategy);
   if (it == topo_sorting_strategy.end()) {
-    GELOGE(GRAPH_FAILED, "Can not find topo sorting strategy of %d.", static_cast<int32_t>(use_topo_strategy));
+    GELOGE(GRAPH_FAILED, "Cannot find topo sorting strategy of %d.", static_cast<int32_t>(use_topo_strategy));
     return GRAPH_FAILED;
   }
 

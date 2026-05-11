@@ -33,9 +33,9 @@ endif()
 install(TARGETS lowering graph graph_base register metadef_headers
         aihac_ir aihac_ir_register aihac_symbolizer
     EXPORT graph_metadef-targets
-    LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR} ${INSTALL_OPTIONAL} COMPONENT opensdk
-    ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR} ${INSTALL_OPTIONAL} COMPONENT opensdk
-    RUNTIME DESTINATION ${INSTALL_RUNTIME_DIR} ${INSTALL_OPTIONAL} COMPONENT opensdk
+    LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR} ${INSTALL_OPTIONAL}
+    ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR} ${INSTALL_OPTIONAL}
+    RUNTIME DESTINATION ${INSTALL_RUNTIME_DIR} ${INSTALL_OPTIONAL}
 )
 
 if (NOT ENABLE_OPEN_SRC)
@@ -56,33 +56,33 @@ install(FILES   ${GE_METADEF_DIR}/third_party/transformer/inc/axis_util.h
                 ${GE_METADEF_DIR}/third_party/transformer/inc/transfer_shape_according_to_format.h
                 ${GE_METADEF_DIR}/third_party/transformer/inc/transfer_shape_according_to_format_ext.h
                 ${GE_METADEF_DIR}/third_party/transformer/inc/transfer_def.h
-        DESTINATION ${INSTALL_INCLUDE_DIR}/metadef/transformer COMPONENT opensdk EXCLUDE_FROM_ALL
+        DESTINATION ${INSTALL_INCLUDE_DIR}/metadef/transformer EXCLUDE_FROM_ALL
 )
 install(FILES   ${GE_METADEF_DIR}/register/op_tiling/op_tiling_constants.h
                 ${GE_METADEF_DIR}/register/op_tiling/op_compile_info_manager.h
                 ${GE_METADEF_DIR}/register/op_tiling/op_tiling_utils.h
-        DESTINATION ${INSTALL_INCLUDE_DIR}/metadef/register/op_tiling COMPONENT opensdk EXCLUDE_FROM_ALL
+        DESTINATION ${INSTALL_INCLUDE_DIR}/metadef/register/op_tiling EXCLUDE_FROM_ALL
 )
 install(FILES   ${GE_METADEF_DIR}/graph/normal_graph/operator_impl.h
                 ${GE_METADEF_DIR}/graph/normal_graph/op_io.h
-        DESTINATION ${INSTALL_INCLUDE_DIR}/metadef/graph COMPONENT opensdk EXCLUDE_FROM_ALL
+        DESTINATION ${INSTALL_INCLUDE_DIR}/metadef/graph EXCLUDE_FROM_ALL
 )
 
 install(FILES   ${GE_METADEF_DIR}/graph/utils/dumper/ge_graph_dumper.h
-        DESTINATION ${INSTALL_INCLUDE_DIR}/metadef/graph/utils/dumper COMPONENT opensdk EXCLUDE_FROM_ALL
+        DESTINATION ${INSTALL_INCLUDE_DIR}/metadef/graph/utils/dumper EXCLUDE_FROM_ALL
 )
 # ---------------------end-------------------------
 
 install(DIRECTORY ${GE_METADEF_INC_DIR}/ DESTINATION ${INSTALL_INCLUDE_DIR}/metadef
-    COMPONENT opensdk EXCLUDE_FROM_ALL FILES_MATCHING PATTERN "*.h"
+    EXCLUDE_FROM_ALL FILES_MATCHING PATTERN "*.h"
 )
 install(DIRECTORY ${METADEF_PROTO_DIR}/ DESTINATION proto
-    COMPONENT opensdk EXCLUDE_FROM_ALL FILES_MATCHING PATTERN "*.proto"
+    EXCLUDE_FROM_ALL FILES_MATCHING PATTERN "*.proto"
 )
 
 if (PACKAGE STREQUAL "opensdk")
     install(EXPORT graph_metadef-targets DESTINATION ${INSTALL_CONFIG_DIR}
-        FILE graph_metadef-targets.cmake COMPONENT opensdk EXCLUDE_FROM_ALL
+        FILE graph_metadef-targets.cmake EXCLUDE_FROM_ALL
     )
     set(PKG_NAME graph_metadef)
     configure_package_config_file(${TOP_DIR}/cmake/config/pkg_config_template.cmake.in
@@ -93,7 +93,7 @@ if (PACKAGE STREQUAL "opensdk")
     )
     unset(PKG_NAME)
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/graph_metadef-config.cmake
-        DESTINATION ${INSTALL_CONFIG_DIR} COMPONENT opensdk EXCLUDE_FROM_ALL
+        DESTINATION ${INSTALL_CONFIG_DIR} EXCLUDE_FROM_ALL
     )
 endif()
 

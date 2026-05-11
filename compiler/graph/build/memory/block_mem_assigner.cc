@@ -64,11 +64,11 @@ bool IsNodeSupportZeroCopy(const ge::Node *const node) {
   return true;
 }
 
-// condition op, dsa op and same hccl op can not reuse model io block which can zero copy
+// condition op, dsa op and same hccl op cannot reuse model io block which can zero copy
 bool CanReuseZeroCopyBlock(const ge::Node *const node) {
   const static std::set<std::string> kConditionOps = {ge::STREAMSWITCH, ge::LABELSWITCHBYINDEX};
   if (kConditionOps.count(node->GetTypePtr()) > 0U) {
-    GELOGD("Condition op[%s] can not reuse zero copy block", node->GetName().c_str());
+    GELOGD("Condition op[%s] cannot reuse zero copy block", node->GetName().c_str());
     return false;
   }
   const auto op_engine = node->GetOpDesc()->GetOpKernelLibName();
@@ -77,11 +77,11 @@ bool CanReuseZeroCopyBlock(const ge::Node *const node) {
     return false;
   }
   if (op_engine == ge::kEngineNameDsa) {
-    GELOGD("dsa engine op[%s] can not reuse zero copy block", node->GetName().c_str());
+    GELOGD("dsa engine op[%s] cannot reuse zero copy block", node->GetName().c_str());
     return false;
   }
   if (ge::OpUtils::IsHcomNodeNotSupportAddrRefresh(node->GetOpDesc())) {
-    GELOGD("hccl engine op[%s] can not reuse zero copy block", node->GetName().c_str());
+    GELOGD("hccl engine op[%s] cannot reuse zero copy block", node->GetName().c_str());
     return false;
   }
   return true;
@@ -1000,7 +1000,7 @@ bool MemoryBlock::AddLifeReuseBlock(const BlockMemAssigner *const mem_assigner,
   const bool is_continue_reuse_zero_copy = (is_zero_copy_ && (block->GetFirstContinuousFlag() ||
       block->GetLastContinuousFlag() || block->GetContinuousFlag())) || (block->is_zero_copy_ &&
       (GetFirstContinuousFlag() || GetLastContinuousFlag() || GetContinuousFlag()));
-  GELOGD("continuous can not reuse zero copy, is_continue_not_reuse_zero_copy:%d", is_continue_reuse_zero_copy);
+  GELOGD("continuous cannot reuse zero copy, is_continue_not_reuse_zero_copy:%d", is_continue_reuse_zero_copy);
   if (is_continue_reuse_zero_copy) {
     return false;
   }
@@ -1476,7 +1476,7 @@ void BlockMemAssigner::InsertStreamInEdge(const EdgeLife &new_in_edge, const int
   if (old_in_edge_iter != in_edge_set.end()) {
     if (old_in_edge_iter->peer_node_id < new_in_edge.peer_node_id) {
       const auto old_peer_node_id = old_in_edge_iter->peer_node_id;
-      in_edge_set.erase(old_in_edge_iter); // after erase, can not use old_peer_node_id below
+      in_edge_set.erase(old_in_edge_iter); // after erase, cannot use old_peer_node_id below
       in_edge_set.insert(new_in_edge);
       if ((src_name != nullptr) && (dst_name != nullptr)) {
         GELOGI("[StreamEdge]In depend Node: [%s<-%s] stream_id:[%" PRId64 "<-%" PRId64 "] life_time:[%zu<-%zu], erase and insert,"
@@ -2328,13 +2328,13 @@ bool BlockMemAssigner::IsContinuousMemoryReuse(const Node *const n, uint32_t out
 void IsSymbolNodePreReuse(const Node *const node, const bool has_subgraph_data,
                           bool &pre_reuse_flag, bool &post_reuse_flag) {
   static const std::string kFunctionOp = "FunctionOp";
-  // node reference subgraph data, data output can not reuse
+  // node reference subgraph data, data output cannot reuse
   bool is_ref = false;
   (void)ge::AttrUtils::GetBool(node->GetOpDescBarePtr(), ATTR_NAME_REFERENCE, is_ref);
   if (has_subgraph_data && is_ref) {
     pre_reuse_flag = false;
   }
-  // iteratorGetNext output can not reuse
+  // iteratorGetNext output cannot reuse
   if (node->GetType() == kFunctionOp) {
     std::string original_type;
     (void)AttrUtils::GetStr(node->GetOpDescBarePtr(), ATTR_NAME_FRAMEWORK_ORIGINAL_TYPE, original_type);
@@ -2403,7 +2403,7 @@ void BlockMemAssigner::InitReuseFlag() {
       bool in_flag = IsDirectInputNode(node_index_io.node_ptr_, compute_graph_);
       bool in_reuse_mem_flag = in_flag ? GetInputNodeReuseMemFlag(node_index_io.node_) : false;
 
-      // unknown graph subgraph data can not reuse because zero copy.
+      // unknown graph subgraph data cannot reuse because zero copy.
       if (!in_flag && (node_index_io.node_ptr_->GetType() == DATA) &&
           node_index_io.node_ptr_->GetOpDescBarePtr()->HasAttr(ATTR_NAME_PARENT_NODE_INDEX)) {
         GELOGD("Node: %s is subgraph data, continue", node_index_io.node_ptr_->GetNamePtr());
@@ -2718,7 +2718,7 @@ bool BlockMemAssigner::IsZeroCopyBlock(const NodePtr &node, uint32_t output_inde
   }
 
   if (continuous) {  // Never zero copy for data flow to require-continuous-input node
-    GELOGD("Node %s output %u can not zero copy as require continuous output", node->GetNamePtr(), output_index);
+    GELOGD("Node %s output %u cannot zero copy as require continuous output", node->GetNamePtr(), output_index);
     return false;
   }
 
@@ -3465,8 +3465,8 @@ MemoryBlock *BlockMemAssigner::ApplyOutMemory(const NodePtr &n, uint32_t index, 
       block->ref_count_++;
     }
   } else {
-    // if ref input is variable or const(not alloc memory in reuse), can not find ref block, must judge alone
-    // after unfolding dynamic shape graph, const or varible may be in root graph and can not be ref.
+    // if ref input is variable or const(not alloc memory in reuse), cannot find ref block, must judge alone
+    // after unfolding dynamic shape graph, const or varible may be in root graph and cannot be ref.
     if (IsOutputIndexRef(node_op_desc, index) ||
         (IsSubgraphDataRefConstInput(n) && (!IsDirectInputNode(n.get(), compute_graph_)))) {
       zero_memory_list_.emplace_back(n.get(), kOutput, index, false);
@@ -3651,7 +3651,7 @@ void SetReleaseBlockLifeEnd(MemoryBlock *to_release, int64_t stream_id) {
       size_t end_life_time = item.second.second;
       int64_t release_stream_id = to_release->stream_id_;
       if (to_release->stream_id_ != item.first) {
-        // kMaxLifeTime means can not return self stream, so need to set kMaxLifeTime to self stream, set real end time
+        // kMaxLifeTime means cannot return self stream, so need to set kMaxLifeTime to self stream, set real end time
         // to out stream.
         if (end_life_time == kMaxLifeTime) {
           release_stream_id = stream_id;

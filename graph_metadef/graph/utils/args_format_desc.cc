@@ -56,7 +56,7 @@ graphStatus FindSkSubNode(const OpDescPtr &sk_op, const int32_t id,  NodePtr &su
       return GRAPH_SUCCESS;
     }
   }
-  GELOGE(GRAPH_FAILED, "can not find %d sub node from sk node %s", id, sk_op->GetNamePtr());
+  GELOGE(GRAPH_FAILED, "cannot find %d sub node from sk node %s", id, sk_op->GetNamePtr());
   return GRAPH_FAILED;
 }
 

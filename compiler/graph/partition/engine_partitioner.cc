@@ -993,7 +993,7 @@ bool ge::EnginePartitioner::IsMergeable(size_t parent_cluster, size_t child_clus
       (graph_info_.clusters_[parent_cluster]->stream_label_ != graph_info_.clusters_[child_cluster]->stream_label_)) {
     GELOGD(
         "Parent cluster[%zu] engine[%s] stream label[%s] user stream label[%s], child cluster[%zu] engine[%s] stream "
-        "label[%s] user stream label[%s] can not merge",
+        "label[%s] user stream label[%s] cannot merge",
         parent_cluster, graph_info_.clusters_[parent_cluster]->engine_name_.c_str(),
         graph_info_.clusters_[parent_cluster]->stream_label_.c_str(),
         graph_info_.clusters_[parent_cluster]->user_stream_label_.c_str(), child_cluster,
@@ -1004,7 +1004,7 @@ bool ge::EnginePartitioner::IsMergeable(size_t parent_cluster, size_t child_clus
   }
   // Check if parent_cluster,child_cluster is reachable
   RemoveEdge(parent_cluster, child_cluster);
-  // Check if there is a path between parent and child, if return true, can not merge
+  // Check if there is a path between parent and child, if return true, cannot merge
   if (HasSecondPath(parent_cluster, child_cluster, upper_bound)) {
     GELOGD("Find second path from %zu to %zu, upper bound is %zu", parent_cluster, child_cluster, upper_bound);
     InsertEdge(parent_cluster, child_cluster);
@@ -1107,7 +1107,7 @@ void ge::EnginePartitioner::MarkClusters() {
   for (size_t child_cluster = 0; child_cluster < cluster_size; child_cluster++) {
     auto found_child_cluster = graph_info_.clusters_[child_cluster];
     if (found_child_cluster == nullptr) {
-      GELOGW("can not found child_cluster is %zu", child_cluster);
+      GELOGW("cannot found child_cluster is %zu", child_cluster);
       continue;
     }
     auto copy_parents_clusters = found_child_cluster->in_clu_;
@@ -1140,7 +1140,7 @@ Status ge::EnginePartitioner::SplitNodeInputs(const NodePtr &node,
     for (const auto &peer_out_anchor : in_anchor->GetPeerAnchors()) {
       GE_CHECK_NOTNULL(peer_out_anchor->GetOwnerNode()->GetOpDesc());
       GELOGD("Peer out anchor index is %d", AnchorUtils::GetIdx(peer_out_anchor));
-      // Normally, all nodes have a copy in corresponding_node_in_partitions_, so function at can not be exception
+      // Normally, all nodes have a copy in corresponding_node_in_partitions_, so function at cannot be exception
       const auto iter = graph_info_.corresponding_node_in_partitions_.find(peer_out_anchor->GetOwnerNode()->GetName());
       GE_CHK_BOOL_RET_STATUS(iter != graph_info_.corresponding_node_in_partitions_.cend(), FAILED,
                              "[Check][Param] node[%s]id[%ld]'s parent_node[%s]id[%ld]"
@@ -1365,7 +1365,7 @@ Status ge::EnginePartitioner::AddPlaceHolderEnd(const AnchorPtr &out_anchor, con
   const auto &dst_node = in_anchor->GetOwnerNode();
   GE_CHECK_NOTNULL(src_node);
   GE_CHECK_NOTNULL(dst_node);
-  // All nodes have a copy in corresponding_node_in_partitions_, so function at can not be execption
+  // All nodes have a copy in corresponding_node_in_partitions_, so function at cannot be execption
   const auto &node_in_partitions = graph_info_.corresponding_node_in_partitions_;
   const auto &src_anchor = node_in_partitions.at(src_node->GetName())->GetOutAnchor(AnchorUtils::GetIdx(out_anchor));
   const auto &dst_anchor = node_in_partitions.at(dst_node->GetName())->GetInAnchor(AnchorUtils::GetIdx(in_anchor));
@@ -1391,7 +1391,7 @@ Status ge::EnginePartitioner::SortSubGraphs(const ge::ComputeGraphPtr &compute_g
   GE_CHECK_NOTNULL(new_input_nodes_sub_graph);
   GE_CHECK_NOTNULL(compute_graph);
   for (const auto &node : compute_graph->GetDirectNode()) {
-    // All nodes in original graph have a copy in corresponding_node_in_partitions_, so it can not be null
+    // All nodes in original graph have a copy in corresponding_node_in_partitions_, so it cannot be null
     auto sub_graph = graph_info_.corresponding_node_in_partitions_.at(node->GetName())->GetOwnerComputeGraph();
     if ((graph_info_.partitions_2_rank_.find(sub_graph) == graph_info_.partitions_2_rank_.end()) &&
         (graph_info_.partitions_[sub_graph] != kEngineDefaultData)) {

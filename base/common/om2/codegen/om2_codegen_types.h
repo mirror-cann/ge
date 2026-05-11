@@ -89,6 +89,13 @@ struct Om2ConstMeta {
 
 using Om2ConstMetas = std::vector<Om2ConstMeta>;
 
+struct Om2CodegenArtifact {
+  std::string file_name;
+  std::string data;
+};
+
+using Om2CodegenArtifacts = std::vector<Om2CodegenArtifact>;
+
 enum class KernelBinaryKind : int32_t {
   kAicore,
   kAicpu,

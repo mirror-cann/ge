@@ -106,11 +106,11 @@ set(PKG_NAME air_c_exec)
 if (NOT ENABLE_OPEN_SRC)
     install(TARGETS ge_executor_c_static
             EXPORT ${PKG_NAME}-targets
-            ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR}/c/ge_exec ${INSTALL_OPTIONAL} COMPONENT opensdk
+            ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR}/c/ge_exec ${INSTALL_OPTIONAL}
             )
     if (PACKAGE STREQUAL "opensdk")
         install(EXPORT ${PKG_NAME}-targets DESTINATION ${INSTALL_CONFIG_DIR}
-            FILE ${PKG_NAME}-targets.cmake COMPONENT opensdk EXCLUDE_FROM_ALL
+            FILE ${PKG_NAME}-targets.cmake EXCLUDE_FROM_ALL
         )
         configure_package_config_file(${TOP_DIR}/cmake/config/pkg_config_template.cmake.in
             ${CMAKE_CURRENT_BINARY_DIR}/${PKG_NAME}-config.cmake
@@ -119,7 +119,7 @@ if (NOT ENABLE_OPEN_SRC)
             INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX}
         )
         install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PKG_NAME}-config.cmake
-            DESTINATION ${INSTALL_CONFIG_DIR} COMPONENT opensdk EXCLUDE_FROM_ALL
+            DESTINATION ${INSTALL_CONFIG_DIR} EXCLUDE_FROM_ALL
         )
     endif()
 endif()

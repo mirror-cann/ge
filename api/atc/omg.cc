@@ -392,7 +392,7 @@ domi::Status CheckOutNode(ge::OpDescPtr op_desc, int32_t index) {
   if ((index < 0) || (index >= out_size)) {
     GELOGE(FAILED,
            "[Check][Param]out_node [%s] output index:%d must be smaller "
-           "than node output size:%d and can not be negative",
+           "than node output size:%d and cannot be negative",
            op_desc->GetName().c_str(), index, out_size);
     std::string fail_reason = "Output index:\"" + to_string(index) + "\" must be smaller than output size:" +
                               to_string(out_size) + " and cannot be negative.";
@@ -412,7 +412,7 @@ domi::Status GetDefaultOutInfo(ge::ComputeGraphPtr &compute_graph,
       if (out_node == nullptr && domi::GetContext().type != domi::ONNX) {
         REPORT_PREDEFINED_ERR_MSG("E10016", std::vector<const char *>({"parameter", "opname"}),
                                   std::vector<const char *>({"out_nodes", default_out_nodes[i].first.c_str()}));
-        GELOGE(FAILED, "[Check][Param]Can not find src node (%s) in graph.", default_out_nodes[i].first.c_str());
+        GELOGE(FAILED, "[Check][Param]Cannot find src node (%s) in graph.", default_out_nodes[i].first.c_str());
         return FAILED;
       }
       if (out_node == nullptr) {
@@ -455,7 +455,7 @@ domi::Status SetOutputNodeInfo(ge::Graph &graph, const std::string &output_type)
     if (out_node == nullptr) {
       REPORT_PREDEFINED_ERR_MSG("E10016", std::vector<const char *>({"parameter", "opname"}),
                                 std::vector<const char *>({"out_nodes", user_out_nodes[i].first.c_str()}));
-      GELOGE(FAILED, "[Check][Param]Can not find src node (%s) in graph.", user_out_nodes[i].first.c_str());
+      GELOGE(FAILED, "[Check][Param]Cannot find src node (%s) in graph.", user_out_nodes[i].first.c_str());
       return FAILED;
     }
     auto op_desc = out_node->GetOpDesc();

@@ -79,7 +79,7 @@ ge::Status SaveSoftSyncOpWeightByDependNames(const ge::NodePtr &node, const std:
   for (const auto &depend_name : depend_names) {
     const int32_t input_idx = op_desc->GetInputIndexByName(depend_name);
     if (input_idx == kInvalidIndexNum) {
-      GELOGW("Can not find soft sync op[%s]'s input of name: %s.", op_desc->GetName().c_str(), depend_name.c_str());
+      GELOGW("Cannot find soft sync op[%s]'s input of name: %s.", op_desc->GetName().c_str(), depend_name.c_str());
       continue;
     }
     const auto in_data_anchor = node->GetInDataAnchor(input_idx);
@@ -249,7 +249,7 @@ void ModelBuilder::ReuseWeightMem(const size_t output_size, GeTensorPtr &weight,
   }
   const auto it = reuse_weight_map_.find(output_size);
   if (it == reuse_weight_map_.end()) {
-    GELOGD("can not find same size %zu", output_size);
+    GELOGD("cannot find same size %zu", output_size);
     std::vector<std::pair<void *, size_t>> tmp_weight_info;
     tmp_weight_info.emplace_back(std::make_pair(static_cast<void *>(weight->MutableData().data()),
         current_mem_offset));
@@ -266,7 +266,7 @@ void ModelBuilder::ReuseWeightMem(const size_t output_size, GeTensorPtr &weight,
       }
     }
     if (!find_same_const) {
-      GELOGD("Can not find same const value, size is %zu", output_size);
+      GELOGD("Cannot find same const value, size is %zu", output_size);
       weights_info.emplace_back(std::make_pair(static_cast<void *>(weight->MutableData().data()),
           current_mem_offset));
       weight_offset_need_feeded_.insert(current_mem_offset);
@@ -716,7 +716,7 @@ Status ModelBuilder::MergeWeights() {
     int64_t offset = 0;
     if (ge::TensorUtils::GetDataOffset(weight->GetTensorDesc(), offset) != SUCCESS) {
       GELOGW("Can't get const op offset, name: %s", node->GetName().c_str());
-      continue;  // continue to merge if can not get offset
+      continue;  // continue to merge if cannot get offset
     }
 
     // Get const op weight data

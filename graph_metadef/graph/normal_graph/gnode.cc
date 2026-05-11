@@ -578,7 +578,7 @@ size_t GNode::GetOutputsSize() const {
 
 graphStatus GNode::GetInputDesc(const int32_t index, TensorDesc &tensor_desc) const {
   if (index < 0) {
-    REPORT_INNER_ERR_MSG("E18888", "index:%d can not be less than zero, check invalid.", index);
+    REPORT_INNER_ERR_MSG("E18888", "index:%d cannot be less than zero, check invalid.", index);
     GELOGE(GRAPH_PARAM_INVALID, "[Check][Param] GetInputDesc: index[%d] cannot be less than zero.", index);
     return GRAPH_PARAM_INVALID;
   }

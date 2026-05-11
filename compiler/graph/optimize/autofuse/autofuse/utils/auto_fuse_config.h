@@ -277,7 +277,7 @@ class AutoFuseConfig {
         bool disableSwitch = std::find(autofuse_lowering_node_types.begin(), autofuse_lowering_node_types.end(),
                                        nodeName) != autofuse_lowering_node_types.end();
         if (disableSwitch && enableSwitch) {
-          GELOGW("%s for --autofuse_disable_pass and --autofuse_enable_pass can not be set", nodeName.c_str());
+          GELOGW("%s for --autofuse_disable_pass and --autofuse_enable_pass cannot be set", nodeName.c_str());
           enableSwitch = false;
         }
       }

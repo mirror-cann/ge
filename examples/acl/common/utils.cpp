@@ -99,7 +99,7 @@ void Utils::GetAllFiles(const std::string &pathList, std::vector<string> &fileVe
     for (string everyPath : pathVec) {
         // check path exist or not
         if (!IsPathExist(pathList)) {
-            ERROR_LOG("Failed to deal path=%s. Reason: not exist or can not access.",
+            ERROR_LOG("Failed to deal path=%s. Reason: not exist or cannot access.",
                       everyPath.c_str());
             continue;
         }

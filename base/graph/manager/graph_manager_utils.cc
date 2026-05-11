@@ -115,10 +115,10 @@ Status GraphNode::ParseFrozenInputIndex() {
     }
     uint64_t addr = 0UL;
     GE_ASSERT_SUCCESS(ConvertToUint64(frozen_info_vec[kIndexOfFrozenDataAddr], addr));
-    GE_ASSERT_TRUE(addr != 0UL, "Frozen input addr can not be nullptr.");
+    GE_ASSERT_TRUE(addr != 0UL, "Frozen input addr cannot be nullptr.");
     uint64_t len = 0UL;
     GE_ASSERT_SUCCESS(ConvertToUint64(frozen_info_vec[kIndexOfFrozenDataLen], len));
-    GE_ASSERT_TRUE(len != 0UL, "Frozen input length can not be zero.");
+    GE_ASSERT_TRUE(len != 0UL, "Frozen input length cannot be zero.");
     frozen_index_to_node_info_[static_cast<uint32_t>(frozen_input_index)] = std::make_pair(addr, len);
     GELOGI("Parse and set frozen addr[%lx] length[%lu] for input index[%d] success.", addr, len, frozen_input_index);
   }

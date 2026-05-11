@@ -309,7 +309,7 @@ class AscOpOutput {
       return *this;
     }
     if (HasBindToContainer()) {
-      GELOGE(PARAM_INVALID, " this tensor has been bound to a que or buf, can not be repeated bound.");
+      GELOGE(PARAM_INVALID, " this tensor has been bound to a que or buf, cannot be repeated bound.");
       return *this;
     }
     if (!used_out.HasBindToContainer()) {

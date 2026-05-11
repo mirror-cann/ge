@@ -200,7 +200,7 @@ void TBEPluginManager::LoadPluginSo(const std::map<std::string, std::string> &op
   //  No file
   if (file_list.empty()) {
     // Print log
-    GELOGW("Can not find any plugin file in plugin_path: %s", plugin_path.c_str());
+    GELOGW("Cannot find any plugin file in plugin_path: %s", plugin_path.c_str());
   }
 
   GELOGW("The shared library will not be checked. Please ensure that the source of the shared library is trusted.");

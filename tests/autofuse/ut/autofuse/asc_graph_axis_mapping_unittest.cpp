@@ -910,7 +910,7 @@ std::shared_ptr<AscGraph> CreatAbsBroadcastAfterReduceAscGraph(ge::AscGraph &gra
 }
 
 std::shared_ptr<AscGraph> CreatAbsBroadcastAfterReduceAscGraph2(ge::AscGraph &graph) {
-  //  pre store and graph sched axis can not axis map
+  //  pre store and graph sched axis cannot axis map
   //  pre store and cur data axis can axis map
   //  pre node is reduction, graph sched axis can't map, can't fuse.
   auto ONE = Symbol(1);

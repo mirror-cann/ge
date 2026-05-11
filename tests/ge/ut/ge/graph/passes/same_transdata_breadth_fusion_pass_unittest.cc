@@ -215,7 +215,7 @@ void SetDataTypeForNode(ComputeGraphPtr &graph, const std::vector<std::string> &
         }
       }
     } else {
-      std::cout << "SetDataTypeForNode can not find " << name << std::endl;
+      std::cout << "SetDataTypeForNode cannot find " << name << std::endl;
     }
   }
 }
@@ -238,7 +238,7 @@ void SetDataTypeForNodeInputs(ComputeGraphPtr &graph, const std::vector<std::str
         }
       }
     } else {
-      std::cout << "SetDataTypeForNodeInputs can not find " << name << std::endl;
+      std::cout << "SetDataTypeForNodeInputs cannot find " << name << std::endl;
     }
   }
 }
@@ -316,7 +316,7 @@ bool SetTransDataTensorDesc(const ComputeGraphPtr &root_graph, const std::vector
       iter->second->GetOpDesc()->UpdateOutputDesc(0, tensor_desc);
     } else {
       std::cout << "========================================" << std::endl;
-      std::cout << "can not find " << node_name << std::endl;
+      std::cout << "cannot find " << node_name << std::endl;
       std::cout << "========================================" << std::endl;
       GE_DUMP(root_graph, "SetTransDataTensorDesc_failed");
       return false;
@@ -335,7 +335,7 @@ bool AddParentIndexForNetoutput(ComputeGraphPtr &root_graph, NetoutputParentInde
     const auto iter = netoutput_map.find(name_indexes_pair.first);
     if (iter == netoutput_map.end()) {
       std::cout << "========================================" << std::endl;
-      std::cout << "can not find " << name_indexes_pair.first << std::endl;
+      std::cout << "cannot find " << name_indexes_pair.first << std::endl;
       std::cout << "========================================" << std::endl;
       GE_DUMP(root_graph, "AddParentIndexForNetoutput_failed");
       return false;

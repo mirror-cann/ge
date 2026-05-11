@@ -2803,18 +2803,18 @@ Graph Operator::GetSubgraphImpl(const char_t *name) const {
   }
   const auto root_graph = GraphUtils::FindRootGraph(node->GetOwnerComputeGraph());
   if (root_graph == nullptr) {
-    REPORT_INNER_ERR_MSG("E18888", "Failed to get subgraph %s, because can not find the root graph,node:%s", name,
+    REPORT_INNER_ERR_MSG("E18888", "Failed to get subgraph %s, because cannot find the root graph,node:%s", name,
                          node->GetName().c_str());
-    GE_LOGE("[Get][Subgraph] subgraph %s failed, because can not find the root graph", name);
+    GE_LOGE("[Get][Subgraph] subgraph %s failed, because cannot find the root graph", name);
     return GraphUtilsEx::CreateGraph();
   }
   const auto subgraph = root_graph->GetSubgraph(subgraph_instance_name);
   if (subgraph == nullptr) {
     REPORT_INNER_ERR_MSG("E18888",
-                         "Failed to get subgraph %s index %u, because can not find the instance %s "
+                         "Failed to get subgraph %s index %u, because cannot find the instance %s "
                          "from the root graph",
                          name, iter->second, subgraph_instance_name.c_str());
-    GE_LOGE("[Get][Subgraph] %s index %u failed, because can not find the instance %s from the root graph", name,
+    GE_LOGE("[Get][Subgraph] %s index %u failed, because cannot find the instance %s from the root graph", name,
             iter->second, subgraph_instance_name.c_str());
     return GraphUtilsEx::CreateGraph();
   }

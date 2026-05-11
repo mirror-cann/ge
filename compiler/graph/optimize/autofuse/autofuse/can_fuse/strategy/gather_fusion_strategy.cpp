@@ -32,7 +32,7 @@ bool GatherFusionStrategy::CanFuse(const NodePtr &node1, const NodePtr &node2) {
       CheckGatherWithView(node1, node2, backend_spec->gather_spec.enable_gather_broadcast_fusion)) {
       return true;
     }
-    GELOGI("node1 %s(%s) and node2 %s(%s) can not fuse, the reason is [%s][Gather can not fuse forward]",
+    GELOGI("node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][Gather cannot fuse forward]",
            node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
            ge::NotFuseReasonCode(ge::NotFuseReason::kGatherCanNotFuseForward));
     return false;
@@ -56,7 +56,7 @@ bool GatherFusionStrategy::CanFuse(const NodePtr &node1, const NodePtr &node2) {
   }
 
   GELOGI(
-      "node1 %s(%s) and node2 %s(%s) can not fuse, the reason is [%s][Gather can only vertically fuse "
+      "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][Gather can only vertically fuse "
       "with elementwise]", node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
       ge::NotFuseReasonCode(ge::NotFuseReason::kGatherCanOnlyVerticallyFuseWithElementwise));
   return false;
@@ -109,7 +109,7 @@ bool GatherFusionStrategy::CheckGatherFuseAxis(const NodePtr &node1, const NodeP
   // node2暂不支持broadcast
   if (graph_attr1->axis.size() != graph_attr2->axis.size()) {
     GELOGI(
-        "node1 %s(%s) and node2 %s(%s) can not fuse, the reason is [%s][In gather fusion occasion, node1 axis "
+        "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][In gather fusion occasion, node1 axis "
         "size(%zu) not equal to node2 axis size(%zu)]", node1->GetNamePtr(), node1->GetType().c_str(),
         node2->GetNamePtr(), node2->GetType().c_str(), ge::NotFuseReasonCode(ge::NotFuseReason::kGatherNodeAxisSizeNotEqual),
         graph_attr1->axis.size(), graph_attr2->axis.size());
@@ -121,7 +121,7 @@ bool GatherFusionStrategy::CheckGatherFuseAxis(const NodePtr &node1, const NodeP
 bool GatherFusionStrategy::CheckGatherConcatFuse(const NodePtr &node1, const NodePtr &node2,
                                                  const bool enable_gather_concat, const bool enable_gather_broadcast) {
   if (!BackendUtils::IsVertical(node1, node2) || !enable_gather_concat) {
-    GELOGI("node1 %s(%s) and node2 %s(%s) can not fuse, the reason is [%s][Gather can not fuse with Concat]",
+    GELOGI("node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][Gather cannot fuse with Concat]",
            node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
            ge::NotFuseReasonCode(ge::NotFuseReason::kGatherCanNotFuseWithConcat));
     return false;
@@ -129,7 +129,7 @@ bool GatherFusionStrategy::CheckGatherConcatFuse(const NodePtr &node1, const Nod
 
   if (!CheckGatherWithView(node1, node2, enable_gather_broadcast)) {
     GELOGI(
-        "node1 %s(%s) and node2 %s(%s) can not fuse, the reason is [%s][In gather fusion occasion, node1 is "
+        "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][In gather fusion occasion, node1 is "
         "Gather, node2 is Concat and node2 input has view op]",
         node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
         ge::NotFuseReasonCode(ge::NotFuseReason::kGatherNextNodeIsConcatAndInputHasViewOp));
@@ -142,7 +142,7 @@ bool GatherFusionStrategy::CheckGatherReduceFuse(const NodePtr &node1, const Nod
                                                  const bool enable_gather_reduce, const bool enable_gather_broadcast) {
   if (!enable_gather_reduce) {
     GELOGI(
-      "node1 %s(%s) and node2 %s(%s) can not fuse, the reason is [%s][Gather can not fuse with Reduce]",
+      "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][Gather cannot fuse with Reduce]",
            node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
            ge::NotFuseReasonCode(ge::NotFuseReason::kGatherCanNotFuseWithReduce));
     return false;
@@ -152,7 +152,7 @@ bool GatherFusionStrategy::CheckGatherReduceFuse(const NodePtr &node1, const Nod
   }
   if (!CheckGatherWithView(node1, node2, enable_gather_broadcast)) {
     GELOGI(
-        "node1 %s(%s) and node2 %s(%s) can not fuse, the reason is [%s][In gather fusion occasion, node1 is "
+        "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][In gather fusion occasion, node1 is "
         "Gather, node2 is Reduce and node2 input has view op]",
         node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
         ge::NotFuseReasonCode(ge::NotFuseReason::kGatherNextNodeIsReduceAndInputHasViewOp));
@@ -171,7 +171,7 @@ bool GatherFusionStrategy::CheckGatherElemwiseFuse(const NodePtr &node1, const N
   }
   if (!CheckGatherWithView(node1, node2, enable_gather_broadcast)) {
     GELOGI(
-        "node1 %s(%s) and node2 %s(%s) can not fuse, the reason is [%s][In gather fusion occasion, node1 is "
+        "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][In gather fusion occasion, node1 is "
         "Gather, node2 is Pointwise and node2 input has view op]",
         node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
         ge::NotFuseReasonCode(ge::NotFuseReason::kGatherNextNodeIsPointWiseAndInputHasViewOp));

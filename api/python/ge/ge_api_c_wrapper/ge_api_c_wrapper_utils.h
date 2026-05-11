@@ -17,8 +17,6 @@
 #include "graph/ascend_string.h"
 #include "graph/utils/math_util.h"
 #include "common/checker.h"
-#include "ge/ge_api.h"
-#include "ge/ge_ir_build.h"
 #include "ge/eager_style_graph_builder/c/esb_funcs.h"
 
 namespace ge {
@@ -210,21 +208,6 @@ ge::graphStatus GeApiWrapper_GNode_GetAttr(const ge::GNode *node, const char *ke
 ge::graphStatus GeApiWrapper_GNode_SetOutputAttr(ge::GNode *node, const char *attr_name, uint32_t output_index,
                                                  const void *attr_value);
 void GeApiWrapper_GNode_FreeIntArray(int32_t *arrs);
-ge::Status GeApiWrapper_GEFinalize();
-ge::Status GeApiWrapper_GEInitialize(char **keys, char **values, int size);
-bool GeApiWrapper_IsGEInitialized();
-ge::graphStatus GeApiWrapper_OfflineCompile_BuildInitialize(const char **keys, const char **values, int size);
-void GeApiWrapper_OfflineCompile_BuildFinalize();
-ge::graphStatus GeApiWrapper_OfflineCompile_BuildModel(const ge::Graph *graph, const char **keys, const char **values,
-                                                       int size, ge::ModelBufferData **model);
-ge::graphStatus GeApiWrapper_OfflineCompile_SaveModel(const char_t *output_file, const ge::ModelBufferData *model);
-ge::graphStatus GeApiWrapper_OfflineCompile_BundleBuildModel(const ge::Graph **graphs, const char ***keys,
-                                                             const char ***values, const int *sizes, int graph_count,
-                                                             ge::ModelBufferData **model);
-ge::graphStatus GeApiWrapper_OfflineCompile_BundleSaveModel(const char_t *output_file,
-                                                            const ge::ModelBufferData *model);
-void GeApiWrapper_ModelBuffer_Destroy(const ge::ModelBufferData *model);
-uint64_t GeApiWrapper_ModelBuffer_GetLength(const ge::ModelBufferData *model);
 ge::graphStatus GeApiWrapper_Graph_LoadFromAir(ge::Graph *graph, const char_t *file_name);
 ge::graphStatus GeApiWrapper_Graph_AddControlEdge(ge::Graph *graph, ge::GNode &src_node, ge::GNode &dst_node);
 ge::graphStatus GeApiWrapper_Graph_SetAttr(ge::Graph *graph, const char *key, const void *attr_value);
@@ -249,23 +232,6 @@ ge::Graph **GeApiWrapper_Graph_GetAllSubgraphs(const ge::Graph *graph, size_t *s
 ge::Graph *GeApiWrapper_Graph_GetSubGraph(const ge::Graph *graph, const char *name);
 ge::graphStatus GeApiWrapper_Graph_AddSubGraph(ge::Graph *graph, const ge::Graph *subgraph);
 ge::graphStatus GeApiWrapper_Graph_RemoveSubgraph(ge::Graph *graph, const char *name);
-ge::Session *GeApiWrapper_Session_CreateSession();
-ge::Tensor** GeApiWrapper_Session_RunGraph(ge::Session *session, uint32_t graph_id, void **inputs, int input_count, size_t *tensor_num);
-ge::Tensor** GeApiWrapper_Session_RunGraphWithStreamAsync(ge::Session *session, uint32_t graph_id, void *stream,
-                                                          void **inputs, int input_count, size_t *tensor_num);
-ge::Status GeApiWrapper_Session_AddGraph(ge::Session *session, uint32_t graph_id, ge::Graph *graph);
-ge::Status GeApiWrapper_Session_RemoveGraph(ge::Session *session, uint32_t graph_id);
-void GeApiWrapper_Session_DestroySession(const ge::Session *session);
-ge::Status GeApiWrapper_Session_RegisterDefaultAllocator(const ge::Session *session, const void *stream);
-ge::Status GeApiWrapper_Session_RegisterExternalAllocator(
-    const ge::Session *session, const void *stream,
-    void *(*malloc_fn)(void *, size_t),
-    void (*free_fn)(void *, void *),
-    void *(*get_addr_fn)(void *),
-    void (*on_destroy_fn)(void *), void *prevent_gc_handle);
-ge::Status GeApiWrapper_Session_UnregisterExternalAllocator(const ge::Session *session, const void *stream);
-bool GeApiWrapper_HasExternalAllocator(const void *stream);
-bool GeApiWrapper_HasDefaultAllocator(const void *stream);
 ge::Format GeApiWrapper_Tensor_GetFormat(EsCTensor *tensor);
 EsCTensor *GeApiWrapper_Tensor_CreateTensor();
 void GeApiWrapper_Tensor_DestroyEsCTensor(EsCTensor *tensor);
@@ -273,8 +239,6 @@ ge::graphStatus GeApiWrapper_Tensor_SetFormat(EsCTensor *tensor, const ge::Forma
 ge::DataType GeApiWrapper_Tensor_GetDataType(EsCTensor *tensor);
 ge::graphStatus GeApiWrapper_Tensor_SetDataType(EsCTensor *tensor, const ge::DataType &dtype);
 int32_t GeApiWrapper_Tensor_GetPlacement(EsCTensor *tensor);
-ge::graphStatus GeApiWrapper_Tensor_ToHost(EsCTensor *tensor);
-ge::graphStatus GeApiWrapper_Tensor_ToDevice(EsCTensor *tensor);
 #ifdef __cplusplus
 }
 #endif

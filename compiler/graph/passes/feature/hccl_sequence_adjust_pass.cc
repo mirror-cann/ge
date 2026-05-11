@@ -23,7 +23,7 @@ Status HcclSequenceAdjustPass::Run(ComputeGraphPtr graph) {
   GE_CHK_STATUS_RET(GetFunctionNodesWithHcclGroup(graph, func_nodes), "Get function nodes with hccl group failed.");
 
   if (func_nodes.empty()) {
-    GELOGD("Can not find function nodes with hccl group.");
+    GELOGD("Cannot find function nodes with hccl group.");
     return SUCCESS;
   }
   GELOGD("Size of function node with hccl group is %zu.", func_nodes.size());
@@ -94,7 +94,7 @@ Status HcclSequenceAdjustPass::RebuildHcclControlRelation(const ComputeGraphPtr 
     }
   }
   if ((last_hccl == nullptr) || (second_hccl == nullptr)) {
-    GELOGW("Can not find optimizable HcomAllReduce nodes..");
+    GELOGW("Cannot find optimizable HcomAllReduce nodes..");
     return SUCCESS;
   }
   if (HasRelationPath(second_hccl, last_hccl)) {

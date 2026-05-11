@@ -39,9 +39,9 @@ graphStatus FindValidSubgraphNetoutput(const ConstNodePtr &node, const ComputeGr
     }
   }
 
-  REPORT_INNER_ERR_MSG("E19999", "Can not find the NetOutput node in subgraph %s, parent node %s",
+  REPORT_INNER_ERR_MSG("E19999", "Cannot find the NetOutput node in subgraph %s, parent node %s",
                      sub_graph->GetName().c_str(), node->GetName().c_str());
-  GELOGE(GRAPH_FAILED, "[Check][Param] Can not find the NetOutput node in subgraph %s, parent node %s",
+  GELOGE(GRAPH_FAILED, "[Check][Param] Cannot find the NetOutput node in subgraph %s, parent node %s",
          sub_graph->GetName().c_str(), node->GetName().c_str());
   return GRAPH_FAILED;
 }
@@ -275,10 +275,10 @@ graphStatus InferBasePass::UpdateTensorDescToParentNodeOutput(const NodePtr &nod
       auto netoutput_in_desc = netoutput_opdesc->MutableInputDesc(netoutput_in_anchor->GetIdx());
       if (netoutput_in_desc == nullptr) {
         REPORT_INNER_ERR_MSG("E19999",
-                           "Invalid NetOutput node on sub graph %s, parent node %s, can not find input tensor %d",
+                           "Invalid NetOutput node on sub graph %s, parent node %s, cannot find input tensor %d",
                            sub_graph->GetName().c_str(), node->GetName().c_str(), netoutput_in_anchor->GetIdx());
         GELOGE(GRAPH_FAILED,
-               "[Get][Tensor] Invalid NetOutput node on sub graph %s, parent node %s, can not find input tensor %d",
+               "[Get][Tensor] Invalid NetOutput node on sub graph %s, parent node %s, cannot find input tensor %d",
                sub_graph->GetName().c_str(), node->GetName().c_str(), netoutput_in_anchor->GetIdx());
         return GRAPH_FAILED;
       }

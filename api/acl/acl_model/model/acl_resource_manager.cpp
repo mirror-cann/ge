@@ -63,7 +63,7 @@ aclError AclResourceManager::GetBundleInfo(const uint32_t bundleId, BundleModelI
     const std::lock_guard<std::mutex> locker(mutex_);
     const auto it = bundleInfos_.find(bundleId);
     if (it == bundleInfos_.end()) {
-        ACL_LOG_ERROR("This model %u is not bundle model, can not get bundle info.", bundleId);
+        ACL_LOG_ERROR("This model %u is not bundle model, cannot get bundle info.", bundleId);
         return ACL_ERROR_INVALID_BUNDLE_MODEL_ID;
     }
     bundleInfos = it->second;

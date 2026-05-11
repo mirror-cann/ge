@@ -11,7 +11,6 @@
 #include "framework/common/helper/om2_package_helper.h"
 #include "framework/common/helper/model_save_helper_factory.h"
 #include "common/ge_common/ge_types.h"
-#include "common/ge_common/string_util.h"
 #include "common/helper/om2/zip_archive_writer.h"
 #include "common/helper/om2/om2_package_contants.h"
 #include "common/helper/om2/json_file.h"
@@ -353,14 +352,14 @@ Status Om2PackageHelper::SaveCodegenArtifacts(std::shared_ptr<ZipArchiveWriter> 
   GELOGI("[OM2] Begin to save codegen artifacts");
   Om2Codegen codegen;
 
-  std::vector<std::string> output_files;
-  GE_ASSERT_SUCCESS(codegen.Om2CodegenAndCompile(ge_model, output_files, const_metas));
-  GE_ASSERT_TRUE(!output_files.empty());
+  Om2CodegenArtifacts artifacts;
+  GE_ASSERT_SUCCESS(codegen.Om2CodegenAndCompile(ge_model, artifacts, const_metas));
+  GE_ASSERT_TRUE(!artifacts.empty());
   const std::string artifacts_base_dir = FormatOm2Path(OM2_RUNTIME_DIR_FORMAT, std::to_string(model_index).c_str());
-  for (const auto &src_file_path : output_files) {
-    const std::string entry_name = artifacts_base_dir + StringUtils::GetFileName(src_file_path);
-    GE_ASSERT_TRUE(zip_writer->WriteFile(entry_name, src_file_path, true), "Failed to write file [%s]",
-                   src_file_path.c_str());
+  for (const auto &artifact : artifacts) {
+    const std::string entry_name = artifacts_base_dir + artifact.file_name;
+    GE_ASSERT_TRUE(zip_writer->WriteBytes(entry_name, artifact.data.data(), artifact.data.size(), true),
+                   "Failed to write artifact [%s]", artifact.file_name.c_str());
   }
   GELOGI("[OM2] Successfully saved all codegen artifacts");
   return SUCCESS;

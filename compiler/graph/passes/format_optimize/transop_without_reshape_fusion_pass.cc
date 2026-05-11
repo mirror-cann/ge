@@ -481,7 +481,7 @@ graphStatus TransOpWithoutReshapeFusionPass::RelinkControlEdgesWhenDescNotChange
   GE_CHECK_NOTNULL(in_anchor);
   auto in_owner_node = in_anchor->GetOwnerNode();
   GE_CHECK_NOTNULL(in_owner_node);
-  // can not remove old control edge
+  // cannot remove old control edge
   for (const auto &peer_in_anchor : out_control_peer_in_control_anchors_[index]) {
     GE_CHECK_NOTNULL(peer_in_anchor);
     if (remain_in_control_anchors_.count(peer_in_anchor) > 0) {

@@ -73,7 +73,7 @@ aclError AclOpMap<T>::Aging(T &agingT)
     }
 
     if (!found) {
-        ACL_LOG_DEBUG("AclOpMap::Aging IN, can not find minimum value");
+        ACL_LOG_DEBUG("AclOpMap::Aging IN, cannot find minimum value");
         return ACL_SUCCESS;
     }
     ACL_LOG_INFO("AclOpMap::Aging IN, type = %s, digest = %zu, timestamp is %lu",

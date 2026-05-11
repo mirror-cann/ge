@@ -282,7 +282,7 @@ FlowNode &FlowNode::MapInput(uint32_t node_input_index, const ProcessPoint &pp, 
                              const std::vector<DataFlowInputAttr> &attrs) {
   if (impl_ == nullptr) {
     GELOGE(GRAPH_FAILED, "[Check][Param] MapInput:FlowNodeImpl is nullptr, check failed.");
-    REPORT_INNER_ERR_MSG("E18888", "MapInput failed: FlowNode can not be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "MapInput failed: FlowNode cannot be used, impl is nullptr.");
     return *this;
   }
   if (impl_->MapInput(node_input_index, pp, pp_input_index, attrs) != GRAPH_SUCCESS) {
@@ -294,7 +294,7 @@ FlowNode &FlowNode::MapInput(uint32_t node_input_index, const ProcessPoint &pp, 
 FlowNode &FlowNode::MapOutput(uint32_t node_output_index, const ProcessPoint &pp, uint32_t pp_output_index) {
   if (impl_ == nullptr) {
     GELOGE(GRAPH_FAILED, "[Check][Param] MapOutput:FlowNodeImpl is nullptr, check failed.");
-    REPORT_INNER_ERR_MSG("E18888", "MapOutput failed: FlowNode can not be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "MapOutput failed: FlowNode cannot be used, impl is nullptr.");
     return *this;
   }
   if (impl_->MapOutput(node_output_index, pp, pp_output_index) != GRAPH_SUCCESS) {
@@ -306,7 +306,7 @@ FlowNode &FlowNode::MapOutput(uint32_t node_output_index, const ProcessPoint &pp
 FlowNode &FlowNode::AddPp(const ProcessPoint &pp) {
   if (impl_ == nullptr) {
     GELOGE(GRAPH_FAILED, "[Check][Param] FlowNodeImpl is nullptr, check failed.");
-    REPORT_INNER_ERR_MSG("E18888", "AddPp failed: FlowNode can not be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "AddPp failed: FlowNode cannot be used, impl is nullptr.");
     return *this;
   }
 
@@ -369,7 +369,7 @@ FlowNode &FlowNode::AddPp(const ProcessPoint &pp) {
 FlowNode &FlowNode::SetBalanceScatter() {
   if (impl_ == nullptr) {
     GELOGE(GRAPH_FAILED, "[Check][Param] FlowNodeImpl is nullptr, check failed, failed to set balance scatter.");
-    REPORT_INNER_ERR_MSG("E18888", "set balance scatter failed: FlowNode can not be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "set balance scatter failed: FlowNode cannot be used, impl is nullptr.");
     return *this;
   }
   graphStatus set_ret = impl_->SetBalanceScatter();
@@ -383,7 +383,7 @@ FlowNode &FlowNode::SetBalanceScatter() {
 FlowNode &FlowNode::SetBalanceGather() {
   if (impl_ == nullptr) {
     GELOGE(GRAPH_FAILED, "[Check][Param] FlowNodeImpl is nullptr, check failed, failed to set balance gather.");
-    REPORT_INNER_ERR_MSG("E18888", "set balance gather failed: FlowNode can not be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "set balance gather failed: FlowNode cannot be used, impl is nullptr.");
     return *this;
   }
   graphStatus set_ret = impl_->SetBalanceGather();
@@ -507,8 +507,8 @@ FlowGraph::~FlowGraph() = default;
 const ge::Graph &FlowGraph::ToGeGraph() const {
   if (impl_ == nullptr) {
     static ge::Graph graph;
-    GELOGE(GRAPH_FAILED, "ToGeGraph failed: graph can not be used, impl is nullptr.");
-    REPORT_INNER_ERR_MSG("E18888", "ToGeGraph failed: graph can not be used, impl is nullptr.");
+    GELOGE(GRAPH_FAILED, "ToGeGraph failed: graph cannot be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "ToGeGraph failed: graph cannot be used, impl is nullptr.");
     return graph;
   }
 
@@ -523,14 +523,14 @@ void FlowGraph::SetGraphPpBuilderAsync(bool graphpp_builder_async) {
 
 FlowGraph &FlowGraph::SetInputs(const std::vector<FlowOperator> &inputs) {
   if (impl_ == nullptr) {
-    GELOGE(GRAPH_FAILED, "SetInputs failed: graph can not be used, impl is nullptr.");
-    REPORT_INNER_ERR_MSG("E18888", "SetInputs failed: graph can not be used, impl is nullptr.");
+    GELOGE(GRAPH_FAILED, "SetInputs failed: graph cannot be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "SetInputs failed: graph cannot be used, impl is nullptr.");
     return *this;
   }
 
   if (inputs.empty()) {
-    GELOGE(GRAPH_FAILED, "SetInputs failed: input operator size can not be 0.");
-    REPORT_INNER_ERR_MSG("E18888", "SetInputs failed: input operator size can not be 0.");
+    GELOGE(GRAPH_FAILED, "SetInputs failed: input operator size cannot be 0.");
+    REPORT_INNER_ERR_MSG("E18888", "SetInputs failed: input operator size cannot be 0.");
     return *this;
   }
 
@@ -540,14 +540,14 @@ FlowGraph &FlowGraph::SetInputs(const std::vector<FlowOperator> &inputs) {
 
 FlowGraph &FlowGraph::SetOutputs(const std::vector<FlowOperator> &outputs) {
   if (impl_ == nullptr) {
-    GELOGE(GRAPH_FAILED, "SetOutputs failed: graph can not be used, impl is nullptr.");
-    REPORT_INNER_ERR_MSG("E18888", "SetOutputs failed: graph can not be used, impl is nullptr.");
+    GELOGE(GRAPH_FAILED, "SetOutputs failed: graph cannot be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "SetOutputs failed: graph cannot be used, impl is nullptr.");
     return *this;
   }
 
   if (outputs.empty()) {
-    GELOGE(GRAPH_FAILED, "SetOutputs failed: outputs operator size can not be 0.");
-    REPORT_INNER_ERR_MSG("E18888", "SetOutputs failed: outputs operator size can not be 0.");
+    GELOGE(GRAPH_FAILED, "SetOutputs failed: outputs operator size cannot be 0.");
+    REPORT_INNER_ERR_MSG("E18888", "SetOutputs failed: outputs operator size cannot be 0.");
     return *this;
   }
 
@@ -561,14 +561,14 @@ FlowGraph &FlowGraph::SetOutputs(const std::vector<FlowOperator> &outputs) {
 
 FlowGraph &FlowGraph::SetOutputs(const std::vector<std::pair<FlowOperator, std::vector<size_t>>> &output_indexes) {
   if (impl_ == nullptr) {
-    GELOGE(GRAPH_FAILED, "SetOutputs failed: graph can not be used, impl is nullptr.");
-    REPORT_INNER_ERR_MSG("E18888", "SetOutputs failed: graph can not be used, impl is nullptr.");
+    GELOGE(GRAPH_FAILED, "SetOutputs failed: graph cannot be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "SetOutputs failed: graph cannot be used, impl is nullptr.");
     return *this;
   }
 
   if (output_indexes.empty()) {
-    GELOGE(GRAPH_FAILED, "SetOutputs failed: output_indexes size can not be 0.");
-    REPORT_INNER_ERR_MSG("E18888", "SetOutputs failed: output_indexes size can not be 0.");
+    GELOGE(GRAPH_FAILED, "SetOutputs failed: output_indexes size cannot be 0.");
+    REPORT_INNER_ERR_MSG("E18888", "SetOutputs failed: output_indexes size cannot be 0.");
     return *this;
   }
 
@@ -578,7 +578,7 @@ FlowGraph &FlowGraph::SetOutputs(const std::vector<std::pair<FlowOperator, std::
 
 const char *FlowGraph::GetName() const {
   if (impl_ == nullptr) {
-    GELOGE(GRAPH_FAILED, "GetName failed: graph can not be used, impl is nullptr.");
+    GELOGE(GRAPH_FAILED, "GetName failed: graph cannot be used, impl is nullptr.");
     return nullptr;
   }
 
@@ -587,8 +587,8 @@ const char *FlowGraph::GetName() const {
 
 FlowGraph &FlowGraph::SetContainsNMappingNode(bool contains_n_mapping_node) {
   if (impl_ == nullptr) {
-    GELOGE(GRAPH_FAILED, "SetContainsNMappingNode failed: graph can not be used, impl is nullptr.");
-    REPORT_INNER_ERR_MSG("E18888", "SetContainsNMappingNode failed: graph can not be used, impl is nullptr.");
+    GELOGE(GRAPH_FAILED, "SetContainsNMappingNode failed: graph cannot be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "SetContainsNMappingNode failed: graph cannot be used, impl is nullptr.");
     return *this;
   }
   impl_->SetContainsNMappingNode(contains_n_mapping_node);
@@ -598,8 +598,8 @@ FlowGraph &FlowGraph::SetContainsNMappingNode(bool contains_n_mapping_node) {
 FlowGraph &FlowGraph::SetInputsAlignAttrs(uint32_t align_max_cache_num, int32_t align_timeout,
                                           bool dropout_when_not_align) {
   if (impl_ == nullptr) {
-    GELOGE(GRAPH_FAILED, "SetInputsAlignAttrs failed: graph can not be used, impl is nullptr.");
-    REPORT_INNER_ERR_MSG("E18888", "SetInputsAlignAttrs failed: graph can not be used, impl is nullptr.");
+    GELOGE(GRAPH_FAILED, "SetInputsAlignAttrs failed: graph cannot be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "SetInputsAlignAttrs failed: graph cannot be used, impl is nullptr.");
     return *this;
   }
   impl_->SetInputsAlignAttrs(align_max_cache_num, align_timeout, dropout_when_not_align);
@@ -609,8 +609,8 @@ FlowGraph &FlowGraph::SetInputsAlignAttrs(uint32_t align_max_cache_num, int32_t 
 
 FlowGraph &FlowGraph::SetExceptionCatch(bool enable_exception_catch) {
   if (impl_ == nullptr) {
-    GELOGE(GRAPH_FAILED, "SetExceptionCatch failed: graph can not be used, impl is nullptr.");
-    REPORT_INNER_ERR_MSG("E18888", "SetExceptionCatch failed: graph can not be used, impl is nullptr.");
+    GELOGE(GRAPH_FAILED, "SetExceptionCatch failed: graph cannot be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "SetExceptionCatch failed: graph cannot be used, impl is nullptr.");
     return *this;
   }
   impl_->SetExceptionCatch(enable_exception_catch);

@@ -303,7 +303,7 @@ ge::graphStatus InferShape4FusedInferAttentionScore(gert::InferSymbolShapeContex
   // Validate num_heads
   int64_t num_heads = *num_heads_ptr;
   if (num_heads == 0) {
-    GELOGE(GRAPH_FAILED, "numHeads can not be 0!. node %s[%s]", context->GetNodeName(), context->GetNodeType());
+    GELOGE(GRAPH_FAILED, "numHeads cannot be 0!. node %s[%s]", context->GetNodeName(), context->GetNodeType());
     return ge::GRAPH_FAILED;
   }
 

@@ -158,7 +158,7 @@ Status FloorDivKernel::DataCalBroadcast(const T &x, const T &y, size_t num_x, si
 
   if (num_x > num_y) {
     if (ZeroCheck<T>(y, data_type)) {
-      GELOGE(PARAM_INVALID, "The divisor of FloorDiv can not be zero.");
+      GELOGE(PARAM_INVALID, "The divisor of FloorDiv cannot be zero.");
       return PARAM_INVALID;
     }
     for (size_t i = 0; i < num_x; ++i) {
@@ -167,7 +167,7 @@ Status FloorDivKernel::DataCalBroadcast(const T &x, const T &y, size_t num_x, si
   } else {
     for (size_t i = 0; i < num_y; ++i) {
       if (ZeroCheck<T>((&y)[i], data_type)) {
-        GELOGE(PARAM_INVALID, "The divisor of FloorDiv can not be zero.");
+        GELOGE(PARAM_INVALID, "The divisor of FloorDiv cannot be zero.");
         return PARAM_INVALID;
       }
       buf[i] = DivCal<T>(x, (&y)[i]);
@@ -207,7 +207,7 @@ Status FloorDivKernel::DataCal(const std::vector<ConstGeTensorPtr> &input, GeTen
 
     for (size_t i = 0; i < data_num_x; ++i) {
       if (ZeroCheck<T>(y[i], data_type)) {
-        GELOGE(PARAM_INVALID, "The divisor of FloorDiv can not be zero.");
+        GELOGE(PARAM_INVALID, "The divisor of FloorDiv cannot be zero.");
         return PARAM_INVALID;
       }
       buf[i] = DivCal<T>(x[i], y[i]);

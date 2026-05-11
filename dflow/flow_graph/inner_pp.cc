@@ -43,7 +43,7 @@ InnerPp::InnerPp(const char_t *pp_name, const char_t *inner_type) : ProcessPoint
 void InnerPp::Serialize(ge::AscendString &str) const {
   if (impl_ == nullptr) {
     GELOGE(GRAPH_PARAM_INVALID, "[Check][Param] InnerPpImpl is nullptr, check failed");
-    REPORT_INNER_ERR_MSG("E18888", "Serialize failed: InnerPp can not be used, impl is nullptr.");
+    REPORT_INNER_ERR_MSG("E18888", "Serialize failed: InnerPp cannot be used, impl is nullptr.");
     return;
   }
   dataflow::ProcessPoint process_point;

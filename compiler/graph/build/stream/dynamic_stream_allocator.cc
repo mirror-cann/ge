@@ -290,7 +290,7 @@ Status DynamicStreamAllocator::AssignWithReuse(const std::vector<SubgraphPtr> &s
       reusable_subgraph = GetSuccReusableSubgraph(subgraph, pld_subgraph_map);
     }
     if (reusable_subgraph == nullptr) {
-      GELOGI("Can not find reusable subgraph of subgraph: %s.", subgraph->name.c_str());
+      GELOGI("Cannot find reusable subgraph of subgraph: %s.", subgraph->name.c_str());
       continue;
     }
 
@@ -350,7 +350,7 @@ SubgraphPtr DynamicStreamAllocator::GetSuccReusableSubgraph(
 
 bool DynamicStreamAllocator::CouldReuse(const SubgraphPtr &subgraph, const SubgraphPtr &peer_subgraph) const {
   if (kAicpuEngineIds.count(subgraph->engine_conf.id) > 0U) {
-    // aicpu can not attach to hccl
+    // aicpu cannot attach to hccl
     if (StreamUtils::IsEngineIndependent(*peer_subgraph)) {
       return false;
     }
@@ -564,7 +564,7 @@ Status DynamicStreamAllocator::RefreshStreamsForGraph(const ComputeGraphPtr &gra
       op_desc->SetStreamId(kMainStream);
     } else {
       const auto iter = old_to_new_streams.find(op_desc->GetStreamId());
-      GE_ASSERT_TRUE(iter != old_to_new_streams.end(), "Can not find stream: %lld of %s.", op_desc->GetStreamId(),
+      GE_ASSERT_TRUE(iter != old_to_new_streams.end(), "Cannot find stream: %lld of %s.", op_desc->GetStreamId(),
                      op_desc->GetName().c_str());
       op_desc->SetStreamId(iter->second);
     }

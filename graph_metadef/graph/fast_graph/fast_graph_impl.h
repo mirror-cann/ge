@@ -833,7 +833,7 @@ class FastGraphImpl {
         new_src_node = map_iter->second;
       } else {
         // 这里不需要报错，是为了支持部分拷贝的情况
-        GELOGI("[DeepCopyEdges] Can not find src node to add edge, skip it.");
+        GELOGI("[DeepCopyEdges] Cannot find src node to add edge, skip it.");
         continue;
       }
 
@@ -842,7 +842,7 @@ class FastGraphImpl {
         new_dst_node = map_iter->second;
       } else {
         // 这里不需要报错，是为了支持部分拷贝的情况
-        GELOGI("[DeepCopyEdges] Can not find dst node to add edge, skip it.");
+        GELOGI("[DeepCopyEdges] Cannot find dst node to add edge, skip it.");
         continue;
       }
 

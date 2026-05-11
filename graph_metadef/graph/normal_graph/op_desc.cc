@@ -550,7 +550,7 @@ const {
 graphStatus OpDescImpl::UpdateInputDesc(const std::string &name, const ge::GeTensorDesc &tensor_Desc) {
   const auto it = input_name_idx_.find(name);
   if (it == input_name_idx_.end()) {
-    GELOGW("[UpdateInput][Check] Can not find input desc named %s", name.c_str());
+    GELOGW("[UpdateInput][Check] Cannot find input desc named %s", name.c_str());
     return GRAPH_FAILED;
   }
   if (it->second >= inputs_desc_.size()) {
@@ -743,7 +743,7 @@ graphStatus OpDescImpl::UpdateOutputDesc(const uint32_t index, const ge::GeTenso
 graphStatus OpDescImpl::UpdateOutputDesc(const std::string &name, const ge::GeTensorDesc &tensor_Desc) {
   const auto it = output_name_idx_.find(name);
   if (it == output_name_idx_.end()) {
-    GELOGW("[Update][OutputDesc] Can not find the output desc named %s", name.c_str());
+    GELOGW("[Update][OutputDesc] Cannot find the output desc named %s", name.c_str());
     return GRAPH_FAILED;
   }
   GE_IF_BOOL_EXEC(it->second >= outputs_desc_.size(),
@@ -786,7 +786,7 @@ GeTensorDescPtr OpDescImpl::MutableOutputDesc(const uint32_t index) const {
 GeTensorDescPtr OpDescImpl::MutableOutputDesc(const std::string &name) const {
   const auto it = output_name_idx_.find(name);
   if (it == output_name_idx_.end()) {
-    GELOGW("[Update][OutputDesc] Can not find the output desc named %s", name.c_str());
+    GELOGW("[Update][OutputDesc] Cannot find the output desc named %s", name.c_str());
     return nullptr;
   }
   return MutableOutputDesc(it->second);
@@ -937,7 +937,7 @@ bool OpDescImpl::UpdateInputName(std::map<std::string, uint32_t> input_name_idx)
   } else if (input_map_size == factory_map_size) {
     input_name_idx_ = input_name_idx;
   } else {
-    GELOGW("[Update][InputName] factory_input_name_num can not be less than org_input_name_num, exactly "
+    GELOGW("[Update][InputName] factory_input_name_num cannot be less than org_input_name_num, exactly "
            "org_input_name_num=%zu, factory_input_name_num=%zu", input_map_size, factory_map_size);
     return false;
   }
@@ -974,7 +974,7 @@ bool OpDescImpl::UpdateOutputName(std::map<std::string, uint32_t> output_name_id
                      this->GetName(), "output_name_idx", "", "", "");
     return true;
   } else {
-    GELOGW("[Update][OutputName] factory_output_name_num can not be less than org_output_name_num, exactly "
+    GELOGW("[Update][OutputName] factory_output_name_num cannot be less than org_output_name_num, exactly "
            "org_output_name_num=%zu, factory_output_name_num=%zu", output_map_size, output_name_idx.size());
     return false;
   }

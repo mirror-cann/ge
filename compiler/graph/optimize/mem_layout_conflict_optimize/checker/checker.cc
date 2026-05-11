@@ -236,7 +236,7 @@ const TypeVector &Checker::GetTypes(const ge::NodeIndexIO &node) const {
     return it->second;
   }
 
-  // if a node can not find type, it is normal, because a node has no anchor, so return empty type
+  // if a node cannot find type, it is normal, because a node has no anchor, so return empty type
   static SmallVector<AnchorAttribute, ATTR_BIT_MAX_LEN> dummy_type;
   return dummy_type;
 }

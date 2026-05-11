@@ -93,12 +93,12 @@ Status ResourceAllocator::CheckAndFilterByCompileResource(const DeviceInfo *devi
     const std::string device_index = device_info->ToIndex();
     const auto iter_deploy = curr_res_info.logic_dev_id_to_res_type.find(device_index);
     if (iter_deploy == curr_res_info.logic_dev_id_to_res_type.cend()) {
-      GELOGE(FAILED, "Can not find device index %s in resource manager", device_index.c_str());
+      GELOGE(FAILED, "Cannot find device index %s in resource manager", device_index.c_str());
       return FAILED;
     }
     const auto iter_compile = compile_resource_->logic_dev_id_to_res_type.find(device_index);
     if (iter_compile == compile_resource_->logic_dev_id_to_res_type.cend()) {
-      GELOGI("Skip to add device %s to available device list result of can not find in compile resource.",
+      GELOGI("Skip to add device %s to available device list result of cannot find in compile resource.",
              device_index.c_str());
       filter_flag = false;
       return SUCCESS;
@@ -121,7 +121,7 @@ Status ResourceAllocator::CheckAfterFilterDevice(const std::set<std::string> &de
   GE_CHECK_NOTNULL(compile_resource_);
   for (const auto &logic_dev_id : compile_resource_->logic_dev_id_to_res_type) {
     if (device_index.count(logic_dev_id.first) == 0) {
-      GELOGE(FAILED, "Can not fount logic device id %s from compile resource in curent env.",
+      GELOGE(FAILED, "Cannot fount logic device id %s from compile resource in curent env.",
              logic_dev_id.first.c_str());
       return FAILED;
     }

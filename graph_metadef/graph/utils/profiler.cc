@@ -63,7 +63,7 @@ void Profiler::RegisterString(const int64_t index, const std::string &str) {
     return;
   }
 
-  // can not use strcpy_s, which will copy nothing when the length of str beyond kMaxStrLen
+  // cannot use strcpy_s, which will copy nothing when the length of str beyond kMaxStrLen
   const auto ret = strncpy_s(PtrAdd<StrHash>(GetStringHashes(),
                                              static_cast<size_t>(kMaxStrIndex), static_cast<size_t>(index))->str,
                              kMaxStrLen, str.c_str(), kMaxStrLen - 1UL);
@@ -77,7 +77,7 @@ void Profiler::RegisterStringHash(const int64_t index, const uint64_t hash, cons
     return;
   }
 
-  // can not use strcpy_s, which will copy nothing when the length of str beyond kMaxStrLen
+  // cannot use strcpy_s, which will copy nothing when the length of str beyond kMaxStrLen
   const auto ret = strncpy_s(PtrAdd<StrHash>(GetStringHashes(),
                                              static_cast<size_t>(kMaxStrIndex), static_cast<size_t>(index))->str,
                              kMaxStrLen, str.c_str(), kMaxStrLen - 1UL);

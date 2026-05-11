@@ -70,14 +70,14 @@ if (NOT TARGET flow_graph)
 
     install(TARGETS flow_graph
             EXPORT dflow-targets
-            LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR} ${INSTALL_OPTIONAL} COMPONENT opensdk
-            ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR} ${INSTALL_OPTIONAL} COMPONENT opensdk
-            RUNTIME DESTINATION ${INSTALL_RUNTIME_DIR} ${INSTALL_OPTIONAL} COMPONENT opensdk
+            LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR} ${INSTALL_OPTIONAL}
+            ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR} ${INSTALL_OPTIONAL}
+            RUNTIME DESTINATION ${INSTALL_RUNTIME_DIR} ${INSTALL_OPTIONAL}
     )
 
     if (PACKAGE STREQUAL "opensdk")
         install(EXPORT dflow-targets DESTINATION ${INSTALL_CONFIG_DIR}
-                FILE dflow-targets.cmake COMPONENT opensdk EXCLUDE_FROM_ALL
+                FILE dflow-targets.cmake EXCLUDE_FROM_ALL
         )
         set(PKG_NAME dflow)
         configure_package_config_file(${TOP_DIR}/cmake/config/pkg_config_template.cmake.in
@@ -88,7 +88,7 @@ if (NOT TARGET flow_graph)
         )
         unset(PKG_NAME)
         install(FILES ${CMAKE_CURRENT_BINARY_DIR}/dflow-config.cmake
-                DESTINATION ${INSTALL_CONFIG_DIR} COMPONENT opensdk EXCLUDE_FROM_ALL
+                DESTINATION ${INSTALL_CONFIG_DIR} EXCLUDE_FROM_ALL
         )
     endif()
 endif ()

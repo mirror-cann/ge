@@ -232,8 +232,8 @@ Status AippUtils::SetAippTypeImpl(const std::map<std::string, uint32_t> &data_in
       GELOGI("Find AippData:%s of index:%zu for op:%s, index:%u", releated_name->c_str(), aipp_data_index,
              op_desc->GetName().c_str(), index);
     } else {
-      REPORT_INNER_ERR_MSG("E19999", "Can not find AippData node for index:%u, op:%s", index, op_desc->GetName().c_str());
-      GELOGE(INTERNAL_ERROR, "[Find][AippData]Can not find AippData node for index:%u, op:%s",
+      REPORT_INNER_ERR_MSG("E19999", "Cannot find AippData node for index:%u, op:%s", index, op_desc->GetName().c_str());
+      GELOGE(INTERNAL_ERROR, "[Find][AippData]Cannot find AippData node for index:%u, op:%s",
              index, op_desc->GetName().c_str());
       return INTERNAL_ERROR;
     }

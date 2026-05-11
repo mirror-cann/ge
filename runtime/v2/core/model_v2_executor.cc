@@ -166,7 +166,7 @@ ge::Status ModelV2Executor::InitRtVarManager(const ModelLoadArg &load_arg) {
 
 ge::graphStatus ModelV2Executor::Load(const ModelExecuteArg &arg, const ModelLoadArg &load_arg) {
   if (state_ != ExecutorState::kInit) {
-    GELOGE(ge::PARAM_INVALID, "Can not load now, the model has been loaded(%d)", static_cast<int32_t>(state_));
+    GELOGE(ge::PARAM_INVALID, "Cannot load now, the model has been loaded(%d)", static_cast<int32_t>(state_));
     return ge::PARAM_INVALID;
   }
 
@@ -198,7 +198,7 @@ ge::graphStatus ModelV2Executor::Load(const ModelExecuteArg &arg, const ModelLoa
 
 ge::graphStatus ModelV2Executor::UnLoad() {
   if (state_ != ExecutorState::kLoaded) {
-    GELOGE(ge::PARAM_INVALID, "Can not unload now, the model state is not loaded(%d)", static_cast<int32_t>(state_));
+    GELOGE(ge::PARAM_INVALID, "Cannot unload now, the model state is not loaded(%d)", static_cast<int32_t>(state_));
     return ge::PARAM_INVALID;
   }
   if (default_stream_ != nullptr) {

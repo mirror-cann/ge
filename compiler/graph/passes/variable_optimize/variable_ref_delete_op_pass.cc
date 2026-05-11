@@ -34,9 +34,9 @@ Status VariableRefDeleteOpPass::Run(ge::ComputeGraphPtr graph) {
       continue;
     }
     if (all_var_names.count(ref_var_src_var_name) == 0) {
-      REPORT_INNER_ERR_MSG("E19999", "Can not find source variable[%s] of variable ref[%s], check invalid",
+      REPORT_INNER_ERR_MSG("E19999", "Cannot find source variable[%s] of variable ref[%s], check invalid",
                          ref_var_src_var_name.c_str(), node->GetName().c_str());
-      GELOGE(FAILED, "[Check][Param] Can not find source variable[%s] of variable ref[%s]",
+      GELOGE(FAILED, "[Check][Param] Cannot find source variable[%s] of variable ref[%s]",
              ref_var_src_var_name.c_str(), node->GetName().c_str());
       return FAILED;
     }

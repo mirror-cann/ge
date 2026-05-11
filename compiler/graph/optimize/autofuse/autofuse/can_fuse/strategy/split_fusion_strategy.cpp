@@ -163,7 +163,7 @@ bool CheckSplitSplitFusion(const NodePtr &node1, const NodePtr &node2,
                            const AutoFuseAttrs *attr1,
                            const AutoFuseAttrs *attr2) {
   if (attr1->GetSplitGlobalId() != attr2->GetSplitGlobalId()) {
-    GELOGI("node1 %s(%s) and node2 %s(%s) can not fuse, the reason is [%s][node1 and node2 are horizontal fuse, "
+    GELOGI("node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][node1 and node2 are horizontal fuse, "
            "node1 is split, node2 is split, and they are different split nodes before lowering.]",
            node1->GetName().c_str(), node1->GetType().c_str(), node2->GetName().c_str(), node2->GetType().c_str(),
            ge::NotFuseReasonCode(ge::NotFuseReason::kSplitCanNotFuseSplitHorizontal));
@@ -177,7 +177,7 @@ bool CheckSplitSplitFusion(const NodePtr &node1, const NodePtr &node2,
 bool CheckSplitLowFusionRatio(const NodePtr &node1, const NodePtr &node2,
                               const AutoFuseAttrs *attr1) {
   if (attr1->GetSplitFusionRatioRequirementState() == SplitFusionRatioRequirementState::NOT_SATISFIED) {
-    GELOGI("node1 %s(%s) and node2 %s(%s) can not fuse, the reason is [%s][node1 or node2 has low fuse ratio]",
+    GELOGI("node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][node1 or node2 has low fuse ratio]",
            node1->GetName().c_str(), node1->GetType().c_str(), node2->GetName().c_str(), node2->GetType().c_str(),
            ge::NotFuseReasonCode(ge::NotFuseReason::kSplitLowFuseRatio));
     return false;
@@ -191,7 +191,7 @@ bool CheckSplitReductionFusion(const NodePtr &node1, const NodePtr &node2,
                                const AutoFuseAttrs *attr2) {
   if ((attr1->HasFuseType(loop::FuseType::kSplit) && attr2->HasFuseType(loop::FuseType::kReduction)) ||
       (attr1->HasFuseType(loop::FuseType::kReduction) && attr2->HasFuseType(loop::FuseType::kSplit))) {
-    GELOGI("node1 %s(%s) and node2 %s(%s) can not fuse, the reason is [%s][split cannot fuse reduction]",
+    GELOGI("node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][split cannot fuse reduction]",
            node1->GetName().c_str(), node1->GetType().c_str(), node2->GetName().c_str(), node2->GetType().c_str(),
            ge::NotFuseReasonCode(ge::NotFuseReason::kSplitCanNotFuseReduction));
     return false;
@@ -203,8 +203,8 @@ bool CheckSplitReductionFusion(const NodePtr &node1, const NodePtr &node2,
 bool CheckSplitForwardFusion(const NodePtr &node1, const NodePtr &node2,
                              const AutoFuseAttrs *attr2) {
   if (BackendUtils::IsVertical(node1, node2) && attr2->HasFuseType(loop::FuseType::kSplit)) {
-    GELOGI("node1 %s(%s) and node2 %s(%s) can not fuse, the reason is [%s][node1 and node2 are vertical fuse, "
-           "and node2 is split, split can not fuse forward]", node1->GetName().c_str(), node1->GetType().c_str(),
+    GELOGI("node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][node1 and node2 are vertical fuse, "
+           "and node2 is split, split cannot fuse forward]", node1->GetName().c_str(), node1->GetType().c_str(),
            node2->GetName().c_str(), node2->GetType().c_str(),
            ge::NotFuseReasonCode(ge::NotFuseReason::kSplitCanNotFuseForward));
     return false;
@@ -215,7 +215,7 @@ bool CheckSplitForwardFusion(const NodePtr &node1, const NodePtr &node2,
 // 检查Split水平融合
 bool CheckSplitHorizontalFusion(const NodePtr &node1, const NodePtr &node2) {
   if (!BackendUtils::IsVertical(node1, node2)) {
-    GELOGI("node1 %s(%s) and node2 %s(%s) can not fuse, the reason is [%s][split cannot fuse other node horizontal.]",
+    GELOGI("node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][split cannot fuse other node horizontal.]",
            node1->GetName().c_str(), node1->GetType().c_str(), node2->GetName().c_str(), node2->GetType().c_str(),
            ge::NotFuseReasonCode(ge::NotFuseReason::kSplitCanNotFuseHorizontal));
     return false;
@@ -260,7 +260,7 @@ bool SplitFusionStrategy::CanFuse(const NodePtr &node1, const NodePtr &node2) {
 
   // 检查Split与Reshape融合的特殊场景
   if (attr1->HasFuseType(loop::FuseType::kSplit) && !CheckSplitReshapeFusion(node1, node2)) {
-    GELOGI("node1 %s(%s) and node2 %s(%s) can not fuse, the reason is [%s]"
+    GELOGI("node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s]"
            "[split cannot fuse reshape that only squeezes dims with size 1 when next node cannot fuse]",
            node1->GetName().c_str(), node1->GetType().c_str(), node2->GetName().c_str(), node2->GetType().c_str(),
            ge::NotFuseReasonCode(ge::NotFuseReason::kSplitCanNotFuseReshapeSqueeze));

@@ -873,7 +873,7 @@ bool ModelSerializeImp::UnserializeModel(Model &model, proto::ModelDef &model_pr
   if (!graphs_proto.empty()) {
     // 从图集合中找到根图
     const auto it = graphs.find(graphs_proto[0].name());
-    GE_ASSERT_TRUE(it != graphs.end(), "Can not find graph: %s in graph map",
+    GE_ASSERT_TRUE(it != graphs.end(), "Cannot find graph: %s in graph map",
         graphs_proto[0].name().c_str());
     model.graph_ = it->second;
     // 存在子图的情况下需要构造图直接的关系
@@ -1119,7 +1119,7 @@ Buffer ModelSerialize::SerializeModel(const Model &model, const std::string &pat
   // if is_need_separate is not enable, return failed
   if (!is_need_separate) {
     GELOGE(GRAPH_FAILED, "[Serialize][Model] Model is larger than 2G, "
-                         "but can not separate in this scenario, you can use external_weight instead");
+                         "but cannot separate in this scenario, you can use external_weight instead");
     return Buffer();
   }
   GELOGW("[Serialize][Model] Model could larger than 2G, need separate");

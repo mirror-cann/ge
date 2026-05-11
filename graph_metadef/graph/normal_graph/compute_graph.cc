@@ -256,7 +256,7 @@ void DelayTopoSort(std::vector<NodePtr> &nodes, const ConstComputeGraphPtr &grap
                                                 delay_nodes[i].second.begin(),
                                                 delay_nodes[i].second.end());
       if (out_count > 1U) {
-        // last node can not be delay
+        // last node cannot be delay
         delay_nodes[delay_to_index].first = false;
       }
       delay_nodes[i].second.clear();
@@ -1649,7 +1649,7 @@ graphStatus ComputeGraphImpl::CollectOutputNode(const ComputeGraphPtr &compute_g
     GE_CHECK_NOTNULL(op_desc);
     int32_t parent_index = -1;
     auto output_desc = op_desc->MutableOutputDesc(ele.second);
-    GE_ASSERT_NOTNULL(output_desc, "[Get][OutputDesc]Can not find output tensor desc from node:%s, index %d",
+    GE_ASSERT_NOTNULL(output_desc, "[Get][OutputDesc]Cannot find output tensor desc from node:%s, index %d",
                       op_desc->GetName().c_str(), ele.second);
     (void)ge::AttrUtils::GetInt(output_desc, ge::ATTR_NAME_PARENT_NODE_INDEX, parent_index);
     output_nodes_info.push_back({ele.first, ele.second, parent_index});
@@ -2181,7 +2181,7 @@ graphStatus ComputeGraphImpl::DoTopologicalSorting(const ConstComputeGraphPtr &c
   std::vector<NodePtr> node_vec;
   const auto it = topo_sorting_strategy.find(sorting_mode);
   if (it == topo_sorting_strategy.end()) {
-    GELOGE(GRAPH_FAILED, "Can not find topo sorting strategy of %d.", static_cast<int32_t>(sorting_mode));
+    GELOGE(GRAPH_FAILED, "Cannot find topo sorting strategy of %d.", static_cast<int32_t>(sorting_mode));
     return GRAPH_FAILED;
   }
   if (it->second(this, node_vec, dfs_reverse, compute_graph) != GRAPH_SUCCESS) {

@@ -288,7 +288,7 @@ bool SubexpressionMigrationPass::GetAssociatedNodes(const NodePtr &node, std::ma
         continue;
     }
 
-    // Has none Data input node, Can not move to parent.
+    // Has none Data input node, Cannot move to parent.
     const auto &owner_node = out_anchor->GetOwnerNode();
     if (owner_node->GetType() != DATA) {
       return false;

@@ -150,7 +150,7 @@ Status CondRemovePass::GetIfChosenBranch(const NodePtr &node, const uint32_t con
     REPORT_INNER_ERR_MSG("E19999",
                        "Find subgraph by name:%s from node:%s(%s)'s root_graph failed",
                        chosen_branch_name.c_str(), node->GetName().c_str(), node->GetType().c_str());
-    GELOGE(FAILED, "[Check][Param] Can not find branch %s in node %s's parent graph %s.", chosen_branch_name.c_str(),
+    GELOGE(FAILED, "[Check][Param] Cannot find branch %s in node %s's parent graph %s.", chosen_branch_name.c_str(),
            node->GetName().c_str(), node->GetOwnerComputeGraph()->GetName().c_str());
     return ge::FAILED;
   }

@@ -77,7 +77,7 @@ bool IsOutputOfSubGraph(const ge::NodePtr &node) {
       continue;
     }
     const auto &parent_node = node->GetOwnerComputeGraph()->GetParentNode();
-    // reshape can not exist in ffts+ graph
+    // reshape cannot exist in ffts+ graph
     if ((parent_node != nullptr) && (parent_node->GetOpDesc() != nullptr) &&
         (!parent_node->GetOpDesc()->HasAttr(ATTR_NAME_FFTS_PLUS_SUB_GRAPH)) &&
         (!parent_node->GetOpDesc()->HasAttr(ATTR_NAME_FFTS_SUB_GRAPH))) {
@@ -103,7 +103,7 @@ Status ReshapeRemovePass::Run(NodePtr &node) {
       bool is_shape_unknown = false;
       if (NodeUtils::GetNodeUnknownShapeStatus(*node, is_shape_unknown) == GRAPH_SUCCESS) {
         if (is_shape_unknown) {
-          GELOGI("op:%s is unknown shape, can not be deleted.",
+          GELOGI("op:%s is unknown shape, cannot be deleted.",
                  node->GetName().c_str());
           return SUCCESS;
         }

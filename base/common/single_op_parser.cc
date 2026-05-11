@@ -161,7 +161,7 @@ std::string GenerateFileName(const SingleOpDesc &single_op_desc, const int32_t i
     GELOGI("There is no name field in json file, or name field is empty.");
   } else {
     GELOGW("[GenerateFileName]name field '%s' is invalid, valid file name can only contain 'a-z,A-Z,0-9,.,-,_', "
-           "and can not be '.' nor '..'", file_name.c_str());
+           "and cannot be '.' nor '..'", file_name.c_str());
   }
 
   std::stringstream file_name_ss;

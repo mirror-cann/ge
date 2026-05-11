@@ -9,106 +9,244 @@
  */
 
 #include "om2_utils.h"
+#include <cctype>
+#include <regex>
+#include <sstream>
+#include <sys/syscall.h>
+#include <unistd.h>
+#include <vector>
 #include "mmpa/mmpa_api.h"
 #include "common/ge_common/debug/ge_log.h"
 #include "common/checker.h"
-#include "graph_metadef/graph/utils/file_utils.h"
+#include "framework/common/scope_guard.h"
 
 namespace ge {
 namespace {
-thread_local uint32_t om2_workdir_count = 0U;
-Status GetWorkspaceBaseDir(std::string &base_dir) {
-  base_dir.clear();
-  GE_ASSERT_SUCCESS(ge::GetAscendWorkPath(base_dir));
-  if (base_dir.empty()) {
-    const ge::char_t *path_env = nullptr;
-    MM_SYS_GET_ENV(MM_ENV_HOME, path_env);
-    GE_ASSERT_NOTNULL(path_env);
-    GE_ASSERT_TRUE(strnlen(path_env, static_cast<size_t>(MMPA_MAX_PATH)) > 0U);
-    const std::string file_path = ge::RealPath(path_env);
-    GE_ASSERT_TRUE(!file_path.empty());
-    base_dir = file_path;
+struct MemFdFile {
+  int32_t fd = -1;
+  std::string file_name;
+  std::string fd_path;
+};
+
+void CloseMemFdFile(MemFdFile &file) {
+  if (file.fd >= 0) {
+    (void)close(file.fd);
+    file.fd = -1;
   }
-  if (base_dir.back() != '/') {
-    base_dir += '/';
-  }
-  return ge::GRAPH_SUCCESS;
 }
 
-Status GetOm2WorkspaceDir(std::string &ws_dir) {
-  GE_ASSERT_SUCCESS(GetWorkspaceBaseDir(ws_dir));
-  constexpr uint32_t kReservedPathLength = 128U;
-  ws_dir.reserve(ws_dir.size() + kReservedPathLength);
-
-  ws_dir.append(".ascend_temp/.tmp_om2_workspace/")
-      .append(std::to_string(mmGetPid()))
-      .append("_")
-      .append(std::to_string(mmGetTid()))
-      .append("_")
-      .append(std::to_string(om2_workdir_count++))
-      .append("/");
-
-  GELOGI("om2 workspace dir is %s", ws_dir.c_str());
-  return ge::GRAPH_SUCCESS;
+void CloseMemFdFiles(std::vector<MemFdFile> &files) {
+  for (auto &file : files) {
+    CloseMemFdFile(file);
+  }
 }
 
-}  // namespace
-Status Om2Utils::GetAscendHomePath(std::string &home_path) {
-  const char_t *path_env = nullptr;
-  MM_SYS_GET_ENV(MM_ENV_ASCEND_HOME_PATH, path_env);
-  GE_ASSERT_TRUE(path_env != nullptr, "[Call][MM_SYS_GET_ENV] Failed to get env ASCEND_HOME_PATH.");
-  home_path = path_env;
-  std::string file_path = RealPath(home_path.c_str());
-  GE_ASSERT_TRUE(!file_path.empty(), "[Call][RealPath] File path %s is invalid.", home_path.c_str());
-  if (home_path.back() != '/') {
-    home_path += '/';
+Status CreateMemFdFile(const std::string &name, const std::string &data, MemFdFile &file) {
+  file.fd = static_cast<int32_t>(syscall(__NR_memfd_create, name.c_str(), 0));
+  GE_ASSERT_TRUE(file.fd >= 0, "[OM2] memfd_create failed for %s", name.c_str());
+  GE_DISMISSABLE_GUARD(memfd_file_cleanup, [&]() { CloseMemFdFile(file); });
+
+  if (!data.empty()) {
+    const auto write_count = mmWrite(file.fd, const_cast<char_t *>(data.data()), data.size());
+    GE_ASSERT_TRUE(write_count == static_cast<int64_t>(data.size()),
+                   "[OM2] Failed to write memfd %s, expected=%zu, actual=%lld", name.c_str(), data.size(),
+                   static_cast<long long>(write_count));
   }
-  GELOGI("Get ascend home path from env: %s", home_path.c_str());
+  (void)lseek(file.fd, 0, SEEK_SET);
+  file.file_name = name;
+  file.fd_path = "/proc/self/fd/" + std::to_string(file.fd);
+  GE_DISMISS_GUARD(memfd_file_cleanup);
   return SUCCESS;
 }
 
-Status Om2Utils::CreateOm2WorkspaceDir(std::string &ws_dir) {
-  GE_ASSERT_SUCCESS(GetOm2WorkspaceDir(ws_dir));
-  if (mmAccess2(ws_dir.c_str(), M_F_OK) == EN_OK) {
-    GELOGI("[OM2] Temporary workspace %s is not empty, will be removed.", ws_dir.c_str());
-    GE_ASSERT_TRUE(mmRmdir(ws_dir.c_str()) == 0, "[OM2] Failed to remove dir:%s.", ws_dir.c_str());
-  }
-  GE_ASSERT_TRUE(ge::CreateDir(ws_dir) == 0, "Failed to create om2 work dir: [%s].", ws_dir.c_str());
-  return ge::GRAPH_SUCCESS;
+bool IsCppFile(const std::string &file_name) {
+  constexpr const char_t *kCppSuffix = ".cpp";
+  constexpr size_t kCppSuffixSize = 4U;
+  return (file_name.size() >= kCppSuffixSize) &&
+         (file_name.compare(file_name.size() - kCppSuffixSize, kCppSuffixSize, kCppSuffix) == 0);
 }
 
-Status Om2Utils::RmOm2WorkspaceDir(const std::string &ws_dir) {
-  GELOGD("Start to remove workspace dir %s", ws_dir.c_str());
-  if (!ws_dir.empty()) {
-    GE_ASSERT_TRUE(mmRmdir(ws_dir.c_str()) == 0, "remove dir [%s] failed!", ws_dir.c_str());
+Status FindArtifact(const Om2CodegenArtifacts &artifacts, const std::string &file_name,
+                    const Om2CodegenArtifact *&artifact) {
+  artifact = nullptr;
+  for (const auto &item : artifacts) {
+    if (item.file_name == file_name) {
+      artifact = &item;
+      return SUCCESS;
+    }
   }
-  GELOGI("Remove dir success, workspace dir is %s", ws_dir.c_str());
-  return ge::GRAPH_SUCCESS;
+  GELOGE(FAILED, "[OM2] Artifact %s not found", file_name.c_str());
+  return FAILED;
 }
 
-Status Om2Utils::CompileGeneratedCppToSo(const std::vector<std::string> &cpp_file_paths,
-                                         const std::string &so_output_path, bool is_release) {
-  GE_ASSERT_TRUE(!cpp_file_paths.empty(), "No cpp files provided");
-  for (const auto &cpp_file_path : cpp_file_paths) {
-    GE_ASSERT_TRUE(mmAccess2(cpp_file_path.c_str(), M_F_OK) == EN_OK, "Cpp file not exist: %s", cpp_file_path.c_str());
+Status ReadFdToString(const int32_t fd, std::string &data) {
+  data.clear();
+  (void)lseek(fd, 0, SEEK_SET);
+  constexpr size_t kChunkSize = 64U * 1024U;
+  std::vector<char_t> buffer(kChunkSize);
+  while (true) {
+    const auto read_size = read(fd, buffer.data(), buffer.size());
+    GE_ASSERT_TRUE(read_size >= 0, "[OM2] Failed to read fd %d", fd);
+    if (read_size == 0) {
+      break;
+    }
+    data.append(buffer.data(), static_cast<size_t>(read_size));
   }
-  const auto pos = so_output_path.find_last_of('/');
-  GE_ASSERT_TRUE(pos != std::string::npos, "Invalid so output path: %s", so_output_path.c_str());
-  const std::string work_dir = so_output_path.substr(0, pos);
-  const std::string makefile_path = work_dir + "/Makefile";
-  GE_ASSERT_TRUE(mmAccess2(makefile_path.c_str(), M_F_OK) == EN_OK, "Makefile not exist: %s", makefile_path.c_str());
+  return SUCCESS;
+}
 
-  const std::string build_log_path =
-      "/tmp/om2_make_" + std::to_string(mmGetPid()) + "_" + std::to_string(mmGetTid()) + ".log";
-  std::string command = "make -C " + work_dir;
-  if (!is_release) {
-    command += " USE_STUB_LIB=1";
+Status CheckSafePath(const std::string &path) {
+  static const std::regex kSafePathRegex(R"(^(?!.*\.{2})[A-Za-z0-9./+\-_]+$)");
+  GE_ASSERT_TRUE(std::regex_match(path, kSafePathRegex), "[OM2] Unsafe compile path: %s", path.c_str());
+  return SUCCESS;
+}
+
+std::string JoinFdPaths(const std::vector<MemFdFile> &files) {
+  std::ostringstream oss;
+  bool is_first = true;
+  for (const auto &file : files) {
+    if (!is_first) {
+      oss << ' ';
+    }
+    oss << file.fd_path;
+    is_first = false;
   }
-  command += " >" + build_log_path + " 2>&1";
-  GELOGI("[OM2] Compile generated cpp to so, command: %s", command.c_str());
-  GE_ASSERT_TRUE(system(command.c_str()) == 0, "Failed to compile so: %s, build log: %s", so_output_path.c_str(),
-                 build_log_path.c_str());
-  GE_ASSERT_TRUE(mmAccess2(so_output_path.c_str(), M_F_OK) == EN_OK, "Compiled so not exist: %s", so_output_path.c_str());
+  return oss.str();
+}
+
+bool IsMakefileLineContinued(const std::string &data, const size_t line_begin, const size_t line_end) {
+  size_t pos = line_end;
+  while ((pos > line_begin) && std::isspace(static_cast<unsigned char>(data[pos - 1U]))) {
+    --pos;
+  }
+  return (pos > line_begin) && (data[pos - 1U] == '\\');
+}
+
+size_t FindMakefileVariableReplaceEnd(const std::string &data, size_t line_begin) {
+  size_t line_end = data.find('\n', line_begin);
+  while ((line_end != std::string::npos) && IsMakefileLineContinued(data, line_begin, line_end)) {
+    line_begin = line_end + 1U;
+    line_end = data.find('\n', line_begin);
+  }
+  return line_end;
+}
+
+Status ReplaceMakefileVariable(std::string &makefile_data, const std::string &variable_name,
+                               const std::string &value) {
+  const std::string variable_prefix = variable_name + " :=";
+  size_t line_begin = 0U;
+  while (line_begin < makefile_data.size()) {
+    const bool is_target_line = (makefile_data.compare(line_begin, variable_prefix.size(), variable_prefix) == 0);
+    const size_t line_end = makefile_data.find('\n', line_begin);
+    if (is_target_line) {
+      const size_t value_begin = line_begin + variable_prefix.size();
+      const size_t replace_end = FindMakefileVariableReplaceEnd(makefile_data, line_begin);
+      const size_t value_size = (replace_end == std::string::npos) ? std::string::npos : (replace_end - value_begin);
+      makefile_data.replace(value_begin, value_size, " " + value);
+      return SUCCESS;
+    }
+    if (line_end == std::string::npos) {
+      break;
+    }
+    line_begin = line_end + 1U;
+  }
+  GELOGE(FAILED, "[OM2] Makefile variable %s not found", variable_name.c_str());
+  return FAILED;
+}
+
+Status BuildCompileMakefileData(const Om2CodegenArtifact &makefile_artifact, const std::string &so_fd_path,
+                                const std::vector<MemFdFile> &cpp_files, std::string &compile_makefile_data) {
+  GE_ASSERT_SUCCESS(CheckSafePath(so_fd_path));
+  for (const auto &cpp_file : cpp_files) {
+    GE_ASSERT_SUCCESS(CheckSafePath(cpp_file.fd_path));
+  }
+
+  compile_makefile_data = makefile_artifact.data;
+  GE_ASSERT_SUCCESS(ReplaceMakefileVariable(compile_makefile_data, "TARGET", so_fd_path));
+  GE_ASSERT_SUCCESS(ReplaceMakefileVariable(compile_makefile_data, "SRC_FILES", JoinFdPaths(cpp_files)));
+  // 仅用于内存编译：fd 路径没有 .cpp 后缀，且 so fd 在 make 前已经存在。
+  compile_makefile_data += "\nCXXFLAGS += -x c++\n";
+  compile_makefile_data += ".PHONY: $(TARGET)\n";
+  GE_ASSERT_TRUE(compile_makefile_data.find("TARGET := lib") == std::string::npos,
+                 "[OM2] Compile Makefile target still points to package so name");
+  return SUCCESS;
+}
+
+Status CreateCompileCppFiles(const Om2CodegenArtifacts &artifacts, const std::string &interface_name,
+                             const std::string &header_fd_path, std::vector<MemFdFile> &cpp_files) {
+  const std::string old_include = "#include \"" + interface_name + "\"";
+  const std::string new_include = "#include \"" + header_fd_path + "\"";
+  for (const auto &artifact : artifacts) {
+    if (!IsCppFile(artifact.file_name)) {
+      continue;
+    }
+    std::string compile_data = artifact.data;
+    size_t pos = 0U;
+    bool replaced = false;
+    while ((pos = compile_data.find(old_include, pos)) != std::string::npos) {
+      compile_data.replace(pos, old_include.size(), new_include);
+      pos += new_include.size();
+      replaced = true;
+    }
+    GE_ASSERT_TRUE(replaced, "[OM2] Interface include %s not found in %s", interface_name.c_str(),
+                   artifact.file_name.c_str());
+
+    MemFdFile cpp_file;
+    GE_ASSERT_SUCCESS(CreateMemFdFile(artifact.file_name, compile_data, cpp_file));
+    cpp_files.push_back(std::move(cpp_file));
+  }
+  return SUCCESS;
+}
+
+Status CompileWithMemFdMakefile(const Om2CodegenArtifact &makefile_artifact, const std::vector<MemFdFile> &cpp_files,
+                                const bool is_release, Om2CodegenArtifact &so_artifact, MemFdFile &so_file,
+                                MemFdFile &makefile_file) {
+  GE_ASSERT_SUCCESS(CreateMemFdFile(so_artifact.file_name, "", so_file));
+
+  std::string compile_makefile_data;
+  GE_ASSERT_SUCCESS(BuildCompileMakefileData(makefile_artifact, so_file.fd_path, cpp_files, compile_makefile_data));
+  GE_ASSERT_SUCCESS(CreateMemFdFile("Makefile", compile_makefile_data, makefile_file));
+  GE_ASSERT_SUCCESS(CheckSafePath(makefile_file.fd_path));
+
+  const char_t *const use_stub_lib = is_release ? "0" : "1";
+  std::ostringstream oss;
+  oss << "make -f " << makefile_file.fd_path << " USE_STUB_LIB=" << use_stub_lib;
+  const std::string command = oss.str();
+  GELOGI("[OM2] Compile generated cpp artifacts to so by Makefile, command: %s", command.c_str());
+  GE_CHK_BOOL_RET_STATUS(system(command.c_str()) == 0, FAILED, "[OM2] Failed to compile so artifact: %s",
+                         so_artifact.file_name.c_str());
+  GE_ASSERT_SUCCESS(ReadFdToString(so_file.fd, so_artifact.data));
+  GE_ASSERT_TRUE(!so_artifact.data.empty(), "[OM2] Compiled so artifact is empty: %s", so_artifact.file_name.c_str());
+  return SUCCESS;
+}
+
+}  // namespace
+Status Om2Utils::CompileGeneratedCppToSo(const Om2CodegenArtifacts &artifacts, const std::string &model_name,
+                                         Om2CodegenArtifact &so_artifact, const bool is_release) {
+  const std::string interface_name = model_name + "_interface.h";
+  const Om2CodegenArtifact *interface_artifact = nullptr;
+  GE_ASSERT_SUCCESS(FindArtifact(artifacts, interface_name, interface_artifact));
+  const Om2CodegenArtifact *makefile_artifact = nullptr;
+  GE_ASSERT_SUCCESS(FindArtifact(artifacts, "Makefile", makefile_artifact));
+
+  MemFdFile header_file;
+  std::vector<MemFdFile> cpp_files;
+  MemFdFile so_file;
+  MemFdFile makefile_file;
+  GE_MAKE_GUARD(memfd_cleanup, [&]() {
+    CloseMemFdFile(header_file);
+    CloseMemFdFiles(cpp_files);
+    CloseMemFdFile(so_file);
+    CloseMemFdFile(makefile_file);
+  });
+  GE_ASSERT_SUCCESS(CreateMemFdFile(interface_name, interface_artifact->data, header_file));
+  GE_ASSERT_SUCCESS(CreateCompileCppFiles(artifacts, interface_name, header_file.fd_path, cpp_files));
+  GE_CHK_BOOL_RET_STATUS(!cpp_files.empty(), FAILED, "[OM2] No generated cpp artifacts found for model %s",
+                         model_name.c_str());
+
+  so_artifact.file_name = "lib" + model_name + "_om2.so";
+  GE_ASSERT_SUCCESS(CompileWithMemFdMakefile(*makefile_artifact, cpp_files, is_release, so_artifact, so_file,
+                                             makefile_file));
   return GRAPH_SUCCESS;
 }
 

@@ -975,7 +975,7 @@ Status ProcessPointLoader::TransferInputShapeToRange(const ComputeGraphPtr &grap
       if (OpTypeUtils::IsDataNode(node->GetType())) {
         const auto iter = name_to_range.find(node->GetName());
         if (iter == name_to_range.cend()) {
-          GELOGE(FAILED, "Can not find node %s in input range config %s",
+          GELOGE(FAILED, "Cannot find node %s in input range config %s",
                  node->GetName().c_str(), input_shape_range.c_str());
           return FAILED;
         }

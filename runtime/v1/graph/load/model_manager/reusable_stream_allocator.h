@@ -25,7 +25,7 @@ using RtStreamStatusPtr = std::shared_ptr<RtStreamStatus>;
 struct RtStreamStatus {
   aclrtStream stream = nullptr;
   int32_t rt_stream_id;
-  std::set<uint32_t> rt_model_id;  // can not reuse streams of its own model
+  std::set<uint32_t> rt_model_id;  // cannot reuse streams of its own model
   uint32_t task_num = 0U;
   bool is_valid = true;
 

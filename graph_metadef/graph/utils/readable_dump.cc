@@ -394,7 +394,7 @@ std::string ReadableDump::GetSubgraphAttrs(const Node *node, std::vector<Compute
 
   const auto root_graph = GraphUtils::FindRootGraph(node->GetOwnerComputeGraph());
   if (root_graph == nullptr) {
-    GELOGW("[ReadableDump][AppendSubgraphAttrs] can not find the root graph, node: %s.", node->GetName().c_str());
+    GELOGW("[ReadableDump][AppendSubgraphAttrs] cannot find the root graph, node: %s.", node->GetName().c_str());
     return "";
   }
   ctx.root_graph = root_graph;

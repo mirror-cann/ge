@@ -175,7 +175,7 @@ Status AiCoreNodeTask::SelectBin(TaskContext &task_context, const GraphExecution
   std::vector<domi::TaskDef> task_defs;
   const auto cci = bin_selector_->SelectBin(task_context.GetNodeItem().node, ctx->ge_context, task_defs);
   if (cci == nullptr) {
-    GELOGD("Can not find any support cache_item. Try turn to other executor.");
+    GELOGD("Cannot find any support cache_item. Try turn to other executor.");
     if (aicpu_task_ != nullptr) {
       GELOGI("Node %s will switch to aicpu execution.", task_context.GetNodeName());
       aicpu_exec_ = true;
@@ -185,7 +185,7 @@ Status AiCoreNodeTask::SelectBin(TaskContext &task_context, const GraphExecution
       origin_fused_graph_exec_ = true;
       return SUCCESS;
     } else {
-      GELOGE(FAILED, "Node %s can not find cacheitem and any supported executor.",
+      GELOGE(FAILED, "Node %s cannot find cacheitem and any supported executor.",
              task_context.GetNodeName());
       return FAILED;
     }

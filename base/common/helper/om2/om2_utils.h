@@ -13,16 +13,14 @@
 
 #include <string>
 #include "common/opskernel/ops_kernel_info_types.h"
+#include "common/om2/codegen/om2_codegen_types.h"
 #include "ge_common/ge_api_types.h"
 
 namespace ge {
 class Om2Utils {
  public:
-  static Status GetAscendHomePath(std::string &home_path);
-  static Status CreateOm2WorkspaceDir(std::string &ws_dir);
-  static Status RmOm2WorkspaceDir(const std::string &ws_dir);
-  static Status CompileGeneratedCppToSo(const std::vector<std::string> &cpp_file_paths,
-                                        const std::string &so_output_path, bool is_release = true);
+  static Status CompileGeneratedCppToSo(const Om2CodegenArtifacts &artifacts, const std::string &model_name,
+                                        Om2CodegenArtifact &so_artifact, const bool is_release = true);
 };
 }  // namespace ge
 

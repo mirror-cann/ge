@@ -800,9 +800,9 @@ graphStatus TuningUtils::LinkSubgraph(ComputeGraphPtr &root_graph, const Compute
     for (const auto &subgraph_name : op_desc->GetSubgraphInstanceNames()) {
       const auto iter = name_to_merged_subgraph.find(subgraph_name);
       if (iter == name_to_merged_subgraph.end()) {
-        REPORT_INNER_ERR_MSG("E18888", "TUU:can not find subgraph with name:%s for op:%s.", subgraph_name.c_str(),
+        REPORT_INNER_ERR_MSG("E18888", "TUU:cannot find subgraph with name:%s for op:%s.", subgraph_name.c_str(),
                              op_desc->GetName().c_str());
-        GELOGE(GRAPH_FAILED, "can not find subgraph with name:%s for op:%s",
+        GELOGE(GRAPH_FAILED, "cannot find subgraph with name:%s for op:%s",
                subgraph_name.c_str(), op_desc->GetName().c_str());
         return GRAPH_FAILED;
       }
@@ -863,8 +863,8 @@ graphStatus TuningUtils::LoadGraphFromFile(const std::map<int64_t, std::string> 
   }
 
   if (root_graphs.empty()) {
-    REPORT_INNER_ERR_MSG("E18888", "TUU:root graph has no subgraphs, can not merge.");
-    GELOGE(GRAPH_FAILED, "root graph has no subgraphs, can not merge");
+    REPORT_INNER_ERR_MSG("E18888", "TUU:root graph has no subgraphs, cannot merge.");
+    GELOGE(GRAPH_FAILED, "root graph has no subgraphs, cannot merge");
     return GRAPH_FAILED;
   }
   return GRAPH_SUCCESS;

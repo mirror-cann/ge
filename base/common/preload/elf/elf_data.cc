@@ -154,7 +154,7 @@ Status GetFileHeader(ElfData &elf_data) {
   GE_ASSERT_TRUE(memcpy_s(elf_data.elf_header.e_ident.data(), k16ByteSize, elf_data.obj_ptr, k16ByteSize) == EOK);
   elf_data.obj_ptr += k16ByteSize;
   auto get_byte_func = SwitchGetByteFunc(static_cast<int32_t>(elf_data.elf_header.e_ident[kElfDataIdx]));
-  GE_ASSERT_TRUE(static_cast<int32_t>(elf_data.elf_header.e_ident[kElfClassIdx]) == kElfClass64, "Elf can not be 32 bit.");
+  GE_ASSERT_TRUE(static_cast<int32_t>(elf_data.elf_header.e_ident[kElfClassIdx]) == kElfClass64, "Elf cannot be 32 bit.");
   size_t offset = 0UL;
   elf_data.elf_header.e_type = static_cast<uint16_t>(get_byte_func(static_cast<const uint8_t *>(&elf_data.obj_ptr[offset]), static_cast<int32_t>(k2ByteSize)));
   offset += k2ByteSize;

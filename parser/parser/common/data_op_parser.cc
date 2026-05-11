@@ -61,7 +61,7 @@ FMK_FUNC_HOST_VISIBILITY Status DataOpParser::ParseShape(const std::vector<int64
     // The adjustdatanodedesc function of model_builder will process the
     // input_desc and output_desc of AIPP's data node.
     // Without AIPP, the data of input float is kept in cctranstensor implementation.
-    // The cast operator can not run in the pvmodel simulation environment,
+    // The cast operator cannot run in the pvmodel simulation environment,
     // so the input data conversion processing maintains the original state.
     // To be modified after AICPU operators support pvmodel.
     if (data_type == ge::DT_FLOAT) {

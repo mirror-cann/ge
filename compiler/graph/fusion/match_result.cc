@@ -263,7 +263,7 @@ Status MatchResult::GetMatchedNode(const GNode &pattern_node, GNode &matched_nod
 
   auto m_node_ptr = impl_->GetMatchedNode(p_node);
   if (m_node_ptr == nullptr) {
-    // this func may used as check func, so this condition can not considered as an error
+    // this func may used as check func, so this condition cannot considered as an error
     GELOGD("Failed to get matched node of pattern node %s[%s]", pattern_node_name.GetString(),
            pattern_node_type.GetString());
     return FAILED;
