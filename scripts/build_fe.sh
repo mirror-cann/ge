@@ -20,6 +20,12 @@ get_lcov_params() {
     echo "--ignore-errors mismatch,unused,negative --rc geninfo_unexecuted_blocks=1"
   fi
 }
+
+get_genhtml_params() {
+  if [ "$(get_lcov_major_version 2>/dev/null)" -ge 2 ] 2>/dev/null; then
+    echo "--ignore-errors inconsistent,corrupt"
+  fi
+}
 BASEPATH=$(cd "$(dirname $0)/.."; pwd)
 AIRDIR="$(basename $BASEPATH)"
 OUTPUT_PATH="${BASEPATH}/output"
@@ -257,7 +263,7 @@ run_llt()
       lcov -c -d build/tests/engines/nn_engine/ut $(get_lcov_params) -o cov_fe_ut/tmp.info
       lcov -r cov_fe_ut/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/test/*' '/usr/local/*' '/usr/include/*'  -o cov_fe_ut/coverage.info $(get_lcov_params)
       cd "${BASEPATH}/cov_fe_ut/"
-      genhtml coverage.info
+      genhtml coverage.info $(get_genhtml_params)
       cd "${BASEPATH}"
     fi
   fi
@@ -280,7 +286,7 @@ run_llt()
       lcov -c -d build/tests/engines/nn_engine/st $(get_lcov_params) -o cov_fe_st/tmp.info
       lcov -r cov_fe_st/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/test/*' '/usr/local/*' '/usr/include/*'  $(get_lcov_params) -o cov_fe_st/coverage.info
       cd "${BASEPATH}/cov_fe_st/"
-      genhtml coverage.info
+      genhtml coverage.info $(get_genhtml_params)
       cd "${BASEPATH}"
     fi
   fi
@@ -303,7 +309,7 @@ run_llt()
       lcov -c -d build/tests/engines/nn_engine/st $(get_lcov_params) -o cov_fe_st_whole_process/tmp.info
       lcov -r cov_fe_st_whole_process/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/test/*' '/usr/local/*' '/usr/include/*'  $(get_lcov_params) -o cov_fe_st_whole_process/coverage.info
       cd "${BASEPATH}/cov_fe_st_whole_process/"
-      genhtml coverage.info
+      genhtml coverage.info $(get_genhtml_params)
     fi
   fi
   if [ "X$ENABLE_FE_BENCHMARK" = "Xon" ];then

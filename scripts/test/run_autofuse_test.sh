@@ -16,8 +16,6 @@ BASEPATH=$(cd "$(dirname $0)"; pwd)/../../
 # Source common lcov version detection functions
 source ${BASEPATH}/scripts/support_multiple_versions_of_lcov.sh
 
-# Detect lcov version and set appropriate ignore-errors flag
-detect_lcov_ignore_errors
 BUILD_RELATIVE_PATH="build"
 BUILD_PATH="${BASEPATH}/${BUILD_RELATIVE_PATH}/"
 OUTPUT_PATH="${BASEPATH}/output"
@@ -472,13 +470,43 @@ get_coverage() {
     cd "${BASEPATH}"
     rm -rf ${BASEPATH}/cov
     mk_dir ${BASEPATH}/cov
+    
+    # 获取 lcov 2.x 的错误处理参数
+    local lcov_ignore_params=""
+    local lcov_rc_param=""
+    local lcov_parallel_params=""
+    
+    if [ "$(get_lcov_major_version)" -ge 2 ] 2>/dev/null; then
+        # lcov 2.x 基础错误处理（不含 child，child 只在并行模式有效）
+        # 包含 empty 以处理没有 .gcda 文件的目录
+        lcov_ignore_params="--ignore-errors inconsistent,negative,mismatch,empty"
+        lcov_rc_param="--rc geninfo_unexecuted_blocks=1"
+        genhtml_ignore_errors="--ignore-errors inconsistent,corrupt"
+        
+        # 如果使用并行模式且版本 >= 2.3，添加 child 错误处理
+        lcov_parallel_params=$(get_lcov_parallel_params 4)
+        if [ -n "$lcov_parallel_params" ]; then
+            lcov_ignore_params="--ignore-errors child,inconsistent,negative,mismatch,empty"
+        fi
+    else
+        genhtml_ignore_errors=""
+    fi
+    
     lcov -c \
       -d ${BUILD_RELATIVE_PATH}/ \
-      ${LCOV_IGNORE_ERRORS:+--ignore-errors ${LCOV_IGNORE_ERRORS}} \
+      ${lcov_ignore_params} \
+      ${lcov_rc_param} \
+      ${lcov_parallel_params} \
       -o cov/tmp.info
+    
     echo ${ASCEND_INSTALL_PATH}
-    lcov -r cov/tmp.info '${ASCEND_INSTALL_PATH}/*' '*/output/*' '*/base/metadef/*' '*/nlohmann/*' '*/${BUILD_RELATIVE_PATH}/opensrc/*' '*/${BUILD_RELATIVE_PATH}/proto/*' '*/third_party/*' '/usr/*' ${LCOV_IGNORE_ERRORS:+--ignore-errors ${LCOV_IGNORE_ERRORS},unused} -o cov/coverage.info
-    genhtml cov/coverage.info --output-directory cov/coverage_report
+    # 注意：使用双引号以展开变量，添加 unused 错误处理
+    lcov -r cov/tmp.info "${ASCEND_INSTALL_PATH}/*" '*/output/*' '*/base/metadef/*' '*/nlohmann/*' \
+        "*/${BUILD_RELATIVE_PATH}/opensrc/*" "*/${BUILD_RELATIVE_PATH}/proto/*" '*/third_party/*' '/usr/*' \
+        ${lcov_ignore_params} --ignore-errors unused \
+        ${lcov_rc_param} \
+        -o cov/coverage.info
+    genhtml cov/coverage.info --output-directory cov/coverage_report ${genhtml_ignore_errors}
 }
 
 run_codegen_one_e2e_st() {

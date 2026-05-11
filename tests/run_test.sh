@@ -681,19 +681,31 @@ run_ut_acl() {
   # Use version-appropriate lcov parameters
   local lcov_params=""
   local lcov_remove_params=""
+  local lcov_parallel_params=""
+  local lcov_parallel_ignore=""
+  local lcov_rc_param=""
 
-  if [ "$(get_lcov_major_version)" -ge 2 ]; then
+  if [ "$(get_lcov_major_version)" -ge 2 ] 2>/dev/null; then
     lcov_params="--ignore-errors mismatch,unused,negative --rc geninfo_unexecuted_blocks=1"
     lcov_remove_params="--ignore-errors mismatch,unused,negative"
+    lcov_parallel_ignore=$(get_lcov_parallel_ignore_errors)
+    lcov_rc_param=$(get_lcov_unexecuted_blocks_param)
+    genhtml_ignore_errors=$(get_genhtml_ignore_errors)
   fi
 
-  lcov -c -d ${BUILD_RELATIVE_PATH}/tests/acl_ut/ut/acl ${lcov_params} -o cov/tmp.info
+  # 获取 lcov 并行参数（仅在 >= 2.3 时生效）
+  lcov_parallel_params=$(get_lcov_parallel_params 4)
+
+  lcov -c -d ${BUILD_RELATIVE_PATH}/tests/acl_ut/ut/acl \
+       ${lcov_params} ${lcov_parallel_params} ${lcov_parallel_ignore} ${lcov_rc_param} \
+       -o cov/tmp.info
   lcov -r cov/tmp.info '*/output/*' "*/${BUILD_RELATIVE_PATH}/opensrc/*" "*/${BUILD_RELATIVE_PATH}/proto/*" \
       '*/third_party/*' '*/tests/*' '/usr/local/*' '/usr/include/*' \
       "${ASCEND_INSTALL_PATH}/*" "${CANN_3RD_LIB_PATH}/*" \
-      -o cov/coverage.info ${lcov_remove_params}
+      ${lcov_remove_params} ${lcov_parallel_params} ${lcov_parallel_ignore} ${lcov_rc_param} \
+      -o cov/coverage.info
   cd ${BASEPATH}/cov
-  genhtml coverage.info -o cov/html
+  genhtml coverage.info -o cov/html ${genhtml_ignore_errors}
 }
 
 main() {
