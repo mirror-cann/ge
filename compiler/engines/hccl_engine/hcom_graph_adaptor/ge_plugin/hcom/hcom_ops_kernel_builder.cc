@@ -305,7 +305,14 @@ HcclResult HcomOpsKernelBuilder::SetAivSuperKernelBinaryAttrFor950(const ge::OpD
   auto itMap = AivSuperKernelMapV2.find(opType);
   auto it = (itMap->second).find(algName);
   if (it != (itMap->second).end()) {
-    std::string binFilePath = binPath + it->second.first + "_" + GetDataTypeEnumStr(dataType) + ".o";
+    bool openSourceTag = false;
+    CHK_RET(IsUsingOpenSource(openSourceTag));
+    std::string binFilePath;
+    if (openSourceTag) {
+      binFilePath = binPath + it->second.first + "_" + GetDataTypeEnumStr(dataType) + "_v2" + ".o";
+    } else {
+      binFilePath = binPath + it->second.first + "_" + GetDataTypeEnumStr(dataType) + ".o";
+    }
     ge::AttrUtils::SetStr(opDescPtr, "bin_file_path", binFilePath);
     ge::AttrUtils::SetStr(opDescPtr, "hcom_bin_file_path", binFilePath);
     funcName = it->second.second;
@@ -435,6 +442,7 @@ HcclResult HcomOpsKernelBuilder::SetSuperKernelScopeAttr(ge::Node &node) {
   HcclReduceOp reduction = HcclReduceOp::HCCL_REDUCE_SUM;
   u32 aivCoreLimit = 0;
   char algName[ALG_NAME_MAX_LEN];
+  char *pAlgName = algName;
   
   // 用于判断是否走 Aiv 的参数准备
   CHK_RET(PrepareSelectAivParam(node, sCollectiveType, hcomComm, sGroup, rankSize,
@@ -444,7 +452,10 @@ HcclResult HcomOpsKernelBuilder::SetSuperKernelScopeAttr(ge::Node &node) {
   CHK_RET(IsUsingOpenSource(openSourceTag));
   if (openSourceTag) {
     CHK_RET(HcceSelectAlgGraphMode(sGroup.c_str(), count, dataType, reduction, opType, aivCoreLimit, &ifAiv,
-                          algName));
+                          &pAlgName));
+    strncpy_s(algName, ALG_NAME_MAX_LEN, pAlgName, ALG_NAME_MAX_LEN - 1);
+    algName[ALG_NAME_MAX_LEN - 1] = '\0';
+    free(pAlgName);
   } else {
     #ifdef HCOM_SELECT_ALG_POINTER_MODE
       CHK_RET(HcomSelectAlg(hcomComm, sGroup.c_str(), count, countsPtr, dataType, reduction, opType, aivCoreLimit, &ifAiv,

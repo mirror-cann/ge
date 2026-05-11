@@ -694,12 +694,23 @@ HcclResult HcomOpsKernelInfoStore::CleanIntervalMemoryOpKernel(const ge::GETaskI
     CHK_RET(GetCountFromTaskInfo(hcclInfo, count));
     CHK_RET(GetDataTypeFromTaskInfo(task, dataType));
     CHK_RET(GetReduceTypeFromTaskInfo(hcclInfo, reduceType));
-    #ifdef HCOM_SELECT_ALG_POINTER_MODE
-      CHK_RET(HcomSelectAlg(comm, group.c_str(), count, nullptr, dataType, reduceType, opType, MAX_BLOCK_DIM, &ifAiv, algName));
-    #else
-      // 默认模式：使用旧接口（传引用）
-      CHK_RET(HcomSelectAlg(comm, group.c_str(), count, nullptr, dataType, reduceType, opType, MAX_BLOCK_DIM, ifAiv, algName));
-    #endif
+    bool openSourceTag = false;
+    char *pAlgName = algName;
+    CHK_RET(IsUsingOpenSource(openSourceTag));
+    if (openSourceTag) {
+      CHK_RET(HcceSelectAlgGraphMode(group.c_str(), count, dataType, reduceType, opType, MAX_BLOCK_DIM, &ifAiv,
+                            &pAlgName));
+      strncpy_s(algName, ALG_NAME_MAX_LEN, pAlgName, ALG_NAME_MAX_LEN - 1);
+      algName[ALG_NAME_MAX_LEN - 1] = '\0';
+      free(pAlgName);
+    } else {
+      #ifdef HCOM_SELECT_ALG_POINTER_MODE
+        CHK_RET(HcomSelectAlg(comm, group.c_str(), count, nullptr, dataType, reduceType, opType, MAX_BLOCK_DIM, &ifAiv, algName));
+      #else
+        // 默认模式：使用旧接口（传引用）
+        CHK_RET(HcomSelectAlg(comm, group.c_str(), count, nullptr, dataType, reduceType, opType, MAX_BLOCK_DIM, ifAiv, algName));
+      #endif
+    }
     if (crackNum == 0 || (crackNum == 1 && ifAiv)) {
       HCCL_WARNING("[CleanIntervalMemoryOpKernel]The number of tensors to be cleared is 0.");
       return HCCL_SUCCESS;

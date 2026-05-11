@@ -215,7 +215,6 @@ HcclResult DlHcclFunction::initHcclGraphModeFunctions() {
 
   dlHcclSetAivCoreLimitGraphModeFunc = (HcclResult (*)(const char *group, u32 aivCoreLimit))dlsym(dl_hccl_handle, "HcclSetAivCoreLimitGraphMode");
   CHK_PTR_NULL(dlHcclSetAivCoreLimitGraphModeFunc);
-  return HCCL_SUCCESS;
 
   dlHcclSelectAlgGraphModeFunc = (HcclResult (*)(const char *group, u64 count, HcclDataType dataType, HcclReduceOp op, HcclCMDType opType,
       int32_t aivCoreLimit, bool *ifAiv, char **algName))dlsym(dl_hccl_handle, "HcclSelectAlgGraphMode");
@@ -228,6 +227,8 @@ HcclResult DlHcclFunction::initHcclGraphModeFunctions() {
       HcclCMDType opType, bool clearEnable, HcclDataType dataType, HcclReduceOp op,
       void **commContext, u64 *len, u32 aivCoreLimit))dlsym(dl_hccl_handle, "HcclGetAlgExecParamGraphMode");
   CHK_PTR_NULL(dlHcclGetAlgExecParamGraphModeFunc);
+
+  return HCCL_SUCCESS;
 }
 
 bool DlHcclFunction::isLoadHcclGraphModeFunctions() {
