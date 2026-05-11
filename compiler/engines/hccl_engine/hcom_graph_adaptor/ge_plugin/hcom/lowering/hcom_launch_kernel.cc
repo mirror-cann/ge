@@ -1332,7 +1332,7 @@ ge::graphStatus LaunchRecvKernelV2(gert::KernelContext *context) {
   HcomSetLaunchKernelMode(false);
 
   // 调用算子kernel，实现算子下发
-  uint64_t recvCount = (tensorSize - 32) / SIZE_TABLE[launchArgs.opAttr.dataType];
+  uint64_t recvCount = tensorSize / SIZE_TABLE[launchArgs.opAttr.dataType];
   if (HcceRecv(outputTensorData->GetAddr(), recvCount, launchArgs.opAttr.dataType, launchArgs.opAttr.op.recv.srcRank,
                hcclCommPtr, launchArgs.stream) != HCCL_SUCCESS) {
     HcomSetLaunchKernelMode(false);
