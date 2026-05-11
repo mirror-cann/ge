@@ -124,6 +124,10 @@ class CodeGeneratorBase {
     return ast_.Call("aclrtLaunchKernelV2", {func_handle, block_dim, args, args_size, config, stream});
   }
   ExprRef MemcpyS(Arg dst, Arg dst_max, Arg src, Arg count) const { return ast_.Call("memcpy_s", {dst, dst_max, src, count}); }
+  ExprRef AclrtGetHardwareSyncAddr(Arg addr) const { return ast_.Call("aclrtGetHardwareSyncAddr", {addr});};
+  ExprRef AclrtCtxGetFloatOverflowAddr(Arg addr) const {
+    return ast_.Call("aclrtCtxGetFloatOverflowAddr", {addr});
+  }
 
   AstBuildContext &ast_;
 };

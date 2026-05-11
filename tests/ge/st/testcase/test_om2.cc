@@ -143,7 +143,7 @@ GeRootModelPtr CreateGeRootModelWithAicoreOp() {
     if ((op_desc->GetType() == DATA)) {
       op_desc->SetOutputOffset({1024});
     } else if (op_desc->GetType() == NETOUTPUT) {
-      op_desc->SetInputOffset({1024});
+      op_desc->SetInputOffset({3072});
     } else {
       op_desc->SetInputOffset(std::vector<int64_t>(op_desc->GetInputsSize(), 1024));
       op_desc->SetOutputOffset(std::vector<int64_t>(op_desc->GetOutputsSize(), 1024));
@@ -247,7 +247,7 @@ GeRootModelPtr CreateGeRootModelWithAicoreOp2() {
     if ((op_desc->GetType() == DATA)) {
       op_desc->SetOutputOffset({1024});
     } else if (op_desc->GetType() == NETOUTPUT) {
-      op_desc->SetInputOffset({1024});
+      op_desc->SetInputOffset({3072});
     } else {
       op_desc->SetInputOffset(std::vector<int64_t>(op_desc->GetInputsSize(), 1024));
       op_desc->SetOutputOffset(std::vector<int64_t>(op_desc->GetOutputsSize(), 1024));
@@ -288,7 +288,7 @@ GeRootModelPtr CreateGeRootModelWithAicpuOp() {
     if ((op_desc->GetType() == DATA)) {
       op_desc->SetOutputOffset({1024});
     } else if (op_desc->GetType() == NETOUTPUT) {
-      op_desc->SetInputOffset({1024});
+      op_desc->SetInputOffset({3072});
     } else {
       op_desc->SetInputOffset(std::vector<int64_t>(op_desc->GetInputsSize(), 1024));
       op_desc->SetOutputOffset(std::vector<int64_t>(op_desc->GetOutputsSize(), 1024));
@@ -383,7 +383,7 @@ GeRootModelPtr CreateGeRootModelWithAicoreOpOfDynamicIo() {
     if ((op_desc->GetType() == DATA)) {
       op_desc->SetOutputOffset({1024});
     } else if (op_desc->GetType() == NETOUTPUT) {
-      op_desc->SetInputOffset({1024});
+      op_desc->SetInputOffset({3072});
     } else {
       op_desc->SetInputOffset(std::vector<int64_t>(op_desc->GetInputsSize(), 1024));
       op_desc->SetOutputOffset(std::vector<int64_t>(op_desc->GetOutputsSize(), 1024));

@@ -32,5 +32,9 @@ Om2ModelClassGeneratorBase::Om2ModelClassGeneratorBase(AstBuildContext &ast)
       label_switch_label_list_(ast_.Var("std::map<uint32_t, aclrtLabelList>", "label_switch_label_list_")),
       label_goto_ex_index_values_(ast_.Var("std::vector<void *>", "label_goto_ex_index_values_")),
       label_goto_args_(ast_.Var("std::map<uint32_t, std::pair<void *, uint32_t>>", "label_goto_args_")),
-      label_goto_ex_label_list_(ast_.Var("std::map<uint32_t, aclrtLabelList>", "label_goto_ex_label_list_")) {}
+      label_goto_ex_label_list_(ast_.Var("std::map<uint32_t, aclrtLabelList>", "label_goto_ex_label_list_")),
+      mem_event_id_mem_map_(ast_.Var("std::map<uint32_t, void *>", "mem_event_id_mem_map_")),
+      overflow_addr_(ast_.Var("void *", "overflow_addr_")),
+      dev_dynamic_mem_ptrs_(ast_.Var("std::vector<void *>", "dev_dynamic_mem_ptrs_")),
+      session_scope_mem_ptr_(ast_.Var("void *", "session_scope_mem_ptr_")) {}
 }  // namespace ge

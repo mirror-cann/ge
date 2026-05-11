@@ -24,11 +24,13 @@
 #include "ast/ast_context.h"
 #include "framework/common/taskdown_common.h"
 #include "proto/task.pb.h"
+#include "common/math/math_util.h"
 
 namespace ge {
 constexpr int64_t kInvalidOpIndex = -1;
 constexpr int64_t kInvalidOpId = -1;
 constexpr int32_t kInvalidAnchorIndex = -1;
+constexpr uint64_t kSessionScopeMemoryMask = 0x100000000UL;
 
 struct OpInputEdges {
   std::vector<int64_t> input_op_ids;
@@ -43,6 +45,64 @@ enum class Om2MemoryAppType : int32_t {
   kEnd
 };
 
+struct MemInfo {
+  int64_t logic_memory_base ;
+  int64_t memory_size;
+  uint8_t *memory_base;
+  uint64_t memory_type;
+  std::string memory_key;
+  bool is_fixed_addr_prior;
+  MemInfo() : MemInfo(0, 0, nullptr, false) {}
+
+  MemInfo(int64_t logic_memory_base_tmp, int64_t memory_size_tmp, uint8_t *const memory_base_tmp,
+          bool is_fixed_addr_prior_tmp = false)
+      : logic_memory_base(logic_memory_base_tmp),
+        memory_size(memory_size_tmp),
+        memory_base(memory_base_tmp),
+        memory_type(RT_MEMORY_HBM),
+        is_fixed_addr_prior(is_fixed_addr_prior_tmp) {}
+
+  friend bool operator<(const MemInfo &left, const MemInfo &right) noexcept {
+    // 加上大小是为了地址段匹配处理，不要擅自修改
+    // 如logic_memory_base=0, memory_size=100, logic_memory_base=100, memory_size=300
+    // logic_addr为[0, 100)匹配到的基地址就是logic_memory_base=0
+    // logic_addr为[100, 400)匹配到的基地址就是logic_memory_base=100
+    return (left.logic_memory_base + left.memory_size) < (right.logic_memory_base + right.memory_size);
+  }
+
+  std::string ToString() const {
+    std::stringstream ss;
+    ss << "memory_size:" << memory_size << ", logic_memory_base:" << logic_memory_base << ", memory_base:0x"
+       << &std::hex << PtrToValue(PtrToPtr<uint8_t, void>(memory_base)) << ", memory_type:" << memory_type
+       << ", memory_key:" << memory_key << ", is_fixed_addr_prior:" << is_fixed_addr_prior;
+    return ss.str();
+  }
+
+  void *GetMemory(const int64_t offset, const int64_t bytes) const {
+    if (bytes <= 0) {
+      return nullptr;
+    }
+    GE_CHK_STATUS_EXEC(CheckInt64SubOverflow(offset, logic_memory_base), return nullptr,
+        "[Get][Memory] failed,Out of range, total size:%" PRId64 ", offset:%" PRId64 ", logic_memory_base:%" PRId64 ".",
+        memory_size, offset, logic_memory_base);
+    const int64_t real_offset = offset - logic_memory_base;
+
+    GE_CHK_STATUS_EXEC(CheckInt64AddOverflow(real_offset, bytes), return nullptr,
+                       "[Get][Memory] failed,Out of range, total size:%" PRId64 ", offset:%" PRId64 ", bytes:%" PRId64 ".",
+                       memory_size, real_offset, bytes);
+
+    if ((real_offset + bytes) <= memory_size) {
+      return ValueToPtr(PtrToValue(memory_base) + static_cast<uint64_t>(real_offset));
+    }
+
+    REPORT_INNER_ERR_MSG("E19999", "Out of range, total size:%" PRId64 ", offset:%" PRId64 ", bytes:"
+		       "%" PRId64 ".", memory_size, real_offset, bytes);
+    GELOGE(OUT_OF_MEMORY, "Out of range, total size:%" PRId64 ", offset:%" PRId64 ", bytes:%" PRId64 ".",
+      memory_size, real_offset, bytes);
+    return nullptr;
+  }
+};
+
 struct RuntimeResourceSemantic {
   uint64_t total_mem_size{0U};
   uint64_t total_weight_size{0U};
@@ -52,6 +112,10 @@ struct RuntimeResourceSemantic {
   uint32_t label_num{0U};
   uint32_t kernel_bin_num{0U};
   uint64_t logic_mem_base{0U};
+  uint64_t logic_weight_base{0U};
+  uint64_t logic_var_base{0U};
+  uint64_t var_size{0U};
+  std::map<uint64_t, MemInfo> memory_infos;
   bool has_label_switch{false};
   bool has_label_goto{false};
   std::vector<std::string> stream_flag_values;
@@ -145,6 +209,11 @@ enum class AddrValueKind : int32_t {
   kLevel1DescPtr,
   kShapeInfoBuffer,
   kOptionalEmpty,
+  kFftsAddr,
+  kEventAddr,
+  kOverflowAddr,
+  kTiling,
+  kEmptyAddr,
 };
 
 enum class MemoryAppType : int32_t {
@@ -160,10 +229,12 @@ struct AddrSemantic {
   int64_t mem_offset{0};
   uint64_t byte_size{0U};
   uint64_t custom_value{0U};
+  uint32_t event_id{0U};
   int64_t compile_state_io_addr_offset{0};
   bool is_reused_from_upstream{false};
   std::optional<std::vector<int64_t>> shape_info;
   std::optional<uint64_t> level1_target_offset;
+  uint64_t memory_type{RT_MEMORY_HBM};
 };
 
 struct ArgsTableEntrySemantic {

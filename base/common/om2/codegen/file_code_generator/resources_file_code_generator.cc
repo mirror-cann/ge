@@ -50,7 +50,8 @@ MethodDef *ResourcesFileCodeGenerator::BuildOm2ModelConstructor(const Om2Codegen
   return ast_.DefineMethod(
       "Om2Model", "Om2Model", {bin_files, bin_data, bin_size, bin_num, constants, work_ptr, session_id}, "",
       {ast_.MemberInit("constants_", constants), ast_.MemberInit("total_dev_mem_ptr_", work_ptr),
-       ast_.MemberInit("session_id_", session_id), ast_.MemberInit("kernel_id_", 0)},
+       ast_.MemberInit("session_id_", session_id), ast_.MemberInit("kernel_id_", 0),
+       ast_.MemberInit("session_scope_mem_ptr_", nullptr)},
       body);
 }
 
@@ -66,50 +67,91 @@ MethodDef *ResourcesFileCodeGenerator::BuildInitResourcesMethod(
       ast_.Comment("1. 创建 model"),
       ChkStatus(AclmdlRIBuildBegin(model_handle_.Addr(), 0)),
       ast_.BlankLine(),
-      ast_.Comment("2. 创建其他资源"),
+      ast_.Comment("2. 获取overflow地址"),
+      ChkStatus(AclrtCtxGetFloatOverflowAddr(overflow_addr_.Addr())),
+      ast_.BlankLine(),
+      ast_.Comment("3. 创建其他资源"),
   };
   const auto &runtime = codegen_model.runtime;
-  if (runtime.stream_num > 0U) {
-    body.emplace_back(ast_.Comment("创建下沉Stream并绑定模型"));
-    for (uint32_t i = 0U; i < runtime.stream_num; ++i) {
-      const auto stream_flag = ast_.Var("uint32_t", "stream" + std::to_string(i) + "_flag");
-      body.emplace_back(ast_.VarDecl(stream_flag, runtime.stream_flag_values[i]));
-      body.emplace_back(ChkRt(RtStreamCreateWithFlags(stream_list_[i].Addr(), 0, stream_flag)));
-      const auto bind_flag = ast_.Var("auto", "bind" + std::to_string(i) + "_flag");
-      body.emplace_back(ast_.VarDecl(bind_flag, runtime.bind_flag_values[i]));
-      body.emplace_back(ChkRt(RtModelBindStream(model_handle_, stream_list_[i], bind_flag)));
-    }
-    body.emplace_back(ast_.Assign(is_stream_list_bind_, true));
-  }
-  if (runtime.notify_num > 0U) {
-    auto i = ast_.Var("size_t", "i");
-    body.emplace_back(ast_.Comment("创建Notify"));
-    body.emplace_back(ast_.For(ast_.VarDecl(i, 0), i < runtime.notify_num, ast_.PreInc(i), {
-        ChkStatus(AclrtCreateNotify(notify_list_[i].Addr(), "ACL_NOTIFY_DEVICE_USE_ONLY")),
-    }));
-  }
-  if (runtime.event_num > 0U) {
-    auto i = ast_.Var("size_t", "i");
-    body.emplace_back(ast_.Comment("创建Event"));
-    body.emplace_back(ast_.For(ast_.VarDecl(i, 0), i < runtime.event_num, ast_.PreInc(i), {
-        ChkStatus(AclrtCreateEventWithFlag(event_list_[i].Addr(),
-                                           "ACL_EVENT_SYNC | ACL_EVENT_CAPTURE_STREAM_PROGRESS | ACL_EVENT_TIME_LINE")),
-    }));
-  }
-  if (runtime.label_num > 0U) {
-    auto i = ast_.Var("size_t", "i");
-    body.emplace_back(ast_.Comment("创建Label"));
-    body.emplace_back(ast_.For(ast_.VarDecl(i, 0), i < runtime.label_num, ast_.PreInc(i), {
-        ChkStatus(AclrtCreateLabel(label_list_[i].Addr())),
-    }));
-  }
+  BuildInitStreamResources(body, runtime);
+  BuildInitNotifyResources(body, runtime);
+  BuildInitEventResources(body, runtime);
+  BuildInitLabelResources(body, runtime);
   for (const auto &task_code_builder : task_code_builders) {
     GE_ASSERT_NOTNULL(task_code_builder);
     GE_ASSERT_SUCCESS(task_code_builder->RenderInitResource(body));
   }
+  BuildInitSessionScopeMemory(body, runtime);
   body.emplace_back(args_table_.Attr("Init")());
   body.emplace_back(ast_.Return("ACL_SUCCESS"));
   return ast_.DefineMethod("Om2Model", "InitResources", {}, "aclError", body);
+}
+
+void ResourcesFileCodeGenerator::BuildInitStreamResources(std::vector<BodyItem> &body,
+                                                          const RuntimeResourceSemantic &runtime) {
+  if (runtime.stream_num == 0U) {
+    return;
+  }
+  body.emplace_back(ast_.Comment("创建下沉Stream并绑定模型"));
+  for (uint32_t i = 0U; i < runtime.stream_num; ++i) {
+    const auto stream_flag = ast_.Var("uint32_t", "stream" + std::to_string(i) + "_flag");
+    body.emplace_back(ast_.VarDecl(stream_flag, runtime.stream_flag_values[i]));
+    body.emplace_back(ChkRt(RtStreamCreateWithFlags(stream_list_[i].Addr(), 0, stream_flag)));
+    const auto bind_flag = ast_.Var("auto", "bind" + std::to_string(i) + "_flag");
+    body.emplace_back(ast_.VarDecl(bind_flag, runtime.bind_flag_values[i]));
+    body.emplace_back(ChkRt(RtModelBindStream(model_handle_, stream_list_[i], bind_flag)));
+  }
+  body.emplace_back(ast_.Assign(is_stream_list_bind_, true));
+}
+
+void ResourcesFileCodeGenerator::BuildInitNotifyResources(std::vector<BodyItem> &body,
+                                                          const RuntimeResourceSemantic &runtime) {
+  if (runtime.notify_num == 0U) {
+    return;
+  }
+  auto i = ast_.Var("size_t", "i");
+  body.emplace_back(ast_.Comment("创建Notify"));
+  body.emplace_back(ast_.For(ast_.VarDecl(i, 0), i < runtime.notify_num, ast_.PreInc(i), {
+      ChkStatus(AclrtCreateNotify(notify_list_[i].Addr(), "ACL_NOTIFY_DEVICE_USE_ONLY")),
+  }));
+}
+
+void ResourcesFileCodeGenerator::BuildInitEventResources(std::vector<BodyItem> &body,
+                                                         const RuntimeResourceSemantic &runtime) {
+  if (runtime.event_num == 0U) {
+    return;
+  }
+  auto i = ast_.Var("size_t", "i");
+  body.emplace_back(ast_.Comment("创建Event"));
+  body.emplace_back(ast_.For(ast_.VarDecl(i, 0), i < runtime.event_num, ast_.PreInc(i), {
+      ChkStatus(AclrtCreateEventWithFlag(event_list_[i].Addr(),
+                                         "ACL_EVENT_SYNC | ACL_EVENT_CAPTURE_STREAM_PROGRESS | ACL_EVENT_TIME_LINE")),
+  }));
+}
+
+void ResourcesFileCodeGenerator::BuildInitLabelResources(std::vector<BodyItem> &body,
+                                                         const RuntimeResourceSemantic &runtime) {
+  if (runtime.label_num == 0U) {
+    return;
+  }
+  auto i = ast_.Var("size_t", "i");
+  body.emplace_back(ast_.Comment("创建Label"));
+  body.emplace_back(ast_.For(ast_.VarDecl(i, 0), i < runtime.label_num, ast_.PreInc(i), {
+      ChkStatus(AclrtCreateLabel(label_list_[i].Addr())),
+  }));
+}
+
+void ResourcesFileCodeGenerator::BuildInitSessionScopeMemory(std::vector<BodyItem> &body,
+                                                             const RuntimeResourceSemantic &runtime) {
+  const uint64_t ss_key = kSessionScopeMemoryMask | RT_MEMORY_HBM;
+  const auto ss_it = runtime.memory_infos.find(ss_key);
+  if (ss_it == runtime.memory_infos.end() || ss_it->second.memory_size <= 0) {
+    return;
+  }
+  body.emplace_back(ast_.Comment("Allocate session scope memory"));
+  body.emplace_back(ChkStatus(AclrtMalloc(session_scope_mem_ptr_.Addr(),
+                                           static_cast<int64_t>(ss_it->second.memory_size),
+                                           "ACL_MEM_MALLOC_HUGE_FIRST")));
 }
 
 MethodDef *ResourcesFileCodeGenerator::BuildReleaseResourcesMethod(const Om2CodegenModel &codegen_model) {
@@ -151,8 +193,14 @@ MethodDef *ResourcesFileCodeGenerator::BuildReleaseResourcesMethod(const Om2Code
   BuildReleaseResourcesMethodForControlTask(body, runtime);
   auto i = ast_.Var("int", "i");
   body.emplace_back(ChkStatus(AclmdlRIDestroy(model_handle_)));
+  body.emplace_back(ast_.If(session_scope_mem_ptr_ != nullptr, {
+      ChkStatus(AclrtFree(session_scope_mem_ptr_)),
+  }));
   body.emplace_back(ast_.For(ast_.VarDecl(i, 0), i < dev_ext_info_mem_ptrs_.Size(), ast_.PostInc(i), {
       ast_.If(dev_ext_info_mem_ptrs_[i] != nullptr, {ChkStatus(AclrtFree(dev_ext_info_mem_ptrs_[i]))}),
+  }));
+  body.emplace_back(ast_.For(ast_.VarDecl(i, 0), i < dev_dynamic_mem_ptrs_.Size(), ast_.PostInc(i), {
+      ast_.If(dev_dynamic_mem_ptrs_[i] != nullptr, {ChkStatus(AclrtFree(dev_dynamic_mem_ptrs_[i]))}),
   }));
   body.emplace_back(ast_.Return("ACL_SUCCESS"));
   return ast_.DefineMethod("Om2Model", "ReleaseResources", {}, "aclError", body);

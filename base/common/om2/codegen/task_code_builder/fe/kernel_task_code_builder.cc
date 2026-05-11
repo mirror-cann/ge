@@ -16,10 +16,14 @@
 #include "common/ge_common/debug/ge_log.h"
 #include "common/opskernel/ops_kernel_info_types.h"
 #include "graph/args_format_desc.h"
+#include "graph/debug/ge_attr_define.h"
 #include "graph/utils/attr_utils.h"
 #include "graph/utils/tensor_utils.h"
 #include "graph/utils/op_desc_utils.h"
 #include "graph/def_types.h"
+#include "register/op_tiling/op_tiling_constants.h"
+#include "common/op_tiling/op_tiling_rt2.h"
+#include "graph/utils/math_util.h"
 
 namespace ge {
 namespace {
@@ -120,13 +124,7 @@ void KernelTaskCodeBuilder::AppendOrderedArgValue(const AddrSemantic &semantic) 
   semantic_.ordered_arg_values.push_back(semantic);
 }
 
-void KernelTaskCodeBuilder::AppendOrderedArgValueForAicpu(const AddrSemantic &semantic, const uint64_t addr_offset) {
-  if (args_table_entry_ == nullptr) {
-    REPORT_INNER_ERR_MSG("E19999", "Args table entry is required before append ordered arg.");
-    GELOGE(FAILED, "[OM2] Args table entry is required before append ordered arg.");
-    return;
-  }
-
+Status KernelTaskCodeBuilder::AppendOrderedArgValueForCommon(const AddrSemantic &semantic, const uint64_t addr_offset) {
   if (semantic.memory_app == MemoryAppType::kModelIo) {
   io_addr_refresh_records_.push_back(
         IoAddrRefreshRecord{static_cast<uint64_t>(semantic.compile_state_io_addr_offset), addr_offset});
@@ -134,6 +132,7 @@ void KernelTaskCodeBuilder::AppendOrderedArgValueForAicpu(const AddrSemantic &se
       semantic.compile_state_io_addr_offset, addr_offset);
   }
   semantic_.ordered_arg_values.push_back(semantic);
+  return SUCCESS;
 }
 
 Status KernelTaskCodeBuilder::ValidateLevel1DescTargetOffsets() const {
@@ -234,25 +233,193 @@ Status KernelTaskCodeBuilder::BuildLaunchSemantic(const TaskSemanticContributeCo
   return SUCCESS;
 }
 
+Status KernelTaskCodeBuilder::CopyTilingDataIfNeeded(const TaskSemanticContributeContext &context,
+                                                     const ArgsFormatInfo &args_format_holder) {
+  std::shared_ptr<optiling::utils::OpRunInfo> default_tiling = nullptr;
+  std::shared_ptr<optiling::utils::OpRunInfo> run_info = nullptr;
+  if (is_separately_clean_task_) {
+    // 预埋，走不进去
+    run_info = context.op_desc->TryGetExtAttr(ge::ATTR_NAME_ATOMIC_OP_RUN_INFO, default_tiling);
+  } else {
+    run_info = context.op_desc->TryGetExtAttr(ge::ATTR_NAME_OP_RUN_INFO, default_tiling);
+  }
+
+  if (is_soft_sync_op_ && Om2CodegenUtils::IsAllKernel(context.task_type)) {
+    REPORT_INNER_ERR_MSG("E19999", "Unsupported scenario for soft sync.");
+    GELOGE(FAILED, "[OM2] Unsupported scenario, is_soft_sync_op_[%d], task_type[%d].", is_soft_sync_op_,
+                   static_cast<int32_t>(context.task_type));
+    return FAILED;
+  }
+
+  if (run_info != nullptr) {
+    if (run_info->GetAllTilingData().str().empty()) {
+      GELOGD("Tiling data of %s is empty.", context.op_desc->GetNamePtr());
+      return SUCCESS;
+    }
+    has_tiling_ = true;
+    tiling_data_ = run_info->GetAllTilingData().str();
+    if (!is_separately_clean_task_) {
+      std::string dfx_info;
+      GE_CHK_STATUS_RET(ConstructDfxInfo(context.op_desc, *run_info, args_format_holder.arg_descs, dfx_info),
+          "Append memcheck data for node: %s failed.", context.op_desc->GetNamePtr());
+      tiling_data_ += dfx_info;
+    }
+    GELOGI("Success to update tiling data to io_addr of %s, tiling data %s, size: %zu.", context.op_desc->GetNamePtr(),
+           tiling_data_.c_str(), tiling_data_.size());
+  }
+  return SUCCESS;
+}
+
+Status KernelTaskCodeBuilder::ConstructDfxInfo(const ge::OpDescPtr &op_desc,
+                                               const optiling::OpRunInfoV2 &run_info,
+                                               const std::vector<ge::ArgDesc> &arg_descs,
+                                               std::string &dfx_info) const {
+  bool is_mem_check_enable = false;
+  (void)ge::AttrUtils::GetBool(op_desc, optiling::kMemoryCheck, is_mem_check_enable);
+  if (!is_mem_check_enable) {
+    return ge::SUCCESS;
+  }
+
+  GE_ASSERT_NOTNULL(op_desc);
+  auto input_descs = op_desc->GetAllInputsDescPtr();
+
+  // 获取size
+  std::vector<int64_t> args_size_vec;
+  std::vector<optiling::ArgsIndexToIoIndex> args_idx_to_io_idx_vec;
+  if (!arg_descs.empty()) {
+    GE_ASSERT_SUCCESS(
+      optiling::TilingDfx::GetArgsSizeWithArgsFormat(op_desc, arg_descs, args_size_vec, args_idx_to_io_idx_vec));
+  } else  {
+    GELOGI("OP [%s] not has formatted args_format. input desc size [%zu], out desc size [%zu]",
+      op_desc->GetNamePtr(),input_descs.size(), op_desc->GetOutputsSize());
+    GE_ASSERT_SUCCESS(optiling::TilingDfx::GetArgsSizeWithoutArgsFormat(input_descs.size(),
+      op_desc->GetOutputsSize(), args_size_vec, args_idx_to_io_idx_vec));
+  }
+
+  std::vector<int64_t> shape_size_vec;
+  GE_ASSERT_SUCCESS(UpdateDfxArgsAndShapeSize(op_desc, args_idx_to_io_idx_vec, args_size_vec, shape_size_vec));
+  (void)args_size_vec.insert(args_size_vec.cend(),
+      run_info.GetAllWorkspaces().cbegin(), run_info.GetAllWorkspaces().cend());
+
+  // tiling data为0的场景 或者args Size 为0的场景，直接返回
+  const int64_t tiling_data_size = static_cast<int64_t>(run_info.GetAllTilingData().str().size());
+  if ((tiling_data_size == 0) || (args_size_vec.size() == 0U)) {
+    return ge::SUCCESS;
+  }
+
+  int64_t max_size = -1;
+  if (!ge::AttrUtils::GetInt(op_desc, kMaxTilingSize, max_size) || max_size < 0) {
+    GELOGI("No max tiling size in opdesc.");
+    max_size = static_cast<int64_t>(kMaxTilingDataSize);
+  }
+
+  const auto memcheck_info_capacity = ge::RoundUp(static_cast<uint64_t>(max_size), sizeof(uintptr_t));
+  GELOGI("Get memcheck info capcity: %zu, op_name: %s", memcheck_info_capacity, op_desc->GetNamePtr());
+  const auto memcheck_data_holder = gert::TilingData::CreateCap(memcheck_info_capacity);
+  auto memcheck_data = reinterpret_cast<gert::TilingData *>(memcheck_data_holder.get());
+  int64_t memcheck_start_size = 0L;
+  GE_ASSERT_SUCCESS(GetMemCheckStartSize(op_desc, tiling_data_size, memcheck_start_size));
+  memcheck_data->SetDataSize(static_cast<size_t>(memcheck_start_size));
+
+  // append size
+  for (size_t i = 0U; i < args_size_vec.size(); i++) {
+    GELOGI("[TilingAppendDfxInfo] size idx[%zu], val[%lld]", i, args_size_vec[i]);
+  }
+  GE_ASSERT_SUCCESS(memcheck_data->Append(args_size_vec.data(), args_size_vec.size()));
+  GELOGI("Op name[%s] memcheck info size: %lld, start size: %lld",
+    op_desc->GetNamePtr(), memcheck_data->GetDataSize(), memcheck_start_size);
+  dfx_info = std::string(reinterpret_cast<ge::char_t *>(memcheck_data->GetData()), memcheck_data->GetDataSize());
+  return ge::SUCCESS;
+}
+
+Status KernelTaskCodeBuilder::UpdateDfxArgsAndShapeSize(
+                              const OpDescPtr &op_desc,
+                              const std::vector<optiling::ArgsIndexToIoIndex> &args_idx_to_io_idx_vec,
+                              std::vector<int64_t> &args_size_vec,
+                              std::vector<int64_t> &shape_size_vec) const {
+  auto input_descs = op_desc->GetAllInputsDescPtr();
+
+ // 更新size以及shape
+  for (size_t i = 0U; i < args_idx_to_io_idx_vec.size(); i++) {
+    size_t io_index = args_idx_to_io_idx_vec[i].io_index;
+    size_t args_index = args_idx_to_io_idx_vec[i].args_index;
+    GE_ASSERT(args_index < args_size_vec.size(),
+      "args index [%zu] not less than args list size [%zu]", args_index, args_size_vec.size());
+
+    if (args_idx_to_io_idx_vec[i].args_role == optiling::ArgsRole::kInput) {
+      const auto tensor = input_descs.at(io_index);
+      GE_ASSERT_NOTNULL(tensor);
+      int64_t tensor_size = 0;
+      GE_ASSERT_SUCCESS(ge::TensorUtils::GetSize(*tensor, tensor_size));
+      GELOGI("Update input tensor size, node[%s], index:%zu, args index: %zu, io index: %zu, tensor size: %lld",
+        op_desc->GetNamePtr(), i, args_index, io_index, tensor_size);
+      args_size_vec[args_index] = tensor_size;
+      // shape
+      AppendShapeInfo(tensor->GetShape(), shape_size_vec);
+    } else if (args_idx_to_io_idx_vec[i].args_role == optiling::ArgsRole::kOutput) {
+      const auto tensor = op_desc->GetOutputDesc(static_cast<uint32_t>(io_index));
+      int64_t tensor_size = 0L;
+      GE_ASSERT_SUCCESS(ge::TensorUtils::GetSize(tensor, tensor_size));
+      GELOGI("Update output tensor size, node[%s], index:%zu, args index: %zu, io index: %zu, tensor size: %lld",
+          op_desc->GetNamePtr(), i, args_index, io_index, tensor_size);
+      args_size_vec[args_index] = tensor_size;
+      // shape
+      shape_size_vec.push_back(0);
+    }
+  }
+  return ge::SUCCESS;
+}
+
+void KernelTaskCodeBuilder::AppendShapeInfo(const ge::GeShape &shape, std::vector<int64_t> &shape_info_vec) const {
+  const auto dim_num = shape.GetDimNum();
+  shape_info_vec.push_back(dim_num);
+  GELOGD("[AppendShapeInfo] Append shape num: %zu", dim_num);
+  if (dim_num > 0) {
+    const auto dims = shape.GetDims();
+    for (size_t i = 0; i < dim_num; i++) {
+      shape_info_vec.push_back(dims[i]);
+    }
+  }
+}
+
+ge::Status KernelTaskCodeBuilder::GetMemCheckStartSize(const ge::OpDescPtr &op_desc,
+                                                       const int64_t origin_tiling_data_size,
+                                                       int64_t &memcheck_start_size) const {
+  int64_t ori_param_size = 0LL;
+  (void)ge::AttrUtils::GetInt(op_desc, optiling::kOriOpParaSize, ori_param_size);
+  if (ori_param_size > 0LL) {
+    // tik场景下TilingAppendMem添加的数据需要从偏移为ori_param_size的地址开始添加，此处需要将DataSize设置成ori_param_size
+    GE_ASSERT_TRUE(origin_tiling_data_size <= ori_param_size);
+    GELOGI("Current tiling data size: %zu, set ori_param_size to %lld by attr, op_name: %s",
+          origin_tiling_data_size, ori_param_size, op_desc->GetNamePtr());
+  } else {
+    ori_param_size = ((origin_tiling_data_size + sizeof(int64_t) - 1UL) / sizeof(int64_t)) * sizeof(int64_t);
+    GELOGI("Current tiling data size: %zu, set ori_param_size to %lld by aligned by %zu, op_name: %s",
+          origin_tiling_data_size, ori_param_size, sizeof(int64_t), op_desc->GetNamePtr());
+  }
+  memcheck_start_size = ori_param_size - origin_tiling_data_size;
+  return ge::SUCCESS;
+}
+
 Status KernelTaskCodeBuilder::CheckTaskSupport() const {
   if (op_need_print_) {
-    REPORT_INNER_ERR_MSG("E19999", "Unsupport scenario for dfx.");
-    GELOGE(FAILED, "Unsupport scenario for dfx.");
+    REPORT_INNER_ERR_MSG("E19999", "Unsupported scenario for dfx.");
+    GELOGE(FAILED, "Unsupported scenario for dfx.");
     return FAILED;
   }
   if (is_soft_sync_op_) {
-    REPORT_INNER_ERR_MSG("E19999", "Unsupport scenario for dfx.");
-    GELOGE(FAILED, "Unsupport scenario for static_to_dynamic_softsync_op.");
+    REPORT_INNER_ERR_MSG("E19999", "Unsupported scenario for dfx.");
+    GELOGE(FAILED, "Unsupported scenario for static_to_dynamic_softsync_op.");
     return FAILED;
   }
   if (is_separately_clean_task_) {
-    REPORT_INNER_ERR_MSG("E19999", "Unsupport scenario for dfx.");
-    GELOGE(FAILED, "Unsupport scenario for atomic clean task.");
+    REPORT_INNER_ERR_MSG("E19999", "Unsupported scenario for dfx.");
+    GELOGE(FAILED, "Unsupported scenario for atomic clean task.");
     return FAILED;
   }
   if (is_blocking_aicpu_op_) {
-    REPORT_INNER_ERR_MSG("E19999", "Unsupport scenario for dfx.");
-    GELOGE(FAILED, "Unsupport scenario for blocking_op.");
+    REPORT_INNER_ERR_MSG("E19999", "Unsupported scenario for dfx.");
+    GELOGE(FAILED, "Unsupported scenario for blocking_op.");
     return FAILED;
   }
   return SUCCESS;
@@ -328,6 +495,7 @@ Status KernelTaskCodeBuilder::RenderDistHelper(std::vector<DeclNode *> &items) {
   items.push_back(BuildAssembleAicpuExtInfo());
   items.push_back(BuildAssembleAicpuArgs());
   items.push_back(BuildAicpuKernelTaskDistribute());
+  items.push_back(BuildGetEventIdAddr());
   return SUCCESS;
 }
 
@@ -505,6 +673,28 @@ FunctionDef *KernelTaskCodeBuilder::BuildAicpuKernelTaskDistribute() const {
                              });
 }
 
+FunctionDef *KernelTaskCodeBuilder::BuildGetEventIdAddr() const {
+  auto event_addr = ast_.Var("void *&", "event_addr");
+  auto event_id_mem_map = ast_.Var("std::map<uint32_t, void *> &", "event_id_mem_map");
+  auto event_id = ast_.Var("uint32_t", "event_id");
+  auto mem_ptrs = ast_.Var("std::vector<void *> &", "mem_ptrs");
+  auto it = ast_.Var("auto", "it");
+
+  constexpr size_t mem_event_size = 8;
+
+  return ast_.DefineFunction("GetEventIdAddr", {event_addr, event_id_mem_map, event_id, mem_ptrs}, "aclError", {
+      ast_.VarDecl(it, event_id_mem_map.Attr("find")(event_id)),
+      ast_.If(event_id_mem_map.Attr("end")() != "it", {
+          ast_.Assign(event_addr, it.Arrow("second")),
+          ast_.Return("ACL_SUCCESS"),
+      }),
+      ChkStatus(ast_.Call("MallocDeviceMemory", {event_addr, mem_event_size, 2, mem_ptrs})),
+      ChkStatus(ast_.Call("aclrtMemset", {event_addr, mem_event_size, 0, mem_event_size})),
+      ast_.Assign(event_id_mem_map[event_id], event_addr),
+      ast_.Return("ACL_SUCCESS"),
+  });
+}
+
 Status KernelTaskCodeBuilder::GenArgsCode() {
   GELOGD("[OM2] start to generate args code.");
   args_addr_nodes_.clear();
@@ -532,13 +722,7 @@ Status KernelTaskCodeBuilder::BuildAddrGenInfoFromSemantic(const AddrSemantic &s
     case AddrValueKind::kInputInstance:
     case AddrValueKind::kOutputInstance:
     case AddrValueKind::kWorkspace:
-      GE_ASSERT_TRUE(!semantic.symbol_hint.empty(), "[OM2] Addr semantic symbol hint is empty.");
-      if (semantic.is_reused_from_upstream) {
-        return SUCCESS;
-      }
-      addr_gen_info.nodes.emplace_back(
-          ast_.VarDecl("auto", semantic.symbol_hint, GetAddr(total_dev_mem_ptr_, semantic.mem_offset)));
-      return SUCCESS;
+      return BuildAddrGenInfoForInstance(semantic, addr_gen_info);
     case AddrValueKind::kOptionalEmpty:
       GE_ASSERT_TRUE(!semantic.symbol_hint.empty(), "[OM2] Optional addr symbol hint is empty.");
       addr_gen_info.nodes.emplace_back(ast_.VarDecl("auto", semantic.symbol_hint, nullptr));
@@ -551,11 +735,18 @@ Status KernelTaskCodeBuilder::BuildAddrGenInfoFromSemantic(const AddrSemantic &s
       GE_ASSERT_TRUE(!semantic.symbol_hint.empty(), "[OM2] Custom value symbol hint is empty.");
       addr_gen_info.nodes.emplace_back(ast_.VarDecl("auto", semantic.symbol_hint, ast_.UInt(semantic.custom_value)));
       return SUCCESS;
-    case AddrValueKind::kLevel1DescPtr: {
+    case AddrValueKind::kLevel1DescPtr:
       return BuildAddrGenInfoForLevel1DescPtr(semantic, addr_gen_info);
-    }
     case AddrValueKind::kShapeInfoBuffer:
       return BuildAddrGenInfoForShapeInfoBuffer(semantic, addr_gen_info);
+    case AddrValueKind::kFftsAddr:
+      return BuildAddrGenInfoForFftsAddr(semantic, addr_gen_info);
+    case AddrValueKind::kEventAddr:
+      return BuildAddrGenInfoForEventAddr(semantic, addr_gen_info);
+    case AddrValueKind::kOverflowAddr:
+      return SUCCESS;
+    case AddrValueKind::kTiling:
+      return BuildAddrGenInfoForTiling(semantic, addr_gen_info);
     default:
       REPORT_INNER_ERR_MSG("E19999", "Unsupported addr semantic kind %d in render stage.",
                            static_cast<int32_t>(semantic.kind));
@@ -563,6 +754,55 @@ Status KernelTaskCodeBuilder::BuildAddrGenInfoFromSemantic(const AddrSemantic &s
              static_cast<int32_t>(semantic.kind));
       return FAILED;
   }
+}
+
+Status KernelTaskCodeBuilder::BuildAddrGenInfoForInstance(const AddrSemantic &semantic,
+                                                          RenderedAddrInfo &addr_gen_info) const {
+  GE_ASSERT_TRUE(!semantic.symbol_hint.empty(), "[OM2] Addr semantic symbol hint is empty.");
+  if (semantic.is_reused_from_upstream) {
+    return SUCCESS;
+  }
+  auto &base_ptr = (semantic.memory_type == (kSessionScopeMemoryMask | RT_MEMORY_HBM))
+                       ? session_scope_mem_ptr_ : total_dev_mem_ptr_;
+  addr_gen_info.nodes.emplace_back(
+      ast_.VarDecl("auto", semantic.symbol_hint, GetAddr(base_ptr, semantic.mem_offset)));
+  return SUCCESS;
+}
+
+Status KernelTaskCodeBuilder::BuildAddrGenInfoForFftsAddr(const AddrSemantic &semantic,
+                                                          RenderedAddrInfo &addr_gen_info) const {
+  auto hardware_sync_addr = ast_.Var("void *", semantic.symbol_hint);
+  addr_gen_info.nodes.emplace_back(ast_.VarDecl(hardware_sync_addr, nullptr));
+  addr_gen_info.nodes.emplace_back(ChkStatus(AclrtGetHardwareSyncAddr(hardware_sync_addr.Addr())));
+  return SUCCESS;
+}
+
+Status KernelTaskCodeBuilder::BuildAddrGenInfoForEventAddr(const AddrSemantic &semantic,
+                                                           RenderedAddrInfo &addr_gen_info) const {
+  auto event_addr_op = ast_.Var("void *", semantic.symbol_hint);
+  addr_gen_info.nodes.emplace_back(ast_.VarDecl(event_addr_op, nullptr));
+  addr_gen_info.nodes.emplace_back(ChkStatus(ast_.Call("GetEventIdAddr",
+                                                       {event_addr_op.Addr(), mem_event_id_mem_map_,
+                                                        semantic.event_id, dev_dynamic_mem_ptrs_})));
+  return SUCCESS;
+}
+
+Status KernelTaskCodeBuilder::BuildAddrGenInfoForTiling(const AddrSemantic &semantic,
+                                                        RenderedAddrInfo &addr_gen_info) const {
+  vector<uint8_t> tiling_data;
+  tiling_data.assign(tiling_data_.begin(), tiling_data_.end());
+  const std::string tiling_data_str = SerializeBytesToOctalString(tiling_data);
+  auto tiling_data_str_var = ast_.Var("const char *", semantic.symbol_hint + "_str");
+  auto tiling_data_addr_var = ast_.Var("void *", semantic.symbol_hint);
+  addr_gen_info.nodes.emplace_back(ast_.VarDecl(tiling_data_str_var, Arg::StringLiteral(tiling_data_str)));
+  addr_gen_info.nodes.emplace_back(ast_.VarDecl(tiling_data_addr_var, nullptr));
+  addr_gen_info.nodes.emplace_back(ChkStatus(ast_.Call("MallocDeviceMemory",
+                                                       {tiling_data_addr_var, tiling_data_.size(), 2,
+                                                        dev_dynamic_mem_ptrs_})));
+  addr_gen_info.nodes.emplace_back(ChkStatus(AclrtMemcpy(tiling_data_addr_var, tiling_data_.size(),
+                                                         tiling_data_str_var, tiling_data_.size(),
+                                                         "ACL_MEMCPY_HOST_TO_DEVICE")));
+  return SUCCESS;
 }
 
 Status KernelTaskCodeBuilder::BuildAddrGenInfoForLevel1DescPtr(const AddrSemantic &semantic,
@@ -807,9 +1047,9 @@ Status KernelTaskCodeBuilder::ParseExtTopicType(AicpuExtInfo &aicpu_ext_info, co
       type);
     return ACL_ERROR_GE_PARAM_INVALID;
   } else if (deploy_type_flag == static_cast<int32_t>(RT_KERNEL_HOST_ONLY)) {
-    REPORT_INNER_ERR_MSG("E19999", "Unsupport scenario. Node[%s], infoType=%d, infoLen=%u.", node_name.c_str(),
+    REPORT_INNER_ERR_MSG("E19999", "Unsupported scenario. Node[%s], infoType=%d, infoLen=%u.", node_name.c_str(),
                       aicpu_ext_info.infoType, aicpu_ext_info.infoLen);
-    GELOGE(FAILED, "[OM2] Unsupport scenario. Node[%s], infoType=%d, infoLen=%u.",
+    GELOGE(FAILED, "[OM2] Unsupported scenario. Node[%s], infoType=%d, infoLen=%u.",
                   node_name.c_str(), aicpu_ext_info.infoType, aicpu_ext_info.infoLen);
     return FAILED;
   }
@@ -944,10 +1184,10 @@ Status KernelTaskCodeBuilder::ParseArgsFormat(const OpDescPtr &op_desc, ArgsForm
     } else if (arg_format.addr_type == AddrType::TILING_CONTEXT &&
                (arg_format.ir_idx == static_cast<int32_t>(TilingContextSubType::TILING_CONTEXT) ||
                 arg_format.ir_idx == static_cast<int32_t>(TilingContextSubType::TILING_DATA))) {
-      REPORT_INNER_ERR_MSG("E19999", "Unsupport scenario. addr_type[%d], ir_idx[%d].",
+      REPORT_INNER_ERR_MSG("E19999", "Unsupported scenario. addr_type[%d], ir_idx[%d].",
                      static_cast<int32_t>(AddrType::TILING_CONTEXT),
                      arg_format.ir_idx);
-      GELOGE(FAILED, "[OM2] Unsupport scenario. addr_type[%d], ir_idx[%d].",
+      GELOGE(FAILED, "[OM2] Unsupported scenario. addr_type[%d], ir_idx[%d].",
                      static_cast<int32_t>(AddrType::TILING_CONTEXT), arg_format.ir_idx);
       return FAILED;
     }
@@ -1101,6 +1341,7 @@ Status KernelTaskCodeBuilder::AppendOrderedArgsByFormat(
     std::vector<ArgDesc> &dynamic_args_desc, std::vector<size_t> &level1_desc_indices) {
   place_holder_var_index_ = 0;
   cust_value_var_index_ = 0;
+  uint32_t event_addr_index = 0;
   for (const auto &arg_format : args_format_holder.arg_descs) {
     switch (arg_format.addr_type) {
       case AddrType::INPUT_INSTANCE:
@@ -1121,17 +1362,21 @@ Status KernelTaskCodeBuilder::AppendOrderedArgsByFormat(
         AppendOrderedCustomValue(context, *(PtrToPtr<uint8_t, uint64_t>(arg_format.reserved)));
         break;
       case AddrType::INPUT_DESC:
-      case AddrType::OUTPUT_DESC: {
-        const size_t dynamic_idx = dynamic_args_desc.size();
-        dynamic_args_desc.push_back(arg_format);
-        level1_desc_indices.push_back(semantic_.ordered_arg_values.size());
-        AddrSemantic level1_desc_ptr;
-        level1_desc_ptr.kind = AddrValueKind::kLevel1DescPtr;
-        level1_desc_ptr.symbol_hint =
-            "op" + std::to_string(context.op_index) + "_io_desc" + std::to_string(dynamic_idx);
-        AppendOrderedArgValue(level1_desc_ptr);
+      case AddrType::OUTPUT_DESC:
+        AppendOrderedDescArg(context, arg_format, dynamic_args_desc, level1_desc_indices);
         break;
-      }
+      case AddrType::FFTS_ADDR:
+        AppendOrderedFftsAddrArg(context);
+        break;
+      case AddrType::EVENT_ADDR:
+        AppendOrderedEventAddrArg(context, arg_format, event_addr_index);
+        break;
+      case AddrType::OVERFLOW_ADDR:
+        AppendOrderedOverflowAddrArg(context);
+        break;
+      case AddrType::TILING:
+        AppendOrderedTilingArg(context);
+        break;
       default:
         REPORT_INNER_ERR_MSG("E19999", "Args Format type %d is currently not supported.",
                              static_cast<int32_t>(arg_format.addr_type));
@@ -1141,6 +1386,56 @@ Status KernelTaskCodeBuilder::AppendOrderedArgsByFormat(
     }
   }
   return SUCCESS;
+}
+
+void KernelTaskCodeBuilder::AppendOrderedDescArg(const TaskSemanticContributeContext &context,
+                                                 const ArgDesc &arg_format,
+                                                 std::vector<ArgDesc> &dynamic_args_desc,
+                                                 std::vector<size_t> &level1_desc_indices) {
+  const size_t dynamic_idx = dynamic_args_desc.size();
+  dynamic_args_desc.push_back(arg_format);
+  level1_desc_indices.push_back(semantic_.ordered_arg_values.size());
+  AddrSemantic level1_desc_ptr;
+  level1_desc_ptr.kind = AddrValueKind::kLevel1DescPtr;
+  level1_desc_ptr.symbol_hint =
+      "op" + std::to_string(context.op_index) + "_io_desc" + std::to_string(dynamic_idx);
+  AppendOrderedArgValue(level1_desc_ptr);
+}
+
+void KernelTaskCodeBuilder::AppendOrderedFftsAddrArg(const TaskSemanticContributeContext &context) {
+  AddrSemantic ffts_addr_semantic;
+  ffts_addr_semantic.kind = AddrValueKind::kFftsAddr;
+  ffts_addr_semantic.symbol_hint = "op" + std::to_string(context.op_index) + "_hardware_sync_addr_";
+  AppendOrderedArgValue(ffts_addr_semantic);
+}
+
+void KernelTaskCodeBuilder::AppendOrderedEventAddrArg(const TaskSemanticContributeContext &context,
+                                                      const ArgDesc &arg_format,
+                                                      uint32_t &event_addr_index) {
+  AddrSemantic event_addr_semantic;
+  event_addr_semantic.kind = AddrValueKind::kEventAddr;
+  event_addr_semantic.event_id = static_cast<uint32_t>(arg_format.ir_idx);
+  event_addr_semantic.symbol_hint = "op" + std::to_string(context.op_index) + "_event_desc" +
+                                    std::to_string(event_addr_index);
+  event_addr_index++;
+  AppendOrderedArgValue(event_addr_semantic);
+}
+
+void KernelTaskCodeBuilder::AppendOrderedOverflowAddrArg(const TaskSemanticContributeContext &context) {
+  if (!AttrUtils::HasAttr(context.op_desc, GLOBALWORKSPACE_TYPE)) {
+    return;
+  }
+  AddrSemantic overflow_addr_semantic;
+  overflow_addr_semantic.kind = AddrValueKind::kOverflowAddr;
+  overflow_addr_semantic.symbol_hint = "overflow_addr_";
+  AppendOrderedArgValue(overflow_addr_semantic);
+}
+
+void KernelTaskCodeBuilder::AppendOrderedTilingArg(const TaskSemanticContributeContext &context) {
+  AddrSemantic tiling_semantic;
+  tiling_semantic.kind = AddrValueKind::kTiling;
+  tiling_semantic.symbol_hint = "op" + std::to_string(context.op_index) + "_tiling";
+  AppendOrderedArgValue(tiling_semantic);
 }
 
 Status KernelTaskCodeBuilder::AppendShapeInfoOrderedArgs(
@@ -1192,7 +1487,11 @@ Status KernelTaskCodeBuilder::BuildOrderedArgValuesForAicore(const TaskSemanticC
   uint32_t args_size = 0U;
   uint32_t kernel_type = 0U;
   GE_ASSERT_SUCCESS(GetKernelTaskMeta(context.task_def, kernel_context, args_size, kernel_type));
-  GE_ASSERT_TRUE(!kernel_context.args_format().empty());
+  if (kernel_context.args_format().empty()) {
+    GELOGI("Op %s has empty args format.", context.op_desc->GetNamePtr());
+    GE_ASSERT_SUCCESS(BuildOrderedArgValuesWithoutArgsFormat(context));
+    return SUCCESS;
+  }
   GE_ASSERT_SUCCESS(ArgsFormatDesc::Parse(context.op_desc, kernel_context.args_format(), args_format_holder.arg_descs),
                     "[OM2] Formatted args [%s] parsed failed.", kernel_context.args_format().c_str());
 
@@ -1207,11 +1506,59 @@ Status KernelTaskCodeBuilder::BuildOrderedArgValuesForAicore(const TaskSemanticC
 
   InitArgsTableEntry(context, args_size);
   materialized_output_indices_ = BuildMaterializedOutputIndices(semantic_);
+
+  GE_ASSERT_SUCCESS(CopyTilingDataIfNeeded(context, args_format_holder));
   std::vector<ArgDesc> dynamic_args_desc;
   std::vector<size_t> level1_desc_indices;
   GE_ASSERT_SUCCESS(AppendOrderedArgsByFormat(context, args_format_holder, dynamic_args_desc, level1_desc_indices));
   GE_ASSERT_SUCCESS(AppendShapeInfoOrderedArgs(context, args_format_holder, dynamic_args_desc, level1_desc_indices));
   GE_ASSERT_SUCCESS(ValidateLevel1DescTargetOffsets());
+  return SUCCESS;
+}
+
+Status KernelTaskCodeBuilder::BuildOrderedArgValuesWithoutArgsFormat(const TaskSemanticContributeContext &context)
+{
+  uint32_t args_addr_num = 0U;
+  uint64_t addr_offset = *context.next_host_args_offset;
+  for (const auto &input_addr : semantic_.input_addrs) {
+    GE_ASSERT_SUCCESS(AppendOrderedArgValueForCommon(input_addr, addr_offset));
+    addr_offset += kAddressLen;
+    args_addr_num++;
+  }
+  for (const auto &output_addr : semantic_.output_addrs) {
+    if (!IsMaterializedOutput(output_addr)) {
+      continue;
+    }
+    GE_ASSERT_SUCCESS(AppendOrderedArgValueForCommon(output_addr, addr_offset));
+    addr_offset += kAddressLen;
+    args_addr_num++;
+  }
+  for (const auto &workspace_addr : semantic_.workspace_addrs) {
+    GE_ASSERT_SUCCESS(AppendOrderedArgValueForCommon(workspace_addr, addr_offset));
+    addr_offset += kAddressLen;
+    args_addr_num++;
+  }
+  if (has_tiling_) {
+    AddrSemantic tiling_semantic;
+    tiling_semantic.kind = AddrValueKind::kTiling;
+    tiling_semantic.symbol_hint = "op" + std::to_string(context.op_index) + "_tiling";
+    GE_ASSERT_SUCCESS(AppendOrderedArgValueForCommon(tiling_semantic, addr_offset));
+    addr_offset += kAddressLen;
+    args_addr_num++;
+  }
+  if (AttrUtils::HasAttr(context.op_desc, GLOBALWORKSPACE_TYPE)) {
+    AddrSemantic overflow_addr_semantic;
+    overflow_addr_semantic.kind = AddrValueKind::kOverflowAddr;
+    overflow_addr_semantic.symbol_hint = "overflow_addr_";
+    GE_ASSERT_SUCCESS(AppendOrderedArgValueForCommon(overflow_addr_semantic, addr_offset));
+    addr_offset += kAddressLen;
+    args_addr_num++;
+  }
+  semantic_.args_table_entry.emplace();
+  semantic_.args_table_entry->table_index = *context.next_args_table_index;
+  semantic_.args_table_entry->args_size = args_addr_num * kAddressLen;
+  semantic_.args_table_entry->host_offset = *context.next_host_args_offset;
+  args_table_entry_ = &(*semantic_.args_table_entry);
   return SUCCESS;
 }
 
@@ -1229,14 +1576,14 @@ Status KernelTaskCodeBuilder::BuildOrderedArgValuesForAicpu(const TaskSemanticCo
   args_table_entry_ = &(*semantic_.args_table_entry);
   uint64_t addr_offset = *context.next_host_args_offset + kAicpuArgsioAddrOffset;
   for (const auto &input_addr : semantic_.input_addrs) {
-    AppendOrderedArgValueForAicpu(input_addr, addr_offset);
+    GE_ASSERT_SUCCESS(AppendOrderedArgValueForCommon(input_addr, addr_offset));
     addr_offset += kAddressLen;
   }
   for (const auto &output_addr : semantic_.output_addrs) {
     if (!IsMaterializedOutput(output_addr)) {
       continue;
     }
-    AppendOrderedArgValueForAicpu(output_addr, addr_offset);
+    GE_ASSERT_SUCCESS(AppendOrderedArgValueForCommon(output_addr, addr_offset));
     addr_offset += kAddressLen;
   }
   return SUCCESS;

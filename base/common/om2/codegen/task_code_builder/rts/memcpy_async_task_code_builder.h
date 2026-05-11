@@ -23,11 +23,19 @@ class MemcpyAsyncTaskCodeBuilder : public TaskCodeBuilder {
   int64_t ParseOpIndex(const domi::TaskDef &task_def) override;
 
  private:
+  void ResolveInternalIndex(TaskSemanticContributeContext &context);
+  void CheckIoRefresh(TaskSemanticContributeContext &context);
+  void SetupIoAddrRefresh(TaskSemanticContributeContext &context);
+
   AddrSemantic input_addr_node_;
   AddrSemantic output_addr_node_;
   uint64_t dst_max_{0U};
   uint64_t count_{0U};
   uint32_t kind_{0U};
+  uint32_t internal_index_{0U};
+
+  bool io_refresh_{false};
+  std::optional<ArgsTableEntrySemantic> entry_;
 };
 }  // namespace ge
 

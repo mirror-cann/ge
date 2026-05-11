@@ -22,7 +22,6 @@
 #include "runtime/mem.h"
 
 namespace ge {
-constexpr uint64_t kSessionScopeMemoryMask = 0x100000000UL;
 constexpr int32_t kSessionNoReuse = 1;
 constexpr uint32_t kAlign8B = 8U;
 
@@ -300,48 +299,66 @@ Status Om2ModelUtils::ResolveWorkspaceAddrs(const TaskSemanticContributeContext 
   GE_ASSERT_TRUE(v_workspace_offset.size() == v_workspace_bytes.size(),
                  "[OM2] workspace offset size %zu != bytes size %zu", v_workspace_offset.size(), v_workspace_bytes.size());
 
-  vector_bit_t workspace_reuse_flag;
-  const bool has_workspace_reuse = AttrUtils::GetListBool(context.op_desc, "workspace_reuse_flag", workspace_reuse_flag);
-  std::vector<int64_t> v_memory_type;
-  std::vector<int64_t> workspace_memory_type;
-  const bool has_mem_type_attr = AttrUtils::GetListInt(context.op_desc, TVM_ATTR_NAME_WORKSPACE_TYPE, v_memory_type);
-  const bool has_mem_type_workspace =
-      AttrUtils::GetListInt(context.op_desc, ATTR_NAME_WORKSPACE_TYPE_LIST, workspace_memory_type);
-  std::vector<int32_t> workspace_no_reuse_scope;
-  const bool has_workspace_no_reuse_scope =
-      AttrUtils::GetListInt(context.op_desc, ATTR_NAME_WORKSPACE_MEMORY_NO_REUSE_SCOPE, workspace_no_reuse_scope);
+  WorkspaceMemAttrs attrs;
+  GE_ASSERT_SUCCESS(CollectWorkspaceMemAttrs(context.op_desc, attrs));
 
   for (size_t i = 0U; i < v_workspace_bytes.size(); ++i) {
-    const bool aicpu_work_space =
-        has_workspace_reuse && (i < workspace_reuse_flag.size()) && (!workspace_reuse_flag[i]);
-    if (aicpu_work_space) {
-      GELOGE(FAILED, "[OM2] Aicpu task not support append workspace addrs for now.");
-      return FAILED;
-    }
-    const bool session_scope_memory =
-        has_workspace_no_reuse_scope && (i < workspace_no_reuse_scope.size()) &&
-        (workspace_no_reuse_scope[i] == kSessionNoReuse);
-    const bool is_p2p_memory =
-        has_mem_type_workspace && (static_cast<uint64_t>(workspace_memory_type[i]) == RT_MEMORY_P2P_DDR);
-    const bool is_l1_memory = has_mem_type_attr && (static_cast<uint64_t>(v_memory_type[i]) == RT_MEMORY_L1);
-    const bool is_ub_memory = has_mem_type_attr && (static_cast<uint64_t>(v_memory_type[i]) == kRtMemoryUB);
-    const uint64_t memory_type =
-        GetWorkspaceMemTypeByPriority(is_p2p_memory, is_l1_memory, is_ub_memory, session_scope_memory);
-    if (memory_type != RT_MEMORY_HBM) {
-      REPORT_INNER_ERR_MSG("E19999", "Workspace mem type[%" PRIu64 "] is invalid, must be RT_MEMORY_HBM.", memory_type);
-      GELOGE(ge::FAILED, "[OM2] Workspace mem type[%" PRIu64 "] is invalid, must be RT_MEMORY_HBM.", memory_type);
-      return FAILED;
-    }
-    GE_IF_BOOL_EXEC(!ValidateMemRange(context.op_desc, context.runtime->total_mem_size, v_workspace_offset[i], 0),
-                    return FAILED);
     AddrSemantic workspace_addr;
-    workspace_addr.kind = AddrValueKind::kWorkspace;
-    workspace_addr.memory_app = MemoryAppType::kFix;
-    workspace_addr.symbol_hint = "op" + std::to_string(context.op_index) + "_ws" + std::to_string(i);
-    workspace_addr.mem_offset = v_workspace_offset[i];
-    workspace_addr.byte_size = static_cast<uint64_t>(v_workspace_bytes[i]);
+    GE_ASSERT_SUCCESS(ConstructWorkspaceAddr(context, attrs, v_workspace_offset, v_workspace_bytes, i, workspace_addr));
     workspace_addrs.push_back(std::move(workspace_addr));
   }
+  return SUCCESS;
+}
+
+Status Om2ModelUtils::CollectWorkspaceMemAttrs(const ConstOpDescPtr &op_desc, WorkspaceMemAttrs &attrs) {
+  attrs.has_reuse_flag = AttrUtils::GetListBool(op_desc, "workspace_reuse_flag", attrs.reuse_flag);
+  attrs.has_mem_type_attr = AttrUtils::GetListInt(op_desc, TVM_ATTR_NAME_WORKSPACE_TYPE, attrs.v_memory_type);
+  attrs.has_mem_type_workspace = AttrUtils::GetListInt(op_desc, ATTR_NAME_WORKSPACE_TYPE_LIST, attrs.workspace_memory_type);
+  attrs.has_no_reuse_scope =
+      AttrUtils::GetListInt(op_desc, ATTR_NAME_WORKSPACE_MEMORY_NO_REUSE_SCOPE, attrs.no_reuse_scope);
+  return SUCCESS;
+}
+
+Status Om2ModelUtils::ConstructWorkspaceAddr(const TaskSemanticContributeContext &context,
+                                             const WorkspaceMemAttrs &attrs,
+                                             const std::vector<int64_t> &v_workspace_offset,
+                                             const std::vector<int64_t> &v_workspace_bytes,
+                                             size_t index, AddrSemantic &workspace_addr) {
+  const bool aicpu_work_space =
+      attrs.has_reuse_flag && (index < attrs.reuse_flag.size()) && (!attrs.reuse_flag[index]);
+  if (aicpu_work_space) {
+    GELOGE(FAILED, "[OM2] Aicpu task not support append workspace addrs for now.");
+    return FAILED;
+  }
+  const bool session_scope_memory =
+      attrs.has_no_reuse_scope && (index < attrs.no_reuse_scope.size()) &&
+      (attrs.no_reuse_scope[index] == kSessionNoReuse);
+  const bool is_p2p_memory =
+      attrs.has_mem_type_workspace && (static_cast<uint64_t>(attrs.workspace_memory_type[index]) == RT_MEMORY_P2P_DDR);
+  const bool is_l1_memory = attrs.has_mem_type_attr && (static_cast<uint64_t>(attrs.v_memory_type[index]) == RT_MEMORY_L1);
+  const bool is_ub_memory = attrs.has_mem_type_attr && (static_cast<uint64_t>(attrs.v_memory_type[index]) == kRtMemoryUB);
+  const uint64_t memory_type =
+      GetWorkspaceMemTypeByPriority(is_p2p_memory, is_l1_memory, is_ub_memory, session_scope_memory);
+  GELOGI("[OM2] Workspace[%zu] mem_type[%" PRIu64 "], is_p2p[%d], is_l1[%d], is_ub[%d], session_scope[%d], "
+         "workspace_memory_type[%" PRIu64 "], v_memory_type[%" PRIu64 "].",
+         index, memory_type, is_p2p_memory, is_l1_memory, is_ub_memory, session_scope_memory,
+         attrs.has_mem_type_workspace ? static_cast<uint64_t>(attrs.workspace_memory_type[index]) : 0UL,
+         attrs.has_mem_type_attr ? static_cast<uint64_t>(attrs.v_memory_type[index]) : 0UL);
+  if (memory_type != RT_MEMORY_HBM && memory_type != (kSessionScopeMemoryMask | RT_MEMORY_HBM)) {
+    REPORT_INNER_ERR_MSG("E19999", "Workspace mem type[%" PRIu64 "] is invalid, must be RT_MEMORY_HBM.", memory_type);
+    GELOGE(ge::FAILED, "[OM2] Workspace mem type[%" PRIu64 "] is invalid, must be RT_MEMORY_HBM.", memory_type);
+    return FAILED;
+  }
+  if (memory_type == RT_MEMORY_HBM) {
+    GE_IF_BOOL_EXEC(!ValidateMemRange(context.op_desc, context.runtime->total_mem_size, v_workspace_offset[index], 0),
+                    return FAILED);
+  }
+  workspace_addr.kind = AddrValueKind::kWorkspace;
+  workspace_addr.memory_app = MemoryAppType::kFix;
+  workspace_addr.symbol_hint = "op" + std::to_string(context.op_index) + "_ws" + std::to_string(index);
+  workspace_addr.mem_offset = v_workspace_offset[index];
+  workspace_addr.byte_size = static_cast<uint64_t>(v_workspace_bytes[index]);
+  workspace_addr.memory_type = memory_type;
   return SUCCESS;
 }
 
@@ -378,42 +395,131 @@ Status Om2ModelUtils::GetRtAddress(const TaskSemanticContributeContext &context,
     GELOGI("Got placeholder logic addr.");
     return SUCCESS;
   }
-  if ((context.runtime->logic_mem_base <= logic_addr) && (logic_addr < (context.runtime->logic_mem_base +
-      context.runtime->total_mem_size))) {
-    mem_type = kFmMemType;
-    const int64_t logical_offset = static_cast<int64_t>(logic_addr - context.runtime->logic_mem_base);
-    GELOGI("logical_offset %" PRId64 ", index %u", logical_offset, index);
-    if (isInput) {
-      GE_ASSERT_SUCCESS(GetRtInputAddress(context, logical_offset, addr_node, index));
-    } else {
-      const GeTensorDescPtr tensor_desc = context.op_desc->MutableOutputDesc(static_cast<uint32_t>(index));
-      GE_ASSERT_TRUE(tensor_desc != nullptr, "[OM2] Op: %s, Index: %u, Tensor Desc is null",
-                     context.op_desc->GetName().c_str(), index);
-      addr_node.kind = AddrValueKind::kOutputInstance;
-      addr_node.memory_app = MemoryAppType::kFix;
-      addr_node.symbol_hint = "op" + std::to_string(context.op_index) + "_output" + std::to_string(index);
-      int64_t tensor_size = 0;
-      GE_CHK_STATUS_EXEC(TensorUtils::GetSize(*tensor_desc, tensor_size), return FAILED);
-      addr_node.byte_size = static_cast<uint64_t>(tensor_size);
-      addr_node.mem_offset = logical_offset;
-      if (context.model_io->io_offsets.find(logical_offset) != context.model_io->io_offsets.end()) {
-        addr_node.memory_app = MemoryAppType::kModelIo;
-        addr_node.compile_state_io_addr_offset = logical_offset;
-      }
-      const int64_t current_op_id = context.op_desc->GetId();
-      GE_ASSERT_TRUE(context.op_id_to_input_edges->find(current_op_id) != context.op_id_to_input_edges->end(),
-                     "[OM2] Current op_id %" PRId64 " not found in op_id_to_input_edges", current_op_id);
-      OpInputEdges &current_edges = context.op_id_to_input_edges->at(current_op_id);
-      GE_ASSERT_TRUE(index < current_edges.output_var_names.size(),
-                     "[OM2] Output index %u out of range for op_id %" PRId64, index, current_op_id);
-      current_edges.output_var_names[index] = addr_node.symbol_hint;
-    }
-    return SUCCESS;
-  } else {
-    REPORT_INNER_ERR_MSG("E19999", "Unsupport scenario in GetRtAddress");
-    GELOGE(ge::FAILED, "Unsupport scenario in GetRtAddress");
-    return FAILED;
+
+  const uint64_t max_var_mem_size = kMemoryVarAddressSize;
+  const bool is_check_var_manager = (context.runtime->var_size > 0U);
+
+  if ((context.runtime->logic_mem_base <= logic_addr) &&
+      (logic_addr < (context.runtime->logic_mem_base + context.runtime->total_mem_size))) {
+    return GetRtFmAddress(context, static_cast<int64_t>(logic_addr - context.runtime->logic_mem_base),
+                          mem_type, addr_node, isInput, index);
   }
+  if ((context.runtime->logic_weight_base <= logic_addr) &&
+      (logic_addr < (context.runtime->logic_weight_base + context.runtime->total_weight_size))) {
+    return GetRtWeightAddress(context, static_cast<int64_t>(logic_addr - context.runtime->logic_weight_base),
+                              mem_type, addr_node, index);
+  }
+  if (is_check_var_manager && (context.runtime->logic_var_base <= logic_addr) &&
+      (logic_addr < (context.runtime->logic_var_base + max_var_mem_size))) {
+    return GetRtVarAddress(context, logic_addr, mem_type, addr_node);
+  }
+  if (logic_addr != 0U) {
+    return GetRtUnknownAddress(context, logic_addr, mem_type);
+  }
+  return GetRtEmptyAddress(context, addr_node, isInput, index);
+}
+
+Status Om2ModelUtils::GetRtFmAddress(const TaskSemanticContributeContext &context,
+                                     const int64_t logical_offset, uint64_t &mem_type,
+                                     AddrSemantic &addr_node, bool is_input, uint32_t index) {
+  mem_type = kFmMemType;
+  GELOGI("logical_offset %" PRId64 ", index %u", logical_offset, index);
+  if (is_input) {
+    return GetRtInputAddress(context, logical_offset, addr_node, index);
+  }
+  return GetRtOutputAddress(context, logical_offset, addr_node, index);
+}
+
+Status Om2ModelUtils::GetRtOutputAddress(const TaskSemanticContributeContext &context,
+                                         const int64_t logical_offset, AddrSemantic &addr_node, uint32_t index) {
+  const GeTensorDescPtr tensor_desc = context.op_desc->MutableOutputDesc(static_cast<uint32_t>(index));
+  GE_ASSERT_TRUE(tensor_desc != nullptr, "[OM2] Op: %s, Index: %u, Tensor Desc is null",
+                 context.op_desc->GetName().c_str(), index);
+  addr_node.kind = AddrValueKind::kOutputInstance;
+  addr_node.memory_app = MemoryAppType::kFix;
+  addr_node.symbol_hint = "op" + std::to_string(context.op_index) + "_output" + std::to_string(index);
+  int64_t tensor_size = 0;
+  GE_CHK_STATUS_EXEC(TensorUtils::GetSize(*tensor_desc, tensor_size), return FAILED);
+  addr_node.byte_size = static_cast<uint64_t>(tensor_size);
+  addr_node.mem_offset = logical_offset;
+  if (context.model_io->io_offsets.find(logical_offset) != context.model_io->io_offsets.end()) {
+    addr_node.memory_app = MemoryAppType::kModelIo;
+    addr_node.compile_state_io_addr_offset = logical_offset;
+  }
+
+  const int64_t current_op_id = context.op_desc->GetId();
+  GE_ASSERT_TRUE(context.op_id_to_input_edges->find(current_op_id) != context.op_id_to_input_edges->end(),
+                 "[OM2] Current op_id %" PRId64 " not found in op_id_to_input_edges", current_op_id);
+  OpInputEdges &current_edges = context.op_id_to_input_edges->at(current_op_id);
+  GE_ASSERT_TRUE(index < current_edges.output_var_names.size(),
+                 "[OM2] Output index %u out of range for op_id %" PRId64, index, current_op_id);
+  current_edges.output_var_names[index] = addr_node.symbol_hint;
+  return SUCCESS;
+}
+
+Status Om2ModelUtils::GetRtWeightAddress(const TaskSemanticContributeContext &context,
+                                         const int64_t logical_offset, uint64_t &mem_type,
+                                         AddrSemantic &addr_node, uint32_t index) {
+  const auto var_name_it = context.weight_offset_to_varname->find(logical_offset);
+  GE_ASSERT_TRUE(var_name_it != context.weight_offset_to_varname->end(),
+                  "[OM2] Const input offset %" PRId64 " not found, op %s, index %u", logical_offset,
+                  context.op_desc->GetName().c_str(), index);
+  addr_node.kind = AddrValueKind::kConstTensor;
+  addr_node.symbol_hint = var_name_it->second;
+  addr_node.mem_offset = logical_offset;
+  addr_node.is_reused_from_upstream = true;
+  mem_type = kWeightMemType;
+  return SUCCESS;
+}
+
+Status Om2ModelUtils::GetRtVarAddress(const TaskSemanticContributeContext &context,
+                                      const uintptr_t logic_addr, uint64_t &mem_type,
+                                      AddrSemantic &addr_node) {
+  const auto iter = context.fileconst_output_offset_to_varname->find(logic_addr);
+  if (iter != context.fileconst_output_offset_to_varname->end()) {
+    addr_node.symbol_hint = iter->second;
+    addr_node.kind = AddrValueKind::kConstTensor;
+    addr_node.mem_offset = logic_addr;
+    addr_node.is_reused_from_upstream = true;
+    mem_type = kConstantMemType;
+    return SUCCESS;
+  }
+  REPORT_INNER_ERR_MSG("E19999", "Var Manager is not implemented, logic addr:0x%" PRIx64 " abnormal",
+                       static_cast<uint64_t>(logic_addr));
+  GELOGE(PARAM_INVALID, "[Check][Param] Var Manager is not implemented, logic addr:0x%" PRIx64 " is abnormal",
+         logic_addr);
+  return PARAM_INVALID;
+}
+
+Status Om2ModelUtils::GetRtUnknownAddress(const TaskSemanticContributeContext &context,
+                                          const uintptr_t logic_addr, uint64_t &mem_type) {
+  for (const auto &iter : context.runtime->memory_infos) {
+    const auto &mem_info = iter.second;
+    GE_ASSERT_TRUE(mem_info.logic_memory_base >= 0);
+    const uint64_t logic_begin = mem_info.memory_type == RT_MEMORY_P2P_DDR
+                                     ? context.runtime->logic_mem_base + context.runtime->total_mem_size
+                                     : static_cast<uint64_t>(mem_info.logic_memory_base);
+    GE_ASSERT_TRUE(mem_info.memory_size >= 0);
+    if ((logic_begin <= logic_addr) && (logic_addr < logic_begin + static_cast<uint64_t>(mem_info.memory_size))) {
+      mem_type = mem_info.memory_type;
+      REPORT_INNER_ERR_MSG("E19999", "mem_type %" PRIu64 " is not supported.", mem_type);
+      GELOGE(PARAM_INVALID, "mem_type %" PRIu64 " is not supported.", mem_type);
+      return PARAM_INVALID;
+    }
+  }
+  REPORT_INNER_ERR_MSG("E19999", "Check param logic addr:0x%" PRIx64 " abnormal", static_cast<uint64_t>(logic_addr));
+  GELOGE(PARAM_INVALID, "[Check][Param] The logic addr:0x%" PRIx64 " is abnormal", logic_addr);
+  return PARAM_INVALID;
+}
+
+Status Om2ModelUtils::GetRtEmptyAddress(const TaskSemanticContributeContext &context,
+                                        AddrSemantic &addr_node, bool is_input, uint32_t index) {
+  addr_node.kind = AddrValueKind::kEmptyAddr;
+  addr_node.symbol_hint = is_input
+      ? "op" + std::to_string(context.op_index) + "_input" + std::to_string(index)
+      : "op" + std::to_string(context.op_index) + "_output" + std::to_string(index);
+  addr_node.mem_offset = 0;
+  addr_node.is_reused_from_upstream = false;
   return SUCCESS;
 }
 

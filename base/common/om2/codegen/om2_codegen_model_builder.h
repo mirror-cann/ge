@@ -61,6 +61,7 @@ class Om2CodegenModelBuilder {
   Status UpdateStreamFlag(const GeModelPtr &model, Om2CodegenModel &codegen_model) const;
   Status InitStreamActive(const OpDescPtr &op_desc, std::set<uint32_t> &active_stream_indication) const;
   Status InitStreamSwitch(const OpDescPtr &op_desc, std::set<uint32_t> &active_stream_indication) const;
+  std::vector<MemInfo> GetAllMemoryTypeSize(const GeModelPtr &model) const;
   static void ReportUnsupportedTask(TaskCodeBuilderPtr &task_builder,  domi::TaskDef *const task_def,
                              std::unordered_map<int64_t, OpDescPtr> &op_desc_by_index, const ModelTaskType &task_type);
   static Status BuildKernelRegistryForAicore(Om2CodegenModel &codegen_model, const OpDescPtr &op_desc,

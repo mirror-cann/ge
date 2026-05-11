@@ -40,6 +40,10 @@ class Om2ModelClassGeneratorBase : public CodeGeneratorBase {
   VarRef label_goto_ex_index_values_;
   VarRef label_goto_args_;
   VarRef label_goto_ex_label_list_;
+  VarRef mem_event_id_mem_map_;
+  VarRef overflow_addr_;
+  VarRef dev_dynamic_mem_ptrs_;
+  VarRef session_scope_mem_ptr_;
 };
 }  // namespace ge
 

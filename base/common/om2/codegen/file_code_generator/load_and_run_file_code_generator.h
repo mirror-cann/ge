@@ -31,6 +31,7 @@ class LoadAndRunFileCodeGenerator : public Om2ModelClassGeneratorBase {
   Status BuildLoadBody(std::vector<BodyItem> &body, const Om2CodegenModel &codegen_model,
                        const std::vector<TaskCodeBuilderPtr> &task_code_builders);
   Status BuildRunBodyImpl(std::vector<BodyItem> &body, const Om2CodegenModel &codegen_model, bool is_async);
+  Status BuildCommonHelperFunctions(std::vector<DeclNode *> &items);
 };
 }  // namespace ge
 

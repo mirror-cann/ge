@@ -48,17 +48,15 @@ Status LabelGotoExTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> &ite
   const std::string op_head = "op" + std::to_string(header_.op_index) + "_";
   auto index_value = ast_.Var("void *", op_head + "index_value");
   auto branch_index = ast_.Var("constexpr uint64_t", op_head + "branch_index");
-  auto label_goto_ex_index_values = ast_.Var("auto", "label_goto_ex_index_values_");
   auto label_goto_ex_label_list = ast_.Var("auto", "label_goto_ex_label_list_");
+  items.push_back(ast_.Comment("============================= " + header_.op_name +
+                               " ==============================="));
   items.push_back(ast_.VarDecl(index_value, nullptr));
-  items.push_back(ChkStatus(ast_.Call("MallocDynamicMemory",
-                                      {index_value, ast_.Sizeof("uint64_t"), static_cast<int64_t>(memory_type_)})));
+  items.push_back(ChkStatus(ast_.Call("MallocDeviceMemory",
+                                      {index_value, ast_.Sizeof("uint64_t"), static_cast<int64_t>(memory_type_), dev_dynamic_mem_ptrs_})));
   items.push_back(ast_.VarDecl(branch_index, 0));
   items.push_back(ChkStatus(AclrtMemcpy(index_value, ast_.Sizeof("uint64_t"), branch_index.Addr(),
                                         ast_.Sizeof("uint64_t"), "ACL_MEMCPY_HOST_TO_DEVICE")));
-  items.push_back(label_goto_ex_index_values.PushBack(index_value));
-  items.push_back(ast_.Comment("============================= " + header_.op_name +
-                               " ==============================="));
   items.push_back(ChkStatus(ast_.Call("KernelLabelGotoExDistribute", {
       index_value,
       1,
@@ -69,29 +67,6 @@ Status LabelGotoExTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> &ite
 }
 
 Status LabelGotoExTaskCodeBuilder::RenderDistHelper(std::vector<DeclNode *> &items) {
-  auto dev_ptr = ast_.Var("void *&", "dev_ptr");
-  auto size = ast_.Var("const size_t", "size");
-  auto mem_type = ast_.Var("const uint32_t", "mem_type");
-  auto block_size = ast_.Var("uint64_t", "block_size");
-  auto aligned_size = ast_.Var("const auto", "aligned_size");
-  auto final_block_size = ast_.Var("const auto", "final_block_size");
-  auto rt_ret = ast_.Var("const auto", "rt_ret");
-  items.push_back(ast_.Field("constexpr uint16_t", "GE_MODULE_NAME_U16", GE_MODULE_NAME_U16));
-  items.push_back(ast_.DefineFunction("MallocDynamicMemory", {dev_ptr, size, mem_type}, "aclError", {
-      ast_.VarDecl(block_size, (2 * 1024 * 1024)),
-      ast_.If(mem_type == "RT_MEMORY_TS", {
-          ast_.Assign(block_size, (4 * 1024)),
-      }),
-      ast_.VarDecl(aligned_size, ((size + 512) - 1) / 512 * 512),
-      ast_.VarDecl(final_block_size, ((aligned_size + block_size) - 1) / block_size * block_size),
-      ast_.VarDecl(rt_ret, RtMalloc(dev_ptr.Addr(), final_block_size, mem_type, "GE_MODULE_NAME_U16")),
-      ast_.If((rt_ret != "RT_ERROR_NONE") || (dev_ptr == nullptr), {
-          ast_.Return("ACL_ERROR_FAILURE"),
-      }),
-      ChkTrue(RtMemset(dev_ptr, block_size, 0, block_size) == "RT_ERROR_NONE"),
-      ast_.Return("ACL_SUCCESS"),
-  }));
-
   auto ptr = ast_.Var("void *", "ptr");
   auto max_value = ast_.Var("uint32_t", "maxValue");
   auto label_list = ast_.Var("aclrtLabelList", "labelList");

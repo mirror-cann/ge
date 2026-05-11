@@ -167,7 +167,7 @@ GeModelPtr CreateGeModelWithControlTasks() {
     if (op_desc->GetType() == DATA) {
       op_desc->SetOutputOffset({1024});
     } else if (op_desc->GetType() == NETOUTPUT) {
-      op_desc->SetInputOffset({1024});
+      op_desc->SetInputOffset({2048});
     } else {
       op_desc->SetInputOffset(std::vector<int64_t>(op_desc->GetInputsSize(), 1024));
       op_desc->SetOutputOffset(std::vector<int64_t>(op_desc->GetOutputsSize(), 1024));
@@ -245,22 +245,16 @@ TEST_F(ControlTaskCodeGeneratorUt, GenerateControlTaskFiles_Ok) {
   std::string header_file;
   ASSERT_EQ(ReadGeneratedArtifact(artifacts, GeneratedFileIndex::kInterfaceHeaderFile, header_file), SUCCESS);
   ASSERT_FALSE(header_file.empty());
-  std::cout << "=== CONTROL_INTERFACE_BEGIN ===\n" << header_file
-            << "=== CONTROL_INTERFACE_END ===\n";
 
   std::cout << "=== CONTROL_STAGE: emit_resources ===" << std::endl;
   std::string resources_file;
   ASSERT_EQ(ReadGeneratedArtifact(artifacts, GeneratedFileIndex::kResourcesFile, resources_file), SUCCESS);
   ASSERT_FALSE(resources_file.empty());
-  std::cout << "=== CONTROL_RESOURCES_BEGIN ===\n" << resources_file
-            << "=== CONTROL_RESOURCES_END ===\n";
 
   std::cout << "=== CONTROL_STAGE: emit_load_and_run ===" << std::endl;
   std::string load_file;
   ASSERT_EQ(ReadGeneratedArtifact(artifacts, GeneratedFileIndex::kLoadingAndRunningFile, load_file), SUCCESS);
   ASSERT_FALSE(load_file.empty());
-  std::cout << "=== CONTROL_LOAD_AND_RUN_BEGIN ===\n" << load_file
-            << "=== CONTROL_LOAD_AND_RUN_END ===\n";
 
   EXPECT_NE(load_file.find("KernelLabelSwitchByIndexDistribute"), std::string::npos);
   EXPECT_NE(load_file.find("OM2_CHK_STATUS(KernelLabelSwitchByIndexDistribute("),
@@ -271,9 +265,8 @@ TEST_F(ControlTaskCodeGeneratorUt, GenerateControlTaskFiles_Ok) {
             std::string::npos);
   EXPECT_NE(load_file.find("KernelLabelGotoExDistribute"), std::string::npos);
   EXPECT_NE(load_file.find("OM2_CHK_STATUS(KernelLabelGotoExDistribute("), std::string::npos);
-  EXPECT_NE(load_file.find("MallocDynamicMemory"), std::string::npos);
+  EXPECT_NE(load_file.find("MallocDeviceMemory"), std::string::npos);
   EXPECT_NE(load_file.find("if ((mem_type == RT_MEMORY_TS))"), std::string::npos);
-  EXPECT_NE(load_file.find("label_goto_ex_index_values_.push_back"), std::string::npos);
   EXPECT_NE(load_file.find("OM2_CHK_STATUS(aclrtMemcpy"), std::string::npos);
 
   const std::string expected_header = R"(#include <iostream>
@@ -471,6 +464,10 @@ class Om2Model {
     uint64_t *session_id_;
     uint64_t kernel_id_;
     std::vector<void *> dev_ext_info_mem_ptrs_;
+    std::map<uint32_t, void *> mem_event_id_mem_map_;
+    void *overflow_addr_;
+    std::vector<void *> dev_dynamic_mem_ptrs_;
+    void *session_scope_mem_ptr_;
 };
 } // namespace om2
 #ifdef __cplusplus
@@ -493,7 +490,7 @@ aclError Om2ModelDestroy(om2::Om2ModelHandle *model_handle);
 
 namespace om2 {
 Om2Model::Om2Model(const char **bin_files, const void **bin_data, size_t *bin_size, size_t bin_num, void **constants, void *work_ptr, uint64_t *session_id)
-  : constants_(constants), total_dev_mem_ptr_(work_ptr), session_id_(session_id), kernel_id_(0) {
+  : constants_(constants), total_dev_mem_ptr_(work_ptr), session_id_(session_id), kernel_id_(0), session_scope_mem_ptr_(nullptr) {
   for (size_t i = 0; (i < bin_num); ++i) {
     bin_info_map_[std::string(bin_files[i])] = {bin_data[i], bin_size[i]};
   }
@@ -511,7 +508,10 @@ aclError Om2Model::InitResources() {
   // 1. 创建 model
   OM2_CHK_STATUS(aclmdlRIBuildBegin(&model_handle_, 0));
 
-  // 2. 创建其他资源
+  // 2. 获取overflow地址
+  OM2_CHK_STATUS(aclrtCtxGetFloatOverflowAddr(&overflow_addr_));
+
+  // 3. 创建其他资源
   // 创建下沉Stream并绑定模型
   uint32_t stream0_flag = RT_STREAM_PERSISTENT;
   OM2_CHK_RT(rtStreamCreateWithFlags(&stream_list_[0], 0, stream0_flag));
@@ -580,9 +580,17 @@ aclError Om2Model::ReleaseResources() {
   }
   label_goto_args_.clear();
   OM2_CHK_STATUS(aclmdlRIDestroy(model_handle_));
+  if ((session_scope_mem_ptr_ != nullptr)) {
+    OM2_CHK_STATUS(aclrtFree(session_scope_mem_ptr_));
+  }
   for (int i = 0; (i < dev_ext_info_mem_ptrs_.size()); i++) {
     if ((dev_ext_info_mem_ptrs_[i] != nullptr)) {
       OM2_CHK_STATUS(aclrtFree(dev_ext_info_mem_ptrs_[i]));
+    }
+  }
+  for (int i = 0; (i < dev_dynamic_mem_ptrs_.size()); i++) {
+    if ((dev_dynamic_mem_ptrs_[i] != nullptr)) {
+      OM2_CHK_STATUS(aclrtFree(dev_dynamic_mem_ptrs_[i]));
     }
   }
   return ACL_SUCCESS;

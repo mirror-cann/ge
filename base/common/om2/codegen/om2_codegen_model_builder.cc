@@ -240,6 +240,37 @@ Status Om2CodegenModelBuilder::BuildModelInfo(const GeModelPtr &model, Om2Codege
   return SUCCESS;
 }
 
+std::vector<MemInfo> Om2CodegenModelBuilder::GetAllMemoryTypeSize(const GeModelPtr &model) const {
+  std::vector<MemInfo> all_mem_info;
+  // hbm先不适配
+
+  MemInfo p2p_mem_info{};
+  (void)AttrUtils::GetInt(model, ATTR_MODEL_P2P_MEMORY_SIZE, p2p_mem_info.memory_size);
+  p2p_mem_info.memory_type = RT_MEMORY_P2P_DDR;
+  p2p_mem_info.memory_key = "_p";
+  all_mem_info.emplace_back(std::move(p2p_mem_info));
+
+  MemInfo session_scope_mem_info{};
+  (void)AttrUtils::GetInt(model, ATTR_MODEL_SESSION_SCOPE_MEMORY_SIZE, session_scope_mem_info.memory_size);
+  session_scope_mem_info.memory_type = (kSessionScopeMemoryMask | RT_MEMORY_HBM);
+  all_mem_info.emplace_back(std::move(session_scope_mem_info));
+
+  MemInfo host_mem_info{};
+  (void)AttrUtils::GetInt(model, MODEL_ATTR_HOST_MEMORY_SIZE, host_mem_info.memory_size);
+  (void)AttrUtils::GetInt(model, MODEL_ATTR_TASK_GEN_HOST_BASE_ADDR, host_mem_info.logic_memory_base);
+  host_mem_info.memory_type = RT_MEMORY_HOST;
+  host_mem_info.memory_key = "_h";
+  all_mem_info.emplace_back(std::move(host_mem_info));
+
+  MemInfo host_svm_mem_info{};
+  (void)AttrUtils::GetInt(model, MODEL_ATTR_HOST_SVM_SIZE, host_svm_mem_info.memory_size);
+  (void)AttrUtils::GetInt(model, MODEL_ATTR_TASK_GEN_HOST_SVM_BASE_ADDR, host_svm_mem_info.logic_memory_base);
+  host_svm_mem_info.memory_type = RT_MEMORY_HOST_SVM;
+  host_svm_mem_info.memory_key = "_svm";
+  all_mem_info.emplace_back(std::move(host_svm_mem_info));
+  return all_mem_info;
+}
+
 Status Om2CodegenModelBuilder::BuildRuntimeResource(const GeModelPtr &model, Om2CodegenModel &codegen_model) {
   GE_ASSERT_NOTNULL(model);
   (void)AttrUtils::GetInt(model, ATTR_MODEL_MEMORY_SIZE, codegen_model.runtime.total_mem_size);
@@ -249,6 +280,17 @@ Status Om2CodegenModelBuilder::BuildRuntimeResource(const GeModelPtr &model, Om2
   (void)AttrUtils::GetInt(model, ATTR_MODEL_EVENT_NUM, codegen_model.runtime.event_num);
   (void)AttrUtils::GetInt(model, ATTR_MODEL_LABEL_NUM, codegen_model.runtime.label_num);
   (void)AttrUtils::GetInt(model, MODEL_ATTR_TASK_GEN_BASE_ADDR, codegen_model.runtime.logic_mem_base);
+  (void)AttrUtils::GetInt(model, ATTR_MODEL_VAR_SIZE, codegen_model.runtime.var_size);
+  (void)AttrUtils::GetInt(model, ATTR_MODEL_TASK_GEN_VAR_ADDR, codegen_model.runtime.logic_var_base);
+  (void)AttrUtils::GetInt(model, MODEL_ATTR_TASK_GEN_WEIGHT_ADDR, codegen_model.runtime.logic_weight_base);
+  codegen_model.runtime.memory_infos.clear();
+
+  const auto &memory_info_vec = GetAllMemoryTypeSize(model);
+  for (auto &i : memory_info_vec) {
+    if (i.memory_type != RT_MEMORY_HBM) {
+      codegen_model.runtime.memory_infos[i.memory_type] = i;
+    }
+  }
   codegen_model.runtime.stream_flag_values.assign(codegen_model.runtime.stream_num, "RT_STREAM_PERSISTENT");
   codegen_model.runtime.bind_flag_values.assign(codegen_model.runtime.stream_num, "RT_HEAD_STREAM");
   UpdateStreamFlag(model, codegen_model);
@@ -336,6 +378,19 @@ Status Om2CodegenModelBuilder::BuildModelIo(const GeModelPtr &model, Om2CodegenM
   std::vector<InputModelIoItem> input_items;
   std::vector<OutputModelIoItem> output_items;
   GE_ASSERT_SUCCESS(CollectModelIoItems(codegen_model, compute_graph, input_items, output_items));
+  std::set<int64_t> input_offsets;
+  for (const auto &item : input_items) {
+    input_offsets.insert(item.memory_offset);
+  }
+  for (const auto &item : output_items) {
+    if (input_offsets.count(item.memory_offset) > 0U) {
+      REPORT_INNER_ERR_MSG("E19999", "[OM2] memory_offset %" PRId64 " is both input and output, which is not supported.",
+                           item.memory_offset);
+      GELOGE(PARAM_INVALID, "[OM2] memory_offset %" PRId64 " is both input and output, which is not supported.",
+             item.memory_offset);
+      return PARAM_INVALID;
+    }
+  }
   std::stable_sort(input_items.begin(), input_items.end(), CompareInputModelIoItem);
   uint32_t update_host_args_index = 0U;
   for (const auto &item : input_items) {
