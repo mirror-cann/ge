@@ -33,9 +33,6 @@ __simd_vf__ inline void IgammaCImplPreJudge(__ubuf__ T* dstUb, __ubuf__ T* src0U
     Reg::LoadAlign(src1Reg, src1Ub);
     Reg::LoadAlign(dstReg, dstUb);
 
-    src0Reg.Print();
-    src1Reg.Print();
-
     // x < 0 || a < 0
     Reg::Compares<T, CMPMODE::LT>(aMask, src0Reg, 0.0f, fullMask);
     Reg::Compares<T, CMPMODE::LT>(xMask, src1Reg, 0.0f, fullMask);
@@ -153,21 +150,20 @@ __aicore__ inline void IgammaCImplAsymptotic(__ubuf__ T* dstUb, __ubuf__ T* src0
 
     // 计算主项
     IgammacAsymptoticMainTerms<T, isIgam>(dstUb, src0Ub, src1Ub, workUb);
-    AscendC::PipeBarrier<PIPE_V>();
+	AscendC::PipeBarrier<PIPE_V>();
     //计算修正项
     IgammacAsymptoticCorrectionTerms<T, 0, 5>(src0Ub, workUb);
-    AscendC::PipeBarrier<PIPE_V>();
+	AscendC::PipeBarrier<PIPE_V>();
     IgammacAsymptoticCorrectionTerms<T, 6, 11>(src0Ub, workUb);
-    AscendC::PipeBarrier<PIPE_V>();
+	AscendC::PipeBarrier<PIPE_V>();
     IgammacAsymptoticCorrectionTerms<T, 12, 17>(src0Ub, workUb);
-    AscendC::PipeBarrier<PIPE_V>();
+	AscendC::PipeBarrier<PIPE_V>();
     IgammacAsymptoticCorrectionTerms<T, 17, 22>(src0Ub, workUb);
-    AscendC::PipeBarrier<PIPE_V>();
+	AscendC::PipeBarrier<PIPE_V>();
     IgammacAsymptoticCorrectionTerms<T, 22, 24>(src0Ub, workUb);
-    AscendC::PipeBarrier<PIPE_V>();
+	AscendC::PipeBarrier<PIPE_V>();
     // 最终整合
     IgammacAsymptoticFinalProcess<T, isIgam>(dstUb, src0Ub, workUb);
-    AscendC::PipeBarrier<PIPE_V>();
 }
 
 template <typename T>
@@ -345,11 +341,17 @@ __aicore__ inline void IgammacExtend(const LocalTensor<T>& dst, const LocalTenso
         AscendC::PipeBarrier<PIPE_V>();
 
         IGammaCInternal::IgammaCImplPreJudge<T, false>(dstChunkUb, src0ChunkUb, src1ChunkUb, workUb, sliceCnt);
+		AscendC::PipeBarrier<PIPE_V>();
         IGammaCInternal::IgammaCImplAsymptoticMask<T>(src0ChunkUb, src1ChunkUb, workUb, sliceCnt);
+		AscendC::PipeBarrier<PIPE_V>();
         IGammaCInternal::IgammaCImplAsymptotic<T, false>(dstChunkUb, src0ChunkUb, src1ChunkUb, workUb);
+		AscendC::PipeBarrier<PIPE_V>();
         IGammaCInternal::IgammaCImplXgt1p1<T>(dstChunkUb, src0ChunkUb, src1ChunkUb, workUb, sliceCnt);
+		AscendC::PipeBarrier<PIPE_V>();
         IGammaCInternal::IgammaCImplXle0p5<T>(dstChunkUb, src0ChunkUb, src1ChunkUb, workUb, sliceCnt);
+		AscendC::PipeBarrier<PIPE_V>();
         IGammaCInternal::IgammaCImplXother<T>(dstChunkUb, src0ChunkUb, src1ChunkUb, workUb, sliceCnt);
+		AscendC::PipeBarrier<PIPE_V>();
     }
 }
 } // namespace AscendC

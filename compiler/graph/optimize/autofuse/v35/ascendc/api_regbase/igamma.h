@@ -131,10 +131,15 @@ __aicore__ inline void IgammaExtend(const LocalTensor<T>& dst, const LocalTensor
         AscendC::PipeBarrier<PIPE_V>();
 
         IGammaCInternal::IgammaCImplPreJudge<T, true>(dstChunkUb, src0ChunkUb, src1ChunkUb, workUb, sliceCnt);
+		AscendC::PipeBarrier<PIPE_V>();
         IGammaCInternal::IgammaCImplAsymptoticMask<T>(src0ChunkUb, src1ChunkUb, workUb, sliceCnt);
+		AscendC::PipeBarrier<PIPE_V>();
         IGammaCInternal::IgammaCImplAsymptotic<T, true>(dstChunkUb, src0ChunkUb, src1ChunkUb, workUb);
+		AscendC::PipeBarrier<PIPE_V>();
         IGammaInternal::IgammaImplXgt1p0AndGtA<T>(dstChunkUb, src0ChunkUb, src1ChunkUb, workUb, sliceCnt);
+		AscendC::PipeBarrier<PIPE_V>();
         IGammaInternal::IgammaImplXother<T>(dstChunkUb, src0ChunkUb, src1ChunkUb, workUb, sliceCnt);
+		AscendC::PipeBarrier<PIPE_V>();
     }
 }
 } // namespace AscendC

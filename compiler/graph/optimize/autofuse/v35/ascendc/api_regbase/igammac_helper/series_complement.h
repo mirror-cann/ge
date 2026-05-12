@@ -17,20 +17,16 @@ template <int32_t iterationNum>
 __simd_callee__ inline void SeriesComplementIter(
     Reg::RegTensor<float>& facReg, Reg::RegTensor<float>& sumReg,
     Reg::RegTensor<float>& src0Reg, Reg::RegTensor<float>& src1Reg,
-    Reg::MaskReg& fullMask)
+    Reg::RegTensor<float>& tmpReg, Reg::MaskReg& mask)
 {
-    Reg::RegTensor<float> tmpReg, tmpReg1, termReg;
-
-    Reg::Duplicate(tmpReg, -1.0f / iterationNum, fullMask);
-    Reg::Mul(tmpReg, src1Reg, tmpReg, fullMask);
-    Reg::Mul(facReg, facReg, tmpReg, fullMask);
-    Reg::Duplicate(tmpReg1, iterationNum, fullMask);
-    Reg::Add(tmpReg1, src0Reg, tmpReg1, fullMask);
-    Reg::Div(termReg, facReg, tmpReg1, fullMask);
-    Reg::Add(sumReg, sumReg, termReg, fullMask);
+    Reg::Muls(tmpReg, src1Reg, -1.0f / iterationNum, mask);
+    Reg::Mul(facReg, facReg, tmpReg, mask);
+    Reg::Adds(tmpReg, src0Reg, iterationNum, mask);
+    Reg::Div(tmpReg, facReg, tmpReg, mask);
+    Reg::Add(sumReg, sumReg, tmpReg, mask);
 
     if constexpr (iterationNum < 25) {
-        SeriesComplementIter<iterationNum + 1>(facReg, sumReg, src0Reg, src1Reg, fullMask);
+        SeriesComplementIter<iterationNum + 1>(facReg, sumReg, src0Reg, src1Reg, tmpReg, mask);
     }
 }
 
@@ -39,39 +35,31 @@ __simd_callee__ inline void Igammac_helper_series_complement_float(
     Reg::RegTensor<float>& src0Reg,
     Reg::RegTensor<float>& src1Reg,
     Reg::RegTensor<float>& lgammaReg,
-    Reg::MaskReg mask)
+    Reg::MaskReg& mask)
 {
     constexpr float machep = 5.9604644775390625e-8f;
+    Reg::RegTensor<float> sumReg, tmpReg, tmpReg1;
 
-    Reg::RegTensor<float> tmpReg;
-    Reg::RegTensor<float> tmpReg1;
-    Reg::RegTensor<float> lgamma_a1_Reg;
-    Reg::MaskReg fullMask = Reg::CreateMask<float, Reg::MaskPattern::ALL>();
+    Reg::Duplicate(tmpReg, 1.0f, mask); // fac = 1
+    Reg::Duplicate(sumReg, 0.0f, mask); // sum = 0
 
-    Reg::RegTensor<float> facReg;
-    Reg::RegTensor<float> sumReg;
-    Reg::RegTensor<float> termReg;
-    Reg::RegTensor<float> logxReg;
-    Reg::RegTensor<float> oneReg;
+    SeriesComplementIter<1>(tmpReg, sumReg, src0Reg, src1Reg, tmpReg1, mask);
 
-    Reg::Duplicate(facReg, 1.0f, fullMask);
-    Reg::Duplicate(sumReg, 0.0f, fullMask);
-    Reg::Duplicate(oneReg, 1.0f, fullMask);
+    Reg::Log(tmpReg, src0Reg, mask); // log(a)
+    Reg::Add(tmpReg, tmpReg, lgammaReg, mask);  // lgamma(1 + a)
 
-    SeriesComplementIter<1>(facReg, sumReg, src0Reg, src1Reg, fullMask);
+    Reg::Log(tmpReg1, src1Reg, mask); // log(x)
+    Reg::Mul(tmpReg1, src0Reg, tmpReg1, mask); // a * log(x)
+    Reg::Sub(tmpReg, tmpReg1, tmpReg, mask); // a * log(x) - lgamma(1+a)
 
-    Reg::Log(logxReg, src1Reg, fullMask);
-    Reg::Log(lgamma_a1_Reg, src0Reg, fullMask);
-    Reg::Add(lgamma_a1_Reg, lgamma_a1_Reg, lgammaReg, fullMask);
-    Reg::Mul(tmpReg, src0Reg, logxReg, fullMask);
-    Reg::Sub(tmpReg, tmpReg, lgamma_a1_Reg, fullMask);
-    Reg::Exp(tmpReg, tmpReg, fullMask);
-    Reg::Sub(tmpReg, oneReg, tmpReg, fullMask);
-    Reg::Mul(tmpReg1, src0Reg, logxReg, fullMask);
-    Reg::Sub(tmpReg1, tmpReg1, lgammaReg, fullMask);
-    Reg::Exp(tmpReg1, tmpReg1, fullMask);
-    Reg::Mul(tmpReg1, tmpReg1, sumReg, fullMask);
-    Reg::Sub(dstReg, tmpReg, tmpReg1, fullMask);
+    Reg::Exp(tmpReg, tmpReg, mask);
+    Reg::Adds(tmpReg, tmpReg, -1.0f, mask);
+    Reg::Muls(tmpReg, tmpReg, -1.0f, mask); // -expm1f(a * log(x) - lgamma(1+a))
+
+    Reg::Sub(tmpReg1, tmpReg1, lgammaReg, mask); // a * log(x) - lgamma(a)
+    Reg::Exp(tmpReg1, tmpReg1, mask); // exp(a * log(x) - lgamma(a))
+    Reg::Mul(tmpReg1, tmpReg1, sumReg, mask); // exp(a * log(x) - lgamma(a)) * sum
+    Reg::Sub(dstReg, tmpReg, tmpReg1, mask); // -expm1f(a * log(x) - lgamma(1+a)) -  exp(a * log(x) - lgamma(a)) * sum
 }
 
 } // namespace IGammaCInternal
