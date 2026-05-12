@@ -439,7 +439,7 @@ class Om2Model {
     aclError InitResources();
     aclError RegisterKernels();
     aclError Load();
-    aclError Run(size_t input_count, void **input_data, size_t output_count, void **output_data);
+    aclError Run(size_t input_count, void **input_data, size_t output_count, void **output_data, int32_t stream_sync_timeout);
     aclError RunAsync(aclrtStream &exe_stream, size_t input_count, void **input_data, size_t output_count, void **output_data);
     aclError ReleaseResources();
   private:
@@ -478,7 +478,7 @@ aclError Om2ModelCreate(om2::Om2ModelHandle *model_handle, const char **bin_file
 
 aclError Om2ModelRunAsync(om2::Om2ModelHandle *model_handle, aclrtStream stream, int input_count, void **input_data, int output_count, void **output_data);
 
-aclError Om2ModelRun(om2::Om2ModelHandle *model_handle, int input_count, void **input_data, int output_count, void **output_data);
+aclError Om2ModelRun(om2::Om2ModelHandle *model_handle, int input_count, void **input_data, int output_count, void **output_data, int32_t stream_sync_timeout);
 
 aclError Om2ModelDestroy(om2::Om2ModelHandle *model_handle);
 

@@ -929,7 +929,7 @@ class Om2Model {
     aclError InitResources();
     aclError RegisterKernels();
     aclError Load();
-    aclError Run(size_t input_count, void **input_data, size_t output_count, void **output_data);
+    aclError Run(size_t input_count, void **input_data, size_t output_count, void **output_data, int32_t stream_sync_timeout);
     aclError RunAsync(aclrtStream &exe_stream, size_t input_count, void **input_data, size_t output_count, void **output_data);
     aclError ReleaseResources();
   private:
@@ -959,7 +959,7 @@ aclError Om2ModelCreate(om2::Om2ModelHandle *model_handle, const char **bin_file
 
 aclError Om2ModelRunAsync(om2::Om2ModelHandle *model_handle, aclrtStream stream, int input_count, void **input_data, int output_count, void **output_data);
 
-aclError Om2ModelRun(om2::Om2ModelHandle *model_handle, int input_count, void **input_data, int output_count, void **output_data);
+aclError Om2ModelRun(om2::Om2ModelHandle *model_handle, int input_count, void **input_data, int output_count, void **output_data, int32_t stream_sync_timeout);
 
 aclError Om2ModelDestroy(om2::Om2ModelHandle *model_handle);
 
@@ -1288,7 +1288,7 @@ aclError Om2Model::RunAsync(aclrtStream &exe_stream, size_t input_count, void **
   return ACL_SUCCESS;
 }
 
-aclError Om2Model::Run(size_t input_count, void **input_data, size_t output_count, void **output_data) {
+aclError Om2Model::Run(size_t input_count, void **input_data, size_t output_count, void **output_data, int32_t stream_sync_timeout) {
   if (((input_count != om2::INPUT_NUM) || (output_count != om2::OUTPUT_NUM))) {
     return ACL_ERROR_FAILURE;
   }
@@ -1300,7 +1300,7 @@ aclError Om2Model::Run(size_t input_count, void **input_data, size_t output_coun
   OM2_CHK_STATUS(args_table_.UpdateHostArgs(2, reinterpret_cast<uintptr_t>(output_data_0_tensor->GetAddr())));
 
   OM2_CHK_STATUS(args_table_.CopyArgsToDevice());
-  OM2_CHK_STATUS(aclmdlRIExecute(model_handle_, -1));
+  OM2_CHK_STATUS(aclmdlRIExecute(model_handle_, stream_sync_timeout));
 
   return ACL_SUCCESS;
 }
@@ -1336,8 +1336,8 @@ aclError Om2ModelRunAsync(om2::Om2ModelHandle *model_handle, aclrtStream stream,
   return static_cast<om2::Om2Model*>(*model_handle)->RunAsync(stream, input_count, input_data, output_count, output_data);
 }
 
-aclError Om2ModelRun(om2::Om2ModelHandle *model_handle, int input_count, void **input_data, int output_count, void **output_data) {
-  return static_cast<om2::Om2Model*>(*model_handle)->Run(input_count, input_data, output_count, output_data);
+aclError Om2ModelRun(om2::Om2ModelHandle *model_handle, int input_count, void **input_data, int output_count, void **output_data, int32_t stream_sync_timeout) {
+  return static_cast<om2::Om2Model*>(*model_handle)->Run(input_count, input_data, output_count, output_data, stream_sync_timeout);
 }
 
 aclError Om2ModelDestroy(om2::Om2ModelHandle *model_handle) {
@@ -1511,7 +1511,7 @@ aclError Om2Model::RunAsync(aclrtStream &exe_stream, size_t input_count, void **
   return ACL_SUCCESS;
 }
 
-aclError Om2Model::Run(size_t input_count, void **input_data, size_t output_count, void **output_data) {
+aclError Om2Model::Run(size_t input_count, void **input_data, size_t output_count, void **output_data, int32_t stream_sync_timeout) {
   if (((input_count != om2::INPUT_NUM) || (output_count != om2::OUTPUT_NUM))) {
     return ACL_ERROR_FAILURE;
   }
@@ -1523,7 +1523,7 @@ aclError Om2Model::Run(size_t input_count, void **input_data, size_t output_coun
   OM2_CHK_STATUS(args_table_.UpdateHostArgs(2, reinterpret_cast<uintptr_t>(output_data_0_tensor->GetAddr())));
 
   OM2_CHK_STATUS(args_table_.CopyArgsToDevice());
-  OM2_CHK_STATUS(aclmdlRIExecute(model_handle_, -1));
+  OM2_CHK_STATUS(aclmdlRIExecute(model_handle_, stream_sync_timeout));
 
   return ACL_SUCCESS;
 }
@@ -1559,8 +1559,8 @@ aclError Om2ModelRunAsync(om2::Om2ModelHandle *model_handle, aclrtStream stream,
   return static_cast<om2::Om2Model*>(*model_handle)->RunAsync(stream, input_count, input_data, output_count, output_data);
 }
 
-aclError Om2ModelRun(om2::Om2ModelHandle *model_handle, int input_count, void **input_data, int output_count, void **output_data) {
-  return static_cast<om2::Om2Model*>(*model_handle)->Run(input_count, input_data, output_count, output_data);
+aclError Om2ModelRun(om2::Om2ModelHandle *model_handle, int input_count, void **input_data, int output_count, void **output_data, int32_t stream_sync_timeout) {
+  return static_cast<om2::Om2Model*>(*model_handle)->Run(input_count, input_data, output_count, output_data, stream_sync_timeout);
 }
 
 aclError Om2ModelDestroy(om2::Om2ModelHandle *model_handle) {
@@ -1753,7 +1753,7 @@ aclError Om2Model::RunAsync(aclrtStream &exe_stream, size_t input_count, void **
   return ACL_SUCCESS;
 }
 
-aclError Om2Model::Run(size_t input_count, void **input_data, size_t output_count, void **output_data) {
+aclError Om2Model::Run(size_t input_count, void **input_data, size_t output_count, void **output_data, int32_t stream_sync_timeout) {
   if (((input_count != om2::INPUT_NUM) || (output_count != om2::OUTPUT_NUM))) {
     return ACL_ERROR_FAILURE;
   }
@@ -1765,7 +1765,7 @@ aclError Om2Model::Run(size_t input_count, void **input_data, size_t output_coun
   OM2_CHK_STATUS(args_table_.UpdateHostArgs(2, reinterpret_cast<uintptr_t>(output_data_0_tensor->GetAddr())));
 
   OM2_CHK_STATUS(args_table_.CopyArgsToDevice());
-  OM2_CHK_STATUS(aclmdlRIExecute(model_handle_, -1));
+  OM2_CHK_STATUS(aclmdlRIExecute(model_handle_, stream_sync_timeout));
 
   return ACL_SUCCESS;
 }
@@ -1801,8 +1801,8 @@ aclError Om2ModelRunAsync(om2::Om2ModelHandle *model_handle, aclrtStream stream,
   return static_cast<om2::Om2Model*>(*model_handle)->RunAsync(stream, input_count, input_data, output_count, output_data);
 }
 
-aclError Om2ModelRun(om2::Om2ModelHandle *model_handle, int input_count, void **input_data, int output_count, void **output_data) {
-  return static_cast<om2::Om2Model*>(*model_handle)->Run(input_count, input_data, output_count, output_data);
+aclError Om2ModelRun(om2::Om2ModelHandle *model_handle, int input_count, void **input_data, int output_count, void **output_data, int32_t stream_sync_timeout) {
+  return static_cast<om2::Om2Model*>(*model_handle)->Run(input_count, input_data, output_count, output_data, stream_sync_timeout);
 }
 
 aclError Om2ModelDestroy(om2::Om2ModelHandle *model_handle) {
@@ -1985,7 +1985,7 @@ aclError Om2Model::RunAsync(aclrtStream &exe_stream, size_t input_count, void **
   return ACL_SUCCESS;
 }
 
-aclError Om2Model::Run(size_t input_count, void **input_data, size_t output_count, void **output_data) {
+aclError Om2Model::Run(size_t input_count, void **input_data, size_t output_count, void **output_data, int32_t stream_sync_timeout) {
   if (((input_count != om2::INPUT_NUM) || (output_count != om2::OUTPUT_NUM))) {
     return ACL_ERROR_FAILURE;
   }
@@ -1997,7 +1997,7 @@ aclError Om2Model::Run(size_t input_count, void **input_data, size_t output_coun
   OM2_CHK_STATUS(args_table_.UpdateHostArgs(2, reinterpret_cast<uintptr_t>(output_data_0_tensor->GetAddr())));
 
   OM2_CHK_STATUS(args_table_.CopyArgsToDevice());
-  OM2_CHK_STATUS(aclmdlRIExecute(model_handle_, -1));
+  OM2_CHK_STATUS(aclmdlRIExecute(model_handle_, stream_sync_timeout));
 
   return ACL_SUCCESS;
 }
@@ -2033,8 +2033,8 @@ aclError Om2ModelRunAsync(om2::Om2ModelHandle *model_handle, aclrtStream stream,
   return static_cast<om2::Om2Model*>(*model_handle)->RunAsync(stream, input_count, input_data, output_count, output_data);
 }
 
-aclError Om2ModelRun(om2::Om2ModelHandle *model_handle, int input_count, void **input_data, int output_count, void **output_data) {
-  return static_cast<om2::Om2Model*>(*model_handle)->Run(input_count, input_data, output_count, output_data);
+aclError Om2ModelRun(om2::Om2ModelHandle *model_handle, int input_count, void **input_data, int output_count, void **output_data, int32_t stream_sync_timeout) {
+  return static_cast<om2::Om2Model*>(*model_handle)->Run(input_count, input_data, output_count, output_data, stream_sync_timeout);
 }
 
 aclError Om2ModelDestroy(om2::Om2ModelHandle *model_handle) {

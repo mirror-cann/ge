@@ -141,7 +141,7 @@ int Om2ModelCreate(void **model_handle, const char **bin_files, const void **bin
                    void **constants, void *work_ptr, uint64_t *session_id);
 int Om2ModelRunAsync(void **model_handle, void *stream, int input_count, void **input_data, int output_count,
                      void **output_data);
-int Om2ModelRun(void **model_handle, int input_count, void **input_data, int output_count, void **output_data);
+int Om2ModelRun(void **model_handle, int input_count, void **input_data, int output_count, void **output_data, int32_t stream_sync_timeout);
 int Om2ModelDestroy(void **model_handle);
 }
 )";
@@ -284,10 +284,11 @@ extern "C" int Om2ModelRunAsync(void **model_handle, void *, int input_count, vo
 }
 
 extern "C" int Om2ModelRun(void **model_handle, int input_count, void **input_data, int output_count,
-                           void **output_data) {
+                           void **output_data, int32_t stream_sync_timeout) {
   if ((model_handle == nullptr) || (*model_handle == nullptr) || (input_data == nullptr) || (output_data == nullptr)) {
     return 1;
   }
+  (void)stream_sync_timeout;  // Mock 实现不使用该参数
   return (input_count == 2 && output_count == 1) ? 0 : 1;
 }
 
@@ -1147,8 +1148,8 @@ TEST_F(Om2ModelExecutorUt, get_model_desc_info_ok) {
   auto load_arg = MakeOm2LoadArg();
   ASSERT_EQ(executor.Load(model_data_holder.model_data, load_arg, 1U), SUCCESS);
 
-  std::vector<ge::TensorDesc> input_desc;
-  std::vector<ge::TensorDesc> output_desc;
+  std::vector<ge::Om2TensorDesc> input_desc;
+  std::vector<ge::Om2TensorDesc> output_desc;
   EXPECT_EQ(executor.GetModelDescInfo(input_desc, output_desc, false), SUCCESS);
   ASSERT_EQ(input_desc.size(), 2U);
   ASSERT_EQ(output_desc.size(), 1U);
@@ -1156,8 +1157,8 @@ TEST_F(Om2ModelExecutorUt, get_model_desc_info_ok) {
   EXPECT_EQ(input_desc[1].GetName(), "data2");
   EXPECT_EQ(output_desc[0].GetName(), "output_0_reshape1_0");
 
-  std::vector<ge::TensorDesc> input_desc_v2;
-  std::vector<ge::TensorDesc> output_desc_v2;
+  std::vector<ge::Om2TensorDesc> input_desc_v2;
+  std::vector<ge::Om2TensorDesc> output_desc_v2;
   EXPECT_EQ(executor.GetModelDescInfo(input_desc_v2, output_desc_v2, true), SUCCESS);
   EXPECT_EQ(input_desc_v2.size(), input_desc.size());
   EXPECT_EQ(output_desc_v2.size(), output_desc.size());
@@ -1284,5 +1285,345 @@ TEST_F(Om2ModelExecutorUt, get_mem_and_weight_size_from_mem_ok) {
                                          model_data_holder.model_data.model_len, work_size, weight_size), SUCCESS);
   EXPECT_EQ(work_size, 2048U);
   EXPECT_EQ(weight_size, 16U);
+}
+
+// 辅助函数：生成带属性的op_attr.json
+static std::string MakeOpAttrJson() {
+  return R"({
+    "test_op": {
+      "_datadump_original_op_names": {
+        "type": "LIST_STRING",
+        "value": ["original_op1", "original_op2"]
+      }
+    }
+  })";
+}
+
+// 辅助函数：生成空op_attr.json
+static std::string MakeEmptyOpAttrJson() {
+  return "{}";
+}
+
+// 辅助函数：生成无效的JSON
+static std::string MakeInvalidOpAttrJson() {
+  return "invalid json content";
+}
+
+// 辅助函数：生成多个算子属性的op_attr.json
+static std::string MakeMultipleOpAttrJson() {
+  return R"({
+    "op1": {
+      "_datadump_original_op_names": {
+        "type": "LIST_STRING",
+        "value": ["orig1", "orig2"]
+      },
+      "_another_attr": {
+        "type": "STRING",
+        "value": "test_value"
+      }
+    },
+    "op2": {
+      "_datadump_original_op_names": {
+        "type": "LIST_STRING",
+        "value": ["orig3"]
+      }
+    }
+  })";
+}
+
+TEST_F(Om2ModelExecutorUt, GetOpAttr_ValidOpAttrJson_ReturnsParsedMap) {
+  // 创建包含op_attr.json的OM2文件
+  const std::string om2_with_attr = PathUtils::Join({test_work_dir_, "om2_with_op_attr.om2"});
+  const std::string runtime_dir = PathUtils::Join({test_work_dir_, "fake_runtime_attr"});
+  const std::string build_dir = PathUtils::Join({runtime_dir, "build"});
+  const std::string so_path = PathUtils::Join({runtime_dir, "libg1_om2.so"});
+
+  (void)PathUtils::RemoveDirectories(runtime_dir);
+  ASSERT_EQ(CreateDir(runtime_dir), 0);
+  WriteTextFile(PathUtils::Join({runtime_dir, "g1_interface.h"}), MakeInterfaceHeader());
+  WriteTextFile(PathUtils::Join({runtime_dir, "g1_resources.cpp"}), MakeEmptyCpp("g1_interface.h"));
+  WriteTextFile(PathUtils::Join({runtime_dir, "g1_kernel_reg.cpp"}), MakeEmptyCpp("g1_interface.h"));
+  WriteTextFile(PathUtils::Join({runtime_dir, "g1_args_manager.cpp"}), MakeEmptyCpp("g1_interface.h"));
+  WriteTextFile(PathUtils::Join({runtime_dir, "g1_load_and_run.cpp"}), MakeLoadAndRunCpp());
+  WriteTextFile(PathUtils::Join({runtime_dir, "CMakeLists.txt"}), MakeCMakeLists());
+
+  const std::string cmake_config_cmd = "cmake -S " + runtime_dir + " -B " + build_dir;
+  const std::string cmake_build_cmd = "cmake --build " + build_dir + " -j1";
+  RunCommandOrAssert(cmake_config_cmd);
+  RunCommandOrAssert(cmake_build_cmd);
+  ASSERT_EQ(mmAccess2(so_path.c_str(), M_F_OK), EOK);
+
+  ZipArchiveWriter zip_writer(om2_with_attr);
+  ASSERT_TRUE(zip_writer.IsMemFileOpened());
+  const auto manifest = MakeManifestJson();
+  const auto model_meta = MakeModelMetaJson();
+  const auto op_attr = MakeOpAttrJson();
+  ASSERT_TRUE(zip_writer.WriteBytes("manifest.json", manifest.data(), manifest.size(), false));
+  ASSERT_TRUE(zip_writer.WriteBytes("data/model_0/model_meta.json", model_meta.data(), model_meta.size(), false));
+  ASSERT_TRUE(zip_writer.WriteBytes("data/model_0/debug/op_attr.json", op_attr.data(), op_attr.size(), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/CMakeLists.txt", PathUtils::Join({runtime_dir, "CMakeLists.txt"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_interface.h", PathUtils::Join({runtime_dir, "g1_interface.h"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_resources.cpp", PathUtils::Join({runtime_dir, "g1_resources.cpp"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_kernel_reg.cpp", PathUtils::Join({runtime_dir, "g1_kernel_reg.cpp"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_args_manager.cpp", PathUtils::Join({runtime_dir, "g1_args_manager.cpp"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_load_and_run.cpp", PathUtils::Join({runtime_dir, "g1_load_and_run.cpp"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/libg1_om2.so", so_path, false));
+  ASSERT_TRUE(zip_writer.SaveModelDataToFile());
+
+  uint32_t model_buf_size = 0U;
+  auto model_buf = GetBinDataFromFile(om2_with_attr, model_buf_size);
+  ASSERT_NE(model_buf, nullptr);
+  ASSERT_GT(model_buf_size, 0U);
+
+  ModelDataHolder holder;
+  holder.model_data.model_data = model_buf.get();
+  holder.model_data.model_len = model_buf_size;
+  holder.model_data.om_path = om2_with_attr;
+  holder.buffer = std::move(model_buf);
+
+  auto load_arg = MakeOm2LoadArg();
+  ge::Status status;
+  auto executor = gert::LoadOm2ExecutorFromData(holder.model_data, load_arg, status);
+  ASSERT_EQ(status, SUCCESS);
+
+  std::map<std::string, std::map<std::string, std::string>> op_attr_map;
+  status = executor->GetOpAttr(op_attr_map);
+  EXPECT_EQ(status, SUCCESS);
+
+  // 验证map内容
+  EXPECT_FALSE(op_attr_map.empty());
+  EXPECT_TRUE(op_attr_map.find("test_op") != op_attr_map.end());
+  EXPECT_TRUE(op_attr_map["test_op"].find("_datadump_original_op_names") != op_attr_map["test_op"].end());
+
+  const std::string &value_str = op_attr_map["test_op"]["_datadump_original_op_names"];
+  // value应该是JSON数组字符串格式
+  EXPECT_EQ(value_str, "[\"original_op1\",\"original_op2\"]");
+}
+
+TEST_F(Om2ModelExecutorUt, GetOpAttr_EmptyOpAttrJson_ReturnsEmptyMap) {
+  // 创建包含空op_attr.json的OM2文件
+  const std::string om2_empty_attr = PathUtils::Join({test_work_dir_, "om2_empty_op_attr.om2"});
+  const std::string runtime_dir = PathUtils::Join({test_work_dir_, "fake_runtime_empty_attr"});
+  const std::string build_dir = PathUtils::Join({runtime_dir, "build"});
+  const std::string so_path = PathUtils::Join({runtime_dir, "libg1_om2.so"});
+
+  (void)PathUtils::RemoveDirectories(runtime_dir);
+  ASSERT_EQ(CreateDir(runtime_dir), 0);
+  WriteTextFile(PathUtils::Join({runtime_dir, "g1_interface.h"}), MakeInterfaceHeader());
+  WriteTextFile(PathUtils::Join({runtime_dir, "g1_resources.cpp"}), MakeEmptyCpp("g1_interface.h"));
+  WriteTextFile(PathUtils::Join({runtime_dir, "g1_kernel_reg.cpp"}), MakeEmptyCpp("g1_interface.h"));
+  WriteTextFile(PathUtils::Join({runtime_dir, "g1_args_manager.cpp"}), MakeEmptyCpp("g1_interface.h"));
+  WriteTextFile(PathUtils::Join({runtime_dir, "g1_load_and_run.cpp"}), MakeLoadAndRunCpp());
+  WriteTextFile(PathUtils::Join({runtime_dir, "CMakeLists.txt"}), MakeCMakeLists());
+
+  const std::string cmake_config_cmd = "cmake -S " + runtime_dir + " -B " + build_dir;
+  const std::string cmake_build_cmd = "cmake --build " + build_dir + " -j1";
+  RunCommandOrAssert(cmake_config_cmd);
+  RunCommandOrAssert(cmake_build_cmd);
+  ASSERT_EQ(mmAccess2(so_path.c_str(), M_F_OK), EOK);
+
+  ZipArchiveWriter zip_writer(om2_empty_attr);
+  ASSERT_TRUE(zip_writer.IsMemFileOpened());
+  const auto manifest = MakeManifestJson();
+  const auto model_meta = MakeModelMetaJson();
+  const auto op_attr = MakeEmptyOpAttrJson();
+  ASSERT_TRUE(zip_writer.WriteBytes("manifest.json", manifest.data(), manifest.size(), false));
+  ASSERT_TRUE(zip_writer.WriteBytes("data/model_0/model_meta.json", model_meta.data(), model_meta.size(), false));
+  ASSERT_TRUE(zip_writer.WriteBytes("data/model_0/debug/op_attr.json", op_attr.data(), op_attr.size(), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/CMakeLists.txt", PathUtils::Join({runtime_dir, "CMakeLists.txt"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_interface.h", PathUtils::Join({runtime_dir, "g1_interface.h"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_resources.cpp", PathUtils::Join({runtime_dir, "g1_resources.cpp"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_kernel_reg.cpp", PathUtils::Join({runtime_dir, "g1_kernel_reg.cpp"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_args_manager.cpp", PathUtils::Join({runtime_dir, "g1_args_manager.cpp"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_load_and_run.cpp", PathUtils::Join({runtime_dir, "g1_load_and_run.cpp"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/libg1_om2.so", so_path, false));
+  ASSERT_TRUE(zip_writer.SaveModelDataToFile());
+
+  // 加载模型并验证GetOpAttr返回空map
+  uint32_t model_buf_size = 0U;
+  auto model_buf = GetBinDataFromFile(om2_empty_attr, model_buf_size);
+  ASSERT_NE(model_buf, nullptr);
+  ASSERT_GT(model_buf_size, 0U);
+
+  ModelDataHolder holder;
+  holder.model_data.model_data = model_buf.get();
+  holder.model_data.model_len = model_buf_size;
+  holder.model_data.om_path = om2_empty_attr;
+  holder.buffer = std::move(model_buf);
+
+  auto load_arg = MakeOm2LoadArg();
+  ge::Status status;
+  auto executor = gert::LoadOm2ExecutorFromData(holder.model_data, load_arg, status);
+  ASSERT_EQ(status, SUCCESS);
+
+  std::map<std::string, std::map<std::string, std::string>> op_attr_map;
+  status = executor->GetOpAttr(op_attr_map);
+  EXPECT_EQ(status, SUCCESS);
+  EXPECT_TRUE(op_attr_map.empty());
+}
+
+TEST_F(Om2ModelExecutorUt, GetOpAttr_MissingOpAttrJson_ReturnsEmptyMap) {
+  // 使用现有的om2_file_path_（不包含op_attr.json）
+  PrepareOm2File();
+
+  auto load_arg = MakeOm2LoadArg();
+  ge::Status status;
+  auto model_data_holder = LoadValidModelData();
+  auto handle = gert::LoadOm2ExecutorFromData(model_data_holder.model_data, load_arg, status);
+  ASSERT_EQ(status, SUCCESS);
+
+  std::map<std::string, std::map<std::string, std::string>> op_attr_map;
+  status = handle->GetOpAttr(op_attr_map);
+  // 无op_attr.json时不报错，返回空map（fallback机制）
+  EXPECT_EQ(status, SUCCESS);
+  EXPECT_TRUE(op_attr_map.empty());
+}
+
+TEST_F(Om2ModelExecutorUt, GetOpAttr_InvalidOpAttrJson_ReturnsEmptyMap) {
+  // 创建包含无效JSON的OM2文件
+  const std::string om2_invalid_attr = PathUtils::Join({test_work_dir_, "om2_invalid_op_attr.om2"});
+  const std::string runtime_dir = PathUtils::Join({test_work_dir_, "fake_runtime_invalid_attr"});
+  const std::string build_dir = PathUtils::Join({runtime_dir, "build"});
+  const std::string so_path = PathUtils::Join({runtime_dir, "libg1_om2.so"});
+
+  (void)PathUtils::RemoveDirectories(runtime_dir);
+  ASSERT_EQ(CreateDir(runtime_dir), 0);
+  WriteTextFile(PathUtils::Join({runtime_dir, "g1_interface.h"}), MakeInterfaceHeader());
+  WriteTextFile(PathUtils::Join({runtime_dir, "g1_resources.cpp"}), MakeEmptyCpp("g1_interface.h"));
+  WriteTextFile(PathUtils::Join({runtime_dir, "g1_kernel_reg.cpp"}), MakeEmptyCpp("g1_interface.h"));
+  WriteTextFile(PathUtils::Join({runtime_dir, "g1_args_manager.cpp"}), MakeEmptyCpp("g1_interface.h"));
+  WriteTextFile(PathUtils::Join({runtime_dir, "g1_load_and_run.cpp"}), MakeLoadAndRunCpp());
+  WriteTextFile(PathUtils::Join({runtime_dir, "CMakeLists.txt"}), MakeCMakeLists());
+
+  const std::string cmake_config_cmd = "cmake -S " + runtime_dir + " -B " + build_dir;
+  const std::string cmake_build_cmd = "cmake --build " + build_dir + " -j1";
+  RunCommandOrAssert(cmake_config_cmd);
+  RunCommandOrAssert(cmake_build_cmd);
+  ASSERT_EQ(mmAccess2(so_path.c_str(), M_F_OK), EOK);
+
+  ZipArchiveWriter zip_writer(om2_invalid_attr);
+  ASSERT_TRUE(zip_writer.IsMemFileOpened());
+  const auto manifest = MakeManifestJson();
+  const auto model_meta = MakeModelMetaJson();
+  const auto op_attr = MakeInvalidOpAttrJson();
+  ASSERT_TRUE(zip_writer.WriteBytes("manifest.json", manifest.data(), manifest.size(), false));
+  ASSERT_TRUE(zip_writer.WriteBytes("data/model_0/model_meta.json", model_meta.data(), model_meta.size(), false));
+  ASSERT_TRUE(zip_writer.WriteBytes("data/model_0/debug/op_attr.json", op_attr.data(), op_attr.size(), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/CMakeLists.txt", PathUtils::Join({runtime_dir, "CMakeLists.txt"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_interface.h", PathUtils::Join({runtime_dir, "g1_interface.h"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_resources.cpp", PathUtils::Join({runtime_dir, "g1_resources.cpp"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_kernel_reg.cpp", PathUtils::Join({runtime_dir, "g1_kernel_reg.cpp"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_args_manager.cpp", PathUtils::Join({runtime_dir, "g1_args_manager.cpp"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_load_and_run.cpp", PathUtils::Join({runtime_dir, "g1_load_and_run.cpp"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/libg1_om2.so", so_path, false));
+  ASSERT_TRUE(zip_writer.SaveModelDataToFile());
+
+  // 加载模型，无效JSON时fallback到空map
+  uint32_t model_buf_size = 0U;
+  auto model_buf = GetBinDataFromFile(om2_invalid_attr, model_buf_size);
+  ASSERT_NE(model_buf, nullptr);
+  ASSERT_GT(model_buf_size, 0U);
+
+  ModelDataHolder holder;
+  holder.model_data.model_data = model_buf.get();
+  holder.model_data.model_len = model_buf_size;
+  holder.model_data.om_path = om2_invalid_attr;
+  holder.buffer = std::move(model_buf);
+
+  auto load_arg = MakeOm2LoadArg();
+  ge::Status status;
+  auto handle = gert::LoadOm2ExecutorFromData(holder.model_data, load_arg, status);
+  ASSERT_EQ(status, SUCCESS);
+
+  std::map<std::string, std::map<std::string, std::string>> op_attr_map;
+  status = handle->GetOpAttr(op_attr_map);
+  EXPECT_EQ(status, SUCCESS);
+  EXPECT_TRUE(op_attr_map.empty());
+}
+
+TEST_F(Om2ModelExecutorUt, ParseOpAttrJsonToMapInternal_MultipleAttrs_ParsesAllAttrs) {
+  // 创建包含多个算子多个属性的OM2文件
+  const std::string om2_multi_attr = PathUtils::Join({test_work_dir_, "om2_multi_op_attr.om2"});
+  const std::string runtime_dir = PathUtils::Join({test_work_dir_, "fake_runtime_multi_attr"});
+  const std::string build_dir = PathUtils::Join({runtime_dir, "build"});
+  const std::string so_path = PathUtils::Join({runtime_dir, "libg1_om2.so"});
+
+  (void)PathUtils::RemoveDirectories(runtime_dir);
+  ASSERT_EQ(CreateDir(runtime_dir), 0);
+  WriteTextFile(PathUtils::Join({runtime_dir, "g1_interface.h"}), MakeInterfaceHeader());
+  WriteTextFile(PathUtils::Join({runtime_dir, "g1_resources.cpp"}), MakeEmptyCpp("g1_interface.h"));
+  WriteTextFile(PathUtils::Join({runtime_dir, "g1_kernel_reg.cpp"}), MakeEmptyCpp("g1_interface.h"));
+  WriteTextFile(PathUtils::Join({runtime_dir, "g1_args_manager.cpp"}), MakeEmptyCpp("g1_interface.h"));
+  WriteTextFile(PathUtils::Join({runtime_dir, "g1_load_and_run.cpp"}), MakeLoadAndRunCpp());
+  WriteTextFile(PathUtils::Join({runtime_dir, "CMakeLists.txt"}), MakeCMakeLists());
+
+  const std::string cmake_config_cmd = "cmake -S " + runtime_dir + " -B " + build_dir;
+  const std::string cmake_build_cmd = "cmake --build " + build_dir + " -j1";
+  RunCommandOrAssert(cmake_config_cmd);
+  RunCommandOrAssert(cmake_build_cmd);
+  ASSERT_EQ(mmAccess2(so_path.c_str(), M_F_OK), EOK);
+
+  ZipArchiveWriter zip_writer(om2_multi_attr);
+  ASSERT_TRUE(zip_writer.IsMemFileOpened());
+  const auto manifest = MakeManifestJson();
+  const auto model_meta = MakeModelMetaJson();
+  const auto op_attr = MakeMultipleOpAttrJson();
+  ASSERT_TRUE(zip_writer.WriteBytes("manifest.json", manifest.data(), manifest.size(), false));
+  ASSERT_TRUE(zip_writer.WriteBytes("data/model_0/model_meta.json", model_meta.data(), model_meta.size(), false));
+  ASSERT_TRUE(zip_writer.WriteBytes("data/model_0/debug/op_attr.json", op_attr.data(), op_attr.size(), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/CMakeLists.txt", PathUtils::Join({runtime_dir, "CMakeLists.txt"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_interface.h", PathUtils::Join({runtime_dir, "g1_interface.h"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_resources.cpp", PathUtils::Join({runtime_dir, "g1_resources.cpp"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_kernel_reg.cpp", PathUtils::Join({runtime_dir, "g1_kernel_reg.cpp"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_args_manager.cpp", PathUtils::Join({runtime_dir, "g1_args_manager.cpp"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_load_and_run.cpp", PathUtils::Join({runtime_dir, "g1_load_and_run.cpp"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/libg1_om2.so", so_path, false));
+  ASSERT_TRUE(zip_writer.SaveModelDataToFile());
+
+  // 加载模型并验证所有属性都被解析
+  uint32_t model_buf_size = 0U;
+  auto model_buf = GetBinDataFromFile(om2_multi_attr, model_buf_size);
+  ASSERT_NE(model_buf, nullptr);
+  ASSERT_GT(model_buf_size, 0U);
+
+  ModelDataHolder holder;
+  holder.model_data.model_data = model_buf.get();
+  holder.model_data.model_len = model_buf_size;
+  holder.model_data.om_path = om2_multi_attr;
+  holder.buffer = std::move(model_buf);
+
+  auto load_arg = MakeOm2LoadArg();
+  ge::Status status;
+  auto handle = gert::LoadOm2ExecutorFromData(holder.model_data, load_arg, status);
+  ASSERT_EQ(status, SUCCESS);
+
+  std::map<std::string, std::map<std::string, std::string>> op_attr_map;
+  status = handle->GetOpAttr(op_attr_map);
+  EXPECT_EQ(status, SUCCESS);
+
+  // 验证包含2个算子
+  EXPECT_EQ(op_attr_map.size(), 2U);
+  EXPECT_TRUE(op_attr_map.find("op1") != op_attr_map.end());
+  EXPECT_TRUE(op_attr_map.find("op2") != op_attr_map.end());
+
+  // op1有2个属性
+  EXPECT_EQ(op_attr_map["op1"].size(), 2U);
+  EXPECT_TRUE(op_attr_map["op1"].find("_datadump_original_op_names") != op_attr_map["op1"].end());
+  EXPECT_EQ(op_attr_map["op1"]["_datadump_original_op_names"], "[\"orig1\",\"orig2\"]");
+
+  // op2有1个属性
+  EXPECT_EQ(op_attr_map["op2"].size(), 1U);
+  EXPECT_EQ(op_attr_map["op2"]["_datadump_original_op_names"], "[\"orig3\"]");
+}
+
+TEST_F(Om2ModelExecutorUt, GetOpAttr_BeforeLoad_ReturnsError) {
+  // 未加载模型前调用GetOpAttr应该返回错误
+  auto executor = std::make_unique<gert::Om2ModelExecutor>();
+
+  std::map<std::string, std::map<std::string, std::string>>op_attr_map;
+  ge::Status status = executor->GetOpAttr(op_attr_map);
+  // 未初始化，应该返回错误
+  EXPECT_NE(status, SUCCESS);
+  EXPECT_TRUE(op_attr_map.empty());
 }
 }  // namespace ge

@@ -9,11 +9,9 @@
  */
 
 #include "model_config.h"
-#include "common/ge_inner_error_codes.h"
 #include "common/log_inner.h"
 #include "model_desc_internal.h"
-#include "error_codes_inner.h"
-#include "acl_model_impl.h"
+#include "model/acl_model_impl_om2.h"
 
 namespace {
     using CheckMdlConfigFunc = aclError (*)(const void *const, const size_t);
@@ -433,155 +431,7 @@ namespace {
     };
 } // anonymous namespace
 
-namespace acl {
-static bool CheckMdlLoadConfigFromFile(const aclmdlConfigHandle *const handle)
-{
-    if (handle->attrState.find(ACL_MDL_PATH_PTR) == handle->attrState.end()) {
-        ACL_LOG_ERROR("[Check][Type]model load type[%zu]: model path is not set in aclmdlConfigHandle "
-                      "when load type is from file", handle->mdlLoadType);
-        const std::string errMsg = "model path is not set in aclmdlConfigHandle when load type is from file";
-        acl::AclErrorLogManager::ReportInputError(acl::INVALID_PARAM_MSG,
-            std::vector<const char *>({"param", "value", "reason"}),
-            std::vector<const char *>({"handle", "inner model path", errMsg.c_str()}));
-        return false;
-    }
-    if (handle->attrState.find(ACL_MDL_WEIGHT_PATH_PTR) != handle->attrState.end()) {
-        ACL_LOG_ERROR("[Check][Type]model load type[%zu]: should not set ACL_MDL_WEIGHT_PATH_PTR",
-            handle->mdlLoadType);
-        const std::string errMsg = "should not set ACL_MDL_WEIGHT_PATH_PTR";
-        acl::AclErrorLogManager::ReportInputError(acl::INVALID_PARAM_MSG,
-            std::vector<const char *>({"param", "value", "reason"}),
-            std::vector<const char *>({"handle", "weight path", errMsg.c_str()}));
-        return false;
-    }
-    return true;
-}
-
-static bool CheckMdlLoadConfigFromMem(const aclmdlConfigHandle *const handle)
-{
-    if (handle->attrState.find(ACL_MDL_MEM_ADDR_PTR) == handle->attrState.end()) {
-        ACL_LOG_ERROR("[Check][Type]model load type[%zu]: model memory ptr is not set in aclmdlConfigHandle",
-            handle->mdlLoadType);
-        const std::string errMsg = "model memory ptr is not set in aclmdlConfigHandle when load type is from mem";
-        acl::AclErrorLogManager::ReportInputError(acl::INVALID_PARAM_MSG,
-            std::vector<const char *>({"param", "value", "reason"}),
-            std::vector<const char *>({"handle", "inner model memory", errMsg.c_str()}));
-        return false;
-    }
-
-    if (handle->attrState.find(ACL_MDL_MEM_SIZET) == handle->attrState.end()) {
-        ACL_LOG_ERROR("[Check][Type]model load type[%zu]: model memory size is not set in aclmdlConfigHandle",
-            handle->mdlLoadType);
-        const std::string errMsg = "model memory size is not set in aclmdlConfigHandle when load type is from mem";
-        acl::AclErrorLogManager::ReportInputError(acl::INVALID_PARAM_MSG,
-            std::vector<const char *>({"param", "value", "reason"}),
-            std::vector<const char *>({"handle", "inner model memory size", errMsg.c_str()}));
-        return false;
-    }
-    if ((handle->mdlLoadType == static_cast<size_t>(ACL_MDL_LOAD_FROM_MEM_WITH_MEM)) &&
-            (handle->attrState.find(ACL_MDL_WEIGHT_PATH_PTR) != handle->attrState.end())) {
-        ACL_LOG_ERROR("[Check][Type]model load type[%zu]: should not set ACL_MDL_WEIGHT_PATH_PTR",
-            handle->mdlLoadType);
-        const std::string errMsg = "should not set ACL_MDL_WEIGHT_PATH_PTR in aclmdlConfigHandle "
-                                   "when load type is ACL_MDL_LOAD_FROM_MEM_WITH_MEM";
-        acl::AclErrorLogManager::ReportInputError(acl::INVALID_PARAM_MSG,
-            std::vector<const char *>({"param", "value", "reason"}),
-            std::vector<const char *>({"handle", "inner weight path", errMsg.c_str()}));
-        return false;
-    }
-    return true;
-}
-
-static bool CheckMdlLoadConfigWithQ(const aclmdlConfigHandle *const handle)
-{
-        if (handle->attrState.find(ACL_MDL_INPUTQ_ADDR_PTR) == handle->attrState.end()) {
-            ACL_LOG_ERROR("[Check][Type]model load type[%zu]: inputQ ptr is not set in aclmdlConfigHandle",
-                handle->mdlLoadType);
-            const std::string errMsg = "ACL_MDL_INPUTQ_ADDR_PTR is not set in aclmdlConfigHandle "
-                                       "when load type is with queue";
-            acl::AclErrorLogManager::ReportInputError(acl::INVALID_PARAM_MSG,
-                std::vector<const char *>({"param", "value", "reason"}),
-                std::vector<const char *>({"handle", "inner inputq addr", errMsg.c_str()}));
-            return false;
-        }
-
-        if (handle->attrState.find(ACL_MDL_INPUTQ_NUM_SIZET) == handle->attrState.end()) {
-            ACL_LOG_ERROR("[Check][Type]model load type[%zu]: inputQ num is not set in aclmdlConfigHandle",
-                handle->mdlLoadType);
-            const std::string errMsg = "ACL_MDL_INPUTQ_NUM_SIZET is not set in aclmdlConfigHandle "
-                                       "when load type is with queue";
-            acl::AclErrorLogManager::ReportInputError(acl::INVALID_PARAM_MSG,
-                std::vector<const char *>({"param", "value", "reason"}),
-                std::vector<const char *>({"handle", "inner inputq num", errMsg.c_str()}));
-            return false;
-        }
-
-        if (handle->attrState.find(ACL_MDL_OUTPUTQ_ADDR_PTR) == handle->attrState.end()) {
-            ACL_LOG_ERROR("[Check][Type]model load type[%zu]: outputQ ptr is not set in aclmdlConfigHandle",
-                handle->mdlLoadType);
-            const std::string errMsg = "ACL_MDL_OUTPUTQ_ADDR_PTR is not set in aclmdlConfigHandle "
-                                       "when load type is with queue";
-            acl::AclErrorLogManager::ReportInputError(acl::INVALID_PARAM_MSG,
-                std::vector<const char *>({"param", "value", "reason"}),
-                std::vector<const char *>({"handle", "inner outputq addr", errMsg.c_str()}));
-            return false;
-        }
-
-        if (handle->attrState.find(ACL_MDL_OUTPUTQ_NUM_SIZET) == handle->attrState.end()) {
-            ACL_LOG_ERROR("[Check][Type]model load type[%zu]: outputQ num is not set in aclmdlConfigHandle",
-                handle->mdlLoadType);
-            const std::string errMsg = "ACL_MDL_OUTPUTQ_NUM_SIZET is not set in aclmdlConfigHandle "
-                                       "when load type is with queue";
-            acl::AclErrorLogManager::ReportInputError(acl::INVALID_PARAM_MSG,
-                std::vector<const char *>({"param", "value", "reason"}),
-                std::vector<const char *>({"handle", "inner outputq num", errMsg.c_str()}));
-            return false;
-        }
-
-        return true;
-}
-
-bool CheckMdlConfigHandle(const aclmdlConfigHandle *const handle)
-{
-    if (handle->attrState.find(ACL_MDL_LOAD_TYPE_SIZET) == handle->attrState.end()) {
-        ACL_LOG_ERROR("[Find][Type]model load type is not set in aclmdlConfigHandle");
-        const std::string errMsg = "ACL_MDL_LOAD_TYPE_SIZET is not set in aclmdlConfigHandle";
-        acl::AclErrorLogManager::ReportInputError(acl::INVALID_PARAM_MSG,
-            std::vector<const char *>({"param", "value", "reason"}),
-            std::vector<const char *>({"handle", "inner load type", errMsg.c_str()}));
-        return false;
-    }
-
-    if ((handle->mdlLoadType == static_cast<size_t>(ACL_MDL_LOAD_FROM_FILE)) ||
-        (handle->mdlLoadType == static_cast<size_t>(ACL_MDL_LOAD_FROM_FILE_WITH_MEM))) {
-        if (!CheckMdlLoadConfigFromFile(handle)) {
-            return false;
-        }
-    }
-
-    if ((handle->mdlLoadType == static_cast<size_t>(ACL_MDL_LOAD_FROM_MEM)) ||
-        (handle->mdlLoadType == static_cast<size_t>(ACL_MDL_LOAD_FROM_MEM_WITH_MEM))) {
-        if ((!CheckMdlLoadConfigFromMem(handle))) {
-            return false;
-        }
-    }
-
-    if (handle->mdlLoadType == static_cast<size_t>(ACL_MDL_LOAD_FROM_FILE_WITH_Q)) {
-        if ((!CheckMdlLoadConfigFromFile(handle)) || (!CheckMdlLoadConfigWithQ(handle))) {
-            return false;
-        }
-    }
-
-    if (handle->mdlLoadType == static_cast<size_t>(ACL_MDL_LOAD_FROM_MEM_WITH_Q)) {
-        if ((!CheckMdlLoadConfigFromMem(handle)) || (!CheckMdlLoadConfigWithQ(handle))) {
-            return false;
-        }
-    }
-    return true;
-}
-}
-
-aclError aclmdlSetConfigOptImpl(aclmdlConfigHandle *handle, aclmdlConfigAttr attr,
+aclError aclmdlSetConfigOptImplOm2(aclmdlConfigHandle *handle, aclmdlConfigAttr attr,
     const void *attrValue, size_t valueSize)
 {
     ACL_LOG_INFO("start to execute aclmdlSetConfigOpt, attr[%d]", static_cast<int32_t>(attr));
@@ -617,7 +467,7 @@ aclError aclmdlSetConfigOptImpl(aclmdlConfigHandle *handle, aclmdlConfigAttr att
     return ACL_SUCCESS;
 }
 
-aclError aclmdlSetExternalWeightAddressImpl(aclmdlConfigHandle *handle, const char *weightFileName,
+aclError aclmdlSetExternalWeightAddressImplOm2(aclmdlConfigHandle *handle, const char *weightFileName,
     void *devPtr, size_t size) {
     ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(handle);
     ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(weightFileName);
@@ -634,20 +484,20 @@ aclError aclmdlSetExternalWeightAddressImpl(aclmdlConfigHandle *handle, const ch
     return ACL_SUCCESS;
 }
 
-aclmdlConfigHandle *aclmdlCreateConfigHandleImpl()
+aclmdlConfigHandle *aclmdlCreateConfigHandleImplOm2()
 {
     return new(std::nothrow) aclmdlConfigHandle();
 }
 
-aclError aclmdlDestroyConfigHandleImpl(aclmdlConfigHandle *handle)
+aclError aclmdlDestroyConfigHandleImplOm2(aclmdlConfigHandle *handle)
 {
     ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(handle);
     ACL_DELETE_AND_SET_NULL(handle);
     return ACL_SUCCESS;
 }
 
-aclError aclmdlSetExecConfigOptImpl(aclmdlExecConfigHandle *handle, aclmdlExecConfigAttr attr,
-                                const void *attrValue, size_t valueSize)
+aclError aclmdlSetExecConfigOptImplOm2(aclmdlExecConfigHandle *handle, aclmdlExecConfigAttr attr,
+                                       const void *attrValue, size_t valueSize)
 {
     ACL_LOG_INFO("start to execute aclmdlSetExecConfigOpt, attr[%d]", static_cast<int32_t>(attr));
     ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(handle);

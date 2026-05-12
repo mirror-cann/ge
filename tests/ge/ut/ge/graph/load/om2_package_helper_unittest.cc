@@ -242,6 +242,7 @@ TEST_F(Om2PackageHelperUt, ConvertOm2Model_Ok_GenOm2WithAicoreNode) {
       "fake_test/data/constants/model_0_constants_config.json",
       "fake_test/data/kernels_npu_arch/add1_faked_kernel.o",
       "fake_test/data/model_0/model_meta.json",
+      "fake_test/data/model_0/debug/op_attr.json",
       "fake_test/manifest.json",
   };
   EXPECT_EQ(file_names.size(), expect_files.size());
@@ -508,5 +509,130 @@ TEST_F(Om2PackageHelperUt, ConvertOm2Model_Ok_GenOm2WithFileConstMeta) {
   EXPECT_EQ(file_const.at("file_name"), JsonFile::json("weight_combined.bin"));
   EXPECT_EQ(file_const.at("offset"), JsonFile::json(64));
   EXPECT_EQ(file_const.at("size"), JsonFile::json(200704));
+}
+
+TEST_F(Om2PackageHelperUt, SaveOpAttrJson_WithAttr_GenValidOpAttrJson) {
+  Om2PackageHelper om2_packager;
+  const auto ge_root_model = CreateGeRootModelWithAicoreOp();
+  ASSERT_NE(ge_root_model, nullptr);
+
+  auto compute_graph = ge_root_model->GetRootGraph();
+  ASSERT_NE(compute_graph, nullptr);
+
+  // 找到算子并设置属性
+  for (const auto &node : compute_graph->GetDirectNode()) {
+    auto op_desc = node->GetOpDesc();
+    if (op_desc != nullptr && op_desc->GetType() != DATA && op_desc->GetType() != NETOUTPUT) {
+      std::vector<std::string> original_op_names = {"original_op1", "original_op2"};
+      AttrUtils::SetListStr(op_desc, ATTR_NAME_DATA_DUMP_ORIGIN_OP_NAMES, original_op_names);
+    }
+  }
+
+  ModelBufferData model_data;
+  const std::string output_file = PathUtils::Join({test_work_dir, "test_op_attr.om2"});
+  ASSERT_EQ(om2_packager.SaveToOmRootModel(ge_root_model, output_file, model_data, false), SUCCESS);
+
+  // 解压并验证op_attr.json
+  uint32_t model_buf_size = 0;
+  const auto model_buf = GetBinDataFromFile(output_file, model_buf_size);
+  RAIIZipArchive archive(reinterpret_cast<const uint8_t *>(model_buf.get()), model_buf_size);
+  ASSERT_TRUE(archive.IsGood());
+
+  size_t op_attr_size = 0;
+  const auto op_attr_buf = archive.ExtractToMem("test_op_attr/data/model_0/debug/op_attr.json", op_attr_size);
+  ASSERT_NE(op_attr_buf, nullptr);
+
+  const JsonFile op_attr_json(reinterpret_cast<const uint8_t *>(op_attr_buf.get()), op_attr_size);
+  ASSERT_TRUE(op_attr_json.IsValid());
+
+  // 验证JSON结构
+  const auto &raw_json = op_attr_json.Raw();
+  EXPECT_TRUE(raw_json.is_object());
+  EXPECT_TRUE(raw_json.contains("add1"));
+
+  const auto &op_attr = raw_json.at("add1");
+  EXPECT_TRUE(op_attr.is_object());
+  EXPECT_TRUE(op_attr.contains("_datadump_original_op_names"));
+
+  const auto &attr_value = op_attr.at("_datadump_original_op_names");
+  EXPECT_EQ(attr_value.at("type"), JsonFile::json("LIST_STRING"));
+  EXPECT_TRUE(attr_value.at("value").is_array());
+
+  const auto &value_array = attr_value.at("value");
+  EXPECT_EQ(value_array.size(), 2U);
+  EXPECT_EQ(value_array[0], JsonFile::json("original_op1"));
+  EXPECT_EQ(value_array[1], JsonFile::json("original_op2"));
+}
+
+TEST_F(Om2PackageHelperUt, SaveOpAttrJson_NoAttr_GenEmptyOpAttrJson) {
+  Om2PackageHelper om2_packager;
+  const auto ge_root_model = CreateGeRootModelWithAicoreOp();
+  ASSERT_NE(ge_root_model, nullptr);
+
+  // 不设置任何属性
+  ModelBufferData model_data;
+  const std::string output_file = PathUtils::Join({test_work_dir, "test_empty_attr.om2"});
+  ASSERT_EQ(om2_packager.SaveToOmRootModel(ge_root_model, output_file, model_data, false), SUCCESS);
+
+  // 解压并验证op_attr.json为空对象
+  uint32_t model_buf_size = 0;
+  const auto model_buf = GetBinDataFromFile(output_file, model_buf_size);
+  RAIIZipArchive archive(reinterpret_cast<const uint8_t *>(model_buf.get()), model_buf_size);
+  ASSERT_TRUE(archive.IsGood());
+
+  size_t op_attr_size = 0;
+  const auto op_attr_buf = archive.ExtractToMem("test_empty_attr/data/model_0/debug/op_attr.json", op_attr_size);
+  ASSERT_NE(op_attr_buf, nullptr);
+
+  const JsonFile op_attr_json(reinterpret_cast<const uint8_t *>(op_attr_buf.get()), op_attr_size);
+  ASSERT_TRUE(op_attr_json.IsValid());
+
+  // 验证JSON为空对象 {}
+  const auto &raw_json = op_attr_json.Raw();
+  EXPECT_TRUE(raw_json.is_object());
+  EXPECT_EQ(raw_json.size(), 0U);
+}
+
+TEST_F(Om2PackageHelperUt, SaveOpAttrJson_EmptyOriginalOpNames_GenValidOpAttrJson) {
+  Om2PackageHelper om2_packager;
+  const auto ge_root_model = CreateGeRootModelWithAicoreOp();
+  ASSERT_NE(ge_root_model, nullptr);
+
+  auto compute_graph = ge_root_model->GetRootGraph();
+  ASSERT_NE(compute_graph, nullptr);
+
+  // 设置空列表属性
+  for (const auto &node : compute_graph->GetDirectNode()) {
+    auto op_desc = node->GetOpDesc();
+    if (op_desc != nullptr && op_desc->GetType() != DATA && op_desc->GetType() != NETOUTPUT) {
+      std::vector<std::string> empty_op_names = {};
+      AttrUtils::SetListStr(op_desc, ATTR_NAME_DATA_DUMP_ORIGIN_OP_NAMES, empty_op_names);
+      break;
+    }
+  }
+
+  ModelBufferData model_data;
+  const std::string output_file = PathUtils::Join({test_work_dir, "test_empty_list_attr.om2"});
+  ASSERT_EQ(om2_packager.SaveToOmRootModel(ge_root_model, output_file, model_data, false), SUCCESS);
+
+  // 解压并验证op_attr.json
+  uint32_t model_buf_size = 0;
+  const auto model_buf = GetBinDataFromFile(output_file, model_buf_size);
+  RAIIZipArchive archive(reinterpret_cast<const uint8_t *>(model_buf.get()), model_buf_size);
+  ASSERT_TRUE(archive.IsGood());
+
+  size_t op_attr_size = 0;
+  const auto op_attr_buf = archive.ExtractToMem("test_empty_list_attr/data/model_0/debug/op_attr.json", op_attr_size);
+  ASSERT_NE(op_attr_buf, nullptr);
+
+  const JsonFile op_attr_json(reinterpret_cast<const uint8_t *>(op_attr_buf.get()), op_attr_size);
+  ASSERT_TRUE(op_attr_json.IsValid());
+
+  // 验证value为空数组 []
+  const auto &raw_json = op_attr_json.Raw();
+  EXPECT_TRUE(raw_json.contains("add1"));
+  const auto &attr_value = raw_json.at("add1").at("_datadump_original_op_names");
+  EXPECT_TRUE(attr_value.at("value").is_array());
+  EXPECT_EQ(attr_value.at("value").size(), 0U);
 }
 }  // namespace ge

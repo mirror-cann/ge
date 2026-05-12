@@ -29,6 +29,7 @@ set(UT_FILES
     "testcase/acl_builtinOp_unittest.cpp"
     "testcase/acl_blas_unittest.cpp"
     "testcase/acl_resource_manager_unittest.cpp"
+    "testcase/acl_resource_manager_om2_unittest.cpp"
 )
 
 set(MODEL_SRC_FILES
@@ -36,10 +37,16 @@ set(MODEL_SRC_FILES
     "${BASE_DIR}/api/acl/acl_model/model/acl_model.cpp"
     "${BASE_DIR}/api/acl/acl_model/model/acl_aipp.cpp"
     "${BASE_DIR}/api/acl/acl_model/model/aipp_param_check.cpp"
-    "${BASE_DIR}/api/acl/acl_model/model/model_config.cpp"
     "${BASE_DIR}/api/acl/acl_model/model/acl_resource_manager.cpp"
     "${BASE_DIR}/api/acl/acl_model/model/init_callback_register.cpp"
     "${BASE_DIR}/api/acl/acl_model/types/tensor_desc_internal.cpp"
+    "${BASE_DIR}/api/acl/acl_model/model/model_om2.cpp"
+    "${BASE_DIR}/api/acl/acl_model/model/acl_aipp_om2.cpp"
+    "${BASE_DIR}/api/acl/acl_model/model/acl_resource_manager_om2.cpp"
+    "${BASE_DIR}/api/acl/acl_model/model/model_config_om2.cpp"
+    "${BASE_DIR}/api/acl/acl_model/types/tensor_desc_internal_om2.cpp"
+    "${BASE_DIR}/api/acl/acl_model/model/model_common.cpp"
+    "${BASE_DIR}/runtime/om2/om2_tensor_desc.cc"
     "${BASE_DIR}/api/acl/common/json_parser.cpp"
     "${BASE_DIR}/api/acl/common/log_inner.cpp"
     "${BASE_DIR}/api/acl/utils/string_utils.cpp"

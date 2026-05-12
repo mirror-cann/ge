@@ -84,7 +84,8 @@ ClassDecl *InterfaceFileCodeGenerator::BuildOm2ModelClass(const Om2CodegenModel 
       ast_.DeclareMethod("RegisterKernels", {}, "aclError"),
       ast_.DeclareMethod("Load", {}, "aclError"),
       ast_.DeclareMethod("Run", {ast_.Var("size_t", "input_count"), ast_.Var("void **", "input_data"),
-                                 ast_.Var("size_t", "output_count"), ast_.Var("void **", "output_data")},
+                                 ast_.Var("size_t", "output_count"), ast_.Var("void **", "output_data"),
+                                 ast_.Var("int32_t", "stream_sync_timeout")},
                          "aclError"),
       ast_.DeclareMethod("RunAsync",
                          {ast_.Var("aclrtStream &", "exe_stream"), ast_.Var("size_t", "input_count"),
@@ -169,7 +170,7 @@ std::vector<DeclNode *> InterfaceFileCodeGenerator::BuildExternalApiDecls() {
       ast_.DeclareFunction("Om2ModelRun",
                            {ast_.Var("om2::Om2ModelHandle *", "model_handle"), ast_.Var("int", "input_count"),
                             ast_.Var("void **", "input_data"), ast_.Var("int", "output_count"),
-                            ast_.Var("void **", "output_data")},
+                            ast_.Var("void **", "output_data"), ast_.Var("int32_t", "stream_sync_timeout")},
                            "aclError"),
       ast_.DeclareFunction("Om2ModelDestroy", {ast_.Var("om2::Om2ModelHandle *", "model_handle")}, "aclError"),
   };

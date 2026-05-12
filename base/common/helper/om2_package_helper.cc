@@ -10,6 +10,7 @@
 
 #include "framework/common/helper/om2_package_helper.h"
 #include "framework/common/helper/model_save_helper_factory.h"
+#include "common/ge_common/string_util.h"
 #include "common/ge_common/ge_types.h"
 #include "common/helper/om2/zip_archive_writer.h"
 #include "common/helper/om2/om2_package_contants.h"
@@ -226,7 +227,9 @@ Status Om2PackageHelper::SaveToOmModel(const GeModelPtr &ge_model, const std::st
   GE_ASSERT_SUCCESS(SaveTbeKernels(zip_writer, ge_model));
   // 4. Save meta infos of the compiled model
   GE_ASSERT_SUCCESS(SaveModelInfo(zip_writer, ge_model, 0UL));
-  // 5. Save archive manifest
+  // 5. Save operator attributes
+  GE_ASSERT_SUCCESS(SaveOpAttrJson(zip_writer, ge_model, 0UL));
+  // 6. Save archive manifest
   GE_ASSERT_SUCCESS(SaveManifest(zip_writer, ge_root_model));
 
   // Complete packaging
@@ -333,6 +336,54 @@ Status Om2PackageHelper::SaveModelInfo(std::shared_ptr<ZipArchiveWriter> &zip_wr
   const auto model_meta_entry_path = FormatOm2Path(OM2_MODEL_META_PATH_FORMAT, std::to_string(model_index).c_str());
   GE_ASSERT_TRUE(zip_writer->WriteBytes(model_meta_entry_path, model_meta_info_str.data(), model_meta_info_str.size(), false));
   GELOGI("Successfully saved model manifest");
+  return SUCCESS;
+}
+
+Status Om2PackageHelper::SaveOpAttrJson(std::shared_ptr<ZipArchiveWriter> &zip_writer,
+                                       const GeModelPtr &ge_model, const size_t model_index) {
+  GELOGI("[OM2] Begin to save operator attributes");
+  const auto &graph = ge_model->GetGraph();
+  GE_ASSERT_NOTNULL(graph);
+
+  auto op_attr_object = JsonFile::json::object();
+  size_t scanned_op_count = 0UL;
+  size_t saved_op_count = 0UL;
+
+  // Traverse all nodes in the graph
+  for (const auto &node : graph->GetNodes(graph->GetGraphUnknownFlag())) {
+    const auto &op_desc = node->GetOpDesc();
+    GE_ASSERT_NOTNULL(op_desc);
+    ++scanned_op_count;
+
+    // Check if the operator has the _datadump_original_op_names attribute
+    std::vector<std::string> original_op_names;
+    if (AttrUtils::GetListStr(op_desc, ATTR_NAME_DATA_DUMP_ORIGIN_OP_NAMES, original_op_names)) {
+      // Build the attribute value JSON structure
+      auto attr_value_object = JsonFile::json::object();
+      attr_value_object["type"] = "LIST_STRING";
+      attr_value_object["value"] = original_op_names;
+
+      // Build the operator JSON structure with attribute name as key
+      auto op_attr_entry = JsonFile::json::object();
+      op_attr_entry[ATTR_NAME_DATA_DUMP_ORIGIN_OP_NAMES] = attr_value_object;
+
+      // Add to op_attr_object with operator name as top-level key
+      op_attr_object[op_desc->GetName()] = op_attr_entry;
+      ++saved_op_count;
+      GELOGD("[OM2] Saved attr for op [%s], original op names count = %zu",
+             op_desc->GetName().c_str(), original_op_names.size());
+    }
+  }
+
+  // Serialize to JSON string (empty object {} if no operators have the attribute)
+  JsonFile op_attr_json(op_attr_object);
+  const auto op_attr_json_str = op_attr_json.Dump();
+  const auto op_attr_entry_path = FormatOm2Path(OM2_OP_ATTR_PATH_FORMAT, std::to_string(model_index).c_str());
+  GE_ASSERT_TRUE(zip_writer->WriteBytes(op_attr_entry_path, op_attr_json_str.data(),
+                                        op_attr_json_str.size(), false));
+
+  GELOGI("[OM2] Successfully saved operator attributes, scanned %zu ops, saved %zu ops",
+         scanned_op_count, saved_op_count);
   return SUCCESS;
 }
 

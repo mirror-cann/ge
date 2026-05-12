@@ -19,11 +19,10 @@
 #include "runtime/om2_model_executor.h"
 #include "common/checker.h"
 #include "mmpa/mmpa_api.h"
+#include "../../inc/framework/runtime/om2_context.h"
 #include "graph/utils/type_utils.h"
 #include "graph_metadef/common/ge_common/util.h"
-#include "framework/common/scope_guard.h"
 #include "runtime/mem.h"
-#include "common/aclrt_malloc_helper.h"
 #include "common/helper/om2/json_file.h"
 #include "common/compile_profiling/ge_call_wrapper.h"
 #include "file_const_loader.h"
@@ -31,6 +30,7 @@
 #include "om2_file_utils.h"
 #include "om2_var_manager.h"
 #include "zip_archive_reader.h"
+#include "common/aclrt_malloc_helper.h"
 
 namespace gert {
 namespace {
@@ -42,7 +42,7 @@ using Om2ModelHandle = void *;
 using CreateFunc = ge::graphStatus (*)(Om2ModelHandle *, const char **, const void **, size_t *, int, void **,
                                        void *, uint64_t *);
 using DestroyFunc = ge::graphStatus (*)(Om2ModelHandle *);
-using RunFunc = ge::graphStatus (*)(Om2ModelHandle *, int, void **, int, void **);
+using RunFunc = ge::graphStatus (*)(Om2ModelHandle *, int, void **, int, void **, int32_t streamSyncTimeout);
 using RunAsyncFunc = ge::graphStatus (*)(Om2ModelHandle *, rtStream_t, int, void **, int, void **);
 
 struct RunModelInfo {
@@ -50,6 +50,7 @@ struct RunModelInfo {
   int32_t so_fd = -1;
   ge::JsonFile model_meta_json;
   ge::JsonFile constants_json;
+  ge::JsonFile op_attr_json;
   void *so_handle = nullptr;
   std::string model_name;
   Om2ModelHandle model_handle = nullptr;
@@ -126,14 +127,14 @@ ge::Status GetModelJsonValue(const std::string &key, T &out, const ge::JsonFile 
   return ge::SUCCESS;
 }
 
-ge::Status SetTensorDesc(ge::JsonFile::json &tensor_array_json, std::vector<ge::TensorDesc> &tensor_desc_array,
+ge::Status SetTensorDesc(ge::JsonFile::json &tensor_array_json, std::vector<ge::Om2TensorDesc> &tensor_desc_array,
                          const bool new_model_desc = false) {
   for (ge::JsonFile::json &tensor : tensor_array_json) {
     ge::JsonFile tensor_obj{tensor};
-    ge::TensorDesc tensor_desc;
+    ge::Om2TensorDesc tensor_desc;
     std::string name;
     GE_ASSERT_TRUE(tensor_obj.Get("name", name));
-    tensor_desc.SetName(name.c_str());
+    tensor_desc.SetName(name);
     std::string data_type;
     GE_ASSERT_TRUE(tensor_obj.Get("data_type", data_type));
     tensor_desc.SetDataType(ge::TypeUtils::SerialStringToDataType(data_type));
@@ -142,12 +143,11 @@ ge::Status SetTensorDesc(ge::JsonFile::json &tensor_array_json, std::vector<ge::
     tensor_desc.SetFormat(ge::TypeUtils::SerialStringToFormat(format));
     int64_t size;
     GE_ASSERT_TRUE(tensor_obj.Get("size", size));
-    tensor_desc.SetSize(size);
+    tensor_desc.SetSize(static_cast<size_t>(size));
     std::string shape_key = new_model_desc ? "shape_v2" : "shape";
     std::vector<int64_t> shape_dims;
     GE_ASSERT_TRUE(tensor_obj.Get(shape_key, shape_dims));
-    const ge::Shape ge_shape(shape_dims);
-    tensor_desc.SetShape(ge_shape);
+    tensor_desc.SetShape(shape_dims);
     std::vector<std::pair<int64_t, int64_t>> shape_range;
     GE_ASSERT_TRUE(tensor_obj.Get("shape_range", shape_range));
     tensor_desc.SetShapeRange(shape_range);
@@ -269,6 +269,65 @@ ge::Status ClassifyConstItems(const std::vector<Om2ConstItem> &const_items, Clas
   }
   return ge::SUCCESS;
 }
+
+void ParseOpAttrJsonToMapInternal(const ge::JsonFile &op_attr_json,
+                                  std::map<std::string, std::map<std::string, std::string>> &attr_map) {
+  attr_map.clear();
+  if (!op_attr_json.IsValid()) {
+    return;
+  }
+
+  const auto &json_data = op_attr_json.Raw();
+  if (!json_data.is_object()) {
+    GELOGW("[OM2] op_attr.json root is not an object");
+    return;
+  }
+
+  for (auto it_op = json_data.begin(); it_op != json_data.end(); ++it_op) {
+    const std::string op_name = it_op.key();
+    if (!it_op.value().is_object()) {
+      continue;
+    }
+
+    for (auto it_attr = it_op.value().begin(); it_attr != it_op.value().end(); ++it_attr) {
+      const std::string attr_name = it_attr.key();
+      if (!it_attr.value().is_object()) {
+        continue;
+      }
+
+      ge::JsonFile attr_obj(it_attr.value());
+
+      std::string type;
+      if (!attr_obj.Get("type", type)) {
+        continue;
+      }
+
+      // Get value field as JSON string
+      if (!attr_obj.Raw().contains("value")) {
+        continue;
+      }
+
+      try {
+        std::string value_str;
+        if (type == "LIST_STRING") {
+          // Serialize list as JSON array string
+          const auto &value_array = attr_obj.Raw()["value"];
+          if (value_array.is_array()) {
+            value_str = value_array.dump();
+          }
+        } else {
+          // For other types, serialize as JSON string
+          value_str = attr_obj.Raw()["value"].dump();
+        }
+
+        attr_map[op_name][attr_name] = value_str;
+      } catch (const std::exception &e) {
+        GELOGW("[OM2] Failed to serialize attr value for op[%s] attr[%s]: %s",
+               op_name.c_str(), attr_name.c_str(), e.what());
+      }
+    }
+  }
+}
 }  // namespace
 
 class Om2ModelExecutor::Impl {
@@ -329,6 +388,20 @@ class Om2ModelExecutor::Impl {
         GE_ASSERT_TRUE(buff_data != nullptr && buff_size != 0U);
         run_model_info_.constants_json = ge::JsonFile(buff_data.get(), buff_size);
         GE_ASSERT_TRUE(run_model_info_.constants_json.IsValid());
+        continue;
+      }
+      if (IsFileNameEndsWith(file_name, "op_attr.json")) {
+        auto buff_data = archive.ExtractToMem(file_name, buff_size);
+        if (buff_data == nullptr || buff_size == 0U) {
+          GELOGW("[OM2] op_attr.json not found, using empty json content.");
+          run_model_info_.op_attr_json = ge::JsonFile(ge::JsonFile::json::object());
+        } else {
+          run_model_info_.op_attr_json = ge::JsonFile(buff_data.get(), buff_size);
+          if (!run_model_info_.op_attr_json.IsValid()) {
+            GELOGW("[OM2] op_attr.json is not valid, using empty json content.");
+            run_model_info_.op_attr_json = ge::JsonFile(ge::JsonFile::json::object());
+          }
+        }
         continue;
       }
       if (IsFileNameEndsWith(file_name, ".o")) {
@@ -411,9 +484,11 @@ class Om2ModelExecutor::Impl {
     GE_ASSERT_TRUE(has_model_);
     GE_ASSERT_NOTNULL(run_model_info_.run_func);
     GE_ASSERT_NOTNULL(run_model_info_.model_handle);
+    // 从 OM2Context 获取 timeout 值并传递给 run_func
+    int32_t timeout = GetOm2ThreadLocalContext().StreamSyncTimeout();
     GE_ASSERT_SUCCESS(run_model_info_.run_func(&run_model_info_.model_handle, inputs.size(),
                                                reinterpret_cast<void **>(inputs.data()), outputs.size(),
-                                               reinterpret_cast<void **>(outputs.data())));
+                                               reinterpret_cast<void **>(outputs.data()), timeout));
     return ge::GRAPH_SUCCESS;
   }
 
@@ -440,7 +515,7 @@ class Om2ModelExecutor::Impl {
     return ge::SUCCESS;
   }
 
-  ge::Status GetModelDescInfo(std::vector<ge::TensorDesc> &input_desc, std::vector<ge::TensorDesc> &output_desc,
+  ge::Status GetModelDescInfo(std::vector<ge::Om2TensorDesc> &input_desc, std::vector<ge::Om2TensorDesc> &output_desc,
                               const bool new_model_desc) const {
     GE_ASSERT_TRUE(has_model_);
     GE_ASSERT_TRUE(run_model_info_.model_meta_json.IsValid());
@@ -457,6 +532,18 @@ class Om2ModelExecutor::Impl {
     GE_ASSERT_TRUE(has_model_);
     GE_ASSERT_SUCCESS(
         GetModelJsonValue("user_designate_shape_order", user_designate_shape_order, run_model_info_.model_meta_json));
+    return ge::SUCCESS;
+  }
+
+  ge::Status GetOpAttr(std::map<std::string, std::map<std::string, std::string>> &op_attr_map) const {
+    GE_ASSERT_TRUE(has_model_);
+    op_attr_map.clear();
+
+    if (!run_model_info_.op_attr_json.IsValid()) {
+      return ge::SUCCESS;  // Empty map for invalid/missing JSON
+    }
+
+    ParseOpAttrJsonToMapInternal(run_model_info_.op_attr_json, op_attr_map);
     return ge::SUCCESS;
   }
 
@@ -636,8 +723,8 @@ ge::Status Om2ModelExecutor::RunAsync(void *const stream, std::vector<gert::Tens
   return impl_->RunAsync(stream, inputs, outputs);
 }
 
-ge::Status Om2ModelExecutor::GetModelDescInfo(std::vector<ge::TensorDesc> &input_desc,
-                                              std::vector<ge::TensorDesc> &output_desc, bool new_model_desc) const {
+ge::Status Om2ModelExecutor::GetModelDescInfo(std::vector<ge::Om2TensorDesc> &input_desc,
+                                              std::vector<ge::Om2TensorDesc> &output_desc, bool new_model_desc) const {
   return impl_->GetModelDescInfo(input_desc, output_desc, new_model_desc);
 }
 
@@ -652,6 +739,10 @@ ge::Status Om2ModelExecutor::GetDynamicBatchInfo(std::vector<std::vector<int64_t
 
 ge::Status Om2ModelExecutor::GetUserDesignateShapeOrder(std::vector<std::string> &user_designate_shape_order) const {
   return impl_->GetUserDesignateShapeOrder(user_designate_shape_order);
+}
+
+ge::Status Om2ModelExecutor::GetOpAttr(std::map<std::string, std::map<std::string, std::string>> &op_attr_map) const {
+  return impl_->GetOpAttr(op_attr_map);
 }
 
 ge::Status LoadOm2DataFromFile(const std::string &model_path, ge::ModelData &model_data) {

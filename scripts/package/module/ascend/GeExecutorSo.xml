@@ -24,6 +24,7 @@
         <file value="libregister.a" file_type="static"/>
         <file value="libacl_mdl.so" file_type="shared"/>
         <file value="libacl_mdl_impl.so" file_type="shared"/>
+        <file value="libacl_mdl_impl_om2.so" file_type="shared"/>
         <file value="libacl_op_executor.so" file_type="shared"/>
         <file value="libacl_op_executor_impl.so" file_type="shared"/>
         <file value="libacl_cblas.so" file_type="shared"/>

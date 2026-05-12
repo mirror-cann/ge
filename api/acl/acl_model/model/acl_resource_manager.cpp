@@ -98,14 +98,6 @@ void AclResourceManager::AddExecutor(uint32_t &modelId, std::unique_ptr<gert::Mo
     rtSessionMap_[modelId] = rtSession;
 }
 
-void AclResourceManager::AddOm2Executor(uint32_t &modelId, std::unique_ptr<gert::Om2ModelExecutor> &&executor,
-                                        const std::shared_ptr<gert::RtSession> &rtSession) {
-    const std::lock_guard<std::mutex> locker(mutex_);
-    ++modelIdGenerator_;
-    modelId = modelIdGenerator_.load();
-    om2ExecutorMap_[modelId] = std::move(executor);
-    rtSessionMap_[modelId] = rtSession;
-}
 
 aclError AclResourceManager::DeleteExecutor(const uint32_t modelId)
 {
@@ -126,24 +118,6 @@ aclError AclResourceManager::DeleteExecutor(const uint32_t modelId)
     return ACL_SUCCESS;
 }
 
-aclError AclResourceManager::DeleteOm2Executor(const uint32_t modelId)
-{
-  const std::lock_guard<std::mutex> locker(mutex_);
-  const auto iter = om2ExecutorMap_.find(modelId);
-  if (iter == om2ExecutorMap_.end()) {
-    ACL_LOG_ERROR("model is not loaded, modelId is %u", modelId);
-    return static_cast<aclError>(ACL_ERROR_GE_EXEC_MODEL_ID_INVALID);
-  }
-  (void)om2ExecutorMap_.erase(iter);
-
-  const auto it = rtSessionMap_.find(modelId);
-  if (it == rtSessionMap_.end()) {
-    ACL_LOG_ERROR("model is not loaded, modelId is %u", modelId);
-    return static_cast<aclError>(ACL_ERROR_GE_EXEC_MODEL_ID_INVALID);
-  }
-  (void)rtSessionMap_.erase(it);
-  return ACL_SUCCESS;
-}
 
 void AclResourceManager::GetRuntimeV2Env()
 {
@@ -176,15 +150,6 @@ std::shared_ptr<gert::ModelV2Executor> AclResourceManager::GetExecutor(const uin
     return iter->second;
 }
 
-std::shared_ptr<gert::Om2ModelExecutor> AclResourceManager::GetOm2Executor(const uint32_t modelId)
-{
-  const std::lock_guard<std::mutex> locker(mutex_);
-  const auto iter = om2ExecutorMap_.find(modelId);
-  if (iter == om2ExecutorMap_.end()) {
-    return nullptr;
-  }
-  return iter->second;
-}
 
 std::shared_ptr<gert::RtSession> AclResourceManager::CreateRtSession()
 {

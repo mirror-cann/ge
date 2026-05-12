@@ -81,7 +81,8 @@ MethodDef *LoadAndRunFileCodeGenerator::BuildRunMethod(const Om2CodegenModel &co
   auto input_data = ast_.Var("void **", "input_data");
   auto output_count = ast_.Var("size_t", "output_count");
   auto output_data = ast_.Var("void **", "output_data");
-  return ast_.DefineMethod("Om2Model", "Run", {input_count, input_data, output_count, output_data}, "aclError", body);
+  auto stream_sync_timeout = ast_.Var("int32_t", "stream_sync_timeout");
+  return ast_.DefineMethod("Om2Model", "Run", {input_count, input_data, output_count, output_data, stream_sync_timeout}, "aclError", body);
 }
 
 Status LoadAndRunFileCodeGenerator::BuildRunBodyImpl(std::vector<BodyItem> &body,
@@ -133,7 +134,7 @@ Status LoadAndRunFileCodeGenerator::BuildRunBodyImpl(std::vector<BodyItem> &body
   if (is_async) {
     body.push_back(ChkStatus(AclmdlRIExecuteAsync(model_handle_, exe_stream)));
   } else {
-    body.push_back(ChkStatus(AclmdlRIExecute(model_handle_, -1)));
+    body.push_back(ChkStatus(AclmdlRIExecute(model_handle_, ast_.Var("int32_t", "stream_sync_timeout"))));
   }
   body.push_back(ast_.BlankLine());
   body.push_back(ast_.Return("ACL_SUCCESS"));

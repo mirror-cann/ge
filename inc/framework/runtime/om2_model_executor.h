@@ -15,7 +15,7 @@
 #include <vector>
 #include "common/ge_visibility.h"
 #include "common/ge_common/ge_types.h"
-#include "graph/ge_tensor.h"
+#include "framework/common/om2_tensor_desc.h"
 
 namespace gert {
 class RtSession;
@@ -43,11 +43,12 @@ class VISIBILITY_EXPORT Om2ModelExecutor {
   ge::Status Load(ge::ModelData &model_data, const Om2ModelLoadArg &load_arg, const uint64_t session_id) const;
   ge::Status Run(std::vector<gert::Tensor *> &inputs, std::vector<gert::Tensor *> &outputs) const;
   ge::Status RunAsync(void *const stream, std::vector<gert::Tensor *> &inputs, std::vector<gert::Tensor *> &outputs) const;
-  ge::Status GetModelDescInfo(std::vector<ge::TensorDesc> &input_desc, std::vector<ge::TensorDesc> &output_desc,
+  ge::Status GetModelDescInfo(std::vector<ge::Om2TensorDesc> &input_desc, std::vector<ge::Om2TensorDesc> &output_desc,
                               bool new_model_desc = false) const;
   ge::Status GetModelAttrs(std::vector<std::string> &dynamic_output_shape) const;
   ge::Status GetDynamicBatchInfo(std::vector<std::vector<int64_t>> &dynamic_batch_info, int32_t &dynamic_type) const;
   ge::Status GetUserDesignateShapeOrder(std::vector<std::string> &user_designate_shape_order) const;
+  ge::Status GetOpAttr(std::map<std::string, std::map<std::string, std::string>> &op_attr_map) const;
 
  private:
   class Impl;

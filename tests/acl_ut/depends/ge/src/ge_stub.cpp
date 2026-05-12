@@ -19,6 +19,8 @@
 #include "framework/runtime/model_desc.h"
 #include "framework/runtime/model_v2_executor.h"
 #include "framework/runtime/stream_executor.h"
+#include "framework/runtime/om2_context.h"
+#include "framework/runtime/om2_model_executor.h"
 #include "framework/runtime/mem_allocator.h"
 #include "framework/memory/allocator_desc.h"
 
@@ -2427,9 +2429,9 @@ namespace gert {
         (void)outputs;
         return ge::GRAPH_SUCCESS;
     }
-    ge::graphStatus Om2ModelExecutor::GetModelDescInfo(std::vector<ge::TensorDesc> &input_desc,
-                                                       std::vector<ge::TensorDesc> &output_desc,
-                                                       bool new_model_desc) const {
+    ge::Status Om2ModelExecutor::GetModelDescInfo(std::vector<ge::Om2TensorDesc> &input_desc,
+                                                  std::vector<ge::Om2TensorDesc> &output_desc,
+                                                  bool new_model_desc) const {
 
       return MockFunctionTest::aclStubInstance().GetModelDescInfo(input_desc, output_desc, new_model_desc);
     }
@@ -2449,12 +2451,22 @@ namespace gert {
       return ge::GRAPH_SUCCESS;
     }
 
+    ge::Status Om2ModelExecutor::GetOpAttr(std::map<std::string, std::map<std::string, std::string>> &op_attr_map) const {
+        (void)op_attr_map;
+        return ge::SUCCESS;
+    }
+
     class Om2ModelExecutor::Impl {
       public:
         int dummy;
     };
     Om2ModelExecutor::Om2ModelExecutor() {}
     Om2ModelExecutor::~Om2ModelExecutor() {}
+
+    Om2ThreadLocalContext& GetOm2ThreadLocalContext() {
+        static thread_local Om2ThreadLocalContext thread_context;
+        return thread_context;
+    }
 
     ge::Status LoadOm2DataFromFile(const std::string &model_path, ge::ModelData &model_data) {
         return MockFunctionTest::aclStubInstance().LoadOm2DataFromFile(model_path, model_data);

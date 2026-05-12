@@ -19,6 +19,7 @@
 #include "acl/acl_mdl.h"
 #include "common/dynamic_aipp.h"
 #include "mmpa/mmpa_api.h"
+#include "model_common.h"
 #include "common/ge_common/ge_types.h"
 
 struct aclmdlTensorDesc {
@@ -93,13 +94,7 @@ enum AippMode : int32_t {
     DYNAMIC_AIPP = 2
 };
 
-struct BundleSubModelInfo {
-  size_t workSize = 0U;
-  size_t weightSize = 0U;
-  size_t offset = 0U;
-  size_t modelSize = 0U;
-};
-}
+} // namespace acl
 
 struct aclmdlDataset {
     aclmdlDataset()

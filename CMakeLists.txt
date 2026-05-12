@@ -548,7 +548,7 @@ elseif (BUILD_OPEN_PROJECT OR ENABLE_OPEN_SRC)
             add_custom_target(ge-executor)
             add_dependencies(ge-executor ge_common ge_executor_shared ge_common_base davinci_executor hybrid_executor gert om2_executor register
                     graph npu_sched_model_loader lowering register_static graph_base model_deployer data_flow_base hcom_executor)
-            add_dependencies(ge-executor acl_mdl acl_mdl_impl acl_op_executor acl_op_executor_impl acl_cblas)
+            add_dependencies(ge-executor acl_mdl acl_mdl_impl acl_mdl_impl_om2 acl_op_executor acl_op_executor_impl acl_cblas)
             add_dependencies(ge-executor ge_common_stub stub_lowering atc_stub_graph gert_stub hybrid_executor_stub stub_register stub_acl_mdl
                     stub_acl_cblas stub_acl_op_executor)
             if(ENABLE_BUILD_DEVICE) # 交叉编译
@@ -563,7 +563,7 @@ elseif (BUILD_OPEN_PROJECT OR ENABLE_OPEN_SRC)
 
             add_custom_target(ge-executor)
             add_dependencies(ge-executor ge_common ge_common_base davinci_executor hybrid_executor gert register graph graph_base acl_cblas)
-            add_dependencies(ge-executor acl_mdl acl_mdl_impl acl_op_executor acl_op_executor_impl om2_executor ge_executor_shared lowering)
+            add_dependencies(ge-executor acl_mdl acl_mdl_impl acl_mdl_impl_om2 acl_op_executor acl_op_executor_impl om2_executor ge_executor_shared lowering)
         endif ()
 
         add_dependencies(ge-compiler version_ge-compiler_info)

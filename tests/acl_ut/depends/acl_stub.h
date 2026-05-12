@@ -454,6 +454,8 @@ public:
     MOCK_METHOD2(IsOm2Model, ge::Status(const char *file_path, bool &is_support));
     MOCK_METHOD3(GetModelDescInfo, ge::Status(std::vector<ge::TensorDesc> &input_desc,
                                               std::vector<ge::TensorDesc> &output_desc, bool new_model_desc));
+    MOCK_METHOD3(GetModelDescInfo, ge::Status(std::vector<ge::Om2TensorDesc> &input_desc,
+                                              std::vector<ge::Om2TensorDesc> &output_desc, bool new_model_desc));
 
     // fe function
     MOCK_METHOD0(InitializePlatformInfo, uint32_t());

@@ -492,7 +492,7 @@ int Om2ModelCreate(void **model_handle, const char **bin_files, const void **bin
                    void **constants, void *work_ptr, uint64_t *session_id);
 int Om2ModelRunAsync(void **model_handle, void *stream, int input_count, void **input_data, int output_count,
                      void **output_data);
-int Om2ModelRun(void **model_handle, int input_count, void **input_data, int output_count, void **output_data);
+int Om2ModelRun(void **model_handle, int input_count, void **input_data, int output_count, void **output_data, int32_t stream_sync_timeout);
 int Om2ModelDestroy(void **model_handle);
 }
 )";
@@ -532,10 +532,11 @@ extern "C" int Om2ModelRunAsync(void **model_handle, void *, int input_count, vo
 }
 
 extern "C" int Om2ModelRun(void **model_handle, int input_count, void **input_data, int output_count,
-                           void **output_data) {
+                           void **output_data, int32_t stream_sync_timeout) {
   if ((model_handle == nullptr) || (*model_handle == nullptr) || (input_data == nullptr) || (output_data == nullptr)) {
     return 1;
   }
+  (void)stream_sync_timeout;  // Mock 实现不使用该参数
   return (input_count == 2 && output_count == 1) ? 0 : 1;
 }
 
@@ -576,6 +577,17 @@ set_target_properties(g1_om2 PROPERTIES
 )";
 }
 
+std::string MakeFakeOm2OpAttrJson() {
+  return R"({
+  "test_op": {
+    "_datadump_original_op_names": {
+      "type": "LIST_STRING",
+      "value": ["original_op1", "original_op2"]
+    }
+  }
+})";
+}
+
 void CreateFakeOm2File(const std::string &work_dir, const std::string &output_file) {
   const std::string runtime_dir = PathUtils::Join({work_dir, "fake_om2_runtime"});
   const std::string build_dir = PathUtils::Join({runtime_dir, "build"});
@@ -603,8 +615,10 @@ void CreateFakeOm2File(const std::string &work_dir, const std::string &output_fi
   ASSERT_TRUE(zip_writer.IsMemFileOpened());
   const auto manifest = MakeFakeOm2ManifestJson();
   const auto model_meta = MakeFakeOm2ModelMetaJson();
+  const auto op_attr = MakeFakeOm2OpAttrJson();
   ASSERT_TRUE(zip_writer.WriteBytes("manifest.json", manifest.data(), manifest.size(), false));
   ASSERT_TRUE(zip_writer.WriteBytes("data/model_0/model_meta.json", model_meta.data(), model_meta.size(), false));
+  ASSERT_TRUE(zip_writer.WriteBytes("data/model_0/debug/op_attr.json", op_attr.data(), op_attr.size(), false));
   ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/libg1_om2.so", so_path, false));
   ASSERT_TRUE(zip_writer.WriteFile("data/constants/constant_0", constant_path, false));
   ASSERT_TRUE(zip_writer.WriteFile("data/constants/model_0_constants_config.json", constants_config_path, false));
@@ -690,6 +704,7 @@ TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithAicoreNode) {
       "fake_test/data/constants/model_0_constants_config.json",
       "fake_test/data/kernels_npu_arch/add1_faked_kernel.o",
       "fake_test/data/model_0/model_meta.json",
+      "fake_test/data/model_0/debug/op_attr.json",
       "fake_test/manifest.json",
   };
   ExpectOm2ArchiveFiles(archive, expect_files);
@@ -720,6 +735,7 @@ TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithInternalConst) {
       "fake_test/data/constants/model_0_constants_config.json",
       "fake_test/data/kernels_npu_arch/add1_faked_kernel.o",
       "fake_test/data/model_0/model_meta.json",
+    "fake_test/data/model_0/debug/op_attr.json",
       "fake_test/manifest.json",
   };
   ExpectOm2ArchiveFiles(archive, expect_files);
@@ -763,6 +779,7 @@ TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithFileConstMeta) {
       "fake_test/data/constants/model_0_constants_config.json",
       "fake_test/data/kernels_npu_arch/add1_faked_kernel.o",
       "fake_test/data/model_0/model_meta.json",
+      "fake_test/data/model_0/debug/op_attr.json",
       "fake_test/manifest.json",
   };
   ExpectOm2ArchiveFiles(archive, expect_files);
@@ -808,6 +825,7 @@ TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithAicoreOp2) {
       "fake_test/data/constants/model_0_constants_config.json",
       "fake_test/data/kernels_npu_arch/add1_faked_kernel.o",
       "fake_test/data/model_0/model_meta.json",
+      "fake_test/data/model_0/debug/op_attr.json",
       "fake_test/manifest.json",
   };
   EXPECT_EQ(file_names.size(), expect_files.size());
@@ -841,6 +859,7 @@ TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithAicoreOpOfDynamicIo) {
       "fake_test/data/constants/model_0_constants_config.json",
       "fake_test/data/kernels_npu_arch/add1_faked_kernel.o",
       "fake_test/data/model_0/model_meta.json",
+      "fake_test/data/model_0/debug/op_attr.json",
       "fake_test/manifest.json",
   };
   EXPECT_EQ(file_names.size(), expect_files.size());
@@ -873,6 +892,7 @@ TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithAicpuOp) {
       "fake_test/data/model_0/runtime/libg1_om2.so",
       "fake_test/data/constants/model_0_constants_config.json",
       "fake_test/data/model_0/model_meta.json",
+    "fake_test/data/model_0/debug/op_attr.json",
       "fake_test/manifest.json",
   };
   EXPECT_EQ(file_names.size(), expect_files.size());
@@ -920,8 +940,8 @@ TEST_F(Om2St, LoadGeneratedOm2_Ok_ExecutorMainFlow) {
   ASSERT_EQ(error_code, SUCCESS);
   ASSERT_NE(executor, nullptr);
 
-  std::vector<ge::TensorDesc> input_desc;
-  std::vector<ge::TensorDesc> output_desc;
+  std::vector<ge::Om2TensorDesc> input_desc;
+  std::vector<ge::Om2TensorDesc> output_desc;
   EXPECT_EQ(executor->GetModelDescInfo(input_desc, output_desc), SUCCESS);
   EXPECT_EQ(input_desc.size(), 2U);
   EXPECT_EQ(output_desc.size(), 1U);
@@ -981,11 +1001,10 @@ TEST_F(Om2St, LoadGeneratedOm2WithExternalResources_Ok) {
   ASSERT_EQ(error_code, SUCCESS);
   ASSERT_NE(executor, nullptr);
 
-  std::vector<ge::TensorDesc> input_desc;
-  std::vector<ge::TensorDesc> output_desc;
+  std::vector<ge::Om2TensorDesc> input_desc;
+  std::vector<ge::Om2TensorDesc> output_desc;
   EXPECT_EQ(executor->GetModelDescInfo(input_desc, output_desc), SUCCESS);
   EXPECT_EQ(input_desc.size(), 2U);
   EXPECT_EQ(output_desc.size(), 1U);
 }
-
 }  // namespace ge

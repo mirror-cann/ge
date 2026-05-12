@@ -26,6 +26,8 @@ namespace ge {
   DO(OM2_MODEL_DIR_FORMAT, "data/model_%s/");                      \
   DO(OM2_MODEL_META_PATH_FORMAT, "data/model_%s/model_meta.json"); \
   DO(OM2_RUNTIME_DIR_FORMAT, "data/model_%s/runtime/");            \
+  DO(OM2_DEBUG_DIR_FORMAT, "data/model_%s/debug/");                \
+  DO(OM2_OP_ATTR_PATH_FORMAT, "data/model_%s/debug/op_attr.json"); \
   DO(OM2_KERNELS_DIR_FORMAT, "data/kernels_%s/");                  \
   DO(OM2_CONSTANTS_DIR, "data/constants/");                        \
   DO(OM2_CONSTANTS_FILE_PREFIX, "constant_");                      \

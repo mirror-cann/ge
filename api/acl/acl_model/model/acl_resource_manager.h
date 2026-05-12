@@ -20,11 +20,11 @@
 #include <atomic>
 #include "acl/acl_base.h"
 #include "model_desc_internal.h"
+#include "model_common.h"
 #include "graph/ge_attr_value.h"
 #include "mmpa/mmpa_api.h"
 #include "framework/runtime/mem_allocator.h"
 #include "framework/runtime/model_v2_executor.h"
-#include "framework/runtime/om2_model_executor.h"
 #include "framework/runtime/stream_executor.h"
 #include "ge/ge_allocator.h"
 #include "acl/acl_rt_allocator.h"
@@ -60,17 +60,6 @@ public:
     aclrtAllocatorGetAddrFromBlockFunc getAddrFromBlockFunc;
 };
 
-struct BundleModelInfo {
-  bool isInit = false; // aclmdlBundleInit scene means true
-  std::shared_ptr<gert::RtSession> rtSession;
-  size_t varSize = 0U;
-  std::string fromFilePath;
-  std::shared_ptr<const uint8_t> bundleModelData;
-  size_t bundleModelSize = 0U;
-  std::vector<BundleSubModelInfo> subModelInfos;
-  std::vector<uint32_t> loadedSubModelId; // aclmdlBundleGetModelId use this when aclmdlBundleLoadFromxx is called
-  std::set<uint32_t> loadedSubModelIdSet;
-};
 
 class ACL_FUNC_VISIBILITY AclResourceManager {
 public:
@@ -86,12 +75,8 @@ public:
 
     void AddExecutor(uint32_t &modelId, std::unique_ptr<gert::ModelV2Executor> &&executor,
                      const std::shared_ptr<gert::RtSession> &rtSession);
-    void AddOm2Executor(uint32_t &modelId, std::unique_ptr<gert::Om2ModelExecutor> &&executor,
-                        const std::shared_ptr<gert::RtSession> &rtSession);
     std::shared_ptr<gert::ModelV2Executor> GetExecutor(const uint32_t modelId);
-    std::shared_ptr<gert::Om2ModelExecutor> GetOm2Executor(const uint32_t modelId);
     aclError DeleteExecutor(const uint32_t modelId);
-    aclError DeleteOm2Executor(const uint32_t modelId);
 
     std::shared_ptr<gert::RtSession> CreateRtSession();
     std::shared_ptr<gert::RtSession> GetRtSession(const uint32_t rtSessionId);
@@ -129,7 +114,6 @@ private:
     // executor
     // model id 0 is invalid value
     std::unordered_map<uint32_t, std::shared_ptr<gert::ModelV2Executor>> executorMap_{{0U, nullptr}};
-    std::unordered_map<uint32_t, std::shared_ptr<gert::Om2ModelExecutor>> om2ExecutorMap_{{0U, nullptr}};
     std::atomic_uint32_t modelIdGenerator_ {std::numeric_limits<uint32_t>::max() / 2U};
     std::atomic_uint64_t sessionIdGenerator_ {std::numeric_limits<uint64_t>::max() / 2U};
     bool enableRuntimeV2ForModel_ = true;

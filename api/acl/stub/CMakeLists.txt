@@ -178,7 +178,61 @@ target_link_libraries(stub_acl_mdl PRIVATE
 )
 ##################################################################################################################
 
+add_custom_target(
+    stub_acl_mdl_impl_src ALL
+    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/acl_mdl_impl_stub.cpp
+)
+
+add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/acl_mdl_impl_stub.cpp
+    COMMAND echo "Generating stub file: acl_mdl_impl_stub.cpp"
+            && ${HI_PYTHON} ${CMAKE_CURRENT_LIST_DIR}/gen_stubapi_acl_mdl_impl.py
+            ${CMAKE_CURRENT_BINARY_DIR}/acl_mdl_impl_stub.cpp
+            ${CMAKE_CURRENT_LIST_DIR}/../../../inc/external/acl/acl_base_mdl.h
+            ${CMAKE_CURRENT_LIST_DIR}/../../../inc/external/acl/acl_mdl.h
+            && echo "Generating stub files end."
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+)
+
+#----------------------------------------------------------------------------------------------------------------#
+############ stub/libacl_mdl_impl.so ############
+add_library(stub_acl_mdl_impl SHARED
+    ${CMAKE_CURRENT_BINARY_DIR}/acl_mdl_impl_stub.cpp
+)
+
+target_include_directories(stub_acl_mdl_impl PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}/../acl_model
+    ${CMAKE_CURRENT_LIST_DIR}/../../../inc/external
+    ${CMAKE_CURRENT_LIST_DIR}/../../../inc/external/acl
+    ${ASCEND_INSTALL_PATH}/include
+    ${ASCEND_INSTALL_PATH}/include/acl
+    ${TOP_DIR}/runtime/include/external
+    ${TOP_DIR}/runtime/include/external/acl
+)
+
+target_compile_definitions(stub_acl_mdl_impl PRIVATE
+    _FORTIFY_SOURCE=2
+)
+
+target_compile_options(stub_acl_mdl_impl PRIVATE
+    -Wno-unused-parameter
+)
+
+set_target_properties(stub_acl_mdl_impl
+    PROPERTIES
+    OUTPUT_NAME acl_mdl_impl
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/stub
+)
+
+target_link_libraries(stub_acl_mdl_impl PRIVATE
+    $<BUILD_INTERFACE:intf_pub>
+    $<$<NOT:$<STREQUAL:${TARGET_SYSTEM_NAME},Android>>:-lrt>
+    -ldl
+)
+##################################################################################################################
+
 add_dependencies(stub_acl_cblas stub_acl_src)
 add_dependencies(stub_acl_op_compiler stub_acl_src)
 add_dependencies(stub_acl_op_executor stub_acl_src)
 add_dependencies(stub_acl_mdl stub_acl_src)
+add_dependencies(stub_acl_mdl_impl stub_acl_mdl_impl_src)
