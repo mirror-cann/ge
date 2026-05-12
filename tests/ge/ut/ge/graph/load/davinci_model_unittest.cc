@@ -8326,7 +8326,7 @@ TEST_F(UtestDavinciModel, ExpandableActiveMemoryAllocator_Use1GSuccess_CheckPgTy
   ASSERT_NE(mem_allocator1, nullptr);
   auto ptr = mem_allocator1->MallocMemory("test", 4096UL);
   ASSERT_NE(ptr, nullptr);
-  EXPECT_EQ(alc_runtime_stub->pg_type_local, ACL_HBM_MEM_HUGE1G);
+  EXPECT_EQ(alc_runtime_stub->pg_type_local, ACL_MEM_HUGE1G);
   EXPECT_EQ(mem_allocator1->FreeMemory(), ge::SUCCESS);
 
   auto mem_allocator2 =
@@ -8334,7 +8334,7 @@ TEST_F(UtestDavinciModel, ExpandableActiveMemoryAllocator_Use1GSuccess_CheckPgTy
   ASSERT_NE(mem_allocator2, nullptr);
   ptr = mem_allocator2->MallocMemory("test", 1024UL, true);
   ASSERT_NE(ptr, nullptr);
-  EXPECT_EQ(alc_runtime_stub->pg_type_local, ACL_HBM_MEM_HUGE);
+  EXPECT_EQ(alc_runtime_stub->pg_type_local, ACL_MEM_HUGE);
 
   EXPECT_EQ(mem_allocator2->FreeMemory(), ge::SUCCESS);
   ge::AclRuntimeStub::Reset();
@@ -8359,7 +8359,7 @@ TEST_F(UtestDavinciModel, ExpandableActiveMemoryAllocator_Use1GMallocSuccessThen
                                   uint64_t flags) {
       pg_type_local = prop->memAttr;
       ++call_count;
-      if (call_count == 2 && prop->memAttr == ACL_HBM_MEM_HUGE1G) {
+      if (call_count == 2 && prop->memAttr == ACL_MEM_HUGE1G) {
         return -1;
       }
       *handle = (rtDrvMemHandle) new uint8_t[8];
@@ -8377,13 +8377,13 @@ TEST_F(UtestDavinciModel, ExpandableActiveMemoryAllocator_Use1GMallocSuccessThen
   ASSERT_NE(mem_allocator1, nullptr);
   auto ptr = mem_allocator1->MallocMemory("test", 1 *  1024U * 1024U * 1024U, true);
   ASSERT_NE(ptr, nullptr);
-  EXPECT_EQ(mock_acl_runtime->pg_type_local, ACL_HBM_MEM_HUGE1G);
+  EXPECT_EQ(mock_acl_runtime->pg_type_local, ACL_MEM_HUGE1G);
   EXPECT_EQ(mock_acl_runtime->call_count, 1U);
 
   // 预期申请1G 大页失败后，转为申请2M大页，最后申请成功。
   auto ptr2 = mem_allocator1->MallocMemory("test", 1 *  1024U * 1024U * 1024U, true);
   ASSERT_NE(ptr2, nullptr);
-  EXPECT_EQ(mock_acl_runtime->pg_type_local, ACL_HBM_MEM_HUGE);
+  EXPECT_EQ(mock_acl_runtime->pg_type_local, ACL_MEM_HUGE);
   EXPECT_EQ(mock_acl_runtime->call_count, 3U);
 
   EXPECT_EQ(mem_allocator1->FreeMemory(), ge::SUCCESS);
@@ -8411,7 +8411,7 @@ TEST_F(UtestDavinciModel, ExpandableActiveMemoryAllocator_Use1GMallocFailed_NotS
       pg_type_local = prop->memAttr;
       size_local = size;
       ++call_count;
-      if (prop->memAttr == ACL_HBM_MEM_HUGE1G) {
+      if (prop->memAttr == ACL_MEM_HUGE1G) {
         return -1;
       }
       *handle = (rtDrvMemHandle) new uint8_t[8];
@@ -8430,7 +8430,7 @@ TEST_F(UtestDavinciModel, ExpandableActiveMemoryAllocator_Use1GMallocFailed_NotS
   ASSERT_NE(mem_allocator1, nullptr);
   auto ptr = mem_allocator1->MallocMemory("test", 20480, true);
   ASSERT_NE(ptr, nullptr);
-  EXPECT_EQ(mock_acl_runtime->pg_type_local, ACL_HBM_MEM_HUGE);
+  EXPECT_EQ(mock_acl_runtime->pg_type_local, ACL_MEM_HUGE);
   EXPECT_EQ(mock_acl_runtime->call_count, 2U);
   EXPECT_EQ(mock_acl_runtime->size_local, kDrv1GPageSize);
   EXPECT_EQ(mem_allocator1->FreeMemory(), ge::SUCCESS);

@@ -42,42 +42,27 @@ std::string GetPgType(size_t pg_type) {
 
 aclrtMemAttr ConvertToMemAttr(rtMemType_t mem_type, size_t page_size) {
   const bool is_1g = (page_size == ge::kDrv1GPageSize);
-  const bool is_2m = (page_size == ge::kDrvPageSize);
-
   switch (mem_type) {
-    case RT_MEMORY_HBM:
-    case RT_MEMORY_DEFAULT:
-      if (is_1g) {
-        return ACL_HBM_MEM_HUGE1G;
-      }
-      return is_2m ? ACL_HBM_MEM_HUGE : ACL_HBM_MEM_NORMAL;
-    case RT_MEMORY_DDR:
-    case RT_MEMORY_DDR_NC:
-      return is_2m ? ACL_DDR_MEM_HUGE : ACL_DDR_MEM_NORMAL;
     case RT_MEMORY_P2P_HBM:
-      if (is_1g) {
-        return ACL_HBM_MEM_P2P_HUGE1G;
-      }
-      return is_2m ? ACL_HBM_MEM_P2P_HUGE : ACL_HBM_MEM_P2P_NORMAL;
-    case RT_MEMORY_P2P_DDR:
-      return is_2m ? ACL_DDR_MEM_P2P_HUGE : ACL_DDR_MEM_P2P_NORMAL;
-    default:
-      return is_1g ? ACL_HBM_MEM_HUGE1G : ACL_HBM_MEM_HUGE;
+    case RT_MEMORY_P2P_DDR: {
+      return is_1g ? ACL_MEM_P2P_HUGE1G : ACL_MEM_P2P_HUGE;
+    }
+    default: {
+      return is_1g ? ACL_MEM_HUGE1G : ACL_MEM_HUGE;
+    }
   }
 }
 
 size_t GetPgTypeValue(aclrtMemAttr mem_attr) {
   switch (mem_attr) {
-    case ACL_HBM_MEM_HUGE1G:
-    case ACL_HBM_MEM_P2P_HUGE1G:
     case ACL_MEM_HUGE1G:
+    case ACL_MEM_P2P_HUGE1G: {
       return ge::kDrvMemPropPgType1G;
-    case ACL_HBM_MEM_HUGE:
-    case ACL_DDR_MEM_HUGE:
-    case ACL_HBM_MEM_P2P_HUGE:
-    case ACL_DDR_MEM_P2P_HUGE:
+    }
     case ACL_MEM_HUGE:
+    case ACL_MEM_P2P_HUGE: {
       return ge::kDrvMemPropPgType2M;
+    }
     default:
       return 0U;
   }
