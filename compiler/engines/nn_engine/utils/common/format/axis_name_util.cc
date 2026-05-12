@@ -50,7 +50,7 @@ std::string AxisNameUtil::GetReshapeType(const ge::Format &format, std::vector<i
   // get axis name except for reduce axis
   auto iter_get_axis_func = get_axis_name_except_func_map.find(format);
   if (iter_get_axis_func == get_axis_name_except_func_map.end()) {
-    FE_LOGW("Can not get axis name of old format %u!", format);
+    FE_LOGW("Cannot get axis name of old format %u!", format);
     return reshape_type;
   }
   GetAxisNameByAxisValueInfoPtr get_axis_func = nullptr;

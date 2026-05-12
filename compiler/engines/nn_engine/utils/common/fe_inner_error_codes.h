@@ -222,9 +222,9 @@ FE_DEF_ERRORNO_FUSION_RULE_PARSER(ILLEGAL_RULE, 2,
 FE_DEF_ERRORNO_OP_STORE_ADAPTER(OP_STORE_ADAPTER_MANAGER_INIT_FAILED, 0,
                                 "Failed to init op store adapter manager.");  // 0x033D0000
 FE_DEF_ERRORNO_OP_STORE_ADAPTER(OP_ADAPTER_TYPE_CHECK_FAILED, 1,
-                                "Can not find the corresponding adapter type.");  // 0x033D0001
+                                "Cannot find the corresponding adapter type.");  // 0x033D0001
 FE_DEF_ERRORNO_OP_STORE_ADAPTER(OP_STORE_ADAPTER_MAKE_SHARED_FAILED, 2,
                                 "Failed to make shared in op store adapter.");                           // 0x033D0002
-FE_DEF_ERRORNO_OP_STORE_ADAPTER(OP_ADAPTER_CHECK_FAILED, 3, "Can not find the corresponding adapter.");  // 0x033D0003
+FE_DEF_ERRORNO_OP_STORE_ADAPTER(OP_ADAPTER_CHECK_FAILED, 3, "Cannot find the corresponding adapter.");  // 0x033D0003
 }  // namespace fe
 #endif  // FUSION_ENGINE_UTILS_COMMON_FE_INNER_ERROR_CODES_H_

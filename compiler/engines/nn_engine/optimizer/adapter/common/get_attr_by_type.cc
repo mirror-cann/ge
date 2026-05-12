@@ -269,7 +269,7 @@ void GetStrPrivateAttrValue(const ge::OpDesc &op_desc, const ge::AnyValue &value
   string value;
   value_type.GetValue<string>(value);
   if (!ge::AttrUtils::GetStr(&op_desc, attr_name, value)) {
-    FE_LOGD("Op[%s, %s] Can not to get private %s from graph, and to keep default value",
+    FE_LOGD("Op[%s, %s] Cannot to get private %s from graph, and to keep default value",
             op_desc.GetTypePtr(), op_desc.GetNamePtr(), attr_name.c_str());
   }
   tbe_attr_value = te::TbeAttrValue(attr_name, value);
@@ -280,7 +280,7 @@ void GetIntPrivateAttrValue(const ge::OpDesc &op_desc, const ge::AnyValue &value
   int64_t value = 0;
   value_type.GetValue<int64_t>(value);
   if (!ge::AttrUtils::GetInt(&op_desc, attr_name, value)) {
-    FE_LOGD("Op[%s, %s] Can not to get private %s from graph, and to keep default value",
+    FE_LOGD("Op[%s, %s] Cannot to get private %s from graph, and to keep default value",
             op_desc.GetTypePtr(), op_desc.GetNamePtr(), attr_name.c_str());
   }
   tbe_attr_value = te::TbeAttrValue(attr_name, value);
@@ -291,7 +291,7 @@ void GetFloatPrivateAttrValue(const ge::OpDesc &op_desc, const ge::AnyValue &val
   float value = 0.0;
   value_type.GetValue<float>(value);
   if (!ge::AttrUtils::GetFloat(&op_desc, attr_name, value)) {
-    FE_LOGD("Op[%s, %s] Can not to get private %s from graph, and to keep default value",
+    FE_LOGD("Op[%s, %s] Cannot to get private %s from graph, and to keep default value",
             op_desc.GetTypePtr(), op_desc.GetNamePtr(), attr_name.c_str());
   }
   tbe_attr_value = te::TbeAttrValue(attr_name, value);
@@ -302,7 +302,7 @@ void GetBoolPrivateAttrValue(const ge::OpDesc &op_desc, const ge::AnyValue &valu
   bool value = false;
   value_type.GetValue<bool>(value);
   if (!ge::AttrUtils::GetBool(&op_desc, attr_name, value)) {
-    FE_LOGD("Op[%s, %s] Can not to get private %s from graph, and to keep default value",
+    FE_LOGD("Op[%s, %s] Cannot to get private %s from graph, and to keep default value",
             op_desc.GetTypePtr(), op_desc.GetNamePtr(), attr_name.c_str());
   }
   tbe_attr_value = te::TbeAttrValue(attr_name, value);
@@ -313,7 +313,7 @@ void GetListStrPrivateAttrValue(const ge::OpDesc &op_desc, const ge::AnyValue &v
   vector<string> value;
   value_type.GetValue<vector<string>>(value);
   if (!ge::AttrUtils::GetListStr(&op_desc, attr_name, value)) {
-    FE_LOGD("Op[%s, %s] Can not to get private %s from graph, and to keep default value",
+    FE_LOGD("Op[%s, %s] Cannot to get private %s from graph, and to keep default value",
             op_desc.GetTypePtr(), op_desc.GetNamePtr(), attr_name.c_str());
   }
   tbe_attr_value = te::TbeAttrValue(attr_name, value);
@@ -324,7 +324,7 @@ void GetListIntPrivateAttrValue(const ge::OpDesc &op_desc, const ge::AnyValue &v
   vector<int64_t> value;
   value_type.GetValue<vector<int64_t>>(value);
   if (!ge::AttrUtils::GetListInt(&op_desc, attr_name, value)) {
-    FE_LOGD("Op[%s, %s] Can not to get private %s from graph, and to keep default value",
+    FE_LOGD("Op[%s, %s] Cannot to get private %s from graph, and to keep default value",
             op_desc.GetTypePtr(), op_desc.GetNamePtr(), attr_name.c_str());
   }
   tbe_attr_value = te::TbeAttrValue(attr_name, value);
@@ -336,7 +336,7 @@ void GetListFloatPrivateAttrValue(const ge::OpDesc &op_desc, const ge::AnyValue 
   vector<float> value;
   value_type.GetValue<vector<float>>(value);
   if (!ge::AttrUtils::GetListFloat(&op_desc, attr_name, value)) {
-    FE_LOGD("Op[%s, %s] Can not to get private %s from graph, and to keep default value",
+    FE_LOGD("Op[%s, %s] Cannot to get private %s from graph, and to keep default value",
             op_desc.GetTypePtr(), op_desc.GetNamePtr(), attr_name.c_str());
   }
   tbe_attr_value = te::TbeAttrValue(attr_name, value);
@@ -347,7 +347,7 @@ void GetListListIntPrivateAttrValue(const ge::OpDesc &op_desc, const ge::AnyValu
   vector<vector<int64_t>> value;
   value_type.GetValue<vector<vector<int64_t>>>(value);
   if (!ge::AttrUtils::GetListListInt(&op_desc, attr_name, value)) {
-    FE_LOGD("Op[%s, %s] Can not to get private %s from graph, and to keep default value",
+    FE_LOGD("Op[%s, %s] Cannot to get private %s from graph, and to keep default value",
             op_desc.GetTypePtr(), op_desc.GetNamePtr(), attr_name.c_str());
   }
   tbe_attr_value = te::TbeAttrValue(attr_name, value);
@@ -358,7 +358,7 @@ void GetListBoolPrivateAttrValue(const ge::OpDesc &op_desc, const ge::AnyValue &
   vector<bool> value;
   value_type.GetValue<vector<bool>>(value);
   if (!ge::AttrUtils::GetListBool(&op_desc, attr_name, value)) {
-    FE_LOGD("Op[%s, %s] Can not to get private %s from graph, and to keep default value",
+    FE_LOGD("Op[%s, %s] Cannot to get private %s from graph, and to keep default value",
             op_desc.GetTypePtr(), op_desc.GetNamePtr(), attr_name.c_str());
   }
   tbe_attr_value = te::TbeAttrValue(attr_name, value);

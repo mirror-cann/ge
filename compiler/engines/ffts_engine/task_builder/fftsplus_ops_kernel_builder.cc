@@ -391,7 +391,7 @@ Status FFTSPlusOpsKernelBuilder::RemoveFromPreList(const uint32_t ctx_id, const 
 
   Status ret = GetIndexByCtxId(next_ctx_id, path_index, ctx_index_map);
   if (ret != SUCCESS) {
-    FFTS_LOGD("Context id %u can not find in context_vector_path, try to remove prelist in cmo_id_map.", next_ctx_id);
+    FFTS_LOGD("Context id %u cannot find in context_vector_path, try to remove prelist in cmo_id_map.", next_ctx_id);
     auto cmo_prelist_iter = timeCtx.cmo_id_map_.find(next_ctx_id);
     if (cmo_prelist_iter != timeCtx.cmo_id_map_.end()) {
       auto iter = std::find(cmo_prelist_iter->second.begin(), cmo_prelist_iter->second.end(), ctx_id);

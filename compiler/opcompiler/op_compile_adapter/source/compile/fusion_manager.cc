@@ -490,7 +490,7 @@ bool TeFusionManager::CanReuseBuildDiskCache(const OpBuildTaskPtr &opTask)
     if (IsOpdebugCompile(opTask->opNodes)) {
         DfxInfoManager::Instance().RecordStatistics(
             StatisticsType::DISK_CACHE, RecordEventType::REUSE_FAIL);
-        TE_DBGLOGF("Node[%s] is can not reused DiskCache.", opTask->opNodes[0]->GetName().c_str());
+        TE_DBGLOGF("Node[%s] is cannot reused DiskCache.", opTask->opNodes[0]->GetName().c_str());
         return false;
     }
 

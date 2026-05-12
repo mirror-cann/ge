@@ -229,10 +229,10 @@ FFTS_DEF_ERRORNO_FUSION_RULE_PARSER(ILLEGAL_RULE, 2,
 FFTS_DEF_ERRORNO_OP_STORE_ADAPTER(OP_STORE_ADAPTER_MANAGER_INIT_FAILED, 0,
                                 "Failed to init op store adapter manager.");  // 0x033D0000
 FFTS_DEF_ERRORNO_OP_STORE_ADAPTER(OP_ADAPTER_TYPE_CHECK_FAILED, 1,
-                                "Can not find the corresponding adapter type.");  // 0x033D0001
+                                "Cannot find the corresponding adapter type.");  // 0x033D0001
 FFTS_DEF_ERRORNO_OP_STORE_ADAPTER(OP_STORE_ADAPTER_MAKE_SHARED_FAILED, 2,
                                 "Failed to make shared in op store adapter.");                           // 0x033D0002
-FFTS_DEF_ERRORNO_OP_STORE_ADAPTER(OP_ADAPTER_CHECK_FAILED, 3, "Can not find the corresponding adapter.");  // 0x033D0003
+FFTS_DEF_ERRORNO_OP_STORE_ADAPTER(OP_ADAPTER_CHECK_FAILED, 3, "Cannot find the corresponding adapter.");  // 0x033D0003
 
 FFTS_DEF_ERRORNO_OP_CALCULATOR(FAIL_GET_OP_IMPL_TYPE, 0, "Failed to get the op impl type of op desc.");  // 0x033
 

@@ -139,7 +139,7 @@ bool TeFusionManager::CheckResultInBinaryBuildDir(const OpBuildTaskPtr &opTask, 
     TE_DBGLOG("Update file[%s] authority result: %d.", lockKernelName.c_str(), res);
 
     if (!TeFileUtils::FcntlLockFileSet(fileno(fp), F_WRLCK, 0)) {
-        TE_INFOLOG("Can not Lock file[%s].", lockKernelName.c_str());
+        TE_INFOLOG("Cannot Lock file[%s].", lockKernelName.c_str());
         fclose(fp);
         isBuilding = true;
         return true;

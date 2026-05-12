@@ -1010,7 +1010,7 @@ Status TbeOpStoreAdapter::ProcessLxFusionFailCompileTasks(CompileTaskPara &task_
     uint64_t task_id = iter->first;
     std::map<uint64_t, int64_t>::const_iterator scope_id_iter = task_para.task_scope_id_map.find(task_id);
     if (scope_id_iter == task_para.task_scope_id_map.end()) {
-      REPORT_FE_ERROR("[SubGraphOpt][Compile][ProcessLxFusionFailTask] can not find scope id by task id[%lu]",
+      REPORT_FE_ERROR("[SubGraphOpt][Compile][ProcessLxFusionFailTask] cannot find scope id by task id[%lu]",
                       task_id);
       return FAILED;
     }
@@ -1018,7 +1018,7 @@ Status TbeOpStoreAdapter::ProcessLxFusionFailCompileTasks(CompileTaskPara &task_
     int64_t scope_id = scope_id_iter->second;
     ScopeNodeIdMap::const_iterator nodes_iter = task_para.fusion_nodes_map->find(scope_id);
     if (nodes_iter == task_para.fusion_nodes_map->end()) {
-      REPORT_FE_ERROR("[SubGraphOpt][Compile][ProcessLxFusionFailTask] can not find fusion nodes by scope id[%ld].",
+      REPORT_FE_ERROR("[SubGraphOpt][Compile][ProcessLxFusionFailTask] cannot find fusion nodes by scope id[%ld].",
                       scope_id);
       return FAILED;
     }
@@ -1062,7 +1062,7 @@ void TbeOpStoreAdapter::SaveMsTuneErrorMsg(CompileTaskPara &task_para) const {
     int64_t scope_id = task_iter->second;
     ScopeNodeIdMap::const_iterator nodes_iter = task_para.fusion_nodes_map->find(scope_id);
     if (nodes_iter == task_para.fusion_nodes_map->end()) {
-      FE_LOGD("Can not find fusion nodes by scope id[%ld]", scope_id);
+      FE_LOGD("Cannot find fusion nodes by scope id[%ld]", scope_id);
       return;
     }
     FE_LOGD("Save compile msg, taskId[%lu], tid[%lu].", task_id, GetCurThreadId());
@@ -2336,7 +2336,7 @@ bool TbeOpStoreAdapter::GetSelectOpFormat(const ge::NodePtr &node, std::string &
            return false);
   ge::AscendString result;
   if (funcs->op_select_format(op_check_content, result) != ge::GRAPH_SUCCESS) {
-    FE_LOGW("Node[%s, %s]: can not call op_select_format func.", node->GetNamePtr(), node->GetTypePtr());
+    FE_LOGW("Node[%s, %s]: cannot call op_select_format func.", node->GetNamePtr(), node->GetTypePtr());
     return false;
   }
   op_select_format_str = result.GetString();
@@ -2508,7 +2508,7 @@ void TbeOpStoreAdapter::SetOpTilingKey(std::vector<ge::Node *> &nodes, const ge:
       FE_LOGD("Node[%s,%s] op tiling key is:%s", cur_op_name.c_str(), cur_op_type.c_str(), op_tiling_key.c_str());
       (void)ge::AttrUtils::SetStr(cur_op_desc_ptr, kTilingRemoveDuplicates, op_tiling_key);
     } else {
-      FE_LOGD("Node[%s, %s]: Can not find op tiling key after compiling.", cur_op_name.c_str(),
+      FE_LOGD("Node[%s, %s]: Cannot find op tiling key after compiling.", cur_op_name.c_str(),
               cur_op_type.c_str());
     }
   }
@@ -3115,13 +3115,13 @@ bool TbeOpStoreAdapter::IsNeedSkipOpJudge(const ge::NodePtr &node,
   }
   std::string op_select_format_str;
   if (!GetSelectOpFormat(node, op_select_format_str) || op_select_format_str.empty()) {
-    FE_LOGW("Node[%s, %s]: can not get op_select_format_str.", op_desc_ptr->GetNamePtr(), op_desc_ptr->GetTypePtr());
+    FE_LOGW("Node[%s, %s]: cannot get op_select_format_str.", op_desc_ptr->GetNamePtr(), op_desc_ptr->GetTypePtr());
     TileFwkOpInfo::Instance().SetTileFwkOpFlag(op_type, false);
     return false;
   }
   std::string tile_fwk_op_flag_str;
   if (ParseJsonByKey(op_select_format_str,  kTileFwkOpFlag, tile_fwk_op_flag_str) != SUCCESS) {
-    FE_LOGW("Node[%s, %s]: can not get tileFwkOp from op_select_format_str[%s].",
+    FE_LOGW("Node[%s, %s]: cannot get tileFwkOp from op_select_format_str[%s].",
             op_desc_ptr->GetNamePtr(), op_desc_ptr->GetTypePtr(), op_select_format_str.c_str());
     return false;
   }

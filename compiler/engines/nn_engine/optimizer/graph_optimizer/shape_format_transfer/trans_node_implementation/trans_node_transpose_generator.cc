@@ -52,7 +52,7 @@ Status SetTransposeOrder(ge::Format input_format, ge::Format output_format,
                          ge::OpDescPtr op_desc_ptr) {
   auto input_iter = format_index_map.find(input_format);
   if (input_iter == format_index_map.end()) {
-    FE_LOGW("Can not find input format %u in format map!", input_format);
+    FE_LOGW("Cannot find input format %u in format map!", input_format);
     return SUCCESS;
   }
   auto output_iter = format_index_map.find(output_format);

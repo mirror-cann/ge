@@ -330,7 +330,7 @@ Status GetAllInputAndOutputKernelInfo(const OpKernelInfoPtr& op_kernel_info_ptr,
     InputOrOutputInfoPtr input_info;
     auto iter = tensor_map[INPUT_INDEX].find(index);
     if (iter == tensor_map[INPUT_INDEX].end()) {
-      FE_LOGW("Can not find input %zu in tensor map!", index);
+      FE_LOGW("Cannot find input %zu in tensor map!", index);
       continue;
     }
     FE_LOGD("Valid input index %zu for node[%s].", index, op_desc_ptr->GetName().c_str());
@@ -349,7 +349,7 @@ Status GetAllInputAndOutputKernelInfo(const OpKernelInfoPtr& op_kernel_info_ptr,
     InputOrOutputInfoPtr output_info;
     auto iter = tensor_map[OUTPUT_INDEX].find(index);
     if (iter == tensor_map[OUTPUT_INDEX].end()) {
-      FE_LOGW("Can not find output %zu in tensor map!", index);
+      FE_LOGW("Cannot find output %zu in tensor map!", index);
       continue;
     }
     FE_LOGD("Valid output index %zu for node[%s].", index, op_desc_ptr->GetName().c_str());

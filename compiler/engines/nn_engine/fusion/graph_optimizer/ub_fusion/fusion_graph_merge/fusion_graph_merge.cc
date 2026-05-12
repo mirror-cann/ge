@@ -542,7 +542,7 @@ Status FusionGraphMerge::SetL2TaskInfoToFusionOp(ge::NodePtr fus_node) const {
         std::int64_t origin_output_index = 0;
         if (!ge::AttrUtils::GetInt(fuse_node_output_desc, ge::ATTR_NAME_DATA_DUMP_ORIGIN_OUTPUT_INDEX,
                                    origin_output_index)) {
-          FE_LOGW("Can not get origin_output_index, origin name %s, fus_name %s, fusIndex %ld.", origin_name.c_str(),
+          FE_LOGW("Cannot get origin_output_index, origin name %s, fus_name %s, fusIndex %ld.", origin_name.c_str(),
                   map_fus_name.c_str(), iter_vec->first);
         }
 
@@ -604,6 +604,21 @@ Status FusionGraphMerge::UpdateL2Info(const int64_t &origin_index, const int64_t
   return SUCCESS;
 }
 
+uint8_t FusionGraphMerge::GetFusionOutputIndex(const std::string &orgin_name, uint8_t origin_output_index,
+                                               uint32_t data_index,
+                                               const std::map<std::int64_t, std::int64_t> &out_index_map,
+                                               const ge::NodePtr &fusion_node) const {
+  std::map<std::int64_t, std::int64_t>::const_iterator index_map = out_index_map.find(origin_output_index);
+  uint8_t output_index_temp = 0;
+  if (index_map != out_index_map.end()) {
+    output_index_temp = index_map->second;
+  } else {
+    FE_LOGD("Cannot find fusion outindex in map, orgin node %s, index %u, fusion node %s.", orgin_name.c_str(),
+            data_index, fusion_node->GetName().c_str());
+  }
+  return output_index_temp;
+}
+
 Status FusionGraphMerge::SetL2NameAndIndex(const L2FusionInfoPtr &originl2_info,
                                            L2FusionInfoPtr &fusion_l2_info) const {
   for (uint32_t i = 0; i < L2_MAXDATANUM; i++) {
@@ -619,17 +634,8 @@ Status FusionGraphMerge::SetL2NameAndIndex(const L2FusionInfoPtr &originl2_info,
         continue;
       }
       std::string name_temp = fusion_node->GetName();
-      std::map<std::int64_t, std::int64_t>::const_iterator index_map =
-          out_index_map.find(originl2_info->l2_info.output_index[i]);
-      uint8_t output_index_temp = 0;
-      if (index_map != out_index_map.end()) {
-        output_index_temp = index_map->second;
-      } else {
-        FE_LOGD(
-            "Can not find fusion outindex in map, orgin node %s, index %u, "
-            "fusion node %s.",
-            orgin_name.c_str(), i, fusion_node->GetName().c_str());
-      }
+      uint8_t output_index_temp =
+	          GetFusionOutputIndex(orgin_name, originl2_info->l2_info.output_index[i], i, out_index_map, fusion_node);
       fusion_l2_info->l2_info.node_name[i] = name_temp;
       fusion_l2_info->l2_info.output_index[i] = output_index_temp;
       FE_LOGD("data index %u, node_name %s, outputindex %u.", i, name_temp.c_str(), output_index_temp);
@@ -1457,17 +1463,8 @@ Status FusionGraphMerge::SetL2NameAndIndexForUnfusNode(L2FusionInfoPtr &originl2
         continue;
       }
       std::string name_temp = fusion_node->GetName();
-      std::map<std::int64_t, std::int64_t>::const_iterator index_map =
-          out_index_map.find(originl2_info->l2_info.output_index[i]);
-      uint8_t output_index_temp = 0;
-      if (index_map != out_index_map.end()) {
-        output_index_temp = index_map->second;
-      } else {
-        FE_LOGD(
-            "Can not find fusion outindex in map, orgin node %s, index %u, "
-            "fusion node %s.",
-            orgin_name.c_str(), i, fusion_node->GetName().c_str());
-      }
+      uint8_t output_index_temp =
+	          GetFusionOutputIndex(orgin_name, originl2_info->l2_info.output_index[i], i, out_index_map, fusion_node);
       originl2_info->l2_info.node_name[i] = name_temp;
       originl2_info->l2_info.output_index[i] = output_index_temp;
       FE_LOGD("data index %u, node_name %s, outputindex %u.", i, name_temp.c_str(), output_index_temp);
@@ -1492,7 +1489,7 @@ Status FusionGraphMerge::GetFusionAnchorInfo(const std::string &origin_name,
       if (!ge::AttrUtils::GetInt(fuse_node_output_desc, ge::ATTR_NAME_DATA_DUMP_ORIGIN_OUTPUT_INDEX,
                                  origin_output_index)) {
         FE_LOGW(
-            "Can not get origin_output_index, origin name %s, fus_name %s, "
+            "Cannot get origin_output_index, origin name %s, fus_name %s, "
             "fusIndex %ld.",
             origin_name.c_str(), fusion_node->GetName().c_str(), iter_vec->first);
         continue;
@@ -1502,7 +1499,7 @@ Status FusionGraphMerge::GetFusionAnchorInfo(const std::string &origin_name,
               fusion_node->GetName().c_str(), iter_vec->first);
     }
   } else {
-    FE_LOGW("Can not find node %s in fusion_op_name_map_all.", origin_name.c_str());
+    FE_LOGW("Cannot find node %s in fusion_op_name_map_all.", origin_name.c_str());
     return FAILED;
   }
 

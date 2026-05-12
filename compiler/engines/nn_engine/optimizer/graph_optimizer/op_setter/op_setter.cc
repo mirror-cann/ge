@@ -236,7 +236,7 @@ Status OpSetter::SetOpDescAttr(const OpKernelInfoPtr &op_kernel_info_ptr, const 
   } else if (attr_name == STR_OUTPUT_MEM_CONTINUES) {
     value = op_kernel_info_ptr->IsOutputMemContinues();
   } else {
-    REPORT_FE_ERROR("[GraphOptJdgInst][SetOpInfo][SetOpDescAttr] the attribute [%s] can not get from op kernel.",
+    REPORT_FE_ERROR("[GraphOptJdgInst][SetOpInfo][SetOpDescAttr] the attribute [%s] cannot get from op kernel.",
                     attr_name.c_str());
     return FAILED;
   }

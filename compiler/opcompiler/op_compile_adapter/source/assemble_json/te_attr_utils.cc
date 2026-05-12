@@ -141,7 +141,7 @@ void SetAttrDtype2Json(const TbeAttrValue &cattr, nlohmann::json &jsonData)
 {
     ATTR_DTYPE dtype = cattr.GetType();
     if (TbeAttrValueParser.find(dtype) == TbeAttrValueParser.end()) {
-        TE_DBGLOGF("Can not find dtype[%d] in TbeAttrValueParser", dtype);
+        TE_DBGLOGF("Cannot find dtype[%d] in TbeAttrValueParser", dtype);
         return;
     }
 

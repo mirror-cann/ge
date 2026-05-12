@@ -901,7 +901,7 @@ Status OpFormatDtypeJudge::FilterFormatIndexByFormatMode(const ge::NodePtr &node
     if (cfg_type == FormatModeType::FORMAT_MODE_NDNZ) {
       RecordNDNZFormatIndex(tensor_info, backup_matched_index_vec, input_or_output_format, filter_index);
       if (filter_index.empty()) {
-        FE_LOGW("Node[%s:%s] tensor %s can not match NDNZ format.", node_ptr->GetName().c_str(),
+        FE_LOGW("Node[%s:%s] tensor %s cannot match NDNZ format.", node_ptr->GetName().c_str(),
                 node_ptr->GetType().c_str(), tensor_info->GetUniqueName().c_str());
         return FAILED;
       }

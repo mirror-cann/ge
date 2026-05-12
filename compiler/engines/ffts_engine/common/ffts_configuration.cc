@@ -175,7 +175,7 @@ Status Configuration::LoadConfigFile() {
 Status Configuration::GetStringValue(const std::string &key, std::string &return_value) const {
   auto iter = content_map_.find(key);
   if (iter == content_map_.end()) {
-    FFTS_LOGW("Can not find the value of key %s.", key.c_str());
+    FFTS_LOGW("Cannot find the value of key %s.", key.c_str());
     return FAILED;
   }
 

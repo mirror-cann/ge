@@ -169,7 +169,7 @@ LxFusionOptimizeResult LxFusionOptimizer::GenerateLxFusionOptimizeResult(const S
 Status LxFusionOptimizer::DoLxFusionOptimize(ge::ComputeGraph& graph, LxFusionOptimizeResult &buffer_ret) {
   // 1. if find any unknown shape node, return success
   if (FeGraphCommon::IsUnknownGraph(graph.shared_from_this())) {
-    FE_LOGI("Graph [%s] contains unknown shape op, can not do lx fusion optimize.", graph.GetName().c_str());
+    FE_LOGI("Graph [%s] contains unknown shape op, cannot do lx fusion optimize.", graph.GetName().c_str());
     return SUCCESS;
   }
 

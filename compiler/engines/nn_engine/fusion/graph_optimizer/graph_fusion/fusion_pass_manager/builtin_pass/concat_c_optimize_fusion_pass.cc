@@ -195,38 +195,38 @@ bool ConcatCOptimizeFusionPass::CheckIsValidNode(const ge::NodePtr &node) {
   auto op_desc = node->GetOpDesc();
   std::string op_name = node->GetName();
   if (!CheckConcatFormat(op_desc)) {
-    FE_LOGD("Node[%s]: concat format is not NC1HWC0, which can not do c-axis optimize!", op_name.c_str());
+    FE_LOGD("Node[%s]: concat format is not NC1HWC0, which cannot do c-axis optimize!", op_name.c_str());
     return false;
   }
   if (UnknownShapeUtils::IsUnknownShapeOp(*op_desc)) {
-    FE_LOGD("Node[%s] is unknown shape op, which can not do c-axis optimize!", op_name.c_str());
+    FE_LOGD("Node[%s] is unknown shape op, which cannot do c-axis optimize!", op_name.c_str());
     return false;
   }
   if (FeGraphCommon::IsNodeOfUnknownGraph(*node)) {
-    FE_LOGD("Owner graph is dynamic graph, %s can not do c-axis optimize!", op_name.c_str());
+    FE_LOGD("Owner graph is dynamic graph, %s cannot do c-axis optimize!", op_name.c_str());
     return false;
   }
   if (!CheckConcatDimAndAlignment(op_desc)) {
-    FE_LOGD("Node[%s]: concat dim check is invalid, which can not do c-axis optimize!", op_name.c_str());
+    FE_LOGD("Node[%s]: concat dim check is invalid, which cannot do c-axis optimize!", op_name.c_str());
     return false;
   }
   if (!CheckInput(node)) {
-    FE_LOGD("Node[%s]: input check is invalid, which can not do c-axis optimize.", op_name.c_str());
+    FE_LOGD("Node[%s]: input check is invalid, which cannot do c-axis optimize.", op_name.c_str());
     return false;
   }
 
   if (!CheckOutput(node)) {
-      FE_LOGD("Node[%s]: output check is invalid, which can not do c-axis optimize.", op_name.c_str());
+      FE_LOGD("Node[%s]: output check is invalid, which cannot do c-axis optimize.", op_name.c_str());
     return false;
   }
 
   if (InvalidMemType(op_desc)) {
-    FE_LOGD("Node[%s]: mem type check is invalid, which can not do c-axis optimize.", op_name.c_str());
+    FE_LOGD("Node[%s]: mem type check is invalid, which cannot do c-axis optimize.", op_name.c_str());
     return false;
   }
 
   if (!CheckPeerNodeCanReUsed(node)) {
-      FE_LOGD("Node[%s]: peer nodes cannot be reused, which can not do c-axis optimize.", op_name.c_str());
+      FE_LOGD("Node[%s]: peer nodes cannot be reused, which cannot do c-axis optimize.", op_name.c_str());
     return false;
   }
   return true;
@@ -251,7 +251,7 @@ bool ConcatCOptimizeFusionPass::CheckConcatFormat(const ge::OpDescPtr &op_desc) 
 
 bool ConcatCOptimizeFusionPass::CheckConcatDimAndAlignment(const ge::OpDescPtr &op_desc) {
   if (!ge::AttrUtils::GetInt(op_desc, kAttrConcatDim, concat_dim_)) {
-    FE_LOGW("Node[%s]: can not get concat dim.", op_desc->GetName().c_str());
+    FE_LOGW("Node[%s]: cannot get concat dim.", op_desc->GetName().c_str());
     return false;
   }
   for (size_t i = 0; i < op_desc->GetInputsSize(); ++i) {
@@ -295,7 +295,7 @@ bool ConcatCOptimizeFusionPass::CheckConcatDim(const ge::OpDescPtr &op_desc,
   }
   transformer::AxisIndexMapping axis_index_mapping;
   if (!transformer::TransferShapeUtils::TransferDims(transfer_dims_info, axis_index_mapping)) {
-    FE_LOGW("Node[%s]: can not transfer dims.", op_desc->GetName().c_str());
+    FE_LOGW("Node[%s]: cannot transfer dims.", op_desc->GetName().c_str());
     return false;
   }
   if (static_cast<size_t>(concat_dim_) >= axis_index_mapping.src_to_dst_transfer_dims.size() ||
@@ -312,7 +312,7 @@ bool ConcatCOptimizeFusionPass::CheckConcatDimAlignment(const ge::OpDescPtr &op_
                                                         const transformer::AlignShapeInfo &align_shape_info) const {
   gert::Shape aligned_shape;
   if (!transformer::TransferShapeUtils::GetAlignedShape(align_shape_info, aligned_shape)) {
-    FE_LOGW("Node[%s]: can not get aligned shape.", op_desc->GetName().c_str());
+    FE_LOGW("Node[%s]: cannot get aligned shape.", op_desc->GetName().c_str());
     return false;
   }
   if (aligned_shape.GetDimNum() != align_shape_info.src_shape.GetDimNum()) {
@@ -325,7 +325,7 @@ bool ConcatCOptimizeFusionPass::CheckConcatDimAlignment(const ge::OpDescPtr &op_
     return false;
   }
   if ((align_shape_info.src_shape[concat_dim_] % aligned_shape[concat_dim_]) != 0) {
-    FE_LOGD("Node[%s]: concat dim can not meet the alignment %lld.", op_desc->GetName().c_str(),
+    FE_LOGD("Node[%s]: concat dim cannot meet the alignment %lld.", op_desc->GetName().c_str(),
             aligned_shape[concat_dim_]);
     return false;
   }
@@ -335,19 +335,19 @@ bool ConcatCOptimizeFusionPass::CheckConcatDimAlignment(const ge::OpDescPtr &op_
 Status ConcatCOptimizeFusionPass::CalcTensorSize(ge::GeTensorDesc &tensor_desc, int64_t &tensor_size,
                                                  int32_t &output_real_calc_flag) const {
   if (TensorComputeUtil::VerifyTensor(tensor_desc) != fe::SUCCESS) {
-    FE_LOGD("Can not verify this tensor.");
+    FE_LOGD("Cannot verify this tensor.");
     return fe::FAILED;
   }
 
   int64_t element_cnt;
   if (TensorComputeUtil::GetElementCountByMultiply(tensor_desc, element_cnt) != fe::SUCCESS) {
-    FE_LOGD("Can not calculate tensor size.");
+    FE_LOGD("Cannot calculate tensor size.");
     return fe::FAILED;
   }
   ge::DataType data_type = tensor_desc.GetDataType();
   if (TensorComputeUtil::GetTensorSizeByDataType(element_cnt, data_type, tensor_size, output_real_calc_flag) !=
       fe::SUCCESS) {
-    FE_LOGD("Can not get tensor size by element count and datatype.");
+    FE_LOGD("Cannot get tensor size by element count and datatype.");
     return fe::FAILED;
   }
   return fe::SUCCESS;
@@ -359,12 +359,12 @@ bool ConcatCOptimizeFusionPass::CheckIs32Align(const ge::NodePtr &concat_node) c
     int32_t flag = 1;
     ge::GeTensorDesc tensor_desc = concat_node->GetOpDesc()->GetInputDesc(i);
     if (CalcTensorSize(tensor_desc, tensor_size, flag) != fe::SUCCESS) {
-      FE_LOGD("Can not calculate input tensor size, %s can not optimize.",
+      FE_LOGD("Cannot calculate input tensor size, %s cannot optimize.",
           concat_node->GetName().c_str());
       return false;
     }
     if (tensor_size % kAlignNum != 0) {
-      FE_LOGD("Input tensor size of concat can not be divided by 32, %s can not optimize.",
+      FE_LOGD("Input tensor size of concat cannot be divided by 32, %s cannot optimize.",
           concat_node->GetName().c_str());
       return false;
     }
@@ -439,7 +439,7 @@ bool ConcatCOptimizeFusionPass::CheckOutput(const ge::NodePtr &concat_node) cons
       ge::OpDescPtr next_node_desc = next_node->GetOpDesc();
       string next_node_name = next_node_desc->GetName();
       if (next_node_desc->GetType() == NETOUTPUT) {
-        FE_LOGD("Next node %s is netoutput, %s can not optimize.", next_node_name.c_str(),
+        FE_LOGD("Next node %s is netoutput, %s cannot optimize.", next_node_name.c_str(),
                 concat_node->GetName().c_str());
         return false;
       }
@@ -447,7 +447,7 @@ bool ConcatCOptimizeFusionPass::CheckOutput(const ge::NodePtr &concat_node) cons
         string parent_op_type;
         (void)ge::AttrUtils::GetStr(next_node_desc, PARENT_OP_TYPE, parent_op_type);
         if (parent_op_type == NETOUTPUT) {
-          FE_LOGD("Next node %s is End(netoutput), %s can not optimize.", next_node_name.c_str(),
+          FE_LOGD("Next node %s is End(netoutput), %s cannot optimize.", next_node_name.c_str(),
                   concat_node->GetName().c_str());
           return false;
         }
@@ -484,7 +484,7 @@ bool ConcatCOptimizeFusionPass::CheckPeerNodeCanReUsed(const ge::NodePtr &concat
       bool can_reused = true;
       (void)ge::AttrUtils::GetBool(src_node_op_desc, kCanReusedForConcatCOptimize, can_reused);
       if (!can_reused) {
-        FE_LOGD("Concat [%s] peer node [%s] cannot reused, can not set no task flag.",
+        FE_LOGD("Concat [%s] peer node [%s] cannot reused, cannot set no task flag.",
                 node_name.c_str(), src_node->GetName().c_str());
         return false;
       }
@@ -535,7 +535,7 @@ bool ConcatCOptimizeFusionPass::IsPreNodeAttrValid(const ge::OpDescPtr &pre_node
     return false;
   }
   if (!output_index.empty()) {
-    FE_LOGD("Previous node %s has atomic output, %s can not optimize.", pre_node_name.c_str(), node_name.c_str());
+    FE_LOGD("Previous node %s has atomic output, %s cannot optimize.", pre_node_name.c_str(), node_name.c_str());
     fusion_virtual_op_flag = false;
     return false;
   }

@@ -58,7 +58,7 @@ Status RangeAxisUtil::GetRangeAxisValueByOriginFormat(const vector<std::pair<int
                                                       vector<std::pair<int64_t, int64_t>>& range_value) {
   auto iter_range_get_axis_func = get_range_axis_value_func_map.find(format);
   if (iter_range_get_axis_func == get_range_axis_value_func_map.end()) {
-    FE_LOGW("Can not get range axis value of old format %u!", format);
+    FE_LOGW("Cannot get range axis value of old format %u!", format);
     return FAILED;
   }
   GetRangeAxisValueInfoByFormatPtr get_range_axis_func = nullptr;
@@ -70,7 +70,7 @@ Status RangeAxisUtil::GetRangeAxisValueByOriginFormat(const vector<std::pair<int
 bool RangeAxisUtil::HasAxisValueFunc(const ge::Format& format) {
   auto iter_get_axis_func = get_range_axis_value_func_map.find(format);
   if (iter_get_axis_func == get_range_axis_value_func_map.end()) {
-    FE_LOGW("Can not get range axis value of format %u!", format);
+    FE_LOGW("Cannot get range axis value of format %u!", format);
     return false;
   }
   return true;

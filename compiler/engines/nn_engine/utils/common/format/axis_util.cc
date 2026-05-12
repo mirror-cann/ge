@@ -53,7 +53,7 @@ Status AxisUtil::GetAxisValueByOriginFormat(const ge::Format& format, const vect
                                             vector<int64_t>& nd_value) {
   auto iter_get_axis_func = get_axis_value_func_map.find(format);
   if (iter_get_axis_func == get_axis_value_func_map.end()) {
-    FE_LOGW("Can not get axis value of old format %u!", format);
+    FE_LOGW("Cannot get axis value of old format %u!", format);
     return FAILED;
   }
   GetAxisValueInfoByFormatPtr get_axis_func = nullptr;
@@ -65,7 +65,7 @@ Status AxisUtil::GetAxisValueByOriginFormat(const ge::Format& format, const vect
 bool AxisUtil::HasAxisValueFunc(const ge::Format& format) {
   auto iter_get_axis_func = get_axis_value_func_map.find(format);
   if (iter_get_axis_func == get_axis_value_func_map.end()) {
-    FE_LOGW("Can not get axis value of format %u!", format);
+    FE_LOGW("Cannot get axis value of format %u!", format);
     return false;
   }
   return true;
@@ -142,7 +142,7 @@ Status AxisUtil::GetAxisValueByNCHW(const vector<int64_t>& original_dim_vec, con
 Status AxisUtil::GetOriginAxisAttribute(const ge::OpDesc& op_desc, const ge::GeShape shape,
                                         vector<int64_t>& axis_index_vec) {
   if (!ge::AttrUtils::GetListInt(op_desc, AXES_ATTR_NAME, axis_index_vec)) {
-    FE_LOGW("Can not get reduce op [%s] axis or its value is empty!", op_desc.GetName().c_str());
+    FE_LOGW("Cannot get reduce op [%s] axis or its value is empty!", op_desc.GetName().c_str());
     return FAILED;
   }
   if (axis_index_vec.empty()) {

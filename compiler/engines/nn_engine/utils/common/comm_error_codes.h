@@ -33,7 +33,7 @@ FE_DEF_ERRORNO_COMMON(OPSTORE_VALUE_EMPTY, 11, "The value of opstore config is e
 FE_DEF_ERRORNO_COMMON(OPSTORE_VALUE_ITEM_SIZE_INCORRECT, 12, "The size of opstore items is incorrect.");  // 0x3320012
 FE_DEF_ERRORNO_COMMON(OPSTORE_VALUE_ITEM_EMPTY, 13, "At least one of the opstore item is empty.");        // 0x3320013
 FE_DEF_ERRORNO_COMMON(OPSTORE_EMPTY, 14, "There is no OP store in configuration files.");                 // 0x3320014
-FE_DEF_ERRORNO_COMMON(OPSTORE_OPIMPLTYPE_REPEAT, 15, "Op impl type of OP stores can not be repeated.");  // 0x3320015
+FE_DEF_ERRORNO_COMMON(OPSTORE_OPIMPLTYPE_REPEAT, 15, "Op impl type of OP stores cannot be repeated.");  // 0x3320015
 FE_DEF_ERRORNO_COMMON(OPSTORE_OPIMPLTYPE_INVALID, 16, "The op impl type of OP store is invalid.");       // 0x3320016
 FE_DEF_ERRORNO_COMMON(OPSTORE_PRIORITY_INVALID, 17, "The priority of OP stores is invalid.");             // 0x3320017
 FE_DEF_ERRORNO_COMMON(OPSTORE_CONFIG_NOT_INTEGRAL, 18, "The content of ops store is not integral.");      // 0x3320018

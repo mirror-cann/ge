@@ -88,14 +88,15 @@ void TbeTaskBuilderAdapter::DealInputOutputWithDdr(int32_t data_num, uint64_t &c
   }
 }
 
-void TbeTaskBuilderAdapter::DealInputOutputL2DataMap(const L2DataMap &l2datamap, int32_t data_num,
+template <typename T>
+void TbeTaskBuilderAdapter::DealInputOutputL2DataMap(const T &l2datamap, int32_t data_num,
                                                      const void *x[], const void *y[], uint64_t &cur_ptr,
                                                      uint32_t &l2_args_size,
                                                      bool is_input) const {
   for (int i = 0; i < data_num; ++i) {
-    L2DataMap::const_iterator iter;
+    typename T::const_iterator iter;
     for (iter = l2datamap.begin(); iter != l2datamap.end(); ++iter) {
-      const L2Data &flowdata = iter->second;
+      const auto &flowdata = iter->second;
       int64_t data_in_l2_id = flowdata.l2Index;
       auto ddr_key = iter->first;
 
@@ -115,42 +116,7 @@ void TbeTaskBuilderAdapter::DealInputOutputL2DataMap(const L2DataMap &l2datamap,
     }
 
     if (iter == l2datamap.end()) {
-      string input_or_output = is_input ? "input" : "output";
-      FE_LOGD("Can not find anything in l2datamap for the %s %d, set l2_index=-1 and l2_offset=0.",
-              input_or_output.c_str(), i);
-      MemCpyForL2IdAndL2Addr(cur_ptr, l2_args_size, -1, 0);
-    }
-  }
-}
-
-void TbeTaskBuilderAdapter::DealInputOutputL2DataMap(const L2FusionDataMap_t &l2datamap, int32_t data_num,
-                                                     const void *x[], const void *y[],
-                                                     uint64_t &cur_ptr, uint32_t &l2_args_size,
-                                                     bool is_input) const {
-  for (int i = 0; i < data_num; ++i) {
-    L2FusionDataMap_t::const_iterator iter;
-    for (iter = l2datamap.begin(); iter != l2datamap.end(); ++iter) {
-      const L2FusionData_t &flowdata = iter->second;
-      int64_t data_in_l2_id = flowdata.l2Index;
-      auto ddr_key = iter->first;
-
-      if (is_input && static_cast<uint64_t>(reinterpret_cast<uintptr_t>(x[i])) == ddr_key) {
-        FE_LOGD("iter->first value is %ld, (uint64_t)(uintptr_t)x[%d] value is %ld", ddr_key, i,
-                static_cast<uint64_t>(reinterpret_cast<uintptr_t>(x[i])));
-        MemCpyForL2IdAndL2Addr(cur_ptr, l2_args_size, data_in_l2_id, flowdata.l2Addr);
-        break;
-      }
-
-      if (!is_input && static_cast<uint64_t>(reinterpret_cast<uintptr_t>(y[i])) == ddr_key) {
-        FE_LOGD("iter->first value is %ld, (uint64_t)(uintptr_t)y[%d] value is %ld", ddr_key, i,
-                static_cast<uint64_t>(reinterpret_cast<uintptr_t>(y[i])));
-        MemCpyForL2IdAndL2Addr(cur_ptr, l2_args_size, data_in_l2_id, flowdata.l2Addr);
-        break;
-      }
-    }
-
-    if (iter == l2datamap.end()) {
-      string input_or_output = is_input ? "input" : "output";
+      std::string input_or_output = is_input ? "input" : "output";
       FE_LOGD("Can not find anything in l2datamap for the %s %d, set l2_index=-1 and l2_offset=0.",
               input_or_output.c_str(), i);
       MemCpyForL2IdAndL2Addr(cur_ptr, l2_args_size, -1, 0);
@@ -178,7 +144,7 @@ Status TbeTaskBuilderAdapter::SaveTeCoreL2FlowDataForL2Buffer(int32_t input_num,
     tel2ctrl = l2_data->l2ctrl;
     return SUCCESS;
   } else {  // Const/PlaceHolder/PlaceEnd/Data
-    FE_LOGW("Node[type=%s,name=%s]: can not find the l2 data from stream_l2_map.", node_.GetType().c_str(),
+    FE_LOGW("Node[type=%s,name=%s]: cannot find the l2 data from stream_l2_map.", node_.GetType().c_str(),
             node_.GetName().c_str());
     return FAILED;
   }
@@ -320,7 +286,7 @@ Status TbeTaskBuilderAdapter::DealKernelLaunchForL2Buffer(int32_t input_num, int
                                                 task_def);
     }
   } else {
-    FE_LOGD("Node[type=%s,name=%s]: can not find L2 alloc infomation and use the ddr address.", node_.GetTypePtr(),
+    FE_LOGD("Node[type=%s,name=%s]: cannot find L2 alloc infomation and use the ddr address.", node_.GetTypePtr(),
             node_.GetNamePtr());
     if (ge::AttrUtils::GetStr(node_.GetOpDesc(), ATTR_NAME_KERNEL_LIST_FIRST_NAME, first_kernel_name)) {
       kernelRet = TbeKernelLaunch::KernelLaunchWithHandle(core_dim, tmp_buf, args_size, nullptr, task_def);
@@ -378,7 +344,7 @@ Status TbeTaskBuilderAdapter::DealKernelLaunchForL2Fusion(int32_t input_num, int
                                                 task_def);
   }
   } else {
-    FE_LOGD("Node[type=%s,name=%s]: can not find L2 Alloc infomation and use the ddr address(l2_index=-1,l2_offset=0).",
+    FE_LOGD("Node[type=%s,name=%s]: cannot find L2 Alloc infomation and use the ddr address(l2_index=-1,l2_offset=0).",
             op_type.c_str(), op_name.c_str());
     DealInputOutputWithDdr(input_num, cur_ptr, l2_args_size);
     DealInputOutputWithDdr(output_num, cur_ptr, l2_args_size);

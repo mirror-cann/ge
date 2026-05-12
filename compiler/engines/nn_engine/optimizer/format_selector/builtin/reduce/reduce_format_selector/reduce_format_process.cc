@@ -43,13 +43,13 @@ bool ReduceFormatProcess::CheckContainReduceAxis(const ge::OpDesc &op_desc, cons
   for (size_t i = 0; i < size; ++i) {
     vector<int64_t> axis_index_vec;
     if (AxisUtil::GetOriginAxisAttribute(op_desc, shapes[i], axis_index_vec) != SUCCESS) {
-      FE_LOGW("Op[%s,optype[%s]]: can not get origin axis attribute.", op_name.c_str(), op_type.c_str());
+      FE_LOGW("Op[%s,optype[%s]]: cannot get origin axis attribute.", op_name.c_str(), op_type.c_str());
       return true;
     }
 
     int64_t axis_tobe_check = -1;
     if (GetOriginAxisIndexByName(formats[i], shapes[i], axis_name, axis_tobe_check) != SUCCESS) {
-      FE_LOGW("Op[%s,optype[%s]]: can not get %s!", op_name.c_str(), op_type.c_str(), axis_name.c_str());
+      FE_LOGW("Op[%s,optype[%s]]: cannot get %s!", op_name.c_str(), op_type.c_str(), axis_name.c_str());
       return true;
     }
 

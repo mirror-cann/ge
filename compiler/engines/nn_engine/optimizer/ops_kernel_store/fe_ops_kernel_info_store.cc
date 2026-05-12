@@ -855,7 +855,7 @@ Status FEOpsKernelInfoStore::SetWorkSpaceForAtomicMemSet(const MemsetWorkspaceIn
             name.c_str(), node->GetNamePtr(), memset_workspace_info.work_space.size());
     ge::ComputeGraphPtr owner_graph = node->GetOwnerComputeGraph();
     if (owner_graph == nullptr) {
-      FE_LOGW("Node[%s] can not get owner graph, memset op %s, set single op scene flag unsuccessful.",
+      FE_LOGW("Node[%s] cannot get owner graph, memset op %s, set single op scene flag unsuccessful.",
               node->GetName().c_str(), memset_op_desc_ptr->GetName().c_str());
       return SUCCESS;
     }
@@ -1468,7 +1468,7 @@ bool FEOpsKernelInfoStore::IsExistInTBECustom(const ge::NodePtr &node_ptr) {
     OpKernelInfoPtr op_kernel_info_ptr =
         OpsKernelManager::Instance(engine_name_).GetOpKernelInfoByOpType(impl_type, node_ptr->GetType());
     if (op_kernel_info_ptr == nullptr) {
-      FE_LOGI("Can not get impl:%ld kernel of op:%s.", impl_type, node_ptr->GetNamePtr());
+      FE_LOGI("Cannot get impl:%ld kernel of op:%s.", impl_type, node_ptr->GetNamePtr());
       continue;
     }
     // updata tbe-custom op imply path if exist

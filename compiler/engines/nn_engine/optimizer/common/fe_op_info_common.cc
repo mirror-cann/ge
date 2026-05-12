@@ -128,7 +128,7 @@ Status TilingResultCheck(const ge::OpDescPtr &op_desc, RunInfoPtr &tiling_info) 
   }
 
   if (IsStcToDynSoftSyncOp(op_desc)) {
-    FE_LOGD("Node[%s] is sync op, can not reuse tiling.", op_desc->GetName().c_str());
+    FE_LOGD("Node[%s] is sync op, cannot reuse tiling.", op_desc->GetName().c_str());
     return FAILED;
   }
 

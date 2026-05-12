@@ -33,7 +33,7 @@ Status OpDtypeMixPrecisionMatcher::FindSuitableDtype(const vector<ge::DataType> 
     auto op_kernel_dtype = op_kernel_dtype_vec[index];
     if (op_kernel_dtype == forbidden_dtype) {
       iter = matched_index_vec.erase(iter);
-      FE_LOGD("The dtype %u in the op kernel is forbidden, can not use it", op_kernel_dtype);
+      FE_LOGD("The dtype %u in the op kernel is forbidden, cannot use it", op_kernel_dtype);
       continue;
     }
     if (op_kernel_dtype == ge::DT_FLOAT16 || op_kernel_dtype == ge::DT_BF16) {

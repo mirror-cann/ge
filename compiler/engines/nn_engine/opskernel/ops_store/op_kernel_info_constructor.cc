@@ -938,7 +938,7 @@ Status OpKernelInfoConstructor::InitUnknownFormatAndDtype(const map<string, stri
   string format_str;
   Status status = GetStrFromMap(map_info, STR_UNKNOWN_SHAPE_FORMAT, format_str);
   if (status != SUCCESS) {
-    FE_LOGD("Can not find unknownshape_format. Set its format and dtype.");
+    FE_LOGD("Cannot find unknownshape_format. Set its format and dtype.");
     if (GetStrFromMap(map_info, STR_FORMAT, format_str) != SUCCESS) {
       FE_LOGW("[InitOpInfoLib][InitOpKernel] InputOrOutputInfo::Initialize format key invalid.");
       return SUCCESS;

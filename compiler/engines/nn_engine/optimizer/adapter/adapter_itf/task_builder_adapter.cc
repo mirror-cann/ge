@@ -214,7 +214,7 @@ Status TaskBuilderAdapter::InitWorkspace() {
       if (has_workspace_type_list) {
         const auto iter = context_.mem_type_to_data_mem_size.find(mem_type_list[i]);
         if (iter == context_.mem_type_to_data_mem_size.end()) {
-            REPORT_FE_ERROR("[GenTask][InitWorkSpace][%s, type %s]: can not find context_.mem_type_to_data_mem_size by "
+            REPORT_FE_ERROR("[GenTask][InitWorkSpace][%s, type %s]: cannot find context_.mem_type_to_data_mem_size by "
                 "mem_type_list[%lu] and value is [%ld]",
                 op_desc_->GetName().c_str(), op_desc_->GetType().c_str(), i, mem_type_list[i]);
             return FAILED;
@@ -222,7 +222,7 @@ Status TaskBuilderAdapter::InitWorkspace() {
         data_mem_size = iter->second;
         const auto mem_base_iter = context_.mem_type_to_data_mem_base.find(mem_type_list[i]);
         if (mem_base_iter == context_.mem_type_to_data_mem_base.end()) {
-            REPORT_FE_ERROR("[GenTask][InitWorkSpace][%s, type %s]: can not find context_.mem_type_to_data_mem_base by "
+            REPORT_FE_ERROR("[GenTask][InitWorkSpace][%s, type %s]: cannot find context_.mem_type_to_data_mem_base by "
                 "mem_type_list[%lu]", op_desc_->GetName().c_str(), op_desc_->GetType().c_str(), i);
             return FAILED;
         }

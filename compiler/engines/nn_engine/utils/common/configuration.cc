@@ -1157,7 +1157,7 @@ Status Configuration::CheckOpStoreInfo(const FEOpsStoreInfo &op_store_info) cons
       return OPSTORE_PRIORITY_INVALID;
     }
     if (op_store.op_impl_type == op_store_info.op_impl_type) {
-      REPORT_FE_ERROR("[GraphOpt][Init][ChkOpStoreInfo] The op impl type of op stores can not be repeated.");
+      REPORT_FE_ERROR("[GraphOpt][Init][ChkOpStoreInfo] The op impl type of op stores cannot be repeated.");
       return OPSTORE_OPIMPLTYPE_REPEAT;
     }
   }

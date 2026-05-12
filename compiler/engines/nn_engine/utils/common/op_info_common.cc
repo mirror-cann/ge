@@ -496,7 +496,7 @@ bool GetDimValueByFormatAndShape(const ge::Format &format, const ge::GeShape &sh
                                  int64_t &dim_value) {
   int32_t dim_index = GetAxisIndexByFormat(format, axis);
   if (dim_index < 0) {
-    FE_LOGW("Can not find axis index by format[%s] and axis[%s].",
+    FE_LOGW("Cannot find axis index by format[%s] and axis[%s].",
             FormatToStr(format).c_str(), axis.c_str());
     return false;
   }
@@ -701,7 +701,7 @@ void CopyWeightAttrToPlaceHolder(ge::NodePtr& node) {
   ge::GeTensorPtr weight = nullptr;
   bool find_weight = ge::AttrUtils::MutableTensor(parent_node->GetOpDesc(), ge::ATTR_NAME_WEIGHTS, weight);
   if (!find_weight || weight == nullptr) {
-    FE_LOGD("Can not find attr ATTR_NAME_WEIGHTS for node:%s.", parent_node->GetName().c_str());
+    FE_LOGD("Cannot find attr ATTR_NAME_WEIGHTS for node:%s.", parent_node->GetName().c_str());
     return;
   }
 

@@ -164,14 +164,14 @@ inline Status CheckNCHWFzTrans(const TransInfoPtr &trans_info_ptr) {
   int32_t dim_vec_size = static_cast<int32_t>(dim_vec.size());
   int32_t index_c = GetAxisIndexByFormat(trans_info_ptr->dst_in_original_format, C_AXIS_NAME);
   if (index_c < 0 || index_c >= dim_vec_size) {
-    REPORT_FE_ERROR("[GraphOptJdgInst][ShapeTrans][CheckNCHWFzTrans] Can not get C index[%d] of format [%s].",
+    REPORT_FE_ERROR("[GraphOptJdgInst][ShapeTrans][CheckNCHWFzTrans] Cannot get C index[%d] of format [%s].",
         index_c, ge::TypeUtils::FormatToSerialString(trans_info_ptr->dst_in_original_format).c_str());
     return FAILED;
   }
 
   int32_t index_n = GetAxisIndexByFormat(trans_info_ptr->dst_in_original_format, N_AXIS_NAME);
   if (index_n < 0 || index_n >= dim_vec_size) {
-    REPORT_FE_ERROR("[GraphOptJdgInst][ShapeTrans][CheckNCHWFzTrans] Can not get N index[%d] of format [%s].",
+    REPORT_FE_ERROR("[GraphOptJdgInst][ShapeTrans][CheckNCHWFzTrans] Cannot get N index[%d] of format [%s].",
         index_n, ge::TypeUtils::FormatToSerialString(trans_info_ptr->dst_in_original_format).c_str());
     return FAILED;
   }
@@ -207,14 +207,14 @@ inline Status CheckFzNCHWTrans(const TransInfoPtr &trans_info_ptr) {
   int32_t dim_vec_size = static_cast<int32_t>(dim_vec.size());
   int32_t index_c = GetAxisIndexByFormat(trans_info_ptr->src_out_original_format, C_AXIS_NAME);
   if (index_c < 0 || index_c >= dim_vec_size) {
-    REPORT_FE_ERROR("[GraphOptJdgInst][ShapeTrans][CheckFzNCHWTrans] Can not get C index[%d] of format [%s].",
+    REPORT_FE_ERROR("[GraphOptJdgInst][ShapeTrans][CheckFzNCHWTrans] Cannot get C index[%d] of format [%s].",
         index_c, ge::TypeUtils::FormatToSerialString(trans_info_ptr->src_out_original_format).c_str());
     return FAILED;
   }
 
   int32_t index_n = GetAxisIndexByFormat(trans_info_ptr->src_out_original_format, N_AXIS_NAME);
   if (index_n < 0 || index_n >= dim_vec_size) {
-    REPORT_FE_ERROR("[GraphOptJdgInst][ShapeTrans][CheckFzNCHWTrans] Can not get N index[%d] of format [%s].",
+    REPORT_FE_ERROR("[GraphOptJdgInst][ShapeTrans][CheckFzNCHWTrans] Cannot get N index[%d] of format [%s].",
         index_n, ge::TypeUtils::FormatToSerialString(trans_info_ptr->src_out_original_format).c_str());
     return FAILED;
   }

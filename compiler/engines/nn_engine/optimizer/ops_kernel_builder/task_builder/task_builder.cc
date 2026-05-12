@@ -406,7 +406,7 @@ Status TaskBuilder::DoGenerateTask(const ge::Node &node, TaskBuilderContext &tas
 
 Status TaskBuilder::GenerateOpArgsFormat(const ge::OpDescPtr &op_desc, std::string &args_format_str) {
   if (op_desc->GetType() == "MemSet") {
-    FE_LOGD("Memset[%s] can not construct args format.", op_desc->GetNamePtr());
+    FE_LOGD("Memset[%s] cannot construct args format.", op_desc->GetNamePtr());
     return SUCCESS;
   }
   ArgsFormatConstructor args_construct(op_desc, false);

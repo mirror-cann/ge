@@ -193,7 +193,7 @@ Status ConvWeightCompressFusionPass::Fusion(ge::ComputeGraph &graph, Mapping &ma
   // modify op type of conv node
   auto iter = CONV_COMPRESS_OP_TYPE_MAP.find(conv_node->GetType());
   if (iter == CONV_COMPRESS_OP_TYPE_MAP.end()) {
-    FE_LOGD("Can not find conv compress op type by op type[%s].", conv_node->GetType().c_str());
+    FE_LOGD("Cannot find conv compress op type by op type[%s].", conv_node->GetType().c_str());
     return NOT_CHANGED;
   }
   ge::OpDescUtilsEx::SetType(conv_compress_op_desc, iter->second);
@@ -555,7 +555,7 @@ bool ConvWeightCompressFusionPass::CheckConstFoldNode(ge::NodePtr node_ptr) cons
   }
 
   if (kConstFoldingOpType.count(node_ptr->GetType()) == 0) {
-    FE_LOGD("Node[%s, %s] can not be fold.", node_ptr->GetType().c_str(), node_ptr->GetType().c_str());
+    FE_LOGD("Node[%s, %s] cannot be fold.", node_ptr->GetType().c_str(), node_ptr->GetType().c_str());
     return false;
   }
   if (node_ptr->GetInNodes().empty()) {

@@ -220,7 +220,7 @@ void BinaryManager::ParseAllBinaryInfoConfigPath()
         BinaryInfoBasePtr binaryInfo = nullptr;
         TE_FUSION_MAKE_SHARED(binaryInfo = std::make_shared<BinaryInfoBase>(), return);
         if (!binaryInfo->ParseBinaryInfoFile(opConfigPath.second, false)) {
-            TE_WARNLOG("Can not ParseBinaryInfoFile file_path is [%s].", opConfigPath.second.c_str());
+            TE_WARNLOG("Cannot ParseBinaryInfoFile file_path is [%s].", opConfigPath.second.c_str());
             binaryInfo.reset();
             binaryInfo = nullptr;
             continue;
@@ -235,7 +235,7 @@ void BinaryManager::ParseAllBinaryInfoConfigPath()
         BinaryInfoBasePtr relocatableBinaryInfo = nullptr;
         TE_FUSION_MAKE_SHARED(relocatableBinaryInfo = std::make_shared<BinaryInfoBase>(), return);
         if (!relocatableBinaryInfo->ParseBinaryInfoFile(opConfigPath.second, true)) {
-            TE_WARNLOG("Can not ParseBinaryInfoFile file_path is [%s].", opConfigPath.second.c_str());
+            TE_WARNLOG("Cannot ParseBinaryInfoFile file_path is [%s].", opConfigPath.second.c_str());
             relocatableBinaryInfo.reset();
             relocatableBinaryInfo = nullptr;
             continue;
@@ -1510,7 +1510,7 @@ bool BinaryManager::ReuseBinKernelBySimpleKey(const OpBuildTaskPtr &opTask)
     std::string opName = GetTaskNodeName(opTask);
     std::string jsonFilePath;
     if (!MatchSimplifiedKey(opTask, jsonFilePath)) {
-        TE_INFOLOG("Node[%s] can not MatchSimplifiedKey.", opNode->GetName().c_str());
+        TE_INFOLOG("Node[%s] cannot MatchSimplifiedKey.", opNode->GetName().c_str());
         return false;
     }
     std::string binaryPath;
@@ -1659,7 +1659,7 @@ bool BinaryManager::CheckIsCanReuseOmBinaryCompileRes(const OpBuildTaskPtr &opTa
 {
     if (opTask->opNodes.size() > 0) {
         if (opTask->opNodes[0]->GetOpDesc()->HasAttr(ATTR_NAME_CAN_NOT_REUSE_OM)) {
-            TE_DBGLOG("Node(%s) is ffts+ auto mode and shape is static, can not reuse om. Need to compile.",
+            TE_DBGLOG("Node(%s) is ffts+ auto mode and shape is static, cannot reuse om. Need to compile.",
                 GetTaskNodeName(opTask).c_str());
             return false;
         }

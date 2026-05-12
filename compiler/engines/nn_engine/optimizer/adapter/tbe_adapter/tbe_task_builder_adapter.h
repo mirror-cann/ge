@@ -100,11 +100,8 @@ class TbeTaskBuilderAdapter : public TaskBuilderAdapter {
                                      uint32_t args_size, uint32_t l2_args_size, const std::string &stub_func,
                                      const uint32_t core_dim, const void *tmp_buf, int32_t workspace_num,
                                      domi::TaskDef &task_def);
-
-  void DealInputOutputL2DataMap(const L2DataMap &l2datamap, int32_t data_num, const void *x[], const void *y[],
-                                uint64_t &cur_ptr, uint32_t &l2_args_size, bool is_input) const;
-
-  void DealInputOutputL2DataMap(const L2FusionDataMap_t &l2datamap, int32_t data_num, const void *x[], const void *y[],
+  template <typename T>
+  void DealInputOutputL2DataMap(const T &l2datamap, int32_t data_num, const void *x[], const void *y[],
                                 uint64_t &cur_ptr, uint32_t &l2_args_size, bool is_input) const;
 
   void DisplayRtL2CtrlInfo(const rtL2Ctrl_t &l2ctrl, bool enable_l2) const;

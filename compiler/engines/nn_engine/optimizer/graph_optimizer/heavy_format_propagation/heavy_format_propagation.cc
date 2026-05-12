@@ -594,7 +594,7 @@ Status HeavyFormatPropagation::SetOpKernelAndTensorMap(const NodeInfoPtr &node_i
   node_info->current_node_op_kernel_ptr = OpsKernelManager::Instance(engine_name_).GetOpKernelInfoByOpDesc(
       node_info->current_node->GetOpDesc());
   if (node_info->current_node_op_kernel_ptr == nullptr) {
-    FE_LOGD("Can not find op kernel for current node %s.", node_info->current_node->GetName().c_str());
+    FE_LOGD("Cannot find op kernel for current node %s.", node_info->current_node->GetName().c_str());
     FE_LOGD("Heavy format is %s for %s[%d] of node %s, sub format is %d, reshape type is %s.",
             ge::TypeUtils::FormatToSerialString(node_info->propagation_info.heavy_format).c_str(),
             IS_INPUT_TO_STRING(node_info->is_input_of_curr_node), node_info->anchor_index_of_curr_node,
@@ -911,7 +911,7 @@ Status HeavyFormatPropagation::RunPropagation(const NodeInfoPtr &node_info, std:
     PropagateBackwards(node_info, INVALID_FORMAT_INDEX, node_info->format_selection, next_node_queue);
   } else {
     FE_CHECK(node_info->current_node_op_kernel_ptr == nullptr,
-             FE_LOGW("Can not find op kernel for current node %s.", curr_node_name.c_str()), return SUCCESS);
+             FE_LOGW("Cannot find op kernel for current node %s.", curr_node_name.c_str()), return SUCCESS);
 
     /* Stop propagating at the next heavy op. */
     if (IsOpKernelHeavyOp(node_info->current_node, node_info->current_node_op_kernel_ptr) ||

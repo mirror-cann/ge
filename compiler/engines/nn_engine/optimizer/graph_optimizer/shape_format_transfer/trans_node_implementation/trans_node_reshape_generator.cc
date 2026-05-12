@@ -26,7 +26,7 @@ Status GetReshapeSizeAndFirstDim(ge::Format src_out_primary_format, const ge::Ge
   }
 
   if (src_out_shape.GetDimNum() != reshape_size) {
-    REPORT_FE_ERROR("[GraphOpt][Trans][Reshape] The shape size is not equals 6 or 7, can not reshape.");
+    REPORT_FE_ERROR("[GraphOpt][Trans][Reshape] The shape size is not equals 6 or 7, cannot reshape.");
     return FAILED;
   }
 

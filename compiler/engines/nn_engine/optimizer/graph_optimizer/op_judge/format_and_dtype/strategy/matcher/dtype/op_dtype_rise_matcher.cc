@@ -49,7 +49,7 @@ Status OpDtypeRiseMatcher::FindSuitableDtype(const vector<ge::DataType> &op_kern
     }
 
     if (dtype_float_flag && (op_kernel_dtype == forbidden_dtype || op_kernel_dtype == ge::DT_DOUBLE)) {
-      FE_LOGD("The dtype %u in the op kernel is forbidden, can not use it.", op_kernel_dtype);
+      FE_LOGD("The dtype %u in the op kernel is forbidden, cannot use it.", op_kernel_dtype);
       continue;
     }
     // 1. the priority gap between the exptected data type and the op_kernel data type

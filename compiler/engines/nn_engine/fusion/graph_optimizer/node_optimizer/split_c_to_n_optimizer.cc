@@ -111,7 +111,7 @@ bool SplitCToNOptimizer::CheckCommonCondition(const ge::ComputeGraph &graph, con
   }
 
   if (InvalidMemType(op_desc)) {
-    FE_LOGD("Split mem type check unsuccess, %s can not optimize.", node_name.c_str());
+    FE_LOGD("Split mem type check unsuccess, %s cannot optimize.", node_name.c_str());
     return false;
   }
 

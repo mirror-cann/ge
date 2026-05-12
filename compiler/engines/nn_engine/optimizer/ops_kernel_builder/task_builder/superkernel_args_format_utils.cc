@@ -64,7 +64,7 @@ ge::Status GetWorkspacePattern(const ge::Node &node, std::string &super_kernel_a
             return ge::SUCCESS;
         }
     }
-    FE_LOGW("can not find dfx node in subkernel");
+    FE_LOGW("Cannot find dfx node in subkernel");
     return ge::FAILED;
 }
 

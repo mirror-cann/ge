@@ -24,13 +24,13 @@ FILE* TeCacheUtils::LockAndOpenCacheFile(const std::string &cacheDirPath, const 
     std::string cacheLockRealPath = cacheDirPath + "/" + cacheKernelName + ".lock";
     FILE *fp = fopen(cacheLockRealPath.c_str(), "a+");
     if (fp == nullptr) {
-        TE_INFOLOGF("Can not Open file[%s].", cacheLockRealPath.c_str());
+        TE_INFOLOGF("Cannot Open file[%s].", cacheLockRealPath.c_str());
         return nullptr;
     }
 
     int res = chmod(cacheLockRealPath.c_str(), FILE_AUTHORITY);
     if (res == -1) {
-        TE_INFOLOGF("Can not Update file[%s] authority.", cacheLockRealPath.c_str());
+        TE_INFOLOGF("Cannot Update file[%s] authority.", cacheLockRealPath.c_str());
     }
 
     if (!TeFileUtils::FcntlLockFileSet(fileno(fp), F_WRLCK, 0)) {

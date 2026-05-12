@@ -174,7 +174,7 @@ Status SetTbeTensor(const ge::OpDesc &op_desc, const TensorDescAndIndex &tensor_
 bool CheckAOETuning(const ge::Node *node) {
   ge::ComputeGraphPtr owner_graph = node->GetOwnerComputeGraph();
   if (owner_graph == nullptr) {
-    FE_LOGW("Node[%s] can not get owner graph.", node->GetName().c_str());
+    FE_LOGW("Node[%s] cannot get owner graph.", node->GetName().c_str());
     return false;
   }
   std::string build_mode_value = FEContextUtils::GetBuildMode();
@@ -1423,7 +1423,7 @@ void TbeInfoAssembler::GetPrivateAttrsList(const ge::OpDesc &op_desc,
       private_attrs_list.push_back(private_attr_value);
       continue;
     } else {
-      FE_LOGW("Can not find the private attr %s from node %s",
+      FE_LOGW("Cannot find the private attr %s from node %s",
             private_attr_name, op_desc.GetName().c_str());
     }
   }
@@ -1601,7 +1601,7 @@ void TbeInfoAssembler::SetOpImplMode(const std::string &engine_name, const ge::O
 void TbeInfoAssembler::SetSingleOpScene(const ge::Node *node, te::TbeOpInfo &op_info) const {
   ge::ComputeGraphPtr owner_graph = node->GetOwnerComputeGraph();
   if (owner_graph == nullptr) {
-    FE_LOGW("Node[%s] can not get owner graph.", node->GetName().c_str());
+    FE_LOGW("Node[%s] cannot get owner graph.", node->GetName().c_str());
     return;
   }
   bool is_single_op_scene = IsSingleOpGraphWithCache(*owner_graph);

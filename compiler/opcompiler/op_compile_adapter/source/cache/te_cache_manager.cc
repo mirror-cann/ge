@@ -233,7 +233,7 @@ bool TeCacheManager::SetCompileResult(const CompileResultPtr &compileResultPtr)
     // if json file is not existed in cache dir, copy json and bin file to cache dir
     FILE *fp = TeCacheUtils::LockAndOpenCacheFile(cache_dir_path_, kernelName);
     if (fp == nullptr) {
-        TE_INFOLOG("Can not lock and open cache file for cacheKernelName [%s].", kernelName.c_str());
+        TE_INFOLOG("Cannot lock and open cache file for cacheKernelName [%s].", kernelName.c_str());
         return true;
     }
     bool ret = CopyCompileRetIntoCacheDir(compileResultPtr, cacheJsonFilePath, cacheBinFilePath);
@@ -257,7 +257,7 @@ bool TeCacheManager::CopyCompileRetIntoCacheDir(const CompileResultPtr &compileR
     }
     // copy bin file to cache dir
     if (!TeFileUtils::CopyFileToCacheDir(compileResultPtr->binPath, cacheBinFilePath)) {
-        TE_INFOLOGF("Can not to copy bin file from[%s] to [%s].",
+        TE_INFOLOGF("Cannot to copy bin file from[%s] to [%s].",
                     compileResultPtr->binPath.c_str(), cacheBinFilePath.c_str());
         return false;
     }
@@ -271,7 +271,7 @@ bool TeCacheManager::CopyCompileRetIntoCacheDir(const CompileResultPtr &compileR
             TE_DBGLOGF("Begin to copy head file from [%s] to [%s].",
                        compileResultPtr->headerPath.c_str(), cacheHeaderFilePath.c_str());
             if (!TeFileUtils::CopyFileToCacheDir(compileResultPtr->headerPath, cacheHeaderFilePath)) {
-                TE_INFOLOGF("Can not to copy header file from [%s] to [%s] .",
+                TE_INFOLOGF("Cannot to copy header file from [%s] to [%s] .",
                             compileResultPtr->headerPath.c_str(), cacheHeaderFilePath.c_str());
                 return false;
             }
@@ -280,7 +280,7 @@ bool TeCacheManager::CopyCompileRetIntoCacheDir(const CompileResultPtr &compileR
 
     // copy json file to cache dir
     if (!TeFileUtils::CopyFileToCacheDir(compileResultPtr->jsonPath, cacheJsonFilePath)) {
-        TE_INFOLOGF("Can not copy json file from[%s] to [%s] did not succeed.",
+        TE_INFOLOGF("Cannot copy json file from[%s] to [%s] did not succeed.",
                     compileResultPtr->jsonPath.c_str(), cacheJsonFilePath.c_str());
         return false;
     }
@@ -377,7 +377,7 @@ PreCompileResultPtr TeCacheManager::MatchPreCompileCache(const std::string &kern
 
     if (TeCacheSpaceManager::Instance().GetMaxOpCacheSize() != CACHE_AGING_FUCNTION_SWITCH) {
         if (!TeFileUtils::UpdateFileAccessTime(jsonFilePath)) {
-            TE_INFOLOG("Can not Update AccessTime for json file[%s].", jsonFilePath.c_str());
+            TE_INFOLOG("Cannot Update AccessTime for json file[%s].", jsonFilePath.c_str());
             return nullptr;
         }
     } else {
@@ -418,7 +418,7 @@ bool TeCacheManager::SetPreCompileResult(const std::string &kernelName, const Pr
     // if json file is not existed in cache dir, copy json and bin file to cache dir
     FILE *fp = TeCacheUtils::LockAndOpenCacheFile(cache_dir_path_, kernelName);
     if (fp == nullptr) {
-        TE_INFOLOG("Can not lock and open cache file for cacheKernelName [%s].", kernelName.c_str());
+        TE_INFOLOG("Cannot lock and open cache file for cacheKernelName [%s].", kernelName.c_str());
         return true;
     }
     bool ret = SavePreCompileRetIntoCacheDir(preCompileResultPtr, jsonCachePath);
@@ -441,7 +441,7 @@ bool TeCacheManager::SavePreCompileRetIntoCacheDir(const PreCompileResultPtr &pr
     jsonInfo["prebuilt_options"] = preCompileResultPtr->prebuiltOptions;
     std::string fileStr = jsonInfo.dump(SERIALIZATION_JSON_FORMAT);
     if (!TeFileUtils::WriteNewFileInCache(jsonCachePath, fileStr)) {
-        TE_INFOLOGF("Can not Write file[%s].", jsonCachePath.c_str());
+        TE_INFOLOGF("Cannot Write file[%s].", jsonCachePath.c_str());
         return false;
     }
     TE_DBGLOGF("Json cache file[%s] has been saved in cache dir. Op pattern[%s], core type[%s], options[%s].",

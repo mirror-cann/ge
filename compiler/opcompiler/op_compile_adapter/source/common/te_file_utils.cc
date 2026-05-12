@@ -364,7 +364,7 @@ bool TeFileUtils::IsFileUsed(std::string &filePath)
     // if locked by other process, don't delete the file
     FILE *fp = fopen(filePath.c_str(), "r");
     if (fp == nullptr) {
-        TE_WARNLOG("Can not open file[%s].", filePath.c_str());
+        TE_WARNLOG("Cannot open file[%s].", filePath.c_str());
         return true;
     }
 

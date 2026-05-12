@@ -249,7 +249,7 @@ OpKernelInfoPtr OpsKernelManager::GetHighPrioOpKernelInfoPtr(const string &op_ty
     }
     return op_kernel_ptr;
   }
-  FE_LOGW("Can not find Op (type [%s]) in all ops information store libs.", op_type.c_str());
+  FE_LOGW("Cannot find Op (type [%s]) in all ops information store libs.", op_type.c_str());
   return nullptr;
 }
 }

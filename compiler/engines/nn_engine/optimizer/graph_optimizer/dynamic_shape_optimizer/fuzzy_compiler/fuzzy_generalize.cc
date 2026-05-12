@@ -376,7 +376,7 @@ Status FuzzyGeneralize::CorrectCAxisByOriginalFormat(const ge::Format &origin_fo
                                                      const {
   auto iter_input = original_input_nodes_.find(input_node->GetName());
   if (iter_input == original_input_nodes_.end()) {
-    FE_LOGW("[GraphOpt][Prepare][Generalize] can not find node[%s] in original_input_nodes.", input_node->GetNamePtr());
+    FE_LOGW("[GraphOpt][Prepare][Generalize] cannot find node[%s] in original_input_nodes.", input_node->GetNamePtr());
     return FAILED;
   }
   ge::NodePtr ori_input_node = iter_input->second;

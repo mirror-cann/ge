@@ -59,26 +59,26 @@ CompileResultPtr CompileResultUtils::ParseCompileResult(const std::string &jsonF
     TE_DBGLOG("Read json info from json file[%s].", compileRetPtr->jsonPath.c_str());
     nlohmann::json jsonInfo;
     if (!TeFileUtils::GetJsonValueFromJsonFile(compileRetPtr->jsonPath, jsonInfo)) {
-        TE_INFOLOG("Can not Get jsonValue from jsonFile[%s].", jsonFilePath.c_str());
+        TE_INFOLOG("Cannot Get jsonValue from jsonFile[%s].", jsonFilePath.c_str());
         return nullptr;
     }
     TE_FUSION_MAKE_SHARED(compileRetPtr->jsonInfo = std::make_shared<nlohmann::json>(jsonInfo), return nullptr);
 
     // set bin file path
     if (!SetBinFilePath(compileRetPtr)) {
-        TE_INFOLOG("Can not set bin file name from json file[%s].", compileRetPtr->jsonPath.c_str());
+        TE_INFOLOG("Cannot set bin file name from json file[%s].", compileRetPtr->jsonPath.c_str());
         return nullptr;
     }
 
     // if bin file is .o file, read bin file and set kernel bin
     if (IsEndWith(compileRetPtr->binPath, ".o")) {
         if (!SetKernelBin(compileRetPtr)) {
-            TE_INFOLOG("Can not read bin file for json file[%s].", compileRetPtr->jsonPath.c_str());
+            TE_INFOLOG("Cannot read bin file for json file[%s].", compileRetPtr->jsonPath.c_str());
             return nullptr;
         }
     } else if (IsEndWith(compileRetPtr->binPath, ".so")) {
         if (!SetKernelBinBySo(compileRetPtr)) {
-            TE_INFOLOG("Can not read bin file for json file[%s].", compileRetPtr->jsonPath.c_str());
+            TE_INFOLOG("Cannot read bin file for json file[%s].", compileRetPtr->jsonPath.c_str());
             return nullptr;
         }
     }

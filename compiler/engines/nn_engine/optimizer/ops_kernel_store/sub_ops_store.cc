@@ -45,7 +45,7 @@ bool GetTensorName(SupportedFormatAndDtype &info, const string &input_or_output,
   if (index_name_map_iter == index_name_map.end()) {
     reason_oss << "the name of " << input_or_output << " [" << index << "] is not found";
     info.reason = reason_oss.str();
-    REPORT_FE_ERROR("[ChkSpt][FEChk][GetTensorNm]Can not find the %s index %u in map whose size is %zu",
+    REPORT_FE_ERROR("[ChkSpt][FEChk][GetTensorNm]Cannot find the %s index %u in map whose size is %zu",
                     input_or_output.c_str(), index, info.input_index_name_map.size());
     return false;
   }
@@ -430,7 +430,7 @@ bool SubOpsStore::VerifyFormatC0Val(const ge::OpDescPtr &op_desc_ptr, const ge::
 template <typename T>
 bool FindValueInVector(T &value, const GeAttrValue &op_desc_attr, const vector<GeAttrValue> &info_op_attr) {
   if (op_desc_attr.GetValue<T>(value) != ge::GRAPH_SUCCESS) {
-    FE_LOGD("Can not get value from OpDescAttr.");
+    FE_LOGD("Cannot get value from OpDescAttr.");
     return false;
   }
 
@@ -517,7 +517,7 @@ bool SubOpsStore::CheckAttrSupport(const ge::NodePtr &node, const OpKernelInfo &
       if (iter->GetIsRequired()) {
         reason_oss << ("the attribute[" + key + "] which is required is not found in op information library");
         reason = reason_oss.str();
-        FE_LOGW("Can not find AttrValue:[%s] in OpDesc (name %s)", key.c_str(), op_desc.GetName().c_str());
+        FE_LOGW("Cannot find AttrValue:[%s] in OpDesc (name %s)", key.c_str(), op_desc.GetName().c_str());
         return false;
       } else {
         continue;
@@ -535,7 +535,7 @@ bool SubOpsStore::CheckAttrSupport(const ge::NodePtr &node, const OpKernelInfo &
       if (iter->GetIsRequired()) {
         reason_oss << ("the attribute[" + key + "] which is required is not found in op information library");
         reason = reason_oss.str();
-        FE_LOGW("Can not find Attr Value (key [%s]) in OpDesc (name [%s]) and it is required!", key.c_str(),
+        FE_LOGW("Cannot find Attr Value (key [%s]) in OpDesc (name [%s]) and it is required!", key.c_str(),
                 op_desc.GetName().c_str());
         return false;
       } else {
@@ -550,7 +550,7 @@ bool SubOpsStore::CheckAttrSupport(const ge::NodePtr &node, const OpKernelInfo &
     if (ret != SUCCESS) {
       reason_oss << ("the value of attribute[" + key + "] is not found in op information library");
       reason = reason_oss.str();
-      FE_LOGW("Can not find Attr Value (key [%s]) in OpKernelInfo of op (name [%s]). Ret [%u]", key.c_str(),
+      FE_LOGW("Cannot find Attr Value (key [%s]) in OpKernelInfo of op (name [%s]). Ret [%u]", key.c_str(),
               op_desc.GetName().c_str(), ret);
       return false;
     }
@@ -561,7 +561,7 @@ bool SubOpsStore::CheckAttrSupport(const ge::NodePtr &node, const OpKernelInfo &
     if (ret != SUCCESS) {
       reason_oss << ("the data type of attribute[" + key + "] is not found in op information library");
       reason = reason_oss.str();
-      FE_LOGW("Can not find the attr value type of Attr [%s] of op (name [%s]) in OpKernelInfo; Ret value [%u]",
+      FE_LOGW("Cannot find the attr value type of Attr [%s] of op (name [%s]) in OpKernelInfo; Ret value [%u]",
               key.c_str(), op_desc.GetName().c_str(), ret);
       if (ret == OP_ATTR_EMPTY_IN_OP_KERNEL_INFO) {
         return true;
@@ -789,7 +789,7 @@ bool SubOpsStore::CheckInputSupported(const ge::NodePtr &node, uint32_t input_si
     if (input_index_name_map_iter == info.input_index_name_map.cend()) {
       reason_oss << "the name of input[" << in_index << "] is not found";
       info.reason = reason_oss.str();
-      REPORT_FE_ERROR("[ChkSpt][FEChk][ChkInSpt] Can not find the input index %u in map whose size is %zu",
+      REPORT_FE_ERROR("[ChkSpt][FEChk][ChkInSpt] Cannot find the input index %u in map whose size is %zu",
                       in_index, info.input_index_name_map.size());
       return false;
     }
@@ -829,7 +829,7 @@ bool SubOpsStore::CheckOutputSupported(const ge::NodePtr &node, uint32_t output_
     if (output_index_name_map_iter == info.output_index_name_map.cend()) {
       reason_oss << "the name of output[" << out_index << "] is not found";
       info.reason = reason_oss.str();
-      REPORT_FE_ERROR("[ChkSpt][FEChk][ChkOutSpt] Can not find the output index %u in map.", out_index);
+      REPORT_FE_ERROR("[ChkSpt][FEChk][ChkOutSpt] Cannot find the output index %u in map.", out_index);
       return false;
     }
     string output_name = output_index_name_map_iter->second;

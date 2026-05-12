@@ -60,6 +60,10 @@ class FusionGraphMerge {
   Status UpdateL2Info(const int64_t &origin_index, const int64_t &fusion_index, const L2FusionInfoPtr &originl2_info,
                       const L2FusionInfoPtr &fusion_l2_info) const;
 
+  uint8_t GetFusionOutputIndex(const std::string &orgin_name, uint8_t origin_output_index, uint32_t data_index,
+                               const std::map<std::int64_t, std::int64_t> &out_index_map,
+                               const ge::NodePtr &fusion_node) const;
+
   Status SetL2NameAndIndex(const L2FusionInfoPtr &originl2_info, L2FusionInfoPtr &fusion_l2_info) const;
 
   Status CreateFusionOpNodeGraph(vector<FusionDataFlow> &fus_input_edge_list,

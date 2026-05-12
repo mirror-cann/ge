@@ -54,7 +54,7 @@ Status OpDtypeReduceMatcher::FindSuitableDtype(const vector<ge::DataType> &op_ke
     }
 
     if (op_kernel_dtype == forbidden_dtype) {
-      FE_LOGD("The dtype %u in the op kernel is forbidden, can not use it.", op_kernel_dtype);
+      FE_LOGD("The dtype %u in the op kernel is forbidden, cannot use it.", op_kernel_dtype);
       continue;
     }
 
