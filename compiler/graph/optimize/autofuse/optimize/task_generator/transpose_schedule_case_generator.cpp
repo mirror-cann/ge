@@ -12,18 +12,17 @@
 #include <queue>
 #include <unordered_map>
 #include "graph/utils/graph_utils.h"
-#include "graph/ascendc_ir/utils/asc_graph_utils.h"
 #include "graph/symbolizer/symbolic.h"
 #include "graph/symbolizer/symbolic_utils.h"
 #include "ascir_utils.h"
 #include "ascir_ops_utils.h"
 #include "ascir_ops.h"
 #include "schedule_utils.h"
+#include "graph_properties_cache.h"
 
 
 namespace optimize {
 namespace {
-constexpr size_t kExpectedTransposeNodeNum = 1UL;      // 当前支持Ascgraph中含单个Transpose，后续考虑多个的情况。
 constexpr int32_t transposeNoNeedUBConvertSize = 512;  // 以512Byte作为是否需要消除Transpose的阈值
 }
 
@@ -104,6 +103,17 @@ Status TransposeFusionCaseGenerator::Generate(ascir::HintGraph &graph, std::vect
   const auto transpose_nodes = FindTransposeNodes(graph);
   if (transpose_nodes.empty()) {
     GELOGI("No transpose node found, skip");
+    return ge::SUCCESS;
+  }
+
+  GraphPropertiesCache cache(graph);
+  if (cache.HasReduce()) {
+    // 存在不支持与Transpose融合的计算节点，直接在原图上消除所有Transpose
+    auto remaining = FindTransposeNodes(graph);
+    while (!remaining.empty()) {
+      GE_CHK_STATUS_RET(TransposeConvertProcess(graph, remaining.front()), "TransposeConvertProcess failed");
+      remaining = FindTransposeNodes(graph);
+    }
     return ge::SUCCESS;
   }
 

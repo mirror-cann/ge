@@ -100,4 +100,38 @@ TEST_F(TransposeScheduleCaseGeneratorTest, MultiTranspose_TwoBranchAdd_TaskStruc
   ASSERT_EQ(tasks.size(), 1UL);
 }
 
+// Load → Transpose → Sum(Reduce) → Store → Output，图上有 Reduce 节点，
+// Transpose 应被从原图消除，不生成任何候选模板
+TEST_F(TransposeScheduleCaseGeneratorTest, SingleTransposeWithReduce_EliminateInplace) {
+  auto s0 = Sym("s0"), s1 = Sym("s1"), s2 = Sym("s2");
+  auto graph = AscGraphBuilder("transpose_reduce")
+                   .Loops({s0, s1, s2})
+                   .Data("data0", 0)
+                   .Load("load0", "data0")
+                   .Transpose("transpose0", "load0", {1, 0, 2})
+                   .Sum("sum0", "transpose0", {2UL})
+                   .Store("store0", "sum0")
+                   .Output("out0", "store0", 0)
+                   .Build();
+  optimize::AscGraphInfoComplete::CompleteApiInfo(graph);
+  SetupTransposeSchedAxis(graph);
+
+  optimize::TransposeFusionCaseGenerator generator;
+  std::vector<ge::AscGraph> graphs;
+  std::vector<std::string> score_functions;
+  EXPECT_EQ(generator.Generate(graph, graphs, score_functions), ge::SUCCESS);
+  EXPECT_TRUE(graphs.empty());
+  EXPECT_TRUE(score_functions.empty());
+
+  // 验证原图上的 Transpose 已被消除
+  bool has_transpose = false;
+  for (const auto &node : graph.GetAllNodes()) {
+    if (ge::ops::IsOps<ge::ascir_op::Transpose>(node)) {
+      has_transpose = true;
+      break;
+    }
+  }
+  EXPECT_FALSE(has_transpose);
+}
+
 }  // namespace schedule
