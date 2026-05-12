@@ -1,1 +1,4 @@
 *.png filter=lfs diff=lfs merge=lfs -text
+docs/GE_contact.png filter=lfs diff=lfs merge=lfs -text
+examples/custom_op/triton_add_custom/dynamic_shape.png filter=lfs diff=lfs merge=lfs -text
+examples/custom_op/triton_add_custom/static_shape.png filter=lfs diff=lfs merge=lfs -text
