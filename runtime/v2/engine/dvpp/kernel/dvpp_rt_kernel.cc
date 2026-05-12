@@ -37,6 +37,8 @@ constexpr size_t FIRST_OUTPUT = 0;
 constexpr size_t MAX_WORKSPACE_COUNT = 2UL; // max 2 workspace
 
 static std::once_flag loadFlag;
+static std::once_flag deprecatedPrintFlag;
+static bool isFirstCall = true;
 static void* dvppHandle = nullptr;
 
 static int32_t (*dvppBuildDvppCmdlistV2FunPtr)(gert::DvppContext*, std::vector<void*>&, DvppSqeInfo&) = nullptr;
@@ -219,8 +221,18 @@ static int32_t StarTaskLaunch(KernelContext* context, DvppSqeInfo &sqeInfo, cons
     return ret;
 }
 
+static void dvppGraphOpIRDeprecatedPrint(void)
+{
+    if (isFirstCall) {
+        GELOGW("The DVPP graph op IR was deprecated in December 2025 and has been replaced by the Dvpp op API." 
+            "We apologize for any inconvenience caused and appreciate your timely migration to the new interface.");
+        isFirstCall = false;
+    }
+}
+
 ge::graphStatus GenerateSqeAndLaunchTask(KernelContext* context)
 {
+    std::call_once(deprecatedPrintFlag, dvppGraphOpIRDeprecatedPrint);
     GELOGD("enter dvpp runtime kernel.");
     if (context == nullptr) {
         GELOGE(ge::FAILED, "param context is null");
@@ -290,6 +302,7 @@ ge::graphStatus CreateCalcWorkspaceSizeOutputs(const ge::FastNode* node, KernelC
 
 ge::graphStatus CalcOpWorkSpaceSize(KernelContext *context)
 {
+    std::call_once(deprecatedPrintFlag, dvppGraphOpIRDeprecatedPrint);
     const auto dvppKernelContext = reinterpret_cast<DvppContext *>(context);
     const std::string opType = dvppKernelContext->GetNodeType();
     auto workspaceSizes = context->GetOutputPointer<gert::ContinuousVector>(0);
