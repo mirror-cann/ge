@@ -95,7 +95,7 @@ GeRootModelPtr CreateGeRootModelWithAicoreOp() {
     if (op_desc->GetType() == DATA) {
       op_desc->SetOutputOffset({1024});
     } else if (op_desc->GetType() == NETOUTPUT) {
-      op_desc->SetInputOffset({1024});
+      op_desc->SetInputOffset({3072});
     } else {
       op_desc->AppendIrInput("x1", kIrInputRequired);
       op_desc->AppendIrInput("x2", kIrInputRequired);
@@ -145,7 +145,7 @@ GeRootModelPtr CreateGeRootModelWithAicoreOp2() {
     if (op_desc->GetType() == DATA) {
       op_desc->SetOutputOffset({1024});
     } else if (op_desc->GetType() == NETOUTPUT) {
-      op_desc->SetInputOffset({1024});
+      op_desc->SetInputOffset({3072});
     } else {
       op_desc->SetInputOffset(std::vector<int64_t>(op_desc->GetInputsSize(), 1024));
       op_desc->SetOutputOffset(std::vector<int64_t>(op_desc->GetOutputsSize(), 1024));
@@ -248,7 +248,7 @@ GeRootModelPtr CreateGeRootModelWithAicoreOpOfDynamicIo(
     if (op_desc->GetType() == DATA) {
       op_desc->SetOutputOffset({1024});
     } else if (op_desc->GetType() == NETOUTPUT) {
-      op_desc->SetInputOffset({1024});
+      op_desc->SetInputOffset({3072});
     } else {
       op_desc->SetInputOffset(std::vector<int64_t>(op_desc->GetInputsSize(), 1024));
       op_desc->SetOutputOffset(std::vector<int64_t>(op_desc->GetOutputsSize(), 1024));
@@ -284,7 +284,7 @@ GeRootModelPtr CreateGeRootModelWithConstInputsInTaskOrder() {
     if (op_desc->GetType() == DATA) {
       op_desc->SetOutputOffset({1024});
     } else if (op_desc->GetType() == NETOUTPUT) {
-      op_desc->SetInputOffset({1024});
+      op_desc->SetInputOffset({3072});
     } else {
       op_desc->SetInputOffset(std::vector<int64_t>(op_desc->GetInputsSize(), 1024));
       op_desc->SetOutputOffset(std::vector<int64_t>(op_desc->GetOutputsSize(), 1024));
@@ -348,7 +348,7 @@ GeRootModelPtr CreateGeRootModelWithAicpuOp() {
     if (op_desc->GetType() == DATA) {
       op_desc->SetOutputOffset({1024});
     } else if (op_desc->GetType() == NETOUTPUT) {
-      op_desc->SetInputOffset({1024});
+      op_desc->SetInputOffset({3072});
     } else {
       op_desc->SetInputOffset(std::vector<int64_t>(op_desc->GetInputsSize(), 1024));
       op_desc->SetOutputOffset(std::vector<int64_t>(op_desc->GetOutputsSize(), 1024));
@@ -400,7 +400,7 @@ GeRootModelPtr CreateGeRootModelWithAicoreChainOp() {
     if (op_desc->GetType() == DATA) {
       op_desc->SetOutputOffset({1024});
     } else if (op_desc->GetType() == NETOUTPUT) {
-      op_desc->SetInputOffset({1024});
+      op_desc->SetInputOffset({3072});
     } else {
       op_desc->AppendIrInput("x1", kIrInputRequired);
       op_desc->AppendIrInput("x2", kIrInputRequired);
@@ -650,7 +650,7 @@ TEST_F(Om2CodegenModelBuilderUt, BuildModelIoSemantic_Aicore_Ok) {
   ASSERT_EQ(doc.model_io.input_count, 2U);
   ASSERT_EQ(doc.model_io.output_count, 1U);
   ASSERT_EQ(doc.model_io.entries.size(), 3U);
-  EXPECT_EQ(doc.model_io.io_offsets, std::set<int64_t>({1024}));
+  EXPECT_EQ(doc.model_io.io_offsets, std::set<int64_t>({1024, 3072}));
 
   EXPECT_EQ(doc.model_io.entries[0].index, 0U);
   EXPECT_EQ(doc.model_io.entries[0].memory_offset, 1024);
@@ -665,7 +665,7 @@ TEST_F(Om2CodegenModelBuilderUt, BuildModelIoSemantic_Aicore_Ok) {
   EXPECT_TRUE(doc.model_io.entries[1].is_addr_refreshable);
 
   EXPECT_EQ(doc.model_io.entries[2].index, 0U);
-  EXPECT_EQ(doc.model_io.entries[2].memory_offset, 1024);
+  EXPECT_EQ(doc.model_io.entries[2].memory_offset, 3072);
   EXPECT_EQ(doc.model_io.entries[2].update_host_args_index, 2U);
   EXPECT_FALSE(doc.model_io.entries[2].is_input);
   EXPECT_TRUE(doc.model_io.entries[2].is_addr_refreshable);
@@ -699,6 +699,38 @@ TEST_F(Om2CodegenModelBuilderUt, BuildModelIoSemantic_ReorderedDataAttrIndex_Ok)
   EXPECT_EQ(doc.model_io.entries[1].update_host_args_index, 1U);
   EXPECT_EQ(doc.model_io.entries[2].index, 0U);
   EXPECT_FALSE(doc.model_io.entries[2].is_input);
+}
+
+GeRootModelPtr CreateGeRootModelWithIoMemoryOffsetOverlap() {
+  GeRootModelPtr ge_root_model = CreateGeRootModelWithAicoreOp();
+  if (ge_root_model == nullptr) {
+    return nullptr;
+  }
+  const auto &name_to_ge_model = ge_root_model->GetSubgraphInstanceNameToModel();
+  if (name_to_ge_model.empty()) {
+    return nullptr;
+  }
+  const auto ge_model = name_to_ge_model.begin()->second;
+  const auto compute_graph = ge_model->GetGraph();
+  if (compute_graph == nullptr) {
+    return nullptr;
+  }
+  for (const auto &node : compute_graph->GetDirectNode()) {
+    auto op_desc = node->GetOpDesc();
+    if ((op_desc == nullptr) || (op_desc->GetType() != NETOUTPUT)) {
+      continue;
+    }
+    op_desc->SetInputOffset({1024});
+    break;
+  }
+  return ge_root_model;
+}
+
+TEST_F(Om2CodegenModelBuilderUt, BuildModelIoSemantic_IoMemoryOffsetOverlap_Fail) {
+  GeRootModelPtr ge_root_model = CreateGeRootModelWithIoMemoryOffsetOverlap();
+  ASSERT_NE(ge_root_model, nullptr);
+  Om2CodegenModel doc;
+  ASSERT_EQ(BuildCodegenModel(ge_root_model, doc), PARAM_INVALID);
 }
 
 TEST_F(Om2CodegenModelBuilderUt, BuildConstInputs_Ok) {

@@ -19,12 +19,15 @@
 #include "framework/common/taskdown_common.h"
 #include "common/om2/codegen/om2_codegen_utils.h"
 #include "common/kernel_handles_manager/kernel_handle_utils.h"
+#include "register/op_tiling_registry.h"
+#include "common/op_tiling/tiling_dfx.h"
 
 namespace ge {
 using AicpuShapeAndType = aicpu::FWKAdapter::ShapeAndType;
 using AicpuExtInfo = aicpu::FWKAdapter::ExtInfo;
 constexpr int64_t kDimEndFlag = std::numeric_limits<int64_t>::min();
 constexpr uint32_t kAddressLen = static_cast<uint32_t>(sizeof(uint64_t));
+constexpr uint64_t kMaxTilingDataSize = 16UL * 1024UL;
 
 class KernelTaskCodeBuilder : public TaskCodeBuilder {
  public:
@@ -63,11 +66,22 @@ class KernelTaskCodeBuilder : public TaskCodeBuilder {
   FunctionDef *BuildAssembleAicpuExtInfo() const;
   FunctionDef *BuildAssembleAicpuArgs() const;
   FunctionDef *BuildAicpuKernelTaskDistribute() const;
+  FunctionDef *BuildGetEventIdAddr() const;
   Status AppendAicpuArgsCode(Arg iow_addr, const VarRef &args_var, std::vector<BodyItem> &items);
   Status GenArgsCode();
   Status InitAicpuTaskExtInfo(uint8_t *ext_info, size_t ext_info_len, const OpDescPtr op_desc,
                               int32_t &session_info_offset);
   Status BuildLaunchSemantic(const TaskSemanticContributeContext &context);
+  Status CopyTilingDataIfNeeded(const TaskSemanticContributeContext &context, const ArgsFormatInfo &args_format_holder);
+  Status ConstructDfxInfo(const ge::OpDescPtr &op_desc, const optiling::OpRunInfoV2 &run_info,
+                          const std::vector<ge::ArgDesc> &arg_descs, std::string &dfx_info) const;
+  Status UpdateDfxArgsAndShapeSize(const OpDescPtr &op_desc,
+                                   const std::vector<optiling::ArgsIndexToIoIndex> &args_idx_to_io_idx_vec,
+                                   std::vector<int64_t> &args_size_vec,
+                                   std::vector<int64_t> &shape_size_vec) const;
+  void AppendShapeInfo(const ge::GeShape &shape, std::vector<int64_t> &shape_info_vec) const;
+  Status GetMemCheckStartSize(const ge::OpDescPtr &op_desc, const int64_t origin_tiling_data_size,
+                              int64_t &memcheck_start_size) const;
   void AppendOrderedArgValue(const AddrSemantic &semantic);
   Status UpdateShapeAndType(const std::vector<int64_t> &dims, const DataType data_type,
                             AicpuShapeAndType &shape_and_type) const;
@@ -88,6 +102,13 @@ class KernelTaskCodeBuilder : public TaskCodeBuilder {
   Status AppendOrderedArgsByFormat(const TaskSemanticContributeContext &context, const ArgsFormatInfo &args_format_holder,
                                    std::vector<ArgDesc> &dynamic_args_desc,
                                    std::vector<size_t> &level1_desc_indices);
+  void AppendOrderedDescArg(const TaskSemanticContributeContext &context, const ArgDesc &arg_format,
+                            std::vector<ArgDesc> &dynamic_args_desc, std::vector<size_t> &level1_desc_indices);
+  void AppendOrderedFftsAddrArg(const TaskSemanticContributeContext &context);
+  void AppendOrderedEventAddrArg(const TaskSemanticContributeContext &context,
+                                 const ArgDesc &arg_format, uint32_t &event_addr_index);
+  void AppendOrderedOverflowAddrArg(const TaskSemanticContributeContext &context);
+  void AppendOrderedTilingArg(const TaskSemanticContributeContext &context);
   Status AppendShapeInfoOrderedArgs(const TaskSemanticContributeContext &context,
                                     const ArgsFormatInfo &args_format_holder,
                                     const std::vector<ArgDesc> &dynamic_args_desc,
@@ -95,12 +116,17 @@ class KernelTaskCodeBuilder : public TaskCodeBuilder {
   Status BuildOrderedArgValuesForAicore(const TaskSemanticContributeContext &context,
                                         ArgsFormatInfo &args_format_holder);
   Status BuildOrderedArgValuesForAicpu(const TaskSemanticContributeContext &context);
+  Status BuildOrderedArgValuesWithoutArgsFormat(const TaskSemanticContributeContext &context);
   Status BuildAicpuArgsSemantic(const TaskSemanticContributeContext &context);
   Status BuildAicpuExtInfoSemantic(const TaskSemanticContributeContext &context);
   Status BuildAddrGenInfoFromSemantic(const AddrSemantic &semantic, RenderedAddrInfo &addr_gen_info) const;
   Status BuildAddrGenInfoForShapeInfoBuffer(const AddrSemantic &semantic, RenderedAddrInfo &addr_gen_info) const;
   Status BuildAddrGenInfoForLevel1DescPtr(const AddrSemantic &semantic,
                                                            RenderedAddrInfo &addr_gen_info) const;
+  Status BuildAddrGenInfoForInstance(const AddrSemantic &semantic, RenderedAddrInfo &addr_gen_info) const;
+  Status BuildAddrGenInfoForFftsAddr(const AddrSemantic &semantic, RenderedAddrInfo &addr_gen_info) const;
+  Status BuildAddrGenInfoForEventAddr(const AddrSemantic &semantic, RenderedAddrInfo &addr_gen_info) const;
+  Status BuildAddrGenInfoForTiling(const AddrSemantic &semantic, RenderedAddrInfo &addr_gen_info) const;
   Status CheckTaskSupport() const;
   Status GetKernelTaskMeta(const domi::TaskDef &task_def, domi::KernelContext &kernel_context,
                            uint32_t &args_size, uint32_t &kernel_type) const;
@@ -116,7 +142,7 @@ class KernelTaskCodeBuilder : public TaskCodeBuilder {
     int32_t &session_info_offset, const uint32_t num_inputs, const uint32_t num_outputs, const std::string &node_name,
     const bool all_shape) const;
   Status AppendDistributionForAicpu(const std::vector<Arg> &args_vars, std::vector<BodyItem> &items);
-  void AppendOrderedArgValueForAicpu(const AddrSemantic &semantic, const uint64_t addr_offset);
+  Status AppendOrderedArgValueForCommon(const AddrSemantic &semantic, const uint64_t addr_offset);
  private:
   std::vector<RenderedAddrInfo> args_addr_nodes_;
   int32_t cust_value_var_index_;
@@ -128,6 +154,8 @@ class KernelTaskCodeBuilder : public TaskCodeBuilder {
   bool is_separately_clean_task_{false};
   bool is_blocking_aicpu_op_{false};
   KernelTaskSemantic semantic_;
+  bool has_tiling_{false};
+  std::string tiling_data_{""};
 };
 }  // namespace ge
 

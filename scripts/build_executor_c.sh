@@ -16,8 +16,17 @@ BASEPATH=$(cd "$(dirname $0)/.."; pwd)
 # Source common lcov version detection functions
 source ${BASEPATH}/scripts/support_multiple_versions_of_lcov.sh
 
-# Detect lcov version and set appropriate ignore-errors flag
-detect_lcov_ignore_errors
+# 获取 lcov 2.x 的错误处理参数（不含 child，child 只在并行模式有效）
+# 包含 empty 以处理没有 .gcda 文件的目录
+if [ "$(get_lcov_major_version)" -ge 2 ] 2>/dev/null; then
+    LCOV_IGNORE_ERRORS="inconsistent,negative,mismatch,empty"
+    LCOV_RC_PARAM="--rc geninfo_unexecuted_blocks=1"
+    GENHTML_IGNORE_ERRORS="--ignore-errors inconsistent,corrupt"
+else
+    LCOV_IGNORE_ERRORS=""
+    LCOV_RC_PARAM=""
+    GENHTML_IGNORE_ERRORS=""
+fi
 echo "ASCEND_INSTALL_PATH=${ASCEND_INSTALL_PATH}"
 echo "CANN_3RD_LIB_PATH=${CANN_3RD_LIB_PATH}"
 echo "BUILD_METADEF=${BUILD_METADEF}"
@@ -152,7 +161,8 @@ generate_inc_coverage() {
 
   git diff --src-prefix=${BASEPATH}/ --dst-prefix=${BASEPATH}/ HEAD^ > ${BASEPATH}/cov/diff/inc_change_diff.txt
   addlcov --diff ${BASEPATH}/cov/coverage.info ${BASEPATH}/cov/diff/inc_change_diff.txt -o ${BASEPATH}/cov/diff/inc_coverage.info
-  genhtml --prefix ${BASEPATH} -o ${BASEPATH}/cov/diff/html ${BASEPATH}/cov/diff/inc_coverage.info --legend -t CHG --no-branch-coverage --no-function-coverage
+  GENHTML_IGNORE_ERRORS=$(get_genhtml_ignore_errors)
+  genhtml --prefix ${BASEPATH} -o ${BASEPATH}/cov/diff/html ${BASEPATH}/cov/diff/inc_coverage.info --legend -t CHG --no-branch-coverage --no-function-coverage ${GENHTML_IGNORE_ERRORS}
 }
 
 g++ -v
@@ -217,19 +227,19 @@ if [[ "X$ENABLE_GE_C_LLT" = "Xon" ]]; then
       if [[ "X$ENABLE_GE_C_UT" = "Xon" ]]; then
         rm -rf ${BASEPATH}/cov_executor_c_ut
         mk_dir ${BASEPATH}/cov_executor_c_ut
-        lcov -c -d ${BUILD_PATH}/tests/test_c/ut/testcase/executor ${LCOV_IGNORE_ERRORS:+--ignore-errors ${LCOV_IGNORE_ERRORS}} -o cov_executor_c_ut/tmp.info
+        lcov -c -d ${BUILD_PATH}/tests/test_c/ut/testcase/executor --ignore-errors ${LCOV_IGNORE_ERRORS} ${LCOV_RC_PARAM} -o cov_executor_c_ut/tmp.info
         lcov -r cov_executor_c_ut/tmp.info '*/output/*' '*/${BUILD_RELATIVE_PATH}/opensrc/*' '*/gtest_shared/*' '*/third_party/*' '*/tests/test_c/*' '/usr/local/*' '/usr/include/*' '*/metadef/*' '*/parser/*' '*/c_base/*' ${LCOV_IGNORE_ERRORS:+--ignore-errors ${LCOV_IGNORE_ERRORS},unused} -o cov_executor_c_ut/coverage.info
         cd ${BASEPATH}/cov_executor_c_ut
-        genhtml coverage.info
+        genhtml coverage.info ${GENHTML_IGNORE_ERRORS}
       fi
 
       if [[ "X$ENABLE_GE_C_ST" = "Xon" ]]; then
         rm -rf ${BASEPATH}/cov_executor_c_st
         mk_dir ${BASEPATH}/cov_executor_c_st
-        lcov -c -d ${BUILD_PATH}/tests/test_c/ut/testcase/executor ${LCOV_IGNORE_ERRORS:+--ignore-errors ${LCOV_IGNORE_ERRORS}} -o cov_executor_c_st/tmp.info
+        lcov -c -d ${BUILD_PATH}/tests/test_c/ut/testcase/executor --ignore-errors ${LCOV_IGNORE_ERRORS} ${LCOV_RC_PARAM} -o cov_executor_c_st/tmp.info
         lcov -r cov_executor_c_st/tmp.info '*/output/*' '*/${BUILD_RELATIVE_PATH}/opensrc/*' '*/gtest_shared/*' '*/third_party/*' '*/tests/test_c/*' '/usr/local/*' '/usr/include/*' '*/metadef/*' '*/parser/*' '*/c_base/*' ${LCOV_IGNORE_ERRORS:+--ignore-errors ${LCOV_IGNORE_ERRORS},unused} -o cov_executor_c_st/coverage.info
         cd ${BASEPATH}/cov_executor_c_st
-        genhtml coverage.info
+        genhtml coverage.info ${GENHTML_IGNORE_ERRORS}
       fi
     fi
 fi

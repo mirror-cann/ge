@@ -31,7 +31,7 @@ class TestBackendInductorTopnE2e : public testing::Test {
 };
 
 TEST_F(TestBackendInductorTopnE2e, InductorTopnE2eCodegen) {
-  auto graph = ascir::ShareGraph::AddAbsFusedGraph(3);
+  auto graph = ascir::ShareGraph::BrcInlineFusedGraph(2);
   auto parts = splitString(KERNEL_SRC_LIST, ':');
   ASSERT_EQ(parts.size(), kExpectedKernelSrcCount);
 

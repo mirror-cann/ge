@@ -1194,6 +1194,12 @@ public:
     static PgoConfig instance;
     return instance;
   }
+  void ResetRuntimeOverrides() {
+    need_change_solver_run = false;
+    pgo_threshold_index = 0;
+    pgo_ub_threshold_list = {0.2, 0.1, 0, 0.05, 0.1};
+    pgo_corenum_threshold_list = {0.4, 0.4, 1, 1, 0.8};
+  }
   ProfilingCallback single_callback;
   ProfilingBatchCallback batch_callback;
   int32_t pgo_algorithm = 1; // 0 for pruning, 1 for core num
@@ -1207,6 +1213,11 @@ private:
   ~PgoConfig() = default;
   PgoConfig(const PgoConfig &) = delete;
   PgoConfig &operator=(const PgoConfig &) = delete;
+};
+class PgoConfigRuntimeGuard {
+public:
+  PgoConfigRuntimeGuard() { PgoConfig::Instance().ResetRuntimeOverrides(); }
+  ~PgoConfigRuntimeGuard() { PgoConfig::Instance().ResetRuntimeOverrides(); }
 };
 
 #include <iostream>
@@ -1238,7 +1249,8 @@ extern "C" bool GetTiling(AutofuseTilingData& tiling_data, int32_t tilingCaseId=
 inline bool IsEqual(double a, double b) {
   return true;
 }
-bool PGOSearchTilingKey(std::vector<AutofuseTilingDataPerf>& tiling_data_list, AutofuseTilingData &tiling_data, int32_t tilingCaseId, AutofuseTilingData* autofuseTilingData, void* stream, uint32_t workspaceSize, double& out_best_perf) {
+struct SearchConfig;
+bool PGOSearchTilingKey(std::vector<AutofuseTilingDataPerf>& tiling_data_list, AutofuseTilingData &tiling_data, int32_t tilingCaseId, AutofuseTilingData* output_tiling_data, void* stream, uint32_t workspaceSize, double& out_best_perf, std::unordered_map<int64_t, uint64_t> &workspace_map, std::vector<uint32_t*> block_dim_vec={}, const SearchConfig *search_cfg=nullptr) {
   return true;
 }
 bool PGOByCoreNumSearchTilingKey(std::vector<AutofuseTilingData>& tiling_data_list, AutofuseTilingData* tiling_data, uint32_t max_block_dim=48) {

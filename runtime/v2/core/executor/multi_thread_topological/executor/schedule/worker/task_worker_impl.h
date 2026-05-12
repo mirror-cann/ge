@@ -305,12 +305,6 @@ class TaskWorkerImpl : public TaskWorker {
         }
       }
     }
-    if (bound_stream != nullptr) {
-      const auto acl_error = aclrtUnuseStreamResInCurrentThread(bound_stream);
-      if (acl_error != ACL_SUCCESS) {
-        GELOGW("Failed to unbind stream resource limit on thread exit, stream %p, ret %d", bound_stream, acl_error);
-      }
-    }
   }
 
   void Wait() {

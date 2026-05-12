@@ -66,4 +66,33 @@ __simd_callee__ inline void ModifiedBesselKFactorBigCompute(AscendC::Reg::RegTen
     AscendC::Reg::Div(bigDstReg, bigDstReg, factorReg, branchMask);
 }
 
+template <typename T>
+__simd_callee__ inline void ScaledModifiedBesselKFactorBigCompute(AscendC::Reg::RegTensor<T>& srcReg,
+                                                    AscendC::Reg::RegTensor<T>& bigDstReg, AscendC::Reg::MaskReg& branchMask) {
+    AscendC::Reg::RegTensor<T> factorReg;
+    AscendC::Reg::Sqrt(factorReg, srcReg, branchMask);
+    AscendC::Reg::Div(bigDstReg, bigDstReg, factorReg, branchMask);
+}
+
+template <typename T>
+__simd_callee__ inline void ModifiedBesselKHandleSpecialCases(AscendC::Reg::RegTensor<T>& srcReg,
+                                                    AscendC::Reg::RegTensor<T>& dstReg, AscendC::Reg::MaskReg& mask) {
+    // ===== x < 0: NaN =====
+    AscendC::Reg::RegTensor<T> nanReg, infReg; 
+    AscendC::Reg::MaskReg branchMask;
+    AscendC::Reg::Compares<T, CMPMODE::LT>(branchMask, srcReg, (T)0.0, mask);
+    AscendC::Reg::Duplicate(nanReg, (float&)MODIFIED_BESSEL_FLOAT_NAN, branchMask);
+    AscendC::Reg::Select(dstReg, nanReg, dstReg, branchMask);
+
+    // ===== x == 0: Inf =====
+    AscendC::Reg::Compares<T, CMPMODE::EQ>(branchMask, srcReg, (T)0.0, mask);
+    AscendC::Reg::Duplicate(infReg, INFINITY, branchMask);
+    AscendC::Reg::Select(dstReg, infReg, dstReg, branchMask);
+
+    // handle nan input
+    AscendC::Reg::Compare<T, CMPMODE::NE>(branchMask, srcReg, srcReg, mask);
+    AscendC::Reg::Duplicate(nanReg, (float&)MODIFIED_BESSEL_FLOAT_NAN, mask);
+    AscendC::Reg::Select(dstReg, nanReg, dstReg, branchMask);
+}
+
 #endif // __ASCENDC_API_REGBASE_MODIFIED_BESSEL_UTILS_H__

@@ -486,17 +486,29 @@ if [[ "X$ENABLE_GE_UT" = "Xon" ]] || [[ "X$ENABLE_RT2_UT" = "Xon" ]] || [[ "X$EN
         COV_DIRS_PARAMS+=(-d "$dir")
       done
 
-      lcov -c "${COV_DIRS_PARAMS[@]}" -o cov/tmp.info $(add_lcov_ops_by_major_version 2 "--ignore-errors empty,mismatch,negative")
+      # 获取 lcov 并行参数（仅在 >= 2.3 时生效）
+      LCOV_PARALLEL_PARAMS=$(get_lcov_parallel_params ${THREAD_NUM})
+      LCOV_PARALLEL_IGNORE=$(get_lcov_parallel_ignore_errors)
+      LCOV_RC_PARAM=$(get_lcov_unexecuted_blocks_param)
+
+      lcov -c "${COV_DIRS_PARAMS[@]}" -o cov/tmp.info \
+           ${LCOV_PARALLEL_IGNORE} \
+           ${LCOV_PARALLEL_PARAMS} \
+           ${LCOV_RC_PARAM}
       if [ ! -s "cov/tmp.info" ] || ! grep -q "SF:" "cov/tmp.info"; then
         echo "No valid cpp coverage data found; skip filtering."
         touch cov/coverage.info  # 生成空文件占位，避免后续流程报错
       else
-        lcov -r cov/tmp.info '*/output/*' "*/${BUILD_RELATIVE_PATH}/opensrc/*" "*/${BUILD_RELATIVE_PATH}/proto/*" \
-                             '*/op_impl/*' "*/${BUILD_RELATIVE_PATH}/grpc_*" '*/third_party/*' '*/op_impl/*' '*/tests/*' \
-                             '/usr/local/*' '/usr/include/*' '*/metadef/*' \
-                             "${ASCEND_INSTALL_PATH}/*" "${CANN_3RD_LIB_PATH}/*" \
-                             -o cov/coverage.info $(add_lcov_ops_by_major_version 2 "--ignore-errors unused")
-        genhtml cov/coverage.info -o cov/html
+lcov -r cov/tmp.info '*/output/*' "*/${BUILD_RELATIVE_PATH}/opensrc/*" "*/${BUILD_RELATIVE_PATH}/proto/*" \
+                            '*/op_impl/*' "*/${BUILD_RELATIVE_PATH}/grpc_*" '*/third_party/*' '*/op_impl/*' '*/tests/*' \
+                            '/usr/local/*' '/usr/include/*' '*/metadef/*' \
+                            "${ASCEND_INSTALL_PATH}/*" "${CANN_3RD_LIB_PATH}/*" \
+                            -o cov/coverage.info \
+                            ${LCOV_PARALLEL_IGNORE} --ignore-errors unused \
+                            ${LCOV_PARALLEL_PARAMS} \
+                            ${LCOV_RC_PARAM}
+        GENHTML_IGNORE_ERRORS=$(get_genhtml_ignore_errors)
+        genhtml cov/coverage.info -o cov/html ${GENHTML_IGNORE_ERRORS}
 
         if [[ "X$ENABLE_ICOV" = "Xon" ]]; then
           generate_inc_coverage
@@ -696,7 +708,15 @@ if [[ "X$ENABLE_GE_ST" = "Xon" ]] || [[ "X$ENABLE_RT2_ST" = "Xon" ]] || [[ "X$EN
         COV_DIRS_PARAMS+=(-d "$dir")
       done
 
-      lcov -c "${COV_DIRS_PARAMS[@]}" -o cov/tmp.info $(add_lcov_ops_by_major_version 2 "--ignore-errors empty,mismatch,negative")
+      # 获取 lcov 并行参数（仅在 >= 2.3 时生效）
+      LCOV_PARALLEL_PARAMS=$(get_lcov_parallel_params ${THREAD_NUM})
+      LCOV_PARALLEL_IGNORE=$(get_lcov_parallel_ignore_errors)
+      LCOV_RC_PARAM=$(get_lcov_unexecuted_blocks_param)
+
+      lcov -c "${COV_DIRS_PARAMS[@]}" -o cov/tmp.info \
+           ${LCOV_PARALLEL_IGNORE} \
+           ${LCOV_PARALLEL_PARAMS} \
+           ${LCOV_RC_PARAM}
       if [ ! -s "cov/tmp.info" ] || ! grep -q "SF:" "cov/tmp.info"; then
         echo "No valid cpp coverage data found; skip filtering."
         touch cov/coverage.info  # 生成空文件占位，避免后续流程报错
@@ -706,8 +726,12 @@ if [[ "X$ENABLE_GE_ST" = "Xon" ]] || [[ "X$ENABLE_RT2_ST" = "Xon" ]] || [[ "X$EN
                              "*/${BUILD_RELATIVE_PATH}/grpc_*" '*/third_party/*' '*/tests/*' '/usr/local/*' \
                              '/usr/include/*' '*/metadef/*' \
                              "${ASCEND_INSTALL_PATH}/*" "${CANN_3RD_LIB_PATH}/*" \
-                             -o cov/coverage.info $(add_lcov_ops_by_major_version 2 "--ignore-errors unused")
-        genhtml cov/coverage.info -o cov/html
+                             -o cov/coverage.info \
+                             ${LCOV_PARALLEL_IGNORE} --ignore-errors unused \
+                             ${LCOV_PARALLEL_PARAMS} \
+                             ${LCOV_RC_PARAM}
+        GENHTML_IGNORE_ERRORS=$(get_genhtml_ignore_errors)
+        genhtml cov/coverage.info -o cov/html ${GENHTML_IGNORE_ERRORS}
 
         if [[ "X$ENABLE_ICOV" = "Xon" ]]; then
           generate_inc_coverage

@@ -14,8 +14,14 @@
 #include <unordered_set>
 
 #include "common/om2/codegen/task_code_builder/task_code_builder.h"
+#include "graph/debug/ge_attr_define.h"
+#include "common/om2/codegen/om2_codegen_utils.h"
 
 namespace ge {
+constexpr uint64_t kDefaultMemBlockSize = 2UL * 1024UL * 1024UL;
+constexpr uint64_t kTsMemBlockSize = 4UL * 1024UL;
+constexpr uint64_t kMemAlignSize = 512UL;
+
 LoadAndRunFileCodeGenerator::LoadAndRunFileCodeGenerator(AstBuildContext &ast) : Om2ModelClassGeneratorBase(ast) {}
 
 std::vector<DeclNode *> LoadAndRunFileCodeGenerator::BuildAnonymousNamespaceItems(
@@ -23,6 +29,7 @@ std::vector<DeclNode *> LoadAndRunFileCodeGenerator::BuildAnonymousNamespaceItem
   (void)codegen_model;
   std::vector<DeclNode *> items;
   std::unordered_set<std::type_index> helper_types;
+  GE_ASSERT_SUCCESS(const_cast<LoadAndRunFileCodeGenerator *>(this)->BuildCommonHelperFunctions(items));
   for (const auto &task_code_builder : task_code_builders) {
     GE_ASSERT_NOTNULL(task_code_builder);
     if (!helper_types.insert(std::type_index(typeid(*task_code_builder))).second) {
@@ -130,6 +137,35 @@ Status LoadAndRunFileCodeGenerator::BuildRunBodyImpl(std::vector<BodyItem> &body
   }
   body.push_back(ast_.BlankLine());
   body.push_back(ast_.Return("ACL_SUCCESS"));
+  return SUCCESS;
+}
+
+Status LoadAndRunFileCodeGenerator::BuildCommonHelperFunctions(std::vector<DeclNode *> &items) {
+  auto dev_ptr = ast_.Var("void *&", "dev_ptr");
+  auto size = ast_.Var("const size_t", "size");
+  auto mem_type = ast_.Var("const uint32_t", "mem_type");
+  auto mem_ptrs = ast_.Var("std::vector<void *> &", "mem_ptrs");
+  auto block_size = ast_.Var("uint64_t", "block_size");
+  auto aligned_size = ast_.Var("const auto", "aligned_size");
+  auto final_block_size = ast_.Var("const auto", "final_block_size");
+  auto rt_ret = ast_.Var("const auto", "rt_ret");
+
+  items.push_back(ast_.Field("constexpr uint16_t", "GE_MODULE_NAME_U16", GE_MODULE_NAME_U16));
+  items.push_back(ast_.DefineFunction("MallocDeviceMemory", {dev_ptr, size, mem_type, mem_ptrs}, "aclError", {
+      ast_.VarDecl(block_size, kDefaultMemBlockSize),
+      ast_.If(mem_type == "RT_MEMORY_TS", {
+          ast_.Assign(block_size, kTsMemBlockSize),
+      }),
+      ast_.VarDecl(aligned_size, ((size + kMemAlignSize) - 1) / kMemAlignSize * kMemAlignSize),
+      ast_.VarDecl(final_block_size, ((aligned_size + block_size) - 1) / block_size * block_size),
+      ast_.VarDecl(rt_ret, RtMalloc(dev_ptr.Addr(), final_block_size, mem_type, "GE_MODULE_NAME_U16")),
+      ast_.If((rt_ret != "RT_ERROR_NONE") || (dev_ptr == nullptr), {
+          ast_.Return("ACL_ERROR_FAILURE"),
+      }),
+      ChkTrue(RtMemset(dev_ptr, block_size, 0, block_size) == "RT_ERROR_NONE"),
+      mem_ptrs.PushBack(dev_ptr),
+      ast_.Return("ACL_SUCCESS"),
+  }));
   return SUCCESS;
 }
 }  // namespace ge

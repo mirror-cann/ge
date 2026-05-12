@@ -8,6 +8,7 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
+#include <algorithm>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
@@ -44,6 +45,8 @@ using GenerateTopnSolutionsFn = int64_t (*)(const std::vector<std::map<std::stri
                                             int64_t, std::vector<AutofuseTilingData> &,
                                             std::vector<int64_t> &, std::vector<int64_t> &, ResLimit *);
 using GetTilingDataReprFn = std::string (*)(const AutofuseTilingData *);
+using GetModeledPerfForTestingFn = double (*)(const AutofuseTilingData *);
+using AutofuseTilingFn = int64_t (*)(AutofuseTilingData *, uint32_t *, uint32_t *, ResLimit *);
 
 namespace {
 
@@ -174,7 +177,6 @@ struct DlHandle {
 };
 
 }  // namespace
-
 class TestBackendInductorTopnConcatSplitCompile : public testing::Test {
 };
 
@@ -188,36 +190,82 @@ void PrepareInputs(std::string &tiling_def, std::string &host_code, std::string 
 }
 
 void CompileHostAndResolve(const std::string &tiling_def, const std::string &host_code,
-                           std::string &host_bin, GenerateTopnSolutionsFn &gen_fn,
-                           GetTilingDataReprFn &repr_fn) {
+                           std::string &host_bin, DlHandle &host_handle, GenerateTopnSolutionsFn &gen_fn,
+                           GetTilingDataReprFn &repr_fn, GetModeledPerfForTestingFn &perf_fn,
+                           AutofuseTilingFn &autofuse_tiling_fn) {
   host_bin = OUTPUT_DIR "/inductor_topn_concat_host.so";
   ASSERT_EQ(RunHostCompile(tiling_def, host_code, host_bin), 0);
   ASSERT_TRUE(FileExists(host_bin)) << "host so not found: " << host_bin;
 
-  DlHandle host_handle(dlopen(host_bin.c_str(), RTLD_LAZY | RTLD_LOCAL));
+  host_handle.ptr = dlopen(host_bin.c_str(), RTLD_LAZY | RTLD_LOCAL);
   ASSERT_TRUE(host_handle) << "dlopen host failed: " << dlerror();
   gen_fn = reinterpret_cast<GenerateTopnSolutionsFn>(dlsym(host_handle.ptr, "GenerateTopnSolutions"));
   repr_fn = reinterpret_cast<GetTilingDataReprFn>(dlsym(host_handle.ptr, "GetTilingDataRepr"));
+  perf_fn = reinterpret_cast<GetModeledPerfForTestingFn>(dlsym(host_handle.ptr, "GetModeledPerfForTesting"));
+  autofuse_tiling_fn = reinterpret_cast<AutofuseTilingFn>(dlsym(host_handle.ptr, "AutofuseTiling"));
   ASSERT_NE(gen_fn, nullptr) << "GenerateTopnSolutions not found";
   ASSERT_NE(repr_fn, nullptr) << "GetTilingDataRepr not found";
+  ASSERT_NE(perf_fn, nullptr) << "GetModeledPerfForTesting not found";
+  ASSERT_NE(autofuse_tiling_fn, nullptr) << "AutofuseTiling not found";
 }
 
-std::string GenerateTopnAndRepr(GenerateTopnSolutionsFn gen_fn, GetTilingDataReprFn repr_fn) {
+std::string GenerateTopnAndReprForDefaultConfigRequest(GenerateTopnSolutionsFn gen_fn,
+                                                       GetTilingDataReprFn repr_fn,
+                                                       GetModeledPerfForTestingFn perf_fn,
+                                                       AutofuseTilingFn autofuse_tiling_fn) {
   std::vector<AutofuseTilingData> tiling_datas;
   std::vector<int64_t> workspaces;
   std::vector<int64_t> block_dims;
   ResLimit res_limit = {1, 48, 0, 192 * 1024, {0}};
-  const std::vector<std::map<std::string, std::string>> input_configs;
-  EXPECT_EQ(gen_fn(input_configs, 5, tiling_datas, workspaces, block_dims, &res_limit), 0);
+  const std::vector<std::map<std::string, std::string>> input_configs = {{}};
+
+  // 1. Reject invalid topn
+  std::vector<AutofuseTilingData> invalid_tiling_datas;
+  std::vector<int64_t> invalid_workspaces;
+  std::vector<int64_t> invalid_block_dims;
+  EXPECT_EQ(gen_fn(input_configs, 0, invalid_tiling_datas, invalid_workspaces, invalid_block_dims, &res_limit), -1);
+  EXPECT_TRUE(invalid_tiling_datas.empty());
+  EXPECT_TRUE(invalid_workspaces.empty());
+  EXPECT_TRUE(invalid_block_dims.empty());
+
+  // 2. Default top1 must match AutofuseTiling baseline
+  AutofuseTilingData default_tiling_data = {};
+  uint32_t default_workspace = 0;
+  uint32_t default_block_dim = 0;
+  EXPECT_EQ(autofuse_tiling_fn(&default_tiling_data, &default_workspace, &default_block_dim, &res_limit), 0);
+
+  EXPECT_EQ(gen_fn(input_configs, 1, tiling_datas, workspaces, block_dims, &res_limit), 0);
   EXPECT_EQ(tiling_datas.size(), 1U);
   EXPECT_EQ(workspaces.size(), 1U);
   EXPECT_EQ(block_dims.size(), 1U);
-  EXPECT_GT(block_dims[0], 0);
-  EXPECT_GE(workspaces[0], 0);
+  EXPECT_EQ(workspaces[0], static_cast<int64_t>(default_workspace));
+  EXPECT_EQ(block_dims[0], static_cast<int64_t>(default_block_dim));
 
+  const std::string default_repr = repr_fn(&default_tiling_data);
   const std::string tiling_repr = repr_fn(&tiling_datas[0]);
   EXPECT_FALSE(tiling_repr.empty());
+  EXPECT_EQ(tiling_repr, default_repr);
   EXPECT_NE(tiling_repr.find("AutofuseTilingData{"), std::string::npos);
+
+  // 3. Multi-candidate uniqueness and modeled_perf ascending sort (topn=10)
+  tiling_datas.clear();
+  workspaces.clear();
+  block_dims.clear();
+  EXPECT_EQ(gen_fn(input_configs, 10, tiling_datas, workspaces, block_dims, &res_limit), 0);
+  EXPECT_GT(tiling_datas.size(), 1U);
+  EXPECT_EQ(tiling_datas.size(), workspaces.size());
+  EXPECT_EQ(tiling_datas.size(), block_dims.size());
+  EXPECT_EQ(repr_fn(&tiling_datas[0]), default_repr);
+  for (size_t i = 0; i < tiling_datas.size(); ++i) {
+    for (size_t j = i + 1; j < tiling_datas.size(); ++j) {
+      EXPECT_NE(repr_fn(&tiling_datas[i]), repr_fn(&tiling_datas[j]));
+    }
+  }
+  for (size_t i = 2; i < tiling_datas.size(); ++i) {
+    EXPECT_LE(perf_fn(&tiling_datas[i - 1]), perf_fn(&tiling_datas[i]))
+        << "perf not ascending: sol[" << (i - 1) << "]=" << perf_fn(&tiling_datas[i - 1])
+        << " > sol[" << i << "]=" << perf_fn(&tiling_datas[i]);
+  }
   return tiling_repr;
 }
 
@@ -259,11 +307,14 @@ TEST_F(TestBackendInductorTopnConcatSplitCompile, SplitCompileChainWorks) {
   PrepareInputs(tiling_def, host_code, device_code);
 
   std::string host_bin;
+  DlHandle host_handle(nullptr);
   GenerateTopnSolutionsFn gen_fn = nullptr;
   GetTilingDataReprFn repr_fn = nullptr;
-  CompileHostAndResolve(tiling_def, host_code, host_bin, gen_fn, repr_fn);
+  GetModeledPerfForTestingFn perf_fn = nullptr;
+  AutofuseTilingFn autofuse_tiling_fn = nullptr;
+  CompileHostAndResolve(tiling_def, host_code, host_bin, host_handle, gen_fn, repr_fn, perf_fn, autofuse_tiling_fn);
 
-  std::string tiling_repr = GenerateTopnAndRepr(gen_fn, repr_fn);
+  std::string tiling_repr = GenerateTopnAndReprForDefaultConfigRequest(gen_fn, repr_fn, perf_fn, autofuse_tiling_fn);
   ASSERT_FALSE(tiling_repr.empty());
 
   CompileAndVerifyKernels(tiling_def, device_code, tiling_repr);

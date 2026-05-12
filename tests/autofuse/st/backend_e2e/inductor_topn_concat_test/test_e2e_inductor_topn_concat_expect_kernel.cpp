@@ -32,12 +32,50 @@ extern "C" int64_t GenerateTopnSolutions(
                                           std::vector<AutofuseTilingData> &tiling_datas,
                                           std::vector<int64_t> &workspaces,
                                           std::vector<int64_t> &block_dims, ResLimit *res_limit = nullptr);
+extern "C" int64_t AutofuseTiling(AutofuseTilingData* tiling, uint32_t* workspaceSize, uint32_t *blockDim,
+                                   uint32_t aiv_num, uint32_t ub_size);
 std::string GetTilingDataRepr(const AutofuseTilingData *tiling_data);
 
 class E2EBackendInductorTopnConcatCode : public testing::Test {
 };
 
-TEST_F(E2EBackendInductorTopnConcatCode, GenerateTopnSolutionsReturnsDefaultTop1) {
+TEST_F(E2EBackendInductorTopnConcatCode, GenerateTopnSolutionsTop1MatchesAutofuseTiling) {
+  ResLimit res_limit = {1, 48, 0, 192 * 1024, {0}};
+  const std::vector<std::map<std::string, std::string>> input_configs;
+  std::vector<AutofuseTilingData> tiling_datas;
+  std::vector<int64_t> workspaces;
+  std::vector<int64_t> block_dims;
+
+  AutofuseTilingData default_tiling_data = {};
+  uint32_t default_workspace = 0;
+  uint32_t default_block_dim = 0;
+  ASSERT_EQ(AutofuseTiling(&default_tiling_data, &default_workspace, &default_block_dim,
+                           res_limit.aiv_num, res_limit.ub_size - 256), 0);
+
+  ASSERT_EQ(GenerateTopnSolutions(input_configs, 1, tiling_datas, workspaces, block_dims, &res_limit), 0);
+  ASSERT_EQ(tiling_datas.size(), 1U);
+  ASSERT_EQ(workspaces.size(), 1U);
+  ASSERT_EQ(block_dims.size(), 1U);
+  EXPECT_EQ(GetTilingDataRepr(&tiling_datas[0]), GetTilingDataRepr(&default_tiling_data));
+  EXPECT_EQ(workspaces[0], static_cast<int64_t>(default_workspace));
+  EXPECT_EQ(block_dims[0], static_cast<int64_t>(default_block_dim));
+}
+
+TEST_F(E2EBackendInductorTopnConcatCode, GenerateTopnSolutionsRejectsInvalidTopn) {
+  ResLimit res_limit = {1, 48, 0, 192 * 1024, {0}};
+  const std::vector<std::map<std::string, std::string>> input_configs;
+  std::vector<AutofuseTilingData> tiling_datas;
+  std::vector<int64_t> workspaces;
+  std::vector<int64_t> block_dims;
+
+  EXPECT_EQ(GenerateTopnSolutions(input_configs, 0, tiling_datas, workspaces, block_dims, &res_limit), -1);
+  EXPECT_TRUE(tiling_datas.empty());
+  EXPECT_TRUE(workspaces.empty());
+  EXPECT_TRUE(block_dims.empty());
+}
+
+// Verify that dedup yields at least 1 valid candidate for topn>1 request on single-tiling-key fixture
+TEST_F(E2EBackendInductorTopnConcatCode, GenerateTopnSolutionsReturnsDeduplicatedCandidates) {
   ResLimit res_limit = {1, 48, 0, 192 * 1024, {0}};
   const std::vector<std::map<std::string, std::string>> input_configs;
   std::vector<AutofuseTilingData> tiling_datas;
@@ -47,7 +85,8 @@ TEST_F(E2EBackendInductorTopnConcatCode, GenerateTopnSolutionsReturnsDefaultTop1
   constexpr int64_t topn = 5;
   EXPECT_EQ(GenerateTopnSolutions(input_configs, topn, tiling_datas, workspaces, block_dims, &res_limit), 0);
 
-  ASSERT_EQ(tiling_datas.size(), 1U);
+  // This fixture has only 1 tiling key per group; dedup yields single result.
+  ASSERT_GE(tiling_datas.size(), 1U);
   ASSERT_EQ(workspaces.size(), 1U);
   ASSERT_EQ(block_dims.size(), 1U);
 

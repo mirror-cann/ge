@@ -105,7 +105,7 @@ __simd_vf__ inline void ModifiedBesselK0ImplVF(__ubuf__ T* dst, __ubuf__ T* src,
     uint32_t tensorLen = repeatTime * vlSize;
     uint32_t calCount2 = calCount;
 
-    AscendC::Reg::RegTensor<T> srcReg, smallDstReg, bigDstReg, dstReg, nanReg, infReg;
+    AscendC::Reg::RegTensor<T> srcReg, smallDstReg, bigDstReg, dstReg;
     AscendC::Reg::MaskReg mask, branchMask;
 
     for (uint16_t i = 0U; i < repeatTime; ++i) {
@@ -134,20 +134,7 @@ __simd_vf__ inline void ModifiedBesselK0ImplVF(__ubuf__ T* dst, __ubuf__ T* src,
 
         AscendC::Reg::Select(dstReg, bigDstReg, smallDstReg, branchMask);
 
-        // ===== x < 0: NaN =====
-        AscendC::Reg::Compares<T, CMPMODE::LT>(branchMask, srcReg, (T)0.0, mask);
-        AscendC::Reg::Duplicate(nanReg, (float&)MODIFIED_BESSEL_FLOAT_NAN, branchMask);
-        AscendC::Reg::Select(dstReg, nanReg, dstReg, branchMask);
-
-        // ===== x == 0: Inf =====
-        AscendC::Reg::Compares<T, CMPMODE::EQ>(branchMask, srcReg, (T)0.0, mask);
-        AscendC::Reg::Duplicate(infReg, INFINITY, branchMask);
-        AscendC::Reg::Select(dstReg, infReg, dstReg, branchMask);
-
-        // handle nan input
-        AscendC::Reg::Compare<T, CMPMODE::NE>(branchMask, srcReg, srcReg, mask);
-        AscendC::Reg::Duplicate(nanReg, (float&)MODIFIED_BESSEL_FLOAT_NAN, mask);
-        AscendC::Reg::Select(dstReg, nanReg, dstReg, branchMask);
+        ModifiedBesselKHandleSpecialCases<T>(srcReg, dstReg, mask);
 
         // Store output
         AscendC::Reg::StoreAlign(dst + i * vlSize, dstReg, mask);

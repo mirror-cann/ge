@@ -181,6 +181,7 @@ namespace ascgen_utils {
   bool IsLinkToBrdcst(const ascir::NodeView &node, const std::set<std::string> &brc_types);
 
   std::string FormatExpression(const std::string &expression);
+  std::string GenUpdateCurPerfAndBlockByGroupHelper(bool with_log, bool use_std_max);
   template<typename T>
   T Gcd(T a, T b) {
     while (b != 0) {

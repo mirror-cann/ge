@@ -21,6 +21,12 @@ get_lcov_params() {
     echo "--ignore-errors mismatch,unused,negative --rc geninfo_unexecuted_blocks=1"
   fi
 }
+
+get_genhtml_params() {
+  if [ "$(get_lcov_major_version 2>/dev/null)" -ge 2 ] 2>/dev/null; then
+    echo "--ignore-errors inconsistent,corrupt"
+  fi
+}
 BASEPATH=$(cd "$(dirname $0)/.."; pwd)
 AIRDIR="$(basename $BASEPATH)"
 OUTPUT_PATH="${BASEPATH}/output"
@@ -171,7 +177,7 @@ run_llt()
       lcov -c -d build/tests/engines/ffts_engine/ut $(get_lcov_params) -o cov_ffts_ut/tmp.info
       lcov -r cov_ffts_ut/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/test/*' '/usr/local/*' '/usr/include/*' $(get_lcov_params) -o cov_ffts_ut/coverage.info
       cd "${BASEPATH}/cov_ffts_ut/"
-      genhtml coverage.info
+      genhtml coverage.info $(get_genhtml_params)
       cd "${BASEPATH}"
     fi
   elif [ "X$ENABLE_FFTS_ST" = "Xon" ];then
@@ -188,7 +194,7 @@ run_llt()
       lcov -c -d build/tests/engines/ffts_engine/st $(get_lcov_params) -o cov_ffts_st/tmp.info
       lcov -r cov_ffts_st/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/test/*' '/usr/local/*' '/usr/include/*' $(get_lcov_params) -o cov_ffts_st/coverage.info
       cd "${BASEPATH}/cov_ffts_st/"
-      genhtml coverage.info
+      genhtml coverage.info $(get_genhtml_params)
       cd "${BASEPATH}"
     fi
   else

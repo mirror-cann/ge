@@ -28,6 +28,8 @@ EOF
 PROJECT_HOME=${PROJECT_HOME:-$(dirname "$0")/../../}
 PROJECT_HOME=$(cd $PROJECT_HOME || return; pwd)
 
+source ${PROJECT_HOME}/scripts/support_multiple_versions_of_lcov.sh
+
 ALL_COV_GEN_PATH=${PROJECT_HOME}/cov/all
 DIFF_FILE_PATH=${PROJECT_HOME}/cov/diff
 DIFF_FILE_NAME=${DIFF_FILE_PATH}/inc_change_diff.txt
@@ -43,7 +45,8 @@ function add_cov_generate(){
 }
 
 function gen_add_cov_html(){
-    genhtml --prefix ${PROJECT_HOME} -o ${PROJECT_HOME}/cov/diff/html ${PROJECT_HOME}/cov/diff/inc_coverage.info --legend -t CHG --no-branch-coverage --no-function-coverage
+    GENHTML_IGNORE_ERRORS=$(get_genhtml_ignore_errors)
+    genhtml --prefix ${PROJECT_HOME} -o ${PROJECT_HOME}/cov/diff/html ${PROJECT_HOME}/cov/diff/inc_coverage.info --legend -t CHG --no-branch-coverage --no-function-coverage ${GENHTML_IGNORE_ERRORS}
 }
 
 function increment_cov_for_directory(){
@@ -63,7 +66,8 @@ function run_all_coverage(){
         lcov -c -d build/tests/ge/ut/ge -d build/tests/ge/ut/common/graph/ -o ${ALL_COV_GEN_PATH}/tmp.info
         lcov -r ${ALL_COV_GEN_PATH}/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/tests/*' '/usr/local/*' '/usr/include/*' '*/metadef/*' '*/parser/*' -o ${ALL_COV_GEN_PATH}/coverage.info
         cd ${ALL_COV_GEN_PATH}
-        genhtml coverage.info
+        GENHTML_IGNORE_ERRORS=$(get_genhtml_ignore_errors)
+        genhtml coverage.info ${GENHTML_IGNORE_ERRORS}
     popd  >/dev/null
 }
 

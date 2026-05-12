@@ -104,6 +104,10 @@ ClassDecl *InterfaceFileCodeGenerator::BuildOm2ModelClass(const Om2CodegenModel 
   items.push_back(ast_.Field("uint64_t *", "session_id_"));
   items.push_back(ast_.Field("uint64_t", "kernel_id_"));
   items.push_back(ast_.Field("std::vector<void *>", "dev_ext_info_mem_ptrs_"));
+  items.push_back(ast_.Field("std::map<uint32_t, void *>", "mem_event_id_mem_map_"));
+  items.push_back(ast_.Field("void *", "overflow_addr_"));
+  items.push_back(ast_.Field("std::vector<void *>", "dev_dynamic_mem_ptrs_"));
+  items.push_back(ast_.Field("void *", "session_scope_mem_ptr_"));
   return ast_.Class("Om2Model", items);
 }
 

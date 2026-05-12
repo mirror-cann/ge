@@ -22,6 +22,25 @@
 namespace ge {
 namespace {
 const std::regex kOpNameInvalidRegex("[./]");
+const std::unordered_set<ModelTaskType> kSupportedTaskTypes = {
+    ModelTaskType::MODEL_TASK_KERNEL,
+    ModelTaskType::MODEL_TASK_ALL_KERNEL,
+    ModelTaskType::MODEL_TASK_VECTOR_KERNEL,
+    ModelTaskType::MODEL_TASK_VECTOR_ALL_KERNEL,
+    ModelTaskType::MODEL_TASK_END_GRAPH,
+    ModelTaskType::MODEL_TASK_FUSION_START,
+    ModelTaskType::MODEL_TASK_FUSION_END,
+    ModelTaskType::MODEL_TASK_LABEL_SET,
+    ModelTaskType::MODEL_TASK_STREAM_ACTIVE,
+    ModelTaskType::MODEL_TASK_STREAM_LABEL_SWITCH_BY_INDEX,
+    ModelTaskType::MODEL_TASK_STREAM_LABEL_GOTO,
+    ModelTaskType::MODEL_TASK_EVENT_RECORD,
+    ModelTaskType::MODEL_TASK_EVENT_WAIT,
+    ModelTaskType::MODEL_TASK_STREAM_SWITCH,
+    ModelTaskType::MODEL_TASK_MEMCPY_ASYNC,
+    ModelTaskType::MODEL_TASK_MEMCPY_ADDR_ASYNC,
+    ModelTaskType::MODEL_TASK_DSA,
+};
 }
 std::string Om2CodegenUtils::GetKernelNameWithExtension(const std::string &kernel_name) {
   const auto pos = kernel_name.find("__kernel");
@@ -64,21 +83,7 @@ ge::Status Om2CodegenUtils::GetMagic(const OpDescPtr &op_desc, std::string &magi
 }
 
 bool Om2CodegenUtils::IsSupportedTask(ModelTaskType model_task_type) {
-  return model_task_type == ModelTaskType::MODEL_TASK_KERNEL ||
-         model_task_type == ModelTaskType::MODEL_TASK_ALL_KERNEL ||
-         model_task_type == ModelTaskType::MODEL_TASK_VECTOR_KERNEL ||
-         model_task_type == ModelTaskType::MODEL_TASK_VECTOR_ALL_KERNEL ||
-         model_task_type == ModelTaskType::MODEL_TASK_END_GRAPH ||
-         model_task_type == ModelTaskType::MODEL_TASK_FUSION_START ||
-         model_task_type == ModelTaskType::MODEL_TASK_FUSION_END ||
-         model_task_type == ModelTaskType::MODEL_TASK_LABEL_SET ||
-         model_task_type == ModelTaskType::MODEL_TASK_STREAM_ACTIVE ||
-         model_task_type == ModelTaskType::MODEL_TASK_STREAM_LABEL_SWITCH_BY_INDEX ||
-         model_task_type == ModelTaskType::MODEL_TASK_STREAM_LABEL_GOTO ||
-         model_task_type == ModelTaskType::MODEL_TASK_EVENT_RECORD ||
-         model_task_type == ModelTaskType::MODEL_TASK_EVENT_WAIT ||
-         model_task_type == ModelTaskType::MODEL_TASK_STREAM_SWITCH ||
-         model_task_type == ModelTaskType::MODEL_TASK_MEMCPY_ASYNC;
+  return kSupportedTaskTypes.count(model_task_type) > 0;
 }
 
 bool Om2CodegenUtils::RequireBinaryKernel(const ModelTaskType model_task_type) {

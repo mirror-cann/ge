@@ -28,6 +28,9 @@ enum IowMemoryType : uint64_t {
  	   kAicpuMemMallMemType,
  	   kAbsoluteMemType
  	 };
+constexpr uint64_t kMemoryVarLogicBase = 34359738368U; // 32UL * 1024UL * 1024UL * 1024UL;
+constexpr uint64_t kMemoryHostFeatureMapLogicBase = 68719476736U; // 64UL * 1024UL * 1024UL * 1024UL;
+constexpr uint64_t kMemoryVarAddressSize = kMemoryHostFeatureMapLogicBase - kMemoryVarLogicBase;
 
 class Om2ModelUtils {
  public:
@@ -46,6 +49,16 @@ class Om2ModelUtils {
   static uint32_t ArgsSizeAlign8(uint32_t args_size);
 
  private:
+  struct WorkspaceMemAttrs {
+    vector_bit_t reuse_flag;
+    bool has_reuse_flag{false};
+    std::vector<int64_t> v_memory_type;
+    bool has_mem_type_attr{false};
+    std::vector<int64_t> workspace_memory_type;
+    bool has_mem_type_workspace{false};
+    std::vector<int32_t> no_reuse_scope;
+    bool has_no_reuse_scope{false};
+  };
   static uint64_t GetWorkspaceMemTypeByPriority(const bool is_p2p_memory, const bool is_l1_memory,
                                                 const bool is_ub_memory, const bool session_scope_memory);
   static bool ValidateMemRange(const ConstOpDescPtr &op_desc, const uint64_t total_size, const int64_t offset,
@@ -72,6 +85,27 @@ class Om2ModelUtils {
                 const std::vector<int64_t> &v_output_offset, size_t index);
   static Status GetRtInputAddress(const TaskSemanticContributeContext &context,
                                   const int64_t logical_offset, AddrSemantic &addr_node, uint32_t index);
+  static Status GetRtOutputAddress(const TaskSemanticContributeContext &context,
+                                   const int64_t logical_offset, AddrSemantic &addr_node, uint32_t index);
+  static Status GetRtFmAddress(const TaskSemanticContributeContext &context,
+                               const int64_t logical_offset, uint64_t &mem_type,
+                               AddrSemantic &addr_node, bool is_input, uint32_t index);
+  static Status GetRtWeightAddress(const TaskSemanticContributeContext &context,
+                                   const int64_t logical_offset, uint64_t &mem_type,
+                                   AddrSemantic &addr_node, uint32_t index);
+  static Status GetRtVarAddress(const TaskSemanticContributeContext &context,
+                                const uintptr_t logic_addr, uint64_t &mem_type,
+                                AddrSemantic &addr_node);
+  static Status GetRtUnknownAddress(const TaskSemanticContributeContext &context,
+                                    const uintptr_t logic_addr, uint64_t &mem_type);
+  static Status GetRtEmptyAddress(const TaskSemanticContributeContext &context,
+                                  AddrSemantic &addr_node, bool is_input, uint32_t index);
+  static Status CollectWorkspaceMemAttrs(const ConstOpDescPtr &op_desc, WorkspaceMemAttrs &attrs);
+  static Status ConstructWorkspaceAddr(const TaskSemanticContributeContext &context,
+                                       const WorkspaceMemAttrs &attrs,
+                                       const std::vector<int64_t> &v_workspace_offset,
+                                       const std::vector<int64_t> &v_workspace_bytes,
+                                       size_t index, AddrSemantic &workspace_addr);
 };
 }  // namespace ge
 

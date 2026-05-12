@@ -652,7 +652,7 @@ Status ModifyTensorDescStorageFormatAndShape(const OpDescPtr &op_desc, Idx2Tenso
       return FAILED;
     }
     ge::TensorUtils::SetSize(*idx_2_tensor_desc.second, size);
-    // this attr means its heavy op, its stroage format will be spread to other op by fe.
+    // this attr means its heavy op, its storage format will be spread to other op by fe.
     if (storage_shape_dims.empty()) {
       bool enable_storage_format_spread = true;
       AttrUtils::GetBool(op_desc, "_enable_storage_format_spread", enable_storage_format_spread);
@@ -668,9 +668,9 @@ Status CheckIfDynamicBatchScene(const NodePtr &data_node, bool &is_dynamic_batch
   std::string related_node_name;
   if (AttrUtils::GetStr(data_node->GetOpDesc(), kMbatchSwitchnName, related_node_name)) {
     if (related_node_name.empty()) {
-      REPORT_INNER_ERR_MSG("E19999", "The data node %s has switchn node flag, but the value is empty",
+      REPORT_INNER_ERR_MSG("E19999", "The data node %s has SwitchN node flag, but the value is empty",
                          data_node->GetName().c_str());
-      GELOGE(INTERNAL_ERROR, "[Check][Param] The data node %s has switchn node flag, but the value is empty",
+      GELOGE(INTERNAL_ERROR, "[Check][Param] The data node %s has SwitchN node flag, but the value is empty",
              data_node->GetName().c_str());
       return INTERNAL_ERROR;
     }
@@ -685,9 +685,9 @@ Status CheckIfDynamicBatchScene(const NodePtr &data_node, bool &is_dynamic_batch
     }
 
     if (mbatch_case_node == nullptr) {
-      REPORT_INNER_ERR_MSG("E19999", "The data node %s has switchn node %s, but cannot find it on the graph",
+      REPORT_INNER_ERR_MSG("E19999", "The data node %s has SwitchN node %s, but cannot find it on the graph",
                          data_node->GetName().c_str(), related_node_name.c_str());
-      GELOGE(INTERNAL_ERROR, "[Check][Param] The data node %s has switchn node %s, but cannot find it on the graph",
+      GELOGE(INTERNAL_ERROR, "[Check][Param] The data node %s has SwitchN node %s, but cannot find it on the graph",
              data_node->GetName().c_str(), related_node_name.c_str());
       return INTERNAL_ERROR;
     }
@@ -1133,7 +1133,7 @@ Status GetDynamicInputShapeRange(const std::vector<GeTensor> &user_input,
   auto iter = graph_option.find(OPTION_EXEC_DATA_INPUTS_SHAPE_RANGE);
   bool enable_input_shape_range = (iter != graph_option.end()) && (!iter->second.empty());
   if (!enable_input_shape_range) {
-    GELOGD("GraphOption: %s value is dynamic_execute, without input shape range, lauch fuzz compile mode.",
+    GELOGD("GraphOption: %s value is dynamic_execute, without input shape range, launch fuzz compile mode.",
            OPTION_EXEC_DYNAMIC_EXECUTE_MODE);
     // currently ge.shape_generalized_build_mode has been set by tfa
     // here set bin_mode to one_node_multi_bin
@@ -1602,7 +1602,7 @@ Status GraphPrepare::UpdateDataInputOutputDesc(int64_t index, const OpDescPtr &o
   GE_IF_BOOL_EXEC(shape_size == 0 && desc.GetShape().GetDimNum() == 0, shape_size = static_cast<int64_t>(length));
   ge::TensorUtils::SetSize(desc, shape_size);
 
-  // this attr set by tune moudle, because in tune mode ge cannot decide when to refresh data format
+  // this attr set by tune module, because in tune mode ge cannot decide when to refresh data format
   // by user input.
   bool skip_refresh_data_format = false;
   (void) AttrUtils::GetBool(op, "_skip_refresh_data_format", skip_refresh_data_format);
@@ -2572,7 +2572,7 @@ void GraphPrepare::TypeConversionOfConstant() const {
       }
     }
   } else {
-    GELOGD("Trans CONSTANTOP to CONSTANT in inferrence.");
+    GELOGD("Trans CONSTANTOP to CONSTANT in inference.");
     for (ge::NodePtr &n : compute_graph_->GetAllNodes()) {
       // This can ensure that n is not a null pointer
       auto op_desc = n->GetOpDesc();

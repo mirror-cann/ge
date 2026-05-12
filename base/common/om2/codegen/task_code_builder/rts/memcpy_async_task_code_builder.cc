@@ -16,38 +16,34 @@
 #include "common/om2/codegen/om2_model_utils.h"
 
 namespace ge {
+constexpr uint64_t ioAddrArgSize = 16;
+
 Status MemcpyAsyncTaskCodeBuilder::Contribute(TaskSemanticContributeContext &context) {
   FillTaskSemanticHeader(context, header_);
   GE_ASSERT_NOTNULL(context.runtime);
   GE_ASSERT_NOTNULL(context.op_desc);
   GE_ASSERT_NOTNULL(context.op_index_to_count_map);
   const domi::MemcpyAsyncDef &memcpy_async = context.task_def.memcpy_async();
-  uint32_t internal_index = 0U;
-  const uint32_t op_index = memcpy_async.op_index();
-  auto it = context.op_index_to_count_map->find(op_index);
-  if (it == context.op_index_to_count_map->end()) {
-    internal_index = 0;
-    (*context.op_index_to_count_map)[op_index] = 1;
-  } else {
-    internal_index = it->second;
-    ++(*context.op_index_to_count_map)[op_index];
-  }
+
+  ResolveInternalIndex(context);
 
   uint64_t logical_src_mem_type = 0U;
   uint64_t logical_dst_mem_type = 0U;
   GE_ASSERT_SUCCESS(Om2ModelUtils::GetRtAddress(context, static_cast<uintptr_t>(memcpy_async.src()),
-                                                logical_src_mem_type, input_addr_node_, true, internal_index));
+                                                logical_src_mem_type, input_addr_node_, true, internal_index_));
   GE_ASSERT_SUCCESS(Om2ModelUtils::GetRtAddress(context, static_cast<uintptr_t>(memcpy_async.dst()),
-                                                logical_dst_mem_type, output_addr_node_, false, internal_index));
-  for (auto &item : context.model_io->entries) {
-    GE_ASSERT_TRUE(item.memory_offset != input_addr_node_.mem_offset &&
-                   item.memory_offset != output_addr_node_.mem_offset,
-                   "memcpy async should not link with io! input offset[%ld], output offset[%ld], memory_offset[%ld]",
-                   input_addr_node_.mem_offset, output_addr_node_.mem_offset, item.memory_offset);
-  }
+                                                logical_dst_mem_type, output_addr_node_, false, internal_index_));
+
+  CheckIoRefresh(context);
+
   dst_max_ = memcpy_async.dst_max();
   count_ = memcpy_async.count();
   kind_ = memcpy_async.kind();
+
+  if (io_refresh_) {
+    SetupIoAddrRefresh(context);
+    kind_ = RT_MEMCPY_ADDR_DEVICE_TO_DEVICE;
+  }
   GE_ASSERT_TRUE(header_.stream_id < context.runtime->stream_num,
                  "[OM2][Check][Param] stream list size:%u, cur:%u!", context.runtime->stream_num, header_.stream_id);
   GELOGI("Memcpy Async Task Codegen: op[%s], dst max[%" PRIu64 "], count[%" PRIu64
@@ -55,6 +51,53 @@ Status MemcpyAsyncTaskCodeBuilder::Contribute(TaskSemanticContributeContext &con
          context.op_desc->GetName().c_str(), dst_max_, count_, kind_, header_.stream_id);
   GELOGI("op_index %u, op_id %" PRId64, memcpy_async.op_index(), context.op_desc->GetId());
   return SUCCESS;
+}
+
+void MemcpyAsyncTaskCodeBuilder::ResolveInternalIndex(TaskSemanticContributeContext &context) {
+  auto it = context.op_index_to_count_map->find(header_.op_index);
+  if (it == context.op_index_to_count_map->end()) {
+    internal_index_ = 0;
+    (*context.op_index_to_count_map)[header_.op_index] = 1;
+  } else {
+    internal_index_ = it->second;
+    ++(*context.op_index_to_count_map)[header_.op_index];
+  }
+}
+
+void MemcpyAsyncTaskCodeBuilder::CheckIoRefresh(TaskSemanticContributeContext &context) {
+  for (auto &item : context.model_io->entries) {
+    if (item.memory_offset == input_addr_node_.mem_offset || item.memory_offset == output_addr_node_.mem_offset) {
+      io_refresh_ = true;
+      GELOGI("memcpy async is linked to io. input offset[%ld], output offset[%ld]", input_addr_node_.mem_offset,
+             output_addr_node_.mem_offset);
+      break;
+    }
+  }
+}
+
+void MemcpyAsyncTaskCodeBuilder::SetupIoAddrRefresh(TaskSemanticContributeContext &context) {
+  const uint64_t addr_offset = *context.next_host_args_offset;
+  if (input_addr_node_.memory_app == MemoryAppType::kModelIo) {
+    io_addr_refresh_records_.push_back(
+          IoAddrRefreshRecord{static_cast<uint64_t>(input_addr_node_.compile_state_io_addr_offset), addr_offset});
+    GELOGI("[OM2]append input addr offset map: compile offset[%lu], args info offset[%lu]",
+           static_cast<uint64_t>(input_addr_node_.compile_state_io_addr_offset), addr_offset);
+  }
+  if (output_addr_node_.memory_app == MemoryAppType::kModelIo) {
+    io_addr_refresh_records_.push_back(
+          IoAddrRefreshRecord{static_cast<uint64_t>(output_addr_node_.compile_state_io_addr_offset),
+                              addr_offset + sizeof(uint64_t)});
+    GELOGI("[OM2]append output addr offset map: compile offset[%lu], args info offset[%lu]",
+           static_cast<uint64_t>(output_addr_node_.compile_state_io_addr_offset), addr_offset + sizeof(uint64_t));
+  }
+
+  entry_.emplace();
+  entry_->table_index = *context.next_args_table_index;
+  entry_->args_size = ioAddrArgSize;
+  entry_->host_offset = *context.next_host_args_offset;
+  args_table_entry_ = &(*entry_);
+  ++(*context.next_args_table_index);
+  *context.next_host_args_offset += Om2ModelUtils::ArgsSizeAlign8(entry_->args_size);
 }
 
 Status MemcpyAsyncTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> &items) {
@@ -67,6 +110,29 @@ Status MemcpyAsyncTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> &ite
     items.push_back(ast_.VarDecl("auto", output_addr_node_.symbol_hint, GetAddr(total_dev_mem_ptr_,
                                                                                 output_addr_node_.mem_offset)));
   }
+  if (io_refresh_) {
+    std::vector<Arg> args_vars;
+    args_vars.emplace_back(ast_.Var("auto", input_addr_node_.symbol_hint));
+    args_vars.emplace_back(ast_.Var("auto", output_addr_node_.symbol_hint));
+    const std::string ioaddr_var_name = "op" + std::to_string(header_.op_index) + "_iow_addr" +
+                                        std::to_string(internal_index_);
+    auto ioaddr_var = ast_.Var("std::vector<uint64_t>", ioaddr_var_name);
+    items.emplace_back(ast_.VarDecl(ioaddr_var, FlattenHostArgs(args_vars)));
+    items.push_back(ChkStatus(MemcpyS(
+      args_table_.Attr("GetArgsInfo")(static_cast<int64_t>(entry_->table_index)).Arrow("host_addr"),
+      args_table_.Attr("GetArgsInfo")(static_cast<int64_t>(entry_->table_index)).Arrow("size"),
+      ioaddr_var.Data(), ioaddr_var.Size() * ast_.Sizeof("uint64_t")))),
+    items.push_back(ChkStatus(ast_.Call("KernelMemcpyAsyncDistribute", {
+      ast_.Str(header_.op_name),
+      args_table_.Attr("GetArgsInfo")(static_cast<int64_t>(entry_->table_index)).Arrow("dev_addr") + ast_.Sizeof("uint64_t"),
+      ast_.UInt(dst_max_),
+      args_table_.Attr("GetArgsInfo")(static_cast<int64_t>(entry_->table_index)).Arrow("dev_addr"),
+      ast_.UInt(count_),
+      ast_.StaticCast("rtMemcpyKind_t", static_cast<int64_t>(kind_)),
+      stream_list_[static_cast<int>(header_.stream_id)],
+      0})));
+    return SUCCESS;
+  }
   items.push_back(ChkStatus(ast_.Call("KernelMemcpyAsyncDistribute", {
       ast_.Str(header_.op_name),
       output_addr_node_.symbol_hint,
@@ -75,8 +141,7 @@ Status MemcpyAsyncTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> &ite
       ast_.UInt(count_),
       ast_.StaticCast("rtMemcpyKind_t", static_cast<int64_t>(kind_)),
       stream_list_[static_cast<int>(header_.stream_id)],
-      0,
-  })));
+      0})));
   return SUCCESS;
 }
 
