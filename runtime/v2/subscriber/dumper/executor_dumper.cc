@@ -597,7 +597,7 @@ ge::Status ExecutorDumper::InitDumpUnits() {
     if (IsOutputType(node->GetTypePtr())) {
       continue;
     }
-    if (auto parent_node = node->GetOwnerComputeGraph()->GetParentNode()) {
+    if (auto parent_node = node->GetOwnerComputeGraph()->GetParentNodeBarePtr()) {
       if (parent_node->GetType() == "PartitionedCall") {
         GELOGI("[Dumper][InitDumpUnits] skip node[%s], type[%s]", node->GetName().c_str(), node->GetTypePtr());
         continue;
