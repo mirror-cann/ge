@@ -33,8 +33,10 @@ using namespace autofuse;
 namespace {
 ge::Status FuseSubgraphsAndRootGraph(const ge::ComputeGraphPtr &graph,
                                      ge::FusionStrategySolver &fusion_strategy_solver) {
-  // 先遍历子图并执行融合
-  for (const auto &src_subgraph : graph->GetAllSubgraphs()) {
+  // 先遍历子图并执行融合（从最后一个子图开始）
+  const auto &subgraphs = graph->GetAllSubgraphs();
+  for (auto it = subgraphs.rbegin(); it != subgraphs.rend(); ++it) {
+    const auto &src_subgraph = *it;
     if (src_subgraph != nullptr) {
       GE_ASSERT_SUCCESS(fusion_strategy_solver.Fuse(src_subgraph));
     }

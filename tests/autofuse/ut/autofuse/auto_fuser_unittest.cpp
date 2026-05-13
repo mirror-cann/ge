@@ -334,6 +334,52 @@ TEST_F(AutofuserTest, SubgraphFusion) {
   }
 }
 
+static int64_t ExtractAutofuseNumber(const std::string &node_name) {
+  const std::string prefix = "autofuse_pointwise_";
+  size_t pos = node_name.find(prefix);
+  if (pos == std::string::npos) {
+    return -1;
+  }
+  size_t start = pos + prefix.length();
+  size_t end = start;
+  while (end < node_name.length() && std::isdigit(node_name[end])) {
+    end++;
+  }
+  if (start == end) {
+    return -1;
+  }
+  return std::stoll(node_name.substr(start, end - start));
+}
+
+TEST_F(AutofuserTest, SubgraphFusionOrder) {
+  auto cg = BuildGraphWithSubGraphForFusion();
+  ASSERT_NE(cg, nullptr);
+  AutofuserOptions options;
+  Autofuser autofuser(options);
+  ASSERT_EQ(autofuser.Fuse(cg), SUCCESS);
+
+  int64_t sub1_number = -1;
+  int64_t sub2_number = -1;
+  for (const auto &subgraph : cg->GetAllSubgraphs()) {
+    ASSERT_NE(subgraph, nullptr);
+    for (const auto &node : subgraph->GetDirectNode()) {
+      if (node->GetType() == "AscBackend") {
+        int64_t num = ExtractAutofuseNumber(node->GetName());
+        if (subgraph->GetName() == "sub1") {
+          sub1_number = num;
+        } else if (subgraph->GetName() == "sub2") {
+          sub2_number = num;
+        }
+      }
+    }
+  }
+  ASSERT_NE(sub1_number, -1) << "sub1 should have AscBackend node";
+  ASSERT_NE(sub2_number, -1) << "sub2 should have AscBackend node";
+  ASSERT_LT(sub2_number, sub1_number) << "sub2's autofuse number (" << sub2_number
+                                       << ") should be less than sub1's (" << sub1_number
+                                       << ") when traversing from back to front";
+}
+
 TEST_F(AutofuserTest, CastCastRemoveOk) {
   [this]() {
     auto data = es_graph_->CreateInput(0, "data0", nullptr);
