@@ -66,14 +66,25 @@ Status StreamSwitchTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> &it
     if (input_addr_node.is_reused_from_upstream) {
       continue;
     }
-    items.push_back(ast_.VarDecl("auto", input_addr_node.symbol_hint,
-                                 GetAddr(total_dev_mem_ptr_, input_addr_node.mem_offset)));
+    GE_ASSERT_TRUE(input_addr_node.tensor_info.has_value(),
+                   "[OM2] StreamSwitch input tensor info is required for %s.",
+                   input_addr_node.symbol_hint.c_str());
+    const auto &tensor_info = *input_addr_node.tensor_info;
+    const std::string shape_var_name = input_addr_node.symbol_hint + "_shape";
+    items.push_back(
+        ast_.VarDecl("std::vector<int64_t>", shape_var_name, ast_.InitList(ConvertToArgs(tensor_info.shape_dims))));
+    items.push_back(ast_.VarDecl("Om2Tensor", input_addr_node.symbol_hint, ast_.Call("BuildOm2Tensor", {
+        GetAddr(total_dev_mem_ptr_, input_addr_node.mem_offset),
+        ast_.ULong(tensor_info.size),
+        tensor_info.data_type,
+        tensor_info.format,
+        ast_.Var("std::vector<int64_t>", shape_var_name)})));
   }
   items.push_back(ChkStatus(ast_.Call("KernelStreamSwitchDistribute", {
       ast_.Str(header_.op_name),
-      input_addr_nodes_[0].symbol_hint,
+      ast_.Call("ValueToPtr", {ast_.Var("auto", input_addr_nodes_[0].symbol_hint).Attr("device_address")}),
       ast_.StaticCast("rtCondition_t", static_cast<int64_t>(cond_)),
-      input_addr_nodes_[1].symbol_hint,
+      ast_.Call("ValueToPtr", {ast_.Var("auto", input_addr_nodes_[1].symbol_hint).Attr("device_address")}),
       stream_list_[static_cast<int>(true_stream_id_)],
       stream_list_[static_cast<int>(header_.stream_id)],
       ast_.StaticCast("rtSwitchDataType_t", data_type_),

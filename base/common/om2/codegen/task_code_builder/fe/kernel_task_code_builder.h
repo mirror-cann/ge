@@ -45,6 +45,7 @@ class KernelTaskCodeBuilder : public TaskCodeBuilder {
  private:
   struct RenderedAddrInfo {
     std::string var_name;
+    std::string tensor_var_name;
     Om2MemoryAppType mem_type{Om2MemoryAppType::kMemoryTypeFix};
     int64_t compile_state_io_addr_offset{0};
     std::vector<BodyItem> nodes;
@@ -83,6 +84,8 @@ class KernelTaskCodeBuilder : public TaskCodeBuilder {
   Status GetMemCheckStartSize(const ge::OpDescPtr &op_desc, const int64_t origin_tiling_data_size,
                               int64_t &memcheck_start_size) const;
   void AppendOrderedArgValue(const AddrSemantic &semantic);
+  Status AppendOrderedArgValueForCommon(const AddrSemantic &semantic, const uint64_t addr_offset);
+  void AppendOrderedArg(const AddrSemantic &semantic);
   Status UpdateShapeAndType(const std::vector<int64_t> &dims, const DataType data_type,
                             AicpuShapeAndType &shape_and_type) const;
   Status UpdateShapeAndType(const GeShape &shape, AicpuShapeAndType *const shape_and_type) const;
@@ -95,6 +98,8 @@ class KernelTaskCodeBuilder : public TaskCodeBuilder {
   std::vector<size_t> BuildMaterializedOutputIndices(const KernelTaskSemantic &kernel_semantic) const;
   void AppendOrderedPlaceholder(const TaskSemanticContributeContext &context);
   void AppendOrderedCustomValue(const TaskSemanticContributeContext &context, const uint64_t custom_value);
+  Status AppendOrderedInputArg(size_t input_idx);
+  Status AppendOrderedOutputArg(size_t output_idx);
   Status AppendOrderedInputOutputByInstanceIndex(const ArgDesc &arg_format);
   Status AppendOrderedInputOutputRange(const ArgDesc &arg_format, const ArgsFormatInfo &args_format_holder,
                                        const TaskSemanticContributeContext &context);
@@ -120,6 +125,7 @@ class KernelTaskCodeBuilder : public TaskCodeBuilder {
   Status BuildAicpuArgsSemantic(const TaskSemanticContributeContext &context);
   Status BuildAicpuExtInfoSemantic(const TaskSemanticContributeContext &context);
   Status BuildAddrGenInfoFromSemantic(const AddrSemantic &semantic, RenderedAddrInfo &addr_gen_info) const;
+  Status BuildAddrGenInfoForIoTensor(const AddrSemantic &semantic, RenderedAddrInfo &addr_gen_info) const;
   Status BuildAddrGenInfoForShapeInfoBuffer(const AddrSemantic &semantic, RenderedAddrInfo &addr_gen_info) const;
   Status BuildAddrGenInfoForLevel1DescPtr(const AddrSemantic &semantic,
                                                            RenderedAddrInfo &addr_gen_info) const;
@@ -127,11 +133,15 @@ class KernelTaskCodeBuilder : public TaskCodeBuilder {
   Status BuildAddrGenInfoForFftsAddr(const AddrSemantic &semantic, RenderedAddrInfo &addr_gen_info) const;
   Status BuildAddrGenInfoForEventAddr(const AddrSemantic &semantic, RenderedAddrInfo &addr_gen_info) const;
   Status BuildAddrGenInfoForTiling(const AddrSemantic &semantic, RenderedAddrInfo &addr_gen_info) const;
+  Expr *BuildTaskIoEntries(const std::vector<AddrSemantic> &addrs) const;
+  Expr *BuildWorkspaceAddrs(const std::vector<AddrSemantic> &addrs) const;
+  Expr *BuildWorkspaceSizes(const std::vector<AddrSemantic> &addrs) const;
+  ExprRef BuildReportLaunchedTaskCall() const;
   Status CheckTaskSupport() const;
   Status GetKernelTaskMeta(const domi::TaskDef &task_def, domi::KernelContext &kernel_context,
                            uint32_t &args_size, uint32_t &kernel_type) const;
-  Expr *BuildLaunchConfigExpr(const LaunchConfigSemantic &launch_config) const;
-  VarRef AppendLaunchConfigSetup(size_t op_index, std::vector<BodyItem> &items) const;
+  Expr *BuildLaunchConfigExpr(const LaunchConfigSemantic &launch_config, Arg is_data_dump = {}) const;
+  VarRef AppendLaunchConfigSetup(size_t op_index, std::vector<BodyItem> &items, Arg is_data_dump = {}) const;
   std::string SerializeBytesToOctalString(const std::vector<uint8_t> &buffer) const;
   Status ParseExtShape(AicpuExtInfo &aicpu_ext_info, const uint32_t num_tensor,
     const std::string &node_name, const bool all_shape, const OpDescPtr &op_desc) const;
@@ -142,7 +152,6 @@ class KernelTaskCodeBuilder : public TaskCodeBuilder {
     int32_t &session_info_offset, const uint32_t num_inputs, const uint32_t num_outputs, const std::string &node_name,
     const bool all_shape) const;
   Status AppendDistributionForAicpu(const std::vector<Arg> &args_vars, std::vector<BodyItem> &items);
-  Status AppendOrderedArgValueForCommon(const AddrSemantic &semantic, const uint64_t addr_offset);
  private:
   std::vector<RenderedAddrInfo> args_addr_nodes_;
   int32_t cust_value_var_index_;
@@ -153,6 +162,7 @@ class KernelTaskCodeBuilder : public TaskCodeBuilder {
   bool is_soft_sync_op_{false};
   bool is_separately_clean_task_{false};
   bool is_blocking_aicpu_op_{false};
+  uint64_t current_args_offset_{0U};
   KernelTaskSemantic semantic_;
   bool has_tiling_{false};
   std::string tiling_data_{""};

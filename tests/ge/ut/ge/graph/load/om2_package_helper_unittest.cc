@@ -220,6 +220,10 @@ TEST_F(Om2PackageHelperUt, ConvertOm2Model_Ok_GenOm2WithAicoreNode) {
   Om2PackageHelper om2_packager;
   const auto ge_root_model = CreateGeRootModelWithAicoreOp();
   ASSERT_NE(ge_root_model, nullptr);
+  const auto ge_model = ge_root_model->GetSubgraphInstanceNameToModel().begin()->second;
+  ASSERT_NE(ge_model, nullptr);
+  const auto parent_graph = std::make_shared<ComputeGraph>("root_g1");
+  ge_model->GetGraph()->SetParentGraph(parent_graph);
   ModelBufferData model_data;
   const std::string output_file = PathUtils::Join({test_work_dir, kZipFileBaseName + ".om2"});
   ASSERT_EQ(om2_packager.SaveToOmRootModel(ge_root_model, output_file, model_data, false), SUCCESS);
@@ -293,6 +297,7 @@ TEST_F(Om2PackageHelperUt, ConvertOm2Model_Ok_GenOm2WithAicoreNode) {
   const JsonFile model_meta_json(reinterpret_cast<const uint8_t *>(model_meta_buf.get()), model_meta_size);
   ASSERT_TRUE(model_meta_json.IsValid());
   EXPECT_EQ(model_meta_json.Raw().at("name"), JsonFile::json("g1"));
+  EXPECT_EQ(model_meta_json.Raw().at("root_graph_name"), JsonFile::json("root_g1"));
   EXPECT_EQ(model_meta_json.Raw().at("dynamic_batch_info"), JsonFile::json::array());
   EXPECT_EQ(model_meta_json.Raw().at("dynamic_output_shape"), JsonFile::json::array());
   EXPECT_EQ(model_meta_json.Raw().at("dynamic_type"), JsonFile::json(0));

@@ -170,6 +170,7 @@ class AstBuildContext {
   AccessSectionDecl *Private();
   Expr *Str(const std::string &text);
   Expr *UInt(uint64_t value);
+  Expr *ULong(uint64_t value);
   TypeAliasDecl *TypeAlias(const std::string &type_spec, const std::string &name);
   FieldDecl *Field(const std::string &type_spec, const std::string &name, Arg init = {});
   ClassDecl *Class(const std::string &name, const std::vector<DeclNode *> &items);

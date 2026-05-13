@@ -187,13 +187,17 @@ aclError Om2ModelLoadFromFileWithMem(const char_t* const modelPath, uint32_t* co
         return ACL_GET_ERRCODE_GE(static_cast<int32_t>(ret));
     }
 
-    std::unique_ptr<gert::Om2ModelExecutor> executor = gert::LoadOm2ExecutorFromData(modelData, loadArgs, ret);
+    auto loadArgsWithModelId = loadArgs;
+    *modelId = acl::AclResourceManagerOm2::GetInstance().GenerateModelId();
+    loadArgsWithModelId.model_id = *modelId;
+    std::unique_ptr<gert::Om2ModelExecutor> executor =
+        gert::LoadOm2ExecutorFromData(modelData, loadArgsWithModelId, ret);
     if (ret != ge::SUCCESS) {
         ACL_LOG_CALL_ERROR("[Model][FromData]call gert::LoadOm2ExecutorFromData failed, ge result[%u]", ret);
         return ACL_GET_ERRCODE_GE(static_cast<int32_t>(ret));
     }
     ACL_REQUIRES_NOT_NULL(executor);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(*modelId, std::move(executor), rtSession);
+    acl::AclResourceManagerOm2::GetInstance().AddOm2ExecutorWithModelId(*modelId, std::move(executor), rtSession);
     return ACL_SUCCESS;
 }
 
@@ -208,13 +212,17 @@ aclError Om2ModelLoadFromMemWithMem(const void* const model, const size_t modelS
         ACL_LOG_INFO("[Model][WeightPath]Load weight path is [%s]", modelData.weight_path.c_str());
     }
     ge::Status errorStatus = ge::SUCCESS;
-    std::unique_ptr<gert::Om2ModelExecutor> executor = gert::LoadOm2ExecutorFromData(modelData, loadArgs, errorStatus);
+    auto loadArgsWithModelId = loadArgs;
+    *modelId = acl::AclResourceManagerOm2::GetInstance().GenerateModelId();
+    loadArgsWithModelId.model_id = *modelId;
+    std::unique_ptr<gert::Om2ModelExecutor> executor =
+        gert::LoadOm2ExecutorFromData(modelData, loadArgsWithModelId, errorStatus);
     if (errorStatus != ge::SUCCESS) {
         ACL_LOG_CALL_ERROR("[Model][FromData]call gert::LoadOm2ExecutorFromData failed, ge result[%u]", errorStatus);
         return ACL_GET_ERRCODE_GE(static_cast<int32_t>(errorStatus));
     }
     ACL_REQUIRES_NOT_NULL(executor);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(*modelId, std::move(executor), nullptr);
+    acl::AclResourceManagerOm2::GetInstance().AddOm2ExecutorWithModelId(*modelId, std::move(executor), nullptr);
     return ACL_SUCCESS;
 }
 

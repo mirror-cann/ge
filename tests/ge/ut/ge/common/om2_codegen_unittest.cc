@@ -353,6 +353,7 @@ TEST_F(Om2CodegenUt, AstDsl_AllPublicInterfaces_Ok) {
       ast.VarDecl("auto", "from_string", ident_from_string),
       ast.VarDecl("auto", "str_node", ast.Str("dsl")),
       ast.VarDecl("auto", "uint_node", ast.UInt(9)),
+      ast.VarDecl("auto", "ulong_node", ast.ULong(9)),
       ast.VarDecl("auto", "eq_v", eq_expr),
       ast.VarDecl("auto", "ne_v", ne_expr),
       ast.VarDecl("auto", "lt_v", lt_expr),
@@ -439,6 +440,7 @@ TEST_F(Om2CodegenUt, AstDsl_AllPublicInterfaces_Ok) {
       "auto from_string = symbol_from_string;\n",
       "auto str_node = \"dsl\";\n",
       "auto uint_node = 9U;\n",
+      "auto ulong_node = 9UL;\n",
       "auto eq_v = (lhs == rhs);\n",
       "auto ne_v = (lhs != 1);\n",
       "auto lt_v = (lhs < rhs);\n",
@@ -606,6 +608,51 @@ TEST_F(Om2CodegenUt, AstDsl_IgnoreOutputRemoveFile_Ok) {
   });
 }
 
+TEST_F(Om2CodegenUt, InterfaceDumpApis_EmitInCLinkageAndPtrToU64Outside_Ok) {
+  AstContext ctx;
+  AstBuildContext ast(ctx);
+
+  auto *tu = ast.File({
+      ast.StablePart(StablePartId::kInterfacePointerHelpers),
+      ast.ExternBlock("C", {ast.StablePart(StablePartId::kInterfaceDumpApis)}),
+  });
+  ASSERT_NE(tu, nullptr);
+
+  const auto output = EmitNode(*tu);
+  ExpectContainsAll(output, {
+      "inline void *ValueToPtr(const uint64_t value) {\n",
+      "inline uint64_t PtrToU64(const void *ptr) {\n",
+      "extern \"C\" {\n",
+      "struct Om2Tensor {\n",
+      "__attribute__((weak)) int32_t ReportTaskInfo(uint32_t model_id,\n",
+  });
+  EXPECT_LT(output.find("inline uint64_t PtrToU64"), output.find("extern \"C\" {"));
+  EXPECT_GT(output.find("struct Om2Tensor"), output.find("extern \"C\" {"));
+}
+
+TEST_F(Om2CodegenUt, LoadAndRunDumpHelpers_EmitInAnonymousNamespace_Ok) {
+  AstContext ctx;
+  AstBuildContext ast(ctx);
+
+  auto *tu = ast.File({
+      ast.Namespace("om2", {
+          ast.Namespace("", {ast.StablePart(StablePartId::kLoadAndRunDumpHelpers)}),
+      }),
+  });
+  ASSERT_NE(tu, nullptr);
+
+  const auto output = EmitNode(*tu);
+  ExpectContainsAll(output, {
+      "namespace om2 {\n",
+      "namespace {\n",
+      "Om2Tensor BuildOm2Tensor(void *device_address, uint64_t size, int32_t data_type,\n",
+      "aclError ReportLaunchedOm2Task(const char *op_name, const char *op_type, uint64_t op_desc_id,\n",
+      "const std::vector<uint64_t> &workspace_addrs,\n",
+      "OM2_CHK_TRUE(workspace_addrs.size() == workspace_sizes.size());\n",
+      "uint8_t GetIsDataDump(const char *op_name, uint32_t model_id, void *instance_handle) {\n",
+  });
+}
+
 TEST_F(Om2CodegenUt, AstDsl_ContainerMethods_Ok) {
   AstContext ctx;
   AstBuildContext ast(ctx);
@@ -704,6 +751,8 @@ TEST_F(Om2CodegenUt, StablePartProvider_AllIds_Ok) {
       {StablePartId::kScopeGuard, "class ScopeGuard"},
       {StablePartId::kReadBinaryFileToBuffer, "BinaryBuffer ReadBinaryFileToBuffer"},
       {StablePartId::kGenerateJsonFile, "aclError GenerateJsonFile"},
+      {StablePartId::kInterfaceDumpApis, "struct Om2TaskInfo"},
+      {StablePartId::kLoadAndRunDumpHelpers, "aclError ReportLaunchedOm2Task"},
   };
 
   for (const auto &test_case : cases) {

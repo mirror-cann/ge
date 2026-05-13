@@ -12,7 +12,6 @@
 #define AIR_CXX_BASE_COMMON_OM2_CODEGEN_OM2_MODEL_UTILS_H
 
 #include "common/om2/codegen/om2_codegen_types.h"
-#include "common/om2/codegen/om2_codegen_types.h"
 #include "graph/op_desc.h"
 #include "graph/utils/attr_utils.h"
 
@@ -42,6 +41,10 @@ class Om2ModelUtils {
 
   static Status ResolveWorkspaceAddrs(const TaskSemanticContributeContext &context,
                                       std::vector<AddrSemantic> &workspace_addrs);
+
+  static Status BuildInputTensorInfo(const GeTensorDescPtr &tensor_desc, Om2TensorInfo &tensor_info);
+
+  static Status BuildOutputTensorInfo(const GeTensorDescPtr &tensor_desc, Om2TensorInfo &tensor_info);
 
   static Status GetRtAddress(const TaskSemanticContributeContext &context, const uintptr_t logic_addr,
                                     uint64_t &mem_type, AddrSemantic &addr_node, bool isInput, uint32_t index);

@@ -14,6 +14,7 @@
 #include "common/checker.h"
 #include "common/om2/codegen/ast/ast_nodes.h"
 #include "common/om2/codegen/task_code_builder/task_code_builder.h"
+#include "common/plugin/datatype_util.h"
 #include "common/ge_common/debug/ge_log.h"
 #include "common/math/math_util.h"
 #include "graph/utils/tensor_utils.h"
@@ -41,6 +42,36 @@ uint64_t Om2ModelUtils::GetWorkspaceMemTypeByPriority(const bool is_p2p_memory, 
     return kSessionScopeMemoryMask | RT_MEMORY_HBM;
   }
   return RT_MEMORY_HBM;
+}
+
+Status Om2ModelUtils::BuildInputTensorInfo(const GeTensorDescPtr &tensor_desc, Om2TensorInfo &tensor_info) {
+  GE_ASSERT_NOTNULL(tensor_desc);
+  int64_t tensor_size = 0;
+  if (!AttrUtils::GetInt(tensor_desc, ATTR_NAME_INPUT_ORIGIN_SIZE, tensor_size)) {
+    if (TensorUtils::GetTensorSizeInBytes(*tensor_desc, tensor_size) != SUCCESS) {
+      GE_ASSERT_SUCCESS(TensorUtils::GetSize(*tensor_desc, tensor_size));
+    }
+  }
+  tensor_info.args_offset = 0U;
+  tensor_info.size = static_cast<uint64_t>(tensor_size);
+  tensor_info.data_type = DataTypeUtil::GetIrDataType(tensor_desc->GetDataType());
+  tensor_info.format = static_cast<int32_t>(tensor_desc->GetFormat());
+  tensor_info.shape_dims = tensor_desc->GetShape().GetDims();
+  return SUCCESS;
+}
+
+Status Om2ModelUtils::BuildOutputTensorInfo(const GeTensorDescPtr &tensor_desc, Om2TensorInfo &tensor_info) {
+  GE_ASSERT_NOTNULL(tensor_desc);
+  int64_t tensor_size = 0;
+  if (TensorUtils::GetTensorSizeInBytes(*tensor_desc, tensor_size) != SUCCESS) {
+    GE_ASSERT_SUCCESS(TensorUtils::GetSize(*tensor_desc, tensor_size));
+  }
+  tensor_info.args_offset = 0U;
+  tensor_info.size = static_cast<uint64_t>(tensor_size);
+  tensor_info.data_type = DataTypeUtil::GetIrDataType(tensor_desc->GetDataType());
+  tensor_info.format = static_cast<int32_t>(tensor_desc->GetFormat());
+  tensor_info.shape_dims = tensor_desc->GetShape().GetDims();
+  return SUCCESS;
 }
 
 bool Om2ModelUtils::ValidateMemRange(const ConstOpDescPtr &op_desc, const uint64_t total_size, const int64_t offset,
@@ -199,6 +230,8 @@ Status Om2ModelUtils::ResolveInputAddrs(const TaskSemanticContributeContext &con
     input_addr.byte_size = static_cast<uint64_t>(tensor_size);
     if ((i < v_is_input_const.size()) && v_is_input_const[i]) {
       GE_ASSERT_SUCCESS(ConstructAddrSemanticForInputConst(context, input_addr, tensor_desc, i));
+      input_addr.tensor_info.emplace();
+      GE_ASSERT_SUCCESS(BuildInputTensorInfo(tensor_desc, *input_addr.tensor_info));
       input_addrs.push_back(std::move(input_addr));
       ++input_offset_index;
       continue;
@@ -211,6 +244,8 @@ Status Om2ModelUtils::ResolveInputAddrs(const TaskSemanticContributeContext &con
         input_addr.kind = AddrValueKind::kConstTensor;
         input_addr.mem_offset = input_offset;
         input_addr.is_reused_from_upstream = true;
+        input_addr.tensor_info.emplace();
+        GE_ASSERT_SUCCESS(BuildInputTensorInfo(tensor_desc, *input_addr.tensor_info));
         input_addrs.push_back(std::move(input_addr));
         ++input_offset_index;
         continue;
@@ -218,6 +253,8 @@ Status Om2ModelUtils::ResolveInputAddrs(const TaskSemanticContributeContext &con
     }
     GE_ASSERT_SUCCESS(ConstructAddrSemanticForCommon(context, input_addr, tensor_desc, input_offset_index,
                                                      input_offsets, i));
+    input_addr.tensor_info.emplace();
+    GE_ASSERT_SUCCESS(BuildInputTensorInfo(tensor_desc, *input_addr.tensor_info));
     input_addrs.push_back(std::move(input_addr));
     ++input_offset_index;
   }
@@ -284,6 +321,8 @@ Status Om2ModelUtils::ResolveOutputAddrs(const TaskSemanticContributeContext &co
     }
     GE_ASSERT_SUCCESS(ConstructOutputAddrForCommon(context, output_addr, tensor_desc, v_memory_type, v_output_offset,
                                                    i));
+    output_addr.tensor_info.emplace();
+    GE_ASSERT_SUCCESS(BuildOutputTensorInfo(tensor_desc, *output_addr.tensor_info));
     current_edges.output_var_names[i] = output_addr.symbol_hint;
     output_addrs.push_back(std::move(output_addr));
   }
@@ -374,6 +413,8 @@ Status Om2ModelUtils::GetRtInputAddress(const TaskSemanticContributeContext &con
   addr_node.memory_app = MemoryAppType::kFix;
   addr_node.byte_size = static_cast<uint64_t>(tensor_size);
   addr_node.mem_offset = logical_offset;
+  addr_node.tensor_info.emplace();
+  GE_ASSERT_SUCCESS(BuildInputTensorInfo(tensor_desc, *addr_node.tensor_info));
   if (context.model_io->io_offsets.find(logical_offset) != context.model_io->io_offsets.end()) {
     addr_node.memory_app = MemoryAppType::kModelIo;
     addr_node.compile_state_io_addr_offset = logical_offset;
@@ -442,6 +483,8 @@ Status Om2ModelUtils::GetRtOutputAddress(const TaskSemanticContributeContext &co
   GE_CHK_STATUS_EXEC(TensorUtils::GetSize(*tensor_desc, tensor_size), return FAILED);
   addr_node.byte_size = static_cast<uint64_t>(tensor_size);
   addr_node.mem_offset = logical_offset;
+  addr_node.tensor_info.emplace();
+  GE_ASSERT_SUCCESS(BuildOutputTensorInfo(tensor_desc, *addr_node.tensor_info));
   if (context.model_io->io_offsets.find(logical_offset) != context.model_io->io_offsets.end()) {
     addr_node.memory_app = MemoryAppType::kModelIo;
     addr_node.compile_state_io_addr_offset = logical_offset;
@@ -468,6 +511,11 @@ Status Om2ModelUtils::GetRtWeightAddress(const TaskSemanticContributeContext &co
   addr_node.symbol_hint = var_name_it->second;
   addr_node.mem_offset = logical_offset;
   addr_node.is_reused_from_upstream = true;
+  const GeTensorDescPtr tensor_desc = context.op_desc->MutableInputDesc(index);
+  GE_ASSERT_TRUE(tensor_desc != nullptr, "[OM2] Op: %s, Index: %u, has no input",
+                 context.op_desc->GetName().c_str(), index);
+  addr_node.tensor_info.emplace();
+  GE_ASSERT_SUCCESS(BuildInputTensorInfo(tensor_desc, *addr_node.tensor_info));
   mem_type = kWeightMemType;
   return SUCCESS;
 }

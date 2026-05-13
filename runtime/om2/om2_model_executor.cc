@@ -8,6 +8,7 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
+#include <cinttypes>
 #include <string>
 #include <fstream>
 #include <regex>
@@ -16,6 +17,7 @@
 #include "acl/acl_rt.h"
 #include "registry/op_impl_space_registry_v2.h"
 #include "framework/runtime/rt_session.h"
+#include "framework/runtime/dump/model_dump_manager.h"
 #include "runtime/om2_model_executor.h"
 #include "common/checker.h"
 #include "mmpa/mmpa_api.h"
@@ -39,8 +41,9 @@ constexpr size_t FILE_MAGIC_HEADER_SIZE = 4U;
 constexpr uint8_t OM2_MAGIC[] = {0x50, 0x4B, 0x03, 0x04};
 
 using Om2ModelHandle = void *;
-using CreateFunc = ge::graphStatus (*)(Om2ModelHandle *, const char **, const void **, size_t *, int, void **,
-                                       void *, uint64_t *);
+using CreateFunc = ge::graphStatus (*)(Om2ModelHandle *, rtModel_t *, const char **, const void **, size_t *, int,
+                                       void **, void *, uint64_t *, uint32_t, void *);
+using LoadFunc = ge::graphStatus (*)(Om2ModelHandle *);
 using DestroyFunc = ge::graphStatus (*)(Om2ModelHandle *);
 using RunFunc = ge::graphStatus (*)(Om2ModelHandle *, int, void **, int, void **, int32_t streamSyncTimeout);
 using RunAsyncFunc = ge::graphStatus (*)(Om2ModelHandle *, rtStream_t, int, void **, int, void **);
@@ -53,8 +56,11 @@ struct RunModelInfo {
   ge::JsonFile op_attr_json;
   void *so_handle = nullptr;
   std::string model_name;
+  std::string root_graph_name;
   Om2ModelHandle model_handle = nullptr;
+  rtModel_t rt_model_handle = nullptr;
   CreateFunc create_func = nullptr;
+  LoadFunc load_func = nullptr;
   DestroyFunc destroy_func = nullptr;
   RunFunc run_func = nullptr;
   RunAsyncFunc run_async_func = nullptr;
@@ -356,6 +362,9 @@ class Om2ModelExecutor::Impl {
         run_model_info_.model_meta_json = ge::JsonFile(buff_data.get(), buff_size);
         GE_ASSERT_TRUE(run_model_info_.model_meta_json.IsValid());
         GE_ASSERT_SUCCESS(GetModelJsonValue("name", run_model_info_.model_name, run_model_info_.model_meta_json));
+        if (!run_model_info_.model_meta_json.Get("root_graph_name", run_model_info_.root_graph_name)) {
+          run_model_info_.root_graph_name = run_model_info_.model_name;
+        }
         has_model_ = true;
         break;
       }
@@ -441,6 +450,8 @@ class Om2ModelExecutor::Impl {
     GE_ASSERT_TRUE(run_model_info_.so_handle != nullptr);
     run_model_info_.create_func = reinterpret_cast<CreateFunc>(mmDlsym(run_model_info_.so_handle, "Om2ModelCreate"));
     GE_ASSERT_NOTNULL(run_model_info_.create_func);
+    run_model_info_.load_func = reinterpret_cast<LoadFunc>(mmDlsym(run_model_info_.so_handle, "Om2ModelLoad"));
+    GE_ASSERT_NOTNULL(run_model_info_.load_func);
     run_model_info_.destroy_func =
         reinterpret_cast<DestroyFunc>(mmDlsym(run_model_info_.so_handle, "Om2ModelDestroy"));
     GE_ASSERT_NOTNULL(run_model_info_.destroy_func);
@@ -454,14 +465,13 @@ class Om2ModelExecutor::Impl {
 
   ge::Status CreateModel(ge::ModelData &model_data, ge::ReadonlyByteBuffer &weight_buf,
                          std::vector<KernelBinInfo> &kernel_bin_info, const Om2ModelLoadArg &load_arg,
-                         uint64_t session_id) {
+                         uint64_t session_id, std::vector<void *> &constants) {
     GE_ASSERT_TRUE(has_model_);
     GE_ASSERT_TRUE(load_arg.device_id >= 0, "[OM2][Check] Invalid device id.");
     device_id_ = load_arg.device_id;
     std::vector<const char *> bin_files(kernel_bin_info.size());
     std::vector<const void *> bin_data(kernel_bin_info.size());
     std::vector<size_t> bin_sizes(kernel_bin_info.size());
-    std::vector<void *> constants;
     void *work_ptr = nullptr;
     for (auto i = 0U; i < kernel_bin_info.size(); ++i) {
       bin_files[i] = kernel_bin_info[i].file.c_str();
@@ -471,13 +481,73 @@ class Om2ModelExecutor::Impl {
     session_id_ = session_id;
     GE_ASSERT_SUCCESS(PrepareWorkPtr(load_arg, work_ptr));
     GE_ASSERT_SUCCESS(PrepareConstants(model_data, weight_buf, load_arg, constants));
-    GE_ASSERT_SUCCESS(run_model_info_.create_func(&run_model_info_.model_handle, bin_files.data(), bin_data.data(),
+    GE_ASSERT_SUCCESS(run_model_info_.create_func(&run_model_info_.model_handle, &run_model_info_.rt_model_handle,
+                                                  bin_files.data(), bin_data.data(),
                                                   bin_sizes.data(), static_cast<int>(bin_data.size()),
                                                   constants.empty() ? nullptr : constants.data(), work_ptr,
-                                                  &session_id_));
+                                                  &session_id_, load_arg.model_id, dump_manager_.get()));
+    return ge::GRAPH_SUCCESS;
+  }
+
+  ge::Status CreateAndLoadModel(ge::ModelData &model_data, ge::ReadonlyByteBuffer &weight_buf,
+                                std::vector<KernelBinInfo> &kernel_bin_info, const Om2ModelLoadArg &load_arg,
+                                uint64_t session_id) {
+    std::vector<void *> constants;
+    GE_ASSERT_SUCCESS(CreateModel(model_data, weight_buf, kernel_bin_info, load_arg, session_id, constants));
+    GE_ASSERT_SUCCESS(InitModelDumpInfo(load_arg));
+    GE_ASSERT_SUCCESS(LoadModel());
+    GE_ASSERT_SUCCESS(DispatchDumpInfo());
     weight_buf.reset(nullptr);
     kernel_bin_info.clear();
     return ge::GRAPH_SUCCESS;
+  }
+
+  ge::Status CreateDumpManager(const Om2ModelLoadArg &load_arg) {
+    model_id_ = load_arg.model_id;
+    dump_manager_ = std::unique_ptr<ge::dump::ModelDumpManager>(
+        new (std::nothrow) ge::dump::ModelDumpManager(load_arg.model_id));
+    GE_ASSERT_TRUE(dump_manager_ != nullptr);
+    return ge::SUCCESS;
+  }
+
+  ge::Status InitModelDumpInfo(const Om2ModelLoadArg &load_arg) {
+    GE_ASSERT_NOTNULL(run_model_info_.rt_model_handle);
+    GE_ASSERT_TRUE(dump_manager_ != nullptr);
+    ge::dump::ModelDumpInfo model_dump_info{};
+    model_dump_info.model_id = load_arg.model_id;
+    model_dump_info.model_name = run_model_info_.model_name.c_str();
+    model_dump_info.root_graph_name = run_model_info_.root_graph_name.c_str();
+    model_dump_info.device_id = static_cast<uint32_t>(load_arg.device_id);
+    model_dump_info.rt_model_handle = run_model_info_.rt_model_handle;
+    model_dump_info.step_id_addr = 0U;
+    model_dump_info.loop_cond_addr = 0U;
+    model_dump_info.iterations_per_loop_addr = 0U;
+    GELOGI("[OM2][Dump] Set model dump info: model_id=%u, model_name=%s, root_graph_name=%s, device_id=%u, "
+           "rt_model_handle=%p, step_id_addr=%" PRIu64 ", loop_cond_addr=%" PRIu64
+           ", iterations_per_loop_addr=%" PRIu64 ".",
+           model_dump_info.model_id, model_dump_info.model_name, model_dump_info.root_graph_name,
+           model_dump_info.device_id, model_dump_info.rt_model_handle, model_dump_info.step_id_addr,
+           model_dump_info.loop_cond_addr, model_dump_info.iterations_per_loop_addr);
+    GE_ASSERT_SUCCESS(dump_manager_->SetModelDumpInfo(model_dump_info));
+    GELOGI("[OM2][Dump] Set model dump info success, model_id=%u.", model_dump_info.model_id);
+    return ge::SUCCESS;
+  }
+
+  ge::Status LoadModel() {
+    GE_ASSERT_NOTNULL(run_model_info_.load_func);
+    GE_ASSERT_NOTNULL(run_model_info_.model_handle);
+    GE_ASSERT_SUCCESS(run_model_info_.load_func(&run_model_info_.model_handle));
+    return ge::SUCCESS;
+  }
+
+  ge::Status DispatchDumpInfo() {
+    GE_ASSERT_TRUE(dump_manager_ != nullptr);
+    GELOGI("[OM2][Dump] Dispatch dump info begin, model_id=%u, model_name=%s, root_graph_name=%s.",
+           model_id_, run_model_info_.model_name.c_str(), run_model_info_.root_graph_name.c_str());
+    GE_ASSERT_SUCCESS(dump_manager_->DispatchDumpInfo());
+    GELOGI("[OM2][Dump] Dispatch dump info success, model_id=%u, model_name=%s, root_graph_name=%s.",
+           model_id_, run_model_info_.model_name.c_str(), run_model_info_.root_graph_name.c_str());
+    return ge::SUCCESS;
   }
 
   ge::Status Run(std::vector<gert::Tensor *> &inputs, std::vector<gert::Tensor *> &outputs) {
@@ -555,6 +625,10 @@ class Om2ModelExecutor::Impl {
       }
     } else {
       GELOGI("[OM2] Destroy func not found or model not created, so file: %s", run_model_info_.so_file.c_str());
+    }
+    if (dump_manager_ != nullptr) {
+      dump_manager_->Clear();
+      dump_manager_.reset();
     }
     if (run_model_info_.so_handle != nullptr) {
       if (mmDlclose(run_model_info_.so_handle) != 0) {
@@ -688,7 +762,9 @@ class Om2ModelExecutor::Impl {
   }
 
   RunModelInfo run_model_info_;
+  std::unique_ptr<ge::dump::ModelDumpManager> dump_manager_;
   std::vector<void *> owned_buffers_;
+  uint32_t model_id_ = 0U;
   int32_t device_id_ = -1;
   uint64_t session_id_ = 0U;
   bool has_model_ = false;
@@ -710,7 +786,8 @@ ge::Status Om2ModelExecutor::Load(ge::ModelData &model_data, const Om2ModelLoadA
                     "[OM2][Load] Parse model failed.");
   GE_ASSERT_SUCCESS(impl_->LoadSharedObject());
   GE_ASSERT_SUCCESS(impl_->ResolveSymbols());
-  GE_ASSERT_SUCCESS(impl_->CreateModel(model_data, weight_buf, kernel_bin_info, load_arg, session_id));
+  GE_ASSERT_SUCCESS(impl_->CreateDumpManager(load_arg));
+  GE_ASSERT_SUCCESS(impl_->CreateAndLoadModel(model_data, weight_buf, kernel_bin_info, load_arg, session_id));
   return ge::SUCCESS;
 }
 

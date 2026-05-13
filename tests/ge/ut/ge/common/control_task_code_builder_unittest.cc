@@ -206,6 +206,48 @@ class ControlTaskCodeGeneratorUt : public testing::Test {
   void TearDown() override {}
 };
 
+std::string GetInterfaceDumpApisExpected() {
+  return R"(
+struct Om2TaskIoEntry {
+  const struct Om2Tensor *tensor;
+  uint64_t offset;
+};
+
+struct Om2TaskInfo {
+  const char* op_name;
+  const char* op_type;
+  uint32_t task_id;
+  uint32_t stream_id;
+  uint32_t context_id;
+  uint32_t thread_id;
+  uint64_t op_desc_id;
+  uintptr_t args_base;
+  uint64_t args_size;
+  uint64_t input_num;
+  const struct Om2TaskIoEntry* inputs;
+  uint32_t output_num;
+  const struct Om2TaskIoEntry* outputs;
+  uint32_t workspace_num;
+  const uint64_t* workspace_addrs;
+  const uint64_t* workspace_sizes;
+  uint32_t task_type;
+  void* stream;
+  uint32_t is_raw_address;
+};
+
+__attribute__((weak)) int32_t ReportTaskInfo(uint32_t model_id,
+                                              void* instance_handle,
+                                              const struct Om2TaskInfo* task_info,
+                                              const void* extended_attrs,
+                                              size_t extended_attrs_size);
+
+__attribute__((weak)) int32_t IsDataDumpEnabled(uint32_t model_id,
+                                                      void* instance_handle,
+                                                      const char* op_name,
+                                                      uint8_t* is_data_dump);
+)";
+}
+
 Status BuildControlCodegenModel(const GeModelPtr &ge_model) {
   AstContext ast_ctx;
   AstBuildContext ast(ast_ctx);
@@ -269,7 +311,7 @@ TEST_F(ControlTaskCodeGeneratorUt, GenerateControlTaskFiles_Ok) {
   EXPECT_NE(load_file.find("if ((mem_type == RT_MEMORY_TS))"), std::string::npos);
   EXPECT_NE(load_file.find("OM2_CHK_STATUS(aclrtMemcpy"), std::string::npos);
 
-  const std::string expected_header = R"(#include <iostream>
+const std::string expected_header = R"(#include <iostream>
 #include <cstddef>
 #include <ctime>
 #include <chrono>
@@ -288,6 +330,7 @@ TEST_F(ControlTaskCodeGeneratorUt, GenerateControlTaskFiles_Ok) {
 #include "acl/acl_base.h"
 #include "exe_graph/runtime/tensor.h"
 #include "rt.h"
+#include "rts/rts_kernel.h"
 
 #define OM2_CHK_STATUS(expr, ...)            \
 do {                                       \
@@ -343,6 +386,20 @@ inline uint64_t PtrToValue(const void *const ptr) {
 inline void *ValueToPtr(const uint64_t value) {
   return reinterpret_cast<void *>(static_cast<uintptr_t>(value));
 }
+inline uint64_t PtrToU64(const void *ptr) {
+  return static_cast<uint64_t>(reinterpret_cast<uintptr_t>(ptr));
+}
+
+extern "C" {
+struct Om2Tensor {
+  uint64_t device_address;
+  uint64_t size;
+  int32_t data_type;
+  int32_t format;
+  const int64_t* shape_dims;
+  uint64_t shape_dims_num;
+};
+}
 
 template<typename... Args>
 inline std::vector<uint64_t> FlattenHostArgs(Args&&... args) {
@@ -351,6 +408,8 @@ inline std::vector<uint64_t> FlattenHostArgs(Args&&... args) {
     using T = std::decay_t<decltype(arg)>;
     if constexpr (std::is_pointer_v<T>) {
       buf.push_back(reinterpret_cast<uint64_t>(arg));
+    } else if constexpr (std::is_same_v<T, Om2Tensor>) {
+      buf.push_back(arg.device_address);
     } else if constexpr (std::is_same_v<T, std::vector<int64_t>>) {
       for (auto d : arg) buf.push_back(static_cast<uint64_t>(d));
     } else if constexpr (std::is_integral_v<T>) {
@@ -434,11 +493,12 @@ class Om2ArgsTable {
 
 class Om2Model {
   public:
-    Om2Model(const char **bin_files, const void **bin_data, size_t *bin_size, size_t bin_num, void **constants, void *work_ptr, uint64_t *session_id);
+    Om2Model(const char **bin_files, const void **bin_data, size_t *bin_size, size_t bin_num, void **constants, void *work_ptr, uint64_t *session_id, uint32_t model_id, void *instance_handle);
     ~Om2Model();
     aclError InitResources();
     aclError RegisterKernels();
     aclError Load();
+    aclmdlRI GetRtModelHandle();
     aclError Run(size_t input_count, void **input_data, size_t output_count, void **output_data, int32_t stream_sync_timeout);
     aclError RunAsync(aclrtStream &exe_stream, size_t input_count, void **input_data, size_t output_count, void **output_data);
     aclError ReleaseResources();
@@ -462,6 +522,8 @@ class Om2Model {
     std::unordered_map<std::string, BinDataInfo> bin_info_map_;
     Om2ArgsTable args_table_;
     uint64_t *session_id_;
+    uint32_t model_id_;
+    void *instance_handle_;
     uint64_t kernel_id_;
     std::vector<void *> dev_ext_info_mem_ptrs_;
     std::map<uint32_t, void *> mem_event_id_mem_map_;
@@ -473,8 +535,10 @@ class Om2Model {
 #ifdef __cplusplus
 extern "C" {
 #endif
+)" + GetInterfaceDumpApisExpected() + R"(
+aclError Om2ModelCreate(om2::Om2ModelHandle *model_handle, aclmdlRI *rt_model_handle, const char **bin_files, const void **bin_data, size_t *bin_size, int bin_num, void **constants, void *work_ptr, uint64_t *session_id, uint32_t model_id, void *instance_handle);
 
-aclError Om2ModelCreate(om2::Om2ModelHandle *model_handle, const char **bin_files, const void **bin_data, size_t *bin_size, int bin_num, void **constants, void *work_ptr, uint64_t *session_id);
+aclError Om2ModelLoad(om2::Om2ModelHandle *model_handle);
 
 aclError Om2ModelRunAsync(om2::Om2ModelHandle *model_handle, aclrtStream stream, int input_count, void **input_data, int output_count, void **output_data);
 
@@ -489,8 +553,8 @@ aclError Om2ModelDestroy(om2::Om2ModelHandle *model_handle);
   const std::string expected_resources = R"(#include "_interface.h"
 
 namespace om2 {
-Om2Model::Om2Model(const char **bin_files, const void **bin_data, size_t *bin_size, size_t bin_num, void **constants, void *work_ptr, uint64_t *session_id)
-  : constants_(constants), total_dev_mem_ptr_(work_ptr), session_id_(session_id), kernel_id_(0), session_scope_mem_ptr_(nullptr) {
+Om2Model::Om2Model(const char **bin_files, const void **bin_data, size_t *bin_size, size_t bin_num, void **constants, void *work_ptr, uint64_t *session_id, uint32_t model_id, void *instance_handle)
+  : constants_(constants), total_dev_mem_ptr_(work_ptr), session_id_(session_id), model_id_(model_id), instance_handle_(instance_handle), kernel_id_(0), session_scope_mem_ptr_(nullptr) {
   for (size_t i = 0; (i < bin_num); ++i) {
     bin_info_map_[std::string(bin_files[i])] = {bin_data[i], bin_size[i]};
   }

@@ -76,6 +76,10 @@ public:
     void AddOm2Executor(uint32_t &modelId,
                         std::unique_ptr<gert::Om2ModelExecutor> &&executor,
                         const std::shared_ptr<gert::RtSession> &rtSession = nullptr);
+    uint32_t GenerateModelId();
+    void AddOm2ExecutorWithModelId(uint32_t modelId,
+                                   std::unique_ptr<gert::Om2ModelExecutor> &&executor,
+                                   const std::shared_ptr<gert::RtSession> &rtSession = nullptr);
     std::shared_ptr<gert::Om2ModelExecutor> GetOm2Executor(const uint32_t modelId);
     aclError DeleteOm2Executor(const uint32_t modelId);
     bool IsOm2ModelById(const uint32_t modelId) const;

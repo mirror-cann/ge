@@ -15,6 +15,19 @@ add_library(om2_executor SHARED
         # 此处仅添加执行时依赖的源文件
 )
 
+add_dependencies(om2_executor graphengine_protos)
+
+target_compile_definitions(om2_executor PRIVATE
+        google=ascend_private
+        PROTOBUF_INLINE_NOT_IN_HEADERS=0
+)
+
+target_compile_definitions(om2_executor PRIVATE
+        PROTOBUF_INLINE_NOT_IN_HEADERS=0
+        google=ascend_private
+        nlohmann=ascend_nlohmann
+)
+
 target_compile_options(om2_executor PRIVATE ${AIR_COMMON_COMPILE_OPTION}
         $<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},Clang>:-fblocks>
         -fno-strict-aliasing
@@ -22,12 +35,17 @@ target_compile_options(om2_executor PRIVATE ${AIR_COMMON_COMPILE_OPTION}
 
 target_include_directories(om2_executor PRIVATE
         ${ASCEND_INSTALL_PATH}/include/
+        ${ASCEND_INSTALL_PATH}/include/external/
         ${ASCEND_INSTALL_PATH}/pkg_inc/runtime/
         ${AIR_CODE_DIR}/runtime/om2/
+        ${AIR_CODE_DIR}/runtime/v1/common/
         ${AIR_CODE_DIR}/base/
         ${AIR_CODE_DIR}/inc/
         ${AIR_CODE_DIR}/inc/framework
         ${AIR_CODE_DIR}/inc/external
+        ${CMAKE_BINARY_DIR}
+        ${CMAKE_BINARY_DIR}/proto/graphengine_protos
+        ${PROTOBUF_INCLUDE_DIR}
 )
 
 target_link_libraries(om2_executor PRIVATE
@@ -44,6 +62,7 @@ target_link_libraries(om2_executor PRIVATE
         runtime
         json
         minizip_static
+        ascend_protobuf_static
         $<$<NOT:$<STREQUAL:${TARGET_SYSTEM_NAME},Android>>:-lrt>
         -ldl
 )

@@ -30,9 +30,22 @@ void AclResourceManagerOm2::AddOm2Executor(uint32_t &modelId,
                                            std::unique_ptr<gert::Om2ModelExecutor> &&executor,
                                            const std::shared_ptr<gert::RtSession> &rtSession)
 {
+    modelId = GenerateModelId();
+    AddOm2ExecutorWithModelId(modelId, std::move(executor), rtSession);
+}
+
+uint32_t AclResourceManagerOm2::GenerateModelId()
+{
     const std::lock_guard<std::mutex> locker(mutex_);
     ++modelIdGenerator_;
-    modelId = modelIdGenerator_.load();
+    return modelIdGenerator_.load();
+}
+
+void AclResourceManagerOm2::AddOm2ExecutorWithModelId(uint32_t modelId,
+                                                      std::unique_ptr<gert::Om2ModelExecutor> &&executor,
+                                                      const std::shared_ptr<gert::RtSession> &rtSession)
+{
+    const std::lock_guard<std::mutex> locker(mutex_);
     om2ExecutorMap_[modelId] = std::move(executor);
     if (rtSession != nullptr) {
         rtSessionMap_[modelId] = rtSession;

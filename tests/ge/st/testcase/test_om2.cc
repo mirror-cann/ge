@@ -488,8 +488,10 @@ std::string MakeFakeOm2InterfaceHeader() {
 #include <cstdint>
 
 extern "C" {
-int Om2ModelCreate(void **model_handle, const char **bin_files, const void **bin_data, size_t *bin_size, int bin_num,
-                   void **constants, void *work_ptr, uint64_t *session_id);
+int Om2ModelCreate(void **model_handle, void **rt_model_handle, const char **bin_files, const void **bin_data,
+                   size_t *bin_size, int bin_num, void **constants, void *work_ptr, uint64_t *session_id,
+                   uint32_t model_id, void *instance_handle);
+int Om2ModelLoad(void **model_handle);
 int Om2ModelRunAsync(void **model_handle, void *stream, int input_count, void **input_data, int output_count,
                      void **output_data);
 int Om2ModelRun(void **model_handle, int input_count, void **input_data, int output_count, void **output_data, int32_t stream_sync_timeout);
@@ -509,9 +511,10 @@ struct FakeModel {
 };
 }
 
-extern "C" int Om2ModelCreate(void **model_handle, const char **, const void **, size_t *, int, void **constants,
-                              void *work_ptr, uint64_t *session_id) {
-  if ((model_handle == nullptr) || (work_ptr == nullptr) || (constants == nullptr) || (constants[0] == nullptr)) {
+extern "C" int Om2ModelCreate(void **model_handle, void **rt_model_handle, const char **, const void **, size_t *, int,
+                              void **constants, void *work_ptr, uint64_t *session_id, uint32_t, void *) {
+  if ((model_handle == nullptr) || (rt_model_handle == nullptr) || (work_ptr == nullptr) || (constants == nullptr) ||
+      (constants[0] == nullptr)) {
     return 1;
   }
   auto *model = new (std::nothrow) FakeModel();
@@ -520,7 +523,12 @@ extern "C" int Om2ModelCreate(void **model_handle, const char **, const void **,
   }
   model->session_id = (session_id == nullptr) ? 0UL : *session_id;
   *model_handle = model;
+  *rt_model_handle = reinterpret_cast<void *>(0x12345678U);
   return 0;
+}
+
+extern "C" int Om2ModelLoad(void **model_handle) {
+  return ((model_handle == nullptr) || (*model_handle == nullptr)) ? 1 : 0;
 }
 
 extern "C" int Om2ModelRunAsync(void **model_handle, void *, int input_count, void **input_data, int output_count,

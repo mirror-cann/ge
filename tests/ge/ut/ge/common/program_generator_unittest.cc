@@ -20,6 +20,7 @@
 #include "ge_runtime_stub/include/faker/aicore_taskdef_faker.h"
 #include "ge_runtime_stub/include/faker/aicpu_taskdef_faker.h"
 #include "graph/debug/ge_attr_define.h"
+#include "graph/utils/tensor_utils.h"
 
 #include <cinttypes>
 #include <fstream>
@@ -116,6 +117,133 @@ std::string GetFakeExtInfo() {
   return ext_info;
 }
 
+std::string GetInterfaceDumpApisExpected() {
+  return R"(
+struct Om2TaskIoEntry {
+  const struct Om2Tensor *tensor;
+  uint64_t offset;
+};
+
+struct Om2TaskInfo {
+  const char* op_name;
+  const char* op_type;
+  uint32_t task_id;
+  uint32_t stream_id;
+  uint32_t context_id;
+  uint32_t thread_id;
+  uint64_t op_desc_id;
+  uintptr_t args_base;
+  uint64_t args_size;
+  uint64_t input_num;
+  const struct Om2TaskIoEntry* inputs;
+  uint32_t output_num;
+  const struct Om2TaskIoEntry* outputs;
+  uint32_t workspace_num;
+  const uint64_t* workspace_addrs;
+  const uint64_t* workspace_sizes;
+  uint32_t task_type;
+  void* stream;
+  uint32_t is_raw_address;
+};
+
+__attribute__((weak)) int32_t ReportTaskInfo(uint32_t model_id,
+                                              void* instance_handle,
+                                              const struct Om2TaskInfo* task_info,
+                                              const void* extended_attrs,
+                                              size_t extended_attrs_size);
+
+__attribute__((weak)) int32_t IsDataDumpEnabled(uint32_t model_id,
+                                                      void* instance_handle,
+                                                      const char* op_name,
+                                                      uint8_t* is_data_dump);
+)";
+}
+
+std::string GetLoadAndRunDumpHelpersExpected() {
+  return R"(Om2Tensor BuildOm2Tensor(void *device_address, uint64_t size, int32_t data_type,
+                         int32_t format, std::vector<int64_t> &shape_dims) {
+  Om2Tensor tensor{};
+  tensor.device_address = PtrToU64(device_address);
+  tensor.size = size;
+  tensor.data_type = data_type;
+  tensor.format = format;
+  tensor.shape_dims = shape_dims.data();
+  tensor.shape_dims_num = static_cast<uint64_t>(shape_dims.size());
+  return tensor;
+}
+
+aclError AssembleOm2TaskInfo(Om2TaskInfo *task_info, const char *op_name, const char *op_type,
+                             uint32_t task_id, uint32_t stream_id, uint64_t op_desc_id,
+                             uintptr_t args_base, uint64_t args_size,
+                             const Om2TaskIoEntry *inputs, uint64_t input_num,
+                             const Om2TaskIoEntry *outputs, uint32_t output_num,
+                             const uint64_t *workspace_addrs, const uint64_t *workspace_sizes,
+                             uint32_t workspace_num, uint32_t task_type, void *stream,
+                             uint32_t is_raw_address = 0U) {
+  task_info->op_name = op_name;
+  task_info->op_type = op_type;
+  task_info->task_id = task_id;
+  task_info->stream_id = stream_id;
+  task_info->context_id = 0U;
+  task_info->thread_id = 0U;
+  task_info->op_desc_id = op_desc_id;
+  task_info->args_base = args_base;
+  task_info->args_size = args_size;
+  task_info->input_num = input_num;
+  task_info->inputs = inputs;
+  task_info->output_num = output_num;
+  task_info->outputs = outputs;
+  task_info->workspace_num = workspace_num;
+  task_info->workspace_addrs = workspace_addrs;
+  task_info->workspace_sizes = workspace_sizes;
+  task_info->task_type = task_type;
+  task_info->stream = stream;
+  task_info->is_raw_address = is_raw_address;
+  return ACL_SUCCESS;
+}
+
+aclError ReportLaunchedOm2Task(const char *op_name, const char *op_type, uint64_t op_desc_id,
+                               uintptr_t args_base, uint64_t args_size,
+                               const std::vector<Om2TaskIoEntry> &inputs,
+                               const std::vector<Om2TaskIoEntry> &outputs,
+                               const std::vector<uint64_t> &workspace_addrs,
+                               const std::vector<uint64_t> &workspace_sizes,
+                               uint32_t task_type, void *stream,
+                               uint32_t model_id, void *instance_handle) {
+  uint32_t task_id = 0U;
+  OM2_CHK_RT(rtsGetThreadLastTaskId(&task_id));
+
+  uint32_t stream_id = 0U;
+  OM2_CHK_STATUS(aclrtStreamGetId(stream, reinterpret_cast<int32_t *>(&stream_id)));
+
+  OM2_CHK_TRUE(workspace_addrs.size() == workspace_sizes.size());
+
+  Om2TaskInfo task_info{};
+  OM2_CHK_STATUS(AssembleOm2TaskInfo(&task_info, op_name, op_type, task_id, stream_id, op_desc_id,
+                                      args_base, args_size,
+                                      inputs.data(), static_cast<uint64_t>(inputs.size()),
+                                      outputs.data(), static_cast<uint32_t>(outputs.size()),
+                                      workspace_addrs.empty() ? nullptr : workspace_addrs.data(),
+                                      workspace_sizes.empty() ? nullptr : workspace_sizes.data(),
+                                      static_cast<uint32_t>(workspace_addrs.size()),
+                                      task_type, stream));
+  if (ReportTaskInfo != nullptr && instance_handle != nullptr) {
+    OM2_CHK_STATUS(ReportTaskInfo(model_id, instance_handle, &task_info, nullptr, 0U));
+  }
+  return ACL_SUCCESS;
+}
+
+uint8_t GetIsDataDump(const char *op_name, uint32_t model_id, void *instance_handle) {
+  if (IsDataDumpEnabled != nullptr && instance_handle != nullptr) {
+    uint8_t is_data_dump = 0U;
+    auto ret = IsDataDumpEnabled(model_id, instance_handle, op_name, &is_data_dump);
+    return ret == 0 ? is_data_dump : 0U;
+  }
+  return 0U;
+}
+)";
+}
+
 GeRootModelPtr CreateGeRootModelWithAicoreOp() {
   auto graph = gert::ShareGraph::AicoreStaticGraph();
   graph->TopologicalSorting();
@@ -208,6 +336,39 @@ GeRootModelPtr CreateGeRootModelWithAicoreOp2() {
   (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_WEIGHT_SIZE, weight_size);
   (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_STREAM_NUM, 1);
 
+  return ge_root_model;
+}
+
+GeRootModelPtr CreateGeRootModelWithConstInputOp() {
+  GeRootModelPtr ge_root_model = CreateGeRootModelWithAicoreOp2();
+  if (ge_root_model == nullptr) {
+    return nullptr;
+  }
+  const auto &name_to_ge_model = ge_root_model->GetSubgraphInstanceNameToModel();
+  if (name_to_ge_model.empty()) {
+    return nullptr;
+  }
+  const auto ge_model = name_to_ge_model.begin()->second;
+  const auto compute_graph = ge_model->GetGraph();
+  if (compute_graph == nullptr) {
+    return nullptr;
+  }
+  std::vector<uint8_t> weights_value(256 * 1024, 0);
+  const size_t weight_size = weights_value.size();
+  ge_model->SetWeight(Buffer::CopyFrom(weights_value.data(), weight_size));
+  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_WEIGHT_SIZE, weight_size);
+  for (const auto &node : compute_graph->GetDirectNode()) {
+    auto op_desc = node->GetOpDesc();
+    if ((op_desc == nullptr) || (op_desc->GetType() != "Add")) {
+      continue;
+    }
+    op_desc->SetIsInputConst({true, false});
+    auto input_desc = op_desc->MutableInputDesc(0);
+    if (input_desc == nullptr) {
+      return nullptr;
+    }
+    (void)TensorUtils::SetDataOffset(*input_desc, 128);
+  }
   return ge_root_model;
 }
 
@@ -681,8 +842,8 @@ TEST_F(ProgramGeneratorUt, GenerateResourcesSource_Ok) {
   const std::string expected = R"(#include "g1_interface.h"
 
 namespace om2 {
-Om2Model::Om2Model(const char **bin_files, const void **bin_data, size_t *bin_size, size_t bin_num, void **constants, void *work_ptr, uint64_t *session_id)
-  : constants_(constants), total_dev_mem_ptr_(work_ptr), session_id_(session_id), kernel_id_(0), session_scope_mem_ptr_(nullptr) {
+Om2Model::Om2Model(const char **bin_files, const void **bin_data, size_t *bin_size, size_t bin_num, void **constants, void *work_ptr, uint64_t *session_id, uint32_t model_id, void *instance_handle)
+  : constants_(constants), total_dev_mem_ptr_(work_ptr), session_id_(session_id), model_id_(model_id), instance_handle_(instance_handle), kernel_id_(0), session_scope_mem_ptr_(nullptr) {
   for (size_t i = 0; (i < bin_num); ++i) {
     bin_info_map_[std::string(bin_files[i])] = {bin_data[i], bin_size[i]};
   }
@@ -778,6 +939,7 @@ TEST_F(ProgramGeneratorUt, GenerateInterfaceHeader_Ok) {
 #include "acl/acl_base.h"
 #include "exe_graph/runtime/tensor.h"
 #include "rt.h"
+#include "rts/rts_kernel.h"
 
 #define OM2_CHK_STATUS(expr, ...)            \
 do {                                       \
@@ -833,6 +995,20 @@ inline uint64_t PtrToValue(const void *const ptr) {
 inline void *ValueToPtr(const uint64_t value) {
   return reinterpret_cast<void *>(static_cast<uintptr_t>(value));
 }
+inline uint64_t PtrToU64(const void *ptr) {
+  return static_cast<uint64_t>(reinterpret_cast<uintptr_t>(ptr));
+}
+
+extern "C" {
+struct Om2Tensor {
+  uint64_t device_address;
+  uint64_t size;
+  int32_t data_type;
+  int32_t format;
+  const int64_t* shape_dims;
+  uint64_t shape_dims_num;
+};
+}
 
 template<typename... Args>
 inline std::vector<uint64_t> FlattenHostArgs(Args&&... args) {
@@ -841,6 +1017,8 @@ inline std::vector<uint64_t> FlattenHostArgs(Args&&... args) {
     using T = std::decay_t<decltype(arg)>;
     if constexpr (std::is_pointer_v<T>) {
       buf.push_back(reinterpret_cast<uint64_t>(arg));
+    } else if constexpr (std::is_same_v<T, Om2Tensor>) {
+      buf.push_back(arg.device_address);
     } else if constexpr (std::is_same_v<T, std::vector<int64_t>>) {
       for (auto d : arg) buf.push_back(static_cast<uint64_t>(d));
     } else if constexpr (std::is_integral_v<T>) {
@@ -924,11 +1102,12 @@ class Om2ArgsTable {
 
 class Om2Model {
   public:
-    Om2Model(const char **bin_files, const void **bin_data, size_t *bin_size, size_t bin_num, void **constants, void *work_ptr, uint64_t *session_id);
+    Om2Model(const char **bin_files, const void **bin_data, size_t *bin_size, size_t bin_num, void **constants, void *work_ptr, uint64_t *session_id, uint32_t model_id, void *instance_handle);
     ~Om2Model();
     aclError InitResources();
     aclError RegisterKernels();
     aclError Load();
+    aclmdlRI GetRtModelHandle();
     aclError Run(size_t input_count, void **input_data, size_t output_count, void **output_data, int32_t stream_sync_timeout);
     aclError RunAsync(aclrtStream &exe_stream, size_t input_count, void **input_data, size_t output_count, void **output_data);
     aclError ReleaseResources();
@@ -943,6 +1122,8 @@ class Om2Model {
     std::unordered_map<std::string, BinDataInfo> bin_info_map_;
     Om2ArgsTable args_table_;
     uint64_t *session_id_;
+    uint32_t model_id_;
+    void *instance_handle_;
     uint64_t kernel_id_;
     std::vector<void *> dev_ext_info_mem_ptrs_;
     std::map<uint32_t, void *> mem_event_id_mem_map_;
@@ -954,8 +1135,10 @@ class Om2Model {
 #ifdef __cplusplus
 extern "C" {
 #endif
+)" + GetInterfaceDumpApisExpected() + R"(
+aclError Om2ModelCreate(om2::Om2ModelHandle *model_handle, aclmdlRI *rt_model_handle, const char **bin_files, const void **bin_data, size_t *bin_size, int bin_num, void **constants, void *work_ptr, uint64_t *session_id, uint32_t model_id, void *instance_handle);
 
-aclError Om2ModelCreate(om2::Om2ModelHandle *model_handle, const char **bin_files, const void **bin_data, size_t *bin_size, int bin_num, void **constants, void *work_ptr, uint64_t *session_id);
+aclError Om2ModelLoad(om2::Om2ModelHandle *model_handle);
 
 aclError Om2ModelRunAsync(om2::Om2ModelHandle *model_handle, aclrtStream stream, int input_count, void **input_data, int output_count, void **output_data);
 
@@ -1134,7 +1317,7 @@ TEST_F(ProgramGeneratorUt, GenerateLoadAndRunSource_Ok) {
 
 namespace om2 {
 namespace {
-constexpr uint16_t GE_MODULE_NAME_U16 = 45;
+)" + GetLoadAndRunDumpHelpersExpected() + R"(constexpr uint16_t GE_MODULE_NAME_U16 = 45;
 aclError MallocDeviceMemory(void *&dev_ptr, const size_t size, const uint32_t mem_type, std::vector<void *> &mem_ptrs) {
   uint64_t block_size = 2097152;
   if ((mem_type == RT_MEMORY_TS)) {
@@ -1162,7 +1345,7 @@ struct LaunchKernelConfig {
   aclrtEngineType engine_type{ACL_RT_ENGINE_TYPE_AIC};
   uint32_t block_dim_offset{0U};
   bool is_block_task_prefetch{false};
-  bool is_data_dump{false};
+  uint8_t is_data_dump{0U};
   uint16_t time_out{0U};
   uint32_t local_memory_size{0U};
 };
@@ -1182,7 +1365,7 @@ void AssembleLaunchConfig(LaunchKernelCfgHolder &holder, const LaunchKernelConfi
   holder.attrs[actual_cfg_num].value.isBlockTaskPrefetch = static_cast<uint8_t>(launch_config.is_block_task_prefetch);
   actual_cfg_num++;
   holder.attrs[actual_cfg_num].id = ACL_RT_LAUNCH_KERNEL_ATTR_DATA_DUMP;
-  holder.attrs[actual_cfg_num].value.isDataDump = static_cast<uint8_t>(launch_config.is_data_dump);
+  holder.attrs[actual_cfg_num].value.isDataDump = launch_config.is_data_dump;
   actual_cfg_num++;
   holder.attrs[actual_cfg_num].id = ACL_RT_LAUNCH_KERNEL_ATTR_DYN_UBUF_SIZE;
   holder.attrs[actual_cfg_num].value.dynUBufSize = launch_config.local_memory_size;
@@ -1256,16 +1439,24 @@ aclError GetEventIdAddr(void *&event_addr, std::map<uint32_t, void *> &event_id_
   return ACL_SUCCESS;
 }
 } // namespace
+aclmdlRI Om2Model::GetRtModelHandle() {
+  return model_handle_;
+}
+
 aclError Om2Model::Load() {
   dev_ext_info_mem_ptrs_.resize(0);
   // ============================= add1 ===============================
-  auto op2_input0 = GET_ADDR(total_dev_mem_ptr_, 1024);
-  auto op2_input1 = GET_ADDR(total_dev_mem_ptr_, 1024);
-  auto op2_output0 = GET_ADDR(total_dev_mem_ptr_, 1024);
+  std::vector<int64_t> op2_input0_shape = {1, 1, 224, 224};
+  Om2Tensor op2_input0 = BuildOm2Tensor(GET_ADDR(total_dev_mem_ptr_, 1024), 200704UL, 1, 0, op2_input0_shape);
+  std::vector<int64_t> op2_input1_shape = {1, 1, 224, 224};
+  Om2Tensor op2_input1 = BuildOm2Tensor(GET_ADDR(total_dev_mem_ptr_, 1024), 200704UL, 1, 0, op2_input1_shape);
+  std::vector<int64_t> op2_output0_shape = {1, 1, 224, 224};
+  Om2Tensor op2_output0 = BuildOm2Tensor(GET_ADDR(total_dev_mem_ptr_, 1024), 200704UL, 1, 0, op2_output0_shape);
   auto op2_ws0 = GET_ADDR(total_dev_mem_ptr_, 0);
   LaunchKernelCfgHolder op2_cfg_holder;
-  AssembleLaunchConfig(op2_cfg_holder, {0U, ACL_RT_ENGINE_TYPE_AIC, 0U, false, false, 0U, 0U});
+  AssembleLaunchConfig(op2_cfg_holder, {0U, ACL_RT_ENGINE_TYPE_AIC, 0U, false, GetIsDataDump("add1", model_id_, instance_handle_), 0U, 0U});
   OM2_CHK_STATUS(KernelTaskDistribute(FlattenHostArgs(op2_input0, op2_input1, op2_output0, op2_ws0), args_table_.GetArgsInfo(0), func_handles_[0], 8, stream_list_[0], &op2_cfg_holder.cfg));
+  OM2_CHK_STATUS(ReportLaunchedOm2Task("add1", "Add", 2U, reinterpret_cast<uintptr_t>(args_table_.GetArgsInfo(0)->dev_addr), args_table_.GetArgsInfo(0)->size, {{&op2_input0, 0U}, {&op2_input1, 8U}}, {{&op2_output0, 16U}}, {PtrToU64(op2_ws0)}, {64U}, 0U, stream_list_[0], model_id_, instance_handle_));
 
   OM2_CHK_STATUS(aclmdlRIBuildEnd(model_handle_, nullptr));
   return ACL_SUCCESS;
@@ -1305,11 +1496,12 @@ aclError Om2Model::Run(size_t input_count, void **input_data, size_t output_coun
   return ACL_SUCCESS;
 }
 } // namespace om2
-aclError Om2ModelCreate(om2::Om2ModelHandle *model_handle, const char **bin_files, const void **bin_data, size_t *bin_size, int bin_num, void **constants, void *work_ptr, uint64_t *session_id) {
-  if (*model_handle != nullptr) {
+aclError Om2ModelCreate(om2::Om2ModelHandle *model_handle, aclmdlRI *rt_model_handle, const char **bin_files, const void **bin_data, size_t *bin_size, int bin_num, void **constants, void *work_ptr, uint64_t *session_id, uint32_t model_id, void *instance_handle) {
+  if ((model_handle == nullptr) || (rt_model_handle == nullptr) || (*model_handle != nullptr)) {
     return ACL_ERROR_FAILURE;
   }
-  auto *obj = new om2::Om2Model(bin_files, bin_data, bin_size, bin_num, constants, work_ptr, session_id);
+  auto *obj = new om2::Om2Model(bin_files, bin_data, bin_size, bin_num, constants, work_ptr, session_id,
+                                model_id, instance_handle);
   if (obj == nullptr) {
     return ACL_ERROR_FAILURE;
   }
@@ -1323,13 +1515,16 @@ aclError Om2ModelCreate(om2::Om2ModelHandle *model_handle, const char **bin_file
     delete obj;
     return ret;
   }
-  ret = obj->Load();
-  if (ret != ACL_SUCCESS) {
-    delete obj;
-    return ret;
-  }
   *model_handle = reinterpret_cast<om2::Om2ModelHandle>(obj);
+  *rt_model_handle = obj->GetRtModelHandle();
   return ACL_SUCCESS;
+}
+
+aclError Om2ModelLoad(om2::Om2ModelHandle *model_handle) {
+  if ((model_handle == nullptr) || (*model_handle == nullptr)) {
+    return ACL_ERROR_FAILURE;
+  }
+  return static_cast<om2::Om2Model*>(*model_handle)->Load();
 }
 
 aclError Om2ModelRunAsync(om2::Om2ModelHandle *model_handle, aclrtStream stream, int input_count, void **input_data, int output_count, void **output_data) {
@@ -1357,7 +1552,7 @@ TEST_F(ProgramGeneratorUt, GenerateLoadAndRunSource2_Ok) {
 
 namespace om2 {
 namespace {
-constexpr uint16_t GE_MODULE_NAME_U16 = 45;
+)" + GetLoadAndRunDumpHelpersExpected() + R"(constexpr uint16_t GE_MODULE_NAME_U16 = 45;
 aclError MallocDeviceMemory(void *&dev_ptr, const size_t size, const uint32_t mem_type, std::vector<void *> &mem_ptrs) {
   uint64_t block_size = 2097152;
   if ((mem_type == RT_MEMORY_TS)) {
@@ -1385,7 +1580,7 @@ struct LaunchKernelConfig {
   aclrtEngineType engine_type{ACL_RT_ENGINE_TYPE_AIC};
   uint32_t block_dim_offset{0U};
   bool is_block_task_prefetch{false};
-  bool is_data_dump{false};
+  uint8_t is_data_dump{0U};
   uint16_t time_out{0U};
   uint32_t local_memory_size{0U};
 };
@@ -1405,7 +1600,7 @@ void AssembleLaunchConfig(LaunchKernelCfgHolder &holder, const LaunchKernelConfi
   holder.attrs[actual_cfg_num].value.isBlockTaskPrefetch = static_cast<uint8_t>(launch_config.is_block_task_prefetch);
   actual_cfg_num++;
   holder.attrs[actual_cfg_num].id = ACL_RT_LAUNCH_KERNEL_ATTR_DATA_DUMP;
-  holder.attrs[actual_cfg_num].value.isDataDump = static_cast<uint8_t>(launch_config.is_data_dump);
+  holder.attrs[actual_cfg_num].value.isDataDump = launch_config.is_data_dump;
   actual_cfg_num++;
   holder.attrs[actual_cfg_num].id = ACL_RT_LAUNCH_KERNEL_ATTR_DYN_UBUF_SIZE;
   holder.attrs[actual_cfg_num].value.dynUBufSize = launch_config.local_memory_size;
@@ -1479,16 +1674,24 @@ aclError GetEventIdAddr(void *&event_addr, std::map<uint32_t, void *> &event_id_
   return ACL_SUCCESS;
 }
 } // namespace
+aclmdlRI Om2Model::GetRtModelHandle() {
+  return model_handle_;
+}
+
 aclError Om2Model::Load() {
   dev_ext_info_mem_ptrs_.resize(0);
   // ============================= add1 ===============================
-  auto op2_input0 = GET_ADDR(total_dev_mem_ptr_, 1024);
-  auto op2_input1 = GET_ADDR(total_dev_mem_ptr_, 1024);
-  auto op2_output0 = GET_ADDR(total_dev_mem_ptr_, 1024);
+  std::vector<int64_t> op2_input0_shape = {1, 1, 224, 224};
+  Om2Tensor op2_input0 = BuildOm2Tensor(GET_ADDR(total_dev_mem_ptr_, 1024), 200704UL, 1, 0, op2_input0_shape);
+  std::vector<int64_t> op2_input1_shape = {1, 1, 224, 224};
+  Om2Tensor op2_input1 = BuildOm2Tensor(GET_ADDR(total_dev_mem_ptr_, 1024), 200704UL, 1, 0, op2_input1_shape);
+  std::vector<int64_t> op2_output0_shape = {1, 1, 224, 224};
+  Om2Tensor op2_output0 = BuildOm2Tensor(GET_ADDR(total_dev_mem_ptr_, 1024), 200704UL, 1, 0, op2_output0_shape);
   auto op2_ws0 = GET_ADDR(total_dev_mem_ptr_, 0);
   LaunchKernelCfgHolder op2_cfg_holder;
-  AssembleLaunchConfig(op2_cfg_holder, {0U, ACL_RT_ENGINE_TYPE_AIC, 0U, false, false, 0U, 0U});
+  AssembleLaunchConfig(op2_cfg_holder, {0U, ACL_RT_ENGINE_TYPE_AIC, 0U, false, GetIsDataDump("add1", model_id_, instance_handle_), 0U, 0U});
   OM2_CHK_STATUS(KernelTaskDistribute(FlattenHostArgs(op2_input0, op2_input1, op2_output0, op2_ws0), args_table_.GetArgsInfo(0), func_handles_[0], 8, stream_list_[0], &op2_cfg_holder.cfg));
+  OM2_CHK_STATUS(ReportLaunchedOm2Task("add1", "Add", 2U, reinterpret_cast<uintptr_t>(args_table_.GetArgsInfo(0)->dev_addr), args_table_.GetArgsInfo(0)->size, {{&op2_input0, 0U}, {&op2_input1, 8U}}, {{&op2_output0, 16U}}, {PtrToU64(op2_ws0)}, {64U}, 0U, stream_list_[0], model_id_, instance_handle_));
 
   OM2_CHK_STATUS(aclmdlRIBuildEnd(model_handle_, nullptr));
   return ACL_SUCCESS;
@@ -1528,11 +1731,12 @@ aclError Om2Model::Run(size_t input_count, void **input_data, size_t output_coun
   return ACL_SUCCESS;
 }
 } // namespace om2
-aclError Om2ModelCreate(om2::Om2ModelHandle *model_handle, const char **bin_files, const void **bin_data, size_t *bin_size, int bin_num, void **constants, void *work_ptr, uint64_t *session_id) {
-  if (*model_handle != nullptr) {
+aclError Om2ModelCreate(om2::Om2ModelHandle *model_handle, aclmdlRI *rt_model_handle, const char **bin_files, const void **bin_data, size_t *bin_size, int bin_num, void **constants, void *work_ptr, uint64_t *session_id, uint32_t model_id, void *instance_handle) {
+  if ((model_handle == nullptr) || (rt_model_handle == nullptr) || (*model_handle != nullptr)) {
     return ACL_ERROR_FAILURE;
   }
-  auto *obj = new om2::Om2Model(bin_files, bin_data, bin_size, bin_num, constants, work_ptr, session_id);
+  auto *obj = new om2::Om2Model(bin_files, bin_data, bin_size, bin_num, constants, work_ptr, session_id,
+                                model_id, instance_handle);
   if (obj == nullptr) {
     return ACL_ERROR_FAILURE;
   }
@@ -1546,13 +1750,16 @@ aclError Om2ModelCreate(om2::Om2ModelHandle *model_handle, const char **bin_file
     delete obj;
     return ret;
   }
-  ret = obj->Load();
-  if (ret != ACL_SUCCESS) {
-    delete obj;
-    return ret;
-  }
   *model_handle = reinterpret_cast<om2::Om2ModelHandle>(obj);
+  *rt_model_handle = obj->GetRtModelHandle();
   return ACL_SUCCESS;
+}
+
+aclError Om2ModelLoad(om2::Om2ModelHandle *model_handle) {
+  if ((model_handle == nullptr) || (*model_handle == nullptr)) {
+    return ACL_ERROR_FAILURE;
+  }
+  return static_cast<om2::Om2Model*>(*model_handle)->Load();
 }
 
 aclError Om2ModelRunAsync(om2::Om2ModelHandle *model_handle, aclrtStream stream, int input_count, void **input_data, int output_count, void **output_data) {
@@ -1570,6 +1777,26 @@ aclError Om2ModelDestroy(om2::Om2ModelHandle *model_handle) {
   ASSERT_EQ(outputs[GeneratedFileIndex::kLoadingAndRunningFile], expected + "\n");
 }
 
+TEST_F(ProgramGeneratorUt, GenerateLoadAndRunSource_ConstInputTensor_Ok) {
+  auto const_ge_root_model = CreateGeRootModelWithConstInputOp();
+  auto generator = CreateProgramGenerator(const_ge_root_model);
+  std::map<GeneratedFileIndex, std::string> outputs;
+  ASSERT_EQ(GenerateProgramFiles(generator, outputs), SUCCESS);
+
+  const auto &source = outputs[GeneratedFileIndex::kLoadingAndRunningFile];
+  EXPECT_NE(source.find("std::vector<int64_t> const_0_shape = {1, 1, 224, 224};"), std::string::npos);
+  EXPECT_NE(source.find("Om2Tensor const_0 = BuildOm2Tensor(constants_[0], 200704UL, 1, 0, const_0_shape);"),
+            std::string::npos);
+  EXPECT_NE(source.find("FlattenHostArgs(const_0, op2_input1, op2_output0, op2_ws0)"),
+            std::string::npos);
+  EXPECT_NE(source.find("ReportLaunchedOm2Task(\"add1\", \"Add\", 2U, "
+                        "reinterpret_cast<uintptr_t>(args_table_.GetArgsInfo(0)->dev_addr), "
+                        "args_table_.GetArgsInfo(0)->size, {{&const_0, 0U}, {&op2_input1, 8U}}, "
+                        "{{&op2_output0, 16U}}, {PtrToU64(op2_ws0)}, {64U}, 0U, "
+                        "stream_list_[0], model_id_, instance_handle_)"),
+            std::string::npos);
+}
+
 TEST_F(ProgramGeneratorUt, GenerateLoadAndRunSourceForAicpu_Ok) {
   GeRootModelPtr ge_root_model = CreateGeRootModelWithAicpuOp();
   auto generator = CreateProgramGenerator(ge_root_model);
@@ -1580,7 +1807,7 @@ TEST_F(ProgramGeneratorUt, GenerateLoadAndRunSourceForAicpu_Ok) {
 
 namespace om2 {
 namespace {
-constexpr uint16_t GE_MODULE_NAME_U16 = 45;
+)" + GetLoadAndRunDumpHelpersExpected() + R"(constexpr uint16_t GE_MODULE_NAME_U16 = 45;
 aclError MallocDeviceMemory(void *&dev_ptr, const size_t size, const uint32_t mem_type, std::vector<void *> &mem_ptrs) {
   uint64_t block_size = 2097152;
   if ((mem_type == RT_MEMORY_TS)) {
@@ -1608,7 +1835,7 @@ struct LaunchKernelConfig {
   aclrtEngineType engine_type{ACL_RT_ENGINE_TYPE_AIC};
   uint32_t block_dim_offset{0U};
   bool is_block_task_prefetch{false};
-  bool is_data_dump{false};
+  uint8_t is_data_dump{0U};
   uint16_t time_out{0U};
   uint32_t local_memory_size{0U};
 };
@@ -1628,7 +1855,7 @@ void AssembleLaunchConfig(LaunchKernelCfgHolder &holder, const LaunchKernelConfi
   holder.attrs[actual_cfg_num].value.isBlockTaskPrefetch = static_cast<uint8_t>(launch_config.is_block_task_prefetch);
   actual_cfg_num++;
   holder.attrs[actual_cfg_num].id = ACL_RT_LAUNCH_KERNEL_ATTR_DATA_DUMP;
-  holder.attrs[actual_cfg_num].value.isDataDump = static_cast<uint8_t>(launch_config.is_data_dump);
+  holder.attrs[actual_cfg_num].value.isDataDump = launch_config.is_data_dump;
   actual_cfg_num++;
   holder.attrs[actual_cfg_num].id = ACL_RT_LAUNCH_KERNEL_ATTR_DYN_UBUF_SIZE;
   holder.attrs[actual_cfg_num].value.dynUBufSize = launch_config.local_memory_size;
@@ -1702,12 +1929,19 @@ aclError GetEventIdAddr(void *&event_addr, std::map<uint32_t, void *> &event_id_
   return ACL_SUCCESS;
 }
 } // namespace
+aclmdlRI Om2Model::GetRtModelHandle() {
+  return model_handle_;
+}
+
 aclError Om2Model::Load() {
   dev_ext_info_mem_ptrs_.resize(2);
   // ============================= add1 ===============================
-  auto op2_input0 = GET_ADDR(total_dev_mem_ptr_, 1024);
-  auto op2_input1 = GET_ADDR(total_dev_mem_ptr_, 1024);
-  auto op2_output0 = GET_ADDR(total_dev_mem_ptr_, 1024);
+  std::vector<int64_t> op2_input0_shape = {-1, -1, -1, -1};
+  Om2Tensor op2_input0 = BuildOm2Tensor(GET_ADDR(total_dev_mem_ptr_, 1024), 0UL, 1, 2, op2_input0_shape);
+  std::vector<int64_t> op2_input1_shape = {-1, -1, -1, -1};
+  Om2Tensor op2_input1 = BuildOm2Tensor(GET_ADDR(total_dev_mem_ptr_, 1024), 0UL, 1, 2, op2_input1_shape);
+  std::vector<int64_t> op2_output0_shape = {-1, -1, -1, -1};
+  Om2Tensor op2_output0 = BuildOm2Tensor(GET_ADDR(total_dev_mem_ptr_, 1024), 0UL, 1, 2, op2_output0_shape);
   std::vector<uint64_t> op2_iow_addr = FlattenHostArgs(op2_input0, op2_input1, op2_output0);
   const char *op2_args_str = "\104\000\000\000\003\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000";
   const char *op2_ext_info_str = "\001\000\000\000\210\000\000\000\000\000\000\000\005\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\005\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\002\000\000\000\104\000\000\000\000\000\000\000\005\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\005\000\000\000\021\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\006\000\000\000\010\000\000\000\001\000\000\000\000\000\000\000\003\000\000\000\004\000\000\000\001\000\000\000\007\000\000\000\004\000\000\000\001\000\000\000";
@@ -1716,11 +1950,12 @@ aclError Om2Model::Load() {
   AssembleAicpuExtInfo(reinterpret_cast<uint8_t *>(const_cast<char *>(op2_ext_info_str)), 285, 228, session_id_, &kernel_id_, dev_ext_info_mem_ptrs_, 0);
   AssembleAicpuArgs(reinterpret_cast<uint8_t *>(const_cast<char *>(op2_args_str)), 68, dev_ext_info_mem_ptrs_[0], 285, op2_iow_addr, op2_args.data());
   LaunchKernelCfgHolder op2_cfg_holder;
-  AssembleLaunchConfig(op2_cfg_holder, {0U, ACL_RT_ENGINE_TYPE_AIC, 0U, false, false, 0U, 0U});
+  AssembleLaunchConfig(op2_cfg_holder, {0U, ACL_RT_ENGINE_TYPE_AIC, 0U, false, 0U, 0U, 0U});
   OM2_CHK_STATUS(AicpuKernelTaskDistribute(op2_args, args_table_.GetArgsInfo(0), func_handles_[0], 8, stream_list_[0], &op2_cfg_holder.cfg));
 
   // ============================= add2 ===============================
-  auto op3_output0 = GET_ADDR(total_dev_mem_ptr_, 1024);
+  std::vector<int64_t> op3_output0_shape = {-1, -1, -1, -1};
+  Om2Tensor op3_output0 = BuildOm2Tensor(GET_ADDR(total_dev_mem_ptr_, 1024), 0UL, 1, 2, op3_output0_shape);
   std::vector<uint64_t> op3_iow_addr = FlattenHostArgs(op2_input0, op2_output0, op3_output0);
   const char *op3_args_str = "\104\000\000\000\003\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000";
   const char *op3_ext_info_str = "\001\000\000\000\210\000\000\000\000\000\000\000\005\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\005\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\002\000\000\000\104\000\000\000\000\000\000\000\005\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\005\000\000\000\021\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\006\000\000\000\010\000\000\000\001\000\000\000\000\000\000\000\003\000\000\000\004\000\000\000\001\000\000\000\007\000\000\000\004\000\000\000\001\000\000\000";
@@ -1729,7 +1964,7 @@ aclError Om2Model::Load() {
   AssembleAicpuExtInfo(reinterpret_cast<uint8_t *>(const_cast<char *>(op3_ext_info_str)), 285, 228, session_id_, &kernel_id_, dev_ext_info_mem_ptrs_, 1);
   AssembleAicpuArgs(reinterpret_cast<uint8_t *>(const_cast<char *>(op3_args_str)), 68, dev_ext_info_mem_ptrs_[1], 285, op3_iow_addr, op3_args.data());
   LaunchKernelCfgHolder op3_cfg_holder;
-  AssembleLaunchConfig(op3_cfg_holder, {0U, ACL_RT_ENGINE_TYPE_AIC, 0U, false, false, 0U, 0U});
+  AssembleLaunchConfig(op3_cfg_holder, {0U, ACL_RT_ENGINE_TYPE_AIC, 0U, false, 0U, 0U, 0U});
   OM2_CHK_STATUS(AicpuKernelTaskDistribute(op3_args, args_table_.GetArgsInfo(1), func_handles_[0], 8, stream_list_[0], &op3_cfg_holder.cfg));
 
   OM2_CHK_STATUS(aclmdlRIBuildEnd(model_handle_, nullptr));
@@ -1770,11 +2005,12 @@ aclError Om2Model::Run(size_t input_count, void **input_data, size_t output_coun
   return ACL_SUCCESS;
 }
 } // namespace om2
-aclError Om2ModelCreate(om2::Om2ModelHandle *model_handle, const char **bin_files, const void **bin_data, size_t *bin_size, int bin_num, void **constants, void *work_ptr, uint64_t *session_id) {
-  if (*model_handle != nullptr) {
+aclError Om2ModelCreate(om2::Om2ModelHandle *model_handle, aclmdlRI *rt_model_handle, const char **bin_files, const void **bin_data, size_t *bin_size, int bin_num, void **constants, void *work_ptr, uint64_t *session_id, uint32_t model_id, void *instance_handle) {
+  if ((model_handle == nullptr) || (rt_model_handle == nullptr) || (*model_handle != nullptr)) {
     return ACL_ERROR_FAILURE;
   }
-  auto *obj = new om2::Om2Model(bin_files, bin_data, bin_size, bin_num, constants, work_ptr, session_id);
+  auto *obj = new om2::Om2Model(bin_files, bin_data, bin_size, bin_num, constants, work_ptr, session_id,
+                                model_id, instance_handle);
   if (obj == nullptr) {
     return ACL_ERROR_FAILURE;
   }
@@ -1788,13 +2024,16 @@ aclError Om2ModelCreate(om2::Om2ModelHandle *model_handle, const char **bin_file
     delete obj;
     return ret;
   }
-  ret = obj->Load();
-  if (ret != ACL_SUCCESS) {
-    delete obj;
-    return ret;
-  }
   *model_handle = reinterpret_cast<om2::Om2ModelHandle>(obj);
+  *rt_model_handle = obj->GetRtModelHandle();
   return ACL_SUCCESS;
+}
+
+aclError Om2ModelLoad(om2::Om2ModelHandle *model_handle) {
+  if ((model_handle == nullptr) || (*model_handle == nullptr)) {
+    return ACL_ERROR_FAILURE;
+  }
+  return static_cast<om2::Om2Model*>(*model_handle)->Load();
 }
 
 aclError Om2ModelRunAsync(om2::Om2ModelHandle *model_handle, aclrtStream stream, int input_count, void **input_data, int output_count, void **output_data) {
@@ -1823,7 +2062,7 @@ TEST_F(ProgramGeneratorUt, GenerateLoadAndRunSourceForDynamicIo_Ok) {
 
 namespace om2 {
 namespace {
-constexpr uint16_t GE_MODULE_NAME_U16 = 45;
+)" + GetLoadAndRunDumpHelpersExpected() + R"(constexpr uint16_t GE_MODULE_NAME_U16 = 45;
 aclError MallocDeviceMemory(void *&dev_ptr, const size_t size, const uint32_t mem_type, std::vector<void *> &mem_ptrs) {
   uint64_t block_size = 2097152;
   if ((mem_type == RT_MEMORY_TS)) {
@@ -1851,7 +2090,7 @@ struct LaunchKernelConfig {
   aclrtEngineType engine_type{ACL_RT_ENGINE_TYPE_AIC};
   uint32_t block_dim_offset{0U};
   bool is_block_task_prefetch{false};
-  bool is_data_dump{false};
+  uint8_t is_data_dump{0U};
   uint16_t time_out{0U};
   uint32_t local_memory_size{0U};
 };
@@ -1871,7 +2110,7 @@ void AssembleLaunchConfig(LaunchKernelCfgHolder &holder, const LaunchKernelConfi
   holder.attrs[actual_cfg_num].value.isBlockTaskPrefetch = static_cast<uint8_t>(launch_config.is_block_task_prefetch);
   actual_cfg_num++;
   holder.attrs[actual_cfg_num].id = ACL_RT_LAUNCH_KERNEL_ATTR_DATA_DUMP;
-  holder.attrs[actual_cfg_num].value.isDataDump = static_cast<uint8_t>(launch_config.is_data_dump);
+  holder.attrs[actual_cfg_num].value.isDataDump = launch_config.is_data_dump;
   actual_cfg_num++;
   holder.attrs[actual_cfg_num].id = ACL_RT_LAUNCH_KERNEL_ATTR_DYN_UBUF_SIZE;
   holder.attrs[actual_cfg_num].value.dynUBufSize = launch_config.local_memory_size;
@@ -1945,6 +2184,10 @@ aclError GetEventIdAddr(void *&event_addr, std::map<uint32_t, void *> &event_id_
   return ACL_SUCCESS;
 }
 } // namespace
+aclmdlRI Om2Model::GetRtModelHandle() {
+  return model_handle_;
+}
+
 aclError Om2Model::Load() {
   dev_ext_info_mem_ptrs_.resize(0);
   // ============================= add1 ===============================
@@ -1955,14 +2198,18 @@ aclError Om2Model::Load() {
   auto op2_io_desc2 = args_table_.GetDevArgAddr(136);
   OM2_CHK_NOTNULL(op2_io_desc2);
   std::vector<int64_t> op2_shape_info0 = {48, 4294967300, 1, 1, 224, 224};
-  auto op2_input0 = GET_ADDR(total_dev_mem_ptr_, 1024);
+  std::vector<int64_t> op2_input0_shape = {1, 1, 224, 224};
+  Om2Tensor op2_input0 = BuildOm2Tensor(GET_ADDR(total_dev_mem_ptr_, 1024), 200704UL, 1, 0, op2_input0_shape);
   std::vector<int64_t> op2_shape_info1 = {48, 4294967300, 1, 1, 224, 224};
-  auto op2_input1 = GET_ADDR(total_dev_mem_ptr_, 1024);
+  std::vector<int64_t> op2_input1_shape = {1, 1, 224, 224};
+  Om2Tensor op2_input1 = BuildOm2Tensor(GET_ADDR(total_dev_mem_ptr_, 1024), 200704UL, 1, 0, op2_input1_shape);
   std::vector<int64_t> op2_shape_info2 = {48, 4294967300, 1, 1, 224, 224};
-  auto op2_output0 = GET_ADDR(total_dev_mem_ptr_, 1024);
+  std::vector<int64_t> op2_output0_shape = {1, 1, 224, 224};
+  Om2Tensor op2_output0 = BuildOm2Tensor(GET_ADDR(total_dev_mem_ptr_, 1024), 200704UL, 1, 0, op2_output0_shape);
   LaunchKernelCfgHolder op2_cfg_holder;
-  AssembleLaunchConfig(op2_cfg_holder, {0U, ACL_RT_ENGINE_TYPE_AIC, 0U, false, false, 0U, 0U});
+  AssembleLaunchConfig(op2_cfg_holder, {0U, ACL_RT_ENGINE_TYPE_AIC, 0U, false, GetIsDataDump("add1", model_id_, instance_handle_), 0U, 0U});
   OM2_CHK_STATUS(KernelTaskDistribute(FlattenHostArgs(op2_io_desc0, op2_io_desc1, op2_io_desc2, op2_shape_info0, op2_input0, op2_shape_info1, op2_input1, op2_shape_info2, op2_output0), args_table_.GetArgsInfo(0), func_handles_[0], 8, stream_list_[0], &op2_cfg_holder.cfg));
+  OM2_CHK_STATUS(ReportLaunchedOm2Task("add1", "Add", 2U, reinterpret_cast<uintptr_t>(args_table_.GetArgsInfo(0)->dev_addr), args_table_.GetArgsInfo(0)->size, {{&op2_input0, 72U}, {&op2_input1, 128U}}, {{&op2_output0, 184U}}, {}, {}, 0U, stream_list_[0], model_id_, instance_handle_));
 
   OM2_CHK_STATUS(aclmdlRIBuildEnd(model_handle_, nullptr));
   return ACL_SUCCESS;
@@ -2002,11 +2249,12 @@ aclError Om2Model::Run(size_t input_count, void **input_data, size_t output_coun
   return ACL_SUCCESS;
 }
 } // namespace om2
-aclError Om2ModelCreate(om2::Om2ModelHandle *model_handle, const char **bin_files, const void **bin_data, size_t *bin_size, int bin_num, void **constants, void *work_ptr, uint64_t *session_id) {
-  if (*model_handle != nullptr) {
+aclError Om2ModelCreate(om2::Om2ModelHandle *model_handle, aclmdlRI *rt_model_handle, const char **bin_files, const void **bin_data, size_t *bin_size, int bin_num, void **constants, void *work_ptr, uint64_t *session_id, uint32_t model_id, void *instance_handle) {
+  if ((model_handle == nullptr) || (rt_model_handle == nullptr) || (*model_handle != nullptr)) {
     return ACL_ERROR_FAILURE;
   }
-  auto *obj = new om2::Om2Model(bin_files, bin_data, bin_size, bin_num, constants, work_ptr, session_id);
+  auto *obj = new om2::Om2Model(bin_files, bin_data, bin_size, bin_num, constants, work_ptr, session_id,
+                                model_id, instance_handle);
   if (obj == nullptr) {
     return ACL_ERROR_FAILURE;
   }
@@ -2020,13 +2268,16 @@ aclError Om2ModelCreate(om2::Om2ModelHandle *model_handle, const char **bin_file
     delete obj;
     return ret;
   }
-  ret = obj->Load();
-  if (ret != ACL_SUCCESS) {
-    delete obj;
-    return ret;
-  }
   *model_handle = reinterpret_cast<om2::Om2ModelHandle>(obj);
+  *rt_model_handle = obj->GetRtModelHandle();
   return ACL_SUCCESS;
+}
+
+aclError Om2ModelLoad(om2::Om2ModelHandle *model_handle) {
+  if ((model_handle == nullptr) || (*model_handle == nullptr)) {
+    return ACL_ERROR_FAILURE;
+  }
+  return static_cast<om2::Om2Model*>(*model_handle)->Load();
 }
 
 aclError Om2ModelRunAsync(om2::Om2ModelHandle *model_handle, aclrtStream stream, int input_count, void **input_data, int output_count, void **output_data) {
@@ -2099,6 +2350,16 @@ TEST_F(ProgramGeneratorUt, GenerateLoadAndRunSourceForMemcpyAsync_Ok) {
   EXPECT_NE(outputs[GeneratedFileIndex::kLoadingAndRunningFile].find("rtGeneralCtrl"), std::string::npos);
   // memcpy_async should generate KernelMemcpyAsyncDistribute call in Load()
   EXPECT_NE(outputs[GeneratedFileIndex::kLoadingAndRunningFile].find("OM2_CHK_STATUS(KernelMemcpyAsyncDistribute("), std::string::npos);
+  // IO refresh path still materializes tensors, then flattens refreshed addresses into args table.
+  EXPECT_NE(outputs[GeneratedFileIndex::kLoadingAndRunningFile].find(
+                "Om2Tensor op2_output0 = BuildOm2Tensor(GET_ADDR(total_dev_mem_ptr_, 2048),"),
+            std::string::npos);
+  EXPECT_NE(outputs[GeneratedFileIndex::kLoadingAndRunningFile].find(
+                "FlattenHostArgs(op2_input0, op2_output0)"),
+            std::string::npos);
+  EXPECT_NE(outputs[GeneratedFileIndex::kLoadingAndRunningFile].find(
+                "OM2_CHK_STATUS(memcpy_s(args_table_.GetArgsInfo(1)->host_addr"),
+            std::string::npos);
 }
 
 GeRootModelPtr CreateGeRootModelWithDsaOp() {
@@ -2190,12 +2451,12 @@ TEST_F(ProgramGeneratorUt, GenerateLoadAndRunSourceForDsa_Ok) {
   // DSA op comment header
   EXPECT_NE(load_run.find("// ============================= random_normal ==============================="), std::string::npos);
   // Input address declarations (4 inputs)
-  EXPECT_NE(load_run.find("auto op4_input0 = GET_ADDR(total_dev_mem_ptr_, 1024);"), std::string::npos);
-  EXPECT_NE(load_run.find("auto op4_input1 = GET_ADDR(total_dev_mem_ptr_, 1024);"), std::string::npos);
-  EXPECT_NE(load_run.find("auto op4_input2 = GET_ADDR(total_dev_mem_ptr_, 1024);"), std::string::npos);
-  EXPECT_NE(load_run.find("auto op4_input3 = GET_ADDR(total_dev_mem_ptr_, 1024);"), std::string::npos);
+  EXPECT_NE(load_run.find("Om2Tensor op4_input0 = BuildOm2Tensor(GET_ADDR(total_dev_mem_ptr_, 1024),"), std::string::npos);
+  EXPECT_NE(load_run.find("Om2Tensor op4_input1 = BuildOm2Tensor(GET_ADDR(total_dev_mem_ptr_, 1024),"), std::string::npos);
+  EXPECT_NE(load_run.find("Om2Tensor op4_input2 = BuildOm2Tensor(GET_ADDR(total_dev_mem_ptr_, 1024),"), std::string::npos);
+  EXPECT_NE(load_run.find("Om2Tensor op4_input3 = BuildOm2Tensor(GET_ADDR(total_dev_mem_ptr_, 1024),"), std::string::npos);
   // Output address declaration
-  EXPECT_NE(load_run.find("auto op4_output0 = GET_ADDR(total_dev_mem_ptr_, 2048);"), std::string::npos);
+  EXPECT_NE(load_run.find("Om2Tensor op4_output0 = BuildOm2Tensor(GET_ADDR(total_dev_mem_ptr_, 2048),"), std::string::npos);
   // Workspace address declarations (ws0 normal, ws1 session scope)
   EXPECT_NE(load_run.find("auto op4_ws0 = GET_ADDR(total_dev_mem_ptr_, 0);"), std::string::npos);
   EXPECT_NE(load_run.find("auto op4_ws1 = GET_ADDR(session_scope_mem_ptr_, 64);"), std::string::npos);
@@ -2213,6 +2474,7 @@ TEST_F(ProgramGeneratorUt, GenerateLoadAndRunSourceForDsa_Ok) {
   // dsaCfgResultAddr (output_addrs_[0])
   EXPECT_NE(load_run.find("op4_dsa_sqe.dsaCfgResultAddrLow"), std::string::npos);
   EXPECT_NE(load_run.find("op4_dsa_sqe.dsaCfgResultAddrHigh"), std::string::npos);
+  EXPECT_NE(load_run.find("ValueToPtr(op4_output0.device_address)"), std::string::npos);
   // dsaCfgStateAddr (workspace_addrs_[0])
   EXPECT_NE(load_run.find("op4_dsa_sqe.dsaCfgStateAddrLow"), std::string::npos);
   EXPECT_NE(load_run.find("op4_dsa_sqe.dsaCfgStateAddrHigh"), std::string::npos);
@@ -2233,6 +2495,9 @@ TEST_F(ProgramGeneratorUt, GenerateLoadAndRunSourceForDsa_Ok) {
   EXPECT_NE(load_run.find("uint64_t op4_dsa_input2 = 0U;"), std::string::npos);
   // IO address vector and memcpy
   EXPECT_NE(load_run.find("std::vector<uint64_t> op4_dsa_iow_addr = FlattenHostArgs("), std::string::npos);
+  EXPECT_NE(load_run.find("FlattenHostArgs(op4_dsa_input1, op4_dsa_input2, op4_input0, op4_input1, op4_input2, "
+                           "op4_input3, op4_output0)"),
+            std::string::npos);
   EXPECT_NE(load_run.find("memcpy_s(args_table_.GetArgsInfo(0)->host_addr"), std::string::npos);
   EXPECT_NE(load_run.find("aclrtMemcpy(args_table_.GetArgsInfo(0)->dev_addr, 168,"), std::string::npos);
   // Task tag

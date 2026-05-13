@@ -70,6 +70,8 @@ StablePartRole InferStablePartRole(StablePartId id) {
     case StablePartId::kReadBinaryFileToBuffer:
     case StablePartId::kGenerateJsonFile:
     case StablePartId::kLoadAndRunExternalApis:
+    case StablePartId::kInterfaceDumpApis:
+    case StablePartId::kLoadAndRunDumpHelpers:
       return StablePartRole::kHelperFunctionGroup;
     case StablePartId::kScopeGuard:
       return StablePartRole::kHelperType;
@@ -265,6 +267,9 @@ AccessSectionDecl *AstBuildContext::Private() { return AccessSectionDecl::Create
 Expr *AstBuildContext::Str(const std::string &text) { return LiteralExpr::CreateString(ctx_, text); }
 Expr *AstBuildContext::UInt(uint64_t value) {
   return LiteralExpr::CreateInt(ctx_, static_cast<int64_t>(value), LiteralExpr::IntSuffix::kU);
+}
+Expr *AstBuildContext::ULong(uint64_t value) {
+  return LiteralExpr::CreateInt(ctx_, static_cast<int64_t>(value), LiteralExpr::IntSuffix::kUL);
 }
 
 TypeAliasDecl *AstBuildContext::TypeAlias(const std::string &type_spec, const std::string &name) {

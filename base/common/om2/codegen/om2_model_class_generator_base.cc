@@ -27,6 +27,8 @@ Om2ModelClassGeneratorBase::Om2ModelClassGeneratorBase(AstBuildContext &ast)
       bin_info_map_(ast.Var("std::unordered_map<std::string, BinDataInfo>", "bin_info_map_")),
       args_table_(ast.Var("Om2ArgsTable", "args_table_")),
       session_id_(ast.Var("uint64_t *", "session_id_")),
+      model_id_(ast.Var("uint32_t", "model_id_")),
+      instance_handle_(ast.Var("void *", "instance_handle_")),
       kernel_id_(ast.Var("uint64_t", "kernel_id_")),
       dev_ext_info_mem_ptrs_(ast.Var("std::vector<void *>", "dev_ext_info_mem_ptrs_")),
       label_switch_label_list_(ast_.Var("std::map<uint32_t, aclrtLabelList>", "label_switch_label_list_")),

@@ -171,8 +171,21 @@ void MemcpyAddrAsyncTaskCodeBuilder::CollectIoAddrVars(std::vector<BodyItem> &it
       case AddrValueKind::kInputInstance:
       case AddrValueKind::kOutputInstance:
         if (!semantic.is_reused_from_upstream) {
-          items.push_back(ast_.VarDecl("auto", semantic.symbol_hint, GetAddr(total_dev_mem_ptr_,
-                                                                             semantic.mem_offset)));
+          if (!semantic.tensor_info.has_value()) {
+            GELOGE(FAILED, "[OM2] MemcpyAddrAsync tensor info is required for %s.",
+                   semantic.symbol_hint.c_str());
+            return;
+          }
+          const auto &tensor_info = *semantic.tensor_info;
+          const std::string shape_var_name = semantic.symbol_hint + "_shape";
+          items.push_back(
+              ast_.VarDecl("std::vector<int64_t>", shape_var_name, ast_.InitList(ConvertToArgs(tensor_info.shape_dims))));
+          items.push_back(ast_.VarDecl("Om2Tensor", semantic.symbol_hint, ast_.Call("BuildOm2Tensor", {
+              GetAddr(total_dev_mem_ptr_, semantic.mem_offset),
+              ast_.ULong(tensor_info.size),
+              tensor_info.data_type,
+              tensor_info.format,
+              ast_.Var("std::vector<int64_t>", shape_var_name)})));
         }
         args_vars.emplace_back(ast_.Var("auto", semantic.symbol_hint));
         break;

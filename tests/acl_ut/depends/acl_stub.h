@@ -17,6 +17,7 @@
 #include "framework/memory/allocator_desc.h"
 #include "framework/runtime/gert_api.h"
 #include "framework/runtime/om2_model_executor.h"
+#include "framework/runtime/dump/model_dump_manager.h"
 #include "exe_graph/runtime/tensor_data.h"
 #include "graph/utils/graph_utils.h"
 #include "graph/utils/attr_utils.h"
@@ -79,6 +80,7 @@ public:
     virtual graphStatus SetShapeRange(const std::vector<std::pair<int64_t, int64_t>> &range);
     virtual bool ReadBytesFromBinaryFile(char const *file_name, char **buffer, int &length);
     virtual ge::Status Initialize(const std::map<std::string, std::string> &options);
+    virtual ge::Status Om2DumpGlobalInit();
     virtual ge::Status Initialize(const std::map<std::string, std::string> &options, OmgContext &omgContext);
     virtual ge::Status LoadSingleOpV2(const std::string &modelName,
                                       const ModelData &modelData,
@@ -334,6 +336,7 @@ public:
     MOCK_METHOD1(SetShapeRange, graphStatus(const std::vector<std::pair<int64_t, int64_t>> &range));
     MOCK_METHOD3(ReadBytesFromBinaryFile, bool(char const *file_name, char **buffer, int &length));
     MOCK_METHOD1(Initialize, ge::Status(const std::map<std::string, std::string> &options));
+    MOCK_METHOD0(Om2DumpGlobalInit, ge::Status());
     MOCK_METHOD1(GetName, graphStatus(AscendString &name));
     MOCK_METHOD2(Initialize, ge::Status(const std::map<std::string, std::string> &options, OmgContext &omgContext));
     MOCK_METHOD0(Ge_Generator_Finalize, ge::Status());

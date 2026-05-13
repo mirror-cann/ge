@@ -24,6 +24,8 @@ MethodDef *ResourcesFileCodeGenerator::BuildOm2ModelConstructor(const Om2Codegen
   auto constants = ast_.Var("void **", "constants");
   auto work_ptr = ast_.Var("void *", "work_ptr");
   auto session_id = ast_.Var("uint64_t *", "session_id");
+  auto model_id = ast_.Var("uint32_t", "model_id");
+  auto instance_handle = ast_.Var("void *", "instance_handle");
   auto i = ast_.Var("size_t", "i");
   std::vector<BodyItem> body = {
       ast_.For(ast_.VarDecl(i, 0), i < bin_num, ast_.PreInc(i), {
@@ -48,9 +50,11 @@ MethodDef *ResourcesFileCodeGenerator::BuildOm2ModelConstructor(const Om2Codegen
     body.emplace_back(label_list_.Resize(runtime.label_num));
   }
   return ast_.DefineMethod(
-      "Om2Model", "Om2Model", {bin_files, bin_data, bin_size, bin_num, constants, work_ptr, session_id}, "",
+      "Om2Model", "Om2Model",
+      {bin_files, bin_data, bin_size, bin_num, constants, work_ptr, session_id, model_id, instance_handle}, "",
       {ast_.MemberInit("constants_", constants), ast_.MemberInit("total_dev_mem_ptr_", work_ptr),
-       ast_.MemberInit("session_id_", session_id), ast_.MemberInit("kernel_id_", 0),
+       ast_.MemberInit("session_id_", session_id), ast_.MemberInit("model_id_", model_id),
+       ast_.MemberInit("instance_handle_", instance_handle), ast_.MemberInit("kernel_id_", 0),
        ast_.MemberInit("session_scope_mem_ptr_", nullptr)},
       body);
 }

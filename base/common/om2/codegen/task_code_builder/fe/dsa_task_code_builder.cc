@@ -159,14 +159,14 @@ void DSATaskCodeBuilder::RenderAddrLowHigh(const ExprRef &sqe_attr_low, const Ex
 void DSATaskCodeBuilder::RenderSqeAddrFields(const VarRef &sqe_var, std::vector<BodyItem> &items) {
   // 1. dsaCfgResultAddr = output_addrs_[0]
   RenderAddrLowHigh(sqe_var.Attr("dsaCfgResultAddrLow"), sqe_var.Attr("dsaCfgResultAddrHigh"),
-                    output_addrs_[0U].symbol_hint, items);
+                    "ValueToPtr(" + output_addrs_[0U].symbol_hint + ".device_address)", items);
 
   // 2. dsaCfgStateAddr
   std::string state_addr;
   if (workspace_addrs_.size() == kDSAWorkspaceAddrSize) {
     state_addr = workspace_addrs_[0U].symbol_hint;
   } else {
-    state_addr = input_addrs_[input_addrs_.size() - 1U].symbol_hint;
+    state_addr = "ValueToPtr(" + input_addrs_[input_addrs_.size() - 1U].symbol_hint + ".device_address)";
   }
   RenderAddrLowHigh(sqe_var.Attr("dsaCfgStateAddrLow"), sqe_var.Attr("dsaCfgStateAddrHigh"),
                     state_addr, items);
@@ -187,8 +187,7 @@ void DSATaskCodeBuilder::RenderSqeVarFields(const VarRef &sqe_var, std::vector<B
   // 4. dsaCfgSeed
   auto seed_var = ast_.Var("uint64_t", "op" + std::to_string(header_.op_index) + "_dsa_seed");
   if (dsa_sqe_.seed_is_addr) {
-    items.push_back(ast_.VarDecl(seed_var,
-        ast_.ReinterpretCast("uint64_t", input_addrs_[1U].symbol_hint)));
+    items.push_back(ast_.VarDecl(seed_var, ast_.Var("auto", input_addrs_[1U].symbol_hint).Attr("device_address")));
   } else {
     items.push_back(ast_.VarDecl(seed_var, ast_.UInt(dsa_sqe_.seed_value)));
   }
@@ -200,8 +199,7 @@ void DSATaskCodeBuilder::RenderSqeVarFields(const VarRef &sqe_var, std::vector<B
   // 5. dsaCfgNumber
   auto count_var = ast_.Var("uint64_t", "op" + std::to_string(header_.op_index) + "_dsa_count");
   if (dsa_sqe_.random_count_is_addr) {
-    items.push_back(ast_.VarDecl(count_var,
-        ast_.ReinterpretCast("uint64_t", input_addrs_[0U].symbol_hint)));
+    items.push_back(ast_.VarDecl(count_var, ast_.Var("auto", input_addrs_[0U].symbol_hint).Attr("device_address")));
   } else {
     items.push_back(ast_.VarDecl(count_var, ast_.UInt(dsa_sqe_.random_count_value)));
   }
@@ -275,14 +273,34 @@ Status DSATaskCodeBuilder::RenderDistribution(std::vector<BodyItem> &items) {
 
   for (auto &addr : input_addrs_) {
     if (!addr.is_reused_from_upstream) {
-      items.push_back(ast_.VarDecl("auto", addr.symbol_hint,
-                                   GetAddr(total_dev_mem_ptr_, addr.mem_offset)));
+      GE_ASSERT_TRUE(addr.tensor_info.has_value(), "[OM2] DSA input tensor info is required for %s.",
+                     addr.symbol_hint.c_str());
+      const auto &tensor_info = *addr.tensor_info;
+      const std::string shape_var_name = addr.symbol_hint + "_shape";
+      items.push_back(
+          ast_.VarDecl("std::vector<int64_t>", shape_var_name, ast_.InitList(ConvertToArgs(tensor_info.shape_dims))));
+      items.push_back(ast_.VarDecl("Om2Tensor", addr.symbol_hint, ast_.Call("BuildOm2Tensor", {
+          GetAddr(total_dev_mem_ptr_, addr.mem_offset),
+          ast_.ULong(tensor_info.size),
+          tensor_info.data_type,
+          tensor_info.format,
+          ast_.Var("std::vector<int64_t>", shape_var_name)})));
     }
   }
   for (auto &addr : output_addrs_) {
     if (!addr.is_reused_from_upstream) {
-      items.push_back(ast_.VarDecl("auto", addr.symbol_hint,
-                                   GetAddr(total_dev_mem_ptr_, addr.mem_offset)));
+      GE_ASSERT_TRUE(addr.tensor_info.has_value(), "[OM2] DSA output tensor info is required for %s.",
+                     addr.symbol_hint.c_str());
+      const auto &tensor_info = *addr.tensor_info;
+      const std::string shape_var_name = addr.symbol_hint + "_shape";
+      items.push_back(
+          ast_.VarDecl("std::vector<int64_t>", shape_var_name, ast_.InitList(ConvertToArgs(tensor_info.shape_dims))));
+      items.push_back(ast_.VarDecl("Om2Tensor", addr.symbol_hint, ast_.Call("BuildOm2Tensor", {
+          GetAddr(total_dev_mem_ptr_, addr.mem_offset),
+          ast_.ULong(tensor_info.size),
+          tensor_info.data_type,
+          tensor_info.format,
+          ast_.Var("std::vector<int64_t>", shape_var_name)})));
     }
   }
   for (auto &addr : workspace_addrs_) {
