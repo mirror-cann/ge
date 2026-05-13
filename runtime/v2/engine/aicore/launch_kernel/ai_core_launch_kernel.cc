@@ -361,11 +361,10 @@ static ge::graphStatus UpdateEachArgsInfo(const KernelContext *context, const ge
     auto io_arg = io_args_info.GetIoArgByIndex(args_info_idx);
     FE_ASSERT_NOTNULL(io_arg);
     if (io_arg->start_index == 0xFFFF) {
-      uint64_t mode_addr = 0U;
-      uint32_t len = 0U;
-      GE_CHK_RT_RET(rtGetC2cCtrlAddr(&mode_addr, &len));
-      GELOGD("Mix set sync addr: [%ld].", mode_addr);
-      GE_RETURN_IF_ERROR(args.SetIoAddr(io_arg->arg_offset, reinterpret_cast<void*>(mode_addr)));
+      void *mode_addr_ptr = nullptr;
+      GE_CHK_RT_RET(aclrtGetHardwareSyncAddr(&mode_addr_ptr));
+      GELOGD("Mix set sync addr: [%ld].", reinterpret_cast<uint64_t>(mode_addr_ptr));
+      GE_RETURN_IF_ERROR(args.SetIoAddr(io_arg->arg_offset, mode_addr_ptr));
       continue;
     }
     if (io_arg->start_index == -1) {
@@ -559,8 +558,8 @@ ge::graphStatus ProcMixVectorCoreTask(const KernelContext *context, MixLaunchArg
   FE_ASSERT_NOTNULL(rt_notify2);
   auto shape_buffer =
       context->GetInputValue<gert::GertTensorData *>(static_cast<size_t>(InputCommon::kShapeBufferAddr));
-  FE_CHK_RT_RET(rtNotifyRecord(rt_notify1, launch_args.stream));
-  FE_CHK_RT_RET(rtNotifyWait(rt_notify1, sub_stream));
+  FE_CHK_RT_RET(aclrtRecordNotify(rt_notify1, launch_args.stream));
+  FE_CHK_RT_RET(aclrtWaitAndResetNotify(rt_notify1, sub_stream, UINT32_MAX));
   auto &io_args_info = args.GetIoArgsInfo();
   if (launch_args.is_dynamic) {
     // main
@@ -591,8 +590,8 @@ ge::graphStatus ProcMixVectorCoreTask(const KernelContext *context, MixLaunchArg
                                            launch_args.smDesc, sub_stream, launch_args.flags, launch_args.cfgInfo));
     mix_prof_data.sub_end_time = MsprofSysCycleTime();
   }
-  FE_CHK_RT_RET(rtNotifyRecord(rt_notify2, sub_stream));
-  FE_CHK_RT_RET(rtNotifyWait(rt_notify2, launch_args.stream));
+  FE_CHK_RT_RET(aclrtRecordNotify(rt_notify2, sub_stream));
+  FE_CHK_RT_RET(aclrtWaitAndResetNotify(rt_notify2, launch_args.stream, UINT32_MAX));
   GELOGI("Mix vector core launched main/sub block dim [%ld][%ld] successfully", mix_para.main_blk_dim, mix_para.sub_blk_dim);
   return ge::GRAPH_SUCCESS;
 }

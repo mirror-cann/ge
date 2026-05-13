@@ -9,6 +9,7 @@
  */
 
 #include "set_output_shape_kernel.h"
+#include "acl/acl_rt.h"
 #include "engine/node_converter_utils.h"
 #include "register/ffts_node_calculater_registry.h"
 #include "engine/aicore/kernel/rt_ffts_plus_launch_args.h"
@@ -121,8 +122,8 @@ ge::graphStatus SetOutputShape(KernelContext *context) {
   }
   KLOGD("The value of shapebuffer_size is %zu, shapebuffer_addr->GetAddr() is %zu", shapebuffer_size,
         shapebuffer_addr->GetSize());
-  rtError_t ret = rtMemcpy(host_shapebuffer.get(), static_cast<uint64_t>(shapebuffer_size), shapebuffer_addr->GetAddr(),
-                           static_cast<uint64_t>(shapebuffer_size), RT_MEMCPY_DEVICE_TO_HOST);
+aclError ret = aclrtMemcpy(host_shapebuffer.get(), static_cast<uint64_t>(shapebuffer_size), shapebuffer_addr->GetAddr(),
+                            static_cast<uint64_t>(shapebuffer_size), ACL_MEMCPY_DEVICE_TO_HOST);
   if (ret != RT_ERROR_NONE) {
     KLOGE("Failed to copy shape buffer data from device to host for op [%s, %s].", compute_node_info->GetNodeName(),
           compute_node_info->GetNodeType());

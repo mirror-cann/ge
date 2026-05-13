@@ -9,6 +9,7 @@
  */
 
 #include "mixl2_update_kernel.h"
+#include "acl/acl_rt.h"
 #include "common/math/math_util.h"
 #include "common/sgt_slice_type.h"
 #include "aicore_update_kernel.h"
@@ -183,6 +184,33 @@ ge::graphStatus GetMixL2FlushData(const KernelContext *context, AICoreSubTaskFlu
   return ge::GRAPH_SUCCESS;
 }
 
+ge::graphStatus SetMixL2IoAddrs(KernelContext *context, RtFFTSKernelLaunchArgs *rt_args, size_t io_addr_num,
+                                size_t &arg_index, void *dev_addr) {
+  for (size_t io_index = 0; io_index < io_addr_num; ++io_index) {
+    auto io_shape = context->GetInputValue<StorageShape *>(static_cast<size_t>(MixL2ArgsInKey::IO_START) + io_index);
+    FE_ASSERT_NOTNULL(io_shape);
+    auto tensor_data = context->GetInputValue<gert::GertTensorData *>(static_cast<size_t>(MixL2ArgsInKey::IO_START) +
+                                                                      io_addr_num + io_index);
+    FE_ASSERT_NOTNULL(tensor_data);
+    const uintptr_t data_base = ge::PtrToValue(tensor_data->GetAddr());
+    GELOGD("Addr base:0x%lx, io index:%zu", data_base, io_index);
+    rt_args->SetIoAddr(io_index, arg_index, data_base, io_shape->GetStorageShape(), dev_addr);
+  }
+  return ge::GRAPH_SUCCESS;
+}
+
+void SetMixL2WorkAndTilingAddrs(RtFFTSKernelLaunchArgs *rt_args, const ContinuousVector *workspace,
+                                size_t &arg_index, uintptr_t *args_host_data, void *dev_addr) {
+  auto work_addr = reinterpret_cast<GertTensorData *const *>(workspace->GetData());
+  for (size_t i = 0; i < workspace->GetSize(); ++i) {
+    InitMixL2Addrs(arg_index++, work_addr[i]->GetAddr(), args_host_data);
+  }
+  size_t tiling_pos = rt_args->GetTilingAbsPos();
+  auto tiling_base = static_cast<void *>(&(static_cast<uint8_t *>(dev_addr)[tiling_pos]));
+  GELOGD("Tiling database: %lx, position: %zu", tiling_base, tiling_pos);
+  InitMixL2Addrs(arg_index, tiling_base, args_host_data);
+}
+
 ge::graphStatus SaveMixL0ExceptionDump(KernelContext *context, RtFFTSKernelLaunchArgs *rt_args, size_t io_addr_num,
                                        const ContinuousVector *workspace, const gert::GertTensorData *shape_buffer) {
   auto need_assert = context->GetInputValue<uint32_t>(static_cast<size_t>(MixL2ArgsInKey::HAS_ASSERT));
@@ -281,22 +309,12 @@ ge::graphStatus FFTSUpdateMixL2Args(KernelContext *context) {
          args_para->host_addr, flush_data->args_base);
   size_t arg_index = 0;
   if (need_mode_addr == 1U) {
-    uint64_t mode_addr = 0U;
-    uint32_t len = 0U;
-    GE_CHK_RT_RET(rtGetC2cCtrlAddr(&mode_addr, &len));
-    InitMixL2Addrs(arg_index++, reinterpret_cast<void *>(mode_addr), args_host_data);
+    void *mode_addr_ptr = nullptr;
+    GE_CHK_RT_RET(aclrtGetHardwareSyncAddr(&mode_addr_ptr));
+    InitMixL2Addrs(arg_index++, mode_addr_ptr, args_host_data);
   }
 
-  for (size_t io_index = 0; io_index < io_addr_num; ++io_index) {
-    auto io_shape = context->GetInputValue<StorageShape *>(static_cast<size_t>(MixL2ArgsInKey::IO_START) + io_index);
-    FE_ASSERT_NOTNULL(io_shape);
-    auto tensor_data = context->GetInputValue<gert::GertTensorData *>(static_cast<size_t>(MixL2ArgsInKey::IO_START) +
-                                                                      io_addr_num + io_index);
-    FE_ASSERT_NOTNULL(tensor_data);
-    const uintptr_t data_base = ge::PtrToValue(tensor_data->GetAddr());
-    GELOGD("Addr base:0x%lx, io index:%zu, args index:%zu", data_base, io_index, arg_index);
-    rt_args->SetIoAddr(io_index, arg_index, data_base, io_shape->GetStorageShape(), args_para->dev_addr);
-  }
+  FE_ASSERT_GRAPH_SUCCESS(SetMixL2IoAddrs(context, rt_args, io_addr_num, arg_index, args_para->dev_addr));
 
   // set shape buffer addr
   auto shape_buffer = context->GetInputValue<gert::GertTensorData *>(static_cast<size_t>(MixL2ArgsInKey::SHAPE_BUFFER));
@@ -305,14 +323,7 @@ ge::graphStatus FFTSUpdateMixL2Args(KernelContext *context) {
     InitMixL2Addrs(arg_index++, shape_buffer->GetAddr(), args_host_data);
   }
   FE_ASSERT_GRAPH_SUCCESS(SaveMixL0ExceptionDump(context, rt_args, io_addr_num, workspace, shape_buffer));
-  auto work_addr = reinterpret_cast<GertTensorData *const *>(workspace->GetData());
-  for (size_t i = 0; i < work_size; ++i) {
-    InitMixL2Addrs(arg_index++, work_addr[i]->GetAddr(), args_host_data);
-  }
-  size_t tiling_pos = rt_args->GetTilingAbsPos();
-  auto tiling_base = static_cast<void *>(&(static_cast<uint8_t *>(args_para->dev_addr)[tiling_pos]));
-  GELOGD("Tiling database: %lx, position: %zu", tiling_base, tiling_pos);
-  InitMixL2Addrs(arg_index, tiling_base, args_host_data);
+  SetMixL2WorkAndTilingAddrs(rt_args, workspace, arg_index, args_host_data, args_para->dev_addr);
   return ge::GRAPH_SUCCESS;
 }
 
