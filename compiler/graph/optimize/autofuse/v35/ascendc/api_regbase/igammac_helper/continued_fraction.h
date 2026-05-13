@@ -56,13 +56,13 @@ __simd_callee__ inline void Igammac_compute_ans_float(
         Reg::Abs(tmpReg, pkReg, mask);
         Reg::Compares<float, CMPMODE::GT>(tmpMask, tmpReg, big, mask);
         Reg::Muls(tmpReg, pkm2Reg, biginv, tmpMask);
-        Reg::Select(pkm2Reg, tmpReg, pkm2Reg, tmpMask);
+        Reg::Copy(pkm2Reg, tmpReg, tmpMask);
         Reg::Muls(tmpReg, pkm1Reg, biginv, tmpMask);
-        Reg::Select(pkm1Reg, tmpReg, pkm1Reg, tmpMask);
+        Reg::Copy(pkm1Reg, tmpReg, tmpMask);
         Reg::Muls(tmpReg, qkm2Reg, biginv, tmpMask);
-        Reg::Select(qkm2Reg, tmpReg, qkm2Reg, tmpMask);
+        Reg::Copy(qkm2Reg, tmpReg, tmpMask);
         Reg::Muls(tmpReg, qkm1Reg, biginv, tmpMask);
-        Reg::Select(qkm1Reg, tmpReg, qkm1Reg, tmpMask);
+        Reg::Copy(qkm1Reg, tmpReg, tmpMask);
     }
 }
 

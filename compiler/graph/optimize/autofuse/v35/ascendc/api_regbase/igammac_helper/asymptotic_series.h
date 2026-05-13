@@ -246,7 +246,7 @@ namespace IGammaCInternal {
 __simd_callee__ inline void TaylorLog1p(Reg::RegTensor<float>& dstReg, Reg::RegTensor<float>& src, Reg::MaskReg& mask)
 {
     Reg::RegTensor<float> pow, term;
-    Reg::Select(dstReg, src, dstReg, mask);
+    Reg::Copy(dstReg, src, mask);
     Reg::Mul(pow, src, src, mask);
     Reg::Muls(term, pow, -0.5f, mask);
     Reg::Add<float, Reg::MaskMergeMode::MERGING>(dstReg, dstReg, term, mask);
@@ -296,11 +296,11 @@ __simd_callee__ inline void Igammac_asymptotic_compute_eta(
 
   // lambda < 1 时，eta = -eta
   Reg::Muls(tmp2, etaReg, -1.0f, mask);
-  Reg::Select(etaReg, tmp2, etaReg, maskLT1);
+  Reg::Copy(etaReg, tmp2, maskLT1);
 
   // lambda == 1 时，eta = 0
   Reg::Duplicate(tmp2, 0.0f, mask);
-  Reg::Select(etaReg, tmp2, etaReg, maskEQ1);
+  Reg::Copy(etaReg, tmp2, maskEQ1);
 }
 
 // 修正项计算：内层循环

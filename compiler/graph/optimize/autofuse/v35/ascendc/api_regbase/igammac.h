@@ -93,7 +93,7 @@ __simd_vf__ inline void IgammaCImplPreJudge(__ubuf__ T* dstUb, __ubuf__ T* src0U
 
 template <typename T>
 __simd_vf__ inline void IgammaCImplAsymptoticMask(__ubuf__ T* src0Ub, __ubuf__ T* src1Ub,
-    __ubuf__ float* workUb, const uint32_t calCount)
+    __ubuf__ float* workUb)
 {
     constexpr float small = 20.0f;
     constexpr float large = 200.0f;
@@ -101,41 +101,33 @@ __simd_vf__ inline void IgammaCImplAsymptoticMask(__ubuf__ T* src0Ub, __ubuf__ T
     constexpr float largeratio = 4.5f;
 
     Reg::RegTensor<T> src0Reg, src1Reg, absxmaReg, tmpReg1, tmpReg2;
-    Reg::MaskReg fullMask, mask, mask1, mask2, tmpMask;
-
-    uint32_t sreg = calCount;
-    fullMask = Reg::UpdateMask<float>(sreg);
+    Reg::MaskReg mask, mask1, mask2;
 
     Reg::LoadAlign(src0Reg, src0Ub);
     Reg::LoadAlign(src1Reg, src1Ub);
     Reg::LoadAlign(mask, workUb + 256);
 
-    Reg::Sub(absxmaReg, src0Reg, src1Reg, fullMask);
-    Reg::Abs(absxmaReg, absxmaReg, fullMask);
-    Reg::Div(absxmaReg, absxmaReg, src0Reg, fullMask);
+    Reg::Sub(absxmaReg, src0Reg, src1Reg, mask);
+    Reg::Abs(absxmaReg, absxmaReg, mask);
+    Reg::Div(absxmaReg, absxmaReg, src0Reg, mask);
 
     // a > small && a < large && absxma < smallratio
-    Reg::Compares<T, CMPMODE::GT>(mask1, src0Reg, small, fullMask);
-    Reg::Compares<T, CMPMODE::LT>(tmpMask, src0Reg, large, fullMask);
-    Reg::And(mask1, mask1, tmpMask, fullMask);
-    Reg::Compares<T, CMPMODE::LT>(tmpMask, absxmaReg, smallratio, fullMask);
-    Reg::And(mask1, mask1, tmpMask, fullMask);
+    Reg::Compares<T, CMPMODE::GT>(mask1, src0Reg, small, mask);
+    Reg::Compares<T, CMPMODE::LT>(mask1, src0Reg, large, mask1);
+    Reg::Compares<T, CMPMODE::LT>(mask1, absxmaReg, smallratio, mask1);
 
     // a > large &&  absxma < largeratio / sqrt(a)
-    Reg::Compares<T, CMPMODE::GT>(mask2, src0Reg, large, fullMask);
-    Reg::Duplicate(tmpReg1, largeratio, fullMask);
-    Reg::Sqrt(tmpReg2, src0Reg, fullMask);
-    Reg::Div(tmpReg1, tmpReg1, tmpReg2, fullMask);
-    Reg::Compare<T, CMPMODE::LT>(tmpMask, absxmaReg, tmpReg1, fullMask);
-    Reg::And(mask2, mask2, tmpMask, fullMask);
+    Reg::Compares<T, CMPMODE::GT>(mask2, src0Reg, large, mask);
+    Reg::Duplicate(tmpReg1, largeratio, mask);
+    Reg::Sqrt(tmpReg2, src0Reg, mask);
+    Reg::Div(tmpReg1, tmpReg1, tmpReg2, mask);
+    Reg::Compare<T, CMPMODE::LT>(mask2, absxmaReg, tmpReg1, mask2);
 
     // store mask
-    Reg::Or(mask1, mask1, mask2, fullMask);
-    Reg::And(tmpMask, mask1, mask, fullMask);
-    Reg::StoreAlign(workUb + 264, tmpMask); // aymptotic 中使用的mask
-    Reg::Not(mask1, mask1, fullMask);
-    Reg::And(tmpMask, mask1, mask, fullMask);
-    Reg::StoreAlign(workUb + 256, tmpMask); // aymptotic 之后使用的起始mask
+    Reg::Or(mask1, mask1, mask2, mask);
+    Reg::StoreAlign(workUb + 264, mask1); // aymptotic 中使用的mask
+    Reg::Not(mask1, mask1, mask);
+    Reg::StoreAlign(workUb + 256, mask1); // aymptotic 之后使用的起始mask
 }
 
 template <typename T, bool isIgam>
@@ -168,127 +160,106 @@ __aicore__ inline void IgammaCImplAsymptotic(__ubuf__ T* dstUb, __ubuf__ T* src0
 
 template <typename T>
 __simd_vf__ inline void IgammaCImplXgt1p1(__ubuf__ T* dstUb, __ubuf__ T* src0Ub, __ubuf__ T* src1Ub,
-    __ubuf__ float* workUb, const uint32_t calCount)
+    __ubuf__ float* workUb)
 {
     Reg::RegTensor<T> src0Reg, src1Reg, dstReg, lgammaReg, powReg, tmpReg;
-    Reg::MaskReg xMask, aMask, fullMask, mask1, mask2;
+    Reg::MaskReg mask, mask1, mask2;
 
     Reg::LoadAlign(src0Reg, src0Ub);
     Reg::LoadAlign(src1Reg, src1Ub);
     Reg::LoadAlign(dstReg, dstUb);
     Reg::LoadAlign(lgammaReg, workUb);
     Reg::LoadAlign(powReg, workUb + 128);
-    Reg::LoadAlign(mask1, workUb + 256);
-
-    uint32_t sreg = calCount;
-    fullMask = Reg::UpdateMask<T>(sreg);
+    Reg::LoadAlign(mask, workUb + 256);
 
     // x > 1.1
-    Reg::Compares<T, CMPMODE::GT>(xMask, src1Reg, 1.1f, fullMask);
+    Reg::Compares<T, CMPMODE::GT>(mask1, src1Reg, 1.1f, mask);
     //    a > x
-    Reg::Compare<T, CMPMODE::GT>(aMask, src0Reg, src1Reg, fullMask);
-    Reg::And(mask2, mask1, xMask, fullMask);
-    Reg::And(mask2, mask2, aMask, fullMask);
+    Reg::Compare<T, CMPMODE::GT>(mask2, src0Reg, src1Reg, mask1);
     Igammac_helper_series_float(tmpReg, src0Reg, src1Reg, lgammaReg, powReg, mask2); // dst用tmp防止merging问题
     Reg::Muls(tmpReg, tmpReg, -1.0f, mask2);
     Reg::Adds(tmpReg, tmpReg, 1.0f, mask2);
-    Reg::Select(dstReg, tmpReg, dstReg, mask2);
+    Reg::Copy(dstReg, tmpReg, mask2);
     //    a <= x
-    Reg::Not(aMask, aMask, fullMask);
-    Reg::And(mask2, mask1, xMask, fullMask);
-    Reg::And(mask2, mask2, aMask, fullMask);
+    Reg::Not(mask2, mask2, mask1);
     Igammac_helper_continued_fraction_float(tmpReg, src0Reg, src1Reg, lgammaReg, powReg, mask2); // dst用tmp防止merging问题
-    Reg::Select(dstReg, tmpReg, dstReg, mask2);
+    Reg::Copy(dstReg, tmpReg, mask2);
 
     // store dst
-    Reg::StoreAlign(dstUb, dstReg, fullMask);
+    Reg::StoreAlign(dstUb, dstReg, mask1);
 
     // store mask
-    Reg::Not(xMask, xMask, fullMask);
-    Reg::And(mask1, mask1, xMask, fullMask);
+    Reg::Not(mask1, mask1, mask);
     Reg::StoreAlign(workUb + 256, mask1);
 }
 
 template <typename T>
 __simd_vf__ inline void IgammaCImplXle0p5(__ubuf__ T* dstUb, __ubuf__ T* src0Ub, __ubuf__ T* src1Ub,
-    __ubuf__ float* workUb, const uint32_t calCount)
+    __ubuf__ float* workUb)
 {
     Reg::RegTensor<T> src0Reg, src1Reg, dstReg, lgammaReg, powReg, tmpReg1, tmpReg2;
-    Reg::MaskReg fullMask, mask1, mask2, xMask, aMask;
-
-    uint32_t sreg = calCount;
-    fullMask = Reg::UpdateMask<T>(sreg);
+    Reg::MaskReg mask, mask1, mask2;
 
     Reg::LoadAlign(src0Reg, src0Ub);
     Reg::LoadAlign(src1Reg, src1Ub);
     Reg::LoadAlign(dstReg, dstUb);
     Reg::LoadAlign(lgammaReg, workUb);
     Reg::LoadAlign(powReg, workUb + 128);
-    Reg::LoadAlign(mask1, workUb + 256);
+    Reg::LoadAlign(mask, workUb + 256);
 
     // x <= 0.5f
-    Reg::Compares<T, CMPMODE::LE>(xMask, src1Reg, 0.5f, fullMask);
+    Reg::Compares<T, CMPMODE::LE>(mask1, src1Reg, 0.5f, mask);
     //      a > -0.4 / log(x)
-    Reg::Duplicate(tmpReg1, -0.4f, fullMask);
-    Reg::Log(tmpReg2, src1Reg, fullMask);
-    Reg::Div(tmpReg1, tmpReg1, tmpReg2, fullMask);
-    Reg::Compare<T, CMPMODE::LT>(aMask, tmpReg1, src0Reg, fullMask);
-    Reg::And(mask2, mask1, xMask, fullMask);
-    Reg::And(mask2, mask2, aMask, fullMask);
-    Reg::Duplicate(tmpReg1, 1.0f, fullMask);
+    Reg::Duplicate(tmpReg1, -0.4f, mask1);
+    Reg::Log(tmpReg2, src1Reg, mask1);
+    Reg::Div(tmpReg1, tmpReg1, tmpReg2, mask1);
+    Reg::Compare<T, CMPMODE::LT>(mask2, tmpReg1, src0Reg, mask1);
+    Reg::Duplicate(tmpReg1, 1.0f, mask2);
     Igammac_helper_series_float(tmpReg2, src0Reg, src1Reg, lgammaReg, powReg, mask2);
     Reg::Sub(tmpReg1, tmpReg1, tmpReg2, mask2);
-    Reg::Select(dstReg, tmpReg1, dstReg, mask2);
+    Reg::Copy(dstReg, tmpReg1, mask2);
     //      a <= -0.4 / log(x)
-    Reg::Not(aMask, aMask, fullMask);
-    Reg::And(mask2, mask1, xMask, fullMask);
-    Reg::And(mask2, mask2, aMask, fullMask);
+    Reg::Not(mask2, mask2, mask1);
     Igammac_helper_series_complement_float(tmpReg1, src0Reg, src1Reg, lgammaReg, mask2);
-    Reg::Select(dstReg, tmpReg1, dstReg, mask2);
+    Reg::Copy(dstReg, tmpReg1, mask2);
 
     // store dst
-    Reg::StoreAlign(dstUb, dstReg, fullMask);
+    Reg::StoreAlign(dstUb, dstReg, mask1);
 
     // store mask
-    Reg::Not(xMask, xMask, fullMask);
-    Reg::And(mask1, mask1, xMask, fullMask);
+    Reg::Not(mask1, mask1, mask);
     Reg::StoreAlign(workUb + 256, mask1);
 }
 
 template <typename T>
 __simd_vf__ inline void IgammaCImplXother(__ubuf__ T* dstUb, __ubuf__ T* src0Ub, __ubuf__ T* src1Ub,
-    __ubuf__ float* workUb, const uint32_t calCount)
+    __ubuf__ float* workUb)
 {
-    Reg::MaskReg fullMask, mask1, mask2, aMask, xMask;
+    Reg::MaskReg mask, mask2;
     Reg::RegTensor<T> src0Reg, src1Reg, dstReg, lgammaReg, powReg, tmpReg1, tmpReg2;
-
-    uint32_t sreg = calCount;
-    fullMask = Reg::UpdateMask<float>(sreg);
 
     Reg::LoadAlign(src0Reg, src0Ub);
     Reg::LoadAlign(src1Reg, src1Ub);
     Reg::LoadAlign(dstReg, dstUb);
     Reg::LoadAlign(lgammaReg, workUb);
     Reg::LoadAlign(powReg, workUb + 128);
-    Reg::LoadAlign(mask1, workUb + 256);
+    Reg::LoadAlign(mask, workUb + 256);
 
     // a > 1.1f * x
-    Reg::Muls(tmpReg1, src1Reg, 1.1f, fullMask);
-    Reg::Compare<T, CMPMODE::GT>(aMask, src0Reg, tmpReg1, fullMask);
-    Reg::And(mask2, mask1, aMask, fullMask);
-    Reg::Duplicate(tmpReg1, 1.0f, fullMask);
+    Reg::Muls(tmpReg1, src1Reg, 1.1f, mask);
+    Reg::Compare<T, CMPMODE::GT>(mask2, src0Reg, tmpReg1, mask);
+    Reg::Duplicate(tmpReg1, 1.0f, mask2);
     Igammac_helper_series_float(tmpReg2, src0Reg, src1Reg, lgammaReg, powReg, mask2);
     Reg::Sub(tmpReg1, tmpReg1, tmpReg2, mask2);
-    Reg::Select(dstReg, tmpReg1, dstReg, mask2);
+    Reg::Copy(dstReg, tmpReg1, mask2);
 
     // a <= 1.1 * x
-    Reg::Not(aMask, aMask, fullMask);
-    Reg::And(mask2, mask1, aMask, fullMask);
+    Reg::Not(mask2, mask2, mask);
     Igammac_helper_series_complement_float(tmpReg1, src0Reg, src1Reg, lgammaReg, mask2);
-    Reg::Select(dstReg, tmpReg1, dstReg, mask2);
+    Reg::Copy(dstReg, tmpReg1, mask2);
 
     // store dst
-    Reg::StoreAlign(dstUb, dstReg, fullMask);
+    Reg::StoreAlign(dstUb, dstReg, mask);
 }
 
 } // namespace IGammaCInternal
@@ -342,15 +313,15 @@ __aicore__ inline void IgammacExtend(const LocalTensor<T>& dst, const LocalTenso
 
         IGammaCInternal::IgammaCImplPreJudge<T, false>(dstChunkUb, src0ChunkUb, src1ChunkUb, workUb, sliceCnt);
 		AscendC::PipeBarrier<PIPE_V>();
-        IGammaCInternal::IgammaCImplAsymptoticMask<T>(src0ChunkUb, src1ChunkUb, workUb, sliceCnt);
+        IGammaCInternal::IgammaCImplAsymptoticMask<T>(src0ChunkUb, src1ChunkUb, workUb);
 		AscendC::PipeBarrier<PIPE_V>();
         IGammaCInternal::IgammaCImplAsymptotic<T, false>(dstChunkUb, src0ChunkUb, src1ChunkUb, workUb);
 		AscendC::PipeBarrier<PIPE_V>();
-        IGammaCInternal::IgammaCImplXgt1p1<T>(dstChunkUb, src0ChunkUb, src1ChunkUb, workUb, sliceCnt);
+        IGammaCInternal::IgammaCImplXgt1p1<T>(dstChunkUb, src0ChunkUb, src1ChunkUb, workUb);
 		AscendC::PipeBarrier<PIPE_V>();
-        IGammaCInternal::IgammaCImplXle0p5<T>(dstChunkUb, src0ChunkUb, src1ChunkUb, workUb, sliceCnt);
+        IGammaCInternal::IgammaCImplXle0p5<T>(dstChunkUb, src0ChunkUb, src1ChunkUb, workUb);
 		AscendC::PipeBarrier<PIPE_V>();
-        IGammaCInternal::IgammaCImplXother<T>(dstChunkUb, src0ChunkUb, src1ChunkUb, workUb, sliceCnt);
+        IGammaCInternal::IgammaCImplXother<T>(dstChunkUb, src0ChunkUb, src1ChunkUb, workUb);
 		AscendC::PipeBarrier<PIPE_V>();
     }
 }
