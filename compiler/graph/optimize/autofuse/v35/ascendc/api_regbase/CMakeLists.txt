@@ -43,6 +43,7 @@ set(ascendc_api_regbase_extend_src
         legendre_polynomial_p.h
         igamma.h
         igammac.h
+        trigonometric_function_utils.h
 )
 
 set(generated_regbase_files)
