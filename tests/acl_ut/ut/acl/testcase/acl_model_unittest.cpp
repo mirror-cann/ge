@@ -58,11 +58,14 @@ namespace acl {
     extern aclError AclMdlInitCallbackFunc(const char *configStr, size_t len, void *userData);
     extern aclError AclMdlFinalizeCallbackFunc(void *userData);
     extern aclError ResourceInitCallbackFunc(const char *configStr, size_t len, void *userData);
+    extern aclError Om2DumpInitCallbackFunc(const char *configStr, size_t len, void *userData);
     extern aclError ResourceFinalizeCallbackFunc(void *userData);
     extern aclError RegAclMdlInitCallback();
     extern aclError UnRegAclMdlInitCallback();
     extern aclError RegResourceInitCallback();
     extern aclError UnRegResourceInitCallback();
+    extern aclError RegOm2DumpInitCallback();
+    extern aclError UnRegOm2DumpInitCallback();
     extern aclError RegAclMdlFinalizeCallback();
     extern aclError UnRegAclMdlFinalizeCallback();
     extern aclError RegResourceFinalizeCallback();
@@ -398,6 +401,7 @@ struct ExpectedOm2FileConstantMem {
 
 struct ExpectedOm2LoadArg {
     int32_t device_id = 0;
+    uint32_t model_id = 0U;
     void *work_ptr = nullptr;
     size_t work_size = 0U;
     void *weight_ptr = nullptr;
@@ -406,14 +410,16 @@ struct ExpectedOm2LoadArg {
 };
 
 ExpectedOm2LoadArg g_expected_om2_load_arg;
+uint32_t g_last_om2_load_model_id = 0U;
 
 void SetExpectedOm2LoadArg(void *work_ptr = nullptr, size_t work_size = 0U,
                            void *weight_ptr = nullptr, size_t weight_size = 0U,
                            int32_t device_id = 0,
                            std::vector<ExpectedOm2FileConstantMem> file_constant_mems = {})
 {
-    g_expected_om2_load_arg = {device_id, work_ptr, work_size, weight_ptr, weight_size,
+    g_expected_om2_load_arg = {device_id, 0U, work_ptr, work_size, weight_ptr, weight_size,
                                std::move(file_constant_mems)};
+    g_last_om2_load_model_id = 0U;
 }
 
 void ExpectAclrtGetDeviceOk(int32_t device_id = 0)
@@ -460,6 +466,7 @@ std::unique_ptr<gert::Om2ModelExecutor> LoadOm2ExecutorFromDataCheckLoadArg(ge::
                                                                              ge::graphStatus &error_code) {
     (void) model_data;
     if (load_arg.device_id != g_expected_om2_load_arg.device_id ||
+        load_arg.model_id == 0U ||
         load_arg.work_ptr != g_expected_om2_load_arg.work_ptr ||
         load_arg.work_size != g_expected_om2_load_arg.work_size ||
         load_arg.weight_ptr != g_expected_om2_load_arg.weight_ptr ||
@@ -478,6 +485,7 @@ std::unique_ptr<gert::Om2ModelExecutor> LoadOm2ExecutorFromDataCheckLoadArg(ge::
             return nullptr;
         }
     }
+    g_last_om2_load_model_id = load_arg.model_id;
     auto executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
     error_code = ge::GRAPH_SUCCESS;
     return executor;
@@ -941,6 +949,7 @@ TEST_F(UTEST_ACL_Model, aclmdlLoadWithMem_Ok_LoadOm2ModelLoadArgs)
         .WillOnce(Invoke(LoadOm2ExecutorFromDataCheckLoadArg));
     EXPECT_EQ(aclmdlLoadFromFileWithMem(modelPath, &modelId, work_ptr, work_size, weight_ptr, weight_size),
               ACL_SUCCESS);
+    EXPECT_EQ(modelId, g_last_om2_load_model_id);
     EXPECT_EQ(aclmdlUnload(modelId), ACL_SUCCESS);
 
     SetExpectedOm2LoadArg(work_ptr, work_size, weight_ptr, weight_size);
@@ -949,6 +958,7 @@ TEST_F(UTEST_ACL_Model, aclmdlLoadWithMem_Ok_LoadOm2ModelLoadArgs)
     EXPECT_EQ(aclmdlLoadFromMemWithMem(om2ModelData, sizeof(om2ModelData), &modelId, work_ptr, work_size,
                                        weight_ptr, weight_size),
               ACL_SUCCESS);
+    EXPECT_EQ(modelId, g_last_om2_load_model_id);
     EXPECT_EQ(aclmdlUnload(modelId), ACL_SUCCESS);
 }
 
@@ -1012,6 +1022,7 @@ TEST_F(UTEST_ACL_Model, aclmdlLoadWithConfig_Ok_LoadOm2ModelAllLoadTypes)
         uint32_t modelId = 0U;
         // OM2 config load is now supported
         EXPECT_EQ(aclmdlLoadWithConfig(handle, &modelId), ACL_SUCCESS);
+        EXPECT_EQ(modelId, g_last_om2_load_model_id);
         EXPECT_EQ(aclmdlUnload(modelId), ACL_SUCCESS);
         EXPECT_EQ(aclmdlDestroyConfigHandle(handle), ACL_SUCCESS);
     };
@@ -6367,4 +6378,22 @@ TEST_F(UTEST_ACL_Model, aclRecoverAllHcclTasks_CallsBothOmAndOm2)
     // Verify that the function returns success or appropriate error code
     // The important thing is that it doesn't crash and handles both OM and OM2 models
     EXPECT_TRUE(ret == ACL_SUCCESS || ret != ACL_SUCCESS);
+}
+
+TEST_F(UTEST_ACL_Model, TestOm2DumpInitCallback) {
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(), Om2DumpGlobalInit())
+        .WillOnce(Return(ge::SUCCESS));
+    EXPECT_EQ(Om2DumpInitCallbackFunc(nullptr, 0, nullptr), ACL_SUCCESS);
+
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(), Om2DumpGlobalInit())
+        .WillOnce(Return(ge::FAILED));
+    EXPECT_NE(Om2DumpInitCallbackFunc(nullptr, 0, nullptr), ACL_SUCCESS);
+}
+
+TEST_F(UTEST_ACL_Model, TestOm2DumpInitCallbackRegister) {
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(),
+                aclInitCallbackRegister(ACL_REG_TYPE_OTHER, Om2DumpInitCallbackFunc, nullptr))
+        .WillOnce(Return(ACL_SUCCESS));
+    EXPECT_EQ(RegOm2DumpInitCallback(), ACL_SUCCESS);
+    EXPECT_EQ(UnRegOm2DumpInitCallback(), ACL_SUCCESS);
 }

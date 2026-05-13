@@ -22,6 +22,7 @@ class RtSession;
 
 struct VISIBILITY_EXPORT Om2ModelLoadArg {
   int32_t device_id = -1;
+  uint32_t model_id = 0U;
   void *work_ptr = nullptr;
   size_t work_size = 0U;
   void *weight_ptr = nullptr;

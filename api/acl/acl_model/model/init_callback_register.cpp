@@ -12,6 +12,7 @@
 #include "executor/ge_executor.h"
 #include "acl_resource_manager.h"
 #include "error_codes_inner.h"
+#include "framework/runtime/dump/model_dump_manager.h"
 #include "json_parser.h"
 #include "log_inner.h"
 
@@ -79,6 +80,25 @@ __attribute__((constructor)) aclError RegResourceInitCallback()
 __attribute__((destructor)) aclError UnRegResourceInitCallback()
 {
     return aclInitCallbackUnRegister(ACL_REG_TYPE_OTHER, ResourceInitCallbackFunc);
+}
+
+aclError Om2DumpInitCallbackFunc(const char *configStr, size_t len, void *userData)
+{
+    (void)configStr;
+    (void)len;
+    (void)userData;
+    ACL_LOG_INFO("start to enter Om2DumpInitCallbackFunc");
+    const auto geRet = ge::dump::ModelDumpManager::GlobalInit();
+    ACL_REQUIRES_CALL_GE_OK(geRet, "[Init][Om2Dump]init om2 dump failed, ge errorCode = %u", geRet);
+    return ACL_SUCCESS;
+}
+__attribute__((constructor)) aclError RegOm2DumpInitCallback()
+{
+    return aclInitCallbackRegister(ACL_REG_TYPE_OTHER, Om2DumpInitCallbackFunc, nullptr);
+}
+__attribute__((destructor)) aclError UnRegOm2DumpInitCallback()
+{
+    return aclInitCallbackUnRegister(ACL_REG_TYPE_OTHER, Om2DumpInitCallbackFunc);
 }
 
 // --------------------------------finalize----------------------------------------------------------------------

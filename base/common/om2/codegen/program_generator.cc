@@ -44,6 +44,8 @@ Status ProgramGenerator::GenerateProgram(Om2CodePrinter &code_printer) {
 
 Status ProgramGenerator::GenerateInterfaceHeader(Om2CodePrinter &code_printer) {
   InterfaceFileCodeGenerator interface_handler(ast_);
+  auto external_api_decls = interface_handler.BuildExternalApiDecls();
+  external_api_decls.insert(external_api_decls.begin(), ast_.StablePart(StablePartId::kInterfaceDumpApis));
   auto *translation_unit = ast_.File({
       ast_.Include("iostream", IncludeDecl::Kind::kAngle),
       ast_.Include("cstddef", IncludeDecl::Kind::kAngle),
@@ -64,6 +66,7 @@ Status ProgramGenerator::GenerateInterfaceHeader(Om2CodePrinter &code_printer) {
       ast_.Include("acl/acl_base.h"),
       ast_.Include("exe_graph/runtime/tensor.h"),
       ast_.Include("rt.h"),
+      ast_.Include("rts/rts_kernel.h"),
       ast_.Space(),
       ast_.StablePart(StablePartId::kInterfaceMacros),
       ast_.StablePart(StablePartId::kInterfacePointerHelpers),
@@ -79,7 +82,7 @@ Status ProgramGenerator::GenerateInterfaceHeader(Om2CodePrinter &code_printer) {
           interface_handler.BuildOm2ArgsTableClass(),
           interface_handler.BuildOm2ModelClass(codegen_model_),
       }),
-      ast_.ExternBlock("C", interface_handler.BuildExternalApiDecls()),
+      ast_.ExternBlock("C", external_api_decls),
   });
   GE_ASSERT_SUCCESS(EmitFile(GeneratedFileIndex::kInterfaceHeaderFile, translation_unit, code_printer));
   return SUCCESS;
@@ -158,11 +161,15 @@ Status ProgramGenerator::GenerateKernelRegSource(Om2CodePrinter &code_printer) {
 
 Status ProgramGenerator::GenerateLoadAndRunSource(Om2CodePrinter &code_printer) {
   LoadAndRunFileCodeGenerator load_and_run_handler(ast_);
+  auto anonymous_items = load_and_run_handler.BuildAnonymousNamespaceItems(codegen_model_, task_code_builder_list_);
+  anonymous_items.insert(anonymous_items.begin(), ast_.StablePart(StablePartId::kLoadAndRunDumpHelpers,
+                                                                  StablePartPlacement::kNamespace));
   auto *translation_unit = ast_.File({
       ast_.Include(codegen_model_.model_name + "_interface.h"),
       ast_.Space(),
       ast_.Namespace("om2", {
-          ast_.Namespace("", load_and_run_handler.BuildAnonymousNamespaceItems(codegen_model_, task_code_builder_list_)),
+          ast_.Namespace("", anonymous_items),
+          load_and_run_handler.BuildGetRtModelHandleMethod(),
           load_and_run_handler.BuildLoadMethod(codegen_model_, task_code_builder_list_),
           load_and_run_handler.BuildRunAsyncMethod(codegen_model_),
           load_and_run_handler.BuildRunMethod(codegen_model_),

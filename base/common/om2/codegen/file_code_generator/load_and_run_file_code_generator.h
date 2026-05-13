@@ -24,6 +24,7 @@ class LoadAndRunFileCodeGenerator : public Om2ModelClassGeneratorBase {
                                                        const std::vector<TaskCodeBuilderPtr> &task_code_builders) const;
   MethodDef *BuildLoadMethod(const Om2CodegenModel &codegen_model,
                              const std::vector<TaskCodeBuilderPtr> &task_code_builders);
+  MethodDef *BuildGetRtModelHandleMethod();
   MethodDef *BuildRunAsyncMethod(const Om2CodegenModel &codegen_model);
   MethodDef *BuildRunMethod(const Om2CodegenModel &codegen_model);
 

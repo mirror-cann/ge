@@ -10,6 +10,7 @@
 
 #include "kernel_task_code_builder.h"
 #include <cinttypes>
+#include <sstream>
 #include "common/om2/codegen/task_code_builder_factory.h"
 #include "common/om2/codegen/om2_model_utils.h"
 #include "common/checker.h"
@@ -42,15 +43,6 @@ constexpr int32_t kSessionInfoOffset = 8;
 constexpr int32_t kWidthPerChar = 3;
 constexpr uint32_t kAicpuArgsExtInfoAddrOffset = 12U;
 constexpr uint32_t kAicpuArgsioAddrOffset = 20U;
-
-std::vector<Arg> ConvertToArgs(const std::vector<int64_t> &values) {
-  std::vector<Arg> args;
-  args.reserve(values.size());
-  for (const auto value : values) {
-    args.emplace_back(value);
-  }
-  return args;
-}
 
 void AppendShapeDesc(const ge::GeTensorDesc &tensor_desc, std::vector<int64_t> &shape_infos) {
   const auto &shape = tensor_desc.GetShape();
@@ -126,13 +118,18 @@ void KernelTaskCodeBuilder::AppendOrderedArgValue(const AddrSemantic &semantic) 
 
 Status KernelTaskCodeBuilder::AppendOrderedArgValueForCommon(const AddrSemantic &semantic, const uint64_t addr_offset) {
   if (semantic.memory_app == MemoryAppType::kModelIo) {
-  io_addr_refresh_records_.push_back(
+    io_addr_refresh_records_.push_back(
         IoAddrRefreshRecord{static_cast<uint64_t>(semantic.compile_state_io_addr_offset), addr_offset});
     GELOGI("[OM2]append input addr offset map: compile offset[%lu], args info offset[%lu]",
-      semantic.compile_state_io_addr_offset, addr_offset);
+           semantic.compile_state_io_addr_offset, addr_offset);
   }
   semantic_.ordered_arg_values.push_back(semantic);
   return SUCCESS;
+}
+
+void KernelTaskCodeBuilder::AppendOrderedArg(const AddrSemantic &semantic) {
+  AppendOrderedArgValue(semantic);
+  current_args_offset_ += GetOrderedArgByteSize(semantic);
 }
 
 Status KernelTaskCodeBuilder::ValidateLevel1DescTargetOffsets() const {
@@ -455,11 +452,17 @@ Status KernelTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> &items) {
   std::vector<Arg> args_vars;
   for (const auto &args_addr_node : args_addr_nodes_) {
     (void)items.insert(items.cend(), args_addr_node.nodes.cbegin(), args_addr_node.nodes.cend());
-    args_vars.emplace_back(ast_.Var("auto", args_addr_node.var_name));
+    if (!args_addr_node.tensor_var_name.empty()) {
+      args_vars.emplace_back(ast_.Var("auto", args_addr_node.tensor_var_name));
+    } else {
+      args_vars.emplace_back(ast_.Var("auto", args_addr_node.var_name));
+    }
   }
   GE_ASSERT_TRUE(semantic_.args_table_entry.has_value());
   if (IsAicoreTask(semantic_)) {
-    auto cfg_holder = AppendLaunchConfigSetup(op_index, items);
+    auto cfg_holder = AppendLaunchConfigSetup(op_index, items,
+                                              ast_.Call("GetIsDataDump", {
+                                                  Arg::StringLiteral(header_.op_name), model_id_, instance_handle_}));
     items.emplace_back(ChkStatus(ast_.Call("KernelTaskDistribute", {
         FlattenHostArgs(args_vars),
         args_table_.Attr("GetArgsInfo")(static_cast<int64_t>(semantic_.args_table_entry->table_index)),
@@ -467,6 +470,7 @@ Status KernelTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> &items) {
         static_cast<int64_t>(semantic_.launch.block_dim),
         stream_list_[static_cast<int64_t>(semantic_.launch.stream_id)],
         cfg_holder.Attr("cfg").Addr()})));
+    items.emplace_back(ChkStatus(BuildReportLaunchedTaskCall()));
   } else if (IsAicpuTask(semantic_)) {
     GE_ASSERT_SUCCESS(AppendDistributionForAicpu(args_vars, items));
   } else {
@@ -512,7 +516,7 @@ StructDecl *KernelTaskCodeBuilder::BuildLaunchKernelConfig() const {
       ast_.Field("aclrtEngineType", "engine_type{ACL_RT_ENGINE_TYPE_AIC}"),
       ast_.Field("uint32_t", "block_dim_offset{0U}"),
       ast_.Field("bool", "is_block_task_prefetch{false}"),
-      ast_.Field("bool", "is_data_dump{false}"),
+      ast_.Field("uint8_t", "is_data_dump{0U}"),
       ast_.Field("uint16_t", "time_out{0U}"),
       ast_.Field("uint32_t", "local_memory_size{0U}"),
   });
@@ -539,8 +543,7 @@ FunctionDef *KernelTaskCodeBuilder::BuildAssembleLaunchConfig() const {
                   ast_.StaticCast("uint8_t", launch_config.Attr("is_block_task_prefetch"))),
       ast_.PostInc(actual_cfg_num),
       ast_.Assign(attrs[actual_cfg_num].Attr("id"), "ACL_RT_LAUNCH_KERNEL_ATTR_DATA_DUMP"),
-      ast_.Assign(attrs[actual_cfg_num].Attr("value").Attr("isDataDump"),
-                  ast_.StaticCast("uint8_t", launch_config.Attr("is_data_dump"))),
+      ast_.Assign(attrs[actual_cfg_num].Attr("value").Attr("isDataDump"), launch_config.Attr("is_data_dump")),
       ast_.PostInc(actual_cfg_num),
       ast_.Assign(attrs[actual_cfg_num].Attr("id"), "ACL_RT_LAUNCH_KERNEL_ATTR_DYN_UBUF_SIZE"),
       ast_.Assign(attrs[actual_cfg_num].Attr("value").Attr("dynUBufSize"),
@@ -718,9 +721,21 @@ Status KernelTaskCodeBuilder::BuildAddrGenInfoFromSemantic(const AddrSemantic &s
   switch (semantic.kind) {
     case AddrValueKind::kConstTensor:
       GE_ASSERT_TRUE(!semantic.symbol_hint.empty(), "[OM2] Const tensor symbol hint is empty.");
+      addr_gen_info.tensor_var_name = semantic.symbol_hint;
       return SUCCESS;
     case AddrValueKind::kInputInstance:
     case AddrValueKind::kOutputInstance:
+      GE_ASSERT_TRUE(!semantic.symbol_hint.empty(), "[OM2] Addr semantic symbol hint is empty.");
+      if (semantic.is_reused_from_upstream) {
+        if (semantic.tensor_info.has_value()) {
+          addr_gen_info.tensor_var_name = semantic.symbol_hint;
+        }
+        return SUCCESS;
+      }
+      if (semantic.tensor_info.has_value()) {
+        return BuildAddrGenInfoForIoTensor(semantic, addr_gen_info);
+      }
+      return BuildAddrGenInfoForInstance(semantic, addr_gen_info);
     case AddrValueKind::kWorkspace:
       return BuildAddrGenInfoForInstance(semantic, addr_gen_info);
     case AddrValueKind::kOptionalEmpty:
@@ -766,6 +781,26 @@ Status KernelTaskCodeBuilder::BuildAddrGenInfoForInstance(const AddrSemantic &se
                        ? session_scope_mem_ptr_ : total_dev_mem_ptr_;
   addr_gen_info.nodes.emplace_back(
       ast_.VarDecl("auto", semantic.symbol_hint, GetAddr(base_ptr, semantic.mem_offset)));
+  return SUCCESS;
+}
+
+Status KernelTaskCodeBuilder::BuildAddrGenInfoForIoTensor(const AddrSemantic &semantic,
+                                                          RenderedAddrInfo &addr_gen_info) const {
+  GE_ASSERT_TRUE(semantic.tensor_info.has_value(), "[OM2] Tensor info is required for io tensor render.");
+  const auto &tensor_info = *semantic.tensor_info;
+  const std::string shape_var_name = semantic.symbol_hint + "_shape";
+  auto &base_ptr = (semantic.memory_type == (kSessionScopeMemoryMask | RT_MEMORY_HBM))
+                       ? session_scope_mem_ptr_ : total_dev_mem_ptr_;
+  addr_gen_info.tensor_var_name = semantic.symbol_hint;
+  addr_gen_info.nodes.emplace_back(
+      ast_.VarDecl("std::vector<int64_t>", shape_var_name, ast_.InitList(ConvertToArgs(tensor_info.shape_dims))));
+  addr_gen_info.nodes.emplace_back(
+      ast_.VarDecl("Om2Tensor", semantic.symbol_hint, ast_.Call("BuildOm2Tensor", {
+          GetAddr(base_ptr, semantic.mem_offset),
+          ast_.ULong(tensor_info.size),
+          tensor_info.data_type,
+          tensor_info.format,
+          ast_.Var("std::vector<int64_t>", shape_var_name)})));
   return SUCCESS;
 }
 
@@ -827,6 +862,56 @@ Status KernelTaskCodeBuilder::BuildAddrGenInfoForShapeInfoBuffer(const AddrSeman
   addr_gen_info.nodes.emplace_back(
       ast_.VarDecl("std::vector<int64_t>", semantic.symbol_hint, ast_.InitList(ConvertToArgs(*semantic.shape_info))));
   return SUCCESS;
+}
+
+Expr *KernelTaskCodeBuilder::BuildTaskIoEntries(const std::vector<AddrSemantic> &addrs) const {
+  std::vector<Arg> entries;
+  for (const auto &addr : addrs) {
+    if (!addr.tensor_info.has_value()) {
+      continue;
+    }
+    entries.emplace_back(std::vector<Arg>{
+        ast_.Var("Om2Tensor", addr.symbol_hint).Addr(),
+        std::to_string(addr.tensor_info->args_offset) + "U"});
+  }
+  return ast_.InitList(entries);
+}
+
+Expr *KernelTaskCodeBuilder::BuildWorkspaceAddrs(const std::vector<AddrSemantic> &addrs) const {
+  std::vector<Arg> entries;
+  entries.reserve(addrs.size());
+  for (const auto &addr : addrs) {
+    entries.emplace_back(ast_.Call("PtrToU64", {ast_.Var("auto", addr.symbol_hint)}));
+  }
+  return ast_.InitList(entries);
+}
+
+Expr *KernelTaskCodeBuilder::BuildWorkspaceSizes(const std::vector<AddrSemantic> &addrs) const {
+  std::vector<Arg> entries;
+  entries.reserve(addrs.size());
+  for (const auto &addr : addrs) {
+    entries.emplace_back(std::to_string(addr.byte_size) + "U");
+  }
+  return ast_.InitList(entries);
+}
+
+ExprRef KernelTaskCodeBuilder::BuildReportLaunchedTaskCall() const {
+  const auto table_index = static_cast<int64_t>(semantic_.args_table_entry->table_index);
+  auto args_info = args_table_.Attr("GetArgsInfo")(table_index);
+  return ast_.Call("ReportLaunchedOm2Task", {
+      Arg::StringLiteral(header_.op_name),
+      Arg::StringLiteral(header_.op_type),
+      std::to_string(header_.op_desc_id) + "U",
+      ast_.ReinterpretCast("uintptr_t", args_info.Arrow("dev_addr")),
+      args_info.Arrow("size"),
+      BuildTaskIoEntries(semantic_.input_addrs),
+      BuildTaskIoEntries(semantic_.output_addrs),
+      BuildWorkspaceAddrs(semantic_.workspace_addrs),
+      BuildWorkspaceSizes(semantic_.workspace_addrs),
+      ast_.UInt(static_cast<uint32_t>(semantic_.task_type)),
+      stream_list_[static_cast<int64_t>(semantic_.launch.stream_id)],
+      model_id_,
+      instance_handle_});
 }
 
 Status KernelTaskCodeBuilder::AppendAicpuArgsCode(Arg iow_addr, const VarRef &args_var,
@@ -891,22 +976,24 @@ std::string KernelTaskCodeBuilder::SerializeBytesToOctalString(const std::vector
   return code_stream.str();
 }
 
-Expr *KernelTaskCodeBuilder::BuildLaunchConfigExpr(const LaunchConfigSemantic &launch_config) const {
+Expr *KernelTaskCodeBuilder::BuildLaunchConfigExpr(const LaunchConfigSemantic &launch_config, Arg is_data_dump) const {
   return ast_.InitList({
       ast_.UInt(launch_config.schedule_mode),
       launch_config.engine_type,
       ast_.UInt(launch_config.block_dim_offset),
       launch_config.is_block_task_prefetch,
-      launch_config.is_data_dump,
+      is_data_dump.Empty() ? Arg(ast_.UInt(launch_config.is_data_dump)) : is_data_dump,
       ast_.UInt(launch_config.time_out),
       ast_.UInt(launch_config.local_memory_size)});
 }
 
-VarRef KernelTaskCodeBuilder::AppendLaunchConfigSetup(size_t op_index, std::vector<BodyItem> &items) const {
+VarRef KernelTaskCodeBuilder::AppendLaunchConfigSetup(size_t op_index, std::vector<BodyItem> &items,
+                                                      Arg is_data_dump) const {
   const std::string cfg_holder_var_name = "op" + std::to_string(op_index) + "_cfg_holder";
   auto cfg_holder = ast_.Var("LaunchKernelCfgHolder", cfg_holder_var_name);
   items.emplace_back(ast_.VarDecl(cfg_holder));
-  items.emplace_back(ast_.Call("AssembleLaunchConfig", {cfg_holder, BuildLaunchConfigExpr(semantic_.launch.config)}));
+  items.emplace_back(ast_.Call("AssembleLaunchConfig", {
+      cfg_holder, BuildLaunchConfigExpr(semantic_.launch.config, is_data_dump)}));
   return cfg_holder;
 }
 
@@ -1261,7 +1348,7 @@ void KernelTaskCodeBuilder::AppendOrderedPlaceholder(const TaskSemanticContribut
   placeholder.kind = AddrValueKind::kPlaceholder;
   placeholder.symbol_hint =
       "op" + std::to_string(context.op_index) + "_place_holder" + std::to_string(place_holder_var_index_++);
-  AppendOrderedArgValue(placeholder);
+  AppendOrderedArg(placeholder);
 }
 
 void KernelTaskCodeBuilder::AppendOrderedCustomValue(const TaskSemanticContributeContext &context,
@@ -1271,24 +1358,39 @@ void KernelTaskCodeBuilder::AppendOrderedCustomValue(const TaskSemanticContribut
   custom_value_semantic.symbol_hint = "op" + std::to_string(context.op_index) + "_custom_value" +
                                       std::to_string(cust_value_var_index_++);
   custom_value_semantic.custom_value = custom_value;
-  AppendOrderedArgValue(custom_value_semantic);
+  AppendOrderedArg(custom_value_semantic);
+}
+
+Status KernelTaskCodeBuilder::AppendOrderedInputArg(size_t input_idx) {
+  GE_ASSERT_TRUE(input_idx < semantic_.input_addrs.size(),
+                 "[OM2] Input instance idx [%zu] is invalid, size:[%zu].", input_idx,
+                 semantic_.input_addrs.size());
+  auto &input_addr = semantic_.input_addrs[input_idx];
+  if (input_addr.tensor_info.has_value()) {
+    input_addr.tensor_info->args_offset = current_args_offset_;
+  }
+  AppendOrderedArg(input_addr);
+  return SUCCESS;
+}
+
+Status KernelTaskCodeBuilder::AppendOrderedOutputArg(size_t output_idx) {
+  GE_ASSERT_TRUE(output_idx < materialized_output_indices_.size(),
+                 "[OM2] Output instance idx [%zu] is invalid, size:[%zu].", output_idx,
+                 materialized_output_indices_.size());
+  auto &output_addr = semantic_.output_addrs[materialized_output_indices_[output_idx]];
+  if (output_addr.tensor_info.has_value()) {
+    output_addr.tensor_info->args_offset = current_args_offset_;
+  }
+  AppendOrderedArg(output_addr);
+  return SUCCESS;
 }
 
 Status KernelTaskCodeBuilder::AppendOrderedInputOutputByInstanceIndex(
     const ArgDesc &arg_format) {
   if (arg_format.addr_type == AddrType::INPUT_INSTANCE) {
-    const size_t inst_idx = static_cast<size_t>(arg_format.ir_idx);
-    GE_ASSERT_TRUE(inst_idx < semantic_.input_addrs.size(),
-                   "[OM2] Input instance idx [%zu] is invalid, size:[%zu].", inst_idx,
-                   semantic_.input_addrs.size());
-    AppendOrderedArgValue(semantic_.input_addrs[inst_idx]);
-    return SUCCESS;
+    return AppendOrderedInputArg(static_cast<size_t>(arg_format.ir_idx));
   }
-  const size_t inst_idx = static_cast<size_t>(arg_format.ir_idx);
-  GE_ASSERT_TRUE(inst_idx < materialized_output_indices_.size(),
-                 "[OM2] Output instance idx [%zu] is invalid, size:[%zu].", inst_idx,
-                 materialized_output_indices_.size());
-  AppendOrderedArgValue(semantic_.output_addrs[materialized_output_indices_[inst_idx]]);
+  GE_ASSERT_SUCCESS(AppendOrderedOutputArg(static_cast<size_t>(arg_format.ir_idx)));
   return SUCCESS;
 }
 
@@ -1307,15 +1409,9 @@ Status KernelTaskCodeBuilder::AppendOrderedInputOutputRange(
   size_t begin_idx = range_pair.first;
   for (size_t i = 0UL; i < range_pair.second; ++i, ++begin_idx) {
     if (is_input) {
-      GE_ASSERT_TRUE(begin_idx < semantic_.input_addrs.size(),
-                     "[OM2] Input range index [%zu] is invalid, size:[%zu].", begin_idx,
-                     semantic_.input_addrs.size());
-      AppendOrderedArgValue(semantic_.input_addrs[begin_idx]);
+      GE_ASSERT_SUCCESS(AppendOrderedInputArg(begin_idx));
     } else {
-      GE_ASSERT_TRUE(begin_idx < materialized_output_indices_.size(),
-                     "[OM2] Output range index [%zu] is invalid, size:[%zu].", begin_idx,
-                     materialized_output_indices_.size());
-      AppendOrderedArgValue(semantic_.output_addrs[materialized_output_indices_[begin_idx]]);
+      GE_ASSERT_SUCCESS(AppendOrderedOutputArg(begin_idx));
     }
   }
   return SUCCESS;
@@ -1324,7 +1420,7 @@ Status KernelTaskCodeBuilder::AppendOrderedInputOutputRange(
 Status KernelTaskCodeBuilder::AppendOrderedWorkspace(const ArgDesc &arg_format) {
   if (arg_format.ir_idx < 0) {
     for (const auto &workspace_addr : semantic_.workspace_addrs) {
-      AppendOrderedArgValue(workspace_addr);
+      AppendOrderedArg(workspace_addr);
     }
     return SUCCESS;
   }
@@ -1332,7 +1428,7 @@ Status KernelTaskCodeBuilder::AppendOrderedWorkspace(const ArgDesc &arg_format) 
   GE_ASSERT_TRUE(workspace_idx < semantic_.workspace_addrs.size(),
                  "[OM2] Workspace idx [%zu] is invalid, size:[%zu].", workspace_idx,
                  semantic_.workspace_addrs.size());
-  AppendOrderedArgValue(semantic_.workspace_addrs[workspace_idx]);
+  AppendOrderedArg(semantic_.workspace_addrs[workspace_idx]);
   return SUCCESS;
 }
 
@@ -1399,14 +1495,14 @@ void KernelTaskCodeBuilder::AppendOrderedDescArg(const TaskSemanticContributeCon
   level1_desc_ptr.kind = AddrValueKind::kLevel1DescPtr;
   level1_desc_ptr.symbol_hint =
       "op" + std::to_string(context.op_index) + "_io_desc" + std::to_string(dynamic_idx);
-  AppendOrderedArgValue(level1_desc_ptr);
+  AppendOrderedArg(level1_desc_ptr);
 }
 
 void KernelTaskCodeBuilder::AppendOrderedFftsAddrArg(const TaskSemanticContributeContext &context) {
   AddrSemantic ffts_addr_semantic;
   ffts_addr_semantic.kind = AddrValueKind::kFftsAddr;
   ffts_addr_semantic.symbol_hint = "op" + std::to_string(context.op_index) + "_hardware_sync_addr_";
-  AppendOrderedArgValue(ffts_addr_semantic);
+  AppendOrderedArg(ffts_addr_semantic);
 }
 
 void KernelTaskCodeBuilder::AppendOrderedEventAddrArg(const TaskSemanticContributeContext &context,
@@ -1418,7 +1514,7 @@ void KernelTaskCodeBuilder::AppendOrderedEventAddrArg(const TaskSemanticContribu
   event_addr_semantic.symbol_hint = "op" + std::to_string(context.op_index) + "_event_desc" +
                                     std::to_string(event_addr_index);
   event_addr_index++;
-  AppendOrderedArgValue(event_addr_semantic);
+  AppendOrderedArg(event_addr_semantic);
 }
 
 void KernelTaskCodeBuilder::AppendOrderedOverflowAddrArg(const TaskSemanticContributeContext &context) {
@@ -1428,14 +1524,14 @@ void KernelTaskCodeBuilder::AppendOrderedOverflowAddrArg(const TaskSemanticContr
   AddrSemantic overflow_addr_semantic;
   overflow_addr_semantic.kind = AddrValueKind::kOverflowAddr;
   overflow_addr_semantic.symbol_hint = "overflow_addr_";
-  AppendOrderedArgValue(overflow_addr_semantic);
+  AppendOrderedArg(overflow_addr_semantic);
 }
 
 void KernelTaskCodeBuilder::AppendOrderedTilingArg(const TaskSemanticContributeContext &context) {
   AddrSemantic tiling_semantic;
   tiling_semantic.kind = AddrValueKind::kTiling;
   tiling_semantic.symbol_hint = "op" + std::to_string(context.op_index) + "_tiling";
-  AppendOrderedArgValue(tiling_semantic);
+  AppendOrderedArg(tiling_semantic);
 }
 
 Status KernelTaskCodeBuilder::AppendShapeInfoOrderedArgs(
@@ -1454,7 +1550,7 @@ Status KernelTaskCodeBuilder::AppendShapeInfoOrderedArgs(
     shape_info_buffer.kind = AddrValueKind::kShapeInfoBuffer;
     shape_info_buffer.symbol_hint = "op" + std::to_string(context.op_index) + "_shape_info" + std::to_string(i);
     shape_info_buffer.shape_info = args_format_holder.shape_infos[i];
-    AppendOrderedArgValue(shape_info_buffer);
+    AppendOrderedArg(shape_info_buffer);
 
     const auto &dynamic_arg = dynamic_args_desc[i];
     const bool is_input = (dynamic_arg.addr_type == AddrType::INPUT_DESC);
@@ -1465,15 +1561,9 @@ Status KernelTaskCodeBuilder::AppendShapeInfoOrderedArgs(
     size_t begin_idx = range_pair.first;
     for (size_t idx = 0UL; idx < range_pair.second; ++idx, ++begin_idx) {
       if (is_input) {
-        GE_ASSERT_TRUE(begin_idx < semantic_.input_addrs.size(),
-                       "[OM2] Input desc range index [%zu] is invalid, size:[%zu].", begin_idx,
-                       semantic_.input_addrs.size());
-        AppendOrderedArgValue(semantic_.input_addrs[begin_idx]);
+        GE_ASSERT_SUCCESS(AppendOrderedInputArg(begin_idx));
       } else {
-        GE_ASSERT_TRUE(begin_idx < materialized_output_indices_.size(),
-                       "[OM2] Output desc range index [%zu] is invalid, size:[%zu].", begin_idx,
-                       materialized_output_indices_.size());
-        AppendOrderedArgValue(semantic_.output_addrs[materialized_output_indices_[begin_idx]]);
+        GE_ASSERT_SUCCESS(AppendOrderedOutputArg(begin_idx));
       }
     }
   }
@@ -1508,6 +1598,7 @@ Status KernelTaskCodeBuilder::BuildOrderedArgValuesForAicore(const TaskSemanticC
   materialized_output_indices_ = BuildMaterializedOutputIndices(semantic_);
 
   GE_ASSERT_SUCCESS(CopyTilingDataIfNeeded(context, args_format_holder));
+  current_args_offset_ = 0U;
   std::vector<ArgDesc> dynamic_args_desc;
   std::vector<size_t> level1_desc_indices;
   GE_ASSERT_SUCCESS(AppendOrderedArgsByFormat(context, args_format_holder, dynamic_args_desc, level1_desc_indices));

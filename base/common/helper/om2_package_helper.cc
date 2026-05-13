@@ -176,6 +176,7 @@ Status BuildOutputJsonArray(const std::vector<OpDescPtr> &output_ops, const std:
 
 void FillModelMetaInfo(const GeModelPtr &ge_model, const JsonFile::json &input_json_array,
                        const JsonFile::json &output_json_array, const ModelMetaExtraInfo &extra_info,
+                       const std::string &root_graph_name,
                        JsonFile &model_meta_info) {
   int64_t work_size = 0;
   (void)AttrUtils::GetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, work_size);
@@ -187,6 +188,18 @@ void FillModelMetaInfo(const GeModelPtr &ge_model, const JsonFile::json &input_j
   model_meta_info.Set("dynamic_type", extra_info.dynamic_type);
   model_meta_info.Set("work_size", work_size);
   model_meta_info.Set("name", ge_model->GetName());
+  model_meta_info.Set("root_graph_name", root_graph_name);
+}
+
+std::string GetRootGraphName(const GeModelPtr &ge_model) {
+  if (ge_model == nullptr) {
+    return "";
+  }
+  auto graph = ge_model->GetGraph();
+  while ((graph != nullptr) && (graph->GetParentGraph() != nullptr)) {
+    graph = graph->GetParentGraph();
+  }
+  return (graph == nullptr) ? "" : graph->GetName();
 }
 
 }  // namespace
@@ -330,7 +343,8 @@ Status Om2PackageHelper::SaveModelInfo(std::shared_ptr<ZipArchiveWriter> &zip_wr
   (void)AttrUtils::GetListStr(ge_model, ATTR_MODEL_OUT_NODES_NAME, out_node_name);
   ModelMetaExtraInfo extra_info;
   GE_ASSERT_SUCCESS(BuildOutputJsonArray(io_nodes.output_ops, out_node_name, output_json_array, extra_info));
-  FillModelMetaInfo(ge_model, input_json_array, output_json_array, extra_info, model_meta_info);
+  FillModelMetaInfo(ge_model, input_json_array, output_json_array, extra_info, GetRootGraphName(ge_model),
+                    model_meta_info);
 
   const auto model_meta_info_str = model_meta_info.Dump();
   const auto model_meta_entry_path = FormatOm2Path(OM2_MODEL_META_PATH_FORMAT, std::to_string(model_index).c_str());

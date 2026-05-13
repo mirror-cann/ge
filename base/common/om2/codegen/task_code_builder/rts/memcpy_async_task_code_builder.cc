@@ -103,12 +103,34 @@ void MemcpyAsyncTaskCodeBuilder::SetupIoAddrRefresh(TaskSemanticContributeContex
 Status MemcpyAsyncTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> &items) {
   items.push_back(ast_.Comment("============================= " + header_.op_name + " ==============================="));
   if (!input_addr_node_.is_reused_from_upstream) {
-    items.push_back(ast_.VarDecl("auto", input_addr_node_.symbol_hint, GetAddr(total_dev_mem_ptr_,
-                                                                               input_addr_node_.mem_offset)));
+    GE_ASSERT_TRUE(input_addr_node_.tensor_info.has_value(),
+                   "[OM2] MemcpyAsync input tensor info is required for %s.",
+                   input_addr_node_.symbol_hint.c_str());
+    const auto &input_tensor_info = *input_addr_node_.tensor_info;
+    const std::string input_shape_var_name = input_addr_node_.symbol_hint + "_shape";
+    items.push_back(ast_.VarDecl("std::vector<int64_t>", input_shape_var_name,
+                                 ast_.InitList(ConvertToArgs(input_tensor_info.shape_dims))));
+    items.push_back(ast_.VarDecl("Om2Tensor", input_addr_node_.symbol_hint, ast_.Call("BuildOm2Tensor", {
+        GetAddr(total_dev_mem_ptr_, input_addr_node_.mem_offset),
+        ast_.ULong(input_tensor_info.size),
+        input_tensor_info.data_type,
+        input_tensor_info.format,
+        ast_.Var("std::vector<int64_t>", input_shape_var_name)})));
   }
   if (!output_addr_node_.is_reused_from_upstream) {
-    items.push_back(ast_.VarDecl("auto", output_addr_node_.symbol_hint, GetAddr(total_dev_mem_ptr_,
-                                                                                output_addr_node_.mem_offset)));
+    GE_ASSERT_TRUE(output_addr_node_.tensor_info.has_value(),
+                   "[OM2] MemcpyAsync output tensor info is required for %s.",
+                   output_addr_node_.symbol_hint.c_str());
+    const auto &output_tensor_info = *output_addr_node_.tensor_info;
+    const std::string output_shape_var_name = output_addr_node_.symbol_hint + "_shape";
+    items.push_back(ast_.VarDecl("std::vector<int64_t>", output_shape_var_name,
+                                 ast_.InitList(ConvertToArgs(output_tensor_info.shape_dims))));
+    items.push_back(ast_.VarDecl("Om2Tensor", output_addr_node_.symbol_hint, ast_.Call("BuildOm2Tensor", {
+        GetAddr(total_dev_mem_ptr_, output_addr_node_.mem_offset),
+        ast_.ULong(output_tensor_info.size),
+        output_tensor_info.data_type,
+        output_tensor_info.format,
+        ast_.Var("std::vector<int64_t>", output_shape_var_name)})));
   }
   if (io_refresh_) {
     std::vector<Arg> args_vars;
@@ -135,9 +157,9 @@ Status MemcpyAsyncTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> &ite
   }
   items.push_back(ChkStatus(ast_.Call("KernelMemcpyAsyncDistribute", {
       ast_.Str(header_.op_name),
-      output_addr_node_.symbol_hint,
+      ast_.Call("ValueToPtr", {ast_.Var("auto", output_addr_node_.symbol_hint).Attr("device_address")}),
       ast_.UInt(dst_max_),
-      input_addr_node_.symbol_hint,
+      ast_.Call("ValueToPtr", {ast_.Var("auto", input_addr_node_.symbol_hint).Attr("device_address")}),
       ast_.UInt(count_),
       ast_.StaticCast("rtMemcpyKind_t", static_cast<int64_t>(kind_)),
       stream_list_[static_cast<int>(header_.stream_id)],

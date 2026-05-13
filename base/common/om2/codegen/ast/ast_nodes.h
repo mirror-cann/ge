@@ -91,6 +91,8 @@ enum class StablePartId : uint8_t {
   kReadBinaryFileToBuffer,
   kGenerateJsonFile,
   kLoadAndRunExternalApis,
+  kInterfaceDumpApis,
+  kLoadAndRunDumpHelpers,
   kCreateLabelListForLabelSwitch,
   kCreateLabelListForLabelGotoEx
 };

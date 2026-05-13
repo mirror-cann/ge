@@ -18,6 +18,7 @@
 #include <string>
 #include <vector>
 
+#include "framework/runtime/dump/model_dump_manager.h"
 #include "framework/runtime/om2_model_executor.h"
 #include "framework/runtime/rt_session.h"
 #include "common/env_path.h"
@@ -32,6 +33,8 @@ namespace ge {
 namespace {
 constexpr const char *kOm2BaseName = "om2_model_executor_test";
 constexpr const char *kModelName = "g1";
+constexpr uint32_t kTestModelId = 9527U;
+constexpr uintptr_t kFakeRtModelHandleValue = 0x12345678U;
 
 struct ModelDataHolder {
   ge::ModelData model_data{};
@@ -108,6 +111,7 @@ std::string MakeModelMetaJson() {
         }
     ],
     "name": "g1",
+    "root_graph_name": "root_g1",
     "outputs": [
         {
             "data_type": "DT_FLOAT",
@@ -119,6 +123,19 @@ std::string MakeModelMetaJson() {
             "size": 4
         }
     ],
+    "work_size": 2048,
+    "user_designate_shape_order": []
+})";
+}
+
+std::string MakeModelMetaJsonWithoutRootGraphName() {
+  return R"({
+    "dynamic_batch_info": [],
+    "dynamic_output_shape": [],
+    "dynamic_type": 0,
+    "inputs": [],
+    "name": "g1",
+    "outputs": [],
     "work_size": 2048,
     "user_designate_shape_order": []
 })";
@@ -137,8 +154,9 @@ struct FakeModel {
 }
 
 extern "C" {
-int Om2ModelCreate(void **model_handle, const char **bin_files, const void **bin_data, size_t *bin_size, int bin_num,
-                   void **constants, void *work_ptr, uint64_t *session_id);
+int Om2ModelCreate(void **model_handle, void **rt_model_handle, const char **bin_files, const void **bin_data,
+                   size_t *bin_size, int bin_num, void **constants, void *work_ptr, uint64_t *session_id, uint32_t model_id, void *instance_handle);
+int Om2ModelLoad(void **model_handle);
 int Om2ModelRunAsync(void **model_handle, void *stream, int input_count, void **input_data, int output_count,
                      void **output_data);
 int Om2ModelRun(void **model_handle, int input_count, void **input_data, int output_count, void **output_data, int32_t stream_sync_timeout);
@@ -151,10 +169,13 @@ std::string MakeLoadAndRunCpp() {
   return R"(#include "g1_interface.h"
 
 #include <cstdlib>
+#include <fstream>
 #include <new>
 #include <string>
 
 namespace {
+constexpr uintptr_t kFakeRtModelHandleValue = 0x12345678U;
+
 bool CheckWorkPtr(void *work_ptr) {
   const char *mode = std::getenv("OM2_EXPECT_WORK_PTR_MODE");
   if ((mode == nullptr) || (mode[0] == '\0')) {
@@ -252,18 +273,36 @@ bool CheckSessionId(uint64_t *session_id) {
   const auto expect = static_cast<uint64_t>(std::stoull(value, nullptr, 10));
   return *session_id == expect;
 }
+
+bool CheckModelId(uint32_t model_id) {
+  const char *value = std::getenv("OM2_EXPECT_MODEL_ID");
+  if ((value == nullptr) || (value[0] == '\0')) {
+    return true;
+  }
+  const auto expect = static_cast<uint32_t>(std::stoul(value, nullptr, 10));
+  return model_id == expect;
+}
+
+bool CheckInstanceHandle(void *instance_handle) {
+  const char *mode = std::getenv("OM2_EXPECT_INSTANCE_HANDLE_MODE");
+  if ((mode == nullptr) || (mode[0] == '\0')) {
+    return true;
+  }
+  return std::string(mode) == "NON_NULL" && instance_handle != nullptr;
+}
 }  // namespace
 
-extern "C" int Om2ModelCreate(void **model_handle, const char **, const void **, size_t *, int, void **constants,
-                              void *work_ptr, uint64_t *session_id) {
-  if (model_handle == nullptr) {
+extern "C" int Om2ModelCreate(void **model_handle, void **rt_model_handle, const char **, const void **, size_t *, int,
+                              void **constants, void *work_ptr, uint64_t *session_id, uint32_t model_id,
+                              void *instance_handle) {
+  if ((model_handle == nullptr) || (rt_model_handle == nullptr)) {
     return 1;
   }
   if (!CheckWorkPtr(work_ptr) || !CheckConst0(constants) || !CheckConst0Ptr(constants) ||
       !CheckConstByIndex(constants, 1U, "OM2_EXPECT_CONST1_MODE", "OM2_EXPECT_CONST1_FIRST_BYTE") ||
       !CheckConstByIndex(constants, 2U, "OM2_EXPECT_CONST2_MODE", "OM2_EXPECT_CONST2_FIRST_BYTE") ||
       !CheckConstPtrEqual(constants) ||
-      !CheckSessionId(session_id)) {
+      !CheckSessionId(session_id) || !CheckModelId(model_id) || !CheckInstanceHandle(instance_handle)) {
     return 1;
   }
   auto *model = new (std::nothrow) om2::FakeModel();
@@ -272,7 +311,22 @@ extern "C" int Om2ModelCreate(void **model_handle, const char **, const void **,
   }
   model->session_id = (session_id == nullptr) ? 0UL : *session_id;
   *model_handle = model;
+  *rt_model_handle = reinterpret_cast<void *>(kFakeRtModelHandleValue);
+  const char *trace = std::getenv("OM2_CALL_TRACE");
+  if (trace != nullptr) {
+    std::ofstream ofs(trace, std::ios::app);
+    ofs << "create\n";
+  }
   return 0;
+}
+
+extern "C" int Om2ModelLoad(void **model_handle) {
+  const char *trace = std::getenv("OM2_CALL_TRACE");
+  if (trace != nullptr) {
+    std::ofstream ofs(trace, std::ios::app);
+    ofs << "load\n";
+  }
+  return ((model_handle == nullptr) || (*model_handle == nullptr)) ? 1 : 0;
 }
 
 extern "C" int Om2ModelRunAsync(void **model_handle, void *, int input_count, void **input_data, int output_count,
@@ -481,7 +535,18 @@ class EnvValueGuard {
 gert::Om2ModelLoadArg MakeOm2LoadArg() {
   gert::Om2ModelLoadArg load_arg;
   load_arg.device_id = 0;
+  load_arg.model_id = kTestModelId;
   return load_arg;
+}
+
+std::vector<std::string> ReadTraceFile(const std::string &trace_file) {
+  std::ifstream ifs(trace_file);
+  std::vector<std::string> lines;
+  std::string line;
+  while (std::getline(ifs, line)) {
+    lines.push_back(line);
+  }
+  return lines;
 }
 }  // namespace
 
@@ -500,6 +565,9 @@ class Om2ModelExecutorUt : public testing::Test {
     unsetenv("OM2_EXPECT_CONST2_FIRST_BYTE");
     unsetenv("OM2_EXPECT_CONST1_CONST2_PTR_EQUAL");
     unsetenv("OM2_EXPECT_SESSION_ID");
+    unsetenv("OM2_EXPECT_MODEL_ID");
+    unsetenv("OM2_EXPECT_INSTANCE_HANDLE_MODE");
+    unsetenv("OM2_CALL_TRACE");
   }
 
   void TearDown() override {
@@ -515,6 +583,9 @@ class Om2ModelExecutorUt : public testing::Test {
     unsetenv("OM2_EXPECT_CONST2_FIRST_BYTE");
     unsetenv("OM2_EXPECT_CONST1_CONST2_PTR_EQUAL");
     unsetenv("OM2_EXPECT_SESSION_ID");
+    unsetenv("OM2_EXPECT_MODEL_ID");
+    unsetenv("OM2_EXPECT_INSTANCE_HANDLE_MODE");
+    unsetenv("OM2_CALL_TRACE");
   }
 
   static void SetUpTestSuite() {
@@ -912,8 +983,7 @@ TEST_F(Om2ModelExecutorUt, load_ok) {
 TEST_F(Om2ModelExecutorUt, load_runtime_so_without_creating_workspace) {
   auto model_data_holder = LoadValidModelData();
   const std::string ascend_work_path = PathUtils::Join({test_work_dir_, "load_without_workspace"});
-  const std::string workspace_root =
-      PathUtils::Join({ascend_work_path, ".ascend_temp/.tmp_om2_workspace"});
+  const std::string workspace_root = PathUtils::Join({ascend_work_path, ".ascend_temp/.tmp_om2_workspace"});
   (void)PathUtils::RemoveDirectories(ascend_work_path);
   ASSERT_EQ(CreateDir(ascend_work_path), 0);
 
@@ -924,6 +994,46 @@ TEST_F(Om2ModelExecutorUt, load_runtime_so_without_creating_workspace) {
   auto load_arg = MakeOm2LoadArg();
   ASSERT_EQ(executor.Load(model_data_holder.model_data, load_arg, 1U), SUCCESS);
   EXPECT_NE(mmAccess2(workspace_root.c_str(), M_F_OK), EOK);
+}
+TEST_F(Om2ModelExecutorUt, load_calls_model_load_after_model_create) {
+  auto model_data_holder = LoadValidModelData();
+  gert::Om2ModelExecutor executor;
+  auto load_arg = MakeOm2LoadArg();
+  const auto trace_file = PathUtils::Join({test_work_dir_, "dump_call_trace.txt"});
+  (void)std::remove(trace_file.c_str());
+  ASSERT_EQ(setenv("OM2_CALL_TRACE", trace_file.c_str(), 1), 0);
+
+  EXPECT_EQ(executor.Load(model_data_holder.model_data, load_arg, 1U), SUCCESS);
+
+  EXPECT_EQ(ReadTraceFile(trace_file), std::vector<std::string>({"create", "load"}));
+}
+
+TEST_F(Om2ModelExecutorUt, load_fallbacks_root_graph_name_to_model_name_when_meta_missing) {
+  const std::string om2_file_path = PathUtils::Join({test_work_dir_, "missing_root_graph_name.om2"});
+  ZipArchiveWriter zip_writer(om2_file_path);
+  ASSERT_TRUE(zip_writer.IsMemFileOpened());
+  const auto manifest = MakeManifestJson();
+  const auto model_meta = MakeModelMetaJsonWithoutRootGraphName();
+  ASSERT_TRUE(zip_writer.WriteBytes("manifest.json", manifest.data(), manifest.size(), false));
+  ASSERT_TRUE(zip_writer.WriteBytes("data/model_0/model_meta.json", model_meta.data(), model_meta.size(), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/libg1_om2.so",
+                                   PathUtils::Join({test_work_dir_, "fake_runtime", "libg1_om2.so"}), false));
+  const std::string constants_config = "{}";
+  ASSERT_TRUE(zip_writer.WriteBytes("data/constants/model_0_constants_config.json", constants_config.data(),
+                                    constants_config.size(), false));
+  ASSERT_TRUE(zip_writer.SaveModelDataToFile());
+  uint32_t model_buf_size = 0U;
+  auto model_buf = GetBinDataFromFile(om2_file_path, model_buf_size);
+  ASSERT_NE(model_buf, nullptr);
+  ModelDataHolder holder;
+  holder.model_data.model_data = model_buf.get();
+  holder.model_data.model_len = model_buf_size;
+  holder.model_data.om_path = om2_file_path;
+  holder.buffer = std::move(model_buf);
+
+  gert::Om2ModelExecutor executor;
+  auto load_arg = MakeOm2LoadArg();
+  EXPECT_EQ(executor.Load(holder.model_data, load_arg, 1U), SUCCESS);
 }
 
 TEST_F(Om2ModelExecutorUt, load_generates_session_id_without_rt_session) {
@@ -943,6 +1053,18 @@ TEST_F(Om2ModelExecutorUt, load_uses_rt_session_id_when_rt_session_is_not_null) 
   load_arg.rt_session = &rt_session;
   ge::Status error_code = SUCCESS;
   ASSERT_EQ(setenv("OM2_EXPECT_SESSION_ID", "9527", 1), 0);
+  auto executor = gert::LoadOm2ExecutorFromData(model_data_holder.model_data, load_arg, error_code);
+  EXPECT_EQ(error_code, SUCCESS);
+  ASSERT_NE(executor, nullptr);
+}
+
+TEST_F(Om2ModelExecutorUt, load_passes_model_id_and_instance_handle_to_create) {
+  auto model_data_holder = LoadValidModelData();
+  auto load_arg = MakeOm2LoadArg();
+  ge::Status error_code = SUCCESS;
+  const auto expected_model_id = std::to_string(kTestModelId);
+  ASSERT_EQ(setenv("OM2_EXPECT_MODEL_ID", expected_model_id.c_str(), 1), 0);
+  ASSERT_EQ(setenv("OM2_EXPECT_INSTANCE_HANDLE_MODE", "NON_NULL", 1), 0);
   auto executor = gert::LoadOm2ExecutorFromData(model_data_holder.model_data, load_arg, error_code);
   EXPECT_EQ(error_code, SUCCESS);
   ASSERT_NE(executor, nullptr);

@@ -137,9 +137,18 @@ struct ModelIoSemantic {
   uint32_t output_count{0U};
 };
 
+struct Om2TensorInfo {
+  uint64_t args_offset{0U};
+  uint64_t size{0U};
+  int32_t data_type{0};
+  int32_t format{0};
+  std::vector<int64_t> shape_dims;
+};
+
 struct ConstInputEntry {
   size_t const_index{0U};
   std::string var_name;
+  Om2TensorInfo tensor_info;
 };
 
 struct Om2ConstMeta {
@@ -188,7 +197,7 @@ struct LaunchConfigSemantic {
   std::string engine_type{"ACL_RT_ENGINE_TYPE_AIC"};
   uint32_t block_dim_offset{0U};
   bool is_block_task_prefetch{false};
-  bool is_data_dump{false};
+  uint8_t is_data_dump{0U};
   uint16_t time_out{0U};
 };
 
@@ -235,6 +244,7 @@ struct AddrSemantic {
   std::optional<std::vector<int64_t>> shape_info;
   std::optional<uint64_t> level1_target_offset;
   uint64_t memory_type{RT_MEMORY_HBM};
+  std::optional<Om2TensorInfo> tensor_info;
 };
 
 struct ArgsTableEntrySemantic {
@@ -270,6 +280,7 @@ struct KernelTaskSemantic {
 
 struct TaskSemanticHeader {
   int64_t op_index{kInvalidOpIndex};
+  int64_t op_desc_id{kInvalidOpId};
   std::string op_name;
   std::string op_type;
   uint32_t stream_id{0U};

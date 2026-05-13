@@ -78,9 +78,19 @@ class TaskCodeBuilder : public Om2ModelClassGeneratorBase {
     header.op_index = context.op_index;
     header.stream_id = context.task_def.stream_id();
     if (context.op_desc != nullptr) {
+      header.op_desc_id = context.op_desc->GetId();
       header.op_name = context.op_desc->GetName();
       header.op_type = context.op_desc->GetType();
     }
+  }
+
+  static std::vector<Arg> ConvertToArgs(const std::vector<int64_t> &values) {
+    std::vector<Arg> args;
+    args.reserve(values.size());
+    for (const auto value : values) {
+      args.emplace_back(value);
+    }
+    return args;
   }
 
   TaskSemanticHeader header_;

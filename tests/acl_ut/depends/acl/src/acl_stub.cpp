@@ -23,6 +23,20 @@ struct TestAclDataBuffer {
     uint64_t length;
 };
 
+ge::Status aclStub::Om2DumpGlobalInit()
+{
+    return ge::SUCCESS;
+}
+
+namespace ge {
+namespace dump {
+Status ModelDumpManager::GlobalInit()
+{
+    return MockFunctionTest::aclStubInstance().Om2DumpGlobalInit();
+}
+}  // namespace dump
+}  // namespace ge
+
 aclDataBuffer *aclStub::aclCreateDataBuffer(void *data, size_t size)
 {
     TestAclDataBuffer *buffer = new(std::nothrow) TestAclDataBuffer(data, size);

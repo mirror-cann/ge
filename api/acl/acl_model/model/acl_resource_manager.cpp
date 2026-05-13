@@ -98,7 +98,6 @@ void AclResourceManager::AddExecutor(uint32_t &modelId, std::unique_ptr<gert::Mo
     rtSessionMap_[modelId] = rtSession;
 }
 
-
 aclError AclResourceManager::DeleteExecutor(const uint32_t modelId)
 {
     const std::lock_guard<std::mutex> locker(mutex_);
@@ -364,4 +363,3 @@ AclResourceManager &AclResourceManager::GetInstance()
   return instance;
 }
 }
-

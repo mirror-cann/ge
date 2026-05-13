@@ -16,6 +16,7 @@
 #include "common/file_constant_utils/file_constant_utils.h"
 #include "common/ge_common/string_util.h"
 #include "common/om2/codegen/om2_codegen_utils.h"
+#include "common/om2/codegen/om2_model_utils.h"
 #include "graph/debug/ge_attr_define.h"
 #include "common/om2/codegen/task_code_builder/task_code_builder.h"
 #include "graph/utils/op_type_utils.h"
@@ -73,7 +74,11 @@ Status Om2CodegenModelBuilder::CollectConstInputsFromOp(const OpDescPtr &op_desc
     GE_CHK_STATUS(TensorUtils::GetTensorSizeInBytes(*tensor_desc, tensor_size));
     const size_t const_index = const_metas.size();
     const std::string var_name = "const_" + std::to_string(const_index);
-    codegen_model.const_inputs.push_back(ConstInputEntry{const_index, var_name});
+    ConstInputEntry entry;
+    entry.const_index = const_index;
+    entry.var_name = var_name;
+    GE_ASSERT_SUCCESS(Om2ModelUtils::BuildInputTensorInfo(tensor_desc, entry.tensor_info));
+    codegen_model.const_inputs.push_back(std::move(entry));
     weight_offset_to_varname_.emplace(data_offset, var_name);
     const_metas.push_back(Om2ConstMeta{const_index,
                                        "INTERNAL",
@@ -507,7 +512,7 @@ Status Om2CodegenModelBuilder::BuildFileConstInputs(const GeModelPtr &model, Om2
       }
     }
 
-    const auto output_desc = op_desc->GetOutputDescPtr(0U);
+    const auto output_desc = op_desc->MutableOutputDesc(0U);
     GE_ASSERT_NOTNULL(output_desc);
     int64_t tensor_size = 0;
     GE_ASSERT_SUCCESS(TensorUtils::GetTensorSizeInBytes(*output_desc, tensor_size));
@@ -516,7 +521,11 @@ Status Om2CodegenModelBuilder::BuildFileConstInputs(const GeModelPtr &model, Om2
                    op_desc->GetName().c_str());
     const size_t const_index = const_metas.size();
     const std::string var_name = "const_" + std::to_string(const_index);
-    codegen_model.const_inputs.push_back(ConstInputEntry{const_index, var_name});
+    ConstInputEntry entry;
+    entry.const_index = const_index;
+    entry.var_name = var_name;
+    GE_ASSERT_SUCCESS(Om2ModelUtils::BuildOutputTensorInfo(output_desc, entry.tensor_info));
+    codegen_model.const_inputs.push_back(std::move(entry));
     fileconst_output_offset_to_varname_.emplace(output_offsets[0U], var_name);
     const_metas.push_back(Om2ConstMeta{const_index,
                                        is_combined ? "COMBINED" : "INDIVIDUAL",
