@@ -563,7 +563,7 @@ elseif (BUILD_OPEN_PROJECT OR ENABLE_OPEN_SRC)
 
             add_custom_target(ge-executor)
             add_dependencies(ge-executor ge_common ge_common_base davinci_executor hybrid_executor gert register graph graph_base acl_cblas)
-            add_dependencies(ge-executor acl_mdl acl_mdl_impl acl_mdl_impl_om2 acl_op_executor acl_op_executor_impl om2_executor ge_executor_shared lowering)
+            add_dependencies(ge-executor acl_mdl acl_mdl_impl acl_mdl_impl_om2 acl_op_executor acl_op_executor_impl om2_executor ge_executor_shared hcom_executor lowering)
         endif ()
 
         add_dependencies(ge-compiler version_ge-compiler_info)

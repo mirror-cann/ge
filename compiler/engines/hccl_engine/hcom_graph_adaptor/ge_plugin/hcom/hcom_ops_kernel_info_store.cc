@@ -3502,13 +3502,13 @@ HcclResult HcomOpsKernelInfoStore::CleanInterMemory(std::vector<std::int64_t> &c
   u64 crackMemSize = CRACK_MEMORY_SIZE;
   if (!initCrackMem_) {
     // 申请32B内存做清零操作
-    char crackMemTemp[crackMemSize] = {0};
+    std::vector<char> crackMemTemp(crackMemSize, 0);
     void *crackMem = nullptr;
     HcclResult ret = hrtMalloc(&crackMem, crackMemSize);
     CHK_PRT_RET(ret != HCCL_SUCCESS || crackMem == nullptr,
                 HCCL_ERROR("[Malloc][Device]rt malloc device fail. return[%d]", ret), HCCL_E_INTERNAL);
     crackMemPtr_.reset(crackMem);
-    CHK_RET(hrtMemSyncCopy(crackMemPtr_.get(), crackMemSize, crackMemTemp, crackMemSize,
+    CHK_RET(hrtMemSyncCopy(crackMemPtr_.get(), crackMemSize, crackMemTemp.data(), crackMemSize,
                            HcclRtMemcpyKind::HCCL_RT_MEMCPY_KIND_HOST_TO_DEVICE));
     initCrackMem_ = true;
   }
@@ -3555,13 +3555,13 @@ HcclResult HcomOpsKernelInfoStore::CleanInterMemoryV2(std::vector<std::int64_t> 
   if (maxCrackMemSizeV2_ < maxSize) {
     HCCL_INFO("[HcomOpsKernelInfoStore][%s] alloc mem with size[%llu]", __func__, maxSize);
     maxCrackMemSizeV2_ = maxSize;
-    char crackMemTemp[maxCrackMemSizeV2_] = {0};
+    std::vector<char> crackMemTemp(maxCrackMemSizeV2_, 0);
     void *crackMem = nullptr;
     HcclResult ret = hrtMalloc(&crackMem, maxCrackMemSizeV2_);
     CHK_PRT_RET(ret != HCCL_SUCCESS || crackMem == nullptr,
                 HCCL_ERROR("[Malloc][Device]rt malloc device fail. return[%d]", ret), HCCL_E_INTERNAL);
     crackMemPtrV2_.reset(crackMem);
-    CHK_RET(hrtMemSyncCopy(crackMemPtrV2_.get(), maxCrackMemSizeV2_, crackMemTemp, maxCrackMemSizeV2_,
+    CHK_RET(hrtMemSyncCopy(crackMemPtrV2_.get(), maxCrackMemSizeV2_, crackMemTemp.data(), maxCrackMemSizeV2_,
                           HcclRtMemcpyKind::HCCL_RT_MEMCPY_KIND_HOST_TO_DEVICE));
   }
   // 遍历内存块列表

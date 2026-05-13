@@ -807,16 +807,14 @@ HcclResult HcomOpUtils::GetTensorNum(const ge::Node &node, const std::string &sC
 
 HcclResult HcomOpUtils::GetTaskNumFromCrackSize(const ge::Node &node, u32 tensorNum, u32 &taskNum) {
   bool crackSizeBigger32 = false;
-  s64 tensorSize[tensorNum] = {0};
-  s64 crackSize[tensorNum] = {0};
-  std::vector<int64_t> tensorSizeTemp;
+  s64 crackSize = 0;
+  std::vector<int64_t> tensorSize;
 
   auto op = node.GetOpDesc();
   CHK_PTR_NULL(op);
   // 获取tensor的大小
-  CHK_RET(GetAllTensorSize(op, tensorNum, tensorSizeTemp));
-  CHK_SAFETY_FUNC_RET(
-      memcpy_s(tensorSize, tensorNum * sizeof(s64), tensorSizeTemp.data(), tensorSizeTemp.size() * sizeof(s64)));
+  CHK_RET(GetAllTensorSize(op, tensorNum, tensorSize));
+
   // 获取缝隙的大小
   for (u32 i = 0; i < tensorNum; i++) {
     ge::GeTensorDesc inputTensor = op->GetInputDesc(i);
@@ -826,7 +824,7 @@ HcclResult HcomOpUtils::GetTaskNumFromCrackSize(const ge::Node &node, u32 tensor
       HCCL_ERROR("[GetTaskNumFromCrackSize]Get memSize failed"), HCCL_E_PARA);
     crackSizeTemp = (crackSizeTemp + TENSOR_ALIGNMENT_512 - 1) / TENSOR_ALIGNMENT_512 * TENSOR_ALIGNMENT_512;
     if (crackSizeTemp >= tensorSize[i]) {
-      crackSize[i] = crackSizeTemp - tensorSize[i];
+      crackSize = crackSizeTemp - tensorSize[i];
       HCCL_INFO("[GetTaskNumFromCrackSize]The crackSize obtained through the GE interface is [%lld B], and the original tensorSize is [%ld B]",
         crackSizeTemp, tensorSize[i]);
     } else {
@@ -835,7 +833,7 @@ HcclResult HcomOpUtils::GetTaskNumFromCrackSize(const ge::Node &node, u32 tensor
       return HCCL_E_PARA;
     }
 
-    if (crackSize[i] < AICORE_MIN_CLEAR_ZEOR_SIZE) {
+    if (crackSize < AICORE_MIN_CLEAR_ZEOR_SIZE) {
       taskNum++;
     } else if (!crackSizeBigger32) {
       crackSizeBigger32 = true;
