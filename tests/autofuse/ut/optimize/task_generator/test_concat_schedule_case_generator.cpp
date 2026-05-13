@@ -1068,7 +1068,7 @@ TEST_F(ConcatScheduleCaseGeneratorTest, ConcatScoreFunc_concat_dim_dynamic) {
   optimize::ConcatScoreFunctionGenerator generator_1(graph, concat_node, 1);
   EXPECT_EQ(generator_1.GenerateForCheckSmallTail(score_func), ge::SUCCESS);
   std::cout << score_func << std::endl;
-  EXPECT_TRUE(score_func.find("graph0_result1_g0_tiling_data") != std::string::npos);
+  EXPECT_TRUE(score_func.find("graph0_result2_g0_tiling_data") != std::string::npos);
 }
 
 TEST_F(ConcatScheduleCaseGeneratorTest, UseSmallTailConcatApi_TailDim_NotAligned) {

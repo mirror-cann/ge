@@ -169,7 +169,7 @@ Status ConcatFusionCaseGenerator::GenerateScoreFunctions(const std::vector<ascir
       score_functions.resize(graphs.size());
       const auto concat_node = FindConcatNodes(graphs.front()).front();
       GE_CHK_STATUS_RET(
-          ConcatScoreFunctionGenerator(graphs.back(), concat_node, concat_dim).Generate(score_functions.front()),
+          ConcatScoreFunctionGenerator(graphs.front(), concat_node, concat_dim).Generate(score_functions.front()),
           "Failed to generate score func for ub_concat");
       if (graphs.size() == kTemplateSizeAll) {
         GE_CHK_STATUS_RET(ConcatScoreFunctionGenerator(graphs.back(), concat_node, concat_dim)
