@@ -8,6 +8,7 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 #include <gtest/gtest.h>
+#include <algorithm>
 #include <fstream>
 #include "common/summary_checker.h"
 #include "common/topo_checker.h"
@@ -646,6 +647,55 @@ TEST_F(EsGraphBuilderLLT, BuildStateCheck) {
   // cannot build again
   auto graph2 = builder.BuildAndReset();
   EXPECT_EQ(graph2, nullptr);
+}
+
+TEST_F(EsGraphBuilderLLT, EsGraphOpListInterfacesTest) {
+  EsGraphBuilder builder("test_op_list_graph");
+  auto input0 = builder.CreateInput(0, "input0", "Data");
+  auto c1 = builder.CreateScalar(int64_t(10));
+  builder.SetOutput(input0, 0);
+  builder.SetOutput(c1, 1);
+  auto graph = builder.BuildAndReset();
+  ASSERT_NE(graph, nullptr);
+
+  // FindOpByName: ES构图通过AddNodeByOp创建的节点应该能被查找到
+  ge::Operator found_op;
+  EXPECT_EQ(graph->FindOpByName("input0", found_op), ge::GRAPH_SUCCESS);
+  ge::AscendString found_type;
+  EXPECT_EQ(found_op.GetOpType(found_type), ge::GRAPH_SUCCESS);
+  EXPECT_EQ(found_type.GetString(), std::string("Data"));
+
+  EXPECT_EQ(graph->FindOpByName("Const_0", found_op), ge::GRAPH_SUCCESS);
+  EXPECT_EQ(found_op.GetOpType(found_type), ge::GRAPH_SUCCESS);
+  EXPECT_EQ(found_type.GetString(), std::string("Const"));
+
+  EXPECT_EQ(graph->FindOpByName("NetOutput_test_op_list_graph", found_op), ge::GRAPH_SUCCESS);
+  EXPECT_EQ(found_op.GetOpType(found_type), ge::GRAPH_SUCCESS);
+  EXPECT_EQ(found_type.GetString(), std::string("NetOutput"));
+
+  // FindOpByName: 不存在的op应返回失败
+  EXPECT_NE(graph->FindOpByName("not_exist_op", found_op), ge::GRAPH_SUCCESS);
+
+  // FindOpByType: 按类型查找
+  std::vector<ge::Operator> data_ops;
+  EXPECT_EQ(graph->FindOpByType("Data", data_ops), ge::GRAPH_SUCCESS);
+  EXPECT_EQ(data_ops.size(), 1U);
+
+  std::vector<ge::Operator> const_ops;
+  EXPECT_EQ(graph->FindOpByType("Const", const_ops), ge::GRAPH_SUCCESS);
+  EXPECT_EQ(const_ops.size(), 1U);
+
+  std::vector<ge::Operator> netoutput_ops;
+  EXPECT_EQ(graph->FindOpByType("NetOutput", netoutput_ops), ge::GRAPH_SUCCESS);
+  EXPECT_EQ(netoutput_ops.size(), 1U);
+
+  // GetAllOpName: 应包含所有通过ES构图创建的节点 (Data + Const + NetOutput = 3)
+  std::vector<std::string> op_names;
+  EXPECT_EQ(graph->GetAllOpName(op_names), ge::GRAPH_SUCCESS);
+  EXPECT_EQ(op_names.size(), 3U);
+  EXPECT_NE(std::find(op_names.begin(), op_names.end(), "input0"), op_names.end());
+  EXPECT_NE(std::find(op_names.begin(), op_names.end(), "Const_0"), op_names.end());
+  EXPECT_NE(std::find(op_names.begin(), op_names.end(), "NetOutput_test_op_list_graph"), op_names.end());
 }
 
 TEST_F(EsGraphBuilderLLT, AddEdgeAndUpdatePeerFormat) {
