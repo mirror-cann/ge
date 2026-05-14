@@ -323,7 +323,7 @@ graphStatus LoweringUtils::AddDataEdgesForAscNode(const NodePtr &asc_node, const
 
 graphStatus LoweringUtils::GetUnusedInNodes(loop::KernelBox &kernel_box, const std::set<const ge::Node *> &used_in_nodes,
                                             std::set<NodePtr> &unused_in_nodes) {
-  GELOGD("Start get unused in nodes for kernel box %s", kernel_box.Name().c_str());
+  GELOGD("Start to get unused in nodes for kernel box %s", kernel_box.Name().c_str());
   const std::vector<const ge::Node *> fused_nodes = kernel_box.GetAscendIrNodes();
   std::stack<NodePtr> stack;
   stack.push(kernel_box.TargetBuffer()->GetOwnerNode());
@@ -457,7 +457,6 @@ void GraphFusionReasonStore::ShowGraphFusionFailReasons(const std::string &graph
   }
 
   if (nodes_by_category.empty()) {
-    GELOGW("Graph [%s] all nodes has beed lowerered!", graph_name.c_str());
     return;
   }
 
@@ -465,7 +464,7 @@ void GraphFusionReasonStore::ShowGraphFusionFailReasons(const std::string &graph
     GELOGI("========== Graph [%s] - %s (%zu nodes) ==========", graph_name.c_str(), GetCategoryName(category), nodes.size());
     for (const auto& [node_name, node_info] : nodes) {
       const FailReasonInfo& reason_info = storage.node_fusion_reason_.at(node_name);
-      GELOGI("  Node name: %s, type: %s, reason: %s", node_name.c_str(), node_info.node_type.c_str(), reason_info.reason.c_str());
+      GELOGI("Node name: %s, type: %s, reason: %s", node_name.c_str(), node_info.node_type.c_str(), reason_info.reason.c_str());
     }
   }
 }
