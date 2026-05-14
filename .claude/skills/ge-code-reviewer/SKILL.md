@@ -74,16 +74,13 @@ description: >
 
 ```bash
 # 获取 PR 信息
-curl -s "https://gitcode.com/api/v5/repos/{owner}/{repo}/pulls/{pr_number}" \
-  -H "Authorization: Bearer $GITCODE_TOKEN"
+curl -s "https://gitcode.com/api/v5/repos/${owner}/${repo}/pulls/<PR_NUMBER>?access_token=$GITCODE_API_TOKEN"
 
 # 获取 PR 变更文件列表
-curl -s "https://gitcode.com/api/v5/repos/{owner}/{repo}/pulls/{pr_number}/files" \
-  -H "Authorization: Bearer $GITCODE_TOKEN"
+curl -s "https://api.gitcode.com/api/v5/repos/${owner}/${repo}/pulls/<PR_NUMBER>/files.json?access_token=$GITCODE_API_TOKEN"
 
 # 获取 PR diff
-curl -s "https://gitcode.com/api/v5/repos/{owner}/{repo}/pulls/{pr_number}" \
-  -H "Authorization: Bearer $GITCODE_TOKEN" \
+curl -s "https://gitcode.com/api/v5/repos/${owner}/${repo}/pulls/<PR_NUMBER>?access_token=$GITCODE_API_TOKEN" \
   -d "diff=true"
 ```
 
@@ -95,8 +92,7 @@ curl -s "https://gitcode.com/api/v5/repos/{owner}/{repo}/pulls/{pr_number}" \
 
 ```bash
 # 获取 PR 变更文件列表（包含 diff 信息）
-curl -s "https://gitcode.com/api/v5/repos/${owner}/${repo}/pulls/<PR_NUMBER>/files" \
-  -H "Authorization: Bearer $GITCODE_API_TOKEN"
+curl -s "https://api.gitcode.com/api/v5/repos/${owner}/${repo}/pulls/<PR_NUMBER>/files.json?access_token=$GITCODE_API_TOKEN"
 ```
 
 返回的 `patch.diff` 字段包含 hunk header，格式为：
@@ -192,53 +188,29 @@ curl -s "https://raw.gitcode.com/${owner}/${repo}/raw/358192edfc1809f6fe17b0da0b
 
 #### 创建新的 Discussion（推荐）
 
+使用 v5 API 提交行内评论：
+
 ```bash
-curl -s -X POST \
-  -H "PRIVATE-TOKEN: $GITCODE_API_TOKEN" \
+curl -X POST \
   -H "Content-Type: application/json" \
-  "https://api.gitcode.com/api/v4/projects/${encoded_repo}/merge_requests/<PR_NUMBER>/discussions" \
+  -H "Accept: application/json" \
+  "https://api.gitcode.com/api/v5/repos/${owner}/${repo}/pulls/<PR_NUMBER>/comments?access_token=$GITCODE_API_TOKEN" \
   -d '{
-    "repoId": "'"${encoded_repo}"'",
-    "iid": <PR_NUMBER>,
     "body": "评论内容",
-    "line_types": "new",
-    "position": {
-      "base_sha": "<base_commit_sha>",
-      "start_sha": "<start_commit_sha>",
-      "head_sha": "<head_commit_sha>",
-      "position_type": "text",
-      "old_path": "文件路径",
-      "new_path": "文件路径",
-      "old_line": null,
-      "new_line": <结束行号>,
-      "start_old_line": null,
-      "start_new_line": <起始行号>,
-      "ignore_whitespace_change": false
-    },
-    "assignee_id": <用户ID>,
-    "proposer_id": <用户ID>,
-    "severity": "suggestion"
+    "path": "文件相对路径",
+    "position": <结束行号>,
+    "start_position": <起始行号>
   }'
 ```
-
-**多行选择说明**：
-- `start_new_line`: 选中的起始行号（多行选择时设置）
-- `new_line`: 选中的结束行号
-- 单行评论时，`start_new_line` 和 `new_line` 设置为相同值
 
 **参数说明**：
 
 | 参数 | 说明 | 必需 |
 |------|------|------|
 | `body` | 评论内容 | ✅ |
-| `line_types` | `"new"` 选择新代码（右侧），`"old"` 选择旧代码（左侧） | ✅ |
-| `position.base_sha` | base 提交 SHA | ✅ |
-| `position.start_sha` | start 提交 SHA | ✅ |
-| `position.head_sha` | head 提交 SHA | ✅ |
-| `position.new_path` | 文件相对路径 | ✅ |
-| `position.new_line` | 结束行号 | ✅ |
-| `position.start_new_line` | 起始行号（多行选择） | 多行时 |
-| `severity` | 严重程度：`suggestion`、`warning` | ❌ |
+| `path` | 文件相对路径 | ✅ |
+| `position` | 结束行号 | ✅ |
+| `start_position` | 起始行号（多行选择） | 多行时 |
 
 对于每个评论：
 - 提供问题的简要描述
@@ -285,23 +257,26 @@ curl -s -X POST \
 
 ## GitCode API 参考
 
-**重要**：GitCode 使用 GitLab API v4 格式，认证头使用 `PRIVATE-TOKEN`。
+**重要**：GitCode 使用 API v5 格式。
+
+**认证方式**：
+- 推荐使用 query 参数：`?access_token=$GITCODE_API_TOKEN`
+- 也可使用 Header：`PRIVATE-TOKEN: $GITCODE_API_TOKEN`
 
 ### 快速参考
 
 | 操作 | API 端点 |
 |------|---------|
-| 获取 PR 信息 | `GET /projects/${encoded_repo}/merge_requests/<PR_NUMBER>` |
-| 获取 PR 变更 | `GET /projects/${encoded_repo}/merge_requests/<PR_NUMBER>/changes` |
-| 获取 PR 评论 | `GET /projects/${encoded_repo}/merge_requests/<PR_NUMBER>/discussions` |
-| 发布普通评论 | `POST /projects/${encoded_repo}/merge_requests/<PR_NUMBER>/notes` |
-| 发布行内评论 | `POST /projects/${encoded_repo}/merge_requests/<PR_NUMBER>/discussions` |
+| 获取 PR 信息 | `GET /repos/${owner}/${repo}/pulls/<PR_NUMBER>` |
+| 获取 PR 变更 | `GET /repos/${owner}/${repo}/pulls/<PR_NUMBER>/files.json` |
+| 获取 PR 评论 | `GET /repos/${owner}/${repo}/pulls/<PR_NUMBER>/comments` |
+| 发布普通评论 | `POST /repos/${owner}/${repo}/pulls/<PR_NUMBER>/comments` |
+| 发布行内评论 | `POST /repos/${owner}/${repo}/pulls/<PR_NUMBER>/comments` |
 
 ### 基本格式
 
 ```bash
-curl -s -H "PRIVATE-TOKEN: $GITCODE_API_TOKEN" \
-  "https://api.gitcode.com/api/v4/projects/${encoded_repo}/merge_requests/<PR_NUMBER>/discussions"
+curl -s "https://api.gitcode.com/api/v5/repos/${owner}/${repo}/pulls/<PR_NUMBER>/comments?access_token=$GITCODE_API_TOKEN"
 ```
 
 详细 API 参数、响应码和权限说明请参考 `references/gitcode_api.md` 的「删除 PR 评论」章节。
