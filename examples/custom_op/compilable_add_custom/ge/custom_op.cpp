@@ -137,8 +137,6 @@ class AddCustom : public EagerExecuteOp, public CompilableOp, public PortableOp 
                                             static_cast<void *>(&args), sizeof(args), nullptr, 0));
     std::cout << __FILE__ << ":" << __LINE__ << " kernel launched successfully with block_num: " << block_num
               << std::endl;
-    CHECK_ACL(aclrtBinaryUnLoad(bin_handle));
-    std::cout << __FILE__ << ":" << __LINE__ << " binary unloaded successfully" << std::endl;
     return GRAPH_SUCCESS;
   }
   graphStatus Compile(gert::OpCompileContext *ctx) override {

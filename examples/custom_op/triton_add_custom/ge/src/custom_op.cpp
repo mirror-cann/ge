@@ -152,11 +152,6 @@ class AddCustom : public EagerExecuteOp {
       std::cerr << __FILE__ << ":" << __LINE__ << " aclError: " << ret << std::endl;
       return GRAPH_FAILED;
     }
-    ret = aclrtBinaryUnLoad(bin_handle);
-    if (ret != ACL_ERROR_NONE) {
-      std::cerr << __FILE__ << ":" << __LINE__ << " aclError: " << ret << std::endl;
-      return GRAPH_FAILED;
-    }
     return GRAPH_SUCCESS;
   }
 };
