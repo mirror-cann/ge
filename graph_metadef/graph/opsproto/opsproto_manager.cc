@@ -132,10 +132,8 @@ void OpsProtoManager::LoadOpsProtoPluginSo(const std::string &path) {
   }
   GELOGW("[LoadSo][Check] Shared library will not be checked. Please make sure that the source of shared library is "
          "trusted.");
-  OperatorFactoryImpl::SetRegisterOverridable(true);
   void *const handle = mmDlopen(path.c_str(), static_cast<int32_t>(static_cast<uint32_t>(MMPA_RTLD_NOW) |
       static_cast<uint32_t>(MMPA_RTLD_GLOBAL) | static_cast<uint32_t>(MMPA_RTLD_NODELETE)));
-  OperatorFactoryImpl::SetRegisterOverridable(false);
   if (handle == nullptr) {
     const char_t *error = mmDlerror();
     error = (error == nullptr) ? "" : error;
