@@ -9,6 +9,7 @@
 # -----------------------------------------------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 3.14)
+include(../fetch_cann_cmake.cmake)
 project (ThirdPartyPkg[CXX])
 
 set(CMAKE_VERBOSE_MAKEFILE True)
@@ -20,7 +21,7 @@ include(CMakePrintHelpers)
 include(CMakePackageConfigHelpers)
 
 message(STATUS "[Third part build] Variables for third_party packages:")
-cmake_print_variables(CMAKE_THIRD_PARTY_LIB_DIR)
+cmake_print_variables(CANN_3RD_LIB_PATH)
 cmake_print_variables(CMAKE_BUILD_COMPONENT)
 cmake_print_variables(ENABLE_BUILD_DEVICE)
 cmake_print_variables(USE_CXX11_ABI)
@@ -61,36 +62,33 @@ endif(CCACHE_PROGRAM)
 
 if (NOT DEFINED CMAKE_PREFIX_PATH)
     set(CMAKE_PREFIX_PATH
-        ${CMAKE_THIRD_PARTY_LIB_DIR}/json
-        ${CMAKE_THIRD_PARTY_LIB_DIR}/openssl
-        ${CMAKE_THIRD_PARTY_LIB_DIR}/protoc
-        ${CMAKE_THIRD_PARTY_LIB_DIR}/protoc_grpc
-        ${CMAKE_THIRD_PARTY_LIB_DIR}/grpc
-        ${CMAKE_THIRD_PARTY_LIB_DIR}/protobuf_static
-        ${CMAKE_THIRD_PARTY_LIB_DIR}/ascend_protobuf
-        ${CMAKE_THIRD_PARTY_LIB_DIR}/ascend_protobuf_static
-        ${CMAKE_THIRD_PARTY_LIB_DIR}/symengine/lib/cmake/symengine
-        ${CMAKE_THIRD_PARTY_LIB_DIR}/boost/lib/cmake/Boost-1.87.0
-        ${CMAKE_THIRD_PARTY_LIB_DIR}/zlib
+        ${CANN_3RD_LIB_PATH}/protoc
+        ${CANN_3RD_LIB_PATH}/protoc_grpc
+        ${CANN_3RD_LIB_PATH}/grpc
+        ${CANN_3RD_LIB_PATH}/protobuf_static
+        ${CANN_3RD_LIB_PATH}/ascend_protobuf
+        ${CANN_3RD_LIB_PATH}/ascend_protobuf_static
+        ${CANN_3RD_LIB_PATH}/symengine/lib/cmake/symengine
+        ${CANN_3RD_LIB_PATH}/boost/lib/cmake/Boost-1.87.0
     )
 endif()
 
 message(STATUS "[${CMAKE_BUILD_COMPONENT}] third-party process")
 if(CMAKE_BUILD_COMPONENT STREQUAL "ge-compiler")
-    find_package(json MODULE REQUIRED)
-    find_package(openssl MODULE REQUIRED)
+    add_cann_third_party(json)
+    add_cann_third_party(openssl)
     find_package(abseil-cpp MODULE REQUIRED)
     find_package(protoc MODULE REQUIRED)
     find_package(ascend_protobuf_shared MODULE REQUIRED)
     find_package(ascend_protobuf_static MODULE REQUIRED)
     find_package(boost MODULE REQUIRED)
     find_package(symengine MODULE REQUIRED)
-    find_package(zlib_bin MODULE REQUIRED)
+    add_cann_third_party(zlib)
     set(selected_targets
             ascend_protobuf_build
             ascend_protobuf_static_build
-            json_build
-            openssl_build
+            third_party_json
+            openssl_project
             protoc_build
             boost_build
             symengine_build
@@ -113,12 +111,13 @@ elseif(CMAKE_BUILD_COMPONENT STREQUAL "ge-executor")
     else()
         set(FORCE_REBUILD_CANN_3RD false)
     endif()
-    find_package(zlib_bin MODULE REQUIRED)
-    find_package(openssl MODULE REQUIRED)
+    add_cann_third_party(zlib)
+    add_cann_third_party(openssl)
     # 以下独立判断是否重新编译
+    set(FORCE_REBUILD_CANN_3RD false)
     find_package(ascend_protobuf_shared MODULE REQUIRED)
     find_package(ascend_protobuf_static MODULE REQUIRED)
-    find_package(json MODULE REQUIRED)
+    add_cann_third_party(json)
     find_package(protoc MODULE REQUIRED)
     find_package(boost MODULE REQUIRED)
     find_package(symengine MODULE REQUIRED)
@@ -126,7 +125,7 @@ elseif(CMAKE_BUILD_COMPONENT STREQUAL "ge-executor")
             ascend_protobuf_build
             ascend_protobuf_static_build
             grpc_build
-            json_build
+            third_party_json
             protobuf_static_build
             protoc_build
             protoc_grpc_build
@@ -151,14 +150,15 @@ else()
     else()
         set(FORCE_REBUILD_CANN_3RD false)
     endif()
-    find_package(zlib_bin MODULE REQUIRED)
-    find_package(openssl MODULE REQUIRED)
+    add_cann_third_party(zlib)
+    add_cann_third_party(openssl)
     # 以下独立判断是否重新编译
+    set(FORCE_REBUILD_CANN_3RD false)
     find_package(boost MODULE REQUIRED)
     find_package(symengine MODULE REQUIRED)
     find_package(ascend_protobuf_shared MODULE REQUIRED)
     find_package(ascend_protobuf_static MODULE REQUIRED)
-    find_package(json MODULE REQUIRED)
+    add_cann_third_party(json)
     find_package(protoc MODULE REQUIRED)
 
     # abseil_build,cares_build,re2_build只在被依赖时编译,不主动编译
@@ -166,8 +166,8 @@ else()
             ascend_protobuf_build
             ascend_protobuf_static_build
             grpc_build
-            json_build
-            openssl_build
+            third_party_json
+            openssl_project
             protobuf_static_build
             protoc_build
             protoc_grpc_build
@@ -199,5 +199,5 @@ foreach(dep ${selected_targets})
 endforeach()
 
 install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/scripts/modules
-        DESTINATION ${CMAKE_THIRD_PARTY_LIB_DIR}/cmake
+        DESTINATION ${CANN_3RD_LIB_PATH}/cmake
 )

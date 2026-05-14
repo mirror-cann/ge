@@ -14,10 +14,10 @@ endif ()
 
 include(ExternalProject)
 
-set(LIB_FILE "${CMAKE_THIRD_PARTY_LIB_DIR}/symengine/lib") # 编译之后才会有的文件，用于判断是否已经编译
-set(MOD_FILE "${CMAKE_THIRD_PARTY_LIB_DIR}/symengine/symengine/mod.cpp") # 打上patch之后才会有的文件，用于判断是否打了patch
-set(CMAKE_FILE "${CMAKE_THIRD_PARTY_LIB_DIR}/symengine/CMakeLists.txt") # 用于判断是否已下载并解压
-set(REQ_URL "${CMAKE_THIRD_PARTY_LIB_DIR}/symengine/symengine-0.12.0.tar.gz")
+set(LIB_FILE "${CANN_3RD_LIB_PATH}/symengine/lib") # 编译之后才会有的文件，用于判断是否已经编译
+set(MOD_FILE "${CANN_3RD_LIB_PATH}/symengine/symengine/mod.cpp") # 打上patch之后才会有的文件，用于判断是否打了patch
+set(CMAKE_FILE "${CANN_3RD_LIB_PATH}/symengine/CMakeLists.txt") # 用于判断是否已下载并解压
+set(REQ_URL "${CANN_3RD_LIB_PATH}/symengine/symengine-0.12.0.tar.gz")
 set(SYMENGINE_EXTRA_ARGS "")
 if(EXISTS ${LIB_FILE})
     message(STATUS "[symengine] ${LIB_FILE} found, symengine is ready after compile.")
@@ -40,20 +40,20 @@ else()
         set(REQ_URL "https://gitcode.com/cann-src-third-party/symengine/releases/download/v0.12.0/symengine-0.12.0.tar.gz")
         list(APPEND SYMENGINE_EXTRA_ARGS
             URL ${REQ_URL}
-            DOWNLOAD_DIR ${CMAKE_THIRD_PARTY_LIB_DIR}/symengine
+            DOWNLOAD_DIR ${CANN_3RD_LIB_PATH}/symengine
             PATCH_COMMAND patch -p1 < ${CMAKE_CURRENT_LIST_DIR}/patch/symengine_add_mod.patch
         )
     endif()
     set(SYMENGINE_CXXFLAGS "-fPIC -D_GLIBCXX_USE_CXX11_ABI=${USE_CXX11_ABI} -std=c++17")
 
     ExternalProject_Add(symengine_build
-            SOURCE_DIR ${CMAKE_THIRD_PARTY_LIB_DIR}/symengine
+            SOURCE_DIR ${CANN_3RD_LIB_PATH}/symengine
             ${SYMENGINE_EXTRA_ARGS}
             TLS_VERIFY OFF
             CONFIGURE_COMMAND ${CMAKE_COMMAND}
                 -DINTEGER_CLASS:STRING=boostmp
                 -DBUILD_SHARED_LIBS:BOOL=OFF
-                -DBOOST_ROOT=${CMAKE_THIRD_PARTY_LIB_DIR}/boost
+                -DBOOST_ROOT=${CANN_3RD_LIB_PATH}/boost
                 -DBUILD_TESTS=off
                 -DCMAKE_POLICY_VERSION_MINIMUM=3.5
                 -DCMAKE_CXX_STANDARD=17
@@ -62,8 +62,8 @@ else()
                 -DCMAKE_CXX_FLAGS=${SYMENGINE_CXXFLAGS}
                 -DCMAKE_C_COMPILER_LAUNCHER=${CMAKE_C_COMPILER_LAUNCHER}
                 -DCMAKE_CXX_COMPILER_LAUNCHER=${CMAKE_CXX_COMPILER_LAUNCHER}
-                -DCMAKE_INSTALL_PREFIX=${CMAKE_THIRD_PARTY_LIB_DIR}/symengine
-                -DCMAKE_PREFIX_PATH=${CMAKE_THIRD_PARTY_LIB_DIR}/boost
+                -DCMAKE_INSTALL_PREFIX=${CANN_3RD_LIB_PATH}/symengine
+                -DCMAKE_PREFIX_PATH=${CANN_3RD_LIB_PATH}/boost
                 -DLLVM_PATH=${LLVM_PATH}
                 -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
                 <SOURCE_DIR>
