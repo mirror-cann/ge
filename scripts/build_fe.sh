@@ -83,6 +83,7 @@ checkopts()
   ENABLE_RUN_LLT="off"
   ENABLE_FE_BENCHMARK="off"
   ENABLE_ASAN="false"
+  ENABLE_GCOV="false"
   LLT_FILTER=""
   BUILD_METADEF="on"
   CMAKE_BUILD_TYPE="Release"
@@ -98,14 +99,14 @@ checkopts()
         ENABLE_ENGINES_COMPILE="off"
         ENABLE_UT="on"
         ENABLE_FE_LLT="on"
-        ENABLE_ASAN="true"
+        ENABLE_ASAN=${ASAN_MODE}
         CMAKE_BUILD_TYPE="GCOV"
         ;;
       s)
         ENABLE_ENGINES_COMPILE="off"
         ENABLE_ST="on"
         ENABLE_FE_LLT="on"
-        ENABLE_ASAN="true"
+        ENABLE_ASAN=${ASAN_MODE}
         CMAKE_BUILD_TYPE="GCOV"
         ;;
       h)
@@ -147,6 +148,14 @@ checkopts()
         exit 1
     esac
   done
+  
+  if [[ "X$ENABLE_LLT_COV" = "Xon" ]]; then
+    ENABLE_GCOV="true"
+    echo "[INFO] GCOV compilation enabled (--coverage -fprofile-arcs -ftest-coverage)"
+  else
+    ENABLE_GCOV="false"
+    echo "[INFO] GCOV compilation disabled (no --coverage flags)"
+  fi
 }
 
 mk_dir() {
@@ -206,6 +215,7 @@ build_fe()
         -D ENABLE_ST_WHOLE_PROCESS=${ENABLE_ST_WHOLE_PROCESS} \
         -D ENABLE_LLT_COV=${ENABLE_LLT_COV} \
         -D ENABLE_ASAN=${ENABLE_ASAN} \
+        -D ENABLE_GCOV=${ENABLE_GCOV} \
         -D CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} \
         -D CMAKE_INSTALL_PREFIX=${OUTPUT_PATH} \
         -D ASCEND_INSTALL_PATH=${ASCEND_INSTALL_PATH} \
