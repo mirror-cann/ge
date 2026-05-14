@@ -55,7 +55,7 @@ constexpr const char *kCompileOptionDeviceId = "ge.exec.deviceId";
 constexpr const char *kCompileOptionJitCompile = "ge.jit_compile";
 }  // namespace
 
-class AddCustom : public EagerExecuteOp, public CompilableOp, public PortableOp {
+class AddCustom : public EagerExecuteOp, public CompilableOp, public PortableOp, public ShapeInferOp {
  public:
   graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
     std::cout << __FILE__ << ":" << __LINE__ << " Execute started, kernel binary count: " << device_elves_.size()
@@ -234,6 +234,19 @@ class AddCustom : public EagerExecuteOp, public CompilableOp, public PortableOp 
     std::cout << __FILE__ << ":" << __LINE__ << " Deserialize completed, kernel binary count: " << device_elves_.size()
               << std::endl;
     return ret;
+  }
+
+  graphStatus InferShape(gert::InferShapeContext *ctx) override {
+    const gert::Shape *x1_shape = ctx->GetInputShape(0);
+    gert::Shape *y1_shape = ctx->GetOutputShape(0);
+    *y1_shape = *x1_shape;
+    return GRAPH_SUCCESS;
+  }
+
+  graphStatus InferDataType(gert::InferDataTypeContext *ctx) override {
+    const auto inputDataType = ctx->GetInputDataType(0);
+    ctx->SetOutputDataType(0, inputDataType);
+    return GRAPH_SUCCESS;
   }
 
  private:
