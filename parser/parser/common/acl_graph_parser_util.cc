@@ -38,6 +38,7 @@
 #include "mmpa/mmpa_api.h"
 #include "base/registry/opp_package_utils.h"
 #include "register/op_lib_register_impl.h"
+#include "graph/operator_factory_impl.h"
 
 using google::protobuf::io::CodedInputStream;
 using google::protobuf::io::FileInputStream;
@@ -175,6 +176,9 @@ static Status CheckOutNode(ge::OpDescPtr op_desc, int32_t index) {
 }
 
 domi::Status AclGraphParserUtil::LoadOpsProtoLib() {
+  // 加载顺序遵循3.0目录结构，按op_graph->op_impl->op_proto->framework顺序加载，详细规则见PluginManager::GetOpsProtoPath注释
+  gert::OppPackageUtils::LoadAllOppPackage();
+  GELOGI("Load Ops proto v2 success.");
   string opsproto_path;
   ge::Status ret = ge::TBEPluginLoader::GetOpsProtoPath(opsproto_path);
   if (ret != ge::SUCCESS) {
@@ -193,9 +197,6 @@ domi::Status AclGraphParserUtil::LoadOpsProtoLib() {
     return FAILED;
   }
   GELOGI("Load Ops proto v1 success.");
-
-  gert::OppPackageUtils::LoadAllOppPackage();
-  GELOGI("Load Ops proto v2 success.");
   return SUCCESS;
 }
 
@@ -220,13 +221,17 @@ domi::Status AclGraphParserUtil::AclParserInitialize(const std::map<std::string,
     GELOGW("AclParserInitialize is called more than once");
     return SUCCESS;
   }
-  GE_ASSERT_GRAPH_SUCCESS(OpLibRegistry::GetInstance().PreProcessForCustomOp());
-  // load custom op plugin
-  TBEPluginLoader::Instance().LoadPluginSo(options);
 
+  //备份并清空注册信息map
+  ge::OperatorFactoryImpl::BackupAndClearRegInfoOnce();
+
+  GE_ASSERT_GRAPH_SUCCESS(OpLibRegistry::GetInstance().PreProcessForCustomOp());
+  
   // load and save custom op proto for prediction
   (void)LoadOpsProtoLib();
   SaveCustomCaffeProtoPath();
+  // load custom op plugin
+  TBEPluginLoader::Instance().LoadPluginSo(options);
 
   auto op_registry = domi::OpRegistry::Instance();
   if (op_registry == nullptr) {
@@ -248,7 +253,8 @@ domi::Status AclGraphParserUtil::AclParserInitialize(const std::map<std::string,
       (void) domi::OpRegistry::Instance()->Register(reg_data);
     }
   }
-
+  // 将备份的注册信息低优先级merge到当前map
+  ge::OperatorFactoryImpl::MergeBackupCreatorsOnce();
   // set init status
   if (!parser_initialized) {
     // Initialize success, first time calling initialize

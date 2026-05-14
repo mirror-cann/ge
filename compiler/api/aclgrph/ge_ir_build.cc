@@ -53,6 +53,7 @@
 #include "analyzer/analyzer.h"
 #include "graph/utils/type_utils.h"
 #include "graph/fusion/pass/pass_plugin_loader.h"
+#include "graph/operator_factory_impl.h"
 #include "base/err_msg.h"
 #include "base/err_mgr.h"
 
@@ -284,6 +285,8 @@ static graphStatus CheckGlobalOptions(std::map<std::string, std::string> &global
 }
 
 static void LoadOpsProto() {
+ // 加载顺序遵循3.0目录结构，按op_graph->op_impl->op_proto->framework顺序加载，详细规则见PluginManager::GetOpsProtoPath注释
+  gert::OppPackageUtils::LoadAllOppPackage();
   std::string opsproto_path;
   Status ret = PluginManager::GetOpsProtoPath(opsproto_path);
   if (ret != SUCCESS) {
@@ -294,11 +297,12 @@ static void LoadOpsProto() {
   std::map<std::string, std::string> option_tmp;
   option_tmp.emplace(std::pair<std::string, std::string>(string("ge.opsProtoLibPath"), opsproto_path));
   (void)manager->Initialize(option_tmp);
-  gert::OppPackageUtils::LoadAllOppPackage();
 }
 
 static graphStatus aclgrphBuildInitializeImpl(std::map<std::string, std::string> &global_options) {
   GELOGD("Enter aclgrphInitialize start!");
+  //备份并清空注册信息map
+  OperatorFactoryImpl::BackupAndClearRegInfoOnce();
   SetDefaultHostEnvOsAndHostEnvCpu(global_options[OPTION_HOST_ENV_OS], global_options[OPTION_HOST_ENV_CPU]);
   SetJitCompileTrue(global_options);
   SetBuildGraphModeOffline(global_options);
@@ -342,6 +346,8 @@ static graphStatus aclgrphBuildInitializeImpl(std::map<std::string, std::string>
       return GRAPH_FAILED;
     }
   }
+  // 将备份的注册信息低优先级merge到当前map
+  OperatorFactoryImpl::MergeBackupCreatorsOnce();
   GELOGW("gelib has been initialized!");
   Status ret = static_cast<uint32_t>(error_message::ErrMgrInit(error_message::ErrorMessageMode::INTERNAL_MODE));
   GE_ASSERT_SUCCESS(ret, "ErrorManager init failed!");
