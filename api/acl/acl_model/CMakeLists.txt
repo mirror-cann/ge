@@ -17,8 +17,6 @@ add_library(acl_mdl_impl SHARED
     model/init_callback_register.cpp
     types/tensor_desc_internal.cpp
     ../common/json_parser.cpp
-    ../common/log_inner.cpp
-    ../common/prof_api_reg.cpp
 )
 
 target_include_directories(acl_mdl_impl PRIVATE
@@ -100,9 +98,8 @@ target_link_libraries(acl_mdl_impl PRIVATE
     ge_common_base
     graph_base
     graph
-    om2_executor
 
-    acl_mdl_impl_om2
+    acl_mdl_impl_om2    # OM2 model support; also provides aclTensorDesc::Init/copy-ctor/operator=
 
     -Wl,--as-needed
     $<$<NOT:$<STREQUAL:${TARGET_SYSTEM_NAME},Android>>:-lrt>
@@ -121,6 +118,8 @@ add_library(acl_mdl_impl_om2 SHARED
     model/acl_model_router.cpp
     types/tensor_desc_internal_om2.cpp
     ../utils/string_utils.cpp
+    ../common/log_inner.cpp
+    ../common/prof_api_reg.cpp
 )
 
 target_include_directories(acl_mdl_impl_om2 PRIVATE
@@ -188,6 +187,20 @@ target_link_libraries(acl_mdl_impl_om2 PRIVATE
     $<$<NOT:$<BOOL:${ENABLE_OPEN_SRC}>>:$<BUILD_INTERFACE:msprof_headers>>
     $<$<NOT:$<BOOL:${ENABLE_OPEN_SRC}>>:$<BUILD_INTERFACE:mmpa_headers>>
     $<$<NOT:$<BOOL:${ENABLE_OPEN_SRC}>>:$<BUILD_INTERFACE:runtime_headers>>
+    -Wl,--whole-archive
+    -Wl,--no-whole-archive
+    -Wl,--no-as-needed
+    acl_rt          # aclrtGetDevice/aclrtMalloc/aclrtMemcpy (model_om2.cpp)
+    c_sec           # memcpy_s/strncpy_s (tensor_desc_internal_om2.cpp, model_common.cpp)
+    unified_dlog    # ACL_LOG_INFO/ACL_LOG_ERROR/ACL_LOG_WARN (all source files)
+    mmpa            # MmGetEnv/MmGetPid, platform abstraction (acl_resource_manager_om2.cpp)
+    profapi_share   # ACL_PROFILING_REG, profiling registration (model_om2.cpp)
+    runtime         # gert::RtSession/CreateRtSession (acl_resource_manager_om2.cpp)
+    error_manager   # AclErrorLogManager::ReportInputError (model_common.cpp, model_config_om2.cpp)
+    gert            # gert::IsOm2Model/LoadOm2ExecutorFromData/Om2ModelExecutor (model_om2.cpp, acl_model_router.cpp)
+    om2_executor    # gert::LoadOm2DataFromFile, executor->Run/GetModelDescInfo (model_om2.cpp)
+    -Wl,--as-needed
+
     $<$<NOT:$<STREQUAL:${TARGET_SYSTEM_NAME},Android>>:-lrt>
     -ldl
 )

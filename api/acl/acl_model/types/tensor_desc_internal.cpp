@@ -17,6 +17,7 @@
 #include "common/prof_api_reg.h"
 #include "common/error_codes_inner.h"
 #include "model/acl_model_impl.h"
+#include "model/acl_model_impl_om2.h"
 
 namespace acl {
     void ConvertSvecToVec(const ge::SmallVector<int64_t, static_cast<size_t>(ge::kDefaultMaxInputNum)> &svec,
@@ -60,44 +61,6 @@ aclTensorDesc::aclTensorDesc(const aclDataType aclTensorDataType,
     if (acl::AclResourceManager::GetInstance().IsRuntimeV2Enable(false)) { // how to deal with it for model?
         this->storageDims = dims;
     }
-}
-
-void aclTensorDesc::Init(const aclTensorDesc &tensorDesc)
-{
-    this->dataType = tensorDesc.dataType;
-    this->storageFormat = tensorDesc.storageFormat;
-    this->format = tensorDesc.format;
-    this->dims = tensorDesc.dims;
-    this->dimsBackup = tensorDesc.dimsBackup;
-    this->storageDims = tensorDesc.storageDims;
-    this->storageDimsBackup = tensorDesc.storageDimsBackup;
-    this->name = tensorDesc.name;
-    this->shapeRange = tensorDesc.shapeRange;
-    this->shapeRangeBackup = tensorDesc.shapeRangeBackup;
-    this->address = tensorDesc.address;
-    this->isConst = tensorDesc.isConst;
-    this->isConstBackup = tensorDesc.isConstBackup;
-    this->constDataLen = tensorDesc.constDataLen;
-    this->constDataLenBackup = tensorDesc.constDataLenBackup;
-    this->constDataBuf = tensorDesc.constDataBuf;
-    this->constDataBufBackup=tensorDesc.constDataBufBackup;
-    this->cachedKey = tensorDesc.cachedKey;
-    this->cachedShapeKey = tensorDesc.cachedShapeKey;
-    this->memtype = tensorDesc.memtype;
-    for (const auto &it : tensorDesc.valueRange) {
-        this->valueRange[it.first] = it.second.Copy();
-    }
-}
-
-aclTensorDesc::aclTensorDesc(const aclTensorDesc &tensorDesc)
-{
-    Init(tensorDesc);
-}
-
-aclTensorDesc &aclTensorDesc::operator=(const aclTensorDesc &tensorDesc)
-{
-    Init(tensorDesc);
-    return *this;
 }
 
 std::string aclTensorDesc::DebugString() const
@@ -220,19 +183,6 @@ bool aclTensorDesc::IsSameTensor(const aclTensorDesc *const other) const
     return true;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 aclError aclTransTensorDescFormatImpl(const aclTensorDesc *srcDesc, aclFormat dstFormat, aclTensorDesc **dstDesc)
 {
     ACL_PROFILING_REG(acl::AclProfType::AclTransTensorDescFormat);
@@ -254,7 +204,7 @@ aclError aclTransTensorDescFormatImpl(const aclTensorDesc *srcDesc, aclFormat ds
         return ACL_GET_ERRCODE_GE(geRet);
     }
 
-    *dstDesc = aclCreateTensorDesc(srcDesc->dataType, static_cast<int32_t>(dstShape.size()),
+    *dstDesc = aclCreateTensorDescImplOm2(srcDesc->dataType, static_cast<int32_t>(dstShape.size()),
                                    dstShape.data(), srcDesc->format);
     if (*dstDesc == nullptr) {
         ACL_LOG_INNER_ERROR("[Create][Desc]aclCreateTensorDesc failed.");
@@ -263,16 +213,6 @@ aclError aclTransTensorDescFormatImpl(const aclTensorDesc *srcDesc, aclFormat ds
 
     return ACL_SUCCESS;
 }
-
-
-
-
-
-
-
-
-
-
 
 void aclTensorDesc::BackupDimsAndShapeRanges()
 {

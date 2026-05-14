@@ -127,9 +127,9 @@ aclError Om2UpdateOutputTensorDesc(aclmdlDataset* const & output, std::vector<ge
                                    const bool isAsync) {
     for (size_t i = 0UL; i < output->blobs.size(); ++i) {
         if (output->blobs[i].tensorDesc != nullptr) {
-            aclDestroyTensorDesc(output->blobs[i].tensorDesc);
+            aclDestroyTensorDescImplOm2(output->blobs[i].tensorDesc);
         }
-        output->blobs[i].tensorDesc = aclCreateTensorDesc(ACL_DT_UNDEFINED, 0, nullptr, ACL_FORMAT_UNDEFINED);
+        output->blobs[i].tensorDesc = aclCreateTensorDescImplOm2(ACL_DT_UNDEFINED, 0, nullptr, ACL_FORMAT_UNDEFINED);
     }
 
     for (size_t i = 0UL; i < outputTensor.size(); ++i) {

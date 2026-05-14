@@ -11,7 +11,84 @@
 #include "tensor_desc_internal.h"
 #include "model/acl_model_impl_om2.h"
 #include "utils/math_utils.h"
+#include "utils/string_utils.h"
 #include "common/prof_api_reg.h"
+#include <sstream>
+
+// aclTensorDesc base method implementations for libacl_mdl_impl_om2.so.
+// OM2 always runs on v2 runtime, so storageDims is always initialized from dims.
+aclTensorDesc::aclTensorDesc(const aclDataType aclTensorDataType,
+    const std::initializer_list<int64_t> shape, const aclFormat aclTensorFormat) :
+    dataType(aclTensorDataType),
+    format(aclTensorFormat),
+    dims(shape),
+    storageDims(shape)
+{}
+
+aclTensorDesc::aclTensorDesc(const aclDataType aclTensorDataType,
+    const size_t numDims, const int64_t *const aclTensorDims, const aclFormat aclTensorFormat) :
+    dataType(aclTensorDataType),
+    format(aclTensorFormat)
+{
+    for (size_t i = 0U; i < numDims; ++i) {
+        this->dims.push_back(*(aclTensorDims + i));
+    }
+    this->storageDims = dims;
+}
+
+aclTensorDesc::aclTensorDesc(const aclTensorDesc &tensorDesc)
+{
+    Init(tensorDesc);
+}
+
+aclTensorDesc &aclTensorDesc::operator=(const aclTensorDesc &tensorDesc)
+{
+    Init(tensorDesc);
+    return *this;
+}
+
+void aclTensorDesc::Init(const aclTensorDesc &tensorDesc)
+{
+    this->dataType = tensorDesc.dataType;
+    this->storageFormat = tensorDesc.storageFormat;
+    this->format = tensorDesc.format;
+    this->dims = tensorDesc.dims;
+    this->dimsBackup = tensorDesc.dimsBackup;
+    this->storageDims = tensorDesc.storageDims;
+    this->storageDimsBackup = tensorDesc.storageDimsBackup;
+    this->name = tensorDesc.name;
+    this->shapeRange = tensorDesc.shapeRange;
+    this->shapeRangeBackup = tensorDesc.shapeRangeBackup;
+    this->address = tensorDesc.address;
+    this->isConst = tensorDesc.isConst;
+    this->isConstBackup = tensorDesc.isConstBackup;
+    this->constDataLen = tensorDesc.constDataLen;
+    this->constDataLenBackup = tensorDesc.constDataLenBackup;
+    this->constDataBuf = tensorDesc.constDataBuf;
+    this->constDataBufBackup = tensorDesc.constDataBufBackup;
+    this->cachedKey = tensorDesc.cachedKey;
+    this->cachedShapeKey = tensorDesc.cachedShapeKey;
+    this->memtype = tensorDesc.memtype;
+    for (const auto &it : tensorDesc.valueRange) {
+        this->valueRange[it.first] = it.second.Copy();
+    }
+}
+
+std::string aclTensorDesc::DebugString() const
+{
+    std::stringstream ss;
+    ss << "[TensorDesc] ";
+    ss << "DataType = " << dataType;
+    ss << ", Format = " << format;
+    ss << ", StorageFormat = " << storageFormat;
+    ss << ", Shape = " << acl::StringUtils::VectorToString(dims);
+    ss << ", StorageShape = " << acl::StringUtils::VectorToString(storageDims);
+    ss << ", shapeRange = " << acl::StringUtils::VectorToString(shapeRange);
+    ss << ", memtype = " << memtype;
+    ss << ", isConst = " << isConst;
+    return ss.str();
+}
+
 
 aclTensorDesc *aclCreateTensorDescImplOm2(aclDataType dataType,
                                           int numDims,
