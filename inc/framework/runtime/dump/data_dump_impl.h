@@ -36,6 +36,9 @@ class DataDumpImpl {
 
   void Clear();
 
+  // Overflow dump 相关信息
+  void SetOpDebugInfo(uint32_t task_id, uint32_t stream_id, void* debug_addr);
+
  private:
   struct InnerTensorInfo {
     uint64_t offset;
@@ -78,10 +81,18 @@ class DataDumpImpl {
 
   void BuildTaskWorkspaces(const InnerDumpInfo& dump_info, toolkit::aicpu::dump::Task& task);
 
+  void BuildOpDebugTask(toolkit::aicpu::dump::OpMappingInfo& op_mapping_info);
+
   std::vector<InnerDumpInfo> task_list_;
   toolkit::aicpu::dump::OpMappingInfo op_mapping_info_;
   void* dev_mem_load_ = nullptr;
   bool load_flag_ = false;
+
+  // Overflow dump 相关成员
+  bool is_op_debug_ = false;
+  uint32_t op_debug_task_id_ = 0U;
+  uint32_t op_debug_stream_id_ = 0U;
+  void* op_debug_addr_ = nullptr;
 };
 
 }  // namespace dump

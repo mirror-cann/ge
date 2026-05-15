@@ -45,6 +45,10 @@
 #include "graph/tuning_utils.h"
 #include "graph/build/model_data_info.h"
 #include "base/common/helper/model_parser_base.h"
+#include "macro_utils/dt_public_scope.h"
+#include "framework/common/helper/model_save_helper.h"
+#include "framework/common/helper/model_save_helper_factory.h"
+#include "macro_utils/dt_public_unscope.h"
 #include "framework/common/helper/model_helper.h"
 #include "common/share_graph.h"
 #include "graph/ge_global_options.h"
@@ -421,6 +425,25 @@ TEST_F(GeIrBuildTest, TestBuildOptions) {
   init_options["ge.optionInvalid"] = "invalid";
   aclgrphBuildInitialize(init_options);
 
+}
+
+TEST_F(GeIrBuildTest, TestBuildModelOm2UnsupportedGlobalOption) {
+  aclgrphBuildFinalize();
+  std::map<std::string, std::string> init_options = {
+      {ge::OPTION_HOST_ENV_OS, "linux"},
+      {ge::OPTION_HOST_ENV_CPU, "x86_64"},
+  };
+  const auto init_ret = aclgrphBuildInitialize(init_options);
+  EXPECT_EQ(init_ret, SUCCESS);
+  if (init_ret == SUCCESS) {
+    auto graph = GraphFactory::SingeOpGraph2();
+    std::map<std::string, std::string> build_options = {
+        {"ge.offlineMode", "7"},
+    };
+    ModelBufferData model_buffer_data;
+    EXPECT_EQ(aclgrphBuildModel(graph, build_options, model_buffer_data), PARAM_INVALID);
+  }
+  aclgrphBuildFinalize();
 }
 
 TEST_F(GeIrBuildTest, TestDumpGraph) {

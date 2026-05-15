@@ -12,9 +12,28 @@
 #include "framework/common/debug/ge_log.h"
 #include "framework/common/debug/log.h"
 #include "common/ge_common/util.h"
+#include <ctime>
 
 namespace ge {
 namespace dump {
+
+namespace {
+// 本地实现时间格式化函数，避免依赖外部 so
+// format: 20171122042550
+std::string GetCurrentTimeStr() {
+  const std::time_t now = std::time(nullptr);
+  const std::tm *const ptm = std::localtime(&now);
+  if (ptm == nullptr) {
+    GELOGE(ge::FAILED, "localtime failed, return empty time string");
+    return "";
+  }
+
+  constexpr int32_t kTimeBufferLen = 32;
+  char buffer[kTimeBufferLen + 1] = {};
+  (void)std::strftime(buffer, static_cast<size_t>(kTimeBufferLen), "%Y%m%d%H%M%S", ptm);
+  return std::string(buffer);
+}
+}  // namespace
 
 DumpConfig& DumpConfig::Instance() {
   static DumpConfig instance;
@@ -118,6 +137,7 @@ void DumpConfig::Reset() {
   dump_stats_.clear();
   dump_scene_.clear();
   model_dump_config_list_.clear();
+  op_debug_mode_ = 0U;
 }
 
 const std::string& DumpConfig::GetDumpLevel() const {
@@ -138,6 +158,11 @@ const std::string& DumpConfig::GetDumpOpSwitch() const {
 const std::string& DumpConfig::GetDumpDebug() const {
   std::lock_guard<std::mutex> lock(mutex_);
   return dump_debug_;
+}
+
+uint32_t DumpConfig::GetOpDebugMode() const {
+  std::lock_guard<std::mutex> lock(mutex_);
+  return op_debug_mode_;
 }
 
 const std::vector<std::string>& DumpConfig::GetDumpStats() const {
@@ -182,7 +207,7 @@ bool DumpConfig::IsOpNeedDump(const std::string& op_name) const {
 
     // 遍历 layers 匹配（前缀匹配）
     for (const auto& layer : model_config.layers) {
-      if (op_name.find(layer) != std::string::npos) {
+      if (op_name == layer) {
         return true;
       }
     }
@@ -226,6 +251,10 @@ Status DumpConfig::ParseAndValidate(const char* dumpData, int32_t size) {
     GELOGE(ACL_GE_INVALID_DUMP_CONFIG, "[Parse][DumpConfig]Failed to parse dump config from json");
     return ret;
   }
+
+  // 检查 OM2 暂不支持的配置项并打印 warning
+  const nlohmann::json& jsDumpConfig = js.contains(GE_DUMP) ? js[GE_DUMP] : js;
+  CheckUnsupportedConfigs(jsDumpConfig);
 
   GELOGI("Parse and validate dump config successfully");
   return SUCCESS;
@@ -312,7 +341,7 @@ bool DumpConfig::ValidateDumpMode(const nlohmann::json& jsDumpConfig) {
                         dumpMode.c_str());
     return false;
   }
-  GELOGI("dump_mode value[%s] is valid", dumpMode.c_str());
+  GELOGD("dump_mode value[%s] is valid", dumpMode.c_str());
   return true;
 }
 
@@ -335,7 +364,7 @@ bool DumpConfig::ValidateDumpLevel(const nlohmann::json& jsDumpConfig) {
                         dumpLevel.c_str());
     return false;
   }
-  GELOGI("dump_level value[%s] is valid", dumpLevel.c_str());
+  GELOGD("dump_level value[%s] is valid", dumpLevel.c_str());
   return true;
 }
 
@@ -350,6 +379,34 @@ std::string DumpConfig::GetDumpLevel(const nlohmann::json& jsDumpConfig) {
     return jsDumpConfig[GE_DUMP_LEVEL].get<std::string>();
   }
   return GE_DUMP_LEVEL_DEFAULT;
+}
+
+void DumpConfig::CheckUnsupportedConfigs(const nlohmann::json& jsDumpConfig) {
+  if (jsDumpConfig.contains(GE_DUMP_OP_SWITCH)) {
+    GELOGW("[OM2 Dump] dump_op_switch is not supported in OM2 dump mode, configuration will be ignored");
+  }
+  if (jsDumpConfig.contains(GE_DUMP_LIST)) {
+    const auto& dumpList = jsDumpConfig[GE_DUMP_LIST];
+    if (dumpList.is_array() && !dumpList.empty()) {
+      for (const auto& modelJson : dumpList) {
+        if (modelJson.contains(GE_DUMP_OPTYPE_BLACKLIST)) {
+          GELOGW("[OM2 Dump] optype_blacklist in dump_list is not supported in OM2 dump mode, configuration will be ignored");
+        }
+        if (modelJson.contains(GE_DUMP_OPNAME_BLACKLIST)) {
+          GELOGW("[OM2 Dump] opname_blacklist in dump_list is not supported in OM2 dump mode, configuration will be ignored");
+        }
+        if (modelJson.contains(GE_DUMP_OPNAME_RANGE)) {
+          GELOGW("[OM2 Dump] opname_range in dump_list is not supported in OM2 dump mode, configuration will be ignored");
+        }
+      }
+    }
+  }
+  if (jsDumpConfig.contains(GE_DUMP_SCENE)) {
+    std::string dumpScene = jsDumpConfig[GE_DUMP_SCENE].get<std::string>();
+    if ((dumpScene == GE_DUMP_EXCEPTION_AIC_ERR_BRIEF) || (dumpScene == GE_DUMP_LITE_EXCEPTION)) {
+      GELOGW("[OM2 Dump] dump_scene value '%s' (L0 exception dump) is not supported in OM2, only L1 (aic_err_norm_dump) and L2 (aic_err_detail_dump) exception dump are supported", dumpScene.c_str());
+    }
+  }
 }
 
 bool DumpConfig::CheckDumpSceneSwitch(const nlohmann::json& jsDumpConfig, std::string& dumpScene) {
@@ -370,7 +427,7 @@ bool DumpConfig::CheckDumpSceneSwitch(const nlohmann::json& jsDumpConfig, std::s
            dumpScene.c_str());
     return false;
   }
-  GELOGI("dump_scene value[%s] is valid", dumpScene.c_str());
+  GELOGD("dump_scene value[%s] is valid", dumpScene.c_str());
   return true;
 }
 
@@ -437,14 +494,16 @@ Status DumpConfig::ParseDumpConfigFromJson(const nlohmann::json& dumpJson) {
     if (dump_path_[dump_path_.size() - 1U] != '/') {
       dump_path_ += "/";
     }
-    dump_path_ += CurrentTimeInStr() + "/";
+    dump_path_ += GetCurrentTimeStr() + "/";
   }
 
-  // 根据配置设置开关
-  if (!dump_path_.empty() || !model_dump_config_list_.empty()) {
+  // 根据配置设置开关：
+  // data_dump_enabled_ 对应 v1 IsDumpOpen()，只由 dump_status:on 或 dump_list 控制
+  // overflow dump (dump_debug: on) 即使配置了 dump_path，也不开启 data_dump
+  if ((dump_status_ == GE_DUMP_STATUS_ON) || !model_dump_config_list_.empty()) {
     data_dump_enabled_ = true;
-    GELOGI("Data dump enabled, dump_path: %s, model config count: %zu",
-           dump_path_.c_str(), model_dump_config_list_.size());
+    GELOGI("Data dump enabled, dump_status: %s, model config count: %zu",
+           dump_status_.c_str(), model_dump_config_list_.size());
   }
   if (!dump_scene_.empty()) {
     exception_dump_enabled_ = true;
@@ -452,7 +511,7 @@ Status DumpConfig::ParseDumpConfigFromJson(const nlohmann::json& dumpJson) {
   }
   if (dump_debug_ == GE_DUMP_STATUS_ON) {
     overflow_dump_enabled_ = true;
-    GELOGI("Overflow dump enabled");
+    GELOGI("Overflow dump enabled, dump_path: %s", dump_path_.c_str());
   }
 
   GELOGI("Parse dump config from json successfully, dump_mode: %s, dump_level: %s, dump_step: %s",
@@ -470,6 +529,16 @@ void DumpConfig::ParseBasicConfigurations(const nlohmann::json& jsDumpConfig) {
   dump_data_ = GetConfigWithDefault(jsDumpConfig, GE_DUMP_DATA, GE_DUMP_DATA_DEFAULT);
   dump_level_ = GetConfigWithDefault(jsDumpConfig, GE_DUMP_LEVEL, GE_DUMP_LEVEL_DEFAULT);
   dump_scene_ = GetConfigWithDefault(jsDumpConfig, GE_DUMP_SCENE, GE_DUMP_SCENE_DEFAULT);
+
+  // 对齐 v1 DumpManager::SetDumpDebugConf：dump_debug=on 时启用全部溢出检测，
+  // 同时将 dump_status 强制置为 off（对齐 v1 HandleDumpDebugConfig 行为），
+  // 避免 dump_debug 场景下误触发 data dump。
+  if (dump_debug_ == GE_DUMP_STATUS_ON) {
+    op_debug_mode_ = kAllOverflow;
+    dump_status_ = GE_DUMP_STATUS_OFF;
+  } else {
+    op_debug_mode_ = 0U;
+  }
 }
 
 void DumpConfig::ParseComplexConfigs(const nlohmann::json& jsDumpConfig) {

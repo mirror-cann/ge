@@ -10,6 +10,7 @@
 
 #include "file_utils.h"
 #include "common/helper/om2/zip_archive_writer.h"
+#include "ge/ge_ir_build.h"
 #include "runtime/om2/zip_archive_reader.h"
 #include <gtest/gtest.h>
 #include <fstream>
@@ -128,6 +129,19 @@ class ZipArchiveUt : public ::testing::Test {
 TEST_F(ZipArchiveUt, TestRaiiZipArchive_Fail_InvalidFileOrData) {
   RAIIZipArchive unzip_file_invalid_data(nullptr, 0);
   EXPECT_EQ(unzip_file_invalid_data.IsGood(), false);
+}
+
+TEST_F(ZipArchiveUt, TestSimpleZipArchiveReader_Fail_InvalidData) {
+  SimpleZipArchiveReader null_reader(nullptr, 0);
+  EXPECT_FALSE(null_reader.IsGood());
+
+  const uint8_t empty_data[] = {0x50U, 0x4BU, 0x03U, 0x04U};
+  SimpleZipArchiveReader empty_reader(empty_data, 0);
+  EXPECT_FALSE(empty_reader.IsGood());
+
+  const uint8_t invalid_zip_data[] = {'n', 'o', 't', 'z', 'i', 'p'};
+  SimpleZipArchiveReader invalid_zip_reader(invalid_zip_data, sizeof(invalid_zip_data));
+  EXPECT_FALSE(invalid_zip_reader.IsGood());
 }
 
 TEST_F(ZipArchiveUt, TestRaiiZipArchive_Ok_DecompressArchive) {
@@ -274,6 +288,68 @@ TEST_F(ZipArchiveUt, TestZipArchiveWriter_Ok_WriteBytesAndFileSucc) {
 
   // 解压并校验内容
   CheckExtractedFiles(zipfile_path, {arc_name, arc_name2});
+}
+
+TEST_F(ZipArchiveUt, TestZipArchiveWriter_Ok_SaveModelDataToBuffer) {
+  const std::string zipfile_name = kZipFileBaseName + ".zip";
+  const auto zipfile_path = PathUtils::Join({test_work_dir, zipfile_name});
+  const std::string buffer = "123-abc-TestZipArchiveWriter_Ok_SaveModelDataToBuffer";
+  const std::string arc_name = "ok/file1.txt";
+  const std::string file_path = CreateTempFile("fake_test.txt");
+  const std::string arc_name2 = "ok/ok/file2.txt";
+  ModelBufferData model;
+
+  {
+    ZipArchiveWriter zip_writer(zipfile_path);
+    ASSERT_TRUE(zip_writer.IsMemFileOpened());
+    EXPECT_TRUE(zip_writer.WriteBytes(arc_name, buffer.data(), buffer.size()));
+    EXPECT_TRUE(zip_writer.WriteFile(arc_name2, file_path));
+    ASSERT_TRUE(zip_writer.SaveModelData(model, false));
+    ASSERT_FALSE(zip_writer.IsMemFileOpened());
+  }
+
+  ASSERT_NE(model.data, nullptr);
+  ASSERT_GT(model.length, 0U);
+  RAIIZipArchive archive(model.data.get(), model.length);
+  ASSERT_TRUE(archive.IsGood());
+  const auto file_names = archive.ListFiles();
+  const std::unordered_set<std::string> expect_files = {
+      PathUtils::Join({kZipFileBaseName, arc_name}),
+      PathUtils::Join({kZipFileBaseName, arc_name2}),
+  };
+  ASSERT_EQ(file_names.size(), expect_files.size());
+  for (const auto &file_name : file_names) {
+    EXPECT_EQ(expect_files.count(file_name), 1U);
+  }
+
+  size_t extracted_size = 0UL;
+  const auto extracted = archive.ExtractToMem(PathUtils::Join({kZipFileBaseName, arc_name}), extracted_size);
+  ASSERT_NE(extracted, nullptr);
+  EXPECT_EQ(extracted_size, buffer.size());
+  EXPECT_EQ(std::memcmp(extracted.get(), buffer.data(), extracted_size), 0);
+}
+
+TEST_F(ZipArchiveUt, TestZipArchiveWriter_Ok_SaveModelDataToFileThroughUnifiedApi) {
+  const std::string zipfile_name = kZipFileBaseName + "_unified.zip";
+  const auto zipfile_path = PathUtils::Join({test_work_dir, zipfile_name});
+  const std::string buffer = "123-abc-TestZipArchiveWriter_Ok_SaveModelDataToFileThroughUnifiedApi";
+  const std::string arc_name = "ok/file1.txt";
+  ModelBufferData model;
+
+  ZipArchiveWriter zip_writer(zipfile_path);
+  ASSERT_TRUE(zip_writer.IsMemFileOpened());
+  EXPECT_TRUE(zip_writer.WriteBytes(arc_name, buffer.data(), buffer.size()));
+  ASSERT_TRUE(zip_writer.SaveModelData(model, true));
+  ASSERT_FALSE(zip_writer.IsMemFileOpened());
+  EXPECT_EQ(model.data, nullptr);
+  EXPECT_EQ(mmAccess2(zipfile_path.c_str(), M_F_OK), EN_OK);
+
+  const auto file_buf = ReadFileToVector(zipfile_path);
+  RAIIZipArchive archive(file_buf.data(), file_buf.size());
+  ASSERT_TRUE(archive.IsGood());
+  const auto file_names = archive.ListFiles();
+  ASSERT_EQ(file_names.size(), 1U);
+  EXPECT_EQ(file_names[0], PathUtils::Join({kZipFileBaseName + "_unified", arc_name}));
 }
 
 TEST_F(ZipArchiveUt, TestZipArchiveWriter_Ok_RepeatedAddSameFile) {

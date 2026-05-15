@@ -530,6 +530,11 @@ Status GeGenerator::GenerateOnlineModel(const Graph &graph, const std::vector<Ge
   return GenerateModel(graph, "online", inputs, model, false);
 }
 
+Status GeGenerator::GenerateOnlineOm2Model(const Graph &graph, const std::vector<GeTensor> &inputs,
+                                           ModelBufferData &model) {
+  return GenerateModel(graph, "online", inputs, model, false, OfflineModelFormat::OM_FORMAT_OM2);
+}
+
 Status GeGenerator::GenerateInfershapeGraph(const Graph &graph) {
   GE_CHECK_NOTNULL_EXEC(impl_, return PARAM_INVALID);
 

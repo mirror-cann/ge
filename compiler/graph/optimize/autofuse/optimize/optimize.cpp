@@ -979,6 +979,9 @@ void Optimizer::TryEnableGroupParallel(FusedScheduledResult &fused_scheduled_res
 void Optimizer::ExecSeqAdvancedOfLoad(const FusedScheduledResult &fused_scheduled_result) {
   for (auto &scheduled_results : fused_scheduled_result.node_idx_to_scheduled_results) {
     for (auto &schedule_result : scheduled_results) {
+      if (schedule_result.cube_type == ascir::CubeTemplateType::kUBFuse) {
+        continue;
+      }
       for (auto &schedule_group : schedule_result.schedule_groups) {
         for (auto &impl_graph : schedule_group.impl_graphs) {
           LoadOpSeqAdjust(impl_graph);

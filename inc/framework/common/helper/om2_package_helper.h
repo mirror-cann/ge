@@ -12,11 +12,12 @@
 #define INC_FRAMEWORK_COMMON_HELPER_OM2_PACKAGE_HELPER_H
 
 #include "framework/common/helper/model_save_helper.h"
-#include "common/helper/om2/zip_archive_writer.h"
 #include "common/om2/codegen/om2_codegen_types.h"
 #include <memory>
 
 namespace ge {
+class ZipArchiveWriter;
+
 class GE_FUNC_VISIBILITY Om2PackageHelper : public ModelSaveHelper {
  public:
   Om2PackageHelper() noexcept = default;
@@ -31,9 +32,13 @@ class GE_FUNC_VISIBILITY Om2PackageHelper : public ModelSaveHelper {
 
   void SetSaveMode(const bool val) override;
 
+  static Status RelocateExternalWeights(const std::string &output_file_name, const ModelBufferData &model,
+                                        ModelBufferData &relocated_model, bool &relocated);
+
  private:
   static Status SaveConstants(std::shared_ptr<ZipArchiveWriter> &zip_writer, const GeModelPtr &ge_model,
-                              const size_t model_index, const std::vector<Om2ConstMeta> &const_metas);
+                              const size_t model_index, const std::vector<Om2ConstMeta> &const_metas,
+                              const bool save_file_path);
   static Status SaveTbeKernels(std::shared_ptr<ZipArchiveWriter> &zip_writer, const GeModelPtr &ge_model);
   static Status SaveCustAICpuKernels(std::shared_ptr<ZipArchiveWriter> &zip_writer, const GeModelPtr &ge_model);
   static Status SaveModelInfo(std::shared_ptr<ZipArchiveWriter> &zip_writer, const GeModelPtr &ge_model,

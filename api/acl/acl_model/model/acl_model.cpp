@@ -600,7 +600,13 @@ aclError aclmdlCreateAndGetOpDesc(uint32_t deviceId, uint32_t streamId,
     uint32_t taskId, char *opName, size_t opNameLen, aclTensorDesc **inputDesc, size_t *numInputs,
     aclTensorDesc **outputDesc, size_t *numOutputs)
 {
-    return aclmdlCreateAndGetOpDescImpl(deviceId, streamId, taskId, opName, opNameLen, inputDesc, numInputs, outputDesc, numOutputs);
+    const aclError ret = aclmdlCreateAndGetOpDescImpl(deviceId, streamId, taskId, opName, opNameLen,
+        inputDesc, numInputs, outputDesc, numOutputs);
+    if (ret == ACL_SUCCESS) {
+        return ret;
+    }
+    return aclmdlCreateAndGetOpDescImplOm2(deviceId, streamId, taskId, opName, opNameLen,
+        inputDesc, numInputs, outputDesc, numOutputs);
 }
 
 aclError aclmdlLoadWithConfig(const aclmdlConfigHandle *handle, uint32_t *modelId)

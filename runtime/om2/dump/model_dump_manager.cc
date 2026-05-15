@@ -56,6 +56,13 @@ Status ModelDumpManager::SetModelDumpInfo(const ModelDumpInfo& model_info) {
       GELOGE(ret, "Overflow register failed for model_id=%u", model_info.model_id);
       return ret;
     }
+    // 将 overflow debug 信息传递给 data_dump_impl，用于构建 Opdebug 算子
+    data_dump_impl_->SetOpDebugInfo(overflow_impl_->GetOpDebugTaskId(),
+                                    overflow_impl_->GetOpDebugStreamId(),
+                                    overflow_impl_->GetOpDebugAddr());
+    GELOGD("Set overflow debug info: task_id=%u, stream_id=%u, addr=%p",
+           overflow_impl_->GetOpDebugTaskId(), overflow_impl_->GetOpDebugStreamId(),
+           overflow_impl_->GetOpDebugAddr());
   }
 
   return SUCCESS;
@@ -68,10 +75,17 @@ Status ModelDumpManager::IsDataDumpEnabled(const char* op_name, uint8_t* is_data
   }
 
   const char* safe_op_name = (op_name != nullptr) ? op_name : "";
-  const bool need_dump = DumpConfig::Instance().IsDataDumpEnabled() &&
-                         DumpConfig::Instance().IsOpNeedDump(safe_op_name);
-  GELOGD("IsDataDumpEnabled: op_name=%s, need_dump=%u", safe_op_name, need_dump);
-  *is_data_dump = need_dump ? 1U : 0U;
+
+  // 对齐 v1 KernelTaskInfo.is_data_dump_ 的判断逻辑：
+  // is_data_dump_ 是纯 data dump 相关的，只判断：
+  // 1. data dump 开关已启用
+  // 2. 算子在 dump layer/list 配置中
+  const bool need_data_dump = DumpConfig::Instance().IsDataDumpEnabled() &&
+                              DumpConfig::Instance().IsOpNeedDump(safe_op_name);
+
+  GELOGD("IsDataDumpEnabled: op_name=%s, need_data_dump=%u",
+         safe_op_name, static_cast<uint32_t>(need_data_dump));
+  *is_data_dump = need_data_dump ? 1U : 0U;
   return SUCCESS;
 }
 
@@ -80,20 +94,24 @@ Status ModelDumpManager::AddOm2TaskInfo(const Om2TaskInfo& task_info) {
   GELOGD("AddOm2TaskInfo: op_name=%s, task_id=%u, stream_id=%u",
          op_name, task_info.task_id, task_info.stream_id);
 
-  // 先根据配置判断该算子是否需要 dump
-  const bool need_dump = DumpConfig::Instance().IsOpNeedDump(op_name);
-  GELOGD("AddOm2TaskInfo: op_name=%s, need_dump=%u", op_name, need_dump);
+  // 判断该算子是否需要保存到 data dump：
+  // 1. 配置了 data dump 且算子在列表中
+  // 2. 开启了 overflow dump（所有算子都需要保存用于定位）
+  const bool need_data_dump = DumpConfig::Instance().IsDataDumpEnabled() &&
+                              DumpConfig::Instance().IsOpNeedDump(op_name);
+  const bool need_overflow_dump = DumpConfig::Instance().IsOverflowDumpEnabled();
+  const bool need_save_to_data_dump = need_data_dump || need_overflow_dump;
 
-  // 如果不需要 dump，直接返回
-  if (!need_dump) {
-    return SUCCESS;
-  }
+  GELOGD("AddOm2TaskInfo: op_name=%s, need_data_dump=%u, need_overflow_dump=%u, "
+         "need_save_to_data_dump=%u", op_name, need_data_dump, need_overflow_dump,
+         need_save_to_data_dump);
 
   // task_type 类型转换
   ModelTaskType type = static_cast<ModelTaskType>(task_info.task_type);
 
-  // Data Dump：保存 Task 信息
-  if (DumpConfig::Instance().IsDataDumpEnabled()) {
+  // Data Dump / Overflow Dump：保存 Task 信息到 AICPU
+  // Overflow dump 需要保存算子的输入输出信息用于问题定位
+  if (need_save_to_data_dump) {
     Status ret = data_dump_impl_->SaveTask(task_info, type, task_info.stream,
                                            overflow_impl_->IsOpDebugEnabled());
     if (ret != SUCCESS) {
@@ -102,13 +120,10 @@ Status ModelDumpManager::AddOm2TaskInfo(const Om2TaskInfo& task_info) {
     }
   }
 
-  // Exception Dump：保存信息 + L1 上报 Adump
-  if (DumpConfig::Instance().IsExceptionDumpEnabled()) {
-    Status ret = exception_impl_->SaveOpInfo(task_info);
-    if (ret != SUCCESS) {
-      GELOGE(ret, "Save task exception info failed, op_name=%s", op_name);
-      return ret;
-    }
+  Status ret = exception_impl_->SaveOpInfo(task_info);
+  if (ret != SUCCESS) {
+    GELOGE(ret, "Save task exception info failed, op_name=%s", op_name);
+    return ret;
   }
 
   return SUCCESS;
@@ -117,29 +132,23 @@ Status ModelDumpManager::AddOm2TaskInfo(const Om2TaskInfo& task_info) {
 Status ModelDumpManager::DispatchDumpInfo() {
   GELOGD("DispatchDumpInfo: model_id=%u", model_id_);
 
-  // 三种 Dump 互斥，优先级：Exception > Overflow > Data
+  // Exception dump 优先级最高，不需要下发 data dump 信息
   if (DumpConfig::Instance().IsExceptionDumpEnabled()) {
     GELOGD("Exception dump enabled, skip data dump dispatch");
     return SUCCESS;
   }
 
-  if (DumpConfig::Instance().IsOverflowDumpEnabled()) {
-    GELOGD("Overflow dump enabled, skip data dump dispatch");
-    return SUCCESS;
-  }
-
-  // Data Dump：构建 OpMapping Proto 并下发到 AICPU
-  if (DumpConfig::Instance().IsDataDumpEnabled()) {
+  // Data dump 或 Overflow dump：构建 OpMapping Proto 并下发到 AICPU
+  // Overflow dump 虽然走 Adump 路径写入数据，但仍需下发 Opdebug 算子的信息给 AICPU
+  if (DumpConfig::Instance().IsDataDumpEnabled() || DumpConfig::Instance().IsOverflowDumpEnabled()) {
     return data_dump_impl_->BuildAndLoadOpMappingInfo(model_info_);
   }
 
   return SUCCESS;
 }
 
-Status ModelDumpManager::GetOpDescInfo(uint32_t task_id, uint32_t stream_id,
-                                       OpDescInfo& op_info) const {
-  GELOGD("GetOpDescInfo: task_id=%u, stream_id=%u", task_id, stream_id);
-  return exception_impl_->GetOpDescInfo(task_id, stream_id, op_info);
+bool ModelDumpManager::GetOpDescInfo(const OpDescInfoId& op_id, OpDescInfo& op_info) const {
+  return exception_impl_->GetOpDescInfo(op_id, op_info);
 }
 
 void ModelDumpManager::Clear() {

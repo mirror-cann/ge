@@ -85,6 +85,7 @@ Status Om2CodegenModelBuilder::CollectConstInputsFromOp(const OpDescPtr &op_desc
     const_metas.push_back(Om2ConstMeta{const_index,
                                        "INTERNAL",
                                        "",
+                                       "",
                                        data_offset,
                                        tensor_size,
                                        ""});
@@ -485,10 +486,8 @@ Status Om2CodegenModelBuilder::BuildFileConstInputs(const GeModelPtr &model, Om2
   GE_ASSERT_NOTNULL(model);
   const auto compute_graph = model->GetGraph();
   GE_ASSERT_NOTNULL(compute_graph);
-
   std::map<std::string, std::string> file_id_to_path_map;
   GE_ASSERT_SUCCESS(FileConstantUtils::GetFileIdToPathMapFromOption(file_id_to_path_map));
-
   std::string combined_file_path;
   bool has_file_const = false;
   bool is_combined = true;
@@ -513,7 +512,6 @@ Status Om2CodegenModelBuilder::BuildFileConstInputs(const GeModelPtr &model, Om2
         const_metas[meta_index].type = "INDIVIDUAL";
       }
     }
-
     const auto output_desc = op_desc->MutableOutputDesc(0U);
     GE_ASSERT_NOTNULL(output_desc);
     int64_t tensor_size = 0;
@@ -529,12 +527,9 @@ Status Om2CodegenModelBuilder::BuildFileConstInputs(const GeModelPtr &model, Om2
     GE_ASSERT_SUCCESS(Om2ModelUtils::BuildOutputTensorInfo(output_desc, entry.tensor_info));
     codegen_model.const_inputs.push_back(std::move(entry));
     fileconst_output_offset_to_varname_.emplace(output_offsets[0U], var_name);
-    const_metas.push_back(Om2ConstMeta{const_index,
-                                       is_combined ? "COMBINED" : "INDIVIDUAL",
-                                       StringUtils::GetFileName(file_path),
-                                       static_cast<int64_t>(offset),
-                                       tensor_size,
-                                       op_desc->GetName()});
+    const_metas.push_back(Om2ConstMeta{const_index, is_combined ? "COMBINED" : "INDIVIDUAL",
+                                       StringUtils::GetFileName(file_path), file_path, static_cast<int64_t>(offset),
+                                       tensor_size, op_desc->GetName()});
     file_const_meta_indices.push_back(const_index);
   }
   return SUCCESS;

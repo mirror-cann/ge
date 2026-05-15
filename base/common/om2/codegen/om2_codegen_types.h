@@ -155,6 +155,7 @@ struct Om2ConstMeta {
   size_t index = 0U;
   std::string type;
   std::string file_name;
+  std::string file_path;
   int64_t offset = 0;
   int64_t size = 0;
   std::string op_name;

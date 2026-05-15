@@ -40,6 +40,10 @@ const std::string GE_DUMP_LEVEL_KERNEL = "kernel";
 const std::string GE_DUMP_LEVEL_ALL = "all";
 const std::string GE_DUMP = "dump";
 
+constexpr uint32_t kAicoreOverflow = 0x1U;
+constexpr uint32_t kAtomicOverflow = 0x2U;
+constexpr uint32_t kAllOverflow = kAicoreOverflow | kAtomicOverflow;
+
 const std::string GE_DUMP_PATH = "dump_path";
 const std::string GE_DUMP_MODE = "dump_mode";
 const std::string GE_DUMP_STATUS = "dump_status";
@@ -114,6 +118,7 @@ class DumpConfig {
   const std::string& GetDumpStatus() const;
   const std::string& GetDumpOpSwitch() const;
   const std::string& GetDumpDebug() const;
+  uint32_t GetOpDebugMode() const;
   const std::vector<std::string>& GetDumpStats() const;
   const std::string& GetDumpScene() const;
   const std::vector<ModelDumpConfig>& GetModelDumpConfigList() const;
@@ -127,6 +132,9 @@ class DumpConfig {
  private:
   DumpConfig() = default;
   ~DumpConfig() = default;
+
+  // 检查 OM2 不支持的配置项并打印 warning
+  static void CheckUnsupportedConfigs(const nlohmann::json& jsDumpConfig);
 
   // 校验辅助函数
   static bool CheckDumpSceneSwitch(const nlohmann::json& jsDumpConfig, std::string& dumpScene);
@@ -178,6 +186,7 @@ class DumpConfig {
   std::string dump_status_;
   std::string dump_op_switch_;
   std::string dump_debug_;
+  uint32_t op_debug_mode_ = 0U;
   std::vector<std::string> dump_stats_;
   std::string dump_scene_;  // 对应原始 dump_exception
   std::vector<ModelDumpConfig> model_dump_config_list_;

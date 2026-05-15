@@ -12,11 +12,13 @@
 #define INC_GRAPH_GE_GLOBAL_OPTIONS_H_
 
 #include <map>
-#include <string>
 #include <mutex>
+#include <string>
+#include <unordered_set>
 
 namespace ge {
 std::mutex &GetGlobalOptionsMutex();
 std::map<std::string, std::string> &GetMutableGlobalOptions();
+std::unordered_set<std::string> &GetMutableUserGlobalOptionKeys();
 }
 #endif  // INC_GRAPH_GE_GLOBAL_OPTIONS_H_

@@ -29,7 +29,7 @@ if(protoc_grpc_FOUND)
     message(STATUS "[protoc grpc] protoc_grpc found, skip compiling.")
 else()
     message(STATUS "[protoc grpc] protoc_grpc not found, finding binary file.")
-    set(REQ_URL "${CMAKE_THIRD_PARTY_LIB_DIR}/grpc/grpc-1.60.0.tar.gz")
+    set(REQ_URL "${CANN_3RD_LIB_PATH}/grpc/grpc-1.60.0.tar.gz")
     # 初始化可选参数列表
     set(GRPC_EXTRA_ARGS "")
     if(EXISTS ${REQ_URL})
@@ -38,7 +38,7 @@ else()
         message(STATUS "[protoc grpc] ${REQ_URL} not found, need download.")
         set(REQ_URL "https://cann-3rd.obs.cn-north-4.myhuaweicloud.com/grpc/grpc-1.60.0.tar.gz")
         list(APPEND GRPC_EXTRA_ARGS
-            DOWNLOAD_DIR ${CMAKE_THIRD_PARTY_LIB_DIR}/protoc_grpc
+            DOWNLOAD_DIR ${CANN_3RD_LIB_PATH}/protoc_grpc
         )
     endif()
 
@@ -77,10 +77,10 @@ else()
                             -DgRPC_BUILD_TESTS=OFF
                             -DCMAKE_INSTALL_LIBDIR=${CMAKE_INSTALL_LIBDIR}
                             -DgRPC_BUILD_CSHARP_EXT=OFF
-                            -DCMAKE_INSTALL_PREFIX=${CMAKE_THIRD_PARTY_LIB_DIR}/protoc_grpc
+                            -DCMAKE_INSTALL_PREFIX=${CANN_3RD_LIB_PATH}/protoc_grpc
                             <SOURCE_DIR>
                         BUILD_COMMAND $(MAKE) protoc grpc_cpp_plugin
-                        INSTALL_COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_THIRD_PARTY_LIB_DIR}/protoc_grpc && ${CMAKE_COMMAND} -E copy <BINARY_DIR>/grpc_cpp_plugin ${CMAKE_THIRD_PARTY_LIB_DIR}/protoc_grpc
+                        INSTALL_COMMAND ${CMAKE_COMMAND} -E make_directory ${CANN_3RD_LIB_PATH}/protoc_grpc && ${CMAKE_COMMAND} -E copy <BINARY_DIR>/grpc_cpp_plugin ${CANN_3RD_LIB_PATH}/protoc_grpc
                         EXCLUDE_FROM_ALL TRUE
     )
 

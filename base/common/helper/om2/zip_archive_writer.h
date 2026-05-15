@@ -13,13 +13,19 @@
 
 #include <cstdint>
 #include <cstddef>
+#include <memory>
 #include <string>
 #include <unordered_set>
+#include <vector>
 
+#include "common/ge_common/ge_types.h"
 #include "minizip/ioapi.h"
+#include "minizip/unzip.h"
 #include "minizip/zip.h"
 
 namespace ge {
+struct ModelBufferData;
+
 struct MemoryFile {
   uint8_t *buffer;          // Writable buffer.
   uint64_t length;          // Actual writable buffer content length.
@@ -28,6 +34,27 @@ struct MemoryFile {
   int error;                // Error flag.
   int grow_mode;            // Whether the buffer can grow.
   int release_from_outside; // 0 means zipClose releases buffer, 1 means external release.
+};
+
+struct SimpleZipMemoryFileReadonly {
+  const uint8_t *buffer;  // Read-only buffer managed by caller.
+  uint64_t length;        // Actual read-only buffer content length.
+  uint64_t position;      // Current position.
+};
+
+class SimpleZipArchiveReader {
+ public:
+  SimpleZipArchiveReader(const uint8_t *data, size_t length);
+  ~SimpleZipArchiveReader();
+  bool IsGood() const {
+    return zip_handle_ != nullptr;
+  }
+  std::vector<std::string> ListFiles() const;
+  ReadonlyByteBuffer ExtractToMem(const std::string &entry_name, size_t &buffer_size) const;
+
+ private:
+  SimpleZipMemoryFileReadonly mem_file_{};
+  unzFile zip_handle_ = nullptr;
 };
 
 class ZipArchiveWriter {
@@ -44,6 +71,7 @@ class ZipArchiveWriter {
    * @return true on success, false if any error occurs.
    */
   bool WriteBytes(const std::string &entry_name, const void *data, const size_t data_size, const bool compress = true);
+  bool SaveModelData(ModelBufferData &model, bool save_to_file);
   bool SaveModelDataToFile();
   bool IsMemFileOpened() const {
     return (zip_handle_ != nullptr) && (mem_file_.buffer != nullptr);
@@ -52,6 +80,7 @@ class ZipArchiveWriter {
  private:
   bool InitArchive();
   bool WriteEndOfFile();
+  bool SaveModelDataToBuffer(ModelBufferData &model);
 
  private:
   std::string archive_path_;

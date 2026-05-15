@@ -28,8 +28,7 @@ class ExceptionDumpImpl {
 
   Status SaveOpInfo(const Om2TaskInfo& task_info);
 
-  Status GetOpDescInfo(uint32_t task_id, uint32_t stream_id,
-                       OpDescInfo& op_info) const;
+  bool GetOpDescInfo(const OpDescInfoId& op_id, OpDescInfo& op_info) const;
 
   void Clear();
 
@@ -39,7 +38,7 @@ class ExceptionDumpImpl {
   Status ReportL1ExceptionDumpInfo(const Om2TaskInfo& task_info, const OpDescInfo& op_info);
 
   uint32_t device_id_{0U};
-  std::map<uint64_t, OpDescInfo> op_info_map_;
+  std::vector<OpDescInfo> op_info_list_;
 };
 
 }  // namespace dump

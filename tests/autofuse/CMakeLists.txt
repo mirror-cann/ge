@@ -117,14 +117,11 @@ include_directories(${ASCEND_INSTALL_PATH}/pkg_inc/base)
 
 find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
 if (ENABLE_OPEN_SRC)
-    #    find_package(nlohmann_json REQUIRED)
-    find_package(json REQUIRED)
+    add_cann_third_party(json)
     find_package(GTest CONFIG REQUIRED)
-    find_package(Boost CONFIG REQUIRED) #
-    find_package(SymEngine CONFIG REQUIRED) #
+    find_package(Boost CONFIG REQUIRED)
+    find_package(SymEngine CONFIG REQUIRED)
     find_package(ascend_protobuf_shared MODULE REQUIRED)
-    #find_package(ascend_protobuf_static MODULE REQUIRED)
-    #find_package(protoc MODULE REQUIRED)
     find_package(unified_dlog)
     find_package(mmpa)
     find_package(runtime)

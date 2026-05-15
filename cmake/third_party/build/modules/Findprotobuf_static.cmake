@@ -52,8 +52,8 @@ if(protobuf_static_FOUND AND NOT FORCE_REBUILD_CANN_3RD)
 else()
     message(STATUS "[protobuf static] protobuf_static_FOUND:${protobuf_static_FOUND}, FORCE_REBUILD_CANN_3RD:${FORCE_REBUILD_CANN_3RD}")
 
-    set(REQ_URL "${CMAKE_THIRD_PARTY_LIB_DIR}/protobuf/protobuf-all-25.1.tar.gz")
-    set(REQ_URL_BACK "${CMAKE_THIRD_PARTY_LIB_DIR}/protobuf/protobuf-25.1.tar.gz")
+    set(REQ_URL "${CANN_3RD_LIB_PATH}/protobuf/protobuf-all-25.1.tar.gz")
+    set(REQ_URL_BACK "${CANN_3RD_LIB_PATH}/protobuf/protobuf-25.1.tar.gz")
     # 初始化可选参数列表
     set(PROTOBUF_EXTRA_ARGS "")
     if(EXISTS ${REQ_URL})
@@ -65,7 +65,7 @@ else()
         message(STATUS "[protobuf static] ${REQ_URL} not found, need download.")
         set(REQ_URL "https://cann-3rd.obs.cn-north-4.myhuaweicloud.com/protobuf/protobuf-25.1.tar.gz")
         list(APPEND PROTOBUF_EXTRA_ARGS
-            DOWNLOAD_DIR ${CMAKE_THIRD_PARTY_LIB_DIR}/protobuf_static
+            DOWNLOAD_DIR ${CANN_3RD_LIB_PATH}/protobuf_static
         )
     endif()
     
@@ -85,7 +85,7 @@ else()
                             -DCMAKE_CXX_FLAGS=${protobuf_CXXFLAGS}
                             -DCMAKE_C_COMPILER_LAUNCHER=${CMAKE_C_COMPILER_LAUNCHER}
                             -DCMAKE_CXX_COMPILER_LAUNCHER=${CMAKE_CXX_COMPILER_LAUNCHER}
-                            -DCMAKE_INSTALL_PREFIX=${CMAKE_THIRD_PARTY_LIB_DIR}/protobuf_static
+                            -DCMAKE_INSTALL_PREFIX=${CANN_3RD_LIB_PATH}/protobuf_static
                             -DLLVM_PATH=${LLVM_PATH}
                             -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
                             -Dprotobuf_BUILD_PROTOC_BINARIES=OFF

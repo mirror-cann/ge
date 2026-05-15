@@ -714,6 +714,7 @@ target_link_libraries(ut_libge_multiparts_utest
     ge_runner_v2
     engine
     json
+    minizip_static
     ascend_protobuf
     ge_graph_dsl
     ge_compiler

@@ -170,13 +170,8 @@ Status BufQueAllocator::AllocBufQue(::ascir::FusedScheduledResult &fused_schedul
       cube_type = scheduled_result.cube_type;
       for (auto &schedule_group : scheduled_result.schedule_groups) {
         for (auto &impl_graph : schedule_group.impl_graphs) {
-          // partition sub funcs before allocate
-          GE_ASSERT_SUCCESS(platform->PartitionSubFunctions(impl_graph), "Failed to partition vf func for graph %s.",
-                            impl_graph.GetName().c_str());
-
-          GE_ASSERT_SUCCESS(
-              AllocBufQueForSingleImplGraph(impl_graph, config.max_que_num, scheduled_result.is_reduce_mem_reuse),
-              "Failed to allocate buf que for graph [%s].", impl_graph.GetName().c_str());
+          GE_CHK_STATUS_RET(
+              ProcessSingleImplGraph(impl_graph, *platform, config.max_que_num, scheduled_result.is_reduce_mem_reuse));
         }
       }
     }
@@ -800,6 +795,70 @@ Status BufQueAllocator::TopoSortByLoadPriority(ge::AscGraph &graph) {
     } else {
       return node1->GetOpDescBarePtr()->GetId() < node2->GetOpDescBarePtr()->GetId();
     }
+  };
+
+  auto compute_graph = ge::AscGraphUtils::GetComputeGraph(graph);
+  GE_ASSERT_NOTNULL(compute_graph);
+  compute_graph->TopologicalSorting(func);
+
+  return ge::SUCCESS;
+}
+
+Status BufQueAllocator::ProcessSingleImplGraph(ge::AscGraph &impl_graph, BasePlatform &platform, size_t max_que_num,
+                                               bool is_reduce_mem_reuse) {
+  GE_ASSERT_SUCCESS(platform.PartitionSubFunctions(impl_graph), "Failed to partition vf func for graph %s.",
+                    impl_graph.GetName().c_str());
+  if (cube_type == ascir::CubeTemplateType::kUBFuse) {
+    GE_ASSERT_SUCCESS(TopoSortByCubeLoadPriority(impl_graph),
+                      "Failed to topo sort by cube load priority for graph %s.", impl_graph.GetName().c_str());
+  }
+  return AllocBufQueForSingleImplGraph(impl_graph, max_que_num, is_reduce_mem_reuse);
+}
+
+Status BufQueAllocator::TopoSortByCubeLoadPriority(ge::AscGraph &graph) {
+  GE_ASSERT_GRAPH_SUCCESS(ScheduleUtils::TopologicalSorting(graph));
+  std::unordered_set<ge::Node *> priority_sequences;
+  // 收集 Cube_Load 节点及其直连输出消费者
+  for (const auto &node : graph.GetAllNodes()) {
+    if (node->GetName().find("Cube_Load_") == std::string::npos) {
+      continue;
+    }
+    for (const auto &out_node : node->GetOutNodes()) {
+      GE_ASSERT_NOTNULL(out_node);
+      if (IsOps<Store>(out_node)) {
+        continue;
+      }
+      priority_sequences.insert(out_node.get());
+    }
+  }
+  if (priority_sequences.empty()) {
+    return ge::SUCCESS;
+  }
+  // 向上 BFS 回溯所有输入依赖
+  std::unordered_set<ge::Node *> visited;
+  std::queue<ge::Node *> bfs_queue;
+  for (auto *n : priority_sequences) {
+    bfs_queue.push(n);
+  }
+  while (!bfs_queue.empty()) {
+    auto *current = bfs_queue.front();
+    bfs_queue.pop();
+    for (const auto &in_node : current->GetInDataNodes()) {
+      GE_ASSERT_NOTNULL(in_node);
+      if (visited.insert(in_node.get()).second) {
+        priority_sequences.insert(in_node.get());
+        bfs_queue.push(in_node.get());
+      }
+    }
+  }
+
+  const auto func = [&priority_sequences](const ge::NodePtr &node1, const ge::NodePtr &node2) -> bool {
+    bool is_node1_in = priority_sequences.count(node1.get()) > 0;
+    bool is_node2_in = priority_sequences.count(node2.get()) > 0;
+    if (is_node1_in && !is_node2_in) {
+      return true;
+    }
+    return node1->GetOpDescBarePtr()->GetId() < node2->GetOpDescBarePtr()->GetId();
   };
 
   auto compute_graph = ge::AscGraphUtils::GetComputeGraph(graph);

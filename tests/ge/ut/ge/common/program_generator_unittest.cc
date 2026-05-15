@@ -1419,7 +1419,7 @@ struct LaunchKernelConfig {
   aclrtEngineType engine_type{ACL_RT_ENGINE_TYPE_AIC};
   uint32_t block_dim_offset{0U};
   bool is_block_task_prefetch{false};
-  bool is_data_dump{false};
+  uint8_t is_data_dump{0U};
   uint16_t time_out{0U};
   uint32_t local_memory_size{0U};
 };
@@ -1439,7 +1439,7 @@ void AssembleLaunchConfig(LaunchKernelCfgHolder &holder, const LaunchKernelConfi
   holder.attrs[actual_cfg_num].value.isBlockTaskPrefetch = static_cast<uint8_t>(launch_config.is_block_task_prefetch);
   actual_cfg_num++;
   holder.attrs[actual_cfg_num].id = ACL_RT_LAUNCH_KERNEL_ATTR_DATA_DUMP;
-  holder.attrs[actual_cfg_num].value.isDataDump = static_cast<uint8_t>(launch_config.is_data_dump);
+  holder.attrs[actual_cfg_num].value.isDataDump = launch_config.is_data_dump;
   actual_cfg_num++;
   holder.attrs[actual_cfg_num].id = ACL_RT_LAUNCH_KERNEL_ATTR_DYN_UBUF_SIZE;
   holder.attrs[actual_cfg_num].value.dynUBufSize = launch_config.local_memory_size;
@@ -1654,7 +1654,7 @@ struct LaunchKernelConfig {
   aclrtEngineType engine_type{ACL_RT_ENGINE_TYPE_AIC};
   uint32_t block_dim_offset{0U};
   bool is_block_task_prefetch{false};
-  bool is_data_dump{false};
+  uint8_t is_data_dump{0U};
   uint16_t time_out{0U};
   uint32_t local_memory_size{0U};
 };
@@ -1674,7 +1674,7 @@ void AssembleLaunchConfig(LaunchKernelCfgHolder &holder, const LaunchKernelConfi
   holder.attrs[actual_cfg_num].value.isBlockTaskPrefetch = static_cast<uint8_t>(launch_config.is_block_task_prefetch);
   actual_cfg_num++;
   holder.attrs[actual_cfg_num].id = ACL_RT_LAUNCH_KERNEL_ATTR_DATA_DUMP;
-  holder.attrs[actual_cfg_num].value.isDataDump = static_cast<uint8_t>(launch_config.is_data_dump);
+  holder.attrs[actual_cfg_num].value.isDataDump = launch_config.is_data_dump;
   actual_cfg_num++;
   holder.attrs[actual_cfg_num].id = ACL_RT_LAUNCH_KERNEL_ATTR_DYN_UBUF_SIZE;
   holder.attrs[actual_cfg_num].value.dynUBufSize = launch_config.local_memory_size;
@@ -1908,7 +1908,7 @@ struct LaunchKernelConfig {
   aclrtEngineType engine_type{ACL_RT_ENGINE_TYPE_AIC};
   uint32_t block_dim_offset{0U};
   bool is_block_task_prefetch{false};
-  bool is_data_dump{false};
+  uint8_t is_data_dump{0U};
   uint16_t time_out{0U};
   uint32_t local_memory_size{0U};
 };
@@ -1928,7 +1928,7 @@ void AssembleLaunchConfig(LaunchKernelCfgHolder &holder, const LaunchKernelConfi
   holder.attrs[actual_cfg_num].value.isBlockTaskPrefetch = static_cast<uint8_t>(launch_config.is_block_task_prefetch);
   actual_cfg_num++;
   holder.attrs[actual_cfg_num].id = ACL_RT_LAUNCH_KERNEL_ATTR_DATA_DUMP;
-  holder.attrs[actual_cfg_num].value.isDataDump = static_cast<uint8_t>(launch_config.is_data_dump);
+  holder.attrs[actual_cfg_num].value.isDataDump = launch_config.is_data_dump;
   actual_cfg_num++;
   holder.attrs[actual_cfg_num].id = ACL_RT_LAUNCH_KERNEL_ATTR_DYN_UBUF_SIZE;
   holder.attrs[actual_cfg_num].value.dynUBufSize = launch_config.local_memory_size;
@@ -2162,7 +2162,7 @@ struct LaunchKernelConfig {
   aclrtEngineType engine_type{ACL_RT_ENGINE_TYPE_AIC};
   uint32_t block_dim_offset{0U};
   bool is_block_task_prefetch{false};
-  bool is_data_dump{false};
+  uint8_t is_data_dump{0U};
   uint16_t time_out{0U};
   uint32_t local_memory_size{0U};
 };
@@ -2182,7 +2182,7 @@ void AssembleLaunchConfig(LaunchKernelCfgHolder &holder, const LaunchKernelConfi
   holder.attrs[actual_cfg_num].value.isBlockTaskPrefetch = static_cast<uint8_t>(launch_config.is_block_task_prefetch);
   actual_cfg_num++;
   holder.attrs[actual_cfg_num].id = ACL_RT_LAUNCH_KERNEL_ATTR_DATA_DUMP;
-  holder.attrs[actual_cfg_num].value.isDataDump = static_cast<uint8_t>(launch_config.is_data_dump);
+  holder.attrs[actual_cfg_num].value.isDataDump = launch_config.is_data_dump;
   actual_cfg_num++;
   holder.attrs[actual_cfg_num].id = ACL_RT_LAUNCH_KERNEL_ATTR_DYN_UBUF_SIZE;
   holder.attrs[actual_cfg_num].value.dynUBufSize = launch_config.local_memory_size;

@@ -5452,4 +5452,33 @@ TEST_F(UtestGraphUtils, IsolateNodeNodeWithNoOpOptimize_SetIoMap_NoOutAnchr) {
   EXPECT_EQ(out_node_0->GetInDataAnchor(1)->GetPeerOutAnchor()->GetOwnerNode(), in_node_2);
 }
 
+TEST_F(UtestGraphUtils, PostProcess_RecordOriginalNamesWhenNotExists) {
+  CompleteGraphBuilder complete_builder("test_graph");
+  graphStatus err = GRAPH_SUCCESS;
+  std::string msg = "";
+
+  auto builder = ut::GraphBuilder("test_owner");
+  auto node1 = builder.AddNode("node1", "Relu", 1, 1);
+  auto node2 = builder.AddNode("node2", "Add", 1, 1);
+  auto owner_graph = node1->GetOwnerComputeGraph();
+  complete_builder.owner_graph_ = owner_graph;
+
+  EXPECT_FALSE(ge::AttrUtils::HasAttr(node1->GetOpDesc(), ATTR_NAME_DATA_DUMP_ORIGIN_OP_NAMES));
+  EXPECT_FALSE(ge::AttrUtils::HasAttr(node2->GetOpDesc(), ATTR_NAME_DATA_DUMP_ORIGIN_OP_NAMES));
+
+  complete_builder.PostProcess(err, msg);
+  EXPECT_EQ(err, GRAPH_SUCCESS);
+
+  std::vector<std::string> origin_names;
+  EXPECT_TRUE(ge::AttrUtils::GetListStr(node1->GetOpDesc(), ATTR_NAME_DATA_DUMP_ORIGIN_OP_NAMES, origin_names));
+  EXPECT_EQ(origin_names.size(), 1);
+  EXPECT_EQ(origin_names[0], "node1");
+
+  EXPECT_TRUE(ge::AttrUtils::GetListStr(node2->GetOpDesc(), ATTR_NAME_DATA_DUMP_ORIGIN_OP_NAMES, origin_names));
+  EXPECT_EQ(origin_names.size(), 1);
+  EXPECT_EQ(origin_names[0], "node2");
+
+  EXPECT_EQ(node1->GetName(), "test_owner/node1");
+  EXPECT_EQ(node2->GetName(), "test_owner/node2");
+}
 }  // namespace ge

@@ -12,9 +12,11 @@
 #include "common/helper/om2/zip_archive_writer.h"
 #include "common/helper/om2/json_file.h"
 #include "framework/runtime/om2_model_executor.h"
+#include "ge/ge_ir_build.h"
 #include "file_utils.h"
 #include "runtime/om2/zip_archive_reader.h"
 #include <gtest/gtest.h>
+#include <algorithm>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
@@ -408,7 +410,7 @@ GeRootModelPtr CreateGeRootModelWithTfAicpuOp() {
   gert::GeModelBuilder builder(graph);
   gert::AiCpuTfTaskDefFaker tf_aicpu_task_def_faker;
   gert::AiCpuCCTaskDefFaker aicpu_task_def_faker;
-  auto ge_root_model = builder.AddTaskDef("add1", tf_aicpu_task_def_faker)
+  auto ge_root_model = builder.AddTaskDef("add1", tf_aicpu_task_def_faker.SetNeedMemcpy(false))
                               .AddTaskDef("add2", aicpu_task_def_faker.SetNeedMemcpy(false))
                               .BuildGeRootModel();
   auto &compute_graph = ge_root_model->GetRootGraph();
@@ -930,6 +932,7 @@ TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithFileConstMeta) {
       "fake_test/data/model_0/runtime/g1_interface.h",
       "fake_test/data/model_0/runtime/Makefile",
       "fake_test/data/model_0/runtime/libg1_om2.so",
+      "fake_test/data/constants/constant_0",
       "fake_test/data/constants/model_0_constants_config.json",
       "fake_test/data/kernels_npu_arch/add1_faked_kernel.o",
       "fake_test/data/model_0/model_meta.json",
@@ -940,7 +943,7 @@ TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithFileConstMeta) {
 
   const JsonFile constants_json = ExtractConstantsConfig(archive, kZipFileBaseName);
   ASSERT_TRUE(constants_json.IsValid());
-  EXPECT_EQ(constants_json.Raw().at("internal_weight_size"), JsonFile::json(0));
+  EXPECT_EQ(constants_json.Raw().at("internal_weight_size"), JsonFile::json(401408));
   ASSERT_TRUE(constants_json.Raw().contains("consts"));
   const auto &consts = constants_json.Raw().at("consts");
   ASSERT_TRUE(consts.contains("constant_1"));
@@ -952,6 +955,114 @@ TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithFileConstMeta) {
   EXPECT_EQ(consts.at("data2").at("file_name"), JsonFile::json("weight_combined.bin"));
   EXPECT_EQ(consts.at("data2").at("offset"), JsonFile::json(64));
   EXPECT_EQ(consts.at("data2").at("size"), JsonFile::json(200704));
+}
+
+TEST_F(Om2St, SaveOm2Model_Ok_SaveOnlineBufferWithAclgrphSaveModel) {
+  Om2PackageHelper om2_packager;
+  om2_packager.SetSaveMode(false);
+  const auto ge_root_model = CreateGeRootModelWithAicoreOp();
+  ASSERT_NE(ge_root_model, nullptr);
+
+  ModelBufferData model_data;
+  const std::string package_file = PathUtils::Join({test_work_dir, kZipFileBaseName + "_buffer.om2"});
+  ASSERT_EQ(om2_packager.SaveToOmRootModel(ge_root_model, package_file, model_data, false), SUCCESS);
+  ASSERT_NE(model_data.data, nullptr);
+  ASSERT_GT(model_data.length, 0U);
+
+  const std::string output_file = PathUtils::Join({test_work_dir, kZipFileBaseName + "_saved"});
+  EXPECT_EQ(aclgrphSaveModel(output_file, model_data), SUCCESS);
+  EXPECT_EQ(mmAccess2((output_file + ".om2").c_str(), M_F_OK), EOK);
+  EXPECT_NE(mmAccess2((output_file + ".om").c_str(), M_F_OK), EOK);
+
+  uint32_t model_buf_size = 0;
+  const auto model_buf = GetBinDataFromFile(output_file + ".om2", model_buf_size);
+  RAIIZipArchive archive(reinterpret_cast<const uint8_t *>(model_buf.get()), model_buf_size);
+  ASSERT_TRUE(archive.IsGood());
+  const auto file_names = archive.ListFiles();
+  EXPECT_NE(std::find(file_names.begin(), file_names.end(), kZipFileBaseName + "_buffer/manifest.json"),
+            file_names.end());
+}
+
+TEST_F(Om2St, SaveOm2Model_Ok_RelocateExternalWeightsWithAclgrphSaveModel) {
+  const std::string tmp_weight_dir = PathUtils::Join({test_work_dir, "tmp_weight"});
+  const std::string weight_file_name = "weight_combined.bin";
+  const std::string old_weight_path = PathUtils::Join({tmp_weight_dir, weight_file_name});
+  const std::string output_file = PathUtils::Join({test_work_dir, "saved_model"});
+  const std::string new_weight_path = PathUtils::Join({test_work_dir, "weight", weight_file_name});
+
+  WriteBinaryFile(old_weight_path, {1U, 2U, 3U, 4U, 5U});
+
+  ModelBufferData model;
+  {
+    ZipArchiveWriter zip_writer(PathUtils::Join({test_work_dir, "build_model.om2"}));
+    ASSERT_TRUE(zip_writer.IsMemFileOpened());
+    auto consts = JsonFile::json::object();
+    consts["not_object"] = "skip";
+    JsonFile internal_const;
+    internal_const.Set("type", "INTERNAL").Set("file_path", old_weight_path);
+    consts["internal_const"] = internal_const.Raw();
+    JsonFile no_path_const;
+    no_path_const.Set("type", "COMBINED").Set("file_name", "no_path.bin");
+    consts["no_path_const"] = no_path_const.Raw();
+    JsonFile empty_path_const;
+    empty_path_const.Set("type", "COMBINED").Set("file_path", "");
+    consts["empty_path_const"] = empty_path_const.Raw();
+    JsonFile file_const;
+    file_const.Set("index", 0U)
+        .Set("type", "COMBINED")
+        .Set("file_name", "")
+        .Set("file_path", old_weight_path)
+        .Set("offset", 0)
+        .Set("size", 5)
+        .Set("op_name", "file_const");
+    consts["file_const"] = file_const.Raw();
+    JsonFile constants_config;
+    constants_config.Set("internal_weight_size", 0U).Set("consts", consts);
+    const std::string constants_config_str = constants_config.Dump();
+    ASSERT_TRUE(zip_writer.WriteBytes("data/constants/model_0_constants_config.json", constants_config_str.data(),
+                                      constants_config_str.size(), false));
+    const std::string no_consts_config = R"({"internal_weight_size":0})";
+    ASSERT_TRUE(zip_writer.WriteBytes("data/constants/model_1_constants_config.json", no_consts_config.data(),
+                                      no_consts_config.size(), false));
+    const std::string skipped_consts_config = R"({"consts":{"internal":{"type":"INTERNAL"}}})";
+    ASSERT_TRUE(zip_writer.WriteBytes("data/constants/model_2_constants_config.json", skipped_consts_config.data(),
+                                      skipped_consts_config.size(), false));
+    const std::string runtime_entry = "runtime";
+    ASSERT_TRUE(zip_writer.WriteBytes("data/model_0/runtime/libfake.so", runtime_entry.data(), runtime_entry.size(),
+                                      false));
+    const std::string manifest = R"({"archive_version":"1.0","model_num":3})";
+    ASSERT_TRUE(zip_writer.WriteBytes("manifest.json", manifest.data(), manifest.size(), false));
+    ASSERT_TRUE(zip_writer.SaveModelData(model, false));
+  }
+
+  EXPECT_EQ(aclgrphSaveModel(output_file, model), SUCCESS);
+  EXPECT_EQ(mmAccess2((output_file + ".om2").c_str(), M_F_OK), EOK);
+  EXPECT_EQ(mmAccess2(new_weight_path.c_str(), M_F_OK), EOK);
+  EXPECT_NE(mmAccess2(old_weight_path.c_str(), M_F_OK), EOK);
+
+  uint32_t model_buf_size = 0;
+  const auto model_buf = GetBinDataFromFile(output_file + ".om2", model_buf_size);
+  RAIIZipArchive archive(reinterpret_cast<const uint8_t *>(model_buf.get()), model_buf_size);
+  ASSERT_TRUE(archive.IsGood());
+  const auto file_names = archive.ListFiles();
+  EXPECT_NE(std::find(file_names.begin(), file_names.end(), "saved_model/data/model_0/runtime/libfake.so"),
+            file_names.end());
+  EXPECT_NE(std::find(file_names.begin(), file_names.end(),
+                      "saved_model/data/constants/model_1_constants_config.json"),
+            file_names.end());
+  EXPECT_NE(std::find(file_names.begin(), file_names.end(),
+                      "saved_model/data/constants/model_2_constants_config.json"),
+            file_names.end());
+  const JsonFile constants_json = ExtractConstantsConfig(archive, "saved_model");
+  ASSERT_TRUE(constants_json.IsValid());
+  const auto &rewritten_consts = constants_json.Raw().at("consts");
+  EXPECT_EQ(rewritten_consts.at("not_object"), JsonFile::json("skip"));
+  EXPECT_TRUE(rewritten_consts.at("internal_const").contains("file_path"));
+  EXPECT_FALSE(rewritten_consts.at("no_path_const").contains("file_path"));
+  EXPECT_EQ(rewritten_consts.at("empty_path_const").at("file_path"), JsonFile::json(""));
+  const auto &file_const_json = constants_json.Raw().at("consts").at("file_const");
+  EXPECT_EQ(file_const_json.at("file_name"), JsonFile::json(weight_file_name));
+  EXPECT_FALSE(file_const_json.contains("file_path"));
 }
 
 TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithAicoreOp2) {

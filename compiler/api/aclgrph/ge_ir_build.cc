@@ -10,6 +10,11 @@
 
 #include "ge/ge_ir_build.h"
 
+#include <algorithm>
+#include <cstring>
+#include <map>
+#include <set>
+#include <unordered_set>
 #include <vector>
 #include "graph/utils/graph_utils_ex.h"
 #include "common/helper/file_saver.h"
@@ -38,15 +43,16 @@
 #include "graph/utils/type_utils.h"
 #include "graph/utils/type_utils_inner.h"
 #include "graph/utils/tensor_adapter.h"
+#include "graph_metadef/graph/utils/file_utils.h"
 #include "graph/passes/pass_manager.h"
 #include "api/gelib/gelib.h"
 #include "api/aclgrph/attr_options/attr_options.h"
 #include "api/aclgrph/option_utils.h"
 #include "common/single_op_parser.h"
 #include "framework/common/helper/model_helper.h"
+#include "framework/common/helper/om2_package_helper.h"
 #include "graph/utils/op_type_utils.h"
 #include "graph/manager/graph_var_manager.h"
-#include "common/file_constant_utils/file_constant_utils.h"
 #include "common/option_supportion_checker/option_supportion_checker.h"
 #include "graph/manager/session_id_manager.h"
 #include "graph/manager/util/rt_context_util.h"
@@ -73,6 +79,32 @@ const std::string kInputFormat = "input_format";
 const std::string kShapeGeneralized = "shape_generalized";
 const std::string kShapePrecise = "shape_precise";
 const std::string kOffline = "offline";
+const std::string kOfflineModeOption = "ge.offlineMode";
+constexpr int32_t kOfflineModeOm = 0;
+constexpr int32_t kOfflineModeOm2 = 7;
+const std::unordered_set<std::string> kSupportedOfflineMode = {"0", "7"};
+constexpr size_t kZipMagicSize = 4U;
+const uint8_t kZipLocalFileHeaderMagic[kZipMagicSize] = {0x50U, 0x4BU, 0x03U, 0x04U};
+const std::set<std::string> kOm2UnsupportedOptions = {
+    ge::ir_option::OP_NAME_MAP,
+    ge::ir_option::INSERT_OP_FILE,
+    ge::ir_option::DYNAMIC_BATCH_SIZE,
+    ge::ir_option::DYNAMIC_IMAGE_SIZE,
+    ge::ir_option::DYNAMIC_DIMS,
+    ge::ir_option::AC_PARALLEL_ENABLE,
+    ge::ir_option::QUANT_DUMPABLE,
+    ge::ir_option::TILING_SCHEDULE_OPTIMIZE,
+    ge::ir_option::BUILD_INNER_MODEL,
+    ge::ir_option::INPUT_SHAPE_RANGE,
+    ge::ir_option::SHAPE_GENERALIZED_BUILD_MODE,
+    ge::OPTION_HOST_ENV_OS,
+    ge::OPTION_HOST_ENV_CPU,
+    ge::ir_option::VIRTUAL_TYPE,
+    ge::ir_option::ENABLE_SMALL_CHANNEL,
+    ge::ir_option::ENABLE_COMPRESS_WEIGHT,
+    ge::ir_option::COMPRESS_WEIGHT_CONF,
+    ge::ir_option::TUNE_DEVICE_IDS,
+};
 /**
  * @name  SetOpAttrFun
  * @brief set attribute for operators in the configuration file
@@ -91,6 +123,21 @@ const std::map<aclgrphAttrType, std::string> kAttrTypeToStringMap = {
     {ATTR_TYPE_KEEP_DTYPE, KEEP_DTYPE_OPTION},
     {ATTR_TYPE_WEIGHT_COMPRESS, ge::ir_option::COMPRESS_WEIGHT_CONF}
 };
+
+std::unordered_set<std::string> GetOptionKeys(const std::map<std::string, std::string> &options) {
+  std::unordered_set<std::string> keys;
+  for (const auto &option : options) {
+    keys.insert(option.first);
+  }
+  return keys;
+}
+
+void RecordUserGlobalOptionKeys(const std::unordered_set<std::string> &keys) {
+  auto &global_options_mutex = GetGlobalOptionsMutex();
+  const std::lock_guard<std::mutex> lock(global_options_mutex);
+  auto &user_global_option_keys = GetMutableUserGlobalOptionKeys();
+  user_global_option_keys.insert(keys.cbegin(), keys.cend());
+}
 
 // ge ir场景，将jit_compile默认值设置为1
 void SetJitCompileTrue(std::map<std::string, std::string> &options) {
@@ -117,6 +164,79 @@ Status CheckInputHintShape(const std::map<std::string, std::string> &global_opti
     GELOGE(GRAPH_PARAM_INVALID, "[Check][Param] %s", reason.c_str());
     return GRAPH_PARAM_INVALID;
   }
+  return GRAPH_SUCCESS;
+}
+
+graphStatus ParseOfflineMode(const std::map<std::string, std::string> &options, int32_t &offline_mode) {
+  offline_mode = kOfflineModeOm;
+  const auto iter = options.find(kOfflineModeOption);
+  if (iter == options.end()) {
+    return GRAPH_SUCCESS;
+  }
+  if (iter->second.empty()) {
+    GELOGE(GRAPH_PARAM_INVALID, "[Check][Param]Option[%s] cannot be empty.", kOfflineModeOption.c_str());
+    return GRAPH_PARAM_INVALID;
+  }
+  GE_ASSERT_SUCCESS(CheckOptionValidValues(options, kOfflineModeOption, kSupportedOfflineMode));
+  if (ge::ConvertToInt32(iter->second, offline_mode) != SUCCESS) {
+    GELOGE(GRAPH_PARAM_INVALID, "[Check][Param]Option[%s] value[%s] is invalid.",
+           kOfflineModeOption.c_str(), iter->second.c_str());
+    return GRAPH_PARAM_INVALID;
+  }
+  if ((offline_mode != kOfflineModeOm) && (offline_mode != kOfflineModeOm2)) {
+    GELOGE(GRAPH_PARAM_INVALID, "[Check][Param]Option[%s] value[%s] is not supported.",
+           kOfflineModeOption.c_str(), iter->second.c_str());
+    return GRAPH_PARAM_INVALID;
+  }
+  return GRAPH_SUCCESS;
+}
+
+bool IsOm2BuildMode(const int32_t offline_mode) {
+  return offline_mode == kOfflineModeOm2;
+}
+
+graphStatus ReportOm2UnsupportedOption(const std::string &option, const std::string &value) {
+  REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char_t *>({"parameter", "value", "reason"}),
+                            std::vector<const char_t *>({option.c_str(), value.c_str(),
+                                                         "this option is not supported in om2 mode."}));
+  GELOGE(GRAPH_PARAM_INVALID, "[Check][Option]option [%s] is not supported in om2 mode.", option.c_str());
+  return GRAPH_PARAM_INVALID;
+}
+
+graphStatus CheckOm2UnsupportedOptions(const std::map<std::string, std::string> &options) {
+  for (const auto &option : options) {
+    if (kOm2UnsupportedOptions.count(option.first) > 0U) {
+      return ReportOm2UnsupportedOption(option.first, option.second);
+    }
+  }
+  return GRAPH_SUCCESS;
+}
+
+graphStatus CheckUserSpecifiedGlobalOptionsForOm2() {
+  const auto &user_global_option_keys = GetMutableUserGlobalOptionKeys();
+  for (const auto &key : user_global_option_keys) {
+    if (kOm2UnsupportedOptions.count(key) > 0U) {
+      return ReportOm2UnsupportedOption(key, "");
+    }
+  }
+  return GRAPH_SUCCESS;
+}
+
+bool IsOm2ModelData(const void *data, const size_t size) {
+  if ((data == nullptr) || (size < kZipMagicSize)) {
+    return false;
+  }
+  return std::memcmp(data, kZipLocalFileHeaderMagic, kZipMagicSize) == 0;
+}
+
+graphStatus aclgrphSaveOm2ModelImpl(const std::string &output_file, const ModelBufferData &model) {
+  const std::string output_file_name = output_file + ".om2";
+  ModelBufferData relocated_model;
+  bool relocated = false;
+  GE_ASSERT_SUCCESS(Om2PackageHelper::RelocateExternalWeights(output_file_name, model, relocated_model, relocated));
+  const auto &model_to_save = relocated ? relocated_model : model;
+  GE_ASSERT_SUCCESS(SaveBinToFile(reinterpret_cast<const char *>(model_to_save.data.get()), model_to_save.length,
+                                  output_file_name));
   return GRAPH_SUCCESS;
 }
 }  // namespace
@@ -303,6 +423,7 @@ static graphStatus aclgrphBuildInitializeImpl(std::map<std::string, std::string>
   GELOGD("Enter aclgrphInitialize start!");
   //备份并清空注册信息map
   OperatorFactoryImpl::BackupAndClearRegInfoOnce();
+  const auto user_global_option_keys = GetOptionKeys(global_options);
   SetDefaultHostEnvOsAndHostEnvCpu(global_options[OPTION_HOST_ENV_OS], global_options[OPTION_HOST_ENV_CPU]);
   SetJitCompileTrue(global_options);
   SetBuildGraphModeOffline(global_options);
@@ -348,6 +469,7 @@ static graphStatus aclgrphBuildInitializeImpl(std::map<std::string, std::string>
   }
   // 将备份的注册信息低优先级merge到当前map
   OperatorFactoryImpl::MergeBackupCreatorsOnce();
+  RecordUserGlobalOptionKeys(user_global_option_keys);
   GELOGW("gelib has been initialized!");
   Status ret = static_cast<uint32_t>(error_message::ErrMgrInit(error_message::ErrorMessageMode::INTERNAL_MODE));
   GE_ASSERT_SUCCESS(ret, "ErrorManager init failed!");
@@ -960,6 +1082,16 @@ graphStatus Impl::BuildModel(const Graph &graph, const std::map<std::string, std
     return ret;
   }
   GE_ASSERT_SUCCESS(CheckInputHintShape(options));
+  int32_t offline_mode = kOfflineModeOm;
+  ret = ParseOfflineMode(options, offline_mode);
+  if (ret != GRAPH_SUCCESS) {
+    GELOGE(ret, "[Init][GeGenerator]Parse model offline mode failed!");
+    return ret;
+  }
+  if (IsOm2BuildMode(offline_mode)) {
+    GE_ASSERT_SUCCESS(CheckOm2UnsupportedOptions(options), "[Check][OM2][BuildOptions] failed!");
+    GE_ASSERT_SUCCESS(CheckUserSpecifiedGlobalOptionsForOm2(), "[Check][OM2][GlobalOptions] failed!");
+  }
   ge::PrintOptionMap(options, "BuildModel option");
   ret = Init(graph, options);
   if (ret != GRAPH_SUCCESS) {
@@ -983,10 +1115,15 @@ graphStatus Impl::BuildModel(const Graph &graph, const std::map<std::string, std
   }
 
   // 3. build IR model
-  ret = generator_.GenerateOnlineModel(graph, inputs, model);
+  ret = IsOm2BuildMode(offline_mode) ? generator_.GenerateOnlineOm2Model(graph, inputs, model)
+                                     : generator_.GenerateOnlineModel(graph, inputs, model);
   if (ret != GRAPH_SUCCESS) {
     GELOGE(ret, "[Generate][OnlineModel] failed!");
     return ret;
+  }
+  if (IsOm2BuildMode(offline_mode) && ((model.data == nullptr) || (model.length == 0U))) {
+    GELOGE(GRAPH_FAILED, "[Check][ModelBufferData] OM2 model buffer is empty.");
+    return GRAPH_FAILED;
   }
   return GRAPH_SUCCESS;
 }
@@ -1505,13 +1642,20 @@ graphStatus aclgrphBundleSaveModelImpl(const std::string &output_file, const Mod
   return GRAPH_SUCCESS;
 }
 
-graphStatus aclgrphSaveModel(const std::string &output_file, const ModelBufferData &model) {
+static graphStatus aclgrphSaveModelInner(const std::string &output_file, const ModelBufferData &model) {
   GELOGD("Enter aclmdlSaveModel process!");
   if (model.data.get() == nullptr || model.length == 0) {
     GELOGE(GRAPH_PARAM_INVALID, "[Check][ModelBufferData] model is illegal");
     return GRAPH_PARAM_INVALID;
   }
+  if (IsOm2ModelData(model.data.get(), model.length)) {
+    return aclgrphSaveOm2ModelImpl(output_file, model);
+  }
   return aclgrphSaveModelImpl(output_file, model);
+}
+
+graphStatus aclgrphSaveModel(const std::string &output_file, const ModelBufferData &model) {
+  return aclgrphSaveModelInner(output_file, model);
 }
 
 graphStatus aclgrphSaveModel(const char_t *output_file, const ModelBufferData &model) {
@@ -1525,7 +1669,7 @@ graphStatus aclgrphSaveModel(const char_t *output_file, const ModelBufferData &m
     return GRAPH_PARAM_INVALID;
   }
   std::string str_output_file = output_file;
-  return aclgrphSaveModelImpl(output_file, model);
+  return aclgrphSaveModelInner(str_output_file, model);
 }
 
 graphStatus aclgrphBundleSaveModel(const char_t *output_file, const ModelBufferData &model) {

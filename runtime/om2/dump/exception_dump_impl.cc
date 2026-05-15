@@ -10,10 +10,12 @@
 
 #include "framework/runtime/dump/exception_dump_impl.h"
 #include "framework/common/debug/ge_log.h"
+#include "framework/runtime/dump/dump_config.h"
 #include <dump/adump_api.h>
 #include "common/dump/adump_opinfo_builder.h"
 #include "runtime/kernel.h"
 #include <limits>
+#include <cstdint>
 
 namespace ge {
 namespace dump {
@@ -49,8 +51,8 @@ ExceptionDumpImpl::~ExceptionDumpImpl() = default;
 Status ExceptionDumpImpl::SaveOpInfo(const Om2TaskInfo& task_info) {
   const char* op_name = (task_info.op_name != nullptr) ? task_info.op_name : "";
   const char* op_type = (task_info.op_type != nullptr) ? task_info.op_type : "";
-  GELOGD("SaveOpInfo: op_name=%s, task_id=%u, stream_id=%u",
-         op_name, task_info.task_id, task_info.stream_id);
+  GELOGD("SaveOpInfo: op_name=%s, task_id=%u, stream_id=%u, context_id=%u, device_id=%u, thread_id=%u",
+         op_name, task_info.task_id, task_info.stream_id, task_info.context_id, device_id_, task_info.thread_id);
 
   // 构建 OpDescInfo
   OpDescInfo op_info = {};
@@ -130,32 +132,47 @@ Status ExceptionDumpImpl::SaveOpInfo(const Om2TaskInfo& task_info) {
     op_info.workspace_bytes.push_back(task_info.workspace_sizes[i]);
   }
 
-  // 保存到 K-V 表，key 为 (task_id, stream_id)
-  uint64_t key = (static_cast<uint64_t>(task_info.task_id) << 32) | task_info.stream_id;
-  op_info_map_[key] = op_info;
+  // 保存到 list，与 V1 exception_dumper 保持一致
+  op_info_list_.push_back(op_info);
 
-  // L1 Exception Dump：上报给 Adump
-  Status ret = ReportL1ExceptionDumpInfo(task_info, op_info);
-  if (ret != SUCCESS) {
-    GELOGW("Report L1 exception dump info failed, op=%s", op_name);
+  // L1 Exception Dump：只有 exception dump 开关打开时才上报给 Adump
+  if (DumpConfig::Instance().IsExceptionDumpEnabled()) {
+    Status ret = ReportL1ExceptionDumpInfo(task_info, op_info);
+    if (ret != SUCCESS) {
+      GELOGW("Report L1 exception dump info failed, op=%s", op_name);
+    }
   }
 
   return SUCCESS;
 }
 
-Status ExceptionDumpImpl::GetOpDescInfo(uint32_t task_id, uint32_t stream_id,
-                                         OpDescInfo& op_info) const {
-  GELOGD("GetOpDescInfo: task_id=%u, stream_id=%u", task_id, stream_id);
+bool ExceptionDumpImpl::GetOpDescInfo(const OpDescInfoId& op_id, OpDescInfo& op_info) const {
+  GELOGI("[Get][OpDescInfo] There are %zu op info saved, target stream_id:%u, task_id:%u, context_id:%u, thread_id:%u, "
+         "dev_id: %u.", op_info_list_.size(), op_id.stream_id, op_id.task_id, op_id.context_id, op_id.thread_id,
+         op_id.device_id);
 
-  uint64_t key = (static_cast<uint64_t>(task_id) << 32) | stream_id;
-  const auto iter = op_info_map_.find(key);
-  if (iter == op_info_map_.end()) {
-    GELOGE(FAILED, "OpDescInfo not found, task_id=%u, stream_id=%u", task_id, stream_id);
-    return FAILED;
+  for (const auto& dump_op_info : op_info_list_) {
+
+    // 打印每个条件的匹配结果
+    const bool match_task_id = (dump_op_info.id.task_id == op_id.task_id) || (op_id.task_id == UINT32_MAX);
+    const bool match_stream_id = (dump_op_info.id.stream_id == op_id.stream_id) || (op_id.stream_id == UINT32_MAX);
+    const bool match_context_id = (dump_op_info.id.context_id == op_id.context_id) || (op_id.context_id == UINT32_MAX);
+    const bool match_thread_id = (dump_op_info.id.thread_id == op_id.thread_id) || (op_id.thread_id == UINT32_MAX);
+    const bool match_device_id = (dump_op_info.id.device_id == op_id.device_id);
+
+    if (match_task_id && match_stream_id && match_context_id && match_thread_id && match_device_id) {
+      GELOGI("[Get][OpDescInfo] Find exception op [%s] of task_id: %u, stream_id: %u, context_id: %u, thread_id: %u, "
+             "dev_id: %u.",
+             dump_op_info.op_name.c_str(), op_id.task_id, op_id.stream_id, op_id.context_id, op_id.thread_id,
+             op_id.device_id);
+      op_info = dump_op_info;
+      // Note: OM2 doesn't need RefreshAddrs because device_address is already a real device
+      // address passed in by Runtime through Om2TaskInfo, not a pointer offset that needs
+      // to be resolved from args.
+      return true;
+    }
   }
-
-  op_info = iter->second;
-  return SUCCESS;
+  return false;
 }
 
 Status ExceptionDumpImpl::ReportL1ExceptionDumpInfo(const Om2TaskInfo& task_info, const OpDescInfo& op_info) {
@@ -220,7 +237,8 @@ Status ExceptionDumpImpl::ReportL1ExceptionDumpInfo(const Om2TaskInfo& task_info
   // 2. 构建 AdumpOpInfoBuilder
   const bool is_dynamic = false;  // Om2 是静态图
   AdumpOpInfoBuilder builder(op_name, op_type, is_dynamic);
-  builder.Task(device_id_, task_info.stream_id, task_info.task_id, task_info.context_id)
+  // 对齐 V1 行为：context_id 和 thread_id 传 UINT32_MAX（V1 fallback 逻辑实际未生效）
+  builder.Task(device_id_, task_info.stream_id, task_info.task_id, UINT32_MAX)
     .AdditionInfo(Adx::DUMP_ADDITIONAL_BLOCK_DIM, "1")  // 默认 block_dim=1
     .AdditionInfo(Adx::DUMP_ADDITIONAL_TILING_KEY, "0")  // 默认 tiling_key=0
     .AdditionInfo(Adx::DUMP_ADDITIONAL_TILING_DATA, "")   // 无 tiling_data
@@ -241,20 +259,29 @@ Status ExceptionDumpImpl::ReportL1ExceptionDumpInfo(const Om2TaskInfo& task_info
 
   // 3. 上报给 Adump
   const Adx::OperatorInfoV2& info = builder.Build();
+  // 对齐 V1 行为：日志打印 UINT32_MAX，与传给 Adump 的值保持一致
+  GELOGI("[ReportL1ExceptionDumpInfo] op[%s] dev_id: %u, stream_id: %u, task_id: %u, "
+         "context_id: %u, thread_id: %u, args: %#lx, args_size: %zu, "
+         "input tensor num: %zu, output tensor num: %zu, workspace tensor num: %zu, "
+         "total tensor num: %zu.",
+         op_name, device_id_, task_info.stream_id, task_info.task_id,
+         UINT32_MAX, UINT32_MAX, op_info.args, op_info.args_size,
+         input_tensor_infos.size(), output_tensor_infos.size(), workspace_tensor_infos.size(),
+         info.tensorInfos.size());
+
   const int32_t adx_ret = Adx::AdumpAddExceptionOperatorInfoV2(info);
   if (adx_ret != Adx::ADUMP_SUCCESS) {
-    GELOGE(FAILED, "AdumpAddExceptionOperatorInfoV2 failed, ret=%d, op=%s", adx_ret, op_name);
+    GELOGE(FAILED, "AdumpAddExceptionOperatorInfoV2 failed, ret=%d, op[%s], dev_id: %u, "
+           "stream_id: %u, task_id: %u", adx_ret, op_name, device_id_,
+           task_info.stream_id, task_info.task_id);
     return FAILED;
   }
-
-  GELOGI("[Add][OpExceptionInfo] op[%s] dev_id: %u, stream_id: %u, task_id: %u, tensor num: %zu",
-         op_name, device_id_, task_info.stream_id, task_info.task_id, info.tensorInfos.size());
 
   return SUCCESS;
 }
 
 void ExceptionDumpImpl::Clear() {
-  op_info_map_.clear();
+  op_info_list_.clear();
 }
 
 }  // namespace dump

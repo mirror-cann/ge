@@ -140,6 +140,11 @@ std::map<std::string, std::string> &GetMutableGlobalOptions() {
   return context_global_options;
 }
 
+std::unordered_set<std::string> &GetMutableUserGlobalOptionKeys() {
+  static std::unordered_set<std::string> user_global_option_keys{};
+  return user_global_option_keys;
+}
+
 void GEContext::Init() {
   (void) GetOptionValue("ge.exec.sessionId", session_id_);
   (void) GetOptionValue("ge.exec.deviceId", device_id_);
