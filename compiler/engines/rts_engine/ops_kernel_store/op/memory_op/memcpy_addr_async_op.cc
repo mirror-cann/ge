@@ -93,7 +93,7 @@ rtError_t MemcpyAddrAsyncOp::AddArgsFormatDescInfo(domi::MemcpyAsyncDef *const m
   RTS_LOGI("Soc version is [%s]", version);
   std::string res;
   ArgsFormatDesc desc;
-  if ((strncmp(version, "Ascend950", strlen("Ascend950")) == 0)) {
+  if ((strncmp(version, "Ascend950", strlen("Ascend950")) == 0) || (strncmp(version, "Ascend350", strlen("Ascend350")) == 0)) {
     desc.AppendPlaceholder(ArgsFormatWidth::BIT64);
     desc.AppendPlaceholder(ArgsFormatWidth::BIT64);
     desc.AppendPlaceholder(ArgsFormatWidth::BIT64);
