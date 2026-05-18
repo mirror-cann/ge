@@ -329,7 +329,7 @@ target_link_libraries(ge_common_base
         ascend_dump
         exe_graph
         lowering
-        $<$<NOT:$<STREQUAL:${ENABLE_TEST},True>>:atrace_share>
+        $<$<AND:$<NOT:$<BOOL:${MDC_COMPILE_RUNTIME}>>,$<NOT:$<STREQUAL:${ENABLE_TEST},True>>>:atrace_share>
         -Wl,--as-needed
         json
         $<$<NOT:$<STREQUAL:${TARGET_SYSTEM_NAME},Android>>:-lrt>
@@ -338,7 +338,7 @@ target_link_libraries(ge_common_base
     PUBLIC
         air_headers
         metadef_headers
-        atrace_headers
+        $<$<NOT:$<BOOL:${MDC_COMPILE_RUNTIME}>>:atrace_headers>
 )
 
 ############ libge_common.a ############
@@ -523,7 +523,7 @@ target_link_libraries(ge_common_base
         unified_dlog
         platform
         static_mmpa
-        $<$<NOT:$<STREQUAL:${ENABLE_TEST},True>>:atrace_share>
+        $<$<AND:$<NOT:$<BOOL:${MDC_COMPILE_RUNTIME}>>,$<NOT:$<STREQUAL:${ENABLE_TEST},True>>>:atrace_share>
         -Wl,--as-needed
         json
         -lrt
@@ -532,7 +532,7 @@ target_link_libraries(ge_common_base
     PUBLIC
         air_headers
         metadef_headers
-        atrace_headers
+        $<$<NOT:$<BOOL:${MDC_COMPILE_RUNTIME}>>:atrace_headers>
 )
 endif ()
 
