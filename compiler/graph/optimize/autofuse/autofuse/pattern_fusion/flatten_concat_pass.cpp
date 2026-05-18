@@ -17,11 +17,11 @@
 #include "graph/utils/node_utils.h"
 #include "graph/utils/op_desc_utils.h"
 #include "register/shape_inference.h"
-#include "utils/cg_utils.h"
 #include "utils/auto_fuse_config.h"
 #include "lowering/asc_lowerer/loop_common.h"
 #include "backend/backend_spec.h"
 #include "base/err_msg.h"
+#include "operator_factory.h"
 
 namespace ge {
 const string CONCAT = "Concat";

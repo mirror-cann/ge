@@ -20,10 +20,12 @@
 #include "common/checker.h"
 #include "asc_lowerer/asc_overrides.h"
 #include "asc_lowerer/kernel_box.h"
+#include "fusion/autofuse_attrs.h"
 #include "utils/auto_fuse_config.h"
 
 
 namespace ge {
+using af::AutoFuseAttrs;
 struct LoweringConfig {
   uint64_t max_loop_ops = 64U;
   size_t max_loop_loads = 4U;

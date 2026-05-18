@@ -139,9 +139,9 @@ namespace {
     return components;
   }
 
-    std::shared_ptr<ge::ascir_op::Data> CreateDataOp(const std::string &name, ge::AscGraph &graph,
+    std::shared_ptr<af::ascir_op::Data> CreateDataOp(const std::string &name, ge::AscGraph &graph,
                                       const AscGraphComponents &components, bool set_loop_axis = true) {
-    auto data = std::make_shared<ge::ascir_op::Data>(name.c_str(), graph);
+    auto data = std::make_shared<af::ascir_op::Data>(name.c_str(), graph);
     data->attr.sched.axis = {components.a.id, components.b.id, components.c.id, components.d.id, components.e.id};
     if (set_loop_axis) {
       data->attr.sched.loop_axis = components.c.id;
@@ -155,9 +155,9 @@ namespace {
     return data;
   }
 
-  std::shared_ptr<ge::ascir_op::Load> CreateLoadOp(const std::string &name, const ge::AscOpOutput &data,
+  std::shared_ptr<af::ascir_op::Load> CreateLoadOp(const std::string &name, const ge::AscOpOutput &data,
                                     const AscGraphComponents &components) {
-    auto load = std::make_shared<ge::ascir_op::Load>(name.c_str());
+    auto load = std::make_shared<af::ascir_op::Load>(name.c_str());
     load->x = data;
     load->attr.sched.axis = {components.a.id, components.b.id, components.c.id, components.d.id, components.e.id};
     load->y.dtype = DT_FLOAT16;
@@ -169,10 +169,10 @@ namespace {
     return load;
   }
 
-  std::shared_ptr<ge::ascir_op::Add> CreateAddOp(const std::string &name, const ge::AscOpOutput &x1,
+  std::shared_ptr<af::ascir_op::Add> CreateAddOp(const std::string &name, const ge::AscOpOutput &x1,
                                    const ge::AscOpOutput &x2,
                                    const AscGraphComponents &components) {
-    auto add = std::make_shared<ge::ascir_op::Add>(name.c_str());
+    auto add = std::make_shared<af::ascir_op::Add>(name.c_str());
     add->x1 = x1;
     add->x2 = x2;
     add->attr.sched.axis = {components.a.id, components.b.id, components.c.id, components.d.id, components.e.id};
@@ -187,9 +187,9 @@ namespace {
     return add;
   }
 
-  std::shared_ptr<ge::ascir_op::Store> CreateStoreOp(const std::string &name, const ge::AscOpOutput &input,
+  std::shared_ptr<af::ascir_op::Store> CreateStoreOp(const std::string &name, const ge::AscOpOutput &input,
                                       const AscGraphComponents &components) {
-    auto store = std::make_shared<ge::ascir_op::Store>(name.c_str());
+    auto store = std::make_shared<af::ascir_op::Store>(name.c_str());
     store->x = input;
     store->attr.sched.axis = {components.a.id, components.b.id, components.c.id, components.d.id, components.e.id};
     store->attr.sched.loop_axis = components.c.id;
@@ -202,9 +202,9 @@ namespace {
     return store;
   }
 
-  std::shared_ptr<ge::ascir_op::Output> CreateOutputOp(const std::string &name, const ge::AscOpOutput &input,
+  std::shared_ptr<af::ascir_op::Output> CreateOutputOp(const std::string &name, const ge::AscOpOutput &input,
                                          const AscGraphComponents &components) {
-    auto output = std::make_shared<ge::ascir_op::Output>(name.c_str());
+    auto output = std::make_shared<af::ascir_op::Output>(name.c_str());
     output->x = input;
     output->attr.sched.axis = {components.a.id, components.b.id, components.c.id, components.d.id, components.e.id};
     output->attr.sched.loop_axis = components.c.id;
@@ -329,7 +329,7 @@ TEST_F(AdaptionImprovePrecisionTest, ImprovePrecision_BlackListAll_Pass) {
 
   // 验证：当黑名单为all且所有节点都通过数据类型检查时，不应该插入Cast节点
   size_t cast_cnt = 0U;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
     if (node->GetType() == "Cast") {
@@ -382,7 +382,7 @@ TEST_F(AdaptionImprovePrecisionTest, ImprovePrecision_BlackListAll_Fail) {
 
   // 验证：当黑名单为all且有节点数据类型检查失败时，应该插入Cast节点升精度
   size_t cast_cnt = 0U;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
     if (node->GetType() == "Cast") {
@@ -436,7 +436,7 @@ TEST_F(AdaptionImprovePrecisionTest, ImprovePrecision_BlackListAll_WithSpecific)
 
   // 验证：all优先级最高，应该对所有节点检查数据类型
   size_t cast_cnt = 0U;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
     if (node->GetType() == "Cast") {

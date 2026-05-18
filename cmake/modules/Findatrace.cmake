@@ -53,6 +53,8 @@ find_path(atrace_INCLUDE_DIR
 find_library(atrace_SHARED_LIBRARY
     NAMES libascend_trace.so
     PATH_SUFFIXES lib64
+    PATHS ${ASCEND_ROOT}
+          ${ASCEND_INSTALL_PATH}
     NO_CMAKE_SYSTEM_PATH
     NO_CMAKE_FIND_ROOT_PATH)
 
@@ -75,7 +77,7 @@ if(atrace_FOUND)
     set_target_properties(atrace_share PROPERTIES
         INTERFACE_LINK_LIBRARIES "atrace_headers"
         INTERFACE_COMPILE_DEFINITIONS "HOST_ALOG;ADX_LIB_C"
-        IMPORTED_LINK_DEPENDENT_LIBRARIES "mmpa;alog"
+        IMPORTED_LINK_DEPENDENT_LIBRARIES "mmpa;alog;ascend_hal_stub"
         IMPORTED_LOCATION "${atrace_SHARED_LIBRARY}"
     )
 

@@ -1,8 +1,2 @@
-add_subdirectory(optimize)
-add_subdirectory(codegen)
-add_subdirectory(codegen/e2e)
 add_subdirectory(autofuse)
 add_subdirectory(common)
-add_subdirectory(ascir)
-add_subdirectory(att)
-add_subdirectory(backend_e2e)

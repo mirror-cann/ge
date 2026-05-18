@@ -18,8 +18,9 @@
 #include <thread>
 
 #include "ascendc_ir.h"
+#include "ascendc_ir/ascendc_ir_core/asc_graph_ge_bridge.h"
 #include "common/checker.h"
-#include "graph/ascendc_ir/ascendc_ir_check.h"
+#include "ascendc_ir/ascendc_ir_check.h"
 #include "graph/expression/const_values.h"
 #include "graph/node.h"
 #include "graph/utils/graph_utils.h"
@@ -30,6 +31,8 @@
 #include "utils/autofuse_utils.h"
 
 namespace ge {
+namespace ascir_op = af::ascir_op;
+using af::AscIRException;
 namespace loop {
 #define GET_IR_ATTR_UNIQUE_(C, T, obj)                                                        \
   auto ir_attr_##C = dynamic_cast<ascir_op::T::Asc##T##IrAttrDef *>(obj->attr.ir_attr.get()); \
@@ -205,8 +208,9 @@ class AscOverrides final : public OpOverrides {
     asc_axis_.reserve(loop_axis.axis.size());
     asc_axis_repeats_.reserve(loop_axis.axis.size());
     for (size_t i = 0U; i < loop_axis.axis.size(); i++) {
-      const auto &asc_axis = graph_->CreateAxis(loop_axis.names[i], loop_axis.repeats[i]);
-      asc_axis_.push_back(asc_axis.id);
+      const auto repeat_str = loop_axis.repeats[i].Serialize();
+      const auto axis_id = af::AscGraphCreateAxisBySerializedExpr(*graph_, loop_axis.names[i].c_str(), repeat_str.get());
+      asc_axis_.push_back(axis_id);
       asc_axis_repeats_.push_back(loop_axis.repeats[i]);
     }
   }
@@ -1083,24 +1087,24 @@ class AscOverrides final : public OpOverrides {
   AscNodePtr MakeRawNode(const std::vector<AscVar> &vars, const std::vector<ge::DataType> &explicit_output_dtypes = {},
                          const std::vector<size_t> &dynamic_input_size = {},
                          const std::vector<size_t> &dynamic_output_size = {}) {
-    std::shared_ptr<T> op = std::make_shared<T>(NextName(T::Type).c_str());
-    GE_WARN_ASSERT(op != nullptr);
     GE_WARN_ASSERT(dynamic_input_size.size() <= 1U);
     GE_WARN_ASSERT(dynamic_output_size.size() <= 1U);
+    const size_t dyn_in  = dynamic_input_size.empty()  ? 0U : dynamic_input_size[0];
+    const size_t dyn_out = dynamic_output_size.empty() ? 0U : dynamic_output_size[0];
     std::vector<ge::DataType> input_dtypes;
-    if (dynamic_input_size.size() == 1U) {
-      GE_WARN_ASSERT(vars.size() == dynamic_input_size[0]);
-      op->DynamicInputRegister("x", dynamic_input_size[0]);
+    if (dyn_in > 0U) {
+      GE_WARN_ASSERT(vars.size() == dyn_in);
       input_dtypes.push_back(vars[0].Dtype());
     } else {
       for (const auto &var : vars) {
         input_dtypes.push_back(var.Dtype());
       }
     }
-    if (dynamic_output_size.size() == 1U) {
-      op->DynamicOutputRegister("y", dynamic_output_size[0]);
-    }
-    AscNodePtr node = graph_->AddNode(*op);
+    // ascir_op constructors call AscNodeAttr::Create which lives in libaihac_ir.so.
+    // Instantiate the node inside that .so via the bridge to avoid cross-library symbol issues.
+    AscNodePtr node = af::AscGraphAddAscirNodeByType(*graph_, T::Type,
+                                                     NextName(T::Type).c_str(),
+                                                     dyn_in, dyn_out);
     GE_WARN_ASSERT(node != nullptr);
     node->attr.sched.exec_order = NextOrder();
     node->attr.sched.axis = GetLoopAxisIds();

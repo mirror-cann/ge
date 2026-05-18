@@ -10,25 +10,18 @@
 
 #include "attribute_group/attr_group_base.h"
 
+namespace af {
+class AscTensorAttr;
+class AscNodeAttr;
+class AscGraphAttr;
+class AutoFuseAttrs;
+class AutoFuseGraphAttrs;
+}  // namespace af
+
 namespace ge {
 template<>
 GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY TypeId GetTypeId<AttrGroupsBase>() {
   return reinterpret_cast<TypeId>(10);
-}
-
-template<>
-GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY TypeId GetTypeId<AscTensorAttr>() {
-  return reinterpret_cast<TypeId>(11);
-}
-
-template<>
-GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY TypeId GetTypeId<AscNodeAttr>() {
-  return reinterpret_cast<TypeId>(12);
-}
-
-template<>
-GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY TypeId GetTypeId<AscGraphAttr>() {
-  return reinterpret_cast<TypeId>(13);
 }
 
 template<>
@@ -41,13 +34,29 @@ GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY TypeId GetTypeId<ShapeEnvAttr>() 
   return reinterpret_cast<TypeId>(15);
 }
 
-template <>
-GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY TypeId GetTypeId<AutoFuseAttrs>() {
-  return reinterpret_cast<TypeId>(16); // 16表示唯一ID
+template<>
+GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY TypeId GetTypeId<af::AscTensorAttr>() {
+  return reinterpret_cast<TypeId>(11);
 }
 
-template <>
-GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY TypeId GetTypeId<AutoFuseGraphAttrs>() {
-  return reinterpret_cast<TypeId>(17); // 17表示唯一ID
+template<>
+GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY TypeId GetTypeId<af::AscNodeAttr>() {
+  return reinterpret_cast<TypeId>(12);
 }
+
+template<>
+GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY TypeId GetTypeId<af::AscGraphAttr>() {
+  return reinterpret_cast<TypeId>(13);
+}
+
+template<>
+GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY TypeId GetTypeId<af::AutoFuseAttrs>() {
+  return reinterpret_cast<TypeId>(16);
+}
+
+template<>
+GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY TypeId GetTypeId<af::AutoFuseGraphAttrs>() {
+  return reinterpret_cast<TypeId>(17);
+}
+
 } // namespace ge

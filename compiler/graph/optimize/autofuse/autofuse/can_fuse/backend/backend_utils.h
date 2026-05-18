@@ -18,6 +18,17 @@
 #include "autoschedule/axis_group.h"
 
 namespace ge {
+using af::AutoFuseAttrs;
+using af::GetInterAttrs;
+using af::GetOrCreateAutoFuseAttrs;
+using af::FusionDecider;
+using af::FusionPriority;
+namespace loop {
+using af::loop::FuseType;
+using af::loop::FuseTypeToString;
+using af::loop::StrJoin;
+}
+
 const std::string kLoadType = "Load";
 const std::string kStoreType = "Store";
 const std::string kDataType = "Data";

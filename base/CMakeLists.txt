@@ -176,6 +176,10 @@ set(SRC_BASE_LIST
     "common/helper/mobile/model.cc"
     "common/error_registry/error_registry.cc"
     "common/ge_api_error_codes.cc"
+    "common/atrace/atracing_reporter.cpp"
+    "common/atrace/scope_tracing_recorder.cpp"
+    "common/atrace/tracing_recorder.cpp"
+    "common/atrace/tracing_recorder_manager.cpp"
 )
 
 if (NOT ENABLE_D AND NOT ENABLE_ACL)
@@ -286,6 +290,7 @@ target_include_directories(ge_common_base PRIVATE
     ${CMAKE_BINARY_DIR}
     ${CMAKE_BINARY_DIR}/proto/graphengine_protos
     ${ASCEND_INSTALL_PATH}/include/graph
+    ${ASCEND_INSTALL_PATH}/pkg_inc
     ${TOP_DIR}/runtime/pkg_inc
     ${TOP_DIR}/metadef/inc
     ${TOP_DIR}/air/inc/external
@@ -324,6 +329,7 @@ target_link_libraries(ge_common_base
         ascend_dump
         exe_graph
         lowering
+        $<$<NOT:$<STREQUAL:${ENABLE_TEST},True>>:atrace_share>
         -Wl,--as-needed
         json
         $<$<NOT:$<STREQUAL:${TARGET_SYSTEM_NAME},Android>>:-lrt>
@@ -332,6 +338,7 @@ target_link_libraries(ge_common_base
     PUBLIC
         air_headers
         metadef_headers
+        atrace_headers
 )
 
 ############ libge_common.a ############
@@ -516,6 +523,7 @@ target_link_libraries(ge_common_base
         unified_dlog
         platform
         static_mmpa
+        $<$<NOT:$<STREQUAL:${ENABLE_TEST},True>>:atrace_share>
         -Wl,--as-needed
         json
         -lrt
@@ -524,6 +532,7 @@ target_link_libraries(ge_common_base
     PUBLIC
         air_headers
         metadef_headers
+        atrace_headers
 )
 endif ()
 

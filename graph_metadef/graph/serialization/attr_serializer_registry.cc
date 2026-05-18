@@ -79,7 +79,7 @@ GeIrAttrSerializer *AttrSerializerRegistry::GetSerializer(const TypeId obj_type)
   if (iter == serializer_map_.cend()) {
     // print type
     REPORT_INNER_ERR_MSG("E18888", "Serializer for type has not been registered");
-    GELOGE(FAILED, "Serializer for type has not been registered");
+    GELOGE(FAILED, "Serializer for type[%zu] has not been registered", std::hash<const void *>{}(obj_type));
     return nullptr;
   }
   return iter->second;

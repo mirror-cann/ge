@@ -503,7 +503,6 @@ set_target_properties(fwk_stub_graph PROPERTIES
     OUTPUT_NAME graph
     LIBRARY_OUTPUT_DIRECTORY fwk_stub
 )
-add_subdirectory(ascendc_ir)
 add_subdirectory(expression)
 
 ############ install ############

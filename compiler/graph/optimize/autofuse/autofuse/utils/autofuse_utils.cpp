@@ -23,7 +23,7 @@
 #include "can_fuse/backend/backend_utils.h"
 #include "graph/detail/model_serialize_imp.h"
 #include "attribute_group/attr_group_shape_env.h"
-#include "graph/attribute_group/attr_group_symbolic_desc.h"
+#include "attribute_group/attr_group_symbolic_desc.h"
 #include "graph/utils/type_utils.h"
 #include "graph_metadef/graph/utils/file_utils.h"
 #include "mmpa/mmpa_api.h"

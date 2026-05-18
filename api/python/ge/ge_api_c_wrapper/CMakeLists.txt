@@ -60,6 +60,10 @@ target_link_libraries(ge_runtime_wrapper PRIVATE
         ge_runner
 )
 
+target_link_options(ge_runtime_wrapper PRIVATE
+        -Wl,--disable-new-dtags
+)
+
 ############ offline_compile_wrapper ############
 add_library(offline_compile_wrapper SHARED ${OFFLINE_COMPILE_WRAPPER_SRCS})
 target_compile_options(offline_compile_wrapper PRIVATE ${AIR_COMMON_DYNAMIC_COMPILE_OPTION})

@@ -292,11 +292,11 @@ TEST_F(SymbolizeValueST, test_symbolize_value_and_repeat_infer) {
   EXPECT_EQ(symbol_expr1.GetHint(hint), true);
   EXPECT_EQ(hint, 16);
 
-  auto mul_node = graph->FindNode("mul");
-  ASSERT_NE(mul_node, nullptr);
-  auto opdesc3 = mul_node->GetOpDesc();
-  ASSERT_NE(opdesc3, nullptr);
-  auto attr3 = opdesc3->MutableOutputDesc(0)->GetAttrsGroup<SymbolicDescAttr>();
+  auto netoutput_node = graph->FindNode("NetOutput");
+  ASSERT_NE(netoutput_node, nullptr);
+  auto netoutput_desc = netoutput_node->GetOpDesc();
+  ASSERT_NE(netoutput_desc, nullptr);
+  auto attr3 = netoutput_desc->GetInputDesc(1).GetAttrsGroup<SymbolicDescAttr>();
   ASSERT_NE(attr3, nullptr);
   auto symbol_expr3 = attr3->symbolic_tensor.GetOriginSymbolShape().GetDim(0);
   EXPECT_EQ(symbol_expr3.GetHint(hint), true);

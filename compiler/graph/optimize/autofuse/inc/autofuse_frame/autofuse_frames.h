@@ -13,27 +13,13 @@
 
 #include <cstdint>
 
-#include "ge_common/ge_api_types.h"
-#include "graph/gnode.h"
+#include "autofuse/autofuse_frame/autofuse_frames_af.h"
 
 namespace ge {
-struct GraphPasses {
-  std::function<Status(const ComputeGraphPtr &)> prune_graph_func;
-  std::function<Status(NodePtr &)> constant_folding_func;
-};
-
 extern "C" {
-class Counter;
-using CounterPtr = Counter*;
 ge::Status LoweringAndCanFuse(const ge::ComputeGraphPtr &graph);
 ge::Status LoweringAndCanFuseWithCounter(const ge::ComputeGraphPtr &graph, CounterPtr counter);
 }
-class Counter {
- public:
-  Counter() = default;
-  virtual ~Counter() = default;
-  virtual int64_t NextId() = 0;
-};
-}  // namespace autofusion
+}  // namespace ge
 
 #endif

@@ -14,6 +14,7 @@
 #include "ge_common/ge_api_types.h"
 #include "graph/compute_graph.h"
 #include "graph/ascendc_ir/ascendc_ir_core/ascendc_ir.h"
+#include "graph/ascendc_ir/ascendc_ir_core/asc_graph_ge_bridge.h"
 #include "post_process/post_process_util.h"
 #include "adaption_fallback_load.h"
 
@@ -46,10 +47,9 @@ inline Status GetSplitInfos(AscGraph &asc_graph, bool &has_split, std::map<NodeP
 }
 
 inline NodePtr CreateSplitNode(AscGraph &asc_graph, const NodePtr &load_node, uint32_t out_num) {
-  ge::ascir_op::Split split_op(("Split_Combine_"+ load_node->GetName()).c_str());
-  split_op.InstanceOutputy(out_num);
-  auto split_node = asc_graph.AddNode(split_op);
-  return split_node;
+  return af::AscGraphAddSplitNode(asc_graph,
+                                  ("Split_Combine_" + load_node->GetName()).c_str(),
+                                  out_num);
 }
 
 inline Status UpdateSplitNodeAttrs(const NodePtr &b_node, const std::vector<int64_t> &current_split_axis,

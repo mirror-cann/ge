@@ -12,6 +12,7 @@
 #include "common/checker.h"
 #include "graph/utils/node_utils.h"
 #include "graph/utils/graph_utils.h"
+#include "ascendc_ir/ascendc_ir_core/asc_graph_ge_bridge.h"
 #include "utils/autofuse_utils.h"
 #include "fusion/autofuse_attrs.h"
 #include "post_process/post_process_util.h"
@@ -142,17 +143,8 @@ Status IsNeedInsertCastBeforeStore(const AscGraph &asc_graph, const NodePtr &sto
 }
 
 NodePtr CreateCastNode(AscGraph &asc_graph, const NodePtr &node) {
-  OpDescBuilder cast_op_desc_builder("Cast_" + node->GetName() + "_" + std::to_string(AutofuseUtils::GenUniqueNumber()),
-                                     kCastType);
-  cast_op_desc_builder.AddInput("x");
-  cast_op_desc_builder.AddOutput("y");
-  auto cast_op_desc = cast_op_desc_builder.Build();
-  GE_ASSERT_NOTNULL(cast_op_desc);
-  cast_op_desc->AppendIrInput("x", ge::kIrInputRequired);
-  cast_op_desc->AppendIrOutput("y", ge::kIrOutputRequired);
-  auto op = std::make_shared<Operator>(OpDescUtils::CreateOperatorFromOpDesc(cast_op_desc));
-  GE_ASSERT_NOTNULL(op);
-  return asc_graph.AddNode(*op);
+  const std::string name = "Cast_" + node->GetName() + "_" + std::to_string(AutofuseUtils::GenUniqueNumber());
+  return af::AscGraphAddAscirNodeByType(asc_graph, kCastType.c_str(), name.c_str(), 0U, 0U);
 }
 
 Status ConstructAndInsertCastNode(AscGraph &asc_graph, const NodePtr &peer_in_node, NodePtr &c_node, int32_t input_idx) {

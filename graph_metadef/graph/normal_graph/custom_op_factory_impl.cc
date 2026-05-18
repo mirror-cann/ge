@@ -10,6 +10,7 @@
 
 #include "graph/custom_op_factory_impl.h"
 
+#include "external/graph/custom_op.h"
 #include "debug/ge_log.h"
 #include "common/util/mem_utils.h"
 #include "framework/common/types.h"

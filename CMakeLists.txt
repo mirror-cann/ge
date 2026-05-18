@@ -401,7 +401,7 @@ if ((CMAKE_BUILD_TYPE MATCHES GCOV) OR ENABLE_GE_DT)
         endif ()
 
         if (ENABLE_RT2_UT)
-            add_dependencies(select_targets ut_register ut_exe_graph ut_ascendc_ir ut_expression
+            add_dependencies(select_targets ut_register ut_exe_graph ut_expression
                     ut_libge_kernel_utest
                     ut_libgraph
                     ut_fast_runtime2_test
@@ -533,8 +533,8 @@ elseif (BUILD_OPEN_PROJECT OR ENABLE_OPEN_SRC)
             add_custom_target(ge-compiler)
             add_dependencies(ge-compiler parser_common aicore_utils fusion_pass op_compile_adapter aicpu_engine_common fmk_parser ge_compiler
                     fmk_onnx_parser opskernel ge_runner slice aicpu_const_folding llm_engine jit_exe _caffe_parser flow_graph aihac_autofusion
-                    dflow_runner eager_style_graph_builder_base eager_style_graph_builder_base_static gen_esb aihac_ir aihac_ir_register
-                    aihac_symbolizer pyautofuse ge_python llm_datadist_python_v1 dataflow_python ge_python_pass_bridge func2graph)
+                    dflow_runner eager_style_graph_builder_base eager_style_graph_builder_base_static gen_esb
+                    aihac_symbolizer ge_python llm_datadist_python_v1 dataflow_python ge_python_pass_bridge func2graph)
             add_dependencies(ge-compiler hcom_gradient_split_tune hcom_graph_adaptor hcom_opskernel_builder hcom_gradtune_opskernel_builder)
             add_dependencies(ge-compiler aicpu_ascend_engine aicpu_tf_engine dvpp_engine fe ffts ge_local_engine ge_local_opskernel_builder
                     host_cpu_opskernel_builder host_cpu_engine engine)

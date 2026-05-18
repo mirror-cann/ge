@@ -25,7 +25,6 @@ set(GRAPHENGINE_PROTO_LIST
     "${METADEF_PROTO_DIR}/task.proto"
     "${METADEF_PROTO_DIR}/insert_op.proto"
     "${METADEF_PROTO_DIR}/ge_ir.proto"
-    "${METADEF_PROTO_DIR}/ascendc_ir.proto"
     "${METADEF_PROTO_DIR}/ge_api.proto"
     "${METADEF_PROTO_DIR}/fusion_model.proto"
     "${METADEF_PROTO_DIR}/optimizer_priority.proto"
