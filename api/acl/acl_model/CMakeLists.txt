@@ -100,7 +100,7 @@ target_link_libraries(acl_mdl_impl PRIVATE
     graph_base
     graph
 
-    acl_mdl_impl_om2    # OM2 model support; also provides aclTensorDesc::Init/copy-ctor/operator=
+    acl_mdl_impl_om2
 
     -Wl,--as-needed
     $<$<NOT:$<STREQUAL:${TARGET_SYSTEM_NAME},Android>>:-lrt>
@@ -191,14 +191,13 @@ target_link_libraries(acl_mdl_impl_om2 PRIVATE
     -Wl,--whole-archive
     -Wl,--no-whole-archive
     -Wl,--no-as-needed
-    acl_rt          # aclrtGetDevice/aclrtMalloc/aclrtMemcpy (model_om2.cpp)
-    c_sec           # memcpy_s/strncpy_s (tensor_desc_internal_om2.cpp, model_common.cpp)
-    unified_dlog    # ACL_LOG_INFO/ACL_LOG_ERROR/ACL_LOG_WARN (all source files)
-    mmpa            # MmGetEnv/MmGetPid, platform abstraction (acl_resource_manager_om2.cpp)
-    profapi_share   # ACL_PROFILING_REG, profiling registration (model_om2.cpp)
-    ge_common_base
-    error_manager   # AclErrorLogManager::ReportInputError (model_common.cpp, model_config_om2.cpp)
-    om2_executor    # gert::LoadOm2DataFromFile, executor->Run/GetModelDescInfo (model_om2.cpp)
+    acl_rt
+    c_sec
+    unified_dlog
+    mmpa
+    profapi_share
+    error_manager
+    om2_executor
     -Wl,--as-needed
 
     $<$<NOT:$<STREQUAL:${TARGET_SYSTEM_NAME},Android>>:-lrt>

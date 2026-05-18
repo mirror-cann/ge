@@ -76,7 +76,7 @@ void aclTensorDesc::Init(const aclTensorDesc &tensorDesc)
     this->cachedShapeKey = tensorDesc.cachedShapeKey;
     this->memtype = tensorDesc.memtype;
     for (const auto &it : tensorDesc.valueRange) {
-        this->valueRange[it.first] = it.second.Copy();
+        this->valueRange.emplace(it);
     }
 }
 

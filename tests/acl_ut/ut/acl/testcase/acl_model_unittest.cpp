@@ -567,8 +567,7 @@ TEST_F(UTEST_ACL_Model, aclmdlGetDesc_Ok_GetDescFromOm2) {
     uint32_t modelId = std::numeric_limits<uint32_t>::max() / 2U + 1;
     auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
     ASSERT_NE(om2_executor, nullptr);
-    std::shared_ptr<gert::RtSession> rtSession = nullptr;
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(modelId, std::move(om2_executor), rtSession);
+    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(modelId, std::move(om2_executor));
     
     aclmdlDesc* desc = aclmdlCreateDesc();
     EXPECT_NE(desc, nullptr);
@@ -5130,8 +5129,7 @@ TEST_F(UTEST_ACL_Model, aclmdlExecuteV2_Om2Executor_RoutesToOm2ModelExecute)
     uint32_t modelId = std::numeric_limits<uint32_t>::max() / 2U + 1;
     auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
     ASSERT_NE(om2_executor, nullptr);
-    std::shared_ptr<gert::RtSession> rtSession = nullptr;
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(modelId, std::move(om2_executor), rtSession);
+    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(modelId, std::move(om2_executor));
 
     aclmdlExecConfigHandle *handle = aclmdlCreateExecConfigHandle();
     EXPECT_NE(handle, nullptr);
@@ -5177,8 +5175,7 @@ TEST_F(UTEST_ACL_Model, aclmdlGetCurOutputDims_Om2Executor_ReturnsStaticDims)
     // Add OM2 executor for this modelId
     auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
     ASSERT_NE(om2_executor, nullptr);
-    std::shared_ptr<gert::RtSession> rtSession = nullptr;
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(modelId, std::move(om2_executor), rtSession);
+    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(modelId, std::move(om2_executor));
 
     // Setup input/output desc for static dims retrieval
     aclmdlTensorDesc tensorDesc;
@@ -5352,8 +5349,7 @@ TEST_F(UTEST_ACL_Model, aclmdlExecuteV2_Om2Executor_WithGetOpAttrFlow)
     // Setup OM2 executor
     auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
     ASSERT_NE(om2_executor, nullptr);
-    std::shared_ptr<gert::RtSession> rtSession = nullptr;
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(modelId, std::move(om2_executor), rtSession);
+    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(modelId, std::move(om2_executor));
 
     // Mock GetModelDescInfo for desc population
     EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
@@ -5448,8 +5444,7 @@ TEST_F(UTEST_ACL_Model, aclmdlExecuteV2_Om2ModelId_RoutesToOm2Executor)
     // Register OM2 executor for this model ID
     auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
     ASSERT_NE(om2_executor, nullptr);
-    std::shared_ptr<gert::RtSession> rtSession = nullptr;
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor), rtSession);
+    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
     // Create datasets
     aclmdlDataset *inputDataset = aclmdlCreateDataset();
@@ -5474,8 +5469,7 @@ TEST_F(UTEST_ACL_Model, aclmdlGetDesc_Om2ModelId_RoutesToOm2Impl)
     // Register OM2 executor for this model ID
     auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
     ASSERT_NE(om2_executor, nullptr);
-    std::shared_ptr<gert::RtSession> rtSession = nullptr;
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor), rtSession);
+    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
     // Get model descriptor - should route to OM2 implementation
     aclmdlDesc *desc = aclmdlCreateDesc();
@@ -5498,8 +5492,7 @@ TEST_F(UTEST_ACL_Model, aclmdlUnload_Om2ModelId_RoutesToOm2Impl)
     // Register OM2 executor for this model ID
     auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
     ASSERT_NE(om2_executor, nullptr);
-    std::shared_ptr<gert::RtSession> rtSession = nullptr;
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor), rtSession);
+    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
     // Verify that the OM2 executor exists before unload
     auto executor_before = acl::AclResourceManagerOm2::GetInstance().GetOm2Executor(om2_model_id);
@@ -5650,8 +5643,7 @@ TEST_F(UTEST_ACL_Model, aclmdlUnload_Om2ModelId_RoutesToOm2Impl_Batch2)
     // Register OM2 executor for this model ID
     auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
     ASSERT_NE(om2_executor, nullptr);
-    std::shared_ptr<gert::RtSession> rtSession = nullptr;
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor), rtSession);
+    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
     // Verify that the OM2 executor exists before unload
     auto executor_before = acl::AclResourceManagerOm2::GetInstance().GetOm2Executor(om2_model_id);
@@ -5691,8 +5683,7 @@ TEST_F(UTEST_ACL_Model, aclmdlExecuteV2_Om2ModelId_RoutesToOm2Impl_Batch3)
     // Register OM2 executor for this model ID
     auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
     ASSERT_NE(om2_executor, nullptr);
-    std::shared_ptr<gert::RtSession> rtSession = nullptr;
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor), rtSession);
+    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
     // Create datasets
     aclmdlDataset *inputDataset = aclmdlCreateDataset();
@@ -5717,8 +5708,7 @@ TEST_F(UTEST_ACL_Model, aclmdlExecuteAsync_Om2ModelId_RoutesToOm2Impl)
     // Register OM2 executor for this model ID
     auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
     ASSERT_NE(om2_executor, nullptr);
-    std::shared_ptr<gert::RtSession> rtSession = nullptr;
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor), rtSession);
+    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
     // Create datasets
     aclmdlDataset *inputDataset = aclmdlCreateDataset();
@@ -5776,8 +5766,7 @@ TEST_F(UTEST_ACL_Model, aclmdlGetDesc_Om2ModelId_RoutesToOm2Impl_Batch3)
     // Register OM2 executor for this model ID
     auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
     ASSERT_NE(om2_executor, nullptr);
-    std::shared_ptr<gert::RtSession> rtSession = nullptr;
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor), rtSession);
+    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
     // Get model descriptor - should route to OM2 implementation
     aclmdlDesc *desc = aclmdlCreateDesc();
@@ -5827,8 +5816,7 @@ TEST_F(UTEST_ACL_Model, aclmdlSetDynamicBatchSize_Om2ModelId_ReturnsNotSupported
     // Register OM2 executor for this model ID
     auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
     ASSERT_NE(om2_executor, nullptr);
-    std::shared_ptr<gert::RtSession> rtSession = nullptr;
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor), rtSession);
+    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
     // Create dataset
     aclmdlDataset *dataset = aclmdlCreateDataset();
@@ -5850,8 +5838,7 @@ TEST_F(UTEST_ACL_Model, aclmdlSetDynamicHW_Om2ModelId_ReturnsNotSupported)
     // Register OM2 executor for this model ID
     auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
     ASSERT_NE(om2_executor, nullptr);
-    std::shared_ptr<gert::RtSession> rtSession = nullptr;
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor), rtSession);
+    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
     // Create dataset
     aclmdlDataset *dataset = aclmdlCreateDataset();
@@ -5873,8 +5860,7 @@ TEST_F(UTEST_ACL_Model, aclmdlSetInputDynamicDims_Om2ModelId_ReturnsNotSupported
     // Register OM2 executor for this model ID
     auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
     ASSERT_NE(om2_executor, nullptr);
-    std::shared_ptr<gert::RtSession> rtSession = nullptr;
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor), rtSession);
+    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
     // Create dataset
     aclmdlDataset *dataset = aclmdlCreateDataset();
@@ -5904,8 +5890,7 @@ TEST_F(UTEST_ACL_Model, aclmdlGetAIPPInfo_Om2ModelId_ReturnsNotSupported)
     // Register OM2 executor for this model ID
     auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
     ASSERT_NE(om2_executor, nullptr);
-    std::shared_ptr<gert::RtSession> rtSession = nullptr;
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor), rtSession);
+    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
     // Create descriptor
     aclmdlDesc *desc = aclmdlCreateDesc();
@@ -5929,8 +5914,7 @@ TEST_F(UTEST_ACL_Model, aclmdlGetCurOutputDims_Om2ModelId_ReturnsNotSupported)
     // Register OM2 executor for this model ID
     auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
     ASSERT_NE(om2_executor, nullptr);
-    std::shared_ptr<gert::RtSession> rtSession = nullptr;
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor), rtSession);
+    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
     // Create descriptor
     aclmdlDesc *desc = aclmdlCreateDesc();
@@ -5954,8 +5938,7 @@ TEST_F(UTEST_ACL_Model, aclmdlGetInputDims_Om2ModelId_ReturnsNotSupported)
     // Register OM2 executor for this model ID
     auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
     ASSERT_NE(om2_executor, nullptr);
-    std::shared_ptr<gert::RtSession> rtSession = nullptr;
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor), rtSession);
+    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
     // Create descriptor
     aclmdlDesc *desc = aclmdlCreateDesc();
@@ -5979,8 +5962,7 @@ TEST_F(UTEST_ACL_Model, aclmdlGetOutputDims_Om2ModelId_ReturnsNotSupported)
     // Register OM2 executor for this model ID
     auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
     ASSERT_NE(om2_executor, nullptr);
-    std::shared_ptr<gert::RtSession> rtSession = nullptr;
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor), rtSession);
+    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
     // Create descriptor
     aclmdlDesc *desc = aclmdlCreateDesc();
@@ -6004,8 +5986,7 @@ TEST_F(UTEST_ACL_Model, aclmdlSetDynamicBatchSize_Om2ModelId_ReturnsNotSupported
     // Register OM2 executor for this model ID
     auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
     ASSERT_NE(om2_executor, nullptr);
-    std::shared_ptr<gert::RtSession> rtSession = nullptr;
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor), rtSession);
+    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
     // Create dataset
     aclmdlDataset *dataset = aclmdlCreateDataset();
@@ -6027,8 +6008,7 @@ TEST_F(UTEST_ACL_Model, aclmdlGetInputName_Om2ModelId_ReturnsNotSupported)
     // Register OM2 executor for this model ID
     auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
     ASSERT_NE(om2_executor, nullptr);
-    std::shared_ptr<gert::RtSession> rtSession = nullptr;
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor), rtSession);
+    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
     // Create descriptor
     aclmdlDesc *desc = aclmdlCreateDesc();
@@ -6073,8 +6053,7 @@ TEST_F(UTEST_ACL_Model, aclmdlExecuteV2_Om2BundleId_RoutesToOm2Impl)
     // Register OM2 executor for this Bundle ID
     auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
     ASSERT_NE(om2_executor, nullptr);
-    std::shared_ptr<gert::RtSession> rtSession = nullptr;
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_bundle_id, std::move(om2_executor), rtSession);
+    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_bundle_id, std::move(om2_executor));
 
     // Verify that the OM2 executor was registered
     auto executor = acl::AclResourceManagerOm2::GetInstance().GetOm2Executor(om2_bundle_id);
@@ -6103,8 +6082,7 @@ TEST_F(UTEST_ACL_Model, aclmdlUnload_Om2BundleId_RoutesToOm2Impl)
     // Register OM2 executor for this Bundle ID
     auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
     ASSERT_NE(om2_executor, nullptr);
-    std::shared_ptr<gert::RtSession> rtSession = nullptr;
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_bundle_id, std::move(om2_executor), rtSession);
+    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_bundle_id, std::move(om2_executor));
 
     // Verify that the OM2 executor exists before unload
     auto executor_before = acl::AclResourceManagerOm2::GetInstance().GetOm2Executor(om2_bundle_id);

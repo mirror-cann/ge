@@ -43,6 +43,7 @@ set(MODEL_SRC_FILES
     "${BASE_DIR}/api/acl/acl_model/model/model_om2.cpp"
     "${BASE_DIR}/api/acl/acl_model/model/acl_aipp_om2.cpp"
     "${BASE_DIR}/api/acl/acl_model/model/acl_resource_manager_om2.cpp"
+    "${BASE_DIR}/api/acl/acl_model/model/acl_model_router.cpp"
     "${BASE_DIR}/api/acl/acl_model/model/model_config_om2.cpp"
     "${BASE_DIR}/api/acl/acl_model/types/tensor_desc_internal_om2.cpp"
     "${BASE_DIR}/api/acl/acl_model/model/model_common.cpp"

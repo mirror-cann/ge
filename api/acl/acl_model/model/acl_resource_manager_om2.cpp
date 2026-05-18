@@ -52,11 +52,10 @@ void AclResourceManagerOm2::GetRuntimeV2Env()
 }
 
 void AclResourceManagerOm2::AddOm2Executor(uint32_t &modelId,
-                                           std::unique_ptr<gert::Om2ModelExecutor> &&executor,
-                                           const std::shared_ptr<gert::RtSession> &rtSession)
+                                           std::unique_ptr<gert::Om2ModelExecutor> &&executor)
 {
     modelId = GenerateModelId();
-    AddOm2ExecutorWithModelId(modelId, std::move(executor), rtSession);
+    AddOm2ExecutorWithModelId(modelId, std::move(executor));
 }
 
 uint32_t AclResourceManagerOm2::GenerateModelId()
@@ -67,14 +66,10 @@ uint32_t AclResourceManagerOm2::GenerateModelId()
 }
 
 void AclResourceManagerOm2::AddOm2ExecutorWithModelId(uint32_t modelId,
-                                                      std::unique_ptr<gert::Om2ModelExecutor> &&executor,
-                                                      const std::shared_ptr<gert::RtSession> &rtSession)
+                                                      std::unique_ptr<gert::Om2ModelExecutor> &&executor)
 {
     const std::lock_guard<std::mutex> locker(mutex_);
     om2ExecutorMap_[modelId] = std::move(executor);
-    if (rtSession != nullptr) {
-        rtSessionMap_[modelId] = rtSession;
-    }
 }
 
 std::shared_ptr<gert::Om2ModelExecutor> AclResourceManagerOm2::GetOm2Executor(const uint32_t modelId)
@@ -121,11 +116,6 @@ aclError AclResourceManagerOm2::DeleteOm2Executor(const uint32_t modelId)
         return ACL_ERROR_GE_EXEC_MODEL_ID_INVALID;
     }
     (void)om2ExecutorMap_.erase(iter);
-
-    const auto it = rtSessionMap_.find(modelId);
-    if (it != rtSessionMap_.end()) {
-        (void)rtSessionMap_.erase(it);
-    }
     return ACL_SUCCESS;
 }
 
@@ -194,24 +184,5 @@ bool AclResourceManagerOm2::IsOm2BundleById(const uint32_t bundleId) const
     const std::lock_guard<std::mutex> locker(mutex_);
     return bundleInfos_.find(bundleId) != bundleInfos_.end();
 }
-
-std::shared_ptr<gert::RtSession> AclResourceManagerOm2::CreateRtSession()
-{
-    const std::lock_guard<std::mutex> locker(mutex_);
-    ++sessionIdGenerator_;
-    auto sessionId = sessionIdGenerator_.load();
-    return std::make_shared<gert::RtSession>(sessionId);
-}
-
-std::shared_ptr<gert::RtSession> AclResourceManagerOm2::GetRtSession(const uint64_t rtSessionId)
-{
-    const std::lock_guard<std::mutex> locker(mutex_);
-    const auto it = rtSessionMap_.find(rtSessionId);
-    if (it == rtSessionMap_.end()) {
-        return nullptr;
-    }
-    return it->second;
-}
-
 
 } // namespace acl

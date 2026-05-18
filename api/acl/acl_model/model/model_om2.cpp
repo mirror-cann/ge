@@ -224,8 +224,6 @@ aclError ConstructOm2ModelLoadArg(void* workPtr, size_t workSize, void* weightPt
 
 aclError Om2ModelLoadFromFileWithMem(const char_t* const modelPath, uint32_t* const modelId,
                                      const gert::Om2ModelLoadArg& loadArgs) {
-    auto rtSession = acl::AclResourceManagerOm2::GetInstance().CreateRtSession();
-    ACL_REQUIRES_NOT_NULL(rtSession);
     ge::ModelData modelData;
     auto ret = gert::LoadOm2DataFromFile(modelPath, modelData);
     std::shared_ptr<void> dataGuarder;
@@ -249,7 +247,7 @@ aclError Om2ModelLoadFromFileWithMem(const char_t* const modelPath, uint32_t* co
         return ACL_GET_ERRCODE_GE(static_cast<int32_t>(ret));
     }
     ACL_REQUIRES_NOT_NULL(executor);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2ExecutorWithModelId(*modelId, std::move(executor), rtSession);
+    acl::AclResourceManagerOm2::GetInstance().AddOm2ExecutorWithModelId(*modelId, std::move(executor));
     return ACL_SUCCESS;
 }
 
@@ -274,7 +272,7 @@ aclError Om2ModelLoadFromMemWithMem(const void* const model, const size_t modelS
         return ACL_GET_ERRCODE_GE(static_cast<int32_t>(errorStatus));
     }
     ACL_REQUIRES_NOT_NULL(executor);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2ExecutorWithModelId(*modelId, std::move(executor), nullptr);
+    acl::AclResourceManagerOm2::GetInstance().AddOm2ExecutorWithModelId(*modelId, std::move(executor));
     return ACL_SUCCESS;
 }
 

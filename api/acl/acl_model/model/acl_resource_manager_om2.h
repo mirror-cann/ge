@@ -34,12 +34,10 @@ public:
 
     // OM2 Executor管理
     void AddOm2Executor(uint32_t &modelId,
-                        std::unique_ptr<gert::Om2ModelExecutor> &&executor,
-                        const std::shared_ptr<gert::RtSession> &rtSession = nullptr);
+                        std::unique_ptr<gert::Om2ModelExecutor> &&executor);
     uint32_t GenerateModelId();
     void AddOm2ExecutorWithModelId(uint32_t modelId,
-                                   std::unique_ptr<gert::Om2ModelExecutor> &&executor,
-                                   const std::shared_ptr<gert::RtSession> &rtSession = nullptr);
+                                   std::unique_ptr<gert::Om2ModelExecutor> &&executor);
     std::shared_ptr<gert::Om2ModelExecutor> GetOm2Executor(const uint32_t modelId);
     aclError GetOpDescInfo(uint32_t deviceId, uint32_t streamId, uint32_t taskId, ge::OpDescInfo &opDescInfo);
     aclError DeleteOm2Executor(const uint32_t modelId);
@@ -54,10 +52,6 @@ public:
     bool IsBundleInnerId(const uint32_t modelId) const;
     bool IsOm2BundleById(const uint32_t bundleId) const;
 
-    // RtSession管理
-    std::shared_ptr<gert::RtSession> CreateRtSession();
-    std::shared_ptr<gert::RtSession> GetRtSession(const uint64_t rtSessionId);
-
 private:
     AclResourceManagerOm2();
     void GetRuntimeV2Env();
@@ -68,8 +62,6 @@ private:
     std::atomic_uint32_t modelIdGenerator_{std::numeric_limits<uint32_t>::max() / 2U};
     std::unordered_map<uint32_t, BundleModelInfo> bundleInfos_;
     std::set<uint32_t> bundleInnerIds_;
-    std::atomic_uint64_t sessionIdGenerator_{std::numeric_limits<uint64_t>::max() / 2U};
-    std::map<uint64_t, std::shared_ptr<gert::RtSession>> rtSessionMap_;
     mutable std::mutex mutex_;
 };
 

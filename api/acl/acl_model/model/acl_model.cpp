@@ -530,7 +530,14 @@ aclError aclmdlGetOutputDims(const aclmdlDesc *modelDesc, size_t index, aclmdlIO
 
 aclError aclmdlGetCurOutputDims(const aclmdlDesc *modelDesc, size_t index, aclmdlIODims *dims)
 {
-    return aclmdlGetCurOutputDimsImpl(modelDesc, index, dims);
+    bool isOm2 = false;
+    aclError ret = AclIsOm2ModelByDesc(modelDesc, &isOm2);
+    if (ret != ACL_ERROR_NONE) {
+        return ret;
+    }
+    return isOm2 ?
+        aclmdlGetCurOutputDimsImplOm2(modelDesc, index, dims) :
+        aclmdlGetCurOutputDimsImpl(modelDesc, index, dims);
 }
 
 const char *aclmdlGetOpAttr(aclmdlDesc *modelDesc, const char *opName, const char *attr)
