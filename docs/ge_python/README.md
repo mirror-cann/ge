@@ -12,6 +12,7 @@ GE-PY 模块包含以下核心组件：
 - **offline_compile 模块** - 离线图编译接口
 - **session 模块** - 图编译执行接口
 - **allocator 模块** - 内存分配器抽象，供异步执行场景注册外置 allocator
+- **utils 模块** - GE 公共工具接口，提供 Shape 推导、节点 AICore 支持性校验等能力
 - **es 模块** - Eager-Style 图构建接口，提供函数式风格的图构建方式
 - **pyatc 模块** - `atc` 命令行等价入口，便于指定 ATC 进程内的 python 解释器
 
@@ -28,6 +29,7 @@ GE-PY 模块包含以下核心组件：
   - GeApi 类：GE 初始化和析构
   - Session 类：图编译执行接口
   - Allocator 类：异步执行场景下的外置内存分配器接口
+  - GeUtils 类：Shape 推导与节点 AICore 支持性校验工具接口
 
 - **[ES-PY 模块文档](../es/api/es_python.md)** - Eager-Style 图构建模块的详细说明
   - GraphBuilder 类：Eager-Style 图构建器
@@ -48,6 +50,7 @@ GE-PY 模块包含以下核心组件：
 - **passes 模块** - 提供自定义 Fusion Pass 开发能力，通过装饰器注册 Pass，在编译阶段由 GE 自动发现并执行
 - **es 模块** - 提供函数式图构建方式，最终构建出 graph 模块的 Graph 对象
 - **allocator 模块** - 为 session 异步执行提供按 stream 维度注册的外置内存分配能力
+- **utils 模块** - 面向 graph 模块对象提供公共工具能力，供 Python pass 等场景对 replacement graph 执行 Shape 推导和节点支持性校验
 - **session 模块** - 使用 graph 模块构建的图进行编译和执行，编译过程中会加载并执行 passes 模块注册的 Pass
 - **ge_global 模块** - 提供全局初始化和资源管理
 - **offline_compile 模块** - 提供离线模型构建、导出能力

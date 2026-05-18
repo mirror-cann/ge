@@ -18,6 +18,7 @@
 #include "graph/ascend_string.h"
 #include "graph/utils/math_util.h"
 #include "common/checker.h"
+#include "ge_common/ge_api_types.h"
 #include "ge/eager_style_graph_builder/c/esb_funcs.h"
 
 namespace ge {
@@ -254,6 +255,11 @@ ge::Graph **GeApiWrapper_Graph_GetAllSubgraphs(const ge::Graph *graph, size_t *s
 ge::Graph *GeApiWrapper_Graph_GetSubGraph(const ge::Graph *graph, const char *name);
 ge::graphStatus GeApiWrapper_Graph_AddSubGraph(ge::Graph *graph, const ge::Graph *subgraph);
 ge::graphStatus GeApiWrapper_Graph_RemoveSubgraph(ge::Graph *graph, const char *name);
+ge::Status GeApiWrapper_GeUtils_InferShape(const ge::Graph *graph, const int64_t *dims, size_t dims_num,
+                                           const size_t *shape_ranks, size_t shape_num);
+ge::Status GeApiWrapper_GeUtils_CheckNodeSupportOnAicore(const ge::GNode *node, bool *is_supported,
+                                                         char **unsupported_reason);
+void GeApiWrapper_GeUtils_FreeString(char *p);
 ge::Format GeApiWrapper_Tensor_GetFormat(EsCTensor *tensor);
 EsCTensor *GeApiWrapper_Tensor_CreateTensor();
 void GeApiWrapper_Tensor_DestroyEsCTensor(EsCTensor *tensor);

@@ -16,7 +16,6 @@ import torch.nn as nn
 import torch_npu
 import torchair
 from torch.library import impl
-from torch_npu.testing.testcase import TestCase, run_tests
 from torchair import register_fx_node_ge_converter
 from torchair.ge import Tensor
 from torch_npu.op_plugin.meta._meta_registrations import m

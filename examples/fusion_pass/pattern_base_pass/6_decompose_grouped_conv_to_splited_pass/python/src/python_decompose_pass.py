@@ -13,7 +13,8 @@
 """Python DecomposePass sample for grouped Conv2D decomposition."""
 
 from ge.es import GraphBuilder, TensorHolder
-from ge.graph import Graph, Node
+from ge.utils import GeUtils
+from ge.graph import DataType, Format, Graph, Node, TensorDesc
 from ge.passes import DecomposePass, PassStage, register_decompose_pass
 
 try:
@@ -32,9 +33,12 @@ except ImportError:
     ConcatV2 = None
 
 try:
-    from ge.es.nn import Conv2DV2 as Conv2D
+    from ge.es.nn import Conv2D
 except ImportError:
-    Conv2D = None
+    try:
+        from ge.es.all import Conv2D
+    except ImportError:
+        Conv2D = None
 
 
 def _require_es_apis() -> None:
@@ -44,8 +48,8 @@ def _require_es_apis() -> None:
         )
     if Conv2D is None:
         raise RuntimeError(
-            "未找到 ge.es.nn.Conv2DV2。当前样例优先复用本地 run 包中的 ES Python API，"
-            "请先 source CANN 环境并确认已安装 ops 包。"
+            "未找到 ge.es.nn.Conv2D / ge.es.all.Conv2D。当前样例优先复用本地 run 包中的 ES Python API，"
+            "请先 source CANN 环境并确认已安装 ops 包或确保 es_all 已正确生成并加载。"
         )
     if Concat is None and ConcatV2 is None:
         raise RuntimeError(
@@ -55,8 +59,37 @@ def _require_es_apis() -> None:
 
 def _concat_tensors(tensors: list[TensorHolder]) -> TensorHolder:
     if Concat is not None:
-        return Concat(1, tensors, len(tensors))
+        return Concat(1, tensors, N=len(tensors))
     return ConcatV2(tensors, 1, N=len(tensors))
+
+
+def _infer_shape_and_check_support(matched_node: Node, graph: Graph) -> bool:
+    input_shapes = []
+    for input_index in range(matched_node.get_inputs_size()):
+        input_shapes.append(matched_node.get_input_desc(input_index).get_shape())
+
+    try:
+        GeUtils.infer_shape(graph, input_shapes)
+    except RuntimeError as exc:
+        print(f"InferShape failed, reason: {exc}")
+        return False
+
+    for graph_node in graph.get_all_nodes():
+        node_type = graph_node.type
+        if node_type in ("Const", "Data"):
+            continue
+        try:
+            is_supported, unsupported_reason = GeUtils.check_node_support_on_aicore(graph_node)
+        except RuntimeError as exc:
+            print(f"CheckNodeSupportOnAicore failed, reason: {exc}")
+            return False
+        if not is_supported:
+            print(
+                f"Node is not supported on current ai core! reason: {unsupported_reason} "
+                f"node name: {graph_node.name} node type: {node_type}"
+            )
+            return False
+    return True
 
 
 @register_decompose_pass(
@@ -84,7 +117,6 @@ class PythonDecomposeGroupedConvToSplitedPass(DecomposePass):
             strides = node.get_attr("strides")
             pads = node.get_attr("pads")
             dilations = node.get_attr("dilations")
-            data_format = node.get_attr("data_format")
         except RuntimeError as exc:
             raise RuntimeError("Get attributes failed") from exc
 
@@ -97,25 +129,35 @@ class PythonDecomposeGroupedConvToSplitedPass(DecomposePass):
 
         conv_outputs: list[TensorHolder] = []
         for input_slice, filter_slice in zip(input_slices, filter_slices):
-            conv_outputs.append(
-                Conv2D(
-                    input_slice,
-                    filter_slice,
-                    None,
-                    None,
-                    strides,
-                    pads,
-                    dilations,
-                    1,
-                    data_format,
-                )
+            r_conv = Conv2D(
+                input_slice,
+                filter_slice,
+                None,
+                None,
+                strides=strides,
+                pads=pads,
+                dilations=dilations,
+                groups=1,
+                data_format="NCHW",
             )
 
+            desc = TensorDesc([], Format.FORMAT_NCHW, DataType.DT_FLOAT)
+            desc.set_origin_format(Format.FORMAT_NCHW)
+            conv_node = r_conv._get_node_snapshot()
+            conv_node.update_input_desc(0, desc)
+            conv_node.update_input_desc(1, desc)
+            conv_node.update_output_desc(0, desc)
+            conv_outputs.append(r_conv)
+
         result = _concat_tensors(conv_outputs)
-        return builder.build_and_reset([result])
+        replacement_graph = builder.build_and_reset([result])
+        if not _infer_shape_and_check_support(node, replacement_graph):
+            raise RuntimeError("InferShape or CheckNodeSupportOnAicore failed")
+
+        return replacement_graph
 
 
 if __name__ == "__main__":
     print("PythonDecomposeGroupedConvToSplitedPass 已注册。")
-    print("请先 source CANN 环境，并确认 ge.es.math / ge.es.nn 可导入，然后通过 ASCEND_GE_PY_PASS_PATH 指向本文件，例如：")
-    print("  export ASCEND_GE_PY_PASS_PATH=$PWD/python/src/test_python_decompose_pass.py")
+    print("请先 source CANN 环境并生成 es_all，确认 ge.es.math / ge.es.nn / ge.es.all 可导入，然后通过 ASCEND_GE_PY_PASS_PATH 指向本文件，例如：")
+    print("  export ASCEND_GE_PY_PASS_PATH=$PWD/src/python_decompose_pass.py")

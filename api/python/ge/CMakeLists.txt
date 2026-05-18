@@ -28,6 +28,7 @@ add_custom_command(
          && cp $<TARGET_FILE:ge_runtime_wrapper> ${CMAKE_CURRENT_BINARY_DIR}/wheel/ge/_capi/
          && cp $<TARGET_FILE:offline_compile_wrapper> ${CMAKE_CURRENT_BINARY_DIR}/wheel/ge/_capi/
          && cp $<TARGET_FILE:pyatc_wrapper> ${CMAKE_CURRENT_BINARY_DIR}/wheel/ge/_capi/
+         && cp $<TARGET_FILE:ge_utils_wrapper> ${CMAKE_CURRENT_BINARY_DIR}/wheel/ge/_capi/
          && cp $<TARGET_FILE:_ge_pass_native> ${CMAKE_CURRENT_BINARY_DIR}/wheel/ge/passes/
          && cd ${CMAKE_CURRENT_BINARY_DIR}/wheel
          && ${HI_PYTHON} setup.py bdist_wheel >/dev/null

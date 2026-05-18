@@ -48,12 +48,12 @@ def _is_tensor_value_equal_to_zero(tensor):
     return False
 
 
-@register_fusion_pass(name="PythonAddZeroPassCppEquivalent", stage=PassStage.BEFORE_INFER_SHAPE)
-class PythonAddZeroPassCppEquivalent(PatternFusionPass):
+@register_fusion_pass(name="PythonAddZeroPass", stage=PassStage.BEFORE_INFER_SHAPE)
+class PythonAddZeroPass(PatternFusionPass):
     """Recognize Add(x, 0) and replace it with x using explicit Const validation."""
 
     def patterns(self):
-        pattern_builder = GraphBuilder("add_zero_pattern_cpp_equivalent")
+        pattern_builder = GraphBuilder("add_zero_pattern")
         input_tensor = pattern_builder.create_input(0)
         placeholder_const = pattern_builder.create_const_int32(0)
         add_tensor = input_tensor + placeholder_const
@@ -71,7 +71,7 @@ class PythonAddZeroPassCppEquivalent(PatternFusionPass):
             const_tensor = node.get_attr("value")
             is_zero = _is_tensor_value_equal_to_zero(const_tensor)
             print(
-                f"[PythonAddZeroPassCppEquivalent] matched={match_result.get_pattern_graph_name()} "
+                f"[PythonAddZeroPass] matched={match_result.get_pattern_graph_name()} "
                 f"captured={captured_input.node.name}:{captured_input.index} "
                 f"const_dtype={const_tensor.data_type.name} zero={is_zero}"
             )
@@ -79,13 +79,13 @@ class PythonAddZeroPassCppEquivalent(PatternFusionPass):
         return True
 
     def replacement(self, match_result):
-        replacement_builder = GraphBuilder("add_zero_replacement_cpp_equivalent")
+        replacement_builder = GraphBuilder("add_zero_replacement")
         passthrough = replacement_builder.create_input(0)
         replacement_builder.set_graph_output(passthrough, 0)
         return create_replacement(replacement_builder.build_and_reset())
 
 
 if __name__ == "__main__":
-    print("PythonAddZeroPassCppEquivalent 已注册。")
+    print("PythonAddZeroPass 已注册。")
     print("请通过 ASCEND_GE_PY_PASS_PATH 指向本文件，例如：")
-    print("  export ASCEND_GE_PY_PASS_PATH=$PWD/test_python_pattern_pass_cpp_equivalent.py")
+    print("  export ASCEND_GE_PY_PASS_PATH=$PWD/src/python_add_zero_pass.py")

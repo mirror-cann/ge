@@ -10,6 +10,7 @@
 ## 目录结构
 
 ```
+├── README.md                     // C++ 样例说明
 ├── src
 │   ├──addcustom_zero_pass.cpp   // pass实现文件 
 ├── CMakeLists.txt               // 编译脚本
@@ -26,7 +27,7 @@
 
 - 编译器：GCC >= 7.3.x
 - 使用python及其依赖库版本：python>=3.9 、pytorch>=2.1
-- 已完成[相关环境准备](../../../../docs/build.md)。
+- 已完成[相关环境准备](../../../../../docs/build.md)。
 
 ## 准备工作
 
@@ -127,4 +128,3 @@
       export ASCEND_SLOG_PRINT_TO_STDOUT=1 #日志打印到屏幕
       export ASCEND_GLOBAL_LOG_LEVEL=0 #日志级别为debug级别
      ```
-

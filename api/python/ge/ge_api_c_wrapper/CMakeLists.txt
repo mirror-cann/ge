@@ -18,6 +18,10 @@ set(OFFLINE_COMPILE_WRAPPER_SRCS
         "${GE_API_C_WRAPPER_DIR}/c_offline_compile.cc"
 )
 
+set(GE_UTILS_WRAPPER_SRCS
+        "${GE_API_C_WRAPPER_DIR}/c_ge_utils.cc"
+)
+
 set(PYATC_WRAPPER_SRCS
         "${GE_API_C_WRAPPER_DIR}/c_pyatc.cc"
 )
@@ -75,6 +79,17 @@ target_link_libraries(offline_compile_wrapper PRIVATE
         ge_compiler
 )
 
+############ ge_utils_wrapper ############
+add_library(ge_utils_wrapper SHARED ${GE_UTILS_WRAPPER_SRCS})
+target_compile_options(ge_utils_wrapper PRIVATE ${AIR_COMMON_DYNAMIC_COMPILE_OPTION})
+target_include_directories(ge_utils_wrapper SYSTEM PRIVATE
+        ${AIR_CODE_DIR}/base
+)
+target_link_libraries(ge_utils_wrapper PRIVATE
+        ${GE_API_C_WRAPPER_COMMON_LINK_LIBS}
+        ge_compiler
+)
+
 ############ pyatc_wrapper ############
 add_library(pyatc_wrapper SHARED ${PYATC_WRAPPER_SRCS})
 target_compile_options(pyatc_wrapper PRIVATE ${AIR_COMMON_DYNAMIC_COMPILE_OPTION})
@@ -94,5 +109,5 @@ target_link_libraries(pyatc_wrapper PRIVATE
 )
 
 add_custom_target(ge_api_c_wrapper
-        DEPENDS graph_wrapper ge_runtime_wrapper offline_compile_wrapper pyatc_wrapper
+        DEPENDS graph_wrapper ge_runtime_wrapper offline_compile_wrapper ge_utils_wrapper pyatc_wrapper
 )
