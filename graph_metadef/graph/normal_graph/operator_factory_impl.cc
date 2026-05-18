@@ -517,6 +517,8 @@ void OperatorFactoryImpl::MergeBackupCreatorsOnce() {
         }
       }
     }
+    backup_operator_creators_v2_ = nullptr;
+    backup_operator_creators_v1_ = nullptr;
   });
 }
 }  // namespace ge
