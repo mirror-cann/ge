@@ -979,8 +979,7 @@ TEST_F(Om2St, SaveOm2Model_Ok_SaveOnlineBufferWithAclgrphSaveModel) {
   RAIIZipArchive archive(reinterpret_cast<const uint8_t *>(model_buf.get()), model_buf_size);
   ASSERT_TRUE(archive.IsGood());
   const auto file_names = archive.ListFiles();
-  EXPECT_NE(std::find(file_names.begin(), file_names.end(), kZipFileBaseName + "_buffer/manifest.json"),
-            file_names.end());
+  EXPECT_NE(std::find(file_names.begin(), file_names.end(), "g1/manifest.json"), file_names.end());
 }
 
 TEST_F(Om2St, SaveOm2Model_Ok_RelocateExternalWeightsWithAclgrphSaveModel) {

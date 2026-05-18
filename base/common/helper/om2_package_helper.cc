@@ -354,7 +354,8 @@ Status Om2PackageHelper::SaveToOmModel(const GeModelPtr &ge_model, const std::st
   GE_ASSERT_NOTNULL(ge_model, "ge_model is nullptr");
   GE_ASSERT_TRUE(!output_file.empty(), "[OM2] Empty path of the output file is invalid");
 
-  auto zip_writer = MakeShared<ZipArchiveWriter>(output_file);
+  const std::string writer_path = (!is_offline_ && !ge_model->GetName().empty()) ? ge_model->GetName() : output_file;
+  auto zip_writer = MakeShared<ZipArchiveWriter>(writer_path);
   GE_ASSERT_NOTNULL(zip_writer);
   GE_ASSERT_TRUE(zip_writer->IsMemFileOpened());
   std::vector<Om2ConstMeta> const_metas;

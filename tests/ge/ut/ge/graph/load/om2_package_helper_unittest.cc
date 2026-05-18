@@ -411,24 +411,50 @@ TEST_F(Om2PackageHelperUt, SaveToOmModel_SaveModeFalse_ReturnsModelBuffer) {
   ASSERT_TRUE(archive.IsGood());
   const auto file_names = archive.ListFiles();
   const std::set<std::string> expect_files = {
-      "fake_test_buffer/data/model_0/runtime/g1_kernel_reg.cpp",
-      "fake_test_buffer/data/model_0/runtime/g1_resources.cpp",
-      "fake_test_buffer/data/model_0/runtime/g1_args_manager.cpp",
-      "fake_test_buffer/data/model_0/runtime/g1_load_and_run.cpp",
-      "fake_test_buffer/data/model_0/runtime/g1_interface.h",
-      "fake_test_buffer/data/model_0/runtime/Makefile",
-      "fake_test_buffer/data/model_0/runtime/libg1_om2.so",
-      "fake_test_buffer/data/constants/constant_0",
-      "fake_test_buffer/data/constants/model_0_constants_config.json",
-      "fake_test_buffer/data/kernels_npu_arch/add1_faked_kernel.o",
-      "fake_test_buffer/data/model_0/model_meta.json",
-      "fake_test_buffer/data/model_0/debug/op_attr.json",
-      "fake_test_buffer/manifest.json",
+      "g1/data/model_0/runtime/g1_kernel_reg.cpp",
+      "g1/data/model_0/runtime/g1_resources.cpp",
+      "g1/data/model_0/runtime/g1_args_manager.cpp",
+      "g1/data/model_0/runtime/g1_load_and_run.cpp",
+      "g1/data/model_0/runtime/g1_interface.h",
+      "g1/data/model_0/runtime/Makefile",
+      "g1/data/model_0/runtime/libg1_om2.so",
+      "g1/data/constants/constant_0",
+      "g1/data/constants/model_0_constants_config.json",
+      "g1/data/kernels_npu_arch/add1_faked_kernel.o",
+      "g1/data/model_0/model_meta.json",
+      "g1/data/model_0/debug/op_attr.json",
+      "g1/manifest.json",
   };
   EXPECT_EQ(file_names.size(), expect_files.size());
   for (const auto &file_name : file_names) {
     EXPECT_EQ(expect_files.count(file_name), 1);
   }
+}
+
+TEST_F(Om2PackageHelperUt, SaveToOmModel_SaveModeFalse_FallbacksToOutputFileWhenModelNameEmpty) {
+  Om2PackageHelper om2_packager;
+  om2_packager.SetSaveMode(false);
+  const auto ge_root_model = CreateGeRootModelWithAicoreOp();
+  ASSERT_NE(ge_root_model, nullptr);
+  const auto ge_model = ge_root_model->GetSubgraphInstanceNameToModel().begin()->second;
+  ASSERT_NE(ge_model, nullptr);
+  ge_model->SetName("");
+
+  ModelBufferData model_data;
+  const std::string output_file = PathUtils::Join({test_work_dir, kZipFileBaseName + "_empty_name_buffer.om2"});
+  ASSERT_EQ(om2_packager.SaveToOmRootModel(ge_root_model, output_file, model_data, false), SUCCESS);
+  EXPECT_NE(mmAccess2(output_file.c_str(), M_F_OK), EOK);
+  ASSERT_NE(model_data.data, nullptr);
+  ASSERT_GT(model_data.length, 0U);
+
+  SimpleZipArchiveReader archive(model_data.data.get(), model_data.length);
+  ASSERT_TRUE(archive.IsGood());
+  const auto file_names = archive.ListFiles();
+  EXPECT_NE(std::find(file_names.begin(), file_names.end(), "fake_test_empty_name_buffer/manifest.json"),
+            file_names.end());
+  EXPECT_NE(std::find(file_names.begin(), file_names.end(),
+                      "fake_test_empty_name_buffer/data/model_0/model_meta.json"),
+            file_names.end());
 }
 
 TEST_F(Om2PackageHelperUt, SaveToOmModel_SaveModeTrue_WritesFile) {

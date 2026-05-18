@@ -878,10 +878,10 @@ LDFLAGS := -shared -L$(LIB_PATH) -Wl,--no-as-needed -lacl_rt -Wl,--as-needed
 all: $(TARGET)
 
 $(TARGET): $(SRC_FILES)
-	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
+	@$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
   clean:
-	rm -f $(TARGET)
+	@rm -f $(TARGET)
 )";
   ASSERT_EQ(outputs[GeneratedFileIndex::kCMakeListsFile], expected + "\n");
 }

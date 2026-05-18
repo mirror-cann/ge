@@ -19,8 +19,10 @@
 
 #include <cstdlib>
 #include <cstdint>
+#include <cstdio>
 #include <string>
 #include <vector>
+#include <unistd.h>
 
 namespace ge {
 namespace {
@@ -47,6 +49,73 @@ class ScopedEnvVar {
   std::string name_;
   std::string old_value_;
   bool has_old_value_ = false;
+};
+
+class ScopedStdoutCapture {
+ public:
+  ScopedStdoutCapture() {
+    capture_file_ = tmpfile();
+    if (capture_file_ == nullptr) {
+      return;
+    }
+    saved_stdout_fd_ = dup(STDOUT_FILENO);
+    if (saved_stdout_fd_ < 0) {
+      CloseCaptureFile();
+      return;
+    }
+    (void)fflush(stdout);
+    if (dup2(fileno(capture_file_), STDOUT_FILENO) < 0) {
+      CloseSavedStdout();
+      CloseCaptureFile();
+    }
+  }
+
+  ~ScopedStdoutCapture() {
+    (void)Stop();
+  }
+
+  std::string Stop() {
+    if (stopped_) {
+      return output_;
+    }
+    stopped_ = true;
+    if (saved_stdout_fd_ >= 0) {
+      (void)fflush(stdout);
+      (void)dup2(saved_stdout_fd_, STDOUT_FILENO);
+      CloseSavedStdout();
+    }
+    if (capture_file_ != nullptr) {
+      (void)fflush(capture_file_);
+      (void)fseek(capture_file_, 0, SEEK_SET);
+      char buffer[4096];
+      while (!feof(capture_file_)) {
+        const size_t read_size = fread(buffer, 1, sizeof(buffer), capture_file_);
+        output_.append(buffer, read_size);
+      }
+      CloseCaptureFile();
+    }
+    return output_;
+  }
+
+ private:
+  void CloseSavedStdout() {
+    if (saved_stdout_fd_ >= 0) {
+      (void)close(saved_stdout_fd_);
+      saved_stdout_fd_ = -1;
+    }
+  }
+
+  void CloseCaptureFile() {
+    if (capture_file_ != nullptr) {
+      (void)fclose(capture_file_);
+      capture_file_ = nullptr;
+    }
+  }
+
+  FILE *capture_file_ = nullptr;
+  int32_t saved_stdout_fd_ = -1;
+  bool stopped_ = false;
+  std::string output_;
 };
 
 std::string EmitNode(const AstNode &node) {
@@ -732,9 +801,12 @@ $(TARGET): $(SRC_FILES)
   };
 
   Om2CodegenArtifact so_artifact;
+  ScopedStdoutCapture stdout_capture;
   ASSERT_EQ(Om2Utils::CompileGeneratedCppToSo(artifacts, model_name, so_artifact, false), SUCCESS);
+  const std::string compile_stdout = stdout_capture.Stop();
   EXPECT_EQ(so_artifact.file_name, "lib" + model_name + "_om2.so");
   EXPECT_FALSE(so_artifact.data.empty());
+  EXPECT_EQ(compile_stdout.find("g++ -std=c++17 -fPIC"), std::string::npos);
 }
 
 TEST_F(Om2CodegenUt, StablePartProvider_AllIds_Ok) {
