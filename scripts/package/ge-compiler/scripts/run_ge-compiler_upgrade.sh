@@ -15,7 +15,7 @@ is_quiet=n
 pylocal=n
 in_install_for_all=n
 docker_root=""
-sourcedir="$PWD/ge-compiler"
+sourcedir="$PWD"
 curpath=$(dirname $(readlink -f "$0"))
 common_func_path="${curpath}/common_func.inc"
 pkg_version_path="${curpath}/../version.info"
@@ -101,7 +101,7 @@ new_upgrade() {
 
     # 执行安装
     custom_options="--custom-options=--common-parse-dir=$common_parse_dir,--logfile=$logfile,--stage=upgrade,--quiet=$is_quiet,--pylocal=$pylocal"
-    sh "$curpath/install_common_parser.sh" --package="ge-compiler" --install --username="$username" --usergroup="$usergroup" --set-cann-uninstall --upgrade \
+    sh "$curpath/install_common_parser.sh" --copy_all --package="ge-compiler" --install --username="$username" --usergroup="$usergroup" --set-cann-uninstall --upgrade \
         --version=$pkg_version --version-dir=$pkg_version_dir --use-share-info \
         $in_install_for_all --docker-root="$docker_root" \
         $custom_options "$common_parse_type" "$input_install_dir" "$curpath/filelist.csv"

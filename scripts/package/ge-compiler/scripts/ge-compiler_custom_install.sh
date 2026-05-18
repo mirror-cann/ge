@@ -9,12 +9,14 @@
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
 
-sourcedir="$PWD/ge-compiler"
+sourcedir="$PWD"
 curpath=$(dirname $(readlink -f "$0"))
 common_func_path="${curpath}/common_func.inc"
+ge_compiler_func_path="${curpath}/ge-compiler_func.sh"
 unset PYTHONPATH
 
 . "${common_func_path}"
+. "${ge_compiler_func_path}"
 
 common_parse_dir=""
 logfile=""
@@ -111,9 +113,9 @@ ge_compiler_install_package() {
 }
 
 WHL_INSTALL_DIR_PATH="${common_parse_dir}/python/site-packages"
-PYTHON_LLM_DATADIST_WHL="${sourcedir}/lib64/llm_datadist_v1-0.0.1-py3-none-any.whl"
-PYTHON_DATAFLOW_WHL="${sourcedir}/lib64/dataflow-0.0.1-py3-none-any.whl"
-PYTHON_GE_WHL="${sourcedir}/lib64/ge_py-0.0.1-py3-none-any.whl"
+PYTHON_LLM_DATADIST_WHL="${sourcedir}/${pkg_arch_name}-linux/lib64/llm_datadist_v1-0.0.1-py3-none-any.whl"
+PYTHON_DATAFLOW_WHL="${sourcedir}/${pkg_arch_name}-linux/lib64/dataflow-0.0.1-py3-none-any.whl"
+PYTHON_GE_WHL="${sourcedir}/${pkg_arch_name}-linux/lib64/ge_py-0.0.1-py3-none-any.whl"
 
 custom_install() {
     if [ -z "$common_parse_dir/share/info/ge-compiler" ]; then
@@ -149,6 +151,16 @@ custom_install() {
 custom_install
 if [ $? -ne 0 ]; then
     exit 1
+fi
+
+# copy_all模式下do_chmod_file_dir跳过了copy类型文件的chmod，
+# 需要在此处补充设置文件权限
+if [ -n "${common_parse_dir}" ]; then
+    chmod 550 "${common_parse_dir}/fwkacllib/lib64/switch_by_index.o" 2>/dev/null
+    chmod 550 "${common_parse_dir}/python/site-packages/autofuse/"*.py 2>/dev/null
+    chmod 440 "${common_parse_dir}/python/site-packages/autofuse/pyautofuse.so" 2>/dev/null
+    chmod 640 "${common_parse_dir}/${pkg_arch_name}-linux/lib64/plugin/opskernel/config/init.conf" 2>/dev/null
+    chmod 550 "${common_parse_dir}/${pkg_arch_name}-linux/python/func2graph/func2graph.py" 2>/dev/null
 fi
 
 exit 0

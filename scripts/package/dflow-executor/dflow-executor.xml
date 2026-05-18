@@ -11,7 +11,8 @@
         <parallel>true</parallel>
     </package_info>
     <version_info install="true" install_path="dflow-executor" install_own="$username:$usergroup" install_mod="440"/>
-    <generate_info value="dflow-executor_version.h" dst_path="share/info/dflow-executor" install_path="$(TARGET_ENV)/include/version" install_mod="440" install_type="devel" generator="version_header">
+    <copy_all>true</copy_all>
+    <generate_info value="dflow-executor_version.h" dst_path="$(TARGET_ENV)/include/version" install_path="$(TARGET_ENV)/include/version" install_mod="440" install_type="devel" generator="version_header">
        <DFLOW_VERSION>$(ASCEND_VER)</DFLOW_VERSION>
        <DFLOW_TIMESTAMP>$(TIMESTAMP_NO)</DFLOW_TIMESTAMP>
     </generate_info>
@@ -24,7 +25,7 @@
         <file value="script" entity="true"/>
         <file value="version.info" dst_path="share/info/dflow-executor" install_path="share/info/dflow-executor"/>
     </file_info>
-    <block_info dependtree="false" dst_path="dflow-executor" block_conf_path="ascend">
+    <block_info dependtree="false" dst_path="$(TARGET_ENV)" block_conf_path="ascend">
         <block name="EngineeringCommon"/>
         <block name="EngineeringFiles"/>
         <block name="DflowExecutorSo"/>

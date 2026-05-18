@@ -538,6 +538,7 @@ elseif (BUILD_OPEN_PROJECT OR ENABLE_OPEN_SRC)
             add_dependencies(ge-compiler hcom_gradient_split_tune hcom_graph_adaptor hcom_opskernel_builder hcom_gradtune_opskernel_builder)
             add_dependencies(ge-compiler aicpu_ascend_engine aicpu_tf_engine dvpp_engine fe ffts ge_local_engine ge_local_opskernel_builder
                     host_cpu_opskernel_builder host_cpu_engine engine)
+            add_dependencies(ge-compiler fe.ini ffts.ini engine_conf.json optimizer_priority.pbtxt)
             add_dependencies(ge-compiler cpu_compiler udf_compiler)
             add_dependencies(ge-compiler atc_atc.bin fwk_atc.bin)
             add_dependencies(ge-compiler compress compress_static compressweight compressweight_static rts_engine)

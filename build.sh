@@ -354,19 +354,20 @@ mk_dir() {
 }
 
 copy_pkg() {
+  local component="$1"
   if [ "${ENABLE_BUILD_DEVICE}" = "ON" ]; then
-    mv ${BUILD_PATH}_CPack_Packages/cann-*.run ${BUILD_OUT_PATH}/
+    mv ${OUTPUT_PATH}/cann-${component}_*.run ${BUILD_OUT_PATH}/
   elif [ -z "${CMAKE_TOOLCHAIN_FILE}" ]; then
     if [ -f "/etc/lsb-release" ]; then
       ubuntu_version=$(grep -E '^DISTRIB_RELEASE=' /etc/lsb-release | cut -d'=' -f2 | xargs)
       ubuntu_version="ubuntu${ubuntu_version}"
-      mv ${BUILD_PATH}_CPack_Packages/cann-*.run ${BUILD_OUT_PATH}/cann-${MDC_BUILD_COMPONENT}-${VERSION_INFO}-${ubuntu_version}.x86_64.run
+      mv ${OUTPUT_PATH}/cann-${component}_*.run ${BUILD_OUT_PATH}/cann-${component}-${VERSION_INFO}-${ubuntu_version}.x86_64.run
     else
       echo "Error: operate enviroment is not ubuntu."
       exit 1
     fi
   else
-    mv ${BUILD_PATH}_CPack_Packages/cann-*.run ${BUILD_OUT_PATH}/cann-${MDC_BUILD_COMPONENT}-${VERSION_INFO}-aoskernel.aarch64.run
+    mv ${OUTPUT_PATH}/cann-${component}_*.run ${BUILD_OUT_PATH}/cann-${component}-${VERSION_INFO}-aoskernel.aarch64.run
   fi
 }
 
@@ -381,9 +382,22 @@ execute_command() {
 
 build_pkg() {
   echo "Create build directory and build AIR";
-  mk_dir "${BUILD_PATH}"
-  echo "---------------- Build AIR package:  ${BUILD_COMPONENT} ----------------"
-  cd "${BUILD_PATH}"
+  IFS=';' read -ra COMPONENTS <<< "${BUILD_COMPONENT}"
+
+  for component in "${COMPONENTS[@]}"; do
+    build_single_pkg "${component}" || { echo "AIR build failed: ${component}."; exit 1; }
+  done
+
+  ls -l ${BUILD_OUT_PATH}/cann-*.run && echo "AIR package success!"
+}
+
+build_single_pkg() {
+  local component="$1"
+  local component_build_path="${BUILD_PATH}/${component}"
+  mk_dir "${component_build_path}"
+  echo "===== Build AIR package: ${component} (pid $$) ====="
+  cd "${component_build_path}"
+
   execute_command "cmake -D BUILD_OPEN_PROJECT=True \
         -D ENABLE_OPEN_SRC=True \
         -D ENABLE_ASAN=${ENABLE_ASAN} \
@@ -396,7 +410,7 @@ build_pkg() {
         -D CANN_3RD_LIB_PATH=${CANN_3RD_LIB_PATH} \
         -D HI_PYTHON=${PYTHON_PATH} \
         -D FORCE_REBUILD_CANN_3RD=False \
-        -D CANN_PACKAGES=\"${BUILD_COMPONENT}\" \
+        -D CANN_PACKAGES=${component} \
         -D CMAKE_FIND_DEBUG_MODE=OFF \
         -D ENABLE_SIGN=${ENABLE_SIGN} \
         -D CUSTOM_SIGN_SCRIPT=${CUSTOM_SIGN_SCRIPT} \
@@ -405,11 +419,12 @@ build_pkg() {
         -D USE_CXX11_ABI=${USE_CXX11_ABI} \
         -D LLVM_PATH=${LLVM_PATH} \
         -D CMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} \
-        .."
-  execute_command "make all ${VERBOSE} -j${THREAD_NUM}"
+        ${BASEPATH}"
+
+  execute_command "make ${component} ${VERBOSE} -j${THREAD_NUM}"
   execute_command "cpack"
-  copy_pkg
-  ls -l ${BUILD_OUT_PATH}/cann-*.run && echo "AIR package success!"
+  copy_pkg "${component}"
+  echo "===== AIR package success: ${component} ====="
 }
 
 main() {
