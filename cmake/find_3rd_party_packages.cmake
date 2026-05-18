@@ -21,7 +21,7 @@ if (BUILD_OPEN_PROJECT OR ENABLE_OPEN_SRC)
 
         # 2. ge-compiler 或 dflow-executor
         if("ge-compiler" IN_LIST BUILD_COMPONENT OR "dflow-executor" IN_LIST BUILD_COMPONENT)
-        add_cann_third_party(openssl)
+        find_package(openssl MODULE REQUIRED)
         endif()
 
         # 3. ge-executor 或 dflow-executor
@@ -41,7 +41,7 @@ if (BUILD_OPEN_PROJECT OR ENABLE_OPEN_SRC)
         message(STATUS "find third party packages in normal mode")
         find_package(Threads)
         add_cann_third_party(json)
-        add_cann_third_party(openssl)
+        find_package(openssl MODULE REQUIRED)
         add_cann_third_party(zlib)
         find_package(protoc MODULE REQUIRED)
         find_package(protoc_grpc MODULE REQUIRED)
