@@ -4145,7 +4145,7 @@ TEST_F(UtestDavinciModel, run_with_task) {
   op_desc->SetInputOffset(input_offset);
   model.InitOutputTensorInfo(op_desc);
   EXPECT_EQ(model.ModelRunStart(), SUCCESS);
-  sleep(5);
+  sleep(1);
   EXPECT_EQ(model.ModelRunStop(), SUCCESS);
   graph_options[STATIC_MEMORY_POLICY] = "";
   GetThreadLocalContext().SetGraphOption(graph_options);
@@ -4184,7 +4184,7 @@ TEST_F(UtestDavinciModel, RunWithTask_GertTensor) {
   op_desc->SetInputOffset(input_offset);
   model.InitOutputTensorInfo(op_desc);
   EXPECT_EQ(model.ModelRunStart(), SUCCESS);
-  sleep(5);
+  sleep(1);
   EXPECT_EQ(model.ModelRunStop(), SUCCESS);
   graph_options[STATIC_MEMORY_POLICY] = "";
   GetThreadLocalContext().SetGraphOption(graph_options);
@@ -4225,7 +4225,7 @@ TEST_F(UtestDavinciModel, run_with_task_UpdateForExecute_failed) {
   model.args_manager_.update_policies_to_model_data_[3] = nullptr;
   model.args_manager_.has_args_ =true;
   EXPECT_EQ(model.ModelRunStart(), SUCCESS);
-  sleep(5);
+  sleep(1);
   EXPECT_EQ(model.ModelRunStop(), SUCCESS);
   graph_options[STATIC_MEMORY_POLICY] = "";
   GetThreadLocalContext().SetGraphOption(graph_options);
@@ -4264,7 +4264,7 @@ TEST_F(UtestDavinciModel, run_with_task_MallocPhysicalMemory_fail) {
   mem_allocator->expandable_memory_allocator_.active_memory_allocator_.virtual_memory_size_ = 50;
   mem_allocator->expandable_memory_allocator_.active_memory_allocator_.vapa_check_failed_ = true;
   EXPECT_EQ(model.ModelRunStart(), SUCCESS);
-  sleep(5);
+  sleep(1);
   EXPECT_EQ(model.ModelRunStop(), SUCCESS);
   EXPECT_TRUE(listener->complete_flag_);
   mem_allocator->expandable_memory_allocator_.active_memory_allocator_.virtual_memory_addr_base_ =
@@ -4293,7 +4293,7 @@ TEST_F(UtestDavinciModel, run_with_task_handle_input_data_fail) {
   model.is_online_infer_dynamic_ = true;
   model.is_getnext_sink_dynamic_ = false;
   EXPECT_EQ(model.ModelRunStart(), SUCCESS);
-  sleep(5);
+  sleep(1);
   EXPECT_EQ(model.ModelRunStop(), SUCCESS);
 }
 
@@ -4384,7 +4384,7 @@ TEST_F(UtestDavinciModel, run_with_task_model_execute_fail) {
   model.task_list_.push_back(task_info);
   mmSetEnv("CONSTANT_FOLDING_PASS_8", "mock_fail", 1);
   EXPECT_EQ(model.ModelRunStart(), SUCCESS);
-  sleep(5);
+  sleep(1);
   EXPECT_EQ(model.ModelRunStop(), SUCCESS);
   unsetenv("CONSTANT_FOLDING_PASS_8");
 }
@@ -6230,7 +6230,7 @@ TEST_F(UtestDavinciModel, run_with_task_fail) {
   mmSetEnv(kEnvRecordPath, &record_path[0U], MMPA_MAX_PATH);
 
   EXPECT_EQ(model.ModelRunStart(), SUCCESS);
-  sleep(5);
+  sleep(1);
   model.ModelRunStop();
   EXPECT_EQ(unsetenv(kEnvRecordPath), SUCCESS);
 }

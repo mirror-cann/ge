@@ -1171,7 +1171,7 @@ TEST_F(UtestModelExecutorTest, test_run_thread_4) {
     shared_model->SetListener(listerner_ptr);
     EXPECT_EQ(model_executor.PushRunArgs(run_args), SUCCESS);
     model_executor.StartRunThread();
-    sleep(2); // wait for thread
+    sleep(1); // wait for thread
     ASSERT_NE(listerner_ptr->sem_.Size() + listerner_ptr->sem_v2_.Size(), 0);
     EXPECT_EQ(ModelManager::GetInstance().DeleteModel(ge_root_model->GetModelId()), SUCCESS);
     EXPECT_EQ(model_executor.Finalize(), SUCCESS);

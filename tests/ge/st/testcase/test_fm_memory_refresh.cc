@@ -1124,7 +1124,7 @@ TEST_F(FmMemoryRefreshTest, compile_graph_incompatible_with_other_apis) {
   };
   session.RunGraphAsync(graph_id, inputs, callback);
   std::unique_lock<std::mutex> lk(mu);
-  cv.wait_for(lk, std::chrono::seconds(5), [&]() {
+  cv.wait_for(lk, std::chrono::seconds(1), [&]() {
     return done;
   });
   EXPECT_NE(ret, SUCCESS);
