@@ -18,6 +18,8 @@
 #include "common/bg_test.h"
 #include "lowering/placement/placed_lowering_result.h"
 #include "graph/utils/inference_rule.h"
+#include "graph/custom_op_factory.h"
+#include "graph/custom_op.h"
 
 namespace gert {
 using namespace ge;
@@ -29,6 +31,22 @@ class CustomNodeConverterUT : public bg::BgTestAutoCreate3StageFrame {
   }
   void TearDown() override {
     BgTestAutoCreate3StageFrame::TearDown();
+  }
+};
+
+class Rt2CustomShapeInferOnlyOp : public ge::ShapeInferOp {
+ public:
+  ge::graphStatus InferShape(gert::InferShapeContext *ctx) override {
+    auto input = ctx->GetInputShape(0U);
+    auto output = ctx->GetOutputShape(0U);
+    GE_ASSERT_NOTNULL(input);
+    GE_ASSERT_NOTNULL(output);
+    *output = *input;
+    return ge::GRAPH_SUCCESS;
+  }
+
+  ge::graphStatus InferDataType(gert::InferDataTypeContext *ctx) override {
+    return ctx->SetOutputDataType(0U, ge::DT_FLOAT);
   }
 };
 
@@ -121,5 +139,98 @@ TEST_F(CustomNodeConverterUT, custom_op_convert_with_inference_rule_test) {
 
   auto infer_shape_node = ge::ExecuteGraphUtils::FindFirstNodeMatchType(exe_graph, "InferShapeByRule");
   ASSERT_NE(infer_shape_node, nullptr);
+}
+
+TEST_F(CustomNodeConverterUT, custom_op_convert_with_shape_infer_op_test) {
+  auto graph = ShareGraph::BuildCustomOpGraph();
+  auto custom_op = graph->FindNode("custom_op");
+  ASSERT_NE(custom_op, nullptr);
+  custom_op->GetOpDesc()->SetType("Rt2CustomShapeInferOnlyOp");
+  ASSERT_EQ(ge::CustomOpFactory::RegisterCustomOpCreator("Rt2CustomShapeInferOnlyOp",
+      []() -> std::unique_ptr<ge::BaseCustomOp> {
+    return std::make_unique<Rt2CustomShapeInferOnlyOp>();
+  }), ge::GRAPH_SUCCESS);
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto global_data = GlobalDataFaker(root_model).Build();
+  global_data.SetExternalAllocator(nullptr, ExecuteGraphType::kInit);
+  global_data.SetExternalAllocator(nullptr, ExecuteGraphType::kMain);
+  bg::LowerConstDataNode(global_data);
+  LowerInput data_input = {{}, {}, &global_data};
+  auto data0_ret = LoweringDataNode(graph->FindNode("data0"), data_input);
+  auto data1_ret = LoweringDataNode(graph->FindNode("data1"), data_input);
+  auto data2_ret = LoweringDataNode(graph->FindNode("data2"), data_input);
+  ASSERT_TRUE(data0_ret.result.IsSuccess());
+  ASSERT_TRUE(data1_ret.result.IsSuccess());
+  ASSERT_TRUE(data2_ret.result.IsSuccess());
+  LowerInput add_input = {
+      {data0_ret.out_shapes[0], data1_ret.out_shapes[0], data2_ret.out_shapes[0]},
+      {data0_ret.out_addrs[0], data1_ret.out_addrs[0], data2_ret.out_addrs[0]},
+      &global_data};
+  graph->FindNode("data0")->GetOpDesc()->SetExtAttr("_lowering_result",
+      gert::PlacedLoweringResult(graph->FindNode("data0"), std::move(data0_ret)));
+  graph->FindNode("data1")->GetOpDesc()->SetExtAttr("_lowering_result",
+      gert::PlacedLoweringResult(graph->FindNode("data1"), std::move(data1_ret)));
+  graph->FindNode("data2")->GetOpDesc()->SetExtAttr("_lowering_result",
+      gert::PlacedLoweringResult(graph->FindNode("data2"), std::move(data2_ret)));
+
+  auto ret = LoweringCustomNode(custom_op, add_input);
+  ASSERT_TRUE(ret.result.IsSuccess());
+  ASSERT_EQ(ret.out_addrs.size(), 1);
+  ASSERT_EQ(ret.out_shapes.size(), 1);
+
+  auto frame = bg::ValueHolder::PopGraphFrame();
+  ASSERT_NE(frame, nullptr);
+  auto exe_graph = frame->GetExecuteGraph().get();
+  ASSERT_NE(exe_graph, nullptr);
+  ASSERT_NE(ge::ExecuteGraphUtils::FindFirstNodeMatchType(exe_graph, "InferShape"), nullptr);
+  ASSERT_NE(ge::ExecuteGraphUtils::FindFirstNodeMatchType(exe_graph, "ExecuteCustomOpWithInferShape"), nullptr);
+  ASSERT_NE(ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_frame_->GetExecuteGraph().get(), "FindInferShapeFunc"),
+            nullptr);
+}
+
+TEST_F(CustomNodeConverterUT, custom_op_convert_with_shape_infer_op_and_rule_prefer_shape_infer_op_test) {
+  const std::string rule = R"({"shape":{"inputs":[["s0"],["s1"],["s2"]],"outputs":[["s0","s1","s2"]]}})";
+  auto graph = ShareGraph::BuildCustomOpGraph();
+  auto custom_op = graph->FindNode("custom_op");
+  ASSERT_NE(custom_op, nullptr);
+  custom_op->GetOpDesc()->SetType("Rt2CustomShapeInferWithRuleOp");
+  AttrUtils::SetStr(custom_op->GetOpDesc(), ge::ATTR_NAME_INFER_RULE, rule);
+  ASSERT_EQ(ge::CustomOpFactory::RegisterCustomOpCreator("Rt2CustomShapeInferWithRuleOp",
+      []() -> std::unique_ptr<ge::BaseCustomOp> {
+    return std::make_unique<Rt2CustomShapeInferOnlyOp>();
+  }), ge::GRAPH_SUCCESS);
+
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto global_data = GlobalDataFaker(root_model).Build();
+  global_data.SetExternalAllocator(nullptr, ExecuteGraphType::kInit);
+  global_data.SetExternalAllocator(nullptr, ExecuteGraphType::kMain);
+  bg::LowerConstDataNode(global_data);
+  LowerInput data_input = {{}, {}, &global_data};
+  auto data0_ret = LoweringDataNode(graph->FindNode("data0"), data_input);
+  auto data1_ret = LoweringDataNode(graph->FindNode("data1"), data_input);
+  auto data2_ret = LoweringDataNode(graph->FindNode("data2"), data_input);
+  ASSERT_TRUE(data0_ret.result.IsSuccess());
+  ASSERT_TRUE(data1_ret.result.IsSuccess());
+  ASSERT_TRUE(data2_ret.result.IsSuccess());
+  LowerInput add_input = {
+      {data0_ret.out_shapes[0], data1_ret.out_shapes[0], data2_ret.out_shapes[0]},
+      {data0_ret.out_addrs[0], data1_ret.out_addrs[0], data2_ret.out_addrs[0]},
+      &global_data};
+  graph->FindNode("data0")->GetOpDesc()->SetExtAttr("_lowering_result",
+      gert::PlacedLoweringResult(graph->FindNode("data0"), std::move(data0_ret)));
+  graph->FindNode("data1")->GetOpDesc()->SetExtAttr("_lowering_result",
+      gert::PlacedLoweringResult(graph->FindNode("data1"), std::move(data1_ret)));
+  graph->FindNode("data2")->GetOpDesc()->SetExtAttr("_lowering_result",
+      gert::PlacedLoweringResult(graph->FindNode("data2"), std::move(data2_ret)));
+
+  auto ret = LoweringCustomNode(custom_op, add_input);
+  ASSERT_TRUE(ret.result.IsSuccess());
+
+  auto frame = bg::ValueHolder::PopGraphFrame();
+  ASSERT_NE(frame, nullptr);
+  auto exe_graph = frame->GetExecuteGraph().get();
+  ASSERT_NE(exe_graph, nullptr);
+  ASSERT_NE(ge::ExecuteGraphUtils::FindFirstNodeMatchType(exe_graph, "InferShape"), nullptr);
+  ASSERT_EQ(ge::ExecuteGraphUtils::FindFirstNodeMatchType(exe_graph, "InferShapeByRule"), nullptr);
 }
 }
