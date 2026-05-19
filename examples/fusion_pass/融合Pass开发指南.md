@@ -228,7 +228,7 @@ auto relu = es::Relu(data);
 auto graph = graph_builder.BuildAndReset({relu});
 auto pattern = std::make_unique<Pattern>(std::move(*graph));
 // 调用CaptureTensor捕获relu
-pattern->CaptureTensor({*relu.GetProducer(), 0})
+pattern->CaptureTensor({*relu.GetProducer(), 0});
 patterns.emplace_back(std::move(pattern));
 ```
 

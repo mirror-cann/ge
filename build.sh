@@ -39,7 +39,7 @@ usage() {
   echo "Options:"
   echo "    -h, --help        Print usage"
   echo "    -v, --verbose     Show detailed build commands during the build process"
-  echo "    -j<N>             Set the number of threads used for building AIR, default is 8"
+  echo "    -j<N>             Set the number of threads used for building GE, default is 8"
   echo "    --ge_compiler   Build ge-compiler run package with kernel bin"
   echo "    --ge_executor   Build ge-executor run package with kernel bin"
   echo "    --dflow         Build dflow-executor run package with kernel bin"
@@ -274,7 +274,7 @@ checkopts() {
   python_full_path=$(which ${PYTHON_PATH})
   set -e
   if [ -z "${python_full_path}" ]; then
-    echo "Error: python_path=${PYTHON_PATH} is not exist"
+    echo "Error: python_path=${PYTHON_PATH} does not exist"
     exit 1
   else
     PYTHON_PATH=${python_full_path}
@@ -363,7 +363,7 @@ copy_pkg() {
       ubuntu_version="ubuntu${ubuntu_version}"
       mv ${OUTPUT_PATH}/cann-${component}_*.run ${BUILD_OUT_PATH}/cann-${component}-${VERSION_INFO}-${ubuntu_version}.x86_64.run
     else
-      echo "Error: operate enviroment is not ubuntu."
+      echo "Error: operate environment is not ubuntu."
       exit 1
     fi
   else
@@ -381,21 +381,21 @@ execute_command() {
 }
 
 build_pkg() {
-  echo "Create build directory and build AIR";
+  echo "Create build directory and build GE";
   IFS=';' read -ra COMPONENTS <<< "${BUILD_COMPONENT}"
 
   for component in "${COMPONENTS[@]}"; do
-    build_single_pkg "${component}" || { echo "AIR build failed: ${component}."; exit 1; }
+    build_single_pkg "${component}" || { echo "GE build failed: ${component}."; exit 1; }
   done
 
-  ls -l ${BUILD_OUT_PATH}/cann-*.run && echo "AIR package success!"
+  ls -l ${BUILD_OUT_PATH}/cann-*.run && echo "GE package success!"
 }
 
 build_single_pkg() {
   local component="$1"
   local component_build_path="${BUILD_PATH}/${component}"
   mk_dir "${component_build_path}"
-  echo "===== Build AIR package: ${component} (pid $$) ====="
+  echo "===== Build GE package: ${component} (pid $$) ====="
   cd "${component_build_path}"
 
   execute_command "cmake -D BUILD_OPEN_PROJECT=True \
@@ -424,7 +424,7 @@ build_single_pkg() {
   execute_command "make ${component} ${VERBOSE} -j${THREAD_NUM}"
   execute_command "cpack"
   copy_pkg "${component}"
-  echo "===== AIR package success: ${component} ====="
+  echo "===== GE package success: ${component} ====="
 }
 
 main() {
@@ -452,12 +452,12 @@ main() {
     bash ${THIRD_PARTY_DL} ${CANN_3RD_LIB_PATH} ${THREAD_NUM} ${BUILD_COMPONENT_COMPILER} ${ENABLE_BUILD_DEVICE} ${USE_CXX11_ABI} ${CMAKE_TOOLCHAIN_FILE}
   fi
 
-  echo "---------------- Build AIR package ----------------"
+  echo "---------------- Build GE package ----------------"
   mk_dir ${OUTPUT_PATH}
   mk_dir ${BUILD_OUT_PATH}
   mk_dir ${OUTPUT_PATH}/package
-  build_pkg || { echo "AIR build failed."; exit 1; }
-  echo "---------------- AIR build finished ----------------"
+  build_pkg || { echo "GE build failed."; exit 1; }
+  echo "---------------- GE build finished ----------------"
   date +"build end: %Y-%m-%d %H:%M:%S"
 }
 

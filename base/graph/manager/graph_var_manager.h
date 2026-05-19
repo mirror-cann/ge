@@ -182,7 +182,7 @@ class VarResource {
     return device_id_to_var_dev_addr_mgr_map_;
   }
 
-  ge::Status CheckLogicAddrVaild(const uint32_t device_id,
+  ge::Status CheckLogicAddrValid(const uint32_t device_id,
                                  const uint8_t *const logic_addr,
                                  uint64_t &inner_offset_tmp,
                                  uint64_t &logic_addr_tmp);

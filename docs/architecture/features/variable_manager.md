@@ -515,7 +515,7 @@ VarManager 支持多设备场景。`VarResource` 通过 `device_id_to_var_dev_ad
 | `SaveVarAddr()` | 保存变量地址（含逻辑地址计算） |
 | `GetCurVarDesc()` | 获取变量当前 Tensor 描述 |
 | `RenewCurVarDesc()` | 更新变量描述 |
-| `CheckLogicAddrVaild()` | 校验逻辑地址合法性 |
+| `CheckLogicAddrValid()` | 校验逻辑地址合法性 |
 | `SetVarMgrDevAddr()` | 设置设备物理地址 |
 
 ## 文件索引
