@@ -10,4 +10,9 @@
 
 #include "external/ge/ge_api_error_codes.h"
 
-namespace ge {}  // namespace ge
+namespace ge {
+StatusFactory *StatusFactory::Instance() {
+  static StatusFactory instance;
+  return &instance;
+}
+}  // namespace ge

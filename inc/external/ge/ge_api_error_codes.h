@@ -39,10 +39,7 @@
 namespace ge {
 class GE_FUNC_VISIBILITY StatusFactory {
  public:
-  static StatusFactory *Instance() {
-    static StatusFactory instance;
-    return &instance;
-  }
+  static StatusFactory *Instance();
 
   void RegisterErrorNo(const uint32_t err, const std::string &desc) {
     // Avoid repeated addition
