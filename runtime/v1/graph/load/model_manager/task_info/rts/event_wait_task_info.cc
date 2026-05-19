@@ -51,10 +51,10 @@ Status EventWaitTaskInfo::Distribute() {
   GE_ASSERT_NOTNULL(op_desc_);
   GELOGI("EventWaitTaskInfo op %s Distribute Start.", op_desc_->GetNamePtr());
   SetTaskTag(op_desc_->GetName().c_str());
-  rtError_t rt_ret = rtStreamWaitEvent(stream_, event_);
-  if (rt_ret != RT_ERROR_NONE) {
-    REPORT_INNER_ERR_MSG("E19999", "Call rtStreamWaitEvent failed, ret:%d", rt_ret);
-    GELOGE(RT_FAILED, "[Call][RtStreamWaitEvent] failed, ret:%d", rt_ret);
+  aclError rt_ret = aclrtStreamWaitEvent(stream_, event_);
+  if (rt_ret != ACL_SUCCESS) {
+    REPORT_INNER_ERR_MSG("E19999", "Call aclrtStreamWaitEvent failed, ret:%d", rt_ret);
+    GELOGE(RT_FAILED, "[Call][AclrtStreamWaitEvent] failed, ret:%d", rt_ret);
     return RT_ERROR_TO_GE_STATUS(rt_ret);
   }
 

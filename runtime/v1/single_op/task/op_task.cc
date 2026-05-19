@@ -1153,28 +1153,8 @@ Status AiCpuBaseTask::UpdateIoAddr(const std::vector<DataBuffer> &inputs, const 
 }
 
 Status AiCpuBaseTask::CheckDeviceSupportBlockingAicpuOpProcess(bool &is_support) const {
-  int32_t device_id = 0;
-  auto rt_ret = aclrtGetDevice(&device_id);
-  if (rt_ret != ACL_SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "Call aclrtGetDevice failed, ret:%d", rt_ret);
-    GELOGE(RT_FAILED, "[Call][aclrtGetDevice] failed, ret:%d", rt_ret);
-    return RT_ERROR_TO_GE_STATUS(rt_ret);
-  }
-  int32_t value = 0;
-  rt_ret = rtGetDeviceCapability(device_id, FEATURE_TYPE_BLOCKING_OPERATOR, RT_MODULE_TYPE_AICPU, &value);
-  if (rt_ret != RT_ERROR_NONE) {
-    REPORT_INNER_ERR_MSG("E19999", "Call rtGetDeviceCapability failed, ret:%d", rt_ret);
-    GELOGE(RT_FAILED, "[Call][rtGetDeviceCapability] failed, ret:%d", rt_ret);
-    return RT_ERROR_TO_GE_STATUS(rt_ret);
-  }
-  if ((value != RT_AICPU_BLOCKING_OP_NOT_SUPPORT) && (value != RT_AICPU_BLOCKING_OP_SUPPORT)) {
-    REPORT_INNER_ERR_MSG("E19999", "Value should be %d or %d but %d",
-                       RT_AICPU_BLOCKING_OP_NOT_SUPPORT, RT_AICPU_BLOCKING_OP_SUPPORT, value);
-    GELOGE(FAILED, "[Check][Value] Value should be %d or %d but %d",
-           RT_AICPU_BLOCKING_OP_NOT_SUPPORT, RT_AICPU_BLOCKING_OP_SUPPORT, value);
-    return FAILED;
-  }
-  is_support = (value == RT_AICPU_BLOCKING_OP_SUPPORT);
+  // 默认认为支持该能力
+  is_support = true;
   return SUCCESS;
 }
 
@@ -1195,10 +1175,10 @@ Status AiCpuBaseTask::DistributeWaitTaskForAicpuBlockingOp(aclrtStream const str
     return FAILED;
   }
   SetTaskTag();
-  auto rt_ret = rtStreamWaitEvent(stream, rt_event_);
-  if (rt_ret != RT_ERROR_NONE) {
-    REPORT_INNER_ERR_MSG("E19999", "Call rtStreamWaitEvent failed, ret:%d", rt_ret);
-    GELOGE(RT_FAILED, "[Call][RtApi] failed, ret:%d", rt_ret);
+  auto rt_ret = aclrtStreamWaitEvent(stream, rt_event_);
+  if (rt_ret != ACL_SUCCESS) {
+    REPORT_INNER_ERR_MSG("E19999", "Call aclrtStreamWaitEvent failed, ret:%d", rt_ret);
+    GELOGE(RT_FAILED, "[Call][aclrtStreamWaitEvent] failed, ret:%d.", rt_ret);
     return RT_ERROR_TO_GE_STATUS(rt_ret);
   }
   SetTaskTag();

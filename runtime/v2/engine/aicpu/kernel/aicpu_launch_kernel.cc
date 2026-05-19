@@ -378,10 +378,14 @@ ge::graphStatus CalcBlockDim(KernelContext *context) {
   } else {
     total = input_shape->GetDim(static_cast<size_t>(block_dim_index));
   }
-  uint32_t ai_cpu_cnt = 1U;
-  (void) rtGetAiCpuCount(&ai_cpu_cnt);
-  const int64_t max_shard_num = static_cast<int64_t>(ai_cpu_cnt) * 2; // magic num
-  const int64_t per_unit_size = total / std::min(std::max(int64_t{1}, static_cast<int64_t>(ai_cpu_cnt)),
+  int64_t ai_cpu_cnt = 1;
+  int32_t device_id = 0;
+  aclError ret = aclrtGetDevice(&device_id);
+  if (ret == ACL_SUCCESS) {
+    (void)aclrtGetDeviceInfo(static_cast<uint32_t>(device_id), ACL_DEV_ATTR_AICPU_CORE_NUM, &ai_cpu_cnt);
+  }
+  const int64_t max_shard_num = ai_cpu_cnt * 2; // magic num
+  const int64_t per_unit_size = total / std::min(std::max(int64_t{1}, ai_cpu_cnt),
                                                  total);
   int64_t block_size = std::max(int64_t{1}, std::min(total, per_unit_size));
   int64_t shard_num = CeilDivisor(total, block_size);
@@ -421,22 +425,22 @@ ge::graphStatus TensorListOp(KernelContext *context) {
 REGISTER_KERNEL(TensorListOp).RunFunc(TensorListOp);
 
 ge::graphStatus CreateEvent(KernelContext *context) {
-  auto rt_event = context->GetOutputPointer<rtEvent_t>(0U);
+  auto rt_event = context->GetOutputPointer<aclrtEvent>(0U);
   auto event_id = context->GetOutputPointer<uint32_t>(1U);
   GE_ASSERT_NOTNULL(rt_event);
   GE_ASSERT_NOTNULL(event_id);
 
-  GE_ASSERT_RT_OK(rtEventCreateWithFlag(rt_event, RT_EVENT_WITH_FLAG));
-  GE_ASSERT_RT_OK(rtGetEventID(*rt_event, event_id));
+  GE_ASSERT_RT_OK(aclrtCreateEventWithFlag(rt_event, ACL_EVENT_SYNC));
+  GE_ASSERT_RT_OK(aclrtGetEventId(*rt_event, event_id));
   return ge::GRAPH_SUCCESS;
 }
 REGISTER_KERNEL(CreateEvent).RunFunc(CreateEvent);
 
 ge::graphStatus DestroyEvent(KernelContext *context) {
-  auto rt_event = context->GetInputValue<rtEvent_t>(0U);
+  auto rt_event = context->GetInputValue<aclrtEvent>(0U);
   GE_ASSERT_NOTNULL(rt_event);
 
-  GE_ASSERT_RT_OK(rtEventDestroy(rt_event));
+  GE_ASSERT_RT_OK(aclrtDestroyEvent(rt_event));
   return ge::GRAPH_SUCCESS;
 }
 REGISTER_KERNEL(DestroyEvent).RunFunc(DestroyEvent);

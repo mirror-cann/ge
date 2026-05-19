@@ -245,11 +245,6 @@ rtError_t RuntimeStubImpl::rtMemcpyAsync(void *dst, uint64_t dest_max, const voi
   return RuntimeStub::rtMemcpyAsync(dst, dest_max, src, count, kind, stream);
 }
 
-rtError_t RuntimeStubImpl::rtsMemcpyBatch(void **dsts, void **srcs, size_t *sizes, size_t count,
-    rtMemcpyBatchAttr *attrs, size_t *attrs_idxs, size_t num_attrs, size_t *fail_idx) {
-  return RT_ERROR_NONE;
-}
-
 rtError_t RuntimeStubImpl::rtMemcpyAsyncPtr(void *memcpy_addr_info, uint64_t dst_max, uint64_t count,
                                             rtMemcpyKind_t kind, rtStream_t stream, uint32_t qos_cfg) {
   const std::lock_guard<std::mutex> lk(global_mtx_);
@@ -269,14 +264,6 @@ rtError_t RuntimeStubImpl::rtMemcpyAsyncPtr(void *memcpy_addr_info, uint64_t dst
 
   all_launch_args_.emplace_back(memcpy_addr_info, std::move(last_tag_));
   return RuntimeStub::rtMemcpyAsyncPtr(memcpy_addr_info, dst_max, count, kind, stream, qos_cfg);
-}
-
-rtError_t RuntimeStubImpl::rtStreamSwitchEx(void *ptr, rtCondition_t condition, void *value_ptr, rtStream_t true_stream,
-                                            rtStream_t stream, rtSwitchDataType_t data_type) {
-  const std::lock_guard<std::mutex> lk(global_mtx_);
-
-  all_switch_args_.emplace_back(ptr, value_ptr, std::move(last_tag_));
-  return RuntimeStub::rtStreamSwitchEx(ptr, condition, value_ptr, true_stream, stream, data_type);
 }
 
 rtError_t RuntimeStubImpl::rtMemGetInfoEx(rtMemInfoType_t memInfoType, size_t *free, size_t *total) {

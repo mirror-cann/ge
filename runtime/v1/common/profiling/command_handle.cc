@@ -61,17 +61,17 @@ bool IsProfConfigValid(const uint32_t deviceid_list[], const uint32_t device_num
   }
 
   // real device num
-  int32_t dev_count = 0;
-  const rtError_t rt_err = rtGetDeviceCount(&dev_count);
-  if (rt_err != RT_ERROR_NONE) {
+  uint32_t dev_count = 0;
+  const aclError rt_err = aclrtGetDeviceCount(&dev_count);
+  if (rt_err != ACL_SUCCESS) {
     GELOGE(INTERNAL_ERROR, "[Get][DeviceCount]Failed, error_code %d", rt_err);
     REPORT_INNER_ERR_MSG("E19999", "Get device count failed, error_code %d", rt_err);
     return false;
   }
 
-  if (device_nums > static_cast<uint32_t>(dev_count)) {
-    GELOGE(PARAM_INVALID, "[Check][Param]Device num %u is not in range [1,%d]", device_nums, dev_count);
-    REPORT_INNER_ERR_MSG("E19999", "Device num %u check invalid, it is not in range [1,%d]", device_nums, dev_count);
+  if (device_nums > dev_count) {
+    GELOGE(PARAM_INVALID, "[Check][Param]Device num %u is not in range [1,%u]", device_nums, dev_count);
+    REPORT_INNER_ERR_MSG("E19999", "Device num %u check invalid, it is not in range [1,%u]", device_nums, dev_count);
     return false;
   }
 

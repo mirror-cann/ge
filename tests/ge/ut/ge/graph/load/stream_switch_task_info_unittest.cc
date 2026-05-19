@@ -18,6 +18,7 @@
 #include "graph/load/model_manager/task_info/rts/stream_switch_task_info.h"
 #include "graph/load/model_manager/memory_app_type_classifier.h"
 #include "macro_utils/dt_public_unscope.h"
+#include "depends/ascendcl/src/ascendcl_stub.h"
 
 using namespace std;
 using namespace testing;
@@ -74,6 +75,9 @@ TEST_F(UtestStreamSwitchTaskInfo, stream_switch_task_success) {
   EXPECT_EQ(task_info.Distribute(), SUCCESS);
   EXPECT_TRUE(task_info.IsSupportReDistribute());
   EXPECT_EQ(task_info.Distribute(), SUCCESS);
+  ge::AclRuntimeStub::SetErrorResultApiName("aclrtSwitchStream");
+  EXPECT_NE(task_info.Distribute(), SUCCESS);
+  ge::AclRuntimeStub::SetErrorResultApiName("");
   domi::GetContext().is_online_model = false;
   task_def.clear_stream_switch();
 }

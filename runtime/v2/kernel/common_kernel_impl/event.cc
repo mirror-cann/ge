@@ -124,8 +124,8 @@ ge::graphStatus SendEvent(KernelContext *context, GertEvent &event, aclrtEvent r
 REGISTER_KERNEL(SendEvents).RunFunc(DoEvents<SendEvent>).ConcurrentCriticalSectionKey(kKernelUseMemory);
 
 ge::graphStatus CallRtsWaitEvent(KernelContext *context, GertEvent &event, aclrtEvent rt_event, aclrtStream stream,
-                                 memory::MultiStreamL2Allocator *) {
-  GE_ASSERT_RT_OK(rtStreamWaitEvent(stream, rt_event));
+                                  memory::MultiStreamL2Allocator *) {
+  GE_ASSERT_RT_OK(aclrtStreamWaitEvent(stream, rt_event));
   KERNEL_TRACE("Waited event %" PRId64 " RT event %p at stream %" PRId64, event.logic_id, rt_event,
                event.compile_time_event_info.logic_dst_stream);
   return ge::GRAPH_SUCCESS;

@@ -178,13 +178,7 @@ class RuntimeStubImpl : public ge::RuntimeStub {
   rtError_t rtMemcpyAsyncPtr(void *memcpy_addr_info, uint64_t dst_max, uint64_t count, rtMemcpyKind_t kind,
                              rtStream_t stream, uint32_t qos_cfg) override;
 
-  rtError_t rtsMemcpyBatch(void **dsts, void **srcs, size_t *sizes, size_t count,
-    rtMemcpyBatchAttr *attrs, size_t *attrs_idxs, size_t num_attrs, size_t *fail_idx) override;
-
   rtError_t rtMemGetInfoEx(rtMemInfoType_t memInfoType, size_t *free, size_t *total) override;
-
-  rtError_t rtStreamSwitchEx(void *ptr, rtCondition_t condition, void *value_ptr, rtStream_t true_stream,
-                             rtStream_t stream, rtSwitchDataType_t data_type) override;
 
   rtError_t rtMalloc(void **dev_ptr, uint64_t size, rtMemType_t type, uint16_t moduleId) override;
   rtError_t rtFree(void *dev_ptr) override;

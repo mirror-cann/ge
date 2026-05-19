@@ -9,7 +9,7 @@
  */
 
 #include "cpu_kernel_builder.h"
-#include <runtime/rt.h>
+#include "acl/acl_rt.h"
 #include "fwk_adpt_struct.h"
 #include "aicpu_task_struct.h"
 #include "util/constant.h"
@@ -835,22 +835,26 @@ bool CpuKernelBuilder::IsSupportBlockDim(const ge::OpDescPtr &op_desc_ptr) const
 uint32_t CpuKernelBuilder::CalcBlockDimByShapeSize(const int64_t total) const
 {
   // get aicpucount and calc blockDim
-  uint32_t ai_cpu_cnt;
-  auto ret = rtGetAiCpuCount(&ai_cpu_cnt);
-  AICPUE_LOGD("Call rtGetAiCpuCount get ai_cpu_cnt[%u].", ai_cpu_cnt);
-  if (ret != 0) {
-    AICPUE_LOGW("Call rtGetAiCpuCount get ai_cpu_cnt failed.");
+  int64_t ai_cpu_cnt = 1;
+  int32_t device_id = 0;
+  aclError ret = aclrtGetDevice(&device_id);
+  if (ret == ACL_SUCCESS) {
+    ret = aclrtGetDeviceInfo(static_cast<uint32_t>(device_id), ACL_DEV_ATTR_AICPU_CORE_NUM, &ai_cpu_cnt);
+  }
+  AICPUE_LOGD("Call aclrtGetDeviceInfo get ai_cpu_cnt[%ld].", ai_cpu_cnt);
+  if (ret != ACL_SUCCESS) {
+    AICPUE_LOGW("Call aclrtGetDeviceInfo get ai_cpu_cnt failed.");
     return kDefaultAicpuBlockDim;
   }
 
-  const int64_t max_shard_num = static_cast<int64_t>(ai_cpu_cnt) * 2;
-  int64_t per_unit_size = total / std::min(std::max(1L, static_cast<int64_t>(ai_cpu_cnt)), total);
+  const int64_t max_shard_num = ai_cpu_cnt * 2;
+  int64_t per_unit_size = total / std::min(std::max(1L, ai_cpu_cnt), total);
   int64_t block_size = std::max(int64_t{1}, std::min(total, per_unit_size));
   int64_t shard_num = CeilDivisor(total, block_size);
   shard_num = std::min(max_shard_num, shard_num);
   block_size = CeilDivisor(total, shard_num);
   uint32_t block_dim = CeilDivisor(total, block_size);
-  AICPUE_LOGD("GetOpBlockDim total[%ld], ai_cpu_cnt[%u], blockSize[%ld], blockDim[%u]",
+  AICPUE_LOGD("GetOpBlockDim total[%ld], ai_cpu_cnt[%ld], blockSize[%ld], blockDim[%u]",
               total, ai_cpu_cnt, block_size, block_dim);
   return block_dim;
 }

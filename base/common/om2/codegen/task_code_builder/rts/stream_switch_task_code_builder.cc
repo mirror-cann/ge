@@ -83,11 +83,11 @@ Status StreamSwitchTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> &it
   items.push_back(ChkStatus(ast_.Call("KernelStreamSwitchDistribute", {
       ast_.Str(header_.op_name),
       ast_.Call("ValueToPtr", {ast_.Var("auto", input_addr_nodes_[0].symbol_hint).Attr("device_address")}),
-      ast_.StaticCast("rtCondition_t", static_cast<int64_t>(cond_)),
+      ast_.StaticCast("aclrtCondition", static_cast<int64_t>(cond_)),
       ast_.Call("ValueToPtr", {ast_.Var("auto", input_addr_nodes_[1].symbol_hint).Attr("device_address")}),
       stream_list_[static_cast<int>(true_stream_id_)],
       stream_list_[static_cast<int>(header_.stream_id)],
-      ast_.StaticCast("rtSwitchDataType_t", data_type_),
+      ast_.StaticCast("aclrtCompareDataType", data_type_),
   })));
   return SUCCESS;
 }
@@ -95,15 +95,15 @@ Status StreamSwitchTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> &it
 Status StreamSwitchTaskCodeBuilder::RenderDistHelper(std::vector<DeclNode *> &items) {
   auto op_name = ast_.Var("const char_t *const", "op_name");
   auto input_ptr = ast_.Var("void *", "input_ptr");
-  auto cond = ast_.Var("rtCondition_t", "cond");
+  auto cond = ast_.Var("aclrtCondition", "cond");
   auto value_ptr = ast_.Var("void *", "value_ptr");
   auto true_stream = ast_.Var("aclrtStream", "true_stream");
   auto stream = ast_.Var("aclrtStream", "stream");
-  auto data_type = ast_.Var("rtSwitchDataType_t", "data_type");
+  auto data_type = ast_.Var("aclrtCompareDataType", "data_type");
   items.push_back(ast_.DefineFunction("KernelStreamSwitchDistribute",
       {op_name, input_ptr, cond, value_ptr, true_stream, stream, data_type}, "aclError", {
           ChkRt(RtSetTaskTag(op_name)),
-          ChkRt(RtStreamSwitchEx(input_ptr, cond, value_ptr, true_stream, stream, data_type)),
+          ChkRt(AclrtSwitchStream(input_ptr, cond, value_ptr, data_type, true_stream, stream)),
           ast_.Return("ACL_SUCCESS"),
       }));
   return SUCCESS;

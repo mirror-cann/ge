@@ -14,14 +14,13 @@
 #include "securec.h"
 #include "mmpa/mmpa_api.h"
 #include "runtime_stub.h"
-#include "runtime/rt.h"
-#include "runtime/base.h"
-#include "runtime/rt_preload_task.h"
 #include "aicpu/aicpu_schedule/aicpusd_info.h"
 #include "rt_error_codes.h"
 #include "acl/acl_rt.h"
 #include <iostream>
 #include "runtime/rts/rts_dqs.h"
+
+#include "runtime/kernel.h"
 
 extern std::string g_runtime_stub_mock;
 extern std::string g_runtime_stub_mock_v2;
@@ -232,22 +231,6 @@ rtError_t RuntimeStub::rtMemcpyAsyncWithCfgV2(void *dst, uint64_t dest_max, cons
 
 rtError_t RuntimeStub::rtMemcpyAsyncPtr(void *memcpyAddrInfo, uint64_t destMax, uint64_t count,
                                         rtMemcpyKind_t kind, rtStream_t stream, uint32_t qosCfg) {
-  return RT_ERROR_NONE;
-}
-
-rtError_t RuntimeStub::rtsMemcpyBatch(void **dsts, void **srcs, size_t *sizes, size_t count,
-    rtMemcpyBatchAttr *attrs, size_t *attrs_idxs, size_t num_attrs, size_t *fail_idx) {
-  auto stub_return_value = GET_STUB_RETURN_VALUE(rtsMemcpyBatch, rtError_t, RT_ERROR_NONE);
-  // 调用成功才计入统计次数
-  if (stub_return_value == RT_ERROR_NONE) {
-    input_mem_copy_batch_count_ = num_attrs;
-    batch_memcpy_device_id = attrs[0].dstLoc.id;
-  }
-  return stub_return_value;
-}
-
-rtError_t RuntimeStub::rtStreamSwitchEx(void *ptr, rtCondition_t condition, void *value_ptr, rtStream_t true_stream,
-                                        rtStream_t stream, rtSwitchDataType_t data_type) {
   return RT_ERROR_NONE;
 }
 
@@ -624,6 +607,15 @@ rtError_t RuntimeStub::rtGetDevice(int32_t *deviceId) {
   }
   return RT_ERROR_NONE;
 }
+
+rtError_t RuntimeStub::rtKernelGetAddrAndPrefCntV2(void *handle, const uint64_t tilingKey, const void *const stubFunc,
+                                              const uint32_t flag, rtKernelDetailInfo_t *kernelInfo) {
+  kernelInfo->functionInfoNum = 1;
+  kernelInfo->functionInfo[0].pcAddr = (void *)(0x1245);
+  kernelInfo->functionInfo[0].prefetchCnt = 1;
+  return RT_ERROR_NONE;
+}
+
 } // namespace ge
 
 #ifdef __cplusplus
@@ -643,11 +635,8 @@ int32_t GetMockRtGetDeviceWay() {
 void rtStubTearDown() {
   SetMockRtGetDeviceWay(0);
   DEL_STUB_RETURN_VALUE(rtGetDevice, rtError_t);
-  DEL_STUB_RETURN_VALUE(rtGetDeviceCapability, rtError_t);
-  DEL_STUB_OUTBOUND_VALUE(rtGetDeviceCapability, int32_t, value);
   DEL_STUB_RETURN_VALUE(rtStreamWaitEvent, rtError_t);
   DEL_STUB_RETURN_VALUE(rtStreamWaitEventWithTimeout, rtError_t);
-  DEL_STUB_RETURN_VALUE(rtEventReset, rtError_t);
   DEL_STUB_RETURN_VALUE(rtEventRecord, rtError_t);
   DEL_STUB_RETURN_VALUE(rtEventCreate, rtError_t);
   DEL_STUB_RETURN_VALUE(rtGetEventID, rtError_t);
@@ -661,7 +650,6 @@ void rtStubTearDown() {
   DEL_STUB_RETURN_VALUE(rtMallocHost, rtError_t);
   DEL_STUB_RETURN_VALUE(rtFreeHost, rtError_t);
   DEL_STUB_RETURN_VALUE(rtMemcpy, rtError_t);
-  DEL_STUB_RETURN_VALUE(rtsMemcpyBatch, rtError_t);
   DEL_STUB_RETURN_VALUE(rtDatadumpInfoLoad, rtError_t);
 
   DEL_STUB_RETURN_VALUE(rtSetDeviceV2, rtError_t);
@@ -686,13 +674,6 @@ rtError_t rtGetDevice(int32_t *device) {
   return ge::RuntimeStub::GetInstance()->rtGetDevice(device);
 }
 
-ADD_STUB_RETURN_VALUE(rtGetDeviceCapability, rtError_t);
-ADD_STUB_OUTBOUND_VALUE(rtGetDeviceCapability, int32_t, value);
-rtError_t rtGetDeviceCapability(int32_t device, int32_t moduleType, int32_t featureType, int32_t *value) {
-  *value = GET_STUB_OUTBOUND_VALUE(rtGetDeviceCapability, int32_t, value, RT_AICPU_BLOCKING_OP_SUPPORT);
-  return GET_STUB_RETURN_VALUE(rtGetDeviceCapability, rtError_t, RT_ERROR_NONE);
-}
-
 
 rtError_t rtStreamWaitEvent(rtStream_t stream, rtEvent_t event) {
   return ge::RuntimeStub::GetInstance()->rtStreamWaitEvent(stream, event);
@@ -701,15 +682,6 @@ rtError_t rtStreamWaitEvent(rtStream_t stream, rtEvent_t event) {
 ADD_STUB_RETURN_VALUE(rtStreamWaitEventWithTimeout, rtError_t);
 rtError_t rtStreamWaitEventWithTimeout(rtStream_t stream, rtEvent_t event, uint32_t timeout) {
   return ge::RuntimeStub::GetInstance()->rtStreamWaitEventWithTimeout(stream, event, timeout);
-}
-
-ADD_STUB_RETURN_VALUE(rtEventReset, rtError_t);
-rtError_t rtEventReset(rtEvent_t event, rtStream_t stream) {
-  return GET_STUB_RETURN_VALUE(rtEventReset, rtError_t, RT_ERROR_NONE);
-}
-
-RTS_API rtError_t rtEventQueryStatus(rtEvent_t evt, rtEventStatus_t *status) {
-  return ge::RuntimeStub::GetInstance()->rtEventQueryStatus(evt, status);
 }
 
 ADD_STUB_RETURN_VALUE(rtEventCreate, rtError_t);
@@ -799,8 +771,6 @@ rtError_t rtEventRecord(rtEvent_t event, rtStream_t stream) {
 }
 
 rtError_t rtEventSynchronize(rtEvent_t event) { return RT_ERROR_NONE; }
-
-rtError_t rtEventSynchronizeWithTimeout(rtEvent_t evt, const int32_t timeout) { return RT_ERROR_NONE; }
 
 rtError_t rtEventDestroy(rtEvent_t event) {
   g_free_event_num++;
@@ -1006,15 +976,6 @@ rtError_t rtMemcpyAsyncPtr(void *memcpyAddrInfo, uint64_t destMax, uint64_t coun
   return ge::RuntimeStub::GetInstance()->rtMemcpyAsyncPtr(memcpyAddrInfo, destMax, count, kind, stream, qosCfg);
 }
 
-ADD_STUB_RETURN_VALUE(rtsMemcpyBatch, rtError_t);
-rtError_t rtsMemcpyBatch(void **dsts, void **srcs, size_t *sizes, size_t count,
-    rtMemcpyBatchAttr *attrs, size_t *attrsIdxs, size_t numAttrs, size_t *failIdx) {
-  if (std::string(__FUNCTION__) == g_runtime_stub_mock) {
-    return -1;
-  }
-  return ge::RuntimeStub::GetInstance()->rtsMemcpyBatch(dsts, srcs, sizes, count, attrs, attrsIdxs, numAttrs, failIdx);
-}
-
 rtError_t rtMemcpyHostTask(void *dst, uint64_t dest_max, const void *src, uint64_t count, rtMemcpyKind_t kind,
                         rtStream_t stream) {
   if (std::string(__FUNCTION__) == g_runtime_stub_mock) {
@@ -1025,10 +986,6 @@ rtError_t rtMemcpyHostTask(void *dst, uint64_t dest_max, const void *src, uint64
 
 rtError_t rtSetTSDevice(uint32_t tsId) {
   return RT_ERROR_NONE;
-}
-
-rtError_t rtGetDeviceCount(int32_t *count) {
-  return ge::RuntimeStub::GetInstance()->rtGetDeviceCount(count);
 }
 
 rtError_t rtDeviceGetBareTgid(uint32_t *pid) {
@@ -1362,11 +1319,6 @@ rtError_t rtProfilerTraceEx(uint64_t id, uint64_t modelId, uint16_t tagId, rtStr
 
 rtError_t rtMemSetRC(const void *dev_ptr, uint64_t size, uint32_t read_count) { return RT_ERROR_NONE; }
 
-rtError_t rtStreamSwitchEx(void *ptr, rtCondition_t condition, void *value_ptr, rtStream_t true_stream,
-                           rtStream_t stream, rtSwitchDataType_t data_type) {
-  return ge::RuntimeStub::GetInstance()->rtStreamSwitchEx(ptr, condition, value_ptr, true_stream, stream, data_type);
-}
-
 rtError_t rtStreamActive(rtStream_t active_stream, rtStream_t stream) { return RT_ERROR_NONE; }
 
 ADD_STUB_RETURN_VALUE(rtDatadumpInfoLoad, rtError_t);
@@ -1425,16 +1377,6 @@ rtError_t rtGetSocSpec(const char *label, const char *key, char *value, const ui
 }
 
 rtError_t rtGetAiCoreCount(uint32_t *aiCoreCnt)
-{
-  return RT_ERROR_NONE;
-}
-
-rtError_t rtGetAiCpuCount(uint32_t *aiCpuCnt)
-{
-  return RT_ERROR_NONE;
-}
-
-RTS_API rtError_t rtSetOpWaitTimeOut(uint32_t timeout)
 {
   return RT_ERROR_NONE;
 }
@@ -1889,11 +1831,6 @@ rtError_t rtNpuGetFloatStatus(void *outputAddr, uint64_t outputSize, uint32_t ch
 
 ADD_STUB_RETURN_VALUE(rtNpuClearFloatStatus, rtError_t);
 rtError_t rtNpuClearFloatStatus(uint32_t checkMode, rtStream_t stm) {
-  return RT_ERROR_NONE;
-}
-
-rtError_t rtCtxGetDevice(int32_t *device) {
-  *device = 0;
   return RT_ERROR_NONE;
 }
 

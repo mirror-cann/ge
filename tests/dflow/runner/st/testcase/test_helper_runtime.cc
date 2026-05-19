@@ -4855,10 +4855,18 @@ TEST_F(STEST_helper_runtime, TestDynamicSchedDeployWithFlowOnServer) {
   setenv("GE_PROFILING_TO_STD_OUT", "2", true);
   auto real_path = st_dir_path + "st_run_data/json/helper_runtime/host/numa_config_1server.json";
   setenv("RESOURCE_CONFIG_PATH", real_path.c_str(), 1);
-  MmpaStub::GetInstance().SetImpl(std::make_shared<MockMmpaForHeterogeneousRuntime>());
   RuntimeStub::SetInstance(std::make_shared<MockRuntimeForServer>());
+  MmpaStub::GetInstance().SetImpl(std::make_shared<MockMmpaForHeterogeneousRuntime>());
+  class MockAclRuntime : public ge::AclRuntimeStub {
+   public:
+    aclError aclrtGetDeviceCapability(int32_t deviceId, aclrtDevFeatureType devFeatureType, int32_t *value) override {
+      *value = 0;
+      return ACL_SUCCESS;
+    }
+  };
+  auto mock_runtime = std::make_shared<MockAclRuntime>();
+  ge::AclRuntimeStub::SetInstance(mock_runtime);
   std::map<std::string, std::string> options;
-  RTS_STUB_OUTBOUND_VALUE(rtGetDeviceCapability, int32_t, value, 0);
   EXPECT_EQ(InitializeHeterogeneousRuntime(options), SUCCESS);
   ge::GetThreadLocalContext().SetSessionOption({{"ge.flowGraphMemMaxSize","123456789"}});
 

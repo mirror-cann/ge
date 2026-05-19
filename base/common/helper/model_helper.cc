@@ -1677,12 +1677,11 @@ Status ModelHelper::InitRuntimePlatform() {
   GE_ASSERT_TRUE(fe::PlatformInfoManager::GeInstance().InitRuntimePlatformInfos(std::string(soc_version)) == 0U,
       "[Init][PlatformInfo]init runtime platform info failed, SocVersion = %s", soc_version);
 
-  uint32_t aicore_num = 0U;
-  GE_ASSERT_RT_OK(rtGetAiCoreCount(&aicore_num));
+  int64_t aicore_num = 0;
+  GE_ASSERT_RT_OK(aclrtGetDeviceInfo(static_cast<uint32_t>(device_id), ACL_DEV_ATTR_AICORE_CORE_NUM, &aicore_num));
   int64_t vec_core_num = 0U;
   // some chips has no vector core
-  GE_ASSERT_RT_OK(rtGetDeviceInfo(static_cast<uint32_t>(device_id),
-                                  kModuleTypeVectorCore, kInfoTypeCoreNum, &vec_core_num));
+  GE_ASSERT_RT_OK(aclrtGetDeviceInfo(static_cast<uint32_t>(device_id), ACL_DEV_ATTR_VECTOR_CORE_NUM, &vec_core_num));
 
   fe::PlatFormInfos platform_infos;
   GE_ASSERT_TRUE(
@@ -1806,7 +1805,7 @@ Status ModelHelper::UpdatePlatfromInfoWithRuntime(const int32_t device_id, const
     return SUCCESS;
   }
   int64_t aic_core_cnt = 0;
-  if (rtGetDeviceInfo(static_cast<uint32_t>(device_id), kModuleTypeAicore, kInfoTypeCoreNum, &aic_core_cnt) != RT_ERROR_NONE) {
+  if (aclrtGetDeviceInfo(static_cast<uint32_t>(device_id), ACL_DEV_ATTR_AICORE_CORE_NUM, &aic_core_cnt) != ACL_SUCCESS) {
     GELOGE(FAILED, "Failed to get AICore count from device.");
     return FAILED;
   }
@@ -1817,7 +1816,7 @@ Status ModelHelper::UpdatePlatfromInfoWithRuntime(const int32_t device_id, const
 
   int64_t vector_core_cnt = kModuleTypeVectorCore;
   // some chips have no vector core
-  (void)rtGetDeviceInfo(static_cast<uint32_t>(device_id), kModuleTypeVectorCore, kInfoTypeCoreNum, &vector_core_cnt);
+  (void)aclrtGetDeviceInfo(static_cast<uint32_t>(device_id), ACL_DEV_ATTR_VECTOR_CORE_NUM, &vector_core_cnt);
 
   // 用从rts获取到的核数刷新platform info
   UpdateCoreCountWithRuntime(AICORE_NUM, ai_core_cnt_ini, aic_core_cnt,
