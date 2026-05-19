@@ -329,7 +329,7 @@ target_link_libraries(ge_common_base
         ascend_dump
         exe_graph
         lowering
-        $<$<AND:$<NOT:$<BOOL:${MDC_COMPILE_RUNTIME}>>,$<NOT:$<STREQUAL:${ENABLE_TEST},True>>>:atrace_share>
+        $<$<AND:$<NOT:$<BOOL:${MDC_COMPILE_RUNTIME}>>,$<NOT:$<STREQUAL:${PRODUCT},ascend031>>,$<NOT:$<STREQUAL:${ENABLE_TEST},True>>>:atrace_share>
         -Wl,--as-needed
         json
         $<$<NOT:$<STREQUAL:${TARGET_SYSTEM_NAME},Android>>:-lrt>
@@ -523,7 +523,7 @@ target_link_libraries(ge_common_base
         unified_dlog
         platform
         static_mmpa
-        $<$<AND:$<NOT:$<BOOL:${MDC_COMPILE_RUNTIME}>>,$<NOT:$<STREQUAL:${ENABLE_TEST},True>>>:atrace_share>
+        $<$<AND:$<NOT:$<BOOL:${MDC_COMPILE_RUNTIME}>>,$<NOT:$<STREQUAL:${PRODUCT},ascend031>>,$<NOT:$<STREQUAL:${ENABLE_TEST},True>>>:atrace_share>
         -Wl,--as-needed
         json
         -lrt
