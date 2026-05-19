@@ -140,38 +140,6 @@ include_directories(${CMAKE_BINARY_DIR}/proto/metadef_protos)
 include_directories(${CMAKE_BINARY_DIR}/proto/metadef_protos_af)
 include_directories(${CMAKE_BINARY_DIR}/ascir_builtin_ops)
 
-#if (NOT ENABLE_OPEN_SRC)
-#    set(GRAPH_AUTOFUSION_SRC_DIR ${TOP_DIR}/graph-autofusion)
-#    set(GRAPH_AUTOFUSION_BINARY_DIR ${CMAKE_BINARY_DIR}/graph_autofusion_build)
-#    include(ExternalProject)
-#    message(STATUS "XZXa CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
-#    message(STATUS "XZXb CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
-#    message(STATUS "XZXc PROTOC_PROGRAM: ${PROTOC_PROGRAM}")
-#    message(STATUS "XZXd CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}")
-#    ExternalProject_Add(graph_autofusion_build
-#        SOURCE_DIR      ${GRAPH_AUTOFUSION_SRC_DIR}/autofuse
-#        BINARY_DIR      ${GRAPH_AUTOFUSION_BINARY_DIR}
-#        CMAKE_ARGS
-#            -DASCEND_INSTALL_PATH=${ASCEND_INSTALL_PATH}
-#            -DASCEND_CANN_3RD_LIB_PATH=${CMAKE_INSTALL_PREFIX}
-#            "-DCMAKE_MODULE_PATH=${CMAKE_MODULE_PATH}"
-#            "-DCMAKE_PREFIX_PATH=${CMAKE_INSTALL_PREFIX}/protoc;${CMAKE_INSTALL_PREFIX}/ascend_protobuf;${CMAKE_PREFIX_PATH}"
-#            -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-#            -DCMAKE_POLICY_VERSION_MINIMUM=3.5
-#            -DASCEND_PROTOBUF_SHARED_INCLUDE:PATH=${ASCEND_PROTOBUF_SHARED_INCLUDE}
-#            -DASCEND_PROTOBUF_SHARED_LIBRARY:FILEPATH=${ASCEND_PROTOBUF_SHARED_LIBRARY}
-#            -DTOP_DIR=${TOP_DIR}
-#            -DJSON_INCLUDE=${JSON_INCLUDE}
-#            -Dmmpa_INCLUDE_DIR=${mmpa_INCLUDE_DIR}
-#            -DC_SEC_INCLUDE=${C_SEC_INCLUDE}
-#        BUILD_COMMAND   ${CMAKE_COMMAND} --build <BINARY_DIR> --target ascir_builtin_ops_header metadef_protos -j
-#        INSTALL_COMMAND ""
-#        BUILD_ALWAYS    FALSE
-#    )
-#    include_directories(${GRAPH_AUTOFUSION_BINARY_DIR}/proto/metadef_protos)
-#    include_directories(${GRAPH_AUTOFUSION_BINARY_DIR}/ascir_builtin_ops)
-#endif ()
-
 if (ENABLE_OPEN_SRC)
     add_cann_third_party(json)
     if(NOT BUILD_PKG_COMPONENT)
