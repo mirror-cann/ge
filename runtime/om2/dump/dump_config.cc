@@ -11,7 +11,6 @@
 #include "framework/runtime/dump/dump_config.h"
 #include "framework/common/debug/ge_log.h"
 #include "framework/common/debug/log.h"
-#include "common/ge_common/util.h"
 #include <ctime>
 
 namespace ge {
@@ -519,16 +518,16 @@ Status DumpConfig::ParseDumpConfigFromJson(const nlohmann::json& dumpJson) {
   return SUCCESS;
 }
 
-void DumpConfig::ParseBasicConfigurations(const nlohmann::json& jsDumpConfig) {
-  dump_path_ = GetConfigWithDefault(jsDumpConfig, GE_DUMP_PATH, "");
-  dump_mode_ = GetConfigWithDefault(jsDumpConfig, GE_DUMP_MODE, GE_DUMP_MODE_DEFAULT);
-  dump_status_ = GetConfigWithDefault(jsDumpConfig, GE_DUMP_STATUS, GE_DUMP_STATUS_DEFAULT);
-  dump_op_switch_ = GetConfigWithDefault(jsDumpConfig, GE_DUMP_OP_SWITCH, GE_DUMP_OP_SWITCH_DEFAULT);
-  dump_debug_ = GetConfigWithDefault(jsDumpConfig, GE_DUMP_DEBUG, GE_DUMP_DEBUG_DEFAULT);
-  dump_step_ = GetConfigWithDefault(jsDumpConfig, GE_DUMP_STEP, GE_DUMP_STEP_DEFAULT);
-  dump_data_ = GetConfigWithDefault(jsDumpConfig, GE_DUMP_DATA, GE_DUMP_DATA_DEFAULT);
-  dump_level_ = GetConfigWithDefault(jsDumpConfig, GE_DUMP_LEVEL, GE_DUMP_LEVEL_DEFAULT);
-  dump_scene_ = GetConfigWithDefault(jsDumpConfig, GE_DUMP_SCENE, GE_DUMP_SCENE_DEFAULT);
+void DumpConfig::ParseBasicConfigurations(const nlohmann::json& dumpJson) {
+  dump_path_ = GetConfigWithDefault(dumpJson, GE_DUMP_PATH, "");
+  dump_mode_ = GetConfigWithDefault(dumpJson, GE_DUMP_MODE, GE_DUMP_MODE_DEFAULT);
+  dump_status_ = GetConfigWithDefault(dumpJson, GE_DUMP_STATUS, GE_DUMP_STATUS_DEFAULT);
+  dump_op_switch_ = GetConfigWithDefault(dumpJson, GE_DUMP_OP_SWITCH, GE_DUMP_OP_SWITCH_DEFAULT);
+  dump_debug_ = GetConfigWithDefault(dumpJson, GE_DUMP_DEBUG, GE_DUMP_DEBUG_DEFAULT);
+  dump_step_ = GetConfigWithDefault(dumpJson, GE_DUMP_STEP, GE_DUMP_STEP_DEFAULT);
+  dump_data_ = GetConfigWithDefault(dumpJson, GE_DUMP_DATA, GE_DUMP_DATA_DEFAULT);
+  dump_level_ = GetConfigWithDefault(dumpJson, GE_DUMP_LEVEL, GE_DUMP_LEVEL_DEFAULT);
+  dump_scene_ = GetConfigWithDefault(dumpJson, GE_DUMP_SCENE, GE_DUMP_SCENE_DEFAULT);
 
   // 对齐 v1 DumpManager::SetDumpDebugConf：dump_debug=on 时启用全部溢出检测，
   // 同时将 dump_status 强制置为 off（对齐 v1 HandleDumpDebugConfig 行为），
@@ -541,13 +540,13 @@ void DumpConfig::ParseBasicConfigurations(const nlohmann::json& jsDumpConfig) {
   }
 }
 
-void DumpConfig::ParseComplexConfigs(const nlohmann::json& jsDumpConfig) {
-  if (jsDumpConfig.contains(GE_DUMP_STATS) && jsDumpConfig[GE_DUMP_STATS].is_array()) {
-    ParseStringArray(jsDumpConfig[GE_DUMP_STATS], dump_stats_);
+void DumpConfig::ParseComplexConfigs(const nlohmann::json& dumpJson) {
+  if (dumpJson.contains(GE_DUMP_STATS) && dumpJson[GE_DUMP_STATS].is_array()) {
+    ParseStringArray(dumpJson[GE_DUMP_STATS], dump_stats_);
   }
 
-  if (jsDumpConfig.contains(GE_DUMP_LIST) && jsDumpConfig[GE_DUMP_LIST].is_array()) {
-    ParseModelDumpConfigList(jsDumpConfig[GE_DUMP_LIST], model_dump_config_list_);
+  if (dumpJson.contains(GE_DUMP_LIST) && dumpJson[GE_DUMP_LIST].is_array()) {
+    ParseModelDumpConfigList(dumpJson[GE_DUMP_LIST], model_dump_config_list_);
   }
 }
 

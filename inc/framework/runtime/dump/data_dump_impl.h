@@ -71,17 +71,17 @@ class DataDumpImpl {
   Status ExecuteLoadDumpInfo(const toolkit::aicpu::dump::OpMappingInfo& op_mapping_info);
 
   void BuildOpMappingBasicInfo(const ModelDumpInfo& model_info,
-                                toolkit::aicpu::dump::OpMappingInfo& op_mapping_info);
+                                toolkit::aicpu::dump::OpMappingInfo& op_mapping_info) const;
 
-  Status BuildTaskList(toolkit::aicpu::dump::OpMappingInfo& op_mapping_info);
+  Status BuildTaskList(toolkit::aicpu::dump::OpMappingInfo& op_mapping_info) const;
 
-  void BuildTaskInputs(const InnerDumpInfo& dump_info, toolkit::aicpu::dump::Task& task);
+  void BuildTaskInputs(const InnerDumpInfo& dump_info, toolkit::aicpu::dump::Task& task) const;
 
-  void BuildTaskOutputs(const InnerDumpInfo& dump_info, toolkit::aicpu::dump::Task& task);
+  void BuildTaskOutputs(const InnerDumpInfo& dump_info, toolkit::aicpu::dump::Task& task) const;
 
-  void BuildTaskWorkspaces(const InnerDumpInfo& dump_info, toolkit::aicpu::dump::Task& task);
+  void BuildTaskWorkspaces(const InnerDumpInfo& dump_info, toolkit::aicpu::dump::Task& task) const;
 
-  void BuildOpDebugTask(toolkit::aicpu::dump::OpMappingInfo& op_mapping_info);
+  void BuildOpDebugTask(toolkit::aicpu::dump::OpMappingInfo& op_mapping_info) const;
 
   std::vector<InnerDumpInfo> task_list_;
   toolkit::aicpu::dump::OpMappingInfo op_mapping_info_;
