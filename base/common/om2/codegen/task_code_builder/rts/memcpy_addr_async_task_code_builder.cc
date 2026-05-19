@@ -49,10 +49,24 @@ Status MemcpyAddrAsyncTaskCodeBuilder::Contribute(TaskSemanticContributeContext 
   uint64_t logical_dst_mem_type = 0U;
   AddrSemantic src_addr_node;
   AddrSemantic dst_addr_node;
+  GELOGI("[OM2][MemcpyAddrAsync] op=%s, src_logic_addr=0x%" PRIx64 ", dst_logic_addr=0x%" PRIx64
+         ", internal_index=%u, op_index=%u",
+         context.op_desc->GetName().c_str(), static_cast<uint64_t>(memcpy_async.src()),
+         static_cast<uint64_t>(memcpy_async.dst()), internal_index_, memcpy_async.op_index());
   GE_ASSERT_SUCCESS(Om2ModelUtils::GetRtAddress(context, static_cast<uintptr_t>(memcpy_async.src()),
                                                 logical_src_mem_type, src_addr_node, true, internal_index_));
+  GELOGI("[OM2][MemcpyAddrAsync] src resolved: kind=%d, memory_app=%d, symbol_hint=%s, mem_offset=%" PRId64
+         ", is_reused=%d, has_tensor_info=%d",
+         static_cast<int>(src_addr_node.kind), static_cast<int>(src_addr_node.memory_app),
+         src_addr_node.symbol_hint.c_str(), src_addr_node.mem_offset,
+         src_addr_node.is_reused_from_upstream, src_addr_node.tensor_info.has_value());
   GE_ASSERT_SUCCESS(Om2ModelUtils::GetRtAddress(context, static_cast<uintptr_t>(memcpy_async.dst()),
                                                 logical_dst_mem_type, dst_addr_node, false, internal_index_));
+  GELOGI("[OM2][MemcpyAddrAsync] dst resolved: kind=%d, memory_app=%d, symbol_hint=%s, mem_offset=%" PRId64
+         ", is_reused=%d, has_tensor_info=%d",
+         static_cast<int>(dst_addr_node.kind), static_cast<int>(dst_addr_node.memory_app),
+         dst_addr_node.symbol_hint.c_str(), dst_addr_node.mem_offset,
+         dst_addr_node.is_reused_from_upstream, dst_addr_node.tensor_info.has_value());
 
   GE_ASSERT_SUCCESS(CalcArgSizes(context));
 
@@ -141,10 +155,6 @@ Status MemcpyAddrAsyncTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> 
                                       "_iow_addr" + std::to_string(internal_index_);
   auto ioaddr_var = ast_.Var("std::vector<uint64_t>", ioaddr_var_name);
   items.emplace_back(ast_.VarDecl(ioaddr_var, FlattenHostArgs(args_vars)));
-  items.push_back(ChkStatus(MemcpyS(
-      args_table_.Attr("GetArgsInfo")(static_cast<int64_t>(entry_.table_index)).Arrow("host_addr") + aligned_io_offset_,
-      args_table_.Attr("GetArgsInfo")(static_cast<int64_t>(entry_.table_index)).Arrow("size") - aligned_io_offset_,
-      ioaddr_var.Data(), ioaddr_var.Size() * ast_.Sizeof("uint64_t"))));
   items.push_back(ChkStatus(ast_.Call("KernelMemcpyAddrAsyncDistribute", {
       ast_.Str(header_.op_name),
       args_table_.Attr("GetArgsInfo")(static_cast<int64_t>(entry_.table_index)).Arrow("dev_addr") + align_offset_,
@@ -159,39 +169,39 @@ Status MemcpyAddrAsyncTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> 
       args_table_.Attr("GetArgsInfo")(static_cast<int64_t>(entry_.table_index)).Arrow("dev_addr") + align_offset_,
       args_size_,
       "ACL_MEMCPY_DEVICE_TO_HOST")));
-  // 与 TaskInfo::Distribute() 对称：回拷后遍历 arg_descs_ 写入 CUSTOM_VALUE
+  items.push_back(ChkStatus(MemcpyS(
+      args_table_.Attr("GetArgsInfo")(static_cast<int64_t>(entry_.table_index)).Arrow("host_addr") + aligned_io_offset_,
+      args_table_.Attr("GetArgsInfo")(static_cast<int64_t>(entry_.table_index)).Arrow("size") - aligned_io_offset_,
+      ioaddr_var.Data(), ioaddr_var.Size() * ast_.Sizeof("uint64_t"))));
   RenderCustomValueWriteback(items);
   return SUCCESS;
 }
 
 void MemcpyAddrAsyncTaskCodeBuilder::CollectIoAddrVars(std::vector<BodyItem> &items,
                                                        std::vector<Arg> &args_vars) {
-  for (const auto &semantic : ordered_arg_values_) {
-    switch (semantic.kind) {
-      case AddrValueKind::kInputInstance:
-      case AddrValueKind::kOutputInstance:
-        if (!semantic.is_reused_from_upstream) {
-          if (!semantic.tensor_info.has_value()) {
-            GELOGE(FAILED, "[OM2] MemcpyAddrAsync tensor info is required for %s.",
-                   semantic.symbol_hint.c_str());
-            return;
-          }
-          const auto &tensor_info = *semantic.tensor_info;
-          const std::string shape_var_name = semantic.symbol_hint + "_shape";
-          items.push_back(
-              ast_.VarDecl("std::vector<int64_t>", shape_var_name, ast_.InitList(ConvertToArgs(tensor_info.shape_dims))));
-          items.push_back(ast_.VarDecl("Om2Tensor", semantic.symbol_hint, ast_.Call("BuildOm2Tensor", {
-              GetAddr(total_dev_mem_ptr_, semantic.mem_offset),
-              ast_.ULong(tensor_info.size),
-              tensor_info.data_type,
-              tensor_info.format,
-              ast_.Var("std::vector<int64_t>", shape_var_name)})));
-        }
-        args_vars.emplace_back(ast_.Var("auto", semantic.symbol_hint));
-        break;
-      default:
-        break;
+  GELOGI("[OM2][CollectIoAddrVars] ordered_arg_values size=%zu", ordered_arg_values_.size());
+  for (size_t i = 0; i < ordered_arg_values_.size(); ++i) {
+    const auto &semantic = ordered_arg_values_[i];
+    if (!semantic.is_reused_from_upstream) {
+      if (!semantic.tensor_info.has_value()) {
+        GELOGE(FAILED, "[OM2] MemcpyAddrAsync tensor info is required for %s.",
+                semantic.symbol_hint.c_str());
+        return;
+      }
+      const auto &tensor_info = *semantic.tensor_info;
+      const std::string shape_var_name = semantic.symbol_hint + "_shape";
+      items.push_back(
+          ast_.VarDecl("std::vector<int64_t>", shape_var_name, ast_.InitList(ConvertToArgs(tensor_info.shape_dims))));
+      items.push_back(ast_.VarDecl("Om2Tensor", semantic.symbol_hint, ast_.Call("BuildOm2Tensor", {
+          GetAddr(total_dev_mem_ptr_, semantic.mem_offset),
+          ast_.ULong(tensor_info.size),
+          tensor_info.data_type,
+          tensor_info.format,
+          ast_.Var("std::vector<int64_t>", shape_var_name)})));
+    } else {
+      GELOGI("[OM2][CollectIoAddrVars] [%zu] reusing upstream: symbol=%s", i, semantic.symbol_hint.c_str());
     }
+    args_vars.emplace_back(ast_.Var("auto", semantic.symbol_hint));
   }
 }
 

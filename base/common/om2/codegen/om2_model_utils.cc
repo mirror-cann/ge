@@ -418,6 +418,8 @@ Status Om2ModelUtils::GetRtInputAddress(const TaskSemanticContributeContext &con
   if (context.model_io->io_offsets.find(logical_offset) != context.model_io->io_offsets.end()) {
     addr_node.memory_app = MemoryAppType::kModelIo;
     addr_node.compile_state_io_addr_offset = logical_offset;
+    GELOGI("[OM2][GetRtInputAddress] op=%s, logical_offset=%" PRId64 " found in io_offsets, memory_app=kModelIo",
+           context.op_desc->GetName().c_str(), logical_offset);
   }
 
   GE_ASSERT_SUCCESS(ResolveInputVarName(*context.op_id_to_input_edges, context.op_desc, context.op_index, index,
@@ -432,6 +434,8 @@ Status Om2ModelUtils::GetRtAddress(const TaskSemanticContributeContext &context,
   GE_ASSERT_NOTNULL(context.op_desc);
   GE_ASSERT_NOTNULL(context.model_io);
   GE_ASSERT_NOTNULL(context.op_id_to_input_edges);
+  GELOGI("[OM2][GetRtAddress] op=%s, logic_addr=0x%" PRIxPTR ", isInput=%d, index=%u",
+         context.op_desc->GetName().c_str(), logic_addr, isInput, index);
   if (logic_addr == std::numeric_limits<uintptr_t>::max()) {
     GELOGI("Got placeholder logic addr.");
     return SUCCESS;
@@ -442,21 +446,26 @@ Status Om2ModelUtils::GetRtAddress(const TaskSemanticContributeContext &context,
 
   if ((context.runtime->logic_mem_base <= logic_addr) &&
       (logic_addr < (context.runtime->logic_mem_base + context.runtime->total_mem_size))) {
+    GELOGI("[OM2][GetRtAddress] logic_addr 0x%" PRIxPTR " falls into FM range, isInput=%d", logic_addr, isInput);
     return GetRtFmAddress(context, static_cast<int64_t>(logic_addr - context.runtime->logic_mem_base),
                           mem_type, addr_node, isInput, index);
   }
   if ((context.runtime->logic_weight_base <= logic_addr) &&
       (logic_addr < (context.runtime->logic_weight_base + context.runtime->total_weight_size))) {
+    GELOGI("[OM2][GetRtAddress] logic_addr 0x%" PRIxPTR " falls into Weight range", logic_addr);
     return GetRtWeightAddress(context, static_cast<int64_t>(logic_addr - context.runtime->logic_weight_base),
                               mem_type, addr_node, index);
   }
   if (is_check_var_manager && (context.runtime->logic_var_base <= logic_addr) &&
       (logic_addr < (context.runtime->logic_var_base + max_var_mem_size))) {
+    GELOGI("[OM2][GetRtAddress] logic_addr 0x%" PRIxPTR " falls into Var range", logic_addr);
     return GetRtVarAddress(context, logic_addr, mem_type, addr_node);
   }
   if (logic_addr != 0U) {
+    GELOGW("[OM2][GetRtAddress] logic_addr 0x%" PRIxPTR " falls into Unknown range", logic_addr);
     return GetRtUnknownAddress(context, logic_addr, mem_type);
   }
+  GELOGI("[OM2][GetRtAddress] logic_addr is 0, falls into Empty range");
   return GetRtEmptyAddress(context, addr_node, isInput, index);
 }
 
