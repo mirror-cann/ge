@@ -22,7 +22,6 @@
 #include "framework/common/ge_inner_error_codes.h"
 #include "register/register_types.h"
 #include "runtime/stream.h"
-#include "aprof_pub.h"
 #include "common/profiling/profiling_properties.h"
 #include "framework/runtime/subscriber/global_profiler.h"
 #include "framework/runtime/model_v2_executor.h"

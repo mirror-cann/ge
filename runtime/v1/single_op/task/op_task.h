@@ -39,7 +39,6 @@
 #include "base/registry/op_impl_space_registry_v2.h"
 #include "graph/load/model_manager/model_utils.h"
 #include "mmpa/mmpa_api.h"
-#include "aprof_pub.h"
 #include "framework/runtime/subscriber/global_dumper.h"
 #include "acl/acl_rt.h"
 

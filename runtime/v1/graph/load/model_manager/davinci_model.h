@@ -44,7 +44,6 @@
 #include "graph/load/model_manager/cpu_queue_schedule.h"
 #include "ge/ge_api_types.h"
 #include "base/registry/op_impl_space_registry_v2.h"
-#include "aprof_pub.h"
 #include "framework/runtime/subscriber/global_profiler.h"
 #include "framework/runtime/subscriber/global_dumper.h"
 #include "register/op_tiling_info.h"
