@@ -18,7 +18,6 @@
 #include "model/acl_resource_manager_om2.h"
 #undef private
 #undef protected
-#include "model/acl_model_router.h"
 #include "acl_stub.h"
 
 #include <memory>
@@ -73,6 +72,7 @@ protected:
         instance.om2ExecutorMap_[0U] = nullptr;  // 恢复初始状态
         instance.bundleInfos_.clear();
         instance.bundleInnerIds_.clear();
+        instance.rtSessionMap_.clear();
         Mock::VerifyAndClear((void *)(&MockFunctionTest::aclStubInstance()));
     }
 };
@@ -91,6 +91,18 @@ TEST_F(UTEST_ACL_Resource_Manager_Om2, AddOm2Executor_Success) {
 
     EXPECT_GT(modelId, 0U);
     EXPECT_NE(acl::AclResourceManagerOm2::GetInstance().GetOm2Executor(modelId), nullptr);
+}
+
+TEST_F(UTEST_ACL_Resource_Manager_Om2, AddOm2Executor_WithRtSession) {
+    auto executor = std::unique_ptr<gert::Om2ModelExecutor>(new(std::nothrow) gert::Om2ModelExecutor);
+    auto rtSession = acl::AclResourceManagerOm2::GetInstance().CreateRtSession();
+    uint32_t modelId = 0;
+
+    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(modelId, std::move(executor), rtSession);
+
+    EXPECT_GT(modelId, 0U);
+    EXPECT_NE(acl::AclResourceManagerOm2::GetInstance().GetOm2Executor(modelId), nullptr);
+    EXPECT_EQ(acl::AclResourceManagerOm2::GetInstance().GetRtSession(modelId), rtSession);
 }
 
 TEST_F(UTEST_ACL_Resource_Manager_Om2, GetOm2Executor_Success) {
@@ -132,6 +144,19 @@ TEST_F(UTEST_ACL_Resource_Manager_Om2, DeleteOm2Executor_NotFound) {
     aclError ret = acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(999U);
 
     EXPECT_EQ(ret, ACL_ERROR_GE_EXEC_MODEL_ID_INVALID);
+}
+
+TEST_F(UTEST_ACL_Resource_Manager_Om2, DeleteOm2Executor_WithRtSession) {
+    auto executor = std::unique_ptr<gert::Om2ModelExecutor>(new(std::nothrow) gert::Om2ModelExecutor);
+    auto rtSession = acl::AclResourceManagerOm2::GetInstance().CreateRtSession();
+    uint32_t modelId = 0;
+    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(modelId, std::move(executor), rtSession);
+
+    aclError ret = acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(modelId);
+
+    EXPECT_EQ(ret, ACL_SUCCESS);
+    EXPECT_EQ(acl::AclResourceManagerOm2::GetInstance().GetOm2Executor(modelId), nullptr);
+    EXPECT_EQ(acl::AclResourceManagerOm2::GetInstance().GetRtSession(modelId), nullptr);
 }
 
 // 2.2 模型类型判断测试（3个用例）
@@ -204,6 +229,40 @@ TEST_F(UTEST_ACL_Resource_Manager_Om2, DeleteBundleInfo_Success) {
     acl::BundleModelInfo retrieved;
     aclError ret = acl::AclResourceManagerOm2::GetInstance().GetBundleInfo(1U, retrieved);
     EXPECT_EQ(ret, ACL_ERROR_INVALID_BUNDLE_MODEL_ID);
+}
+
+// 2.4 RtSession管理测试（4个用例）
+
+TEST_F(UTEST_ACL_Resource_Manager_Om2, CreateRtSession_Success) {
+    auto rtSession = acl::AclResourceManagerOm2::GetInstance().CreateRtSession();
+
+    EXPECT_NE(rtSession, nullptr);
+}
+
+TEST_F(UTEST_ACL_Resource_Manager_Om2, CreateRtSession_MultipleCreation) {
+    auto rtSession1 = acl::AclResourceManagerOm2::GetInstance().CreateRtSession();
+    auto rtSession2 = acl::AclResourceManagerOm2::GetInstance().CreateRtSession();
+
+    EXPECT_NE(rtSession1, nullptr);
+    EXPECT_NE(rtSession2, nullptr);
+    EXPECT_NE(rtSession1, rtSession2);
+}
+
+TEST_F(UTEST_ACL_Resource_Manager_Om2, GetRtSession_Success) {
+    auto executor = std::unique_ptr<gert::Om2ModelExecutor>(new(std::nothrow) gert::Om2ModelExecutor);
+    auto rtSession = acl::AclResourceManagerOm2::GetInstance().CreateRtSession();
+    uint32_t modelId = 0;
+    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(modelId, std::move(executor), rtSession);
+
+    auto retrieved = acl::AclResourceManagerOm2::GetInstance().GetRtSession(modelId);
+
+    EXPECT_EQ(retrieved, rtSession);
+}
+
+TEST_F(UTEST_ACL_Resource_Manager_Om2, GetRtSession_NotFound) {
+    auto retrieved = acl::AclResourceManagerOm2::GetInstance().GetRtSession(999U);
+
+    EXPECT_EQ(retrieved, nullptr);
 }
 
 // ============================================================================
@@ -291,30 +350,26 @@ TEST_F(UTEST_ACL_Resource_Manager_Om2, SetBundleInfo_WithSubmodels) {
 // ============================================================================
 
 TEST_F(UTEST_ACL_Resource_Manager_Om2, IsOm2ModelByPath_NullPath) {
-    bool result = false;
-    AclIsOm2ModelByPath(nullptr, &result);
+    bool result = acl::AclResourceManagerOm2::GetInstance().IsOm2ModelByPath(nullptr);
 
     EXPECT_FALSE(result);
 }
 
 TEST_F(UTEST_ACL_Resource_Manager_Om2, IsOm2ModelByData_NullData) {
-    bool result = false;
-    AclIsOm2ModelByData(nullptr, 100, &result);
+    bool result = acl::AclResourceManagerOm2::GetInstance().IsOm2ModelByData(nullptr, 100);
 
     EXPECT_FALSE(result);
 }
 
 TEST_F(UTEST_ACL_Resource_Manager_Om2, IsOm2ModelByData_ZeroSize) {
     char data[] = "test";
-    bool result = false;
-    AclIsOm2ModelByData(data, 0, &result);
+    bool result = acl::AclResourceManagerOm2::GetInstance().IsOm2ModelByData(data, 0);
 
     EXPECT_FALSE(result);
 }
 
 TEST_F(UTEST_ACL_Resource_Manager_Om2, IsOm2ModelByConfig_NullHandle) {
-    bool result = false;
-    AclIsOm2ModelByConfig(nullptr, &result);
+    bool result = acl::AclResourceManagerOm2::GetInstance().IsOm2ModelByConfig(nullptr);
 
     EXPECT_FALSE(result);
 }
@@ -325,8 +380,7 @@ TEST_F(UTEST_ACL_Resource_Manager_Om2, IsOm2ModelByConfig_EmptyConfig) {
     handle.mdlAddr = nullptr;
     handle.mdlSize = 0;
 
-    bool result = false;
-    AclIsOm2ModelByConfig(&handle, &result);
+    bool result = acl::AclResourceManagerOm2::GetInstance().IsOm2ModelByConfig(&handle);
 
     EXPECT_FALSE(result);
 }
@@ -401,6 +455,29 @@ TEST_F(UTEST_ACL_Resource_Manager_Om2, BundleWithExecutors) {
 }
 
 // ============================================================================
+// RtSession和执行器交互测试
+// ============================================================================
+
+TEST_F(UTEST_ACL_Resource_Manager_Om2, MultipleExecutorsWithRtSessions) {
+    std::vector<uint32_t> modelIds;
+    std::vector<std::shared_ptr<gert::RtSession>> rtSessions;
+
+    for (int i = 0; i < 3; ++i) {
+        auto executor = std::unique_ptr<gert::Om2ModelExecutor>(new(std::nothrow) gert::Om2ModelExecutor);
+        auto rtSession = acl::AclResourceManagerOm2::GetInstance().CreateRtSession();
+        uint32_t modelId = 0;
+        acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(modelId, std::move(executor), rtSession);
+        modelIds.push_back(modelId);
+        rtSessions.push_back(rtSession);
+    }
+
+    for (size_t i = 0; i < modelIds.size(); ++i) {
+        auto retrieved = acl::AclResourceManagerOm2::GetInstance().GetRtSession(modelIds[i]);
+        EXPECT_EQ(retrieved, rtSessions[i]);
+    }
+}
+
+// ============================================================================
 // 模型类型判断正向测试用例（IsOm2ModelByPath, IsOm2ModelByData, IsOm2ModelByConfig）
 // ============================================================================
 
@@ -408,8 +485,7 @@ TEST_F(UTEST_ACL_Resource_Manager_Om2, IsOm2ModelByPath_ValidOm2Model) {
     EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _))
         .WillOnce(Invoke(IsOm2ModelFromFile));
 
-    bool result = false;
-    AclIsOm2ModelByPath("/path/to/om2_model.om", &result);
+    bool result = acl::AclResourceManagerOm2::GetInstance().IsOm2ModelByPath("/path/to/om2_model.om");
 
     EXPECT_TRUE(result);
 }
@@ -418,15 +494,13 @@ TEST_F(UTEST_ACL_Resource_Manager_Om2, IsOm2ModelByPath_ValidNonOm2Model) {
     EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _))
         .WillOnce(Invoke(IsNotOm2ModelFromFile));
 
-    bool result = false;
-    AclIsOm2ModelByPath("/path/to/non_om2_model.om", &result);
+    bool result = acl::AclResourceManagerOm2::GetInstance().IsOm2ModelByPath("/path/to/non_om2_model.om");
 
     EXPECT_FALSE(result);
 }
 
 TEST_F(UTEST_ACL_Resource_Manager_Om2, IsOm2ModelByPath_EmptyString) {
-    bool result = false;
-    AclIsOm2ModelByPath("", &result);
+    bool result = acl::AclResourceManagerOm2::GetInstance().IsOm2ModelByPath("");
 
     EXPECT_FALSE(result);
 }
@@ -436,8 +510,7 @@ TEST_F(UTEST_ACL_Resource_Manager_Om2, IsOm2ModelByData_ValidOm2Model) {
     EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _, _))
         .WillOnce(Invoke(IsOm2ModelFromData));
 
-    bool result = false;
-    AclIsOm2ModelByData(om2ModelData, sizeof(om2ModelData), &result);
+    bool result = acl::AclResourceManagerOm2::GetInstance().IsOm2ModelByData(om2ModelData, sizeof(om2ModelData));
 
     EXPECT_TRUE(result);
 }
@@ -447,8 +520,7 @@ TEST_F(UTEST_ACL_Resource_Manager_Om2, IsOm2ModelByData_ValidNonOm2Model) {
     EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _, _))
         .WillOnce(Invoke(IsNotOm2ModelFromData));
 
-    bool result = false;
-    AclIsOm2ModelByData(nonOm2ModelData, sizeof(nonOm2ModelData), &result);
+    bool result = acl::AclResourceManagerOm2::GetInstance().IsOm2ModelByData(nonOm2ModelData, sizeof(nonOm2ModelData));
 
     EXPECT_FALSE(result);
 }
@@ -462,8 +534,7 @@ TEST_F(UTEST_ACL_Resource_Manager_Om2, IsOm2ModelByConfig_WithValidOm2Path) {
     handle.mdlAddr = nullptr;
     handle.mdlSize = 0;
 
-    bool result = false;
-    AclIsOm2ModelByConfig(&handle, &result);
+    bool result = acl::AclResourceManagerOm2::GetInstance().IsOm2ModelByConfig(&handle);
 
     EXPECT_TRUE(result);
 }
@@ -477,8 +548,7 @@ TEST_F(UTEST_ACL_Resource_Manager_Om2, IsOm2ModelByConfig_WithValidNonOm2Path) {
     handle.mdlAddr = nullptr;
     handle.mdlSize = 0;
 
-    bool result = false;
-    AclIsOm2ModelByConfig(&handle, &result);
+    bool result = acl::AclResourceManagerOm2::GetInstance().IsOm2ModelByConfig(&handle);
 
     EXPECT_FALSE(result);
 }
@@ -493,8 +563,7 @@ TEST_F(UTEST_ACL_Resource_Manager_Om2, IsOm2ModelByConfig_WithValidOm2Data) {
     handle.mdlAddr = om2ModelData;
     handle.mdlSize = sizeof(om2ModelData);
 
-    bool result = false;
-    AclIsOm2ModelByConfig(&handle, &result);
+    bool result = acl::AclResourceManagerOm2::GetInstance().IsOm2ModelByConfig(&handle);
 
     EXPECT_TRUE(result);
 }
@@ -509,8 +578,7 @@ TEST_F(UTEST_ACL_Resource_Manager_Om2, IsOm2ModelByConfig_WithValidNonOm2Data) {
     handle.mdlAddr = nonOm2ModelData;
     handle.mdlSize = sizeof(nonOm2ModelData);
 
-    bool result = false;
-    AclIsOm2ModelByConfig(&handle, &result);
+    bool result = acl::AclResourceManagerOm2::GetInstance().IsOm2ModelByConfig(&handle);
 
     EXPECT_FALSE(result);
 }
@@ -526,8 +594,7 @@ TEST_F(UTEST_ACL_Resource_Manager_Om2, IsOm2ModelByConfig_PathTakesPrecedence) {
     handle.mdlAddr = om2ModelData;
     handle.mdlSize = sizeof(om2ModelData);
 
-    bool result = false;
-    AclIsOm2ModelByConfig(&handle, &result);
+    bool result = acl::AclResourceManagerOm2::GetInstance().IsOm2ModelByConfig(&handle);
 
     EXPECT_TRUE(result);
 }

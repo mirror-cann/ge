@@ -9,6 +9,7 @@
  */
 
 #include <base.h>
+#include <queue>
 
 #include "model/acl_model_impl_om2.h"
 #include "model_desc_internal.h"
@@ -23,6 +24,7 @@
 #include "acl/acl_rt.h"
 #include "model_common.h"
 #include "model_config.h"
+#include "securec.h"
 #include "utils/math_utils.h"
 #include "utils/string_utils.h"
 
@@ -81,19 +83,6 @@ aclError CreateAclTensorDescFromOpDescInfo(const ge::OpDescInfo& opDescInfo, acl
     *numOutputs = outputNum;
     return ACL_SUCCESS;
 }
-
-// OM2 supported load config options
-const std::unordered_set<aclmdlConfigAttr> kOm2SupportedLoadConfigOpts = {
-    ACL_MDL_LOAD_TYPE_SIZET,
-    ACL_MDL_PATH_PTR,
-    ACL_MDL_MEM_ADDR_PTR,
-    ACL_MDL_MEM_SIZET,
-    ACL_MDL_WEIGHT_ADDR_PTR,
-    ACL_MDL_WEIGHT_SIZET,
-    ACL_MDL_WORKSPACE_ADDR_PTR,
-    ACL_MDL_WORKSPACE_SIZET,
-    ACL_MDL_WEIGHT_PATH_PTR
-};
 
 aclError PrepareOm2Tensor(std::vector<gert::Tensor>& tensor, std::vector<gert::Tensor*>& vec,
                           const size_t inputNum, const aclmdlDataset* const dataset,
@@ -167,9 +156,9 @@ aclError Om2UpdateOutputTensorDesc(aclmdlDataset* const & output, std::vector<ge
                                    const bool isAsync) {
     for (size_t i = 0UL; i < output->blobs.size(); ++i) {
         if (output->blobs[i].tensorDesc != nullptr) {
-            aclDestroyTensorDescImplOm2(output->blobs[i].tensorDesc);
+            aclDestroyTensorDesc(output->blobs[i].tensorDesc);
         }
-        output->blobs[i].tensorDesc = aclCreateTensorDescImplOm2(ACL_DT_UNDEFINED, 0, nullptr, ACL_FORMAT_UNDEFINED);
+        output->blobs[i].tensorDesc = aclCreateTensorDesc(ACL_DT_UNDEFINED, 0, nullptr, ACL_FORMAT_UNDEFINED);
     }
 
     for (size_t i = 0UL; i < outputTensor.size(); ++i) {
@@ -224,6 +213,8 @@ aclError ConstructOm2ModelLoadArg(void* workPtr, size_t workSize, void* weightPt
 
 aclError Om2ModelLoadFromFileWithMem(const char_t* const modelPath, uint32_t* const modelId,
                                      const gert::Om2ModelLoadArg& loadArgs) {
+    auto rtSession = acl::AclResourceManagerOm2::GetInstance().CreateRtSession();
+    ACL_REQUIRES_NOT_NULL(rtSession);
     ge::ModelData modelData;
     auto ret = gert::LoadOm2DataFromFile(modelPath, modelData);
     std::shared_ptr<void> dataGuarder;
@@ -247,7 +238,7 @@ aclError Om2ModelLoadFromFileWithMem(const char_t* const modelPath, uint32_t* co
         return ACL_GET_ERRCODE_GE(static_cast<int32_t>(ret));
     }
     ACL_REQUIRES_NOT_NULL(executor);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2ExecutorWithModelId(*modelId, std::move(executor));
+    acl::AclResourceManagerOm2::GetInstance().AddOm2ExecutorWithModelId(*modelId, std::move(executor), rtSession);
     return ACL_SUCCESS;
 }
 
@@ -272,7 +263,7 @@ aclError Om2ModelLoadFromMemWithMem(const void* const model, const size_t modelS
         return ACL_GET_ERRCODE_GE(static_cast<int32_t>(errorStatus));
     }
     ACL_REQUIRES_NOT_NULL(executor);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2ExecutorWithModelId(*modelId, std::move(executor));
+    acl::AclResourceManagerOm2::GetInstance().AddOm2ExecutorWithModelId(*modelId, std::move(executor), nullptr);
     return ACL_SUCCESS;
 }
 
@@ -459,14 +450,151 @@ static size_t aclmdlGetTensorSize(aclmdlTensorDesc& tensorDesc, size_t idx) {
     return tensorDesc.size;
 }
 
-static aclError CheckOm2UserLoadConfigOptValid(const aclmdlConfigHandle* handle) {
-    ACL_REQUIRES_NOT_NULL(handle);
-    for (const aclmdlConfigAttr& attr : handle->attrState) {
-        if (kOm2SupportedLoadConfigOpts.find(attr) == kOm2SupportedLoadConfigOpts.end()) {
-            ACL_LOG_ERROR("[Check][ConfigOpt]config opt [%d] is not supported in om2",  static_cast<int>(attr));
-            return ACL_ERROR_INVALID_PARAM;
+// Constants for tensor name conversion
+constexpr const char_t* TENSOR_NAME_PREFIX = "acl";
+constexpr const char_t* TENSOR_INPUT_STR = "input";
+constexpr const char_t* TENSOR_OUTPUT_STR = "output";
+constexpr const char_t* MODEL_ID_STR = "modelId";
+constexpr size_t TENSOR_NAME_ATTR_NUM = 5U;
+
+// get real tensor name from modelDesc, it will return nullptr if tensorName isn't in modelDesc
+static const char_t* GetRealTensorName(const aclmdlDesc* const modelDesc, const std::string& tensorName) {
+    for (size_t idx = 0U; idx < modelDesc->inputDesc.size(); ++idx) {
+        if (modelDesc->inputDesc[idx].name == tensorName) {
+            return modelDesc->inputDesc[idx].name.c_str();
         }
     }
+
+    for (size_t idx = 0U; idx < modelDesc->outputDesc.size(); ++idx) {
+        if (modelDesc->outputDesc[idx].name == tensorName) {
+            return modelDesc->outputDesc[idx].name.c_str();
+        }
+    }
+    return nullptr;
+}
+
+static bool IsConvertTensorNameLegal(const aclmdlDesc* const modelDesc, const std::string& tensorName) {
+    return (GetRealTensorName(modelDesc, tensorName) == nullptr);
+}
+
+// current conversion tensor name illegal needs to be transformed
+static bool TransConvertTensorNameToLegal(const aclmdlDesc* const modelDesc, std::string& tensorName) {
+    size_t depth = 0U;
+    tensorName = tensorName + "_";
+    std::queue<std::string> q;
+    q.push(tensorName);
+    constexpr size_t maxDepth = 3U;
+    while (!q.empty()) {
+        if (depth == maxDepth) {
+            ACL_LOG_INFO("reach max depth[%zu], cannot generate legal convert tensor name", maxDepth);
+            tensorName = tensorName.substr(0U, tensorName.size() - 1U);
+            return false;
+        }
+        const size_t len = q.size();
+        for (size_t idx = 0U; idx < len; ++idx) {
+            std::string curTensorName = q.front();
+            q.pop();
+            for (char_t c = 'a'; c <= 'z'; ++c) {
+                curTensorName += c;
+                if (IsConvertTensorNameLegal(modelDesc, curTensorName)) {
+                    tensorName = curTensorName;
+                    return true;
+                }
+                q.push(curTensorName);
+                curTensorName = curTensorName.substr(0U, curTensorName.size() - 1U);
+            }
+        }
+        depth++;
+    }
+    return false;
+}
+
+// convert params to convertName
+static void GetConvertTensorName(const aclmdlDesc* const modelDesc, const size_t idx,
+                                 const TensorType tensorType, std::string& convertName) {
+    convertName = std::string(TENSOR_NAME_PREFIX) + "_" +
+        std::string(MODEL_ID_STR) + "_" + std::to_string(modelDesc->modelId);
+    if (tensorType == TensorType::INPUT_TENSOR_TYPE) {
+        convertName += ("_" + std::string(TENSOR_INPUT_STR));
+    } else {
+        convertName += ("_" + std::string(TENSOR_OUTPUT_STR));
+    }
+    convertName += ("_" + std::to_string(idx));
+    ACL_LOG_INFO("convert realname of tensor success, conversion name = %s", convertName.c_str());
+}
+
+// get tensor name to dims with or without realname
+static aclError GetTensorDescNameToDims(const aclmdlDesc* const modelDesc, const std::string& realName,
+                                        const TensorType tensorType, const size_t idx, aclmdlIODims* const dims) {
+    const size_t dimsNameLen = sizeof(dims->name);
+    std::string tensorName;
+    if ((realName.size() + 1U) > dimsNameLen) {
+        // use conversion name because realname is too long
+        ACL_LOG_INFO("use conversion name because real tensor name is over than %zu", dimsNameLen);
+        GetConvertTensorName(modelDesc, idx, tensorType, tensorName);
+        if (!IsConvertTensorNameLegal(modelDesc, tensorName)) {
+            if (!TransConvertTensorNameToLegal(modelDesc, tensorName)) {
+                ACL_LOG_WARN("cannot generate legal tensor name, use conversion name %s may has conflict risk",
+                             tensorName.c_str());
+            }
+        }
+    } else {
+        tensorName = realName;
+    }
+
+    const auto ret = strncpy_s(dims->name, dimsNameLen, tensorName.c_str(), tensorName.size());
+    if (ret != EOK) {
+        ACL_LOG_INNER_ERROR("[Copy][Str]call strncpy_s failed, result = %d", ret);
+        return ACL_ERROR_FAILURE;
+    }
+    return ACL_SUCCESS;
+}
+
+static aclError GetDims(const aclmdlDesc* const modelDesc, const TensorType tensorType, const DimsType dimsType,
+                        const size_t idx, aclmdlIODims* const dims) {
+    ACL_REQUIRES_NOT_NULL(dims);
+    std::vector<aclmdlTensorDesc> desc;
+    if (tensorType == TensorType::INPUT_TENSOR_TYPE) {
+        desc = modelDesc->inputDesc;
+    } else {
+        desc = modelDesc->outputDesc;
+    }
+
+    const size_t descSize = desc.size();
+    if (idx >= descSize) {
+        ACL_LOG_INNER_ERROR("[Check][Params]GetDims failed, index[%zu] can not greater than or equal to tensor "
+                            "size[%zu]", idx, descSize);
+        return ACL_ERROR_INVALID_PARAM;
+    }
+
+    const aclmdlTensorDesc& tensorDesc = desc[idx];
+    const auto ret = GetTensorDescNameToDims(modelDesc, tensorDesc.name, tensorType, idx, dims);
+    if (ret != ACL_SUCCESS) {
+        ACL_LOG_INNER_ERROR("[Get][TensorDescName]get tensor desc name to dims failed, errorCode = %d", ret);
+        return ret;
+    }
+    std::vector<int64_t> tensorDims;
+    if (dimsType == DimsType::DIMS_TYPE_V1) {
+        tensorDims = tensorDesc.dims;
+    } else if (dimsType == DimsType::DIMS_TYPE_V2) {
+        tensorDims = tensorDesc.dimsV2;
+    } else {
+        ACL_LOG_INNER_ERROR("[Check][dimsType]dims type[%d] is invalid", static_cast<int32_t>(dimsType));
+        return ACL_ERROR_FAILURE;
+    }
+
+    const size_t dimSize = tensorDims.size();
+    if (dimSize > static_cast<size_t>(ACL_MAX_DIM_CNT)) {
+        ACL_LOG_INNER_ERROR("[Check][dimSize]get dims failed, dims count[%zu] can not larger than max[%d]",
+                            dims->dimCount, ACL_MAX_DIM_CNT);
+        return ACL_ERROR_STORAGE_OVER_LIMIT;
+    }
+    dims->dimCount = dimSize;
+
+    for (size_t i = 0U; i < dimSize; ++i) {
+        dims->dims[i] = tensorDims[i];
+    }
+
     return ACL_SUCCESS;
 }
 
@@ -1111,8 +1239,7 @@ aclError aclmdlLoadFromMemWithMemImplOm2(const void* model, size_t modelSize,
                                          uint32_t* modelId, void* workPtr, size_t workSize,
                                          void* weightPtr, size_t weightSize) {
     ACL_PROFILING_REG(acl::AclProfType::AclmdlLoadFromMemWithMem);
-    ACL_LOG_INFO("[OM2] start to execute aclmdlLoadFromMemWithMem, modelSize[%zu], workSize[%zu], weightSize[%zu]",
-                 modelSize, workSize, weightSize);
+    ACL_LOG_INFO("[OM2] start...");
     ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(model);
     ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(modelId);
 
@@ -1154,7 +1281,7 @@ aclError aclmdlLoadFromMemWithQImplOm2(const void* model, size_t modelSize, uint
 
 aclError aclmdlExecuteImplOm2(uint32_t modelId, const aclmdlDataset* input, aclmdlDataset* output) {
     ACL_PROFILING_REG(acl::AclProfType::AclmdlExecute);
-    ACL_LOG_INFO("[OM2] start to execute aclmdlExecute, modelId[%u]", modelId);
+    ACL_LOG_INFO("[OM2] start...");
 
     const aclError ret = Om2ModelExecuteCommon(modelId, input, output, false, nullptr);
     if (ret == ACL_SUCCESS) {
@@ -1165,7 +1292,7 @@ aclError aclmdlExecuteImplOm2(uint32_t modelId, const aclmdlDataset* input, aclm
 
 aclError aclmdlExecuteV2ImplOm2(uint32_t modelId, const aclmdlDataset* input, aclmdlDataset* output, aclrtStream stream,
                                 const aclmdlExecConfigHandle* handle) {
-    ACL_LOG_INFO("[OM2] start to execute aclmdlExecuteV2, modelId[%u]", modelId);
+    ACL_LOG_INFO("[OM2] start...");
 
     ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(handle);
     if (handle->streamSyncTimeout >= DEFAULT_SYNC_TIMEOUT) {
@@ -1183,14 +1310,14 @@ aclError aclmdlExecuteV2ImplOm2(uint32_t modelId, const aclmdlDataset* input, ac
 aclError aclmdlExecuteAsyncImplOm2(uint32_t modelId, const aclmdlDataset* input,
                                    aclmdlDataset* output, aclrtStream stream) {
     ACL_PROFILING_REG(acl::AclProfType::AclmdlExecuteAsync);
-    ACL_LOG_INFO("[OM2] start to execute aclmdlExecuteAsync, modelId[%u]", modelId);
+    ACL_LOG_INFO("[OM2] start...");
 
     return Om2ModelExecuteCommon(modelId, input, output, true, stream);
 }
 
 aclError aclmdlUnloadImplOm2(uint32_t modelId) {
     ACL_PROFILING_REG(acl::AclProfType::AclmdlUnload);
-    ACL_LOG_INFO("[OM2] start to execute aclmdlUnload, modelId[%u]", modelId);
+    ACL_LOG_INFO("[OM2] start...");
 
     auto& resourceManagerV2 = acl::AclResourceManagerOm2::GetInstance();
     if (resourceManagerV2.IsBundleInnerId(modelId)) {

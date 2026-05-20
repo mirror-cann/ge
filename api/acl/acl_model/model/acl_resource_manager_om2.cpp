@@ -10,17 +10,13 @@
 
 #include "acl_resource_manager_om2.h"
 #include "common/log_inner.h"
-#include "mmpa/mmpa_api.h"
 #include "runtime/rt_session.h"
 #include "framework/runtime/om2_model_executor.h"
 #include "model_desc_internal.h"
 
 namespace acl {
 
-AclResourceManagerOm2::AclResourceManagerOm2()
-{
-    GetRuntimeV2Env();
-}
+AclResourceManagerOm2::AclResourceManagerOm2() {}
 
 AclResourceManagerOm2::~AclResourceManagerOm2() {}
 
@@ -30,32 +26,12 @@ AclResourceManagerOm2 &AclResourceManagerOm2::GetInstance()
     return instance;
 }
 
-void AclResourceManagerOm2::GetRuntimeV2Env()
-{
-    const char_t *enableRuntimeV2Flag = nullptr;
-    MM_SYS_GET_ENV(MM_ENV_ENABLE_RUNTIME_V2, enableRuntimeV2Flag);
-    if (enableRuntimeV2Flag != nullptr) {
-        if (enableRuntimeV2Flag[0] == '0') { // 0 both model and singleOp disable
-            enableRuntimeV2ForModel_ = false;
-            enableRuntimeV2ForSingleOp_ = false;
-        } else if (enableRuntimeV2Flag[0] == '2') { // 2: model enable, singleOp disable
-            enableRuntimeV2ForModel_ = true;
-            enableRuntimeV2ForSingleOp_ = false;
-        } else {
-            enableRuntimeV2ForModel_ = true;
-            enableRuntimeV2ForSingleOp_ = true;
-        }
-    }
-    ACL_LOG_EVENT("runtime v2 flag : model flag = %d, singleOp flag = %d",
-                  static_cast<int32_t>(enableRuntimeV2ForModel_),
-                  static_cast<int32_t>(enableRuntimeV2ForSingleOp_));
-}
-
 void AclResourceManagerOm2::AddOm2Executor(uint32_t &modelId,
-                                           std::unique_ptr<gert::Om2ModelExecutor> &&executor)
+                                           std::unique_ptr<gert::Om2ModelExecutor> &&executor,
+                                           const std::shared_ptr<gert::RtSession> &rtSession)
 {
     modelId = GenerateModelId();
-    AddOm2ExecutorWithModelId(modelId, std::move(executor));
+    AddOm2ExecutorWithModelId(modelId, std::move(executor), rtSession);
 }
 
 uint32_t AclResourceManagerOm2::GenerateModelId()
@@ -66,10 +42,14 @@ uint32_t AclResourceManagerOm2::GenerateModelId()
 }
 
 void AclResourceManagerOm2::AddOm2ExecutorWithModelId(uint32_t modelId,
-                                                      std::unique_ptr<gert::Om2ModelExecutor> &&executor)
+                                                      std::unique_ptr<gert::Om2ModelExecutor> &&executor,
+                                                      const std::shared_ptr<gert::RtSession> &rtSession)
 {
     const std::lock_guard<std::mutex> locker(mutex_);
     om2ExecutorMap_[modelId] = std::move(executor);
+    if (rtSession != nullptr) {
+        rtSessionMap_[modelId] = rtSession;
+    }
 }
 
 std::shared_ptr<gert::Om2ModelExecutor> AclResourceManagerOm2::GetOm2Executor(const uint32_t modelId)
@@ -116,6 +96,11 @@ aclError AclResourceManagerOm2::DeleteOm2Executor(const uint32_t modelId)
         return ACL_ERROR_GE_EXEC_MODEL_ID_INVALID;
     }
     (void)om2ExecutorMap_.erase(iter);
+
+    const auto it = rtSessionMap_.find(modelId);
+    if (it != rtSessionMap_.end()) {
+        (void)rtSessionMap_.erase(it);
+    }
     return ACL_SUCCESS;
 }
 
@@ -185,4 +170,131 @@ bool AclResourceManagerOm2::IsOm2BundleById(const uint32_t bundleId) const
     return bundleInfos_.find(bundleId) != bundleInfos_.end();
 }
 
+std::shared_ptr<gert::RtSession> AclResourceManagerOm2::CreateRtSession()
+{
+    const std::lock_guard<std::mutex> locker(mutex_);
+    ++sessionIdGenerator_;
+    auto sessionId = sessionIdGenerator_.load();
+    return std::make_shared<gert::RtSession>(sessionId);
+}
+
+std::shared_ptr<gert::RtSession> AclResourceManagerOm2::GetRtSession(const uint64_t rtSessionId)
+{
+    const std::lock_guard<std::mutex> locker(mutex_);
+    const auto it = rtSessionMap_.find(rtSessionId);
+    if (it == rtSessionMap_.end()) {
+        return nullptr;
+    }
+    return it->second;
+}
+
+bool AclResourceManagerOm2::IsOm2ModelByConfig(const aclmdlConfigHandle *handle) const
+{
+    if (handle == nullptr) {
+        ACL_LOG_WARN("config handle is null, return false");
+        return false;
+    }
+
+    bool isOm2Model = false;
+    ge::Status ret;
+
+    // Try to detect model type from file path first
+    if (!handle->loadPath.empty()) {
+        ACL_LOG_DEBUG("detecting model type from file path: %s", handle->loadPath.c_str());
+        ret = gert::IsOm2Model(handle->loadPath.c_str(), isOm2Model);
+        if (ret != ge::SUCCESS) {
+            ACL_LOG_WARN("failed to detect model type from file path, result = %u", ret);
+            return false;
+        }
+        ACL_LOG_DEBUG("model type detected from file path: isOm2Model = %d", isOm2Model);
+        return isOm2Model;
+    }
+
+    // Try to detect model type from memory data
+    if (handle->mdlAddr != nullptr && handle->mdlSize > 0) {
+        ACL_LOG_DEBUG("detecting model type from memory data, size = %zu", handle->mdlSize);
+        ret = gert::IsOm2Model(handle->mdlAddr, handle->mdlSize, isOm2Model);
+        if (ret != ge::SUCCESS) {
+            ACL_LOG_WARN("failed to detect model type from memory data, result = %u", ret);
+            return false;
+        }
+        ACL_LOG_DEBUG("model type detected from memory data: isOm2Model = %d", isOm2Model);
+        return isOm2Model;
+    }
+
+    // No valid model path or data
+    ACL_LOG_WARN("config handle has no valid model path or data");
+    return false;
+}
+
+bool AclResourceManagerOm2::IsOm2ModelByPath(const char *file_path) const
+{
+    if (file_path == nullptr) {
+        ACL_LOG_WARN("file_path is nullptr, return false");
+        return false;
+    }
+
+    bool isOm2Model = false;
+    ge::Status ret = gert::IsOm2Model(file_path, isOm2Model);
+    if (ret != ge::SUCCESS) {
+        ACL_LOG_WARN("failed to check if model is OM2 by path, path=%s, result=%u", file_path, ret);
+        return false;
+    }
+
+    ACL_LOG_DEBUG("model type detected from file path: isOm2Model = %d", isOm2Model);
+    return isOm2Model;
+}
+
+bool AclResourceManagerOm2::IsOm2ModelByData(const void *data, size_t size) const
+{
+    if (data == nullptr || size == 0) {
+        ACL_LOG_WARN("data is nullptr or size is 0, return false");
+        return false;
+    }
+
+    bool isOm2Model = false;
+    ge::Status ret = gert::IsOm2Model(data, size, isOm2Model);
+    if (ret != ge::SUCCESS) {
+        ACL_LOG_WARN("failed to check if model is OM2 by data, size=%zu, result=%u", size, ret);
+        return false;
+    }
+
+    ACL_LOG_DEBUG("model type detected from memory data: isOm2Model = %d", isOm2Model);
+    return isOm2Model;
+}
+
 } // namespace acl
+
+// C 接口实现
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+bool AclIsOm2ModelById(uint32_t modelId)
+{
+    return acl::AclResourceManagerOm2::GetInstance().IsOm2ModelById(modelId);
+}
+
+bool AclIsOm2ModelByPath(const char *modelPath)
+{
+    return acl::AclResourceManagerOm2::GetInstance().IsOm2ModelByPath(modelPath);
+}
+
+bool AclIsOm2ModelByData(const void *modelData, size_t modelSize)
+{
+    return acl::AclResourceManagerOm2::GetInstance().IsOm2ModelByData(modelData, modelSize);
+}
+
+bool AclIsOm2ModelByConfig(const aclmdlConfigHandle *handle)
+{
+    return acl::AclResourceManagerOm2::GetInstance().IsOm2ModelByConfig(handle);
+}
+
+bool AclIsOm2BundleById(uint32_t bundleId)
+{
+    return acl::AclResourceManagerOm2::GetInstance().IsOm2BundleById(bundleId);
+}
+
+#ifdef __cplusplus
+}
+#endif

@@ -11,12 +11,15 @@
 ############ libacl_mdl_impl.so ############
 add_library(acl_mdl_impl SHARED
     model/model.cpp
+    model/model_common.cpp
     model/acl_aipp.cpp
     model/aipp_param_check.cpp
     model/acl_resource_manager.cpp
     model/init_callback_register.cpp
     types/tensor_desc_internal.cpp
+    ../common/json_parser.cpp
     ../common/log_inner.cpp
+    ../utils/string_utils.cpp
     ../common/prof_api_reg.cpp
 )
 
@@ -39,6 +42,7 @@ target_include_directories(acl_mdl_impl PRIVATE
     ${AIR_CODE_DIR}/inc/graph_metadef/external
     ${ASCEND_INSTALL_PATH}/include
     ${ASCEND_INSTALL_PATH}/include/acl
+    ${ASCEND_INSTALL_PATH}/include/external/ge_common
     ${AIR_CODE_DIR}/base/metadef/pkg_inc
     ${ASCEND_INSTALL_PATH}/pkg_inc
     ${ASCEND_INSTALL_PATH}/pkg_inc/runtime
@@ -99,8 +103,7 @@ target_link_libraries(acl_mdl_impl PRIVATE
     ge_common_base
     graph_base
     graph
-
-    acl_mdl_impl_om2
+    om2_executor
 
     -Wl,--as-needed
     $<$<NOT:$<STREQUAL:${TARGET_SYSTEM_NAME},Android>>:-lrt>
@@ -116,11 +119,8 @@ add_library(acl_mdl_impl_om2 SHARED
     model/acl_aipp_om2.cpp
     model/model_config_om2.cpp
     model/acl_resource_manager_om2.cpp
-    model/acl_model_router.cpp
     types/tensor_desc_internal_om2.cpp
     ../utils/string_utils.cpp
-    ../common/log_inner.cpp
-    ../common/prof_api_reg.cpp
 )
 
 target_include_directories(acl_mdl_impl_om2 PRIVATE
@@ -191,15 +191,8 @@ target_link_libraries(acl_mdl_impl_om2 PRIVATE
     -Wl,--whole-archive
     -Wl,--no-whole-archive
     -Wl,--no-as-needed
-    acl_rt
-    c_sec
-    unified_dlog
-    mmpa
-    profapi_share
-    error_manager
     om2_executor
     -Wl,--as-needed
-
     $<$<NOT:$<STREQUAL:${TARGET_SYSTEM_NAME},Android>>:-lrt>
     -ldl
 )
@@ -210,18 +203,43 @@ add_library(acl_mdl SHARED
 )
 
 target_include_directories(acl_mdl PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}
+    ${CMAKE_CURRENT_LIST_DIR}/..
+    ${CMAKE_CURRENT_LIST_DIR}/../common
+    ${CMAKE_CURRENT_LIST_DIR}/../utils
+
     ${AIR_CODE_DIR}/inc
     ${AIR_CODE_DIR}/inc/graph_metadef
     ${AIR_CODE_DIR}/inc/external
     ${AIR_CODE_DIR}/inc/external/acl
+    ${AIR_CODE_DIR}/inc/graph_metadef/external
+    ${AIR_CODE_DIR}/inc/framework
+    ${AIR_CODE_DIR}/base/metadef/pkg_inc
 
+    ${ASCEND_INSTALL_PATH}/pkg_inc/base
+    ${ASCEND_INSTALL_PATH}/pkg_inc/profiling
+    ${ASCEND_INSTALL_PATH}/pkg_inc/common
+    ${ASCEND_INSTALL_PATH}/include/prof
     ${ASCEND_INSTALL_PATH}/include
+    ${ASCEND_INSTALL_PATH}/include/external
     ${ASCEND_INSTALL_PATH}/include/acl
+    ${ASCEND_INSTALL_PATH}/pkg_inc
+    ${ASCEND_INSTALL_PATH}/pkg_inc/runtime
+    ${ASCEND_INSTALL_PATH}/pkg_inc/runtime/runtime
 
+    ${TOP_DIR}/air/inc
+    ${TOP_DIR}/air/inc/framework
     ${TOP_DIR}/air/inc/external
     ${TOP_DIR}/air/inc/external/acl
+    ${TOP_DIR}/air/inc/graph_metadef
+    ${TOP_DIR}/air/inc/graph_metadef/external
+    ${TOP_DIR}/air/base/metadef/pkg_inc
     ${TOP_DIR}/runtime/include/external
     ${TOP_DIR}/runtime/include/external/acl
+    ${TOP_DIR}/metadef/inc
+    ${TOP_DIR}/metadef/inc/external
+    ${TOP_DIR}/metadef/pkg_inc
+    ${TOP_DIR}/abl/libc_sec/include
 )
 
 target_compile_options(acl_mdl PRIVATE

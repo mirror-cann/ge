@@ -25,9 +25,40 @@
 #include "acl_resource_manager.h"
 #include "framework/runtime/model_v2_executor.h"
 #include "runtime/base.h"
-#include "model_common.h"
 
 namespace {
+constexpr int16_t FP16_MAX_EXP = 0x001F;
+constexpr int16_t FP16_MAX_MAN = 0x03FF;
+constexpr int16_t FP16_MAN_HIDE_BIT = 0x0400;
+constexpr int16_t FP16_SIGN_INDEX = 15;
+constexpr uint32_t FP32_SIGN_MASK = 0x80000000U;
+constexpr uint32_t FP32_SIGN_INDEX = 31U;
+constexpr uint32_t FP32_EXP_MASK = 0x7F800000U;
+constexpr uint32_t FP32_MAN_LEN = 23U;
+constexpr uint32_t FP16_MAN_LEN = 10U;
+constexpr uint32_t FP32_MAN_MASK = 0x007FFFFFU;
+constexpr uint32_t FP32_MAN_HIDE_BIT = 0x00800000U;
+constexpr uint32_t FP16_MAN_MASK = 0x03FFU;
+constexpr uint32_t FP32_EXP_BIAS = 127U;
+constexpr uint32_t FP16_EXP_BIAS = 15U;
+constexpr uint32_t FP32_MAX_MAN = 0x7FFFFFU;
+
+constexpr int8_t AIPP_SWITCH_ON = 1;
+constexpr int8_t AIPP_SWITCH_OFF = 0;
+constexpr int16_t CSC_MATRIX_MIN = -32677;
+constexpr int16_t CSC_MATRIX_MAX = 32676;
+constexpr int32_t IMAGE_SIZE_MIN = 1;
+constexpr int32_t IMAGE_SIZE_MAX = 4096;
+constexpr int32_t SCF_SIZE_MIN = 16;
+constexpr int32_t SCF_SIZEW_MAX = 1920;
+constexpr int32_t PADDING_MIN = 0;
+constexpr int32_t PADDING_MAX = 32;
+constexpr int16_t MEAN_CHN_MIN = 0;
+constexpr int16_t MEAN_CHN_MAX = 255;
+constexpr float32_t MIN_CHN_MIN = 0.0F;
+constexpr float32_t MIN_CHN_MAX = 255.0F;
+constexpr float32_t VR_CHN_MIN = -65504.0F;
+constexpr float32_t VR_CHN_MAX = 65504.0F;
 constexpr size_t STATIC_BATCH_INFO_SIZE = 1U;
 constexpr uint32_t MAX_NPU_ARCH_LEN = 32U;
 
@@ -39,6 +70,34 @@ static std::string GetNpuArch()
     return "";
   }
   return std::string(npuArch);
+}
+
+static bool IsRoundOne(const uint64_t man, const uint16_t truncLen)
+{
+    const uint16_t shiftOut = truncLen - 2U; // shift 2 byte
+    uint64_t mask = 0x4U;
+    uint64_t mask1 = 0x2U;
+    uint64_t mask2;
+
+    mask = mask << static_cast<uint64_t>(shiftOut);
+    mask1 = mask1 << static_cast<uint64_t>(shiftOut);
+    mask2 = mask1 - 1U;
+    const bool lastBit = ((man & mask) > 0U);
+    const bool truncHigh = ((man & mask1) > 0U);
+    const bool truncLeft = ((man & mask2) > 0U);
+    return (truncHigh && (truncLeft || lastBit));
+}
+
+static void Fp16Normalize(int16_t &expo, uint16_t &man)
+{
+    if (expo >= FP16_MAX_EXP) {
+        expo = FP16_MAX_EXP - 1;
+        man = static_cast<uint16_t>(FP16_MAX_MAN);
+    }
+    if ((expo == 0) && (static_cast<int16_t>(man) == FP16_MAN_HIDE_BIT)) {
+        expo++;
+        man = 0U;
+    }
 }
 
 static aclError SetIODims(const ge::InputOutputDims &oriDims, aclmdlIODims &dstDims)
@@ -76,12 +135,12 @@ union TypeUnion {
 };
 
 #define FP16_EXTRAC_SIGN(x)            (((x) >> 15U) & 1U)
-#define FP16_EXTRAC_EXP(x)             (((x) >> 10U) & acl::FP16_MAX_EXP)
+#define FP16_EXTRAC_EXP(x)             (((x) >> 10U) & FP16_MAX_EXP)
 #define FP16_EXTRAC_MAN(x)             ((((x) >> 0U) & 0x3FFU) |          \
                                        ((((((x) >> 10U) & 0x1FU) > 0U) ? 1U : 0U) * 0x400U))
-#define FP32_CONSTRUCTOR(s, e, m)        (((s) << acl::FP32_SIGN_INDEX) |      \
-                                          ((e) << acl::FP32_MAN_LEN) |         \
-                                          ((m) & acl::FP32_MAX_MAN))
+#define FP32_CONSTRUCTOR(s, e, m)        (((s) << FP32_SIGN_INDEX) |      \
+                                          ((e) << FP32_MAN_LEN) |         \
+                                          ((m) & FP32_MAX_MAN))
 
 void ExtractFP16(const uint16_t val, uint16_t *const s, int16_t *const e, uint16_t *const m)
 {
@@ -103,7 +162,7 @@ float32_t Fp16ToFloat(const uint16_t val)
   int16_t hfExp;
   ExtractFP16(val, &hfSign, &hfExp, &hfMan);
 
-  while ((hfMan != 0U) && ((hfMan & acl::FP16_MAN_HIDE_BIT) == 0U)) {
+  while ((hfMan != 0U) && ((hfMan & FP16_MAN_HIDE_BIT) == 0U)) {
     hfMan <<= 1U;
     hfExp--;
   }
@@ -114,9 +173,9 @@ float32_t Fp16ToFloat(const uint16_t val)
     eRet = 0U;
     mRet = 0U;
   } else {
-    eRet = static_cast<uint32_t>(hfExp + static_cast<int16_t>(acl::FP32_EXP_BIAS - acl::FP16_EXP_BIAS));
-    mRet = static_cast<uint32_t>(hfMan & acl::FP16_MAN_MASK);
-    mRet = mRet << (acl::FP32_MAN_LEN - acl::FP16_MAN_LEN);
+    eRet = static_cast<uint32_t>(hfExp + static_cast<int16_t>(FP32_EXP_BIAS - FP16_EXP_BIAS));
+    mRet = static_cast<uint32_t>(hfMan & FP16_MAN_MASK);
+    mRet = mRet << (FP32_MAN_LEN - FP16_MAN_LEN);
   }
 
   const uint32_t sRet = hfSign;
@@ -469,7 +528,7 @@ static aclError CheckAippDataIndex(const uint32_t modelId, const size_t idx, con
     } else if (type == ge::DATA_WITHOUT_AIPP) {
         // maybe this is old om when getaipptype interface is unsupported, ensure compatibility
         size_t indexInModel = 0U;
-        const auto mdlRet = aclmdlGetInputIndexByNameImplOm2(modelDesc, ACL_DYNAMIC_AIPP_NAME, &indexInModel);
+        const auto mdlRet = aclmdlGetInputIndexByName(modelDesc, ACL_DYNAMIC_AIPP_NAME, &indexInModel);
         if (mdlRet != ACL_SUCCESS) {
             ACL_LOG_INNER_ERROR("[Get][InputIndex]the model is not a dynamic aipp model, there is no dynamic aipp "
                 "node");
@@ -674,17 +733,17 @@ public:
         const uint32_t ui32V = *(static_cast<const uint32_t *>(pV));
         uint32_t mLenDelta;
 
-        sRet = static_cast<uint16_t>((ui32V & acl::FP32_SIGN_MASK) >> acl::FP32_SIGN_INDEX); // 4Byte->2Byte
-        eF = (ui32V & acl::FP32_EXP_MASK) >> acl::FP32_MAN_LEN; // 8 bit exponent
-        mF = (ui32V & acl::FP32_MAN_MASK); // 23 bit mantissa dont't need to care about denormal
-        mLenDelta = acl::FP32_MAN_LEN - acl::FP16_MAN_LEN;
+        sRet = static_cast<uint16_t>((ui32V & FP32_SIGN_MASK) >> FP32_SIGN_INDEX); // 4Byte->2Byte
+        eF = (ui32V & FP32_EXP_MASK) >> FP32_MAN_LEN; // 8 bit exponent
+        mF = (ui32V & FP32_MAN_MASK); // 23 bit mantissa dont't need to care about denormal
+        mLenDelta = FP32_MAN_LEN - FP16_MAN_LEN;
 
         bool needRound = false;
         // Exponent overflow/NaN converts to signed inf/NaN
         // 0x8Fu:142=127+15
         if (eF > 0x8FU) {
-            eRet = acl::FP16_MAX_EXP - 1;
-            mRet = static_cast<uint16_t>(acl::FP16_MAX_MAN);
+            eRet = FP16_MAX_EXP - 1;
+            mRet = static_cast<uint16_t>(FP16_MAX_MAN);
         }
 
         // 0x70u:112=127-15 Exponent underflow converts to denormalized half or signed zero
@@ -692,10 +751,10 @@ public:
             eRet = 0;
             // 0x67:103=127-24 Denormal
             if (eF >= 0x67U) {
-                mF = (mF | acl::FP32_MAN_HIDE_BIT);
-                constexpr uint16_t shiftOut = static_cast<uint16_t>(acl::FP32_MAN_LEN);
+                mF = (mF | FP32_MAN_HIDE_BIT);
+                constexpr uint16_t shiftOut = static_cast<uint16_t>(FP32_MAN_LEN);
                 const uint64_t m_tmp = (static_cast<uint64_t>(mF)) << (eF - 0x67U);
-                needRound = acl::IsRoundOne(m_tmp, shiftOut);
+                needRound = IsRoundOne(m_tmp, shiftOut);
                 mRet = static_cast<uint16_t>(m_tmp >> static_cast<uint64_t>(shiftOut));
                 if (needRound) {
                     mRet++;
@@ -711,19 +770,19 @@ public:
         if ((eF <= 0x8FU) && (eF > 0x70U)) {
             // Regular case with no overflow or underflow
             eRet = static_cast<int16_t>(eF - 0x70U);
-            needRound = acl::IsRoundOne(static_cast<uint64_t>(mF), static_cast<uint16_t>(mLenDelta));
+            needRound = IsRoundOne(static_cast<uint64_t>(mF), static_cast<uint16_t>(mLenDelta));
             mRet = static_cast<uint16_t>(mF >> mLenDelta);
             if (needRound) {
                 mRet++;
             }
-            if ((mRet & static_cast<uint16_t>(acl::FP16_MAN_HIDE_BIT)) != 0) {
+            if ((mRet & static_cast<uint16_t>(FP16_MAN_HIDE_BIT)) != 0) {
                 eRet++;
             }
         }
-        acl::Fp16Normalize(eRet, mRet);
-        val_ =  static_cast<uint16_t>(((sRet) << static_cast<uint16_t>(acl::FP16_SIGN_INDEX)) |
-                ((static_cast<uint16_t>(eRet)) << acl::FP16_MAN_LEN) |
-                ((mRet) & static_cast<uint16_t>(acl::FP16_MAX_MAN)));
+        Fp16Normalize(eRet, mRet);
+        val_ =  static_cast<uint16_t>(((sRet) << static_cast<uint16_t>(FP16_SIGN_INDEX)) |
+                ((static_cast<uint16_t>(eRet)) << FP16_MAN_LEN) |
+                ((mRet) & static_cast<uint16_t>(FP16_MAX_MAN)));
         return *this;
     }
 
@@ -767,7 +826,7 @@ aclError aclmdlSetInputAIPPImpl(uint32_t modelId,
             std::vector<const char *>({"parameters", "parameters verification failed"}));
         return mdlRet;
     }
-    const aclDataBuffer *const buff = aclmdlGetDatasetBufferImplOm2(dataset, index);
+    const aclDataBuffer *const buff = aclmdlGetDatasetBuffer(dataset, index);
     if (buff == nullptr) {
         ACL_LOG_INNER_ERROR("[Check][Buff]failed to get data buffer by index[%zu]", index);
         return ACL_ERROR_INVALID_PARAM;

@@ -15,11 +15,11 @@
 #include <vector>
 #include <string>
 #include <set>
-
-#include "model_common.h"
 #include "acl/acl_base.h"
 #include "acl/acl_mdl.h"
 #include "common/dynamic_aipp.h"
+#include "mmpa/mmpa_api.h"
+#include "model_common.h"
 #include "common/ge_common/ge_types.h"
 
 struct aclmdlTensorDesc {
