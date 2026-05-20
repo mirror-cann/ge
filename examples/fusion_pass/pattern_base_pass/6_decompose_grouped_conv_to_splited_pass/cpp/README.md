@@ -63,16 +63,13 @@
 
      > 禁止链接软件包中的其他 so，否则后续升级可能会导致兼容性问题。
 
-3. 执行如下命令生成 eager style api。
-
-   依次执行：
+3. 依次执行：
 
    ```
    mkdir build && cd build
    cmake ..
    ```
 
-   执行后，在 `build` 目录下产生的 `es_all_build/generated_code` 目录中包含 es 构图 api 的头文件及源码。
 
 4. 执行 `make` 命令编译自定义 pass so，成功编译后通过 `make install` 将动态库文件 `libdecompose_grouped_conv_to_splited_pass.so` 安装到自定义融合 pass 目录下。
    可以在 `make` 后增加可选参数 `-j$(nproc)` 用于并行执行构建任务，`$(nproc)` 动态获取 CPU 核心数。

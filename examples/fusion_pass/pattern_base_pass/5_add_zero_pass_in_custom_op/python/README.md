@@ -59,7 +59,7 @@ run 包已包含 GE Python 运行时所需的 `ge_py` wheel，本节不需要再
    export ASCEND_GE_PY_PASS_PATH=$(pwd)/src/python_addcustom_zero_pass.py
    ```
 
-4. 复用 [C++ pass 样例 README](../cpp/README.md#验证) 中的在线推理步骤执行模型编译。
+4. 复用 [C++ pass 样例 README](../cpp/README.md) 中的程序编译+程序执行进行验证。
 
 5. 说明：
 

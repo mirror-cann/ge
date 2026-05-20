@@ -27,7 +27,7 @@ run 包一般已包含 `ge_py` wheel，无需单独再装一份 `ge_py-*.whl`。
 export ASCEND_GE_PY_PASS_PATH=$PWD/src/python_fuse_matmul_add_pass.py
 ```
 
-2. 复用 [C++ pass 样例 程序运行](../cpp/README.md#程序运行a-namesection4524573456563512a) 中的模型生成、ATC 离线编译或在线推理步骤。
+2. 复用 [C++ pass 样例 README](../cpp/README.md) 中的程序编译+程序执行进行验证。
 
 ## 预期现象
 

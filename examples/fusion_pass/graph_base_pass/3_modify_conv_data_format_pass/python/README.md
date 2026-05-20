@@ -26,7 +26,7 @@
 export ASCEND_GE_PY_PASS_PATH=$PWD/python/src/python_modify_conv_data_format_pass.py
 ```
 
-2. 复用上级目录 [样例 README](../cpp/README.md#程序运行) 中的 **ATC 离线编译** 或 **在线推理** 步骤（`data/torch_gen_onnx.py`、`data/torch_forward.py` 等）。
+2. 复用 [C++ pass 样例 README](../cpp/README.md) 中的程序编译+程序执行进行验证。
 
 ## 预期现象
 

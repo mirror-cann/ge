@@ -55,7 +55,7 @@ run 包已包含 GE Python 运行时所需的 `ge_py` wheel，本节不需要再
    export ASCEND_GE_PY_PASS_PATH="$PWD/src/python_decompose_pass.py"
    ```
 
-4. 复用 [C++ 样例 README](../cpp/README.md#程序运行) 中已有的离线或在线推理步骤执行模型编译。
+4. 复用 [C++ pass 样例 README](../cpp/README.md) 中的程序编译+程序执行进行验证。
    离线场景请将 C++ README 中的 `atc` 命令替换为 `pyatc`；两者命令行参数一致，`pyatc` 会在当前 Python 解释器进程中运行。
 
 5. 说明：

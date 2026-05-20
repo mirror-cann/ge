@@ -60,15 +60,12 @@
 
      > 禁止链接软件包中的其他so，否则后续升级可能会导致兼容性问题。
 
-3. 执行如下命令 生成eager style api
-
-   依次执行:
+3. 依次执行:
 
    ```
    mkdir build && cd build
    cmake ..
    ```
-   执行后，在**build**目录下产生的es_all_build/generated_code目录中包含es构图api的头文件及源码。
 
 4. 执行make命令编译自定义pass so，成功编译后通过make install将动态库文件libfuse_matmul_add_pass.so安装到自定义融合pass目录下。
    可以在make后增加可选参数`-j$(nproc)`用于并行执行构建任务，`$(nproc)`动态获取CPU核心数。
