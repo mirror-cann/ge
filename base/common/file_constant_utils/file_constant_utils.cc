@@ -10,6 +10,7 @@
 
 #include "common/file_constant_utils/file_constant_utils.h"
 #include <sys/file.h>
+#include <algorithm>
 #include <iomanip>
 #include <fstream>
 #include "framework/common/debug/log.h"
@@ -75,6 +76,44 @@ Status WriteJsonFile(const std::string &file_path, const nlohmann::json &json_ob
   }
   GE_CHK_BOOL_RET_STATUS(out_stream.good(), FAILED, "Failed to write json file[%s]", file_path.c_str());
   return SUCCESS;
+}
+
+void SortConstNodeWeightHashList(ConstNodeWeightHashList &const_to_weight_hash_list) {
+  std::stable_sort(const_to_weight_hash_list.begin(), const_to_weight_hash_list.end(),
+                   [](const ConstNodeWeightHashList::value_type &lhs,
+                      const ConstNodeWeightHashList::value_type &rhs) {
+                     const auto &lhs_node = lhs.first;
+                     const auto &rhs_node = rhs.first;
+                     if (lhs_node == rhs_node) {
+                       return false;
+                     }
+                     if (lhs_node == nullptr) {
+                       return true;
+                     }
+                     if (rhs_node == nullptr) {
+                       return false;
+                     }
+
+                     const std::string lhs_name = lhs_node->GetName();
+                     const std::string rhs_name = rhs_node->GetName();
+                     if (lhs_name != rhs_name) {
+                       return lhs_name < rhs_name;
+                     }
+
+                     const auto lhs_graph = lhs_node->GetOwnerComputeGraph();
+                     const auto rhs_graph = rhs_node->GetOwnerComputeGraph();
+                     const std::string lhs_graph_name = (lhs_graph == nullptr) ? "" : lhs_graph->GetName();
+                     const std::string rhs_graph_name = (rhs_graph == nullptr) ? "" : rhs_graph->GetName();
+                     if (lhs_graph_name != rhs_graph_name) {
+                       return lhs_graph_name < rhs_graph_name;
+                     }
+
+                     const auto lhs_op_desc = lhs_node->GetOpDesc();
+                     const auto rhs_op_desc = rhs_node->GetOpDesc();
+                     const int64_t lhs_id = (lhs_op_desc == nullptr) ? -1 : lhs_op_desc->GetId();
+                     const int64_t rhs_id = (rhs_op_desc == nullptr) ? -1 : rhs_op_desc->GetId();
+                     return lhs_id < rhs_id;
+                   });
 }
 }
 
@@ -388,8 +427,8 @@ Status FileConstantUtils::ConvertFileConstToConst(const ComputeGraphPtr &compute
   return SUCCESS;
 }
 
-ConstNodeWeightHashMap FileConstantUtils::GetAllConstNodesAndWeightHash(const ComputeGraphPtr &compute_graph) {
-  ConstNodeWeightHashMap const_to_weight_hash_map;
+ConstNodeWeightHashList FileConstantUtils::GetAllConstNodesAndWeightHash(const ComputeGraphPtr &compute_graph) {
+  ConstNodeWeightHashList const_to_weight_hash_list;
   for (const auto &node : compute_graph->GetAllNodes()) {
     if (!NodeUtils::IsConst(*node)) {
       continue;
@@ -404,12 +443,13 @@ ConstNodeWeightHashMap FileConstantUtils::GetAllConstNodesAndWeightHash(const Co
     GE_ASSERT_TRUE(!weights.empty(), "Failed to get weight of const node:%s", node->GetName().c_str());
     const auto &weight = weights[0];
     GE_ASSERT_NOTNULL(weight, "Weight is null, node:%s", node->GetName().c_str());
-    const_to_weight_hash_map[node] = std::make_pair(weight, hash_value);
+    const_to_weight_hash_list.emplace_back(node, std::make_pair(weight, hash_value));
   }
-  return const_to_weight_hash_map;
+  SortConstNodeWeightHashList(const_to_weight_hash_list);
+  return const_to_weight_hash_list;
 }
 
-Status FileConstantUtils::SaveWeightToFileWithReuse(const ConstNodeWeightHashMap &const_to_weight_hash_map,
+Status FileConstantUtils::SaveWeightToFileWithReuse(const ConstNodeWeightHashList &const_to_weight_hash_list,
                                                     const std::string &weight_dir, FileConstantMeta &meta) {
   errno = 0;
   const char_t *value = nullptr;
@@ -420,7 +460,7 @@ Status FileConstantUtils::SaveWeightToFileWithReuse(const ConstNodeWeightHashMap
   GELOGI("Start to save weight to file, thread num[%ld]", thread_num);
   ThreadPool thread_pool("ge_savweigh", static_cast<uint32_t>(thread_num), false);
   std::vector<std::future<Status>> fut_rets;
-  for (const auto &const_and_weight_hash : const_to_weight_hash_map) {
+  for (const auto &const_and_weight_hash : const_to_weight_hash_list) {
     const auto &const_name = const_and_weight_hash.first->GetName();
     const auto &weight_hash = const_and_weight_hash.second.second;
     const std::string file_name = "weight_" + weight_hash;
@@ -452,12 +492,12 @@ Status FileConstantUtils::SaveWeightToFileWithReuse(const ConstNodeWeightHashMap
 }
 
 // 使用流式写入避免全部权重加载到内存，支持大模型场景
-Status FileConstantUtils::SaveWeightToOneFileWithReuse(const ConstNodeWeightHashMap &const_to_weight_hash_map,
-                                                    const std::string &weight_dir, FileConstantMeta &meta) {
+Status FileConstantUtils::SaveWeightToOneFileWithReuse(const ConstNodeWeightHashList &const_to_weight_hash_list,
+                                                       const std::string &weight_dir, FileConstantMeta &meta) {
   // 预检查：计算需要写入的新权重数量
   size_t new_weights_count = 0;
   ComputeGraphPtr root_graph = nullptr;
-  for (const auto &const_and_weight_hash : const_to_weight_hash_map) {
+  for (const auto &const_and_weight_hash : const_to_weight_hash_list) {
     const auto &weight_hash = const_and_weight_hash.second.second;
     if (root_graph == nullptr && const_and_weight_hash.first != nullptr) {
       root_graph = NodeUtils::FindRootGraph(*const_and_weight_hash.first);
@@ -468,12 +508,12 @@ Status FileConstantUtils::SaveWeightToOneFileWithReuse(const ConstNodeWeightHash
   }
 
   if (new_weights_count == 0) {
-    GELOGI("All %zu weights already exist in meta, skip writing", const_to_weight_hash_map.size());
+    GELOGI("All %zu weights already exist in meta, skip writing", const_to_weight_hash_list.size());
     return SUCCESS;
   }
 
   GELOGI("Converting %zu const nodes to file constants (all-in-one mode), %zu are new weights",
-         const_to_weight_hash_map.size(), new_weights_count);
+         const_to_weight_hash_list.size(), new_weights_count);
 
   std::string model_file_name_prefix;
   std::string graph_name;
@@ -504,7 +544,7 @@ Status FileConstantUtils::SaveWeightToOneFileWithReuse(const ConstNodeWeightHash
 
   size_t new_weights_written = 0;
   size_t reused_weights_count = 0;
-  GE_CHK_STATUS_RET(SaveWeightsAndMetadata(const_to_weight_hash_map, meta, ofs, weight_path, offset,
+  GE_CHK_STATUS_RET(SaveWeightsAndMetadata(const_to_weight_hash_list, meta, ofs, weight_path, offset,
                                             new_weights_written, reused_weights_count));
   ofs.close();
   GELOGI("Successfully saved %zu new weights to single file (reused: %zu), total file offset: %zu bytes",
@@ -513,13 +553,13 @@ Status FileConstantUtils::SaveWeightToOneFileWithReuse(const ConstNodeWeightHash
   return SUCCESS;
 }
 
-Status FileConstantUtils::SaveWeightsAndMetadata(const ConstNodeWeightHashMap &const_to_weight_hash_map,
-                                                  FileConstantMeta &meta, std::ofstream &ofs,
-                                                  const std::string &weight_path, size_t &offset,
-                                                  size_t &new_weights_written, size_t &reused_weights_count) {
+Status FileConstantUtils::SaveWeightsAndMetadata(const ConstNodeWeightHashList &const_to_weight_hash_list,
+                                                 FileConstantMeta &meta, std::ofstream &ofs,
+                                                 const std::string &weight_path, size_t &offset,
+                                                 size_t &new_weights_written, size_t &reused_weights_count) {
   new_weights_written = 0UL;
   reused_weights_count = 0UL;
-  for (const auto &const_and_weight_hash : const_to_weight_hash_map) {
+  for (const auto &const_and_weight_hash : const_to_weight_hash_list) {
     const auto &weight = const_and_weight_hash.second.first;
     const auto &weight_hash = const_and_weight_hash.second.second;
 
@@ -586,16 +626,16 @@ Status FileConstantUtils::WriteWeightWithPadding(std::ofstream &ofs, const uint8
   return SUCCESS;
 }
 
-Status FileConstantUtils::ConvertToFileConstants(const ConstNodeWeightHashMap &const_to_weight_hash_map,
+Status FileConstantUtils::ConvertToFileConstants(const ConstNodeWeightHashList &const_to_weight_hash_list,
                                                  const std::string &weight_dir, FileConstantMeta &meta, const bool all_in_one) {
   if (all_in_one) {
-    GE_CHK_STATUS_RET(SaveWeightToOneFileWithReuse(const_to_weight_hash_map, weight_dir, meta),
+    GE_CHK_STATUS_RET(SaveWeightToOneFileWithReuse(const_to_weight_hash_list, weight_dir, meta),
                       "Failed to save weight to one file");
   } else {
-    GE_CHK_STATUS_RET(SaveWeightToFileWithReuse(const_to_weight_hash_map, weight_dir, meta),
+    GE_CHK_STATUS_RET(SaveWeightToFileWithReuse(const_to_weight_hash_list, weight_dir, meta),
                       "Failed to save weight to file");
   }
-  for (const auto &const_and_weight_hash : const_to_weight_hash_map) {
+  for (const auto &const_and_weight_hash : const_to_weight_hash_list) {
     const auto &const_node = const_and_weight_hash.first;
     auto const_op = const_node->GetOpDesc();
     const auto &weight = const_and_weight_hash.second.first;
@@ -620,8 +660,8 @@ Status FileConstantUtils::ConvertToFileConstants(const ConstNodeWeightHashMap &c
 }
 
 Status FileConstantUtils::ConvertConstToFileConst(const ComputeGraphPtr &compute_graph, bool all_in_one) {
-  const auto &const_to_weight_hash_map = GetAllConstNodesAndWeightHash(compute_graph);
-  if (const_to_weight_hash_map.empty()) {
+  const auto &const_to_weight_hash_list = GetAllConstNodesAndWeightHash(compute_graph);
+  if (const_to_weight_hash_list.empty()) {
     GELOGI("Cannot find valid const nodes on graph:%s, skip conversion", compute_graph->GetName().c_str());
     return SUCCESS;
   }
@@ -660,7 +700,7 @@ Status FileConstantUtils::ConvertConstToFileConst(const ComputeGraphPtr &compute
     meta = meta_json.get<FileConstantMeta>();
   }
 
-  GE_CHK_STATUS_RET_NOLOG(ConvertToFileConstants(const_to_weight_hash_map, file_const_dir, meta, all_in_one));
+  GE_CHK_STATUS_RET_NOLOG(ConvertToFileConstants(const_to_weight_hash_list, file_const_dir, meta, all_in_one));
   const nlohmann::json out_json(meta);
   GE_CHK_STATUS_RET(WriteJsonFile(meta_path, out_json), "save file constant meta failed.");
   return SUCCESS;

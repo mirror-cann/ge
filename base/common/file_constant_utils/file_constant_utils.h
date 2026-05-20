@@ -28,7 +28,7 @@ constexpr const char *kExternalWeightDisabled = "0";           // 禁用外置�
 constexpr const char *kExternalWeightEnabled = "1";            // 启用外置权重，每个权重单独导出
 constexpr const char *kExternalWeightCombined = "2";           // 启用外置权重，所有权重合并导出到同一文件
 
-using ConstNodeWeightHashMap = std::unordered_map<NodePtr, std::pair<GeTensorPtr, std::string>>;
+using ConstNodeWeightHashList = std::vector<std::pair<NodePtr, std::pair<GeTensorPtr, std::string>>>;
 
 struct FileIdToFilePath {
   std::string value_bin_file_id;
@@ -138,10 +138,10 @@ class FileConstantUtils {
   /// @return Status
   static Status ConvertConstToFileConst(const NodePtr &node);
 
-  /// @brief get a map of graph, [key]:const node, [value]:a pair of weight and hash
+  /// @brief get const nodes with weight and hash in deterministic traversal order
   /// @param [in] compute_graph
-  /// @return ConstNodeWeightHashMap
-  static ConstNodeWeightHashMap GetAllConstNodesAndWeightHash(const ComputeGraphPtr &compute_graph);
+  /// @return ConstNodeWeightHashList
+  static ConstNodeWeightHashList GetAllConstNodesAndWeightHash(const ComputeGraphPtr &compute_graph);
 
   /// @brief move weight files from tmp_weight to om_path/weight
   /// @param [in] compute_graph
@@ -178,31 +178,31 @@ class FileConstantUtils {
   friend class ExternalWeightManager;
 
   /// @brief convert const to fileconstant
-  /// @param [in] const_to_weight_hash_map
+  /// @param [in] const_to_weight_hash_list
   /// @param [in] external_weight_dir
   /// @param [in] graph_name
   /// @param [in] meta
   /// @param [in] all_in_one
   /// @return Status
-  static Status ConvertToFileConstants(const ConstNodeWeightHashMap &const_to_weight_hash_map,
+  static Status ConvertToFileConstants(const ConstNodeWeightHashList &const_to_weight_hash_list,
                                        const std::string &weight_dir, FileConstantMeta &meta, const bool all_in_one=false);
   /// @brief save all const weight to file with multi threads
-  /// @param [in] const_to_weight_hash_map
+  /// @param [in] const_to_weight_hash_list
   /// @param [in] external_weight_dir
   /// @param [in] meta
   /// @return Status
-  static Status SaveWeightToFileWithReuse(const ConstNodeWeightHashMap &const_to_weight_hash_map,
+  static Status SaveWeightToFileWithReuse(const ConstNodeWeightHashList &const_to_weight_hash_list,
                                           const std::string &weight_dir, FileConstantMeta &meta);
   /// @brief save all const weight to one file
-  /// @param [in] const_to_weight_hash_map
+  /// @param [in] const_to_weight_hash_list
   /// @param [in] external_weight_dir
   /// @param [in] graph_name
   /// @param [in] meta
   /// @return Status
-  static Status SaveWeightToOneFileWithReuse(const ConstNodeWeightHashMap &const_to_weight_hash_map,
-                                          const std::string &weight_dir, FileConstantMeta &meta);
+  static Status SaveWeightToOneFileWithReuse(const ConstNodeWeightHashList &const_to_weight_hash_list,
+                                             const std::string &weight_dir, FileConstantMeta &meta);
   /// @brief save weights and update metadata
-  /// @param [in] const_to_weight_hash_map
+  /// @param [in] const_to_weight_hash_list
   /// @param [in,out] meta
   /// @param [in,out] ofs
   /// @param [in] weight_path
@@ -210,7 +210,7 @@ class FileConstantUtils {
   /// @param [out] new_weights_written
   /// @param [out] reused_weights_count
   /// @return Status
-  static Status SaveWeightsAndMetadata(const ConstNodeWeightHashMap &const_to_weight_hash_map,
+  static Status SaveWeightsAndMetadata(const ConstNodeWeightHashList &const_to_weight_hash_list,
                                        FileConstantMeta &meta, std::ofstream &ofs,
                                        const std::string &weight_path, size_t &offset,
                                        size_t &new_weights_written, size_t &reused_weights_count);

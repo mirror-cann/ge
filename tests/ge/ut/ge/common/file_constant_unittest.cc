@@ -307,6 +307,92 @@ TEST_F(UtestFileConstantUtilTransfer, ConvertConstToFileConst_Ok_MultipleModelSa
   (void)mmRmdir("./om_temp");
 }
 
+TEST_F(UtestFileConstantUtilTransfer, GetAllConstNodesAndWeightHash_ReturnsOrderedResult) {
+  ge::ut::GraphBuilder builder("graph");
+  auto const3 = builder.AddNode("const3", "Const", 0, 1);
+  auto const1 = builder.AddNode("const1", "Const", 0, 1);
+  auto const2 = builder.AddNode("const2", "Const", 0, 1);
+  auto const1_duplicate = builder.AddNode("const1", "Const", 0, 1);
+
+  ge::GeTensorPtr tensor = std::make_shared<GeTensor>();
+  std::vector<uint8_t> value(4 * 8 * 8);
+  std::vector<int64_t> shape{1, 4, 8, 8};
+  tensor->MutableTensorDesc().SetShape(GeShape(shape));
+  tensor->SetData(value);
+  tensor->MutableTensorDesc().SetDataType(DT_UINT8);
+
+  ConstantUtils::SetWeight(const3->GetOpDesc(), 0, tensor);
+  ConstantUtils::SetWeight(const1->GetOpDesc(), 0, tensor);
+  ConstantUtils::SetWeight(const2->GetOpDesc(), 0, tensor);
+  ConstantUtils::SetWeight(const1_duplicate->GetOpDesc(), 0, tensor);
+  (void)AttrUtils::SetStr(const3->GetOpDesc(), ATTR_NAME_WEIGHT_SHA256, "hash3");
+  (void)AttrUtils::SetStr(const1->GetOpDesc(), ATTR_NAME_WEIGHT_SHA256, "hash1");
+  (void)AttrUtils::SetStr(const2->GetOpDesc(), ATTR_NAME_WEIGHT_SHA256, "hash2");
+  (void)AttrUtils::SetStr(const1_duplicate->GetOpDesc(), ATTR_NAME_WEIGHT_SHA256, "hash1_dup");
+
+  const auto graph = builder.GetGraph();
+  const1->GetOpDesc()->SetId(1);
+  const1_duplicate->GetOpDesc()->SetId(2);
+  const2->GetOpDesc()->SetId(3);
+  const3->GetOpDesc()->SetId(4);
+  const auto const_to_weight_hash_list = FileConstantUtils::GetAllConstNodesAndWeightHash(graph);
+
+  std::vector<std::string> ordered_names;
+  std::vector<std::string> ordered_hashes;
+  for (const auto &const_and_weight_hash : const_to_weight_hash_list) {
+    ordered_names.emplace_back(const_and_weight_hash.first->GetName());
+    ordered_hashes.emplace_back(const_and_weight_hash.second.second);
+  }
+
+  const std::vector<std::string> expected_names = {"const1", "const1", "const2", "const3"};
+  const std::vector<std::string> expected_hashes = {"hash1", "hash1_dup", "hash2", "hash3"};
+  EXPECT_EQ(ordered_names, expected_names);
+  EXPECT_EQ(ordered_hashes, expected_hashes);
+}
+
+TEST_F(UtestFileConstantUtilTransfer, GetAllConstNodesAndWeightHash_OrdersSameNameNodesByOwnerGraph) {
+  ge::ut::GraphBuilder root_builder("z_graph");
+  const auto root_const = root_builder.AddNode("same_const", "Const", 0, 1);
+  (void)root_builder.AddNode("partitioned_call", "PartitionedCall", 0, 0);
+  const auto root_graph = root_builder.GetGraph();
+
+  ge::ut::GraphBuilder subgraph_builder("a_graph");
+  const auto subgraph_const = subgraph_builder.AddNode("same_const", "Const", 0, 1);
+  const auto subgraph = subgraph_builder.GetGraph();
+  ge::ut::GraphBuilder::AddPartitionedCall(root_graph, "partitioned_call", subgraph);
+
+  ge::GeTensorPtr tensor = std::make_shared<GeTensor>();
+  std::vector<uint8_t> value(4 * 8 * 8);
+  std::vector<int64_t> shape{1, 4, 8, 8};
+  tensor->MutableTensorDesc().SetShape(GeShape(shape));
+  tensor->SetData(value);
+  tensor->MutableTensorDesc().SetDataType(DT_UINT8);
+
+  ConstantUtils::SetWeight(root_const->GetOpDesc(), 0, tensor);
+  ConstantUtils::SetWeight(subgraph_const->GetOpDesc(), 0, tensor);
+  (void)AttrUtils::SetStr(root_const->GetOpDesc(), ATTR_NAME_WEIGHT_SHA256, "root_hash");
+  (void)AttrUtils::SetStr(subgraph_const->GetOpDesc(), ATTR_NAME_WEIGHT_SHA256, "subgraph_hash");
+
+  const auto const_to_weight_hash_list = FileConstantUtils::GetAllConstNodesAndWeightHash(root_graph);
+
+  ASSERT_EQ(const_to_weight_hash_list.size(), 2U);
+  EXPECT_EQ(const_to_weight_hash_list[0].second.second, "subgraph_hash");
+  EXPECT_EQ(const_to_weight_hash_list[1].second.second, "root_hash");
+}
+
+TEST_F(UtestFileConstantUtilTransfer, GetAllConstNodesAndWeightHash_SkipsEmptyAndMissingHashNodes) {
+  const auto empty_graph = MakeShared<ComputeGraph>("empty_graph");
+  ASSERT_NE(empty_graph, nullptr);
+  EXPECT_TRUE(FileConstantUtils::GetAllConstNodesAndWeightHash(empty_graph).empty());
+
+  ge::ut::GraphBuilder builder("graph");
+  (void)builder.AddNode("const_without_hash", "Const", 0, 1);
+  (void)builder.AddNode("relu", "Relu", 1, 1);
+  const auto graph = builder.GetGraph();
+
+  EXPECT_TRUE(FileConstantUtils::GetAllConstNodesAndWeightHash(graph).empty());
+}
+
 TEST_F(UtestFileConstantUtilTransfer, test_convert_const_to_file_const_AscendWorkPath_success) {
   ge::ut::GraphBuilder builder("graph");
   auto const1 = builder.AddNode("const1", "Const", 0, 1);
