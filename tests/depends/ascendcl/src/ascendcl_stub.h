@@ -36,9 +36,7 @@ public:
     device_id_ = device_id;
   }
   static void SetErrorResultApiName(const std::string &stub_api_name);
-  static void SetInstance(const std::shared_ptr<AclRuntimeStub> &instance) {
-    instance_ = instance;
-  }
+  static void SetInstance(const std::shared_ptr<AclRuntimeStub> &instance);
 
   static void Install(AclRuntimeStub*);
   static void UnInstall(AclRuntimeStub*);

@@ -29,6 +29,8 @@
 #include "bg_model_desc.h"
 #include "engine/node_converter_utils.h"
 #include "aicore/converter/autofuse_node_converter.h"
+#include "graph/custom_op_factory.h"
+#include "graph/custom_op.h"
 
 namespace gert {
 namespace bg {
@@ -242,15 +244,20 @@ std::vector<ValueHolderPtr> InferCustomOpShape(const ge::NodePtr &node,
   }
   const auto op_desc = node->GetOpDesc();
   GE_ASSERT_NOTNULL(op_desc);
-  const std::string infer_rule = ge::InferenceRule::GetInferenceRule(op_desc);
-  if (infer_rule.empty()) {
-    return {};
+  auto custom_op = ge::CustomOpFactory::CreateOrGetCustomOp(node->GetTypePtr());
+  auto shape_infer_op = dynamic_cast<ge::ShapeInferOp *>(custom_op);
+  if (shape_infer_op != nullptr) {
+    return BuildInferShapeGraph(node, input_shapes, global_data);
   }
-  ge::Buffer compiled_rule;
-  ge::AttrUtils::GetBytes(op_desc, ge::COMPILED_INFERENCE_RULE_BINARY, compiled_rule);
-  GELOGD("Node %s infer shape by rule: %s.", node->GetName().c_str(), infer_rule.c_str());
-  return BuildInferShapeGraphByRule(infer_rule, compiled_rule, input_shapes,
-                                    op_desc->GetOutputsSize(), global_data);
+  const std::string infer_rule = ge::InferenceRule::GetInferenceRule(op_desc);
+  if (!infer_rule.empty()) {
+    ge::Buffer compiled_rule;
+    ge::AttrUtils::GetBytes(op_desc, ge::COMPILED_INFERENCE_RULE_BINARY, compiled_rule);
+    GELOGD("Node %s infer shape by rule: %s.", node->GetName().c_str(), infer_rule.c_str());
+    return BuildInferShapeGraphByRule(infer_rule, compiled_rule, input_shapes,
+                                      op_desc->GetOutputsSize(), global_data);
+  }
+  return {};
 }
 
 HyperStatus LowerInnerData(const ge::NodePtr &node, const std::vector<ValueHolderPtr> &input_shapes,

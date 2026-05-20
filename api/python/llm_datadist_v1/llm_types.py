@@ -14,25 +14,18 @@ __all__ = ['CacheDesc', 'CacheKey', 'CacheKeyByIdAndIndex', 'KvCache', 'BlocksCa
            'Placement', 'CacheTask', 'TransferConfig', 'LayerSynchronizer']
 
 from abc import abstractmethod, ABC
-from enum import Enum
+from enum import Enum, IntEnum
 from typing import Any, List, Optional, Tuple, Union
 
-try:
-    from llm_datadist.status import LLMException
-    from llm_datadist.data_type import DataType
-    from llm_datadist.status import raise_if_false, LLMStatusCode, raise_if_true
-    from llm_datadist.utils import log
-    from llm_datadist.utils.utils import (check_isinstance, check_uint32, check_int32,
-                                      check_uint64, check_int64, check_list_int64, check_list_uint64)
-except ModuleNotFoundError:
-    from llm_datadist_v1.status import LLMException
-    from llm_datadist_v1.data_type import DataType
-    from llm_datadist_v1.status import raise_if_false, LLMStatusCode, raise_if_true
-    from llm_datadist_v1.utils import log
-    from llm_datadist_v1.utils.utils import (check_isinstance, check_uint32, check_int32,
-                                      check_uint64, check_int64, check_list_int64, check_list_uint64)
-    
 from llm_datadist_v1 import llm_wrapper
+
+from .status import LLMException
+from .data_type import DataType
+from .status import raise_if_false, LLMStatusCode, raise_if_true
+from .utils import log
+from .utils.utils import (
+    check_isinstance, check_uint32, check_int32, check_uint64, check_int64, check_list_int64, check_list_uint64
+) 
 
 _INVALID_ID = 2 ** 64 - 1
 
@@ -92,7 +85,7 @@ class MemInfo(object):
 int_to_mem_status_dict = {0: RegisterMemStatus.OK, 1: RegisterMemStatus.PREPARING, 2: RegisterMemStatus.FAILED}
 
 
-class Placement(Enum):
+class Placement(IntEnum):
     HOST = 0
     DEVICE = 1
 

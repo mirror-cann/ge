@@ -15,7 +15,7 @@
 #include "exe_graph/runtime/tensor.h"
 #include "graph/tensor.h"
 #include "graph/ge_tensor.h"
-#include "mem_base.h"
+#include "acl/acl_rt.h"
 namespace ge {
 
 struct MemcpyBatchParam {
@@ -24,7 +24,7 @@ struct MemcpyBatchParam {
   std::vector<size_t> dst_aligned_sizes;
   std::vector<void *> srcs;
   std::vector<size_t> src_sizes;
-  std::vector<rtMemcpyBatchAttr> attrs;
+  std::vector<aclrtMemcpyBatchAttr> attrs;
   std::vector<size_t> attr_idxs;
   int32_t device_id{};
 };

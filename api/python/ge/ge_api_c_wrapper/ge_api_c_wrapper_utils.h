@@ -210,27 +210,28 @@ ge::graphStatus GeApiWrapper_GNode_GetAttr(const ge::GNode *node, const char *ke
 ge::graphStatus GeApiWrapper_GNode_SetOutputAttr(ge::GNode *node, const char *attr_name, uint32_t output_index,
                                                  const void *attr_value);
 void GeApiWrapper_GNode_FreeIntArray(int32_t *arrs);
-ge::TensorDesc *GeApiWrapper_GNode_GetInputDesc(const ge::GNode *node, int32_t index);
-ge::graphStatus GeApiWrapper_GNode_UpdateInputDesc(ge::GNode *node, int32_t index,
+ge::TensorDesc *GeApiWrapper_GNode_GetInputDesc(const ge::GNode *node, const int32_t index);
+ge::graphStatus GeApiWrapper_GNode_UpdateInputDesc(ge::GNode *node, const int32_t index,
                                                    const ge::TensorDesc *tensor_desc);
-ge::TensorDesc *GeApiWrapper_GNode_GetOutputDesc(const ge::GNode *node, int32_t index);
-ge::graphStatus GeApiWrapper_GNode_UpdateOutputDesc(ge::GNode *node, int32_t index,
+ge::TensorDesc *GeApiWrapper_GNode_GetOutputDesc(const ge::GNode *node, const int32_t index);
+ge::graphStatus GeApiWrapper_GNode_UpdateOutputDesc(ge::GNode *node, const int32_t index,
                                                     const ge::TensorDesc *tensor_desc);
-ge::TensorDesc *GeApiWrapper_TensorDesc_Create(const int64_t *dims, size_t dims_num, C_Format format,
-                                               C_DataType dtype);
+ge::TensorDesc *GeApiWrapper_TensorDesc_Create(const int64_t *dims, const size_t dims_num, const C_Format format,
+                                               const C_DataType dtype);
 void GeApiWrapper_TensorDesc_Destroy(const ge::TensorDesc *tensor_desc);
 ge::graphStatus GeApiWrapper_TensorDesc_GetShape(const ge::TensorDesc *tensor_desc, int64_t **dims, size_t *dims_num);
-ge::graphStatus GeApiWrapper_TensorDesc_SetShape(ge::TensorDesc *tensor_desc, const int64_t *dims, size_t dims_num);
+ge::graphStatus GeApiWrapper_TensorDesc_SetShape(ge::TensorDesc *tensor_desc, const int64_t *dims,
+                                                 const size_t dims_num);
 ge::graphStatus GeApiWrapper_TensorDesc_GetOriginShape(const ge::TensorDesc *tensor_desc, int64_t **dims,
                                                        size_t *dims_num);
 ge::graphStatus GeApiWrapper_TensorDesc_SetOriginShape(ge::TensorDesc *tensor_desc, const int64_t *dims,
-                                                       size_t dims_num);
+                                                       const size_t dims_num);
 C_Format GeApiWrapper_TensorDesc_GetFormat(const ge::TensorDesc *tensor_desc);
-ge::graphStatus GeApiWrapper_TensorDesc_SetFormat(ge::TensorDesc *tensor_desc, C_Format format);
+ge::graphStatus GeApiWrapper_TensorDesc_SetFormat(ge::TensorDesc *tensor_desc, const C_Format format);
 C_Format GeApiWrapper_TensorDesc_GetOriginFormat(const ge::TensorDesc *tensor_desc);
-ge::graphStatus GeApiWrapper_TensorDesc_SetOriginFormat(ge::TensorDesc *tensor_desc, C_Format format);
+ge::graphStatus GeApiWrapper_TensorDesc_SetOriginFormat(ge::TensorDesc *tensor_desc, const C_Format format);
 C_DataType GeApiWrapper_TensorDesc_GetDataType(const ge::TensorDesc *tensor_desc);
-ge::graphStatus GeApiWrapper_TensorDesc_SetDataType(ge::TensorDesc *tensor_desc, C_DataType dtype);
+ge::graphStatus GeApiWrapper_TensorDesc_SetDataType(ge::TensorDesc *tensor_desc, const C_DataType dtype);
 ge::graphStatus GeApiWrapper_Graph_LoadFromAir(ge::Graph *graph, const char_t *file_name);
 ge::graphStatus GeApiWrapper_Graph_AddControlEdge(ge::Graph *graph, ge::GNode &src_node, ge::GNode &dst_node);
 ge::graphStatus GeApiWrapper_Graph_SetAttr(ge::Graph *graph, const char *key, const void *attr_value);

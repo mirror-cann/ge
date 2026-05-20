@@ -98,8 +98,8 @@ class CodeGeneratorBase {
   }
   ExprRef RtSetTaskTag(Arg op_name) const { return ast_.Call("rtSetTaskTag", {op_name}); }
   ExprRef RtStreamWaitEvent(Arg stream, Arg event) const { return ast_.Call("rtStreamWaitEvent", {stream, event}); }
-  ExprRef RtStreamSwitchEx(Arg input_ptr, Arg cond, Arg value_ptr, Arg true_stream, Arg stream, Arg data_type) const {
-    return ast_.Call("rtStreamSwitchEx", {input_ptr, cond, value_ptr, true_stream, stream, data_type});
+  ExprRef AclrtSwitchStream(Arg input_ptr, Arg cond, Arg value_ptr, Arg data_type, Arg true_stream, Arg stream) const {
+    return ast_.Call("aclrtSwitchStream", {input_ptr, cond, value_ptr, data_type, true_stream, nullptr, stream});
   }
   ExprRef RtGeneralCtrl(Arg inputs, Arg size, Arg type) const { return ast_.Call("rtGeneralCtrl", {inputs, size, type}); }
   ExprRef RtStreamCreateWithFlags(Arg stream, Arg priority, Arg stream_flag) const {

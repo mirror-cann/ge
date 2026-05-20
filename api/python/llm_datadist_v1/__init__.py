@@ -11,31 +11,12 @@
 # -----------------------------------------------------------------------------------------------------------
 
 import os
-
-try:
-    from llm_datadist.status import LLMStatusCode, LLMException, Status
-except ModuleNotFoundError:
-    from .status import LLMStatusCode, LLMException, Status
-
-try:
-    from llm_datadist.configs import LLMClusterInfo, LLMRole, LlmConfig, LlmConfig as LLMConfig
-except ModuleNotFoundError:
-    from .configs import LLMClusterInfo, LLMRole, LlmConfig, LlmConfig as LLMConfig
-
-try:
-    from llm_datadist.data_type import DataType
-except ModuleNotFoundError:
-    from .data_type import DataType
-    
-try:
-    from llm_datadist.v2.llm_types import KvCache, CacheDesc, CacheKey, CacheKeyByIdAndIndex, BlocksCacheKey, Placement, \
+from .status import LLMStatusCode, LLMException, Status
+from .configs import LLMClusterInfo, LLMRole, LlmConfig, LlmConfig as LLMConfig
+from .data_type import DataType
+from .llm_types import KvCache, CacheDesc, CacheKey, CacheKeyByIdAndIndex, BlocksCacheKey, Placement, \
     RegisterMemStatus, LayerSynchronizer, TransferConfig, CacheTask, TransferWithCacheKeyConfig, \
     Memtype, MemInfo
-except ModuleNotFoundError:
-    from .llm_types import KvCache, CacheDesc, CacheKey, CacheKeyByIdAndIndex, BlocksCacheKey, Placement, \
-    RegisterMemStatus, LayerSynchronizer, TransferConfig, CacheTask, TransferWithCacheKeyConfig, \
-    Memtype, MemInfo
-
 from .tensor import TensorDesc, Tensor
 from .kv_cache_manager import KvCacheManager
 from .llm_datadist import LLMDataDist

@@ -30,6 +30,8 @@
 #include "common/share_graph.h"
 #include "common/summary_checker.h"
 #include "lowering/pass/constant_expression_motion.h"
+#include "graph/custom_op_factory.h"
+#include "graph/custom_op.h"
 
 namespace gert {
 namespace bg {
@@ -85,6 +87,22 @@ ge::graphStatus InferShapeForAdd(InferShapeContext *context) {
   return SUCCESS;
 }
 IMPL_OP(Add).InferShape(InferShapeForAdd);
+
+class Rt2CustomShapeInferOnlyOp : public ge::ShapeInferOp {
+ public:
+  ge::graphStatus InferShape(gert::InferShapeContext *ctx) override {
+    auto input = ctx->GetInputShape(0U);
+    auto output = ctx->GetOutputShape(0U);
+    GE_ASSERT_NOTNULL(input);
+    GE_ASSERT_NOTNULL(output);
+    *output = *input;
+    return ge::GRAPH_SUCCESS;
+  }
+
+  ge::graphStatus InferDataType(gert::InferDataTypeContext *ctx) override {
+    return ctx->SetOutputDataType(0U, ge::DT_FLOAT);
+  }
+};
 } // namespace
 class BgInferShapeUT : public BgTestAutoCreateFrame {
  protected:
@@ -332,6 +350,12 @@ auto root_model = GeModelBuilder(graph).BuildGeRootModel();
 TEST_F(BgInferShapeUT, InferCustomOpShapeWithoutRule) {
   auto graph = ShareGraph::BuildCustomOpGraph();
   auto custom_op = graph->FindNode("custom_op");
+  ASSERT_NE(custom_op, nullptr);
+  custom_op->GetOpDesc()->SetType("Rt2BgCustomShapeInferOnlyOp");
+  ASSERT_EQ(ge::CustomOpFactory::RegisterCustomOpCreator("Rt2BgCustomShapeInferOnlyOp",
+      []() -> std::unique_ptr<ge::BaseCustomOp> {
+    return std::make_unique<Rt2CustomShapeInferOnlyOp>();
+  }), ge::GRAPH_SUCCESS);
 
   auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   auto global_data = GlobalDataFaker(root_model).Build();
@@ -343,10 +367,43 @@ TEST_F(BgInferShapeUT, InferCustomOpShapeWithoutRule) {
 
   auto out_shapes = InferCustomOpShape(custom_op,
       {data0_ret.out_shapes[0], data1_ret.out_shapes[0], data2_ret.out_shapes[0]}, global_data);
-  ASSERT_EQ(out_shapes.size(), 0);
+  ASSERT_EQ(out_shapes.size(), 1);
+  ASSERT_EQ(out_shapes[0]->GetFastNode()->GetType(), "InferShape");
+
+  auto find_node = ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_frame_->GetExecuteGraph().get(),
+                                                                 "FindInferShapeFunc");
+  ASSERT_NE(find_node, nullptr);
 
   auto main_frame = ValueHolder::PopGraphFrame({}, {}, "NetOutput");
   auto root_frame = ValueHolder::PopGraphFrame();
+  ASSERT_NE(main_frame, nullptr);
+  ASSERT_NE(root_frame, nullptr);
+}
+
+TEST_F(BgInferShapeUT, InferCustomOpShapeWithRulePreferShapeInferOp) {
+  const std::string rule = R"({"shape":{"inputs":[["s0"],["s1"],["s2"]],"outputs":[["s0","s1","s2"]]}})";
+  auto graph = ShareGraph::BuildCustomOpGraph();
+  auto custom_op = graph->FindNode("custom_op");
+  ASSERT_NE(custom_op, nullptr);
+  custom_op->GetOpDesc()->SetType("Rt2BgCustomShapeInferWithRuleOp");
+  ge::AttrUtils::SetStr(custom_op->GetOpDesc(), ge::ATTR_NAME_INFER_RULE, rule);
+  ASSERT_EQ(ge::CustomOpFactory::RegisterCustomOpCreator("Rt2BgCustomShapeInferWithRuleOp",
+      []() -> std::unique_ptr<ge::BaseCustomOp> {
+    return std::make_unique<Rt2CustomShapeInferOnlyOp>();
+  }), ge::GRAPH_SUCCESS);
+
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto global_data = GlobalDataFaker(root_model).Build();
+  bg::LowerConstDataNode(global_data);
+  LowerInput data_input = {{}, {}, &global_data};
+  auto data0_ret = LoweringDataNode(graph->FindNode("data0"), data_input);
+  auto data1_ret = LoweringDataNode(graph->FindNode("data1"), data_input);
+  auto data2_ret = LoweringDataNode(graph->FindNode("data2"), data_input);
+
+  auto out_shapes = InferCustomOpShape(custom_op,
+      {data0_ret.out_shapes[0], data1_ret.out_shapes[0], data2_ret.out_shapes[0]}, global_data);
+  ASSERT_EQ(out_shapes.size(), 1);
+  ASSERT_EQ(out_shapes[0]->GetFastNode()->GetType(), "InferShape");
 }
 }  // namespace bg
 }  // namespace gert

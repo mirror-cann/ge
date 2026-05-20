@@ -13,39 +13,16 @@ from typing import Any, Dict, List, Tuple, Optional, Union
 import atexit
 from llm_datadist_v1 import llm_wrapper
 
-try:
-    from llm_datadist.utils.utils import check_isinstance, check_uint64, check_int32
-except ModuleNotFoundError:
-    from llm_datadist_v1.utils.utils import check_isinstance, check_uint64, check_int32
-
-try:
-    from llm_datadist.utils import log
-except ModuleNotFoundError:
-    from llm_datadist_v1.utils import log
-
-try:
-    from llm_datadist.status import (code_2_status, handle_llm_status, raise_if_false, LLMStatusCode,
-                                    LLMException)
-except ModuleNotFoundError:
-    from llm_datadist_v1.status import (code_2_status, handle_llm_status, raise_if_false, LLMStatusCode,
-                                    LLMException)
-
-try:
-    from llm_datadist.configs import LLMRole, LLMClusterInfo
-except ModuleNotFoundError:
-    from llm_datadist_v1.configs import LLMRole, LLMClusterInfo
-
-try:
-    from llm_datadist.v2.config import EngineConfig
-except ModuleNotFoundError:
-    from llm_datadist_v1.config import EngineConfig
-
-try:
-    from llm_datadist.v2.llm_utils import parse_listen_ip_info
-except ModuleNotFoundError:
-    from llm_datadist_v1.llm_utils import parse_listen_ip_info
-
-from llm_datadist_v1.kv_cache_manager import KvCacheManager
+from .utils.utils import check_isinstance, check_uint64, check_int32
+from .utils import log
+from .status import (
+    code_2_status, handle_llm_status, raise_if_false, LLMStatusCode, \
+    LLMException
+)
+from .configs import LLMRole, LLMClusterInfo
+from .config import EngineConfig
+from .llm_utils import parse_listen_ip_info
+from .kv_cache_manager import KvCacheManager
 
 __all__ = ['LLMDataDist', 'KvCacheManager']
 

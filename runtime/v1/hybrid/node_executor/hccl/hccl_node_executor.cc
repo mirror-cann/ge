@@ -358,7 +358,7 @@ Status RdmaNodeTask::ExecuteAsync(TaskContext &context, const std::function<void
   if (context.GetExecutionContext()->hccl_stream != nullptr) {
     GE_CHK_RT_RET(aclrtCreateEventWithFlag(
       &evt, ACL_EVENT_SYNC | ACL_EVENT_CAPTURE_STREAM_PROGRESS | ACL_EVENT_TIME_LINE));
-    GE_CHK_RT_RET(rtStreamWaitEvent(context.GetExecutionContext()->hccl_stream, evt));
+    GE_CHK_RT_RET(aclrtStreamWaitEvent(context.GetExecutionContext()->hccl_stream, evt));
   }
   TaskContext *const p_ctx = &context;
   const auto callback = [p_ctx, done_callback, evt](const HcclResult stat) {

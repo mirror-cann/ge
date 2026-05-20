@@ -4145,7 +4145,7 @@ TEST_F(UtestDavinciModel, run_with_task) {
   op_desc->SetInputOffset(input_offset);
   model.InitOutputTensorInfo(op_desc);
   EXPECT_EQ(model.ModelRunStart(), SUCCESS);
-  sleep(5);
+  sleep(1);
   EXPECT_EQ(model.ModelRunStop(), SUCCESS);
   graph_options[STATIC_MEMORY_POLICY] = "";
   GetThreadLocalContext().SetGraphOption(graph_options);
@@ -4184,7 +4184,7 @@ TEST_F(UtestDavinciModel, RunWithTask_GertTensor) {
   op_desc->SetInputOffset(input_offset);
   model.InitOutputTensorInfo(op_desc);
   EXPECT_EQ(model.ModelRunStart(), SUCCESS);
-  sleep(5);
+  sleep(1);
   EXPECT_EQ(model.ModelRunStop(), SUCCESS);
   graph_options[STATIC_MEMORY_POLICY] = "";
   GetThreadLocalContext().SetGraphOption(graph_options);
@@ -4225,7 +4225,7 @@ TEST_F(UtestDavinciModel, run_with_task_UpdateForExecute_failed) {
   model.args_manager_.update_policies_to_model_data_[3] = nullptr;
   model.args_manager_.has_args_ =true;
   EXPECT_EQ(model.ModelRunStart(), SUCCESS);
-  sleep(5);
+  sleep(1);
   EXPECT_EQ(model.ModelRunStop(), SUCCESS);
   graph_options[STATIC_MEMORY_POLICY] = "";
   GetThreadLocalContext().SetGraphOption(graph_options);
@@ -4264,7 +4264,7 @@ TEST_F(UtestDavinciModel, run_with_task_MallocPhysicalMemory_fail) {
   mem_allocator->expandable_memory_allocator_.active_memory_allocator_.virtual_memory_size_ = 50;
   mem_allocator->expandable_memory_allocator_.active_memory_allocator_.vapa_check_failed_ = true;
   EXPECT_EQ(model.ModelRunStart(), SUCCESS);
-  sleep(5);
+  sleep(1);
   EXPECT_EQ(model.ModelRunStop(), SUCCESS);
   EXPECT_TRUE(listener->complete_flag_);
   mem_allocator->expandable_memory_allocator_.active_memory_allocator_.virtual_memory_addr_base_ =
@@ -4293,7 +4293,7 @@ TEST_F(UtestDavinciModel, run_with_task_handle_input_data_fail) {
   model.is_online_infer_dynamic_ = true;
   model.is_getnext_sink_dynamic_ = false;
   EXPECT_EQ(model.ModelRunStart(), SUCCESS);
-  sleep(5);
+  sleep(1);
   EXPECT_EQ(model.ModelRunStop(), SUCCESS);
 }
 
@@ -4384,7 +4384,7 @@ TEST_F(UtestDavinciModel, run_with_task_model_execute_fail) {
   model.task_list_.push_back(task_info);
   mmSetEnv("CONSTANT_FOLDING_PASS_8", "mock_fail", 1);
   EXPECT_EQ(model.ModelRunStart(), SUCCESS);
-  sleep(5);
+  sleep(1);
   EXPECT_EQ(model.ModelRunStop(), SUCCESS);
   unsetenv("CONSTANT_FOLDING_PASS_8");
 }
@@ -6230,7 +6230,7 @@ TEST_F(UtestDavinciModel, run_with_task_fail) {
   mmSetEnv(kEnvRecordPath, &record_path[0U], MMPA_MAX_PATH);
 
   EXPECT_EQ(model.ModelRunStart(), SUCCESS);
-  sleep(5);
+  sleep(1);
   model.ModelRunStop();
   EXPECT_EQ(unsetenv(kEnvRecordPath), SUCCESS);
 }
@@ -9713,7 +9713,6 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GeTensor_kernelbin_pciebar_OK) {
 }
 
 TEST_F(UtestDavinciModel, InputBatchCopyH2DWithMergeH2DEnabled) {
-  RTS_STUB_RETURN_VALUE(rtsMemcpyBatch, rtError_t, RT_ERROR_NONE);
   const uint64_t input_fusion_size = 25600U;
   const uint64_t start_logic_addr = 30902000U;  // random value for test
   std::map<std::string, std::string> options_map;
@@ -9805,7 +9804,7 @@ TEST_F(UtestDavinciModel, InputBatchCopyH2DWithMergeH2DEnabled) {
 }
 
 TEST_F(UtestDavinciModel, InputBatchCopyH2DWithMergeH2DEnabled2) {
-  RTS_STUB_RETURN_VALUE(rtsMemcpyBatch, rtError_t, RT_ERROR_NONE);
+  AclRuntimeStub::Install(nullptr);
   const uint64_t input_fusion_size = 25600U;
   const uint64_t start_logic_addr = 30902000U;  // random value for test
   std::map<std::string, std::string> options_map;
@@ -9889,7 +9888,7 @@ TEST_F(UtestDavinciModel, InputBatchCopyH2DWithMergeH2DEnabled2) {
   input_data.blobs.emplace_back(DataBuffer(input_buffer, input2_size, false));      // non-merge-copy, h2d, batch h2d
   // no need merge h2d copy, fusion input num: 1
   EXPECT_EQ(davinci_model.HandleInputData(input_data), SUCCESS);
-  EXPECT_EQ(RuntimeStub::GetInstance()->input_mem_copy_batch_count_, 3);
+  EXPECT_EQ(AclRuntimeStub::GetInstance()->input_mem_copy_batch_count_, 3);
 
   free(input_buffer);
   free(device_buffer);
@@ -9898,8 +9897,8 @@ TEST_F(UtestDavinciModel, InputBatchCopyH2DWithMergeH2DEnabled2) {
 }
 
 TEST_F(UtestDavinciModel, InputBatchCopyH2DWithMergeH2DDisabled) {
+  AclRuntimeStub::Install(nullptr);
   dlog_setlevel(0, 0, 0);
-  RTS_STUB_RETURN_VALUE(rtsMemcpyBatch, rtError_t, RT_ERROR_NONE);
   const uint64_t input_size = 25600U;
   const uint64_t start_logic_addr = 30902000U;  // random value for test
 
@@ -9983,7 +9982,7 @@ TEST_F(UtestDavinciModel, InputBatchCopyH2DWithMergeH2DDisabled) {
   input_data.blobs.emplace_back(DataBuffer(input_buffer, input2_size, false));
   // all CopyInputData -> rtsMemcpyBatch
   EXPECT_EQ(davinci_model.HandleInputData(input_data), SUCCESS);
-  EXPECT_EQ(RuntimeStub::GetInstance()->input_mem_copy_batch_count_, 2);
+  EXPECT_EQ(AclRuntimeStub::GetInstance()->input_mem_copy_batch_count_, 2);
 
   free(input_buffer);
   free(device_buffer);
@@ -9992,7 +9991,6 @@ TEST_F(UtestDavinciModel, InputBatchCopyH2DWithMergeH2DDisabled) {
 
 TEST_F(UtestDavinciModel, InputBatchCopyH2DWithDeviceIdIs1) {
   dlog_setlevel(0, 0, 0);
-  RTS_STUB_RETURN_VALUE(rtsMemcpyBatch, rtError_t, RT_ERROR_NONE);
   AclRuntimeStub::GetInstance()->SetDeviceId(1);
   SetMockRtGetDeviceWay(1);
 
@@ -10079,7 +10077,7 @@ TEST_F(UtestDavinciModel, InputBatchCopyH2DWithDeviceIdIs1) {
   input_data.blobs.emplace_back(DataBuffer(input_buffer, input2_size, false));
   // all CopyInputData -> rtsMemcpyBatch
   EXPECT_EQ(davinci_model.HandleInputData(input_data), SUCCESS);
-  EXPECT_EQ(RuntimeStub::GetInstance()->input_mem_copy_batch_count_, 2);
+  EXPECT_EQ(AclRuntimeStub::GetInstance()->input_mem_copy_batch_count_, 2);
 
   free(input_buffer);
   free(device_buffer);
@@ -10091,7 +10089,16 @@ TEST_F(UtestDavinciModel, InputBatchCopyH2DWithDeviceIdIs1) {
 }
 
 TEST_F(UtestDavinciModel, InputBatchCopyH2DButNotSupportedWithMergeH2DEnabled) {
-  RTS_STUB_RETURN_VALUE(rtsMemcpyBatch, rtError_t, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
+  class MockAclRuntime : public ge::AclRuntimeStub {
+   public:
+    aclError aclrtMemcpyBatch(void **dsts, size_t *destMax, void **srcs, size_t *sizes, size_t numBatches,
+                              aclrtMemcpyBatchAttr *attrs, size_t *attrsIndexex, size_t numAttrs, size_t *failIndex) {
+      return ACL_ERROR_RT_FEATURE_NOT_SUPPORT;
+    }
+  };
+  auto mock_runtime = std::make_shared<MockAclRuntime>();
+  ge::AclRuntimeStub::SetInstance(mock_runtime);
+
   const uint64_t input_fusion_size = 25600U;
   const uint64_t start_logic_addr = 30902000U;  // random value for test
   std::map<std::string, std::string> options_map;
@@ -10181,7 +10188,16 @@ TEST_F(UtestDavinciModel, InputBatchCopyH2DButNotSupportedWithMergeH2DEnabled) {
 }
 
 TEST_F(UtestDavinciModel, InputBatchCopyH2DButNotSupportedWithMergeH2DDisabled) {
-  RTS_STUB_RETURN_VALUE(rtsMemcpyBatch, rtError_t, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
+  class MockAclRuntime : public ge::AclRuntimeStub {
+   public:
+    aclError aclrtMemcpyBatch(void **dsts, size_t *destMax, void **srcs, size_t *sizes, size_t numBatches,
+                              aclrtMemcpyBatchAttr *attrs, size_t *attrsIndexex, size_t numAttrs, size_t *failIndex) {
+      return ACL_ERROR_RT_FEATURE_NOT_SUPPORT;
+    }
+  };
+  auto mock_runtime = std::make_shared<MockAclRuntime>();
+  ge::AclRuntimeStub::SetInstance(mock_runtime);
+
   const uint64_t input_size = 25600U;
   const uint64_t start_logic_addr = 30902000U;  // random value for test
 
@@ -10273,7 +10289,16 @@ TEST_F(UtestDavinciModel, InputBatchCopyH2DButNotSupportedWithMergeH2DDisabled) 
 
 
 TEST_F(UtestDavinciModel, InputBatchCopyH2DFailedWithMergeH2DEnabled) {
-  RTS_STUB_RETURN_VALUE(rtsMemcpyBatch, rtError_t, ACL_ERROR_RT_PARAM_INVALID);
+  class MockAclRuntime : public ge::AclRuntimeStub {
+   public:
+    aclError aclrtMemcpyBatch(void **dsts, size_t *destMax, void **srcs, size_t *sizes, size_t numBatches,
+                              aclrtMemcpyBatchAttr *attrs, size_t *attrsIndexex, size_t numAttrs, size_t *failIndex) {
+      return ACL_ERROR_RT_PARAM_INVALID;
+    }
+  };
+  auto mock_runtime = std::make_shared<MockAclRuntime>();
+  ge::AclRuntimeStub::SetInstance(mock_runtime);
+
   const uint64_t input_fusion_size = 25600U;
   const uint64_t start_logic_addr = 30902000U;  // random value for test
   std::map<std::string, std::string> options_map;
@@ -10362,7 +10387,16 @@ TEST_F(UtestDavinciModel, InputBatchCopyH2DFailedWithMergeH2DEnabled) {
 }
 
 TEST_F(UtestDavinciModel, InputBatchCopyH2DFailedWithMergeH2DDisabled) {
-  RTS_STUB_RETURN_VALUE(rtsMemcpyBatch, rtError_t, ACL_ERROR_RT_PARAM_INVALID);
+  class MockAclRuntime : public ge::AclRuntimeStub {
+   public:
+    aclError aclrtMemcpyBatch(void **dsts, size_t *destMax, void **srcs, size_t *sizes, size_t numBatches,
+                              aclrtMemcpyBatchAttr *attrs, size_t *attrsIndexex, size_t numAttrs, size_t *failIndex) {
+      return ACL_ERROR_RT_PARAM_INVALID;
+    }
+  };
+  auto mock_runtime = std::make_shared<MockAclRuntime>();
+  ge::AclRuntimeStub::SetInstance(mock_runtime);
+
   const uint64_t input_size = 25600U;
   const uint64_t start_logic_addr = 30902000U;  // random value for test
 
@@ -10453,7 +10487,16 @@ TEST_F(UtestDavinciModel, InputBatchCopyH2DFailedWithMergeH2DDisabled) {
 }
 
 TEST_F(UtestDavinciModel, InputBatchCopyH2DEnbledButOneInputWithMergeH2DEnabled) {
-  RTS_STUB_RETURN_VALUE(rtsMemcpyBatch, rtError_t, ACL_ERROR_RT_PARAM_INVALID);
+  class MockAclRuntime : public ge::AclRuntimeStub {
+   public:
+    aclError aclrtMemcpyBatch(void **dsts, size_t *destMax, void **srcs, size_t *sizes, size_t numBatches,
+                              aclrtMemcpyBatchAttr *attrs, size_t *attrsIndexex, size_t numAttrs, size_t *failIndex) {
+      return ACL_ERROR_RT_PARAM_INVALID;
+    }
+  };
+  auto mock_runtime = std::make_shared<MockAclRuntime>();
+  ge::AclRuntimeStub::SetInstance(mock_runtime);
+
   const uint64_t input_size = 25600U;
   const uint64_t start_logic_addr = 30902000U;  // random value for test
 
@@ -10518,7 +10561,16 @@ TEST_F(UtestDavinciModel, InputBatchCopyH2DEnbledButOneInputWithMergeH2DEnabled)
 }
 
 TEST_F(UtestDavinciModel, InputBatchCopyH2DEnbledButOneInputWithMergeH2DDisabled) {
-  RTS_STUB_RETURN_VALUE(rtsMemcpyBatch, rtError_t, ACL_ERROR_RT_PARAM_INVALID);
+  class MockAclRuntime : public ge::AclRuntimeStub {
+   public:
+    aclError aclrtMemcpyBatch(void **dsts, size_t *destMax, void **srcs, size_t *sizes, size_t numBatches,
+                              aclrtMemcpyBatchAttr *attrs, size_t *attrsIndexex, size_t numAttrs, size_t *failIndex) {
+      return ACL_ERROR_RT_PARAM_INVALID;
+    }
+  };
+  auto mock_runtime = std::make_shared<MockAclRuntime>();
+  ge::AclRuntimeStub::SetInstance(mock_runtime);
+
   const uint64_t input_size = 25600U;
   const uint64_t start_logic_addr = 30902000U;  // random value for test
 
@@ -10588,10 +10640,13 @@ TEST_F(UtestDavinciModel, InputBatchCopyFallbackFailedWithMergeH2DDisabled) {
     aclError aclrtMemcpy(void *dst, size_t dest_max, const void *src, size_t count, aclrtMemcpyKind kind) {
       return -1;
     }
+    aclError aclrtMemcpyBatch(void **dsts, size_t *destMax, void **srcs, size_t *sizes, size_t numBatches,
+                              aclrtMemcpyBatchAttr *attrs, size_t *attrsIndexex, size_t numAttrs, size_t *failIndex) {
+      return ACL_ERROR_RT_FEATURE_NOT_SUPPORT;
+    }
   };
   auto mock_runtime = std::make_shared<MockAclRuntime>();
   ge::AclRuntimeStub::SetInstance(mock_runtime);
-  RTS_STUB_RETURN_VALUE(rtsMemcpyBatch, rtError_t, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
   const uint64_t input_size = 25600U;
   const uint64_t start_logic_addr = 30902000U;  // random value for test
 

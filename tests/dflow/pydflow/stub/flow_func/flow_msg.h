@@ -18,8 +18,10 @@
 
 namespace FlowFunc {
 enum class MsgType : uint16_t {
-  MSG_TYPE_TENSOR_DATA = 0,  // tensor data msg type
-  MSG_TYPE_RAW_MSG           // raw data msg type
+  MSG_TYPE_TENSOR_DATA = 0,   // tensor data msg type
+  MSG_TYPE_RAW_MSG = 1,       // raw data msg type
+  MSG_TYPE_TENSOR_LIST = 2,   // raw data msg type
+  MSG_TYPE_USER_DEFINE_START = 1024
 };
 
 enum class FlowFlag : uint32_t {

@@ -41,6 +41,55 @@ std::string ToString(const std::vector<T>& vec) {
   ss << "]";
   return ss.str();
 }
+
+void BuildInputTensorInfos(const Om2TaskInfo& task_info, std::vector<Adx::TensorInfoV2>& tensor_infos) {
+  for (uint32_t i = 0; i < task_info.input_num; ++i) {
+    if (task_info.inputs != nullptr && task_info.inputs[i].tensor != nullptr) {
+      Adx::TensorInfoV2 tensor_info{};
+      tensor_info.tensorSize = task_info.inputs[i].tensor->size;
+      tensor_info.dataType = static_cast<ge::DataType>(task_info.inputs[i].tensor->data_type);
+      tensor_info.format = static_cast<ge::Format>(task_info.inputs[i].tensor->format);
+      tensor_info.placement = gert::TensorPlacement::kOnDeviceHbm;
+      tensor_info.type = Adx::TensorType::INPUT;
+      tensor_info.argsOffSet = task_info.inputs[i].offset;
+      tensor_info.tensorAddr = reinterpret_cast<int64_t*>(static_cast<uintptr_t>(task_info.inputs[i].tensor->device_address));
+      tensor_infos.push_back(tensor_info);
+    }
+  }
+}
+
+void BuildOutputTensorInfos(const Om2TaskInfo& task_info, std::vector<Adx::TensorInfoV2>& tensor_infos) {
+  for (uint32_t i = 0; i < task_info.output_num; ++i) {
+    if (task_info.outputs != nullptr && task_info.outputs[i].tensor != nullptr) {
+      Adx::TensorInfoV2 tensor_info{};
+      tensor_info.tensorSize = task_info.outputs[i].tensor->size;
+      tensor_info.dataType = static_cast<ge::DataType>(task_info.outputs[i].tensor->data_type);
+      tensor_info.format = static_cast<ge::Format>(task_info.outputs[i].tensor->format);
+      tensor_info.placement = gert::TensorPlacement::kOnDeviceHbm;
+      tensor_info.type = Adx::TensorType::OUTPUT;
+      tensor_info.argsOffSet = task_info.outputs[i].offset;
+      tensor_info.tensorAddr = reinterpret_cast<int64_t*>(static_cast<uintptr_t>(task_info.outputs[i].tensor->device_address));
+      tensor_infos.push_back(tensor_info);
+    }
+  }
+}
+
+void BuildWorkspaceTensorInfos(const Om2TaskInfo& task_info, std::vector<Adx::TensorInfoV2>& tensor_infos) {
+  for (uint32_t i = 0; i < task_info.workspace_num; ++i) {
+    if (task_info.workspace_sizes != nullptr) {
+      Adx::TensorInfoV2 tensor_info{};
+      tensor_info.tensorSize = task_info.workspace_sizes[i];
+      tensor_info.dataType = DT_UINT8;
+      tensor_info.format = FORMAT_ND;
+      tensor_info.placement = gert::TensorPlacement::kOnDeviceHbm;
+      tensor_info.type = Adx::TensorType::WORKSPACE;
+      if (task_info.workspace_addrs != nullptr) {
+        tensor_info.tensorAddr = reinterpret_cast<int64_t*>(static_cast<uintptr_t>(task_info.workspace_addrs[i]));
+      }
+      tensor_infos.push_back(tensor_info);
+    }
+  }
+}
 }  // namespace
 
 ExceptionDumpImpl::ExceptionDumpImpl(uint32_t device_id) : device_id_(device_id) {
@@ -152,7 +201,6 @@ bool ExceptionDumpImpl::GetOpDescInfo(const OpDescInfoId& op_id, OpDescInfo& op_
          op_id.device_id);
 
   for (const auto& dump_op_info : op_info_list_) {
-
     // 打印每个条件的匹配结果
     const bool match_task_id = (dump_op_info.id.task_id == op_id.task_id) || (op_id.task_id == UINT32_MAX);
     const bool match_stream_id = (dump_op_info.id.stream_id == op_id.stream_id) || (op_id.stream_id == UINT32_MAX);
@@ -175,7 +223,7 @@ bool ExceptionDumpImpl::GetOpDescInfo(const OpDescInfoId& op_id, OpDescInfo& op_
   return false;
 }
 
-Status ExceptionDumpImpl::ReportL1ExceptionDumpInfo(const Om2TaskInfo& task_info, const OpDescInfo& op_info) {
+Status ExceptionDumpImpl::ReportL1ExceptionDumpInfo(const Om2TaskInfo& task_info, const OpDescInfo& op_info) const {
   const char* op_name = (task_info.op_name != nullptr) ? task_info.op_name : "";
   const char* op_type = (task_info.op_type != nullptr) ? task_info.op_type : "";
   GELOGD("ReportL1ExceptionDumpInfo: op_name=%s, task_id=%u", op_name, task_info.task_id);
@@ -184,67 +232,32 @@ Status ExceptionDumpImpl::ReportL1ExceptionDumpInfo(const Om2TaskInfo& task_info
   std::vector<Adx::TensorInfoV2> input_tensor_infos;
   std::vector<Adx::TensorInfoV2> output_tensor_infos;
   std::vector<Adx::TensorInfoV2> workspace_tensor_infos;
+  BuildInputTensorInfos(task_info, input_tensor_infos);
+  BuildOutputTensorInfos(task_info, output_tensor_infos);
+  BuildWorkspaceTensorInfos(task_info, workspace_tensor_infos);
 
-  // 输入 Tensor：使用 Om2TaskInfo 传入的实际值
-  for (uint32_t i = 0; i < task_info.input_num && i < op_info.input_size.size(); ++i) {
-    if (task_info.inputs != nullptr && task_info.inputs[i].tensor != nullptr) {
-      Adx::TensorInfoV2 tensor_info{};
-      tensor_info.tensorSize = task_info.inputs[i].tensor->size;
-      tensor_info.dataType = static_cast<ge::DataType>(task_info.inputs[i].tensor->data_type);
-      tensor_info.format = static_cast<ge::Format>(task_info.inputs[i].tensor->format);
-      tensor_info.placement = gert::TensorPlacement::kOnDeviceHbm;
-      tensor_info.type = Adx::TensorType::INPUT;
-      tensor_info.argsOffSet = task_info.inputs[i].offset;
-      // device_address 是 uint64_t，需要转换为 int64_t*
-      tensor_info.tensorAddr = reinterpret_cast<int64_t*>(static_cast<uintptr_t>(task_info.inputs[i].tensor->device_address));
-      input_tensor_infos.push_back(tensor_info);
-    }
-  }
-
-  // 输出 Tensor：使用 Om2TaskInfo 传入的实际值
-  for (uint32_t i = 0; i < task_info.output_num && i < op_info.output_size.size(); ++i) {
-    if (task_info.outputs != nullptr && task_info.outputs[i].tensor != nullptr) {
-      Adx::TensorInfoV2 tensor_info{};
-      tensor_info.tensorSize = task_info.outputs[i].tensor->size;
-      tensor_info.dataType = static_cast<ge::DataType>(task_info.outputs[i].tensor->data_type);
-      tensor_info.format = static_cast<ge::Format>(task_info.outputs[i].tensor->format);
-      tensor_info.placement = gert::TensorPlacement::kOnDeviceHbm;
-      tensor_info.type = Adx::TensorType::OUTPUT;
-      tensor_info.argsOffSet = task_info.outputs[i].offset;
-      // device_address 是 uint64_t，需要转换为 int64_t*
-      tensor_info.tensorAddr = reinterpret_cast<int64_t*>(static_cast<uintptr_t>(task_info.outputs[i].tensor->device_address));
-      output_tensor_infos.push_back(tensor_info);
-    }
-  }
-
-  // Workspace
-  for (uint32_t i = 0; i < task_info.workspace_num; ++i) {
-    if (task_info.workspace_sizes != nullptr) {
-      Adx::TensorInfoV2 tensor_info{};
-      tensor_info.tensorSize = task_info.workspace_sizes[i];
-      tensor_info.dataType = DT_UINT8;
-      tensor_info.format = FORMAT_ND;
-      tensor_info.placement = gert::TensorPlacement::kOnDeviceHbm;
-      tensor_info.type = Adx::TensorType::WORKSPACE;
-      if (task_info.workspace_addrs != nullptr) {
-        // workspace_addrs 是 uint64_t，需要转换为 int64_t*
-        tensor_info.tensorAddr = reinterpret_cast<int64_t*>(static_cast<uintptr_t>(task_info.workspace_addrs[i]));
-      }
-      workspace_tensor_infos.push_back(tensor_info);
-    }
-  }
-
-  // 2. 构建 AdumpOpInfoBuilder
+  // 2. 构建并上报
   const bool is_dynamic = false;  // Om2 是静态图
   AdumpOpInfoBuilder builder(op_name, op_type, is_dynamic);
+  FillAdumpOpInfoBuilder(op_info, input_tensor_infos, output_tensor_infos, workspace_tensor_infos, builder);
+
+  // 3. 上报给 Adump
+  return SubmitToAdump(op_name, task_info, op_info, input_tensor_infos, output_tensor_infos, workspace_tensor_infos, builder);
+}
+
+void ExceptionDumpImpl::FillAdumpOpInfoBuilder(const OpDescInfo& op_info,
+                                               std::vector<Adx::TensorInfoV2>& input_infos,
+                                               std::vector<Adx::TensorInfoV2>& output_infos,
+                                               std::vector<Adx::TensorInfoV2>& workspace_infos,
+                                               AdumpOpInfoBuilder& builder) const {
   // 对齐 V1 行为：context_id 和 thread_id 传 UINT32_MAX（V1 fallback 逻辑实际未生效）
-  builder.Task(device_id_, task_info.stream_id, task_info.task_id, UINT32_MAX)
-    .AdditionInfo(Adx::DUMP_ADDITIONAL_BLOCK_DIM, "1")  // 默认 block_dim=1
-    .AdditionInfo(Adx::DUMP_ADDITIONAL_TILING_KEY, "0")  // 默认 tiling_key=0
-    .AdditionInfo(Adx::DUMP_ADDITIONAL_TILING_DATA, "")   // 无 tiling_data
-    .AdditionInfo(Adx::DUMP_ADDITIONAL_IMPLY_TYPE, "0")   // 默认 imply_type=0
-    .AdditionInfo(Adx::DUMP_ADDITIONAL_ALL_ATTRS, "")      // 无属性
-    .AdditionInfo(Adx::DUMP_ADDITIONAL_IS_HOST_ARGS, "false")  // args 在 device 侧
+  builder.Task(device_id_, op_info.id.stream_id, op_info.id.task_id, UINT32_MAX)
+    .AdditionInfo(Adx::DUMP_ADDITIONAL_BLOCK_DIM, "1")
+    .AdditionInfo(Adx::DUMP_ADDITIONAL_TILING_KEY, "0")
+    .AdditionInfo(Adx::DUMP_ADDITIONAL_TILING_DATA, "")
+    .AdditionInfo(Adx::DUMP_ADDITIONAL_IMPLY_TYPE, "0")
+    .AdditionInfo(Adx::DUMP_ADDITIONAL_ALL_ATTRS, "")
+    .AdditionInfo(Adx::DUMP_ADDITIONAL_IS_HOST_ARGS, "false")
     .AdditionInfo(Adx::DUMP_ADDITIONAL_NODE_INFO, "")
     .AdditionInfo(Adx::DUMP_ADDITIONAL_DEV_FUNC, "")
     .AdditionInfo(Adx::DUMP_ADDITIONAL_TVM_MAGIC, "")
@@ -252,12 +265,17 @@ Status ExceptionDumpImpl::ReportL1ExceptionDumpInfo(const Om2TaskInfo& task_info
     .AdditionInfo(Adx::DUMP_ADDITIONAL_KERNEL_INFO, "kernel_0")
     .AdditionInfo(Adx::DUMP_ADDITIONAL_WORKSPACE_BYTES, ToString(op_info.workspace_bytes).c_str())
     .AdditionInfo(Adx::DUMP_ADDITIONAL_WORKSPACE_ADDRS, ToString(op_info.space_addrs).c_str())
-    .TersorInfo(input_tensor_infos)
-    .TersorInfo(output_tensor_infos)
-    .TersorInfo(workspace_tensor_infos)
+    .TersorInfo(input_infos)
+    .TersorInfo(output_infos)
+    .TersorInfo(workspace_infos)
     .DeviceInfo(Adx::DEVICE_INFO_NAME_ARGS, reinterpret_cast<void*>(op_info.args), op_info.args_size);
+}
 
-  // 3. 上报给 Adump
+Status ExceptionDumpImpl::SubmitToAdump(const char* op_name, const Om2TaskInfo& task_info, const OpDescInfo& op_info,
+                                       std::vector<Adx::TensorInfoV2>& input_infos,
+                                       std::vector<Adx::TensorInfoV2>& output_infos,
+                                       std::vector<Adx::TensorInfoV2>& workspace_infos,
+                                       const AdumpOpInfoBuilder& builder) const {
   const Adx::OperatorInfoV2& info = builder.Build();
   // 对齐 V1 行为：日志打印 UINT32_MAX，与传给 Adump 的值保持一致
   GELOGI("[ReportL1ExceptionDumpInfo] op[%s] dev_id: %u, stream_id: %u, task_id: %u, "
@@ -266,7 +284,7 @@ Status ExceptionDumpImpl::ReportL1ExceptionDumpInfo(const Om2TaskInfo& task_info
          "total tensor num: %zu.",
          op_name, device_id_, task_info.stream_id, task_info.task_id,
          UINT32_MAX, UINT32_MAX, op_info.args, op_info.args_size,
-         input_tensor_infos.size(), output_tensor_infos.size(), workspace_tensor_infos.size(),
+         input_infos.size(), output_infos.size(), workspace_infos.size(),
          info.tensorInfos.size());
 
   const int32_t adx_ret = Adx::AdumpAddExceptionOperatorInfoV2(info);
@@ -276,7 +294,6 @@ Status ExceptionDumpImpl::ReportL1ExceptionDumpInfo(const Om2TaskInfo& task_info
            task_info.stream_id, task_info.task_id);
     return FAILED;
   }
-
   return SUCCESS;
 }
 

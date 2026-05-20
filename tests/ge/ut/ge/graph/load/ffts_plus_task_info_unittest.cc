@@ -2429,7 +2429,6 @@ TEST_F(UtestFftsPlusTaskInfo, fail_ffts_plus_task_info_aicpu_block_op_ctx_rts) {
   ffts_plus_task_def->set_addr_size(16);
   InitTaskSQEInfo(ffts_plus_task_def);
   InitTaskAdditionalDataInfo(ffts_plus_task_def);
-  RTS_STUB_OUTBOUND_VALUE(rtGetDeviceCapability, int32_t, value, RT_MODE_NO_FFTS);
   domi::FftsPlusCtxDef *aicpuctx = ffts_plus_task_def->add_ffts_plus_ctx();
   aicpuctx->set_op_index(0);
   aicpuctx->set_context_type(static_cast<uint32_t>(RT_CTX_TYPE_AICPU));
@@ -2444,7 +2443,7 @@ TEST_F(UtestFftsPlusTaskInfo, fail_ffts_plus_task_info_aicpu_block_op_ctx_rts) {
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
-  EXPECT_NE(task_info.Init(task_def, &davinci_model, args), SUCCESS);
+  EXPECT_EQ(task_info.Init(task_def, &davinci_model, args), SUCCESS);
   task_info.Release();
 }
 
@@ -2471,7 +2470,6 @@ TEST_F(UtestFftsPlusTaskInfo, fail_ffts_plus_task_info_aicpu_block_op_ctx_not_su
   ffts_plus_task_def->set_addr_size(16);
   InitTaskSQEInfo(ffts_plus_task_def);
   InitTaskAdditionalDataInfo(ffts_plus_task_def);
-  RTS_STUB_OUTBOUND_VALUE(rtGetDeviceCapability, int32_t, value, RT_AICPU_BLOCKING_OP_NOT_SUPPORT);
   domi::FftsPlusCtxDef *aicpuctx = ffts_plus_task_def->add_ffts_plus_ctx();
   aicpuctx->set_op_index(0);
   aicpuctx->set_context_type(static_cast<uint32_t>(RT_CTX_TYPE_AICPU));

@@ -1396,8 +1396,6 @@ TEST_F(UtestHybridRt2Executor, ExecuteWithStreamAsync_execute_model_online_dynam
 }
 
 TEST_F(UtestHybridRt2Executor, TfExecuteDynamicShapeWithBatchH2dDeviceId0) {
-  RTS_STUB_RETURN_VALUE(rtsMemcpyBatch, rtError_t, RT_ERROR_NONE);
-
   auto graph = ShareGraph::AicoreGraph();
   graph->TopologicalSorting();
   ge::AttrUtils::SetBool(graph, "need_set_stream_core_limits", true);
@@ -1440,7 +1438,7 @@ TEST_F(UtestHybridRt2Executor, TfExecuteDynamicShapeWithBatchH2dDeviceId0) {
   ret = executor_rt_v2.Execute(inputs, outputs, ctrl_args);
   EXPECT_EQ(ret, SUCCESS);
 
-  EXPECT_EQ(RuntimeStub::GetInstance()->input_mem_copy_batch_count_, 2);
+  EXPECT_EQ(AclRuntimeStub::GetInstance()->input_mem_copy_batch_count_, 2);
   EXPECT_EQ(RuntimeStub::GetInstance()->batch_memcpy_device_id, 0);
 
   RuntimeStub::Reset();
@@ -1449,11 +1447,10 @@ TEST_F(UtestHybridRt2Executor, TfExecuteDynamicShapeWithBatchH2dDeviceId0) {
   ge::AttrUtils::SetBool(graph, "need_set_stream_core_limits", false);
 
   RuntimeStub::GetInstance()->cur_device_id = 0;
-  RuntimeStub::GetInstance()->batch_memcpy_device_id = 0;
+  AclRuntimeStub::GetInstance()->batch_memcpy_device_id = 0;
 }
 
 TEST_F(UtestHybridRt2Executor, TfExecuteDynamicShapeWithBatchH2dDeviceId1) {
-  RTS_STUB_RETURN_VALUE(rtsMemcpyBatch, rtError_t, RT_ERROR_NONE);
   int32_t cur_rtGetDevice_is_mock_new_way = GetMockRtGetDeviceWay();
   SetMockRtGetDeviceWay(1);
 
@@ -1500,7 +1497,7 @@ TEST_F(UtestHybridRt2Executor, TfExecuteDynamicShapeWithBatchH2dDeviceId1) {
   ret = executor_rt_v2.Execute(inputs, outputs, ctrl_args);
   EXPECT_EQ(ret, SUCCESS);
 
-  EXPECT_EQ(RuntimeStub::GetInstance()->input_mem_copy_batch_count_, 2);
+  EXPECT_EQ(AclRuntimeStub::GetInstance()->input_mem_copy_batch_count_, 2);
 
   RuntimeStub::Reset();
   // ge::AttrUtils::SetBool(graph, "need_set_stream_core_limits", false);
@@ -1508,7 +1505,7 @@ TEST_F(UtestHybridRt2Executor, TfExecuteDynamicShapeWithBatchH2dDeviceId1) {
   std::map<std::string, std::string> options_empty;
   ge::GetThreadLocalContext().SetSessionOption(options_empty);
   RuntimeStub::GetInstance()->cur_device_id = 0;
-  RuntimeStub::GetInstance()->batch_memcpy_device_id = 0;
+  AclRuntimeStub::GetInstance()->batch_memcpy_device_id = 0;
   SetMockRtGetDeviceWay(cur_rtGetDevice_is_mock_new_way);
 }
 
@@ -1971,7 +1968,7 @@ TEST_F(UtestHybridRt2Executor, HandleResult_BatchH2d_RecycleWhenEOS) {
   auto gert_inputs = InputData2GertTensors(inputs);
   ret = executor_rt_v2.ExecuteOnlineModel(gert_inputs, nullptr);
   EXPECT_EQ(ret, SUCCESS);
-  EXPECT_EQ(RuntimeStub::GetInstance()->input_mem_copy_batch_count_, 2);
+  EXPECT_EQ(AclRuntimeStub::GetInstance()->input_mem_copy_batch_count_, 2);
   HybridModelExecutor::CtrlArgs args;
   args.stream = stream;
   args.is_eos = true;
@@ -1986,6 +1983,15 @@ TEST_F(UtestHybridRt2Executor, HandleResult_BatchH2d_RecycleWhenEOS) {
 }
 
 TEST_F(UtestHybridRt2Executor, HandleResult_BatchH2dButNotSupport_RecycleWhenEOS) {
+  class MockAclRuntime : public ge::AclRuntimeStub {
+   public:
+    aclError aclrtMemcpyBatch(void **dsts, size_t *destMax, void **srcs, size_t *sizes, size_t numBatches,
+                            aclrtMemcpyBatchAttr *attrs, size_t *attrsIndexex, size_t numAttrs, size_t *failIndex) {
+      return ACL_ERROR_RT_FEATURE_NOT_SUPPORT;
+    }
+  };
+  auto mock_runtime = std::make_shared<MockAclRuntime>();
+  ge::AclRuntimeStub::SetInstance(mock_runtime);
   auto graph = ShareGraph::AicoreGraph();
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
@@ -2031,7 +2037,7 @@ TEST_F(UtestHybridRt2Executor, HandleResult_BatchH2dButNotSupport_RecycleWhenEOS
 
   input_tensors.resize(2U, scalar_host_tensor);
   output_tensors[0].SetData(nullptr, 0U);
-  RTS_STUB_RETURN_VALUE(rtsMemcpyBatch, rtError_t, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
+
   auto gert_inputs = InputData2GertTensors(inputs);
   ret = executor_rt_v2.ExecuteOnlineModel(gert_inputs, nullptr);
   EXPECT_EQ(RuntimeStub::GetInstance()->input_mem_copy_batch_count_, 0);
@@ -2050,6 +2056,16 @@ TEST_F(UtestHybridRt2Executor, HandleResult_BatchH2dButNotSupport_RecycleWhenEOS
 }
 
 TEST_F(UtestHybridRt2Executor, HandleResult_BatchH2dButFailed_RecycleWhenEOS) {
+  class MockAclRuntime : public ge::AclRuntimeStub {
+   public:
+    aclError aclrtMemcpyBatch(void **dsts, size_t *destMax, void **srcs, size_t *sizes, size_t numBatches,
+                            aclrtMemcpyBatchAttr *attrs, size_t *attrsIndexex, size_t numAttrs, size_t *failIndex) {
+      return -1;
+    }
+  };
+  auto mock_runtime = std::make_shared<MockAclRuntime>();
+  ge::AclRuntimeStub::SetInstance(mock_runtime);
+
   auto graph = ShareGraph::AicoreGraph();
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
@@ -2095,7 +2111,6 @@ TEST_F(UtestHybridRt2Executor, HandleResult_BatchH2dButFailed_RecycleWhenEOS) {
 
   input_tensors.resize(2U, scalar_host_tensor);
   output_tensors[0].SetData(nullptr, 0U);
-  RTS_STUB_RETURN_VALUE(rtsMemcpyBatch, rtError_t, -1);
   auto gert_inputs = InputData2GertTensors(inputs);
   ret = executor_rt_v2.ExecuteOnlineModel(gert_inputs, nullptr);
   EXPECT_EQ(RuntimeStub::GetInstance()->input_mem_copy_batch_count_, 0);
@@ -2153,11 +2168,13 @@ TEST_F(UtestHybridRt2Executor, HandleResult_BatchH2dFallbackButFailed_RecycleWhe
 
   input_tensors.resize(2U, scalar_host_tensor);
   output_tensors[0].SetData(nullptr, 0U);
-  RTS_STUB_RETURN_VALUE(rtsMemcpyBatch, rtError_t, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
-  RTS_STUB_RETURN_VALUE(rtMemcpy, rtError_t, -1);
   class MockAclRuntime: public AclRuntimeStub {
     aclError aclrtMemcpy(void *dst, size_t dest_max, const void *src, size_t count, aclrtMemcpyKind kind) {
       return -1;
+    }
+    aclError aclrtMemcpyBatch(void **dsts, size_t *destMax, void **srcs, size_t *sizes, size_t numBatches,
+                              aclrtMemcpyBatchAttr *attrs, size_t *attrsIndexex, size_t numAttrs, size_t *failIndex) {
+      return ACL_ERROR_RT_FEATURE_NOT_SUPPORT;
     }
   };
   MockAclRuntime mock_acl_runtime;

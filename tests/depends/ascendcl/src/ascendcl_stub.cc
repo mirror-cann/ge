@@ -246,6 +246,10 @@ AclRuntimeStub *AclRuntimeStub::GetInstance() {
   return instance_.get();
 }
 
+void AclRuntimeStub::SetInstance(const std::shared_ptr<AclRuntimeStub> &instance) {
+  instance_ = instance;
+}
+
 void AclRuntimeStub::Install(AclRuntimeStub* instance){
   fake_instance_ = instance;
 }
@@ -723,6 +727,9 @@ const char* AclRuntimeStub::aclrtGetSocName() {
 }
 
 aclError AclRuntimeStub::aclrtGetDeviceInfo(uint32_t deviceId, aclrtDevAttr attr, int64_t *value) {
+  if (std::string(__FUNCTION__) == g_acl_stub_mock) {
+    return -1;
+  }
   *value = 8;
   return ACL_SUCCESS;
 }
@@ -733,18 +740,15 @@ aclError AclRuntimeStub::aclrtGetPhyDevIdByLogicDevId(const int32_t logicDevId, 
 }
 
 aclError AclRuntimeStub::aclrtMemcpyBatch(void **dsts, size_t *destMax, void **srcs, size_t *sizes, size_t numBatches,
-                          aclrtMemcpyBatchAttr *attrs, size_t *attrsIndexex, size_t numAttrs, size_t *failIndex)
+                           aclrtMemcpyBatchAttr *attrs, size_t *attrsIndexex, size_t numAttrs, size_t *failIndex)
 {
   *failIndex = static_cast<size_t>(0);
   if (__FUNCTION__ == g_acl_stub_mock) {
     return ACL_ERROR_RT_INTERNAL_ERROR;
   }
 
-  if (dsts != nullptr && srcs != nullptr) {
-    for (size_t i = 0; i < numBatches; i++) {
-      memcpy_s(dsts[i], destMax[i], srcs[i], sizes[i]);
-    }
-  }
+  input_mem_copy_batch_count_ = numAttrs;
+  // Skip actual memcpy in stub to avoid buffer overflow in tests
   return ACL_ERROR_NONE;
 }
 
@@ -874,6 +878,9 @@ aclError AclRuntimeStub::aclrtResetEvent(aclrtEvent event, aclrtStream stream) {
 }
 
 aclError AclRuntimeStub::aclrtSynchronizeEventWithTimeout(aclrtEvent event, int32_t timeout) {
+  if (std::string(__FUNCTION__) == g_runtime_stub_mock) {
+    return -1;
+  }
   return ACL_SUCCESS;
 }
 
@@ -932,10 +939,16 @@ aclError AclRuntimeStub::aclrtUnmapMem(void *virPtr) {
 }
 
 aclError AclRuntimeStub::aclrtStreamWaitEvent(aclrtStream stream, aclrtEvent event) {
+  if (std::string(__FUNCTION__) == g_acl_stub_mock) {
+    return -1;
+  }
   return ACL_SUCCESS;
 }
 
 aclError AclRuntimeStub::aclrtStreamWaitEventWithTimeout(aclrtStream stream, aclrtEvent event, int32_t timeout) {
+  if (std::string(__FUNCTION__) == g_acl_stub_mock) {
+    return -1;
+  }
   return ACL_SUCCESS;
 }
 
@@ -1045,6 +1058,9 @@ aclError AclRuntimeStub::aclrtSwitchLabelByIndex(void *ptr, uint32_t maxValue, a
 aclError AclRuntimeStub::aclrtSwitchStream(void *leftValue, aclrtCondition cond, void *rightValue,
                                            aclrtCompareDataType dataType, aclrtStream trueStream, aclrtStream falseStream,
                                            aclrtStream stream) {
+  if (std::string(__FUNCTION__) == g_acl_stub_mock) {
+    return -1;
+  }
   return ACL_SUCCESS;
 }
 

@@ -23,6 +23,22 @@
 
 namespace gert {
 namespace {
+bool NeedCustomOpInferShape(const ge::NodePtr &node) {
+  GE_ASSERT_NOTNULL(node);
+  const auto op_desc = node->GetOpDesc();
+  GE_ASSERT_NOTNULL(op_desc);
+  auto custom_op = ge::CustomOpFactory::CreateOrGetCustomOp(node->GetTypePtr());
+  auto shape_infer_op = dynamic_cast<ge::ShapeInferOp *>(custom_op);
+  if (shape_infer_op != nullptr) {
+    return true;
+  }
+  const std::string infer_rule = ge::InferenceRule::GetInferenceRule(op_desc);
+  if (!infer_rule.empty()) {
+    return true;
+  }
+  return false;
+}
+
 bg::ValueHolderPtr FindCustomExecutorFunc(const ge::NodePtr &node, const LowerInput &lower_input) {
   auto builder = [&node]() -> std::vector<bg::ValueHolderPtr> {
     return bg::FrameSelector::OnInitRoot([&]() -> std::vector<bg::ValueHolderPtr> {
@@ -82,10 +98,9 @@ LowerResult LoweringCustomNode(const ge::NodePtr &node, const LowerInput &lower_
   // Check inference_rule
   const auto op_desc = node->GetOpDesc();
   LOWER_REQUIRE_NOTNULL(op_desc);
-  const std::string infer_rule = ge::InferenceRule::GetInferenceRule(op_desc);
   std::string kernel_type = "ExecuteCustomOp";
   std::vector<bg::ValueHolderPtr> infer_output_shapes;
-  if (!infer_rule.empty()) {
+  if (NeedCustomOpInferShape(node)) {
     kernel_type = "ExecuteCustomOpWithInferShape";
     infer_output_shapes = bg::InferCustomOpShape(node, lower_input.input_shapes, *lower_input.global_data);
     input_holders.insert(input_holders.end(), infer_output_shapes.begin(), infer_output_shapes.end());

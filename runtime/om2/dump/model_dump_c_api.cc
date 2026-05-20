@@ -19,7 +19,6 @@ constexpr int32_t SUCCESS = 0;
 
 // 对外暴露的 C API 函数，需要 extern "C" 确保 C 链接
 extern "C" {
-
 int32_t OM2_C_API_EXPORT ReportTaskInfo(uint32_t model_id,
                                       void* instance_handle,
                                       const struct Om2TaskInfo* task_info,

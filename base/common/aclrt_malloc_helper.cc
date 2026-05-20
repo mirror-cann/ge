@@ -35,7 +35,8 @@ struct MemTypeInfo {
 
 // Validate input parameters for shared memory allocation.
 // Returns true if the function should return early (either with error or success).
-bool ShouldEarlyExit(const char *name, uint64_t size, int32_t *fd, void **host_ptr, void **dev_ptr, aclError *err) {
+bool ShouldEarlyExit(const char *name, uint64_t size, const int32_t *fd, void **host_ptr, void **dev_ptr,
+                     aclError *err) {
   if ((name == nullptr) || (fd == nullptr) || (host_ptr == nullptr) || (dev_ptr == nullptr)) {
     GELOGE(FAILED, "[Call][AclrtMallocHostSharedMemory] invalid param, name: %p, fd: %p, host_ptr: %p, dev_ptr: %p",
            static_cast<const void *>(name), static_cast<const void *>(fd),
@@ -53,7 +54,8 @@ bool ShouldEarlyExit(const char *name, uint64_t size, int32_t *fd, void **host_p
 
 // Open or create shared memory file, set its size, and mmap it.
 aclError PrepareShmFd(const char *name, uint64_t size, int32_t *fd, void **host_ptr) {
-  *fd = shm_open(name, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+  *fd = shm_open(name, static_cast<uint16_t>(O_RDWR) | static_cast<uint16_t>(O_CREAT),
+                 static_cast<uint16_t>(S_IRUSR) | static_cast<uint16_t>(S_IWUSR));
   if (*fd < 0) {
     GELOGE(FAILED, "[Call][shm_open] failed, name: %s, errno: %d", name, errno);
     return ACL_ERROR_FAILURE;
@@ -74,8 +76,11 @@ aclError PrepareShmFd(const char *name, uint64_t size, int32_t *fd, void **host_
     GELOGE(FAILED, "[Call][AclrtMallocHostSharedMemory] size mismatch, name: %s, existing: %ld, requested: %lu",
            name, st.st_size, size);
     return ACL_ERROR_FAILURE;
+  } else {
+    // do nothing
   }
-  *host_ptr = mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_SHARED, *fd, 0);
+  *host_ptr = mmap(nullptr, size, static_cast<uint16_t>(PROT_READ) | static_cast<uint16_t>(PROT_WRITE),
+                   MAP_SHARED, *fd, 0);
   if (*host_ptr == MAP_FAILED) {
     GELOGE(FAILED, "[Call][mmap] failed, name: %s, size: %lu, errno: %d", name, size, errno);
     return ACL_ERROR_FAILURE;
@@ -94,7 +99,7 @@ aclError HandleDevice(void **ptr, size_t size, uint16_t module_id, aclrtMemMallo
   attr.value.moduleId = module_id;
   aclrtMallocConfig cfg;
   cfg.attrs = &attr;
-  cfg.numAttrs = 1;
+  cfg.numAttrs = 1UL;
   const aclError ret = aclrtMallocWithCfg(ptr, size, policy, &cfg);
   if (ret != ACL_SUCCESS) {
     *ptr = nullptr;
@@ -129,7 +134,7 @@ void AdviseAndTouchHugePages(void *ptr, uint64_t size) {
   // Touch every page's first 8 bytes to force immediate physical page allocation.
   constexpr uint64_t kPageSize = 4096U;
   for (uint64_t offset = 0; offset < size; offset += kPageSize) {
-    *reinterpret_cast<volatile uint64_t *>(static_cast<uint8_t *>(ptr) + offset) = 0ULL;
+    *reinterpret_cast<uint64_t *>(static_cast<uint8_t *>(ptr) + offset) = 0ULL;
   }
 }
 
@@ -140,7 +145,7 @@ aclError AclrtMallocHost(void **ptr, size_t size, uint16_t module_id) {
   attr.value.moduleId = module_id;
   aclrtMallocConfig cfg;
   cfg.attrs = &attr;
-  cfg.numAttrs = 1;
+  cfg.numAttrs = 1UL;
   const aclError ret = aclrtMallocHostWithCfg(ptr, size, &cfg);
   if (ret != ACL_SUCCESS) {
     *ptr = nullptr;
@@ -156,7 +161,7 @@ aclError AclrtMallocForTaskScheduler(void **ptr, size_t size, aclrtMemMallocPoli
   attr.value.moduleId = module_id;
   aclrtMallocConfig cfg;
   cfg.attrs = &attr;
-  cfg.numAttrs = 1;
+  cfg.numAttrs = 1UL;
   const aclError ret = aclrtMallocForTaskScheduler(ptr, size, policy, &cfg);
   if (ret != ACL_SUCCESS) {
     *ptr = nullptr;
@@ -174,18 +179,18 @@ aclError AclrtMallocHostSharedMemory(const char *name, uint64_t size, int32_t *f
   const aclError ret = PrepareShmFd(name, size, fd, host_ptr);
   if (ret != ACL_SUCCESS) {
     if (*fd >= 0) {
-      close(*fd);
-      shm_unlink(name);
+      (void)close(*fd);
+      (void)shm_unlink(name);
     }
     return ret;
   }
   const aclError register_ret = aclrtHostRegister(*host_ptr, size, ACL_HOST_REGISTER_MAPPED, dev_ptr);
   if (register_ret != ACL_SUCCESS) {
     GELOGE(FAILED, "[Call][aclrtHostRegister] failed, name: %s, size: %lu, ret: %d", name, size, register_ret);
-    munmap(*host_ptr, size);
-    close(*fd);
+    (void)munmap(*host_ptr, size);
+    (void)close(*fd);
     if (name != nullptr) {
-      shm_unlink(name);
+      (void)shm_unlink(name);
     }
     return register_ret;
   }
@@ -200,11 +205,11 @@ aclError AclrtFreeHostSharedMemory(const char *name, uint64_t size, int32_t fd, 
            (name != nullptr) ? name : "", ret);
     return ret;
   }
-  munmap(host_ptr, size);
+  (void)munmap(host_ptr, size);
   if (fd >= 0) {
-    close(fd);
+    (void)close(fd);
     if (name != nullptr) {
-      shm_unlink(name);
+      (void)shm_unlink(name);
     }
   }
   return ACL_SUCCESS;
@@ -216,21 +221,21 @@ aclError AclrtMalloc(void **ptr, size_t size, rtMemType_t mem_type, uint16_t mod
   // Map RT memory types to ACL allocation policy and handler.
   static const std::unordered_map<rtMemType_t, MemTypeInfo> kMemTypeMap = {
       // Task Scheduler memory: use dedicated API with high bandwidth policy.
-      {RT_MEMORY_TS, {ACL_MEM_MALLOC_HUGE_FIRST, HandleTs}},
+      {RT_MEMORY_TS, {ACL_MEM_MALLOC_HUGE_FIRST, &HandleTs}},
       // Host memory: use host allocation API.
-      {RT_MEMORY_HOST, {ACL_MEM_TYPE_HIGH_BAND_WIDTH, HandleHost}},
+      {RT_MEMORY_HOST, {ACL_MEM_TYPE_HIGH_BAND_WIDTH, &HandleHost}},
       // HBM and default device memory: high bandwidth.
-      {RT_MEMORY_HBM, {ACL_MEM_TYPE_HIGH_BAND_WIDTH, HandleDevice}},
-      {RT_MEMORY_DEFAULT, {ACL_MEM_TYPE_HIGH_BAND_WIDTH, HandleDevice}},
-      {RT_MEMORY_RDMA_HBM, {ACL_MEM_TYPE_HIGH_BAND_WIDTH, HandleDevice}},
-      {RT_MEMORY_SPM, {ACL_MEM_TYPE_HIGH_BAND_WIDTH, HandleDevice}},
+      {RT_MEMORY_HBM, {ACL_MEM_TYPE_HIGH_BAND_WIDTH, &HandleDevice}},
+      {RT_MEMORY_DEFAULT, {ACL_MEM_TYPE_HIGH_BAND_WIDTH, &HandleDevice}},
+      {RT_MEMORY_RDMA_HBM, {ACL_MEM_TYPE_HIGH_BAND_WIDTH, &HandleDevice}},
+      {RT_MEMORY_SPM, {ACL_MEM_TYPE_HIGH_BAND_WIDTH, &HandleDevice}},
       // P2P HBM memory: P2P policy with huge page first.
-      {RT_MEMORY_P2P_HBM, {ACL_MEM_MALLOC_HUGE_FIRST_P2P, HandleDevice}},
+      {RT_MEMORY_P2P_HBM, {ACL_MEM_MALLOC_HUGE_FIRST_P2P, &HandleDevice}},
       // DDR memory: low bandwidth.
-      {RT_MEMORY_DDR, {ACL_MEM_TYPE_LOW_BAND_WIDTH, HandleDevice}},
-      {RT_MEMORY_DDR_NC, {ACL_MEM_TYPE_LOW_BAND_WIDTH, HandleDevice}},
+      {RT_MEMORY_DDR, {ACL_MEM_TYPE_LOW_BAND_WIDTH, &HandleDevice}},
+      {RT_MEMORY_DDR_NC, {ACL_MEM_TYPE_LOW_BAND_WIDTH, &HandleDevice}},
       // P2P DDR memory: P2P policy with huge page first.
-      {RT_MEMORY_P2P_DDR, {ACL_MEM_MALLOC_HUGE_FIRST_P2P, HandleDevice}},
+      {RT_MEMORY_P2P_DDR, {ACL_MEM_MALLOC_HUGE_FIRST_P2P, &HandleDevice}},
   };
 
   auto it = kMemTypeMap.find(mem_type);

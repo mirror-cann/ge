@@ -154,7 +154,7 @@ Status DataDumpImpl::ExecuteLoadDumpInfo(const toolkit::aicpu::dump::OpMappingIn
 }
 
 void DataDumpImpl::BuildOpMappingBasicInfo(const ModelDumpInfo& model_info,
-                                            toolkit::aicpu::dump::OpMappingInfo& op_mapping_info) {
+                                            toolkit::aicpu::dump::OpMappingInfo& op_mapping_info) const {
   const char* model_name = (model_info.model_name != nullptr) ? model_info.model_name : "";
   op_mapping_info.set_dump_path(DumpConfig::Instance().GetDumpPath() +
                                 std::to_string(model_info.device_id) + "/");
@@ -183,7 +183,7 @@ void DataDumpImpl::BuildOpMappingBasicInfo(const ModelDumpInfo& model_info,
   }
 }
 
-Status DataDumpImpl::BuildTaskList(toolkit::aicpu::dump::OpMappingInfo& op_mapping_info) {
+Status DataDumpImpl::BuildTaskList(toolkit::aicpu::dump::OpMappingInfo& op_mapping_info) const {
   for (const auto& dump_info : task_list_) {
     toolkit::aicpu::dump::Task* task = op_mapping_info.add_task();
     GE_CHECK_NOTNULL(task);
@@ -209,7 +209,7 @@ Status DataDumpImpl::BuildTaskList(toolkit::aicpu::dump::OpMappingInfo& op_mappi
   return SUCCESS;
 }
 
-void DataDumpImpl::BuildTaskInputs(const InnerDumpInfo& dump_info, toolkit::aicpu::dump::Task& task) {
+void DataDumpImpl::BuildTaskInputs(const InnerDumpInfo& dump_info, toolkit::aicpu::dump::Task& task) const {
   const std::string& dump_mode = DumpConfig::Instance().GetDumpMode();
   const bool need_dump_input = (dump_mode == GE_DUMP_MODE_INPUT) || (dump_mode == GE_DUMP_MODE_ALL) ||
                                dump_info.is_op_debug;
@@ -247,7 +247,7 @@ void DataDumpImpl::BuildTaskInputs(const InnerDumpInfo& dump_info, toolkit::aicp
   }
 }
 
-void DataDumpImpl::BuildTaskOutputs(const InnerDumpInfo& dump_info, toolkit::aicpu::dump::Task& task) {
+void DataDumpImpl::BuildTaskOutputs(const InnerDumpInfo& dump_info, toolkit::aicpu::dump::Task& task) const {
   const std::string& dump_mode = DumpConfig::Instance().GetDumpMode();
   const bool need_dump_output = (dump_mode == GE_DUMP_MODE_OUTPUT) || (dump_mode == GE_DUMP_MODE_ALL) ||
                                 dump_info.is_op_debug;
@@ -285,7 +285,7 @@ void DataDumpImpl::BuildTaskOutputs(const InnerDumpInfo& dump_info, toolkit::aic
   }
 }
 
-void DataDumpImpl::BuildTaskWorkspaces(const InnerDumpInfo& dump_info, toolkit::aicpu::dump::Task& task) {
+void DataDumpImpl::BuildTaskWorkspaces(const InnerDumpInfo& dump_info, toolkit::aicpu::dump::Task& task) const {
   // workspace 只在 op_debug 模式下才需要 dump（用于溢出/异常调试）
   if (!dump_info.is_op_debug) {
     GELOGD("Skip dump workspace for task_id=%u, is_op_debug=%u",
@@ -310,7 +310,7 @@ void DataDumpImpl::SetOpDebugInfo(uint32_t task_id, uint32_t stream_id, void* de
   op_debug_addr_ = debug_addr;
 }
 
-void DataDumpImpl::BuildOpDebugTask(toolkit::aicpu::dump::OpMappingInfo& op_mapping_info) {
+void DataDumpImpl::BuildOpDebugTask(toolkit::aicpu::dump::OpMappingInfo& op_mapping_info) const {
   if (!is_op_debug_) {
     return;
   }

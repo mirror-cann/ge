@@ -149,7 +149,7 @@ Status MallocOutputMemBlock(const GraphId &graph_id, const AllocatorPtr &externa
 }
 
 Status BindOutputMemBlock(const size_t tensor_size, ge::MemBlock *const mem_block, GeTensor &ge_tensor) {
-  const auto deleter = [mem_block](uint8_t *device_data) {
+  const auto deleter = [mem_block](const uint8_t *device_data) {
     (void)device_data;
     GELOGI("Free output memory which alloc by external allocator, mem_block:%p, addr:%p.", mem_block,
            mem_block->GetAddr());
@@ -2767,7 +2767,7 @@ Status ModelManager::UnloadTaskForDavinciModel(const DumpProperties &dump_proper
 }
 
 void ModelManager::TryAutoDumpDebugJson(const std::shared_ptr<DavinciModel> &davinci_model,
-                                        const uint32_t graph_id) {
+                                        const uint32_t graph_id) const {
   const char_t *dump_ge_graph = nullptr;
   MM_SYS_GET_ENV(MM_ENV_DUMP_GE_GRAPH, dump_ge_graph);
   if ((dump_ge_graph == nullptr) || (dump_ge_graph[0U] == '\0') || (dump_ge_graph[0U] == '0')) {

@@ -14,6 +14,7 @@
 #include "graph/load/model_manager/task_info/rts/event_wait_task_info.h"
 #include "graph/load/model_manager/davinci_model.h"
 #include "ge/ut/ge/ffts_plus_proto_tools.h"
+#include "depends/ascendcl/src/ascendcl_stub.h"
 
 using namespace std;
 
@@ -54,7 +55,10 @@ TEST_F(UtestNotifyWaitTask, init_and_distribute_event_wait_task_info) {
 
   EXPECT_TRUE(task_info.IsSupportReDistribute());
   EXPECT_EQ(task_info.Distribute(), SUCCESS);
+
+  AclRuntimeStub::SetErrorResultApiName("aclrtStreamWaitEvent");
+  EXPECT_NE(task_info.Distribute(), SUCCESS);
+  AclRuntimeStub::SetErrorResultApiName("");
   domi::GetContext().is_online_model = false;
 }
-
 }  // namespace ge

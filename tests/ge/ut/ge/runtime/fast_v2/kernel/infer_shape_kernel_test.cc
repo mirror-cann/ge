@@ -20,6 +20,8 @@
 #include "faker/space_registry_faker.h"
 #include "exe_graph/runtime/gert_tensor_data.h"
 #include "runtime/v2/engine/aicore/kernel/set_output_shape_kernel.h"
+#include "graph/custom_op_factory.h"
+#include "graph/custom_op.h"
 
 namespace gert {
 namespace kernel {
@@ -29,6 +31,24 @@ ge::graphStatus SetOutputShape(KernelContext *context);
 struct InferShapeKernelTest : public testing::Test {
   KernelRegistry &registry = KernelRegistry::GetInstance();
 };
+
+class Rt2CustomShapeInferOp : public ge::ShapeInferOp {
+ public:
+  ge::graphStatus InferShape(InferShapeContext *context) override {
+    auto input = context->GetInputShape(0U);
+    auto output = context->GetOutputShape(0U);
+    GE_ASSERT_NOTNULL(input);
+    GE_ASSERT_NOTNULL(output);
+    *output = *input;
+    return ge::GRAPH_SUCCESS;
+  }
+
+  ge::graphStatus InferDataType(gert::InferDataTypeContext *context) override {
+    return context->SetOutputDataType(0U, ge::DT_FLOAT16);
+  }
+};
+
+class Rt2CustomNoShapeInferOp : public ge::BaseCustomOp {};
 
 ge::graphStatus CopyInferShape(InferShapeContext* context){
   auto input = context->GetInputShape(0);
@@ -192,6 +212,68 @@ TEST_F(InferShapeKernelTest, test_find_InferShapeFunc_find_infershape_func_faile
   run_context.value_holder[1].Set(space_registry.get(), nullptr);
   run_context.value_holder[0].Set(const_cast<char *>(node_type.c_str()), nullptr);
   ASSERT_NE(registry.FindKernelFuncs("FindInferShapeFunc")->run_func(run_context), ge::GRAPH_SUCCESS);
+}
+
+TEST_F(InferShapeKernelTest, test_find_InferShapeFunc_custom_shape_infer_op_success) {
+  std::string node_type = "rt2_custom_shape_infer";
+  auto space_registry = SpaceRegistryFaker().Build();
+  ASSERT_NE(space_registry, nullptr);
+  ge::CustomOpFactory::RegisterCustomOpCreator(node_type.c_str(), []() -> std::unique_ptr<ge::BaseCustomOp> {
+    return std::make_unique<Rt2CustomShapeInferOp>();
+  });
+  auto run_context = BuildKernelRunContext(2, 1);
+  run_context.value_holder[1].Set(space_registry.get(), nullptr);
+  run_context.value_holder[0].Set(const_cast<char *>(node_type.c_str()), nullptr);
+  ASSERT_EQ(registry.FindKernelFuncs("FindInferShapeFunc")->run_func(run_context), ge::GRAPH_SUCCESS);
+  auto infer_fun =
+      reinterpret_cast<OpImplRegisterV2::InferShapeKernelFunc>(run_context.value_holder[2].GetValue<void *>());
+  ASSERT_NE(infer_fun, nullptr);
+
+  StorageShape input{{2, 3, 4}, {2, 3, 4}};
+  StorageShape output;
+  auto infer_context = InferShapeContextFaker().NodeIoNum(1, 1)
+                                                .InputShapes({&input})
+                                                .OutputShapes({&output})
+                                                .Build();
+  auto &compute_info = *infer_context.MutableComputeNodeInfo();
+  compute_info.SetNodeName("custom_shape_infer_node");
+  compute_info.SetNodeType(node_type.c_str());
+  ASSERT_EQ(infer_fun(infer_context.GetContext<InferShapeContext>()), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(output.GetOriginShape(), Shape({2, 3, 4}));
+}
+
+TEST_F(InferShapeKernelTest, test_custom_InferCustomOpShape_shape_infer_op_is_null) {
+  const std::string shape_infer_node_type = "rt2_custom_shape_infer_for_null_shape_infer_op";
+  const std::string no_shape_infer_node_type = "rt2_custom_no_shape_infer_op";
+  auto space_registry = SpaceRegistryFaker().Build();
+  ASSERT_NE(space_registry, nullptr);
+  ASSERT_EQ(ge::CustomOpFactory::RegisterCustomOpCreator(
+      shape_infer_node_type.c_str(), []() -> std::unique_ptr<ge::BaseCustomOp> {
+        return std::make_unique<Rt2CustomShapeInferOp>();
+      }), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(ge::CustomOpFactory::RegisterCustomOpCreator(
+      no_shape_infer_node_type.c_str(), []() -> std::unique_ptr<ge::BaseCustomOp> {
+        return std::make_unique<Rt2CustomNoShapeInferOp>();
+      }), ge::GRAPH_SUCCESS);
+
+  auto run_context = BuildKernelRunContext(2, 1);
+  run_context.value_holder[1].Set(space_registry.get(), nullptr);
+  run_context.value_holder[0].Set(const_cast<char *>(shape_infer_node_type.c_str()), nullptr);
+  ASSERT_EQ(registry.FindKernelFuncs("FindInferShapeFunc")->run_func(run_context), ge::GRAPH_SUCCESS);
+  auto infer_fun =
+      reinterpret_cast<OpImplRegisterV2::InferShapeKernelFunc>(run_context.value_holder[2].GetValue<void *>());
+  ASSERT_NE(infer_fun, nullptr);
+
+  StorageShape input{{2, 3, 4}, {2, 3, 4}};
+  StorageShape output;
+  auto infer_context = InferShapeContextFaker().NodeIoNum(1, 1)
+                                                .InputShapes({&input})
+                                                .OutputShapes({&output})
+                                                .Build();
+  auto &compute_info = *infer_context.MutableComputeNodeInfo();
+  compute_info.SetNodeName("custom_no_shape_infer_node");
+  compute_info.SetNodeType(no_shape_infer_node_type.c_str());
+  ASSERT_EQ(infer_fun(infer_context.GetContext<InferShapeContext>()), ge::GRAPH_FAILED);
 }
 
 TEST_F(InferShapeKernelTest, test_build_infershape_output_success) {

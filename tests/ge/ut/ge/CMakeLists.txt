@@ -406,6 +406,7 @@ set(BASE_COMMON_TEST_FILES
     "common/om2_codegen_model_builder_unittest.cc"
     "common/control_task_code_builder_unittest.cc"
     "common/program_generator_unittest.cc"
+    "om2/codegen/stream_switch_task_code_builder_unittest.cc"
 )
 
 file(GLOB_RECURSE SYMBOL_SHAPE_INFER_FUNCS_TEST_SRCS CONFIGURE_DEPENDS "graph/optimize/symbolic/*.cc")
@@ -574,6 +575,7 @@ set(HYBRID_TEST_FILES
     "hybrid/node_executor/aicore/aicore_op_task_unittest.cc"
     "hybrid/node_executor/aicore/aicore_node_executor_unittest.cc"
     "hybrid/node_executor/aicore/aicore_task_builder_unittest.cc"
+    "hybrid/executor/rt_callback_manager_unittest.cc"
 )
 
 set(OTHERS_TEST_FILES

@@ -1309,7 +1309,7 @@ Status GeExecutor::ReleaseSingleOpResource(void *const stream) {
 
 Status GeExecutor::ClearCustomAicpuSo(const uint32_t device_id) {
   int32_t cur_device_id = -1;
-  GE_CHK_RT_RET(rtCtxGetDevice(&cur_device_id));
+  GE_CHK_RT_RET(aclrtGetDevice(&cur_device_id));
   if (device_id != static_cast<uint32_t>(cur_device_id)) {
     GELOGW("given device_id[%u] is not equal to cur_device_id[%i], skip clear so", device_id, cur_device_id);
     return SUCCESS;

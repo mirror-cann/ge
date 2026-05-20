@@ -439,7 +439,7 @@ void BindFlowInfo(py::module &m) {
 }
 
 ge::Tensor CreateTensorFromNumpyArray(const py::array &np_array) {
-  auto flags = static_cast<unsigned int>(np_array.flags());
+  auto flags = np_array.flags();
   if ((flags & pybind11::detail::npy_api::NPY_ARRAY_C_CONTIGUOUS_) == 0) {
     throw std::runtime_error("Numpy array is not C Contiguous");
   }

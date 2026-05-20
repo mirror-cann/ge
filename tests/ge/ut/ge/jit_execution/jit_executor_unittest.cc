@@ -195,6 +195,7 @@ TEST_F(JitExecutorUT, Run_DynamicShape_NoSlice_Success) {
 }
 
 TEST_F(JitExecutorUT, RunGraphAsyncAutoFuse) {
+  AclRuntimeStub::Install(nullptr);
   EXPECT_EQ(GEInitialize(map<AscendString, AscendString>{}), SUCCESS);
   std::map<AscendString, AscendString> options;
   options["ge.inputBatchCpy"] = "1";
@@ -224,7 +225,6 @@ TEST_F(JitExecutorUT, RunGraphAsyncAutoFuse) {
   // get graph_node fail
   EXPECT_NE(session_ptr->RunGraphAsync(10, inputs, nullptr), SUCCESS);
   // after RunGraphAsync run failed before, RunGraphAsync submit success
-  RTS_STUB_RETURN_VALUE(rtsMemcpyBatch, rtError_t, RT_ERROR_NONE);
   EXPECT_EQ(session_ptr->RunGraphAsync(graph_id, inputs, callback), SUCCESS);
   size_t sleep_time_max = 5U;
   size_t sleep_time = 0U;
@@ -235,9 +235,9 @@ TEST_F(JitExecutorUT, RunGraphAsyncAutoFuse) {
     }
   }
   EXPECT_EQ(test_callback_called, true);
+  EXPECT_EQ(AclRuntimeStub::GetInstance()->input_mem_copy_batch_count_, 2);
   RuntimeStub::UnInstall(nullptr);
-  EXPECT_EQ(RuntimeStub::GetInstance()->input_mem_copy_batch_count_, 2);
-  RuntimeStub::GetInstance()->input_mem_copy_batch_count_ = 0;
+  AclRuntimeStub::GetInstance()->input_mem_copy_batch_count_ = 0;
   auto &rts_stub = gert_stub_.GetRtsRuntimeStub();
   RuntimeStub::Install(&rts_stub);
   delete session_ptr;
@@ -246,6 +246,16 @@ TEST_F(JitExecutorUT, RunGraphAsyncAutoFuse) {
 }
 
 TEST_F(JitExecutorUT, RunGraphAsyncAutoFuseFallback) {
+  class MockAclRuntime : public ge::AclRuntimeStub {
+   public:
+    aclError aclrtMemcpyBatch(void **dsts, size_t *destMax, void **srcs, size_t *sizes, size_t numBatches,
+                            aclrtMemcpyBatchAttr *attrs, size_t *attrsIndexex, size_t numAttrs, size_t *failIndex) {
+      return ACL_ERROR_RT_FEATURE_NOT_SUPPORT;
+    }
+  };
+  auto mock_runtime = std::make_shared<MockAclRuntime>();
+  ge::AclRuntimeStub::SetInstance(mock_runtime);
+
   EXPECT_EQ(GEInitialize(map<AscendString, AscendString>{}), SUCCESS);
   std::map<string, string> options;
   options["ge.inputBatchCpy"] = "1";
@@ -284,13 +294,13 @@ TEST_F(JitExecutorUT, RunGraphAsyncAutoFuseFallback) {
   EXPECT_NE(session_ptr->RunGraphAsync(10, inputs, nullptr), SUCCESS);
   sleep(1);  // wait callback
   // after RunGraphAsync run failed before, RunGraphAsync submit success
-  RTS_STUB_RETURN_VALUE(rtsMemcpyBatch, rtError_t, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
+
   EXPECT_EQ(session_ptr->RunGraphAsync(graph_id, inputs, callback), SUCCESS);
   sleep(1);  // wait callback
   EXPECT_EQ(test_callback_called, true);
   RuntimeStub::UnInstall(nullptr);
   EXPECT_EQ(RuntimeStub::GetInstance()->input_mem_copy_batch_count_, 0);
-  RuntimeStub::GetInstance()->input_mem_copy_batch_count_ = 0;
+  AclRuntimeStub::GetInstance()->input_mem_copy_batch_count_ = 0;
   auto &rts_stub = gert_stub_.GetRtsRuntimeStub();
   RuntimeStub::Install(&rts_stub);
   delete session_ptr;

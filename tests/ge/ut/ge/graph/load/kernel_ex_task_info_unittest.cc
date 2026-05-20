@@ -570,6 +570,7 @@ TEST_F(UtestKernelExTaskInfo, blocking_aicpu_op) {
 
   const OpDescPtr op_desc = CreateOpDesc("deque", "Deque");
   ge::AttrUtils::SetBool(op_desc, ATTR_NAME_IS_BLOCKING_OP, true);
+  AttrUtils::SetInt(op_desc, ATTR_NAME_BLOCKING_OP_TIMEOUT, 10);
 
   KernelExTaskInfo kernel_ex_task_info;
   kernel_ex_task_info.op_desc_ = op_desc;
@@ -654,11 +655,7 @@ TEST_F(UtestKernelExTaskInfo, blocking_aicpu_op_fail_02) {
   DavinciModel davinci_model(0, nullptr);
   kernel_ex_task_info.davinci_model_ = &davinci_model;
 
-  RTS_STUB_RETURN_VALUE(rtGetDeviceCapability, rtError_t, RT_ERROR_NONE);
-  RTS_STUB_OUTBOUND_VALUE(rtGetDeviceCapability, int32_t, value, RT_AICPU_BLOCKING_OP_NOT_SUPPORT);
   EXPECT_EQ(kernel_ex_task_info.InitTaskExtInfo(kernel_ex_def.kernel_ext_info(), op_desc), SUCCESS);
-  RTS_STUB_RETURN_VALUE(rtGetDeviceCapability, rtError_t, RT_ERROR_NONE);
-  RTS_STUB_OUTBOUND_VALUE(rtGetDeviceCapability, int32_t, value, RT_AICPU_BLOCKING_OP_NOT_SUPPORT);
 
   kernel_ex_task_info.op_desc_ = op_desc;
   kernel_ex_task_info.davinci_model_ = &davinci_model;
