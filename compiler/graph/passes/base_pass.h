@@ -18,7 +18,7 @@
 #include <vector>
 #include "framework/common/ge_types.h"
 #include "framework/common/ge_inner_error_codes.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "framework/common/debug/log.h"
 #include "graph/compute_graph.h"
 #include "graph/utils/op_desc_utils.h"

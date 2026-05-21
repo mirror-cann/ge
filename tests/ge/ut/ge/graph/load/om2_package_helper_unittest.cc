@@ -16,7 +16,7 @@
 #define private public
 #include "framework/common/helper/om2_package_helper.h"
 #undef private
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "common/helper/om2/json_file.h"
 #include "common/helper/om2/om2_package_contants.h"
 #include "common/model/ge_model.h"

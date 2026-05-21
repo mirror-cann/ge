@@ -12,7 +12,7 @@
 #include "engine/node_converter_utils.h"
 #include "exe_graph/lowering/lowering_definitions.h"
 #include "exe_graph/lowering/value_holder_utils.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "graph_builder/bg_identity.h"
 #include "graph_builder/converter_checker.h"
 #include "graph_builder/multi_stream/bg_event.h"

@@ -15,7 +15,7 @@
 #include "ge_graph_dsl/graph_dsl.h"
 #include "graph/debug/ge_attr_define.h"
 #include "graph/utils/dumper/ge_graph_dumper.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "ge_graph_dsl/assert/graph_assert.h"
 #include "graph/model.h"
 #include "graph/buffer.h"

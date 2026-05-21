@@ -19,7 +19,7 @@
 
 #include "graph/graph.h"
 #include "common/ge_inner_error_codes.h"
-#include "common/framework_types_internal.h"
+#include "common/types.h"
 #include "graph/debug/ge_attr_define.h"
 #include "api/gelib/gelib.h"
 

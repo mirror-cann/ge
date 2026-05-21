@@ -10,7 +10,7 @@
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
-#include "dflow/executor/flow_msg_internal.h"
+#include "dflow/executor/flow_msg.h"
 
 using namespace std;
 using namespace testing;

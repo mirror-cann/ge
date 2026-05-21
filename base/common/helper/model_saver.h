@@ -13,7 +13,7 @@
 
 #include "common/helper/file_saver.h"
 #include "nlohmann/json.hpp"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 
 /**
 * Provide read and write operations for offline model files

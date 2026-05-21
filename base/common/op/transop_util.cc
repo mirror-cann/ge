@@ -10,7 +10,7 @@
 
 #include "common/op/transop_util.h"
 
-#include "common/framework_types_internal.h"
+#include "common/types.h"
 #include "graph/utils/type_utils.h"
 #include "framework/common/debug/ge_log.h"
 

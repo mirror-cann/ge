@@ -18,7 +18,7 @@
 #include "graph/utils/graph_utils.h"
 #include "graph/utils/node_utils.h"
 #include "graph/utils/type_utils.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 
 namespace {
 using FormatSymmFunc = std::function<bool(const ge::NodePtr &, const ge::NodePtr &)>;

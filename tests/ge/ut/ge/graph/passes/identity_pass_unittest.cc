@@ -14,7 +14,7 @@
 #include "graph/passes/memory_conflict/identity_pass.h"
 
 #include "common/op/ge_op_utils.h"
-#include "common/framework_types_internal.h"
+#include "common/types.h"
 #include "graph/anchor.h"
 #include "graph/attr_value.h"
 #include "graph/compute_graph.h"

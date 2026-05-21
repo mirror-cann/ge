@@ -18,7 +18,7 @@
 #include "graph/utils/graph_utils.h"
 #include "graph/utils/tensor_utils.h"
 #include "common/file_constant_utils/file_constant_utils.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "securec.h"
 #include "deploy/deployer/deployer_proxy.h"
 #include "deploy/flowrm/flow_route_planner.h"

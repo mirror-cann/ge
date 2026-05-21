@@ -11,7 +11,7 @@
 #include "trans_op_creator.h"
 
 #include "framework/common/ge_format_util.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "framework/common/debug/ge_log.h"
 #include "common/checker.h"
 #include "formats/formats.h"

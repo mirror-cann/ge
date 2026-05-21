@@ -11,7 +11,7 @@
 // AUTO GEN PLEASE DO NOT MODIFY IT
 #ifndef DOMI_OP_NO_OP_OP_H_
 #define DOMI_OP_NO_OP_OP_H_
-#include "parser/common/op_def/parser_operator_internal.h"
+#include "parser/common/op_def/operator.h"
 
 namespace ge {
 class NoOpOperator : public ParserOperator {

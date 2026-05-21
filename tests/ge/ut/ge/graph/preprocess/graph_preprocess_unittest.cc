@@ -16,7 +16,7 @@
 
 #include "macro_utils/dt_public_scope.h"
 #include "common/ge_inner_error_codes.h"
-#include "common/framework_types_internal.h"
+#include "common/types.h"
 #include "common/util.h"
 #include "api/gelib/gelib.h"
 #include "graph/passes/graph_builder_utils.h"

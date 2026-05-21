@@ -13,7 +13,7 @@
 #include "rt_v2_simple_executor.h"
 #include "rt_v2_utils.h"
 #include "rt_v2_stage_state.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "framework/runtime/model_desc.h"
 #include "ge/ge_api.h"
 #include "graph/debug/ge_attr_define.h"

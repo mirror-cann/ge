@@ -19,7 +19,7 @@
 #include "framework/common/debug/ge_log.h"
 #include "host_kernels/kernel_factory.h"
 #include "framework/omg/omg_inner_types.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "graph/def_types.h"
 
 namespace ge {

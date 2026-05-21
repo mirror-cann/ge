@@ -23,7 +23,7 @@
 #include "parser/onnx/onnx_util.h"
 #include "graph/ge_local_context.h"
 #include "common/ge_common/ge_types.h"
-#include "parser/onnx/onnx_parser_internal.h"
+#include "parser/onnx/onnx_parser.h"
 #include "parser/onnx/onnx_file_constant_parser.h"
 
 namespace ge {

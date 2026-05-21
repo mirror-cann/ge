@@ -20,7 +20,7 @@
 #include "easy_graph/layout/engines/graph_easy/graph_easy_executor.h"
 #include "graph/graph.h"
 #include "graph/compute_graph.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "graph/debug/ge_attr_define.h"
 #include "ge_graph_dsl/graph_dsl.h"
 #include "ge_graph_dsl/op_desc/op_desc_cfg_box.h"

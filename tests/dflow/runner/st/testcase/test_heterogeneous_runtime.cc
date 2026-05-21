@@ -16,7 +16,7 @@
 #include <gtest/gtest.h>
 #include "ge/ge_api.h"
 #include "graph/debug/ge_attr_define.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "graph/utils/graph_utils.h"
 #include "graph/utils/graph_utils_ex.h"
 #include "graph/utils/tensor_utils.h"

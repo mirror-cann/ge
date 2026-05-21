@@ -14,7 +14,7 @@
 #include <string>
 #include <vector>
 
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "../graph/custom_ops_stub.h"
 #include "graph/custom_op_factory.h"
 #include "ge/ge_api_error_codes.h"

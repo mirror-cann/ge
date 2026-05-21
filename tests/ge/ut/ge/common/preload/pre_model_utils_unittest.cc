@@ -16,7 +16,7 @@
 #include "graph/utils/tensor_utils.h"
 #include "graph/debug/ge_attr_define.h"
 #include "ge/ut/ge/ffts_plus_proto_tools.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "macro_utils/dt_public_unscope.h"
 
 using namespace std;

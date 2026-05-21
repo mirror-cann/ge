@@ -19,7 +19,7 @@
 #include "dflow/base/model/endpoint.h"
 #include "dflow/base/model/model_deploy_resource.h"
 #include "common/helper/model_parser_base.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "dflow/compiler/pne/udf/udf_model.h"
 #include "dflow/inc/data_flow/model/flow_model_helper.h"
 #include "dflow/base/exec_runtime/execution_runtime.h"

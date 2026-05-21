@@ -19,7 +19,7 @@
 #include "graph/passes/base_pass.h"
 #include "macro_utils/dt_public_unscope.h"
 
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "graph/ge_local_context.h"
 #include "graph/node.h"
 #include "graph/utils/graph_utils.h"

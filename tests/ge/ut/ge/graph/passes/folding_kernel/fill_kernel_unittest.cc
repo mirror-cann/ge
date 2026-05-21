@@ -16,7 +16,7 @@
 #include "common/debug/log.h"
 #include "common/fp16_t/fp16_t.h"
 #include "common/ge_inner_error_codes.h"
-#include "common/framework_types_internal.h"
+#include "common/types.h"
 #include "graph/types.h"
 #include "graph/utils/op_desc_utils.h"
 #include "host_kernels/kernel_factory.h"

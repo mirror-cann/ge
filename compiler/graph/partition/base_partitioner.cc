@@ -14,7 +14,7 @@
 #include "graph/utils/graph_utils.h"
 #include "framework/common/debug/ge_log.h"
 #include "framework/common/debug/log.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 
 namespace ge {
 using Cluster = BaseCluster;

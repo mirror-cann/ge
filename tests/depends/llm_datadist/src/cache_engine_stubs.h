@@ -14,7 +14,7 @@
 #include <vector>
 
 #include "common/cache_engine.h"
-#include "llm_datadist_internal.h"
+#include "llm_datadist.h"
 #include "llm_flow_service.h"
 
 namespace llm {

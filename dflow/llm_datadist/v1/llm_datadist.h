@@ -8,8 +8,8 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-#ifndef AIR_RUNTIME_LLM_ENGINE_INC_LLM_DATADIST_INTERNAL_H
-#define AIR_RUNTIME_LLM_ENGINE_INC_LLM_DATADIST_INTERNAL_H
+#ifndef AIR_RUNTIME_LLM_ENGINE_INC_LLM_DATADIST_H
+#define AIR_RUNTIME_LLM_ENGINE_INC_LLM_DATADIST_H
 
 #include "ge/ge_ir_build.h"
 #include "llm_datadist/llm_engine_types.h"
@@ -84,4 +84,4 @@ class LLMDataDist {
   std::unique_ptr<Impl> impl_;
 };
 }  // namespace llm
-#endif  // AIR_RUNTIME_LLM_ENGINE_INC_LLM_DATADIST_INTERNAL_H
+#endif  // AIR_RUNTIME_LLM_ENGINE_INC_LLM_DATADIST_H

@@ -13,7 +13,7 @@
 #include <utility>
 
 #include "common/checker.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "graph/debug/ge_attr_define.h"
 #include "graph/utils/op_type_utils.h"
 #include "common/compile_profiling/ge_call_wrapper.h"

@@ -11,7 +11,7 @@
 #include "algebraic_simplification_pass.h"
 
 #include "checker.h"
-#include "common/framework_types_internal.h"
+#include "common/types.h"
 #include "debug/ge_attr_define.h"
 #include "debug/ge_util.h"
 #include "ge/fusion/pass/pattern_fusion_pass.h"

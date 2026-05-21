@@ -26,7 +26,7 @@
 #include "graph/utils/math_util.h"
 #include "graph/passes/graph_builder_utils.h"
 #include "graph/types.h"
-#include "parser/tensorflow/tensorflow_parser_internal.h"
+#include "parser/tensorflow/tensorflow_parser.h"
 #include "mmpa/mmpa_api.h"
 #include "graph_metadef/graph/utils/file_utils.h"
 #include "macro_utils/dt_public_unscope.h"

@@ -20,7 +20,7 @@
 #include "common/fe_op_info_common.h"
 #include "common/util/op_info_util.h"
 #include "common/scope_allocator.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "ge/ge_api_types.h"
 #include "graph/tuning_utils.h"
 #include "graph/utils/attr_utils.h"
