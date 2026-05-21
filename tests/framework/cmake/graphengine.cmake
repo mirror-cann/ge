@@ -41,7 +41,6 @@ set(PROTO_LIST
     "${METADEF_PROTO_DIR}/var_manager.proto"
     "${METADEF_PROTO_DIR}/flow_model.proto"
     "${METADEF_PROTO_DIR}/attr_group_base.proto"
-    "${METADEF_PROTO_DIR}/ascendc_ir.proto"
     "${METADEF_PROTO_DIR}/ge_ir_mobile.proto"
     "${METADEF_PROTO_DIR}/task_mobile.proto"
 )

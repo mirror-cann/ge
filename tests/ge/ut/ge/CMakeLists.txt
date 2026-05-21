@@ -406,6 +406,7 @@ set(BASE_COMMON_TEST_FILES
     "common/om2_codegen_model_builder_unittest.cc"
     "common/control_task_code_builder_unittest.cc"
     "common/program_generator_unittest.cc"
+    "om2/codegen/stream_switch_task_code_builder_unittest.cc"
 )
 
 file(GLOB_RECURSE SYMBOL_SHAPE_INFER_FUNCS_TEST_SRCS CONFIGURE_DEPENDS "graph/optimize/symbolic/*.cc")
@@ -574,6 +575,7 @@ set(HYBRID_TEST_FILES
     "hybrid/node_executor/aicore/aicore_op_task_unittest.cc"
     "hybrid/node_executor/aicore/aicore_node_executor_unittest.cc"
     "hybrid/node_executor/aicore/aicore_task_builder_unittest.cc"
+    "hybrid/executor/rt_callback_manager_unittest.cc"
 )
 
 set(OTHERS_TEST_FILES
@@ -714,6 +716,7 @@ target_link_libraries(ut_libge_multiparts_utest
     ge_runner_v2
     engine
     json
+    minizip_static
     ascend_protobuf
     ge_graph_dsl
     ge_compiler
@@ -1194,14 +1197,27 @@ add_executable(ge_manual_test
 
 target_compile_definitions(ge_manual_test PRIVATE
         google=ascend_private
+        AUTOFUSE_USE_GE_METADEF
+        )
+target_compile_options(ge_manual_test PRIVATE
+        -include ${AIR_CODE_DIR}/tests/depends/aihacb_autofusion/src/fix_af_attr_store.h
         )
 
+target_include_directories(ge_manual_test BEFORE PRIVATE
+        ${AIR_CODE_DIR}/inc/graph_metadef
+        ${AIR_CODE_DIR}/inc/graph_metadef/graph
+        ${AIR_CODE_DIR}/graph_metadef
+)
 target_include_directories(ge_manual_test PRIVATE ${AIR_CODE_DIR}/tests/framework/ge_runtime_stub/include
         ${AIR_CODE_DIR}/compiler/graph/optimize/autofuse/autofuse
         ${AIR_CODE_DIR}/compiler/graph/optimize/autofuse/ascir/meta
         ${CMAKE_BINARY_DIR}/tests/depends/aihacb_autofusion
         ${CMAKE_BINARY_DIR}/graph_metadef/graph/ascendc_ir/generator/
         ${ASCEND_INSTALL_PATH}/include
+        ${ASCEND_INSTALL_PATH}/include/autofuse
+        ${ASCEND_INSTALL_PATH}/include/autofuse/graph_metadef
+        ${ASCEND_INSTALL_PATH}/include/autofuse/graph_metadef/graph
+        ${ASCEND_INSTALL_PATH}/include/autofuse/ascir
         ${ASCGEN_DIR}/inc
 )
 
@@ -1217,7 +1233,6 @@ target_link_libraries(ge_manual_test
         ge_compiler
         graph_base
         gert
-        aihac_ir
         aihac_autofusion
         ge_running_env ge_runtime_stub GTest::gtest GTest::gtest_main GTest::gmock_main
         ${COMMON_SHARED_LIBRARIES} -lrt -ldl
@@ -1244,16 +1259,26 @@ target_compile_options(ut_jit_execution PRIVATE -g -O0
         -Wall -Wfloat-equal -Werror
         -Wno-write-strings
         -fno-access-control
+        -include ${AIR_CODE_DIR}/tests/depends/aihacb_autofusion/src/fix_af_attr_store.h
 )
 
 target_compile_definitions(ut_jit_execution PRIVATE
         google=ascend_private
+        AUTOFUSE_USE_GE_METADEF
 )
 
+target_include_directories(ut_jit_execution BEFORE PRIVATE
+        ${AIR_CODE_DIR}/inc/graph_metadef
+        ${AIR_CODE_DIR}/inc/graph_metadef/graph
+        ${AIR_CODE_DIR}/graph_metadef
+)
 target_include_directories(ut_jit_execution PRIVATE
         ${AIR_CODE_DIR}/tests/framework/ge_runtime_stub/include
         ${AIR_CODE_DIR}/tests/ge/st/stubs/utils
         ${ASCEND_INSTALL_PATH}/include
+        ${ASCEND_INSTALL_PATH}/include/autofuse
+        ${ASCEND_INSTALL_PATH}/include/autofuse/graph_metadef
+        ${ASCEND_INSTALL_PATH}/include/autofuse/graph_metadef/graph
         ${ASCGEN_DIR}/inc
 )
 
@@ -1290,9 +1315,14 @@ target_link_options(ut_jit_execution PRIVATE
         )
 
 add_test(NAME ut_jit_execution COMMAND ut_jit_execution --gtest_output=xml:${CMAKE_INSTALL_PREFIX}/report/ut/ut_jit_execution.xml)
-set_tests_properties(ut_jit_execution PROPERTIES LABELS "ut;ge_common" DEPENDS ut_libge_multiparts_utest)
+set_tests_properties(ut_jit_execution PROPERTIES
+        LABELS "ut;ge_common"
+        DEPENDS ut_libge_multiparts_utest
+        ENVIRONMENT "ASAN_OPTIONS=detect_leaks=0")
 add_test(NAME ut_jit_execution_st COMMAND ut_jit_execution --gtest_output=xml:${CMAKE_INSTALL_PREFIX}/report/st/ut_jit_execution.xml)
-set_tests_properties(ut_jit_execution_st PROPERTIES LABELS "st;st_hetero")
+set_tests_properties(ut_jit_execution_st PROPERTIES
+        LABELS "st;st_hetero"
+        ENVIRONMENT "ASAN_OPTIONS=detect_leaks=0")
 
 set(ES_HISTORY_REGISTRY_FIXTURE_SRC_DIR
         ${AIR_CODE_DIR}/tests/ge/ut/ge/graph/eager_style_graph_builder/es_generator/history/fixtures/history_registry)

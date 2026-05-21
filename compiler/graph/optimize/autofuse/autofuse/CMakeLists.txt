@@ -17,11 +17,25 @@ add_library(aihac_autofusion SHARED
         ${SOURCES}
 )
 
-add_dependencies(aihac_autofusion metadef_graph_protos_obj ascir_ops_headers)
+add_dependencies(aihac_autofusion metadef_graph_protos_obj)
+
+#if (TARGET graph_autofusion_build)
+#    add_dependencies(aihac_autofusion graph_autofusion_build)
+#endif ()
+
+target_include_directories(aihac_autofusion BEFORE PRIVATE
+       ${AIR_CODE_DIR}/inc
+       ${AIR_CODE_DIR}/inc/graph_metadef
+       ${AIR_CODE_DIR}/inc/graph_metadef/graph
+       ${AIR_CODE_DIR}/inc/graph_metadef/external
+       ${AIR_CODE_DIR}/inc/graph_metadef/external/graph
+       ${AIR_CODE_DIR}/inc/graph_metadef/external/exe_graph
+)
 
 target_compile_definitions(aihac_autofusion PRIVATE
     PROTOBUF_INLINE_NOT_IN_HEADERS=0
     google=ascend_private
+    AUTOFUSE_USE_GE_METADEF
 )
 if (ENABLE_OPEN_SRC)
         target_include_directories(aihac_autofusion PUBLIC
@@ -61,13 +75,12 @@ if (ENABLE_OPEN_SRC)
                graph_base
                mmpa_headers
                metadef_headers
-               ascir_ops_headers
                error_manager
                ascend_protobuf
                c_sec
                json
                aihac_symbolizer
-               aihac_codegen
+               aihac_codegen_toolkit
         )
 else ()
         target_link_libraries(aihac_autofusion PRIVATE

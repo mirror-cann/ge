@@ -49,6 +49,7 @@ class DataDumper {
   };
 
   struct InnerContext {
+    InnerContext() : context_id(0U), thread_id(0U) {}
     uint32_t context_id;
     uint32_t thread_id;
     std::vector<InnerRealAddressAndSize> input;
@@ -83,11 +84,11 @@ class DataDumper {
   void SaveDumpTask(const OpDescInfoId &id, const std::shared_ptr<OpDesc> &op_desc, const uintptr_t args,
                     const FirstLevelAddressInfo &first_level_address_info = {false, {}},
                     const std::map<uint64_t, uint64_t> &cust_to_relevant_offset = {},
-                    const ModelTaskType task_type = ModelTaskType::MODEL_TASK_KERNEL, bool is_op_debug = false, const rtStream_t stream = nullptr);
+                    const ModelTaskType task_type = ModelTaskType::MODEL_TASK_KERNEL, bool is_op_debug = false, rtStream_t const stream = nullptr);
 
   void SavePrintDumpTask(const OpDescInfoId &id, const std::shared_ptr<OpDesc> &op_desc, const uintptr_t args,
                          const FirstLevelAddressInfo &first_level_address_info = {false, {}},
-                         const ModelTaskType task_type = ModelTaskType::MODEL_TASK_KERNEL, const rtStream_t stream = nullptr);
+                         const ModelTaskType task_type = ModelTaskType::MODEL_TASK_KERNEL, rtStream_t const stream = nullptr);
 
   void SaveEndGraphId(const uint32_t task_id, const uint32_t stream_id);
 

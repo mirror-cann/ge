@@ -24,6 +24,8 @@ target_include_directories(jit_exe PRIVATE
         ${TOP_DIR}/runtime/include/external/acl
         ${TOP_DIR}/runtime/include/external/acl/error_codes
         ${TOP_DIR}/runtime/pkg_inc/dump
+        ${ASCEND_INSTALL_PATH}/include/autofuse
+        ${ASCEND_INSTALL_PATH}/include/autofuse/ascir
 )
 
 target_compile_definitions(jit_exe PRIVATE

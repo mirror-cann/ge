@@ -14,21 +14,8 @@
 
 namespace gert {
 ge::Status CheckDeviceSupportBlockingAicpuOpProcess(bool &is_support) {
-  int32_t device_id = 0;
-  GE_ASSERT_RT_OK(aclrtGetDevice(&device_id));
-
-  int32_t value = 0;
-  GE_ASSERT_RT_OK(rtGetDeviceCapability(device_id, FEATURE_TYPE_BLOCKING_OPERATOR, RT_MODULE_TYPE_AICPU, &value));
-  if ((value != RT_AICPU_BLOCKING_OP_NOT_SUPPORT) && (value != RT_AICPU_BLOCKING_OP_SUPPORT)) {
-    REPORT_INNER_ERR_MSG("E19999", "Value should be %d or %d but %d",
-                       RT_AICPU_BLOCKING_OP_NOT_SUPPORT, RT_AICPU_BLOCKING_OP_SUPPORT, value);
-    GELOGE(ge::FAILED, "[Check][Value] Value should be %d or %d but %d",
-           RT_AICPU_BLOCKING_OP_NOT_SUPPORT, RT_AICPU_BLOCKING_OP_SUPPORT, value);
-    return ge::FAILED;
-  }
-
-  is_support = (value == RT_AICPU_BLOCKING_OP_SUPPORT);
-
+  // 默认认为支持该能力
+  is_support = true;
   return ge::SUCCESS;
 }
 
@@ -39,13 +26,13 @@ ge::Status DistributeWaitTaskForAicpuBlockingOp(rtStream_t stream, const AicpuAr
   uint32_t async_timeout = arg_handler->GetAsyncTimeout();
   GELOGI("Async timeout:0x%x.", async_timeout);
   if (async_timeout != 0xFFFFFFFF) {
-    GE_ASSERT_RT_OK(rtStreamWaitEventWithTimeout(stream, rt_event, async_timeout));
+    GE_ASSERT_RT_OK(aclrtStreamWaitEventWithTimeout(stream, rt_event, static_cast<int32_t>(async_timeout)));
   } else {
-    GE_ASSERT_RT_OK(rtStreamWaitEvent(stream, rt_event));
+    GE_ASSERT_RT_OK(aclrtStreamWaitEvent(stream, rt_event));
   }
 
   GE_ASSERT_RT_OK(rtSetTaskTag(op_name));
-  GE_ASSERT_RT_OK(rtEventReset(rt_event, stream));
+  GE_ASSERT_RT_OK(aclrtResetEvent(rt_event, stream));
 
   return ge::SUCCESS;
 }

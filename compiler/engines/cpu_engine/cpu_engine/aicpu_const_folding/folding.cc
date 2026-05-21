@@ -17,7 +17,13 @@
 
 #include <vector>
 #include <set>
+#include <string>
+#include <unordered_map>
+#include <dirent.h>
+#include <dlfcn.h>
+#include <cstring>
 #include "cpu_kernel_register.h"
+#include "cpu_kernel.h"
 #include "cpu_context.h"
 #include "proto/aicpu/cpu_attr.pb.h"
 #include "proto/aicpu/cpu_node_def.pb.h"
@@ -25,6 +31,7 @@
 #include "proto/aicpu/cpu_tensor_shape.pb.h"
 #include "util/log.h"
 #include "graph/types.h"
+#include "mmpa/mmpa_api.h"
 
 namespace {
 const char* const kVtString = "VT_STRING";
@@ -40,7 +47,31 @@ const char* const kVtDataType = "VT_DATA_TYPE";
 const char* const kVtListDataType = "VT_LIST_DATA_TYPE";
 const char* const kVtTensor = "VT_TENSOR";
 const char* const kVtListTensor = "VT_LIST_TENSOR";
+const char kPathSeparator = '/';
+const char* const kConstantFoldingSoPrefix = "lib";
+const char* const kConstantFoldingSoSuffix = "constant_folding_ops.so";
+const char* const kExcludedConstantFoldingSo = "libconstant_folding_ops.so";
+const char* const kSymGetAllRegisteredOpTypesV2 = "GetAllRegisteredOpTypesV2";
+const char* const kSymIsRegisteredV2 = "IsRegisteredV2";
+const char* const kSymRunCpuKernelV2 = "RunCpuKernelV2";
+
 using AttrValueMap = google::protobuf::Map<string, aicpuops::AttrValue>;
+
+using GetAllRegisteredOpTypesV2Fn = std::vector<std::string>(*)();
+using IsRegisteredV2Fn = bool(*)(const std::string &);
+using RunCpuKernelV2Fn = uint32_t(*)(aicpu::CpuKernelContext &);
+
+struct V2ModuleBinding {
+  void *handle = nullptr;
+  GetAllRegisteredOpTypesV2Fn get_all_op_types = nullptr;
+  IsRegisteredV2Fn is_registered = nullptr;
+  RunCpuKernelV2Fn run_cpu_kernel = nullptr;
+  std::string so_name;
+};
+
+std::vector<V2ModuleBinding> g_v2_bindings;
+// op_type->binding反向索引, Init阶段一次性构建, 运行期只读。
+std::unordered_map<std::string, const V2ModuleBinding *> g_v2_op_index;
 
 void ConvertGeToAicpuTensor(const ge::GeTensorDesc &tensor_desc,
                             const std::string &tensor_name,
@@ -396,16 +427,91 @@ int32_t AddAttrToNodeDef(const ge::Operator &op, const char *name,
   }
   return ret;
 }
+
+std::string GetRealPath(const std::string &path) {
+  char resoved_path[PATH_MAX] = {0};
+  if(realpath(path.c_str(), resoved_path) != nullptr) {
+    return std::string(resoved_path);
+  }
+  AICPUE_LOGW("path %s does not exist", path.c_str());
+  return "";
+}
+
+std::string EnsureTrailingSlash(const std::string &path) {
+  if (path.empty() || path.back() == kPathSeparator) {
+    return path;
+  }
+  return path + kPathSeparator;
+}
+
+bool IsConstantFoldingSo(const std::string &file_name) {
+  if (file_name.find(kConstantFoldingSoPrefix) != 0U) {
+    return false;
+  }
+  size_t suffix_len = strlen(kConstantFoldingSoSuffix);
+  if (file_name.length() < suffix_len) {
+    return false;
+  }
+  if (file_name.compare(file_name.length() - suffix_len,
+                        suffix_len, kConstantFoldingSoSuffix) != 0) {
+    return false;
+  }
+  return file_name != kExcludedConstantFoldingSo;
+}
+
+void TryBindV2Symbols(void *handle, const std::string &so_name) {
+  V2ModuleBinding binding;
+  binding.handle = handle;
+  binding.so_name = so_name;
+
+  binding.get_all_op_types = reinterpret_cast<GetAllRegisteredOpTypesV2Fn>(
+      dlsym(handle, kSymGetAllRegisteredOpTypesV2));
+  binding.is_registered = reinterpret_cast<IsRegisteredV2Fn>(
+      dlsym(handle, kSymIsRegisteredV2));
+  binding.run_cpu_kernel = reinterpret_cast<RunCpuKernelV2Fn>(
+      dlsym(handle, kSymRunCpuKernelV2));
+
+  if ((binding.get_all_op_types == nullptr) &&
+      (binding.run_cpu_kernel == nullptr)) {
+    AICPUE_LOGW("V2 C ABI symbols not found in so[%s], skip V2 binding.",
+                so_name.c_str());
+    return;
+  }
+  g_v2_bindings.emplace_back(binding);
+}
+
+void LoadConstantFoldingSo(const std::string &base_path) {
+  std::string dir_path = base_path + "opp/built-in/op_impl/host_cpu/";
+  DIR *dir = opendir(dir_path.c_str());
+  if (dir == nullptr) {
+    AICPUE_LOGW("Failed to open directory: %s", dir_path.c_str());
+    return;
+  }
+  struct dirent *entry = nullptr;
+  while ((entry = readdir(dir)) != nullptr) {
+    if (!IsConstantFoldingSo(entry->d_name)) {
+      continue;
+    }
+    std::string lib_path = GetRealPath(dir_path + entry->d_name);
+    if (lib_path.empty()) {
+      continue;
+    }
+    AICPUE_LOGI("Found constant folding so: %s", lib_path.c_str());
+    void *handle = dlopen(lib_path.c_str(), RTLD_NOW | RTLD_GLOBAL);
+    if (handle == nullptr) {
+      AICPUE_LOGW("dlopen failed: %s, reason: %s",
+                   lib_path.c_str(), dlerror());
+      continue;
+    }
+    AICPUE_LOGI("Successfully loaded: %s", lib_path.c_str());
+    TryBindV2Symbols(handle, entry->d_name);
+  }
+  closedir(dir);
+}
 }  // namespace
 
-extern "C" {
-__attribute__((visibility("default"))) int32_t InitCpuConstantFoldingNew(
-    ge::HostCpuOp *(*create_fn)()) {
-  AICPUE_LOGI("Init cpu constant folding begin.");
+void RegisterHostCpuOp(std::vector<std::string> ops, ge::HostCpuOp *(*create_fn)()) {
   std::set<std::string> black_list = {"Assign", "NoOp", "TruncatedNormal"};
-  std::vector<std::string> ops =
-      aicpu::CpuKernelRegister::Instance().GetAllRegisteredOpTypes();
-  AICPUE_LOGI("Number of registered ops: %llu", static_cast<uint64_t>(ops.size()));
   for (const std::string &op_type : ops) {
     if (black_list.find(op_type) != black_list.end()) {
       continue;
@@ -414,71 +520,102 @@ __attribute__((visibility("default"))) int32_t InitCpuConstantFoldingNew(
     ::ge::HostCpuOpRegistrar registrar __attribute__((unused)) =
         ::ge::HostCpuOpRegistrar(op_type.c_str(), create_fn);
   }
+}
+
+extern "C" {
+__attribute__((visibility("default"))) int32_t InitCpuConstantFoldingNew(
+    ge::HostCpuOp *(*create_fn)()) {
+  AICPUE_LOGI("Init cpu constant folding begin.");
+
+  const char *path_env = nullptr;
+  MM_SYS_GET_ENV(MM_ENV_ASCEND_HOME_PATH, path_env);
+  if (path_env == nullptr) {
+    AICPUE_LOGE("ASCEND_HOME_PATH environment variable not found");
+    return -1;
+  }
+
+  std::string base_path = EnsureTrailingSlash(path_env);
+  AICPUE_LOGI("ASCEND_HOME_PATH is %s", base_path.c_str());
+
+  LoadConstantFoldingSo(base_path);
+
+  std::vector<std::string> ops =
+      aicpu::CpuKernelRegister::Instance().GetAllRegisteredOpTypes();
+  AICPUE_LOGI("Registered V1 ops: %llu", static_cast<uint64_t>(ops.size()));
+  RegisterHostCpuOp(ops, create_fn);
+
+  // 枚举每个ops so的V2算子, 同时构建op_type->binding反向索引。
+  g_v2_op_index.clear();
+  for (const auto &binding : g_v2_bindings) {
+    if (binding.get_all_op_types == nullptr) {
+      continue;
+    }
+    std::vector<std::string> ops_v2 = binding.get_all_op_types();
+    for (const std::string &op_type : ops_v2) {
+      // 多so重复注册同一op_type时保留先加载者, 避免后加载者静默覆盖。
+      auto insert_ret = g_v2_op_index.emplace(op_type, &binding);
+      if (!insert_ret.second) {
+        AICPUE_LOGW(
+            "op type [%s] V2 already indexed by so[%s], so[%s] skipped.",
+            op_type.c_str(), insert_ret.first->second->so_name.c_str(),
+            binding.so_name.c_str());
+      }
+    }
+    AICPUE_LOGI("Registered V2 ops from so[%s]: %llu",
+                binding.so_name.c_str(),
+                static_cast<uint64_t>(ops_v2.size()));
+    RegisterHostCpuOp(ops_v2, create_fn);
+  }
+
+  return 0;
+}
+int32_t BuildInputTensors(const ge::OpDescPtr &op_desc,
+    const std::map<std::string, const ge::Tensor> &inputs,
+    const char *op_type, aicpuops::NodeDef &node_def) {
+  uint32_t count = static_cast<uint32_t>(op_desc->GetAllInputsSize());
+  for (uint32_t i = 0; i < count; ++i) {
+    ge::GeTensorDescPtr desc = op_desc->MutableInputDesc(i);
+    if (desc == nullptr) {
+      continue;
+    }
+    std::string name = op_desc->GetInputNameByIndex(i);
+    auto iter = inputs.find(name);
+    if (iter == inputs.end()) {
+      AICPUE_LOGW("Op[%s] input[%s] not found.", op_type, name.c_str());
+      return -1;
+    }
+    aicpuops::Tensor *tensor = node_def.add_inputs();
+    if (tensor == nullptr) {
+      return -1;
+    }
+    ConvertGeToAicpuTensor(*desc, name, iter->second, tensor);
+  }
   return 0;
 }
 
-__attribute__((visibility("default"))) int32_t CpuConstantFoldingComputeNew(
-    const ge::Operator &op, const std::map<std::string, const ge::Tensor> &inputs,
-    std::map<std::string, ge::Tensor> outputs) {
-  ge::AscendString op_type;
-  if (op.GetOpType(op_type) != ge::GRAPH_SUCCESS) {
-    return -1;
-  }
-  AICPUE_LOGI("Enter cpu op[%s].", op_type.GetString());
-  std::string op_type_str(op_type.GetString());
-  auto kernel = aicpu::CpuKernelRegister::Instance().GetCpuKernel(op_type_str);
-  if (kernel == nullptr) {
-    AICPUE_LOGW("Op[%s] is not registered in cpu kernels.", op_type.GetString());
-    return -1;
-  }
-
-  auto op_desc = ge::OpDescUtils::GetOpDescFromOperator(op);
-  if (op_desc == nullptr) {
-    AICPUE_LOGW("Op[%s] get op desc from operator failed.", op_type.GetString());
-    return -1;
-  }
-  aicpuops::NodeDef node_def;
-  node_def.set_op(op_type_str);
-  uint32_t input_size = static_cast<uint32_t>(op_desc->GetAllInputsSize());
-  for (uint32_t i = 0; i < input_size; ++i) {
-    ge::GeTensorDescPtr input_desc = op_desc->MutableInputDesc(i);
-    if (input_desc == nullptr) {
-      continue;
-    }
-    std::string input_name = op_desc->GetInputNameByIndex(i);
-    auto iter = inputs.find(input_name);
-    if (iter == inputs.end()) {
-      AICPUE_LOGW("Op[%s] input tensor[%s] is not found in inputs.",
-             op_type.GetString(), input_name.c_str());
-      return -1;
-    }
-
-    aicpuops::Tensor *input_tensor = node_def.add_inputs();
-    if (input_tensor == nullptr) {
-      return -1;
-    }
-    ConvertGeToAicpuTensor(*input_desc, input_name, iter->second, input_tensor);
-  }
-
-  uint32_t output_size = static_cast<uint32_t>(op_desc->GetOutputsSize());
-  for (uint32_t i = 0; i < output_size; ++i) {
-    ge::GeTensorDesc output_desc = op_desc->GetOutputDesc(i);
-    std::string output_name = op_desc->GetOutputNameByIndex(i);
-    auto iter = outputs.find(output_name);
+int32_t BuildOutputTensors(const ge::OpDescPtr &op_desc,
+    std::map<std::string, ge::Tensor> &outputs,
+    const char *op_type, aicpuops::NodeDef &node_def) {
+  uint32_t count = static_cast<uint32_t>(op_desc->GetOutputsSize());
+  for (uint32_t i = 0; i < count; ++i) {
+    ge::GeTensorDesc desc = op_desc->GetOutputDesc(i);
+    std::string name = op_desc->GetOutputNameByIndex(i);
+    auto iter = outputs.find(name);
     if (iter == outputs.end()) {
-      AICPUE_LOGW("Op[%s] output tensor[%s] is not found in outputs.",
-             op_type.GetString(), output_name.c_str());
+      AICPUE_LOGW("Op[%s] output[%s] not found.", op_type, name.c_str());
       return -1;
     }
-
-    aicpuops::Tensor *output_tensor = node_def.add_outputs();
-    if (output_tensor == nullptr) {
+    aicpuops::Tensor *tensor = node_def.add_outputs();
+    if (tensor == nullptr) {
       return -1;
     }
-    ConvertGeToAicpuTensor(output_desc, output_name, iter->second,
-                           output_tensor);
+    ConvertGeToAicpuTensor(desc, name, iter->second, tensor);
   }
+  return 0;
+}
 
+int32_t BuildNodeDefAttrs(const ge::Operator &op,
+                          aicpuops::NodeDef &node_def) {
   std::map<ge::AscendString, ge::AscendString> attrs;
   if (op.GetAllAttrNamesAndTypes(attrs) != ge::GRAPH_SUCCESS) {
     return -1;
@@ -491,25 +628,101 @@ __attribute__((visibility("default"))) int32_t CpuConstantFoldingComputeNew(
     if (ret != 0) {
       return ret;
     }
-
-    auto node_def_attrs = node_def.mutable_attrs();
+    auto *node_def_attrs = node_def.mutable_attrs();
     if (node_def_attrs == nullptr) {
-      return -1;    
+      return -1;
     }
-
-    auto pair = node_def_attrs->insert(AttrValueMap::value_type(std::string(name), attr_value));
+    auto pair = node_def_attrs->insert(
+        AttrValueMap::value_type(std::string(name), attr_value));
     if (!pair.second) {
-      return -1;    
+      return -1;
     }
+  }
+  return 0;
+}
+
+int32_t BuildNodeDef(const ge::Operator &op, const std::string &op_type_str,
+    const std::map<std::string, const ge::Tensor> &inputs,
+    std::map<std::string, ge::Tensor> &outputs,
+    aicpuops::NodeDef &node_def) {
+  auto op_desc = ge::OpDescUtils::GetOpDescFromOperator(op);
+  if (op_desc == nullptr) {
+    AICPUE_LOGW("Op[%s] get op desc failed.", op_type_str.c_str());
+    return -1;
+  }
+  node_def.set_op(op_type_str);
+  int32_t ret = BuildInputTensors(
+      op_desc, inputs, op_type_str.c_str(), node_def);
+  if (ret != 0) {
+    return ret;
+  }
+  ret = BuildOutputTensors(
+      op_desc, outputs, op_type_str.c_str(), node_def);
+  if (ret != 0) {
+    return ret;
+  }
+  return BuildNodeDefAttrs(op, node_def);
+}
+
+// 查找op_type对应的V2 binding。未命中返回nullptr表示走V1路径。
+const V2ModuleBinding *LookupV2Binding(const std::string &op_type) {
+  auto iter = g_v2_op_index.find(op_type);
+  if (iter == g_v2_op_index.end()) {
+    return nullptr;
+  }
+  const V2ModuleBinding *binding = iter->second;
+  if ((binding == nullptr) || (binding->run_cpu_kernel == nullptr)) {
+    return nullptr;
+  }
+  return binding;
+}
+
+__attribute__((visibility("default"))) int32_t CpuConstantFoldingComputeNew(
+    const ge::Operator &op,
+    const std::map<std::string, const ge::Tensor> &inputs,
+    std::map<std::string, ge::Tensor> outputs) {
+  ge::AscendString op_type;
+  if (op.GetOpType(op_type) != ge::GRAPH_SUCCESS) {
+    return -1;
+  }
+  AICPUE_LOGI("Enter cpu op[%s].", op_type.GetString());
+  std::string op_type_str(op_type.GetString());
+
+  const V2ModuleBinding *hit_binding = LookupV2Binding(op_type_str);
+  if (hit_binding == nullptr) {
+    if (aicpu::CpuKernelRegister::Instance().GetCpuKernel(op_type_str) == nullptr) {
+      AICPUE_LOGW("op type [%s] is not registered in v1 nor v2.",
+                  op_type.GetString());
+      return -1;
+    }
+    AICPUE_LOGI("op type [%s] use v1 kernel from local register.",
+                op_type.GetString());
+  } else {
+    AICPUE_LOGI("op type [%s] hit v2 in so[%s].",
+                op_type.GetString(), hit_binding->so_name.c_str());
+  }
+
+  aicpuops::NodeDef node_def;
+  int32_t ret = BuildNodeDef(op, op_type_str, inputs, outputs, node_def);
+  if (ret != 0) {
+    return ret;
   }
 
   aicpu::CpuKernelContext ctx(aicpu::HOST);
-  int32_t ret = ctx.Init(&node_def);
+  ret = ctx.Init(&node_def);
   if (ret != 0) {
     return -1;
   }
 
-  ret = aicpu::CpuKernelRegister::Instance().RunCpuKernel(ctx);
+  if (hit_binding != nullptr) {
+    AICPUE_LOGI("op type [%s] run cpu kernel v2 in so[%s].",
+                op_type.GetString(), hit_binding->so_name.c_str());
+    ret = static_cast<int32_t>(hit_binding->run_cpu_kernel(ctx));
+  } else {
+    AICPUE_LOGI("op type [%s] run cpu kernel v1.", op_type.GetString());
+    ret = static_cast<int32_t>(
+        aicpu::CpuKernelRegister::Instance().RunCpuKernel(ctx));
+  }
   if (ret != 0) {
     return -1;
   }

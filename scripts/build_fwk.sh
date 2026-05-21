@@ -276,9 +276,15 @@ build_graphengine()
   mk_dir "${BUILD_PATH}"
   cd "${BUILD_PATH}"
   if [[ "X$CMAKE_BUILD_TYPE" = "XGCOV" ]]; then
-    ENABLE_GCOV="true"
+    if [[ "X$ENABLE_GE_COV" = "Xon" ]]; then
+      ENABLE_GCOV="true"
+      echo "[INFO] Coverage mode enabled (-c parameter), GCOV=true"
+    else
+      ENABLE_GCOV="false"
+      echo "[INFO] Coverage mode disabled (no -c parameter), GCOV=false"
+    fi
     if [[ "X$ENABLE_PARSER_UT" != "Xon" ]] && [[ "X$ENABLE_PARSER_ST" != "Xon" ]]; then
-      ENABLE_ASAN="true"
+      ENABLE_ASAN=${ASAN_MODE}
     fi
   fi
   cmake -D ENABLE_OPEN_SRC=True \

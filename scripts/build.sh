@@ -80,6 +80,7 @@ checkopts()
   NABLE_RTS_LLT="off"
   ENABLE_HCCE_LLT="off"
   ENABLE_LLT_COV="off"
+  ENABLE_GCOV="false"
   PLATFORM="all"
   PRODUCT="normal"
   ENABLE_UT="off"
@@ -96,7 +97,7 @@ checkopts()
     case "${opt}" in
       n)
         ENABLE_FE_LLT="on"
-        ENABLE_ASAN="true"
+        ENABLE_ASAN=${ASAN_MODE}
         CMAKE_BUILD_TYPE="GCOV"
         ;;
       t)
@@ -135,6 +136,7 @@ checkopts()
         ;;
       c)
         ENABLE_LLT_COV="on"
+        ENABLE_GCOV="true"
         CMAKE_BUILD_TYPE="GCOV"
         ;;
       h)
@@ -305,6 +307,11 @@ build_air()
         fi
     fi
   fi
+  if [[ "X$ENABLE_GCOV" = "Xtrue" ]]; then
+    echo "[INFO] Coverage mode enabled (-c parameter), GCOV=true"
+  else
+    echo "[INFO] Coverage mode disabled (no -c parameter), GCOV=false"
+  fi
   mk_dir "${BUILD_PATH}"
   cd "${BUILD_PATH}"
   cmake -D BUILD_OPEN_PROJECT=True \
@@ -328,6 +335,7 @@ build_air()
         -D CANN_3RD_LIB_PATH=${CANN_3RD_LIB_PATH} \
         -D CMAKE_INSTALL_PREFIX=${OUTPUT_PATH} \
         -D ENABLE_ASAN=${ENABLE_ASAN} \
+        -D ENABLE_GCOV=${ENABLE_GCOV} \
         -D CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} \
         -D ENABLE_PKG=${ENABLE_PKG} \
         -D ENABLE_LLT_PKG=${ENABLE_LLT_PKG} \

@@ -193,19 +193,21 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case01_TwoStream_AccessMemCrossStream
 
     // check task on stream 0
     std::vector<TaskTypeOnStream> expect_task_infos_on_stream0 = {
-        TaskTypeOnStream::rtKernelLaunchWithFlagV2,
-        TaskTypeOnStream::rtStreamWaitEvent, TaskTypeOnStream::rtStreamWaitEvent};
-    auto task_on_stream0 = runtime_stub.GetRtsRuntimeStub().GetAllTaskOnStream(stream);
+        gert::TaskTypeOnStream::rtEventRecord, gert::TaskTypeOnStream::rtStreamWaitEvent,
+        gert::TaskTypeOnStream::rtMemcpyAsync,
+        gert::TaskTypeOnStream::rtStreamWaitEvent};
+    auto task_on_stream0 = runtime_stub.GetAclRuntimeStub().GetAllTaskOnStream(stream);
     EXPECT_EQ(task_on_stream0.size(), expect_task_infos_on_stream0.size());
     for (size_t i = 0; i < task_on_stream0.size(); ++i) {
       EXPECT_EQ(task_on_stream0[i], expect_task_infos_on_stream0[i]);
     }
 
     // check task on stream 1
-    std::vector<TaskTypeOnStream> expect_task_infos_on_stream1 = {TaskTypeOnStream::rtStreamWaitEvent,
-                                                                  TaskTypeOnStream::rtKernelLaunchWithFlagV2
+    std::vector<TaskTypeOnStream> expect_task_infos_on_stream1 ={
+        gert::TaskTypeOnStream::rtStreamWaitEvent, gert::TaskTypeOnStream::rtEventRecord,
+        gert::TaskTypeOnStream::rtEventRecord
     };
-    auto task_on_stream1 = runtime_stub.GetRtsRuntimeStub().GetAllTaskOnStream(all_rt_streams[1]);
+    auto task_on_stream1 = runtime_stub.GetAclRuntimeStub().GetAllTaskOnStream(all_rt_streams[1]);
     EXPECT_EQ(task_on_stream1.size(), expect_task_infos_on_stream1.size());
     for (size_t i = 0; i < task_on_stream1.size(); ++i) {
       EXPECT_EQ(task_on_stream1[i], expect_task_infos_on_stream1[i]);
@@ -324,19 +326,20 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case02_TwoStream_ConsumersInAndCrossS
 
     // check task on stream 0
     std::vector<TaskTypeOnStream> expect_task_infos_on_main = {
-        TaskTypeOnStream::rtKernelLaunchWithFlagV2,
-        TaskTypeOnStream::rtKernelLaunchWithFlagV2, TaskTypeOnStream::rtStreamWaitEvent, TaskTypeOnStream::rtStreamWaitEvent};
-    auto task_on_stream = runtime_stub.GetRtsRuntimeStub().GetAllTaskOnStream(stream);
+        gert::TaskTypeOnStream::rtEventRecord, gert::TaskTypeOnStream::rtStreamWaitEvent,
+        gert::TaskTypeOnStream::rtMemcpyAsync,
+        gert::TaskTypeOnStream::rtStreamWaitEvent};
+    auto task_on_stream = runtime_stub.GetAclRuntimeStub().GetAllTaskOnStream(stream);
     EXPECT_EQ(task_on_stream.size(), expect_task_infos_on_main.size());
     for (size_t i = 0U; i < task_on_stream.size(); ++i) {
       EXPECT_EQ(task_on_stream[i], expect_task_infos_on_main[i]);
     }
     // check task on stream 1
     std::vector<TaskTypeOnStream> expect_task_infos_on_stream1 = {
-        TaskTypeOnStream::rtStreamWaitEvent, TaskTypeOnStream::rtKernelLaunchWithFlagV2,
-        TaskTypeOnStream::rtKernelLaunchWithFlagV2,  // atomic clean
+        gert::TaskTypeOnStream::rtStreamWaitEvent, gert::TaskTypeOnStream::rtEventRecord,
+        gert::TaskTypeOnStream::rtEventRecord,  // atomic clean
     };
-    auto task_on_stream1 = runtime_stub.GetRtsRuntimeStub().GetAllTaskOnStream(all_rt_streams[1]);
+    auto task_on_stream1 = runtime_stub.GetAclRuntimeStub().GetAllTaskOnStream(all_rt_streams[1]);
     EXPECT_EQ(task_on_stream1.size(), expect_task_infos_on_stream1.size());
     for (size_t i = 0; i < task_on_stream1.size(); ++i) {
       EXPECT_EQ(task_on_stream1[i], expect_task_infos_on_stream1[i]);
@@ -430,9 +433,11 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case03_TwoStream_HostMemAccessCrossSt
 
     // check task on stream 0
     std::vector<TaskTypeOnStream> expect_task_infos_on_stream0 = {
-        TaskTypeOnStream::rtStreamWaitEvent,  // netoutput wait
-        TaskTypeOnStream::rtStreamWaitEvent};     // model copy?
-    auto task_on_stream0 = runtime_stub.GetRtsRuntimeStub().GetAllTaskOnStream(stream);
+        gert::TaskTypeOnStream::rtEventRecord, gert::TaskTypeOnStream::rtEventRecord,
+        gert::TaskTypeOnStream::rtStreamWaitEvent,
+        gert::TaskTypeOnStream::rtMemcpyAsync,
+        gert::TaskTypeOnStream::rtStreamWaitEvent};
+    auto task_on_stream0 = runtime_stub.GetAclRuntimeStub().GetAllTaskOnStream(stream);
     EXPECT_EQ(task_on_stream0.size(), expect_task_infos_on_stream0.size());
     for (size_t i = 0; i < task_on_stream0.size(); ++i) {
       EXPECT_EQ(task_on_stream0[i], expect_task_infos_on_stream0[i]);
@@ -440,12 +445,11 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case03_TwoStream_HostMemAccessCrossSt
 
     // check task on stream 1
     std::vector<TaskTypeOnStream> expect_task_infos_on_stream1 = {
-        //  TaskTypeOnStream::rtMemcpyAsync,             // copy h2d optimized to copy flow launch
-        TaskTypeOnStream::rtStreamWaitEvent,         // wait event 0
-        TaskTypeOnStream::rtStreamWaitEvent,         // wait event 1
-        TaskTypeOnStream::rtKernelLaunchWithFlagV2  // add launch
+        gert::TaskTypeOnStream::rtStreamWaitEvent, gert::TaskTypeOnStream::rtStreamWaitEvent,
+        gert::TaskTypeOnStream::rtEventRecord,
+        gert::TaskTypeOnStream::rtEventRecord
     };
-    auto task_on_stream1 = runtime_stub.GetRtsRuntimeStub().GetAllTaskOnStream(all_rt_streams[1]);
+    auto task_on_stream1 = runtime_stub.GetAclRuntimeStub().GetAllTaskOnStream(all_rt_streams[1]);
     EXPECT_EQ(task_on_stream1.size(), expect_task_infos_on_stream1.size());
     for (size_t i = 0; i < task_on_stream1.size(); ++i) {
       EXPECT_EQ(task_on_stream1[i], expect_task_infos_on_stream1[i]);
@@ -542,11 +546,10 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case04_TwoStream_AccessRefMemCrossStr
 
     // check task on stream 0
     std::vector<TaskTypeOnStream> expect_task_infos_on_stream0 = {
-        TaskTypeOnStream::rtKernelLaunchWithFlagV2,  // assign launch
-        TaskTypeOnStream::rtKernelLaunchWithFlagV2,  // transdata launch
-        TaskTypeOnStream::rtStreamWaitEvent,         // netoutput wait
-        TaskTypeOnStream::rtStreamWaitEvent};            // model copy?
-    auto task_on_stream0 = runtime_stub.GetRtsRuntimeStub().GetAllTaskOnStream(stream);
+        gert::TaskTypeOnStream::rtEventRecord, gert::TaskTypeOnStream::rtStreamWaitEvent,
+        gert::TaskTypeOnStream::rtMemcpyAsync,
+        gert::TaskTypeOnStream::rtStreamWaitEvent};
+    auto task_on_stream0 = runtime_stub.GetAclRuntimeStub().GetAllTaskOnStream(stream);
     EXPECT_EQ(task_on_stream0.size(), expect_task_infos_on_stream0.size());
     for (size_t i = 0; i < task_on_stream0.size(); ++i) {
       EXPECT_EQ(task_on_stream0[i], expect_task_infos_on_stream0[i]);
@@ -554,10 +557,10 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case04_TwoStream_AccessRefMemCrossStr
 
     // check task on stream 1
     std::vector<TaskTypeOnStream> expect_task_infos_on_stream1 = {
-        TaskTypeOnStream::rtStreamWaitEvent,         // relu wait
-        TaskTypeOnStream::rtKernelLaunchWithFlagV2,  // relu launch
+        gert::TaskTypeOnStream::rtStreamWaitEvent, gert::TaskTypeOnStream::rtEventRecord,
+        gert::TaskTypeOnStream::rtEventRecord
     };
-    auto task_on_stream1 = runtime_stub.GetRtsRuntimeStub().GetAllTaskOnStream(all_rt_streams[1]);
+    auto task_on_stream1 = runtime_stub.GetAclRuntimeStub().GetAllTaskOnStream(all_rt_streams[1]);
     EXPECT_EQ(task_on_stream1.size(), expect_task_infos_on_stream1.size());
     for (size_t i = 0; i < task_on_stream1.size(); ++i) {
       EXPECT_EQ(task_on_stream1[i], expect_task_infos_on_stream1[i]);
@@ -741,15 +744,12 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case06_TwoStream_WithStaticSubGraph_o
 
     // check task on stream 0
     std::vector<TaskTypeOnStream> expect_task_infos_on_stream0 = {
-        TaskTypeOnStream::rtStreamWaitEvent,         // partitioned call wait
-        TaskTypeOnStream::rtModelExecute,            // partitioned execute
-        TaskTypeOnStream::rtKernelLaunchWithFlagV2,  // transdata launch
-        TaskTypeOnStream::rtMemcpyAsync,
-        TaskTypeOnStream::rtStreamWaitEvent,
-        TaskTypeOnStream::rtStreamWaitEvent,
-        TaskTypeOnStream::rtStreamWaitEvent,         // branch to main stream
+        gert::TaskTypeOnStream::rtEventRecord, gert::TaskTypeOnStream::rtStreamWaitEvent,
+        gert::TaskTypeOnStream::rtMemcpyAsync,
+        gert::TaskTypeOnStream::rtMemcpyAsync, gert::TaskTypeOnStream::rtStreamWaitEvent,
+        gert::TaskTypeOnStream::rtStreamWaitEvent, gert::TaskTypeOnStream::rtStreamWaitEvent
     };  // model copy?
-    auto task_on_stream0 = runtime_stub.GetRtsRuntimeStub().GetAllTaskOnStream(stream);
+    auto task_on_stream0 = runtime_stub.GetAclRuntimeStub().GetAllTaskOnStream(stream);
     EXPECT_EQ(task_on_stream0.size(), expect_task_infos_on_stream0.size());
     for (size_t i = 0; i < task_on_stream0.size(); ++i) {
       EXPECT_EQ(task_on_stream0[i], expect_task_infos_on_stream0[i]);
@@ -757,10 +757,10 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case06_TwoStream_WithStaticSubGraph_o
 
     // check task on stream 1
     std::vector<TaskTypeOnStream> expect_task_infos_on_stream1 = {
-        TaskTypeOnStream::rtStreamWaitEvent,         // relu wait
-        TaskTypeOnStream::rtKernelLaunchWithFlagV2,  // relu launch
+        gert::TaskTypeOnStream::rtStreamWaitEvent, gert::TaskTypeOnStream::rtEventRecord,
+        gert::TaskTypeOnStream::rtEventRecord
     };
-    auto task_on_stream1 = runtime_stub.GetRtsRuntimeStub().GetAllTaskOnStream(all_rt_streams[1]);
+    auto task_on_stream1 = runtime_stub.GetAclRuntimeStub().GetAllTaskOnStream(all_rt_streams[1]);
     EXPECT_EQ(task_on_stream1.size(), expect_task_infos_on_stream1.size());
     for (size_t i = 0; i < task_on_stream1.size(); ++i) {
       EXPECT_EQ(task_on_stream1[i], expect_task_infos_on_stream1[i]);
@@ -894,9 +894,9 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case07_TwoStream_WithFirstEventSync_o
 
     // check task on stream 0
     std::vector<TaskTypeOnStream> expect_task_infos_on_stream0 = {
-        TaskTypeOnStream::rtStreamWaitEvent,
-        TaskTypeOnStream::rtKernelLaunchWithFlagV2, TaskTypeOnStream::rtStreamWaitEvent};
-    auto task_on_stream0 = runtime_stub.GetRtsRuntimeStub().GetAllTaskOnStream(stream);
+        gert::TaskTypeOnStream::rtEventRecord, gert::TaskTypeOnStream::rtStreamWaitEvent,
+        gert::TaskTypeOnStream::rtStreamWaitEvent};
+    auto task_on_stream0 = runtime_stub.GetAclRuntimeStub().GetAllTaskOnStream(stream);
     EXPECT_EQ(task_on_stream0.size(), expect_task_infos_on_stream0.size());
     for (size_t i = 0; i < task_on_stream0.size(); ++i) {
       EXPECT_EQ(task_on_stream0[i], expect_task_infos_on_stream0[i]);
@@ -904,8 +904,9 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case07_TwoStream_WithFirstEventSync_o
 
     // check task on stream 1
     auto all_rt_streams = runtime_stub.GetRtsRuntimeStub().GetAllRtStreams();
-    std::vector<TaskTypeOnStream> expect_task_infos_on_stream1 = {TaskTypeOnStream::rtStreamWaitEvent};
-    auto task_on_stream1 = runtime_stub.GetRtsRuntimeStub().GetAllTaskOnStream(all_rt_streams[1]);
+    std::vector<TaskTypeOnStream> expect_task_infos_on_stream1 = {gert::TaskTypeOnStream::rtStreamWaitEvent,
+                                                                  gert::TaskTypeOnStream::rtEventRecord, gert::TaskTypeOnStream::rtEventRecord};
+    auto task_on_stream1 = runtime_stub.GetAclRuntimeStub().GetAllTaskOnStream(all_rt_streams[1]);
     EXPECT_EQ(task_on_stream1.size(), expect_task_infos_on_stream1.size());
     for (size_t i = 0; i < task_on_stream1.size(); ++i) {
       EXPECT_EQ(task_on_stream1[i], expect_task_infos_on_stream1[i]);
@@ -980,12 +981,11 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case08_TwoStream_WithLastEventSync_ok
     auto all_rt_streams = runtime_stub.GetRtsRuntimeStub().GetAllRtStreams();
     EXPECT_EQ(stream, all_rt_streams[0]);
     std::vector<TaskTypeOnStream> expect_task_infos_on_stream0 = {
-        TaskTypeOnStream::rtKernelLaunchWithFlagV2,
-        TaskTypeOnStream::rtMemcpyAsync,
-        TaskTypeOnStream::rtStreamWaitEvent,
-        TaskTypeOnStream::rtStreamWaitEvent
+        gert::TaskTypeOnStream::rtEventRecord, gert::TaskTypeOnStream::rtEventRecord,
+        gert::TaskTypeOnStream::rtStreamWaitEvent,
+        gert::TaskTypeOnStream::rtStreamWaitEvent
     };
-    auto task_on_stream0 = runtime_stub.GetRtsRuntimeStub().GetAllTaskOnStream(all_rt_streams[0]);
+    auto task_on_stream0 = runtime_stub.GetAclRuntimeStub().GetAllTaskOnStream(all_rt_streams[0]);
     EXPECT_EQ(task_on_stream0.size(), expect_task_infos_on_stream0.size());
     for (size_t i = 0; i < task_on_stream0.size(); ++i) {
       EXPECT_EQ(task_on_stream0[i], expect_task_infos_on_stream0[i]);
@@ -993,10 +993,11 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case08_TwoStream_WithLastEventSync_ok
 
     // check task on stream 1
     std::vector<TaskTypeOnStream> expect_task_infos_on_stream1 = {
-        TaskTypeOnStream::rtStreamWaitEvent, // wait input
-        TaskTypeOnStream::rtStreamWaitEvent, // wait input
+        gert::TaskTypeOnStream::rtStreamWaitEvent, gert::TaskTypeOnStream::rtStreamWaitEvent,
+        gert::TaskTypeOnStream::rtEventRecord,
+        gert::TaskTypeOnStream::rtEventRecord
     };
-    auto task_on_stream1 = runtime_stub.GetRtsRuntimeStub().GetAllTaskOnStream(all_rt_streams[1]);
+    auto task_on_stream1 = runtime_stub.GetAclRuntimeStub().GetAllTaskOnStream(all_rt_streams[1]);
     EXPECT_EQ(task_on_stream1.size(), expect_task_infos_on_stream1.size());
     for (size_t i = 0; i < task_on_stream1.size(); ++i) {
       EXPECT_EQ(task_on_stream1[i], expect_task_infos_on_stream1[i]);

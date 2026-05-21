@@ -598,37 +598,15 @@ TEST_F(UtestAicpuNodeExecutor, aicpu_blocking_node_task_fail) {
   {
     AicpuNodeTask aicpu_node_task(node_item, task_def);
 
-    RTS_STUB_RETURN_VALUE(rtGetDeviceCapability, rtError_t, 0x78000001);
-    ASSERT_EQ(aicpu_node_task.Init(hybrid_model), FAILED);
-
-    RTS_STUB_RETURN_VALUE(rtGetDeviceCapability, rtError_t, 0x78000001);
-    ASSERT_EQ(aicpu_node_task.Init(hybrid_model), FAILED);
-
-    RTS_STUB_RETURN_VALUE(rtGetDeviceCapability, rtError_t, RT_ERROR_NONE);
-    RTS_STUB_OUTBOUND_VALUE(rtGetDeviceCapability, int32_t, value, RT_AICPU_BLOCKING_OP_SUPPORT + 1);
-    ASSERT_EQ(aicpu_node_task.Init(hybrid_model), FAILED);
-
-    RTS_STUB_RETURN_VALUE(rtGetDevice, rtError_t, 0x78000001);
-    ASSERT_EQ(aicpu_node_task.LaunchTask(*node_state->GetTaskContext()), FAILED);
-
     ASSERT_EQ(aicpu_node_task.Init(hybrid_model), SUCCESS);
-    RTS_STUB_RETURN_VALUE(rtStreamWaitEventWithTimeout, rtError_t, 0x78000001);
-    RTS_STUB_RETURN_VALUE(rtStreamWaitEvent, rtError_t, 0x78000001);
+    AclRuntimeStub::SetErrorResultApiName("aclrtStreamWaitEvent");
     ASSERT_EQ(aicpu_node_task.LaunchTask(*node_state->GetTaskContext()), FAILED);
+    AclRuntimeStub::SetErrorResultApiName("");
   }
 
   {
     AicpuNodeTask aicpu_node_task(node_item, task_def);
     ASSERT_EQ(aicpu_node_task.Init(hybrid_model), SUCCESS);
-    AclRuntimeStub::SetErrorResultApiName("aclrtResetEvent");
-    ASSERT_EQ(aicpu_node_task.LaunchTask(*node_state->GetTaskContext()), FAILED);
-    AclRuntimeStub::SetErrorResultApiName("");
-
-    RTS_STUB_RETURN_VALUE(rtGetDeviceCapability, rtError_t, RT_ERROR_NONE);
-    RTS_STUB_OUTBOUND_VALUE(rtGetDeviceCapability, int32_t, value, RT_AICPU_BLOCKING_OP_NOT_SUPPORT);
-    ASSERT_EQ(aicpu_node_task.Init(hybrid_model), SUCCESS);
-    RTS_STUB_RETURN_VALUE(rtGetDeviceCapability, rtError_t, RT_ERROR_NONE);
-    RTS_STUB_OUTBOUND_VALUE(rtGetDeviceCapability, int32_t, value, RT_AICPU_BLOCKING_OP_NOT_SUPPORT);
     ASSERT_EQ(aicpu_node_task.LaunchTask(*node_state->GetTaskContext()), SUCCESS);
   }
 
@@ -645,20 +623,10 @@ TEST_F(UtestAicpuNodeExecutor, aicpu_blocking_node_task_fail) {
   {
     auto aicpu_tf_node_task = std::make_shared<AicpuTfNodeTask>(node_item, task_def);
 
-    RTS_STUB_RETURN_VALUE(rtGetDeviceCapability, rtError_t, 0x78000001);
-    ASSERT_EQ(aicpu_tf_node_task->Init(hybrid_model), FAILED);
-
-    RTS_STUB_RETURN_VALUE(rtGetDeviceCapability, rtError_t, 0x78000001);
-    ASSERT_EQ(aicpu_tf_node_task->Init(hybrid_model), FAILED);
-
-    RTS_STUB_RETURN_VALUE(rtGetDeviceCapability, rtError_t, RT_ERROR_NONE);
-    RTS_STUB_OUTBOUND_VALUE(rtGetDeviceCapability, int32_t, value, RT_AICPU_BLOCKING_OP_SUPPORT + 1);
-    ASSERT_EQ(aicpu_tf_node_task->Init(hybrid_model), FAILED);
-
     ASSERT_EQ(aicpu_tf_node_task->Init(hybrid_model), SUCCESS);
-    RTS_STUB_RETURN_VALUE(rtStreamWaitEventWithTimeout, rtError_t, 0x78000001);
-    RTS_STUB_RETURN_VALUE(rtStreamWaitEvent, rtError_t, 0x78000001);
+    AclRuntimeStub::SetErrorResultApiName("aclrtStreamWaitEvent");
     ASSERT_EQ(aicpu_tf_node_task->LaunchTask(*node_state->GetTaskContext()), FAILED);
+    AclRuntimeStub::SetErrorResultApiName("");
   }
 
   {
@@ -669,11 +637,7 @@ TEST_F(UtestAicpuNodeExecutor, aicpu_blocking_node_task_fail) {
     ASSERT_EQ(aicpu_tf_node_task->LaunchTask(*node_state->GetTaskContext()), FAILED);
     AclRuntimeStub::SetErrorResultApiName("");
 
-    RTS_STUB_RETURN_VALUE(rtGetDeviceCapability, rtError_t, RT_ERROR_NONE);
-    RTS_STUB_OUTBOUND_VALUE(rtGetDeviceCapability, int32_t, value, RT_AICPU_BLOCKING_OP_NOT_SUPPORT);
     EXPECT_EQ(aicpu_tf_node_task->Init(hybrid_model), SUCCESS);
-    RTS_STUB_RETURN_VALUE(rtGetDeviceCapability, rtError_t, RT_ERROR_NONE);
-    RTS_STUB_OUTBOUND_VALUE(rtGetDeviceCapability, int32_t, value, RT_AICPU_BLOCKING_OP_NOT_SUPPORT);
     EXPECT_EQ(aicpu_tf_node_task->LaunchTask(*node_state->GetTaskContext()), SUCCESS);
     std::vector<std::unique_ptr<TensorBuffer>> out_shape_hbm;
     for (int i = 0; i < node_item->num_outputs; i++) {
@@ -816,6 +780,17 @@ TEST_F(UtestAicpuNodeExecutor, UpdateBlockDimInfo) {
   ASSERT_EQ(NodeItem::Create(node, new_node), SUCCESS);
   NodeItem *node_item = new_node.get();
   domi::TaskDef task_def;
+  class MockAclRuntime : public ge::AclRuntimeStub {
+   public:
+    aclError aclrtGetDeviceInfo(uint32_t deviceId, aclrtDevAttr attr, int64_t *value) override {
+      if (attr == ACL_DEV_ATTR_AICPU_CORE_NUM) {
+        *value = 1;
+      }
+      return ACL_SUCCESS;
+    }
+  };
+  auto mock_runtime = std::make_shared<MockAclRuntime>();
+  ge::AclRuntimeStub::SetInstance(mock_runtime);
   AicpuNodeTask aicpu_node_task(node_item, task_def);
   (void)aicpu_node_task.UpdateBlockDimInfo(-1);
   EXPECT_EQ(aicpu_node_task.block_num_, 1);

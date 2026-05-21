@@ -76,6 +76,7 @@
 #include "graph/optimize/autofuse/autofuse_optimize.h"
 #include "graph/manager/graph_var_manager.h"
 #include "common/opskernel/ops_kernel_info_types.h"
+#include "depends/ascendcl/src/ascendcl_stub.h"
 
 using namespace std;
 using namespace ge;
@@ -4212,8 +4213,16 @@ TEST_F(GraphCompilerTest, test_tiling_depend_with_placement_aicpu) {
           std::make_shared<GeTensor>(const_desc0, c_data, 40);
   ge::AttrUtils::SetTensor(constant_desc, ge::ATTR_NAME_WEIGHTS, const_tensor);
 
-  RTS_STUB_RETURN_VALUE(rtGetDeviceCapability, rtError_t, RT_ERROR_NONE);
-  RTS_STUB_OUTBOUND_VALUE(rtGetDeviceCapability, int32_t, value, RT_DEV_CAP_SUPPORT);
+  class MockAclRuntime : public ge::AclRuntimeStub {
+   public:
+    aclError aclrtGetDeviceCapability(int32_t deviceId, aclrtDevFeatureType devFeatureType, int32_t *value) override {
+      *value = ACL_DEV_FEATURE_SUPPORT;
+      return ACL_SUCCESS;
+    }
+  };
+  auto mock_runtime = std::make_shared<MockAclRuntime>();
+  ge::AclRuntimeStub::SetInstance(mock_runtime);
+
   map<AscendString, AscendString> options;
   options.insert({"ge.tiling_schedule_optimize", "1"});
   Session session(options);

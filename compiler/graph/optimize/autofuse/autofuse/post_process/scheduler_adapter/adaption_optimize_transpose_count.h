@@ -13,7 +13,7 @@
 
 #include "ge_common/ge_api_types.h"
 #include "graph/compute_graph.h"
-#include "graph/ascendc_ir/ascendc_ir_core/ascendc_ir.h"
+#include "ascendc_ir/ascendc_ir_core/ascendc_ir.h"
 #include "post_process/post_process_util.h"
 #include "adaption_complete_node_attrs.h"
 

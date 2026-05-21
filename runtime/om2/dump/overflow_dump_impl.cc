@@ -9,6 +9,7 @@
  */
 
 #include "framework/runtime/dump/overflow_dump_impl.h"
+#include "framework/runtime/dump/dump_config.h"
 #include "framework/common/debug/ge_log.h"
 #include "runtime/rt.h"
 #include "acl/acl_rt.h"
@@ -41,7 +42,8 @@ Status OverflowDumpImpl::RegisterForModel(rtModel_t rt_model_handle) {
   }
 
   // 2. 调用 RT 接口注册 Overflow
-  const uint32_t op_debug_mode = 0;  // 默认模式
+  const uint32_t op_debug_mode = DumpConfig::Instance().GetOpDebugMode();
+  GELOGD("Overflow register: op_debug_mode=%u", op_debug_mode);
   uint32_t debug_stream_id = 0U;
   uint32_t debug_task_id = 0U;
   rtError_t rt_ret = rtDebugRegister(rt_model_handle, op_debug_mode, op_debug_addr_,

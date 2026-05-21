@@ -94,14 +94,14 @@ Status RtCallbackManager::CallbackProcess(const aclrtContext context) {
     auto timeout = (!stream_synchronize_timeout.empty())
                        ? static_cast<int32_t>(std::strtol(stream_synchronize_timeout.c_str(), nullptr, 10))
                        : kDefaultTimeOut;
-    const auto rt_err = rtEventSynchronizeWithTimeout(event, timeout);
+    const auto rt_err = aclrtSynchronizeEventWithTimeout(event, timeout);
     if (rt_err == ACL_ERROR_RT_STREAM_SYNC_TIMEOUT) {
-      GELOGE(rt_err, "[Invoke][rtStreamSynchronizeWithTimeout] failed, ret:%d.", rt_err);
-      REPORT_INNER_ERR_MSG("E19999", "rtStreamSynchronizeWithTimeout failed, ret:%d.", rt_err);
+      GELOGE(rt_err, "[Invoke][aclrtSynchronizeEventWithTimeout] failed, ret:%d.", rt_err);
+      REPORT_INNER_ERR_MSG("E19999", "aclrtSynchronizeEventWithTimeout failed, ret:%d.", rt_err);
       rt_timeout = true;
-    } else if (rt_err != RT_ERROR_NONE) {
-      GELOGE(RT_FAILED, "[Invoke][rtEventSynchronize] failed. ret = %d", rt_err);
-      REPORT_INNER_ERR_MSG("E19999", "Invoke rtEventSynchronize failed, ret = %d.", rt_err);
+    } else if (rt_err != ACL_SUCCESS) {
+      GELOGE(RT_FAILED, "[Invoke][aclrtSynchronizeEventWithTimeout] failed. ret = %d", rt_err);
+      REPORT_INNER_ERR_MSG("E19999", "Invoke aclrtSynchronizeEventWithTimeout failed, ret = %d.", rt_err);
       GE_CHK_RT(aclrtDestroyEvent(event));
       return RT_FAILED;
     } else {

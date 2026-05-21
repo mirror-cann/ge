@@ -40,14 +40,15 @@ using Om2TaskInfo = ::Om2TaskInfo;
 // ============================================================
 struct ModelDumpInfo {
   uint32_t model_id;
-  const char *model_name;
-  const char *root_graph_name;
+  const char* model_name;
+  const char* root_graph_name;
   uint32_t device_id;
-  void *rt_model_handle;  // rtModel_t
+  void* rt_model_handle;  // rtModel_t
   uint64_t step_id_addr;
   uint64_t loop_cond_addr;
   uint64_t iterations_per_loop_addr;
 };
+
 
 // ============================================================
 //                   ModelDumpManager 统一门面
@@ -88,10 +89,9 @@ class VISIBILITY_EXPORT ModelDumpManager {
   Status DispatchDumpInfo();
 
   // ========================================================================
-  // 异常查询接口
+  // 异常查询接口（与 V1 exception_dumper 接口保持一致）
   // ========================================================================
-  Status GetOpDescInfo(uint32_t task_id, uint32_t stream_id,
-                        ge::OpDescInfo& op_info) const;
+  bool GetOpDescInfo(const OpDescInfoId& op_id, ge::OpDescInfo& op_info) const;
 
   // ========================================================================
   // 生命周期管理

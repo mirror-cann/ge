@@ -31,7 +31,7 @@ if (ENABLE_METADEF_UT OR ENABLE_METADEF_ST OR ENABLE_BENCHMARK)
 endif()
 
 install(TARGETS lowering graph graph_base register metadef_headers
-        aihac_ir aihac_ir_register aihac_symbolizer
+        aihac_symbolizer
     EXPORT graph_metadef-targets
     LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR} ${INSTALL_OPTIONAL}
     ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR} ${INSTALL_OPTIONAL}
@@ -105,8 +105,6 @@ if (ENABLE_OPEN_SRC)
                     graph
                     graph_base
                     register
-                    aihac_ir
-                    aihac_ir_register
                     aihac_symbolizer
         LIBRARY DESTINATION ${ARCH_LINX_PATH}/lib64 ${INSTALL_OPTIONAL} COMPONENT packages EXCLUDE_FROM_ALL
         ARCHIVE DESTINATION ${ARCH_LINX_PATH}/lib64 ${INSTALL_OPTIONAL} COMPONENT packages EXCLUDE_FROM_ALL

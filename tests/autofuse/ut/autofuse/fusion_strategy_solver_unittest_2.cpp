@@ -72,7 +72,7 @@ static std::shared_ptr<ge::AscGraph> CreateReshapeAscGraph(ge::AscGraph &graph) 
   auto axes = CreateReshapeAxes(graph);
   auto axis_ids = GetReshapeAxisIds(axes);
 
-  ge::ascir_op::Data x1("data_reshape", graph);
+  af::ascir_op::Data x1("data_reshape", graph);
   x1.attr.sched.axis = axis_ids;
   x1.attr.sched.loop_axis = axes.loop_axis;
   *x1.y.axis = axis_ids;
@@ -80,7 +80,7 @@ static std::shared_ptr<ge::AscGraph> CreateReshapeAscGraph(ge::AscGraph &graph) 
   *x1.y.strides = {axes.B * axes.C * axes.D * axes.E, axes.C * axes.D * axes.E,
                    axes.D * axes.E, axes.E, axes.ONE};
 
-  ge::ascir_op::Load x1Local("load_reshape");
+  af::ascir_op::Load x1Local("load_reshape");
   x1Local.x = x1.y;
   x1Local.attr.sched.axis = axis_ids;
   *x1Local.y.axis = axis_ids;
@@ -88,7 +88,7 @@ static std::shared_ptr<ge::AscGraph> CreateReshapeAscGraph(ge::AscGraph &graph) 
   *x1Local.y.strides = {axes.B * axes.C * axes.D * axes.E, axes.C * axes.D * axes.E,
                         axes.D * axes.E, axes.E, axes.ONE};
 
-  ge::ascir_op::Store x_store("store_reshape");
+  af::ascir_op::Store x_store("store_reshape");
   x_store.x = x1Local.y;
   x_store.attr.sched.axis = axis_ids;
   x_store.attr.sched.loop_axis = axes.loop_axis;
@@ -97,7 +97,7 @@ static std::shared_ptr<ge::AscGraph> CreateReshapeAscGraph(ge::AscGraph &graph) 
   *x_store.y.strides = {axes.B * axes.C * axes.D * axes.E, axes.C * axes.D * axes.E,
                         axes.D * axes.E, axes.E, axes.ONE};
 
-  ge::ascir_op::Output x_out("out_reshape");
+  af::ascir_op::Output x_out("out_reshape");
   x_out.x = x_store.y;
   x_out.attr.sched.axis = axis_ids;
   x_out.attr.sched.loop_axis = axes.loop_axis;

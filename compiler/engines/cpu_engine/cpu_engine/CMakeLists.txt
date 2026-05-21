@@ -41,6 +41,7 @@ set(local_hostcpu_builder_src_files
 
 set(local_aicpu_const_folding_src_files
     ${CMAKE_CURRENT_SOURCE_DIR}/aicpu_const_folding/folding.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/aicpu_const_folding/host_cpu_kernel_wrapper.cpp
 )
 
 set(local_lib_inc_path
@@ -84,6 +85,7 @@ if (BUILD_OPEN_PROJECT OR ENABLE_OPEN_SRC)
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${AIR_CODE_DIR}/compiler/engines/cpu_engine
         ${AIR_CODE_DIR}/compiler/engines/cpu_engine/common
+        ${AIR_CODE_DIR}/compiler/engines/cpu_engine/aicpu_const_folding
         ${CMAKE_BINARY_DIR}/proto/aicpu
         ${CMAKE_BINARY_DIR}/proto/aicpu/proto
         ${ASCEND_INSTALL_PATH}/include/aicpu_common/context/common
@@ -94,6 +96,7 @@ else ()
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${AIR_CODE_DIR}/compiler/engines/cpu_engine
         ${AIR_CODE_DIR}/compiler/engines/cpu_engine/common
+        ${AIR_CODE_DIR}/compiler/engines/cpu_engine/aicpu_const_folding
         ${CMAKE_BINARY_DIR}/proto/aicpu
         ${CMAKE_BINARY_DIR}/proto/aicpu/proto
         ${TOP_DIR}/inc/aicpu/cpu_kernels
@@ -151,6 +154,7 @@ target_compile_definitions(aicpu_const_folding PRIVATE
     _FORTIFY_SOURCE=2
     google=ascend_private
     LOG_CPP
+    HOST_VISIBILITY
 )
 
 target_link_options(aicpu_const_folding PRIVATE
@@ -234,24 +238,30 @@ if (BUILD_OPEN_PROJECT OR ENABLE_OPEN_SRC)
         intf_pub
         aicpu_headers
         air_headers
+        mmpa_headers
         -Wl,--no-as-needed
         constant_folding_ops_stub
         slog_headers
         error_manager
         ascend_protobuf
         aicpu_engine_common
+        mmpa
+        json
         -Wl,--as-needed
     )
 else ()
     target_link_libraries(aicpu_const_folding PRIVATE
         intf_pub
         air_headers
+        mmpa_headers
         -Wl,--no-as-needed
         constant_folding_ops_stub
         slog_headers
         error_manager
         ascend_protobuf
         aicpu_engine_common
+        mmpa
+        json
         -Wl,--as-needed
     )
 endif ()

@@ -14,11 +14,11 @@
 #include "common/util/mem_utils.h"
 #include "graph/utils/tensor_utils.h"
 #include "graph/utils/tensor_adapter.h"
-#include "runtime/rt.h"
 #include "acl/acl_rt.h"
 #include "formats/utils/formats_trans_utils.h"
 #include "graph/utils/type_utils.h"
 #include "rt_error_codes.h"
+#include "runtime/rt_external_base.h"
 
 namespace ge {
 namespace {
@@ -572,11 +572,13 @@ std::vector<gert::Tensor> TensorTransUtils::ShareFromGertTenosrs(const std::vect
 
 void TensorTransUtils::AddMemcpyBatchParam(const MemcpyParam &param, MemcpyBatchParam &memcpy_batch_params) {
   GELOGD("Prepare data for batch memcpy, idx: %zu", param.idx);
-  rtMemcpyBatchAttr attr;
+  aclrtMemcpyBatchAttr attr;
   // 仅支持H2D
-  attr.srcLoc.type = RT_MEMORY_LOC_HOST;
-  attr.dstLoc.type = RT_MEMORY_LOC_DEVICE;
+  attr.srcLoc.type = ACL_MEM_LOCATION_TYPE_HOST;
+  attr.dstLoc.type = ACL_MEM_LOCATION_TYPE_DEVICE;
   attr.dstLoc.id = static_cast<uint32_t>(memcpy_batch_params.device_id);
+  attr.srcLoc.id = 0;
+  std::fill(std::begin(attr.rsv), std::end(attr.rsv), 0);
 
   (void)memcpy_batch_params.dsts.emplace_back(param.dst);
   (void)memcpy_batch_params.dst_aligned_sizes.emplace_back(param.dst_aligned_size);
@@ -598,10 +600,12 @@ Status TensorTransUtils::TryBatchMemcpy(MemcpyBatchParam &args) {
         args.src_sizes[0], ACL_MEMCPY_HOST_TO_DEVICE));
   }
   size_t fail_idx = std::numeric_limits<size_t>::max();
-  const rtError_t ret =
-      rtsMemcpyBatch(const_cast<void **>(args.dsts.data()), const_cast<void **>(args.srcs.data()),
-                     args.src_sizes.data(), args.srcs.size(), args.attrs.data(),
-                     args.attr_idxs.data(), args.attrs.size(), &fail_idx);
+  const aclError ret =
+      aclrtMemcpyBatch(const_cast<void **>(args.dsts.data()), const_cast<size_t *>(args.dst_aligned_sizes.data()),
+                       const_cast<void **>(args.srcs.data()),
+                       const_cast<size_t *>(args.src_sizes.data()), args.srcs.size(),
+                       args.attrs.data(),
+                       const_cast<size_t *>(args.attr_idxs.data()), args.attrs.size(), &fail_idx);
   if (ret == ACL_ERROR_RT_FEATURE_NOT_SUPPORT) {
     GELOGW("Batch memcpy not supported, ret=%d, fallback to individual memcpy.", ret);
     for (size_t i = 0; i < args.srcs.size(); ++i) {
@@ -612,7 +616,7 @@ Status TensorTransUtils::TryBatchMemcpy(MemcpyBatchParam &args) {
     return SUCCESS;
   }
 
-  if (ret != RT_ERROR_NONE) {
+  if (ret != ACL_ERROR_NONE) {
     GELOGE(RT_FAILED, "Batch memcpy failed, ret=%d, failed index=%zu", ret, fail_idx);
     return RT_FAILED;
   }

@@ -133,6 +133,13 @@ TEST_F(UTEST_host_cpu_engine, LoadLib) {
   EXPECT_NE(instance.LoadLib(path), SUCCESS);
 }
 
+TEST_F(UTEST_host_cpu_engine, LoadLib_SkipInvokeInit) {
+  auto &instance = HostCpuEngine::GetInstance();
+  std::string path = "/tmp";
+  // invoke_init=false 分支: dlopen 失败仍返回 INTERNAL_ERROR, 不调用 dlsym/Initialize
+  EXPECT_NE(instance.LoadLib(path, false), SUCCESS);
+}
+
 TEST_F(UTEST_host_cpu_engine, PrepareInputs) {
   auto &instance = HostCpuEngine::GetInstance();
   auto op_desc = std::make_shared<OpDesc>("name", "type");

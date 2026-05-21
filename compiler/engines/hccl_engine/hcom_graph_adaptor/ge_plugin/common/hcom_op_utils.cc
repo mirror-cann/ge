@@ -82,7 +82,10 @@ HcclResult HcomOpUtils::GetGroup(const ge::OpDescPtr &opDescPtr, std::string &gr
                            HCOM_ERROR_CODE(HCCL_E_PARA)),
                 HCCL_E_PARA);
   } else {
-    group = HCCL_WORLD_GROUP;
+    CHK_RET(GetHcclCommNameFromConfig(group));
+    if (group.empty()) {
+      group = HCCL_WORLD_GROUP;
+    }
   }
   HCCL_DEBUG("get group name[%s] success.", group.c_str());
   return HCCL_SUCCESS;
@@ -551,7 +554,10 @@ HcclResult HcomOpUtils::GetGroupFromOpDesc(const ge::OpDescPtr &op, std::string 
                            HCOM_ERROR_CODE(HCCL_E_PARA)),
                 HCCL_E_PARA);
   } else {
-    sGroup = HCCL_WORLD_GROUP;
+    CHK_RET(GetHcclCommNameFromConfig(sGroup));
+    if (sGroup.empty()) {
+      sGroup = HCCL_WORLD_GROUP;
+    }
   }
   HCCL_INFO("get group name[%s] success.", sGroup.c_str());
   return HCCL_SUCCESS;
@@ -715,9 +721,7 @@ HcclResult HcomOpUtils::CalcCommonCount(const ge::OpDescPtr &op, const std::stri
     u64 blockSize = 0;
     if (sCollectiveType == HCCL_KERNEL_OP_TYPE_REDUCESCATTER) {
       const u32 paddingLen = 1024;
-      blockSize = is_continuous_input ?
-        ((inputSize + ALIGNED_SIZE - 1) / ALIGNED_SIZE * ALIGNED_SIZE + paddingLen) / rankSize :
-        (inputSize + paddingLen) / rankSize;
+      blockSize = is_continuous_input ?((inputSize + ALIGNED_SIZE - 1) / ALIGNED_SIZE * ALIGNED_SIZE + paddingLen) / rankSize : (inputSize + paddingLen) / rankSize;
     } else if (sCollectiveType == HCCL_KERNEL_OP_TYPE_ALLGATHER) {
       // ALLGATHER算子判断是否连续内存，连续内存需要对齐，非连续内存不需要对齐
       blockSize = is_continuous_input ? (inputSize + ALIGNED_SIZE - 1) / ALIGNED_SIZE * ALIGNED_SIZE : inputSize;
@@ -843,5 +847,128 @@ HcclResult HcomOpUtils::GetTaskNumFromCrackSize(const ge::Node &node, u32 tensor
     taskNum++;
   }
   return HCCL_SUCCESS;
+}
+
+HcclResult HcomOpUtils::GetHcclCommNameFromConfig(std::string &commName) {
+  commName.clear();
+  string commConfig;
+
+  if (ge::GetThreadLocalContext().GetOption(ge::OPTION_EXEC_GLOBAL_HCCL_COMM_CONFIG, commConfig) != ge::GRAPH_SUCCESS) {
+    HCCL_INFO("[GetHcclCommNameFromConfig] no cluster config option found");
+    return HCCL_SUCCESS;
+  }
+
+  nlohmann::json commConfigJsom;
+  HcclResult ret = SalParseInformation(commConfigJsom, commConfig);
+  if (ret != HCCL_SUCCESS) {
+    HCCL_ERROR("[GetHcclCommNameFromConfig] parse commConfig failed, ret[%d]", ret);
+    return ret;
+  }
+
+  // 严格校验字段存在性及类型，避免后续 .get<> 抛出异常
+  if (!commConfigJsom.contains("hcclCommName") || !commConfigJsom["hcclCommName"].is_string()) {
+    HCCL_ERROR("[GetHcclCommNameFromConfig] hcclCommName not found or not string");
+    return HCCL_E_PARA;
+  }
+
+  // 此时可以安全获取，因为已校验 is_string
+  commName = commConfigJsom["hcclCommName"].get<std::string>();
+  HCCL_INFO("get hccl comm name from config: %s", commName.c_str());
+
+  return HCCL_SUCCESS;
+}
+
+HcclResult GetRankIdsFromGroupListV1(const std::string &groupName, const std::string &groupListString, std::vector<u32> &rankIds) {
+  nlohmann::json groupListConf;
+  CHK_RET(SalParseInformation(groupListConf, groupListString));
+  std::vector<nlohmann::json> groupList = groupListConf.get<std::vector<nlohmann::json>>();
+  for (const auto &groupInfo : groupList) {
+    HCCL_DEBUG("[GetRankIdsFromGroupListV1] groupInfo:%s", groupInfo.dump().c_str()); 
+
+    // 优化：使用 string_view 避免 std::string 拷贝
+    absl::string_view curGroupName = groupInfo["group_name"];
+    HCCL_DEBUG("[GetRankIdsFromGroupListV1] curGroupName:%s", curGroupName.data());
+
+    if (curGroupName == groupName) { 
+      rankIds = groupInfo["group_rank_list"].get<std::vector<u32>>(); 
+      break; 
+    }
+  }
+  return HCCL_SUCCESS;
+}
+ 	 
+HcclResult GetRankIdsFromGroupListV2(const std::string &groupName, const std::string &groupListString, std::vector<u32> &rankIds) {
+  nlohmann::json groupListConf;
+  CHK_RET(SalParseInformation(groupListConf, groupListString));
+
+  if (!groupListConf.contains("GroupList") || !groupListConf["GroupList"].is_array()) {
+    HCCL_ERROR("[GetRankIdsFromGroupListV2] GroupList validation failed");
+    return HCCL_E_PARA;
+  }
+
+  const auto &groupList = groupListConf["GroupList"].get<std::vector<nlohmann::json>>();
+  bool groupFound = false;
+  
+  for (const auto &groupInfo : groupList) {
+    HCCL_DEBUG("groupInfo:%s", groupInfo.dump().c_str());
+
+
+    if (!groupInfo.contains("HcclCommconfig") || !groupInfo.contains("RankIds")) {
+      HCCL_ERROR("[GetRankIdsFromGroupListV2] HcclCommconfig or RankIds not found, invalid group list format");
+      return HCCL_E_PARA;
+    }
+
+    const auto &commConfig = groupInfo["HcclCommconfig"];
+
+    if (!commConfig.contains("hcclCommName") || !commConfig["hcclCommName"].is_string()) {
+      HCCL_ERROR("[GetRankIdsFromGroupListV2] hcclCommName not found or not string, invalid group list format");
+      return HCCL_E_PARA;
+    }
+
+    if (!groupInfo["RankIds"].is_array()) {
+      HCCL_ERROR("[GetRankIdsFromGroupListV2] RankIds is not array, invalid group list format");
+      return HCCL_E_PARA;
+    }
+
+    std::string curGroupName = commConfig["hcclCommName"].get<std::string>();
+    HCCL_DEBUG("curGroupName:%s", curGroupName.c_str());
+
+    if (curGroupName == groupName) {
+      rankIds = groupInfo["RankIds"].get<std::vector<u32>>();
+      HCCL_DEBUG("found group[%s] in v2 format, rankIds size[%zu]", groupName.c_str(), rankIds.size());
+      groupFound = true;
+      break;
+    }
+  }
+
+  if (!groupFound) {
+    HCCL_INFO("group[%s] not found in v2 format group list", groupName.c_str());
+    return HCCL_E_NOT_FOUND;
+  }
+
+  return HCCL_SUCCESS;
+}
+
+HcclResult HcomOpUtils::GetRankIdsFromGroupList(const std::string &groupName, std::vector<u32> &rankIds) {
+  std::string groupListString;	 
+
+  // V2和旧的json格式上有差异，当前主要使用的是最新的V2格式json文件，优先判断尝试解析V2格式
+  if (ge::GetThreadLocalContext().GetOption(ge::OPTION_EXEC_HCOM_GROUPLIST_V2, groupListString) == ge::GRAPH_SUCCESS) {
+    CHK_RET(GetRankIdsFromGroupListV2(groupName, groupListString, rankIds));
+    return HCCL_SUCCESS;    
+  }
+  // 尝试旧格式
+  if (ge::GetThreadLocalContext().GetOption(ge::OPTION_EXEC_HCOM_GROUPLIST, groupListString) == ge::GRAPH_SUCCESS) {
+    try {
+      CHK_RET(GetRankIdsFromGroupListV1(groupName, groupListString, rankIds));
+      return HCCL_SUCCESS;
+    } catch (const std::exception &e) {
+      HCCL_ERROR("[GetRankIdsFromGroupList] old format exception: %s", e.what());
+      return HCCL_E_INTERNAL;
+    }
+  }
+
+  HCCL_INFO("group[%s] not found in any group list format", groupName.c_str());
+  return HCCL_E_NOT_FOUND;
 }
 }  // namespace hccl

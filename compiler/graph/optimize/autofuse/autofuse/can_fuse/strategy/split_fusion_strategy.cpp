@@ -160,8 +160,8 @@ bool CheckSplitReshapeFusion(const NodePtr &split_node, const NodePtr &reshape_n
 
 // 检查两个Split节点是否能融合
 bool CheckSplitSplitFusion(const NodePtr &node1, const NodePtr &node2,
-                           const AutoFuseAttrs *attr1,
-                           const AutoFuseAttrs *attr2) {
+                           AutoFuseAttrs *attr1,
+                           AutoFuseAttrs *attr2) {
   if (attr1->GetSplitGlobalId() != attr2->GetSplitGlobalId()) {
     GELOGI("node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][node1 and node2 are horizontal fuse, "
            "node1 is split, node2 is split, and they are different split nodes before lowering.]",
@@ -175,7 +175,7 @@ bool CheckSplitSplitFusion(const NodePtr &node1, const NodePtr &node2,
 
 // 检查Split低融合比例
 bool CheckSplitLowFusionRatio(const NodePtr &node1, const NodePtr &node2,
-                              const AutoFuseAttrs *attr1) {
+                              AutoFuseAttrs *attr1) {
   if (attr1->GetSplitFusionRatioRequirementState() == SplitFusionRatioRequirementState::NOT_SATISFIED) {
     GELOGI("node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][node1 or node2 has low fuse ratio]",
            node1->GetName().c_str(), node1->GetType().c_str(), node2->GetName().c_str(), node2->GetType().c_str(),

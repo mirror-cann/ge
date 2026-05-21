@@ -41,7 +41,6 @@ target_link_libraries(ge_runtime_stub PRIVATE
         msprof_headers
         runtime_headers
         opp_registry
-        aihac_ir
         runtime
         json
         ascend_protobuf

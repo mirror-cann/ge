@@ -1033,8 +1033,10 @@ HcclResult HcomOpsKernelBuilder::SetAttachedStreamInfoList(ge::Node &node, const
   std::vector<ge::GeAttrValue::NAMED_ATTRS> attachedStreamInfo;
 
   // 判断是否是 AIV 展开模式
-  bool ifAiv = false;
-  CHK_PRT(JudgeIsAivMode(node, node.GetOpDesc()->GetType(), ifAiv)); 
+  bool ifAiv = false;  //离线模式默认没有AIV
+  if (!IsOfflineCompilation()) {
+    CHK_PRT(JudgeIsAivMode(node, node.GetOpDesc()->GetType(), ifAiv));
+  }
   HCCL_INFO("[%s] ifAiv[%d] should %s set attached stream info", __func__, ifAiv, ifAiv ? "not" : "");
 
   // AIV 模式不设置从流信息
@@ -1300,7 +1302,8 @@ HcclResult HcomOpsKernelBuilder::SetOpMemAttr(ge::Node &node, const std::string 
 
   bool withoutImplCompile =
       IsOfflineCompilation() ||
-      (ge::GetThreadLocalContext().GetOption(ge::OPTION_EXEC_HCOM_GROUPLIST, groupListString) == ge::GRAPH_SUCCESS);
+      (ge::GetThreadLocalContext().GetOption(ge::OPTION_EXEC_HCOM_GROUPLIST, groupListString) == ge::GRAPH_SUCCESS) ||
+      (ge::GetThreadLocalContext().GetOption(ge::OPTION_EXEC_HCOM_GROUPLIST_V2, groupListString) == ge::GRAPH_SUCCESS);
 
   // 针对310p duo卡 2p场景申请内存为普通内存，不需要单独设置，其余场景需要设置申请为p2p内存
   // 板卡推理不需要设置申请内存为p2p
@@ -1824,30 +1827,14 @@ HcclResult HcomOpsKernelBuilder::SetHcomOpParam(const ge::Node &node, HcomOpPara
     hcomOpParam->All2AllDataDes.recvType = recvType;
     hcomOpParam->All2AllDataDes.sendCountMatrix = static_cast<void *>(sendCountMatrix.data());
   }
-
-  std::string groupListString;
-  if (ge::GetThreadLocalContext().GetOption(ge::OPTION_EXEC_HCOM_GROUPLIST, groupListString) == ge::GRAPH_SUCCESS) {
-    try {
-      nlohmann::json groupListConf;
-      CHK_RET(SalParseInformation(groupListConf, groupListString));
-      std::vector<nlohmann::json> groupList = groupListConf.get<std::vector<nlohmann::json>>();
-      for (auto &groupInfo : groupList) {
-        HCCL_DEBUG("groupInfo:%s", groupInfo.dump().c_str());
-        std::string curGroupName = groupInfo["group_name"];
-        HCCL_DEBUG("curGroupName:%s", curGroupName.c_str());
-        if (curGroupName == sGroup) {
-          curRanks = groupInfo["group_rank_list"].get<std::vector<u32>>();
-          break;
-        }
-      }
-    } catch (const std::exception &e) {
-      HCCL_ERROR("[HcomCalcOpRunningParam] exception caught. err[%s]", e.what());
-      return HCCL_E_INTERNAL;
-    }
+  ret = hccl::HcomOpUtils::GetRankIdsFromGroupList(sGroup, curRanks);
+  if (ret == HCCL_SUCCESS) {
     hcomOpParam->groupList = static_cast<u32 *>(curRanks.data());
     hcomOpParam->groupListSize = curRanks.size();
-  } else {
+  } else if (ret == HCCL_E_NOT_FOUND) {
     HCCL_INFO("get groupListString failed");
+  } else {
+    return ret;
   }
 
   if ((ge::GetThreadLocalContext().GetOption(ge::OPTION_EXEC_RANK_TABLE, rankTableStr) == ge::GRAPH_SUCCESS) &&

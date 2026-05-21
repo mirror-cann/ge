@@ -210,7 +210,7 @@ Status CompileWithMemFdMakefile(const Om2CodegenArtifact &makefile_artifact, con
 
   const char_t *const use_stub_lib = is_release ? "0" : "1";
   std::ostringstream oss;
-  oss << "make -f " << makefile_file.fd_path << " USE_STUB_LIB=" << use_stub_lib;
+  oss << "make -s -f " << makefile_file.fd_path << " USE_STUB_LIB=" << use_stub_lib;
   const std::string command = oss.str();
   GELOGI("[OM2] Compile generated cpp artifacts to so by Makefile, command: %s", command.c_str());
   GE_CHK_BOOL_RET_STATUS(system(command.c_str()) == 0, FAILED, "[OM2] Failed to compile so artifact: %s",

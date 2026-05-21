@@ -98,16 +98,10 @@ ge::Status HcomGraphOptimizer::OptimizeGraphPrepare(ge::ComputeGraph &graph) {
   int label = 0;
   ge::TraceManager::GetInstance().SetTraceOwner("HCCL", "OptimizeGraphPrepare", graph.GetName());
   for (auto nodePtr : graph.GetAllNodes()) {
-    if (!nodePtr) {
-      HCCL_WARNING("OptimizeGraphPrepare: null node exists.");
+    ge::OpDescPtr opDescPtr;
+    if (!TryGetOpDesc(nodePtr, opDescPtr)) {
       continue;
     }
-    auto opDescPtr = nodePtr->GetOpDesc();
-    if (!opDescPtr) {
-      HCCL_WARNING("OptimizeGraphPrepare: desc of node[%s] is null.", nodePtr->GetName().c_str());
-      continue;
-    }
-
     // 集合通信的算子，设定format_Agnostic属性, 均设置成格式不敏感
     if (CheckSupportedOP(opDescPtr->GetType()) == HCCL_SUCCESS) {
       // 设置其他相关属性
@@ -117,18 +111,7 @@ ge::Status HcomGraphOptimizer::OptimizeGraphPrepare(ge::ComputeGraph &graph) {
                              opDescPtr->GetName().c_str(), opDescPtr->GetType().c_str()),
                   ge::INTERNAL_ERROR);
       // 若节点没有group
-      bool bRet = ge::AttrUtils::HasAttr(opDescPtr, "group");
-      if (!bRet) {
-        group = "hccl_world_group";
-      } else {
-        bRet = ge::AttrUtils::GetStr(opDescPtr, "group", group);
-        CHK_PRT_RET(!bRet,
-                    HCCL_ERROR("[Optimize][Graph]node[%s] get attr \"group\" failed. ", nodePtr->GetName().c_str()),
-                    ge::INTERNAL_ERROR);
-        CHK_PRT_RET(group.empty(),
-                    HCCL_ERROR("[Optimize][Graph]node[%s] get group is empty.", nodePtr->GetName().c_str()),
-                    ge::INTERNAL_ERROR);
-      }
+      CHK_RET(HcomOpUtils::GetGroupFromOpDesc(opDescPtr, group));
       std::string setLabel = "hcom_op_";
       auto iterNodeLabel = groupLabels.find(group);
       if (iterNodeLabel == groupLabels.end()) {
@@ -915,7 +898,8 @@ HcclResult HcomGraphOptimizer::SetOpMemAttr(ge::Node &node, const std::string &s
 
   bool withoutImplCompile =
       IsOfflineCompilation() ||
-      (ge::GetThreadLocalContext().GetOption(ge::OPTION_EXEC_HCOM_GROUPLIST, groupListString) == ge::GRAPH_SUCCESS);
+      (ge::GetThreadLocalContext().GetOption(ge::OPTION_EXEC_HCOM_GROUPLIST, groupListString) == ge::GRAPH_SUCCESS) ||
+      (ge::GetThreadLocalContext().GetOption(ge::OPTION_EXEC_HCOM_GROUPLIST_V2, groupListString) == ge::GRAPH_SUCCESS);
 
   // 针对310p duo卡 2p场景申请内存为普通内存，不需要单独设置，其余场景需要设置申请为p2p内存
   // 板卡推理不需要设置申请内存为p2p
@@ -1361,29 +1345,14 @@ HcclResult HcomGraphOptimizer::SetHcomOpParam(const ge::Node &node, HcomOpParam 
     hcomOpParam->All2AllDataDes.sendCountMatrix = static_cast<void *>(sendCountMatrix.data());
   }
 
-  std::string groupListString;
-  if (ge::GetThreadLocalContext().GetOption(ge::OPTION_EXEC_HCOM_GROUPLIST, groupListString) == ge::GRAPH_SUCCESS) {
-    try {
-      nlohmann::json groupListConf;
-      CHK_RET(SalParseInformation(groupListConf, groupListString));
-      std::vector<nlohmann::json> groupList = groupListConf.get<std::vector<nlohmann::json>>();
-      for (auto &groupInfo : groupList) {
-        HCCL_DEBUG("groupInfo:%s", groupInfo.dump().c_str());
-        std::string curGroupName = groupInfo["group_name"];
-        HCCL_DEBUG("curGroupName:%s", curGroupName.c_str());
-        if (curGroupName == sGroup) {
-          curRanks = groupInfo["group_rank_list"].get<std::vector<u32>>();
-          break;
-        }
-      }
-    } catch (const std::exception &e) {
-      HCCL_ERROR("[HcomCalcOpRunningParam] exception caught. err[%s]", e.what());
-      return HCCL_E_INTERNAL;
-    }
+  ret = hccl::HcomOpUtils::GetRankIdsFromGroupList(sGroup, curRanks);
+  if (ret == HCCL_SUCCESS) {
     hcomOpParam->groupList = static_cast<u32 *>(curRanks.data());
     hcomOpParam->groupListSize = curRanks.size();
-  } else {
+  } else if (ret == HCCL_E_NOT_FOUND) {
     HCCL_INFO("get groupListString failed");
+  } else {
+    return ret;
   }
 
   if ((ge::GetThreadLocalContext().GetOption(ge::OPTION_EXEC_RANK_TABLE, rankTableStr) == ge::GRAPH_SUCCESS) &&
@@ -1583,6 +1552,19 @@ HcclResult HcomGraphOptimizer::SetHcclOpParam(const ge::Node &node, HcomOpParam 
 HcclResult HcomGraphOptimizer::GetAivParam(const ge::Node &node, std::string &sCollectiveType, u32 &aivCoreLimit) {
   CHK_RET(HcomOpUtils::GetAivCoreLimit(node.GetOpDesc(), sCollectiveType, aivCoreLimit));
   return HCCL_SUCCESS;
+}
+
+bool HcomGraphOptimizer::TryGetOpDesc(const ge::NodePtr &nodePtr, ge::OpDescPtr &opDescPtr) {
+  if (!nodePtr) {
+    HCCL_WARNING("OptimizeGraphPrepare: null node exists.");
+    return false;
+  }
+  opDescPtr = nodePtr->GetOpDesc();
+  if (!opDescPtr) {
+    HCCL_WARNING("OptimizeGraphPrepare: desc of node[%s] is null.", nodePtr->GetName().c_str());
+    return false;
+  }
+  return true;
 }
 
 }  // namespace hccl

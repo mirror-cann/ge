@@ -91,6 +91,12 @@ HcclResult GetOffDeviceTypeWithoutDev(DevType &devType) {
 #endif
     return HCCL_SUCCESS;
   }
+
+  if (socVersion.find("MC62") != std::string::npos) {
+    tempDevType = DevType::DEV_TYPE_MC62;
+    return HCCL_SUCCESS;
+  }
+  
   auto iter = SOC_VER_CONVERT.find(socVersion);
   if (iter == SOC_VER_CONVERT.end()) {
     HCCL_ERROR("[Get][DeviceType]errNo[0x%016llx] rtGetSocVersion get illegal chipver, chip_ver[%s].",

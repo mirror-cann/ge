@@ -84,8 +84,15 @@ TEST_F(StreamExecutorST, OneStream_ExecuteSuccess_GetTwoTimes) {
   std::map<std::string, std::string> options;
   options.insert(std::pair<std::string, std::string>(ge::TILING_SCHEDULE_OPTIMIZE, "1"));
   ge::GetThreadLocalContext().SetGlobalOption(options);
-  RTS_STUB_RETURN_VALUE(rtGetDeviceCapability, rtError_t, RT_ERROR_NONE);
-  RTS_STUB_OUTBOUND_VALUE(rtGetDeviceCapability, int32_t, value, RT_DEV_CAP_SUPPORT);
+  class MockAclRuntime : public ge::AclRuntimeStub {
+   public:
+    aclError aclrtGetDeviceCapability(int32_t deviceId, aclrtDevFeatureType devFeatureType, int32_t *value) override {
+      *value = ACL_DEV_FEATURE_SUPPORT;
+      return ACL_SUCCESS;
+    }
+  };
+  auto mock_runtime = std::make_shared<MockAclRuntime>();
+  ge::AclRuntimeStub::SetInstance(mock_runtime);
 
   graph->TopologicalSorting();
   auto ge_root_model = GeModelBuilder(graph)

@@ -1572,6 +1572,7 @@ TEST_F(UtestKernelTaskInfo, blocking_aicpu_op) {
   const auto op_desc = CreateOpDesc("deque", "Deque");
   op_desc->SetId(0);
   ge::AttrUtils::SetBool(op_desc, ATTR_NAME_IS_BLOCKING_OP, true);
+  AttrUtils::SetInt(op_desc, ATTR_NAME_BLOCKING_OP_TIMEOUT, 10);
   DavinciModel davinci_model(0, nullptr);
   davinci_model.op_list_.emplace(0, op_desc);
   const auto operator_info = std::make_shared<Operator>(OpDescUtils::CreateOperatorFromOpDesc(op_desc));
@@ -1663,15 +1664,12 @@ TEST_F(UtestKernelTaskInfo, blocking_aicpu_op_fail_02) {
   kernel_task_info.func_handle_ = (void *)0x12000;
 
   EXPECT_EQ(kernel_task_info.InitAicpuTaskExtInfo(kernel_def.kernel_ext_info()), SUCCESS);
-  RTS_STUB_RETURN_VALUE(rtStreamWaitEventWithTimeout, rtError_t, 0x78000001);
+  AclRuntimeStub::SetErrorResultApiName("aclrtStreamWaitEvent");
   EXPECT_EQ(kernel_task_info.Distribute(), FAILED);
+  AclRuntimeStub::SetErrorResultApiName("");
   kernel_task_info.Release();
 
-  RTS_STUB_RETURN_VALUE(rtGetDeviceCapability, rtError_t, RT_ERROR_NONE);
-  RTS_STUB_OUTBOUND_VALUE(rtGetDeviceCapability, int32_t, value, RT_AICPU_BLOCKING_OP_NOT_SUPPORT);
   EXPECT_EQ(kernel_task_info.InitAicpuTaskExtInfo(kernel_def.kernel_ext_info()), SUCCESS);
-  RTS_STUB_RETURN_VALUE(rtGetDeviceCapability, rtError_t, RT_ERROR_NONE);
-  RTS_STUB_OUTBOUND_VALUE(rtGetDeviceCapability, int32_t, value, RT_AICPU_BLOCKING_OP_NOT_SUPPORT);
   domi::GetContext().is_online_model = true;
   EXPECT_EQ(kernel_task_info.Distribute(), SUCCESS);
   EXPECT_TRUE(kernel_task_info.IsSupportReDistribute());

@@ -85,23 +85,47 @@ endif()
 
 
 link_directories(${ASCEND_ROOT}/lib64)
+# Keep the dedicated autofuse ascendc_ir directories ahead of GE metadef paths so
+# bare includes like "attr_store.h" resolve to the af-namespace package headers.
+# Keep generic "graph/..." lookups on GE metadef first under AUTOFUSE_USE_GE_METADEF.
+include_directories(${ASCEND_INSTALL_PATH}/include/autofuse/graph_metadef/graph/ascendc_ir/ascendc_ir_core)
+include_directories(${ASCEND_INSTALL_PATH}/include/autofuse/graph_metadef/graph/ascendc_ir)
+include_directories(${ASCEND_INSTALL_PATH}/include/autofuse)
+include_directories(${ASCEND_INSTALL_PATH}/include/autofuse/ascir)
+include_directories(${ASCEND_INSTALL_PATH}/include/autofuse/ascir/meta)
+include_directories(${ASCEND_INSTALL_PATH}/include/autofuse/ascir/utils)
 include_directories(${GE_METADEF_INC_DIR}/external)
 include_directories(${GE_METADEF_INC_DIR}/external/graph)
+include_directories(${GE_METADEF_INC_DIR})
 include_directories(${GE_METADEF_INC_DIR}/graph)
-include_directories(${GE_METADEF_INC_DIR}/graph/ascendc_ir)
-include_directories(${GE_METADEF_INC_DIR}/graph/ascendc_ir/ascendc_ir_core)
-include_directories(${GE_METADEF_INC_DIR}/graph/ascendc_ir/utils)
 include_directories(${GE_METADEF_INC_DIR}/graph/utils)
 include_directories(${GE_METADEF_DIR}/graph)
-include_directories(${CODE_ROOT_DIR}/common)
-include_directories(${CODE_ROOT_DIR}/ascendc/api)
-include_directories(${CODE_ROOT_DIR}/compiler/py_module)
-include_directories(${CODE_ROOT_DIR}/ascir/meta)
-include_directories(${CODE_ROOT_DIR}/att)
+include_directories(${ASCEND_INSTALL_PATH}/include/autofuse/graph_metadef/graph)
+include_directories(${ASCEND_INSTALL_PATH}/include/autofuse/graph_metadef)
 include_directories(${CODE_ROOT_DIR}/inc)
+include_directories(${AIR_CODE_DIR}/inc)
 include_directories(${ASCEND_ROOT}/include)
 include_directories(${ASCEND_INSTALL_PATH}/pkg_inc)
 include_directories(${ASCEND_INSTALL_PATH}/pkg_inc/base)
+include_directories(${ASCEND_INSTALL_PATH}/include/autofuse/common)
+include_directories(${ASCEND_INSTALL_PATH}/include/autofuse/utils)
+if (NOT ENABLE_OPEN_SRC)
+    include_directories(${TOP_DIR}/air/inc/)
+    include_directories(${TOP_DIR}/graph-autofusion/autofuse/att)
+    include_directories(${TOP_DIR}/graph-autofusion/autofuse/autofuse)
+    include_directories(${TOP_DIR}/graph-autofusion/autofuse/autofuse/utils)
+    include_directories(${TOP_DIR}/graph-autofusion/autofuse/common)
+    #include_directories(${TOP_DIR}/graph-autofusion/autofuse/inc/graph_metadef/)
+    include_directories(${TOP_DIR}/graph-autofusion/autofuse/inc/graph_metadef/graph/ascendc_ir/ascendc_ir_core)
+    include_directories(${TOP_DIR}/graph-autofusion/autofuse/inc/)
+    include_directories(${TOP_DIR}/graph-autofusion/autofuse/inc/fusion)
+    include_directories(${TOP_DIR}/graph-autofusion/autofuse/ascir/meta)
+    include_directories(${TOP_DIR}/graph-autofusion/autofuse/inc/autofuse_frame)
+    include_directories(${TOP_DIR}/graph-autofusion/autofuse/inc/graph_metadef/graph)
+    include_directories(${TOP_DIR}/graph-autofusion/autofuse/inc/graph_metadef/graph/utils)
+    include_directories(${TOP_DIR}/graph-autofusion/autofuse/graph_metadef/graph)
+    include_directories(${TOP_DIR}/graph-autofusion/autofuse/graph_metadef/third_party/transformer/inc)
+endif ()
 
 if(DEFINED BUILD_COMPONENT)
     include_directories(${ASCEND_ROOT}/pkg_inc)
@@ -113,19 +137,17 @@ else()
     include_directories(${ASCEND_ROOT}/include/experiment/msprof)
 endif()
 include_directories(${CMAKE_BINARY_DIR}/proto/metadef_protos)
+include_directories(${CMAKE_BINARY_DIR}/proto/metadef_protos_af)
+include_directories(${CMAKE_BINARY_DIR}/ascir_builtin_ops)
 
-find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
 if (ENABLE_OPEN_SRC)
-#    find_package(nlohmann_json REQUIRED)
-    find_package(json REQUIRED)
+    add_cann_third_party(json)
     if(NOT BUILD_PKG_COMPONENT)
         find_package(GTest CONFIG REQUIRED)
     endif()
-    find_package(Boost CONFIG REQUIRED) #
-    find_package(SymEngine CONFIG REQUIRED) #
+    find_package(Boost CONFIG REQUIRED)
+    find_package(SymEngine CONFIG REQUIRED)
     find_package(ascend_protobuf_shared MODULE REQUIRED)
-    #find_package(ascend_protobuf_static MODULE REQUIRED)
-    #find_package(protoc MODULE REQUIRED)
     find_package(unified_dlog)
     find_package(mmpa)
     find_package(runtime)
@@ -140,90 +162,16 @@ add_library(depends INTERFACE)
 target_link_directories(depends INTERFACE
     ${ASCEND_ROOT}/x86_64-linux/devlib)
 
+add_library(aihac_codegen_toolkit SHARED IMPORTED)
+set_target_properties(aihac_codegen_toolkit PROPERTIES
+    IMPORTED_LOCATION "${ASCEND_INSTALL_PATH}/lib64/libaihac_codegen.so")
+
 if (DEFINED RUN_TEST)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-arcs -ftest-coverage")
 endif ()
 
-add_library(aihac_codegen SHARED)
-
-add_subdirectory(ascendc)
-add_subdirectory(ascir)
-add_subdirectory(optimize)
-add_subdirectory(att)
-add_subdirectory(codegen)
-add_subdirectory(common)
-if (IS_DIRECTORY "${CODE_ROOT_DIR}/v35")
-    add_subdirectory(v35)
-endif()
-# 判断 RUN_TEST 未定义或值不为 1
-if(NOT DEFINED RUN_TEST OR NOT RUN_TEST EQUAL 1)
-add_subdirectory(compiler)
-endif ()
-
-# todo: att代码中部分通过宏控制, 根目录CMakelist需要增加定义, 后续整改
-add_definitions(-DFORMULAS_PERF)
-
-target_compile_definitions(aihac_codegen PRIVATE
-    google=ascend_private
-)
-
-target_compile_options(aihac_codegen PRIVATE
-    -O2
-    -fPIC
-    -fno-common
-    -Wfloat-equal
-    -Wextra
-    -Wall
-    -Werror
-)
-
-target_link_options(aihac_codegen PRIVATE
-    -rdynamic
-    -Wl,-Bsymbolic
-    -Wl,--exclude-libs,All
-    $<$<CONFIG:Release>:-s>
-)
-
-target_link_libraries(aihac_codegen PUBLIC
-    $<BUILD_INTERFACE:ascir_ops_headers>
-    $<BUILD_INTERFACE:atrace_headers>
-    graph
-    graph_base
-    aihac_ir
-    aihac_ir_register
-    aihac_symbolizer
-    $<BUILD_INTERFACE:ge_log_utils>
-    $<BUILD_INTERFACE:ascendc_api_extend>
-    error_manager
-    c_sec
-    unified_dlog
-    runtime
-    atrace_share
-    mmpa
-    json
-    ascend_protobuf
-    symengine
-    Boost::boost
-    -lgcov
-)
-
-if (NOT ENABLE_OPEN_SRC)
-    target_link_libraries(aihac_codegen PUBLIC
-        $<BUILD_INTERFACE:runtime_headers>
-        $<BUILD_INTERFACE:msprof_headers>
-    )
-endif ()
-
 add_subdirectory(autofuse)
-##########################以下为业务代码生成的so################################
-if(NOT DEFINED RUN_TEST OR NOT RUN_TEST EQUAL 1)
-install(TARGETS aihac_codegen
-                pyautofuse
-    LIBRARY DESTINATION lib ${INSTALL_OPTIONAL}
-    ARCHIVE DESTINATION lib ${INSTALL_OPTIONAL}
-    RUNTIME DESTINATION bin ${INSTALL_OPTIONAL}
-)
 
 # #########################以下内容是生成一个autofuse的so################################
 install(TARGETS aihac_autofusion
@@ -235,7 +183,7 @@ install(TARGETS aihac_autofusion
 if (NOT ENABLE_OPEN_SRC)
     install_package(
         PACKAGE ascgen
-        TARGETS aihac_codegen pyautofuse aihac_autofusion
+        TARGETS aihac_autofusion
         DESTINATION ${INSTALL_INCLUDE_DIR}/ascgen
     )
 endif ()
@@ -244,24 +192,11 @@ if (NOT DEFINED BUILD_COMPONENT AND ENABLE_OPEN_SRC)
     set(ARCH_LINX_PATH "${CMAKE_SYSTEM_PROCESSOR}-linux")
 
     install(TARGETS aihac_autofusion
-                    aihac_codegen
         LIBRARY DESTINATION ${ARCH_LINX_PATH}/lib64 ${INSTALL_OPTIONAL} COMPONENT packages EXCLUDE_FROM_ALL
         ARCHIVE DESTINATION ${ARCH_LINX_PATH}/lib64 ${INSTALL_OPTIONAL} COMPONENT packages EXCLUDE_FROM_ALL
         RUNTIME DESTINATION ${ARCH_LINX_PATH}/bin ${INSTALL_OPTIONAL} COMPONENT packages EXCLUDE_FROM_ALL
     )
 
-    install(TARGETS pyautofuse
-        LIBRARY DESTINATION python/site-packages/autofuse ${INSTALL_OPTIONAL} COMPONENT packages EXCLUDE_FROM_ALL
-    )
-
-    install(FILES compiler/python/__init__.py
-            compiler/python/asc_codegen_compile.py
-            compiler/python/ascbc_kernel_compile.py
-            compiler/python/compile_adapter.py
-            compiler/python/ascendc_compile.py
-            compiler/python/ascir_api.py
-            DESTINATION python/site-packages/autofuse ${INSTALL_OPTIONAL} COMPONENT packages EXCLUDE_FROM_ALL
-    )
 
     set(version_info "${ASCEND_INSTALL_PATH}/runtime/version.info")
     set(install_script_dir "${CMAKE_CURRENT_BINARY_DIR}/install_scripts/")
@@ -294,5 +229,4 @@ if (NOT DEFINED BUILD_COMPONENT AND ENABLE_OPEN_SRC)
     set(CPACK_EXTERNAL_PACKAGE_SCRIPT ${ASCEND_INSTALL_PATH}/toolkit/tools/op_project_templates/ascendc/customize/cmake/makeself.cmake)
     set(CPACK_EXTERNAL_BUILT_PACKAGES ${CPACK_PACKAGE_DIRECTORY}/_CPack_Packages/Linux/External/${CPACK_PACKAGE_FILE_NAME}/${CPACK_PACKAGE_FILE_NAME})
     include(CPack)
-endif()
 endif()

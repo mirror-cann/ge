@@ -120,6 +120,15 @@ TEST_F(InputMergeCopy, InputMergeAndBatchCopyButOnlyOneForBatch) {
 }
 
 TEST_F(InputMergeCopy, InputMergeAndBatchCopyBatchNotSupported) {
+  class MockAclRuntime : public ge::AclRuntimeStub {
+   public:
+    aclError aclrtMemcpyBatch(void **dsts, size_t *destMax, void **srcs, size_t *sizes, size_t numBatches,
+                              aclrtMemcpyBatchAttr *attrs, size_t *attrsIndexex, size_t numAttrs, size_t *failIndex) {
+      return ACL_ERROR_RT_FEATURE_NOT_SUPPORT;
+    }
+  };
+  auto mock_runtime = std::make_shared<MockAclRuntime>();
+  ge::AclRuntimeStub::SetInstance(mock_runtime);
   std::map<AscendString, AscendString> options;
   options["ge.inputBatchCpy"] = "1";
   options["ge.exec.input_fusion_size"] = "200";
@@ -137,7 +146,6 @@ TEST_F(InputMergeCopy, InputMergeAndBatchCopyBatchNotSupported) {
 
   Synchronizer sync;
   Status run_ret;
-  RTS_STUB_RETURN_VALUE(rtsMemcpyBatch, rtError_t, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
   auto ret = sess.RunGraphAsync(1, g1_inputs, [&run_ret, &sync](Status result, std::vector<ge::Tensor> &) {
     run_ret = result;
     sync.OnDone();
@@ -175,6 +183,15 @@ TEST_F(InputMergeCopy, InputBatchCopy) {
 }
 
 TEST_F(InputMergeCopy, InputBatchCopyBatchNotSupportedThenFallback) {
+  class MockAclRuntime : public ge::AclRuntimeStub {
+   public:
+    aclError aclrtMemcpyBatch(void **dsts, size_t *destMax, void **srcs, size_t *sizes, size_t numBatches,
+                              aclrtMemcpyBatchAttr *attrs, size_t *attrsIndexex, size_t numAttrs, size_t *failIndex) {
+      return ACL_ERROR_RT_FEATURE_NOT_SUPPORT;
+    }
+  };
+  auto mock_runtime = std::make_shared<MockAclRuntime>();
+  ge::AclRuntimeStub::SetInstance(mock_runtime);
   std::map<AscendString, AscendString> options;
   options["ge.inputBatchCpy"] = "1";
   options["ge.exec.input_fusion_size"] = "0";
@@ -192,7 +209,6 @@ TEST_F(InputMergeCopy, InputBatchCopyBatchNotSupportedThenFallback) {
 
   Synchronizer sync;
   Status run_ret;
-  RTS_STUB_RETURN_VALUE(rtsMemcpyBatch, rtError_t, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
   auto ret = sess.RunGraphAsync(1, g1_inputs, [&run_ret, &sync](Status result, std::vector<ge::Tensor> &) {
     run_ret = result;
     sync.OnDone();
@@ -203,6 +219,15 @@ TEST_F(InputMergeCopy, InputBatchCopyBatchNotSupportedThenFallback) {
 }
 
 TEST_F(InputMergeCopy, InputBatchCopyBatchFailed) {
+  class MockAclRuntime : public ge::AclRuntimeStub {
+   public:
+    aclError aclrtMemcpyBatch(void **dsts, size_t *destMax, void **srcs, size_t *sizes, size_t numBatches,
+                              aclrtMemcpyBatchAttr *attrs, size_t *attrsIndexex, size_t numAttrs, size_t *failIndex) {
+      return -1;
+    }
+  };
+  auto mock_runtime = std::make_shared<MockAclRuntime>();
+  ge::AclRuntimeStub::SetInstance(mock_runtime);
   std::map<AscendString, AscendString> options;
   options["ge.inputBatchCpy"] = "1";
   options["ge.exec.input_fusion_size"] = "0";
@@ -220,7 +245,6 @@ TEST_F(InputMergeCopy, InputBatchCopyBatchFailed) {
 
   Synchronizer sync;
   Status run_ret;
-  RTS_STUB_RETURN_VALUE(rtsMemcpyBatch, rtError_t, -1);
   auto ret = sess.RunGraphAsync(1, g1_inputs, [&run_ret, &sync](Status result, std::vector<ge::Tensor> &) {
     run_ret = result;
     sync.OnDone();

@@ -53,6 +53,8 @@ class GE_FUNC_VISIBILITY GeGenerator {
 
   Status GenerateOnlineModel(const Graph &graph, const std::vector<GeTensor> &inputs, ge::ModelBufferData &model);
 
+  Status GenerateOnlineOm2Model(const Graph &graph, const std::vector<GeTensor> &inputs, ge::ModelBufferData &model);
+
   Status GenerateInfershapeGraph(const Graph &graph);
 
   ///

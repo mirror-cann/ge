@@ -240,7 +240,7 @@ add_custom_command(OUTPUT ${SWITCH_BY_INDEX_OBJ}
 
 if(ENABLE_BUILD_DEVICE)
     install(FILES ${SWITCH_BY_INDEX_OBJ}
-        DESTINATION lib64 COMPONENT ge-compiler
+        DESTINATION fwkacllib/lib64 COMPONENT ge-compiler
         ${INSTALL_OPTIONAL}
     )
 endif()

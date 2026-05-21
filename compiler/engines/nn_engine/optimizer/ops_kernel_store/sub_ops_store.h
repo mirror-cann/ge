@@ -288,6 +288,30 @@ class SubOpsStore {
   static bool CheckPromoteTypeSupport(const vector<ge::DataType> &support_data_types,
                                       const SupportedFormatAndDtype &info);
 
+  /*
+   * @brief: Prepare SupportedFormatAndDtype info: build name maps, feed promote info,
+   *         set attr param type list, query format/dtype, and validate customized dtype.
+   *         Stores is_force_dtype_support result as a temporary attr on op_desc.
+   */
+  bool PrepareFormatAndDtypeInfo(const ge::NodePtr &node, const bool &check_unknown_shape,
+                                 CheckSupportParam &check_param, SupportedFormatAndDtype &info) const;
+
+  /*
+   * @brief: Dispatch format/dtype check by check_mode (ACCURACY_MODE or normal mode).
+   *         In normal mode checks inputs then outputs.
+   */
+  bool CheckFormatDtypeByMode(const ge::NodePtr &node, const CheckSupportMode &check_mode,
+                              uint32_t input_size, uint32_t output_size,
+                              const bool &is_force_dtype_support,
+                              SupportedFormatAndDtype &info,
+                              CheckSupportParam &check_param) const;
+
+  /*
+   * @brief: Check that op attributes and tensor param types are supported.
+   */
+  bool CheckAttrsAndParamType(const ge::NodePtr &node, const SupportedFormatAndDtype &info,
+                              CheckSupportParam &check_param) const;
+
   protected:
   bool init_flag_;
 

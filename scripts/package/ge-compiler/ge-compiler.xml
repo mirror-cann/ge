@@ -10,7 +10,8 @@
         <cleanup>share/info/ge-compiler/script/cleanup.sh</cleanup>
         <parallel>true</parallel>
     </package_info>
-    <generate_info value="ge-compiler_version.h" dst_path="share/info/ge-compiler" install_path="$(TARGET_ENV)/include/version" install_mod="440" install_type="devel" generator="version_header">
+    <copy_all>true</copy_all>
+    <generate_info value="ge-compiler_version.h" dst_path="$(TARGET_ENV)/include/version" install_path="$(TARGET_ENV)/include/version" install_mod="440" install_type="devel" generator="version_header">
        <GE_COMPILER_VERSION>$(ASCEND_VER)</GE_COMPILER_VERSION>
        <GE_COMPILER_TIMESTAMP>$(TIMESTAMP_NO)</GE_COMPILER_TIMESTAMP>
     </generate_info>
@@ -24,7 +25,7 @@
         <file value="script" entity="true"/>
         <file value="version.info"/>
     </file_info>
-    <block_info dependtree="false" dst_path="ge-compiler" block_conf_path="ascend">
+    <block_info dependtree="false" dst_path="$(TARGET_ENV)" block_conf_path="ascend">
         <block name="EngineeringCommon"/>
         <block name="EngineeringFiles"/>
         <block name="DevlibCommon"/>

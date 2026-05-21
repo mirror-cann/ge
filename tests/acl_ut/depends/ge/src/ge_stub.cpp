@@ -2456,6 +2456,15 @@ namespace gert {
         return ge::SUCCESS;
     }
 
+    ge::Status Om2ModelExecutor::GetOpDescInfo(uint32_t device_id, uint32_t stream_id, uint32_t task_id,
+                                               ge::OpDescInfo &op_desc_info) const {
+        (void)device_id;
+        (void)stream_id;
+        (void)task_id;
+        (void)op_desc_info;
+        return ge::FAILED;
+    }
+
     class Om2ModelExecutor::Impl {
       public:
         int dummy;

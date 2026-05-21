@@ -212,7 +212,7 @@ StructDecl *LoadAndRunFileCodeGenerator::BuildLaunchKernelConfig() const {
       ast_.Field("aclrtEngineType", "engine_type{ACL_RT_ENGINE_TYPE_AIC}"),
       ast_.Field("uint32_t", "block_dim_offset{0U}"),
       ast_.Field("bool", "is_block_task_prefetch{false}"),
-      ast_.Field("bool", "is_data_dump{false}"),
+      ast_.Field("uint8_t", "is_data_dump{0U}"),
       ast_.Field("uint16_t", "time_out{0U}"),
       ast_.Field("uint32_t", "local_memory_size{0U}"),
   });
@@ -239,8 +239,7 @@ FunctionDef *LoadAndRunFileCodeGenerator::BuildAssembleLaunchConfig() const {
                   ast_.StaticCast("uint8_t", launch_config.Attr("is_block_task_prefetch"))),
       ast_.PostInc(actual_cfg_num),
       ast_.Assign(attrs[actual_cfg_num].Attr("id"), "ACL_RT_LAUNCH_KERNEL_ATTR_DATA_DUMP"),
-      ast_.Assign(attrs[actual_cfg_num].Attr("value").Attr("isDataDump"),
-                  ast_.StaticCast("uint8_t", launch_config.Attr("is_data_dump"))),
+      ast_.Assign(attrs[actual_cfg_num].Attr("value").Attr("isDataDump"), launch_config.Attr("is_data_dump")),
       ast_.PostInc(actual_cfg_num),
       ast_.Assign(attrs[actual_cfg_num].Attr("id"), "ACL_RT_LAUNCH_KERNEL_ATTR_DYN_UBUF_SIZE"),
       ast_.Assign(attrs[actual_cfg_num].Attr("value").Attr("dynUBufSize"),

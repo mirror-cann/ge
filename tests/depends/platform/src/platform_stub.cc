@@ -192,3 +192,19 @@ bool fe::PlatFormInfos::LoadFromBuffer(const char *buf_ptr, const size_t buf_len
 uint32_t fe::PlatFormInfos::GetCoreNumByType(const std::string &core_type) {
   return 8U;
 }
+
+class PlatformManagerV2 {
+ public:
+  static PlatformManagerV2& Instance();
+  uint32_t GetSocSpec(const std::string&, const std::string&, const std::string&, std::string&);
+};
+
+PlatformManagerV2& PlatformManagerV2::Instance() {
+  static PlatformManagerV2 inst;
+  return inst;
+}
+
+uint32_t PlatformManagerV2::GetSocSpec(const std::string&, const std::string&,
+                                        const std::string&, std::string&) {
+  return 0U;
+}

@@ -65,3 +65,7 @@ target_compile_options(llm_wrapper PRIVATE
         ${AIR_COMMON_COMPILE_OPTION}
         -Xlinker -export-dynamic
 )
+
+target_link_options(llm_wrapper PRIVATE
+        -Wl,--disable-new-dtags
+)

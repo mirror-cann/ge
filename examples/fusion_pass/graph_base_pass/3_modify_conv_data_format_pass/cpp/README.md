@@ -10,7 +10,7 @@
 
 ```
 ├── src
-│   ├──modify_conv_data_format_pass.cpp.cpp             // pass实现文件 
+│   ├──modify_conv_data_format_pass.cpp                 // pass实现文件 
 ├── CMakeLists.txt                                      // 编译脚本
 ├── data         
 |   ├──torch_gen_onnx.py                                // torch脚本用于导出onnx

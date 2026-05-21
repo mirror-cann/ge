@@ -114,6 +114,8 @@ class HcomOpUtils {
   static HcclResult GetRankId(const int64_t &hcomComm, const string &sGroup, u32 &rankId);
   static HcclResult CheckAlltoAllvcRank(const ge::Node &node, const int64_t &hcomComm, const string &sGroup);
   static HcclResult GetGroupFromOpDesc(const ge::OpDescPtr &op, std::string &sGroup);
+  static HcclResult GetHcclCommNameFromConfig(std::string &commName);
+  static HcclResult GetRankIdsFromGroupList(const std::string &groupName, std::vector<u32> &rankIds);
   static HcclResult GetTensorSize(const ge::GeTensorDesc &tensorDesc, int64_t &size);
   static HcclResult GetAllTensorSize(const ge::OpDescPtr &op, u32 tensorNum, std::vector<int64_t> &tensorSize);
   static HcclResult GetTaskNumFromCrackSize(const ge::Node &node, u32 tensorNum, u32 &taskNum);

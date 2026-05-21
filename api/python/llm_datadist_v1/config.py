@@ -15,18 +15,11 @@ import json
 import os
 from typing import Dict
 
-try:
-    from llm_datadist.configs import LLMRole
-    from llm_datadist.utils import log
-    from llm_datadist.utils.utils import check_isinstance
-    from llm_datadist.status import raise_if_false
-    from llm_datadist.configs import LlmConfig, trans_str_ip
-except ModuleNotFoundError:
-    from llm_datadist_v1.configs import LLMRole
-    from llm_datadist_v1.utils import log
-    from llm_datadist_v1.utils.utils import check_isinstance
-    from llm_datadist_v1.status import raise_if_false
-    from llm_datadist_v1.configs import LlmConfig, trans_str_ip
+from .configs import LLMRole
+from .utils import log
+from .utils.utils import check_isinstance
+from .status import raise_if_false
+from .configs import LlmConfig, trans_str_ip
 
 
 class ClusterConfig:

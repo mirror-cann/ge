@@ -38,6 +38,9 @@ using fe::StringUtils;
 
 namespace fe {
 namespace {
+// Temporary attr key used to pass is_force_dtype_support from PrepareFormatAndDtypeInfo to CheckSubStoreSupported
+constexpr char kForceDtypeSupportFlag[] = "force_dtype_support_flag_tmp";
+
 bool GetTensorName(SupportedFormatAndDtype &info, const string &input_or_output, uint32_t index,
                    const IndexNameMap &index_name_map, string &name) {
   std::ostringstream reason_oss;
@@ -1162,6 +1165,91 @@ void SubOpsStore::FeedPromoteInfo(const ge::NodePtr &node, SupportedFormatAndDty
           node->GetNamePtr(), node->GetTypePtr(), info.promote_flag, info.promote_target_type.size());
 }
 
+bool SubOpsStore::PrepareFormatAndDtypeInfo(const ge::NodePtr &node, const bool &check_unknown_shape,
+                                            CheckSupportParam &check_param,
+                                            SupportedFormatAndDtype &info) const {
+  if (!GetInputOutputNameMap(node, check_param.op_kernel_ptr, info.input_index_name_map,
+                             info.output_index_name_map, check_param.unsupport_reason)) {
+    return false;
+  }
+  FeedPromoteInfo(node, info);
+  SetAttrParamTypeList(node->GetOpDesc(), check_param.op_kernel_ptr, info);
+
+  FormatDtypeInfo format_dtype_info;
+  if (GetSupportFormatAndDtype(node, check_param.op_kernel_ptr, check_unknown_shape, format_dtype_info) != SUCCESS) {
+    FE_LOGW("[GraphOpt][Setcheck][CheckSubSupt] Failed to get the GetSupportFormatAndDtype, return false.");
+    return false;
+  }
+  if (!format_dtype_info.format_map.empty() && !format_dtype_info.data_type_map.empty()) {
+    info.suppport_formats_map = std::move(format_dtype_info.format_map);
+    info.support_data_types_map = std::move(format_dtype_info.data_type_map);
+    info.suppport_sub_formats_map = std::move(format_dtype_info.sub_format_map);
+  }
+
+  bool is_force_dtype_support = false;
+  if (!CheckCustomizeDtype(node->GetOpDesc(), info, is_force_dtype_support)) {
+    ge::OpDescPtr op_desc_ptr = node->GetOpDesc();
+    FE_LOGI("[GraphOpt][Setcheck][CheckSubSupt] The custom dtypes for op[%s, %s] is not support by its op kernel.",
+            op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
+    info.reason += "The custom dtypes for op " + op_desc_ptr->GetName() + " is not support by its op kernel.";
+    SetReason(info.reason, OpNotSupportedReasonID::EN_INPUTS_AND_OUTPUTS_NOT_ACCURACY_SUPPORT,
+              check_param.unsupport_reason);
+    return false;
+  }
+  // store is_force_dtype_support result in a temporary attr for caller to retrieve
+  (void)ge::AttrUtils::SetBool(node->GetOpDesc(), kForceDtypeSupportFlag, is_force_dtype_support);
+  return true;
+}
+
+bool SubOpsStore::CheckFormatDtypeByMode(const ge::NodePtr &node, const CheckSupportMode &check_mode,
+                                         uint32_t input_size, uint32_t output_size,
+                                         const bool &is_force_dtype_support,
+                                         SupportedFormatAndDtype &info,
+                                         CheckSupportParam &check_param) const {
+  ge::OpDesc &op_desc = *(node->GetOpDesc().get());
+  if (check_mode == CheckSupportMode::ACCURACY_MODE) {
+    if (!CheckAllTensorsSupportedAccurateMode(node, info)) {
+      SetReason(info.reason, OpNotSupportedReasonID::EN_INPUTS_AND_OUTPUTS_NOT_ACCURACY_SUPPORT,
+                check_param.unsupport_reason);
+      return false;
+    }
+    return true;
+  }
+
+  if (!CheckInputSupported(node, input_size, is_force_dtype_support, info)) {
+    SetReason(info.reason, OpNotSupportedReasonID::EN_INPUTS_NOT_SUPPORT, check_param.unsupport_reason);
+    FE_LOGD("Node %s, type %s's input is not supported in %s.", op_desc.GetName().c_str(),
+            op_desc.GetType().c_str(), sub_store_info_.fe_ops_store_name.c_str());
+    return false;
+  }
+  if (!CheckOutputSupported(node, output_size, is_force_dtype_support, info)) {
+    SetReason(info.reason, OpNotSupportedReasonID::EN_OUTPUTS_NOT_SUPPORT, check_param.unsupport_reason);
+    FE_LOGD("Node %s, type %s's output is not supported in %s.", op_desc.GetName().c_str(),
+            op_desc.GetType().c_str(), sub_store_info_.fe_ops_store_name.c_str());
+    return false;
+  }
+  return true;
+}
+
+bool SubOpsStore::CheckAttrsAndParamType(const ge::NodePtr &node, const SupportedFormatAndDtype &info,
+                                         CheckSupportParam &check_param) const {
+  // check attrs are supported or not
+  if (!CheckAttrSupport(node, *(check_param.op_kernel_ptr.get()), check_param.unsupport_reason.reason)) {
+    check_param.unsupport_reason.reason_id = static_cast<uint64_t>(OpNotSupportedReasonID::EN_ATTRS_NOT_SUPPORT);
+    FE_LOGD("Attr is not supported in %s.", sub_store_info_.fe_ops_store_name.c_str());
+    return false;
+  }
+  // input or output dynamic can have more than 1, required must equal 1, optional not check
+  if (!CheckParamType(node, check_param.op_kernel_ptr, info.input_index_name_map,
+                      info.output_index_name_map, check_param.unsupport_reason.reason)) {
+    check_param.unsupport_reason.reason_id =
+        static_cast<uint64_t>(OpNotSupportedReasonID::EN_PARAM_TYPE_NOT_SUPPORT);
+    FE_LOGD("Parameter type is not supported in %s.", sub_store_info_.fe_ops_store_name.c_str());
+    return false;
+  }
+  return true;
+}
+
 bool SubOpsStore::CheckSubStoreSupported(const ge::NodePtr &node, const CheckSupportMode &check_mode,
                                          const bool &check_unknown_shape, CheckSupportParam &check_param) const {
   ge::OpDescPtr op_desc_ptr = node->GetOpDesc();
@@ -1176,66 +1264,19 @@ bool SubOpsStore::CheckSubStoreSupported(const ge::NodePtr &node, const CheckSup
   auto output_size = static_cast<uint32_t>(op_desc.GetOutputsSize());
 
   SupportedFormatAndDtype info(check_param.op_kernel_ptr, "");
-  if (!GetInputOutputNameMap(node, check_param.op_kernel_ptr, info.input_index_name_map,
-                             info.output_index_name_map, check_param.unsupport_reason)) {
+  if (!PrepareFormatAndDtypeInfo(node, check_unknown_shape, check_param, info)) {
     return false;
-  }
-  FeedPromoteInfo(node, info);
-  SetAttrParamTypeList(node->GetOpDesc(), check_param.op_kernel_ptr, info);
-  FormatDtypeInfo format_dtype_info;
-  if (GetSupportFormatAndDtype(node, check_param.op_kernel_ptr,
-                               check_unknown_shape, format_dtype_info) != SUCCESS) {
-    FE_LOGW("[GraphOpt][Setcheck][CheckSubSupt] Failed to get the GetSupportFormatAndDtype, return false.");
-    return false;
-  }
-  if (!format_dtype_info.format_map.empty() && !format_dtype_info.data_type_map.empty()) {
-    info.suppport_formats_map = std::move(format_dtype_info.format_map);
-    info.support_data_types_map = std::move(format_dtype_info.data_type_map);
-    info.suppport_sub_formats_map = std::move(format_dtype_info.sub_format_map);
   }
 
   bool is_force_dtype_support = false;
-  if (!CheckCustomizeDtype(node->GetOpDesc(), info, is_force_dtype_support)) {
-    FE_LOGI("[GraphOpt][Setcheck][CheckSubSupt] The custom dtypes for op[%s, %s] is not support by its op kernel.",
-            op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
-    SetReason(info.reason, OpNotSupportedReasonID::EN_INPUTS_AND_OUTPUTS_NOT_ACCURACY_SUPPORT,
-              check_param.unsupport_reason);
+  (void)ge::AttrUtils::GetBool(op_desc_ptr, kForceDtypeSupportFlag, is_force_dtype_support);
+
+  if (!CheckFormatDtypeByMode(node, check_mode, input_size, output_size,
+                              is_force_dtype_support, info, check_param)) {
     return false;
   }
 
-  if (check_mode == CheckSupportMode::ACCURACY_MODE) {
-    if (!CheckAllTensorsSupportedAccurateMode(node, info)) {
-      SetReason(info.reason, OpNotSupportedReasonID::EN_INPUTS_AND_OUTPUTS_NOT_ACCURACY_SUPPORT,
-                check_param.unsupport_reason);
-      return false;
-    }
-  } else {
-    if (!CheckInputSupported(node, input_size, is_force_dtype_support, info)) {
-      SetReason(info.reason, OpNotSupportedReasonID::EN_INPUTS_NOT_SUPPORT, check_param.unsupport_reason);
-      FE_LOGD("Node %s, type %s's input is not supported in %s.", op_desc.GetName().c_str(), op_desc.GetType().c_str(),
-              sub_store_info_.fe_ops_store_name.c_str());
-      return false;
-    }
-    if (!CheckOutputSupported(node, output_size, is_force_dtype_support, info)) {
-      SetReason(info.reason, OpNotSupportedReasonID::EN_OUTPUTS_NOT_SUPPORT, check_param.unsupport_reason);
-      FE_LOGD("Node %s, type %s's output is not supported in %s.", op_desc.GetName().c_str(),
-              op_desc.GetType().c_str(), sub_store_info_.fe_ops_store_name.c_str());
-      return false;
-    }
-  }
-  // check attrs are supported or not
-  if (!CheckAttrSupport(node, *(check_param.op_kernel_ptr.get()),
-      check_param.unsupport_reason.reason)) {
-    check_param.unsupport_reason.reason_id = static_cast<uint64_t>(OpNotSupportedReasonID::EN_ATTRS_NOT_SUPPORT);
-    FE_LOGD("Attr is not supported in %s.", sub_store_info_.fe_ops_store_name.c_str());
-    return false;
-  }
-
-  // input or output dynamic can have more than 1, required must equal 1,optional not check;
-  if (!CheckParamType(node, check_param.op_kernel_ptr, info.input_index_name_map,
-      info.output_index_name_map, check_param.unsupport_reason.reason)) {
-    check_param.unsupport_reason.reason_id = static_cast<uint64_t>(OpNotSupportedReasonID::EN_PARAM_TYPE_NOT_SUPPORT);
-    FE_LOGD("Parameter type is not supported in %s.", sub_store_info_.fe_ops_store_name.c_str());
+  if (!CheckAttrsAndParamType(node, info, check_param)) {
     return false;
   }
 
@@ -1251,8 +1292,7 @@ bool SubOpsStore::CheckSubStoreSupported(const ge::NodePtr &node, const CheckSup
 
   FE_LOGD("[ChkSpt][FEChk][%s][Node %s, type %s] is support by op store [%s] by check_mode %u.",
           check_type.c_str(), op_desc.GetName().c_str(), op_desc.GetType().c_str(),
-          sub_store_info_.fe_ops_store_name.c_str(),
-          static_cast<uint32_t>(check_mode));
+          sub_store_info_.fe_ops_store_name.c_str(), static_cast<uint32_t>(check_mode));
   return true;
 }
 

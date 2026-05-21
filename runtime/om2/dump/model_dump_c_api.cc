@@ -17,9 +17,9 @@ constexpr int32_t PARAM_INVALID = 0x07FFFFFF;
 constexpr int32_t SUCCESS = 0;
 }  // namespace
 
-// 注意：ge::dump::xxx 与 C 结构体是同一个类型（using 别名），直接传指针即可
-
-int32_t ReportTaskInfo(uint32_t model_id,
+// 对外暴露的 C API 函数，需要 extern "C" 确保 C 链接
+extern "C" {
+int32_t OM2_C_API_EXPORT ReportTaskInfo(uint32_t model_id,
                                       void* instance_handle,
                                       const struct Om2TaskInfo* task_info,
                                       const void* extended_attrs,
@@ -38,10 +38,10 @@ int32_t ReportTaskInfo(uint32_t model_id,
   return static_cast<int32_t>(manager->AddOm2TaskInfo(*task_info));
 }
 
-int32_t IsDataDumpEnabled(uint32_t model_id,
-                          void* instance_handle,
-                          const char* op_name,
-                          uint8_t* is_data_dump) {
+int32_t OM2_C_API_EXPORT IsDataDumpEnabled(uint32_t model_id,
+                                          void* instance_handle,
+                                          const char* op_name,
+                                          uint8_t* is_data_dump) {
   (void)model_id;
 
   if ((instance_handle == nullptr) || (is_data_dump == nullptr)) {
@@ -52,3 +52,5 @@ int32_t IsDataDumpEnabled(uint32_t model_id,
   auto* manager = static_cast<ge::dump::ModelDumpManager*>(instance_handle);
   return static_cast<int32_t>(manager->IsDataDumpEnabled(op_name, is_data_dump));
 }
+
+}  // extern "C"

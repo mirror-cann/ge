@@ -146,8 +146,8 @@ Status IsSupportTilingSink(gert::DataDependentInterpreter &ddi, bool &is_support
   if (!is_build_graph_offline) {
     int32_t value = 0;
     constexpr int32_t STUB_DEV_ID = 64;
-    GE_CHK_RT_RET(rtGetDeviceCapability(STUB_DEV_ID, RT_MODULE_TYPE_TSCPU, FEATURE_TYPE_MODEL_TASK_UPDATE, &value));
-    if (value != RT_DEV_CAP_SUPPORT) {
+    GE_CHK_RT_RET(aclrtGetDeviceCapability(STUB_DEV_ID, ACL_FEATURE_TSCPU_TASK_UPDATE_SUPPORT_AIC_AIV, &value));
+    if (value != ACL_DEV_FEATURE_SUPPORT) {
       GELOGD("tiling sink feature not support.");
       return SUCCESS;
     }

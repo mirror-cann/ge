@@ -50,6 +50,8 @@ class VISIBILITY_EXPORT Om2ModelExecutor {
   ge::Status GetDynamicBatchInfo(std::vector<std::vector<int64_t>> &dynamic_batch_info, int32_t &dynamic_type) const;
   ge::Status GetUserDesignateShapeOrder(std::vector<std::string> &user_designate_shape_order) const;
   ge::Status GetOpAttr(std::map<std::string, std::map<std::string, std::string>> &op_attr_map) const;
+  ge::Status GetOpDescInfo(uint32_t device_id, uint32_t stream_id, uint32_t task_id,
+                           ge::OpDescInfo &op_desc_info) const;
 
  private:
   class Impl;

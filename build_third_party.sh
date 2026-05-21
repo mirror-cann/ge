@@ -55,7 +55,7 @@ build_third_party() {
     echo "prepare third party failed."
     exit 1
   fi
-  CMAKE_ARGS="-D CMAKE_THIRD_PARTY_LIB_DIR=${THIRD_PARTY_LIB_DIR} \
+  CMAKE_ARGS="-D CANN_3RD_LIB_PATH=${THIRD_PARTY_LIB_DIR} \
               -D CMAKE_POLICY_VERSION_MINIMUM=3.5 \
               -D CMAKE_BUILD_COMPONENT=${BUILD_COMPONENT} \
               -D ENABLE_BUILD_DEVICE=${ENABLE_BUILD_DEVICE} \

@@ -73,14 +73,6 @@
         <file value="onnx_parser.h"/>
         <file value="tensorflow_parser.h"/>
     </file_info>
-    <file_info value="python" copy_type="source" dst_path="python/site-packages/autofuse" install_path="python/site-packages/autofuse" install_type="devel" install_mod="550">
-        <file value="ascbc_kernel_compile.py"/>
-        <file value="asc_codegen_compile.py"/>
-        <file value="ascendc_compile.py"/>
-        <file value="ascir_api.py"/>
-        <file value="compile_adapter.py"/>
-        <file value="__init__.py"/>
-    </file_info>
     <file_info value="python" copy_type="source" dst_path="python/func2graph" install_path="$(TARGET_ENV)/python/func2graph" install_type="all" install_mod="550">
         <file value="func2graph.py"/>
     </file_info>

@@ -458,6 +458,8 @@ Status GeGenerator::Initialize(const std::map<std::string, std::string> &options
 }
 
 Status GeGenerator::Initialize(const std::map<std::string, std::string> &options, OmgContext &context) {
+  //备份并清空注册信息map
+  OperatorFactoryImpl::BackupAndClearRegInfoOnce();
   impl_ = ge::MakeShared<Impl>(context);
   if (impl_ == nullptr) {
     REPORT_INNER_ERR_MSG("E19999", "create Impl failed.");
@@ -465,6 +467,8 @@ Status GeGenerator::Initialize(const std::map<std::string, std::string> &options
     return MEMALLOC_FAILED;
   }
   GE_ASSERT_GRAPH_SUCCESS(OpLibRegistry::GetInstance().PreProcessForCustomOp());
+  // 加载顺序遵循3.0目录结构，按op_graph->op_impl->op_proto->framework顺序加载，详细规则见PluginManager::GetOpsProtoPath注释
+  gert::OppPackageUtils::LoadAllOppPackage();
   std::string opsproto_path;
   Status ret = PluginManager::GetOpsProtoPath(opsproto_path);
   if (ret != SUCCESS) {
@@ -476,7 +480,6 @@ Status GeGenerator::Initialize(const std::map<std::string, std::string> &options
   std::map<std::string, std::string> option_tmp;
   option_tmp.emplace(std::pair<std::string, std::string>(string("ge.opsProtoLibPath"), opsproto_path));
   (void)manager->Initialize(option_tmp);
-  gert::OppPackageUtils::LoadAllOppPackage();
   GE_ASSERT_SUCCESS(fusion::LoadPassPlugins());
 
   ret = impl_->graph_manager_.Initialize(options);
@@ -484,7 +487,8 @@ Status GeGenerator::Initialize(const std::map<std::string, std::string> &options
     GELOGE(GE_GENERATOR_GRAPH_MANAGER_INIT_FAILED, "[Call][Initialize] Graph manager initialize failed.");
     return GE_GENERATOR_GRAPH_MANAGER_INIT_FAILED;
   }
-
+  // 将备份的注册信息低优先级merge到当前map
+  OperatorFactoryImpl::MergeBackupCreatorsOnce();
   // get build mode
   auto iter = options.find(BUILD_MODE);
   if (iter != options.end()) {
@@ -524,6 +528,11 @@ Status GeGenerator::GenerateOfflineModel(const Graph &graph, const std::string &
 Status GeGenerator::GenerateOnlineModel(const Graph &graph, const std::vector<GeTensor> &inputs,
                                         ModelBufferData &model) {
   return GenerateModel(graph, "online", inputs, model, false);
+}
+
+Status GeGenerator::GenerateOnlineOm2Model(const Graph &graph, const std::vector<GeTensor> &inputs,
+                                           ModelBufferData &model) {
+  return GenerateModel(graph, "online", inputs, model, false, OfflineModelFormat::OM_FORMAT_OM2);
 }
 
 Status GeGenerator::GenerateInfershapeGraph(const Graph &graph) {

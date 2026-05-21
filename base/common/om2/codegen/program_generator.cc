@@ -214,10 +214,10 @@ LDFLAGS := -shared -L$(LIB_PATH) -Wl,--no-as-needed -lacl_rt -Wl,--as-needed
 all: $(TARGET)
 
 $(TARGET): $(SRC_FILES)
-	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
+	@$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
   clean:
-	rm -f $(TARGET)
+	@rm -f $(TARGET)
 )";
   code_printer.AddContent(GeneratedFileIndex::kCMakeListsFile, cmakelists_content + "\n");
   GELOGD("[OM2] Makefile code is generated.");

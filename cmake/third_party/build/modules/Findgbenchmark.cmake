@@ -8,13 +8,13 @@
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
 
-set(BENCHMARK_DIR ${CMAKE_THIRD_PARTY_LIB_DIR})
+set(BENCHMARK_DIR ${CANN_3RD_LIB_PATH})
 if (TARGET benchmark_build)
     return()
 endif()
 
 find_package(benchmark CONFIG
-    PATHS ${CMAKE_THIRD_PARTY_LIB_DIR}
+    PATHS ${CANN_3RD_LIB_PATH}
     NO_DEFAULT_PATH
     NO_CMAKE_SYSTEM_PATH
     NO_CMAKE_FIND_ROOT_PATH
@@ -27,7 +27,7 @@ endif()
 
 message(STATUS "[benchmark] benchmark not found, finding binary file.")
 
-set(REQ_URL "${CMAKE_THIRD_PARTY_LIB_DIR}/benchmark/benchmark-1.8.3.tar.gz")
+set(REQ_URL "${CANN_3RD_LIB_PATH}/benchmark/benchmark-1.8.3.tar.gz")
 set(BENCHMARK_EXTRA_ARGS "")
 if(EXISTS ${REQ_URL})
     message(STATUS "[benchmark] ${REQ_URL} found.")
@@ -35,7 +35,7 @@ else()
     message(STATUS "[benchmark] ${REQ_URL} not found, need download.")
     set(REQ_URL "https://gitcode.com/cann-src-third-party/benchmark/releases/download/v1.8.3/benchmark-1.8.3.tar.gz")
     list(APPEND BENCHMARK_EXTRA_ARGS
-        DOWNLOAD_DIR ${CMAKE_THIRD_PARTY_LIB_DIR}/benchmark
+        DOWNLOAD_DIR ${CANN_3RD_LIB_PATH}/benchmark
     )
 endif()
 
@@ -49,7 +49,7 @@ ExternalProject_Add(benchmark_build
         -DBENCHMARK_ENABLE_GTEST_TESTS=OFF
         -DCMAKE_BUILD_TYPE=Release
         -DCMAKE_CXX_FLAGS=${benchmark_CXXFLAGS}
-        -DCMAKE_INSTALL_PREFIX=${CMAKE_THIRD_PARTY_LIB_DIR}/benchmark
+        -DCMAKE_INSTALL_PREFIX=${CANN_3RD_LIB_PATH}/benchmark
         -DCMAKE_INSTALL_LIBDIR=${CMAKE_INSTALL_LIBDIR}
         -DLLVM_PATH=${LLVM_PATH}
         -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}

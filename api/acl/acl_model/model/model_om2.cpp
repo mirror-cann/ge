@@ -43,6 +43,47 @@ aclError SetOm2ModelLoadArgDevice(gert::Om2ModelLoadArg& loadArgs) {
     return ACL_SUCCESS;
 }
 
+aclError CreateAclTensorDescFromOpDescInfo(const ge::OpDescInfo& opDescInfo, aclTensorDesc** inputDesc,
+                                           size_t* numInputs, aclTensorDesc** outputDesc, size_t* numOutputs) {
+    const size_t inputNum = opDescInfo.input_format.size();
+    const size_t outputNum = opDescInfo.output_format.size();
+    ACL_REQUIRES_POSITIVE(inputNum);
+    ACL_REQUIRES_POSITIVE(outputNum);
+
+    *inputDesc = new(std::nothrow) aclTensorDesc[inputNum];
+    ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(*inputDesc);
+    *outputDesc = new(std::nothrow) aclTensorDesc[outputNum];
+    if (*outputDesc == nullptr) {
+        ACL_LOG_INNER_ERROR("[Check][outputDesc]alloc outputDesc memory failed");
+        ACL_DELETE_ARRAY_AND_SET_NULL(*inputDesc);
+        return ACL_ERROR_FAILURE;
+    }
+
+    ACL_REQUIRES_EQ(opDescInfo.input_data_type.size(), inputNum);
+    ACL_REQUIRES_EQ(opDescInfo.input_shape.size(), inputNum);
+    ACL_REQUIRES_EQ(opDescInfo.input_addrs.size(), inputNum);
+    for (size_t idx = 0U; idx < inputNum; ++idx) {
+        (*inputDesc)[idx].format = static_cast<aclFormat>(opDescInfo.input_format[idx]);
+        (*inputDesc)[idx].dataType = static_cast<aclDataType>(opDescInfo.input_data_type[idx]);
+        (*inputDesc)[idx].dims.assign(opDescInfo.input_shape[idx].begin(), opDescInfo.input_shape[idx].end());
+        (*inputDesc)[idx].address = opDescInfo.input_addrs[idx];
+    }
+
+    ACL_REQUIRES_EQ(opDescInfo.output_data_type.size(), outputNum);
+    ACL_REQUIRES_EQ(opDescInfo.output_shape.size(), outputNum);
+    ACL_REQUIRES_EQ(opDescInfo.output_addrs.size(), outputNum);
+    for (size_t idx = 0U; idx < outputNum; ++idx) {
+        (*outputDesc)[idx].format = static_cast<aclFormat>(opDescInfo.output_format[idx]);
+        (*outputDesc)[idx].dataType = static_cast<aclDataType>(opDescInfo.output_data_type[idx]);
+        (*outputDesc)[idx].dims.assign(opDescInfo.output_shape[idx].begin(), opDescInfo.output_shape[idx].end());
+        (*outputDesc)[idx].address = opDescInfo.output_addrs[idx];
+    }
+
+    *numInputs = inputNum;
+    *numOutputs = outputNum;
+    return ACL_SUCCESS;
+}
+
 aclError PrepareOm2Tensor(std::vector<gert::Tensor>& tensor, std::vector<gert::Tensor*>& vec,
                           const size_t inputNum, const aclmdlDataset* const dataset,
                           const std::vector<ge::Om2TensorDesc>& tensorDesc,
@@ -1698,16 +1739,33 @@ aclError aclmdlGetInputDynamicDimsImplOm2(const aclmdlDesc* modelDesc, size_t in
 aclError aclmdlCreateAndGetOpDescImplOm2(uint32_t deviceId, uint32_t streamId, uint32_t taskId, char* opName,
                                          size_t opNameLen, aclTensorDesc** inputDesc, size_t* numInputs,
                                          aclTensorDesc** outputDesc, size_t* numOutputs) {
-    (void)deviceId;
-    (void)streamId;
-    (void)taskId;
-    (void)opName;
-    (void)opNameLen;
-    (void)inputDesc;
-    (void)numInputs;
-    (void)outputDesc;
-    (void)numOutputs;
-    return ACL_ERROR_API_NOT_SUPPORT;
+    ACL_LOG_INFO("[OM2] start to execute aclmdlCreateAndGetOpDesc, deviceId[%u], streamId[%u], taskId[%u]",
+                 deviceId, streamId, taskId);
+    ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(opName);
+    ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(inputDesc);
+    ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(outputDesc);
+    ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(numInputs);
+    ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(numOutputs);
+
+    ge::OpDescInfo opDescInfo;
+    ACL_REQUIRES_OK(acl::AclResourceManagerOm2::GetInstance().GetOpDescInfo(deviceId, streamId, taskId, opDescInfo));
+
+    if (opNameLen <= opDescInfo.op_name.length()) {
+        ACL_LOG_INNER_ERROR("[Check][opNameLen]input length = %zu must be larger than op name real length = %zu",
+                            opNameLen, opDescInfo.op_name.length());
+        return ACL_ERROR_INVALID_PARAM;
+    }
+    const auto copyRet = strncpy_s(opName, opNameLen, opDescInfo.op_name.c_str(), opDescInfo.op_name.length());
+    if (copyRet != EOK) {
+        ACL_LOG_INNER_ERROR("[Copy][OpName]copy op name failed, copy errorCode = %d, input opNameLen = %zu, "
+                            "real opNameLen = %zu", copyRet, opNameLen, opDescInfo.op_name.length());
+        return ACL_ERROR_FAILURE;
+    }
+
+    ACL_REQUIRES_OK(CreateAclTensorDescFromOpDescInfo(opDescInfo, inputDesc, numInputs, outputDesc, numOutputs));
+    ACL_LOG_INFO("[OM2] successfully execute aclmdlCreateAndGetOpDesc, deviceId[%u], streamId[%u], "
+                 "taskId[%u], numInputs[%zu], numOutputs[%zu]", deviceId, streamId, taskId, *numInputs, *numOutputs);
+    return ACL_SUCCESS;
 }
 
 aclError aclmdlLoadWithConfigImplOm2(const aclmdlConfigHandle* handle, uint32_t* modelId) {

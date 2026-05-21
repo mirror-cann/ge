@@ -8,8 +8,8 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 #include "memcpy_addr_async_op.h"
-
 #include "common/util.h"
+#include "common/constant/constant.h"
 #include "op_factory.h"
 #include "graph/utils/tensor_utils.h"
 #include "graph/args_format_desc.h"
@@ -83,17 +83,18 @@ Status MemcpyAddrAsyncOp::Run(vector<TaskDef> &tasks) {
 }
 
 rtError_t MemcpyAddrAsyncOp::AddArgsFormatDescInfo(domi::MemcpyAsyncDef *const memcpyAsyncDef, const uint64_t count) {
-  const int32_t socVersionLen = 50;
-  char_t version[socVersionLen] = {0};
-  auto ret = GetSocVersion(version, socVersionLen);
-  if (ret != SUCCESS) {
-    RTS_LOGE("GetSocVersion failed, ret=%#x", ret);
-    return RT_ERROR_INVALID_VALUE;
+  constexpr uint32_t kMaxValueLen = 32U;
+  char chipType[kMaxValueLen] = {0};
+
+  const auto retErr = rtGetSocSpec("version", "Chip_type", chipType, kMaxValueLen);
+  if (retErr != RT_ERROR_NONE) {
+      RTS_REPORT_INNER_ERROR("Cannot get Chip_type, ret=%d", retErr);
+      return retErr;
   }
-  RTS_LOGI("Soc version is [%s]", version);
+  RTS_LOGI("Chip_type is [%s]", chipType);
   std::string res;
   ArgsFormatDesc desc;
-  if ((strncmp(version, "Ascend950", strlen("Ascend950")) == 0)) {
+  if (IsStarsV2Series(chipType)) {
     desc.AppendPlaceholder(ArgsFormatWidth::BIT64);
     desc.AppendPlaceholder(ArgsFormatWidth::BIT64);
     desc.AppendPlaceholder(ArgsFormatWidth::BIT64);

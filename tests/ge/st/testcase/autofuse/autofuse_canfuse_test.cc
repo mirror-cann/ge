@@ -34,6 +34,8 @@ using namespace testing;
 using namespace ge::autofuse;
 
 namespace ge {
+using af::AscGraphUtils;
+
 class RuntimeMock910B2 : public RuntimeStub {
  public:
   rtError_t rtGetSocVersion(char *version, const uint32_t maxLen) {

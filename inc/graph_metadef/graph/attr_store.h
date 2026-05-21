@@ -333,4 +333,12 @@ typename std::enable_if<std::is_base_of<AttrGroupsBase, T>::value, bool>::type A
 
 }  // namespace ge
 
+#ifdef AUTOFUSE_USE_GE_METADEF
+namespace af {
+using graphStatus = ge::graphStatus;
+using AttrStore = ge::AttrStore;
+using ge::DT_COMPLEX32;
+}  // namespace af
+#endif
+
 #endif  // EXECUTE_GRAPH_ATTR_STORE_H

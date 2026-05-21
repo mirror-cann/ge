@@ -32,4 +32,13 @@ class GeIrAttrSerializer {
 };
 }  // namespace ge
 
+#ifdef AUTOFUSE_USE_GE_METADEF
+namespace af {
+using ge::AnyValue;
+using ge::GetTypeId;
+using GeIrAttrDef = ::ge::proto::AttrDef;
+using GeIrAttrSerializer = ge::GeIrAttrSerializer;
+}  // namespace af
+#endif
+
 #endif  // METADEF_CXX_ATTR_SERIALIZER_H

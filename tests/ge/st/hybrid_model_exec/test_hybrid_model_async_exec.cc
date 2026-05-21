@@ -147,6 +147,10 @@ public:
   aclError aclrtMemcpy(void *dst, size_t destMax, const void *src, size_t count, aclrtMemcpyKind kind) override {
     return -1;
   }
+  aclError aclrtMemcpyBatch(void **dsts, size_t *destMax, void **srcs, size_t *sizes, size_t numBatches,
+                            aclrtMemcpyBatchAttr *attrs, size_t *attrsIndexex, size_t numAttrs, size_t *failIndex) {
+    return ACL_ERROR_RT_FEATURE_NOT_SUPPORT;
+  }
 };
 std::vector<gert::Tensor> InputData2GertTensors(const InputData &input_data) {
   std::vector<gert::Tensor> input_tensors;
@@ -1083,7 +1087,7 @@ TEST_F(HybridModelAsyncTest, ExecuteWithStreamAsync_execute_model_online_BatchH2
   std::vector<gert::Tensor> gert_inputs = InputData2GertTensors(inputs);
   ret = executor_rt_v2.ExecuteOnlineModel(gert_inputs, nullptr);
   EXPECT_EQ(ret, SUCCESS);
-  EXPECT_EQ(RuntimeStub::GetInstance()->input_mem_copy_batch_count_, 2);
+  EXPECT_EQ(AclRuntimeStub::GetInstance()->input_mem_copy_batch_count_, 2);
   HybridModelExecutor::CtrlArgs args;
   args.stream = stream;
   args.is_eos = true;
@@ -1147,6 +1151,15 @@ TEST_F(HybridModelAsyncTest, Execute_Success_SkipBatchMemcpyWhenSizeIsZero) {
 }
 
 TEST_F(HybridModelAsyncTest, ExecuteWithStreamAsync_execute_model_online_BatchH2d_NotSupport) {
+  class MockAclRuntime : public ge::AclRuntimeStub {
+   public:
+    aclError aclrtMemcpyBatch(void **dsts, size_t *destMax, void **srcs, size_t *sizes, size_t numBatches,
+                              aclrtMemcpyBatchAttr *attrs, size_t *attrsIndexex, size_t numAttrs, size_t *failIndex) {
+      return ACL_ERROR_RT_FEATURE_NOT_SUPPORT;
+    }
+  };
+  auto mock_runtime = std::make_shared<MockAclRuntime>();
+  ge::AclRuntimeStub::SetInstance(mock_runtime);
   auto graph = ShareGraph::AicoreGraph();
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
@@ -1192,7 +1205,6 @@ TEST_F(HybridModelAsyncTest, ExecuteWithStreamAsync_execute_model_online_BatchH2
 
   input_tensors.resize(2U, scalar_host_tensor);
   output_tensors[0].SetData(nullptr, 0U);
-  RTS_STUB_RETURN_VALUE(rtsMemcpyBatch, rtError_t, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
   std::vector<gert::Tensor> gert_inputs = InputData2GertTensors(inputs);
   ret = executor_rt_v2.ExecuteOnlineModel(gert_inputs, nullptr);
   EXPECT_EQ(RuntimeStub::GetInstance()->input_mem_copy_batch_count_, 0);
@@ -1205,6 +1217,15 @@ TEST_F(HybridModelAsyncTest, ExecuteWithStreamAsync_execute_model_online_BatchH2
 }
 
 TEST_F(HybridModelAsyncTest, ExecuteWithStreamAsync_execute_model_online_BatchH2d_Failed) {
+  class MockAclRuntime : public ge::AclRuntimeStub {
+   public:
+    aclError aclrtMemcpyBatch(void **dsts, size_t *destMax, void **srcs, size_t *sizes, size_t numBatches,
+                              aclrtMemcpyBatchAttr *attrs, size_t *attrsIndexex, size_t numAttrs, size_t *failIndex) {
+      return -1;
+    }
+  };
+  auto mock_runtime = std::make_shared<MockAclRuntime>();
+  ge::AclRuntimeStub::SetInstance(mock_runtime);
   auto graph = ShareGraph::AicoreGraph();
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
@@ -1250,7 +1271,6 @@ TEST_F(HybridModelAsyncTest, ExecuteWithStreamAsync_execute_model_online_BatchH2
 
   input_tensors.resize(2U, scalar_host_tensor);
   output_tensors[0].SetData(nullptr, 0U);
-  RTS_STUB_RETURN_VALUE(rtsMemcpyBatch, rtError_t, -1);
   std::vector<gert::Tensor> gert_inputs = InputData2GertTensors(inputs);
   ret = executor_rt_v2.ExecuteOnlineModel(gert_inputs, nullptr);
   EXPECT_EQ(RuntimeStub::GetInstance()->input_mem_copy_batch_count_, 0);
@@ -1309,7 +1329,6 @@ TEST_F(HybridModelAsyncTest, ExecuteWithStreamAsync_execute_model_online_BatchH2
 
   input_tensors.resize(2U, scalar_host_tensor);
   output_tensors[0].SetData(nullptr, 0U);
-  RTS_STUB_RETURN_VALUE(rtsMemcpyBatch, rtError_t, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
   RTS_STUB_RETURN_VALUE(rtMemcpy, rtError_t, -1);
   MockAclrtMemcpy mock_aclrt_memcpy;
   AclRuntimeStub::Install(&mock_aclrt_memcpy);

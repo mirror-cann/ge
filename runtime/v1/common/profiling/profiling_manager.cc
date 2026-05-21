@@ -18,7 +18,6 @@
 #include "framework/common/debug/log.h"
 #include "framework/common/profiling_definitions.h"
 #include "graph/utils/type_utils.h"
-#include "runtime/dev.h"
 #include "acl/acl_rt.h"
 #include "mmpa/mmpa_api.h"
 #include "graph/load/model_manager/model_manager.h"

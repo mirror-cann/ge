@@ -682,8 +682,8 @@ INT32 mmDup(INT32 fd) {
 }
 
 ge::MmpaStub& ge::MmpaStub::GetInstance() {
-  static ge::MmpaStub instance;
-  return instance;
+  static auto *instance = new ge::MmpaStub();
+  return *instance;
 }
 
 void ge::MmpaStub::SetImpl(const std::shared_ptr<ge::MmpaStubApiGe> &impl) {

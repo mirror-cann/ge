@@ -744,6 +744,9 @@ GNode Graph::AddNodeByOp(const Operator &op) {
   const NodePtr node_ptr = compute_graph_ptr->AddNode(op_desc);
   const GNode gnode = NodeAdapter::Node2GNode(node_ptr);
 
+  // 同步维护op_list_，使FindOpByName/FindOpByType/GetAllOpName等接口在ES构图(AddNodeByOp)场景下可用。
+  // 静默忽略重名以保证幂等性（调用方可能已通过AddOp手动添加过同名Operator）。
+  (void)impl_->AddOp(op);
   return gnode;
 }
 

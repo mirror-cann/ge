@@ -1808,8 +1808,6 @@ TEST_F(BgCacheableTilingUT, BgTiling_TopoCorrect_FallibleTiling_MemCheck2) {
   std::map<std::string, std::string> options;
   options.insert(std::pair<std::string, std::string>(ge::TILING_SCHEDULE_OPTIMIZE, "1"));
   ge::GetThreadLocalContext().SetGlobalOption(options);
-  RTS_STUB_RETURN_VALUE(rtGetDeviceCapability, rtError_t, RT_ERROR_NONE);
-  RTS_STUB_OUTBOUND_VALUE(rtGetDeviceCapability, int32_t, value, RT_DEV_CAP_SUPPORT);
 
   auto tiling_rets =
       FallibleTiling(add_node, {in_shape0, in_shape1}, {out_shape}, {platform, global_data, fake_launch_arg_});
@@ -1857,8 +1855,6 @@ TEST_F(BgCacheableTilingUT, BgTiling_TopoCorrect_FallibleTiling_MemCheck3) {
   std::map<std::string, std::string> options;
   options.insert(std::pair<std::string, std::string>(ge::TILING_SCHEDULE_OPTIMIZE, "1"));
   ge::GetThreadLocalContext().SetGlobalOption(options);
-  RTS_STUB_RETURN_VALUE(rtGetDeviceCapability, rtError_t, RT_ERROR_NONE);
-  RTS_STUB_OUTBOUND_VALUE(rtGetDeviceCapability, int32_t, value, RT_AICPU_BLOCKING_OP_NOT_SUPPORT);
 
   auto tiling_rets =
       FallibleTiling(add_node, {in_shape0, in_shape1}, {out_shape}, {platform, global_data, fake_launch_arg_});

@@ -13,6 +13,7 @@
 #include "model_common.h"
 #include "model_desc_internal.h"
 #include "acl_resource_manager_om2.h"
+#include "common/log_inner.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -600,7 +601,15 @@ aclError aclmdlCreateAndGetOpDesc(uint32_t deviceId, uint32_t streamId,
     uint32_t taskId, char *opName, size_t opNameLen, aclTensorDesc **inputDesc, size_t *numInputs,
     aclTensorDesc **outputDesc, size_t *numOutputs)
 {
-    return aclmdlCreateAndGetOpDescImpl(deviceId, streamId, taskId, opName, opNameLen, inputDesc, numInputs, outputDesc, numOutputs);
+    const aclError om2Ret = aclmdlCreateAndGetOpDescImplOm2(deviceId, streamId, taskId, opName, opNameLen,
+        inputDesc, numInputs, outputDesc, numOutputs);
+    // If OM2 OpDescInfo is not found, ACL_ERROR_GE_FAILURE is returned and OM OpDescInfo should be queried.
+    if ((om2Ret == ACL_SUCCESS) || (om2Ret == ACL_ERROR_FAILURE) || (om2Ret == ACL_ERROR_INVALID_PARAM)) {
+        return om2Ret;
+    }
+    const aclError ret = aclmdlCreateAndGetOpDescImpl(deviceId, streamId, taskId, opName, opNameLen,
+        inputDesc, numInputs, outputDesc, numOutputs);
+    return ret;
 }
 
 aclError aclmdlLoadWithConfig(const aclmdlConfigHandle *handle, uint32_t *modelId)

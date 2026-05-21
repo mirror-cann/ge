@@ -18,7 +18,6 @@
 #include "graph/compute_graph.h"
 #include "graph/fast_graph/execute_graph.h"
 #include "pretty_table.h"
-#include "graph/ascendc_ir/ascendc_ir_core/ascendc_ir.h"
 
 namespace gert {
 class SummaryChecker {
@@ -143,31 +142,7 @@ class ExeGraphSummaryChecker : public SummaryChecker{
   ge::ExecuteGraph *graph_;
 };
 
-class AscGraphSummaryChecker : public SummaryChecker {
- public:
-  explicit AscGraphSummaryChecker(const std::shared_ptr<ge::AscGraph> &graph) : graph_(graph) {
-    for (const auto &node : graph_->GetAllNodes()) {
-      nodes_.push_back(node);
-    }
-  }
 
-  std::string StrictAllNodeTypes(const std::map<std::string, size_t> &node_types_to_count) const override {
-    // AscGraph提供的GetAllNodes()方法返回的是AscNodeVisitor，AscNodeVisitor未提供const迭代器
-    return StrictNodeTypes(nodes_, node_types_to_count);
-  }
-
-  std::string StrictDirectNodeTypes(const std::map<std::string, size_t> &node_types_to_count) const override {
-    return StrictNodeTypes(nodes_, node_types_to_count);
-  }
-
-  std::string DirectNodeTypesOnlyCareAbout(const std::map<std::string, size_t> &node_types_to_count) const override {
-    return LooseNodeTypes(nodes_, node_types_to_count);
-  }
-
- private:
-  const std::shared_ptr<ge::AscGraph> &graph_;
-  std::vector<ge::NodePtr> nodes_;
-};
 }  // namespace gert
 
 #define STRICT_DIRECT_NODE_TYPES(graph, expect_types)                         \

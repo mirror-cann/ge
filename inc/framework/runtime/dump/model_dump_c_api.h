@@ -70,7 +70,6 @@ struct Om2TaskInfo {
 };
 
 // ============ 弱符号接口 ============
-
 /**
  * @brief 添加 Task Dump 信息
  * @param model_id 模型 ID（预留，暂时不用）

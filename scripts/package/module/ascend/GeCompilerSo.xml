@@ -64,7 +64,7 @@
         <file value="libacl_op_compiler.so" file_type="shared"/>
         <file value="libfunc2graph.so" file_type="shared"/>
     </file_info>
-    <file_info value="devlib" copy_type="delivery" dst_path="lib64/stub/linux/x86_64" install_path="$(TARGET_ENV)/devlib/linux/x86_64" install_mod="440" optional="true">
+    <file_info value="devlib" copy_type="delivery" dst_path="devlib/linux/x86_64" install_path="$(TARGET_ENV)/devlib/linux/x86_64" install_mod="440" optional="true">
         <file value="libfmk_parser.so" file_type="shared" install_type="devel"/>
         <file value="libge_compiler.so" file_type="shared" install_type="devel"/>
         <file value="libfmk_onnx_parser.so" file_type="shared" install_type="devel"/>
@@ -72,7 +72,7 @@
         <file value="libge_runner_v2.so" file_type="shared" install_type="devel"/>
         <file value="libacl_op_compiler.so" file_type="shared"/>
     </file_info>
-    <file_info value="devlib" copy_type="delivery" dst_path="lib64/stub/linux/aarch64" install_path="$(TARGET_ENV)/devlib/linux/aarch64" install_mod="440" optional="true">
+    <file_info value="devlib" copy_type="delivery" dst_path="devlib/linux/aarch64" install_path="$(TARGET_ENV)/devlib/linux/aarch64" install_mod="440" optional="true">
         <file value="libfmk_parser.so" file_type="shared" install_type="devel"/>
         <file value="libge_compiler.so" file_type="shared" install_type="devel"/>
         <file value="libfmk_onnx_parser.so" file_type="shared" install_type="devel"/>
@@ -80,10 +80,10 @@
         <file value="libge_runner_v2.so" file_type="shared" install_type="devel"/>
         <file value="libacl_op_compiler.so" file_type="shared"/>
     </file_info>
-    <file_info value="autofuse" copy_type="delivery" dst_path="python/site-packages/autofuse" install_path="python/site-packages/autofuse" install_type="devel" install_mod="440" optional="true">
+    <file_info value="autofuse" copy_type="delivery" dst_path="real:python/site-packages/autofuse" install_path="python/site-packages/autofuse" install_type="devel" install_mod="440" optional="true">
         <file value="pyautofuse.so" file_type="shared"/>
     </file_info>
-    <file_info value="switch_by_index" copy_type="delivery" dst_path="fwkacllib/lib64" install_path="fwkacllib/lib64" install_type="devel" install_mod="550" optional="true">
+    <file_info value="switch_by_index" copy_type="delivery" dst_path="real:fwkacllib/lib64" install_path="fwkacllib/lib64" install_type="devel" install_mod="550" optional="true">
         <file value="switch_by_index.o" file_type="shared"/>
     </file_info>
 </block>

@@ -246,7 +246,7 @@ string CreateAscbackendName(loop::KernelBox &kernel_box, CounterPtr counter) {
   return ascbackend_name;
 }
 
-graphStatus BuildOpForKernelBox(loop::KernelBox &kernel_box, CounterPtr counter, shared_ptr<loop::AscOverrides> asc_graph, Operator &asc_op) {
+graphStatus BuildOpForKernelBox(loop::KernelBox &kernel_box, CounterPtr counter, shared_ptr<loop::AscOverrides> asc_graph, af::Operator &asc_op) {
   std::string asc_op_name = CreateAscbackendName(kernel_box, counter);
   GE_WARN_ASSERT(!asc_op_name.empty(), "CreateAscbackendName failed, asc_op_name is empty.");
   GE_ASSERT_NOTNULL(asc_graph->GetOutput());
@@ -410,7 +410,7 @@ OpDescPtr LoweringManager::BuildOpDescForKernelBox(
                                "Fall back lowering, reason is showed above.");
   LoweringUtils::PrintReadableAscGraph(*asc_graph->SharedGraph());
   origin_inputs = asc_graph->GetInputs();
-  Operator asc_op;
+  af::Operator asc_op;
   GE_WARN_ASSERT_GRAPH_SUCCESS(BuildOpForKernelBox(kernel_box, counter, asc_graph, asc_op));
   auto asc_desc = OpDescUtils::GetOpDescFromOperator(asc_op);
   GE_ASSERT_NOTNULL(asc_desc);

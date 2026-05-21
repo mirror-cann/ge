@@ -26,13 +26,13 @@ class AttributeGroupUt : public testing::Test {};
 
 TEST_F(AttributeGroupUt, TypeID) {
   EXPECT_EQ(GetTypeId<AttrGroupsBase>(), (void*)10);
-  EXPECT_EQ(GetTypeId<AscTensorAttr>(), (void*)11);
-  EXPECT_EQ(GetTypeId<AscNodeAttr>(), (void*)12);
-  EXPECT_EQ(GetTypeId<AscGraphAttr>(), (void*)13);
+  EXPECT_EQ(GetTypeId<af::AscTensorAttr>(), (void*)11);
+  EXPECT_EQ(GetTypeId<af::AscNodeAttr>(), (void*)12);
+  EXPECT_EQ(GetTypeId<af::AscGraphAttr>(), (void*)13);
   EXPECT_EQ(GetTypeId<SymbolicDescAttr>(), (void*)14);
   EXPECT_EQ(GetTypeId<ShapeEnvAttr>(), (void*)15);
-  EXPECT_EQ(GetTypeId<AutoFuseAttrs>(), (void*)16);
-  EXPECT_EQ(GetTypeId<AutoFuseGraphAttrs>(), (void*)17);
+  EXPECT_EQ(GetTypeId<af::AutoFuseAttrs>(), (void*)16);
+  EXPECT_EQ(GetTypeId<af::AutoFuseGraphAttrs>(), (void*)17);
 }
 
 TEST_F(AttributeGroupUt, Clone) {

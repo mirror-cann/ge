@@ -21,16 +21,16 @@
         <file value="libflow_func.so" file_type="shared"/>
         <file value="libbuilt_in_flowfunc.so" file_type="shared"/>
     </file_info>
-    <file_info value="lib64" copy_type="delivery" src_path="" dst_path="lib64" install_path="compat" install_type="all" install_mod="550">
+    <file_info value="lib64" copy_type="delivery" src_path="" dst_path="real:compat" install_path="compat" install_type="all" install_mod="550">
         <file value="cann-udf-compat.tar.gz" install_mod="440"/>
     </file_info>
-    <file_info value="lib64" copy_type="delivery" src_path="" dst_path="lib64" install_path="runtime/lib64" install_type="all" install_mod="550">
+    <file_info value="lib64" copy_type="delivery" src_path="" dst_path="real:runtime/lib64" install_path="runtime/lib64" install_type="all" install_mod="550">
         <file value="Ascend-runtime_device-minios.tar.gz" install_mod="440" optional="true"/>
     </file_info>
-    <file_info value="udf_stublib" copy_type="delivery" src_path="" dst_path="lib64" install_path="$(TARGET_ENV)/lib64/stub/linux/$(ARCH)" install_type="all" install_mod="550">
+    <file_info value="udf_stublib" copy_type="delivery" src_path="" dst_path="lib64/stub/linux/$(ARCH)" install_path="$(TARGET_ENV)/lib64/stub/linux/$(ARCH)" install_type="all" install_mod="550">
         <file value="libflow_func.so" file_type="shared"/>
     </file_info>
-    <file_info value="udf_devlib" copy_type="delivery" src_path="" dst_path="lib64" install_path="$(TARGET_ENV)/devlib/linux/$(ARCH)" install_type="all" install_mod="550">
+    <file_info value="udf_devlib" copy_type="delivery" src_path="" dst_path="devlib/linux/$(ARCH)" install_path="$(TARGET_ENV)/devlib/linux/$(ARCH)" install_type="all" install_mod="550">
         <file value="libflow_func.so" file_type="shared"/>
     </file_info>
     <file_info value="udf_devlib_device" copy_type="delivery" src_path="" dst_path="devlib/device" install_path="$(TARGET_ENV)/devlib/device" install_type="all" install_mod="550">

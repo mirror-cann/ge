@@ -1184,7 +1184,6 @@ TEST_F(FftsPlusTest, ffts_plus_graph_with_aicpu_load_no_block_sucess) {
   AttrUtils::SetInt(ge_model, ATTR_MODEL_VAR_SIZE, 5120);
   RTS_STUB_RETURN_VALUE(rtQueryFunctionRegistered, rtError_t, 0x78000001);
   RTS_STUB_RETURN_VALUE(rtQueryFunctionRegistered, rtError_t, 0x78000001);
-  RTS_STUB_OUTBOUND_VALUE(rtGetDeviceCapability, int32_t, value, RT_AICPU_BLOCKING_OP_NOT_SUPPORT);
   GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
   ge_root_model->Initialize(root_graph);
   ge_root_model->SetSubgraphInstanceNameToModel(root_graph->GetName(), ge_model);
@@ -1232,7 +1231,6 @@ TEST_F(FftsPlusTest, ffts_plus_graph_with_aicpu_load_failed) {
   AttrUtils::SetInt(ge_model, ATTR_MODEL_VAR_SIZE, 5120);
   RTS_STUB_RETURN_VALUE(rtQueryFunctionRegistered, rtError_t, 0x78000001);
   RTS_STUB_RETURN_VALUE(rtQueryFunctionRegistered, rtError_t, 0x78000001);
-  RTS_STUB_OUTBOUND_VALUE(rtGetDeviceCapability, int32_t, value, RT_MODE_NO_FFTS);
   GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
   ge_root_model->Initialize(root_graph);
   ge_root_model->SetSubgraphInstanceNameToModel(root_graph->GetName(), ge_model);
@@ -1247,7 +1245,8 @@ TEST_F(FftsPlusTest, ffts_plus_graph_with_aicpu_load_failed) {
   ModelExecutor model_executor;
   ASSERT_EQ(model_executor.Initialize({}, 0), SUCCESS);
   model_executor.StartRunThread();
-  EXPECT_NE(model_executor.LoadGraph(ge_root_model, graph_node), SUCCESS);
+  // 默认支持FEATURE_TYPE_BLOCKING_OPERATOR
+  EXPECT_EQ(model_executor.LoadGraph(ge_root_model, graph_node), SUCCESS);
   EXPECT_EQ(model_executor.UnloadGraph(ge_root_model, graph_id), SUCCESS);
   ASSERT_EQ(model_executor.Finalize(), SUCCESS);
 }

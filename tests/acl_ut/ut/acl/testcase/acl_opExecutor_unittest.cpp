@@ -1165,7 +1165,11 @@ TEST_F(OpExecutorTest, TestAclopExecute)
     outputDesc[0] = aclCreateTensorDesc(ACL_FLOAT16, 2, shape, ACL_FORMAT_ND);
     aclDataBuffer *inputs[1];
     aclDataBuffer *outputs[1];
+    inputs[0] = aclCreateDataBuffer((void *)0x12345, 1024);
+    outputs[0] = aclCreateDataBuffer((void *)0x12345, 1024);
     EXPECT_EQ(aclopExecute("BatchNorm_Test1", 1, inputDesc, inputs, 1, outputDesc, outputs, nullptr, nullptr), ACL_ERROR_OP_NOT_FOUND);
+    aclDestroyDataBuffer(inputs[0]);
+    aclDestroyDataBuffer(outputs[0]);
     aclDestroyTensorDesc(inputDesc[0]);
     aclDestroyTensorDesc(outputDesc[0]);
 }

@@ -560,7 +560,7 @@ graphStatus LowerSplitToStridedSlices(const NodePtr &node, const vector<Expressi
   // ComputeSplitSplits 内部已经调用宏
   GE_WARN_ASSERT_GRAPH_SUCCESS(ComputeSplitSplits(node, x_dims[split_dim], size_splits));
 
-  LOWERING_WARN_RECORD_REASON(CheckEndDimHasOne(node) == true, node, "End dim has value one");
+  LOWERING_WARN_RECORD_REASON(CheckEndDimHasOne(node) != true, node, "End dim has value one");
   Expression offset = Symbol(0);
   int32_t index = 0;
   string not_lowering_reason;

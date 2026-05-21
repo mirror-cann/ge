@@ -20,11 +20,19 @@
 #include "utils/auto_fuse_config.h"
 
 namespace ge {
+using af::AscNodeAttr;
+using af::AscGraphAttr;
+using af::AscTensorAttr;
+using af::AscGraphUtils;
+using af::AutoFuseAttrs;
+using af::GetInterAttrs;
+namespace ascir_op = af::ascir_op;
+
 namespace asc_adapt {
 struct TensorInfo {
   std::vector<int64_t> axis;
-  std::vector<ge::Expression> repeats;
-  std::vector<ge::Expression> strides;
+  std::vector<af::Expression> repeats;
+  std::vector<af::Expression> strides;
   std::vector<int64_t> broadcast_info;
   unsigned long current_topo_id;
   DataType dtype;

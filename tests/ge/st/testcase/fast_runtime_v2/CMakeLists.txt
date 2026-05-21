@@ -57,6 +57,7 @@ target_include_directories(st_fast_runtime2_test PRIVATE
 target_link_options(st_fast_runtime2_test PRIVATE
         -rdynamic
         -Wl,-Bsymbolic
+        -Wl,--disable-new-dtags
         )
 
 target_link_libraries(st_fast_runtime2_test PRIVATE
