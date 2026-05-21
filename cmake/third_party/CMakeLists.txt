@@ -62,6 +62,7 @@ endif(CCACHE_PROGRAM)
 
 if (NOT DEFINED CMAKE_PREFIX_PATH)
     set(CMAKE_PREFIX_PATH
+        ${CANN_3RD_LIB_PATH}/openssl
         ${CANN_3RD_LIB_PATH}/protoc
         ${CANN_3RD_LIB_PATH}/protoc_grpc
         ${CANN_3RD_LIB_PATH}/grpc
@@ -76,7 +77,7 @@ endif()
 message(STATUS "[${CMAKE_BUILD_COMPONENT}] third-party process")
 if(CMAKE_BUILD_COMPONENT STREQUAL "ge-compiler")
     add_cann_third_party(json)
-    add_cann_third_party(openssl)
+    find_package(openssl MODULE REQUIRED)
     find_package(abseil-cpp MODULE REQUIRED)
     find_package(protoc MODULE REQUIRED)
     find_package(ascend_protobuf_shared MODULE REQUIRED)
@@ -88,7 +89,7 @@ if(CMAKE_BUILD_COMPONENT STREQUAL "ge-compiler")
             ascend_protobuf_build
             ascend_protobuf_static_build
             third_party_json
-            openssl_project
+            openssl_build
             protoc_build
             boost_build
             symengine_build
@@ -112,7 +113,7 @@ elseif(CMAKE_BUILD_COMPONENT STREQUAL "ge-executor")
         set(FORCE_REBUILD_CANN_3RD false)
     endif()
     add_cann_third_party(zlib)
-    add_cann_third_party(openssl)
+    find_package(openssl MODULE REQUIRED)
     # 以下独立判断是否重新编译
     set(FORCE_REBUILD_CANN_3RD false)
     find_package(ascend_protobuf_shared MODULE REQUIRED)
@@ -151,7 +152,7 @@ else()
         set(FORCE_REBUILD_CANN_3RD false)
     endif()
     add_cann_third_party(zlib)
-    add_cann_third_party(openssl)
+    find_package(openssl MODULE REQUIRED)
     # 以下独立判断是否重新编译
     set(FORCE_REBUILD_CANN_3RD false)
     find_package(boost MODULE REQUIRED)
@@ -167,7 +168,7 @@ else()
             ascend_protobuf_static_build
             grpc_build
             third_party_json
-            openssl_project
+            openssl_build
             protobuf_static_build
             protoc_build
             protoc_grpc_build

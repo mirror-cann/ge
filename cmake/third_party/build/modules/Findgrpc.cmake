@@ -40,11 +40,6 @@ else()
             DOWNLOAD_DIR ${CANN_3RD_LIB_PATH}/grpc
         )
     endif()
-
-    set(OPENSSL_INSTALL_LIBDIR ${CANN_3RD_LIB_PATH}/lib_cache/openssl/lib)
-    if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
-        set(OPENSSL_INSTALL_LIBDIR ${CANN_3RD_LIB_PATH}/lib_cache/openssl/lib64)
-    endif()
     
     set(GRPC_CXX_FLAGS "-Wl,-z,relro,-z,now,-z,noexecstack -D_FORTIFY_SOURCE=2 -O2 -fstack-protector-all -s -D_GLIBCXX_USE_CXX11_ABI=${USE_CXX11_ABI}")
     ExternalProject_Add(grpc_build
@@ -74,10 +69,8 @@ else()
                             -Dprotobuf_BUILD_PROTOC_BINARIES=OFF
                             # ssl
                             -DgRPC_SSL_PROVIDER=package
-                            -DOPENSSL_ROOT_DIR=${CANN_3RD_LIB_PATH}/lib_cache/openssl
+                            -DOPENSSL_ROOT_DIR=${CANN_3RD_LIB_PATH}/openssl
                             -DOPENSSL_USE_STATIC_LIBS=TRUE
-                            -DOPENSSL_CRYPTO_LIBRARY=${OPENSSL_INSTALL_LIBDIR}/libcrypto.a
-                            -DOPENSSL_SSL_LIBRARY=${OPENSSL_INSTALL_LIBDIR}/libssl.a
                             # grpc option
                             -DCMAKE_POLICY_VERSION_MINIMUM=3.5
                             -DCMAKE_CXX_STANDARD=14
@@ -99,5 +92,5 @@ else()
                         EXCLUDE_FROM_ALL TRUE
     )
 
-    add_dependencies(grpc_build openssl_project re2_build zlib_bin_build cares_build abseil_build protobuf_static_build)
+    add_dependencies(grpc_build openssl_build re2_build zlib_bin_build cares_build abseil_build protobuf_static_build)
 endif()
