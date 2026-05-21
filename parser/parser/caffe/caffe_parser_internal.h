@@ -8,8 +8,8 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-#ifndef PARSER_CAFFE_CAFFE_PARSER_H_
-#define PARSER_CAFFE_CAFFE_PARSER_H_
+#ifndef PARSER_CAFFE_CAFFE_PARSER_INTERNAL_H_
+#define PARSER_CAFFE_CAFFE_PARSER_INTERNAL_H_
 
 #if defined(_MSC_VER)
 #ifdef FUNC_VISIBILITY
@@ -417,4 +417,4 @@ class PARSER_FUNC_VISIBILITY CaffeWeightsParser : public domi::WeightsParser {
 };
 }  // namespace domi
 
-#endif  // PARSER_CAFFE_CAFFE_PARSER_H_
+#endif  // PARSER_CAFFE_CAFFE_PARSER_INTERNAL_H_

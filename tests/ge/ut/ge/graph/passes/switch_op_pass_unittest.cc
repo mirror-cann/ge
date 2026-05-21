@@ -15,7 +15,7 @@
 
 #include "common/debug/log.h"
 #include "common/debug/memory_dumper.h"
-#include "common/types.h"
+#include "common/framework_types_internal.h"
 #include "graph/debug/ge_attr_define.h"
 #include "graph/graph.h"
 #include "graph/passes/pass_manager.h"

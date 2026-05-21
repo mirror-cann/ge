@@ -13,7 +13,7 @@
 #include "common/op/transop_util.h"
 
 #include "common/debug/log.h"
-#include "common/types.h"
+#include "common/framework_types_internal.h"
 #include "common/util.h"
 #include "compute_graph.h"
 #include "graph/common/trans_op_creator.h"

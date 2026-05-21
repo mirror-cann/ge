@@ -16,7 +16,7 @@
 #include <vector>
 
 #include "framework/common/op/ge_op_utils.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "common/omg_util/omg_util.h"
 #include "common/checker.h"
 #include "graph/ge_context.h"

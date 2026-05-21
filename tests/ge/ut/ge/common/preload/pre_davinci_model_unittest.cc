@@ -12,7 +12,7 @@
 #include "ge_graph_dsl/graph_dsl.h"
 
 #include "macro_utils/dt_public_scope.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "common/preload/model/pre_davinci_model.h"
 #include "common/preload/model/pre_model_types.h"
 #include "graph/buffer/buffer_impl.h"

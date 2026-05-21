@@ -21,7 +21,7 @@
 #include "graph/utils/attr_utils.h"
 #include "graph/normal_graph/ge_tensor_impl.h"
 #include "graph/debug/ge_attr_define.h"
-#include "common/types.h"
+#include "common/framework_types_internal.h"
 
 using namespace std;
 using namespace ge;

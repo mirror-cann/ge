@@ -14,7 +14,7 @@
 #include <thread>
 #include <vector>
 
-#include "common/types.h"
+#include "common/framework_types_internal.h"
 
 #include "macro_utils/dt_public_scope.h"
 #include "graph/passes/variable_optimize/variable_op_pass.h"

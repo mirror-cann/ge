@@ -17,7 +17,7 @@
 #include "framework/common/ge_inner_error_codes.h"
 #include "common/plugin/ge_make_unique_util.h"
 #include "common/checker.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "graph/utils/graph_utils.h"
 #include "graph/utils/op_desc_utils.h"
 #include "graph/utils/op_type_utils.h"

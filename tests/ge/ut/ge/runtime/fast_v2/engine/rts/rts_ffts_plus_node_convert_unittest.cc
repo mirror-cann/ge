@@ -16,7 +16,7 @@
 #include <gtest/gtest.h>
 #include "ge_graph_dsl/graph_dsl.h"
 #include "graph/utils/attr_utils.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "common/const_data_helper.h"
 #include "faker/space_registry_faker.h"
 #include "graph_tuner/rt2_src/graph_tunner_rt2_stub.h"

@@ -14,7 +14,7 @@
 
 #include "common/share_graph.h"
 #include "framework/common/helper/model_helper.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "stub/gert_runtime_stub.h"
 
 namespace ge {

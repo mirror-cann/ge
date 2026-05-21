@@ -22,7 +22,7 @@
 #include "engine/ffts_plus/converter/ffts_plus_proto_transfer.h"
 #include "ge/ut/ge/ffts_plus_proto_tools.h"
 #include "framework/executor/ge_executor.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "graph/execute/model_executor.h"
 #include "register/hidden_inputs_func_registry.h"
 #include "aicpu_task_struct.h"

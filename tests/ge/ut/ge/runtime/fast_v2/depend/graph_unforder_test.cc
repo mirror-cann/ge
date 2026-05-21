@@ -10,7 +10,7 @@
 
 #include <gtest/gtest.h>
 #include "ge_graph_dsl/graph_dsl.h"
-#include "common/types.h"
+#include "common/framework_types_internal.h"
 #include "graph/unfold/graph_unfolder.h"
 #include "common/share_graph.h"
 #include "graph/utils/node_utils.h"

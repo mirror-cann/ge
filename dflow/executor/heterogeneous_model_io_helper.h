@@ -18,7 +18,7 @@
 #include "dflow/base/deploy/exchange_service.h"
 #include "graph/ge_tensor.h"
 #include "dflow/base/deploy/model_deployer.h"
-#include "flow_msg.h"
+#include "flow_msg_internal.h"
 #include "framework/common/runtime_tensor_desc.h"
 
 namespace ge {

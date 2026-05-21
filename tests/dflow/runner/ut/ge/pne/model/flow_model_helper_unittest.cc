@@ -15,7 +15,7 @@
 #include "macro_utils/dt_public_scope.h"
 #include "dflow/inc/data_flow/model/flow_model_helper.h"
 #include "macro_utils/dt_public_unscope.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "framework/common/helper/model_helper.h"
 
 using namespace testing;

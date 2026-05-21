@@ -24,7 +24,7 @@
 #include "graph/operator_factory.h"
 #include "graph/debug/ge_attr_define.h"
 #include "graph/utils/node_adapter.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "graph/tuning_utils.h"
 #include "ge_graph_dsl/assert/graph_assert.h"
 using namespace std;

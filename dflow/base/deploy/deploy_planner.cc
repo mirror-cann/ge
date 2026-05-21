@@ -15,7 +15,7 @@
 #include "dflow/base/model/endpoint.h"
 #include "graph/ge_context.h"
 #include "graph/debug/ge_attr_define.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "graph_metadef/common/ge_common/util.h"
 #include "common/checker.h"
 

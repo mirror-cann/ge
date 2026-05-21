@@ -15,7 +15,7 @@
 
 #include "ge/ge_api.h"
 #include "graph/compute_graph.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "graph/ge_local_context.h"
 #include "graph/execute/model_executor.h"
 #include "graph/load/graph_loader.h"

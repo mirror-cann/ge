@@ -15,7 +15,7 @@
 #include <utility>
 #include "ge/ge_api_types.h"
 #include "executor_builder.h"
-#include "common/types.h"
+#include "common/framework_types_internal.h"
 #include "framework/common/debug/ge_log.h"
 #include "framework/common/util.h"
 #include "runtime/model_v2_executor.h"

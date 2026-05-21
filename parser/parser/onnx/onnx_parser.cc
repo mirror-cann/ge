@@ -8,7 +8,7 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-#include "onnx_parser.h"
+#include "onnx_parser_internal.h"
 #include <algorithm>
 #include <iostream>
 #include <queue>
@@ -41,7 +41,7 @@
 #include "graph/utils/node_utils.h"
 #include "graph/utils/type_utils_inner.h"
 #include "subgraph_adapter/subgraph_adapter_factory.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "mmpa/mmpa_api.h"
 #include "common/checker.h"
 #include "graph/ge_context.h"

@@ -15,7 +15,7 @@
 #include <string>
 
 #include "framework/common/helper/model_save_helper.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "graph/model.h"
 #include "platform/platform_info.h"
 #include "common/op_so_store/op_so_store.h"

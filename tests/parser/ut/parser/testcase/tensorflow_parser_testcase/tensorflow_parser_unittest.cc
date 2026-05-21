@@ -12,7 +12,7 @@
 #include <limits>
 
 #include "parser/common/op_parser_factory.h"
-#include "parser/tensorflow/tensorflow_parser.h"
+#include "parser/tensorflow/tensorflow_parser_internal.h"
 #include "framework/omg/parser/parser_factory.h"
 #include "graph/operator_reg.h"
 #include "graph/types.h"
@@ -31,7 +31,7 @@
 #include "graph/utils/graph_utils_ex.h"
 #include "graph/utils/op_desc_utils_ex.h"
 #include "parser/tensorflow/tensorflow_constant_parser.h"
-#include "common/types.h"
+#include "common/framework_types_internal.h"
 #include "parser/common/op_def/variable_operator.h"
 #include "parser/tensorflow/tensorflow_ref_switch_parser.h"
 #include "parser/tensorflow/tensorflow_fusion_op_parser.h"

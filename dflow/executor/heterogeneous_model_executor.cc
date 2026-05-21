@@ -17,7 +17,7 @@
 #include "graph/utils/node_utils.h"
 #include "graph/utils/tensor_adapter.h"
 #include "graph/ge_global_options.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "framework/common/runtime_tensor_desc.h"
 #include "common/model/ge_root_model.h"
 #include "graph/ge_context.h"

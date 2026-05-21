@@ -9,7 +9,7 @@
  */
 
 #include "args_format_constructor.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "common/op_tensor_utils.h"
 #include "common/platform_utils.h"
 #include "common/aicore_util_types.h"

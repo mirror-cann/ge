@@ -15,7 +15,7 @@
 #include <string>
 #include <vector>
 #include "common/checker.h"
-#include "common/types.h"
+#include "common/framework_types_internal.h"
 #include "exe_graph/runtime/infer_symbol_shape_context.h"
 #include "graph/compute_graph.h"
 #include "graph/optimize/symbolic/infer_symbolic_shape/symbolic_infer_util.h"

@@ -10,7 +10,7 @@
 
 #include "dflow/compiler/data_flow_graph/data_flow_graph_utils.h"
 #include "common/util/mem_utils.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "dflow/flow_graph/data_flow_attr_define.h"
 #include "graph_metadef/common/ge_common/util.h"
 

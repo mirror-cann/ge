@@ -10,7 +10,7 @@
 
 #include "graph/partition/optimizer/dynamic_data_flow_engine_reassign_pass.h"
 #include "framework/common/util.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "graph/debug/ge_attr_define.h"
 #include "mmpa/mmpa_api.h"
 

@@ -11,7 +11,7 @@
 #include <acl.h>
 #include <iostream>
 #include <utility>
-#include <tensorflow_parser.h>
+#include <parser/tensorflow_parser.h>
 
 namespace gerec {
 ModelInference::Builder::Builder(const std::string& modelPath, const std::string& modelType) {

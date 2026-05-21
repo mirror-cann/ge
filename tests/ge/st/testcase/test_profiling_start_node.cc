@@ -12,7 +12,7 @@
 
 #include "common/profiling/profiling_properties.h"
 #include "ge/ge_api.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "ge_graph_dsl/assert/graph_assert.h"
 #include "ge_graph_dsl/graph_dsl.h"
 #include "ge_running_env/ge_running_env_faker.h"

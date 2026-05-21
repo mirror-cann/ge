@@ -12,7 +12,7 @@
 #include "macro_utils/dt_public_scope.h"
 #include "graph/passes/memory_conflict/atomic_addr_clean_pass.h"
 #include "common/op/ge_op_utils.h"
-#include "common/types.h"
+#include "common/framework_types_internal.h"
 #include "graph/anchor.h"
 #include "graph/attr_value.h"
 #include "graph/compute_graph.h"

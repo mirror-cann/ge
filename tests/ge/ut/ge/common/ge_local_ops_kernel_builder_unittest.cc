@@ -13,7 +13,7 @@
 #include <vector>
 #include "common/ge_common/ge_inner_error_codes.h"
 #include "common/checker.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "macro_utils/dt_public_scope.h"
 #include "engines/local_engine/ops_kernel_store/ge_local_ops_kernel_builder.h"
 #include "graph/utils/tensor_utils.h"

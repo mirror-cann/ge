@@ -8,8 +8,8 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-#ifndef GE_GRAPH_LOAD_NEW_MODEL_MANAGER_FLOW_MSG_H_
-#define GE_GRAPH_LOAD_NEW_MODEL_MANAGER_FLOW_MSG_H_
+#ifndef GE_GRAPH_LOAD_NEW_MODEL_MANAGER_FLOW_MSG_INTERNAL_H_
+#define GE_GRAPH_LOAD_NEW_MODEL_MANAGER_FLOW_MSG_INTERNAL_H_
 #include <memory>
 #include "ge/ge_api_error_codes.h"
 #include "ge/ge_data_flow_api.h"
@@ -210,4 +210,4 @@ class EmptyDataFlowMsg : public FlowMsgBase {
 };
 }  // namespace ge
 
-#endif  // GE_GRAPH_LOAD_NEW_MODEL_MANAGER_FLOW_MSG_H_
+#endif  // GE_GRAPH_LOAD_NEW_MODEL_MANAGER_FLOW_MSG_INTERNAL_H_

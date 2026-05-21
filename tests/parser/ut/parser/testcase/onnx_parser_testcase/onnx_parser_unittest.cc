@@ -26,7 +26,7 @@
 #include "parser/onnx/onnx_constant_parser.h"
 #include "parser/onnx/onnx_file_constant_parser.h"
 #include "parser/onnx/onnx_util.h"
-#include "parser/onnx/onnx_parser.h"
+#include "parser/onnx/onnx_parser_internal.h"
 
 namespace ge {
 class UtestOnnxParser : public testing::Test {

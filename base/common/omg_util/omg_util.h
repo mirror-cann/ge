@@ -14,7 +14,7 @@
 #include <string>
 #include <vector>
 
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "framework/common/util.h"
 #include "graph/node.h"
 

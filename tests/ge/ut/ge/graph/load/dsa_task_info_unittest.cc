@@ -15,7 +15,7 @@
 #include "graph/load/model_manager/task_info/fe/dsa_task_info.h"
 #include "graph/load/model_manager/davinci_model.h"
 #include "ge/ut/ge/ffts_plus_proto_tools.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 
 extern std::string g_runtime_stub_mock;
 

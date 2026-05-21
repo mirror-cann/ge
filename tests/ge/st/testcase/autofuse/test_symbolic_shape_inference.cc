@@ -17,7 +17,7 @@
 #include "compiler/graph/optimize/symbolic/infer_symbolic_shape/symbolic_shape_inference.h"
 #include "compiler/graph/optimize/symbolic/infer_symbolic_shape/symbolic_shape_symbolizer.h"
 #include "graph/optimize/symbolic/infer_symbolic_shape/symbolic_infer_util.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "faker/space_registry_faker.h"
 #include "ge_graph_dsl/graph_dsl.h"
 #include "graph/utils/tensor_adapter.h"

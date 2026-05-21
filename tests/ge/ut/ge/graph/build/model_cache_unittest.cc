@@ -17,7 +17,7 @@
 #include "graph/build/memory/var_mem_assign_util.h"
 #include "common/model/ge_root_model.h"
 #include "common/helper/model_parser_base.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "depends/mmpa/src/mmpa_stub.h"
 #include "framework/common/helper/om_file_helper.h"
 #include "common/mem_conflict_share_graph.h"

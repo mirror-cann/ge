@@ -16,7 +16,7 @@
 #include "common/debug/log.h"
 #include "common/debug/memory_dumper.h"
 #include "common/op/ge_op_utils.h"
-#include "common/types.h"
+#include "common/framework_types_internal.h"
 #include "common/fp16_t/fp16_t.h"
 #include "graph/passes/standard_optimize/constant_folding/constant_folding_pass.h"
 #include "graph/types.h"

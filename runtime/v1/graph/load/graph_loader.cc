@@ -15,7 +15,7 @@
 #include "graph/load/model_manager/model_manager.h"
 #include "graph/load/model_manager/model_utils.h"
 #include "common/thread_pool/thread_pool.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "base/err_mgr.h"
 
 namespace ge {

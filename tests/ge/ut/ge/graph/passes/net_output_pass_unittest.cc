@@ -13,7 +13,7 @@
 #include "macro_utils/dt_public_scope.h"
 #include "graph/passes/feature/net_output_pass.h"
 #include "common/ge_inner_error_codes.h"
-#include "common/types.h"
+#include "common/framework_types_internal.h"
 #include "ge/ge_api.h"
 #include "graph/compute_graph.h"
 #include "graph/manager/graph_manager.h"

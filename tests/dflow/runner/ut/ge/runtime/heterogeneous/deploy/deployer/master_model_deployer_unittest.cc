@@ -30,7 +30,7 @@
 #include "common/config/configurations.h"
 #include "deploy/heterogeneous_execution_runtime.h"
 #include "deploy/flowrm/tsd_client.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "deploy/flowrm/flow_route_manager.h"
 #include "hccl/hccl_types.h"
 #include "depends/mmpa/src/mmpa_stub.h"

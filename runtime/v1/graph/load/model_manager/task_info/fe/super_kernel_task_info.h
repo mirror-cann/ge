@@ -20,7 +20,7 @@
 #include "graph/ge_context.h"
 #include "hybrid/node_executor/aicpu/aicpu_ext_info_handler.h"
 #include "graph/utils/attr_utils.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "framework/omg/parser/parser_types.h"
 #include "register/op_tiling_registry.h"
 #include "common/dump/kernel_tracing_utils.h"

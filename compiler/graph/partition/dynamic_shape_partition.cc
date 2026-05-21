@@ -18,7 +18,7 @@
 #include "common/plugin/ge_make_unique_util.h"
 #include "framework/common/debug/ge_log.h"
 #include "framework/common/debug/log.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "graph/debug/ge_attr_define.h"
 #include "graph/utils/graph_utils.h"
 #include "graph/utils/op_desc_utils.h"

@@ -15,7 +15,7 @@
 #include "compiler/graph/optimize/symbolic/infer_symbolic_shape/symbolic_shape_inference.h"
 #include "compiler/graph/optimize/symbolic/infer_symbolic_shape/symbolic_shape_symbolizer.h"
 #include "compiler/graph/passes/feature/auto_fuse_pass.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "faker/space_registry_faker.h"
 #include "graph/utils/tensor_adapter.h"
 #include "common/env_path.h"

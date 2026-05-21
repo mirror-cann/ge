@@ -13,7 +13,7 @@
 #include <set>
 #include <string>
 
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "graph/ge_context.h"
 #include "framework/common/ge_types.h"
 #include "common/op/transop_util.h"
