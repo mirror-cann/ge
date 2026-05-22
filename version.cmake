@@ -8,29 +8,29 @@
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
 
-set_cann_package(ge-executor VERSION "9.0.0")
+set_cann_package(ge-executor VERSION "9.1.0")
 
-set_cann_build_dependencies(runtime ">=9.0")
-set_cann_build_dependencies(metadef ">=9.0")
-set_cann_build_dependencies(hcomm ">=9.0")
+set_cann_build_dependencies(runtime ">=9.1")
+set_cann_build_dependencies(metadef ">=9.1")
+set_cann_build_dependencies(hcomm ">=9.1")
 if(ENABLE_BUILD_DEVICE)
-    set_cann_build_dependencies(asc-devkit ">=9.0")
-    set_cann_build_dependencies(bisheng-compiler ">=9.0")
+    set_cann_build_dependencies(asc-devkit ">=9.1")
+    set_cann_build_dependencies(bisheng-compiler ">=9.1")
 endif()
 
 set_cann_run_dependencies(runtime "CUR_MAJOR_MINOR_VER")
 set_cann_run_dependencies(metadef "CUR_MAJOR_MINOR_VER")
 set_cann_run_dependencies(hcomm "CUR_MAJOR_MINOR_VER")
 
-set_cann_package(ge-compiler VERSION "9.0.0")
+set_cann_package(ge-compiler VERSION "9.1.0")
 
-set_cann_build_dependencies(runtime ">=9.0")
-set_cann_build_dependencies(metadef ">=9.0")
-set_cann_build_dependencies(hcomm ">=9.0")
-set_cann_build_dependencies(ge-executor ">=9.0")
+set_cann_build_dependencies(runtime ">=9.1")
+set_cann_build_dependencies(metadef ">=9.1")
+set_cann_build_dependencies(hcomm ">=9.1")
+set_cann_build_dependencies(ge-executor ">=9.1")
 if(ENABLE_BUILD_DEVICE)
-    set_cann_build_dependencies(bisheng-compiler ">=9.0")
-    set_cann_build_dependencies(dflow-executor ">=9.0")
+    set_cann_build_dependencies(bisheng-compiler ">=9.1")
+    set_cann_build_dependencies(dflow-executor ">=9.1")
 endif()
 
 set_cann_run_dependencies(runtime "CUR_MAJOR_MINOR_VER")
@@ -42,13 +42,13 @@ if(ENABLE_BUILD_DEVICE)
     set_cann_run_dependencies(dflow-executor "CUR_MAJOR_MINOR_VER")
 endif()
 
-set_cann_package(dflow-executor VERSION "9.0.0")
+set_cann_package(dflow-executor VERSION "9.1.0")
 
-set_cann_build_dependencies(runtime ">=9.0")
-set_cann_build_dependencies(metadef ">=9.0")
-set_cann_build_dependencies(hcomm ">=9.0")
-set_cann_build_dependencies(bisheng-compiler ">=9.0")
-set_cann_build_dependencies(ge-executor ">=9.0")
+set_cann_build_dependencies(runtime ">=9.1")
+set_cann_build_dependencies(metadef ">=9.1")
+set_cann_build_dependencies(hcomm ">=9.1")
+set_cann_build_dependencies(bisheng-compiler ">=9.1")
+set_cann_build_dependencies(ge-executor ">=9.1")
 
 set_cann_run_dependencies(runtime "CUR_MAJOR_MINOR_VER")
 set_cann_run_dependencies(metadef "CUR_MAJOR_MINOR_VER")
