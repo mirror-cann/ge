@@ -879,7 +879,7 @@ Status OpKernelInfoConstructor::InitDtypeAndFormat(const map<string, string> &ma
   size_t dtype_size = dtype_str_vec.size();
   if (dtype_size != format_size) {
     REPORT_FE_ERROR(
-        "[GraphOpt][InitDtypeAndFormat][InitDtypeAndFormat] Inconsistent format size [%zu] and dtype size [%zu]!",
+        "[GraphOpt][InitDtypeAndFormat][InitDtypeAndFormat] The format size [%zu] and dtype size [%zu] are inconsistent!",
         format_size, dtype_size);
     return FAILED;
   }

@@ -82,7 +82,7 @@ graphStatus CoreNumUtils::ParseAndValidateCoreNum(const std::string &param_name,
 
   if (parsed_value < min_value || parsed_value > max_value) {
     return ReportParamError(param_name, param_value_str,
-                            "It is out of range, value must be in range [" + std::to_string(min_value) + ", " +
+                            "It is out of range, value must be in range (" + std::to_string(min_value) + ", " +
                                 std::to_string(max_value) + "].");
   }
 

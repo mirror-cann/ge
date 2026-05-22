@@ -211,7 +211,7 @@ Status PlatformUtils::InitOptionalInfo(const std::map<std::string, std::string> 
       ErrorMessageDetail err_msg(EM_INPUT_OPTION_INVALID,
           {iter->second, aicore_num_config, "The AI core num should be a positive integer"});
       ReportErrorMessage(err_msg);
-      REPORT_FE_ERROR("[FusionMngr][ChkOptiCmpt] The ai_core_num should be positive integer.");
+      REPORT_FE_ERROR("[FusionMngr][ChkOptiCmpt] The aicore_num should be positive integer.");
       return FAILED;
     }
   } else {
@@ -223,7 +223,7 @@ Status PlatformUtils::InitOptionalInfo(const std::map<std::string, std::string> 
     ErrorMessageDetail err_msg(EM_AICORENUM_OUT_OF_RANGE,
                                {std::to_string(aicore_num), aicore_num_config, std::to_string(ai_core_cnt)});
     ReportErrorMessage(err_msg);
-    REPORT_FE_ERROR("[Platform][Init] ai_core_num[%d] is out range of platformInfo ai_core_num (0, %d].", aicore_num,
+    REPORT_FE_ERROR("[Platform][Init] aicore_num[%d] is out range of platformInfo aicore_num (0, %d].", aicore_num,
                     ai_core_cnt);
     return FAILED;
   }
