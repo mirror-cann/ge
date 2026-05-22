@@ -5239,8 +5239,11 @@ Status GraphManager::SetDefaultHcclOptions() const {
   graph_options[OPTION_EXEC_GLOBAL_HCCL_COMM_CONFIG] = HcclOfflineOptionBuilder::Instance().GetHcclCommConfig();
   GELOGI("Get hccl comm config:%s", graph_options[OPTION_EXEC_GLOBAL_HCCL_COMM_CONFIG].c_str());
 
-  graph_options[OPTION_EXEC_HCOM_GROUPLIST_V2] = HcclOfflineOptionBuilder::Instance().GetHcomGrouplist();
-  GELOGI("Get hcom grouplist:%s", graph_options[OPTION_EXEC_HCOM_GROUPLIST_V2].c_str());
+  if (!HcclOfflineOptionBuilder::Instance().GetHcomGrouplist().empty()) {
+    graph_options[OPTION_EXEC_HCOM_GROUPLIST_V2] = HcclOfflineOptionBuilder::Instance().GetHcomGrouplist();
+    GELOGI("Get hcom grouplist:%s", graph_options[OPTION_EXEC_HCOM_GROUPLIST_V2].c_str());
+  }
+
   graph_options[OPTION_HCCL_COMPILER_OFFLINE] = "1";
   if (graph_options[SOC_VERSION].empty()) {
     graph_options[SOC_VERSION] = HcclOfflineOptionBuilder::Instance().GetSocVersion();

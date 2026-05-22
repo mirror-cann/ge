@@ -30,17 +30,42 @@ Status HcclOfflineOptionBuilder::Initialize(const std::string &soc_version,
     return SUCCESS;
   }
 
-  logic_topo_config_path_ = RealPath(logic_topo_config.c_str());
-  hccl_sub_comm_config_path_ = RealPath(hccl_sub_comm_config.c_str());
-  soc_version_ = soc_version;
-  if ((logic_topo_config_path_.empty()) || (soc_version_.empty()) || (hccl_sub_comm_config_path_.empty())) {
-    GELOGW("Current offline model should neither contain hcom ops nor enable algorithm to split model "
-           "result of empty logic_topo_path(%s) or soc_version(%s) or hccl_sub_comm_config(%s).",
-           logic_topo_config_path_.c_str(), soc_version_.c_str(), hccl_sub_comm_config_path_.c_str());
+  // 如果logic_topo_config与hccl_sub_comm_config均为空，则认为当前离线模型不包含hcom算子，也不需要开启算法切分模型的功能，因此直接返回成功。
+  if (logic_topo_config.empty() && hccl_sub_comm_config.empty()) {
+    GELOGI("cluster_config and hccl_sub_comm_config are both empty, skip parse config.");
     return SUCCESS;
   }
+  // 如果logic_topo_config为空但是hccl_sub_comm_config不为空，则认为当前离线模型包含hcom算子，但是缺少cluster config，需要报错。
+  if (logic_topo_config.empty() && !hccl_sub_comm_config.empty()) {
+    GELOGE(FAILED, "missing parameter: cluster_config.");
+    REPORT_PREDEFINED_ERR_MSG("E10058", std::vector<const char *>({"parameter"}),
+                              std::vector<const char *>({"cluster config"}));
+    return FAILED;
+  }
+  // 如果soc_version为空，直接报错，因为soc_version是离线模型中必填的参数。
+  if (soc_version.empty()) {
+    GELOGE(FAILED, "Soc version is empty.");
+    REPORT_PREDEFINED_ERR_MSG("E10058", std::vector<const char *>({"parameter"}),
+                              std::vector<const char *>({"soc version"}));
+    return FAILED;
+  }
+  soc_version_ = soc_version;
+
+  // 如果logic_topo_config不为空但是hccl_sub_comm_config为空，则认为当前离线模型包含hcom算子，但是无需配置子通信域信息，此时可以继续进行解析，但需要打印日志告知用户。
+  logic_topo_config_path_ = RealPath(logic_topo_config.c_str());
+  GE_ASSERT_TRUE(!logic_topo_config_path_.empty(), "cluster config[%s] is invalid", logic_topo_config.c_str());
+
+  if (hccl_sub_comm_config.empty()) {
+    GELOGW("Parameter hccl_sub_comm_config is empty.");
+  } else {
+    hccl_sub_comm_config_path_ = RealPath(hccl_sub_comm_config.c_str());
+    GE_ASSERT_TRUE(!hccl_sub_comm_config_path_.empty(), "sub communication config[%s] is invalid", hccl_sub_comm_config.c_str());
+  }
+
   GE_ASSERT_SUCCESS(ParseLogicNumaConfig(), "Parse Logic NumaConfig failed");
-  GE_ASSERT_SUCCESS(ParseHcclSubCommConfig(), "Parse Hccl Sub Comm Config failed");
+  if (!hccl_sub_comm_config_path_.empty()) {
+    GE_ASSERT_SUCCESS(ParseHcclSubCommConfig(), "Parse Hccl Sub Comm Config failed");
+  }
   inited_ = true;
   return SUCCESS;
 }

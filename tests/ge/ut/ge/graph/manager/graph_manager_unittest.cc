@@ -10,6 +10,7 @@
 
 #include <gtest/gtest.h>
 
+#include <fstream>
 #include <memory>
 #include <stdlib.h>
 #include <pthread.h>
@@ -25,6 +26,7 @@
 #include "graph/manager/graph_manager.h"
 #include "api/gelib/gelib.h"
 #include "engines/manager/engine/engine_manager.h"
+#include "graph/preprocess/hccl_offline_option_builder.h"
 
 #include "graph/graph.h"
 #include "common/context/local_context.h"
@@ -5397,5 +5399,41 @@ TEST_F(UtestGraphManagerTest, test_UpdateInputWithHintShape_hint_shape_error) {
   inputs.emplace_back(tensor);
   inputs.emplace_back(tensor);
   EXPECT_NE(graph_manager.UpdateInputWithHintShape(hint_shape, inputs), SUCCESS);
+}
+
+namespace {
+bool WriteTextFile(const std::string &file_path, const std::string &content) {
+  std::ofstream ofs(file_path, std::ios::out | std::ios::trunc);
+  if (!ofs.is_open()) {
+    return false;
+  }
+  ofs << content;
+  return ofs.good();
+}
+}  // namespace
+
+TEST_F(UtestGraphManagerTest, set_default_hccl_options_with_hcom_grouplist) {
+  const std::string logic_topo_config = "./gm_hccl_logic_ut.json";
+  const std::string hccl_sub_comm_config = "./gm_hccl_sub_ut.json";
+  ASSERT_TRUE(WriteTextFile(logic_topo_config,
+                            R"({"RankTable":[{"rank_id":"0"}],"HcclCommConfig":{"graph_mode":"0"}})"));
+  ASSERT_TRUE(WriteTextFile(hccl_sub_comm_config,
+                            R"({"group_list":[{"group_name":"g0","group_rank_list":[0,1]}]})"));
+  auto &builder = HcclOfflineOptionBuilder::Instance();
+  builder.Finalize();
+  ASSERT_EQ(builder.Initialize("Ascend910B1", logic_topo_config, hccl_sub_comm_config), SUCCESS);
+
+  GraphManager graph_manager;
+  GetThreadLocalContext().SetGraphOption({});
+  EXPECT_EQ(graph_manager.SetDefaultHcclOptions(), SUCCESS);
+
+  auto graph_options = GetThreadLocalContext().GetAllGraphOptions();
+  EXPECT_EQ(graph_options[OPTION_EXEC_HCOM_GROUPLIST_V2],
+            R"({"group_list":[{"group_name":"g0","group_rank_list":[0,1]}]})");
+  EXPECT_EQ(graph_options[OPTION_HCCL_COMPILER_OFFLINE], "1");
+
+  builder.Finalize();
+  (void)std::remove(logic_topo_config.c_str());
+  (void)std::remove(hccl_sub_comm_config.c_str());
 }
 } // namespace ge

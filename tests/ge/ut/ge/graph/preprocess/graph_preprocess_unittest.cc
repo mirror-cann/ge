@@ -1929,20 +1929,50 @@ TEST_F(UtestGraphPreproces, hccl_offline_option_builder_initialize_success) {
   (void)std::remove(hccl_sub_comm_config.c_str());
 }
 
-TEST_F(UtestGraphPreproces, hccl_offline_option_builder_skip_when_sub_comm_config_empty) {
-  const std::string logic_topo_config = "./hccl_offline_option_builder_logic_skip_ut.json";
+TEST_F(UtestGraphPreproces, hccl_offline_option_builder_initialize_when_sub_comm_config_empty) {
+  const std::string logic_topo_config = "./hccl_offline_option_builder_logic_without_sub_ut.json";
   ASSERT_TRUE(WriteTextFile(logic_topo_config,
                             R"({"RankTable":[{"rank_id":"0"}],"HcclCommConfig":{"graph_mode":"0"}})"));
 
   auto &builder = HcclOfflineOptionBuilder::Instance();
   builder.Finalize();
   EXPECT_EQ(builder.Initialize("Ascend910B1", logic_topo_config, ""), SUCCESS);
+  EXPECT_TRUE(builder.IsInitialized());
+  EXPECT_EQ(builder.GetLogicRankTable(), R"([{"rank_id":"0"}])");
+  EXPECT_EQ(builder.GetHcclCommConfig(), R"({"graph_mode":"0"})");
+  EXPECT_TRUE(builder.GetHcomGrouplist().empty());
+  EXPECT_EQ(builder.GetSocVersion(), "Ascend910B1");
+
+  builder.Finalize();
+  (void)std::remove(logic_topo_config.c_str());
+}
+
+TEST_F(UtestGraphPreproces, hccl_offline_option_builder_failed_when_cluster_config_empty) {
+  const std::string hccl_sub_comm_config = "./hccl_offline_option_builder_sub_without_logic_ut.json";
+  ASSERT_TRUE(WriteTextFile(hccl_sub_comm_config,
+                            R"({"group_list":[{"group_name":"g0","group_rank_list":[0,1]}]})"));
+
+  auto &builder = HcclOfflineOptionBuilder::Instance();
+  builder.Finalize();
+  EXPECT_EQ(builder.Initialize("Ascend910B1", "", hccl_sub_comm_config), FAILED);
   EXPECT_FALSE(builder.IsInitialized());
   EXPECT_TRUE(builder.GetLogicRankTable().empty());
   EXPECT_TRUE(builder.GetHcclCommConfig().empty());
   EXPECT_TRUE(builder.GetHcomGrouplist().empty());
-  EXPECT_EQ(builder.GetSocVersion(), "Ascend910B1");
+  EXPECT_TRUE(builder.GetSocVersion().empty());
 
+  builder.Finalize();
+  (void)std::remove(hccl_sub_comm_config.c_str());
+}
+
+TEST_F(UtestGraphPreproces, hccl_offline_option_builder_failed_when_soc_version_empty) {
+  const std::string logic_topo_config = "./hccl_offline_option_builder_soc_empty_ut.json";
+  ASSERT_TRUE(WriteTextFile(logic_topo_config,
+                            R"({"RankTable":[{"rank_id":"0"}],"HcclCommConfig":{"graph_mode":"0"}})"));
+  auto &builder = HcclOfflineOptionBuilder::Instance();
+  builder.Finalize();
+  EXPECT_EQ(builder.Initialize("", logic_topo_config, ""), FAILED);
+  EXPECT_FALSE(builder.IsInitialized());
   builder.Finalize();
   (void)std::remove(logic_topo_config.c_str());
 }

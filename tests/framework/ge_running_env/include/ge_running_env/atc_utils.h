@@ -66,6 +66,9 @@ DECLARE_string(atomic_clean_policy);
 DECLARE_string(status_check);
 DECLARE_string(input_shape_range);
 
+DECLARE_string(oo_level);
+DECLARE_string(cluster_config);
+
 // Atc基类，涉及atc入口的可以继承此类
 class AtcTest : public testing::Test {
  protected:
@@ -123,6 +126,8 @@ class AtcTest : public testing::Test {
     FLAGS_atomic_clean_policy = "0";
     FLAGS_status_check = "0";
     FLAGS_input_shape_range = "";
+    FLAGS_oo_level = "O3";
+    FLAGS_cluster_config = "";
   }
 };
 #endif  // AIR_CXX_TESTS_FRAMEWORK_GE_RUNNING_ENV_INCLUDE_GE_RUNNING_ENV_ATC_UTILS_H_
