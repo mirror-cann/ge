@@ -111,7 +111,6 @@ rm -rf build_ut/ build_st/ output/ build/ build_out/ cov/ build_cmake_gcov/
 | [`stream_allocator.md`](docs/architecture/constraints/stream_allocator.md) | 流分配、stream、多流、流复用、event同步、流激活 | `compiler/graph/build/stream/` |
 | [`graph_metadef.md`](docs/architecture/constraints/graph_metadef.md) | 图基础结构 | `graph_metadef/` |
 
-
 ## 开发规范
 **gitcode pr/issue/ci 操作**
 @.claude/skills/default-skills/SKILL.md
@@ -145,6 +144,8 @@ rm -rf build_ut/ build_st/ output/ build/ build_out/ cov/ build_cmake_gcov/
 
 ### 代码风格
 - 遵循 Google 开源代码规范
+- if/for/while/do-while语句应使用大括号
+- 使用`GetPeerInDataAnchorsPtr`代替`GetPeerInDataAnchors`, 前者不需要构造智能指针，性能更好．类似的还有`GetNamePtr`和`GetName`等，调用接口优先使用不返回智能指针的接口．
 
 ## 语言
 使用中文回答问题
