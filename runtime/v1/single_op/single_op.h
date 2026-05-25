@@ -19,7 +19,6 @@
 #include "framework/common/ge_types.h"
 #include "graph/utils/object_pool.h"
 #include "graph/ge_tensor.h"
-#include "runtime/base.h"
 #include "acl/acl_rt.h"
 
 namespace ge {

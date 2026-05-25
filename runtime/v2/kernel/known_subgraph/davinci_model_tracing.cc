@@ -14,7 +14,6 @@
 #include "exe_graph/runtime/kernel_context.h"
 #include "core/debug/kernel_tracing.h"
 #include "kernel/known_subgraph/davinci_model_kernel.h"
-#include "runtime/stream.h"
 #include "exe_graph/runtime/gert_tensor_data.h"
 
 namespace gert {

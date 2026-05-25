@@ -39,9 +39,9 @@ class HostCpuEngine {
  private:
   HostCpuEngine() = default;
 
-  void *DlopenLib(const std::string &lib_path);
+  void *DlopenLib(const std::string &lib_path) const;
 
-  Status InvokeLibInitialize(void *handle, const std::string &lib_path);
+  Status InvokeLibInitialize(void *handle, const std::string &lib_path) const;
 
   Status LoadLib(const std::string &lib_path, bool invoke_init = false);
 

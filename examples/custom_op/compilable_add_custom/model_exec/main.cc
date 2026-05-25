@@ -15,9 +15,11 @@
 #define INFO_LOG(fmt, ...) printf("[INFO] " fmt "\n", ##__VA_ARGS__)
 #define ERROR_LOG(fmt, ...) printf("[ERROR] " fmt "\n", ##__VA_ARGS__)
 
+constexpr int kExpectedArgc = 2;
+
 int main(int argc, char *argv[]) {
     // 1. 初始化
-    if (argc != 2) {
+    if (argc != kExpectedArgc) {
         ERROR_LOG("Usage: %s <model_path>", argv[0]);
         return 1;
     }

@@ -11,6 +11,7 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include <string.h>
+#include <fstream>
 
 #include "macro_utils/dt_public_scope.h"
 
@@ -2513,5 +2514,38 @@ TEST_F(UtestModelManagerModelManager, LaunchKernelBuiltinAicpuSo_AclrtMalloc_Suc
   auto ret = mm.LaunchKernelBuiltinAicpuSo(kernel_name, resource_id);
   EXPECT_EQ(ret, SUCCESS);
   ge::AclRuntimeStub::Reset();
+}
+
+TEST_F(UtestModelManagerModelManager, ReadDumpDebugJsonFile_RealPath_failed) {
+  std::string json_result;
+  EXPECT_EQ(ModelManager::GetInstance().ReadDumpDebugJsonFile("/nonexistent_dir/deadbeef.json", json_result),
+            FAILED);
+  EXPECT_TRUE(json_result.empty());
+}
+
+TEST_F(UtestModelManagerModelManager, ReadDumpDebugJsonFile_empty_file) {
+  const std::string test_file = "test_read_dump_json_empty.json";
+  {
+    std::ofstream ofs(test_file);
+    ofs.close();
+  }
+  std::string json_result;
+  EXPECT_EQ(ModelManager::GetInstance().ReadDumpDebugJsonFile(test_file, json_result), FAILED);
+  EXPECT_TRUE(json_result.empty());
+  remove(test_file.c_str());
+}
+
+TEST_F(UtestModelManagerModelManager, ReadDumpDebugJsonFile_success) {
+  const std::string test_file = "test_read_dump_json_success.json";
+  const std::string expected_content = R"({"key": "value"})";
+  {
+    std::ofstream ofs(test_file);
+    ofs << expected_content;
+    ofs.close();
+  }
+  std::string json_result;
+  EXPECT_EQ(ModelManager::GetInstance().ReadDumpDebugJsonFile(test_file, json_result), SUCCESS);
+  EXPECT_EQ(json_result, expected_content);
+  remove(test_file.c_str());
 }
 }  // namespace ge

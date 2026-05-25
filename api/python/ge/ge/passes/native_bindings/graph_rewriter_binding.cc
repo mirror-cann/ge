@@ -27,10 +27,12 @@ NodeIo BuildNodeIo(const py::handle &node_obj, int64_t index) {
   auto *node_ptr = BorrowNodeFromPython(node_obj);
   if (node_ptr == nullptr) {
     throw std::runtime_error("Node handle is empty");
-  }
+}
   return NodeIo{*node_ptr, index};
 }
 }  // namespace
+
+constexpr size_t kNodeInputTupleSize = 2UL;
 
 void BindGraphRewriter(py::module_ &m) {
   py::class_<SubgraphInput>(m, "SubgraphInput",
@@ -39,7 +41,7 @@ void BindGraphRewriter(py::module_ &m) {
       .def(py::init([](py::iterable node_inputs) {
         std::vector<NodeIo> inputs;
         for (py::handle item : node_inputs) {
-          if (!py::isinstance<py::tuple>(item) || (py::len(item) != 2)) {
+          if (!py::isinstance<py::tuple>(item) || (py::len(item) != kNodeInputTupleSize)) {
             throw std::runtime_error("SubgraphInput expects iterable of (node, index)");
           }
           py::tuple tup = py::reinterpret_borrow<py::tuple>(item);

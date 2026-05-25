@@ -161,8 +161,8 @@ void TracingRecorder::RecordDuration(const std::vector<std::string> &tracing_msg
   if (record != nullptr) {
     record->start = start;
     record->duration = duration;
+    GELOGD("%s has been recorded to atrace log.", record->Debug().c_str());
   }
-  GELOGD("%s has been recorded to atrace log.", record->Debug().c_str());
 }
 
 TracingRecord *TracingRecorder::RecordMsgs(const std::vector<std::string> &tracing_msg, const TracingEvent ev) {
