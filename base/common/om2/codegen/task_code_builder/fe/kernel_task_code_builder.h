@@ -14,7 +14,6 @@
 #include "common/om2/codegen/task_code_builder/task_code_builder.h"
 #include "rts/rts_kernel.h"
 #include "fwk_adpt_struct.h"
-#include "ge/ge_error_codes.h"
 #include "graph/utils/args_format_desc_utils.h"
 #include "framework/common/taskdown_common.h"
 #include "common/om2/codegen/om2_codegen_utils.h"
@@ -68,7 +67,7 @@ class KernelTaskCodeBuilder : public TaskCodeBuilder {
   Status AppendAicpuArgsCode(Arg iow_addr, const VarRef &args_var, std::vector<BodyItem> &items);
   Status GenArgsCode();
   Status InitAicpuTaskExtInfo(uint8_t *ext_info, size_t ext_info_len, const OpDescPtr op_desc,
-                              int32_t &session_info_offset);
+                              int32_t &session_info_offset) const;
   Status BuildLaunchSemantic(const TaskSemanticContributeContext &context);
   static Status ResolveKernelName(const KernelTaskSemantic &semantic, const OpDescPtr &op_desc,
                                    const domi::TaskDef &task_def, std::string &kernel_name);

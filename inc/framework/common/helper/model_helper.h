@@ -201,7 +201,7 @@ class GE_FUNC_VISIBILITY ModelHelper : public ModelSaveHelper {
 
   bool IsPartitionedGraph(const GeModelPtr &cur_model) const;
 
-  Status SetModelAttributes(const GeModelPtr &ge_model);
+  Status SetModelAttributes(const GeModelPtr &ge_model) const;
 
   Status GenerateGeRootModel(const OmFileLoadHelper &om_load_helper, const ModelData &model_data);
 
@@ -248,10 +248,10 @@ class GE_FUNC_VISIBILITY ModelHelper : public ModelSaveHelper {
                            const std::map<std::string, GeModelPtr> &name_to_ge_model,
                            std::vector<ge::Buffer> &model_buffers,
                            std::vector<ge::Buffer> &task_buffers,
-                           size_t &cur_index);
+                           size_t &cur_index) const;
   Status InitFirstGeModel(const GeRootModelPtr &ge_root_model,
                           const std::map<std::string, GeModelPtr> &name_to_ge_model,
-                          GeModelPtr &first_ge_model);
+                          GeModelPtr &first_ge_model) const;
   Status SavePartitionedFirstModel(std::shared_ptr<OmFileSaveHelper> &om_file_save_helper,
                                    const GeRootModelPtr &ge_root_model, GeModelPtr &first_ge_model,
                                    const ComputeGraphPtr &root_graph, bool is_unknown_shape,

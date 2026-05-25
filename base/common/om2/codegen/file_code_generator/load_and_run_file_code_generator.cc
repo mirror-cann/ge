@@ -58,7 +58,7 @@ MethodDef *LoadAndRunFileCodeGenerator::BuildLoadMethod(const Om2CodegenModel &c
   return ast_.DefineMethod("Om2Model", "Load", {}, "aclError", body);
 }
 
-MethodDef *LoadAndRunFileCodeGenerator::BuildGetRtModelHandleMethod() {
+MethodDef *LoadAndRunFileCodeGenerator::BuildGetRtModelHandleMethod() const {
   return ast_.DefineMethod("Om2Model", "GetRtModelHandle", {}, "aclmdlRI", {ast_.Return("model_handle_")});
 }
 
@@ -166,7 +166,7 @@ Status LoadAndRunFileCodeGenerator::BuildRunBodyImpl(std::vector<BodyItem> &body
   return SUCCESS;
 }
 
-Status LoadAndRunFileCodeGenerator::BuildCommonHelperFunctions(std::vector<DeclNode *> &items) {
+Status LoadAndRunFileCodeGenerator::BuildCommonHelperFunctions(std::vector<DeclNode *> &items) const {
   auto dev_ptr = ast_.Var("void *&", "dev_ptr");
   auto size = ast_.Var("const size_t", "size");
   auto mem_type = ast_.Var("const uint32_t", "mem_type");

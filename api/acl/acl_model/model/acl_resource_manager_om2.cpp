@@ -82,8 +82,8 @@ std::shared_ptr<gert::Om2ModelExecutor> AclResourceManagerOm2::GetOm2Executor(co
     return iter->second;
 }
 
-aclError AclResourceManagerOm2::GetOpDescInfo(const uint32_t deviceId, const uint32_t streamId,
-                                              const uint32_t taskId, ge::OpDescInfo &opDescInfo)
+aclError AclResourceManagerOm2::GetOpDescInfo(uint32_t deviceId, uint32_t streamId,
+                                              uint32_t taskId, ge::OpDescInfo &opDescInfo)
 {
     std::vector<std::shared_ptr<gert::Om2ModelExecutor>> executors;
     {

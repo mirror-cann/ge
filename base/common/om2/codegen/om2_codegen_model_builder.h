@@ -41,7 +41,7 @@ class Om2CodegenModelBuilder {
   Status BuildOpDescLookup(const GeModelPtr &model);
   Status BuildOpInputEdges(const GeModelPtr &model);
   Status BuildModelInfo(const GeModelPtr &model, Om2CodegenModel &codegen_model) const;
-  Status BuildRuntimeResource(const GeModelPtr &model, Om2CodegenModel &codegen_model);
+  Status BuildRuntimeResource(const GeModelPtr &model, Om2CodegenModel &codegen_model) const;
   Status BuildModelIo(const GeModelPtr &model, Om2CodegenModel &codegen_model) const;
   Status CollectModelIoItems(Om2CodegenModel &codegen_model, const ComputeGraphPtr &compute_graph,
                              std::vector<InputModelIoItem> &input_items,

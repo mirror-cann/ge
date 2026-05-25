@@ -148,7 +148,7 @@ Status DSATaskCodeBuilder::Contribute(TaskSemanticContributeContext &context) {
 }
 
 void DSATaskCodeBuilder::RenderAddrLowHigh(const ExprRef &sqe_attr_low, const ExprRef &sqe_attr_high,
-                                           const std::string &addr_expr, std::vector<BodyItem> &items) {
+                                           const std::string &addr_expr, std::vector<BodyItem> &items) const {
   items.push_back(ast_.Assign(sqe_attr_low,
       ast_.StaticCast("uint32_t",
           ast_.ReinterpretCast("uintptr_t", addr_expr) & ast_.UInt(kMask32Bits))));

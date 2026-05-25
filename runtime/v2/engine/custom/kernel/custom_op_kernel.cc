@@ -87,7 +87,8 @@ ge::graphStatus FindCustomOpFunc(KernelContext *context) {
   return ge::GRAPH_SUCCESS;
 }
 
-static ge::graphStatus CreateOutputTensors(ExtendedKernelContext *extended_kernel_context, KernelContext *context) {
+static ge::graphStatus CreateOutputTensors(const ExtendedKernelContext *extended_kernel_context,
+                                           KernelContext *context) {
   const size_t node_output_num = extended_kernel_context->GetComputeNodeOutputNum();
   for (size_t index = 0; index < node_output_num; index++) {
     auto chain = context->GetOutput(index);

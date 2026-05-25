@@ -280,7 +280,7 @@ std::vector<MemInfo> Om2CodegenModelBuilder::GetAllMemoryTypeSize(const GeModelP
   return all_mem_info;
 }
 
-Status Om2CodegenModelBuilder::BuildRuntimeResource(const GeModelPtr &model, Om2CodegenModel &codegen_model) {
+Status Om2CodegenModelBuilder::BuildRuntimeResource(const GeModelPtr &model, Om2CodegenModel &codegen_model) const {
   GE_ASSERT_NOTNULL(model);
   (void)AttrUtils::GetInt(model, ATTR_MODEL_MEMORY_SIZE, codegen_model.runtime.total_mem_size);
   (void)AttrUtils::GetInt(model, ATTR_MODEL_WEIGHT_SIZE, codegen_model.runtime.total_weight_size);

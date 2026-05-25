@@ -109,7 +109,7 @@ ge::Status CreateSoMemFd(const std::string &file_name, const void *data, const s
   const auto short_name = ExtractParentDirAndFileName(file_name).second;
   fd = static_cast<int32_t>(syscall(__NR_memfd_create, short_name.c_str(), 0));
   GE_ASSERT_TRUE(fd >= 0, "[OM2][Create][MemFd] Failed, file=%s", file_name.c_str());
-  GE_DISMISSABLE_GUARD(memfd_cleanup, [&]() { CloseMemFd(fd); });
+  GE_DISMISSABLE_GUARD(memfd_cleanup, [&fd]() { CloseMemFd(fd); });
 
   const auto write_count = mmWrite(fd, const_cast<void *>(data), size);
   GE_ASSERT_TRUE(write_count == static_cast<mmSsize_t>(size),
@@ -833,8 +833,8 @@ ge::Status Om2ModelExecutor::GetOpAttr(std::map<std::string, std::map<std::strin
   return impl_->GetOpAttr(op_attr_map);
 }
 
-ge::Status Om2ModelExecutor::GetOpDescInfo(const uint32_t device_id, const uint32_t stream_id,
-                                           const uint32_t task_id, ge::OpDescInfo &op_desc_info) const {
+ge::Status Om2ModelExecutor::GetOpDescInfo(uint32_t device_id, uint32_t stream_id,
+                                           uint32_t task_id, ge::OpDescInfo &op_desc_info) const {
   return impl_->GetOpDescInfo(device_id, stream_id, task_id, op_desc_info);
 }
 

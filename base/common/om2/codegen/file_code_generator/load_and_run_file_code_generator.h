@@ -24,7 +24,7 @@ class LoadAndRunFileCodeGenerator : public Om2ModelClassGeneratorBase {
                                                        const std::vector<TaskCodeBuilderPtr> &task_code_builders) const;
   MethodDef *BuildLoadMethod(const Om2CodegenModel &codegen_model,
                              const std::vector<TaskCodeBuilderPtr> &task_code_builders);
-  MethodDef *BuildGetRtModelHandleMethod();
+  MethodDef *BuildGetRtModelHandleMethod() const;
   MethodDef *BuildRunAsyncMethod(const Om2CodegenModel &codegen_model);
   MethodDef *BuildRunMethod(const Om2CodegenModel &codegen_model);
   StructDecl *BuildLaunchKernelCfgHolder() const;
@@ -35,7 +35,7 @@ class LoadAndRunFileCodeGenerator : public Om2ModelClassGeneratorBase {
   Status BuildLoadBody(std::vector<BodyItem> &body, const Om2CodegenModel &codegen_model,
                        const std::vector<TaskCodeBuilderPtr> &task_code_builders);
   Status BuildRunBodyImpl(std::vector<BodyItem> &body, const Om2CodegenModel &codegen_model, bool is_async);
-  Status BuildCommonHelperFunctions(std::vector<DeclNode *> &items);
+  Status BuildCommonHelperFunctions(std::vector<DeclNode *> &items) const;
 };
 }  // namespace ge
 

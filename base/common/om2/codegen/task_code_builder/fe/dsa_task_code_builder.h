@@ -55,7 +55,7 @@ class DSATaskCodeBuilder : public TaskCodeBuilder {
   void RenderHbmArgsCopy(const VarRef &sqe_var, std::vector<BodyItem> &items);
   void BuildIoArgsVars(std::vector<Arg> &io_args_vars, std::vector<BodyItem> &items);
   void RenderAddrLowHigh(const ExprRef &sqe_attr_low, const ExprRef &sqe_attr_high,
-                         const std::string &addr_expr, std::vector<BodyItem> &items);
+                         const std::string &addr_expr, std::vector<BodyItem> &items) const;
 
   DsaSqeSemantic dsa_sqe_;
 

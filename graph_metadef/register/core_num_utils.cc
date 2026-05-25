@@ -14,7 +14,6 @@
 #include "graph/ge_local_context.h"
 #include "graph/utils/attr_utils.h"
 #include "platform/platform_info.h"
-#include "external/ge_common/ge_api_types.h"
 
 namespace ge {
 namespace {
