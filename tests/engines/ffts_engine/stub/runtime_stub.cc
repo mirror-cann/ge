@@ -1005,12 +1005,6 @@ rtError_t rtCtxGetOverflowAddr(void **overflowAddr) {
   *overflowAddr = (void *)0x1;
   return RT_ERROR_NONE;
 }
-rtError_t rtGetStreamBufferLen(const bool isHuge, uint32_t * const bufferLen) {
-  (void)isHuge;
-  *bufferLen = 1U;
-  return 0;
-}
-
 rtError_t rtGetTaskBufferLen(const rtTaskBuffType_t type, uint32_t * const bufferLen) {
   (void)type;
   *bufferLen = 1U;
