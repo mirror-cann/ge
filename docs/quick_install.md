@@ -150,6 +150,12 @@ docker run --name cann_container \
 
         其中`${soc_name}`表示NPU型号名称。
 
+     3. 安装运行依赖（可选，仅运行[样例](../examples/README.md)依赖）。
+
+        ```bash
+        pip3 install attrs cython numpy decorator sympy cffi pyyaml pathlib2 psutil protobuf==3.20.0 scipy requests absl-py
+        ```
+
    **场景2：体验已发布版本能力或基于已发布版本进行开发**
 
     如果您想体验**官网正式发布的CANN包**能力，请访问[CANN官网下载中心](https://www.hiascend.com/cann/download)，选择对应版本CANN软件包（仅支持CANN 8.5.0及后续版本）进行安装。   
