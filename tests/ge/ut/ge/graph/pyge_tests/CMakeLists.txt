@@ -18,13 +18,15 @@ add_custom_command(
         OUTPUT ${PYGE_TEST_INSTALL_DIR}/.installed
         COMMAND ${CMAKE_COMMAND} -E remove_directory ${PYGE_TEST_INSTALL_DIR}
         COMMAND ${CMAKE_COMMAND} -E make_directory ${PYGE_TEST_INSTALL_DIR}
-        COMMAND ${HI_PYTHON} -m pip install --target ${PYGE_TEST_INSTALL_DIR} ${CMAKE_BINARY_DIR}/api/python/ge/ge_py-0.0.1-py3-none-any.whl --force-reinstall
+        COMMAND ${HI_PYTHON} -m pip install --target ${PYGE_TEST_INSTALL_DIR}
+                ${CMAKE_BINARY_DIR}/api/python/ge/ge_py-0.0.1-py3-none-any.whl
+                ${GE_PYTHON_PASS_NATIVE_WHEEL}
+                --force-reinstall
         COMMAND ${HI_PYTHON} -m pip install --target ${PYGE_TEST_INSTALL_DIR} ${CMAKE_BINARY_DIR}/tests/ge/ut/ge/graph/eager_style_graph_builder/graph_construction_test/output/whl/es_ut_test-1.0.0-py3-none-any.whl --force-reinstall
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:eager_style_graph_builder_base> ${PYGE_TEST_INSTALL_DIR}/ge/_capi/
         COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/tests/ge/ut/ge/graph/eager_style_graph_builder/graph_construction_test/output/lib64/libes_ut_test.so ${PYGE_TEST_INSTALL_DIR}/ge/_capi/
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:_ge_pass_native> ${PYGE_TEST_INSTALL_DIR}/ge/passes/
         COMMAND ${CMAKE_COMMAND} -E touch ${PYGE_TEST_INSTALL_DIR}/.installed
-        DEPENDS ge_python es_ut_test _ge_pass_native
+        DEPENDS ge_python_main_wheel ge_python_native_wheel es_ut_test
         COMMENT "Installing ge-py and es_ut_test packages for pyge_tests"
 )
 

@@ -9,9 +9,13 @@
 # -----------------------------------------------------------------------------------------------------------
 
 file(GLOB_RECURSE OM2_EXECUTOR_SRCS CONFIGURE_DEPENDS "${AIR_CODE_DIR}/runtime/om2/*.cc")
-
+set(OM2_EXTRA_SRCS
+        "${AIR_CODE_DIR}/base/common/aclrt_malloc_helper.cc"
+        "${AIR_CODE_DIR}/graph_metadef/base/utils/type_utils_inner.cc"
+)
 add_library(om2_executor SHARED
         ${OM2_EXECUTOR_SRCS}
+        ${OM2_EXTRA_SRCS}
         # 此处仅添加执行时依赖的源文件
 )
 
@@ -46,6 +50,7 @@ target_include_directories(om2_executor PRIVATE
         ${CMAKE_BINARY_DIR}
         ${CMAKE_BINARY_DIR}/proto/graphengine_protos
         ${PROTOBUF_INCLUDE_DIR}
+        ${METADEF_DIR}/inc/external
 )
 
 target_link_libraries(om2_executor PRIVATE

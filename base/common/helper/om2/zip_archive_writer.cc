@@ -364,7 +364,7 @@ std::string GetBaseName(const std::string &path) {
 }
 }  // namespace
 
-SimpleZipArchiveReader::SimpleZipArchiveReader(const uint8_t *data, const size_t length) : mem_file_{data, length, 0} {
+SimpleZipArchiveReader::SimpleZipArchiveReader(const uint8_t *data, size_t length) : mem_file_{data, length, 0} {
   if (mem_file_.buffer == nullptr || mem_file_.length == 0) {
     GELOGE(FAILED, "Invalid zip archive data, data is [%p] and size is [%zu]", mem_file_.buffer, mem_file_.length);
     return;
@@ -545,7 +545,7 @@ bool ZipArchiveWriter::WriteEndOfFile() {
   return true;
 }
 
-bool ZipArchiveWriter::SaveModelData(ModelBufferData &model, const bool save_to_file) {
+bool ZipArchiveWriter::SaveModelData(ModelBufferData &model, bool save_to_file) {
   return save_to_file ? SaveModelDataToFile() : SaveModelDataToBuffer(model);
 }
 

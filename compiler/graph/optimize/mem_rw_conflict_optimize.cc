@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2025 Huawei Technologies Co., Ltd.
+ * Copyright (c) 2026 Huawei Technologies Co., Ltd.
  * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@
 #include "base/err_msg.h"
 #include "graph/utils/tensor_utils.h"
 #include "graph/utils/tensor_adapter.h"
+#include "graph/optimize/mem_rw_conflict_optimize.h"
 
 namespace {
 using namespace ge;
@@ -1050,4 +1051,56 @@ Status GraphOptimize::HandleMemoryRWConflict(ComputeGraphPtr &compute_graph) con
   GE_DUMP(compute_graph, "AfterHandleMemConflict");
   return SUCCESS;
 }
+
+Status InitRWConflictCheck(const ComputeGraphPtr &compute_graph) {
+  ReInit();
+  GE_CHECK_NOTNULL(compute_graph);
+  GE_CHK_STATUS(MarkRefRelations(compute_graph),
+                "Mark ref relations failed for %s", compute_graph->GetName().c_str());
+  const auto &sub_graph_vec = compute_graph->GetAllSubgraphs();
+  if (sub_graph_vec.empty()) {
+    GELOGI("No subgraph found in graph %s. Skip RW type marking for subgraphs.", compute_graph->GetName().c_str());
+    return SUCCESS;
+  }
+  Status ret = MarkRWTypeForAllSubgraph(sub_graph_vec);
+  if (ret != SUCCESS) {
+    GELOGE(ret, "[Call][MarkRWTypeForAllSubgraph] failed for %s.", compute_graph->GetName().c_str());
+    return ret;
+  }
+  return SUCCESS;
+}
+
+bool WouldDeleteTensorMoveCauseRWConflict(
+    const NodePtr &src_node, uint32_t src_out_idx,
+    const NodePtr &tm_succ, uint32_t tm_succ_in_idx) {
+  if ((src_node == nullptr) || (src_node->GetOpDesc() == nullptr) ||
+      (tm_succ == nullptr) || (tm_succ->GetOpDesc() == nullptr)) {
+    GELOGW("WouldDeleteTensorMoveCauseRWConflict got null input, conservatively report conflict.");
+    return true;
+  }
+
+  auto out_rw_type = GetOutputRWTypeByIndex(src_node, src_out_idx, true);
+  auto in_rw_type = GetInputRWTypeByIndex(tm_succ, tm_succ_in_idx, true);
+
+  auto result = GetConflictResultBetweenNode(out_rw_type, in_rw_type);
+  if (result != ConflictResult::DO_NOTHING) {
+    GELOGI("Delete TM would cause RW conflict: src %s(out:%u) rw=%s -> succ %s(in:%u) rw=%s.",
+           src_node->GetName().c_str(), src_out_idx, OutputRWTypeToSerialString(out_rw_type).c_str(),
+           tm_succ->GetName().c_str(), tm_succ_in_idx, InputRWTypeToSerialString(in_rw_type).c_str());
+    return true;
+  }
+  return false;
+}
+
+bool IsNodeInputWritable(const NodePtr &node, uint32_t index) {
+  if ((node == nullptr) || (node->GetOpDesc() == nullptr)) {
+    return false;
+  }
+  auto in_rw_type = GetInputRWTypeByIndex(node, index, true);
+  const bool is_writable = (in_rw_type == InputRWType::kWriteable || in_rw_type == InputRWType::kScopeWriteable);
+  GELOGI("Node %s input %u RW type: %d, writable=%s.",
+         node->GetName().c_str(), index, static_cast<int>(in_rw_type), is_writable ? "true" : "false");
+  return is_writable;
+}
+
 }  // namespace ge

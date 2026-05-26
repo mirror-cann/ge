@@ -55,23 +55,9 @@ void ConstructSingleNodeSymbolTable(const string &input_symbol,
                                     const MemAssistInfo &mem_assist_info,
                                     AnchorToSymbol &anchor_to_symbol,
                                     SymbolToAnchors &symbol_to_anchors) {
-  // 提取出特定的input_symbol和output_symbol对应的所有anchor的映射关系表
-  for (const auto &it : mem_assist_info.anchor_to_symbol) {
-    if (it.second == input_symbol || it.second == output_symbol) {
-      anchor_to_symbol[it.first] = it.second;
-    }
-  }
-  for (const auto &it : mem_assist_info.symbol_to_anchors) {
-    if (it.first == input_symbol || it.first == output_symbol) {
-      symbol_to_anchors[it.first].assign(it.second.begin(), it.second.end());
-    }
-  }
-  // 删除output_symbol对应的symbol，合并到input_symbol
-  for (auto &it : symbol_to_anchors[output_symbol]) {
-    symbol_to_anchors[input_symbol].push_back(it);
-    anchor_to_symbol[it.ToString()] = input_symbol;
-  }
-  symbol_to_anchors.erase(output_symbol);
+  MemLayoutConflictUtil::ConstructSingleNodeSymbolTable(input_symbol, output_symbol,
+      mem_assist_info.anchor_to_symbol, mem_assist_info.symbol_to_anchors,
+      anchor_to_symbol, symbol_to_anchors);
 }
 
 Status GetReadOnlySymbol(const MemAssistInfo &mem_assist_info, std::set<std::string> &read_only_symbols) {

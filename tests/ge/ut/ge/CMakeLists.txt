@@ -484,6 +484,9 @@ set(MULTI_PARTS_TEST_FILES
     "graph/build/dag/dag_log_test.cc"
     "graph/build/dag/dag_adapter_test.cc"
     "graph/build/dag/dag_stream_allocator_pass_ut_test.cc"
+    "graph/build/dag/dag_stream_allocator_test.cc"
+    "graph/build/dag/dag_stream_divide_test.cc"
+    "graph/build/dag/dag_stream_merger_test.cc"
     "graph/execute/graph_execute_unittest.cc"
     "graph/execute/model_executor_unittest.cc"
     "graph/preprocess/graph_preprocess_unittest.cc"
@@ -922,6 +925,52 @@ target_link_libraries(ut_libge_others_utest
 add_test(NAME ut_libge_others_utest COMMAND ut_libge_others_utest --gtest_output=xml:${CMAKE_INSTALL_PREFIX}/report/ut/ut_libge_others_utest.xml)
 set_tests_properties(ut_libge_others_utest PROPERTIES LABELS "ut;ge_common;ut_libge_others_utest" DEPENDS ut_libge_distinct_load_utest)
 
+# ut_python_pass_artifact_selector_utest
+add_executable(ut_python_pass_artifact_selector_utest
+    "fusion/pass/python_pass_artifact_selector_unittest.cc"
+)
+
+target_compile_options(ut_python_pass_artifact_selector_utest PRIVATE ${AIR_COMMON_COMPILE_OPTION}
+    -Werror=format
+    -Wno-deprecated-declarations
+    -Wall -Wfloat-equal -Werror
+    -Wno-subobject-linkage
+)
+
+target_include_directories(ut_python_pass_artifact_selector_utest PRIVATE
+    ${AIR_CODE_DIR}
+    ${JSON_INCLUDE}
+    ${JSON_SOURCE}
+    ${ASCEND_INSTALL_PATH}/include
+    ${ASCGEN_DIR}/inc
+)
+
+target_compile_definitions(ut_python_pass_artifact_selector_utest PRIVATE
+    google=ascend_private
+    _GLIBCXX_USE_CXX11_ABI=0
+)
+
+target_link_libraries(ut_python_pass_artifact_selector_utest
+    intf_llt_pub
+    json
+    GTest::gtest
+    GTest::gtest_main
+    ge_common_base
+)
+
+target_link_options(ut_python_pass_artifact_selector_utest PRIVATE
+    -Wl,--disable-new-dtags
+    -Wl,-rpath,${CMAKE_CURRENT_LIST_DIR}
+    -Wl,-rpath,${CMAKE_BINARY_DIR}/compiler
+)
+
+add_test(NAME ut_python_pass_artifact_selector_utest
+    COMMAND ut_python_pass_artifact_selector_utest
+            --gtest_output=xml:${CMAKE_INSTALL_PREFIX}/report/ut/ut_python_pass_artifact_selector_utest.xml)
+set_tests_properties(ut_python_pass_artifact_selector_utest PROPERTIES
+    LABELS "ut;ge_common;ut_python_pass_artifact_selector_utest"
+)
+
 # ut_fusion_pass_executor_utest
 add_executable(ut_fusion_pass_executor_utest
     ${COMMON_TEST_FILES}
@@ -1000,14 +1049,15 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E remove_directory ${FUSION_PASS_PY_INSTALL_DIR}
     COMMAND ${CMAKE_COMMAND} -E make_directory ${FUSION_PASS_PY_INSTALL_DIR}
     COMMAND ${HI_PYTHON} -m pip install --target ${FUSION_PASS_PY_INSTALL_DIR}
-            ${CMAKE_BINARY_DIR}/api/python/ge/ge_py-0.0.1-py3-none-any.whl --force-reinstall
+            ${CMAKE_BINARY_DIR}/api/python/ge/ge_py-0.0.1-py3-none-any.whl
+            ${GE_PYTHON_PASS_NATIVE_WHEEL}
+            --force-reinstall
     COMMAND ${HI_PYTHON} -m pip install --target ${FUSION_PASS_PY_INSTALL_DIR}
             ${CMAKE_BINARY_DIR}/tests/ge/ut/ge/graph/eager_style_graph_builder/graph_construction_test/output/whl/es_ut_test-1.0.0-py3-none-any.whl --force-reinstall
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:eager_style_graph_builder_base> ${FUSION_PASS_PY_INSTALL_DIR}/ge/_capi/
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/tests/ge/ut/ge/graph/eager_style_graph_builder/graph_construction_test/output/lib64/libes_ut_test.so ${FUSION_PASS_PY_INSTALL_DIR}/ge/_capi/
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:_ge_pass_native> ${FUSION_PASS_PY_INSTALL_DIR}/ge/passes/
     COMMAND ${CMAKE_COMMAND} -E touch ${FUSION_PASS_PY_INSTALL_DIR}/.installed
-    DEPENDS ge_python eager_style_graph_builder_base es_ut_test _ge_pass_native
+    DEPENDS ge_python_main_wheel ge_python_native_wheel eager_style_graph_builder_base es_ut_test
     COMMENT "Installing ge-py wheel for fusion_pass_executor_utest"
 )
 

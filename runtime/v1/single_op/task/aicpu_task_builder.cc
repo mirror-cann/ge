@@ -11,7 +11,6 @@
 #include "single_op/task/aicpu_task_builder.h"
 #include <vector>
 #include "single_op/task/build_task_utils.h"
-#include "runtime/mem.h"
 #include "framework/common/debug/ge_log.h"
 #include "graph/load/model_manager/model_utils.h"
 #include "graph/load/model_manager/model_manager.h"

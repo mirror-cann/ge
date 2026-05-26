@@ -9,6 +9,7 @@
 
 #include "tensor_move_delete_pass.h"
 
+#include <algorithm>
 #include <stack>
 #include <unordered_set>
 #include <queue>
@@ -22,6 +23,8 @@
 #include "op_type_utils.h"
 #include "common/omg_util/omg_util.h"
 #include "framework/common/util.h"
+#include "graph/optimize/mem_rw_conflict_optimize.h"
+#include "graph/optimize/mem_layout_conflict_optimize/mem_layout_conflict_util.h"
 
 namespace ge {
 namespace {
@@ -29,6 +32,9 @@ struct TensorMoveDeleteContext {
   NodePtr tensor_move;
   std::vector<std::pair<NodePtr, OutDataAnchorPtr>> path_to_source_node;
   std::vector<std::pair<NodePtr, NodePtr>> pending_control_edges;
+  AnchorToSymbol *anchor_to_symbol = nullptr;
+  SymbolToAnchors *symbol_to_anchors = nullptr;
+  bool has_symbol_table = false;
 };
 using DeleteRule = std::function<bool(TensorMoveDeleteContext &)>;
 
@@ -375,7 +381,7 @@ bool HasAtomicWriteFromInput(const NodePtr &node, const int32_t input_idx) {
  *
  * @return true 结构上允许删；false 结构上不能删，外部已有的控制边也救不回来。
  */
-bool IsSiblingConsumerDeletable(const NodePtr &tensor_move_node, const InDataAnchorPtr &sibling_in_anchor) {
+bool IsSiblingConsumerDeletable(const NodePtr &tensor_move_node, const InDataAnchor *sibling_in_anchor) {
   GE_WARN_ASSERT((tensor_move_node) != nullptr);
   GE_WARN_ASSERT((sibling_in_anchor) != nullptr);
   const auto sibling_node = sibling_in_anchor->GetOwnerNode();
@@ -387,9 +393,9 @@ bool IsSiblingConsumerDeletable(const NodePtr &tensor_move_node, const InDataAnc
            sibling_node->GetName().c_str(), tensor_move_node->GetName().c_str());
     return false;
   }
-  if (IsTensorMove(sibling_node) || (sibling_node->GetType() == NETOUTPUT) ||
+  if ((sibling_node->GetType() == NETOUTPUT) ||
       NodeUtils::IsMultiBranchControlFlowOp(sibling_node)) {
-    GELOGI("Sibling consumer %s(type %s) is TensorMove/NetOutput/control-flow, not supported by "
+    GELOGI("Sibling consumer %s(type %s) is NetOutput/control-flow, not supported by "
            "multi-consumer delete rule of tensor move %s.",
            sibling_node->GetName().c_str(), sibling_node->GetType().c_str(), tensor_move_node->GetName().c_str());
     return false;
@@ -409,24 +415,49 @@ bool IsSiblingConsumerDeletable(const NodePtr &tensor_move_node, const InDataAnc
 /**
  * @brief 检查一个节点是否会通过指定输入端口覆写源节点的内存
  *
- * 覆盖两种写回情形：
- *   1. 声明了 inplace 写回：输出 desc 上的 INPLACE_SUPPORT_INPUT_INDEX 指向该输入端口；
- *   2. 带 atomic 输出属性，且对应 atomic 输出通过 Ref/ReuseInput 复用该输入端口。
- *
- * 这两种写回都只发生在节点自己执行的窗口内。上层既会在"旁路消费者"侧调用它（判断旁路
- * 会不会改写 source，决定是否需要外部 ctrl 保序），也会在"TM 后继"侧调用它（判断删 TM
- * 后 TM 后继会不会也盯着 source 写）。
+ * 覆盖三种覆写情形：
+ *   1. 输入读写类型为 kWriteable / kScopeWriteable（ref 输入 / while / modify_input 等）
+ *   2. 声明了 inplace 写回：输出 desc 上的 INPLACE_SUPPORT_INPUT_INDEX 指向该输入端口
+ *   3. 带 atomic 输出属性，且对应 atomic 输出通过 Ref/ReuseInput 复用该输入端口
  *
  * @return true 会覆写源内存；false 是纯读取，无覆写风险。
  */
 bool WillNodeOverwriteSourceMemory(const NodePtr &node, const int32_t source_input_idx) {
   GE_WARN_ASSERT((node) != nullptr);
   GE_WARN_ASSERT((node->GetOpDesc()) != nullptr);
+
+  if (IsNodeInputWritable(node, static_cast<uint32_t>(source_input_idx))) {
+    return true;
+  }
   if (HasInplaceWriteFromInput(node, source_input_idx)) {
     return true;
   }
   if (HasAtomicWriteFromInput(node, source_input_idx)) {
     return true;
+  }
+  return false;
+}
+
+bool WouldTMSuccessorsOverwriteSource(const TensorMoveDeleteContext &ctx) {
+  const auto &tm = ctx.tensor_move;
+  const auto tm_out = tm->GetOutDataAnchor(0);
+  if (tm_out == nullptr) {
+    return true;
+  }
+
+  for (const auto succ_in : tm_out->GetPeerInDataAnchorsPtr()) {
+    if (succ_in == nullptr) {
+      continue;
+    }
+    const auto succ = succ_in->GetOwnerNode();
+    if (succ == nullptr) {
+      continue;
+    }
+    if (WillNodeOverwriteSourceMemory(succ, succ_in->GetIdx())) {
+      GELOGI("TM %s successor %s(in:%d) overwrites source memory, cannot delete.",
+             tm->GetName().c_str(), succ->GetName().c_str(), succ_in->GetIdx());
+      return true;
+    }
   }
   return false;
 }
@@ -531,9 +562,9 @@ void AddPendingControlEdge(const NodePtr &from_node, const NodePtr &to_node, Ten
  * 则 source 的直接消费者是 ref_op 而非 TensorMove，本 pass 不做这类生命周期分析，保守返回 false。
  */
 bool CollectSiblingConsumers(const NodePtr &tensor_move_node, const OutDataAnchorPtr &out_data_anchor,
-                             std::vector<InDataAnchorPtr> &sibling_in_anchors) {
+                             std::vector<InDataAnchor *> &sibling_in_anchors) {
   bool tensor_move_is_direct_consumer = false;
-  for (const auto &peer_in_anchor : out_data_anchor->GetPeerInDataAnchors()) {
+  for (const auto peer_in_anchor : out_data_anchor->GetPeerInDataAnchorsPtr()) {
     const auto owner_node = (peer_in_anchor == nullptr) ? nullptr : peer_in_anchor->GetOwnerNodeBarePtr();
     if (owner_node == tensor_move_node.get()) {
       tensor_move_is_direct_consumer = true;
@@ -583,8 +614,8 @@ bool CanDeleteWhenSiblingOverwritesSource(const NodePtr &tensor_move_node, const
  * @brief 处理一个 sibling 相对全部 TM 后继的约束，必要时登记 sibling -> tm_succ 的待建控制边
  * @return true 该 sibling 结构上允许删除 TM；false 必须保留 TM
  */
-bool CheckSiblingAgainstSuccessors(const NodePtr &tensor_move_node, const InDataAnchorPtr &sibling_in_anchor,
-                                   const OutDataAnchorPtr &tensor_move_out_anchor, TensorMoveDeleteContext &ctx) {
+bool CheckSiblingAgainstSuccessors(const NodePtr &tensor_move_node, const InDataAnchor *sibling_in_anchor,
+                                    const OutDataAnchorPtr &tensor_move_out_anchor, TensorMoveDeleteContext &ctx) {
   if (!IsSiblingConsumerDeletable(tensor_move_node, sibling_in_anchor)) {
     return false;
   }
@@ -592,7 +623,7 @@ bool CheckSiblingAgainstSuccessors(const NodePtr &tensor_move_node, const InData
   const auto sibling_input_idx = sibling_in_anchor->GetIdx();
   const bool sibling_overwrites_source = WillNodeOverwriteSourceMemory(sibling_node, sibling_input_idx);
 
-  for (const auto *tensor_move_succ_in_anchor : tensor_move_out_anchor->GetPeerInDataAnchorsPtr()) {
+  for (const auto tensor_move_succ_in_anchor : tensor_move_out_anchor->GetPeerInDataAnchorsPtr()) {
     GE_WARN_ASSERT(tensor_move_succ_in_anchor != nullptr);
     const auto tensor_move_succ = tensor_move_succ_in_anchor->GetOwnerNode();
     GE_WARN_ASSERT((tensor_move_succ) != nullptr);
@@ -636,7 +667,7 @@ bool TryHandleBasicMultiRefBranch(const NodePtr &tensor_move_node, const OutData
   GE_WARN_ASSERT((tensor_move_node) != nullptr);
   GE_WARN_ASSERT((out_data_anchor) != nullptr);
 
-  std::vector<InDataAnchorPtr> sibling_in_anchors;
+  std::vector<InDataAnchor *> sibling_in_anchors;
   if (!CollectSiblingConsumers(tensor_move_node, out_data_anchor, sibling_in_anchors)) {
     GELOGI("Skip multi-consumer check: TM %s is not a direct consumer of %s out:%d, or has no sibling.",
            tensor_move_node->GetName().c_str(), out_data_anchor->GetOwnerNode()->GetName().c_str(),
@@ -767,6 +798,50 @@ bool HasReservedAttr(const NodePtr &node) {
   return false;
 }
 
+/**
+* @brief 判断 TensorMove 后继链路是否安全（允许删除 TensorMove 的前提条件）
+*
+* 逐个检查 TensorMove 输出锚点的所有直接后继节点，要求全部满足：
+*   1. 不是 RefOp（输出不复用来自 TensorMove 的那个输入）
+*   2. 不是 NetOutput
+*   3. 不是 wrapper 算子（PARTITIONEDCALL/STATEFULPARTITIONEDCALL 或多分支控制流算子）
+*
+* @return true 所有后继都安全；false 存在不安全的后继
+*/
+
+bool IsSuccessorSafeAfterTensorMove(const NodePtr &tensor_move_node) {
+  GE_ASSERT_NOTNULL(tensor_move_node);
+  const auto tm_out_anchor = tensor_move_node->GetOutDataAnchor(0);
+  if (tm_out_anchor == nullptr) {
+    return true;
+  }
+  for (const auto peer_in_anchor : tm_out_anchor->GetPeerInDataAnchorsPtr()) {
+    if (peer_in_anchor == nullptr) {
+      continue;
+    }
+    const auto succ_node = peer_in_anchor->GetOwnerNode();
+    GE_ASSERT_NOTNULL(succ_node);
+    const auto &succ_type = succ_node->GetType();
+    if (HasRefOutputFromInput(succ_node, peer_in_anchor->GetIdx())) {
+      GELOGI("Successor %s(type %s) of TensorMove %s is a RefOp, cannot delete.",
+             succ_node->GetName().c_str(), succ_type.c_str(), tensor_move_node->GetName().c_str());
+      return false;
+    }
+
+    if (succ_type == NETOUTPUT) {
+      GELOGI("Successor %s(type %s) of TensorMove %s is NetOutput, cannot delete.",
+             succ_node->GetName().c_str(), succ_type.c_str(), tensor_move_node->GetName().c_str());
+      return false;
+    }
+    if (NodeUtils::IsWrapperNode(succ_node)) {
+      GELOGI("Successor %s(type %s) of TensorMove %s is a wrapper node with subgraphs, cannot delete.",
+             succ_node->GetName().c_str(), succ_type.c_str(), tensor_move_node->GetName().c_str());
+      return false;
+    }
+  }
+  return true;
+}
+
 DeleteRule CheckPathToSourceNodeValid = [](const TensorMoveDeleteContext &ctx) {
   const auto &path_pairs = ctx.path_to_source_node;
   if (path_pairs.empty()) {
@@ -781,8 +856,21 @@ DeleteRule CheckPathToSourceNodeValid = [](const TensorMoveDeleteContext &ctx) {
     return false;
   }
 
+  // 源节点是Variable/Const时，需要进一步判断TM后继节点，如果后继节点会修改输入，则TM不能删掉
   if (IsSourceNodeSpecial(source_node)) {
-    GELOGD("Source node %s of TensorMove %s is special node, cannot delete.",
+    // TM后继节点是Netoutput或者带有子图时，保守处理，不删除TM
+    if (!IsSuccessorSafeAfterTensorMove(ctx.tensor_move)) {
+      GELOGI("Source node %s of TensorMove %s is special node and directly connected,"
+             " but successor is unsafe, cannot delete.",
+             source_node->GetName().c_str(), ctx.tensor_move->GetName().c_str());
+      return false;
+    }
+    if (!WouldTMSuccessorsOverwriteSource(ctx)) {
+      GELOGI("Source node %s of TensorMove %s is special but no successor overwrites source, allow deletion check.",
+             source_node->GetName().c_str(), ctx.tensor_move->GetName().c_str());
+      return true;
+    }
+    GELOGD("Source node %s of TensorMove %s is special and successor overwrites source, cannot delete.",
            source_node->GetName().c_str(), ctx.tensor_move->GetName().c_str());
     return false;
   }
@@ -812,6 +900,85 @@ DeleteRule CheckSourceNodeReuse = [](const TensorMoveDeleteContext &ctx) {
 
 DeleteRule CheckSinglePath = [](TensorMoveDeleteContext &ctx) {
   return IsSourceNodeWithSinglePath(ctx.tensor_move, ctx.path_to_source_node, ctx);
+};
+
+DeleteRule CheckRWConflictOnDelete = [](const TensorMoveDeleteContext &ctx) {
+  const auto &tm = ctx.tensor_move;
+  const auto tm_in = tm->GetInDataAnchor(0);
+  const auto tm_out = tm->GetOutDataAnchor(0);
+  if ((tm_in == nullptr) || (tm_out == nullptr)) {
+    return false;
+  }
+
+  const auto peer_out = tm_in->GetPeerOutAnchor();
+  const auto src_node = (peer_out != nullptr) ? peer_out->GetOwnerNode() : nullptr;
+  if (src_node == nullptr) {
+    return false;
+  }
+  const uint32_t src_out_idx = static_cast<uint32_t>(peer_out->GetIdx());
+
+  for (const auto succ_in : tm_out->GetPeerInDataAnchorsPtr()) {
+    const auto tm_succ = (succ_in != nullptr) ? succ_in->GetOwnerNode() : nullptr;
+    if (tm_succ == nullptr) {
+      continue;
+    }
+    if (WouldDeleteTensorMoveCauseRWConflict(
+            src_node, src_out_idx, tm_succ,
+            static_cast<uint32_t>(succ_in->GetIdx()))) {
+      GELOGI("Keep TM %s: RW conflict between %s(out:%u) and %s(in:%d).",
+             tm->GetName().c_str(), src_node->GetName().c_str(), src_out_idx,
+             tm_succ->GetName().c_str(), succ_in->GetIdx());
+      return false;
+    }
+  }
+  return true;
+};
+
+DeleteRule CheckMemLayoutConflictOnDelete = [](const TensorMoveDeleteContext &ctx) {
+  const auto &tm = ctx.tensor_move;
+  const auto tm_in = tm->GetInDataAnchor(0);
+  const auto tm_out = tm->GetOutDataAnchor(0);
+  if ((tm_in == nullptr) || (tm_out == nullptr)) {
+    return false;
+  }
+  if (!ctx.has_symbol_table) {
+    return true;
+  }
+
+  NodeIndexIO in_io(tm, 0, kIn);
+  NodeIndexIO out_io(tm, 0, kOut);
+  const auto in_iter = ctx.anchor_to_symbol->find(in_io.ToString());
+  const auto out_iter = ctx.anchor_to_symbol->find(out_io.ToString());
+  if ((in_iter == ctx.anchor_to_symbol->end()) || (out_iter == ctx.anchor_to_symbol->end())) {
+    GELOGW("Symbol not found for TM %s, conservatively keep.", tm->GetName().c_str());
+    return false;
+  }
+  if (in_iter->second == out_iter->second) {
+    return true;
+  }
+
+  AnchorToSymbol tmp_anchor_to_symbol;
+  SymbolToAnchors tmp_symbol_to_anchors;
+  MemLayoutConflictUtil::ConstructSingleNodeSymbolTable(in_iter->second, out_iter->second,
+      *ctx.anchor_to_symbol, *ctx.symbol_to_anchors,
+      tmp_anchor_to_symbol, tmp_symbol_to_anchors);
+
+  auto graph = tm->GetOwnerComputeGraph();
+  if (graph == nullptr) {
+    return false;
+  }
+  bool has_conflict = false;
+  if (MemLayoutConflictUtil::IsGraphExistMemConflictSymbol(
+          graph, tmp_anchor_to_symbol, tmp_symbol_to_anchors, has_conflict) != SUCCESS) {
+    GELOGW("IsGraphExistMemConflictSymbol failed for TM %s, conservatively keep.", tm->GetName().c_str());
+    return false;
+  }
+  if (has_conflict) {
+    GELOGI("Keep TM %s: mem layout conflict after merging symbols %s and %s.",
+           tm->GetName().c_str(), in_iter->second.c_str(), out_iter->second.c_str());
+    return false;
+  }
+  return true;
 };
 
 /**
@@ -887,6 +1054,52 @@ Status ApplyPendingControlEdges(
   }
   return SUCCESS;
 }
+}  // anonymous namespace
+
+Status TensorMoveDeletePass::Init(const ComputeGraphPtr &compute_graph) {
+  GE_CHECK_NOTNULL(compute_graph);
+  GE_CHK_STATUS(compute_graph->TopologicalSorting(),
+                "TopologicalSorting failed before building symbol table.");
+  GE_CHK_STATUS(GraphUtils::GetRefMapping(compute_graph, symbol_to_anchors_, anchor_to_symbol_),
+                "GetRefMapping failed.");
+  has_symbol_table_ = true;
+  return SUCCESS;
+}
+
+namespace {
+void MergeTensorMoveSymbolAfterDelete(const NodePtr &node, const bool has_symbol_table,
+                                      AnchorToSymbol &anchor_to_symbol, SymbolToAnchors &symbol_to_anchors) {
+  if (!has_symbol_table) {
+    return;
+  }
+  NodeIndexIO in_io(node, 0, kIn);
+  NodeIndexIO out_io(node, 0, kOut);
+  const auto &in_io_key = in_io.ToString();
+  const auto &out_io_key = out_io.ToString();
+  const auto in_iter = anchor_to_symbol.find(in_io_key);
+  const auto out_iter = anchor_to_symbol.find(out_io_key);
+  const auto input_symbol = (in_iter == anchor_to_symbol.end()) ? std::string() : in_iter->second;
+  const auto output_symbol = (out_iter == anchor_to_symbol.end()) ? std::string() : out_iter->second;
+  if ((in_iter != anchor_to_symbol.end()) && (out_iter != anchor_to_symbol.end())
+      && (in_iter->second != out_iter->second)) {
+    GELOGI("Delete TM %s: merge symbol %s into %s.", node->GetName().c_str(),
+           out_iter->second.c_str(), in_iter->second.c_str());
+    for (auto &node_index_io : symbol_to_anchors[output_symbol]) {
+      anchor_to_symbol[node_index_io.ToString()] = input_symbol;
+    }
+    auto &in_vec = symbol_to_anchors[input_symbol];
+    auto &out_vec = symbol_to_anchors[output_symbol];
+    in_vec.insert(in_vec.end(), out_vec.begin(), out_vec.end());
+    symbol_to_anchors.erase(output_symbol);
+  }
+  auto &anchors = symbol_to_anchors[input_symbol];
+  anchors.erase(std::remove_if(anchors.begin(), anchors.end(), [&in_io_key, &out_io_key](const NodeIndexIO &node_index_io) {
+    const auto &anchor_key = node_index_io.ToString();
+    return (anchor_key == in_io_key) || (anchor_key == out_io_key);
+  }), anchors.end());
+  anchor_to_symbol.erase(in_io_key);
+  anchor_to_symbol.erase(out_io_key);
+}
 }
 
 Status TensorMoveDeletePass::Run(NodePtr &node) {
@@ -897,7 +1110,7 @@ Status TensorMoveDeletePass::Run(NodePtr &node) {
     return SUCCESS;
   }
 
-  TensorMoveDeleteContext ctx{node, {}, {}};
+  TensorMoveDeleteContext ctx{node, {}, {}, &anchor_to_symbol_, &symbol_to_anchors_, has_symbol_table_};
 
   GE_ASSERT_SUCCESS(TraceRealSourceNode(ctx.tensor_move, 0, ctx.path_to_source_node));
   GE_ASSERT(!ctx.path_to_source_node.empty());
@@ -906,7 +1119,9 @@ Status TensorMoveDeletePass::Run(NodePtr &node) {
   std::vector<DeleteRule> rules = {
     CheckPathToSourceNodeValid,
     CheckSourceNodeReuse,
-    CheckSinglePath
+    CheckSinglePath,
+    CheckRWConflictOnDelete,
+    CheckMemLayoutConflictOnDelete
   };
 
   for (const auto &rule : rules) {
@@ -930,6 +1145,9 @@ Status TensorMoveDeletePass::Run(NodePtr &node) {
     GELOGE(delete_ret, "[Delete][Node] IsolateAndDeleteNode failed for node %s.", node->GetName().c_str());
     return delete_ret;
   }
+
+  MergeTensorMoveSymbolAfterDelete(node, has_symbol_table_, anchor_to_symbol_, symbol_to_anchors_);
+
   LogTensorMoveDeleted(node, added_control_edges, added_control_edge_descs);
   return SUCCESS;
 }

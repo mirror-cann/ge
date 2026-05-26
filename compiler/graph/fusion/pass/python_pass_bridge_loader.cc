@@ -12,42 +12,114 @@
 
 #include <dlfcn.h>
 
+#include <cstdio>
 #include <mutex>
 #include <string>
-#include <vector>
 
 #include "ge/ge_api_types.h"
 #include "framework/common/debug/ge_log.h"
 #include "graph_metadef/graph/utils/file_utils.h"
 #include "pass_registry.h"
 #include "python_pass_adapter.h"
+#include "python_pass_artifact_selector.h"
+#include "python_pass_bridge_loader_helper.h"
 #include "python_pass_bridge_c_api.h"
 
 namespace ge {
 namespace fusion {
 namespace {
 constexpr const char *kPythonFusionPassBridgeLibName = "libge_python_pass_bridge.so";
+constexpr const char *kPyIsInitializedSymbol = "Py_IsInitialized";
+constexpr const char *kPyGetVersionSymbol = "Py_GetVersion";
+constexpr const char *kPythonRuntimeProbeScript =
+    " -c \"import sys; print('cp%d%d' % sys.version_info[:2]); print(sys.version.split()[0])\" 2>/dev/null";
 
-std::string DirName(const std::string &path) {
-  const auto pos = path.find_last_of('/');
-  if (pos == std::string::npos) {
-    return ".";
+using python_pass_artifact::BuildBridgeLibraryCandidates;
+using python_pass_artifact::ParsePythonTag;
+using python_pass_artifact::PythonRuntimeKey;
+namespace loader_helper = python_pass_bridge_loader;
+
+PythonRuntimeKey ResolveLoadedPythonRuntimeKey() {
+  using PyIsInitializedFn = int (*)();
+  using PyGetVersionFn = const char *(*)();
+  auto *py_is_initialized = reinterpret_cast<PyIsInitializedFn>(dlsym(RTLD_DEFAULT, kPyIsInitializedSymbol));
+  auto *py_get_version = reinterpret_cast<PyGetVersionFn>(dlsym(RTLD_DEFAULT, kPyGetVersionSymbol));
+  PythonRuntimeKey runtime_key;
+  runtime_key.has_python_symbols = (py_is_initialized != nullptr) && (py_get_version != nullptr);
+  if (!runtime_key.has_python_symbols) {
+    runtime_key.source = "unresolved(no loaded Py_* symbols)";
+    return runtime_key;
   }
-  if (pos == 0U) {
-    return "/";
-  }
-  return path.substr(0U, pos);
+  runtime_key.source = "loaded Py_* symbols";
+  runtime_key.is_initialized = (py_is_initialized() != 0);
+  const char *version = py_get_version();
+  runtime_key.version = (version == nullptr) ? "" : version;
+  runtime_key.python_tag = ParsePythonTag(version);
+  return runtime_key;
 }
 
-std::vector<std::string> BuildBridgeLibraryCandidates() {
-  std::vector<std::string> candidates;
-  Dl_info dl_info{};
-  if ((dladdr(reinterpret_cast<void *>(&RegisterPythonPassesFromPlugin), &dl_info) != 0) &&
-      (dl_info.dli_fname != nullptr) && (dl_info.dli_fname[0] != '\0')) {
-    candidates.emplace_back(DirName(dl_info.dli_fname) + "/" + kPythonFusionPassBridgeLibName);
+bool ReadCommandOutput(const std::string &command, std::string &output) {
+  FILE *fp = popen(command.c_str(), "r");
+  if (fp == nullptr) {
+    return false;
   }
-  candidates.emplace_back(kPythonFusionPassBridgeLibName);
-  return candidates;
+  char buffer[256] = {0};
+  while (fgets(buffer, sizeof(buffer), fp) != nullptr) {
+    output += buffer;
+  }
+  const auto ret = pclose(fp);
+  return (ret == 0) && (!output.empty());
+}
+
+bool ProbePythonRuntimeFromCommand(const char *python_command, PythonRuntimeKey &runtime_key) {
+  std::string output;
+  if (!ReadCommandOutput(std::string(python_command) + kPythonRuntimeProbeScript, output)) {
+    return false;
+  }
+  const auto python_tag = loader_helper::FirstLine(output);
+  if (python_tag.empty()) {
+    return false;
+  }
+  runtime_key = PythonRuntimeKey {};
+  runtime_key.python_tag = python_tag;
+  runtime_key.version = loader_helper::SecondLine(output);
+  runtime_key.source = std::string("PATH command[") + python_command + "]";
+  return true;
+}
+
+PythonRuntimeKey ResolveTargetPythonRuntimeKey() {
+  auto runtime_key = ResolveLoadedPythonRuntimeKey();
+  if (!runtime_key.python_tag.empty()) {
+    return runtime_key;
+  }
+  PythonRuntimeKey probed_key;
+  if (ProbePythonRuntimeFromCommand("python3", probed_key) || ProbePythonRuntimeFromCommand("python", probed_key)) {
+    return probed_key;
+  }
+  return runtime_key;
+}
+
+std::string GetLoaderLibraryPath() {
+  Dl_info dl_info{};
+  if ((dladdr(reinterpret_cast<void *>(&RegisterPythonPassesFromPlugin), &dl_info) == 0) ||
+      (dl_info.dli_fname == nullptr) || (dl_info.dli_fname[0] == '\0')) {
+    return "";
+  }
+  const auto real_path = RealPath(dl_info.dli_fname);
+  return real_path.empty() ? std::string(dl_info.dli_fname) : real_path;
+}
+
+loader_helper::BridgeLoadDependencies BuildBridgeLoadDependencies() {
+  return loader_helper::BridgeLoadDependencies{
+      &RealPath,
+      &dlopen,
+      &dlclose,
+      &dlsym,
+      &ResolveLoadedPythonRuntimeKey,
+      kPythonFusionPassBridgeGetApiSymbol,
+      kPythonFusionPassBridgeAbiVersion,
+      RTLD_NOW | RTLD_GLOBAL,
+  };
 }
 
 bool RegisterPythonPassFromBridge(const PythonPassDescriptor *pass_desc,
@@ -116,43 +188,24 @@ class PythonFusionPassBridgeLoader {
       return SUCCESS;
     }
 
-    const auto candidates = BuildBridgeLibraryCandidates();
+    const auto runtime_key = ResolveTargetPythonRuntimeKey();
+    GELOGI("Python pass runtime key before loading bridge: %s.", runtime_key.ToString().c_str());
+    const auto candidates = BuildBridgeLibraryCandidates(runtime_key, GetLoaderLibraryPath(),
+        kPythonFusionPassBridgeLibName, kPythonFusionPassBridgeAbiVersion);
+    const auto deps = BuildBridgeLoadDependencies();
     for (const auto &candidate : candidates) {
-      const auto real_path = RealPath(candidate.c_str());
-      if (real_path.empty()) {
-        GELOGI("Skip loading python pass bridge candidate[%s] because real path is invalid.", candidate.c_str());
+      loader_helper::LoadedBridgeCandidate loaded_bridge;
+      const auto status = loader_helper::TryLoadBridgeCandidate(runtime_key, candidate, deps, loaded_bridge);
+      if (status != loader_helper::BridgeLoadStatus::kSuccess) {
+        const auto error_suffix = loader_helper::BuildBridgeLoadErrorSuffix(status, dlerror());
+        GELOGW("Skip python pass bridge candidate[%s], artifact_root[%s], native_module[%s], status[%s]%s.",
+               candidate.bridge_path.c_str(), candidate.artifact_root.c_str(), candidate.native_module_path.c_str(),
+               loader_helper::BridgeLoadStatusToString(status), error_suffix.c_str());
         continue;
       }
-      // bridge 会把 libpython 一并拉起并嵌入 CPython。这里使用 RTLD_GLOBAL，
-      // 这样 embedded interpreter 后续导入标准库或 native extension 时，
-      // 才能从已加载的 libpython 中继续解析 Python C-API 符号。
-      void *handle = dlopen(real_path.c_str(), RTLD_NOW | RTLD_GLOBAL);
-      if (handle == nullptr) {
-        GELOGI("Skip loading python pass bridge candidate[%s]: %s",
-               real_path.c_str(),
-               dlerror());
-        continue;
-      }
-      auto *get_api = reinterpret_cast<const PythonFusionPassBridgeApi *(*)()>(
-          dlsym(handle, kPythonFusionPassBridgeGetApiSymbol));
-      if (get_api == nullptr) {
-        GELOGW("Get python pass bridge api symbol failed from [%s]: %s",
-               real_path.c_str(),
-               dlerror());
-        (void)dlclose(handle);
-        continue;
-      }
-      const auto *api = get_api();
-      if ((api == nullptr) || (api->abi_version != kPythonFusionPassBridgeAbiVersion) ||
-          (api->register_passes == nullptr) || (api->reset_bridge_state == nullptr) ||
-          (api->shutdown_bridge == nullptr)) {
-        GELOGW("Python pass bridge api is invalid from [%s].", real_path.c_str());
-        (void)dlclose(handle);
-        continue;
-      }
-      handle_ = handle;
-      api_ = api;
-      loaded_path_ = real_path;
+      handle_ = loaded_bridge.handle;
+      api_ = loaded_bridge.api;
+      loaded_path_ = loaded_bridge.real_path;
       GELOGI("Load python pass bridge from [%s] success.", loaded_path_.c_str());
       return SUCCESS;
     }

@@ -14,20 +14,20 @@
 #include <cstdint>
 #include <memory>
 
+#include "graph/build/dag/dag_stream_merger.h"
 #include "graph/build/dag/dag_graph.h"
 
 namespace minidag {
 struct StreamAllocConfig {
     int64_t max_stream_id = -1;      // 入参：-1 表示无上限，>=0 表示上限
     int64_t required_streams = 0;    // 出参：策略实际使用的 stream 数量
+    int64_t base_stream_id = 0;      // 入参：基准流ID
+    StreamMergeStrategy merge_strategy = StreamMergeStrategy::kLoadBalance;  // 策略选择，默认LoadBalance
 };
 
 class DagStreamAllocator {
  public:
-  // 内置策略：拓扑序轮询分配
-  // config.max_stream_id: -1 表示无上限，>=0 表示上限
-  // config.required_streams: 出参，返回实际使用的 stream 数量
-  static void ByTopological(DAGGraph& graph, StreamAllocConfig& config);
+  static void ByPathCover(DAGGraph& graph, StreamAllocConfig& config);
   DagStreamAllocator() = delete;
 };
 }  // namespace minidag

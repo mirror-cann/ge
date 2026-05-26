@@ -252,7 +252,7 @@ Status HostCpuEngine::Run(const NodePtr &node, HostCpuOp &kernel, const std::vec
   return SUCCESS;
 }
 
-void* HostCpuEngine::DlopenLib(const std::string &lib_path) {
+void* HostCpuEngine::DlopenLib(const std::string &lib_path) const {
    GELOGI("To invoke dlopen on lib: %s", lib_path.c_str());
    constexpr uint32_t open_flag = static_cast<uint32_t>(MMPA_RTLD_NOW) | static_cast<uint32_t>(MMPA_RTLD_GLOBAL);
    auto handle = mmDlopen(lib_path.c_str(), static_cast<int32_t>(open_flag));
@@ -265,7 +265,7 @@ void* HostCpuEngine::DlopenLib(const std::string &lib_path) {
   return handle;
 }
 
-Status HostCpuEngine::InvokeLibInitialize(void *handle, const std::string &lib_path) {
+Status HostCpuEngine::InvokeLibInitialize(void *handle, const std::string &lib_path) const {
   using InitFunc = Status (*)(const HostCpuContext &);
   const auto initialize = reinterpret_cast<InitFunc>(mmDlsym(handle, "Initialize"));
   if (initialize == nullptr) {
@@ -283,7 +283,7 @@ Status HostCpuEngine::InvokeLibInitialize(void *handle, const std::string &lib_p
   return SUCCESS;
 }
 
-Status HostCpuEngine::LoadLib(const std::string &lib_path, const bool invoke_init) {
+Status HostCpuEngine::LoadLib(const std::string &lib_path, bool invoke_init) {
   void *handle = DlopenLib(lib_path);
   if (handle == nullptr) {
     return INTERNAL_ERROR;

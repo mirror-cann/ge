@@ -96,4 +96,38 @@ TEST_F(UtestTypeUtilsInner, FmkTypeToSerialString2) {
   ASSERT_EQ(TypeUtilsInner::FmkTypeToSerialString(domi::CAFFE), "caffe");
   ASSERT_EQ(TypeUtilsInner::FmkTypeToSerialString(static_cast<domi::FrameworkType>(domi::FRAMEWORK_RESERVED + 1)), "");
 }
+
+TEST_F(UtestTypeUtilsInner, SerialStringToDataType) {
+  // 正常路径：标准类型映射
+  ASSERT_EQ(TypeUtilsInner::SerialStringToDataType("DT_FLOAT"), DT_FLOAT);
+  ASSERT_EQ(TypeUtilsInner::SerialStringToDataType("DT_INT32"), DT_INT32);
+  ASSERT_EQ(TypeUtilsInner::SerialStringToDataType("DT_BOOL"), DT_BOOL);
+  // 别名映射
+  ASSERT_EQ(TypeUtilsInner::SerialStringToDataType("DT_FLOAT32"), DT_FLOAT);
+  ASSERT_EQ(TypeUtilsInner::SerialStringToDataType("DT_BFLOAT16"), DT_BF16);
+  // RESERVED 特殊映射
+  ASSERT_EQ(TypeUtilsInner::SerialStringToDataType("RESERVED"), DT_UNDEFINED);
+  // 异常路径：不存在的 key 返回 DT_UNDEFINED
+  ASSERT_EQ(TypeUtilsInner::SerialStringToDataType("FLOAT"), DT_UNDEFINED);
+  ASSERT_EQ(TypeUtilsInner::SerialStringToDataType(""), DT_UNDEFINED);
+  ASSERT_EQ(TypeUtilsInner::SerialStringToDataType("DT_UNKNOWN_TYPE"), DT_UNDEFINED);
+}
+
+TEST_F(UtestTypeUtilsInner, SerialStringToFormat) {
+  // 正常路径：无子格式
+  ASSERT_EQ(TypeUtilsInner::SerialStringToFormat("NCHW"), FORMAT_NCHW);
+  ASSERT_EQ(TypeUtilsInner::SerialStringToFormat("FRACTAL_Z"), FORMAT_FRACTAL_Z);
+  ASSERT_EQ(TypeUtilsInner::SerialStringToFormat("RESERVED"), FORMAT_RESERVED);
+  ASSERT_EQ(TypeUtilsInner::SerialStringToFormat("FORMAT_RESERVED"), FORMAT_RESERVED);
+  // 正常路径：带子格式
+  ASSERT_EQ(TypeUtilsInner::SerialStringToFormat("FRACTAL_Z:2"),
+            static_cast<Format>(GetFormatFromSub(FORMAT_FRACTAL_Z, 2)));
+  // 异常路径：不存在的格式
+  ASSERT_EQ(TypeUtilsInner::SerialStringToFormat("FORMAT_NCHW"), FORMAT_RESERVED);
+  ASSERT_EQ(TypeUtilsInner::SerialStringToFormat(""), FORMAT_RESERVED);
+  ASSERT_EQ(TypeUtilsInner::SerialStringToFormat("UNKNOWN_FORMAT"), FORMAT_RESERVED);
+  // 异常路径：子格式非法（复用 SplitFormatFromStr 的错误场景）
+  ASSERT_EQ(TypeUtilsInner::SerialStringToFormat("NCHW:DDD"), FORMAT_RESERVED);
+  ASSERT_EQ(TypeUtilsInner::SerialStringToFormat("NCHW:65538"), FORMAT_RESERVED);
+}
 }  // namespace ge

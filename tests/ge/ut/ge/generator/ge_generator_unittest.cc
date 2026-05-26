@@ -143,7 +143,7 @@ class UtestGeGenerator : public testing::Test {
     OpsKernelManager::GetInstance().ops_kernel_store_.emplace(kKernelLibName, fake_store);
     OpsKernelBuilderPtr fake_builder = std::make_shared<FakeOpsKernelBuilder>();
     OpsKernelBuilderRegistry::GetInstance().kernel_builders_[kKernelLibName] = fake_builder;
-    OpInfo op_info;
+    OpInfo op_info{};
     op_info.engine = kKernelLibName;
     op_info.opKernelLib = kKernelLibName;
     fake_store->op_info_map_[DATA] = op_info;

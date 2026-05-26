@@ -13,6 +13,7 @@
 #include "graph/node.h"
 #include "graph/passes/base_pass.h"
 #include "graph/debug/ge_attr_define.h"
+#include "graph/utils/graph_utils.h"
 
 namespace ge {
 /**
@@ -48,7 +49,19 @@ class TensorMoveDeletePass : public BaseNodePass  {
   TensorMoveDeletePass() = default;
   ~TensorMoveDeletePass() override = default;
 
+  /**
+   * @brief 初始化 pass 运行上下文（构建符号表等）
+   * @param compute_graph 计算图
+   * @return SUCCESS / FAILED
+   */
+  Status Init(const ComputeGraphPtr &compute_graph);
+
   Status Run(NodePtr &node) override;
+
+  private:
+  AnchorToSymbol anchor_to_symbol_;
+  SymbolToAnchors symbol_to_anchors_;
+  bool has_symbol_table_ = false;
 };
 }  // namespace ge
 

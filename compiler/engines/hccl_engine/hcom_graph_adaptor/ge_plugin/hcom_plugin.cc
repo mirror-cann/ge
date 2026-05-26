@@ -24,7 +24,9 @@
 #include "op_hcom_comm.h"
 #include "hcom_log.h"
 #include "hcom_executor.h"
+#ifndef HCOM_EXECUTOR
 #include "hcom/hcom_graph_mc2.h"
+#endif
 
 namespace hccl {
 HcomPlugin::HcomPlugin()
@@ -389,7 +391,9 @@ void HcomPlugin::HcomUnsetGroupToTopoInfo(const char *group) {
     return;
   }
   HCCL_INFO("[Unset][GroupTopoInfo]group[%s].", group);
+#ifndef HCOM_EXECUTOR
   ReleaseA5AicpuGraphSyncResource(group);
+#endif
   ge::HcomTopoInfo::Instance().UnsetGroupTopoInfo(group);
 }
 }  // namespace hccl

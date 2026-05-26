@@ -101,7 +101,7 @@ TEST_F(DAGAdapterIntegrationTest, EndToEnd_FullPipeline) {
   EXPECT_EQ(dag->GetNodeCount(), original_node_count);
 
   StreamAllocConfig config{-1, 0};
-  DagStreamAllocator::ByTopological(*dag, config);
+  DagStreamAllocator::ByPathCover(*dag, config);
 
   ge::StreamPassContext context(config.required_streams);
   ret = DAGAdapter::RefreshStreamIdsToGE(*dag, ge_graph, context);
@@ -129,7 +129,7 @@ TEST_F(DAGAdapterIntegrationTest, EndToEnd_MultiNodeGraph) {
   EXPECT_EQ(dag->GetNodeCount(), original_node_count);
 
   StreamAllocConfig config{-1, 0};
-  DagStreamAllocator::ByTopological(*dag, config);
+  DagStreamAllocator::ByPathCover(*dag, config);
 
   ge::StreamPassContext context(config.required_streams);
   ret = DAGAdapter::RefreshStreamIdsToGE(*dag, ge_graph, context);
@@ -255,32 +255,5 @@ TEST_F(DAGAdapterIntegrationTest, RefreshStreamIdsToGE_VariousStreamIds) {
   EXPECT_EQ(ret, ge::GRAPH_SUCCESS);
 }
 
-// --------------------
-// 场景 3：ByTopological 算法测试
-// --------------------
-
-/**
- * 场景 3-1: ByTopological 空实现验证
- */
-TEST_F(DAGAdapterIntegrationTest, ByTopological_EmptyImplementation) {
-  auto compute_graph = gert::ShareGraph::BuildTwoAddNodeKnownShapeGraph();
-  ASSERT_NE(compute_graph, nullptr);
-
-  auto ge_graph = ToConstGraphPtr(compute_graph);
-  ASSERT_NE(ge_graph, nullptr);
-
-  std::shared_ptr<DAGGraph> dag;
-  auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
-  ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
-  ASSERT_NE(dag, nullptr);
-
-  StreamAllocConfig config{-1, 0};
-  DagStreamAllocator::ByTopological(*dag, config);
-
-  for (auto& node : dag->GetAllNodes()) {
-    EXPECT_EQ(node->GetStreamId(), -1);
-  }
-  EXPECT_EQ(config.required_streams, 0);
-}
 
 }  // namespace minidag

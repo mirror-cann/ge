@@ -466,6 +466,18 @@ GeApi.ge_finalize()
 注：下划线开头的为 Python 风格下的对内模块
 注：`PassContext`、`MatchResult`、`Pattern`、`PatternMatcherConfig` 等对象由 `_ge_pass_native.so` 提供 native-backed 实现，`base.py` / `pattern.py` 负责对外导出与少量 Python 辅助封装。
 
+#### 运行时 native artifact 选择
+
+`_ge_pass_native.so` 与 `libge_python_pass_bridge.so` 作为同一套 artifact set 成套发布，目录固定为：
+
+```text
+ge/passes/python_pass_artifacts/<python_tag>-<platform>/manifest.json
+ge/passes/python_pass_artifacts/<python_tag>-<platform>/_ge_pass_native.so
+ge/passes/python_pass_artifacts/<python_tag>-<platform>/libge_python_pass_bridge.so
+```
+
+主 wheel 保持一份纯 Python 接口，不再内置当前 Python 的默认 native artifact set。native 子 wheel 按 `cp39` 到 `cp314` 的 Python minor 版本矩阵分别承载预制 artifact set，并额外提供 `ge/passes/_ge_pass_native.so` 兼容副本，用于默认 bridge 路径下的 `import ge.passes._ge_pass_native`。native 子 wheel 通过标准 `bdist_wheel` 生成。仓内提供矩阵 builder 入口用于自动嗅探 PATH 中可用的 Python minor 版本并分别构建；如果某个 Python 可执行文件存在但开发头文件或 libpython 不完整，builder 会跳过该版本并继续构建其他可用版本。run 包可携带多个 `ge_py_pass_bridge` native 子 wheel，但安装脚本只应安装与当前执行安装脚本的 Python 解释器兼容的一个子 wheel；推荐使用 `pip install --no-index --find-links <ge-compiler/lib64> <ge_py wheel> ge-py-pass-bridge`，由 pip 按 wheel tag 自动选择。运行时优先选择与当前进程 Python tag、平台 tag、bridge ABI 匹配的预制 artifact；若没有命中，则回退到同目录 legacy bridge 路径。runtime fallback codegen 作为后续独立阶段接入。
+
 #### 类详细说明
 
 ##### 1. PassStage 枚举

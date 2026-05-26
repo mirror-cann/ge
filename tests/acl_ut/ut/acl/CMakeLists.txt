@@ -39,6 +39,7 @@ set(MODEL_SRC_FILES
     "${BASE_DIR}/api/acl/acl_model/model/aipp_param_check.cpp"
     "${BASE_DIR}/api/acl/acl_model/model/acl_resource_manager.cpp"
     "${BASE_DIR}/api/acl/acl_model/model/init_callback_register.cpp"
+    "${BASE_DIR}/api/acl/acl_model/model/init_callback_register_om2.cpp"
     "${BASE_DIR}/api/acl/acl_model/types/tensor_desc_internal.cpp"
     "${BASE_DIR}/api/acl/acl_model/model/model_om2.cpp"
     "${BASE_DIR}/api/acl/acl_model/model/acl_aipp_om2.cpp"

@@ -11,70 +11,40 @@
 #ifndef GE_GRAPH_BUILD_DAG_MINIDAG_DAG_LOG_H_
 #define GE_GRAPH_BUILD_DAG_MINIDAG_DAG_LOG_H_
 
-#include <cstdarg>
-#include <cstdio>
-#include <string>
+#include <cinttypes>
+#include <cstdint>
+#include "dlog_pub.h"
+
+#ifdef __GNUC__
+#include <unistd.h>
+#include <sys/syscall.h>
+#endif
 
 namespace minidag {
-enum class DagLogLevel {
-  DEBUG = 0,
-  INFO = 1,
-  WARN = 2,
-  ERROR = 3
-};
 
-class DagLogger {
- public:
-  static DagLogger& GetInstance();
-  void Log(DagLogLevel level, const char* file, int line,
-           const char* func, const char* fmt, ...);
-  bool IsEnabled(DagLogLevel level) const;
-  void Reset();
+inline uint64_t GetTid() {
+#ifdef __GNUC__
+    thread_local static uint64_t tid = static_cast<uint64_t>(syscall(__NR_gettid));
+    return tid;
+#else
+    return 0U;
+#endif
+}
 
- private:
-  DagLogger();
-  ~DagLogger();
-  DagLogger(const DagLogger&) = delete;
-  DagLogger& operator=(const DagLogger&) = delete;
-  DagLogLevel level_ = DagLogLevel::INFO;
-  FILE* output_ = nullptr;
-  bool is_file_ = false;
-  void ReadLogLevelFromEnv();
-  void ReadLogFileFromEnv();
-};
+constexpr int32_t kModuleId = static_cast<int32_t>(GE);
+
 }  // namespace minidag
 
-#define MINIDAG_LOG_DEBUG(fmt, ...)                                           \
-  do {                                                                        \
-    auto& logger = minidag::DagLogger::GetInstance();                         \
-    if (logger.IsEnabled(minidag::DagLogLevel::DEBUG)) {                      \
-      logger.Log(minidag::DagLogLevel::DEBUG, __FILE__, __LINE__,             \
-                 __FUNCTION__, fmt, ##__VA_ARGS__);                           \
-    }                                                                         \
-  } while (0)
+#define MINIDAG_LOG_DEBUG(fmt, ...) \
+    dlog_debug(minidag::kModuleId, "%" PRIu64 " %s:" fmt, minidag::GetTid(), __FUNCTION__, ##__VA_ARGS__)
 
-#define MINIDAG_LOG_INFO(fmt, ...)                                            \
-  do {                                                                        \
-    auto& logger = minidag::DagLogger::GetInstance();                         \
-    if (logger.IsEnabled(minidag::DagLogLevel::INFO)) {                       \
-      logger.Log(minidag::DagLogLevel::INFO, __FILE__, __LINE__,              \
-                 __FUNCTION__, fmt, ##__VA_ARGS__);                           \
-    }                                                                         \
-  } while (0)
+#define MINIDAG_LOG_INFO(fmt, ...) \
+    dlog_info(minidag::kModuleId, "%" PRIu64 " %s:" fmt, minidag::GetTid(), __FUNCTION__, ##__VA_ARGS__)
 
-#define MINIDAG_LOG_WARN(fmt, ...)                                            \
-  do {                                                                        \
-    auto& logger = minidag::DagLogger::GetInstance();                         \
-    if (logger.IsEnabled(minidag::DagLogLevel::WARN)) {                      \
-      logger.Log(minidag::DagLogLevel::WARN, __FILE__, __LINE__,              \
-                 __FUNCTION__, fmt, ##__VA_ARGS__);                           \
-    }                                                                         \
-  } while (0)
+#define MINIDAG_LOG_WARN(fmt, ...) \
+    dlog_warn(minidag::kModuleId, "%" PRIu64 " %s:" fmt, minidag::GetTid(), __FUNCTION__, ##__VA_ARGS__)
 
-#define MINIDAG_LOG_ERROR(fmt, ...)                                           \
-  do {                                                                        \
-    auto& logger = minidag::DagLogger::GetInstance();                         \
-    logger.Log(minidag::DagLogLevel::ERROR, __FILE__, __LINE__,               \
-               __FUNCTION__, fmt, ##__VA_ARGS__);                             \
-  } while (0)
+#define MINIDAG_LOG_ERROR(fmt, ...) \
+    dlog_error(minidag::kModuleId, "%" PRIu64 " %s:" fmt, minidag::GetTid(), __FUNCTION__, ##__VA_ARGS__)
+
 #endif  // GE_GRAPH_BUILD_DAG_MINIDAG_DAG_LOG_H_

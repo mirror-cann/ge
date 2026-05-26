@@ -109,7 +109,9 @@ recreate_common_stub_softlink() {
 whl_uninstall_package() {
     local _module="$1"
     local _module_apth="$2"
-    if [ ! -d "${WHL_INSTALL_DIR_PATH}/${_module}" ]; then
+    local _module_dist_name="${_module//-/_}"
+    if [ ! -d "${WHL_INSTALL_DIR_PATH}/${_module}" ] &&
+        ! ls "${WHL_INSTALL_DIR_PATH}/${_module_dist_name}-"*.dist-info >/dev/null 2>&1; then
         pip3 show "${_module}" > /dev/null 2>&1
         if [ $? -ne 0 ]; then
             log "WARNING" "${_module} is not exist."
@@ -170,6 +172,7 @@ WHL_INSTALL_DIR_PATH="${common_parse_dir}/python/site-packages"
 DATAFLOW_NAME="dataflow"
 LLM_DATADIST_NAME="llm_datadist_v1"
 GE_PY_NAME="ge_py"
+GE_PY_PASS_BRIDGE_NAME="ge-py-pass-bridge"
 
 custom_uninstall() {
     if [ -z "$common_parse_dir/share/info/ge-compiler" ]; then
@@ -183,10 +186,13 @@ custom_uninstall() {
         chmod +w -R "${WHL_INSTALL_DIR_PATH}/llm_datadist_v1-*.dist-info" 2> /dev/null
         chmod +w -R "${WHL_INSTALL_DIR_PATH}/dataflow" 2> /dev/null
         chmod +w -R "${WHL_INSTALL_DIR_PATH}/dataflow-*.dist-info" 2> /dev/null
+        chmod +w -R "${WHL_INSTALL_DIR_PATH}/ge" 2> /dev/null
         chmod +w -R "${WHL_INSTALL_DIR_PATH}/ge_py" 2> /dev/null
         chmod +w -R "${WHL_INSTALL_DIR_PATH}/ge_py-*.dist-info" 2> /dev/null
+        chmod +w -R "${WHL_INSTALL_DIR_PATH}/ge_py_pass_bridge-*.dist-info" 2> /dev/null
 
         log "INFO" "uninstall ge-compiler tool begin..."
+        whl_uninstall_package "${GE_PY_PASS_BRIDGE_NAME}" "${WHL_INSTALL_DIR_PATH}"
         whl_uninstall_package "${DATAFLOW_NAME}" "${WHL_INSTALL_DIR_PATH}"
         whl_uninstall_package "${LLM_DATADIST_NAME}" "${WHL_INSTALL_DIR_PATH}"
         whl_uninstall_package "${GE_PY_NAME}" "${WHL_INSTALL_DIR_PATH}"
@@ -195,6 +201,9 @@ custom_uninstall() {
         rm -fr "${WHL_INSTALL_DIR_PATH}/llm_datadist_v1" 2> /dev/null
         rm -fr "${WHL_INSTALL_DIR_PATH}/dataflow" 2> /dev/null
         rm -fr "${WHL_INSTALL_DIR_PATH}/ge_py" 2> /dev/null
+        rm -fr "${WHL_INSTALL_DIR_PATH}/ge/passes/python_pass_artifacts" 2> /dev/null
+        rm -f "${WHL_INSTALL_DIR_PATH}/ge/passes/_ge_pass_native.so" 2> /dev/null
+        rm -fr "${WHL_INSTALL_DIR_PATH}/ge_py_pass_bridge-"*.dist-info 2> /dev/null
 
         log "INFO" "ge-compiler tool uninstalled successfully!"
     fi

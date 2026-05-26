@@ -57,7 +57,7 @@ void DumpGeneratedFiles(const Om2CodegenArtifacts &artifacts) {
 }  // namespace
 
 Status Om2Codegen::Om2CodegenAndCompile(const ge::GeModelPtr &ge_model, Om2CodegenArtifacts &artifacts,
-                                        Om2ConstMetas &const_metas) {
+                                        Om2ConstMetas &const_metas) const {
   artifacts.clear();
   const_metas.clear();
   AstContext ast_ctx;

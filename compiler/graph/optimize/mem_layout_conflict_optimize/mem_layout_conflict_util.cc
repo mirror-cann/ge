@@ -9,6 +9,7 @@
  */
 
 #include "mem_layout_conflict_util.h"
+#include <algorithm>
 #include <atomic>
 #include <stack>
 #include "runtime/rt.h"
@@ -1445,6 +1446,33 @@ bool MemLayoutConflictUtil::IsCtrlNodeSubgraphExistMemConflictSymbol(const Compu
   }
 
   return false;
+}
+
+void MemLayoutConflictUtil::ConstructSingleNodeSymbolTable(
+    const std::string &input_symbol,
+    const std::string &output_symbol,
+    const AnchorToSymbol &orig_anchor_to_symbol,
+    const SymbolToAnchors &orig_symbol_to_anchors,
+    AnchorToSymbol &out_anchor_to_symbol,
+    SymbolToAnchors &out_symbol_to_anchors) {
+  // 直接从 symbol_to_anchors 精确提取，不遍历整个 anchor_to_symbol
+  auto copy_symbol_anchors = [&](const std::string &symbol, const std::string &target_symbol) {
+    auto sym_iter = orig_symbol_to_anchors.find(symbol);
+    if (sym_iter == orig_symbol_to_anchors.end()) {
+      return;
+    }
+    for (const auto &io : sym_iter->second) {
+      const auto &key = io.ToString();
+      auto anchor_iter = orig_anchor_to_symbol.find(key);
+      if (anchor_iter != orig_anchor_to_symbol.end()) {
+        out_anchor_to_symbol[key] = target_symbol;
+      }
+      out_symbol_to_anchors[target_symbol].push_back(io);
+    }
+  };
+
+  copy_symbol_anchors(input_symbol, input_symbol);
+  copy_symbol_anchors(output_symbol, input_symbol);
 }
 
 }  // namespace ge

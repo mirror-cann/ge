@@ -14,18 +14,18 @@
 #include <memory>
 #include "external/register/register_custom_pass.h"
 
-namespace minidag {
+namespace ge {
 /**
  * MiniDAG Stream Pass 核心逻辑
  * 将 GE Graph 转换为 DAG，执行流分配策略，并将结果写回 GE Graph
  *
  * @param graph GE 图对象
  * @param context Stream Pass 上下文
- * @return ge::SUCCESS 成功，ge::FAILED 失败
+ * @return SUCCESS 成功，FAILED 失败
  */
-ge::Status RunMiniDAGStreamPass(
-    const ge::ConstGraphPtr &graph,
-    ge::StreamPassContext &context);
-}  // namespace minidag
+Status RunMiniDAGStreamPass(
+    const ConstGraphPtr &graph,
+    StreamPassContext &context);
+}  // namespace ge
 
 #endif  // GE_GRAPH_BUILD_STREAM_DAG_STREAM_ALLOCATOR_PASS_H_

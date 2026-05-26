@@ -23,6 +23,7 @@
 #include <mutex>
 #include <new>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
@@ -87,6 +88,20 @@ class PythonFusionPassPybindBridge {
   static PythonFusionPassPybindBridge &GetInstance() {
     static PythonFusionPassPybindBridge instance;
     return instance;
+  }
+
+  Status SetArtifactConfig(const PythonFusionPassBridgeArtifactConfig *config) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (bridge_module_ && (!bridge_module_.is_none())) {
+      GELOGW("Set python pass artifact config failed because bridge module has been imported.");
+      return FAILED;
+    }
+    artifact_root_ = ((config == nullptr) || (config->artifact_root == nullptr)) ? "" : config->artifact_root;
+    native_module_path_ =
+        ((config == nullptr) || (config->native_module_path == nullptr)) ? "" : config->native_module_path;
+    GELOGI("Set python pass artifact config, artifact root[%s], native module path[%s].",
+           artifact_root_.c_str(), native_module_path_.c_str());
+    return SUCCESS;
   }
 
   Status RegisterPythonPasses(const PythonFusionPassRegistrar &registrar) {
@@ -237,6 +252,9 @@ class PythonFusionPassPybindBridge {
     } catch (const py::error_already_set &err) {
       GELOGW("Prepare GE python pass module failed: %s", err.what());
       return FAILED;
+    } catch (const std::exception &err) {
+      GELOGW("Prepare GE python pass module failed: %s", err.what());
+      return FAILED;
     }
     return SUCCESS;
   }
@@ -246,9 +264,41 @@ class PythonFusionPassPybindBridge {
       GELOGI("Reusing cached python bridge module.");
       return;
     }
-    py::module_ pass_native_module = py::module_::import(kPassNativeModuleName);
+    py::object pass_native_module = LoadPassNativeModuleUnlocked();
+    (void)pass_native_module;
     bridge_module_ = py::module_::import(kBridgeModuleName);
     GELOGI("Imported python bridge modules [%s] and [%s].", kPassNativeModuleName, kBridgeModuleName);
+  }
+
+  py::object LoadPassNativeModuleUnlocked() const {
+    if (native_module_path_.empty()) {
+      return py::module_::import(kPassNativeModuleName);
+    }
+
+    py::module_ sys = py::module_::import("sys");
+    py::dict modules = sys.attr("modules");
+    py::object module_name = py::str(kPassNativeModuleName);
+    py::object loaded_module = modules.attr("get")(module_name, py::none());
+    if (!loaded_module.is_none()) {
+      GELOGI("Reuse configured python native module [%s].", native_module_path_.c_str());
+      return loaded_module;
+    }
+
+    py::module_ importlib_util = py::module_::import("importlib.util");
+    py::object spec = importlib_util.attr("spec_from_file_location")(module_name, py::str(native_module_path_));
+    if (spec.is_none()) {
+      throw std::runtime_error("cannot create import spec for " + native_module_path_);
+    }
+    py::object module = importlib_util.attr("module_from_spec")(spec);
+    modules[module_name] = module;
+    try {
+      spec.attr("loader").attr("exec_module")(module);
+    } catch (...) {
+      (void)modules.attr("pop")(module_name, py::none());
+      throw;
+    }
+    GELOGI("Loaded configured python native module [%s].", native_module_path_.c_str());
+    return module;
   }
 
   void ResetBridgeStateUnlocked() {
@@ -620,9 +670,15 @@ class PythonFusionPassPybindBridge {
   std::mutex mutex_;
   std::atomic<uint64_t> instance_seq_{0U};
   py::object bridge_module_;
+  std::string artifact_root_;
+  std::string native_module_path_;
   bool owns_interpreter_{false};
 };
 }  // namespace
+
+Status SetPythonPassBridgeArtifactConfig(const PythonFusionPassBridgeArtifactConfig *config) {
+  return PythonFusionPassPybindBridge::GetInstance().SetArtifactConfig(config);
+}
 
 Status RegisterPythonPassesFromBridge(const PythonFusionPassRegistrar *registrar) {
   if (registrar == nullptr) {
@@ -644,6 +700,7 @@ void ShutdownPythonPassBridge() {
 extern "C" const ge::fusion::PythonFusionPassBridgeApi *GeGetPythonFusionPassBridgeApi() {
   static const ge::fusion::PythonFusionPassBridgeApi kBridgeApi = {
       ge::fusion::kPythonFusionPassBridgeAbiVersion,
+      &ge::fusion::SetPythonPassBridgeArtifactConfig,
       &ge::fusion::RegisterPythonPassesFromBridge,
       &ge::fusion::ResetPythonPassBridgeState,
       &ge::fusion::ShutdownPythonPassBridge,

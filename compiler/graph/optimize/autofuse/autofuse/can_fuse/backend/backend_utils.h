@@ -10,6 +10,12 @@
 
 #ifndef AUTOFUSE_CAN_FUSE_BACKEND_BACKEND_UTILS_H_
 #define AUTOFUSE_CAN_FUSE_BACKEND_BACKEND_UTILS_H_
+#include <cstdint>
+#include <memory>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
 #include "ge_common/ge_api_types.h"
 #include "graph_metadef/graph/debug/ge_util.h"
 #include "graph/utils/graph_utils.h"

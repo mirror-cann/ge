@@ -2837,17 +2837,20 @@ Status ModelManager::GetDumpDebugJsonOutputPath(
 }
 
 Status ModelManager::ReadDumpDebugJsonFile(const std::string &file_path, std::string &json_result) const {
-  std::ifstream ifs(file_path, std::ios::in | std::ios::binary);
+  const std::string real_path = RealPath(file_path.c_str());
+  GE_CHK_BOOL_RET_STATUS(!real_path.empty(), FAILED,
+                         "[RealPath][File] failed, file_path:%s.", file_path.c_str());
+  std::ifstream ifs(real_path, std::ios::in | std::ios::binary);
   GE_CHK_BOOL_RET_STATUS(ifs.is_open(), FAILED,
-                         "[Open][File] failed, file_path:%s.", file_path.c_str());
+                         "[Open][File] failed, file_path:%s.", real_path.c_str());
 
   std::stringstream content_stream;
   content_stream << ifs.rdbuf();
   GE_CHK_BOOL_RET_STATUS(!ifs.fail(), FAILED,
-                         "[Read][File] stream failed, file_path:%s.", file_path.c_str());
+                         "[Read][File] stream failed, file_path:%s.", real_path.c_str());
   json_result = content_stream.str();
   GE_CHK_BOOL_RET_STATUS(!json_result.empty(), FAILED,
-                         "[Read][File] failed, file_path:%s.", file_path.c_str());
+                         "[Read][File] failed, file_path:%s.", real_path.c_str());
   return SUCCESS;
 }
 

@@ -1151,7 +1151,7 @@ Status KernelTaskCodeBuilder::ParseExtInfo(uint8_t *ext_info, const size_t ext_i
 }
 
 Status KernelTaskCodeBuilder::InitAicpuTaskExtInfo(uint8_t *ext_info, size_t ext_info_len, const OpDescPtr op_desc,
-                                                   int32_t &session_info_offset)
+                                                   int32_t &session_info_offset) const
 {
   GELOGD("[OM2] start to init aicpu task ext info.");
   std::string node_name = op_desc->GetName();

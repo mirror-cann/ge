@@ -9,11 +9,15 @@
  */
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <dlfcn.h>
+#include <sys/stat.h>
 #include <fstream>
 #include <mutex>
 #include <sstream>
 #include <cstdio>
+#include <cstdlib>
 #include <unistd.h>
+#include <vector>
 #include "common/share_graph.h"
 #include "es_ge_test_ops.h"
 #include "graph/debug/ge_attr_define.h"
@@ -37,6 +41,9 @@
 #include "ge/fusion/pass/decompose_pass.h"
 #undef private
 #include "compiler/graph/fusion/pass/python_pass_adapter.h"
+#include "compiler/graph/fusion/pass/python_pass_artifact_selector.h"
+#include "compiler/graph/fusion/pass/python_pass_bridge_c_api.h"
+#include "compiler/graph/fusion/pass/python_pass_bridge_loader_helper.h"
 #include "compiler/graph/fusion/pass/python_pass_pybind_bridge.h"
 
 namespace ge {
@@ -76,6 +83,9 @@ class ScopedTempDir {
     for (const auto &file_name : created_files_) {
       (void)remove((dir_path_ + "/" + file_name).c_str());
     }
+    for (auto dir_iter = created_dirs_.rbegin(); dir_iter != created_dirs_.rend(); ++dir_iter) {
+      (void)rmdir(dir_iter->c_str());
+    }
     (void)rmdir(dir_path_.c_str());
   }
 
@@ -88,12 +98,33 @@ class ScopedTempDir {
     return FilePath(file_name);
   }
 
+  std::string MakeDir(const std::string &relative_path) {
+    std::string current = dir_path_;
+    size_t start = 0U;
+    while (start < relative_path.size()) {
+      const auto end = relative_path.find('/', start);
+      const auto part = relative_path.substr(start, end == std::string::npos ? end : end - start);
+      if (!part.empty()) {
+        current += "/" + part;
+        if (mkdir(current.c_str(), 0700) == 0) {
+          created_dirs_.push_back(current);
+        }
+      }
+      if (end == std::string::npos) {
+        break;
+      }
+      start = end + 1U;
+    }
+    return current;
+  }
+
   void TrackFile(const std::string &file_name) {
     created_files_.push_back(file_name);
   }
 
  private:
   std::string dir_path_;
+  std::vector<std::string> created_dirs_;
   std::vector<std::string> created_files_;
 };
 
@@ -355,6 +386,193 @@ PatternFusionPassRuntimeSnapshot g_pattern_fusion_runtime_snapshot;
 
 void ResetPatternFusionRuntimeSnapshot() {
   g_pattern_fusion_runtime_snapshot = {};
+}
+
+void *OpenLibraryFailedForUt(const char *path, int flags) {
+  (void)path;
+  (void)flags;
+  return nullptr;
+}
+
+int CloseLibraryNoopForUt(void *handle) {
+  (void)handle;
+  return 0;
+}
+
+void *LookupSymbolUnusedForUt(void *handle, const char *symbol) {
+  (void)handle;
+  (void)symbol;
+  return nullptr;
+}
+
+python_pass_artifact::PythonRuntimeKey ResolveRuntimeKeyForBridgeLoaderUt() {
+  python_pass_artifact::PythonRuntimeKey runtime_key;
+  runtime_key.source = "ut";
+  runtime_key.python_tag = "cp399";
+  return runtime_key;
+}
+
+python_pass_bridge_loader::BridgeLoadDependencies BuildFailingBridgeLoadDepsForUt() {
+  python_pass_bridge_loader::BridgeLoadDependencies deps;
+  deps.real_path = &python_pass_artifact::ResolveRealPath;
+  deps.open_library = &OpenLibraryFailedForUt;
+  deps.close_library = &CloseLibraryNoopForUt;
+  deps.lookup_symbol = &LookupSymbolUnusedForUt;
+  deps.resolve_runtime_key = &ResolveRuntimeKeyForBridgeLoaderUt;
+  deps.api_symbol = kPythonFusionPassBridgeGetApiSymbol;
+  deps.expected_abi = kPythonFusionPassBridgeAbiVersion;
+  return deps;
+}
+
+const PythonFusionPassBridgeApi *LoadBridgeApiForUt() {
+  using GetApiFn = const PythonFusionPassBridgeApi *(*)();
+  static void *handle = nullptr;
+  static const PythonFusionPassBridgeApi *api = nullptr;
+  if (api != nullptr) {
+    return api;
+  }
+  handle = dlopen("libge_python_pass_bridge.so", RTLD_NOW | RTLD_GLOBAL);
+  if (handle == nullptr) {
+    return nullptr;
+  }
+  auto *get_api = reinterpret_cast<GetApiFn>(dlsym(handle, kPythonFusionPassBridgeGetApiSymbol));
+  if (get_api == nullptr) {
+    return nullptr;
+  }
+  api = get_api();
+  return api;
+}
+
+void RunPythonSnippetForUt(const char *snippet) {
+  using PyIsInitializedFn = int (*)();
+  using PyGILStateEnsureFn = int (*)();
+  using PyGILStateReleaseFn = void (*)(int);
+  using PyRunSimpleStringFn = int (*)(const char *);
+  auto *py_is_initialized = reinterpret_cast<PyIsInitializedFn>(dlsym(RTLD_DEFAULT, "Py_IsInitialized"));
+  if ((py_is_initialized == nullptr) || (py_is_initialized() == 0)) {
+    return;
+  }
+  auto *gil_ensure = reinterpret_cast<PyGILStateEnsureFn>(dlsym(RTLD_DEFAULT, "PyGILState_Ensure"));
+  auto *gil_release = reinterpret_cast<PyGILStateReleaseFn>(dlsym(RTLD_DEFAULT, "PyGILState_Release"));
+  auto *py_run = reinterpret_cast<PyRunSimpleStringFn>(dlsym(RTLD_DEFAULT, "PyRun_SimpleString"));
+  if ((gil_ensure == nullptr) || (gil_release == nullptr) || (py_run == nullptr)) {
+    return;
+  }
+  const auto state = gil_ensure();
+  (void)py_run(snippet);
+  gil_release(state);
+}
+
+void RemovePythonPathForUt(const std::string &path) {
+  using PyIsInitializedFn = int (*)();
+  using PyGILStateEnsureFn = int (*)();
+  using PyGILStateReleaseFn = void (*)(int);
+  using PySysGetObjectFn = void *(*)(const char *);
+  using PyUnicodeFromStringFn = void *(*)(const char *);
+  using PySequenceIndexFn = ssize_t (*)(void *, void *);
+  using PySequenceDelItemFn = int (*)(void *, ssize_t);
+  using PyErrClearFn = void (*)();
+  using PyDecRefFn = void (*)(void *);
+  auto *py_is_initialized = reinterpret_cast<PyIsInitializedFn>(dlsym(RTLD_DEFAULT, "Py_IsInitialized"));
+  if ((py_is_initialized == nullptr) || (py_is_initialized() == 0)) {
+    return;
+  }
+  auto *gil_ensure = reinterpret_cast<PyGILStateEnsureFn>(dlsym(RTLD_DEFAULT, "PyGILState_Ensure"));
+  auto *gil_release = reinterpret_cast<PyGILStateReleaseFn>(dlsym(RTLD_DEFAULT, "PyGILState_Release"));
+  auto *py_sys_get_object = reinterpret_cast<PySysGetObjectFn>(dlsym(RTLD_DEFAULT, "PySys_GetObject"));
+  auto *py_unicode_from_string = reinterpret_cast<PyUnicodeFromStringFn>(dlsym(RTLD_DEFAULT, "PyUnicode_FromString"));
+  auto *py_sequence_index = reinterpret_cast<PySequenceIndexFn>(dlsym(RTLD_DEFAULT, "PySequence_Index"));
+  auto *py_sequence_del_item = reinterpret_cast<PySequenceDelItemFn>(dlsym(RTLD_DEFAULT, "PySequence_DelItem"));
+  auto *py_err_clear = reinterpret_cast<PyErrClearFn>(dlsym(RTLD_DEFAULT, "PyErr_Clear"));
+  auto *py_dec_ref = reinterpret_cast<PyDecRefFn>(dlsym(RTLD_DEFAULT, "Py_DecRef"));
+  if ((gil_ensure == nullptr) || (gil_release == nullptr) || (py_sys_get_object == nullptr) ||
+      (py_unicode_from_string == nullptr) || (py_sequence_index == nullptr) || (py_sequence_del_item == nullptr) ||
+      (py_err_clear == nullptr) || (py_dec_ref == nullptr)) {
+    return;
+  }
+  const auto state = gil_ensure();
+  void *sys_path = py_sys_get_object("path");
+  void *py_path = py_unicode_from_string(path.c_str());
+  if ((sys_path != nullptr) && (py_path != nullptr)) {
+    while (true) {
+      const ssize_t index = py_sequence_index(sys_path, py_path);
+      if (index < 0) {
+        py_err_clear();
+        break;
+      }
+      (void)py_sequence_del_item(sys_path, index);
+    }
+  }
+  if (py_path != nullptr) {
+    py_dec_ref(py_path);
+  }
+  gil_release(state);
+}
+
+void PrependPythonPathForUt(const std::string &path) {
+  using PyIsInitializedFn = int (*)();
+  using PyGILStateEnsureFn = int (*)();
+  using PyGILStateReleaseFn = void (*)(int);
+  using PySysGetObjectFn = void *(*)(const char *);
+  using PyUnicodeFromStringFn = void *(*)(const char *);
+  using PyListInsertFn = int (*)(void *, ssize_t, void *);
+  using PyDecRefFn = void (*)(void *);
+  auto *py_is_initialized = reinterpret_cast<PyIsInitializedFn>(dlsym(RTLD_DEFAULT, "Py_IsInitialized"));
+  if ((py_is_initialized == nullptr) || (py_is_initialized() == 0)) {
+    return;
+  }
+  RemovePythonPathForUt(path);
+  auto *gil_ensure = reinterpret_cast<PyGILStateEnsureFn>(dlsym(RTLD_DEFAULT, "PyGILState_Ensure"));
+  auto *gil_release = reinterpret_cast<PyGILStateReleaseFn>(dlsym(RTLD_DEFAULT, "PyGILState_Release"));
+  auto *py_sys_get_object = reinterpret_cast<PySysGetObjectFn>(dlsym(RTLD_DEFAULT, "PySys_GetObject"));
+  auto *py_unicode_from_string = reinterpret_cast<PyUnicodeFromStringFn>(dlsym(RTLD_DEFAULT, "PyUnicode_FromString"));
+  auto *py_list_insert = reinterpret_cast<PyListInsertFn>(dlsym(RTLD_DEFAULT, "PyList_Insert"));
+  auto *py_dec_ref = reinterpret_cast<PyDecRefFn>(dlsym(RTLD_DEFAULT, "Py_DecRef"));
+  if ((gil_ensure == nullptr) || (gil_release == nullptr) || (py_sys_get_object == nullptr) ||
+      (py_unicode_from_string == nullptr) || (py_list_insert == nullptr) || (py_dec_ref == nullptr)) {
+    return;
+  }
+  const auto state = gil_ensure();
+  void *sys_path = py_sys_get_object("path");
+  void *py_path = py_unicode_from_string(path.c_str());
+  if ((sys_path != nullptr) && (py_path != nullptr)) {
+    (void)py_list_insert(sys_path, 0, py_path);
+  }
+  if (py_path != nullptr) {
+    py_dec_ref(py_path);
+  }
+  gil_release(state);
+}
+
+class ScopedPythonPathForUt {
+ public:
+  explicit ScopedPythonPathForUt(const std::string &path) : path_(path) {
+    PrependPythonPathForUt(path_);
+  }
+  ~ScopedPythonPathForUt() {
+    RemovePythonPathForUt(path_);
+  }
+
+ private:
+  std::string path_;
+};
+
+void ForgetNativeModuleForUt() {
+  RunPythonSnippetForUt("import sys\n"
+                        "for name in list(sys.modules):\n"
+                        "    if name == 'ge' or name == 'ge.passes' or name.startswith('ge.passes.'):\n"
+                        "        sys.modules.pop(name, None)\n");
+}
+
+int g_direct_bridge_registered_count = 0;
+
+bool RecordPythonPassFromDirectBridge(const PythonPassDescriptor *pass_desc,
+                                      const PythonFusionPassCallbacks *callbacks) {
+  if ((pass_desc == nullptr) || (callbacks == nullptr)) {
+    return false;
+  }
+  ++g_direct_bridge_registered_count;
+  return true;
 }
 
 void *CreatePatternFusionPassHolderForUt(const PythonPassDescriptor *pass_desc) {
@@ -1119,6 +1337,164 @@ TEST_F(UtestFusionPassExecutor, PythonFusionBasePass_Run_Failed) {
     EXPECT_EQ(g_python_fusion_base_runtime_snapshot.run_count, 1);
   }
   EXPECT_EQ(g_python_fusion_base_runtime_snapshot.destroy_count, 1);
+}
+
+TEST_F(UtestFusionPassExecutor, PythonPassBridgeLoader_ProbesPathPythonRuntime) {
+  ScopedTempDir temp_dir;
+  const auto fake_python3 = temp_dir.CreateFilePath("python3");
+  WriteFile(fake_python3, "#!/bin/sh\nprintf '\\n3.99.0\\n'\n");
+  ASSERT_EQ(chmod(fake_python3.c_str(), 0700), 0);
+  const auto fake_python = temp_dir.CreateFilePath("python");
+  WriteFile(fake_python, "#!/bin/sh\nprintf 'cp399\\n3.99.0\\n'\n");
+  ASSERT_EQ(chmod(fake_python.c_str(), 0700), 0);
+
+  ScopedEnvVar scoped_path("PATH", temp_dir.FilePath(""));
+  EXPECT_EQ(RegisterPythonPassesFromPlugin(), FAILED);
+}
+
+TEST_F(UtestFusionPassExecutor, PythonPassBridgeLoader_SkipsBrokenPrebuiltCandidate) {
+  ScopedTempDir temp_dir;
+  constexpr const char *kPythonTag = "cp399";
+  const auto platform_tag = python_pass_artifact::CurrentPlatformTag();
+  const auto artifact_dir =
+      std::string("site-packages/ge/passes/python_pass_artifacts/") + kPythonTag + "-" + platform_tag;
+  temp_dir.MakeDir(artifact_dir);
+  const auto broken_bridge_path = temp_dir.CreateFilePath(artifact_dir + "/libge_python_pass_bridge.so");
+  const auto native_module_path = temp_dir.CreateFilePath(artifact_dir + "/_ge_pass_native.so");
+  WriteFile(broken_bridge_path, "not a shared library");
+  WriteFile(native_module_path, "native");
+  WriteFile(temp_dir.CreateFilePath(artifact_dir + "/manifest.json"),
+            "{\n"
+            "  \"python_tag\": \"" + std::string(kPythonTag) + "\",\n"
+            "  \"platform\": \"" + platform_tag + "\",\n"
+            "  \"bridge_abi\": 1,\n"
+            "  \"artifacts\": {\n"
+            "    \"bridge\": \"libge_python_pass_bridge.so\",\n"
+            "    \"native\": \"_ge_pass_native.so\"\n"
+            "  }\n"
+            "}\n");
+
+  ScopedEnvVar scoped_python_path("PYTHONPATH", temp_dir.FilePath("site-packages"));
+  auto runtime_key = ResolveRuntimeKeyForBridgeLoaderUt();
+  const auto candidates = python_pass_artifact::BuildBridgeLibraryCandidates(
+      runtime_key, "", "libge_python_pass_bridge.so", kPythonFusionPassBridgeAbiVersion);
+  ASSERT_GE(candidates.size(), 2U);
+  EXPECT_EQ(candidates.front().bridge_path, python_pass_artifact::ResolveRealPath(broken_bridge_path.c_str()));
+  EXPECT_EQ(candidates.front().artifact_root,
+            python_pass_artifact::ResolveRealPath(temp_dir.FilePath(artifact_dir).c_str()));
+  EXPECT_EQ(candidates.front().native_module_path, python_pass_artifact::ResolveRealPath(native_module_path.c_str()));
+
+  python_pass_bridge_loader::LoadedBridgeCandidate loaded_bridge;
+  const auto status = python_pass_bridge_loader::TryLoadBridgeCandidate(
+      runtime_key, candidates.front(), BuildFailingBridgeLoadDepsForUt(), loaded_bridge);
+  EXPECT_EQ(status, python_pass_bridge_loader::BridgeLoadStatus::kOpenFailed);
+  EXPECT_EQ(std::string(python_pass_bridge_loader::BridgeLoadStatusToString(status)), "open failed");
+  EXPECT_EQ(python_pass_bridge_loader::BuildBridgeLoadErrorSuffix(status, "broken shared object"),
+            ", dlerror[broken shared object]");
+  EXPECT_TRUE(python_pass_bridge_loader::BuildBridgeLoadErrorSuffix(status, nullptr).empty());
+  EXPECT_TRUE(python_pass_bridge_loader::BuildBridgeLoadErrorSuffix(
+      python_pass_bridge_loader::BridgeLoadStatus::kInvalidPath, "ignored").empty());
+  EXPECT_EQ(loaded_bridge.handle, nullptr);
+}
+
+TEST_F(UtestFusionPassExecutor, PythonPassBridgeCApi_ConfiguredNativeModulePathFailures) {
+  EnsureSharedPybindPassFile();
+  ScopedEnvVar scoped_py_pass_path(kEnvPythonPassPath, GetSharedPybindPassFilePath());
+  const auto *api = LoadBridgeApiForUt();
+  ASSERT_NE(api, nullptr);
+  ASSERT_NE(api->set_artifact_config, nullptr);
+  ASSERT_NE(api->register_passes, nullptr);
+  ASSERT_NE(api->reset_bridge_state, nullptr);
+
+  api->reset_bridge_state();
+  ForgetNativeModuleForUt();
+
+  PythonFusionPassRegistrar registrar = {&RecordPythonPassFromDirectBridge};
+  ScopedTempDir temp_dir;
+  const auto invalid_spec_path = temp_dir.FilePath("native_without_so_suffix");
+  PythonFusionPassBridgeArtifactConfig invalid_spec_config = {nullptr, invalid_spec_path.c_str()};
+  ASSERT_EQ(api->set_artifact_config(&invalid_spec_config), SUCCESS);
+  g_direct_bridge_registered_count = 0;
+  EXPECT_EQ(api->register_passes(&registrar), FAILED);
+  EXPECT_EQ(g_direct_bridge_registered_count, 0);
+
+  const auto broken_so_path = temp_dir.CreateFilePath("broken_native.so");
+  WriteFile(broken_so_path, "not a shared library");
+  PythonFusionPassBridgeArtifactConfig broken_so_config = {nullptr, broken_so_path.c_str()};
+  ASSERT_EQ(api->set_artifact_config(&broken_so_config), SUCCESS);
+  g_direct_bridge_registered_count = 0;
+  EXPECT_EQ(api->register_passes(&registrar), FAILED);
+  EXPECT_EQ(g_direct_bridge_registered_count, 0);
+
+  const auto raising_py_path = temp_dir.CreateFilePath("raising_native.py");
+  WriteFile(raising_py_path, "raise RuntimeError('native load failed')\n");
+  PythonFusionPassBridgeArtifactConfig raising_py_config = {nullptr, raising_py_path.c_str()};
+  ASSERT_EQ(api->set_artifact_config(&raising_py_config), SUCCESS);
+  g_direct_bridge_registered_count = 0;
+  EXPECT_EQ(api->register_passes(&registrar), FAILED);
+  EXPECT_EQ(g_direct_bridge_registered_count, 0);
+
+  PythonFusionPassBridgeArtifactConfig empty_config = {nullptr, nullptr};
+  EXPECT_EQ(api->set_artifact_config(&empty_config), SUCCESS);
+  ForgetNativeModuleForUt();
+}
+
+TEST_F(UtestFusionPassExecutor, PythonPassBridgeCApi_LoadsConfiguredNativeModulePath) {
+  EnsureSharedPybindPassFile();
+  ScopedEnvVar scoped_py_pass_path(kEnvPythonPassPath, GetSharedPybindPassFilePath());
+  ScopedTempDir temp_dir;
+  temp_dir.MakeDir("ge/passes");
+  WriteFile(temp_dir.CreateFilePath("ge/__init__.py"), "");
+  WriteFile(temp_dir.CreateFilePath("ge/passes/__init__.py"), "");
+  const auto native_module_path = temp_dir.CreateFilePath("ge/passes/fake_native.py");
+  WriteFile(native_module_path, "configured_native_loaded = True\n");
+  WriteFile(temp_dir.CreateFilePath("ge/passes/_bridge.py"),
+            "def load_and_get_pass_descriptors():\n"
+            "    return [{\n"
+            "        'descriptor_key': 'ut.configured:ConfiguredNativePass:ConfiguredNativePass',\n"
+            "        'pass_name': 'ConfiguredNativePass',\n"
+            "        'module_name': 'ut.configured',\n"
+            "        'class_name': 'ConfiguredNativePass',\n"
+            "        'stage': 'BeforeInferShape',\n"
+            "        'kind': 'fusion_base',\n"
+            "        'op_types': [],\n"
+            "    }]\n"
+            "\n"
+            "def clear_pass_holders():\n"
+            "    pass\n"
+            "\n"
+            "def clear_loaded_pass_modules():\n"
+            "    pass\n");
+
+  const auto *api = LoadBridgeApiForUt();
+  ASSERT_NE(api, nullptr);
+  ASSERT_NE(api->set_artifact_config, nullptr);
+  ASSERT_NE(api->register_passes, nullptr);
+  ASSERT_NE(api->reset_bridge_state, nullptr);
+
+  PythonFusionPassBridgeArtifactConfig empty_config = {nullptr, nullptr};
+  ASSERT_EQ(api->set_artifact_config(&empty_config), SUCCESS);
+  ScopedEnvVar scoped_python_path("PYTHONPATH", temp_dir.FilePath(""));
+  ScopedPythonPathForUt scoped_sys_path(temp_dir.FilePath(""));
+  ForgetNativeModuleForUt();
+
+  PythonFusionPassBridgeArtifactConfig config = {nullptr, native_module_path.c_str()};
+  ASSERT_EQ(api->set_artifact_config(&config), SUCCESS);
+  PythonFusionPassRegistrar registrar = {&RecordPythonPassFromDirectBridge};
+  g_direct_bridge_registered_count = 0;
+  ASSERT_EQ(api->register_passes(&registrar), SUCCESS);
+  EXPECT_GT(g_direct_bridge_registered_count, 0);
+
+  EXPECT_EQ(api->set_artifact_config(&config), FAILED);
+
+  api->reset_bridge_state();
+  g_direct_bridge_registered_count = 0;
+  ASSERT_EQ(api->register_passes(&registrar), SUCCESS);
+  EXPECT_GT(g_direct_bridge_registered_count, 0);
+
+  api->reset_bridge_state();
+  EXPECT_EQ(api->set_artifact_config(&empty_config), SUCCESS);
+  ForgetNativeModuleForUt();
 }
 
 TEST_F(UtestFusionPassExecutor, PythonFusionBasePass_PybindBridge_RunSuccess) {

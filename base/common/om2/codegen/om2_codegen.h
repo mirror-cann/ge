@@ -11,8 +11,6 @@
 #ifndef AIR_CXX_BASE_COMMON_OM2_CODEGEN_OM2_CODEGEN_H_
 #define AIR_CXX_BASE_COMMON_OM2_CODEGEN_OM2_CODEGEN_H_
 
-#include <string>
-#include <vector>
 #include "common/model/ge_model.h"
 #include "ge_common/ge_api_types.h"
 #include "common/om2/codegen/om2_codegen_types.h"
@@ -21,7 +19,7 @@ namespace ge {
 class Om2Codegen {
 public:
   Status Om2CodegenAndCompile(const GeModelPtr &ge_model, Om2CodegenArtifacts &artifacts,
-                              Om2ConstMetas &const_metas);
+                              Om2ConstMetas &const_metas) const;
 };
 }  // namespace ge
 

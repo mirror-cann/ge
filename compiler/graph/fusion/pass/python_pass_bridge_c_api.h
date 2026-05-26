@@ -11,20 +11,27 @@
 #ifndef CANN_GRAPH_ENGINE_PYTHON_PASS_BRIDGE_C_API_H
 #define CANN_GRAPH_ENGINE_PYTHON_PASS_BRIDGE_C_API_H
 
-#include <cstdint>
-
-#include "python_pass_adapter.h"
-#include "python_pass_pybind_bridge.h"
+#include "ge/ge_api_error_codes.h"
+#include "ge/ge_api_types.h"
 
 namespace ge {
 namespace fusion {
+struct PythonPassDescriptor;
+struct PythonFusionPassCallbacks;
+
 struct PythonFusionPassRegistrar {
   bool (*register_pass)(const PythonPassDescriptor *pass_desc,
                         const PythonFusionPassCallbacks *callbacks);
 };
 
+struct PythonFusionPassBridgeArtifactConfig {
+  const char *artifact_root;
+  const char *native_module_path;
+};
+
 struct PythonFusionPassBridgeApi {
   uint32_t abi_version;
+  Status (*set_artifact_config)(const PythonFusionPassBridgeArtifactConfig *config);
   Status (*register_passes)(const PythonFusionPassRegistrar *registrar);
   void (*reset_bridge_state)();
   void (*shutdown_bridge)();

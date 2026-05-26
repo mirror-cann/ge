@@ -118,6 +118,7 @@ add_library(acl_mdl_impl_om2 SHARED
     model/acl_resource_manager_om2.cpp
     model/acl_model_router.cpp
     types/tensor_desc_internal_om2.cpp
+    model/init_callback_register_om2.cpp
     ../utils/string_utils.cpp
     ../common/log_inner.cpp
     ../common/prof_api_reg.cpp

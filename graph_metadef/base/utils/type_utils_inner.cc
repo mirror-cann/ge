@@ -212,4 +212,31 @@ bool TypeUtilsInner::CheckUint64MulOverflow(const uint64_t a, const uint32_t b) 
   }
   return true;
 }
+
+DataType TypeUtilsInner::SerialStringToDataType(const std::string &str) {
+  const auto it = kStringTodataTypeMap.find(str);
+  if (it != kStringTodataTypeMap.end()) {
+    return it->second;
+  }
+  GELOGW("[Check][Param] SerialStringToDataType: datatype not support %s", str.c_str());
+  return DT_UNDEFINED;
+}
+
+Format TypeUtilsInner::SerialStringToFormat(const std::string &str) {
+  std::string primary_format_str = str;
+  int32_t sub_format = 0;
+  graphStatus status = SplitFormatFromStr(str, primary_format_str, sub_format);
+  if (status != GRAPH_SUCCESS) {
+    GELOGE(GRAPH_FAILED, "[Split][Format] from %s failed", str.c_str());
+    return FORMAT_RESERVED;
+  }
+  const auto it = kStringToFormatMap.find(primary_format_str);
+  if (it != kStringToFormatMap.end()) {
+    int32_t primary_format = it->second;
+    return static_cast<Format>(GetFormatFromSub(primary_format, sub_format));
+  } else {
+    GELOGW("[Check][Param] Format not support %s", str.c_str());
+    return FORMAT_RESERVED;
+  }
+}
 }  // namespace ge

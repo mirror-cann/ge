@@ -120,6 +120,12 @@ struct MemLayoutConflictUtil {
   static Status CheckWhileConflict(const NodePtr &ctrl_node,
                                    std::vector<InDataAnchorPtr> &conflit_anchors);
   static bool IsCtrlNodeSubgraphExistMemConflictSymbol(const ComputeGraphPtr &graph);
+  static void ConstructSingleNodeSymbolTable(const std::string &input_symbol,
+                                             const std::string &output_symbol,
+                                             const AnchorToSymbol &orig_anchor_to_symbol,
+                                             const SymbolToAnchors &orig_symbol_to_anchors,
+                                             AnchorToSymbol &out_anchor_to_symbol,
+                                             SymbolToAnchors &out_symbol_to_anchors);
  private:
   using SubGraphSolveConflictCall =
     std::function<Status(const NodePtr &ctrl_node, std::vector<InDataAnchorPtr> &in_data_anchors)>;

@@ -1751,6 +1751,7 @@ Status DavinciModel::MapNodeAddressesToCombinedWeight(const std::map<NodePtr, st
     int64_t weights_size;
     int64_t weights_offset = item.second.first;
     const auto &tensor_desc = op_desc->GetOutputDescPtr(0U);
+    GE_CHECK_NOTNULL(tensor_desc);
     GE_CHK_STATUS_RET(TensorUtils::GetTensorSizeInBytes(*tensor_desc, weights_size),
                       "Failed to get file constant tensor size, node: %s.", op_desc->GetNamePtr());
     bool not_exceeds = (file_size >= weights_offset) && (file_size - weights_offset >= weights_size);

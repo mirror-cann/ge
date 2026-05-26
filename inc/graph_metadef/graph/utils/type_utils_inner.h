@@ -31,6 +31,9 @@ public:
   static Format DomiFormatToFormat(const domi::domiTensorFormat_t domi_format);
   static std::string FmkTypeToSerialString(const domi::FrameworkType fmk_type);
   static bool CheckUint64MulOverflow(const uint64_t a, const uint32_t b);
+
+  static DataType SerialStringToDataType(const std::string &str);
+  static Format SerialStringToFormat(const std::string &str);
 };
 }  // namespace ge
 #endif  // INC_GRAPH_UTILS_TYPE_UTILS_INNER_H_

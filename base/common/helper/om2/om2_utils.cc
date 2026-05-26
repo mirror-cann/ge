@@ -44,7 +44,7 @@ void CloseMemFdFiles(std::vector<MemFdFile> &files) {
 Status CreateMemFdFile(const std::string &name, const std::string &data, MemFdFile &file) {
   file.fd = static_cast<int32_t>(syscall(__NR_memfd_create, name.c_str(), 0));
   GE_ASSERT_TRUE(file.fd >= 0, "[OM2] memfd_create failed for %s", name.c_str());
-  GE_DISMISSABLE_GUARD(memfd_file_cleanup, [&]() { CloseMemFdFile(file); });
+  GE_DISMISSABLE_GUARD(memfd_file_cleanup, [&file]() { CloseMemFdFile(file); });
 
   if (!data.empty()) {
     const auto write_count = mmWrite(file.fd, const_cast<char_t *>(data.data()), data.size());

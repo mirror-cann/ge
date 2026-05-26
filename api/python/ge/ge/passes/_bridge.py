@@ -25,10 +25,10 @@ from .base import DecomposePass, FusionBasePass, PassContext, PatternFusionPass,
 from .bootstrap import get_registered_passes, load_pass_plugins
 from .pattern import ensure_pattern
 from .registry import get_registered_pass_by_descriptor_key
-from ._ge_pass_native import borrow_node
-from ._ge_pass_native import borrow_match_result
-from ._ge_pass_native import clone_pattern_matcher_config
-from ._ge_pass_native import release_graph
+from ._native import borrow_node
+from ._native import borrow_match_result
+from ._native import clone_pattern_matcher_config
+from ._native import release_graph
 
 
 @dataclass

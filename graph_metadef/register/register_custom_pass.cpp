@@ -53,14 +53,16 @@ Status RunAllocateStreamPass(const PassRegistrationData &reg_data, const GraphPt
     return FAILED;
   }
 
-  // DAG 模块开关判断：对于 MiniDAGStreamPass，先判断 option
-  // 后续 DAG 迁移出去后，外部无法访问 GE 的 Options，所以在框架层判断
+  // DAG 模块开关判断：仅判断 option 是否存在，具体解析和错误处理由 RunMiniDAGStreamPass 负责
   if (reg_data.GetPassName() == "MiniDAGStreamPass") {
     std::string multi_stream_mode;
     if (GetContext().GetOption("ge.autoMultistreamParallelMode", multi_stream_mode) != GRAPH_SUCCESS ||
-        multi_stream_mode != "dag_multi_stream") {
-      GELOGI("MiniDAGStreamPass skipped: ge.autoMultistreamParallelMode=%s (require dag_multi_stream)",
-             multi_stream_mode.empty() ? "not set" : multi_stream_mode.c_str());
+        multi_stream_mode.empty()) {
+      GELOGI("MiniDAGStreamPass skipped: ge.autoMultistreamParallelMode not set.");
+      return SUCCESS;
+    }
+    if (multi_stream_mode == "cv") {
+      GELOGI("MiniDAGStreamPass skipped: MiniDAGStreamPass not handle cv parallel.");
       return SUCCESS;
     }
   }

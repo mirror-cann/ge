@@ -20,7 +20,7 @@ from typing import Any, Union
 from ge.graph import Graph, Node
 from ge.es.tensor_holder import TensorHolder
 
-from ._ge_pass_native import Pattern
+from ._native import Pattern
 
 
 @dataclass(frozen=True)

@@ -112,6 +112,8 @@ chmod_end() {
         chmod_recur "$current_install_path/python/site-packages/ge" 550 file
         chmod_recur "$current_install_path/python/site-packages/ge_py-0.0.1.dist-info" 550 dir
         chmod_recur "$current_install_path/python/site-packages/ge_py-0.0.1.dist-info" 550 file
+        chmod_recur "$current_install_path/python/site-packages/ge_py_pass_bridge-0.0.1.dist-info" 550 dir
+        chmod_recur "$current_install_path/python/site-packages/ge_py_pass_bridge-0.0.1.dist-info" 550 file
         chmod_recur "$current_install_path/python/site-packages/LICENSE" 440 file
     fi
  

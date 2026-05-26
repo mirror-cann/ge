@@ -112,10 +112,131 @@ ge_compiler_install_package() {
     fi
 }
 
+ge_compiler_get_pip_python_tag() {
+    local _tag
+    _tag=$(pip3 --version 2>/dev/null | sed -n 's/.*(python \([0-9][0-9]*\)\.\([0-9][0-9]*\)).*/cp\1\2/p' | head -n 1)
+    if [ -z "${_tag}" ] && command -v python3 >/dev/null 2>&1; then
+        _tag=$(python3 -c 'import sys; print("cp%d%d" % sys.version_info[:2])' 2>/dev/null)
+    fi
+    echo "${_tag}"
+}
+
+ge_compiler_get_python_info() {
+    local _pip_info
+    local _python_info
+    _pip_info=$(pip3 --version 2>/dev/null)
+    if command -v python3 >/dev/null 2>&1; then
+        _python_info=$(python3 -c 'import sys; print("%s %d.%d.%d" % (sys.executable, sys.version_info[0], sys.version_info[1], sys.version_info[2]))' 2>/dev/null)
+    fi
+    if [ -n "${_python_info}" ]; then
+        echo "python3 ${_python_info}; pip3 ${_pip_info}"
+    else
+        echo "pip3 ${_pip_info}"
+    fi
+}
+
+ge_compiler_list_bridge_python_tags() {
+    local _wheel_dir="$1"
+    local _tags=""
+    local _wheel
+    local _base
+    local _tag
+    for _wheel in "${_wheel_dir}"/ge_py_pass_bridge-*.whl; do
+        [ -f "${_wheel}" ] || continue
+        _base=$(basename "${_wheel}")
+        _tag=$(echo "${_base}" | sed -n 's/^ge_py_pass_bridge-[^-]*-\(cp[0-9][0-9]*\)-\1-.*/\1/p')
+        if [ -n "${_tag}" ]; then
+            case " ${_tags} " in
+                *" ${_tag} "*) ;;
+                *) _tags="${_tags} ${_tag}" ;;
+            esac
+        fi
+    done
+    if [ -z "${_tags# }" ]; then
+        echo "none"
+    else
+        echo "${_tags# }"
+    fi
+}
+
+ge_compiler_find_bridge_wheel() {
+    local _wheel_dir="$1"
+    local _python_tag="$2"
+    local _wheel
+    [ -n "${_python_tag}" ] || return 1
+    for _wheel in "${_wheel_dir}"/ge_py_pass_bridge-*-"${_python_tag}"-"${_python_tag}"-*.whl; do
+        if [ -f "${_wheel}" ]; then
+            echo "${_wheel}"
+            return 0
+        fi
+    done
+    return 1
+}
+
+ge_compiler_install_ge_package() {
+    local _ge_package="$1"
+    local _wheel_dir="$2"
+    local _pythonlocalpath="$3"
+    local _bridge_requirement="ge-py-pass-bridge==0.0.1"
+    local _python_tag
+    local _available_bridge_tags
+    local _bridge_wheel
+    log "INFO" "install python module packages in ${_ge_package} and ${_bridge_requirement}"
+    if ! command -v pip3 >/dev/null 2>&1; then
+        log "ERROR" "install ${_ge_package} failed, pip3 is not installed."
+        exit 1
+    fi
+    if [ ! -f "$_ge_package" ]; then
+        log "ERROR" "ERR_NO:0x0080;ERR_DES:install ${_ge_package} faied, can not find the matched package for this platform."
+        exit 1
+    fi
+    _python_tag=$(ge_compiler_get_pip_python_tag)
+    _available_bridge_tags=$(ge_compiler_list_bridge_python_tags "${_wheel_dir}")
+    log "INFO" "python package installer: $(ge_compiler_get_python_info); expected native tag: ${_python_tag:-unknown}; available native wheel tags: ${_available_bridge_tags}."
+    if ! ls "${_wheel_dir}"/ge_py_pass_bridge-*.whl >/dev/null 2>&1; then
+        log "WARNING" "can not find native wheel packages in ${_wheel_dir}, install ${_ge_package} only."
+        ge_compiler_install_package "${_ge_package}" "${_pythonlocalpath}"
+        return 0
+    fi
+    if [ -z "${_python_tag}" ]; then
+        log "WARNING" "can not detect pip3 python tag, install ${_ge_package} only. Available native wheel tags: ${_available_bridge_tags}."
+        ge_compiler_install_package "${_ge_package}" "${_pythonlocalpath}"
+        return 0
+    fi
+    _bridge_wheel=$(ge_compiler_find_bridge_wheel "${_wheel_dir}" "${_python_tag}")
+    if [ -z "${_bridge_wheel}" ]; then
+        log "WARNING" "can not find native wheel package for ${_python_tag} in ${_wheel_dir}. Available native wheel tags: ${_available_bridge_tags}. Install ${_ge_package} only."
+        ge_compiler_install_package "${_ge_package}" "${_pythonlocalpath}"
+        return 0
+    fi
+
+    if [ "$pylocal" = "y" ]; then
+        pip3 install --disable-pip-version-check --upgrade --no-index --no-deps \
+            --force-reinstall "${_ge_package}" "${_bridge_wheel}" -t "${_pythonlocalpath}" 1> /dev/null
+    else
+        if [ $(id -u) -ne 0 ]; then
+            pip3 install --disable-pip-version-check --upgrade --no-index --no-deps \
+                --force-reinstall "${_ge_package}" "${_bridge_wheel}" --user 1> /dev/null
+        else
+            pip3 install --disable-pip-version-check --upgrade --no-index --no-deps \
+                --force-reinstall "${_ge_package}" "${_bridge_wheel}" 1> /dev/null
+        fi
+    fi
+    local ret=$?
+    if [ $ret -ne 0 ]; then
+        log "WARNING" "install ${_bridge_requirement} failed, error code: $ret. Install ${_ge_package} only."
+        ge_compiler_install_package "${_ge_package}" "${_pythonlocalpath}"
+        return 0
+    else
+        log "INFO" "install ${_ge_package} and ${_bridge_requirement} successfully!"
+    fi
+}
+
 WHL_INSTALL_DIR_PATH="${common_parse_dir}/python/site-packages"
 PYTHON_LLM_DATADIST_WHL="${sourcedir}/${pkg_arch_name}-linux/lib64/llm_datadist_v1-0.0.1-py3-none-any.whl"
 PYTHON_DATAFLOW_WHL="${sourcedir}/${pkg_arch_name}-linux/lib64/dataflow-0.0.1-py3-none-any.whl"
 PYTHON_GE_WHL="${sourcedir}/${pkg_arch_name}-linux/lib64/ge_py-0.0.1-py3-none-any.whl"
+PYTHON_GE_WHL_DIR="${sourcedir}/${pkg_arch_name}-linux/lib64"
 
 custom_install() {
     if [ -z "$common_parse_dir/share/info/ge-compiler" ]; then
@@ -127,7 +248,7 @@ custom_install() {
         log "INFO" "install ge-compiler extension module begin..."
         ge_compiler_install_package "${PYTHON_LLM_DATADIST_WHL}" "${WHL_INSTALL_DIR_PATH}"
         ge_compiler_install_package "${PYTHON_DATAFLOW_WHL}" "${WHL_INSTALL_DIR_PATH}"
-        ge_compiler_install_package "${PYTHON_GE_WHL}" "${WHL_INSTALL_DIR_PATH}"
+        ge_compiler_install_ge_package "${PYTHON_GE_WHL}" "${PYTHON_GE_WHL_DIR}" "${WHL_INSTALL_DIR_PATH}"
         log "INFO" "the ge-compiler extension module installed successfully!"
 
         if [ "${pylocal}" = "y" ]; then

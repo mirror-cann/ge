@@ -121,6 +121,11 @@ if("ge-compiler" IN_LIST BUILD_COMPONENT)
         install(FILES ${CMAKE_CURRENT_BINARY_DIR}/api/python/ge/wheel/dist/ge_py-0.0.1-py3-none-any.whl
                 DESTINATION ${ARCH_LINUX_PATH}/lib64 COMPONENT ge-compiler
         )
+        install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/api/python/ge/native_wheel_matrix_dist/
+            DESTINATION ${ARCH_LINUX_PATH}/lib64 COMPONENT ge-compiler
+            FILES_MATCHING PATTERN "ge_py_pass_bridge-*.whl"
+            PATTERN "_build_ge_py_pass_bridge_*" EXCLUDE
+        )
         install(FILES ${CMAKE_CURRENT_BINARY_DIR}/dflow/pydflow/dataflow-0.0.1-py3-none-any.whl
                 DESTINATION ${ARCH_LINUX_PATH}/lib64 COMPONENT ge-compiler
         )

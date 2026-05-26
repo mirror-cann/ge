@@ -24,7 +24,6 @@
 #include "graph/node.h"
 #include "loop_common.h"
 #include "loop_ops.h"
-#include "external/ge_common/ge_api_types.h"
 
 namespace ge {
 namespace loop {

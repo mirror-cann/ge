@@ -328,53 +328,6 @@ TEST_F(DAGGraphTest, MultiNodeAttributesIndependence) {
   EXPECT_EQ(node2->GetCost().execution_time, 20.0);
 }
 
-// --------------------
-// 场景 4：DAGStreamAllocator 测试
-// --------------------
-
-class DagStreamAllocatorTest : public testing::Test {
- protected:
-  void SetUp() override {
-    graph_ = std::make_shared<DAGGraph>("test_graph");
-  }
-
-  void TearDown() override {
-    graph_.reset();
-  }
-
-  std::shared_ptr<DAGGraph> graph_;
-};
-
-/**
- * 场景 4-1: 拓扑序流分配验证
- * 验证 ByTopological 空实现返回 0（不分配任何 stream）
- */
-TEST_F(DagStreamAllocatorTest, ByTopologicalEmptyImplementation) {
-  auto data_node = graph_->AddNode("Data", "Data");
-  auto conv_node = graph_->AddNode("Conv", "Conv");
-  auto relu_node = graph_->AddNode("Relu", "Relu");
-  auto output_node = graph_->AddNode("NetOutput", "NetOutput");
-
-  graph_->AddEdge(data_node, 0, conv_node, 0);
-  graph_->AddEdge(conv_node, 0, relu_node, 0);
-  graph_->AddEdge(relu_node, 0, output_node, 0);
-
-  data_node->SetTopoId(0);
-  conv_node->SetTopoId(1);
-  relu_node->SetTopoId(2);
-  output_node->SetTopoId(3);
-
-  StreamAllocConfig config{2, 0};
-  DagStreamAllocator::ByTopological(*graph_, config);
-
-  // ByTopological 当前为空实现，不分配 stream
-  EXPECT_EQ(data_node->GetStreamId(), -1);
-  EXPECT_EQ(conv_node->GetStreamId(), -1);
-  EXPECT_EQ(relu_node->GetStreamId(), -1);
-  EXPECT_EQ(output_node->GetStreamId(), -1);
-  EXPECT_EQ(config.required_streams, 0);
-}
-
 /**
  * 场景 4-2: 图名称获取验证
  * 验证 GetName 正确返回图名称

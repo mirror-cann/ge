@@ -22,7 +22,7 @@
 #include "common/checker.h"
 #include "mmpa/mmpa_api.h"
 #include "../../inc/framework/runtime/om2_context.h"
-#include "graph/utils/type_utils.h"
+#include "graph/utils/type_utils_inner.h"
 #include "graph_metadef/common/ge_common/util.h"
 #include "runtime/mem.h"
 #include "common/helper/om2/json_file.h"
@@ -109,7 +109,7 @@ ge::Status CreateSoMemFd(const std::string &file_name, const void *data, const s
   const auto short_name = ExtractParentDirAndFileName(file_name).second;
   fd = static_cast<int32_t>(syscall(__NR_memfd_create, short_name.c_str(), 0));
   GE_ASSERT_TRUE(fd >= 0, "[OM2][Create][MemFd] Failed, file=%s", file_name.c_str());
-  GE_DISMISSABLE_GUARD(memfd_cleanup, [&]() { CloseMemFd(fd); });
+  GE_DISMISSABLE_GUARD(memfd_cleanup, [&fd]() { CloseMemFd(fd); });
 
   const auto write_count = mmWrite(fd, const_cast<void *>(data), size);
   GE_ASSERT_TRUE(write_count == static_cast<mmSsize_t>(size),
@@ -143,10 +143,10 @@ ge::Status SetTensorDesc(ge::JsonFile::json &tensor_array_json, std::vector<ge::
     tensor_desc.SetName(name);
     std::string data_type;
     GE_ASSERT_TRUE(tensor_obj.Get("data_type", data_type));
-    tensor_desc.SetDataType(ge::TypeUtils::SerialStringToDataType(data_type));
+    tensor_desc.SetDataType(ge::TypeUtilsInner::SerialStringToDataType(data_type));
     std::string format;
     GE_ASSERT_TRUE(tensor_obj.Get("format", format));
-    tensor_desc.SetFormat(ge::TypeUtils::SerialStringToFormat(format));
+    tensor_desc.SetFormat(ge::TypeUtilsInner::SerialStringToFormat(format));
     int64_t size;
     GE_ASSERT_TRUE(tensor_obj.Get("size", size));
     tensor_desc.SetSize(static_cast<size_t>(size));
@@ -833,8 +833,8 @@ ge::Status Om2ModelExecutor::GetOpAttr(std::map<std::string, std::map<std::strin
   return impl_->GetOpAttr(op_attr_map);
 }
 
-ge::Status Om2ModelExecutor::GetOpDescInfo(const uint32_t device_id, const uint32_t stream_id,
-                                           const uint32_t task_id, ge::OpDescInfo &op_desc_info) const {
+ge::Status Om2ModelExecutor::GetOpDescInfo(uint32_t device_id, uint32_t stream_id,
+                                           uint32_t task_id, ge::OpDescInfo &op_desc_info) const {
   return impl_->GetOpDescInfo(device_id, stream_id, task_id, op_desc_info);
 }
 

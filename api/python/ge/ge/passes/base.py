@@ -16,14 +16,14 @@ from __future__ import annotations
 from enum import Enum
 from typing import TYPE_CHECKING, Iterable, List, Optional, Union
 
-from ._ge_pass_native import MatchResult
-from ._ge_pass_native import PassContext
-from ._ge_pass_native import PatternMatcherConfig
-from ._ge_pass_native import PatternMatcherConfigBuilder
-from ._ge_pass_native import SubgraphInput
-from ._ge_pass_native import SubgraphOutput
-from ._ge_pass_native import SubgraphBoundary
-from ._ge_pass_native import SubgraphRewriter
+from ._native import MatchResult
+from ._native import PassContext
+from ._native import PatternMatcherConfig
+from ._native import PatternMatcherConfigBuilder
+from ._native import SubgraphInput
+from ._native import SubgraphOutput
+from ._native import SubgraphBoundary
+from ._native import SubgraphRewriter
 
 if TYPE_CHECKING:
     from ge.graph.graph import Graph

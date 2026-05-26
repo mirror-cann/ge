@@ -128,6 +128,7 @@ cmake -DCMAKE_BUILD_TYPE=GCOV \
 - 测试可执行文件位于 `cmake-build-gcov/` 目录下，绝对路径为 `${BASEPATH}/cmake-build-gcov/<target>`
 - 使用 `--gtest_filter` 单独运行指定的测试用例。
 - 输出较多，注意不要直接读取输出
+- 如需要，可通过设置`ASCEND_GLOBAL_LOG_LEVEL=0/1/2/3`开启日志，分别是`debug/info/warning/error`级别日志，默认`3 error`级别．
 
 ## 变量说明
 

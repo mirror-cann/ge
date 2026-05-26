@@ -134,6 +134,7 @@
 #include "graph/passes/memory_optimize/pack_notask_pass.h"
 #include "graph/passes/format_optimize/dim1_transpose_to_squeeze_pass.h"
 #include "graph/optimize/autofuse/autofuse_optimize.h"
+#include "graph/optimize/mem_rw_conflict_optimize.h"
 #include "graph/passes/standard_optimize/tensor_move_delete_pass.h"
 #include "acl/acl_rt.h"
 #include "graph/preprocess/hccl_offline_option_builder.h"
@@ -417,8 +418,11 @@ Status SaveRootModel(const GeRootModelPtr &ge_root_model, ModelBufferData &model
 }
 
 Status OptimizeTensorMove(ge::ComputeGraphPtr &compute_graph) {
+  GE_CHK_STATUS(InitRWConflictCheck(compute_graph), "InitRWConflictCheck failed");
+
   NamesToPass names_to_passes;
   TensorMoveDeletePass tensor_move_delete_pass;
+  GE_CHK_STATUS(tensor_move_delete_pass.Init(compute_graph), "TensorMoveDeletePass Init failed.");
 
   names_to_passes.emplace_back("TensorMoveDeletePass", &tensor_move_delete_pass);
   GE_TRACE_START(names_to_passes);

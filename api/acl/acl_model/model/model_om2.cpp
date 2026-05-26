@@ -359,7 +359,7 @@ aclError PopulateDescFromOm2Data(aclmdlDesc* modelDesc, const ge::ModelData& om2
 
 // Om2ModelExecuteCommon - internal function for executing OM2 models
 aclError Om2ModelExecuteCommon(uint32_t modelId, const aclmdlDataset* input, aclmdlDataset* output,
-                               bool isAsync, aclrtStream stream) {
+                               bool isAsync, const aclrtStream stream) {
     ACL_LOG_INFO("start to execute Om2ModelExecuteCommon, modelId[%u]", modelId);
     ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(input);
     ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(output);

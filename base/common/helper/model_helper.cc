@@ -697,7 +697,7 @@ Status ModelHelper::SaveRootModelPartitionsForOmModel(std::shared_ptr<OmFileSave
   return SUCCESS;
 }
 
-Status ModelHelper::SetModelAttributes(const GeModelPtr &ge_model) {
+Status ModelHelper::SetModelAttributes(const GeModelPtr &ge_model) const {
   GE_CHK_BOOL_EXEC(ge::AttrUtils::SetStr(*(ge_model.get()), ATTR_MODEL_ATC_CMDLINE,
                    domi::GetContext().atc_cmdline),
                    GELOGE(FAILED, "SetStr for atc_cmdline failed.");
@@ -795,7 +795,7 @@ Status ModelHelper::SaveRootModelLoop(std::shared_ptr<OmFileSaveHelper> &om_file
                                       const std::map<std::string, GeModelPtr> &name_to_ge_model,
                                       std::vector<ge::Buffer> &model_buffers,
                                       std::vector<ge::Buffer> &task_buffers,
-                                      size_t &cur_index) {
+                                      size_t &cur_index) const {
   for (; cur_index < model_names.size(); ++cur_index) {
     const auto model_name = model_names[cur_index];
     GELOGD("cur model %s index is %zu", model_name.c_str(), cur_index);
@@ -809,7 +809,7 @@ Status ModelHelper::SaveRootModelLoop(std::shared_ptr<OmFileSaveHelper> &om_file
 
 Status ModelHelper::InitFirstGeModel(const GeRootModelPtr &ge_root_model,
                                      const std::map<std::string, GeModelPtr> &name_to_ge_model,
-                                     GeModelPtr &first_ge_model) {
+                                     GeModelPtr &first_ge_model) const {
   const auto &first_model_it = name_to_ge_model.find(ge_root_model->GetRootGraph()->GetName());
   if (first_model_it == name_to_ge_model.end()) {
     first_ge_model = MakeShared<GeModel>();

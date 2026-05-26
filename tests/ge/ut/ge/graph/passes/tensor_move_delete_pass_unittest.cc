@@ -28,6 +28,8 @@
 #include "graph/operator_reg.h"
 #include "external/ge_common/ge_api_types.h"
 #include "stub/gert_runtime_stub.h"
+#include "graph/optimize/mem_rw_conflict_optimize.h"
+#include "graph/optimize/mem_layout_conflict_optimize/mem_layout_conflict_util.h"
 
 using namespace std;
 using namespace testing;
@@ -112,6 +114,10 @@ void SetInplaceOutput(const NodePtr &node, const uint32_t output_idx = 0U, const
 void SetAtomicOutput(const NodePtr &node, const std::vector<int64_t> &output_indexes) {
   AttrUtils::SetListInt(node->GetOpDesc(), ATOMIC_ATTR_OUTPUT_INDEX, output_indexes);
 }
+
+void SetModifyInput(const NodePtr &node, const bool value = true) {
+  AttrUtils::SetBool(node->GetOpDesc(), "_input_mutable", value);
+}
 }
 
 class UtestTensorMoveDeletePass : public Test {
@@ -162,6 +168,8 @@ TEST_F(UtestTensorMoveDeletePass, TensorMoveFromComputeNodeToNetOutput_Deleted) 
   names_to_pass.emplace_back("TensorMoveDeletePass", &tensor_move_delete_pass);
   EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
   EXPECT_EQ(builder.GetGraph()->FindNode("TensorMove"), nullptr);
+
+  ge::GetThreadLocalContext().SetGraphOption({});
 }
 
 /**
@@ -1815,4 +1823,884 @@ TEST_F(UtestTensorMoveDeletePass, TensorMoveFromData_MemReuse_Deleted2) {
   EXPECT_EQ(builder.GetGraph()->FindNode("TensorMove"), nullptr);
 
   ge::GetThreadLocalContext().SetGraphOption({});
+}
+
+/**
+ *       Variable
+ *          |
+ *       TensorMove
+ *          |
+ *         Relu
+ *
+ * 说明：
+ * - TensorMove 源节点为 Variable（特殊数据源节点）
+ * - Relu 为只读节点，不会覆写源内存
+ *
+ * 预期：
+ * - 删除 TensorMove，Variable 直连 Relu
+ */
+TEST_F(UtestTensorMoveDeletePass, DeleteTMWhenSourceIsVariableAndSuccIsReadOnly) {
+  auto builder = ut::GraphBuilder("g1");
+  auto variable_node = builder.AddNode("Variable", VARIABLE, 0, 1);
+  auto tensor_move_node = builder.AddNode("TensorMove", TENSORMOVE, 1, 1);
+  auto relu_node = builder.AddNode("Relu", RELU, 1, 1);
+
+  GraphUtils::AddEdge(variable_node->GetOutDataAnchor(0), tensor_move_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tensor_move_node->GetOutDataAnchor(0), relu_node->GetInDataAnchor(0));
+
+  ge::GEPass pass(builder.GetGraph());
+  TensorMoveDeletePass tensor_move_delete_pass;
+  ge::NamesToPass names_to_pass;
+  names_to_pass.emplace_back("TensorMoveDeletePass", &tensor_move_delete_pass);
+  EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
+
+  EXPECT_EQ(builder.GetGraph()->FindNode("TensorMove"), nullptr);
+  EXPECT_TRUE(variable_node->GetOutDataAnchor(0)->IsLinkedWith(relu_node->GetInDataAnchor(0)));
+}
+
+/**
+ *       Variable
+ *          |
+ *       TensorMove
+ *          |
+ *     OverwriteNode (INPLACE_SUPPORT_INPUT_INDEX)
+ *
+ * 说明：
+ * - TensorMove 源节点为 Variable
+ * - 后继节点通过 INPLACE_SUPPORT_INPUT_INDEX 覆写源内存
+ *
+ * 预期：
+ * - 保留 TensorMove，不删除
+ */
+TEST_F(UtestTensorMoveDeletePass, KeepTMWhenSourceIsVariableAndSuccOverwritesSource) {
+  auto builder = ut::GraphBuilder("g1");
+  auto variable_node = builder.AddNode("Variable", VARIABLE, 0, 1);
+  auto tensor_move_node = builder.AddNode("TensorMove", TENSORMOVE, 1, 1);
+  auto overwrite_node = builder.AddNode("OverwriteNode", ADD, 1, 1);
+
+  SetInplaceOutput(overwrite_node, 0, 0);
+
+  GraphUtils::AddEdge(variable_node->GetOutDataAnchor(0), tensor_move_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tensor_move_node->GetOutDataAnchor(0), overwrite_node->GetInDataAnchor(0));
+
+  ge::GEPass pass(builder.GetGraph());
+  TensorMoveDeletePass tensor_move_delete_pass;
+  ge::NamesToPass names_to_pass;
+  names_to_pass.emplace_back("TensorMoveDeletePass", &tensor_move_delete_pass);
+  EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
+
+  EXPECT_NE(builder.GetGraph()->FindNode("TensorMove"), nullptr);
+}
+
+/**
+ *         Relu
+ *        /    \
+ *     TM_A   TM_B
+ *       |      |
+ *   Relu_op1 Relu_op2
+ *
+ * 说明：
+ * - Relu 单输出被两个 TensorMove 同时引用
+ * - Sibling 节点为另一个 TensorMove
+ *
+ * 预期：
+ * - TM_A 被删除，Relu 直连 Relu_op1
+ * - TM_B 保留（sibling 为 TM 的特殊分支场景）
+ */
+TEST_F(UtestTensorMoveDeletePass, DeleteOneTMWhenSiblingIsTM) {
+  auto builder = ut::GraphBuilder("g1");
+  auto relu_node = builder.AddNode("Relu", RELU, 1, 1);
+  auto tm_a_node = builder.AddNode("TM_A", TENSORMOVE, 1, 1);
+  auto tm_b_node = builder.AddNode("TM_B", TENSORMOVE, 1, 1);
+  auto relu_op1_node = builder.AddNode("Relu_op1", RELU, 1, 1);
+  auto relu_op2_node = builder.AddNode("Relu_op2", RELU, 1, 1);
+
+  GraphUtils::AddEdge(relu_node->GetOutDataAnchor(0), tm_a_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tm_a_node->GetOutDataAnchor(0), relu_op1_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(relu_node->GetOutDataAnchor(0), tm_b_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tm_b_node->GetOutDataAnchor(0), relu_op2_node->GetInDataAnchor(0));
+
+  ge::GEPass pass(builder.GetGraph());
+  TensorMoveDeletePass tensor_move_delete_pass;
+  ge::NamesToPass names_to_pass;
+  names_to_pass.emplace_back("TensorMoveDeletePass", &tensor_move_delete_pass);
+  EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
+
+  EXPECT_EQ(builder.GetGraph()->FindNode("TM_A"), nullptr);
+  EXPECT_TRUE(relu_node->GetOutDataAnchor(0)->IsLinkedWith(relu_op1_node->GetInDataAnchor(0)));
+}
+
+/**
+ *  Variable -> Relu
+ *
+ * 说明：
+ * - Variable 输出标记为 Writeable，Relu 输入为 ReadOnly
+ * - 单独调用接口验证无 RW 冲突
+ *
+ * 预期：
+ * - WouldDeleteTensorMoveCauseRWConflict 返回 false
+ */
+TEST_F(UtestTensorMoveDeletePass, RWConflictInterfaceReportsNoConflict) {
+  auto builder = ut::GraphBuilder("g1");
+  auto variable_node = builder.AddNode("Variable", VARIABLE, 0, 1);
+  auto relu_node = builder.AddNode("Relu", RELU, 1, 1);
+
+  GraphUtils::AddEdge(variable_node->GetOutDataAnchor(0), relu_node->GetInDataAnchor(0));
+
+  InitRWConflictCheck(builder.GetGraph());
+  EXPECT_FALSE(WouldDeleteTensorMoveCauseRWConflict(variable_node, 0, relu_node, 0));
+}
+
+/**
+ *  Relu -> TensorMove -> Succ (no overwrite)
+ *         \-> Sibling (modify_input, kScopeWriteable)
+ *
+ * 说明：
+ * - Sibling 设置了 _input_mutable=true，RW 类型为 kScopeWriteable
+ * - WillNodeOverwriteSourceMemory 检测到 sibling 会覆写源内存
+ *
+ * 预期：
+ * - 不删除 TensorMove（旁路会覆写源内存）
+ */
+TEST_F(UtestTensorMoveDeletePass, KeepTMWhenSiblingHasModifyInput) {
+  auto builder = ut::GraphBuilder("g1");
+  auto relu_node = builder.AddNode("Relu", RELU, 1, 1);
+  auto tensor_move_node = builder.AddNode("TensorMove", TENSORMOVE, 1, 1);
+  auto succ_node = builder.AddNode("Succ", ADD, 1, 1);
+  auto sibling_node = builder.AddNode("Sibling", ADD, 1, 1);
+
+  SetModifyInput(sibling_node);
+
+  GraphUtils::AddEdge(relu_node->GetOutDataAnchor(0), tensor_move_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tensor_move_node->GetOutDataAnchor(0), succ_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(relu_node->GetOutDataAnchor(0), sibling_node->GetInDataAnchor(0));
+
+  InitRWConflictCheck(builder.GetGraph());
+
+  ge::GEPass pass(builder.GetGraph());
+  TensorMoveDeletePass tensor_move_delete_pass;
+  ge::NamesToPass names_to_pass;
+  names_to_pass.emplace_back("TensorMoveDeletePass", &tensor_move_delete_pass);
+  EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
+
+  EXPECT_NE(builder.GetGraph()->FindNode("TensorMove"), nullptr);
+}
+
+/**
+ *  Variable -> TensorMove -> Succ (modify_input, kScopeWriteable)
+ *
+ * 说明：
+ * - Source 是 Variable（特殊源），触发 WouldTMSuccessorsOverwriteSource
+ * - TM 后继 Succ 设置了 _input_mutable=true，RW 类型为 kScopeWriteable
+ * - WillNodeOverwriteSourceMemory 应检测到后继会覆写源内存
+ *
+ * 预期：
+ * - 不删除 TensorMove
+ */
+TEST_F(UtestTensorMoveDeletePass, KeepTMWhenSuccHasModifyInputAndSourceIsSpecial) {
+  auto builder = ut::GraphBuilder("g1");
+  auto variable_node = builder.AddNode("Variable", VARIABLE, 0, 1);
+  auto tensor_move_node = builder.AddNode("TensorMove", TENSORMOVE, 1, 1);
+  auto succ_node = builder.AddNode("Succ", ADD, 1, 1);
+
+  SetModifyInput(succ_node);
+
+  GraphUtils::AddEdge(variable_node->GetOutDataAnchor(0), tensor_move_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tensor_move_node->GetOutDataAnchor(0), succ_node->GetInDataAnchor(0));
+
+  InitRWConflictCheck(builder.GetGraph());
+
+  ge::GEPass pass(builder.GetGraph());
+  TensorMoveDeletePass tensor_move_delete_pass;
+  ge::NamesToPass names_to_pass;
+  names_to_pass.emplace_back("TensorMoveDeletePass", &tensor_move_delete_pass);
+  EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
+
+  EXPECT_NE(builder.GetGraph()->FindNode("TensorMove"), nullptr);
+}
+
+/**
+ *  Relu -> TensorMove -> ReadOnlyNode (no overwrite)
+ * 只是纯读节点，不覆写源内存
+ *
+ * 预期：
+ * - 删除 TensorMove
+ */
+TEST_F(UtestTensorMoveDeletePass, DeleteTMWhenSuccIsReadOnly) {
+  auto builder = ut::GraphBuilder("g1");
+  auto relu_node = builder.AddNode("Relu", RELU, 1, 1);
+  auto tensor_move_node = builder.AddNode("TensorMove", TENSORMOVE, 1, 1);
+  auto succ_node = builder.AddNode("Succ", RELU, 1, 1);
+
+  GraphUtils::AddEdge(relu_node->GetOutDataAnchor(0), tensor_move_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tensor_move_node->GetOutDataAnchor(0), succ_node->GetInDataAnchor(0));
+
+  ge::GEPass pass(builder.GetGraph());
+  TensorMoveDeletePass tensor_move_delete_pass;
+  ge::NamesToPass names_to_pass;
+  names_to_pass.emplace_back("TensorMoveDeletePass", &tensor_move_delete_pass);
+  EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
+
+  EXPECT_EQ(builder.GetGraph()->FindNode("TensorMove"), nullptr);
+}
+
+// ===== 缺口用例：Variable/Const 源 × 连接方式 × TM路径 × 覆写组合 =====
+
+/**
+ * [Gap 1] Variable -> sibling(inplace), Variable -> TM -> succ(pureRead)
+ *
+ * 预期：不删除 TM（旁路 inplace 覆写源内存）
+ */
+TEST_F(UtestTensorMoveDeletePass, VariableMultiRefInplaceSiblingKept) {
+  auto builder = ut::GraphBuilder("g1");
+  auto variable_node = builder.AddNode("Variable", VARIABLE, 0, 1);
+  auto tensor_move_node = builder.AddNode("TensorMove", TENSORMOVE, 1, 1);
+  auto succ_node = builder.AddNode("Succ", RELU, 1, 1);
+  auto sibling_node = builder.AddNode("Sibling", ADD, 1, 1);
+
+  SetInplaceOutput(sibling_node, 0, 0);
+
+  GraphUtils::AddEdge(variable_node->GetOutDataAnchor(0), tensor_move_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tensor_move_node->GetOutDataAnchor(0), succ_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(variable_node->GetOutDataAnchor(0), sibling_node->GetInDataAnchor(0));
+
+  ge::GEPass pass(builder.GetGraph());
+  TensorMoveDeletePass tensor_move_delete_pass;
+  ge::NamesToPass names_to_pass;
+  names_to_pass.emplace_back("TensorMoveDeletePass", &tensor_move_delete_pass);
+  EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
+
+  EXPECT_NE(builder.GetGraph()->FindNode("TensorMove"), nullptr);
+}
+
+/**
+ * [Gap 2] Variable -> RefOp(Reshape) -> TM -> succ(pureRead)
+ *
+ * 预期：删除 TM（间接 RefOp 路径，succ 不改写输入）
+ */
+TEST_F(UtestTensorMoveDeletePass, VariableViaRefOpToPureReadSuccDeleted) {
+  auto builder = ut::GraphBuilder("g1");
+  auto variable_node = builder.AddNode("Variable", VARIABLE, 0, 1);
+  // Reshape 是 ref 节点，GE 中 Reshape 默认有 ref 关系
+  auto reshape_node = builder.AddNode("Reshape", RESHAPE, 1, 1);
+  auto tensor_move_node = builder.AddNode("TensorMove", TENSORMOVE, 1, 1);
+  auto succ_node = builder.AddNode("Succ", RELU, 1, 1);
+
+  GraphUtils::AddEdge(variable_node->GetOutDataAnchor(0), reshape_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(reshape_node->GetOutDataAnchor(0), tensor_move_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tensor_move_node->GetOutDataAnchor(0), succ_node->GetInDataAnchor(0));
+
+  ge::GEPass pass(builder.GetGraph());
+  TensorMoveDeletePass tensor_move_delete_pass;
+  ge::NamesToPass names_to_pass;
+  names_to_pass.emplace_back("TensorMoveDeletePass", &tensor_move_delete_pass);
+  EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
+
+  EXPECT_EQ(builder.GetGraph()->FindNode("TensorMove"), nullptr);
+}
+
+/**
+ * [Gap 3] Constant -> TM -> NetOutput
+ *
+ * 预期：保留 TM（Constant 是特殊源节点，需通过 OptimizeTensorMove 的符号表路径检验）
+ */
+TEST_F(UtestTensorMoveDeletePass, ConstantDirectToNetOutputKept) {
+  auto builder = ut::GraphBuilder("g1");
+  auto constant_node = builder.AddNode("Constant", CONSTANT, 0, 1);
+  auto tensor_move_node = builder.AddNode("TensorMove", TENSORMOVE, 1, 1);
+  auto netoutput_node = builder.AddNode("NetOutput", NETOUTPUT, 1, 1);
+
+  GraphUtils::AddEdge(constant_node->GetOutDataAnchor(0), tensor_move_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tensor_move_node->GetOutDataAnchor(0), netoutput_node->GetInDataAnchor(0));
+
+  auto graph = builder.GetGraph();
+  TensorMoveDeletePass tensor_move_delete_pass;
+  ASSERT_EQ(tensor_move_delete_pass.Init(graph), SUCCESS);
+  ge::GEPass pass(graph);
+  ge::NamesToPass names_to_pass;
+  names_to_pass.emplace_back("TensorMoveDeletePass", &tensor_move_delete_pass);
+  EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
+
+  EXPECT_NE(graph->FindNode("TensorMove"), nullptr);
+}
+
+/**
+ * [Gap 4] Constant -> TM -> overwrite_succ(inplace)
+ *
+ * 预期：保留 TM（双重拒绝：Constant 特殊 + 后继覆写）
+ */
+TEST_F(UtestTensorMoveDeletePass, ConstantDirectToOverwriteSuccKept) {
+  auto builder = ut::GraphBuilder("g1");
+  auto constant_node = builder.AddNode("Constant", CONSTANT, 0, 1);
+  auto tensor_move_node = builder.AddNode("TensorMove", TENSORMOVE, 1, 1);
+  auto overwrite_node = builder.AddNode("Overwrite", ADD, 1, 1);
+
+  SetInplaceOutput(overwrite_node, 0, 0);
+
+  GraphUtils::AddEdge(constant_node->GetOutDataAnchor(0), tensor_move_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tensor_move_node->GetOutDataAnchor(0), overwrite_node->GetInDataAnchor(0));
+
+  ge::GEPass pass(builder.GetGraph());
+  TensorMoveDeletePass tensor_move_delete_pass;
+  ge::NamesToPass names_to_pass;
+  names_to_pass.emplace_back("TensorMoveDeletePass", &tensor_move_delete_pass);
+  EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
+
+  EXPECT_NE(builder.GetGraph()->FindNode("TensorMove"), nullptr);
+}
+
+/**
+ * [Gap 6] Constant -> RefOp(Reshape) -> TM -> succ(pureRead)
+ *
+ * 预期：删除 TM（Constant 为特殊源但无后继覆写，符号合并后无排布冲突）
+ */
+TEST_F(UtestTensorMoveDeletePass, ConstantViaRefOpToPureReadSuccDeleted) {
+  auto builder = ut::GraphBuilder("g1");
+  auto constant_node = builder.AddNode("Constant", CONSTANT, 0, 1);
+  auto reshape_node = builder.AddNode("Reshape", RESHAPE, 1, 1);
+  auto tensor_move_node = builder.AddNode("TensorMove", TENSORMOVE, 1, 1);
+  auto succ_node = builder.AddNode("Succ", RELU, 1, 1);
+
+  GraphUtils::AddEdge(constant_node->GetOutDataAnchor(0), reshape_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(reshape_node->GetOutDataAnchor(0), tensor_move_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tensor_move_node->GetOutDataAnchor(0), succ_node->GetInDataAnchor(0));
+
+  auto graph = builder.GetGraph();
+  TensorMoveDeletePass tensor_move_delete_pass;
+  ASSERT_EQ(tensor_move_delete_pass.Init(graph), SUCCESS);
+
+  ge::GEPass pass(graph);
+  ge::NamesToPass names_to_pass;
+  names_to_pass.emplace_back("TensorMoveDeletePass", &tensor_move_delete_pass);
+  EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
+
+  EXPECT_EQ(graph->FindNode("TensorMove"), nullptr);
+}
+
+/**
+ * [Gap 7] Data -> sibling(inplace), Data -> TM -> succ(pureRead)
+ *
+ * 预期：保留 TM（旁路 inplace 覆写源内存）
+ */
+TEST_F(UtestTensorMoveDeletePass, DataMultiRefInplaceSiblingKept) {
+  auto builder = ut::GraphBuilder("g1");
+  auto data_node = builder.AddNode("Data", DATA, 0, 1);
+  auto tensor_move_node = builder.AddNode("TensorMove", TENSORMOVE, 1, 1);
+  auto succ_node = builder.AddNode("Succ", RELU, 1, 1);
+  auto sibling_node = builder.AddNode("Sibling", ADD, 1, 1);
+  auto netoutput_node = builder.AddNode("NetOutput", NETOUTPUT, 2, 1);
+
+  SetInplaceOutput(sibling_node, 0, 0);
+
+  GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), tensor_move_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tensor_move_node->GetOutDataAnchor(0), succ_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(succ_node->GetOutDataAnchor(0), netoutput_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), sibling_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(sibling_node->GetOutDataAnchor(0), netoutput_node->GetInDataAnchor(1));
+
+  ge::GEPass pass(builder.GetGraph());
+  TensorMoveDeletePass tensor_move_delete_pass;
+  ge::NamesToPass names_to_pass;
+  names_to_pass.emplace_back("TensorMoveDeletePass", &tensor_move_delete_pass);
+  EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
+
+  EXPECT_NE(builder.GetGraph()->FindNode("TensorMove"), nullptr);
+}
+
+/**
+ * [Gap 8] Variable -> TM_A -> overwrite_succ, Variable -> TM_B -> pure_succ
+ *
+ * 预期：TM_A 保留（后继覆写），TM_B 视情况
+ */
+TEST_F(UtestTensorMoveDeletePass, VariableMultiTMOneOverwriteKept) {
+  auto builder = ut::GraphBuilder("g1");
+  auto variable_node = builder.AddNode("Variable", VARIABLE, 0, 1);
+  auto tm_a_node = builder.AddNode("TM_A", TENSORMOVE, 1, 1);
+  auto tm_b_node = builder.AddNode("TM_B", TENSORMOVE, 1, 1);
+  auto overwrite_node = builder.AddNode("Overwrite", ADD, 1, 1);
+  auto pure_node = builder.AddNode("PureSucc", RELU, 1, 1);
+
+  SetInplaceOutput(overwrite_node, 0, 0);
+
+  GraphUtils::AddEdge(variable_node->GetOutDataAnchor(0), tm_a_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tm_a_node->GetOutDataAnchor(0), overwrite_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(variable_node->GetOutDataAnchor(0), tm_b_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tm_b_node->GetOutDataAnchor(0), pure_node->GetInDataAnchor(0));
+
+  ge::GEPass pass(builder.GetGraph());
+  TensorMoveDeletePass tensor_move_delete_pass;
+  ge::NamesToPass names_to_pass;
+  names_to_pass.emplace_back("TensorMoveDeletePass", &tensor_move_delete_pass);
+  EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
+
+  // TM_A -> overwrite succ: 应保留
+  EXPECT_NE(builder.GetGraph()->FindNode("TM_A"), nullptr);
+}
+
+/**
+ * [Gap 9] ConstructSingleNodeSymbolTable — symbol 不存在于 orig_symbol_to_anchors
+ *
+ * 说明:
+ * - 调用 ConstructSingleNodeSymbolTable，传入不存在的 symbol
+ * - 应进入 `sym_iter == orig_symbol_to_anchors.end()` 分支，安全 return
+ *
+ * 预期：不崩溃，输出表为空
+ */
+TEST_F(UtestTensorMoveDeletePass, ConstructSingleNodeSymbolTableNotFound) {
+  AnchorToSymbol orig_anchor_to_symbol;
+  SymbolToAnchors orig_symbol_to_anchors;
+  // 预先放入一个无关 symbol，确保遍历主路径不受影响
+  NodeIndexIO dummy_io(nullptr, 0, kIn);
+  orig_anchor_to_symbol[dummy_io.ToString()] = "exist_sym";
+  orig_symbol_to_anchors["exist_sym"].push_back(dummy_io);
+
+  AnchorToSymbol out_anchor_to_symbol;
+  SymbolToAnchors out_symbol_to_anchors;
+
+  MemLayoutConflictUtil::ConstructSingleNodeSymbolTable(
+      "not_found_input", "not_found_output",
+      orig_anchor_to_symbol, orig_symbol_to_anchors,
+      out_anchor_to_symbol, out_symbol_to_anchors);
+
+  // 预期输出表保持为空（所有 copy_symbol_anchors 调用都是 no-op）
+  EXPECT_TRUE(out_anchor_to_symbol.empty());
+  EXPECT_TRUE(out_symbol_to_anchors.empty());
+}
+
+/**
+ * [Gap 10] HasAtomicWriteFromInput — Atomic output index 为负数，保守返回 true
+ *
+ * 说明：
+ * - 旁路节点设置 ATOMIC_ATTR_OUTPUT_INDEX = {-1}
+ * - WillNodeOverwriteSourceMemory -> HasAtomicWriteFromInput 遇到负数 index
+ * - 因为 index 非法，保守认为它会覆写源内存 → 保留 TM
+ *
+ * 预期：不删除 TensorMove
+ */
+TEST_F(UtestTensorMoveDeletePass, KeepTMWhenSiblingAtomicOutputHasNegativeIdx) {
+  auto builder = ut::GraphBuilder("g1");
+  auto src_node = builder.AddNode("Src", RELU, 1, 1);
+  auto tensor_move_node = builder.AddNode("TensorMove", TENSORMOVE, 1, 1);
+  auto succ_node = builder.AddNode("Succ", RELU, 1, 1);
+  auto sibling_node = builder.AddNode("Sibling", ADD, 1, 1);
+
+  SetAtomicOutput(sibling_node, {-1});
+
+  GraphUtils::AddEdge(src_node->GetOutDataAnchor(0), tensor_move_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tensor_move_node->GetOutDataAnchor(0), succ_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(src_node->GetOutDataAnchor(0), sibling_node->GetInDataAnchor(0));
+
+  ge::GEPass pass(builder.GetGraph());
+  TensorMoveDeletePass tensor_move_delete_pass;
+  ge::NamesToPass names_to_pass;
+  names_to_pass.emplace_back("TensorMoveDeletePass", &tensor_move_delete_pass);
+  EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
+
+  EXPECT_NE(builder.GetGraph()->FindNode("TensorMove"), nullptr);
+}
+
+/**
+ * [Gap 11] HasAtomicWriteFromInput — Atomic output index 超出 INT32_MAX
+ *
+ * 说明：
+ * - 旁路节点设置 ATOMIC_ATTR_OUTPUT_INDEX 为超出 int32_t 的值
+ * - 保守认为覆写源内存，保留 TM
+ *
+ * 预期：不删除 TensorMove
+ */
+TEST_F(UtestTensorMoveDeletePass, KeepTMWhenSiblingAtomicOutputHasOverflowIdx) {
+  auto builder = ut::GraphBuilder("g1");
+  auto src_node = builder.AddNode("Src", RELU, 1, 1);
+  auto tensor_move_node = builder.AddNode("TensorMove", TENSORMOVE, 1, 1);
+  auto succ_node = builder.AddNode("Succ", RELU, 1, 1);
+  auto sibling_node = builder.AddNode("Sibling", ADD, 1, 1);
+
+  SetAtomicOutput(sibling_node, {static_cast<int64_t>(std::numeric_limits<int32_t>::max()) + 1});
+
+  GraphUtils::AddEdge(src_node->GetOutDataAnchor(0), tensor_move_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tensor_move_node->GetOutDataAnchor(0), succ_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(src_node->GetOutDataAnchor(0), sibling_node->GetInDataAnchor(0));
+
+  ge::GEPass pass(builder.GetGraph());
+  TensorMoveDeletePass tensor_move_delete_pass;
+  ge::NamesToPass names_to_pass;
+  names_to_pass.emplace_back("TensorMoveDeletePass", &tensor_move_delete_pass);
+  EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
+
+  EXPECT_NE(builder.GetGraph()->FindNode("TensorMove"), nullptr);
+}
+
+/**
+ * [Gap 12] HasAtomicWriteFromInput — Atomic output index 对应的 out_anchor 为空
+ *
+ * 说明：
+ * - 旁路节点只有 1 个输出 anchor，但 ATOMIC_ATTR_OUTPUT_INDEX = {5}
+ * - GetOutDataAnchor(5) 返回 nullptr → 保守返回 true
+ *
+ * 预期：不删除 TensorMove
+ */
+TEST_F(UtestTensorMoveDeletePass, KeepTMWhenSiblingAtomicOutputAnchorIsNull) {
+  auto builder = ut::GraphBuilder("g1");
+  auto src_node = builder.AddNode("Src", RELU, 1, 1);
+  auto tensor_move_node = builder.AddNode("TensorMove", TENSORMOVE, 1, 1);
+  auto succ_node = builder.AddNode("Succ", RELU, 1, 1);
+  auto sibling_node = builder.AddNode("Sibling", ADD, 1, 1);
+
+  SetAtomicOutput(sibling_node, {5});  // 远大于 sibling 的输出数量(1)
+
+  GraphUtils::AddEdge(src_node->GetOutDataAnchor(0), tensor_move_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tensor_move_node->GetOutDataAnchor(0), succ_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(src_node->GetOutDataAnchor(0), sibling_node->GetInDataAnchor(0));
+
+  ge::GEPass pass(builder.GetGraph());
+  TensorMoveDeletePass tensor_move_delete_pass;
+  ge::NamesToPass names_to_pass;
+  names_to_pass.emplace_back("TensorMoveDeletePass", &tensor_move_delete_pass);
+  EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
+
+  EXPECT_NE(builder.GetGraph()->FindNode("TensorMove"), nullptr);
+}
+
+/**
+ * [Gap 13] HasAtomicWriteFromInput — atomic 输出通过 IsRefFromInput 真正复用对应输入
+ *
+ * 说明：
+ * - 旁路节点设置 ATOMIC_ATTR_OUTPUT_INDEX={0} + output 0 通过 ReuseInput 引用 input 0
+ * - IsRefFromInput 返回 true 且 reuse_in_idx == 0 → 返回 true（覆写源内存）
+ *
+ * 预期：不删除 TensorMove
+ */
+TEST_F(UtestTensorMoveDeletePass, KeepTMWhenSiblingAtomicRefReuseInput) {
+  auto builder = ut::GraphBuilder("g1");
+  auto src_node = builder.AddNode("Src", RELU, 1, 1);
+  auto tensor_move_node = builder.AddNode("TensorMove", TENSORMOVE, 1, 1);
+  auto succ_node = builder.AddNode("Succ", RELU, 1, 1);
+  auto sibling_node = builder.AddNode("Sibling", ADD, 1, 1);
+
+  SetAtomicOutput(sibling_node, {0});
+  SetRefOutput(sibling_node, 0, 0);  // output 0 refs input 0
+
+  GraphUtils::AddEdge(src_node->GetOutDataAnchor(0), tensor_move_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tensor_move_node->GetOutDataAnchor(0), succ_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(src_node->GetOutDataAnchor(0), sibling_node->GetInDataAnchor(0));
+
+  ge::GEPass pass(builder.GetGraph());
+  TensorMoveDeletePass tensor_move_delete_pass;
+  ge::NamesToPass names_to_pass;
+  names_to_pass.emplace_back("TensorMoveDeletePass", &tensor_move_delete_pass);
+  EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
+
+  EXPECT_NE(builder.GetGraph()->FindNode("TensorMove"), nullptr);
+}
+
+/**
+ * [Gap 14] CheckMultiConsumerDeleteRule — sibling 是 NetOutput 时返回 false
+ *
+ * 说明：
+ * - 旁路消费者是 NetOutput 类型时，不支持多消费者删除规则
+ * - 这覆盖了移除 IsTensorMove 检查后的 NetOutput 判断分支
+ *
+ * 预期：保留 TensorMove
+ */
+TEST_F(UtestTensorMoveDeletePass, KeepTMWhenSiblingIsNetOutput) {
+  auto builder = ut::GraphBuilder("g1");
+  auto src_node = builder.AddNode("Src", RELU, 1, 1);
+  auto tensor_move_node = builder.AddNode("TensorMove", TENSORMOVE, 1, 1);
+  auto succ_node = builder.AddNode("Succ", RELU, 1, 1);
+  auto sibling_node = builder.AddNode("SiblingNetOutput", NETOUTPUT, 1, 1);
+
+  GraphUtils::AddEdge(src_node->GetOutDataAnchor(0), tensor_move_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tensor_move_node->GetOutDataAnchor(0), succ_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(src_node->GetOutDataAnchor(0), sibling_node->GetInDataAnchor(0));
+
+  ge::GEPass pass(builder.GetGraph());
+  TensorMoveDeletePass tensor_move_delete_pass;
+  ge::NamesToPass names_to_pass;
+  names_to_pass.emplace_back("TensorMoveDeletePass", &tensor_move_delete_pass);
+  EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
+
+  EXPECT_NE(builder.GetGraph()->FindNode("TensorMove"), nullptr);
+}
+
+/**
+ * [Gap 15] HasAtomicWriteFromInput — GetListInt 解析失败，保守返回 true（lines 398-400）
+ *
+ * 说明：
+ * - 将 ATOMIC_ATTR_OUTPUT_INDEX 设置为非 list 类型（plain int）
+ * - 使 AttrUtils::GetListInt 解析失败
+ * - 保守认为覆写源内存 → 保留 TM
+ *
+ * 预期：不删除 TensorMove
+ */
+TEST_F(UtestTensorMoveDeletePass, KeepTMWhenSiblingAtomicAttrParseFails) {
+  auto builder = ut::GraphBuilder("g1");
+  auto src_node = builder.AddNode("Src", RELU, 1, 1);
+  auto tensor_move_node = builder.AddNode("TensorMove", TENSORMOVE, 1, 1);
+  auto succ_node = builder.AddNode("Succ", RELU, 1, 1);
+  auto sibling_node = builder.AddNode("Sibling", ADD, 1, 1);
+
+  // 设置为 plain int 而非 list，使 GetListInt 解析失败
+  AttrUtils::SetInt(sibling_node->GetOpDesc(), ATOMIC_ATTR_OUTPUT_INDEX, 0);
+
+  GraphUtils::AddEdge(src_node->GetOutDataAnchor(0), tensor_move_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tensor_move_node->GetOutDataAnchor(0), succ_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(src_node->GetOutDataAnchor(0), sibling_node->GetInDataAnchor(0));
+
+  ge::GEPass pass(builder.GetGraph());
+  TensorMoveDeletePass tensor_move_delete_pass;
+  ge::NamesToPass names_to_pass;
+  names_to_pass.emplace_back("TensorMoveDeletePass", &tensor_move_delete_pass);
+  EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
+
+  EXPECT_NE(builder.GetGraph()->FindNode("TensorMove"), nullptr);
+}
+
+/**
+ * [Gap 16] 走 CheckRWConflictOnDelete 的 RW 冲突路径（lines 889-892）
+ *
+ * 说明：
+ * - Variable (writable) → TensorMove → Succ(modify_input)
+ * - InitRWConflictCheck + Init 建立符号表
+ * - 触发 CheckRWConflictOnDelete 中 WouldDeleteTensorMoveCauseRWConflict 返回 true
+ *
+ * 预期：保留 TensorMove
+ */
+TEST_F(UtestTensorMoveDeletePass, KeepTMWhenRWConflictDetected) {
+  auto builder = ut::GraphBuilder("g1");
+  auto variable_node = builder.AddNode("Variable", VARIABLE, 0, 1);
+  auto tensor_move_node = builder.AddNode("TensorMove", TENSORMOVE, 1, 1);
+  auto succ_node = builder.AddNode("Succ", ADD, 1, 1);
+
+  SetModifyInput(succ_node);
+
+  GraphUtils::AddEdge(variable_node->GetOutDataAnchor(0), tensor_move_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tensor_move_node->GetOutDataAnchor(0), succ_node->GetInDataAnchor(0));
+
+  InitRWConflictCheck(builder.GetGraph());
+
+  auto graph = builder.GetGraph();
+  TensorMoveDeletePass tensor_move_delete_pass;
+  ASSERT_EQ(tensor_move_delete_pass.Init(graph), SUCCESS);
+
+  ge::GEPass pass(graph);
+  ge::NamesToPass names_to_pass;
+  names_to_pass.emplace_back("TensorMoveDeletePass", &tensor_move_delete_pass);
+  EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
+
+  EXPECT_NE(graph->FindNode("TensorMove"), nullptr);
+}
+
+/**
+ * [Gap 17] CheckMemLayoutConflictOnDelete — TM 两端符号相同，允许删除（line 918）
+ *
+ * 说明：
+ * - 通过 Ref 链确保 TM 输入/输出锚点被映射到同一个 symbol
+ * - CheckMemLayoutConflictOnDelete 中 in_iter->second == out_iter->second → return true
+ *
+ * 预期：删除 TensorMove
+ */
+TEST_F(UtestTensorMoveDeletePass, DeleteTMWhenAnchorsShareSameSymbol) {
+  auto builder = ut::GraphBuilder("g1");
+  auto relu_node = builder.AddNode("Relu", RELU, 1, 1);
+  auto reshape_node = builder.AddNode("Reshape", RESHAPE, 1, 1);
+  auto tensor_move_node = builder.AddNode("TensorMove", TENSORMOVE, 1, 1);
+  auto succ_node = builder.AddNode("Succ", RELU, 1, 1);
+
+  // Reshape 是 ref 节点，这条链在 GetRefMapping 时会连成同一个 symbol
+  GraphUtils::AddEdge(relu_node->GetOutDataAnchor(0), reshape_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(reshape_node->GetOutDataAnchor(0), tensor_move_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tensor_move_node->GetOutDataAnchor(0), succ_node->GetInDataAnchor(0));
+
+  auto graph = builder.GetGraph();
+  TensorMoveDeletePass tensor_move_delete_pass;
+  ASSERT_EQ(tensor_move_delete_pass.Init(graph), SUCCESS);
+
+  ge::GEPass pass(graph);
+  ge::NamesToPass names_to_pass;
+  names_to_pass.emplace_back("TensorMoveDeletePass", &tensor_move_delete_pass);
+  EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
+
+  EXPECT_EQ(graph->FindNode("TensorMove"), nullptr);
+}
+
+/**
+ * [Gap 18] HasAtomicWriteFromInput — 通过 WouldTMSuccessorsOverwriteSource 路径触发（line 416）
+ *
+ * 说明：
+ * - Source 是 Variable（特殊源），触发 WouldTMSuccessorsOverwriteSource
+ * - TM successor 有 atomic output {0} + ref output 0→0，但不设 inplace
+ * - WillNodeOverwriteSourceMemory: IsNodeInputWritable→false → HasInplace→false
+ *   → HasAtomicWriteFromInput → IsRefFromInput matches → return true
+ *
+ * 预期：保留 TensorMove
+ */
+TEST_F(UtestTensorMoveDeletePass, KeepTMWhenSuccHasAtomicRefToInput) {
+  auto builder = ut::GraphBuilder("g1");
+  auto variable_node = builder.AddNode("Variable", VARIABLE, 0, 1);
+  auto tensor_move_node = builder.AddNode("TensorMove", TENSORMOVE, 1, 1);
+  auto succ_node = builder.AddNode("Succ", ADD, 1, 1);
+
+  SetAtomicOutput(succ_node, {0});
+  SetRefOutput(succ_node, 0, 0);
+
+  GraphUtils::AddEdge(variable_node->GetOutDataAnchor(0), tensor_move_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tensor_move_node->GetOutDataAnchor(0), succ_node->GetInDataAnchor(0));
+
+  ge::GEPass pass(builder.GetGraph());
+  TensorMoveDeletePass tensor_move_delete_pass;
+  ge::NamesToPass names_to_pass;
+  names_to_pass.emplace_back("TensorMoveDeletePass", &tensor_move_delete_pass);
+  EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
+
+  EXPECT_NE(builder.GetGraph()->FindNode("TensorMove"), nullptr);
+}
+
+/**
+ * [Gap 19] CheckMemLayoutConflictOnDelete — MemLayout merge causes memory conflict (lines 932-934)
+ *
+ * 说明：
+ * - var1 → TM1 → PhonyConcat, var2 → TM2 → PhonyConcat
+ * - PhonyConcat: nopadding_continuous_input + output_ref_input
+ * - Init 建立符号表，CheckMemLayoutConflictOnDelete 调用
+ *   ConstructSingleNodeSymbolTable → IsGraphExistMemConflictSymbol
+ * - 两根不同 Variable 链被合并到同一个连续内存 PhonyConcat → has_conflict = true
+ *
+ * 预期：保留 TM1（内存布局冲突阻止删除）
+ */
+TEST_F(UtestTensorMoveDeletePass, KeepTMWhenMemLayoutConflictAfterSymbolMerge) {
+  auto builder = ut::GraphBuilder("g1");
+  auto var1 = builder.AddNode("Var1", VARIABLE, 0, 1);
+  auto var2 = builder.AddNode("Var2", VARIABLE, 0, 1);
+  auto tm1 = builder.AddNode("TM1", TENSORMOVE, 1, 1);
+  auto tm2 = builder.AddNode("TM2", TENSORMOVE, 1, 1);
+  auto phony_concat = builder.AddNode("PhonyConcat", PHONYCONCAT, 2, 1);
+
+  // PhonyConcat: nopadding_continuous_input + output refs input
+  AttrUtils::SetBool(phony_concat->GetOpDesc(), ATTR_NAME_NOPADDING_CONTINUOUS_INPUT, true);
+  AttrUtils::SetBool(phony_concat->GetOpDesc(), ATTR_NAME_OUTPUT_REUSE_INPUT, true);
+  AttrUtils::SetInt(phony_concat->GetOpDesc(), ATTR_NAME_REUSE_INPUT_ON_DIM_INDEX, 0);
+  auto pc_out_desc = phony_concat->GetOpDescBarePtr()->MutableOutputDesc(0);
+  TensorUtils::SetReuseInput(*pc_out_desc, true);
+  TensorUtils::SetReuseInputIndex(*pc_out_desc, 0U);
+
+  // Variables: mark with ref_var_src to establish ref chain origins
+  AttrUtils::SetStr(var1->GetOpDescBarePtr()->MutableOutputDesc(0), REF_VAR_SRC_VAR_NAME, "Var1");
+  AttrUtils::SetStr(var2->GetOpDescBarePtr()->MutableOutputDesc(0), REF_VAR_SRC_VAR_NAME, "Var2");
+
+  // var1 → TM1 → PhonyConcat(in 0)
+  GraphUtils::AddEdge(var1->GetOutDataAnchor(0), tm1->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tm1->GetOutDataAnchor(0), phony_concat->GetInDataAnchor(0));
+  // var2 → TM2 → PhonyConcat(in 1)
+  GraphUtils::AddEdge(var2->GetOutDataAnchor(0), tm2->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tm2->GetOutDataAnchor(0), phony_concat->GetInDataAnchor(1));
+
+  auto graph = builder.GetGraph();
+  TensorMoveDeletePass tensor_move_delete_pass;
+  ASSERT_EQ(tensor_move_delete_pass.Init(graph), SUCCESS);
+
+  ge::GEPass pass(graph);
+  ge::NamesToPass names_to_pass;
+  names_to_pass.emplace_back("TensorMoveDeletePass", &tensor_move_delete_pass);
+  EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
+
+  EXPECT_NE(graph->FindNode("TM1"), nullptr);
+}
+
+/**
+ *  Variable -> TensorMove -> RefSucc
+ *
+ * 说明：
+ * - Source 是 Variable（特殊源），触发 IsSuccessorSafeAfterTensorMove
+ * - TensorMove 后继 RefSucc 的输出复用来自 TensorMove 的输入
+ *
+ * 预期：保留 TensorMove
+ */
+TEST_F(UtestTensorMoveDeletePass, KeepTMWhenSpecialSourceSuccessorIsRefOp) {
+  auto builder = ut::GraphBuilder("g1");
+  auto variable_node = builder.AddNode("Variable", VARIABLE, 0, 1);
+  auto tensor_move_node = builder.AddNode("TensorMove", TENSORMOVE, 1, 1);
+  auto ref_succ_node = builder.AddNode("RefSucc", ADD, 1, 1);
+
+  SetRefOutput(ref_succ_node, 0, 0);
+
+  GraphUtils::AddEdge(variable_node->GetOutDataAnchor(0), tensor_move_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tensor_move_node->GetOutDataAnchor(0), ref_succ_node->GetInDataAnchor(0));
+
+  ge::GEPass pass(builder.GetGraph());
+  TensorMoveDeletePass tensor_move_delete_pass;
+  ge::NamesToPass names_to_pass;
+  names_to_pass.emplace_back("TensorMoveDeletePass", &tensor_move_delete_pass);
+  EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
+
+  EXPECT_NE(builder.GetGraph()->FindNode("TensorMove"), nullptr);
+}
+
+/**
+ *  Variable -> TensorMove -> PartitionedCall
+ *
+ * 说明：
+ * - Source 是 Variable（特殊源），触发 IsSuccessorSafeAfterTensorMove
+ * - TensorMove 后继 PartitionedCall 持有子图，是 wrapper node
+ *
+ * 预期：保留 TensorMove
+ */
+TEST_F(UtestTensorMoveDeletePass, KeepTMWhenSpecialSourceSuccessorIsWrapperNode) {
+  DEF_GRAPH(sub) {
+    CHAIN(NODE("sub_data", OP_CFG(DATA).ParentNodeIndex(0))->NODE("sub_netoutput", NETOUTPUT));
+  };
+
+  DEF_GRAPH(g1) {
+    CHAIN(NODE("Variable", VARIABLE)
+            ->NODE("TensorMove", TENSORMOVE)
+            ->NODE("PartitionedCall", PARTITIONEDCALL, sub));
+  };
+
+  auto graph = ToComputeGraph(g1);
+  ASSERT_NE(graph, nullptr);
+
+  ge::GEPass pass(graph);
+  TensorMoveDeletePass tensor_move_delete_pass;
+  ge::NamesToPass names_to_pass;
+  names_to_pass.emplace_back("TensorMoveDeletePass", &tensor_move_delete_pass);
+  EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
+
+  EXPECT_NE(graph->FindNode("TensorMove"), nullptr);
+}
+
+/**
+ *  Relu -> TensorMove -> Succ(modify_input, kScopeWriteable)
+ *    \-> Sibling(pure read)
+ *
+ *  说明：
+ *  - Relu 输出被 TensorMove 和纯读 Sibling 同时消费，触发 basic multi-ref 规则登记 pending 控制边
+ *  - Succ 设置 _input_mutable=true，RW 类型为 kScopeWriteable
+ *  - CheckRWConflictOnDelete 基于当前图判定 Relu(out:0) ReadOnly -> Succ(in:0) ScopeWriteable 冲突
+ *
+ *  预期：
+ *  - 保留 TensorMove
+ *  - pending 控制边不会落地
+ */
+TEST_F(UtestTensorMoveDeletePass, KeepTMWhenPendingOrderDoesNotBypassRWConflict) {
+  auto builder = ut::GraphBuilder("g1");
+  auto relu_node = builder.AddNode("Relu", RELU, 1, 1);
+  auto tensor_move_node = builder.AddNode("TensorMove", TENSORMOVE, 1, 1);
+  auto succ_node = builder.AddNode("Succ", ADD, 1, 1);
+  auto sibling_node = builder.AddNode("Sibling", ADD, 1, 1);
+
+  SetModifyInput(succ_node);
+
+  GraphUtils::AddEdge(relu_node->GetOutDataAnchor(0), tensor_move_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(tensor_move_node->GetOutDataAnchor(0), succ_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(relu_node->GetOutDataAnchor(0), sibling_node->GetInDataAnchor(0));
+
+  InitRWConflictCheck(builder.GetGraph());
+
+  ge::GEPass pass(builder.GetGraph());
+  TensorMoveDeletePass tensor_move_delete_pass;
+  ge::NamesToPass names_to_pass;
+  names_to_pass.emplace_back("TensorMoveDeletePass", &tensor_move_delete_pass);
+  EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
+
+  EXPECT_NE(builder.GetGraph()->FindNode("TensorMove"), nullptr);
+  EXPECT_FALSE(sibling_node->GetOutControlAnchor()->IsLinkedWith(succ_node->GetInControlAnchor()));
 }

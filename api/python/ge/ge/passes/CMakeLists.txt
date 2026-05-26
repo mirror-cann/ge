@@ -49,7 +49,6 @@ target_compile_definitions(_ge_pass_native PRIVATE
 
 target_compile_options(_ge_pass_native PRIVATE
         $<$<CONFIG:Release>:-O2>
-        -Xlinker -export-dynamic
 )
 
 target_link_options(_ge_pass_native PRIVATE
