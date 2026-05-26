@@ -210,7 +210,8 @@ aclError ReportLaunchedOm2Task(const char *op_name, const char *op_type, uint64_
                                const std::vector<uint64_t> &workspace_addrs,
                                const std::vector<uint64_t> &workspace_sizes,
                                uint32_t task_type, void *stream,
-                               uint32_t model_id, void *instance_handle) {
+                               uint32_t model_id, void *instance_handle,
+                               uint32_t is_raw_address = 0U) {
   uint32_t task_id = 0U;
   OM2_CHK_RT(rtsGetThreadLastTaskId(&task_id));
 
@@ -227,7 +228,7 @@ aclError ReportLaunchedOm2Task(const char *op_name, const char *op_type, uint64_
                                       workspace_addrs.empty() ? nullptr : workspace_addrs.data(),
                                       workspace_sizes.empty() ? nullptr : workspace_sizes.data(),
                                       static_cast<uint32_t>(workspace_addrs.size()),
-                                      task_type, stream));
+                                      task_type, stream, is_raw_address));
   if (ReportTaskInfo != nullptr && instance_handle != nullptr) {
     OM2_CHK_STATUS(ReportTaskInfo(model_id, instance_handle, &task_info, nullptr, 0U));
   }
@@ -2688,6 +2689,7 @@ TEST_F(ProgramGeneratorUt, GenerateLoadAndRunSourceForDsa_Ok) {
   EXPECT_NE(load_run.find("GetIsDataDump("), std::string::npos);
   // ReportLaunchedOm2Task call for dump reporting
   EXPECT_NE(load_run.find("ReportLaunchedOm2Task("), std::string::npos);
+  EXPECT_NE(load_run.find("model_id_, instance_handle_, 1U)"), std::string::npos);
 
   // Session scope memory should be allocated in InitResources
   EXPECT_NE(outputs[GeneratedFileIndex::kResourcesFile].find("aclrtMalloc"), std::string::npos);
