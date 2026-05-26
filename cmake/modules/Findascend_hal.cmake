@@ -46,6 +46,9 @@ unset(_cmake_expected_targets)
 
 find_path(ascend_hal_INCLUDE_DIR
     NAMES driver/ascend_hal.h
+    PATH_SUFFIXES
+        pkg_inc
+        include
     NO_CMAKE_SYSTEM_PATH
     NO_CMAKE_FIND_ROOT_PATH)
 
