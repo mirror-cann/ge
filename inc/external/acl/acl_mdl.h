@@ -118,7 +118,7 @@ typedef enum {
     ACL_MDL_AICOST_SIZET, /**< param reserved */
     ACL_MDL_MEC_TIMETHR_SIZET, /**< param reserved */
     ACL_MDL_EXEC_PRIORITY_INT32,
-    ACL_MDL_NPU_PERF_MODEL
+    ACL_MDL_NPU_PERF_MODE
 } aclmdlExecConfigAttr;
 
 typedef enum {

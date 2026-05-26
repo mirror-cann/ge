@@ -736,7 +736,8 @@ const std::set<std::string> ir_builder_suppported_options = {INPUT_FORMAT,
                                                              OPTIMIZATION_SWITCH,
                                                              INPUT_HINT_SHAPE,
                                                              OPTION_OUTPUT_REUSE_INPUT_MEM_INDEXES,
-                                                             OFFLINE_MODE};
+                                                             OFFLINE_MODE,
+                                                             EXEC_DEVICE_CONFIG_PATH};
 
 // for interface: aclgrphParse
 const std::set<std::string> ir_parser_suppported_options = {
