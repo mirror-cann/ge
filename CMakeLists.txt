@@ -337,7 +337,7 @@ if ((CMAKE_BUILD_TYPE MATCHES GCOV) OR ENABLE_GE_DT)
     if (ENABLE_GE_BENCHMARK)
         add_dependencies(select_targets ge_runtime_benchmark)
 
-    elseif (ENABLE_GE_ST OR ENABLE_RT2_ST OR ENABLE_RT3_ST OR ENABLE_PYTHON_ST OR ENABLE_PARSER_ST OR ENABLE_DFLOW_ST)
+    elseif (ENABLE_GE_ST OR ENABLE_GE_COMMON_ST OR ENABLE_RT2_ST OR ENABLE_RT3_ST OR ENABLE_PYTHON_ST OR ENABLE_PARSER_ST OR ENABLE_DFLOW_ST)
         if (ENABLE_RT2_ST)
             add_dependencies(select_targets hybrid_model_async_exec_test
                     graphtuner_executor
@@ -365,6 +365,11 @@ if ((CMAKE_BUILD_TYPE MATCHES GCOV) OR ENABLE_GE_DT)
 
         if (ENABLE_GE_ST)
             add_dependencies(select_targets graph_engine_test
+                    graphtuner_executor)
+        endif ()
+
+        if (ENABLE_GE_COMMON_ST)
+            add_dependencies(select_targets ge_common_atc
                     graphtuner_executor)
         endif ()
 
