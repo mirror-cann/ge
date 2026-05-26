@@ -482,7 +482,7 @@ ge::Status VarResource::SetVarMgrDevAddr(const uint32_t device_id, const int64_t
   return ge::INTERNAL_ERROR;
 }
 
-ge::Status VarResource::CheckLogicAddrVaild(const uint32_t device_id,
+ge::Status VarResource::CheckLogicAddrValid(const uint32_t device_id,
                                             const uint8_t *const logic_addr,
                                             uint64_t &inner_offset_tmp,
                                             uint64_t &logic_addr_tmp) {
@@ -1410,7 +1410,7 @@ uint8_t *VarManager::GetAutoMallocVarAddr(const std::string &graph_name,
   uint64_t inner_offset_tmp = 0U;
   uint64_t logic_addr_tmp = PtrToValue(logic_addr);
   if (var_mgr == nullptr) {
-    const auto ret = var_resource_->CheckLogicAddrVaild(device_id, logic_addr, inner_offset_tmp, logic_addr_tmp);
+    const auto ret = var_resource_->CheckLogicAddrValid(device_id, logic_addr, inner_offset_tmp, logic_addr_tmp);
     if (ret != SUCCESS) {
       GELOGE(FAILED, "[Check][Param] Logic addr info is not assign.");
       return nullptr;

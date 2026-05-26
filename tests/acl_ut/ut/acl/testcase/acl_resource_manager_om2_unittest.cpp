@@ -121,6 +121,14 @@ TEST_F(UTEST_ACL_Resource_Manager_Om2, GetOm2Executor_NotFound) {
     EXPECT_EQ(retrieved, nullptr);
 }
 
+TEST_F(UTEST_ACL_Resource_Manager_Om2, GetOpDescInfo_NotFound) {
+    ge::OpDescInfo opDescInfo;
+
+    aclError ret = acl::AclResourceManagerOm2::GetInstance().GetOpDescInfo(0U, 0U, 0U, opDescInfo);
+
+    EXPECT_EQ(ret, ACL_ERROR_GE_FAILURE);
+}
+
 TEST_F(UTEST_ACL_Resource_Manager_Om2, DeleteOm2Executor_Success) {
     auto executor = std::unique_ptr<gert::Om2ModelExecutor>(new(std::nothrow) gert::Om2ModelExecutor);
     uint32_t modelId = 0;

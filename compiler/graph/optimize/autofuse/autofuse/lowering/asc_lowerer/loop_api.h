@@ -26,6 +26,7 @@
 #include "utils/autofuse_utils.h"
 
 namespace ge {
+namespace ascir_op = af::ascir_op;
 namespace loop {
 inline bool UnimplementInferDatatype(const std::vector<DataType> &inputs, std::vector<DataType> &outputs) {
   if (!inputs.empty()) {

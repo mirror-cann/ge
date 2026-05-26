@@ -112,11 +112,19 @@ graphStatus GetSymbolTilingCacheKey(TilingSymbolEvalContext *context) {
     return tensor->GetOriginShape().GetDim(0);
   }();
 
-  symbol_source_vector->MutableData()[0] = s0;
-  symbol_source_vector->MutableData()[1] = s1;
-  symbol_source_vector->MutableData()[2] = s2;
-
-  symbol_source_vector->SetSize(3);
+  auto data = symbol_source_vector->MutableData();
+  const auto capacity = symbol_source_vector->GetCapacity();
+  if (capacity > 0U) {
+    data[0] = s0;
+  }
+  if (capacity > 1U) {
+    data[1] = s1;
+  }
+  if (capacity > 2U) {
+    data[2] = s2;
+  }
+  const auto size = capacity < 3U ? capacity : 3U;
+  symbol_source_vector->SetSize(size);
 
   return GRAPH_SUCCESS;
 }

@@ -139,10 +139,10 @@
 
 4. 查看运行结果
 
-    - 执行完成后，目录下生成一系列.pdtxt文件。
+    - 执行完成后，目录下生成一系列.pbtxt文件。
       对比以下dump图：
-        - `ge_onnx_xxxxx_PreRunBegin.pdtxt`执行前dump图
-        - `ge_onnx_xxxxx_RunCustomPassBeforeInferShape.pdtxt`执行InferShape前的自定义pass dump图
+        - `ge_onnx_xxxxx_PreRunBegin.pbtxt`执行前dump图
+        - `ge_onnx_xxxxx_RunCustomPassBeforeInferShape.pbtxt`执行InferShape前的自定义pass dump图
 
       可以发现模型已按预期优化，即MatMul与Add被GEMM替换。
 

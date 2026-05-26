@@ -45,6 +45,8 @@ class TestCustomNodeKernel : public testing::Test {
 };
 
 void *output_addr = nullptr;
+uint32_t custom_shape_infer_count = 0U;
+uint32_t custom_shape_infer_execute_count = 0U;
 
 class TestBaseCustomOp : public EagerExecuteOp{
  public:
@@ -98,12 +100,49 @@ private:
   std::string mock_compile_path_;
 };
 
+class TestCustomOpWithShapeInfer : public EagerExecuteOp, public ShapeInferOp {
+ public:
+  graphStatus Execute(EagerOpExecutionContext *ctx) override {
+    ++custom_shape_infer_execute_count;
+    auto output_desc = ctx->GetOutputTensor(0);
+    GE_ASSERT_NOTNULL(output_desc);
+    auto output_shape = output_desc->GetStorageShape();
+    GE_ASSERT_TRUE(output_shape.GetDimNum() == 1);
+    GE_ASSERT_TRUE(output_shape.GetDim(0) == 2048);
+    auto output_tensor = ctx->MallocOutputTensor(0, output_desc->GetShape(), output_desc->GetFormat(),
+                                                 output_desc->GetDataType());
+    GE_ASSERT_NOTNULL(output_tensor);
+    return SUCCESS;
+  }
+
+  graphStatus InferShape(InferShapeContext *ctx) override {
+    ++custom_shape_infer_count;
+    auto input = ctx->GetInputShape(0);
+    auto output = ctx->GetOutputShape(0);
+    GE_ASSERT_NOTNULL(input);
+    GE_ASSERT_NOTNULL(output);
+    *output = *input;
+    return GRAPH_SUCCESS;
+  }
+
+  graphStatus InferDataType(InferDataTypeContext *ctx) override {
+    return ctx->SetOutputDataType(0U, DT_FLOAT);
+  }
+};
+
 REG_OP(CustomOp)
   .INPUT(x1, TensorType::BasicType())
   .INPUT(x2, TensorType::BasicType())
   .INPUT(x3, TensorType::BasicType())
   .OUTPUT(y, TensorType::BasicType())
   .OP_END_FACTORY_REG(CustomOp)
+
+REG_OP(StCustomOpWithShapeInfer)
+  .INPUT(x1, TensorType::BasicType())
+  .INPUT(x2, TensorType::BasicType())
+  .INPUT(x3, TensorType::BasicType())
+  .OUTPUT(y, TensorType::BasicType())
+  .OP_END_FACTORY_REG(StCustomOpWithShapeInfer)
 
 TEST_F(TestCustomNodeKernel, custom_op_kernel_execute_test) {
   auto graph = ShareGraph::BuildCustomOpGraph();
@@ -149,6 +188,51 @@ TEST_F(TestCustomNodeKernel, custom_op_kernel_execute_test) {
       .AppendExpectEvent(kFreeRe, 0)  // (3) free on stream 0, trigger LocalRecycle
       .AsYouWish());
   ge::diagnoseSwitch::DisableProfiling();
+  rtStreamDestroy(stream);
+}
+
+TEST_F(TestCustomNodeKernel, custom_op_shape_infer_op_execute_test) {
+  const char *const op_type = "StCustomOpWithShapeInfer";
+  auto graph = ShareGraph::BuildCustomOpGraph();
+  auto custom_op = graph->FindNode("custom_op");
+  ASSERT_NE(custom_op, nullptr);
+  custom_op->GetOpDesc()->SetType(op_type);
+  graph->TopologicalSorting();
+  ASSERT_EQ(CustomOpFactory::RegisterCustomOpCreator(op_type, []() -> std::unique_ptr<BaseCustomOp> {
+    return std::make_unique<TestCustomOpWithShapeInfer>();
+  }), GRAPH_SUCCESS);
+
+  GertRuntimeStub runtime_stub;
+  runtime_stub.GetKernelStub().StubTiling();
+  GeModelBuilder builder(graph);
+  auto ge_root_model = builder.BuildGeRootModel();
+  bg::ValueHolder::PopGraphFrame();
+  auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model, {});
+  ASSERT_NE(exe_graph, nullptr);
+  TaskProducerFactory::GetInstance().SetProducerType(TaskProducerType::KERNEL);
+  auto model_executor = ModelV2Executor::Create(exe_graph,
+      ExecutorOption(ExecutorType::kTopologicalPriority), ge_root_model);
+  ASSERT_NE(model_executor, nullptr);
+  ASSERT_EQ(model_executor->Load(), GRAPH_SUCCESS);
+
+  auto outputs = FakeTensors({2048}, 1);
+  auto inputs = FakeTensors({2048}, 3);
+  rtStream_t stream;
+  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
+
+  custom_shape_infer_count = 0U;
+  custom_shape_infer_execute_count = 0U;
+  auto ess = StartExecutorStatistician(model_executor);
+  ess->Clear();
+  ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(),
+                                    reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
+            GRAPH_SUCCESS);
+  EXPECT_EQ(custom_shape_infer_count, 1U);
+  EXPECT_EQ(custom_shape_infer_execute_count, 1U);
+  EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType(op_type, "InferShape"), 1);
+  EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType(op_type, "ExecuteCustomOpWithInferShape"), 1);
+  EXPECT_EQ(model_executor->UnLoad(), GRAPH_SUCCESS);
   rtStreamDestroy(stream);
 }
 }

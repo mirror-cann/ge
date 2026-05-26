@@ -11,7 +11,7 @@
 - 多 shape 说明：本样例主要提供按 shape key 管理和下沉多份 kernel binary 的多 shape / 多 kernel 处理框架。
 - 编译期输入说明：样例在 `Compile` 阶段按 `Tensor` 布局读取输入，因此可以同时拿到 `Shape`、`DataType`、`Format` 等元信息；当前 key 仍然只按 shape 生成。
 
-本样例展示一条最小可运行的 GE 自定义算子下沉链路：先构图生成 `AIR`，再通过 `ATC离线编译` 生成 `om离线模型`，最后由 `ACL` 程序加载并执行。样例中的 AddCustom 同时继承 `CompilableOp` 和 `PortableOp`，因此既能在 `Compile` 回调中通过 RTC 完成 Ascend C kernel 的算子运行时编译，也能把编译结果序列化到最终模型中。
+本样例展示一条最小可运行的 GE 自定义算子下沉链路：先构图生成 `AIR`，再通过 `ATC离线编译` 生成 `om离线模型`，最后由 `ACL` 程序加载并执行。样例中的 AddCustom 同时继承 `CompilableOp`、`PortableOp` 和 `ShapeInferOp`，因此既能在 `Compile` 回调中通过 RTC 完成 Ascend C kernel 的算子运行时编译，也能把编译结果序列化到最终模型中，并在同一个实现类中完成 Shape 和 DataType 推导。
 
 ## 适用场景
 
@@ -92,8 +92,7 @@ compilable_add_custom
 ├── ge
 │   ├── add_custom_kernel.asc // 算子运行时编译时读取的 Ascend C kernel 源码
 │   ├── add_custom.h          // AddCustom 的唯一 proto 定义，供交付件和构图侧共用
-│   ├── custom_op.cpp         // CompilableOp/PortableOp 主流程实现
-│   ├── infershape.cpp        // shape/type 推导注册逻辑
+│   ├── custom_op.cpp         // CompilableOp/PortableOp/ShapeInferOp 主流程实现
 │   └── utils
 │       ├── compile_utils.cpp           // 编译期输入 Tensor 读取、平台信息、kernel 路径和 shape key 等辅助逻辑
 │       └── kernel_binary_map_utils.cpp // 多 bin 序列化/反序列化逻辑
@@ -106,9 +105,7 @@ compilable_add_custom
 重点文件：
 
 - `ge/custom_op.cpp`
-  自定义算子的核心主流程，负责串起算子运行时编译、序列化、反序列化和执行；编译期按输入 Tensor 读取 `Shape/DataType/Format` 元信息。
-- `ge/infershape.cpp`
-  注册 `AddCustom` 的 shape/type 推导逻辑。
+  自定义算子的核心主流程，负责串起算子运行时编译、序列化、反序列化、Shape/DataType 推导和执行；编译期按输入 Tensor 读取 `Shape/DataType/Format` 元信息。
 - `ge/add_custom.h`
   `AddCustom` 的唯一 proto 定义；构图侧使用生成到 `output/op_graph/include/` 下的同名头文件。
 - `ge/add_custom_kernel.asc`
@@ -187,10 +184,12 @@ compilable_add_custom
 - `CompilableOp` 负责在 `Compile` 回调中读取 kernel 源码并调用 `aclrtc` 完成算子运行时编译。
 - `Compile` 阶段的输入读取已经按 `Tensor` 组织，因此除 shape 外还可以直接访问 data type 和 format。
 - `PortableOp` 负责把编译产物序列化进最终模型，并在执行阶段反序列化恢复。
-- 这两部分配合后，ATC离线编译生成的 om离线模型中会包含样例自定义算子运行所需的设备侧二进制；若后续扩展为 key 对应不同 kernel 的场景，本样例已给出多份 binary 的管理与下沉方式。
+- `ShapeInferOp` 负责在 `InferShape` 和 `InferDataType` 回调中完成输出 shape 与 data type 推导。
+- 这几部分配合后，ATC离线编译生成的 om离线模型中会包含样例自定义算子运行所需的设备侧二进制；若后续扩展为 key 对应不同 kernel 的场景，本样例已给出多份 binary 的管理与下沉方式。
 
 ### 关键实现职责
 
 - `Compile`：读取源码并触发算子运行时编译。
+- `InferShape / InferDataType`：基于输入 shape 和 data type 推导输出描述。
 - `Serialize / Deserialize`：把编译产物写入模型并在执行阶段恢复。
 - `Execute`：在模型执行阶段加载设备侧二进制并发起 kernel 调用。

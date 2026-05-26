@@ -62,6 +62,31 @@ std::shared_ptr<gert::Om2ModelExecutor> AclResourceManagerOm2::GetOm2Executor(co
     return iter->second;
 }
 
+aclError AclResourceManagerOm2::GetOpDescInfo(const uint32_t deviceId, const uint32_t streamId,
+                                              const uint32_t taskId, ge::OpDescInfo &opDescInfo)
+{
+    std::vector<std::shared_ptr<gert::Om2ModelExecutor>> executors;
+    {
+        const std::lock_guard<std::mutex> locker(mutex_);
+        executors.reserve(om2ExecutorMap_.size());
+        for (const auto &iter : om2ExecutorMap_) {
+            if (iter.second != nullptr) {
+                executors.emplace_back(iter.second);
+            }
+        }
+    }
+
+    for (const auto &executor : executors) {
+        const ge::Status ret = executor->GetOpDescInfo(deviceId, streamId, taskId, opDescInfo);
+        if (ret == ge::SUCCESS) {
+            return ACL_SUCCESS;
+        }
+    }
+    ACL_LOG_INFO("[OM2][Get][OpDescInfo] cannot find op desc info, deviceId[%u], streamId[%u], taskId[%u]",
+                 deviceId, streamId, taskId);
+    return ACL_ERROR_GE_FAILURE;
+}
+
 aclError AclResourceManagerOm2::DeleteOm2Executor(const uint32_t modelId)
 {
     const std::lock_guard<std::mutex> locker(mutex_);

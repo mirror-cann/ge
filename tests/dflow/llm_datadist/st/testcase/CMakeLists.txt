@@ -43,6 +43,10 @@ target_include_directories(llm_engine_test PRIVATE
         ${AIR_CODE_DIR}/api/session
 )
 
+target_link_options(llm_engine_test PRIVATE
+        -Wl,--disable-new-dtags
+)
+
 target_link_libraries(llm_engine_test
         c_sec_headers
         mmpa_headers

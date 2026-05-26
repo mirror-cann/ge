@@ -53,35 +53,35 @@ std::shared_ptr<AscGraph> CreatBroadcastAddAscGraph(ge::AscGraph &graph) {
   auto e = graph.CreateAxis("E", E);
   auto f = graph.CreateAxis("F", F);
 
-  ge::ascir_op::Data x1("x1_broadcast_add", graph);
+  af::ascir_op::Data x1("x1_broadcast_add", graph);
   x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   x1.attr.sched.loop_axis = c.id;
   *x1.y.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   *x1.y.repeats = {A, B, C, D, E, ONE};
   *x1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE, ZERO};
 
-  ge::ascir_op::Load x1Local("x1Local_broadcast_add");
+  af::ascir_op::Load x1Local("x1Local_broadcast_add");
   x1Local.x = x1.y;
   x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   *x1Local.y.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   *x1Local.y.repeats = {A, B, C, D, E, F};
   *x1Local.y.strides = {B * C * D * E * F, C * D * E * F, D * E * F, E * F, F, ONE};
 
-  ge::ascir_op::Data x2("x2_broadcast_add", graph);
+  af::ascir_op::Data x2("x2_broadcast_add", graph);
   x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   x2.attr.sched.loop_axis = c.id;
   *x2.y.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   *x2.y.repeats = {A, B, C, D, E, F};
   *x2.y.strides = {B * C * D * E * F, C * D * E * F, D * E * F, E * F, F, ONE};
 
-  ge::ascir_op::Load x2Local("x2Local_broadcast_add");
+  af::ascir_op::Load x2Local("x2Local_broadcast_add");
   x2Local.x = x2.y;
   x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   *x2Local.y.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   *x2Local.y.repeats = {A, B, C, D, E, F};
   *x2Local.y.strides = {B * C * D * E * F, C * D * E * F, D * E * F, E * F, F, ONE};
 
-  ge::ascir_op::Add add("add_broadcast_add");
+  af::ascir_op::Add add("add_broadcast_add");
   add.x1 = x1Local.y;
   add.x2 = x2Local.y;
   add.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
@@ -89,7 +89,7 @@ std::shared_ptr<AscGraph> CreatBroadcastAddAscGraph(ge::AscGraph &graph) {
   *add.y.repeats = {A, B, C, D, E, F};
   *add.y.strides = {B * C * D * E * F, C * D * E * F, D * E * F, E * F, F, ONE};
 
-  ge::ascir_op::Store x_store("x_store_broadcast_add");
+  af::ascir_op::Store x_store("x_store_broadcast_add");
   x_store.x = add.y;
   x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   x_store.attr.sched.loop_axis = c.id;
@@ -97,7 +97,7 @@ std::shared_ptr<AscGraph> CreatBroadcastAddAscGraph(ge::AscGraph &graph) {
   *x_store.y.repeats = {A, B, C, D, E, F};
   *x_store.y.strides = {B * C * D * E * F, C * D * E * F, D * E * F, E * F, F, ONE};
 
-  ge::ascir_op::Output x_out("x_out_broadcast_add");
+  af::ascir_op::Output x_out("x_out_broadcast_add");
   x_out.x = x_store.y;
   x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   x_out.attr.sched.loop_axis = c.id;
@@ -125,35 +125,35 @@ std::shared_ptr<AscGraph> CreatBroadcastAddAscGraph1(ge::AscGraph &graph) {
   auto c = graph.CreateAxis("C", C);
   auto d = graph.CreateAxis("D", D);
 
-  ge::ascir_op::Data x1("x1_broadcast_add", graph);
+  af::ascir_op::Data x1("x1_broadcast_add", graph);
   x1.attr.sched.axis = {a.id, b.id, c.id, d.id};
   x1.attr.sched.loop_axis = c.id;
   *x1.y.axis = {a.id, b.id, c.id};
   *x1.y.repeats = {A, B, C};
   *x1.y.strides = {B * C, C, ONE};
 
-  ge::ascir_op::Load x1Local("x1Local_broadcast_add");
+  af::ascir_op::Load x1Local("x1Local_broadcast_add");
   x1Local.x = x1.y;
   x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id};
   *x1Local.y.axis = {a.id, b.id, c.id};
   *x1Local.y.repeats = {A, B, C};
   *x1Local.y.strides = {B * C, C, ONE};
 
-  ge::ascir_op::Data x2("x2_broadcast_add", graph);
+  af::ascir_op::Data x2("x2_broadcast_add", graph);
   x2.attr.sched.axis = {a.id, b.id, c.id, d.id};
   x2.attr.sched.loop_axis = c.id;
   *x2.y.axis = {a.id, b.id, c.id, d.id};
   *x2.y.repeats = {A, B, C, D};
   *x2.y.strides = {B * C * D , C * D, D, ONE};
 
-  ge::ascir_op::Load x2Local("x2Local_broadcast_add");
+  af::ascir_op::Load x2Local("x2Local_broadcast_add");
   x2Local.x = x2.y;
   x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id};
   *x2Local.y.axis = {a.id, b.id, c.id, d.id};
   *x2Local.y.repeats = {A, B, C, D};
   *x2Local.y.strides = {B * C * D , C * D, D, ONE};
 
-  ge::ascir_op::Add add("add_broadcast_add");
+  af::ascir_op::Add add("add_broadcast_add");
   add.x1 = x1Local.y;
   add.x2 = x2Local.y;
   add.attr.sched.axis = {a.id, b.id, c.id, d.id};
@@ -161,7 +161,7 @@ std::shared_ptr<AscGraph> CreatBroadcastAddAscGraph1(ge::AscGraph &graph) {
   *add.y.repeats = {A, B, C, D};
   *add.y.strides = {B * C * D , C * D, D, ONE};
 
-  ge::ascir_op::Store x_store("x_store_broadcast_add");
+  af::ascir_op::Store x_store("x_store_broadcast_add");
   x_store.x = add.y;
   x_store.attr.sched.axis = {a.id, b.id, c.id, d.id};
   x_store.attr.sched.loop_axis = c.id;
@@ -169,7 +169,7 @@ std::shared_ptr<AscGraph> CreatBroadcastAddAscGraph1(ge::AscGraph &graph) {
   *x_store.y.repeats = {A, B, C, D};
   *x_store.y.strides = {B * C * D , C * D, D, ONE};
 
-  ge::ascir_op::Output x_out("x_out_broadcast_add");
+  af::ascir_op::Output x_out("x_out_broadcast_add");
   x_out.x = x_store.y;
   x_out.attr.sched.axis = {a.id, b.id, c.id, d.id};
   x_out.attr.sched.loop_axis = c.id;
@@ -201,35 +201,35 @@ std::shared_ptr<AscGraph> CreatMoreAxisAddAscGraph(ge::AscGraph &graph) {
   auto e = graph.CreateAxis("E", E);
   auto f = graph.CreateAxis("F", F);
 
-  ge::ascir_op::Data x1("x1_more_add", graph);
+  af::ascir_op::Data x1("x1_more_add", graph);
   x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   x1.attr.sched.loop_axis = c.id;
   *x1.y.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   *x1.y.repeats = {A, B, C, D, E, F};
   *x1.y.strides = {B * C * D * E * F, C * D * E * F, D * E * F, E * F, F, ONE};
 
-  ge::ascir_op::Load x1Local("x1Local_more_add");
+  af::ascir_op::Load x1Local("x1Local_more_add");
   x1Local.x = x1.y;
   x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   *x1Local.y.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   *x1Local.y.repeats = {A, B, C, D, E, F};
   *x1Local.y.strides = {B * C * D * E * F, C * D * E * F, D * E * F, E * F, F, ONE};
 
-  ge::ascir_op::Data x2("x2_more_add", graph);
+  af::ascir_op::Data x2("x2_more_add", graph);
   x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   x2.attr.sched.loop_axis = c.id;
   *x2.y.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   *x2.y.repeats = {A, B, C, D, E, F};
   *x2.y.strides = {B * C * D * E * F, C * D * E * F, D * E * F, E * F, F, ONE};
 
-  ge::ascir_op::Load x2Local("x2Local_more_add");
+  af::ascir_op::Load x2Local("x2Local_more_add");
   x2Local.x = x2.y;
   x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   *x2Local.y.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   *x2Local.y.repeats = {A, B, C, D, E, F};
   *x2Local.y.strides = {B * C * D * E * F, C * D * E * F, D * E * F, E * F, F, ONE};
 
-  ge::ascir_op::Add add("add_more_add");
+  af::ascir_op::Add add("add_more_add");
   add.x1 = x1Local.y;
   add.x2 = x2Local.y;
   add.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
@@ -237,7 +237,7 @@ std::shared_ptr<AscGraph> CreatMoreAxisAddAscGraph(ge::AscGraph &graph) {
   *add.y.repeats = {A, B, C, D, E, F};
   *add.y.strides = {B * C * D * E * F, C * D * E * F, D * E * F, E * F, F, ONE};
 
-  ge::ascir_op::Store x_store("x_store_more_add");
+  af::ascir_op::Store x_store("x_store_more_add");
   x_store.x = add.y;
   x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   x_store.attr.sched.loop_axis = c.id;
@@ -245,7 +245,7 @@ std::shared_ptr<AscGraph> CreatMoreAxisAddAscGraph(ge::AscGraph &graph) {
   *x_store.y.repeats = {A, B, C, D, E, F};
   *x_store.y.strides = {B * C * D * E * F, C * D * E * F, D * E * F, E * F, F, ONE};
 
-  ge::ascir_op::Output x_out("x_out_more_add");
+  af::ascir_op::Output x_out("x_out_more_add");
   x_out.x = x_store.y;
   x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   x_out.attr.sched.loop_axis = c.id;
@@ -277,28 +277,28 @@ std::shared_ptr<AscGraph> CreatBroadcastAbsAscGraph(ge::AscGraph &graph) {
   auto e = graph.CreateAxis("E", E);
   auto f = graph.CreateAxis("F", F);
 
-  ge::ascir_op::Data x1("x1_broadcast_abs", graph);
+  af::ascir_op::Data x1("x1_broadcast_abs", graph);
   x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   x1.attr.sched.loop_axis = c.id;
   *x1.y.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   *x1.y.repeats = {A, B, C, D, E, ONE};
   *x1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE, ZERO};
 
-  ge::ascir_op::Load x1Local("x1Local_broadcast_abs");
+  af::ascir_op::Load x1Local("x1Local_broadcast_abs");
   x1Local.x = x1.y;
   x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   *x1Local.y.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   *x1Local.y.repeats = {A, B, C, D, E, F};
   *x1Local.y.strides = {B * C * D * E * F, C * D * E * F, D * E * F, E * F, F, ONE};
 
-  ge::ascir_op::Abs abs("add_broadcast_abs");
+  af::ascir_op::Abs abs("add_broadcast_abs");
   abs.x = x1Local.y;
   abs.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   *abs.y.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   *abs.y.repeats = {A, B, C, D, E, F};
   *abs.y.strides = {B * C * D * E * F, C * D * E * F, D * E * F, E * F, F, ONE};
 
-  ge::ascir_op::Store x_store("x_store_broadcast_abs");
+  af::ascir_op::Store x_store("x_store_broadcast_abs");
   x_store.x = abs.y;
   x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   x_store.attr.sched.loop_axis = c.id;
@@ -306,7 +306,7 @@ std::shared_ptr<AscGraph> CreatBroadcastAbsAscGraph(ge::AscGraph &graph) {
   *x_store.y.repeats = {A, B, C, D, E, F};
   *x_store.y.strides = {B * C * D * E * F, C * D * E * F, D * E * F, E * F, F, ONE};
 
-  ge::ascir_op::Output x_out("x_out_broadcast_abs");
+  af::ascir_op::Output x_out("x_out_broadcast_abs");
   x_out.x = x_store.y;
   x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   x_out.attr.sched.loop_axis = c.id;
@@ -337,35 +337,35 @@ std::shared_ptr<AscGraph> CreatBroadcastAbsAddGraph(ge::AscGraph &graph) {
   auto e = graph.CreateAxis("E", E);
   auto f = graph.CreateAxis("F", F);
 
-  ge::ascir_op::Data x1("x1_broadcast_add", graph);
+  af::ascir_op::Data x1("x1_broadcast_add", graph);
   x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   x1.attr.sched.loop_axis = c.id;
   *x1.y.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   *x1.y.repeats = {A, B, C, D, E, ONE};
   *x1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE, ZERO};
 
-  ge::ascir_op::Load x1Local("x1Local_broadcast_add");
+  af::ascir_op::Load x1Local("x1Local_broadcast_add");
   x1Local.x = x1.y;
   x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   *x1Local.y.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   *x1Local.y.repeats = {A, B, C, D, E, F};
   *x1Local.y.strides = {B * C * D * E * F, C * D * E * F, D * E * F, E * F, F, ONE};
 
-  ge::ascir_op::Data x2("x2_broadcast_add", graph);
+  af::ascir_op::Data x2("x2_broadcast_add", graph);
   x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   x2.attr.sched.loop_axis = c.id;
   *x2.y.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   *x2.y.repeats = {A, B, C, D, E, ONE};
   *x2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE, ZERO};
 
-  ge::ascir_op::Load x2Local("x1Local_broadcast_add");
+  af::ascir_op::Load x2Local("x1Local_broadcast_add");
   x2Local.x = x2.y;
   x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   *x2Local.y.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   *x2Local.y.repeats = {A, B, C, D, E, F};
   *x2Local.y.strides = {B * C * D * E * F, C * D * E * F, D * E * F, E * F, F, ONE};
 
-  ge::ascir_op::Add add("add_broadcast_add");
+  af::ascir_op::Add add("add_broadcast_add");
   add.x1 = x1Local.y;
   add.x2 = x2Local.y;
   add.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
@@ -373,7 +373,7 @@ std::shared_ptr<AscGraph> CreatBroadcastAbsAddGraph(ge::AscGraph &graph) {
   *add.y.repeats = {A, B, C, D, E, F};
   *add.y.strides = {B * C * D * E * F, C * D * E * F, D * E * F, E * F, F, ONE};
 
-  ge::ascir_op::Store x_store("x_store_broadcast_abs");
+  af::ascir_op::Store x_store("x_store_broadcast_abs");
   x_store.x = add.y;
   x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   x_store.attr.sched.loop_axis = c.id;
@@ -381,7 +381,7 @@ std::shared_ptr<AscGraph> CreatBroadcastAbsAddGraph(ge::AscGraph &graph) {
   *x_store.y.repeats = {A, B, C, D, E, F};
   *x_store.y.strides = {B * C * D * E * F, C * D * E * F, D * E * F, E * F, F, ONE};
 
-  ge::ascir_op::Output x_out("x_out_broadcast_abs");
+  af::ascir_op::Output x_out("x_out_broadcast_abs");
   x_out.x = x_store.y;
   x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   x_out.attr.sched.loop_axis = c.id;
@@ -413,35 +413,35 @@ std::shared_ptr<AscGraph> CreatAdd6Axis1OneRepeatAddGraph(ge::AscGraph &graph) {
   auto e = graph.CreateAxis("E", E);
   auto f = graph.CreateAxis("F", F);
 
-  ge::ascir_op::Data x1("x1_broadcast_add", graph);
+  af::ascir_op::Data x1("x1_broadcast_add", graph);
   x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   x1.attr.sched.loop_axis = c.id;
   *x1.y.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   *x1.y.repeats = {A, B, C, D, E, ONE};
   *x1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE, ZERO};
 
-  ge::ascir_op::Load x1Local("x1Local_broadcast_add");
+  af::ascir_op::Load x1Local("x1Local_broadcast_add");
   x1Local.x = x1.y;
   x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   *x1Local.y.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   *x1Local.y.repeats = {A, B, C, D, E, F};
   *x1Local.y.strides = {B * C * D * E * F, C * D * E * F, D * E * F, E * F, F, ZERO};
 
-  ge::ascir_op::Data x2("x2_broadcast_add", graph);
+  af::ascir_op::Data x2("x2_broadcast_add", graph);
   x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   x2.attr.sched.loop_axis = c.id;
   *x2.y.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   *x2.y.repeats = {A, B, C, D, E, ONE};
   *x2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE, ZERO};
 
-  ge::ascir_op::Load x2Local("x1Local_broadcast_add");
+  af::ascir_op::Load x2Local("x1Local_broadcast_add");
   x2Local.x = x2.y;
   x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   *x2Local.y.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   *x2Local.y.repeats = {A, B, C, D, E, F};
   *x2Local.y.strides = {B * C * D * E * F, C * D * E * F, D * E * F, E * F, F, ZERO};
 
-  ge::ascir_op::Add add("add_broadcast_add");
+  af::ascir_op::Add add("add_broadcast_add");
   add.x1 = x1Local.y;
   add.x2 = x2Local.y;
   add.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
@@ -449,7 +449,7 @@ std::shared_ptr<AscGraph> CreatAdd6Axis1OneRepeatAddGraph(ge::AscGraph &graph) {
   *add.y.repeats = {A, B, C, D, E, F};
   *add.y.strides = {B * C * D * E * F, C * D * E * F, D * E * F, E * F, F, ZERO};
 
-  ge::ascir_op::Store x_store("x_store_broadcast_abs");
+  af::ascir_op::Store x_store("x_store_broadcast_abs");
   x_store.x = add.y;
   x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   x_store.attr.sched.loop_axis = c.id;
@@ -457,7 +457,7 @@ std::shared_ptr<AscGraph> CreatAdd6Axis1OneRepeatAddGraph(ge::AscGraph &graph) {
   *x_store.y.repeats = {A, B, C, D, E, F};
   *x_store.y.strides = {B * C * D * E * F, C * D * E * F, D * E * F, E * F, F, ZERO};
 
-  ge::ascir_op::Output x_out("x_out_broadcast_abs");
+  af::ascir_op::Output x_out("x_out_broadcast_abs");
   x_out.x = x_store.y;
   x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   x_out.attr.sched.loop_axis = c.id;
@@ -491,28 +491,28 @@ std::shared_ptr<AscGraph> CreatBroadcastAbsAfterBroadcastAscGraph(ge::AscGraph &
   auto f = graph.CreateAxis("F", F);
   auto g = graph.CreateAxis("G", G);
 
-  ge::ascir_op::Data x1("x1_broadcast2_abs", graph);
+  af::ascir_op::Data x1("x1_broadcast2_abs", graph);
   x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id, g.id};
   x1.attr.sched.loop_axis = c.id;
   *x1.y.axis = {a.id, b.id, c.id, d.id, e.id, f.id, g.id};
   *x1.y.repeats = {A, B, C, D, E, ONE, ONE};
   *x1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE, ZERO, ZERO};
 
-  ge::ascir_op::Load x1Local("x1Local_broadcast2_abs");
+  af::ascir_op::Load x1Local("x1Local_broadcast2_abs");
   x1Local.x = x1.y;
   x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id, g.id};
   *x1Local.y.axis = {a.id, b.id, c.id, d.id, e.id, f.id, g.id};
   *x1Local.y.repeats = {A, B, C, D, E, F, G};
   *x1Local.y.strides = {B * C * D * E * F * G, C * D * E * F * G, D * E * F * G, E * F * G, F * G, G, ONE};
 
-  ge::ascir_op::Abs abs("add_broadcast2_abs");
+  af::ascir_op::Abs abs("add_broadcast2_abs");
   abs.x = x1Local.y;
   abs.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id, g.id};
   *abs.y.axis = {a.id, b.id, c.id, d.id, e.id, f.id, g.id};
   *abs.y.repeats = {A, B, C, D, E, F, G};
   *abs.y.strides = {B * C * D * E * F * G, C * D * E * F * G, D * E * F * G, E * F * G, F * G, G, ONE};
 
-  ge::ascir_op::Store x_store("x_store_broadcast2_abs");
+  af::ascir_op::Store x_store("x_store_broadcast2_abs");
   x_store.x = abs.y;
   x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id, g.id};
   x_store.attr.sched.loop_axis = c.id;
@@ -520,7 +520,7 @@ std::shared_ptr<AscGraph> CreatBroadcastAbsAfterBroadcastAscGraph(ge::AscGraph &
   *x_store.y.repeats = {A, B, C, D, E, F, G};
   *x_store.y.strides = {B * C * D * E * F * G, C * D * E * F * G, D * E * F * G, E * F * G, F * G, G, ONE};
 
-  ge::ascir_op::Output x_out("x_out_broadcast2_abs");
+  af::ascir_op::Output x_out("x_out_broadcast2_abs");
   x_out.x = x_store.y;
   x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id, g.id};
   x_out.attr.sched.loop_axis = c.id;
@@ -550,49 +550,49 @@ std::shared_ptr<AscGraph> CreatCalcRstdAscGraph(ge::AscGraph &graph) {
   auto d = graph.CreateAxis("D", D);
   auto e = graph.CreateAxis("E", E);
 
-  ge::ascir_op::Data x1("x1_calc_rstd", graph);
+  af::ascir_op::Data x1("x1_calc_rstd", graph);
   x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x1.attr.sched.loop_axis = c.id;
   *x1.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x1.y.repeats = {A, B, C, D, E};
   *x1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Load x1Local("x1Local_calc_rstd");
+  af::ascir_op::Load x1Local("x1Local_calc_rstd");
   x1Local.x = x1.y;
   x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x1Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x1Local.y.repeats = {A, B, C, D, E};
   *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Data x2("x2_calc_rstd", graph);
+  af::ascir_op::Data x2("x2_calc_rstd", graph);
   x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x2.attr.sched.loop_axis = c.id;
   *x2.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x2.y.repeats = {A, B, C, D, E};
   *x2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Load x2Local("x2Local_calc_rstd");
+  af::ascir_op::Load x2Local("x2Local_calc_rstd");
   x2Local.x = x2.y;
   x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x2Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x2Local.y.repeats = {A, B, C, D, E};
   *x2Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Data x3("x3_calc_rstd", graph);
+  af::ascir_op::Data x3("x3_calc_rstd", graph);
   x3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x3.attr.sched.loop_axis = c.id;
   *x3.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x3.y.repeats = {A, B, C, D, E};
   *x3.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Load x3Local("x3Local_calc_rstd");
+  af::ascir_op::Load x3Local("x3Local_calc_rstd");
   x3Local.x = x3.y;
   x3Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x3Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x3Local.y.repeats = {A, B, C, D, E};
   *x3Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::FlashSoftmax calcRstd("calcRstd_calc_rstd");
+  af::ascir_op::FlashSoftmax calcRstd("calcRstd_calc_rstd");
   calcRstd.x1 = x1Local.y;
   calcRstd.x2 = x2Local.y;
   calcRstd.x3 = x3Local.y;
@@ -607,14 +607,14 @@ std::shared_ptr<AscGraph> CreatCalcRstdAscGraph(ge::AscGraph &graph) {
   *calcRstd.y3.repeats = {A, B, C, D, E};
   *calcRstd.y3.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Store x_store("x_store_calc_rstd");
+  af::ascir_op::Store x_store("x_store_calc_rstd");
   x_store.x = calcRstd.y1;
   x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_store.attr.sched.loop_axis = c.id;
   *x_store.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x_store.y.repeats = {A, B, C, D, E};
   *x_store.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
-  ge::ascir_op::Store x_store1("x_store1_calc_rstd");
+  af::ascir_op::Store x_store1("x_store1_calc_rstd");
   x_store1.x = calcRstd.y2;
   x_store1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_store1.attr.sched.loop_axis = c.id;
@@ -622,14 +622,14 @@ std::shared_ptr<AscGraph> CreatCalcRstdAscGraph(ge::AscGraph &graph) {
   *x_store1.y.repeats = {A, B, C, D, E};
   *x_store1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Output x_out("x_out_calc_rstd");
+  af::ascir_op::Output x_out("x_out_calc_rstd");
   x_out.x = x_store.y;
   x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_out.attr.sched.loop_axis = c.id;
   *x_out.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x_out.y.repeats = {A, B, C, D, E};
   *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
-  ge::ascir_op::Output x_out1("x_out1_calc_rstd");
+  af::ascir_op::Output x_out1("x_out1_calc_rstd");
   x_out1.x = x_store1.y;
   x_out1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_out1.attr.sched.loop_axis = c.id;
@@ -639,8 +639,8 @@ std::shared_ptr<AscGraph> CreatCalcRstdAscGraph(ge::AscGraph &graph) {
 
   auto x_out_node = graph.FindNode("x_out_calc_rstd");
   auto x_out_node1 = graph.FindNode("x_out1_calc_rstd");
-  AscGraphUtils::GetComputeGraph(graph)->AddOutputNodeByIndex(x_out_node, 0);
-  AscGraphUtils::GetComputeGraph(graph)->AddOutputNodeByIndex(x_out_node1, 1);
+  af::AscGraphUtils::GetComputeGraph(graph)->AddOutputNodeByIndex(x_out_node, 0);
+  af::AscGraphUtils::GetComputeGraph(graph)->AddOutputNodeByIndex(x_out_node1, 1);
   return std::shared_ptr<ge::AscGraph>(new ge::AscGraph(graph));
 }
 
@@ -661,14 +661,14 @@ static std::shared_ptr<AscGraph> CreatReduceAscGraph(ge::AscGraph &graph, size_t
   auto e = graph.CreateAxis("E", E);
 
   std::string data_name = "data" + graph.GetName();
-  ge::ascir_op::Data x1((data_name + "1").c_str(), graph);
+  af::ascir_op::Data x1((data_name + "1").c_str(), graph);
   x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x1.attr.sched.loop_axis = c.id;
   *x1.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x1.y.repeats = {A, B, C, D, E};
   *x1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Load x1Local("x1Local_reduce");
+  af::ascir_op::Load x1Local("x1Local_reduce");
   x1Local.x = x1.y;
   x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x1Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -676,14 +676,14 @@ static std::shared_ptr<AscGraph> CreatReduceAscGraph(ge::AscGraph &graph, size_t
   *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
   if (in_num == 2) {
-    ge::ascir_op::Data x2((data_name + "2").c_str(), graph);
+    af::ascir_op::Data x2((data_name + "2").c_str(), graph);
     x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2.attr.sched.loop_axis = c.id;
     *x2.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x2.y.repeats = {A, B, C, D, E};
     *x2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Load x2Local("x2Local_reduce");
+    af::ascir_op::Load x2Local("x2Local_reduce");
     x2Local.x = x2.y;
     x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     *x2Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -691,14 +691,14 @@ static std::shared_ptr<AscGraph> CreatReduceAscGraph(ge::AscGraph &graph, size_t
     *x2Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   }
 
-  ge::ascir_op::Max reduce("reduce_reduce");
+  af::ascir_op::Max reduce("reduce_reduce");
   reduce.x = x1Local.y;
   reduce.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *reduce.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *reduce.y.repeats = {A, ONE, C, D, E};
   *reduce.y.strides = {B * C * D * E, ZERO, D * E, E, ONE};
 
-  ge::ascir_op::Store x_store("x_store_reduce");
+  af::ascir_op::Store x_store("x_store_reduce");
   x_store.x = reduce.y;
   x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_store.attr.sched.loop_axis = c.id;
@@ -706,7 +706,7 @@ static std::shared_ptr<AscGraph> CreatReduceAscGraph(ge::AscGraph &graph, size_t
   *x_store.y.repeats = {A, ONE, C, D, E};
   *x_store.y.strides = {B * C * D * E, ZERO, D * E, E, ONE};
 
-  ge::ascir_op::Output x_out("x_out_reduce");
+  af::ascir_op::Output x_out("x_out_reduce");
   x_out.x = x_store.y;
   x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_out.attr.sched.loop_axis = c.id;
@@ -737,14 +737,14 @@ static std::shared_ptr<ge::AscGraph> CreatGatherAscGraph(ge::AscGraph &graph) {
   auto d = graph.CreateAxis("D", D);
   auto e = graph.CreateAxis("E", E);
 
-  ge::ascir_op::Data x1("data1", graph);
+  af::ascir_op::Data x1("data1", graph);
   x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x1.attr.sched.loop_axis = b.id;
   *x1.y.axis = {a.id, b.id, c.id, d.id};
   *x1.y.repeats = {A, B, D, E};
   *x1.y.strides = {B * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Data x2("data2", graph);
+  af::ascir_op::Data x2("data2", graph);
   x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x2.attr.sched.loop_axis = e.id;
   x2.y.dtype = DT_INT32;
@@ -752,7 +752,7 @@ static std::shared_ptr<ge::AscGraph> CreatGatherAscGraph(ge::AscGraph &graph) {
   *x2.y.repeats = {ONE, C};
   *x2.y.strides = {ZERO, ONE};
 
-  ge::ascir_op::Gather gather(graph.GetName().c_str());
+  af::ascir_op::Gather gather(graph.GetName().c_str());
   gather.x1 = {x1.y};
   gather.x2 = {x2.y};
   gather.ir_attr.SetAxis(1);
@@ -761,7 +761,7 @@ static std::shared_ptr<ge::AscGraph> CreatGatherAscGraph(ge::AscGraph &graph) {
   *gather.y.repeats = {A, ONE, C, D, E};
   *gather.y.strides = {C * D * E, ZERO, D * E, E, ONE};
 
-  ge::ascir_op::Store x_store("store");
+  af::ascir_op::Store x_store("store");
   x_store.x = gather.y;
   x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_store.attr.sched.loop_axis = c.id;
@@ -769,7 +769,7 @@ static std::shared_ptr<ge::AscGraph> CreatGatherAscGraph(ge::AscGraph &graph) {
   *x_store.y.repeats = {A, ONE, C, D, E};
   *x_store.y.strides = {C * D * E, ZERO, D * E, E, ONE};
 
-  ge::ascir_op::Output x_out("out");
+  af::ascir_op::Output x_out("out");
   x_out.x = x_store.y;
   x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_out.attr.sched.loop_axis = c.id;
@@ -801,28 +801,28 @@ std::shared_ptr<AscGraph> CreatAbsAfterReduceAscGraph(ge::AscGraph &graph) {
   auto d = graph.CreateAxis("D", D);
   auto e = graph.CreateAxis("E", E);
 
-  ge::ascir_op::Data x1("x1_abs_after_reduce", graph);
+  af::ascir_op::Data x1("x1_abs_after_reduce", graph);
   x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x1.attr.sched.loop_axis = c.id;
   *x1.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x1.y.repeats = {A, ONE, C, D, E};
   *x1.y.strides = {B * C * D * E, ZERO, D * E, E, ONE};
 
-  ge::ascir_op::Load x1Local("x1Local_abs_after_reduce");
+  af::ascir_op::Load x1Local("x1Local_abs_after_reduce");
   x1Local.x = x1.y;
   x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x1Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x1Local.y.repeats = {A, ONE, C, D, E};
   *x1Local.y.strides = {B * C * D * E, ZERO, D * E, E, ONE};
 
-  ge::ascir_op::Abs abs("abs_abs_after_reduce");
+  af::ascir_op::Abs abs("abs_abs_after_reduce");
   abs.x = x1Local.y;
   abs.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *abs.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *abs.y.repeats = {A, ONE, C, D, E};
   *abs.y.strides = {B * C * D * E, ZERO, D * E, E, ONE};
 
-  ge::ascir_op::Store x_store("x_store_abs_after_reduce");
+  af::ascir_op::Store x_store("x_store_abs_after_reduce");
   x_store.x = abs.y;
   x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_store.attr.sched.loop_axis = c.id;
@@ -830,7 +830,7 @@ std::shared_ptr<AscGraph> CreatAbsAfterReduceAscGraph(ge::AscGraph &graph) {
   *x_store.y.repeats = {A, ONE, C, D, E};
   *x_store.y.strides = {B * C * D * E, ZERO, D * E, E, ONE};
 
-  ge::ascir_op::Output x_out("x_out_abs_after_reduce");
+  af::ascir_op::Output x_out("x_out_abs_after_reduce");
   x_out.x = x_store.y;
   x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_out.attr.sched.loop_axis = c.id;
@@ -861,28 +861,28 @@ std::shared_ptr<AscGraph> CreatReduceAfterReduceAscGraph(ge::AscGraph &graph) {
   auto d = graph.CreateAxis("D", D);
   auto e = graph.CreateAxis("E", E);
 
-  ge::ascir_op::Data x1("x1_reduce_after_reduce", graph);
+  af::ascir_op::Data x1("x1_reduce_after_reduce", graph);
   x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x1.attr.sched.loop_axis = c.id;
   *x1.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x1.y.repeats = {A, ONE, C, D, E};
   *x1.y.strides = {B * C * D * E, ZERO, D * E, E, ONE};
 
-  ge::ascir_op::Load x1Local("x1Local_reduce_after_reduce");
+  af::ascir_op::Load x1Local("x1Local_reduce_after_reduce");
   x1Local.x = x1.y;
   x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x1Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x1Local.y.repeats = {A, ONE, C, D, E};
   *x1Local.y.strides = {B * C * D * E, ZERO, D * E, E, ONE};
 
-  ge::ascir_op::Max reduce("reduce_after_reduce");
+  af::ascir_op::Max reduce("reduce_after_reduce");
   reduce.x = x1Local.y;
   reduce.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *reduce.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *reduce.y.repeats = {ONE, ONE, C, D, E};
   *reduce.y.strides = {ZERO, ZERO, D * E, E, ONE};
 
-  ge::ascir_op::Store x_store("x_store_reduce_after_reduce");
+  af::ascir_op::Store x_store("x_store_reduce_after_reduce");
   x_store.x = reduce.y;
   x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_store.attr.sched.loop_axis = c.id;
@@ -890,7 +890,7 @@ std::shared_ptr<AscGraph> CreatReduceAfterReduceAscGraph(ge::AscGraph &graph) {
   *x_store.y.repeats = {ONE, ONE, C, D, E};
   *x_store.y.strides = {ZERO, ZERO, D * E, E, ONE};
 
-  ge::ascir_op::Output x_out("x_out_reduce_after_reduce");
+  af::ascir_op::Output x_out("x_out_reduce_after_reduce");
   x_out.x = x_store.y;
   x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_out.attr.sched.loop_axis = c.id;
@@ -923,28 +923,28 @@ std::shared_ptr<AscGraph> CreatAbsBroadcastAfterReduceAscGraph(ge::AscGraph &gra
   auto e = graph.CreateAxis("E", E);
   auto f = graph.CreateAxis("F", F);
 
-  ge::ascir_op::Data x1("x1_abs_after_reduce", graph);
+  af::ascir_op::Data x1("x1_abs_after_reduce", graph);
   x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   x1.attr.sched.loop_axis = c.id;
   *x1.y.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   *x1.y.repeats = {A, ONE, C, D, E, ONE};
   *x1.y.strides = {B * C * D * E, ZERO, D * E, E, ONE, ZERO};
 
-  ge::ascir_op::Load x1Local("x1Local_abs_after_reduce");
+  af::ascir_op::Load x1Local("x1Local_abs_after_reduce");
   x1Local.x = x1.y;
   x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   *x1Local.y.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   *x1Local.y.repeats = {A, ONE, C, D, E, F};
   *x1Local.y.strides = {B * C * D * E * F, ZERO, D * E * F, E * F, F, ONE};
 
-  ge::ascir_op::Abs abs("abs_abs_after_reduce");
+  af::ascir_op::Abs abs("abs_abs_after_reduce");
   abs.x = x1Local.y;
   abs.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   *abs.y.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   *abs.y.repeats = {A, ONE, C, D, E, F};
   *abs.y.strides = {B * C * D * E * F, ZERO, D * E * F, E * F, F, ONE};
 
-  ge::ascir_op::Store x_store("x_store_abs_after_reduce");
+  af::ascir_op::Store x_store("x_store_abs_after_reduce");
   x_store.x = abs.y;
   x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   x_store.attr.sched.loop_axis = c.id;
@@ -952,7 +952,7 @@ std::shared_ptr<AscGraph> CreatAbsBroadcastAfterReduceAscGraph(ge::AscGraph &gra
   *x_store.y.repeats = {A, ONE, C, D, E, F};
   *x_store.y.strides = {B * C * D * E * F, ZERO, D * E * F, E * F, F, ONE};
 
-  ge::ascir_op::Output x_out("x_out_abs_after_reduce");
+  af::ascir_op::Output x_out("x_out_abs_after_reduce");
   x_out.x = x_store.y;
   x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   x_out.attr.sched.loop_axis = c.id;
@@ -982,30 +982,30 @@ static std::shared_ptr<ge::AscGraph> CreatAddAscGraph(ge::AscGraph &graph, size_
   auto e = graph.CreateAxis("E", E);
 
   std::string data_name = "data" + graph.GetName();
-  ge::ascir_op::Data x1((data_name + "1").c_str(), graph);
+  af::ascir_op::Data x1((data_name + "1").c_str(), graph);
   x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x1.attr.sched.loop_axis = c.id;
   *x1.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x1.y.repeats = {A, B, C, D, E};
   *x1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Load x1Local((graph.GetName() + "_load1").c_str());
+  af::ascir_op::Load x1Local((graph.GetName() + "_load1").c_str());
   x1Local.x = x1.y;
   x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x1Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x1Local.y.repeats = {A, B, C, D, E};
   *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Add add((graph.GetName() + "_add").c_str());
+  af::ascir_op::Add add((graph.GetName() + "_add").c_str());
   if (in_num == 2) {
-    ge::ascir_op::Data x2((data_name + "2").c_str(), graph);
+    af::ascir_op::Data x2((data_name + "2").c_str(), graph);
     x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2.attr.sched.loop_axis = c.id;
     *x2.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x2.y.repeats = {A, B, C, D, E};
     *x2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Load x2Local((graph.GetName() + "_load2").c_str());
+    af::ascir_op::Load x2Local((graph.GetName() + "_load2").c_str());
     x2Local.x = x2.y;
     x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     *x2Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -1026,7 +1026,7 @@ static std::shared_ptr<ge::AscGraph> CreatAddAscGraph(ge::AscGraph &graph, size_
     *add.y.repeats = {A, B, C, D, E};
     *add.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   }
-  ge::ascir_op::Store x_store((graph.GetName() + "_store").c_str());
+  af::ascir_op::Store x_store((graph.GetName() + "_store").c_str());
   x_store.x = add.y;
   x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_store.attr.sched.loop_axis = c.id;
@@ -1034,7 +1034,7 @@ static std::shared_ptr<ge::AscGraph> CreatAddAscGraph(ge::AscGraph &graph, size_
   *x_store.y.repeats = {A, B, C, D, E};
   *x_store.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Output x_out((graph.GetName() + "_out").c_str());
+  af::ascir_op::Output x_out((graph.GetName() + "_out").c_str());
   x_out.x = x_store.y;
   x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_out.attr.sched.loop_axis = c.id;
@@ -1044,7 +1044,7 @@ static std::shared_ptr<ge::AscGraph> CreatAddAscGraph(ge::AscGraph &graph, size_
   auto x_out_node = graph.FindNode((graph.GetName() + "_out").c_str());
   auto compute_graph = x_out_node->GetOwnerComputeGraph();
   if (out_num == 2) {
-    ge::ascir_op::Store x_store1((graph.GetName() + "_store1").c_str());
+    af::ascir_op::Store x_store1((graph.GetName() + "_store1").c_str());
     x_store1.x = add.y;
     x_store1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_store1.attr.sched.loop_axis = c.id;
@@ -1052,7 +1052,7 @@ static std::shared_ptr<ge::AscGraph> CreatAddAscGraph(ge::AscGraph &graph, size_
     *x_store1.y.repeats = {A, B, C, D, E};
     *x_store1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_out1((graph.GetName() + "_out1").c_str());
+    af::ascir_op::Output x_out1((graph.GetName() + "_out1").c_str());
     x_out1.x = x_store1.y;
     x_out1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out1.attr.sched.loop_axis = c.id;
@@ -1087,7 +1087,7 @@ static std::shared_ptr<AscGraph> CreatStridedSliceAscGraph(ge::AscGraph &graph) 
   auto e = graph.CreateAxis("E", E);
   auto f = graph.CreateAxis("F", F);
 
-  ge::ascir_op::Data x("data_stridedSlice", graph);
+  af::ascir_op::Data x("data_stridedSlice", graph);
   x.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   x.attr.sched.loop_axis = c.id;
   *x.y.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
@@ -1095,7 +1095,7 @@ static std::shared_ptr<AscGraph> CreatStridedSliceAscGraph(ge::AscGraph &graph) 
   *x.y.strides = {(B + ONE) * C * D * E * F, C * D * E * F, D * E * F, E * F, F, ONE};
   x.ir_attr.SetIndex(0);
 
-  ge::ascir_op::Load xLocal("xLocal_stridedSlice");
+  af::ascir_op::Load xLocal("xLocal_stridedSlice");
   xLocal.x = x.y;
   xLocal.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   *xLocal.y.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
@@ -1105,7 +1105,7 @@ static std::shared_ptr<AscGraph> CreatStridedSliceAscGraph(ge::AscGraph &graph) 
   // offset = start[0] * data_stride[0] = ONE * (B+1)*C*D*E*F
   (void)xLocal.ir_attr.SetOffset(ONE * (B + ONE) * C * D * E * F);
 
-  ge::ascir_op::Store x_store("x_store_stridedSlice");
+  af::ascir_op::Store x_store("x_store_stridedSlice");
   x_store.x = xLocal.y;
   x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   x_store.attr.sched.loop_axis = c.id;
@@ -1113,7 +1113,7 @@ static std::shared_ptr<AscGraph> CreatStridedSliceAscGraph(ge::AscGraph &graph) 
   *x_store.y.repeats = {A, B, C, D, E, F};
   *x_store.y.strides = {B * C * D * E * F, C * D * E * F, D * E * F, E * F, F, ONE};
 
-  ge::ascir_op::Output x_out("x_out_stridedSlice");
+  af::ascir_op::Output x_out("x_out_stridedSlice");
   x_out.x = x_store.y;
   x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
   x_out.attr.sched.loop_axis = c.id;
@@ -1143,49 +1143,49 @@ static std::shared_ptr<ge::AscGraph> CreatSplitAscGraph(ge::AscGraph &graph) {
   auto d = graph.CreateAxis("D", D);
   auto e = graph.CreateAxis("E", E);
 
-  ge::ascir_op::Data x1("data_1", graph);
+  af::ascir_op::Data x1("data_1", graph);
   x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x1.attr.sched.loop_axis = c.id;
   *x1.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x1.y.repeats = {A + ONE, B + ONE, C, D, E};
   *x1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Load x1Local("load1");
+  af::ascir_op::Load x1Local("load1");
   x1Local.x = x1.y;
   x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x1Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x1Local.y.repeats = {A + ONE, B + ONE, C, D, E};
   *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Data x2("data_2", graph);
+  af::ascir_op::Data x2("data_2", graph);
   x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x2.attr.sched.loop_axis = c.id;
   *x2.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x2.y.repeats = {A + ONE, B + ONE, C, D, E};
   *x2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Load x2Local("load2");
+  af::ascir_op::Load x2Local("load2");
   x2Local.x = x2.y;
   x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x2Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x2Local.y.repeats = {A + ONE, B + ONE, C, D, E};
   *x2Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Data x3("data_3", graph);
+  af::ascir_op::Data x3("data_3", graph);
   x3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x3.attr.sched.loop_axis = c.id;
   *x3.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x3.y.repeats = {A + ONE, B + ONE, C, D, E};
   *x3.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Load x3Local("load3");
+  af::ascir_op::Load x3Local("load3");
   x3Local.x = x3.y;
   x3Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x3Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x3Local.y.repeats = {A + ONE, B + ONE, C, D, E};
   *x3Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Store x_store("store");
+  af::ascir_op::Store x_store("store");
   x_store.x = x1Local.y;
   x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_store.attr.sched.loop_axis = c.id;
@@ -1193,7 +1193,7 @@ static std::shared_ptr<ge::AscGraph> CreatSplitAscGraph(ge::AscGraph &graph) {
   *x_store.y.repeats = {A, B, C, D, E};
   *x_store.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Output x_out("out");
+  af::ascir_op::Output x_out("out");
   x_out.x = x_store.y;
   x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_out.attr.sched.loop_axis = c.id;
@@ -1203,7 +1203,7 @@ static std::shared_ptr<ge::AscGraph> CreatSplitAscGraph(ge::AscGraph &graph) {
   auto x_out_node = graph.FindNode("out");
   auto compute_graph = x_out_node->GetOwnerComputeGraph();
 
-  ge::ascir_op::Store x_store1("store1");
+  af::ascir_op::Store x_store1("store1");
   x_store1.x = x2Local.y;
   x_store1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_store1.attr.sched.loop_axis = c.id;
@@ -1211,7 +1211,7 @@ static std::shared_ptr<ge::AscGraph> CreatSplitAscGraph(ge::AscGraph &graph) {
   *x_store1.y.repeats = {A, B, C, D, E};
   *x_store1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Output x_out1("out1");
+  af::ascir_op::Output x_out1("out1");
   x_out1.x = x_store1.y;
   x_out1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_out1.attr.sched.loop_axis = c.id;
@@ -1220,7 +1220,7 @@ static std::shared_ptr<ge::AscGraph> CreatSplitAscGraph(ge::AscGraph &graph) {
   *x_out1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   auto x_out_node1 = graph.FindNode("out1");
 
-  ge::ascir_op::Store x_store2("store2");
+  af::ascir_op::Store x_store2("store2");
   x_store2.x = x3Local.y;
   x_store2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_store2.attr.sched.loop_axis = c.id;
@@ -1228,7 +1228,7 @@ static std::shared_ptr<ge::AscGraph> CreatSplitAscGraph(ge::AscGraph &graph) {
   *x_store2.y.repeats = {A, B, C, D, E};
   *x_store2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Output x_out2("out2");
+  af::ascir_op::Output x_out2("out2");
   x_out2.x = x_store2.y;
   x_out2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_out2.attr.sched.loop_axis = c.id;
@@ -1258,56 +1258,56 @@ static std::shared_ptr<ge::AscGraph> CreatConcatAscGraph(ge::AscGraph &graph) {
   auto d = graph.CreateAxis("D", D);
   auto e = graph.CreateAxis("E", E);
 
-  ge::ascir_op::Data x1("data1", graph);
+  af::ascir_op::Data x1("data1", graph);
   x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x1.attr.sched.loop_axis = c.id;
   *x1.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x1.y.repeats = {A, B, C, D, E};
   *x1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Load x1Local("load1");
+  af::ascir_op::Load x1Local("load1");
   x1Local.x = x1.y;
   x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x1Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x1Local.y.repeats = {A, B, C, D, E};
   *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Data x2("data2", graph);
+  af::ascir_op::Data x2("data2", graph);
   x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x2.attr.sched.loop_axis = c.id;
   *x2.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x2.y.repeats = {A, B, C, D, E};
   *x2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Load x2Local("load2");
+  af::ascir_op::Load x2Local("load2");
   x2Local.x = x2.y;
   x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x2Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x2Local.y.repeats = {A, B, C, D, E};
   *x2Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Data x3("data3", graph);
+  af::ascir_op::Data x3("data3", graph);
   x3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x3.attr.sched.loop_axis = c.id;
   *x3.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x3.y.repeats = {A, B, C, D, E};
   *x3.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Load x3Local("load3");
+  af::ascir_op::Load x3Local("load3");
   x3Local.x = x3.y;
   x3Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x3Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x3Local.y.repeats = {A, B, C, D, E};
   *x3Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Concat concat(graph.GetName().c_str());
+  af::ascir_op::Concat concat(graph.GetName().c_str());
   concat.x = {x1Local.y, x2Local.y, x3Local.y};
   concat.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *concat.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *concat.y.repeats = {A, B, C, D, E};
   *concat.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Store x_store("store");
+  af::ascir_op::Store x_store("store");
   x_store.x = concat.y;
   x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_store.attr.sched.loop_axis = c.id;
@@ -1315,7 +1315,7 @@ static std::shared_ptr<ge::AscGraph> CreatConcatAscGraph(ge::AscGraph &graph) {
   *x_store.y.repeats = {A, B, C, D, E};
   *x_store.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Output x_out("out");
+  af::ascir_op::Output x_out("out");
   x_out.x = x_store.y;
   x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_out.attr.sched.loop_axis = c.id;
@@ -1471,7 +1471,7 @@ TEST_F(AscBackendFusionDeciderTest, AscBackendFusionDecider_StridedSliceAndStrid
   ASSERT_NE(attr1, nullptr);
   ASSERT_NE(attr2, nullptr);
 
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == kLoadType) {
       ASSERT_NE(node->GetOpDesc(), nullptr);
       const auto &attr = node->GetOpDesc()->GetAttrsGroup<AscNodeAttr>();
@@ -1481,7 +1481,7 @@ TEST_F(AscBackendFusionDeciderTest, AscBackendFusionDecider_StridedSliceAndStrid
       ASSERT_EQ(load_attr->SetOffset(Symbol("load_offset")), SUCCESS);
     }
   }
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr2->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr2->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == kLoadType) {
       ASSERT_NE(node->GetOpDesc(), nullptr);
       const auto &attr = node->GetOpDesc()->GetAttrsGroup<AscNodeAttr>();
@@ -1533,7 +1533,7 @@ TEST_F(AscBackendFusionDeciderTest, AscBackendFusionDecider_ConcatAndSlice_Ok) {
   ASSERT_NE(attr1, nullptr);
   ASSERT_NE(attr2, nullptr);
 
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == kLoadType) {
       ASSERT_NE(node->GetOpDesc(), nullptr);
       const auto &attr = node->GetOpDesc()->GetAttrsGroup<AscNodeAttr>();
@@ -1550,7 +1550,7 @@ TEST_F(AscBackendFusionDeciderTest, AscBackendFusionDecider_ConcatAndSlice_Ok) {
   ASSERT_NE(fused_desc, nullptr);
   auto fused_attr = fused_desc->GetAttrsGroup<AutoFuseAttrs>();
   ASSERT_NE(fused_attr, nullptr);
-  auto output = AscGraphUtils::GetComputeGraph(*(fused_attr->GetAscGraph()))->FindNode("xLocal_stridedSlice");
+  auto output = af::AscGraphUtils::GetComputeGraph(*(fused_attr->GetAscGraph()))->FindNode("xLocal_stridedSlice");
   ASSERT_NE(output->GetOpDesc(), nullptr);
   const auto &attr = output->GetOpDesc()->GetAttrsGroup<AscNodeAttr>();
   ASSERT_NE(attr, nullptr);
@@ -1883,7 +1883,7 @@ TEST_F(AscBackendFusionDeciderTest, AscBackendFusionDecider_FuseNoLoopMerge2_Ok)
   auto fused_node = decider.Fuse(node1, node2, nullptr);
   ASSERT_NE(fused_node, nullptr);
 
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == kLoadType) {
       ASSERT_NE(node->GetOpDesc(), nullptr);
       const auto &attr = node->GetOpDesc()->GetAttrsGroup<AscNodeAttr>();
@@ -1893,7 +1893,7 @@ TEST_F(AscBackendFusionDeciderTest, AscBackendFusionDecider_FuseNoLoopMerge2_Ok)
       ASSERT_EQ(load_attr->SetOffset(Symbol("load_offset")), SUCCESS);
     }
   }
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr2->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr2->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == kLoadType) {
       ASSERT_NE(node->GetOpDesc(), nullptr);
       const auto &attr = node->GetOpDesc()->GetAttrsGroup<AscNodeAttr>();
@@ -1972,14 +1972,14 @@ TEST_F(AscBackendFusionDeciderTest, AscBackendFusionDecider_FuseLoopMerge1_Ok) {
   ASSERT_NE(fused_desc, nullptr);
   auto fused_attr = fused_desc->GetAttrsGroup<AutoFuseAttrs>();
   ASSERT_NE(fused_attr, nullptr);
-  ASSERT_NE(AscGraphUtils::GetComputeGraph(*(fused_attr->GetAscGraph())), nullptr);
+  ASSERT_NE(af::AscGraphUtils::GetComputeGraph(*(fused_attr->GetAscGraph())), nullptr);
 
-  EXPECT_EQ(AscGraphUtils::GetComputeGraph(*(fused_attr->GetAscGraph()))->GetAllNodesSize(), 15);
+  EXPECT_EQ(af::AscGraphUtils::GetComputeGraph(*(fused_attr->GetAscGraph()))->GetAllNodesSize(), 15);
   EXPECT_EQ(graph->GetAllNodesSize(), 6);
 
   ASSERT_EQ(fused_node->GetInDataNodes().size(), 3);
   ASSERT_EQ(fused_node->GetOutDataNodes().size(), 2);
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == kLoadType) {
       ASSERT_NE(node->GetOpDesc(), nullptr);
       const auto &attr = node->GetOpDesc()->GetAttrsGroup<AscNodeAttr>();
@@ -1989,7 +1989,7 @@ TEST_F(AscBackendFusionDeciderTest, AscBackendFusionDecider_FuseLoopMerge1_Ok) {
       ASSERT_EQ(load_attr->SetOffset(Symbol("load_offset")), SUCCESS);
     }
   }
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr2->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr2->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == kLoadType) {
       ASSERT_NE(node->GetOpDesc(), nullptr);
       const auto &attr = node->GetOpDesc()->GetAttrsGroup<AscNodeAttr>();
@@ -2088,14 +2088,14 @@ TEST_F(AscBackendFusionDeciderTest, AscBackendFusionDecider_FuseLoopMerge2_Ok) {
   ASSERT_NE(fused_desc, nullptr);
   auto fused_attr = fused_desc->GetAttrsGroup<AutoFuseAttrs>();
   ASSERT_NE(fused_attr, nullptr);
-  ASSERT_NE(AscGraphUtils::GetComputeGraph(*(fused_attr->GetAscGraph())), nullptr);
+  ASSERT_NE(af::AscGraphUtils::GetComputeGraph(*(fused_attr->GetAscGraph())), nullptr);
 
-  EXPECT_EQ(AscGraphUtils::GetComputeGraph(*(fused_attr->GetAscGraph()))->GetAllNodesSize(), 13);
+  EXPECT_EQ(af::AscGraphUtils::GetComputeGraph(*(fused_attr->GetAscGraph()))->GetAllNodesSize(), 13);
   EXPECT_EQ(graph->GetAllNodesSize(), 6);
 
   ASSERT_EQ(fused_node->GetInDataNodes().size(), 3);
   ASSERT_EQ(fused_node->GetOutDataNodes().size(), 2);
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == kLoadType) {
       ASSERT_NE(node->GetOpDesc(), nullptr);
       const auto &attr = node->GetOpDesc()->GetAttrsGroup<AscNodeAttr>();
@@ -2105,7 +2105,7 @@ TEST_F(AscBackendFusionDeciderTest, AscBackendFusionDecider_FuseLoopMerge2_Ok) {
       ASSERT_EQ(load_attr->SetOffset(Symbol("load_offset")), SUCCESS);
     }
   }
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr2->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr2->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == kLoadType) {
       ASSERT_NE(node->GetOpDesc(), nullptr);
       const auto &attr = node->GetOpDesc()->GetAttrsGroup<AscNodeAttr>();
@@ -2197,17 +2197,17 @@ TEST_F(AscBackendFusionDeciderTest, AscBackendFusionDecider_FuseLoopMerge3_Ok) {
   ASSERT_NE(fused_desc, nullptr);
   auto fused_attr = fused_desc->GetAttrsGroup<AutoFuseAttrs>();
   ASSERT_NE(fused_attr, nullptr);
-  ASSERT_NE(AscGraphUtils::GetComputeGraph(*(fused_attr->GetAscGraph())), nullptr);
+  ASSERT_NE(af::AscGraphUtils::GetComputeGraph(*(fused_attr->GetAscGraph())), nullptr);
 
-  EXPECT_EQ(AscGraphUtils::GetComputeGraph(*(fused_attr->GetAscGraph()))->GetAllNodesSize(), 16);
-  auto output = AscGraphUtils::GetComputeGraph(*(fused_attr->GetAscGraph()))->FindNode("add_broadcast_add");
+  EXPECT_EQ(af::AscGraphUtils::GetComputeGraph(*(fused_attr->GetAscGraph()))->GetAllNodesSize(), 16);
+  auto output = af::AscGraphUtils::GetComputeGraph(*(fused_attr->GetAscGraph()))->FindNode("add_broadcast_add");
   ASSERT_NE(output, nullptr);
 
   EXPECT_EQ(graph->GetAllNodesSize(), 7);
 
   ASSERT_EQ(fused_node->GetInDataNodes().size(), 3);
   ASSERT_EQ(fused_node->GetOutDataNodes().size(), 2);
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == kLoadType) {
       ASSERT_NE(node->GetOpDesc(), nullptr);
       const auto &attr = node->GetOpDesc()->GetAttrsGroup<AscNodeAttr>();
@@ -2217,7 +2217,7 @@ TEST_F(AscBackendFusionDeciderTest, AscBackendFusionDecider_FuseLoopMerge3_Ok) {
       ASSERT_EQ(load_attr->SetOffset(Symbol("load_offset")), SUCCESS);
     }
   }
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr2->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr2->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == kLoadType) {
       ASSERT_NE(node->GetOpDesc(), nullptr);
       const auto &attr = node->GetOpDesc()->GetAttrsGroup<AscNodeAttr>();
@@ -2309,17 +2309,17 @@ TEST_F(AscBackendFusionDeciderTest, AscBackendFusionDecider_FuseLoopMerge3_2_Ok)
   ASSERT_NE(fused_desc, nullptr);
   auto fused_attr = fused_desc->GetAttrsGroup<AutoFuseAttrs>();
   ASSERT_NE(fused_attr, nullptr);
-  ASSERT_NE(AscGraphUtils::GetComputeGraph(*(fused_attr->GetAscGraph())), nullptr);
+  ASSERT_NE(af::AscGraphUtils::GetComputeGraph(*(fused_attr->GetAscGraph())), nullptr);
 
-  EXPECT_EQ(AscGraphUtils::GetComputeGraph(*(fused_attr->GetAscGraph()))->GetAllNodesSize(), 16);
-  auto output = AscGraphUtils::GetComputeGraph(*(fused_attr->GetAscGraph()))->FindNode("add_broadcast_add");
+  EXPECT_EQ(af::AscGraphUtils::GetComputeGraph(*(fused_attr->GetAscGraph()))->GetAllNodesSize(), 16);
+  auto output = af::AscGraphUtils::GetComputeGraph(*(fused_attr->GetAscGraph()))->FindNode("add_broadcast_add");
   ASSERT_NE(output, nullptr);
 
   EXPECT_EQ(graph->GetAllNodesSize(), 7);
 
   ASSERT_EQ(fused_node->GetInDataNodes().size(), 3);
   ASSERT_EQ(fused_node->GetOutDataNodes().size(), 2);
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == kLoadType) {
       ASSERT_NE(node->GetOpDesc(), nullptr);
       const auto &attr = node->GetOpDesc()->GetAttrsGroup<AscNodeAttr>();
@@ -2329,7 +2329,7 @@ TEST_F(AscBackendFusionDeciderTest, AscBackendFusionDecider_FuseLoopMerge3_2_Ok)
       ASSERT_EQ(load_attr->SetOffset(Symbol("load_offset")), SUCCESS);
     }
   }
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr2->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr2->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == kLoadType) {
       ASSERT_NE(node->GetOpDesc(), nullptr);
       const auto &attr = node->GetOpDesc()->GetAttrsGroup<AscNodeAttr>();
@@ -2450,17 +2450,17 @@ TEST_F(AscBackendFusionDeciderTest, AscBackendFusionDecider_FuseLoopMerge4_1_Ok)
   ASSERT_NE(fused_desc, nullptr);
   auto fused_attr = fused_desc->GetAttrsGroup<AutoFuseAttrs>();
   ASSERT_NE(fused_attr, nullptr);
-  ASSERT_NE(AscGraphUtils::GetComputeGraph(*(fused_attr->GetAscGraph())), nullptr);
+  ASSERT_NE(af::AscGraphUtils::GetComputeGraph(*(fused_attr->GetAscGraph())), nullptr);
 
-  EXPECT_EQ(AscGraphUtils::GetComputeGraph(*(fused_attr->GetAscGraph()))->GetAllNodesSize(), 12);
-  auto output = AscGraphUtils::GetComputeGraph(*(fused_attr->GetAscGraph()))->FindNode("add_broadcast_add");
+  EXPECT_EQ(af::AscGraphUtils::GetComputeGraph(*(fused_attr->GetAscGraph()))->GetAllNodesSize(), 12);
+  auto output = af::AscGraphUtils::GetComputeGraph(*(fused_attr->GetAscGraph()))->FindNode("add_broadcast_add");
   ASSERT_NE(output, nullptr);
 
   EXPECT_EQ(graph->GetAllNodesSize(), 4);
 
   EXPECT_EQ(fused_node->GetInDataNodes().size(), 2);
   EXPECT_EQ(fused_node->GetOutDataNodes().size(), 1);
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == kLoadType) {
       ASSERT_NE(node->GetOpDesc(), nullptr);
       const auto &attr = node->GetOpDesc()->GetAttrsGroup<AscNodeAttr>();
@@ -2470,7 +2470,7 @@ TEST_F(AscBackendFusionDeciderTest, AscBackendFusionDecider_FuseLoopMerge4_1_Ok)
       ASSERT_EQ(load_attr->SetOffset(Symbol("load_offset")), SUCCESS);
     }
   }
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr2->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr2->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == kLoadType) {
       ASSERT_NE(node->GetOpDesc(), nullptr);
       const auto &attr = node->GetOpDesc()->GetAttrsGroup<AscNodeAttr>();
@@ -2819,7 +2819,7 @@ TEST_F(AscBackendFusionDeciderTest, AscBackendFusionDecider_FuseNoLoopMergeAndFu
   auto fused_node = decider.Fuse(node1, node2, nullptr);
   fused_node = decider.Fuse(node3, fused_node, nullptr);
   ASSERT_NE(fused_node, nullptr);
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == kLoadType) {
       ASSERT_NE(node->GetOpDesc(), nullptr);
       const auto &attr = node->GetOpDesc()->GetAttrsGroup<AscNodeAttr>();
@@ -2829,7 +2829,7 @@ TEST_F(AscBackendFusionDeciderTest, AscBackendFusionDecider_FuseNoLoopMergeAndFu
       ASSERT_EQ(load_attr->SetOffset(Symbol("load_offset")), SUCCESS);
     }
   }
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr2->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr2->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == kLoadType) {
       ASSERT_NE(node->GetOpDesc(), nullptr);
       const auto &attr = node->GetOpDesc()->GetAttrsGroup<AscNodeAttr>();
@@ -3404,17 +3404,17 @@ TEST_F(AscBackendFusionDeciderTest, AscBackendFusionDecider_FuseLoopMerge3_1_Ok)
   ASSERT_NE(fused_desc, nullptr);
   auto fused_attr = fused_desc->GetAttrsGroup<AutoFuseAttrs>();
   ASSERT_NE(fused_attr, nullptr);
-  ASSERT_NE(AscGraphUtils::GetComputeGraph(*(fused_attr->GetAscGraph())), nullptr);
+  ASSERT_NE(af::AscGraphUtils::GetComputeGraph(*(fused_attr->GetAscGraph())), nullptr);
 
-  EXPECT_EQ(AscGraphUtils::GetComputeGraph(*(fused_attr->GetAscGraph()))->GetAllNodesSize(), 15);
-  auto output = AscGraphUtils::GetComputeGraph(*(fused_attr->GetAscGraph()))->FindNode("add_more_add");
+  EXPECT_EQ(af::AscGraphUtils::GetComputeGraph(*(fused_attr->GetAscGraph()))->GetAllNodesSize(), 15);
+  auto output = af::AscGraphUtils::GetComputeGraph(*(fused_attr->GetAscGraph()))->FindNode("add_more_add");
   ASSERT_NE(output, nullptr);
 
   EXPECT_EQ(graph->GetAllNodesSize(), 7);
 
   ASSERT_EQ(fused_node->GetInDataNodes().size(), 3);
   ASSERT_EQ(fused_node->GetOutDataNodes().size(), 2);
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == kLoadType) {
       ASSERT_NE(node->GetOpDesc(), nullptr);
       const auto &attr = node->GetOpDesc()->GetAttrsGroup<AscNodeAttr>();
@@ -3424,7 +3424,7 @@ TEST_F(AscBackendFusionDeciderTest, AscBackendFusionDecider_FuseLoopMerge3_1_Ok)
       ASSERT_EQ(load_attr->SetOffset(Symbol("load_offset")), SUCCESS);
     }
   }
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr2->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr2->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == kLoadType) {
       ASSERT_NE(node->GetOpDesc(), nullptr);
       const auto &attr = node->GetOpDesc()->GetAttrsGroup<AscNodeAttr>();
@@ -3926,17 +3926,17 @@ TEST_F(AscBackendFusionDeciderTest, AscBackendFusionDecider_HorizontalFuse_Same_
   ASSERT_NE(fused_desc, nullptr);
   auto fused_attr = fused_desc->GetAttrsGroup<AutoFuseAttrs>();
   ASSERT_NE(fused_attr, nullptr);
-  ASSERT_NE(AscGraphUtils::GetComputeGraph(*(fused_attr->GetAscGraph())), nullptr);
+  ASSERT_NE(af::AscGraphUtils::GetComputeGraph(*(fused_attr->GetAscGraph())), nullptr);
 
-  EXPECT_EQ(AscGraphUtils::GetComputeGraph(*(fused_attr->GetAscGraph()))->GetAllNodesSize(), 13);
-  auto output = AscGraphUtils::GetComputeGraph(*(fused_attr->GetAscGraph()))->FindNode("add_broadcast_abs");
+  EXPECT_EQ(af::AscGraphUtils::GetComputeGraph(*(fused_attr->GetAscGraph()))->GetAllNodesSize(), 13);
+  auto output = af::AscGraphUtils::GetComputeGraph(*(fused_attr->GetAscGraph()))->FindNode("add_broadcast_abs");
   ASSERT_NE(output, nullptr);
 
   EXPECT_EQ(graph->GetAllNodesSize(), 5);
 
   ASSERT_EQ(fused_node->GetInDataNodes().size(), 1);
   ASSERT_EQ(fused_node->GetOutDataNodes().size(), 2);
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == kLoadType) {
       ASSERT_NE(node->GetOpDesc(), nullptr);
       const auto &attr = node->GetOpDesc()->GetAttrsGroup<AscNodeAttr>();
@@ -3946,7 +3946,7 @@ TEST_F(AscBackendFusionDeciderTest, AscBackendFusionDecider_HorizontalFuse_Same_
       ASSERT_EQ(load_attr->SetOffset(Symbol("load_offset")), SUCCESS);
     }
   }
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr2->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr2->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == kLoadType) {
       ASSERT_NE(node->GetOpDesc(), nullptr);
       const auto &attr = node->GetOpDesc()->GetAttrsGroup<AscNodeAttr>();
@@ -4060,7 +4060,7 @@ TEST_F(AscBackendFusionDeciderTest, TestIsAllInputSimplestLoad_FusedAscBackend) 
       op_desc->SetType(type);
       auto attr = GetOrCreateAutoFuseAttrs(op_desc);
       ASSERT_NE(attr, nullptr);
-      attr->SetFuseComputeGraph(AscGraphUtils::GetComputeGraph(*asc_graph_fuse1));
+      attr->SetFuseComputeGraph(af::AscGraphUtils::GetComputeGraph(*asc_graph_fuse1));
     }
     loop_cnt++;
   }
@@ -4169,7 +4169,7 @@ TEST_F(AscBackendFusionDeciderTest, AscBackendFusionDecider_Update_Subgraph_Outp
   GetInterAttrs(attr).axis_group = optimize::autoschedule::AxisGroup();
   ge::AscGraph add_graph(node1->GetName().c_str());
   auto asc_graph = CreatAddAscGraph(add_graph);
-  auto compute_graph = AscGraphUtils::GetComputeGraph(*asc_graph);
+  auto compute_graph = af::AscGraphUtils::GetComputeGraph(*asc_graph);
   attr->SetFuseComputeGraph(compute_graph);
   AscBackendFusionDecider decider;
   ASSERT_EQ(decider.CanFuseHorizontal(node1, node2), false);
@@ -4204,7 +4204,7 @@ TEST_F(AscBackendFusionDeciderTest, AscBackendFusionDecider_Update_Subgraph_Outp
   GetInterAttrs(attr).axis_group = optimize::autoschedule::AxisGroup();
   ge::AscGraph add_graph(node1->GetName().c_str());
   auto asc_graph = CreatAddAscGraph(add_graph);
-  auto compute_graph = AscGraphUtils::GetComputeGraph(*asc_graph);
+  auto compute_graph = af::AscGraphUtils::GetComputeGraph(*asc_graph);
   attr->SetFuseComputeGraph(compute_graph);
   AscBackendFusionDecider decider;
   ASSERT_EQ(decider.CanFuseHorizontal(node2, node1), false);

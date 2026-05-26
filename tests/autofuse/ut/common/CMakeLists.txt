@@ -1,19 +1,20 @@
-set(COMMON_ROOT_DIR ${CODE_ROOT_DIR}/common)
-file(GLOB_RECURSE COMMON_SRC_FILES CONFIGURE_DEPENDS
-        "${COMMON_ROOT_DIR}/*.cpp"
-        "${COMMON_ROOT_DIR}/*.cc"
+set(ATRACE_ROOT_DIR ${CODE_ROOT_DIR}/../../../../base/common/atrace)
+file(GLOB_RECURSE ATRACE_SRC_FILES CONFIGURE_DEPENDS
+        "${ATRACE_ROOT_DIR}/*.cpp"
+        "${ATRACE_ROOT_DIR}/*.cc"
 )
 
 file(GLOB_RECURSE COMMON_TEST_SRCS CONFIGURE_DEPENDS "*.cpp" "*.cc")
 add_executable(test_common
         test.cpp
         ${COMMON_TEST_SRCS}
-        ${COMMON_SRC_FILES}
+        ${ATRACE_SRC_FILES}
 )
 
 target_include_directories(test_common PRIVATE
         ${CODE_ROOT_DIR}
         ${CODE_ROOT_DIR}/common
+        ${CODE_ROOT_DIR}/../../../../base/common
 )
 
 set(ASCGEN_DT_COMPILE_OPTION
@@ -29,6 +30,10 @@ target_compile_options(test_common PRIVATE ${ASCGEN_DT_COMPILE_OPTION}
     -Wno-subobject-linkage
 )
 
+target_link_options(test_common PRIVATE
+    -Wl,--disable-new-dtags
+)
+
 target_link_libraries(test_common PRIVATE
     GTest::gtest
     GTest::gmock
@@ -38,8 +43,10 @@ target_link_libraries(test_common PRIVATE
     asc_slog_stub
     autofuse_runtime_stub
     atrace
-    ascgen_common
     json
     error_manager
     metadef
+    ascend_protobuf
+    c_sec
+    mmpa
 )

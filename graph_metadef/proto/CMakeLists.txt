@@ -33,7 +33,6 @@ set(METADEF_PROTO_LIST
         "${METADEF_PROTO_DIR}/aicpu/cpu_node_def.proto"
         "${METADEF_PROTO_DIR}/aicpu/cpu_tensor_shape.proto"
         "${METADEF_PROTO_DIR}/aicpu/cpu_tensor.proto"
-        "${METADEF_PROTO_DIR}/ascendc_ir.proto"
         "${METADEF_PROTO_DIR}/ge_ir_mobile.proto"
         "${METADEF_PROTO_DIR}/task_mobile.proto"
         )
@@ -47,7 +46,6 @@ protobuf_generate(metadef_protos METADEF_PROTO_SRCS METADEF_PROTO_HDRS ${METADEF
 set(METADEF_GRAPH_PROTO_SRCS
         "${CMAKE_BINARY_DIR}/proto/metadef_protos/proto/om.pb.cc"
         "${CMAKE_BINARY_DIR}/proto/metadef_protos/proto/ge_ir.pb.cc"
-        "${CMAKE_BINARY_DIR}/proto/metadef_protos/proto/ascendc_ir.pb.cc"
         "${CMAKE_BINARY_DIR}/proto/metadef_protos/proto/insert_op.pb.cc"
         "${CMAKE_BINARY_DIR}/proto/metadef_protos/proto/task.pb.cc"
         "${CMAKE_BINARY_DIR}/proto/metadef_protos/proto/fwk_adapter.pb.cc"

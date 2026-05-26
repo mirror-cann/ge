@@ -137,7 +137,7 @@ namespace {
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
   
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -145,7 +145,7 @@ namespace {
     *x1.y.repeats = {A, B, C, D, E};
     *x1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -153,7 +153,7 @@ namespace {
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Data x2("x2_3", graph);
+    af::ascir_op::Data x2("x2_3", graph);
     x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2.attr.sched.loop_axis = c.id;
     x2.y.dtype = DT_FLOAT16;
@@ -161,7 +161,7 @@ namespace {
     *x2.y.repeats = {A, B, C, D, E};
     *x2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Load x2Local("x2Local_4");
+    af::ascir_op::Load x2Local("x2Local_4");
     x2Local.x = x2.y;
     x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2Local.y.dtype = DT_FLOAT16;
@@ -169,7 +169,7 @@ namespace {
     *x2Local.y.repeats = {A, B, C, D, E};
     *x2Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Add add("add_4");
+    af::ascir_op::Add add("add_4");
     add.x1 = x1Local.y;
     add.x2 = x2Local.y;
     add.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -180,7 +180,7 @@ namespace {
     *add.y.repeats = {A, B, C, D, E};
     *add.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = add.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -189,7 +189,7 @@ namespace {
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output("x_output");
+    af::ascir_op::Output x_output("x_output");
     x_output.x = x_out.y;
     x_output.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output.attr.sched.loop_axis = c.id;
@@ -227,7 +227,7 @@ namespace {
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("x1", graph);
+    af::ascir_op::Data x1("x1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -235,7 +235,7 @@ namespace {
     *x1.y.repeats = {A, B, C, D, E};
     *x1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Load x1Local("x1Local");
+    af::ascir_op::Load x1Local("x1Local");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -243,7 +243,7 @@ namespace {
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Split split1("x1split");
+    af::ascir_op::Split split1("x1split");
     split1.InstanceOutputy(1);
     split1.ir_attr.SetIndex(0);
     split1.x = x1Local.y;
@@ -255,7 +255,7 @@ namespace {
     *split1.y[0].repeats = {A, B, C, D, E};
     *split1.y[0].strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Store x1_out("x1_out");
+    af::ascir_op::Store x1_out("x1_out");
     x1_out.x = split1.y[0];
     x1_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1_out.attr.sched.loop_axis = c.id;
@@ -264,7 +264,7 @@ namespace {
     *x1_out.y.repeats = {A, B, C, D, E};
     *x1_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Split split2("x2split");
+    af::ascir_op::Split split2("x2split");
     split2.InstanceOutputy(1);
     split2.ir_attr.SetIndex(1);
     split2.x = x1Local.y;
@@ -276,7 +276,7 @@ namespace {
     *split2.y[0].repeats = {A, B, C, D, E};
     *split2.y[0].strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Store x2_out("x2_out");
+    af::ascir_op::Store x2_out("x2_out");
     x2_out.x = split2.y[0];
     x2_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2_out.attr.sched.loop_axis = c.id;
@@ -285,7 +285,7 @@ namespace {
     *x2_out.y.repeats = {A, B, C, D, E};
     *x2_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x1_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -294,7 +294,7 @@ namespace {
     *x_output1.y.repeats = {A, B, C, D, E};
     *x_output1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output2("x_output2");
+    af::ascir_op::Output x_output2("x_output2");
     x_output2.x = x2_out.y;
     x_output2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output2.attr.sched.loop_axis = c.id;
@@ -326,7 +326,7 @@ namespace {
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
   
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT;
@@ -334,7 +334,7 @@ namespace {
     *x1.y.repeats = {A, B, C, D, E};
     *x1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Data x2("x2_1", graph);
+    af::ascir_op::Data x2("x2_1", graph);
     x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2.attr.sched.loop_axis = c.id;
     x2.y.dtype = DT_FLOAT;
@@ -342,7 +342,7 @@ namespace {
     *x2.y.repeats = {A, B, C, D, E};
     *x2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Data x3("x3_1", graph);
+    af::ascir_op::Data x3("x3_1", graph);
     x3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x3.attr.sched.loop_axis = c.id;
     x3.y.dtype = DT_FLOAT;
@@ -350,7 +350,7 @@ namespace {
     *x3.y.repeats = {A, B, C, D, E};
     *x3.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT;
@@ -358,7 +358,7 @@ namespace {
     *x1Local.y.repeats = {A, C, B, D, E};
     *x1Local.y.strides = {C * B * D * E, B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Load x2Local("x2Local_2");
+    af::ascir_op::Load x2Local("x2Local_2");
     x2Local.x = x2.y;
     x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2Local.y.dtype = DT_FLOAT;
@@ -366,7 +366,7 @@ namespace {
     *x2Local.y.repeats = {A, C, B, D, E};
     *x2Local.y.strides = {C * B * D * E, B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Load x3Local("x3Local_2");
+    af::ascir_op::Load x3Local("x3Local_2");
     x3Local.x = x3.y;
     x3Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x3Local.y.dtype = DT_FLOAT;
@@ -374,7 +374,7 @@ namespace {
     *x3Local.y.repeats = {A, C, B, D, E};
     *x3Local.y.strides = {C * B * D * E, B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Mul mul1("mul1");
+    af::ascir_op::Mul mul1("mul1");
     mul1.x1 = x1Local.y;
     mul1.x2 = x2Local.y;
     mul1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -385,7 +385,7 @@ namespace {
     *mul1.y.repeats = {};
     *mul1.y.strides = {};
 
-    ge::ascir_op::Mul mul2("mul2");
+    af::ascir_op::Mul mul2("mul2");
     mul2.x1 = x1Local.y;
     mul2.x2 = x3Local.y;
     mul2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -396,7 +396,7 @@ namespace {
     *mul2.y.repeats = {};
     *mul2.y.strides = {};
 
-    ge::ascir_op::Mul mul3("mul3");
+    af::ascir_op::Mul mul3("mul3");
     mul3.x1 = x2Local.y;
     mul3.x2 = x3Local.y;
     mul3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -407,7 +407,7 @@ namespace {
     *mul3.y.repeats = {};
     *mul3.y.strides = {};
   
-    ge::ascir_op::Store x_store1("x_store1");
+    af::ascir_op::Store x_store1("x_store1");
     x_store1.x = mul1.y;
     x_store1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_store1.attr.sched.loop_axis = c.id;
@@ -416,7 +416,7 @@ namespace {
     *x_store1.y.repeats = {A, B, C, D, E};
     *x_store1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Store x_store2("x_store2");
+    af::ascir_op::Store x_store2("x_store2");
     x_store2.x = mul2.y;
     x_store2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_store2.attr.sched.loop_axis = c.id;
@@ -425,7 +425,7 @@ namespace {
     *x_store2.y.repeats = {A, C, B, D, E};
     *x_store2.y.strides = {C * B * D * E, B * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Store x_store3("x_store3");
+    af::ascir_op::Store x_store3("x_store3");
     x_store3.x = mul3.y;
     x_store3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_store3.attr.sched.loop_axis = c.id;
@@ -434,7 +434,7 @@ namespace {
     *x_store3.y.repeats = {A, B, C, D, E};
     *x_store3.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_store1.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -443,7 +443,7 @@ namespace {
     *x_output1.y.repeats = {A, B, C, D, E};
     *x_output1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output2("x_output2");
+    af::ascir_op::Output x_output2("x_output2");
     x_output2.x = x_store2.y;
     x_output2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output2.attr.sched.loop_axis = c.id;
@@ -452,7 +452,7 @@ namespace {
     *x_output2.y.repeats = {A, B, C, D, E};
     *x_output2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output3("x_output3");
+    af::ascir_op::Output x_output3("x_output3");
     x_output3.x = x_store3.y;
     x_output3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output3.attr.sched.loop_axis = c.id;
@@ -485,7 +485,7 @@ namespace {
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
   
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT;
@@ -493,7 +493,7 @@ namespace {
     *x1.y.repeats = {A, B, C, D, E};
     *x1.y.strides = {C * A * D * E, A * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT;
@@ -501,7 +501,7 @@ namespace {
     *x1Local.y.repeats = {B, C, A, D, E};
     *x1Local.y.strides = {C * A * D * E, A * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs abs1("x1_abs");
+    af::ascir_op::Abs abs1("x1_abs");
     abs1.x = x1Local.y;
     abs1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs1.y.dtype = DT_FLOAT;
@@ -509,7 +509,7 @@ namespace {
     *abs1.y.repeats = {B, C, A, D, E};
     *abs1.y.strides = {C * A * D * E, A * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Data x2("x2_1", graph);
+    af::ascir_op::Data x2("x2_1", graph);
     x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2.attr.sched.loop_axis = c.id;
     x2.y.dtype = DT_FLOAT;
@@ -517,7 +517,7 @@ namespace {
     *x2.y.repeats = {A, B, C, D, E};
     *x2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Load x2Local("x2Local_2");
+    af::ascir_op::Load x2Local("x2Local_2");
     x2Local.x = x2.y;
     x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2Local.y.dtype = DT_FLOAT;
@@ -525,7 +525,7 @@ namespace {
     *x2Local.y.repeats = {A, B, C, D, E};
     *x2Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Mul mul1("mul1");
+    af::ascir_op::Mul mul1("mul1");
     mul1.x1 = abs1.y;
     mul1.x2 = x2Local.y;
     mul1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -536,7 +536,7 @@ namespace {
     *mul1.y.repeats = {A, B, C, D, E};
     *mul1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Store x_store1("x_store1");
+    af::ascir_op::Store x_store1("x_store1");
     x_store1.x = mul1.y;
     x_store1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_store1.attr.sched.loop_axis = c.id;
@@ -545,7 +545,7 @@ namespace {
     *x_store1.y.repeats = {B, C, A, D, E};
     *x_store1.y.strides = {C * A * D * E, A * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_store1.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -554,7 +554,7 @@ namespace {
     *x_output1.y.repeats = {A, B, C, D, E};
     *x_output1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    // ge::ascir_op::Store x_store2("x_store2");
+    // af::ascir_op::Store x_store2("x_store2");
     // x_store2.x = mul1.y;
     // x_store2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     // x_store2.attr.sched.loop_axis = c.id;
@@ -588,7 +588,7 @@ namespace {
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
   
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_INT8;
@@ -596,14 +596,14 @@ namespace {
     *x1.y.repeats = {};
     *x1.y.strides = {};
   
-    ge::ascir_op::Data x2("x2_1", graph);
+    af::ascir_op::Data x2("x2_1", graph);
     x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2.attr.sched.loop_axis = c.id;
     x2.y.dtype = DT_INT8;
     *x2.y.axis = {};
     *x2.y.repeats = {};
     *x2.y.strides = {};
-    ge::ascir_op::Data x3("x3_1", graph);
+    af::ascir_op::Data x3("x3_1", graph);
     x3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x3.attr.sched.loop_axis = c.id;
     x3.y.dtype = DT_INT8;
@@ -611,7 +611,7 @@ namespace {
     *x3.y.repeats = {};
     *x3.y.strides = {};
 
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_INT8;
@@ -619,7 +619,7 @@ namespace {
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Load x2Local("x2Local_2");
+    af::ascir_op::Load x2Local("x2Local_2");
     x2Local.x = x2.y;
     x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2Local.y.dtype = DT_INT8;
@@ -627,7 +627,7 @@ namespace {
     *x2Local.y.repeats = {A, B, C, D, E};
     *x2Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Load x3Local("x3Local_2");
+    af::ascir_op::Load x3Local("x3Local_2");
     x3Local.x = x3.y;
     x3Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x3Local.y.dtype = DT_INT8;
@@ -635,7 +635,7 @@ namespace {
     *x3Local.y.repeats = {A, B, C, D, E};
     *x3Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Mul mul1("mul1");
+    af::ascir_op::Mul mul1("mul1");
     mul1.x1 = x1Local.y;
     mul1.x2 = x2Local.y;
     mul1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -646,7 +646,7 @@ namespace {
     *mul1.y.repeats = {};
     *mul1.y.strides = {};
 
-    ge::ascir_op::Mul mul2("mul2");
+    af::ascir_op::Mul mul2("mul2");
     mul2.x1 = x1Local.y;
     mul2.x2 = x3Local.y;
     mul2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -657,7 +657,7 @@ namespace {
     *mul2.y.repeats = {};
     *mul2.y.strides = {};
 
-    ge::ascir_op::Mul mul3("mul3");
+    af::ascir_op::Mul mul3("mul3");
     mul3.x1 = x2Local.y;
     mul3.x2 = x3Local.y;
     mul3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -668,7 +668,7 @@ namespace {
     *mul3.y.repeats = {};
     *mul3.y.strides = {};
   
-    ge::ascir_op::Store x_store1("x_store1");
+    af::ascir_op::Store x_store1("x_store1");
     x_store1.x = mul1.y;
     x_store1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_store1.attr.sched.loop_axis = c.id;
@@ -677,7 +677,7 @@ namespace {
     *x_store1.y.repeats = {A, B, C, D, E};
     *x_store1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Store x_store2("x_store2");
+    af::ascir_op::Store x_store2("x_store2");
     x_store2.x = mul2.y;
     x_store2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_store2.attr.sched.loop_axis = c.id;
@@ -686,7 +686,7 @@ namespace {
     *x_store2.y.repeats = {A, B, C, D, E};
     *x_store2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Store x_store3("x_store3");
+    af::ascir_op::Store x_store3("x_store3");
     x_store3.x = mul3.y;
     x_store3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_store3.attr.sched.loop_axis = c.id;
@@ -695,7 +695,7 @@ namespace {
     *x_store3.y.repeats = {A, B, C, D, E};
     *x_store3.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_store1.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -704,7 +704,7 @@ namespace {
     *x_output1.y.repeats = {A, B, C, D, E};
     *x_output1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output2("x_output2");
+    af::ascir_op::Output x_output2("x_output2");
     x_output2.x = x_store2.y;
     x_output2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output2.attr.sched.loop_axis = c.id;
@@ -713,7 +713,7 @@ namespace {
     *x_output2.y.repeats = {A, B, C, D, E};
     *x_output2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output3("x_output3");
+    af::ascir_op::Output x_output3("x_output3");
     x_output3.x = x_store3.y;
     x_output3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output3.attr.sched.loop_axis = c.id;
@@ -747,7 +747,7 @@ namespace {
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
   
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT;
@@ -755,7 +755,7 @@ namespace {
     *x1.y.repeats = {A, ONE, C, D, ONE};
     *x1.y.strides = {C * D, ZERO, D, ONE, ZERO};
   
-    ge::ascir_op::Data x2("x2_1", graph);
+    af::ascir_op::Data x2("x2_1", graph);
     x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2.attr.sched.loop_axis = c.id;
     x2.y.dtype = DT_FLOAT;
@@ -763,7 +763,7 @@ namespace {
     *x2.y.repeats = {ONE, B, C, D, E};
     *x2.y.strides = {ZERO, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Data x3("x3_1", graph);
+    af::ascir_op::Data x3("x3_1", graph);
     x3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x3.attr.sched.loop_axis = c.id;
     x3.y.dtype = DT_FLOAT;
@@ -771,7 +771,7 @@ namespace {
     *x3.y.repeats = {ONE, ONE, C, D, E};
     *x3.y.strides = {ZERO, ZERO, D * E, E, ONE};
 
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT;
@@ -779,7 +779,7 @@ namespace {
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Load x2Local("x2Local_2");
+    af::ascir_op::Load x2Local("x2Local_2");
     x2Local.x = x2.y;
     x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2Local.y.dtype = DT_FLOAT;
@@ -787,7 +787,7 @@ namespace {
     *x2Local.y.repeats = {A, B, C, D, E};
     *x2Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Load x3Local("x3Local_2");
+    af::ascir_op::Load x3Local("x3Local_2");
     x3Local.x = x3.y;
     x3Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x3Local.y.dtype = DT_FLOAT;
@@ -795,7 +795,7 @@ namespace {
     *x3Local.y.repeats = {A, B, C, D, E};
     *x3Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Mul mul1("mul1");
+    af::ascir_op::Mul mul1("mul1");
     mul1.x1 = x1Local.y;
     mul1.x2 = x2Local.y;
     mul1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -806,7 +806,7 @@ namespace {
     *mul1.y.repeats = {};
     *mul1.y.strides = {};
 
-    ge::ascir_op::Mul mul2("mul2");
+    af::ascir_op::Mul mul2("mul2");
     mul2.x1 = x1Local.y;
     mul2.x2 = x3Local.y;
     mul2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -817,7 +817,7 @@ namespace {
     *mul2.y.repeats = {};
     *mul2.y.strides = {};
 
-    ge::ascir_op::Mul mul3("mul3");
+    af::ascir_op::Mul mul3("mul3");
     mul3.x1 = x2Local.y;
     mul3.x2 = x3Local.y;
     mul3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -828,7 +828,7 @@ namespace {
     *mul3.y.repeats = {};
     *mul3.y.strides = {};
   
-    ge::ascir_op::Store x_store1("x_store1");
+    af::ascir_op::Store x_store1("x_store1");
     x_store1.x = mul1.y;
     x_store1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_store1.attr.sched.loop_axis = c.id;
@@ -837,7 +837,7 @@ namespace {
     *x_store1.y.repeats = {A, B, C, D, E};
     *x_store1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Store x_store2("x_store2");
+    af::ascir_op::Store x_store2("x_store2");
     x_store2.x = mul2.y;
     x_store2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_store2.attr.sched.loop_axis = c.id;
@@ -846,7 +846,7 @@ namespace {
     *x_store2.y.repeats = {A, B, C, D, E};
     *x_store2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Store x_store3("x_store3");
+    af::ascir_op::Store x_store3("x_store3");
     x_store3.x = mul3.y;
     x_store3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_store3.attr.sched.loop_axis = c.id;
@@ -855,7 +855,7 @@ namespace {
     *x_store3.y.repeats = {A, B, C, D, E};
     *x_store3.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_store1.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -864,7 +864,7 @@ namespace {
     *x_output1.y.repeats = {A, B, C, D, E};
     *x_output1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output2("x_output2");
+    af::ascir_op::Output x_output2("x_output2");
     x_output2.x = x_store2.y;
     x_output2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output2.attr.sched.loop_axis = c.id;
@@ -873,7 +873,7 @@ namespace {
     *x_output2.y.repeats = {A, B, C, D, E};
     *x_output2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output3("x_output3");
+    af::ascir_op::Output x_output3("x_output3");
     x_output3.x = x_store3.y;
     x_output3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output3.attr.sched.loop_axis = c.id;
@@ -907,7 +907,7 @@ namespace {
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("x1_1_mul", graph);
+    af::ascir_op::Data x1("x1_1_mul", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -915,7 +915,7 @@ namespace {
     *x1.y.repeats = {};
     *x1.y.strides = {};
 
-    ge::ascir_op::Load x1Local("x1Local_2_mul");
+    af::ascir_op::Load x1Local("x1Local_2_mul");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, c.id, b.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -923,7 +923,7 @@ namespace {
     *x1Local.y.repeats = {A, C, B, ONE, E};
     *x1Local.y.strides = {C * B * E, B * E, E, ZERO, ONE};
 
-    ge::ascir_op::Data x2("x1_2_mul", graph);
+    af::ascir_op::Data x2("x1_2_mul", graph);
     x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2.attr.sched.loop_axis = c.id;
     x2.y.dtype = DT_FLOAT16;
@@ -931,7 +931,7 @@ namespace {
     *x2.y.repeats = {};
     *x2.y.strides = {};
 
-    ge::ascir_op::Load x2Local("x2Local_2_mul");
+    af::ascir_op::Load x2Local("x2Local_2_mul");
     x2Local.x = x2.y;
     x2Local.attr.sched.axis = {a.id, c.id, b.id, d.id, e.id};
     x2Local.y.dtype = DT_FLOAT16;
@@ -939,7 +939,7 @@ namespace {
     *x2Local.y.repeats = {A, C, B, ONE, E};
     *x2Local.y.strides = {C * B * E, B * E, E, ZERO, ONE};
 
-    ge::ascir_op::Broadcast x1Broadcast("x1Broadcast_2_mul");
+    af::ascir_op::Broadcast x1Broadcast("x1Broadcast_2_mul");
     x1Broadcast.x = x1Local.y;
     x1Broadcast.attr.sched.axis = {a.id, c.id, b.id, d.id, e.id};
     x1Broadcast.y.dtype = DT_FLOAT16;
@@ -947,7 +947,7 @@ namespace {
     *x1Broadcast.y.repeats = {A, C, B, D, E};
     *x1Broadcast.y.strides = {C * B * D * E, B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Transpose x1Transpose("x1Transpose_2_mul");
+    af::ascir_op::Transpose x1Transpose("x1Transpose_2_mul");
     x1Transpose.x = x1Broadcast.y;
     x1Transpose.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Transpose.y.dtype = DT_FLOAT16;
@@ -955,7 +955,7 @@ namespace {
     *x1Transpose.y.repeats = {A, B, C, D, E};
     *x1Transpose.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Broadcast x2Broadcast("x2Broadcast_2_mul");
+    af::ascir_op::Broadcast x2Broadcast("x2Broadcast_2_mul");
     x2Broadcast.x = x2Local.y;
     x2Broadcast.attr.sched.axis = {a.id, c.id, b.id, d.id, e.id};
     x2Broadcast.y.dtype = DT_FLOAT16;
@@ -963,7 +963,7 @@ namespace {
     *x2Broadcast.y.repeats = {A, C, B, D, E};
     *x2Broadcast.y.strides = {C * B * D * E, B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Transpose x2Transpose("x2Transpose_2_mul");
+    af::ascir_op::Transpose x2Transpose("x2Transpose_2_mul");
     x2Transpose.x = x2Broadcast.y;
     x2Transpose.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2Transpose.y.dtype = DT_FLOAT16;
@@ -971,7 +971,7 @@ namespace {
     *x2Transpose.y.repeats = {A, B, C, D, E};
     *x2Transpose.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs abs1("abs1_x1Local_2_mul");
+    af::ascir_op::Abs abs1("abs1_x1Local_2_mul");
     abs1.x = x1Transpose.y;
     abs1.attr.sched.axis = {};
     abs1.y.dtype = DT_FLOAT16;
@@ -979,7 +979,7 @@ namespace {
     *abs1.y.repeats = {};
     *abs1.y.strides = {};
 
-    ge::ascir_op::Abs abs2("abs2_x1Local_2_mul");
+    af::ascir_op::Abs abs2("abs2_x1Local_2_mul");
     abs2.x = x2Transpose.y;
     abs2.attr.sched.axis = {};
     abs2.y.dtype = DT_FLOAT16;
@@ -987,7 +987,7 @@ namespace {
     *abs2.y.repeats = {};
     *abs2.y.strides = {};
 
-    ge::ascir_op::Abs abs3("abs3_x1Local_2_mul");
+    af::ascir_op::Abs abs3("abs3_x1Local_2_mul");
     abs3.x = x2Transpose.y;
     abs3.attr.sched.axis = {};
     abs3.y.dtype = DT_FLOAT16;
@@ -995,7 +995,7 @@ namespace {
     *abs3.y.repeats = {};
     *abs3.y.strides = {};
 
-    ge::ascir_op::Add add1("add_1_mul");
+    af::ascir_op::Add add1("add_1_mul");
     add1.x1 = abs2.y;
     add1.x2 = abs1.y;
     add1.attr.sched.axis = {};
@@ -1006,7 +1006,7 @@ namespace {
     *add1.y.repeats = {};
     *add1.y.strides = {};
 
-    ge::ascir_op::Store x_out("x_out1_mul");
+    af::ascir_op::Store x_out("x_out1_mul");
     x_out.x = add1.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -1015,7 +1015,7 @@ namespace {
     *x_out.y.repeats = {A, C, B, D, E};
     *x_out.y.strides = {C * B * D * E, B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_out_out("x_out1_mul_output");
+    af::ascir_op::Output x_out_out("x_out1_mul_output");
     x_out_out.x = x_out.y;
     x_out_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out_out.attr.sched.loop_axis = c.id;
@@ -1024,7 +1024,7 @@ namespace {
     *x_out_out.y.repeats = {A, C, B, D, E};
     *x_out_out.y.strides = {C * B * D * E, B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Store x_out1("x_out2_mul");
+    af::ascir_op::Store x_out1("x_out2_mul");
     x_out1.x = abs3.y;
     x_out1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out1.attr.sched.loop_axis = c.id;
@@ -1033,7 +1033,7 @@ namespace {
     *x_out1.y.repeats = {A, B, C, D, E};
     *x_out1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_out1_out("x_out2_mul_output");
+    af::ascir_op::Output x_out1_out("x_out2_mul_output");
     x_out1_out.x = x_out1.y;
     x_out1_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out1_out.attr.sched.loop_axis = c.id;
@@ -1066,7 +1066,7 @@ namespace {
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("x1_1_mul", graph);
+    af::ascir_op::Data x1("x1_1_mul", graph);
     x1.attr.sched.axis = {c.id, a.id, b.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_INT64;
@@ -1074,7 +1074,7 @@ namespace {
     *x1.y.repeats = {};
     *x1.y.strides = {};
 
-    ge::ascir_op::Load x1Local("x1Local_2_mul");
+    af::ascir_op::Load x1Local("x1Local_2_mul");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {c.id, a.id, b.id, d.id, e.id};
     x1Local.y.dtype = DT_INT64;
@@ -1082,7 +1082,7 @@ namespace {
     *x1Local.y.repeats = {C, A, B, ONE, E};
     *x1Local.y.strides = {A * B * E, B * E, E, ZERO, ONE};
 
-    ge::ascir_op::Broadcast x1Broadcast("x1Broadcast_2_mul");
+    af::ascir_op::Broadcast x1Broadcast("x1Broadcast_2_mul");
     x1Broadcast.x = x1Local.y;
     x1Broadcast.attr.sched.axis = {c.id, a.id, b.id, d.id, e.id};
     x1Broadcast.y.dtype = DT_INT64;
@@ -1090,7 +1090,7 @@ namespace {
     *x1Broadcast.y.repeats = {C, A, B, D, E};
     *x1Broadcast.y.strides = {A * B * D * E, B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Cast x1Cast("x1Cast1");
+    af::ascir_op::Cast x1Cast("x1Cast1");
     x1Cast.x = x1Broadcast.y;
     x1Cast.attr.sched.axis = {c.id, a.id, b.id, d.id, e.id};
     x1Cast.y.dtype = DT_FLOAT;
@@ -1098,7 +1098,7 @@ namespace {
     *x1Cast.y.repeats = {C, A, B, D, E};
     *x1Cast.y.strides = {A * B * D * E, B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Transpose x1Transpose("x1Transpose_2_mul");
+    af::ascir_op::Transpose x1Transpose("x1Transpose_2_mul");
     x1Transpose.x = x1Cast.y;
     x1Transpose.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Transpose.y.dtype = DT_FLOAT;
@@ -1106,7 +1106,7 @@ namespace {
     *x1Transpose.y.repeats = {A, B, C, D, E};
     *x1Transpose.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs abs1("abs1_x1Local_2_mul");
+    af::ascir_op::Abs abs1("abs1_x1Local_2_mul");
     abs1.x = x1Transpose.y;
     abs1.attr.sched.axis = {};
     abs1.y.dtype = DT_FLOAT;
@@ -1114,7 +1114,7 @@ namespace {
     *abs1.y.repeats = {};
     *abs1.y.strides = {};
 
-    ge::ascir_op::Abs abs2("abs2_x1Local_2_mul");
+    af::ascir_op::Abs abs2("abs2_x1Local_2_mul");
     abs2.x = abs1.y;
     abs2.attr.sched.axis = {};
     abs2.y.dtype = DT_FLOAT;
@@ -1122,7 +1122,7 @@ namespace {
     *abs2.y.repeats = {};
     *abs2.y.strides = {};
 
-    ge::ascir_op::Abs abs3("abs3_x1Local_2_mul");
+    af::ascir_op::Abs abs3("abs3_x1Local_2_mul");
     abs3.x = abs2.y;
     abs3.attr.sched.axis = {};
     abs3.y.dtype = DT_FLOAT;
@@ -1130,7 +1130,7 @@ namespace {
     *abs3.y.repeats = {};
     *abs3.y.strides = {};
 
-    ge::ascir_op::Cast Cast2("Cast2");
+    af::ascir_op::Cast Cast2("Cast2");
     Cast2.x = abs3.y;
     Cast2.attr.sched.axis = {};
     Cast2.y.dtype = DT_INT64;
@@ -1138,7 +1138,7 @@ namespace {
     *Cast2.y.repeats = {};
     *Cast2.y.strides = {};
 
-    ge::ascir_op::Store x_out1("x_out2_mul");
+    af::ascir_op::Store x_out1("x_out2_mul");
     x_out1.x = Cast2.y;
     x_out1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out1.attr.sched.loop_axis = c.id;
@@ -1147,7 +1147,7 @@ namespace {
     *x_out1.y.repeats = {A, B, C, D, E};
     *x_out1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_out1_out("x_out2_mul_output");
+    af::ascir_op::Output x_out1_out("x_out2_mul_output");
     x_out1_out.x = x_out1.y;
     x_out1_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out1_out.attr.sched.loop_axis = c.id;
@@ -1179,7 +1179,7 @@ namespace {
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("x1_1_mul", graph);
+    af::ascir_op::Data x1("x1_1_mul", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -1187,7 +1187,7 @@ namespace {
     *x1.y.repeats = {};
     *x1.y.strides = {};
 
-    ge::ascir_op::Load x1Local("x1Local_2_mul");
+    af::ascir_op::Load x1Local("x1Local_2_mul");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, c.id, b.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -1195,7 +1195,7 @@ namespace {
     *x1Local.y.repeats = {A, B, ONE, E, C};
     *x1Local.y.strides = {B * E * C, E * C, ZERO, C, ONE};
 
-    ge::ascir_op::Data x2("x1_2_mul", graph);
+    af::ascir_op::Data x2("x1_2_mul", graph);
     x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2.attr.sched.loop_axis = c.id;
     x2.y.dtype = DT_FLOAT16;
@@ -1203,7 +1203,7 @@ namespace {
     *x2.y.repeats = {};
     *x2.y.strides = {};
 
-    ge::ascir_op::Load x2Local("x2Local_2_mul");
+    af::ascir_op::Load x2Local("x2Local_2_mul");
     x2Local.x = x2.y;
     x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2Local.y.dtype = DT_FLOAT16;
@@ -1211,7 +1211,7 @@ namespace {
     *x2Local.y.repeats = {A, B, C, ONE, E};
     *x2Local.y.strides = {B * C * E, C * E, E, ZERO, ONE};
   
-    ge::ascir_op::Abs abs1("abs1_x1Local_2_mul");
+    af::ascir_op::Abs abs1("abs1_x1Local_2_mul");
     abs1.x = x1Local.y;
     abs1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs1.y.dtype = DT_FLOAT16;
@@ -1219,7 +1219,7 @@ namespace {
     *abs1.y.repeats = {A, B, C, D, E};
     *abs1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs abs2("abs2_x1Local_2_mul");
+    af::ascir_op::Abs abs2("abs2_x1Local_2_mul");
     abs2.x = x2Local.y;
     abs2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs2.y.dtype = DT_FLOAT16;
@@ -1227,7 +1227,7 @@ namespace {
     *abs2.y.repeats = {A, B, C, D, E};
     *abs2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Add add1("add_1_mul");
+    af::ascir_op::Add add1("add_1_mul");
     add1.x1 = abs2.y;
     add1.x2 = abs1.y;
     add1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -1238,7 +1238,7 @@ namespace {
     *add1.y.repeats = {A, B, C, D, E};
     *add1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Store x_out("x_out1_mul");
+    af::ascir_op::Store x_out("x_out1_mul");
     x_out.x = add1.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -1247,7 +1247,7 @@ namespace {
     *x_out.y.repeats = {A, B, D, E, C};
     *x_out.y.strides = {B * D * E * C, D * E * C, E * C, C, ONE};
   
-    ge::ascir_op::Output x_out_out("x_out1_mul_output");
+    af::ascir_op::Output x_out_out("x_out1_mul_output");
     x_out_out.x = x_out.y;
     x_out_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out_out.attr.sched.loop_axis = c.id;
@@ -1279,7 +1279,7 @@ namespace {
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x0("x0_1_mul", graph);
+    af::ascir_op::Data x0("x0_1_mul", graph);
     x0.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x0.attr.sched.loop_axis = c.id;
     x0.y.dtype = DT_FLOAT16;
@@ -1287,7 +1287,7 @@ namespace {
     *x0.y.repeats = {};
     *x0.y.strides = {};
 
-    ge::ascir_op::Load x0Local("x0Local_2_mul");
+    af::ascir_op::Load x0Local("x0Local_2_mul");
     x0Local.x = x0.y;
     x0Local.attr.sched.axis = {a.id, c.id, b.id, d.id, e.id};
     x0Local.y.dtype = DT_FLOAT16;
@@ -1295,7 +1295,7 @@ namespace {
     *x0Local.y.repeats = {A, C, B, ONE, E};
     *x0Local.y.strides = {C * B * E, B * E, E, ZERO, ONE};
 
-    ge::ascir_op::Data x1("x1_1_mul", graph);
+    af::ascir_op::Data x1("x1_1_mul", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -1303,7 +1303,7 @@ namespace {
     *x1.y.repeats = {};
     *x1.y.strides = {};
 
-    ge::ascir_op::Load x1Local("x1Local_2_mul");
+    af::ascir_op::Load x1Local("x1Local_2_mul");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, c.id, b.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -1311,7 +1311,7 @@ namespace {
     *x1Local.y.repeats = {A, C, B, ONE, E};
     *x1Local.y.strides = {C * B * E, B * E, E, ZERO, ONE};
 
-    ge::ascir_op::Add add0("add_0_mul");
+    af::ascir_op::Add add0("add_0_mul");
     add0.x1 = x0Local.y;
     add0.x2 = x1Local.y;
     add0.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -1322,7 +1322,7 @@ namespace {
     *add0.y.repeats = {A, B, C, D, E};
     *add0.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Data x2("x1_2_mul", graph);
+    af::ascir_op::Data x2("x1_2_mul", graph);
     x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2.attr.sched.loop_axis = c.id;
     x2.y.dtype = DT_FLOAT16;
@@ -1330,7 +1330,7 @@ namespace {
     *x2.y.repeats = {};
     *x2.y.strides = {};
 
-    ge::ascir_op::Load x2Local("x2Local_2_mul");
+    af::ascir_op::Load x2Local("x2Local_2_mul");
     x2Local.x = x2.y;
     x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2Local.y.dtype = DT_FLOAT16;
@@ -1338,7 +1338,7 @@ namespace {
     *x2Local.y.repeats = {A, B, C, D, E};
     *x2Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs abs3("abs3_x1Local_2_mul");
+    af::ascir_op::Abs abs3("abs3_x1Local_2_mul");
     abs3.x = x2Local.y;
     abs3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs3.y.dtype = DT_FLOAT16;
@@ -1346,7 +1346,7 @@ namespace {
     *abs3.y.repeats = {A, B, C, D, E};
     *abs3.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Add add1("add_1_mul");
+    af::ascir_op::Add add1("add_1_mul");
     add1.x1 = abs3.y;
     add1.x2 = add0.y;
     add1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -1357,7 +1357,7 @@ namespace {
     *add1.y.repeats = {A, B, C, D, E};
     *add1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Store x_out("x_out1_mul");
+    af::ascir_op::Store x_out("x_out1_mul");
     x_out.x = add1.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -1366,7 +1366,7 @@ namespace {
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_out_out("x_out1_mul_output");
+    af::ascir_op::Output x_out_out("x_out1_mul_output");
     x_out_out.x = x_out.y;
     x_out_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out_out.attr.sched.loop_axis = c.id;
@@ -1375,7 +1375,7 @@ namespace {
     *x_out_out.y.repeats = {A, B, C, D, E};
     *x_out_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Store x_out1("x_out2_mul");
+    af::ascir_op::Store x_out1("x_out2_mul");
     x_out1.x = add0.y;
     x_out1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out1.attr.sched.loop_axis = c.id;
@@ -1384,7 +1384,7 @@ namespace {
     *x_out1.y.repeats = {A, B, C, D, E};
     *x_out1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_out1_out("x_out2_mul_output");
+    af::ascir_op::Output x_out1_out("x_out2_mul_output");
     x_out1_out.x = x_out1.y;
     x_out1_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out1_out.attr.sched.loop_axis = c.id;
@@ -1417,7 +1417,7 @@ namespace {
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("x1_1_mul", graph);
+    af::ascir_op::Data x1("x1_1_mul", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -1425,7 +1425,7 @@ namespace {
     *x1.y.repeats = {};
     *x1.y.strides = {};
 
-    ge::ascir_op::Load x1Local("x1Local_2_mul");
+    af::ascir_op::Load x1Local("x1Local_2_mul");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {c.id, a.id, b.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -1433,7 +1433,7 @@ namespace {
     *x1Local.y.repeats = {C, A, B, ONE, E};
     *x1Local.y.strides = {A * B * E, B * E, E, ZERO, ONE};
 
-    ge::ascir_op::Data x2("x1_2_mul", graph);
+    af::ascir_op::Data x2("x1_2_mul", graph);
     x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2.attr.sched.loop_axis = c.id;
     x2.y.dtype = DT_FLOAT16;
@@ -1441,7 +1441,7 @@ namespace {
     *x2.y.repeats = {};
     *x2.y.strides = {};
 
-    ge::ascir_op::Load x2Local("x2Local_2_mul");
+    af::ascir_op::Load x2Local("x2Local_2_mul");
     x2Local.x = x2.y;
     x2Local.attr.sched.axis = {c.id, a.id, b.id, d.id, e.id};
     x2Local.y.dtype = DT_FLOAT16;
@@ -1449,7 +1449,7 @@ namespace {
     *x2Local.y.repeats = {C, A, B, ONE, E};
     *x2Local.y.strides = {A * B * E, B * E, E, ZERO, ONE};
 
-    ge::ascir_op::Scalar scalar("scalar", graph);
+    af::ascir_op::Scalar scalar("scalar", graph);
     scalar.attr.sched.axis = {c.id, a.id, b.id, d.id, e.id};
     scalar.attr.sched.loop_axis = c.id;
     scalar.y.dtype = DT_FLOAT16;
@@ -1457,7 +1457,7 @@ namespace {
     *scalar.y.repeats = {};
     *scalar.y.strides = {};
 
-    ge::ascir_op::Broadcast x1Broadcast("x1Broadcast_2_mul");
+    af::ascir_op::Broadcast x1Broadcast("x1Broadcast_2_mul");
     x1Broadcast.x = x1Local.y;
     x1Broadcast.attr.sched.axis = {c.id, a.id, b.id, d.id, e.id};
     x1Broadcast.y.dtype = DT_FLOAT16;
@@ -1465,7 +1465,7 @@ namespace {
     *x1Broadcast.y.repeats = {C, A, B, D, E};
     *x1Broadcast.y.strides = {A * B * D * E, B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Transpose x1Transpose("x1Transpose_2_mul");
+    af::ascir_op::Transpose x1Transpose("x1Transpose_2_mul");
     x1Transpose.x = x1Broadcast.y;
     x1Transpose.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Transpose.y.dtype = DT_FLOAT16;
@@ -1473,7 +1473,7 @@ namespace {
     *x1Transpose.y.repeats = {A, B, C, D, E};
     *x1Transpose.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Broadcast x2Broadcast("x2Broadcast_2_mul");
+    af::ascir_op::Broadcast x2Broadcast("x2Broadcast_2_mul");
     x2Broadcast.x = x2Local.y;
     x2Broadcast.attr.sched.axis = {c.id, a.id, b.id, d.id, e.id};
     x2Broadcast.y.dtype = DT_FLOAT16;
@@ -1481,7 +1481,7 @@ namespace {
     *x2Broadcast.y.repeats = {C, A, B, D, E};
     *x2Broadcast.y.strides = {A * B * D * E, B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Transpose x2Transpose("x2Transpose_2_mul");
+    af::ascir_op::Transpose x2Transpose("x2Transpose_2_mul");
     x2Transpose.x = x2Broadcast.y;
     x2Transpose.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2Transpose.y.dtype = DT_FLOAT16;
@@ -1489,7 +1489,7 @@ namespace {
     *x2Transpose.y.repeats = {A, B, C, D, E};
     *x2Transpose.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs abs1("abs1_x1Local_2_mul");
+    af::ascir_op::Abs abs1("abs1_x1Local_2_mul");
     abs1.x = x1Transpose.y;
     abs1.attr.sched.axis = {};
     abs1.y.dtype = DT_FLOAT16;
@@ -1497,7 +1497,7 @@ namespace {
     *abs1.y.repeats = {};
     *abs1.y.strides = {};
 
-    ge::ascir_op::Abs abs2("abs2_x1Local_2_mul");
+    af::ascir_op::Abs abs2("abs2_x1Local_2_mul");
     abs2.x = x2Transpose.y;
     abs2.attr.sched.axis = {};
     abs2.y.dtype = DT_FLOAT16;
@@ -1505,7 +1505,7 @@ namespace {
     *abs2.y.repeats = {};
     *abs2.y.strides = {};
 
-    ge::ascir_op::Abs abs3("abs3_x1Local_2_mul");
+    af::ascir_op::Abs abs3("abs3_x1Local_2_mul");
     abs3.x = x2Transpose.y;
     abs3.attr.sched.axis = {};
     abs3.y.dtype = DT_FLOAT16;
@@ -1513,7 +1513,7 @@ namespace {
     *abs3.y.repeats = {};
     *abs3.y.strides = {};
 
-    ge::ascir_op::Add add1("add_1_mul");
+    af::ascir_op::Add add1("add_1_mul");
     add1.x1 = abs2.y;
     add1.x2 = abs1.y;
     add1.attr.sched.axis = {};
@@ -1524,7 +1524,7 @@ namespace {
     *add1.y.repeats = {};
     *add1.y.strides = {};
 
-    ge::ascir_op::Add add2("add_2_mul");
+    af::ascir_op::Add add2("add_2_mul");
     add2.x1 = add1.y;
     add2.x2 = scalar.y;
     add2.attr.sched.axis = {};
@@ -1535,7 +1535,7 @@ namespace {
     *add2.y.repeats = {};
     *add2.y.strides = {};
 
-    ge::ascir_op::Store x_out("x_out1_mul");
+    af::ascir_op::Store x_out("x_out1_mul");
     x_out.x = add2.y;
     x_out.attr.sched.axis = {c.id, a.id, b.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -1544,7 +1544,7 @@ namespace {
     *x_out.y.repeats = {C, A, B, D, E};
     *x_out.y.strides = {A * B * D * E, B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_out_out("x_out1_mul_output");
+    af::ascir_op::Output x_out_out("x_out1_mul_output");
     x_out_out.x = x_out.y;
     x_out_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out_out.attr.sched.loop_axis = c.id;
@@ -1553,7 +1553,7 @@ namespace {
     *x_out_out.y.repeats = {};
     *x_out_out.y.strides = {};
 
-    ge::ascir_op::Store x_out1("x_out2_mul");
+    af::ascir_op::Store x_out1("x_out2_mul");
     x_out1.x = abs3.y;
     x_out1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out1.attr.sched.loop_axis = c.id;
@@ -1562,7 +1562,7 @@ namespace {
     *x_out1.y.repeats = {A, B, C, D, E};
     *x_out1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_out1_out("x_out2_mul_output");
+    af::ascir_op::Output x_out1_out("x_out2_mul_output");
     x_out1_out.x = x_out1.y;
     x_out1_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out1_out.attr.sched.loop_axis = c.id;
@@ -1595,7 +1595,7 @@ namespace {
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("x1_1_mul", graph);
+    af::ascir_op::Data x1("x1_1_mul", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -1603,7 +1603,7 @@ namespace {
     *x1.y.repeats = {};
     *x1.y.strides = {};
 
-    ge::ascir_op::Load x1Local("x1Local_2_mul");
+    af::ascir_op::Load x1Local("x1Local_2_mul");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {c.id, a.id, b.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -1611,7 +1611,7 @@ namespace {
     *x1Local.y.repeats = {C, A, B, ONE, E};
     *x1Local.y.strides = {A * B * E, B * E, E, ZERO, ONE};
 
-    ge::ascir_op::Data x2("x1_2_mul", graph);
+    af::ascir_op::Data x2("x1_2_mul", graph);
     x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2.attr.sched.loop_axis = c.id;
     x2.y.dtype = DT_FLOAT16;
@@ -1619,7 +1619,7 @@ namespace {
     *x2.y.repeats = {};
     *x2.y.strides = {};
 
-    ge::ascir_op::Load x2Local("x2Local_2_mul");
+    af::ascir_op::Load x2Local("x2Local_2_mul");
     x2Local.x = x2.y;
     x2Local.attr.sched.axis = {c.id, a.id, b.id, d.id, e.id};
     x2Local.y.dtype = DT_FLOAT16;
@@ -1627,7 +1627,7 @@ namespace {
     *x2Local.y.repeats ={C, A, B, ONE, E};
     *x2Local.y.strides = {A * B * E, B * E, E, ZERO, ONE};
 
-    ge::ascir_op::Data x3("x1_3_mul", graph);
+    af::ascir_op::Data x3("x1_3_mul", graph);
     x3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x3.attr.sched.loop_axis = c.id;
     x3.y.dtype = DT_FLOAT16;
@@ -1635,7 +1635,7 @@ namespace {
     *x3.y.repeats = {};
     *x3.y.strides = {};
 
-    ge::ascir_op::Load x3Local("x3Local_2_mul");
+    af::ascir_op::Load x3Local("x3Local_2_mul");
     x3Local.x = x3.y;
     x3Local.attr.sched.axis = {a.id, c.id, b.id, d.id, e.id};
     x3Local.y.dtype = DT_FLOAT16;
@@ -1643,7 +1643,7 @@ namespace {
     *x3Local.y.repeats = {A, B, C, ONE, E};
     *x3Local.y.strides = {B * C * E, C * E, E, ZERO, ONE};
 
-    ge::ascir_op::Scalar scalar("scalar", graph);
+    af::ascir_op::Scalar scalar("scalar", graph);
     scalar.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     scalar.attr.sched.loop_axis = c.id;
     scalar.y.dtype = DT_FLOAT16;
@@ -1651,7 +1651,7 @@ namespace {
     *scalar.y.repeats = {};
     *scalar.y.strides = {};
 
-    ge::ascir_op::Broadcast x1Broadcast("x1Broadcast_2_mul");
+    af::ascir_op::Broadcast x1Broadcast("x1Broadcast_2_mul");
     x1Broadcast.x = x1Local.y;
     x1Broadcast.attr.sched.axis = {c.id, a.id, b.id, d.id, e.id};
     x1Broadcast.y.dtype = DT_FLOAT16;
@@ -1659,7 +1659,7 @@ namespace {
     *x1Broadcast.y.repeats = {C, A, B, D, E};
     *x1Broadcast.y.strides = {A * B * D * E, B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Transpose x1Transpose("x1Transpose_2_mul");
+    af::ascir_op::Transpose x1Transpose("x1Transpose_2_mul");
     x1Transpose.x = x1Broadcast.y;
     x1Transpose.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Transpose.y.dtype = DT_FLOAT16;
@@ -1667,7 +1667,7 @@ namespace {
     *x1Transpose.y.repeats = {A, B, C, D, E};
     *x1Transpose.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Broadcast x2Broadcast("x2Broadcast_2_mul");
+    af::ascir_op::Broadcast x2Broadcast("x2Broadcast_2_mul");
     x2Broadcast.x = x2Local.y;
     x2Broadcast.attr.sched.axis = {c.id, a.id, b.id, d.id, e.id};
     x2Broadcast.y.dtype = DT_FLOAT16;
@@ -1675,7 +1675,7 @@ namespace {
     *x2Broadcast.y.repeats = {C, A, B, D, E};
     *x2Broadcast.y.strides = {A * B * D * E, B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Transpose x2Transpose("x2Transpose_2_mul");
+    af::ascir_op::Transpose x2Transpose("x2Transpose_2_mul");
     x2Transpose.x = x2Broadcast.y;
     x2Transpose.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2Transpose.y.dtype = DT_FLOAT16;
@@ -1683,7 +1683,7 @@ namespace {
     *x2Transpose.y.repeats = {A, B, C, D, E};
     *x2Transpose.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs abs1("abs1_x1Local_2_mul");
+    af::ascir_op::Abs abs1("abs1_x1Local_2_mul");
     abs1.x = x1Transpose.y;
     abs1.attr.sched.axis = {};
     abs1.y.dtype = DT_FLOAT16;
@@ -1691,7 +1691,7 @@ namespace {
     *abs1.y.repeats = {};
     *abs1.y.strides = {};
 
-    ge::ascir_op::Abs abs2("abs2_x1Local_2_mul");
+    af::ascir_op::Abs abs2("abs2_x1Local_2_mul");
     abs2.x = x2Transpose.y;
     abs2.attr.sched.axis = {};
     abs2.y.dtype = DT_FLOAT16;
@@ -1699,7 +1699,7 @@ namespace {
     *abs2.y.repeats = {};
     *abs2.y.strides = {};
 
-    ge::ascir_op::Abs abs3("abs3_x1Local_2_mul");
+    af::ascir_op::Abs abs3("abs3_x1Local_2_mul");
     abs3.x = x2Transpose.y;
     abs3.attr.sched.axis = {};
     abs3.y.dtype = DT_FLOAT16;
@@ -1707,7 +1707,7 @@ namespace {
     *abs3.y.repeats = {};
     *abs3.y.strides = {};
 
-    ge::ascir_op::Add add0("add_0_mul");
+    af::ascir_op::Add add0("add_0_mul");
     add0.x1 = abs2.y;
     add0.x2 = abs1.y;
     add0.attr.sched.axis = {};
@@ -1718,7 +1718,7 @@ namespace {
     *add0.y.repeats = {};
     *add0.y.strides = {};
 
-    ge::ascir_op::Add add1("add_1_mul");
+    af::ascir_op::Add add1("add_1_mul");
     add1.x1 = add0.y;
     add1.x2 = x3Local.y;
     add1.attr.sched.axis = {};
@@ -1729,7 +1729,7 @@ namespace {
     *add1.y.repeats = {};
     *add1.y.strides = {};
 
-    ge::ascir_op::Add add2("add_2_mul");
+    af::ascir_op::Add add2("add_2_mul");
     add2.x1 = add1.y;
     add2.x2 = scalar.y;
     add2.attr.sched.axis = {};
@@ -1740,7 +1740,7 @@ namespace {
     *add2.y.repeats = {};
     *add2.y.strides = {};
 
-    ge::ascir_op::Store x_out("x_out1_mul");
+    af::ascir_op::Store x_out("x_out1_mul");
     x_out.x = add2.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -1749,7 +1749,7 @@ namespace {
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_out_out("x_out1_mul_output");
+    af::ascir_op::Output x_out_out("x_out1_mul_output");
     x_out_out.x = x_out.y;
     x_out_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out_out.attr.sched.loop_axis = c.id;
@@ -1758,7 +1758,7 @@ namespace {
     *x_out_out.y.repeats = {};
     *x_out_out.y.strides = {};
 
-    ge::ascir_op::Store x_out1("x_out2_mul");
+    af::ascir_op::Store x_out1("x_out2_mul");
     x_out1.x = abs3.y;
     x_out1.attr.sched.axis = {c.id, a.id, b.id, d.id, e.id};
     x_out1.attr.sched.loop_axis = c.id;
@@ -1767,7 +1767,7 @@ namespace {
     *x_out1.y.repeats = {C, A, B, D, E};
     *x_out1.y.strides = {A * B * D * E, B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_out1_out("x_out2_mul_output");
+    af::ascir_op::Output x_out1_out("x_out2_mul_output");
     x_out1_out.x = x_out1.y;
     x_out1_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out1_out.attr.sched.loop_axis = c.id;
@@ -1800,7 +1800,7 @@ namespace {
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("x1_1_mul", graph);
+    af::ascir_op::Data x1("x1_1_mul", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -1808,7 +1808,7 @@ namespace {
     *x1.y.repeats = {};
     *x1.y.strides = {};
 
-    ge::ascir_op::Load x1Local("x1Local_2_mul");
+    af::ascir_op::Load x1Local("x1Local_2_mul");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, c.id, b.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -1816,7 +1816,7 @@ namespace {
     *x1Local.y.repeats = {A, C, B, ONE, E};
     *x1Local.y.strides = {C * B * E, B * E, E, ZERO, ONE};
 
-    ge::ascir_op::Data x2("x1_2_mul", graph);
+    af::ascir_op::Data x2("x1_2_mul", graph);
     x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2.attr.sched.loop_axis = c.id;
     x2.y.dtype = DT_FLOAT16;
@@ -1824,7 +1824,7 @@ namespace {
     *x2.y.repeats = {};
     *x2.y.strides = {};
 
-    ge::ascir_op::Load x2Local("x2Local_2_mul");
+    af::ascir_op::Load x2Local("x2Local_2_mul");
     x2Local.x = x2.y;
     x2Local.attr.sched.axis = {a.id, c.id, b.id, d.id, e.id};
     x2Local.y.dtype = DT_FLOAT16;
@@ -1832,7 +1832,7 @@ namespace {
     *x2Local.y.repeats = {A, C, B, ONE, E};
     *x2Local.y.strides = {C * B * E, B * E, E, ZERO, ONE};
 
-    ge::ascir_op::Data x3("x1_3_mul", graph);
+    af::ascir_op::Data x3("x1_3_mul", graph);
     x3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x3.attr.sched.loop_axis = c.id;
     x3.y.dtype = DT_FLOAT16;
@@ -1840,7 +1840,7 @@ namespace {
     *x3.y.repeats = {};
     *x3.y.strides = {};
 
-    ge::ascir_op::Load x3Local("x3Local_2_mul");
+    af::ascir_op::Load x3Local("x3Local_2_mul");
     x3Local.x = x3.y;
     x3Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x3Local.y.dtype = DT_FLOAT16;
@@ -1848,7 +1848,7 @@ namespace {
     *x3Local.y.repeats = {A, B, C, ONE, E};
     *x3Local.y.strides = {B * C * E, C * E, E, ZERO, ONE};
 
-    ge::ascir_op::Broadcast x1Broadcast("x1Broadcast_2_mul");
+    af::ascir_op::Broadcast x1Broadcast("x1Broadcast_2_mul");
     x1Broadcast.x = x1Local.y;
     x1Broadcast.attr.sched.axis = {a.id, c.id, b.id, d.id, e.id};
     x1Broadcast.y.dtype = DT_FLOAT16;
@@ -1856,7 +1856,7 @@ namespace {
     *x1Broadcast.y.repeats = {A, C, B, D, E};
     *x1Broadcast.y.strides = {C * B * D * E, B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Transpose x1Transpose("x1Transpose_2_mul");
+    af::ascir_op::Transpose x1Transpose("x1Transpose_2_mul");
     x1Transpose.x = x1Broadcast.y;
     x1Transpose.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Transpose.y.dtype = DT_FLOAT16;
@@ -1864,7 +1864,7 @@ namespace {
     *x1Transpose.y.repeats = {A, B, C, D, E};
     *x1Transpose.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Broadcast x2Broadcast("x2Broadcast_2_mul");
+    af::ascir_op::Broadcast x2Broadcast("x2Broadcast_2_mul");
     x2Broadcast.x = x2Local.y;
     x2Broadcast.attr.sched.axis = {a.id, c.id, b.id, d.id, e.id};
     x2Broadcast.y.dtype = DT_FLOAT16;
@@ -1872,7 +1872,7 @@ namespace {
     *x2Broadcast.y.repeats = {A, C, B, D, E};
     *x2Broadcast.y.strides = {C * B * D * E, B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Transpose x2Transpose("x2Transpose_2_mul");
+    af::ascir_op::Transpose x2Transpose("x2Transpose_2_mul");
     x2Transpose.x = x2Broadcast.y;
     x2Transpose.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2Transpose.y.dtype = DT_FLOAT16;
@@ -1880,7 +1880,7 @@ namespace {
     *x2Transpose.y.repeats = {A, B, C, D, E};
     *x2Transpose.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs abs1("abs1_x1Local_2_mul");
+    af::ascir_op::Abs abs1("abs1_x1Local_2_mul");
     abs1.x = x1Transpose.y;
     abs1.attr.sched.axis = {};
     abs1.y.dtype = DT_FLOAT16;
@@ -1888,7 +1888,7 @@ namespace {
     *abs1.y.repeats = {};
     *abs1.y.strides = {};
 
-    ge::ascir_op::Abs abs2("abs2_x1Local_2_mul");
+    af::ascir_op::Abs abs2("abs2_x1Local_2_mul");
     abs2.x = x2Transpose.y;
     abs2.attr.sched.axis = {};
     abs2.y.dtype = DT_FLOAT16;
@@ -1896,7 +1896,7 @@ namespace {
     *abs2.y.repeats = {};
     *abs2.y.strides = {};
 
-    ge::ascir_op::Add add1("add_1_mul");
+    af::ascir_op::Add add1("add_1_mul");
     add1.x1 = abs2.y;
     add1.x2 = abs1.y;
     add1.attr.sched.axis = {};
@@ -1907,7 +1907,7 @@ namespace {
     *add1.y.repeats = {};
     *add1.y.strides = {};
 
-    ge::ascir_op::Add add2("add_2_mul");
+    af::ascir_op::Add add2("add_2_mul");
     add2.x1 = add1.y;
     add2.x2 = x3Local.y;
     add2.attr.sched.axis = {};
@@ -1918,7 +1918,7 @@ namespace {
     *add2.y.repeats = {};
     *add2.y.strides = {};
 
-    ge::ascir_op::Store x_out("x_out1_mul");
+    af::ascir_op::Store x_out("x_out1_mul");
     x_out.x = add2.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -1927,7 +1927,7 @@ namespace {
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Store x_out1("x_out2_mul");
+    af::ascir_op::Store x_out1("x_out2_mul");
     x_out1.x = add2.y;
     x_out1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out1.attr.sched.loop_axis = c.id;
@@ -1936,7 +1936,7 @@ namespace {
     *x_out1.y.repeats = {A, B, C, D, E};
     *x_out1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -1945,7 +1945,7 @@ namespace {
     *x_output1.y.repeats = {A, B, C, D, E};
     *x_output1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output2("x_output2");
+    af::ascir_op::Output x_output2("x_output2");
     x_output2.x = x_out1.y;
     x_output2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output2.attr.sched.loop_axis = c.id;
@@ -1978,7 +1978,7 @@ namespace {
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("x1_1_mul", graph);
+    af::ascir_op::Data x1("x1_1_mul", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -1986,7 +1986,7 @@ namespace {
     *x1.y.repeats = {};
     *x1.y.strides = {};
 
-    ge::ascir_op::Load x1Local("x1Local_2_mul");
+    af::ascir_op::Load x1Local("x1Local_2_mul");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, c.id, b.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -1994,7 +1994,7 @@ namespace {
     *x1Local.y.repeats = {A, C, B, ONE, E};
     *x1Local.y.strides = {C * B * E, B * E, E, ZERO, ONE};
 
-    ge::ascir_op::Broadcast x1Broadcast("x1Broadcast_2_mul");
+    af::ascir_op::Broadcast x1Broadcast("x1Broadcast_2_mul");
     x1Broadcast.x = x1Local.y;
     x1Broadcast.attr.sched.axis = {a.id, c.id, b.id, d.id, e.id};
     x1Broadcast.y.dtype = DT_FLOAT16;
@@ -2002,7 +2002,7 @@ namespace {
     *x1Broadcast.y.repeats = {A, C, B, D, E};
     *x1Broadcast.y.strides = {C * B * D * E, B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Transpose x1Transpose("x1Transpose_2_mul");
+    af::ascir_op::Transpose x1Transpose("x1Transpose_2_mul");
     x1Transpose.x = x1Broadcast.y;
     x1Transpose.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Transpose.y.dtype = DT_FLOAT16;
@@ -2010,7 +2010,7 @@ namespace {
     *x1Transpose.y.repeats = {A, B, C, D, E};
     *x1Transpose.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs abs1("abs1_x1Local_2_mul");
+    af::ascir_op::Abs abs1("abs1_x1Local_2_mul");
     abs1.x = x1Transpose.y;
     abs1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs1.y.dtype = DT_FLOAT16;
@@ -2018,7 +2018,7 @@ namespace {
     *abs1.y.repeats = {A, B, C, D, E};
     *abs1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs abs2("abs2_x1Local_2_mul");
+    af::ascir_op::Abs abs2("abs2_x1Local_2_mul");
     abs2.x = x1Transpose.y;
     abs2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs2.y.dtype = DT_FLOAT16;
@@ -2026,7 +2026,7 @@ namespace {
     *abs2.y.repeats = {A, B, C, D, E};
     *abs2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Cast Local2Cast0("x1Local_2_Cast0_mul");
+    af::ascir_op::Cast Local2Cast0("x1Local_2_Cast0_mul");
     Local2Cast0.x = x1Transpose.y;
     Local2Cast0.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     Local2Cast0.y.dtype = DT_FLOAT;
@@ -2034,7 +2034,7 @@ namespace {
     *Local2Cast0.y.repeats = {A, B, C, D, E};
     *Local2Cast0.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Cast Local2Cast1("x1Local_2_Cast1_mul");
+    af::ascir_op::Cast Local2Cast1("x1Local_2_Cast1_mul");
     Local2Cast1.x = Local2Cast0.y;
     Local2Cast1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     Local2Cast1.y.dtype = DT_FLOAT16;
@@ -2042,7 +2042,7 @@ namespace {
     *Local2Cast1.y.repeats = {A, B, C, D, E};
     *Local2Cast1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs abs3("abs3_x1Local_2_mul");
+    af::ascir_op::Abs abs3("abs3_x1Local_2_mul");
     abs3.x = Local2Cast1.y;
     abs3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs3.y.dtype = DT_FLOAT16;
@@ -2050,7 +2050,7 @@ namespace {
     *abs3.y.repeats = {A, B, C, D, E};
     *abs3.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Add add1("add_1_mul");
+    af::ascir_op::Add add1("add_1_mul");
     add1.x1 = abs2.y;
     add1.x2 = Local2Cast1.y;
     add1.attr.sched.axis = {a.id, b.id, c.id, e.id};
@@ -2061,7 +2061,7 @@ namespace {
     *add1.y.repeats = {A, B, C, D, E};
     *add1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Add add2("add_2_mul");
+    af::ascir_op::Add add2("add_2_mul");
     add2.x1 = add1.y;
     add2.x2 = abs1.y;
     add2.attr.sched.axis = {a.id, b.id, c.id, e.id};
@@ -2072,7 +2072,7 @@ namespace {
     *add2.y.repeats = {A, B, C, D, E};
     *add2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Store x_out("x_out1_mul");
+    af::ascir_op::Store x_out("x_out1_mul");
     x_out.x = add2.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -2080,7 +2080,7 @@ namespace {
     *x_out.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
-    ge::ascir_op::Store x_out1("x_out2_mul");
+    af::ascir_op::Store x_out1("x_out2_mul");
     x_out1.x = Local2Cast1.y;
     x_out1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out1.attr.sched.loop_axis = c.id;
@@ -2088,7 +2088,7 @@ namespace {
     *x_out1.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x_out1.y.repeats = {A, B, C, D, E};
     *x_out1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
-    ge::ascir_op::Store x_out2("x_out3_mul");
+    af::ascir_op::Store x_out2("x_out3_mul");
     x_out2.x = abs3.y;
     x_out2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out2.attr.sched.loop_axis = c.id;
@@ -2097,7 +2097,7 @@ namespace {
     *x_out2.y.repeats = {A, B, C, D, E};
     *x_out2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -2106,7 +2106,7 @@ namespace {
     *x_output1.y.repeats = {A, B, C, D, E};
     *x_output1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output2("x_output2");
+    af::ascir_op::Output x_output2("x_output2");
     x_output2.x = x_out1.y;
     x_output2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output2.attr.sched.loop_axis = c.id;
@@ -2115,7 +2115,7 @@ namespace {
     *x_output2.y.repeats = {A, B, C, D, E};
     *x_output2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output3("x_output3");
+    af::ascir_op::Output x_output3("x_output3");
     x_output3.x = x_out2.y;
     x_output3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output3.attr.sched.loop_axis = c.id;
@@ -2148,7 +2148,7 @@ namespace {
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("x1_1_mul", graph);
+    af::ascir_op::Data x1("x1_1_mul", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -2156,7 +2156,7 @@ namespace {
     *x1.y.repeats = {};
     *x1.y.strides = {};
 
-    ge::ascir_op::Load x1Local("x1Local_2_mul");
+    af::ascir_op::Load x1Local("x1Local_2_mul");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, c.id, b.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -2164,7 +2164,7 @@ namespace {
     *x1Local.y.repeats = {C, A, B, ONE, E};
     *x1Local.y.strides = {A * B * E, B * E, E, ZERO, ONE};
 
-    ge::ascir_op::Broadcast x1Broadcast("x1Broadcast_2_mul");
+    af::ascir_op::Broadcast x1Broadcast("x1Broadcast_2_mul");
     x1Broadcast.x = x1Local.y;
     x1Broadcast.attr.sched.axis = {a.id, c.id, b.id, d.id, e.id};
     x1Broadcast.y.dtype = DT_FLOAT16;
@@ -2172,7 +2172,7 @@ namespace {
     *x1Broadcast.y.repeats = {C, A, B, D, E};
     *x1Broadcast.y.strides = {A * B * D * E, B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Transpose x1Transpose("x1Transpose_2_mul");
+    af::ascir_op::Transpose x1Transpose("x1Transpose_2_mul");
     x1Transpose.x = x1Broadcast.y;
     x1Transpose.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Transpose.y.dtype = DT_FLOAT16;
@@ -2180,7 +2180,7 @@ namespace {
     *x1Transpose.y.repeats = {A, B, C, D, E};
     *x1Transpose.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs abs1("abs1_x1Local_2_mul");
+    af::ascir_op::Abs abs1("abs1_x1Local_2_mul");
     abs1.x = x1Transpose.y;
     abs1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs1.y.dtype = DT_FLOAT16;
@@ -2188,7 +2188,7 @@ namespace {
     *abs1.y.repeats = {A, B, C, D, E};
     *abs1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs abs2("abs2_x1Local_2_mul");
+    af::ascir_op::Abs abs2("abs2_x1Local_2_mul");
     abs2.x = x1Transpose.y;
     abs2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs2.y.dtype = DT_FLOAT16;
@@ -2196,7 +2196,7 @@ namespace {
     *abs2.y.repeats = {A, B, C, D, E};
     *abs2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Cast Local2Cast0("x1Local_2_Cast0_mul");
+    af::ascir_op::Cast Local2Cast0("x1Local_2_Cast0_mul");
     Local2Cast0.x = x1Transpose.y;
     Local2Cast0.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     Local2Cast0.y.dtype = DT_FLOAT;
@@ -2204,7 +2204,7 @@ namespace {
     *Local2Cast0.y.repeats = {A, B, C, D, E};
     *Local2Cast0.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Cast Local2Cast1("x1Local_2_Cast1_mul");
+    af::ascir_op::Cast Local2Cast1("x1Local_2_Cast1_mul");
     Local2Cast1.x = Local2Cast0.y;
     Local2Cast1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     Local2Cast1.y.dtype = DT_FLOAT16;
@@ -2212,7 +2212,7 @@ namespace {
     *Local2Cast1.y.repeats = {A, B, C, D, E};
     *Local2Cast1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs abs3("abs3_x1Local_2_mul");
+    af::ascir_op::Abs abs3("abs3_x1Local_2_mul");
     abs3.x = Local2Cast1.y;
     abs3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs3.y.dtype = DT_FLOAT16;
@@ -2220,7 +2220,7 @@ namespace {
     *abs3.y.repeats = {A, B, C, D, E};
     *abs3.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Add add1("add_1_mul");
+    af::ascir_op::Add add1("add_1_mul");
     add1.x1 = abs2.y;
     add1.x2 = Local2Cast1.y;
     add1.attr.sched.axis = {a.id, b.id, c.id, e.id};
@@ -2231,7 +2231,7 @@ namespace {
     *add1.y.repeats = {A, B, C, D, E};
     *add1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Add add2("add_2_mul");
+    af::ascir_op::Add add2("add_2_mul");
     add2.x1 = add1.y;
     add2.x2 = abs1.y;
     add2.attr.sched.axis = {a.id, b.id, c.id, e.id};
@@ -2242,7 +2242,7 @@ namespace {
     *add2.y.repeats = {A, B, C, D, E};
     *add2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Store x_out("x_out1_mul");
+    af::ascir_op::Store x_out("x_out1_mul");
     x_out.x = add2.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -2250,7 +2250,7 @@ namespace {
     *x_out.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
-    ge::ascir_op::Store x_out1("x_out2_mul");
+    af::ascir_op::Store x_out1("x_out2_mul");
     x_out1.x = Local2Cast1.y;
     x_out1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out1.attr.sched.loop_axis = c.id;
@@ -2258,7 +2258,7 @@ namespace {
     *x_out1.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x_out1.y.repeats = {A, B, C, D, E};
     *x_out1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
-    ge::ascir_op::Store x_out2("x_out3_mul");
+    af::ascir_op::Store x_out2("x_out3_mul");
     x_out2.x = abs3.y;
     x_out2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out2.attr.sched.loop_axis = c.id;
@@ -2267,7 +2267,7 @@ namespace {
     *x_out2.y.repeats = {A, B, C, D, E};
     *x_out2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -2276,7 +2276,7 @@ namespace {
     *x_output1.y.repeats = {A, B, C, D, E};
     *x_output1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output2("x_output2");
+    af::ascir_op::Output x_output2("x_output2");
     x_output2.x = x_out1.y;
     x_output2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output2.attr.sched.loop_axis = c.id;
@@ -2285,7 +2285,7 @@ namespace {
     *x_output2.y.repeats = {A, B, C, D, E};
     *x_output2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output3("x_output3");
+    af::ascir_op::Output x_output3("x_output3");
     x_output3.x = x_out2.y;
     x_output3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output3.attr.sched.loop_axis = c.id;
@@ -2318,9 +2318,9 @@ namespace {
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x2("x1_t_b", graph);
+    af::ascir_op::Data x2("x1_t_b", graph);
 
-    ge::ascir_op::Load x2Local("x2_t_b");
+    af::ascir_op::Load x2Local("x2_t_b");
     x2Local.x = x2.y;
     x2Local.attr.sched.axis = {b.id, c.id, a.id, e.id, d.id};
     x2Local.y.dtype = DT_FLOAT16;
@@ -2328,7 +2328,7 @@ namespace {
     *x2Local.y.repeats = {B, C, A, ONE, D};
     *x2Local.y.strides = {C * A * D, A * D, D, ZERO, ONE};
 
-    ge::ascir_op::Broadcast x1Broadcast("x1Broadcast_2_mul");
+    af::ascir_op::Broadcast x1Broadcast("x1Broadcast_2_mul");
     x1Broadcast.x = x2Local.y;
     x1Broadcast.attr.sched.axis = {b.id, c.id, a.id, e.id, d.id};
     x1Broadcast.y.dtype = DT_FLOAT16;
@@ -2336,7 +2336,7 @@ namespace {
     *x1Broadcast.y.repeats = {B, C, A, E, D};
     *x1Broadcast.y.strides = {C * A * E * D, A * E * D, E * D, D, ONE};
 
-    ge::ascir_op::Transpose x1Transpose("x1Transpose_2_mul");
+    af::ascir_op::Transpose x1Transpose("x1Transpose_2_mul");
     x1Transpose.x = x1Broadcast.y;
     x1Transpose.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Transpose.y.dtype = DT_FLOAT16;
@@ -2344,7 +2344,7 @@ namespace {
     *x1Transpose.y.repeats = {A, B, C, D, E};
     *x1Transpose.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs abs1("abs1_x1Local_2_mul");
+    af::ascir_op::Abs abs1("abs1_x1Local_2_mul");
     abs1.x = x1Transpose.y;
     abs1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs1.y.dtype = DT_FLOAT16;
@@ -2352,7 +2352,7 @@ namespace {
     *abs1.y.repeats = {A, B, C, D, E};
     *abs1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs abs2("abs2_x1Local_2_mul");
+    af::ascir_op::Abs abs2("abs2_x1Local_2_mul");
     abs2.x = x1Transpose.y;
     abs2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs2.y.dtype = DT_FLOAT16;
@@ -2360,7 +2360,7 @@ namespace {
     *abs2.y.repeats = {A, B, C, D, E};
     *abs2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Cast Local2Cast0("x1Local_2_Cast0_mul");
+    af::ascir_op::Cast Local2Cast0("x1Local_2_Cast0_mul");
     Local2Cast0.x = x1Transpose.y;
     Local2Cast0.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     Local2Cast0.y.dtype = DT_FLOAT;
@@ -2368,7 +2368,7 @@ namespace {
     *Local2Cast0.y.repeats = {A, B, C, D, E};
     *Local2Cast0.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Cast Local2Cast1("x1Local_2_Cast1_mul");
+    af::ascir_op::Cast Local2Cast1("x1Local_2_Cast1_mul");
     Local2Cast1.x = Local2Cast0.y;
     Local2Cast1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     Local2Cast1.y.dtype = DT_FLOAT16;
@@ -2376,7 +2376,7 @@ namespace {
     *Local2Cast1.y.repeats = {A, B, C, D, E};
     *Local2Cast1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs abs3("abs3_x1Local_2_mul");
+    af::ascir_op::Abs abs3("abs3_x1Local_2_mul");
     abs3.x = Local2Cast1.y;
     abs3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs3.y.dtype = DT_FLOAT16;
@@ -2384,7 +2384,7 @@ namespace {
     *abs3.y.repeats = {A, B, C, D, E};
     *abs3.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Add add1("add_1_mul");
+    af::ascir_op::Add add1("add_1_mul");
     add1.x1 = abs2.y;
     add1.x2 = Local2Cast1.y;
     add1.attr.sched.axis = {a.id, b.id, c.id, e.id};
@@ -2395,7 +2395,7 @@ namespace {
     *add1.y.repeats = {A, B, C, D, E};
     *add1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Add add2("add_2_mul");
+    af::ascir_op::Add add2("add_2_mul");
     add2.x1 = add1.y;
     add2.x2 = abs1.y;
     add2.attr.sched.axis = {a.id, b.id, c.id, e.id};
@@ -2406,7 +2406,7 @@ namespace {
     *add2.y.repeats = {A, B, C, D, E};
     *add2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Store x_out("x_out1_mul");
+    af::ascir_op::Store x_out("x_out1_mul");
     x_out.x = add2.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -2414,7 +2414,7 @@ namespace {
     *x_out.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
-    ge::ascir_op::Store x_out1("x_out2_mul");
+    af::ascir_op::Store x_out1("x_out2_mul");
     x_out1.x = Local2Cast1.y;
     x_out1.attr.sched.axis = {b.id, c.id, a.id, e.id, d.id};
     x_out1.attr.sched.loop_axis = c.id;
@@ -2422,7 +2422,7 @@ namespace {
     *x_out1.y.axis = {b.id, c.id, a.id, e.id, d.id};
     *x_out1.y.repeats = {B, C, A, E, D};
     *x_out1.y.strides = {C * A * E * D, A * E * D, E * D, D, ONE};
-    ge::ascir_op::Store x_out2("x_out3_mul");
+    af::ascir_op::Store x_out2("x_out3_mul");
     x_out2.x = abs3.y;
     x_out2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out2.attr.sched.loop_axis = c.id;
@@ -2431,7 +2431,7 @@ namespace {
     *x_out2.y.repeats = {A, B, C, D, E};
     *x_out2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -2440,7 +2440,7 @@ namespace {
     *x_output1.y.repeats = {A, B, C, D, E};
     *x_output1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output2("x_output2");
+    af::ascir_op::Output x_output2("x_output2");
     x_output2.x = x_out1.y;
     x_output2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output2.attr.sched.loop_axis = c.id;
@@ -2449,7 +2449,7 @@ namespace {
     *x_output2.y.repeats = {A, B, C, D, E};
     *x_output2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output3("x_output3");
+    af::ascir_op::Output x_output3("x_output3");
     x_output3.x = x_out2.y;
     x_output3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output3.attr.sched.loop_axis = c.id;
@@ -2486,13 +2486,13 @@ namespace {
     auto e = graph.CreateAxis("E", E);
     std::string extern_name = "_t_b";
 
-    ge::ascir_op::Data x1(("x1_1" + extern_name).c_str(), graph);
+    af::ascir_op::Data x1(("x1_1" + extern_name).c_str(), graph);
 
-    ge::ascir_op::Data x2(("x2_1" + extern_name).c_str(), graph);
+    af::ascir_op::Data x2(("x2_1" + extern_name).c_str(), graph);
 
-    ge::ascir_op::Data x3(("x3_1" + extern_name).c_str(), graph);
+    af::ascir_op::Data x3(("x3_1" + extern_name).c_str(), graph);
 
-    ge::ascir_op::Load x1Local(("x1Local_2" + extern_name).c_str());
+    af::ascir_op::Load x1Local(("x1Local_2" + extern_name).c_str());
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT;
@@ -2500,7 +2500,7 @@ namespace {
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Load x2Local(("x2Local_2" + extern_name).c_str());
+    af::ascir_op::Load x2Local(("x2Local_2" + extern_name).c_str());
     x2Local.x = x2.y;
     x2Local.attr.sched.axis = {a.id, c.id, b.id, e.id, d.id};
     x2Local.y.dtype = DT_FLOAT;
@@ -2508,7 +2508,7 @@ namespace {
     *x2Local.y.repeats = {A, C, B, ONE, D};
     *x2Local.y.strides = {C * B * D, B * D, D, ZERO, ONE};
 
-    ge::ascir_op::Load x3Local(("x3Local_2" + extern_name).c_str());
+    af::ascir_op::Load x3Local(("x3Local_2" + extern_name).c_str());
     x3Local.x = x3.y;
     x3Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x3Local.y.dtype = DT_FLOAT;
@@ -2516,7 +2516,7 @@ namespace {
     *x3Local.y.repeats = {A, B, C, D, E};
     *x3Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Broadcast x2Broadcast(("x2Broadcast" + extern_name).c_str());
+    af::ascir_op::Broadcast x2Broadcast(("x2Broadcast" + extern_name).c_str());
     x2Broadcast.x = x2Local.y;
     x2Broadcast.attr.sched.axis = {a.id, c.id, b.id, e.id, d.id};
     x2Broadcast.y.dtype = DT_FLOAT;
@@ -2524,7 +2524,7 @@ namespace {
     *x2Broadcast.y.repeats = {A, C, B, E, D};
     *x2Broadcast.y.strides = {C * B * D * E, B * D * E, D * E, D, ONE};
 
-    ge::ascir_op::Transpose x2Transpose1(("x2Transpose1" + extern_name).c_str());
+    af::ascir_op::Transpose x2Transpose1(("x2Transpose1" + extern_name).c_str());
     x2Transpose1.x = x2Broadcast.y;
     x2Transpose1.attr.sched.axis = {a.id, c.id, b.id, d.id, e.id};
     x2Transpose1.y.dtype = DT_FLOAT;
@@ -2532,7 +2532,7 @@ namespace {
     *x2Transpose1.y.repeats = {A, C, B, D, E};
     *x2Transpose1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Transpose x2Transpose2(("x2Transpose2" + extern_name).c_str());
+    af::ascir_op::Transpose x2Transpose2(("x2Transpose2" + extern_name).c_str());
     x2Transpose2.x = x2Transpose1.y;
     x2Transpose2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2Transpose2.y.dtype = DT_FLOAT;
@@ -2540,7 +2540,7 @@ namespace {
     *x2Transpose2.y.repeats = {A, B, C, D, E};
     *x2Transpose2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Mul mul1(("mul1" + extern_name).c_str());
+    af::ascir_op::Mul mul1(("mul1" + extern_name).c_str());
     mul1.x1 = x1Local.y;
     mul1.x2 = x2Transpose2.y;
     mul1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -2551,7 +2551,7 @@ namespace {
     *mul1.y.repeats = {};
     *mul1.y.strides = {};
 
-    ge::ascir_op::Mul mul2(("mul2" + extern_name).c_str());
+    af::ascir_op::Mul mul2(("mul2" + extern_name).c_str());
     mul2.x1 = x1Local.y;
     mul2.x2 = x3Local.y;
     mul2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -2562,7 +2562,7 @@ namespace {
     *mul2.y.repeats = {};
     *mul2.y.strides = {};
 
-    ge::ascir_op::Mul mul3(("mul3" + extern_name).c_str());
+    af::ascir_op::Mul mul3(("mul3" + extern_name).c_str());
     mul3.x1 = x2Transpose2.y;
     mul3.x2 = x3Local.y;
     mul3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -2573,7 +2573,7 @@ namespace {
     *mul3.y.repeats = {};
     *mul3.y.strides = {};
   
-    ge::ascir_op::Transpose x_Transpose1(("x_Transpose1" + extern_name).c_str());
+    af::ascir_op::Transpose x_Transpose1(("x_Transpose1" + extern_name).c_str());
     x_Transpose1.x = mul1.y;
     x_Transpose1.attr.sched.axis = {a.id, c.id, b.id, d.id, e.id};
     x_Transpose1.attr.sched.loop_axis = c.id;
@@ -2582,7 +2582,7 @@ namespace {
     *x_Transpose1.y.repeats = {A, C, B, D, E};
     *x_Transpose1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Transpose x_Transpose3(("x_Transpose3" + extern_name).c_str());
+    af::ascir_op::Transpose x_Transpose3(("x_Transpose3" + extern_name).c_str());
     x_Transpose3.x = mul3.y;
     x_Transpose3.attr.sched.axis = {a.id, b.id, c.id, e.id, d.id};
     x_Transpose3.attr.sched.loop_axis = c.id;
@@ -2591,7 +2591,7 @@ namespace {
     *x_Transpose3.y.repeats = {A, B, C, E, D};
     *x_Transpose3.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Store x_store1(("x_store1" + extern_name).c_str());
+    af::ascir_op::Store x_store1(("x_store1" + extern_name).c_str());
     x_store1.x = x_Transpose1.y;
     x_store1.attr.sched.axis = {a.id, c.id, b.id, d.id, e.id};
     x_store1.attr.sched.loop_axis = c.id;
@@ -2600,7 +2600,7 @@ namespace {
     *x_store1.y.repeats = {A, C, B, D, E};
     *x_store1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Store x_store2(("x_store2" + extern_name).c_str());
+    af::ascir_op::Store x_store2(("x_store2" + extern_name).c_str());
     x_store2.x = mul2.y;
     x_store2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_store2.attr.sched.loop_axis = c.id;
@@ -2609,7 +2609,7 @@ namespace {
     *x_store2.y.repeats = {A, B, C, D, E};
     *x_store2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Store x_store3(("x_store3" + extern_name).c_str());
+    af::ascir_op::Store x_store3(("x_store3" + extern_name).c_str());
     x_store3.x = x_Transpose3.y;
     x_store3.attr.sched.axis = {a.id, b.id, c.id, e.id, d.id};
     x_store3.attr.sched.loop_axis = c.id;
@@ -2618,7 +2618,7 @@ namespace {
     *x_store3.y.repeats = {A, B, C, E, D};
     *x_store3.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_store1.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -2627,7 +2627,7 @@ namespace {
     *x_output1.y.repeats = {A, B, C, D, E};
     *x_output1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output2("x_output2");
+    af::ascir_op::Output x_output2("x_output2");
     x_output2.x = x_store2.y;
     x_output2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output2.attr.sched.loop_axis = c.id;
@@ -2636,7 +2636,7 @@ namespace {
     *x_output2.y.repeats = {A, B, C, D, E};
     *x_output2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output3("x_output3");
+    af::ascir_op::Output x_output3("x_output3");
     x_output3.x = x_store3.y;
     x_output3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output3.attr.sched.loop_axis = c.id;
@@ -2670,7 +2670,7 @@ namespace {
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
   
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_INT8;
@@ -2678,7 +2678,7 @@ namespace {
     *x1.y.repeats = {A, B, C, D, E};
     *x1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Data x2("x2_1", graph);
+    af::ascir_op::Data x2("x2_1", graph);
     x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2.attr.sched.loop_axis = c.id;
     x2.y.dtype = DT_INT8;
@@ -2686,7 +2686,7 @@ namespace {
     *x2.y.repeats = {A, B, C, D, E};
     *x2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Data x3("x3_1", graph);
+    af::ascir_op::Data x3("x3_1", graph);
     x3.attr.sched.axis = {a.id, b.id, c.id, d.id};
     x3.attr.sched.loop_axis = c.id;
     x3.y.dtype = DT_INT8;
@@ -2694,7 +2694,7 @@ namespace {
     *x3.y.repeats = {A, B, C, D};
     *x3.y.strides = {B * C * D, C * D, D, ONE};
 
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_INT8;
@@ -2702,7 +2702,7 @@ namespace {
     *x1Local.y.repeats = {A, C, B, D, E};
     *x1Local.y.strides = {C * B * D * E, B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Load x2Local("x2Local_2");
+    af::ascir_op::Load x2Local("x2Local_2");
     x2Local.x = x2.y;
     x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2Local.y.dtype = DT_INT8;
@@ -2710,7 +2710,7 @@ namespace {
     *x2Local.y.repeats = {A, C, B, E, D};
     *x2Local.y.strides = {C * B * E * D, B * E * D, E * D, D, ONE};
 
-    ge::ascir_op::Load x3Local("x3Local_2");
+    af::ascir_op::Load x3Local("x3Local_2");
     x3Local.x = x3.y;
     x3Local.attr.sched.axis = {a.id, b.id, c.id, d.id};
     x3Local.y.dtype = DT_INT8;
@@ -2718,7 +2718,7 @@ namespace {
     *x3Local.y.repeats = {A, C, B, D};
     *x3Local.y.strides = {C * B * D, B * D, D, ONE};
 
-    ge::ascir_op::Mul mul1("mul1");
+    af::ascir_op::Mul mul1("mul1");
     mul1.x1 = x1Local.y;
     mul1.x2 = x2Local.y;
     mul1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -2729,7 +2729,7 @@ namespace {
     *mul1.y.repeats = {};
     *mul1.y.strides = {};
 
-    ge::ascir_op::Mul mul2("mul2");
+    af::ascir_op::Mul mul2("mul2");
     mul2.x1 = x1Local.y;
     mul2.x2 = x3Local.y;
     mul2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -2740,7 +2740,7 @@ namespace {
     *mul2.y.repeats = {A, B, C, D, E};
     *mul2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Mul mul3("mul3");
+    af::ascir_op::Mul mul3("mul3");
     mul3.x1 = x2Local.y;
     mul3.x2 = x3Local.y;
     mul3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -2751,7 +2751,7 @@ namespace {
     *mul3.y.repeats = {};
     *mul3.y.strides = {};
   
-    ge::ascir_op::Store x_store1("x_store1");
+    af::ascir_op::Store x_store1("x_store1");
     x_store1.x = mul1.y;
     x_store1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_store1.attr.sched.loop_axis = c.id;
@@ -2760,7 +2760,7 @@ namespace {
     *x_store1.y.repeats = {A, B, C, D, E};
     *x_store1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Store x_store2("x_store2");
+    af::ascir_op::Store x_store2("x_store2");
     x_store2.x = mul2.y;
     x_store2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_store2.attr.sched.loop_axis = c.id;
@@ -2769,7 +2769,7 @@ namespace {
     *x_store2.y.repeats = {A, C, B, E, D};
     *x_store2.y.strides = {C * B * E * D, B * E * D, E * D, D, ONE};
   
-    ge::ascir_op::Store x_store3("x_store3");
+    af::ascir_op::Store x_store3("x_store3");
     x_store3.x = mul3.y;
     x_store3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_store3.attr.sched.loop_axis = c.id;
@@ -2778,7 +2778,7 @@ namespace {
     *x_store3.y.repeats = {A, B, C, D, ONE};
     *x_store3.y.strides = {B * C * D, C * D, D, ONE, ZERO};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_store1.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -2787,7 +2787,7 @@ namespace {
     *x_output1.y.repeats = {A, B, C, D, E};
     *x_output1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output2("x_output2");
+    af::ascir_op::Output x_output2("x_output2");
     x_output2.x = x_store2.y;
     x_output2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output2.attr.sched.loop_axis = c.id;
@@ -2796,7 +2796,7 @@ namespace {
     *x_output2.y.repeats = {A, B, C, D, E};
     *x_output2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output3("x_output3");
+    af::ascir_op::Output x_output3("x_output3");
     x_output3.x = x_store3.y;
     x_output3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output3.attr.sched.loop_axis = c.id;
@@ -2830,7 +2830,7 @@ namespace {
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
   
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -2838,7 +2838,7 @@ namespace {
     *x1.y.repeats = {};
     *x1.y.strides = {};
   
-    ge::ascir_op::Data x2("x2_1", graph);
+    af::ascir_op::Data x2("x2_1", graph);
     x2.attr.sched.axis = {};
     x2.attr.sched.loop_axis = c.id;
     x2.y.dtype = DT_FLOAT16;
@@ -2846,7 +2846,7 @@ namespace {
     *x2.y.repeats = {};
     *x2.y.strides = {};
   
-    ge::ascir_op::Data x3("x3_1", graph);
+    af::ascir_op::Data x3("x3_1", graph);
     x3.attr.sched.axis = {};
     x3.attr.sched.loop_axis = c.id;
     x3.y.dtype = DT_FLOAT16;
@@ -2854,7 +2854,7 @@ namespace {
     *x3.y.repeats = {};
     *x3.y.strides = {};
 
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -2862,7 +2862,7 @@ namespace {
     *x1Local.y.repeats = {A, C, B, D, E};
     *x1Local.y.strides = {C * B * D * E, B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Load x2Local("x2Local_2");
+    af::ascir_op::Load x2Local("x2Local_2");
     x2Local.x = x2.y;
     x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2Local.y.dtype = DT_FLOAT16;
@@ -2870,7 +2870,7 @@ namespace {
     *x2Local.y.repeats = {A, C, B, E, D};
     *x2Local.y.strides = {C * B * E * D, B * E * D, E * D, D, ONE};
 
-    ge::ascir_op::Load x3Local("x3Local_2");
+    af::ascir_op::Load x3Local("x3Local_2");
     x3Local.x = x3.y;
     x3Local.attr.sched.axis = {a.id, b.id, c.id, d.id};
     x3Local.y.dtype = DT_FLOAT16;
@@ -2878,7 +2878,7 @@ namespace {
     *x3Local.y.repeats = {A, C, B, D};
     *x3Local.y.strides = {C * B * D, B * D, D, ONE};
 
-    ge::ascir_op::Abs x1Abs("x1Transpose");
+    af::ascir_op::Abs x1Abs("x1Transpose");
     x1Abs.x = x1Local.y;
     x1Abs.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Abs.y.dtype = DT_FLOAT16;
@@ -2886,7 +2886,7 @@ namespace {
     *x1Abs.y.repeats = {A, C, B, D, E};
     *x1Abs.y.strides = {C * B * D * E, B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs x2Abs("x2Transpose");
+    af::ascir_op::Abs x2Abs("x2Transpose");
     x2Abs.x = x2Local.y;
     x2Abs.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2Abs.y.dtype = DT_FLOAT16;
@@ -2894,7 +2894,7 @@ namespace {
     *x2Abs.y.repeats = {A, C, B, E, D};
     *x2Abs.y.strides = {C * B * E * D, B * E * D, E * D, D, ONE};
 
-    ge::ascir_op::Abs x3Abs("x3Transpose");
+    af::ascir_op::Abs x3Abs("x3Transpose");
     x3Abs.x = x3Local.y;
     x3Abs.attr.sched.axis = {a.id, b.id, c.id, d.id};
     x3Abs.y.dtype = DT_FLOAT16;
@@ -2902,7 +2902,7 @@ namespace {
     *x3Abs.y.repeats = {A, C, B, D};
     *x3Abs.y.strides = {C * B * D, B * D, D, ONE};
 
-    ge::ascir_op::Mul mul1("mul1");
+    af::ascir_op::Mul mul1("mul1");
     mul1.x1 = x1Abs.y;
     mul1.x2 = x2Abs.y;
     mul1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -2913,7 +2913,7 @@ namespace {
     *mul1.y.repeats = {};
     *mul1.y.strides = {};
 
-    ge::ascir_op::Mul mul2("mul2");
+    af::ascir_op::Mul mul2("mul2");
     mul2.x1 = x1Abs.y;
     mul2.x2 = x3Abs.y;
     mul2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -2924,7 +2924,7 @@ namespace {
     *mul2.y.repeats = {A, B, C, D, E};
     *mul2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Mul mul3("mul3");
+    af::ascir_op::Mul mul3("mul3");
     mul3.x1 = x2Abs.y;
     mul3.x2 = x3Abs.y;
     mul3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -2935,7 +2935,7 @@ namespace {
     *mul3.y.repeats = {};
     *mul3.y.strides = {};
   
-    ge::ascir_op::Store x_store1("x_store1");
+    af::ascir_op::Store x_store1("x_store1");
     x_store1.x = mul1.y;
     x_store1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_store1.attr.sched.loop_axis = c.id;
@@ -2944,7 +2944,7 @@ namespace {
     *x_store1.y.repeats = {A, B, C, D, E};
     *x_store1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Store x_store2("x_store2");
+    af::ascir_op::Store x_store2("x_store2");
     x_store2.x = mul2.y;
     x_store2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_store2.attr.sched.loop_axis = c.id;
@@ -2953,7 +2953,7 @@ namespace {
     *x_store2.y.repeats = {A, C, B, E, D};
     *x_store2.y.strides = {C * B * E * D, B * E * D, E * D, D, ONE};
   
-    ge::ascir_op::Store x_store3("x_store3");
+    af::ascir_op::Store x_store3("x_store3");
     x_store3.x = mul3.y;
     x_store3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_store3.attr.sched.loop_axis = c.id;
@@ -2962,7 +2962,7 @@ namespace {
     *x_store3.y.repeats = {A, B, C, D, ONE};
     *x_store3.y.strides = {B * C * D, C * D, D, ONE, ZERO};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_store1.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -2971,7 +2971,7 @@ namespace {
     *x_output1.y.repeats = {A, B, C, D, E};
     *x_output1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output2("x_output2");
+    af::ascir_op::Output x_output2("x_output2");
     x_output2.x = x_store2.y;
     x_output2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output2.attr.sched.loop_axis = c.id;
@@ -2980,7 +2980,7 @@ namespace {
     *x_output2.y.repeats = {A, B, C, D, E};
     *x_output2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output3("x_output3");
+    af::ascir_op::Output x_output3("x_output3");
     x_output3.x = x_store3.y;
     x_output3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output3.attr.sched.loop_axis = c.id;
@@ -3012,7 +3012,7 @@ namespace {
     auto b = graph.CreateAxis("B", ONE);
     auto c = graph.CreateAxis("C", C);
 
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, c.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -3020,7 +3020,7 @@ namespace {
     *x1.y.repeats = {ONE, ONE};
     *x1.y.strides = {ZERO, ZERO};
 
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, c.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -3028,7 +3028,7 @@ namespace {
     *x1Local.y.repeats = {A, C};
     *x1Local.y.strides = {C, ONE};
 
-    ge::ascir_op::Abs x1LocalAbs("x1LocalAbs");
+    af::ascir_op::Abs x1LocalAbs("x1LocalAbs");
     x1LocalAbs.x = x1Local.y;
     x1LocalAbs.attr.sched.axis = {};
     x1LocalAbs.y.dtype = DT_FLOAT16;
@@ -3036,7 +3036,7 @@ namespace {
     *x1LocalAbs.y.repeats = {};
     *x1LocalAbs.y.strides = {};
 
-    ge::ascir_op::Store x_store("x_store");
+    af::ascir_op::Store x_store("x_store");
     x_store.x = x1LocalAbs.y;
     x_store.attr.sched.axis = {a.id, c.id};
     x_store.attr.sched.loop_axis = c.id;
@@ -3045,7 +3045,7 @@ namespace {
     *x_store.y.repeats = {A, C};
     *x_store.y.strides = {C, ONE};
 
-    ge::ascir_op::Output x_out("x_out");
+    af::ascir_op::Output x_out("x_out");
     x_out.x = x_store.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -3075,7 +3075,7 @@ namespace {
     auto d = graph.CreateAxis("D", ONE);
     auto e = graph.CreateAxis("E", ONE);
 
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -3083,7 +3083,7 @@ namespace {
     *x1.y.repeats = {ONE, ONE, ONE, ONE, ONE};
     *x1.y.strides = {ZERO, ZERO, ZERO, ZERO, ZERO};
 
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -3091,7 +3091,7 @@ namespace {
     *x1Local.y.repeats = {ONE, ONE, ONE, ONE, ONE};
     *x1Local.y.strides = {ZERO, ZERO, ZERO, ZERO, ZERO};
 
-    ge::ascir_op::Abs x1LocalAbs("x1LocalAbs");
+    af::ascir_op::Abs x1LocalAbs("x1LocalAbs");
     x1LocalAbs.x = x1Local.y;
     x1LocalAbs.attr.sched.axis = {};
     x1LocalAbs.y.dtype = DT_FLOAT16;
@@ -3099,7 +3099,7 @@ namespace {
     *x1LocalAbs.y.repeats = {};
     *x1LocalAbs.y.strides = {};
 
-    ge::ascir_op::Store x_store("x_store");
+    af::ascir_op::Store x_store("x_store");
     x_store.x = x1LocalAbs.y;
     x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_store.attr.sched.loop_axis = c.id;
@@ -3108,7 +3108,7 @@ namespace {
     *x_store.y.repeats = {ONE, ONE, ONE, ONE, ONE};
     *x_store.y.strides = {ZERO, ZERO, ZERO, ZERO, ZERO};
 
-    ge::ascir_op::Output x_out("x_out");
+    af::ascir_op::Output x_out("x_out");
     x_out.x = x_store.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -3138,14 +3138,14 @@ namespace {
     auto d = graph.CreateAxis("D", ONE);
     auto e = graph.CreateAxis("E", ONE);
 
-    ge::ascir_op::Scalar x1Local("x1Local_2", graph);
+    af::ascir_op::Scalar x1Local("x1Local_2", graph);
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
     *x1Local.y.axis = {};
     *x1Local.y.repeats = {};
     *x1Local.y.strides = {};
   
-    ge::ascir_op::Abs x1LocalAbs("x1LocalAbs");
+    af::ascir_op::Abs x1LocalAbs("x1LocalAbs");
     x1LocalAbs.x = x1Local.y;
     x1LocalAbs.attr.sched.axis = {};
     x1LocalAbs.y.dtype = DT_FLOAT16;
@@ -3153,7 +3153,7 @@ namespace {
     *x1LocalAbs.y.repeats = {};
     *x1LocalAbs.y.strides = {};
 
-    ge::ascir_op::Store x_store("x_store");
+    af::ascir_op::Store x_store("x_store");
     x_store.x = x1LocalAbs.y;
     x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_store.attr.sched.loop_axis = c.id;
@@ -3162,7 +3162,7 @@ namespace {
     *x_store.y.repeats = {ONE, ONE, ONE, ONE, ONE};
     *x_store.y.strides = {ZERO, ZERO, ZERO, ZERO, ZERO};
 
-    ge::ascir_op::Output x_out("x_out");
+    af::ascir_op::Output x_out("x_out");
     x_out.x = x_store.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -3191,7 +3191,7 @@ namespace {
     auto b = graph.CreateAxis("B", B);
     auto c = graph.CreateAxis("C", ONE);
 
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -3199,7 +3199,7 @@ namespace {
     *x1.y.repeats = {A, B, ONE};
     *x1.y.strides = {B, ONE, C};
 
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -3207,7 +3207,7 @@ namespace {
     *x1Local.y.repeats = {A, B, ONE};
     *x1Local.y.strides = {B, ONE, ZERO};
 
-    ge::ascir_op::Abs x1LocalAbs("x1LocalAbs");
+    af::ascir_op::Abs x1LocalAbs("x1LocalAbs");
     x1LocalAbs.x = x1Local.y;
     x1LocalAbs.attr.sched.axis = {};
     x1LocalAbs.y.dtype = DT_FLOAT16;
@@ -3215,7 +3215,7 @@ namespace {
     *x1LocalAbs.y.repeats = {};
     *x1LocalAbs.y.strides = {};
 
-    ge::ascir_op::Store x_store("x_store");
+    af::ascir_op::Store x_store("x_store");
     x_store.x = x1LocalAbs.y;
     x_store.attr.sched.axis = {a.id, b.id, c.id};
     x_store.attr.sched.loop_axis = c.id;
@@ -3224,7 +3224,7 @@ namespace {
     *x_store.y.repeats = {A, B, ONE};
     *x_store.y.strides = {B, ONE, ZERO};
 
-    ge::ascir_op::Output x_out("x_out");
+    af::ascir_op::Output x_out("x_out");
     x_out.x = x_store.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -3252,7 +3252,7 @@ namespace {
     auto b = graph.CreateAxis("B", ONE);
     auto c = graph.CreateAxis("C", C);
 
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -3260,7 +3260,7 @@ namespace {
     *x1.y.repeats = {ONE, ONE, ONE};
     *x1.y.strides = {ZERO, ONE, ZERO};
 
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -3268,7 +3268,7 @@ namespace {
     *x1Local.y.repeats = {A, ONE, C};
     *x1Local.y.strides = {C, C, ONE};
 
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = x1Local.y;
     x_out.attr.sched.axis = {a.id, c.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -3277,7 +3277,7 @@ namespace {
     *x_out.y.repeats = {A, C};
     *x_out.y.strides = {C, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, c.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -3307,7 +3307,7 @@ namespace {
     auto b = graph.CreateAxis("B", ONE);
     auto c = graph.CreateAxis("C", C);
   
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, c.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -3315,7 +3315,7 @@ namespace {
     *x1.y.repeats = {ONE, ONE};
     *x1.y.strides = {ZERO, ZERO};
   
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, c.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -3323,7 +3323,7 @@ namespace {
     *x1Local.y.repeats = {A, C};
     *x1Local.y.strides = {C, ONE};
   
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = x1Local.y;
     x_out.attr.sched.axis = {a.id, c.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -3332,7 +3332,7 @@ namespace {
     *x_out.y.repeats = {A, C};
     *x_out.y.strides = {C, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, c.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -3363,49 +3363,49 @@ std::shared_ptr<AscGraph> CreatCalcRstdAscGraphWithStoreMulReference(ge::AscGrap
   auto d = graph.CreateAxis("D", D);
   auto e = graph.CreateAxis("E", E);
 
-  ge::ascir_op::Data x1("x1_calc_rstd", graph);
+  af::ascir_op::Data x1("x1_calc_rstd", graph);
   x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x1.attr.sched.loop_axis = c.id;
   *x1.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x1.y.repeats = {A, B, C, D, E};
   *x1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Load x1Local("x1Local_calc_rstd");
+  af::ascir_op::Load x1Local("x1Local_calc_rstd");
   x1Local.x = x1.y;
   x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x1Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x1Local.y.repeats = {A, B, C, D, E};
   *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Data x2("x2_calc_rstd", graph);
+  af::ascir_op::Data x2("x2_calc_rstd", graph);
   x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x2.attr.sched.loop_axis = c.id;
   *x2.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x2.y.repeats = {A, B, C, D, E};
   *x2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Load x2Local("x2Local_calc_rstd");
+  af::ascir_op::Load x2Local("x2Local_calc_rstd");
   x2Local.x = x2.y;
   x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x2Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x2Local.y.repeats = {A, B, C, D, E};
   *x2Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Data x3("x3_calc_rstd", graph);
+  af::ascir_op::Data x3("x3_calc_rstd", graph);
   x3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x3.attr.sched.loop_axis = c.id;
   *x3.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x3.y.repeats = {A, B, C, D, E};
   *x3.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Load x3Local("x3Local_calc_rstd");
+  af::ascir_op::Load x3Local("x3Local_calc_rstd");
   x3Local.x = x3.y;
   x3Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x3Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x3Local.y.repeats = {A, B, C, D, E};
   *x3Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::FlashSoftmax calcRstd("calcRstd_calc_rstd");
+  af::ascir_op::FlashSoftmax calcRstd("calcRstd_calc_rstd");
   calcRstd.x1 = x1Local.y;
   calcRstd.x2 = x2Local.y;
   calcRstd.x3 = x3Local.y;
@@ -3420,21 +3420,21 @@ std::shared_ptr<AscGraph> CreatCalcRstdAscGraphWithStoreMulReference(ge::AscGrap
   *calcRstd.y3.repeats = {A, B, C, D, E};
   *calcRstd.y3.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Store x_store("x_store_calc_rstd");
+  af::ascir_op::Store x_store("x_store_calc_rstd");
   x_store.x = calcRstd.y1;
   x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_store.attr.sched.loop_axis = c.id;
   *x_store.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x_store.y.repeats = {A, B, C, D, E};
   *x_store.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
-  ge::ascir_op::Store x_store1("x_store1_calc_rstd");
+  af::ascir_op::Store x_store1("x_store1_calc_rstd");
   x_store1.x = calcRstd.y2;
   x_store1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_store1.attr.sched.loop_axis = c.id;
   *x_store1.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x_store1.y.repeats = {A, B, C, D, E};
   *x_store1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
-  ge::ascir_op::Store x_store2("x_store2_calc_rstd");
+  af::ascir_op::Store x_store2("x_store2_calc_rstd");
   x_store2.x = calcRstd.y2;
   x_store2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_store2.attr.sched.loop_axis = c.id;
@@ -3442,21 +3442,21 @@ std::shared_ptr<AscGraph> CreatCalcRstdAscGraphWithStoreMulReference(ge::AscGrap
   *x_store2.y.repeats = {A, B, C, D, E};
   *x_store2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Output x_out("x_out_calc_rstd");
+  af::ascir_op::Output x_out("x_out_calc_rstd");
   x_out.x = x_store.y;
   x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_out.attr.sched.loop_axis = c.id;
   *x_out.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x_out.y.repeats = {A, B, C, D, E};
   *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
-  ge::ascir_op::Output x_out1("x_out1_calc_rstd");
+  af::ascir_op::Output x_out1("x_out1_calc_rstd");
   x_out1.x = x_store1.y;
   x_out1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_out1.attr.sched.loop_axis = c.id;
   *x_out1.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x_out1.y.repeats = {A, B, C, D, E};
   *x_out1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
-  ge::ascir_op::Output x_out2("x_out2_calc_rstd");
+  af::ascir_op::Output x_out2("x_out2_calc_rstd");
   x_out2.x = x_store2.y;
   x_out2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_out2.attr.sched.loop_axis = c.id;
@@ -3488,49 +3488,49 @@ std::shared_ptr<AscGraph> TwoSub2InputallMulReferenceAscGraph(ge::AscGraph &grap
   auto d = graph.CreateAxis("D", D);
   auto e = graph.CreateAxis("E", E);
 
-  ge::ascir_op::Data x1("x1_add", graph);
+  af::ascir_op::Data x1("x1_add", graph);
   x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x1.attr.sched.loop_axis = c.id;
   *x1.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x1.y.repeats = {A, B, ONE, ONE, ONE};
   *x1.y.strides = {B, ONE, ZERO, ZERO, ZERO};
 
-  ge::ascir_op::Load x1Local("x1Local_add");
+  af::ascir_op::Load x1Local("x1Local_add");
   x1Local.x = x1.y;
   x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x1Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x1Local.y.repeats = {A, B, C, D, E};
   *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Load x2Local("x2Local_add");
+  af::ascir_op::Load x2Local("x2Local_add");
   x2Local.x = x1.y;
   x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x2Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x2Local.y.repeats = {A, B, C, D, E};
   *x2Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Data x2("x2_add", graph);
+  af::ascir_op::Data x2("x2_add", graph);
   x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x2.attr.sched.loop_axis = c.id;
   *x2.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x2.y.repeats = {A, B, C, D, E};
   *x2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Load x3Local("x3Local_add");
+  af::ascir_op::Load x3Local("x3Local_add");
   x3Local.x = x2.y;
   x3Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x3Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x3Local.y.repeats = {A, B, C, D, E};
   *x3Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Load x4Local("x4Local_add");
+  af::ascir_op::Load x4Local("x4Local_add");
   x4Local.x = x2.y;
   x4Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x4Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x4Local.y.repeats = {A, B, C, D, E};
   *x4Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Add add1("add_1");
+  af::ascir_op::Add add1("add_1");
   add1.x1 = x1Local.y;
   add1.x2 = x3Local.y;
   add1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -3541,7 +3541,7 @@ std::shared_ptr<AscGraph> TwoSub2InputallMulReferenceAscGraph(ge::AscGraph &grap
   *add1.y.repeats = {A, B, C, D, E};
   *add1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Add add2("add_2");
+  af::ascir_op::Add add2("add_2");
   add2.x1 = x2Local.y;
   add2.x2 = x4Local.y;
   add2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -3552,21 +3552,21 @@ std::shared_ptr<AscGraph> TwoSub2InputallMulReferenceAscGraph(ge::AscGraph &grap
   *add2.y.repeats = {A, B, C, D, E};
   *add2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Store x_store("x_store_calc_rstd");
+  af::ascir_op::Store x_store("x_store_calc_rstd");
   x_store.x = add1.y;
   x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_store.attr.sched.loop_axis = c.id;
   *x_store.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x_store.y.repeats = {A, B, C, D, E};
   *x_store.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
-  ge::ascir_op::Store x_store1("x_store1_calc_rstd");
+  af::ascir_op::Store x_store1("x_store1_calc_rstd");
   x_store1.x = add2.y;
   x_store1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_store1.attr.sched.loop_axis = c.id;
   *x_store1.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x_store1.y.repeats = {A, B, C, D, E};
   *x_store1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
-  ge::ascir_op::Store x_store2("x_store2_calc_rstd");
+  af::ascir_op::Store x_store2("x_store2_calc_rstd");
   x_store2.x = add2.y;
   x_store2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_store2.attr.sched.loop_axis = c.id;
@@ -3574,21 +3574,21 @@ std::shared_ptr<AscGraph> TwoSub2InputallMulReferenceAscGraph(ge::AscGraph &grap
   *x_store2.y.repeats = {A, B, C, D, E};
   *x_store2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Output x_out("x_out_calc_rstd");
+  af::ascir_op::Output x_out("x_out_calc_rstd");
   x_out.x = x_store.y;
   x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_out.attr.sched.loop_axis = c.id;
   *x_out.y.axis = {};
   *x_out.y.repeats = {};
   *x_out.y.strides = {};
-  ge::ascir_op::Output x_out1("x_out1_calc_rstd");
+  af::ascir_op::Output x_out1("x_out1_calc_rstd");
   x_out1.x = x_store1.y;
   x_out1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_out1.attr.sched.loop_axis = c.id;
   *x_out1.y.axis = {};
   *x_out1.y.repeats = {};
   *x_out1.y.strides = {};
-  ge::ascir_op::Output x_out2("x_out2_calc_rstd");
+  af::ascir_op::Output x_out2("x_out2_calc_rstd");
   x_out2.x = x_store2.y;
   x_out2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_out2.attr.sched.loop_axis = c.id;
@@ -3620,63 +3620,63 @@ std::shared_ptr<AscGraph> ThreeSub2InputallMulReferenceAscGraph(ge::AscGraph &gr
   auto d = graph.CreateAxis("D", D);
   auto e = graph.CreateAxis("E", E);
 
-  ge::ascir_op::Data x1("x1_add", graph);
+  af::ascir_op::Data x1("x1_add", graph);
   x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x1.attr.sched.loop_axis = c.id;
   *x1.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x1.y.repeats = {A, B, ONE, ONE, ONE};
   *x1.y.strides = {B, ONE, ZERO, ZERO, ZERO};
 
-  ge::ascir_op::Load x1Local("x1Local_add");
+  af::ascir_op::Load x1Local("x1Local_add");
   x1Local.x = x1.y;
   x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x1Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x1Local.y.repeats = {A, B, C, D, E};
   *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Load x2Local("x2Local_add");
+  af::ascir_op::Load x2Local("x2Local_add");
   x2Local.x = x1.y;
   x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x2Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x2Local.y.repeats = {A, B, C, D, E};
   *x2Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Load x5Local("x5Local_add");
+  af::ascir_op::Load x5Local("x5Local_add");
   x5Local.x = x1.y;
   x5Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x5Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x5Local.y.repeats = {A, B, C, D, E};
   *x5Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Data x2("x2_add", graph);
+  af::ascir_op::Data x2("x2_add", graph);
   x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x2.attr.sched.loop_axis = c.id;
   *x2.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x2.y.repeats = {A, B, C, D, E};
   *x2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Load x3Local("x3Local_add");
+  af::ascir_op::Load x3Local("x3Local_add");
   x3Local.x = x2.y;
   x3Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x3Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x3Local.y.repeats = {A, B, C, D, E};
   *x3Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Load x4Local("x4Local_add");
+  af::ascir_op::Load x4Local("x4Local_add");
   x4Local.x = x2.y;
   x4Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x4Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x4Local.y.repeats = {A, B, C, D, E};
   *x4Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Load x6Local("x6Local_add");
+  af::ascir_op::Load x6Local("x6Local_add");
   x6Local.x = x2.y;
   x6Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x6Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x6Local.y.repeats = {A, B, C, D, E};
   *x6Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Add add1("add_1");
+  af::ascir_op::Add add1("add_1");
   add1.x1 = x1Local.y;
   add1.x2 = x3Local.y;
   add1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -3687,7 +3687,7 @@ std::shared_ptr<AscGraph> ThreeSub2InputallMulReferenceAscGraph(ge::AscGraph &gr
   *add1.y.repeats = {A, B, C, D, E};
   *add1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-  ge::ascir_op::Add add2("add_2");
+  af::ascir_op::Add add2("add_2");
   add2.x1 = x2Local.y;
   add2.x2 = x4Local.y;
   add2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -3698,7 +3698,7 @@ std::shared_ptr<AscGraph> ThreeSub2InputallMulReferenceAscGraph(ge::AscGraph &gr
   *add2.y.repeats = {A, B, C, D, E};
   *add2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-  ge::ascir_op::Add add3("add_3");
+  af::ascir_op::Add add3("add_3");
   add3.x1 = x5Local.y;
   add3.x2 = x6Local.y;
   add3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -3709,21 +3709,21 @@ std::shared_ptr<AscGraph> ThreeSub2InputallMulReferenceAscGraph(ge::AscGraph &gr
   *add3.y.repeats = {A, B, C, D, E};
   *add3.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Store x_store("x_store_calc_rstd");
+  af::ascir_op::Store x_store("x_store_calc_rstd");
   x_store.x = add1.y;
   x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_store.attr.sched.loop_axis = c.id;
   *x_store.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x_store.y.repeats = {A, B, C, D, E};
   *x_store.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
-  ge::ascir_op::Store x_store1("x_store1_calc_rstd");
+  af::ascir_op::Store x_store1("x_store1_calc_rstd");
   x_store1.x = add2.y;
   x_store1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_store1.attr.sched.loop_axis = c.id;
   *x_store1.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x_store1.y.repeats = {A, B, C, D, E};
   *x_store1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
-  ge::ascir_op::Store x_store2("x_store2_calc_rstd");
+  af::ascir_op::Store x_store2("x_store2_calc_rstd");
   x_store2.x = add3.y;
   x_store2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_store2.attr.sched.loop_axis = c.id;
@@ -3731,21 +3731,21 @@ std::shared_ptr<AscGraph> ThreeSub2InputallMulReferenceAscGraph(ge::AscGraph &gr
   *x_store2.y.repeats = {A, B, C, D, E};
   *x_store2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Output x_out("x_out_calc_rstd");
+  af::ascir_op::Output x_out("x_out_calc_rstd");
   x_out.x = x_store.y;
   x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_out.attr.sched.loop_axis = c.id;
   *x_out.y.axis = {};
   *x_out.y.repeats = {};
   *x_out.y.strides = {};
-  ge::ascir_op::Output x_out1("x_out1_calc_rstd");
+  af::ascir_op::Output x_out1("x_out1_calc_rstd");
   x_out1.x = x_store1.y;
   x_out1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_out1.attr.sched.loop_axis = c.id;
   *x_out1.y.axis = {};
   *x_out1.y.repeats = {};
   *x_out1.y.strides = {};
-  ge::ascir_op::Output x_out2("x_out2_calc_rstd");
+  af::ascir_op::Output x_out2("x_out2_calc_rstd");
   x_out2.x = x_store2.y;
   x_out2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_out2.attr.sched.loop_axis = c.id;
@@ -3778,49 +3778,49 @@ std::shared_ptr<AscGraph> CastWithSameDtypeAscGraph(ge::AscGraph &graph) {
   auto d = graph.CreateAxis("D", D);
   auto e = graph.CreateAxis("E", E);
 
-  ge::ascir_op::Data x1("x1_add", graph);
+  af::ascir_op::Data x1("x1_add", graph);
   x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x1.attr.sched.loop_axis = c.id;
   *x1.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x1.y.repeats = {A, B, ONE, ONE, ONE};
   *x1.y.strides = {B, ONE, ZERO, ZERO, ZERO};
 
-  ge::ascir_op::Load x1Local("x1Local_add");
+  af::ascir_op::Load x1Local("x1Local_add");
   x1Local.x = x1.y;
   x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x1Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x1Local.y.repeats = {A, B, C, D, E};
   *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Load x2Local("x2Local_add");
+  af::ascir_op::Load x2Local("x2Local_add");
   x2Local.x = x1.y;
   x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x2Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x2Local.y.repeats = {A, B, C, D, E};
   *x2Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Data x2("x2_add", graph);
+  af::ascir_op::Data x2("x2_add", graph);
   x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x2.attr.sched.loop_axis = c.id;
   *x2.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x2.y.repeats = {A, B, C, D, E};
   *x2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Load x3Local("x3Local_add");
+  af::ascir_op::Load x3Local("x3Local_add");
   x3Local.x = x2.y;
   x3Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x3Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x3Local.y.repeats = {A, B, C, D, E};
   *x3Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Load x4Local("x4Local_add");
+  af::ascir_op::Load x4Local("x4Local_add");
   x4Local.x = x2.y;
   x4Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x4Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x4Local.y.repeats = {A, B, C, D, E};
   *x4Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Add add1("add_1");
+  af::ascir_op::Add add1("add_1");
   add1.x1 = x1Local.y;
   add1.x2 = x3Local.y;
   add1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -3831,7 +3831,7 @@ std::shared_ptr<AscGraph> CastWithSameDtypeAscGraph(ge::AscGraph &graph) {
   *add1.y.repeats = {A, B, C, D, E};
   *add1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Cast Cast1ToStore("Cast1ToStore");
+  af::ascir_op::Cast Cast1ToStore("Cast1ToStore");
   Cast1ToStore.x = add1.y;
   Cast1ToStore.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   Cast1ToStore.y.dtype = DT_INT8;
@@ -3839,7 +3839,7 @@ std::shared_ptr<AscGraph> CastWithSameDtypeAscGraph(ge::AscGraph &graph) {
   *Cast1ToStore.y.repeats = {A, B, C, D, E};
   *Cast1ToStore.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Cast Cast3ToStore("Cast3ToStore");
+  af::ascir_op::Cast Cast3ToStore("Cast3ToStore");
   Cast3ToStore.x = Cast1ToStore.y;
   Cast3ToStore.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   Cast3ToStore.y.dtype = DT_INT16;
@@ -3847,7 +3847,7 @@ std::shared_ptr<AscGraph> CastWithSameDtypeAscGraph(ge::AscGraph &graph) {
   *Cast3ToStore.y.repeats = {A, B, C, D, E};
   *Cast3ToStore.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-  ge::ascir_op::Add add2("add_2");
+  af::ascir_op::Add add2("add_2");
   add2.x1 = x2Local.y;
   add2.x2 = x4Local.y;
   add2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -3858,7 +3858,7 @@ std::shared_ptr<AscGraph> CastWithSameDtypeAscGraph(ge::AscGraph &graph) {
   *add2.y.repeats = {A, B, C, D, E};
   *add2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Cast Cast2ToStore("Cast2ToStore");
+  af::ascir_op::Cast Cast2ToStore("Cast2ToStore");
   Cast2ToStore.x = add2.y;
   Cast2ToStore.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   Cast2ToStore.y.dtype = DT_INT8;
@@ -3866,7 +3866,7 @@ std::shared_ptr<AscGraph> CastWithSameDtypeAscGraph(ge::AscGraph &graph) {
   *Cast2ToStore.y.repeats = {A, B, C, D, E};
   *Cast2ToStore.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Cast Cast4ToStore("Cast4ToStore");
+  af::ascir_op::Cast Cast4ToStore("Cast4ToStore");
   Cast4ToStore.x = Cast2ToStore.y;
   Cast4ToStore.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   Cast4ToStore.y.dtype = DT_INT32;
@@ -3874,7 +3874,7 @@ std::shared_ptr<AscGraph> CastWithSameDtypeAscGraph(ge::AscGraph &graph) {
   *Cast4ToStore.y.repeats = {A, B, C, D, E};
   *Cast4ToStore.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Store x_store("x_store_calc_rstd");
+  af::ascir_op::Store x_store("x_store_calc_rstd");
   x_store.x = Cast3ToStore.y;
   x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_store.attr.sched.loop_axis = c.id;
@@ -3882,7 +3882,7 @@ std::shared_ptr<AscGraph> CastWithSameDtypeAscGraph(ge::AscGraph &graph) {
   *x_store.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x_store.y.repeats = {A, B, C, D, E};
   *x_store.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
-  ge::ascir_op::Store x_store1("x_store1_calc_rstd");
+  af::ascir_op::Store x_store1("x_store1_calc_rstd");
   x_store1.x = Cast4ToStore.y;
   x_store1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_store1.attr.sched.loop_axis = c.id;
@@ -3890,7 +3890,7 @@ std::shared_ptr<AscGraph> CastWithSameDtypeAscGraph(ge::AscGraph &graph) {
   *x_store1.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x_store1.y.repeats = {A, B, C, D, E};
   *x_store1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
-  ge::ascir_op::Store x_store2("x_store2_calc_rstd");
+  af::ascir_op::Store x_store2("x_store2_calc_rstd");
   x_store2.x = Cast4ToStore.y;
   x_store2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_store2.attr.sched.loop_axis = c.id;
@@ -3899,21 +3899,21 @@ std::shared_ptr<AscGraph> CastWithSameDtypeAscGraph(ge::AscGraph &graph) {
   *x_store2.y.repeats = {A, B, C, D, E};
   *x_store2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Output x_out("x_out_calc_rstd");
+  af::ascir_op::Output x_out("x_out_calc_rstd");
   x_out.x = x_store.y;
   x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_out.attr.sched.loop_axis = c.id;
   *x_out.y.axis = {};
   *x_out.y.repeats = {};
   *x_out.y.strides = {};
-  ge::ascir_op::Output x_out1("x_out1_calc_rstd");
+  af::ascir_op::Output x_out1("x_out1_calc_rstd");
   x_out1.x = x_store1.y;
   x_out1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_out1.attr.sched.loop_axis = c.id;
   *x_out1.y.axis = {};
   *x_out1.y.repeats = {};
   *x_out1.y.strides = {};
-  ge::ascir_op::Output x_out2("x_out2_calc_rstd");
+  af::ascir_op::Output x_out2("x_out2_calc_rstd");
   x_out2.x = x_store2.y;
   x_out2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_out2.attr.sched.loop_axis = c.id;
@@ -3946,54 +3946,54 @@ std::shared_ptr<AscGraph> ThreeScalarAscGraph(ge::AscGraph &graph) {
   auto d = graph.CreateAxis("D", D);
   auto e = graph.CreateAxis("E", E);
 
-  ge::ascir_op::Scalar x1Local("x1_scalar", graph);
+  af::ascir_op::Scalar x1Local("x1_scalar", graph);
   x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x1Local.y.axis = {};
   *x1Local.y.repeats = {};
   *x1Local.y.strides = {};
   x1Local.ir_attr.SetValue("1");
-  ge::ascir_op::Scalar x2Local("x2_scalar", graph);
+  af::ascir_op::Scalar x2Local("x2_scalar", graph);
   x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x2Local.y.axis = {};
   *x2Local.y.repeats = {};
   *x2Local.y.strides = {};
   x2Local.ir_attr.SetValue("1");
-  ge::ascir_op::Scalar x5Local("x3_scalar", graph);
+  af::ascir_op::Scalar x5Local("x3_scalar", graph);
   x5Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x5Local.y.axis = {};
   *x5Local.y.repeats = {};
   *x5Local.y.strides = {};
   x5Local.ir_attr.SetValue("1");
 
-  ge::ascir_op::Data x2("x2_add", graph);
+  af::ascir_op::Data x2("x2_add", graph);
   x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x2.attr.sched.loop_axis = c.id;
   *x2.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x2.y.repeats = {A, B, C, D, E};
   *x2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Load x3Local("x3Local_add");
+  af::ascir_op::Load x3Local("x3Local_add");
   x3Local.x = x2.y;
   x3Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x3Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x3Local.y.repeats = {A, B, C, D, E};
   *x3Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Load x4Local("x4Local_add");
+  af::ascir_op::Load x4Local("x4Local_add");
   x4Local.x = x2.y;
   x4Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x4Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x4Local.y.repeats = {A, B, C, D, E};
   *x4Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Load x6Local("x6Local_add");
+  af::ascir_op::Load x6Local("x6Local_add");
   x6Local.x = x2.y;
   x6Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x6Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x6Local.y.repeats = {A, B, C, D, E};
   *x6Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Add add1("add_1");
+  af::ascir_op::Add add1("add_1");
   add1.x1 = x1Local.y;
   add1.x2 = x3Local.y;
   add1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -4004,7 +4004,7 @@ std::shared_ptr<AscGraph> ThreeScalarAscGraph(ge::AscGraph &graph) {
   *add1.y.repeats = {A, B, C, D, E};
   *add1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-  ge::ascir_op::Add add2("add_2");
+  af::ascir_op::Add add2("add_2");
   add2.x1 = x2Local.y;
   add2.x2 = x4Local.y;
   add2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -4015,7 +4015,7 @@ std::shared_ptr<AscGraph> ThreeScalarAscGraph(ge::AscGraph &graph) {
   *add2.y.repeats = {A, B, C, D, E};
   *add2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-  ge::ascir_op::Add add3("add_3");
+  af::ascir_op::Add add3("add_3");
   add3.x1 = x5Local.y;
   add3.x2 = x6Local.y;
   add3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -4026,21 +4026,21 @@ std::shared_ptr<AscGraph> ThreeScalarAscGraph(ge::AscGraph &graph) {
   *add3.y.repeats = {A, B, C, D, E};
   *add3.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Store x_store("x_store_calc_rstd");
+  af::ascir_op::Store x_store("x_store_calc_rstd");
   x_store.x = add1.y;
   x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_store.attr.sched.loop_axis = c.id;
   *x_store.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x_store.y.repeats = {A, B, C, D, E};
   *x_store.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
-  ge::ascir_op::Store x_store1("x_store1_calc_rstd");
+  af::ascir_op::Store x_store1("x_store1_calc_rstd");
   x_store1.x = add2.y;
   x_store1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_store1.attr.sched.loop_axis = c.id;
   *x_store1.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x_store1.y.repeats = {A, B, C, D, E};
   *x_store1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
-  ge::ascir_op::Store x_store2("x_store2_calc_rstd");
+  af::ascir_op::Store x_store2("x_store2_calc_rstd");
   x_store2.x = add3.y;
   x_store2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_store2.attr.sched.loop_axis = c.id;
@@ -4048,21 +4048,21 @@ std::shared_ptr<AscGraph> ThreeScalarAscGraph(ge::AscGraph &graph) {
   *x_store2.y.repeats = {A, B, C, D, E};
   *x_store2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Output x_out("x_out_calc_rstd");
+  af::ascir_op::Output x_out("x_out_calc_rstd");
   x_out.x = x_store.y;
   x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_out.attr.sched.loop_axis = c.id;
   *x_out.y.axis = {};
   *x_out.y.repeats = {};
   *x_out.y.strides = {};
-  ge::ascir_op::Output x_out1("x_out1_calc_rstd");
+  af::ascir_op::Output x_out1("x_out1_calc_rstd");
   x_out1.x = x_store1.y;
   x_out1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_out1.attr.sched.loop_axis = c.id;
   *x_out1.y.axis = {};
   *x_out1.y.repeats = {};
   *x_out1.y.strides = {};
-  ge::ascir_op::Output x_out2("x_out2_calc_rstd");
+  af::ascir_op::Output x_out2("x_out2_calc_rstd");
   x_out2.x = x_store2.y;
   x_out2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_out2.attr.sched.loop_axis = c.id;
@@ -4094,54 +4094,54 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueAscGraph(ge::AscGraph &graph) {
   auto d = graph.CreateAxis("D", D);
   auto e = graph.CreateAxis("E", E);
 
-  ge::ascir_op::Scalar x1Local("x1_scalar", graph);
+  af::ascir_op::Scalar x1Local("x1_scalar", graph);
   x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x1Local.y.axis = {};
   *x1Local.y.repeats = {};
   *x1Local.y.strides = {};
   x1Local.ir_attr.SetValue("1");
-  ge::ascir_op::Scalar x2Local("x2_scalar", graph);
+  af::ascir_op::Scalar x2Local("x2_scalar", graph);
   x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x2Local.y.axis = {};
   *x2Local.y.repeats = {};
   *x2Local.y.strides = {};
   x2Local.ir_attr.SetValue("1");
-  ge::ascir_op::Scalar x5Local("x3_scalar", graph);
+  af::ascir_op::Scalar x5Local("x3_scalar", graph);
   x5Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x5Local.y.axis = {};
   *x5Local.y.repeats = {};
   *x5Local.y.strides = {};
   x5Local.ir_attr.SetValue("2");
 
-  ge::ascir_op::Data x2("x2_add", graph);
+  af::ascir_op::Data x2("x2_add", graph);
   x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x2.attr.sched.loop_axis = c.id;
   *x2.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x2.y.repeats = {A, B, C, D, E};
   *x2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Load x3Local("x3Local_add");
+  af::ascir_op::Load x3Local("x3Local_add");
   x3Local.x = x2.y;
   x3Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x3Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x3Local.y.repeats = {A, B, C, D, E};
   *x3Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Load x4Local("x4Local_add");
+  af::ascir_op::Load x4Local("x4Local_add");
   x4Local.x = x2.y;
   x4Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x4Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x4Local.y.repeats = {A, B, C, D, E};
   *x4Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Load x6Local("x6Local_add");
+  af::ascir_op::Load x6Local("x6Local_add");
   x6Local.x = x2.y;
   x6Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x6Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x6Local.y.repeats = {A, B, C, D, E};
   *x6Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Add add1("add_1");
+  af::ascir_op::Add add1("add_1");
   add1.x1 = x1Local.y;
   add1.x2 = x3Local.y;
   add1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -4152,7 +4152,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueAscGraph(ge::AscGraph &graph) {
   *add1.y.repeats = {A, B, C, D, E};
   *add1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-  ge::ascir_op::Add add2("add_2");
+  af::ascir_op::Add add2("add_2");
   add2.x1 = x2Local.y;
   add2.x2 = x4Local.y;
   add2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -4163,7 +4163,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueAscGraph(ge::AscGraph &graph) {
   *add2.y.repeats = {A, B, C, D, E};
   *add2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-  ge::ascir_op::Add add3("add_3");
+  af::ascir_op::Add add3("add_3");
   add3.x1 = x5Local.y;
   add3.x2 = x6Local.y;
   add3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -4174,21 +4174,21 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueAscGraph(ge::AscGraph &graph) {
   *add3.y.repeats = {A, B, C, D, E};
   *add3.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Store x_store("x_store_calc_rstd");
+  af::ascir_op::Store x_store("x_store_calc_rstd");
   x_store.x = add1.y;
   x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_store.attr.sched.loop_axis = c.id;
   *x_store.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x_store.y.repeats = {A, B, C, D, E};
   *x_store.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
-  ge::ascir_op::Store x_store1("x_store1_calc_rstd");
+  af::ascir_op::Store x_store1("x_store1_calc_rstd");
   x_store1.x = add2.y;
   x_store1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_store1.attr.sched.loop_axis = c.id;
   *x_store1.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x_store1.y.repeats = {A, B, C, D, E};
   *x_store1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
-  ge::ascir_op::Store x_store2("x_store2_calc_rstd");
+  af::ascir_op::Store x_store2("x_store2_calc_rstd");
   x_store2.x = add3.y;
   x_store2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_store2.attr.sched.loop_axis = c.id;
@@ -4196,21 +4196,21 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueAscGraph(ge::AscGraph &graph) {
   *x_store2.y.repeats = {A, B, C, D, E};
   *x_store2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Output x_out("x_out_calc_rstd");
+  af::ascir_op::Output x_out("x_out_calc_rstd");
   x_out.x = x_store.y;
   x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_out.attr.sched.loop_axis = c.id;
   *x_out.y.axis = {};
   *x_out.y.repeats = {};
   *x_out.y.strides = {};
-  ge::ascir_op::Output x_out1("x_out1_calc_rstd");
+  af::ascir_op::Output x_out1("x_out1_calc_rstd");
   x_out1.x = x_store1.y;
   x_out1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_out1.attr.sched.loop_axis = c.id;
   *x_out1.y.axis = {};
   *x_out1.y.repeats = {};
   *x_out1.y.strides = {};
-  ge::ascir_op::Output x_out2("x_out2_calc_rstd");
+  af::ascir_op::Output x_out2("x_out2_calc_rstd");
   x_out2.x = x_store2.y;
   x_out2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_out2.attr.sched.loop_axis = c.id;
@@ -4242,21 +4242,21 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
   auto d = graph.CreateAxis("D", D);
   auto e = graph.CreateAxis("E", E);
 
-  ge::ascir_op::Scalar x1Local("x1_scalar", graph);
+  af::ascir_op::Scalar x1Local("x1_scalar", graph);
   x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x1Local.y.axis = {};
   *x1Local.y.repeats = {};
   *x1Local.y.strides = {};
   x1Local.y.dtype = DT_FLOAT16;
   x1Local.ir_attr.SetValue("1");
-  ge::ascir_op::Scalar x2Local("x2_scalar", graph);
+  af::ascir_op::Scalar x2Local("x2_scalar", graph);
   x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x2Local.y.axis = {};
   *x2Local.y.repeats = {};
   *x2Local.y.strides = {};
   x2Local.y.dtype = DT_FLOAT16;
   x2Local.ir_attr.SetValue("1");
-  ge::ascir_op::Scalar x5Local("x3_scalar", graph);
+  af::ascir_op::Scalar x5Local("x3_scalar", graph);
   x5Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x5Local.y.axis = {};
   *x5Local.y.repeats = {};
@@ -4264,35 +4264,35 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
   x5Local.y.dtype = DT_INT32;
   x5Local.ir_attr.SetValue("1");
 
-  ge::ascir_op::Data x2("x2_add", graph);
+  af::ascir_op::Data x2("x2_add", graph);
   x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x2.attr.sched.loop_axis = c.id;
   *x2.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x2.y.repeats = {A, B, C, D, E};
   *x2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Load x3Local("x3Local_add");
+  af::ascir_op::Load x3Local("x3Local_add");
   x3Local.x = x2.y;
   x3Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x3Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x3Local.y.repeats = {A, B, C, D, E};
   *x3Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Load x4Local("x4Local_add");
+  af::ascir_op::Load x4Local("x4Local_add");
   x4Local.x = x2.y;
   x4Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x4Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x4Local.y.repeats = {A, B, C, D, E};
   *x4Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Load x6Local("x6Local_add");
+  af::ascir_op::Load x6Local("x6Local_add");
   x6Local.x = x2.y;
   x6Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x6Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x6Local.y.repeats = {A, B, C, D, E};
   *x6Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Add add1("add_1");
+  af::ascir_op::Add add1("add_1");
   add1.x1 = x1Local.y;
   add1.x2 = x3Local.y;
   add1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -4303,7 +4303,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
   *add1.y.repeats = {A, B, C, D, E};
   *add1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-  ge::ascir_op::Add add2("add_2");
+  af::ascir_op::Add add2("add_2");
   add2.x1 = x2Local.y;
   add2.x2 = x4Local.y;
   add2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -4314,7 +4314,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
   *add2.y.repeats = {A, B, C, D, E};
   *add2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-  ge::ascir_op::Add add3("add_3");
+  af::ascir_op::Add add3("add_3");
   add3.x1 = x5Local.y;
   add3.x2 = x6Local.y;
   add3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -4325,21 +4325,21 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
   *add3.y.repeats = {A, B, C, D, E};
   *add3.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Store x_store("x_store_calc_rstd");
+  af::ascir_op::Store x_store("x_store_calc_rstd");
   x_store.x = add1.y;
   x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_store.attr.sched.loop_axis = c.id;
   *x_store.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x_store.y.repeats = {A, B, C, D, E};
   *x_store.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
-  ge::ascir_op::Store x_store1("x_store1_calc_rstd");
+  af::ascir_op::Store x_store1("x_store1_calc_rstd");
   x_store1.x = add2.y;
   x_store1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_store1.attr.sched.loop_axis = c.id;
   *x_store1.y.axis = {a.id, b.id, c.id, d.id, e.id};
   *x_store1.y.repeats = {A, B, C, D, E};
   *x_store1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
-  ge::ascir_op::Store x_store2("x_store2_calc_rstd");
+  af::ascir_op::Store x_store2("x_store2_calc_rstd");
   x_store2.x = add3.y;
   x_store2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_store2.attr.sched.loop_axis = c.id;
@@ -4347,21 +4347,21 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
   *x_store2.y.repeats = {A, B, C, D, E};
   *x_store2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-  ge::ascir_op::Output x_out("x_out_calc_rstd");
+  af::ascir_op::Output x_out("x_out_calc_rstd");
   x_out.x = x_store.y;
   x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_out.attr.sched.loop_axis = c.id;
   *x_out.y.axis = {};
   *x_out.y.repeats = {};
   *x_out.y.strides = {};
-  ge::ascir_op::Output x_out1("x_out1_calc_rstd");
+  af::ascir_op::Output x_out1("x_out1_calc_rstd");
   x_out1.x = x_store1.y;
   x_out1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_out1.attr.sched.loop_axis = c.id;
   *x_out1.y.axis = {};
   *x_out1.y.repeats = {};
   *x_out1.y.strides = {};
-  ge::ascir_op::Output x_out2("x_out2_calc_rstd");
+  af::ascir_op::Output x_out2("x_out2_calc_rstd");
   x_out2.x = x_store2.y;
   x_out2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   x_out2.attr.sched.loop_axis = c.id;
@@ -4392,7 +4392,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
   
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -4400,7 +4400,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {A, B, C, D, E};
     *x1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -4408,7 +4408,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Data x2("x2_3", graph);
+    af::ascir_op::Data x2("x2_3", graph);
     x2.attr.sched.axis = {b.id, a.id, c.id, d.id, e.id};
     x2.attr.sched.loop_axis = c.id;
     x2.y.dtype = DT_FLOAT16;
@@ -4416,7 +4416,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2.y.repeats = {B, A, C, D, E};
     *x2.y.strides = {A * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Load x2Local("x2Local_4");
+    af::ascir_op::Load x2Local("x2Local_4");
     x2Local.x = x2.y;
     x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2Local.y.dtype = DT_FLOAT16;
@@ -4424,7 +4424,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2Local.y.repeats = {A, B, C, D, E};
     *x2Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Add add("add_4");
+    af::ascir_op::Add add("add_4");
     add.x1 = x1Local.y;
     add.x2 = x2Local.y;
     add.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -4435,7 +4435,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add.y.repeats = {A, B, C, D, E};
     *add.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = add.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -4444,7 +4444,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -4475,7 +4475,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
   
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -4483,7 +4483,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {A, B, C, D, E};
     *x1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -4491,7 +4491,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = x1Local.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -4500,7 +4500,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -4532,7 +4532,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -4540,7 +4540,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {A, B, C, ONE, E};
     *x1.y.strides = {B * C * E, C * E, E, ZERO, ONE};
 
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -4548,7 +4548,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = x1Local.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -4557,7 +4557,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -4589,7 +4589,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -4597,7 +4597,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {A, B, C, ONE, E};
     *x1.y.strides = {B * C * E, C * E, E, ZERO, ONE};
 
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -4605,7 +4605,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {A, B, C, ONE, E};
     *x1Local.y.strides = {B * C * E, C * E, E, ZERO, ONE};
 
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = x1Local.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -4614,7 +4614,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, E, D};
     *x_out.y.strides = {B * C * E * D, C * E * D, E * D, D, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -4646,7 +4646,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -4654,7 +4654,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {A, B, C, E, ONE};
     *x1.y.strides =  {B * C * E, C * E, E, ONE, ZERO};
 
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -4662,7 +4662,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {A, B, C, E, ONE};
     *x1Local.y.strides = {B * C * E, C * E, E, ONE, ZERO};
 
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = x1Local.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -4671,7 +4671,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -4703,7 +4703,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -4711,7 +4711,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {ONE, B, C, E, D};
     *x1.y.strides =  {ZERO, C * E * D, E * D, D, ONE};
 
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -4719,7 +4719,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {ONE, B, C, E, D};
     *x1Local.y.strides = {ZERO, C * E * D, E * D, D, ONE};
 
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = x1Local.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -4728,7 +4728,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -4759,7 +4759,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
   
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_INT16;
@@ -4767,7 +4767,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {A, B, C, D, E};
     *x1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_INT16;
@@ -4775,7 +4775,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Load x1Local2("x1Local2_2");
+    af::ascir_op::Load x1Local2("x1Local2_2");
     x1Local2.x = x1.y;
     x1Local2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local2.y.dtype = DT_INT16;
@@ -4783,7 +4783,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local2.y.repeats = {A, B, C, D, E};
     *x1Local2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Cast LoadToCastToStore("LoadToCast1");
+    af::ascir_op::Cast LoadToCastToStore("LoadToCast1");
     LoadToCastToStore.x = x1Local.y;
     LoadToCastToStore.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     LoadToCastToStore.y.dtype = DT_FLOAT;
@@ -4791,7 +4791,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *LoadToCastToStore.y.repeats = {A, B, C, D, E};
     *LoadToCastToStore.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Cast LoadToCastToStore2("CastToCastToStore2");
+    af::ascir_op::Cast LoadToCastToStore2("CastToCastToStore2");
     LoadToCastToStore2.x = LoadToCastToStore.y;
     LoadToCastToStore2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     LoadToCastToStore2.y.dtype = DT_INT16;
@@ -4799,7 +4799,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *LoadToCastToStore2.y.repeats = {A, B, C, D, E};
     *LoadToCastToStore2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Cast LoadToCastToStore3("LoadToCastToStore3");
+    af::ascir_op::Cast LoadToCastToStore3("LoadToCastToStore3");
     LoadToCastToStore3.x = x1Local2.y;
     LoadToCastToStore3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     LoadToCastToStore3.y.dtype = DT_FLOAT;
@@ -4807,7 +4807,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *LoadToCastToStore3.y.repeats = {A, B, C, D, E};
     *LoadToCastToStore3.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = LoadToCastToStore2.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -4816,7 +4816,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Store x_out2("x_out2_5");
+    af::ascir_op::Store x_out2("x_out2_5");
     x_out2.x = LoadToCastToStore3.y;
     x_out2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out2.attr.sched.loop_axis = c.id;
@@ -4825,7 +4825,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out2.y.repeats = {A, B, C, D, E};
     *x_out2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -4834,7 +4834,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_output1.y.repeats = {A, B, C, D, E};
     *x_output1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output2("x_output2");
+    af::ascir_op::Output x_output2("x_output2");
     x_output2.x = x_out2.y;
     x_output2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output2.attr.sched.loop_axis = c.id;
@@ -4866,7 +4866,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
   
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -4874,7 +4874,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {A, B, C, D, E};
     *x1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -4882,7 +4882,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Abs LoadToCastToStore("LoadToCastToStore");
+    af::ascir_op::Abs LoadToCastToStore("LoadToCastToStore");
     LoadToCastToStore.x = x1Local.y;
     LoadToCastToStore.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     LoadToCastToStore.y.dtype = DT_FLOAT16;
@@ -4890,7 +4890,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *LoadToCastToStore.y.repeats = {A, B, C, D, E};
     *LoadToCastToStore.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Abs LoadToCastToStore2("LoadToCastToStore2");
+    af::ascir_op::Abs LoadToCastToStore2("LoadToCastToStore2");
     LoadToCastToStore2.x = LoadToCastToStore.y;
     LoadToCastToStore2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     LoadToCastToStore2.y.dtype = DT_FLOAT16;
@@ -4898,7 +4898,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *LoadToCastToStore2.y.repeats = {A, B, C, D, E};
     *LoadToCastToStore2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Abs LoadToCastToStore3("LoadToCastToStore3");
+    af::ascir_op::Abs LoadToCastToStore3("LoadToCastToStore3");
     LoadToCastToStore3.x = x1Local.y;
     LoadToCastToStore3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     LoadToCastToStore3.y.dtype = DT_FLOAT16;
@@ -4906,7 +4906,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *LoadToCastToStore3.y.repeats = {A, B, C, D, E};
     *LoadToCastToStore3.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = LoadToCastToStore2.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -4915,7 +4915,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Store x_out2("x_out2_5");
+    af::ascir_op::Store x_out2("x_out2_5");
     x_out2.x = LoadToCastToStore3.y;
     x_out2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out2.attr.sched.loop_axis = c.id;
@@ -4924,7 +4924,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out2.y.repeats = {A, B, C, D, E};
     *x_out2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -4933,7 +4933,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_output1.y.repeats = {A, B, C, D, E};
     *x_output1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output2("x_output2");
+    af::ascir_op::Output x_output2("x_output2");
     x_output2.x = x_out2.y;
     x_output2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output2.attr.sched.loop_axis = c.id;
@@ -4965,7 +4965,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
   
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -4973,7 +4973,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {A, B, C, D, E};
     *x1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -4981,7 +4981,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Abs LoadToCastToStore("Abs");
+    af::ascir_op::Abs LoadToCastToStore("Abs");
     LoadToCastToStore.x = x1Local.y;
     LoadToCastToStore.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     LoadToCastToStore.y.dtype = DT_FLOAT16;
@@ -4989,7 +4989,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *LoadToCastToStore.y.repeats = {A, B, C, D, E};
     *LoadToCastToStore.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Sqrt LoadToCastToStore2("Sqrt");
+    af::ascir_op::Sqrt LoadToCastToStore2("Sqrt");
     LoadToCastToStore2.x = LoadToCastToStore.y;
     LoadToCastToStore2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     LoadToCastToStore2.y.dtype = DT_FLOAT16;
@@ -4997,7 +4997,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *LoadToCastToStore2.y.repeats = {A, B, C, D, E};
     *LoadToCastToStore2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Rsqrt LoadToCastToStore3("Rsqrt");
+    af::ascir_op::Rsqrt LoadToCastToStore3("Rsqrt");
     LoadToCastToStore3.x = x1Local.y;
     LoadToCastToStore3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     LoadToCastToStore3.y.dtype = DT_FLOAT16;
@@ -5005,7 +5005,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *LoadToCastToStore3.y.repeats = {A, B, C, D, E};
     *LoadToCastToStore3.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = LoadToCastToStore2.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -5014,7 +5014,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Store x_out2("x_out2_5");
+    af::ascir_op::Store x_out2("x_out2_5");
     x_out2.x = LoadToCastToStore3.y;
     x_out2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out2.attr.sched.loop_axis = c.id;
@@ -5023,7 +5023,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out2.y.repeats = {A, B, C, D, E};
     *x_out2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -5032,7 +5032,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_output1.y.repeats = {A, B, C, D, E};
     *x_output1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output2("x_output2");
+    af::ascir_op::Output x_output2("x_output2");
     x_output2.x = x_out2.y;
     x_output2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output2.attr.sched.loop_axis = c.id;
@@ -5064,7 +5064,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
   
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -5072,7 +5072,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {A, B, C, D, E};
     *x1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -5080,7 +5080,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Sum LoadToCastToStore("Sum");
+    af::ascir_op::Sum LoadToCastToStore("Sum");
     LoadToCastToStore.x = x1Local.y;
     LoadToCastToStore.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     LoadToCastToStore.y.dtype = DT_BF16;
@@ -5088,7 +5088,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *LoadToCastToStore.y.repeats = {A, B, C, D, E};
     *LoadToCastToStore.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Sqrt LoadToCastToStore2("Sqrt");
+    af::ascir_op::Sqrt LoadToCastToStore2("Sqrt");
     LoadToCastToStore2.x = LoadToCastToStore.y;
     LoadToCastToStore2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     LoadToCastToStore2.y.dtype = DT_FLOAT16;
@@ -5096,7 +5096,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *LoadToCastToStore2.y.repeats = {A, B, C, D, E};
     *LoadToCastToStore2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Rsqrt LoadToCastToStore3("Rsqrt");
+    af::ascir_op::Rsqrt LoadToCastToStore3("Rsqrt");
     LoadToCastToStore3.x = x1Local.y;
     LoadToCastToStore3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     LoadToCastToStore3.y.dtype = DT_FLOAT16;
@@ -5104,7 +5104,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *LoadToCastToStore3.y.repeats = {A, B, C, D, E};
     *LoadToCastToStore3.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = LoadToCastToStore2.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -5113,7 +5113,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Store x_out2("x_out2_5");
+    af::ascir_op::Store x_out2("x_out2_5");
     x_out2.x = LoadToCastToStore3.y;
     x_out2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out2.attr.sched.loop_axis = c.id;
@@ -5122,7 +5122,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out2.y.repeats = {A, B, C, D, E};
     *x_out2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -5131,7 +5131,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_output1.y.repeats = {A, B, C, D, E};
     *x_output1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output2("x_output2");
+    af::ascir_op::Output x_output2("x_output2");
     x_output2.x = x_out2.y;
     x_output2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output2.attr.sched.loop_axis = c.id;
@@ -5163,7 +5163,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_BF16;
@@ -5171,7 +5171,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {A, B, C, D, E};
     *x1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_BF16;
@@ -5179,7 +5179,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Sum LoadToCastToStore("Sum");
+    af::ascir_op::Sum LoadToCastToStore("Sum");
     LoadToCastToStore.x = x1Local.y;
     LoadToCastToStore.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     LoadToCastToStore.y.dtype = DT_BF16;
@@ -5187,7 +5187,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *LoadToCastToStore.y.repeats = {A, B, C, D, E};
     *LoadToCastToStore.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Sqrt LoadToCastToStore2("Sqrt");
+    af::ascir_op::Sqrt LoadToCastToStore2("Sqrt");
     LoadToCastToStore2.x = LoadToCastToStore.y;
     LoadToCastToStore2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     LoadToCastToStore2.y.dtype = DT_BF16;
@@ -5195,7 +5195,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *LoadToCastToStore2.y.repeats = {A, B, C, D, E};
     *LoadToCastToStore2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Rsqrt LoadToCastToStore3("Rsqrt");
+    af::ascir_op::Rsqrt LoadToCastToStore3("Rsqrt");
     LoadToCastToStore3.x = x1Local.y;
     LoadToCastToStore3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     LoadToCastToStore3.y.dtype = DT_BF16;
@@ -5203,7 +5203,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *LoadToCastToStore3.y.repeats = {A, B, C, D, E};
     *LoadToCastToStore3.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = LoadToCastToStore2.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -5212,7 +5212,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Store x_out2("x_out2_5");
+    af::ascir_op::Store x_out2("x_out2_5");
     x_out2.x = LoadToCastToStore3.y;
     x_out2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out2.attr.sched.loop_axis = c.id;
@@ -5220,7 +5220,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out2.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x_out2.y.repeats = {A, B, C, D, E};
     *x_out2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -5229,7 +5229,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_output1.y.repeats = {A, B, C, D, E};
     *x_output1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output2("x_output2");
+    af::ascir_op::Output x_output2("x_output2");
     x_output2.x = x_out2.y;
     x_output2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output2.attr.sched.loop_axis = c.id;
@@ -5261,7 +5261,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
   
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT;
@@ -5269,7 +5269,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {A, B, C, D, E};
     *x1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Load x1Local2("x1Local2_2");
+    af::ascir_op::Load x1Local2("x1Local2_2");
     x1Local2.x = x1.y;
     x1Local2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local2.y.dtype = DT_FLOAT;
@@ -5277,7 +5277,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local2.y.repeats = {A, B, C, D, E};
     *x1Local2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Cast LoadToCastToStore3("LoadToCastToStore3");
+    af::ascir_op::Cast LoadToCastToStore3("LoadToCastToStore3");
     LoadToCastToStore3.x = x1Local2.y;
     LoadToCastToStore3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     LoadToCastToStore3.y.dtype = DT_FLOAT16;
@@ -5285,7 +5285,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *LoadToCastToStore3.y.repeats = {A, B, C, D, E};
     *LoadToCastToStore3.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Store x_out2("x_out2_5");
+    af::ascir_op::Store x_out2("x_out2_5");
     x_out2.x = LoadToCastToStore3.y;
     x_out2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out2.attr.sched.loop_axis = c.id;
@@ -5294,7 +5294,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out2.y.repeats = {A, B, C, D, E};
     *x_out2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output2("x_output2");
+    af::ascir_op::Output x_output2("x_output2");
     x_output2.x = x_out2.y;
     x_output2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output2.attr.sched.loop_axis = c.id;
@@ -5326,7 +5326,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
   
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -5334,7 +5334,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {A, B, C, D, E};
     *x1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Load x1Local2("x1Local2_2");
+    af::ascir_op::Load x1Local2("x1Local2_2");
     x1Local2.x = x1.y;
     x1Local2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local2.y.dtype = DT_FLOAT16;
@@ -5342,7 +5342,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local2.y.repeats = {A, B, C, D, E};
     *x1Local2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Store x_out1("x_out1_5");
+    af::ascir_op::Store x_out1("x_out1_5");
     x_out1.x = x1Local2.y;
     x_out1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out1.attr.sched.loop_axis = c.id;
@@ -5351,7 +5351,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out1.y.repeats = {A, B, C, D, ONE};
     *x_out1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs abs1("abs_4");
+    af::ascir_op::Abs abs1("abs_4");
     abs1.x = x1Local2.y;
     abs1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs1.y.dtype = DT_FLOAT16;
@@ -5359,7 +5359,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs1.y.repeats = {A, B, C, D, E};
     *abs1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Store x_out2("x_out2_5");
+    af::ascir_op::Store x_out2("x_out2_5");
     x_out2.x = abs1.y;
     x_out2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out2.attr.sched.loop_axis = c.id;
@@ -5368,7 +5368,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out2.y.repeats = {A, B, C, D, ONE}; // slice切分场景会在store改变repeats
     *x_out2.y.strides = {B * C * D, C * D, D, ONE, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out1.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -5377,7 +5377,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_output1.y.repeats = {A, B, C, D, E};
     *x_output1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output2("x_output2");
+    af::ascir_op::Output x_output2("x_output2");
     x_output2.x = x_out2.y;
     x_output2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output2.attr.sched.loop_axis = c.id;
@@ -5410,7 +5410,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -5418,7 +5418,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {ONE, ONE, ONE, D, E};
     *x1.y.strides = {ZERO, ZERO, ZERO, E, ONE};
 
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -5426,7 +5426,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {A, B, C, ONE, E};
     *x1Local.y.strides = {B * C * E, C * E, E, E, ONE};
 
-    ge::ascir_op::Data x2("x2_3", graph);
+    af::ascir_op::Data x2("x2_3", graph);
     x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2.attr.sched.loop_axis = c.id;
     x2.y.dtype = DT_FLOAT16;
@@ -5434,7 +5434,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2.y.repeats = {A, B, ONE, ONE, ONE};
     *x2.y.strides = {B, ONE, ZERO, ZERO, ZERO};
 
-    ge::ascir_op::Load x2Local("x2Local_4");
+    af::ascir_op::Load x2Local("x2Local_4");
     x2Local.x = x2.y;
     x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2Local.y.dtype = DT_FLOAT16;
@@ -5442,7 +5442,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2Local.y.repeats = {A, B, C, ONE, E};
     *x2Local.y.strides = {B * C * E, C * E, E, E, ONE};
 
-    ge::ascir_op::Add add("add_4");
+    af::ascir_op::Add add("add_4");
     add.x1 = x1Local.y;
     add.x2 = x2Local.y;
     add.attr.sched.axis = {a.id, b.id, c.id, e.id};
@@ -5453,7 +5453,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add.y.repeats = {};
     *add.y.strides = {};
 
-    ge::ascir_op::Abs abs1("abs_4");
+    af::ascir_op::Abs abs1("abs_4");
     abs1.x = add.y;
     abs1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs1.y.dtype = DT_FLOAT16;
@@ -5461,7 +5461,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs1.y.repeats = {};
     *abs1.y.strides = {};
 
-    ge::ascir_op::Abs abs2("abs_5");
+    af::ascir_op::Abs abs2("abs_5");
     abs2.x = abs1.y;
     abs2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs2.y.dtype = DT_FLOAT16;
@@ -5469,7 +5469,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs2.y.repeats = {};
     *abs2.y.strides = {};
 
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = abs2.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -5478,7 +5478,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -5509,7 +5509,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("data1", graph);
+    af::ascir_op::Data x1("data1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -5517,7 +5517,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {A, B, C, D, E};
     *x1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Load x1Local("load1");
+    af::ascir_op::Load x1Local("load1");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -5525,7 +5525,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Data x2("data2", graph);
+    af::ascir_op::Data x2("data2", graph);
     x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2.attr.sched.loop_axis = c.id;
     x2.y.dtype = DT_FLOAT16;
@@ -5533,7 +5533,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2.y.repeats = {A, B, C, D, E};
     *x2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Load x2Local("load2");
+    af::ascir_op::Load x2Local("load2");
     x2Local.x = x2.y;
     x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2Local.y.dtype = DT_FLOAT16;
@@ -5541,7 +5541,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2Local.y.repeats = {A, B, C, D, E};
     *x2Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Data x3("data3", graph);
+    af::ascir_op::Data x3("data3", graph);
     x3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x3.attr.sched.loop_axis = c.id;
     x3.y.dtype = DT_FLOAT16;
@@ -5549,7 +5549,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x3.y.repeats = {A, B, C, D, E};
     *x3.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Load x3Local("load3");
+    af::ascir_op::Load x3Local("load3");
     x3Local.x = x3.y;
     x3Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x3Local.y.dtype = DT_FLOAT16;
@@ -5557,7 +5557,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x3Local.y.repeats = {A, B, C, D, E};
     *x3Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Concat concat(graph.GetName().c_str());
+    af::ascir_op::Concat concat(graph.GetName().c_str());
     concat.x = {x1.y, x2.y, x3.y};
     concat.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     concat.y.dtype = DT_FLOAT16;
@@ -5565,7 +5565,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *concat.y.repeats = {A, B, C, D, E};
     *concat.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Store x_store("store");
+    af::ascir_op::Store x_store("store");
     x_store.x = concat.y;
     x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_store.attr.sched.loop_axis = c.id;
@@ -5574,7 +5574,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_store.y.repeats = {A, B, C, D, E};
     *x_store.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_out("out");
+    af::ascir_op::Output x_out("out");
     x_out.x = x_store.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -5606,7 +5606,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("data1", graph);
+    af::ascir_op::Data x1("data1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -5614,7 +5614,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {A, B, C};
     *x1.y.strides = {B * C, C, ONE};
 
-    ge::ascir_op::Data x2("data2", graph);
+    af::ascir_op::Data x2("data2", graph);
     x2.attr.sched.axis = {d.id, e.id};
     x2.attr.sched.loop_axis = d.id;
     x2.y.dtype = DT_INT32;
@@ -5622,7 +5622,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2.y.repeats = {D, E};
     *x2.y.strides = {E, ONE};
 
-    ge::ascir_op::Gather gather(graph.GetName().c_str());
+    af::ascir_op::Gather gather(graph.GetName().c_str());
     gather.x1 = x1.y;
     gather.x2 = x2.y;
     gather.attr.sched.axis = {a.id, b.id, d.id, e.id};
@@ -5632,7 +5632,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *gather.y.repeats = {A, B, D, E};
     *gather.y.strides = {B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Store x_store("store");
+    af::ascir_op::Store x_store("store");
     x_store.x = gather.y;
     x_store.attr.sched.axis = {a.id, b.id, d.id, e.id};
     x_store.attr.sched.loop_axis = c.id;
@@ -5641,7 +5641,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_store.y.repeats = {A, B, D, E};
     *x_store.y.strides = {B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_out("out");
+    af::ascir_op::Output x_out("out");
     x_out.x = x_store.y;
     x_out.attr.sched.axis = {a.id, b.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -5672,7 +5672,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("data1", graph);
+    af::ascir_op::Data x1("data1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT;
@@ -5680,7 +5680,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {A, B, C};
     *x1.y.strides = {B * C, C, ONE};
 
-    ge::ascir_op::Data x2("data2", graph);
+    af::ascir_op::Data x2("data2", graph);
     x2.attr.sched.axis = {d.id, e.id};
     x2.attr.sched.loop_axis = d.id;
     x2.y.dtype = DT_FLOAT;
@@ -5688,7 +5688,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2.y.repeats = {D, E};
     *x2.y.strides = {E, ONE};
 
-    ge::ascir_op::Gather gather(graph.GetName().c_str());
+    af::ascir_op::Gather gather(graph.GetName().c_str());
     gather.x1 = x1.y;
     gather.x2 = x2.y;
     gather.attr.sched.axis = {a.id, b.id, d.id, e.id};
@@ -5698,7 +5698,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *gather.y.repeats = {A, B, D, E};
     *gather.y.strides = {B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Cast cast1("cast1_32-16");
+    af::ascir_op::Cast cast1("cast1_32-16");
     cast1.x = gather.y;
     cast1.attr.sched.axis = {a.id, b.id, d.id, e.id};
     cast1.y.dtype = DT_FLOAT16;
@@ -5706,7 +5706,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *cast1.y.repeats = {A, B, D, E};
     *cast1.y.strides = {B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Cast cast2("cast2_16-8");
+    af::ascir_op::Cast cast2("cast2_16-8");
     cast2.x = cast1.y;
     cast2.attr.sched.axis = {a.id, b.id, d.id, e.id};
     cast2.y.dtype = DT_INT8;
@@ -5714,7 +5714,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *cast2.y.repeats = {A, B, D, E};
     *cast2.y.strides = {B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Store x_store("store");
+    af::ascir_op::Store x_store("store");
     x_store.x = cast2.y;
     x_store.attr.sched.axis = {a.id, b.id, d.id, e.id};
     x_store.attr.sched.loop_axis = c.id;
@@ -5723,7 +5723,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_store.y.repeats = {A, B, D, E};
     *x_store.y.strides = {B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_out("out");
+    af::ascir_op::Output x_out("out");
     x_out.x = x_store.y;
     x_out.attr.sched.axis = {a.id, b.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -5755,7 +5755,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("data1", graph);
+    af::ascir_op::Data x1("data1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT;
@@ -5763,7 +5763,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {A, B, C};
     *x1.y.strides = {B * C, C, ONE};
 
-    ge::ascir_op::Data x2("data2", graph);
+    af::ascir_op::Data x2("data2", graph);
     x2.attr.sched.axis = {d.id, e.id};
     x2.attr.sched.loop_axis = d.id;
     x2.y.dtype = DT_FLOAT;
@@ -5771,7 +5771,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2.y.repeats = {D, E};
     *x2.y.strides = {E, ONE};
 
-    ge::ascir_op::Gather gather(graph.GetName().c_str());
+    af::ascir_op::Gather gather(graph.GetName().c_str());
     gather.x1 = x1.y;
     gather.x2 = x2.y;
     gather.attr.sched.axis = {a.id, b.id, d.id, e.id};
@@ -5781,7 +5781,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *gather.y.repeats = {A, B, D, E};
     *gather.y.strides = {B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Cast cast1("cast1_32-16");
+    af::ascir_op::Cast cast1("cast1_32-16");
     cast1.x = gather.y;
     cast1.attr.sched.axis = {a.id, b.id, d.id, e.id};
     cast1.y.dtype = DT_FLOAT16;
@@ -5789,7 +5789,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *cast1.y.repeats = {A, B, D, E};
     *cast1.y.strides = {B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Store x_store0("store0");
+    af::ascir_op::Store x_store0("store0");
     x_store0.x = cast1.y;
     x_store0.attr.sched.axis = {a.id, b.id, d.id, e.id};
     x_store0.attr.sched.loop_axis = c.id;
@@ -5798,7 +5798,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_store0.y.repeats = {A, B, D, E};
     *x_store0.y.strides = {B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs abs("abs");
+    af::ascir_op::Abs abs("abs");
     abs.x = cast1.y;
     abs.attr.sched.axis = {a.id, b.id, d.id, e.id};
     abs.y.dtype = DT_FLOAT16;
@@ -5806,7 +5806,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs.y.repeats = {A, B, D, E};
     *abs.y.strides = {B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Store x_store2("store2");
+    af::ascir_op::Store x_store2("store2");
     x_store2.x = abs.y;
     x_store2.attr.sched.axis = {a.id, b.id, d.id, e.id};
     x_store2.attr.sched.loop_axis = c.id;
@@ -5815,7 +5815,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_store2.y.repeats = {A, B, D, E};
     *x_store2.y.strides = {B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Cast cast2("cast2_16-8");
+    af::ascir_op::Cast cast2("cast2_16-8");
     cast2.x = cast1.y;
     cast2.attr.sched.axis = {a.id, b.id, d.id, e.id};
     cast2.y.dtype = DT_INT8;
@@ -5823,7 +5823,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *cast2.y.repeats = {A, B, D, E};
     *cast2.y.strides = {B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Store x_store("store1");
+    af::ascir_op::Store x_store("store1");
     x_store.x = cast2.y;
     x_store.attr.sched.axis = {a.id, b.id, d.id, e.id};
     x_store.attr.sched.loop_axis = c.id;
@@ -5832,7 +5832,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_store.y.repeats = {A, B, D, E};
     *x_store.y.strides = {B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_out0("out0");
+    af::ascir_op::Output x_out0("out0");
     x_out0.x = x_store0.y;
     x_out0.attr.sched.axis = {a.id, b.id, d.id, e.id};
     x_out0.attr.sched.loop_axis = c.id;
@@ -5841,7 +5841,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out0.y.repeats = {A, B, D, E};
     *x_out0.y.strides = {B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_out("out1");
+    af::ascir_op::Output x_out("out1");
     x_out.x = x_store.y;
     x_out.attr.sched.axis = {a.id, b.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -5850,7 +5850,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, D, E};
     *x_out.y.strides = {B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_out2("out2");
+    af::ascir_op::Output x_out2("out2");
     x_out2.x = x_store2.y;
     x_out2.attr.sched.axis = {a.id, b.id, d.id, e.id};
     x_out2.attr.sched.loop_axis = c.id;
@@ -5884,7 +5884,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("data1", graph);
+    af::ascir_op::Data x1("data1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_INT8;
@@ -5892,7 +5892,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {A, B, C};
     *x1.y.strides = {B * C, C, ONE};
 
-    ge::ascir_op::Data x2("data2", graph);
+    af::ascir_op::Data x2("data2", graph);
     x2.attr.sched.axis = {d.id, e.id};
     x2.attr.sched.loop_axis = d.id;
     x2.y.dtype = DT_INT8;
@@ -5900,7 +5900,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2.y.repeats = {D, E};
     *x2.y.strides = {E, ONE};
 
-    ge::ascir_op::Gather gather(graph.GetName().c_str());
+    af::ascir_op::Gather gather(graph.GetName().c_str());
     gather.x1 = x1.y;
     gather.x2 = x2.y;
     gather.attr.sched.axis = {a.id, b.id, d.id, e.id};
@@ -5910,7 +5910,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *gather.y.repeats = {A, B, D, E};
     *gather.y.strides = {B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Cast cast1("cast1_8-16");
+    af::ascir_op::Cast cast1("cast1_8-16");
     cast1.x = gather.y;
     cast1.attr.sched.axis = {a.id, b.id, d.id, e.id};
     cast1.y.dtype = DT_FLOAT16;
@@ -5918,7 +5918,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *cast1.y.repeats = {A, B, D, E};
     *cast1.y.strides = {B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Store x_store0("store0");
+    af::ascir_op::Store x_store0("store0");
     x_store0.x = cast1.y;
     x_store0.attr.sched.axis = {a.id, b.id, d.id, e.id};
     x_store0.attr.sched.loop_axis = c.id;
@@ -5927,7 +5927,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_store0.y.repeats = {A, B, D, E};
     *x_store0.y.strides = {B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs abs("abs");
+    af::ascir_op::Abs abs("abs");
     abs.x = cast1.y;
     abs.attr.sched.axis = {a.id, b.id, d.id, e.id};
     abs.y.dtype = DT_FLOAT16;
@@ -5935,7 +5935,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs.y.repeats = {A, B, D, E};
     *abs.y.strides = {B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Store x_store2("store2");
+    af::ascir_op::Store x_store2("store2");
     x_store2.x = abs.y;
     x_store2.attr.sched.axis = {a.id, b.id, d.id, e.id};
     x_store2.attr.sched.loop_axis = c.id;
@@ -5944,7 +5944,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_store2.y.repeats = {A, B, D, E};
     *x_store2.y.strides = {B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Cast cast2("cast2_16-32");
+    af::ascir_op::Cast cast2("cast2_16-32");
     cast2.x = cast1.y;
     cast2.attr.sched.axis = {a.id, b.id, d.id, e.id};
     cast2.y.dtype = DT_FLOAT;
@@ -5952,7 +5952,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *cast2.y.repeats = {A, B, D, E};
     *cast2.y.strides = {B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Store x_store("store1");
+    af::ascir_op::Store x_store("store1");
     x_store.x = cast2.y;
     x_store.attr.sched.axis = {a.id, b.id, d.id, e.id};
     x_store.attr.sched.loop_axis = c.id;
@@ -5961,7 +5961,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_store.y.repeats = {A, B, D, E};
     *x_store.y.strides = {B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_out0("out0");
+    af::ascir_op::Output x_out0("out0");
     x_out0.x = x_store0.y;
     x_out0.attr.sched.axis = {a.id, b.id, d.id, e.id};
     x_out0.attr.sched.loop_axis = c.id;
@@ -5970,7 +5970,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out0.y.repeats = {A, B, D, E};
     *x_out0.y.strides = {B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_out("out1");
+    af::ascir_op::Output x_out("out1");
     x_out.x = x_store.y;
     x_out.attr.sched.axis = {a.id, b.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -5979,7 +5979,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, D, E};
     *x_out.y.strides = {B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_out2("out2");
+    af::ascir_op::Output x_out2("out2");
     x_out2.x = x_store2.y;
     x_out2.attr.sched.axis = {a.id, b.id, d.id, e.id};
     x_out2.attr.sched.loop_axis = c.id;
@@ -6013,7 +6013,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("data1", graph);
+    af::ascir_op::Data x1("data1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_INT8;
@@ -6021,7 +6021,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {A, B, C};
     *x1.y.strides = {B * C, C, ONE};
 
-    ge::ascir_op::Data x2("data2", graph);
+    af::ascir_op::Data x2("data2", graph);
     x2.attr.sched.axis = {d.id, e.id};
     x2.attr.sched.loop_axis = d.id;
     x2.y.dtype = DT_INT8;
@@ -6029,7 +6029,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2.y.repeats = {D, E};
     *x2.y.strides = {E, ONE};
 
-    ge::ascir_op::Gather gather(graph.GetName().c_str());
+    af::ascir_op::Gather gather(graph.GetName().c_str());
     gather.x1 = x1.y;
     gather.x2 = x2.y;
     gather.attr.sched.axis = {a.id, b.id, d.id, e.id};
@@ -6039,7 +6039,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *gather.y.repeats = {A, B, D, E};
     *gather.y.strides = {B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Cast cast1("cast1_8-16");
+    af::ascir_op::Cast cast1("cast1_8-16");
     cast1.x = gather.y;
     cast1.attr.sched.axis = {a.id, b.id, d.id, e.id};
     cast1.y.dtype = DT_FLOAT16;
@@ -6047,7 +6047,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *cast1.y.repeats = {A, B, D, E};
     *cast1.y.strides = {B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Cast cast2("cast2_16-8");
+    af::ascir_op::Cast cast2("cast2_16-8");
     cast2.x = cast1.y;
     cast2.attr.sched.axis = {a.id, b.id, d.id, e.id};
     cast2.y.dtype = DT_INT8;
@@ -6055,7 +6055,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *cast2.y.repeats = {A, B, D, E};
     *cast2.y.strides = {B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Store x_store("store");
+    af::ascir_op::Store x_store("store");
     x_store.x = cast2.y;
     x_store.attr.sched.axis = {a.id, b.id, d.id, e.id};
     x_store.attr.sched.loop_axis = c.id;
@@ -6064,7 +6064,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_store.y.repeats = {A, B, D, E};
     *x_store.y.strides = {B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_out("out");
+    af::ascir_op::Output x_out("out");
     x_out.x = x_store.y;
     x_out.attr.sched.axis = {a.id, b.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -6096,7 +6096,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("data1", graph);
+    af::ascir_op::Data x1("data1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -6104,7 +6104,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {A, B, C};
     *x1.y.strides = {B * C, C, ONE};
 
-    ge::ascir_op::Data x2("data2", graph);
+    af::ascir_op::Data x2("data2", graph);
     x2.attr.sched.axis = {d.id, e.id};
     x2.attr.sched.loop_axis = d.id;
     x2.y.dtype = DT_FLOAT16;
@@ -6112,7 +6112,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2.y.repeats = {D, E};
     *x2.y.strides = {E, ONE};
 
-    ge::ascir_op::Gather gather(graph.GetName().c_str());
+    af::ascir_op::Gather gather(graph.GetName().c_str());
     gather.x1 = x1.y;
     gather.x2 = x2.y;
     gather.attr.sched.axis = {a.id, b.id, d.id, e.id};
@@ -6122,7 +6122,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *gather.y.repeats = {A, B, D, E};
     *gather.y.strides = {B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Cast cast1("cast1_8-16");
+    af::ascir_op::Cast cast1("cast1_8-16");
     cast1.x = gather.y;
     cast1.attr.sched.axis = {a.id, b.id, d.id, e.id};
     cast1.y.dtype = DT_INT8;
@@ -6130,7 +6130,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *cast1.y.repeats = {A, B, D, E};
     *cast1.y.strides = {B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Cast cast2("cast2_16-8");
+    af::ascir_op::Cast cast2("cast2_16-8");
     cast2.x = cast1.y;
     cast2.attr.sched.axis = {a.id, b.id, d.id, e.id};
     cast2.y.dtype = DT_FLOAT16;
@@ -6138,7 +6138,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *cast2.y.repeats = {A, B, D, E};
     *cast2.y.strides = {B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Store x_store("store");
+    af::ascir_op::Store x_store("store");
     x_store.x = cast2.y;
     x_store.attr.sched.axis = {a.id, b.id, d.id, e.id};
     x_store.attr.sched.loop_axis = c.id;
@@ -6147,7 +6147,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_store.y.repeats = {A, B, D, E};
     *x_store.y.strides = {B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_out("out");
+    af::ascir_op::Output x_out("out");
     x_out.x = x_store.y;
     x_out.attr.sched.axis = {a.id, b.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -6179,7 +6179,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("data1", graph);
+    af::ascir_op::Data x1("data1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_INT8;
@@ -6187,7 +6187,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {A, B, C};
     *x1.y.strides = {B * C, C, ONE};
 
-    ge::ascir_op::Data x2("data2", graph);
+    af::ascir_op::Data x2("data2", graph);
     x2.attr.sched.axis = {d.id, e.id};
     x2.attr.sched.loop_axis = d.id;
     x2.y.dtype = DT_INT8;
@@ -6195,7 +6195,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2.y.repeats = {D, E};
     *x2.y.strides = {E, ONE};
 
-    ge::ascir_op::Gather gather(graph.GetName().c_str());
+    af::ascir_op::Gather gather(graph.GetName().c_str());
     gather.x1 = x1.y;
     gather.x2 = x2.y;
     gather.attr.sched.axis = {a.id, b.id, d.id, e.id};
@@ -6205,7 +6205,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *gather.y.repeats = {A, B, D, E};
     *gather.y.strides = {B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Cast cast1("cast1_32-16");
+    af::ascir_op::Cast cast1("cast1_32-16");
     cast1.x = gather.y;
     cast1.attr.sched.axis = {a.id, b.id, d.id, e.id};
     cast1.y.dtype = DT_FLOAT16;
@@ -6213,7 +6213,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *cast1.y.repeats = {A, B, D, E};
     *cast1.y.strides = {B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Cast cast2("cast2_16-8");
+    af::ascir_op::Cast cast2("cast2_16-8");
     cast2.x = cast1.y;
     cast2.attr.sched.axis = {a.id, b.id, d.id, e.id};
     cast2.y.dtype = DT_FLOAT;
@@ -6221,7 +6221,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *cast2.y.repeats = {A, B, D, E};
     *cast2.y.strides = {B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Store x_store("store");
+    af::ascir_op::Store x_store("store");
     x_store.x = cast2.y;
     x_store.attr.sched.axis = {a.id, b.id, d.id, e.id};
     x_store.attr.sched.loop_axis = c.id;
@@ -6230,7 +6230,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_store.y.repeats = {A, B, D, E};
     *x_store.y.strides = {B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_out("out");
+    af::ascir_op::Output x_out("out");
     x_out.x = x_store.y;
     x_out.attr.sched.axis = {a.id, b.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -6260,7 +6260,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("data1", graph);
+    af::ascir_op::Data x1("data1", graph);
     x1.attr.sched.axis = {a.id, b.id, d.id};
     x1.attr.sched.loop_axis = d.id;
     x1.y.dtype = DT_FLOAT16;
@@ -6268,7 +6268,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {A, B, D};
     *x1.y.strides = {B * D, D, ONE};
 
-    ge::ascir_op::Data x2("data2", graph);
+    af::ascir_op::Data x2("data2", graph);
     x2.attr.sched.axis = {a.id, b.id, d.id};
     x2.attr.sched.loop_axis = d.id;
     x2.y.dtype = DT_INT32;
@@ -6276,7 +6276,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2.y.repeats = {D, E};
     *x2.y.strides = {E, ONE};
 
-    ge::ascir_op::Gather gather1("gather1_cse");
+    af::ascir_op::Gather gather1("gather1_cse");
     gather1.x1 = x1.y;
     gather1.x2 = x2.y;
     gather1.attr.sched.axis = {a.id, b.id, d.id, e.id};
@@ -6286,7 +6286,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *gather1.y.repeats = {A, B, D, E};
     *gather1.y.strides = {B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Gather gather2("gather2_cse");
+    af::ascir_op::Gather gather2("gather2_cse");
     gather2.x1 = x1.y;
     gather2.x2 = x2.y;
     gather2.attr.sched.axis = {a.id, b.id, d.id, e.id};
@@ -6296,7 +6296,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *gather2.y.repeats = {A, B, D, E};
     *gather2.y.strides = {B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Add add("add_gather");
+    af::ascir_op::Add add("add_gather");
     add.x1 = gather1.y;
     add.x2 = gather2.y;
     add.attr.sched.axis = {a.id, b.id, d.id, e.id};
@@ -6307,7 +6307,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add.y.repeats = {};
     *add.y.strides = {};
 
-    ge::ascir_op::Store x_store("store");
+    af::ascir_op::Store x_store("store");
     x_store.x = add.y;
     x_store.attr.sched.axis = {a.id, b.id, d.id, e.id};
     x_store.attr.sched.loop_axis = d.id;
@@ -6316,7 +6316,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_store.y.repeats = {A, B, D, E};
     *x_store.y.strides = {B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_out("out");
+    af::ascir_op::Output x_out("out");
     x_out.x = x_store.y;
     x_out.attr.sched.axis = {a.id, b.id, d.id, e.id};
     x_out.attr.sched.loop_axis = d.id;
@@ -6347,7 +6347,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("data1", graph);
+    af::ascir_op::Data x1("data1", graph);
     x1.attr.sched.axis = {a.id, b.id, d.id, e.id};
     x1.attr.sched.loop_axis = d.id;
     x1.y.dtype = DT_FLOAT16;
@@ -6355,7 +6355,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {A, B, D};
     *x1.y.strides = {B * D, D, ZERO};
 
-    ge::ascir_op::Data x2("data2", graph);
+    af::ascir_op::Data x2("data2", graph);
     x2.attr.sched.axis = {a.id, b.id, d.id, e.id};
     x2.attr.sched.loop_axis = d.id;
     x2.y.dtype = DT_INT32;
@@ -6363,7 +6363,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2.y.repeats = {ONE, ONE};
     *x2.y.strides = {ZERO, ZERO};
 
-    ge::ascir_op::Gather gather(graph.GetName().c_str());
+    af::ascir_op::Gather gather(graph.GetName().c_str());
     gather.x1 = x1.y;
     gather.x2 = x2.y;
     gather.attr.sched.axis = {a.id, b.id, d.id, e.id};
@@ -6373,7 +6373,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *gather.y.repeats = {A, B, ONE, ONE};
     *gather.y.strides = {B, ONE, ZERO, ZERO};
 
-    ge::ascir_op::Store x_store("store");
+    af::ascir_op::Store x_store("store");
     x_store.x = gather.y;
     x_store.attr.sched.axis = {a.id, b.id, d.id, e.id};
     x_store.attr.sched.loop_axis = d.id;
@@ -6382,7 +6382,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_store.y.repeats = {A, B, ONE, ONE};
     *x_store.y.strides = {B, ONE, ZERO, ZERO};
 
-    ge::ascir_op::Output x_out("out");
+    af::ascir_op::Output x_out("out");
     x_out.x = x_store.y;
     x_out.attr.sched.axis = {a.id, b.id, d.id, e.id};
     x_out.attr.sched.loop_axis = d.id;
@@ -6413,7 +6413,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("data1", graph);
+    af::ascir_op::Data x1("data1", graph);
     x1.attr.sched.axis = {a.id, b.id, d.id, e.id};
     x1.attr.sched.loop_axis = d.id;
     x1.y.dtype = DT_FLOAT16;
@@ -6421,7 +6421,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {A, B, D};
     *x1.y.strides = {ZERO, ZERO, ZERO};
 
-    ge::ascir_op::Data x2("data2", graph);
+    af::ascir_op::Data x2("data2", graph);
     x2.attr.sched.axis = {a.id, b.id, d.id, e.id};
     x2.attr.sched.loop_axis = d.id;
     x2.y.dtype = DT_INT32;
@@ -6429,7 +6429,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2.y.repeats = {D, E};
     *x2.y.strides = {ZERO, ZERO};
 
-    ge::ascir_op::Gather gather(graph.GetName().c_str());
+    af::ascir_op::Gather gather(graph.GetName().c_str());
     gather.x1 = x1.y;
     gather.x2 = x2.y;
     gather.attr.sched.axis = {a.id, b.id, d.id, e.id};
@@ -6439,7 +6439,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *gather.y.repeats = {A, B, D, E};
     *gather.y.strides = {ZERO, ZERO, ZERO, ZERO};
 
-    ge::ascir_op::Store x_store("store");
+    af::ascir_op::Store x_store("store");
     x_store.x = gather.y;
     x_store.attr.sched.axis = {a.id, b.id, d.id, e.id};
     x_store.attr.sched.loop_axis = d.id;
@@ -6448,7 +6448,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_store.y.repeats = {A, B, D, E};
     *x_store.y.strides = {ZERO, ZERO, ZERO, ZERO};
 
-    ge::ascir_op::Output x_out("out");
+    af::ascir_op::Output x_out("out");
     x_out.x = x_store.y;
     x_out.attr.sched.axis = {a.id, b.id, d.id, e.id};
     x_out.attr.sched.loop_axis = d.id;
@@ -6479,7 +6479,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("data1", graph);
+    af::ascir_op::Data x1("data1", graph);
     x1.attr.sched.axis = {a.id, b.id, d.id, e.id};
     x1.attr.sched.loop_axis = d.id;
     x1.y.dtype = DT_FLOAT16;
@@ -6487,7 +6487,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {A, B, D};
     *x1.y.strides = {D, ZERO, ONE};
 
-    ge::ascir_op::Data x2("data2", graph);
+    af::ascir_op::Data x2("data2", graph);
     x2.attr.sched.axis = {a.id, b.id, d.id, e.id};
     x2.attr.sched.loop_axis = d.id;
     x2.y.dtype = DT_INT32;
@@ -6495,7 +6495,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2.y.repeats = {D, E};
     *x2.y.strides = {ONE, ZERO};
 
-    ge::ascir_op::Gather gather(graph.GetName().c_str());
+    af::ascir_op::Gather gather(graph.GetName().c_str());
     gather.x1 = x1.y;
     gather.x2 = x2.y;
     gather.attr.sched.axis = {a.id, b.id, d.id, e.id};
@@ -6505,7 +6505,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *gather.y.repeats = {A, B, D, E};
     *gather.y.strides = {D, ZERO, ONE, ZERO};
 
-    ge::ascir_op::Store x_store("store");
+    af::ascir_op::Store x_store("store");
     x_store.x = gather.y;
     x_store.attr.sched.axis = {a.id, b.id, d.id, e.id};
     x_store.attr.sched.loop_axis = d.id;
@@ -6514,7 +6514,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_store.y.repeats = {A, B, D, E};
     *x_store.y.strides = {D, ZERO, ONE, ZERO};
 
-    ge::ascir_op::Output x_out("out");
+    af::ascir_op::Output x_out("out");
     x_out.x = x_store.y;
     x_out.attr.sched.axis = {a.id, b.id, d.id, e.id};
     x_out.attr.sched.loop_axis = d.id;
@@ -6546,7 +6546,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("data1", graph);
+    af::ascir_op::Data x1("data1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -6554,7 +6554,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {A, B, C};
     *x1.y.strides = {B * C, C, ONE};
 
-    ge::ascir_op::Data x2("data2", graph);
+    af::ascir_op::Data x2("data2", graph);
     x2.attr.sched.axis = {d.id, e.id};
     x2.attr.sched.loop_axis = d.id;
     x2.y.dtype = DT_INT32;
@@ -6562,7 +6562,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2.y.repeats = {D, E};
     *x2.y.strides = {E, ONE};
 
-    ge::ascir_op::Gather gather(graph.GetName().c_str());
+    af::ascir_op::Gather gather(graph.GetName().c_str());
     gather.x1 = x1.y;
     gather.x2 = x2.y;
     gather.attr.sched.axis = {a.id, b.id, d.id, e.id};
@@ -6572,7 +6572,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *gather.y.repeats = {A, B, D, E};
     *gather.y.strides = {B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Cast cast("cast");
+    af::ascir_op::Cast cast("cast");
     cast.x = gather.y;
     cast.attr.sched.axis = {a.id, b.id, d.id, e.id};
     cast.y.dtype = DT_FLOAT;
@@ -6580,7 +6580,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *cast.y.repeats = {A, B, D, E};
     *cast.y.strides = {B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Store x_store("store");
+    af::ascir_op::Store x_store("store");
     x_store.x = cast.y;
     x_store.attr.sched.axis = {a.id, b.id, d.id, e.id};
     x_store.attr.sched.loop_axis = c.id;
@@ -6589,7 +6589,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_store.y.repeats = {A, B, D, E};
     *x_store.y.strides = {B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_out("out");
+    af::ascir_op::Output x_out("out");
     x_out.x = x_store.y;
     x_out.attr.sched.axis = {a.id, b.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -6622,7 +6622,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -6630,7 +6630,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {ONE, ONE, D, E};
     *x1.y.strides = {ZERO, ZERO, E, ONE};
 
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -6638,7 +6638,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {B, C, D, E};
     *x1Local.y.strides = {C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs abs_empty_tensor("abs_empty_tensor");
+    af::ascir_op::Abs abs_empty_tensor("abs_empty_tensor");
     abs_empty_tensor.x = x1Local.y;
     abs_empty_tensor.attr.sched.axis = {};
     abs_empty_tensor.y.dtype = DT_FLOAT16;
@@ -6646,7 +6646,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs_empty_tensor.y.repeats = {};
     *abs_empty_tensor.y.strides = {};
 
-    ge::ascir_op::Data x2("x2_3", graph);
+    af::ascir_op::Data x2("x2_3", graph);
     x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2.attr.sched.loop_axis = c.id;
     x2.y.dtype = DT_FLOAT16;
@@ -6654,7 +6654,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2.y.repeats = {A, B, ONE, ONE, ONE};
     *x2.y.strides = {B, ONE, ZERO, ZERO, ZERO};
 
-    ge::ascir_op::Load x2Local("x2Local_4");
+    af::ascir_op::Load x2Local("x2Local_4");
     x2Local.x = x2.y;
     x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2Local.y.dtype = DT_FLOAT16;
@@ -6662,7 +6662,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2Local.y.repeats = {A, B, C, D, E};
     *x2Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Add add("add_4");
+    af::ascir_op::Add add("add_4");
     add.x1 = abs_empty_tensor.y;
     add.x2 = x2Local.y;
     add.attr.sched.axis = {a.id, b.id, c.id, e.id};
@@ -6673,7 +6673,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add.y.repeats = {};
     *add.y.strides = {};
 
-    ge::ascir_op::Abs abs1("abs_4");
+    af::ascir_op::Abs abs1("abs_4");
     abs1.x = add.y;
     abs1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs1.y.dtype = DT_FLOAT16;
@@ -6681,7 +6681,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs1.y.repeats = {};
     *abs1.y.strides = {};
 
-    ge::ascir_op::Abs abs2("abs_5");
+    af::ascir_op::Abs abs2("abs_5");
     abs2.x = abs1.y;
     abs2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs2.y.dtype = DT_FLOAT16;
@@ -6689,7 +6689,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs2.y.repeats = {};
     *abs2.y.strides = {};
 
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = abs2.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -6698,7 +6698,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -6730,7 +6730,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -6738,7 +6738,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {B, ONE, D, E};
     *x1.y.strides = {B * E, ZERO, E, ONE};
 
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -6746,7 +6746,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs abs_empty_tensor("abs_empty_tensor");
+    af::ascir_op::Abs abs_empty_tensor("abs_empty_tensor");
     abs_empty_tensor.x = x1Local.y;
     abs_empty_tensor.attr.sched.axis = {};
     abs_empty_tensor.y.dtype = DT_FLOAT16;
@@ -6754,7 +6754,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs_empty_tensor.y.repeats = {};
     *abs_empty_tensor.y.strides = {};
 
-    ge::ascir_op::Data x2("x2_3", graph);
+    af::ascir_op::Data x2("x2_3", graph);
     x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2.attr.sched.loop_axis = c.id;
     x2.y.dtype = DT_FLOAT16;
@@ -6762,7 +6762,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2.y.repeats = {ONE, B, ONE, D, E};
     *x2.y.strides = {ZERO, B * E, ZERO, E, ONE};
 
-    ge::ascir_op::Load x2Local("x2Local_4");
+    af::ascir_op::Load x2Local("x2Local_4");
     x2Local.x = x2.y;
     x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2Local.y.dtype = DT_FLOAT16;
@@ -6770,7 +6770,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2Local.y.repeats = {A, B, C, D, E};
     *x2Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Add add("add_4");
+    af::ascir_op::Add add("add_4");
     add.x1 = abs_empty_tensor.y;
     add.x2 = x2Local.y;
     add.attr.sched.axis = {a.id, b.id, c.id, e.id};
@@ -6781,7 +6781,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add.y.repeats = {};
     *add.y.strides = {};
 
-    ge::ascir_op::Abs abs1("abs_4");
+    af::ascir_op::Abs abs1("abs_4");
     abs1.x = add.y;
     abs1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs1.y.dtype = DT_FLOAT16;
@@ -6789,7 +6789,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs1.y.repeats = {};
     *abs1.y.strides = {};
 
-    ge::ascir_op::Abs abs2("abs_5");
+    af::ascir_op::Abs abs2("abs_5");
     abs2.x = abs1.y;
     abs2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs2.y.dtype = DT_FLOAT16;
@@ -6797,7 +6797,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs2.y.repeats = {};
     *abs2.y.strides = {};
 
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = abs2.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -6806,7 +6806,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -6838,7 +6838,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -6846,7 +6846,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {ONE, ONE, ONE, D, E};
     *x1.y.strides = {ZERO, ZERO, ZERO, E, ONE};
 
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -6854,7 +6854,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs abs_empty_tensor("abs_empty_tensor");
+    af::ascir_op::Abs abs_empty_tensor("abs_empty_tensor");
     abs_empty_tensor.x = x1Local.y;
     abs_empty_tensor.attr.sched.axis = {};
     abs_empty_tensor.y.dtype = DT_FLOAT16;
@@ -6862,7 +6862,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs_empty_tensor.y.repeats = {};
     *abs_empty_tensor.y.strides = {};
 
-    ge::ascir_op::Data x2("x2_3", graph);
+    af::ascir_op::Data x2("x2_3", graph);
     x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2.attr.sched.loop_axis = c.id;
     x2.y.dtype = DT_FLOAT16;
@@ -6870,7 +6870,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2.y.repeats = {A, B, ONE, D, E};
     *x2.y.strides = {B * D * E, D * E, ZERO, E, ONE};
 
-    ge::ascir_op::Load x2Local("x2Local_4");
+    af::ascir_op::Load x2Local("x2Local_4");
     x2Local.x = x2.y;
     x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2Local.y.dtype = DT_FLOAT16;
@@ -6878,7 +6878,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2Local.y.repeats = {A, B, C, D, E};
     *x2Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Add add("add_4");
+    af::ascir_op::Add add("add_4");
     add.x1 = abs_empty_tensor.y;
     add.x2 = x2Local.y;
     add.attr.sched.axis = {a.id, b.id, c.id, e.id};
@@ -6889,7 +6889,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add.y.repeats = {};
     *add.y.strides = {};
 
-    ge::ascir_op::Abs abs1("abs_4");
+    af::ascir_op::Abs abs1("abs_4");
     abs1.x = add.y;
     abs1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs1.y.dtype = DT_FLOAT16;
@@ -6897,7 +6897,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs1.y.repeats = {};
     *abs1.y.strides = {};
 
-    ge::ascir_op::Abs abs2("abs_5");
+    af::ascir_op::Abs abs2("abs_5");
     abs2.x = abs1.y;
     abs2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs2.y.dtype = DT_FLOAT16;
@@ -6905,7 +6905,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs2.y.repeats = {};
     *abs2.y.strides = {};
 
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = abs2.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -6914,7 +6914,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -6946,7 +6946,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -6954,7 +6954,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {A, B, C, D, ONE};
     *x1.y.strides = {B * C * D, C * D, D, ONE, ZERO};
 
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -6962,7 +6962,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs abs_empty_tensor("abs_empty_tensor");
+    af::ascir_op::Abs abs_empty_tensor("abs_empty_tensor");
     abs_empty_tensor.x = x1Local.y;
     abs_empty_tensor.attr.sched.axis = {};
     abs_empty_tensor.y.dtype = DT_FLOAT16;
@@ -6970,7 +6970,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs_empty_tensor.y.repeats = {};
     *abs_empty_tensor.y.strides = {};
 
-    ge::ascir_op::Data x2("x2_3", graph);
+    af::ascir_op::Data x2("x2_3", graph);
     x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2.attr.sched.loop_axis = c.id;
     x2.y.dtype = DT_FLOAT16;
@@ -6978,7 +6978,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2.y.repeats = {A, B, C, ONE, ONE};
     *x2.y.strides = {B * C, C, ONE, ZERO, ZERO};
 
-    ge::ascir_op::Load x2Local("x2Local_4");
+    af::ascir_op::Load x2Local("x2Local_4");
     x2Local.x = x2.y;
     x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2Local.y.dtype = DT_FLOAT16;
@@ -6986,7 +6986,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2Local.y.repeats = {A, B, C, D, E};
     *x2Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Add add("add_4");
+    af::ascir_op::Add add("add_4");
     add.x1 = abs_empty_tensor.y;
     add.x2 = x2Local.y;
     add.attr.sched.axis = {a.id, b.id, c.id, e.id};
@@ -6997,7 +6997,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add.y.repeats = {};
     *add.y.strides = {};
 
-    ge::ascir_op::Abs abs1("abs_4");
+    af::ascir_op::Abs abs1("abs_4");
     abs1.x = add.y;
     abs1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs1.y.dtype = DT_FLOAT16;
@@ -7005,7 +7005,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs1.y.repeats = {};
     *abs1.y.strides = {};
 
-    ge::ascir_op::Abs abs2("abs_5");
+    af::ascir_op::Abs abs2("abs_5");
     abs2.x = abs1.y;
     abs2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs2.y.dtype = DT_FLOAT16;
@@ -7013,7 +7013,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs2.y.repeats = {};
     *abs2.y.strides = {};
 
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = abs2.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -7022,7 +7022,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -7054,7 +7054,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -7062,7 +7062,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {ONE, ONE, ONE, D, E};
     *x1.y.strides = {ZERO, ZERO, ZERO, E, ONE};
 
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -7070,7 +7070,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs abs_empty_tensor("abs_empty_tensor");
+    af::ascir_op::Abs abs_empty_tensor("abs_empty_tensor");
     abs_empty_tensor.x = x1Local.y;
     abs_empty_tensor.attr.sched.axis = {};
     abs_empty_tensor.y.dtype = DT_FLOAT16;
@@ -7078,7 +7078,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs_empty_tensor.y.repeats = {};
     *abs_empty_tensor.y.strides = {};
 
-    ge::ascir_op::Data x2("x2_3", graph);
+    af::ascir_op::Data x2("x2_3", graph);
     x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2.attr.sched.loop_axis = c.id;
     x2.y.dtype = DT_FLOAT16;
@@ -7086,7 +7086,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2.y.repeats = {A, ONE, ONE, D, E};
     *x2.y.strides = {D * E, ZERO, ZERO, E, ONE};
 
-    ge::ascir_op::Load x2Local("x2Local_4");
+    af::ascir_op::Load x2Local("x2Local_4");
     x2Local.x = x2.y;
     x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2Local.y.dtype = DT_FLOAT16;
@@ -7094,7 +7094,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2Local.y.repeats = {A, B, C, D, E};
     *x2Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Add add("add_4");
+    af::ascir_op::Add add("add_4");
     add.x1 = abs_empty_tensor.y;
     add.x2 = x2Local.y;
     add.attr.sched.axis = {a.id, b.id, c.id, e.id};
@@ -7105,7 +7105,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add.y.repeats = {};
     *add.y.strides = {};
 
-    ge::ascir_op::Abs abs1("abs_4");
+    af::ascir_op::Abs abs1("abs_4");
     abs1.x = add.y;
     abs1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs1.y.dtype = DT_FLOAT16;
@@ -7113,7 +7113,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs1.y.repeats = {};
     *abs1.y.strides = {};
 
-    ge::ascir_op::Abs abs2("abs_5");
+    af::ascir_op::Abs abs2("abs_5");
     abs2.x = abs1.y;
     abs2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs2.y.dtype = DT_FLOAT16;
@@ -7121,7 +7121,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs2.y.repeats = {};
     *abs2.y.strides = {};
 
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = abs2.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -7130,7 +7130,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -7162,7 +7162,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -7170,7 +7170,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {ONE, ONE, ONE, D, E};
     *x1.y.strides = {ZERO, ZERO, ZERO, E, ONE};
 
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -7178,7 +7178,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs abs_empty_tensor("abs_empty_tensor");
+    af::ascir_op::Abs abs_empty_tensor("abs_empty_tensor");
     abs_empty_tensor.x = x1Local.y;
     abs_empty_tensor.attr.sched.axis = {};
     abs_empty_tensor.y.dtype = DT_FLOAT16;
@@ -7186,7 +7186,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs_empty_tensor.y.repeats = {};
     *abs_empty_tensor.y.strides = {};
 
-    ge::ascir_op::Data x2("x2_3", graph);
+    af::ascir_op::Data x2("x2_3", graph);
     x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2.attr.sched.loop_axis = c.id;
     x2.y.dtype = DT_FLOAT16;
@@ -7194,7 +7194,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2.y.repeats = {A, ONE, ONE, D, E};
     *x2.y.strides = {D * E, ZERO, ZERO, E, ONE};
 
-    ge::ascir_op::Load x2Local("x2Local_4");
+    af::ascir_op::Load x2Local("x2Local_4");
     x2Local.x = x2.y;
     x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2Local.y.dtype = DT_FLOAT16;
@@ -7202,7 +7202,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2Local.y.repeats = {A, B, C, D, E};
     *x2Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Add add("add_4");
+    af::ascir_op::Add add("add_4");
     add.x1 = abs_empty_tensor.y;
     add.x2 = x2Local.y;
     add.attr.sched.axis = {a.id, b.id, c.id, e.id};
@@ -7213,7 +7213,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add.y.repeats = {};
     *add.y.strides = {};
 
-    ge::ascir_op::Abs abs1("abs_4");
+    af::ascir_op::Abs abs1("abs_4");
     abs1.x = add.y;
     abs1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs1.y.dtype = DT_FLOAT16;
@@ -7221,7 +7221,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs1.y.repeats = {};
     *abs1.y.strides = {};
 
-    ge::ascir_op::Abs abs2("abs_5");
+    af::ascir_op::Abs abs2("abs_5");
     abs2.x = add.y;
     abs2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs2.y.dtype = DT_FLOAT16;
@@ -7229,7 +7229,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs2.y.repeats = {};
     *abs2.y.strides = {};
 
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = abs2.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -7238,7 +7238,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Store x_out1("x_out_6");
+    af::ascir_op::Store x_out1("x_out_6");
     x_out1.x = abs1.y;
     x_out1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out1.attr.sched.loop_axis = c.id;
@@ -7247,7 +7247,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out1.y.repeats = {A, B, C, D, E};
     *x_out1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -7256,7 +7256,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_output1.y.repeats = {A, B, C, D, E};
     *x_output1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output2("x_output2");
+    af::ascir_op::Output x_output2("x_output2");
     x_output2.x = x_out1.y;
     x_output2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output2.attr.sched.loop_axis = c.id;
@@ -7289,7 +7289,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -7297,7 +7297,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {ONE, ONE, ONE, D, E};
     *x1.y.strides = {ZERO, ZERO, ZERO, E, ONE};
 
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -7305,7 +7305,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs abs_empty_tensor("abs_empty_tensor");
+    af::ascir_op::Abs abs_empty_tensor("abs_empty_tensor");
     abs_empty_tensor.x = x1Local.y;
     abs_empty_tensor.attr.sched.axis = {};
     abs_empty_tensor.y.dtype = DT_FLOAT16;
@@ -7313,7 +7313,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs_empty_tensor.y.repeats = {};
     *abs_empty_tensor.y.strides = {};
 
-    ge::ascir_op::Data x2("x2_3", graph);
+    af::ascir_op::Data x2("x2_3", graph);
     x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2.attr.sched.loop_axis = c.id;
     x2.y.dtype = DT_FLOAT16;
@@ -7321,7 +7321,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2.y.repeats = {A, ONE, C, D, E};
     *x2.y.strides = {C * D * E, ZERO, D * E, E, ONE};
 
-    ge::ascir_op::Load x2Local("x2Local_4");
+    af::ascir_op::Load x2Local("x2Local_4");
     x2Local.x = x2.y;
     x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2Local.y.dtype = DT_FLOAT16;
@@ -7329,7 +7329,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2Local.y.repeats = {A, B, C, D, E};
     *x2Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Add add("add_4");
+    af::ascir_op::Add add("add_4");
     add.x1 = abs_empty_tensor.y;
     add.x2 = x2Local.y;
     add.attr.sched.axis = {a.id, b.id, c.id, e.id};
@@ -7340,7 +7340,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add.y.repeats = {};
     *add.y.strides = {};
 
-    ge::ascir_op::Abs abs1("abs_4");
+    af::ascir_op::Abs abs1("abs_4");
     abs1.x = add.y;
     abs1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs1.y.dtype = DT_FLOAT16;
@@ -7348,7 +7348,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs1.y.repeats = {};
     *abs1.y.strides = {};
 
-    ge::ascir_op::Abs abs2("abs_5");
+    af::ascir_op::Abs abs2("abs_5");
     abs2.x = abs1.y;
     abs2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs2.y.dtype = DT_FLOAT16;
@@ -7356,7 +7356,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs2.y.repeats = {};
     *abs2.y.strides = {};
 
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = abs2.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -7365,7 +7365,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -7396,7 +7396,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -7404,7 +7404,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {ONE, ONE, ONE, D, E};
     *x1.y.strides = {ZERO, ZERO, ZERO, E, ONE};
 
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -7412,7 +7412,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs abs_empty_tensor("abs_empty_tensor");
+    af::ascir_op::Abs abs_empty_tensor("abs_empty_tensor");
     abs_empty_tensor.x = x1Local.y;
     abs_empty_tensor.attr.sched.axis = {};
     abs_empty_tensor.y.dtype = DT_FLOAT16;
@@ -7420,7 +7420,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs_empty_tensor.y.repeats = {};
     *abs_empty_tensor.y.strides = {};
 
-    ge::ascir_op::Data x2("x2_3", graph);
+    af::ascir_op::Data x2("x2_3", graph);
     x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2.attr.sched.loop_axis = c.id;
     x2.y.dtype = DT_FLOAT16;
@@ -7428,7 +7428,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2.y.repeats = {A, B, ONE, D, E};
     *x2.y.strides = {B * D * E, D * E, ZERO, E, ONE};
 
-    ge::ascir_op::Load x2Local("x2Local_4");
+    af::ascir_op::Load x2Local("x2Local_4");
     x2Local.x = x2.y;
     x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2Local.y.dtype = DT_FLOAT16;
@@ -7436,7 +7436,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2Local.y.repeats = {A, B, C, D, E};
     *x2Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Add add("add_4");
+    af::ascir_op::Add add("add_4");
     add.x1 = abs_empty_tensor.y;
     add.x2 = x2Local.y;
     add.attr.sched.axis = {a.id, b.id, c.id, e.id};
@@ -7447,7 +7447,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add.y.repeats = {};
     *add.y.strides = {};
 
-    ge::ascir_op::Data x3("x2_4", graph);
+    af::ascir_op::Data x3("x2_4", graph);
     x3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x3.attr.sched.loop_axis = c.id;
     x3.y.dtype = DT_FLOAT16;
@@ -7455,7 +7455,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x3.y.repeats = {A, B, C, D, E};
     *x3.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Load x3Local("x2Local_5");
+    af::ascir_op::Load x3Local("x2Local_5");
     x3Local.x = x3.y;
     x3Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x3Local.y.dtype = DT_FLOAT16;
@@ -7463,7 +7463,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x3Local.y.repeats = {A, B, C, D, E};
     *x3Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Add add2("add_5");
+    af::ascir_op::Add add2("add_5");
     add2.x1 = x3Local.y;
     add2.x2 = add.y;
     add2.attr.sched.axis = {a.id, b.id, c.id, e.id};
@@ -7474,7 +7474,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add2.y.repeats = {};
     *add2.y.strides = {};
 
-    ge::ascir_op::Abs abs1("abs_4");
+    af::ascir_op::Abs abs1("abs_4");
     abs1.x = add2.y;
     abs1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs1.y.dtype = DT_FLOAT16;
@@ -7482,7 +7482,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs1.y.repeats = {};
     *abs1.y.strides = {};
 
-    ge::ascir_op::Abs abs2("abs_5");
+    af::ascir_op::Abs abs2("abs_5");
     abs2.x = abs1.y;
     abs2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs2.y.dtype = DT_FLOAT16;
@@ -7490,7 +7490,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs2.y.repeats = {};
     *abs2.y.strides = {};
 
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = abs2.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -7499,7 +7499,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -7530,7 +7530,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -7538,7 +7538,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {ONE, ONE, ONE, D, E};
     *x1.y.strides = {ZERO, ZERO, ZERO, E, ZERO};
 
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -7546,7 +7546,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {ONE, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ZERO};
 
-    ge::ascir_op::Abs abs_empty_tensor("abs_empty_tensor");
+    af::ascir_op::Abs abs_empty_tensor("abs_empty_tensor");
     abs_empty_tensor.x = x1Local.y;
     abs_empty_tensor.attr.sched.axis = {};
     abs_empty_tensor.y.dtype = DT_FLOAT16;
@@ -7554,7 +7554,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs_empty_tensor.y.repeats = {};
     *abs_empty_tensor.y.strides = {};
 
-    ge::ascir_op::Data x2("x2_3", graph);
+    af::ascir_op::Data x2("x2_3", graph);
     x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2.attr.sched.loop_axis = c.id;
     x2.y.dtype = DT_FLOAT16;
@@ -7562,7 +7562,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2.y.repeats = {ONE, B, ONE, D, E};
     *x2.y.strides = {B * D * E, D * E, ZERO, E, ZERO};
 
-    ge::ascir_op::Load x2Local("x2Local_4");
+    af::ascir_op::Load x2Local("x2Local_4");
     x2Local.x = x2.y;
     x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2Local.y.dtype = DT_FLOAT16;
@@ -7570,7 +7570,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2Local.y.repeats = {ONE, B, C, D, E};
     *x2Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ZERO};
 
-    ge::ascir_op::Add add("add_4");
+    af::ascir_op::Add add("add_4");
     add.x1 = abs_empty_tensor.y;
     add.x2 = x2Local.y;
     add.attr.sched.axis = {a.id, b.id, c.id, e.id};
@@ -7581,7 +7581,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add.y.repeats = {};
     *add.y.strides = {};
 
-    ge::ascir_op::Abs abs1("abs_4");
+    af::ascir_op::Abs abs1("abs_4");
     abs1.x = add.y;
     abs1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs1.y.dtype = DT_FLOAT16;
@@ -7589,7 +7589,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs1.y.repeats = {};
     *abs1.y.strides = {};
 
-    ge::ascir_op::Broadcast bro1("broadcast_1");
+    af::ascir_op::Broadcast bro1("broadcast_1");
     bro1.x = abs1.y;
     bro1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     bro1.y.dtype = DT_FLOAT16;
@@ -7597,7 +7597,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *bro1.y.repeats = {A, B, C, D, E};
     *bro1.y.strides = {B * C * D * E, C * D * E, D * E, E, ZERO};
 
-    ge::ascir_op::Abs abs2("abs_5");
+    af::ascir_op::Abs abs2("abs_5");
     abs2.x = bro1.y;
     abs2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs2.y.dtype = DT_FLOAT16;
@@ -7605,7 +7605,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs2.y.repeats = {A, B, C, D, ONE};
     *abs2.y.strides = {B * C * D, C * D, D, ONE, ZERO};
 
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = abs2.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -7614,7 +7614,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE}; // 刻意内轴设置为1，构造无效轴不删除场景叠加broadcast后移内轴刷新正确
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -7645,7 +7645,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -7653,7 +7653,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {ONE, ONE, C, D, E};
     *x1.y.strides = {ZERO, ZERO, D * E, E, ONE};
 
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -7661,7 +7661,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {ONE, ONE, C, D, E};
     *x1Local.y.strides = {ZERO, ZERO, D * E, E, ONE};
 
-    ge::ascir_op::Broadcast x1Broadcast("x1Broadcast_2_mul");
+    af::ascir_op::Broadcast x1Broadcast("x1Broadcast_2_mul");
     x1Broadcast.x = x1Local.y;
     x1Broadcast.attr.sched.axis = {a.id, c.id, b.id, d.id, e.id};
     x1Broadcast.y.dtype = DT_FLOAT16;
@@ -7669,7 +7669,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Broadcast.y.repeats = {ONE, B, C, D, E};
     *x1Broadcast.y.strides = {ZERO, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Broadcast x2Broadcast("x2Broadcast_2_mul");
+    af::ascir_op::Broadcast x2Broadcast("x2Broadcast_2_mul");
     x2Broadcast.x = x1Broadcast.y;
     x2Broadcast.attr.sched.axis = {a.id, c.id, b.id, d.id, e.id};
     x2Broadcast.y.dtype = DT_FLOAT16;
@@ -7677,7 +7677,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2Broadcast.y.repeats = {A, B, C, D, E};
     *x2Broadcast.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs abs2("abs_3");
+    af::ascir_op::Abs abs2("abs_3");
     abs2.x = x2Broadcast.y;
     abs2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs2.y.dtype = DT_FLOAT16;
@@ -7685,7 +7685,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs2.y.repeats = {};
     *abs2.y.strides = {};
 
-    ge::ascir_op::Add add("add_4");
+    af::ascir_op::Add add("add_4");
     add.x1 = x2Broadcast.y;
     add.x2 = abs2.y;
     add.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -7696,7 +7696,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add.y.repeats = {};
     *add.y.strides = {};
 
-    ge::ascir_op::Abs abs1("abs_4");
+    af::ascir_op::Abs abs1("abs_4");
     abs1.x = add.y;
     abs1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs1.y.dtype = DT_FLOAT16;
@@ -7704,7 +7704,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs1.y.repeats = {};
     *abs1.y.strides = {};
 
-    ge::ascir_op::Store x_out1("x_out_6");
+    af::ascir_op::Store x_out1("x_out_6");
     x_out1.x = abs1.y;
     x_out1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out1.attr.sched.loop_axis = c.id;
@@ -7713,7 +7713,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out1.y.repeats = {A, B, C, D, E};
     *x_out1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out1.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -7746,7 +7746,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -7754,7 +7754,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {ONE, ONE, C, D, E};
     *x1.y.strides = {ZERO, ZERO, D * E, E, ONE};
 
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -7762,7 +7762,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Add add("add_4");
+    af::ascir_op::Add add("add_4");
     add.x1 = x1Local.y;
     add.x2 = x1Local.y;
     add.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -7773,7 +7773,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add.y.repeats = {};
     *add.y.strides = {};
 
-    ge::ascir_op::Abs abs1("abs_4");
+    af::ascir_op::Abs abs1("abs_4");
     abs1.x = add.y;
     abs1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs1.y.dtype = DT_FLOAT16;
@@ -7781,7 +7781,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs1.y.repeats = {};
     *abs1.y.strides = {};
 
-    ge::ascir_op::Store x_out1("x_out_6");
+    af::ascir_op::Store x_out1("x_out_6");
     x_out1.x = abs1.y;
     x_out1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out1.attr.sched.loop_axis = c.id;
@@ -7790,7 +7790,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out1.y.repeats = {A, B, C, D, E};
     *x_out1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out1.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -7822,7 +7822,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -7830,7 +7830,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {ONE, ONE, C, D, E};
     *x1.y.strides = {ZERO, ZERO, D * E, E, ONE};
 
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -7838,7 +7838,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs abs1("abs_3");
+    af::ascir_op::Abs abs1("abs_3");
     abs1.x = x1Local.y;
     abs1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs1.y.dtype = DT_FLOAT16;
@@ -7846,7 +7846,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs1.y.repeats = {};
     *abs1.y.strides = {};
 
-    ge::ascir_op::Relu abs2("relu_4");
+    af::ascir_op::Relu abs2("relu_4");
     abs2.x = x1Local.y;
     abs2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs2.y.dtype = DT_FLOAT16;
@@ -7854,7 +7854,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs2.y.repeats = {};
     *abs2.y.strides = {};
 
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = abs2.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -7863,7 +7863,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Store x_out1("x_out_6");
+    af::ascir_op::Store x_out1("x_out_6");
     x_out1.x = abs1.y;
     x_out1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out1.attr.sched.loop_axis = c.id;
@@ -7872,7 +7872,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out1.y.repeats = {A, B, C, D, E};
     *x_out1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -7881,7 +7881,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_output1.y.repeats = {A, B, C, D, E};
     *x_output1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output2("x_output2");
+    af::ascir_op::Output x_output2("x_output2");
     x_output2.x = x_out1.y;
     x_output2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output2.attr.sched.loop_axis = c.id;
@@ -7914,7 +7914,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -7922,7 +7922,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {ONE, ONE, C, D, E};
     *x1.y.strides = {ZERO, ZERO, D * E, E, ONE};
 
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -7930,7 +7930,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs abs1("abs_4");
+    af::ascir_op::Abs abs1("abs_4");
     abs1.x = x1Local.y;
     abs1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs1.y.dtype = DT_FLOAT16;
@@ -7938,7 +7938,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs1.y.repeats = {};
     *abs1.y.strides = {};
 
-    ge::ascir_op::Add add("add_4");
+    af::ascir_op::Add add("add_4");
     add.x1 = abs1.y;
     add.x2 = abs1.y;
     add.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -7949,7 +7949,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add.y.repeats = {};
     *add.y.strides = {};
 
-    ge::ascir_op::Store x_out1("x_out_6");
+    af::ascir_op::Store x_out1("x_out_6");
     x_out1.x = add.y;
     x_out1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out1.attr.sched.loop_axis = c.id;
@@ -7958,7 +7958,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out1.y.repeats = {A, B, C, D, E};
     *x_out1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out1.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -7990,7 +7990,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -7998,7 +7998,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {ONE, ONE, C, D, E};
     *x1.y.strides = {ZERO, ZERO, D * E, E, ONE};
 
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -8006,7 +8006,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Data x2("x2_1", graph);
+    af::ascir_op::Data x2("x2_1", graph);
     x2.attr.sched.axis = {b.id, c.id, d.id, e.id};
     x2.attr.sched.loop_axis = c.id;
     x2.y.dtype = DT_FLOAT16;
@@ -8014,7 +8014,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2.y.repeats = {ONE, ONE, C, D, E};
     *x2.y.strides = {ZERO, ZERO, D * E, E, ONE};
 
-    ge::ascir_op::Load x2Local("x2Local_2");
+    af::ascir_op::Load x2Local("x2Local_2");
     x2Local.x = x2.y;
     x2Local.attr.sched.axis = {b.id, c.id, d.id, e.id};
     x2Local.y.dtype = DT_FLOAT16;
@@ -8022,7 +8022,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2Local.y.repeats = {A, B, C, D, E};
     *x2Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs abs1("abs_4");
+    af::ascir_op::Abs abs1("abs_4");
     abs1.x = x1Local.y;
     abs1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs1.y.dtype = DT_FLOAT16;
@@ -8030,7 +8030,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs1.y.repeats = {};
     *abs1.y.strides = {};
 
-    ge::ascir_op::Add add("add_3");
+    af::ascir_op::Add add("add_3");
     add.x1 = abs1.y;
     add.x2 = x2Local.y;
     add.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -8041,7 +8041,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add.y.repeats = {};
     *add.y.strides = {};
 
-    ge::ascir_op::Add add2("add_4");
+    af::ascir_op::Add add2("add_4");
     add2.x1 = abs1.y;
     add2.x2 = add.y;
     add2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -8052,7 +8052,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add2.y.repeats = {};
     *add2.y.strides = {};
 
-    ge::ascir_op::Store x_out1("x_out_6");
+    af::ascir_op::Store x_out1("x_out_6");
     x_out1.x = add.y;
     x_out1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out1.attr.sched.loop_axis = c.id;
@@ -8061,7 +8061,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out1.y.repeats = {A, B, C, D, E};
     *x_out1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out1.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -8093,7 +8093,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("x1_1_mul", graph);
+    af::ascir_op::Data x1("x1_1_mul", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -8101,7 +8101,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {A, B, C, D, E};
     *x1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Load x1Local("x1Local_2_mul");
+    af::ascir_op::Load x1Local("x1Local_2_mul");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -8109,7 +8109,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs abs1("abs1_x1Local_2_mul");
+    af::ascir_op::Abs abs1("abs1_x1Local_2_mul");
     abs1.x = x1Local.y;
     abs1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs1.y.dtype = DT_FLOAT16;
@@ -8117,7 +8117,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs1.y.repeats = {A, B, C, D, E};
     *abs1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs abs2("abs2_x1Local_2_mul");
+    af::ascir_op::Abs abs2("abs2_x1Local_2_mul");
     abs2.x = x1Local.y;
     abs2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs2.y.dtype = DT_FLOAT16;
@@ -8125,7 +8125,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs2.y.repeats = {A, B, C, D, E};
     *abs2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Cast Local2Cast0("x1Local_2_Cast0_mul");
+    af::ascir_op::Cast Local2Cast0("x1Local_2_Cast0_mul");
     Local2Cast0.x = x1Local.y;
     Local2Cast0.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     Local2Cast0.y.dtype = DT_FLOAT;
@@ -8133,7 +8133,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *Local2Cast0.y.repeats = {A, B, C, D, E};
     *Local2Cast0.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Cast Local2Cast1("x1Local_2_Cast1_mul");
+    af::ascir_op::Cast Local2Cast1("x1Local_2_Cast1_mul");
     Local2Cast1.x = Local2Cast0.y;
     Local2Cast1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     Local2Cast1.y.dtype = DT_FLOAT16;
@@ -8141,7 +8141,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *Local2Cast1.y.repeats = {A, B, C, D, E};
     *Local2Cast1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs abs3("abs3_x1Local_2_mul");
+    af::ascir_op::Abs abs3("abs3_x1Local_2_mul");
     abs3.x = Local2Cast1.y;
     abs3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs3.y.dtype = DT_FLOAT16;
@@ -8149,7 +8149,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs3.y.repeats = {A, B, C, D, E};
     *abs3.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Add add1("add_1_mul");
+    af::ascir_op::Add add1("add_1_mul");
     add1.x1 = abs2.y;
     add1.x2 = Local2Cast1.y;
     add1.attr.sched.axis = {a.id, b.id, c.id, e.id};
@@ -8160,7 +8160,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add1.y.repeats = {A, B, C, D, E};
     *add1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Add add2("add_2_mul");
+    af::ascir_op::Add add2("add_2_mul");
     add2.x1 = add1.y;
     add2.x2 = abs1.y;
     add2.attr.sched.axis = {a.id, b.id, c.id, e.id};
@@ -8171,7 +8171,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add2.y.repeats = {A, B, C, D, E};
     *add2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Store x_out("x_out1_mul");
+    af::ascir_op::Store x_out("x_out1_mul");
     x_out.x = add2.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -8179,7 +8179,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
-    ge::ascir_op::Store x_out1("x_out2_mul");
+    af::ascir_op::Store x_out1("x_out2_mul");
     x_out1.x = Local2Cast1.y;
     x_out1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out1.attr.sched.loop_axis = c.id;
@@ -8187,7 +8187,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out1.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x_out1.y.repeats = {A, B, C, D, E};
     *x_out1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
-    ge::ascir_op::Store x_out2("x_out3_mul");
+    af::ascir_op::Store x_out2("x_out3_mul");
     x_out2.x = abs3.y;
     x_out2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out2.attr.sched.loop_axis = c.id;
@@ -8196,7 +8196,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out2.y.repeats = {A, B, C, D, E};
     *x_out2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -8205,7 +8205,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_output1.y.repeats = {A, B, C, D, E};
     *x_output1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output2("x_output2");
+    af::ascir_op::Output x_output2("x_output2");
     x_output2.x = x_out1.y;
     x_output2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output2.attr.sched.loop_axis = c.id;
@@ -8214,7 +8214,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_output2.y.repeats = {A, B, C, D, E};
     *x_output2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output3("x_output3");
+    af::ascir_op::Output x_output3("x_output3");
     x_output3.x = x_out2.y;
     x_output3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output3.attr.sched.loop_axis = c.id;
@@ -8248,7 +8248,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("Data", graph);
+    af::ascir_op::Data x1("Data", graph);
     x1.attr.sched.axis = {b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -8256,7 +8256,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {ONE, ONE, D, E};
     *x1.y.strides = {ZERO, ZERO, E, ONE};
 
-    ge::ascir_op::Load x1Local("Load");
+    af::ascir_op::Load x1Local("Load");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -8264,7 +8264,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {B, C, ONE, E};
     *x1Local.y.strides = {C * E, E, E, ONE};
 
-    ge::ascir_op::Abs abs1("abs1");
+    af::ascir_op::Abs abs1("abs1");
     abs1.x = x1Local.y;
     abs1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs1.y.dtype = DT_FLOAT16;
@@ -8272,7 +8272,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs1.y.repeats = {};
     *abs1.y.strides = {};
 
-    ge::ascir_op::Abs abs2("abs2");
+    af::ascir_op::Abs abs2("abs2");
     abs2.x = x1Local.y;
     abs2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs2.y.dtype = DT_FLOAT16;
@@ -8280,7 +8280,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs2.y.repeats = {};
     *abs2.y.strides = {};
   
-    ge::ascir_op::Cast Local2Cast0("Cast0");
+    af::ascir_op::Cast Local2Cast0("Cast0");
     Local2Cast0.x = x1Local.y;
     Local2Cast0.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     Local2Cast0.y.dtype = DT_FLOAT;
@@ -8288,7 +8288,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *Local2Cast0.y.repeats = {A, B, C, D, E};
     *Local2Cast0.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Cast Local2Cast1("Cast1");
+    af::ascir_op::Cast Local2Cast1("Cast1");
     Local2Cast1.x = Local2Cast0.y;
     Local2Cast1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     Local2Cast1.y.dtype = DT_FLOAT16;
@@ -8296,7 +8296,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *Local2Cast1.y.repeats = {A, B, C, D, E};
     *Local2Cast1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs abs3("abs3");
+    af::ascir_op::Abs abs3("abs3");
     abs3.x = Local2Cast1.y;
     abs3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs3.y.dtype = DT_FLOAT16;
@@ -8304,7 +8304,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs3.y.repeats = {};
     *abs3.y.strides = {};
 
-    ge::ascir_op::Add add1("add1");
+    af::ascir_op::Add add1("add1");
     add1.x1 = abs2.y;
     add1.x2 = Local2Cast1.y;
     add1.attr.sched.axis = {a.id, b.id, c.id, e.id};
@@ -8315,7 +8315,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add1.y.repeats = {A, C, E};
     *add1.y.strides = {C * E, E, ONE};
 
-    ge::ascir_op::Add add2("add2");
+    af::ascir_op::Add add2("add2");
     add2.x1 = add1.y;
     add2.x2 = abs1.y;
     add2.attr.sched.axis = {a.id, b.id, c.id, e.id};
@@ -8326,7 +8326,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add2.y.repeats = {A, C, E};
     *add2.y.strides = {C * E, E, ONE};
 
-    ge::ascir_op::Store x_out("x_out1_mul");
+    af::ascir_op::Store x_out("x_out1_mul");
     x_out.x = add2.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -8334,7 +8334,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
-    ge::ascir_op::Store x_out1("x_out2_mul");
+    af::ascir_op::Store x_out1("x_out2_mul");
     x_out1.x = Local2Cast1.y;
     x_out1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out1.attr.sched.loop_axis = c.id;
@@ -8342,7 +8342,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out1.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x_out1.y.repeats = {A, B, C, D, E};
     *x_out1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
-    ge::ascir_op::Store x_out2("x_out3_mul");
+    af::ascir_op::Store x_out2("x_out3_mul");
     x_out2.x = abs3.y;
     x_out2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out2.attr.sched.loop_axis = c.id;
@@ -8351,7 +8351,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out2.y.repeats = {A, B, C, D, E};
     *x_out2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -8360,7 +8360,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_output1.y.repeats = {A, B, C, D, E};
     *x_output1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output2("x_output2");
+    af::ascir_op::Output x_output2("x_output2");
     x_output2.x = x_out1.y;
     x_output2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output2.attr.sched.loop_axis = c.id;
@@ -8369,7 +8369,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_output2.y.repeats = {A, B, C, D, E};
     *x_output2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output3("x_output3");
+    af::ascir_op::Output x_output3("x_output3");
     x_output3.x = x_out2.y;
     x_output3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output3.attr.sched.loop_axis = c.id;
@@ -8403,7 +8403,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -8411,7 +8411,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {ONE, ONE, ONE, D, E};
     *x1.y.strides = {ZERO, ZERO, ZERO, E, ONE};
 
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -8419,7 +8419,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Data x2("x2_3", graph);
+    af::ascir_op::Data x2("x2_3", graph);
     x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2.attr.sched.loop_axis = c.id;
     x2.y.dtype = DT_FLOAT16;
@@ -8427,7 +8427,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2.y.repeats = {A, B, ONE, ONE, ONE};
     *x2.y.strides = {B, ONE, ZERO, ZERO, ZERO};
 
-    ge::ascir_op::Load x2Local("x2Local_4");
+    af::ascir_op::Load x2Local("x2Local_4");
     x2Local.x = x2.y;
     x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2Local.y.dtype = DT_FLOAT16;
@@ -8435,7 +8435,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2Local.y.repeats = {A, B, C, D, E};
     *x2Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Add add("add_4");
+    af::ascir_op::Add add("add_4");
     add.x1 = x1Local.y;
     add.x2 = x2Local.y;
     add.attr.sched.axis = {a.id, b.id, c.id, e.id};
@@ -8446,7 +8446,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add.y.repeats = {};
     *add.y.strides = {};
 
-    ge::ascir_op::Abs abs("abs_4");
+    af::ascir_op::Abs abs("abs_4");
     abs.x = add.y;
     abs.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs.y.dtype = DT_FLOAT16;
@@ -8454,7 +8454,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs.y.repeats = {};
     *abs.y.strides = {};
 
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = abs.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -8463,7 +8463,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -8495,7 +8495,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
   
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -8503,7 +8503,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {ONE, ONE, ONE, D, E};
     *x1.y.strides = {ZERO, ZERO, ZERO, E, ONE};
   
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -8511,7 +8511,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Data x2("x2_3", graph);
+    af::ascir_op::Data x2("x2_3", graph);
     x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2.attr.sched.loop_axis = c.id;
     x2.y.dtype = DT_FLOAT16;
@@ -8519,7 +8519,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2.y.repeats = {A, B, ONE, ONE, ONE};
     *x2.y.strides = {B, ONE, ZERO, ZERO, ZERO};
   
-    ge::ascir_op::Load x2Local("x2Local_4");
+    af::ascir_op::Load x2Local("x2Local_4");
     x2Local.x = x2.y;
     x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2Local.y.dtype = DT_FLOAT16;
@@ -8527,7 +8527,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2Local.y.repeats = {A, B, C, D, E};
     *x2Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Add add("add_4");
+    af::ascir_op::Add add("add_4");
     add.x1 = x1Local.y;
     add.x2 = x2Local.y;
     add.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -8538,7 +8538,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add.y.repeats = {A, B, C, D, E};
     *add.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = add.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -8547,7 +8547,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -8578,7 +8578,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
   
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -8586,7 +8586,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {ONE, ONE, ONE, D, E};
     *x1.y.strides = {ZERO, ZERO, ZERO, E, ONE};
   
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -8594,7 +8594,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Add add("add_4");
+    af::ascir_op::Add add("add_4");
     add.x1 = x1Local.y;
     add.x2 = x1Local.y;
     add.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -8605,7 +8605,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add.y.repeats = {A, B, C, D, E};
     *add.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = add.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -8614,7 +8614,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -8645,7 +8645,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
   
-    ge::ascir_op::Scalar x2_scalar("x2_scalar", graph);
+    af::ascir_op::Scalar x2_scalar("x2_scalar", graph);
     x2_scalar.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2_scalar.attr.sched.loop_axis = c.id;
     x2_scalar.y.dtype = DT_FLOAT16;
@@ -8653,7 +8653,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2_scalar.y.repeats = {};
     *x2_scalar.y.strides = {};
   
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = x2_scalar.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -8662,7 +8662,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -8693,7 +8693,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
   
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -8701,7 +8701,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {ONE, ONE, ONE, D, E};
     *x1.y.strides = {ZERO, ZERO, ZERO, E, ONE};
 
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -8709,7 +8709,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Scalar x2_scalar("x2_scalar", graph);
+    af::ascir_op::Scalar x2_scalar("x2_scalar", graph);
     x2_scalar.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2_scalar.attr.sched.loop_axis = c.id;
     x2_scalar.y.dtype = DT_FLOAT16;
@@ -8717,7 +8717,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2_scalar.y.repeats = {};
     *x2_scalar.y.strides = {};
   
-    ge::ascir_op::Add add("add_4");
+    af::ascir_op::Add add("add_4");
     add.x1 = x1Local.y;
     add.x2 = x2_scalar.y;
     add.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -8728,7 +8728,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add.y.repeats = {A, B, C, D, E};
     *add.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = add.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -8737,7 +8737,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -8768,7 +8768,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
   
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -8776,7 +8776,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {ONE, ONE, ONE, D, E};
     *x1.y.strides = {ZERO, ZERO, ZERO, E, ONE};
 
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -8784,7 +8784,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Scalar x2_scalar("scalar_to_add", graph);
+    af::ascir_op::Scalar x2_scalar("scalar_to_add", graph);
     x2_scalar.attr.sched.axis = {a.id, b.id, c.id, e.id, d.id}; // 为了测试补轴sched.axis是否从graph获取
     x2_scalar.attr.sched.loop_axis = c.id;
     x2_scalar.y.dtype = DT_FLOAT16;
@@ -8792,7 +8792,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2_scalar.y.repeats = {};
     *x2_scalar.y.strides = {};
   
-    ge::ascir_op::Add add("add_4");
+    af::ascir_op::Add add("add_4");
     add.x1 = x2_scalar.y;
     add.x2 = x1Local.y;
     add.attr.sched.axis = {};
@@ -8803,7 +8803,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add.y.repeats = {};
     *add.y.strides = {};
   
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = add.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -8812,7 +8812,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -8843,7 +8843,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
   
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_INT16;
@@ -8851,7 +8851,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {ONE, ONE, ONE, D, E};
     *x1.y.strides = {ZERO, ZERO, ZERO, E, ONE};
 
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_INT16;
@@ -8859,7 +8859,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Scalar x2_scalar("scalar_to_add", graph);
+    af::ascir_op::Scalar x2_scalar("scalar_to_add", graph);
     x2_scalar.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2_scalar.attr.sched.loop_axis = c.id;
     x2_scalar.y.dtype = DT_INT8;
@@ -8867,7 +8867,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2_scalar.y.repeats = {};
     *x2_scalar.y.strides = {};
   
-    ge::ascir_op::Add add("add_4");
+    af::ascir_op::Add add("add_4");
     add.x1 = x2_scalar.y;
     add.x2 = x1Local.y;
     add.attr.sched.axis = {};
@@ -8878,7 +8878,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add.y.repeats = {};
     *add.y.strides = {};
 
-    ge::ascir_op::Store x_out0("x_out_4");
+    af::ascir_op::Store x_out0("x_out_4");
     x_out0.x = x2_scalar.y;
     x_out0.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out0.attr.sched.loop_axis = c.id;
@@ -8887,7 +8887,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out0.y.repeats = {A, B, C, D, E};
     *x_out0.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = add.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -8896,7 +8896,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out0.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -8905,7 +8905,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_output1.y.repeats = {A, B, C, D, E};
     *x_output1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output2("x_output2");
+    af::ascir_op::Output x_output2("x_output2");
     x_output2.x = x_out.y;
     x_output2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output2.attr.sched.loop_axis = c.id;
@@ -8937,7 +8937,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -8945,7 +8945,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {A, B, C, D, E};
     *x1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -8953,7 +8953,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Scalar x2_scalar("scalar_to_add", graph);
+    af::ascir_op::Scalar x2_scalar("scalar_to_add", graph);
     x2_scalar.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2_scalar.attr.sched.loop_axis = c.id;
     x2_scalar.y.dtype = DT_FLOAT16;
@@ -8961,7 +8961,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2_scalar.y.repeats = {};
     *x2_scalar.y.strides = {};
 
-    ge::ascir_op::Abs abs1("abs1");
+    af::ascir_op::Abs abs1("abs1");
     abs1.x = x2_scalar.y;
     abs1.attr.sched.axis = {};
     abs1.y.dtype = DT_FLOAT16;
@@ -8969,7 +8969,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs1.y.repeats = {};
     *abs1.y.strides = {};
 
-    ge::ascir_op::Add add("add_4");
+    af::ascir_op::Add add("add_4");
     add.x1 = abs1.y;
     add.x2 = x1Local.y;
     add.attr.sched.axis = {};
@@ -8980,7 +8980,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add.y.repeats = {};
     *add.y.strides = {};
 
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = add.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -8989,7 +8989,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -9020,7 +9020,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Scalar x2_scalar("scalar_to_add", graph);
+    af::ascir_op::Scalar x2_scalar("scalar_to_add", graph);
     x2_scalar.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2_scalar.attr.sched.loop_axis = c.id;
     x2_scalar.y.dtype = DT_FLOAT16;
@@ -9028,7 +9028,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2_scalar.y.repeats = {};
     *x2_scalar.y.strides = {};
 
-    ge::ascir_op::Add add("add_4");
+    af::ascir_op::Add add("add_4");
     add.x1 = x2_scalar.y;
     add.x2 = x2_scalar.y;
     add.attr.sched.axis = {};
@@ -9039,7 +9039,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add.y.repeats = {};
     *add.y.strides = {};
 
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = add.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -9048,7 +9048,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -9079,7 +9079,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Scalar x2_scalar("scalar_to_add", graph);
+    af::ascir_op::Scalar x2_scalar("scalar_to_add", graph);
     x2_scalar.attr.sched.axis = {d.id, e.id};
     x2_scalar.attr.sched.loop_axis = d.id;
     x2_scalar.y.dtype = DT_FLOAT16;
@@ -9087,7 +9087,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2_scalar.y.repeats = {};
     *x2_scalar.y.strides = {};
 
-    ge::ascir_op::Broadcast x1Broadcast("x1Broadcast_2_mul");
+    af::ascir_op::Broadcast x1Broadcast("x1Broadcast_2_mul");
     x1Broadcast.x = x2_scalar.y;
     x1Broadcast.attr.sched.axis = {d.id, e.id};
     x1Broadcast.y.dtype = DT_FLOAT16;
@@ -9095,7 +9095,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Broadcast.y.repeats = {ONE, E};
     *x1Broadcast.y.strides = {ZERO, ONE};
 
-    ge::ascir_op::Broadcast x2Broadcast("x2Broadcast_2_mul");
+    af::ascir_op::Broadcast x2Broadcast("x2Broadcast_2_mul");
     x2Broadcast.x = x1Broadcast.y;
     x2Broadcast.attr.sched.axis = {d.id, e.id};
     x2Broadcast.y.dtype = DT_FLOAT16;
@@ -9103,7 +9103,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2Broadcast.y.repeats = {D, E};
     *x2Broadcast.y.strides = {E, ONE};
 
-    ge::ascir_op::Broadcast x3Broadcast("x3Broadcast_2_mul");
+    af::ascir_op::Broadcast x3Broadcast("x3Broadcast_2_mul");
     x3Broadcast.x = x2_scalar.y;
     x3Broadcast.attr.sched.axis = {d.id, e.id};
     x3Broadcast.y.dtype = DT_FLOAT16;
@@ -9111,7 +9111,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x3Broadcast.y.repeats = {ONE, E};
     *x3Broadcast.y.strides = {ZERO, ONE};
 
-    ge::ascir_op::Broadcast x4Broadcast("x4Broadcast_2_mul");
+    af::ascir_op::Broadcast x4Broadcast("x4Broadcast_2_mul");
     x4Broadcast.x = x3Broadcast.y;
     x4Broadcast.attr.sched.axis = {d.id, e.id};
     x4Broadcast.y.dtype = DT_FLOAT16;
@@ -9119,7 +9119,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x4Broadcast.y.repeats = {D, E};
     *x4Broadcast.y.strides = {E, ONE};
 
-    ge::ascir_op::Add add("add_4");
+    af::ascir_op::Add add("add_4");
     add.x1 = x2Broadcast.y;
     add.x2 = x4Broadcast.y;
     add.attr.sched.axis = {};
@@ -9130,7 +9130,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add.y.repeats = {};
     *add.y.strides = {};
 
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = add.y;
     x_out.attr.sched.axis = {d.id, e.id};
     x_out.attr.sched.loop_axis = d.id;
@@ -9139,7 +9139,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {D, E};
     *x_out.y.strides = {E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {d.id, e.id};
     x_output1.attr.sched.loop_axis = d.id;
@@ -9170,7 +9170,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -9178,7 +9178,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats =  {ONE, ONE, ONE, ONE, ONE};
     *x1.y.strides =  {ZERO, ZERO, ZERO, ZERO, ZERO};
 
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -9186,7 +9186,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Scalar x2_scalar("scalar_to_add", graph);
+    af::ascir_op::Scalar x2_scalar("scalar_to_add", graph);
     x2_scalar.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2_scalar.attr.sched.loop_axis = c.id;
     x2_scalar.y.dtype = DT_FLOAT16;
@@ -9194,7 +9194,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2_scalar.y.repeats = {};
     *x2_scalar.y.strides = {};
 
-    ge::ascir_op::Sub sub1("sub_1");
+    af::ascir_op::Sub sub1("sub_1");
     sub1.x1 = x2_scalar.y;
     sub1.x2 = x1Local.y;
     sub1.attr.sched.axis = {};
@@ -9203,7 +9203,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *sub1.y.repeats = {};
     *sub1.y.strides = {};
 
-    ge::ascir_op::Add add("add_4");
+    af::ascir_op::Add add("add_4");
     add.x1 = x2_scalar.y;
     add.x2 = sub1.y;
     add.attr.sched.axis = {};
@@ -9214,7 +9214,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add.y.repeats = {};
     *add.y.strides = {};
 
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = add.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -9223,7 +9223,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -9254,7 +9254,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {d.id, e.id};
     x1.attr.sched.loop_axis = d.id;
     x1.y.dtype = DT_FLOAT16;
@@ -9262,7 +9262,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats =  {ONE, ONE};
     *x1.y.strides =  {ZERO, ZERO};
 
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -9270,7 +9270,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats =  {ONE, ONE};
     *x1Local.y.strides =  {ZERO, ZERO};
 
-    ge::ascir_op::Broadcast x3Broadcast("x3Broadcast_2_mul");
+    af::ascir_op::Broadcast x3Broadcast("x3Broadcast_2_mul");
     x3Broadcast.x = x1Local.y;
     x3Broadcast.attr.sched.axis = {d.id, e.id};
     x3Broadcast.y.dtype = DT_FLOAT16;
@@ -9278,7 +9278,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x3Broadcast.y.repeats = {ONE, E};
     *x3Broadcast.y.strides = {ZERO, ONE};
 
-    ge::ascir_op::Broadcast x4Broadcast("x4Broadcast_2_mul");
+    af::ascir_op::Broadcast x4Broadcast("x4Broadcast_2_mul");
     x4Broadcast.x = x3Broadcast.y;
     x4Broadcast.attr.sched.axis = {d.id, e.id};
     x4Broadcast.y.dtype = DT_FLOAT16;
@@ -9286,7 +9286,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x4Broadcast.y.repeats = {D, E};
     *x4Broadcast.y.strides = {E, ONE};
 
-    ge::ascir_op::Scalar x2_scalar("scalar_to_add", graph);
+    af::ascir_op::Scalar x2_scalar("scalar_to_add", graph);
     x2_scalar.attr.sched.axis = {d.id, e.id};
     x2_scalar.attr.sched.loop_axis = d.id;
     x2_scalar.y.dtype = DT_FLOAT16;
@@ -9294,7 +9294,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2_scalar.y.repeats = {};
     *x2_scalar.y.strides = {};
 
-    ge::ascir_op::Broadcast x1Broadcast("x1Broadcast_2_mul");
+    af::ascir_op::Broadcast x1Broadcast("x1Broadcast_2_mul");
     x1Broadcast.x = x2_scalar.y;
     x1Broadcast.attr.sched.axis = {d.id, e.id};
     x1Broadcast.y.dtype = DT_FLOAT16;
@@ -9302,7 +9302,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Broadcast.y.repeats = {ONE, E};
     *x1Broadcast.y.strides = {ZERO, ONE};
 
-    ge::ascir_op::Broadcast x2Broadcast("x2Broadcast_2_mul");
+    af::ascir_op::Broadcast x2Broadcast("x2Broadcast_2_mul");
     x2Broadcast.x = x1Broadcast.y;
     x2Broadcast.attr.sched.axis = {d.id, e.id};
     x2Broadcast.y.dtype = DT_FLOAT16;
@@ -9310,7 +9310,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2Broadcast.y.repeats = {D, E};
     *x2Broadcast.y.strides = {E, ONE};
 
-    ge::ascir_op::Broadcast x5Broadcast("x5Broadcast_2_mul");
+    af::ascir_op::Broadcast x5Broadcast("x5Broadcast_2_mul");
     x5Broadcast.x = x2_scalar.y;
     x5Broadcast.attr.sched.axis = {d.id, e.id};
     x5Broadcast.y.dtype = DT_FLOAT16;
@@ -9318,7 +9318,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x5Broadcast.y.repeats = {ONE, E};
     *x5Broadcast.y.strides = {ZERO, ONE};
 
-    ge::ascir_op::Broadcast x6Broadcast("x6Broadcast_2_mul");
+    af::ascir_op::Broadcast x6Broadcast("x6Broadcast_2_mul");
     x6Broadcast.x = x5Broadcast.y;
     x6Broadcast.attr.sched.axis = {d.id, e.id};
     x6Broadcast.y.dtype = DT_FLOAT16;
@@ -9326,7 +9326,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x6Broadcast.y.repeats = {D, E};
     *x6Broadcast.y.strides = {E, ONE};
 
-    ge::ascir_op::Sub sub1("sub_1");
+    af::ascir_op::Sub sub1("sub_1");
     sub1.x1 = x6Broadcast.y;
     sub1.x2 = x4Broadcast.y;
     sub1.attr.sched.axis = {};
@@ -9335,7 +9335,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *sub1.y.repeats = {};
     *sub1.y.strides = {};
 
-    ge::ascir_op::Add add("add_4");
+    af::ascir_op::Add add("add_4");
     add.x1 = x2Broadcast.y;
     add.x2 = sub1.y;
     add.attr.sched.axis = {};
@@ -9346,7 +9346,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add.y.repeats = {};
     *add.y.strides = {};
 
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = add.y;
     x_out.attr.sched.axis = {d.id, e.id};
     x_out.attr.sched.loop_axis = d.id;
@@ -9355,7 +9355,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {D, E};
     *x_out.y.strides = {E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {d.id, e.id};
     x_output1.attr.sched.loop_axis = d.id;
@@ -9384,7 +9384,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto c = graph.CreateAxis("C", C);
 
     // 创建一个不支持的数据类型，假设DT_INT16是Broadcast不支持的类型
-    ge::ascir_op::Data x1("x1", graph);
+    af::ascir_op::Data x1("x1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_INT16;
@@ -9393,7 +9393,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.strides = {ZERO, ZERO, ONE};
 
     // Broadcast节点，使用与输入相同的不支持的数据类型
-    ge::ascir_op::Load x1Local("x1Local");
+    af::ascir_op::Load x1Local("x1Local");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id};
     x1Local.y.dtype = DT_INT16;
@@ -9402,7 +9402,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.strides = {B * C, C, ONE};
 
     // Abs节点
-    ge::ascir_op::Abs abs("abs");
+    af::ascir_op::Abs abs("abs");
     abs.x = x1Local.y;
     abs.attr.sched.axis = {a.id, b.id, c.id};
     abs.y.dtype = DT_INT16;
@@ -9411,7 +9411,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs.y.strides = {B * C, C, ONE};
 
     // Cast节点，转换为支持的数据类型
-    ge::ascir_op::Cast cast0("cast_dtype_support");
+    af::ascir_op::Cast cast0("cast_dtype_support");
     cast0.x = abs.y;
     cast0.attr.sched.axis = {a.id, b.id, c.id};
     cast0.y.dtype = DT_FLOAT;  // 使用Broadcast支持的数据类型
@@ -9420,7 +9420,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *cast0.y.strides = {B * C, C, ONE};
 
     // Cast节点，转换为不支持的数据类型
-    ge::ascir_op::Cast cast("cast_dtype_not_support");
+    af::ascir_op::Cast cast("cast_dtype_not_support");
     cast.x = cast0.y;
     cast.attr.sched.axis = {a.id, b.id, c.id};
     cast.y.dtype = DT_BF16;  // 使用Broadcast不支持的数据类型
@@ -9429,7 +9429,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *cast.y.strides = {B * C, C, ONE};
 
     // Store和Output节点
-    ge::ascir_op::Store x_store("x_store_dtype_not_support");
+    af::ascir_op::Store x_store("x_store_dtype_not_support");
     x_store.x = cast.y;
     x_store.attr.sched.axis = {a.id, b.id, c.id};
     x_store.attr.sched.loop_axis = c.id;
@@ -9438,7 +9438,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_store.y.repeats = {A, B, C};
     *x_store.y.strides = {B * C, C, ONE};
 
-    ge::ascir_op::Output x_out("x_out_dtype_not_support");
+    af::ascir_op::Output x_out("x_out_dtype_not_support");
     x_out.x = x_store.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -9471,7 +9471,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
   
-    ge::ascir_op::Scalar x2_scalar("x2_scalar", graph);
+    af::ascir_op::Scalar x2_scalar("x2_scalar", graph);
     x2_scalar.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2_scalar.attr.sched.loop_axis = c.id;
     x2_scalar.y.dtype = DT_FLOAT16;
@@ -9479,7 +9479,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2_scalar.y.repeats = {};
     *x2_scalar.y.strides = {};
   
-    ge::ascir_op::Scalar x2_scalar2("x2_scalar2", graph);
+    af::ascir_op::Scalar x2_scalar2("x2_scalar2", graph);
     x2_scalar2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2_scalar2.attr.sched.loop_axis = c.id;
     x2_scalar2.y.dtype = DT_FLOAT16;
@@ -9487,7 +9487,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2_scalar2.y.repeats = {};
     *x2_scalar2.y.strides = {};
   
-    ge::ascir_op::Add add("add_4");
+    af::ascir_op::Add add("add_4");
     add.x1 = x2_scalar.y;
     add.x2 = x2_scalar2.y;
     add.attr.sched.axis = {};
@@ -9498,7 +9498,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add.y.repeats = {};
     *add.y.strides = {};
   
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = add.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -9507,7 +9507,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -9538,7 +9538,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
   
-    ge::ascir_op::Scalar x2_scalar("x2_scalar", graph);
+    af::ascir_op::Scalar x2_scalar("x2_scalar", graph);
     x2_scalar.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2_scalar.attr.sched.loop_axis = c.id;
     x2_scalar.y.dtype = DT_FLOAT16;
@@ -9546,7 +9546,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2_scalar.y.repeats = {};
     *x2_scalar.y.strides = {};
   
-    ge::ascir_op::Abs x1LocalAbs1("x1LocalAbs1");
+    af::ascir_op::Abs x1LocalAbs1("x1LocalAbs1");
     x1LocalAbs1.x = x2_scalar.y;
     x1LocalAbs1.attr.sched.axis = {};
     x1LocalAbs1.y.dtype = DT_FLOAT16;
@@ -9554,7 +9554,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1LocalAbs1.y.repeats = {};
     *x1LocalAbs1.y.strides = {};
   
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = x1LocalAbs1.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -9563,7 +9563,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -9594,7 +9594,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
   
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -9602,7 +9602,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {ONE, ONE, ONE, D, E};
     *x1.y.strides = {ZERO, ZERO, ZERO, E, ONE};
   
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -9610,7 +9610,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Abs x1LocalAbs1("x1LocalAbs1");
+    af::ascir_op::Abs x1LocalAbs1("x1LocalAbs1");
     x1LocalAbs1.x = x1Local.y;
     x1LocalAbs1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1LocalAbs1.y.dtype = DT_FLOAT16;
@@ -9618,7 +9618,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1LocalAbs1.y.repeats = {A, B, C, D, E};
     *x1LocalAbs1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Abs x1LocalAbs2("x1LocalAbs2");
+    af::ascir_op::Abs x1LocalAbs2("x1LocalAbs2");
     x1LocalAbs2.x = x1Local.y;
     x1LocalAbs2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1LocalAbs2.y.dtype = DT_FLOAT16;
@@ -9626,7 +9626,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1LocalAbs2.y.repeats = {A, B, C, D, E};
     *x1LocalAbs2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Add add("add_4");
+    af::ascir_op::Add add("add_4");
     add.x1 = x1LocalAbs1.y;
     add.x2 = x1LocalAbs2.y;
     add.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -9637,7 +9637,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add.y.repeats = {A, B, C, D, E};
     *add.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = add.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -9646,7 +9646,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -9677,7 +9677,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
   
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -9685,7 +9685,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {A, B, C, D, E};
     *x1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -9693,7 +9693,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Abs Local2Cast0("Local2Cast0");
+    af::ascir_op::Abs Local2Cast0("Local2Cast0");
     Local2Cast0.x = x1Local.y;
     Local2Cast0.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     Local2Cast0.y.dtype = DT_FLOAT16;
@@ -9701,7 +9701,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *Local2Cast0.y.repeats = {A, B, C, D, E};
     *Local2Cast0.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Data x2("x2_3", graph);
+    af::ascir_op::Data x2("x2_3", graph);
     x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2.attr.sched.loop_axis = c.id;
     x2.y.dtype = DT_BF16;
@@ -9709,7 +9709,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2.y.repeats = {A, B, C, D, E};
     *x2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Load x2Local("x2Local_4");
+    af::ascir_op::Load x2Local("x2Local_4");
     x2Local.x = x2.y;
     x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2Local.y.dtype = DT_BF16;
@@ -9717,7 +9717,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2Local.y.repeats = {A, B, C, D, E};
     *x2Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Abs Local4Cast0("Local4Cast0");
+    af::ascir_op::Abs Local4Cast0("Local4Cast0");
     Local4Cast0.x = x2Local.y;
     Local4Cast0.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     Local4Cast0.y.dtype = DT_FLOAT;
@@ -9725,7 +9725,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *Local4Cast0.y.repeats = {A, B, C, D, E};
     *Local4Cast0.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Add add("add_4");
+    af::ascir_op::Add add("add_4");
     add.x1 = Local2Cast0.y;
     add.x2 = Local4Cast0.y;
     add.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -9734,7 +9734,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add.y.repeats = {A, B, C, D, E};
     *add.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Abs add_Cast("add_Cast");
+    af::ascir_op::Abs add_Cast("add_Cast");
     add_Cast.x = add.y;
     add_Cast.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     add_Cast.y.dtype = DT_FLOAT16;
@@ -9742,7 +9742,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add_Cast.y.repeats = {A, B, C, D, E};
     *add_Cast.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Abs abs("abs_4");
+    af::ascir_op::Abs abs("abs_4");
     abs.x = add_Cast.y;
     abs.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs.y.dtype = DT_FLOAT16;
@@ -9750,7 +9750,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs.y.repeats = {A, B, C, D, E};
     *abs.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Abs abs_Cast("abs_Cast");
+    af::ascir_op::Abs abs_Cast("abs_Cast");
     abs_Cast.x = abs.y;
     abs_Cast.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs_Cast.y.dtype = DT_FLOAT16;
@@ -9758,7 +9758,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs_Cast.y.repeats = {A, B, C, D, E};
     *abs_Cast.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = abs_Cast.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -9767,7 +9767,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -9797,7 +9797,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
   
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_INT8;
@@ -9805,7 +9805,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {A, B, C, D, E};
     *x1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_INT8;
@@ -9813,7 +9813,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Cast Local2Cast0("Local2Cast0");
+    af::ascir_op::Cast Local2Cast0("Local2Cast0");
     Local2Cast0.x = x1Local.y;
     Local2Cast0.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     Local2Cast0.y.dtype = DT_FLOAT16;
@@ -9821,7 +9821,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *Local2Cast0.y.repeats = {A, B, C, D, E};
     *Local2Cast0.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Data x2("x2_3", graph);
+    af::ascir_op::Data x2("x2_3", graph);
     x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2.attr.sched.loop_axis = c.id;
     x2.y.dtype = DT_FLOAT16;
@@ -9829,7 +9829,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2.y.repeats = {A, B, C, D, E};
     *x2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Load x2Local("x2Local_4");
+    af::ascir_op::Load x2Local("x2Local_4");
     x2Local.x = x2.y;
     x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2Local.y.dtype = DT_FLOAT16;
@@ -9837,7 +9837,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2Local.y.repeats = {A, B, C, D, E};
     *x2Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Cast Local4Cast0("Local4Cast0");
+    af::ascir_op::Cast Local4Cast0("Local4Cast0");
     Local4Cast0.x = x2Local.y;
     Local4Cast0.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     Local4Cast0.y.dtype = DT_INT8;
@@ -9845,7 +9845,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *Local4Cast0.y.repeats = {A, B, C, D, E};
     *Local4Cast0.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Cast Local4Cast1("Local4Cast1");
+    af::ascir_op::Cast Local4Cast1("Local4Cast1");
     Local4Cast1.x = Local4Cast0.y;
     Local4Cast1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     Local4Cast1.y.dtype = DT_FLOAT16;
@@ -9853,7 +9853,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *Local4Cast1.y.repeats = {A, B, C, D, E};
     *Local4Cast1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Add add("add_4");
+    af::ascir_op::Add add("add_4");
     add.x1 = Local2Cast0.y;
     add.x2 = Local4Cast1.y;
     add.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -9862,7 +9862,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add.y.repeats = {A, B, C, D, E};
     *add.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Cast add_Cast("add_Cast");
+    af::ascir_op::Cast add_Cast("add_Cast");
     add_Cast.x = add.y;
     add_Cast.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     add_Cast.y.dtype = DT_UINT8;
@@ -9870,7 +9870,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add_Cast.y.repeats = {A, B, C, D, E};
     *add_Cast.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = add_Cast.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -9879,7 +9879,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -9909,7 +9909,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
   
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT;
@@ -9917,7 +9917,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {A, B, C, D, E};
     *x1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -9925,7 +9925,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Cast Local2Cast0("Local2Cast0");
+    af::ascir_op::Cast Local2Cast0("Local2Cast0");
     Local2Cast0.x = x1Local.y;
     Local2Cast0.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     Local2Cast0.y.dtype = DT_FLOAT16;
@@ -9933,7 +9933,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *Local2Cast0.y.repeats = {A, B, C, D, E};
     *Local2Cast0.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Data x2("x2_3", graph);
+    af::ascir_op::Data x2("x2_3", graph);
     x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2.attr.sched.loop_axis = c.id;
     x2.y.dtype = DT_BF16;
@@ -9941,7 +9941,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2.y.repeats = {A, B, C, D, E};
     *x2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Load x2Local("x2Local_4");
+    af::ascir_op::Load x2Local("x2Local_4");
     x2Local.x = x2.y;
     x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2Local.y.dtype = DT_BF16;
@@ -9949,7 +9949,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2Local.y.repeats = {A, B, C, D, E};
     *x2Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Cast Local4Cast0("Local4Cast0");
+    af::ascir_op::Cast Local4Cast0("Local4Cast0");
     Local4Cast0.x = x2Local.y;
     Local4Cast0.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     Local4Cast0.y.dtype = DT_FLOAT;
@@ -9957,7 +9957,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *Local4Cast0.y.repeats = {A, B, C, D, E};
     *Local4Cast0.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Add add("add_4");
+    af::ascir_op::Add add("add_4");
     add.x1 = Local2Cast0.y;
     add.x2 = Local4Cast0.y;
     add.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -9966,7 +9966,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add.y.repeats = {A, B, C, D, E};
     *add.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Cast add_Cast("add_Cast");
+    af::ascir_op::Cast add_Cast("add_Cast");
     add_Cast.x = add.y;
     add_Cast.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     add_Cast.y.dtype = DT_FLOAT;
@@ -9974,7 +9974,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add_Cast.y.repeats = {A, B, C, D, E};
     *add_Cast.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Abs abs("abs_4");
+    af::ascir_op::Abs abs("abs_4");
     abs.x = add_Cast.y;
     abs.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs.y.dtype = DT_FLOAT;
@@ -9982,7 +9982,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs.y.repeats = {A, B, C, D, E};
     *abs.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = abs.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -9991,7 +9991,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -10022,7 +10022,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
   
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_INT16;
@@ -10030,7 +10030,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {ONE, ONE, ONE, D, E};
     *x1.y.strides = {ZERO, ZERO, ZERO, E, ONE};
   
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_INT16;
@@ -10038,7 +10038,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Cast Local2Cast0("Local2Cast0");
+    af::ascir_op::Cast Local2Cast0("Local2Cast0");
     Local2Cast0.x = x1Local.y;
     Local2Cast0.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     Local2Cast0.y.dtype = DT_INT16;
@@ -10046,7 +10046,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *Local2Cast0.y.repeats = {A, B, C, D, E};
     *Local2Cast0.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Data x2("x2_3", graph);
+    af::ascir_op::Data x2("x2_3", graph);
     x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2.attr.sched.loop_axis = c.id;
     x2.y.dtype = DT_INT16;
@@ -10054,7 +10054,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2.y.repeats = {A, B, C, D, E};
     *x2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Load x2Local("x2Local_4");
+    af::ascir_op::Load x2Local("x2Local_4");
     x2Local.x = x2.y;
     x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2Local.y.dtype = DT_INT16;
@@ -10062,7 +10062,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2Local.y.repeats = {A, B, C, D, E};
     *x2Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Cast Local4Cast0("Local4Cast0");
+    af::ascir_op::Cast Local4Cast0("Local4Cast0");
     Local4Cast0.x = x2Local.y;
     Local4Cast0.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     Local4Cast0.y.dtype = DT_INT16;
@@ -10070,7 +10070,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *Local4Cast0.y.repeats = {A, B, C, D, E};
     *Local4Cast0.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Add add("add_4");
+    af::ascir_op::Add add("add_4");
     add.x1 = Local2Cast0.y;
     add.x2 = Local4Cast0.y;
     add.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -10079,7 +10079,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add.y.repeats = {A, B, C, D, E};
     *add.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Cast add_Cast("add_Cast");
+    af::ascir_op::Cast add_Cast("add_Cast");
     add_Cast.x = add.y;
     add_Cast.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     add_Cast.y.dtype = DT_INT16;
@@ -10087,7 +10087,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add_Cast.y.repeats = {A, B, C, D, E};
     *add_Cast.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Abs abs("abs_4");
+    af::ascir_op::Abs abs("abs_4");
     abs.x = add_Cast.y;
     abs.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs.y.dtype = DT_INT16;
@@ -10095,7 +10095,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs.y.repeats = {A, B, C, D, E};
     *abs.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = abs.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -10104,7 +10104,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -10135,7 +10135,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_INT16;
@@ -10143,7 +10143,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {ONE, ONE, ONE, D, E};
     *x1.y.strides = {ZERO, ZERO, ZERO, E, ONE};
 
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_INT16;
@@ -10151,7 +10151,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Cast Local2Cast0("Local2Cast0");
+    af::ascir_op::Cast Local2Cast0("Local2Cast0");
     Local2Cast0.x = x1Local.y;
     Local2Cast0.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     Local2Cast0.y.dtype = DT_INT16;
@@ -10159,7 +10159,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *Local2Cast0.y.repeats = {A, B, C, D, E};
     *Local2Cast0.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs cast2abs("abs_3");
+    af::ascir_op::Abs cast2abs("abs_3");
     cast2abs.x = Local2Cast0.y;
     cast2abs.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     cast2abs.y.dtype = DT_INT16;
@@ -10167,7 +10167,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *cast2abs.y.repeats = {A, B, C, D, E};
     *cast2abs.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Cast abs2Cast0("Abs2Cast0");
+    af::ascir_op::Cast abs2Cast0("Abs2Cast0");
     abs2Cast0.x = cast2abs.y;
     abs2Cast0.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs2Cast0.y.dtype = DT_FLOAT;
@@ -10175,7 +10175,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs2Cast0.y.repeats = {A, B, C, D, E};
     *abs2Cast0.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Data x2("x2_3", graph);
+    af::ascir_op::Data x2("x2_3", graph);
     x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2.attr.sched.loop_axis = c.id;
     x2.y.dtype = DT_INT16;
@@ -10183,7 +10183,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2.y.repeats = {A, B, C, D, E};
     *x2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Load x2Local("x2Local_4");
+    af::ascir_op::Load x2Local("x2Local_4");
     x2Local.x = x2.y;
     x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2Local.y.dtype = DT_INT16;
@@ -10191,7 +10191,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2Local.y.repeats = {A, B, C, D, E};
     *x2Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Cast Local4Cast0("Local4Cast0");
+    af::ascir_op::Cast Local4Cast0("Local4Cast0");
     Local4Cast0.x = x2Local.y;
     Local4Cast0.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     Local4Cast0.y.dtype = DT_FLOAT;
@@ -10199,7 +10199,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *Local4Cast0.y.repeats = {A, B, C, D, E};
     *Local4Cast0.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Add add("add_4");
+    af::ascir_op::Add add("add_4");
     add.x1 = abs2Cast0.y;
     add.x2 = Local4Cast0.y;
     add.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -10208,7 +10208,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add.y.repeats = {A, B, C, D, E};
     *add.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Cast add_Cast("add_Cast");
+    af::ascir_op::Cast add_Cast("add_Cast");
     add_Cast.x = add.y;
     add_Cast.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     add_Cast.y.dtype = DT_FLOAT;
@@ -10216,7 +10216,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add_Cast.y.repeats = {A, B, C, D, E};
     *add_Cast.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs abs("abs_4");
+    af::ascir_op::Abs abs("abs_4");
     abs.x = add_Cast.y;
     abs.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs.y.dtype = DT_FLOAT;
@@ -10224,7 +10224,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs.y.repeats = {A, B, C, D, E};
     *abs.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = abs.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -10233,7 +10233,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -10265,21 +10265,21 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("x1_reduce", graph);
+    af::ascir_op::Data x1("x1_reduce", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     *x1.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x1.y.repeats = {ONE, ONE, ONE, D, E};
     *x1.y.strides = {ZERO, ZERO, ZERO, E, ONE};
 
-    ge::ascir_op::Load x1Local("x1Local_reduce");
+    af::ascir_op::Load x1Local("x1Local_reduce");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     *x1Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs abs("abs_4");
+    af::ascir_op::Abs abs("abs_4");
     abs.x = x1Local.y;
     abs.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs.y.dtype = DT_FLOAT;
@@ -10287,14 +10287,14 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs.y.repeats = {};
     *abs.y.strides = {};
 
-    ge::ascir_op::Max reduce("reduce_reduce");
+    af::ascir_op::Max reduce("reduce_reduce");
     reduce.x = abs.y;
     reduce.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     *reduce.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *reduce.y.repeats = {A, ONE, C, D, E};
     *reduce.y.strides = {B * C * D * E, ZERO, D * E, E, ONE};
 
-    ge::ascir_op::Store x_store("x_store_reduce");
+    af::ascir_op::Store x_store("x_store_reduce");
     x_store.x = reduce.y;
     x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_store.attr.sched.loop_axis = c.id;
@@ -10302,7 +10302,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_store.y.repeats = {A, ONE, C, D, E};
     *x_store.y.strides = {B * C * D * E, ZERO, D * E, E, ONE};
 
-    ge::ascir_op::Output x_out("x_out_reduce");
+    af::ascir_op::Output x_out("x_out_reduce");
     x_out.x = x_store.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -10333,25 +10333,25 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("x1_calc_rstd", graph);
+    af::ascir_op::Data x1("x1_calc_rstd", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     *x1.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x1.y.repeats = {ONE, ONE, ONE, D, ZERO};
     *x1.y.strides = {ZERO, ZERO, ZERO, ZERO, ZERO};
 
-    ge::ascir_op::Load x1Local("x1Local_calc_rstd");
+    af::ascir_op::Load x1Local("x1Local_calc_rstd");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     *x1Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x1Local.y.repeats = {ONE, ONE, ONE, D, ZERO};
     *x1Local.y.strides = {ZERO, ZERO, ZERO, ZERO, ZERO};
 
-    ge::ascir_op::Abs x1Abs("x1_abs");
+    af::ascir_op::Abs x1Abs("x1_abs");
     x1Abs.x = x1Local.y;
     x1Abs.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
 
-    ge::ascir_op::Store x_store("x_store_calc_rstd");
+    af::ascir_op::Store x_store("x_store_calc_rstd");
     x_store.x = x1Abs.y;
     x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_store.attr.sched.loop_axis = c.id;
@@ -10359,7 +10359,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_store.y.repeats = {ONE, ONE, ONE, D, ZERO};
     *x_store.y.strides = {ZERO, ZERO, ZERO, ZERO, ZERO};
 
-    ge::ascir_op::Output x_out("x_out_calc_rstd");
+    af::ascir_op::Output x_out("x_out_calc_rstd");
     x_out.x = x_store.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -10390,49 +10390,49 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("x1_calc_rstd", graph);
+    af::ascir_op::Data x1("x1_calc_rstd", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     *x1.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x1.y.repeats = {ONE, ONE, ONE, D, E};
     *x1.y.strides = {ZERO, ZERO, ZERO, E, ONE};
 
-    ge::ascir_op::Load x1Local("x1Local_calc_rstd");
+    af::ascir_op::Load x1Local("x1Local_calc_rstd");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     *x1Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Data x2("x2_calc_rstd", graph);
+    af::ascir_op::Data x2("x2_calc_rstd", graph);
     x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2.attr.sched.loop_axis = c.id;
     *x2.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x2.y.repeats = {A, B, C, D, E};
     *x2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Load x2Local("x2Local_calc_rstd");
+    af::ascir_op::Load x2Local("x2Local_calc_rstd");
     x2Local.x = x2.y;
     x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     *x2Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x2Local.y.repeats = {A, B, C, D, E};
     *x2Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Data x3("x3_calc_rstd", graph);
+    af::ascir_op::Data x3("x3_calc_rstd", graph);
     x3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x3.attr.sched.loop_axis = c.id;
     *x3.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x3.y.repeats = {A, B, C, D, E};
     *x3.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Load x3Local("x3Local_calc_rstd");
+    af::ascir_op::Load x3Local("x3Local_calc_rstd");
     x3Local.x = x3.y;
     x3Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     *x3Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x3Local.y.repeats = {A, B, C, D, E};
     *x3Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::FlashSoftmax calcRstd("calcRstd_calc_rstd");
+    af::ascir_op::FlashSoftmax calcRstd("calcRstd_calc_rstd");
     calcRstd.x1 = x1Local.y;
     calcRstd.x2 = x2Local.y;
     calcRstd.x3 = x3Local.y;
@@ -10447,21 +10447,21 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *calcRstd.y3.repeats = {A, B, C, D, E};
     *calcRstd.y3.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Store x_store("x_store_calc_rstd");
+    af::ascir_op::Store x_store("x_store_calc_rstd");
     x_store.x = calcRstd.y1;
     x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_store.attr.sched.loop_axis = c.id;
     *x_store.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x_store.y.repeats = {A, B, C, D, E};
     *x_store.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
-    ge::ascir_op::Store x_store1("x_store1_calc_rstd");
+    af::ascir_op::Store x_store1("x_store1_calc_rstd");
     x_store1.x = calcRstd.y2;
     x_store1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_store1.attr.sched.loop_axis = c.id;
     *x_store1.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x_store1.y.repeats = {A, B, C, D, E};
     *x_store1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
-    ge::ascir_op::Store x_store2("x_store2_calc_rstd");
+    af::ascir_op::Store x_store2("x_store2_calc_rstd");
     x_store2.x = calcRstd.y2;
     x_store2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_store2.attr.sched.loop_axis = c.id;
@@ -10469,21 +10469,21 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_store2.y.repeats = {A, B, C, D, E};
     *x_store2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_out("x_out_calc_rstd");
+    af::ascir_op::Output x_out("x_out_calc_rstd");
     x_out.x = x_store.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
     *x_out.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
-    ge::ascir_op::Output x_out1("x_out1_calc_rstd");
+    af::ascir_op::Output x_out1("x_out1_calc_rstd");
     x_out1.x = x_store1.y;
     x_out1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out1.attr.sched.loop_axis = c.id;
     *x_out1.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x_out1.y.repeats = {A, B, C, D, E};
     *x_out1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
-    ge::ascir_op::Output x_out2("x_out2_calc_rstd");
+    af::ascir_op::Output x_out2("x_out2_calc_rstd");
     x_out2.x = x_store2.y;
     x_out2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out2.attr.sched.loop_axis = c.id;
@@ -10515,7 +10515,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
   
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT;
@@ -10523,7 +10523,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {A, B, C, D, E};
     *x1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT;
@@ -10531,7 +10531,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Cast Local2Cast0("Local2Cast0");
+    af::ascir_op::Cast Local2Cast0("Local2Cast0");
     Local2Cast0.x = x1Local.y;
     Local2Cast0.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     Local2Cast0.y.dtype = DT_FLOAT16;
@@ -10539,7 +10539,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *Local2Cast0.y.repeats = {A, B, C, D, E};
     *Local2Cast0.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Data x2("x2_3", graph);
+    af::ascir_op::Data x2("x2_3", graph);
     x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2.attr.sched.loop_axis = c.id;
     x2.y.dtype = DT_FLOAT;
@@ -10547,7 +10547,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2.y.repeats = {A, B, C, D, E};
     *x2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Load x2Local("x2Local_4");
+    af::ascir_op::Load x2Local("x2Local_4");
     x2Local.x = x2.y;
     x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2Local.y.dtype = DT_FLOAT;
@@ -10555,7 +10555,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2Local.y.repeats = {A, B, C, D, E};
     *x2Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Cast Local4Cast0("Local4Cast0");
+    af::ascir_op::Cast Local4Cast0("Local4Cast0");
     Local4Cast0.x = x2Local.y;
     Local4Cast0.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     Local4Cast0.y.dtype = DT_FLOAT16;
@@ -10563,7 +10563,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *Local4Cast0.y.repeats = {A, B, C, D, E};
     *Local4Cast0.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Add add("add_4");
+    af::ascir_op::Add add("add_4");
     add.x1 = Local2Cast0.y;
     add.x2 = Local4Cast0.y;
     add.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -10572,7 +10572,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add.y.repeats = {A, B, C, D, E};
     *add.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Cast add_Cast("add_Cast");
+    af::ascir_op::Cast add_Cast("add_Cast");
     add_Cast.x = add.y;
     add_Cast.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     add_Cast.y.dtype = DT_INT16;
@@ -10580,7 +10580,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add_Cast.y.repeats = {A, B, C, D, E};
     *add_Cast.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Abs abs("abs_4");
+    af::ascir_op::Abs abs("abs_4");
     abs.x = add_Cast.y;
     abs.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs.y.dtype = DT_INT16;
@@ -10588,7 +10588,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs.y.repeats = {A, B, C, D, E};
     *abs.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = abs.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -10597,7 +10597,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -10627,7 +10627,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
   
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -10635,7 +10635,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {A, B, C, D, E};
     *x1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -10643,7 +10643,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Cast Local2Cast0("Local2Cast0");
+    af::ascir_op::Cast Local2Cast0("Local2Cast0");
     Local2Cast0.x = x1Local.y;
     Local2Cast0.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     Local2Cast0.y.dtype = DT_INT16;
@@ -10651,7 +10651,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *Local2Cast0.y.repeats = {A, B, C, D, E};
     *Local2Cast0.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Data x2("x2_3", graph);
+    af::ascir_op::Data x2("x2_3", graph);
     x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2.attr.sched.loop_axis = c.id;
     x2.y.dtype = DT_FLOAT16;
@@ -10659,7 +10659,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2.y.repeats = {A, B, C, D, E};
     *x2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Load x2Local("x2Local_4");
+    af::ascir_op::Load x2Local("x2Local_4");
     x2Local.x = x2.y;
     x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2Local.y.dtype = DT_FLOAT;
@@ -10667,7 +10667,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2Local.y.repeats = {A, B, C, D, E};
     *x2Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Cast Local4Cast0("Local4Cast0");
+    af::ascir_op::Cast Local4Cast0("Local4Cast0");
     Local4Cast0.x = x2Local.y;
     Local4Cast0.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     Local4Cast0.y.dtype = DT_INT16;
@@ -10675,7 +10675,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *Local4Cast0.y.repeats = {A, B, C, D, E};
     *Local4Cast0.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Add add("add_4");
+    af::ascir_op::Add add("add_4");
     add.x1 = Local2Cast0.y;
     add.x2 = Local4Cast0.y;
     add.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -10684,7 +10684,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add.y.repeats = {A, B, C, D, E};
     *add.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Cast add_Cast("add_Cast");
+    af::ascir_op::Cast add_Cast("add_Cast");
     add_Cast.x = add.y;
     add_Cast.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     add_Cast.y.dtype = DT_FLOAT16;
@@ -10692,7 +10692,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add_Cast.y.repeats = {A, B, C, D, E};
     *add_Cast.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Abs abs("abs_4");
+    af::ascir_op::Abs abs("abs_4");
     abs.x = add_Cast.y;
     abs.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs.y.dtype = DT_FLOAT16;
@@ -10700,7 +10700,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs.y.repeats = {A, B, C, D, E};
     *abs.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Cast abs_4_cast("abs_4_cast");
+    af::ascir_op::Cast abs_4_cast("abs_4_cast");
     abs_4_cast.x = abs.y;
     abs_4_cast.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs_4_cast.y.dtype = DT_FLOAT;
@@ -10708,7 +10708,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs_4_cast.y.repeats = {A, B, C, D, E};
     *abs_4_cast.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = abs_4_cast.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -10717,7 +10717,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -10748,7 +10748,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -10756,7 +10756,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {ONE, ONE, ONE, D, E};
     *x1.y.strides = {ZERO, ZERO, ZERO, E, ONE};
 
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -10764,7 +10764,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs x1LocalAbs1("x1LocalAbs1");
+    af::ascir_op::Abs x1LocalAbs1("x1LocalAbs1");
     x1LocalAbs1.x = x1Local.y;
     x1LocalAbs1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1LocalAbs1.y.dtype = DT_FLOAT16;
@@ -10772,7 +10772,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1LocalAbs1.y.repeats = {A, B, C, D, E};
     *x1LocalAbs1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs x1LocalAbs2("x1LocalAbs2");
+    af::ascir_op::Abs x1LocalAbs2("x1LocalAbs2");
     x1LocalAbs2.x = x1Local.y;
     x1LocalAbs2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1LocalAbs2.y.dtype = DT_FLOAT16;
@@ -10780,7 +10780,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1LocalAbs2.y.repeats = {A, B, C, D, E};
     *x1LocalAbs2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Add add("add_4");
+    af::ascir_op::Add add("add_4");
     add.x1 = x1LocalAbs1.y;
     add.x2 = x1LocalAbs2.y;
     add.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -10791,7 +10791,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add.y.repeats = {A, B, C, D, E};
     *add.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs x1LocalAbs3("x1LocalAbs3");
+    af::ascir_op::Abs x1LocalAbs3("x1LocalAbs3");
     x1LocalAbs3.x = add.y;
     x1LocalAbs3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1LocalAbs3.y.dtype = DT_FLOAT16;
@@ -10799,7 +10799,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1LocalAbs3.y.repeats = {A, B, C, D, E};
     *x1LocalAbs3.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = add.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -10808,7 +10808,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Store x_out1("x_out_6");
+    af::ascir_op::Store x_out1("x_out_6");
     x_out1.x = x1LocalAbs3.y;
     x_out1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out1.attr.sched.loop_axis = c.id;
@@ -10817,7 +10817,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out1.y.repeats = {A, B, C, D, E};
     *x_out1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -10826,7 +10826,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_output1.y.repeats = {A, B, C, D, E};
     *x_output1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output2("x_output2");
+    af::ascir_op::Output x_output2("x_output2");
     x_output2.x = x_out1.y;
     x_output2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output2.attr.sched.loop_axis = c.id;
@@ -10858,7 +10858,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT16;
@@ -10866,7 +10866,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {ONE, ONE, ONE, D, E};
     *x1.y.strides = {ZERO, ZERO, ZERO, E, ONE};
 
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT16;
@@ -10874,7 +10874,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Load x2Local("x2Local_2");
+    af::ascir_op::Load x2Local("x2Local_2");
     x2Local.x = x1.y;
     x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2Local.y.dtype = DT_FLOAT16;
@@ -10882,7 +10882,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2Local.y.repeats = {ONE, ONE, ONE, D, E};
     *x2Local.y.strides = {ZERO, ZERO, ZERO, E, ONE};
 
-    ge::ascir_op::Load x3Local("x3Local_2");
+    af::ascir_op::Load x3Local("x3Local_2");
     x3Local.x = x1.y;
     x3Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x3Local.y.dtype = DT_FLOAT16;
@@ -10890,7 +10890,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x3Local.y.repeats = {ONE, B, ONE, D, E};
     *x3Local.y.strides = {ZERO, D * E, ZERO, E, ONE};
 
-    ge::ascir_op::Abs x2LocalAbs1("x2LocalAbs1");
+    af::ascir_op::Abs x2LocalAbs1("x2LocalAbs1");
     x2LocalAbs1.x = x2Local.y;
     x2LocalAbs1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2LocalAbs1.y.dtype = DT_FLOAT16;
@@ -10898,7 +10898,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x2LocalAbs1.y.repeats = {ONE, ONE, ONE, D, E};
     *x2LocalAbs1.y.strides = {ZERO, ZERO, ZERO, E, ONE};
 
-    ge::ascir_op::Abs x3LocalAbs2("x3LocalAbs2");
+    af::ascir_op::Abs x3LocalAbs2("x3LocalAbs2");
     x3LocalAbs2.x = x3Local.y;
     x3LocalAbs2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x3LocalAbs2.y.dtype = DT_FLOAT16;
@@ -10906,7 +10906,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x3LocalAbs2.y.repeats = {ONE, B, ONE, D, E};
     *x3LocalAbs2.y.strides = {ZERO, D * E, ZERO, E, ONE};
 
-    ge::ascir_op::Add add("add_4");
+    af::ascir_op::Add add("add_4");
     add.x1 = x1Local.y;
     add.x2 = x3LocalAbs2.y;
     add.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -10917,7 +10917,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *add.y.repeats = {A, B, C, D, E};
     *add.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs x1LocalAbs3("x1LocalAbs3");
+    af::ascir_op::Abs x1LocalAbs3("x1LocalAbs3");
     x1LocalAbs3.x = add.y;
     x1LocalAbs3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1LocalAbs3.y.dtype = DT_FLOAT16;
@@ -10925,7 +10925,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1LocalAbs3.y.repeats = {A, B, C, D, E};
     *x1LocalAbs3.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = x2LocalAbs1.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -10934,7 +10934,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {ONE, ONE, ONE, D, E};
     *x_out.y.strides = {ZERO, ZERO, ZERO, E, ONE};
 
-    ge::ascir_op::Store x_out1("x_out_6");
+    af::ascir_op::Store x_out1("x_out_6");
     x_out1.x = x1LocalAbs3.y;
     x_out1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out1.attr.sched.loop_axis = c.id;
@@ -10943,7 +10943,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out1.y.repeats = {A, B, C, D, E};
     *x_out1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -10952,7 +10952,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_output1.y.repeats = {A, B, C, D, E};
     *x_output1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output2("x_output2");
+    af::ascir_op::Output x_output2("x_output2");
     x_output2.x = x_out1.y;
     x_output2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output2.attr.sched.loop_axis = c.id;
@@ -10983,7 +10983,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
   
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT;
@@ -10991,7 +10991,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {A, B, C, D, E};
     *x1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT;
@@ -10999,7 +10999,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Cast Local2Cast0("Local2Cast0");
+    af::ascir_op::Cast Local2Cast0("Local2Cast0");
     Local2Cast0.x = x1Local.y;
     Local2Cast0.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     Local2Cast0.y.dtype = DT_FLOAT16;
@@ -11007,7 +11007,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *Local2Cast0.y.repeats = {A, B, C, D, E};
     *Local2Cast0.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Cast Local2Cast1("Local2Cast1");
+    af::ascir_op::Cast Local2Cast1("Local2Cast1");
     Local2Cast1.x = Local2Cast0.y;
     Local2Cast1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     Local2Cast1.y.dtype = DT_FLOAT;
@@ -11015,7 +11015,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *Local2Cast1.y.repeats = {A, B, C, D, E};
     *Local2Cast1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Cast Local2Cast2("Local2Cast2");
+    af::ascir_op::Cast Local2Cast2("Local2Cast2");
     Local2Cast2.x = Local2Cast1.y;
     Local2Cast2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     Local2Cast2.y.dtype = DT_FLOAT16;
@@ -11023,7 +11023,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *Local2Cast2.y.repeats = {A, B, C, D, E};
     *Local2Cast2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Cast Local2Cast3("Local2Cast3");
+    af::ascir_op::Cast Local2Cast3("Local2Cast3");
     Local2Cast3.x = Local2Cast2.y;
     Local2Cast3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     Local2Cast3.y.dtype = DT_FLOAT;
@@ -11031,7 +11031,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *Local2Cast3.y.repeats = {A, B, C, D, E};
     *Local2Cast3.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Abs abs("abs_4");
+    af::ascir_op::Abs abs("abs_4");
     abs.x = Local2Cast3.y;
     abs.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs.y.dtype = DT_FLOAT;
@@ -11039,7 +11039,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs.y.repeats = {A, B, C, D, E};
     *abs.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Cast abs_4_cast("abs_4_cast");
+    af::ascir_op::Cast abs_4_cast("abs_4_cast");
     abs_4_cast.x = abs.y;
     abs_4_cast.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs_4_cast.y.dtype = DT_FLOAT16;
@@ -11047,7 +11047,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs_4_cast.y.repeats = {A, B, C, D, E};
     *abs_4_cast.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Cast abs_4_cast1("abs_4_cast1");
+    af::ascir_op::Cast abs_4_cast1("abs_4_cast1");
     abs_4_cast1.x = abs_4_cast.y;
     abs_4_cast1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs_4_cast1.y.dtype = DT_FLOAT;
@@ -11055,7 +11055,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs_4_cast1.y.repeats = {A, B, C, D, E};
     *abs_4_cast1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Cast abs_4_cast2("abs_4_cast2");
+    af::ascir_op::Cast abs_4_cast2("abs_4_cast2");
     abs_4_cast2.x = abs_4_cast1.y;
     abs_4_cast2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs_4_cast2.y.dtype = DT_FLOAT16;
@@ -11063,7 +11063,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs_4_cast2.y.repeats = {A, B, C, D, E};
     *abs_4_cast2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Cast abs_4_cast3("abs_4_cast3");
+    af::ascir_op::Cast abs_4_cast3("abs_4_cast3");
     abs_4_cast3.x = abs_4_cast2.y;
     abs_4_cast3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs_4_cast3.y.dtype = DT_FLOAT;
@@ -11071,7 +11071,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs_4_cast3.y.repeats = {A, B, C, D, E};
     *abs_4_cast3.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = abs_4_cast3.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -11080,7 +11080,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -11110,7 +11110,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
   
-    ge::ascir_op::Data x1("x1_1", graph);
+    af::ascir_op::Data x1("x1_1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     x1.y.dtype = DT_FLOAT;
@@ -11118,7 +11118,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1.y.repeats = {A, B, C, D, E};
     *x1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Load x1Local("x1Local_2");
+    af::ascir_op::Load x1Local("x1Local_2");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1Local.y.dtype = DT_FLOAT;
@@ -11126,7 +11126,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Cast Local2Cast0("Local2Cast0");
+    af::ascir_op::Cast Local2Cast0("Local2Cast0");
     Local2Cast0.x = x1Local.y;
     Local2Cast0.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     Local2Cast0.y.dtype = DT_FLOAT16;
@@ -11134,7 +11134,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *Local2Cast0.y.repeats = {A, B, C, D, E};
     *Local2Cast0.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Cast Local2Cast1("Local2Cast1");
+    af::ascir_op::Cast Local2Cast1("Local2Cast1");
     Local2Cast1.x = Local2Cast0.y;
     Local2Cast1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     Local2Cast1.y.dtype = DT_FLOAT;
@@ -11142,7 +11142,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *Local2Cast1.y.repeats = {A, B, C, D, E};
     *Local2Cast1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Cast Local2Cast2("Local2Cast2");
+    af::ascir_op::Cast Local2Cast2("Local2Cast2");
     Local2Cast2.x = Local2Cast1.y;
     Local2Cast2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     Local2Cast2.y.dtype = DT_FLOAT16;
@@ -11150,7 +11150,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *Local2Cast2.y.repeats = {A, B, C, D, E};
     *Local2Cast2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Cast Local2Cast3("Local2Cast3");
+    af::ascir_op::Cast Local2Cast3("Local2Cast3");
     Local2Cast3.x = Local2Cast2.y;
     Local2Cast3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     Local2Cast3.y.dtype = DT_INT16;
@@ -11158,7 +11158,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *Local2Cast3.y.repeats = {A, B, C, D, E};
     *Local2Cast3.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Abs abs("abs_4");
+    af::ascir_op::Abs abs("abs_4");
     abs.x = Local2Cast3.y;
     abs.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs.y.dtype = DT_INT16;
@@ -11166,7 +11166,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs.y.repeats = {A, B, C, D, E};
     *abs.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Cast abs_4_cast("abs_4_cast");
+    af::ascir_op::Cast abs_4_cast("abs_4_cast");
     abs_4_cast.x = abs.y;
     abs_4_cast.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs_4_cast.y.dtype = DT_FLOAT16;
@@ -11174,7 +11174,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs_4_cast.y.repeats = {A, B, C, D, E};
     *abs_4_cast.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Cast abs_4_cast1("abs_4_cast1");
+    af::ascir_op::Cast abs_4_cast1("abs_4_cast1");
     abs_4_cast1.x = abs_4_cast.y;
     abs_4_cast1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs_4_cast1.y.dtype = DT_FLOAT;
@@ -11182,7 +11182,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs_4_cast1.y.repeats = {A, B, C, D, E};
     *abs_4_cast1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Cast abs_4_cast2("abs_4_cast2");
+    af::ascir_op::Cast abs_4_cast2("abs_4_cast2");
     abs_4_cast2.x = abs_4_cast1.y;
     abs_4_cast2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs_4_cast2.y.dtype = DT_FLOAT16;
@@ -11190,7 +11190,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs_4_cast2.y.repeats = {A, B, C, D, E};
     *abs_4_cast2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Cast abs_4_cast3("abs_4_cast3");
+    af::ascir_op::Cast abs_4_cast3("abs_4_cast3");
     abs_4_cast3.x = abs_4_cast2.y;
     abs_4_cast3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     abs_4_cast3.y.dtype = DT_FLOAT;
@@ -11198,7 +11198,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *abs_4_cast3.y.repeats = {A, B, C, D, E};
     *abs_4_cast3.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
   
-    ge::ascir_op::Store x_out("x_out_5");
+    af::ascir_op::Store x_out("x_out_5");
     x_out.x = abs_4_cast3.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -11207,7 +11207,7 @@ std::shared_ptr<AscGraph> ThreeScalarTwoSameValueDtypeAscGraph(ge::AscGraph &gra
     *x_out.y.repeats = {A, B, C, D, E};
     *x_out.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_output1("x_output1");
+    af::ascir_op::Output x_output1("x_output1");
     x_output1.x = x_out.y;
     x_output1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_output1.attr.sched.loop_axis = c.id;
@@ -11301,7 +11301,7 @@ TEST_F(AscBackendPostProcessorTest, AddOutput_NodeAscBcAndDirectAscBc_FAILED) {
       op_desc->SetType(type);
       auto attr = GetOrCreateAutoFuseAttrs(op_desc);
       ASSERT_NE(attr, nullptr);
-      attr->SetFuseComputeGraph(AscGraphUtils::GetComputeGraph(*asc_graph_fuse1));
+      attr->SetFuseComputeGraph(af::AscGraphUtils::GetComputeGraph(*asc_graph_fuse1));
     }
     loop_cnt++;
   }
@@ -11338,7 +11338,7 @@ TEST_F(AscBackendPostProcessorTest, AdapterAndPass_OK) {
 
   ge::AscGraph add_graph1("add");
   attr1->SetAscGraph(CreatAddAscGraph(add_graph1));
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     // ascir_op暂不支持Cast，认为设置type为cast
     if (node->GetName().find("Cast") != std::string::npos) {
       const auto &op_desc = node->GetOpDesc();
@@ -11355,7 +11355,7 @@ TEST_F(AscBackendPostProcessorTest, AdapterAndPass_OK) {
     printf("AscAdapterTest_Ok To find node to change precision, current node(%s), type:%s, speats %s, dtype:%s in graph %s.\n",
       node->GetName().c_str(), node->GetType().c_str(),
       AutofuseUtils::VectorToStr(attr->repeats).c_str(),
-      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
+      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
   }
   AscBackendPostProcessor post_processor;
   EXPECT_EQ(asc_adapt::GeFallback(compute_graph), SUCCESS);
@@ -11406,7 +11406,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_EmptyRepeatsAfterLoad_OK) {
   const Expression C = add_graph1.CreateSizeVar("C");
   const Expression D = add_graph1.CreateSizeVar("D");
   const Expression E = add_graph1.CreateSizeVar("E");
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == "Output") {
       continue;
     }
@@ -11445,7 +11445,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_EmptyRepeatsAfterLoad_OK) {
     printf("Adaption_EmptyRepeats_OK To find node to fallback load, current node(%s), type:%s, repeats %s, dtype:%s in graph %s.\n",
       node->GetName().c_str(), node->GetType().c_str(),
       AutofuseUtils::VectorToStr(attr->repeats).c_str(),
-      TypeUtils::DataTypeToSerialString(output_tensor_desc->GetDataType()).c_str(), AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
+      TypeUtils::DataTypeToSerialString(output_tensor_desc->GetDataType()).c_str(), af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
   }
 }
 
@@ -11475,7 +11475,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_EmptyRepeats_OK) {
 
   ge::AscGraph add_graph1("add");
   attr1->SetAscGraph(CreatAddAscGraphWithEmptyRepeats(add_graph1));
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     // ascir_op暂不支持Cast，认为设置type为cast
     if (node->GetName().find("Cast") != std::string::npos) {
       const auto &op_desc = node->GetOpDesc();
@@ -11492,7 +11492,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_EmptyRepeats_OK) {
     printf("Adaption_EmptyRepeats_OK To find node to fallback load, current node(%s), type:%s, repeats %s, dtype:%s in graph %s.\n",
       node->GetName().c_str(), node->GetType().c_str(),
       AutofuseUtils::VectorToStr(attr->repeats).c_str(),
-      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
+      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
   }
 
   AscBackendPostProcessor post_processor;
@@ -11509,7 +11509,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_EmptyRepeats_OK) {
   const Expression C = add_graph1.CreateSizeVar("C");
   const Expression D = add_graph1.CreateSizeVar("D");
   const Expression E = add_graph1.CreateSizeVar("E");
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     // ascir_op暂不支持Cast，认为设置type为cast
     if (node->GetName().find("Cast") != std::string::npos) {
       const auto &op_desc = node->GetOpDesc();
@@ -11541,7 +11541,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_EmptyRepeats_OK) {
     printf("Adaption_EmptyRepeats_OK To find node to fallback load, current node(%s), type:%s, repeats %s, dtype:%s in graph %s.\n",
       node->GetName().c_str(), node->GetType().c_str(),
       AutofuseUtils::VectorToStr(attr->repeats).c_str(),
-      TypeUtils::DataTypeToSerialString(output_tensor_desc->GetDataType()).c_str(), AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
+      TypeUtils::DataTypeToSerialString(output_tensor_desc->GetDataType()).c_str(), af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
   }
 }
 
@@ -11570,7 +11570,7 @@ TEST_F(AscBackendPostProcessorTest, Split_Pass_OK) {
 
   ge::AscGraph add_graph1("add");
   attr1->SetAscGraph(CreatSplitDoubleOutputAscGraph(add_graph1),loop::FuseType::kSplit);
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     printf("AscAdapterTest_Ok node %s %s\n.", node->GetName().c_str(), node->GetType().c_str());
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
@@ -11581,7 +11581,7 @@ TEST_F(AscBackendPostProcessorTest, Split_Pass_OK) {
     printf("AscAdapterTest_Ok To find node to change precision, current node(%s), type:%s, repeats %s, dtype:%s in graph %s.\n",
       node->GetName().c_str(), node->GetType().c_str(),
       AutofuseUtils::VectorToStr(attr->repeats).c_str(),
-      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
+      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
   }
   AscBackendPostProcessor post_processor;
   EXPECT_EQ(asc_adapt::GeFallback(compute_graph), SUCCESS);
@@ -11629,7 +11629,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_CastWithSameDtype_OK) {
   size_t output_cnt = 0U;
   size_t add_cnt = 0U;
   size_t cast_cnt = 0U;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     printf("2Sub2InputallMulReference node %s %s\n.", node->GetName().c_str(), node->GetType().c_str());
     if (node->GetType() == "Output") {
       output_cnt++;
@@ -11684,7 +11684,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_2Sub2InputCanCse_OK) {
   // 校验结果 output不能被cse删除，因为outut和下一个图的输出是连在一起的，不能通过多引用表达
   size_t output_cnt = 0U;
   size_t add_cnt = 0U;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     printf("2Sub2InputallMulReference node %s %s\n.", node->GetName().c_str(), node->GetType().c_str());
     if (node->GetType() == "Output") {
       output_cnt++;
@@ -11736,7 +11736,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_3Sub2InputCanCse_OK) {
   // 校验结果 output不能被cse删除，因为outut和下一个图的输出是连在一起的，不能通过多引用表达
   size_t output_cnt = 0U;
   size_t add_cnt = 0U;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     printf("2Sub2InputallMulReference node %s %s\n.", node->GetName().c_str(), node->GetType().c_str());
     if (node->GetType() == "Output") {
       output_cnt++;
@@ -11790,7 +11790,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_3ScalarCanCse_OK) {
   size_t add_cnt = 0U;
   auto ONE = Symbol(1);
   auto ZERO = Symbol(0);
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     printf("2Sub2InputallMulReference node %s %s\n.", node->GetName().c_str(), node->GetType().c_str());
     if (node->GetType() == "Output") {
       output_cnt++;
@@ -11852,7 +11852,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_3ScalarHas2ScalarCanCse_OK) {
   // 校验结果 output不能被cse删除，因为outut和下一个图的输出是连在一起的，不能通过多引用表达
   size_t output_cnt = 0U;
   size_t add_cnt = 0U;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     printf("2Sub2InputallMulReference node %s %s\n.", node->GetName().c_str(), node->GetType().c_str());
     if (node->GetType() == "Output") {
       output_cnt++;
@@ -11905,7 +11905,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_3ScalarHas2ScalarCanCse2_OK) {
   size_t output_cnt = 0U;
   size_t add_cnt = 0U;
   size_t scalar_cnt = 0U;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     printf("2Sub2InputallMulReference node %s %s\n.", node->GetName().c_str(), node->GetType().c_str());
     if (node->GetType() == "Output") {
       output_cnt++;
@@ -11949,7 +11949,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_StoreMulReference_OK) {
 
   ge::AscGraph add_graph1("add");
   attr1->SetAscGraph(CreatCalcRstdAscGraphWithStoreMulReference(add_graph1));
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     // ascir_op暂不支持Cast，认为设置type为cast
     if (node->GetName().find("Cast") != std::string::npos) {
       const auto &op_desc = node->GetOpDesc();
@@ -11966,7 +11966,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_StoreMulReference_OK) {
     printf("Adaption_EmptyRepeats_OK To find node to fallback load, current node(%s), type:%s, repeats %s, dtype:%s in graph %s.\n",
       node->GetName().c_str(), node->GetType().c_str(),
       AutofuseUtils::VectorToStr(attr->repeats).c_str(),
-      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
+      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
   }
 
   AscBackendPostProcessor post_processor;
@@ -11977,7 +11977,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_StoreMulReference_OK) {
 
   // 校验结果 output不能被cse删除，因为outut和下一个图的输出是连在一起的，不能通过多引用表达
   size_t output_cnt = 0U;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == "Output") {
       output_cnt++;
       continue;
@@ -12021,7 +12021,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_CreatAscGraphWithLoadAndCastMulRefe
 
   // 校验结果
   size_t cast_cnt = 0U;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == "Output") {
       continue;
     }
@@ -12079,7 +12079,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_CreatAscGraphWithLoadAndCastMulRefe
 
   // 校验结果
   size_t cast_cnt = 0U;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == "Output") {
       continue;
     }
@@ -12152,7 +12152,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_CreatAscGraphWithLoadAndCastMulRefe
 //   const Expression E = add_graph1.CreateSizeVar("E");
 //   int64_t t_cnt = 0;
 //   int64_t b_cnt = 0;
-//   for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+//   for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
 //     if (node->GetType() == "Output" || node->GetType() == "Data") {
 //       continue;
 //     }
@@ -12322,7 +12322,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_TransposeAscGraphWith2InputTranspos
   const Expression E = add_graph1.CreateSizeVar("E");
   int64_t t_cnt = 0;
   int64_t b_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == "Output" || node->GetType() == "Data") {
       continue;
     }
@@ -12436,7 +12436,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_TransposeAscGraphWith2TransposeInLo
   const Expression E = add_graph1.CreateSizeVar("E");
   int64_t t_cnt = 0;
   int64_t b_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == "Output" || node->GetType() == "Data") {
       continue;
     }
@@ -12546,7 +12546,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_TransposeAscGraphWithTransposeDtype
   const Expression E = add_graph1.CreateSizeVar("E");
   int64_t t_cnt = 0;
   int64_t b_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == "Output" || node->GetType() == "Data") {
       continue;
     }
@@ -12668,7 +12668,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_TransposeAscGraphWith2InputTranspos
   const Expression E = add_graph1.CreateSizeVar("E");
   int64_t t_cnt = 0;
   int64_t b_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == "Output" || node->GetType() == "Data") {
       continue;
     }
@@ -12787,7 +12787,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_TransposeAscGraphWith2InputTranspos
   const Expression E = add_graph1.CreateSizeVar("E");
   int64_t t_cnt = 0;
   int64_t b_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == "Output" || node->GetType() == "Data") {
       continue;
     }
@@ -12906,7 +12906,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_TransposeAscGraphWith2InputTranspos
   const Expression E = add_graph1.CreateSizeVar("E");
   int64_t t_cnt = 0;
   int64_t b_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == "Output" || node->GetType() == "Data") {
       continue;
     }
@@ -13025,7 +13025,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_TransposeAscGraphWith2InputTranspos
   const Expression E = add_graph1.CreateSizeVar("E");
   int64_t t_cnt = 0;
   int64_t b_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == "Output" || node->GetType() == "Data") {
       continue;
     }
@@ -13147,7 +13147,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_TransposeWithBroadcastNodeAscGraph1
   const Expression E = add_graph1.CreateSizeVar("E");
   int64_t t_cnt = 0;
   int64_t b_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == "Output" || node->GetType() == "Data") {
       continue;
     }
@@ -13255,7 +13255,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_TransposeWithBroadcastNodeAscGraph2
   const Expression E = add_graph1.CreateSizeVar("E");
   int64_t t_cnt = 0;
   int64_t b_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == "Output" || node->GetType() == "Data") {
       continue;
     }
@@ -13362,7 +13362,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_TransposeWithNoAxisTranspose_OK) {
   const Expression D = add_graph1.CreateSizeVar("D");
   const Expression E = add_graph1.CreateSizeVar("E");
   int64_t t_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == "Output") {
       continue;
     }
@@ -13422,7 +13422,7 @@ TEST_F(AscBackendPostProcessorTest, TransposeAscGraphWithLoadAndStoreHasTranspos
   const Expression D = add_graph1.CreateSizeVar("D");
   const Expression E = add_graph1.CreateSizeVar("E");
   int64_t t_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == "Output") {
       continue;
     }
@@ -13526,7 +13526,7 @@ TEST_F(AscBackendPostProcessorTest, TransposeAscGraphWithLoadAndStoreHasTranspos
 //   const Expression D = add_graph1.CreateSizeVar("D");
 //   const Expression E = add_graph1.CreateSizeVar("E");
 //   int64_t t_cnt = 0;
-//   for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+//   for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
 //     if (node->GetType() == "Output") {
 //       continue;
 //     }
@@ -13635,7 +13635,7 @@ TEST_F(AscBackendPostProcessorTest, TransposeAscGraphWithLoadAndStoreHasTranspos
 //   const Expression D = add_graph1.CreateSizeVar("D");
 //   const Expression E = add_graph1.CreateSizeVar("E");
 //   size_t bro_cnt = 0U;
-//   for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+//   for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
 //     if (node->GetType() == "Output") {
 //       continue;
 //     }
@@ -13717,7 +13717,7 @@ TEST_F(AscBackendPostProcessorTest, TransposeAscGraphWithLoadAndStoreHasTranspos
 //   ge::AscGraph add_graph1("add");
 //   attr1->SetAscGraph(TransposeAscGraphWithNeedDelTransposeNode(add_graph1));
 
-//   for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+//   for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
 //     if (node->GetType() == "Abs") {
 //       const auto &op_desc = node->GetOpDesc();
 //       ASSERT_NE(op_desc, nullptr);
@@ -13743,7 +13743,7 @@ TEST_F(AscBackendPostProcessorTest, TransposeAscGraphWithLoadAndStoreHasTranspos
 //   int64_t t_cnt = 0;
 //   int64_t current_topo_id = 0;
 
-//   for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+//   for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
 //     if (node->GetType() == "Output") {
 //       continue;
 //     }
@@ -13913,7 +13913,7 @@ TEST_F(AscBackendPostProcessorTest, TransposeAscGraphWithLoadAndStoreHasTranspos
 //   int64_t t_cnt = 0;
 //   int64_t current_topo_id = 0;
 
-//   for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+//   for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
 //     if (node->GetType() == "Output") {
 //       continue;
 //     }
@@ -14070,7 +14070,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_NoEmptyRepeats_OK) {
 
   ge::AscGraph add_graph1("add");
   attr1->SetAscGraph(CreatAddAscGraphWithNoEmptyRepeats(add_graph1));
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     // ascir_op暂不支持Cast，认为设置type为cast
     if (node->GetName().find("Cast") != std::string::npos) {
       const auto &op_desc = node->GetOpDesc();
@@ -14087,7 +14087,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_NoEmptyRepeats_OK) {
     printf("Adaption_EmptyRepeats_OK To find node to fallback load, current node(%s), type:%s, repeats %s, dtype:%s in graph %s.\n",
       node->GetName().c_str(), node->GetType().c_str(),
       AutofuseUtils::VectorToStr(attr->repeats).c_str(),
-      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
+      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
   }
 
   AscBackendPostProcessor post_processor;
@@ -14104,7 +14104,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_NoEmptyRepeats_OK) {
   const Expression C = add_graph1.CreateSizeVar("C");
   const Expression D = add_graph1.CreateSizeVar("D");
   const Expression E = add_graph1.CreateSizeVar("E");
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     // ascir_op暂不支持Cast，认为设置type为cast
     if (node->GetName().find("Cast") != std::string::npos) {
       const auto &op_desc = node->GetOpDesc();
@@ -14147,7 +14147,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_NoEmptyRepeats_OK) {
     printf("Adaption_EmptyRepeats_OK To find node to fallback load, current node(%s), type:%s, repeats %s, dtype:%s in graph %s.\n",
       node->GetName().c_str(), node->GetType().c_str(),
       AutofuseUtils::VectorToStr(attr->repeats).c_str(),
-      TypeUtils::DataTypeToSerialString(output_tensor_desc->GetDataType()).c_str(), AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
+      TypeUtils::DataTypeToSerialString(output_tensor_desc->GetDataType()).c_str(), af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
   }
 }
 
@@ -14177,7 +14177,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_DiffRepeats_OK) {
 
   ge::AscGraph add_graph1("add");
   attr1->SetAscGraph(CreatAddAscGraphWithDiffRepeats(add_graph1));
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     // ascir_op暂不支持Cast，认为设置type为cast
     if (node->GetName().find("Cast") != std::string::npos) {
       const auto &op_desc = node->GetOpDesc();
@@ -14194,7 +14194,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_DiffRepeats_OK) {
     printf("AscAdapterTest_Ok To find node to fallback load, current node(%s), type:%s, repeats %s, dtype:%s in graph %s.\n",
       node->GetName().c_str(), node->GetType().c_str(),
       AutofuseUtils::VectorToStr(attr->repeats).c_str(),
-      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
+      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
   }
   AscBackendPostProcessor post_processor;
   EXPECT_EQ(asc_adapt::GeFallback(compute_graph), SUCCESS);
@@ -14229,7 +14229,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_DiffRepeatsMutilReference_OK) {
 
   ge::AscGraph add_graph1("add");
   attr1->SetAscGraph(CreatAscGraphWithDiffRepeatsMutilReference(add_graph1));
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     // ascir_op暂不支持Cast，认为设置type为cast
     if (node->GetName().find("Cast") != std::string::npos) {
       const auto &op_desc = node->GetOpDesc();
@@ -14246,7 +14246,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_DiffRepeatsMutilReference_OK) {
     printf("AscAdapterTest_Ok To find node to fallback load, current node(%s), type:%s, repeats %s, dtype:%s in graph %s.\n",
       node->GetName().c_str(), node->GetType().c_str(),
       AutofuseUtils::VectorToStr(attr->repeats).c_str(),
-      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
+      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
   }
   AscBackendPostProcessor post_processor;
   EXPECT_EQ(asc_adapt::GeFallback(compute_graph), SUCCESS);
@@ -14256,7 +14256,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_DiffRepeatsMutilReference_OK) {
 
   size_t broadcast_cnt = 0;
   size_t cast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     printf("AscAdapterTest_Ok node %s %s\n.", node->GetName().c_str(), node->GetType().c_str());
     if (node->GetType() == "Output") {
       continue;
@@ -14279,7 +14279,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_DiffRepeatsMutilReference_OK) {
     printf("AscAdapterTest_Ok To find node to change precision, current node(%s), type:%s, speats %s, dtype:%s in graph %s.\n",
       node->GetName().c_str(), node->GetType().c_str(),
       AutofuseUtils::VectorToStr(attr->repeats).c_str(),
-      TypeUtils::DataTypeToSerialString(output_tensor_desc->GetDataType()).c_str(), AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
+      TypeUtils::DataTypeToSerialString(output_tensor_desc->GetDataType()).c_str(), af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
     if (node->GetType() != "Data" && node->GetType() != "Load" && node->GetType() != "Store"){
       ASSERT_EQ(attr->dtype, DT_FLOAT);
     }}
@@ -14320,7 +14320,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_ScalarToStore_OK) {
 
   size_t broadcast_cnt = 0;
   size_t cast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     printf("AscAdapterTest_Ok node %s %s\n.", node->GetName().c_str(), node->GetType().c_str());
     if (node->GetType() == "Output") {
       continue;
@@ -14374,7 +14374,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_DiffRepeatsWithScalar_OK) {
 
   ge::AscGraph add_graph1("add");
   attr1->SetAscGraph(CreatAscGraphWithDiffRepeatsWithScalar(add_graph1));
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     // ascir_op暂不支持Cast，认为设置type为cast
     if (node->GetName().find("Cast") != std::string::npos) {
       const auto &op_desc = node->GetOpDesc();
@@ -14391,7 +14391,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_DiffRepeatsWithScalar_OK) {
     printf("AscAdapterTest_Ok To find node to fallback load, current node(%s), type:%s, repeats %s, dtype:%s in graph %s.\n",
       node->GetName().c_str(), node->GetType().c_str(),
       AutofuseUtils::VectorToStr(attr->repeats).c_str(),
-      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
+      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
   }
   AscBackendPostProcessor post_processor;
   EXPECT_EQ(asc_adapt::GeFallback(compute_graph), SUCCESS);
@@ -14401,7 +14401,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_DiffRepeatsWithScalar_OK) {
 
   size_t broadcast_cnt = 0;
   size_t cast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     printf("AscAdapterTest_Ok node %s %s\n.", node->GetName().c_str(), node->GetType().c_str());
     if (node->GetType() == "Output") {
       continue;
@@ -14433,7 +14433,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_DiffRepeatsWithScalar_OK) {
     printf("AscAdapterTest_Ok To find node to change precision, current node(%s), type:%s, speats %s, dtype:%s in graph %s.\n",
       node->GetName().c_str(), node->GetType().c_str(),
       AutofuseUtils::VectorToStr(attr->repeats).c_str(),
-      TypeUtils::DataTypeToSerialString(output_tensor_desc->GetDataType()).c_str(), AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
+      TypeUtils::DataTypeToSerialString(output_tensor_desc->GetDataType()).c_str(), af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
     if (node->GetType() != "Data" && node->GetType() != "Load" && node->GetType() != "Store"){
       ASSERT_EQ(attr->dtype, DT_FLOAT);
     }}
@@ -14483,7 +14483,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_ScalarToAdd0_OK) {
   const Expression E = add_graph1.CreateSizeVar("E");
   size_t broadcast_cnt = 0;
   size_t cast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     printf("AscAdapterTest_Ok node %s %s\n.", node->GetName().c_str(), node->GetType().c_str());
     if (node->GetType() == "Output" || node->GetType() == "Data" ) {
       continue;
@@ -14529,7 +14529,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_ScalarToAdd0_OK) {
     printf("AscAdapterTest_Ok To find node to change precision, current node(%s), type:%s, speats %s, dtype:%s in graph %s.\n",
       node->GetName().c_str(), node->GetType().c_str(),
       AutofuseUtils::VectorToStr(attr->repeats).c_str(),
-      TypeUtils::DataTypeToSerialString(output_tensor_desc->GetDataType()).c_str(), AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
+      TypeUtils::DataTypeToSerialString(output_tensor_desc->GetDataType()).c_str(), af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
   }
   ASSERT_EQ(broadcast_cnt, 8);
   ASSERT_EQ(cast_cnt, 2);
@@ -14573,7 +14573,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_ScalarToAdd0WithoutCheckoutType_OK)
   const Expression E = add_graph1.CreateSizeVar("E");
   size_t broadcast_cnt = 0;
   size_t cast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     printf("AscAdapterTest_Ok node %s %s\n.", node->GetName().c_str(), node->GetType().c_str());
     if (node->GetType() == "Output" || node->GetType() == "Data" ) {
       continue;
@@ -14642,7 +14642,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_ScalarToAdd0WithoutCheckoutType_OK)
     printf("AscAdapterTest_Ok To find node to change precision, current node(%s), type:%s, speats %s, dtype:%s in graph %s.\n",
       node->GetName().c_str(), node->GetType().c_str(),
       AutofuseUtils::VectorToStr(attr->repeats).c_str(),
-      TypeUtils::DataTypeToSerialString(output_tensor_desc->GetDataType()).c_str(), AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
+      TypeUtils::DataTypeToSerialString(output_tensor_desc->GetDataType()).c_str(), af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
   }
   ASSERT_EQ(broadcast_cnt, 5);
   ASSERT_EQ(cast_cnt, 0);
@@ -14690,7 +14690,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_ScalarToAdd1_OK) {
   const Expression E = add_graph1.CreateSizeVar("E");
   size_t broadcast_cnt = 0;
   size_t cast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     printf("AscAdapterTest_Ok node %s %s\n.", node->GetName().c_str(), node->GetType().c_str());
     if (node->GetType() == "Output" || node->GetType() == "Data" ) {
       continue;
@@ -14729,7 +14729,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_ScalarToAdd1_OK) {
     printf("AscAdapterTest_Ok To find node to change precision, current node(%s), type:%s, speats %s, dtype:%s in graph %s.\n",
       node->GetName().c_str(), node->GetType().c_str(),
       AutofuseUtils::VectorToStr(attr->repeats).c_str(),
-      TypeUtils::DataTypeToSerialString(output_tensor_desc->GetDataType()).c_str(), AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
+      TypeUtils::DataTypeToSerialString(output_tensor_desc->GetDataType()).c_str(), af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
   }
   ASSERT_EQ(broadcast_cnt, 5);
   ASSERT_EQ(cast_cnt, 1);
@@ -14777,7 +14777,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_ScalarToAbs_OK) {
   const Expression E = add_graph1.CreateSizeVar("E");
   size_t broadcast_cnt = 0;
   size_t cast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     printf("AscAdapterTest_Ok node %s %s\n.", node->GetName().c_str(), node->GetType().c_str());
     if (node->GetType() == "Output" || node->GetType() == "Data" ) {
       continue;
@@ -14816,7 +14816,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_ScalarToAbs_OK) {
     printf("AscAdapterTest_Ok To find node to change precision, current node(%s), type:%s, speats %s, dtype:%s in graph %s.\n",
       node->GetName().c_str(), node->GetType().c_str(),
       AutofuseUtils::VectorToStr(attr->repeats).c_str(),
-      TypeUtils::DataTypeToSerialString(output_tensor_desc->GetDataType()).c_str(), AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
+      TypeUtils::DataTypeToSerialString(output_tensor_desc->GetDataType()).c_str(), af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
   }
   ASSERT_EQ(broadcast_cnt, 5);
   ASSERT_EQ(cast_cnt, 1);
@@ -14848,7 +14848,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_DiffRepeatsMutilReference2_OK) {
 
   ge::AscGraph add_graph1("load_mul_reference2");
   attr1->SetAscGraph(CreatAscGraphWithDiffRepeatsMutilReference2(add_graph1));
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     // ascir_op暂不支持Cast，认为设置type为cast
     if (node->GetName().find("Cast") != std::string::npos) {
       const auto &op_desc = node->GetOpDesc();
@@ -14865,7 +14865,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_DiffRepeatsMutilReference2_OK) {
     printf("AscAdapterTest_Ok To find node to fallback load, current node(%s), type:%s, repeats %s, dtype:%s in graph %s.\n",
       node->GetName().c_str(), node->GetType().c_str(),
       AutofuseUtils::VectorToStr(attr->repeats).c_str(),
-      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
+      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
   }
   AscBackendPostProcessor post_processor;
   EXPECT_EQ(asc_adapt::GeFallback(compute_graph), SUCCESS);
@@ -14874,14 +14874,14 @@ TEST_F(AscBackendPostProcessorTest, Adaption_DiffRepeatsMutilReference2_OK) {
   EXPECT_EQ(post_processor.Do(compute_graph), SUCCESS);
   // 序列化反序列化验证AscNode创造的正确性
   std::string output;
-  EXPECT_EQ(AscGraphUtils::SerializeToReadable(*(attr1->GetAscGraph()), output), SUCCESS);
+  EXPECT_EQ(af::AscGraphUtils::SerializeToReadable(*(attr1->GetAscGraph()), output), SUCCESS);
   printf("graph_aftre_serialize :%s\n", output.c_str());
   ge::AscGraph graph_aftre_serialize("graph_aftre_serialize");
-  EXPECT_EQ(AscGraphUtils::DeserializeFromReadable(output, graph_aftre_serialize), SUCCESS);
+  EXPECT_EQ(af::AscGraphUtils::DeserializeFromReadable(output, graph_aftre_serialize), SUCCESS);
 
   size_t broadcast_cnt = 0;
   size_t cast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     printf("AscAdapterTest_Ok node %s %s\n.", node->GetName().c_str(), node->GetType().c_str());
     if (node->GetType() == "Output") {
       continue;
@@ -14904,7 +14904,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_DiffRepeatsMutilReference2_OK) {
     printf("AscAdapterTest_Ok To find node to change precision, current node(%s), type:%s, speats %s, dtype:%s in graph %s.\n",
       node->GetName().c_str(), node->GetType().c_str(),
       AutofuseUtils::VectorToStr(attr->repeats).c_str(),
-      TypeUtils::DataTypeToSerialString(output_tensor_desc->GetDataType()).c_str(), AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
+      TypeUtils::DataTypeToSerialString(output_tensor_desc->GetDataType()).c_str(), af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
     if (node->GetType() != "Data" && node->GetType() != "Load" && node->GetType() != "Store"){
       ASSERT_EQ(attr->dtype, DT_FLOAT);
     }}
@@ -14943,7 +14943,7 @@ TEST_F(AscBackendPostProcessorTest, ConcatDontImproveprecision) {
   ASSERT_NE(shape_env_attr, nullptr);
   EXPECT_EQ(post_processor.Do(compute_graph), SUCCESS);
 
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     printf("ConcatDontImproveprecision node %s %s\n.", node->GetName().c_str(), node->GetType().c_str());
     EXPECT_NE(node->GetType(), "Cast");
   }
@@ -14981,7 +14981,7 @@ TEST_F(AscBackendPostProcessorTest, GatherhData1Data2InvalidAxis) {
   int cnt = 0;
   int gather_cnt = 0;
   int data_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     printf("GatherImproveprecision node %s %s\n.", node->GetName().c_str(), node->GetType().c_str());
     std::vector<int64_t> sched_axis = {0, 1};
     if (node->GetType() == "Gather") {
@@ -15060,7 +15060,7 @@ TEST_F(AscBackendPostProcessorTest, GatherhDataAllInvalidAxis) {
   int cnt = 0;
   int gather_cnt = 0;
   int data_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     printf("GatherImproveprecision node %s %s\n.", node->GetName().c_str(), node->GetType().c_str());
     std::vector<int64_t> sched_axis = {0};
     if (node->GetType() == "Gather") {
@@ -15130,7 +15130,7 @@ TEST_F(AscBackendPostProcessorTest, GatherhData2AllInvalidAxis) {
   int cnt = 0;
   int gather_cnt = 0;
   int data_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     printf("GatherImproveprecision node %s %s\n.", node->GetName().c_str(), node->GetType().c_str());
     std::vector<int64_t> sched_axis = {0, 1, 2};
     if (node->GetType() == "Gather") {
@@ -15199,7 +15199,7 @@ TEST_F(AscBackendPostProcessorTest, GatherhCse) {
   EXPECT_EQ(post_processor.Do(compute_graph), SUCCESS);
   int cnt = 0;
   int gather_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
   printf("GatherImproveprecision node %s %s\n.", node->GetName().c_str(), node->GetType().c_str());
   if (node->GetType() == "Gather") {
     gather_cnt++;
@@ -15242,7 +15242,7 @@ TEST_F(AscBackendPostProcessorTest, GatherImproveprecision) {
   ASSERT_NE(shape_env_attr, nullptr);
   EXPECT_EQ(post_processor.Do(compute_graph), SUCCESS);
   int cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
   printf("GatherImproveprecision node %s %s\n.", node->GetName().c_str(), node->GetType().c_str());
   cnt++;
   }
@@ -15282,7 +15282,7 @@ TEST_F(AscBackendPostProcessorTest, GatherImproveprecision32_8) {
   ASSERT_NE(shape_env_attr, nullptr);
   EXPECT_EQ(post_processor.Do(compute_graph), SUCCESS);
   int cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     printf("GatherImproveprecision node %s %s\n.", node->GetName().c_str(), node->GetType().c_str());
     if (node->GetType() == "Cast") {
       if (cnt == 0) {
@@ -15339,7 +15339,7 @@ TEST_F(AscBackendPostProcessorTest, GatherImproveprecision32_8_MulReference) {
   ASSERT_NE(shape_env_attr, nullptr);
   EXPECT_EQ(post_processor.Do(compute_graph), SUCCESS);
   int cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     const auto &op_desc = node->GetOpDesc();
     auto output_tensor_desc = op_desc->MutableOutputDesc(0);
     ASSERT_NE(output_tensor_desc, nullptr);
@@ -15404,7 +15404,7 @@ TEST_F(AscBackendPostProcessorTest, GatherImproveprecision8_32_MulReference) {
   ASSERT_NE(shape_env_attr, nullptr);
   EXPECT_EQ(post_processor.Do(compute_graph), SUCCESS);
   int cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     const auto &op_desc = node->GetOpDesc();
     auto output_tensor_desc = op_desc->MutableOutputDesc(0);
     ASSERT_NE(output_tensor_desc, nullptr);
@@ -15459,7 +15459,7 @@ TEST_F(AscBackendPostProcessorTest, GatherImproveprecision8_32) {
   ASSERT_NE(shape_env_attr, nullptr);
   EXPECT_EQ(post_processor.Do(compute_graph), SUCCESS);
   int cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     const auto &op_desc = node->GetOpDesc();
     auto output_tensor_desc = op_desc->MutableOutputDesc(0);
     ASSERT_NE(output_tensor_desc, nullptr);
@@ -15512,7 +15512,7 @@ TEST_F(AscBackendPostProcessorTest, GatherImproveprecision8_16_8) {
   ASSERT_NE(shape_env_attr, nullptr);
   EXPECT_EQ(post_processor.Do(compute_graph), SUCCESS);
   int cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     const auto &op_desc = node->GetOpDesc();
     auto output_tensor_desc = op_desc->MutableOutputDesc(0);
     ASSERT_NE(output_tensor_desc, nullptr);
@@ -15565,7 +15565,7 @@ TEST_F(AscBackendPostProcessorTest, GatherImproveprecision16_8_16) {
   ASSERT_NE(shape_env_attr, nullptr);
   EXPECT_EQ(post_processor.Do(compute_graph), SUCCESS);
   int cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     const auto &op_desc = node->GetOpDesc();
     auto output_tensor_desc = op_desc->MutableOutputDesc(0);
     ASSERT_NE(output_tensor_desc, nullptr);
@@ -15615,7 +15615,7 @@ TEST_F(AscBackendPostProcessorTest, GatherInsertCastImproveprecision) {
   AscBackendPostProcessor post_processor;
   EXPECT_EQ(post_processor.Do(compute_graph), SUCCESS);
   int cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
   printf("GatherImproveprecision node %s %s\n.", node->GetName().c_str(), node->GetType().c_str());
   cnt++;
   }
@@ -15648,7 +15648,7 @@ TEST_F(AscBackendPostProcessorTest, CompleteAttrWithGraphInvalidAxisNodeValidAxi
 
   ge::AscGraph add_graph1("add");
   attr1->SetAscGraph(CreatAscGraphWithGraphInvalidAxisNodeValidAxis(add_graph1));
-  const auto graph_attr = AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetAttrsGroup<AscGraphAttr>();
+  const auto graph_attr = af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetAttrsGroup<AscGraphAttr>();
   auto size = graph_attr->axis.size();
 
   AscBackendPostProcessor post_processor;
@@ -15660,7 +15660,7 @@ TEST_F(AscBackendPostProcessorTest, CompleteAttrWithGraphInvalidAxisNodeValidAxi
 
   EXPECT_EQ(graph_attr->axis.size(), size);
   printf("FallBackWithGraphInvalidAxis node size %lu\n.", size);
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     printf("FallBackWithGraphInvalidAxis node %s %s\n.", node->GetName().c_str(), node->GetType().c_str());
     const auto &op_desc = node->GetOpDesc();
     auto node_attr = op_desc->GetAttrsGroup<AscNodeAttr>();
@@ -15707,7 +15707,7 @@ TEST_F(AscBackendPostProcessorTest, CompleteAttrWithScalarAndAllAxisInvalid) {
 
   ge::AscGraph add_graph1("add");
   attr1->SetAscGraph(CreatAscGraphWithScalarAndAllAxisInvalid(add_graph1));
-  const auto graph_attr = AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetAttrsGroup<AscGraphAttr>();
+  const auto graph_attr = af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetAttrsGroup<AscGraphAttr>();
   auto size = graph_attr->axis.size() - 4U;
 
   AscBackendPostProcessor post_processor;
@@ -15719,7 +15719,7 @@ TEST_F(AscBackendPostProcessorTest, CompleteAttrWithScalarAndAllAxisInvalid) {
 
   EXPECT_EQ(graph_attr->axis.size(), size);
   printf("CreatAscGraphWithScalarAndAllAxisInvalid node size %lu\n.", size);
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     printf("FallBackWithGraphInvalidAxis node %s %s\n.", node->GetName().c_str(), node->GetType().c_str());
     const auto &op_desc = node->GetOpDesc();
     auto node_attr = op_desc->GetAttrsGroup<AscNodeAttr>();
@@ -15766,7 +15766,7 @@ TEST_F(AscBackendPostProcessorTest, CompleteAttrWithGraphAllAxisInvalid) {
 
   ge::AscGraph add_graph1("add");
   attr1->SetAscGraph(CreatAscGraphWithGraphAllAxisInvalid(add_graph1));
-  const auto graph_attr = AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetAttrsGroup<AscGraphAttr>();
+  const auto graph_attr = af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetAttrsGroup<AscGraphAttr>();
   auto size = graph_attr->axis.size() - 4U;
 
   AscBackendPostProcessor post_processor;
@@ -15778,7 +15778,7 @@ TEST_F(AscBackendPostProcessorTest, CompleteAttrWithGraphAllAxisInvalid) {
 
   EXPECT_EQ(graph_attr->axis.size(), size);
   printf("CreatAscGraphWithGraphAllAxisInvalid node size %lu\n.", size);
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     printf("FallBackWithGraphInvalidAxis node %s %s\n.", node->GetName().c_str(), node->GetType().c_str());
     const auto &op_desc = node->GetOpDesc();
     auto node_attr = op_desc->GetAttrsGroup<AscNodeAttr>();
@@ -15824,7 +15824,7 @@ TEST_F(AscBackendPostProcessorTest, CompleteAttrWithGraphInvalidAxis) {
 
   ge::AscGraph add_graph1("add");
   attr1->SetAscGraph(CreatAscGraphWithGraphInvalidAxis(add_graph1));
-  const auto graph_attr = AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetAttrsGroup<AscGraphAttr>();
+  const auto graph_attr = af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetAttrsGroup<AscGraphAttr>();
   auto size = graph_attr->axis.size();
 
   AscBackendPostProcessor post_processor;
@@ -15836,7 +15836,7 @@ TEST_F(AscBackendPostProcessorTest, CompleteAttrWithGraphInvalidAxis) {
 
   EXPECT_EQ(graph_attr->axis.size(), size - 1U);
   printf("FallBackWithGraphInvalidAxis node size %lu\n.", size);
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     printf("FallBackWithGraphInvalidAxis node %s %s\n.", node->GetName().c_str(), node->GetType().c_str());
     const auto &op_desc = node->GetOpDesc();
     auto node_attr = op_desc->GetAttrsGroup<AscNodeAttr>();
@@ -15885,7 +15885,7 @@ TEST_F(AscBackendPostProcessorTest, CompleteAttrWithGraphInvalidAxis2) {
 
   ge::AscGraph add_graph1("add");
   attr1->SetAscGraph(CreatAscGraphWithGraphInvalidAxis2(add_graph1));
-  const auto graph_attr = AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetAttrsGroup<AscGraphAttr>();
+  const auto graph_attr = af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetAttrsGroup<AscGraphAttr>();
   auto size = graph_attr->axis.size();
 
   AscBackendPostProcessor post_processor;
@@ -15897,7 +15897,7 @@ TEST_F(AscBackendPostProcessorTest, CompleteAttrWithGraphInvalidAxis2) {
 
   EXPECT_EQ(graph_attr->axis.size(), size - 1U);
   printf("FallBackWithGraphInvalidAxis node size %lu\n.", size);
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     printf("FallBackWithGraphInvalidAxis node %s %s\n.", node->GetName().c_str(), node->GetType().c_str());
     const auto &op_desc = node->GetOpDesc();
     auto node_attr = op_desc->GetAttrsGroup<AscNodeAttr>();
@@ -15953,7 +15953,7 @@ TEST_F(AscBackendPostProcessorTest, FallBackWithAxisIdDiffFromIndex) {
   EXPECT_EQ(post_processor.Do(compute_graph), SUCCESS);
 
   size_t broadcast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == "Broadcast") {
       broadcast_cnt++;
     }
@@ -16010,7 +16010,7 @@ TEST_F(AscBackendPostProcessorTest, IncreasePrecision_NoCast) {
 
   ge::AscGraph add_graph1("add");
   attr1->SetAscGraph(CreatAddAscGraph(add_graph1));
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     // ascir_op暂不支持Cast，认为设置type为cast
     if (node->GetName().find("Cast") != std::string::npos) {
       const auto &op_desc = node->GetOpDesc();
@@ -16027,7 +16027,7 @@ TEST_F(AscBackendPostProcessorTest, IncreasePrecision_NoCast) {
     printf("AscAdapterTest_Ok To find node to change precision, current node(%s), type:%s, speats %s, dtype:%s in graph %s.\n",
       node->GetName().c_str(), node->GetType().c_str(),
       AutofuseUtils::VectorToStr(attr->repeats).c_str(),
-      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
+      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
   }
   AscBackendPostProcessor post_processor;
   EXPECT_EQ(asc_adapt::GeFallback(compute_graph), SUCCESS);
@@ -16080,7 +16080,7 @@ TEST_F(AscBackendPostProcessorTest, IncreasePrecision_HasCast) {
 
   ge::AscGraph add_graph1("add");
   attr1->SetAscGraph(CreatAddWtihCastInFrontStoreAscGraph(add_graph1));
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     // ascir_op暂不支持Cast，认为设置type为cast
     if (node->GetName().find("Cast") != std::string::npos) {
       const auto &op_desc = node->GetOpDesc();
@@ -16097,7 +16097,7 @@ TEST_F(AscBackendPostProcessorTest, IncreasePrecision_HasCast) {
     printf("AscAdapterTest_Ok To find node to change precision, current node(%s), type:%s, speats %s, dtype:%s in graph %s.\n",
       node->GetName().c_str(), node->GetType().c_str(),
       AutofuseUtils::VectorToStr(attr->repeats).c_str(),
-      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
+      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
   }
   ASSERT_EQ(PrecisionImprover::ImprovePrecisionToFp32(compute_graph), SUCCESS);
 }
@@ -16145,7 +16145,7 @@ TEST_F(AscBackendPostProcessorTest, IncreasePrecision_HasCastAndStoreFp32) {
 
   ge::AscGraph add_graph1("add");
   attr1->SetAscGraph(CreatAddWtihNoCastInfrontStoreAscGraph(add_graph1));
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     // ascir_op暂不支持Cast，认为设置type为cast
     if (node->GetName().find("Cast") != std::string::npos) {
       const auto &op_desc = node->GetOpDesc();
@@ -16172,11 +16172,11 @@ TEST_F(AscBackendPostProcessorTest, IncreasePrecision_HasCastAndStoreFp32) {
     printf("AscAdapterTest_Ok To find node to change precision, current node(%s), type:%s, speats %s, dtype:%s in graph %s.\n",
       node->GetName().c_str(), node->GetType().c_str(),
       AutofuseUtils::VectorToStr(attr->repeats).c_str(),
-      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
+      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
   }
   ASSERT_EQ(PrecisionImprover::ImprovePrecisionToFp32(compute_graph), SUCCESS);
   size_t cast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     printf("AscAdapterTest_Ok node %s %s\n.", node->GetName().c_str(), node->GetType().c_str());
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
@@ -16193,7 +16193,7 @@ TEST_F(AscBackendPostProcessorTest, IncreasePrecision_HasCastAndStoreFp32) {
     printf("AscAdapterTest_Ok To find node to change precision, current node(%s), type:%s, speats %s, dtype:%s in graph %s.\n",
       node->GetName().c_str(), node->GetType().c_str(),
       AutofuseUtils::VectorToStr(attr->repeats).c_str(),
-      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
+      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
   }
   ASSERT_EQ(cast_cnt, 2);
 }
@@ -16224,7 +16224,7 @@ TEST_F(AscBackendPostProcessorTest, IncreasePrecision_Int8ToFloat16) {
 
   ge::AscGraph add_graph1("add");
   attr1->SetAscGraph(CreatAddWtihInt8ToFloat16(add_graph1));
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     printf("Int8ToFloat16 node %s %s\n.", node->GetName().c_str(), node->GetType().c_str());
   }
   AscBackendPostProcessor post_processor;
@@ -16234,7 +16234,7 @@ TEST_F(AscBackendPostProcessorTest, IncreasePrecision_Int8ToFloat16) {
   EXPECT_EQ(post_processor.Do(compute_graph), SUCCESS);
 
   size_t cast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
     // 获取数据类型属性
@@ -16264,7 +16264,7 @@ TEST_F(AscBackendPostProcessorTest, IncreasePrecision_Int8ToFloat16) {
     printf("AscAdapterTest_Ok To find node to change precision, current node(%s), type:%s, speats %s, dtype:%s in graph %s.\n",
       node->GetName().c_str(), node->GetType().c_str(),
       AutofuseUtils::VectorToStr(attr->repeats).c_str(),
-      TypeUtils::DataTypeToSerialString(dtype).c_str(), AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
+      TypeUtils::DataTypeToSerialString(dtype).c_str(), af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
   }
   ASSERT_EQ(cast_cnt, 7);
   ASSERT_EQ(asc_adapt::CheckCastDtype(DT_FLOAT16, DT_FLOAT) , true);
@@ -16319,7 +16319,7 @@ TEST_F(AscBackendPostProcessorTest, IncreasePrecision_HasCastAndStoreFp16) {
 
   ge::AscGraph add_graph1("add");
   attr1->SetAscGraph(CreatAddWtihNoCastInfrontStoreAscGraph(add_graph1));
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     // ascir_op暂不支持Cast，认为设置type为cast
     if (node->GetName().find("Cast") != std::string::npos) {
       const auto &op_desc = node->GetOpDesc();
@@ -16346,11 +16346,11 @@ TEST_F(AscBackendPostProcessorTest, IncreasePrecision_HasCastAndStoreFp16) {
     printf("AscAdapterTest_Ok To find node to change precision, current node(%s), type:%s, speats %s, dtype:%s in graph %s.\n",
       node->GetName().c_str(), node->GetType().c_str(),
       AutofuseUtils::VectorToStr(attr->repeats).c_str(),
-      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
+      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
   }
   ASSERT_EQ(PrecisionImprover::ImprovePrecisionToFp32(compute_graph), SUCCESS);
   size_t cast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     printf("AscAdapterTest_Ok node %s %s\n.", node->GetName().c_str(), node->GetType().c_str());
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
@@ -16372,7 +16372,7 @@ TEST_F(AscBackendPostProcessorTest, IncreasePrecision_HasCastAndStoreFp16) {
     printf("AscAdapterTest_Ok To find node to change precision, current node(%s), type:%s, speats %s, dtype:%s in graph %s.\n",
       node->GetName().c_str(), node->GetType().c_str(),
       AutofuseUtils::VectorToStr(attr->repeats).c_str(),
-      TypeUtils::DataTypeToSerialString(dtype).c_str(), AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
+      TypeUtils::DataTypeToSerialString(dtype).c_str(), af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
   }
   ASSERT_EQ(cast_cnt, 3);
 }
@@ -16421,7 +16421,7 @@ TEST_F(AscBackendPostProcessorTest, IncreasePrecision_MidCastNotDelLoadCastDel) 
 
   ge::AscGraph add_graph1("add");
   attr1->SetAscGraph(MidCastAndLoadCastAndStoreCastAscGraph(add_graph1));
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     printf("AscAdapterTest_Ok node %s %s\n.", node->GetName().c_str(), node->GetType().c_str());
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
@@ -16431,13 +16431,13 @@ TEST_F(AscBackendPostProcessorTest, IncreasePrecision_MidCastNotDelLoadCastDel) 
     printf("AscAdapterTest_Ok To find node to change precision, current node(%s), type:%s, speats %s, dtype:%s in graph %s.\n",
       node->GetName().c_str(), node->GetType().c_str(),
       AutofuseUtils::VectorToStr(attr->repeats).c_str(),
-      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
+      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
   }
   ASSERT_EQ(PrecisionImprover::ImprovePrecisionToFp32(compute_graph), SUCCESS);
 
   size_t cast_cnt = 0;
   bool has_cast_mid = false;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     printf("AscAdapterTest_Ok node %s %s\n.", node->GetName().c_str(), node->GetType().c_str());
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
@@ -16468,7 +16468,7 @@ TEST_F(AscBackendPostProcessorTest, IncreasePrecision_MidCastNotDelLoadCastDel) 
     printf("AscAdapterTest_Ok To find node to change precision, current node(%s), type:%s, speats %s, dtype:%s in graph %s.\n",
       node->GetName().c_str(), node->GetType().c_str(),
       AutofuseUtils::VectorToStr(attr->repeats).c_str(),
-      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
+      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
   }
   ASSERT_EQ(has_cast_mid, true);
   ASSERT_EQ(cast_cnt, 3 - 2);
@@ -16501,7 +16501,7 @@ TEST_F(AscBackendPostProcessorTest, IncreasePrecision_MidCastDelLoadCastNotDelSt
 
   ge::AscGraph add_graph1("add");
   attr1->SetAscGraph(MidCastAndLoadCastAndStoreCastAscGraph2(add_graph1));
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     printf("AscAdapterTest_Ok node %s %s\n.", node->GetName().c_str(), node->GetType().c_str());
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
@@ -16511,7 +16511,7 @@ TEST_F(AscBackendPostProcessorTest, IncreasePrecision_MidCastDelLoadCastNotDelSt
     printf("AscAdapterTest_Ok To find node to change precision, current node(%s), type:%s, speats %s, dtype:%s in graph %s.\n",
       node->GetName().c_str(), node->GetType().c_str(),
       AutofuseUtils::VectorToStr(attr->repeats).c_str(),
-      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
+      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
   }
   AscBackendPostProcessor post_processor;
   EXPECT_EQ(asc_adapt::GeFallback(compute_graph), SUCCESS);
@@ -16522,7 +16522,7 @@ TEST_F(AscBackendPostProcessorTest, IncreasePrecision_MidCastDelLoadCastNotDelSt
   size_t cast_cnt = 0;
   bool has_cast_mid = false;
   bool has_cast_before_store = false;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     printf("AscAdapterTest_Ok node %s %s\n.", node->GetName().c_str(), node->GetType().c_str());
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
@@ -16562,7 +16562,7 @@ TEST_F(AscBackendPostProcessorTest, IncreasePrecision_MidCastDelLoadCastNotDelSt
     printf("AscAdapterTest_Ok To find node to change precision, current node(%s), type:%s, speats %s, dtype:%s in graph %s.\n",
       node->GetName().c_str(), node->GetType().c_str(),
       AutofuseUtils::VectorToStr(attr->repeats).c_str(),
-      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
+      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
   }
   ASSERT_EQ(has_cast_mid, true);
   ASSERT_EQ(has_cast_before_store, false);
@@ -16596,7 +16596,7 @@ TEST_F(AscBackendPostProcessorTest, IncreasePrecision_ContinuousCastAfterLoadAnd
 
   ge::AscGraph add_graph1("add");
   attr1->SetAscGraph(ContinuousCastAfterLoadAndBeforeStoreAscGraph(add_graph1));
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
     // 获取数据类型属性
@@ -16605,7 +16605,7 @@ TEST_F(AscBackendPostProcessorTest, IncreasePrecision_ContinuousCastAfterLoadAnd
     printf("AscAdapterTest_Ok To find node to change precision, current node(%s), type:%s, speats %s, dtype:%s in graph %s.\n",
       node->GetName().c_str(), node->GetType().c_str(),
       AutofuseUtils::VectorToStr(attr->repeats).c_str(),
-      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
+      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
   }
   AscBackendPostProcessor post_processor;
   EXPECT_EQ(asc_adapt::GeFallback(compute_graph), SUCCESS);
@@ -16614,7 +16614,7 @@ TEST_F(AscBackendPostProcessorTest, IncreasePrecision_ContinuousCastAfterLoadAnd
   EXPECT_EQ(post_processor.Do(compute_graph), SUCCESS);
 
   size_t cast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     GeTensorDescPtr output_tensor_desc;
     EXPECT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
     // 获取数据类型属性
@@ -16654,7 +16654,7 @@ TEST_F(AscBackendPostProcessorTest, IncreasePrecision_ContinuousCastAfterLoadAnd
 
   ge::AscGraph add_graph1("add");
   attr1->SetAscGraph(ContinuousCastAfterLoadAndBeforeStoreAscGraph2(add_graph1));
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
     // 获取数据类型属性
@@ -16663,7 +16663,7 @@ TEST_F(AscBackendPostProcessorTest, IncreasePrecision_ContinuousCastAfterLoadAnd
     printf("AscAdapterTest_Ok To find node to change precision, current node(%s), type:%s, speats %s, dtype:%s in graph %s.\n",
       node->GetName().c_str(), node->GetType().c_str(),
       AutofuseUtils::VectorToStr(attr->repeats).c_str(),
-      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
+      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
   }
   AscBackendPostProcessor post_processor;
   EXPECT_EQ(asc_adapt::GeFallback(compute_graph), SUCCESS);
@@ -16672,7 +16672,7 @@ TEST_F(AscBackendPostProcessorTest, IncreasePrecision_ContinuousCastAfterLoadAnd
   EXPECT_EQ(post_processor.Do(compute_graph), SUCCESS);
 
   size_t cast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     GeTensorDescPtr output_tensor_desc;
     EXPECT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
     // 获取数据类型属性
@@ -16725,7 +16725,7 @@ TEST_F(AscBackendPostProcessorTest, Not_ImprovePrecision_BlackList) {
   EXPECT_EQ(post_processor.Do(compute_graph), SUCCESS);
 
   size_t cast_cnt = 0U;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
     // 获取数据类型属性
@@ -16775,7 +16775,7 @@ TEST_F(AscBackendPostProcessorTest, ImprovePrecision_BlackList1) {
   AutoFuseConfig::MutableConfig().GetMutableFusionStrategySolver().improve_precision_blacklist.clear();
 
   size_t cast_cnt = 0U;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
     // 获取数据类型属性
@@ -16830,7 +16830,7 @@ TEST_F(AscBackendPostProcessorTest, ImprovePrecision_BlackList2) {
   AutoFuseConfig::MutableConfig().GetMutableFusionStrategySolver().improve_precision_blacklist.clear();
 
   size_t cast_cnt = 0U;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
     // 获取数据类型属性
@@ -16888,7 +16888,7 @@ TEST_F(AscBackendPostProcessorTest, ImprovePrecision_BlackList3) {
   AutoFuseConfig::MutableConfig().GetMutableFusionStrategySolver().improve_precision_blacklist.clear();
 
   size_t cast_cnt = 0U;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
     // 获取数据类型属性
@@ -16940,7 +16940,7 @@ TEST_F(AscBackendPostProcessorTest, ImprovePrecision_BlackList4) {
   AutoFuseConfig::MutableConfig().GetMutableFusionStrategySolver().improve_precision_blacklist.clear();
 
   size_t cast_cnt = 0U;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
     // 获取数据类型属性
@@ -16992,7 +16992,7 @@ TEST_F(AscBackendPostProcessorTest, ImprovePrecision_BlackList5) {
   AutoFuseConfig::MutableConfig().GetMutableFusionStrategySolver().improve_precision_blacklist.clear();
 
   size_t cast_cnt = 0U;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
     // 获取数据类型属性
@@ -17078,7 +17078,7 @@ TEST_F(AscBackendPostProcessorTest, ImprovePrecision_BF16) {
   ASSERT_NE(shape_env_attr, nullptr);
   EXPECT_EQ(post_processor.Do(compute_graph), SUCCESS);
   size_t cast_cnt = 0U;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
     if (node->GetType() == "Cast") {
@@ -17128,7 +17128,7 @@ TEST_F(AscBackendPostProcessorTest, ImprovePrecision_WithLoadToCastToStore) {
   EXPECT_EQ(post_processor.Do(compute_graph), SUCCESS);
 
   size_t cast_cnt = 0U;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
     // 获取数据类型属性
@@ -17175,7 +17175,7 @@ TEST_F(AscBackendPostProcessorTest, ImprovePrecision_WithLoadToCastToStore2) {
   EXPECT_EQ(post_processor.Do(compute_graph), SUCCESS);
 
   size_t cast_cnt = 0U;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
     // 获取数据类型属性
@@ -17228,7 +17228,7 @@ TEST_F(AscBackendPostProcessorTest, ImprovePrecision_WithLoadToCastToStore3) {
   const Expression D = add_graph1.CreateSizeVar("D");
   const Expression E = add_graph1.CreateSizeVar("E");
   size_t cast_cnt = 0U;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
     // 获取数据类型属性
@@ -17296,7 +17296,7 @@ TEST_F(AscBackendPostProcessorTest, ImprovePrecision_WithLoadToStore) {
   EXPECT_EQ(post_processor.Do(compute_graph), SUCCESS);
 
   size_t cast_cnt = 0U;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
     // 获取数据类型属性
@@ -17343,7 +17343,7 @@ TEST_F(AscBackendPostProcessorTest, ImprovePrecision_WithLoadToBroadcastToStore)
   EXPECT_EQ(post_processor.Do(compute_graph), SUCCESS);
 
   size_t cast_cnt = 0U;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
     // 获取数据类型属性
@@ -17396,7 +17396,7 @@ TEST_F(AscBackendPostProcessorTest, Fallback_CreatAscGraphWithLoadToBroadcstAndT
   const Expression D = add_graph1.CreateSizeVar("D");
   const Expression E = add_graph1.CreateSizeVar("E");
   size_t cast_cnt = 0U;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
     // 获取数据类型属性
@@ -17405,7 +17405,7 @@ TEST_F(AscBackendPostProcessorTest, Fallback_CreatAscGraphWithLoadToBroadcstAndT
     printf("CreatAscGraphWithLoadToBroadcstAndTransposeToStore , current node(%s), type:%s, speats %s, dtype:%s in graph %s.\n",
       node->GetName().c_str(), node->GetType().c_str(),
       AutofuseUtils::VectorToStr(attr->repeats).c_str(),
-      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
+      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
     if (node->GetType() == "Broadcast") {
       std::vector<int64_t> expect_axis = {0, 1, 2, 4, 3};
       std::vector<ge::Expression> expect_repeats = {A, B, C, E, D};
@@ -17469,7 +17469,7 @@ TEST_F(AscBackendPostProcessorTest, Fallback_CreatAscGraphWithLoadToBroadcstAndT
   const Expression D = add_graph1.CreateSizeVar("D");
   const Expression E = add_graph1.CreateSizeVar("E");
   size_t cast_cnt = 0U;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
     // 获取数据类型属性
@@ -17478,7 +17478,7 @@ TEST_F(AscBackendPostProcessorTest, Fallback_CreatAscGraphWithLoadToBroadcstAndT
     printf("CreatAscGraphWithLoadToBroadcstAndTransposeToStore2, current node(%s), type:%s, speats %s, dtype:%s in graph %s.\n",
       node->GetName().c_str(), node->GetType().c_str(),
       AutofuseUtils::VectorToStr(attr->repeats).c_str(),
-      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
+      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
     if (node->GetType() == "Broadcast") {
       std::vector<int64_t> expect_axis = {0, 1, 2, 3, 4};
       std::vector<ge::Expression> expect_repeats = {A, B, C, D, E};
@@ -17542,7 +17542,7 @@ TEST_F(AscBackendPostProcessorTest, Fallback_CreatAscGraphWithLoadToBroadcstAndT
   const Expression D = add_graph1.CreateSizeVar("D");
   const Expression E = add_graph1.CreateSizeVar("E");
   size_t cast_cnt = 0U;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
     // 获取数据类型属性
@@ -17551,7 +17551,7 @@ TEST_F(AscBackendPostProcessorTest, Fallback_CreatAscGraphWithLoadToBroadcstAndT
     printf("CreatAscGraphWithLoadToBroadcstAndTransposeToStore3, current node(%s), type:%s, speats %s, dtype:%s in graph %s.\n",
       node->GetName().c_str(), node->GetType().c_str(),
       AutofuseUtils::VectorToStr(attr->repeats).c_str(),
-      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
+      TypeUtils::DataTypeToSerialString(attr->dtype).c_str(), af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetName().c_str());
     if (node->GetType() == "Broadcast") {
       std::vector<int64_t> expect_axis = {0, 1, 2, 3, 4};
       std::vector<ge::Expression> expect_repeats = {A, B, C, D, E};
@@ -17641,7 +17641,7 @@ TEST_F(AscBackendPostProcessorTest, FallBackBroadcastDtype_DtypeNoFloatAscGraph)
   EXPECT_EQ(post_processor.Do(compute_graph), SUCCESS);
 
   size_t broadcast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
     // 获取数据类型属性
@@ -17681,7 +17681,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_CyclicExternalLiftPassMutilReferenc
 
   ge::AscGraph add_graph1("add");
   attr1->SetAscGraph(CreatAscGraphWithDiffRepeatsMutilReference(add_graph1));
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     // ascir_op暂不支持Cast，认为设置type为cast
     if (node->GetName().find("Cast") != std::string::npos) {
       const auto &op_desc = node->GetOpDesc();
@@ -17708,7 +17708,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_CyclicExternalLiftPassMutilReferenc
   const Expression D = add_graph1.CreateSizeVar("D");
   const Expression E = add_graph1.CreateSizeVar("E");
   size_t broadcast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == "Broadcast") {
       GeTensorDescPtr output_tensor_desc;
       ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
@@ -17778,7 +17778,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_CyclicExternalLiftPassWithScalar_OK
 
   ge::AscGraph add_graph1("add");
   attr1->SetAscGraph(CreatAscGraphWithDiffRepeatsWithScalar(add_graph1));
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     // ascir_op暂不支持Cast，认为设置type为cast
     if (node->GetName().find("Cast") != std::string::npos) {
       const auto &op_desc = node->GetOpDesc();
@@ -17798,7 +17798,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_CyclicExternalLiftPassWithScalar_OK
   EXPECT_EQ(post_processor.Do(compute_graph), SUCCESS);
 
   size_t broadcast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == "Broadcast") {
       broadcast_cnt++;
       continue;
@@ -17845,7 +17845,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_CyclicExternalLiftPassMutilReferenc
 
   ge::AscGraph add_graph1("load_mul_reference2");
   attr1->SetAscGraph(CreatAscGraphWithDiffRepeatsMutilReference2(add_graph1));
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     // ascir_op暂不支持Cast，认为设置type为cast
     if (node->GetName().find("Cast") != std::string::npos) {
       const auto &op_desc = node->GetOpDesc();
@@ -17865,7 +17865,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_CyclicExternalLiftPassMutilReferenc
   EXPECT_EQ(post_processor.Do(compute_graph), SUCCESS);
 
   size_t broadcast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == "Broadcast") {
       broadcast_cnt++;
       continue;
@@ -17920,7 +17920,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_CompleteAttrAndBroadcast_OK) {
   const Expression D = add_graph1.CreateSizeVar("D");
   const Expression E = add_graph1.CreateSizeVar("E");
   size_t broadcast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     printf("Adaption_Torch_TransposeAscGraph_OK node %s %s\n.", node->GetName().c_str(), node->GetType().c_str());
     if (node->GetType() == "Broadcast") {
       GeTensorDescPtr output_tensor_desc;
@@ -18008,7 +18008,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_CyclicExternalLiftPassMutilReferenc
 
   ge::AscGraph add_graph1("load_mul_reference2");
   attr1->SetAscGraph(CreatAscGraphWithStoreMutilReference(add_graph1));
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     // ascir_op暂不支持Cast，认为设置type为cast
     if (node->GetName().find("Cast") != std::string::npos) {
       const auto &op_desc = node->GetOpDesc();
@@ -18028,7 +18028,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_CyclicExternalLiftPassMutilReferenc
   EXPECT_EQ(post_processor.Do(compute_graph), SUCCESS);
 
   size_t broadcast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == "Broadcast") {
       broadcast_cnt++;
       ASSERT_EQ(node->GetOutDataNodes().size(), 1);
@@ -18197,7 +18197,7 @@ TEST_F(AscBackendPostProcessorTest, BroadcastBackward_MulInputAscGraph_Ok) {
   EXPECT_EQ(post_processor.Do(compute_graph), SUCCESS);
 
   size_t broadcast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
     // 获取数据类型属性
@@ -18264,7 +18264,7 @@ TEST_F(AscBackendPostProcessorTest, BroadcastBackward_UpdateBroadcastDataType_Ok
   EXPECT_EQ(post_processor.Do(compute_graph), SUCCESS);
 
   size_t broadcast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
     // 获取数据类型属性
@@ -18317,7 +18317,7 @@ TEST_F(AscBackendPostProcessorTest, BroadcastBackward_UpdateComputeNodeOutputTen
   const Expression E = add_graph1.CreateSizeVar("E");
   std::vector<ge::Expression> expect_repeats = {ONE, ONE, ONE, D, E};
   std::vector<ge::Expression> expect_strides = {ZERO, ZERO, ZERO, E, ONE};
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
     // 获取数据类型属性
@@ -18375,7 +18375,7 @@ TEST_F(AscBackendPostProcessorTest, BroadcastBackward_ReduceAscGraph_Ok) {
   EXPECT_EQ(post_processor.Do(compute_graph), SUCCESS);
 
   size_t broadcast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
     // 获取数据类型属性
@@ -18426,7 +18426,7 @@ TEST_F(AscBackendPostProcessorTest, BroadcastBackward_MulOutputAscGraph_Ok) {
   EXPECT_EQ(post_processor.Do(compute_graph), SUCCESS);
 
   size_t broadcast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
     // 获取数据类型属性
@@ -18477,7 +18477,7 @@ TEST_F(AscBackendPostProcessorTest, AscBackendNoKernel_HasAttrs_Ok) {
   ASSERT_NE(shape_env_attr, nullptr);
   EXPECT_EQ(post_processor.Do(compute_graph), SUCCESS);
 
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
     auto attr = output_tensor_desc->GetOrCreateAttrsGroup<AscTensorAttr>();
@@ -18537,7 +18537,7 @@ TEST_F(AscBackendPostProcessorTest, BroadcastBackward_MulInputAscGraph_Ok2) {
   EXPECT_EQ(post_processor.Do(compute_graph), SUCCESS);
 
   size_t broadcast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
     // 获取数据类型属性
@@ -18588,7 +18588,7 @@ TEST_F(AscBackendPostProcessorTest, PartBroadcastBackward_AscGraph_Ok) {
   EXPECT_EQ(post_processor.Do(compute_graph), SUCCESS);
 
   size_t broadcast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
     // 获取数据类型属性
@@ -18639,7 +18639,7 @@ TEST_F(AscBackendPostProcessorTest, PartBroadcastBackward_AscGraph_Ok2) {
   EXPECT_EQ(post_processor.Do(compute_graph), SUCCESS);
 
   size_t broadcast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
     // 获取数据类型属性
@@ -18690,7 +18690,7 @@ TEST_F(AscBackendPostProcessorTest, PartBroadcastBackward_AscGraph_Ok3) {
   EXPECT_EQ(post_processor.Do(compute_graph), SUCCESS);
 
   size_t broadcast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
     // 获取数据类型属性
@@ -18741,7 +18741,7 @@ TEST_F(AscBackendPostProcessorTest, PartBroadcastBackward_AscGraph_Ok4) {
   EXPECT_EQ(post_processor.Do(compute_graph), SUCCESS);
 
   size_t broadcast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
     // 获取数据类型属性
@@ -18792,7 +18792,7 @@ TEST_F(AscBackendPostProcessorTest, PartBroadcastBackward_AscGraph_Ok5) {
   EXPECT_EQ(post_processor.Do(compute_graph), SUCCESS);
 
   size_t broadcast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
     // 获取数据类型属性
@@ -18843,7 +18843,7 @@ TEST_F(AscBackendPostProcessorTest, PartBroadcastBackward_AscGraph_Ok6) {
   EXPECT_EQ(post_processor.Do(compute_graph), SUCCESS);
 
   size_t broadcast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
     // 获取数据类型属性
@@ -18904,7 +18904,7 @@ TEST_F(AscBackendPostProcessorTest, PartBroadcastBackward_AscGraph_Ok7) {
   auto ZERO = Symbol(0);
   const Expression D = add_graph1.CreateSizeVar("D");
   const Expression E = add_graph1.CreateSizeVar("E");
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
     // 获取数据类型属性
@@ -18960,7 +18960,7 @@ TEST_F(AscBackendPostProcessorTest, PartBroadcastBackward_AscGraph_Ok8) {
   EXPECT_EQ(asc_adapt::CompleteNodeAttrsOnAscGraphForSched(compute_graph), SUCCESS);
   EXPECT_EQ(broadcast_backward_pass.Run(compute_graph), SUCCESS);
   size_t broadcast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
     // 获取数据类型属性
@@ -19010,7 +19010,7 @@ TEST_F(AscBackendPostProcessorTest, PartBroadcastBackward_AscGraph_Ok9) {
   EXPECT_EQ(broadcast_backward_pass.Run(compute_graph), SUCCESS);
 
   size_t broadcast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
     // 获取数据类型属性
@@ -19059,7 +19059,7 @@ TEST_F(AscBackendPostProcessorTest, PartBroadcastBackward_AscGraph_Ok10) {
   EXPECT_EQ(asc_adapt::CompleteNodeAttrsOnAscGraphForSched(compute_graph), SUCCESS);
   EXPECT_EQ(broadcast_backward_pass.Run(compute_graph), SUCCESS);
   size_t broadcast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
     // 获取数据类型属性
@@ -19107,7 +19107,7 @@ TEST_F(AscBackendPostProcessorTest, PartBroadcastBackward_AscGraph_Ok11) {
   EXPECT_EQ(asc_adapt::CompleteNodeAttrsOnAscGraphForSched(compute_graph), SUCCESS);
   EXPECT_EQ(broadcast_backward_pass.Run(compute_graph), SUCCESS);
   size_t broadcast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
     // 获取数据类型属性
@@ -19155,7 +19155,7 @@ TEST_F(AscBackendPostProcessorTest, PartBroadcastBackward_AscGraph_Ok12) {
   EXPECT_EQ(asc_adapt::CompleteNodeAttrsOnAscGraphForSched(compute_graph), SUCCESS);
   EXPECT_EQ(broadcast_backward_pass.Run(compute_graph), SUCCESS);
   size_t broadcast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     GeTensorDescPtr output_tensor_desc;
     ASSERT_EQ(asc_adapt::GetOutputTensorDesc(node, output_tensor_desc), SUCCESS);
     // 获取数据类型属性
@@ -19207,7 +19207,7 @@ TEST_F(AscBackendPostProcessorTest, BroadcastBackward_ScalarNotOK) {
 
   // 校验结果
   size_t broadcast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == "Output" || node->GetType() == "Data") {
       continue;
     }
@@ -19233,7 +19233,7 @@ TEST_F(AscBackendPostProcessorTest, BroadcastBackward_ScalarNotOK) {
 // Broadcast后移判断Scalar节点后的Brc在其后计算节点支持Scalar时也支持后移
 TEST_F(AscBackendPostProcessorTest, BroadcastBackward_ScalarOK) {
   // 添加自定义AscIrCodegen实现，使IsScalarInputSupported返回true
-  class TestAscIrCodegenStub : public ge::ascir::AscIrCodegen {
+  class TestAscIrCodegenStub : public af::ascir::AscIrCodegen {
    public:
     bool IsScalarInputSupported(const std::vector<bool> &is_scalar_list) const override {
       return true;
@@ -19245,15 +19245,15 @@ TEST_F(AscBackendPostProcessorTest, BroadcastBackward_ScalarOK) {
   ge::PlatformContext::GetInstance().GetCurrentPlatformString(platform_name);
 
   // 保存原始注册表状态
-  auto &registry = ge::ascir::AscirRegistry::GetInstance();
+  auto &registry = af::ascir::AscirRegistry::GetInstance();
   auto original_registry = registry.GetAll();
 
   // 创建AscIrImpl对象，设置codegen创建函数
-  ge::ascir::AscIrImpl ir_impl;
-  ir_impl.codegen = []() { return std::unique_ptr<ge::ascir::AscIrCodegen>(new TestAscIrCodegenStub()); };
+  af::ascir::AscIrImpl ir_impl;
+  ir_impl.codegen = []() { return std::unique_ptr<af::ascir::AscIrCodegen>(new TestAscIrCodegenStub()); };
 
   // 创建AscIrDef对象并添加实现
-  ge::ascir::AscIrDef ir_def;
+  af::ascir::AscIrDef ir_def;
   ir_def.Init("Abs", __FILE__, __LINE__);
   ir_def.AddSocImpl({platform_name}, ir_impl);
 
@@ -19291,7 +19291,7 @@ TEST_F(AscBackendPostProcessorTest, BroadcastBackward_ScalarOK) {
 
   // 校验结果
   size_t broadcast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == "Output" || node->GetType() == "Data") {
       continue;
     }
@@ -19346,7 +19346,7 @@ TEST_F(AscBackendPostProcessorTest, BroadcastBackward_ScalarMulRefsNOK) {
 
   // 校验结果
   size_t broadcast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == "Broadcast") {
       broadcast_cnt++;
     }
@@ -19399,7 +19399,7 @@ TEST_F(AscBackendPostProcessorTest, BroadcastBackward_ScalarMulRefsNOK2) {
 
   // 校验结果
   size_t broadcast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == "Broadcast") {
       broadcast_cnt++;
     }
@@ -19422,7 +19422,7 @@ TEST_F(AscBackendPostProcessorTest, BroadcastBackward_ScalarMulRefsNOK2) {
 // Broadcast后移判断Scalar节点后的Brc多引用场景在其后计算节点支持Scalar时也支持后移（Broadcast多引用）
 TEST_F(AscBackendPostProcessorTest, BroadcastBackward_ScalarMulRefsOK) {
   // 添加自定义AscIrCodegen实现，使IsScalarInputSupported返回true
-  class TestAscIrCodegenStub : public ge::ascir::AscIrCodegen {
+  class TestAscIrCodegenStub : public af::ascir::AscIrCodegen {
    public:
     bool IsScalarInputSupported(const std::vector<bool> &is_scalar_list) const override {
       return true;
@@ -19434,15 +19434,15 @@ TEST_F(AscBackendPostProcessorTest, BroadcastBackward_ScalarMulRefsOK) {
   ge::PlatformContext::GetInstance().GetCurrentPlatformString(platform_name);
 
   // 保存原始注册表状态
-  auto &registry = ge::ascir::AscirRegistry::GetInstance();
+  auto &registry = af::ascir::AscirRegistry::GetInstance();
   auto original_registry = registry.GetAll();
 
   // 创建AscIrImpl对象，设置codegen创建函数
-  ge::ascir::AscIrImpl ir_impl;
-  ir_impl.codegen = []() { return std::unique_ptr<ge::ascir::AscIrCodegen>(new TestAscIrCodegenStub()); };
+  af::ascir::AscIrImpl ir_impl;
+  ir_impl.codegen = []() { return std::unique_ptr<af::ascir::AscIrCodegen>(new TestAscIrCodegenStub()); };
 
   // 创建AscIrDef对象并添加实现
-  ge::ascir::AscIrDef ir_def;
+  af::ascir::AscIrDef ir_def;
   ir_def.Init("Add", __FILE__, __LINE__);
   ir_def.AddSocImpl({platform_name}, ir_impl);
 
@@ -19480,7 +19480,7 @@ TEST_F(AscBackendPostProcessorTest, BroadcastBackward_ScalarMulRefsOK) {
 
   // 校验结果
   size_t broadcast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == "Output" || node->GetType() == "Data") {
       continue;
     }
@@ -19512,7 +19512,7 @@ TEST_F(AscBackendPostProcessorTest, BroadcastBackward_ScalarMulRefsOK) {
 // Broadcast后移判断Scalar节点后的Brc在其后计算节点支持Scalar时也支持后移（Scalar多引用）
 TEST_F(AscBackendPostProcessorTest, BroadcastBackward_ScalarMulRefsOK2) {
   // 添加自定义AscIrCodegen实现，使IsScalarInputSupported返回true
-  class TestAscIrCodegenStub : public ge::ascir::AscIrCodegen {
+  class TestAscIrCodegenStub : public af::ascir::AscIrCodegen {
    public:
     bool IsScalarInputSupported(const std::vector<bool> &is_scalar_list) const override {
       return true;
@@ -19524,15 +19524,15 @@ TEST_F(AscBackendPostProcessorTest, BroadcastBackward_ScalarMulRefsOK2) {
   ge::PlatformContext::GetInstance().GetCurrentPlatformString(platform_name);
 
   // 保存原始注册表状态
-  auto &registry = ge::ascir::AscirRegistry::GetInstance();
+  auto &registry = af::ascir::AscirRegistry::GetInstance();
   auto original_registry = registry.GetAll();
 
   // 创建AscIrImpl对象，设置codegen创建函数
-  ge::ascir::AscIrImpl ir_impl;
-  ir_impl.codegen = []() { return std::unique_ptr<ge::ascir::AscIrCodegen>(new TestAscIrCodegenStub()); };
+  af::ascir::AscIrImpl ir_impl;
+  ir_impl.codegen = []() { return std::unique_ptr<af::ascir::AscIrCodegen>(new TestAscIrCodegenStub()); };
 
   // 创建AscIrDef对象并添加实现
-  ge::ascir::AscIrDef ir_def;
+  af::ascir::AscIrDef ir_def;
   ir_def.Init("Add", __FILE__, __LINE__);
   ir_def.AddSocImpl({platform_name}, ir_impl);
 
@@ -19568,7 +19568,7 @@ TEST_F(AscBackendPostProcessorTest, BroadcastBackward_ScalarMulRefsOK2) {
 
   // 校验结果
   size_t broadcast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == "Broadcast") {
       broadcast_cnt++;
     }
@@ -19597,7 +19597,7 @@ TEST_F(AscBackendPostProcessorTest, BroadcastBackward_ScalarMulRefsOK2) {
 // Broadcast后移判断Scalar节点后的Brc在其后计算节点不支持Scalar时不支持后移（Brc多引用+多输入公共Brc触发后移但多引用部分无法后移）
 TEST_F(AscBackendPostProcessorTest, BroadcastBackward_ScalarMulRefsOK3) {
   // 添加自定义AscIrCodegen实现，使IsScalarInputSupported返回true
-  class TestAscIrCodegenStub : public ge::ascir::AscIrCodegen {
+  class TestAscIrCodegenStub : public af::ascir::AscIrCodegen {
    public:
     bool IsScalarInputSupported(const std::vector<bool> &is_scalar_list) const override {
       return true;
@@ -19609,15 +19609,15 @@ TEST_F(AscBackendPostProcessorTest, BroadcastBackward_ScalarMulRefsOK3) {
   ge::PlatformContext::GetInstance().GetCurrentPlatformString(platform_name);
 
   // 保存原始注册表状态
-  auto &registry = ge::ascir::AscirRegistry::GetInstance();
+  auto &registry = af::ascir::AscirRegistry::GetInstance();
   auto original_registry = registry.GetAll();
 
   // 创建AscIrImpl对象，设置codegen创建函数
-  ge::ascir::AscIrImpl ir_impl;
-  ir_impl.codegen = []() { return std::unique_ptr<ge::ascir::AscIrCodegen>(new TestAscIrCodegenStub()); };
+  af::ascir::AscIrImpl ir_impl;
+  ir_impl.codegen = []() { return std::unique_ptr<af::ascir::AscIrCodegen>(new TestAscIrCodegenStub()); };
 
   // 创建AscIrDef对象并添加实现
-  ge::ascir::AscIrDef ir_def;
+  af::ascir::AscIrDef ir_def;
   ir_def.Init("Sub", __FILE__, __LINE__);
   ir_def.AddSocImpl({platform_name}, ir_impl);
 
@@ -19656,7 +19656,7 @@ TEST_F(AscBackendPostProcessorTest, BroadcastBackward_ScalarMulRefsOK3) {
 
   // 校验结果
   size_t broadcast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == "Broadcast") {
       broadcast_cnt++;
     }
@@ -19685,7 +19685,7 @@ TEST_F(AscBackendPostProcessorTest, BroadcastBackward_ScalarMulRefsOK3) {
 // Broadcast后移判断Scalar节点后的Brc在其后计算节点不支持Scalar时不支持后移（Scalar多引用+多输入公共Brc触发后移）
 TEST_F(AscBackendPostProcessorTest, BroadcastBackward_ScalarMulRefsOK4) {
   // 添加自定义AscIrCodegen实现，使IsScalarInputSupported返回true
-  class TestAscIrCodegenStub : public ge::ascir::AscIrCodegen {
+  class TestAscIrCodegenStub : public af::ascir::AscIrCodegen {
    public:
     bool IsScalarInputSupported(const std::vector<bool> &is_scalar_list) const override {
       return true;
@@ -19697,18 +19697,18 @@ TEST_F(AscBackendPostProcessorTest, BroadcastBackward_ScalarMulRefsOK4) {
   ge::PlatformContext::GetInstance().GetCurrentPlatformString(platform_name);
 
   // 保存原始注册表状态
-  auto &registry = ge::ascir::AscirRegistry::GetInstance();
+  auto &registry = af::ascir::AscirRegistry::GetInstance();
   auto original_registry = registry.GetAll();
 
   // 清除所有已注册的算子，确保 Add 算子使用默认实现
   registry.ClearAll();
 
   // 创建AscIrImpl对象，设置codegen创建函数
-  ge::ascir::AscIrImpl ir_impl;
-  ir_impl.codegen = []() { return std::unique_ptr<ge::ascir::AscIrCodegen>(new TestAscIrCodegenStub()); };
+  af::ascir::AscIrImpl ir_impl;
+  ir_impl.codegen = []() { return std::unique_ptr<af::ascir::AscIrCodegen>(new TestAscIrCodegenStub()); };
 
   // 创建AscIrDef对象并添加实现
-  ge::ascir::AscIrDef ir_def;
+  af::ascir::AscIrDef ir_def;
   ir_def.Init("Sub", __FILE__, __LINE__);
   ir_def.AddSocImpl({platform_name}, ir_impl);
 
@@ -19745,7 +19745,7 @@ TEST_F(AscBackendPostProcessorTest, BroadcastBackward_ScalarMulRefsOK4) {
 
   // 验证结果
   size_t broadcast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == "Broadcast") {
       broadcast_cnt++;
     }
@@ -19803,7 +19803,7 @@ TEST_F(AscBackendPostProcessorTest, BroadcastBackward_DtypeNotSupportOp_Ok) {
 
   // 校验结果：Broadcast后移不会移动到第二个Cast后
   size_t broadcast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == "Output" || node->GetType() == "Data") {
       continue;
     }
@@ -19854,7 +19854,7 @@ TEST_F(AscBackendPostProcessorTest, Adaption_CyclicExternalLiftPass_DtypeNotSupp
 
   // 验证Store节点的直接前驱不是Broadcast节点，说明循环外提没有发生
   size_t broadcast_cnt = 0;
-  for (auto node : AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
+  for (auto node : af::AscGraphUtils::GetComputeGraph(*(attr1->GetAscGraph()))->GetDirectNode()) {
     if (node->GetType() == "Output" || node->GetType() == "Data") {
       continue;
     }

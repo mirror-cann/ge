@@ -16,6 +16,7 @@ if (GE_DT)
     find_package_if_target_not_exists(datagw MODULE REQUIRED)
     find_package(cce MODULE REQUIRED)
     find_package(ascend_hal MODULE REQUIRED)
+    find_package_if_target_not_exists(atrace MODULE REQUIRED)
 
     set(METADEF_DIR ${CMAKE_CURRENT_LIST_DIR}/../base/metadef)
     if (NOT BUILD_METADEF)

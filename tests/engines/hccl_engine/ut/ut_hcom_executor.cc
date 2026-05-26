@@ -630,7 +630,7 @@ TEST_F(HcomExecutorTest, ut_executor_equeue_allreduce) {
       return;
     }
   }
-  std::this_thread::sleep_for(std::chrono::seconds(2));
+  std::this_thread::sleep_for(std::chrono::seconds(1));
   HCCL_INFO("HcomExcutor excutorStatus[%d]", excutorStatus);
   EXPECT_EQ(excutorStatus, HCCL_SUCCESS);
   for (int j = 0; j < count; j++) {
@@ -731,7 +731,7 @@ TEST_F(HcomExecutorTest, ut_executor_equeue_reduce_scatter) {
       return;
     }
   }
-  std::this_thread::sleep_for(std::chrono::seconds(2));
+  std::this_thread::sleep_for(std::chrono::seconds(1));
   HCCL_INFO("HcomExcutor excutorStatus[%d]", excutorStatus);
   EXPECT_EQ(excutorStatus, HCCL_SUCCESS);
   for (int j = 0; j < count; j++) {

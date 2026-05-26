@@ -136,7 +136,7 @@ class AutofuseUtils {
                                           std::vector<DataType> &expect_output_dtypes) {
     std::string npu_arch;
     GE_ASSERT_SUCCESS(ge::PlatformContext::GetInstance().GetCurrentPlatformString(npu_arch));
-    return ge::ascir::CommonInferDtype(op_type, input_dtypes, expect_output_dtypes, npu_arch);
+    return af::ascir::CommonInferDtype(op_type, input_dtypes, expect_output_dtypes, npu_arch);
   }
 
   static bool IsAutoFuseNode(const ge::OpDescPtr &op_desc) {

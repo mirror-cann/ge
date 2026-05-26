@@ -234,64 +234,10 @@ message AxisDef {
   bool allow_unaligned_tail = 10;
 }
 
-message AscendCIROpAttrGroupsDef {
-  string name = 1;
-  string type = 2;
-}
-
-message AscTensorAttrGroupsDef {
-  int64 dtype = 1;
-  repeated int64 axis_ids = 2;
-  repeated string repeats = 3; // expression
-  repeated string strides = 4; // expression
-  repeated int64 vectorized_axis = 5;
-  repeated string vectorized_strides = 6;
-  MemAttrDef mem = 7;
-  MemQueueAttrDef que = 8;
-  MemBufAttrDef buf = 9;
-  MemOptAttrDef opt = 10;
-}
-
-message AscGraphAttrGroupsDef {
-  int64 tiling_key = 1;
-  repeated AxisDef axis = 2;
-  int64 type = 3;
-  repeated string size_var = 4;
-}
-
-message AscIrAttrDef {
-  map<string, AttrDef> attr = 1;
-}
-
-
-message TmpBufDescDef {
-  string size = 1; // expression
-  int64 life_time_axis_id = 2;
-}
-
-message TmpBufferGroupDef {
-  TmpBufDescDef buf_desc = 1;
-  MemAttrDef mem = 2;
-  int64 id = 3;
-}
-
-message AscNodeAttrGroupsDef {
-  string name = 1;
-  string type = 2;
-  SchedInfoDef sched = 3;
-  ApiInfoDef api = 4;
-  AscIrAttrDef ir_attr_def = 5;
-  repeated TmpBufferGroupDef tmp_buffers = 6;
-}
-
 message AttrGroupDef {
   oneof attr_group {
-    AscendCIROpAttrGroupsDef op_attr_group = 2;
     TensorDescAttrGroupsDef tensor_attr_group = 3;
     ShapeEnvAttrGroupsDef shape_env_attr_group = 4;
-    AscGraphAttrGroupsDef asc_graph_attr_group = 5;
-    AscNodeAttrGroupsDef asc_node_attr_group = 6;
-    AscTensorAttrGroupsDef asc_tensor_attr_group = 7;
   }
 }
 

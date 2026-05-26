@@ -404,7 +404,9 @@ add_custom_target(graph_stub DEPENDS ${STUB_SRC_LIST})
 #############################################################
 
 ############ stub/libgraph.so ############
-add_library(atc_stub_graph SHARED ${STUB_SRC_LIST})
+add_library(atc_stub_graph SHARED ${STUB_SRC_LIST}
+    ${CMAKE_CURRENT_SOURCE_DIR}/stub/stub_operator_factory_impl.cc
+)
 
 add_dependencies(atc_stub_graph graph_stub)
 
@@ -503,7 +505,6 @@ set_target_properties(fwk_stub_graph PROPERTIES
     OUTPUT_NAME graph
     LIBRARY_OUTPUT_DIRECTORY fwk_stub
 )
-add_subdirectory(ascendc_ir)
 add_subdirectory(expression)
 
 ############ install ############

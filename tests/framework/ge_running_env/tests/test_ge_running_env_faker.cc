@@ -143,11 +143,13 @@ TEST_F(GeRunningEvnFakerTest, test_install_fake_engine_with_optimizer_success) {
 
 TEST_F(GeRunningEvnFakerTest, test_fake_graph_optimizer_success) {
   GeRunningEnvFaker ge_env;
+  const auto optimizer_count = kernel_manager.GetAllGraphOptimizerObjs().size();
+  const auto optimizer_by_priority_count = kernel_manager.GetAllGraphOptimizerObjsByPriority().size();
   ge_env.Install(FakeEngine("DNN_VM_AICPU").GraphOptimizer("op1").GraphOptimizer("op2"));
 
-  ASSERT_EQ(kernel_manager.GetAllGraphOptimizerObjsByPriority().size(), 2);
-  ASSERT_EQ(kernel_manager.GetAllGraphOptimizerObjsByPriority()[0].first, "op1");
-  ASSERT_EQ(kernel_manager.GetAllGraphOptimizerObjsByPriority()[1].first, "op2");
-  ASSERT_EQ(kernel_manager.GetAllGraphOptimizerObjs().size(), 3);
+  ASSERT_EQ(kernel_manager.GetAllGraphOptimizerObjsByPriority().size(), optimizer_by_priority_count + 2);
+  ASSERT_EQ(kernel_manager.GetAllGraphOptimizerObjsByPriority()[optimizer_by_priority_count].first, "op1");
+  ASSERT_EQ(kernel_manager.GetAllGraphOptimizerObjsByPriority()[optimizer_by_priority_count + 1].first, "op2");
+  ASSERT_EQ(kernel_manager.GetAllGraphOptimizerObjs().size(), optimizer_count + 2);
 }
 FAKE_NS_END

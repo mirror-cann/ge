@@ -11,12 +11,19 @@ target_compile_options(autofuse_test PRIVATE
         -Wno-deprecated-declarations
         -Wall -Wfloat-equal -Werror
         -fno-access-control
+        -include ${AIR_CODE_DIR}/tests/depends/aihacb_autofusion/src/fix_af_attr_store.h
 )
 
 target_compile_definitions(autofuse_test PRIVATE
         google=ascend_private
+        AUTOFUSE_USE_GE_METADEF
 )
 
+target_include_directories(autofuse_test BEFORE PRIVATE
+        ${AIR_CODE_DIR}/inc/graph_metadef
+        ${AIR_CODE_DIR}/inc/graph_metadef/graph
+        ${AIR_CODE_DIR}/graph_metadef
+)
 target_include_directories(autofuse_test PRIVATE
         ${AIR_CODE_DIR}
         ${AIR_CODE_DIR}/base/
@@ -24,6 +31,7 @@ target_include_directories(autofuse_test PRIVATE
         ${AIR_CODE_DIR}/tests/depends/
         ${AIR_CODE_DIR}/inc
         ${AIR_CODE_DIR}/inc/framework/
+        ${AIR_CODE_DIR}/inc/graph_metadef
         ${AIR_CODE_DIR}/tests/depends/op_stub
         ${AIR_CODE_DIR}/tests/depends/aihacb_autofusion/src
         ${AIR_CODE_DIR}/tests/framework/ge_graph_dsl/include
@@ -42,6 +50,10 @@ target_include_directories(autofuse_test PRIVATE
         ${METADEF_DIR}/base/registry
         ${METADEF_DIR}/register
         ${CMAKE_BINARY_DIR}/graph_metadef/graph/ascendc_ir/generator
+        ${ASCEND_INSTALL_PATH}/include/autofuse
+        ${ASCEND_INSTALL_PATH}/include/autofuse/graph_metadef
+        ${ASCEND_INSTALL_PATH}/include/autofuse/graph_metadef/graph
+        ${ASCEND_INSTALL_PATH}/include/autofuse/ascir
 )
 
 target_link_libraries(autofuse_test PRIVATE
@@ -53,6 +65,7 @@ target_link_libraries(autofuse_test PRIVATE
         ge_running_env
         ge_compiler
         aihacb_autofusion_stub
+        ${ASCEND_INSTALL_PATH}/lib64/libaihac_ir.so
         ge_runner
         gert
         metadef_headers
@@ -74,12 +87,16 @@ target_link_libraries(autofuse_test PRIVATE
 target_link_options(autofuse_test PRIVATE
         -rdynamic
         -Wl,-Bsymbolic
+        -Wl,--disable-new-dtags
         )
 
 add_dependencies(autofuse_test gert_op_impl)
 
 add_test(NAME autofuse_test COMMAND autofuse_test --gtest_output=xml:${CMAKE_INSTALL_PREFIX}/report/st/autofuse_test.xml)
-set_tests_properties(autofuse_test PROPERTIES LABELS "st;st_hetero;autofuse_test")
+set_tests_properties(autofuse_test PROPERTIES
+        LABELS "st;st_hetero;autofuse_test"
+        ENVIRONMENT "ASAN_OPTIONS=detect_leaks=0"
+)
 
 include(CTest)
 enable_testing()

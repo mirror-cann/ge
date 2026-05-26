@@ -200,6 +200,7 @@ class FakeAiCoreOpsKernelBuilder : public FakeOpsKernelBuilder {
     std::cout << "generate task for node " << node.GetName() << std::endl;
     auto op_desc = node.GetOpDesc();
     op_desc->SetOpKernelLibName("AIcoreEngine");
+    (void)ge::AttrUtils::SetInt(op_desc, "op_para_size", 2048);
 
     EnvPath env_path;
     std::string cmake_binary_dir = env_path.GetBinRootPath();

@@ -12,22 +12,17 @@
 
 import json
 import socket
-from enum import Enum
+from enum import IntEnum
 from typing import List, Tuple, Union
 
-
-try:
-    from llm_datadist.data_type import DataType
-    from llm_datadist.utils.utils import check_isinstance, check_dict, check_uint64, check_int32, check_uint32, check_uint16
-    from llm_datadist.status import raise_if_false
-except ModuleNotFoundError:
-    from llm_datadist_v1.data_type import DataType
-    from llm_datadist_v1.utils.utils import check_isinstance, check_dict, check_uint64, check_int32, check_uint32, check_uint16
-    from llm_datadist_v1.status import raise_if_false
+from .data_type import DataType
+from .utils.utils import check_isinstance, check_dict, check_uint64, check_int32, check_uint32, check_uint16
+from .status import raise_if_false
 
 _INVALID_ID = 2 ** 64 - 1
 
-class LLMRole(Enum):
+
+class LLMRole(IntEnum):
     PROMPT = 1
     DECODER = 2
     MIX = 3

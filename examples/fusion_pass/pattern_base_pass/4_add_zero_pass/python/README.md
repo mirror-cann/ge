@@ -1,21 +1,21 @@
-## Python Pass[v1]
+# 样例使用指导
 
 ### 功能描述
 
 本目录提供两个纯 Python 的 `PatternFusionPass` sample：
 
-- [src/test_python_pattern_pass.py](./src/test_python_pattern_pass.py)
-- [src/test_python_pattern_pass_cpp_equivalent.py](./src/test_python_pattern_pass_cpp_equivalent.py)
+- [src/python_add_zero_pass_const_value_match.py](./src/python_add_zero_pass_const_value_match.py)
+- [src/python_add_zero_pass.py](./src/python_add_zero_pass.py)
 
 两个 sample 的定位不同：
 
-- `test_python_pattern_pass.py`
+- `python_add_zero_pass_const_value_match.py`
   - 演示 Python V1 的 `PatternMatcherConfigBuilder.enable_const_value_match()`
   - 通过 strict const-value-match 直接把 `Add(x, 0.0f)` 前置到 matcher 阶段
   - 当前 `ConstantMatcher::IsMatch` 的值匹配是严格二进制匹配，不带浮点容差，也不做跨 dtype 归一化
   - 因此它更适合作为 matcher_config 示例，而不是 C++ sample 的完全等价版本
 
-- `test_python_pattern_pass_cpp_equivalent.py`
+- `python_add_zero_pass.py`
   - 主逻辑对齐 [C++ pass 样例](../cpp/README.md)
   - `patterns()` 只描述 `Data + Const` 拓扑
   - `meet_requirements()` 中再显式读取匹配到的 `Const.value`，按 C++ sample 同样的规则判断零值
@@ -35,20 +35,21 @@ run 包已包含 GE Python 运行时所需的 `ge_py` wheel，本节不需要再
 1. 设置 Python pass 插件路径：
 
    ```bash
-   export ASCEND_GE_PY_PASS_PATH=$(pwd)/src/test_python_pattern_pass.py
+   export ASCEND_GE_PY_PASS_PATH=$(pwd)/src/python_add_zero_pass_const_value_match.py
    ```
 
    如果需要运行与 C++ 主逻辑对齐的版本，可改为：
 
    ```bash
-   export ASCEND_GE_PY_PASS_PATH=$(pwd)/src/test_python_pattern_pass_cpp_equivalent.py
+   export ASCEND_GE_PY_PASS_PATH=$(pwd)/src/python_add_zero_pass.py
    ```
 
-2. 复用 [C++ pass 样例 README](../cpp/README.md#程序运行) 中的 ATC 或在线推理步骤执行模型编译。
+2. 复用 [C++ pass 样例 README](../cpp/README.md#程序运行) 中的离线或在线推理步骤执行模型编译。
+   离线场景请将 C++ README 中的 `atc` 命令替换为 `pyatc`；两者命令行参数一致，`pyatc` 会在当前 Python 解释器进程中运行。
 
 3. 说明：
 
-   - 这两个 sample 都不是独立执行脚本，直接运行 `python src/test_python_pattern_pass.py` 或 `python src/test_python_pattern_pass_cpp_equivalent.py` 不会触发 pass 执行
+   - 这两个 sample 都不是独立执行脚本，直接运行 `python src/python_add_zero_pass.py` 或 `python src/python_add_zero_pass_const_value_match.py` 不会触发 pass 执行
    - 预期输出会在 GE 编译流程真正加载该 Python pass 后打印
 
 ### 预期日志
@@ -56,8 +57,8 @@ run 包已包含 GE Python 运行时所需的 `ge_py` wheel，本节不需要再
 运行成功后，日志中会出现类似输出：
 
 ```text
-[PythonAddZeroPass] matched=add_zero_pattern captured=input_0:0
-[PythonAddZeroPassCppEquivalent] matched=add_zero_pattern_cpp_equivalent captured=input_0:0 const_dtype=DT_FLOAT zero=True
+[PythonAddZeroConstValueMatchPass] matched=add_zero_const_value_match_pattern captured=input_0:0
+[PythonAddZeroPass] matched=add_zero_pattern captured=input_0:0 const_dtype=DT_FLOAT zero=True
 ```
 
 ### Conda 环境示例（Python 3.11）

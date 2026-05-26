@@ -511,6 +511,28 @@ ge::graphStatus CheckFcKcEqualInZeroTensor(const Conv2DInputShapes &x_shapes, co
   return ge::GRAPH_SUCCESS;
 }
 
+/**
+ * Conv2D/Conv2DV2 算子的符号化shape推导
+ * 【算子功能】计算二维卷积操作，支持多种输入格式和padding模式
+ *            输入：x(输入特征图)、filter(卷积核)两个张量
+ *            输出：y(卷积结果)张量
+ * 【算子约束】
+ *      1. 支持的输入格式：NCHW、NHWC；filter支持NCHW、NHWC、HWCN
+ *      2. strides属性指定卷积步长，必须为正整数
+ *      3. dilations属性指定膨胀率，必须为正整数
+ *      4. groups属性指定分组卷积数，必须大于0
+ *      5. padding/pad_mode属性支持EXPLICIT/SPECIFIC、SAME/SAME_UPPER/SAME_LOWER、VALID
+ * 【推导逻辑】
+ *      1. 解析输入张量x和卷积核filter的逻辑维度(N,C,H,W)
+ *      2. 处理groups语义，校验分组约束(输出通道必须能被groups整除)
+ *      3. 解析stride、dilation、pad属性，处理SAME模式的自动padding计算
+ *      4. 应用标准卷积公式推导输出尺寸：
+ *         out = floor((in + pad_before + pad_after - dilation * (kernel - 1) - 1) / stride) + 1
+ *      5. zero tensor分支做一致性校验，处理退化场景
+ *      6. 按输入layout(NCHW/NHWC)回写输出shape
+ *      举例：输入x_shape=(2,3,28,28)，filter_shape=(16,3,3,3)，strides=[1,1,1,1]，padding=SAME，
+ *            则y_shape=(2,16,28,28)
+ */
 graphStatus InferShape4Conv2D(gert::InferSymbolShapeContext *context) {
   // 主流程（先归一化，再公式化）：
   // 1) 解析 x/filter 逻辑维度；

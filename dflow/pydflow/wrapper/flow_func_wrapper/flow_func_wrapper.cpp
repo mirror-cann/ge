@@ -548,9 +548,9 @@ void BindFlowFuncEnum(py::module &m) {
   py::enum_<MsgType>(m, "MsgType", py::arithmetic())
       .value("MSG_TYPE_TENSOR_DATA", MsgType::MSG_TYPE_TENSOR_DATA)
       .value("MSG_TYPE_RAW_MSG", MsgType::MSG_TYPE_RAW_MSG)
-      .value("MSG_TYPE_TORCH_TENSOR_MSG", static_cast<MsgType>(1023))
-      .value("MSG_TYPE_USER_DEFINE_START", static_cast<MsgType>(1024))
-      .value("MSG_TYPE_PICKLED_MSG", static_cast<MsgType>(65535))
+      .value("MSG_TYPE_TORCH_TENSOR_MSG", static_cast<MsgType>(1023))  // 枚举值1023表示msg内容为torch tensor
+      .value("MSG_TYPE_USER_DEFINE_START", MsgType::MSG_TYPE_USER_DEFINE_START)
+      .value("MSG_TYPE_PICKLED_MSG", static_cast<MsgType>(65535))  // 枚举值65535表示msg内容为pickled序列化后的二进制产物
       .export_values();
   py::enum_<FlowFlag>(m, "FlowFlag", py::arithmetic())
       .value("FLOW_FLAG_EOS", FlowFlag::FLOW_FLAG_EOS)
@@ -715,13 +715,13 @@ void BindTensor(py::module &m) {
 }
 
 template <typename T, typename Default = T>
-auto GetAttrWrapper(MetaParams &self, const char *name, Default default_value = Default{}) {
+auto GetAttrWrapper(const MetaParams &self, const char *name, Default default_value = Default{}) {
   T value = default_value;
   const auto ret = self.GetAttr<T>(name, value);
   return std::make_tuple(ret, value);
 }
 
-auto GetTensorDtypeListWrapper(MetaParams &self, const char *name) {
+auto GetTensorDtypeListWrapper(const MetaParams &self, const char *name) {
   std::vector<TensorDataType> value;
   std::vector<ge::DataType> ge_dtype;
   const auto ret = self.GetAttr<std::vector<TensorDataType>>(name, value);
@@ -733,7 +733,7 @@ auto GetTensorDtypeListWrapper(MetaParams &self, const char *name) {
   return std::make_tuple(ret, ge_dtype);
 }
 
-auto GetStringListWrapper(MetaParams &self, const char *name) {
+auto GetStringListWrapper(const MetaParams &self, const char *name) {
   std::vector<AscendString> value;
   std::vector<std::string> str_list;
   const auto ret = self.GetAttr<std::vector<AscendString>>(name, value);
@@ -854,7 +854,7 @@ void BindMetaRunContext(py::module &m) {
         return std::make_tuple(FLOW_FUNC_FAILED, std::vector<std::shared_ptr<FlowMsg>>());
       }, py::return_value_policy::reference_internal)
       .def("get_user_data", [](MetaRunContext &self, py::buffer user_data, size_t size, size_t offset) {
-        void *data = reinterpret_cast<void *>(user_data.request().ptr);
+        void *data = static_cast<void *>(user_data.request().ptr);
         return self.GetUserData(data, size, offset);
       })
       .def("raise_exception", &PyMetaRunContext::RaiseException)

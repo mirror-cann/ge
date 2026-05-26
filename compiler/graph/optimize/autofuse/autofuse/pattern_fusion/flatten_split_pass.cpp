@@ -18,7 +18,6 @@
 #include "graph/utils/graph_utils.h"
 #include "graph/utils/node_utils.h"
 #include "register/shape_inference.h"
-#include "utils/cg_utils.h"
 #include "utils/auto_fuse_config.h"
 #include "utils/autofuse_utils.h"
 #include "lowering/asc_lowerer/loop_common.h"

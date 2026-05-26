@@ -65,6 +65,7 @@ checkopts()
   ENABLE_GE_C_ST="off"
   ENABLE_GE_C_LLT="off"
   ENABLE_GE_COV="off"
+  ENABLE_GCOV="false"
   PLATFORM="executor_c"
   PRODUCT="normal"
   MINDSPORE_MODE="off"
@@ -100,6 +101,8 @@ checkopts()
         ;;
       c)
         ENABLE_LLT_COV="on"
+        ENABLE_GE_COV="on"
+        ENABLE_GCOV="true"
         CMAKE_BUILD_TYPE="GCOV"
         ;;
       *)
@@ -125,6 +128,11 @@ build_executor_c()
 {
   echo "create build directory and build GE-executor-c";
   BUILD_PATH="${BASEPATH}/${BUILD_RELATIVE_PATH}/"
+  if [[ "X$ENABLE_GCOV" = "Xtrue" ]]; then
+    echo "[INFO] Coverage mode enabled (-c parameter), GCOV=true"
+  else
+    echo "[INFO] Coverage mode disabled (no -c parameter), GCOV=false"
+  fi
   mk_dir "${BUILD_PATH}"
   cd "${BUILD_PATH}"
   cmake -D ENABLE_OPEN_SRC=True \
@@ -138,6 +146,7 @@ build_executor_c()
         -D CANN_3RD_LIB_PATH=${CANN_3RD_LIB_PATH} \
         -D CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} \
         -D CMAKE_INSTALL_PREFIX=${OUTPUT_PATH} \
+        -D ENABLE_GCOV=${ENABLE_GCOV} \
         ..
   if [ $? -ne 0 ]
   then

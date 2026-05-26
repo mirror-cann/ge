@@ -2458,7 +2458,7 @@ TEST_F(GeExecutorTest, run_with_fail) {
   mmSetEnv(kEnvRecordPath, &record_path[0U], MMPA_MAX_PATH);
 
   EXPECT_EQ(model.ModelRunStart(), SUCCESS);
-  sleep(5);
+  sleep(1);
   EXPECT_EQ(model.ModelRunStop(), SUCCESS);
   unsetenv(kEnvRecordPath);
   graph_options[STATIC_MEMORY_POLICY] = "";
@@ -2522,7 +2522,7 @@ TEST_F(GeExecutorTest, run_with_task_2_iterator) {
     op_desc->SetInputOffset(input_offset);
     model.InitOutputTensorInfo(op_desc);
     EXPECT_EQ(model.ModelRunStart(), SUCCESS);
-    sleep(5);
+    sleep(1);
     EXPECT_EQ(model.ModelRunStop(), SUCCESS);
   }
   graph_options[STATIC_MEMORY_POLICY] = "";

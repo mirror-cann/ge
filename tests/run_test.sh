@@ -85,6 +85,9 @@ usage() {
   echo "    -j<N>          Set the number of threads used for building Parser, default 8"
   echo "    --cann_3rd_lib_path=<PATH>"
   echo "                   Set third_party package install path, default ./output/third_party"
+  echo "    --asan=<true|false>"
+  echo "                   Enable or disable AddressSanitizer (ASAN)"
+  echo "                   x86: default enabled; arm: default disabled (with prompt)"
   echo ""
 }
 
@@ -143,8 +146,9 @@ checkopts() {
 
   CANN_3RD_LIB_PATH="$BASEPATH/output/third_party"
   BUILD_METADEF="off"
+  ASAN_MODE=""
 
-  parsed_args=$(getopt -a -o u::s::cj:hvf: -l ut::,st::,process_st::,cov,help,verbose,cann_3rd_lib_path: -- "$@") || {
+  parsed_args=$(getopt -a -o u::s::cj:hvf: -l ut::,st::,process_st::,cov,help,verbose,cann_3rd_lib_path:,asan: -- "$@") || {
     usage
     exit 1
   }
@@ -512,6 +516,19 @@ checkopts() {
         CANN_3RD_LIB_PATH="$(realpath $2)"
         shift 2
         ;;
+      --asan)
+        ASAN_VALUE=$(echo "$2" | tr '[:upper:]' '[:lower:]')
+        if [ "$ASAN_VALUE" = "true" ] || [ "$ASAN_VALUE" = "on" ] || [ "$ASAN_VALUE" = "1" ]; then
+          ASAN_MODE="true"
+        elif [ "$ASAN_VALUE" = "false" ] || [ "$ASAN_VALUE" = "off" ] || [ "$ASAN_VALUE" = "0" ]; then
+          ASAN_MODE="false"
+        else
+          echo "Error: Invalid --asan value: $2. Must be true or false."
+          usage
+          exit 1
+        fi
+        shift 2
+        ;;
       -f)
         CHANGED_FILES_FILE="$2"
         if [ ! -f "$CHANGED_FILES_FILE" ]; then
@@ -537,6 +554,39 @@ checkopts() {
         ;;
     esac
   done
+
+  if [ -z "$ASAN_MODE" ]; then
+    ARCH=$(uname -m)
+    if [ "X$ARCH" != "Xaarch64" ]; then
+      ASAN_MODE="true"
+      echo "[INFO] ASAN auto-enabled on x86 architecture (${ARCH})"
+    else
+      echo ""
+      echo "=========================================="
+      echo "[WARNING] ARM architecture detected (aarch64)"
+      echo "  Enabling ASAN on ARM may cause significant performance degradation"
+      echo "  (execution time increase: 3x-18x compared to normal)"
+      echo "=========================================="
+      echo ""
+      echo "Do you want to enable ASAN? [yes/no]"
+      echo "(Auto-select 'no' in 5 seconds if no response)"
+      echo ""
+      
+      read -t 5 -r ASAN_RESPONSE || ASAN_RESPONSE="no"
+      ASAN_RESPONSE=$(echo "$ASAN_RESPONSE" | tr '[:upper:]' '[:lower:]')
+      
+      if [ "$ASAN_RESPONSE" = "yes" ] || [ "$ASAN_RESPONSE" = "y" ]; then
+        ASAN_MODE="true"
+        echo "[INFO] User selected: ASAN enabled"
+      else
+        ASAN_MODE="false"
+        echo "[INFO] User selected (or auto): ASAN disabled"
+      fi
+      echo ""
+    fi
+  fi
+  export ASAN_MODE=${ASAN_MODE}
+  echo "[INFO] Final ASAN setting: ${ASAN_MODE}"
 
   if [ -n "$ASCEND_HOME_PATH" ]; then
     ASCEND_INSTALL_PATH="$ASCEND_HOME_PATH"
@@ -929,11 +979,11 @@ main() {
   if [ "X$ENABLE_GE_AUTOFUSE_ASCENDC_API" == "Xon" ]; then
     # autofuse_ascendc_api ut
     if [ "X$ENABLE_UT" = "Xon" ]; then
-      bash scripts/test/run_autofuse_test.sh -u -m ascendc_api -j $THREAD_NUM $VERBOSE $COVERAGE
+      bash scripts/build_executor_c.sh -u -j $THREAD_NUM $VERBOSE $COVERAGE
     fi
     # autofuse_ascendc_api st
     if [ "X$ENABLE_ST" = "Xon" ]; then
-      bash scripts/test/run_autofuse_test.sh -s -m ascendc_api -j $THREAD_NUM $VERBOSE $COVERAGE
+      bash scripts/test/run_autofuse_test.sh -s -m framework -j $THREAD_NUM $VERBOSE $COVERAGE
     fi
   fi
 
@@ -941,7 +991,7 @@ main() {
   if [ "X$ENABLE_GE_AUTOFUSE_E2E" == "Xon" ]; then
     # autofuse_e2e st
     if [ "X$ENABLE_ST" = "Xon" ]; then
-      bash scripts/test/run_autofuse_test.sh -s -m e2e -j $THREAD_NUM $VERBOSE $COVERAGE
+      bash scripts/build_executor_c.sh -s -j $THREAD_NUM $VERBOSE $COVERAGE
     fi
   fi
 

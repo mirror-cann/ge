@@ -11,10 +11,12 @@
 #include "graph/operator_factory_impl.h"
 
 #include <algorithm>
+#include <mutex>
 
 #include "framework/common/debug/ge_log.h"
 #include "common/util/mem_utils.h"
 #include "graph_metadef/common/ge_common/util.h"
+#include "graph/debug/ge_util.h"
 
 extern "C" {
 void ReleaseOpsRegInfo();
@@ -36,6 +38,8 @@ void ReleaseOpsRegInfo() {
 namespace ge {
 namespace {
   std::atomic<bool> is_register_overridable(false);
+  std::shared_ptr<std::map<std::string, OpCreatorV2>> backup_operator_creators_v2_;
+  std::shared_ptr<std::map<std::string, OpCreator>> backup_operator_creators_v1_;
 }
 std::shared_ptr<std::map<std::string, OpCreator>> OperatorFactoryImpl::operator_creators_;
 std::shared_ptr<std::map<std::string, OpCreatorV2>> OperatorFactoryImpl::operator_creators_v2_;
@@ -464,5 +468,57 @@ CustomOpInferDataTypeFunc OperatorFactoryImpl::GetCustomOpInferDataTypeFunc() {
 
 void OperatorFactoryImpl::ReleaseRegInfo() {
   ReleaseOpsRegInfo();
+}
+
+/**
+ * 备份并清空注册信息map，如果不清空会导致后续注册与map中现有算子同名的算子原型不生效
+ * 用户的bin中注册原型的场景下，历史上会清理跟内置同名的，保留跟内置不同名的，目前的备份清空正是基于此场景的兼容处理
+ * 如果用户希望同名场景下用户注册的原型生效，那么应该采用so中注册的方式
+ */
+void OperatorFactoryImpl::BackupAndClearRegInfoOnce() {
+  static std::once_flag flag;
+  std::call_once(flag, []() {
+    size_t backup_v2_count = 0;
+    size_t backup_v1_count = 0;
+    if (operator_creators_v2_ != nullptr) {
+      backup_operator_creators_v2_ = ComGraphMakeShared<std::map<std::string, OpCreatorV2>>(*operator_creators_v2_);
+      if (backup_operator_creators_v2_ != nullptr) {
+        backup_v2_count = backup_operator_creators_v2_->size();
+      }
+      operator_creators_v2_->clear();
+    }
+    if (operator_creators_ != nullptr) {
+      backup_operator_creators_v1_ = ComGraphMakeShared<std::map<std::string, OpCreator>>(*operator_creators_);
+      if (backup_operator_creators_v1_ != nullptr) {
+        backup_v1_count = backup_operator_creators_v1_->size();
+      }
+      operator_creators_->clear();
+    }
+    GELOGI("backup register info success, v2 count: %zu, v1 count: %zu", backup_v2_count, backup_v1_count);
+  });
+}
+
+void OperatorFactoryImpl::MergeBackupCreatorsOnce() {
+  static std::once_flag flag;
+  std::call_once(flag, []() {
+    if ((backup_operator_creators_v2_ != nullptr) && (operator_creators_v2_ != nullptr)) {
+      for (const auto &pair : *backup_operator_creators_v2_) {
+        if (operator_creators_v2_->find(pair.first) == operator_creators_v2_->end()) {
+          operator_creators_v2_->emplace(pair);
+          GELOGI("creators_v2 merge backup op: %s", pair.first.c_str());
+        }
+      }
+    }
+    if ((backup_operator_creators_v1_ != nullptr) && (operator_creators_ != nullptr)) {
+      for (const auto &pair : *backup_operator_creators_v1_) {
+        if (operator_creators_->find(pair.first) == operator_creators_->end()) {
+          operator_creators_->emplace(pair);
+          GELOGI("creators_v1 merge backup op: %s", pair.first.c_str());
+        }
+      }
+    }
+    backup_operator_creators_v2_ = nullptr;
+    backup_operator_creators_v1_ = nullptr;
+  });
 }
 }  // namespace ge

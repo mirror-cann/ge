@@ -39,24 +39,10 @@ class AttrGroupsBase {
 
 // typeid()方法存在bug，不同的类的typeid()可能相同，此处用模板特化一下，新增AttrGroupsBase子类属性组，需要实现这个方法，返回子类的typeid
 // 前置声明子类，同时注意typeid不能与anchor冲突
-class AscTensorAttr;
-class AscNodeAttr;
-class AscGraphAttr;
 class SymbolicDescAttr;
 class ShapeEnvAttr;
-class AutoFuseAttrs;
-class AutoFuseGraphAttrs;
 template<>
 GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY TypeId GetTypeId<AttrGroupsBase>();
-
-template<>
-GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY TypeId GetTypeId<AscTensorAttr>();
-
-template<>
-GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY TypeId GetTypeId<AscNodeAttr>();
-
-template<>
-GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY TypeId GetTypeId<AscGraphAttr>();
 
 template<>
 GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY TypeId GetTypeId<SymbolicDescAttr>();
@@ -64,11 +50,34 @@ GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY TypeId GetTypeId<SymbolicDescAttr
 template<>
 GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY TypeId GetTypeId<ShapeEnvAttr>();
 
-template <>
-GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY TypeId GetTypeId<AutoFuseAttrs>();
+} // namespace ge
 
-template <>
-GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY TypeId GetTypeId<AutoFuseGraphAttrs>();
+// AscTensorAttr/AscNodeAttr/AscGraphAttr/AutoFuseAttrs/AutoFuseGraphAttrs 属于 ascir 定义，
+// 由 graph-autofusion 仓在 namespace af 里维护，GE 通过 "using af::Xxx" 引入。
+// 此处声明对应的 GetTypeId 特化，确保 ge-compiler 与 aihac_autofusion 使用同一套 key。
+namespace af {
+class AscTensorAttr;
+class AscNodeAttr;
+class AscGraphAttr;
+class AutoFuseAttrs;
+class AutoFuseGraphAttrs;
+}  // namespace af
+
+namespace ge {
+template<>
+GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY TypeId GetTypeId<af::AscTensorAttr>();
+
+template<>
+GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY TypeId GetTypeId<af::AscNodeAttr>();
+
+template<>
+GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY TypeId GetTypeId<af::AscGraphAttr>();
+
+template<>
+GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY TypeId GetTypeId<af::AutoFuseAttrs>();
+
+template<>
+GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY TypeId GetTypeId<af::AutoFuseGraphAttrs>();
 
 } // namespace ge
 

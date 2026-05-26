@@ -9,7 +9,7 @@
  */
 
 #ifndef GE_FRAMEWORK_RUNTIME_DUMP_EXCEPTION_DUMP_IMPL_H_
-#define GE_COMMON_DUMP_INTERNAL_EXCEPTION_DUMP_IMPL_H_
+#define GE_FRAMEWORK_RUNTIME_DUMP_EXCEPTION_DUMP_IMPL_H_
 
 #include <cstdint>
 #include <vector>
@@ -18,7 +18,12 @@
 #include "framework/common/ge_types.h"
 #include "framework/runtime/dump/model_dump_manager.h"
 
+namespace Adx {
+struct TensorInfoV2;
+}  // namespace Adx
+
 namespace ge {
+class AdumpOpInfoBuilder;
 namespace dump {
 
 class ExceptionDumpImpl {
@@ -28,18 +33,29 @@ class ExceptionDumpImpl {
 
   Status SaveOpInfo(const Om2TaskInfo& task_info);
 
-  Status GetOpDescInfo(uint32_t task_id, uint32_t stream_id,
-                       OpDescInfo& op_info) const;
+  bool GetOpDescInfo(const OpDescInfoId& op_id, OpDescInfo& op_info) const;
 
   void Clear();
 
   void SetDeviceId(uint32_t device_id) { device_id_ = device_id; }
 
  private:
-  Status ReportL1ExceptionDumpInfo(const Om2TaskInfo& task_info, const OpDescInfo& op_info);
+  Status ReportL1ExceptionDumpInfo(const Om2TaskInfo& task_info, const OpDescInfo& op_info) const;
+
+  void FillAdumpOpInfoBuilder(const OpDescInfo& op_info,
+                              std::vector<Adx::TensorInfoV2>& input_infos,
+                              std::vector<Adx::TensorInfoV2>& output_infos,
+                              std::vector<Adx::TensorInfoV2>& workspace_infos,
+                              AdumpOpInfoBuilder& builder) const;
+
+  Status SubmitToAdump(const char* op_name, const Om2TaskInfo& task_info, const OpDescInfo& op_info,
+                       std::vector<Adx::TensorInfoV2>& input_infos,
+                       std::vector<Adx::TensorInfoV2>& output_infos,
+                       std::vector<Adx::TensorInfoV2>& workspace_infos,
+                       const AdumpOpInfoBuilder& builder) const;
 
   uint32_t device_id_{0U};
-  std::map<uint64_t, OpDescInfo> op_info_map_;
+  std::vector<OpDescInfo> op_info_list_;
 };
 
 }  // namespace dump

@@ -393,6 +393,17 @@ static bool PrepareCrossModeCustomOppForModelHelperUt(const std::string &custom_
   return system(("touch " + so_paths.non_target_graph_so_path).c_str()) == 0;
 }
 
+static void PreparePortableCustomOpCrossModeForModelHelperUt(const std::string &custom_opp_path,
+                                                             std::string &current_env_os,
+                                                             std::string &current_env_cpu,
+                                                             std::string &target_env_cpu,
+                                                             CrossModeCustomOppPathsForModelHelperUt &so_paths) {
+  ASSERT_TRUE(ResolveCrossModeTargetEnvForModelHelperUt(current_env_os, current_env_cpu, target_env_cpu));
+  ASSERT_TRUE(PrepareCrossModeCustomOppForModelHelperUt(custom_opp_path, current_env_os, current_env_cpu,
+                                                        target_env_cpu, so_paths));
+  ASSERT_EQ(mmSetEnv(kEnvNameCustom, custom_opp_path.c_str(), 1), EN_OK);
+}
+
 static std::string BuildProcFdPathForModelHelperUt(const int32_t fd) {
   return "/proc/self/fd/" + std::to_string(fd);
 }
@@ -594,9 +605,16 @@ static GeRootModelPtr ConstructGeRootModel(bool is_dynamic_shape = true,
 
 class UtestModelHelper : public testing::Test {
  protected:
-  void SetUp() override {}
+  void SetUp() override {
+    old_global_options_ = GetThreadLocalContext().GetAllGlobalOptions();
+  }
 
-  void TearDown() override {}
+  void TearDown() override {
+    GetThreadLocalContext().SetGlobalOption(old_global_options_);
+  }
+
+ private:
+  std::map<std::string, std::string> old_global_options_;
 };
 
 TEST_F(UtestModelHelper, save_size_to_modeldef)
@@ -1587,8 +1605,22 @@ TEST_F(UtestModelHelper, CheckAndSetNeedSoInOMPortableCustomOpSetsCustomSoBit) {
                                                                kPortableOpTypeForModelHelper);
   ASSERT_NE(ge_root_model, nullptr);
 
+  std::string current_env_os;
+  std::string current_env_cpu;
+  std::string target_env_cpu;
+  std::string opp_path = __FILE__;
+  opp_path = opp_path.substr(0, opp_path.rfind("/") + 1);
+  const std::string custom_opp_path = opp_path + "custom_opp_custom_so_bit_ut";
+  ScopedTmpDirCleanerForModelHelperUt opp_dir_guard(custom_opp_path);
+  ScopedEnvVarForModelHelperUt custom_opp_guard(kEnvNameCustom);
+  CrossModeCustomOppPathsForModelHelperUt so_paths;
+  PreparePortableCustomOpCrossModeForModelHelperUt(custom_opp_path, current_env_os, current_env_cpu, target_env_cpu,
+                                                   so_paths);
+  ScopedHostEnvForModelHelperUt host_env_guard(current_env_os, target_env_cpu);
+
   EXPECT_EQ(ge_root_model->CheckAndSetNeedSoInOM(), SUCCESS);
   EXPECT_NE((ge_root_model->GetSoInOmFlag() & 0x1000U), 0U);
+  EXPECT_NE(ge_root_model->GetCustomOpSoSet().count(so_paths.target_graph_so_path), 0U);
 }
 
 TEST_F(UtestModelHelper, SaveSoStoreModelPartitionInfoCustomOpOnlyGraphShouldSaveSoBinsPartition) {
@@ -1598,6 +1630,20 @@ TEST_F(UtestModelHelper, SaveSoStoreModelPartitionInfoCustomOpOnlyGraphShouldSav
   const auto ge_root_model = CreateGeRootModelForModelHelperUt(kPortableOpTypeForModelHelper,
                                                                kPortableOpTypeForModelHelper);
   ASSERT_NE(ge_root_model, nullptr);
+
+  std::string current_env_os;
+  std::string current_env_cpu;
+  std::string target_env_cpu;
+  std::string opp_path = __FILE__;
+  opp_path = opp_path.substr(0, opp_path.rfind("/") + 1);
+  const std::string custom_opp_path = opp_path + "custom_opp_custom_only_save_ut";
+  ScopedTmpDirCleanerForModelHelperUt opp_dir_guard(custom_opp_path);
+  ScopedEnvVarForModelHelperUt custom_opp_guard(kEnvNameCustom);
+  CrossModeCustomOppPathsForModelHelperUt so_paths;
+  PreparePortableCustomOpCrossModeForModelHelperUt(custom_opp_path, current_env_os, current_env_cpu, target_env_cpu,
+                                                   so_paths);
+  ScopedHostEnvForModelHelperUt host_env_guard(current_env_os, target_env_cpu);
+
   ASSERT_EQ(ge_root_model->CheckAndSetNeedSoInOM(), SUCCESS);
 
   std::shared_ptr<OmFileSaveHelper> om_file_save_helper = std::make_shared<OmFileSaveHelper>();
@@ -2056,13 +2102,13 @@ TEST_F(UtestModelHelper, GetHardwareInfo_no_device) {
 
 TEST_F(UtestModelHelper, GetHardwareInfo_no_device_get_count_from_rts_failed) {
   dlog_setlevel(0, 0, 0);
-  RTS_STUB_RETURN_VALUE(rtGetDeviceInfo, rtError_t, -1);
+  AclRuntimeStub::SetErrorResultApiName("aclrtGetDeviceInfo");
   std::map<std::string, std::string> options;
   options[SOC_VERSION] = "Ascend910";
   ModelHelper model_helper;
   EXPECT_NE(model_helper.GetHardwareInfo(options), SUCCESS);
   dlog_setlevel(0, 3, 0);
-  RTS_STUB_RETURN_VALUE(rtGetDeviceInfo, rtError_t, RT_ERROR_NONE);
+  AclRuntimeStub::SetErrorResultApiName("");
 }
 
 TEST_F(UtestModelHelper, GetHardwareInfo_device0) {

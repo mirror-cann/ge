@@ -132,9 +132,9 @@ Status GetBroAxises(const vector<NodePtr> &bro_nodes, vector<int64_t> &bro_axis_
   return SUCCESS;
 }
 
-Status GetBroAxisesIndex(vector<size_t> &bro_axis_idx, const vector<ge::Expression> &pre_bro_repeats,
-                         const vector<ge::Expression> &pre_bro_strides,
-                         const vector<ge::Expression> &last_bro_repeats) {
+Status GetBroAxisesIndex(vector<size_t> &bro_axis_idx, const vector<af::Expression> &pre_bro_repeats,
+                         const vector<af::Expression> &pre_bro_strides,
+                         const vector<af::Expression> &last_bro_repeats) {
   GE_ASSERT_TRUE(pre_bro_repeats.size() == pre_bro_strides.size());
   GE_ASSERT_TRUE(pre_bro_repeats.size() == last_bro_repeats.size());
   for (auto index = 0U; index < pre_bro_repeats.size(); index++) {
@@ -275,10 +275,21 @@ bool CollectSameBrcAxis(NodePtr &cur_node, NodePtr &next_node, std::vector<std::
   return true;
 }
 
+std::vector<std::string> SerializeExprs(const std::vector<af::Expression> &exprs) {
+  std::vector<std::string> serialized_exprs;
+  serialized_exprs.reserve(exprs.size());
+  for (const auto &expr : exprs) {
+    const auto serialized_expr = expr.Serialize();
+    serialized_exprs.emplace_back(serialized_expr.get());
+  }
+  return serialized_exprs;
+}
+
 Status GetNodeScalarInputList(const ge::AscNodePtr &asc_node, std::vector<bool> &is_scalar_list) {
   is_scalar_list.resize(asc_node->GetInDataNodesSize(), false);
   for (size_t i = 0UL; i < is_scalar_list.size(); ++i) {
-    is_scalar_list[i] = ascgen_utils::IsScalarInput(asc_node->inputs[i].attr.repeats);
+    const std::vector<af::Expression> repeats = asc_node->inputs[i].attr.repeats;
+    is_scalar_list[i] = af::IsScalarInputBySerializedExprs(SerializeExprs(repeats));
   }
   return ge::SUCCESS;
 }
@@ -728,7 +739,8 @@ Status ProcessSingleInputBranch(const NodePtr &input_node, const std::vector<int
         AscTensorAttr *pre_bro_attr = nullptr;
         if (asc_adapt::GetOutputTensorAttr(pre_bro_node, pre_bro_attr) == SUCCESS) {
           // 更新is_scalar
-          is_scalar = ascgen_utils::IsScalarInput(pre_bro_attr->repeats);
+          const std::vector<af::Expression> repeats = pre_bro_attr->repeats;
+          is_scalar = af::IsScalarInputBySerializedExprs(SerializeExprs(repeats));
         }
       }
     }

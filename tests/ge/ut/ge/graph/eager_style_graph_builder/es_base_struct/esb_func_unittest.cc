@@ -8,6 +8,7 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 #include <gtest/gtest.h>
+#include "graph/debug/ge_util.h"
 #include "common/summary_checker.h"
 #include "common/topo_checker.h"
 #include "utils/graph_utils_ex.h"

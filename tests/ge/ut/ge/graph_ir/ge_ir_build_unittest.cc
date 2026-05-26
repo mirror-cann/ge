@@ -9,8 +9,11 @@
  */
 
 #include <stdio.h>
+#include <fstream>
 #include <gtest/gtest.h>
 #include "api/aclgrph/option_utils.h"
+#include "common/helper/om2/json_file.h"
+#include "common/helper/om2/zip_archive_writer.h"
 #include "graph/testcase/ge_graph/graph_builder_utils.h"
 #include "graph/debug/ge_attr_define.h"
 #include "graph/utils/graph_utils.h"
@@ -100,6 +103,14 @@ class UtestIrBuild : public testing::Test {
 
   void TearDown() {}
 };
+
+static std::vector<uint8_t> ReadFileToVector(const std::string &path) {
+  std::ifstream file(path, std::ios::binary);
+  if (!file.is_open()) {
+    return {};
+  }
+  return std::vector<uint8_t>((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+}
 
 static ge::OpDescPtr CreateOpDesc(const std::string &name, const std::string &type) {
   OpDescPtr op_desc = std::make_shared<ge::OpDesc>(name, type);
@@ -1702,6 +1713,150 @@ TEST(UtestIrBuild, aclgrphSaveModelTest) {
   ret = ge::aclgrphSaveModel(output_file4, model_2);
   EXPECT_NE(ret, SUCCESS);
   system("rm ./graph3.txt");
+}
+
+TEST(UtestIrBuild, aclgrphSaveModelOm2BufferTest) {
+  constexpr size_t kZipBufferLen = 8U;
+  auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[kZipBufferLen]{0x50, 0x4B, 0x03, 0x04, 0, 0, 0, 0});
+  ModelBufferData model;
+  model.length = kZipBufferLen;
+  model.data.reset(buffer.release(), std::default_delete<uint8_t[]>());
+
+  const std::string output_file = "./graph_om2_magic_test";
+  EXPECT_EQ(ge::aclgrphSaveModel(output_file, model), SUCCESS);
+  EXPECT_EQ(mmAccess2((output_file + ".om2").c_str(), M_F_OK), EN_OK);
+  EXPECT_NE(mmAccess2((output_file + ".om").c_str(), M_F_OK), EN_OK);
+  system("rm ./graph_om2_magic_test.om2");
+  system("rm ./graph_om2_magic_test.om");
+}
+
+TEST(UtestIrBuild, aclgrphSaveModelOm2ExternalWeightRelocateTest) {
+  const std::string work_dir = "./graph_om2_external_weight_test";
+  const std::string tmp_weight_dir = work_dir + "/tmp_weight";
+  const std::string weight_file_name = "weight_combined.bin";
+  const std::string old_weight_path = tmp_weight_dir + "/" + weight_file_name;
+  const std::string output_file = work_dir + "/saved_model";
+  const std::string new_weight_path = work_dir + "/weight/" + weight_file_name;
+
+  system(("rm -rf " + work_dir).c_str());
+  system(("mkdir -p " + tmp_weight_dir).c_str());
+  {
+    std::ofstream weight_file(old_weight_path, std::ios::binary);
+    ASSERT_TRUE(weight_file.is_open());
+    weight_file << "external-weight";
+  }
+
+  ModelBufferData model;
+  {
+    ZipArchiveWriter zip_writer(work_dir + "/build_model.om2");
+    ASSERT_TRUE(zip_writer.IsMemFileOpened());
+    JsonFile::json consts = JsonFile::json::object();
+    JsonFile file_const;
+    file_const.Set("index", 0U)
+        .Set("type", "COMBINED")
+        .Set("file_name", weight_file_name)
+        .Set("file_path", old_weight_path)
+        .Set("offset", 0)
+        .Set("size", 15)
+        .Set("op_name", "file_const");
+    consts["file_const"] = file_const.Raw();
+    JsonFile constants_config;
+    constants_config.Set("internal_weight_size", 0U).Set("consts", consts);
+    const std::string constants_config_str = constants_config.Dump();
+    ASSERT_TRUE(zip_writer.WriteBytes("data/constants/model_0_constants_config.json", constants_config_str.data(),
+                                      constants_config_str.size(), false));
+    const std::string manifest = R"({"archive_version":"1.0","model_num":1})";
+    ASSERT_TRUE(zip_writer.WriteBytes("manifest.json", manifest.data(), manifest.size(), false));
+    ASSERT_TRUE(zip_writer.SaveModelData(model, false));
+  }
+
+  EXPECT_EQ(ge::aclgrphSaveModel(output_file, model), SUCCESS);
+  EXPECT_EQ(mmAccess2((output_file + ".om2").c_str(), M_F_OK), EN_OK);
+  EXPECT_EQ(mmAccess2(new_weight_path.c_str(), M_F_OK), EN_OK);
+  EXPECT_NE(mmAccess2(old_weight_path.c_str(), M_F_OK), EN_OK);
+
+  const auto saved_model = ReadFileToVector(output_file + ".om2");
+  ASSERT_FALSE(saved_model.empty());
+  SimpleZipArchiveReader archive(saved_model.data(), saved_model.size());
+  ASSERT_TRUE(archive.IsGood());
+  size_t config_size = 0U;
+  const auto config_buf =
+      archive.ExtractToMem("saved_model/data/constants/model_0_constants_config.json", config_size);
+  ASSERT_NE(config_buf, nullptr);
+  const JsonFile saved_config(reinterpret_cast<const uint8_t *>(config_buf.get()), config_size);
+  ASSERT_TRUE(saved_config.IsValid());
+  const auto &file_const_json = saved_config.Raw().at("consts").at("file_const");
+  EXPECT_EQ(file_const_json.at("file_name"), JsonFile::json(weight_file_name));
+  EXPECT_FALSE(file_const_json.contains("file_path"));
+
+  system(("rm -rf " + work_dir).c_str());
+}
+
+TEST(UtestIrBuild, aclgrphBuildModelOfflineModeInvalidTest) {
+  Graph graph = BuildIrGraph1();
+  ModelBufferData model;
+  std::map<std::string, std::string> build_options = {{"ge.offlineMode", "8"}};
+  EXPECT_EQ(ge::aclgrphBuildModel(graph, build_options, model), ge::PARAM_INVALID);
+
+  build_options["ge.offlineMode"] = "";
+  EXPECT_EQ(ge::aclgrphBuildModel(graph, build_options, model), GRAPH_PARAM_INVALID);
+
+  build_options["ge.offlineMode"] = "abc";
+  EXPECT_EQ(ge::aclgrphBuildModel(graph, build_options, model), ge::PARAM_INVALID);
+
+  build_options["ge.offlineMode"] = "7abc";
+  EXPECT_EQ(ge::aclgrphBuildModel(graph, build_options, model), ge::PARAM_INVALID);
+}
+
+TEST(UtestIrBuild, aclgrphBuildModelOm2UnsupportedBuildOptionTest) {
+  Graph graph = BuildIrGraph1();
+  const std::vector<std::string> unsupported_options = {
+      ge::ir_option::OP_NAME_MAP,
+      ge::ir_option::INSERT_OP_FILE,
+      ge::ir_option::DYNAMIC_BATCH_SIZE,
+      ge::ir_option::DYNAMIC_IMAGE_SIZE,
+      ge::ir_option::DYNAMIC_DIMS,
+      ge::ir_option::AC_PARALLEL_ENABLE,
+      ge::ir_option::QUANT_DUMPABLE,
+      ge::ir_option::TILING_SCHEDULE_OPTIMIZE,
+      ge::ir_option::BUILD_INNER_MODEL,
+      ge::ir_option::INPUT_SHAPE_RANGE,
+      ge::ir_option::SHAPE_GENERALIZED_BUILD_MODE,
+      ge::OPTION_HOST_ENV_OS,
+      ge::OPTION_HOST_ENV_CPU,
+      ge::ir_option::VIRTUAL_TYPE,
+      ge::ir_option::ENABLE_SMALL_CHANNEL,
+      ge::ir_option::ENABLE_COMPRESS_WEIGHT,
+      ge::ir_option::COMPRESS_WEIGHT_CONF,
+      ge::ir_option::TUNE_DEVICE_IDS,
+  };
+
+  for (const auto &option : unsupported_options) {
+    ModelBufferData model;
+    const std::map<std::string, std::string> build_options = {
+        {"ge.offlineMode", "7"},
+        {option, "1"},
+    };
+    EXPECT_EQ(ge::aclgrphBuildModel(graph, build_options, model), ge::PARAM_INVALID) << option;
+  }
+}
+
+TEST(UtestIrBuild, aclgrphBuildModelOm2UnsupportedGlobalOptionTest) {
+  std::map<std::string, std::string> global_options = {
+      {ge::OPTION_HOST_ENV_OS, "linux"},
+      {ge::OPTION_HOST_ENV_CPU, "x86_64"},
+  };
+  ASSERT_EQ(ge::aclgrphBuildInitialize(global_options), ge::GRAPH_SUCCESS);
+  GE_MAKE_GUARD(finalize_guard, [] {
+    ge::aclgrphBuildFinalize();
+  });
+
+  Graph graph = BuildIrGraph1();
+  ModelBufferData model;
+  const std::map<std::string, std::string> build_options = {
+      {"ge.offlineMode", "7"},
+  };
+  EXPECT_EQ(ge::aclgrphBuildModel(graph, build_options, model), ge::PARAM_INVALID);
 }
 
 TEST(UtestIrCommon, CheckDynamicBatchSizeInputShapeValidTest) {

@@ -24,6 +24,7 @@
 #include "op_hcom_comm.h"
 #include "hcom_log.h"
 #include "hcom_executor.h"
+#include "hcom/hcom_graph_mc2.h"
 
 namespace hccl {
 HcomPlugin::HcomPlugin()
@@ -343,7 +344,7 @@ HcclResult HcomPlugin::HcomSetGroupToTopoInfo(const char *group, uint32_t rankSi
   }
   HCCL_INFO("[Set][GroupTopoInfo]group[%s] rankSize[%u].", group, rankSize);
   HcclResult ret;
-  ge::HcomTopoInfo::TopoInfo topoInfo;
+  ge::HcomTopoInfo::TopoInfo topoInfo{};
   topoInfo.rank_size = rankSize;
 
   HcclComm commHandle;
@@ -388,6 +389,7 @@ void HcomPlugin::HcomUnsetGroupToTopoInfo(const char *group) {
     return;
   }
   HCCL_INFO("[Unset][GroupTopoInfo]group[%s].", group);
+  ReleaseA5AicpuGraphSyncResource(group);
   ge::HcomTopoInfo::Instance().UnsetGroupTopoInfo(group);
 }
 }  // namespace hccl

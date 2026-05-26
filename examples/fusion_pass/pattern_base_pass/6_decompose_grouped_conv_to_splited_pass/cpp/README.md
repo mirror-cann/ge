@@ -5,12 +5,10 @@
 本样例为拆分分组卷积的自定义 pass 样例，
 提供在线推理与 atc 工具离线编译模型两种方式演示框架如何调用自定义 pass 完成图优化。
 本样例使用 eager style api 和融合接口实现。
-对应的 Python V1 对照版见 [../python/README.md](../python/README.md)。
 
 ## 目录结构
 
 ```
-cpp/
 ├── README.md                                            // C++ 样例说明
 ├── src
 │   ├──decompose_grouped_conv_to_splited_pass.cpp        // pass 实现文件
@@ -20,10 +18,6 @@ cpp/
 |   ├──torch_forward.py                                  // torch 脚本用于在线推理
 ├── gen_es_api
 |   ├──CMakeLists.txt                                    // 生成 eager style api 的编译脚本
-../python
-├── README.md                                            // Python V1 对照版说明
-├── src
-│   ├──test_python_decompose_pass.py                     // Python V1 decompose pass sample
 ```
 
 ## 环境要求

@@ -13,7 +13,7 @@ if (TARGET gtest_shared_build)
 endif ()
 
 find_package(GTest CONFIG
-    PATHS ${CMAKE_THIRD_PARTY_LIB_DIR}
+    PATHS ${CANN_3RD_LIB_PATH}
     NO_DEFAULT_PATH
     NO_CMAKE_SYSTEM_PATH
     NO_CMAKE_FIND_ROOT_PATH
@@ -26,7 +26,7 @@ endif()
 
 message(STATUS "[GTest] GTest not found, finding binary file.")
 
-set(REQ_URL "${CMAKE_THIRD_PARTY_LIB_DIR}/gtest_shared/googletest-1.14.0.tar.gz")
+set(REQ_URL "${CANN_3RD_LIB_PATH}/gtest_shared/googletest-1.14.0.tar.gz")
 set(GTEST_EXTRA_ARGS "")
 if(EXISTS ${REQ_URL})
     message(STATUS "[GTest] ${REQ_URL} found.")
@@ -34,13 +34,13 @@ else()
     message(STATUS "[GTest] ${REQ_URL} not found, need download.")
     set(REQ_URL "https://gitcode.com/cann-src-third-party/googletest/releases/download/v1.14.0/googletest-1.14.0.tar.gz")
     list(APPEND GTEST_EXTRA_ARGS
-        DOWNLOAD_DIR ${CMAKE_THIRD_PARTY_LIB_DIR}/gtest_shared
+        DOWNLOAD_DIR ${CANN_3RD_LIB_PATH}/gtest_shared
     )
 endif()
 
 include(ExternalProject)
 set(gtest_CXXFLAGS "-fPIC -D_GLIBCXX_USE_CXX11_ABI=${USE_CXX11_ABI}")
-set(GTEST_SHARED_DIR ${CMAKE_THIRD_PARTY_LIB_DIR}/gtest_shared)
+set(GTEST_SHARED_DIR ${CANN_3RD_LIB_PATH}/gtest_shared)
 ExternalProject_Add(gtest_shared_build
     URL ${REQ_URL}
     TLS_VERIFY OFF

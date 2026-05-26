@@ -761,6 +761,10 @@ Status FileConstantUtils::ChangeFilePathAttr(const ComputeGraphPtr &compute_grap
   return SUCCESS;
 }
 
+Status FileConstantUtils::MoveExternalWeightFiles(const std::map<std::string, std::string> &old_file_to_new_file) {
+  return MoveFilePath(old_file_to_new_file);
+}
+
 Status FileConstantUtils::MoveFilePath(const std::map<std::string, std::string> &old_file_to_new_file) {
   std::set<std::string> old_dirs;
   for (const auto &file_path : old_file_to_new_file) {

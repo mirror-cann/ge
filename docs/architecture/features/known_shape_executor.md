@@ -36,7 +36,7 @@
 
 ## 3. 对外接口
 
-### 3.１ DavinciModel 核心接口
+### 3.1 DavinciModel 核心接口
 
 `DavinciModel` 是静态执行器的核心类，封装了模型加载、内存管理、任务分发和执行的全流程：
 
@@ -55,7 +55,7 @@
 - `GetLogicalMemAllocation()`：获取逻辑内存分配表
 - `UpdateHbmFmMemBases`：更新 HBM 特征图内存基址
 
-### 3.２ V2 Kernel 注册接口
+### 3.2 V2 Kernel 注册接口
 
 ```
 REGISTER_KERNEL(DavinciModelCreate)       // 创建模型
@@ -73,7 +73,7 @@ REGISTER_KERNEL(DavinciModelGetRunAddress)    // 获取运行时地址
 ```
 Executor (base/common/model/executor.h)
   ├── ModelExecutor (runtime/v1/graph/execute/model_executor.h)
-  │     └── 委托给 ModelManager　-> DavinciModel
+  │     └── 委托给 ModelManager -> DavinciModel
   │
 DavinciModel (runtime/v1/graph/load/model_manager/davinci_model.h)
   ├── 独立模型: known_node_ = false

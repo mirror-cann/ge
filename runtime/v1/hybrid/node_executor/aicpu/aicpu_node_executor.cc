@@ -228,14 +228,18 @@ Status AicpuNodeTaskBase::UpdateBlockDimInfo(const int32_t block_dim_index) {
   } else {
     total = input_shape.GetDim(static_cast<size_t>(block_dim_index));
   }
-  uint32_t ai_cpu_cnt = 1U;
-  const auto ret = rtGetAiCpuCount(&ai_cpu_cnt);
-  GELOGD("Node[%s] ai_cpu_cnt[%u]!", node_name_.c_str(), ai_cpu_cnt);
-  if (ret != 0) {
-    GELOGD("Node[%s] get AiCpuCount failed!", node_name_.c_str());
+  int64_t ai_cpu_cnt = 1;
+  int32_t device_id = 0;
+  aclError ret = aclrtGetDevice(&device_id);
+  if (ret == ACL_SUCCESS) {
+    ret = aclrtGetDeviceInfo(static_cast<uint32_t>(device_id), ACL_DEV_ATTR_AICPU_CORE_NUM, &ai_cpu_cnt);
   }
-  const int64_t max_shard_num = static_cast<int64_t>(ai_cpu_cnt) * 2;
-  const int64_t per_unit_size = total / std::min(std::max(int64_t{1}, static_cast<int64_t>(ai_cpu_cnt)),
+  GELOGD("Node[%s] ai_cpu_cnt[%ld]!", node_name_.c_str(), ai_cpu_cnt);
+  if (ret != ACL_SUCCESS) {
+    GELOGW("Node[%s] get DeviceCount failed!", node_name_.c_str());
+  }
+  const int64_t max_shard_num = ai_cpu_cnt * 2;
+  const int64_t per_unit_size = total / std::min(std::max(int64_t{1}, ai_cpu_cnt),
                                                  total);
   int64_t block_size = std::max(int64_t{1}, std::min(total, per_unit_size));
   int64_t shard_num = CeilDivisor(total, block_size);
@@ -330,6 +334,10 @@ Status AicpuNodeTaskBase::UpdateEventIdForBlockingAicpuOp() {
     return SUCCESS;
   }
   uint32_t event_id = 0U;
+  if (rt_event_ != nullptr) {
+    (void)aclrtDestroyEvent(rt_event_);
+    rt_event_ = nullptr;
+  }
   auto rt_ret = aclrtCreateEventWithFlag(
     &rt_event_,ACL_EVENT_SYNC | ACL_EVENT_CAPTURE_STREAM_PROGRESS | ACL_EVENT_TIME_LINE);
   if (rt_ret != ACL_SUCCESS) {
@@ -359,28 +367,8 @@ Status AicpuNodeTaskBase::UpdateEventIdForBlockingAicpuOp() {
 }
 
 Status AicpuNodeTaskBase::CheckDeviceSupportBlockingAicpuOpProcess(bool &is_support) const {
-  int32_t device_id = 0;
-  auto rt_ret = aclrtGetDevice(&device_id);
-  if (rt_ret != RT_ERROR_NONE) {
-    REPORT_INNER_ERR_MSG("E19999", "Call aclrtGetDevice failed, ret:%d", rt_ret);
-    GELOGE(RT_FAILED, "[Call][aclrtGetDevice] failed, ret:%d", rt_ret);
-    return RT_ERROR_TO_GE_STATUS(rt_ret);
-  }
-  int32_t value = 0;
-  rt_ret = rtGetDeviceCapability(device_id, FEATURE_TYPE_BLOCKING_OPERATOR, RT_MODULE_TYPE_AICPU, &value);
-  if (rt_ret != RT_ERROR_NONE) {
-    REPORT_INNER_ERR_MSG("E19999", "Call rtGetDeviceCapability failed, ret:%d", rt_ret);
-    GELOGE(RT_FAILED, "[Call][RtGetDeviceCapability] failed, ret:%d", rt_ret);
-    return RT_ERROR_TO_GE_STATUS(rt_ret);
-  }
-  if ((value != RT_AICPU_BLOCKING_OP_NOT_SUPPORT) && (value != RT_AICPU_BLOCKING_OP_SUPPORT)) {
-    REPORT_INNER_ERR_MSG("E19999", "Value should be %d or %d but %d",
-                       RT_AICPU_BLOCKING_OP_NOT_SUPPORT, RT_AICPU_BLOCKING_OP_SUPPORT, value);
-    GELOGE(FAILED, "[Check][Value] Value should be %d or %d but %d",
-           RT_AICPU_BLOCKING_OP_NOT_SUPPORT, RT_AICPU_BLOCKING_OP_SUPPORT, value);
-    return FAILED;
-  }
-  is_support = (value == RT_AICPU_BLOCKING_OP_SUPPORT);
+  // 默认认为支持该能力
+  is_support = true;
   return SUCCESS;
 }
 
@@ -402,10 +390,10 @@ Status AicpuNodeTaskBase::DistributeWaitTaskForAicpuBlockingOp(rtStream_t stream
     return FAILED;
   }
   SetTaskTag();
-  auto rt_ret = rtStreamWaitEvent(stream, rt_event_);
-  if (rt_ret != RT_ERROR_NONE) {
-    REPORT_INNER_ERR_MSG("E19999", "Call rtStreamWaitEvent failed, ret:%d", rt_ret);
-    GELOGE(RT_FAILED, "[Call][RtStreamWaitEvent] failed, ret:%d", rt_ret);
+  aclError rt_ret = aclrtStreamWaitEvent(stream, rt_event_);
+  if (rt_ret != ACL_SUCCESS) {
+    REPORT_INNER_ERR_MSG("E19999", "Call aclrtStreamWaitEvent failed, ret:%d", rt_ret);
+    GELOGE(RT_FAILED, "[Call][aclrtStreamWaitEvent] failed, ret:%d", rt_ret);
     return RT_ERROR_TO_GE_STATUS(rt_ret);
   }
   SetTaskTag();
@@ -422,7 +410,7 @@ Status AicpuNodeTaskBase::CheckOverflow(TaskContext &context) const {
   bool is_debug_open = context.GetDumpProperties().IsOpDebugOpen();
   GELOGD("Op %s is debug open: %s", context.GetNodeName(), is_debug_open ? "true" : "false");
   if (is_debug_open) {
-    const auto rt_ret = rtStreamSynchronize(context.GetStream());
+    const auto rt_ret = aclrtSynchronizeStream(context.GetStream());
     // AICPU is responsible for dump itself. This code is only reserved code for future solution.
     if (rt_ret == ACL_ERROR_RT_OVER_FLOW) {
       context.SetOverFlow(true);
@@ -431,9 +419,9 @@ Status AicpuNodeTaskBase::CheckOverflow(TaskContext &context) const {
       GELOGW("TaskBase Dynamic shape op %s is over flow", context.GetNodeName());
       return SUCCESS;
     }
-    if (rt_ret != RT_ERROR_NONE) {
-      GELOGE(RT_FAILED, "[Invoke][RtStreamSynchronize] failed TaskBase, ret:%d.", rt_ret);
-      REPORT_INNER_ERR_MSG("E19999", "rtStreamSynchronize failed, ret:%d.", rt_ret);
+    if (rt_ret != ACL_SUCCESS) {
+      GELOGE(RT_FAILED, "[Invoke][AclrtSynchronizeStream] failed TaskBase, ret:%d.", rt_ret);
+      REPORT_INNER_ERR_MSG("E19999", "aclrtSynchronizeStream failed, ret:%d.", rt_ret);
       return RT_ERROR_TO_GE_STATUS(rt_ret);
     }
   }
@@ -772,7 +760,7 @@ Status AicpuNodeTask::CopyDataToHbm(TaskContext &context,
 
   RECORD_CALLBACK_EVENT(context.GetExecutionContext(), node_name_.c_str(), "[LaunchCopy] End");
 
-  HYBRID_CHK_STATUS_RET(rtStreamSynchronizeWithTimeout(
+  HYBRID_CHK_STATUS_RET(aclrtSynchronizeStreamWithTimeout(
       context.GetStream(), static_cast<int32_t>(std::strtol(stream_sync_timeout_.c_str(), nullptr, kDefaultBase))));
   RECORD_CALLBACK_EVENT(context.GetExecutionContext(), node_name_.c_str(), "[SynchronizeCopy] End");
 
@@ -797,7 +785,7 @@ Status AicpuTfNodeTask::CopyDataToHbm(TaskContext &context,
                                   RT_KERNEL_DEFAULT, context.GetStream()));
   RECORD_CALLBACK_EVENT(context.GetExecutionContext(), node_name_.c_str(), "[LaunchCopy] End");
 
-  HYBRID_CHK_STATUS_RET(rtStreamSynchronizeWithTimeout(
+  HYBRID_CHK_STATUS_RET(aclrtSynchronizeStreamWithTimeout(
       context.GetStream(), static_cast<int32_t>(std::strtol(stream_sync_timeout_.c_str(), nullptr, kDefaultBase))));
   RECORD_CALLBACK_EVENT(context.GetExecutionContext(), node_name_.c_str(), "[SynchronizeCopy] End");
 
@@ -1354,7 +1342,7 @@ Status AicpuNodeTask::CheckOverflow(TaskContext &context) const {
   const DumpProperties &dump_properties = context.GetDumpProperties();
   if (dump_properties.IsOpDebugOpen()) {
     GELOGD("Op %s is doing overflow check in hybrid engine", context.GetNodeName());
-    const auto rt_ret = rtStreamSynchronizeWithTimeout(
+    const auto rt_ret = aclrtSynchronizeStreamWithTimeout(
         context.GetStream(), static_cast<int32_t>(std::strtol(stream_sync_timeout_.c_str(), nullptr, kDefaultBase)));
     // AICPU is responsible for dump itself. This code is only reserved code for future solution.
     if (rt_ret == ACL_ERROR_RT_OVER_FLOW) {
@@ -1365,13 +1353,13 @@ Status AicpuNodeTask::CheckOverflow(TaskContext &context) const {
       return SUCCESS;
     }
     if (rt_ret == ACL_ERROR_RT_STREAM_SYNC_TIMEOUT) {
-      GELOGE(rt_ret, "[Invoke][rtStreamSynchronizeWithTimeout] failed, ret:%d.", rt_ret);
-      REPORT_INNER_ERR_MSG("E19999", "rtStreamSynchronizeWithTimeout failed, ret:%d.", rt_ret);
+      GELOGE(rt_ret, "[Invoke][aclrtSynchronizeStreamWithTimeout] failed, ret:%d.", rt_ret);
+      REPORT_INNER_ERR_MSG("E19999", "aclrtSynchronizeStreamWithTimeout failed, ret:%d.", rt_ret);
       return FAILED;
     }
-    if (rt_ret != RT_ERROR_NONE) {
-      GELOGE(RT_FAILED, "[Invoke][RtStreamSynchronize] failed, ret:%d.", rt_ret);
-      REPORT_INNER_ERR_MSG("E19999", "rtStreamSynchronize failed, ret:%d.", rt_ret);
+    if (rt_ret != ACL_SUCCESS) {
+      GELOGE(RT_FAILED, "[Invoke][aclrtSynchronizeStream] failed, ret:%d.", rt_ret);
+      REPORT_INNER_ERR_MSG("E19999", "aclrtSynchronizeStream failed, ret:%d.", rt_ret);
       return RT_ERROR_TO_GE_STATUS(rt_ret);
     }
     return SUCCESS;

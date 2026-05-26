@@ -4795,6 +4795,9 @@ void CompleteGraphBuilder::PostProcess(graphStatus &error_code, std::string &err
     if ((node->GetOpDesc() == nullptr) || (node->GetType() == VARIABLE) || (node->GetType() == VARIABLEV2)) {
       continue;
     }
+    if(!ge::AttrUtils::HasAttr(node->GetOpDesc(), ATTR_NAME_DATA_DUMP_ORIGIN_OP_NAMES)) {
+      GraphUtils::RecordOriginalNames({node->GetName()}, node);
+    }
     node->GetOpDesc()->SetName(owner_graph_->GetName() + "/" + node->GetName());
   }
 }

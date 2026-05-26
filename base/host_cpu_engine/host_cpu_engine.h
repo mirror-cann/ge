@@ -39,9 +39,11 @@ class HostCpuEngine {
  private:
   HostCpuEngine() = default;
 
-  Status LoadLib(const std::string &lib_path);
+  void *DlopenLib(const std::string &lib_path);
 
-  ge::Status LoadOpsHostCpuNew();
+  Status InvokeLibInitialize(void *handle, const std::string &lib_path);
+
+  Status LoadLib(const std::string &lib_path, bool invoke_init = false);
 
   static Status GetEngineRealPath(std::string &path);
 

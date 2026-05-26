@@ -254,7 +254,7 @@ std::vector<Adx::DumpAttr> DataDumper::BuildDumpAttrs() const {
 void DataDumper::SaveDumpTask(const OpDescInfoId &id, const std::shared_ptr<OpDesc> &op_desc, const uintptr_t args,
                               const FirstLevelAddressInfo &first_level_address_info,
                               const std::map<uint64_t, uint64_t> &cust_to_relevant_offset,
-                              const ModelTaskType task_type, bool is_op_debug, const rtStream_t stream) {
+                              const ModelTaskType task_type, bool is_op_debug, rtStream_t const stream) {
   if (op_desc == nullptr) {
     GELOGE(PARAM_INVALID, "[Check][Param] Opdesc is nullptr");
     return;
@@ -329,7 +329,7 @@ void DataDumper::SaveDumpTask(const OpDescInfoId &id, const std::shared_ptr<OpDe
 
 void DataDumper::SavePrintDumpTask(const OpDescInfoId &id, const std::shared_ptr<OpDesc> &op_desc, const uintptr_t args,
                                    const FirstLevelAddressInfo &first_level_address_info,
-                                   const ModelTaskType task_type, const rtStream_t stream) {
+                                   const ModelTaskType task_type, rtStream_t const stream) {
   if (op_desc == nullptr) {
     GELOGE(PARAM_INVALID, "[Check][Param] Opdesc is nullptr");
     return;

@@ -446,19 +446,8 @@ void KernelExTaskInfo::PostProcess(const domi::TaskDef &task_def) {
 }
 
 Status KernelExTaskInfo::CheckDeviceSupportBlockingAicpuOpProcess(bool &is_support) const {
-  int32_t device_id = 0;
-  GE_CHK_RT_RET(aclrtGetDevice(&device_id));
-  int32_t value = 0;
-  GE_CHK_RT_RET(rtGetDeviceCapability(device_id, FEATURE_TYPE_BLOCKING_OPERATOR, RT_MODULE_TYPE_AICPU, &value));
-
-  if ((value != RT_AICPU_BLOCKING_OP_NOT_SUPPORT) && (value != RT_AICPU_BLOCKING_OP_SUPPORT)) {
-    REPORT_INNER_ERR_MSG("E19999", "Value should be %d or %d but %d",
-                       RT_AICPU_BLOCKING_OP_NOT_SUPPORT, RT_AICPU_BLOCKING_OP_SUPPORT, value);
-    GELOGE(FAILED, "[Check][Value] Value should be %d or %d but %d",
-           RT_AICPU_BLOCKING_OP_NOT_SUPPORT, RT_AICPU_BLOCKING_OP_SUPPORT, value);
-    return FAILED;
-  }
-  is_support = (value == RT_AICPU_BLOCKING_OP_SUPPORT);
+  // 默认认为支持该能力
+  is_support = true;
   return SUCCESS;
 }
 
@@ -510,7 +499,11 @@ Status KernelExTaskInfo::DistributeWaitTaskForAicpuBlockingOp() const {
   }
   uint32_t timeout = 0xffffffff;
   (void)AttrUtils::GetInt(op_desc_, ATTR_NAME_BLOCKING_OP_TIMEOUT, timeout);
-  GE_CHK_RT_RET(rtStreamWaitEventWithTimeout(stream_, rt_event, timeout));
+  if (timeout != 0xffffffff) {
+    GE_CHK_RT_RET(aclrtStreamWaitEventWithTimeout(stream_, rt_event, static_cast<int32_t>(timeout)));
+  } else {
+    GE_CHK_RT_RET(aclrtStreamWaitEvent(stream_, rt_event));
+  }
   GE_CHK_RT_RET(aclrtResetEvent(rt_event, stream_));
 
   return SUCCESS;

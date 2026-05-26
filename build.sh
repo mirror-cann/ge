@@ -39,7 +39,7 @@ usage() {
   echo "Options:"
   echo "    -h, --help        Print usage"
   echo "    -v, --verbose     Show detailed build commands during the build process"
-  echo "    -j<N>             Set the number of threads used for building AIR, default is 8"
+  echo "    -j<N>             Set the number of threads used for building GE, default is 8"
   echo "    --ge_compiler   Build ge-compiler run package with kernel bin"
   echo "    --ge_executor   Build ge-executor run package with kernel bin"
   echo "    --dflow         Build dflow-executor run package with kernel bin"
@@ -274,7 +274,7 @@ checkopts() {
   python_full_path=$(which ${PYTHON_PATH})
   set -e
   if [ -z "${python_full_path}" ]; then
-    echo "Error: python_path=${PYTHON_PATH} is not exist"
+    echo "Error: python_path=${PYTHON_PATH} does not exist"
     exit 1
   else
     PYTHON_PATH=${python_full_path}
@@ -354,19 +354,20 @@ mk_dir() {
 }
 
 copy_pkg() {
+  local component="$1"
   if [ "${ENABLE_BUILD_DEVICE}" = "ON" ]; then
-    mv ${BUILD_PATH}_CPack_Packages/cann-*.run ${BUILD_OUT_PATH}/
+    mv ${OUTPUT_PATH}/cann-${component}_*.run ${BUILD_OUT_PATH}/
   elif [ -z "${CMAKE_TOOLCHAIN_FILE}" ]; then
     if [ -f "/etc/lsb-release" ]; then
       ubuntu_version=$(grep -E '^DISTRIB_RELEASE=' /etc/lsb-release | cut -d'=' -f2 | xargs)
       ubuntu_version="ubuntu${ubuntu_version}"
-      mv ${BUILD_PATH}_CPack_Packages/cann-*.run ${BUILD_OUT_PATH}/cann-${MDC_BUILD_COMPONENT}-${VERSION_INFO}-${ubuntu_version}.x86_64.run
+      mv ${OUTPUT_PATH}/cann-${component}_*.run ${BUILD_OUT_PATH}/cann-${component}-${VERSION_INFO}-${ubuntu_version}.x86_64.run
     else
-      echo "Error: operate enviroment is not ubuntu."
+      echo "Error: operate environment is not ubuntu."
       exit 1
     fi
   else
-    mv ${BUILD_PATH}_CPack_Packages/cann-*.run ${BUILD_OUT_PATH}/cann-${MDC_BUILD_COMPONENT}-${VERSION_INFO}-aoskernel.aarch64.run
+    mv ${OUTPUT_PATH}/cann-${component}_*.run ${BUILD_OUT_PATH}/cann-${component}-${VERSION_INFO}-aoskernel.aarch64.run
   fi
 }
 
@@ -380,10 +381,23 @@ execute_command() {
 }
 
 build_pkg() {
-  echo "Create build directory and build AIR";
-  mk_dir "${BUILD_PATH}"
-  echo "---------------- Build AIR package:  ${BUILD_COMPONENT} ----------------"
-  cd "${BUILD_PATH}"
+  echo "Create build directory and build GE";
+  IFS=';' read -ra COMPONENTS <<< "${BUILD_COMPONENT}"
+
+  for component in "${COMPONENTS[@]}"; do
+    build_single_pkg "${component}" || { echo "GE build failed: ${component}."; exit 1; }
+  done
+
+  ls -l ${BUILD_OUT_PATH}/cann-*.run && echo "GE package success!"
+}
+
+build_single_pkg() {
+  local component="$1"
+  local component_build_path="${BUILD_PATH}/${component}"
+  mk_dir "${component_build_path}"
+  echo "===== Build GE package: ${component} (pid $$) ====="
+  cd "${component_build_path}"
+
   execute_command "cmake -D BUILD_OPEN_PROJECT=True \
         -D ENABLE_OPEN_SRC=True \
         -D ENABLE_ASAN=${ENABLE_ASAN} \
@@ -396,7 +410,7 @@ build_pkg() {
         -D CANN_3RD_LIB_PATH=${CANN_3RD_LIB_PATH} \
         -D HI_PYTHON=${PYTHON_PATH} \
         -D FORCE_REBUILD_CANN_3RD=False \
-        -D CANN_PACKAGES=\"${BUILD_COMPONENT}\" \
+        -D CANN_PACKAGES=${component} \
         -D CMAKE_FIND_DEBUG_MODE=OFF \
         -D ENABLE_SIGN=${ENABLE_SIGN} \
         -D CUSTOM_SIGN_SCRIPT=${CUSTOM_SIGN_SCRIPT} \
@@ -405,11 +419,12 @@ build_pkg() {
         -D USE_CXX11_ABI=${USE_CXX11_ABI} \
         -D LLVM_PATH=${LLVM_PATH} \
         -D CMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} \
-        .."
-  execute_command "make all ${VERBOSE} -j${THREAD_NUM}"
+        ${BASEPATH}"
+
+  execute_command "make ${component} ${VERBOSE} -j${THREAD_NUM}"
   execute_command "cpack"
-  copy_pkg
-  ls -l ${BUILD_OUT_PATH}/cann-*.run && echo "AIR package success!"
+  copy_pkg "${component}"
+  echo "===== GE package success: ${component} ====="
 }
 
 main() {
@@ -437,12 +452,12 @@ main() {
     bash ${THIRD_PARTY_DL} ${CANN_3RD_LIB_PATH} ${THREAD_NUM} ${BUILD_COMPONENT_COMPILER} ${ENABLE_BUILD_DEVICE} ${USE_CXX11_ABI} ${CMAKE_TOOLCHAIN_FILE}
   fi
 
-  echo "---------------- Build AIR package ----------------"
+  echo "---------------- Build GE package ----------------"
   mk_dir ${OUTPUT_PATH}
   mk_dir ${BUILD_OUT_PATH}
   mk_dir ${OUTPUT_PATH}/package
-  build_pkg || { echo "AIR build failed."; exit 1; }
-  echo "---------------- AIR build finished ----------------"
+  build_pkg || { echo "GE build failed."; exit 1; }
+  echo "---------------- GE build finished ----------------"
   date +"build end: %Y-%m-%d %H:%M:%S"
 }
 

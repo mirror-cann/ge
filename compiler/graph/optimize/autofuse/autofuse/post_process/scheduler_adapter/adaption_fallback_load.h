@@ -13,6 +13,7 @@
 
 #include "ge_common/ge_api_types.h"
 #include "graph/compute_graph.h"
+#include "graph/ascendc_ir/ascendc_ir_core/asc_graph_ge_bridge.h"
 #include "post_process/post_process_util.h"
 #include "adaption_complete_node_attrs.h"
 
@@ -67,36 +68,18 @@ inline Status UpdateDataAndLoadNodeOutput(const NodePtr &data_node, const NodePt
   return SUCCESS;
 }
 inline NodePtr CreateTransposeNode(AscGraph &asc_graph, const NodePtr &load_node, const size_t index) {
-  OpDescBuilder transpose_op_desc_builder("Transpose_" + std::to_string(index) + "_" +
-                                              load_node->GetName() + "_" +
-                                              std::to_string(AutofuseUtils::GenUniqueNumber()),
-                                          kTransposeType);
-  transpose_op_desc_builder.AddInput("x");
-  transpose_op_desc_builder.AddOutput("y");
-  auto transpose_op_desc = transpose_op_desc_builder.Build();
-  GE_ASSERT_NOTNULL(transpose_op_desc);
-  transpose_op_desc->AppendIrInput("x", ge::kIrInputRequired);
-  transpose_op_desc->AppendIrOutput("y", ge::kIrOutputRequired);
-  auto op = std::make_shared<Operator>(OpDescUtils::CreateOperatorFromOpDesc(transpose_op_desc));
-  GE_ASSERT_NOTNULL(op);
-  return asc_graph.AddNode(*op);
+  const std::string name = "Transpose_" + std::to_string(index) + "_" +
+                           load_node->GetName() + "_" +
+                           std::to_string(AutofuseUtils::GenUniqueNumber());
+  return af::AscGraphAddAscirNodeByType(asc_graph, kTransposeType.c_str(), name.c_str(), 0U, 0U);
 }
 
 inline NodePtr CreateBroadcastNode(AscGraph &asc_graph, const NodePtr &load_node,
                                    const std::vector<int64_t> &broadcast_info, const size_t index) {
-  OpDescBuilder broadcast_op_desc_builder("Broadcast_" + std::to_string(broadcast_info.size() - 1 - index) + "_" +
-                                          load_node->GetName() + "_" +
-                                          std::to_string(AutofuseUtils::GenUniqueNumber()),
-                                          kBroadcastType);
-  broadcast_op_desc_builder.AddInput("x");
-  broadcast_op_desc_builder.AddOutput("y");
-  auto broadcast_op_desc = broadcast_op_desc_builder.Build();
-  GE_ASSERT_NOTNULL(broadcast_op_desc);
-  broadcast_op_desc->AppendIrInput("x", ge::kIrInputRequired);
-  broadcast_op_desc->AppendIrOutput("y", ge::kIrOutputRequired);
-  auto op = std::make_shared<Operator>(OpDescUtils::CreateOperatorFromOpDesc(broadcast_op_desc));
-  GE_ASSERT_NOTNULL(op);
-  return asc_graph.AddNode(*op);
+  const std::string name = "Broadcast_" + std::to_string(broadcast_info.size() - 1 - index) + "_" +
+                           load_node->GetName() + "_" +
+                           std::to_string(AutofuseUtils::GenUniqueNumber());
+  return af::AscGraphAddAscirNodeByType(asc_graph, kBroadcastType.c_str(), name.c_str(), 0U, 0U);
 }
 
 inline Status ConnectNodeAfterLoad(const NodePtr &load_node, const NodePtr &new_node) {

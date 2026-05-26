@@ -21,6 +21,10 @@ target_compile_options(ge_running_env_test PRIVATE
     -DFUNC_VISIBILITY
 )
 
+target_link_options(ge_running_env_test PRIVATE
+    -Wl,--disable-new-dtags
+)
+
 target_link_libraries(ge_running_env_test PUBLIC intf_llt_pub GTest::gtest ge_running_env ge_common_base
         ge_compiler
         ge_runner

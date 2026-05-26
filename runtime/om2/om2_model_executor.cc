@@ -617,7 +617,22 @@ class Om2ModelExecutor::Impl {
     return ge::SUCCESS;
   }
 
+  ge::Status GetOpDescInfo(const uint32_t device_id, const uint32_t stream_id, const uint32_t task_id,
+                           ge::OpDescInfo &op_desc_info) const {
+    GE_ASSERT_TRUE(has_model_);
+    if (device_id_ != static_cast<int32_t>(device_id)) {
+      GELOGD("[OM2][Get][OpDescInfo] Device id not match, input=%u, model=%d.", device_id, device_id_);
+      return ge::FAILED;
+    }
+    GE_ASSERT_NOTNULL(dump_manager_);
+    return dump_manager_->GetOpDescInfo(ge::OpDescInfoId(task_id, stream_id, static_cast<int32_t>(device_id)),
+                                        op_desc_info) ? ge::SUCCESS : ge::FAILED;
+  }
+
   void Cleanup() {
+    if (dump_manager_ != nullptr) {
+      dump_manager_.reset();
+    }
     if (run_model_info_.destroy_func != nullptr && run_model_info_.model_handle != nullptr) {
       const auto destroy_ret = run_model_info_.destroy_func(&run_model_info_.model_handle);
       if (destroy_ret != ge::GRAPH_SUCCESS) {
@@ -625,10 +640,6 @@ class Om2ModelExecutor::Impl {
       }
     } else {
       GELOGI("[OM2] Destroy func not found or model not created, so file: %s", run_model_info_.so_file.c_str());
-    }
-    if (dump_manager_ != nullptr) {
-      dump_manager_->Clear();
-      dump_manager_.reset();
     }
     if (run_model_info_.so_handle != nullptr) {
       if (mmDlclose(run_model_info_.so_handle) != 0) {
@@ -820,6 +831,11 @@ ge::Status Om2ModelExecutor::GetUserDesignateShapeOrder(std::vector<std::string>
 
 ge::Status Om2ModelExecutor::GetOpAttr(std::map<std::string, std::map<std::string, std::string>> &op_attr_map) const {
   return impl_->GetOpAttr(op_attr_map);
+}
+
+ge::Status Om2ModelExecutor::GetOpDescInfo(const uint32_t device_id, const uint32_t stream_id,
+                                           const uint32_t task_id, ge::OpDescInfo &op_desc_info) const {
+  return impl_->GetOpDescInfo(device_id, stream_id, task_id, op_desc_info);
 }
 
 ge::Status LoadOm2DataFromFile(const std::string &model_path, ge::ModelData &model_data) {

@@ -22,6 +22,8 @@
 #include "graph/utils/type_utils.h"
 #include "exe_graph/runtime/gert_tensor_data.h"
 #include "aicore/converter/autofuse_node_converter.h"
+#include "graph/custom_op_factory.h"
+#include "graph/custom_op.h"
 
 namespace gert {
 namespace kernel {
@@ -96,6 +98,20 @@ ge::graphStatus InferShapeByRule(KernelContext *context) {
     return ret;
   }
   return ge::GRAPH_SUCCESS;
+}
+
+ge::graphStatus InferCustomOpShape(InferShapeContext *context) {
+  auto extend_context = reinterpret_cast<ExtendedKernelContext *>(context);
+  GE_ASSERT_NOTNULL(extend_context);
+  auto shape_infer_op = dynamic_cast<ge::ShapeInferOp *>(
+      ge::CustomOpFactory::CreateOrGetCustomOp(extend_context->GetNodeType()));
+  if (shape_infer_op == nullptr) {
+    KLOGE("Failed to find custom ShapeInferOp for node %s(%s)", extend_context->GetNodeName(),
+          extend_context->GetNodeType());
+    return ge::GRAPH_FAILED;
+  }
+  const auto ret = shape_infer_op->InferShape(context);
+  return ret;
 }
 
 ge::graphStatus LoadShapeRuleFromJson(KernelContext *context) {
@@ -226,6 +242,12 @@ ge::graphStatus FindInferShapeFunc(KernelContext *context) {
 
   auto op_funcs = space_registry->GetOpImpl(node_type);
   if ((op_funcs == nullptr) || (op_funcs->infer_shape == nullptr)) {
+    auto custom_op = ge::CustomOpFactory::CreateOrGetCustomOp(node_type);
+    auto shape_infer_op = dynamic_cast<ge::ShapeInferOp *>(custom_op);
+    if (shape_infer_op != nullptr) {
+      *infer_fun_ptr = InferCustomOpShape;
+      return ge::GRAPH_SUCCESS;
+    }
     KLOGE("Failed to find infer shape kernel, node type %s", node_type);
     return ge::GRAPH_FAILED;
   }

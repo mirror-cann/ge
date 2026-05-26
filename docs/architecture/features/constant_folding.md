@@ -324,7 +324,7 @@ REG_PASS_OPTION("PotentialConstTakenEffectPass").LEVELS(OoLevel::kO1).SWITCH_OPT
 机制流程：
 
 ```
-DimensionComputePass / DimensionComputePass
+ConstantFoldingPass / DimensionComputePass
          │
          │ (节点部分输入为非常量)
          ▼

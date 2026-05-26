@@ -23,11 +23,12 @@ set(ASCGEN_COMMON_LINK_OPTION
         -lrt -ldl -lgcov
         )
 
-add_dependencies(autofusion_st metadef_graph_protos_obj ascir_ops_headers)
+add_dependencies(autofusion_st metadef_graph_protos_obj)
 
 target_compile_definitions(autofusion_st PRIVATE
         PROTOBUF_INLINE_NOT_IN_HEADERS=0
         google=ascend_private
+        AUTOFUSE_USE_GE_METADEF
         )
 
 target_compile_options(autofusion_st PRIVATE ${ASCGEN_DT_COMPILE_OPTION}
@@ -39,15 +40,25 @@ target_compile_options(autofusion_st PRIVATE ${ASCGEN_DT_COMPILE_OPTION}
 
 target_include_directories(autofusion_st PUBLIC
         ${AUTOFUSION_ROOT_DIR}
+        ${CODE_ROOT_DIR}/common
         ${CMAKE_CURRENT_SOURCE_DIR}/../../ut/autofuse
         ${CODE_ROOT_DIR}/../../../../
         ${CODE_ROOT_DIR}/../../../../tests/autofuse/framework/easy_graph/include
         ${CODE_ROOT_DIR}/../../../../tests/autofuse/framework/ge_graph_dsl/include
         ${CODE_ROOT_DIR}/../../../../tests/autofuse/framework/eager_style_graph_builder
+        ${CODE_ROOT_DIR}/../../../../tests/graph_metadef/ut
+        )
+
+target_link_directories(autofusion_st PRIVATE
+        ${ASCEND_INSTALL_PATH}/${CMAKE_SYSTEM_PROCESSOR}-linux/devlib
+        ${ASCEND_INSTALL_PATH}/${CMAKE_SYSTEM_PROCESSOR}-linux/lib64
+)
+
+target_link_options(autofusion_st PRIVATE
+        -Wl,--disable-new-dtags
         )
 
 target_link_libraries(autofusion_st ${ASCGEN_COMMON_LINK_OPTION}
-        ascir_ops_headers
         metadef_headers
         easy_graph_b
         ge_graph_dsl_b
@@ -60,7 +71,7 @@ target_link_libraries(autofusion_st ${ASCGEN_COMMON_LINK_OPTION}
         autofuse
         error_manager
         mmpa
-        ascgen_common
+        aihac_codegen_toolkit
         ascend_protobuf
         aihac_symbolizer
         GTest::gtest
@@ -69,8 +80,15 @@ target_link_libraries(autofusion_st ${ASCGEN_COMMON_LINK_OPTION}
         autofuse_runtime_stub
         json
         -Wl,--no-as-needed
+        ascend_hal
+        platform
         aihac_ir
         aihac_ir_register
+        aihac_symbolizer_af
+        graph_af
+        graph_base_af
+        runtime
+        ascend_trace
 )
 
 add_test(NAME autofusion_st COMMAND autofusion_st --gtest_output=xml:${CMAKE_INSTALL_PREFIX}/report/st/autofusion_st.xml)

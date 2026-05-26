@@ -22,6 +22,7 @@
 #include "runtime/rts/rts_kernel.h"
 #include "runtime/rts/rts_device.h"
 
+#include "acl/acl_rt.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -57,9 +58,6 @@ class RuntimeStub {
   virtual rtError_t rtKernelLaunchEx(void *args, uint32_t args_size, uint32_t flags, rtStream_t stream) {
     return RT_ERROR_NONE;
   }
-
-  virtual rtError_t rtStreamSwitchEx(void *ptr, rtCondition_t condition, void *value_ptr, rtStream_t true_stream,
-                                     rtStream_t stream, rtSwitchDataType_t data_type);
 
   virtual rtError_t rtKernelLaunch(const void *stub_func,
                                    uint32_t block_dim,
@@ -101,12 +99,7 @@ class RuntimeStub {
   }
 
   virtual rtError_t rtKernelGetAddrAndPrefCntV2(void *handle, const uint64_t tilingKey, const void *const stubFunc,
-                                                const uint32_t flag, rtKernelDetailInfo_t *kernelInfo) {
-    kernelInfo->functionInfoNum = 1;
-    kernelInfo->functionInfo[0].pcAddr = (void *)(0x1245);
-    kernelInfo->functionInfo[0].prefetchCnt = 1;
-    return RT_ERROR_NONE;
-  }
+                                                const uint32_t flag, rtKernelDetailInfo_t *kernelInfo);
 
   virtual rtError_t rtKernelLaunchWithHandle(void *handle, uint64_t devFunc, uint32_t blockDim, rtArgsEx_t *args,
                                      rtSmDesc_t *smDesc, rtStream_t stream, const void *kernelInfo) {
@@ -127,11 +120,6 @@ class RuntimeStub {
 
   virtual rtError_t rtMemGrpQuery(rtMemGrpQueryInput_t * const input, rtMemGrpQueryOutput_t *output)
   {
-    return RT_ERROR_NONE;
-  }
-
-  virtual rtError_t rtGetDeviceCount(int32_t *count) {
-    *count = 1;
     return RT_ERROR_NONE;
   }
 
@@ -169,9 +157,6 @@ class RuntimeStub {
 
   virtual rtError_t rtMemcpyAsyncPtr(void *memcpyAddrInfo, uint64_t destMax, uint64_t count,
                                      rtMemcpyKind_t kind, rtStream_t stream, uint32_t qosCfg);
-
-  virtual rtError_t rtsMemcpyBatch(void **dsts, void **srcs, size_t *sizes, size_t count, rtMemcpyBatchAttr *attrs,
-    size_t *attrs_idxs, size_t num_attrs, size_t *fail_idx);
 
   virtual rtError_t rtMalloc(void **dev_ptr, uint64_t size, rtMemType_t type, uint16_t moduleId);
 
@@ -293,11 +278,6 @@ class RuntimeStub {
   virtual rtError_t rtCtxGetCurrentDefaultStream(rtStream_t* stm);
 
   virtual rtError_t rtDatadumpInfoLoad(const void *dump_info, uint32_t length) {
-    return RT_ERROR_NONE;
-  }
-
-  virtual rtError_t rtEventQueryStatus(rtEvent_t evt, rtEventStatus_t *status) {
-    *status = RT_EVENT_RECORDED;
     return RT_ERROR_NONE;
   }
 
@@ -429,9 +409,6 @@ extern int32_t g_free_stream_num;
 RTS_STUB_RETURN_EXTERN(rtGetDevice, rtError_t);
 RTS_STUB_OUTBOUND_EXTERN(rtGetDevice, int32_t, device)
 
-RTS_STUB_RETURN_EXTERN(rtGetDeviceCapability, rtError_t);
-RTS_STUB_OUTBOUND_EXTERN(rtGetDeviceCapability, int32_t, value);
-
 RTS_STUB_RETURN_EXTERN(rtGetRtCapability, rtError_t);
 RTS_STUB_OUTBOUND_EXTERN(rtGetRtCapability, int32_t, value);
 
@@ -441,12 +418,7 @@ RTS_STUB_RETURN_EXTERN(rtStreamWaitEvent, rtError_t);
 
 RTS_STUB_RETURN_EXTERN(rtStreamWaitEventWithTimeout, rtError_t);
 
-RTS_STUB_RETURN_EXTERN(rtEventReset, rtError_t);
-
 RTS_STUB_RETURN_EXTERN(rtEventRecord, rtError_t);
-
-RTS_STUB_RETURN_EXTERN(rtEventQueryStatus, rtError_t);
-
 RTS_STUB_RETURN_EXTERN(rtEventCreate, rtError_t);
 RTS_STUB_OUTBOUND_EXTERN(rtEventCreate, rtEvent_t, event);
 
@@ -473,7 +445,6 @@ RTS_STUB_RETURN_EXTERN(rtMalloc, rtError_t);
 RTS_STUB_RETURN_EXTERN(rtMallocHost, rtError_t);
 RTS_STUB_RETURN_EXTERN(rtFreeHost, rtError_t);
 RTS_STUB_RETURN_EXTERN(rtMemcpy, rtError_t);
-RTS_STUB_RETURN_EXTERN(rtsMemcpyBatch, rtError_t);
 RTS_STUB_RETURN_EXTERN(rtDatadumpInfoLoad, rtError_t);
 
 RTS_STUB_RETURN_EXTERN(rtSetDeviceV2, rtError_t);

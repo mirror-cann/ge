@@ -7,7 +7,4 @@ message OtherGroupDef {
 
 message AttrGroupsDef {
   OtherGroupDef other_group_def = 1;
-  oneof attr_group {
-      ge.proto.AscendCIROpAttrGroupsDef op_attr_group = 2;
-  }
 }

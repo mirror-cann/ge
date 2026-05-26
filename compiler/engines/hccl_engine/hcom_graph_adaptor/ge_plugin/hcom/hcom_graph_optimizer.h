@@ -96,6 +96,7 @@ class HcomGraphOptimizer : public ge::GraphOptimizer {
                                      u32 &streamNum, u64 &opMemSize, u32 &taskNum, u32 &aivCoreNum);
   HcclResult SetOpRunningParamAttributes(ge::Node &node, const std::string &sCollectiveType,
                                           u32 &streamNum, u64 opMemSize);
+  bool TryGetOpDesc(const ge::NodePtr &nodePtr, ge::OpDescPtr &opDescPtr);
 
   bool IsSubgraphMultiBatch(ge::ComputeGraph &graph);
 

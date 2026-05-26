@@ -283,13 +283,24 @@ void AppendOutputWithEllipsis(gert::SymbolShape *output_shape, const std::string
   }
 }
 
-/*
- *  Einsum 符号化推导主流程：
- *  1) 读取并校验 attr；
- *  2) 解析 equation；
- *  3) 映射输入标签；
- *  4) 合并 ellipsis；
- *  5) 拼装输出。
+/**
+ * Einsum 算子的符号化shape推导
+ * 【算子功能】实现爱因斯坦求和约定，根据equation表达式对输入张量进行收缩运算
+ *            输入：多个张量（最多2个）
+ *            输出：单个张量，形状由equation决定
+ * 【算子约束】
+ *      1. 输入张量数量不超过2个
+ *      2. equation表达式必须合法，输出标签不能包含输入中未出现的新标签
+ *      3. attr N必须与实际输入数量匹配
+ *      4. 支持省略号(...)表示任意数量的维度
+ * 【推导逻辑】
+ *      1. 获取并校验equation和N属性
+ *      2. 解析equation，分离输入输出部分
+ *      3. 映射输入张量的维度标签到表达式
+ *      4. 合并多个输入的ellipsis维度
+ *      5. 根据输出equation拼装输出形状
+ *      举例：输入equation="ab,bc->ac"，input0_shape=(2,3)，input1_shape=(3,4)，
+ *            则output_shape=(2,4)
  */
 graphStatus InferShape4Einsum(gert::InferSymbolShapeContext *context) {
   GE_ASSERT_NOTNULL(context);

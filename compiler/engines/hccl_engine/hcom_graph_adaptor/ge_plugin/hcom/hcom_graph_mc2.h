@@ -23,6 +23,7 @@ HcclResult GetCountFromOpDesc(const ge::OpDescPtr &op, const std::string &sColle
                               u64 &count, u32 rankSize);
 ge::graphStatus HcomCreateComResourceMC2(const ge::OpDescPtr &opdesc, std::vector<void *> &contexts);
 ge::graphStatus HcomCreateComResource(const ge::OpDescPtr &opdesc, std::vector<void *> &contexts);
+void ReleaseA5AicpuGraphSyncResource(const char *groupName);
 #ifndef OPEN_BUILD_PROJECT
 void *HcomGetContextV2(const rtStream_t stream, const void *tilingData, const char *groupName);
 #endif

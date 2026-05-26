@@ -14,7 +14,7 @@ endif()
 
 include(ExternalProject)
 
-set(REQ_URL "${CMAKE_THIRD_PARTY_LIB_DIR}/c-ares/c-ares-1.19.1.tar.gz")
+set(REQ_URL "${CANN_3RD_LIB_PATH}/c-ares/c-ares-1.19.1.tar.gz")
 
 # 初始化可选参数列表
 set(CARES_EXTRA_ARGS "")
@@ -24,7 +24,7 @@ else()
   message(STATUS "[c-ares] ${REQ_URL} not found, need download.")
   set(REQ_URL "https://gitcode.com/cann-src-third-party/c-ares/releases/download/v1.19.1/c-ares-1.19.1.tar.gz")
   list(APPEND CARES_EXTRA_ARGS
-      DOWNLOAD_DIR ${CMAKE_THIRD_PARTY_LIB_DIR}/c-ares
+      DOWNLOAD_DIR ${CANN_3RD_LIB_PATH}/c-ares
   )
 endif()
 

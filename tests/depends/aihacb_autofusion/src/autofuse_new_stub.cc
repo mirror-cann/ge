@@ -59,7 +59,7 @@ int32_t GenAscGraphAxisGroup(const ge::AscGraph &graph, optimize::autoschedule::
   axes_group.y_group.push_back(0);
   axes_group.r_group.push_back(0);
   axes_group.n_group.push_back(0);
-  for (const auto &node : ge::AscGraphUtils::GetComputeGraph(graph)->GetAllNodes()) {
+  for (const auto &node : af::AscGraphUtils::GetComputeGraph(graph)->GetAllNodes()) {
     auto attr = ge::GetOrCreateAutoFuseAttrs(node->GetOpDesc());
     GE_ASSERT_NOTNULL(attr);
     ge::GetInterAttrs(attr).axis_group = axes_group;
@@ -78,4 +78,26 @@ void TracingRecordDuration(const ge::TracingModule stage, const std::vector<std:
                            const uint64_t start, const uint64_t duration) {}
 void ReportTracingRecordDuration(const ge::TracingModule stage) {};
 }
+
+#include "common/platform_context.h"
+namespace ge {
+std::mutex PlatformContext::mutex_;
+PlatformContext& PlatformContext::GetInstance() {
+  static PlatformContext instance;
+  return instance;
+}
+void PlatformContext::SetPlatform(const std::string &platform_name) {
+  current_platform_ = platform_name;
+}
+ge::Status PlatformContext::GetCurrentPlatformString(std::string &platform_name) {
+  if (current_platform_.empty()) {
+    current_platform_ = "2201";
+  }
+  platform_name = current_platform_;
+  return ge::SUCCESS;
+}
+ge::Status PlatformContext::Initialize() {
+  return ge::SUCCESS;
+}
+}  // namespace ge
 

@@ -10,6 +10,7 @@
 
 #include "graph/load/model_manager/task_info/rts/stream_switch_task_info.h"
 
+#include "acl/acl_rt.h"
 #include "graph/load/model_manager/davinci_model.h"
 #include "graph/load/model_manager/model_utils.h"
 
@@ -44,7 +45,7 @@ Status StreamSwitchTaskInfo::Init(const domi::TaskDef &task_def, DavinciModel *c
            ATTR_NAME_STREAM_SWITCH_COND.c_str(), op_desc->GetName().c_str(), op_desc->GetType().c_str());
     return INTERNAL_ERROR;
   }
-  cond_ = static_cast<rtCondition_t>(cond);
+  cond_ = static_cast<aclrtCondition>(cond);
 
   std::vector<uint32_t> active_stream_list;
   if ((!AttrUtils::GetListInt(op_desc, ATTR_NAME_ACTIVE_STREAM_LIST, active_stream_list)) ||
@@ -82,11 +83,12 @@ Status StreamSwitchTaskInfo::Distribute() {
   GE_ASSERT_NOTNULL(op_desc_);
   GELOGI("StreamSwitchTaskInfo Distribute Start.");
   SetTaskTag(op_desc_->GetName().c_str());
-  const rtError_t rt_ret = rtStreamSwitchEx(input_ptr_, cond_, value_ptr_, true_stream_, stream_, data_type_);
-  if (rt_ret != RT_ERROR_NONE) {
-    REPORT_INNER_ERR_MSG("E19999", "Call rtStreamSwitchEx fail, ret:%d", rt_ret);
-    GELOGE(RT_FAILED, "[Call][RtStreamSwitchEx] failed, ret:%d", rt_ret);
-    return RT_ERROR_TO_GE_STATUS(rt_ret);
+  const aclError acl_ret = aclrtSwitchStream(input_ptr_, cond_, value_ptr_, data_type_,
+                                             true_stream_, nullptr, stream_);
+  if (acl_ret != ACL_SUCCESS) {
+    REPORT_INNER_ERR_MSG("E19999", "Call aclrtSwitchStream fail, ret:%d", acl_ret);
+    GELOGE(RT_FAILED, "[Call][AclrtSwitchStream] failed, ret:%d", acl_ret);
+    return RT_ERROR_TO_GE_STATUS(acl_ret);
   }
 
   if (!domi::GetContext().is_online_model) {
@@ -139,7 +141,7 @@ Status StreamSwitchTaskInfo::InitInputValueAndType(const OpDescPtr &op_desc, con
              ATTR_NAME_SWITCH_DATA_TYPE.c_str(), op_desc->GetName().c_str(), op_desc->GetType().c_str());
       return FAILED;
     }
-    data_type_ = static_cast<rtSwitchDataType_t>(data_type);
+    data_type_ = static_cast<aclrtCompareDataType>(data_type);
   }
 
   GE_ASSERT_TRUE((iow_addrs.input_logic_addrs.size() == STREAM_SWITCH_INPUT_NUM),

@@ -2,6 +2,7 @@
  * Copyright (c) Huawei Technologies Co., Ltd. 2024. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
+ *
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -17,7 +18,6 @@
 #define GE_GE_LOCAL_ENGINE_ENGINE_AICPU_FOLDING_FOLDING_H_
 
 #include <cstdint>
-
 #include <map>
 #include <string>
 

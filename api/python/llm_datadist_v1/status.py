@@ -13,10 +13,7 @@
 from enum import Enum
 from llm_datadist_v1 import llm_wrapper
 
-try:
-    from llm_datadist.utils import log
-except ModuleNotFoundError:
-    from llm_datadist_v1.utils import log
+from .utils import log
 
 class LLMStatusCode(Enum):
     LLM_SUCCESS = llm_wrapper.kSuccess

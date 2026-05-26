@@ -120,6 +120,8 @@ graphengine:
       - inc/external/acl
       - graph_metadef/graph/attr/ge_attr_define.cc
       - runtime/v2/engine/aicpu
+      - base/common/atrace
+      - graph_metadef/graph/stub/stub_operator_factory_impl.cc
   llt:
     ut_check:true
     st_check:true
@@ -207,6 +209,16 @@ ge_autofuse:
       - compiler/graph/optimize/autofuse
     unrelease:
       - tests/autofuse
+      - compiler/graph/optimize/autofuse/autofuse/utils/autofuse_utils.cpp
+      - compiler/graph/optimize/autofuse/autofuse/pattern_fusion/flatten_split_pass.cpp
+      - compiler/graph/optimize/autofuse/autofuse/post_process/scheduler_adapter/adaption_improve_precision.cpp
+      - compiler/graph/optimize/autofuse/autofuse/lowering/liftings.cpp
+      - compiler/graph/optimize/autofuse/autofuse/auto_fuse_config.cpp
+      - compiler/graph/optimize/autofuse/autofuse/post_process/pass/broadcast_backward_pass.cpp
+      - compiler/graph/optimize/autofuse/autofuse/lowering/lowerings.cpp
+      - compiler/graph/optimize/autofuse/autofuse/pattern_fusion/decompose_large_const_pass.cpp
+      - compiler/graph/optimize/autofuse/autofuse/pattern_fusion/flatten_concat_pass.cpp
+      - compiler/graph/optimize/autofuse/autofuse/can_fuse/strategy/split_fusion_strategy.cpp
   llt:
     ut_check:true
     st_check:true

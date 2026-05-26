@@ -149,6 +149,11 @@ class FileConstantUtils {
   /// @return Status
   static Status ChangeFilePath(const ComputeGraphPtr &compute_graph, const std::string &om_path);
 
+  /// @brief move external weight files according to path mapping
+  /// @param [in] old_file_to_new_file
+  /// @return Status
+  static Status MoveExternalWeightFiles(const std::map<std::string, std::string> &old_file_to_new_file);
+
   /// @brief get tmp weight dir
   /// @param [in] pid
   /// @param [in] session_id

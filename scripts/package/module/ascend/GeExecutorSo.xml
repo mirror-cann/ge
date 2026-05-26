@@ -30,7 +30,7 @@
         <file value="libacl_cblas.so" file_type="shared"/>
         <file value="UpdateModelParam_dav_2201.o"/>
     </file_info>
-    <file_info value="devlib" copy_type="delivery" dst_path="lib64/stub/linux/x86_64" install_path="$(TARGET_ENV)/devlib/linux/x86_64" install_type="devel" install_mod="440" optional="true">
+    <file_info value="devlib" copy_type="delivery" dst_path="devlib/linux/x86_64" install_path="$(TARGET_ENV)/devlib/linux/x86_64" install_type="devel" install_mod="440" optional="true">
         <file value="libge_common.so" file_type="shared"/>
         <file value="libhybrid_executor.so" file_type="shared"/>
         <file value="libgert.so" file_type="shared"/>
@@ -38,7 +38,7 @@
         <file value="liblowering.so" file_type="shared"/>
         <file value="libgraph.so" file_type="shared"/>
     </file_info>
-    <file_info value="devlib" copy_type="delivery" dst_path="lib64/stub/linux/aarch64" install_path="$(TARGET_ENV)/devlib/linux/aarch64" install_type="devel" install_mod="440" optional="true">
+    <file_info value="devlib" copy_type="delivery" dst_path="devlib/linux/aarch64" install_path="$(TARGET_ENV)/devlib/linux/aarch64" install_type="devel" install_mod="440" optional="true">
         <file value="libge_common.so" file_type="shared"/>
         <file value="libhybrid_executor.so" file_type="shared"/>
         <file value="libgert.so" file_type="shared"/>
@@ -46,17 +46,17 @@
         <file value="liblowering.so" file_type="shared"/>
         <file value="libgraph.so" file_type="shared"/>
     </file_info>
-    <file_info value="devlib" copy_type="delivery" dst_path="lib64/stub/minios/aarch64" install_path="$(TARGET_ENV)/devlib/minios/aarch64" install_type="devel" install_mod="440" optional="true">
+    <file_info value="devlib" copy_type="delivery" dst_path="devlib/minios/aarch64" install_path="$(TARGET_ENV)/devlib/minios/aarch64" install_type="devel" install_mod="440" optional="true">
         <file value="libgraph.so" file_type="shared"/>
         <file value="libregister.so" file_type="shared"/>
         <file value="liblowering.so" file_type="shared"/>
     </file_info>
-    <file_info value="devlib" copy_type="delivery" dst_path="lib64/stub/linux/x86_64" install_path="$(TARGET_ENV)/devlib/linux/x86_64" install_mod="440" optional="true">
+    <file_info value="devlib" copy_type="delivery" dst_path="devlib/linux/x86_64" install_path="$(TARGET_ENV)/devlib/linux/x86_64" install_mod="440" optional="true">
         <file value="libacl_mdl.so" file_type="shared"/>
         <file value="libacl_op_executor.so" file_type="shared"/>
         <file value="libacl_cblas.so" file_type="shared"/>
     </file_info>
-    <file_info value="devlib" copy_type="delivery" dst_path="lib64/stub/linux/aarch64" install_path="$(TARGET_ENV)/devlib/linux/aarch64" install_mod="440" optional="true">
+    <file_info value="devlib" copy_type="delivery" dst_path="devlib/linux/aarch64" install_path="$(TARGET_ENV)/devlib/linux/aarch64" install_mod="440" optional="true">
         <file value="libacl_mdl.so" file_type="shared"/>
         <file value="libacl_op_executor.so" file_type="shared"/>
         <file value="libacl_cblas.so" file_type="shared"/>

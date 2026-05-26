@@ -555,11 +555,7 @@ TEST_F(UtestSingleOpTask, test_blocking_aicpu_op_fail) {
   {
     AiCpuTask aicpu_task;
     aicpu_task.SetOpDesc(op_desc);
-    RTS_STUB_RETURN_VALUE(rtGetDeviceCapability, rtError_t, RT_ERROR_NONE);
-    RTS_STUB_OUTBOUND_VALUE(rtGetDeviceCapability, int32_t, value, RT_AICPU_BLOCKING_OP_NOT_SUPPORT);
     EXPECT_EQ(aicpu_task.SetExtInfoAndType(kernel_def.kernel_ext_info(), 0), SUCCESS);
-    RTS_STUB_RETURN_VALUE(rtGetDeviceCapability, rtError_t, RT_ERROR_NONE);
-    RTS_STUB_OUTBOUND_VALUE(rtGetDeviceCapability, int32_t, value, RT_AICPU_BLOCKING_OP_NOT_SUPPORT);
     EXPECT_EQ(aicpu_task.LaunchKernel(stream), SUCCESS);
   }
 

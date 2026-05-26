@@ -253,6 +253,31 @@ graph TB
 **关系**:
 - 用于描述张量形状
 
+### utils 模块
+
+#### 目录结构
+```
+
+├── utils/
+│   ├── __init__.py             # 导出 GeUtils
+│   └── ge_utils.py             # GeUtils 公共工具接口
+```
+
+#### 类详细说明
+
+##### 1. GeUtils 类
+
+**文件位置**: `utils/ge_utils.py`
+
+**功能**: GE 公共工具接口，面向 `Graph` / `Node` 对象提供 Shape 推导与节点 AICore 支持性校验能力。
+
+**主要方法**:
+- `infer_shape(graph, input_shapes)` - 给定输入 shape, 对传入的 graph 做全图 shape 推导；本接口只做shape推导，不对图做任何其他优化（如常量折叠、死边消除等）
+- `check_node_support_on_aicore(node)` - 校验指定 node 是否支持在 AICore 上执行
+
+**关系**:
+- 通过 `ge_utils_lib` 调用底层 C API
+
 ### allocator 模块
 
 #### 目录结构

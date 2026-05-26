@@ -11,6 +11,7 @@
 #include "framework/runtime/dump/data_dump_impl.h"
 #include "framework/runtime/dump/dump_config.h"
 #include "framework/common/debug/ge_log.h"
+#include "framework/common/types.h"
 #include "runtime/rt.h"
 #include "acl/acl_rt.h"
 
@@ -19,6 +20,10 @@ namespace dump {
 namespace {
 constexpr uint32_t kAicpuLoadFlag = 1U;
 constexpr uint32_t kAddrLength = static_cast<uint32_t>(sizeof(void *));
+constexpr uint64_t kOpDebugShape = 2048U;
+constexpr uint64_t kOpDebugSize = 2048U;
+const std::string OP_DEBUG_NAME = "Node_OpDebug";
+const std::string OP_DEBUG_TYPE = "Opdebug";
 }  // namespace
 
 DataDumpImpl::DataDumpImpl() = default;
@@ -149,7 +154,7 @@ Status DataDumpImpl::ExecuteLoadDumpInfo(const toolkit::aicpu::dump::OpMappingIn
 }
 
 void DataDumpImpl::BuildOpMappingBasicInfo(const ModelDumpInfo& model_info,
-                                            toolkit::aicpu::dump::OpMappingInfo& op_mapping_info) {
+                                            toolkit::aicpu::dump::OpMappingInfo& op_mapping_info) const {
   const char* model_name = (model_info.model_name != nullptr) ? model_info.model_name : "";
   op_mapping_info.set_dump_path(DumpConfig::Instance().GetDumpPath() +
                                 std::to_string(model_info.device_id) + "/");
@@ -178,7 +183,7 @@ void DataDumpImpl::BuildOpMappingBasicInfo(const ModelDumpInfo& model_info,
   }
 }
 
-Status DataDumpImpl::BuildTaskList(toolkit::aicpu::dump::OpMappingInfo& op_mapping_info) {
+Status DataDumpImpl::BuildTaskList(toolkit::aicpu::dump::OpMappingInfo& op_mapping_info) const {
   for (const auto& dump_info : task_list_) {
     toolkit::aicpu::dump::Task* task = op_mapping_info.add_task();
     GE_CHECK_NOTNULL(task);
@@ -204,7 +209,7 @@ Status DataDumpImpl::BuildTaskList(toolkit::aicpu::dump::OpMappingInfo& op_mappi
   return SUCCESS;
 }
 
-void DataDumpImpl::BuildTaskInputs(const InnerDumpInfo& dump_info, toolkit::aicpu::dump::Task& task) {
+void DataDumpImpl::BuildTaskInputs(const InnerDumpInfo& dump_info, toolkit::aicpu::dump::Task& task) const {
   const std::string& dump_mode = DumpConfig::Instance().GetDumpMode();
   const bool need_dump_input = (dump_mode == GE_DUMP_MODE_INPUT) || (dump_mode == GE_DUMP_MODE_ALL) ||
                                dump_info.is_op_debug;
@@ -242,7 +247,7 @@ void DataDumpImpl::BuildTaskInputs(const InnerDumpInfo& dump_info, toolkit::aicp
   }
 }
 
-void DataDumpImpl::BuildTaskOutputs(const InnerDumpInfo& dump_info, toolkit::aicpu::dump::Task& task) {
+void DataDumpImpl::BuildTaskOutputs(const InnerDumpInfo& dump_info, toolkit::aicpu::dump::Task& task) const {
   const std::string& dump_mode = DumpConfig::Instance().GetDumpMode();
   const bool need_dump_output = (dump_mode == GE_DUMP_MODE_OUTPUT) || (dump_mode == GE_DUMP_MODE_ALL) ||
                                 dump_info.is_op_debug;
@@ -280,7 +285,7 @@ void DataDumpImpl::BuildTaskOutputs(const InnerDumpInfo& dump_info, toolkit::aic
   }
 }
 
-void DataDumpImpl::BuildTaskWorkspaces(const InnerDumpInfo& dump_info, toolkit::aicpu::dump::Task& task) {
+void DataDumpImpl::BuildTaskWorkspaces(const InnerDumpInfo& dump_info, toolkit::aicpu::dump::Task& task) const {
   // workspace 只在 op_debug 模式下才需要 dump（用于溢出/异常调试）
   if (!dump_info.is_op_debug) {
     GELOGD("Skip dump workspace for task_id=%u, is_op_debug=%u",
@@ -298,12 +303,52 @@ void DataDumpImpl::BuildTaskWorkspaces(const InnerDumpInfo& dump_info, toolkit::
   }
 }
 
-Status DataDumpImpl::BuildAndLoadOpMappingInfo(const ModelDumpInfo& model_info) {
-  GELOGI("BuildAndLoadOpMappingInfo: model_id=%u, task_count=%zu, dump_data=%s, dump_mode=%s",
-         model_info.model_id, task_list_.size(), DumpConfig::Instance().GetDumpData().c_str(),
-         DumpConfig::Instance().GetDumpMode().c_str());
+void DataDumpImpl::SetOpDebugInfo(uint32_t task_id, uint32_t stream_id, void* debug_addr) {
+  is_op_debug_ = true;
+  op_debug_task_id_ = task_id;
+  op_debug_stream_id_ = stream_id;
+  op_debug_addr_ = debug_addr;
+}
 
-  if (task_list_.empty()) {
+void DataDumpImpl::BuildOpDebugTask(toolkit::aicpu::dump::OpMappingInfo& op_mapping_info) const {
+  if (!is_op_debug_) {
+    return;
+  }
+
+  GELOGI("Add op_debug_info to aicpu, task_id=%u, stream_id=%u",
+         op_debug_task_id_, op_debug_stream_id_);
+
+  toolkit::aicpu::dump::Task task;
+  task.set_end_graph(false);
+  task.set_task_id(op_debug_task_id_);
+  task.set_stream_id(op_debug_stream_id_);
+  task.mutable_op()->set_op_name(OP_DEBUG_NAME);
+  task.mutable_op()->set_op_type(OP_DEBUG_TYPE);
+
+  // set output
+  toolkit::aicpu::dump::Output output;
+  output.set_original_name(OP_DEBUG_NAME);
+  output.set_original_output_index(0);
+  output.set_original_output_format(FORMAT_ND);
+  output.set_original_output_data_type(DT_UINT8);
+  output.set_data_type(DT_UINT8);
+  output.set_format(FORMAT_ND);
+  output.mutable_shape()->add_dim(kOpDebugShape);
+  output.set_address(reinterpret_cast<uintptr_t>(op_debug_addr_));
+  output.set_size(kOpDebugSize);
+  output.set_addr_type(toolkit::aicpu::dump::AddressType::TRADITIONAL_ADDR);
+
+  task.mutable_output()->Add(std::move(output));
+  op_mapping_info.mutable_task()->Add(std::move(task));
+}
+
+Status DataDumpImpl::BuildAndLoadOpMappingInfo(const ModelDumpInfo& model_info) {
+  GELOGI("BuildAndLoadOpMappingInfo: model_id=%u, task_count=%zu, dump_data=%s, dump_mode=%s, is_op_debug=%d",
+         model_info.model_id, task_list_.size(), DumpConfig::Instance().GetDumpData().c_str(),
+         DumpConfig::Instance().GetDumpMode().c_str(), is_op_debug_);
+
+  // 如果没有普通算子要 dump，也没有 overflow dump，直接返回
+  if (task_list_.empty() && !is_op_debug_) {
     GELOGI("No task to dump, skip build and load op mapping info");
     return SUCCESS;
   }
@@ -317,69 +362,72 @@ Status DataDumpImpl::BuildAndLoadOpMappingInfo(const ModelDumpInfo& model_info) 
     return ret;
   }
 
+  // 添加 overflow dump 的特殊 Task（包含 p2p_debug_addr）
+  BuildOpDebugTask(op_mapping_info);
+
   // 打印 op_mapping_info 便于调试（和 test1.cpp 格式对齐）
-  GELOGI("========== Dump OpMappingInfo Start ==========");
-  GELOGI("dump_path: %s", op_mapping_info.dump_path().c_str());
-  GELOGI("model_name: %s", op_mapping_info.model_name().c_str());
-  GELOGI("model_id: %u", op_mapping_info.model_id());
-  GELOGI("step_id_addr: 0x%lx", op_mapping_info.step_id_addr());
-  GELOGI("loop_cond_addr: 0x%lx", op_mapping_info.loop_cond_addr());
-  GELOGI("iterations_per_loop_addr: 0x%lx", op_mapping_info.iterations_per_loop_addr());
-  GELOGI("flag: %u", op_mapping_info.flag());
-  GELOGI("dump_step: %s", op_mapping_info.dump_step().c_str());
-  GELOGI("dump_data: %d", op_mapping_info.dump_data());
-  GELOGI("task count: %d", op_mapping_info.task_size());
+  GELOGD("========== Dump OpMappingInfo Start ==========");
+  GELOGD("dump_path: %s", op_mapping_info.dump_path().c_str());
+  GELOGD("model_name: %s", op_mapping_info.model_name().c_str());
+  GELOGD("model_id: %u", op_mapping_info.model_id());
+  GELOGD("step_id_addr: 0x%lx", op_mapping_info.step_id_addr());
+  GELOGD("loop_cond_addr: 0x%lx", op_mapping_info.loop_cond_addr());
+  GELOGD("iterations_per_loop_addr: 0x%lx", op_mapping_info.iterations_per_loop_addr());
+  GELOGD("flag: %u", op_mapping_info.flag());
+  GELOGD("dump_step: %s", op_mapping_info.dump_step().c_str());
+  GELOGD("dump_data: %d", op_mapping_info.dump_data());
+  GELOGD("task count: %d", op_mapping_info.task_size());
 
   for (int32_t i = 0; i < op_mapping_info.task_size(); ++i) {
     const auto &task = op_mapping_info.task(i);
-    GELOGI("---------- Task[%d] ----------", i);
-    GELOGI("  task_id: %u", task.task_id());
-    GELOGI("  stream_id: %u", task.stream_id());
-    GELOGI("  context_id: %u", task.context_id());
-    GELOGI("  thread_id: %u", task.thread_id());
-    GELOGI("  op_name: %s", task.op().op_name().c_str());
-    GELOGI("  op_type: %s", task.op().op_type().c_str());
-    GELOGI("  end_graph: %d", task.end_graph());
-    GELOGI("  input count: %d", task.input_size());
+    GELOGD("---------- Task[%d] ----------", i);
+    GELOGD("  task_id: %u", task.task_id());
+    GELOGD("  stream_id: %u", task.stream_id());
+    GELOGD("  context_id: %u", task.context_id());
+    GELOGD("  thread_id: %u", task.thread_id());
+    GELOGD("  op_name: %s", task.op().op_name().c_str());
+    GELOGD("  op_type: %s", task.op().op_type().c_str());
+    GELOGD("  end_graph: %d", task.end_graph());
+    GELOGD("  input count: %d", task.input_size());
     for (int32_t j = 0; j < task.input_size(); ++j) {
       const auto &input = task.input(j);
       std::string shape_str;
       for (int32_t k = 0; k < input.shape().dim_size(); ++k) {
         shape_str += (k == 0 ? "" : ", ") + std::to_string(input.shape().dim(k));
       }
-      GELOGI("    input[%d]: addr=0x%lx, size=%u, format=%d, data_type=%d, "
+      GELOGD("    input[%d]: addr=0x%lx, size=%u, format=%d, data_type=%d, "
              "addr_type=%d, offset=%lu, shape=[%s]",
              j, input.address(), static_cast<uint32_t>(input.size()),
              input.format(), input.data_type(), input.addr_type(), input.offset(),
              shape_str.c_str());
     }
-    GELOGI("  output count: %d", task.output_size());
+    GELOGD("  output count: %d", task.output_size());
     for (int32_t j = 0; j < task.output_size(); ++j) {
       const auto &output = task.output(j);
       std::string shape_str;
       for (int32_t k = 0; k < output.shape().dim_size(); ++k) {
         shape_str += (k == 0 ? "" : ", ") + std::to_string(output.shape().dim(k));
       }
-      GELOGI("    output[%d]: addr=0x%lx, size=%u, format=%d, data_type=%d, "
+      GELOGD("    output[%d]: addr=0x%lx, size=%u, format=%d, data_type=%d, "
              "addr_type=%d, offset=%lu, shape=[%s]",
              j, output.address(), static_cast<uint32_t>(output.size()),
              output.format(), output.data_type(), output.addr_type(), output.offset(),
              shape_str.c_str());
     }
-    GELOGI("  context count: %d", task.context_size());
+    GELOGD("  context count: %d", task.context_size());
     for (int32_t j = 0; j < task.context_size(); ++j) {
       const auto &context = task.context(j);
-      GELOGI("    context[%d]: context_id=%u, thread_id=%u",
+      GELOGD("    context[%d]: context_id=%u, thread_id=%u",
              j, context.context_id(), context.thread_id());
     }
-    GELOGI("  workspace count: %d", task.space_size());
+    GELOGD("  workspace count: %d", task.space_size());
     for (int32_t j = 0; j < task.space_size(); ++j) {
       const auto &ws = task.space(j);
-      GELOGI("    workspace[%d]: addr=0x%lx, size=%u, type=%d",
+      GELOGD("    workspace[%d]: addr=0x%lx, size=%u, type=%d",
              j, ws.data_addr(), static_cast<uint32_t>(ws.size()), ws.type());
     }
   }
-  GELOGI("========== Dump OpMappingInfo End ==========");
+  GELOGD("========== Dump OpMappingInfo End ==========");
 
   ret = ExecuteLoadDumpInfo(op_mapping_info);
   if (ret != SUCCESS) {

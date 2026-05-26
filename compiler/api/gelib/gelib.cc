@@ -387,6 +387,7 @@ Status GELib::Finalize() {
     auto &global_options_mutex = GetGlobalOptionsMutex();
     const std::lock_guard<std::mutex> lock(global_options_mutex);
     GetMutableGlobalOptions().erase(ENABLE_SINGLE_STREAM);
+    GetMutableUserGlobalOptionKeys().clear();
   }
 
   is_train_mode_ = false;

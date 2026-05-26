@@ -36,8 +36,13 @@
 #include "all_ops_cpp.h"
 #include "compliant_op_desc_builder.h"
 #include "esb_graph.h"
-#include "base/att_const_values.h"
 #include "graph/ascendc_ir/utils/asc_graph_utils.h"
+
+namespace att {
+inline constexpr const char *kLoad = "Load";
+inline constexpr const char *kBroadcast = "Broadcast";
+inline constexpr const char *kTranspose = "Transpose";
+}  // namespace att
 
 using namespace std;
 using namespace testing;
@@ -227,7 +232,7 @@ class LoweringAndCanfuseUT : public testing::Test {
       if (attr == nullptr || attr->GetAscGraph() == nullptr) {
         continue;
       }
-      auto sub_graph = AscGraphUtils::GetComputeGraph(*(attr->GetAscGraph()));
+      auto sub_graph = af::AscGraphUtils::GetComputeGraph(*(attr->GetAscGraph()));
       if (sub_graph == nullptr) {
         continue;
       }
@@ -1485,7 +1490,7 @@ void VerifyAscBackendNode(const NodePtr &node, size_t &broadcast_cnt, bool &foun
   const auto attr = op_desc->GetAttrsGroup<AutoFuseAttrs>();
   EXPECT_NE(attr, nullptr);
   EXPECT_NE(attr->GetAscGraph(), nullptr);
-  for (auto asc_node : AscGraphUtils::GetComputeGraph(*(attr->GetAscGraph()))->GetDirectNode()) {
+  for (auto asc_node : af::AscGraphUtils::GetComputeGraph(*(attr->GetAscGraph()))->GetDirectNode()) {
     asc_adapt::TensorInfo tensor_desc;
     ASSERT_EQ(asc_adapt::GetTensorInfo(asc_node, tensor_desc), SUCCESS);
     cout << "ascgraph node: " << asc_node->GetName() << AutofuseUtils::VectorToStr(tensor_desc.repeats).c_str() << endl;

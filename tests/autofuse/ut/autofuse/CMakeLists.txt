@@ -24,6 +24,7 @@ add_dependencies(autofusion_ut metadef_graph_protos_obj ascir_ops_headers)
 target_compile_definitions(autofusion_ut PRIVATE
         PROTOBUF_INLINE_NOT_IN_HEADERS=0
         google=ascend_private
+        AUTOFUSE_USE_GE_METADEF
         )
 
 target_compile_options(autofusion_ut PRIVATE ${ASCGEN_DT_COMPILE_OPTION}
@@ -36,12 +37,24 @@ target_compile_options(autofusion_ut PRIVATE ${ASCGEN_DT_COMPILE_OPTION}
 
 target_include_directories(autofusion_ut PUBLIC
         ${AUTOFUSE_ROOT_DIR}
+        ${CODE_ROOT_DIR}
+        ${CODE_ROOT_DIR}/common
         ${CODE_ROOT_DIR}/../../../../
         ${CODE_ROOT_DIR}/../../../../tests/autofuse/framework/easy_graph/include
         ${CODE_ROOT_DIR}/../../../../tests/autofuse/framework/ge_graph_dsl/include
         ${CODE_ROOT_DIR}/../../../../tests/autofuse/framework/eager_style_graph_builder
         ${CODE_ROOT_DIR}/../../../../tests/autofuse/ut/autofuse
+        ${CODE_ROOT_DIR}/../../../../tests/graph_metadef/ut
         ${CODE_ROOT_DIR}/../../../../tests/autofuse/depends/runtime/src
+        )
+
+target_link_directories(autofusion_ut PRIVATE
+        ${ASCEND_INSTALL_PATH}/${CMAKE_SYSTEM_PROCESSOR}-linux/devlib
+        ${ASCEND_INSTALL_PATH}/${CMAKE_SYSTEM_PROCESSOR}-linux/lib64
+        )
+
+target_link_options(autofusion_ut PRIVATE
+        -Wl,--disable-new-dtags
         )
 
 target_link_libraries(autofusion_ut PRIVATE ${ASCGEN_COMMON_LINK_OPTION}
@@ -55,10 +68,7 @@ target_link_libraries(autofusion_ut PRIVATE ${ASCGEN_COMMON_LINK_OPTION}
         autofuse
         error_manager
         mmpa
-        ascgen_common
         ascend_protobuf
-        aihac_ir
-        aihac_ir_register
         graph_base
         graph
         metadef
@@ -68,4 +78,14 @@ target_link_libraries(autofusion_ut PRIVATE ${ASCGEN_COMMON_LINK_OPTION}
         autofuse_runtime_stub
         GTest::gtest
         json
+        aihac_codegen_toolkit
+        ascend_hal
+        platform
+        aihac_ir
+        aihac_ir_register
+        aihac_symbolizer_af
+        graph_af
+        graph_base_af
+        runtime
+        ascend_trace
         )

@@ -23,9 +23,7 @@ target_link_libraries(share_graph PUBLIC
         graph
         graph_base
         ascir
-        aihac_ir
-        aihac_ir_register
-        ascgen_common
+        aihac_codegen_toolkit
         asc_slog_stub
         autofuse_runtime_stub
         error_manager)

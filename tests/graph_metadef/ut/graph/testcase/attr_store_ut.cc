@@ -32,56 +32,6 @@ struct TestStructB {
   }
 };
 
-struct TestAscendCIROpAttrGroups : public AttrGroupsBase {
-  std::string name;
-  std::string type;
-
-  graphStatus Serialize(proto::AttrGroupDef &attr_group_def) override;
-  graphStatus Deserialize(const proto::AttrGroupDef &attr_group_def, AttrHolder *attr_holder) override;
-  std::unique_ptr<AttrGroupsBase> Clone() override;
-
-  bool operator==(const TestAscendCIROpAttrGroups &other) const {
-    return name == other.name && type == other.type;
-  }
-};
-
-std::unique_ptr<AttrGroupsBase> TestAscendCIROpAttrGroups::Clone() {
-  return std::unique_ptr<AttrGroupsBase>(new (std::nothrow) TestAscendCIROpAttrGroups(*this));
-}
-
-graphStatus TestAscendCIROpAttrGroups::Serialize(proto::AttrGroupDef &attr_group_def)  {
-  auto op_attr_groups = attr_group_def.mutable_op_attr_group();
-  if (op_attr_groups == nullptr) {
-    return GRAPH_FAILED;
-  }
-
-  op_attr_groups->set_name(name);
-  op_attr_groups->set_type(type);
-  return GRAPH_SUCCESS;
-}
-
-graphStatus TestAscendCIROpAttrGroups::Deserialize(const proto::AttrGroupDef &attr_group_def, AttrHolder *attr_holder) {
-  (void) attr_holder;
-  auto &op_attr_groups = attr_group_def.op_attr_group();
-
-  name = op_attr_groups.name();
-  type = op_attr_groups.type();
-  return GRAPH_SUCCESS;
-}
-
-REG_ATTR_GROUP_SERIALIZER(TestAscendCIROpAttrGroups,
-                          TestAscendCIROpAttrGroups,
-                          GetTypeId<TestAscendCIROpAttrGroups>(),
-                          proto::AttrGroupDef::kOpAttrGroup);
-
-struct TestAscendCIROpAttrGroupsFailed : public AttrGroupsBase {
-  std::string name;
-  std::string type;
-  std::unique_ptr<AttrGroupsBase> Clone() override {
-    return std::unique_ptr<AttrGroupsBase>(new (std::nothrow) TestAscendCIROpAttrGroupsFailed(*this));
-  }
-};
-
 }
 class AttrStoreUt : public testing::Test {
 };
@@ -300,82 +250,6 @@ TEST_F(AttrStoreUt, ExistsOk) {
   EXPECT_FALSE(s.Exists("transpose_x3"));
 }
 
-TEST_F(AttrStoreUt, CopyOk) {
-  auto s = AttrStore::Create(2);
-  EXPECT_TRUE(s.Set<int64_t>(0, 100));
-  EXPECT_TRUE(s.Set<bool>(1, true));
-  s.SetNameAndId("transpose_x1", 0);
-  s.SetNameAndId("transpose_x2", 1);
-  s.SetByName("attr_3", TestStructB{10,200,3000});
-  s.SetByName("attr_4", std::vector<int64_t>({1,2,3,4,5}));
-  auto attr_group_ptr = s.GetOrCreateAttrsGroup<TestAscendCIROpAttrGroups>();
-
-  auto s2(s);
-
-  AttrStore s_copy(s);
-  s_copy = AttrStore(s);
-  EXPECT_EQ(*s_copy.Get<int64_t>(0), 100);
-
-  EXPECT_NE(s2.Get<int64_t>(0), nullptr);
-  EXPECT_NE(s2.Get<int64_t>(0), s.Get<int64_t>(0));
-  EXPECT_EQ(*s2.Get<int64_t>(0), 100);
-
-  EXPECT_NE(s2.Get<bool>(1), nullptr);
-  EXPECT_NE(s2.Get<bool>(1), s.Get<bool>(1));
-  EXPECT_EQ(*s2.Get<bool>(1), true);
-
-  EXPECT_NE(s2.GetByName<int64_t>("transpose_x1"), nullptr);
-  EXPECT_NE(s2.GetByName<int64_t>("transpose_x1"), s.GetByName<int64_t>("transpose_x1"));
-  EXPECT_EQ(*s2.GetByName<int64_t>("transpose_x1"), 100);
-
-  EXPECT_NE(s2.GetByName<bool>("transpose_x2"), nullptr);
-  EXPECT_NE(s2.GetByName<bool>("transpose_x2"), s.GetByName<bool>("transpose_x2"));
-  EXPECT_EQ(*s2.GetByName<bool>("transpose_x2"), true);
-
-  EXPECT_NE(s2.GetByName<TestStructB>("attr_3"), nullptr);
-  EXPECT_NE(s2.GetByName<TestStructB>("attr_3"), s.GetByName<TestStructB>("attr_3"));
-  EXPECT_EQ(*s2.GetByName<TestStructB>("attr_3"), TestStructB({10,200,3000}));
-
-  EXPECT_NE(s2.GetByName<std::vector<int64_t>>("attr_4"), nullptr);
-  EXPECT_NE(s2.GetByName<std::vector<int64_t>>("attr_4"), s.GetByName<std::vector<int64_t>>("attr_4"));
-  EXPECT_EQ(*s2.GetByName<std::vector<int64_t>>("attr_4"), std::vector<int64_t>({1,2,3,4,5}));
-
-  EXPECT_NE(s2.GetOrCreateAttrsGroup<TestAscendCIROpAttrGroups>(), attr_group_ptr);
-  EXPECT_EQ(*(s2.GetOrCreateAttrsGroup<TestAscendCIROpAttrGroups>()), *attr_group_ptr);
-
-  auto s3 = AttrStore::Create(1);
-  auto ptr = s3.GetOrCreateAttrsGroup<TestAscendCIROpAttrGroups>();
-  EXPECT_NE(ptr, nullptr);
-  s3 = s;
-  EXPECT_NE(s3.GetOrCreateAttrsGroup<TestAscendCIROpAttrGroups>(), attr_group_ptr);
-  EXPECT_EQ(*(s3.GetOrCreateAttrsGroup<TestAscendCIROpAttrGroups>()), *attr_group_ptr);
-}
-
-TEST_F(AttrStoreUt, MoveOk) {
-  auto s = AttrStore::Create(2);
-  EXPECT_TRUE(s.Set<int64_t>(0, 100));
-  EXPECT_TRUE(s.Set<bool>(1, true));
-  s.SetNameAndId("transpose_x1", 0);
-  s.SetNameAndId("transpose_x2", 1);
-  s.SetByName("attr_3", TestStructB{10,200,3000});
-  s.SetByName("attr_4", std::vector<int64_t>({1,2,3,4,5}));
-
-  auto attr_3 = s.GetByName<TestStructB>("attr_3");
-  auto attr_4 = s.GetByName<std::vector<int64_t>>("attr_4");
-  auto attr_group_ptr = s.GetOrCreateAttrsGroup<TestAscendCIROpAttrGroups>();
-
-  auto s2(std::move(s));
-
-  EXPECT_NE(s2.GetByName<TestStructB>("attr_3"), nullptr);
-  EXPECT_EQ(s2.GetByName<TestStructB>("attr_3"), attr_3);
-  EXPECT_EQ(*s2.GetByName<TestStructB>("attr_3"), TestStructB({10,200,3000}));
-
-  EXPECT_NE(s2.GetByName<std::vector<int64_t>>("attr_4"), nullptr);
-  EXPECT_EQ(s2.GetByName<std::vector<int64_t>>("attr_4"), attr_4);
-  EXPECT_EQ(*s2.GetByName<std::vector<int64_t>>("attr_4"), std::vector<int64_t>({1,2,3,4,5}));
-
-  EXPECT_EQ(s2.GetOrCreateAttrsGroup<TestAscendCIROpAttrGroups>(), attr_group_ptr);
-}
 
 TEST_F(AttrStoreUt, GetAllAttrNamesOk) {
   auto s = AttrStore::Create(2);
@@ -441,33 +315,6 @@ TEST_F(AttrStoreUt, GetAllAttrsWithFilterOk) {
   EXPECT_EQ(*attrs["attr_3"].Get<TestStructB>(), TestStructB({10,200,3000}));
 }
 
-TEST_F(AttrStoreUt, TestGetAttrGroups) {
-  auto s = AttrStore::Create(2);
-  auto flag = s.CheckAttrGroupIsExist<TestAscendCIROpAttrGroups>();
-  EXPECT_EQ(flag, false);
-
-  auto ptr = s.GetOrCreateAttrsGroup<TestAscendCIROpAttrGroups>();
-  EXPECT_NE(ptr, nullptr);
-
-  flag = s.CheckAttrGroupIsExist<TestAscendCIROpAttrGroups>();
-  EXPECT_EQ(flag, true);
-}
-
-TEST_F(AttrStoreUt, TestAttrGroup) {
-  auto s = AttrStore::Create(1);
-  auto flag = s.CheckAttrGroupIsExist<TestAscendCIROpAttrGroups>();
-  ASSERT_EQ(flag, false);
-
-  auto ptr = s.GetOrCreateAttrsGroup<TestAscendCIROpAttrGroups>();
-  ASSERT_NE(ptr, nullptr);
-  TestAscendCIROpAttrGroups &t = *ptr;
-  t.name = "weqweqr";
-
-  s.ClearAttrsGroups();
-
-  flag = s.CheckAttrGroupIsExist<TestAscendCIROpAttrGroups>();
-  ASSERT_EQ(flag, false);
-}
 
 TEST_F(AttrStoreUt, OtherAttrGroupTest) {
   auto s = AttrStore::Create(1);
@@ -544,95 +391,6 @@ TEST_F(AttrStoreUt, ErrorTest) {
   ASSERT_EQ(flag, true);
 }
 
-TEST_F(AttrStoreUt, ErrorTest2) {
-  auto s = AttrStore::Create(1);
-  auto ptr = s.GetOrCreateAttrsGroup<TestAscendCIROpAttrGroups>();
-  ASSERT_NE(ptr, nullptr);
-  ptr->name = "test attr group";
-  ptr->type = "test type";
-
-  AnyValue err_any_value;
-  err_any_value.SetValue(1);
-  std::string attr_name = "Max memory";
-  auto ret = s.GetAttrFromOtherGroup(attr_name, err_any_value);
-  ASSERT_EQ(ret, GRAPH_FAILED);
-
-  std::string err_attr_name = "TEST2";
-  auto flag = s.ClearAttrInOtherAttrs(err_attr_name);
-  ASSERT_EQ(flag, false);
-
-  AnyValue any_value;
-  ret = s.GetAttrFromOtherGroup(attr_name, any_value);
-  ASSERT_EQ(ret, GRAPH_FAILED);
-
-  any_value.SetValue<int64_t>(1);
-
-  ret = s.SetAttrToOtherGroup(attr_name, any_value);
-  ASSERT_EQ(ret, GRAPH_SUCCESS);
-
-  s.ClearAllAttrsInOtherAttrs();
-  flag = s.ClearAttrInOtherAttrs(attr_name);
-  ASSERT_EQ(flag, false);
-
-  ptr = s.GetOrCreateAttrsGroup<TestAscendCIROpAttrGroups>();
-  ASSERT_NE(ptr, nullptr);
-  ret = s.SetAttrToOtherGroup(attr_name, any_value);
-  ASSERT_EQ(ret, GRAPH_SUCCESS);
-
-  s.ClearAllAttrs();
-
-  ret = s.GetAttrFromOtherGroup(attr_name, any_value);
-  ASSERT_EQ(ret, GRAPH_FAILED);
-}
-
-TEST_F(AttrStoreUt, AttrGroupSerializeAndDeSeralize) {
-  auto s = AttrStore::Create(1);
-  std::string attr_name = "Max memory";
-  auto flag = s.CheckAttrIsExistInOtherGroup(attr_name);
-  ASSERT_EQ(flag, false);
-  AnyValue any_value;
-  any_value.SetValue<int64_t>(1);
-
-  auto ret = s.SetAttrToOtherGroup(attr_name, any_value);
-  ASSERT_EQ(ret, GRAPH_SUCCESS);
-
-  auto m = s.GetAllAttrsFromOtherGroup();
-  ASSERT_EQ(m.size(), 1);
-
-  auto ptr = s.GetOrCreateAttrsGroup<TestAscendCIROpAttrGroups>();
-  ASSERT_NE(ptr, nullptr);
-  ptr->name = "test attr group";
-  ptr->type = "test type";
-
-  proto::AttrGroups attr_group;
-  ret = AttrGroupSerialize::SerializeAllAttr(attr_group, s);
-  ASSERT_EQ(ret, GRAPH_SUCCESS);
-
-  auto op_desc = std::make_shared<OpDesc>("Stub", "Stub");
-  ASSERT_NE(op_desc, nullptr);
-  ret = AttrGroupSerialize::DeserializeAllAttr(attr_group, op_desc.get());
-  ASSERT_EQ(ret, GRAPH_SUCCESS);
-
-  auto ptr_new = op_desc->GetAttrsGroup<TestAscendCIROpAttrGroups>();
-  ASSERT_NE(ptr_new, nullptr);
-  ASSERT_EQ(*ptr_new, *ptr);
-}
-
-TEST_F(AttrStoreUt, AttrGroupSerializer_invalid) {
-  EXPECT_NE(AttrGroupSerializerRegistry::GetInstance().GetSerializer(GetTypeId<TestAscendCIROpAttrGroups>()), nullptr);
-  // invalid builder
-  AttrGroupSerializerRegistry::GetInstance().RegisterAttrGroupSerialize([]() -> std::unique_ptr<AttrGroupsBase> { return nullptr; },
-                                                                        GetTypeId<TestAscendCIROpAttrGroups>(),
-                                                                        proto::AttrGroupDef::kOpAttrGroup);
-  // repeat reg
-  AttrGroupSerializerRegistry::GetInstance().RegisterAttrGroupSerialize([]() -> std::unique_ptr<ge::AttrGroupsBase> {
-                                                                          return std::unique_ptr<ge::AttrGroupsBase>(new(std::nothrow)TestAscendCIROpAttrGroups());
-                                                                        }, GetTypeId<TestAscendCIROpAttrGroups>(),
-                                                                        proto::AttrGroupDef::kOpAttrGroup);
-  // builder is null
-  AttrGroupSerializerRegister attr_group_serializer_registrar
-      (nullptr, GetTypeId<TestAscendCIROpAttrGroups>(), proto::AttrGroupDef::kOpAttrGroup);
-}
 
 TEST_F(AttrStoreUt, GetOrCreateAttrGroupWith0Args) {
   auto s = AttrStore::Create(1);

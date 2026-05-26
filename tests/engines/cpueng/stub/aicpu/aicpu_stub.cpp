@@ -32,13 +32,33 @@ std::shared_ptr<CpuKernel> CpuKernelRegister::GetCpuKernel(const std::string &op
   return testCpuKernel;
 }
 
+std::shared_ptr<CpuKernel> CpuKernelRegister::GetCpuKernelV2(const std::string &opType) {
+  std::shared_ptr<CpuKernel> testCpuKernel = MakeShared<TestCpuKernel>();
+  return testCpuKernel;
+}
+
+bool CpuKernelRegister::IsRegisteredV2(const std::string &opType) const {
+  (void)opType;
+  return true;
+}
+
 uint32_t CpuKernelRegister::RunCpuKernel(CpuKernelContext &ctx) {
+  return 0;
+}
+
+uint32_t CpuKernelRegister::RunCpuKernelV2(CpuKernelContext &ctx) {
   return 0;
 }
 
 std::vector<std::string> CpuKernelRegister::GetAllRegisteredOpTypes() const {
   std::vector<std::string> ret;
   ret.push_back("testop");
+  return ret;
+}
+
+std::vector<std::string> CpuKernelRegister::GetAllRegisteredOpTypesV2() const {
+  std::vector<std::string> ret;
+  ret.push_back("testopV2");
   return ret;
 }
 

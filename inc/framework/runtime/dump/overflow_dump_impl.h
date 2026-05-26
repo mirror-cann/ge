@@ -9,7 +9,7 @@
  */
 
 #ifndef GE_FRAMEWORK_RUNTIME_DUMP_OVERFLOW_DUMP_IMPL_H_
-#define GE_COMMON_DUMP_INTERNAL_OVERFLOW_DUMP_IMPL_H_
+#define GE_FRAMEWORK_RUNTIME_DUMP_OVERFLOW_DUMP_IMPL_H_
 
 #include <cstdint>
 #include "framework/common/ge_types.h"

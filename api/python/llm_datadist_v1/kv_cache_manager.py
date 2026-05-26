@@ -12,32 +12,18 @@
 
 from typing import List, Optional, Tuple, Union, Dict
 
-try:
-    from llm_datadist.configs import LLMRole
-    from llm_datadist.utils import log
-    from llm_datadist.utils.utils import check_isinstance, check_dict, check_int64, check_uint64,\
-        check_uint32, check_int32, check_positive_or_set_default
-    from llm_datadist.status import handle_llm_status, raise_if_false, raise_if_true, LLMStatusCode
-    from llm_datadist.v2.llm_types import CacheDesc, KvCache, CacheKey, CacheKeyByIdAndIndex, BlocksCacheKey, Placement, \
-        LayerSynchronizer, TransferConfig, CacheTask
-    from llm_datadist.v2.llm_utils import (
-        is_invalid_id, is_valid_id, pack_cache_desc, pack_cache_key, pack_block_cache_key, \
-        pack_cache_key_by_id, transfer_cache_async, TransferCacheParameters, layer_range_to_tensor_indices
-    )
-except ModuleNotFoundError:
-    from llm_datadist_v1.configs import LLMRole
-    from llm_datadist_v1.utils import log
-    from llm_datadist_v1.utils.utils import check_isinstance, check_dict, check_int64, check_uint64,\
-        check_uint32, check_int32, check_positive_or_set_default
-    from llm_datadist_v1.status import handle_llm_status, raise_if_false, raise_if_true, LLMStatusCode
-    from llm_datadist_v1.llm_types import CacheDesc, KvCache, CacheKey, CacheKeyByIdAndIndex, BlocksCacheKey, Placement, \
-        LayerSynchronizer, TransferConfig, CacheTask
-    from llm_datadist_v1.llm_utils import (
-        is_invalid_id, is_valid_id, pack_cache_desc, pack_cache_key, pack_block_cache_key, \
-        pack_cache_key_by_id, transfer_cache_async, TransferCacheParameters, layer_range_to_tensor_indices
-    )
-    
-from llm_datadist_v1.tensor import Tensor
+from .configs import LLMRole
+from .utils import log
+from .utils.utils import check_isinstance, check_dict, check_int64, check_uint64,\
+    check_uint32, check_int32, check_positive_or_set_default
+from .status import handle_llm_status, raise_if_false, raise_if_true, LLMStatusCode
+from .llm_types import CacheDesc, KvCache, CacheKey, CacheKeyByIdAndIndex, BlocksCacheKey, Placement, \
+    LayerSynchronizer, TransferConfig, CacheTask
+from .llm_utils import (
+    is_invalid_id, is_valid_id, pack_cache_desc, pack_cache_key, pack_block_cache_key, \
+    pack_cache_key_by_id, transfer_cache_async, TransferCacheParameters, layer_range_to_tensor_indices
+)
+from .tensor import Tensor
 
 _NUM_TENSORS_PER_LAYER = 2
 _INVALID_ID = 2 ** 64 - 1

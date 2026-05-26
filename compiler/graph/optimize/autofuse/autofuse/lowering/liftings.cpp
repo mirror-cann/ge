@@ -199,7 +199,7 @@ bool IsSingleTransposeShouldSkipLifting(const NodePtr &node) {
   const auto asc_graph = fuse_attrs->GetAscGraph();
   GE_ASSERT_NOTNULL(asc_graph);
   for (const auto &asc_node : asc_graph->GetAllNodes()) {
-    if (ge::ops::IsOps<ge::ascir_op::Transpose>(asc_node)) {
+    if (af::ops::IsOps<af::ascir_op::Transpose>(asc_node)) {
       const auto input_size = asc_node->inputs[0].attr.axis.size();
       GE_ASSERT_TRUE(input_size > 0, "input_size %d out of range", input_size);
       const auto &input_tail_axis = asc_node->inputs[0].attr.axis[input_size - 1];

@@ -70,14 +70,14 @@ class UtestFusionStrategySolver : public testing::Test {
     auto e = graph.CreateAxis("E", E);
 
     std::string data_name = "data" + graph.GetName();
-    ge::ascir_op::Data x1(data_name.c_str(), graph);
+    af::ascir_op::Data x1(data_name.c_str(), graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     *x1.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x1.y.repeats = {A, B, C, D, E};
     *x1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Load x1Local("load");
+    af::ascir_op::Load x1Local("load");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     *x1Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -85,21 +85,21 @@ class UtestFusionStrategySolver : public testing::Test {
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
     std::string scalar_name = "scalar" + graph.GetName();
-    ge::ascir_op::Scalar x2(scalar_name.c_str(), graph);
+    af::ascir_op::Scalar x2(scalar_name.c_str(), graph);
     x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2.attr.sched.loop_axis = c.id;
     *x2.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x2.y.repeats = {A, B, C, D, E};
     *x2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Load x2Local("load");
+    af::ascir_op::Load x2Local("load");
     x2Local.x = x1.y;
     x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     *x2Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x2Local.y.repeats = {A, B, C, D, E};
     *x2Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Mul mul(graph.GetName().c_str());
+    af::ascir_op::Mul mul(graph.GetName().c_str());
     mul.x1 = x1Local.y;
     mul.x2 = x2Local.y;
     mul.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -107,7 +107,7 @@ class UtestFusionStrategySolver : public testing::Test {
     *mul.y.repeats = {A, B, C, D, E};
     *mul.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Store x_store("store");
+    af::ascir_op::Store x_store("store");
     x_store.x = mul.y;
     x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_store.attr.sched.loop_axis = c.id;
@@ -115,7 +115,7 @@ class UtestFusionStrategySolver : public testing::Test {
     *x_store.y.repeats = {A, B, C, D, E};
     *x_store.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_out("out");
+    af::ascir_op::Output x_out("out");
     x_out.x = x_store.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -144,56 +144,56 @@ class UtestFusionStrategySolver : public testing::Test {
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1((graph.GetName() + "_data1").c_str(), graph);
+    af::ascir_op::Data x1((graph.GetName() + "_data1").c_str(), graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     *x1.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x1.y.repeats = {A, B, C, D, E};
     *x1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Load x1Local((graph.GetName()+ "_load1").c_str());
+    af::ascir_op::Load x1Local((graph.GetName()+ "_load1").c_str());
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     *x1Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Data x2((graph.GetName() + "_data2").c_str(), graph);
+    af::ascir_op::Data x2((graph.GetName() + "_data2").c_str(), graph);
     x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2.attr.sched.loop_axis = c.id;
     *x2.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x2.y.repeats = {A, B, C, D, E};
     *x2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Load x2Local((graph.GetName() + "_load2").c_str());
+    af::ascir_op::Load x2Local((graph.GetName() + "_load2").c_str());
     x2Local.x = x2.y;
     x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     *x2Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x2Local.y.repeats = {A, B, C, D, E};
     *x2Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Data x3((graph.GetName() + "_data3").c_str(), graph);
+    af::ascir_op::Data x3((graph.GetName() + "_data3").c_str(), graph);
     x3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x3.attr.sched.loop_axis = c.id;
     *x3.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x3.y.repeats = {A, B, C, D, E};
     *x3.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Load x3Local((graph.GetName() + "_load3").c_str());
+    af::ascir_op::Load x3Local((graph.GetName() + "_load3").c_str());
     x3Local.x = x3.y;
     x3Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     *x3Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x3Local.y.repeats = {A, B, C, D, E};
     *x3Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Concat split(graph.GetName().c_str());
+    af::ascir_op::Concat split(graph.GetName().c_str());
     split.x = {x1Local.y, x2Local.y, x3Local.y};
     split.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     *split.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *split.y.repeats = {A, B, C, D, E};
     *split.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Store x_store((graph.GetName() + "_store").c_str());
+    af::ascir_op::Store x_store((graph.GetName() + "_store").c_str());
     x_store.x = split.y;
     x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_store.attr.sched.loop_axis = c.id;
@@ -201,7 +201,7 @@ class UtestFusionStrategySolver : public testing::Test {
     *x_store.y.repeats = {A, B, C, D, E};
     *x_store.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_out((graph.GetName() + "_out").c_str());
+    af::ascir_op::Output x_out((graph.GetName() + "_out").c_str());
     x_out.x = x_store.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -243,21 +243,21 @@ class UtestFusionStrategySolver : public testing::Test {
     }
     input_dim_sizes[split_dim] = graph.CreateSizeVar(total_size);
 
-    ge::ascir_op::Data x1((graph.GetName() + "_data1").c_str(), graph);
+    af::ascir_op::Data x1((graph.GetName() + "_data1").c_str(), graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     *x1.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x1.y.repeats = input_dim_sizes;
     *x1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Load x1Local((graph.GetName()+ "_load1").c_str());
+    af::ascir_op::Load x1Local((graph.GetName()+ "_load1").c_str());
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     *x1Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x1Local.y.repeats = input_dim_sizes;
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Split split(graph.GetName().c_str());
+    af::ascir_op::Split split(graph.GetName().c_str());
     split.InstanceOutputy(2);
     split.x = x1Local.y;
     split.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -268,7 +268,7 @@ class UtestFusionStrategySolver : public testing::Test {
     *split.y[0].axis = {a.id, b.id, c.id, d.id, e.id};
     *split.y[0].repeats = output_dim_sizes[0];
     *split.y[0].strides = {B * C * D * E, C * D * E, D * E, E, ONE};
-    ge::ascir_op::Store x_store((graph.GetName() + "_store0" ).c_str());
+    af::ascir_op::Store x_store((graph.GetName() + "_store0" ).c_str());
     x_store.x = split.y[0];
     x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_store.attr.sched.loop_axis = c.id;
@@ -276,7 +276,7 @@ class UtestFusionStrategySolver : public testing::Test {
     *x_store.y.repeats = output_dim_sizes[0];
     *x_store.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_out((graph.GetName() + "_out0" ).c_str());
+    af::ascir_op::Output x_out((graph.GetName() + "_out0" ).c_str());
     x_out.x = x_store.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -290,7 +290,7 @@ class UtestFusionStrategySolver : public testing::Test {
     *split.y[1].repeats = output_dim_sizes[1];
     *split.y[1].strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Store x_store1((graph.GetName() + "_store1" ).c_str());
+    af::ascir_op::Store x_store1((graph.GetName() + "_store1" ).c_str());
     x_store1.x = split.y[1];
     x_store1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_store1.attr.sched.loop_axis = c.id;
@@ -298,7 +298,7 @@ class UtestFusionStrategySolver : public testing::Test {
     *x_store1.y.repeats = output_dim_sizes[1];
     *x_store1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_out1((graph.GetName() + "_out1").c_str());
+    af::ascir_op::Output x_out1((graph.GetName() + "_out1").c_str());
     x_out1.x = x_store1.y;
     x_out1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out1.attr.sched.loop_axis = c.id;
@@ -311,7 +311,7 @@ class UtestFusionStrategySolver : public testing::Test {
     //   *y.axis = {a.id, b.id, c.id, d.id, e.id};
     //   *y.repeats = {A, B, C, D, E};
     //   *y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
-    //   ge::ascir_op::Store x_store((graph.GetName() + "_store" + std::to_string(idx)).c_str());
+    //   af::ascir_op::Store x_store((graph.GetName() + "_store" + std::to_string(idx)).c_str());
     //   x_store.x = y;
     //   x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     //   x_store.attr.sched.loop_axis = c.id;
@@ -319,7 +319,7 @@ class UtestFusionStrategySolver : public testing::Test {
     //   *x_store.y.repeats = {A, B, C, D, E};
     //   *x_store.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
     //
-    //   ge::ascir_op::Output x_out((graph.GetName() + "_out" + std::to_string(idx)).c_str());
+    //   af::ascir_op::Output x_out((graph.GetName() + "_out" + std::to_string(idx)).c_str());
     //   x_out.x = x_store.y;
     //   x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     //   x_out.attr.sched.loop_axis = c.id;
@@ -353,21 +353,21 @@ class UtestFusionStrategySolver : public testing::Test {
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1((graph.GetName() + "_data1").c_str(), graph);
+    af::ascir_op::Data x1((graph.GetName() + "_data1").c_str(), graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     *x1.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x1.y.repeats = {A, B, C, D, E};
     *x1.y.strides = {B * C * D * E, Symbol(2) * C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Load x1Local((graph.GetName()+ "_load1").c_str());
+    af::ascir_op::Load x1Local((graph.GetName()+ "_load1").c_str());
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     *x1Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, Symbol(2) * C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Store x_store((graph.GetName() + "_store").c_str());
+    af::ascir_op::Store x_store((graph.GetName() + "_store").c_str());
     x_store.x = x1Local.y;
     x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_store.attr.sched.loop_axis = c.id;
@@ -375,7 +375,7 @@ class UtestFusionStrategySolver : public testing::Test {
     *x_store.y.repeats = {A, B, C, D, E};
     *x_store.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_out((graph.GetName() + "_out").c_str());
+    af::ascir_op::Output x_out((graph.GetName() + "_out").c_str());
     x_out.x = x_store.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -407,30 +407,30 @@ class UtestFusionStrategySolver : public testing::Test {
     auto e = graph.CreateAxis("E", E);
 
     std::string data_name = "data" + graph.GetName();
-    ge::ascir_op::Data x1(data_name.c_str(), graph);
+    af::ascir_op::Data x1(data_name.c_str(), graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     *x1.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x1.y.repeats = {A, B, C, D, E};
     *x1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Load x1Local("load");
+    af::ascir_op::Load x1Local("load");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     *x1Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Add add(graph.GetName().c_str());
+    af::ascir_op::Add add(graph.GetName().c_str());
     if (in_num == 2) {
-      ge::ascir_op::Data x2(data_name.c_str(), graph);
+      af::ascir_op::Data x2(data_name.c_str(), graph);
       x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
       x2.attr.sched.loop_axis = c.id;
       *x2.y.axis = {a.id, b.id, c.id, d.id, e.id};
       *x2.y.repeats = {A, B, C, D, E};
       *x2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-      ge::ascir_op::Load x2Local("load");
+      af::ascir_op::Load x2Local("load");
       x2Local.x = x2.y;
       x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
       *x2Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -452,7 +452,7 @@ class UtestFusionStrategySolver : public testing::Test {
       *add.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
     }
 
-    ge::ascir_op::Store x_store("store");
+    af::ascir_op::Store x_store("store");
     x_store.x = add.y;
     x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_store.attr.sched.loop_axis = c.id;
@@ -460,7 +460,7 @@ class UtestFusionStrategySolver : public testing::Test {
     *x_store.y.repeats = {A, B, C, D, E};
     *x_store.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_out("out");
+    af::ascir_op::Output x_out("out");
     x_out.x = x_store.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -470,7 +470,7 @@ class UtestFusionStrategySolver : public testing::Test {
     auto x_out_node = graph.FindNode("out");
     auto compute_graph = x_out_node->GetOwnerComputeGraph();
     if (out_num == 2) {
-      ge::ascir_op::Store x_store1("store1");
+      af::ascir_op::Store x_store1("store1");
       x_store1.x = add.y;
       x_store1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
       x_store1.attr.sched.loop_axis = c.id;
@@ -478,7 +478,7 @@ class UtestFusionStrategySolver : public testing::Test {
       *x_store1.y.repeats = {A, B, C, D, E};
       *x_store1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-      ge::ascir_op::Output x_out1("out1");
+      af::ascir_op::Output x_out1("out1");
       x_out1.x = x_store1.y;
       x_out1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
       x_out1.attr.sched.loop_axis = c.id;
@@ -512,7 +512,7 @@ class UtestFusionStrategySolver : public testing::Test {
     auto e = graph.CreateAxis("E", E);
 
     std::string data_name1 = "data1_" + graph.GetName();
-    ge::ascir_op::Data x1(data_name1.c_str(), graph);
+    af::ascir_op::Data x1(data_name1.c_str(), graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     *x1.y.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -520,7 +520,7 @@ class UtestFusionStrategySolver : public testing::Test {
     *x1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
     std::string load1 = "load1_" + graph.GetName();
-    ge::ascir_op::Load x1Local(load1.c_str());
+    af::ascir_op::Load x1Local(load1.c_str());
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     *x1Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -528,7 +528,7 @@ class UtestFusionStrategySolver : public testing::Test {
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
     std::string data_name2 = "data2_" + graph.GetName();
-    ge::ascir_op::Data x2(data_name2.c_str(), graph);
+    af::ascir_op::Data x2(data_name2.c_str(), graph);
     x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2.attr.sched.loop_axis = c.id;
     *x2.y.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -536,14 +536,14 @@ class UtestFusionStrategySolver : public testing::Test {
     *x2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
     std::string load2 = "load2_" + graph.GetName();
-    ge::ascir_op::Load x2Local(load2.c_str());
+    af::ascir_op::Load x2Local(load2.c_str());
     x2Local.x = x2.y;
     x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     *x2Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x2Local.y.repeats = {A, B, C, D, E};
     *x2Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Add add(graph.GetName().c_str());
+    af::ascir_op::Add add(graph.GetName().c_str());
     add.x1 = x1Local.y;
     add.x2 = x2Local.y;
     add.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -552,7 +552,7 @@ class UtestFusionStrategySolver : public testing::Test {
     *add.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
     std::string store = "store" + graph.GetName();
-    ge::ascir_op::Store x_store(store.c_str());
+    af::ascir_op::Store x_store(store.c_str());
     x_store.x = add.y;
     x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_store.attr.sched.loop_axis = c.id;
@@ -561,7 +561,7 @@ class UtestFusionStrategySolver : public testing::Test {
     *x_store.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
     std::string out = "out" + graph.GetName();
-    ge::ascir_op::Output x_out(out.c_str());
+    af::ascir_op::Output x_out(out.c_str());
     x_out.x = x_store.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -591,7 +591,7 @@ class UtestFusionStrategySolver : public testing::Test {
     auto e = graph.CreateAxis("E", E);
 
     std::string data_name = "data" + graph.GetName();
-    ge::ascir_op::Data x1(data_name.c_str(), graph);
+    af::ascir_op::Data x1(data_name.c_str(), graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     *x1.y.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -599,14 +599,14 @@ class UtestFusionStrategySolver : public testing::Test {
     *x1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
     std::string load = "load" + graph.GetName();
-    ge::ascir_op::Load x1Local(load.c_str());
+    af::ascir_op::Load x1Local(load.c_str());
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     *x1Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Abs add(graph.GetName().c_str());
+    af::ascir_op::Abs add(graph.GetName().c_str());
     add.x = x1Local.y;
     add.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     *add.y.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -614,7 +614,7 @@ class UtestFusionStrategySolver : public testing::Test {
     *add.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
     std::string store = "store" + graph.GetName();
-    ge::ascir_op::Store x_store(store.c_str());
+    af::ascir_op::Store x_store(store.c_str());
     x_store.x = add.y;
     x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_store.attr.sched.loop_axis = c.id;
@@ -623,7 +623,7 @@ class UtestFusionStrategySolver : public testing::Test {
     *x_store.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
     std::string out = "out" + graph.GetName();
-    ge::ascir_op::Output x_out(out.c_str());
+    af::ascir_op::Output x_out(out.c_str());
     x_out.x = x_store.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -652,56 +652,56 @@ class UtestFusionStrategySolver : public testing::Test {
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("data1", graph);
+    af::ascir_op::Data x1("data1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     *x1.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x1.y.repeats = {A, B, C, D, E};
     *x1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Load x1Local("load1");
+    af::ascir_op::Load x1Local("load1");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     *x1Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x1Local.y.repeats = {A, B, C, D, E};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Data x2("data2", graph);
+    af::ascir_op::Data x2("data2", graph);
     x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2.attr.sched.loop_axis = c.id;
     *x2.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x2.y.repeats = {A, B, C, D, E};
     *x2.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Load x2Local("load2");
+    af::ascir_op::Load x2Local("load2");
     x2Local.x = x2.y;
     x2Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     *x2Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x2Local.y.repeats = {A, B, C, D, E};
     *x2Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Data x3("data3", graph);
+    af::ascir_op::Data x3("data3", graph);
     x3.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x3.attr.sched.loop_axis = c.id;
     *x3.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x3.y.repeats = {A, B, C, D, E};
     *x3.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Load x3Local("load3");
+    af::ascir_op::Load x3Local("load3");
     x3Local.x = x3.y;
     x3Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     *x3Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x3Local.y.repeats = {A, B, C, D, E};
     *x3Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Concat concat(graph.GetName().c_str());
+    af::ascir_op::Concat concat(graph.GetName().c_str());
     concat.x = {x1Local.y, x2Local.y, x3Local.y};
     concat.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     *concat.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *concat.y.repeats = {A, B, C, D, E};
     *concat.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Store x_store("store");
+    af::ascir_op::Store x_store("store");
     x_store.x = concat.y;
     x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_store.attr.sched.loop_axis = c.id;
@@ -709,7 +709,7 @@ class UtestFusionStrategySolver : public testing::Test {
     *x_store.y.repeats = {A, B, C, D, E};
     *x_store.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_out("out");
+    af::ascir_op::Output x_out("out");
     x_out.x = x_store.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -752,11 +752,11 @@ class UtestFusionStrategySolver : public testing::Test {
     }
     output_dim_sizes[concat_dim] = graph.CreateSizeVar(total_size);
 
-    std::vector<std::shared_ptr<ge::ascir_op::Data>> data_ops;
+    std::vector<std::shared_ptr<af::ascir_op::Data>> data_ops;
     std::vector<AscOpOutput> concat_inputs;
     for (size_t i = 0U; i < concat_dims.size(); ++i) {
       auto e_size = ge::Symbol(concat_dims[i]);
-      auto x1 = std::make_shared<ge::ascir_op::Data>(("data_" + std::to_string(i)).c_str(), graph);
+      auto x1 = std::make_shared<af::ascir_op::Data>(("data_" + std::to_string(i)).c_str(), graph);
       x1->attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
       x1->attr.sched.loop_axis = c.id;
       *x1->y.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -765,20 +765,20 @@ class UtestFusionStrategySolver : public testing::Test {
       concat_inputs.emplace_back(x1->y);
     }
 
-    ge::ascir_op::Concat concat(graph.GetName().c_str());
+    af::ascir_op::Concat concat(graph.GetName().c_str());
     concat.x = concat_inputs;
     concat.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     *concat.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *concat.y.repeats = output_dim_sizes;
 
-    ge::ascir_op::Store x_store("store");
+    af::ascir_op::Store x_store("store");
     x_store.x = concat.y;
     x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_store.attr.sched.loop_axis = c.id;
     *x_store.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x_store.y.repeats = output_dim_sizes;
 
-    ge::ascir_op::Output x_out("out");
+    af::ascir_op::Output x_out("out");
     x_out.x = x_store.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -811,28 +811,28 @@ class UtestFusionStrategySolver : public testing::Test {
     auto e = graph.CreateAxis("E", E);
     auto f = graph.CreateAxis("F", F);
 
-    ge::ascir_op::Data x1("x1_broadcast_abs", graph);
+    af::ascir_op::Data x1("x1_broadcast_abs", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
     x1.attr.sched.loop_axis = c.id;
     *x1.y.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
     *x1.y.repeats = {A, B, C, D, E, ONE};
     *x1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE, ZERO};
 
-    ge::ascir_op::Load x1Local("x1Local_broadcast_abs");
+    af::ascir_op::Load x1Local("x1Local_broadcast_abs");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
     *x1Local.y.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
     *x1Local.y.repeats = {A, B, C, D, E, ONE};
     *x1Local.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE, ZERO};
 
-    ge::ascir_op::Abs abs("add_broadcast_abs");
+    af::ascir_op::Abs abs("add_broadcast_abs");
     abs.x = x1Local.y;
     abs.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
     *abs.y.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
     *abs.y.repeats = {A, B, C, D, E, F};
     *abs.y.strides = {B * C * D * E * F, C * D * E * F, D * E * F, E * F, F, ONE};
 
-    ge::ascir_op::Store x_store("x_store_broadcast_abs");
+    af::ascir_op::Store x_store("x_store_broadcast_abs");
     x_store.x = abs.y;
     x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
     x_store.attr.sched.loop_axis = c.id;
@@ -840,7 +840,7 @@ class UtestFusionStrategySolver : public testing::Test {
     *x_store.y.repeats = {A, B, C, D, E, F};
     *x_store.y.strides = {B * C * D * E * F, C * D * E * F, D * E * F, E * F, F, ONE};
 
-    ge::ascir_op::Output x_out("x_out_broadcast_abs");
+    af::ascir_op::Output x_out("x_out_broadcast_abs");
     x_out.x = x_store.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id, f.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -870,28 +870,28 @@ class UtestFusionStrategySolver : public testing::Test {
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("x1_broadcast_abs", graph);
+    af::ascir_op::Data x1("x1_broadcast_abs", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     *x1.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x1.y.repeats = {A, B, C, D, ONE};
     *x1.y.strides = {B * C * D, C * D, D, ONE, ZERO};
 
-    ge::ascir_op::Load x1Local("x1Local_broadcast_abs");
+    af::ascir_op::Load x1Local("x1Local_broadcast_abs");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     *x1Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x1Local.y.repeats = {A, B, C, D, ONE};
     *x1Local.y.strides = {B * C * D, C * D, D, ONE, ZERO};
 
-    ge::ascir_op::Abs abs("add_broadcast_abs");
+    af::ascir_op::Abs abs("add_broadcast_abs");
     abs.x = x1Local.y;
     abs.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     *abs.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *abs.y.repeats = {A, B, C, D, E};
     *abs.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Store x_store("x_store_broadcast_abs");
+    af::ascir_op::Store x_store("x_store_broadcast_abs");
     x_store.x = abs.y;
     x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_store.attr.sched.loop_axis = c.id;
@@ -899,7 +899,7 @@ class UtestFusionStrategySolver : public testing::Test {
     *x_store.y.repeats = {A, B, C, D, E};
     *x_store.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_out("x_out_broadcast_abs");
+    af::ascir_op::Output x_out("x_out_broadcast_abs");
     x_out.x = x_store.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -929,28 +929,28 @@ class UtestFusionStrategySolver : public testing::Test {
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("x1_broadcast_abs", graph);
+    af::ascir_op::Data x1("x1_broadcast_abs", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = c.id;
     *x1.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x1.y.repeats = {A, B, C, D, ONE};
     *x1.y.strides = {B * C * D, C * D, D, ONE, ZERO};
 
-    ge::ascir_op::Load x1Local("x1Local_broadcast_abs");
+    af::ascir_op::Load x1Local("x1Local_broadcast_abs");
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     *x1Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *x1Local.y.repeats = {A, B, C, D, ONE};
     *x1Local.y.strides = {B * C * D, C * D, D, ONE, ZERO};
 
-    ge::ascir_op::Broadcast abs("add_broadcast_abs");
+    af::ascir_op::Broadcast abs("add_broadcast_abs");
     abs.x = x1Local.y;
     abs.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     *abs.y.axis = {a.id, b.id, c.id, d.id, e.id};
     *abs.y.repeats = {A, B, C, D, E};
     *abs.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Store x_store("x_store_broadcast_abs");
+    af::ascir_op::Store x_store("x_store_broadcast_abs");
     x_store.x = abs.y;
     x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_store.attr.sched.loop_axis = c.id;
@@ -958,7 +958,7 @@ class UtestFusionStrategySolver : public testing::Test {
     *x_store.y.repeats = {A, B, C, D, E};
     *x_store.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_out("x_out_broadcast_abs");
+    af::ascir_op::Output x_out("x_out_broadcast_abs");
     x_out.x = x_store.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -988,21 +988,21 @@ class UtestFusionStrategySolver : public testing::Test {
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("data1", graph);
+    af::ascir_op::Data x1("data1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = b.id;
     *x1.y.axis = {a.id, b.id, c.id, d.id};
     *x1.y.repeats = {A, B, D, E};
     *x1.y.strides = {B * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Data x2("data2", graph);
+    af::ascir_op::Data x2("data2", graph);
     x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2.attr.sched.loop_axis = e.id;
     *x2.y.axis = {a.id, b.id};
     *x2.y.repeats = {B, C};
     *x2.y.strides = {C, ONE};
 
-    ge::ascir_op::Gather gather(graph.GetName().c_str());
+    af::ascir_op::Gather gather(graph.GetName().c_str());
     gather.x1 = {x1.y};
     gather.x2 = {x2.y};
     gather.ir_attr.SetAxis(1);
@@ -1011,7 +1011,7 @@ class UtestFusionStrategySolver : public testing::Test {
     *gather.y.repeats = {A, B, C, D, E};
     *gather.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Store x_store("store");
+    af::ascir_op::Store x_store("store");
     x_store.x = gather.y;
     x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_store.attr.sched.loop_axis = c.id;
@@ -1019,7 +1019,7 @@ class UtestFusionStrategySolver : public testing::Test {
     *x_store.y.repeats = {A, B, C, D, E};
     *x_store.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    ge::ascir_op::Output x_out("out");
+    af::ascir_op::Output x_out("out");
     x_out.x = x_store.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -1051,21 +1051,21 @@ class UtestFusionStrategySolver : public testing::Test {
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    ge::ascir_op::Data x1("data1", graph);
+    af::ascir_op::Data x1("data1", graph);
     x1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x1.attr.sched.loop_axis = b.id;
     *x1.y.axis = {a.id, b.id, c.id, d.id};
     *x1.y.repeats = {A, B, D, ONE};
     *x1.y.strides = {B * D * E, D * E, ONE, ZERO};
 
-    ge::ascir_op::Data x2("data2", graph);
+    af::ascir_op::Data x2("data2", graph);
     x2.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x2.attr.sched.loop_axis = e.id;
     *x2.y.axis = {a.id, b.id};
     *x2.y.repeats = {B, C};
     *x2.y.strides = {C, ONE};
 
-    ge::ascir_op::Gather gather(graph.GetName().c_str());
+    af::ascir_op::Gather gather(graph.GetName().c_str());
     gather.x1 = {x1.y};
     gather.x2 = {x2.y};
     gather.ir_attr.SetAxis(1);
@@ -1074,7 +1074,7 @@ class UtestFusionStrategySolver : public testing::Test {
     *gather.y.repeats = {A, B, C, D, ONE};
     *gather.y.strides = {B * C * D, C * D, D, ONE, ZERO};
 
-    ge::ascir_op::Store x_store("store");
+    af::ascir_op::Store x_store("store");
     x_store.x = gather.y;
     x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_store.attr.sched.loop_axis = c.id;
@@ -1082,7 +1082,7 @@ class UtestFusionStrategySolver : public testing::Test {
     *x_store.y.repeats = {A, B, C, D, ONE};
     *x_store.y.strides = {B * C * D, C * D, D, ONE, ZERO};
 
-    ge::ascir_op::Output x_out("out");
+    af::ascir_op::Output x_out("out");
     x_out.x = x_store.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
