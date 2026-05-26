@@ -10,9 +10,6 @@
 
 include(../cmake/function.cmake)
 add_subdirectory(slice)
-if (BUILD_METADEF AND (${METADEF_DIR} STREQUAL ${GE_METADEF_DIR}))
-    add_subdirectory(metadef)
-endif()
 
 ##################################################################
 set(SRC_FORMAT_TRANSFERS

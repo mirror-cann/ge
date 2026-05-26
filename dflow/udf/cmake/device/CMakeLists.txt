@@ -10,7 +10,7 @@
 
 if (NOT DEFINED CMAKE_MODULE_PATH)
     set(CMAKE_MODULE_PATH
-        ${TOP_DIR}/cmake/modules
+        ${CANN_CMAKE_DIR}/modules
     )
 endif()
 
@@ -44,8 +44,8 @@ include(Findmmpa.cmake)
 include(Findslog.cmake)
 include(Findsecurec.cmake)
 include(${TOP_DIR}/cmake/air_headers.cmake)
-include(${TOP_DIR}/cmake/modules/Findmetadef.cmake)
-include(${TOP_DIR}/cmake/modules/Findascend_hal.cmake)
+include(${CANN_CMAKE_DIR}/modules/Findmetadef.cmake)
+include(${CANN_CMAKE_DIR}/modules/Findascend_hal.cmake)
 
 add_subdirectory(${TOP_DIR}/dflow/udf ${CMAKE_BINARY_DIR}/udf_device)
 

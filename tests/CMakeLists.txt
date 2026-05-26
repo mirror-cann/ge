@@ -8,7 +8,6 @@
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
 
-set(METADEF_DIR ${AIR_CODE_DIR}/base/metadef)
 set(GE_METADEF_TEST_DIR ${AIR_CODE_DIR}/tests/graph_metadef)
 set(AIR_COMMON_COMPILE_OPTION ${AIR_COMMON_COMPILE_OPTION} -fno-access-control)
 
