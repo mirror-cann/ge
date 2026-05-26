@@ -326,7 +326,7 @@ target_link_libraries(ge_common_base
         error_manager
         unified_dlog
         platform
-        ascend_dump
+        $<$<STREQUAL:${GE_DT},>:ascend_dump>$<$<BOOL:${GE_DT}>:profiler_stub>
         exe_graph
         lowering
         $<$<AND:$<NOT:$<BOOL:${MDC_COMPILE_RUNTIME}>>,$<NOT:$<STREQUAL:${PRODUCT},ascend031>>,$<NOT:$<STREQUAL:${ENABLE_TEST},True>>>:atrace_share>
@@ -393,7 +393,7 @@ target_link_libraries(ge_common_static PRIVATE
     datagw_headers
     ascend_protobuf_static
     json
-    ascend_dump
+    $<$<STREQUAL:${GE_DT},>:ascend_dump>$<$<BOOL:${GE_DT}>:profiler_stub>
     c_sec
     $<$<NOT:$<STREQUAL:${TARGET_SYSTEM_NAME},Android>>:-lrt>
     -ldl
