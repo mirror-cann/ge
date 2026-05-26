@@ -47,11 +47,11 @@ constexpr size_t kThree = 3U;
 constexpr int64_t kEight = 8;
 
 // Structure to hold dimension variables
-typedef struct {
+struct FlashAttentionDims {
   Expression shape_b;
   Expression shape_s;
   Expression shape_t;
-} FlashAttentionDims;
+};
 
 // Calculate dimensions based on input layout
 ge::graphStatus CalculateDimensions(const gert::InferSymbolShapeContext *context, const std::string &input_layout,

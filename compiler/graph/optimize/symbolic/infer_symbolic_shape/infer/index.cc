@@ -53,7 +53,7 @@ bool AreIndicesContiguous(const std::vector<Expression> &sizes_value) {
   return true;
 }
 
-graphStatus CollectIndicesShapes(gert::InferSymbolShapeContext *context, size_t x_dim_num,
+graphStatus CollectIndicesShapes(const gert::InferSymbolShapeContext *context, size_t x_dim_num,
                                  const std::vector<Expression> &sizes_value,
                                  std::vector<gert::SymbolShape> &indices_shape_list) {
   int64_t indexed_sizes_num = sizes_value.size();
