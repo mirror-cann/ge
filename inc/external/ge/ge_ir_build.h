@@ -232,8 +232,8 @@ GE_FUNC_VISIBILITY graphStatus aclgrphBuildModelFromData(const void *graph_data,
  * @ingroup GE
  * @brief save the compiled model
  *
- * @param model      [IN] compiled model
  * @param output_file   [IN] the file to save model
+ * @param model      [IN] compiled model
  * @retval GRAPH_SUCCESS The function is successfully executed.
  * @retval OtherValues Failure
  */
@@ -242,10 +242,9 @@ GE_FUNC_VISIBILITY graphStatus aclgrphSaveModel(const char_t *output_file, const
  * @ingroup GE
  * @brief save the compiled model
  *
+ *
+ * @param model      [IN] model buffer data
  * @param model      [IN] compiled model
- * @param data   [IN] save model memory address
- * @param size   [IN] save model size
- * @param realSize   [IN] the actual model size
  * @retval GRAPH_SUCCESS The function is successfully executed.
  * @retval OtherValues Failure
  */

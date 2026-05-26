@@ -103,7 +103,9 @@ typedef enum {
     ACL_MDL_MEM_MALLOC_POLICY_SIZET,
     ACL_MDL_FIFO_PTR, /**< pointer to fifo memory of model with shallow copy */
     ACL_MDL_FIFO_SIZET,
-    ACL_MDL_WITHOUT_GRAPH_INT32
+    ACL_MDL_WITHOUT_GRAPH_INT32,
+    ACL_NPU_PERF_MODE,
+    RESERVED = 0xFFFF,
 } aclmdlConfigAttr;
 
 typedef enum {
@@ -1704,17 +1706,6 @@ ACL_FUNC_VISIBILITY aclError aclRecoverAllHcclTasks(int32_t deviceId);
  * @retval otherValues Failure
  */
 ACL_FUNC_VISIBILITY aclError aclmdlLoadFromModel(const aclmdlModel *model, const aclmdlConfigHandle *handle, uint32_t *modelId);
-
-/**
- * @ingroup AscendCL
- * @brief set configuration parameters for the model
- *
- * @param  modelId [IN]  model id
- * @param  handle [IN]  config handle
- * @retval ACL_SUCCESS The function is successfully executed.
- * @retval ACL_ERROR_INVALID_FILE Failure
- */
-ACL_FUNC_VISIBILITY aclError aclmdlSetConfig(uint32_t modelId, const aclmdlConfigHandle *handle);
 #ifdef __cplusplus
 }
 #endif
