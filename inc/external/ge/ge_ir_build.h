@@ -248,7 +248,7 @@ GE_FUNC_VISIBILITY graphStatus aclgrphSaveModel(const char_t *output_file, const
  * @retval GRAPH_SUCCESS The function is successfully executed.
  * @retval OtherValues Failure
  */
-GE_FUNC_VISIBILITY graphStatus aclgrphSaveModelToBuffer(ModelBufferData &model, const aclmdlModel *model);
+GE_FUNC_VISIBILITY graphStatus aclgrphSaveModelToBuffer(ModelBufferData &model_buffer, const aclmdlModel *model);
 
 /**
  * @ingroup GE
