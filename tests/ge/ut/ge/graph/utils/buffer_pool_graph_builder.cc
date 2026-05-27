@@ -11,7 +11,7 @@
 #include <gtest/gtest.h>
 #include "buffer_pool_graph_builder.h"
 #include "common/ge_inner_error_codes.h"
-#include "common/framework_types_internal.h"
+#include "common/types.h"
 #include "graph/debug/ge_attr_define.h"
 #include "graph/utils/attr_utils.h"
 #include "graph/utils/graph_utils.h"

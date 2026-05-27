@@ -14,7 +14,7 @@
 #include <map>
 #include <string>
 #include <unordered_map>
-#include "parser/common/op_def/parser_operator_internal.h"
+#include "parser/common/op_def/operator.h"
 #include "graph/attr_value.h"
 #include "graph/graph.h"
 #include "framework/omg/parser/parser_types.h"

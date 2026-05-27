@@ -189,7 +189,6 @@ target_link_libraries(graph_base
         -ldl
     PUBLIC
         metadef_headers
-        ge_metadef_headers
 )
 
 target_link_libraries(graph_base PRIVATE ascend_protobuf error_manager)
@@ -263,7 +262,6 @@ target_link_libraries(graph
         -ldl
     PUBLIC
         metadef_headers
-        ge_metadef_headers
 )
 
 target_link_libraries(graph PRIVATE graph_base error_manager)

@@ -19,7 +19,7 @@
 #include "faker/fake_value.h"                   // FakeTensors
 #include "ge_graph_dsl/graph_dsl.h"             // DEF_GRPAH
 
-#include "common/framework_types_internal.h"                       // Operator names.
+#include "common/types.h"                       // Operator names.
 #include "graph/utils/graph_utils_ex.h"         // CreateGraphFromComputeGraph
 
 // Public interfaces.

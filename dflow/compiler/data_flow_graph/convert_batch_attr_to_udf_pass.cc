@@ -14,7 +14,7 @@
 #include "common/plugin/ge_make_unique_util.h"
 #include "framework/common/debug/ge_log.h"
 #include "framework/common/ge_inner_error_codes.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "graph/utils/graph_utils.h"
 #include "dflow/flow_graph/data_flow_attr_define.h"
 #include "dflow/compiler/data_flow_graph/data_flow_graph_utils.h"

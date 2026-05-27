@@ -11,7 +11,7 @@
 #include "model_relation.h"
 #include "common/plugin/ge_make_unique_util.h"
 #include "endpoint.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "framework/common/util.h"
 #include "graph/debug/ge_attr_define.h"
 #include "common/checker.h"

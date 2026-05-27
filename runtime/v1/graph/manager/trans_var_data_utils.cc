@@ -16,7 +16,7 @@
 #include "formats/utils/formats_trans_utils.h"
 #include "common/datatype_transfer/datatype_transfer.h"
 #include "framework/common/op/ge_op_utils.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "common/thread_pool/thread_pool.h"
 #include "graph/utils/type_utils.h"
 #include "graph/utils/graph_utils.h"

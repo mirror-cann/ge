@@ -19,7 +19,7 @@
 #include "hybrid/node_executor/aicore/aicore_task_builder.h"
 #include "hybrid/node_executor/aicore/aicore_op_task.h"
 #include "hybrid/node_executor/aicore/aicore_node_executor.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "common/opskernel/ops_kernel_info_types.h"
 
 using namespace std;

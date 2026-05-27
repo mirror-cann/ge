@@ -16,7 +16,7 @@
 #include "graph/utils/node_utils.h"
 #include "graph_builder/converter_checker.h"
 #include "exe_graph/runtime/continuous_vector.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "engine/node_converter_utils.h"
 
 namespace gert {

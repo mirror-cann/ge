@@ -23,7 +23,7 @@
 #include "graph/debug/ge_attr_define.h"
 #include "ge/ge_api.h"
 #include "framework/executor/ge_executor.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "graph/execute/model_executor.h"
 #include "runtime/subscriber/global_dumper.h"
 #include "graph/utils/attr_utils.h"

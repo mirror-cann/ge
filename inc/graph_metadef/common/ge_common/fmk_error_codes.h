@@ -28,7 +28,7 @@
 #include <map>
 #include <string>
 
-#include "fmk_types.h"
+#include "common/ge_common/fmk_types.h"
 #include "register/register_error_codes.h"
 #include "external/ge_common/ge_error_codes.h"
 

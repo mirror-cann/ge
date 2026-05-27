@@ -18,7 +18,7 @@
 #include "common/dump/dump_manager.h"
 #include "common/dump/dump_properties.h"
 #include "framework/runtime/model_v2_executor.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "kernel/tensor_attr.h"
 #include "graph/utils/graph_utils.h"
 #include "common/share_graph.h"

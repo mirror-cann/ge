@@ -8,7 +8,7 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-#include "llm_datadist_internal.h"
+#include "llm_datadist.h"
 #include "acl/acl.h"
 #include "common/mem_utils.h"
 #include "common/llm_flow_service.h"

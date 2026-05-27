@@ -13,7 +13,7 @@
 #include <memory>
 #include "framework/common/ge_inner_error_codes.h"
 #include "framework/common/op/ge_op_utils.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "framework/common/debug/ge_log.h"
 #include "host_kernels/kernel_utils.h"
 #include "host_kernels/kernel_factory.h"

@@ -9,7 +9,7 @@
  */
 
 #include "gtest/gtest.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "graph/debug/ge_attr_define.h"
 #include "ge_graph_dsl/op_desc/op_desc_cfg_box.h"
 #include "graph/ge_tensor.h"

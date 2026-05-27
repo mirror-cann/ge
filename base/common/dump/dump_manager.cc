@@ -14,7 +14,7 @@
 #include "graph/types.h"
 #include "framework/common/debug/ge_log.h"
 #include "framework/common/debug/log.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "mmpa/mmpa_api.h"
 #include "adump_api.h"
 #include "adump_pub.h"

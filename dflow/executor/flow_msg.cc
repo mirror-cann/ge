@@ -8,7 +8,7 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-#include "flow_msg_internal.h"
+#include "flow_msg.h"
 #include "common/checker.h"
 #include "common/util/mem_utils.h"
 #include "framework/common/debug/ge_log.h"

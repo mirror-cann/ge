@@ -13,7 +13,7 @@
 #include "common/fe_log.h"
 #include "common/aicore_util_constants.h"
 #include "common/aicore_util_attr_define.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "runtime/rt_model.h"
 #include "rt_error_codes.h"
 #define private public

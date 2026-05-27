@@ -19,7 +19,7 @@
 #include "graph/graph.h"
 #include "graph/utils/op_desc_utils.h"
 #include "common/ge_inner_error_codes.h"
-#include "common/framework_types_internal.h"
+#include "common/types.h"
 
 using namespace std;
 using namespace testing;

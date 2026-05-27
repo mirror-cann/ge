@@ -16,7 +16,7 @@
 #include <vector>
 
 #include "ge/ge_ir_build.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "framework/common/ge_types.h"
 #include "graph/model.h"
 #include "graph_metadef/common/ge_common/util.h"

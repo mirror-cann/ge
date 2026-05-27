@@ -10,7 +10,7 @@
 
 #include "graph/compute_graph.h"
 #include "common/checker.h"
-#include "common/framework_types_internal.h"
+#include "common/types.h"
 #include "graph/optimize/symbolic/infer_symbolic_shape/symbolic_infer_util.h"
 #include "exe_graph/runtime/infer_symbol_shape_context.h"
 
@@ -59,13 +59,13 @@ constexpr size_t kFour = 4U;
 constexpr size_t kFive = 5U;
 
 // Structure to hold dimension variables
-struct FusedInferAttentionDims {
+typedef struct {
   Expression shape_b;
   Expression shape_s1;
   Expression shape_n1;
   Expression shape_d1;
   Expression shape_t;
-};
+} FusedInferAttentionDims;
 
 // Get query and output layout based on input layout
 ge::graphStatus GetQueryAndOutLayout(std::string &queryLayout, std::string &attentionOutLayout,
@@ -156,11 +156,11 @@ ge::graphStatus GetValueD(bool isPageAttention, Expression &valueD, const gert::
                           const gert::SymbolShape *queryShape, const std::string &queryLayout,
                           int64_t numKeyValueHeads) {
   if (isPageAttention) {  // PA场景
-    if (valueShape->GetDimNum() == kThree) {
+    if (valueShape->GetDimNum() == 3) {
       valueD = valueShape->GetDim(kTwo) / Symbol(numKeyValueHeads);
-    } else if (valueShape->GetDimNum() == kFour) {
+    } else if (valueShape->GetDimNum() == 4) {
       valueD = valueShape->GetDim(kThree);
-    } else if (valueShape->GetDimNum() == kFive) {
+    } else if (valueShape->GetDimNum() == 5) {
       valueD = valueShape->GetDim(kTwo) * valueShape->GetDim(kFour);
     } else {
       GELOGE(GRAPH_FAILED, "when Page Attention enabled, value's dim should be 3/4/5, but got %zu.",
@@ -193,7 +193,7 @@ ge::graphStatus InferAttentionOutShape(std::string attentionOutLayout, gert::Sym
   attentionOutShape->Clear();
 
   // Helper function to calculate output dimension
-  auto calculateOutD = [&valueD, &dims]() -> Expression {
+  auto calculateOutD = [&]() -> Expression {
     return (valueD == kSymbolZero || dims.shape_d1 == kSymbolZero) ? dims.shape_d1 : valueD;
   };
 

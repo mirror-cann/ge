@@ -19,7 +19,7 @@
 #include "graph/passes/multi_batch/create_subgraph_with_scope_pass.h"
 #include "macro_utils/dt_public_unscope.h"
 
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "graph/node.h"
 #include "graph/utils/graph_utils.h"
 #include "graph_builder_utils.h"

@@ -65,6 +65,7 @@ add_executable(graph_engine_test
     "${AIR_CODE_DIR}/tests/ge/st/testcase/test_ge_opt_info.cc"
     "${AIR_CODE_DIR}/tests/ge/st/testcase/test_exception_dumper.cc"
     "${AIR_CODE_DIR}/tests/ge/st/testcase/test_memory_assign.cc"
+    "${AIR_CODE_DIR}/tests/ge/st/testcase/test_graph_compiler.cc"
     "${AIR_CODE_DIR}/tests/ge/st/testcase/test_model_loader.cc"
     "${AIR_CODE_DIR}/tests/ge/st/testcase/test_graph_executor.cc"
     "${AIR_CODE_DIR}/tests/ge/st/testcase/test_ctrl_flow_execute.cc"
@@ -77,7 +78,10 @@ add_executable(graph_engine_test
     "${AIR_CODE_DIR}/tests/ge/st/testcase/test_online_infer_dynamic.cc"
     "${AIR_CODE_DIR}/tests/ge/st/testcase/test_folding.cc"
     "${AIR_CODE_DIR}/tests/ge/st/testcase/test_ctrl_flow_v2.cc"
+    "${AIR_CODE_DIR}/tests/ge/st/testcase/test_ctrl_flow_compile.cc"
+    "${AIR_CODE_DIR}/tests/ge/st/testcase/test_single_op.cc"
     "${AIR_CODE_DIR}/tests/ge/st/testcase/test_stream_allocator.cc"
+    "${AIR_CODE_DIR}/tests/ge/st/testcase/test_ge_ir_build.cc"
     "${AIR_CODE_DIR}/tests/ge/st/testcase/test_dynamic_graph.cc"
     "${AIR_CODE_DIR}/tests/ge/st/testcase/test_ge_api.cc"
     "${AIR_CODE_DIR}/tests/ge/st/testcase/test_ge_api_v2.cc"
@@ -89,6 +93,8 @@ add_executable(graph_engine_test
     "${AIR_CODE_DIR}/tests/ge/st/testcase/test_single_op_profiling.cc"
     "${AIR_CODE_DIR}/tests/ge/st/testcase/test_dynamic_stack_execute.cc"
     "${AIR_CODE_DIR}/tests/ge/st/testcase/test_dynamic_hccl_execute.cc"
+    "${AIR_CODE_DIR}/tests/ge/st/testcase/test_atc.cc"
+    "${AIR_CODE_DIR}/tests/ge/st/testcase/test_multi_dims.cc"
     "${AIR_CODE_DIR}/tests/ge/st/testcase/test_aipp.cc"
     "${AIR_CODE_DIR}/tests/ge/st/testcase/test_aoe.cc"
     "${AIR_CODE_DIR}/tests/ge/st/testcase/test_engine.cc"
@@ -100,6 +106,7 @@ add_executable(graph_engine_test
     "${AIR_CODE_DIR}/tests/ge/st/testcase/test_optimize_stage1.cc"
     "${AIR_CODE_DIR}/tests/ge/st/testcase/test_concat_notask_pass.cc"
     "${AIR_CODE_DIR}/tests/ge/st/testcase/test_pack_notask_pass.cc"
+    "${AIR_CODE_DIR}/tests/ge/st/testcase/ffts_plus/scattered_collection_systemtest.cc"
     "${AIR_CODE_DIR}/tests/graph_metadef/ut/register/testcase/op_def_factory_unittest.cc"
     "${AIR_CODE_DIR}/tests/graph_metadef/depends/faker/plugin_manager_stub.cc"
     "${AIR_CODE_DIR}/tests/ge/st/testcase/test_om2.cc"
@@ -162,89 +169,6 @@ target_link_libraries(graph_engine_test
     es_ge_test ge_graph_dsl st_stubs GTest::gtest GTest::gmock GTest::gmock_main
     -ldl
 )
-
-################################################################################
-# build ge_common_atc
-add_executable(ge_common_atc
-    "${AIR_CODE_DIR}/tests/ge/ut/ge/ffts_plus_proto_tools.cc"
-    "${AIR_CODE_DIR}/tests/ge/ut/ge/test_tools_task_info.cc"
-    "${AIR_CODE_DIR}/tests/ge/st/testcase/test_main.cc"
-    "${AIR_CODE_DIR}/tests/ge/st/testcase/test_graph_compiler.cc"
-    "${AIR_CODE_DIR}/tests/ge/ut/ge/ffts_plus_proto_tools.cc"
-    "${AIR_CODE_DIR}/tests/ge/st/testcase/test_ge_executor.cc"
-    "${AIR_CODE_DIR}/tests/ge/st/testcase/test_davinci_model_execute.cc"
-    "${AIR_CODE_DIR}/tests/ge/st/testcase/test_ctrl_flow_compile.cc"
-    "${AIR_CODE_DIR}/tests/ge/st/testcase/test_single_op.cc"
-    "${AIR_CODE_DIR}/tests/ge/st/testcase/test_ge_ir_build.cc"
-    "${AIR_CODE_DIR}/tests/graph_metadef/depends/checker/tensor_check_utils.cc"
-    "${AIR_CODE_DIR}/tests/ge/st/testcase/test_single_op_profiling.cc"
-    "${AIR_CODE_DIR}/tests/ge/st/testcase/test_atc.cc"
-    "${AIR_CODE_DIR}/tests/ge/st/testcase/test_multi_dims.cc"
-    "${AIR_CODE_DIR}/tests/ge/st/testcase/test_aipp.cc"
-    "${AIR_CODE_DIR}/tests/ge/st/testcase/test_local_engine.cc"
-    "${AIR_CODE_DIR}/tests/ge/st/testcase/test_ge_local_engine.cc"
-    "${AIR_CODE_DIR}/tests/ge/st/testcase/test_infershape_and_folding.cc"
-    "${AIR_CODE_DIR}/tests/ge/st/testcase/test_optimize_stage1.cc"
-    "${AIR_CODE_DIR}/tests/ge/st/testcase/test_concat_notask_pass.cc"
-    "${AIR_CODE_DIR}/tests/ge/st/testcase/test_pack_notask_pass.cc"
-    "${AIR_CODE_DIR}/tests/ge/st/testcase/ffts_plus/scattered_collection_systemtest.cc"
-    "${AIR_CODE_DIR}/tests/graph_metadef/depends/faker/plugin_manager_stub.cc"
-    )
-
-add_dependencies(ge_common_atc mdat fmk_parser engine optimizer_priority_pbtxt)
-
-target_compile_definitions(ge_common_atc PRIVATE
-    google=ascend_private
-    CMAKE_BINARY_DIR=\"${CMAKE_BINARY_DIR}\"
-    )
-
-target_compile_options(ge_common_atc PRIVATE
-    -Wno-write-strings
-    -Wno-deprecated-declarations
-    -Wall -Wfloat-equal -Werror
-    )
-
-target_include_directories(ge_common_atc PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${AIR_CODE_DIR}
-    ${AIR_CODE_DIR}/tests/framework/ge_runtime_stub/include
-    ${AIR_CODE_DIR}/tests/framework/ge_running_env/include
-    ${AIR_CODE_DIR}/tests/framework/macro_utils
-    ${ASCGEN_DIR}/inc
-    ${AIR_CODE_DIR}/inc
-    ${CMAKE_BINARY_DIR}/proto/data_flow_protos
-    ${AIR_CODE_DIR}/inc/graph_metadef
-    ${ASCEND_INSTALL_PATH}/include/autofuse
-    )
-
-target_link_options(ge_common_atc PRIVATE
-    -Wl,--disable-new-dtags
-    )
-
-target_link_libraries(ge_common_atc
-    intf_llt_pub
-    ascendcl_stub
-    -Wl,-z,muldefs
-    ge_compiler
-    ge_runner
-    ge_runner_v2
-    om2_executor
-    ge_common_base
-    gert
-    cpu_compiler
-    aihacb_autofusion_stub
-    ge_local_opskernel_builder
-    symengine
-    minizip_static
-    -Wl,--whole-archive
-    rt2_registry_static
-    atc_static
-    ge_running_env
-    ge_runtime_stub
-    -Wl,--no-whole-archive gert_op_impl
-    es_ge_test ge_graph_dsl st_stubs GTest::gtest GTest::gmock GTest::gmock_main
-    -ldl
-    )
 
 ################################################################################
 # build graph_engine_compile_test
@@ -367,4 +291,4 @@ add_subdirectory(autofuse)
 
 include(CTest)
 enable_testing()
-add_test(NAME test COMMAND graph_engine_test ge_common_atc)
+add_test(NAME test COMMAND graph_engine_test)

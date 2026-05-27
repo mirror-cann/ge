@@ -151,6 +151,9 @@ add_subdirectory(parser)
 add_subdirectory(parser/common)
 add_subdirectory(parser/func_to_graph)
 add_subdirectory(parser/onnx)
+if (BUILD_METADEF AND BUILD_WITHOUT_AIR)
+    add_subdirectory(metadef)
+endif()
 
 install(TARGETS _caffe_parser parser_common fmk_onnx_parser fmk_parser func2graph parser_headers
     EXPORT parser-targets

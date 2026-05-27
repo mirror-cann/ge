@@ -11,7 +11,7 @@
 // AUTO GEN PLEASE DO NOT MODIFY IT
 #ifndef DOMI_OP_VARISINITIALIZEDOP_H_
 #define DOMI_OP_VARISINITIALIZEDOP_H_
-#include "parser/common/op_def/parser_operator_internal.h"
+#include "parser/common/op_def/operator.h"
 #include "framework/omg/parser/parser_types.h"
 
 namespace ge {

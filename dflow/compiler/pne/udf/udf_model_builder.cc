@@ -22,7 +22,7 @@
 #include "dflow/base/model/model_deploy_resource.h"
 #include "framework/common/debug/ge_log.h"
 #include "framework/common/util.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "graph/debug/ge_attr_define.h"
 #include "dflow/flow_graph/data_flow_attr_define.h"
 #include "graph/utils/graph_utils.h"

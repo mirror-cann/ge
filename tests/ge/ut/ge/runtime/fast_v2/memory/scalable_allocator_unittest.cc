@@ -1234,20 +1234,20 @@ TEST_F(ScaleAllocatorTest, expandable_memory_allocator_reuse_ref_count_test) {
 }
 
 TEST_F(ScaleAllocatorTest, expandable_memory_allocator_fail) {
-  class MockRuntime : public ge::RuntimeStub {
+  class MockAclRuntime : public ge::AclRuntimeStub {
    public:
-    rtError_t rtMallocPhysical(rtDrvMemHandle* handle, size_t size, rtDrvMemProp_t* prop, uint64_t flags) {
+    aclError aclrtMallocPhysical(aclrtDrvMemHandle* handle, size_t size, const aclrtPhysicalMemProp* prop, uint64_t flags) override {
       static size_t cnt = 0U;
       ++cnt;
       if (cnt >= 3U) {
-        return -1;
+        return ACL_ERROR_RT_MEMORY_ALLOCATION;
       }
-      *handle = (rtDrvMemHandle) new uint8_t[8];;
-      return 0;
+      *handle = (aclrtDrvMemHandle) new uint8_t[8];
+      return ACL_SUCCESS;
     }
   };
-  auto mock_acl_runtime = std::make_shared<MockRuntime>();
-  ge::RuntimeStub::SetInstance(mock_acl_runtime);
+  auto mock_acl_runtime = std::make_shared<MockAclRuntime>();
+  ge::AclRuntimeStub::SetInstance(mock_acl_runtime);
   std::map<std::string, std::string> graph_options;
   graph_options[ge::STATIC_MEMORY_POLICY] = "3";
   ge::GetThreadLocalContext().SetGraphOption(graph_options);
@@ -1264,7 +1264,7 @@ TEST_F(ScaleAllocatorTest, expandable_memory_allocator_fail) {
   scalable_allocator->Recycle();
   ASSERT_EQ(scalable_allocator->device_allocator_.GetOccupiedSize(), 0U);
   caching_allocator.reset(nullptr);
-  ge::RuntimeStub::Reset();
+  ge::AclRuntimeStub::Reset();
 }
 
 TEST_F(ScaleAllocatorTest, expandable_memory_allocator_hole_12M) {
@@ -2074,20 +2074,20 @@ TEST_F(ScaleAllocatorTest, expandable_memory_allocator_ProcPageRecordByPaList_Se
 }
 
 TEST_F(ScaleAllocatorTest, expandable_memory_allocator_physical_malloc_fail) {
-  class MockRuntime : public ge::RuntimeStub {
+  class MockAclRuntime : public ge::AclRuntimeStub {
    public:
-    rtError_t rtMallocPhysical(rtDrvMemHandle* handle, size_t size, rtDrvMemProp_t* prop, uint64_t flags) {
+    aclError aclrtMallocPhysical(aclrtDrvMemHandle* handle, size_t size, const aclrtPhysicalMemProp* prop, uint64_t flags) override {
       static size_t cnt = 0U;
       ++cnt;
       if (cnt >= 3U) {
-        return -1;
+        return ACL_ERROR_RT_MEMORY_ALLOCATION;
       }
-      *handle = (rtDrvMemHandle) new uint8_t[8];
-      return RT_ERROR_NONE;
+      *handle = (aclrtDrvMemHandle) new uint8_t[8];
+      return ACL_SUCCESS;
     }
   };
-  auto mock_acl_runtime = std::make_shared<MockRuntime>();
-  ge::RuntimeStub::SetInstance(mock_acl_runtime);
+  auto mock_acl_runtime = std::make_shared<MockAclRuntime>();
+  ge::AclRuntimeStub::SetInstance(mock_acl_runtime);
   std::map<std::string, std::string> graph_options;
   graph_options[ge::STATIC_MEMORY_POLICY] = "3";
   ge::GetThreadLocalContext().SetGraphOption(graph_options);

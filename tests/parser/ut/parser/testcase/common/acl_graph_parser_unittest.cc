@@ -21,7 +21,7 @@
 #include "ge/ge_api_types.h"
 #include "parser/common/proto_file_parser.h"
 #include "omg/parser/parser_factory.h"
-#include "parser/caffe/caffe_parser_internal.h"
+#include "parser/caffe/caffe_parser.h"
 #include "graph_metadef/register/graph_register.h"
 #include "parser/common/pass_manager.h"
 #include "parser/common/tbe_plugin_loader.h"
@@ -143,7 +143,7 @@ TEST_F(UtestAclGraphParser, test_CheckConflictIdentifier)
 TEST_F(UtestAclGraphParser, test_AddCustomAndConflictLayer)
 {
   Status ret;
-  char *custom_proto_file = "../parser/parser/caffe/caffe_parser_internal.h";
+  char *custom_proto_file = "../parser/parser/caffe/caffe_parser.h";
   ge::ProtoFileParser op;
   std::ofstream write_tmp;
   ret = op.ProtoFileParser::AddCustomAndConflictLayer(custom_proto_file, write_tmp);
@@ -187,7 +187,7 @@ TEST_F(UtestAclGraphParser, test_AddCustomAndConflictMessage)
   Status ret;
   ProtoFileParser op;
   std::ofstream write_tmp;
-  std::string file = "../parser/parser/caffe/caffe_parser_internal.h";
+  std::string file = "../parser/parser/caffe/caffe_parser.h";
   const char *proto_file = file.c_str();
   ret = op.AddCustomAndConflictMessage(proto_file, write_tmp);
   EXPECT_EQ(ret, SUCCESS);
@@ -197,7 +197,7 @@ TEST_F(UtestAclGraphParser, test_RecordProtoMessage)
 {
   Status ret;
   ProtoFileParser op;
-  std::string file = "../parser/parser/caffe/caffe_parser_internal.h";
+  std::string file = "../parser/parser/caffe/caffe_parser.h";
   const char *proto_file = file.c_str();
   ret = op.RecordProtoMessage(proto_file);
   EXPECT_EQ(ret, SUCCESS);
@@ -208,9 +208,9 @@ TEST_F(UtestAclGraphParser, test_WriteCaffeProtoFile)
 {
   Status ret;
   ProtoFileParser op;
-  std::string file = "../parser/parser/caffe/caffe_parser_internal.h";
+  std::string file = "../parser/parser/caffe/caffe_parser.h";
   const char *proto_file = file.c_str();
-  std::ifstream read_caffe("../parser/parser/caffe/caffe_parser_internal.h", std::ifstream::in);
+  std::ifstream read_caffe("../parser/parser/caffe/caffe_parser.h", std::ifstream::in);
   std::ofstream write_tmp("/dev/null", std::ifstream::in);
   ret = op.WriteCaffeProtoFile(proto_file, read_caffe, write_tmp);
   EXPECT_EQ(ret, SUCCESS);

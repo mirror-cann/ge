@@ -11,7 +11,7 @@
 #include <gtest/gtest.h>
 #include "ge/ge_api.h"
 #include "graph/compute_graph.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "graph/ge_local_context.h"
 
 #include "ge_graph_dsl/graph_dsl.h"

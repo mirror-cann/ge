@@ -43,7 +43,7 @@
 #include "common/opskernel/ops_kernel_info_types.h"
 #include "register/core_num_utils.h"
 #include "acl/acl_rt.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "graph/compute_graph.h"
 #include "graph/node.h"
 #include <set>

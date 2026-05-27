@@ -23,7 +23,7 @@
 #include "graph/utils/anchor_utils.h"
 #include "graph/utils/op_desc_utils.h"
 #include "graph/utils/tensor_utils.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 
 namespace fe {
 // max value of weight offset : 30 * 1024 * 1024 * 1024L.

@@ -18,7 +18,7 @@
 #include "graph/op_desc.h"
 #include "graph/utils/tensor_adapter.h"
 #include "common/model/ge_root_model.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "base/registry/op_impl_space_registry_v2.h"
 
 namespace ge {

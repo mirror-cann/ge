@@ -10,7 +10,7 @@
 
 #ifndef AIR_BASE_COMMON_PRELOAD_MODEL_DESC_EXTEND_PARTITION_H
 #define AIR_BASE_COMMON_PRELOAD_MODEL_DESC_EXTEND_PARTITION_H
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "framework/common/tlv/nano_common_desc.h"
 #include "common/preload/partition/model_partition_base.h"
 

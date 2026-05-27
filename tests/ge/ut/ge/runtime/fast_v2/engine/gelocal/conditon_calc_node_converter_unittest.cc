@@ -23,7 +23,7 @@
 
 #include "register/op_impl_registry.h"
 #include "exe_graph/lowering/lowering_definitions.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "graph/operator_reg.h"
 #include "graph/operator.h"
 #include "array_ops.h"

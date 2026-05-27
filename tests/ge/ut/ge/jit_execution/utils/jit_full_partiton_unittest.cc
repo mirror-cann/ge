@@ -13,7 +13,7 @@
 #include "ge_graph_dsl/graph_dsl.h"
 #include "es_ge_test_ops.h"
 #include "graph/utils/graph_utils_ex.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "jit_execution/exe_points/execution_order.h"
 #include "api/session/jit_execution/utils/jit_infer_utils.h"
 #include "framework/ge_runtime_stub/include/common/compliant_share_graph.h"

@@ -26,7 +26,7 @@
 #include "framework/common/debug/ge_log.h"
 #include "framework/common/ge_inner_error_codes.h"
 #include "framework/common/string_util.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "framework/common/util.h"
 #include "framework/common/ge_types.h"
 #include "framework/generator/ge_generator.h"
