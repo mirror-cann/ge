@@ -14,7 +14,7 @@
 #include "common/checker.h"
 #include "aicpu_task_struct.h"
 #include "common/tbe_handle_store/tbe_handle_store.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "graph/load/model_manager/memory_app_type_classifier.h"
 #include "graph/load/model_manager/model_manager.h"
 #include "graph/load/model_manager/model_utils.h"

@@ -12,7 +12,7 @@
 #define DOMI_COMMON_OP_DEF_IR_PB_CONVERTER_H
 
 #include "framework/common/fmk_error_codes.h"
-#include "parser/common/op_def/parser_operator_internal.h"
+#include "parser/common/op_def/operator.h"
 #include "graph/utils/op_desc_utils.h"
 #include "graph/utils/op_desc_utils_ex.h"
 #include "proto/om.pb.h"

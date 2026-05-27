@@ -16,7 +16,7 @@
 #include "graph_builder/bg_identity.h"
 #include "engine/aicpu/graph_builder/bg_launch.h"
 #include "framework/common/ge_types.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "common/hyper_status.h"
 #include "graph/debug/ge_attr_define.h"
 #include "aicpu_engine_struct.h"

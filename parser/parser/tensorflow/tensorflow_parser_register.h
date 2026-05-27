@@ -18,7 +18,7 @@
 #include "common/util.h"
 #include "framework/omg/parser/op_parser.h"
 #include "parser/common/op_def/ir_pb_converter.h"
-#include "parser/common/op_def/parser_operator_internal.h"
+#include "parser/common/op_def/operator.h"
 #include "parser/common/acl_graph_parser_util.h"
 #include "parser/common/op_parser_factory.h"
 #include "parser/tensorflow/tensorflow_op_parser.h"

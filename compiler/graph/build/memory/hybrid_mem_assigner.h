@@ -17,7 +17,7 @@
 #include "graph/compute_graph.h"
 #include "graph/ge_local_context.h"
 
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "framework/common/util.h"
 #include "checker/reuse_checker.h"
 

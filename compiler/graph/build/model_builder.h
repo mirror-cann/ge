@@ -20,7 +20,7 @@
 #include "framework/common/op/ge_op_utils.h"
 #include "common/tbe_handle_store/tbe_kernel_store.h"
 #include "common/tbe_handle_store/cust_aicpu_kernel_store.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "framework/common/util.h"
 #include "graph/compute_graph.h"
 #include "graph/manager/graph_manager_utils.h"

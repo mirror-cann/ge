@@ -11,7 +11,7 @@
 #ifndef INC_82B0A0F961034EDDAF89F4D4CC1D3074_H
 #define INC_82B0A0F961034EDDAF89F4D4CC1D3074_H
 
-#include <common/framework_types_internal.h>
+#include <common/types.h>
 
 #include "graph/compute_graph.h"
 #include "graph/utils/graph_utils.h"

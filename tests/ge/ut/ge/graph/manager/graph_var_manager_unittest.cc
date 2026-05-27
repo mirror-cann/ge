@@ -19,7 +19,7 @@
 #include "graph/ge_local_context.h"
 #include "graph/utils/constant_utils.h"
 #include "graph/utils/tensor_utils.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "graph/compute_graph.h"
 #include "depends/runtime/src/runtime_stub.h"
 #include "graph/manager/active_memory_allocator.h"

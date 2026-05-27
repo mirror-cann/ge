@@ -16,7 +16,7 @@
 #define private   public
 
 #include "common/debug/log.h"
-#include "common/framework_types_internal.h"
+#include "common/types.h"
 #include "graph/graph.h"
 #include "graph/utils/graph_utils.h"
 #include "graph/utils/graph_utils_ex.h"

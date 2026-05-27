@@ -20,7 +20,7 @@
 #include "ge_graph_dsl/assert/graph_assert.h"
 #include "framework/omg/parser/parser_inner_ctx.h"
 #include "utils/graph_utils.h"
-#include "framework/common/framework_types_internal.h"
+#include "types.h"
 #include "init_ge.h"
 #include "ge_running_env/ge_running_env_faker.h"
 #include "ge_graph_dsl/graph_dsl.h"

@@ -35,7 +35,7 @@
 #include "ge_graph_dsl/graph_dsl.h"
 #include "ge_graph_dsl/assert/graph_assert.h"
 #include "framework/common/scope_guard.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "faker/model_data_faker.h"
 #include "faker/ge_model_builder.h"
 #include "faker/aicore_taskdef_faker.h"

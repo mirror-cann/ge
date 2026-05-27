@@ -8,8 +8,8 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-#ifndef INC_FRAMEWORK_COMMON_FRAMEWORK_TYPES_INTERNAL_H_
-#define INC_FRAMEWORK_COMMON_FRAMEWORK_TYPES_INTERNAL_H_
+#ifndef INC_FRAMEWORK_COMMON_TYPES_H_
+#define INC_FRAMEWORK_COMMON_TYPES_H_
 
 #include <cstdint>
 #include <map>
@@ -814,4 +814,4 @@ enum BuildMode {
 };
 }  // namespace domi
 
-#endif  // INC_FRAMEWORK_COMMON_FRAMEWORK_TYPES_INTERNAL_H_
+#endif  // INC_FRAMEWORK_COMMON_TYPES_H_

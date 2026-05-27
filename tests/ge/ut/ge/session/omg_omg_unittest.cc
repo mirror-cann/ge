@@ -16,7 +16,7 @@
 #include "proto/ge_ir.pb.h"
 #include "framework/omg/omg.h"
 #include "ge/ge_api_error_codes.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "graph/utils//graph_utils.h"
 #include "graph/utils/graph_utils_ex.h"
 #include "graph/debug/ge_attr_define.h"

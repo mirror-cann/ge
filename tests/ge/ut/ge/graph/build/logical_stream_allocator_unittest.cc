@@ -20,7 +20,7 @@
 
 #include "graph/build/stream/logical_stream_allocator.h"
 #include "graph/build/stream/stream_utils.h"
-#include "common/framework_types_internal.h"
+#include "common/types.h"
 #include "common/util.h"
 
 #include "graph/compute_graph.h"

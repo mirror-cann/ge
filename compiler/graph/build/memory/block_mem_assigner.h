@@ -21,7 +21,7 @@
 
 #include "runtime/rt.h"
 #include "framework/common/ge_inner_error_codes.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "framework/common/util.h"
 #include "graph/build/memory/mem_assigner.h"
 #include "graph/manager/graph_var_manager.h"

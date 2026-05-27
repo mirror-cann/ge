@@ -259,8 +259,8 @@ void* HostCpuEngine::DlopenLib(const std::string &lib_path) const {
    if (handle == nullptr) {
      const char_t *error = mmDlerror();
      error = (error == nullptr) ? "" : error;
-     REPORT_INNER_ERR_MSG("E19999", "mmDlopen failed, path = %s, error = %s", lib_path.c_str(), error);
-     GELOGE(INTERNAL_ERROR, "[Invoke][DlOpen] failed. path = %s, error = %s", lib_path.c_str(), error);
+     GELOGW("[Invoke][DlOpen] failed. path = %s, error = %s. It does not affect subsequenet processing and "
+            "can proceed in non-foldable mode", lib_path.c_str(), error);
   }
   return handle;
 }

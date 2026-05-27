@@ -21,7 +21,7 @@
 #include "framework/common/debug/log.h"
 #include "framework/common/ge_types.h"
 #include "framework/common/string_util.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "framework/common/util.h"
 #include "ge/ge_api_types.h"
 #include "graph/compute_graph.h"

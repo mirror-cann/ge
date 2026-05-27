@@ -13,7 +13,7 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
-#include "llm_datadist_internal.h"
+#include "llm_datadist.h"
 #include "common/llm_ge_api.h"
 #include "cache_engine_stubs.h"
 #include "dlog_pub.h"

@@ -13,11 +13,11 @@
 #include <vector>
 
 #include "common/ge_inner_error_codes.h"
-#include "common/framework_types_internal.h"
+#include "common/types.h"
 #include "common/util.h"
 #include "ge_graph_dsl/graph_dsl.h"
 #include "graph/debug/ge_attr_define.h"
-#include "common/framework_types_internal.h"
+#include "common/types.h"
 #include "graph/passes/graph_builder_utils.h"
 
 #include "macro_utils/dt_public_scope.h"

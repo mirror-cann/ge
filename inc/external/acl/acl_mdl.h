@@ -55,6 +55,7 @@ typedef struct aclAippExtendInfo aclAippExtendInfo;
 typedef struct aclmdlConfigHandle aclmdlConfigHandle;
 typedef struct aclmdlExecConfigHandle aclmdlExecConfigHandle;
 typedef struct aclmdlBundleQueryInfo aclmdlBundleQueryInfo;
+typedef void* aclmdlModel;
 
 typedef enum {
     ACL_YUV420SP_U8 = 1,
@@ -103,7 +104,9 @@ typedef enum {
     ACL_MDL_MEM_MALLOC_POLICY_SIZET,
     ACL_MDL_FIFO_PTR, /**< pointer to fifo memory of model with shallow copy */
     ACL_MDL_FIFO_SIZET,
-    ACL_MDL_WITHOUT_GRAPH_INT32
+    ACL_MDL_WITHOUT_GRAPH_INT32,
+    ACL_NPU_PERF_MODE,
+    ACL_MDL_RESERVED = 0xFFFF
 } aclmdlConfigAttr;
 
 typedef enum {
@@ -114,7 +117,9 @@ typedef enum {
     ACL_MDL_MPAIMID_SIZET, /**< param reserved */
     ACL_MDL_AICQOS_SIZET, /**< param reserved */
     ACL_MDL_AICOST_SIZET, /**< param reserved */
-    ACL_MDL_MEC_TIMETHR_SIZET /**< param reserved */
+    ACL_MDL_MEC_TIMETHR_SIZET, /**< param reserved */
+    ACL_MDL_EXEC_PRIORITY_INT32,
+    ACL_MDL_NPU_PERF_MODE
 } aclmdlExecConfigAttr;
 
 typedef enum {
@@ -1691,6 +1696,17 @@ ACL_FUNC_VISIBILITY const char *aclmdlGetTensorRealName(const aclmdlDesc *modelD
  * @retval ACL_ERROR_INVALID_FILE Failure
  */
 ACL_FUNC_VISIBILITY aclError aclRecoverAllHcclTasks(int32_t deviceId);
+
+/**
+ * @ingroup AscendCL
+ * @brief load model from compiled models
+ * @param  model [IN]  compiled model
+ * @param  handle [IN]  config handle
+ * @param  modelId [IN]  model id
+ * @retval ACL_SUCCESS The function is successfully executed.
+ * @retval otherValues Failure
+ */
+ACL_FUNC_VISIBILITY aclError aclmdlLoadFromModel(const aclmdlModel *model, const aclmdlConfigHandle *handle, uint32_t *modelId);
 
 #ifdef __cplusplus
 }

@@ -15,7 +15,7 @@
 #include "graph/manager/graph_var_manager.h"
 #include "graph/utils/type_utils.h"
 #include "framework/common/debug/ge_log.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "graph/utils/op_type_utils.h"
 
 namespace ge {

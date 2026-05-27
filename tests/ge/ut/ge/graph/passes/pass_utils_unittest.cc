@@ -13,7 +13,7 @@
 #include <gtest/gtest.h>
 #include <vector>
 
-#include "common/framework_types_internal.h"
+#include "common/types.h"
 #include "graph/types.h"
 #include "graph/utils/graph_utils.h"
 #include "graph/utils/op_desc_utils.h"

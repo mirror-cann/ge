@@ -15,6 +15,7 @@
 #include "graph/args_format_desc.h"
 #include "common/util.h"
 #include "common/util/log.h"
+#include "common/constant/constant.h"
 #include "../../../inc/framework/common/runtime_model_ge.h"
 
 using namespace ge;
@@ -70,17 +71,18 @@ Status CmoAddrOp::AddArgsFormatDescInfo(domi::CmoAddrTaskDef *const cmoAddrDef) 
     return ret;
   }
 
-  const int32_t socVersionLen = 50;
-  char_t version[socVersionLen] = {0};
-  ret = GetSocVersion(version, socVersionLen);
-  if (ret != SUCCESS) {
-    RTS_REPORT_INNER_ERROR("GetSocVersion failed, ret=%#x", ret);
-    return ret;
+  constexpr uint32_t kMaxValueLen = 32U;
+  char chipType[kMaxValueLen] = {0};
+
+  const auto retErr = rtGetSocSpec("version", "Chip_type", chipType, kMaxValueLen);
+  if (retErr != RT_ERROR_NONE) {
+      RTS_REPORT_INNER_ERROR("Cannot get Chip_type, ret=%d", retErr);
+      return retErr;
   }
-  RTS_LOGI("Soc version is [%s]", version);
+  RTS_LOGI("Chip_type is [%s]", chipType);
   std::string res;
   ArgsFormatDesc desc;
-  if ((strncmp(version, "Ascend950", strlen("Ascend950")) == 0) || (strncmp(version, "Ascend350", strlen("Ascend350")) == 0)) {
+  if (IsStarsV2Series(chipType)) {
     desc.AppendPlaceholder(ArgsFormatWidth::BIT64);
     desc.AppendPlaceholder(ArgsFormatWidth::BIT64);
     desc.AppendPlaceholder(ArgsFormatWidth::BIT64);

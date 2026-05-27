@@ -8,8 +8,8 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-#ifndef PARSER_TENSORFLOW_TENSORFLOW_PARSER_INTERNAL_H_
-#define PARSER_TENSORFLOW_TENSORFLOW_PARSER_INTERNAL_H_
+#ifndef PARSER_TENSORFLOW_TENSORFLOW_PARSER_H_
+#define PARSER_TENSORFLOW_TENSORFLOW_PARSER_H_
 
 #include <map>
 #include <memory>
@@ -766,4 +766,4 @@ class PARSER_FUNC_VISIBILITY TensorFlowWeightsParser : public domi::WeightsParse
   }
 };
 }  // namespace domi
-#endif  // PARSER_TENSORFLOW_TENSORFLOW_PARSER_INTERNAL_H_
+#endif  // PARSER_TENSORFLOW_TENSORFLOW_PARSER_H_

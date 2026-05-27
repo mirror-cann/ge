@@ -23,7 +23,7 @@
 #include "graph/utils/node_utils.h"
 #include "graph/utils/inference_rule.h"
 #include "bg_compatible_utils.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "register/node_converter_registry.h"
 #include "exe_graph/lowering/frame_selector.h"
 #include "bg_model_desc.h"

@@ -305,7 +305,14 @@ HcclResult HcomOpsKernelBuilder::SetAivSuperKernelBinaryAttrFor950(const ge::OpD
   auto itMap = AivSuperKernelMapV2.find(opType);
   auto it = (itMap->second).find(algName);
   if (it != (itMap->second).end()) {
-    std::string binFilePath = binPath + it->second.first + "_" + GetDataTypeEnumStr(dataType) + ".o";
+    bool openSourceTag = false;
+    CHK_RET(IsUsingOpenSource(openSourceTag));
+    std::string binFilePath;
+    if (openSourceTag) {
+      binFilePath = binPath + it->second.first + "_" + GetDataTypeEnumStr(dataType) + "_v2" + ".o";
+    } else {
+      binFilePath = binPath + it->second.first + "_" + GetDataTypeEnumStr(dataType) + ".o";
+    }
     ge::AttrUtils::SetStr(opDescPtr, "bin_file_path", binFilePath);
     ge::AttrUtils::SetStr(opDescPtr, "hcom_bin_file_path", binFilePath);
     funcName = it->second.second;
@@ -394,7 +401,13 @@ HcclResult HcomOpsKernelBuilder::SetSuperKernelBlockDim(const ge::OpDescPtr &opD
                                                         u32 aivCoreLimit, char *algName, u32 rankSize) const {
   // 计算AIV核数
   u32 blockDim;
-  CHK_RET(HcomCalcAivCoreNum(group.c_str(), opType, count, counts, dataType, aivCoreLimit, algName, &blockDim));
+  bool openSourceTag = false;
+  CHK_RET(IsUsingOpenSource(openSourceTag));
+  if (openSourceTag) {
+    CHK_RET(HcceCalcAivCoreNumGraphMode(aivCoreLimit, &blockDim));
+  } else {
+    CHK_RET(HcomCalcAivCoreNum(group.c_str(), opType, count, counts, dataType, aivCoreLimit, algName, &blockDim));
+  }
   
   // 设置block维度属性
   ge::AttrUtils::SetInt(opDescPtr, "hcom_block_dim", blockDim);
@@ -429,19 +442,30 @@ HcclResult HcomOpsKernelBuilder::SetSuperKernelScopeAttr(ge::Node &node) {
   HcclReduceOp reduction = HcclReduceOp::HCCL_REDUCE_SUM;
   u32 aivCoreLimit = 0;
   char algName[ALG_NAME_MAX_LEN];
+  char *pAlgName = algName;
   
   // 用于判断是否走 Aiv 的参数准备
   CHK_RET(PrepareSelectAivParam(node, sCollectiveType, hcomComm, sGroup, rankSize,
           count, counts, dataType, opType, reduction, aivCoreLimit)); 
   void *countsPtr = counts.data();
-  #ifdef HCOM_SELECT_ALG_POINTER_MODE
-    CHK_RET(HcomSelectAlg(hcomComm, sGroup.c_str(), count, countsPtr, dataType, reduction, opType, aivCoreLimit, &ifAiv,
-                          algName));
-  #else
-    // 默认模式：使用旧接口（传引用）
-    CHK_RET(HcomSelectAlg(hcomComm, sGroup.c_str(), count, countsPtr, dataType, reduction, opType, aivCoreLimit, ifAiv,
-                          algName));
-  #endif 
+  bool openSourceTag = false;
+  CHK_RET(IsUsingOpenSource(openSourceTag));
+  if (openSourceTag) {
+    CHK_RET(HcceSelectAlgGraphMode(sGroup.c_str(), count, dataType, reduction, opType, aivCoreLimit, &ifAiv,
+                          &pAlgName));
+    strncpy_s(algName, ALG_NAME_MAX_LEN, pAlgName, ALG_NAME_MAX_LEN - 1);
+    algName[ALG_NAME_MAX_LEN - 1] = '\0';
+    free(pAlgName);
+  } else {
+    #ifdef HCOM_SELECT_ALG_POINTER_MODE
+      CHK_RET(HcomSelectAlg(hcomComm, sGroup.c_str(), count, countsPtr, dataType, reduction, opType, aivCoreLimit, &ifAiv,
+                            algName));
+    #else
+      // 默认模式：使用旧接口（传引用）
+      CHK_RET(HcomSelectAlg(hcomComm, sGroup.c_str(), count, countsPtr, dataType, reduction, opType, aivCoreLimit, ifAiv,
+                            algName));
+    #endif
+  }
   
   if (!ifAiv) {
     HCCL_INFO("no support aiv, del superKernelScope attr");

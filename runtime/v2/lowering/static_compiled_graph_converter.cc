@@ -17,7 +17,7 @@
 #include "common/checker.h"
 #include "framework/common/debug/ge_log.h"
 #include "graph/utils/graph_utils.h"
-#include "common/framework_types_internal.h"
+#include "common/types.h"
 #include "graph_builder/converter_checker.h"
 #include "graph/debug/ge_attr_define.h"
 #include "graph/load/model_manager/davinci_model.h"

@@ -10,7 +10,7 @@
 
 #include "rt_v2_executor_factory.h"
 
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "graph/debug/ge_attr_define.h"
 #include "rt_v2_simple_executor.h"
 #include "rt_v2_pipeline_executor.h"

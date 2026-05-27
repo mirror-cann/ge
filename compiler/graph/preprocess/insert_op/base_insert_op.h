@@ -16,7 +16,7 @@
 #include <utility>
 #include <vector>
 #include "framework/common/fmk_error_codes.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "framework/common/ge_inner_error_codes.h"
 #include "graph/compute_graph.h"
 #include "proto/insert_op.pb.h"
