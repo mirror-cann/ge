@@ -14,10 +14,10 @@
 
 #include "common/ge_inner_error_codes.h"
 #include "graph/common/trans_op_creator.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "graph/utils/attr_utils.h"
 #include "graph/utils/constant_utils.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "graph/utils/type_utils.h"
 #include "graph/debug/ge_attr_define.h"
 #include "api/gelib/gelib.h"

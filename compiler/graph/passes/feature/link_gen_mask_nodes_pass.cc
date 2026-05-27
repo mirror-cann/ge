@@ -14,7 +14,7 @@
 
 #include "framework/common/ge_inner_error_codes.h"
 #include "framework/common/debug/ge_log.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "api/gelib/gelib.h"
 
 

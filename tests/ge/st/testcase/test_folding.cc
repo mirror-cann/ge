@@ -18,7 +18,7 @@
 #include "ge/ge_api.h"
 #include "graph/debug/ge_attr_define.h"
 #include "graph/utils/graph_utils_ex.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "graph/utils/graph_utils.h"
 #include "graph/passes/standard_optimize/constant_folding/constant_folding_pass.h"
 #include "graph/passes/standard_optimize/constant_folding/dimension_compute_pass.h"

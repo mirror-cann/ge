@@ -27,8 +27,7 @@ class TaskCodeBuilderUtil {
                                              const std::vector<AddrSemantic> &workspace_addrs,
                                              ModelTaskType task_type, Arg stream,
                                              const VarRef &model_id, const VarRef &instance_handle,
-                                             const VarRef &args_table, bool use_args_info_size,
-                                             bool is_raw_address = false);
+                                             const VarRef &args_table, bool use_args_info_size);
 };
 }  // namespace ge
 

@@ -12,7 +12,7 @@
 #include "common/preload/model/pre_model_partition_utils.h"
 #include "common/compile_profiling/ge_call_wrapper.h"
 #include "graph/debug/ge_attr_define.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "graph/utils/graph_utils.h"
 #include "graph/utils/tensor_utils.h"
 #include "graph/utils/op_desc_utils.h"

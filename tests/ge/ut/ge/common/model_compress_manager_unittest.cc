@@ -16,7 +16,7 @@
 
 #include "ge_graph_dsl/graph_dsl.h"
 #include "graph/debug/ge_attr_define.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "common/summary_checker.h"
 #include "common/share_graph.h"
 

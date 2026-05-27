@@ -15,7 +15,7 @@
 #include "common/compile_profiling/ge_trace_wrapper.h"
 #include "common/util/mem_utils.h"
 #include "common/checker.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "dflow/inc/data_flow/model/pne_model.h"
 #include "graph/debug/ge_attr_define.h"
 #include "dflow/flow_graph/data_flow_attr_define.h"

@@ -12,7 +12,7 @@
 
 #include "macro_utils/dt_public_scope.h"
 #include "common/dump/data_dumper.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "graph/load/model_manager/davinci_model.h"
 #include "common/sgt_slice_type.h"
 #include "macro_utils/dt_public_unscope.h"

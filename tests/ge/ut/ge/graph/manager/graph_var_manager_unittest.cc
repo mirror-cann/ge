@@ -19,7 +19,7 @@
 #include "graph/ge_local_context.h"
 #include "graph/utils/constant_utils.h"
 #include "graph/utils/tensor_utils.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "graph/compute_graph.h"
 #include "depends/runtime/src/runtime_stub.h"
 #include "graph/manager/active_memory_allocator.h"
@@ -152,10 +152,12 @@ TEST_F(UtestGraphVarManagerTest, test_var_manager_addr_and_free) {
 }
 
 TEST_F(UtestGraphVarManagerTest, Malloc1GHugePageFailed_Return) {
-  class RuntimeMock : public ge::RuntimeStub {
+  class AclRuntimeMock : public ge::AclRuntimeStub {
    public:
-    rtError_t rtMallocPhysical(rtDrvMemHandle* handle, size_t size, rtDrvMemProp_t* prop, uint64_t flags) {
-      if (prop->pg_type == 2) {
+    aclError aclrtMallocPhysical(aclrtDrvMemHandle *handle, size_t size, const aclrtPhysicalMemProp *prop,
+                                  uint64_t flags) {
+      if (prop->memAttr == ACL_HBM_MEM_HUGE1G || prop->memAttr == ACL_HBM_MEM_P2P_HUGE1G
+          || prop->memAttr == ACL_MEM_HUGE1G) {
         return -1;
       }
       *handle = (rtDrvMemHandle) new uint8_t[8];
@@ -167,8 +169,8 @@ TEST_F(UtestGraphVarManagerTest, Malloc1GHugePageFailed_Return) {
   options.insert(pair<string, string>(OPTION_VARIABLE_USE_1G_HUGE_PAGE, "1"));
   ge::GetThreadLocalContext().SetSessionOption(options);
 
-  auto alc_runtime_stub = std::make_shared<RuntimeMock>();
-  ge::RuntimeStub::SetInstance(alc_runtime_stub);
+  auto alc_runtime_stub = std::make_shared<AclRuntimeMock>();
+  ge::AclRuntimeStub::SetInstance(alc_runtime_stub);
 
   const std::vector<rtMemType_t> memory_types({RT_MEMORY_HBM, RT_MEMORY_P2P_DDR});
   EXPECT_EQ(MemManager::Instance().Initialize(memory_types), SUCCESS);
@@ -201,7 +203,7 @@ TEST_F(UtestGraphVarManagerTest, Malloc1GHugePageFailed_Return) {
   EXPECT_EQ(VarManager::Instance(5)->GetVarMemoryAddr(PtrToPtr<void, uint8_t>(ValueToPtr(34359738368)), RT_MEMORY_HBM), nullptr);
   EXPECT_EQ(VarManager::Instance(5)->FreeVarMemory(), SUCCESS);
   VarManager::Instance(5)->var_resource_->device_id_to_var_dev_addr_mgr_map_.clear();
-  ge::RuntimeStub::Reset();
+  ge::AclRuntimeStub::Reset();
   ge::GetThreadLocalContext().SetSessionOption(old_options);
 }
 

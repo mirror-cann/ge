@@ -15,7 +15,7 @@
 #include "common/debug/log.h"
 #include "common/debug/memory_dumper.h"
 #include "common/op/ge_op_utils.h"
-#include "common/framework_types_internal.h"
+#include "common/types.h" 
 #include "graph/types.h"
 #include "graph/utils/attr_utils.h"
 #include "graph/utils/graph_utils.h"

@@ -10,7 +10,7 @@
 
 #ifndef DOMI_OP_ARG_OP_H_
 #define DOMI_OP_ARG_OP_H_
-#include "parser/common/op_def/parser_operator_internal.h"
+#include "parser/common/op_def/operator.h"
 
 namespace ge {
 class ArgOpOperator : public ParserOperator {

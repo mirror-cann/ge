@@ -18,7 +18,7 @@
 #include "anchor.h"
 #include "common/debug/log.h"
 #include "common/debug/memory_dumper.h"
-#include "common/framework_types_internal.h"
+#include "common/types.h"
 #include "framework/common/ge_inner_error_codes.h"
 #include "graph/attr_value.h"
 #include "graph/debug/ge_attr_define.h"

@@ -11,7 +11,7 @@
 #include "executor_manager.h"
 #include <vector>
 #include <thread>
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "framework/common/debug/ge_log.h"
 #include "dflow/inc/data_flow/model/pne_model.h"
 #include "graph_metadef/common/ge_common/util.h"

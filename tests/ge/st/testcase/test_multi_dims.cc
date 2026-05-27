@@ -17,7 +17,7 @@
 #include "utils/model_factory.h"
 #include "ge_graph_dsl/assert/graph_assert.h"
 #include "utils/graph_utils.h"
-#include "framework/common/framework_types_internal.h"
+#include "types.h"
 #include "init_ge.h"
 #include "graph/passes/multi_batch/subgraph_const_migration_pass.h"
 #include "graph/passes/multi_batch/subexpression_migration_pass.h"

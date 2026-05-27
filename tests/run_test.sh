@@ -61,7 +61,6 @@ usage() {
   echo "    -s, --st       Build all st"
   echo "        =ge               Build all ge st"
   echo "            =ge_common    Build ge common st"
-  echo "            =ge_common_atc Build ge common atc st"
   echo "            =rt           Build ge runtime st"
   echo "            =hetero       Build ge hetero st"
   echo "            =python       Build ge python st"
@@ -122,7 +121,6 @@ checkopts() {
 
   ENABLE_GE="off"
   ENABLE_GE_COMMON="off"
-  ENABLE_GE_COMMON_ATC="off"
   ENABLE_RT="off"
   ENABLE_HETERO="off"
   ENABLE_PYTHON="off"
@@ -362,7 +360,6 @@ checkopts() {
           "")
             ENABLE_GE="on"
             ENABLE_GE_COMMON="on"
-            ENABLE_GE_COMMON_ATC="on"
             ENABLE_RT="on"
             ENABLE_HETERO="on"
             ENABLE_PYTHON="on"
@@ -380,7 +377,6 @@ checkopts() {
             ;;
           "ge")
             ENABLE_GE_COMMON="on"
-            ENABLE_GE_COMMON_ATC="on"
             ENABLE_RT="on"
             ENABLE_HETERO="on"
             ENABLE_PYTHON="on"
@@ -391,11 +387,6 @@ checkopts() {
             ;;
           "ge_common")
             ENABLE_GE_COMMON="on"
-            ENABLE_GE="on"
-            shift 2
-            ;;
-          "ge_common_atc")
-            ENABLE_GE_COMMON_ATC="on"
             ENABLE_GE="on"
             shift 2
             ;;
@@ -864,8 +855,6 @@ main() {
         bash scripts/build_fwk.sh -s -j $THREAD_NUM $VERBOSE $COVERAGE
       elif [ "X$ENABLE_GE_COMMON" = "Xon" ]; then
         bash scripts/build_fwk.sh -O -j $THREAD_NUM $VERBOSE $COVERAGE
-      elif [ "X$ENABLE_GE_COMMON_ATC" = "Xon" ]; then
-        bash scripts/build_fwk.sh -G -j $THREAD_NUM $VERBOSE $COVERAGE
       elif [ "X$ENABLE_RT" = "Xon" ]; then
         bash scripts/build_fwk.sh -R -j $THREAD_NUM $VERBOSE $COVERAGE
       elif [ "X$ENABLE_HETERO" = "Xon" ]; then

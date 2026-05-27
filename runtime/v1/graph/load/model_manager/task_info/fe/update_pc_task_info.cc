@@ -46,15 +46,12 @@ Status UpdatePCTaskInfo::Distribute() {
   
   void *handle{nullptr};
   GE_ASSERT_SUCCESS(GetKernelHandle(handle));
+  update_info_.hdl = handle;
+  update_info_.fftsPlusTaskInfo = reinterpret_cast<rtFftsPlusTaskInfo_t *>(sink_task_info->ffts_task_handle);
+  update_info_.blockDimAddr = reinterpret_cast<uint64_t *>(tiling_context_addr->block_dim_addr);
+  update_info_.tilingKeyAddr = reinterpret_cast<uint64_t *>(tiling_context_addr->tiling_key_addr);
 
-  // Construct aclrtTaskUpdateInfo for aclrtTaskUpdateAsync
-  aclrtTaskUpdateInfo taskUpdateInfo = {};
-  taskUpdateInfo.id = ACL_RT_UPDATE_AIC_AIV_TASK;
-  taskUpdateInfo.val.aicAivTaskAttr.binHandle = handle;
-  taskUpdateInfo.val.aicAivTaskAttr.funcEntryAddr = reinterpret_cast<void *>(tiling_context_addr->tiling_key_addr);
-  taskUpdateInfo.val.aicAivTaskAttr.blockDimAddr = reinterpret_cast<uint64_t *>(tiling_context_addr->block_dim_addr);
-
-  GE_CHK_RT_RET(aclrtTaskUpdateAsync(sink_task_info->stream, sink_task_info->task_id, &taskUpdateInfo, stream_));
+  GE_CHK_RT_RET(rtModelTaskUpdate(sink_task_info->stream, sink_task_info->task_id, stream_, &update_info_));
 
   is_support_redistribute_ = true;
   GELOGI("UpdatePCTaskInfo %s Distribute Success, stream: %p.", op_desc_->GetNamePtr(), stream_);

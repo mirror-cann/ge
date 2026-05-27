@@ -12,7 +12,7 @@
 #ifndef DOMI_OP_VARIABLE_H_
 #define DOMI_OP_VARIABLE_H_
 #include <vector>
-#include "parser/common/op_def/parser_operator_internal.h"
+#include "parser/common/op_def/operator.h"
 #include "framework/omg/parser/parser_types.h"
 
 namespace ge {

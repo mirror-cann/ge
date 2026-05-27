@@ -20,7 +20,7 @@
 #include "utils/mock_execution_runtime.h"
 #include "dflow/compiler/pne/process_node_engine_manager.h"
 #include "dflow/compiler/pne/udf/udf_process_node_engine.h"
-#include "dflow/executor/flow_msg_internal.h"
+#include "dflow/executor/flow_msg.h"
 #include "ge/ge_api.h"
 #include "flow_graph/data_flow.h"
 

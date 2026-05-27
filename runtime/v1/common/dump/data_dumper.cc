@@ -15,7 +15,7 @@
 
 #include "mmpa/mmpa_api.h"
 #include "adx_datadump_server.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "common/plugin/datatype_util.h"
 #include "common/sgt_slice_type.h"
 #include "framework/common/util.h"

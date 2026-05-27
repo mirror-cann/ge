@@ -10,7 +10,7 @@
 
 #include "common/preload/model/pre_model_utils.h"
 #include "framework/common/tlv/pre_model_desc.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "graph/debug/ge_attr_define.h"
 #include "graph/utils/tensor_utils.h"
 #include "base/err_msg.h"

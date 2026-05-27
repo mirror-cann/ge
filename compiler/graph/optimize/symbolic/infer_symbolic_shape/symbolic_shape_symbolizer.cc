@@ -18,7 +18,7 @@
 #include "graph/utils/node_utils.h"
 #include "graph/utils/op_type_utils.h"
 #include "attribute_group/attr_group_symbolic_desc.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "graph/utils/op_desc_utils.h"
 #include "graph/utils/type_utils.h"
 #include "symbolic_infer_util.h"

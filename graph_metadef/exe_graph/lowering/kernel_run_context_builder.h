@@ -12,6 +12,7 @@
 #define METADEF_CXX_RUNTIME_KERNEL_CONTEXT_BUILDER_H_
 
 #include "graph/node.h"
+#include "exe_graph/runtime/compute_node_info.h"
 #include "exe_graph/runtime/kernel_context.h"
 #include "exe_graph/lowering/buffer_pool.h"
 

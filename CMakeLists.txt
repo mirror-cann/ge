@@ -56,7 +56,7 @@ endif ()
 
 if (NOT DEFINED CMAKE_MODULE_PATH)
     set(CMAKE_MODULE_PATH
-        ${CANN_CMAKE_DIR}/modules
+        ${CMAKE_CURRENT_LIST_DIR}/cmake/modules
         ${CMAKE_CURRENT_LIST_DIR}/cmake/third_party/scripts/modules
         ${CANN_3RD_LIB_PATH}/cmake/modules
     )
@@ -111,7 +111,7 @@ endif()
 if (ENABLE_ACL_UT)
     include(cmake/intf_pub_linux.cmake)
     find_package(GTest CONFIG REQUIRED)
-    find_cann_package(securec MODULE REQUIRED)
+    find_package(securec MODULE REQUIRED)
     add_cann_third_party(json)
     add_subdirectory(tests/acl_ut)
     return()
@@ -200,8 +200,8 @@ if ((CMAKE_BUILD_TYPE MATCHES GCOV) OR ENABLE_GE_DT)
 endif ()
 
 if(BUILD_PKG_COMPONENT)
-    find_cann_package(acl_rt MODULE REQUIRED)
-    find_cann_package(awatchdog MODULE REQUIRED)
+    find_package(acl_rt MODULE REQUIRED)
+    find_package(awatchdog MODULE REQUIRED)
 endif()
 
 # CANN软件包
@@ -337,7 +337,7 @@ if ((CMAKE_BUILD_TYPE MATCHES GCOV) OR ENABLE_GE_DT)
     if (ENABLE_GE_BENCHMARK)
         add_dependencies(select_targets ge_runtime_benchmark)
 
-    elseif (ENABLE_GE_ST OR ENABLE_GE_COMMON_ST OR ENABLE_RT2_ST OR ENABLE_RT3_ST OR ENABLE_PYTHON_ST OR ENABLE_PARSER_ST OR ENABLE_DFLOW_ST)
+    elseif (ENABLE_GE_ST OR ENABLE_RT2_ST OR ENABLE_RT3_ST OR ENABLE_PYTHON_ST OR ENABLE_PARSER_ST OR ENABLE_DFLOW_ST)
         if (ENABLE_RT2_ST)
             add_dependencies(select_targets hybrid_model_async_exec_test
                     graphtuner_executor
@@ -365,11 +365,6 @@ if ((CMAKE_BUILD_TYPE MATCHES GCOV) OR ENABLE_GE_DT)
 
         if (ENABLE_GE_ST)
             add_dependencies(select_targets graph_engine_test
-                    graphtuner_executor)
-        endif ()
-
-        if (ENABLE_GE_COMMON_ST)
-            add_dependencies(select_targets ge_common_atc
                     graphtuner_executor)
         endif ()
 
@@ -590,7 +585,6 @@ elseif (BUILD_OPEN_PROJECT OR ENABLE_OPEN_SRC)
                     BINARY_DIR ${CMAKE_BINARY_DIR}/device_build
                     CMAKE_ARGS
                     -DTOP_DIR=${TOP_DIR}
-                    -DCANN_CMAKE_DIR=${CANN_CMAKE_DIR}
                     -DTOOLCHAIN_DIR=${ASCEND_INSTALL_PATH}/toolkit/toolchain/hcc
                     -DCMAKE_INSTALL_PREFIX=${CHILD_INSTALL_DIR}
                     -DCMAKE_TOOLCHAIN_FILE=${CMAKE_SOURCE_DIR}/dflow/udf/cmake/aarch64-hcc-toolchain.cmake

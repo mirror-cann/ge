@@ -51,6 +51,7 @@ std::string LoadTextFromFile(const std::string &file_path);
   } while (0)
 
 namespace {
+constexpr const char *kCompileOptionDeviceId = "ge.exec.deviceId";
 constexpr const char *kCompileOptionJitCompile = "ge.jit_compile";
 }  // namespace
 
@@ -143,6 +144,7 @@ class AddCustom : public EagerExecuteOp, public CompilableOp, public PortableOp,
       std::cerr << __FILE__ << ":" << __LINE__ << " Compile context is null" << std::endl;
       return GRAPH_FAILED;
     }
+    compile_utils::DumpCompileOption(ctx, kCompileOptionDeviceId);
     compile_utils::DumpCompileOption(ctx, kCompileOptionJitCompile);
     compile_utils::DumpComputeNodeInfo(ctx);
     compile_utils::DumpPlatformInfos(ctx);

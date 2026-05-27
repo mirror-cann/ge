@@ -32,6 +32,7 @@
         <block name="GeCompilerSo"/>
         <block name="GeCompilerInc"/>
         <block name="GeCompilerBin"/>
+        <block name="LlmDatadistCompatiableInc"/>
     </block_info>
     <dir_info value="ge-compiler" install_path="ge-compiler" install_type="all">
         <path value="compiler" install_mod="750"/>

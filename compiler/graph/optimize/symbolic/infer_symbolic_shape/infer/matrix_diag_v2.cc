@@ -12,16 +12,12 @@
 #include "graph/compute_graph.h"
 #include "exe_graph/runtime/infer_symbol_shape_context.h"
 #include "common/checker.h"
-#include "common/framework_types_internal.h"
+#include "common/types.h"
 #include "graph/utils/type_utils.h"
 #include "graph/optimize/symbolic/infer_symbolic_shape/symbolic_infer_util.h"
 
 namespace ge {
 namespace {
-
-constexpr size_t kSingleDiagIndexNum = 1U;
-constexpr size_t kMaxDiagIndexNum = 2U;
-constexpr size_t kMatrixDimsNum = 2U;
 
 graphStatus ValidateInputShapes(const gert::SymbolShape *diagonal_shape, const gert::SymbolShape *k_shape) {
   GE_ASSERT_TRUE(diagonal_shape->GetDimNum() >= 1,
@@ -34,14 +30,14 @@ graphStatus ValidateInputShapes(const gert::SymbolShape *diagonal_shape, const g
 }
 
 graphStatus ExtractDiagIndices(const std::vector<Expression> *k_value, int32_t &lower_diag_index, int32_t &upper_diag_index) {
-  const size_t num_elements = k_value->size();
+  int32_t num_elements = k_value->size();
 
-  GE_ASSERT_TRUE(num_elements >= kSingleDiagIndexNum && num_elements <= kMaxDiagIndexNum,
+  GE_ASSERT_TRUE(num_elements >= 1 && num_elements <= 2,
           "[InferSymbolShape4MatrixDiagV2] input[k] must be scalar or a vector with one or two elements");
   GE_ASSERT_TRUE(k_value->at(0).GetConstValue<int32_t>(lower_diag_index),
           "[InferSymbolShape4MatrixDiagV2] k_value[0] must be a scalar");
 
-  if (num_elements == kSingleDiagIndexNum) {
+  if (num_elements == 1) {
     upper_diag_index = lower_diag_index;
   } else {
     GE_ASSERT_TRUE(k_value->at(1).GetConstValue<int32_t>(upper_diag_index),
@@ -58,10 +54,10 @@ graphStatus ExtractDiagIndices(const std::vector<Expression> *k_value, int32_t &
 
 graphStatus ValidateMultiDiag(const std::vector<Expression> &diagonal_dims, size_t diagonal_rank,
                  int32_t lower_diag_index, int32_t upper_diag_index) {
-  GE_ASSERT_TRUE(diagonal_rank >= kMatrixDimsNum,
+  GE_ASSERT_TRUE(diagonal_rank >= 2,
           "[InferSymbolShape4MatrixDiagV2] diagonal_shape is invalid, dim should be at least 2");
 
-  auto num_diags = diagonal_dims[diagonal_rank - kMatrixDimsNum];
+  auto num_diags = diagonal_dims[diagonal_rank - 2];
   auto expected_num_diags = Symbol(upper_diag_index - lower_diag_index + 1);
   ASSERT_SYMBOL_EQ(num_diags, expected_num_diags);
 
@@ -142,7 +138,7 @@ void BuildOutputShape(const std::vector<Expression> &diagonal_dims, size_t diago
     output_shape->MutableDims().push_back(num_cols);
   } else {
     for (size_t i = 0; i < diagonal_rank; i++) {
-      if (i == diagonal_rank - kMatrixDimsNum) {
+      if (i == diagonal_rank - 2) {
         output_shape->MutableDims().push_back(num_rows);
       } else if (i == diagonal_rank - 1) {
         output_shape->MutableDims().push_back(num_cols);
@@ -199,4 +195,4 @@ graphStatus InferShape4MatrixDiagV2(gert::InferSymbolShapeContext *context) {
 
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(MatrixDiagV2).InferSymbolShape(InferShape4MatrixDiagV2);
 }
-}
+} 

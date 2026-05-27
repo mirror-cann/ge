@@ -281,9 +281,10 @@ TEST_F(Runtime2AllocatorSystemTest, test_set_memory_pool_threshold) {
 }
 
 TEST_F(Runtime2AllocatorSystemTest, expandable_memory_allocator_fail) {
-  struct MockRuntime : RuntimeStub {
+  struct FakeAclRuntime : AclRuntimeStubImpl {
    public:
-    rtError_t rtMallocPhysical(rtDrvMemHandle* handle, size_t size, rtDrvMemProp_t* prop, uint64_t flags) {
+    rtError_t aclrtMallocPhysical(aclrtDrvMemHandle *handle, size_t size, const aclrtPhysicalMemProp *prop,
+                                  uint64_t flags) {
       static size_t cnt = 0U;
       ++cnt;
       if (cnt >= 3U) {
@@ -292,8 +293,8 @@ TEST_F(Runtime2AllocatorSystemTest, expandable_memory_allocator_fail) {
       return 0;
     }
   };
-  auto mock_runtime = std::make_shared<MockRuntime>();
-  ge::RuntimeStub::SetInstance(mock_runtime);
+  auto mock_runtime = std::make_shared<FakeAclRuntime>();
+  ge::AclRuntimeStub::SetInstance(mock_runtime);
   std::map<std::string, std::string> graph_options;
   graph_options[ge::STATIC_MEMORY_POLICY] = "3";
   ge::GetThreadLocalContext().SetGraphOption(graph_options);
@@ -303,7 +304,7 @@ TEST_F(Runtime2AllocatorSystemTest, expandable_memory_allocator_fail) {
   auto span1 = caching_allocator->Malloc(alloc_size);
   ASSERT_EQ(span1, nullptr);
   caching_allocator.reset(nullptr);
-  ge::RuntimeStub::Reset();
+  ge::AclRuntimeStub::Reset();
 }
 
 /**

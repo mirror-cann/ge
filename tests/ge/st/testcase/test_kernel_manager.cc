@@ -13,7 +13,7 @@
  #include "common/kernel_handles_manager/kernel_handle_utils.h"
  #include "graph/debug/ge_attr_define.h"
  #include "graph/op_kernel_bin.h"
- #include "framework/common/framework_types_internal.h"
+ #include "framework/common/types.h"
  #include "stub/runtime_stub_for_kernel_v2.h"
  #include "graph/load/model_manager/model_manager.h"
  

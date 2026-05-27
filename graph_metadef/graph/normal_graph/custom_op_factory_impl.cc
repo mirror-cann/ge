@@ -13,7 +13,7 @@
 #include "external/graph/custom_op.h"
 #include "debug/ge_log.h"
 #include "common/util/mem_utils.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 
 namespace ge {
 Status CustomOpFactoryImpl::RegisterCustomOpCreator(const AscendString &op_type, const BaseOpCreator &op_creator) {

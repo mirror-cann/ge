@@ -18,7 +18,7 @@
 
 #include "compute_graph.h"
 #include "graph/debug/ge_attr_define.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "utils/graph_utils.h"
 #include "graph/passes/graph_builder_utils.h"
 

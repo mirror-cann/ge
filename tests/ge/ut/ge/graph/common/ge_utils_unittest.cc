@@ -11,7 +11,7 @@
 #include <string>
 #include <gtest/gtest.h>
 #include "common/ge_inner_error_codes.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "graph/utils/attr_utils.h"
 #include "graph/utils/node_adapter.h"
 #include "graph/utils/graph_utils_ex.h"

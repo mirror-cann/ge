@@ -10,7 +10,7 @@
 
 #include "graph/manager/graph_var_manager.h"
 
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "common/file_constant_utils/file_constant_utils.h"
 #include "graph/debug/ge_attr_define.h"
 #include "graph/tuning_utils.h"

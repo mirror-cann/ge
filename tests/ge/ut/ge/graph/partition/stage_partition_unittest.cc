@@ -11,7 +11,7 @@
 #include <gtest/gtest.h>
 
 #include "common/ge_inner_error_codes.h"
-#include "common/framework_types_internal.h"
+#include "common/types.h"
 #include "common/util.h"
 #include "graph/utils/attr_utils.h"
 #include "graph/debug/ge_attr_define.h"
@@ -20,7 +20,7 @@
 #include "macro_utils/dt_public_scope.h"
 #include "compute_graph.h"
 #include "graph/normal_graph/compute_graph_impl.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "utils/graph_utils.h"
 #include "graph/debug/ge_attr_define.h"
 #include "common/omg_util/omg_util.h"

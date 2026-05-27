@@ -11,7 +11,7 @@
 #include "test_tools_task_info.h"
 
 #include "gtest/gtest.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "framework/common/taskdown_common.h"
 #include "common/opskernel/ops_kernel_info_store.h"
 #include "graph/debug/ge_attr_define.h"

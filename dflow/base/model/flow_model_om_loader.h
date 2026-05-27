@@ -12,7 +12,7 @@
 #define BASE_PNE_MODEL_FLOW_MODEL_OM_LOADER_H_
 
 #include "dflow/inc/data_flow/model/flow_model.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "framework/common/helper/om_file_helper.h"
 
 namespace ge {

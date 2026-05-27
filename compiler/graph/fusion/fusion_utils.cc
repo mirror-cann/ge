@@ -14,7 +14,7 @@
 #include "register/graph_optimizer/fusion_common/graph_pass_util.h"
 #include "graph/ge_context.h"
 #include "common/util.h"
-#include "common/framework_types_internal.h"
+#include "common/types.h"
 #include "nlohmann/json.hpp"
 #include "fusion_utils.h"
 

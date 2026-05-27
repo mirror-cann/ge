@@ -21,7 +21,7 @@
 #include "code_printer.h"
 #include "mmpa/mmpa_api.h"
 #include "graph_metadef/graph/utils/file_utils.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "mmpa/mmpa_api.h"
 #include "guard_codegen.h"
 #include "common/compile_profiling/ge_call_wrapper.h"

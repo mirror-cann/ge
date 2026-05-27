@@ -18,7 +18,7 @@
 #include "graph/utils/node_utils.h"
 #include "graph/ge_context.h"
 #include "common/context/local_context.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "graph/compute_graph.h"
 #include "graph/utils/graph_utils.h"
 #include "common/omg_util/omg_util.h"

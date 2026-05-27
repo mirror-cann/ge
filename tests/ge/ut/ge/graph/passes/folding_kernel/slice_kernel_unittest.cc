@@ -15,7 +15,7 @@
 
 #include "common/debug/log.h"
 #include "common/debug/memory_dumper.h"
-#include "common/framework_types_internal.h"
+#include "common/types.h"
 #include "gen_node.h"
 #include "graph/op_desc.h"
 #include "graph/passes/standard_optimize/constant_folding/constant_folding_pass.h"

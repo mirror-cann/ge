@@ -24,7 +24,7 @@
 #include "depends/runtime/src/runtime_stub.h"
 #include "depends/ascendcl/src/ascendcl_stub.h"
 #include "ge/ut/ge/ffts_plus_proto_tools.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "graph/manager/graph_var_manager.h"
 #include "depends/profiler/src/dump_stub.h"
 #include "graph/manager/graph_mem_allocator.h"
