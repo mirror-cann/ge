@@ -217,7 +217,7 @@ void MemcpyAddrAsyncTaskCodeBuilder::RenderCustomValueWriteback(std::vector<Body
   size_t host_offset = align_offset_;
   for (size_t i = 0; i < arg_descs_.size(); ++i) {
     if (arg_descs_[i].addr_type == AddrType::CUSTOM_VALUE) {
-      const uint64_t value = *reinterpret_cast<const uint64_t *>(arg_descs_[i].reserved);
+      const uint64_t value = *(PtrToPtr<uint8_t, uint64_t>(arg_descs_[i].reserved));
       auto host_base_expr = ast_.Call("ValueToPtr", {ast_.Call("PtrToValue",
           {args_table_.Attr("GetArgsInfo")(static_cast<int64_t>(entry_.table_index)).Arrow("host_addr")}) +
            ast_.UInt(host_offset)});
