@@ -30,9 +30,9 @@ private:
   Status InitTaskExtInfo(const TaskSemanticContributeContext &context);
   Status InitTaskExInfo(const TaskSemanticContributeContext &context);
   Status InitArgsTableInfo(const TaskSemanticContributeContext &context);
-  Status RenderGetAddrInfo(std::vector<BodyItem> &items, std::vector<Arg> &args) const;
+  Status RenderGetAddrInfo(std::vector<BodyItem> &items, std::vector<Arg> &flatten_args_vars) const;
   Status AppendOm2TensorAddrInfo(const AddrSemantic &addr, const char *addr_type, std::vector<BodyItem> &items,
-                                 std::vector<Arg> &args) const;
+                                 std::vector<Arg> &flatten_args_vars) const;
   Expr *BuildLaunchConfigExpr(const LaunchConfigSemantic &launch_config, Arg is_data_dump = {}) const;
   VarRef AppendLaunchConfigSetup(size_t op_index, std::vector<BodyItem> &items, Arg is_data_dump = {}) const;
   FunctionDef *BuildAssembleTfAicpuArgs() const;
