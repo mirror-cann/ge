@@ -168,6 +168,22 @@ remove_last_license() {
     fi
 }
 
+remove_ge_py_pass_bridge_wheels(){
+  local arch_name
+  arch_name=$(get_arch_name "${common_parse_dir}/share/info/ge-compiler")
+  if [ -z "${arch_name}" ]; then
+    return
+  fi
+  
+  local wheel_dir="${common_parse_dir}/${arch_name}-linux/lib64"
+  if [ ! -d "${wheel_dir}" ]; then
+    return
+  fi
+
+  chmod u+w "${wheel_dir}" 2> /dev/null
+  rm -f "${wheel_dir}/ge_py_pass_bridge-"*.whl 2> /dev/null
+}
+
 WHL_INSTALL_DIR_PATH="${common_parse_dir}/python/site-packages"
 DATAFLOW_NAME="dataflow"
 LLM_DATADIST_NAME="llm_datadist_v1"
@@ -204,6 +220,7 @@ custom_uninstall() {
         rm -fr "${WHL_INSTALL_DIR_PATH}/ge/passes/python_pass_artifacts" 2> /dev/null
         rm -f "${WHL_INSTALL_DIR_PATH}/ge/passes/_ge_pass_native.so" 2> /dev/null
         rm -fr "${WHL_INSTALL_DIR_PATH}/ge_py_pass_bridge-"*.dist-info 2> /dev/null
+        remove_ge_py_pass_bridge_wheels
 
         log "INFO" "ge-compiler tool uninstalled successfully!"
     fi
