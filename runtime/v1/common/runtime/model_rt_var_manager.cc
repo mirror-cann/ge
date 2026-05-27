@@ -12,7 +12,7 @@
 #include "framework/common/debug/ge_log.h"
 #include "ge/ge_error_codes.h"
 #include "common/checker.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "graph/node.h"
 #include "graph/utils/tensor_utils.h"
 #include "graph/manager/mem_manager.h"

@@ -21,7 +21,7 @@
 #include "graph/compute_graph.h"
 #include "graph/ge_tensor.h"
 
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "ge_graph_dsl/op_desc/op_box.h"
 #include "ge_graph_dsl/op_desc/op_desc_cfg_box.h"
 #include "ge_graph_dsl/vistor/ge_graph_vistor.h"

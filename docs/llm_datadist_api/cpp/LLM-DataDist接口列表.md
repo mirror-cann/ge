@@ -7,7 +7,7 @@ LLM-DataDist：大模型分布式集群和数据加速组件，提供了集群KV
 - Atlas A2 推理系列产品
 - Atlas A3 训练系列产品/Atlas A3 推理系列产品
 
-相关接口存放在："$\{INSTALL\_DIR\}/include/llm\_datadist/llm\_datadist.h"。$\{INSTALL\_DIR\}请替换为CANN软件安装后文件存储路径。若安装的Ascend-cann-toolkit软件包，以root安装举例，则安装后文件存储路径为：/usr/local/Ascend/ascend-toolkit/latest。
+LLM-DataDist V1 C++ 接口计划废弃，相关头文件不再随ge_compiler安装，如需使用LLM-DataDist头文件，请安装toolkit与hixl
 
 接口对应的库文件是：libllm\_engine.so。
 

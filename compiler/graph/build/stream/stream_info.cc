@@ -13,7 +13,7 @@
 #include "external/ge/ge_api_types.h"
 #include "graph_metadef/graph/debug/ge_attr_define.h"
 #include "graph/compute_graph.h"
-#include "common/types.h"
+#include "common/framework_types_internal.h"
 
 namespace ge {
 namespace {

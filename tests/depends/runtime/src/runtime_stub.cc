@@ -1331,11 +1331,6 @@ rtError_t rtAicpuInfoLoad(const void *aicpuInfo, uint32_t length) {
   return RT_ERROR_NONE;
 }
 
-rtError_t rtModelTaskUpdate(rtStream_t desStm, uint32_t desTaskId, rtStream_t sinkStm,
-                            rtMdlTaskUpdateInfo_t *para) {
-  return RT_ERROR_NONE;
-}
-
 rtError_t rtNopTask(rtStream_t stm) {
   return RT_ERROR_NONE;
 }

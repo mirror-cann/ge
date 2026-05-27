@@ -19,7 +19,7 @@
 #include "graph/utils/node_utils.h"
 #include "graph/utils/graph_utils.h"
 #include "graph/debug/ge_attr_define.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "common/plugin/ge_make_unique_util.h"
 #include "aicpu_task_struct.h"
 #include "hybrid/node_executor/aicpu/aicpu_ext_info_handler.h"

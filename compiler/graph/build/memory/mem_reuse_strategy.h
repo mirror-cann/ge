@@ -16,7 +16,7 @@
 #include <list>
 
 #include "framework/common/ge_inner_error_codes.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "framework/common/util.h"
 #include "graph/compute_graph.h"
 

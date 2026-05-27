@@ -12,7 +12,7 @@
 #include "macro_utils/dt_public_scope.h"
 #include "ge/ge_api.h"
 #include "graph/compute_graph.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "graph/ge_local_context.h"
 #include "common/dump/exception_dumper.h"
 #include "macro_utils/dt_public_unscope.h"

@@ -10,7 +10,7 @@
 
 #include "graph_rebuild_state_ctrl.h"
 #include "framework/common/debug/ge_log.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 
 namespace ge {
 namespace {

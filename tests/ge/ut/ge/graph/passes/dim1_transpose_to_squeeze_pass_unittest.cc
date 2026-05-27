@@ -20,7 +20,7 @@
 #include "graph_builder_utils.h"
 #include "graph/utils/op_desc_utils.h"
 #include "common/op/ge_op_utils.h"
-#include "common/types.h"
+#include "common/framework_types_internal.h"
 #include "graph/types.h"
 #include "graph/utils/graph_utils.h"
 #include "host_kernels/kernel_factory.h"

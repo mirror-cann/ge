@@ -15,7 +15,7 @@
 #include "es_ge_test_ops.h"
 #include "graph_utils_ex.h"
 #include "tensor_adapter.h"
-#include "common/types.h"
+#include "common/framework_types_internal.h"
 #include "graph/operator_reg.h"
 
 namespace ge {

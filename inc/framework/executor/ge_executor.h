@@ -19,7 +19,7 @@
 #include "common/dynamic_aipp.h"
 #include "framework/common/ge_inner_error_codes.h"
 #include "framework/common/ge_types.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "framework/runtime/rt_session.h"
 #include "graph/tensor.h"
 #include "graph/ge_tensor.h"

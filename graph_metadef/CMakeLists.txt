@@ -30,8 +30,12 @@ if (ENABLE_METADEF_UT OR ENABLE_METADEF_ST OR ENABLE_BENCHMARK)
     add_subdirectory(tests)
 endif()
 
-install(TARGETS lowering graph graph_base register metadef_headers
-        aihac_symbolizer
+set(_metadef_install_targets lowering graph graph_base register aihac_symbolizer)
+get_target_property(_mh_imported_install metadef_headers IMPORTED)
+if(NOT _mh_imported_install)
+    list(APPEND _metadef_install_targets metadef_headers)
+endif()
+install(TARGETS ${_metadef_install_targets}
     EXPORT graph_metadef-targets
     LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR} ${INSTALL_OPTIONAL}
     ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR} ${INSTALL_OPTIONAL}

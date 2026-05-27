@@ -20,7 +20,7 @@
 #include "faker/fake_value.h"
 #include "faker/ge_model_builder.h"
 #include "stub/gert_runtime_stub.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "lowering/model_converter.h"
 #include "aicpu_task_struct.h"
 #include "depends/profiler/src/profiling_test_util.h"

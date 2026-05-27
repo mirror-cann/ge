@@ -18,7 +18,7 @@
 #include "graph/ge_local_context.h"
 #include "graph/ge_context.h"
 #include "common/ge_common/ge_types.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "framework/memory/memory_assigner.h"
 #include "../../test_memory_shared_graph.h"
 

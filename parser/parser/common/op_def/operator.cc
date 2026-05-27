@@ -8,7 +8,7 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-#include "operator.h"
+#include "parser_operator_internal.h"
 #include <utility>
 #include "framework/common/fmk_types.h"
 #include "common/util.h"

@@ -266,7 +266,6 @@ GeRootModelPtr CreateGeRootModelWithAicoreOp2() {
   (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 2048);
   (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_WEIGHT_SIZE, weight_size);
   (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_STREAM_NUM, 1);
-  // std::cout << ge_model->GetModelTaskDefPtr()->DebugString() << std::endl;
 
   return ge_root_model;
 }
@@ -323,7 +322,6 @@ GeRootModelPtr CreateGeRootModelWithAicpuOp() {
   (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 2048);
   (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_WEIGHT_SIZE, weight_size);
   (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_STREAM_NUM, 1);
-  // std::cout << ge_model->GetModelTaskDefPtr()->DebugString() << std::endl;
 
   return ge_root_model;
 }
@@ -546,7 +544,6 @@ GeRootModelPtr CreateGeRootModelWithAicoreOpOfDynamicIo() {
   (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 2048);
   (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_WEIGHT_SIZE, weight_size);
   (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_STREAM_NUM, 1);
-  // std::cout << ge_model->GetModelTaskDefPtr()->DebugString() << std::endl;
 
   return ge_root_model;
 }
@@ -810,6 +807,104 @@ JsonFile ExtractConstantsConfig(const RAIIZipArchive &archive, const std::string
     return JsonFile(nullptr, 0U);
   }
   return JsonFile(reinterpret_cast<const uint8_t *>(constants_config_buf.get()), constants_config_size);
+}
+
+// -----------------------------------------------------------------------
+// Helper: 在现有 AiCore 模型上添加 CMO task_def
+// -----------------------------------------------------------------------
+GeRootModelPtr CreateGeRootModelWithCmoTask(uint32_t cmo_type = 1U,
+                                             uint32_t op_code = 3U) {
+  auto ge_root_model = CreateGeRootModelWithAicoreOp();
+  GE_ASSERT_NOTNULL(ge_root_model);
+  const auto ge_model = ge_root_model->GetSubgraphInstanceNameToModel().begin()->second;
+  GE_ASSERT_NOTNULL(ge_model);
+  auto *model_task_def = ge_model->GetModelTaskDefPtr().get();
+  GE_ASSERT_NOTNULL(model_task_def);
+  auto *task_def = model_task_def->add_task();
+  task_def->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_CMO));
+  task_def->set_stream_id(0U);
+  auto *cmo = task_def->mutable_cmo_task();
+  cmo->set_cmo_type(cmo_type);
+  cmo->set_logic_id(0);
+  cmo->set_qos(0);
+  cmo->set_part_id(0);
+  cmo->set_pmg(0);
+  cmo->set_op_code(op_code);
+  cmo->set_num_inner(0);
+  cmo->set_num_outer(0);
+  cmo->set_length_inner(0);
+  cmo->set_source_addr(0U);
+  cmo->set_strider_outer(0);
+  cmo->set_strider_inner(0);
+  return ge_root_model;
+}
+
+// -----------------------------------------------------------------------
+// Helper: 在现有 AiCore 模型上添加 Barrier task_def
+// -----------------------------------------------------------------------
+GeRootModelPtr CreateGeRootModelWithBarrierTask(int32_t barrier_count = 1) {
+  auto ge_root_model = CreateGeRootModelWithAicoreOp();
+  GE_ASSERT_NOTNULL(ge_root_model);
+  const auto ge_model = ge_root_model->GetSubgraphInstanceNameToModel().begin()->second;
+  GE_ASSERT_NOTNULL(ge_model);
+  auto *model_task_def = ge_model->GetModelTaskDefPtr().get();
+  GE_ASSERT_NOTNULL(model_task_def);
+  auto *task_def = model_task_def->add_task();
+  task_def->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_BARRIER));
+  task_def->set_stream_id(0U);
+  auto *barrier = task_def->mutable_cmo_barrier_task();
+  barrier->set_logic_id_num(static_cast<uint32_t>(barrier_count));
+  for (int32_t i = 0; i < barrier_count; ++i) {
+    auto *info = barrier->add_barrier_info();
+    info->set_cmo_type(static_cast<uint32_t>(i));
+    info->set_logic_id(static_cast<uint32_t>(i));
+  }
+  return ge_root_model;
+}
+
+// -----------------------------------------------------------------------
+// Helper: 在现有 AiCore 模型上添加 CMO_ADDR task_def
+// 空 args_format 会触发 BuildAutoArgsFormat 自动生成
+// -----------------------------------------------------------------------
+GeRootModelPtr CreateGeRootModelWithCmoAddrTask(bool with_explicit_format = false) {
+  auto ge_root_model = CreateGeRootModelWithAicoreOp();
+  GE_ASSERT_NOTNULL(ge_root_model);
+  auto &compute_graph = ge_root_model->GetRootGraph();
+  const auto ge_model = ge_root_model->GetSubgraphInstanceNameToModel().begin()->second;
+  GE_ASSERT_NOTNULL(ge_model);
+  auto *model_task_def = ge_model->GetModelTaskDefPtr().get();
+  GE_ASSERT_NOTNULL(model_task_def);
+
+  // 为 Add 节点设置 tensor_desc 和 offset/max_size 属性（BuildAutoArgsFormat 需要）
+  for (const auto &node : compute_graph->GetDirectNode()) {
+    auto op_desc = node->GetOpDesc();
+    if ((op_desc != nullptr) && (op_desc->GetType() != DATA) && (op_desc->GetType() != NETOUTPUT)) {
+      GeTensorDesc tensor(GeShape({4, 4, 4, 4}), FORMAT_ND, DT_INT64);
+      TensorUtils::SetSize(tensor, 2048);
+      op_desc->UpdateInputDesc(0, tensor);
+      (void)AttrUtils::SetInt(op_desc, "offset", 512);
+    }
+  }
+
+  auto add_node = compute_graph->FindNode("add1");
+  const int64_t op_index = (add_node != nullptr) ? add_node->GetOpDescBarePtr()->GetId() : 2;
+
+  auto *task_def = model_task_def->add_task();
+  task_def->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_CMO_ADDR));
+  task_def->set_stream_id(0U);
+  auto *cmo_addr = task_def->mutable_cmo_addr_task();
+  cmo_addr->set_op_index(static_cast<uint32_t>(op_index));
+  cmo_addr->set_cmo_op_code(6);  // PREFETCH
+  cmo_addr->set_src(0U);
+  cmo_addr->set_num_inner(0);
+  cmo_addr->set_num_outer(0);
+  cmo_addr->set_length_inner(1024);
+  cmo_addr->set_stride_outer(0);
+  cmo_addr->set_stride_inner(0);
+  if (with_explicit_format) {
+    cmo_addr->set_args_format("{}{.32b}{#.32b64}{i_instance0*}{}");
+  }
+  return ge_root_model;
 }
 
 }  // namespace
@@ -1336,5 +1431,129 @@ TEST_F(Om2St, LoadGeneratedOm2WithExternalResources_Ok) {
   EXPECT_EQ(executor->GetModelDescInfo(input_desc, output_desc), SUCCESS);
   EXPECT_EQ(input_desc.size(), 2U);
   EXPECT_EQ(output_desc.size(), 1U);
+}
+
+TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithCmoTask) {
+  Om2PackageHelper om2_packager;
+  const auto ge_root_model = CreateGeRootModelWithCmoTask(1U, 3U);
+  ASSERT_NE(ge_root_model, nullptr);
+  ModelBufferData model_data;
+  const std::string output_file = PathUtils::Join({test_work_dir, kZipFileBaseName + ".om2"});
+  ASSERT_EQ(om2_packager.SaveToOmRootModel(ge_root_model, output_file, model_data, false), SUCCESS);
+  ASSERT_EQ(mmAccess2(output_file.c_str(), M_F_OK), EOK);
+
+  uint32_t model_buf_size = 0;
+  const auto model_buf = GetBinDataFromFile(output_file, model_buf_size);
+  RAIIZipArchive archive(reinterpret_cast<const uint8_t *>(model_buf.get()), model_buf_size);
+  ASSERT_TRUE(archive.IsGood());
+  const std::set<std::string> expect_files = {
+      "fake_test/data/model_0/runtime/g1_kernel_reg.cpp",
+      "fake_test/data/model_0/runtime/g1_resources.cpp",
+      "fake_test/data/model_0/runtime/g1_args_manager.cpp",
+      "fake_test/data/model_0/runtime/g1_load_and_run.cpp",
+      "fake_test/data/model_0/runtime/g1_interface.h",
+      "fake_test/data/model_0/runtime/Makefile",
+      "fake_test/data/model_0/runtime/libg1_om2.so",
+      "fake_test/data/constants/model_0_constants_config.json",
+      "fake_test/data/kernels_npu_arch/add1_faked_kernel.o",
+      "fake_test/data/model_0/model_meta.json",
+      "fake_test/data/model_0/debug/op_attr.json",
+      "fake_test/manifest.json",
+  };
+  ExpectOm2ArchiveFiles(archive, expect_files);
+  GELOGI("Om2St: CMO task packaging succeeded.");
+}
+
+TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithBarrierTask) {
+  Om2PackageHelper om2_packager;
+  const auto ge_root_model = CreateGeRootModelWithBarrierTask(3);
+  ASSERT_NE(ge_root_model, nullptr);
+  ModelBufferData model_data;
+  const std::string output_file = PathUtils::Join({test_work_dir, kZipFileBaseName + ".om2"});
+  ASSERT_EQ(om2_packager.SaveToOmRootModel(ge_root_model, output_file, model_data, false), SUCCESS);
+  ASSERT_EQ(mmAccess2(output_file.c_str(), M_F_OK), EOK);
+
+  uint32_t model_buf_size = 0;
+  const auto model_buf = GetBinDataFromFile(output_file, model_buf_size);
+  RAIIZipArchive archive(reinterpret_cast<const uint8_t *>(model_buf.get()), model_buf_size);
+  ASSERT_TRUE(archive.IsGood());
+  const std::set<std::string> expect_files = {
+      "fake_test/data/model_0/runtime/g1_kernel_reg.cpp",
+      "fake_test/data/model_0/runtime/g1_resources.cpp",
+      "fake_test/data/model_0/runtime/g1_args_manager.cpp",
+      "fake_test/data/model_0/runtime/g1_load_and_run.cpp",
+      "fake_test/data/model_0/runtime/g1_interface.h",
+      "fake_test/data/model_0/runtime/Makefile",
+      "fake_test/data/model_0/runtime/libg1_om2.so",
+      "fake_test/data/constants/model_0_constants_config.json",
+      "fake_test/data/kernels_npu_arch/add1_faked_kernel.o",
+      "fake_test/data/model_0/model_meta.json",
+      "fake_test/data/model_0/debug/op_attr.json",
+      "fake_test/manifest.json",
+  };
+  ExpectOm2ArchiveFiles(archive, expect_files);
+  GELOGI("Om2St: Barrier task packaging succeeded.");
+}
+
+TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithCmoAddrTask) {
+  Om2PackageHelper om2_packager;
+  const auto ge_root_model = CreateGeRootModelWithCmoAddrTask(false);
+  ASSERT_NE(ge_root_model, nullptr);
+  ModelBufferData model_data;
+  const std::string output_file = PathUtils::Join({test_work_dir, kZipFileBaseName + ".om2"});
+  ASSERT_EQ(om2_packager.SaveToOmRootModel(ge_root_model, output_file, model_data, false), SUCCESS);
+  ASSERT_EQ(mmAccess2(output_file.c_str(), M_F_OK), EOK);
+
+  uint32_t model_buf_size = 0;
+  const auto model_buf = GetBinDataFromFile(output_file, model_buf_size);
+  RAIIZipArchive archive(reinterpret_cast<const uint8_t *>(model_buf.get()), model_buf_size);
+  ASSERT_TRUE(archive.IsGood());
+  const std::set<std::string> expect_files = {
+      "fake_test/data/model_0/runtime/g1_kernel_reg.cpp",
+      "fake_test/data/model_0/runtime/g1_resources.cpp",
+      "fake_test/data/model_0/runtime/g1_args_manager.cpp",
+      "fake_test/data/model_0/runtime/g1_load_and_run.cpp",
+      "fake_test/data/model_0/runtime/g1_interface.h",
+      "fake_test/data/model_0/runtime/Makefile",
+      "fake_test/data/model_0/runtime/libg1_om2.so",
+      "fake_test/data/constants/model_0_constants_config.json",
+      "fake_test/data/kernels_npu_arch/add1_faked_kernel.o",
+      "fake_test/data/model_0/model_meta.json",
+      "fake_test/data/model_0/debug/op_attr.json",
+      "fake_test/manifest.json",
+  };
+  ExpectOm2ArchiveFiles(archive, expect_files);
+  GELOGI("Om2St: CMO_ADDR task packaging succeeded (auto format).");
+}
+
+TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithCmoAddrTaskExplicitFormat) {
+  Om2PackageHelper om2_packager;
+  const auto ge_root_model = CreateGeRootModelWithCmoAddrTask(true);
+  ASSERT_NE(ge_root_model, nullptr);
+  ModelBufferData model_data;
+  const std::string output_file = PathUtils::Join({test_work_dir, kZipFileBaseName + ".om2"});
+  ASSERT_EQ(om2_packager.SaveToOmRootModel(ge_root_model, output_file, model_data, false), SUCCESS);
+  ASSERT_EQ(mmAccess2(output_file.c_str(), M_F_OK), EOK);
+
+  uint32_t model_buf_size = 0;
+  const auto model_buf = GetBinDataFromFile(output_file, model_buf_size);
+  RAIIZipArchive archive(reinterpret_cast<const uint8_t *>(model_buf.get()), model_buf_size);
+  ASSERT_TRUE(archive.IsGood());
+  const std::set<std::string> expect_files = {
+      "fake_test/data/model_0/runtime/g1_kernel_reg.cpp",
+      "fake_test/data/model_0/runtime/g1_resources.cpp",
+      "fake_test/data/model_0/runtime/g1_args_manager.cpp",
+      "fake_test/data/model_0/runtime/g1_load_and_run.cpp",
+      "fake_test/data/model_0/runtime/g1_interface.h",
+      "fake_test/data/model_0/runtime/Makefile",
+      "fake_test/data/model_0/runtime/libg1_om2.so",
+      "fake_test/data/constants/model_0_constants_config.json",
+      "fake_test/data/kernels_npu_arch/add1_faked_kernel.o",
+      "fake_test/data/model_0/model_meta.json",
+      "fake_test/data/model_0/debug/op_attr.json",
+      "fake_test/manifest.json",
+  };
+  ExpectOm2ArchiveFiles(archive, expect_files);
+  GELOGI("Om2St: CMO_ADDR task packaging succeeded (explicit format).");
 }
 }  // namespace ge

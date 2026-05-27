@@ -19,7 +19,7 @@
 #include "graph/utils/op_desc_utils.h"
 #include "graph/utils/node_utils.h"
 #include "bg_compatible_utils.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "register/node_converter_registry.h"
 #include "bg_model_desc.h"
 #include "exe_graph/lowering/frame_selector.h"

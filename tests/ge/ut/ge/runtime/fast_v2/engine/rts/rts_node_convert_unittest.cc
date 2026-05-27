@@ -17,7 +17,7 @@
 #include "exe_graph/lowering/lowering_global_data.h"
 #include "ge_graph_dsl/graph_dsl.h"
 #include "graph/utils/attr_utils.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "faker/space_registry_faker.h"
 #include "lowering/graph_converter.h"
 #include "lowering/model_converter.h"

@@ -40,31 +40,17 @@ std::string GetPgType(size_t pg_type) {
   return "unknown";
 }
 
-aclrtMemAttr ConvertToMemAttr(rtMemType_t mem_type, size_t page_size) {
-  const bool is_1g = (page_size == ge::kDrv1GPageSize);
-  switch (mem_type) {
-    case RT_MEMORY_P2P_HBM:
-    case RT_MEMORY_P2P_DDR: {
-      return is_1g ? ACL_MEM_P2P_HUGE1G : ACL_MEM_P2P_HUGE;
-    }
-    default: {
-      return is_1g ? ACL_MEM_HUGE1G : ACL_MEM_HUGE;
-    }
-  }
-}
-
-size_t GetPgTypeValue(aclrtMemAttr mem_attr) {
-  switch (mem_attr) {
-    case ACL_MEM_HUGE1G:
-    case ACL_MEM_P2P_HUGE1G: {
-      return ge::kDrvMemPropPgType1G;
-    }
-    case ACL_MEM_HUGE:
-    case ACL_MEM_P2P_HUGE: {
-      return ge::kDrvMemPropPgType2M;
-    }
-    default:
-      return 0U;
+uint32_t TransMemType(const uint32_t mem_type) {
+  static const std::map<uint32_t, uint32_t> kRtMemTypeToDrvMemType = {{RT_MEMORY_HBM, 0U}, // 0: MEM_HBM_TYPE
+                                                                      {RT_MEMORY_DDR, 1U}, // 1: MEM_DDR_TYPE
+                                                                      {RT_MEMORY_P2P_HBM, 2U}, // 2: MEM_P2P_HBM_TYPE
+                                                                      {RT_MEMORY_P2P_DDR, 3U}, // 3: MEM_P2P_DDR_TYPE
+                                                                      {RT_MEMORY_TS, 4U}}; // 4: MEM_TS_DDR_TYPE
+  const std::map<uint32_t, uint32_t>::const_iterator it = kRtMemTypeToDrvMemType.find(mem_type);
+  if (it == kRtMemTypeToDrvMemType.cend()) {
+    return 0U;
+  } else {
+    return it->second;
   }
 }
 
@@ -1048,11 +1034,14 @@ Status PhysicalMemoryAllocator::Initialize(size_t page_size, size_t max_page_cou
     GE_ASSERT_EQ(page_size_, page_size);
   } else {
     page_size_ = page_size;
-    prop_.handleType = ACL_MEM_HANDLE_TYPE_NONE;
-    prop_.allocationType = ACL_MEM_ALLOCATION_TYPE_PINNED;
-    prop_.location.type = ACL_MEM_LOCATION_TYPE_DEVICE;
-    prop_.location.id = device_id_;
-    prop_.memAttr = ConvertToMemAttr(memory_type_, page_size);
+    prop_.side = 1U; // device memory
+    prop_.devid = device_id_;
+    prop_.module_id = GE_MODULE_NAME_U16;
+    prop_.pg_type = kDrvMemPropPgType2M;
+    if (page_size == kDrv1GPageSize) {
+      prop_.pg_type = kDrvMemPropPgType1G;
+    }
+    prop_.mem_type = TransMemType(memory_type_);
     prop_.reserve = 0U;
     if (max_page_count > physical_memorys_.capacity()) {
       physical_memorys_.reserve(max_page_count);
@@ -1095,7 +1084,7 @@ void PhysicalMemoryAllocator::FreePhysicalPage(PhysicalMemoryInfo &physical_memo
     physical_memory.handle = nullptr;
     physical_memory_size_ -= page_size_;
     HP_LOGI("aclrtFreePhysical success pa_index:%zu, current physical memory size:%zu, pg_type:%s",
-            physical_memory.index, physical_memory_size_, GetPgType(GetPgTypeValue(prop_.memAttr)).c_str());
+            physical_memory.index, physical_memory_size_, GetPgType(prop_.pg_type).c_str());
   }
 }
 
@@ -1106,28 +1095,30 @@ Status PhysicalMemoryAllocator::MallocPhysicalPage(const std::string &purpose, s
   malloc_physical_memory.index = pa_index;
   malloc_physical_memory.ref_count = 1UL;
 
-  aclrtDrvMemHandle handle = nullptr;
-  auto ret = aclrtMallocPhysical(&handle, page_size_, &prop_, 0U);
-  if (ret != ACL_SUCCESS) {
-    if (GetPgTypeValue(prop_.memAttr) == ge::kDrvMemPropPgType1G) {
+  rtDrvMemHandle handle = nullptr;
+  // aclrtMallocPhysical不支持设置moduleid，这里使用仓间接口
+  auto ret = rtMallocPhysical(&handle, page_size_, &prop_, 0U);
+  if (ret != RT_ERROR_NONE) {
+    if (prop_.pg_type == ge::kDrvMemPropPgType1G) {
       const bool use_1g_only = VarManager::IsVariableUse1gHugePageOnly();
       const auto failed_log = use_1g_only ? k1gHugePageOnlyMallocFail : k1gHugePageFirstMallocFail;
-      REPORT_INNER_ERR_MSG("E19999", "call aclrtMallocPhysical failed, size:%zu, pg_type: %s, %s", page_size_,
-                         GetPgType(GetPgTypeValue(prop_.memAttr)).c_str(), failed_log.c_str());
-      GELOGE(FAILED, "call aclrtMallocPhysical failed, size:%zu, pg_type: %s, %s", page_size_,
-             GetPgType(GetPgTypeValue(prop_.memAttr)).c_str(), failed_log.c_str());
+      REPORT_INNER_ERR_MSG("E19999", "call rtMallocPhysical failed, size:%zu, pg_type: %s, %s", page_size_,
+                           GetPgType(prop_.pg_type).c_str(), failed_log.c_str());
+      GELOGE(FAILED, "call rtMallocPhysical failed, size:%zu, pg_type: %s, %s", page_size_,
+             GetPgType(prop_.pg_type).c_str(), failed_log.c_str());
       if (use_1g_only) {
         return FAILED;
       }
-      prop_.memAttr = ConvertToMemAttr(memory_type_, ge::kDrvPageSize);  // fallback to 2M
-      ret = aclrtMallocPhysical(&handle, page_size_, &prop_, 0U);
+
+      prop_.pg_type = kDrvMemPropPgType2M;
+      ret = rtMallocPhysical(&handle, page_size_, &prop_, 0U);
     }
   }
-  if (ret != ACL_SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "call aclrtMallocPhysical failed, size:%zu, pg_type: %s", page_size_,
-                       GetPgType(GetPgTypeValue(prop_.memAttr)).c_str());
-    GELOGE(FAILED, "call aclrtMallocPhysical failed, size:%zu, pg_type: %s", page_size_,
-           GetPgType(GetPgTypeValue(prop_.memAttr)).c_str());
+  if (ret != RT_ERROR_NONE) {
+    REPORT_INNER_ERR_MSG("E19999", "call rtMallocPhysical failed, size:%zu, pg_type: %s", page_size_,
+                       GetPgType(prop_.pg_type).c_str());
+    GELOGE(FAILED, "call rtMallocPhysical failed, size:%zu, pg_type: %s", page_size_,
+           GetPgType(prop_.pg_type).c_str());
     return FAILED;
   }
   malloc_physical_memory.handle = handle;
@@ -1135,9 +1126,9 @@ Status PhysicalMemoryAllocator::MallocPhysicalPage(const std::string &purpose, s
   physical_memorys_.emplace_back(std::move(malloc_physical_memory));
   physical_memory_size_ += page_size_;
   GE_PRINT_DYNAMIC_MEMORY(aclrtMalloc, ToMallocMemInfo(purpose, va, device_id_, GE_MODULE_NAME_U16).c_str(), page_size_);
-  HP_LOGI("aclrtMallocPhysical success pa_index:%zu, current physical memory size:%zu reuse:%d, memory_type:%u,"
+  HP_LOGI("rtMallocPhysical success pa_index:%zu, current physical memory size:%zu reuse:%d, memory_type:%u,"
       " pg_type:%s.", pa_index, physical_memory_size_, reuse, memory_type_,
-      GetPgType(GetPgTypeValue(prop_.memAttr)).c_str());
+      GetPgType(prop_.pg_type).c_str());
   return SUCCESS;
 }
 

@@ -11,7 +11,7 @@
 #ifndef AIR_PYTHON_LLM_WRAPPER_LLM_DATADIST_WRAPPER_H
 #define AIR_PYTHON_LLM_WRAPPER_LLM_DATADIST_WRAPPER_H
 
-#include "llm_datadist.h"
+#include "llm_datadist_internal.h"
 #include "llm_tensor.h"
 
 namespace llm {

@@ -11,7 +11,7 @@
 #include "dflow/compiler/data_flow_graph/data_flow_graph.h"
 #include "nlohmann/json.hpp"
 #include "common/compile_profiling/ge_trace_wrapper.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "graph/debug/ge_attr_define.h"
 #include "dflow/flow_graph/data_flow_attr_define.h"
 #include "graph/utils/graph_utils.h"

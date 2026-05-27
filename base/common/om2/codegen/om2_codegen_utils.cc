@@ -41,6 +41,9 @@ const std::unordered_set<ModelTaskType> kSupportedTaskTypes = {
     ModelTaskType::MODEL_TASK_MEMCPY_ADDR_ASYNC,
     ModelTaskType::MODEL_TASK_DSA,
     ModelTaskType::MODEL_TASK_KERNEL_EX,
+    ModelTaskType::MODEL_TASK_CMO,
+    ModelTaskType::MODEL_TASK_CMO_ADDR,
+    ModelTaskType::MODEL_TASK_BARRIER,
 };
 }
 std::string Om2CodegenUtils::GetKernelNameWithExtension(const std::string &kernel_name) {

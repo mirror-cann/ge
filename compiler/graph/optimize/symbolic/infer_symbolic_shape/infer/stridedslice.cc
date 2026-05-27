@@ -12,7 +12,7 @@
 #include "common/util/mem_utils.h"
 #include "common/util.h"
 #include "common/checker.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "graph/optimize/symbolic/infer_symbolic_shape/symbolic_infer_util.h"
 #include "graph/compute_graph.h"
 #include "exe_graph/runtime/infer_symbol_shape_context.h"

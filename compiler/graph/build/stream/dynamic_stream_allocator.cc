@@ -12,7 +12,7 @@
 
 #include "common/checker.h"
 #include "graph_metadef/common/ge_common/util.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "graph/build/stream/assign_attached_notify_pass.h"
 #include "graph/build/stream/assign_attached_stream_pass.h"
 #include "graph/debug/ge_attr_define.h"

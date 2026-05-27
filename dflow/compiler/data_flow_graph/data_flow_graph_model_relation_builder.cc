@@ -10,7 +10,7 @@
 
 #include "dflow/compiler/data_flow_graph/data_flow_graph_model_relation_builder.h"
 #include "common/plugin/ge_make_unique_util.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "framework/common/util.h"
 #include "graph/utils/op_type_utils.h"
 

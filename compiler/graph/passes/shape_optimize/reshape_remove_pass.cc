@@ -14,7 +14,7 @@
 #include  <string>
 
 #include "framework/common/util.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "graph/passes/pass_utils.h"
 #include "graph/utils/node_utils.h"
 #include "graph/debug/ge_attr_define.h"

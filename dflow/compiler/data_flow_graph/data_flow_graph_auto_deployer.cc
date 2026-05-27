@@ -11,7 +11,7 @@
 #include "dflow/compiler/data_flow_graph/data_flow_graph_auto_deployer.h"
 #include <regex>
 #include "framework/common/util.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "common/checker.h"
 #include "common/string_util.h"
 #include "graph/debug/ge_attr_define.h"

@@ -12,7 +12,7 @@
 #include <queue>
 #include <vector>
 #include "framework/common/debug/log.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "graph/utils/attr_utils.h"
 #include "graph/utils/op_desc_utils.h"
 #include "host_kernels/kernel.h"

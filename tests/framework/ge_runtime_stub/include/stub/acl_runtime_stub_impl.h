@@ -142,6 +142,9 @@ class AclRuntimeStubImpl : public ge::AclRuntimeStub {
       aclrtStream stream, aclrtLaunchKernelCfg *cfg, void *hostArgs, size_t argsSize,
       aclrtPlaceHolderInfo *placeHolderArray, size_t placeHolderNum) override;
 
+  aclError aclrtTaskUpdateAsync(aclrtStream taskStream, uint32_t taskId, aclrtTaskUpdateInfo *info,
+                                aclrtStream execStream);
+
  private:
   using BinHandle = uint64_t;
   std::map<std::string, BinHandle> stub_names_to_handles_;

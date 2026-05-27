@@ -19,7 +19,7 @@
 #include "common/math/math_util.h"
 #include "graph/utils/tensor_utils.h"
 #include "graph/debug/ge_attr_define.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "runtime/mem.h"
 
 namespace ge {
@@ -403,39 +403,37 @@ Status Om2ModelUtils::ConstructWorkspaceAddr(const TaskSemanticContributeContext
 
 Status Om2ModelUtils::GetRtInputAddress(const TaskSemanticContributeContext &context, const int64_t logical_offset,
                                         AddrSemantic &addr_node, uint32_t index) {
-  const GeTensorDescPtr tensor_desc = context.op_desc->MutableInputDesc(static_cast<uint32_t>(index));
-  GE_ASSERT_TRUE(tensor_desc != nullptr, "[OM2] Op: %s, Index: %u, has no input",
-                  context.op_desc->GetName().c_str(), index);
-  int64_t tensor_size = 0;
-  GE_CHK_STATUS_EXEC(TensorUtils::GetSize(*tensor_desc, tensor_size), return FAILED);
-
   addr_node.kind = AddrValueKind::kInputInstance;
-  addr_node.memory_app = MemoryAppType::kFix;
-  addr_node.byte_size = static_cast<uint64_t>(tensor_size);
   addr_node.mem_offset = logical_offset;
-  addr_node.tensor_info.emplace();
-  GE_ASSERT_SUCCESS(BuildInputTensorInfo(tensor_desc, *addr_node.tensor_info));
+  if (context.op_desc != nullptr) {
+    addr_node.memory_app = MemoryAppType::kFix;
+    const GeTensorDescPtr tensor_desc = context.op_desc->MutableInputDesc(static_cast<uint32_t>(index));
+    GE_ASSERT_TRUE(tensor_desc != nullptr, "[OM2] Op: %s, Index: %u, has no input",
+                    context.op_desc->GetName().c_str(), index);
+    int64_t tensor_size = 0;
+    GE_CHK_STATUS_EXEC(TensorUtils::GetSize(*tensor_desc, tensor_size), return FAILED);
+    addr_node.byte_size = static_cast<uint64_t>(tensor_size);
+    addr_node.tensor_info.emplace();
+    GE_ASSERT_SUCCESS(BuildInputTensorInfo(tensor_desc, *addr_node.tensor_info));
+    GE_ASSERT_SUCCESS(ResolveInputVarName(*context.op_id_to_input_edges, context.op_desc, context.op_index, index,
+                                          index, addr_node.symbol_hint,
+                                          addr_node.is_reused_from_upstream));
+  }
   if (context.model_io->io_offsets.find(logical_offset) != context.model_io->io_offsets.end()) {
     addr_node.memory_app = MemoryAppType::kModelIo;
     addr_node.compile_state_io_addr_offset = logical_offset;
     GELOGI("[OM2][GetRtInputAddress] op=%s, logical_offset=%" PRId64 " found in io_offsets, memory_app=kModelIo",
-           context.op_desc->GetName().c_str(), logical_offset);
+           context.op_desc != nullptr ? context.op_desc->GetName().c_str() : "null", logical_offset);
   }
-
-  GE_ASSERT_SUCCESS(ResolveInputVarName(*context.op_id_to_input_edges, context.op_desc, context.op_index, index,
-                                        index, addr_node.symbol_hint,
-                                        addr_node.is_reused_from_upstream));
   return SUCCESS;
 }
 
 Status Om2ModelUtils::GetRtAddress(const TaskSemanticContributeContext &context, const uintptr_t logic_addr,
                                     uint64_t &mem_type, AddrSemantic &addr_node, bool isInput, uint32_t index) {
   GE_ASSERT_NOTNULL(context.runtime);
-  GE_ASSERT_NOTNULL(context.op_desc);
-  GE_ASSERT_NOTNULL(context.model_io);
-  GE_ASSERT_NOTNULL(context.op_id_to_input_edges);
+
   GELOGI("[OM2][GetRtAddress] op=%s, logic_addr=0x%" PRIxPTR ", isInput=%d, index=%u",
-         context.op_desc->GetName().c_str(), logic_addr, isInput, index);
+         context.op_desc != nullptr ? context.op_desc->GetName().c_str() : "null", logic_addr, isInput, index);
   if (logic_addr == std::numeric_limits<uintptr_t>::max()) {
     GELOGI("Got placeholder logic addr.");
     return SUCCESS;
@@ -482,49 +480,54 @@ Status Om2ModelUtils::GetRtFmAddress(const TaskSemanticContributeContext &contex
 
 Status Om2ModelUtils::GetRtOutputAddress(const TaskSemanticContributeContext &context,
                                          const int64_t logical_offset, AddrSemantic &addr_node, uint32_t index) {
-  const GeTensorDescPtr tensor_desc = context.op_desc->MutableOutputDesc(static_cast<uint32_t>(index));
-  GE_ASSERT_TRUE(tensor_desc != nullptr, "[OM2] Op: %s, Index: %u, Tensor Desc is null",
-                 context.op_desc->GetName().c_str(), index);
   addr_node.kind = AddrValueKind::kOutputInstance;
-  addr_node.memory_app = MemoryAppType::kFix;
-  addr_node.symbol_hint = "op" + std::to_string(context.op_index) + "_output" + std::to_string(index);
-  int64_t tensor_size = 0;
-  GE_CHK_STATUS_EXEC(TensorUtils::GetSize(*tensor_desc, tensor_size), return FAILED);
-  addr_node.byte_size = static_cast<uint64_t>(tensor_size);
   addr_node.mem_offset = logical_offset;
-  addr_node.tensor_info.emplace();
-  GE_ASSERT_SUCCESS(BuildOutputTensorInfo(tensor_desc, *addr_node.tensor_info));
+  if (context.op_desc != nullptr) {
+    addr_node.memory_app = MemoryAppType::kFix;
+    addr_node.symbol_hint = "op" + std::to_string(context.op_index) + "_output" + std::to_string(index);
+    const GeTensorDescPtr tensor_desc = context.op_desc->MutableOutputDesc(static_cast<uint32_t>(index));
+    GE_ASSERT_TRUE(tensor_desc != nullptr, "[OM2] Op: %s, Index: %u, Tensor Desc is null",
+                   context.op_desc->GetName().c_str(), index);
+    int64_t tensor_size = 0;
+    GE_CHK_STATUS_EXEC(TensorUtils::GetSize(*tensor_desc, tensor_size), return FAILED);
+    addr_node.byte_size = static_cast<uint64_t>(tensor_size);
+    addr_node.tensor_info.emplace();
+    GE_ASSERT_SUCCESS(BuildOutputTensorInfo(tensor_desc, *addr_node.tensor_info));
+    const int64_t current_op_id = context.op_desc->GetId();
+    GE_ASSERT_TRUE(context.op_id_to_input_edges->find(current_op_id) != context.op_id_to_input_edges->end(),
+                   "[OM2] Current op_id %" PRId64 " not found in op_id_to_input_edges", current_op_id);
+    OpInputEdges &current_edges = context.op_id_to_input_edges->at(current_op_id);
+    GE_ASSERT_TRUE(index < current_edges.output_var_names.size(),
+                   "[OM2] Output index %u out of range for op_id %" PRId64, index, current_op_id);
+    current_edges.output_var_names[index] = addr_node.symbol_hint;
+  }
   if (context.model_io->io_offsets.find(logical_offset) != context.model_io->io_offsets.end()) {
     addr_node.memory_app = MemoryAppType::kModelIo;
     addr_node.compile_state_io_addr_offset = logical_offset;
   }
-
-  const int64_t current_op_id = context.op_desc->GetId();
-  GE_ASSERT_TRUE(context.op_id_to_input_edges->find(current_op_id) != context.op_id_to_input_edges->end(),
-                 "[OM2] Current op_id %" PRId64 " not found in op_id_to_input_edges", current_op_id);
-  OpInputEdges &current_edges = context.op_id_to_input_edges->at(current_op_id);
-  GE_ASSERT_TRUE(index < current_edges.output_var_names.size(),
-                 "[OM2] Output index %u out of range for op_id %" PRId64, index, current_op_id);
-  current_edges.output_var_names[index] = addr_node.symbol_hint;
   return SUCCESS;
 }
 
 Status Om2ModelUtils::GetRtWeightAddress(const TaskSemanticContributeContext &context,
                                          const int64_t logical_offset, uint64_t &mem_type,
                                          AddrSemantic &addr_node, uint32_t index) {
+  GE_ASSERT_TRUE(context.weight_offset_to_varname != nullptr,
+                 "[OM2] weight_offset_to_varname is null for weight offset %" PRId64 ".", logical_offset);
   const auto var_name_it = context.weight_offset_to_varname->find(logical_offset);
   GE_ASSERT_TRUE(var_name_it != context.weight_offset_to_varname->end(),
                   "[OM2] Const input offset %" PRId64 " not found, op %s, index %u", logical_offset,
-                  context.op_desc->GetName().c_str(), index);
+                  context.op_desc != nullptr ? context.op_desc->GetName().c_str() : "null", index);
   addr_node.kind = AddrValueKind::kConstTensor;
   addr_node.symbol_hint = var_name_it->second;
   addr_node.mem_offset = logical_offset;
   addr_node.is_reused_from_upstream = true;
-  const GeTensorDescPtr tensor_desc = context.op_desc->MutableInputDesc(index);
-  GE_ASSERT_TRUE(tensor_desc != nullptr, "[OM2] Op: %s, Index: %u, has no input",
-                 context.op_desc->GetName().c_str(), index);
-  addr_node.tensor_info.emplace();
-  GE_ASSERT_SUCCESS(BuildInputTensorInfo(tensor_desc, *addr_node.tensor_info));
+  if (context.op_desc != nullptr) {
+    const GeTensorDescPtr tensor_desc = context.op_desc->MutableInputDesc(index);
+    GE_ASSERT_TRUE(tensor_desc != nullptr, "[OM2] Op: %s, Index: %u, has no input",
+                   context.op_desc->GetName().c_str(), index);
+    addr_node.tensor_info.emplace();
+    GE_ASSERT_SUCCESS(BuildInputTensorInfo(tensor_desc, *addr_node.tensor_info));
+  }
   mem_type = kWeightMemType;
   return SUCCESS;
 }
@@ -536,7 +539,7 @@ Status Om2ModelUtils::GetRtVarAddress(const TaskSemanticContributeContext &conte
   if (iter != context.fileconst_output_offset_to_varname->end()) {
     addr_node.symbol_hint = iter->second;
     addr_node.kind = AddrValueKind::kConstTensor;
-    addr_node.mem_offset = logic_addr;
+    addr_node.mem_offset = static_cast<int64_t>(logic_addr);
     addr_node.is_reused_from_upstream = true;
     mem_type = kConstantMemType;
     return SUCCESS;
@@ -572,11 +575,13 @@ Status Om2ModelUtils::GetRtUnknownAddress(const TaskSemanticContributeContext &c
 Status Om2ModelUtils::GetRtEmptyAddress(const TaskSemanticContributeContext &context,
                                         AddrSemantic &addr_node, bool is_input, uint32_t index) {
   addr_node.kind = AddrValueKind::kEmptyAddr;
-  addr_node.symbol_hint = is_input
-      ? "op" + std::to_string(context.op_index) + "_input" + std::to_string(index)
-      : "op" + std::to_string(context.op_index) + "_output" + std::to_string(index);
   addr_node.mem_offset = 0;
   addr_node.is_reused_from_upstream = false;
+  if (context.op_desc != nullptr) {
+    addr_node.symbol_hint = is_input
+        ? "op" + std::to_string(context.op_index) + "_input" + std::to_string(index)
+        : "op" + std::to_string(context.op_index) + "_output" + std::to_string(index);
+  }
   return SUCCESS;
 }
 

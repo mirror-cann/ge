@@ -22,7 +22,7 @@
 #include "acl/acl.h"
 #include "single_op/op_model_parser.h"
 #include "framework/common/helper/om_file_helper.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "acl_stub.h"
 #include "graph/utils/attr_utils.h"
 #include "graph/ge_tensor.h"

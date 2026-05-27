@@ -15,7 +15,7 @@
 
 #include "framework/common/debug/log.h"
 #include "framework/common/ge_types.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "framework/common/ge_model_inout_types.h"
 
 namespace ge {

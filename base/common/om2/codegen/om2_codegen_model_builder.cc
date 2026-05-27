@@ -21,7 +21,7 @@
 #include "common/om2/codegen/task_code_builder/task_code_builder.h"
 #include "graph/utils/op_type_utils.h"
 #include "graph/utils/tensor_utils.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "graph/op_kernel_bin.h"
 #include "common/op_tiling/op_tiling_rt2.h"
 

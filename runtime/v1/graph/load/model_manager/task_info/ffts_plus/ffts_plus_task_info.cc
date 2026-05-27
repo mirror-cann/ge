@@ -17,7 +17,7 @@
 #include "common/dump/dump_utils.h"
 #include "graph/load/model_manager/model_manager.h"
 #include "aicpu_task_struct.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "common/runtime_api_wrapper.h"
 #include "common/op_tiling/op_tiling_rt2.h"
 #include "common/op_tiling/tiling_memcheck.h"

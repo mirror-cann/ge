@@ -14,7 +14,7 @@
 #include <string>
 
 #include "framework/common/op/ge_op_utils.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "framework/common/debug/ge_log.h"
 #include "graph/compute_graph.h"
 #include "register/optimization_option_registry.h"

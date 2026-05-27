@@ -20,7 +20,7 @@
 #include "framework/common/debug/ge_log.h"
 #include "framework/common/ge_inner_error_codes.h"
 #include "framework/common/string_util.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "framework/omg/omg_inner_types.h"
 #include "graph/debug/ge_attr_define.h"
 #include "graph/ge_context.h"

@@ -8,8 +8,8 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-#ifndef PARSER_ONNX_ONNX_PARSER_H_
-#define PARSER_ONNX_ONNX_PARSER_H_
+#ifndef PARSER_ONNX_ONNX_PARSER_INTERNAL_H_
+#define PARSER_ONNX_ONNX_PARSER_INTERNAL_H_
 
 #if defined(_MSC_VER)
 #ifdef FUNC_VISIBILITY
@@ -187,4 +187,4 @@ class PARSER_FUNC_VISIBILITY OnnxWeightsParser : public domi::WeightsParser {
   }
 };
 }  // namespace domi
-#endif  // PARSER_ONNX_ONNX_PARSER_H_
+#endif  // PARSER_ONNX_ONNX_PARSER_INTERNAL_H_

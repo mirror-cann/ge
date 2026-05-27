@@ -13,7 +13,7 @@
 #include "graph/utils/graph_utils.h"
 #include "graph/debug/ge_attr_define.h"
 #include "graph/utils/tensor_utils.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "base/err_msg.h"
 #include "graph_metadef/common/ge_common/util.h"
 

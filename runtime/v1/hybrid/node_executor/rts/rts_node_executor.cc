@@ -17,7 +17,7 @@
 #include "graph/debug/ge_attr_define.h"
 #include "hybrid/model/hybrid_model.h"
 #include "framework/omg/omg_inner_types.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "common/runtime_api_wrapper.h"
 #include "runtime/subscriber/global_profiler.h"
 

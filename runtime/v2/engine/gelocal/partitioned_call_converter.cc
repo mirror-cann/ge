@@ -9,7 +9,7 @@
  */
 
 #include "exe_graph/lowering/lowering_definitions.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "graph/debug/ge_attr_define.h"
 #include "graph/utils/graph_utils.h"
 #include "graph/utils/node_utils.h"

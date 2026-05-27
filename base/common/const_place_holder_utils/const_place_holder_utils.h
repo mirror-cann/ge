@@ -11,7 +11,7 @@
 #ifndef GE_COMMON_CONST_PLACE_HOLDER_UTILS_H_
 #define GE_COMMON_CONST_PLACE_HOLDER_UTILS_H_
 
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "graph/op_desc.h"
 #include "ge/ge_api_types.h"
 

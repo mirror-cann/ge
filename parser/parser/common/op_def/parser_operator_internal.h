@@ -8,8 +8,8 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-#ifndef DOMI_COMMON_OP_OPERATOR_H
-#define DOMI_COMMON_OP_OPERATOR_H
+#ifndef DOMI_COMMON_PARSER_OPERATOR_INTERNAL_H
+#define DOMI_COMMON_PARSER_OPERATOR_INTERNAL_H
 
 #include <string>
 #include <unordered_map>
@@ -113,4 +113,4 @@ class FMK_FUNC_HOST_VISIBILITY ParserOperator {
   std::vector<ge::GeTensorDesc> output_descs_;
 };
 }  // namespace domi
-#endif  // DOMI_COMMON_OP_OPERATOR_H
+#endif  // DOMI_COMMON_PARSER_OPERATOR_INTERNAL_H

@@ -9,7 +9,7 @@
  */
 
 #include <gtest/gtest.h>
-#include "common/types.h"
+#include "common/framework_types_internal.h"
 
 #include "macro_utils/dt_public_scope.h"
 #include "common/op/ge_op_utils.h"

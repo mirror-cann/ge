@@ -49,9 +49,10 @@ ExprRef TaskCodeBuilderUtil::BuildReportLaunchedTaskCall(AstBuildContext &ast, c
                                                          const std::vector<AddrSemantic> &workspace_addrs,
                                                          ModelTaskType task_type, Arg stream,
                                                          const VarRef &model_id, const VarRef &instance_handle,
-                                                         const VarRef &args_table, bool use_args_info_size) {
+                                                         const VarRef &args_table, bool use_args_info_size,
+                                                         bool is_raw_address) {
   std::vector<Arg> args;
-  args.reserve(12U);
+  args.reserve(13U);
   args.emplace_back(Arg::StringLiteral(header.op_name));
   args.emplace_back(Arg::StringLiteral(header.op_type));
   args.emplace_back(std::to_string(header.op_desc_id) + "U");
@@ -72,6 +73,9 @@ ExprRef TaskCodeBuilderUtil::BuildReportLaunchedTaskCall(AstBuildContext &ast, c
   args.emplace_back(stream);
   args.emplace_back(model_id);
   args.emplace_back(instance_handle);
+  if (is_raw_address) {
+    args.emplace_back(ast.UInt(1U));
+  }
   return ast.Call("ReportLaunchedOm2Task", args);
 }
 }  // namespace ge
