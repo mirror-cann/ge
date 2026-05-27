@@ -273,6 +273,7 @@ class KernelTaskInfo : public TaskInfo {
   bool own_args_memory_ = false;
   bool is_separately_clean_task_ = false;
   bool is_addrs_folded_ = false;
+  bool is_optional_input_placeholder_ = false;
 
   // for dynamic kernel
   uint64_t tiling_key_ = 0U;

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -122,28 +122,32 @@ class ModelUtils {
   /// @return std::vector<void*>
   static std::vector<void *> GetInputAddrs(const RuntimeParam &model_param, const ConstOpDescPtr &op_desc);
   static std::vector<void *> GetInputAddrs(const RuntimeParam &model_param, const ConstOpDescPtr &op_desc,
-                                           std::vector<uint64_t> &mem_type);
+                                           std::vector<uint64_t> &mem_type,
+                                           const bool has_optional_addr = false);
 
   /// @ingroup ge
   /// @brief Get input address value.
   /// @return std::vector<uint64_t>
   static std::vector<uint64_t> GetInputAddrsValue(const RuntimeParam &model_param, const ConstOpDescPtr &op_desc);
   static std::vector<uint64_t> GetInputAddrsValue(const RuntimeParam &model_param, const ConstOpDescPtr &op_desc,
-                                                  std::vector<uint64_t> &mem_type);
+                                                  std::vector<uint64_t> &mem_type,
+                                                  const bool has_optional_addr = false);
 
   /// @ingroup ge
   /// @brief Get input data address.
   /// @return std::vector<void*>
   static std::vector<void *> GetInputDataAddrs(const RuntimeParam &model_param, const ConstOpDescPtr &op_desc);
   static std::vector<void *> GetInputDataAddrs(const RuntimeParam &model_param, const ConstOpDescPtr &op_desc,
-                                               std::vector<uint64_t> &mem_type);
+                                               std::vector<uint64_t> &mem_type,
+                                               const bool has_optional_addr = false);
 
   /// @ingroup ge
   /// @brief Get input data address value.
   /// @return std::vector<uint64_t>
   static std::vector<uint64_t> GetInputDataAddrsValue(const RuntimeParam &model_param, const ConstOpDescPtr &op_desc);
   static std::vector<uint64_t> GetInputDataAddrsValue(const RuntimeParam &model_param, const ConstOpDescPtr &op_desc,
-                                                      std::vector<uint64_t> &mem_type);
+                                                      std::vector<uint64_t> &mem_type,
+                                                      const bool has_optional_addr = false);
 
   /// @ingroup ge
   /// @brief Get output address.
@@ -181,8 +185,8 @@ class ModelUtils {
   /// @return Status
   static Status GetInputOutputDescAddrs(const RuntimeParam &model_param, const ConstOpDescPtr &op_desc,
                                         const OpDesc::Vistor<GeTensorDescPtr> &tensor_desc_visitor,
-                                        std::vector<void *> &v_addrs,
-                                        const bool has_optional_addr = false);
+                                        const std::vector<uint64_t> &mem_type,
+                                        std::vector<void *> &v_addrs);
 
   /// @ingroup ge
   /// @brief Get workspace data address.

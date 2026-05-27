@@ -463,10 +463,12 @@ std::vector<void *> ModelUtils::GetInputAddrs(const RuntimeParam &model_param, c
 }
 
 std::vector<void *> ModelUtils::GetInputAddrs(const RuntimeParam &model_param, const ConstOpDescPtr &op_desc,
-                                              std::vector<uint64_t> &mem_type) {
+                                              std::vector<uint64_t> &mem_type,
+                                              const bool has_optional_addr) {
   GELOGD("Start GetInputAddrs: op_name[%s].", op_desc->GetName().c_str());
-  auto v_input_addr = GetInputDataAddrs(model_param, op_desc, mem_type);
-  if (GetInputOutputDescAddrs(model_param, op_desc, op_desc->GetAllInputsDescPtr(), v_input_addr) != SUCCESS) {
+  auto v_input_addr = GetInputDataAddrs(model_param, op_desc, mem_type, has_optional_addr);
+  if (GetInputOutputDescAddrs(
+    model_param, op_desc, op_desc->GetAllInputsDescPtr(), mem_type, v_input_addr) != SUCCESS) {
     GELOGE(PARAM_INVALID, "[Check] GetInputOutputDescAddrs failed: op_name[%s]", op_desc->GetName().c_str());
     return {};
   }
@@ -485,9 +487,10 @@ std::vector<uint64_t> ModelUtils::GetInputAddrsValue(const RuntimeParam &model_p
 }
 
 std::vector<uint64_t> ModelUtils::GetInputAddrsValue(const RuntimeParam &model_param, const ConstOpDescPtr &op_desc,
-                                                     std::vector<uint64_t> &mem_type) {
+                                                     std::vector<uint64_t> &mem_type,
+                                                     const bool has_optional_addr) {
   GELOGD("Start GetInputAddrsValue: op_name[%s]", op_desc->GetName().c_str());
-  return VPtrToValue(GetInputAddrs(model_param, op_desc, mem_type));
+  return VPtrToValue(GetInputAddrs(model_param, op_desc, mem_type, has_optional_addr));
 }
 
 Status ModelUtils::RefreshAddressByMemType(const RuntimeParam &model_param, const NodeMemInfo &node_mem_info,
@@ -547,8 +550,9 @@ std::vector<uint64_t> ModelUtils::GetInputDataAddrsValue(const RuntimeParam &mod
 
 std::vector<uint64_t> ModelUtils::GetInputDataAddrsValue(const RuntimeParam &model_param,
                                                          const ConstOpDescPtr &op_desc,
-                                                         std::vector<uint64_t> &mem_type) {
-  return VPtrToValue(GetInputDataAddrs(model_param, op_desc, mem_type));
+                                                         std::vector<uint64_t> &mem_type,
+                                                         const bool has_optional_addr) {
+  return VPtrToValue(GetInputDataAddrs(model_param, op_desc, mem_type, has_optional_addr));
 }
 
 ///
@@ -562,7 +566,8 @@ std::vector<void *> ModelUtils::GetInputDataAddrs(const RuntimeParam &model_para
 }
 
 std::vector<void *> ModelUtils::GetInputDataAddrs(const RuntimeParam &model_param, const ConstOpDescPtr &op_desc,
-                                                  std::vector<uint64_t> &mem_type) {
+                                                  std::vector<uint64_t> &mem_type,
+                                                  const bool has_optional_addr) {
   std::vector<void *> v_input_data_addr;  // init as:buf_base + op_def_->input(i));
   GE_CHECK_NOTNULL_EXEC(op_desc, return v_input_data_addr);
   const uint64_t session_id = model_param.session_id;
@@ -573,6 +578,7 @@ std::vector<void *> ModelUtils::GetInputDataAddrs(const RuntimeParam &model_para
   const vector_bit_t &v_is_input_const = op_desc->GetIsInputConst();
 
   size_t non_const_index = 0UL;
+  size_t valid_input_count = 0UL;
   std::vector<int64_t> v_memory_type;
   const bool has_mem_type_attr = AttrUtils::GetListInt(op_desc, ATTR_NAME_INPUT_MEM_TYPE_LIST, v_memory_type);
   const bool check_failed = has_mem_type_attr && (v_memory_type.size() != inputs_size);
@@ -589,8 +595,17 @@ std::vector<void *> ModelUtils::GetInputDataAddrs(const RuntimeParam &model_para
   v_input_data_addr.reserve(inputs_size);
   for (size_t i = 0U; i < op_desc->GetAllInputsSize(); ++i) {
     const GeTensorDescPtr tensor_desc = op_desc->MutableInputDesc(static_cast<uint32_t>(i));
-    GE_IF_BOOL_EXEC(tensor_desc == nullptr, GELOGD("Op: %s, Index: %zu, has no input", op_desc->GetName().c_str(), i);
-                    continue);
+    if (tensor_desc == nullptr) {
+      if (has_optional_addr) {
+        v_input_data_addr.push_back(nullptr);
+        mem_type.push_back(kFixMemType);
+      }
+      GELOGI(
+        "Op: %s, Index: %zu, has no input, is optional holder: %d", op_desc->GetName().c_str(), i, has_optional_addr);
+      continue;
+    }
+
+    valid_input_count++;
     int64_t tensor_size = 0;
     GE_CHK_STATUS_EXEC(TensorUtils::GetSize(*tensor_desc, tensor_size), return {});
     if ((i < v_is_input_const.size()) && v_is_input_const[i]) {
@@ -647,8 +662,8 @@ std::vector<void *> ModelUtils::GetInputDataAddrs(const RuntimeParam &model_para
     uint64_t memory_type(RT_MEMORY_DEFAULT);
     if (tensor_has_mem_type) {
       memory_type = static_cast<uint64_t>(tensor_mem_type);
-    } else if (v_memory_type.size() > i) {
-      memory_type = static_cast<uint64_t>(v_memory_type[i]);
+    } else if (v_memory_type.size() >= valid_input_count) {
+      memory_type = static_cast<uint64_t>(v_memory_type[valid_input_count - 1UL]);
     } else {  // do nothing, use default type
     }
     const NodeMemInfo node_mem_info{memory_type, op_desc, i, "input", tensor_size, input_offset};
@@ -725,7 +740,7 @@ std::vector<void *> ModelUtils::GetOutputAddrs(const RuntimeParam &model_param, 
   GELOGD("Start GetOutputAddrs: op_name[%s].", op_desc->GetName().c_str());
   auto v_output_addr = GetOutputDataAddrs(model_param, op_desc, mem_type, has_optional_addr);
   if (GetInputOutputDescAddrs(
-    model_param, op_desc, op_desc->GetAllOutputsDescPtr(), v_output_addr, has_optional_addr) != SUCCESS) {
+    model_param, op_desc, op_desc->GetAllOutputsDescPtr(), mem_type, v_output_addr) != SUCCESS) {
     GELOGE(PARAM_INVALID, "[Check] GetInputOutputDescAddrs failed: op_name[%s]", op_desc->GetName().c_str());
     return {};
   }
@@ -907,18 +922,27 @@ static Status FillSinkTensorDesc(RuntimeTensorDesc &sink_tensor_desc, const GeTe
 ///
 Status ModelUtils::GetInputOutputDescAddrs(const RuntimeParam &model_param, const ConstOpDescPtr &op_desc,
                                            const OpDesc::Vistor<GeTensorDescPtr> &tensor_desc_visitor,
-                                           std::vector<void *> &v_addrs,
-                                           const bool has_optional_addr) {
+                                           const std::vector<uint64_t> &mem_type,
+                                           std::vector<void *> &v_addrs) {
   std::vector<int64_t> v_data_mem_type;
   (void) AttrUtils::GetListInt(op_desc, ATTR_NAME_OUTPUT_MEM_TYPE_LIST, v_data_mem_type);
   size_t tensor_cnt = 0UL;
+  size_t desc_idx = 0UL;
   for (const auto &tensor_desc : tensor_desc_visitor) {
+    size_t cur_desc_idx = desc_idx++;  // desc 侧索引，每次迭代必增
+
+    // 跳过可选输入/输出占位条目，对齐 addr 侧索引与 desc 侧遍历
+    while ((tensor_cnt < v_addrs.size()) && (tensor_cnt < mem_type.size()) &&
+           (mem_type[tensor_cnt] == kFixMemType) && (v_addrs[tensor_cnt] == nullptr)) {
+      tensor_cnt++;
+    }
+
+    if (tensor_desc == nullptr) {
+      continue;
+    }
+
     if (TensorUtils::IsMemorySizeCalcTypeAlwaysEmpty(*tensor_desc)) {
-      if (has_optional_addr) {
-        tensor_cnt++;
-      }
-      GELOGD("%s is an optional output, has option addr:%d.",
-        op_desc->GetName().c_str(), static_cast<int32_t>(has_optional_addr));
+      GELOGD("%s is an optional output.", op_desc->GetName().c_str());
       continue;
     }
     int64_t mem_offset;
@@ -932,7 +956,8 @@ Status ModelUtils::GetInputOutputDescAddrs(const RuntimeParam &model_param, cons
     GE_IF_BOOL_EXEC(!ValidateMemRange(op_desc, model_param.mem_size, mem_offset, static_cast<int64_t>(size)),
                     return FAILED);
     void *mem_addr = nullptr;
-    if ((v_data_mem_type.size() > tensor_cnt) && (v_data_mem_type[tensor_cnt] == static_cast<int64_t>(RT_MEMORY_TS))) {
+    if ((v_data_mem_type.size() > cur_desc_idx) &&
+        (v_data_mem_type[cur_desc_idx] == static_cast<int64_t>(RT_MEMORY_TS))) {
       mem_addr = model_param.ts_mem_mall->Acquire(mem_offset, size);
     } else {
       mem_addr = model_param.GetMemAddr(mem_offset);

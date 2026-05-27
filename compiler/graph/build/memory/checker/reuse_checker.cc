@@ -87,7 +87,7 @@ bool NoNeedToCheck(const Node *node) {
 }
 
 bool IsSkip(const GeTensorDescPtr &output_tensor_desc, const int64_t memory_type, const int64_t mem_size) {
-  if (TensorUtils::IsMemorySizeCalcTypeAlwaysEmpty(*output_tensor_desc)) {
+  if ((output_tensor_desc != nullptr) && TensorUtils::IsMemorySizeCalcTypeAlwaysEmpty(*output_tensor_desc)) {
     return true;
   }
 

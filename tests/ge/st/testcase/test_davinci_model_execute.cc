@@ -6570,6 +6570,7 @@ TEST_F(DavinciModelTest, Adump_Interface_DirectCall) {
   dump_info.args = 0x1000;
   dump_info.stream = reinterpret_cast<rtStream_t>(0xdeadbeef);
   dump_info.cust_to_relevant_offset_ = {};
+  dump_info.is_op_debug = false;
 
   Status ret = dumper.DumpOpWithAdump(dump_info);
   EXPECT_EQ(ret, SUCCESS);
@@ -6604,6 +6605,7 @@ TEST_F(DavinciModelTest, Adump_OverflowNotSupported_Direct) {
   dump_info.args = 0x1000;
   dump_info.stream = reinterpret_cast<rtStream_t>(0xdeadbeef);
   dump_info.cust_to_relevant_offset_ = {};
+  dump_info.is_op_debug = false;
 
   Status ret = dumper.DumpOpWithAdump(dump_info);
   EXPECT_FALSE(dumper.IsDumpOpWithAdump());

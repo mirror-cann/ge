@@ -46,6 +46,7 @@ constexpr char_t const *kMaxTilingSize = "op_para_size";
 constexpr uint64_t kMaxTilingDataSize = 16UL * 1024UL;
 constexpr char_t const *kMaxAtomicCleanTilingSize = "atomic_op_para_size";
 const std::string kLocalMemorySize = "local_memory_size";
+const std::string kOptionalInputPlaceholder = "optional_input_placeholder";
 
 constexpr uint32_t kAddressLen = static_cast<uint32_t>(sizeof(uint64_t));
 constexpr uint32_t kUBAlignedLen = 32U;
@@ -1737,6 +1738,8 @@ Status KernelTaskInfo::ParseTaskRunParam(const domi::TaskDef &task_def, DavinciM
   if (super_kernel_op_desc_ != nullptr) {
     GE_ASSERT_TRUE(!context.args_format().empty());
   }
+  (void)AttrUtils::GetBool(op_desc_, kOptionalInputPlaceholder, is_optional_input_placeholder_);
+
   if (!context.args_format().empty()) {
     GE_ASSERT_SUCCESS(ArgsFormatDesc::Parse(op_desc_, context.args_format(), args_format_holder_.arg_descs),
                       "Formatted args [%s] parsed failed.", context.args_format().c_str());
@@ -1758,7 +1761,8 @@ Status KernelTaskInfo::ParseTaskRunParam(const domi::TaskDef &task_def, DavinciM
   GE_ASSERT_TRUE(!AddOverflow(args_size_, static_cast<uint32_t>(extra_args_size), args_size_));
 
   const RuntimeParam &rts_param = davinci_model->GetRuntimeParam();
-  input_data_addrs_ = ModelUtils::GetInputAddrsValue(rts_param, op_desc_, input_mem_types_);
+  input_data_addrs_ =
+    ModelUtils::GetInputAddrsValue(rts_param, op_desc_, input_mem_types_, is_optional_input_placeholder_);
   if (!context.args_format().empty()) {
     // args format场景，GetOutputAddrsValue返回的地址数量和输出anchor数量保持一致，可选输出需要使用空地址占位
     output_data_addrs_ = ModelUtils::GetOutputAddrsValue(rts_param, op_desc_, output_mem_types_, true);
@@ -1794,10 +1798,11 @@ Status KernelTaskInfo::ParseTaskRunParam(const domi::TaskDef &task_def, DavinciM
       static_cast<uint32_t>(sizeof(uintptr_t))) + append_size), args_placement_});
   const bool is_wsp_addr_folded = IsWspAddrFolded(op_desc_);
   GELOGD(
-      "Get args size[%u] of op[%s], is_wsp_addr_folded[%d], is known node[%d], task_type: %d, placement: %d.",
+      "Get args size[%u] of op[%s], is_wsp_addr_folded[%d], is known node[%d], "
+      "task_type[%d], placement[%d], is_optional_input_placeholder[%d].",
       args_size_, op_desc_->GetName().c_str(), static_cast<int32_t>(is_wsp_addr_folded),
       static_cast<int32_t>(davinci_model->IsFeatureBaseRefreshable()), static_cast<int32_t>(task_type_),
-      args_placement_);
+      args_placement_, is_optional_input_placeholder_);
   return SUCCESS;
 }
 
@@ -2315,8 +2320,10 @@ Status KernelTaskInfo::InitAicpuTaskExtInfo(const std::string &ext_info) {
   bool all_shape = false;
   (void)AttrUtils::GetBool(op_desc_, kAllShapeInAicpu, all_shape);
   if (all_shape) {
-    for (uint32_t i = 0U; i < static_cast<uint32_t>(op_desc_->GetInputsSize()); i++) {
+    size_t input_size = is_optional_input_placeholder_ ? op_desc_->GetAllInputsSize() : op_desc_->GetInputsSize();
+    for (uint32_t i = 0U; i < static_cast<uint32_t>(input_size); i++) {
       const auto input_desc = op_desc_->MutableInputDesc(i);
+      if (is_optional_input_placeholder_ && (input_desc == nullptr)) continue;
       GE_CHECK_NOTNULL(input_desc);
       GE_CHK_STATUS_RET(ex_handle->UpdateInputShapeAndType(i, *input_desc),
                         "[Call][UpdateInputShapeAndType] Input[%u] update input shape failed, op:%s.",
@@ -2558,7 +2565,8 @@ Status KernelTaskInfo::ParseAicpuExtInfoHandler(const OpDescPtr &op_desc, const 
   int32_t unknown_shape_type_val = 0;
   (void)AttrUtils::GetInt(op_desc, ATTR_NAME_UNKNOWN_SHAPE_TYPE, unknown_shape_type_val);
   const auto unknown_type = static_cast<UnknowShapeOpType>(unknown_shape_type_val);
-  const uint32_t num_inputs = static_cast<uint32_t>(op_desc->GetInputsSize());
+  const uint32_t num_inputs =
+    static_cast<uint32_t>(is_optional_input_placeholder_ ? op_desc->GetAllInputsSize() : op_desc->GetInputsSize());
   const uint32_t num_outputs = static_cast<uint32_t>(op_desc->GetOutputsSize());
 
   ex_handle = MakeUnique<hybrid::AicpuExtInfoHandler>(op_desc->GetName(), num_inputs, num_outputs, unknown_type);

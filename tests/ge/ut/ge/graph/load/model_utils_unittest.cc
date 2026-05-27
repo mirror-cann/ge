@@ -669,4 +669,82 @@ TEST_F(UtestModelUtils, MallocFreeP2pMem_Success_WhenUserNotSetFixedP2pMem) {
   ModelUtils::FreeExMem(0U, runtime_param, 0);
   EXPECT_EQ(runtime_param.memory_infos[RT_MEMORY_P2P_DDR].memory_base, nullptr);
 }
+
+TEST_F(UtestModelUtils, GetInputDataAddrs_with_optional_input_placeholder) {
+  RuntimeParam runtime_param;
+  runtime_param.session_id = 0;
+  runtime_param.mem_size = 0x20002000u;
+  uint8_t mem_base_addr = 0;
+  runtime_param.mem_base = reinterpret_cast<uintptr_t>(&mem_base_addr);
+
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
+  NodePtr add_node = CreateNode(*graph, "add", ADD, 2, 1);
+  auto op_desc = add_node->GetOpDesc();
+  EXPECT_NE(op_desc, nullptr);
+
+  AttrUtils::SetBool(op_desc, "optional_input_placeholder", true);
+
+  // Construct: [valid0, valid1, optional(nullptr), valid2]
+  // Add optional input at position 2, then append a required input after it
+  op_desc->AddOptionalInputDesc("optional_input", GeTensorDesc(GeShape(), FORMAT_RESERVED, DT_UNDEFINED));
+  op_desc->AddInputDesc("x3", GeTensorDesc(GeShape(), FORMAT_ND, DT_INT64));
+
+  const vector<int64_t> v_memory_type{RT_MEMORY_HBM, RT_MEMORY_L1, RT_MEMORY_HBM};
+  AttrUtils::SetListInt(op_desc, ATTR_NAME_INPUT_MEM_TYPE_LIST, v_memory_type);
+  op_desc->SetInputOffset({0x10001000, 0x10002000, 0x10003000});
+
+  { // input0: valid (HBM)
+    auto tensor_desc = op_desc->MutableInputDesc(0);
+    EXPECT_NE(tensor_desc, nullptr);
+    TensorUtils::SetSize(*tensor_desc, 64);
+    TensorUtils::SetDataOffset(*tensor_desc, 0x10001000);
+  }
+
+  { // input1: valid (L1)
+    auto tensor_desc = op_desc->MutableInputDesc(1);
+    EXPECT_NE(tensor_desc, nullptr);
+    TensorUtils::SetSize(*tensor_desc, 64);
+    TensorUtils::SetDataOffset(*tensor_desc, 0x10002000);
+  }
+
+  { // input2: optional placeholder
+    auto tensor_desc = op_desc->MutableInputDesc(2);
+    EXPECT_EQ(tensor_desc, nullptr);
+  }
+
+  { // input3: valid (HBM), after optional — this is where index misalignment would show
+    auto tensor_desc = op_desc->MutableInputDesc(3);
+    EXPECT_NE(tensor_desc, nullptr);
+    TensorUtils::SetSize(*tensor_desc, 64);
+    TensorUtils::SetDataOffset(*tensor_desc, 0x10003000);
+  }
+
+  // GetInputsSize=3 (valid only), GetAllInputsSize=4 (including optional)
+  EXPECT_EQ(op_desc->GetInputsSize(), 3);
+  EXPECT_EQ(op_desc->GetAllInputsSize(), 4);
+
+  // has_optional_addr=true: 4 addresses, optional at position 2 is nullptr placeholder
+  std::vector<uint64_t> mem_type;
+  const vector<uint64_t> input_data_addr = ModelUtils::GetInputAddrsValue(runtime_param, op_desc, mem_type, true);
+  EXPECT_EQ(input_data_addr.size(), 4);
+  EXPECT_EQ(input_data_addr.at(0), PtrToValue(&mem_base_addr) + 0x10001000);  // HBM
+  EXPECT_EQ(input_data_addr.at(1), 0x10002000);  // L1
+  EXPECT_EQ(input_data_addr.at(2), 0);           // optional placeholder
+  EXPECT_EQ(input_data_addr.at(3), PtrToValue(&mem_base_addr) + 0x10003000);  // HBM (after optional)
+  EXPECT_EQ(mem_type.size(), 4);
+  EXPECT_EQ(mem_type.at(0), RT_MEMORY_HBM);
+  EXPECT_EQ(mem_type.at(1), RT_MEMORY_L1);
+  EXPECT_EQ(mem_type.at(2), kFixMemType);
+  EXPECT_EQ(mem_type.at(3), RT_MEMORY_HBM);
+
+  // has_optional_addr=false: 3 addresses, optional skipped, no index shift
+  mem_type.clear();
+  const vector<uint64_t> input_data_addr_no_placeholder =
+    ModelUtils::GetInputAddrsValue(runtime_param, op_desc, mem_type, false);
+  EXPECT_EQ(input_data_addr_no_placeholder.size(), 3);
+  EXPECT_EQ(mem_type.at(0), RT_MEMORY_HBM);
+  EXPECT_EQ(mem_type.at(1), RT_MEMORY_L1);
+  EXPECT_EQ(mem_type.at(2), RT_MEMORY_HBM);
+}
+
 }  // namespace ge
