@@ -19,7 +19,7 @@
 #include "graph/ge_context.h"
 #include "graph/utils/attr_utils.h"
 #include "framework/omg/parser/parser_types.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "graph/load/model_manager/sink_only_allocator.h"
 #include "register/op_tiling_registry.h"
 

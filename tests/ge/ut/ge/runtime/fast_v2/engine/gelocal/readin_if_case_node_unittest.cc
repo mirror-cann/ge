@@ -23,7 +23,7 @@
 
 #include "common/share_graph.h"
 #include "register/op_impl_registry.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "core/builder/graph_node.h"
 #include "common/ge_inner_attrs.h"
 #include "graph/utils/execute_graph_adapter.h"

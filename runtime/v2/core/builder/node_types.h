@@ -11,7 +11,7 @@
 #ifndef AIR_CXX_RUNTIME_V2_CORE_BUILDER_NODE_TYPES_H_
 #define AIR_CXX_RUNTIME_V2_CORE_BUILDER_NODE_TYPES_H_
 #include <string>
-#include "common/framework_types_internal.h"
+#include "common/types.h"
 #include "graph/utils/node_utils.h"
 #include "exe_graph/lowering/builtin_node_types.h"
 #include "graph/fast_graph/fast_node.h"

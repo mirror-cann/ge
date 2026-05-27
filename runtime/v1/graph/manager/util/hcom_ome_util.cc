@@ -13,7 +13,7 @@
 #include <set>
 
 #include "framework/common/debug/log.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "common/math/math_util.h"
 #include "framework/common/op/ge_op_utils.h"
 #include "graph/utils/tensor_utils.h"

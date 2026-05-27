@@ -23,7 +23,7 @@
 #include "ge/ge_api_types.h"
 #include "depends/ops_stub/ops_stub.h"
 #include "proto/caffe/caffe.pb.h"
-#include "parser/caffe/caffe_parser_internal.h"
+#include "parser/caffe/caffe_parser.h"
 #include "parser/caffe/caffe_data_parser.h"
 #include "parser/caffe/caffe_op_parser.h"
 #include "parser/caffe/caffe_custom_parser_adapter.h"

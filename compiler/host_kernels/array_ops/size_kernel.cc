@@ -12,7 +12,7 @@
 
 #include <memory>
 
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "host_kernels/kernel_utils.h"
 #include "host_kernels/kernel_factory.h"
 

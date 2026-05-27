@@ -17,7 +17,7 @@
 #include "graph/utils/type_utils.h"
 #include "mmpa/mmpa_api.h"
 #include "common/ge_common/ge_types.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "common/util/mem_utils.h"
 #include "common/checker.h"
 #include "base/err_msg.h"

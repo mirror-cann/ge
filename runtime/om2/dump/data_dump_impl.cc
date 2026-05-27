@@ -11,7 +11,7 @@
 #include "framework/runtime/dump/data_dump_impl.h"
 #include "framework/runtime/dump/dump_config.h"
 #include "framework/common/debug/ge_log.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "runtime/rt.h"
 #include "acl/acl_rt.h"
 

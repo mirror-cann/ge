@@ -13,7 +13,7 @@
 
 #include <cstdint>
 
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "mmpa/mmpa_api.h"
 #include "framework/common/ge_inner_error_codes.h"
 

@@ -10,7 +10,7 @@
 
 #include "op_model_parser.h"
 
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "framework/common/ge_inner_error_codes.h"
 #include "framework/common/helper/om_file_helper.h"
 #include "graph/utils/attr_utils.h"

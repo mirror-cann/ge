@@ -10,7 +10,7 @@
 
 #include <gtest/gtest.h>
 #include "compute_graph.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "utils/graph_utils.h"
 #include "common/debug/ge_log.h"
 

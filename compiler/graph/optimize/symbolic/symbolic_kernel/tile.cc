@@ -9,7 +9,7 @@
  */
 #include <algorithm>
 #include <list>
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "common/util.h"
 #include "graph/optimize/symbolic/symbol_compute_context.h"
 #include "graph/optimize/symbolic/infer_symbolic_shape/symbolic_infer_util.h"

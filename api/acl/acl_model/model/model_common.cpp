@@ -16,7 +16,7 @@
 #include <vector>
 #include "common/log_inner.h"
 #include "model_desc_internal.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "securec.h"
 
 namespace {

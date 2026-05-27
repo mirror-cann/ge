@@ -13,7 +13,7 @@
 #include <memory>
 
 #include "common/ge_inner_error_codes.h"
-#include "common/framework_types_internal.h"
+#include "common/types.h"
 #include "common/util.h"
 #include "runtime/mem.h"
 #include "common/util.h"
@@ -27,7 +27,7 @@
 #include "common/helper/file_saver.h"
 #include "common/profiling/profiling_properties.h"
 #include "common/debug/log.h"
-#include "common/framework_types_internal.h"
+#include "common/types.h"
 #include "graph/load/graph_loader.h"
 #include "graph/load/model_manager/davinci_model.h"
 #include "hybrid/hybrid_davinci_model.h"

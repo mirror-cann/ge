@@ -13,7 +13,7 @@
 #include "macro_utils/dt_public_scope.h"
 #include "common/dump/dump_op.h"
 #include "common/debug/log.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "common/ge_inner_error_codes.h"
 #include "common/dump/dump_properties.h"
 #include "graph/utils/attr_utils.h"

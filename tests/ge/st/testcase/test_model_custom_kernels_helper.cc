@@ -30,7 +30,7 @@
 #include "common/plugin/plugin_manager.h"
 #include "framework/common/helper/model_helper.h"
 #include "framework/common/helper/om_file_helper.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "graph/ge_local_context.h"
 #include "graph/custom_op.h"
 #include "graph/custom_op_factory.h"

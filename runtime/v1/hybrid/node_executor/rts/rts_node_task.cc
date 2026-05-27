@@ -17,7 +17,7 @@
 #include "graph/utils/node_utils.h"
 #include "common/plugin/ge_make_unique_util.h"
 #include "framework/common/op/ge_op_utils.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 
 namespace {
 constexpr int32_t kSwitchPredIndex = 0;

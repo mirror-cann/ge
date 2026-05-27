@@ -21,7 +21,7 @@
 #include "utils/model_factory.h"
 #include "ge_graph_dsl/assert/graph_assert.h"
 #include "utils/graph_utils.h"
-#include "framework/common/framework_types_internal.h"
+#include "types.h"
 #include "init_ge.h"
 #include "graph/preprocess/insert_op/insert_aipp_op_util.h"
 #include "graph/operator_factory_impl.h"

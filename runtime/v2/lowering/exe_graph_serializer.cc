@@ -20,7 +20,7 @@
 #include "exe_graph/lowering/exe_graph_attrs.h"
 #include "exe_graph/runtime/context_extend.h"
 #include "framework/common/debug/ge_log.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "framework/runtime/model_desc.h"
 #include "graph/debug/ge_attr_define.h"
 #include "graph/utils/op_type_utils.h"

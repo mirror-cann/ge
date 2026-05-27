@@ -11,7 +11,7 @@
 #include "utils/graph_factory.h"
 #include "ge_graph_dsl/graph_dsl.h"
 #include "graph/debug/ge_attr_define.h"
-#include "common/framework_types_internal.h"
+#include "common/types.h"
 #include "common/tbe_handle_store/kernel_store.h"
 #include "ge_running_env/tensor_utils.h"
 #include "graph/utils/graph_utils.h"

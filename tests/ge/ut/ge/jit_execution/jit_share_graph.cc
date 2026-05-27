@@ -9,7 +9,7 @@
  */
 
 #include "es_ge_test_ops.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "jit_share_graph.h"
 
 #include "graph/op_kernel_bin.h"

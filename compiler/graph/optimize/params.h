@@ -14,7 +14,7 @@
 #include <string>
 
 #include "common/singleton.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 
 namespace ge {
 class Params : public Singleton<Params> {

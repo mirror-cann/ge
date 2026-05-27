@@ -15,7 +15,7 @@
 
 #include "framework/common/helper/mobile_model_helper.h"
 #include "framework/omg/ge_init.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 
 #include "common/env_path.h"
 #include "graph_metadef/common/ge_common/util.h"

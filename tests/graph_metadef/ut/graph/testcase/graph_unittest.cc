@@ -33,7 +33,7 @@
 #include "graph/ge_attr_value.h"
 #include "ge_ir.pb.h"
 #include "common/ge_common/ge_inner_error_codes.h"
-#include "framework/common/framework_types_internal.h"
+#include "framework/common/types.h"
 #include "graph/tensor.h"
 #include "graph/ascend_string.h"
 #include "graph/types.h"

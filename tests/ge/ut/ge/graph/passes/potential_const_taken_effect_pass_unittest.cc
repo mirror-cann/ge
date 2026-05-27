@@ -14,7 +14,7 @@
 #include <vector>
 #include <gtest/gtest.h>
 
-#include "common/framework_types_internal.h"
+#include "common/types.h"
 #include "common/plugin/ge_make_unique_util.h"
 #include "graph/passes/base_pass.h"
 #include "graph_builder_utils.h"
