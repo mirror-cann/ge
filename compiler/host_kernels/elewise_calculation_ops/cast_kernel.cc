@@ -16,7 +16,7 @@
 #include "formats/formats.h"
 #include "formats/utils/formats_trans_utils.h"
 #include "common/datatype_transfer/datatype_transfer.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "host_kernels/kernel_utils.h"
 #include "graph/utils/type_utils.h"
 #include "host_kernels/kernel_factory.h"

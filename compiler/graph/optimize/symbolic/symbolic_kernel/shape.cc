@@ -9,7 +9,7 @@
  */
 #include "common/plugin/ge_make_unique_util.h"
 #include "graph_metadef/common/ge_common/util.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "common/checker.h"
 #include "common/util/mem_utils.h"
 #include "graph/optimize/symbolic/infer_symbolic_shape/symbolic_infer_util.h"

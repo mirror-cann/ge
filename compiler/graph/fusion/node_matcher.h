@@ -12,7 +12,7 @@
 #define CANN_GRAPH_ENGINE_NODE_MATCHER_H
 
 #include "graph/node.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "common/util/mem_utils.h"
 #include "common/checker.h"
 #include "graph/utils/constant_utils.h"

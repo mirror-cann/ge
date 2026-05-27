@@ -15,7 +15,7 @@
 #include "graph/manager/trans_var_data_utils.h"
 #include <framework/common/debug/log.h>
 #include "framework/common/debug/ge_log.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "graph/compute_graph.h"
 #include "graph/ge_context.h"
 #include "runtime/dev.h"

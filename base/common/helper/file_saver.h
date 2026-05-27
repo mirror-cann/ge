@@ -15,7 +15,7 @@
 #include <vector>
 
 #include "framework/common/helper/om_file_helper.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "ge/ge_ir_build.h"
 #include "graph/buffer.h"
 #include "mmpa/mmpa_api.h"

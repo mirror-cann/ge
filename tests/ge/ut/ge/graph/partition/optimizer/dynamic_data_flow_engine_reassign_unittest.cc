@@ -12,7 +12,7 @@
 
 #include <gtest/gtest.h>
 #include "ge_graph_dsl/graph_dsl.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "graph/utils/graph_utils.h"
 #include "graph/utils/graph_utils_ex.h"
 #include "graph/debug/ge_attr_define.h"

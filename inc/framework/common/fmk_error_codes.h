@@ -10,5 +10,5 @@
 
 #ifndef INC_FRAMEWORK_COMMON_FMK_ERROR_CODES_H_
 #define INC_FRAMEWORK_COMMON_FMK_ERROR_CODES_H_
-#include "common/ge_common/fmk_error_codes.h"
+#include "../../graph_metadef/common/ge_common/fmk_error_codes.h"
 #endif  // INC_FRAMEWORK_COMMON_FMK_ERROR_CODES_H_

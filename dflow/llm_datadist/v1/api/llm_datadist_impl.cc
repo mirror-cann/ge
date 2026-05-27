@@ -15,7 +15,7 @@
 #include "common/llm_utils.h"
 #include "common/common.h"
 #include "common/mem_utils.h"
-#include "llm_datadist.h"
+#include "llm_datadist_internal.h"
 #include "common/llm_common.h"
 #include "nlohmann/json.hpp"
 #include "acl/acl.h"

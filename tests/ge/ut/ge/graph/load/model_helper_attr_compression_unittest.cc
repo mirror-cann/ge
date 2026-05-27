@@ -14,7 +14,7 @@
 #include <string>
 
 #include "framework/common/helper/model_helper.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 
 namespace ge {
 namespace {

@@ -18,7 +18,7 @@
 #include "common/model/ge_model.h"
 #include "graph/manager/graph_var_manager.h"
 #include "graph/model.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "framework/common/helper/om_file_helper.h"
 #include "executor/dynamic_model_executor.h"
 #include "executor/proxy_dynamic_model_executor.h"

@@ -15,7 +15,7 @@
 #include "register/op_tiling_registry.h"
 #include "graph/utils/tensor_utils.h"
 #include "graph/debug/ge_attr_define.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "ge/ut/ge/ffts_plus_proto_tools.h"
 #include "ge/ut/ge/test_tools_task_info.h"
 #include "framework/executor/ge_executor.h"

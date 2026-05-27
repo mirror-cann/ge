@@ -20,7 +20,7 @@
 
 #include "graph/debug/ge_attr_define.h"
 #include "graph/utils/node_adapter.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "graph/utils/op_desc_utils.h"
 #include "graph/utils/graph_utils_ex.h"
 #include "ge_graph_dsl/assert/check_utils.h"

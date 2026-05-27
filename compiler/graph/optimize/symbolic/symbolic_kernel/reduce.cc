@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <list>
 #include <numeric>
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "common/util/mem_utils.h"
 #include "common/checker.h"
 #include "graph/optimize/symbolic/infer_symbolic_shape/symbolic_infer_util.h"

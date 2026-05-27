@@ -13,7 +13,7 @@
 #include <tuple>
 #include <numeric>
 #include "common/preload/model/pre_model_utils.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "graph/debug/ge_attr_define.h"
 #include "graph/utils/tensor_utils.h"
 #include "framework/common/tlv/nano_dbg_desc.h"

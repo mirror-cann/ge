@@ -18,7 +18,7 @@
 #include <vector>
 #include "framework/common/debug/log.h"
 #include "framework/common/string_util.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "framework/common/util.h"
 #include "graph/build/model_builder.h"
 #include "graph/build/task_generator.h"

@@ -23,7 +23,7 @@
 #include "hybrid/node_executor/node_executor.h"
 #include "framework/common/helper/model_helper.h"
 #include "framework/common/op/ge_op_utils.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "graph/utils/op_type_utils.h"
 
 namespace ge {

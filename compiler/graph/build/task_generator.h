@@ -18,7 +18,7 @@
 #include <mutex>
 #include "framework/common/ge_inner_error_codes.h"
 #include "common/opskernel/ops_kernel_info_types.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "graph/ge_local_context.h"
 #include "graph/build/profiling_task_utils.h"
 #include "graph/compute_graph.h"

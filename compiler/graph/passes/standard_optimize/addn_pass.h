@@ -13,7 +13,7 @@
 
 #include "framework/common/ge_inner_error_codes.h"
 #include "framework/common/debug/ge_log.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "graph/graph.h"
 #include "graph/passes/base_pass.h"
 #include "graph/passes/pass_utils.h"

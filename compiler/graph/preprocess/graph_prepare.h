@@ -18,7 +18,7 @@
 #include "framework/common/debug/log.h"
 #include "common/helper/model_parser_base.h"
 #include "framework/common/string_util.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "framework/common/util.h"
 #include "graph/compute_graph.h"
 #include "graph/manager/graph_manager_utils.h"

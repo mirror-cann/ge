@@ -15,7 +15,7 @@
 #include "graph_builder_utils.h"
 #include "graph/graph.h"
 #include "common/ge_inner_error_codes.h"
-#include "common/types.h"
+#include "common/framework_types_internal.h"
 #include "macro_utils/dt_public_unscope.h"
 
 using namespace domi;

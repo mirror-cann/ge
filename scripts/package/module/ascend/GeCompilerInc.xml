@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <block name="GeCompilerInc" copy_type="delivery" src_path="" dst_path="" install_path="" install_own="$username:$usergroup" install_mod="550" install_type="all">
     <dir_info value="GeCompilerInc">
+        <path value="$(TARGET_ENV)/include/ge" install_mod="550"/>
         <path value="$(TARGET_ENV)/include/ge/fusion" install_mod="555"/>
         <path value="$(TARGET_ENV)/include/ge/fusion/pass" install_mod="555"/>
         <path value="$(TARGET_ENV)/include/ge/cmake" install_mod="555"/>

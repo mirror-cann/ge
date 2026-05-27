@@ -10,7 +10,7 @@
 
 #include "utils/model_factory.h"
 #include "ge_graph_dsl/graph_dsl.h"
-#include "common/types.h"
+#include "common/framework_types_internal.h"
 #include "graph/model.h"
 #include "graph/model_serialize.h"
 #include "ge_running_env/path_utils.h"

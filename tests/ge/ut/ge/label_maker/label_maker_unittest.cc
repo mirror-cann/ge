@@ -11,7 +11,7 @@
 #include <gtest/gtest.h>
 #include "ge_graph_dsl/graph_dsl.h"
 #include "graph/debug/ge_attr_define.h"
-#include "common/types.h"
+#include "common/framework_types_internal.h"
 #include "graph/passes/graph_builder_utils.h"
 #include <vector>
 

@@ -61,6 +61,7 @@ checkopts()
   ENABLE_RT2_UT="off"
   ENABLE_GE_DT="off"
   ENABLE_GE_ST="off"
+  ENABLE_GE_COMMON_ST="off"
   ENABLE_GE_COV="off" # Full coverage
   ENABLE_ICOV="off" # Incremental coverage
   ENABLE_RT2_ST="off"
@@ -80,7 +81,7 @@ checkopts()
   ENABLE_GCOV="false"
 
   # Process the options
-  while getopts 'CDstTcbhPlmnovj:p:g:MROudKL' opt
+  while getopts 'CDstTcbhPlmnovj:p:g:MROudKLG' opt
   do
     OPTARG=$(echo ${OPTARG} | tr '[A-Z]' '[a-z]')
     case "${opt}" in
@@ -93,6 +94,7 @@ checkopts()
         ;;
       s)
         ENABLE_GE_ST="on"
+        ENABLE_GE_COMMON_ST="on"
         ENABLE_RT2_ST="on"
         ENABLE_RT3_ST="on"
         ENABLE_PYTHON_ST="on"
@@ -158,6 +160,12 @@ checkopts()
         ;;      
       O)
         ENABLE_GE_ST="on"
+        ENABLE_TEST="True"
+        CMAKE_BUILD_TYPE="GCOV"
+        BUILD_RELATIVE_PATH=build_st
+        ;;
+      G)
+        ENABLE_GE_COMMON_ST="on"
         ENABLE_TEST="True"
         CMAKE_BUILD_TYPE="GCOV"
         BUILD_RELATIVE_PATH=build_st
@@ -291,6 +299,7 @@ build_graphengine()
         -D ENABLE_TEST=${ENABLE_TEST} \
         -D ENABLE_GE_BENCHMARK=$ENABLE_GE_BENCHMARK \
         -D ENABLE_GE_ST=${ENABLE_GE_ST} \
+        -D ENABLE_GE_COMMON_ST=${ENABLE_GE_COMMON_ST} \
         -D ENABLE_RT2_ST=${ENABLE_RT2_ST} \
         -D ENABLE_RT3_ST=${ENABLE_RT3_ST} \
         -D ENABLE_PYTHON_ST=${ENABLE_PYTHON_ST} \
@@ -553,7 +562,7 @@ if [[ "X$ENABLE_GE_BENCHMARK" = "Xon" ]]; then
         exit 1;
     fi
 fi
-if [[ "X$ENABLE_GE_ST" = "Xon" ]] || [[ "X$ENABLE_RT2_ST" = "Xon" ]] || [[ "X$ENABLE_RT3_ST" = "Xon" ]] || [[ "X$ENABLE_PYTHON_ST" = "Xon" ]] || [[ "X$ENABLE_PARSER_ST" = "Xon" ]] || [[ "X$ENABLE_DFLOW_ST" = "Xon" ]]; then
+if [[ "X$ENABLE_GE_ST" = "Xon" ]] || [[ "X$ENABLE_GE_COMMON_ST" = "Xon" ]] || [[ "X$ENABLE_RT2_ST" = "Xon" ]] || [[ "X$ENABLE_RT3_ST" = "Xon" ]] || [[ "X$ENABLE_PYTHON_ST" = "Xon" ]] || [[ "X$ENABLE_PARSER_ST" = "Xon" ]] || [[ "X$ENABLE_DFLOW_ST" = "Xon" ]]; then
     COV_DIRS=()
     COV_DIRS+=("${BUILD_PATH}/api")
     COV_DIRS+=("${BUILD_PATH}/base")
@@ -577,6 +586,21 @@ if [[ "X$ENABLE_GE_ST" = "Xon" ]] || [[ "X$ENABLE_RT2_ST" = "Xon" ]] || [[ "X$EN
       cp ${BUILD_PATH}/compiler/plugin/nnengine/*engine*.so ${BUILD_PATH}/compiler/plugin/opskernel/
       echo "Run tests with leaks check"
       RUN_TEST_CASE="${BUILD_PATH}/tests/ge/st/testcase/graph_engine_test --gtest_output=xml:${report_dir}/st/graph_engine_test.xml" && ${RUN_TEST_CASE}
+      if [[ "$?" -ne 0 ]]; then
+        echo "!!! ST FAILED, PLEASE CHECK YOUR CHANGES !!!"
+        echo -e "\033[31m${RUN_TEST_CASE}\033[0m"
+        exit 1;
+      fi
+      rm -rf ${BUILD_PATH}/compiler/plugin/opskernel
+      COV_DIRS+=("${BUILD_PATH}/graph_metadef")
+      COV_DIRS+=("${BUILD_PATH}/compiler")
+      COV_DIRS+=("${BUILD_PATH}/runtime/v1")
+    fi
+
+    if [[ "X$ENABLE_GE_COMMON_ST" = "Xon" ]];then
+      cp ${BUILD_PATH}/compiler/plugin/nnengine/*engine*.so ${BUILD_PATH}/compiler/plugin/opskernel/
+      echo "Run tests with leaks check"
+      RUN_TEST_CASE="${BUILD_PATH}/tests/ge/st/testcase/ge_common_atc --gtest_output=xml:${report_dir}/st/ge_common_atc.xml" && ${RUN_TEST_CASE}
       if [[ "$?" -ne 0 ]]; then
         echo "!!! ST FAILED, PLEASE CHECK YOUR CHANGES !!!"
         echo -e "\033[31m${RUN_TEST_CASE}\033[0m"
@@ -820,7 +844,7 @@ if [[ "X$ENABLE_GE_UT" = "Xoff" && "X$ENABLE_GE_ST" = "Xoff" && "X$MINDSPORE_MOD
       "X$ENABLE_GE_BENCHMARK" = "Xoff" && "X$ENABLE_RT2_ST" = "Xoff" && "X$ENABLE_GE_DT" = "Xoff" &&
       "X$ENABLE_RT3_ST" = "Xoff" && "X$ENABLE_RT2_UT" = "Xoff" && "X$ENABLE_PYTHON_ST" = "Xoff" &&
       "X$ENABLE_PYTHON_UT" = "Xoff" && "X$ENABLE_PARSER_UT" = "Xoff" && "X$ENABLE_PARSER_ST" = "Xoff" &&
-      "X$ENABLE_DFLOW_UT" = "Xoff" && "X$ENABLE_DFLOW_ST" = "Xoff" ]] ; then
+      "X$ENABLE_DFLOW_UT" = "Xoff" && "X$ENABLE_DFLOW_ST" = "Xoff" && "X$ENABLE_GE_COMMON_ST" = "Xoff" ]] ; then
   generate_package
 elif [ "X$MINDSPORE_MODE" = "Xon" ]
 then

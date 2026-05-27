@@ -14,7 +14,7 @@
 
 #include <list>
 
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "graph/utils/tensor_utils.h"
 
 #define protected public

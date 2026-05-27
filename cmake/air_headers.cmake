@@ -48,10 +48,7 @@ if (NOT EXISTS "${ASCEND_INSTALL_PATH}/include")
 endif ()
 
 target_include_directories(air_headers INTERFACE
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/../base/metadef/inc>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/../base/metadef/pkg_inc>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/../inc/graph_metadef>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/../base/metadef/pkg_inc/graph>
         )
 
 get_target_property(INCLUDE_PATHS air_headers INTERFACE_INCLUDE_DIRECTORIES)

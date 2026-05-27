@@ -18,7 +18,7 @@
 #include "framework/common/helper/om_file_helper.h"
 #include "common/model/ge_model.h"
 #include "common/model/ge_root_model.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "graph/model.h"
 #include "platform/platform_info.h"
 #include "common/op_so_store/op_so_store.h"

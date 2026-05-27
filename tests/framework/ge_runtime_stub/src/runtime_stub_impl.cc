@@ -28,7 +28,6 @@ void RuntimeStubImpl::Clear() {
   cpu_launch_args_.clear();
   rt_memcpy_args_.clear();
   rt_memcpy_sync_args_.clear();
-  all_launch_sqe_update_records_.clear();
   events_to_record_records_.clear();
   const std::lock_guard<std::mutex> lk(global_mtx_);
   launch_with_handle_args_.clear();
@@ -268,9 +267,14 @@ rtError_t RuntimeStubImpl::rtMemcpyAsyncPtr(void *memcpy_addr_info, uint64_t dst
 
 rtError_t RuntimeStubImpl::rtMemGetInfoEx(rtMemInfoType_t memInfoType, size_t *free, size_t *total) {
   *free = 128UL * 1024UL * 1024UL;
-  *total = 128UL * 1024UL * 1024UL;
+  *total = 256UL * 1024UL * 1024UL;
   return RT_ERROR_NONE;
 }
+
+rtError_t RuntimeStubImpl::rtSetTaskTag(const char *taskTag) {
+  return RT_ERROR_NONE;
+}
+
 rtError_t RuntimeStubImpl::rtMalloc(void **dev_ptr, uint64_t size, rtMemType_t type, uint16_t moduleId) {
   const std::lock_guard<std::mutex> lk(global_mtx_);
   auto ret = RuntimeStub::rtMalloc(dev_ptr, size, type, moduleId);
@@ -302,19 +306,6 @@ rtError_t RuntimeStubImpl::rtLaunchSqeUpdateTask(uint32_t streamId, uint32_t tas
   return RT_ERROR_NONE;
 }
 
-rtError_t RuntimeStubImpl::rtSetTaskTag(const char *taskTag) {
-  last_tag_ = std::make_unique<std::string>(taskTag);
-  return RT_ERROR_NONE;
-}
-
-const std::list<ge::GeFakeLaunchArgs> &RuntimeStubImpl::GetAllLaunchArgs() const {
-  return all_launch_args_;
-}
-
-const std::list<ge::GetAllSwitchArgs> &RuntimeStubImpl::GetAllSwitchArgs() const {
-  return all_switch_args_;
-}
-
 rtError_t RuntimeStubImpl::rtModelCreate(rtModel_t *model, uint32_t flag) {
   const std::lock_guard<std::mutex> lk(global_mtx_);
 
@@ -334,6 +325,10 @@ rtError_t RuntimeStubImpl::rtModelGetTaskId(void *handle, uint32_t *task_id, uin
   all_launch_args_.back().SetStreamId(*stream_id);
   all_launch_args_.back().SetTaskId(*task_id);
   return RT_ERROR_NONE;
+}
+
+const std::list<ge::GeFakeLaunchArgs> &RuntimeStubImpl::GetAllLaunchArgs() const {
+  return all_launch_args_;
 }
 
 rtError_t RuntimeStubImpl::rtsStreamGetId(void *stm, int32_t *streamId)
@@ -848,6 +843,11 @@ aclError AclRuntimeStubImpl::aclrtFree(void *dev_ptr) {
 aclError AclRuntimeStubImpl::aclrtGetMemInfo(aclrtMemAttr attr, size_t *free, size_t *total) {
   *free = 128UL * 1024UL * 1024UL;
   *total = 128UL * 1024UL * 1024UL;
+  return ACL_SUCCESS;
+}
+
+aclError AclRuntimeStubImpl::aclrtTaskUpdateAsync(aclrtStream taskStream, uint32_t taskId, aclrtTaskUpdateInfo *info,
+                                                  aclrtStream execStream) {
   return ACL_SUCCESS;
 }
 }

@@ -775,6 +775,7 @@ target_link_options(ut_libge_symbol_infer_utest PRIVATE
 target_link_libraries(ut_libge_symbol_infer_utest
         intf_llt_pub
         -Wl,-z,muldefs
+        ascend_hal_stub
         symengine
         lowering
         register
@@ -1011,6 +1012,7 @@ target_link_libraries(ut_fusion_pass_executor_utest
     intf_llt_pub
     metadef_headers
     ascendcl_stub
+    ascend_hal_stub
     ${AIR_COMMON_LINK_OPTION}
     ge_compiler
     gert
@@ -1104,6 +1106,7 @@ target_link_libraries(ut_libge_label_maker_utest
     intf_llt_pub
     metadef_headers
     ascendcl_stub
+    ascend_hal_stub
     ge_common
     ge_common_base
     gert
@@ -1156,6 +1159,7 @@ target_link_libraries(ut_libge_kernel_utest
         metadef_headers
         -Wl,--whole-archive
         ascendcl_stub
+        ascend_hal_stub
         es_ge_test
         ge_common
         ge_common_base
@@ -1214,6 +1218,7 @@ target_link_options(ut_libge_distinct_load_utest PRIVATE
 
 target_link_libraries(ut_libge_distinct_load_utest
     intf_llt_pub
+    ascend_hal_stub
     metadef_headers
     ascendcl_stub
     datagw_headers
@@ -1402,6 +1407,7 @@ target_link_options(ut_eager_style_builder PRIVATE
 target_link_libraries(ut_eager_style_builder
         intf_llt_pub
         -Wl,-z,muldefs
+        ascend_hal_stub
         metadef_headers
         es_generator_inner_headers
         json

@@ -11,7 +11,7 @@
 #include "graph/passes/format_optimize/transop_nearby_allreduce_fusion_pass.h"
 #include "framework/common/debug/ge_log.h"
 #include "framework/common/debug/log.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "graph/utils/graph_utils.h"
 #include "common/op/transop_util.h"
 #include "graph_metadef/common/ge_common/util.h"

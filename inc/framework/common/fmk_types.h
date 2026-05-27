@@ -10,5 +10,5 @@
 
 #ifndef INC_FRAMEWORK_COMMON_FMK_TYPES_H_
 #define INC_FRAMEWORK_COMMON_FMK_TYPES_H_
-#include "common/ge_common/fmk_types.h"
+#include "../../graph_metadef/common/ge_common/fmk_types.h"
 #endif  // INC_FRAMEWORK_COMMON_FMK_TYPES_H_

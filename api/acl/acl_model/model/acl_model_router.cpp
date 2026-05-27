@@ -10,6 +10,8 @@
 
 #include "acl_resource_manager_om2.h"
 #include "acl_model_router.h"
+
+#include "error_codes_inner.h"
 #include "acl/acl_mdl.h"
 #include "model_desc_internal.h"
 #include "framework/runtime/om2_model_executor.h"
@@ -46,7 +48,7 @@ aclError AclIsOm2ModelByPath(const char *modelPath, bool *isOm2)
     ge::Status ret = gert::IsOm2Model(modelPath, *isOm2);
     if (ret != ge::SUCCESS) {
         ACL_LOG_WARN("failed to check if model is OM2 by path, path=%s, result=%u", modelPath, ret);
-        return ACL_ERROR_INTERNAL_ERROR;
+        return ACL_GET_ERRCODE_GE(static_cast<int32_t>(ret));
     }
     ACL_LOG_DEBUG("model type detected from file path: isOm2Model = %d", *isOm2);
     return ACL_ERROR_NONE;
@@ -61,7 +63,7 @@ aclError AclIsOm2ModelByData(const void *modelData, size_t modelSize, bool *isOm
     ge::Status ret = gert::IsOm2Model(modelData, modelSize, *isOm2);
     if (ret != ge::SUCCESS) {
         ACL_LOG_WARN("failed to check if model is OM2 by data, size=%zu, result=%u", modelSize, ret);
-        return ACL_ERROR_INTERNAL_ERROR;
+        return ACL_GET_ERRCODE_GE(static_cast<int32_t>(ret));
     }
     ACL_LOG_DEBUG("model type detected from memory data: isOm2Model = %d", *isOm2);
     return ACL_ERROR_NONE;
@@ -81,7 +83,7 @@ aclError AclIsOm2ModelByConfig(const aclmdlConfigHandle *handle, bool *isOm2)
         ret = gert::IsOm2Model(handle->loadPath.c_str(), *isOm2);
         if (ret != ge::SUCCESS) {
             ACL_LOG_WARN("failed to detect model type from file path, result = %u", ret);
-            return ACL_ERROR_INTERNAL_ERROR;
+            return ACL_GET_ERRCODE_GE(static_cast<int32_t>(ret));
         }
         ACL_LOG_DEBUG("model type detected from file path: isOm2Model = %d", *isOm2);
         return ACL_ERROR_NONE;
@@ -92,7 +94,7 @@ aclError AclIsOm2ModelByConfig(const aclmdlConfigHandle *handle, bool *isOm2)
         ret = gert::IsOm2Model(handle->mdlAddr, handle->mdlSize, *isOm2);
         if (ret != ge::SUCCESS) {
             ACL_LOG_WARN("failed to detect model type from memory data, result = %u", ret);
-            return ACL_ERROR_INTERNAL_ERROR;
+            return ACL_GET_ERRCODE_GE(static_cast<int32_t>(ret));
         }
         ACL_LOG_DEBUG("model type detected from memory data: isOm2Model = %d", *isOm2);
         return ACL_ERROR_NONE;

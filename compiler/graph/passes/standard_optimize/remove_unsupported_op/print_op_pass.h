@@ -12,7 +12,7 @@
 #define GE_GRAPH_PASSES_PRINT_OP_PASS_H_
 
 #include "framework/common/debug/ge_log.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "graph/debug/ge_attr_define.h"
 #include "common/omg_util/omg_util.h"
 #include "graph/graph.h"

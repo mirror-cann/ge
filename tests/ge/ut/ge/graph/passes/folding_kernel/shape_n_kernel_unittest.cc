@@ -16,7 +16,7 @@
 #include "common/debug/log.h"
 #include "common/debug/memory_dumper.h"
 #include "common/ge_inner_error_codes.h"
-#include "common/types.h"
+#include "common/framework_types_internal.h"
 #include "graph/passes/standard_optimize/constant_folding/dimension_compute_pass.h"
 #include "graph/utils/attr_utils.h"
 #include "graph/utils/graph_utils.h"

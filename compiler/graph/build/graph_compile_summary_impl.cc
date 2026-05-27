@@ -23,7 +23,7 @@
 #include "graph/utils/graph_utils.h"
 #include "graph/utils/op_type_utils.h"
 #include "graph/operator_reg.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "graph/utils/type_utils.h"
 #include "stream/stream_info.h"
 #include "graph/utils/node_adapter.h"

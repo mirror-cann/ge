@@ -11,7 +11,7 @@
 #include "endpoint.h"
 #include <iomanip>
 #include <google/protobuf/text_format.h>
-#include "common/types.h"
+#include "common/framework_types_internal.h"
 #include "common/util.h"
 #include "common/util/mem_utils.h"
 #include "dflow/inc/data_flow/model/pne_model.h"

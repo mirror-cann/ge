@@ -17,7 +17,7 @@
 #include "register/graph_optimizer/fusion_common/graph_pass_util.h"
 #include "common/checker.h"
 #include "common/util/mem_utils.h"
-#include "common/types.h"
+#include "common/framework_types_internal.h"
 #include <queue>
 #include "fusion_utils.h"
 #include "graph_metadef/common/ge_common/util.h"

@@ -17,7 +17,7 @@
 #include "graph/utils/graph_utils.h"
 #include "graph/utils/op_desc_utils.h"
 #include "framework/common/util.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "graph/utils/op_type_utils.h"
 #include "base/err_msg.h"
 

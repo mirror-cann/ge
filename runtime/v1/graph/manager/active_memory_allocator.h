@@ -226,7 +226,7 @@ class PhysicalMemoryAllocator {
   size_t physical_memory_size_;
   int32_t log_level_;
   std::recursive_mutex mutex_;
-  aclrtPhysicalMemProp prop_;
+  DrvMemProp prop_;
   std::vector<PhysicalMemoryInfo> physical_memorys_;
   std::vector<size_t> free_physical_memorys_;
 };

@@ -12,7 +12,7 @@
 #include "common/checker.h"
 #include "common/ge_inner_attrs.h"
 #include "framework/common/ge_types.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "ge_graph_dsl/graph_dsl.h"
 #include "framework/common/debug/ge_log.h"
 #include "graph/op_kernel_bin.h"

@@ -17,7 +17,7 @@
 #include "framework/common/debug/ge_log.h"
 #include "framework/common/debug/log.h"
 #include "framework/common/ge_types.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "graph/debug/ge_attr_define.h"
 #include "graph/ge_context.h"
 #include "graph/utils/attr_utils.h"

@@ -14,7 +14,7 @@
 #include "framework/omg/parser/parser_factory.h"
 #include "framework/omg/parser/model_parser.h"
 #include "framework/omg/parser/weights_parser.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "graph/types.h"
 #include "graph/ge_global_options.h"
 
