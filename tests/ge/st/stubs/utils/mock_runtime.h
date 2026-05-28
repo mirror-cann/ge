@@ -39,18 +39,6 @@ class MockRuntime : public RuntimeStub {
   MOCK_METHOD5(rtMemcpy, int32_t(void *, uint64_t, const void *, uint64_t, rtMemcpyKind_t));
   MOCK_METHOD5(rtKernelGetAddrAndPrefCntV2, int32_t(void *handle, const uint64_t tilingKey, const void *const stubFunc,
                                                     const uint32_t flag, rtKernelDetailInfo_t *kernelInfo));
-  MOCK_METHOD3(rtsBinaryLoadFromFile, int32_t(const char * const binPath, const rtLoadBinaryConfig_t *const optionalCfg,
-                                             rtBinHandle *binHandle));
-  MOCK_METHOD5(rtsLaunchCpuKernel, int32_t(const rtFuncHandle funcHandle, const uint32_t blockDim, rtStream_t st,
-                                           const rtKernelLaunchCfg_t *cfg, rtCpuKernelArgs_t *argsInfo));
-
-  MOCK_METHOD4(rtsBinaryLoadFromData, int32_t(const void * const data, const uint64_t length, const rtLoadBinaryConfig_t * const optionalCfg,
-                                              rtBinHandle *handle));
-  MOCK_METHOD4(rtsRegisterCpuFunc, int32_t(const rtBinHandle binHandle, const char_t * const funcName,
-                                           const char_t * const kernelName, rtFuncHandle *funcHandle));
-  MOCK_METHOD8(rtsLaunchKernelWithHostArgs, int32_t(rtFuncHandle funcHandle, uint32_t blockDim, rtStream_t stm,
-                                                    rtKernelLaunchCfg_t *cfg, void *hostArgs, uint32_t argsSize,
-                                                    rtPlaceHolderInfo_t *placeHolderArray, uint32_t placeHolderNum));
 };
 
 std::shared_ptr<MockRuntime> MockForKernelLaunchWithHostMemInput();

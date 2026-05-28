@@ -41,7 +41,7 @@ Status EndGraphTaskInfo::Distribute() {
     return RT_ERROR_TO_GE_STATUS(rt_ret);
   }
 
-  GE_CHK_RT_RET(rtsGetThreadLastTaskId(&task_id_));
+  GE_CHK_RT_RET(aclrtGetThreadLastTaskId(&task_id_));
   GE_CHK_RT_RET(aclrtStreamGetId(stream_, reinterpret_cast<int32_t*>(&stream_id_)));
   davinci_model_->SetEndGraphId(task_id_, stream_id_);
 

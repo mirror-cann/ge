@@ -15,6 +15,7 @@
 #include "runtime_stub.h"
 #include "acl/acl_rt.h"
 #include <memory>
+#include "depends/runtime/src/rts_stub.h"
 
 namespace ge {
 struct GeFakeLaunchArgs {

@@ -49,8 +49,6 @@
 #include "common/platform_info_util/platform_info_util.h"
 #include "hcom/hcom_topo_info.h"
 #include "common/memory/tensor_trans_utils.h"
-#include "runtime/rts/rts_stream.h"
-#include "runtime/rts/rts_kernel.h"
 #include "platform/soc_spec.h"
 #include "common/kernel_handles_manager/kernel_handle_utils.h"
 #include "graph/load/model_manager/kernel/kernel_register_info_builder.h"

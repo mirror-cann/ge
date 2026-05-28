@@ -28,10 +28,10 @@ class TestKernelManager : public testing::Test {
 protected:
   void SetUp() {
     auto mock_runtime = std::make_shared<gert::RuntimeStubForKernelV2>();
-    ge::RuntimeStub::Install(mock_runtime.get());
+    ge::AclRuntimeStub::Install(mock_runtime.get());
   }
   void TearDown() {
-    RuntimeStub::UnInstall(nullptr);
+    AclRuntimeStub::UnInstall(nullptr);
   }
 };
 

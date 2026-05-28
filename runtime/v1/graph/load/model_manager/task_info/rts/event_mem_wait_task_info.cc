@@ -43,15 +43,15 @@ Status EventMemWaitTaskInfo::Distribute() {
   void *cur_mem = davinci_model_->GetMemEventIdAddr(mem_event_id_);
   GE_ASSERT_NOTNULL(cur_mem);
 
-  rtError_t rt_ret = rtsValueWait(cur_mem, 1, 1, stream_);
-  GE_ASSERT_TRUE((rt_ret == RT_ERROR_NONE), "Call rtsValueWait failed, ret:%d", rt_ret);
+  aclError aclrt_ret = aclrtValueWait(cur_mem, 1, 1, stream_);
+  GE_ASSERT_TRUE((aclrt_ret == ACL_SUCCESS), "Call aclrtValueWait failed, ret:%d", aclrt_ret);
 
   if (op_desc != nullptr) {
     SetTaskTag(op_desc->GetName().c_str());
   }
   // reset mem event ,use rtMemWriteVal instead of rtMemsetAsync due to performance
-  rt_ret = rtsValueWrite(cur_mem, 0, 0, stream_);
-  GE_ASSERT_TRUE((rt_ret == RT_ERROR_NONE), "Call rtsValueWrite failed, ret:%d", rt_ret);
+  aclrt_ret = aclrtValueWrite(cur_mem, 0, 0, stream_);
+  GE_ASSERT_TRUE((aclrt_ret == ACL_SUCCESS), "Call aclrtValueWrite failed, ret:%d", aclrt_ret);
 
   return SUCCESS;
 }

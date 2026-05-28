@@ -18,11 +18,8 @@
 #include <string>
 #include "mmpa/mmpa_api.h"
 #include "runtime/rt.h"
-#include "runtime/rts/rts_stream.h"
-#include "runtime/rts/rts_kernel.h"
-#include "runtime/rts/rts_device.h"
-
 #include "acl/acl_rt.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -216,10 +213,8 @@ class RuntimeStub {
   virtual rtError_t rtModelBindStream(rtModel_t model, rtStream_t stream, uint32_t flag);
   virtual rtError_t rtModelUnbindStream(rtModel_t model, rtStream_t stream);
   virtual rtError_t rtModelGetTaskId(void *handle, uint32_t *task_id, uint32_t *stream_id);
-  virtual rtError_t rtsStreamGetId(void *stm, int32_t *streamId);
-  virtual rtError_t rtsSetStreamResLimit(rtStream_t stm, const rtDevResLimitType_t type, const uint32_t value);
-  virtual rtError_t rtsUseStreamResInCurrentThread(const rtStream_t stm);
 
+  // 待engines调用处删除后移除
   virtual rtError_t rtsGetThreadLastTaskId(uint32_t *taskId);
   virtual rtError_t rtsDeviceGetCapability(int32_t deviceId, int32_t devFeatureType, int32_t *val);
 
@@ -286,66 +281,8 @@ class RuntimeStub {
     return RT_ERROR_NONE;
   }
 
-  virtual rtError_t rtsBinaryLoadFromFile(const char * const binPath, const rtLoadBinaryConfig_t *const optionalCfg,
-                                          rtBinHandle *binHandle) {
-    uint64_t stub_bin_addr = 0x1200;
-    *binHandle = reinterpret_cast<void *>(static_cast<uintptr_t>(stub_bin_addr));
-    return RT_ERROR_NONE;
-  }
-
-  virtual rtError_t rtsBinaryLoadFromData(const void * const data, const uint64_t length,
-                                          const rtLoadBinaryConfig_t * const optionalCfg, rtBinHandle *handle) {
-    uint64_t stub_bin_addr = 0x1200;
-    *handle = reinterpret_cast<void *>(static_cast<uintptr_t>(stub_bin_addr));
-    return RT_ERROR_NONE;
-  }
-
-  virtual rtError_t rtsFuncGetByName(const rtBinHandle binHandle, const char *kernelName,
-                                     rtFuncHandle *funcHandle) {
-    uint64_t stub_func_addr = 0x1600;
-    *funcHandle = reinterpret_cast<void *>(static_cast<uintptr_t>(stub_func_addr));
-    return RT_ERROR_NONE;
-  }
-
-  virtual rtError_t rtsRegisterCpuFunc(const rtBinHandle binHandle, const char_t * const funcName,
-                                       const char_t * const kernelName, rtFuncHandle *funcHandle) {
-    uint64_t stub_func_addr = 0x1600;
-    *funcHandle = reinterpret_cast<void *>(static_cast<uintptr_t>(stub_func_addr));
-    return RT_ERROR_NONE;
-  }
-
-  virtual rtError_t rtsLaunchCpuKernel(const rtFuncHandle funcHandle, const uint32_t blockDim, rtStream_t st,
-                                       const rtKernelLaunchCfg_t *cfg, rtCpuKernelArgs_t *argsInfo) {
-    return RT_ERROR_NONE;
-  }
-
   virtual rtError_t rtGetDevice(int32_t *deviceId);
 
-  virtual rtError_t rtsFuncGetByEntry(const rtBinHandle binHandle, const uint64_t funcEntry,
-      rtFuncHandle *funcHandle) {
-    uint64_t stub_func_addr = 0x1700;
-    *funcHandle = reinterpret_cast<void *>(static_cast<uintptr_t>(stub_func_addr));
-    return RT_ERROR_NONE;
-  }
-
-  virtual rtError_t rtsBinaryUnload(const rtBinHandle binHandle) {
-    return RT_ERROR_NONE;
-  }
-
-  virtual rtError_t rtsLaunchKernelWithDevArgs(rtFuncHandle funcHandle, uint32_t blockDim, rtStream_t stm,
-      rtKernelLaunchCfg_t *cfg, const void *args, uint32_t argsSize, void *reserve) {
-    return RT_ERROR_NONE;
-  }
-
-  virtual rtError_t rtsLaunchKernelWithHostArgs(rtFuncHandle funcHandle, uint32_t blockDim,
-      rtStream_t stm, rtKernelLaunchCfg_t * cfg, void * hostArgs, uint32_t argsSize,
-      rtPlaceHolderInfo_t * placeHolderArray, uint32_t placeHolderNum) {
-    return RT_ERROR_NONE;
-  }
-
-  virtual rtError_t rtsGetHardwareSyncAddr(void **addr) {
-    return RT_ERROR_NONE;
-  }
  private:
   static std::mutex mutex_;
   static std::shared_ptr<RuntimeStub> instance_;

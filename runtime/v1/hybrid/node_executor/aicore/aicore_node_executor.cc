@@ -15,8 +15,7 @@
 #include "graph/ge_context.h"
 #include "hybrid/executor/hybrid_execution_context.h"
 #include "single_op/task/build_task_utils.h"
-#include "runtime/rts/rts_stream.h"
-#include "runtime/rts/rts_kernel.h"
+
 
 namespace ge {
 namespace hybrid {
@@ -298,7 +297,7 @@ Status AiCoreNodeTask::CheckOverflow(TaskContext &context) const {
     const auto rt_ret = rtStreamSynchronizeWithTimeout(context.GetStream(), timeout);
     if ((rt_ret == ACL_ERROR_RT_AICORE_OVER_FLOW) || (rt_ret == ACL_ERROR_RT_AIVEC_OVER_FLOW)) {
       context.SetOverFlow(true);
-      (void)rtsGetThreadLastTaskId(context.MutableTaskId());
+      (void)aclrtGetThreadLastTaskId(context.MutableTaskId());
       (void)aclrtStreamGetId(context.GetStream(), reinterpret_cast<int32_t*>(context.MutableStreamId()));
       GELOGW("Dynamic shape op %s is over flow", context.GetNodeName());
       return SUCCESS;

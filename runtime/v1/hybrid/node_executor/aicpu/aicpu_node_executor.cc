@@ -21,8 +21,6 @@
 #include "graph/def_types.h"
 #include "common/utils/executor_utils.h"
 #include "graph/ge_context.h"
-#include "runtime/rts/rts_stream.h"
-#include "runtime/rts/rts_kernel.h"
 
 namespace ge {
 namespace hybrid {
@@ -414,7 +412,7 @@ Status AicpuNodeTaskBase::CheckOverflow(TaskContext &context) const {
     // AICPU is responsible for dump itself. This code is only reserved code for future solution.
     if (rt_ret == ACL_ERROR_RT_OVER_FLOW) {
       context.SetOverFlow(true);
-      (void)rtsGetThreadLastTaskId(context.MutableTaskId());
+      (void)aclrtGetThreadLastTaskId(context.MutableTaskId());
       (void)aclrtStreamGetId(context.GetStream(), reinterpret_cast<int32_t*>(context.MutableStreamId()));
       GELOGW("TaskBase Dynamic shape op %s is over flow", context.GetNodeName());
       return SUCCESS;
@@ -1347,7 +1345,7 @@ Status AicpuNodeTask::CheckOverflow(TaskContext &context) const {
     // AICPU is responsible for dump itself. This code is only reserved code for future solution.
     if (rt_ret == ACL_ERROR_RT_OVER_FLOW) {
       context.SetOverFlow(true);
-      (void)rtsGetThreadLastTaskId(context.MutableTaskId());
+      (void)aclrtGetThreadLastTaskId(context.MutableTaskId());
       (void)aclrtStreamGetId(context.GetStream(), reinterpret_cast<int32_t*>(context.MutableStreamId()));
       GELOGW("Dynamic shape op %s is over flow", context.GetNodeName());
       return SUCCESS;

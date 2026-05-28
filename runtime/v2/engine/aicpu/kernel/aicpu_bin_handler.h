@@ -17,7 +17,7 @@
 #include <shared_mutex>
 #include <unordered_map>
 #include "ge/ge_api_error_codes.h"
-#include "runtime/rts/rts_kernel.h"
+#include "runtime/base.h"
 #include "graph/op_kernel_bin.h"
 
 namespace gert {

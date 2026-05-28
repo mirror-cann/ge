@@ -25,9 +25,8 @@
 #include "proto/ge_ir.pb.h"
 #include "proto/op_mapping.pb.h"
 #include "runtime/rt.h"
-#include "runtime/rts/rts_stream.h"
-#include "runtime/rts/rts_kernel.h"
-#include "runtime/rts/rts_device.h"
+// 待rt.h移除后再替换为rt_external_device.h
+#include "rts/rts_device.h"
 #include "aicpu_task_struct.h"
 #include "graph/debug/ge_attr_define.h"
 #include "graph/utils/attr_utils.h"
@@ -641,8 +640,8 @@ Status DumpOp::LaunchDumpOp(const bool is_single_op_dump, bool need_device_args)
          op_desc_->GetName().c_str(), static_cast<int32_t>(is_single_op_dump), static_cast<int32_t>(need_device_args));
 
   int32_t device_id = 0;
-  const rtError_t rt_ret = aclrtGetDevice(&device_id);
-  if (rt_ret != RT_ERROR_NONE) {
+  const aclError rt_ret = aclrtGetDevice(&device_id);
+  if (rt_ret != ACL_SUCCESS) {
     GELOGE(RT_ERROR_TO_GE_STATUS(rt_ret), "[Call][aclrtGetDevice]Failed, ret %d", rt_ret);
     REPORT_INNER_ERR_MSG("E19999", "[Call][aclrtGetDevice]Failed, ret %d", rt_ret);
     return RT_ERROR_TO_GE_STATUS(rt_ret);
@@ -671,7 +670,7 @@ Status DumpOp::LaunchDumpOp(const bool is_single_op_dump, bool need_device_args)
   GELOGI("Dump step is %s, dump path is %s in Launch dump op", dump_properties_.GetDumpStep().c_str(),
          dump_path.c_str());
   if ((task_id_ == 0U) || (stream_id_ == 0U)) {
-    GE_CHK_RT(rtsGetThreadLastTaskId(&task_id_));
+    GE_CHK_RT(aclrtGetThreadLastTaskId(&task_id_));
     int32_t temp_stream_id;
     GE_CHK_RT(aclrtStreamGetId(stream_, &temp_stream_id));
     stream_id_ = static_cast<uint32_t>(temp_stream_id);

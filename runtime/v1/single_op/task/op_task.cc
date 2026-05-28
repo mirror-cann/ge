@@ -30,7 +30,7 @@
 #include "common/aclrt_malloc_helper.h"
 #include "common/dump/dump_utils.h"
 #include "common/error_tracking/error_tracking.h"
-#include "runtime/rts/rts_kernel.h"
+
 
 namespace ge {
 namespace {
@@ -139,7 +139,7 @@ Status OpTask::OpenDump(aclrtStream const stream) {
 
 Status OpTask::GetTaskIdAndStreamId(aclrtStream const stream) {
   if (ProfilingManager::Instance().ProfilingModelLoadOn()) {
-    GE_CHK_RT_RET(rtsGetThreadLastTaskId(&task_id_));
+    GE_CHK_RT_RET(aclrtGetThreadLastTaskId(&task_id_));
     GE_CHK_RT_RET(aclrtStreamGetId(stream, reinterpret_cast<int32_t*>(&stream_id_)));
   }
   return SUCCESS;
@@ -157,7 +157,7 @@ void OpTask::SetTaskTag() const {
 Status OpTask::PostProcess(aclrtStream const stream) {
   GE_CHK_STATUS_RET(OpenDump(stream), "[Open][Dump]failed, single op:%s.",
                     GetOpdesc()->GetName().c_str());
-  GE_ASSERT_RT_OK(rtsGetThreadLastTaskId(&task_id_));
+  GE_ASSERT_RT_OK(aclrtGetThreadLastTaskId(&task_id_));
   GE_ASSERT_RT_OK(aclrtStreamGetId(stream, reinterpret_cast<int32_t*>(&stream_id_)));
   ErrorTracking::GetInstance().SaveSingleOpTaskOpdescInfo(op_desc_, task_id_, stream_id_);
   GE_CHK_STATUS(SaveExceptionDumpInfo(), "Save Exception dump failed.");

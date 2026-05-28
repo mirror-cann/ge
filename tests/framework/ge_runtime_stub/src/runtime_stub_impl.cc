@@ -331,50 +331,6 @@ const std::list<ge::GeFakeLaunchArgs> &RuntimeStubImpl::GetAllLaunchArgs() const
   return all_launch_args_;
 }
 
-rtError_t RuntimeStubImpl::rtsStreamGetId(void *stm, int32_t *streamId)
-{
-  const std::lock_guard<std::mutex> lk(global_mtx_);
-  (void) stm;
-
-  *streamId = static_cast<uint32_t>(last_stream_);
-
-  if (!all_launch_args_.empty()) {
-    all_launch_args_.back().SetStreamId(*streamId);
-  }
-  return RT_ERROR_NONE;
-}
-
-rtError_t RuntimeStubImpl::rtsSetStreamResLimit(rtStream_t stm, const rtDevResLimitType_t type, const uint32_t value) {
-  (void) stm;
-  (void) type;
-  (void) value;
-  return RT_ERROR_NONE;
-}
-
-rtError_t RuntimeStubImpl::rtsUseStreamResInCurrentThread(const rtStream_t stm) {
-  (void) stm;
-  return RT_ERROR_NONE;
-}
-
-rtError_t RuntimeStubImpl::rtsGetThreadLastTaskId(uint32_t *taskId)
-{
-  const std::lock_guard<std::mutex> lk(global_mtx_);
-
-  *taskId = stream_to_task_id_[last_stream_];
-
-  auto it = stream_to_task_id_.find(last_stream_);
-  if (it != stream_to_task_id_.end()) {
-    *taskId = it->second;
-  } else {
-    *taskId = 0;
-  }
-
-  if (!all_launch_args_.empty()) {
-    all_launch_args_.back().SetTaskId(*taskId);
-  }
-  return RT_ERROR_NONE;
-}
-
 rtError_t RuntimeStubImpl::rtsDeviceGetCapability(int32_t deviceId, int32_t devFeatureType, int32_t *val)
 {
   (void) deviceId;
@@ -442,84 +398,6 @@ rtError_t RuntimeStubImpl::rtModelExecute(rtModel_t model, rtStream_t stream, ui
 rtError_t RuntimeStubImpl::rtStreamTaskClean(rtStream_t stm) {
   last_stream_ = static_cast<uint64_t>(reinterpret_cast<uintptr_t>(stm));
   stream_to_task_id_.erase(last_stream_);
-  return RT_ERROR_NONE;
-}
-
-rtError_t RuntimeStubImpl::rtsBinaryLoadFromFile(const char * const binPath, const rtLoadBinaryConfig_t *const optionalCfg,
-                                                 rtBinHandle *binHandle)
-{
-  uint64_t stub_bin_addr = 0x1200;
-  *binHandle = reinterpret_cast<void *>(static_cast<uintptr_t>(stub_bin_addr));
-  return RT_ERROR_NONE;
-}
-rtError_t RuntimeStubImpl::rtsFuncGetByName(const rtBinHandle binHandle, const char *kernelName,
-                                            rtFuncHandle *funcHandle)
-{
-  uint64_t stub_func_addr = 0x1600;
-  *funcHandle = reinterpret_cast<void *>(static_cast<uintptr_t>(stub_func_addr));
-  return RT_ERROR_NONE;
-}
-rtError_t RuntimeStubImpl::rtsLaunchCpuKernel(const rtFuncHandle funcHandle, const uint32_t blockDim, rtStream_t st,
-                                              const rtKernelLaunchCfg_t *cfg, rtCpuKernelArgs_t *argsInfo)
-{
-  const std::lock_guard<std::mutex> lk(global_mtx_);
-  all_launch_args_.emplace_back(funcHandle, blockDim, st, cfg, argsInfo, std::move(last_tag_));
-  cpu_launch_args_["cpu_new_args_launch"].emplace_back(&all_launch_args_.back());
-  last_stream_ = static_cast<uint64_t>(reinterpret_cast<uintptr_t>(st));
-  if (stream_to_task_id_.find(last_stream_) != stream_to_task_id_.end()) {
-    stream_to_task_id_[last_stream_]++;
-  } else {
-    stream_to_task_id_[last_stream_] = 0;
-  }
-  return RT_ERROR_NONE;
-}
-
-rtError_t RuntimeStubImpl::rtsLaunchKernelWithHostArgs(rtFuncHandle funcHandle, uint32_t blockDim, rtStream_t stm,
-                                                       rtKernelLaunchCfg_t *cfg, void *hostArgs, uint32_t argsSize,
-                                                       rtPlaceHolderInfo_t *placeHolderArray, uint32_t placeHolderNum)
-{
-  const std::lock_guard<std::mutex> lk(global_mtx_);
-  all_launch_args_.emplace_back(funcHandle, blockDim, stm, cfg, hostArgs, argsSize,
-                                placeHolderArray, placeHolderNum, std::move(last_tag_));
-  cpu_launch_args_["cpu_new_args_launch_with_place_holder"].emplace_back(&all_launch_args_.back());
-  last_stream_ = static_cast<uint64_t>(reinterpret_cast<uintptr_t>(stm));
-  if (stream_to_task_id_.find(last_stream_) != stream_to_task_id_.end()) {
-    stream_to_task_id_[last_stream_]++;
-  } else {
-    stream_to_task_id_[last_stream_] = 0;
-  }
-  return RT_ERROR_NONE;
-}
-
-rtError_t RuntimeStubImpl::rtsLaunchKernelWithDevArgs(rtFuncHandle funcHandle, uint32_t blockDim, rtStream_t stm,
-                                                      rtKernelLaunchCfg_t *cfg, const void *args, uint32_t argsSize, void *reserve)
-{
-  const std::lock_guard<std::mutex> lk(global_mtx_);
-  all_launch_args_.emplace_back(funcHandle, blockDim, stm, cfg, args, argsSize,
-                                reserve, std::move(last_tag_));
-  cpu_launch_args_["cpu_new_args_launch_with_place_holder"].emplace_back(&all_launch_args_.back());
-  last_stream_ = static_cast<uint64_t>(reinterpret_cast<uintptr_t>(stm));
-  if (stream_to_task_id_.find(last_stream_) != stream_to_task_id_.end()) {
-    stream_to_task_id_[last_stream_]++;
-  } else {
-    stream_to_task_id_[last_stream_] = 0;
-  }
-  return RT_ERROR_NONE;
-}
-
-rtError_t RuntimeStubImpl::rtsBinaryLoadFromData(const void * const data, const uint64_t length,
-                                                 const rtLoadBinaryConfig_t * const optionalCfg, rtBinHandle *handle)
-{
-  uint64_t stub_bin_addr = 0x1200;
-  *handle = reinterpret_cast<void *>(static_cast<uintptr_t>(stub_bin_addr));
-  return RT_ERROR_NONE;
-}
-
-rtError_t RuntimeStubImpl::rtsRegisterCpuFunc(const rtBinHandle binHandle, const char_t * const funcName,
-                                              const char_t * const kernelName, rtFuncHandle *funcHandle)
-{
-  uint64_t stub_func_addr = 0x1600;
-  *funcHandle = reinterpret_cast<void *>(static_cast<uintptr_t>(stub_func_addr));
   return RT_ERROR_NONE;
 }
 

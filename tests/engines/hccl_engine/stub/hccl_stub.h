@@ -25,7 +25,6 @@ using std::list;
 // #include "hccl/hccl.h"
 #include "hcom.h"
 #include "runtime/base.h"
-#include "rts/rts_mem.h"
 #include "ge/ge_error_codes.h"
 #include "hccl/hccl_types.h"
 #include "hccl/base.h"

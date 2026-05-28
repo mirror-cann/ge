@@ -18,8 +18,6 @@
 #include "hybrid/executor/subgraph_executor.h"
 #include "common/profiling/profiling_manager.h"
 #include "common/dump/dump_manager.h"
-#include "runtime/rts/rts_stream.h"
-#include "runtime/rts/rts_kernel.h"
 
 namespace ge {
 namespace hybrid {
@@ -591,7 +589,7 @@ Status TaskContext::SaveProfilingTaskDescInfo(const std::string &task_type, cons
                                               const std::string &op_type) {
   if (DumpManager::GetInstance().IsDumpExceptionOpen() || ProfilingManager::Instance().ProfilingModelLoadOn() ||
       ProfilingProperties::Instance().ProfilingSubscribeOn()) {
-    GE_CHK_RT_RET(rtsGetThreadLastTaskId(&task_id_));
+    GE_CHK_RT_RET(aclrtGetThreadLastTaskId(&task_id_));
     GE_CHK_RT_RET(aclrtStreamGetId(GetStream(), reinterpret_cast<int32_t*>(&stream_id_)));
     GELOGD("Get Node[%s] task id: %u, stream id: %u.", GetNodeName(), task_id_, stream_id_);
   }

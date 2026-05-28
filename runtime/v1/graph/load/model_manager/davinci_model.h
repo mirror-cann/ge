@@ -52,7 +52,8 @@
 #include "common/memory/tensor_trans_utils.h"
 #include "graph/load/model_manager/kernel/model_kernel_handles_manager.h"
 #include "common/kernel_handles_manager/kernel_handle_utils.h"
-#include "runtime/rts/rts_dqs.h"
+// 待rt.h移除后再替换为rt_external_dqs.h
+#include "rts/rts_dqs.h"
 #include "acl/acl_rt.h"
 #include "acl/acl_mdl.h"
 

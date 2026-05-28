@@ -556,10 +556,6 @@ typedef struct {
     uint32_t dataOffset;
 } rtPlaceHolderInfo_t;
 
-rtError_t rtsLaunchKernelWithHostArgs(rtFuncHandle funHandle, uint32_t blockDim, rtStream_t stm, rtKernelLaunchCfg_t *cfg,
-    void *hostArgs, uint32_t argsSize, rtPlaceHolderInfo_t *placeHolderArray, uint32_t placeHolderNum);
-
-
 rtError_t rtStreamSynchronize(rtStream_t stream);
 
 

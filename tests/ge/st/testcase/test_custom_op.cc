@@ -199,7 +199,7 @@ public:
     args_table[2] = static_cast<void*>(input_2);
     args_table[3] = static_cast<void*>(output_0);
 
-    rtsLaunchKernelWithHostArgs(nullptr, 0, nullptr, nullptr, &args_table[0], 32, nullptr, 0);
+    aclrtLaunchKernelWithHostArgs(nullptr, 0, nullptr, nullptr, &args_table[0], 32, nullptr, 0);
     return SUCCESS;
   }
 };

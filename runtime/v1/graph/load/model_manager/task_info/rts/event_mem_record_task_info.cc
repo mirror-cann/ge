@@ -41,8 +41,8 @@ Status EventMemRecordTaskInfo::Distribute() {
   void *cur_mem = davinci_model_->GetMemEventIdAddr(mem_event_id_);
   GE_ASSERT_NOTNULL(cur_mem);
 
-  const rtError_t rt_ret = rtsValueWrite(cur_mem, 1, 0, stream_);
-  GE_ASSERT_TRUE((rt_ret == RT_ERROR_NONE), "Call rtsValueWrite failed, ret:%d", rt_ret);
+  const aclError aclrt_ret = aclrtValueWrite(cur_mem, 1, 0, stream_);
+  GE_ASSERT_TRUE((aclrt_ret == ACL_SUCCESS), "Call aclrtValueWrite failed, ret:%d", aclrt_ret);
 
   return SUCCESS;
 }

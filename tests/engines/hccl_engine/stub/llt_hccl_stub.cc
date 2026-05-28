@@ -3490,12 +3490,6 @@ aclError aclrtMemcpy(void *dst, size_t destMax, const void *src, size_t count, a
     return ACL_SUCCESS;
 }
 
-rtError_t rtsLaunchKernelWithHostArgs(rtFuncHandle funcHandle, uint32_t blockDim, rtStream_t stm, rtKernelLaunchCfg_t *cfg,
-    void *hostArgs, uint32_t argsSize, rtPlaceHolderInfo_t *placeHolderArray, uint32_t placeHolderNum)
-{
-    return RT_ERROR_NONE;
-}
-
 aclError aclmdlRICaptureThreadExchangeMode(aclmdlRICaptureMode *mode)
 {
     return ACL_SUCCESS;
