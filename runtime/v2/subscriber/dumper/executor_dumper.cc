@@ -35,7 +35,7 @@
 #include "exe_graph/lowering/exe_graph_attrs.h"
 #include "graph/utils/type_utils.h"
 #include "core/builder/node_types.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "subscriber/subscriber_utils.h"
 #include "runtime/gert_const_types.h"
 #include "graph/load/model_manager/davinci_model.h"

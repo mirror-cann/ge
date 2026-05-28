@@ -17,7 +17,7 @@
 #include <memory>
 #include <functional>
 #include "ascend_hal.h"
-#include "flow_msg.h"
+#include "flow_func/flow_msg.h"
 #include "fsm/state_define.h"
 #include "llm_common/llm_common.h"
 #include "llm_common/statistic_manager.h"

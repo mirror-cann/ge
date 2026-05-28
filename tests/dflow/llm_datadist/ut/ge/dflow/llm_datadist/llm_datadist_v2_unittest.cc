@@ -14,7 +14,7 @@
 #include "llm_engine_test_helper.h"
 #include "cache_engine_stubs.h"
 #include "common/cache_engine.h"
-#include "llm_datadist.h"
+#include "llm_datadist_internal.h"
 #include "mmpa/mmpa_api.h"
 #include "common/llm_inner_types.h"
 

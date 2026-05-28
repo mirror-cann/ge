@@ -12,7 +12,7 @@
 #include "host_cpu_engine/host_cpu_engine.h"
 #include "engines/local_engine/common/constant/constant.h"
 #include "ge/ge_api.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 
 #include "framework/ge_running_env/src/env/ge_default_running_env.h"
 #include "framework/ge_running_env/include/ge_running_env/fake_op.h"

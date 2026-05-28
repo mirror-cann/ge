@@ -12,7 +12,7 @@
 
 #include "compute_graph.h"
 #include "graph/normal_graph/compute_graph_impl.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "utils/graph_utils.h"
 #include "graph/passes/graph_builder_utils.h"
 

@@ -11,7 +11,7 @@
 #ifndef DOMI_OP_FRAMEWORKOP_OP_OPERATOR_H_
 #define DOMI_OP_FRAMEWORKOP_OP_OPERATOR_H_
 #include "graph/debug/ge_attr_define.h"
-#include "parser/common/op_def/operator.h"
+#include "parser/common/op_def/parser_operator_internal.h"
 
 namespace ge {
 class FrameworkOpOperator : public ParserOperator {

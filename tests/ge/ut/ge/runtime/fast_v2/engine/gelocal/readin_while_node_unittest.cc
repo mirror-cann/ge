@@ -14,7 +14,7 @@
 #include "faker/global_data_faker.h"
 #include "common/bg_test.h"
 
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "core/builder/graph_node.h"
 #include "lowering/graph_converter.h"
 #include "op_impl/less_important_op_impl.h"

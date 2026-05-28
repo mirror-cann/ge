@@ -12,7 +12,7 @@
 #include "ge/ge_api.h"
 #include "ge/ge_api_v2.h"
 #include "graph/debug/ge_attr_define.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "graph/utils/graph_utils.h"
 #include "graph/utils/graph_utils_ex.h"
 #include "graph/utils/tensor_utils.h"

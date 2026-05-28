@@ -12,7 +12,7 @@
 #include <memory>
 
 #include "common/ge_inner_error_codes.h"
-#include "common/types.h"
+#include "common/framework_types_internal.h"
 #include "common/util.h"
 #include "graph/passes/graph_builder_utils.h"
 #include "graph/utils/attr_utils.h"

@@ -13,7 +13,7 @@
 #include "runtime/mem.h"
 #include "ge_graph_dsl/graph_dsl.h"
 #include "common/ge_inner_attrs.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "graph/utils/graph_utils_ex.h"
 #include "graph/utils/op_desc_utils.h"
 #include "graph/utils/tensor_utils.h"

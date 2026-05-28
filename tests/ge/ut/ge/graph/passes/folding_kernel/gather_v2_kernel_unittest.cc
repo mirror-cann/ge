@@ -18,7 +18,7 @@
 #include "common/debug/memory_dumper.h"
 #include "common/fp16_t/fp16_t.h"
 #include "common/ge_inner_error_codes.h"
-#include "common/types.h"
+#include "common/framework_types_internal.h"
 #include "graph/debug/ge_attr_define.h"
 #include "graph/passes/standard_optimize/constant_folding/dimension_compute_pass.h"
 #include "host_kernels/kernel_utils.h"

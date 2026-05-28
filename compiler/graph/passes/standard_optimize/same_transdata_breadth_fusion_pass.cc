@@ -16,7 +16,7 @@
 #include <utility>
 #include <vector>
 #include "framework/common/ge_inner_error_codes.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "graph/debug/ge_attr_define.h"
 #include "graph/common/trans_op_creator.h"
 #include "graph/utils/graph_utils.h"

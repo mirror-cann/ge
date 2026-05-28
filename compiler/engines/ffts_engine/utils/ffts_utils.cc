@@ -23,7 +23,7 @@
 #include "graph/utils/node_utils.h"
 #include "graph/debug/ge_attr_define.h"
 #include "runtime/rt.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "common/sgt_slice_type.h"
 
 

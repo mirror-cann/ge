@@ -9,7 +9,7 @@
  */
 
 #include "ge_graph_dsl/op_desc/op_desc_cfg_repo.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "ge_graph_dsl/op_desc/op_desc_cfg.h"
 
 GE_NS_BEGIN

@@ -7,7 +7,7 @@
 #include <vector>
 #include <list>
 #include <deque>
-#include "common/types.h"
+#include "common/framework_types_internal.h"
 
 using namespace std;
 

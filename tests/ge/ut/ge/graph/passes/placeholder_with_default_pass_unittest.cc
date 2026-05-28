@@ -14,7 +14,7 @@
 #include "graph/passes/standard_optimize/placeholder_with_default_pass.h"
 
 #include "common/op/ge_op_utils.h"
-#include "common/types.h"
+#include "common/framework_types_internal.h"
 #include "graph/anchor.h"
 #include "graph/attr_value.h"
 #include "graph/compute_graph.h"

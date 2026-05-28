@@ -10,7 +10,7 @@
 
 #include "tensorflow_custom_op_parser.h"
 
-#include "parser/tensorflow/tensorflow_parser.h"
+#include "parser/tensorflow/tensorflow_parser_internal.h"
 #include <algorithm>
 #include <iostream>
 #include <regex>

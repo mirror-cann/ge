@@ -15,7 +15,7 @@
 #include "common/fe_inner_error_codes.h"
 #include "common/fe_op_info_common.h"
 #include "common/util/op_info_util.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "graph/utils/tensor_utils.h"
 #include "graph_optimizer/shape_format_transfer/trans_node_manager/trans_node_insertion/trans_node_insertion.h"
 

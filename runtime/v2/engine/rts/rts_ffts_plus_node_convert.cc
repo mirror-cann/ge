@@ -18,7 +18,7 @@
 #include "common/hyper_status.h"
 #include "graph/utils/node_utils.h"
 #include "graph_builder/converter_checker.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "engine/aicore/kernel/aicore_update_kernel.h"
 
 namespace gert {

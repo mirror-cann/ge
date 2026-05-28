@@ -11,7 +11,7 @@
 #include "graph/label/if_op_label_maker.h"
 
 #include "framework/common/util.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "framework/common/op/ge_op_utils.h"
 #include "graph/utils/graph_utils.h"
 

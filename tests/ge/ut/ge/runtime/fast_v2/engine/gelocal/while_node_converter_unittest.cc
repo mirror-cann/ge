@@ -24,7 +24,7 @@
 #include "op_impl/less_important_op_impl.h"
 
 #include "register/op_impl_registry.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "graph/utils/graph_dump_utils.h"
 
 using namespace ge;

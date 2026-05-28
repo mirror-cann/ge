@@ -10,7 +10,7 @@
 
 #ifndef DOMI_OP_FILL_OP_H_
 #define DOMI_OP_FILL_OP_H_
-#include "parser/common/op_def/operator.h"
+#include "parser/common/op_def/parser_operator_internal.h"
 
 namespace ge {
 class FillOperator : public ParserOperator {

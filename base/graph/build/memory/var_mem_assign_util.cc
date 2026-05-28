@@ -10,7 +10,7 @@
 
 #include "graph/build/memory/var_mem_assign_util.h"
 #include <vector>
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "framework/common/debug/ge_log.h"
 #include "common/op/transop_util.h"
 #include "common/checker.h"

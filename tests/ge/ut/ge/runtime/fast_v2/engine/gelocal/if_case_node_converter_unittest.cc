@@ -24,7 +24,7 @@
 #include "common/topo_checker.h"
 #include "lowering/graph_converter.h"
 #include "register/op_impl_registry.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "faker/magic_ops.h"
 #include "common/const_data_helper.h"
 #include "graph/utils/graph_dump_utils.h"

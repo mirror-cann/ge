@@ -10,7 +10,7 @@
 
 #include <gtest/gtest.h>
 
-#include "common/types.h"
+#include "common/framework_types_internal.h"
 #include "graph/graph.h"
 #include "graph/manager/graph_var_manager.h"
 #include "graph/passes/control_flow_and_stream/merge_pass.h"
@@ -22,7 +22,7 @@
 #include "graph/passes/pass_manager.h"
 #include "omg/omg.h"
 #include "common/ge_inner_error_codes.h"
-#include "common/types.h"
+#include "common/framework_types_internal.h"
 
 using namespace domi;
 

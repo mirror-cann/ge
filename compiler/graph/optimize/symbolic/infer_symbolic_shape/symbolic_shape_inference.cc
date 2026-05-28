@@ -14,7 +14,7 @@
 #include "attribute_group/attr_group_symbolic_desc.h"
 #include "attribute_group/attr_group_shape_env.h"
 #include "exe_graph/lowering/kernel_run_context_builder.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "graph/utils/op_desc_utils.h"
 #include "graph/utils/type_utils.h"
 #include "graph/utils/node_utils_ex.h"

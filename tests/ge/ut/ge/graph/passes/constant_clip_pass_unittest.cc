@@ -21,7 +21,7 @@
 #include "graph/graph.h"
 #include "graph/utils/op_desc_utils.h"
 #include "common/ge_inner_error_codes.h"
-#include "common/types.h"
+#include "common/framework_types_internal.h"
 #include "graph/ge_local_context.h"
 
 using namespace std;

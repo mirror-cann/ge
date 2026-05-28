@@ -15,7 +15,7 @@
 #include "graph/utils/graph_utils.h"
 #include "graph/debug/ge_attr_define.h"
 #include "framework/common/ge_types.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "exe_graph/runtime/tiling_context.h"
 #include "exe_graph/lowering/value_holder.h"
 #include "exe_graph/runtime/continuous_vector.h"

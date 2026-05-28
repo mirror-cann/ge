@@ -11,7 +11,7 @@
 #include "graph/label/partitioned_call_op_label_maker.h"
 
 #include "framework/common/util.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "graph/debug/ge_attr_define.h"
 #include "graph/utils/graph_utils.h"
 

@@ -17,7 +17,7 @@
 #include "common/checker.h"
 
 #include "base/common/plugin/ge_make_unique_util.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 
 namespace ge {
 namespace fusion {

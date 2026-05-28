@@ -27,7 +27,7 @@
 #include "proto/aicpu/cpu_tensor_shape.pb.h"
 #include "cpu_engine_util.h"
 #include "common/sgt_slice_type.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 
 namespace {
 const std::string kDefaultKernelSo = "libcpu_kernels.so";

@@ -8,7 +8,7 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-#include "parser/tensorflow/tensorflow_parser.h"
+#include "parser/tensorflow/tensorflow_parser_internal.h"
 #include <algorithm>
 #include <fstream>
 #include <iostream>

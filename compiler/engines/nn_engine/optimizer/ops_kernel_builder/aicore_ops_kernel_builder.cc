@@ -34,7 +34,7 @@
 #include "register/op_ext_calc_param_registry.h"
 #include "exe_graph/lowering/exe_res_generation_ctx_builder.h"
 #include "base/registry/op_impl_space_registry_v2.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "exe_graph/runtime/exe_res_generation_context.h"
 
 namespace fe {

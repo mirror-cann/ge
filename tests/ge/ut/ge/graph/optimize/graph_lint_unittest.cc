@@ -12,7 +12,7 @@
 #include "graph/preprocess/checker/graph_lint.h"
 #include "common/share_graph.h"
 #include "ge_graph_dsl/graph_dsl.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 
 using namespace testing;
 namespace ge {

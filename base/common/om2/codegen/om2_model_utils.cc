@@ -19,7 +19,7 @@
 #include "common/math/math_util.h"
 #include "graph/utils/tensor_utils.h"
 #include "graph/debug/ge_attr_define.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "runtime/mem.h"
 
 namespace ge {

@@ -19,7 +19,7 @@
 #include "hybrid/model/infer/tensor_desc_observer.h"
 #include "hybrid/model/infer/tensor_desc_holder.h"
 #include "ge_graph_dsl/op_desc/op_desc_cfg_box.h"
-#include "common/types.h"
+#include "common/framework_types_internal.h"
 #include "hybrid/model/node_item.h"
 #include "graph/compute_graph.h"
 #include "macro_utils/dt_public_unscope.h"

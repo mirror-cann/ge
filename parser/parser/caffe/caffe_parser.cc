@@ -8,7 +8,7 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-#include "parser/caffe/caffe_parser.h"
+#include "parser/caffe/caffe_parser_internal.h"
 
 #include <fstream>
 #include <iostream>

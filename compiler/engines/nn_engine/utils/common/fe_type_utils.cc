@@ -14,7 +14,7 @@
 #include <climits>
 #include <cctype>
 #include "graph/debug/ge_attr_define.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "common/fe_log.h"
 #include "common/constants_define.h"
 #include "common/string_utils.h"

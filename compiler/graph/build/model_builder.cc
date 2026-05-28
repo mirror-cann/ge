@@ -32,7 +32,7 @@
 #include "api/gelib/gelib.h"
 #include "framework/memory/memory_assigner.h"
 #include "framework/omg/version.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "graph/passes/memory_conflict/set_input_output_offset_pass.h"
 #include "graph/build/memory/block_mem_assigner.h"
 #include "common/helper/model_parser_base.h"

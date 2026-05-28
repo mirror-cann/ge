@@ -16,7 +16,7 @@
 #include "parser/common/op_parser_factory.h"
 #include "parser/onnx/onnx_util.h"
 #include "framework/common/util.h"
-#include "framework/common/types.h"
+#include "framework/common/framework_types_internal.h"
 #include "base/err_msg.h"
 
 using ge::onnx::NodeProto;
