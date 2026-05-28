@@ -426,7 +426,7 @@ TEST_F(MultiStreamL2AllocatorUT, All_L2MemPool_Recycle_When_L1_Malloc_Fail) {
   auto after_recycle_occupied_size = l1_allocator->GetScalableAllocator()->GetOccupiedMemSize() - origin_occupied_size;
   ASSERT_EQ(after_recycle_occupied_size, 25 * page_size);
   block->Free(1);
-  std::string recycle_log = "malloc memory failed, try to free l2 mem pool and malloc again";
+  std::string recycle_log = "malloc memory not success, try to free l2 mem pool and malloc again";
   EXPECT_NE(runtime_stub.GetSlogStub().FindInfoLogRegex(recycle_log.c_str()), -1);
   for (int64_t i = 0; i < stream_num; ++i) {
     std::string l1_free_log = "Shrink memory pool at stream 0x" + std::to_string(i + 1);

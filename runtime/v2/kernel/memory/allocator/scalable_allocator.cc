@@ -245,7 +245,7 @@ PageSpan *ScalableAllocator::FetchNewVaSpan(ge::Allocator &allocator, const MemS
 
 PageSpan *ScalableAllocator::FetchNewSpan(ge::Allocator &allocator, const MemSize size, const PageLen page_len) {
   if (IsThresholdExceeded(size)) {
-    GELOGI("OccupiedSize:%llu add size:%llu exceed total_thresold:%llu.",
+    GELOGI("OccupiedSize:%llu add size:%llu exceed total_threshold:%llu.",
                 device_allocator_.GetOccupiedSize(), size, config_.page_mem_size_total_threshold);
 
     // has freed memory, return nullptr and try recycle
@@ -364,7 +364,7 @@ PageSpan *ScalableAllocator::ProcessNewVaSpan(ge::Allocator &allocator, PageSpan
     SpanLayerId free_fit_layer_id = SpanLayerId_GetIdFromSize(span->GetSize(), config_.page_idem_num);
     free_span = SplitSpan(allocator, free_fix_layer_id, free_fit_layer_id, span, free_size);
     GE_ASSERT_NOTNULL(free_span);
-    GELOGI("free span size:%zu realsize:%zu left_size:%zu next_size:%zu",
+    GELOGI("free span size:%zu real_size:%zu left_size:%zu next_size:%zu",
                 free_span->GetSize(), free_size, span->GetSize(), reuse_size - free_size);
   } else {
     free_size = 0U;
@@ -381,7 +381,7 @@ PageSpan *ScalableAllocator::ProcessNewVaSpan(ge::Allocator &allocator, PageSpan
     FreeSpanEx(free_span);
   }
   GE_ASSERT_NOTNULL(using_span);
-  GELOGI("using span size:%zu realsize:%zu memaddr:%p index:%zu offset:%zu",
+  GELOGI("using span size:%zu real_size:%zu memaddr:%p index:%zu offset:%zu",
             using_span->GetSize(), reuse_size - free_size, using_span->GetAddr(),
             (reinterpret_cast<MemAddr>(using_span->GetAddr()) - reinterpret_cast<MemAddr>(base_addr_))
                 / ge::kLargePageSize,
@@ -411,7 +411,7 @@ PageSpan *ScalableAllocator::ProcessPaUsingSpan(ge::Allocator &allocator, PageSp
     span = SplitSpan(allocator, using_fix_layer_id, using_fit_layer_id, span, reuse_size);
     GE_ASSERT_NOTNULL(span);
     span->SetRealSize(reuse_size);
-    GELOGI("using span size:%zu realsize:%zu alloc_size:%zu", span->GetSize(), reuse_size,
+    GELOGI("using span size:%zu real_size:%zu alloc_size:%zu", span->GetSize(), reuse_size,
                 alloc_size);
     return span;
   }
@@ -464,7 +464,7 @@ PageSpan *ScalableAllocator::AllocImp(ge::Allocator &allocator, const MemSize si
 
 PageSpan *ScalableAllocator::Alloc(ge::Allocator &allocator, const MemSize size) {
   if (size > config_.page_mem_size_total_threshold) {
-    GELOGE(ge::FAILED, "%s [ScalableAllocator]: size:%lu > mem_size_total_thresold:%lu", GetId().c_str(), size,
+    GELOGE(ge::FAILED, "%s [ScalableAllocator]: size:%lu > mem_size_total_threshold:%lu", GetId().c_str(), size,
            config_.page_mem_size_total_threshold);
     return nullptr;
   }
