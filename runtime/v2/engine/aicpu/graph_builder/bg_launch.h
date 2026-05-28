@@ -29,6 +29,14 @@ struct IoInfo {
 ValueHolderPtr UpdateAicpuIoAddr(const ValueHolderPtr &args_handler,
                                  const std::vector<DevMemValueHolderPtr> input_addrs,
                                  const std::vector<ValueHolderPtr> output_addrs);
+// 为可选输入扩展地址列表，将占位符输入扩展为 nullptr。
+// node: 算子节点。
+// input_addrs: 实际输入地址列表。
+// empty_input_placement: 占位符输入的内存位置。
+// 返回值：扩展后的输入地址列表。
+std::vector<DevMemValueHolderPtr> ExpandAicpuOptionalInputAddrs(
+  const ge::NodePtr &node, const std::vector<DevMemValueHolderPtr> &input_addrs,
+  TensorPlacement empty_input_placement = kOnDeviceHbm);
 ValueHolderPtr AicpuTfLaunchKernel(const ValueHolderPtr &args_handler, const ValueHolderPtr &stream,
                                    const ValueHolderPtr &bin_handler, const ge::NodePtr node);
 ValueHolderPtr AicpuCCLaunchKernel(const ValueHolderPtr &args_handler, const ValueHolderPtr &stream,
@@ -36,7 +44,10 @@ ValueHolderPtr AicpuCCLaunchKernel(const ValueHolderPtr &args_handler, const Val
                                    const ge::OpDescPtr &op_desc, const ValueHolderPtr &ext_info_handler,
                                    const ValueHolderPtr &bin_handle, const ge::NodePtr node);
 ValueHolderPtr AicpuHostComputeByCpuKernel(const ge::NodePtr &node, const AicpuArgs &args,
-                                           const IoInfo &io_info, LoweringGlobalData &global_data,
+                                           const IoInfo &io_info,
+                                           const std::vector<ValueHolderPtr> &origin_input_shapes,
+                                           const ValueHolderPtr &expanded_input_shapes_holder,
+                                           LoweringGlobalData &global_data,
                                            std::vector<DevMemValueHolderPtr> &output_addrs);
 ValueHolderPtr AicpuHostExecFuncProcess(const AicpuHostProcFunc &func,
                                         const IoInfo &io_info,

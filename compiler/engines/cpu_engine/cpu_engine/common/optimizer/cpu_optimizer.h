@@ -125,6 +125,13 @@ class CpuOptimizer : public Optimizer {
       const std::map<std::string, OpFullInfo> &all_op_info, uint32_t graph_id,
       bool exist_graph_id) const;
 
+  void SetFusedOpInfoToOpDesc(const ge::OpDescPtr &op_desc_ptr, const std::string &op_type,
+                              const OpFullInfo &op_full_info,
+                              const std::string &kernel_lib_name) const;
+
+  ge::Status BuildAndSetFusedAicpuNodeDef(const ge::NodePtr &node, const ge::OpDescPtr &op_desc_ptr,
+                                          bool &is_ffts_plus) const;
+
   void CheckAndSetSocVersion(const std::string &soc_version_from_ge) const;
   void SetCustUserInfos(map<std::string, std::string> info) override;
   void GetCustUserInfos(map<std::string, std::string> &info) const;

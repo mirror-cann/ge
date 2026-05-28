@@ -364,6 +364,86 @@ TEST_F(AicpuKernelLaunchUT, test_run_new_launch_tf_kernel) {
   EXPECT_FALSE(ret.empty());
 }
 
+TEST_F(AicpuKernelLaunchUT, test_expand_optional_input_addrs_keep_ir_order) {
+  auto run_context = KernelRunContextFaker()
+  .KernelIONum(3, 3)
+      .NodeIoNum(2, 0)
+      .IrInputNum(3)
+      .IrInstanceNum({1U, 0U, 1U})
+      .Build();
+
+  auto input0_addr = std::unique_ptr<uint8_t[]>(new (std::nothrow) uint8_t[16]);
+  auto input2_addr = std::unique_ptr<uint8_t[]>(new (std::nothrow) uint8_t[32]);
+  ASSERT_NE(input0_addr, nullptr);
+  ASSERT_NE(input2_addr, nullptr);
+  GertTensorData input0 = {input0_addr.get(), 16U, kOnDeviceHbm, 0};
+  GertTensorData input2 = {input2_addr.get(), 32U, kOnDeviceHbm, 0};
+  auto empty_input_placement = kOnDeviceHbm;
+  run_context.value_holder[0].Set(&input0, nullptr);
+  run_context.value_holder[1].Set(&input2, nullptr);
+  run_context.value_holder[2].Set(&empty_input_placement, nullptr);
+
+  ASSERT_EQ(registry.FindKernelFuncs("ExpandAicpuOptionalInputAddrs")->outputs_creator(nullptr, run_context),
+            ge::GRAPH_SUCCESS);
+  ASSERT_EQ(registry.FindKernelFuncs("ExpandAicpuOptionalInputAddrs")->run_func(run_context), ge::GRAPH_SUCCESS);
+
+  auto kernel_context = run_context.GetContext<KernelContext>();
+  ASSERT_NE(kernel_context, nullptr);
+  auto output0 = kernel_context->GetOutputPointer<GertTensorData>(0U);
+  auto output1 = kernel_context->GetOutputPointer<GertTensorData>(1U);
+  auto output2 = kernel_context->GetOutputPointer<GertTensorData>(2U);
+  ASSERT_NE(output0, nullptr);
+  ASSERT_NE(output1, nullptr);
+  ASSERT_NE(output2, nullptr);
+
+  EXPECT_EQ(output0->GetAddr(), input0.GetAddr());
+  EXPECT_EQ(output0->GetSize(), input0.GetSize());
+  EXPECT_EQ(output1->GetAddr(), nullptr);
+  EXPECT_EQ(output1->GetSize(), 0U);
+  EXPECT_EQ(output2->GetAddr(), input2.GetAddr());
+  EXPECT_EQ(output2->GetSize(), input2.GetSize());
+}
+
+TEST_F(AicpuKernelLaunchUT, test_expand_optional_input_addrs_use_output_num_as_total_slots) {
+  auto run_context = KernelRunContextFaker()
+  .KernelIONum(3, 3)
+      .NodeIoNum(3, 0)
+      .IrInputNum(2)
+      .IrInstanceNum({1U, 1U})
+      .Build();
+
+  auto input0_addr = std::unique_ptr<uint8_t[]>(new (std::nothrow) uint8_t[16]);
+  auto input1_addr = std::unique_ptr<uint8_t[]>(new (std::nothrow) uint8_t[32]);
+  ASSERT_NE(input0_addr, nullptr);
+  ASSERT_NE(input1_addr, nullptr);
+  GertTensorData input0 = {input0_addr.get(), 16U, kOnDeviceHbm, 0};
+  GertTensorData input1 = {input1_addr.get(), 32U, kOnDeviceHbm, 0};
+  auto empty_input_placement = kOnDeviceHbm;
+  run_context.value_holder[0].Set(&input0, nullptr);
+  run_context.value_holder[1].Set(&input1, nullptr);
+  run_context.value_holder[2].Set(&empty_input_placement, nullptr);
+
+  ASSERT_EQ(registry.FindKernelFuncs("ExpandAicpuOptionalInputAddrs")->outputs_creator(nullptr, run_context),
+            ge::GRAPH_SUCCESS);
+  ASSERT_EQ(registry.FindKernelFuncs("ExpandAicpuOptionalInputAddrs")->run_func(run_context), ge::GRAPH_SUCCESS);
+
+  auto kernel_context = run_context.GetContext<KernelContext>();
+  ASSERT_NE(kernel_context, nullptr);
+  auto output0 = kernel_context->GetOutputPointer<GertTensorData>(0U);
+  auto output1 = kernel_context->GetOutputPointer<GertTensorData>(1U);
+  auto output2 = kernel_context->GetOutputPointer<GertTensorData>(2U);
+  ASSERT_NE(output0, nullptr);
+  ASSERT_NE(output1, nullptr);
+  ASSERT_NE(output2, nullptr);
+
+  EXPECT_EQ(output0->GetAddr(), input0.GetAddr());
+  EXPECT_EQ(output0->GetSize(), input0.GetSize());
+  EXPECT_EQ(output1->GetAddr(), input1.GetAddr());
+  EXPECT_EQ(output1->GetSize(), input1.GetSize());
+  EXPECT_EQ(output2->GetAddr(), nullptr);
+  EXPECT_EQ(output2->GetSize(), 0U);
+}
+
 TEST_F(AicpuKernelLaunchUT, test_build_cc_function_handle) {
   std::string node_type = "test_cc_aicpu";
   auto run_context = BuildKernelRunContext(2, 1);

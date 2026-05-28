@@ -13,6 +13,7 @@
 #include <memory>
 #include <vector>
 #include "common/config/config_file.h"
+#include "engine/base_engine.h"
 #include "base/err_msg.h"
 #include "common/util/util.h"
 #include "error_code/error_code.h"
@@ -64,6 +65,24 @@ ge::Status AicpuAscendOpsKernelBuilder::CalcOpRunningParam(ge::Node &node) {
     ge::OpDescUtilsEx::SetType(op_desc_ptr, *original_type);
     op_type = *original_type;
   }
+
+  FACTORY_ENGINE::FactoryType aicpu_engine_ptr = FACTORY_ENGINE::Produce(engine_name_);
+  AICPU_CHECK_NOTNULL_ERRCODE(aicpu_engine_ptr, ErrorCode::INPUT_PARAM_NULL)
+  AicpuOpsKernelInfoStorePtr aicpu_ops_kernel_info_store_ptr = aicpu_engine_ptr->GetAicpuOpsKernelInfoStore();
+  AICPU_CHECK_NOTNULL_ERRCODE(aicpu_ops_kernel_info_store_ptr, ErrorCode::INPUT_PARAM_NULL)
+  std::map<std::string, OpFullInfo> all_op_info;
+  aicpu_ops_kernel_info_store_ptr->GetAllOpsFullKernelInfo(all_op_info);
+  bool optional_input_placeholder = all_op_info[op_type].optionalInputPlaceholder;
+  if (optional_input_placeholder) {
+    AICPU_CHECK_FALSE_EXEC(ge::AttrUtils::SetBool(op_desc_ptr, kOptionalInputPlaceholder, optional_input_placeholder),
+        AICPU_REPORT_INNER_ERR_MSG(
+            "Call ge::AttrUtils::SetBool Failed to set attr[%s], op[%s].",
+            kOptionalInputPlaceholder.c_str(), node.GetName().c_str());
+            return ErrorCode::ADD_ATTR_FAILED)
+    AICPUE_LOGI("Node[%s] set attr optional_input_placeholder is [%s]",
+                node.GetName().c_str(), optional_input_placeholder ? "true" : "false");
+  }
+
   const KernelBuilderPtr &kernel_builder = kernel_builder_map_["AICPUBuilder"];
   AICPU_CHECK_NOTNULL_ERRCODE(kernel_builder, ErrorCode::NONE_KERNEL_BUILDER)
   return kernel_builder->CalcOpRunningParam(node);

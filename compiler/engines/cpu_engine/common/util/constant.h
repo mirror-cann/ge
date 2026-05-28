@@ -280,6 +280,9 @@ const std::string kAttrNameSgtStruct = "_sgt_struct_info";
 
 const std::string kAttrNameTfDebug = "tfdebug_mode";
 
+// optional input placeholder
+const std::string kOptionalInputPlaceholder = "optional_input_placeholder";
+
 const int kEventFftsPlusMsg = 23;
 const int kEventHwTsKernelMsg = 3;
 

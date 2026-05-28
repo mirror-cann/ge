@@ -98,6 +98,15 @@ Status AicpuOpsKernelBuilder::CalcOpRunningParam(Node &node) {
   const KernelBuilderPtr &kernel_builder = GetKernelBuilderByName(kernel_name);
 
   AICPU_CHECK_NOTNULL_ERRCODE(kernel_builder, ErrorCode::NONE_KERNEL_BUILDER)
+  bool optional_input_placeholder = all_op_info[op_type].optionalInputPlaceholder;
+  if (optional_input_placeholder) {
+    AICPU_CHECK_FALSE_EXEC(ge::AttrUtils::SetBool(op_desc_ptr, kOptionalInputPlaceholder, optional_input_placeholder),
+        AICPU_REPORT_INNER_ERR_MSG(
+            "Call ge::AttrUtils::SetBool Failed to set attr[%s], op[%s].",
+            kOptionalInputPlaceholder.c_str(), node.GetName().c_str());
+            return ErrorCode::ADD_ATTR_FAILED)
+    AICPUE_LOGI("Node[%s] set attr optional_input_placeholder is [%s]", node.GetName().c_str(), optional_input_placeholder ? "true" : "false");
+  }
   return kernel_builder->CalcOpRunningParam(node);
 }
 

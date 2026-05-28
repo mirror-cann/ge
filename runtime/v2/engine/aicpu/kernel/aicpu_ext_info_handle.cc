@@ -203,6 +203,7 @@ ge::Status AicpuExtInfoHandler::ParseExtShapeType(AicpuExtInfo &aicpu_ext_info) 
 }
 
 ge::Status AicpuExtInfoHandler::ParseExtInputShape(AicpuExtInfo &aicpu_ext_info) {
+  GELOGD("Node[%s] parse ext input shape success infoLen=%u, input_num=%u.", node_name_.c_str(), aicpu_ext_info.infoLen, input_num_);
   GE_ASSERT_TRUE(aicpu_ext_info.infoLen == (input_num_ * sizeof(AicpuShapeAndType)));
   const auto input = ge::PtrToPtr<char, AicpuShapeAndType>(aicpu_ext_info.infoMsg);
 

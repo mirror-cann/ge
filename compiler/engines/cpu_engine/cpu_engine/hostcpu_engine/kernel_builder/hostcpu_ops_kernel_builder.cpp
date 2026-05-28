@@ -9,6 +9,7 @@
  */
 
 #include "hostcpu_ops_kernel_builder.h"
+#include "engine/base_engine.h"
 #include <memory>
 #include <vector>
 #include "common/config/config_file.h"
@@ -50,20 +51,38 @@ ge::Status HostCpuOpsKernelBuilder::CalcOpRunningParam(ge::Node &node) {
   AICPU_CHECK_NOTNULL_ERRCODE(op_desc_ptr, ErrorCode::INPUT_PARAM_NULL);
   std::string op_type = op_desc_ptr->GetType();
   if (op_type == kFrameworkOp) {
-    const std::string *original_type = ge::AttrUtils::GetStr(op_desc_ptr, kOriginalType);
+    const std::string *op_original_type = ge::AttrUtils::GetStr(op_desc_ptr, kOriginalType);
     AICPU_IF_BOOL_EXEC(
-        (original_type == nullptr),
+        (op_original_type == nullptr),
         AICPU_REPORT_INNER_ERR_MSG("Get attr[%s] of op[%s] failed.",
             kOriginalType.c_str(), node.GetName().c_str());
         return ErrorCode::GET_ORIGINAL_TYPE_FAILED)
-    if (original_type->empty()) {
+    if (op_original_type->empty()) {
       AICPU_REPORT_INNER_ERR_MSG("Attr[%s] of op[%s] is empty.",
                 kOriginalType.c_str(), node.GetName().c_str());
       return STR_IS_EMPTY;
     }
-    ge::OpDescUtilsEx::SetType(op_desc_ptr, *original_type);
-    op_type = *original_type;
+    ge::OpDescUtilsEx::SetType(op_desc_ptr, *op_original_type);
+    op_type = *op_original_type;
   }
+
+  FACTORY_ENGINE::FactoryType host_engine_ptr = FACTORY_ENGINE::Produce(engine_name_);
+  AICPU_CHECK_NOTNULL_ERRCODE(host_engine_ptr, ErrorCode::INPUT_PARAM_NULL)
+  AicpuOpsKernelInfoStorePtr host_ops_kernel_info_store_ptr = host_engine_ptr->GetAicpuOpsKernelInfoStore();
+  AICPU_CHECK_NOTNULL_ERRCODE(host_ops_kernel_info_store_ptr, ErrorCode::INPUT_PARAM_NULL)
+  std::map<std::string, OpFullInfo> all_op_info;
+  host_ops_kernel_info_store_ptr->GetAllOpsFullKernelInfo(all_op_info);
+  bool optional_input = all_op_info[op_type].optionalInputPlaceholder;
+  if (optional_input) {
+    AICPU_CHECK_FALSE_EXEC(ge::AttrUtils::SetBool(op_desc_ptr, kOptionalInputPlaceholder, optional_input),
+        AICPU_REPORT_INNER_ERR_MSG(
+            "Call ge::AttrUtils::SetBool Failed to set attr[%s], op[%s].",
+            kOptionalInputPlaceholder.c_str(), node.GetName().c_str());
+            return ErrorCode::ADD_ATTR_FAILED)
+    AICPUE_LOGI("Node[%s] set attr optional_input_placeholder is [%s]",
+                node.GetName().c_str(), optional_input ? "true" : "false");
+  }
+
   const KernelBuilderPtr &kernel_builder = kernel_builder_map_["HOSTCPUBuilder"];
   AICPU_CHECK_NOTNULL_ERRCODE(kernel_builder, ErrorCode::NONE_KERNEL_BUILDER);
   return kernel_builder->CalcOpRunningParam(node);

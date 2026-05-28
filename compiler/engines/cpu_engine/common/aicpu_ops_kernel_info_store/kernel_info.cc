@@ -175,7 +175,11 @@ Status KernelInfo::CompileOp(ge::NodePtr &node) {
   std::string resource = op_full_info.resource;
   bool support_block_flag = op_full_info.flagSupportBlockDim;
   int block_dim_index = op_full_info.blockDimByIndex;
-
+  bool optional_input_placeholder = op_full_info.optionalInputPlaceholder;
+  if (optional_input_placeholder) {
+      (void)ge::AttrUtils::SetBool(op_desc_ptr, kOptionalInputPlaceholder, optional_input_placeholder);
+      AICPUE_LOGI("Success to set attr[%s] for node[%s] to true.", kOptionalInputPlaceholder.c_str(), op_desc_ptr->GetName().c_str());
+  }
   if (kernel_lib_name != kHostCpuKernelInfoChoice) {
       (void)ge::AttrUtils::SetStr(op_desc_ptr, kKernelSo, kernel_so);
       (void)ge::AttrUtils::SetStr(op_desc_ptr, kFuncName, func_name);
@@ -189,8 +193,7 @@ Status KernelInfo::CompileOp(ge::NodePtr &node) {
   (void)ge::AttrUtils::SetBool(op_desc_ptr, kSupportBlockDim, support_block_flag);
   (void)ge::AttrUtils::SetInt(op_desc_ptr, kBlockDimByIndex, block_dim_index);
 
-  AICPU_CHECK_RES_WITH_LOG(CheckAndSetUnknowType(op_desc_ptr, all_op_info),
-      "Call CheckAndSetUnknowType function failed. op[%s].", node->GetName().c_str())
+  AICPU_CHECK_RES_WITH_LOG(CheckAndSetUnknowType(op_desc_ptr, all_op_info), "Call CheckAndSetUnknowType function failed. op[%s].", node->GetName().c_str())
 
   aicpuops::NodeDef node_def;
   Status status = BuildAicpuNodeDef(op_desc_ptr, node_def);

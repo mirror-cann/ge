@@ -181,9 +181,69 @@ ge::Status CpuOptimizer::OptimizeOriginalGraph(ge::ComputeGraph &graph,
   return ge::SUCCESS;
 }
 
+void CpuOptimizer::SetFusedOpInfoToOpDesc(const ge::OpDescPtr &op_desc_ptr, const std::string &op_type,
+                                          const OpFullInfo &op_full_info,
+                                          const std::string &kernel_lib_name) const {
+  std::string kernel_so = op_full_info.kernelSo;
+  std::string func_name = op_full_info.functionName;
+  bool async_flag = op_full_info.flagAsync;
+  int workspace_size = op_full_info.workspaceSize;
+  FWKAdapter::FWKExtTopicType topic_type = op_full_info.topicType;
+  std::string resource = op_full_info.resource;
+  bool support_block_flag = op_full_info.flagSupportBlockDim;
+  int block_dim_index = op_full_info.blockDimByIndex;
+  bool fused_optional_input_placeholder = op_full_info.optionalInputPlaceholder;
+  if (fused_optional_input_placeholder) {
+    (void)ge::AttrUtils::SetBool(op_desc_ptr, kOptionalInputPlaceholder, fused_optional_input_placeholder);
+    AICPUE_LOGI("Success to set attr[%s] for node[%s] to true.",
+                kOptionalInputPlaceholder.c_str(), op_desc_ptr->GetName().c_str());
+  }
+  bool user_defined = op_full_info.userDefined;
+  if (kernel_lib_name != kHostCpuKernelInfoChoice) {
+    (void)ge::AttrUtils::SetStr(op_desc_ptr, "kernelSo", kernel_so);
+    (void)ge::AttrUtils::SetStr(op_desc_ptr, "funcName", func_name);
+  }
+  (void)ge::AttrUtils::SetBool(op_desc_ptr, kAsyncFlag, async_flag);
+  // now this is just for cust op
+  (void)ge::AttrUtils::SetInt(op_desc_ptr, "workspaceSize", workspace_size);
+  (void)ge::AttrUtils::SetStr(op_desc_ptr, "opKernelLib", kernel_lib_name);
+  (void)ge::AttrUtils::SetInt(op_desc_ptr, kTopicType, topic_type);
+  (void)ge::AttrUtils::SetBool(op_desc_ptr, kCustAicpuFlag, false);
+  (void)ge::AttrUtils::SetStr(op_desc_ptr, kResource, resource);
+  (void)ge::AttrUtils::SetBool(op_desc_ptr, kSupportBlockDim, support_block_flag);
+  (void)ge::AttrUtils::SetInt(op_desc_ptr, kBlockDimByIndex, block_dim_index);
+
+  if ((op_check_mode_) && (!user_defined) && (kernel_so == kLibAicpuKernelsSoName)) {
+    (void)ge::AttrUtils::SetStr(op_desc_ptr, "needCheckCpu", op_type);
+  }
+  return;
+}
+
+ge::Status CpuOptimizer::BuildAndSetFusedAicpuNodeDef(const ge::NodePtr &node,
+                                                      const ge::OpDescPtr &op_desc_ptr,
+                                                      bool &is_ffts_plus) const {
+  FftsPlusInfo ffts_info;
+  if (GetAicpuFftsPlusInfo(op_desc_ptr, ffts_info) == ge::SUCCESS) {
+    is_ffts_plus = true;
+    ge::Status state = BuildFftsPlusAicpuNodeDef(op_desc_ptr, ffts_info);
+    if (state != ge::SUCCESS) {
+      AICPU_REPORT_INNER_ERR_MSG("[%s]BuildFftsInfoAicpuNodeDef fail state[%u]", node->GetName().c_str(), state);
+      return state;
+    }
+    return ge::SUCCESS;
+  }
+
+  aicpuops::NodeDef node_def;
+  BuildAicpuNodeDef(op_desc_ptr, node_def);
+  auto ret = InsertAicpuNodeDefAttrToOp(op_desc_ptr, node_def, kCustomizedOpDef);
+  if (ret != ge::SUCCESS) {
+    return ret;
+  }
+  return ge::SUCCESS;
+}
+
 ge::Status CpuOptimizer::OptimizeFusedGraph(
-    ge::ComputeGraph &graph,
-    const std::map<string, OpFullInfo> &all_op_info) const {
+    ge::ComputeGraph &graph, const std::map<string, OpFullInfo> &all_op_info) const {
   ge::TraceManager::GetInstance().SetTraceOwner(kModuleName, kTraceCpuFusedOptimizer, graph.GetName());
   uint32_t graph_id = 0;
   bool exist_graph_id = true;
@@ -191,23 +251,18 @@ ge::Status CpuOptimizer::OptimizeFusedGraph(
     exist_graph_id = false;
     AICPUE_LOGW("Failed to get attr _root_graph_id from subgraph.");
   }
-  AICPUE_LOGI("Success to get attr[%s] from subgraph[%u].",
-              kAttrNameRootGraphId.c_str(), graph_id);
+  AICPUE_LOGI("Success to get attr[%s] from subgraph[%u].", kAttrNameRootGraphId.c_str(), graph_id);
 
   for (ge::NodePtr &node : graph.GetDirectNode()) {
     AICPU_CHECK_NOTNULL(node)
     ge::OpDescPtr op_desc_ptr = node->GetOpDesc();
     AICPU_CHECK_NOTNULL(op_desc_ptr)
     std::string op_type = op_desc_ptr->GetType();
-    AICPU_IF_BOOL_EXEC(
-        ((op_type == kPlaceholderOpType) || (op_type == kEndOpType)),
-        AICPUE_LOGD("Current op type is [%s]. Don't need to fuse.",
-                    op_type.c_str());
+    AICPU_IF_BOOL_EXEC(((op_type == kPlaceholderOpType) || (op_type == kEndOpType)),
+        AICPUE_LOGD("Current op type is [%s]. Don't need to fuse.", op_type.c_str());
         continue)
     // if op type is framework_op, get original op
-    AICPU_IF_BOOL_EXEC(
-        (op_type == kFrameworkOp),
-        AICPU_CHECK_RES(GetFrameworkOpType(op_desc_ptr, op_type)))
+    AICPU_IF_BOOL_EXEC((op_type == kFrameworkOp), AICPU_CHECK_RES(GetFrameworkOpType(op_desc_ptr, op_type)))
 
     // now only fuse aicpu op
     std::string kernel_lib_name =
@@ -219,60 +274,24 @@ ge::Status CpuOptimizer::OptimizeFusedGraph(
     }
     auto iter = all_op_info.find(op_type);
     AICPU_IF_BOOL_EXEC(iter == all_op_info.end(),
-                       AICPU_REPORT_INNER_ERR_MSG(
-                           "Can't find op type[%s] in op info store, op[%s].",
+                       AICPU_REPORT_INNER_ERR_MSG("Can't find op type[%s] in op info store, op[%s].",
                            op_type.c_str(), node->GetName().c_str());
                        return ErrorCode::CREATE_NODEDEF_FAILED)
     OpFullInfo op_full_info = iter->second;
-    std::string kernel_so = op_full_info.kernelSo;
-    std::string func_name = op_full_info.functionName;
-    bool async_flag = op_full_info.flagAsync;
-    int workspace_size = op_full_info.workspaceSize;
-    FWKAdapter::FWKExtTopicType topic_type = op_full_info.topicType;
-    std::string resource = op_full_info.resource;
-    bool support_block_flag = op_full_info.flagSupportBlockDim;
-    int block_dim_index = op_full_info.blockDimByIndex;
-
-    bool user_defined = op_full_info.userDefined;
-    if (kernel_lib_name != kHostCpuKernelInfoChoice) {
-      (void)ge::AttrUtils::SetStr(op_desc_ptr, "kernelSo", kernel_so);
-      (void)ge::AttrUtils::SetStr(op_desc_ptr, "funcName", func_name);
-    }
-    (void)ge::AttrUtils::SetBool(op_desc_ptr, kAsyncFlag, async_flag);
-    // now this is just for cust op
-    (void)ge::AttrUtils::SetInt(op_desc_ptr, "workspaceSize", workspace_size);
-    (void)ge::AttrUtils::SetStr(op_desc_ptr, "opKernelLib", kernel_lib_name);
-    (void)ge::AttrUtils::SetInt(op_desc_ptr, kTopicType, topic_type);
-    (void)ge::AttrUtils::SetBool(op_desc_ptr, kCustAicpuFlag, false);
-    (void)ge::AttrUtils::SetStr(op_desc_ptr, kResource, resource);
-    (void)ge::AttrUtils::SetBool(op_desc_ptr, kSupportBlockDim, support_block_flag);
-    (void)ge::AttrUtils::SetInt(op_desc_ptr, kBlockDimByIndex, block_dim_index);
-
-    if ((op_check_mode_) && (!user_defined) &&
-        (kernel_so == kLibAicpuKernelsSoName)) {
-      (void)ge::AttrUtils::SetStr(op_desc_ptr, "needCheckCpu", op_type);
-    }
+    SetFusedOpInfoToOpDesc(op_desc_ptr, op_type, op_full_info, kernel_lib_name);
     AICPU_CHECK_RES_WITH_LOG(
         CheckAndSetUnknowType(op_desc_ptr, all_op_info),
-        "Call CheckAndSetUnknowType function failed. op[%s].",
-        node->GetName().c_str())
+        "Call CheckAndSetUnknowType function failed. op[%s].", node->GetName().c_str())
     if (kernel_lib_name != kHostCpuKernelInfoChoice) {
       AICPU_CHECK_RES(SetCustKernelBinFile(op_desc_ptr, all_op_info, graph_id, exist_graph_id))
     }
-    FftsPlusInfo ffts_info;
-    if (GetAicpuFftsPlusInfo(op_desc_ptr, ffts_info) == ge::SUCCESS) {
-      ge::Status state = BuildFftsPlusAicpuNodeDef(op_desc_ptr, ffts_info);
-      if (state != ge::SUCCESS) {
-        AICPU_REPORT_INNER_ERR_MSG("[%s]BuildFftsInfoAicpuNodeDef fail state[%u]", node->GetName().c_str(), state);
-        return state;
-      }
-      continue;
-    }
-    aicpuops::NodeDef node_def;
-    BuildAicpuNodeDef(op_desc_ptr, node_def);
-    auto ret = InsertAicpuNodeDefAttrToOp(op_desc_ptr, node_def, kCustomizedOpDef);
+    bool is_ffts_plus = false;
+    auto ret = BuildAndSetFusedAicpuNodeDef(node, op_desc_ptr, is_ffts_plus);
     if (ret != ge::SUCCESS) {
       return ret;
+    }
+    if (is_ffts_plus) {
+      continue;
     }
   }
 

@@ -42,127 +42,16 @@ aicpu::State OpsJsonFile::ParseUnderPath(const string &file_path, json &json_rea
 
 bool OpsJsonFile::ConvertJsonFormat(json &json_read) const {
   json op_infos = json::array();
-  json json_null;
   for (auto it = json_read.cbegin(); it != json_read.cend(); ++it) {
     json new_json = it.value();
     string op_name = it.key();
     new_json[kKernelConfigOpName] = op_name;
 
-    struct InOutInfo info;
-    bool ret = ParseInputOutput(it.value(), info);
-
-    AICPU_IF_BOOL_EXEC((!ret),
-                       AICPU_REPORT_INNER_ERR_MSG("Call OpsJsonFile::ParseInputOutput failed, op[%s].", op_name.c_str());
-                       return false)
-    new_json[kKernelConfigOpInfo][kKernelConfigFormat] = info.in_output_format;
-    new_json[kKernelConfigOpInfo][kKernelConfigDataType] = info.in_output_type;
-    new_json[kKernelConfigOpInfo][kKernelConfigName] = info.in_output_real_name;
-    new_json[kKernelConfigOpInfo][kKernelConfigSrcType] = info.in_output_src_type;
-    new_json[kKernelConfigOpInfo][kKernelConfigDstType] = info.in_output_dst_type;
-
-    // compute cost
-    int compute_cost = 0;
-    auto buff = new_json[kKernelConfigOpInfo][kKernelConfigComputeCost];
-    AICPU_IF_BOOL_EXEC((!CheckAndGetComputeCost(buff, op_name, compute_cost)), return false);
-    new_json[kKernelConfigOpInfo][kKernelConfigComputeCost] = compute_cost;
-
-    // flag async
-    bool flag_async = false;
-    buff = new_json[kKernelConfigOpInfo][kKernelConfigFlagAsync];
-    AICPU_IF_BOOL_EXEC((!CheckAndGetBoolValue(buff, op_name, "flagAsync", flag_async)), return false);
-    new_json[kKernelConfigOpInfo][kKernelConfigFlagAsync] = flag_async;
-
-    // no tiling
-    bool no_tiling = false;
-    buff = new_json[kKernelConfigOpInfo][kKernelConfigNoTiling];
-    AICPU_IF_BOOL_EXEC((!CheckAndGetBoolValue(buff, op_name, "noTiling", no_tiling, true)), return false);
-    new_json[kKernelConfigOpInfo][kKernelConfigNoTiling] = no_tiling;
-
-    // flag partial
-    bool flag_partial = false;
-    buff = new_json[kKernelConfigOpInfo][kKernelConfigFlagPartial];
-    AICPU_IF_BOOL_EXEC((!CheckAndGetBoolValue(buff, op_name, "flagPartial", flag_partial)), return false);
-    new_json[kKernelConfigOpInfo][kKernelConfigFlagPartial] = flag_partial;
-
-    // format agnostic
-    bool format_agnostic = false;
-    buff = new_json[kKernelConfigOpInfo][kKernelConfigFormatAgnostic];
-    AICPU_IF_BOOL_EXEC((!CheckAndGetFormatAgnostic(buff, op_name, "formatAgnostic", format_agnostic)), return false);
-    new_json[kKernelConfigOpInfo][kKernelConfigFormatAgnostic] = format_agnostic;
-
-    // ops flag
-    string ops_flag;
-    buff = new_json[kKernelConfigOpInfo][kKernelConfigOpsFlag];
-    AICPU_IF_BOOL_EXEC((!CheckAndGetOpsFlag(buff, op_name, ops_flag)), return false);
-    new_json[kKernelConfigOpInfo][kKernelConfigOpsFlag] = ops_flag;
-
-    // shape type
-    int shape_type = 0;
-    buff = new_json[kKernelConfigOpInfo][kKernelConfigShapeType];
-    AICPU_IF_BOOL_EXEC((!CheckAndGetShapeType(buff, op_name, shape_type)), return false);
-    new_json[kKernelConfigOpInfo][kKernelConfigShapeType] = shape_type;
-
-    // workspace
-    int workspace_size = 0;
-    buff = new_json[kKernelConfigOpInfo][kKernelConfigWorkspaceSize];
-    AICPU_IF_BOOL_EXEC((!CheckAndGetWorkspaceSize(buff, op_name, workspace_size)), return false);
-    new_json[kKernelConfigOpInfo][kKernelConfigWorkspaceSize] = workspace_size;
-
-    // user defined: AICPUKernel only
-    bool user_defined = false;
-    buff = new_json[kKernelConfigOpInfo][kKernelConfigUserDefined];
-    AICPU_IF_BOOL_EXEC((!CheckAndGetNonessentialBoolValue(buff, op_name, "userDefined", user_defined)), return false);
-    new_json[kKernelConfigOpInfo][kKernelConfigUserDefined] = user_defined;
-
-    // function name: AICPUKernel only
-    buff = new_json[kKernelConfigOpInfo][kKernelConfigFunctionName];
-    AICPU_IF_BOOL_EXEC(
-        (buff == json_null),
-        new_json[kKernelConfigOpInfo][kKernelConfigFunctionName] = "";);
-
-    // kernel so: AICPUKernel only
-    buff = new_json[kKernelConfigOpInfo][kKernelConfigKernelSo];
-    AICPU_IF_BOOL_EXEC(
-        (buff == json_null),
-        new_json[kKernelConfigOpInfo][kKernelConfigKernelSo] = "";);
-
-    // ops topic type
-    FWKAdapter::FWKExtTopicType topic_type;
-    buff = new_json[kKernelConfigOpInfo][kKernelConfigTopicType];
-    AICPU_IF_BOOL_EXEC((!CheckAndGetTopicType(buff, op_name, topic_type)), return false);
-    new_json[kKernelConfigOpInfo][kKernelConfigTopicType] = topic_type;
-
-    // slice pattern
-    string slicePattern = "";
-    buff = new_json[kKernelConfigOpInfo][kKernelConfigSlicePattern];
-    AICPU_IF_BOOL_EXEC(!CheckAndGetSlicePattern(buff, op_name, slicePattern), return false);
-    new_json[kKernelConfigOpInfo][kKernelConfigSlicePattern] = slicePattern;
-
-    // ops resource
-    std::string resource;
-    buff = new_json[kKernelConfigOpInfo][kKernelConfigResource];
-    AICPU_IF_BOOL_EXEC((!CheckAndGetResource(buff, op_name, resource)), return false);
-    new_json[kKernelConfigOpInfo][kKernelConfigResource] = resource;
-
-    // ops support blockdim flag
-    bool flag_support_block_dim = false;
-    buff = new_json[kKernelConfigOpInfo][kKernelConfigSupportBlockDim];
-    AICPU_IF_BOOL_EXEC((!CheckAndGetBoolValue(buff, op_name, "flagSupportBlockDim", flag_support_block_dim, true)),
-                       return true);
-    new_json[kKernelConfigOpInfo][kKernelConfigSupportBlockDim] = flag_support_block_dim;
-
-    // ops blockDim By Index
-    int blockDimByIndex = -1;
-    buff = new_json[kKernelConfigOpInfo][kKernelConfigBlockDimByIndex];
-    AICPU_IF_BOOL_EXEC((!CheckAndGetBlockDimByIndex(buff, op_name, blockDimByIndex)), return true);
-    new_json[kKernelConfigOpInfo][kKernelConfigBlockDimByIndex] = blockDimByIndex;
-
-    // ops implementType default value represents device
-    int implement_type = DEFAULT_DEVICE_IMPLEMENT_TYPE;
-    buff = new_json[kKernelConfigOpInfo][kKernelConfigImplementType];
-    AICPU_IF_BOOL_EXEC((!CheckAndGetImplementType(buff, op_name, implement_type)), return true);
-    new_json[kKernelConfigOpInfo][kKernelConfigImplementType] = implement_type;
-
+    AICPU_IF_BOOL_EXEC(!ConvertInputOutputInfo(it.value(), op_name, new_json), return false)
+    AICPU_IF_BOOL_EXEC(!ConvertBasicOpInfo(new_json, op_name), return false)
+    ConvertResult result = ConvertExtendedOpInfo(new_json, op_name);
+    AICPU_IF_BOOL_EXEC(result == ConvertResult::kFailed, return false)
+    AICPU_IF_BOOL_EXEC(result == ConvertResult::kFinished, return true)
     op_infos.push_back(new_json);
   }
 
@@ -175,6 +64,134 @@ bool OpsJsonFile::ConvertJsonFormat(json &json_read) const {
   std::string kernel_lib = json_read[kKernelConfigLibName];
   AICPUE_LOGI("Convert json success, kernel config is %s.", kernel_lib.c_str());
   return true;
+}
+
+bool OpsJsonFile::ConvertInputOutputInfo(const json &old_json, const string &op_name, json &new_json) const {
+  struct InOutInfo info;
+  bool ret = ParseInputOutput(old_json, info);
+  AICPU_IF_BOOL_EXEC((!ret),
+                     AICPU_REPORT_INNER_ERR_MSG("Call OpsJsonFile::ParseInputOutput failed, op[%s].",
+                                                op_name.c_str());
+                     return false)
+  new_json[kKernelConfigOpInfo][kKernelConfigFormat] = info.in_output_format;
+  new_json[kKernelConfigOpInfo][kKernelConfigDataType] = info.in_output_type;
+  new_json[kKernelConfigOpInfo][kKernelConfigName] = info.in_output_real_name;
+  new_json[kKernelConfigOpInfo][kKernelConfigSrcType] = info.in_output_src_type;
+  new_json[kKernelConfigOpInfo][kKernelConfigDstType] = info.in_output_dst_type;
+  return true;
+}
+
+bool OpsJsonFile::ConvertBasicOpInfo(json &new_json, const string &op_name) const {
+  // compute cost
+  int compute_cost = 0;
+  auto buff = new_json[kKernelConfigOpInfo][kKernelConfigComputeCost];
+  AICPU_IF_BOOL_EXEC((!CheckAndGetComputeCost(buff, op_name, compute_cost)), return false);
+  new_json[kKernelConfigOpInfo][kKernelConfigComputeCost] = compute_cost;
+
+  // flag async
+  bool flag_async = false;
+  buff = new_json[kKernelConfigOpInfo][kKernelConfigFlagAsync];
+  AICPU_IF_BOOL_EXEC((!CheckAndGetBoolValue(buff, op_name, "flagAsync", flag_async)), return false);
+  new_json[kKernelConfigOpInfo][kKernelConfigFlagAsync] = flag_async;
+
+  // no tiling
+  bool no_tiling = false;
+  buff = new_json[kKernelConfigOpInfo][kKernelConfigNoTiling];
+  AICPU_IF_BOOL_EXEC((!CheckAndGetBoolValue(buff, op_name, "noTiling", no_tiling, true)), return false);
+  new_json[kKernelConfigOpInfo][kKernelConfigNoTiling] = no_tiling;
+
+  // flag partial
+  bool flag_partial = false;
+  buff = new_json[kKernelConfigOpInfo][kKernelConfigFlagPartial];
+  AICPU_IF_BOOL_EXEC((!CheckAndGetBoolValue(buff, op_name, "flagPartial", flag_partial)), return false);
+  new_json[kKernelConfigOpInfo][kKernelConfigFlagPartial] = flag_partial;
+
+  // format agnostic
+  bool format_agnostic = false;
+  buff = new_json[kKernelConfigOpInfo][kKernelConfigFormatAgnostic];
+  AICPU_IF_BOOL_EXEC((!CheckAndGetFormatAgnostic(buff, op_name, "formatAgnostic", format_agnostic)), return false);
+  new_json[kKernelConfigOpInfo][kKernelConfigFormatAgnostic] = format_agnostic;
+
+  // ops flag
+  string ops_flag;
+  buff = new_json[kKernelConfigOpInfo][kKernelConfigOpsFlag];
+  AICPU_IF_BOOL_EXEC((!CheckAndGetOpsFlag(buff, op_name, ops_flag)), return false);
+  new_json[kKernelConfigOpInfo][kKernelConfigOpsFlag] = ops_flag;
+
+  // shape type
+  int shape_type = 0;
+  buff = new_json[kKernelConfigOpInfo][kKernelConfigShapeType];
+  AICPU_IF_BOOL_EXEC((!CheckAndGetShapeType(buff, op_name, shape_type)), return false);
+  new_json[kKernelConfigOpInfo][kKernelConfigShapeType] = shape_type;
+
+  // workspace
+  int workspace_size = 0;
+  buff = new_json[kKernelConfigOpInfo][kKernelConfigWorkspaceSize];
+  AICPU_IF_BOOL_EXEC((!CheckAndGetWorkspaceSize(buff, op_name, workspace_size)), return false);
+  new_json[kKernelConfigOpInfo][kKernelConfigWorkspaceSize] = workspace_size;
+
+  // user defined: AICPUKernel only
+  bool user_defined = false;
+  buff = new_json[kKernelConfigOpInfo][kKernelConfigUserDefined];
+  AICPU_IF_BOOL_EXEC((!CheckAndGetNonessentialBoolValue(buff, op_name, "userDefined", user_defined)), return false);
+  new_json[kKernelConfigOpInfo][kKernelConfigUserDefined] = user_defined;
+
+  // function name: AICPUKernel only
+  json json_null;
+  buff = new_json[kKernelConfigOpInfo][kKernelConfigFunctionName];
+  AICPU_IF_BOOL_EXEC((buff == json_null), new_json[kKernelConfigOpInfo][kKernelConfigFunctionName] = "";);
+
+  // kernel so: AICPUKernel only
+  buff = new_json[kKernelConfigOpInfo][kKernelConfigKernelSo];
+  AICPU_IF_BOOL_EXEC((buff == json_null), new_json[kKernelConfigOpInfo][kKernelConfigKernelSo] = "";);
+  return true;
+}
+
+OpsJsonFile::ConvertResult OpsJsonFile::ConvertExtendedOpInfo(json &new_json, const string &op_name) const {
+  // ops topic type
+  FWKAdapter::FWKExtTopicType topic_type;
+  auto buff = new_json[kKernelConfigOpInfo][kKernelConfigTopicType];
+  AICPU_IF_BOOL_EXEC((!CheckAndGetTopicType(buff, op_name, topic_type)), return ConvertResult::kFailed);
+  new_json[kKernelConfigOpInfo][kKernelConfigTopicType] = topic_type;
+
+  // slice pattern
+  string slicePattern = "";
+  buff = new_json[kKernelConfigOpInfo][kKernelConfigSlicePattern];
+  AICPU_IF_BOOL_EXEC(!CheckAndGetSlicePattern(buff, op_name, slicePattern), return ConvertResult::kFailed);
+  new_json[kKernelConfigOpInfo][kKernelConfigSlicePattern] = slicePattern;
+
+  // ops resource
+  std::string resource;
+  buff = new_json[kKernelConfigOpInfo][kKernelConfigResource];
+  AICPU_IF_BOOL_EXEC((!CheckAndGetResource(buff, op_name, resource)), return ConvertResult::kFailed);
+  new_json[kKernelConfigOpInfo][kKernelConfigResource] = resource;
+
+  // ops support blockdim flag
+  bool flag_support_block_dim = false;
+  buff = new_json[kKernelConfigOpInfo][kKernelConfigSupportBlockDim];
+  AICPU_IF_BOOL_EXEC((!CheckAndGetBoolValue(buff, op_name, "flagSupportBlockDim", flag_support_block_dim, true)),
+                     return ConvertResult::kFinished);
+  new_json[kKernelConfigOpInfo][kKernelConfigSupportBlockDim] = flag_support_block_dim;
+
+  // ops blockDim By Index
+  int blockDimByIndex = -1;
+  buff = new_json[kKernelConfigOpInfo][kKernelConfigBlockDimByIndex];
+  AICPU_IF_BOOL_EXEC((!CheckAndGetBlockDimByIndex(buff, op_name, blockDimByIndex)), return ConvertResult::kFinished);
+  new_json[kKernelConfigOpInfo][kKernelConfigBlockDimByIndex] = blockDimByIndex;
+
+  // ops implementType default value represents device
+  int implement_type = DEFAULT_DEVICE_IMPLEMENT_TYPE;
+  buff = new_json[kKernelConfigOpInfo][kKernelConfigImplementType];
+  AICPU_IF_BOOL_EXEC((!CheckAndGetImplementType(buff, op_name, implement_type)), return ConvertResult::kFinished);
+  new_json[kKernelConfigOpInfo][kKernelConfigImplementType] = implement_type;
+
+  // ops support optional input placeholder flag
+  bool optional_input_placeholder = false;
+  buff = new_json[kKernelConfigOpInfo][kKernelConfigOptionalInputPlaceholder];
+  AICPU_IF_BOOL_EXEC((!CheckAndGetBoolValue(buff, op_name, "optionalInputPlaceholder", optional_input_placeholder, true)),
+                     return ConvertResult::kFinished);
+  new_json[kKernelConfigOpInfo][kKernelConfigOptionalInputPlaceholder] = optional_input_placeholder;
+  return ConvertResult::kSuccess;
 }
 
 bool OpsJsonFile::ParseInputOutput(const json &json_read, InOutInfo &in_out_info) const {
@@ -576,6 +593,8 @@ void from_json(const json &json_read, OpFullInfo &op_info) {
 
   Assignment(op_info.implementType, kKernelConfigImplementType, json_read);
 
+  Assignment(op_info.optionalInputPlaceholder, kKernelConfigOptionalInputPlaceholder, json_read);
+  
   // param[inOutputFormat]
   auto iter = json_read.find(kKernelConfigFormat);
   if (iter != json_read.end()) {
@@ -614,8 +633,7 @@ void from_json(const json &json_read, OpFullInfo &op_info) {
   iter = json_read.find(kKernelConfigSrcType);
   if (iter != json_read.end()) {
     json src_type_json = iter.value();
-    for (json::iterator it = src_type_json.begin(); it != src_type_json.end();
-         ++it) {
+    for (json::iterator it = src_type_json.begin(); it != src_type_json.end(); ++it) {
       string input_name = it.key();
       string input_src_type = it.value().get<string>();
       op_info.castSrcType[input_name] = input_src_type;

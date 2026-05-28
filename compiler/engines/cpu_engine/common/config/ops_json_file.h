@@ -129,6 +129,9 @@ const std::string kKernelConfigBlockDimByIndex = "blockDimByIndex";
 
 // op kernel json file configuration item: implementType
 const std::string kKernelConfigImplementType = "implementType";
+
+// op kernel json file configuration item: optionalInputPlaceholder
+const std::string kKernelConfigOptionalInputPlaceholder = "optionalInputPlaceholder";
 }  // namespace
 
 namespace aicpu {
@@ -139,6 +142,7 @@ struct InOutInfo {
   nlohmann::json in_output_src_type;
   nlohmann::json in_output_dst_type;
 };
+
 class OpsJsonFile {
  public:
   /**
@@ -170,6 +174,12 @@ class OpsJsonFile {
   OpsJsonFile &operator=(OpsJsonFile &&) = delete;
 
  private:
+  enum class ConvertResult {
+    kFailed,
+    kSuccess,
+    kFinished,
+  };
+
   // Constructor
   OpsJsonFile() = default;
 
@@ -179,6 +189,13 @@ class OpsJsonFile {
    * @return whether convert format successfully
    */
   bool ConvertJsonFormat(nlohmann::json &json_read) const;
+
+  bool ConvertInputOutputInfo(const nlohmann::json &old_json, const std::string &op_name,
+                              nlohmann::json &new_json) const;
+
+  bool ConvertBasicOpInfo(nlohmann::json &new_json, const std::string &op_name) const;
+
+  ConvertResult ConvertExtendedOpInfo(nlohmann::json &new_json, const std::string &op_name) const;
 
   /**
    * convert topic type from string to enum

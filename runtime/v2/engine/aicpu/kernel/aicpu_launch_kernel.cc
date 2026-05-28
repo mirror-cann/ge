@@ -36,6 +36,7 @@
 #include "kernel/memory/mem_block.h"
 #include "kernel/memory/host_mem_allocator.h"
 #include "core/utils/tensor_utils.h"
+#include "exe_graph/runtime/gert_tensor_data.h"
 #include "graph/load/model_manager/model_manager.h"
 #include "aicpu_bin_handler.h"
 
@@ -200,6 +201,60 @@ ge::graphStatus UpdateAicpuIoAddr(KernelContext *context) {
   return SUCCESS;
 }
 REGISTER_KERNEL(UpdateAicpuIoAddr).RunFunc(UpdateAicpuIoAddr);
+
+ge::graphStatus ExpandAicpuOptionalInputAddrs(KernelContext *context) {
+  auto compute_node_info = reinterpret_cast<const ComputeNodeInfo *>(context->GetComputeNodeExtend());
+  GE_ASSERT_NOTNULL(compute_node_info);
+  const auto node_name = compute_node_info->GetNodeName();
+  const size_t total_input_num = context->GetOutputNum();
+  GE_ASSERT_TRUE(context->GetInputNum() > 0U);
+  const auto empty_input_placement = context->GetInputValue<TensorPlacement>(context->GetInputNum() - 1U);
+  const size_t actual_input_num = context->GetInputNum() - 1U;
+
+  size_t actual_input_index = 0U;
+  for (size_t input_index = 0U; input_index < total_input_num; ++input_index) {
+    auto ins_info = compute_node_info->GetInputInstanceInfo(input_index);
+    auto out_tensor_data = context->GetOutputPointer<gert::GertTensorData>(input_index);
+    GE_ASSERT_NOTNULL(out_tensor_data);
+    if ((ins_info == nullptr) || (ins_info->GetInstanceNum() == 0U)) {
+      // -1 means invalid stream id for empty optional input placeholder.
+      GE_ASSERT_SUCCESS(out_tensor_data->ShareFrom(gert::GertTensorData(nullptr, 0U, empty_input_placement, -1)));
+      GELOGI("Kernel %s expand optional input index %zu to nullptr.", node_name, input_index);
+      continue;
+    }
+
+    GE_ASSERT_TRUE(actual_input_index < actual_input_num);
+    auto in_tensor_data = context->GetInputPointer<gert::GertTensorData>(actual_input_index);
+    GE_ASSERT_NOTNULL(in_tensor_data);
+    GELOGD("Kernel %s tensor data info is: input index %zu, addr is %p, size is %zu.",
+           node_name,
+           input_index,
+           static_cast<void *>(in_tensor_data->GetAddr()),
+           in_tensor_data->GetSize());
+    GE_ASSERT_SUCCESS(out_tensor_data->ShareFrom(*in_tensor_data));
+    ++actual_input_index;
+  }
+
+  GE_ASSERT_TRUE(actual_input_index == actual_input_num);
+  return ge::GRAPH_SUCCESS;
+}
+
+ge::graphStatus CreateExpandAicpuOptionalInputAddrsOutputs(const ge::FastNode *node, KernelContext *context) {
+  (void)node;
+  for (size_t i = 0U; i < context->GetOutputNum(); ++i) {
+    auto chain = context->GetOutput(i);
+    GE_ASSERT_NOTNULL(chain);
+    auto td = new (std::nothrow) GertTensorData();
+    GE_ASSERT_NOTNULL(td);
+    chain->SetWithDefaultDeleter(td);
+  }
+  return ge::GRAPH_SUCCESS;
+}
+
+REGISTER_KERNEL(ExpandAicpuOptionalInputAddrs)
+    .RunFunc(ExpandAicpuOptionalInputAddrs)
+    .OutputsCreator(CreateExpandAicpuOptionalInputAddrsOutputs)
+    .ConcurrentCriticalSectionKey(kKernelUseMemory);
 
 ge::graphStatus DistributeAsyncWaitTask(rtStream stream, const std::string &op_name, const AicpuArgsHandler *args_handler) {
   const auto is_block_op = args_handler->IsBlockOp();
