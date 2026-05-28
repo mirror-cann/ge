@@ -31,9 +31,9 @@ struct ParserContext {
   // resolve the mapping between operators with the same name and corresponding network. format e.g.
   // Detectionoutput:SsdDetectiontOutput
   std::map<std::string, std::string> op_conf_map;
-  // user-designate out nodes (this is used for determing the orders)
+  // user-designate out nodes (this is used for determining the orders)
   std::vector<std::pair<std::string, int32_t>> user_out_nodes;
-  // default out nodes (this is used for determing the orders)
+  // default out nodes (this is used for determining the orders)
   std::vector<std::pair<std::string, int32_t>> default_out_nodes;
   // save the output node of the network. key = operator name, value = index, index indicates the output index of the
   // operator

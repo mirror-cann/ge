@@ -46,7 +46,7 @@ aclError OpModelParser::DeserializeModel(const OpModel &opModel, ge::Model &mode
     uint64_t modelSize;
     ACL_REQUIRES_OK(ParseModelContent(opModel, modelSize, modelData));
     const auto *const fileHeader = reinterpret_cast<ge::ModelFileHeader *>(opModel.data.get());
-    // model verison 1.0 file header does not have model_num member
+    // model version 1.0 file header does not have model_num member
     const bool isMultiModel = (fileHeader->version >= ge::MODEL_VERSION) && (fileHeader->model_num > 1U);
 
     ge::OmFileLoadHelper helper;

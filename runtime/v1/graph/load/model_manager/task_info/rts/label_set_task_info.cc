@@ -44,7 +44,7 @@ Status LabelSetTaskInfo::Init(const domi::TaskDef &task_def, DavinciModel *const
 
   const std::vector<aclrtLabel> &label_list = davinci_model->GetLabelList();
   if (label_index >= label_list.size()) {
-    REPORT_INNER_ERR_MSG("E19999", "lable_index:%u >= label_list.size():%zu in model, op:%s(%s), "
+    REPORT_INNER_ERR_MSG("E19999", "label_index:%u >= label_list.size():%zu in model, op:%s(%s), "
                        "check invalid", label_index, label_list.size(),
                        op_desc->GetName().c_str(), op_desc->GetType().c_str());
     GELOGE(INTERNAL_ERROR, "[Check][Param] LabelSetTaskInfo: Invalid label id:%u, label size:%zu, op:%s(%s)",

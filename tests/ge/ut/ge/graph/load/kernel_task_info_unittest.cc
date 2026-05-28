@@ -1285,7 +1285,7 @@ TEST_F(UtestKernelTaskInfo, int_task_cust_aicpu) {
 
   std::vector<char> kernel_bin(128, '0');
   const auto aicpu_kernel = MakeShared<OpKernelBin>(op_desc->GetName(), std::move(kernel_bin));
-  model.ge_model_->cust_aicpu_kernal_store_.AddKernel(aicpu_kernel);
+  model.ge_model_->cust_aicpu_kernel_store_.AddKernel(aicpu_kernel);
   MemAllocation not_change_mem_item = {0U, 0U, UINT64_MAX, ge::MemAllocation::Type::ABSOLUTE, 0U};
   model.logical_mem_allocations_.emplace_back(not_change_mem_item);
   domi::TaskDef &task_def = *model_task_def->add_task();
@@ -1369,7 +1369,7 @@ TEST_F(UtestKernelTaskInfo, int_task_cust_aicpu_known) {
 
   std::vector<char> kernel_bin(128, '0');
   const auto aicpu_kernel = MakeShared<OpKernelBin>(op_desc->GetName(), std::move(kernel_bin));
-  model.ge_model_->cust_aicpu_kernal_store_.AddKernel(aicpu_kernel);
+  model.ge_model_->cust_aicpu_kernel_store_.AddKernel(aicpu_kernel);
   MemAllocation not_change_mem_item = {0U, 0U, UINT64_MAX, ge::MemAllocation::Type::ABSOLUTE, 0U};
   model.logical_mem_allocations_.emplace_back(not_change_mem_item);
   domi::TaskDef &task_def = *model_task_def->add_task();
@@ -2104,7 +2104,7 @@ TEST_F(UtestKernelTaskInfo, mc2_static_bin_reuse) {
   // aicpu kernel
   std::vector<char> kernel_bin(128, '0');
   const auto aicpu_bin = MakeShared<OpKernelBin>(op_desc->GetName(), std::move(kernel_bin));
-  model.ge_model_->cust_aicpu_kernal_store_.AddKernel(aicpu_bin);
+  model.ge_model_->cust_aicpu_kernel_store_.AddKernel(aicpu_bin);
 
   KernelTaskInfo kernel_task_info;
   kernel_task_info.davinci_model_ = &model;
@@ -2321,7 +2321,7 @@ TEST_F(UtestKernelTaskInfo, mc2_fusion_task_static_bin_reuse_with_sub_aicore_ccu
   // aicpu kernel
   std::vector<char> kernel_bin(128, '0');
   const auto aicpu_bin = MakeShared<OpKernelBin>(op_desc->GetName(), std::move(kernel_bin));
-  // model.ge_model_->cust_aicpu_kernal_store_.AddKernel(aicpu_bin);
+  // model.ge_model_->cust_aicpu_kernel_store_.AddKernel(aicpu_bin);
 
   DumpStub::GetInstance().Clear();
   gert::GlobalDumper::GetInstance()->SetEnableFlags(
@@ -2628,7 +2628,7 @@ TEST_F(UtestKernelTaskInfo, mc2_fusion_task_static_bin_reuse_with_sub_aicore_aic
   // aicpu kernel
   std::vector<char> kernel_bin(128, '0');
   const auto aicpu_bin = MakeShared<OpKernelBin>(op_desc->GetName(), std::move(kernel_bin));
-  // model.ge_model_->cust_aicpu_kernal_store_.AddKernel(aicpu_bin);
+  // model.ge_model_->cust_aicpu_kernel_store_.AddKernel(aicpu_bin);
 
   DumpStub::GetInstance().Clear();
   gert::GlobalDumper::GetInstance()->SetEnableFlags(
@@ -2817,7 +2817,7 @@ TEST_F(UtestKernelTaskInfo, mc2_fusion_task_stubfunc_with_sub_aicore_ccu) {
   // aicpu kernel
   std::vector<char> kernel_bin(128, '0');
   const auto aicpu_bin = MakeShared<OpKernelBin>(op_desc->GetName(), std::move(kernel_bin));
-  // model.ge_model_->cust_aicpu_kernal_store_.AddKernel(aicpu_bin);
+  // model.ge_model_->cust_aicpu_kernel_store_.AddKernel(aicpu_bin);
 
   DumpStub::GetInstance().Clear();
   gert::GlobalDumper::GetInstance()->SetEnableFlags(
@@ -3645,7 +3645,7 @@ TEST_F(UtestKernelTaskInfo, init_mc2_cust_aicpu_success) {
   std::vector<char> kernel_bin(128, '0');
   const auto aicpu_bin = MakeShared<OpKernelBin>(op_desc->GetName(), std::move(kernel_bin));
   model.ge_model_ = MakeShared<GeModel>();
-  model.ge_model_->cust_aicpu_kernal_store_.AddKernel(aicpu_bin);
+  model.ge_model_->cust_aicpu_kernel_store_.AddKernel(aicpu_bin);
 
   rtStream_t stream1 = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
@@ -4720,7 +4720,7 @@ TEST_F(UtestKernelTaskInfo, init_mc2_cust_aicpu_with_tilefwk_hiddeninput_success
   std::vector<char> kernel_bin(128, '0');
   const auto aicpu_bin = MakeShared<OpKernelBin>(op_desc->GetName(), std::move(kernel_bin));
   model.ge_model_ = MakeShared<GeModel>();
-  model.ge_model_->cust_aicpu_kernal_store_.AddKernel(aicpu_bin);
+  model.ge_model_->cust_aicpu_kernel_store_.AddKernel(aicpu_bin);
 
   rtStream_t stream1 = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
@@ -4842,7 +4842,7 @@ TEST_F(UtestKernelTaskInfo, tiling_sink_success) {
   // aicpu kernel
   std::vector<char> kernel_bin(128, '0');
   const auto aicpu_bin = MakeShared<OpKernelBin>(op_desc->GetName(), std::move(kernel_bin));
-  model.ge_model_->cust_aicpu_kernal_store_.AddKernel(aicpu_bin);
+  model.ge_model_->cust_aicpu_kernel_store_.AddKernel(aicpu_bin);
 
   {
     KernelTaskInfo kernel_task_info_dump;
@@ -5287,7 +5287,7 @@ TEST_F(UtestKernelTaskInfo, ifa_with_tiling_sink_graph_load_and_success_with_dfx
   // auto graph = std::make_shared<ComputeGraph>("tmp");
   model.ge_model_ = MakeShared<GeModel>();
   model.ge_model_->SetGraph(root_graph);
-  model.ge_model_->cust_aicpu_kernal_store_.AddKernel(aicpu_bin);
+  model.ge_model_->cust_aicpu_kernel_store_.AddKernel(aicpu_bin);
 
   DumpManager::GetInstance().Init({{"ge.exec.enable_exception_dump", "2"}});
   ge::DumpStub::GetInstance().Clear();

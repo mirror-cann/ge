@@ -139,7 +139,7 @@ Status ModelIntroduction::CreateOutput(const uint32_t index, const OpDescPtr &op
   // netoutput input tensor desc
   const auto &tensor_desc = op_desc->GetInputDescPtr(index);
   GE_CHK_BOOL_RET_STATUS(tensor_desc != nullptr, FAILED,
-                         "[GET][InputDescPtr] intput_desc index:%u in op:%s(%s) does not exist", index,
+                         "[GET][InputDescPtr] input_desc index:%u in op:%s(%s) does not exist", index,
                          op_desc->GetName().c_str(), op_desc->GetType().c_str());
   const Format format = tensor_desc->GetFormat();
   const GeShape shape = tensor_desc->GetShape();

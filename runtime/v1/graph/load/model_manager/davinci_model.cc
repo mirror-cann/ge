@@ -3017,10 +3017,10 @@ Status DavinciModel::GetRealOutputSizeOfCase(const ComputeGraphPtr &graph, const
           try {
             batch_index = static_cast<size_t>(stoi(batch_label.substr(batch_label.rfind('_') + 1U)));
           } catch (std::invalid_argument &) {
-            GELOGE(PARAM_INVALID, "invalid batch lable %s.", batch_label.c_str());
+            GELOGE(PARAM_INVALID, "invalid batch label %s.", batch_label.c_str());
             return PARAM_INVALID;
           } catch (std::out_of_range &) {
-            GELOGE(PARAM_INVALID, "batch lable %s transform to size_t failed.", batch_label.c_str());
+            GELOGE(PARAM_INVALID, "batch label %s transform to size_t failed.", batch_label.c_str());
             return PARAM_INVALID;
           }
           GELOGD("Batch index of %s is %zu.", op_desc->GetName().c_str(), batch_index);
@@ -4184,11 +4184,11 @@ Status DavinciModel::InitAippType(const uint32_t index, const OpDescPtr &op_desc
 
   size_t aipp_index = 0xFFFFFFFFUL;  // default invalid value
   if (aipp_type == InputAippType::DATA_WITH_DYNAMIC_AIPP) {
-    std::string releated_name;
-    (void)AttrUtils::GetStr(op_desc, ATTR_DATA_AIPP_DATA_NAME_MAP, releated_name);
+    std::string related_name;
+    (void)AttrUtils::GetStr(op_desc, ATTR_DATA_AIPP_DATA_NAME_MAP, related_name);
     for (const auto &item : data_list) {
-      if (item.second->GetName() == releated_name) {
-        GELOGI("Find aipp_data [%s] index %u from index %u", releated_name.c_str(), item.first, index);
+      if (item.second->GetName() == related_name) {
+        GELOGI("Find aipp_data [%s] index %u from index %u", related_name.c_str(), item.first, index);
         aipp_index = item.first;
       }
     }
@@ -4208,7 +4208,7 @@ Status DavinciModel::GetAippType(const uint32_t index, InputAippType &aipp_type,
                          "[Check][Param] Index %u is invalid", index);
   const auto it = aipp_type_list_.find(index);
   if (it == aipp_type_list_.end()) {
-    GELOGW("There is no aipp releated info with index %u", index);
+    GELOGW("There is no aipp related info with index %u", index);
     aipp_type = InputAippType::DATA_WITHOUT_AIPP;
     aipp_index = 0xFFFFFFFFU;
     return SUCCESS;
@@ -6703,7 +6703,7 @@ Status DavinciModel::CopyInputForNoZeroCopy(const std::vector<DataBuffer> &blobs
         ValueToPtr(PtrToValue(tensors[input_idx].GetAddr()));
 
     if ((buffer_length == 0U) || (data_size == 0U)) {
-      GELOGI("Length of data is zero, No need copy. intput tensor index=%zu", input_idx);
+      GELOGI("Length of data is zero, No need copy. input tensor index=%zu", input_idx);
       continue;
     }
     GE_ASSERT_TRUE(CheckUserAndModelSize(static_cast<int64_t>(buffer_length),
@@ -6763,7 +6763,7 @@ Status DavinciModel::CopyInputForNoZeroCopy(const std::vector<DataBuffer> &blobs
         ValueToPtr(PtrToValue(tensors[input_idx].GetData().data()));
 
     if ((buffer_length == 0U) || (data_size == 0U)) {
-      GELOGI("Length of data is zero, No need copy. intput tensor index=%zu", input_idx);
+      GELOGI("Length of data is zero, No need copy. input tensor index=%zu", input_idx);
       continue;
     }
     GE_ASSERT_TRUE(CheckUserAndModelSize(static_cast<int64_t>(buffer_length),

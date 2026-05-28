@@ -977,7 +977,7 @@ TEST_F(UtestFftsPlusTaskInfo, failed_ffts_plus_task_info_hardware_candswitch_ctx
 }
 
 // test FftsPlusTaskInfo Init hardware ctx
-TEST_F(UtestFftsPlusTaskInfo, sucess_ffts_plus_task_info_hardware_candswitch_ctx) {
+TEST_F(UtestFftsPlusTaskInfo, success_ffts_plus_task_info_hardware_candswitch_ctx) {
   DavinciModel davinci_model(0, nullptr);
   domi::TaskDef task_def;
   FftsPlusTaskInfo task_info;
@@ -1205,7 +1205,7 @@ TEST_F(UtestFftsPlusTaskInfo, failed_ffts_plus_task_info_hardware_aicaiv_ctx) {
 }
 
 // test FftsPlusTaskInfo Init hardware ctx
-TEST_F(UtestFftsPlusTaskInfo, sucess_ffts_plus_task_info_hardware_aicaiv_ctx) {
+TEST_F(UtestFftsPlusTaskInfo, success_ffts_plus_task_info_hardware_aicaiv_ctx) {
   DavinciModel davinci_model(0, nullptr);
   domi::TaskDef task_def;
   FftsPlusTaskInfo task_info;
@@ -1293,7 +1293,7 @@ TEST_F(UtestFftsPlusTaskInfo, fail_ffts_plus_task_info_hardware_aicaiv_ctx) {
 }
 
 // test FftsPlusTaskInfo Init hardware ctx
-TEST_F(UtestFftsPlusTaskInfo, sucess_ffts_plus_task_info_hardware_aicaiv_ctx_with_tiling_data) {
+TEST_F(UtestFftsPlusTaskInfo, success_ffts_plus_task_info_hardware_aicaiv_ctx_with_tiling_data) {
   DavinciModel davinci_model(0, nullptr);
   domi::TaskDef task_def;
   FftsPlusTaskInfo task_info;
@@ -1424,7 +1424,7 @@ TEST_F(UtestFftsPlusTaskInfo, fail_ffts_plus_task_info_hardware_mixaicaiv_ctx_1)
 }
 
 // test FftsPlusTaskInfo Init hardware ctx
-TEST_F(UtestFftsPlusTaskInfo, sucess_ffts_plus_task_info_hardware_mixaicaiv_ctx_memcheck) {
+TEST_F(UtestFftsPlusTaskInfo, success_ffts_plus_task_info_hardware_mixaicaiv_ctx_memcheck) {
   DavinciModel davinci_model(0, nullptr);
   domi::TaskDef task_def;
   FftsPlusTaskInfo task_info;
@@ -1600,7 +1600,7 @@ TEST_F(UtestFftsPlusTaskInfo, failed_ffts_plus_task_info_hardware_mixaicaiv_ctx)
 }
 
 // test FftsPlusTaskInfo Init hardware ctx
-TEST_F(UtestFftsPlusTaskInfo, sucess_ffts_plus_task_info_hardware_mixaicaiv_ctx) {
+TEST_F(UtestFftsPlusTaskInfo, success_ffts_plus_task_info_hardware_mixaicaiv_ctx) {
   DavinciModel davinci_model(0, nullptr);
   domi::TaskDef task_def;
   FftsPlusTaskInfo task_info;
@@ -1661,7 +1661,7 @@ TEST_F(UtestFftsPlusTaskInfo, sucess_ffts_plus_task_info_hardware_mixaicaiv_ctx)
   task_info.Release();
 }
 
-TEST_F(UtestFftsPlusTaskInfo, sucess_ffts_plus_task_info_hardware_auto_mixaicaiv_ctx) {
+TEST_F(UtestFftsPlusTaskInfo, success_ffts_plus_task_info_hardware_auto_mixaicaiv_ctx) {
   DavinciModel davinci_model(0, nullptr);
   domi::TaskDef task_def;
   FftsPlusTaskInfo task_info;
@@ -1732,7 +1732,7 @@ TEST_F(UtestFftsPlusTaskInfo, sucess_ffts_plus_task_info_hardware_auto_mixaicaiv
 }
 
 // test FftsPlusTaskInfo Init hardware ctx
-TEST_F(UtestFftsPlusTaskInfo, sucess_ffts_plus_task_info_hardware_mixaicaiv_ctx_with_tiling_data) {
+TEST_F(UtestFftsPlusTaskInfo, success_ffts_plus_task_info_hardware_mixaicaiv_ctx_with_tiling_data) {
   DavinciModel davinci_model(0, nullptr);
   domi::TaskDef task_def;
   FftsPlusTaskInfo task_info;

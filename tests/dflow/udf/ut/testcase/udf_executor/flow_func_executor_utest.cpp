@@ -1470,7 +1470,7 @@ TEST_F(FlowFuncExecutorUTest, CheckProcessorEventFaieldWithInvalidParams) {
   executor.running_ = true;
   executor.func_processors_.emplace_back(processor);
   struct event_info event {};
-  // proccessor id greater than processor number
+  // processor id greater than processor number
   event.comm.subevent_id = 1U;
   EXPECT_EQ(executor.CheckProcessorEventParams(event), FLOW_FUNC_PROCESSOR_PARAM_ERROR);
   // message length is invalid

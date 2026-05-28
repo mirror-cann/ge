@@ -459,7 +459,7 @@ TEST_F(UtestRegister, test_register_dynamic_outputs_op_only_has_partial_output) 
                                   {"serialized", "dense_defaults_0", "dense_defaults_1", "dense_defaults_2"},
                                   {"dense_values_0", "dense_values_1", "dense_values_2"});
   // build op_src attrs
-  vector<string> dense_keys = {"image/class/lable", "image/encode", "image/format"};
+  vector<string> dense_keys = {"image/class/label", "image/encode", "image/format"};
   vector<DataType> t_dense = {DT_INT64, DT_STRING, DT_STRING};
   AttrUtils::SetListStr(node_src->GetOpDesc(), "dense_keys", dense_keys);
   AttrUtils::SetListStr(node_src->GetOpDesc(), "dense_shapes", {});

@@ -742,13 +742,13 @@ class UtestFusionStrategySolver : public testing::Test {
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    std::vector<std::vector<ge::Expression>> intput_dim_sizes (concat_dims.size(), {A, B, C, D, E});
+    std::vector<std::vector<ge::Expression>> input_dim_sizes (concat_dims.size(), {A, B, C, D, E});
     std::vector<ge::Expression> output_dim_sizes {A, B, C, D, E};
     int64_t total_size = 0;
     for (size_t i = 0U; i < concat_dims.size(); ++i) {
       auto e_size = graph.CreateSizeVar(concat_dims[i]);
       total_size = total_size + concat_dims[i];
-      intput_dim_sizes[i][concat_dim] = e_size;
+      input_dim_sizes[i][concat_dim] = e_size;
     }
     output_dim_sizes[concat_dim] = graph.CreateSizeVar(total_size);
 
@@ -760,7 +760,7 @@ class UtestFusionStrategySolver : public testing::Test {
       x1->attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
       x1->attr.sched.loop_axis = c.id;
       *x1->y.axis = {a.id, b.id, c.id, d.id, e.id};
-      *x1->y.repeats = intput_dim_sizes[i];
+      *x1->y.repeats = input_dim_sizes[i];
       data_ops.emplace_back(x1);
       concat_inputs.emplace_back(x1->y);
     }

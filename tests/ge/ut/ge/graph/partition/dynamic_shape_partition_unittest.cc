@@ -815,7 +815,7 @@ TEST_F(UtestDynamicShapePartition, merge_control_flow_group) {
   EXPECT_EQ(graph->impl_->sub_graph_.size(), 0);
   DynamicShapePartitioner partitioner(graph);
   EXPECT_EQ(partitioner.Partition(), SUCCESS);
-  EXPECT_EQ(graph->impl_->sub_graph_.size(), 3);   // input  less1  uknown
+  EXPECT_EQ(graph->impl_->sub_graph_.size(), 3);   // input  less1  unknown
 }
 
 TEST_F(UtestDynamicShapePartition, mark_unknown_shape_nodes) {
@@ -1172,7 +1172,7 @@ TEST_F(UtestDynamicShapePartition, merge_small_known_shape_to_unknown_success) {
   EXPECT_EQ(is_unknown_shape, true);
 }
 
-TEST_F(UtestDynamicShapePartition, run_on_host_return_sucess) {
+TEST_F(UtestDynamicShapePartition, run_on_host_return_success) {
   std::map<std::string, std::string> config;
   config["ge.exec.placement"] = "HOST";
   ge::GetThreadLocalContext().SetGraphOption(config);

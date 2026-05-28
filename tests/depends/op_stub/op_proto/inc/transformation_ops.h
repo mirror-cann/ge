@@ -32,7 +32,7 @@ the enqueued tensors should be taken . \n
 
 *@par Attributes:
 *type: An optional ge::DataType. It refers to the target data type of outputs . \n
-*keepdim: If True, output dims equal intput dims. otherwise output dims can append. default value is false.  \n
+*keepdim: If True, output dims equal input dims. otherwise output dims can append. default value is false.  \n
 
 *@par Third-party framework compatibility
 *Compatible with tensorflow QueueIsClosed operator.

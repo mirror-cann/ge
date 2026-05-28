@@ -118,7 +118,7 @@ public:
 
   /**
    * @ingroup ge
-   * @brief: analyzer globle init method.
+   * @brief: analyzer global init method.
    * @param [in]: None
    * @return: None
    */

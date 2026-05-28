@@ -97,7 +97,7 @@ graphStatus GetBinFromFile(const std::string &path, char_t *buffer, size_t &data
 /**
  * @ingroup domi_common
  * @brief  Write binary to file
- * @param [in] fd  file desciption.
+ * @param [in] fd  file description.
  * @param [in] data char[] used to write to file
  * @param [in] data_len store write size
  * @return graphStatus GRAPH_SUCCESS: success, OTHERS: fail.

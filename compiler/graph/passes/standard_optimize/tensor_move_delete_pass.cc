@@ -726,7 +726,7 @@ bool IsSourceNodeWithSinglePath(const NodePtr &tensor_move_node,
     // 单输出多引用
     if (out_data_anchor->GetPeerInDataAnchorsPtr().size() > 1U) {
       if (!TryHandleBasicMultiRefBranch(tensor_move_node, out_data_anchor, ctx)) {
-        GELOGI("Out data anchor %d of node %s(type %s) has multiple peer intput data anchors, cannot delete tensor move %s.",
+        GELOGI("Out data anchor %d of node %s(type %s) has multiple peer input data anchors, cannot delete tensor move %s.",
                out_data_anchor->GetIdx(), node->GetName().c_str(), node->GetType().c_str(), tensor_move_node->GetName().c_str());
         return false;
       }

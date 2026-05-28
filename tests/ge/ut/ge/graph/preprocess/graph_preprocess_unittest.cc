@@ -462,9 +462,9 @@ TEST_F(UtestGraphPreproces, test_dynamic_input_shape_parse) {
   // check data2 node output shape_range and shape
   auto data_node_2 = graph_prepare.compute_graph_->FindNode("input2");
   auto data_output_desc_2 = data_node_2->GetOpDesc()->GetOutputDescPtr(0);
-  vector<std::pair<int64_t, int64_t>> intput2_result_shape_range;
-  data_output_desc_2->GetShapeRange(intput2_result_shape_range);
-  EXPECT_EQ(intput2_result_shape_range.size(), 0);
+  vector<std::pair<int64_t, int64_t>> input2_result_shape_range;
+  data_output_desc_2->GetShapeRange(input2_result_shape_range);
+  EXPECT_EQ(input2_result_shape_range.size(), 0);
 }
 
 TEST_F(UtestGraphPreproces, test_dynamic_input_shape_parse_fail) {

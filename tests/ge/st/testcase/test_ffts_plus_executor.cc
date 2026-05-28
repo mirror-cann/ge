@@ -1156,7 +1156,7 @@ TEST_F(FftsPlusTest, ffts_plus_graph_with_aicpu_load_success) {
   ge::ProfilingTestUtil::Instance().hash_func_ = nullptr;
 }
 
-TEST_F(FftsPlusTest, ffts_plus_graph_with_aicpu_load_no_block_sucess) {
+TEST_F(FftsPlusTest, ffts_plus_graph_with_aicpu_load_no_block_success) {
   ComputeGraphPtr root_graph;
   ComputeGraphPtr ffts_plus_graph;
   BuildFftsPlusGraph(root_graph, ffts_plus_graph);

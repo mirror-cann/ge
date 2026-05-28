@@ -401,7 +401,7 @@ TEST_F(UtestOpDesc, Get_SetOpEngineName_success) {
   EXPECT_EQ(op_desc->GetOpEngineName(), "DNN_VM_HOST_CPU");
 }
 
-TEST_F(UtestOpDesc, GetAllOutputsDescSize_sucess) {
+TEST_F(UtestOpDesc, GetAllOutputsDescSize_success) {
   auto tensor_desc = std::make_shared<GeTensorDesc>();
   tensor_desc->SetShape(GeShape({1}));
   tensor_desc->SetFormat(FORMAT_NCHW);

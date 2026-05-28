@@ -29,9 +29,9 @@ constexpr const char_t *kEnableFusionTrue = "true";
 constexpr const char_t *kAttrNameInvokedModelFusionInputs = "_invoked_model_fusion_inputs";
 constexpr const char_t *kAttrValueDevicePlacement = "device";
 const std::string kDynamicSchedRelationSuffix = "_dynamic_sched";
-bool HasIntersection(const std::vector<std::string> &submodel_input, const std::vector<std::string> &root_intput) {
+bool HasIntersection(const std::vector<std::string> &submodel_input, const std::vector<std::string> &root_input) {
   std::unordered_set<std::string> submodel_inputs(submodel_input.begin(), submodel_input.end());
-  for (auto &ele : root_intput) {
+  for (auto &ele : root_input) {
     if (submodel_inputs.count(ele) > 0) {
       return true;
     }

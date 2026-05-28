@@ -50,8 +50,8 @@ class GeModel : public std::enable_shared_from_this<GeModel>, public AttrHolder 
   uint8_t GetPlatformType() const;
 
   void SetModelTaskDef(const std::shared_ptr<domi::ModelTaskDef> &task);
-  void SetTBEKernelStore(const TBEKernelStore &tbe_kernal_store);
-  void SetCustAICPUKernelStore(const CustAICPUKernelStore &cust_aicpu_kernal_store);
+  void SetTBEKernelStore(const TBEKernelStore &tbe_kernel_store);
+  void SetCustAICPUKernelStore(const CustAICPUKernelStore &cust_aicpu_kernel_store);
   void SetWeight(const Buffer &weights_buffer);
 
   bool LoadTBEKernelStore(const uint8_t *const data, const size_t len);
@@ -95,8 +95,8 @@ class GeModel : public std::enable_shared_from_this<GeModel>, public AttrHolder 
 
   ComputeGraphPtr graph_;
   std::shared_ptr<domi::ModelTaskDef> task_;  /*lint !e148*/
-  TBEKernelStore tbe_kernal_store_;  /*lint !e148*/
-  CustAICPUKernelStore cust_aicpu_kernal_store_;  /*lint !e148*/
+  TBEKernelStore tbe_kernel_store_;  /*lint !e148*/
+  CustAICPUKernelStore cust_aicpu_kernel_store_;  /*lint !e148*/
   Buffer weights_buffer_;  /*lint !e148*/
   // weight_data_buffer is high priority than weights_buffer_
   DataBuffer weight_data_buffer_;

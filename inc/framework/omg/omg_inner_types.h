@@ -40,7 +40,7 @@ enum RunMode {
   DISPLAY_OM_INFO = 6,       // display model info
   GEN_OM2_MODEL = 7,         // convert model to om2
   GEN_EXE_OM = 10,           // generate exe-om file
-  MODEL_TO_EXE_OM = 20,      // conver om to exe-om file
+  MODEL_TO_EXE_OM = 20,      // convert om to exe-om file
   GEN_EXE_OM_FOR_NANO = 30,  // convert om to exe-om file for nano
 };
 
@@ -63,9 +63,9 @@ struct OmgContext {
   // save the output node of the network. key = operator name, value = index, index indicates the output index of the
   // operator
   std::map<std::string, std::vector<int32_t>> out_nodes_map;
-  // user-designate out nodes (this is used for determing the orders)
+  // user-designate out nodes (this is used for determining the orders)
   std::vector<std::pair<std::string, int32_t>> user_out_nodes;
-  // default out nodes (this is used for determing the orders)
+  // default out nodes (this is used for determining the orders)
   std::vector<std::pair<std::string, int32_t>> default_out_nodes;
   // save the output node of the network, value = topName,
   // tensorName indicates the output name of the operator.

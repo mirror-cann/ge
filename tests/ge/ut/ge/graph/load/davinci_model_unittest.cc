@@ -2253,7 +2253,7 @@ TEST_F(UtestDavinciModel, init_data_aipp_dynamic) {
   op_desc->SetOutputOffset({1024});
   NodePtr node = graph->AddNode(op_desc);   // op_index 0
   AttrUtils::SetStr(op_desc, ATTR_DATA_RELATED_AIPP_MODE, "dynamic_aipp");
-  AttrUtils::SetStr(op_desc, ATTR_DATA_AIPP_DATA_NAME_MAP, "releated_aipp");
+  AttrUtils::SetStr(op_desc, ATTR_DATA_AIPP_DATA_NAME_MAP, "related_aipp");
 
   InputAippType aipp_type;
   size_t aipp_index = 0;
@@ -2270,7 +2270,7 @@ TEST_F(UtestDavinciModel, init_data_aipp_dynamic) {
   EXPECT_TRUE(model.op_list_.empty());
 }
 
-TEST_F(UtestDavinciModel, init_data_aipp_releated) {
+TEST_F(UtestDavinciModel, init_data_aipp_related) {
   DavinciModel model(0, nullptr);
   model.ge_model_ = MakeShared<GeModel>();   // for CustAICPUKernelStore::GetCustAICPUKernelStore()
   model.runtime_param_.mem_base = 0x08000000;
@@ -2288,10 +2288,10 @@ TEST_F(UtestDavinciModel, init_data_aipp_releated) {
     op_desc->SetOutputOffset({1024});
     NodePtr node = graph->AddNode(op_desc);   // op_index 0
     AttrUtils::SetStr(op_desc, ATTR_DATA_RELATED_AIPP_MODE, "dynamic_aipp");
-    AttrUtils::SetStr(op_desc, ATTR_DATA_AIPP_DATA_NAME_MAP, "releated_aipp");
+    AttrUtils::SetStr(op_desc, ATTR_DATA_AIPP_DATA_NAME_MAP, "related_aipp");
   }
   {
-    OpDescPtr op_desc = CreateOpDesc("releated_aipp", DATA);
+    OpDescPtr op_desc = CreateOpDesc("related_aipp", DATA);
     op_desc->AddInputDesc(tensor);
     op_desc->AddOutputDesc(tensor);
     op_desc->SetInputOffset({1024});

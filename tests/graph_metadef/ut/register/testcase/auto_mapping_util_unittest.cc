@@ -256,7 +256,7 @@ TEST_F(AutoMappingUtils, CopyAttrValueInputListTest) {
 
     const char_t *testlistName1 = "listName_str";
     const char_t *testlistPort1 = "listport_str";
-    vector<std::string> attrStrList = {"image/class/lable","image/encode", "image/format"};
+    vector<std::string> attrStrList = {"image/class/label","image/encode", "image/format"};
     AttrUtils::SetListStr(node_src->GetOpDesc(), testlistName1, attrStrList);
     op_desc_dst->AddRegisterInputName(testlistPort1);
     domi::DynamicInputOutputInfo input1(kInput, testlistPort1, strlen(testlistPort1), testlistName1, strlen(testlistName1));

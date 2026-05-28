@@ -1137,7 +1137,7 @@ void FlowFuncExecutor::ProcessFlowFuncInitEvent(const struct event_info &event, 
     UDF_RUN_LOG_INFO("request_queue_wrapper_ %d.", request_queue_wrapper_ == nullptr);
     if ((request_queue_wrapper_ != nullptr) && (ProcessRequestMessageQueue(msg_type) != FLOW_FUNC_SUCCESS)) {
         SendMessageByResponseQueue(msg_type, FLOW_FUNC_FAILED);
-        UDF_LOG_ERROR("Try proccess request message queue data during init procedure failed.");
+        UDF_LOG_ERROR("Try process request message queue data during init procedure failed.");
         Stop();
         return;
     }

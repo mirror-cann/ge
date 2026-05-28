@@ -269,7 +269,7 @@ Status SubgraphRewriter::Replace(const SubgraphBoundary &subgraph, const Graph &
   }
 
   // copy replacement
-  ComputeGraphPtr replacement_backup = MakeShared<ComputeGraph>("replacment");
+  ComputeGraphPtr replacement_backup = MakeShared<ComputeGraph>("replacement");
   GE_ASSERT_NOTNULL(replacement_backup);
   GE_ASSERT_SUCCESS(GraphUtils::CopyComputeGraph(replacement_compute_graph, replacement_backup));
 

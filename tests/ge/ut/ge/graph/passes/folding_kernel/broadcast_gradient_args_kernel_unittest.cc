@@ -48,7 +48,7 @@ class UtestBroadcastGradientArgsKernel : public testing::Test {
  protected:
   void SetUp() { init(); }
 
-  void TearDown() { destory(); }
+  void TearDown() { destroy(); }
 
  private:
   void init() {
@@ -58,7 +58,7 @@ class UtestBroadcastGradientArgsKernel : public testing::Test {
     node_ = std::make_shared<Node>(op_desc_ptr_, graph_);
     kernel_ = KernelFactory::Instance().Create(BROADCASTGRADIENTARGS);
   }
-  void destory() {
+  void destroy() {
     delete pass_;
     pass_ = NULL;
   }

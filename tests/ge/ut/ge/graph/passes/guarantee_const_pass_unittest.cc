@@ -46,12 +46,12 @@ class UtestGraphPassesGuaranteeConstPass : public testing::Test {
  protected:
   void SetUp() { init(); }
 
-  void TearDown() { destory(); }
+  void TearDown() { destroy(); }
 
  private:
   void init() { guarantee_const_op_remove_pass_ = new ::ge::GuaranteeConstPass(); }
 
-  void destory() {
+  void destroy() {
     delete guarantee_const_op_remove_pass_;
     guarantee_const_op_remove_pass_ = NULL;
   }

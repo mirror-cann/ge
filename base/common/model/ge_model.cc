@@ -36,9 +36,9 @@ void GeModel::SetGraph(const ComputeGraphPtr &graph) { this->graph_ = graph; }
 
 std::shared_ptr<domi::ModelTaskDef> GeModel::GetModelTaskDefPtr() const { return this->task_; }
 
-TBEKernelStore &GeModel::GetTBEKernelStore() { return this->tbe_kernal_store_; }
+TBEKernelStore &GeModel::GetTBEKernelStore() { return this->tbe_kernel_store_; }
 
-CustAICPUKernelStore &GeModel::GetCustAICPUKernelStore() { return this->cust_aicpu_kernal_store_; }
+CustAICPUKernelStore &GeModel::GetCustAICPUKernelStore() { return this->cust_aicpu_kernel_store_; }
 
 // use GetWeightData and GetWeightSize instead
 Buffer GeModel::GetWeight() const { return this->weights_buffer_; }
@@ -76,20 +76,20 @@ uint8_t GeModel::GetPlatformType() const { return this->platform_type_; }
 
 void GeModel::SetModelTaskDef(const std::shared_ptr<domi::ModelTaskDef> &task) { this->task_ = task; }
 
-void GeModel::SetTBEKernelStore(const TBEKernelStore &tbe_kernal_store) {
-  this->tbe_kernal_store_ = tbe_kernal_store;
+void GeModel::SetTBEKernelStore(const TBEKernelStore &tbe_kernel_store) {
+  this->tbe_kernel_store_ = tbe_kernel_store;
 }
 
-void GeModel::SetCustAICPUKernelStore(const CustAICPUKernelStore &cust_aicpu_kernal_store) {
-  this->cust_aicpu_kernal_store_ = cust_aicpu_kernal_store;
+void GeModel::SetCustAICPUKernelStore(const CustAICPUKernelStore &cust_aicpu_kernel_store) {
+  this->cust_aicpu_kernel_store_ = cust_aicpu_kernel_store;
 }
 
 bool GeModel::LoadTBEKernelStore(const uint8_t *const data, const size_t len) {
-  return tbe_kernal_store_.Load(data, len);
+  return tbe_kernel_store_.Load(data, len);
 }
 
 bool GeModel::LoadAICPUKernelStore(const uint8_t *const data, const size_t len) {
-  return cust_aicpu_kernal_store_.Load(data, len);
+  return cust_aicpu_kernel_store_.Load(data, len);
 }
 
 void GeModel::SetWeight(const Buffer &weights_buffer) { this->weights_buffer_ = weights_buffer; }

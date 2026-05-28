@@ -457,7 +457,7 @@ static graphStatus IODescParser(const OpDescPtr &op_desc, const std::string &pat
       has_idx = true;
     }
   }
-  GE_ASSERT(has_idx, "Dynamic intput/output should have a concrete ir idx.");
+  GE_ASSERT(has_idx, "Dynamic input/output should have a concrete ir idx.");
   arg_descs.push_back({type, ir_idx, folded, {0}});
   return GRAPH_SUCCESS;
 }

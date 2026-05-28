@@ -1497,7 +1497,7 @@ void ModelUtils::FreeExMem(const uint32_t device_id, RuntimeParam &runtime_param
         MemManager::Instance().FreeSessionMemory(session_id);  // reasoning process releases memory
         it.second.memory_base = nullptr;
       }
-      continue;  // free when session destory
+      continue;  // free when session destroy
     }
     if (it.second.memory_type == RT_MEMORY_HOST) {
       if (it.second.memory_base != nullptr) {
