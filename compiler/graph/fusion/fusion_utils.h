@@ -36,6 +36,8 @@ class FusionUtils {
   // 使用detector前后需要重置状态，确保当前detector掌握图的最新状态
   static void ResetCycleDetectors();
 
+  static Status ReCreateCycleDetector(const ComputeGraphPtr &curr_graph);
+
   static CycleDetectorSharedPtr GetOrCreateCycleDetector(const ComputeGraphPtr &curr_graph);
 
   static bool WillCauseCycleIfFuse(const std::unique_ptr<MatchResult> &match_result);
