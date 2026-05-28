@@ -22,7 +22,7 @@ if (BUILD_OPEN_PROJECT OR ENABLE_OPEN_SRC)
 
         # 2. ge-executor 或 dflow-executor
         if("ge-executor" IN_LIST BUILD_COMPONENT OR "dflow-executor" IN_LIST BUILD_COMPONENT)
-            add_cann_third_party(grpc)
+            include(cmake/third_party/build/modules/grpc.cmake)
             find_package(gRPC CONFIG REQUIRED)
             find_package(Boost CONFIG REQUIRED)
         endif()
