@@ -22,6 +22,9 @@
 #include "graph/load/model_manager/sink_only_allocator.h"
 
 namespace {
+const ge::char_t *const kDumpOutput = "output";
+const ge::char_t *const kDumpInput = "input";
+
 bool IsInputDescValid(const ge::GeTensorDesc &input_desc, size_t &invalid_index_num) {
   if (input_desc.IsValid() != ge::GRAPH_SUCCESS) {
     if (invalid_index_num < std::numeric_limits<size_t>::max()) {
@@ -55,6 +58,94 @@ std::vector<void *> GetHoldersRawPtr(const std::vector<std::unique_ptr<uint8_t[]
 }
 
 namespace ge {
+void CustomTaskInfo::SetCustomDumpInfo(const DumpProperties &dump_properties, DumpOp &dump_op) const {
+  std::vector<uintptr_t> input_addrs;
+  std::vector<uintptr_t> output_addrs;
+  input_addrs.reserve(input_data_addrs_.size());
+  output_addrs.reserve(output_data_addrs_.size());
+  for (const auto addr : input_data_addrs_) {
+    input_addrs.emplace_back(static_cast<uintptr_t>(addr));
+  }
+  for (const auto addr : output_data_addrs_) {
+    output_addrs.emplace_back(static_cast<uintptr_t>(addr));
+  }
+
+  dump_op.SetDumpInfo(dump_properties, op_desc_, input_addrs, output_addrs, stream_);
+  if (davinci_model_->IsKnownNode()) {
+    dump_op.SetLoopAddr(davinci_model_->GetGlobalStep(), 0U, 0U);
+  } else {
+    dump_op.SetLoopAddr(davinci_model_->GetGlobalStep(), davinci_model_->GetLoopPerIter(),
+                        davinci_model_->GetLoopCond());
+  }
+  dump_op.SetDynamicModelInfo(davinci_model_->GetDumpModelName(),
+                              davinci_model_->GetOmName(),
+                              davinci_model_->GetDumpModelId());
+  dump_op.SetRootGraphName(davinci_model_->GetRootGraphName());
+}
+
+Status CustomTaskInfo::UpdateCustomDumpAddrs(const std::vector<uint64_t> &input_addrs_value,
+                                             const std::vector<uint64_t> &output_addrs_value) {
+  GE_CHECK_NOTNULL(davinci_model_);
+  GE_CHECK_NOTNULL(op_desc_);
+  if (!davinci_model_->OpNeedDump(op_desc_->GetName())) {
+    return SUCCESS;
+  }
+
+  std::vector<uintptr_t> input_addrs;
+  std::vector<uintptr_t> output_addrs;
+  input_addrs.reserve(input_addrs_value.size());
+  output_addrs.reserve(output_addrs_value.size());
+  for (const auto addr : input_addrs_value) {
+    input_addrs.emplace_back(static_cast<uintptr_t>(addr));
+  }
+  for (const auto addr : output_addrs_value) {
+    output_addrs.emplace_back(static_cast<uintptr_t>(addr));
+  }
+
+  GE_CHK_STATUS_RET(input_custom_dump_.UpdateAddrs(input_addrs, {}),
+                    "[Update][CustomDumpAddrs] fail! op:%s", op_desc_->GetName().c_str());
+  GE_CHK_STATUS_RET(output_custom_dump_.UpdateAddrs({}, output_addrs),
+                    "[Update][CustomDumpAddrs] fail! op:%s", op_desc_->GetName().c_str());
+  return SUCCESS;
+}
+
+Status CustomTaskInfo::InsertDumpOp(const std::string &dump_mode) {
+  GE_CHECK_NOTNULL(davinci_model_);
+  GE_CHECK_NOTNULL(op_desc_);
+  if (!davinci_model_->OpNeedDump(op_desc_->GetName())) {
+    return SUCCESS;
+  }
+
+  GELOGI("Data Dump is on, dump custom op for node: %s, type: %s.",
+         op_desc_->GetName().c_str(), op_desc_->GetType().c_str());
+  auto custom_dump_properties = davinci_model_->GetDumpProperties();
+  DumpOp *dump_op = nullptr;
+  if (dump_mode == kDumpInput) {
+    if (custom_dump_properties.GetDumpMode() == kDumpOutput) {
+      return SUCCESS;
+    }
+    GELOGI("Insert input dump op for custom node: %s, type: %s.",
+           op_desc_->GetName().c_str(), op_desc_->GetType().c_str());
+    custom_dump_properties.ClearOpDebugFlag();
+    custom_dump_properties.SetDumpMode(kDumpInput);
+    dump_op = &input_custom_dump_;
+  } else if (dump_mode == kDumpOutput) {
+    if (custom_dump_properties.GetDumpMode() == kDumpInput) {
+      return SUCCESS;
+    }
+    GELOGI("Insert output dump op for custom node: %s, type: %s.",
+           op_desc_->GetName().c_str(), op_desc_->GetType().c_str());
+    custom_dump_properties.ClearOpDebugFlag();
+    custom_dump_properties.SetDumpMode(kDumpOutput);
+    dump_op = &output_custom_dump_;
+  } else {
+    return SUCCESS;
+  }
+
+  SetCustomDumpInfo(custom_dump_properties, *dump_op);
+  return dump_op->LaunchDumpOp(false, false);
+}
+
 Status CustomTaskInfo::ParseTaskRunParam(const domi::TaskDef &task_def, DavinciModel *const davinci_model,
                                               TaskRunParam &task_run_param) {
   GELOGI("CustomTaskInfo  ParseTaskRunParam start");
@@ -204,7 +295,11 @@ Status CustomTaskInfo::Distribute() {
     GELOGW("%s is custom op but did not implement EagerExecuteOp", eager_context->GetNodeType());
     return ge::GRAPH_FAILED;
   }
+  GE_CHK_STATUS_RET(InsertDumpOp(kDumpInput), "Insert custom input dump op failed, node: %s",
+                    op_desc_->GetNamePtr());
   GE_ASSERT_SUCCESS(eager_execute_op_ptr->Execute(eager_context));
+  GE_CHK_STATUS_RET(InsertDumpOp(kDumpOutput), "Insert custom output dump op failed, node: %s",
+                    op_desc_->GetNamePtr());
   GELOGI(
       "CustomTaskInfo Distribute Success, node: %s, stream_id: %u, stream: %p, task_id: %u",
       op_desc_->GetName().c_str(), stream_id_, stream_, task_id_);
