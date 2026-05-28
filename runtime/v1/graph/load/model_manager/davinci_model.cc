@@ -115,7 +115,7 @@ constexpr const char *kModelProfStageStr[kMdlProfStageNameEnd + 1] = {
     "InitNodes",
     "DoTaskSink",
     "CopyModelData",
-    "rtModelExecute",
+    "aclmdlRIExecuteAsync",
     "CopyOutputData",
     "unknown"};
 
@@ -3486,7 +3486,7 @@ Status DavinciModel::LoadWithHardwareQueue() {
   GE_ASSERT_RT_OK(LaunchDqsTask(RT_DQS_TASK_PREPARE_OUT));
   GE_ASSERT_SUCCESS(LaunchOutputZeroCpyCfg());
 
-  GE_ASSERT_RT_OK(rtModelExecute(rt_model_handle_, rt_entry_stream_, 0));
+  GE_ASSERT_RT_OK(aclmdlRIExecuteAsync(rt_model_handle_, rt_entry_stream_));
   GE_ASSERT_RT_OK(LaunchDqsTask(RT_DQS_TASK_ENQUEUE));
   GE_ASSERT_RT_OK(LaunchDqsTask(RT_DQS_TASK_FREE));
   GE_ASSERT_RT_OK(LaunchDqsTask(RT_DQS_TASK_SCHED_END));
@@ -5600,17 +5600,17 @@ void DavinciModel::Run() {
     }
     GE_IF_BOOL_EXEC(is_prof_enabled, SetProfileTime(ModelProcStage::MODEL_PRE_PROC_END));
     GE_IF_BOOL_EXEC(is_prof_enabled, SetProfileTime(ModelProcStage::MODEL_INFER_START));
-    GE_TIMESTAMP_START(rtModelExecute);
-    GELOGI("rtModelExecute start, model id:%u.", model_id_);
+    GE_TIMESTAMP_START(aclmdlRIExecuteAsync);
+    GELOGI("aclmdlRIExecuteAsync start, model id:%u.", model_id_);
     CANN_PROFILING_STEP_TRACE(model_id_, iterator_count_, 0U, rt_model_stream_);
-    auto rt_ret = rtModelExecute(rt_model_handle_, rt_model_stream_, 0U);
-    if (rt_ret != RT_ERROR_NONE) {
+    auto rt_ret = aclmdlRIExecuteAsync(rt_model_handle_, rt_model_stream_);
+    if (rt_ret != ACL_SUCCESS) {
       OnComputeDoneWithResultCallback(args, 0U, INTERNAL_ERROR, outputs);
       continue;
     }
-    GELOGI("rtModelExecute end, model id:%u.", model_id_);
+    GELOGI("aclmdlRIExecuteAsync end, model id:%u.", model_id_);
     CANN_PROFILING_STEP_TRACE(model_id_, iterator_count_, 1U, rt_model_stream_);
-    GE_IF_BOOL_EXEC(is_first_execute_, GE_TIMESTAMP_EVENT_END(rtModelExecute, "rtModelExecute"));
+    GE_IF_BOOL_EXEC(is_first_execute_, GE_TIMESTAMP_EVENT_END(aclmdlRIExecuteAsync, "aclmdlRIExecuteAsync"));
     iterator_count_++;
 
     GE_TIMESTAMP_START(rtStreamSynchronizeWithTimeout);
@@ -7687,14 +7687,14 @@ Status DavinciModel::NnExecute(aclrtStream const stream, const bool async_mode,
     GE_IF_BOOL_EXEC(is_prof_enabled, SetProfileTime(ModelProcStage::MODEL_INFER_START));
     CANN_PROFILING_STEP_TRACE(model_id_, iterator_count_, 0U, rt_model_stream_);
     GetStageTimestampStart(kMdlExecute);
-    rtError_t rt_ret;
+    aclError rt_ret;
     if (is_forbidden_stream_ && is_inner_model_stream_) {
-      // MDC场景:使用的是forbidden流+模型执行时设置了超时时间时，调用rtModelExecuteSync接口，其内部会做流同步，超时会abort model
+      // MDC场景:使用的是forbidden流+模型执行时设置了超时时间时，调用aclmdlRIExecute接口，其内部会做流同步，超时会abort model
       const int32_t stream_sync_timeout_exe = GetContext().StreamSyncTimeout();
       GELOGD("[NnExecute] Get stream_sync_timeout_exe: %dms.", stream_sync_timeout_exe);
-      rt_ret = rtModelExecuteSync(rt_model_handle_, rt_model_stream_, 0U, stream_sync_timeout_exe);
+      rt_ret = aclmdlRIExecute(rt_model_handle_, stream_sync_timeout_exe);
     } else {
-      rt_ret = rtModelExecute(rt_model_handle_, rt_model_stream_, 0U);
+      rt_ret = aclmdlRIExecuteAsync(rt_model_handle_, rt_model_stream_);
     }
     GetStageTimestampEnd(kMdlExecute);
     CANN_PROFILING_STEP_TRACE(model_id_, iterator_count_, 1U, rt_model_stream_);
@@ -7794,16 +7794,16 @@ Status DavinciModel::NnExecute(aclrtStream const stream, const bool async_mode, 
     CANN_PROFILING_STEP_TRACE(model_id_, iterator_count_, 0U, rt_model_stream_);
 
     if (is_forbidden_stream_ && is_inner_model_stream_) {
-      // MDC场景:使用的是forbidden流+模型执行时设置了超时时间时，调用rtModelExecuteSync接口，其内部会做流同步，超时会abort model
+      // MDC场景:使用的是forbidden流+模型执行时设置了超时时间时，调用aclmdlRIExecute接口，其内部会做流同步，超时会abort model
       const int32_t stream_sync_timeout_exe = GetContext().StreamSyncTimeout();
       GELOGD("[NnExecute] Get stream_sync_timeout_exe: %dms.", stream_sync_timeout_exe);
       GetStageTimestampStart(kMdlExecute);
-      const rtError_t rt_ret = rtModelExecuteSync(rt_model_handle_, rt_model_stream_, 0U, stream_sync_timeout_exe);
+      const aclError rt_ret = aclmdlRIExecute(rt_model_handle_, stream_sync_timeout_exe);
       GetStageTimestampEnd(kMdlExecute);
       CANN_PROFILING_STEP_TRACE(model_id_, iterator_count_, 1U, rt_model_stream_);
       GE_CHK_RT_EXEC(rt_ret, return RT_ERROR_TO_GE_STATUS(rt_ret));
     } else {
-      const rtError_t rt_ret = rtModelExecute(rt_model_handle_, rt_model_stream_, 0U);
+      const aclError rt_ret = aclmdlRIExecuteAsync(rt_model_handle_, rt_model_stream_);
       CANN_PROFILING_STEP_TRACE(model_id_, iterator_count_, 1U, rt_model_stream_);
       GE_CHK_RT_EXEC(rt_ret, return RT_ERROR_TO_GE_STATUS(rt_ret));
     }
