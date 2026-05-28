@@ -117,142 +117,142 @@ HcclResult DlHcclFunction::initHcclGraphModeFunctions() {
   // 图模式相关函数
   dlHcclCreateOpParamGraphModeFunc = (HcclResult (*)(OpParamGraphModePtr *opParam))dlsym(dl_hccl_handle, "HcclCreateOpParamGraphMode");
   CHK_PRT_RET(dlHcclCreateOpParamGraphModeFunc == nullptr,
-      HCCL_WARNING("[DlHcclFunction]load HcclCreateOpParamGraphMode function fail\n"), HCCL_E_PTR);
+      HCCL_WARNING("[DlHcclFunction]load HcclCreateOpParamGraphMode function fail."), HCCL_E_PTR);
 
   dlHcclDestroyOpParamGraphModeFunc = (HcclResult (*)(OpParamGraphModePtr opParam))dlsym(dl_hccl_handle, "HcclDestroyOpParamGraphMode");
   CHK_PRT_RET(dlHcclDestroyOpParamGraphModeFunc == nullptr,
-      HCCL_WARNING("[DlHcclFunction]load HcclDestroyOpParamGraphMode function fail\n"), HCCL_E_PTR);
+      HCCL_WARNING("[DlHcclFunction]load HcclDestroyOpParamGraphMode function fail."), HCCL_E_PTR);
 
   dlHcclSetOpParamGraphModeOpTypeFunc = (HcclResult (*)(OpParamGraphModePtr opParam, const char *opType))dlsym(dl_hccl_handle, "HcclSetOpParamGraphModeOpType");
   CHK_PRT_RET(dlHcclSetOpParamGraphModeOpTypeFunc == nullptr,
-      HCCL_WARNING("[DlHcclFunction]load HcclSetOpParamGraphModeOpType function fail\n"), HCCL_E_PTR);
+      HCCL_WARNING("[DlHcclFunction]load HcclSetOpParamGraphModeOpType function fail."), HCCL_E_PTR);
 
   dlHcclSetOpParamGraphModeDataCountFunc = (HcclResult (*)(OpParamGraphModePtr opParam, const u64 *count))dlsym(dl_hccl_handle, "HcclSetOpParamGraphModeDataCount");
   CHK_PRT_RET(dlHcclSetOpParamGraphModeDataCountFunc == nullptr,
-      HCCL_WARNING("[DlHcclFunction]load HcclSetOpParamGraphModeDataCount function fail\n"), HCCL_E_PTR);
+      HCCL_WARNING("[DlHcclFunction]load HcclSetOpParamGraphModeDataCount function fail."), HCCL_E_PTR);
 
   dlHcclSetOpParamGraphModeRankSizeFunc = (HcclResult (*)(OpParamGraphModePtr opParam, const u32 *rankSize))dlsym(dl_hccl_handle, "HcclSetOpParamGraphModeRankSize");
   CHK_PRT_RET(dlHcclSetOpParamGraphModeRankSizeFunc == nullptr,
-      HCCL_WARNING("[DlHcclFunction]load HcclSetOpParamGraphModeRankSize function fail\n"), HCCL_E_PTR);
+      HCCL_WARNING("[DlHcclFunction]load HcclSetOpParamGraphModeRankSize function fail."), HCCL_E_PTR);
 
   dlHcclSetOpParamGraphModeHCCLBufferSizeFunc = (HcclResult (*)(OpParamGraphModePtr opParam, const u64 *cclBufferSize))dlsym(dl_hccl_handle, "HcclSetOpParamGraphModeHCCLBufferSize");
   CHK_PRT_RET(dlHcclSetOpParamGraphModeHCCLBufferSizeFunc == nullptr,
-      HCCL_WARNING("[DlHcclFunction]load HcclSetOpParamGraphModeHCCLBufferSize function fail\n"), HCCL_E_PTR);
+      HCCL_WARNING("[DlHcclFunction]load HcclSetOpParamGraphModeHCCLBufferSize function fail."), HCCL_E_PTR);
 
   dlHcclSetOpParamGraphModeDataTypeFunc = (HcclResult (*)(OpParamGraphModePtr opParam, const HcclDataType dataType))dlsym(dl_hccl_handle, "HcclSetOpParamGraphModeDataType");
   CHK_PRT_RET(dlHcclSetOpParamGraphModeDataTypeFunc == nullptr,
-      HCCL_WARNING("[DlHcclFunction]load HcclSetOpParamGraphModeDataType function fail\n"), HCCL_E_PTR);
+      HCCL_WARNING("[DlHcclFunction]load HcclSetOpParamGraphModeDataType function fail."), HCCL_E_PTR);
 
   dlHcclSetAivSelectOpParamGraphModeFunc = (HcclResult (*)(OpParamGraphModePtr opParam, u32 aivCoreLimit))dlsym(dl_hccl_handle, "HcclSetAivSelectOpParamGraphMode");
   CHK_PRT_RET(dlHcclSetAivSelectOpParamGraphModeFunc == nullptr,
-      HCCL_WARNING("[DlHcclFunction]load HcclSetAivSelectOpParamGraphMode function fail\n"), HCCL_E_PTR);
+      HCCL_WARNING("[DlHcclFunction]load HcclSetAivSelectOpParamGraphMode function fail."), HCCL_E_PTR);
 
   dlHcclCalcOpResOfflineGraphModeFunc = (HcclResult (*)(OpParamGraphModePtr opParam, u64 *opMemSize, 
       u32 *streamNum, u32 *taskNum, u32 *aivCoreNum))dlsym(dl_hccl_handle, "HcclCalcOpResOfflineGraphMode");
   CHK_PRT_RET(dlHcclCalcOpResOfflineGraphModeFunc == nullptr,
-      HCCL_WARNING("[DlHcclFunction]load HcclCalcOpResOfflineGraphMode function fail\n"), HCCL_E_PTR);
+      HCCL_WARNING("[DlHcclFunction]load HcclCalcOpResOfflineGraphMode function fail."), HCCL_E_PTR);
 
   dlHcclCalcOpResOnlineGraphModeFunc = (HcclResult (*)(OpParamGraphModePtr opParam, u64 *opMemSize, 
       u32 *streamNum, u32 *taskNum, u32 *aivCoreNum))dlsym(dl_hccl_handle, "HcclCalcOpResOnlineGraphMode");
   CHK_PRT_RET(dlHcclCalcOpResOnlineGraphModeFunc == nullptr,
-      HCCL_WARNING("[DlHcclFunction]load HcclCalcOpResOnlineGraphMode function fail\n"), HCCL_E_PTR);
+      HCCL_WARNING("[DlHcclFunction]load HcclCalcOpResOnlineGraphMode function fail."), HCCL_E_PTR);
 
   dlHcclAllGatherGraphModeFunc = (HcclResult (*)(void *sendBuf, void *recvBuf, uint64_t count, HcclDataType dataType, 
       const char *group, void *stream, const char *tag, void **streams, size_t streamCount, 
       void *scratchMemAddr, uint64_t scratchMemSize))dlsym(dl_hccl_handle, "HcclAllGatherGraphMode");
   CHK_PRT_RET(dlHcclAllGatherGraphModeFunc == nullptr,
-      HCCL_WARNING("[DlHcclFunction]load HcclAllGatherGraphMode function fail\n"), HCCL_E_PTR);
+      HCCL_WARNING("[DlHcclFunction]load HcclAllGatherGraphMode function fail."), HCCL_E_PTR);
   
   dlHcclBroadcastGraphModeFunc = (HcclResult (*)(void *sendBuf, uint64_t count, HcclDataType dataType, uint32_t root, 
       const char *group, void *stream, const char *tag, void **streams, size_t streamCount, 
       void *scratchMemAddr, uint64_t scratchMemSize))dlsym(dl_hccl_handle, "HcclBroadcastGraphMode");
   CHK_PRT_RET(dlHcclBroadcastGraphModeFunc == nullptr,
-      HCCL_WARNING("[DlHcclFunction]load HcclBroadcastGraphMode function fail\n"), HCCL_E_PTR);
+      HCCL_WARNING("[DlHcclFunction]load HcclBroadcastGraphMode function fail."), HCCL_E_PTR);
 
   dlHcclReduceScatterVGraphModeFunc = (HcclResult (*)(void *sendBuf, const void *sendCounts, const void *sendDispls, 
       void *recvBuf, uint64_t recvCount, HcclDataType dataType, HcclReduceOp reduceOp, 
       const char *group, void *stream, const char *tag, void **streams, size_t streamCount, 
       void *scratchMemAddr, uint64_t scratchMemSize))dlsym(dl_hccl_handle, "HcclReduceScatterVGraphMode");
   CHK_PRT_RET(dlHcclReduceScatterVGraphModeFunc == nullptr,
-      HCCL_WARNING("[DlHcclFunction]load HcclReduceScatterVGraphMode function fail\n"), HCCL_E_PTR);
+      HCCL_WARNING("[DlHcclFunction]load HcclReduceScatterVGraphMode function fail."), HCCL_E_PTR);
 
   dlHcclAllGatherVGraphModeFunc = (HcclResult (*)(void *sendBuf, void *recvBuf, uint64_t sendCount, 
       const void *recvCounts, const void *recvDispls, HcclDataType dataType, 
       const char *group, void *stream, const char *tag, void **streams, size_t streamCount, 
       void *scratchMemAddr, uint64_t scratchMemSize))dlsym(dl_hccl_handle, "HcclAllGatherVGraphMode");
   CHK_PRT_RET(dlHcclAllGatherVGraphModeFunc == nullptr,
-      HCCL_WARNING("[DlHcclFunction]load HcclAllGatherVGraphMode function fail\n"), HCCL_E_PTR);
+      HCCL_WARNING("[DlHcclFunction]load HcclAllGatherVGraphMode function fail."), HCCL_E_PTR);
 
   dlHcclAlltoAllGraphModeFunc = (HcclResult (*)(const void *sendBuf, uint64_t sendCount, HcclDataType sendType, 
       const void *recvBuf, uint64_t recvCount, HcclDataType recvType, 
       const char *group, void *stream, const char *tag, void **streams, size_t streamCount, 
       void *scratchMemAddr, uint64_t scratchMemSize))dlsym(dl_hccl_handle, "HcclAlltoAllGraphMode");
   CHK_PRT_RET(dlHcclAlltoAllGraphModeFunc == nullptr,
-      HCCL_WARNING("[DlHcclFunction]load HcclAlltoAllGraphMode function fail\n"), HCCL_E_PTR);
+      HCCL_WARNING("[DlHcclFunction]load HcclAlltoAllGraphMode function fail."), HCCL_E_PTR);
 
   dlHcclAlltoAllVGraphModeFunc = (HcclResult (*)(const void *sendBuf, const void *sendCounts, const void *sendDispls, 
       HcclDataType sendType, const void *recvBuf, const void *recvCounts, const void *recvDispls, 
       HcclDataType recvType, const char *group, void *stream, const char *tag, void **streams, 
       size_t streamCount, void *scratchMemAddr, uint64_t scratchMemSize))dlsym(dl_hccl_handle, "HcclAlltoAllVGraphMode");
   CHK_PRT_RET(dlHcclAlltoAllVGraphModeFunc == nullptr,
-      HCCL_WARNING("[DlHcclFunction]load HcclAlltoAllVGraphMode function fail\n"), HCCL_E_PTR);
+      HCCL_WARNING("[DlHcclFunction]load HcclAlltoAllVGraphMode function fail."), HCCL_E_PTR);
 
   dlHcclAlltoAllVCGraphModeFunc = (HcclResult (*)(const void *sendBuf, const void *sendCountMatrix, HcclDataType sendType, 
       const void *recvBuf, HcclDataType recvType, const char *group, void *stream, 
       const char *tag, void **streams, size_t streamCount, void *scratchMemAddr, 
       uint64_t scratchMemSize))dlsym(dl_hccl_handle, "HcclAlltoAllVCGraphMode");
   CHK_PRT_RET(dlHcclAlltoAllVCGraphModeFunc == nullptr,
-      HCCL_WARNING("[DlHcclFunction]load HcclAlltoAllVCGraphMode function fail\n"), HCCL_E_PTR);
+      HCCL_WARNING("[DlHcclFunction]load HcclAlltoAllVCGraphMode function fail."), HCCL_E_PTR);
 
   dlHcclSendGraphModeFunc = (HcclResult (*)(void *sendBuf, uint64_t count, HcclDataType dataType, uint32_t destRank, 
       const char *group, void *stream, const char *tag, void **streams, size_t streamCount, 
       void *scratchMemAddr, uint64_t scratchMemSize))dlsym(dl_hccl_handle, "HcclSendGraphMode");
   CHK_PRT_RET(dlHcclSendGraphModeFunc == nullptr,
-      HCCL_WARNING("[DlHcclFunction]load HcclSendGraphMode function fail\n"), HCCL_E_PTR);
+      HCCL_WARNING("[DlHcclFunction]load HcclSendGraphMode function fail."), HCCL_E_PTR);
 
   dlHcclRecvGraphModeFunc = (HcclResult (*)(void *recvBuf, uint64_t count, HcclDataType dataType, uint32_t srcRank, 
       const char *group, void *stream, const char *tag, void **streams, size_t streamCount, 
       void *scratchMemAddr, uint64_t scratchMemSize))dlsym(dl_hccl_handle, "HcclRecvGraphMode");
   CHK_PRT_RET(dlHcclRecvGraphModeFunc == nullptr,
-      HCCL_WARNING("[DlHcclFunction]load HcclRecvGraphMode function fail\n"), HCCL_E_PTR);
+      HCCL_WARNING("[DlHcclFunction]load HcclRecvGraphMode function fail."), HCCL_E_PTR);
 
   dlHcclAllReduceGraphModeFunc = (HcclResult (*)(void *sendBuf, void *recvBuf, uint64_t count, HcclDataType dataType, 
       HcclReduceOp reduceOp, const char *group, void *stream, const char *tag, 
       void **streams, size_t streamCount, void *scratchMemAddr, uint64_t scratchMemSize))dlsym(dl_hccl_handle, "HcclAllReduceGraphMode");
   CHK_PRT_RET(dlHcclAllReduceGraphModeFunc == nullptr,
-      HCCL_WARNING("[DlHcclFunction]load HcclAllReduceGraphMode function fail\n"), HCCL_E_PTR);
+      HCCL_WARNING("[DlHcclFunction]load HcclAllReduceGraphMode function fail."), HCCL_E_PTR);
 
   dlHcclReduceGraphModeFunc = (HcclResult (*)(void *sendBuf, void *recvBuf, uint64_t count, HcclDataType dataType, 
       HcclReduceOp reduceOp, uint32_t root, const char *group, void *stream, 
       const char *tag, void **streams, size_t streamCount, void *scratchMemAddr, 
       uint64_t scratchMemSize))dlsym(dl_hccl_handle, "HcclReduceGraphMode");
   CHK_PRT_RET(dlHcclReduceGraphModeFunc == nullptr,
-      HCCL_WARNING("[DlHcclFunction]load HcclReduceGraphMode function fail\n"), HCCL_E_PTR);
+      HCCL_WARNING("[DlHcclFunction]load HcclReduceGraphMode function fail."), HCCL_E_PTR);
   
   dlHcclReduceScatterGraphModeFunc = (HcclResult (*)(void *sendBuf, void *recvBuf, uint64_t count, HcclDataType dataType, 
       HcclReduceOp reduceOp, const char *group, void *stream, const char *tag, 
       void **streams, size_t streamCount, void *scratchMemAddr, uint64_t scratchMemSize))dlsym(dl_hccl_handle, "HcclReduceScatterGraphMode");
   CHK_PRT_RET(dlHcclReduceScatterGraphModeFunc == nullptr,
-      HCCL_WARNING("[DlHcclFunction]load HcclReduceScatterGraphMode function fail\n"), HCCL_E_PTR);
+      HCCL_WARNING("[DlHcclFunction]load HcclReduceScatterGraphMode function fail."), HCCL_E_PTR);
 
   dlHcclSetAivCoreLimitGraphModeFunc = (HcclResult (*)(const char *group, u32 aivCoreLimit))dlsym(dl_hccl_handle, "HcclSetAivCoreLimitGraphMode");
   CHK_PRT_RET(dlHcclSetAivCoreLimitGraphModeFunc == nullptr,
-      HCCL_WARNING("[DlHcclFunction]load HcclSetAivCoreLimitGraphMode function fail\n"), HCCL_E_PTR);
+      HCCL_WARNING("[DlHcclFunction]load HcclSetAivCoreLimitGraphMode function fail."), HCCL_E_PTR);
 
   dlHcclSelectAlgGraphModeFunc = (HcclResult (*)(const char *group, u64 count, HcclDataType dataType, HcclReduceOp op, HcclCMDType opType,
       int32_t aivCoreLimit, bool *ifAiv, char **algName))dlsym(dl_hccl_handle, "HcclSelectAlgGraphMode");
   CHK_PRT_RET(dlHcclSelectAlgGraphModeFunc == nullptr,
-      HCCL_WARNING("[DlHcclFunction]load HcclSelectAlgGraphMode function fail\n"), HCCL_E_PTR);
+      HCCL_WARNING("[DlHcclFunction]load HcclSelectAlgGraphMode function fail."), HCCL_E_PTR);
 
   dlHcclCalcAivCoreNumGraphModeFunc = (HcclResult (*)(u32 aivCoreLimit, u32 *blockDim))dlsym(dl_hccl_handle, "HcclCalcAivCoreNumGraphMode");
   CHK_PRT_RET(dlHcclCalcAivCoreNumGraphModeFunc == nullptr,
-      HCCL_WARNING("[DlHcclFunction]load HcclCalcAivCoreNumGraphMode function fail\n"), HCCL_E_PTR);
+      HCCL_WARNING("[DlHcclFunction]load HcclCalcAivCoreNumGraphMode function fail."), HCCL_E_PTR);
 
   dlHcclGetAlgExecParamGraphModeFunc = (HcclResult (*)(const char *tag, const char *group, u64 count, void *inputPtr, void *outputPtr,
       HcclCMDType opType, bool clearEnable, HcclDataType dataType, HcclReduceOp op,
       void **commContext, u64 *len, u32 aivCoreLimit))dlsym(dl_hccl_handle, "HcclGetAlgExecParamGraphMode");
   CHK_PRT_RET(dlHcclGetAlgExecParamGraphModeFunc == nullptr,
-      HCCL_WARNING("[DlHcclFunction]load HcclGetAlgExecParamGraphMode function fail\n"), HCCL_E_PTR);
+      HCCL_WARNING("[DlHcclFunction]load HcclGetAlgExecParamGraphMode function fail."), HCCL_E_PTR);
 
   return HCCL_SUCCESS;
 }
