@@ -358,8 +358,6 @@ target_compile_definitions(davinci_executor PRIVATE
 
 target_include_directories(davinci_executor PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${ASCEND_INSTALL_PATH}/pkg_inc
-    ${ASCEND_INSTALL_PATH}/include/hccl
     ${AIR_CODE_DIR}
     ${AIR_CODE_DIR}/base
     ${AIR_CODE_DIR}/compiler

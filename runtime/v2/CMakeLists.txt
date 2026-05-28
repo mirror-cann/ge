@@ -11,7 +11,6 @@
 file(GLOB_RECURSE RUNTIME2_SRCS CONFIGURE_DEPENDS "${AIR_CODE_DIR}/runtime/v2/*.cc"  "${AIR_CODE_DIR}/runtime/v2/*.c")
 
 set(GERT_INCLUDING_PATH
-        ${ASCEND_INSTALL_PATH}/include
         ${AIR_CODE_DIR}/base
         ${AIR_CODE_DIR}/compiler/graph/optimize/autofuse/inc
         ${AIR_CODE_DIR}/runtime/v2
