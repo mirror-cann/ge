@@ -20,7 +20,7 @@ namespace {
 constexpr const char *kPlatformInfoVersionGroup = "version";
 constexpr const char *kPlatformInfoNpuArch = "NpuArch";
 constexpr const char *kRtcNpuArchPrefix = "dav-";
-constexpr const char *kKernelSourceFileName = "add_custom_kernel.asc";
+constexpr const char *kKernelSourceFileName = "add_custom_kernel.cpp";
 
 bool GetNpuArch(fe::PlatFormInfos &platform_infos, std::string &npu_arch) {
   if (!platform_infos.GetPlatformResWithLock(kPlatformInfoVersionGroup, kPlatformInfoNpuArch, npu_arch)) {

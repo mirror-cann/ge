@@ -141,7 +141,7 @@ fi
 
 CUSTOM_OP_DIR="${PROJECT_DIR}/output/op_graph/lib/$(detect_opp_os_dir)/$(detect_opp_arch_dir)"
 CUSTOM_OP_LIBRARY_PATH="${PROJECT_DIR}/output/op_graph/lib/$(detect_opp_os_dir)/$(detect_opp_arch_dir)/$(get_custom_op_library_name)"
-CUSTOM_OP_SOURCE_PATH="${PROJECT_DIR}/output/op_graph/lib/$(detect_opp_os_dir)/$(detect_opp_arch_dir)/add_custom_kernel.asc"
+CUSTOM_OP_SOURCE_PATH="${PROJECT_DIR}/output/op_graph/lib/$(detect_opp_os_dir)/$(detect_opp_arch_dir)/add_custom_kernel.cpp"
 CUSTOM_OP_PROTO_HEADER_PATH="${PROJECT_DIR}/output/op_graph/include/add_custom.h"
 
 mkdir -p "${BUILD_DIR}" "${OUTPUT_DIR}" "${CUSTOM_OP_DIR}"
