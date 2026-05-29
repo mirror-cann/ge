@@ -116,10 +116,6 @@ ACL_FUNC_VISIBILITY aclError aclmdlGetCurOutputDimsImpl(const aclmdlDesc *modelD
 
 ACL_FUNC_VISIBILITY const char *aclmdlGetOpAttrImpl(aclmdlDesc *modelDesc, const char *opName, const char *attr);
 
-
-
-
-
 ACL_FUNC_VISIBILITY aclError aclmdlSetInputAIPPImpl(uint32_t modelId,
                                                 aclmdlDataset *dataset,
                                                 size_t index,
