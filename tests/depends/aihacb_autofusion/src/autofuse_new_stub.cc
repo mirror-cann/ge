@@ -82,18 +82,19 @@ void ReportTracingRecordDuration(const ge::TracingModule stage) {};
 #include "common/platform_context.h"
 namespace ge {
 std::mutex PlatformContext::mutex_;
+static std::string g_soc_ver; 
 PlatformContext& PlatformContext::GetInstance() {
   static PlatformContext instance;
   return instance;
 }
 void PlatformContext::SetPlatform(const std::string &platform_name) {
-  current_platform_ = platform_name;
+  g_soc_ver = platform_name;
 }
 ge::Status PlatformContext::GetCurrentPlatformString(std::string &platform_name) {
-  if (current_platform_.empty()) {
-    current_platform_ = "2201";
+  if (g_soc_ver.empty()) {
+    g_soc_ver = "2201";
   }
-  platform_name = current_platform_;
+  platform_name = g_soc_ver;
   return ge::SUCCESS;
 }
 ge::Status PlatformContext::Initialize() {
