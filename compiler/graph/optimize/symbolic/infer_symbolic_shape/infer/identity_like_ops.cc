@@ -49,6 +49,7 @@ graphStatus InferSymbolicShapeFunc(gert::InferSymbolShapeContext *context) {
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(Assign).InferSymbolShape(InferShape4Assign);
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(L2Loss).InferSymbolShape(InferShape4L2Loss);
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(RandomUniform).InferSymbolShape(InferSymbolicShapeFunc);
+IMPL_OP_INFER_SYMBOL_SHAPE_INNER(RandomUniformV2).InferSymbolShape(InferSymbolicShapeFunc);
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(TruncatedNormal).InferSymbolShape(InferSymbolicShapeFunc);
 }  // namespace
 }  // namespace ge
