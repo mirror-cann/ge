@@ -17,6 +17,7 @@
 #include "types/tensor_desc_internal.h"
 #include "types/data_buffer_internal.h"
 #include "common/log_inner.h"
+#include "acl/acl_base_rt.h"
 
 namespace acl {
 namespace array_utils {

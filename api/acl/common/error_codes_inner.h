@@ -11,7 +11,7 @@
 #ifndef ACL_ERROR_CODES_INNER_H_
 #define ACL_ERROR_CODES_INNER_H_
 
-#include "acl/acl_base.h"
+#include <stdint.h>
 
 namespace acl {
 constexpr const int32_t MIN_GE_ERROR_CODE = 145000;

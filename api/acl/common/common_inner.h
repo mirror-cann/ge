@@ -12,7 +12,6 @@
 #define ACL_COMMON_INNER_API_H_
 
 #include <map>
-#include "acl/acl_base.h"
 #include "acl/acl_rt.h"
 #include "log_inner.h"
 

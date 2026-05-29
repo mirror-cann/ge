@@ -17,6 +17,7 @@
 #include <atomic>
 
 #include "framework/generator/ge_generator.h"
+#include "acl/acl_base_rt.h"
 
 namespace acl {
 class LocalCompiler : public OpCompiler {
