@@ -28,6 +28,7 @@ target_link_libraries(mmpa_stub
         slog_headers
         c_sec
         unified_dlog
+        error_manager
         -ldl
     PUBLIC
         mmpa_headers

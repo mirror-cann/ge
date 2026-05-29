@@ -119,7 +119,7 @@ Status StageExecutor::Start(const std::vector<TensorValue> &inputs, const std::v
 
     if (task_info.event != nullptr) {
       GELOGD("[%d] Add StreamWaitEvent", id_);
-      GE_CHK_RT_RET(rtStreamWaitEvent(stream_, task_info.event));
+      GE_CHK_RT_RET(aclrtStreamWaitEvent(stream_, task_info.event));
       RECORD_MODEL_EXECUTION_EVENT(&context_, "[iteration = %ld] [Stage = %d] EventWait End", task_info.iteration,
                                    task_info.stage);
     }

@@ -13,7 +13,9 @@
 
 #include <string>
 
-#include "runtime/mem.h"
+#ifndef CCE_RUNTIME_MEM_H
+#include "runtime/rt_external_mem.h"
+#endif
 #include "ge/ge_api_types.h"
 #include "graph/ge_error_codes.h"
 

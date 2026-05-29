@@ -109,8 +109,8 @@ Status RefInputTask::RefOneByOne(const TaskContext &context) const {
                                   std::vector<const char_t *>({reason.c_str()}));
         return GRAPH_PARAM_INVALID;
       }
-      GE_CHK_RT_RET(rtMemcpyAsync(output->MutableData(), output->GetSize(), input->GetData(),
-          static_cast<uint64_t>(expected_size), RT_MEMCPY_DEVICE_TO_DEVICE, context.GetStream()));
+      GE_CHK_RT_RET(aclrtMemcpyAsync(output->MutableData(), output->GetSize(), input->GetData(),
+          static_cast<uint64_t>(expected_size), ACL_MEMCPY_DEVICE_TO_DEVICE, context.GetStream()));
     } else {
       GE_CHK_STATUS_RET(context.SetOutput(out_index, *input));
     }
@@ -191,11 +191,11 @@ Status DependInputShapeTask::CopyDataToOutput(const size_t output_num,
            tensor_value_out->GetData(), tensor_value_out->GetSize(), tensor_data_out.GetSize());
 
     if (tensor_data_out.GetSize() > 0UL) {
-      GE_CHK_RT_RET(rtMemcpyAsync(tensor_value_out->MutableData(),
+      GE_CHK_RT_RET(aclrtMemcpyAsync(tensor_value_out->MutableData(),
                                   tensor_value_out->GetSize(),
                                   tensor_data_out.GetData(),
                                   tensor_data_out.GetSize(),
-                                  RT_MEMCPY_HOST_TO_DEVICE_EX,
+                                  ACL_MEMCPY_HOST_TO_BUF_TO_DEVICE,
                                   context.GetStream()));
     }
     GELOGI("node:%s type:%s [%lu]th set data success, data size=%zu.",

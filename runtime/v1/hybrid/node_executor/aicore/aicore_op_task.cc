@@ -24,6 +24,7 @@
 #include "single_op/task/tbe_task_builder.h"
 #include "common/utils/executor_utils.h"
 #include "hybrid/node_executor/aicore/aicore_op_task.h"
+#include "common/ge_rts_decl.h"
 
 namespace ge {
 namespace hybrid {
@@ -59,7 +60,7 @@ Status AiCoreOpTask::Init(const NodePtr &node, const domi::TaskDef &task_def) {
     shape_buffer_ = TensorBuffer::Create(npu_mem_allocator, size);
     GE_CHECK_NOTNULL(shape_buffer_);
     GELOGD("Op [%s] allocate memory for outputs shape success, size=%zu", op_desc->GetName().c_str(), size);
-    GE_CHK_RT_RET(rtMemset(shape_buffer_->GetData(), shape_buffer_->GetSize(), 0U, shape_buffer_->GetSize()));
+    GE_CHK_RT_RET(aclrtMemset(shape_buffer_->GetData(), shape_buffer_->GetSize(), 0U, shape_buffer_->GetSize()));
     host_shape_buffer_ = MakeUnique<uint8_t[]>(shape_buffer_->GetSize());
     GE_CHECK_NOTNULL(host_shape_buffer_);
   }

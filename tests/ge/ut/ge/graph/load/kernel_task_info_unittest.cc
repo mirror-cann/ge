@@ -12,9 +12,9 @@
 
 #include "macro_utils/dt_public_scope.h"
 
+#include "graph/load/model_manager/model_manager.h"
 #include "graph/load/model_manager/tbe_kernel_handle.h"
 #include "common/tbe_handle_store/tbe_handle_store.h"
-#include "graph/load/model_manager/model_manager.h"
 #include "graph/load/model_manager/davinci_model.h"
 #include "graph/load/model_manager/task_info/fe/kernel_task_info.h"
 #include "graph/load/model_manager/task_info/fe/super_kernel_task_info.h"

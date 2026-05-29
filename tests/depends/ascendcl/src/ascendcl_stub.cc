@@ -1531,6 +1531,9 @@ aclError aclrtSynchronizeStream(aclrtStream stream) {
 }
 
 aclError aclrtSynchronizeStreamWithTimeout(aclrtStream stream, int32_t timeout) {
+  if (std::string(__FUNCTION__) == g_runtime_stub_mock) {
+    return -1;
+  }
   return ge::AclRuntimeStub::GetInstance()->aclrtSynchronizeStreamWithTimeout(stream, timeout);
 }
 

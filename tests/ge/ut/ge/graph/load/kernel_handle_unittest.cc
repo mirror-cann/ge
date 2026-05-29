@@ -16,10 +16,10 @@
 #include "graph/debug/ge_attr_define.h"
 
 #include "macro_utils/dt_public_scope.h"
-#include "graph/load/model_manager/tbe_kernel_handle.h"
-#include "common/tbe_handle_store/tbe_handle_store.h"
-#include "ge/ut/ge/ffts_plus_proto_tools.h"
 #include "depends/runtime/src/runtime_stub.h"
+#include "ge/ut/ge/ffts_plus_proto_tools.h"
+#include "common/tbe_handle_store/tbe_handle_store.h"
+#include "graph/load/model_manager/tbe_kernel_handle.h"
 
 using namespace std;
 

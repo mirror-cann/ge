@@ -16,11 +16,12 @@
 #include "register/op_tiling_registry.h"
 #include "platform/platform_info.h"
 #include "exe_graph/runtime/kernel_context.h"
-#include "runtime/kernel.h"
+#include "graph/types.h"
 #include "base/registry/op_impl_space_registry_v2.h"
 #include "exe_graph/lowering/kernel_run_context_builder.h"
 
 namespace optiling {
+using ge::char_t;
 using OutputsConvertorFun = std::function<ge::graphStatus(gert::KernelContext *kernel_context)>;
 using ParseContextHolderPtr = std::shared_ptr<gert::KernelContextHolder>;
 bool EnableRt2Tiling(const ge::OpDescPtr &op_desc);

@@ -66,8 +66,8 @@ Status DataFlowStack::Compute(TaskContext &context, const int64_t handle) {
   const auto tensor_value = context.MutableOutput(0);
   GE_CHECK_NOTNULL(tensor_value);
   // Has set dependent_for_execution before, the input is ready when get here.
-  GE_CHK_RT_RET(rtMemcpyAsync(tensor_value->MutableData(), tensor_value->GetSize(), &handle, sizeof(int64_t),
-                              RT_MEMCPY_HOST_TO_DEVICE, context.GetStream()));
+  GE_CHK_RT_RET(aclrtMemcpyAsync(tensor_value->MutableData(), tensor_value->GetSize(), &handle, sizeof(int64_t),
+                              ACL_MEMCPY_HOST_TO_DEVICE, context.GetStream()));
   res->SetClosed(false);
   GELOGD("Stack[%s] compute successfully, handle[%ld].", context.GetNodeName(), handle);
   return SUCCESS;
@@ -101,9 +101,9 @@ Status DataFlowStackPush::Compute(TaskContext &context, const int64_t handle) {
   if (copy_size != 0) {
     const auto out_tensor_value = context.MutableOutput(0);
     GE_CHECK_NOTNULL(out_tensor_value);
-    GE_CHK_RT_RET(rtMemcpyAsync(out_tensor_value->MutableData(), out_tensor_value->GetSize(),
+    GE_CHK_RT_RET(aclrtMemcpyAsync(out_tensor_value->MutableData(), out_tensor_value->GetSize(),
                                 data_tensor_value->GetData(), static_cast<uint64_t>(copy_size),
-                                RT_MEMCPY_DEVICE_TO_DEVICE, context.GetStream()));
+                                ACL_MEMCPY_DEVICE_TO_DEVICE, context.GetStream()));
   }
   GELOGD("StackPush[%s] compute successfully, handle[%ld].", context.GetNodeName(), handle);
   return SUCCESS;

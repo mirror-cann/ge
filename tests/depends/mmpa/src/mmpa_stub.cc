@@ -17,6 +17,7 @@
 #include "register/op_impl_kernel_registry.h"
 #include <string>
 #include "framework/common/debug/ge_log.h"
+#include "base/err_mgr.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -696,6 +697,7 @@ ge::MmpaStubApiGe* ge::MmpaStub::GetImpl() {
 
 void ge::MmpaStub::Reset() {
   impl_ = std::make_shared<ge::MmpaStubApiGe>();
+  error_message::ErrMgrInit(error_message::ErrorMessageMode::INTERNAL_MODE);
 }
 #ifdef __cplusplus
 }

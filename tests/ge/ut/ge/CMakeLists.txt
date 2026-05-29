@@ -141,6 +141,7 @@ set(DISTINCT_GRAPH_LOAD_TEST_FILES
     "graph/load/stream_switch_task_info_unittest.cc"
     "graph/load/scattered_collection_unittest.cc"
     "graph/load/sink_only_allocator_unittest.cc"
+    "graph/load/custom_task_info_unittest.cc"
     "graph/load/memory_app_type_classifier_unittest.cc"
     "graph/load/task_args_refresh_type_classifier_unittest.cc"
     "graph/load/task_node_map_unittest.cc"
@@ -958,6 +959,8 @@ target_link_libraries(ut_python_pass_artifact_selector_utest
     GTest::gtest
     GTest::gtest_main
     ge_common_base
+    opp_registry
+    register
 )
 
 target_link_options(ut_python_pass_artifact_selector_utest PRIVATE

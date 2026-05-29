@@ -629,6 +629,78 @@ TEST_F(UtestRtsNodeTask, test_identiity_task) {
   ASSERT_EQ(graph_context.callback_manager->Destroy(), SUCCESS);
 }
 
+TEST_F(UtestRtsNodeTask, test_identity_init_output_svm_d2h) {
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
+  GeModelPtr ge_sub_model = std::make_shared<GeModel>();
+  GeRootModelPtr ge_root_model = std::make_shared<GeRootModel>();
+  EXPECT_EQ(ge_root_model->Initialize(graph), SUCCESS);
+  ge_root_model->SetModelName("test_name");
+  ge_root_model->SetSubgraphInstanceNameToModel("sub", ge_sub_model);
+  HybridModel hybrid_model(ge_root_model);
+
+  NodePtr node = CreateNode(*graph, "identity", IDENTITY, 1, 1);
+  ASSERT_TRUE(AttrUtils::SetListInt(node->GetOpDesc(), ATTR_NAME_OUTPUT_MEM_TYPE_LIST,
+                                     std::vector<int64_t>{RT_MEMORY_HOST_SVM}));
+
+  IdentityNodeTask identity_task;
+  ASSERT_EQ(identity_task.Init(hybrid_model, node), SUCCESS);
+  ASSERT_EQ(identity_task.kind_, ACL_MEMCPY_DEVICE_TO_HOST);
+}
+
+TEST_F(UtestRtsNodeTask, test_identity_init_input_svm_h2d) {
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
+  GeModelPtr ge_sub_model = std::make_shared<GeModel>();
+  GeRootModelPtr ge_root_model = std::make_shared<GeRootModel>();
+  EXPECT_EQ(ge_root_model->Initialize(graph), SUCCESS);
+  ge_root_model->SetModelName("test_name");
+  ge_root_model->SetSubgraphInstanceNameToModel("sub", ge_sub_model);
+  HybridModel hybrid_model(ge_root_model);
+
+  NodePtr node = CreateNode(*graph, "identity", IDENTITY, 1, 1);
+  ASSERT_TRUE(AttrUtils::SetListInt(node->GetOpDesc(), ATTR_NAME_INPUT_MEM_TYPE_LIST,
+                                     std::vector<int64_t>{RT_MEMORY_HOST_SVM}));
+
+  IdentityNodeTask identity_task;
+  ASSERT_EQ(identity_task.Init(hybrid_model, node), SUCCESS);
+  ASSERT_EQ(identity_task.kind_, ACL_MEMCPY_HOST_TO_DEVICE);
+}
+
+TEST_F(UtestRtsNodeTask, test_identity_init_both_svm_default) {
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
+  GeModelPtr ge_sub_model = std::make_shared<GeModel>();
+  GeRootModelPtr ge_root_model = std::make_shared<GeRootModel>();
+  EXPECT_EQ(ge_root_model->Initialize(graph), SUCCESS);
+  ge_root_model->SetModelName("test_name");
+  ge_root_model->SetSubgraphInstanceNameToModel("sub", ge_sub_model);
+  HybridModel hybrid_model(ge_root_model);
+
+  NodePtr node = CreateNode(*graph, "identity", IDENTITY, 1, 1);
+  ASSERT_TRUE(AttrUtils::SetListInt(node->GetOpDesc(), ATTR_NAME_OUTPUT_MEM_TYPE_LIST,
+                                     std::vector<int64_t>{RT_MEMORY_HOST_SVM}));
+  ASSERT_TRUE(AttrUtils::SetListInt(node->GetOpDesc(), ATTR_NAME_INPUT_MEM_TYPE_LIST,
+                                     std::vector<int64_t>{RT_MEMORY_HOST_SVM}));
+
+  IdentityNodeTask identity_task;
+  ASSERT_EQ(identity_task.Init(hybrid_model, node), SUCCESS);
+  ASSERT_EQ(identity_task.kind_, ACL_MEMCPY_DEVICE_TO_DEVICE);
+}
+
+TEST_F(UtestRtsNodeTask, test_identity_init_no_mem_type_default) {
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
+  GeModelPtr ge_sub_model = std::make_shared<GeModel>();
+  GeRootModelPtr ge_root_model = std::make_shared<GeRootModel>();
+  EXPECT_EQ(ge_root_model->Initialize(graph), SUCCESS);
+  ge_root_model->SetModelName("test_name");
+  ge_root_model->SetSubgraphInstanceNameToModel("sub", ge_sub_model);
+  HybridModel hybrid_model(ge_root_model);
+
+  NodePtr node = CreateNode(*graph, "identity", IDENTITY, 1, 1);
+
+  IdentityNodeTask identity_task;
+  ASSERT_EQ(identity_task.Init(hybrid_model, node), SUCCESS);
+  ASSERT_EQ(identity_task.kind_, ACL_MEMCPY_DEVICE_TO_DEVICE);
+}
+
 TEST_F(UtestRtsNodeTask, test_npu_get_float_status_node_task) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   GeModelPtr ge_sub_model = std::make_shared<GeModel>();
