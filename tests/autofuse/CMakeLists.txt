@@ -66,11 +66,7 @@ endif()
 
 if (NOT DEFINED CMAKE_PREFIX_PATH)
     set(CMAKE_PREFIX_PATH
-        ${CANN_3RD_LIB_PATH}/protoc
         ${CANN_3RD_LIB_PATH}/lib_cache/grpc
-        ${CANN_3RD_LIB_PATH}/protobuf_static
-        ${CANN_3RD_LIB_PATH}/ascend_protobuf
-        ${CANN_3RD_LIB_PATH}/ascend_protobuf_static
         ${CANN_3RD_LIB_PATH}/lib_cache/gtest_shared/lib64/cmake/GTest
         ${CANN_3RD_LIB_PATH}/lib_cache/benchmark
         ${CANN_3RD_LIB_PATH}/lib_cache/symengine/lib/cmake/symengine
@@ -116,10 +112,10 @@ include_directories(${ASCEND_INSTALL_PATH}/${CMAKE_SYSTEM_PROCESSOR}-linux/inclu
 find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
 if (ENABLE_OPEN_SRC)
     add_cann_third_party(json)
+    add_cann_third_party(protobuf)
     find_package(GTest CONFIG REQUIRED)
     find_package(Boost CONFIG REQUIRED)
     find_package(SymEngine CONFIG REQUIRED)
-    find_package(ascend_protobuf_shared MODULE REQUIRED)
     find_package(unified_dlog)
     find_package(mmpa)
     find_package(runtime)
@@ -149,11 +145,6 @@ message(STATUS "Variables in project:")
 cmake_print_variables(CMAKE_PREFIX_PATH)
 cmake_print_variables(INSTALL_BASE_DIR)
 cmake_print_variables(ENABLE_OPEN_SRC)
-
-if (ENABLE_OPEN_SRC)
-    find_package(protoc MODULE REQUIRED)
-    find_package(ascend_protobuf_static MODULE REQUIRED)
-endif ()
 
 ######################################autofuse##########################################
 set(AUTOFUSE_DIR ${CODE_ROOT_DIR}/autofuse)

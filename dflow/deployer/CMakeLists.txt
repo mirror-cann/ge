@@ -402,6 +402,8 @@ target_link_libraries(npu_executor_static PRIVATE
         ${AIR_COMMON_LINK_OPTION}
         )
 
+add_dependencies(npu_executor_static graphengine_protos deployer_proto)
+
 add_executable(npu_executor_main
         ${EXECUTOR_COMMON_SRC_LIST}
         ${DEPLOYER_PROTO_HDRS}

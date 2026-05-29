@@ -10,7 +10,7 @@
 include(func.cmake)
 include(${GE_DIR}/cmake/intf_pub_linux.cmake)
 include(${GE_DIR}/cmake/air_headers.cmake)
-include(protobuf.cmake)
+add_cann_third_party(protobuf)
 include(seccomp.cmake)
 
 find_cann_package(securec REQUIRED)

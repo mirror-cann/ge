@@ -57,18 +57,17 @@ endif ()
 if (NOT DEFINED CMAKE_MODULE_PATH)
     set(CMAKE_MODULE_PATH
         ${CANN_CMAKE_DIR}/modules
-        ${CMAKE_CURRENT_LIST_DIR}/cmake/third_party/scripts/modules
         ${CANN_3RD_LIB_PATH}/cmake/modules
     )
 endif()
 
 if (NOT DEFINED CMAKE_PREFIX_PATH)
     set(CMAKE_PREFIX_PATH
-        ${CANN_3RD_LIB_PATH}/protoc
+        ${CANN_3RD_LIB_PATH}/lib_cache/protoc
         ${CANN_3RD_LIB_PATH}/lib_cache/grpc
-        ${CANN_3RD_LIB_PATH}/protobuf_static
-        ${CANN_3RD_LIB_PATH}/ascend_protobuf
-        ${CANN_3RD_LIB_PATH}/ascend_protobuf_static
+        ${CANN_3RD_LIB_PATH}/lib_cache/protobuf_static
+        ${CANN_3RD_LIB_PATH}/lib_cache/protobuf_shared
+        ${CANN_3RD_LIB_PATH}/lib_cache/protobuf_host_static
         ${CANN_3RD_LIB_PATH}/lib_cache/gtest_shared/lib64/cmake/GTest
         ${CANN_3RD_LIB_PATH}/lib_cache/benchmark
         ${CANN_3RD_LIB_PATH}/lib_cache/symengine/lib/cmake/symengine
