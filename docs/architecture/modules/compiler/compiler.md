@@ -288,6 +288,13 @@ classDiagram
 
 这个设计保证了 `FusionPassExecutor`、`PassRegistry`、`PatternFusionPass` 和 `DecomposePass` 的既有执行语义不需要为 Python 另起一套平行调度框架。
 
+Python `PatternFusionPass` 在 adapter 协议外还提供一层表达式风格语法糖：用户可以通过
+`@pattern` 方法声明 pattern 表达式，并可定义 `replacement(self, inputs)` 返回替换表达式。
+Python 层会自动创建 ES `GraphBuilder`、图输入、图输出和 pattern capture，最终仍向 C++ bridge
+返回原有的 `Pattern` / `Graph` 对象。多个 `@pattern` 方法会合成为 legacy `patterns(self)` 返回的
+多个 pattern；旧的显式 `patterns(self)` 仍兼容，但不能和 `@pattern` 方法混用。
+这层封装只改变 Python 侧易用性，不改变 C++ pass 执行流程和匹配语义。
+
 ### 3.4 自动融合（AutofuseOptimize）
 
 自动融合在精度调整后、格式调整前执行，时机选择很关键：精度已经确定（不会再插入 Cast），但格式尚未固定（还有变换的空间）。

@@ -283,7 +283,7 @@ ge::graphStatus CompatibleInferShape(KernelContext *context) {
   // 3.update output shape from operator to context
   GE_CHK_STATUS_RET(UpdateOutputShapeToContext(op_desc, context), "Fail to update output shapes to Context.");
 
-  // 4.expand dims and tranformer output shapes
+  // 4.expand dims and transformer output shapes
   auto extend_context = reinterpret_cast<ExtendedKernelContext *>(context);
   auto compute_node_info = extend_context->GetComputeNodeInfo();
   if (compute_node_info == nullptr) {
@@ -344,7 +344,7 @@ ge::graphStatus CompatibleInferShapeRange(KernelContext *context) {
   GE_CHK_STATUS_RET(UpdateOutputShapeRangeToContext(op_desc, context),
                     "Fail to update output shapes range to Context.");
 
-  // 4.expand dims and tranformer output shapes
+  // 4.expand dims and transformer output shapes
   auto extend_context = reinterpret_cast<ExtendedKernelContext *>(context);
   auto compute_node_info = extend_context->GetComputeNodeInfo();
   if (compute_node_info == nullptr) {

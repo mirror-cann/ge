@@ -9,11 +9,14 @@
 # -----------------------------------------------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 3.16)
+include(../fetch_cann_cmake.cmake)
 project (udf_device)
 
-set(CMAKE_CXX_STANDARD 17)
+init_cann_project(PRODUCT_SIDE "device" PREPEND_MODULE_PATH)
 
-set(PRODUCT_SIDE device)
+get_filename_component(GE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../.." ABSOLUTE)
+
+set(CMAKE_CXX_STANDARD 17)
 
 set(CMAKE_SKIP_BUILD_RPATH TRUE)
 set(CMAKE_SKIP_INSTALL_RPATH TRUE)

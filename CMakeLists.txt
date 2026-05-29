@@ -580,17 +580,11 @@ elseif (BUILD_OPEN_PROJECT OR ENABLE_OPEN_SRC)
         if (ENABLE_BUILD_DEVICE)
             set(CHILD_INSTALL_DIR ${CMAKE_BINARY_DIR}/device_install)
             cmake_print_variables(ENABLE_SIGN CUSTOM_SIGN_SCRIPT)
-            if (NOT DEFINED TOP_DIR)
-                set(TOP_DIR ${CMAKE_SOURCE_DIR})
-                message(STATUS "TOP_DIR is not exists, set it to ${CMAKE_SOURCE_DIR}")
-            endif ()
             include(ExternalProject)
             ExternalProject_Add(udf_device
                     SOURCE_DIR ${CMAKE_SOURCE_DIR}/cmake/device
                     BINARY_DIR ${CMAKE_BINARY_DIR}/device_build
                     CMAKE_ARGS
-                    -DTOP_DIR=${TOP_DIR}
-                    -DCANN_CMAKE_DIR=${CANN_CMAKE_DIR}
                     -DTOOLCHAIN_DIR=${ASCEND_INSTALL_PATH}/toolkit/toolchain/hcc
                     -DCMAKE_INSTALL_PREFIX=${CHILD_INSTALL_DIR}
                     -DCMAKE_TOOLCHAIN_FILE=${CMAKE_SOURCE_DIR}/dflow/udf/cmake/aarch64-hcc-toolchain.cmake

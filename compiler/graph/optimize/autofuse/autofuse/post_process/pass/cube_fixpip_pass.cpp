@@ -16,7 +16,6 @@
 #include "common/checker.h"
 #include "graph/utils/node_utils.h"
 #include "utils/autofuse_utils.h"
-#include "graph/ascendc_ir/ascendc_ir_core/ascendc_ir.h"
 #include "graph/utils/graph_utils.h"
 #include "post_process/post_process_util.h"
 #include "utils/autofuse_utils.h"

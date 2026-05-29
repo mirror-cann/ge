@@ -43,6 +43,7 @@ struct OpFullInfo {
   bool flagSupportBlockDim;
   int blockDimByIndex;
   int implementType;        // host-aicpu support: HOST/DEVCE/ALL
+  bool optionalInputPlaceholder;  // whether has optional placeholder input
 };
 
 struct OpInfoDesc {

@@ -43,9 +43,6 @@ target_include_directories(acl_op_compiler PRIVATE
     ${AIR_CODE_DIR}/inc/framework
     ${AIR_CODE_DIR}/base/metadef/pkg_inc
 
-    ${ASCEND_INSTALL_PATH}/pkg_inc/base
-    ${ASCEND_INSTALL_PATH}/include/prof
-    ${ASCEND_INSTALL_PATH}/include/external
 
     ${TOP_DIR}/air/inc/external
     ${TOP_DIR}/runtime/include/external

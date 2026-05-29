@@ -745,7 +745,7 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case06_TwoStream_WithStaticSubGraph_o
     // check task on stream 0
     std::vector<TaskTypeOnStream> expect_task_infos_on_stream0 = {
         gert::TaskTypeOnStream::rtEventRecord, gert::TaskTypeOnStream::rtStreamWaitEvent,
-        gert::TaskTypeOnStream::rtMemcpyAsync,
+        gert::TaskTypeOnStream::rtMemcpyAsync, gert::TaskTypeOnStream::rtModelExecute,
         gert::TaskTypeOnStream::rtMemcpyAsync, gert::TaskTypeOnStream::rtStreamWaitEvent,
         gert::TaskTypeOnStream::rtStreamWaitEvent, gert::TaskTypeOnStream::rtStreamWaitEvent
     };  // model copy?

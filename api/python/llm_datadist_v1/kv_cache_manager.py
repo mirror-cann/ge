@@ -15,7 +15,7 @@ from typing import List, Optional, Tuple, Union, Dict
 from .configs import LLMRole
 from .utils import log
 from .utils.utils import check_isinstance, check_dict, check_int64, check_uint64,\
-    check_uint32, check_int32, check_positive_or_set_default
+    check_uint32, check_int32, check_positive_or_set_default, check_type
 from .status import handle_llm_status, raise_if_false, raise_if_true, LLMStatusCode
 from .llm_types import CacheDesc, KvCache, CacheKey, CacheKeyByIdAndIndex, BlocksCacheKey, Placement, \
     LayerSynchronizer, TransferConfig, CacheTask
@@ -288,7 +288,7 @@ class KvCacheManager(object):
                        '[pull_cache] param check failed, size ({0}) is invalid, should be = -1 or > 0', size)
         src_cache_offset = check_positive_or_set_default("src_cache_offset", src_cache_offset)
         dst_cache_offset = check_positive_or_set_default("dst_cache_offset", dst_cache_offset)
-        if isinstance(cache_key, CacheKey):
+        if check_type(cache_key, CacheKey):
             KvCacheManager.check_cache_key(cache_key)
             packed_cache_key = pack_cache_key(cache_key)
         else:

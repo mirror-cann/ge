@@ -98,7 +98,6 @@ protected:
         }
         auto res = es::Concat(replacement_graph_builder.CreateScalar(1), convs, groups);
         auto replace_graph = replacement_graph_builder.BuildAndReset({res});
-
         // 当前pass注册在after infershape阶段，需要自行保证替换部分的shape连续
         if (!InferShape(matched_node, *replace_graph)) {
             return nullptr;

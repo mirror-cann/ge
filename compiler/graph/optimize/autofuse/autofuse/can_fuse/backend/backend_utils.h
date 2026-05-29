@@ -14,6 +14,7 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 #include "ge_common/ge_api_types.h"
@@ -662,7 +663,7 @@ class BackendUtils {
 
   static Status MinSwapCount(const std::vector<int64_t> &in_axis, const std::vector<int64_t> &out_axis,
                              int64_t &swap_count, std::vector<std::pair<int64_t, int64_t>> &swaps);
-  static Status MinSwapsToSortDesc(const vector<int64_t>& arr, std::vector<std::pair<int64_t, int64_t>> &swaps);
+  static Status MinSwapsToSortDesc(const std::vector<int64_t>& arr, std::vector<std::pair<int64_t, int64_t>> &swaps);
   static Status ApplySwaps(std::vector<int64_t> &axis, std::vector<ge::Expression> &repeats,
                            std::vector<ge::Expression> &strides, std::vector<int64_t> &sched_axis,
                            const std::vector<std::pair<int64_t, int64_t>> &swaps);

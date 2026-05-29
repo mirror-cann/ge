@@ -18,7 +18,9 @@
 #include "rt_error_codes.h"
 #include "acl/acl_rt.h"
 #include <iostream>
+// 待rt.h删除后再替换
 #include "runtime/rts/rts_dqs.h"
+#include "runtime/rts/rts_kernel.h"
 
 #include "runtime/kernel.h"
 
@@ -448,16 +450,6 @@ rtError_t RuntimeStub::rtModelGetTaskId(void *handle, uint32_t *task_id, uint32_
   return RT_ERROR_NONE;
 }
 
-rtError_t RuntimeStub::rtsStreamGetId(void *stm, int32_t *streamId)
-{
-  (void) stm;
-  if (*streamId == 999) {
-    return -1;
-  }
-  *streamId = 0;
-  return RT_ERROR_NONE;
-}
-
 rtError_t RuntimeStub::rtBinarySetExceptionCallback(rtBinHandle binHandle, rtOpExceptionCallback exceptionFunc, void *userData) {
   (void) binHandle;
   (void) exceptionFunc;
@@ -465,20 +457,7 @@ rtError_t RuntimeStub::rtBinarySetExceptionCallback(rtBinHandle binHandle, rtOpE
   return RT_ERROR_NONE;
 }
 
-rtError_t RuntimeStub::rtsSetStreamResLimit(rtStream_t stm, const rtDevResLimitType_t type, const uint32_t value) {
-  (void) stm;
-  (void) type;
-  (void) value;
-  return RT_ERROR_NONE;
-}
-
-rtError_t RuntimeStub::rtsUseStreamResInCurrentThread(const rtStream_t stm) {
-  (void) stm;
-  return RT_ERROR_NONE;
-}
-
-rtError_t RuntimeStub::rtsGetThreadLastTaskId(uint32_t *taskId)
-{
+rtError_t RuntimeStub::rtsGetThreadLastTaskId(uint32_t *taskId) {
   if (*taskId == 999) {
     return -1;
   }
@@ -1475,30 +1454,8 @@ rtError_t rtGetTaskIdAndStreamID(uint32_t *taskId, uint32_t *streamId)
  return RT_ERROR_NONE;
 }
 
-rtError_t rtsStreamGetId(void *stm, int32_t *streamId)
-{
-  if (std::string(__FUNCTION__) == g_runtime_stub_mock) {
-    return -1;
-  }
-  return ge::RuntimeStub::GetInstance()->rtsStreamGetId(stm, streamId);
-}
-
 rtError_t rtBinarySetExceptionCallback(rtBinHandle binHandle, rtOpExceptionCallback exceptionFunc, void *userData) {
   return ge::RuntimeStub::GetInstance()->rtBinarySetExceptionCallback(binHandle, exceptionFunc, userData);
-}
-
-rtError_t rtsSetStreamResLimit(rtStream_t stm, const rtDevResLimitType_t type, const uint32_t value) {
-  if (std::string(__FUNCTION__) == g_runtime_stub_mock) {
-    return -1;
-  }
-  return ge::RuntimeStub::GetInstance()->rtsSetStreamResLimit(stm, type, value);
-}
-
-rtError_t rtsUseStreamResInCurrentThread(const rtStream_t stm) {
-  if (std::string(__FUNCTION__) == g_runtime_stub_mock) {
-    return -1;
-  }
-  return ge::RuntimeStub::GetInstance()->rtsUseStreamResInCurrentThread(stm);
 }
 
 rtError_t rtsGetThreadLastTaskId(uint32_t *taskId)
@@ -1923,73 +1880,13 @@ rtError_t rtStreamAbort(rtStream_t stm) {
   return RT_ERROR_NONE;
 }
 
-rtError_t rtsValueWrite(const void * const devAddr, const uint64_t value, const uint32_t flag, rtStream_t stm) {
-  return RT_ERROR_NONE;
-}
-
-rtError_t rtsValueWait(const void * const devAddr, const uint64_t value, const uint32_t flag, rtStream_t stm) {
-  return RT_ERROR_NONE;
-}
-
 rtError_t rtStreamTaskClean(rtStream_t stm) {
   return ge::RuntimeStub::GetInstance()->rtStreamTaskClean(stm);
 }
 
-rtError_t rtsBinaryLoadFromFile(const char * const binPath, const rtLoadBinaryConfig_t *const optionalCfg,
-                                rtBinHandle *binHandle)
-{
-  return ge::RuntimeStub::GetInstance()->rtsBinaryLoadFromFile(binPath, optionalCfg, binHandle);
-}
-
-rtError_t rtsFuncGetByName(const rtBinHandle binHandle, const char *kernelName,
-                           rtFuncHandle *funcHandle)
-{
-  return ge::RuntimeStub::GetInstance()->rtsFuncGetByName(binHandle, kernelName, funcHandle);
-}
-
-rtError_t rtsLaunchCpuKernel(const rtFuncHandle funcHandle, const uint32_t blockDim, rtStream_t st,
-                             const rtKernelLaunchCfg_t *cfg, rtCpuKernelArgs_t *argsInfo)
-{
-  return ge::RuntimeStub::GetInstance()->rtsLaunchCpuKernel(funcHandle, blockDim, st, cfg, argsInfo);
-}
 
 rtError_t rtFusionLaunch(void * const fusionInfo, rtStream_t const stm, rtFusionArgsEx_t *argsInfo) {
   return 0;
-}
-
-rtError_t rtsBinaryLoadFromData(const void * const data, const uint64_t length,
-    const rtLoadBinaryConfig_t * const optionalCfg, rtBinHandle *handle) {
-  return ge::RuntimeStub::GetInstance()->rtsBinaryLoadFromData(data, length, optionalCfg, handle);
-}
-
-rtError_t rtsLaunchKernelWithHostArgs(rtFuncHandle funcHandle, uint32_t blockDim, rtStream_t stm,
-                                      rtKernelLaunchCfg_t *cfg, void *hostArgs, uint32_t argsSize,
-                                      rtPlaceHolderInfo_t *placeHolderArray, uint32_t placeHolderNum) {
-  return ge::RuntimeStub::GetInstance()->rtsLaunchKernelWithHostArgs(funcHandle, blockDim, stm, cfg, hostArgs,
-                                                                     argsSize, placeHolderArray, placeHolderNum);
-}
-
-rtError_t rtsFuncGetByEntry(const rtBinHandle binHandle, const uint64_t funcEntry, rtFuncHandle *funcHandle) {
-  return ge::RuntimeStub::GetInstance()->rtsFuncGetByEntry(binHandle, funcEntry, funcHandle);
-}
-
-rtError_t rtsRegisterCpuFunc(rtBinHandle binHandle, const char_t * const funcName, const char_t * const kernelName,
-    rtFuncHandle *funcHandle) {
-  return ge::RuntimeStub::GetInstance()->rtsRegisterCpuFunc(binHandle, funcName, kernelName, funcHandle);
-}
-
-rtError_t rtsBinaryUnload(const rtBinHandle binHandle) {
-  return ge::RuntimeStub::GetInstance()->rtsBinaryUnload(binHandle);
-}
-
-rtError_t rtsLaunchKernelWithDevArgs(rtFuncHandle funcHandle, uint32_t blockDim, rtStream_t stm,
-    rtKernelLaunchCfg_t *cfg, const void *args, uint32_t argsSize, void *reserve) {
-  return ge::RuntimeStub::GetInstance()->rtsLaunchKernelWithDevArgs(funcHandle, blockDim,
-      stm, cfg, args, argsSize, reserve);
-}
-
-rtError_t rtsGetHardwareSyncAddr(void **addr) {
-  return ge::RuntimeStub::GetInstance()->rtsGetHardwareSyncAddr(addr);
 }
 
 rtError_t rtLaunchDqsTask(const rtStream_t stm, const rtDqsTaskCfg_t * const taskCfg) {

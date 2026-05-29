@@ -149,7 +149,7 @@ Status CmoAddrTaskInfo::Distribute() {
   SetTaskTag(op_desc_->GetNamePtr());
 
   GE_CHK_RT_RET(rtCmoAddrTaskLaunch(args_, format_args_size_, cmo_op_code_, stream_, 0U));
-  GE_CHK_RT_RET(rtsGetThreadLastTaskId(&task_id_));
+  GE_CHK_RT_RET(aclrtGetThreadLastTaskId(&task_id_));
   GE_CHK_RT_RET(aclrtStreamGetId(stream_, reinterpret_cast<int32_t*>(&stream_id_)));
 
   GE_CHK_RT_RET(aclrtMemcpy(host_args_, format_args_size_, args_, format_args_size_, ACL_MEMCPY_DEVICE_TO_HOST));

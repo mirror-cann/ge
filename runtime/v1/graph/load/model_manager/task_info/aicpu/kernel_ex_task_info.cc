@@ -420,7 +420,7 @@ Status KernelExTaskInfo::Distribute() {
   launch_kernel_param.launch_config.is_data_dump = is_data_dump_;
   GE_ASSERT_SUCCESS(KernelHandleUtils::LaunchKernel(func_handle_, launch_kernel_param));
   GE_CHECK_NOTNULL(davinci_model_);
-  GE_CHK_RT_RET(rtsGetThreadLastTaskId(&task_id_));
+  GE_CHK_RT_RET(aclrtGetThreadLastTaskId(&task_id_));
   GE_CHK_RT_RET(aclrtStreamGetId(stream_, reinterpret_cast<int32_t*>(&stream_id_)));
 
   GELOGI("KernelExTaskInfo %s Distribute Success. task id: %u, stream id: %u, stream: %p.",

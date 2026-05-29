@@ -2140,7 +2140,7 @@ TEST_F(AtcCommonSTest, pb_model_is_input_adjust_hw_layout_invalid) {
                   "--output_type=FP32",
                   "--input_shape=Placeholder_1:1,256,256,3",
                   "--input_fp16_nodes=Placeholder_1",
-                  "--is_input_adjust_hw_layout=invald",
+                  "--is_input_adjust_hw_layout=invalid",
                   "--is_output_adjust_hw_layout=true",
                   };
   DUMP_GRAPH_WHEN("PreRunBegin")

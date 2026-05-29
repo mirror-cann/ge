@@ -75,7 +75,7 @@ REGISTER_KERNEL(CreateMemAssigner).RunFunc(CreateMemAssigner);
 REGISTER_KERNEL(AssignWeightMemory).RunFunc(AssignWeightMemory).OutputsCreator(AssignMemoryOutputCreator);
 
 ge::graphStatus GetOrCreateWeightMem(KernelContext *context) {
-  auto requred_size = context->GetInputValue<size_t>(static_cast<size_t>(GetOrCreateWeightInputs::kRequiredSize));
+  auto required_size = context->GetInputValue<size_t>(static_cast<size_t>(GetOrCreateWeightInputs::kRequiredSize));
   auto appointed_weight =
       context->GetInputPointer<OuterWeightMem>(static_cast<size_t>(GetOrCreateWeightInputs::kAppointedWeight));
   auto device_mem =
@@ -83,14 +83,14 @@ ge::graphStatus GetOrCreateWeightMem(KernelContext *context) {
   auto gert_allocator =
       context->GetInputValue<GertAllocator *>(static_cast<size_t>(GetOrCreateWeightInputs::kAllocator));
   GE_ASSERT_NOTNULL(gert_allocator);
-  if ((appointed_weight->weight_ptr == nullptr) || (appointed_weight->weight_size < requred_size)) {
+  if ((appointed_weight->weight_ptr == nullptr) || (appointed_weight->weight_size < required_size)) {
     // if given weight size is null or small than required, then malloc by self
-    GELOGI("appointed weight info is invalid, given_size[%zu], requred_size[%zu], need to alloc inner.",
-           appointed_weight->weight_size, requred_size);
-    auto block = gert_allocator->Malloc(requred_size);
+    GELOGI("appointed weight info is invalid, given_size[%zu], required_size[%zu], need to alloc inner.",
+           appointed_weight->weight_size, required_size);
+    auto block = gert_allocator->Malloc(required_size);
     KERNEL_CHECK_NOTNULL(block);
-    KERNEL_CHECK(block->GetAddr() != nullptr, "malloc failed, tensor size[%zu]", requred_size);
-    device_mem->ShareFrom({requred_size, device_mem->GetPlacement(), gert_allocator->GetStreamId(), block});
+    KERNEL_CHECK(block->GetAddr() != nullptr, "malloc failed, tensor size[%zu]", required_size);
+    device_mem->ShareFrom({required_size, device_mem->GetPlacement(), gert_allocator->GetStreamId(), block});
   } else {
     *device_mem = GertTensorData{const_cast<void *>(appointed_weight->weight_ptr), appointed_weight->weight_size,
                                  device_mem->GetPlacement(), gert_allocator->GetStreamId()};

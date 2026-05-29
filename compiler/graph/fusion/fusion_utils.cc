@@ -159,6 +159,14 @@ void FusionUtils::ResetCycleDetectors() {
   graph_2_cycle_detectors_.clear();
 }
 
+Status FusionUtils::ReCreateCycleDetector(const ComputeGraphPtr &curr_graph) {
+  GELOGD("ReCreate CycleDetector start");
+  GE_ASSERT_SUCCESS(curr_graph->TopologicalSorting());
+  auto detector = GraphUtils::CreateSharedCycleDetector(curr_graph);
+  graph_2_cycle_detectors_[curr_graph] = detector;
+  return SUCCESS;
+}
+
 CycleDetectorSharedPtr FusionUtils::GetOrCreateCycleDetector(const ComputeGraphPtr &curr_graph) {
   auto iter = graph_2_cycle_detectors_.find(curr_graph);
   if (iter != graph_2_cycle_detectors_.end()) {
@@ -198,10 +206,22 @@ Status FusionUtils::UpdateToCycleDetector(const ComputeGraphPtr &curr_graph,
     }
     replacement_nodes.emplace_back(node);
   }
-
   auto detector = GetOrCreateCycleDetector(curr_graph);
   GE_ASSERT_NOTNULL(detector);
-  detector->Update(curr_graph, replacement_nodes);
+  // 成环检测使用的连接矩阵更新函数对应场景：
+  // 函数：ExpandAndUpdate  场景：将目标图中节点融合成单个新节点
+  // 函数：Update 场景：删除待融合节点
+  // 故replacement_nodes.size() == 1时使用ExpandAndUpdate更新连接矩阵
+  // replacement_nodes.size() == 0时使用Update更新连接矩阵
+  // 其他情况重新创建连接矩阵
+  if (replacement_nodes.size() == 1) {
+    auto new_node_name = replacement_nodes[0]->GetName();
+    detector->ExpandAndUpdate(replacement_nodes, new_node_name);
+  }else if(replacement_nodes.size() == 0){
+    detector->Update(curr_graph, replacement_nodes);
+  }else {
+    return ReCreateCycleDetector(curr_graph);
+  }
   return SUCCESS;
 }
 

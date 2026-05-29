@@ -187,6 +187,10 @@ public:
   virtual aclError aclrtCreateNotify(aclrtNotify *notify, uint64_t flag);
   virtual aclError aclrtDestroyNotify(aclrtNotify notify);
 
+  virtual aclError aclrtValueWait(void* devAddr, uint64_t value, uint32_t flag, aclrtStream stream);
+
+  virtual aclError aclrtValueWrite(void* devAddr, uint64_t value, uint32_t flag, aclrtStream stream);
+
  private:
   static std::mutex mutex_;
   static std::shared_ptr<AclRuntimeStub> instance_;

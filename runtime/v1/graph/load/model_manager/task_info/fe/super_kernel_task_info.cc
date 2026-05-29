@@ -993,7 +993,7 @@ Status SuperKernelV2TaskInfo::InitKernel(const domi::TaskDef &task_def, const Pi
 
 void SuperKernelV2TaskInfo::UpdateTaskId() {
   if (davinci_model_ != nullptr) {
-    GE_CHK_RT_EXEC(rtsGetThreadLastTaskId(&task_id_), return);
+    GE_CHK_RT_EXEC(aclrtGetThreadLastTaskId(&task_id_), return);
     GE_CHK_RT_EXEC(aclrtStreamGetId(stream_, reinterpret_cast<int32_t*>(&stream_id_)), return);
     GELOGD("UpdateTaskId:UpdateTaskId [%u], stream id [%u]:", task_id_, stream_id_);
   }

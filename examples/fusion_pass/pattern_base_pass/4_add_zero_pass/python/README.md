@@ -12,14 +12,34 @@
 - `python_add_zero_pass_const_value_match.py`
   - 演示 Python V1 的 `PatternMatcherConfigBuilder.enable_const_value_match()`
   - 通过 strict const-value-match 直接把 `Add(x, 0.0f)` 前置到 matcher 阶段
+  - `@pattern` 方法使用 Python 表达式描述严格匹配的 `Add(x, 0.0f)`，例如 `return inputs[0] + 0.0`
   - 当前 `ConstantMatcher::IsMatch` 的值匹配是严格二进制匹配，不带浮点容差，也不做跨 dtype 归一化
   - 因此它更适合作为 matcher_config 示例，而不是 C++ 样例的完全等价版本
 
 - `python_add_zero_pass.py`
   - 主逻辑对齐 [C++ pass 样例](../cpp/README.md)
-  - `patterns()` 只描述 `Data + Const` 拓扑
+  - `@pattern` 方法使用 Python 表达式描述 `Data + Const` 拓扑，例如 `return inputs[0] + 0`
+  - 多输入 pattern 可使用 `x, y, z = inputs[:3]` 显式声明输入数量
+  - 多 pattern pass 可声明多个 `@pattern` 方法；旧的 `patterns(self)` 返回多个 `Pattern` / `Graph` 仍兼容
+  - `@pattern` 方法不能和 `patterns(self)` 同时使用，避免 pattern 声明来源不明确
+  - Python pass 框架会自动创建 `GraphBuilder`、设置图输出并 capture 已使用的输入；旧的显式 `GraphBuilder` 写法仍兼容
   - `meet_requirements()` 中再显式读取匹配到的 `Const.value`，按 C++ 样例同样的规则判断零值
   - 当前支持与 C++ 样例一致的 `DT_FLOAT`、`DT_DOUBLE`、`DT_INT32`
+
+表达式 pattern 的推荐写法如下：
+
+```python
+from ge.passes import PatternFusionPass, pattern
+
+
+class PythonAddZeroPass(PatternFusionPass):
+    @pattern
+    def add_zero(self, inputs):
+        return inputs[0] + 0
+
+    def replacement(self, inputs):
+        return inputs[0]
+```
 
 ## 目录结构
 
@@ -65,11 +85,11 @@ run 包已包含 GE Python 运行时所需的 `ge_py` wheel，本节不需要再
 
 ## 预期日志
 
-运行成功后，日志中会出现类似输出：
+运行成功后，日志中会出现类似输出(input_0名字实际可能有区别)：
 
 ```text
-[PythonAddZeroConstValueMatchPass] matched=add_zero_const_value_match_pattern captured=input_0:0
-[PythonAddZeroPass] matched=add_zero_pattern captured=input_0:0 const_dtype=DT_FLOAT zero=True
+[PythonAddZeroConstValueMatchPass] matched=PythonAddZeroConstValueMatchPass_add_zero_pattern captured=input_0:0
+[PythonAddZeroPass] matched=PythonAddZeroPass_add_zero_pattern captured=input_0:0 const_dtype=DT_FLOAT zero=True
 ```
 
 ## Conda 环境示例（Python 3.11）

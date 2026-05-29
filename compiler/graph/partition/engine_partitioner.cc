@@ -936,7 +936,7 @@ Status ge::EnginePartitioner::AddPartitionsToGraphNode(std::vector<ge::SubGraphI
 
 Status ge::EnginePartitioner::SetMemberForSubGraphInfo(ge::SubGraphInfoPtr &sgi, const ComputeGraphPtr &sub_graph,
                                                        const std::string &engine_name) {
-  // The caller gurantee the sub_graph parm is not null
+  // The caller guarantee the sub_graph parm is not null
   if (sgi == nullptr) {
     REPORT_INNER_ERR_MSG("E19999", "allocate memory for SubGraphInfo failed.");
     GELOGE(GE_GRAPH_PARAM_NULLPTR, "[Allocate][Memory] for SubGraphInfo failed.");

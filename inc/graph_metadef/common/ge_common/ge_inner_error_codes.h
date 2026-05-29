@@ -53,7 +53,7 @@ GE_ERRORNO_INIT(GE_MULTI_INIT, 0, "Multiple initializations are not supported.")
 GE_ERRORNO_INIT(GE_FINALIZE_NOT_INIT, 1, "Finalize is not allowed before initialization.");  // 1343234049
 GE_ERRORNO_INIT(GE_MULTI_FINALIZE, 2, "Multiple finalizations are not supported.");          // 1343234050
 GE_ERRORNO_INIT(GE_PROF_MULTI_INIT, 3, "Multiple profiling initializations are not supported.");          // 1343234051
-GE_ERRORNO_INIT(GE_PROF_NOT_INIT, 4, "Profing initializations have not been done.");          // 1343234052
+GE_ERRORNO_INIT(GE_PROF_NOT_INIT, 4, "Profiling initializations have not been done.");          // 1343234052
 GE_ERRORNO_INIT(GE_PROF_MODE_CONFLICT, 5,
                 "Profiling command mode which is preferred is running, the api mode will not work.");   // 1343234053
 
@@ -126,10 +126,10 @@ GE_ERRORNO_GRAPH(GE_GRAPH_FILENAMEPREFIX_INVALID, 54, "Graph Save Model fileName
 GE_ERRORNO_GRAPH(GE_GRAPH_NOT_BUILT, 55, "Graph is not compiled.");                          // 1343242295
 GE_ERRORNO_GRAPH(GE_GRAPH_SAVEMODEL_FAILED, 56, "Graph SaveModel failed.");                                // 1343242296
 GE_ERRORNO_GRAPH(GE_GRAPH_MEMORY_ALLOC_FAILED, 57, "Failed allocating memory for model file header.");     // 1343242297
-GE_ERRORNO_GRAPH(GE_GRAPH_NODE_SEARCHER_REMOVE_GRAPH_FAILED, 58, "Failed remove graph in node seacher.");  // 1343242298
-GE_ERRORNO_GRAPH(GE_GRAPH_NODE_SEARCHER_ADD_GRAPH_FAILED, 59, "Failed add graph in node seacher.");        // 1343242299
+GE_ERRORNO_GRAPH(GE_GRAPH_NODE_SEARCHER_REMOVE_GRAPH_FAILED, 58, "Failed remove graph in node searcher.");  // 1343242298
+GE_ERRORNO_GRAPH(GE_GRAPH_NODE_SEARCHER_ADD_GRAPH_FAILED, 59, "Failed add graph in node searcher.");        // 1343242299
 GE_ERRORNO_GRAPH(GE_GRAPH_NODE_SEARCHER_GET_GRAPH_REBUILD_FAILED, 60,
-                 "Failed add graph in node seacher.");  // 1343242300
+                 "Failed add graph in node searcher.");  // 1343242300
 GE_ERRORNO_GRAPH(GE_GRAPH_NODE_SEARCHER_SET_GRAPH_FINISH_REBUILD_GRAPH_FAILED, 61,
                  "Failed set graph finish rebuild in node searcher.");                   // 1343242301
 GE_ERRORNO_GRAPH(GE_GRAPH_VARIABLE_OP_PASS_FAILED, 62, "Failed to run variable pass.");  // 1343242302
@@ -169,21 +169,21 @@ GE_ERRORNO_RUNTIME(GE_RTI_CALL_CCE_SET_STREAM_FAILED, 7, "cce set stream failed"
 GE_ERRORNO_RUNTIME(GE_RTI_CALL_RUNTIME_CREATE_RTMODEL_FAILED, 8, "call runtime create rtModel failed");
 GE_ERRORNO_RUNTIME(GE_RTI_CALL_RUNTIME_CREATE_STREAM_FAILED, 9, "call runtime create stream failed");
 GE_ERRORNO_RUNTIME(GE_RTI_CALL_RUNTIME_BIND_STREAM_FAILED, 10, "call runtime bind stream to model failed");
-GE_ERRORNO_RUNTIME(GE_RTI_CALL_RUNTIME_CREATE_LABLE_FAILED, 11, "call runtime create lable failed");
+GE_ERRORNO_RUNTIME(GE_RTI_CALL_RUNTIME_CREATE_LABEL_FAILED, 11, "call runtime create label failed");
 GE_ERRORNO_RUNTIME(GE_RTI_CALL_RUNTIME_MODEL_LOAD_COMPLETE_FAILED, 12, "call runtime model load complete failed");
 GE_ERRORNO_RUNTIME(GE_RTI_CALL_RUNTIME_MODEL_GET_TASK_ID_FAILED, 14, "call runtime get task id failed");
 GE_ERRORNO_RUNTIME(GE_RTI_CALL_RUNTIME_KERNEL_LAUNCH_FAILED, 13, "call runtime kernel launch failed");
 GE_ERRORNO_RUNTIME(GE_RTI_CALL_RUNTIME_KERNEL_LAUNCHEX_FAILED, 15, "call runtime kernel launchex failed");
 GE_ERRORNO_RUNTIME(GE_RTI_CALL_RUNTIME_KERNEL_FUSION_START_FAILED, 16, "call runtime kernel fusion start failed");
 GE_ERRORNO_RUNTIME(GE_RTI_CALL_RUNTIME_KERNEL_FUSION_END_FAILED, 17, "call runtime kernel fusion end failed");
-GE_ERRORNO_RUNTIME(GE_RTI_CALL_RUNTIME_LABEL_SET_FAILED, 18, "call runtime lable set failed");
-GE_ERRORNO_RUNTIME(GE_RTI_CALL_RUNTIME_LABLE_GOTO_FAILED, 19, "call runtime lable goto failed");
-GE_ERRORNO_RUNTIME(GE_RTI_CALL_RUNTIME_LABLE_SWITCH_FAILED, 20, "call runtime lable switch failed");
+GE_ERRORNO_RUNTIME(GE_RTI_CALL_RUNTIME_LABEL_SET_FAILED, 18, "call runtime label set failed");
+GE_ERRORNO_RUNTIME(GE_RTI_CALL_RUNTIME_LABEL_GOTO_FAILED, 19, "call runtime label goto failed");
+GE_ERRORNO_RUNTIME(GE_RTI_CALL_RUNTIME_LABEL_SWITCH_FAILED, 20, "call runtime label switch failed");
 GE_ERRORNO_RUNTIME(GE_RTI_CALL_RUNTIME_MEM_ALLOC_MANAGED_FAILED, 21, "call runtime mem alloc managed failed");
 GE_ERRORNO_RUNTIME(GE_RTI_CALL_RUNTIME_MEM_FREE_MANAGED_FAILED, 22, "call runtime mem free managed failed");
 GE_ERRORNO_RUNTIME(GE_RTI_CALL_RUNTIME_FREE_FAILED, 23, "call runtime free failed");
 GE_ERRORNO_RUNTIME(GE_RTI_CALL_RUNTIME_STREAM_SYNC_FAILED, 24, "call runtime sync stream failed");
-GE_ERRORNO_RUNTIME(GE_RTI_CALL_RUNTIME_MODEL_EXCUTE_FAILED, 25, "call runtime model execute failed");
+GE_ERRORNO_RUNTIME(GE_RTI_CALL_RUNTIME_MODEL_EXECUTE_FAILED, 25, "call runtime model execute failed");
 GE_ERRORNO_RUNTIME(GE_RTI_CALL_RUNTIME_MEM_ASYNC_FAILED, 26, "call runtime mem async failed");
 GE_ERRORNO_RUNTIME(GE_RTI_CALL_RUNTIME_MEM_ALLOC_HOST_FAILED, 27, "call runtime alloc host memory failed");
 GE_ERRORNO_RUNTIME(GE_RTI_CALL_RUNTIME_MEM_FREE_HOST_FAILED, 28, "call runtime free host memory failed");
@@ -191,20 +191,20 @@ GE_ERRORNO_RUNTIME(GE_RTI_CALL_RUNTIME_MEM_ALLOC_DEVICE_FAILED, 29, "call runtim
 GE_ERRORNO_RUNTIME(GE_RTI_CALL_RUNTIME_MEM_FREE_DEVICE_FAILED, 30, "call runtime free device memory failed");
 GE_ERRORNO_RUNTIME(GE_RTI_CALL_RUNTIME_FLUSH_CACHE_FAILED, 31, "call runtime flush cache failed");
 GE_ERRORNO_RUNTIME(GE_RTI_CALL_RUNTIME_UNBIND_STREAM_FAILED, 32, "unbind rtstream from rtmodel failed");
-GE_ERRORNO_RUNTIME(GE_RTI_CALL_RUNTIME_DESTORY_STREAM_FAILED, 33, "destory stream failed");
-GE_ERRORNO_RUNTIME(GE_RTI_CALL_RUNTIME_DESTORY_LABEL_FAILED, 34, "destory label failed");
-GE_ERRORNO_RUNTIME(GE_RTI_CALL_RUNTIME_DESTORY_MODEL_FAILED, 35, "destory model failed");
+GE_ERRORNO_RUNTIME(GE_RTI_CALL_RUNTIME_DESTROY_STREAM_FAILED, 33, "destroy stream failed");
+GE_ERRORNO_RUNTIME(GE_RTI_CALL_RUNTIME_DESTROY_LABEL_FAILED, 34, "destroy label failed");
+GE_ERRORNO_RUNTIME(GE_RTI_CALL_RUNTIME_DESTROY_MODEL_FAILED, 35, "destroy model failed");
 GE_ERRORNO_RUNTIME(GE_RTI_CALL_CCE_TRANS_TENSOR_FAILED, 36, "call cce transfer tensor descriptor failed");
 GE_ERRORNO_RUNTIME(GE_RTI_CALL_CCE_TRANS_FILTER_FAILED, 37, "call cce transfer filter descriptor failed");
 GE_ERRORNO_RUNTIME(GE_RTI_CALL_CCE_UPDATE_KERNEL_ARGS_FAILED, 38, "call cce update kernel args failed");
-GE_ERRORNO_RUNTIME(GE_RTI_CALL_CCE_DESTORY_HANDLE_FAILED, 39, "destory handle failed");
-GE_ERRORNO_RUNTIME(GE_RTI_CALL_RUNTIME_CREATE_EVENT_FAILED, 40, "call rutime create event failed");
-GE_ERRORNO_RUNTIME(GE_RTI_CALL_RUNTIME_EVENT_RECORD_FAILED, 41, "call rutime event record failed");
-GE_ERRORNO_RUNTIME(GE_RTI_CALL_RUNTIME_STREAM_WAIT_EVENT_FAILED, 42, "call rutime stream wait event failed");
+GE_ERRORNO_RUNTIME(GE_RTI_CALL_CCE_DESTROY_HANDLE_FAILED, 39, "destroy handle failed");
+GE_ERRORNO_RUNTIME(GE_RTI_CALL_RUNTIME_CREATE_EVENT_FAILED, 40, "call runtime create event failed");
+GE_ERRORNO_RUNTIME(GE_RTI_CALL_RUNTIME_EVENT_RECORD_FAILED, 41, "call runtime event record failed");
+GE_ERRORNO_RUNTIME(GE_RTI_CALL_RUNTIME_STREAM_WAIT_EVENT_FAILED, 42, "call runtime stream wait event failed");
 GE_ERRORNO_RUNTIME(GE_RTI_CALL_HCCL_BROADCAST_FAILED, 43, "call hccl hcom broadcast failed");
 GE_ERRORNO_RUNTIME(GE_RTI_CALL_HCCL_ALL_GATHER_FAILED, 44, "call hccl hcom all gather failed");
 GE_ERRORNO_RUNTIME(GE_RTI_CALL_HCCL_ALL_REDUCE_FAILED, 45, "call hccl hcom all reduce failed");
-GE_ERRORNO_RUNTIME(GE_RTI_CALL_RUNTIME_DESTORY_EVENT_FAILED, 46, "destory rt event failed");
+GE_ERRORNO_RUNTIME(GE_RTI_CALL_RUNTIME_DESTROY_EVENT_FAILED, 46, "destroy rt event failed");
 GE_ERRORNO_RUNTIME(GE_RTI_CALL_HCCL_REDUCE_SCATTER_FAILED, 47, "call hccl hcom reduce scatter failed");
 
 // Executor module error code definition

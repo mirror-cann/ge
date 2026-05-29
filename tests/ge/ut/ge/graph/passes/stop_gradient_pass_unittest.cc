@@ -61,7 +61,7 @@ class UtestGraphPassesStopGradientPass : public testing::Test {
  protected:
   void SetUp() { init(); }
 
-  void TearDown() { destory(); }
+  void TearDown() { destroy(); }
 
  private:
   void init() {
@@ -73,7 +73,7 @@ class UtestGraphPassesStopGradientPass : public testing::Test {
     kernel_ = KernelFactory::Instance().Create(STOPGRADIENT);
   }
 
-  void destory() {
+  void destroy() {
     delete pass_;
     pass_ = NULL;
   }

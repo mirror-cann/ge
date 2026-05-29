@@ -713,7 +713,7 @@ void TensorFlowModelParser::UpdateInputTensor(ge::OpDescPtr &op_desc, const std:
       // i is guaranteed to be valid, no check required.
       ge::graphStatus ret = op_desc->UpdateInputDesc(op_desc->GetInputNameByIndex(i), input_desc[i]);
       if (ret != ge::GRAPH_SUCCESS) {
-        // UpdateInputDesc for dynamic intput will be failed, but it will be added in later op parser.
+        // UpdateInputDesc for dynamic input will be failed, but it will be added in later op parser.
         GELOGI("op [%s], type[%s], input(%zu) with name[%s] is not updated", op_desc->GetName().c_str(),
                op_desc->GetType().c_str(), i, op_desc->GetInputNameByIndex(i).c_str());
       }
@@ -722,7 +722,7 @@ void TensorFlowModelParser::UpdateInputTensor(ge::OpDescPtr &op_desc, const std:
       // i is guaranteed to be valid, no check required.
       ge::graphStatus ret = op_desc->UpdateInputDesc(op_desc->GetInputNameByIndex(i), input_tensor);
       if (ret != ge::GRAPH_SUCCESS) {
-        // UpdateInputDesc for dynamic intput will be failed, but it will be added in later op parser.
+        // UpdateInputDesc for dynamic input will be failed, but it will be added in later op parser.
         GELOGI("op [%s], type[%s], input(%zu) with name[%s] is not updated", op_desc->GetName().c_str(),
                op_desc->GetType().c_str(), i, op_desc->GetInputNameByIndex(i).c_str());
       }

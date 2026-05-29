@@ -49,7 +49,7 @@ class UtestEmptyKernel : public testing::Test {
  protected:
   void SetUp() { init(); }
 
-  void TearDown() { destory(); }
+  void TearDown() { destroy(); }
 
  private:
   void init() {
@@ -58,7 +58,7 @@ class UtestEmptyKernel : public testing::Test {
     op_desc_ptr_ = std::make_shared<OpDesc>("Empty", EMPTY);
     node_ = std::make_shared<Node>(op_desc_ptr_, graph_);
   }
-  void destory() {
+  void destroy() {
     delete pass_;
     pass_ = NULL;
   }

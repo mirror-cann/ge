@@ -13,6 +13,7 @@
 #include "graph_builder/bg_infer_shape.h"
 #include "common/debug/ge_log.h"
 #include "engine/aicpu/kernel/aicpu_ext_info_handle.h"
+#include "engine/node_converter_utils.h"
 
 namespace gert {
 namespace bg {
@@ -26,9 +27,15 @@ ValueHolderPtr GetTempExtInfo() {
 std::vector<ValueHolderPtr> CreatBaseExtInfo(const ge::NodePtr node, const std::string &ext_info) {
   const size_t size = ext_info.size();
   const auto &node_name = node->GetName();
-  const size_t input_num = node->GetInDataNodesAndAnchors().size();
+  auto input_num = node->GetInDataNodesAndAnchors().size();
+  bool optional_input_placeholder = false;
+  (void)ge::AttrUtils::GetBool(node->GetOpDescBarePtr(), kOptionalInputPlaceholder, optional_input_placeholder);
+  if (optional_input_placeholder) {
+    input_num = node->GetOpDescBarePtr()->GetAllInputsSize();
+  }
   const size_t output_num = node->GetAllOutDataAnchorsSize();
-
+  GELOGI("Op %s type %s in all input size is %zu, all input data anchors size is %zu, output_num is %zu.",
+         node->GetName().c_str(), ge::NodeUtils::GetNodeType(node).c_str(), node->GetOpDescBarePtr()->GetAllInputsSize(), node->GetInDataNodesAndAnchors().size(), output_num);
   int32_t unknown_shape_type_val = 0;
   (void) ge::AttrUtils::GetInt(node->GetOpDescBarePtr(), ge::ATTR_NAME_UNKNOWN_SHAPE_TYPE, unknown_shape_type_val);
 
@@ -55,6 +62,35 @@ ValueHolderPtr BuildExtInfo(const ge::NodePtr node, const std::string &ext_info,
   inputs.emplace_back(block_info.is_block_op);
   inputs.emplace_back(block_info.event_id);
   return ValueHolder::CreateSingleDataOutput("BuildExtInfoHandle", inputs);
+}
+
+std::vector<ValueHolderPtr> ExpandAicpuOptionalInputShapes(const ge::NodePtr &node,
+                                                           const std::vector<ValueHolderPtr> &input_shapes) {
+  GE_ASSERT_NOTNULL(node);
+  GE_ASSERT_NOTNULL(node->GetOpDescBarePtr());
+  const auto op_desc = node->GetOpDescBarePtr();
+  const auto input_num = op_desc->GetAllInputsSize();
+  GE_ASSERT_TRUE(input_shapes.size() <= input_num);
+  if (input_shapes.size() == input_num) {
+    GELOGI("Op[%s] input shapes size %zu already matches all input size %zu, no need expand optional inputs.",
+           node->GetName().c_str(), input_shapes.size(), input_num);
+    return input_shapes;
+  }
+
+  std::vector<ValueHolderPtr> expanded_input_shapes;
+  expanded_input_shapes.reserve(input_num);
+  size_t actual_input_index = 0U;
+  for (size_t input_index = 0U; input_index < input_num; ++input_index) {
+    if ((op_desc->MutableInputDesc(static_cast<uint32_t>(input_index)) == nullptr) ||
+        (actual_input_index >= input_shapes.size())) {
+      expanded_input_shapes.emplace_back(
+          NodeConverterUtils::CreateOutputShape(op_desc->GetInputDescPtr(static_cast<uint32_t>(input_index))));
+      continue;
+    }
+    expanded_input_shapes.emplace_back(input_shapes[actual_input_index++]);
+  }
+  GE_ASSERT_TRUE(actual_input_index == input_shapes.size());
+  return expanded_input_shapes;
 }
 
 ValueHolderPtr UpdateExtInfo(const ge::OpDescPtr &op_desc, const ExtShapeInfo &ext_shape_info,

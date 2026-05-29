@@ -185,8 +185,6 @@ class RuntimeStubImpl : public ge::RuntimeStub {
   rtError_t rtLaunchSqeUpdateTask(uint32_t streamId, uint32_t taskId, void *src, uint64_t cnt, rtStream_t stm) override;
   rtError_t rtModelCreate(rtModel_t *model, uint32_t flag) override;
   rtError_t rtModelGetTaskId(void *handle, uint32_t *task_id, uint32_t *stream_id) override;
-  rtError_t rtsStreamGetId(void *stm, int32_t *streamId) override;
-  rtError_t rtsGetThreadLastTaskId(uint32_t *taskId) override;
   rtError_t rtsDeviceGetCapability(int32_t deviceId, int32_t devFeatureType, int32_t *val) override;
   rtError_t rtSetExceptionExtInfo(const rtArgsSizeInfo_t * const sizeInfo) override;
 
@@ -199,23 +197,6 @@ class RuntimeStubImpl : public ge::RuntimeStub {
   rtError_t rtStreamDestroy(rtStream_t stream) override;
   rtError_t rtEventCreateWithFlag(rtEvent_t *event, uint32_t flag) override;
   rtError_t rtStreamTaskClean(rtStream_t stm) override;
-  rtError_t rtsBinaryLoadFromFile(const char * const binPath, const rtLoadBinaryConfig_t *const optionalCfg,
-                                  rtBinHandle *binHandle) override;
-  rtError_t rtsFuncGetByName(const rtBinHandle binHandle, const char *kernelName,
-                             rtFuncHandle *funcHandle) override;
-  rtError_t rtsLaunchCpuKernel(const rtFuncHandle funcHandle, const uint32_t blockDim, rtStream_t st,
-                               const rtKernelLaunchCfg_t *cfg, rtCpuKernelArgs_t *argsInfo) override;
-  rtError_t rtsLaunchKernelWithHostArgs(rtFuncHandle funcHandle, uint32_t blockDim, rtStream_t stm,
-                                        rtKernelLaunchCfg_t *cfg, void *hostArgs, uint32_t argsSize,
-                                        rtPlaceHolderInfo_t *placeHolderArray, uint32_t placeHolderNum) override;
-  rtError_t rtsLaunchKernelWithDevArgs(rtFuncHandle funcHandle, uint32_t blockDim, rtStream_t stm,
-                                       rtKernelLaunchCfg_t *cfg, const void *args, uint32_t argsSize, void *reserve) override;
-  rtError_t rtsBinaryLoadFromData(const void * const data, const uint64_t length,
-                                  const rtLoadBinaryConfig_t * const optionalCfg, rtBinHandle *handle) override;
-  rtError_t rtsRegisterCpuFunc(const rtBinHandle binHandle, const char_t * const funcName,
-                               const char_t * const kernelName, rtFuncHandle *funcHandle) override;
-  rtError_t rtsSetStreamResLimit(rtStream_t stm, const rtDevResLimitType_t type, const uint32_t value) override;
-  rtError_t rtsUseStreamResInCurrentThread(const rtStream_t stm) override;
  public:
   rtError_t rtSetTaskTag(const char *taskTag) override;
   rtError_t rtGetAvailStreamNum(uint32_t streamType, uint32_t *const streamCount) override;

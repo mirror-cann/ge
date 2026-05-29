@@ -1235,7 +1235,7 @@ Status ModelHelper::LoadRootModel(const ge::ModelData &model_data) {
   // check file header
   GE_ASSERT_TRUE(file_header_->modeltype != static_cast<uint8_t>(MODEL_TYPE_BUNDLE_MODEL),
                  "The bundle model does not support loading through non-bundle interfaces.");
-  // model verison 1.0 file header does not have model_num member
+  // model version 1.0 file header does not have model_num member
   is_unknown_shape_model_ = ModelParserBase::IsDynamicModel(*file_header_);
   GELOGD("Cur om model is ge root model or no %d, model version %u, model num: %u.",
          static_cast<int32_t>(is_unknown_shape_model_), file_header_->version, file_header_->model_num);

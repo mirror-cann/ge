@@ -23,9 +23,8 @@ from .status import LLMException
 from .data_type import DataType
 from .status import raise_if_false, LLMStatusCode, raise_if_true
 from .utils import log
-from .utils.utils import (
-    check_isinstance, check_uint32, check_int32, check_uint64, check_int64, check_list_int64, check_list_uint64
-) 
+from .utils.utils import (check_isinstance, check_uint32, check_int32, check_uint64, check_int64, 
+                          check_list_int64, check_list_uint64, check_type) 
 
 _INVALID_ID = 2 ** 64 - 1
 
@@ -427,12 +426,12 @@ class KvCache(object):
         last_type = type(addrs[0])
         for addr in addrs:
             check_isinstance('the internal element of addrs', addr, [list, int])
-            if isinstance(addr, list):
+            if check_type(addr, list):
                 check_isinstance('the internal element of addrs', addr, list, int)
                 raise_if_false(cache_desc.num_tensors == len(addr),
                                f"cache_desc num_tensors:{cache_desc.num_tensors} "
                                f"should be equal to size of the internal element of addrs:{len(addr)}")
-            raise_if_false(isinstance(addr, last_type),
+            raise_if_false(check_type(addr, last_type),
                            'the type of the internal element of addrs should be consistent.')
             last_type = type(addr)
         if last_type == int:
@@ -482,7 +481,7 @@ class TransferWithCacheKeyConfig:
                        f'src_layer_range size shoulde be equal to dst_layer_range size')
         check_uint32('src_batch_index', src_batch_index)
 
-        raise_if_true(isinstance(cache_key, BlocksCacheKey) and src_batch_index != 0,
+        raise_if_true(check_type(cache_key, BlocksCacheKey) and src_batch_index != 0,
                       "src_batch_index shoulde be 0 when cache_key is BlocksCacheKey.")
         self._src_batch_index = src_batch_index
         self.dst_cluster_id = cache_key.cluster_id
@@ -526,7 +525,7 @@ class TransferWithCacheKeyConfig:
 
     @src_batch_index.setter
     def src_batch_index(self, src_batch_index: int) -> None:
-        raise_if_true(isinstance(self.cache_key, BlocksCacheKey) and src_batch_index != 0,
+        raise_if_true(check_type(self.cache_key, BlocksCacheKey) and src_batch_index != 0,
                       "src_batch_index shoulde be 0 when cache_key is BlocksCacheKey.")
         self._check_src_batch_index(src_batch_index)
         self._src_batch_index = src_batch_index

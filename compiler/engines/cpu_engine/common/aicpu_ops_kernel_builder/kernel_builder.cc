@@ -54,6 +54,51 @@ const std::string kExcludeAiCore = "AiCore";
 }  // namespace
 
 namespace aicpu {
+namespace {
+size_t GetBaseExtInfoInputNum(const ge::OpDescPtr &op_desc_ptr) {
+  bool optional_input_placeholder = false;
+  (void)ge::AttrUtils::GetBool(op_desc_ptr, kOptionalInputPlaceholder, optional_input_placeholder);
+  return optional_input_placeholder ? op_desc_ptr->GetAllInputsSize() : op_desc_ptr->GetInputsSize();
+}
+
+void CollectNoTilingInputIndex(const ge::OpDescPtr &op_desc_ptr, vector<uint32_t> &input_index) {
+  bool optional_input_placeholder = false;
+  (void)ge::AttrUtils::GetBool(op_desc_ptr, kOptionalInputPlaceholder, optional_input_placeholder);
+  size_t input_size = op_desc_ptr->GetAllInputsSize();
+  for (size_t i = 0; i < input_size; i++) {
+    auto tiling_mem_type = false;
+    if (optional_input_placeholder) {
+      auto input_desc = op_desc_ptr->MutableInputDesc(i);
+      if (input_desc == nullptr) {
+        AICPUE_LOGI("Node %s has optional input %zu", op_desc_ptr->GetName().c_str(), i);
+        continue;
+      }
+      (void)AttrUtils::GetBool(*input_desc, AICPU_ATTR_NAME_TENSOR_NO_TILING_MEM_TYPE, tiling_mem_type);
+    } else {
+      auto input_desc = op_desc_ptr->GetInputDesc(i);
+      (void)AttrUtils::GetBool(input_desc, AICPU_ATTR_NAME_TENSOR_NO_TILING_MEM_TYPE, tiling_mem_type);
+    }
+    AICPUE_LOGD("Op[%s], input[%zu] mem type[%d].", op_desc_ptr->GetName().c_str(), i, tiling_mem_type);
+    if (tiling_mem_type) {
+      input_index.emplace_back(static_cast<uint32_t>(i));
+    }
+  }
+}
+
+void CollectNoTilingOutputIndex(const ge::OpDescPtr &op_desc_ptr, vector<uint32_t> &output_index) {
+  size_t output_size = op_desc_ptr->GetAllOutputsDescSize();
+  for (size_t i = 0; i < output_size; i++) {
+    auto tiling_mem_type = false;
+    auto output_desc = op_desc_ptr->GetOutputDesc(i);
+    (void)AttrUtils::GetBool(output_desc, AICPU_ATTR_NAME_TENSOR_NO_TILING_MEM_TYPE, tiling_mem_type);
+    AICPUE_LOGD("Op[%s], output[%zu] mem type[%d].", op_desc_ptr->GetName().c_str(), i, tiling_mem_type);
+    if (tiling_mem_type) {
+      output_index.emplace_back(static_cast<uint32_t>(i));
+    }
+  }
+}
+}  // namespace
+
 Status KernelBuilder::GetWorkspaceInfo(const OpDescPtr &op_desc_ptr,
                                        const uint8_t *data_mem_base,
                                        uint64_t &workspace_bytes_size) const {
@@ -124,12 +169,28 @@ void KernelBuilder::GetInOutPutsShape(const ge::OpDescPtr &op_desc_ptr,
                                       std::vector<std::vector<int64_t>> &outputs_shape) const {
   size_t input_size = op_desc_ptr->GetAllInputsSize();
   size_t output_size = op_desc_ptr->GetAllOutputsDescSize();
+  bool optional_input_placeholder = false;
+  (void)ge::AttrUtils::GetBool(op_desc_ptr, kOptionalInputPlaceholder, optional_input_placeholder);
   for (size_t i = 0; i < input_size; i++) {
-    auto input_desc = op_desc_ptr->GetInputDesc(i);
-    auto input_shape = input_desc.GetShape();
+    if (!optional_input_placeholder) {
+      auto input_desc = op_desc_ptr->GetInputDesc(i);
+      auto input_shape = input_desc.GetShape();
+      auto input_dims = input_shape.GetDims();
+      inputs_shape.push_back(input_dims);
+      continue;
+    }
+
+    auto input_desc = op_desc_ptr->MutableInputDesc(i);
+    if (input_desc == nullptr) {
+      AICPUE_LOGI("Node %s has optional input %zu", op_desc_ptr->GetName().c_str(), i);
+      inputs_shape.emplace_back(std::vector<int64_t>{});
+      continue;
+    }
+    auto input_shape = input_desc->GetShape();
     auto input_dims = input_shape.GetDims();
     inputs_shape.push_back(input_dims);
   }
+
   for (size_t i = 0; i < output_size; i++) {
     auto output_desc = op_desc_ptr->GetOutputDesc(i);
     auto output_shape = output_desc.GetShape();
@@ -149,7 +210,9 @@ void KernelBuilder::CalcBaseExtInfoLen(const ge::OpDescPtr &op_desc_ptr,
   extend_info_len += (kExtInfoHeadSize + sizeof(uint32_t));
   // ext info 4: input ShapeAndType, value: input_num * sizeof(ShapeAndType)
   // get input and output total num. no need to check overflow
-  size_t input_num = op_desc_ptr->GetInputsSize();
+  bool optional_input_placeholder = false;
+  (void)ge::AttrUtils::GetBool(op_desc_ptr, kOptionalInputPlaceholder, optional_input_placeholder);
+  size_t input_num = optional_input_placeholder ? op_desc_ptr->GetAllInputsSize() : op_desc_ptr->GetInputsSize();
   size_t output_num = op_desc_ptr->GetOutputsSize();
   extend_info_len += kExtInfoHeadSize;
   extend_info_len += (input_num * sizeof(aicpu::FWKAdapter::ShapeAndType));
@@ -164,28 +227,10 @@ void KernelBuilder::CalcBaseExtInfoLen(const ge::OpDescPtr &op_desc_ptr,
 }
 
 Status KernelBuilder::MakeNoTilingExtInfo(const OpDescPtr &op_desc_ptr, vector<char> &task_ext_info) const {
-  size_t input_size = op_desc_ptr->GetAllInputsSize();
   vector<uint32_t> input_index;
-  for (size_t i = 0; i < input_size; i++) {
-    auto tiling_mem_type = false;
-    auto input_desc = op_desc_ptr->GetInputDesc(i);
-    (void)AttrUtils::GetBool(input_desc, AICPU_ATTR_NAME_TENSOR_NO_TILING_MEM_TYPE, tiling_mem_type);
-    AICPUE_LOGD("Op[%s], input[%zu] mem type[%d].", op_desc_ptr->GetName().c_str(), i, tiling_mem_type);
-    if (tiling_mem_type) {
-      input_index.emplace_back(static_cast<uint32_t>(i));
-    }
-  }
-  size_t output_size = op_desc_ptr->GetAllOutputsDescSize();
+  CollectNoTilingInputIndex(op_desc_ptr, input_index);
   vector<uint32_t> output_index;
-  for (size_t i = 0; i < output_size; i++) {
-    auto tiling_mem_type = false;
-    auto output_desc = op_desc_ptr->GetOutputDesc(i);
-    (void)AttrUtils::GetBool(output_desc, AICPU_ATTR_NAME_TENSOR_NO_TILING_MEM_TYPE, tiling_mem_type);
-    AICPUE_LOGD("Op[%s], output[%zu] mem type[%d].", op_desc_ptr->GetName().c_str(), i, tiling_mem_type);
-    if (tiling_mem_type) {
-      output_index.emplace_back(static_cast<uint32_t>(i));
-    }
-  }
+  CollectNoTilingOutputIndex(op_desc_ptr, output_index);
   uint64_t extend_info_len = 0;
   if (!input_index.empty()) {
     extend_info_len += (kExtInfoHeadSize + input_index.size() * sizeof(uint32_t));
@@ -397,7 +442,7 @@ Status KernelBuilder::MakeBaseExtInfo(const ge::OpDescPtr &op_desc_ptr,
   (void)CalcBaseExtInfoLen(op_desc_ptr, op_async_flag, extend_info_len);
 
   // get input and output total num. no need to check overflow
-  size_t input_num = op_desc_ptr->GetInputsSize();
+  size_t input_num = GetBaseExtInfoInputNum(op_desc_ptr);
   size_t output_num = op_desc_ptr->GetOutputsSize();
 
   uint64_t ext_info_offset = task_ext_info.size();

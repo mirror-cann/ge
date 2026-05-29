@@ -61,7 +61,7 @@ class UtestBroadCastArgsKernel : public testing::Test {
  protected:
   void SetUp() { init(); }
 
-  void TearDown() { destory(); }
+  void TearDown() { destroy(); }
 
  private:
   void init() {
@@ -70,7 +70,7 @@ class UtestBroadCastArgsKernel : public testing::Test {
     op_desc_ptr_ = std::make_shared<OpDesc>("BroadcastArgs", BROADCASTARGS);
     node_ = std::make_shared<Node>(op_desc_ptr_, graph_);
   }
-  void destory() {
+  void destroy() {
     delete pass_;
     pass_ = NULL;
   }

@@ -173,6 +173,16 @@ triton_add_custom
 custom_op.parameter_map["compile_dynamic_mode"].b = True
 ```
 
+### 静态 shape dump data配置
+
+在 `script/run_add_custom_tf_1.15.py` 中可通过以下配置启用dump data能力：
+
+```python
+custom_op.parameter_map["enable_dump"].b = True
+custom_op.parameter_map["dump_mode"].s = tf.compat.as_bytes("all")
+custom_op.parameter_map["dump_path"].s = tf.compat.as_bytes("/home/test/output")
+```
+
 ### Profiling 开关
 
 ```python

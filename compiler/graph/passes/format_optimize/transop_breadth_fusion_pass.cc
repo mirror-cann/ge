@@ -235,7 +235,7 @@ std::string TransOpBreadthFusionPass::GetNodeId(const int32_t anchor_index, cons
  * Get all transform operators in the output of node.
  * @param node
  * @return std::map
- *     key   - transform operator identifer
+ *     key   - transform operator identifier
  *     value - transform operator set
  */
 std::map<std::string, std::vector<NodePtr>> TransOpBreadthFusionPass::GetOutputTransOpNodes(const NodePtr &node) {

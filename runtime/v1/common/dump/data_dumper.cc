@@ -25,8 +25,8 @@
 #include "graph_metadef/graph/utils/file_utils.h"
 #include "framework/common/runtime_tensor_desc.h"
 #include "runtime/rt.h"
+// 待rt.h移除后再替换为rt_external_device.h，目前替换后有符号存在歧义问题
 #include "runtime/rts/rts_device.h"
-#include "runtime/rts/rts_stream.h"
 #include "acl/acl_rt.h"
 #include "common/aclrt_malloc_helper.h"
 

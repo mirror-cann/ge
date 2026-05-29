@@ -46,7 +46,7 @@ TEST_F(CacheMemoryAllocatorTest, test_allocate_mem_block_fail_when_size_bigger_t
   ASSERT_EQ(nullptr, allocator.Malloc(1024UL * 1024UL * 1024UL * 1024UL));
 }
 
-TEST_F(CacheMemoryAllocatorTest, test_allocate_mem_block_sucess) {
+TEST_F(CacheMemoryAllocatorTest, test_allocate_mem_block_success) {
   CachingMemAllocator allocator(0, RT_MEMORY_HBM);
   auto mem_block = allocator.Malloc(1024UL);
   ASSERT_NE(mem_block->GetAddr(), nullptr);
@@ -56,7 +56,7 @@ TEST_F(CacheMemoryAllocatorTest, test_allocate_mem_block_sucess) {
   ASSERT_EQ(ge::GRAPH_SUCCESS, allocator.Finalize());
 }
 
-TEST_F(CacheMemoryAllocatorTest, test_allocate_mem_block_size_3145728_sucess) {
+TEST_F(CacheMemoryAllocatorTest, test_allocate_mem_block_size_3145728_success) {
   CachingMemAllocator allocator(0, RT_MEMORY_HBM);
   auto mem_block = allocator.Malloc(3145728UL);
   ASSERT_NE(mem_block->GetAddr(), nullptr);
@@ -67,7 +67,7 @@ TEST_F(CacheMemoryAllocatorTest, test_allocate_mem_block_size_3145728_sucess) {
 
 const int64_t MByteSize = 1024UL * 1024UL;
 
-TEST_F(CacheMemoryAllocatorTest, test_allocate_mem_block_size_1M_sucess) {
+TEST_F(CacheMemoryAllocatorTest, test_allocate_mem_block_size_1M_success) {
   CachingMemAllocator allocator(0, RT_MEMORY_HBM);
   auto mem_block = allocator.Malloc(MByteSize - 64);
   ASSERT_NE(mem_block->GetAddr(), nullptr);
@@ -76,7 +76,7 @@ TEST_F(CacheMemoryAllocatorTest, test_allocate_mem_block_size_1M_sucess) {
   allocator.Finalize();
 }
 
-TEST_F(CacheMemoryAllocatorTest, test_allocate_mem_block_size_1M_without_padding_sucess) {
+TEST_F(CacheMemoryAllocatorTest, test_allocate_mem_block_size_1M_without_padding_success) {
   CachingMemAllocator allocator(0, RT_MEMORY_HBM);
   auto mem_block = allocator.Malloc(MByteSize);
   ASSERT_NE(mem_block->GetAddr(), nullptr);
@@ -85,7 +85,7 @@ TEST_F(CacheMemoryAllocatorTest, test_allocate_mem_block_size_1M_without_padding
   ASSERT_EQ(ge::GRAPH_SUCCESS, allocator.Finalize());
 }
 
-TEST_F(CacheMemoryAllocatorTest, test_allocate_mem_block_size_2M_without_padding_sucess) {
+TEST_F(CacheMemoryAllocatorTest, test_allocate_mem_block_size_2M_without_padding_success) {
   CachingMemAllocator allocator(0, RT_MEMORY_HBM);
   auto mem_block = allocator.Malloc(2 * MByteSize);
   ASSERT_NE(mem_block->GetAddr(), nullptr);
@@ -94,7 +94,7 @@ TEST_F(CacheMemoryAllocatorTest, test_allocate_mem_block_size_2M_without_padding
   ASSERT_EQ(ge::GRAPH_SUCCESS, allocator.Finalize());
 }
 
-TEST_F(CacheMemoryAllocatorTest, test_allocate_mem_block_size_3M_without_padding_sucess) {
+TEST_F(CacheMemoryAllocatorTest, test_allocate_mem_block_size_3M_without_padding_success) {
   CachingMemAllocator allocator(0, RT_MEMORY_HBM);
   auto mem_block = allocator.Malloc(3 * MByteSize);
   ASSERT_NE(mem_block->GetAddr(), nullptr);
@@ -103,7 +103,7 @@ TEST_F(CacheMemoryAllocatorTest, test_allocate_mem_block_size_3M_without_padding
   ASSERT_EQ(ge::GRAPH_SUCCESS, allocator.Finalize());
 }
 
-TEST_F(CacheMemoryAllocatorTest, test_allocate_mem_block_size_4M_without_padding_sucess) {
+TEST_F(CacheMemoryAllocatorTest, test_allocate_mem_block_size_4M_without_padding_success) {
   CachingMemAllocator allocator(0, RT_MEMORY_HBM);
   auto mem_block = allocator.Malloc(4 * MByteSize + 1);
   ASSERT_NE(mem_block->GetAddr(), nullptr);
@@ -112,7 +112,7 @@ TEST_F(CacheMemoryAllocatorTest, test_allocate_mem_block_size_4M_without_padding
   ASSERT_EQ(ge::GRAPH_SUCCESS, allocator.Finalize());
 }
 // constexpr size_t GByteSize = 1024UL * 1024UL * 1024UL;
-// TEST_F(CacheMemoryAllocatorTest, test_allocate_mem_block_size_1G_without_padding_sucess){
+// TEST_F(CacheMemoryAllocatorTest, test_allocate_mem_block_size_1G_without_padding_success){
 //   CachingMemAllocator allocator(0, RT_MEMORY_HBM);
 //   auto mem_block = allocator.Malloc(GByteSize);
 //   ASSERT_NE(mem_block->GetAddr(), nullptr);
@@ -121,7 +121,7 @@ TEST_F(CacheMemoryAllocatorTest, test_allocate_mem_block_size_4M_without_padding
 //   ASSERT_EQ(ge::GRAPH_SUCCESS, allocator.Finalize());
 // }
 
-TEST_F(CacheMemoryAllocatorTest, test_allocate_mem_block_size_4816896UL_sucess) {
+TEST_F(CacheMemoryAllocatorTest, test_allocate_mem_block_size_4816896UL_success) {
   CachingMemAllocator allocator(0, RT_MEMORY_HBM);
   auto mem_block = allocator.Malloc(4816896UL);
   ASSERT_NE(mem_block->GetAddr(), nullptr);

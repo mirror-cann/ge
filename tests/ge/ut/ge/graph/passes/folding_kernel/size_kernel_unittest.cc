@@ -33,7 +33,7 @@ class UtestGraphPassesFoldingKernelSizeKernel : public testing::Test {
  protected:
   void SetUp() { init(); }
 
-  void TearDown() { destory(); }
+  void TearDown() { destroy(); }
 
  private:
   void init() {
@@ -44,7 +44,7 @@ class UtestGraphPassesFoldingKernelSizeKernel : public testing::Test {
     kernel_ = KernelFactory::Instance().Create(SIZE);
   }
 
-  void destory() {
+  void destroy() {
     delete pass_;
     pass_ = NULL;
   }

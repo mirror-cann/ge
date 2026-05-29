@@ -339,7 +339,7 @@ Status CompileConfigJson::ReadDeployInfoFromJsonFile(const std::string &file_pat
               deploy_conf.keep_logic_device_order ? 1 : 0);
     }
     if (!with_deploy_info && !with_batch_deploy_info) {
-      GELOGE(FAILED, "deploy config file[%s] must contian \"deploy_info\" or \"batch_deploy_info\" node.",
+      GELOGE(FAILED, "deploy config file[%s] must contain \"deploy_info\" or \"batch_deploy_info\" node.",
              file_path.c_str());
       return FAILED;
     }

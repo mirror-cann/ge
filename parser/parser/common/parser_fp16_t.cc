@@ -387,7 +387,7 @@ static uint16_t Fp16ToUInt16(const uint16_t &fp_val) {
   return m_ret;
 }
 
-/// @ingroup fp16_t math convertion static method
+/// @ingroup fp16_t math conversion static method
 /// @param [in] fp_val uint16_t value of fp16_t object
 /// @brief   Convert fp16_t to int32_t
 /// @return  Return int32_t value of fp_val which is the value of fp16_t object

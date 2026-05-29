@@ -50,8 +50,6 @@
 #include "kernel/known_subgraph/davinci_model_kernel.h"
 #include "graph/utils/attr_utils.h"
 #include "exe_graph/lowering/value_holder_utils.h"
-#include "runtime/rts/rts_stream.h"
-#include "runtime/rts/rts_kernel.h"
 #include "acl/acl_rt.h"
 #include "common/aclrt_malloc_helper.h"
 
@@ -240,7 +238,7 @@ ge::Status NormalProcessor(const ge::OpDescPtr &op_desc, ge::ExceptionDumper *du
     uint32_t task_id = 0U;
     uint32_t stream_id = 0U;
     int32_t device_id = 0;
-    GE_CHK_RT_RET(rtsGetThreadLastTaskId(&task_id));
+    GE_CHK_RT_RET(aclrtGetThreadLastTaskId(&task_id));
     GE_CHK_RT_RET(aclrtStreamGetId(stream, reinterpret_cast<int32_t*>(&stream_id)));
     GE_CHK_RT_RET(aclrtGetDevice(&device_id));
     ge::OpDescInfoId id(task_id, stream_id, device_id);

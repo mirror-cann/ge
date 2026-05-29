@@ -421,17 +421,38 @@ ge::Status CpuKernelBuilder::MakeAicpuKernelExtInfo(
   return ge::SUCCESS;
 }
 
+ge::Status UpdateParamLengthByCustomizedAttr(const ge::OpDescPtr &op_desc_ptr, const ge::Buffer &bytes,
+                                             const bool has_customized_attr, uint32_t &param_length) {
+  if (!has_customized_attr) {
+    return ge::SUCCESS;
+  }
+
+  CHECK_UINT32_ADD_OVERFLOW(
+      param_length, sizeof(uint32_t), ErrorCode::DATA_OVERFLOW,
+      "Overflow when param total bytes[%u] add 4bytes, op[%s]", param_length, op_desc_ptr->GetName().c_str())
+  param_length += sizeof(uint32_t);
+  // Customized attr length must be less than UINT32_MAX, no need to check overflow
+  uint32_t customized_attr_len = static_cast<uint32_t>(bytes.GetSize());
+  CHECK_UINT32_ADD_OVERFLOW(
+      param_length, customized_attr_len, ErrorCode::DATA_OVERFLOW,
+      "Overflow when calculate total bytes of task param[%u] and custom "
+      "attr[%u], op[%s]",
+      param_length, customized_attr_len, op_desc_ptr->GetName().c_str())
+  param_length += customized_attr_len;
+  return ge::SUCCESS;
+}
+
 ge::Status BuildArgs(const ge::Node &node, std::string &task_args,
-                     uint32_t &args_len, const uint32_t index,
-                     FftsPlusInfo &ffts_info) {
+                     uint32_t &args_len, const uint32_t index, FftsPlusInfo &ffts_info) {
   const ge::OpDescPtr op_desc_ptr = node.GetOpDesc();
   // param_length: AicpuParamHead.len + io_addrs_size + customizedAttr.len
   uint32_t param_length = static_cast<uint32_t>(sizeof(AicpuParamHead));
-  size_t input_size = op_desc_ptr->GetInputsSize();
+  bool optional_input_placeholder = false;
+  (void)ge::AttrUtils::GetBool(op_desc_ptr, kOptionalInputPlaceholder, optional_input_placeholder);
+  size_t input_size = optional_input_placeholder ? op_desc_ptr->GetAllInputsSize() : op_desc_ptr->GetInputsSize();
   size_t output_size = op_desc_ptr->GetOutputsSize();
   // get input and output total number, no need to check overflow
-  uint32_t io_addrs_num = static_cast<uint32_t>(input_size +
-                                                output_size);
+  uint32_t io_addrs_num = static_cast<uint32_t>(input_size + output_size);
   // get input and output addrs size, no need to check overflow
   uint32_t io_addrs_size =
       io_addrs_num * static_cast<uint32_t>(sizeof(uint64_t));
@@ -446,38 +467,22 @@ ge::Status BuildArgs(const ge::Node &node, std::string &task_args,
   bool has_customized_attr =
       ge::AttrUtils::GetZeroCopyBytes(op_desc_ptr, k_name, bytes);
   // When it's aicpu customized ops, get customized attr
-  if (has_customized_attr) {
-    CHECK_UINT32_ADD_OVERFLOW(
-        param_length, sizeof(uint32_t), ErrorCode::DATA_OVERFLOW,
-        "Overflow when param total bytes[%u] add 4bytes, op[%s]", param_length,
-        op_desc_ptr->GetName().c_str())
-    param_length += sizeof(uint32_t);
-    // Customized attr length must be less than UINT32_MAX, no need to check
-    // overflow
-    uint32_t customized_attr_len = static_cast<uint32_t>(bytes.GetSize());
-    CHECK_UINT32_ADD_OVERFLOW(
-        param_length, customized_attr_len, ErrorCode::DATA_OVERFLOW,
-        "Overflow when calculate total bytes of task param[%u] and custom "
-        "attr[%u], op[%s]",
-        param_length, customized_attr_len, op_desc_ptr->GetName().c_str())
-    param_length += customized_attr_len;
-  }
+  AICPU_CHECK_RES(UpdateParamLengthByCustomizedAttr(op_desc_ptr, bytes, has_customized_attr, param_length))
 
   uint64_t ext_info_addrs = 0ul;
   // Create task_args: AicpuParamHead + ioAddrs + customizedAttr
-  AicpuParamHead param_head = {param_length, io_addrs_num, ffts_info.ext_len,
-                               ext_info_addrs};
-  task_args.append(reinterpret_cast<const char *>(&param_head),
-                   sizeof(AicpuParamHead));
+  AicpuParamHead param_head = {param_length, io_addrs_num, ffts_info.ext_len, ext_info_addrs};
+  task_args.append(reinterpret_cast<const char *>(&param_head), sizeof(AicpuParamHead));
   bool auto_thread_flag = ffts_info.auto_static_split;
   for (uint32_t i = 0; i < input_size; i++) {
-    const uint64_t offset =
-        auto_thread_flag ? ffts_info.input_addr_offset[i] * index : 0UL;
+    const uint64_t offset = auto_thread_flag ? ffts_info.input_addr_offset[i] * index : 0UL;
+    AICPUE_LOGI("Op[%s], input[%zu] offset[%lu], auto_thread_flag[%d], input_addr_offset_size[%zu]",
+      op_desc_ptr->GetName().c_str(), i, offset,
+      static_cast<int32_t>(auto_thread_flag), ffts_info.input_addr_offset.size());
     task_args.append(reinterpret_cast<const char *>(&offset), sizeof(uint64_t));
   }
   for (uint32_t i = 0; i < output_size; i++) {
-    const uint64_t offset =
-        auto_thread_flag ? ffts_info.output_addr_offset[i] * index : 0UL;
+    const uint64_t offset = auto_thread_flag ? ffts_info.output_addr_offset[i] * index : 0UL;
     task_args.append(reinterpret_cast<const char *>(&offset), sizeof(uint64_t));
   }
 
@@ -488,10 +493,8 @@ ge::Status BuildArgs(const ge::Node &node, std::string &task_args,
     AICPU_CHECK_NOTNULL(node_def)
     size_t customized_attr_len = bytes.GetSize();
     uint32_t node_def_len = static_cast<uint32_t>(customized_attr_len);
-    task_args.append(reinterpret_cast<const char *>(&node_def_len),
-                     sizeof(uint32_t));
-    task_args.append(reinterpret_cast<const char *>(node_def),
-                     customized_attr_len);
+    task_args.append(reinterpret_cast<const char *>(&node_def_len), sizeof(uint32_t));
+    task_args.append(reinterpret_cast<const char *>(node_def), customized_attr_len);
   }
   args_len = param_length;
   return ge::SUCCESS;

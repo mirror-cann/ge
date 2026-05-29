@@ -20,6 +20,7 @@
 #include "graph/utils/attr_utils.h"
 #include "framework/omg/parser/parser_types.h"
 #include "framework/common/framework_types_internal.h"
+#include "common/dump/dump_op.h"
 #include "graph/load/model_manager/sink_only_allocator.h"
 #include "register/op_tiling_registry.h"
 
@@ -55,6 +56,10 @@ class CustomTaskInfo : public TaskInfo {
   int64_t ParseOpIndex(const domi::TaskDef &task_def) const override;
 
  private:
+  Status InsertDumpOp(const std::string &dump_mode);
+  Status UpdateCustomDumpAddrs(const std::vector<uint64_t> &input_addrs_value,
+                               const std::vector<uint64_t> &output_addrs_value);
+  void SetCustomDumpInfo(const DumpProperties &dump_properties, DumpOp &dump_op) const;
   void UpdateIoAndWorkspaceAddrs(const IowAddrs &iow_addrs);
 
   Status ConstructCustomKernelContextInputsOutputs(const ge::OpDescPtr &op_desc,
@@ -74,6 +79,8 @@ class CustomTaskInfo : public TaskInfo {
   std::vector<uint64_t> workspace_mem_types_;
   gert::KernelContextHolder eager_context_holder_{};
   std::shared_ptr<gert::memory::SinkOnlyAllocator> sink_only_allocator_;
+  DumpOp input_custom_dump_;
+  DumpOp output_custom_dump_;
 };
 }  // namespace ge
 #endif  // CANN_GRAPH_ENGINE_EAGER_TASK_INFO_H

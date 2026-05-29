@@ -725,7 +725,7 @@ Status SplitIdentityAlongAnchor(const OutDataAnchorPtr &out_data_anchor, const I
     GE_CHECK_NOTNULL(new_identity_op);
     GE_ASSERT_NOTNULL(GraphUtils::InsertNodeBefore(peer_in_data_anchor, new_identity_op,
         kIdentityAnchorIndex, kIdentityAnchorIndex));
-    GELOGI("Node %s intput rw type is %s. Insert Identity between %s and %s.", peer_in_data_node->GetName().c_str(),
+    GELOGI("Node %s input rw type is %s. Insert Identity between %s and %s.", peer_in_data_node->GetName().c_str(),
            InputRWTypeToSerialString(input_rw_type).c_str(), pre_out_data_anchor->GetOwnerNode()->GetName().c_str(),
            peer_in_data_anchor->GetOwnerNode()->GetName().c_str());
   } else {

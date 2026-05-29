@@ -57,10 +57,10 @@ class Tensor(object):
         utils.check_isinstance("data", data, [np.ndarray, Tensor, int])
         utils.check_isinstance("tensor_desc", tensor_desc, TensorDesc)
         self._tensor_id = 0
-        if isinstance(data, Tensor):
+        if utils.check_type(data, Tensor):
             self._tensor_desc = data._tensor_desc
             self._tensor_id = llm_wrapper.clone_tensor(data._tensor_id)
-        elif isinstance(data, int):
+        elif utils.check_type(data, int):
             self._tensor_desc = tensor_desc
             self._tensor_id = data
         else:

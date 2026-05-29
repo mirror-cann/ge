@@ -104,11 +104,33 @@ NodeOutput UpdateOutputShapeAndAddr(const ge::NodePtr &node, const LowerInput &l
   workspace_addr_holder =
       UpdateWorkSpaceSizeAndAddr(node, lower_input, aicpu_args.ext_info_handler, update_workspace_holder);
 
-  auto update_ext = bg::UpdateExtInfo(op_desc, {lower_input.input_shapes, node_output.shapes},
+  auto update_input_shapes = lower_input.input_shapes;
+  std::vector<bg::DevMemValueHolderPtr> update_input_addrs = lower_input.input_addrs;
+  bool optional_input_placeholder = false;
+  (void)ge::AttrUtils::GetBool(op_desc, bg::kOptionalInputPlaceholder, optional_input_placeholder);
+  bg::ValueHolderPtr expanded_input_shapes_holder = nullptr;
+  bg::ValueHolderPtr expanded_input_addrs_holder = nullptr;
+  if (optional_input_placeholder && node->GetOpDescBarePtr()->GetOpKernelLibName() == ge::kEngineNameAiCpu) {
+    update_input_shapes = bg::ExpandAicpuOptionalInputShapes(node, lower_input.input_shapes);
+    if (update_input_shapes.size() > lower_input.input_shapes.size()) {
+      expanded_input_shapes_holder = update_input_shapes.front();
+    }
+    update_input_addrs = bg::ExpandAicpuOptionalInputAddrs(node, lower_input.input_addrs, kOnDeviceHbm);
+    if (update_input_addrs.size() > lower_input.input_addrs.size()) {
+      expanded_input_addrs_holder = update_input_addrs.front();
+    }
+  }
+  auto update_ext = bg::UpdateExtInfo(op_desc, {update_input_shapes, node_output.shapes},
                                       aicpu_args.ext_info_handler, lower_input.global_data->GetStream());
-  update_holder = bg::UpdateAicpuIoAddr(aicpu_args.args_handler, lower_input.input_addrs, node_output.addrs);
+  update_holder = bg::UpdateAicpuIoAddr(aicpu_args.args_handler, update_input_addrs, node_output.addrs);
+  if (optional_input_placeholder && expanded_input_addrs_holder != nullptr) {
+    bg::ValueHolder::AddDependency(expanded_input_addrs_holder, update_holder);
+  }
 
   if (update_ext != nullptr) {
+    if (optional_input_placeholder && expanded_input_shapes_holder != nullptr) {
+      bg::ValueHolder::AddDependency(expanded_input_shapes_holder, update_ext);
+    }
     if (update_workspace_holder != nullptr) {
       bg::ValueHolder::AddDependency(update_workspace_holder, update_ext);
     }
@@ -183,7 +205,15 @@ LowerResult LoweringAiCpuCCNode(const ge::NodePtr &node, const LowerInput &lower
   auto rts_args = bg::BuildCCArgsBinHandle(node);
 
   // alloc args
-  auto io_num = node->GetInDataNodesAndAnchors().size() + node->GetAllOutDataAnchorsSize();
+  auto in_num = node->GetInDataNodesAndAnchors().size();
+  bool optional_input_placeholder = false;
+  (void)ge::AttrUtils::GetBool(node->GetOpDescBarePtr(), bg::kOptionalInputPlaceholder, optional_input_placeholder);
+  if (optional_input_placeholder) {
+    in_num = node->GetOpDescBarePtr()->GetAllInputsSize();
+    GELOGI("Op %s type %s in all input size is %zu, all input data anchors size is %zu.",
+         node->GetName().c_str(), ge::NodeUtils::GetNodeType(node).c_str(), in_num, node->GetInDataNodesAndAnchors().size());
+  }
+  auto io_num = in_num + node->GetAllOutDataAnchorsSize();
   auto aicpu_args = bg::BuildCCAicpuArg(node, kernel_def, io_num, session_id, false);
 
   // get output shape & addr, update ext_info & io_addr
@@ -222,7 +252,15 @@ LowerResult LoweringHostAiCpuNode(const ge::NodePtr &node, const LowerInput &low
   auto session_id = bg::GetSessionId(*lower_input.global_data);
 
   // alloc args
-  auto io_num = node->GetInDataNodesAndAnchors().size() + node->GetAllOutDataAnchorsSize();
+  auto in_num = node->GetInDataNodesAndAnchors().size();
+  bool optional_input_placeholder = false;
+  (void)ge::AttrUtils::GetBool(node->GetOpDescBarePtr(), bg::kOptionalInputPlaceholder, optional_input_placeholder);
+  if (optional_input_placeholder) {
+    in_num = node->GetOpDescBarePtr()->GetAllInputsSize();
+    GELOGI("Op %s type %s in all input size is %zu, all input data anchors size is %zu.",
+           node->GetName().c_str(), ge::NodeUtils::GetNodeType(node).c_str(), in_num, node->GetInDataNodesAndAnchors().size());
+  }
+  auto io_num = in_num + node->GetAllOutDataAnchorsSize();
   auto aicpu_args = bg::BuildHostCCAicpuArg(node, kernel_def, io_num, session_id);
 
   // get output shape and addr

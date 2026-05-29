@@ -619,7 +619,7 @@ static aclError RuntimeV2ModelExecute(const uint32_t modelId, const aclmdlDatase
     const size_t inputNum = desc.GetInputNum();
     ACL_LOG_INFO("get model input num %zu, input num %zu", inputNum, input->blobs.size());
     if (input->blobs.size() < inputNum) {
-        ACL_LOG_ERROR("input blobs %zu cannot be smaller than intput desc size %zu",
+        ACL_LOG_ERROR("input blobs %zu cannot be smaller than input desc size %zu",
             input->blobs.size(), inputNum);
         return static_cast<aclError>(ACL_ERROR_INVALID_PARAM);
     }

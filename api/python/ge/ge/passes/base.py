@@ -59,6 +59,19 @@ class PatternFusionPass(FusionBasePass):
     ``replacement()`` — **not** ``run()``.  Overriding ``run()`` in a
     ``PatternFusionPass`` subclass has no effect; implement the three hook
     methods above instead.
+
+    Subclasses can use either the legacy graph-building hooks:
+      - ``patterns(self) -> Iterable[Pattern | Graph]``
+      - ``replacement(self, match_result) -> Graph``
+
+    or expression-style pattern methods:
+      - ``@pattern def name(self, inputs) -> TensorHolder | list[TensorHolder] | tuple[TensorHolder, ...]``
+      - ``replacement(self, inputs) -> TensorHolder | list[TensorHolder] | tuple[TensorHolder, ...] | Graph``
+      - ``replacement(self, inputs, match_result)`` when match details are needed
+
+    In a ``@pattern`` method, a list/tuple means multiple outputs of one
+    pattern, not multiple patterns. Declare several ``@pattern`` methods for
+    a multiple-pattern pass.
     """
 
     def __init__(self, matcher_config: Optional[PatternMatcherConfig] = None) -> None:
@@ -72,6 +85,18 @@ class PatternFusionPass(FusionBasePass):
                 f"by the PatternFusionPass execution path. "
                 f"Implement patterns()/replacement() instead."
             )
+        from .pattern import _adapt_decorated_pattern_methods
+        from .pattern import _adapt_expression_replacement
+        from .pattern import _has_decorated_pattern_methods
+        if _has_decorated_pattern_methods(cls):
+            if "patterns" in cls.__dict__:
+                raise TypeError(
+                    f"{cls.__name__} cannot combine @pattern methods with patterns(). "
+                    f"Use one style for declaring patterns."
+                )
+            cls.patterns = _adapt_decorated_pattern_methods(cls)
+        if "replacement" in cls.__dict__:
+            cls.replacement = _adapt_expression_replacement(cls.__dict__["replacement"])
 
     @property
     def matcher_config(self) -> Optional[PatternMatcherConfig]:

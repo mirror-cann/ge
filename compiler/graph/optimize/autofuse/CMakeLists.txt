@@ -35,7 +35,6 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/.dev_env")
     endif ()
 endif ()
 set(ASCEND_ROOT ${ASCEND_INSTALL_PATH}) # e.g. /usr/local/Ascend/ascend-toolkit/latest
-set(ASCEND_INSTALL_PATH ${ASCEND_INSTALL_PATH})
 
 set(CODE_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -78,7 +77,6 @@ if (NOT DEFINED CMAKE_PREFIX_PATH)
 endif()
 
 
-link_directories(${ASCEND_ROOT}/lib64)
 # Keep the dedicated autofuse ascendc_ir directories ahead of GE metadef paths so
 # bare includes like "attr_store.h" resolve to the af-namespace package headers.
 # Keep generic "graph/..." lookups on GE metadef first under AUTOFUSE_USE_GE_METADEF.
@@ -98,9 +96,6 @@ include_directories(${ASCEND_INSTALL_PATH}/include/autofuse/graph_metadef/graph)
 include_directories(${ASCEND_INSTALL_PATH}/include/autofuse/graph_metadef)
 include_directories(${CODE_ROOT_DIR}/inc)
 include_directories(${AIR_CODE_DIR}/inc)
-include_directories(${ASCEND_ROOT}/include)
-include_directories(${ASCEND_INSTALL_PATH}/pkg_inc)
-include_directories(${ASCEND_INSTALL_PATH}/pkg_inc/base)
 include_directories(${ASCEND_INSTALL_PATH}/include/autofuse/common)
 include_directories(${ASCEND_INSTALL_PATH}/include/autofuse/utils)
 if (NOT ENABLE_OPEN_SRC)
@@ -121,15 +116,6 @@ if (NOT ENABLE_OPEN_SRC)
     include_directories(${TOP_DIR}/graph-autofusion/autofuse/graph_metadef/third_party/transformer/inc)
 endif ()
 
-if(DEFINED BUILD_COMPONENT)
-    include_directories(${ASCEND_ROOT}/pkg_inc)
-    include_directories(${ASCEND_ROOT}/pkg_inc/runtime)
-    include_directories(${ASCEND_ROOT}/pkg_inc/profiling)
-else()
-    include_directories(${ASCEND_ROOT}/include/experiment)
-    include_directories(${ASCEND_ROOT}/include/experiment/runtime)
-    include_directories(${ASCEND_ROOT}/include/experiment/msprof)
-endif()
 include_directories(${CMAKE_BINARY_DIR}/proto/metadef_protos)
 include_directories(${CMAKE_BINARY_DIR}/proto/metadef_protos_af)
 include_directories(${CMAKE_BINARY_DIR}/ascir_builtin_ops)
@@ -149,12 +135,6 @@ if (ENABLE_OPEN_SRC)
 endif ()
 
 include(GoogleTest)
-set(CMAKE_GTEST_DISCOVER_TESTS_DISCOVERY_MODE PRE_TEST)
-
-# Common depends
-add_library(depends INTERFACE)
-target_link_directories(depends INTERFACE
-    ${ASCEND_ROOT}/x86_64-linux/devlib)
 
 add_library(aihac_codegen_toolkit SHARED IMPORTED)
 set_target_properties(aihac_codegen_toolkit PROPERTIES

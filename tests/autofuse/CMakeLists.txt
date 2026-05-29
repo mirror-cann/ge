@@ -179,6 +179,10 @@ target_include_directories(autofuse PUBLIC
 target_compile_options(autofuse PRIVATE -fPIC -Werror -fno-common -Wextra -Wfloat-equal -O0)
 
 if (ENABLE_OPEN_SRC)
+    target_compile_options(autofuse PRIVATE -g --coverage -fprofile-arcs -ftest-coverage)
+endif()
+
+if (ENABLE_OPEN_SRC)
     target_link_libraries(autofuse PUBLIC
         -lgcov
         mmpa_headers

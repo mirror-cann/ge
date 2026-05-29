@@ -88,8 +88,6 @@ if (BUILD_OPEN_PROJECT OR ENABLE_OPEN_SRC)
         ${AIR_CODE_DIR}/compiler/engines/cpu_engine/aicpu_const_folding
         ${CMAKE_BINARY_DIR}/proto/aicpu
         ${CMAKE_BINARY_DIR}/proto/aicpu/proto
-        ${ASCEND_INSTALL_PATH}/include/aicpu_common/context/common
-        ${ASCEND_INSTALL_PATH}/include/aicpu_common/context/cpu_proto
     )
 else ()
     target_include_directories(aicpu_const_folding PRIVATE
@@ -101,8 +99,6 @@ else ()
         ${CMAKE_BINARY_DIR}/proto/aicpu/proto
         ${TOP_DIR}/inc/aicpu/cpu_kernels
         ${TOP_DIR}/inc/external/aicpu
-        ${ASCEND_INSTALL_PATH}/include/aicpu_common/context/common
-        ${ASCEND_INSTALL_PATH}/include/aicpu_common/context/cpu_proto
     )
 endif ()
 

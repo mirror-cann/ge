@@ -310,42 +310,8 @@ ge::Status GetAttrValueFromGe(const ge::OpDescPtr &op_desc_ptr,
   return ge::SUCCESS;
 }
 
-ge::Status BuildAicpuNodeDef(const ge::OpDescPtr &op_desc_ptr,
-                             aicpuops::NodeDef &node_def) {
-  std::string op_type = op_desc_ptr->GetType();
-  node_def.set_op(op_type);
-
-  bool is_unknow_shape = false;
-  if (ge::AttrUtils::HasAttr(op_desc_ptr, ge::ATTR_NAME_UNKNOWN_SHAPE_TYPE)) {
-    // ATTR_NAME_UNKNOWN_SHAPE_TYPE attr exist, means unknow shape
-    is_unknow_shape = true;
-  }
-
-  size_t all_input_size = op_desc_ptr->GetAllInputsSize();
-  for (size_t i = 0; i < all_input_size; ++i) {
-    auto input_desc = op_desc_ptr->GetInputDescPtr(i);
-    if (input_desc == nullptr) {
-      continue;
-    }
-    aicpuops::Tensor *input_tensor = node_def.add_inputs();
-    AICPU_CHECK_NOTNULL(input_tensor)
-    auto aicpu_shape = input_tensor->mutable_tensor_shape();
-    AICPU_CHECK_NOTNULL(aicpu_shape)
-    for (const auto &dim : input_desc->GetShape().GetDims()) {
-      aicpuops::TensorShape_Dim *aicpu_dims = aicpu_shape->add_dim();
-      AICPU_CHECK_NOTNULL(aicpu_dims)
-      aicpu_dims->set_size(dim);
-    }
-    aicpu_shape->set_data_format(
-        static_cast<ge::Format>(input_desc->GetFormat()));
-    aicpu_shape->set_unknown_rank(is_unknow_shape);
-    input_tensor->set_tensor_type(
-        static_cast<ge::DataType>(input_desc->GetDataType()));
-    std::string input_tensor_name =
-        op_desc_ptr->GetInputNameByIndex(static_cast<uint32_t>(i));
-    input_tensor->set_name(input_tensor_name);
-  }
-
+static ge::Status FillOutputTensorOfAicpuNodeDef(const ge::OpDescPtr &op_desc_ptr, const bool is_unknow_shape,
+                                          aicpuops::NodeDef &node_def) {
   size_t output_size = op_desc_ptr->GetOutputsSize();
   for (size_t i = 0; i < output_size; ++i) {
     aicpuops::Tensor *output_tensor = node_def.add_outputs();
@@ -358,40 +324,57 @@ ge::Status BuildAicpuNodeDef(const ge::OpDescPtr &op_desc_ptr,
       AICPU_CHECK_NOTNULL(aicpu_dims)
       aicpu_dims->set_size(dim);
     }
-    aicpu_shape->set_data_format(
-        static_cast<ge::Format>(output_desc.GetFormat()));
+    aicpu_shape->set_data_format(static_cast<ge::Format>(output_desc.GetFormat()));
     aicpu_shape->set_unknown_rank(is_unknow_shape);
-    output_tensor->set_tensor_type(
-        static_cast<ge::DataType>(output_desc.GetDataType()));
+    output_tensor->set_tensor_type(static_cast<ge::DataType>(output_desc.GetDataType()));
   }
+  return ge::SUCCESS;
+}
 
-  auto attrs_map = op_desc_ptr->GetAllAttrs();
-  for (auto iter = attrs_map.cbegin(); iter != attrs_map.cend(); ++iter) {
-    const std::string &attr_name = iter->first;
-    aicpuops::AttrValue attr_value;
-    const ge::GeAttrValue::ValueType ge_value_type =
-        (iter->second).GetValueType();
-    AICPUE_LOGD("Get attr:[%s] value from op [%s], ge_value_type is [%d].",
-                attr_name.c_str(), op_type.c_str(), ge_value_type);
+ge::Status BuildAicpuNodeDef(const ge::OpDescPtr &op_desc_ptr, aicpuops::NodeDef &node_def) {
+  std::string op_type = op_desc_ptr->GetType();
+  node_def.set_op(op_type);
 
-    AICPUE_LOGI("Get Attr name: [%s].", attr_name.c_str());
-    // If get attr value failed, no need to insert the attr. Only print log
-    if (GetAttrValueFromGe(op_desc_ptr, attr_name, ge_value_type, attr_value) !=
-        ge::SUCCESS) {
-      AICPUE_LOGW("GetAttrValueFromGe attr_name[%s] for op[%s] failed.",
-                  attr_name.c_str(), op_type.c_str());
+  bool is_unknow_shape = false;
+  bool optional_input_placeholder = false;
+  if (ge::AttrUtils::HasAttr(op_desc_ptr, ge::ATTR_NAME_UNKNOWN_SHAPE_TYPE)) {
+    // ATTR_NAME_UNKNOWN_SHAPE_TYPE attr exist, means unknow shape
+    is_unknow_shape = true;
+  }
+  (void)ge::AttrUtils::GetBool(op_desc_ptr, kOptionalInputPlaceholder, optional_input_placeholder);
+  AICPUE_LOGI("Get attr[%s] is [%d] for node[%s].", kOptionalInputPlaceholder.c_str(), optional_input_placeholder, op_desc_ptr->GetName().c_str());
+
+  size_t all_input_size = op_desc_ptr->GetAllInputsSize();
+  for (size_t i = 0; i < all_input_size; ++i) {
+    auto input_desc = op_desc_ptr->GetInputDescPtr(i);
+    if ((input_desc == nullptr) && (!optional_input_placeholder)) {
+      AICPUE_LOGI("Node %s has optional input %zu", op_desc_ptr->GetNamePtr(), i);
       continue;
     }
 
-    AICPU_CHECK_NOTNULL(node_def.mutable_attrs())
-    auto pair = node_def.mutable_attrs()->insert(
-        AttrValueMap::value_type(attr_name, attr_value));
-    AICPU_CHECK_FALSE_EXEC(
-        pair.second,
-        AICPUE_LOGW("Node [%s] insert attr [%s] to nodeDef failed.",
-                    op_desc_ptr->GetName().c_str(), attr_name.c_str()));
+    aicpuops::Tensor *input_tensor = node_def.add_inputs();
+    AICPU_CHECK_NOTNULL(input_tensor)
+    auto aicpu_shape = input_tensor->mutable_tensor_shape();
+    AICPU_CHECK_NOTNULL(aicpu_shape)
+    AICPUE_LOGI("Node %s add input index %zu to node_def.", op_desc_ptr->GetNamePtr(), i);
+    if (input_desc == nullptr) {
+      AICPUE_LOGI("Node %s has optional input %zu", op_desc_ptr->GetNamePtr(), i);
+      continue;
+    }
+    for (const auto &dim : input_desc->GetShape().GetDims()) {
+      aicpuops::TensorShape_Dim *aicpu_dims = aicpu_shape->add_dim();
+      AICPU_CHECK_NOTNULL(aicpu_dims)
+      aicpu_dims->set_size(dim);
+    }
+    aicpu_shape->set_data_format(static_cast<ge::Format>(input_desc->GetFormat()));
+    aicpu_shape->set_unknown_rank(is_unknow_shape);
+    input_tensor->set_tensor_type(static_cast<ge::DataType>(input_desc->GetDataType()));
+    std::string input_tensor_name = op_desc_ptr->GetInputNameByIndex(static_cast<uint32_t>(i));
+    input_tensor->set_name(input_tensor_name);
   }
 
+  AICPU_CHECK_RES(FillOutputTensorOfAicpuNodeDef(op_desc_ptr, is_unknow_shape, node_def))
+  AICPU_CHECK_RES(FillAttrOfAicpuNodeDef(op_desc_ptr, node_def))
   return ge::SUCCESS;
 }
 

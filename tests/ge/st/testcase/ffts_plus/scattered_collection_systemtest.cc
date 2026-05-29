@@ -964,7 +964,7 @@ TEST_F(StestScatteredCollection, mc2kernel_runtime_tiling_success) {
   // aicpu kernel
   std::vector<char> kernel_bin(128, '0');
   const auto aicpu_bin = MakeShared<OpKernelBin>(mc2_node->GetName(), std::move(kernel_bin));
-  ge_model->cust_aicpu_kernal_store_.AddKernel(aicpu_bin);
+  ge_model->cust_aicpu_kernel_store_.AddKernel(aicpu_bin);
 
   ge_model->SetGraph(root_graph);
   ge_model->SetModelTaskDef(model_task_def);
@@ -1106,7 +1106,7 @@ TEST_F(StestScatteredCollection, mc2kernel_graph_load_and_success) {
   // aicpu kernel
   std::vector<char> kernel_bin(128, '0');
   const auto aicpu_bin = MakeShared<OpKernelBin>(mc2_node->GetName(), std::move(kernel_bin));
-  ge_model->cust_aicpu_kernal_store_.AddKernel(aicpu_bin);
+  ge_model->cust_aicpu_kernel_store_.AddKernel(aicpu_bin);
 
   ge_model->SetGraph(root_graph);
   ge_model->SetModelTaskDef(model_task_def);

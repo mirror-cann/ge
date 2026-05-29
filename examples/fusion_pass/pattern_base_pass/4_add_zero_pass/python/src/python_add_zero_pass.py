@@ -14,14 +14,11 @@
 
 from math import fabs
 
-from ge.es.graph_builder import GraphBuilder
 from ge.graph.types import DataType
 from ge.passes import (
     PassStage,
     PatternFusionPass,
-    capture_tensor,
-    create_pattern,
-    create_replacement,
+    pattern,
     register_fusion_pass,
 )
 
@@ -52,16 +49,9 @@ def _is_tensor_value_equal_to_zero(tensor):
 class PythonAddZeroPass(PatternFusionPass):
     """Recognize Add(x, 0) and replace it with x using explicit Const validation."""
 
-    def patterns(self):
-        pattern_builder = GraphBuilder("add_zero_pattern")
-        input_tensor = pattern_builder.create_input(0)
-        placeholder_const = pattern_builder.create_const_int32(0)
-        add_tensor = input_tensor + placeholder_const
-        pattern_builder.set_graph_output(add_tensor, 0)
-
-        pattern = create_pattern(pattern_builder.build_and_reset())
-        pattern.capture_tensor(capture_tensor(input_tensor))
-        return [pattern]
+    @pattern
+    def add_zero(self, inputs):
+        return inputs[0] + 0
 
     def meet_requirements(self, match_result):
         captured_input = match_result.get_captured_tensor(0)
@@ -78,11 +68,8 @@ class PythonAddZeroPass(PatternFusionPass):
             return is_zero
         return True
 
-    def replacement(self, match_result):
-        replacement_builder = GraphBuilder("add_zero_replacement")
-        passthrough = replacement_builder.create_input(0)
-        replacement_builder.set_graph_output(passthrough, 0)
-        return create_replacement(replacement_builder.build_and_reset())
+    def replacement(self, inputs):
+        return inputs[0]
 
 
 if __name__ == "__main__":

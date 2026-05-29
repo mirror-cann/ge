@@ -532,11 +532,11 @@ TEST_F(UtestHybridModelBuilder, init_data_aipp_info_and_type) {
     AttrUtils::SetInt(op_desc, ATTR_NAME_INDEX, 0);
     AttrUtils::SetNamedAttrs(op_desc, ATTR_NAME_AIPP, aipp_attr);
     AttrUtils::SetStr(op_desc, ATTR_DATA_RELATED_AIPP_MODE, "dynamic_aipp");
-    AttrUtils::SetStr(op_desc, ATTR_DATA_AIPP_DATA_NAME_MAP, "releated_aipp_data");
+    AttrUtils::SetStr(op_desc, ATTR_DATA_AIPP_DATA_NAME_MAP, "related_aipp_data");
   }
 
   {
-    OpDescPtr op_desc = std::make_shared<OpDesc>("releated_aipp_data", AIPPDATA);
+    OpDescPtr op_desc = std::make_shared<OpDesc>("related_aipp_data", AIPPDATA);
     GeTensorDesc tensor_desc(GeShape(),FORMAT_NHWC,DT_FLOAT);
     TensorUtils::SetSize(tensor_desc, 512);
     op_desc->AddInputDesc(tensor_desc);
@@ -677,18 +677,18 @@ TEST_F(UtestHybridModelBuilder, init_data_aipp_info_and_type_failed) {
   {
     AttrUtils::SetNamedAttrs(data_op_desc, ATTR_NAME_AIPP, aipp_attr);
     AttrUtils::SetStr(data_op_desc, ATTR_DATA_RELATED_AIPP_MODE, "invalid_mode");
-    AttrUtils::SetStr(data_op_desc, ATTR_DATA_AIPP_DATA_NAME_MAP, "releated_aipp_data");
+    AttrUtils::SetStr(data_op_desc, ATTR_DATA_AIPP_DATA_NAME_MAP, "related_aipp_data");
 
     HybridModelBuilder hybrid_model_builder(hybrid_model);
     auto ret = hybrid_model_builder.Build();
     EXPECT_EQ(ret, INTERNAL_ERROR);
   }
 
-  // Cannot find releated AippData node
+  // Cannot find related AippData node
   {
     AttrUtils::SetNamedAttrs(data_op_desc, ATTR_NAME_AIPP, aipp_attr);
     AttrUtils::SetStr(data_op_desc, ATTR_DATA_RELATED_AIPP_MODE, "dynamic_aipp");
-    AttrUtils::SetStr(data_op_desc, ATTR_DATA_AIPP_DATA_NAME_MAP, "releated_aipp_data");
+    AttrUtils::SetStr(data_op_desc, ATTR_DATA_AIPP_DATA_NAME_MAP, "related_aipp_data");
 
     HybridModelBuilder hybrid_model_builder(hybrid_model);
     auto ret = hybrid_model_builder.Build();

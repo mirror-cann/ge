@@ -29,6 +29,7 @@ __all__ = [
     "get_registered_pass_by_descriptor_key",
     "get_registered_pass_dicts",
     "get_registered_passes",
+    "pattern",
     "register_decompose_pass",
     "register_fusion_pass",
 ]
@@ -49,6 +50,7 @@ from .pattern import NodeIo
 from .pattern import Pattern
 from .pattern import capture_tensor
 from .pattern import create_pattern
+from .pattern import pattern
 from .replacement import create_replacement
 from .registry import clear_registered_passes
 from .registry import get_registered_pass_by_descriptor_key

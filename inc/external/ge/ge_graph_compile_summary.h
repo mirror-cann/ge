@@ -45,8 +45,8 @@ class GE_FUNC_VISIBILITY CompiledGraphSummary {
   Status GetConstMemorySize(size_t &size) const;
 
   ///
-  /// @brief get fearturemap memory size after compiled, without input and output
-  /// @param [out] size fearturemap memory size
+  /// @brief get feature map memory size after compiled, without input and output
+  /// @param [out] size feature map memory size
   /// @return Status result of function
   ///
   Status GetFeatureMemorySize(size_t &size) const;
@@ -65,8 +65,8 @@ class GE_FUNC_VISIBILITY CompiledGraphSummary {
   std::vector<FeatureMemoryPtr> GetAllFeatureMemoryTypeSize() const;
 
   ///
-  /// @brief get refreshable fearturemap memory size after compiled, without input and output and fix memory
-  /// @param [out] size fearturemap memory size
+  /// @brief get refreshable feature map memory size after compiled, without input and output and fix memory
+  /// @param [out] size feature map memory size
   /// @return Status result of function
   ///
   Status GetRefreshableFeatureMemorySize(size_t &size) const;

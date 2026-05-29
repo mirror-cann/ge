@@ -42,9 +42,9 @@ set(CUSTOM_OP_OUTPUT_DIR "${PROJECT_OUTPUT_DIR}/op_graph/lib/${OPP_OS_TYPE}/${OP
 file(MAKE_DIRECTORY "${CUSTOM_OP_OUTPUT_DIR}")
 set(CUSTOM_OP_INCLUDE_DIR "${PROJECT_OUTPUT_DIR}/op_graph/include")
 file(MAKE_DIRECTORY "${CUSTOM_OP_INCLUDE_DIR}")
-set(KERNEL_SOURCE_FILE "${CMAKE_SOURCE_DIR}/ge/add_custom_kernel.asc")
+set(KERNEL_SOURCE_FILE "${CMAKE_SOURCE_DIR}/ge/add_custom_kernel.cpp")
 set(OP_PROTO_HEADER_SOURCE_FILE "${CMAKE_SOURCE_DIR}/ge/add_custom.h")
-configure_file("${KERNEL_SOURCE_FILE}" "${CUSTOM_OP_OUTPUT_DIR}/add_custom_kernel.asc" COPYONLY)
+configure_file("${KERNEL_SOURCE_FILE}" "${CUSTOM_OP_OUTPUT_DIR}/add_custom_kernel.cpp" COPYONLY)
 configure_file("${OP_PROTO_HEADER_SOURCE_FILE}" "${CUSTOM_OP_INCLUDE_DIR}/add_custom.h" COPYONLY)
 
 # 默认从环境变量读取 CANN 安装路径，也支持通过 cache 变量手动覆盖。

@@ -7,47 +7,21 @@
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
-
-if (NOT DEFINED CMAKE_MODULE_PATH)
-    set(CMAKE_MODULE_PATH
-        ${CANN_CMAKE_DIR}/modules
-    )
-endif()
-
-if (NOT DEFINED CMAKE_PREFIX_PATH)
-    set(CMAKE_PREFIX_PATH
-        ${CANN_3RD_LIB_PATH}/protoc
-        ${CANN_3RD_LIB_PATH}/protobuf_static
-        ${CANN_3RD_LIB_PATH}/ascend_protobuf
-        ${CANN_3RD_LIB_PATH}/ascend_protobuf_static
-        ${ASCEND_INSTALL_PATH}/
-        ${ASCEND_INSTALL_PATH}/include
-    )
-endif()
-
-if (NOT DEFINED DEV_FIND_LIB_PATHS)
-    set(DEV_FIND_LIB_PATHS
-        ${ASCEND_INSTALL_PATH}/
-    )
-endif()
-
-if (NOT DEFINED CMAKE_INCLUDE_PATH) 
-    set(CMAKE_INCLUDE_PATH  ${ASCEND_INSTALL_PATH}/include ${ASCEND_INSTALL_PATH})
-endif()
-
 include(func.cmake)
-include(${TOP_DIR}/cmake/intf_pub_linux.cmake)
+include(${GE_DIR}/cmake/intf_pub_linux.cmake)
+include(${GE_DIR}/cmake/air_headers.cmake)
 include(protobuf.cmake)
-include(Findaicpu.cmake)
-include(Findhccl.cmake)
-include(Findmmpa.cmake)
-include(Findslog.cmake)
-include(Findsecurec.cmake)
-include(${TOP_DIR}/cmake/air_headers.cmake)
-include(${CANN_CMAKE_DIR}/modules/Findmetadef.cmake)
-include(${CANN_CMAKE_DIR}/modules/Findascend_hal.cmake)
+include(seccomp.cmake)
 
-add_subdirectory(${TOP_DIR}/dflow/udf ${CMAKE_BINARY_DIR}/udf_device)
+find_cann_package(securec REQUIRED)
+find_cann_package(hccl REQUIRED)
+find_cann_package(mmpa REQUIRED)
+find_cann_package(metadef REQUIRED)
+find_cann_package(ascend_hal REQUIRED)
+find_cann_package(slog REQUIRED)
+find_cann_package(datagw REQUIRED)
+
+add_subdirectory(${GE_DIR}/dflow/udf ${CMAKE_BINARY_DIR}/udf_device)
 
 set(PACKAGE_TAR_FILE_NAME "cann-udf-compat.tar.gz")
 set(PACKAGE_BIN_DIR "bin")
@@ -121,7 +95,7 @@ if (ENABLE_SIGN)
             COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:udf_dump> ${RUNTIME_PACKAGE_TAR_PACK_DIR}/runtime/${PACKAGE_LIB_DIR}/
             COMMAND ${CMAKE_COMMAND} -E copy ${ALOG_REAL_PATH} ${RUNTIME_PACKAGE_TAR_PACK_DIR}/runtime/${PACKAGE_LIB_DIR}/
 
-            COMMAND ${HI_PYTHON} ${TOP_DIR}/scripts/signtool/image_extract/ci_img_headler.py -img ${ASCEND_INSTALL_PATH}/compat/cann-hccd-compat.tar.gz -raw ${RUNTIME_PACKAGE_TAR_PACK_DIR}/cann-hccd-compat.tar.gz --rcvr
+            COMMAND ${HI_PYTHON} ${GE_DIR}/scripts/signtool/image_extract/ci_img_headler.py -img ${ASCEND_INSTALL_PATH}/compat/cann-hccd-compat.tar.gz -raw ${RUNTIME_PACKAGE_TAR_PACK_DIR}/cann-hccd-compat.tar.gz --rcvr
             COMMAND tar -zxf ${RUNTIME_PACKAGE_TAR_PACK_DIR}/cann-hccd-compat.tar.gz -C ${RUNTIME_PACKAGE_TAR_PACK_DIR}/runtime/
 
             # 执行 tar 命令进行打包

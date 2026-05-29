@@ -51,7 +51,6 @@ set (local_builder_acl_src_files
 )
 
 set(local_lib_inc_path
-    ${ASCEND_INSTALL_PATH}/include
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${AIR_CODE_DIR}/compiler/engines/cpu_engine
     ${AIR_CODE_DIR}/compiler/engines/cpu_engine/common

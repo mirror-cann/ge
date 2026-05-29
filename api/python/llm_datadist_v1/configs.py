@@ -16,7 +16,8 @@ from enum import IntEnum
 from typing import List, Tuple, Union
 
 from .data_type import DataType
-from .utils.utils import check_isinstance, check_dict, check_uint64, check_int32, check_uint32, check_uint16
+from .utils.utils import (check_isinstance, check_dict, check_uint64, check_int32, 
+                          check_uint32, check_uint16, check_type)
 from .status import raise_if_false
 
 _INVALID_ID = 2 ** 64 - 1
@@ -29,7 +30,7 @@ class LLMRole(IntEnum):
 
 
 def trans_str_ip(ip):
-    if isinstance(ip, str):
+    if check_type(ip, str):
         try:
             ip_bytes = socket.inet_aton(ip)
             return int.from_bytes(ip_bytes, byteorder="little")
@@ -134,7 +135,7 @@ class LlmConfig(object):
         if self.listen_ip_info:
             self._options["llm.listenIpInfo"] = str(self.listen_ip_info)
         if self.device_id is not None:
-            if isinstance(self.device_id, int):
+            if check_type(self.device_id, int):
                 self._options["ge.exec.deviceId"] = str(self.device_id)
                 self._options["ge.session_device_id"] = str(self.device_id)
             else:
@@ -189,7 +190,7 @@ class LlmConfig(object):
     @device_id.setter
     def device_id(self, device_id):
         check_isinstance("device_id", device_id, [list, tuple, int])
-        if isinstance(device_id, list) or isinstance(device_id, tuple):
+        if check_type(device_id, list) or check_type(device_id, tuple):
             check_isinstance("device_id", device_id, [list, tuple], int)
             [raise_if_false(dev_id >= 0, "device_id should be greater than or equal to zero.") for dev_id in device_id]
             [check_int32('device_id', dev_id) for dev_id in device_id]
@@ -270,7 +271,7 @@ class LlmConfig(object):
     @sync_kv_timeout.setter
     def sync_kv_timeout(self, sync_kv_timeout):
         check_isinstance("sync_kv_timeout", sync_kv_timeout, [int, str])
-        if isinstance(sync_kv_timeout, str):
+        if check_type(sync_kv_timeout, str):
             raise_if_false(sync_kv_timeout.isdigit(), "sync_kv_timeout must be digit.")
         raise_if_false(int(sync_kv_timeout) > 0, "sync_kv_timeout should be greater than zero.")
         check_int32('sync_kv_timeout', int(sync_kv_timeout))

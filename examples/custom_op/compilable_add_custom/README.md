@@ -90,7 +90,7 @@ compilable_add_custom
 ├── README.md
 ├── run.sh
 ├── ge
-│   ├── add_custom_kernel.asc // 算子运行时编译时读取的 Ascend C kernel 源码
+│   ├── add_custom_kernel.cpp // 算子运行时编译时读取的 Ascend C kernel 源码
 │   ├── add_custom.h          // AddCustom 的唯一 proto 定义，供交付件和构图侧共用
 │   ├── custom_op.cpp         // CompilableOp/PortableOp/ShapeInferOp 主流程实现
 │   └── utils
@@ -108,7 +108,7 @@ compilable_add_custom
   自定义算子的核心主流程，负责串起算子运行时编译、序列化、反序列化、Shape/DataType 推导和执行；编译期按输入 Tensor 读取 `Shape/DataType/Format` 元信息。
 - `ge/add_custom.h`
   `AddCustom` 的唯一 proto 定义；构图侧使用生成到 `output/op_graph/include/` 下的同名头文件。
-- `ge/add_custom_kernel.asc`
+- `ge/add_custom_kernel.cpp`
   算子运行时编译阶段读取的 Ascend C kernel 源码。
 - `ge/utils/compile_utils.cpp`
   封装编译期输入 Tensor 读取、平台信息读取、kernel 源码路径定位，以及基于 shape 的 binary key 生成逻辑，用于演示多 shape 场景下的 binary 管理方式。
@@ -123,7 +123,7 @@ compilable_add_custom
 
 ## 核心链路
 
-1. `ge/custom_op.cpp` 在 `Compile` 回调中先读取输入 Tensor 的 `Shape/DataType/Format` 等元信息，再读取 `ge/add_custom_kernel.asc`，通过 `aclrtc` 完成 Add kernel 的算子运行时编译。
+1. `ge/custom_op.cpp` 在 `Compile` 回调中先读取输入 Tensor 的 `Shape/DataType/Format` 等元信息，再读取 `ge/add_custom_kernel.cpp`，通过 `aclrtc` 完成 Add kernel 的算子运行时编译。
 2. `graph_build/main.cc` 构造最小 Add 图并导出 `single_add.air`。
 3. `atc` 将 `single_add.air` 离线编译为 `single_add.om`。
 4. `model_exec/main.cc` 通过 ACL 加载 `single_add.om` 并执行，输出第一项结果用于校验。
@@ -136,8 +136,8 @@ compilable_add_custom
   Linux x86_64 环境下 GE/ATC离线编译使用的自定义算子交付件；aarch64 环境对应 `output/op_graph/lib/linux/aarch64/libcust_opapi.so`。
 - `output/op_graph/include/add_custom.h`
   构图侧可直接使用的 AddCustom proto 头文件，由构建阶段从 `ge/add_custom.h` 复制生成。
-- `output/op_graph/lib/linux/x86_64/add_custom_kernel.asc`
-  随交付件一起输出的 kernel 源码文件，供算子运行时编译阶段读取；aarch64 环境对应 `output/op_graph/lib/linux/aarch64/add_custom_kernel.asc`。
+- `output/op_graph/lib/linux/x86_64/add_custom_kernel.cpp`
+  随交付件一起输出的 kernel 源码文件，供算子运行时编译阶段读取；aarch64 环境对应 `output/op_graph/lib/linux/aarch64/add_custom_kernel.cpp`。
 - `output/single_add.air`
   构图程序导出的 AIR 文件，作为 ATC离线编译输入。
 - `output/single_add.om`
@@ -160,7 +160,7 @@ compilable_add_custom
 
 - `ASCEND_HOME_PATH` 是否已设置并已正确 `source` CANN 环境。
 - `atc` 是否可用。
-- `output/op_graph/lib/<os>/<arch>/libcust_opapi.so`、`output/op_graph/lib/<os>/<arch>/add_custom_kernel.asc`
+- `output/op_graph/lib/<os>/<arch>/libcust_opapi.so`、`output/op_graph/lib/<os>/<arch>/add_custom_kernel.cpp`
   以及 `output/op_graph/include/add_custom.h` 是否已生成。
 - 当前 `soc_version` 是否与实际环境一致，`run.sh` 默认使用 `Ascend910B1`。
 

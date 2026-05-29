@@ -171,6 +171,87 @@ def test_native_pattern_capture_tensor_and_release():
     assert released_pattern_handle != 0
 
 
+def test_decorated_expression_pattern_pass_builds_graph_and_captures_inputs():
+    class ExpressionPatternPass(passes.PatternFusionPass):
+        @passes.pattern
+        def identity(self, inputs):
+            return inputs[0]
+
+        def replacement(self, inputs):
+            return inputs[0]
+
+    pass_instance = ExpressionPatternPass()
+
+    patterns = pass_instance.patterns()
+    assert len(patterns) == 1
+    captured_tensors = patterns[0].get_captured_tensors()
+    assert len(captured_tensors) == 1
+    assert captured_tensors[0].node.type == "Data"
+    assert captured_tensors[0].index == 0
+
+    replacement_graph = pass_instance.replacement(None)
+    assert isinstance(replacement_graph, Graph)
+
+
+def test_decorated_expression_pattern_pass_builds_multiple_patterns():
+    class MultiExpressionPatternPass(passes.PatternFusionPass):
+        @passes.pattern
+        def first_identity(self, inputs):
+            return inputs[0]
+
+        @passes.pattern
+        def second_identity(self, inputs):
+            return inputs[0]
+
+        def replacement(self, inputs):
+            return inputs[0]
+
+    patterns = MultiExpressionPatternPass().patterns()
+    assert len(patterns) == 2
+    for built_pattern in patterns:
+        captured_tensors = built_pattern.get_captured_tensors()
+        assert len(captured_tensors) == 1
+        assert captured_tensors[0].node.type == "Data"
+        assert captured_tensors[0].index == 0
+
+
+def test_decorated_expression_patterns_rejects_multiple_native_patterns():
+    class MultiPatternExpressionPass(passes.PatternFusionPass):
+        @passes.pattern
+        def add_zero(self, inputs):
+            return [Graph("pattern0"), Graph("pattern1")]
+
+        def replacement(self, inputs):
+            return inputs[0]
+
+    with pytest.raises(TypeError, match="supports a single pattern only"):
+        MultiPatternExpressionPass().patterns()
+
+
+def test_decorated_expression_patterns_rejects_patterns_method_conflict():
+    with pytest.raises(TypeError, match="cannot combine @pattern methods with patterns"):
+        class InvalidMultiPatternPass(passes.PatternFusionPass):
+            @passes.pattern
+            def add_zero(self, inputs):
+                return inputs[0]
+
+            def patterns(self):
+                return [Graph("pattern_graph")]
+
+
+def test_legacy_patterns_method_still_accepts_multiple_patterns():
+    class LegacyMultiPatternPass(passes.PatternFusionPass):
+        def patterns(self):
+            return [Graph("pattern0"), Graph("pattern1")]
+
+        def replacement(self, match_result):
+            return Graph("replacement_graph")
+
+    patterns = LegacyMultiPatternPass().patterns()
+    assert len(patterns) == 2
+    assert all(isinstance(item, Graph) for item in patterns)
+
+
 def test_bridge_pattern_protocol_functions(tmp_path, monkeypatch):
     module_path = _write_pattern_pass_module(tmp_path, "bridge_pattern_pass", "BridgePatternPass")
     monkeypatch.setenv(bootstrap.ENV_PY_PASS_PATH, str(module_path))

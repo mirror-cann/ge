@@ -38,9 +38,6 @@ target_compile_options(om2_executor PRIVATE ${AIR_COMMON_COMPILE_OPTION}
 )
 
 target_include_directories(om2_executor PRIVATE
-        ${ASCEND_INSTALL_PATH}/include/
-        ${ASCEND_INSTALL_PATH}/include/external/
-        ${ASCEND_INSTALL_PATH}/pkg_inc/runtime/
         ${AIR_CODE_DIR}/runtime/om2/
         ${AIR_CODE_DIR}/runtime/v1/common/
         ${AIR_CODE_DIR}/base/

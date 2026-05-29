@@ -10,6 +10,7 @@
 
 #include "stub/hostcpu_mmpa_stub.h"
 #include "aicpu_task_struct.h"
+#include "engine/aicpu/kernel/aicpu_resource_manager.h"
 
 namespace gert {
 namespace {
@@ -21,11 +22,26 @@ uint32_t RunHostCpuFuncStub(void *args) {
   auto *output = reinterpret_cast<int32_t *>(io_addrs[2]);
   return 0;
 }
+
+ge::graphStatus HostProcFuncStub(KernelContext *context) {
+  (void)context;
+  return ge::GRAPH_SUCCESS;
+}
+
+AicpuHostProcFunc AicpuHostFindFuncStub(std::string op_type) {
+  if (op_type == "Add") {
+    return &HostProcFuncStub;
+  }
+  return nullptr;
+}
 } // namespace
 
 void *HostcpuMockMmpa::DlSym(void *handle, const char *func_name) {
   if (std::string(func_name) == "RunHostCpuKernel") {
     return (void *) &RunHostCpuFuncStub;
+  }
+  if (std::string(func_name) == "AicpuHostFindFunc") {
+    return reinterpret_cast<void *>(&AicpuHostFindFuncStub);
   }
   return nullptr;
 }

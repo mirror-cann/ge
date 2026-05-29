@@ -29,11 +29,6 @@ target_include_directories(acl_cblas PRIVATE
     ${AIR_CODE_DIR}/inc/external
     ${AIR_CODE_DIR}/inc/external/acl
 
-    ${ASCEND_INSTALL_PATH}/pkg_inc/base
-    ${ASCEND_INSTALL_PATH}/include/prof
-    ${ASCEND_INSTALL_PATH}/include/acl
-    ${ASCEND_INSTALL_PATH}/include
-    ${ASCEND_INSTALL_PATH}/pkg_inc/runtime
         
     ${TOP_DIR}/metadef/inc/external
     ${TOP_DIR}/metadef/pkg_inc/
@@ -75,6 +70,7 @@ target_link_libraries(acl_cblas PRIVATE
     unified_dlog
     mmpa
     profapi_share
+    runtime
     error_manager
     -Wl,--as-needed
     $<$<NOT:$<STREQUAL:${TARGET_SYSTEM_NAME},Android>>:-lrt>

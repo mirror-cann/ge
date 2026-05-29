@@ -202,7 +202,7 @@ class GE_FUNC_VISIBILITY GeSession {
   /// @brief run graph asynchronously
   /// @param [in] graphId: graph id
   /// @param [in] inputs: input data
-  /// @param [out] callback: callback while runing graph has been finished.
+  /// @param [out] callback: callback while running graph has been finished.
   ///                        The callback function will not be checked.
   ///                        Please ensure that the implementation of the function is trusted.
   /// @return Status result of function
@@ -240,7 +240,7 @@ class GE_FUNC_VISIBILITY GeSession {
 
   ///
   /// @ingroup ge_graph
-  /// @brief set or update fearture memory base after compiled
+  /// @brief set or update feature memory base after compiled
   /// @param [in] graphId graph id
   /// @param [in] memory feature map memory base, without input and output mem
   /// @param [out] size feature map memory size
@@ -262,7 +262,7 @@ class GE_FUNC_VISIBILITY GeSession {
 
   ///
   /// @ingroup ge_graph
-  /// @brief set or update tefreshable fearture memory base after compiled, not include fix memory
+  /// @brief set or update refreshable feature memory base after compiled, not include fix memory
   /// @param [in] graphId graph id
   /// @param [in] memory feature map memory base, without input and output mem
   /// @param [out] size feature map memory size

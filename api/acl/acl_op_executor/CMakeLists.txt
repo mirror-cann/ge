@@ -55,10 +55,7 @@ target_include_directories(acl_op_executor_impl PRIVATE
     ${AIR_CODE_DIR}/inc/graph_metadef/external
     ${AIR_CODE_DIR}/inc/framework
     ${AIR_CODE_DIR}/base/metadef/pkg_inc
-    ${ASCEND_INSTALL_PATH}/pkg_inc/runtime
     ${ASCEND_INSTALL_PATH}/include/external
-    ${ASCEND_INSTALL_PATH}/pkg_inc/base
-    ${ASCEND_INSTALL_PATH}/include/prof
 
 
     ${TOP_DIR}/air/inc/external

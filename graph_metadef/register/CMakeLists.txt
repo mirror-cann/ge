@@ -118,8 +118,6 @@ target_include_directories(register PRIVATE
     ${TOP_DIR}/metadef/inc
     ${TOP_DIR}/runtime/include/external
     ${TOP_DIR}/runtime/include/external/acl
-    ${ASCEND_INSTALL_PATH}/include/register
-    ${ASCEND_INSTALL_PATH}/pkg_inc
 )
 
 target_link_options(register PRIVATE
@@ -182,9 +180,6 @@ target_compile_definitions(register_static PRIVATE
 target_include_directories(register_static PUBLIC
     ${TOP_DIR}/runtime/include/external
     ${TOP_DIR}/runtime/include/external/acl
-    ${ASCEND_INSTALL_PATH}/pkg_inc
-    ${ASCEND_INSTALL_PATH}/pkg_inc/base
-    ${ASCEND_INSTALL_PATH}/include/
     ${ASCEND_INSTALL_PATH}/include/base
     ${AIR_CODE_DIR}/inc
     ${AIR_CODE_DIR}/inc/graph_metadef
@@ -192,7 +187,6 @@ target_include_directories(register_static PUBLIC
     ${TOP_DIR}/runtime/pkg_inc
     ${TOP_DIR}/runtime/pkg_inc/runtime
     ${TOP_DIR}/metadef/inc
-    ${ASCEND_INSTALL_PATH}/include/graph
 )
 
 target_include_directories(register_static PRIVATE

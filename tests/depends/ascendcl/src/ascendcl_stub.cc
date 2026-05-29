@@ -1172,6 +1172,16 @@ aclError AclRuntimeStub::aclrtDestroyNotify(aclrtNotify notify) {
   return ACL_SUCCESS;
 }
 
+aclError AclRuntimeStub::aclrtValueWait(void* devAddr, uint64_t value, uint32_t flag, aclrtStream stream)
+{
+  return ACL_SUCCESS;
+}
+
+aclError AclRuntimeStub::aclrtValueWrite(void* devAddr, uint64_t value, uint32_t flag, aclrtStream stream)
+{
+  return ACL_SUCCESS;
+}
+
 std::shared_ptr<AclApiStub> AclApiStub::instance_;
 std::mutex AclApiStub::mutex_;
 thread_local AclApiStub* AclApiStub::fake_instance_;
@@ -1871,6 +1881,14 @@ aclError aclrtCreateNotify(aclrtNotify *notify, uint64_t flag) {
 
 aclError aclrtDestroyNotify(aclrtNotify notify) {
   return ge::AclRuntimeStub::GetInstance()->aclrtDestroyNotify(notify);
+}
+
+aclError aclrtValueWait(void* devAddr, uint64_t value, uint32_t flag, aclrtStream stream) {
+  return ge::AclRuntimeStub::GetInstance()->aclrtValueWait(devAddr, value, flag, stream);
+}
+
+aclError aclrtValueWrite(void* devAddr, uint64_t value, uint32_t flag, aclrtStream stream) {
+  return ge::AclRuntimeStub::GetInstance()->aclrtValueWrite(devAddr, value, flag, stream);
 }
 
 aclError aclInit(const char *configPath) {

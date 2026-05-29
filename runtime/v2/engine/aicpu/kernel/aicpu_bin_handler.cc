@@ -64,11 +64,11 @@ ge::graphStatus OpJsonBinHandler::LoadBinary(const std::string &json_path) {
     return ge::FAILED; 
   }
 
-  rtLoadBinaryOption_t bin_option = {};
-  bin_option.optionId = RT_LOAD_BINARY_OPT_CPU_KERNEL_MODE;
+  aclrtBinaryLoadOption bin_option = {};
+  bin_option.type = ACL_RT_BINARY_LOAD_OPT_CPU_KERNEL_MODE;
   bin_option.value.cpuKernelMode = kCpuKernelModeJson;
-  const rtLoadBinaryConfig_t load_bin_cfg = {&bin_option, 1U};
-  GE_ASSERT_SUCCESS(rtsBinaryLoadFromFile(json_path.c_str(), &load_bin_cfg, &bin_handle_));
+  aclrtBinaryLoadOptions load_bin_cfg = {&bin_option, 1U};
+  GE_ASSERT_SUCCESS(aclrtBinaryLoadFromFile(json_path.c_str(), &load_bin_cfg, &bin_handle_));
   GE_ASSERT_NOTNULL(bin_handle_);
 
   GELOGI("Load json binary success for %s.", json_path.c_str());
@@ -94,12 +94,12 @@ ge::graphStatus OpDataBinHandler::LoadBinary(const std::string &so_name, const g
     return ge::FAILED; 
   }
 
-  rtLoadBinaryOption_t bin_option = {};
-  bin_option.optionId = RT_LOAD_BINARY_OPT_CPU_KERNEL_MODE;
+  aclrtBinaryLoadOption bin_option = {};
+  bin_option.type = ACL_RT_BINARY_LOAD_OPT_CPU_KERNEL_MODE;
   bin_option.value.cpuKernelMode = kCpuKernelModeData;
-  const rtLoadBinaryConfig_t load_bin_cfg = {&bin_option, 1U};
-  GE_ASSERT_SUCCESS(rtsBinaryLoadFromData(kernel_bin->GetBinData(), kernel_bin->GetBinDataSize(),
-                                          &load_bin_cfg, &bin_handle_));
+  const aclrtBinaryLoadOptions load_bin_cfg = {&bin_option, 1U};
+  GE_ASSERT_SUCCESS(aclrtBinaryLoadFromData(kernel_bin->GetBinData(), kernel_bin->GetBinDataSize(),
+                                            &load_bin_cfg, &bin_handle_));
   GE_ASSERT_NOTNULL(bin_handle_);
 
   GELOGI("Load data binary success for %s.", so_name.c_str());

@@ -30,12 +30,12 @@ class UtestFoldingSliceKernel : public testing::Test {
  protected:
   void SetUp() { init(); }
 
-  void TearDown() { destory(); }
+  void TearDown() { destroy(); }
 
  private:
   void init() { pass_ = new ::ge::ConstantFoldingPass(); }
 
-  void destory() {
+  void destroy() {
     delete pass_;
     pass_ = NULL;
   }

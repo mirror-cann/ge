@@ -62,17 +62,6 @@ class MockRuntime : public RuntimeStub {
     return -1;
   }
 
-  rtError_t rtsLaunchKernelWithDevArgs(rtFuncHandle funcHandle, uint32_t blockDim, rtStream_t stm,
-    rtKernelLaunchCfg_t *cfg, const void *args, uint32_t argsSize, void *reserve) {
-    return -1;
-  }
-
-  rtError_t rtsLaunchKernelWithHostArgs(rtFuncHandle funcHandle, uint32_t blockDim,
-      rtStream_t stm, rtKernelLaunchCfg_t * cfg, void * hostArgs, uint32_t argsSize,
-      rtPlaceHolderInfo_t * placeHolderArray, uint32_t placeHolderNum) {
-    return -1;
-  }
-
   MOCK_METHOD3(rtStreamCreateWithFlags, rtError_t(rtStream_t *, int32_t, uint32_t));
 };
 

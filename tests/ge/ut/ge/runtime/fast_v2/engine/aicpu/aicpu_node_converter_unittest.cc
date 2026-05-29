@@ -32,10 +32,89 @@
 #include "graph/utils/node_utils.h"
 #include "graph/utils/graph_dump_utils.h"
 #include "aicpu/kernel/aicpu_bin_handler.h"
+#include "aicpu/kernel/aicpu_resource_manager.h"
 
 using namespace ge;
 namespace gert {
 namespace {
+void InitHostCpuUtEnv() {
+  char_t opp_path[MMPA_MAX_PATH] = "./";
+  mmSetEnv("ASCEND_OPP_PATH", &opp_path[0U], MMPA_MAX_PATH);
+  ge::MmpaStub::GetInstance().SetImpl(std::make_shared<HostcpuMockMmpa>());
+  ASSERT_EQ(AicpuResourceManager::GetInstance().LoadConstantFoldingLib(), GRAPH_SUCCESS);
+}
+
+void MakeMiddleOptionalInput(const ge::NodePtr &node, const ge::GeTensorDesc &input_desc,
+                             const std::string &optional_name, const std::string &last_required_name,
+                             const std::string &first_required_name = "x") {
+  ASSERT_NE(node, nullptr);
+  ASSERT_EQ(node->GetOpDesc()->AddInputDesc(optional_name, input_desc), GRAPH_SUCCESS);
+  node->GetOpDesc()->MutableAllInputName() = {{first_required_name, 0}, {last_required_name, 1}, {optional_name, 2}};
+  node->GetOpDesc()->AppendIrInput(first_required_name, ge::kIrInputRequired);
+  node->GetOpDesc()->AppendIrInput(optional_name, ge::kIrInputOptional);
+  node->GetOpDesc()->AppendIrInput(last_required_name, ge::kIrInputRequired);
+  ASSERT_TRUE(ge::AttrUtils::SetBool(node->GetOpDesc(), "optional_input_placeholder", true));
+}
+
+void PopExecuteGraph(const std::vector<bg::DevMemValueHolderPtr> &out_addrs,
+                     const std::vector<bg::ValueHolderPtr> &order_holders,
+                     ge::ExecuteGraphPtr &execute_graph) {
+  auto graph_frame = bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(out_addrs), order_holders);
+  ASSERT_NE(graph_frame, nullptr);
+  execute_graph = graph_frame->GetExecuteGraph();
+  ASSERT_NE(execute_graph, nullptr);
+}
+
+void LowerHostCpuKernelNodeWithMiddleOptionalInput(ge::ExecuteGraphPtr &execute_graph) {
+  InitHostCpuUtEnv();
+
+  auto graph = ShareGraph::ThirdAicpuOpGraph();
+  ASSERT_NE(graph, nullptr);
+
+  auto data1 = graph->FindNode("data1");
+  auto data2 = graph->FindNode("data2");
+  auto add1 = graph->FindNode("add1");
+  auto nonzero = graph->FindNode("nonzero");
+  ASSERT_NE(data1, nullptr);
+  ASSERT_NE(data2, nullptr);
+  ASSERT_NE(add1, nullptr);
+  ASSERT_NE(nonzero, nullptr);
+
+  add1->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameAiCpu.c_str());
+  nonzero->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameHostCpu.c_str());
+  MakeMiddleOptionalInput(nonzero, add1->GetOpDesc()->GetOutputDesc(0), "y", "z", "x1");
+  graph->TopologicalSorting();
+
+  AiCpuCCTaskDefFaker aicpu_task_def_faker;
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto global_data = GlobalDataFaker(root_model)
+                         .AddTaskDef("Add", aicpu_task_def_faker.SetNeedMemcpy(true))
+                         .AddTaskDef("NonZero", aicpu_task_def_faker)
+                         .Build();
+  bg::LowerConstDataNode(global_data);
+  LowerInput data_input = {{}, {}, &global_data};
+
+  auto data1_ret = LoweringDataNode(data1, data_input);
+  auto data2_ret = LoweringDataNode(data2, data_input);
+  ASSERT_TRUE(data1_ret.result.IsSuccess());
+  ASSERT_TRUE(data2_ret.result.IsSuccess());
+
+  LowerInput add_input = {{data1_ret.out_shapes[0], data2_ret.out_shapes[0]},
+                          {data1_ret.out_addrs[0], data2_ret.out_addrs[0]},
+                          &global_data};
+  auto add_ret = LoweringAiCpuNode(add1, add_input);
+  ASSERT_TRUE(add_ret.result.IsSuccess());
+
+  data_input.input_addrs.push_back(add_ret.out_addrs[0]);
+  data_input.input_addrs.push_back(data1_ret.out_addrs[0]);
+  data_input.input_shapes.push_back(add_ret.out_shapes[0]);
+  data_input.input_shapes.push_back(data1_ret.out_shapes[0]);
+
+  auto non_zero_ret = LoweringAiCpuNode(nonzero, data_input);
+  ASSERT_TRUE(non_zero_ret.result.IsSuccess());
+  PopExecuteGraph(non_zero_ret.out_addrs, non_zero_ret.order_holders, execute_graph);
+}
+
 void TestAicpuConvert(std::string node_type, LowerResult &add_ret) {
   auto graph = ShareGraph::BuildSingleNodeGraph();
   auto add_op_desc = graph->FindNode("add1")->GetOpDesc();
@@ -167,6 +246,60 @@ TEST_F(AicpuNodeConverterUT, TestAicpCCInitNode) {
   ASSERT_NE(rts_args, nullptr);
   ASSERT_NE(build_cc_args, nullptr);
   ASSERT_NE(build_ext, nullptr);
+}
+
+TEST_F(AicpuNodeConverterUT, ConvertAicpuCCNodeWithMiddleOptionalInputInsertExpandNode) {
+  auto graph = ShareGraph::BuildSingleNodeGraph();
+  ASSERT_NE(graph, nullptr);
+
+  auto data1 = graph->FindNode("data1");
+  auto data2 = graph->FindNode("data2");
+  auto add1 = graph->FindNode("add1");
+  auto netoutput = graph->FindNode("NetOutput");
+  ASSERT_NE(data1, nullptr);
+  ASSERT_NE(data2, nullptr);
+  ASSERT_NE(add1, nullptr);
+  ASSERT_NE(netoutput, nullptr);
+
+  add1->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameAiCpu.c_str());
+  AttrUtils::SetInt(add1->GetOpDesc(), ge::ATTR_NAME_UNKNOWN_SHAPE_TYPE, 4);
+  AttrUtils::SetStr(add1->GetOpDesc(), "ops_json_path", "aicpu_kernel.json");
+  ASSERT_EQ(add1->GetOpDesc()->AddInputDesc("y", data1->GetOpDesc()->GetOutputDesc(0)), GRAPH_SUCCESS);
+  add1->GetOpDesc()->MutableAllInputName() = {{"x", 0}, {"z", 1}, {"y", 2}};
+  add1->GetOpDesc()->AppendIrInput("x", ge::kIrInputRequired);
+  add1->GetOpDesc()->AppendIrInput("y", ge::kIrInputOptional);
+  add1->GetOpDesc()->AppendIrInput("z", ge::kIrInputRequired);
+  ASSERT_TRUE(ge::AttrUtils::SetBool(add1->GetOpDesc(), "optional_input_placeholder", true));
+  bool optional_placeholder = false;
+  ASSERT_TRUE(ge::AttrUtils::GetBool(add1->GetOpDesc(), "optional_input_placeholder", optional_placeholder));
+  ASSERT_TRUE(optional_placeholder);
+  graph->TopologicalSorting();
+
+  AiCpuCCTaskDefFaker aicpu_task_def_faker;
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto global_data = GlobalDataFaker(root_model).AddTaskDef("Add", aicpu_task_def_faker.SetNeedMemcpy(true)).Build();
+  bg::LowerConstDataNode(global_data);
+  LowerInput data_input = {{}, {}, &global_data};
+
+  auto data1_ret = LoweringDataNode(data1, data_input);
+  auto data2_ret = LoweringDataNode(data2, data_input);
+  ASSERT_TRUE(data1_ret.result.IsSuccess());
+  ASSERT_TRUE(data2_ret.result.IsSuccess());
+
+  LowerInput add_input = {{data1_ret.out_shapes[0], data2_ret.out_shapes[0]},
+                          {data1_ret.out_addrs[0], data2_ret.out_addrs[0]},
+                          &global_data};
+  auto add_ret = LoweringAiCpuNode(add1, add_input);
+  ASSERT_TRUE(add_ret.result.IsSuccess());
+
+  auto execute_graph =
+      bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)
+          ->GetExecuteGraph();
+  ASSERT_NE(execute_graph, nullptr);
+  auto expand_node = ge::ExecuteGraphUtils::FindFirstNodeMatchType(execute_graph.get(), "ExpandAicpuOptionalInputAddrs");
+  auto update_node = ge::ExecuteGraphUtils::FindFirstNodeMatchType(execute_graph.get(), "UpdateAicpuIoAddr");
+  ASSERT_NE(expand_node, nullptr);
+  ASSERT_NE(update_node, nullptr);
 }
 
 TEST_F(AicpuNodeConverterUT, ConvertAicpuCCNodeWithWorkSpaceInfo) {
@@ -393,6 +526,69 @@ TEST_F(AicpuNodeConverterUT, ConvertAicpuHostCpu3rdNode) {
   ASSERT_NE(exe_graph, nullptr);
   auto execute_graph = bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(non_zero_ret.out_addrs), non_zero_ret.order_holders)->GetExecuteGraph();
   ASSERT_NE(execute_graph, nullptr);
+  ge::MmpaStub::GetInstance().Reset();
+}
+
+TEST_F(AicpuNodeConverterUT, ConvertHostCpuNodeWithMiddleOptionalInputExpandShapesForHostExecFunc) {
+  InitHostCpuUtEnv();
+
+  auto graph = ShareGraph::BuildSingleNodeGraph();
+  ASSERT_NE(graph, nullptr);
+
+  auto data1 = graph->FindNode("data1");
+  auto data2 = graph->FindNode("data2");
+  auto add1 = graph->FindNode("add1");
+  ASSERT_NE(data1, nullptr);
+  ASSERT_NE(data2, nullptr);
+  ASSERT_NE(add1, nullptr);
+
+  add1->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameHostCpu.c_str());
+  MakeMiddleOptionalInput(add1, data1->GetOpDesc()->GetOutputDesc(0), "y", "z");
+  bool optional_placeholder = false;
+  ASSERT_TRUE(ge::AttrUtils::GetBool(add1->GetOpDesc(), "optional_input_placeholder", optional_placeholder));
+  ASSERT_TRUE(optional_placeholder);
+  graph->TopologicalSorting();
+
+  AiCpuCCTaskDefFaker aicpu_task_def_faker;
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto global_data = GlobalDataFaker(root_model).AddTaskDef("Add", aicpu_task_def_faker).Build();
+  bg::LowerConstDataNode(global_data);
+  LowerInput data_input = {{}, {}, &global_data};
+
+  auto data1_ret = LoweringDataNode(data1, data_input);
+  auto data2_ret = LoweringDataNode(data2, data_input);
+  ASSERT_TRUE(data1_ret.result.IsSuccess());
+  ASSERT_TRUE(data2_ret.result.IsSuccess());
+
+  LowerInput add_input = {{data1_ret.out_shapes[0], data2_ret.out_shapes[0]},
+                          {data1_ret.out_addrs[0], data2_ret.out_addrs[0]},
+                          &global_data};
+  REGISTER_KERNEL(AddHostKernel).RunFunc(StubHostKernel);
+  auto add_ret = LoweringAiCpuNode(add1, add_input);
+  ASSERT_TRUE(add_ret.result.IsSuccess());
+
+  ge::ExecuteGraphPtr execute_graph = nullptr;
+  PopExecuteGraph(add_ret.out_addrs, add_ret.order_holders, execute_graph);
+  auto host_exec_node = ge::ExecuteGraphUtils::FindFirstNodeMatchType(execute_graph.get(), "AicpuHostExecFunc");
+  ASSERT_NE(host_exec_node, nullptr);
+  ASSERT_NE(host_exec_node->GetOpDescPtr(), nullptr);
+  ASSERT_EQ(host_exec_node->GetOpDescPtr()->GetAllInputsSize(), 7U);
+  ge::MmpaStub::GetInstance().Reset();
+}
+
+TEST_F(AicpuNodeConverterUT, ConvertHostCpuKernelNodeWithMiddleOptionalInputKeepCallbackFedShapes) {
+  ge::ExecuteGraphPtr execute_graph = nullptr;
+  LowerHostCpuKernelNodeWithMiddleOptionalInput(execute_graph);
+  auto host_compute_node = ge::ExecuteGraphUtils::FindFirstNodeMatchType(execute_graph.get(), "AicpuHostCompute");
+  auto update_ext_shape = ge::ExecuteGraphUtils::FindFirstNodeMatchType(execute_graph.get(), "UpdateExtShape");
+  auto get_ext_output_shapes = ge::ExecuteGraphUtils::FindFirstNodeMatchType(execute_graph.get(), "GetExtOutputShapes");
+  ASSERT_NE(host_compute_node, nullptr);
+  ASSERT_NE(update_ext_shape, nullptr);
+  ASSERT_NE(get_ext_output_shapes, nullptr);
+  ASSERT_NE(update_ext_shape->GetOpDescPtr(), nullptr);
+  ASSERT_EQ(update_ext_shape->GetOpDescPtr()->GetAllInputsSize(), 7U);
+  ASSERT_NE(get_ext_output_shapes->GetOpDescPtr(), nullptr);
+  ASSERT_EQ(get_ext_output_shapes->GetOpDescPtr()->GetOutputsSize(), 2U);
   ge::MmpaStub::GetInstance().Reset();
 }
 }  // namespace gert

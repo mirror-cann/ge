@@ -49,7 +49,7 @@ PageSpan *RtsCachingMemAllocator::FetchNewSpan(ge::Allocator &allocator, const M
     return ScalableAllocator::FetchNewSpan(allocator, size, page_len);
   }
   if (IsThresholdExceeded(huge_page_mem_size)) {
-    GELOGI("OccupiedSize:%llu add size:%llu exceed total_thresold:%llu.",
+    GELOGI("OccupiedSize:%llu add size:%llu exceed total_threshold:%llu.",
                 device_allocator_.GetOccupiedSize(), huge_page_mem_size, config_.page_mem_size_total_threshold);
 
     // has freed memory, return nullptr and try recycle

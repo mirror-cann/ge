@@ -12,14 +12,11 @@
 
 """Python PatternFusionPass sample for strict Add(x, 0.0f) matcher-config matching."""
 
-from ge.es.graph_builder import GraphBuilder
 from ge.passes import (
     PassStage,
     PatternFusionPass,
     PatternMatcherConfigBuilder,
-    capture_tensor,
-    create_pattern,
-    create_replacement,
+    pattern,
     register_fusion_pass,
 )
 
@@ -35,16 +32,9 @@ class PythonAddZeroConstValueMatchPass(PatternFusionPass):
             .build()
         )
 
-    def patterns(self):
-        pattern_builder = GraphBuilder("add_zero_const_value_match_pattern")
-        input_tensor = pattern_builder.create_input(0)
-        zero_tensor = pattern_builder.create_const_float(0.0)
-        add_tensor = input_tensor + zero_tensor
-        pattern_builder.set_graph_output(add_tensor, 0)
-
-        pattern = create_pattern(pattern_builder.build_and_reset())
-        pattern.capture_tensor(capture_tensor(input_tensor))
-        return [pattern]
+    @pattern
+    def add_zero(self, inputs):
+        return inputs[0] + 0.0
 
     def meet_requirements(self, match_result):
         captured_input = match_result.get_captured_tensor(0)
@@ -52,13 +42,10 @@ class PythonAddZeroConstValueMatchPass(PatternFusionPass):
             f"[PythonAddZeroConstValueMatchPass] matched={match_result.get_pattern_graph_name()} "
             f"captured={captured_input.node.name}:{captured_input.index}"
         )
-        return any(node.type == "Add" for node in match_result.get_matched_nodes())
+        return True
 
-    def replacement(self, match_result):
-        replacement_builder = GraphBuilder("add_zero_const_value_match_replacement")
-        passthrough = replacement_builder.create_input(0)
-        replacement_builder.set_graph_output(passthrough, 0)
-        return create_replacement(replacement_builder.build_and_reset())
+    def replacement(self, inputs):
+        return inputs[0]
 
 
 if __name__ == "__main__":

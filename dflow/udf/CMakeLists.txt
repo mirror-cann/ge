@@ -10,19 +10,10 @@
 cmake_minimum_required(VERSION 3.16)
 project(udf)
 
-if(NOT DEFINED TOP_DIR)
-    set(TOP_DIR ${CMAKE_SOURCE_DIR})
-    message(STATUS "TOP_DIR is not exists, set it to ${CMAKE_SOURCE_DIR}.")
-endif()
-
 if (TARGET udf_executor)
     message(STATUS "Target udf_executor already exists, not use udf_executor in ge.")
     return()
 endif ()
-
-if (PRODUCT_SIDE STREQUAL "device")
-    include(cmake/device/seccomp.cmake)
-endif()
 
 add_subdirectory(reader_writer)
 add_subdirectory(flow_func)

@@ -85,18 +85,18 @@ ge_compiler_install_package() {
     local _package="$1"
     local _pythonlocalpath="$2"
     log "INFO" "install python module package in ${_package}"
-    if ! command -v pip3 >/dev/null 2>&1; then
-        log "ERROR" "install ${_package} failed, pip3 is not installed."
+    if ! ge_compiler_has_python_installer; then
+        log "ERROR" "install ${_package} failed, python3 -m pip or pip3 is not installed."
         exit 1
     fi
     if [ -f "$_package" ]; then
         if [ "$pylocal" = "y" ]; then
-            pip3 install --disable-pip-version-check --upgrade --no-deps --force-reinstall "${_package}" -t "${_pythonlocalpath}" 1> /dev/null
+            ge_compiler_run_pip install --disable-pip-version-check --upgrade --no-deps --force-reinstall "${_package}" -t "${_pythonlocalpath}" 1> /dev/null
         else
             if [ $(id -u) -ne 0 ]; then
-                pip3 install --disable-pip-version-check --upgrade --no-deps --force-reinstall "${_package}" --user 1> /dev/null
+                ge_compiler_run_pip install --disable-pip-version-check --upgrade --no-deps --force-reinstall "${_package}" --user 1> /dev/null
             else
-                pip3 install --disable-pip-version-check --upgrade --no-deps --force-reinstall "${_package}" 1> /dev/null
+                ge_compiler_run_pip install --disable-pip-version-check --upgrade --no-deps --force-reinstall "${_package}" 1> /dev/null
             fi
         fi
         local ret=$?
@@ -112,24 +112,45 @@ ge_compiler_install_package() {
     fi
 }
 
-ge_compiler_get_pip_python_tag() {
+ge_compiler_has_python_installer() {
+    if command -v python3 >/dev/null 2>&1 && python3 -m pip --version >/dev/null 2>&1; then
+        return 0
+    fi
+    command -v pip3 >/dev/null 2>&1
+}
+
+ge_compiler_run_pip() {
+    if command -v python3 >/dev/null 2>&1 && python3 -m pip --version >/dev/null 2>&1; then
+        python3 -m pip "$@"
+    else
+        pip3 "$@"
+    fi
+}
+
+ge_compiler_get_python_tag() {
     local _tag
-    _tag=$(pip3 --version 2>/dev/null | sed -n 's/.*(python \([0-9][0-9]*\)\.\([0-9][0-9]*\)).*/cp\1\2/p' | head -n 1)
-    if [ -z "${_tag}" ] && command -v python3 >/dev/null 2>&1; then
+    if command -v python3 >/dev/null 2>&1 && python3 -m pip --version >/dev/null 2>&1; then
         _tag=$(python3 -c 'import sys; print("cp%d%d" % sys.version_info[:2])' 2>/dev/null)
+    fi
+    if [ -z "${_tag}" ]; then
+        _tag=$(pip3 --version 2>/dev/null | sed -n 's/.*(python \([0-9][0-9]*\)\.\([0-9][0-9]*\)).*/cp\1\2/p' | head -n 1)
     fi
     echo "${_tag}"
 }
 
 ge_compiler_get_python_info() {
     local _pip_info
+    local _python_pip_info
     local _python_info
+    if command -v python3 >/dev/null 2>&1; then
+        _python_pip_info=$(python3 -m pip --version 2>/dev/null)
+    fi
     _pip_info=$(pip3 --version 2>/dev/null)
     if command -v python3 >/dev/null 2>&1; then
         _python_info=$(python3 -c 'import sys; print("%s %d.%d.%d" % (sys.executable, sys.version_info[0], sys.version_info[1], sys.version_info[2]))' 2>/dev/null)
     fi
     if [ -n "${_python_info}" ]; then
-        echo "python3 ${_python_info}; pip3 ${_pip_info}"
+        echo "python3 ${_python_info}; python3 -m pip ${_python_pip_info}; pip3 ${_pip_info}"
     else
         echo "pip3 ${_pip_info}"
     fi
@@ -182,15 +203,15 @@ ge_compiler_install_ge_package() {
     local _available_bridge_tags
     local _bridge_wheel
     log "INFO" "install python module packages in ${_ge_package} and ${_bridge_requirement}"
-    if ! command -v pip3 >/dev/null 2>&1; then
-        log "ERROR" "install ${_ge_package} failed, pip3 is not installed."
+    if ! ge_compiler_has_python_installer; then
+        log "ERROR" "install ${_ge_package} failed, python3 -m pip or pip3 is not installed."
         exit 1
     fi
     if [ ! -f "$_ge_package" ]; then
         log "ERROR" "ERR_NO:0x0080;ERR_DES:install ${_ge_package} faied, can not find the matched package for this platform."
         exit 1
     fi
-    _python_tag=$(ge_compiler_get_pip_python_tag)
+    _python_tag=$(ge_compiler_get_python_tag)
     _available_bridge_tags=$(ge_compiler_list_bridge_python_tags "${_wheel_dir}")
     log "INFO" "python package installer: $(ge_compiler_get_python_info); expected native tag: ${_python_tag:-unknown}; available native wheel tags: ${_available_bridge_tags}."
     if ! ls "${_wheel_dir}"/ge_py_pass_bridge-*.whl >/dev/null 2>&1; then
@@ -199,7 +220,7 @@ ge_compiler_install_ge_package() {
         return 0
     fi
     if [ -z "${_python_tag}" ]; then
-        log "WARNING" "can not detect pip3 python tag, install ${_ge_package} only. Available native wheel tags: ${_available_bridge_tags}."
+        log "WARNING" "can not detect python tag, install ${_ge_package} only. Available native wheel tags: ${_available_bridge_tags}."
         ge_compiler_install_package "${_ge_package}" "${_pythonlocalpath}"
         return 0
     fi
@@ -211,14 +232,14 @@ ge_compiler_install_ge_package() {
     fi
 
     if [ "$pylocal" = "y" ]; then
-        pip3 install --disable-pip-version-check --upgrade --no-index --no-deps \
+        ge_compiler_run_pip install --disable-pip-version-check --upgrade --no-index --no-deps \
             --force-reinstall "${_ge_package}" "${_bridge_wheel}" -t "${_pythonlocalpath}" 1> /dev/null
     else
         if [ $(id -u) -ne 0 ]; then
-            pip3 install --disable-pip-version-check --upgrade --no-index --no-deps \
+            ge_compiler_run_pip install --disable-pip-version-check --upgrade --no-index --no-deps \
                 --force-reinstall "${_ge_package}" "${_bridge_wheel}" --user 1> /dev/null
         else
-            pip3 install --disable-pip-version-check --upgrade --no-index --no-deps \
+            ge_compiler_run_pip install --disable-pip-version-check --upgrade --no-index --no-deps \
                 --force-reinstall "${_ge_package}" "${_bridge_wheel}" 1> /dev/null
         fi
     fi

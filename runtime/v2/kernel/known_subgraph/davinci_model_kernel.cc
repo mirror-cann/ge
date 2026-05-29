@@ -398,7 +398,7 @@ ge::graphStatus DavinciModelExecute(KernelContext *context) {
   auto stream = context->GetInputValue<void *>(static_cast<int32_t>(ModelExecute::kStream));
   GE_CHECK_NOTNULL(stream);
 
-  ret = rtModelExecute(davinci_model->GetRtModelHandle(), stream, 0U);
+  ret = aclmdlRIExecuteAsync(davinci_model->GetRtModelHandle(), stream);
   if (ret != RT_ERROR_NONE) {
     GELOGE(ge::GRAPH_FAILED, "model execute failed. ret = %d", ret);
     return ge::GRAPH_FAILED;

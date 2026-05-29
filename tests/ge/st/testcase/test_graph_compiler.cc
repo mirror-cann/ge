@@ -81,7 +81,7 @@
 using namespace std;
 using namespace ge;
 
-// Temporary code that Wait for the FE formal solution to implment.
+// Temporary code that Wait for the FE formal solution to implement.
 namespace{
 static const char_t *const kGeLocalEngineName = "DNN_VM_GE_LOCAL";
 static const char_t *const kGeLocalOpKernelLibName = "DNN_VM_GE_LOCAL_OP_STORE";

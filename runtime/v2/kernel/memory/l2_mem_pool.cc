@@ -77,7 +77,7 @@ ge::MemBlock *L2MemPool::MoveL2ToL1(ge::MemBlock *block) {
     GE_ASSERT_NOTNULL(l1_block);
     GE_ASSERT_RT_OK(aclrtMemcpyAsync(l1_block->GetAddr(), size, block->GetAddr(), block->GetSize(),
         ACL_MEMCPY_DEVICE_TO_DEVICE, stream_));
-    GELOGI("l2 block %p addr %p is splited, it has been moved to L1 block %p addr %p", block, block->GetAddr(),
+    GELOGI("l2 block %p addr %p is split, it has been moved to L1 block %p addr %p", block, block->GetAddr(),
            l1_block, l1_block->GetAddr());
     block->Free();
   }
@@ -87,7 +87,7 @@ ge::MemBlock *L2MemPool::MoveL2ToL1(ge::MemBlock *block) {
 BlockAddr MultiStreamL1Allocator::Alloc(const MemSize size) {
   auto block = l1_allocator_->Malloc(size);
   if ((block == nullptr) && (all_l2_mem_pool_ != nullptr) && !is_rt2_multi_thread_) {
-    GELOGI("malloc memory failed, try to free l2 mem pool and malloc again");
+    GELOGI("malloc memory not success, try to free l2 mem pool and malloc again");
     for (size_t i = 0U; i < all_l2_mem_pool_->GetSize(); ++i) {
       auto l2_mem_pool = all_l2_mem_pool_->MutableData()[i];
       GE_ASSERT_NOTNULL(l2_mem_pool);

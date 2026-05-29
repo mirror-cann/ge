@@ -14,6 +14,7 @@
 #include <cstdint>
 #include <string>
 
+#include "ge/ge_api_error_codes.h"
 #include "python_pass_artifact_selector.h"
 #include "python_pass_bridge_c_api.h"
 

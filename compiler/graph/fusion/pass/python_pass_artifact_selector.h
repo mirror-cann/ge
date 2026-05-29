@@ -73,7 +73,7 @@ inline bool ParseLeadingNumber(const char *&cursor, int &value) {
   int result = 0;
   constexpr int base = 10;
   while (std::isdigit(static_cast<unsigned char>(*cursor)) != 0) {
-    result = (result * base) + (*cursor - '0');
+    result = (result * base) + (static_cast<unsigned char>(*cursor) - static_cast<unsigned char>('0'));
     ++cursor;
   }
   value = result;

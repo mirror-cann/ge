@@ -716,7 +716,7 @@ Status TaskGenerator::GenTaskForFusionNodes(const std::map<int64_t, std::vector<
     }
     const auto node_id = op_desc->GetId();
     auto &task_defs = node_id_2_node_tasks_[node_id];
-    GE_ASSERT_SUCCESS(GenTaskForNormalNode(node, "Fusion outter", task_defs));
+    GE_ASSERT_SUCCESS(GenTaskForNormalNode(node, "Fusion outer", task_defs));
     fusion_ordered_node_list_.emplace_back(node_id);
     fusion_task_node_name_list_.emplace_back(name);
   }

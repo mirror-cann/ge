@@ -125,23 +125,13 @@ if(BUILD_OPEN_PROJECT)
         ${CMAKE_CURRENT_SOURCE_DIR}/ge_plugin/auto_tuning
         ${CMAKE_CURRENT_SOURCE_DIR}/ge_plugin
         ${CMAKE_CURRENT_SOURCE_DIR}/ge_plugin/calculation_tool
-        ${ASCEND_INSTALL_PATH}/include
-        ${ASCEND_INSTALL_PATH}/include/hccl
-        ${ASCEND_INSTALL_PATH}/pkg_inc
-        ${ASCEND_INSTALL_PATH}/pkg_inc/hccl
-        ${ASCEND_INSTALL_PATH}/pkg_inc/base
-        ${ASCEND_INSTALL_PATH}/pkg_inc/profiling
-        ${ASCEND_INSTALL_PATH}/pkg_inc/aicpu
         ${ASCEND_INSTALL_PATH}/pkg_inc/dump
-        ${ASCEND_INSTALL_PATH}/include/msprof
-        ${ASCEND_INSTALL_PATH}/include/adump/external
-        ${ASCEND_INSTALL_PATH}/include/slog/toolchain
         ${CANN_3RD_LIB_PATH}/json/include
         ${AIR_CODE_DIR}/inc
         ${AIR_CODE_DIR}/inc/external
         ${METADEF_DIR}/inc
     )
- 
+
     #hcom_executor头文件
     target_include_directories(hcom_executor PRIVATE
         ${CMAKE_BINARY_DIR}/proto/hcom_graph_adaptor_proto
@@ -151,24 +141,13 @@ if(BUILD_OPEN_PROJECT)
         ${CMAKE_CURRENT_SOURCE_DIR}/ge_plugin/auto_tuning
         ${CMAKE_CURRENT_SOURCE_DIR}/ge_plugin
         ${CMAKE_CURRENT_SOURCE_DIR}/ge_plugin/calculation_tool
-        ${ASCEND_INSTALL_PATH}/include
-        ${ASCEND_INSTALL_PATH}/include/hccl
-        ${ASCEND_INSTALL_PATH}/pkg_inc
-        ${ASCEND_INSTALL_PATH}/pkg_inc/hccl
-        ${ASCEND_INSTALL_PATH}/pkg_inc/base
-        ${ASCEND_INSTALL_PATH}/pkg_inc/profiling
-        ${ASCEND_INSTALL_PATH}/pkg_inc/aicpu
         ${ASCEND_INSTALL_PATH}/pkg_inc/dump
-        ${ASCEND_INSTALL_PATH}/include/msprof
-        ${ASCEND_INSTALL_PATH}/include/adump/external
-        ${ASCEND_INSTALL_PATH}/include/slog/toolchain
         ${CANN_3RD_LIB_PATH}/json/include
         ${AIR_CODE_DIR}/inc
         ${AIR_CODE_DIR}/inc/external
         ${METADEF_DIR}/inc
- 
     )
- 
+
     #hcom_opskernel_buildert头文件
     target_include_directories(hcom_opskernel_builder PRIVATE
         ${CMAKE_BINARY_DIR}/proto/hcom_graph_adaptor_proto
@@ -178,23 +157,13 @@ if(BUILD_OPEN_PROJECT)
         ${CMAKE_CURRENT_SOURCE_DIR}/ge_plugin/auto_tuning
         ${CMAKE_CURRENT_SOURCE_DIR}/ge_plugin
         ${CMAKE_CURRENT_SOURCE_DIR}/ge_plugin/calculation_tool
-        ${ASCEND_INSTALL_PATH}/include
-        ${ASCEND_INSTALL_PATH}/include/hccl
-        ${ASCEND_INSTALL_PATH}/pkg_inc
-        ${ASCEND_INSTALL_PATH}/pkg_inc/hccl
-        ${ASCEND_INSTALL_PATH}/pkg_inc/base
-        ${ASCEND_INSTALL_PATH}/pkg_inc/profiling
-        ${ASCEND_INSTALL_PATH}/pkg_inc/aicpu
         ${ASCEND_INSTALL_PATH}/pkg_inc/dump
-        ${ASCEND_INSTALL_PATH}/include/msprof
-        ${ASCEND_INSTALL_PATH}/include/adump/external
-        ${ASCEND_INSTALL_PATH}/include/slog/toolchain
         ${CANN_3RD_LIB_PATH}/json/include
         ${AIR_CODE_DIR}/inc
         ${AIR_CODE_DIR}/inc/external
         ${METADEF_DIR}/inc
     )
- 
+
     #hcom_gradtune_opskernel_builder头文件
     target_include_directories(hcom_gradtune_opskernel_builder PRIVATE
         ${CMAKE_BINARY_DIR}/proto/hcom_graph_adaptor_proto
@@ -204,39 +173,13 @@ if(BUILD_OPEN_PROJECT)
         ${CMAKE_CURRENT_SOURCE_DIR}/ge_plugin/auto_tuning
         ${CMAKE_CURRENT_SOURCE_DIR}/ge_plugin
         ${CMAKE_CURRENT_SOURCE_DIR}/ge_plugin/calculation_tool
-        ${ASCEND_INSTALL_PATH}/include
-        ${ASCEND_INSTALL_PATH}/include/hccl
-        ${ASCEND_INSTALL_PATH}/pkg_inc
-        ${ASCEND_INSTALL_PATH}/pkg_inc/hccl
-        ${ASCEND_INSTALL_PATH}/pkg_inc/base
-        ${ASCEND_INSTALL_PATH}/pkg_inc/profiling
-        ${ASCEND_INSTALL_PATH}/pkg_inc/aicpu
         ${ASCEND_INSTALL_PATH}/pkg_inc/dump
-        ${ASCEND_INSTALL_PATH}/include/msprof
-        ${ASCEND_INSTALL_PATH}/include/adump/external
-        ${ASCEND_INSTALL_PATH}/include/slog/toolchain
         ${CANN_3RD_LIB_PATH}/json/include
         ${AIR_CODE_DIR}/inc
         ${AIR_CODE_DIR}/inc/external
         ${METADEF_DIR}/inc
     )
- 
-    target_link_directories(hcom_graph_adaptor PRIVATE
-        ${ASCEND_INSTALL_PATH}/lib
-    )
- 
-    target_link_directories(hcom_executor PRIVATE
-        ${ASCEND_INSTALL_PATH}/lib
-        )
- 
-    target_link_directories(hcom_opskernel_builder PRIVATE
-        ${ASCEND_INSTALL_PATH}/lib
-        )
- 
-    target_link_directories(hcom_gradtune_opskernel_builder PRIVATE
-        ${ASCEND_INSTALL_PATH}/lib
-        )
- 
+
     #hcom_graph_adaptor依赖的so,链接选项
     target_link_libraries(hcom_graph_adaptor PRIVATE
         -Wl,--no-as-needed
@@ -252,9 +195,11 @@ if(BUILD_OPEN_PROJECT)
         error_manager
         hcomm
         -Wl,--as-needed
+        ascend_dump
+        unified_dlog
         -lpthread
     )
- 
+
     #hcom_executor依赖的so,链接选项
     target_link_libraries(hcom_executor PRIVATE
         -Wl,--no-as-needed
@@ -272,7 +217,7 @@ if(BUILD_OPEN_PROJECT)
         -Wl,--as-needed
         -lpthread
     )
- 
+
     #hcom_opskernel_builder依赖的so,链接选项
     target_link_libraries(hcom_opskernel_builder PRIVATE
         -Wl,--no-as-needed
@@ -290,7 +235,7 @@ if(BUILD_OPEN_PROJECT)
         -Wl,--as-needed
         -lpthread
     )
- 
+
     #hcom_gradtune_opskernel_builder依赖的so,链接选项
     target_link_libraries(hcom_gradtune_opskernel_builder PRIVATE
         -Wl,--no-as-needed
@@ -341,7 +286,7 @@ else()
         ${TOP_DIR}/abl/mmpa/inc
         ${TOP_DIR}/abl/msprof/inc
     )
- 
+
     #hcom_executor头文件
     target_include_directories(hcom_executor PRIVATE
         ${CMAKE_BINARY_DIR}/proto/hcom_graph_adaptor_proto
@@ -374,7 +319,7 @@ else()
         ${TOP_DIR}/abl/mmpa/inc
         ${TOP_DIR}/abl/msprof/inc
     )
- 
+
     #hcom_opskernel_buildert头文件
     target_include_directories(hcom_opskernel_builder PRIVATE
         ${CMAKE_BINARY_DIR}/proto/hcom_graph_adaptor_proto
@@ -408,7 +353,7 @@ else()
         ${TOP_DIR}/abl/msprof/inc
         ${TOP_DIR}/metadef/inc/register
     )
- 
+
     #hcom_gradtune_opskernel_builder头文件
     target_include_directories(hcom_gradtune_opskernel_builder PRIVATE
         ${CMAKE_BINARY_DIR}/proto/hcom_graph_adaptor_proto
@@ -442,7 +387,7 @@ else()
         ${TOP_DIR}/abl/msprof/inc
         ${TOP_DIR}/metadef/inc/register
     )
- 
+
     #hcom_graph_adaptor依赖的so,链接选项
     target_link_libraries(hcom_graph_adaptor PRIVATE
         $<BUILD_INTERFACE:intf_pub_cxx14>
@@ -470,7 +415,7 @@ else()
         -lpthread
         ofed_headers
     )
- 
+
     #hcom_executor依赖的so,链接选项
     target_link_libraries(hcom_executor PRIVATE
         $<BUILD_INTERFACE:intf_pub_cxx14>
@@ -496,7 +441,7 @@ else()
         ofed_headers
         ascend_dump
     )
- 
+
     #hcom_opskernel_builder依赖的so,链接选项
     target_link_libraries(hcom_opskernel_builder PRIVATE
         $<BUILD_INTERFACE:intf_pub_cxx14>
@@ -521,7 +466,7 @@ else()
         -lpthread
         ofed_headers
     )
- 
+
     #hcom_gradtune_opskernel_builder依赖的so,链接选项
     target_link_libraries(hcom_gradtune_opskernel_builder PRIVATE
         $<BUILD_INTERFACE:intf_pub_cxx14>

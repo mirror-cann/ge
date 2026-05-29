@@ -29,11 +29,11 @@ class KernelManagerUtest : public testing::Test {
   void SetUp() {
     if (mock_runtime == nullptr) {
       mock_runtime = std::make_shared<gert::RuntimeStubForKernelV2>();
-      ge::RuntimeStub::Install(mock_runtime.get());
+      ge::AclRuntimeStub::Install(mock_runtime.get());
     }
   }
   void TearDown() {
-    RuntimeStub::UnInstall(nullptr);
+    AclRuntimeStub::UnInstall(nullptr);
   }
   std::shared_ptr<gert::RuntimeStubForKernelV2> mock_runtime = nullptr;
 };

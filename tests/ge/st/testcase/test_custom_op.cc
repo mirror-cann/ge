@@ -162,7 +162,7 @@ public:
     auto input_tensor0 = ctx->GetInputTensor(0);
     GE_ASSERT_NOTNULL(input_tensor0);
     auto input_shape0 = input_tensor0->GetShape().GetStorageShape();
-    std::cout << "intput shape dimnum " << input_shape0.GetDimNum() << std::endl;
+    std::cout << "input shape dimnum " << input_shape0.GetDimNum() << std::endl;
     GE_ASSERT_TRUE(input_shape0.GetDimNum() == 3);
     GE_ASSERT_TRUE(input_shape0.GetDim(0) == 2);
     auto input_tensor1 = ctx->GetInputTensor(1);
@@ -199,7 +199,7 @@ public:
     args_table[2] = static_cast<void*>(input_2);
     args_table[3] = static_cast<void*>(output_0);
 
-    rtsLaunchKernelWithHostArgs(nullptr, 0, nullptr, nullptr, &args_table[0], 32, nullptr, 0);
+    aclrtLaunchKernelWithHostArgs(nullptr, 0, nullptr, nullptr, &args_table[0], 32, nullptr, 0);
     return SUCCESS;
   }
 };

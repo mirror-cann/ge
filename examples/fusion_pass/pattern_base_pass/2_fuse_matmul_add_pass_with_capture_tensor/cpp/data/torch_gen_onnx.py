@@ -25,11 +25,11 @@ class Model(nn.Module):
 def convert():
     model = Model()
     model.eval()
-    x, y = torch.randn(2, 3, dtype=torch.float64), torch.randn(3, 2, dtype=torch.float64)
-    z = torch.randn(2, 2, dtype=torch.float64)
+    x, y = torch.randn(2, 3), torch.randn(3, 2)
+    z = torch.randn(2, 2)
     # 当前atc工具opset_version最高支持18,若torch版本默认导出opset_version过高，请如下显示指定opset_version
     # torch.onnx.export(model, (x, y, z), "model.onnx", opset_version=11, do_constant_folding=False)
-    torch.onnx.export(model, (x, y, z), "modelfp64.onnx", do_constant_folding=False)
+    torch.onnx.export(model, (x, y, z), "model.onnx", do_constant_folding=False)
 
 
 if __name__ == "__main__":

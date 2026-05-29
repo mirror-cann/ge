@@ -9,6 +9,7 @@
  */
 
 #include "bg_launch.h"
+#include "bg_ext_info.h"
 #include <mutex>
 #include "framework/common/taskdown_common.h"
 #include "register/kernel_registry.h"
@@ -93,6 +94,31 @@ ValueHolderPtr UpdateAicpuIoAddr(const ValueHolderPtr &args_handler,
   return ValueHolder::CreateSingleDataOutput("UpdateAicpuIoAddr", inputs);
 }
 
+std::vector<DevMemValueHolderPtr> ExpandAicpuOptionalInputAddrs(
+    const ge::NodePtr &node, const std::vector<DevMemValueHolderPtr> &input_addrs,
+    TensorPlacement empty_input_placement) {
+  GE_ASSERT_NOTNULL(node);
+  GE_ASSERT_NOTNULL(node->GetOpDescBarePtr());
+  const auto input_num = node->GetOpDescBarePtr()->GetAllInputsSize();
+  GE_ASSERT_TRUE(input_addrs.size() <= input_num);
+  if (input_addrs.size() == input_num) {
+    GELOGI("Op[%s] input addrs size %zu already matches all input size %zu, no need expand optional inputs.",
+           node->GetName().c_str(), input_addrs.size(), input_num);
+    return input_addrs;
+  }
+
+  std::vector<ValueHolderPtr> inputs(input_addrs.cbegin(), input_addrs.cend());
+  inputs.emplace_back(ValueHolder::CreateConst(&empty_input_placement, sizeof(empty_input_placement)));
+  auto expanded_input_addrs =
+      DevMemValueHolder::CreateDataOutput("ExpandAicpuOptionalInputAddrs", inputs, input_num,
+                                          node->GetOpDescBarePtr()->GetStreamId());
+  for (auto &addr : expanded_input_addrs) {
+    GE_ASSERT_NOTNULL(addr);
+    addr->SetPlacement(empty_input_placement);
+  }
+  return expanded_input_addrs;
+}
+
 ValueHolderPtr AicpuTfLaunchKernel(const ValueHolderPtr &args_handler,
                                    const ValueHolderPtr &stream,
                                    const ValueHolderPtr &bin_handler,
@@ -149,7 +175,10 @@ ValueHolderPtr AicpuCCLaunchKernel(const ValueHolderPtr &args_handler, const Val
 }
 
 ValueHolderPtr AicpuHostComputeByCpuKernel(const ge::NodePtr &node, const AicpuArgs &args,
-                                           const IoInfo &io_info, LoweringGlobalData &global_data,
+                                           const IoInfo &io_info,
+                                           const std::vector<ValueHolderPtr> &origin_input_shapes,
+                                           const ValueHolderPtr &expanded_input_shapes_holder,
+                                           LoweringGlobalData &global_data,
                                            std::vector<DevMemValueHolderPtr> &output_addrs) {
   // update ext_info and compute
   const auto &op_desc = node->GetOpDesc();
@@ -162,9 +191,12 @@ ValueHolderPtr AicpuHostComputeByCpuKernel(const ge::NodePtr &node, const AicpuA
   ValueHolderPtr compute_holder = ValueHolder::CreateSingleDataOutput("AicpuHostCompute", inputs);
   ValueHolder::AddDependency(args.ext_info_handler, compute_holder);
   if (update_ext != nullptr) {
+    if (expanded_input_shapes_holder != nullptr) {
+      ValueHolder::AddDependency(expanded_input_shapes_holder, update_ext);
+    }
     ValueHolder::AddDependency(update_ext, compute_holder);
   }
-  NodeOutput node_output = {io_info.input_shapes, io_info.output_shapes};
+  NodeOutput node_output = {origin_input_shapes, io_info.output_shapes};
   AicpuCallback(node, args.ext_info_handler, compute_holder, global_data, node_output);
   return compute_holder;
 }
@@ -204,17 +236,42 @@ ValueHolderPtr AicpuHostCompute(const ge::NodePtr &node, const AicpuArgs &args, 
                                 LoweringGlobalData &global_data, std::vector<DevMemValueHolderPtr> &output_addrs) {
   output_addrs = AllocHostCpuOutputsMemory(node, io_info, global_data);
 
+  auto compute_io_info = io_info;
+  bool optional_input_placeholder = false;
+  (void)ge::AttrUtils::GetBool(node->GetOpDescBarePtr(), kOptionalInputPlaceholder, optional_input_placeholder);
+  bg::ValueHolderPtr expanded_input_shapes_holder = nullptr;
+  bg::ValueHolderPtr expanded_input_addrs_holder = nullptr;
+  if (optional_input_placeholder) {
+    compute_io_info.input_shapes = ExpandAicpuOptionalInputShapes(node, io_info.input_shapes);
+    if (compute_io_info.input_shapes.size() > io_info.input_shapes.size()) {
+      expanded_input_shapes_holder = compute_io_info.input_shapes.front();
+    }
+    compute_io_info.input_addrs = ExpandAicpuOptionalInputAddrs(node, io_info.input_addrs, kOnHost);
+    if (compute_io_info.input_addrs.size() > io_info.input_addrs.size()) {
+      expanded_input_addrs_holder = compute_io_info.input_addrs.front();
+    }
+  }
+
   std::string type;
   ge::GetOriginalType(node, type);
   auto aicpu_host_find_func = AicpuResourceManager::GetInstance().GetAicpuHostFindFunc();
   GE_ASSERT_NOTNULL(aicpu_host_find_func);
 
   AicpuHostProcFunc func = aicpu_host_find_func(type);
+  ValueHolderPtr compute_holder = nullptr;
   if (func != nullptr) {
-    return AicpuHostExecFuncProcess(func, io_info, output_addrs);
+    compute_holder = AicpuHostExecFuncProcess(func, compute_io_info, output_addrs);
   } else {
-    return AicpuHostComputeByCpuKernel(node, args, io_info, global_data, output_addrs);
+    compute_holder = AicpuHostComputeByCpuKernel(node, args, compute_io_info, io_info.input_shapes,
+                                                 expanded_input_shapes_holder, global_data, output_addrs);
   }
+  if (optional_input_placeholder && expanded_input_shapes_holder != nullptr) {
+    ValueHolder::AddDependency(expanded_input_shapes_holder, compute_holder);
+  }
+  if (optional_input_placeholder && expanded_input_addrs_holder != nullptr) {
+    ValueHolder::AddDependency(expanded_input_addrs_holder, compute_holder);
+  }
+  return compute_holder;
 }
 }  // namespace bg
 }  // namespace gert

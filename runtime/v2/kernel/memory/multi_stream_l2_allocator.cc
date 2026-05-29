@@ -54,7 +54,7 @@ GertMemBlock *MultiStreamL2Allocator::Malloc(size_t size) {
     }
     return ms_block_pool_.Acquire(this, block, BlockAllocType{BlockAllocType::kNorm, 0U});
   }
-  GELOGI("malloc memory failed, try to use borrow block");
+  GELOGI("malloc memory not success, try to use borrow block");
   // todo borrow allocator的Alloc接口最好带上自己的stream id，或者初始化borrow allocator的时候，把自己的stream id传进去
   auto gert_mem_block = borrow_allocator_.Alloc(size);
   if (gert_mem_block != nullptr) {

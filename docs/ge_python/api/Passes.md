@@ -15,6 +15,7 @@ from ge.passes import (
     PatternFusionPass,
     DecomposePass,
     PassStage,
+    pattern,
     register_fusion_pass,
     register_decompose_pass,
     create_pattern,
@@ -28,7 +29,7 @@ from ge.passes import (
 Passes 模块提供 Python 级别的自定义图融合 Pass 开发框架。用户通过继承 `FusionBasePass`、`PatternFusionPass` 或 `DecomposePass` 来定义图优化 Pass，并通过注册装饰器将其注册到 GE 编译流程中。
 
 - `FusionBasePass`：融合 Pass 基类，用户需要实现 `run()` 方法。
-- `PatternFusionPass`：基于模式匹配的融合 Pass，继承自 `FusionBasePass`，用户需要实现 `patterns()`、`meet_requirements()` 和 `replacement()` 三个方法。其 `run()` 方法不会被引擎调用，不应重写。
+- `PatternFusionPass`：基于模式匹配的融合 Pass，继承自 `FusionBasePass`，用户可通过 `patterns()` 或 `@pattern` 方法定义模式，并实现 `replacement()`；`meet_requirements()` 为可选实现。其 `run()` 方法不会被引擎调用，不应重写。
 - `DecomposePass`：算子分解 Pass，继承自 `FusionBasePass`，用户需要实现 `meet_requirements()` 和 `replacement()` 方法。其 `run()` 方法不会被引擎调用，不应重写。
 
 ---
@@ -83,11 +84,13 @@ class FusionBasePass:
 ### 约束说明
 
 - **不得重写 `run()` 方法**：如果子类中定义了 `run()` 方法，将在类定义时抛出 `TypeError`。
-- 必须实现 `patterns()` 和 `replacement()` 方法，`meet_requirements()` 为可选实现（默认返回 `True`）。
+- 必须实现 `patterns()` 或至少一个 `@pattern` 方法，并实现 `replacement()` 方法；`meet_requirements()` 为可选实现（默认返回 `True`）。
+- `@pattern` 方法不能和 `patterns()` 方法同时使用。
+- 不支持 `patterns(self, inputs)` 写法；表达式式模式请使用 `@pattern` 方法。
 
 ### patterns() 方法
 
-定义需要匹配的模式列表。
+定义需要匹配的模式列表。该方法为 legacy 显式构图入口，适合直接返回一个或多个 `Pattern` / `Graph` 对象。
 
 #### 函数原型
 
@@ -105,6 +108,38 @@ def patterns(self) -> Iterable[PatternOrGraph]:
 | 类型 | 说明 |
 | :--- | :--- |
 | `Iterable[PatternOrGraph]` | 返回一个可迭代对象，其中每个元素为 `Pattern` 或 `Graph` 类型，表示需要匹配的子图模式。 |
+
+### @pattern 方法
+
+使用 Python 表达式定义一个模式。一个 `@pattern` 方法对应一个 pattern，多个 pattern 可声明多个 `@pattern` 方法。
+
+#### 函数原型
+
+```python
+@pattern
+def add_zero(self, inputs):
+    return inputs[0] + 0
+```
+
+#### 参数说明
+
+| 参数名 | 输入/输出 | 说明 |
+| :----- | :-------- | :--- |
+| inputs | 输入 | 表达式式 pattern 输入集合。`inputs[i]` 表示第 `i` 个图输入；`inputs[:N]` 用于显式声明连续的多个图输入。 |
+
+#### 返回值说明
+
+| 类型 | 说明 |
+| :--- | :--- |
+| `TensorHolder` | 返回单输出 pattern 表达式。 |
+| `list[TensorHolder]` / `tuple[TensorHolder, ...]` | 返回一个多输出 pattern；该列表或元组不表示多个 pattern。 |
+
+#### 约束说明
+
+- `@pattern` 方法只负责声明 pattern，不接收 `match_result`。
+- 多 pattern pass 通过多个 `@pattern` 方法声明，不通过一个方法返回多个 `Pattern` / `Graph`。
+- `inputs` 的输入数量未知，因此不能直接迭代；多输入场景请使用 `inputs[:N]`。
+- Python 层会自动创建 `GraphBuilder`、图输入、图输出，并自动 capture 已访问的 `inputs`。
 
 ### meet_requirements() 方法
 
@@ -140,6 +175,16 @@ def replacement(self, match_result: MatchResult) -> Graph:
     ...
 ```
 
+表达式式 pattern 也可使用以下写法：
+
+```python
+def replacement(self, inputs) -> TensorHolder:
+    ...
+
+def replacement(self, inputs, match_result) -> TensorHolder:
+    ...
+```
+
 #### 参数说明
 
 | 参数名 | 输入/输出 | 说明 |
@@ -151,6 +196,52 @@ def replacement(self, match_result: MatchResult) -> Graph:
 | 类型 | 说明 |
 | :--- | :--- |
 | `Graph` | 返回替换后的子图，类型为 `ge.graph.Graph`。 |
+
+表达式式 `replacement(self, inputs)` 可返回 `TensorHolder` 或非空 `TensorHolder` 列表 / 元组，Python 层会自动构造替换图；需要读取匹配详情时可增加 `match_result` 参数。
+
+---
+
+## pattern 装饰器
+
+标记 `PatternFusionPass` 的一个方法为表达式式 pattern 声明。
+
+### 函数原型
+
+```python
+def pattern(method: Callable[..., object]) -> Callable[..., object]:
+    ...
+```
+
+### 参数说明
+
+| 参数名 | 输入/输出 | 说明 |
+| :----- | :-------- | :--- |
+| method | 输入 | `PatternFusionPass` 子类中的实例方法，签名应为 `method(self, inputs)`。 |
+
+### 返回值说明
+
+| 类型 | 说明 |
+| :--- | :--- |
+| `Callable[..., object]` | 返回原方法对象，并在类定义阶段由 `PatternFusionPass` 收集为 pattern。 |
+
+### 示例
+
+```python
+from ge.passes import PatternFusionPass, pattern
+
+
+class AlgebraicPass(PatternFusionPass):
+    @pattern
+    def add_zero(self, inputs):
+        return inputs[0] + 0
+
+    @pattern
+    def mul_one(self, inputs):
+        return inputs[0] * 1
+
+    def replacement(self, inputs):
+        return inputs[0]
+```
 
 ---
 

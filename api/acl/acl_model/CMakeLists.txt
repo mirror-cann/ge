@@ -31,18 +31,10 @@ target_include_directories(acl_mdl_impl PRIVATE
     ${AIR_CODE_DIR}/inc/external/acl
     ${AIR_CODE_DIR}/inc/graph_metadef
 
-    ${ASCEND_INSTALL_PATH}/pkg_inc/base
-    ${ASCEND_INSTALL_PATH}/include/prof
-
     ${AIR_CODE_DIR}/inc/framework
     ${AIR_CODE_DIR}/inc/graph_metadef
     ${AIR_CODE_DIR}/inc/graph_metadef/external
-    ${ASCEND_INSTALL_PATH}/include
-    ${ASCEND_INSTALL_PATH}/include/acl
     ${AIR_CODE_DIR}/base/metadef/pkg_inc
-    ${ASCEND_INSTALL_PATH}/pkg_inc
-    ${ASCEND_INSTALL_PATH}/pkg_inc/runtime
-    ${ASCEND_INSTALL_PATH}/pkg_inc/runtime/runtime
 
     ${TOP_DIR}/air/inc/external
     ${TOP_DIR}/air/inc/external/acl
@@ -138,18 +130,11 @@ target_include_directories(acl_mdl_impl_om2 PRIVATE
     ${AIR_CODE_DIR}/base/metadef/pkg_inc
     ${AIR_CODE_DIR}/inc/framework
 
-    ${ASCEND_INSTALL_PATH}/pkg_inc
-    ${ASCEND_INSTALL_PATH}/pkg_inc/base
-    ${ASCEND_INSTALL_PATH}/pkg_inc/profiling
     ${ASCEND_INSTALL_PATH}/pkg_inc/common
     ${ASCEND_INSTALL_PATH}/pkg_inc/runtime
     ${ASCEND_INSTALL_PATH}/pkg_inc/runtime/runtime
-    ${ASCEND_INSTALL_PATH}/include/prof
-    ${ASCEND_INSTALL_PATH}/include
-    ${ASCEND_INSTALL_PATH}/include/acl
     ${ASCEND_INSTALL_PATH}/include/external
     ${ASCEND_INSTALL_PATH}/include/external/ge_common
-
 
     ${TOP_DIR}/air/inc
     ${TOP_DIR}/air/inc/framework
@@ -216,9 +201,6 @@ target_include_directories(acl_mdl PRIVATE
     ${AIR_CODE_DIR}/inc/external
     ${AIR_CODE_DIR}/inc/external/acl
 
-    ${ASCEND_INSTALL_PATH}/include
-    ${ASCEND_INSTALL_PATH}/include/acl
-
     ${TOP_DIR}/air/inc/external
     ${TOP_DIR}/air/inc/external/acl
     ${TOP_DIR}/runtime/include/external
@@ -264,6 +246,7 @@ target_link_libraries(acl_mdl PRIVATE
 
     acl_mdl_impl
     acl_mdl_impl_om2
+    runtime
     -Wl,--as-needed
     $<$<NOT:$<STREQUAL:${TARGET_SYSTEM_NAME},Android>>:-lrt>
     -ldl

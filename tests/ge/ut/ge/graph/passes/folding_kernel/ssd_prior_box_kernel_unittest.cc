@@ -386,8 +386,8 @@ TEST_F(UtestGraphPassesFoldingKernelSsdPriorboxKernel, MultiVarianceSuccess) {
 TEST_F(UtestGraphPassesFoldingKernelSsdPriorboxKernel, AllSuccess) {
   int num_priors = 0;
   int dim_size = 0;
-  SsdPriorboxKernel kernal;
-  ge::Status ret = kernal.GetNumPriorAndDimSize(2, 2, 2, 2, 2, num_priors, dim_size);
+  SsdPriorboxKernel kernel;
+  ge::Status ret = kernel.GetNumPriorAndDimSize(2, 2, 2, 2, 2, num_priors, dim_size);
   EXPECT_EQ(SUCCESS, ret);
 }
 

@@ -9,8 +9,6 @@
 # -----------------------------------------------------------------------------------------------------------
 
 #########
-include_directories(${ASCEND_INSTALL_PATH}/pkg_inc)
-include_directories(${ASCEND_INSTALL_PATH}/pkg_inc/base)
 
 file(GLOB_RECURSE SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 add_library(aihac_autofusion SHARED

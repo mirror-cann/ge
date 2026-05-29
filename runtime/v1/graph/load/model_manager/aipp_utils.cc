@@ -218,18 +218,18 @@ Status AippUtils::SetAippTypeImpl(const std::map<std::string, uint32_t> &data_in
 
   size_t aipp_data_index = kInvalidIdx;
   if (aipp_type == DATA_WITH_DYNAMIC_AIPP) {
-    const std::string *releated_name = AttrUtils::GetStr(op_desc, ATTR_DATA_AIPP_DATA_NAME_MAP);
-    if (releated_name == nullptr) {
+    const std::string *related_name = AttrUtils::GetStr(op_desc, ATTR_DATA_AIPP_DATA_NAME_MAP);
+    if (related_name == nullptr) {
       REPORT_INNER_ERR_MSG("E19999", "Failed to get attr:%s, op:%s, type:%s.", ATTR_DATA_AIPP_DATA_NAME_MAP.c_str(),
                            op_desc->GetName().c_str(), op_desc->GetType().c_str());
       GELOGE(INTERNAL_ERROR, "[Get][Attr]Failed to get attr:%s, op:%s, type:%s.", ATTR_DATA_AIPP_DATA_NAME_MAP.c_str(),
              op_desc->GetName().c_str(), op_desc->GetType().c_str());
       return INTERNAL_ERROR;
     }
-    const auto iter = data_index_map.find(*releated_name);
+    const auto iter = data_index_map.find(*related_name);
     if (iter != data_index_map.end()) {
       aipp_data_index = iter->second;
-      GELOGI("Find AippData:%s of index:%zu for op:%s, index:%u", releated_name->c_str(), aipp_data_index,
+      GELOGI("Find AippData:%s of index:%zu for op:%s, index:%u", related_name->c_str(), aipp_data_index,
              op_desc->GetName().c_str(), index);
     } else {
       REPORT_INNER_ERR_MSG("E19999", "Cannot find AippData node for index:%u, op:%s", index, op_desc->GetName().c_str());
@@ -257,7 +257,7 @@ Status AippUtils::GetAippType(const std::map<uint32_t, std::pair<InputAippType, 
                               const uint32_t index, InputAippType &aipp_type, size_t &aipp_data_index) {
   const auto it = aipp_types.find(index);
   if (it == aipp_types.end()) {
-    GELOGD("There is not AIPP releated type with index:%u, return default value.", index);
+    GELOGD("There is not AIPP related type with index:%u, return default value.", index);
     aipp_type = DATA_WITHOUT_AIPP;
     aipp_data_index = kInvalidIdx;
     return SUCCESS;

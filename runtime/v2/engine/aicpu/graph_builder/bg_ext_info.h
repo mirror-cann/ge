@@ -12,9 +12,12 @@
 #define AIR_CXX_RUNTIME_V2_GRAPH_BUILDER_BG_EXT_INFO_H_
 #include "exe_graph/lowering/value_holder.h"
 #include "exe_graph/lowering/lowering_global_data.h"
+#include <string>
 
 namespace gert {
 namespace bg {
+const std::string kOptionalInputPlaceholder = "optional_input_placeholder";
+
 struct BlockInfo {
   ValueHolderPtr is_block_op;
   ValueHolderPtr rt_event;
@@ -30,6 +33,8 @@ struct ExtShapeInfo {
 ValueHolderPtr BuildExtInfo(const ge::NodePtr node, const std::string &ext_info,
                             const std::vector<ValueHolderPtr> &addrs, const ValueHolderPtr &session_id,
                             const BlockInfo &block_info);
+std::vector<ValueHolderPtr> ExpandAicpuOptionalInputShapes(const ge::NodePtr &node,
+                                                           const std::vector<ValueHolderPtr> &input_shapes);
 ValueHolderPtr UpdateExtInfo(const ge::OpDescPtr &op_desc, const ExtShapeInfo &ext_shape_info,
                              const ValueHolderPtr &ext_handle, const ValueHolderPtr &stream);
 } // bg

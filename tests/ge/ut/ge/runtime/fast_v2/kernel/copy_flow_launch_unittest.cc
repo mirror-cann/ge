@@ -129,9 +129,9 @@ TEST_F(CopyFlowLaunchKernelTest, CopyFlowLaunch_1H1D) {
   EXPECT_EQ(args->GetBase()->hostInputInfoPtr[0].dataOffset,
             GetOffset(args->GetArgBase(), args->GetArgsPointer<void>(RtKernelLaunchArgsEx::ArgsType::kHostInputData)));
 
-  int32_t intput0_vale =
+  int32_t input0_value =
       *(reinterpret_cast<int32_t *>(args->GetArgsPointer<void>(RtKernelLaunchArgsEx::ArgsType::kHostInputData)));
-  EXPECT_EQ(intput0_vale, 2);
+  EXPECT_EQ(input0_value, 2);
 
   context_holder.FreeAll();
 }
@@ -187,13 +187,13 @@ TEST_F(CopyFlowLaunchKernelTest, CopyFlowLaunch_2H) {
   EXPECT_EQ(args->GetBase()->hostInputInfoPtr[0].dataOffset,
             GetOffset(args->GetArgBase(), args->GetArgsPointer<void>(RtKernelLaunchArgsEx::ArgsType::kHostInputData)));
 
-  int32_t intput0_vale =
+  int32_t input0_value =
       *(reinterpret_cast<int32_t *>(args->GetArgsPointer<void>(RtKernelLaunchArgsEx::ArgsType::kHostInputData)));
-  EXPECT_EQ(intput0_vale, 2);
-  auto intput1_vale_addr =
+  EXPECT_EQ(input0_value, 2);
+  auto input1_value_addr =
       ge::ValueToPtr((ge::PtrToValue(args->GetArgBase()) + args->GetBase()->hostInputInfoPtr[1].dataOffset));
-  int32_t intput1_vale = *(reinterpret_cast<int32_t *>(intput1_vale_addr));
-  EXPECT_EQ(intput1_vale, 5);
+  int32_t input1_value = *(reinterpret_cast<int32_t *>(input1_value_addr));
+  EXPECT_EQ(input1_value, 5);
 
   context_holder.FreeAll();
 }
@@ -253,13 +253,13 @@ TEST_F(CopyFlowLaunchKernelTest, CopyFlowLaunch_2Host3Inputs) {
       GetOffset(args->GetArgBase(), args->GetArgsPointer<void>(RtKernelLaunchArgsEx::ArgsType::kHostInputData)) + 4);
   EXPECT_EQ(args->GetBase()->hostInputInfoPtr[2].dataOffset, args->GetBase()->hostInputInfoPtr[1].dataOffset);
 
-  int32_t intput0_vale =
+  int32_t input0_value =
       *(reinterpret_cast<int32_t *>(args->GetArgsPointer<void>(RtKernelLaunchArgsEx::ArgsType::kHostInputData)));
-  EXPECT_EQ(intput0_vale, 2);
-  auto intput1_vale_addr =
+  EXPECT_EQ(input0_value, 2);
+  auto input1_value_addr =
       ge::ValueToPtr((ge::PtrToValue(args->GetArgBase()) + args->GetBase()->hostInputInfoPtr[1].dataOffset));
-  int32_t intput1_vale = *(reinterpret_cast<int32_t *>(intput1_vale_addr));
-  EXPECT_EQ(intput1_vale, 5);
+  int32_t input1_value = *(reinterpret_cast<int32_t *>(input1_value_addr));
+  EXPECT_EQ(input1_value, 5);
 
   context_holder.FreeAll();
 }
@@ -326,9 +326,9 @@ TEST_F(CopyFlowLaunchKernelTest, CopyFlowLaunch_2H_1) {
   ASSERT_NE(args, nullptr);
   EXPECT_EQ(args->GetBase()->hostInputInfoNum, 1);
 
-  int32_t intput0_vale =
+  int32_t input0_value =
       *(reinterpret_cast<int32_t *>(args->GetArgsPointer<void>(RtKernelLaunchArgsEx::ArgsType::kHostInputData)));
-  EXPECT_EQ(intput0_vale, 2);
+  EXPECT_EQ(input0_value, 2);
 
   context_holder.FreeAll();
 }
@@ -718,9 +718,9 @@ TEST_F(CopyFlowLaunchKernelTest, CopyFlowLaunch_3H3D) {
   ASSERT_NE(args, nullptr);
   EXPECT_EQ(args->GetBase()->hostInputInfoNum, 3);
 
-  int32_t host_intput0_vale =
+  int32_t host_input0_value =
       *(reinterpret_cast<int32_t *>(args->GetArgsPointer<void>(RtKernelLaunchArgsEx::ArgsType::kHostInputData)));
-  EXPECT_EQ(host_intput0_vale, 2);
+  EXPECT_EQ(host_input0_value, 2);
   auto host_intput1_addr =
       ge::ValueToPtr((ge::PtrToValue(args->GetArgBase()) + args->GetBase()->hostInputInfoPtr[1].dataOffset));
   int32_t host_intput1_value = *(reinterpret_cast<int32_t *>(host_intput1_addr));
@@ -778,10 +778,10 @@ TEST_F(CopyFlowLaunchKernelTest, CopyFlowLaunch_HostNotAlign4Byte) {
   EXPECT_EQ(args->GetBase()->hostInputInfoPtr[0].dataOffset,
             GetOffset(args->GetArgBase(), args->GetArgsPointer<void>(RtKernelLaunchArgsEx::ArgsType::kHostInputData)));
 
-  std::string intput0_vale =
+  std::string input0_value =
       std::string(reinterpret_cast<char *>(args->GetArgsPointer<void>(RtKernelLaunchArgsEx::ArgsType::kHostInputData)));
   // 按照实际shape来拷贝，只拷贝3个字节
-  EXPECT_EQ(intput0_vale, "123");
+  EXPECT_EQ(input0_value, "123");
 
   context_holder.FreeAll();
 }

@@ -54,8 +54,6 @@ set(local_lib_inc_path
     ${METADEF_DIR}/inc
     ${METADEF_DIR}/pkg_inc
     ${METADEF_DIR}/inc/external
-    ${ASCEND_INSTALL_PATH}/pkg_inc
-    ${ASCEND_INSTALL_PATH}/pkg_inc/base
 )
 
 add_library(aicpu_engine_common SHARED

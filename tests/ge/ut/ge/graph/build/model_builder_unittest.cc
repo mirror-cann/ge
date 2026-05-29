@@ -468,14 +468,14 @@ TEST_F(UtestModelBuilderTest, test_model_save) {
   EXPECT_NE(relu_desc->TryGetExtAttr(std::string("_mix_aiv") + OP_EXTATTR_NAME_TBE_KERNEL, TBEKernelPtr()), nullptr);
 
   EXPECT_FALSE(builder.tbe_kernel_store_.kernels_.empty());
-  EXPECT_FALSE(ge_gemodel.tbe_kernal_store_.kernels_.empty());
+  EXPECT_FALSE(ge_gemodel.tbe_kernel_store_.kernels_.empty());
 
   // aic_relu + aiv_relu + conv2d + sgt/conv2d + atocic
-  EXPECT_EQ(ge_gemodel.tbe_kernal_store_.buffer_.size(), tbe_kernel_len);
+  EXPECT_EQ(ge_gemodel.tbe_kernel_store_.buffer_.size(), tbe_kernel_len);
 
   EXPECT_FALSE(builder.cust_aicpu_kernel_store_.kernels_.empty());
-  EXPECT_FALSE(ge_gemodel.cust_aicpu_kernal_store_.kernels_.empty());
-  EXPECT_EQ(ge_gemodel.cust_aicpu_kernal_store_.buffer_.size(), cpu_kernel_len); // framework
+  EXPECT_FALSE(ge_gemodel.cust_aicpu_kernel_store_.kernels_.empty());
+  EXPECT_EQ(ge_gemodel.cust_aicpu_kernel_store_.buffer_.size(), cpu_kernel_len); // framework
 
   std::set<std::string> aicpu_name_set;
   EXPECT_EQ(builder.SaveCustAiCpuKernel(cust_desc, aicpu_name_set), SUCCESS);

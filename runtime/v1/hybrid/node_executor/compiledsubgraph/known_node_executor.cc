@@ -50,10 +50,10 @@ Status KnownNodeTask::ExecuteAsync(TaskContext &context, const std::function<voi
 
   rtError_t rt_ret;
   RECORD_EXECUTION_EVENT(context.GetExecutionContext(), context.GetNodeName(), "[KnownNodertModelExecute] Start");
-  rt_ret = rtModelExecute(davinci_model_->GetRtModelHandle(), context.GetStream(), 0U);
+  rt_ret = aclmdlRIExecuteAsync(davinci_model_->GetRtModelHandle(), context.GetStream());
   GE_IF_BOOL_EXEC(rt_ret != RT_ERROR_NONE,
-                  REPORT_INNER_ERR_MSG("E19999", "rtModelExecute error, ret:%d", rt_ret);
-                  GELOGE(FAILED, "[Invoke][rtModelExecute] error, ret:%d", rt_ret);
+                  REPORT_INNER_ERR_MSG("E19999", "aclmdlRIExecuteAsync error, ret:%d", rt_ret);
+                  GELOGE(FAILED, "[Invoke][aclmdlRIExecuteAsync] error, ret:%d", rt_ret);
                   return FAILED;
                  );
   RECORD_EXECUTION_EVENT(context.GetExecutionContext(), context.GetNodeName(), "[KnownNodertModelExecute] End");

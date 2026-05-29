@@ -15,8 +15,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="${SCRIPT_DIR}"
 BUILD_DIR="${PROJECT_DIR}/build"
 OUTPUT_DIR="${PROJECT_DIR}/output"
-AIR_PATH="${OUTPUT_DIR}/single_add.air"
-OM_PATH="${OUTPUT_DIR}/single_add.om"
+AIR_PATH="${PROJECT_DIR}/output/single_add.air"
+OM_PATH="${PROJECT_DIR}/output/single_add.om"
 ATC_BIN="atc"
 CUSTOM_OP_DIR=""
 CUSTOM_OP_LIBRARY_PATH=""
@@ -139,10 +139,10 @@ if [[ -z "${ASCEND_HOME_PATH:-}" ]]; then
   exit 1
 fi
 
-CUSTOM_OP_DIR="${OUTPUT_DIR}/op_graph/lib/$(detect_opp_os_dir)/$(detect_opp_arch_dir)"
-CUSTOM_OP_LIBRARY_PATH="${CUSTOM_OP_DIR}/$(get_custom_op_library_name)"
-CUSTOM_OP_SOURCE_PATH="${CUSTOM_OP_DIR}/add_custom_kernel.asc"
-CUSTOM_OP_PROTO_HEADER_PATH="${OUTPUT_DIR}/op_graph/include/add_custom.h"
+CUSTOM_OP_DIR="${PROJECT_DIR}/output/op_graph/lib/$(detect_opp_os_dir)/$(detect_opp_arch_dir)"
+CUSTOM_OP_LIBRARY_PATH="${PROJECT_DIR}/output/op_graph/lib/$(detect_opp_os_dir)/$(detect_opp_arch_dir)/$(get_custom_op_library_name)"
+CUSTOM_OP_SOURCE_PATH="${PROJECT_DIR}/output/op_graph/lib/$(detect_opp_os_dir)/$(detect_opp_arch_dir)/add_custom_kernel.cpp"
+CUSTOM_OP_PROTO_HEADER_PATH="${PROJECT_DIR}/output/op_graph/include/add_custom.h"
 
 mkdir -p "${BUILD_DIR}" "${OUTPUT_DIR}" "${CUSTOM_OP_DIR}"
 

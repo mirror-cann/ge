@@ -5883,7 +5883,7 @@ TEST_F(DavinciModelTest, init_mc2_cust_aicpu_with_tilefwk_hiddeninput_success) {
   std::vector<char> kernel_bin(128, '0');
   const auto aicpu_bin = MakeShared<OpKernelBin>(op_desc->GetName(), std::move(kernel_bin));
   model.ge_model_ = MakeShared<GeModel>();
-  model.ge_model_->cust_aicpu_kernal_store_.AddKernel(aicpu_bin);
+  model.ge_model_->cust_aicpu_kernel_store_.AddKernel(aicpu_bin);
 
   rtStream_t stream1 = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();

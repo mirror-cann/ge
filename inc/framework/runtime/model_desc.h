@@ -102,11 +102,11 @@ class VISIBILITY_EXPORT ModelDesc {
   ge::graphStatus GetModelAttrs(std::vector<std::string> &attrs) const;
 
   /*
-   * Get stream num of root model, except persistant stream of static sub model
+   * Get stream num of root model, except persistent stream of static sub model
    */
   size_t GetReusableStreamNum() const;
   /*
-   * Set stream num of root model, except persistant stream of static sub model
+   * Set stream num of root model, except persistent stream of static sub model
    */
   void SetReusableStreamNum(size_t stream_num);
   size_t GetReusableEventNum() const;
