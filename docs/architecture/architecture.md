@@ -196,7 +196,7 @@ GE 支持通过插件方式扩展编译能力，包括 **AscendC 自定义算子
 可参考以下资料获取详细开发指南：
 
 * AscendC 自定义算子入图：[资料官网 ](https://www.hiascend.com/zh/document)搜索”算子入图（GE）开发“
-* 自定义 pass 开发：[融合Pass开发指南](../../examples/fusion_pass/融合Pass开发指南.md)
+* 自定义 pass 开发：[自定义融合 Pass](../../examples/fusion_pass/README.md)
 
 ## 项目结构
 
@@ -215,4 +215,3 @@ GE 支持通过插件方式扩展编译能力，包括 **AscendC 自定义算子
 ├── scripts                           # 打包脚本文件目录
 ├── tests                             # 开发者测试目录
 ```
-

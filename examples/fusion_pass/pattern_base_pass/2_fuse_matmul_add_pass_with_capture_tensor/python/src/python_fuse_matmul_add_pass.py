@@ -17,7 +17,6 @@ from ge.graph.node import Node
 from ge.passes import (
     PassStage,
     PatternFusionPass,
-    capture_tensor,
     create_pattern,
     create_replacement,
     register_fusion_pass,
@@ -73,13 +72,13 @@ class PythonFuseMatMulAndAddCaptureTensorPass(PatternFusionPass):
         matmul0 = MatMul(a0, b0)
         add0 = Add(matmul0, c0)
         pat0 = create_pattern(pattern_builder0.build_and_reset([add0]))
-        pat0.capture_tensor(capture_tensor(matmul0)).capture_tensor(capture_tensor(add0))
+        pat0.capture_tensor(matmul0).capture_tensor(add0)
         pattern_builder1 = GraphBuilder("pattern1")
         a1, b1, c1 = pattern_builder1.create_inputs(3)
         matmul1 = BatchMatMulV2(a1, b1)
         add1 = Add(matmul1, c1)
         pat1 = create_pattern(pattern_builder1.build_and_reset([add1]))
-        pat1.capture_tensor(capture_tensor(matmul1)).capture_tensor(capture_tensor(add1))
+        pat1.capture_tensor(matmul1).capture_tensor(add1)
         return [pat0, pat1]
 
     def meet_requirements(self, match_result):

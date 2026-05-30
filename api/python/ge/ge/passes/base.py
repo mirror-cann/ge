@@ -71,7 +71,8 @@ class PatternFusionPass(FusionBasePass):
 
     In a ``@pattern`` method, a list/tuple means multiple outputs of one
     pattern, not multiple patterns. Declare several ``@pattern`` methods for
-    a multiple-pattern pass.
+    a multiple-pattern pass. Expression-style patterns automatically capture
+    accessed inputs in input-index order, then returned outputs in return order.
     """
 
     def __init__(self, matcher_config: Optional[PatternMatcherConfig] = None) -> None:

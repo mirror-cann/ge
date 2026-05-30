@@ -457,7 +457,7 @@ GeApi.ge_finalize()
 
 ├── __init__.py      # 模块初始化，导出公共 API
 ├── base.py          # Pass 基类定义（FusionBasePass、PatternFusionPass、DecomposePass 等）
-├── pattern.py       # Pattern / NodeIo / capture_tensor 等模式匹配辅助接口
+├── pattern.py       # Pattern / NodeIo 等模式匹配辅助接口
 ├── replacement.py   # replacement graph 构建辅助接口
 ├── registry.py      # Pass 注册中心与装饰器
 ├── bootstrap.py     # 插件发现与加载
@@ -551,7 +551,6 @@ ge/passes/python_pass_artifacts/<python_tag>-<platform>/libge_python_pass_bridge
 - `Pattern(graph)` - 从 `ge.graph.Graph` 构造 pattern
 - `Pattern.capture_tensor(source, index=0)` - 记录 capture tensor
 - `Pattern.get_captured_tensors()` - 获取 capture 列表
-- `capture_tensor(source, index=0)` - 将 `Node` / `TensorHolder` / `NodeIo` 规范化为 `NodeIo`
 - `create_pattern(graph)` - 显式构造 `Pattern`
 - `PatternMatcherConfigBuilder.enable_const_value_match()` - 打开常量值匹配
 - `PatternMatcherConfigBuilder.enable_ir_attr_match()` - 打开 IR 属性匹配
@@ -695,6 +694,6 @@ ES (Eager-Style) 模块提供了函数式风格的图构建接口，详细文档
 
 ## 使用示例
 
-参考 [使用es的python api构图sample](../../../../examples/es/transformer/python/src/make_transformer_graph.py)
+参考 [使用es的python api构图sample](../../../examples/es/transformer/python/src/make_transformer_graph.py)
 
-更多示例请参考 [examples/es](../../../../examples/es) 目录下的 Python 用例。
+更多示例请参考 [examples/es](../../../examples/es) 目录下的 Python 用例。
