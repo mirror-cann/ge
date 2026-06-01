@@ -886,9 +886,6 @@ HcclResult HcomOpsKernelBuilder::CalcOpRunningResources(const ge::Node &node, st
     CHK_RET(PrepareSelectAivParam(const_cast<ge::Node &>(node), sCollectiveType, hcomComm, sGroupAiv, rankSize,
             count, counts, dataType, opType, reduction, aivCoreLimit)); 
     CHK_RET(HcceSelectAlgGraphMode(sGroupAiv.c_str(), count, dataType, reduction, opType, aivCoreLimit, &ifAiv, &pAlgName));
-    strncpy_s(algName, ALG_NAME_MAX_LEN, pAlgName, ALG_NAME_MAX_LEN - 1);
-    algName[ALG_NAME_MAX_LEN - 1] = '\0';
-    free(pAlgName);
 
     if (ifAiv) {
       HCCL_INFO("[HcomOpsKernelBuilder][HcomCalcOpRunningParam] Aiv mode no need for substream.");
