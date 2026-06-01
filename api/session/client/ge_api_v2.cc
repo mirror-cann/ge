@@ -53,6 +53,7 @@
 #include "exec_runtime/execution_runtime_utils.h"
 #include "base/err_msg.h"
 #include "common/memory/tensor_trans_utils.h"
+#include "graph/operator_factory_impl.h"
 
 namespace {
 constexpr int32_t kMaxStrLen = 128;
@@ -209,6 +210,9 @@ static Status GEInitializeImpl(const std::map<std::string, std::string> &options
   }
   GE_TIMESTAMP_EVENT_END(GEAPICheckSupportedGlobalOptions, "GEInitialize::GEAPICheckSupportedGlobalOptions");
 
+  //备份并清空注册信息map
+  OperatorFactoryImpl::BackupAndClearRegInfoOnce();
+
   // 2. init error ErrorManager
   Status ret = static_cast<uint32_t>(error_message::ErrMgrInit(error_message::ErrorMessageMode::INTERNAL_MODE));
   GE_ASSERT_SUCCESS(ret);
@@ -222,6 +226,9 @@ static Status GEInitializeImpl(const std::map<std::string, std::string> &options
 
   // 4. init OpsProto lib plugin
   GE_ASSERT_GRAPH_SUCCESS(OpLibRegistry::GetInstance().PreProcessForCustomOp());
+
+  // 加载顺序遵循3.0目录结构，按op_graph->op_impl->op_proto->framework顺序加载，详细规则见PluginManager::GetOpsProtoPath注释
+  gert::OppPackageUtils::LoadAllOppPackage();
   std::string opsproto_path;
   ret = PluginManager::GetOpsProtoPath(opsproto_path);
   if (ret != SUCCESS) {
@@ -240,7 +247,6 @@ static Status GEInitializeImpl(const std::map<std::string, std::string> &options
                          opsproto_path.c_str());
     return FAILED;
   }
-  gert::OppPackageUtils::LoadAllOppPackage();
   GE_ASSERT_SUCCESS(CustomPassHelper::Instance().Load());
 
   ge::GetContext().Init();
@@ -288,6 +294,8 @@ static Status GEInitializeImpl(const std::map<std::string, std::string> &options
     return ret;
   }
   GE_TIMESTAMP_EVENT_END(GeExecutorInitialize, "GeExecutor::Initialize");
+  // 将备份的注册信息低优先级merge到当前map
+  OperatorFactoryImpl::MergeBackupCreatorsOnce();
   // 7. init ge init status, first time calling initialize
   if (!g_ge_initialized) {
     g_ge_initialized = true;
