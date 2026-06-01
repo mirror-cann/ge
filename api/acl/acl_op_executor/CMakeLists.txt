@@ -55,8 +55,6 @@ target_include_directories(acl_op_executor_impl PRIVATE
     ${AIR_CODE_DIR}/inc/graph_metadef/external
     ${AIR_CODE_DIR}/inc/framework
     ${AIR_CODE_DIR}/base/metadef/pkg_inc
-    ${ASCEND_INSTALL_PATH}/include/external
-
 
     ${TOP_DIR}/air/inc/external
     ${TOP_DIR}/runtime/include/external
@@ -93,6 +91,7 @@ target_link_directories(acl_op_executor_impl PRIVATE
 
 target_link_libraries(acl_op_executor_impl PRIVATE
     $<BUILD_INTERFACE:intf_pub>
+    $<BUILD_INTERFACE:metadef_headers>
     $<$<NOT:$<BOOL:${ENABLE_OPEN_SRC}>>:$<BUILD_INTERFACE:slog_headers>>
     $<$<NOT:$<BOOL:${ENABLE_OPEN_SRC}>>:$<BUILD_INTERFACE:msprof_headers>>
     $<$<NOT:$<BOOL:${ENABLE_OPEN_SRC}>>:$<BUILD_INTERFACE:mmpa_headers>>
@@ -135,9 +134,6 @@ target_include_directories(acl_op_executor PRIVATE
     ${AIR_CODE_DIR}/inc/external
     ${AIR_CODE_DIR}/inc/external/acl
 
-    ${ASCEND_INSTALL_PATH}/include
-    ${ASCEND_INSTALL_PATH}/include/acl
-
     ${TOP_DIR}/air/inc/external
     ${TOP_DIR}/runtime/include/external
     ${TOP_DIR}/runtime/include/external/acl
@@ -172,6 +168,7 @@ target_link_directories(acl_op_executor PRIVATE
 
 target_link_libraries(acl_op_executor PRIVATE
     $<BUILD_INTERFACE:intf_pub>
+    $<BUILD_INTERFACE:runtime_headers>
     $<$<NOT:$<BOOL:${ENABLE_OPEN_SRC}>>:$<BUILD_INTERFACE:slog_headers>>
     $<$<NOT:$<BOOL:${ENABLE_OPEN_SRC}>>:$<BUILD_INTERFACE:msprof_headers>>
     $<$<NOT:$<BOOL:${ENABLE_OPEN_SRC}>>:$<BUILD_INTERFACE:mmpa_headers>>

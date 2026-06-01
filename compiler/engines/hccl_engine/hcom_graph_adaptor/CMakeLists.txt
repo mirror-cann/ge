@@ -125,7 +125,6 @@ if(BUILD_OPEN_PROJECT)
         ${CMAKE_CURRENT_SOURCE_DIR}/ge_plugin/auto_tuning
         ${CMAKE_CURRENT_SOURCE_DIR}/ge_plugin
         ${CMAKE_CURRENT_SOURCE_DIR}/ge_plugin/calculation_tool
-        ${ASCEND_INSTALL_PATH}/pkg_inc/dump
         ${CANN_3RD_LIB_PATH}/json/include
         ${AIR_CODE_DIR}/inc
         ${AIR_CODE_DIR}/inc/external
@@ -141,7 +140,6 @@ if(BUILD_OPEN_PROJECT)
         ${CMAKE_CURRENT_SOURCE_DIR}/ge_plugin/auto_tuning
         ${CMAKE_CURRENT_SOURCE_DIR}/ge_plugin
         ${CMAKE_CURRENT_SOURCE_DIR}/ge_plugin/calculation_tool
-        ${ASCEND_INSTALL_PATH}/pkg_inc/dump
         ${CANN_3RD_LIB_PATH}/json/include
         ${AIR_CODE_DIR}/inc
         ${AIR_CODE_DIR}/inc/external
@@ -157,7 +155,6 @@ if(BUILD_OPEN_PROJECT)
         ${CMAKE_CURRENT_SOURCE_DIR}/ge_plugin/auto_tuning
         ${CMAKE_CURRENT_SOURCE_DIR}/ge_plugin
         ${CMAKE_CURRENT_SOURCE_DIR}/ge_plugin/calculation_tool
-        ${ASCEND_INSTALL_PATH}/pkg_inc/dump
         ${CANN_3RD_LIB_PATH}/json/include
         ${AIR_CODE_DIR}/inc
         ${AIR_CODE_DIR}/inc/external
@@ -173,7 +170,6 @@ if(BUILD_OPEN_PROJECT)
         ${CMAKE_CURRENT_SOURCE_DIR}/ge_plugin/auto_tuning
         ${CMAKE_CURRENT_SOURCE_DIR}/ge_plugin
         ${CMAKE_CURRENT_SOURCE_DIR}/ge_plugin/calculation_tool
-        ${ASCEND_INSTALL_PATH}/pkg_inc/dump
         ${CANN_3RD_LIB_PATH}/json/include
         ${AIR_CODE_DIR}/inc
         ${AIR_CODE_DIR}/inc/external
@@ -183,6 +179,7 @@ if(BUILD_OPEN_PROJECT)
     #hcom_graph_adaptor依赖的so,链接选项
     target_link_libraries(hcom_graph_adaptor PRIVATE
         -Wl,--no-as-needed
+        adump_headers
         c_sec
         runtime
         mmpa
@@ -203,6 +200,7 @@ if(BUILD_OPEN_PROJECT)
     #hcom_executor依赖的so,链接选项
     target_link_libraries(hcom_executor PRIVATE
         -Wl,--no-as-needed
+        adump_headers
         c_sec
         runtime
         mmpa
@@ -221,6 +219,7 @@ if(BUILD_OPEN_PROJECT)
     #hcom_opskernel_builder依赖的so,链接选项
     target_link_libraries(hcom_opskernel_builder PRIVATE
         -Wl,--no-as-needed
+        adump_headers
         c_sec
         runtime
         mmpa
@@ -239,6 +238,7 @@ if(BUILD_OPEN_PROJECT)
     #hcom_gradtune_opskernel_builder依赖的so,链接选项
     target_link_libraries(hcom_gradtune_opskernel_builder PRIVATE
         -Wl,--no-as-needed
+        adump_headers
         c_sec
         runtime
         mmpa

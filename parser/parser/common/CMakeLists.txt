@@ -62,7 +62,6 @@ target_include_directories(parser_common PRIVATE
     ${AIR_CODE_DIR}/parser/parser
     ${CMAKE_BINARY_DIR}
     ${CMAKE_BINARY_DIR}/proto/parser_protos
-    ${ASCEND_INSTALL_PATH}/include/graph
 )
 
 target_link_options(parser_common PRIVATE

@@ -49,7 +49,6 @@ if (${TARGET_SYSTEM_NAME} STREQUAL "Linux")
             ${TOP_DIR}/runtime/src/acl/aclrt_c/common
             ${TOP_DIR}/runtime/pkg_inc/base
         else()
-            $<$<BOOL:${ENABLE_OPEN_SRC}>:${ASCEND_INSTALL_PATH}/include>
             $<$<BOOL:${ENABLE_OPEN_SRC}>:${ASCEND_INSTALL_PATH}/include/experiment>
             $<$<BOOL:${ENABLE_OPEN_SRC}>:${CANN_GE_DIR}/inc>
             $<$<BOOL:${ENABLE_OPEN_SRC}>:${ASCEND_OPENSDK_DIR}/include/runtime>
@@ -81,6 +80,7 @@ if (${TARGET_SYSTEM_NAME} STREQUAL "Linux")
 
     target_link_libraries(${ASCENDCL_C_COMPILE_TARGET} PRIVATE
         $<BUILD_INTERFACE:intf_pub>
+        $<BUILD_INTERFACE:runtime_headers>
         c_base_headers
         c_sec_headers
         -Wl,--no-as-needed
@@ -113,7 +113,6 @@ elseif (${TARGET_SYSTEM_NAME} STREQUAL "LiteOS")
             ${TOP_DIR}/inc/external
             ${TOP_DIR}/runtime/src/acl/aclrt_c/common
         else()
-            $<$<BOOL:${ENABLE_OPEN_SRC}>:${ASCEND_INSTALL_PATH}/include>
             $<$<BOOL:${ENABLE_OPEN_SRC}>:${ASCEND_INSTALL_PATH}/include/experiment>
             $<$<BOOL:${ENABLE_OPEN_SRC}>:${CANN_GE_DIR}/inc>
             $<$<BOOL:${ENABLE_OPEN_SRC}>:${ASCEND_OPENSDK_DIR}/include/runtime>
@@ -146,6 +145,7 @@ elseif (${TARGET_SYSTEM_NAME} STREQUAL "LiteOS")
 
     target_link_libraries(${ASCENDCL_C_COMPILE_TARGET} PRIVATE
         $<BUILD_INTERFACE:intf_pub>
+        $<BUILD_INTERFACE:runtime_headers>
         c_base_headers
         c_sec_headers
         -Wl,--no-as-needed

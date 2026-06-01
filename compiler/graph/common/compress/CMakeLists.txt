@@ -20,8 +20,7 @@ add_library(compress SHARED
         ${FE_SRC_CPP_1})
 
 target_include_directories(compress PRIVATE
-        ${CMAKE_CURRENT_LIST_DIR}/inc
-        ${ASCEND_INSTALL_PATH}/include)
+        ${CMAKE_CURRENT_LIST_DIR}/inc)
 
 target_compile_options(compress PRIVATE
         $<$<COMPILE_LANGUAGE:CXX>:-std=c++11>
@@ -32,6 +31,7 @@ target_compile_options(compress PRIVATE
 
 target_link_libraries(compress
         PRIVATE
+                runtime_headers
                 intf_pub
                 -Wl,--no-as-needed
                 c_sec
@@ -57,8 +57,7 @@ set_target_properties(compress_static
         OUTPUT_NAME compress)
 
 target_include_directories(compress_static PRIVATE
-        ${CMAKE_CURRENT_LIST_DIR}/inc
-        ${ASCEND_INSTALL_PATH}/include)
+        ${CMAKE_CURRENT_LIST_DIR}/inc)
 
 target_compile_options(compress_static PRIVATE
         $<$<COMPILE_LANGUAGE:CXX>:-std=c++11>
@@ -68,6 +67,7 @@ target_compile_options(compress_static PRIVATE
         )
 
 target_link_libraries(compress_static PRIVATE
+        $<BUILD_INTERFACE:runtime_headers>
         $<BUILD_INTERFACE:intf_pub>
         -Wl,--no-as-needed
         c_sec
@@ -83,8 +83,7 @@ add_library(compressweight SHARED
         ${FE_SRC_CPP_2})
 
 target_include_directories(compressweight PRIVATE
-        ${CMAKE_CURRENT_LIST_DIR}/inc
-        ${ASCEND_INSTALL_PATH}/include)
+        ${CMAKE_CURRENT_LIST_DIR}/inc)
 
 target_compile_options(compressweight PRIVATE
         $<$<COMPILE_LANGUAGE:CXX>:-std=c++11>
@@ -94,6 +93,7 @@ target_compile_options(compressweight PRIVATE
         )
 
 target_link_libraries(compressweight PRIVATE
+        $<BUILD_INTERFACE:runtime_headers>
         $<BUILD_INTERFACE:intf_pub>
         -Wl,--no-as-needed
         c_sec
@@ -110,8 +110,7 @@ set_target_properties(compressweight_static
         OUTPUT_NAME compressweight)
 
 target_include_directories(compressweight_static PRIVATE
-        ${CMAKE_CURRENT_LIST_DIR}/inc
-        ${ASCEND_INSTALL_PATH}/include)
+        ${CMAKE_CURRENT_LIST_DIR}/inc)
 
 target_compile_options(compressweight_static PRIVATE
         $<$<COMPILE_LANGUAGE:CXX>:-std=c++11>
@@ -121,6 +120,7 @@ target_compile_options(compressweight_static PRIVATE
         )
 
 target_link_libraries(compressweight_static PRIVATE
+        $<BUILD_INTERFACE:runtime_headers>
         $<BUILD_INTERFACE:intf_pub>
         -Wl,--no-as-needed
         c_sec

@@ -130,12 +130,6 @@ target_include_directories(acl_mdl_impl_om2 PRIVATE
     ${AIR_CODE_DIR}/base/metadef/pkg_inc
     ${AIR_CODE_DIR}/inc/framework
 
-    ${ASCEND_INSTALL_PATH}/pkg_inc/common
-    ${ASCEND_INSTALL_PATH}/pkg_inc/runtime
-    ${ASCEND_INSTALL_PATH}/pkg_inc/runtime/runtime
-    ${ASCEND_INSTALL_PATH}/include/external
-    ${ASCEND_INSTALL_PATH}/include/external/ge_common
-
     ${TOP_DIR}/air/inc
     ${TOP_DIR}/air/inc/framework
     ${TOP_DIR}/air/inc/external
@@ -173,7 +167,8 @@ target_link_libraries(acl_mdl_impl_om2 PRIVATE
     $<$<NOT:$<BOOL:${ENABLE_OPEN_SRC}>>:$<BUILD_INTERFACE:slog_headers>>
     $<$<NOT:$<BOOL:${ENABLE_OPEN_SRC}>>:$<BUILD_INTERFACE:msprof_headers>>
     $<$<NOT:$<BOOL:${ENABLE_OPEN_SRC}>>:$<BUILD_INTERFACE:mmpa_headers>>
-    $<$<NOT:$<BOOL:${ENABLE_OPEN_SRC}>>:$<BUILD_INTERFACE:runtime_headers>>
+    $<BUILD_INTERFACE:runtime_headers>
+    $<$<BOOL:${ENABLE_OPEN_SRC}>:$<BUILD_INTERFACE:metadef_headers>>
     -Wl,--whole-archive
     -Wl,--no-whole-archive
     -Wl,--no-as-needed
@@ -200,7 +195,6 @@ target_include_directories(acl_mdl PRIVATE
     ${AIR_CODE_DIR}/inc/graph_metadef
     ${AIR_CODE_DIR}/inc/external
     ${AIR_CODE_DIR}/inc/external/acl
-
     ${TOP_DIR}/air/inc/external
     ${TOP_DIR}/air/inc/external/acl
     ${TOP_DIR}/runtime/include/external

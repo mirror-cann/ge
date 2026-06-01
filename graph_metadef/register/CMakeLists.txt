@@ -113,7 +113,6 @@ target_include_directories(register PRIVATE
     ${AIR_CODE_DIR}/inc
     ${AIR_CODE_DIR}/inc/graph_metadef
     ${CMAKE_BINARY_DIR}/proto/metadef_protos
-    ${ASCEND_INSTALL_PATH}/include/graph
     ${TOP_DIR}/runtime/pkg_inc
     ${TOP_DIR}/metadef/inc
     ${TOP_DIR}/runtime/include/external
@@ -180,7 +179,6 @@ target_compile_definitions(register_static PRIVATE
 target_include_directories(register_static PUBLIC
     ${TOP_DIR}/runtime/include/external
     ${TOP_DIR}/runtime/include/external/acl
-    ${ASCEND_INSTALL_PATH}/include/base
     ${AIR_CODE_DIR}/inc
     ${AIR_CODE_DIR}/inc/graph_metadef
     ${TOP_DIR}/ace/npuruntime/runtime/platform/inc
