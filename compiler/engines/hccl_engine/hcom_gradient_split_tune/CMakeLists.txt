@@ -31,11 +31,6 @@ if(BUILD_OPEN_PROJECT)
     target_include_directories(hcom_gradient_split_tune  PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/inc
         ${CMAKE_CURRENT_SOURCE_DIR}/../inc
-        ${ASCEND_INSTALL_PATH}/include
-        ${ASCEND_INSTALL_PATH}/include/hccl
-        ${ASCEND_INSTALL_PATH}/pkg_inc
-        ${ASCEND_INSTALL_PATH}/pkg_inc/hccl
-        ${ASCEND_INSTALL_PATH}/pkg_inc/base
         ${ASCEND_INSTALL_PATH}/include/msprof
         ${ASCEND_INSTALL_PATH}/include/slog/toolchain
         ${CANN_3RD_LIB_PATH}/json/include
@@ -43,13 +38,15 @@ if(BUILD_OPEN_PROJECT)
         ${AIR_CODE_DIR}/inc/graph_metadef
         ${METADEF_DIR}/inc
     )
- 
+
     target_link_directories(hcom_gradient_split_tune PRIVATE
         ${ASCEND_INSTALL_PATH}/lib
     )
- 
+
     target_link_libraries(hcom_gradient_split_tune   PRIVATE
         -Wl,--no-as-needed
+        hccl_headers
+        slog_headers
         mmpa
         platform
         c_sec

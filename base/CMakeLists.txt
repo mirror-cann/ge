@@ -223,7 +223,6 @@ target_link_options(ge_common PRIVATE
     -Wl,-Bsymbolic
 )
 
-
 target_link_libraries(ge_common
     PRIVATE
         intf_pub
@@ -293,7 +292,6 @@ target_include_directories(ge_common_base PRIVATE
 target_link_options(ge_common_base PRIVATE
     -Wl,-Bsymbolic
 )
-
 
 target_link_libraries(ge_common_base
     PRIVATE
@@ -481,7 +479,6 @@ target_include_directories(ge_common_base PRIVATE
     ${CMAKE_BINARY_DIR}
     ${CMAKE_BINARY_DIR}/proto/graphengine_protos
     ${ASCGEN_DIR}/inc
-    ${ASCEND_INSTALL_PATH}/include/experiment/runtime
     ${TOP_DIR}/air/inc/external
     ${TOP_DIR}/runtime/include/external
     ${TOP_DIR}/runtime/include/external/acl
