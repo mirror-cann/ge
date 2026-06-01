@@ -357,6 +357,152 @@ TEST_F(OpCompileContextUT, GetDynamicInputTensorOutOfRange) {
   EXPECT_EQ(context->GetDynamicInputTensor(2U, 0U), nullptr);
 }
 
+TEST_F(OpCompileContextUT, GetOutputTensorSuccess) {
+  ge::OpDescPtr op_desc = std::make_shared<ge::OpDesc>("test0", "test1");
+  op_desc->AddInputDesc("x", ge::GeTensorDesc());
+  ge::GeTensorDesc output_desc(ge::GeShape({8, 16}), ge::FORMAT_ND, ge::DT_INT32);
+  output_desc.SetOriginFormat(ge::FORMAT_NCHW);
+  op_desc->AddOutputDesc("y", output_desc);
+
+  gert::Tensor output_tensor(gert::StorageShape({8, 16}, {8, 16}),
+                             {ge::FORMAT_NCHW, ge::FORMAT_ND, gert::ExpandDimsType()},
+                             ge::DT_INT32);
+  ge::graphStatus ret = ge::GRAPH_FAILED;
+  auto holder = KernelRunContextBuilder().Outputs({&output_tensor}).Build(op_desc, ret);
+  ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
+
+  auto *context = reinterpret_cast<OpCompileContext *>(holder.GetKernelContext());
+  ASSERT_NE(context, nullptr);
+  const auto *tensor = context->GetOutputTensor(0U);
+  ASSERT_NE(tensor, nullptr);
+  EXPECT_EQ(tensor, &output_tensor);
+  EXPECT_EQ(tensor->GetShape().GetStorageShape(), gert::Shape({8, 16}));
+  EXPECT_EQ(tensor->GetShape().GetOriginShape(), gert::Shape({8, 16}));
+  EXPECT_EQ(tensor->GetOriginFormat(), ge::FORMAT_NCHW);
+  EXPECT_EQ(tensor->GetStorageFormat(), ge::FORMAT_ND);
+  EXPECT_EQ(tensor->GetDataType(), ge::DT_INT32);
+}
+
+TEST_F(OpCompileContextUT, GetOutputTensorOutOfRange) {
+  ge::OpDescPtr op_desc = std::make_shared<ge::OpDesc>("test0", "test1");
+  op_desc->AddInputDesc("x", ge::GeTensorDesc());
+  op_desc->AddOutputDesc("y", ge::GeTensorDesc());
+
+  gert::Tensor output_tensor(gert::StorageShape({8, 16}, {8, 16}),
+                             {ge::FORMAT_NCHW, ge::FORMAT_ND, gert::ExpandDimsType()},
+                             ge::DT_INT32);
+  ge::graphStatus ret = ge::GRAPH_FAILED;
+  auto holder = KernelRunContextBuilder().Outputs({&output_tensor}).Build(op_desc, ret);
+  ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
+
+  auto *context = reinterpret_cast<OpCompileContext *>(holder.GetKernelContext());
+  ASSERT_NE(context, nullptr);
+  EXPECT_EQ(context->GetOutputTensor(1U), nullptr);
+}
+
+TEST_F(OpCompileContextUT, GetRequiredOutputTensorSuccess) {
+  gert::Tensor output_tensor_0 = {{{8, 16}, {8, 16}},
+                                  {ge::FORMAT_NCHW, ge::FORMAT_ND, {}},
+                                  ge::DT_FLOAT16};
+  gert::Tensor output_tensor_1 = {{{16, 16}, {16, 16}},
+                                  {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},
+                                  ge::DT_INT32};
+
+  auto holder = KernelRunContextFaker()
+                    .IrOutputInstanceNum({1, 1})
+                    .KernelIONum(0, 2)
+                    .NodeIoNum(0, 2)
+                    .NodeOutputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_ND)
+                    .NodeOutputTd(1, ge::DT_INT32, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ)
+                    .Outputs({&output_tensor_0, &output_tensor_1})
+                    .Build();
+
+  auto *context = holder.GetContext<OpCompileContext>();
+  ASSERT_NE(context, nullptr);
+  ASSERT_NE(context->GetRequiredOutputTensor(0U), nullptr);
+  EXPECT_EQ(context->GetRequiredOutputTensor(0U), &output_tensor_0);
+  EXPECT_EQ(context->GetRequiredOutputTensor(0U)->GetShape().GetStorageShape(), gert::Shape({8, 16}));
+  EXPECT_EQ(context->GetRequiredOutputTensor(0U)->GetOriginFormat(), ge::FORMAT_NCHW);
+  EXPECT_EQ(context->GetRequiredOutputTensor(0U)->GetStorageFormat(), ge::FORMAT_ND);
+  EXPECT_EQ(context->GetRequiredOutputTensor(0U)->GetDataType(), ge::DT_FLOAT16);
+  ASSERT_NE(context->GetRequiredOutputTensor(1U), nullptr);
+  EXPECT_EQ(context->GetRequiredOutputTensor(1U), &output_tensor_1);
+  EXPECT_EQ(context->GetRequiredOutputTensor(1U)->GetStorageFormat(), ge::FORMAT_FRACTAL_NZ);
+  EXPECT_EQ(context->GetRequiredOutputTensor(1U)->GetDataType(), ge::DT_INT32);
+}
+
+TEST_F(OpCompileContextUT, GetRequiredOutputTensorOutOfRange) {
+  gert::Tensor output_tensor = {{{8, 16}, {8, 16}},
+                                {ge::FORMAT_NCHW, ge::FORMAT_ND, {}},
+                                ge::DT_FLOAT16};
+
+  auto holder = KernelRunContextFaker()
+                    .IrOutputInstanceNum({1})
+                    .KernelIONum(0, 1)
+                    .NodeIoNum(0, 1)
+                    .NodeOutputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_ND)
+                    .Outputs({&output_tensor})
+                    .Build();
+
+  auto *context = holder.GetContext<OpCompileContext>();
+  ASSERT_NE(context, nullptr);
+  EXPECT_EQ(context->GetRequiredOutputTensor(1U), nullptr);
+}
+
+TEST_F(OpCompileContextUT, GetDynamicOutputTensorSuccess) {
+  gert::Tensor output_tensor_0 = {{{8, 16}, {8, 16}},
+                                  {ge::FORMAT_NCHW, ge::FORMAT_ND, {}},
+                                  ge::DT_FLOAT16};
+  gert::Tensor output_tensor_1 = {{{16, 16}, {16, 16}},
+                                  {ge::FORMAT_ND, ge::FORMAT_ND, {}},
+                                  ge::DT_FLOAT};
+  gert::Tensor output_tensor_2 = {{{32, 16}, {32, 16}},
+                                  {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},
+                                  ge::DT_INT32};
+
+  auto holder = KernelRunContextFaker()
+                    .IrOutputInstanceNum({1, 2})
+                    .KernelIONum(0, 3)
+                    .NodeIoNum(0, 3)
+                    .NodeOutputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_ND)
+                    .NodeOutputTd(1, ge::DT_FLOAT, ge::FORMAT_ND, ge::FORMAT_ND)
+                    .NodeOutputTd(2, ge::DT_INT32, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ)
+                    .Outputs({&output_tensor_0, &output_tensor_1, &output_tensor_2})
+                    .Build();
+
+  auto *context = holder.GetContext<OpCompileContext>();
+  ASSERT_NE(context, nullptr);
+  ASSERT_NE(context->GetDynamicOutputTensor(1U, 0U), nullptr);
+  EXPECT_EQ(context->GetDynamicOutputTensor(1U, 0U), &output_tensor_1);
+  ASSERT_NE(context->GetDynamicOutputTensor(1U, 1U), nullptr);
+  EXPECT_EQ(context->GetDynamicOutputTensor(1U, 1U), &output_tensor_2);
+  EXPECT_EQ(context->GetDynamicOutputTensor(1U, 1U)->GetStorageFormat(), ge::FORMAT_FRACTAL_NZ);
+  EXPECT_EQ(context->GetDynamicOutputTensor(1U, 1U)->GetDataType(), ge::DT_INT32);
+}
+
+TEST_F(OpCompileContextUT, GetDynamicOutputTensorOutOfRange) {
+  gert::Tensor output_tensor_0 = {{{8, 16}, {8, 16}},
+                                  {ge::FORMAT_NCHW, ge::FORMAT_ND, {}},
+                                  ge::DT_FLOAT16};
+  gert::Tensor output_tensor_1 = {{{16, 16}, {16, 16}},
+                                  {ge::FORMAT_ND, ge::FORMAT_ND, {}},
+                                  ge::DT_FLOAT};
+
+  auto holder = KernelRunContextFaker()
+                    .IrOutputInstanceNum({1, 1})
+                    .KernelIONum(0, 2)
+                    .NodeIoNum(0, 2)
+                    .NodeOutputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_ND)
+                    .NodeOutputTd(1, ge::DT_FLOAT, ge::FORMAT_ND, ge::FORMAT_ND)
+                    .Outputs({&output_tensor_0, &output_tensor_1})
+                    .Build();
+
+  auto *context = holder.GetContext<OpCompileContext>();
+  ASSERT_NE(context, nullptr);
+  EXPECT_EQ(context->GetDynamicOutputTensor(1U, 1U), nullptr);
+  EXPECT_EQ(context->GetDynamicOutputTensor(2U, 0U), nullptr);
+}
+
 TEST_F(OpCompileContextUT, GetPlatformInfosSuccess) {
   OpCompileContext context;
   fe::PlatFormInfos platform_info;

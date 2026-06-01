@@ -36,6 +36,39 @@ const Tensor *OpCompileContext::GetDynamicInputTensor(size_t ir_index, size_t re
   return GetDynamicInputPointer<Tensor>(ir_index, relative_index);
 }
 
+const Tensor *OpCompileContext::GetOutputTensor(size_t index) const {
+  const auto compute_node_info = GetComputeNodeInfo();
+  if (compute_node_info == nullptr) {
+    return nullptr;
+  }
+  if (index >= compute_node_info->GetOutputsNum()) {
+    return nullptr;
+  }
+  return GetOutputPointer<Tensor>(index);
+}
+
+const Tensor *OpCompileContext::GetRequiredOutputTensor(size_t ir_index) const {
+  const auto ins_info = GetIrOutputInstanceInfo(ir_index);
+  if (ins_info == nullptr) {
+    return nullptr;
+  }
+  if (ins_info->GetInstanceNum() == 0U) {
+    return nullptr;
+  }
+  return GetOutputPointer<Tensor>(ins_info->GetInstanceStart());
+}
+
+const Tensor *OpCompileContext::GetDynamicOutputTensor(size_t ir_index, size_t relative_index) const {
+  const auto ins_info = GetIrOutputInstanceInfo(ir_index);
+  if (ins_info == nullptr) {
+    return nullptr;
+  }
+  if (ins_info->GetInstanceNum() <= relative_index) {
+    return nullptr;
+  }
+  return GetOutputPointer<Tensor>(ins_info->GetInstanceStart() + relative_index);
+}
+
 ge::graphStatus OpCompileContext::GetOption(const ge::AscendString &option_key, ge::AscendString &option) const {
   std::string option_str;
   const auto ret = ge::GetContext().GetOption(option_key.GetString(), option_str);

@@ -53,8 +53,9 @@ export ASCEND_GE_PY_PASS_PATH=/path/to/pass1.py:/path/to/pass_dir2/
 
 ## 使用示例
 
-完整的 Python Pass 开发和使用示例请参考 [examples/fusion_pass](../../../examples/fusion_pass/) 目录，涵盖 
-`FusionBasePass`、`PatternFusionPass`、`DecomposePass` 等Pass 的开发示例。
+Python Pass 开发步骤请参考 [Python 融合 Pass 开发指南](../../../examples/fusion_pass/python_fusion_pass_development_guide.md)。
+完整样例请参考 [examples/fusion_pass](../../../examples/fusion_pass/) 目录，涵盖
+`FusionBasePass`、`PatternFusionPass`、`DecomposePass` 等 Pass 的开发示例。
 
 ## 扫描规则详解
 

@@ -11,6 +11,7 @@
 #ifndef ACL_TYPES_OP_ATTR_H_
 #define ACL_TYPES_OP_ATTR_H_
 
+#include "acl/acl_base_rt.h"
 #include "graph/op_desc.h"
 #include "common/log_inner.h"
 #include "utils/array_utils.h"

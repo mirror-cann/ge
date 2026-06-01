@@ -22,3 +22,5 @@ set(CMAKE_SKIP_BUILD_RPATH TRUE)
 set(CMAKE_SKIP_INSTALL_RPATH TRUE)
 
 add_subdirectory(../../dflow/udf/cmake/device dflow/udf/cmake/device)
+
+set_cann_subprj_package()

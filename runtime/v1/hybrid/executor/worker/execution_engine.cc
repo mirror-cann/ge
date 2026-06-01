@@ -192,7 +192,7 @@ Status NodeDoneCallback::DumpDynamicNode() {
   auto timeout = (!stream_synchronize_timeout.empty())
                      ? static_cast<int32_t>(std::strtol(stream_synchronize_timeout.c_str(), nullptr, 10))
                      : kDefaultTimeOut;
-  const auto rt_ret = rtStreamSynchronizeWithTimeout(stream, timeout);
+  const auto rt_ret = aclrtSynchronizeStreamWithTimeout(stream, timeout);
   if (rt_ret == ACL_ERROR_RT_STREAM_SYNC_TIMEOUT) {
     GELOGE(rt_ret, "[Invoke][rtStreamSynchronizeWithTimeout] failed, ret:%d.", rt_ret);
     REPORT_INNER_ERR_MSG("E19999", "rtStreamSynchronizeWithTimeout failed, ret:%d.", rt_ret);

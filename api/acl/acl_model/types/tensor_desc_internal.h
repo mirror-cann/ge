@@ -18,7 +18,7 @@
 #include "graph/ge_attr_value.h"
 #include "graph/small_vector.h"
 #include "graph/ascend_limits.h"
-#include "acl/acl_base.h"
+#include "acl/acl_base_rt.h"
 
 namespace acl {
     constexpr int64_t UNKNOW_DIM = -1;

@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from ge.graph import Graph, Node
     from ge.passes.pattern import NodeIo
+    from ge.es.tensor_holder import TensorHolder
 
 __all__: list[str] = [
     "MatchResult",
@@ -140,15 +141,16 @@ class Pattern:
     - ``release()`` hands the native ``Pattern*`` to the C++ pipeline; afterwards
       ``is_valid()`` is ``False`` and methods other than ``is_valid`` / ``release`` raise
       ``RuntimeError``.
-    - ``capture_tensor`` accepts a ``Node`` plus ``index``, or a ``NodeIo``-like object
-      (attributes ``node`` / ``index``) with ``index`` argument left as ``None``.
+    - ``capture_tensor`` accepts a ``TensorHolder`` / ``Node`` plus ``index``, or a
+      ``NodeIo``-like object (attributes ``node`` / ``index``) with ``index`` argument
+      left as ``None``.
 
     **Example**
 
         from ge.passes import create_pattern
 
         pat = create_pattern(pattern_builder.build_and_reset())
-        pat.capture_tensor(matmul_node, 0)
+        pat.capture_tensor(matmul)
         native_handle = pat.release()
 
         For more, see https://gitcode.com/cann/ge/tree/master/examples/fusion_pass
@@ -159,7 +161,7 @@ class Pattern:
         """Construct from a pattern graph (the original ``graph`` handle is invalidated)."""
         ...
 
-    def capture_tensor(self, source: Node | NodeIo, index: int | None = None) -> Pattern:
+    def capture_tensor(self, source: TensorHolder | Node | NodeIo, index: int | None = None) -> Pattern:
         """Record a captured tensor for lookup by index in ``replacement``.
 
         Returns ``self`` for chaining.

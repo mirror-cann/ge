@@ -28,7 +28,6 @@ cmake_print_variables(USE_CXX11_ABI)
 cmake_print_variables(CMAKE_TOOLCHAIN_FILE)
 cmake_print_variables(LLVM_PATH)
 cmake_print_variables(CMAKE_MODULE_PATH)
-
 if(ENABLE_BUILD_DEVICE)
     # 非MDC编译流程
     set(USE_CXX11_ABI 0)
@@ -60,85 +59,68 @@ if(CCACHE_PROGRAM)
     set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE_PROGRAM})
 endif(CCACHE_PROGRAM)
 
-if (NOT DEFINED CMAKE_PREFIX_PATH)
-    set(CMAKE_PREFIX_PATH
-        ${CANN_3RD_LIB_PATH}/protoc
-        ${CANN_3RD_LIB_PATH}/protobuf_static
-        ${CANN_3RD_LIB_PATH}/ascend_protobuf
-        ${CANN_3RD_LIB_PATH}/ascend_protobuf_static
-    )
-endif()
-
 message(STATUS "[ThirdPartyLib][${CMAKE_BUILD_COMPONENT}] third-party process")
 if(CMAKE_BUILD_COMPONENT STREQUAL "ge-compiler")
+    add_cann_third_party(protobuf)
     add_cann_third_party(json)
     add_cann_third_party(openssl)
     add_cann_third_party(abseil-cpp)
-    find_package(protoc MODULE REQUIRED)
-    find_package(ascend_protobuf_shared MODULE REQUIRED)
-    find_package(ascend_protobuf_static MODULE REQUIRED)
     add_cann_third_party(boost)
     add_cann_third_party(symengine)
     add_cann_third_party(zlib)
     set(selected_targets
-        ascend_protobuf_build
-        ascend_protobuf_static_build
+        protobuf_shared_build
+        protobuf_static_build
         third_party_json
         openssl_project
-        protoc_build
+        protobuf_host_build
         third_party_boost
         symengine_build
         zlib_bin_build
     )
 elseif(CMAKE_BUILD_COMPONENT STREQUAL "ge-executor")
-    include(build/modules/grpc.cmake)
+    add_cann_third_party(protobuf)
+    add_cann_third_party(grpc)
     add_cann_third_party(abseil-cpp)
-    find_package(protobuf_static MODULE REQUIRED)
     add_cann_third_party(cares)
     add_cann_third_party(re2)
     add_cann_third_party(zlib)
     add_cann_third_party(openssl)
-    find_package(ascend_protobuf_shared MODULE REQUIRED)
-    find_package(ascend_protobuf_static MODULE REQUIRED)
     add_cann_third_party(json)
-    find_package(protoc MODULE REQUIRED)
     add_cann_third_party(boost)
     add_cann_third_party(symengine)
     set(selected_targets
-        ascend_protobuf_build
-        ascend_protobuf_static_build
+        protobuf_shared_build
+        protobuf_static_build
         grpc_build
         third_party_json
-        protobuf_static_build
-        protoc_build
+        protobuf_host_static_build
+        protobuf_host_build
         protoc_grpc_build
         zlib_bin_build
         third_party_boost
         symengine_build
     )
 else()
-    include(build/modules/grpc.cmake)
+    add_cann_third_party(protobuf)
+    add_cann_third_party(grpc)
     add_cann_third_party(abseil-cpp)
-    find_package(protobuf_static MODULE REQUIRED)
     add_cann_third_party(cares)
     add_cann_third_party(re2)
     add_cann_third_party(zlib)
     add_cann_third_party(openssl)
     add_cann_third_party(boost)
     add_cann_third_party(symengine)
-    find_package(ascend_protobuf_shared MODULE REQUIRED)
-    find_package(ascend_protobuf_static MODULE REQUIRED)
     add_cann_third_party(json)
-    find_package(protoc MODULE REQUIRED)
     # abseil_build,cares_build,re2_build只在被依赖时编译,不主动编译
     set(selected_targets
-        ascend_protobuf_build
-        ascend_protobuf_static_build
+        protobuf_shared_build
+        protobuf_static_build
         grpc_build
         third_party_json
         openssl_project
-        protobuf_static_build
-        protoc_build
+        protobuf_host_static_build
+        protobuf_host_build
         protoc_grpc_build
         zlib_bin_build
         third_party_boost
@@ -167,6 +149,4 @@ foreach(dep ${selected_targets})
     endif()
 endforeach()
 
-install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/scripts/modules
-        DESTINATION ${CANN_3RD_LIB_PATH}/cmake
-)
+install(CODE "message(STATUS \"ThirdParty install completed\")")

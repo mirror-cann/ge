@@ -17,6 +17,7 @@
 #include "types/op_model.h"
 #include "framework/runtime/model_v2_executor.h"
 #include "framework/runtime/stream_executor.h"
+#include "acl/acl_base_rt.h"
 
 namespace acl {
 class OpModelCache {

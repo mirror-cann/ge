@@ -2,8 +2,8 @@
 
 本目录提供 `pattern_base_pass/2_fuse_matmul_add_pass_with_capture_tensor` 的 **纯 Python** 版本示例，逻辑与 C++ [`FuseMatMulAndAddPass`](../cpp/src/fuse_matmul_add_pass.cpp)（capture tensor 样例）一致。
 
-- **Pattern 0**：`MatMul(a, b)` → `Add(..., c)`，图输入 `0/1/2` 对应 `a/b/c`；在模式图上按序 `capture_tensor`：**MatMul 输出**、**Add 输出**（与 C++ `CaptureTensor` 顺序一致）
-- **Pattern 1**：`BatchMatMulV2(a, b)` → `Add(..., c)`，同上三输入拓扑及相同 `capture_tensor` 顺序
+- **Pattern 0**：`MatMul(a, b)` → `Add(..., c)`，图输入 `0/1/2` 对应 `a/b/c`；在模式图上按序调用 `Pattern.capture_tensor`：**MatMul 输出**、**Add 输出**（与 C++ `CaptureTensor` 顺序一致）
+- **Pattern 1**：`BatchMatMulV2(a, b)` → `Add(..., c)`，同上三输入拓扑及相同 `Pattern.capture_tensor` 顺序
 - **MeetRequirements**：对匹配到的 **Add** 的两路输入通过 `get_input_desc(index)` 读取 TensorDesc 并做 **FP32（`DT_FLOAT`）** 校验；不满足时打印 `Only support Add inputs are fp32` 并返回 `False`（与 C++ 行为一致）
 - **Replacement**：`GEMM(r_a, r_b, r_c, alpha=1, beta=1, transpose_a, transpose_b)`（标量 `1.0` 对齐 C++ `CreateScalar(1)`）；`transpose_a` / `transpose_b` 由匹配到的 MatMul / BatchMatMul 节点属性推导（优先 `transpose_x1` / `transpose_x2`，`BatchMatMulV2` 可回退 `adj_x1` / `adj_x2`）
 - 继承 **`PatternFusionPass`**，实现 `patterns()` / `meet_requirements()` / `replacement()`；阶段为 **`BeforeInferShape`**

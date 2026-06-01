@@ -131,10 +131,10 @@ target_link_libraries(udf_executor PRIVATE
     mmpa
     ascend_hal_stub
     $<$<STREQUAL:${PRODUCT_SIDE},device>:stackcore>
-    udf_dump
     -Wl,--whole-archive
     udf_static
     -Wl,--no-whole-archive
+    udf_dump
     -ldl
     $<$<STREQUAL:${PRODUCT_SIDE},device>:seccomp_stub>
 )

@@ -31,17 +31,17 @@ ge::graphStatus InitIOInstanceInfo(const ge::NodePtr &node, ComputeNodeInfo &com
   if (in_ir_index_to_instance_index_pair_map.empty()) {
     GELOGI("node [%s(%s)] ir_index_to_instance_index_pair_map is empty",
            node->GetNamePtr(), node->GetTypePtr());
-    return ge::GRAPH_SUCCESS;
-  }
-  const auto &ir_inputs = op_desc->GetIrInputs();
-  size_t input_index = 0;
-  for (size_t i = 0; i < ir_inputs.size(); ++i) {
-    auto ins_info = compute_node_info.MutableInputInstanceInfo(i);
-    GE_ASSERT_NOTNULL(ins_info);
-    size_t instance_num = in_ir_index_to_instance_index_pair_map[i].second;
-    compute_node_info.MutableInputInstanceInfo(i)->SetInstantiationNum(instance_num);
-    compute_node_info.MutableInputInstanceInfo(i)->SetInstanceStart(input_index);
-    input_index += instance_num;
+  } else {
+    const auto &ir_inputs = op_desc->GetIrInputs();
+    size_t input_index = 0;
+    for (size_t i = 0; i < ir_inputs.size(); ++i) {
+      auto ins_info = compute_node_info.MutableInputInstanceInfo(i);
+      GE_ASSERT_NOTNULL(ins_info);
+      size_t instance_num = in_ir_index_to_instance_index_pair_map[i].second;
+      compute_node_info.MutableInputInstanceInfo(i)->SetInstantiationNum(instance_num);
+      compute_node_info.MutableInputInstanceInfo(i)->SetInstanceStart(input_index);
+      input_index += instance_num;
+    }
   }
 
   auto out_ir_index_to_instance_index_pair_map

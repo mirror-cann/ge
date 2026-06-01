@@ -365,14 +365,6 @@ if("dflow-executor" IN_LIST BUILD_COMPONENT)
         execute_process(COMMAND ln -sfn ../../${ARCH_LINUX_PATH}/bin/monitor.sh monitor.sh
                         WORKING_DIRECTORY \${symlink_dir})
     " COMPONENT dflow-executor)
-    install(FILES ${CMAKE_BINARY_DIR}/device_install/cann-udf-compat.tar.gz ${INSTALL_OPTIONAL}
-            DESTINATION compat COMPONENT dflow-executor)
-    if(ENABLE_SIGN)
-        install(FILES ${CMAKE_BINARY_DIR}/device_install/Ascend-runtime_device-minios.tar.gz
-                DESTINATION runtime/lib64 COMPONENT dflow-executor)
-    endif()
-    install(FILES ${CMAKE_BINARY_DIR}/device_install/device/lib64/libflow_func.so ${INSTALL_OPTIONAL}
-            DESTINATION ${ARCH_LINUX_PATH}/devlib/device COMPONENT dflow-executor)
     install(TARGETS flow_func ${INSTALL_OPTIONAL}
             LIBRARY DESTINATION ${ARCH_LINUX_PATH}/devlib/linux/${TARGET_ARCH} COMPONENT dflow-executor)
     install(TARGETS flow_func ${INSTALL_OPTIONAL}
@@ -381,8 +373,9 @@ endif()
 
 # ============= CPack =============
 # Per-component build: BUILD_COMPONENT contains exactly one component.
-# CPACK_COMPONENTS_ALL must be set BEFORE set_cann_cpack_config (which calls include(CPack))
-# to prevent CPack from installing targets from other components' install rules.
 list(GET BUILD_COMPONENT 0 current_component)
-set(CPACK_COMPONENTS_ALL "${current_component}")
-set_cann_cpack_config(${current_component})
+if("dflow-executor" IN_LIST BUILD_COMPONENT)
+    set_cann_cpack_config(${current_component} ENABLE_DEVICE "${ENABLE_BUILD_DEVICE}")
+else()
+    set_cann_cpack_config(${current_component})
+endif()

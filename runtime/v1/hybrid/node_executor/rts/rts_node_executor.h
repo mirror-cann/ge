@@ -25,7 +25,7 @@ class IdentityNodeTask : public RtsNodeTask {
   Status DoCopyTensor(const TaskContext &context, const int32_t index) const;
 
  private:
-  tagRtMemcpyKind kind_{RT_MEMCPY_DEVICE_TO_DEVICE};
+  aclrtMemcpyKind kind_{ACL_MEMCPY_DEVICE_TO_DEVICE};
 };
 
 class IdentityNNodeTask : public IdentityNodeTask {

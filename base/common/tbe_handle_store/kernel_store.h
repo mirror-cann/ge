@@ -24,9 +24,6 @@
 #include "framework/common/debug/log.h"
 #include "graph/op_desc.h"
 #include "graph/op_kernel_bin.h"
-#include "runtime/base.h"
-#include "runtime/context.h"
-#include "runtime/rt_preload_task.h"
 
 #define ALIGN_MEM(MEM_SIZE, ALIGN_SIZE)                                                    \
   if (((MEM_SIZE) > 0UL) && ((ALIGN_SIZE) != 0UL) && ((MEM_SIZE) % (ALIGN_SIZE) != 0UL)) { \

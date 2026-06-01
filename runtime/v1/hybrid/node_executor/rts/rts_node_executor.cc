@@ -55,7 +55,7 @@ Status IdentityNodeTask::DoCopyTensor(const TaskContext &context, const int32_t 
     const auto output = context.MutableOutput(index);
     GE_CHECK_NOTNULL(input);
     GE_CHECK_NOTNULL(output);
-    GE_CHK_RT_RET(rtMemcpyAsync(output->MutableData(),
+    GE_CHK_RT_RET(aclrtMemcpyAsync(output->MutableData(),
                                 output->GetSize(),
                                 input->GetData(),
                                 static_cast<uint64_t>(copy_size),
@@ -126,9 +126,9 @@ Status IdentityNodeTask::Init(const HybridModel &model, const NodePtr &node) {
       has_input_mem_type_attr && v_input_memory_type.size() == 1U && v_input_memory_type[0U] == RT_MEMORY_HOST_SVM;
 
   if (is_output_svm && !has_input_mem_type_attr) {
-    kind_ = RT_MEMCPY_DEVICE_TO_HOST;
+    kind_ = ACL_MEMCPY_DEVICE_TO_HOST;
   } else if (is_input_svm && !has_output_mem_type_attr) {
-    kind_ = RT_MEMCPY_HOST_TO_DEVICE;
+    kind_ = ACL_MEMCPY_HOST_TO_DEVICE;
   } else {
   }
   return SUCCESS;

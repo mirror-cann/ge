@@ -148,8 +148,8 @@ Status StreamMergeNodeTask::ExecuteAsync(TaskContext &context, const std::functi
   const auto out_y = context.MutableOutput(MERGE_INDEX_OUTPUT);  // value_index
   GE_CHECK_NOTNULL(out_y);
   if (out_y->GetSize() > 0UL) {
-    GE_CHK_RT_RET(rtMemcpyAsync(out_y->MutableData(), out_y->GetSize(), &idx, sizeof(idx),
-                                RT_MEMCPY_HOST_TO_DEVICE_EX, context.GetStream()));
+    GE_CHK_RT_RET(aclrtMemcpyAsync(out_y->MutableData(), out_y->GetSize(), &idx, sizeof(idx),
+                                ACL_MEMCPY_HOST_TO_BUF_TO_DEVICE, context.GetStream()));
   }
 
   GE_CHK_STATUS_RET(context.TryExecuteCallback(done_callback));

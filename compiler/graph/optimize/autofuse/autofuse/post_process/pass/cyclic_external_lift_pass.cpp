@@ -220,6 +220,14 @@ Status CheckBroadcastAxisInputRepeat(const AscGraph &graph, const std::set<size_
 // 4. 更新除Broadcast外轴repeat合strides
 // 5. 移动Broadcast到store，并且跟新topo id
 Status CyclicExternalLift(AscGraph &graph, [[maybe_unused]] const NodePtr &asc_node) {
+  // 如果有reduce,不做循环外提
+  for (const auto &node : graph.GetAllNodes()) {
+    if (asc_adapt::IsReduceNode(node)){
+      GELOGI("Graph %s does not need CyclicExternalLift cause of reduce node name %s.", graph.GetName().c_str(), node->GetType().c_str());
+      return SUCCESS;
+    }
+  }
+
   std::set<int64_t> broadcast_axis;
   if (GetBroadcastAxis(graph, broadcast_axis) != SUCCESS) {
     GELOGI("Graph %s does not need CyclicExternalLift.", graph.GetName().c_str());

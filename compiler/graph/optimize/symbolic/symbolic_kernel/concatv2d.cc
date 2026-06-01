@@ -206,4 +206,5 @@ static graphStatus ConcatV2DSymbolicKernelCompute(gert::InferSymbolComputeContex
 }
 
 REGISTER_SYMBOLIC_KERNEL(ConcatV2D, ConcatV2DSymbolicKernelCompute);
+REGISTER_SYMBOLIC_KERNEL(ConcatD, ConcatV2DSymbolicKernelCompute);
 }  // namespace ge

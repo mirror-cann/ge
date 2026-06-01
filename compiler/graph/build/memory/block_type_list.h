@@ -15,7 +15,6 @@
 #include <set>
 #include "graph/small_vector.h"
 #include "graph/node.h"
-#include "ge_common/ge_api_types.h"
 
 namespace ge {
 enum class NodeMemAttr {

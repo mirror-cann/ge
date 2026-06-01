@@ -18,9 +18,6 @@
 #include "faker/kernel_run_context_faker.h"
 #include "operator_reg.h"
 
-//#include "faker/kernel_run_context_facker.h"
-//#include "stub/gert_runtime_stub.h"
-
 namespace ge {
 REG_OP(node)
 .INPUT(x, TensorType::ALL())
@@ -30,6 +27,27 @@ REG_OP(node)
 .OP_END_FACTORY_REG(node);
 }
 
+class CustomOpAllocatorFaker : public gert::AllocatorFaker {
+public:
+  gert::TensorData MallocTensorDataFromL1(size_t size) override {
+    return gert::TensorData(MallocL1(size), nullptr, size, gert::kOnDeviceHbm);
+  }
+
+private:
+  std::vector<std::unique_ptr<uint8_t[]>> l1_blocks_;
+
+  gert::TensorAddress MallocL1(size_t size) {
+    if (size == 0) {
+      return nullptr;
+    }
+    auto block = std::make_unique<uint8_t[]>(size);
+    gert::TensorAddress tensor_address = block.get();
+
+    l1_blocks_.emplace_back(std::move(block));
+
+    return tensor_address;
+  }
+};
 namespace gert {
 class EagerOpExecutionContextUT : public testing::Test {
  public:
@@ -44,7 +62,7 @@ class EagerOpExecutionContextUT : public testing::Test {
   }
   struct ContextTestCaseHolder {
     // allocator 最后释放
-    AllocatorFaker gert_allocator;
+    CustomOpAllocatorFaker gert_allocator;
     std::vector<gert::Tensor> input_tensors;
     std::vector<gert::Tensor> output_tensors;
     std::shared_ptr<std::vector<gert::GertMemBlock *>> workspace_mems;
@@ -247,6 +265,26 @@ TEST_F(EagerOpExecutionContextUT, MallocOutputError) {
   EXPECT_EQ(output_tensor, nullptr);
 }
 
+TEST_F(EagerOpExecutionContextUT, MallocOutputTensorNotReuseWorkspaceAddr) {
+  auto context = in_2_out_2_case_.context_holder.GetContext<EagerOpExecutionContext>();
+  ASSERT_NE(context, nullptr);
+  ASSERT_EQ(in_2_out_2_case_.output_tensors[1].GetAddr(), nullptr);
+
+  auto output_tensor = context->MallocOutputTensor(1, {{2, 2}, {2, 2}},
+                                                  {ge::FORMAT_ND, ge::FORMAT_ND, ExpandDimsType()},
+                                                  ge::DT_FLOAT16);
+  ASSERT_NE(output_tensor, nullptr);
+  auto output_addr = output_tensor->GetAddr();
+  ASSERT_NE(output_addr, nullptr);
+  EXPECT_EQ(output_tensor->GetSize(), 512UL);
+  EXPECT_EQ(in_2_out_2_case_.workspace_mems->size(), 0UL);
+
+  auto workspace_addr = context->MallocWorkSpace(512UL);
+  ASSERT_NE(workspace_addr, nullptr);
+  EXPECT_NE(output_addr, workspace_addr);
+  EXPECT_EQ(in_2_out_2_case_.workspace_mems->size(), 1UL);
+}
+
 TEST_F(EagerOpExecutionContextUT, MallocFreeWorkSpaceOk) {
   auto context = in_2_out_2_case_.context_holder.GetContext<EagerOpExecutionContext>();
   ASSERT_NE(context, nullptr);
@@ -282,5 +320,4 @@ TEST_F(EagerOpExecutionContextUT, MakeOutputRefInputError) {
 
 
 }
-
 

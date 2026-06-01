@@ -22,7 +22,6 @@ __all__ = [
     "PatternMatcherConfig",
     "PatternMatcherConfigBuilder",
     "PatternFusionPass",
-    "capture_tensor",
     "clear_registered_passes",
     "create_pattern",
     "create_replacement",
@@ -48,7 +47,6 @@ from .base import SubgraphBoundary
 from .base import SubgraphRewriter
 from .pattern import NodeIo
 from .pattern import Pattern
-from .pattern import capture_tensor
 from .pattern import create_pattern
 from .pattern import pattern
 from .replacement import create_replacement

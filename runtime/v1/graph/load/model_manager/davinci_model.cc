@@ -5615,7 +5615,7 @@ void DavinciModel::Run() {
 
     GE_TIMESTAMP_START(rtStreamSynchronizeWithTimeout);
     GELOGI("rtStreamSynchronizeWithTimeout start, model id:%u.", model_id_);
-    rt_ret = rtStreamSynchronizeWithTimeout(rt_model_stream_, stream_sync_timeout_);
+    rt_ret = aclrtSynchronizeStreamWithTimeout(rt_model_stream_, stream_sync_timeout_);
     if (rt_ret == ACL_ERROR_RT_SOCKET_CLOSE) {
       GELOGI("connect lost to model exec, befause socket closed, model_id:%u", model_id_);
       ModelManager::GetInstance().SetSocketCloseStatus(true);
@@ -7173,7 +7173,7 @@ Status DavinciModel::CheckIoReuseAddrs(const std::vector<DataBuffer> &input_blob
 void DavinciModel::FreeInnerFeatureMapMem() {
   if ((mem_base_ != 0) && is_inner_mem_base_) {
     GELOGD("Start to free inner feature mem:0x%" PRIx64, mem_base_);
-    const auto rt_ret = rtStreamSynchronizeWithTimeout(rt_model_stream_, stream_sync_timeout_);
+    const auto rt_ret = aclrtSynchronizeStreamWithTimeout(rt_model_stream_, stream_sync_timeout_);
     if (rt_ret == ACL_ERROR_RT_STREAM_SYNC_TIMEOUT) {
       is_stream_sync_timeout_ = true;
       GE_LOGE_IF(aclmdlRIAbort(rt_model_handle_) != ACL_SUCCESS, "Abort model failed!");
@@ -7705,7 +7705,7 @@ Status DavinciModel::NnExecute(aclrtStream const stream, const bool async_mode,
   }
   if (is_inner_model_stream_ &&
     (is_prof_enabled || (ProfilingManager::Instance().ProfilingSubscribeOn()) || (!is_forbidden_stream_))) {
-    const auto rt_ret = rtStreamSynchronizeWithTimeout(rt_model_stream_, stream_sync_timeout_);
+    const auto rt_ret = aclrtSynchronizeStreamWithTimeout(rt_model_stream_, stream_sync_timeout_);
     if (rt_ret == ACL_ERROR_RT_STREAM_SYNC_TIMEOUT) {
       is_stream_sync_timeout_ = true;
       GE_LOGW_IF(aclmdlRIAbort(rt_model_handle_) != ACL_SUCCESS, "Abort model failed!");
@@ -7812,7 +7812,7 @@ Status DavinciModel::NnExecute(aclrtStream const stream, const bool async_mode, 
   }
   if ((is_prof_enabled || (ProfilingManager::Instance().ProfilingSubscribeOn()) || (!is_forbidden_stream_)) &&
       is_inner_model_stream_) {
-    const auto rt_ret = rtStreamSynchronizeWithTimeout(rt_model_stream_, stream_sync_timeout_);
+    const auto rt_ret = aclrtSynchronizeStreamWithTimeout(rt_model_stream_, stream_sync_timeout_);
     if (rt_ret == ACL_ERROR_RT_STREAM_SYNC_TIMEOUT) {
       is_stream_sync_timeout_ = true;
       GE_LOGW_IF(aclmdlRIAbort(rt_model_handle_) != ACL_SUCCESS, "Abort model failed!");
@@ -9251,7 +9251,7 @@ Status DavinciModel::LaunchEventForHcclGroupOrderedStream(aclrtStream const stre
     }
 
     // kfc流下发event wait
-    rt_ret = rtStreamWaitEventWithTimeout(hccl_group_ordered_stream_list_[i], hccl_group_ordered_event_list_[i], 0U);
+    rt_ret = aclrtStreamWaitEventWithTimeout(hccl_group_ordered_stream_list_[i], hccl_group_ordered_event_list_[i], 0U);
     if (rt_ret != RT_ERROR_NONE) {
       REPORT_INNER_ERR_MSG("E19999", "Call rtStreamWaitEvent failed, ret:%d", rt_ret);
       GELOGE(RT_FAILED, "[Call][RtStreamWaitEvent] failed, ret:%d", rt_ret);

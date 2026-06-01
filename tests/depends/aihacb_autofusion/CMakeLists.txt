@@ -20,7 +20,7 @@ file(GLOB_RECURSE ASC_SRC_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
 
 add_library(ascir_ops_headers INTERFACE)
 target_include_directories(ascir_ops_headers INTERFACE
-        ${ASCEND_INSTALL_PATH}/include/autofuse/ascir
+        ${ASCEND_INSTALL_PATH}/pkg_inc/autofuse/ascir
         )
 
 add_library(aihacb_autofusion_stub SHARED
@@ -51,15 +51,15 @@ target_include_directories(aihacb_autofusion_stub PRIVATE
         ${GE_METADEF_INC_DIR}/
         ${GE_METADEF_INC_DIR}/graph/ascendc_ir
         ${GE_METADEF_INC_DIR}/graph/ascendc_ir/ascendc_ir_core
-        ${ASCEND_INSTALL_PATH}/include/autofuse
-        ${ASCEND_INSTALL_PATH}/include/autofuse/ascir
-        ${ASCEND_INSTALL_PATH}/include/autofuse/ascir/meta
-        ${ASCEND_INSTALL_PATH}/include/autofuse/ascir/utils
-        ${ASCEND_INSTALL_PATH}/include/autofuse/common
-        ${ASCEND_INSTALL_PATH}/include/autofuse/graph_metadef
-        ${ASCEND_INSTALL_PATH}/include/autofuse/graph_metadef/graph
-        ${ASCEND_INSTALL_PATH}/include/autofuse/graph_metadef/graph/ascendc_ir
-        ${ASCEND_INSTALL_PATH}/include/autofuse/graph_metadef/graph/ascendc_ir/ascendc_ir_core
+        ${ASCEND_INSTALL_PATH}/pkg_inc/autofuse
+        ${ASCEND_INSTALL_PATH}/pkg_inc/autofuse/ascir
+        ${ASCEND_INSTALL_PATH}/pkg_inc/autofuse/ascir/meta
+        ${ASCEND_INSTALL_PATH}/pkg_inc/autofuse/ascir/utils
+        ${ASCEND_INSTALL_PATH}/pkg_inc/autofuse/common
+        ${ASCEND_INSTALL_PATH}/pkg_inc/autofuse/graph_metadef
+        ${ASCEND_INSTALL_PATH}/pkg_inc/autofuse/graph_metadef/graph
+        ${ASCEND_INSTALL_PATH}/pkg_inc/autofuse/graph_metadef/graph/ascendc_ir
+        ${ASCEND_INSTALL_PATH}/pkg_inc/autofuse/graph_metadef/graph/ascendc_ir/ascendc_ir_core
         ${AIR_CODE_DIR}/
         ${AIR_CODE_DIR}/compiler
         ${AIR_CODE_DIR}/compiler/graph/optimize/autofuse/common
@@ -79,7 +79,7 @@ target_include_directories(aihacb_autofusion_stub PRIVATE
         )
 
 target_include_directories(aihacb_autofusion_stub INTERFACE
-        ${ASCEND_INSTALL_PATH}/include/autofuse/graph_metadef/graph
+        ${ASCEND_INSTALL_PATH}/pkg_inc/autofuse/graph_metadef/graph
         )
 
 add_library(aihac_codegen_toolkit SHARED IMPORTED)

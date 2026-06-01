@@ -12,6 +12,7 @@
 #define GUARDED_EXECUTION_POINT_UTIL_H
 
 #include <mutex>
+#include "ge/ge_api_types.h"
 #include "api/session/jit_execution/exe_points/execution_point.h"
 #include "api/session/jit_execution/exe_points/guarded_execution_point.h"
 #include "compiled_model_cache_util.h"

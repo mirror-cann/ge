@@ -105,6 +105,9 @@ inline NodeIo ParseNodeIo(const py::handle &source_obj, const py::object &index_
   if (py::hasattr(source_obj, "node") && py::hasattr(source_obj, "index") && index_obj.is_none()) {
     node_obj = source_obj.attr("node");
     output_index = source_obj.attr("index").cast<int64_t>();
+  } else if (py::hasattr(source_obj, "_get_node_snapshot")) {
+    node_obj = source_obj.attr("_get_node_snapshot")();
+    output_index = index_obj.is_none() ? 0L : index_obj.cast<int64_t>();
   } else {
     node_obj = py::reinterpret_borrow<py::object>(source_obj);
     output_index = index_obj.is_none() ? 0L : index_obj.cast<int64_t>();

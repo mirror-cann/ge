@@ -94,18 +94,6 @@ class PatternInputs:
         return [self._inputs[index] for index in sorted(self._inputs)]
 
 
-def capture_tensor(source: Union[NodeIo, Node, TensorHolder], index: int = 0) -> NodeIo:
-    """Normalize a captured tensor source into a NodeIo helper."""
-
-    if isinstance(source, NodeIo):
-        return source
-    if isinstance(source, TensorHolder):
-        return NodeIo(source._get_node_snapshot(), index)
-    if isinstance(source, Node):
-        return NodeIo(source, index)
-    raise TypeError("capture_tensor expects NodeIo, Node, or TensorHolder")
-
-
 def create_pattern(graph: Graph) -> Pattern:
     """Build a native Pattern from a pattern graph."""
 
@@ -233,10 +221,13 @@ def _build_patterns_from_expression_result(builder: GraphBuilder, inputs: Patter
             "For multiple patterns, declare several @pattern methods or use legacy patterns(self)."
         )
 
-    graph = builder.build_and_reset(_normalize_tensor_outputs(result, "patterns"))
+    pattern_outputs = _normalize_tensor_outputs(result, "patterns")
+    graph = builder.build_and_reset(pattern_outputs)
     built_pattern = create_pattern(graph)
     for input_tensor in inputs.created():
-        built_pattern.capture_tensor(capture_tensor(input_tensor))
+        built_pattern.capture_tensor(input_tensor)
+    for output_tensor in pattern_outputs:
+        built_pattern.capture_tensor(output_tensor)
     return [built_pattern]
 
 

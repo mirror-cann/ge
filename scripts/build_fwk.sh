@@ -408,6 +408,7 @@ if [[ "X$ENABLE_GE_UT" = "Xon" ]] || [[ "X$ENABLE_RT2_UT" = "Xon" ]] || [[ "X$EN
       fi
       unset ASAN_OPTIONS
       unset LD_PRELOAD
+      COV_DIRS+=("${BUILD_PATH}/graph_metadef")
       COV_DIRS+=("${BUILD_PATH}/runtime/v1")
       COV_DIRS+=("${BUILD_PATH}/runtime/v2")
       COV_DIRS+=("${BUILD_PATH}/runtime/stub")
@@ -625,6 +626,7 @@ if [[ "X$ENABLE_GE_ST" = "Xon" ]] || [[ "X$ENABLE_GE_COMMON_ST" = "Xon" ]] || [[
       fi
       unset LD_PRELOAD
       unset ASAN_OPTIONS
+      COV_DIRS+=("${BUILD_PATH}/graph_metadef")
       COV_DIRS+=("${BUILD_PATH}/runtime/v1")
       COV_DIRS+=("${BUILD_PATH}/runtime/v2")
       COV_DIRS+=("${BUILD_PATH}/runtime/stub")
@@ -646,6 +648,7 @@ if [[ "X$ENABLE_GE_ST" = "Xon" ]] || [[ "X$ENABLE_GE_COMMON_ST" = "Xon" ]] || [[
       fi
       unset LD_PRELOAD
       unset ASAN_OPTIONS
+      COV_DIRS+=("${BUILD_PATH}/graph_metadef")
       COV_DIRS+=("${BUILD_PATH}/runtime/v1")
       COV_DIRS+=("${BUILD_PATH}/runtime/v2")
     fi

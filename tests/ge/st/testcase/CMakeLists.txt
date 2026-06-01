@@ -131,7 +131,7 @@ target_include_directories(graph_engine_test PRIVATE
     ${AIR_CODE_DIR}/inc
     ${CMAKE_BINARY_DIR}/proto/data_flow_protos
     ${AIR_CODE_DIR}/inc/graph_metadef
-    ${ASCEND_INSTALL_PATH}/include/autofuse
+    ${ASCEND_INSTALL_PATH}/pkg_inc/autofuse
 )
 
 target_link_options(graph_engine_test PRIVATE
@@ -217,7 +217,7 @@ target_include_directories(ge_common_atc PRIVATE
     ${AIR_CODE_DIR}/inc
     ${CMAKE_BINARY_DIR}/proto/data_flow_protos
     ${AIR_CODE_DIR}/inc/graph_metadef
-    ${ASCEND_INSTALL_PATH}/include/autofuse
+    ${ASCEND_INSTALL_PATH}/pkg_inc/autofuse
     )
 
 target_link_options(ge_common_atc PRIVATE
@@ -340,7 +340,7 @@ target_include_directories(graph_engine_compile_test PRIVATE
         ${ASCGEN_DIR}/inc
         ${AIR_CODE_DIR}/inc
         ${CMAKE_BINARY_DIR}/proto/data_flow_protos
-        ${ASCEND_INSTALL_PATH}/include/autofuse
+        ${ASCEND_INSTALL_PATH}/pkg_inc/autofuse
         )
 target_link_options(graph_engine_compile_test PRIVATE
         -Wl,--disable-new-dtags

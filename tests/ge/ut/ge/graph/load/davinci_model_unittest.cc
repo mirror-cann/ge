@@ -7308,7 +7308,9 @@ TEST_F(UtestDavinciModel, FreeInnerFeatureMapMem_fail) {
   EXPECT_EQ(davinci_model.mem_base_, 0);
   unsetenv(kEnvRecordPath);
 
-  g_runtime_stub_mock = "rtStreamSynchronizeWithTimeout";
+  auto mock_acl_runtime = std::make_shared<ge::AclRuntimeStub>();
+  ge::AclRuntimeStub::SetInstance(mock_acl_runtime);
+  g_runtime_stub_mock = "aclrtSynchronizeStreamWithTimeout";
   void *mem1 = new (std::nothrow)  int[10];
   davinci_model.mem_base_ = reinterpret_cast<uintptr_t>(mem1);
   davinci_model.mem_base_ = reinterpret_cast<uintptr_t>(mem1);

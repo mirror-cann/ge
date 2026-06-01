@@ -64,11 +64,7 @@ endif()
 
 if (NOT DEFINED CMAKE_PREFIX_PATH)
     set(CMAKE_PREFIX_PATH
-        ${CANN_3RD_LIB_PATH}/protoc
         ${CANN_3RD_LIB_PATH}/lib_cache/grpc
-        ${CANN_3RD_LIB_PATH}/protobuf_static
-        ${CANN_3RD_LIB_PATH}/ascend_protobuf
-        ${CANN_3RD_LIB_PATH}/ascend_protobuf_static
         ${CANN_3RD_LIB_PATH}/lib_cache/gtest_shared/lib64/cmake/GTest
         ${CANN_3RD_LIB_PATH}/lib_cache/benchmark
         ${CANN_3RD_LIB_PATH}/lib_cache/symengine/lib/cmake/symengine
@@ -80,24 +76,24 @@ endif()
 # Keep the dedicated autofuse ascendc_ir directories ahead of GE metadef paths so
 # bare includes like "attr_store.h" resolve to the af-namespace package headers.
 # Keep generic "graph/..." lookups on GE metadef first under AUTOFUSE_USE_GE_METADEF.
-include_directories(${ASCEND_INSTALL_PATH}/include/autofuse/graph_metadef/graph/ascendc_ir/ascendc_ir_core)
-include_directories(${ASCEND_INSTALL_PATH}/include/autofuse/graph_metadef/graph/ascendc_ir)
-include_directories(${ASCEND_INSTALL_PATH}/include/autofuse)
-include_directories(${ASCEND_INSTALL_PATH}/include/autofuse/ascir)
-include_directories(${ASCEND_INSTALL_PATH}/include/autofuse/ascir/meta)
-include_directories(${ASCEND_INSTALL_PATH}/include/autofuse/ascir/utils)
+include_directories(${ASCEND_INSTALL_PATH}/pkg_inc/autofuse/graph_metadef/graph/ascendc_ir/ascendc_ir_core)
+include_directories(${ASCEND_INSTALL_PATH}/pkg_inc/autofuse/graph_metadef/graph/ascendc_ir)
+include_directories(${ASCEND_INSTALL_PATH}/pkg_inc/autofuse)
+include_directories(${ASCEND_INSTALL_PATH}/pkg_inc/autofuse/ascir)
+include_directories(${ASCEND_INSTALL_PATH}/pkg_inc/autofuse/ascir/meta)
+include_directories(${ASCEND_INSTALL_PATH}/pkg_inc/autofuse/ascir/utils)
 include_directories(${GE_METADEF_INC_DIR}/external)
 include_directories(${GE_METADEF_INC_DIR}/external/graph)
 include_directories(${GE_METADEF_INC_DIR})
 include_directories(${GE_METADEF_INC_DIR}/graph)
 include_directories(${GE_METADEF_INC_DIR}/graph/utils)
 include_directories(${GE_METADEF_DIR}/graph)
-include_directories(${ASCEND_INSTALL_PATH}/include/autofuse/graph_metadef/graph)
-include_directories(${ASCEND_INSTALL_PATH}/include/autofuse/graph_metadef)
+include_directories(${ASCEND_INSTALL_PATH}/pkg_inc/autofuse/graph_metadef/graph)
+include_directories(${ASCEND_INSTALL_PATH}/pkg_inc/autofuse/graph_metadef)
 include_directories(${CODE_ROOT_DIR}/inc)
 include_directories(${AIR_CODE_DIR}/inc)
-include_directories(${ASCEND_INSTALL_PATH}/include/autofuse/common)
-include_directories(${ASCEND_INSTALL_PATH}/include/autofuse/utils)
+include_directories(${ASCEND_INSTALL_PATH}/pkg_inc/autofuse/common)
+include_directories(${ASCEND_INSTALL_PATH}/pkg_inc/autofuse/utils)
 if (NOT ENABLE_OPEN_SRC)
     include_directories(${TOP_DIR}/air/inc/)
     include_directories(${TOP_DIR}/graph-autofusion/autofuse/att)
@@ -122,12 +118,12 @@ include_directories(${CMAKE_BINARY_DIR}/ascir_builtin_ops)
 
 if (ENABLE_OPEN_SRC)
     add_cann_third_party(json)
+    add_cann_third_party(protobuf)
     if(NOT BUILD_PKG_COMPONENT)
         find_package(GTest CONFIG REQUIRED)
     endif()
     find_package(Boost CONFIG REQUIRED)
     find_package(SymEngine CONFIG REQUIRED)
-    find_package(ascend_protobuf_shared MODULE REQUIRED)
     find_package(unified_dlog)
     find_package(mmpa)
     find_package(runtime)

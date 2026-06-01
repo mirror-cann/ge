@@ -11,6 +11,7 @@
 #ifndef ACL_OP_EXEC_COMPILER_OP_COMPILER_H
 #define ACL_OP_EXEC_COMPILER_OP_COMPILER_H
 
+#include "acl/acl_base_rt.h"
 #include "acl/acl_op.h"
 #include "acl/acl_op_compiler.h"
 

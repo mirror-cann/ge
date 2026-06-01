@@ -50,10 +50,10 @@ target_include_directories(autofuse_test PRIVATE
         ${METADEF_DIR}/base/registry
         ${METADEF_DIR}/register
         ${CMAKE_BINARY_DIR}/graph_metadef/graph/ascendc_ir/generator
-        ${ASCEND_INSTALL_PATH}/include/autofuse
-        ${ASCEND_INSTALL_PATH}/include/autofuse/graph_metadef
-        ${ASCEND_INSTALL_PATH}/include/autofuse/graph_metadef/graph
-        ${ASCEND_INSTALL_PATH}/include/autofuse/ascir
+        ${ASCEND_INSTALL_PATH}/pkg_inc/autofuse
+        ${ASCEND_INSTALL_PATH}/pkg_inc/autofuse/graph_metadef
+        ${ASCEND_INSTALL_PATH}/pkg_inc/autofuse/graph_metadef/graph
+        ${ASCEND_INSTALL_PATH}/pkg_inc/autofuse/ascir
 )
 
 target_link_libraries(autofuse_test PRIVATE

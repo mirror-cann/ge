@@ -12,6 +12,7 @@
 #define ACL_OP_EXEC_COMPILER_OP_COMPILE_SERVICE_H
 
 #include "op_compiler.h"
+#include "acl/acl_base_rt.h"
 
 namespace acl {
 using CompilerCreator = OpCompiler *(*)();

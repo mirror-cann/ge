@@ -15,7 +15,6 @@
 #include <sstream>
 #include <map>
 
-#include "acl/acl_base.h"
 #include "graph/op_desc.h"
 #include "utils/string_utils.h"
 #include "types/op_attr.h"

@@ -49,6 +49,28 @@ class OpCompileContext : public ExtendedKernelContext {
   const Tensor *GetDynamicInputTensor(size_t ir_index, size_t relative_index) const;
 
   /**
+   * 根据输出 index，获取输出 tensor 指针。
+   * @param index 输出 index
+   * @return 输出 tensor 指针，异常时返回空指针
+   */
+  const Tensor *GetOutputTensor(size_t index) const;
+
+  /**
+   * 基于算子 IR 原型定义，获取 `REQUIRED_OUTPUT` 类型的输出 tensor 指针
+   * @param ir_index IR 原型定义中的 index
+   * @return 输出 tensor 指针，异常时返回空指针
+   */
+  const Tensor *GetRequiredOutputTensor(size_t ir_index) const;
+
+  /**
+   * 基于算子 IR 原型定义，获取 `DYNAMIC_OUTPUT` 类型的输出 tensor 指针
+   * @param ir_index IR 原型定义中的 index
+   * @param relative_index 该输出实例化后的相对 index
+   * @return 输出 tensor 指针，异常时返回空指针
+   */
+  const Tensor *GetDynamicOutputTensor(size_t ir_index, size_t relative_index) const;
+
+  /**
    * 获取编译期图上下文中的 option 配置
    * @param option_key option key
    * @param option 输出 option value

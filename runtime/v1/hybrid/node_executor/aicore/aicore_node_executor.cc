@@ -294,7 +294,7 @@ Status AiCoreNodeTask::CheckOverflow(TaskContext &context) const {
     auto timeout = (!stream_synchronize_timeout.empty())
                        ? static_cast<int32_t>(std::strtol(stream_synchronize_timeout.c_str(), nullptr, 10))
                        : kDefaultTimeOut;
-    const auto rt_ret = rtStreamSynchronizeWithTimeout(context.GetStream(), timeout);
+    const auto rt_ret = aclrtSynchronizeStreamWithTimeout(context.GetStream(), timeout);
     if ((rt_ret == ACL_ERROR_RT_AICORE_OVER_FLOW) || (rt_ret == ACL_ERROR_RT_AIVEC_OVER_FLOW)) {
       context.SetOverFlow(true);
       (void)aclrtGetThreadLastTaskId(context.MutableTaskId());

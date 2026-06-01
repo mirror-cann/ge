@@ -295,6 +295,8 @@ Python 层会自动创建 ES `GraphBuilder`、图输入、图输出和 pattern c
 多个 pattern；旧的显式 `patterns(self)` 仍兼容，但不能和 `@pattern` 方法混用。
 这层封装只改变 Python 侧易用性，不改变 C++ pass 执行流程和匹配语义。
 
+面向开发者的机制说明和开发步骤见 [融合 Pattern Pass 机制](../../features/fusion_pattern_pass.md)。
+
 ### 3.4 自动融合（AutofuseOptimize）
 
 自动融合在精度调整后、格式调整前执行，时机选择很关键：精度已经确定（不会再插入 Cast），但格式尚未固定（还有变换的空间）。

@@ -71,7 +71,7 @@ Status GraphExecutionContext::Synchronize(const rtStream_t rt_stream) {
   auto timeout = (!stream_synchronize_timeout.empty())
                      ? static_cast<int32_t>(std::strtol(stream_synchronize_timeout.c_str(), nullptr, 10))
                      : kDefaultTimeOut;
-  const auto rt_ret = rtStreamSynchronizeWithTimeout(rt_stream, timeout);
+  const auto rt_ret = aclrtSynchronizeStreamWithTimeout(rt_stream, timeout);
   if (rt_ret == RT_ERROR_NONE) {
     return SUCCESS;
   }

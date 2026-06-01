@@ -80,11 +80,30 @@ ge::Status ConstructCustomCompileContextInputs(const ge::OpDescPtr &op_desc,
   return ge::SUCCESS;
 }
 
+ge::Status ConstructCustomCompileContextOutputs(const ge::OpDescPtr &op_desc,
+                                                std::vector<std::unique_ptr<uint8_t[]>> &outputs) {
+  for (size_t i = 0UL; i < op_desc->GetAllOutputsDescSize(); ++i) {
+    auto output_desc = op_desc->MutableOutputDesc(i);
+    GE_ASSERT_NOTNULL(output_desc);
+    gert::StorageShape storage_shape;
+    GetStorageShape(*output_desc, storage_shape);
+    auto tensor_holder = ge::ComGraphMakeUnique<uint8_t[]>(sizeof(gert::Tensor));
+    GE_ASSERT_NOTNULL(tensor_holder, "Create compile context output tensor holder failed.");
+    new (tensor_holder.get())
+        gert::Tensor(storage_shape, {output_desc->GetOriginFormat(), output_desc->GetFormat(), {}},
+                     output_desc->GetDataType());
+    (void)outputs.emplace_back(std::move(tensor_holder));
+  }
+  return ge::SUCCESS;
+}
+
 struct CompileTask {
   CompileTask(ge::CompilableOp *op_ptr, std::vector<std::unique_ptr<uint8_t[]>> &&inputs_holder,
-              gert::KernelContextHolder &&holder, std::string name, std::string type)
+              std::vector<std::unique_ptr<uint8_t[]>> &&outputs_holder, gert::KernelContextHolder &&holder,
+              std::string name, std::string type)
       : compilable_op_ptr(op_ptr),
         op_compile_inputs_holder(std::move(inputs_holder)),
+        op_compile_outputs_holder(std::move(outputs_holder)),
         op_compile_context_holder(std::move(holder)),
         op_name(std::move(name)),
         op_type(std::move(type)) {}
@@ -96,6 +115,7 @@ struct CompileTask {
 
   ge::CompilableOp *compilable_op_ptr;
   std::vector<std::unique_ptr<uint8_t[]>> op_compile_inputs_holder;
+  std::vector<std::unique_ptr<uint8_t[]>> op_compile_outputs_holder;
   gert::KernelContextHolder op_compile_context_holder;
   std::string op_name;
   std::string op_type;
@@ -144,11 +164,15 @@ ge::Status AppendCompileTaskIfNeeded(const ge::NodePtr &node, std::vector<Compil
     return ge::SUCCESS;
   }
   std::vector<std::unique_ptr<uint8_t[]>> op_compile_inputs_holder;
+  std::vector<std::unique_ptr<uint8_t[]>> op_compile_outputs_holder;
   GE_ASSERT_SUCCESS(ConstructCustomCompileContextInputs(node->GetOpDesc(), op_compile_inputs_holder));
+  GE_ASSERT_SUCCESS(ConstructCustomCompileContextOutputs(node->GetOpDesc(), op_compile_outputs_holder));
   auto op_compile_context_holder = gert::KernelRunContextBuilder()
       .Inputs(GetHoldersRawPtr(op_compile_inputs_holder))
+      .Outputs(GetHoldersRawPtr(op_compile_outputs_holder))
       .Build(node->GetOpDesc());
   compile_tasks.emplace_back(compilable_op_ptr, std::move(op_compile_inputs_holder),
+                             std::move(op_compile_outputs_holder),
                              std::move(op_compile_context_holder), node->GetName(), op_type);
   return ge::SUCCESS;
 }

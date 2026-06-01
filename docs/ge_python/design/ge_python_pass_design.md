@@ -7,7 +7,7 @@
 - 现有自定义 pass 装载链路已经存在，GE 会通过 `opp/vendors/*/custom_fusion_passes/*.so` 的方式发现并 `dlopen` pass 库。
 - Python 侧已经具备 `ge.es` 构图能力与 `ge.graph` 基础图接口。
 
-本设计的目标是在不推翻现有 GE pass 执行框架的前提下，引入正式的 Python pass 开发能力，使用户既可以快速本地开发调试，也可以将 pass 以标准 Python 包的形式进行团队分发。
+本设计的目标是在不推翻现有 GE pass 执行框架的前提下，引入正式的 Python pass 开发能力，使用户既可以快速本地开发和验证，也可以将 pass 以标准 Python 包的形式进行团队分发。
 
 ## 2. 目标与范围
 
@@ -351,7 +351,6 @@ PassPluginLoader / ge_compiler.so
 - `MatchResult`
 - `PatternMatcherConfig`
 - `PatternMatcherConfigBuilder`
-- `capture_tensor`
 - `create_pattern`
 - `create_replacement`
 - `load_pass_plugins`

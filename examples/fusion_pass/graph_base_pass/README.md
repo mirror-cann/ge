@@ -12,4 +12,8 @@
 
 ## 开发指南
 
-更多关于融合Pass开发的信息，请参考：[融合Pass开发指南](../融合Pass开发指南.md)
+如果要开发基于 pattern 匹配的融合 pass，推荐先阅读：
+
+- [融合 Pattern Pass 机制](../../../docs/architecture/features/fusion_pattern_pass.md)
+- [Python 融合 Pass 开发指南](../python_fusion_pass_development_guide.md)
+- [C++ 融合 Pass 开发指南](../cpp_fusion_pass_development_guide.md)

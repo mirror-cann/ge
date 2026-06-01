@@ -9,12 +9,16 @@
  */
 
 #include <gtest/gtest.h>
+#include <atomic>
 #include <memory>
 #include <string>
 
+#include "engines/custom_engine/custom_graph_optimizer.h"
 #include "engines/custom_engine/custom_ops_kernel_info_store.h"
+#include "graph/compute_graph.h"
 #include "graph/custom_op_factory.h"
 #include "graph/ascend_string.h"
+#include "graph/ge_tensor.h"
 #include "graph/op_desc.h"
 #include "graph/custom_op.h"
 
@@ -25,6 +29,57 @@ class MockCustomOp : public EagerExecuteOp {
  public:
   graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
     (void)ctx;
+    return GRAPH_SUCCESS;
+  }
+};
+
+std::atomic_bool g_compile_context_output_called{false};
+
+class MockCompileContextOutputOp : public EagerExecuteOp, public CompilableOp {
+ public:
+  graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
+    (void)ctx;
+    return GRAPH_SUCCESS;
+  }
+
+  graphStatus Compile(gert::OpCompileContext *ctx) override {
+    g_compile_context_output_called.store(true);
+    if (ctx == nullptr) {
+      return GRAPH_FAILED;
+    }
+    if (ctx->GetInputTensor(0U) != nullptr) {
+      return GRAPH_FAILED;
+    }
+
+    const auto output0 = ctx->GetOutputTensor(0U);
+    const auto output1 = ctx->GetOutputTensor(1U);
+    const auto output2 = ctx->GetOutputTensor(2U);
+    if ((output0 == nullptr) || (output1 == nullptr) || (output2 == nullptr)) {
+      return GRAPH_FAILED;
+    }
+    if ((output0 != ctx->GetRequiredOutputTensor(0U)) ||
+        (output1 != ctx->GetDynamicOutputTensor(1U, 0U)) ||
+        (output2 != ctx->GetDynamicOutputTensor(1U, 1U))) {
+      return GRAPH_FAILED;
+    }
+    if ((ctx->GetOutputTensor(3U) != nullptr) ||
+        (ctx->GetRequiredOutputTensor(2U) != nullptr) ||
+        (ctx->GetDynamicOutputTensor(1U, 2U) != nullptr)) {
+      return GRAPH_FAILED;
+    }
+    if ((output0->GetStorageShape() != gert::Shape({8, 16})) ||
+        (output0->GetDataType() != DT_FLOAT16) ||
+        (output0->GetStorageFormat() != FORMAT_ND)) {
+      return GRAPH_FAILED;
+    }
+    if ((output1->GetStorageShape() != gert::Shape({16, 16})) ||
+        (output1->GetDataType() != DT_FLOAT)) {
+      return GRAPH_FAILED;
+    }
+    if ((output2->GetStorageShape() != gert::Shape({32, 16})) ||
+        (output2->GetDataType() != DT_INT32)) {
+      return GRAPH_FAILED;
+    }
     return GRAPH_SUCCESS;
   }
 };
@@ -128,6 +183,32 @@ TEST_F(UtestCustomOpsKernelInfoStore, ThreadSafety) {
   store.GetAllOpsKernelInfo(infos2);
   
   EXPECT_EQ(infos1.size(), infos2.size());
+}
+
+TEST_F(UtestCustomOpsKernelInfoStore, OptimizeSubgraphPostProcConstructsCompileContextOutputs) {
+  const std::string kTestOpType = "TestCompileContextOutputOp_OptimizerTest";
+  auto graph = std::make_shared<ComputeGraph>("compile_context_output_graph");
+  auto op_desc = std::make_shared<OpDesc>("compile_context_output_op", kTestOpType);
+  op_desc->AppendIrOutput("y", kIrOutputRequired);
+  op_desc->AppendIrOutput("dy", kIrOutputDynamic);
+
+  GeTensorDesc required_output_desc(GeShape({8, 16}), FORMAT_ND, DT_FLOAT16);
+  op_desc->AddOutputDesc("y", required_output_desc);
+  GeTensorDesc dynamic_output_desc0(GeShape({16, 16}), FORMAT_ND, DT_FLOAT);
+  op_desc->AddOutputDesc("dy0", dynamic_output_desc0);
+  GeTensorDesc dynamic_output_desc1(GeShape({32, 16}), FORMAT_ND, DT_INT32);
+  op_desc->AddOutputDesc("dy1", dynamic_output_desc1);
+  ASSERT_NE(graph->AddNode(op_desc), nullptr);
+
+  auto creator = []() -> std::unique_ptr<BaseCustomOp> {
+    return std::make_unique<MockCompileContextOutputOp>();
+  };
+  ASSERT_EQ(CustomOpFactory::RegisterCustomOpCreator(AscendString(kTestOpType.c_str()), creator), GRAPH_SUCCESS);
+
+  g_compile_context_output_called.store(false);
+  CustomGraphOptimizer optimizer;
+  EXPECT_EQ(optimizer.OptimizeSubgraphPostProc(*graph), SUCCESS);
+  EXPECT_TRUE(g_compile_context_output_called.load());
 }
 
 }  // namespace custom

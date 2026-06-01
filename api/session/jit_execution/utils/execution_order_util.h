@@ -12,6 +12,7 @@
 #define EXECUTION_ORDER_UTIL_H
 
 #include <mutex>
+#include "ge/ge_api_types.h"
 #include "api/session/jit_execution/exe_points/execution_order.h"
 #include "api/session/jit_execution/exe_points/guarded_execution_point.h"
 #include "execution_point_util.h"

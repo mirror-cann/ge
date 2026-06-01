@@ -171,7 +171,26 @@ def test_native_pattern_capture_tensor_and_release():
     assert released_pattern_handle != 0
 
 
-def test_decorated_expression_pattern_pass_builds_graph_and_captures_inputs():
+def test_native_pattern_capture_tensor_accepts_tensor_holder():
+    builder = GraphBuilder("pattern_graph")
+    input_tensor = builder.create_input(0)
+    builder.set_graph_output(input_tensor, 0)
+    graph = builder.build_and_reset()
+
+    pattern = Pattern(graph)
+    pattern.capture_tensor(input_tensor)
+
+    captured_tensors = pattern.get_captured_tensors()
+    assert len(captured_tensors) == 1
+    assert captured_tensors[0].node.type == "Data"
+    assert captured_tensors[0].index == 0
+
+    released_pattern_handle = pattern.release()
+    assert isinstance(released_pattern_handle, int)
+    assert released_pattern_handle != 0
+
+
+def test_decorated_expression_pattern_pass_builds_graph_and_captures_inputs_outputs():
     class ExpressionPatternPass(passes.PatternFusionPass):
         @passes.pattern
         def identity(self, inputs):
@@ -185,12 +204,35 @@ def test_decorated_expression_pattern_pass_builds_graph_and_captures_inputs():
     patterns = pass_instance.patterns()
     assert len(patterns) == 1
     captured_tensors = patterns[0].get_captured_tensors()
-    assert len(captured_tensors) == 1
+    assert len(captured_tensors) == 2
     assert captured_tensors[0].node.type == "Data"
     assert captured_tensors[0].index == 0
+    assert captured_tensors[1].node.type == "Data"
+    assert captured_tensors[1].index == 0
 
     replacement_graph = pass_instance.replacement(None)
     assert isinstance(replacement_graph, Graph)
+
+
+def test_decorated_expression_pattern_pass_captures_outputs_in_return_order():
+    class ExpressionPatternPass(passes.PatternFusionPass):
+        @passes.pattern
+        def swap_outputs(self, inputs):
+            a, b = inputs[:2]
+            return [b, a]
+
+        def replacement(self, inputs):
+            return inputs[0]
+
+    patterns = ExpressionPatternPass().patterns()
+    captured_tensors = patterns[0].get_captured_tensors()
+    assert len(captured_tensors) == 4
+    assert [(tensor.node.name, tensor.index) for tensor in captured_tensors] == [
+        ("input_0", 0),
+        ("input_1", 0),
+        ("input_1", 0),
+        ("input_0", 0),
+    ]
 
 
 def test_decorated_expression_pattern_pass_builds_multiple_patterns():
@@ -210,9 +252,11 @@ def test_decorated_expression_pattern_pass_builds_multiple_patterns():
     assert len(patterns) == 2
     for built_pattern in patterns:
         captured_tensors = built_pattern.get_captured_tensors()
-        assert len(captured_tensors) == 1
+        assert len(captured_tensors) == 2
         assert captured_tensors[0].node.type == "Data"
         assert captured_tensors[0].index == 0
+        assert captured_tensors[1].node.type == "Data"
+        assert captured_tensors[1].index == 0
 
 
 def test_decorated_expression_patterns_rejects_multiple_native_patterns():

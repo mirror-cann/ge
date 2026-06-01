@@ -20,7 +20,6 @@ from ge.passes import (
     register_decompose_pass,
     create_pattern,
     create_replacement,
-    capture_tensor,
 )
 ```
 
@@ -139,7 +138,8 @@ def add_zero(self, inputs):
 - `@pattern` 方法只负责声明 pattern，不接收 `match_result`。
 - 多 pattern pass 通过多个 `@pattern` 方法声明，不通过一个方法返回多个 `Pattern` / `Graph`。
 - `inputs` 的输入数量未知，因此不能直接迭代；多输入场景请使用 `inputs[:N]`。
-- Python 层会自动创建 `GraphBuilder`、图输入、图输出，并自动 capture 已访问的 `inputs`。
+- Python 层会自动创建 `GraphBuilder`、图输入、图输出，并自动 capture 已访问的 `inputs` 和 `@pattern` 返回的 pattern 输出。
+- 自动 capture 顺序固定为：先按输入序号 capture 已访问的 `inputs`，再按 `return` 结构顺序 capture pattern 输出。同一个 Tensor 同时作为输入和输出时，会按这两个角色各 capture 一次。
 
 ### meet_requirements() 方法
 
@@ -382,6 +382,41 @@ def create_pattern(graph: Graph) -> Pattern:
 
 ---
 
+## Pattern.capture_tensor 方法
+
+在模式图中标记需要捕获的 Tensor。被捕获的 Tensor 会按调用顺序保存，后续可通过 `match_result.get_captured_tensor(index)` 读取。
+
+### 函数原型
+
+```python
+class Pattern:
+    def capture_tensor(self, source: Union[TensorHolder, Node, NodeIo], index: Optional[int] = None) -> Pattern:
+        ...
+```
+
+### 参数说明
+
+| 参数名 | 输入/输出 | 说明 |
+| :----- | :-------- | :---- |
+| source | 输入 | 需要捕获的 Tensor 来源。支持 `TensorHolder`、`Node` 或 `NodeIo`。 |
+| index | 输入 | 输出索引。当 `source` 为 `TensorHolder` 或 `Node` 时可指定输出索引，未指定时默认为 `0`；当 `source` 为 `NodeIo` 时不需要传入。 |
+
+### 返回值说明
+
+| 类型 | 说明 |
+| :--- | :--- |
+| `Pattern` | 返回当前 `Pattern`，支持链式调用。 |
+
+### 示例
+
+```python
+pat = create_pattern(builder.build_and_reset([add]))
+pat.capture_tensor(matmul)
+pat.capture_tensor(add)
+```
+
+---
+
 ## create_replacement 函数
 
 创建替换图，用于在模式融合或算子分解中提供替换子图。
@@ -404,32 +439,6 @@ def create_replacement(graph: Graph) -> Graph:
 | 类型 | 说明 |
 | :--- | :--- |
 | `Graph` | 返回传入的替换图对象。若输入不是 `ge.graph.Graph` 类型，将抛出 `TypeError`。 |
-
----
-
-## capture_tensor 函数
-
-将张量来源标准化为 `NodeIo` 辅助对象，用于在模式匹配中捕获张量。
-
-### 函数原型
-
-```python
-def capture_tensor(source: Union[NodeIo, Node, TensorHolder], index: int = 0) -> NodeIo:
-    ...
-```
-
-### 参数说明
-
-| 参数名 | 输入/输出 | 说明 |
-| :----- | :-------- | :---- |
-| source | 输入 | 张量来源，支持 `NodeIo`、`Node` 或 `TensorHolder` 类型。 |
-| index | 输入 | 输出索引，整数类型，默认为 `0`。当 `source` 为 `Node` 或 `TensorHolder` 时用于指定输出张量索引。 |
-
-### 返回值说明
-
-| 类型 | 说明 |
-| :--- | :--- |
-| `NodeIo` | 返回标准化后的 `NodeIo` 对象，包含节点引用和输出索引。 |
 
 ---
 

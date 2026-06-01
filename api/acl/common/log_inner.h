@@ -15,7 +15,7 @@
 #include <vector>
 #include "dlog_pub.h"
 #include "mmpa/mmpa_api.h"
-#include "acl/acl_base.h"
+#include "acl/acl_base_rt.h"
 
 #ifndef char_t
 using char_t = char;

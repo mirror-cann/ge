@@ -76,8 +76,11 @@ Tensor *EagerOpExecutionContext::MallocOutputTensor(size_t index, const StorageS
   if (tensor_data.GetAddr() != nullptr && tensor_data.GetSize() > 0) {
     return output_tensor;
   }
-  auto gert_tensor_data = gert_allocator->MallocTensorData(aligned_tensor_size);
-  output_tensor->SetData(std::move(gert_tensor_data.MutableTensorData()));
+  // 外部未申请输出内存, 内部申请并将内存共享给output_tensor
+  auto new_tensor_data = gert_allocator->MallocTensorDataFromL1(aligned_tensor_size);
+  GE_ASSERT_TRUE((new_tensor_data.GetAddr() != nullptr) && (new_tensor_data.GetSize() > 0U),
+                 "Malloc output tensor data failed, size: %zu", aligned_tensor_size);
+  GE_ASSERT_SUCCESS(output_tensor->MutableTensorData().ShareFrom(new_tensor_data));
   return output_tensor;
 }
 

@@ -43,6 +43,7 @@
 #include "common/global_variables/diagnose_switch.h"
 #include "hcom/hcom_topo_info.h"
 #include "common/opskernel/ops_kernel_info_types.h"
+#include "engines/custom_engine/custom_graph_optimizer.h"
 #include "graph/custom_op_factory.h"
 #include "graph/custom_op.h"
 
@@ -200,6 +201,33 @@ public:
     args_table[3] = static_cast<void*>(output_0);
 
     aclrtLaunchKernelWithHostArgs(nullptr, 0, nullptr, nullptr, &args_table[0], 32, nullptr, 0);
+    return SUCCESS;
+  }
+};
+
+class TestCompileOutputCustomOp : public EagerExecuteOp, public CompilableOp {
+public:
+  graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
+    return SUCCESS;
+  }
+
+  graphStatus Compile(gert::OpCompileContext *ctx) override {
+    GE_ASSERT_NOTNULL(ctx);
+    const auto required_output = ctx->GetRequiredOutputTensor(0U);
+    GE_ASSERT_NOTNULL(required_output);
+    GE_ASSERT_TRUE(required_output->GetShape().GetStorageShape() == gert::Shape({8, 16}));
+    GE_ASSERT_TRUE(required_output->GetDataType() == DT_FLOAT16);
+    GE_ASSERT_TRUE(required_output->GetStorageFormat() == FORMAT_ND);
+
+    const auto dynamic_output0 = ctx->GetDynamicOutputTensor(1U, 0U);
+    GE_ASSERT_NOTNULL(dynamic_output0);
+    GE_ASSERT_TRUE(dynamic_output0->GetShape().GetStorageShape() == gert::Shape({16, 16}));
+    GE_ASSERT_TRUE(dynamic_output0->GetDataType() == DT_FLOAT);
+
+    const auto dynamic_output1 = ctx->GetDynamicOutputTensor(1U, 1U);
+    GE_ASSERT_NOTNULL(dynamic_output1);
+    GE_ASSERT_TRUE(dynamic_output1->GetShape().GetStorageShape() == gert::Shape({32, 16}));
+    GE_ASSERT_TRUE(dynamic_output1->GetDataType() == DT_INT32);
     return SUCCESS;
   }
 };
@@ -583,6 +611,44 @@ TEST_F(CustomOpRefreshTest, model_execute_ok_with_customop_link_to_add_and_fm_re
   runtime_stub.Clear();
   mmSetEnv(kEnvValue, "", 1);
   ReInitGe();
+}
+
+/**
+ * 用例描述：验证自定义编译算子编译上下文可构造输出Tensor
+ * 预置条件：
+ * 1. 注册一个包含1个required输出和2个dynamic输出实例的CompilableOp
+ * 2. 构造仅包含该自定义算子的计算图
+ * 测试步骤：
+ * 1. 调用CustomGraphOptimizer执行自定义算子编译
+ * 2. 在自定义算子的Compile函数中按IR输出读取输出Tensor
+ * 预期结果：
+ * 1. 自定义算子编译成功
+ * 2. Compile函数中可以获取到3个输出Tensor，shape、format、datatype符合OpDesc描述
+ */
+TEST_F(CustomOpRefreshTest, custom_op_compile_context_construct_outputs_success) {
+  const char *const op_type = "StCompileOutputCustomOp";
+  auto graph = std::make_shared<ComputeGraph>("compile_output_custom_op_graph");
+  auto op_desc = std::make_shared<OpDesc>("custom_op", op_type);
+  op_desc->AppendIrOutput("y", kIrOutputRequired);
+  op_desc->AppendIrOutput("dy", kIrOutputDynamic);
+
+  GeTensorDesc required_output_desc(GeShape({8, 16}), FORMAT_ND, DT_FLOAT16);
+  required_output_desc.SetOriginFormat(FORMAT_NCHW);
+  ASSERT_EQ(op_desc->AddOutputDesc("y", required_output_desc), GRAPH_SUCCESS);
+  GeTensorDesc dynamic_output_desc0(GeShape({16, 16}), FORMAT_ND, DT_FLOAT);
+  dynamic_output_desc0.SetOriginFormat(FORMAT_ND);
+  ASSERT_EQ(op_desc->AddOutputDesc("dy0", dynamic_output_desc0), GRAPH_SUCCESS);
+  GeTensorDesc dynamic_output_desc1(GeShape({32, 16}), FORMAT_FRACTAL_NZ, DT_INT32);
+  dynamic_output_desc1.SetOriginFormat(FORMAT_ND);
+  ASSERT_EQ(op_desc->AddOutputDesc("dy1", dynamic_output_desc1), GRAPH_SUCCESS);
+
+  ASSERT_NE(graph->AddNode(op_desc), nullptr);
+  ASSERT_EQ(CustomOpFactory::RegisterCustomOpCreator(op_type, []() -> std::unique_ptr<BaseCustomOp> {
+    return std::make_unique<TestCompileOutputCustomOp>();
+  }), GRAPH_SUCCESS);
+
+  CustomGraphOptimizer optimizer;
+  ASSERT_EQ(optimizer.OptimizeSubgraphPostProc(*graph), GRAPH_SUCCESS);
 }
 
 }

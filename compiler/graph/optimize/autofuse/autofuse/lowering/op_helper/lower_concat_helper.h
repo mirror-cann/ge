@@ -14,7 +14,6 @@
 #include "graph/node.h"
 #include "graph/compute_graph.h"
 #include "lowering/asc_lowerer/loop_api.h"
-#include "ascendc_ir.h"
 
 namespace ge {
 class LowerConcatHelper {

@@ -307,8 +307,8 @@ Status CustomTaskInfo::Distribute() {
 }
 
 Status CustomTaskInfo::Release() {
-  rtContext_t ctx = nullptr;
-  GE_CHK_RT(rtCtxGetCurrent(&ctx));
+  aclrtContext ctx = nullptr;
+  GE_CHK_RT(aclrtGetCurrentContext(&ctx));
   sink_only_allocator_.reset();
   return SUCCESS;
 }

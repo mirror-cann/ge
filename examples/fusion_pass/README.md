@@ -1,11 +1,16 @@
-# 自定义融合pass开发指南
+# 自定义融合 Pass
 
-## 概述
+本目录提供 GE 自定义融合 pass 的开发文档和样例。
 
-自定义融合pass是GE提供的一种改图能力，关于GE相关内容可点击
-[此处](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/83RC1alpha003/graph/graphdevg/atlasag_25_0081.html)。
-本指南介绍如何开发一个融合pass来实现自定义改图功能，
-此外我们还提供了可运行的样例以供参考,
-其中graph_base_pass[sample](../fusion_pass/graph_base_pass)是通过graph接口来实现自定义融合pass，
-而pattern_base_pass[sample](../fusion_pass/pattern_base_pass)是继承GE提供的类并重写其方法来实现自定义融合pass，
-总体上，推荐开发者通过继承GE提供的类并重写其方法来实现自定义融合pass。
+如果是第一次开发，建议按下面顺序阅读：
+
+1. [融合 Pattern Pass 机制](../../docs/architecture/features/fusion_pattern_pass.md)：先理解 pattern、匹配、过滤、replacement 和边界规则。
+2. [Python 融合 Pass 开发指南](python_fusion_pass_development_guide.md)：支持运行时接入和 `@pattern` 表达式写法。
+3. [C++ 融合 Pass 开发指南](cpp_fusion_pass_development_guide.md)：适合编译成 `.so` 后产品化交付。
+
+## 样例目录
+
+| 目录 | 说明 |
+|------|------|
+| [pattern_base_pass](pattern_base_pass/README.md) | 推荐优先参考。通过 `PatternFusionPass` 或 `DecomposePass` 开发 pattern 类融合规则 |
+| [graph_base_pass](graph_base_pass/README.md) | 通过 graph 接口直接改图的样例，适合需要完全手动控制图修改的场景 |

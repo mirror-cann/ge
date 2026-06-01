@@ -27,6 +27,7 @@
 #include "stub/gert_runtime_stub.h"
 #include "depends/checker/mem_trace_checker.h"
 #include "common/global_variables/diagnose_switch.h"
+#include "engines/custom_engine/custom_graph_optimizer.h"
 
 using namespace ge;
 using namespace gert::bg;
@@ -130,12 +131,78 @@ class TestCustomOpWithShapeInfer : public EagerExecuteOp, public ShapeInferOp {
   }
 };
 
+class TestNoInputCompileOutputCustomOp : public EagerExecuteOp, CompilableOp {
+ public:
+  graphStatus Execute(EagerOpExecutionContext *ctx) override {
+    return SUCCESS;
+  }
+
+  graphStatus Compile(OpCompileContext *ctx) override {
+    const auto output0 = ctx->GetOutputTensor(0U);
+    GE_ASSERT_NOTNULL(output0);
+    GE_ASSERT_TRUE(output0->GetShape().GetStorageShape() == gert::Shape({8, 16}));
+    GE_ASSERT_TRUE(output0->GetDataType() == DT_FLOAT16);
+    GE_ASSERT_TRUE(output0->GetStorageFormat() == FORMAT_ND);
+
+    const auto output1 = ctx->GetOutputTensor(1U);
+    GE_ASSERT_NOTNULL(output1);
+    GE_ASSERT_TRUE(output1->GetShape().GetStorageShape() == gert::Shape({16, 16}));
+    GE_ASSERT_TRUE(output1->GetDataType() == DT_FLOAT);
+
+    const auto output2 = ctx->GetOutputTensor(2U);
+    GE_ASSERT_NOTNULL(output2);
+    GE_ASSERT_TRUE(output2->GetShape().GetStorageShape() == gert::Shape({32, 16}));
+    GE_ASSERT_TRUE(output2->GetDataType() == DT_INT32);
+    GE_ASSERT_TRUE(ctx->GetOutputTensor(3U) == nullptr);
+
+    const auto required_output = ctx->GetRequiredOutputTensor(0U);
+    GE_ASSERT_TRUE(required_output == output0);
+
+    const auto dynamic_output0 = ctx->GetDynamicOutputTensor(1U, 0U);
+    GE_ASSERT_TRUE(dynamic_output0 == output1);
+
+    const auto dynamic_output1 = ctx->GetDynamicOutputTensor(1U, 1U);
+    GE_ASSERT_TRUE(dynamic_output1 == output2);
+    GE_ASSERT_TRUE(ctx->GetRequiredOutputTensor(2U) == nullptr);
+    GE_ASSERT_TRUE(ctx->GetDynamicOutputTensor(1U, 2U) == nullptr);
+    mock_compile_path_ = MockCompile();
+    return SUCCESS;
+  }
+
+ private:
+  std::string mock_compile_path_;
+};
+
+class TestEmptyOutputInstanceCompileCustomOp : public EagerExecuteOp, CompilableOp {
+ public:
+  graphStatus Execute(EagerOpExecutionContext *ctx) override {
+    return SUCCESS;
+  }
+
+  graphStatus Compile(OpCompileContext *ctx) override {
+    GE_ASSERT_NOTNULL(ctx);
+    GE_ASSERT_TRUE(ctx->GetOutputTensor(0U) == nullptr);
+    GE_ASSERT_TRUE(ctx->GetRequiredOutputTensor(0U) == nullptr);
+    GE_ASSERT_TRUE(ctx->GetDynamicOutputTensor(0U, 0U) == nullptr);
+    return SUCCESS;
+  }
+};
+
 REG_OP(CustomOp)
   .INPUT(x1, TensorType::BasicType())
   .INPUT(x2, TensorType::BasicType())
   .INPUT(x3, TensorType::BasicType())
   .OUTPUT(y, TensorType::BasicType())
   .OP_END_FACTORY_REG(CustomOp)
+
+REG_OP(NoInputCompileOutputCustomOp)
+  .OUTPUT(y, TensorType::BasicType())
+  .DYNAMIC_OUTPUT(dy, TensorType::BasicType())
+  .OP_END_FACTORY_REG(NoInputCompileOutputCustomOp)
+
+REG_OP(EmptyOutputInstanceCompileCustomOp)
+  .OUTPUT(y, TensorType::BasicType())
+  .OP_END_FACTORY_REG(EmptyOutputInstanceCompileCustomOp)
 
 REG_OP(StCustomOpWithShapeInfer)
   .INPUT(x1, TensorType::BasicType())
@@ -189,6 +256,90 @@ TEST_F(TestCustomNodeKernel, custom_op_kernel_execute_test) {
       .AsYouWish());
   ge::diagnoseSwitch::DisableProfiling();
   rtStreamDestroy(stream);
+}
+
+/**
+ * 用例描述：验证无输入自定义编译算子可在Compile阶段获取输出Tensor
+ * 预置条件：
+ *   1. 注册一个无输入、包含1个required输出和2个dynamic输出实例的CompilableOp
+ *   2. 构造仅包含该自定义算子的计算图
+ * 测试步骤：
+ *   1. 调用CustomGraphOptimizer执行自定义算子编译
+ *   2. 在自定义算子的Compile函数中调用GetOutputTensor、GetRequiredOutputTensor和GetDynamicOutputTensor
+ *   3. 调用上述接口的越界场景
+ * 预期结果：
+ *   1. 自定义算子编译成功
+ *   2. Compile函数中可以获取到3个输出Tensor，shape、format、datatype符合OpDesc描述
+ *   3. 越界访问返回nullptr
+ */
+TEST_F(TestCustomNodeKernel, no_input_custom_op_compile_get_output_tensor_success) {
+  auto graph = std::make_shared<ge::ComputeGraph>("no_input_custom_op_compile_graph");
+  auto op_desc = std::make_shared<ge::OpDesc>("custom_op", "NoInputCompileOutputCustomOp");
+  op_desc->AppendIrOutput("y", ge::kIrOutputRequired);
+  op_desc->AppendIrOutput("dy", ge::kIrOutputDynamic);
+
+  ge::GeTensorDesc required_output_desc(ge::GeShape({8, 16}), FORMAT_ND, DT_FLOAT16);
+  required_output_desc.SetOriginFormat(FORMAT_NCHW);
+  op_desc->AddOutputDesc("y", required_output_desc);
+  ge::GeTensorDesc dynamic_output_desc0(ge::GeShape({16, 16}), FORMAT_ND, DT_FLOAT);
+  dynamic_output_desc0.SetOriginFormat(FORMAT_ND);
+  op_desc->AddOutputDesc("dy0", dynamic_output_desc0);
+  ge::GeTensorDesc dynamic_output_desc1(ge::GeShape({32, 16}), FORMAT_FRACTAL_NZ, DT_INT32);
+  dynamic_output_desc1.SetOriginFormat(FORMAT_ND);
+  op_desc->AddOutputDesc("dy1", dynamic_output_desc1);
+
+  auto custom_node = graph->AddNode(op_desc);
+  ASSERT_NE(custom_node, nullptr);
+  CustomOpFactory::RegisterCustomOpCreator("NoInputCompileOutputCustomOp", []() -> std::unique_ptr<BaseCustomOp> {
+    return std::make_unique<TestNoInputCompileOutputCustomOp>();
+  });
+
+  ge::CustomGraphOptimizer optimizer;
+  ASSERT_EQ(optimizer.OptimizeSubgraphPostProc(*graph), ge::GRAPH_SUCCESS);
+}
+
+/**
+ * 用例描述：验证自定义编译算子输出Tensor获取接口在无ComputeNodeInfo时返回nullptr
+ * 预置条件：
+ *   1. 默认构造OpCompileContext，不挂接ComputeNodeInfo
+ * 测试步骤：
+ *   1. 调用GetOutputTensor、GetRequiredOutputTensor和GetDynamicOutputTensor
+ * 预期结果：
+ *   1. 三个接口均返回nullptr
+ */
+TEST_F(TestCustomNodeKernel, compile_context_output_getters_return_nullptr_without_compute_node_info) {
+  OpCompileContext ctx;
+  EXPECT_EQ(ctx.GetOutputTensor(0U), nullptr);
+  EXPECT_EQ(ctx.GetRequiredOutputTensor(0U), nullptr);
+  EXPECT_EQ(ctx.GetDynamicOutputTensor(0U, 0U), nullptr);
+}
+
+/**
+ * 用例描述：验证自定义编译算子输出Tensor获取接口在IR输出无实例时返回nullptr
+ * 预置条件：
+ *   1. 注册一个仅声明IR输出、但没有实际输出实例的CompilableOp
+ *   2. 构造仅包含该自定义算子的计算图
+ * 测试步骤：
+ *   1. 调用CustomGraphOptimizer执行自定义算子编译
+ *   2. 在自定义算子的Compile函数中调用GetOutputTensor、GetRequiredOutputTensor和GetDynamicOutputTensor
+ * 预期结果：
+ *   1. 自定义算子编译成功
+ *   2. 三个接口均返回nullptr
+ */
+TEST_F(TestCustomNodeKernel, custom_op_compile_get_output_tensor_nullptr_without_output_instance) {
+  auto graph = std::make_shared<ge::ComputeGraph>("empty_output_instance_compile_graph");
+  auto op_desc = std::make_shared<ge::OpDesc>("custom_op", "EmptyOutputInstanceCompileCustomOp");
+  op_desc->AppendIrOutput("y", ge::kIrOutputRequired);
+
+  auto custom_node = graph->AddNode(op_desc);
+  ASSERT_NE(custom_node, nullptr);
+  CustomOpFactory::RegisterCustomOpCreator("EmptyOutputInstanceCompileCustomOp",
+      []() -> std::unique_ptr<BaseCustomOp> {
+        return std::make_unique<TestEmptyOutputInstanceCompileCustomOp>();
+      });
+
+  ge::CustomGraphOptimizer optimizer;
+  ASSERT_EQ(optimizer.OptimizeSubgraphPostProc(*graph), ge::GRAPH_SUCCESS);
 }
 
 TEST_F(TestCustomNodeKernel, custom_op_shape_infer_op_execute_test) {

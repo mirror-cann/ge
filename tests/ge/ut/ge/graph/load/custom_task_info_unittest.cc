@@ -23,8 +23,10 @@ namespace ge {
 namespace {
 class AclMockMemcpy : public AclRuntimeStub {
  public:
-  MOCK_METHOD5(aclrtMemcpy, int32_t(void *, size_t, const void *, size_t, aclrtMemcpyKind));
+  MOCK_METHOD5(aclrtMemcpy, int32_t(void *, size_t, const void *, size_t, aclrtMemcpyKind)
+  );
 };
+}
 
 class UtestCustomTaskInfo : public testing::Test {
  protected:
@@ -97,6 +99,41 @@ class UtestCustomTaskInfo : public testing::Test {
     }
   }
 };
+
+TEST_F(UtestCustomTaskInfo, Release_ResetSinkOnlyAllocator) {
+  CustomTaskInfo task_info;
+  auto allocator = std::make_shared<gert::memory::SinkOnlyAllocator>();
+  auto mem_block_manager = std::make_shared<ge::MemoryBlockManager>(0);
+  allocator->SetAllocator(mem_block_manager);
+  task_info.sink_only_allocator_ = allocator;
+  ASSERT_NE(task_info.sink_only_allocator_, nullptr);
+
+  ASSERT_EQ(task_info.Release(), SUCCESS);
+  ASSERT_EQ(task_info.sink_only_allocator_, nullptr);
+  mem_block_manager->Release();
+}
+
+TEST_F(UtestCustomTaskInfo, Release_NullSinkOnlyAllocator) {
+  CustomTaskInfo task_info;
+  ASSERT_EQ(task_info.sink_only_allocator_, nullptr);
+
+  ASSERT_EQ(task_info.Release(), SUCCESS);
+  ASSERT_EQ(task_info.sink_only_allocator_, nullptr);
+}
+
+TEST_F(UtestCustomTaskInfo, Release_AclrtGetCurrentContextFailStillSuccess) {
+  CustomTaskInfo task_info;
+  auto allocator = std::make_shared<gert::memory::SinkOnlyAllocator>();
+  auto mem_block_manager = std::make_shared<ge::MemoryBlockManager>(0);
+  allocator->SetAllocator(mem_block_manager);
+  task_info.sink_only_allocator_ = allocator;
+
+  AclRuntimeStub::GetInstance()->SetErrorResultApiName("aclrtGetCurrentContext");
+  ASSERT_EQ(task_info.Release(), SUCCESS);
+  ASSERT_EQ(task_info.sink_only_allocator_, nullptr);
+  mem_block_manager->Release();
+  AclRuntimeStub::GetInstance()->SetErrorResultApiName("");
+}
 
 TEST_F(UtestCustomTaskInfo, InsertDumpOp_ReturnSuccessWhenOpNeedDumpIsFalse) {
   DavinciModel model(0, nullptr);
@@ -190,5 +227,4 @@ TEST_F(UtestCustomTaskInfo, UpdateCustomDumpAddrs_ReturnSuccessWhenDumpEnabled) 
   CleanupDumpOp(task_info.input_custom_dump_);
   CleanupDumpOp(task_info.output_custom_dump_);
 }
-}  // namespace
 }  // namespace ge

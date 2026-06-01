@@ -18,7 +18,7 @@
 #include <vector>
 #include <unordered_map>
 #include <atomic>
-#include "acl/acl_base.h"
+#include "acl/acl_base_rt.h"
 #include "graph/ge_attr_value.h"
 #include "mmpa/mmpa_api.h"
 #include "types/op_model.h"

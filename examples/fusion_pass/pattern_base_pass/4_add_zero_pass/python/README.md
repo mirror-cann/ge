@@ -22,7 +22,7 @@
   - 多输入 pattern 可使用 `x, y, z = inputs[:3]` 显式声明输入数量
   - 多 pattern pass 可声明多个 `@pattern` 方法；旧的 `patterns(self)` 返回多个 `Pattern` / `Graph` 仍兼容
   - `@pattern` 方法不能和 `patterns(self)` 同时使用，避免 pattern 声明来源不明确
-  - Python pass 框架会自动创建 `GraphBuilder`、设置图输出并 capture 已使用的输入；旧的显式 `GraphBuilder` 写法仍兼容
+  - Python pass 框架会自动创建 `GraphBuilder`、设置图输出，并按“已访问输入、`return` 输出”的顺序自动 capture；旧的显式 `GraphBuilder` 写法仍兼容
   - `meet_requirements()` 中再显式读取匹配到的 `Const.value`，按 C++ 样例同样的规则判断零值
   - 当前支持与 C++ 样例一致的 `DT_FLOAT`、`DT_DOUBLE`、`DT_INT32`
 
