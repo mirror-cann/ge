@@ -330,7 +330,6 @@ const std::string expected_header = R"(#include <iostream>
 #include "acl/acl_base.h"
 #include "exe_graph/runtime/tensor.h"
 #include "rt.h"
-#include "rts/rts_kernel.h"
 
 #define OM2_CHK_STATUS(expr, ...)            \
 do {                                       \
