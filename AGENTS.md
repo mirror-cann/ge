@@ -80,6 +80,7 @@ rm -rf build_ut/ build_st/ output/ build/ build_out/ cov/ build_cmake_gcov/
 | [`ascend-ir.md`](docs/architecture/modules/graph_metadef/ascend-ir.md) | AscendIR、图结构、算子注册、Anchor、DAG | `base/`、`inc/`（图结构相关） |
 | [`compiler.md`](docs/architecture/modules/compiler/compiler.md) | 编译器、优化pass、融合、引擎分区、算子编译 | `compiler/`（非 memory/split/stream 子目录） |
 | [`runtime.md`](docs/architecture/modules/runtime/runtime.md) | 动态运行执行器、模型加载、模型执行、Hybrid、v2架构 | `runtime/`（整体架构层面） |
+| [`fusion_pattern_pass.md`](docs/architecture/features/fusion_pattern_pass.md) | 融合Pattern Pass、PatternFusionPass、DecomposePass、自定义融合Pass、MeetRequirements、CaptureTensor、Replacement、PatternMatcherConfig | `compiler/graph/fusion/`、`compiler/graph/passes/feature/`、`examples/fusion_pass/` |
 | [`datadump.md`](docs/architecture/features/datadump.md) | dump、溢出、落盘、datadump、异常dump | `common/dump/`、`runtime/*/dump/` |
 | [`external_weight.md`](docs/architecture/features/external_weight.md) | 外置权重、external weight、FileConstant、权重分离、权重落盘 | 仅使用触发词 |
 | [`constant_folding.md`](docs/architecture/features/constant_folding.md) | 常量折叠、constant folding、常量折叠优化、常量表达式求值 | `*constant_folding*` |

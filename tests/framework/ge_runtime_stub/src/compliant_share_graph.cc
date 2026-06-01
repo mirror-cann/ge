@@ -183,7 +183,6 @@ ComputeGraphPtr BuildGraphWithUnConsistantType(const vector<int64_t> &shape) {
   auto output_opdesc = output_node->GetOpDesc();
   output_opdesc->MutableInputDesc(0)->SetDataType(DT_FLOAT);
   output_opdesc->MutableInputDesc(1)->SetDataType(DT_FLOAT);
-  output_opdesc->MutableOutputDesc(0)->SetDataType(DT_FLOAT);
   return compute_graph;
 }
 
@@ -243,7 +242,6 @@ ComputeGraphPtr BuildGraphWithUnConsistantTypeWithConstInput(const vector<int64_
   auto output_opdesc = output_node->GetOpDesc();
   output_opdesc->MutableInputDesc(0)->SetDataType(DT_FLOAT);
   output_opdesc->MutableInputDesc(1)->SetDataType(DT_FLOAT);
-  output_opdesc->MutableOutputDesc(0)->SetDataType(DT_FLOAT);
   return compute_graph;
 }
 

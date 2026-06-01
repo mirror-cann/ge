@@ -28,6 +28,7 @@ try:
     from ge.graph import Graph, Node, Shape, Tensor, TensorDesc
     from ge.graph.types import DataType, Format
     from ge._capi.pyes_graph_builder_wrapper import is_generated_lib_available
+    from ge.es.ut_test import Add
 except ImportError as e:
     pytest.skip(f"无法导入 ge 模块: {e}", allow_module_level=True)
 
@@ -54,9 +55,10 @@ class TestNode:
         # 创建常量节点
         const_tensor = builder.create_const_float(1.0)
 
+        add_tensor = Add(input_tensor, const_tensor)
+
         # 设置输出
-        builder.set_graph_output(input_tensor, 0)
-        builder.set_graph_output(const_tensor, 1)
+        builder.set_graph_output(add_tensor, 0)
 
         # 构建图
         return builder.build_and_reset()
@@ -69,8 +71,7 @@ class TestNode:
         assert isinstance(nodes, list)
         assert len(nodes) > 0
 
-        # 返回最后一个节点用于测试
-        return nodes[-1]
+        return next(node for node in nodes if node.type == "Add")
 
     @pytest.fixture
     def node_first(self, graph):
@@ -201,7 +202,7 @@ class TestNode:
         out_node, port_index = out_data_nodes_and_port_indexes[0]
         assert isinstance(port_index, int)
         assert isinstance(out_node, Node)
-        assert out_node.type == "NetOutput"
+        assert out_node.type == "Add"
         assert port_index == 0
 
 
