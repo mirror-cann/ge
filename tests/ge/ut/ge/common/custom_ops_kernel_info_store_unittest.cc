@@ -1,12 +1,14 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
+
+
 
 #include <gtest/gtest.h>
 #include <atomic>
@@ -21,6 +23,7 @@
 #include "graph/ge_tensor.h"
 #include "graph/op_desc.h"
 #include "graph/custom_op.h"
+#include "debug/ge_util.h"
 
 namespace ge {
 namespace custom {
@@ -32,6 +35,33 @@ class MockCustomOp : public EagerExecuteOp {
     return GRAPH_SUCCESS;
   }
 };
+
+class MockCompilableCustomOp : public EagerExecuteOp, public CompilableOp {
+ public:
+  graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
+    (void)ctx;
+    return GRAPH_SUCCESS;
+  }
+
+  graphStatus Compile(gert::OpCompileContext *ctx) override {
+    (void)ctx;
+    ++compile_count_;
+    return GRAPH_SUCCESS;
+  }
+
+  static void ResetCompileCount() {
+    compile_count_ = 0;
+  }
+
+  static int32_t GetCompileCount() {
+    return compile_count_;
+  }
+
+ private:
+  static int32_t compile_count_;
+};
+
+int32_t MockCompilableCustomOp::compile_count_ = 0;
 
 std::atomic_bool g_compile_context_output_called{false};
 
@@ -185,7 +215,30 @@ TEST_F(UtestCustomOpsKernelInfoStore, ThreadSafety) {
   EXPECT_EQ(infos1.size(), infos2.size());
 }
 
-TEST_F(UtestCustomOpsKernelInfoStore, OptimizeSubgraphPostProcConstructsCompileContextOutputs) {
+TEST_F(UtestCustomOpsKernelInfoStore, CustomGraphOptimizerCompileRunsDuringWholeGraphOnly) {
+  const std::string kTestOpType = "TestCompilableOp_CompileDuringWholeGraphOnly";
+  auto creator = []() -> std::unique_ptr<BaseCustomOp> {
+    return std::make_unique<MockCompilableCustomOp>();
+  };
+  const auto register_ret = CustomOpFactory::RegisterCustomOpCreator(AscendString(kTestOpType.c_str()), creator);
+  EXPECT_TRUE((register_ret == GRAPH_SUCCESS) || (register_ret == GRAPH_FAILED));
+
+  auto graph = ComGraphMakeShared<ComputeGraph>("custom_compile_hook_graph");
+  ASSERT_NE(graph, nullptr);
+  auto op_desc = ComGraphMakeShared<OpDesc>("custom_compile_hook_node", kTestOpType);
+  ASSERT_NE(op_desc, nullptr);
+  ASSERT_NE(graph->AddNode(op_desc), nullptr);
+
+  MockCompilableCustomOp::ResetCompileCount();
+  CustomGraphOptimizer optimizer;
+  EXPECT_EQ(optimizer.OptimizeWholeGraph(*graph), SUCCESS);
+  EXPECT_EQ(MockCompilableCustomOp::GetCompileCount(), 1);
+
+  EXPECT_EQ(optimizer.OptimizeGraphBeforeBuild(*graph), SUCCESS);
+  EXPECT_EQ(MockCompilableCustomOp::GetCompileCount(), 1);
+}
+
+TEST_F(UtestCustomOpsKernelInfoStore, OOptimizeWholeGraphConstructsCompileContextOutputs) {
   const std::string kTestOpType = "TestCompileContextOutputOp_OptimizerTest";
   auto graph = std::make_shared<ComputeGraph>("compile_context_output_graph");
   auto op_desc = std::make_shared<OpDesc>("compile_context_output_op", kTestOpType);
@@ -207,7 +260,7 @@ TEST_F(UtestCustomOpsKernelInfoStore, OptimizeSubgraphPostProcConstructsCompileC
 
   g_compile_context_output_called.store(false);
   CustomGraphOptimizer optimizer;
-  EXPECT_EQ(optimizer.OptimizeSubgraphPostProc(*graph), SUCCESS);
+  EXPECT_EQ(optimizer.OptimizeWholeGraph(*graph), SUCCESS);
   EXPECT_TRUE(g_compile_context_output_called.load());
 }
 
