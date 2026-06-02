@@ -201,10 +201,8 @@ target_link_libraries(model_deployer PRIVATE
         datagw_headers
         metadef_headers
         hccl_headers
-        -Xlinker "-("
-        $<TARGET_NAME_IF_EXISTS:gRPC::grpc++>
-        $<TARGET_NAME_IF_EXISTS:gRPC::grpc>
-        -Xlinker "-)"
+        gRPC::grpc++
+        gRPC::grpc
         -Wl,--no-as-needed
         unified_dlog
         static_mmpa

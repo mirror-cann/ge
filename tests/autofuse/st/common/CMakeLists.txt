@@ -49,8 +49,8 @@ target_link_libraries(test_common_st ${ASCGEN_COMMON_LINK_OPTION}
         c_sec
         mmpa
         unified_dlog
-        GTest::gtest
-        GTest::gtest_main
+        GTestShared::gtest
+        GTestShared::gtest_main
 )
 
 add_test(NAME test_common_st COMMAND test_common_st --gtest_output=xml:${CMAKE_INSTALL_PREFIX}/report/st/test_common_st.xml)

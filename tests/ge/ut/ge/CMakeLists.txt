@@ -734,9 +734,9 @@ target_link_libraries(ut_libge_multiparts_utest
     -Wl,--whole-archive
     atc_static gert gert_op_impl es_ge_test
     -Wl,--no-whole-archive
-    ge_running_env ge_runtime_stub GTest::gtest GTest::gtest_main GTest::gmock_main ${COMMON_SHARED_LIBRARIES} -lrt
+    ge_running_env ge_runtime_stub GTestShared::gtest GTestShared::gtest_main GTestShared::gmock_main ${COMMON_SHARED_LIBRARIES} -lrt
     -ldl
-    -Wl,--no-as-needed GTest::gmock -Wl,--as-needed
+    -Wl,--no-as-needed GTestShared::gmock -Wl,--as-needed
 )
 
 set_target_properties(ut_libge_multiparts_utest PROPERTIES CXX_STANDARD 17)
@@ -797,8 +797,8 @@ target_link_libraries(ut_libge_symbol_infer_utest
         rt2_registry_static
         es_ge_test
         -Wl,--no-whole-archive
-        ge_runtime_stub st_stubs GTest::gtest_main GTest::gmock_main -lrt -ldl
-        -Wl,--no-as-needed GTest::gmock -Wl,--as-needed
+        ge_runtime_stub st_stubs GTestShared::gtest_main GTestShared::gmock_main -lrt -ldl
+        -Wl,--no-as-needed GTestShared::gmock -Wl,--as-needed
 )
 
 add_test(NAME ut_libge_symbol_infer_utest COMMAND ut_libge_symbol_infer_utest --gtest_output=xml:${CMAKE_INSTALL_PREFIX}/report/ut/ut_libge_symbol_infer_utest.xml)
@@ -858,8 +858,8 @@ target_link_libraries(ut_libge_common_utest
     gert_op_impl_static rt2_registry_static
     -Wl,--no-whole-archive
     minizip_static
-    ge_running_env GTest::gtest GTest::gtest_main GTest::gmock_main ${COMMON_SHARED_LIBRARIES} -lrt -ldl
-    -Wl,--no-as-needed GTest::gmock -Wl,--as-needed
+    ge_running_env GTestShared::gtest GTestShared::gtest_main GTestShared::gmock_main ${COMMON_SHARED_LIBRARIES} -lrt -ldl
+    -Wl,--no-as-needed GTestShared::gmock -Wl,--as-needed
 )
 
 target_link_options(ut_libge_common_utest PRIVATE
@@ -924,8 +924,8 @@ target_link_libraries(ut_libge_others_utest
     es_ge_test
     rt2_registry_static
     -Wl,--no-whole-archive
-    ge_running_env ge_runtime_stub GTest::gtest GTest::gtest_main GTest::gmock_main ${COMMON_SHARED_LIBRARIES} -lrt -ldl ${AIR_COMMON_LINK_OPTION}
-    -Wl,--no-as-needed GTest::gmock -Wl,--as-needed
+    ge_running_env ge_runtime_stub GTestShared::gtest GTestShared::gtest_main GTestShared::gmock_main ${COMMON_SHARED_LIBRARIES} -lrt -ldl ${AIR_COMMON_LINK_OPTION}
+    -Wl,--no-as-needed GTestShared::gmock -Wl,--as-needed
 )
 
 add_test(NAME ut_libge_others_utest COMMAND ut_libge_others_utest --gtest_output=xml:${CMAKE_INSTALL_PREFIX}/report/ut/ut_libge_others_utest.xml)
@@ -959,8 +959,8 @@ target_compile_definitions(ut_python_pass_artifact_selector_utest PRIVATE
 target_link_libraries(ut_python_pass_artifact_selector_utest
     intf_llt_pub
     json
-    GTest::gtest
-    GTest::gtest_main
+    GTestShared::gtest
+    GTestShared::gtest_main
     ge_common_base
     opp_registry
     register
@@ -1034,14 +1034,14 @@ target_link_libraries(ut_fusion_pass_executor_utest
     -Wl,--no-whole-archive
     ge_running_env
     ${COMMON_SHARED_LIBRARIES}
-    GTest::gtest
-    GTest::gtest_main
-    GTest::gmock_main
+    GTestShared::gtest
+    GTestShared::gtest_main
+    GTestShared::gmock_main
     -lrt
     -ldl
     -Wl,--no-as-needed
     es_ge_test
-    GTest::gmock
+    GTestShared::gmock
     -Wl,--as-needed
 )
 
@@ -1123,8 +1123,8 @@ target_link_libraries(ut_libge_label_maker_utest
     -Wl,--whole-archive
     es_ge_test
     -Wl,--no-whole-archive
-    ge_running_env GTest::gtest GTest::gtest_main GTest::gmock_main ${COMMON_SHARED_LIBRARIES} -lrt -ldl
-    -Wl,--no-as-needed ascendcl_stub unified_dlog GTest::gmock -Wl,--as-needed
+    ge_running_env GTestShared::gtest GTestShared::gtest_main GTestShared::gmock_main ${COMMON_SHARED_LIBRARIES} -lrt -ldl
+    -Wl,--no-as-needed ascendcl_stub unified_dlog GTestShared::gmock -Wl,--as-needed
 )
 
 add_test(NAME ut_libge_label_maker_utest COMMAND ut_libge_label_maker_utest --gtest_output=xml:${CMAKE_INSTALL_PREFIX}/report/ut/ut_libge_label_maker_utest.xml)
@@ -1173,8 +1173,8 @@ target_link_libraries(ut_libge_kernel_utest
         gert
         ge_compiler
         -Wl,--no-whole-archive
-        ge_running_env GTest::gtest GTest::gtest_main GTest::gmock_main ${COMMON_SHARED_LIBRARIES} -lrt -ldl
-        -Wl,--no-as-needed ascendcl_stub GTest::gmock -Wl,--as-needed
+        ge_running_env GTestShared::gtest GTestShared::gtest_main GTestShared::gmock_main ${COMMON_SHARED_LIBRARIES} -lrt -ldl
+        -Wl,--no-as-needed ascendcl_stub GTestShared::gmock -Wl,--as-needed
 )
 
 add_test(NAME ut_libge_kernel_utest COMMAND ut_libge_kernel_utest --gtest_output=xml:${CMAKE_INSTALL_PREFIX}/report/ut/ut_libge_kernel_utest.xml)
@@ -1244,8 +1244,8 @@ target_link_libraries(ut_libge_distinct_load_utest
     -Wl,--no-whole-archive
     json
     minizip_static
-    ge_running_env GTest::gtest GTest::gtest_main GTest::gmock_main ${COMMON_SHARED_LIBRARIES} -lrt -ldl ${AIR_COMMON_LINK_OPTION} -lpthread
-    -Wl,--no-as-needed GTest::gmock -Wl,--as-needed
+    ge_running_env GTestShared::gtest GTestShared::gtest_main GTestShared::gmock_main ${COMMON_SHARED_LIBRARIES} -lrt -ldl ${AIR_COMMON_LINK_OPTION} -lpthread
+    -Wl,--no-as-needed GTestShared::gmock -Wl,--as-needed
 )
 
 target_link_options(ut_libge_distinct_load_utest PRIVATE
@@ -1300,9 +1300,9 @@ target_link_libraries(ge_manual_test
         graph_base
         gert
         aihac_autofusion
-        ge_running_env ge_runtime_stub GTest::gtest GTest::gtest_main GTest::gmock_main
+        ge_running_env ge_runtime_stub GTestShared::gtest GTestShared::gtest_main GTestShared::gmock_main
         ${COMMON_SHARED_LIBRARIES} -lrt -ldl
-        -Wl,--no-as-needed GTest::gmock -Wl,--as-needed
+        -Wl,--no-as-needed GTestShared::gmock -Wl,--as-needed
         )
 
 
@@ -1372,8 +1372,8 @@ target_link_libraries(ut_jit_execution
         -Wl,--no-whole-archive
         jit_exe
         ge_ut_common
-        ge_running_env ge_runtime_stub st_stubs GTest::gtest GTest::gtest_main GTest::gmock_main -lrt -ldl
-        -Wl,--no-as-needed GTest::gmock -Wl,--as-needed
+        ge_running_env ge_runtime_stub st_stubs GTestShared::gtest GTestShared::gtest_main GTestShared::gmock_main -lrt -ldl
+        -Wl,--no-as-needed GTestShared::gmock -Wl,--as-needed
 )
 
 target_link_options(ut_jit_execution PRIVATE
@@ -1430,8 +1430,8 @@ target_link_libraries(ut_eager_style_builder
         aihac_symbolizer
         ge_running_env
         ge_compiler
-        GTest::gtest GTest::gtest_main GTest::gmock_main ${COMMON_SHARED_LIBRARIES} -lrt -ldl ${AIR_COMMON_LINK_OPTION}
-        -Wl,--no-as-needed GTest::gmock -Wl,--as-needed
+        GTestShared::gtest GTestShared::gtest_main GTestShared::gmock_main ${COMMON_SHARED_LIBRARIES} -lrt -ldl ${AIR_COMMON_LINK_OPTION}
+        -Wl,--no-as-needed GTestShared::gmock -Wl,--as-needed
         ascendcl_stub
         )
 

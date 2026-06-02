@@ -36,7 +36,7 @@ add_subdirectory(runtime)
 add_library(stub_for_aicpu SHARED
     ${engine_common_stub_files}
 )
-add_dependencies(stub_for_aicpu GTest::gtest)
+add_dependencies(stub_for_aicpu GTestShared::gtest)
 target_include_directories(stub_for_aicpu PRIVATE
     ${engine_common_includes}
 )

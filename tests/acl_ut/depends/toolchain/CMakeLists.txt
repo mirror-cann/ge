@@ -43,8 +43,8 @@ target_link_libraries(toolchain_stub PRIVATE
     $<BUILD_INTERFACE:intf_llt_pub>
     c_sec
     json
-    GTest::gtest
-    GTest::gtest_main
-    GTest::gmock
-    GTest::gmock_main
+    GTestShared::gtest
+    GTestShared::gtest_main
+    GTestShared::gmock
+    GTestShared::gmock_main
 )

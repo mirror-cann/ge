@@ -16,7 +16,7 @@ target_link_libraries(test_main PRIVATE
     aihac_symbolizer
     runtime
     metadef
-    GTest::gtest
+    GTestShared::gtest
 )
 if(TARGET ascir_ops_headers)
     add_dependencies(test_main ascir_ops_headers)

@@ -13,7 +13,7 @@ target_link_options(inductor_tail_brc_tail_reduce_test_codegen PRIVATE -Wl,--no-
 target_link_libraries(inductor_tail_brc_tail_reduce_test_codegen
     atrace optimize att codegen common_stub share_graph ascgen_common
     aihac_symbolizer asc_slog_stub error_manager metadef json
-    GTest::gtest GTest::gtest_main)
+    GTestShared::gtest GTestShared::gtest_main)
 target_compile_definitions(inductor_tail_brc_tail_reduce_test_codegen PRIVATE
     ATT_SO_NAME="./libatt.so"
     KERNEL_SRC_LIST="${TAIL_REDUCE_TILING_DEF}:${TAIL_REDUCE_HOST_CODE}:${TAIL_REDUCE_DEVICE_CODE}"
@@ -24,7 +24,7 @@ set_tests_properties(inductor_tail_brc_tail_reduce_test_codegen PROPERTIES LABEL
 
 file(MAKE_DIRECTORY ${TAIL_REDUCE_OUTPUT_DIR})
 add_executable(inductor_tail_brc_tail_reduce_test_e2e test_e2e_inductor_tail_brc_tail_reduce_split_compile.cpp)
-target_link_libraries(inductor_tail_brc_tail_reduce_test_e2e dl GTest::gtest GTest::gtest_main unified_dlog)
+target_link_libraries(inductor_tail_brc_tail_reduce_test_e2e dl GTestShared::gtest GTestShared::gtest_main unified_dlog)
 target_include_directories(inductor_tail_brc_tail_reduce_test_e2e PRIVATE ${TAIL_REDUCE_WORKDIR})
 target_compile_definitions(inductor_tail_brc_tail_reduce_test_e2e PRIVATE
     TILING_DEF_FILE="${TAIL_REDUCE_TILING_DEF}"

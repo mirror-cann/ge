@@ -255,7 +255,7 @@ target_link_libraries(graph
         platform
         metadef
         -Wl,--as-needed
-        ascend_protobuf_shared_headers
+        ascend_protobuf
         $<$<NOT:$<STREQUAL:${TARGET_SYSTEM_NAME},Android>>:-lrt>
         -ldl
     PUBLIC

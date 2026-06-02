@@ -146,7 +146,6 @@ checkopts() {
   BUILD_COMPONENT_COMPILER="ge-compiler"
   BUILD_COMPONENT_EXECUTOR="ge-executor"
   BUILD_COMPONENT_DFLOW="dflow-executor"
-  THIRD_PARTY_DL="${BASEPATH}/build_third_party.sh"
   BUILD_OUT_PATH="${BASEPATH}/build_out"
   
   # Process the options
@@ -440,17 +439,6 @@ main() {
 
   env
   g++ -v
-
-  # 编译三方库
-  if [ "X$ENABLE_DFLOW_EXECUTOR_PKG" == "Xon" ]; then
-    bash ${THIRD_PARTY_DL} ${CANN_3RD_LIB_PATH} ${THREAD_NUM} ${BUILD_COMPONENT_DFLOW} ${ENABLE_BUILD_DEVICE} ${USE_CXX11_ABI} ${CMAKE_TOOLCHAIN_FILE}
-  fi
-  if [ "X$ENABLE_GE_EXECUTOR_PKG" == "Xon" ]; then
-    bash ${THIRD_PARTY_DL} ${CANN_3RD_LIB_PATH} ${THREAD_NUM} ${BUILD_COMPONENT_EXECUTOR} ${ENABLE_BUILD_DEVICE} ${USE_CXX11_ABI} ${CMAKE_TOOLCHAIN_FILE}
-  fi
-  if [ "X$ENABLE_GE_COMPILER_PKG" == "Xon" ]; then
-    bash ${THIRD_PARTY_DL} ${CANN_3RD_LIB_PATH} ${THREAD_NUM} ${BUILD_COMPONENT_COMPILER} ${ENABLE_BUILD_DEVICE} ${USE_CXX11_ABI} ${CMAKE_TOOLCHAIN_FILE}
-  fi
 
   echo "---------------- Build GE package ----------------"
   mk_dir ${OUTPUT_PATH}

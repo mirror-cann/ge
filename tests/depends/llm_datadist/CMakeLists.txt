@@ -62,7 +62,6 @@ target_include_directories(llm_engine_base PRIVATE
         ${AIR_CODE_DIR}/dflow/llm_datadist/v1
         ${AIR_CODE_DIR}/dflow/llm_datadist/v1/common
         ${AIR_CODE_DIR}/tests/depends/llm_datadist/src
-        ${CANN_3RD_LIB_PATH}/json/include
         #for session_util.h
         ${AIR_CODE_DIR}/api/session
 )
@@ -83,6 +82,7 @@ target_link_libraries(llm_engine_base PRIVATE
         runtime_stub
         llm_engine
         ascendcl_stub
+        json
         -Wl,--no-as-needed
         unified_dlog
         -Wl,-as-needed

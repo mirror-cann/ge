@@ -61,8 +61,8 @@ target_link_options(st_fast_runtime2_test PRIVATE
         )
 
 target_link_libraries(st_fast_runtime2_test PRIVATE
-        GTest::gtest
-        GTest::gtest_main
+        GTestShared::gtest
+        GTestShared::gtest_main
         adump_headers
         -Wl,-z,muldefs
         gert

@@ -92,7 +92,7 @@ target_link_libraries(helper_runtime_test
     df_memset_stubs
     -Wl,--no-whole-archive
     ge_graph_dsl df_st_stubs ge_running_env ge_runtime_stub ascendcl_stub
-    GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main
+    GTestShared::gtest GTestShared::gtest_main GTestShared::gmock GTestShared::gmock_main
     data_flow_base
     -lrt -ldl -lpthread
 )

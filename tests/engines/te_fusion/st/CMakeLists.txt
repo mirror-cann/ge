@@ -107,10 +107,10 @@ target_link_libraries(tefusion_st PRIVATE
         compress
         error_manager
         json
-        GTest::gtest
-        GTest::gtest_main
-        GTest::gmock
-        GTest::gmock_main
+        GTestShared::gtest
+        GTestShared::gtest_main
+        GTestShared::gmock
+        GTestShared::gmock_main
         mockcpp_static
         c_sec_static
         easy_graph

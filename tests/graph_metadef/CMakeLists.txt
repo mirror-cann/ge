@@ -26,7 +26,7 @@ stub_module(runtime runtime_stub)
 add_subdirectory(ut)
 
 if (ENABLE_BENCHMARK)
-    find_package(benchmark CONFIG REQUIRED)
+    add_cann_third_party(benchmark)
     add_subdirectory(benchmark)
 endif()
 

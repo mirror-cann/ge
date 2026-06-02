@@ -30,7 +30,7 @@ target_compile_definitions(ut_sc_check PRIVATE
 target_link_libraries(ut_sc_check PRIVATE
     -lgcov
     -Wl,--no-as-needed
-    GTest::gtest GTest::gtest_main -lrt -ldl
+    GTestShared::gtest GTestShared::gtest_main -lrt -ldl
 )
 
 add_test(NAME ut_sc_check COMMAND ut_sc_check --gtest_output=xml:${CMAKE_INSTALL_PREFIX}/report/ut/ut_sc_check.xml)

@@ -74,8 +74,8 @@ target_link_libraries(autofusion_st ${ASCGEN_COMMON_LINK_OPTION}
         aihac_codegen_toolkit
         ascend_protobuf
         aihac_symbolizer
-        GTest::gtest
-        GTest::gtest_main
+        GTestShared::gtest
+        GTestShared::gtest_main
         asc_slog_stub
         autofuse_runtime_stub
         json

@@ -26,7 +26,7 @@ add_subdirectory(graph)
 add_subdirectory(exe_graph)
 add_subdirectory(register)
 if (ENABLE_METADEF_UT OR ENABLE_METADEF_ST OR ENABLE_BENCHMARK)
-    find_package(benchmark CONFIG REQUIRED)
+    add_cann_third_party(benchmark)
     add_subdirectory(tests)
 endif()
 

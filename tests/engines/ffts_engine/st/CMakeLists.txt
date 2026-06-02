@@ -142,8 +142,8 @@ target_link_libraries(ffts_st PRIVATE
         platform
         error_manager
         json
-        GTest::gtest
-        GTest::gtest_main
+        GTestShared::gtest
+        GTestShared::gtest_main
         c_sec_static
         cce_headers
         unified_dlog

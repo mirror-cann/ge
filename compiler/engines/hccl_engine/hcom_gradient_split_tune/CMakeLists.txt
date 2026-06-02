@@ -33,7 +33,6 @@ if(BUILD_OPEN_PROJECT)
         ${CMAKE_CURRENT_SOURCE_DIR}/../inc
         ${ASCEND_INSTALL_PATH}/include/msprof
         ${ASCEND_INSTALL_PATH}/include/slog/toolchain
-        ${CANN_3RD_LIB_PATH}/json/include
         ${AIR_CODE_DIR}/inc
         ${AIR_CODE_DIR}/inc/graph_metadef
         ${METADEF_DIR}/inc
@@ -79,6 +78,7 @@ else()
         -Wl,--as-needed
     )
 endif()
+target_link_libraries(hcom_gradient_split_tune PRIVATE json)
 install(TARGETS hcom_gradient_split_tune
     LIBRARY DESTINATION lib  ${INSTALL_OPTIONAL}
 )

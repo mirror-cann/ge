@@ -8,7 +8,7 @@
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
 
-find_package(benchmark CONFIG REQUIRED)
+add_cann_third_party(benchmark)
 
 file(GLOB_RECURSE BENCHMARK_SRCS CONFIGURE_DEPENDS "*.cc")
 

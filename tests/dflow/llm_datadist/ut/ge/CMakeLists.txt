@@ -80,7 +80,6 @@ target_include_directories(ut_llm_engine_utest PRIVATE
         ${AIR_CODE_DIR}/dflow/llm_datadist/v1
         ${AIR_CODE_DIR}/dflow/llm_datadist/v1/common
         ${AIR_CODE_DIR}/tests/depends/llm_datadist/src
-        ${CANN_3RD_LIB_PATH}/json/include
         ${ASCGEN_DIR}/inc
         #for session_util.h
         ${AIR_CODE_DIR}/api/session
@@ -112,9 +111,9 @@ target_link_libraries(ut_llm_engine_utest
         llm_engine
         -Wl,--whole-archive
         -Wl,--no-whole-archive
-        GTest::gtest GTest::gtest_main GTest::gmock_main
+        GTestShared::gtest GTestShared::gtest_main GTestShared::gmock_main
         -lrt -ldl -lpthread -lgcov
-        -Wl,--no-as-needed unified_dlog GTest::gmock -Wl,--as-needed
+        -Wl,--no-as-needed unified_dlog GTestShared::gmock -Wl,--as-needed
         )
 
 add_test(NAME ut_llm_engine_utest COMMAND ut_llm_engine_utest --gtest_output=xml:${CMAKE_INSTALL_PREFIX}/report/ut/ut_llm_engine_utest.xml)

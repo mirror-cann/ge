@@ -54,7 +54,7 @@ target_link_libraries(ut_expression PRIVATE
     metadef
     slog
     symengine Boost::boost aihac_symbolizer
-    GTest::gtest GTest::gtest_main ascend_protobuf error_manager graph_base graph slog_stub c_sec json mmpa_stub -lrt -ldl
+    GTestShared::gtest GTestShared::gtest_main ascend_protobuf error_manager graph_base graph slog_stub c_sec json mmpa_stub -lrt -ldl
 )
 
 target_include_directories(ut_expression PRIVATE

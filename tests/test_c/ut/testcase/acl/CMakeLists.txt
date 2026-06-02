@@ -77,8 +77,8 @@ target_link_libraries(ut_ascendcl_c_utest PRIVATE
     msprof_headers
     runtime_headers
     c_sec
-    GTest::gtest
-    GTest::gtest_main
-    GTest::gmock
-    GTest::gmock_main
+    GTestShared::gtest
+    GTestShared::gtest_main
+    GTestShared::gmock
+    GTestShared::gmock_main
 )

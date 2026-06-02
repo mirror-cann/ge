@@ -54,7 +54,7 @@ add_executable(ut_graph_construction
 target_compile_options(ut_graph_construction PRIVATE)
 target_link_libraries(ut_graph_construction
         PRIVATE
-        GTest::gtest GTest::gtest_main
+        GTestShared::gtest GTestShared::gtest_main
         unified_dlog
         es_ut_test
         graph_base

@@ -76,7 +76,7 @@ target_link_libraries(autofusion_ut PRIVATE ${ASCGEN_COMMON_LINK_OPTION}
         atrace_headers
         asc_slog_stub
         autofuse_runtime_stub
-        GTest::gtest
+        GTestShared::gtest
         json
         aihac_codegen_toolkit
         ascend_hal

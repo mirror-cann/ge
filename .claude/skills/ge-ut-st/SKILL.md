@@ -68,17 +68,7 @@ EOF
 source ${ASCEND_INSTALL_PATH}/bin/setenv.bash
 ```
 
-### 步骤 3: 下载编译第三方依赖
-- 这个命令执行时间在10分钟以上，注意设置超时时间
-- 输出较多
-```bash
-BASEPATH=$PWD
-ASCEND_3RD_LIB_PATH="$BASEPATH/output/third_party"  # 必须使用绝对路径
-core_num=$(($(nproc) - 1))
-bash build_third_party.sh ${ASCEND_3RD_LIB_PATH} ${core_num} "LLT"
-```
-
-### 步骤 4: 执行 CMake
+### 步骤 3: 执行 CMake
 
 **触发条件：**
 - 首次构建
@@ -100,7 +90,7 @@ cmake -DCMAKE_BUILD_TYPE=GCOV \
       -B ${BASEPATH}/cmake-build-gcov
 ```
 
-### 步骤 5: 编译受影响的 target
+### 步骤 4: 编译受影响的 target
 
 根据修改的或新增的 `tests/` 目录下的 `.cc` 文件，识别影响到哪个 target。
 
@@ -112,7 +102,7 @@ cmake -DCMAKE_BUILD_TYPE=GCOV \
 - core_num=$(($(nproc) - 1))
 - 使用 `make --target -j $core_num` 单独编译
 
-### 步骤 6: 执行测试
+### 步骤 5: 执行测试
 - `unset LD_LIBRARY_PATH; unset ASCEND_OPP_PATH`，执行用例前需要执行这两条unset命令，原因是用例执行需要首先在同目录下寻找依赖的so
 - 使用 `--gtest_filter` 单独运行指定的测试用例。
 - 输出较多，注意不要直接读取输出

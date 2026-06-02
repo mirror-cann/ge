@@ -52,7 +52,7 @@ target_link_libraries(ut_exe_graph PRIVATE
         -Wl,--no-whole-archive
         ge_runtime_stub exe_graph lowering register opp_registry error_manager
         mmpa
-        GTest::gtest GTest::gtest_main unified_dlog ascend_protobuf c_sec mmpa_stub -lrt -ldl -lgcov
+        GTestShared::gtest GTestShared::gtest_main unified_dlog ascend_protobuf c_sec mmpa_stub -lrt -ldl -lgcov
         metadef_headers
         graph
         graph_base

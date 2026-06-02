@@ -45,11 +45,6 @@ if (ENABLE_OPEN_SRC)
     if (NOT DEFINED CANN_3RD_LIB_PATH)
         set(CANN_3RD_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/output/third_party)
     endif ()
-
-    if (NOT EXISTS "${CANN_3RD_LIB_PATH}")
-        message(FATAL_ERROR "Error: Directory \"${CANN_3RD_LIB_PATH}\" does not exist!\n"
-                "Please using build_third_party.sh compile first.")
-    endif ()
 else ()
     set(GE_METADEF_DIR ${TOP_DIR}/air/graph_metadef)
     set(GE_METADEF_INC_DIR ${TOP_DIR}/air/inc/graph_metadef)
@@ -57,21 +52,9 @@ endif ()
 
 if (NOT DEFINED CMAKE_MODULE_PATH)
     set(CMAKE_MODULE_PATH
-        ${CANN_3RD_LIB_PATH}/cmake/modules
         ${GE_METADEF_DIR}/cmake/modules
     )
 endif()
-
-if (NOT DEFINED CMAKE_PREFIX_PATH)
-    set(CMAKE_PREFIX_PATH
-        ${CANN_3RD_LIB_PATH}/lib_cache/grpc
-        ${CANN_3RD_LIB_PATH}/lib_cache/gtest_shared/lib64/cmake/GTest
-        ${CANN_3RD_LIB_PATH}/lib_cache/benchmark
-        ${CANN_3RD_LIB_PATH}/lib_cache/symengine/lib/cmake/symengine
-        ${CANN_3RD_LIB_PATH}/lib_cache/boost/lib/cmake/Boost-1.87.0
-    )
-endif()
-
 
 # Keep the dedicated autofuse ascendc_ir directories ahead of GE metadef paths so
 # bare includes like "attr_store.h" resolve to the af-namespace package headers.
@@ -120,10 +103,10 @@ if (ENABLE_OPEN_SRC)
     add_cann_third_party(json)
     add_cann_third_party(protobuf)
     if(NOT BUILD_PKG_COMPONENT)
-        find_package(GTest CONFIG REQUIRED)
+        add_cann_third_party(gtest_shared)
     endif()
-    find_package(Boost CONFIG REQUIRED)
-    find_package(SymEngine CONFIG REQUIRED)
+    add_cann_third_party(boost)
+    add_cann_third_party(symengine)
     find_package(unified_dlog)
     find_package(mmpa)
     find_package(runtime)

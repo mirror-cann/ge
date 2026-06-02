@@ -53,8 +53,8 @@ target_link_libraries(ut_register
     exe_graph lowering register graph graph_base mmpa
     opp_registry
     unified_dlog
-    GTest::gtest
-    GTest::gtest_main
+    GTestShared::gtest
+    GTestShared::gtest_main
     ascend_protobuf
     ascend_dump
     slog_stub

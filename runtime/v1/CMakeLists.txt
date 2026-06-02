@@ -600,7 +600,7 @@ target_link_libraries(hybrid_executor_stub PRIVATE
     $<$<TARGET_EXISTS:cce_headers>:cce_headers>
     $<$<TARGET_EXISTS:aicpu_headers>:aicpu_headers>
     c_sec_headers
-    ascend_protobuf_shared_headers
+    ascend_protobuf
     $<$<NOT:$<STREQUAL:${TARGET_SYSTEM_NAME},Android>>:-lrt>
     -ldl
   PUBLIC

@@ -75,9 +75,9 @@ target_link_libraries(ut_fast_runtime2_test PRIVATE
         -Wl,--no-whole-archive
         metadef_headers
         datagw_headers
-        GTest::gtest
-        GTest::gmock
-        GTest::gtest_main
+        GTestShared::gtest
+        GTestShared::gmock
+        GTestShared::gtest_main
         gert
         ge_graph_dsl
         ge_running_env

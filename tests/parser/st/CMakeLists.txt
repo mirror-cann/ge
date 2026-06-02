@@ -69,7 +69,7 @@ target_link_libraries(st_parser PRIVATE
     json
     -Wl,--whole-archive -Wl,--no-whole-archive register error_manager parser_mmpa_stub attr_util_stub
     error_manager parser_mmpa_stub attr_util_stub
-    GTest::gtest GTest::gtest_main parser_slog_stub ascend_protobuf c_sec  -lrt -ldl
+    GTestShared::gtest GTestShared::gtest_main parser_slog_stub ascend_protobuf c_sec  -lrt -ldl
     -Wl,--no-as-needed unified_dlog -Wl,--as-needed
     # Workaround for undefined references
     ge_common_base

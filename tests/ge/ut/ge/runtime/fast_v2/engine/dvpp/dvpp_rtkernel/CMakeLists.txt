@@ -37,9 +37,9 @@ target_link_libraries(ut_dvpp_runtime2_test PRIVATE
         intf_llt_pub
         -Wl,--whole-archive
         -Wl,--no-whole-archive
-        GTest::gtest
-        GTest::gmock
-        GTest::gtest_main
+        GTestShared::gtest
+        GTestShared::gmock
+        GTestShared::gtest_main
         c_sec
         mockcpp_static
         )
