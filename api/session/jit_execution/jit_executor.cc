@@ -413,7 +413,7 @@ Status JitExecutor::Compile(const std::vector<ge::Tensor> &inputs, GuardedExecut
     GELOGI("Start to compile GEP[%u] for EP[%ld].", instance_id, gep->GetOwnerEp()->GetId());
     GE_ASSERT_TRUE(geps_to_inner_ge_graph_id_.emplace(gep, instance_id).second);
 
-    GE_ASSERT_SUCCESS(compile_context_.Compile(instance_id, gep->GetGraph(), inputs, session_id));
+    GE_ASSERT_SUCCESS(compile_context_.Compile(instance_id, gep->GetGraph(), inputs, gep->GetOwnerEp()->GetEpGraphOptions(), session_id));
     GE_ASSERT_RT_OK(aclrtSetDevice(device_id_));
     compiled_ge_graph_id_.emplace_back(instance_id);
     GE_ASSERT_TRUE(gep->SetCompiled(instance_id, gep->GetGraph()));

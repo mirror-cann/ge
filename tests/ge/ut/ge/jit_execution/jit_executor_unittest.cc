@@ -535,7 +535,6 @@ TEST_F(JitExecutorUT, run_success_when_input_graph_contain_one_reshape_node_with
 }
 
 TEST_F(JitExecutorUT, run_success_when_input_graph_contain_one_reshape_two_relu_node) {
-  GTEST_SKIP() << "GE修改桩存导致用例走到自动融合，下一个pr修复";
   // 1 准备构造jit executor的入参
   ModelExecutor model_executor;
   model_executor.Initialize({}, 0);

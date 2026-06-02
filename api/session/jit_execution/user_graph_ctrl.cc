@@ -151,7 +151,7 @@ Status UserGraphControl::CompileCompleteGraph(uint64_t session_id) {
     GE_ASSERT_NOTNULL(new_graph);
     GE_ASSERT_SUCCESS(GraphUtils::CopyComputeGraph(order_.GetUserGraph().compute_graph, new_graph));
     Graph graph_to_add = GraphUtilsEx::CreateGraphFromComputeGraph(new_graph);
-    GE_ASSERT_SUCCESS(graph_manager_.AddGraph(instance_id, graph_to_add, {}, domi::GetContext()));
+    GE_ASSERT_SUCCESS(graph_manager_.AddGraph(instance_id, graph_to_add, order_.GetUserGraph().graph_options, domi::GetContext()));
     user_graph_id_to_ins_id.emplace(user_graph_id_, instance_id);
   } else {
     instance_id = iter->second;

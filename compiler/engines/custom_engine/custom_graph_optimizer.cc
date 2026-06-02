@@ -150,7 +150,7 @@ ge::Status AppendCompileTaskIfNeeded(const ge::NodePtr &node, std::vector<Compil
   if (!ge::CustomOpFactory::IsExistOp(op_type_ascend)) {
     return ge::SUCCESS;
   }
-  GELOGI("during optimize subgraph post proc, %s is custom op", op_type_ascend.GetString());
+  GELOGI("during optimize whole graph, %s is custom op", op_type_ascend.GetString());
   auto *const base_custom_op_ptr = ge::CustomOpFactory::CreateOrGetCustomOp(op_type_ascend);
   if (base_custom_op_ptr == nullptr) {
     GELOGE(ge::FAILED, "[Compile][CustomOp] create custom op failed, op_name:%s, op_type:%s",
@@ -250,7 +250,12 @@ ge::Status CustomGraphOptimizer::OptimizeFusedGraph(ge::ComputeGraph &graph) {
 }
 
 ge::Status CustomGraphOptimizer::OptimizeWholeGraph(ge::ComputeGraph &graph) {
-  (void)graph;
+  GELOGI("entering optimize whole graph");
+  GE_TIMESTAMP_START(CustomGraphOptimizer);
+  std::vector<CompileTask> compile_tasks;
+  GE_ASSERT_SUCCESS(CollectCompileTasks(graph, compile_tasks));
+  GE_ASSERT_SUCCESS(CompileCustomOpsInParallel(compile_tasks));
+  GE_TIMESTAMP_END(CustomGraphOptimizer, "CustomOptimizeWholeGraph");
   return SUCCESS;
 }
 
@@ -259,13 +264,4 @@ ge::Status CustomGraphOptimizer::GetAttributes(ge::GraphOptimizerAttribute &attr
   return SUCCESS;
 }
 
-Status CustomGraphOptimizer::OptimizeSubgraphPostProc(ComputeGraph &graph) {
-  GELOGI("entering optimize subgraph post proc");
-  GE_TIMESTAMP_START(CustomGraphOptimizer);
-  std::vector<CompileTask> compile_tasks;
-  GE_ASSERT_SUCCESS(CollectCompileTasks(graph, compile_tasks));
-  GE_ASSERT_SUCCESS(CompileCustomOpsInParallel(compile_tasks));
-  GE_TIMESTAMP_END(CustomGraphOptimizer, "CustomOptimizeSubgraphPostProc");
-  return SUCCESS;
-}
 } // namespace ge

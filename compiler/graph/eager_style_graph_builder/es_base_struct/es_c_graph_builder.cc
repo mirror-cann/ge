@@ -65,9 +65,7 @@ GNode CreateCompliantNetOutput(int32_t output_num, Graph *const graph) {
       .OpType("NetOutput")
       .Name(net_output_name.c_str())
       .IrDefInputsV2({{"x", ge::es::CompliantNodeBuilder::kEsIrInputDynamic, ""}})
-      .IrDefOutputsV2({{"y", ge::es::CompliantNodeBuilder::kEsIrOutputDynamic, ""}})
       .InstanceDynamicInputNum("x", output_num)
-      .InstanceDynamicOutputNum("y", output_num)
       .Build();
 }
 

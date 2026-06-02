@@ -259,7 +259,7 @@ bool TeConfigInfo::InitConfigItemsFromOptions(const std::map<std::string, std::s
             std::map<std::string, std::string> errMsgMap;
             errMsgMap.emplace("invalid_value", iter->second);
             errMsgMap.emplace("argument", configName);
-            errMsgMap.emplace("valid_range", GetMapKeyToString(itemStrMap).c_str());
+            errMsgMap.emplace("valid_range", GetMapKeyToStringWithOr(itemStrMap).c_str());
             TeErrMessageReport(EM_PARAMETER_INVALID_ERROR, errMsgMap);
             TE_ERRLOG("The value[%s] of param[%s] is invalid.", iter->second.c_str(), itemKey.c_str());
             return false;
@@ -295,7 +295,7 @@ bool TeConfigInfo::InitConfigItemsFromContext()
             std::map<std::string, std::string> errMsgMap;
             errMsgMap.emplace("invalid_value", paramValue);
             errMsgMap.emplace("argument", configName);
-            errMsgMap.emplace("valid_range", GetMapKeyToString(itemStrMap).c_str());
+            errMsgMap.emplace("valid_range", GetMapKeyToStringWithOr(itemStrMap).c_str());
             TeErrMessageReport(EM_PARAMETER_INVALID_ERROR, errMsgMap);
             TE_ERRLOG("The value[%s] of param[%s] is invalid.", paramValue.c_str(), itemKey.c_str());
             return false;

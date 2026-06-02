@@ -155,6 +155,41 @@ ge::NodePtr BuildTestNode() {
   } while (0)
 
 }  // namespace
+
+class MockTaskInfoWithAllocResults : public TaskInfo {
+ public:
+  explicit MockTaskInfoWithAllocResults(const std::vector<ArgsAllocationResult> &results)
+      : results_(results) {}
+  Status Init(const domi::TaskDef &, DavinciModel *, const PisToArgs &, const PisToPersistentWorkspace &,
+              const IowAddrs &) override { return SUCCESS; }
+  Status Distribute() override { return SUCCESS; }
+  Status Release() override { return SUCCESS; }
+  int64_t ParseOpIndex(const domi::TaskDef &) const override { return 0; }
+  Status ParseTaskRunParam(const domi::TaskDef &, DavinciModel *, TaskRunParam &) override { return SUCCESS; }
+  const std::vector<ArgsAllocationResult>& GetArgsAllocationResults() const override { return results_; }
+ private:
+  std::vector<ArgsAllocationResult> results_;
+};
+
+class MockCustomOpTaskInfo : public TaskInfo {
+ public:
+  explicit MockCustomOpTaskInfo() : update_host_args_void_calls_(0) {}
+  Status Init(const domi::TaskDef &, DavinciModel *, const PisToArgs &, const PisToPersistentWorkspace &,
+              const IowAddrs &) override { return SUCCESS; }
+  Status Distribute() override { return SUCCESS; }
+  Status Release() override { return SUCCESS; }
+  int64_t ParseOpIndex(const domi::TaskDef &) const override { return 0; }
+  Status ParseTaskRunParam(const domi::TaskDef &, DavinciModel *, TaskRunParam &) override { return SUCCESS; }
+  Status UpdateHostArgs(void *base_addr, size_t mem_size) override {
+    (void)base_addr;
+    (void)mem_size;
+    update_host_args_void_calls_++;
+    return SUCCESS;
+  }
+  bool NeedReserveArgsTable() const override { return true; }
+  int update_host_args_void_calls_;
+};
+
 class ModelArgsManagerUT : public testing::Test {};
 /**
  * 预置条件：
@@ -2116,4 +2151,938 @@ TEST_F(ModelArgsManagerUT, UpdateForExecute_AclrtMemcpy_SyncMode) {
 
   ge::AclRuntimeStub::Reset();
 };
+
+// =====================================================================
+// AllocateArgsBuffer Tier 1 (reserved segment) tests
+// =====================================================================
+
+TEST_F(ModelArgsManagerUT, AllocateArgsBuffer_FromReservedSegment_Success) {
+  // Set up model_args_ with HBM placement
+  ModelArgsManager::ModelArgs model_arg;
+  model_arg.placement = ArgsPlacement::kArgsPlacementHbm;
+  model_arg.model_args_host_addr = ge::MakeUnique<uint8_t[]>(256);
+  model_arg.model_args_device_addr = 0xABCD0000ULL;
+  ModelArgsManager mam(nullptr);
+  mam.model_args_.push_back(std::move(model_arg));
+
+  // Set up reserved segment: 128 bytes capacity starting at offset 64
+  const size_t hbm_idx = static_cast<size_t>(ArgsPlacement::kArgsPlacementHbm);
+  mam.reserved_segments_[hbm_idx].start_offset = 64UL;
+  mam.reserved_segments_[hbm_idx].current_offset = 64UL;
+  mam.reserved_segments_[hbm_idx].total_size = 128UL;
+
+  ArgsAllocationResult result;
+  ASSERT_EQ(mam.AllocateArgsBuffer(32, ArgsPlacement::kArgsPlacementHbm, result), SUCCESS);
+
+  EXPECT_TRUE(result.is_from_reserved);
+  EXPECT_EQ(result.host_addr, mam.model_args_[0].model_args_host_addr.get() + 64UL);
+  EXPECT_EQ(result.device_addr, 0xABCD0000ULL + 64UL);
+  EXPECT_EQ(result.size, 32UL);
+  EXPECT_EQ(result.placement, ArgsPlacement::kArgsPlacementHbm);
+  EXPECT_EQ(result.extra_pool_index, std::numeric_limits<uint32_t>::max());
+
+  // Verify offset advanced
+  EXPECT_EQ(mam.reserved_segments_[hbm_idx].current_offset, 96UL);
+}
+
+TEST_F(ModelArgsManagerUT, AllocateArgsBuffer_ReservedSegmentExhausted_FallsToExistingPool) {
+  // Set up model_args_ with HBM placement
+  ModelArgsManager::ModelArgs model_arg;
+  model_arg.placement = ArgsPlacement::kArgsPlacementHbm;
+  model_arg.model_args_host_addr = ge::MakeUnique<uint8_t[]>(256);
+  model_arg.model_args_device_addr = 0xABCD0000ULL;
+  ModelArgsManager mam(nullptr);
+  mam.model_args_.push_back(std::move(model_arg));
+
+  // Exhausted reserved: only 8 bytes left (capacity=8, offset already at start+0)
+  const size_t hbm_idx = static_cast<size_t>(ArgsPlacement::kArgsPlacementHbm);
+  mam.reserved_segments_[hbm_idx].start_offset = 0UL;
+  mam.reserved_segments_[hbm_idx].current_offset = 0UL;
+  mam.reserved_segments_[hbm_idx].total_size = 8UL;
+
+  // Set up extra pool as fallback (Tier 2)
+  ModelArgsManager::ExtraArgsPool pool;
+  pool.host_addr = ge::MakeUnique<uint8_t[]>(4096);
+  pool.device_addr = 0xDEADBEEFULL;
+  pool.total_size = 4096UL;
+  pool.allocated_offset = 0UL;
+  pool.placement = ArgsPlacement::kArgsPlacementHbm;
+  mam.extra_args_pools_.emplace_back(std::move(pool));
+
+  ArgsAllocationResult result;
+  // Requesting 32 bytes exceeds 8-byte reserved → falls to Tier 2 (existing pool)
+  ASSERT_EQ(mam.AllocateArgsBuffer(32, ArgsPlacement::kArgsPlacementHbm, result), SUCCESS);
+
+  EXPECT_FALSE(result.is_from_reserved);
+  EXPECT_EQ(result.extra_pool_index, 0U);
+  EXPECT_NE(result.host_addr, nullptr);
+  EXPECT_EQ(result.size, 32UL);
+}
+
+TEST_F(ModelArgsManagerUT, AllocateArgsBuffer_ReservedSegmentNoModelArg_FallsToExistingPool) {
+  ModelArgsManager mam(nullptr);
+  // No model_args_ at all — reserved segment exists but no ModelArg to reference
+
+  const size_t hbm_idx = static_cast<size_t>(ArgsPlacement::kArgsPlacementHbm);
+  mam.reserved_segments_[hbm_idx].start_offset = 0UL;
+  mam.reserved_segments_[hbm_idx].current_offset = 0UL;
+  mam.reserved_segments_[hbm_idx].total_size = 256UL;
+
+  // Set up extra pool as fallback
+  ModelArgsManager::ExtraArgsPool pool;
+  pool.host_addr = ge::MakeUnique<uint8_t[]>(4096);
+  pool.device_addr = 0xF000ULL;
+  pool.total_size = 4096UL;
+  pool.allocated_offset = 0UL;
+  pool.placement = ArgsPlacement::kArgsPlacementHbm;
+  mam.extra_args_pools_.emplace_back(std::move(pool));
+
+  ArgsAllocationResult result;
+  ASSERT_EQ(mam.AllocateArgsBuffer(32, ArgsPlacement::kArgsPlacementHbm, result), SUCCESS);
+
+  EXPECT_FALSE(result.is_from_reserved);
+  EXPECT_EQ(result.extra_pool_index, 0U);
+}
+
+TEST_F(ModelArgsManagerUT, AllocateArgsBuffer_MultipleReservedAllocations_OffsetAdvances) {
+  ModelArgsManager::ModelArgs model_arg;
+  model_arg.placement = ArgsPlacement::kArgsPlacementHbm;
+  model_arg.model_args_host_addr = ge::MakeUnique<uint8_t[]>(256);
+  model_arg.model_args_device_addr = 0xBEEF0000ULL;
+  ModelArgsManager mam(nullptr);
+  mam.model_args_.push_back(std::move(model_arg));
+
+  const size_t hbm_idx = static_cast<size_t>(ArgsPlacement::kArgsPlacementHbm);
+  mam.reserved_segments_[hbm_idx].start_offset = 64UL;
+  mam.reserved_segments_[hbm_idx].current_offset = 64UL;
+  mam.reserved_segments_[hbm_idx].total_size = 80UL;  // Only 80 bytes: can hold 32+48=80 but not another 48
+
+  ArgsAllocationResult result1, result2;
+  ASSERT_EQ(mam.AllocateArgsBuffer(32, ArgsPlacement::kArgsPlacementHbm, result1), SUCCESS);
+  EXPECT_TRUE(result1.is_from_reserved);
+  EXPECT_EQ(result1.host_addr, mam.model_args_[0].model_args_host_addr.get() + 64UL);
+  EXPECT_EQ(result1.device_addr, 0xBEEF0000ULL + 64UL);
+
+  ASSERT_EQ(mam.AllocateArgsBuffer(48, ArgsPlacement::kArgsPlacementHbm, result2), SUCCESS);
+  EXPECT_TRUE(result2.is_from_reserved);
+  EXPECT_EQ(result2.host_addr, mam.model_args_[0].model_args_host_addr.get() + 96UL);
+  EXPECT_EQ(result2.device_addr, 0xBEEF0000ULL + 96UL);
+
+  // Third allocation (48 bytes) exceeds remaining reserved capacity → falls to extra pool
+  ModelArgsManager::ExtraArgsPool pool;
+  pool.host_addr = ge::MakeUnique<uint8_t[]>(4096);
+  pool.device_addr = 0xEEEEULL;
+  pool.total_size = 4096UL;
+  pool.allocated_offset = 0UL;
+  pool.placement = ArgsPlacement::kArgsPlacementHbm;
+  mam.extra_args_pools_.emplace_back(std::move(pool));
+
+  ArgsAllocationResult result3;
+  ASSERT_EQ(mam.AllocateArgsBuffer(48, ArgsPlacement::kArgsPlacementHbm, result3), SUCCESS);
+  EXPECT_FALSE(result3.is_from_reserved);
+}
+
+// =====================================================================
+// IntegrateCustomOpArgs pipeline tests
+// =====================================================================
+
+TEST_F(ModelArgsManagerUT, CollectTaskAllocationResults_ClassifiesReservedAndExtra) {
+  ModelArgsManager mam(nullptr);
+
+  std::vector<TaskInfoPtr> task_list;
+  mam.task_list_ptr_ = &task_list;
+
+  // Task 0: 2 reserved results, 1 extra result
+  ArgsAllocationResult reserved_result1;
+  reserved_result1.host_addr = reinterpret_cast<void*>(0x1000ULL);
+  reserved_result1.device_addr = 0xA000ULL;
+  reserved_result1.size = 32;
+  reserved_result1.placement = ArgsPlacement::kArgsPlacementHbm;
+  reserved_result1.is_from_reserved = true;
+  reserved_result1.extra_pool_index = std::numeric_limits<uint32_t>::max();
+
+  ArgsAllocationResult reserved_result2;
+  reserved_result2.host_addr = reinterpret_cast<void*>(0x1020ULL);
+  reserved_result2.device_addr = 0xA020ULL;
+  reserved_result2.size = 48;
+  reserved_result2.placement = ArgsPlacement::kArgsPlacementHbm;
+  reserved_result2.is_from_reserved = true;
+  reserved_result2.extra_pool_index = std::numeric_limits<uint32_t>::max();
+
+  ArgsAllocationResult extra_result;
+  extra_result.host_addr = reinterpret_cast<void*>(0x2000ULL);
+  extra_result.device_addr = 0xD000ULL;
+  extra_result.size = 64;
+  extra_result.placement = ArgsPlacement::kArgsPlacementHbm;
+  extra_result.is_from_reserved = false;
+  extra_result.extra_pool_index = 0U;
+
+  mam.task_list_ptr_->push_back(
+      std::make_shared<MockTaskInfoWithAllocResults>(
+          std::vector<ArgsAllocationResult>{reserved_result1, reserved_result2, extra_result}));
+
+  std::unordered_map<size_t, std::vector<ArgsAllocationResult>> task_reserved_results;
+  std::unordered_map<size_t, std::vector<ArgsAllocationResult>> task_extra_results;
+
+  ASSERT_EQ(mam.CollectTaskAllocationResults(task_reserved_results, task_extra_results), SUCCESS);
+
+  // Task 0 has 2 reserved results
+  ASSERT_EQ(task_reserved_results.size(), 1U);
+  ASSERT_EQ(task_reserved_results[0].size(), 2U);
+  EXPECT_TRUE(task_reserved_results[0][0].is_from_reserved);
+  EXPECT_TRUE(task_reserved_results[0][1].is_from_reserved);
+
+  // Task 0 has 1 extra result
+  ASSERT_EQ(task_extra_results.size(), 1U);
+  ASSERT_EQ(task_extra_results[0].size(), 1U);
+  EXPECT_FALSE(task_extra_results[0][0].is_from_reserved);
+  EXPECT_EQ(task_extra_results[0][0].extra_pool_index, 0U);
+}
+
+TEST_F(ModelArgsManagerUT, IntegrateReservedH2DCopyDatas_CreatesH2DForReservedSegment) {
+  ModelArgsManager mam(nullptr);
+
+  // Set up model_args_ with HBM placement (128 bytes total)
+  ModelArgsManager::ModelArgs model_arg;
+  model_arg.placement = ArgsPlacement::kArgsPlacementHbm;
+  model_arg.model_args_host_addr = ge::MakeUnique<uint8_t[]>(256);
+  model_arg.model_args_device_addr = 0xBEEF0000ULL;
+  mam.model_args_.push_back(std::move(model_arg));
+
+  // Reserved segment: used 64 bytes (current_offset=128, start=64, total=128 → used=64)
+  const size_t hbm_idx = static_cast<size_t>(ArgsPlacement::kArgsPlacementHbm);
+  mam.reserved_segments_[hbm_idx].start_offset = 64UL;
+  mam.reserved_segments_[hbm_idx].current_offset = 128UL;
+  mam.reserved_segments_[hbm_idx].total_size = 128UL;
+
+  // Initialize update_policies_to_model_data_ for ModelArgsManager::kUpdateModelIo (existing from built-in args)
+  mam.update_policies_to_model_data_[ModelArgsManager::kUpdateModelIo] = ge::MakeUnique<ModelArgsManager::ArgsUpdateData>();
+  ModelArgsManager::H2DCopyArg existing_h2d;
+  existing_h2d.len = 64UL;
+  existing_h2d.device_addr = 0xBEEF0000ULL;
+  existing_h2d.host_addr = mam.model_args_[0].model_args_host_addr.get();
+  existing_h2d.placement = ArgsPlacement::kArgsPlacementHbm;
+  mam.update_policies_to_model_data_[ModelArgsManager::kUpdateModelIo]->h2d_copy_datas.push_back(std::move(existing_h2d));
+
+  ASSERT_EQ(mam.IntegrateReservedH2DCopyDatas(), SUCCESS);
+
+  // Verify H2D copy expanded for ModelArgsManager::kUpdateModelIo HBM placement
+  auto &model_data = mam.update_policies_to_model_data_[ModelArgsManager::kUpdateModelIo];
+  ASSERT_NE(model_data, nullptr);
+  ASSERT_EQ(model_data->h2d_copy_datas.size(), 1U);
+  // len should be expanded from 64 (built-in) + 64 (reserved used)
+  EXPECT_EQ(model_data->h2d_copy_datas[0].len, 128UL);
+}
+
+TEST_F(ModelArgsManagerUT, IntegrateReservedH2DCopyDatas_NoReservedUsed_Skips) {
+  ModelArgsManager mam(nullptr);
+
+  // No reserved usage (current_offset == start_offset means 0 bytes used)
+  const size_t hbm_idx = static_cast<size_t>(ArgsPlacement::kArgsPlacementHbm);
+  mam.reserved_segments_[hbm_idx].start_offset = 0UL;
+  mam.reserved_segments_[hbm_idx].current_offset = 0UL;
+  mam.reserved_segments_[hbm_idx].total_size = 128UL;
+
+  ASSERT_EQ(mam.IntegrateReservedH2DCopyDatas(), SUCCESS);
+
+  // No update_policies_to_model_data_ created since nothing used
+  for (size_t i = 0; i < ModelArgsManager::kUpdatePolicyEnd; ++i) {
+    EXPECT_EQ(mam.update_policies_to_model_data_[i], nullptr);
+  }
+}
+
+TEST_F(ModelArgsManagerUT, IntegrateExtraH2DCopyDatas_CreatesH2DForPools) {
+  ModelArgsManager mam(nullptr);
+
+  // Set up 2 extra pools with allocated content
+  ModelArgsManager::ExtraArgsPool pool1;
+  pool1.host_addr = ge::MakeUnique<uint8_t[]>(4096);
+  pool1.device_addr = 0xD000ULL;
+  pool1.total_size = 4096UL;
+  pool1.allocated_offset = 64UL;  // 64 bytes allocated
+  pool1.placement = ArgsPlacement::kArgsPlacementHbm;
+  mam.extra_args_pools_.emplace_back(std::move(pool1));
+
+  ModelArgsManager::ExtraArgsPool pool2;
+  pool2.host_addr = ge::MakeUnique<uint8_t[]>(4096);
+  pool2.device_addr = 0xE000ULL;
+  pool2.total_size = 4096UL;
+  pool2.allocated_offset = 128UL;  // 128 bytes allocated
+  pool2.placement = ArgsPlacement::kArgsPlacementHbm;
+  mam.extra_args_pools_.emplace_back(std::move(pool2));
+
+  ASSERT_EQ(mam.IntegrateExtraH2DCopyDatas(), SUCCESS);
+
+  // Verify extra_policy_to_update_datas_ has entries for ModelArgsManager::kUpdateModelIo
+  auto &extra_datas = mam.extra_policy_to_update_datas_[ModelArgsManager::kUpdateModelIo];
+  ASSERT_EQ(extra_datas.size(), 2U);
+
+  EXPECT_EQ(extra_datas[0].h2d_copy_datas.size(), 1U);
+  EXPECT_EQ(extra_datas[0].h2d_copy_datas[0].len, 64UL);
+  EXPECT_EQ(extra_datas[0].h2d_copy_datas[0].device_addr, 0xD000ULL);
+
+  EXPECT_EQ(extra_datas[1].h2d_copy_datas.size(), 1U);
+  EXPECT_EQ(extra_datas[1].h2d_copy_datas[0].len, 128UL);
+  EXPECT_EQ(extra_datas[1].h2d_copy_datas[0].device_addr, 0xE000ULL);
+}
+
+TEST_F(ModelArgsManagerUT, IntegrateExtraH2DCopyDatas_EmptyPool_Skips) {
+  ModelArgsManager mam(nullptr);
+
+  // Pool with 0 allocated offset → skipped
+  ModelArgsManager::ExtraArgsPool pool;
+  pool.host_addr = ge::MakeUnique<uint8_t[]>(4096);
+  pool.device_addr = 0xD000ULL;
+  pool.total_size = 4096UL;
+  pool.allocated_offset = 0UL;  // Nothing allocated
+  pool.placement = ArgsPlacement::kArgsPlacementHbm;
+  mam.extra_args_pools_.emplace_back(std::move(pool));
+
+  ASSERT_EQ(mam.IntegrateExtraH2DCopyDatas(), SUCCESS);
+
+  auto &extra_datas = mam.extra_policy_to_update_datas_[ModelArgsManager::kUpdateModelIo];
+  EXPECT_EQ(extra_datas.size(), 0U);
+}
+
+TEST_F(ModelArgsManagerUT, IntegrateReservedUpdateDatas_PopulatesUpdateHostArgsArg) {
+  ModelArgsManager mam(nullptr);
+  std::vector<TaskInfoPtr> task_list;
+  mam.task_list_ptr_ = &task_list;
+
+  ArgsAllocationResult reserved_result;
+  reserved_result.host_addr = reinterpret_cast<void*>(0x1000ULL);
+  reserved_result.device_addr = 0xA000ULL;
+  reserved_result.size = 64;
+  reserved_result.placement = ArgsPlacement::kArgsPlacementHbm;
+  reserved_result.is_from_reserved = true;
+  reserved_result.extra_pool_index = std::numeric_limits<uint32_t>::max();
+
+  mam.task_list_ptr_->push_back(
+      std::make_shared<MockTaskInfoWithAllocResults>(
+          std::vector<ArgsAllocationResult>{reserved_result}));
+
+  mam.custom_op_task_to_policies_[0] = {ModelArgsManager::kUpdateModelIo};
+
+  std::unordered_map<size_t, std::vector<ArgsAllocationResult>> task_reserved_results;
+  task_reserved_results[0] = {reserved_result};
+
+  ASSERT_EQ(mam.IntegrateReservedUpdateDatas(task_reserved_results), SUCCESS);
+
+  // Verify update_policies_to_model_data_ populated for ModelArgsManager::kUpdateModelIo
+  auto &model_data = mam.update_policies_to_model_data_[ModelArgsManager::kUpdateModelIo];
+  ASSERT_NE(model_data, nullptr);
+  ASSERT_EQ(model_data->update_datas.size(), 1U);
+  EXPECT_EQ(model_data->update_datas[0].task_index, 0UL);
+  ASSERT_NE(model_data->update_datas[0].task_info, nullptr);
+  EXPECT_EQ(model_data->update_datas[0].host_args.size(), 1U);
+  EXPECT_EQ(model_data->update_datas[0].host_args[0].addr, reinterpret_cast<void*>(0x1000ULL));
+  EXPECT_EQ(model_data->update_datas[0].host_args[0].len, 64);
+  EXPECT_EQ(model_data->update_datas[0].host_args[0].placement, ArgsPlacement::kArgsPlacementHbm);
+
+  // Verify custom_op_policies_to_task_infos_ populated
+  auto &policies_to_task_infos = mam.custom_op_policies_to_task_infos_;
+  ASSERT_TRUE(policies_to_task_infos.find(ModelArgsManager::kUpdateModelIo) != policies_to_task_infos.end());
+  EXPECT_EQ(policies_to_task_infos[ModelArgsManager::kUpdateModelIo].size(), 1U);
+}
+
+TEST_F(ModelArgsManagerUT, IntegrateReservedUpdateDatas_MultiplePolicies) {
+  ModelArgsManager mam(nullptr);
+  std::vector<TaskInfoPtr> task_list;
+  mam.task_list_ptr_ = &task_list;
+
+  ArgsAllocationResult reserved_result;
+  reserved_result.host_addr = reinterpret_cast<void*>(0x1000ULL);
+  reserved_result.device_addr = 0xA000ULL;
+  reserved_result.size = 64;
+  reserved_result.placement = ArgsPlacement::kArgsPlacementHbm;
+  reserved_result.is_from_reserved = true;
+  reserved_result.extra_pool_index = std::numeric_limits<uint32_t>::max();
+
+  mam.task_list_ptr_->push_back(
+      std::make_shared<MockTaskInfoWithAllocResults>(
+          std::vector<ArgsAllocationResult>{reserved_result}));
+
+  // Custom op needs both kUpdateFmAndModelIo and kUpdateModelIo
+  mam.custom_op_task_to_policies_[0] = {ModelArgsManager::kUpdateFmAndModelIo,
+                                         ModelArgsManager::kUpdateModelIo};
+
+  std::unordered_map<size_t, std::vector<ArgsAllocationResult>> task_reserved_results;
+  task_reserved_results[0] = {reserved_result};
+
+  ASSERT_EQ(mam.IntegrateReservedUpdateDatas(task_reserved_results), SUCCESS);
+
+  // Verify update_data populated for both policies
+  auto &fm_data = mam.update_policies_to_model_data_[ModelArgsManager::kUpdateFmAndModelIo];
+  ASSERT_NE(fm_data, nullptr);
+  EXPECT_EQ(fm_data->update_datas.size(), 1U);
+  EXPECT_EQ(fm_data->update_datas[0].task_index, 0UL);
+
+  auto &io_data = mam.update_policies_to_model_data_[ModelArgsManager::kUpdateModelIo];
+  ASSERT_NE(io_data, nullptr);
+  EXPECT_EQ(io_data->update_datas.size(), 1U);
+  EXPECT_EQ(io_data->update_datas[0].task_index, 0UL);
+
+  // Verify custom_op_policies_to_task_infos_ populated for both policies
+  auto &policies_to_task_infos = mam.custom_op_policies_to_task_infos_;
+  EXPECT_EQ(policies_to_task_infos[ModelArgsManager::kUpdateFmAndModelIo].size(), 1U);
+  EXPECT_EQ(policies_to_task_infos[ModelArgsManager::kUpdateModelIo].size(), 1U);
+}
+
+TEST_F(ModelArgsManagerUT, IntegrateReservedUpdateDatas_SkipsTaskNotInPolicies) {
+  ModelArgsManager mam(nullptr);
+  std::vector<TaskInfoPtr> task_list;
+  mam.task_list_ptr_ = &task_list;
+
+  ArgsAllocationResult reserved_result;
+  reserved_result.host_addr = reinterpret_cast<void*>(0x1000ULL);
+  reserved_result.device_addr = 0xA000ULL;
+  reserved_result.size = 64;
+  reserved_result.placement = ArgsPlacement::kArgsPlacementHbm;
+  reserved_result.is_from_reserved = true;
+  reserved_result.extra_pool_index = std::numeric_limits<uint32_t>::max();
+
+  mam.task_list_ptr_->push_back(
+      std::make_shared<MockTaskInfoWithAllocResults>(
+          std::vector<ArgsAllocationResult>{reserved_result}));
+
+  // No custom_op_task_to_policies_ entry — task should be skipped
+  std::unordered_map<size_t, std::vector<ArgsAllocationResult>> task_reserved_results;
+  task_reserved_results[0] = {reserved_result};
+
+  ASSERT_EQ(mam.IntegrateReservedUpdateDatas(task_reserved_results), SUCCESS);
+
+  // Verify no update_data populated — task was skipped
+  auto &model_data = mam.update_policies_to_model_data_[ModelArgsManager::kUpdateModelIo];
+  EXPECT_EQ(model_data, nullptr);
+  EXPECT_TRUE(mam.custom_op_policies_to_task_infos_.empty());
+}
+
+TEST_F(ModelArgsManagerUT, IntegrateExtraUpdateDatas_PopulatesPoolUpdateDatas) {
+  ModelArgsManager mam(nullptr);
+  std::vector<TaskInfoPtr> task_list;
+  mam.task_list_ptr_ = &task_list;
+
+  ArgsAllocationResult extra_result;
+  extra_result.host_addr = reinterpret_cast<void*>(0x2000ULL);
+  extra_result.device_addr = 0xD000ULL;
+  extra_result.size = 32;
+  extra_result.placement = ArgsPlacement::kArgsPlacementHbm;
+  extra_result.is_from_reserved = false;
+  extra_result.extra_pool_index = 0U;
+
+  mam.task_list_ptr_->push_back(
+      std::make_shared<MockTaskInfoWithAllocResults>(
+          std::vector<ArgsAllocationResult>{extra_result}));
+
+  mam.custom_op_task_to_policies_[0] = {ModelArgsManager::kUpdateModelIo};
+
+  // Set up extra pool
+  ModelArgsManager::ExtraArgsPool pool;
+  pool.host_addr = ge::MakeUnique<uint8_t[]>(4096);
+  pool.device_addr = 0xD000ULL;
+  pool.total_size = 4096UL;
+  pool.allocated_offset = 32UL;
+  pool.placement = ArgsPlacement::kArgsPlacementHbm;
+  mam.extra_args_pools_.emplace_back(std::move(pool));
+
+  std::unordered_map<size_t, std::vector<ArgsAllocationResult>> task_extra_results;
+  task_extra_results[0] = {extra_result};
+
+  ASSERT_EQ(mam.IntegrateExtraUpdateDatas(task_extra_results), SUCCESS);
+
+  auto &extra_datas = mam.extra_policy_to_update_datas_[ModelArgsManager::kUpdateModelIo];
+  ASSERT_EQ(extra_datas.size(), 1U);  // resized to match pools count
+  ASSERT_EQ(extra_datas[0].update_datas.size(), 1U);
+  EXPECT_EQ(extra_datas[0].update_datas[0].task_index, 0UL);
+  EXPECT_EQ(extra_datas[0].update_datas[0].host_args.size(), 1U);
+  EXPECT_EQ(extra_datas[0].update_datas[0].host_args[0].addr, reinterpret_cast<void*>(0x2000ULL));
+  EXPECT_EQ(extra_datas[0].update_datas[0].host_args[0].len, 32);
+}
+
+TEST_F(ModelArgsManagerUT, IntegrateCustomOpArgs_FullPipeline_ReservedAndExtra) {
+  ModelArgsManager mam(nullptr);
+  mam.has_reserve_args_table_ = true;
+  std::vector<TaskInfoPtr> task_list;
+  mam.task_list_ptr_ = &task_list;
+
+  // Task 0: 1 reserved + 1 extra
+  ArgsAllocationResult reserved_result;
+  reserved_result.host_addr = reinterpret_cast<void*>(0x1000ULL);
+  reserved_result.device_addr = 0xBEEF0040ULL;
+  reserved_result.size = 32;
+  reserved_result.placement = ArgsPlacement::kArgsPlacementHbm;
+  reserved_result.is_from_reserved = true;
+  reserved_result.extra_pool_index = std::numeric_limits<uint32_t>::max();
+
+  ArgsAllocationResult extra_result;
+  extra_result.host_addr = reinterpret_cast<void*>(0x2000ULL);
+  extra_result.device_addr = 0xD000ULL;
+  extra_result.size = 64;
+  extra_result.placement = ArgsPlacement::kArgsPlacementHbm;
+  extra_result.is_from_reserved = false;
+  extra_result.extra_pool_index = 0U;
+
+  mam.task_list_ptr_->push_back(
+      std::make_shared<MockTaskInfoWithAllocResults>(
+          std::vector<ArgsAllocationResult>{reserved_result, extra_result}));
+
+  // Set up model_args_ with HBM placement
+  ModelArgsManager::ModelArgs model_arg;
+  model_arg.placement = ArgsPlacement::kArgsPlacementHbm;
+  model_arg.model_args_host_addr = ge::MakeUnique<uint8_t[]>(256);
+  model_arg.model_args_device_addr = 0xBEEF0000ULL;
+  mam.model_args_.push_back(std::move(model_arg));
+
+  // Reserved segment: 32 bytes used
+  const size_t hbm_idx = static_cast<size_t>(ArgsPlacement::kArgsPlacementHbm);
+  mam.reserved_segments_[hbm_idx].start_offset = 64UL;
+  mam.reserved_segments_[hbm_idx].current_offset = 96UL;  // 32 bytes used
+  mam.reserved_segments_[hbm_idx].total_size = 128UL;
+
+  // Extra pool
+  ModelArgsManager::ExtraArgsPool pool;
+  pool.host_addr = ge::MakeUnique<uint8_t[]>(4096);
+  pool.device_addr = 0xD000ULL;
+  pool.total_size = 4096UL;
+  pool.allocated_offset = 64UL;
+  pool.placement = ArgsPlacement::kArgsPlacementHbm;
+  mam.extra_args_pools_.emplace_back(std::move(pool));
+
+  mam.custom_op_task_to_policies_[0] = {ModelArgsManager::kUpdateModelIo};
+
+  // Existing built-in update data for ModelArgsManager::kUpdateModelIo
+  mam.update_policies_to_model_data_[ModelArgsManager::kUpdateModelIo] = ge::MakeUnique<ModelArgsManager::ArgsUpdateData>();
+  ModelArgsManager::H2DCopyArg existing_h2d;
+  existing_h2d.len = 64UL;
+  existing_h2d.device_addr = 0xBEEF0000ULL;
+  existing_h2d.host_addr = mam.model_args_[0].model_args_host_addr.get();
+  existing_h2d.placement = ArgsPlacement::kArgsPlacementHbm;
+  mam.update_policies_to_model_data_[ModelArgsManager::kUpdateModelIo]->h2d_copy_datas.push_back(std::move(existing_h2d));
+
+  ASSERT_EQ(mam.IntegrateCustomOpArgs(), SUCCESS);
+
+  // Verify reserved H2D expanded
+  auto &model_data = mam.update_policies_to_model_data_[ModelArgsManager::kUpdateModelIo];
+  ASSERT_NE(model_data, nullptr);
+  ASSERT_EQ(model_data->h2d_copy_datas.size(), 1U);
+  EXPECT_EQ(model_data->h2d_copy_datas[0].len, 96UL);  // 64 (built-in) + 32 (reserved used)
+
+  // Verify reserved update data populated
+  ASSERT_EQ(model_data->update_datas.size(), 1U);
+  EXPECT_EQ(model_data->update_datas[0].task_index, 0UL);
+
+  // Verify extra H2D created
+  auto &extra_datas = mam.extra_policy_to_update_datas_[ModelArgsManager::kUpdateModelIo];
+  ASSERT_EQ(extra_datas.size(), 1U);
+  ASSERT_EQ(extra_datas[0].h2d_copy_datas.size(), 1U);
+  EXPECT_EQ(extra_datas[0].h2d_copy_datas[0].len, 64UL);
+
+  // Verify extra update data populated
+  ASSERT_EQ(extra_datas[0].update_datas.size(), 1U);
+  EXPECT_EQ(extra_datas[0].update_datas[0].task_index, 0UL);
+  EXPECT_EQ(extra_datas[0].update_datas[0].host_args.size(), 1U);
+}
+
+// =====================================================================
+// Task 4: IntegrateCustomOpArgs error path UTs
+// =====================================================================
+
+TEST_F(ModelArgsManagerUT, IntegrateCustomOpArgs_NullTaskListPtr_ReturnsSuccess) {
+  ModelArgsManager mam(nullptr);
+  mam.has_reserve_args_table_ = true;
+  // task_list_ptr_ is nullptr → IntegrateCustomOpArgs returns SUCCESS (early exit)
+  ASSERT_EQ(mam.IntegrateCustomOpArgs(), SUCCESS);
+}
+
+TEST_F(ModelArgsManagerUT, IntegrateCustomOpArgs_NoReservedArgsTable_ReturnsSuccess) {
+  ModelArgsManager mam(nullptr);
+  std::vector<TaskInfoPtr> task_list;
+  mam.task_list_ptr_ = &task_list;
+  mam.has_reserve_args_table_ = false;
+  ASSERT_EQ(mam.IntegrateCustomOpArgs(), SUCCESS);
+}
+
+TEST_F(ModelArgsManagerUT, AllocateArgsBuffer_FromExistingPool_Success) {
+  DavinciModel model(0, nullptr);
+  InsertStubAllocator(&model);
+  ModelArgsManager mam(&model);
+  mam.davinci_model_ = &model;
+
+  ModelArgsManager::ExtraArgsPool pool;
+  pool.host_addr = ge::MakeUnique<uint8_t[]>(4096);
+  pool.device_addr = 0xD000ULL;
+  pool.total_size = 4096UL;
+  pool.allocated_offset = 0UL;
+  pool.placement = ArgsPlacement::kArgsPlacementHbm;
+  mam.extra_args_pools_.emplace_back(std::move(pool));
+
+  ArgsAllocationResult result;
+  ASSERT_EQ(mam.AllocateArgsBuffer(64, ArgsPlacement::kArgsPlacementHbm, result), SUCCESS);
+  EXPECT_EQ(result.is_from_reserved, false);
+  EXPECT_EQ(result.extra_pool_index, 0U);
+  EXPECT_EQ(result.size, 64UL);
+}
+
+TEST_F(ModelArgsManagerUT, AllocateArgsBuffer_FromNewPool_Success) {
+  DavinciModel model(0, nullptr);
+  InsertStubAllocator(&model);
+  ModelArgsManager mam(&model);
+  mam.davinci_model_ = &model;
+
+  ArgsAllocationResult result;
+  ASSERT_EQ(mam.AllocateArgsBuffer(64, ArgsPlacement::kArgsPlacementHbm, result), SUCCESS);
+  EXPECT_EQ(result.is_from_reserved, false);
+  EXPECT_EQ(mam.extra_args_pools_.size(), 1U);
+  EXPECT_GE(mam.extra_args_pools_[0].total_size, 4096UL);
+}
+
+TEST_F(ModelArgsManagerUT, AllocateArgsBuffer_ZeroSize_AssertFails) {
+  DavinciModel model(0, nullptr);
+  InsertStubAllocator(&model);
+  ModelArgsManager mam(&model);
+  mam.davinci_model_ = &model;
+
+  ArgsAllocationResult result;
+  EXPECT_NE(mam.AllocateArgsBuffer(0, ArgsPlacement::kArgsPlacementHbm, result), SUCCESS);
+}
+
+TEST_F(ModelArgsManagerUT, CollectTaskAllocationResults_SeparatesReservedAndExtra) {
+  ModelArgsManager mam(nullptr);
+  std::vector<TaskInfoPtr> task_list;
+  mam.task_list_ptr_ = &task_list;
+
+  ArgsAllocationResult reserved_result;
+  reserved_result.is_from_reserved = true;
+  reserved_result.host_addr = reinterpret_cast<void*>(0x1000ULL);
+  reserved_result.device_addr = 0xA000ULL;
+  reserved_result.size = 32;
+  reserved_result.placement = ArgsPlacement::kArgsPlacementHbm;
+  reserved_result.extra_pool_index = std::numeric_limits<uint32_t>::max();
+
+  ArgsAllocationResult extra_result;
+  extra_result.is_from_reserved = false;
+  extra_result.host_addr = reinterpret_cast<void*>(0x2000ULL);
+  extra_result.device_addr = 0xD000ULL;
+  extra_result.size = 64;
+  extra_result.placement = ArgsPlacement::kArgsPlacementHbm;
+  extra_result.extra_pool_index = 0U;
+
+  mam.task_list_ptr_->push_back(
+      std::make_shared<MockTaskInfoWithAllocResults>(
+          std::vector<ArgsAllocationResult>{reserved_result, extra_result}));
+
+  std::unordered_map<size_t, std::vector<ArgsAllocationResult>> task_reserved_results;
+  std::unordered_map<size_t, std::vector<ArgsAllocationResult>> task_extra_results;
+
+  ASSERT_EQ(mam.CollectTaskAllocationResults(task_reserved_results, task_extra_results), SUCCESS);
+  EXPECT_EQ(task_reserved_results.size(), 1U);
+  EXPECT_EQ(task_reserved_results[0].size(), 1U);
+  EXPECT_EQ(task_reserved_results[0][0].is_from_reserved, true);
+  EXPECT_EQ(task_extra_results.size(), 1U);
+  EXPECT_EQ(task_extra_results[0].size(), 1U);
+  EXPECT_EQ(task_extra_results[0][0].is_from_reserved, false);
+}
+
+TEST_F(ModelArgsManagerUT, FindOrCreateUpdateArg_CreatesNewAndFindsExisting) {
+  ModelArgsManager mam(nullptr);
+  std::vector<TaskInfoPtr> task_list;
+  mam.task_list_ptr_ = &task_list;
+  auto task_info = std::make_shared<MockTaskInfoWithAllocResults>(std::vector<ArgsAllocationResult>{});
+  mam.task_list_ptr_->push_back(task_info);
+
+  ModelArgsManager::ArgsUpdateData update_data;
+
+  auto* arg1 = mam.FindOrCreateUpdateArg(update_data, 0UL, task_info.get());
+  ASSERT_NE(arg1, nullptr);
+  EXPECT_EQ(arg1->task_index, 0UL);
+  EXPECT_EQ(update_data.update_datas.size(), 1U);
+
+  auto* arg2 = mam.FindOrCreateUpdateArg(update_data, 0UL, task_info.get());
+  EXPECT_EQ(arg2, arg1);
+  EXPECT_EQ(update_data.update_datas.size(), 1U);
+
+  auto* arg3 = mam.FindOrCreateUpdateArg(update_data, 1UL, nullptr);
+  ASSERT_NE(arg3, nullptr);
+  EXPECT_EQ(arg3->task_index, 1UL);
+  EXPECT_EQ(update_data.update_datas.size(), 2U);
+}
+
+TEST_F(ModelArgsManagerUT, AppendHostArgs_AppendsCorrectly) {
+  ModelArgsManager mam(nullptr);
+  ModelArgsManager::UpdateHostArgsArg update_arg;
+
+  ArgsAllocationResult result1;
+  result1.host_addr = reinterpret_cast<void*>(0x1000ULL);
+  result1.size = 32;
+  result1.placement = ArgsPlacement::kArgsPlacementHbm;
+
+  ArgsAllocationResult result2;
+  result2.host_addr = reinterpret_cast<void*>(0x2000ULL);
+  result2.size = 64;
+  result2.placement = ArgsPlacement::kArgsPlacementHbm;
+
+mam.AppendHostArgs(&update_arg, {result1, result2});
+  EXPECT_EQ(update_arg.host_args.size(), 2);
+}
+
+TEST_F(ModelArgsManagerUT, IntegrateExtraUpdateDatas_SkipsUnknownTaskIndex) {
+  ModelArgsManager mam(nullptr);
+  std::vector<TaskInfoPtr> task_list;
+  mam.task_list_ptr_ = &task_list;
+  auto mock_task = std::make_shared<MockTaskInfoWithAllocResults>(std::vector<ArgsAllocationResult>{});
+  task_list.push_back(mock_task);
+
+  std::unordered_map<size_t, std::vector<ArgsAllocationResult>> task_extra_results;
+  ArgsAllocationResult result;
+  result.is_from_reserved = false;
+  result.host_addr = reinterpret_cast<void*>(0x1000ULL);
+  result.device_addr = 0xD000ULL;
+  result.size = 64;
+  result.placement = ArgsPlacement::kArgsPlacementHbm;
+  result.extra_pool_index = 0U;
+  task_extra_results[0UL] = {result};
+
+  mam.custom_op_task_to_policies_[0UL] = {ModelArgsManager::kUpdateModelIo};
+  mam.extra_args_pools_.push_back({ge::MakeUnique<uint8_t[]>(256), 0xA000ULL, 256UL, 0UL, ArgsPlacement::kArgsPlacementHbm});
+
+ASSERT_EQ(mam.IntegrateExtraUpdateDatas(task_extra_results), SUCCESS);
+  EXPECT_EQ(mam.custom_op_policies_to_task_infos_[ModelArgsManager::kUpdateModelIo].size(), 1U);
+  EXPECT_EQ(mam.extra_policy_to_update_datas_[ModelArgsManager::kUpdateModelIo].size(), 1U);
+}
+
+TEST_F(ModelArgsManagerUT, Init_NeedReserveArgsTable_SetsFlagsAndReservedSegments) {
+  gert::GertRuntimeStub runtime_stub;
+  runtime_stub.GetTaskInfoFactoryStub()
+      .StubTaskInfo<CustomReserveArgsStubTaskInfo>(ModelTaskType::MODEL_TASK_KERNEL);
+  auto graph = gert::ShareGraph::BuildTwoAddNodeKnownShapeGraph();
+  graph->TopologicalSorting();
+  auto model = gert::GeModelBuilder(graph)
+                   .AddTaskDef("add1", gert::AiCoreTaskDefFaker("add1"))
+                   .AddTaskDef("add2", gert::AiCoreTaskDefFaker("add2"))
+                   .Build();
+
+  auto davinci_model = DavinciModelFaker()
+                           .SetFmRefreshable(true)
+                           .GeModel(model)
+                           .GenerateSymbolForTaskInfoFaker(&(runtime_stub.GetTaskInfoFactoryStub()))
+                           .Build();
+
+  InsertStubAllocator(davinci_model.get());
+  ModelArgsManager mam(davinci_model.get());
+  std::vector<TaskInfoPtr> task_list;
+  ASSERT_EQ(mam.Init(*(model->GetModelTaskDefPtr()), &task_list), SUCCESS);
+
+  EXPECT_TRUE(mam.has_reserve_args_table_);
+  EXPECT_GT(mam.reserved_segments_[static_cast<size_t>(ArgsPlacement::kArgsPlacementHbm)].total_size, 0U);
+}
+
+TEST_F(ModelArgsManagerUT, IntegrateExtraUpdateDatas_SkipsOutOfPoolRange) {
+  ModelArgsManager mam(nullptr);
+  std::vector<TaskInfoPtr> task_list;
+  mam.task_list_ptr_ = &task_list;
+  auto mock_task = std::make_shared<MockTaskInfoWithAllocResults>(std::vector<ArgsAllocationResult>{});
+  task_list.push_back(mock_task);
+
+  std::unordered_map<size_t, std::vector<ArgsAllocationResult>> task_extra_results;
+  ArgsAllocationResult result;
+  result.is_from_reserved = false;
+  result.host_addr = reinterpret_cast<void*>(0x1000ULL);
+  result.device_addr = 0xD000ULL;
+  result.size = 64;
+  result.placement = ArgsPlacement::kArgsPlacementHbm;
+  result.extra_pool_index = 100U;
+  task_extra_results[0UL] = {result};
+
+  mam.custom_op_task_to_policies_[0UL] = {ModelArgsManager::kUpdateModelIo};
+  mam.extra_args_pools_.push_back({ge::MakeUnique<uint8_t[]>(256), 0xA000ULL, 256UL, 0UL, ArgsPlacement::kArgsPlacementHbm});
+
+  ASSERT_EQ(mam.IntegrateExtraUpdateDatas(task_extra_results), SUCCESS);
+  auto &extra_datas = mam.extra_policy_to_update_datas_[ModelArgsManager::kUpdateModelIo];
+  EXPECT_EQ(extra_datas.size(), 1U);
+  EXPECT_EQ(extra_datas[0].update_datas.size(), 0U);
+}
+
+TEST_F(ModelArgsManagerUT, IntegrateExtraUpdateDatas_SkipsTaskWithoutPolicy) {
+  ModelArgsManager mam(nullptr);
+  std::vector<TaskInfoPtr> task_list;
+  mam.task_list_ptr_ = &task_list;
+  auto mock_task = std::make_shared<MockTaskInfoWithAllocResults>(std::vector<ArgsAllocationResult>{});
+  task_list.push_back(mock_task);
+
+  std::unordered_map<size_t, std::vector<ArgsAllocationResult>> task_extra_results;
+  ArgsAllocationResult result;
+  result.is_from_reserved = false;
+  result.host_addr = reinterpret_cast<void*>(0x1000ULL);
+  result.device_addr = 0xD000ULL;
+  result.size = 64;
+  result.placement = ArgsPlacement::kArgsPlacementHbm;
+  result.extra_pool_index = 0U;
+  task_extra_results[0UL] = {result};
+
+  ASSERT_EQ(mam.IntegrateExtraUpdateDatas(task_extra_results), SUCCESS);
+  EXPECT_EQ(mam.extra_policy_to_update_datas_.size(), 0U);
+}
+
+TEST_F(ModelArgsManagerUT, UpdateForExecute_CustomOpPoliciesTriggersUpdateHostArgs) {
+  gert::GertRuntimeStub runtime_stub;
+  runtime_stub.GetTaskInfoFactoryStub().StubTaskInfo<AicoreStubTaskInfo>(ModelTaskType::MODEL_TASK_KERNEL);
+  auto graph = gert::ShareGraph::BuildTwoAddNodeKnownShapeGraph();
+  graph->TopologicalSorting();
+  auto model = gert::GeModelBuilder(graph)
+                   .AddTaskDef("add1", gert::AiCoreTaskDefFaker("add1"))
+                   .AddTaskDef("add2", gert::AiCoreTaskDefFaker("add2"))
+                   .Build();
+
+  auto davinci_model = DavinciModelFaker()
+                           .SetFmRefreshable(true)
+                           .GeModel(model)
+                           .GenerateSymbolForTaskInfoFaker(&(runtime_stub.GetTaskInfoFactoryStub()))
+                           .Build();
+
+  InsertStubAllocator(davinci_model.get());
+  ModelArgsManager mam(davinci_model.get());
+  std::vector<TaskInfoPtr> task_list;
+  ASSERT_EQ(mam.Init(*(model->GetModelTaskDefPtr()), &task_list), SUCCESS);
+  mam.SetAllocationHitCount(1U, 1U);
+
+  auto mock_custom_op = std::make_shared<MockCustomOpTaskInfo>();
+  mam.has_reserve_args_table_ = true;
+  mam.custom_op_policies_to_task_infos_[ModelArgsManager::kUpdateModelIo].insert(mock_custom_op.get());
+
+  std::vector<uint64_t> active_mem_base_addr = ActiveMemBaseFaker(2, 1).FmBaseIndex(0).ModelIoBaseIndex(1).Build();
+  mam.AllocKernelLaunchArgsHostMem(active_mem_base_addr.size());
+  uint64_t* active_mem_base_addr_temp = mam.GetActivateMemBaseAddrs();
+  for (size_t i = 0; i < active_mem_base_addr.size(); i++) {
+    active_mem_base_addr_temp[i] = active_mem_base_addr[i];
+  }
+
+  uint32_t up = ModelArgsManager::kUpdateModelIo;
+  ASSERT_EQ(mam.UpdateForExecute(up, (rtStream_t)1), SUCCESS);
+  EXPECT_EQ(mock_custom_op->update_host_args_void_calls_, 1);
+}
+
+TEST_F(ModelArgsManagerUT, UpdateForExecute_CustomOpPoliciesEmptyDoesNotCrash) {
+  gert::GertRuntimeStub runtime_stub;
+  runtime_stub.GetTaskInfoFactoryStub().StubTaskInfo<AicoreStubTaskInfo>(ModelTaskType::MODEL_TASK_KERNEL);
+  auto graph = gert::ShareGraph::BuildTwoAddNodeKnownShapeGraph();
+  graph->TopologicalSorting();
+  auto model = gert::GeModelBuilder(graph)
+                   .AddTaskDef("add1", gert::AiCoreTaskDefFaker("add1"))
+                   .AddTaskDef("add2", gert::AiCoreTaskDefFaker("add2"))
+                   .Build();
+
+  auto davinci_model = DavinciModelFaker()
+                           .SetFmRefreshable(true)
+                           .GeModel(model)
+                           .GenerateSymbolForTaskInfoFaker(&(runtime_stub.GetTaskInfoFactoryStub()))
+                           .Build();
+
+  InsertStubAllocator(davinci_model.get());
+  ModelArgsManager mam(davinci_model.get());
+  std::vector<TaskInfoPtr> task_list;
+  ASSERT_EQ(mam.Init(*(model->GetModelTaskDefPtr()), &task_list), SUCCESS);
+  mam.SetAllocationHitCount(1U, 1U);
+
+  mam.has_reserve_args_table_ = true;
+  mam.custom_op_policies_to_task_infos_[ModelArgsManager::kUpdateModelIo];
+
+  std::vector<uint64_t> active_mem_base_addr = ActiveMemBaseFaker(2, 1).FmBaseIndex(0).ModelIoBaseIndex(1).Build();
+  mam.AllocKernelLaunchArgsHostMem(active_mem_base_addr.size());
+  uint64_t* active_mem_base_addr_temp = mam.GetActivateMemBaseAddrs();
+  for (size_t i = 0; i < active_mem_base_addr.size(); i++) {
+    active_mem_base_addr_temp[i] = active_mem_base_addr[i];
+  }
+
+  uint32_t up = ModelArgsManager::kUpdateModelIo;
+  ASSERT_EQ(mam.UpdateForExecute(up, (rtStream_t)1), SUCCESS);
+}
+
+TEST_F(ModelArgsManagerUT, IntegrateCustomOpArgs_TaskWithBothReservedAndExtra_NoDuplicateTaskInfo) {
+  ModelArgsManager mam(nullptr);
+  std::vector<TaskInfoPtr> task_list;
+  mam.task_list_ptr_ = &task_list;
+
+  ArgsAllocationResult reserved_result;
+  reserved_result.is_from_reserved = true;
+  reserved_result.host_addr = reinterpret_cast<void*>(0x1000ULL);
+  reserved_result.device_addr = 0xA000ULL;
+  reserved_result.size = 32;
+  reserved_result.placement = ArgsPlacement::kArgsPlacementHbm;
+  reserved_result.extra_pool_index = std::numeric_limits<uint32_t>::max();
+
+  ArgsAllocationResult extra_result;
+  extra_result.is_from_reserved = false;
+  extra_result.host_addr = reinterpret_cast<void*>(0x2000ULL);
+  extra_result.device_addr = 0xD000ULL;
+  extra_result.size = 64;
+  extra_result.placement = ArgsPlacement::kArgsPlacementHbm;
+  extra_result.extra_pool_index = 0U;
+
+  auto mock_task = std::make_shared<MockTaskInfoWithAllocResults>(
+      std::vector<ArgsAllocationResult>{reserved_result, extra_result});
+  task_list.push_back(mock_task);
+
+  mam.custom_op_task_to_policies_[0UL] = {ModelArgsManager::kUpdateModelIo};
+
+  ModelArgsManager::ModelArgs model_arg;
+  model_arg.placement = ArgsPlacement::kArgsPlacementHbm;
+  model_arg.model_args_host_addr = ge::MakeUnique<uint8_t[]>(256);
+  model_arg.model_args_device_addr = 0xABCD0000ULL;
+  mam.model_args_.push_back(std::move(model_arg));
+  mam.reserved_segments_[static_cast<size_t>(ArgsPlacement::kArgsPlacementHbm)] = {0UL, 128UL, 32UL};
+
+  mam.extra_args_pools_.push_back(
+      {ge::MakeUnique<uint8_t[]>(256), 0xE000ULL, 256UL, 64UL, ArgsPlacement::kArgsPlacementHbm});
+
+  mam.has_reserve_args_table_ = true;
+  ASSERT_EQ(mam.IntegrateCustomOpArgs(), SUCCESS);
+
+  auto &task_infos = mam.custom_op_policies_to_task_infos_[ModelArgsManager::kUpdateModelIo];
+  EXPECT_EQ(task_infos.size(), 1U);
+}
+
+TEST_F(ModelArgsManagerUT, UpdateForExecute_MultipleCustomOps_AllCalledOnce) {
+  gert::GertRuntimeStub runtime_stub;
+  runtime_stub.GetTaskInfoFactoryStub().StubTaskInfo<AicoreStubTaskInfo>(ModelTaskType::MODEL_TASK_KERNEL);
+  auto graph = gert::ShareGraph::BuildTwoAddNodeKnownShapeGraph();
+  graph->TopologicalSorting();
+  auto model = gert::GeModelBuilder(graph)
+                   .AddTaskDef("add1", gert::AiCoreTaskDefFaker("add1"))
+                   .AddTaskDef("add2", gert::AiCoreTaskDefFaker("add2"))
+                   .Build();
+
+  auto davinci_model = DavinciModelFaker()
+                           .SetFmRefreshable(true)
+                           .GeModel(model)
+                           .GenerateSymbolForTaskInfoFaker(&(runtime_stub.GetTaskInfoFactoryStub()))
+                           .Build();
+
+  InsertStubAllocator(davinci_model.get());
+  ModelArgsManager mam(davinci_model.get());
+  std::vector<TaskInfoPtr> task_list;
+  ASSERT_EQ(mam.Init(*(model->GetModelTaskDefPtr()), &task_list), SUCCESS);
+  mam.SetAllocationHitCount(1U, 1U);
+
+  auto mock_op1 = std::make_shared<MockCustomOpTaskInfo>();
+  auto mock_op2 = std::make_shared<MockCustomOpTaskInfo>();
+  auto mock_op3 = std::make_shared<MockCustomOpTaskInfo>();
+  mam.has_reserve_args_table_ = true;
+  mam.custom_op_policies_to_task_infos_[ModelArgsManager::kUpdateModelIo].insert(mock_op1.get());
+  mam.custom_op_policies_to_task_infos_[ModelArgsManager::kUpdateModelIo].insert(mock_op2.get());
+  mam.custom_op_policies_to_task_infos_[ModelArgsManager::kUpdateModelIo].insert(mock_op3.get());
+
+  std::vector<uint64_t> active_mem_base_addr = ActiveMemBaseFaker(2, 1).FmBaseIndex(0).ModelIoBaseIndex(1).Build();
+  mam.AllocKernelLaunchArgsHostMem(active_mem_base_addr.size());
+  uint64_t* active_mem_base_addr_temp = mam.GetActivateMemBaseAddrs();
+  for (size_t i = 0; i < active_mem_base_addr.size(); i++) {
+    active_mem_base_addr_temp[i] = active_mem_base_addr[i];
+  }
+
+  uint32_t up = ModelArgsManager::kUpdateModelIo;
+  ASSERT_EQ(mam.UpdateForExecute(up, (rtStream_t)1), SUCCESS);
+  EXPECT_EQ(mock_op1->update_host_args_void_calls_, 1);
+  EXPECT_EQ(mock_op2->update_host_args_void_calls_, 1);
+  EXPECT_EQ(mock_op3->update_host_args_void_calls_, 1);
+}
+
 }  // namespace ge

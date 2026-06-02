@@ -48,9 +48,9 @@ class JitExecutorPool {
 class UserGraphControl {
  public:
   UserGraphControl(uint32_t user_graph_id, const ComputeGraphPtr &graph, CompileContext &compile_context,
-                   GraphManager &graph_manager)
+                   GraphManager &graph_manager, const std::map<std::string, std::string> &graph_options)
       : user_graph_id_(user_graph_id),
-        order_(UserGraph({user_graph_id, graph})),
+        order_(UserGraph({user_graph_id, graph, graph_options})),
         compile_context_(compile_context),
         graph_manager_(graph_manager),
         jit_exe_thread_pool_("jit_exe", kDefaultJitExeThreadPoolSize, true),

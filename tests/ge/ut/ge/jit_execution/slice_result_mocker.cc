@@ -193,7 +193,8 @@ std::unique_ptr<ExecutionPoint> SliceResultMocker::GenExecutionPoint(int64_t ep_
   if (hasRemGraph) { // last ep's remaining graph should be nullptr
     rem_graph = GenGraph("rem_graph");
   }
-  auto ep =  MakeUnique<ExecutionPoint>(ep_idx, slice_graph, rem_graph);
+  std::map<std::string, std::string> graph_options;
+  auto ep =  MakeUnique<ExecutionPoint>(ep_idx, slice_graph, rem_graph, graph_options);
   for (uint32_t gep_idx = 0; gep_idx < num_geps; ++gep_idx) {
     auto gep = GenGEP(*ep, cmc, cache_dir, user_graph_key);
     ep->models_.cache_models_.emplace_back(gep);

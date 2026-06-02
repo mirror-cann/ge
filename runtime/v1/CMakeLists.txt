@@ -92,6 +92,7 @@ set(DAVINCI_SRC_LIST
     graph/load/model_manager/task_info/rts/memcpy_async_task_info.cc
     graph/load/model_manager/task_info/ge/profiler_trace_task_info.cc
     graph/load/model_manager/task_info/ge/custom_task_info.cc
+    graph/load/model_manager/task_info/ge/sink_op_args_handler.cc
     graph/load/model_manager/task_info/rts/stream_active_task_info.cc
     graph/load/model_manager/task_info/rts/stream_switch_task_info.cc
     graph/load/model_manager/task_info/task_info.cc

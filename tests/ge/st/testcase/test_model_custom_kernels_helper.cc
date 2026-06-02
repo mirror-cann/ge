@@ -553,6 +553,22 @@ TEST_F(TestModelCustomOpsHelper, ge_root_model_check_so_arch_matches_target_cove
   EXPECT_EQ(ge_root_model.CheckSoArchMatchesTarget(not_elf_so_path, "unsupported_cpu"), SUCCESS);
 }
 
+TEST_F(TestModelCustomOpsHelper, ge_root_model_resolve_portable_op_so_path_same_arch_success) {
+  std::string current_env_os;
+  std::string current_env_cpu;
+  GetCurrentEnvWithFallbackForSt(current_env_os, current_env_cpu);
+  ASSERT_FALSE(current_env_os.empty());
+  ASSERT_FALSE(current_env_cpu.empty());
+
+  ScopedHostEnvOptionForSt host_env_guard(current_env_os, current_env_cpu);
+  GeRootModel ge_root_model;
+  PortableOpForSerializeSuccess portable_op;
+  std::string so_path;
+  EXPECT_EQ(ge_root_model.ResolvePortableOpSoPath(kSerializeSuccessType, &portable_op, so_path), SUCCESS);
+  EXPECT_FALSE(so_path.empty());
+  EXPECT_EQ(access(so_path.c_str(), R_OK), 0);
+}
+
 TEST_F(TestModelCustomOpsHelper, ge_root_model_collect_custom_op_so_from_custom_opp_path_success) {
   ScopedEnvVarForSt custom_opp_env_guard("ASCEND_CUSTOM_OPP_PATH");
   GeRootModel ge_root_model;

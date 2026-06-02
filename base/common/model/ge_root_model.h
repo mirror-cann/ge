@@ -184,7 +184,7 @@ struct FixedFeatureMemory {
   Status CheckAndSetCustomOpSo();
   Status GetTargetHostEnv(std::string &host_env_os, std::string &host_env_cpu) const;
   bool IsCrossCompileTarget(const std::string &target_os, const std::string &target_cpu) const;
-  Status ResolvePortableOpSoPath(const std::string &op_type, PortableOp *portable_op, std::string &so_path);
+  Status ResolvePortableOpSoPath(const std::string &op_type, PortableOp *portable_op, std::string &so_path) const;
   Status CheckSoArchMatchesTarget(const std::string &so_path, const std::string &target_cpu) const;
   Status CollectCustomOpSoFromCustomOppPath(const std::string &target_os, const std::string &target_cpu);
 

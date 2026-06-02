@@ -27,7 +27,7 @@ public:
   Status Compile(uint32_t graph_id, const ComputeGraphPtr &graph, const std::vector<gert::Tensor> &inputs,
                  const std::map<std::string, std::string> &options, uint64_t session_id);
   Status Compile(uint32_t graph_id, const ComputeGraphPtr &graph, const std::vector<ge::Tensor> &inputs,
-    uint64_t session_id);
+                 const std::map<std::string, std::string> &options, uint64_t session_id);
   Status Fork(uint32_t origin_graph_id, uint32_t forked_graph_id);
   Status Load(uint32_t graph_id,  const aclrtStream stream) const;
   Status Load(uint32_t graph_id, const std::map<AscendString, AscendString> &options,

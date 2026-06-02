@@ -49,6 +49,7 @@ add_executable(graph_engine_test
     "${AIR_CODE_DIR}/tests/ge/st/testcase/test_static_graph_profiling.cc"
     "${AIR_CODE_DIR}/tests/ge/st/testcase/test_fm_memory_refresh.cc"
     "${AIR_CODE_DIR}/tests/ge/st/testcase/test_custom_op.cc"
+    "${AIR_CODE_DIR}/tests/ge/st/testcase/test_custom_task_info_mode.cc"
     "${AIR_CODE_DIR}/tests/ge/st/testcase/test_custom_kernels_partition.cc"
     "${AIR_CODE_DIR}/tests/ge/st/testcase/test_model_custom_kernels_helper.cc"
     "${AIR_CODE_DIR}/tests/ge/st/testcase/test_external_allocator_graph.cc"

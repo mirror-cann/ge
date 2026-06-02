@@ -244,5 +244,12 @@ class EventStubTaskInfo : public StubTaskInfo {
     return -1;
   }
 };
+class CustomReserveArgsStubTaskInfo : public AicoreStubTaskInfo {
+ public:
+  explicit CustomReserveArgsStubTaskInfo(TaskInfoRegistryStub *registry) : AicoreStubTaskInfo(registry) {}
+  bool NeedReserveArgsTable() const override {
+    return true;
+  }
+};
 }
 #endif  // AIR_CXX_TESTS_UT_GE_GRAPH_LOAD_TASK_INFO_STUBS_H_

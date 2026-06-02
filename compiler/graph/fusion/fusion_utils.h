@@ -33,24 +33,12 @@ class FusionUtils {
 
   static std::map<string, bool> ParseFusionSwitch();
 
-  // 使用detector前后需要重置状态，确保当前detector掌握图的最新状态
-  static void ResetCycleDetectors();
-
-  static Status ReCreateCycleDetector(const ComputeGraphPtr &curr_graph);
-
-  static CycleDetectorSharedPtr GetOrCreateCycleDetector(const ComputeGraphPtr &curr_graph);
-
+  // 判断把 match_result 命中的节点集合融合成一个节点是否会成环。
+  // 实现为从融合集合的外部后继做正向遍历看能否绕回集合，无状态、无缓存，多线程并发安全。
   static bool WillCauseCycleIfFuse(const std::unique_ptr<MatchResult> &match_result);
-
-  static Status UpdateToCycleDetector(const ComputeGraphPtr &curr_graph,
-                                      const std::unique_ptr<MatchResult> &match_result,
-                                      const std::unique_ptr<Graph> &replacement);
 
   static void RecordFusionStatistic(const uint64_t session_id, const std::string graph_id, const std::string pass_name,
                                               const int match_times, const int effect_times);
-
- private:
-  static std::unordered_map<ComputeGraphPtr, CycleDetectorSharedPtr> graph_2_cycle_detectors_;
 };
 
 struct InnerSubgraphBoundary {
@@ -131,10 +119,17 @@ struct InnerSubgraphBoundary {
 
       OutDataAnchorPtr producer_out_anchor = nullptr;
       for (const auto &node_input : subgraph_input.GetAllInputs()) {
-        auto in_data_anchor =
-            NodeAdapter::GNode2Node(node_input.node)->GetInDataAnchor(static_cast<int32_t>(node_input.index));
+        const auto inner_node = NodeAdapter::GNode2Node(node_input.node);
+        GE_ASSERT_NOTNULL(inner_node, "Failed to convert GNode to NodePtr for subgraph input index[%d].",
+                          node_input.index);
+        const auto in_data_anchor = inner_node->GetInDataAnchor(static_cast<int32_t>(node_input.index));
+        GE_ASSERT_NOTNULL(in_data_anchor, "Node[%s][%s] has no in_data_anchor at index[%d].",
+                          inner_node->GetNamePtr(), inner_node->GetTypePtr(), node_input.index);
         if (producer_out_anchor == nullptr) {
           producer_out_anchor = in_data_anchor->GetPeerOutAnchor();
+          GE_ASSERT_NOTNULL(producer_out_anchor,
+                            "Node[%s][%s] in_data_anchor[%d] has no peer producer, subgraph boundary is malformed.",
+                            inner_node->GetNamePtr(), inner_node->GetTypePtr(), node_input.index);
           producer_out_anchor_.emplace_back(producer_out_anchor);
         }
         producer_2_inputs_in_anchor_[producer_out_anchor].emplace_back(in_data_anchor);
@@ -146,9 +141,13 @@ struct InnerSubgraphBoundary {
     for (const auto &subgraph_output : subgraph_outputs) {
       NodeIo node_output;
       GE_WARN_ASSERT_GRAPH_SUCCESS(subgraph_output.GetOutput(node_output));
-      auto out_node = NodeAdapter::GNode2Node(node_output.node);
-      GE_ASSERT_NOTNULL(out_node);
-      outputs_out_anchor_.emplace_back(out_node->GetOutDataAnchor(static_cast<int32_t>(node_output.index)));
+      const auto out_node = NodeAdapter::GNode2Node(node_output.node);
+      GE_ASSERT_NOTNULL(out_node, "Failed to convert GNode to NodePtr for subgraph output index[%d].",
+                        node_output.index);
+      const auto out_data_anchor = out_node->GetOutDataAnchor(static_cast<int32_t>(node_output.index));
+      GE_ASSERT_NOTNULL(out_data_anchor, "Node[%s][%s] has no out_data_anchor at index[%d].",
+                        out_node->GetNamePtr(), out_node->GetTypePtr(), node_output.index);
+      outputs_out_anchor_.emplace_back(out_data_anchor);
     }
     return SUCCESS;
   }

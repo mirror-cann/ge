@@ -420,7 +420,7 @@ Status ResolveStablePart(StablePartId id, std::string &output) {
           "                               uint32_t model_id, void *instance_handle,\n"
           "                               uint32_t is_raw_address = 0U) {\n"
           "  uint32_t task_id = 0U;\n"
-          "  OM2_CHK_RT(rtsGetThreadLastTaskId(&task_id));\n"
+          "  OM2_CHK_RT(aclrtGetThreadLastTaskId(&task_id));\n"
           "\n"
           "  uint32_t stream_id = 0U;\n"
           "  OM2_CHK_STATUS(aclrtStreamGetId(stream, reinterpret_cast<int32_t *>(&stream_id)));\n"

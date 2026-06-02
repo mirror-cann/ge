@@ -18,6 +18,10 @@
 #include "graph/utils/graph_utils_ex.h"
 #include "graph/utils/node_adapter.h"
 #include "graph/ge_local_context.h"
+#include "es_ge_test_ops.h"
+#include "ge/fusion/pattern_matcher.h"
+#include "ge/fusion/pattern.h"
+#include "graph/utils/graph_utils.h"
 
 namespace ge {
 namespace fusion {
@@ -76,6 +80,77 @@ TEST_F(UtestFusionUtils, ParseFusionSwitch) {
   EXPECT_EQ(pass_name_2_switches["CUSTOM_PASS2"], true);
   EXPECT_EQ(pass_name_2_switches["CUSTOM_PASS3"], false);
   remove("./fusion_switch_config.json");
+}
+
+TEST_F(UtestFusionUtils, WillCauseCycleIfFuse_NullMatchResult_ReturnFalse) {
+  EXPECT_FALSE(FusionUtils::WillCauseCycleIfFuse(nullptr));
+}
+
+TEST_F(UtestFusionUtils, WillCauseCycleIfFuse_LinearGraphNoCycle_ReturnFalse) {
+  using namespace ge::es;
+  
+  auto graph_builder = EsGraphBuilder("linear_graph");
+  auto esb_graph = graph_builder.GetCGraphBuilder();
+  auto data = EsCreateGraphInput(esb_graph, 0);
+  auto const_data = EsCreateScalarFloat(esb_graph, 1.0f);
+  auto add = EsAdd(data, const_data);
+  auto relu = EsRelu(add);
+  esb_graph->SetGraphOutput(relu, 0);
+  
+  auto graph = std::make_shared<Graph>(*graph_builder.BuildAndReset());
+  
+  auto pattern_builder = EsGraphBuilder("pattern");
+  auto pattern_esb = pattern_builder.GetCGraphBuilder();
+  auto p_data = EsCreateGraphInput(pattern_esb, 0);
+  auto p_const = EsCreateScalarFloat(pattern_esb, 1.0f);
+  auto p_add = EsAdd(p_data, p_const);
+  auto p_relu = EsRelu(p_add);
+  pattern_esb->SetGraphOutput(p_relu, 0);
+  
+  auto pattern = std::make_unique<Pattern>(std::move(*pattern_builder.BuildAndReset()));
+  PatternMatcher matcher(std::move(pattern), graph);
+  
+  auto match_result = matcher.MatchNext();
+  ASSERT_NE(match_result, nullptr);
+  EXPECT_FALSE(FusionUtils::WillCauseCycleIfFuse(match_result));
+}
+
+TEST_F(UtestFusionUtils, WillCauseCycleIfFuse_GraphWithControlEdgeCycle_ReturnTrue) {
+  using namespace ge::es;
+  
+  auto graph_builder = EsGraphBuilder("cycle_graph");
+  auto esb_graph = graph_builder.GetCGraphBuilder();
+  
+  auto data0 = EsCreateGraphInput(esb_graph, 0);
+  auto data1 = EsCreateGraphInput(esb_graph, 1);
+  auto abs = EsAbs(data0);
+  auto relu = EsRelu(abs);
+  auto abs1 = EsAbs(relu);
+  auto relu1 = EsRelu(data1);
+  auto add = EsAdd(abs1, relu1);
+  
+  GraphUtils::AddEdge(NodeAdapter::GNode2Node(abs->GetProducer())->GetOutControlAnchor(),
+                      NodeAdapter::GNode2Node(relu1->GetProducer())->GetInControlAnchor());
+  GraphUtils::AddEdge(NodeAdapter::GNode2Node(relu1->GetProducer())->GetOutControlAnchor(),
+                      NodeAdapter::GNode2Node(abs1->GetProducer())->GetInControlAnchor());
+  
+  esb_graph->SetGraphOutput(add, 0);
+  auto graph = std::make_shared<Graph>(*graph_builder.BuildAndReset());
+  
+  auto pattern_builder = EsGraphBuilder("pattern");
+  auto pattern_esb = pattern_builder.GetCGraphBuilder();
+  auto p_data = EsCreateGraphInput(pattern_esb, 0);
+  auto p_abs = EsAbs(p_data);
+  auto p_relu = EsRelu(p_abs);
+  auto p_abs1 = EsAbs(p_relu);
+  pattern_esb->SetGraphOutput(p_abs1, 0);
+  
+  auto pattern = std::make_unique<Pattern>(std::move(*pattern_builder.BuildAndReset()));
+  PatternMatcher matcher(std::move(pattern), graph);
+  
+  auto match_result = matcher.MatchNext();
+  ASSERT_NE(match_result, nullptr);
+  EXPECT_TRUE(FusionUtils::WillCauseCycleIfFuse(match_result));
 }
 } // namespace fusion
 } // namespace ge

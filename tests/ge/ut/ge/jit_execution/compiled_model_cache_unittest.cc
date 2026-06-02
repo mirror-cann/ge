@@ -92,7 +92,8 @@ TEST_F(CompiledModelCacheUT, check_add_gep_graph_key) {
   CompileContext context(graph_manager);
 
   CompiledModelCache cmc(user_graph_id_, context, graph_manager);
-  const auto ep = new ExecutionPoint(1, nullptr, nullptr);
+  std::map<std::string, std::string> graph_options;
+  const auto ep = new ExecutionPoint(1, nullptr, nullptr, graph_options);
   const auto gep0 = new GuardedExecutionPoint(ep);
   const auto *gep1 = new GuardedExecutionPoint(ep);
   GuardedExecutionPointUtil gep_util;
@@ -123,7 +124,8 @@ TEST_F(CompiledModelCacheUT, check_get_gep_graph_key) {
 
   CompiledModelCache cmc(user_graph_id_, context, graph_manager);
 
-  auto ep = new ExecutionPoint(slice_graph_id, nullptr, nullptr);
+  std::map<std::string, std::string> graph_options;
+  auto ep = new ExecutionPoint(slice_graph_id, nullptr, nullptr, graph_options);
   auto gep0 = new GuardedExecutionPoint(ep);
   GuardedExecutionPointUtil gep_util;
   EXPECT_EQ(gep_util.AddGuardedExecutionPointGraphKey(cache_dir_, user_graph_key_, gep0), ge::SUCCESS);
@@ -155,7 +157,8 @@ TEST_F(CompiledModelCacheUT, check_emplace_gep_option) {
 
   CompiledModelCache cmc(user_graph_id_, context, graph_manager);
 
-  ExecutionPoint *ep = new ExecutionPoint(slice_graph_id, nullptr, nullptr);
+  std::map<std::string, std::string> graph_options;
+  ExecutionPoint *ep = new ExecutionPoint(slice_graph_id, nullptr, nullptr, graph_options);
   GuardedExecutionPoint *gep0 = new GuardedExecutionPoint(ep);
   GuardedExecutionPointUtil gep_util;
   EXPECT_EQ(gep_util.AddGuardedExecutionPointGraphKey(cache_dir_, user_graph_key_, gep0), ge::SUCCESS);
@@ -203,7 +206,7 @@ TEST_F(CompiledModelCacheUT, check_restore_cache) {
   mocker.GenExecutionOrder(order, cmc, cache_dir_, user_graph_key_);
   EXPECT_EQ(cmc.SaveCache(order), ge::SUCCESS);
 
-  ExecutionOrder order_restore(UserGraph{user_graph_id_, compute_graph});
+  ExecutionOrder order_restore(UserGraph{user_graph_id_, compute_graph, {}});
   CompiledModelCache cmc_restore(user_graph_id_, context, graph_manager);
   EXPECT_EQ(cmc_restore.RestoreCache(order_restore), ge::SUCCESS);
 
@@ -215,7 +218,8 @@ TEST_F(CompiledModelCacheUT, check_restore_cache) {
 
 TEST_F(CompiledModelCacheUT, check_restore_execution_order_dir_not_exist) {
   uint32_t user_graph_id = user_graph_id_ + 1;
-  ExecutionOrder order(UserGraph{user_graph_id, nullptr});
+  std::map<std::string, std::string> graph_options;
+  ExecutionOrder order(UserGraph{user_graph_id, nullptr, graph_options});
   ExecutionOrderUtil eo_util;
   const string user_graph_key = "";
   EXPECT_EQ(eo_util.RestoreExecutionOrder(cache_dir_ + "/not_exist_dir", user_graph_key, order), ge::SUCCESS);
@@ -225,7 +229,8 @@ TEST_F(CompiledModelCacheUT, check_save_execution_point_no_ep) {
   uint32_t user_graph_id = user_graph_id_ + 2;
   const string user_graph_key = "";
   ExecutionPointUtil ep_util;
-  std::unique_ptr<ExecutionPoint> exec_point_ptr = std::make_unique<ExecutionPoint>(user_graph_id, nullptr, nullptr);
+  std::map<std::string, std::string> graph_options;
+  std::unique_ptr<ExecutionPoint> exec_point_ptr = std::make_unique<ExecutionPoint>(user_graph_id, nullptr, nullptr, graph_options);
   EXPECT_EQ(ep_util.SaveExecutionPoint(cache_dir_, user_graph_key, exec_point_ptr), ge::SUCCESS);
 }
 
@@ -234,7 +239,8 @@ TEST_F(CompiledModelCacheUT, check_save_execution_point_no_update_ep) {
   const string user_graph_key = "";
   ExecutionPointUtil ep_util;
   ComputeGraphPtr sliced_graph = std::make_shared<ComputeGraph>("sliced_graph");
-  std::unique_ptr<ExecutionPoint> exec_point_ptr = std::make_unique<ExecutionPoint>(user_graph_id, sliced_graph, nullptr);
+  std::map<std::string, std::string> graph_options;
+  std::unique_ptr<ExecutionPoint> exec_point_ptr = std::make_unique<ExecutionPoint>(user_graph_id, sliced_graph, nullptr, graph_options);
   EXPECT_EQ(ep_util.SaveExecutionPoint(cache_dir_, user_graph_key, exec_point_ptr), ge::SUCCESS);
 }
 }

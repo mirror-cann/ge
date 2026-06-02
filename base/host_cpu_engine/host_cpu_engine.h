@@ -13,7 +13,6 @@
 
 #include <mutex>
 #include "framework/common/ge_inner_error_codes.h"
-#include "framework/common/fmk_error_codes.h"
 #include "graph/node.h"
 #include "graph/gnode.h"
 #include "graph/op_desc.h"

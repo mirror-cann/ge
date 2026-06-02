@@ -91,10 +91,28 @@ Status HcclOfflineOptionBuilder::ParseLogicNumaConfig() {
     nlohmann::json js;
     fin >> js;
     auto json_obj = js.find("RankTable");
-    GE_ASSERT_TRUE(json_obj != js.end(), "RankTable is missing in JSON config file.");
+    if (json_obj == js.end()) {
+      GELOGE(FAILED, "The field 'RankTable' is missing in JSON config file[%s].", logic_topo_config_path_.c_str());
+      REPORT_PREDEFINED_ERR_MSG("E10032",
+                          std::vector<const char *>({"file_name", "reason"}),
+                          std::vector<const char *>({
+                              logic_topo_config_path_.c_str(),
+                              "The field 'RankTable' is missing in JSON file"
+                          }));
+      return FAILED;
+    }
     logic_rank_table_ = json_obj->dump();
     json_obj = js.find("HcclCommConfig");
-    GE_ASSERT_TRUE(json_obj != js.end(), "HcclCommConfig is missing in JSON config file.");
+    if (json_obj == js.end()) {
+      GELOGE(FAILED, "The field 'HcclCommConfig' is missing in JSON config file[%s].", logic_topo_config_path_.c_str());
+      REPORT_PREDEFINED_ERR_MSG("E10032",
+                          std::vector<const char *>({"file_name", "reason"}),
+                          std::vector<const char *>({
+                              logic_topo_config_path_.c_str(),
+                              "The field 'HcclCommConfig' is missing in JSON file"
+                          }));
+      return FAILED;
+    }
     hccl_comm_config_ = json_obj->dump();
   } catch (const nlohmann::json::exception &e) {
     GELOGE(FAILED, "Parser json file %s failed. %s", logic_topo_config_path_.c_str(), e.what());

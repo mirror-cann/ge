@@ -63,7 +63,8 @@ Status ExecutionPointUtil::CreateKeyOptionForGuardedExecutionPoint(const std::st
 }
 
 Status ExecutionPointUtil::RestoreExecutionPoint(const std::string root_dir, const std::string user_graph_key,
-		                                 const SliceGraphInfo &slice_graph_info, std::unique_ptr<ExecutionPoint> &exec_point_ptr) {
+ 		                                 const SliceGraphInfo &slice_graph_info, const std::map<std::string, std::string> &ep_options,
+                                         std::unique_ptr<ExecutionPoint> &exec_point_ptr) {
   // slice_graph_sub_dir example: ./cache_dir/jit/slicing_hierarchy/userGraphKey0/1/
   const std::string slice_graph_sub_dir = root_dir + kSlicingHierarchySubDirName + "/" + user_graph_key + "/" +
 	                                  std::to_string(slice_graph_info.slice_graph_id) + "/";
@@ -108,7 +109,7 @@ Status ExecutionPointUtil::RestoreExecutionPoint(const std::string root_dir, con
   }
 
   /* construct the ExecutionPoint, EP */
-  exec_point_ptr = MakeUnique<ExecutionPoint>(slice_graph_info.slice_graph_id, slice_graph, remaining_graph);
+  exec_point_ptr = MakeUnique<ExecutionPoint>(slice_graph_info.slice_graph_id, slice_graph, remaining_graph, ep_options);
   GE_ASSERT_NOTNULL(exec_point_ptr, "Failed to create execution point.");
 
   // restore the GEPs in this EP

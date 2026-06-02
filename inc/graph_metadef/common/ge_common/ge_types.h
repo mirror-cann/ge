@@ -15,7 +15,6 @@
 #include <string>
 #include <vector>
 
-#include "fmk_error_codes.h"
 #include "external/ge_common/ge_api_error_codes.h"
 #include "external/ge_common/ge_api_types.h"
 #include "graph/types.h"

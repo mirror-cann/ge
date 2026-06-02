@@ -26,6 +26,8 @@ public:
 
   bool IsExistOp(const AscendString &op_type);
 
+  bool IsAddressRefreshable(const AscendString &op_type);
+
   graphStatus LoadCustomOpsPartition(const uint8_t *data, size_t len);
 
   static CustomOpFactoryImpl &GetInstance() {

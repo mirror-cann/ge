@@ -52,6 +52,7 @@
 #include "platform/soc_spec.h"
 #include "common/kernel_handles_manager/kernel_handle_utils.h"
 #include "graph/load/model_manager/kernel/kernel_register_info_builder.h"
+#include "graph/load/model_manager/task_info/ge/custom_task_info.h"
 #include "common/opskernel/ops_kernel_info_types.h"
 #include "graph/debug/ge_attr_define.h"
 #include "framework/common/util.h"
@@ -6172,6 +6173,9 @@ Status DavinciModel::DistributeTask(const domi::ModelTaskDef &model_task_def) {
 
   hccl_task_stream_set_.clear();
 
+  // Integrate custom op args into unified args refresh flow
+  GE_ASSERT_SUCCESS(args_manager_.IntegrateCustomOpArgs());
+
   if (model_task_def.task_size() != 0) {
     args_manager_.GenModelArgsAaddrAfterDistributed();
   }
@@ -8163,7 +8167,7 @@ std::string DavinciModel::GetRootGraphName() const {
   while (graph != nullptr && graph->GetParentGraph() != nullptr) {
     graph = graph->GetParentGraph();
   }
-  
+
   if (graph != nullptr) {
     std::string root_name = graph->GetName();
     GELOGD("Found root graph, name[%s]", root_name.c_str());
@@ -8186,7 +8190,7 @@ Status DavinciModel::SetDataDumperArgs(const ComputeGraphPtr &graph,
   data_dumper_.SetOmName(om_name_);
   data_dumper_.SetComputeGraph(graph);
   data_dumper_.SetRefInfo(saved_task_addrs_);
-  
+
   int32_t tmp_device_id = -1;
   GE_CHK_RT_RET(aclrtGetDevice(&tmp_device_id));
   data_dumper_.SetDeviceId(static_cast<uint32_t>(tmp_device_id));

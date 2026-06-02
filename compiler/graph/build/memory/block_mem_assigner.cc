@@ -29,6 +29,7 @@
 #include "common/checker.h"
 #include "common/memory/mem_type_utils.h"
 #include "framework/common/op/ge_op_utils.h"
+#include "graph/custom_op_factory.h"
 #include "graph/optimize/params.h"
 #include "framework/common/runtime_tensor_desc.h"
 #include "graph/build/memory/dynamic_batch_mem_assigner.h"
@@ -54,8 +55,11 @@ bool IsNodeSupportZeroCopy(const ge::Node *const node) {
     return false;
   }
   if (op_engine == ge::kCustomOpKernelLibName) {
-    GELOGD("custom engine op[%s] not support zero copy", node->GetName().c_str());
-    return false;
+    ge::AscendString op_type(node->GetOpDesc()->GetType().c_str());
+    if (!ge::CustomOpFactory::IsAddressRefreshable(op_type)) {
+      GELOGD("custom engine op[%s] not support zero copy", node->GetName().c_str());
+      return false;
+    }
   }
   if (ge::OpUtils::IsHcomNodeNotSupportAddrRefresh(node->GetOpDesc())) {
     GELOGD("hccl engine op[%s] not support zero copy", node->GetName().c_str());
@@ -73,8 +77,11 @@ bool CanReuseZeroCopyBlock(const ge::Node *const node) {
   }
   const auto op_engine = node->GetOpDesc()->GetOpKernelLibName();
   if (op_engine == ge::kCustomOpKernelLibName) {
-    GELOGD("custom engine op[%s] not support zero copy", node->GetName().c_str());
-    return false;
+    ge::AscendString op_type(node->GetOpDesc()->GetType().c_str());
+    if (!ge::CustomOpFactory::IsAddressRefreshable(op_type)) {
+      GELOGD("custom engine op[%s] not support zero copy", node->GetName().c_str());
+      return false;
+    }
   }
   if (op_engine == ge::kEngineNameDsa) {
     GELOGD("dsa engine op[%s] cannot reuse zero copy block", node->GetName().c_str());

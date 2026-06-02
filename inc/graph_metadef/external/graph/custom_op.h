@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -17,6 +17,7 @@
 #include "exe_graph/runtime/infer_datatype_context.h"
 #include "exe_graph/runtime/infer_shape_context.h"
 #include "exe_graph/runtime/op_compile_context.h"
+#include "exe_graph/runtime/update_args_context.h"
 
 namespace ge {
 /**
@@ -54,7 +55,7 @@ public:
  * 完成算子编译相关处理。
  */
 class CompilableOp : virtual public BaseCustomOp {
-  public:
+ public:
   ~CompilableOp() override = default;
   /**
    * 自定义算子及时编译函数
@@ -70,6 +71,7 @@ class CompilableOp : virtual public BaseCustomOp {
  */
 class EagerExecuteOp : virtual public BaseCustomOp {
  public:
+  ~EagerExecuteOp() override = default;
   /**
    * 自定义算子的执行函数
    * @param ctx 执行时上下文，可通过上下文获取input tensor，分配输出内存，分配workspace等
@@ -79,11 +81,26 @@ class EagerExecuteOp : virtual public BaseCustomOp {
 };
 
 /**
+ * 自定义算子的  Args 刷新能力接口。
+ * 继承此接口的算子会在 I/O 地址变化时被框架回调 UpdateHostArgs。
+ */
+class ArgsUpdater : virtual public BaseCustomOp {
+ public:
+  ~ArgsUpdater() override = default;
+  /**
+   * @param ctx UpdateArgsContext，可通过上下文获取更新后的 I/O 地址和 args buffer
+   * @return 状态码，GRAPH_FAILED 将终止后续刷新
+   */
+  virtual graphStatus UpdateHostArgs(gert::UpdateArgsContext *ctx) = 0;
+};
+
+/**
  * 自定义算子的 Shape 推理接口。
  * 适用于算子基于推理上下文执行形状和数据类型推导的场景。
  */
 class ShapeInferOp : virtual public BaseCustomOp {
  public:
+  ~ShapeInferOp() override = default;
   /**
    * 形状推理函数，用于推导算子输出的形状
    * @param ctx 形状推理上下文，可通过上下文获取输入张量形状，设置输出张量形状等

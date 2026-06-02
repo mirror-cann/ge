@@ -60,10 +60,23 @@ bool GetExpectedElfMachine(const std::string &target_cpu, uint16_t &expected_mac
   return false;
 }
 
+bool GetRealFilePath(const std::string &file_path, std::string &real_file_path) {
+  real_file_path = RealPath(file_path.c_str());
+  if (real_file_path.empty()) {
+    GELOGE(FAILED, "[CustomOp] File path[%s] is invalid.", file_path.c_str());
+    return false;
+  }
+  return true;
+}
+
 // 从 so 文件头读取 ELF 的 e_machine（CPU 架构标识），供后续架构匹配校验使用。
 // 返回语义：true+is_elf=true 表示已解析到 machine；true+is_elf=false 表示可读但非 ELF；false 表示读取或头校验失败。
 bool ReadElfMachine(const std::string &so_path, uint16_t &machine, bool &is_elf) {
-  std::ifstream file(so_path, std::ios::binary);
+  std::string real_so_path;
+  if (!GetRealFilePath(so_path, real_so_path)) {
+    return false;
+  }
+  std::ifstream file(real_so_path, std::ios::binary);
   if (!file.good()) {
     return false;
   }
@@ -84,7 +97,7 @@ bool ReadElfMachine(const std::string &so_path, uint16_t &machine, bool &is_elf)
     return false;
   }
 
-  std::array<char, 2> machine_bytes{};
+  std::array<char, sizeof(uint16_t)> machine_bytes{};
   file.seekg(kElfMachineOffset, std::ios::beg);
   if (!file.good()) {
     return false;
@@ -248,11 +261,16 @@ Status GeRootModel::CollectCustomOpSoFromCustomOppPath(const std::string &target
     std::vector<std::string> so_files;
     PluginManager::GetFileListWithSuffix(custom_opp_root + so_sub_dir, ".so", so_files);
     for (const auto &so_path : so_files) {
-      GE_ASSERT_TRUE(access(so_path.c_str(), R_OK) == 0, "custom op so[%s] is not readable.", so_path.c_str());
-      GE_ASSERT_SUCCESS(CheckSoArchMatchesTarget(so_path, target_cpu), "Custom op so arch check failed.");
-      const auto insert_ret = custom_op_so_set_.insert(so_path);
+      std::string real_so_path;
+      GE_ASSERT_TRUE(GetRealFilePath(so_path, real_so_path), "[CustomOp] Resolve custom op so[%s] realpath failed.",
+                     so_path.c_str());
+      GE_ASSERT_TRUE(access(real_so_path.c_str(), R_OK) == 0, "custom op so[%s] is not readable.",
+                     real_so_path.c_str());
+      GE_ASSERT_SUCCESS(CheckSoArchMatchesTarget(real_so_path, target_cpu), "Custom op so arch check failed.");
+      const auto insert_ret = custom_op_so_set_.insert(real_so_path);
       if (insert_ret.second) {
-        GELOGI("[CustomOp] Collect custom op so[%s] from custom opp path in cross-compile mode.", so_path.c_str());
+        GELOGI("[CustomOp] Collect custom op so[%s] from custom opp path in cross-compile mode.",
+               real_so_path.c_str());
       }
     }
   }
@@ -319,7 +337,8 @@ Status GeRootModel::CheckSoArchMatchesTarget(const std::string &so_path, const s
   return SUCCESS;
 }
 
-Status GeRootModel::ResolvePortableOpSoPath(const std::string &op_type, PortableOp *portable_op, std::string &so_path) {
+Status GeRootModel::ResolvePortableOpSoPath(const std::string &op_type, PortableOp *portable_op,
+                                            std::string &so_path) const {
   GE_ASSERT_NOTNULL(portable_op);
   std::string target_os;
   std::string target_cpu;
@@ -330,14 +349,19 @@ Status GeRootModel::ResolvePortableOpSoPath(const std::string &op_type, Portable
                  op_type.c_str());
   Dl_info dl_info;
   auto **vtable = reinterpret_cast<void ***>(portable_op);
+  std::string real_so_path;
   if ((vtable != nullptr) && (*vtable != nullptr) && ((*vtable)[0] != nullptr) &&
       (dladdr((*vtable)[0], &dl_info) != 0) && (dl_info.dli_fname != nullptr)) {
-    so_path = dl_info.dli_fname;
+    GE_ASSERT_TRUE(GetRealFilePath(dl_info.dli_fname, real_so_path),
+                   "[CustomOp] Resolve custom op so[%s] realpath failed.", dl_info.dli_fname);
   }
-  GE_ASSERT_TRUE(!so_path.empty(),
+  GE_ASSERT_TRUE(!real_so_path.empty(),
                  "[CustomOp] Resolve custom op so path by dladdr failed, op_type[%s].",
                  op_type.c_str());
-  GE_ASSERT_SUCCESS(CheckSoArchMatchesTarget(so_path, target_cpu), "Custom op so arch check failed.");
+  GE_ASSERT_TRUE(access(real_so_path.c_str(), R_OK) == 0, "custom op so[%s] is not readable.",
+                 real_so_path.c_str());
+  GE_ASSERT_SUCCESS(CheckSoArchMatchesTarget(real_so_path, target_cpu), "Custom op so arch check failed.");
+  so_path = real_so_path;
   return SUCCESS;
 }
 
@@ -375,7 +399,6 @@ Status GeRootModel::CheckAndSetCustomOpSo() {
     GE_ASSERT_SUCCESS(ResolvePortableOpSoPath(op_type, portable_op, so_path),
                       "Resolve custom op so path failed for op[%s].", op_type.c_str());
 
-    GE_ASSERT_TRUE(access(so_path.c_str(), R_OK) == 0, "custom op so[%s] is not readable.", so_path.c_str());
     (void)custom_op_so_set_.insert(so_path);
     GELOGI("[CustomOp] Collect custom op so[%s] for op[%s].", so_path.c_str(), op_type.c_str());
   }

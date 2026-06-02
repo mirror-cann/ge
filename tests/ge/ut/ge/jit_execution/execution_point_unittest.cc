@@ -81,22 +81,17 @@ TEST_F(ExecutionPointUT, load_guard_check_func) {
   // 根据guard生成代码
   EXPECT_EQ(codegen.GuardFuncCodegenAndCompile(compute_graph), ge::GRAPH_SUCCESS);
 
-  gert::Tensor tensor0 = {{{3, 2, 9}, {3, 2, 9}},                      // shape
-                          {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                          gert::kOnDeviceHbm,                          // placement
-                          ge::DT_FLOAT16,                              // data type
-                          (void *)0x0};
-  gert::Tensor tensor1 = {{{3, 2, 9}, {3, 2, 9}},                      // shape
-                          {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                          gert::kOnDeviceHbm,                          // placement
-                          ge::DT_FLOAT16,                              // data type
-                          (void *)0x0};
+  auto make_tensor = []() {
+    return gert::Tensor{{{3, 2, 9}, {3, 2, 9}}, {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},
+                        gert::kOnDeviceHbm, ge::DT_FLOAT16, (void *)0x0};
+  };
   std::vector<gert::Tensor> inputs;
-  inputs.emplace_back(std::move(tensor0));
-  inputs.emplace_back(std::move(tensor1));
+  inputs.push_back(make_tensor());
+  inputs.push_back(make_tensor());
   // char_t reason[1024];
   // 1 模拟断图结果
-  ep = new ExecutionPoint(1, compute_graph, compute_graph);
+  std::map<std::string, std::string> graph_options;
+  ep = new ExecutionPoint(1, compute_graph, compute_graph, graph_options);
 
   // 2 首次获取GuardedExecutionPoint新实例对象，该对象状态为未编译，设置编译结果
   auto gep = ep->FindOrCreateGuarded(inputs);
@@ -242,7 +237,8 @@ TEST_F(ExecutionPointUT, NoCheckFunc_Error) {
   inputs.emplace_back(std::move(tensor1));
   // char_t reason[1024];
   // 1 模拟断图结果
-  ep = new ExecutionPoint(1, compute_graph, compute_graph);
+  std::map<std::string, std::string> graph_options;
+  ep = new ExecutionPoint(1, compute_graph, compute_graph, graph_options);
 
   // 2 首次获取GuardedExecutionPoint新实例对象，该对象状态为未编译，设置编译结果
   auto gep = ep->FindOrCreateGuarded(inputs);
@@ -280,7 +276,8 @@ TEST_F(ExecutionPointUT, OneGraphMultiThread_Success) {
   inputs.emplace_back(std::move(tensor1));
 
   // 模拟断图结果
-  ep = new ExecutionPoint(1, compute_graph, compute_graph);
+  std::map<std::string, std::string> graph_options;
+  ep = new ExecutionPoint(1, compute_graph, compute_graph, graph_options);
 
   {
     const int num_threads = 10;

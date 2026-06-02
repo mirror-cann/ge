@@ -148,6 +148,9 @@ set(DISTINCT_GRAPH_LOAD_TEST_FILES
     "graph/load/model_args_layout_planner_unittest.cc"
     "graph/load/device_memory_ptr_unittest.cc"
     "graph/load/model_args_manager_unittest.cc"
+    "graph/load/args_io_addrs_updater_unittest.cc"
+    "graph/load/custom_task_info_unittest.cc"
+    "graph/load/sink_op_args_handler_unittest.cc"
 )
 
 file(GLOB_RECURSE MEM_LAYOUT_CONFLICT_OPTIMIZE_TEST_SRCS CONFIGURE_DEPENDS "graph/optimize/mem_layout_conflict/*.cc" )
@@ -1230,6 +1233,8 @@ target_link_libraries(ut_libge_distinct_load_utest
     symengine
     gert
     ge_compiler
+    register
+    opp_registry
     om2_executor
     -Wl,-z,muldefs
     -Wl,--whole-archive
@@ -1306,7 +1311,6 @@ file(GLOB_RECURSE JIT_EXECUTION_UTIL_SRC_FILES CONFIGURE_DEPENDS "graph/passes/g
 
 # libjit_execution_utest
 add_executable(ut_jit_execution
-        ${JIT_EXECUTION_SRC_FILES}
         ${JIT_EXECUTION_TEST_FILES}
         ${JIT_EXECUTION_UTIL_SRC_FILES}
         "${SYMBOL_SHAPE_INFER_FUNCS_SRCS}"
@@ -1346,6 +1350,7 @@ target_include_directories(ut_jit_execution PRIVATE
 target_link_options(ut_jit_execution PRIVATE
     -Wl,--disable-new-dtags
     -Wl,-rpath,${CMAKE_CURRENT_LIST_DIR}
+    $<$<BOOL:${ENABLE_GCOV}>:--coverage>
 )
 
 target_link_libraries(ut_jit_execution
@@ -1365,6 +1370,7 @@ target_link_libraries(ut_jit_execution
         rt2_registry_static
         es_ge_test
         -Wl,--no-whole-archive
+        jit_exe
         ge_ut_common
         ge_running_env ge_runtime_stub st_stubs GTest::gtest GTest::gtest_main GTest::gmock_main -lrt -ldl
         -Wl,--no-as-needed GTest::gmock -Wl,--as-needed

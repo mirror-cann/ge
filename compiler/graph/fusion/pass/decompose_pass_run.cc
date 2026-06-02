@@ -107,7 +107,10 @@ Status RunDecomposePass(GraphPtr &graph,
     GE_ASSERT_NOTNULL(boundary, "Failed to build boundary for node [%s][%s]", node->GetNamePtr(), node->GetTypePtr());
     auto replacement_graph = replacement(g_node);
     GE_ASSERT_NOTNULL(replacement_graph, "Got null replacement graph");
-    (void) FusionUtils::MarkPassNameOnReplacementNodes(replacement_graph, boundary, pass_name);
+    if (FusionUtils::MarkPassNameOnReplacementNodes(replacement_graph, boundary, pass_name) != SUCCESS) {
+      GELOGW("Failed to mark pass name[%s] on replacement of node[%s][%s], origin pass tracking may be incomplete.",
+             pass_name.c_str(), node->GetNamePtr(), node->GetTypePtr());
+    }
     GE_ASSERT_SUCCESS(SubgraphRewriter::Replace(*boundary, *replacement_graph),
                       "Failed to replace node [%s][%s] with replacement graph", node->GetNamePtr(),
                       node->GetTypePtr());

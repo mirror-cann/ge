@@ -43,7 +43,8 @@ Status UserGraphsManager::AddGraph(uint32_t user_graph_id, const Graph &graph,
   std::lock_guard<std::mutex> locker(user_graph_ctrl_mutex_);
   auto iter = ids_to_user_graph_ctrl_.find(user_graph_id);
   if (iter == ids_to_user_graph_ctrl_.end()) {
-    auto user_graph_ctrl = MakeUnique<UserGraphControl>(user_graph_id, compute_graph, compile_context_, graph_manager_);
+    auto user_graph_ctrl =
+        MakeUnique<UserGraphControl>(user_graph_id, compute_graph, compile_context_, graph_manager_, options);
     GE_ASSERT_NOTNULL(user_graph_ctrl);
     GE_ASSERT_SUCCESS(user_graph_ctrl->AddGraphInstance());
     ids_to_user_graph_ctrl_[user_graph_id] = std::move(user_graph_ctrl);

@@ -1,9 +1,9 @@
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
@@ -280,6 +280,8 @@ if("ge-executor" IN_LIST BUILD_COMPONENT)
     )
     install(FILES ${CMAKE_SOURCE_DIR}/inc/graph_metadef/external/exe_graph/runtime/eager_op_execution_context.h
             ${CMAKE_SOURCE_DIR}/inc/graph_metadef/external/exe_graph/runtime/op_compile_context.h
+            ${CMAKE_SOURCE_DIR}/inc/graph_metadef/external/exe_graph/runtime/update_args_context.h
+            ${CMAKE_SOURCE_DIR}/inc/graph_metadef/external/exe_graph/runtime/kernel_args.h
             DESTINATION ${ARCH_LINUX_PATH}/include/exe_graph/runtime COMPONENT ge-executor
     )
     set(EXTERNAL_GRAPH_FILES
@@ -294,7 +296,7 @@ if("ge-executor" IN_LIST BUILD_COMPONENT)
         ${CMAKE_SOURCE_DIR}/inc/graph_metadef/external/graph/operator.h
         ${CMAKE_SOURCE_DIR}/inc/graph_metadef/external/graph/operator_factory.h
         ${CMAKE_SOURCE_DIR}/inc/graph_metadef/external/graph/resource_context.h
-        ${CMAKE_SOURCE_DIR}/inc/graph_metadef/external/graph/kernel_launch_info.h 
+        ${CMAKE_SOURCE_DIR}/inc/graph_metadef/external/graph/kernel_launch_info.h
         ${CMAKE_SOURCE_DIR}/inc/graph_metadef/external/graph/arg_desc_info.h
         ${CMAKE_SOURCE_DIR}/inc/graph_metadef/external/graph/custom_op.h
     )

@@ -82,7 +82,7 @@ Status ModelHelper::SerializeCustomOpKernel(PortableOp *serializable_op, const s
 }
 
 Status ModelHelper::SaveCustomOpsPartition(std::shared_ptr<OmFileSaveHelper> &om_file_save_helper,
-                                               const GeRootModelPtr &ge_root_model) {
+                                               const GeRootModelPtr &ge_root_model) const {
   std::set<std::string> used_custom_op_types;
   GE_ASSERT_SUCCESS(CollectUsedCustomOpTypes(ge_root_model, used_custom_op_types));
 

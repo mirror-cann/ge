@@ -4,7 +4,7 @@
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
  * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
- * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
+ * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
@@ -649,6 +649,646 @@ TEST_F(CustomOpRefreshTest, custom_op_compile_context_construct_outputs_success)
 
   CustomGraphOptimizer optimizer;
   ASSERT_EQ(optimizer.OptimizeSubgraphPostProc(*graph), GRAPH_SUCCESS);
+}
+
+class TestArgsUpdaterCustomOp : public ArgsUpdater, public EagerExecuteOp {
+ public:
+  graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
+    auto input_tensor0 = ctx->GetInputTensor(0);
+    GE_ASSERT_NOTNULL(input_tensor0);
+    auto input_shape0 = input_tensor0->GetShape().GetStorageShape();
+    GE_ASSERT_TRUE(input_shape0.GetDimNum() == 3);
+    GE_ASSERT_TRUE(input_shape0.GetDim(0) == 2);
+    auto input_tensor1 = ctx->GetInputTensor(1);
+    GE_ASSERT_NOTNULL(input_tensor1);
+    auto input_shape1 = input_tensor1->GetShape().GetStorageShape();
+    GE_ASSERT_TRUE(input_shape1.GetDimNum() == 3);
+    GE_ASSERT_TRUE(input_shape1.GetDim(0) == 2);
+    auto input_tensor2 = ctx->GetInputTensor(2);
+    GE_ASSERT_NOTNULL(input_tensor2);
+    auto input_shape2 = input_tensor2->GetShape().GetStorageShape();
+    GE_ASSERT_TRUE(input_shape2.GetDimNum() == 3);
+    GE_ASSERT_TRUE(input_shape2.GetDim(0) == 2);
+
+    auto workspaces = ctx->MallocWorkSpace(1024);
+    GE_ASSERT_NOTNULL(workspaces);
+
+    auto output_tensor = ctx->MallocOutputTensor(0, gert::StorageShape({2, 2 ,2}, {2, 2, 2}),
+        gert::StorageFormat(FORMAT_ND, FORMAT_ND, ExpandDimsType()), DT_FLOAT);
+    GE_ASSERT_NOTNULL(output_tensor);
+    auto output_shape = output_tensor->GetShape().GetStorageShape();
+    GE_ASSERT_TRUE(output_shape.GetDimNum() == 3);
+    GE_ASSERT_TRUE(output_shape.GetDim(0) == 2);
+    output_addr = output_tensor->GetAddr();
+    GE_ASSERT_NOTNULL(output_addr);
+
+    rtSetTaskTag("custom_op");
+    void *input_0 = const_cast<void*>(ctx->GetInputTensor(0)->GetAddr());
+    void *input_1 = const_cast<void*>(ctx->GetInputTensor(1)->GetAddr());
+    void *input_2 = const_cast<void*>(ctx->GetInputTensor(2)->GetAddr());
+    void *output_0 = const_cast<void*>(ctx->GetOutputTensor(0)->GetAddr());
+    args_table[0] = static_cast<void*>(input_0);
+    args_table[1] = static_cast<void*>(input_1);
+    args_table[2] = static_cast<void*>(input_2);
+    args_table[3] = static_cast<void*>(output_0);
+
+    aclrtLaunchKernelWithHostArgs(nullptr, 0, nullptr, nullptr, &args_table[0], 32, nullptr, 0);
+    return SUCCESS;
+  }
+
+  graphStatus UpdateHostArgs(gert::UpdateArgsContext *ctx) override {
+    return GRAPH_SUCCESS;
+  }
+};
+
+/**
+ * 用例描述：fm地址段支持刷新，ArgsUpdater算子端到端执行，args table被刷新
+ *
+ * 预置条件：
+ * 1.构造计算图1，自定义ArgsUpdater算子直联Data和输出
+ *  data0  data1  data2
+ *     \    |      /
+ *     \    |     /
+ *       ArgsUpdaterOp
+ *          |
+ *          |
+ *       netoutput
+ *
+ * 测试步骤
+ * 1.构造单个计算图1，设置fm地址段且支持刷新
+ * 2.注册ArgsUpdater类型算子（继承ArgsUpdater+EagerExecuteOp）
+ * 3.编译后执行计算图1
+ * 4.判断argstable的一致性和正确性及args更新策略
+ * 预期结果
+ * 1.argstable的一致性和正确性均为成功
+ * 2.ArgsUpdater算子的args table通过预留段分配，走model args table的统一更新(H2D memcpy)
+ * 3.CheckNodesArgsUpdated验证custom_op的args被刷新
+ */
+TEST_F(CustomOpRefreshTest, args_updater_end_to_end_with_fm_refresh) {
+  MockForGenerateTask("DNN_VM_CUSTOM_OP_STORE", GenerateTaskForCustomOp);
+  MockForGenerateTask("RTSLib", GenerateTaskForMemCopyAync);
+  DUMP_GRAPH_WHEN("PreRunAfterBuild");
+
+  const char_t * const kEnvValue = "SET_CAPA_VALUE";
+  char_t npu_collect_path[MMPA_MAX_PATH] = {};
+  mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);
+  const std::string fail_collect_path = (std::string(&npu_collect_path[0U]) + "/mock_fail");
+  mmSetEnv(kEnvValue, fail_collect_path.c_str(), 1);
+
+  gert::GertRuntimeStub runtime_stub;
+  std::unique_ptr<ArgsChecker> args_checker;
+  args_table = new void*[4];
+
+  std::map<AscendString, AscendString> options;
+  options.emplace(ge::OPTION_CONST_LIFECYCLE, "graph");
+  options.emplace(ge::OPTION_FEATURE_BASE_REFRESHABLE, "1");
+  options.emplace(ge::OPTION_GRAPH_RUN_MODE, "1");
+  Session session(options);
+  auto compute_graph = ShareGraph::BuildOnlyCustomOpKnowShapeGraph();
+  auto custom_op_node = compute_graph->FindNode("custom_op");
+  custom_op_node->GetOpDesc()->SetType("ArgsUpdaterOp");
+  auto graph = GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph);
+
+  CustomOpFactory::RegisterCustomOpCreator("ArgsUpdaterOp", []()->std::unique_ptr<BaseCustomOp> {
+    return std::make_unique<TestArgsUpdaterCustomOp>();
+  });
+
+  const auto infer_shape_func = [](gert::InferShapeContext *context) -> graphStatus {
+    const auto input_shape = context->GetInputShape(0U);
+    auto output = context->GetOutputShape(0);
+    for (size_t dim = 0UL; dim < input_shape->GetDimNum(); dim++) {
+      output->AppendDim(input_shape->GetDim(dim));
+    }
+    output->SetDimNum(input_shape->GetDimNum());
+    return GRAPH_SUCCESS;
+  };
+  const auto infer_data_type_func = [](gert::InferDataTypeContext *context) -> graphStatus {
+    const auto date_type = context->GetInputDataType(0U);
+    EXPECT_EQ(context->SetOutputDataType(0, date_type), SUCCESS);
+    return GRAPH_SUCCESS;
+  };
+  const auto infer_shape_range_func = [](gert::InferShapeRangeContext *context) -> graphStatus {
+    auto input_shape_range = context->GetInputShapeRange(0U);
+    auto output_shape_range = context->GetOutputShapeRange(0U);
+    output_shape_range->SetMin(const_cast<gert::Shape *>(input_shape_range->GetMin()));
+    output_shape_range->SetMax(const_cast<gert::Shape *>(input_shape_range->GetMax()));
+    return GRAPH_SUCCESS;
+  };
+
+  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2(true);
+  auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
+  ASSERT_NE(space_registry, nullptr);
+  auto op_impl_func = space_registry->CreateOrGetOpImpl("ArgsUpdaterOp");
+
+  op_impl_func->infer_shape = infer_shape_func;
+  op_impl_func->infer_datatype = infer_data_type_func;
+  op_impl_func->infer_shape_range = infer_shape_range_func;
+  op_impl_func->output_shape_depend_compute = 1UL;
+
+  uint32_t graph_id = 1;
+  session.AddGraph(graph_id, graph);
+  auto ret = session.CompileGraph(graph_id);
+  EXPECT_EQ(ret, SUCCESS);
+
+  const CompiledGraphSummaryPtr summary = session.GetCompiledGraphSummary(graph_id);
+  EXPECT_NE(summary, nullptr);
+  size_t weight_size, feature_size;
+  EXPECT_EQ(SUCCESS, summary->GetConstMemorySize(weight_size));
+  EXPECT_EQ(SUCCESS, summary->GetFeatureMemorySize(feature_size));
+
+  std::vector<std::pair<uint32_t, uint32_t>> io_indexes;
+  EXPECT_EQ(summary->GetIOIndexesWithSameAddr(io_indexes), SUCCESS);
+  EXPECT_EQ(io_indexes.size(), 0U);
+
+  std::vector<uint8_t> weight_mem(weight_size, 0);
+  std::vector<uint8_t> feature_mem(feature_size, 0);
+  EXPECT_EQ(SUCCESS, session.SetGraphConstMemoryBase(graph_id, weight_mem.data(), weight_size));
+  EXPECT_EQ(SUCCESS, session.UpdateGraphFeatureMemoryBase(graph_id, feature_mem.data(), feature_size));
+
+  std::vector<ge::Tensor> inputs;
+  std::vector<ge::Tensor> outputs;
+  ConstructCustomInputOutputTensor(3, 1, inputs, outputs);
+  ge::diagnoseSwitch::DisableDumper();
+  runtime_stub.Clear();
+  EXPECT_EQ(SUCCESS, session.RunGraphWithStreamAsync(graph_id, nullptr, inputs, outputs));
+
+  CHECK_GRAPH(PreRunAfterBuild) {
+    args_checker = std::make_unique<ArgsChecker>(graph, graph_id, session.GetSessionId(), runtime_stub);
+  };
+
+  EXPECT_EQ(SUCCESS, args_checker->SetFmAddr((uint64_t)feature_mem.data(), feature_size));
+  EXPECT_EQ(SUCCESS, args_checker->SetModelInputAddr({0, 1, 2}, inputs));
+  EXPECT_EQ(SUCCESS, args_checker->SetModelOutputAddr({0}, outputs));
+  EXPECT_EQ(SUCCESS, args_checker->TaskIoAddressesAreCorrect());
+
+  EXPECT_TRUE(CustomOpFactory::IsAddressRefreshable(AscendString("ArgsUpdaterOp")));
+
+  delete [] args_table;
+  runtime_stub.Clear();
+  mmSetEnv(kEnvValue, "", 1);
+  ReInitGe();
+}
+
+class TestArgsUpdaterWithMallocCustomOp : public ArgsUpdater, public EagerExecuteOp {
+ public:
+  static int update_host_args_count_;
+
+  graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
+    auto input_tensor0 = ctx->GetInputTensor(0);
+    GE_ASSERT_NOTNULL(input_tensor0);
+    auto input_tensor1 = ctx->GetInputTensor(1);
+    GE_ASSERT_NOTNULL(input_tensor1);
+    auto input_tensor2 = ctx->GetInputTensor(2);
+    GE_ASSERT_NOTNULL(input_tensor2);
+
+    auto output_tensor = ctx->MallocOutputTensor(0, gert::StorageShape({2, 2, 2}, {2, 2, 2}),
+        gert::StorageFormat(FORMAT_ND, FORMAT_ND, ExpandDimsType()), DT_FLOAT);
+    GE_ASSERT_NOTNULL(output_tensor);
+
+    void *input_0 = const_cast<void*>(input_tensor0->GetAddr());
+    void *input_1 = const_cast<void*>(input_tensor1->GetAddr());
+    void *input_2 = const_cast<void*>(input_tensor2->GetAddr());
+    void *output_0 = const_cast<void*>(ctx->GetOutputTensor(0)->GetAddr());
+
+    uint64_t host_args[4] = {
+      reinterpret_cast<uint64_t>(input_0),
+      reinterpret_cast<uint64_t>(input_1),
+      reinterpret_cast<uint64_t>(input_2),
+      reinterpret_cast<uint64_t>(output_0)
+    };
+
+    auto *dev_args = ctx->MallocReadOnlyDevArgs(host_args, sizeof(host_args));
+    GE_ASSERT_NOTNULL(dev_args);
+
+    rtSetTaskTag("custom_op");
+    args_table[0] = input_0;
+    args_table[1] = input_1;
+    args_table[2] = input_2;
+    args_table[3] = output_0;
+    aclrtLaunchKernelWithHostArgs(nullptr, 0, nullptr, nullptr, &args_table[0], 32, nullptr, 0);
+    return SUCCESS;
+  }
+
+  graphStatus UpdateHostArgs(gert::UpdateArgsContext *ctx) override {
+    update_host_args_count_++;
+
+    auto *input_tensor = ctx->GetInputTensor(0);
+    auto *output_tensor = ctx->GetOutputTensor(0);
+    auto *host_args = ctx->GetKernelArgs(gert::Placement::kPlacementHost, 0);
+
+    if (host_args != nullptr && host_args->args_size >= sizeof(uint64_t) * 4 &&
+        input_tensor != nullptr && output_tensor != nullptr) {
+      auto *args = static_cast<uint64_t*>(host_args->args_data);
+      args[0] = reinterpret_cast<uint64_t>(input_tensor->GetData<void>());
+      args[3] = reinterpret_cast<uint64_t>(output_tensor->GetData<void>());
+    }
+
+    return GRAPH_SUCCESS;
+  }
+};
+int TestArgsUpdaterWithMallocCustomOp::update_host_args_count_ = 0;
+
+class TestArgsUpdaterMultiAllocCustomOp : public ArgsUpdater, public EagerExecuteOp {
+ public:
+  static int update_host_args_count_;
+
+  graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
+    auto output_tensor = ctx->MallocOutputTensor(0, gert::StorageShape({2, 2, 2}, {2, 2, 2}),
+        gert::StorageFormat(FORMAT_ND, FORMAT_ND, ExpandDimsType()), DT_FLOAT);
+    GE_ASSERT_NOTNULL(output_tensor);
+
+    for (int i = 0; i < 5; i++) {
+      uint64_t host_args[8] = {static_cast<uint64_t>(i), 0, 0, 0, 0, 0, 0, 0};
+      auto *dev_args = ctx->MallocReadOnlyDevArgs(host_args, sizeof(host_args));
+      GE_ASSERT_NOTNULL(dev_args);
+    }
+
+    rtSetTaskTag("custom_op");
+    void *input_0 = const_cast<void*>(ctx->GetInputTensor(0)->GetAddr());
+    void *input_1 = const_cast<void*>(ctx->GetInputTensor(1)->GetAddr());
+    void *input_2 = const_cast<void*>(ctx->GetInputTensor(2)->GetAddr());
+    void *output_0 = const_cast<void*>(ctx->GetOutputTensor(0)->GetAddr());
+    args_table[0] = input_0;
+    args_table[1] = input_1;
+    args_table[2] = input_2;
+    args_table[3] = output_0;
+    aclrtLaunchKernelWithHostArgs(nullptr, 0, nullptr, nullptr, &args_table[0], 32, nullptr, 0);
+    return SUCCESS;
+  }
+
+  graphStatus UpdateHostArgs(gert::UpdateArgsContext *ctx) override {
+    update_host_args_count_++;
+    auto *host_args = ctx->GetKernelArgs(gert::Placement::kPlacementHost, 0);
+    (void)host_args;
+    return GRAPH_SUCCESS;
+  }
+};
+int TestArgsUpdaterMultiAllocCustomOp::update_host_args_count_ = 0;
+
+class TestEagerOnlyWithMallocCustomOp : public EagerExecuteOp {
+ public:
+  graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
+    auto output_tensor = ctx->MallocOutputTensor(0, gert::StorageShape({2, 2, 2}, {2, 2, 2}),
+        gert::StorageFormat(FORMAT_ND, FORMAT_ND, ExpandDimsType()), DT_FLOAT);
+    GE_ASSERT_NOTNULL(output_tensor);
+
+    uint64_t host_args[4] = {0xAAAA, 0xBBBB, 0xCCCC, 0xDDDD};
+    auto *dev_args = ctx->MallocReadOnlyDevArgs(host_args, sizeof(host_args));
+    GE_ASSERT_NOTNULL(dev_args);
+
+    rtSetTaskTag("custom_op");
+    void *input_0 = const_cast<void*>(ctx->GetInputTensor(0)->GetAddr());
+    void *input_1 = const_cast<void*>(ctx->GetInputTensor(1)->GetAddr());
+    void *input_2 = const_cast<void*>(ctx->GetInputTensor(2)->GetAddr());
+    void *output_0 = const_cast<void*>(ctx->GetOutputTensor(0)->GetAddr());
+    args_table[0] = input_0;
+    args_table[1] = input_1;
+    args_table[2] = input_2;
+    args_table[3] = output_0;
+    aclrtLaunchKernelWithHostArgs(nullptr, 0, nullptr, nullptr, &args_table[0], 32, nullptr, 0);
+    return SUCCESS;
+  }
+};
+
+/**
+ * 用例描述：ArgsUpdater算子完整生命周期：MallocReadOnlyDevArgs分配kernel args + 两轮执行触发UpdateHostArgs
+ *
+ * 预置条件：
+ * 1. 构造计算图，ArgsUpdater算子直联Data和输出，FM支持刷新
+ *  data0  data1  data2
+ *     \    |      /
+ *     \    |     /
+ *    ArgsUpdaterLifecycleOp
+ *          |
+ *       netoutput
+ *
+ * 测试步骤：
+ * 1. 注册ArgsUpdater算子，Execute中调用MallocReadOnlyDevArgs分配kernel args
+ * 2. 编译并第一轮执行（触发Distribute + IntegrateCustomOpArgs + 预留段分配）
+ * 3. 使用不同输入地址进行第二轮执行（触发UpdateForExecute + UpdateHostArgs回调）
+ * 预期结果：
+ * 1. 两轮执行均成功
+ * 2. 第二轮执行触发UpdateHostArgs回调（计数 > 0）
+ * 3. ArgsUpdater算子走预留段分配路径，args通过统一H2D刷新
+ */
+TEST_F(CustomOpRefreshTest, args_updater_lifecycle_with_malloc_and_two_rounds) {
+  MockForGenerateTask("DNN_VM_CUSTOM_OP_STORE", GenerateTaskForCustomOp);
+  MockForGenerateTask("RTSLib", GenerateTaskForMemCopyAync);
+  DUMP_GRAPH_WHEN("PreRunAfterBuild");
+
+  const char_t * const kEnvValue = "SET_CAPA_VALUE";
+  char_t npu_collect_path[MMPA_MAX_PATH] = {};
+  mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);
+  const std::string fail_collect_path = (std::string(&npu_collect_path[0U]) + "/mock_fail");
+  mmSetEnv(kEnvValue, fail_collect_path.c_str(), 1);
+
+  gert::GertRuntimeStub runtime_stub;
+  args_table = new void*[4];
+  TestArgsUpdaterWithMallocCustomOp::update_host_args_count_ = 0;
+
+  std::map<AscendString, AscendString> options;
+  options.emplace(ge::OPTION_CONST_LIFECYCLE, "graph");
+  options.emplace(ge::OPTION_FEATURE_BASE_REFRESHABLE, "1");
+  options.emplace(ge::OPTION_GRAPH_RUN_MODE, "1");
+  Session session(options);
+  auto compute_graph = ShareGraph::BuildOnlyCustomOpKnowShapeGraph();
+  auto custom_op_node = compute_graph->FindNode("custom_op");
+  custom_op_node->GetOpDesc()->SetType("ArgsUpdaterLifecycleOp");
+  auto graph = GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph);
+
+  CustomOpFactory::RegisterCustomOpCreator("ArgsUpdaterLifecycleOp", []()->std::unique_ptr<BaseCustomOp> {
+    return std::make_unique<TestArgsUpdaterWithMallocCustomOp>();
+  });
+
+  const auto infer_shape_func = [](gert::InferShapeContext *context) -> graphStatus {
+    const auto input_shape = context->GetInputShape(0U);
+    auto output = context->GetOutputShape(0);
+    for (size_t dim = 0UL; dim < input_shape->GetDimNum(); dim++) {
+      output->AppendDim(input_shape->GetDim(dim));
+    }
+    output->SetDimNum(input_shape->GetDimNum());
+    return GRAPH_SUCCESS;
+  };
+  const auto infer_data_type_func = [](gert::InferDataTypeContext *context) -> graphStatus {
+    const auto date_type = context->GetInputDataType(0U);
+    EXPECT_EQ(context->SetOutputDataType(0, date_type), SUCCESS);
+    return GRAPH_SUCCESS;
+  };
+  const auto infer_shape_range_func = [](gert::InferShapeRangeContext *context) -> graphStatus {
+    auto input_shape_range = context->GetInputShapeRange(0U);
+    auto output_shape_range = context->GetOutputShapeRange(0U);
+    output_shape_range->SetMin(const_cast<gert::Shape *>(input_shape_range->GetMin()));
+    output_shape_range->SetMax(const_cast<gert::Shape *>(input_shape_range->GetMax()));
+    return GRAPH_SUCCESS;
+  };
+
+  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2(true);
+  auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
+  ASSERT_NE(space_registry, nullptr);
+  auto op_impl_func = space_registry->CreateOrGetOpImpl("ArgsUpdaterLifecycleOp");
+  op_impl_func->infer_shape = infer_shape_func;
+  op_impl_func->infer_datatype = infer_data_type_func;
+  op_impl_func->infer_shape_range = infer_shape_range_func;
+  op_impl_func->output_shape_depend_compute = 1UL;
+
+  uint32_t graph_id = 1;
+  session.AddGraph(graph_id, graph);
+  EXPECT_EQ(session.CompileGraph(graph_id), SUCCESS);
+
+  const CompiledGraphSummaryPtr summary = session.GetCompiledGraphSummary(graph_id);
+  EXPECT_NE(summary, nullptr);
+  size_t weight_size, feature_size;
+  EXPECT_EQ(SUCCESS, summary->GetConstMemorySize(weight_size));
+  EXPECT_EQ(SUCCESS, summary->GetFeatureMemorySize(feature_size));
+
+  std::vector<uint8_t> weight_mem(weight_size, 0);
+  std::vector<uint8_t> feature_mem(feature_size, 0);
+  EXPECT_EQ(SUCCESS, session.SetGraphConstMemoryBase(graph_id, weight_mem.data(), weight_size));
+  EXPECT_EQ(SUCCESS, session.UpdateGraphFeatureMemoryBase(graph_id, feature_mem.data(), feature_size));
+
+  std::vector<ge::Tensor> inputs1;
+  std::vector<ge::Tensor> outputs1;
+  ConstructCustomInputOutputTensor(3, 1, inputs1, outputs1);
+  ge::diagnoseSwitch::DisableDumper();
+  runtime_stub.Clear();
+  EXPECT_EQ(SUCCESS, session.RunGraphWithStreamAsync(graph_id, nullptr, inputs1, outputs1));
+
+  std::vector<ge::Tensor> inputs2;
+  std::vector<ge::Tensor> outputs2;
+  ConstructCustomInputOutputTensor(3, 1, inputs2, outputs2);
+  runtime_stub.Clear();
+  EXPECT_EQ(SUCCESS, session.RunGraphWithStreamAsync(graph_id, nullptr, inputs2, outputs2));
+
+  EXPECT_GT(TestArgsUpdaterWithMallocCustomOp::update_host_args_count_, 0);
+
+  delete [] args_table;
+  runtime_stub.Clear();
+  mmSetEnv(kEnvValue, "", 1);
+  ReInitGe();
+}
+
+/**
+ * 用例描述：ArgsUpdater算子多次MallocReadOnlyDevArgs，预留段耗尽后回退到Extra Pool
+ *
+ * 预置条件：
+ * 1. 构造计算图，ArgsUpdater算子直联Data和输出，FM支持刷新
+ * 2. 预留段大小 = (3 input + 1 output + 16 reserved) * 8 = 160 bytes
+ * 3. 算子Execute中调用5次MallocReadOnlyDevArgs，每次64 bytes (总计320 > 160)
+ *    调用1-3: 预留段分配 (192 > 160, 第3次溢出)
+ *    调用3: 回退到新建Extra Pool (Tier3)
+ *    调用4-5: 从已有Extra Pool分配 (Tier2)
+ *
+ * 测试步骤：
+ * 1. 注册ArgsUpdater算子，Execute中5次调用MallocReadOnlyDevArgs
+ * 2. 编译并执行（覆盖AllocateFromReservedSegment/AllocateFromNewPool/AllocateFromExistingPool）
+ * 3. 第二轮执行（覆盖IntegrateExtraH2DCopyDatas/IntegrateExtraUpdateDatas的UpdateForExecute路径）
+ * 预期结果：
+ * 1. 两轮执行均成功
+ * 2. 三级分配策略全部覆盖：reserved segment → new pool → existing pool
+ * 3. Extra pool的H2D刷新和UpdateHostArgs回调正常工作
+ */
+TEST_F(CustomOpRefreshTest, args_updater_reserved_exhausted_fallback_to_extra_pool) {
+  MockForGenerateTask("DNN_VM_CUSTOM_OP_STORE", GenerateTaskForCustomOp);
+  MockForGenerateTask("RTSLib", GenerateTaskForMemCopyAync);
+  DUMP_GRAPH_WHEN("PreRunAfterBuild");
+
+  const char_t * const kEnvValue = "SET_CAPA_VALUE";
+  char_t npu_collect_path[MMPA_MAX_PATH] = {};
+  mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);
+  const std::string fail_collect_path = (std::string(&npu_collect_path[0U]) + "/mock_fail");
+  mmSetEnv(kEnvValue, fail_collect_path.c_str(), 1);
+
+  gert::GertRuntimeStub runtime_stub;
+  args_table = new void*[4];
+  TestArgsUpdaterMultiAllocCustomOp::update_host_args_count_ = 0;
+
+  std::map<AscendString, AscendString> options;
+  options.emplace(ge::OPTION_CONST_LIFECYCLE, "graph");
+  options.emplace(ge::OPTION_FEATURE_BASE_REFRESHABLE, "1");
+  options.emplace(ge::OPTION_GRAPH_RUN_MODE, "1");
+  Session session(options);
+  auto compute_graph = ShareGraph::BuildOnlyCustomOpKnowShapeGraph();
+  auto custom_op_node = compute_graph->FindNode("custom_op");
+  custom_op_node->GetOpDesc()->SetType("MultiAllocOp");
+  auto graph = GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph);
+
+  CustomOpFactory::RegisterCustomOpCreator("MultiAllocOp", []()->std::unique_ptr<BaseCustomOp> {
+    return std::make_unique<TestArgsUpdaterMultiAllocCustomOp>();
+  });
+
+  const auto infer_shape_func = [](gert::InferShapeContext *context) -> graphStatus {
+    const auto input_shape = context->GetInputShape(0U);
+    auto output = context->GetOutputShape(0);
+    for (size_t dim = 0UL; dim < input_shape->GetDimNum(); dim++) {
+      output->AppendDim(input_shape->GetDim(dim));
+    }
+    output->SetDimNum(input_shape->GetDimNum());
+    return GRAPH_SUCCESS;
+  };
+  const auto infer_data_type_func = [](gert::InferDataTypeContext *context) -> graphStatus {
+    const auto date_type = context->GetInputDataType(0U);
+    EXPECT_EQ(context->SetOutputDataType(0, date_type), SUCCESS);
+    return GRAPH_SUCCESS;
+  };
+  const auto infer_shape_range_func = [](gert::InferShapeRangeContext *context) -> graphStatus {
+    auto input_shape_range = context->GetInputShapeRange(0U);
+    auto output_shape_range = context->GetOutputShapeRange(0U);
+    output_shape_range->SetMin(const_cast<gert::Shape *>(input_shape_range->GetMin()));
+    output_shape_range->SetMax(const_cast<gert::Shape *>(input_shape_range->GetMax()));
+    return GRAPH_SUCCESS;
+  };
+
+  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2(true);
+  auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
+  ASSERT_NE(space_registry, nullptr);
+  auto op_impl_func = space_registry->CreateOrGetOpImpl("MultiAllocOp");
+  op_impl_func->infer_shape = infer_shape_func;
+  op_impl_func->infer_datatype = infer_data_type_func;
+  op_impl_func->infer_shape_range = infer_shape_range_func;
+  op_impl_func->output_shape_depend_compute = 1UL;
+
+  uint32_t graph_id = 1;
+  session.AddGraph(graph_id, graph);
+  EXPECT_EQ(session.CompileGraph(graph_id), SUCCESS);
+
+  const CompiledGraphSummaryPtr summary = session.GetCompiledGraphSummary(graph_id);
+  EXPECT_NE(summary, nullptr);
+  size_t weight_size, feature_size;
+  EXPECT_EQ(SUCCESS, summary->GetConstMemorySize(weight_size));
+  EXPECT_EQ(SUCCESS, summary->GetFeatureMemorySize(feature_size));
+
+  std::vector<uint8_t> weight_mem(weight_size, 0);
+  std::vector<uint8_t> feature_mem(feature_size, 0);
+  EXPECT_EQ(SUCCESS, session.SetGraphConstMemoryBase(graph_id, weight_mem.data(), weight_size));
+  EXPECT_EQ(SUCCESS, session.UpdateGraphFeatureMemoryBase(graph_id, feature_mem.data(), feature_size));
+
+  std::vector<ge::Tensor> inputs1;
+  std::vector<ge::Tensor> outputs1;
+  ConstructCustomInputOutputTensor(3, 1, inputs1, outputs1);
+  ge::diagnoseSwitch::DisableDumper();
+  runtime_stub.Clear();
+  EXPECT_EQ(SUCCESS, session.RunGraphWithStreamAsync(graph_id, nullptr, inputs1, outputs1));
+
+  std::vector<ge::Tensor> inputs2;
+  std::vector<ge::Tensor> outputs2;
+  ConstructCustomInputOutputTensor(3, 1, inputs2, outputs2);
+  runtime_stub.Clear();
+  EXPECT_EQ(SUCCESS, session.RunGraphWithStreamAsync(graph_id, nullptr, inputs2, outputs2));
+
+  EXPECT_GT(TestArgsUpdaterMultiAllocCustomOp::update_host_args_count_, 0);
+
+  delete [] args_table;
+  runtime_stub.Clear();
+  mmSetEnv(kEnvValue, "", 1);
+  ReInitGe();
+}
+
+/**
+ * 用例描述：EagerOnly算子（非ArgsUpdater）调用MallocReadOnlyDevArgs，走动态内存分配路径
+ *
+ * 预置条件：
+ * 1. 构造计算图，EagerOnly算子直联Data和输出，FM不支持刷新
+ *  data0  data1  data2
+ *     \    |      /
+ *     \    |     /
+ *    EagerOnlyMallocOp
+ *          |
+ *       netoutput
+ *
+ * 测试步骤：
+ * 1. 注册仅继承EagerExecuteOp的算子（不继承ArgsUpdater），Execute中调用MallocReadOnlyDevArgs
+ * 2. 编译并执行
+ * 预期结果：
+ * 1. 执行成功
+ * 2. MallocReadOnlyDevArgs走MallocDynamicMemory + H2D拷贝路径（非预留段）
+ * 3. 算子不参与统一地址刷新（NeedReserveArgsTable=false）
+ */
+TEST_F(CustomOpRefreshTest, eager_only_op_with_malloc_read_only_dev_args) {
+  MockForGenerateTask("DNN_VM_CUSTOM_OP_STORE", GenerateTaskForCustomOp);
+  MockForGenerateTask("RTSLib", GenerateTaskForMemCopyAync);
+  DUMP_GRAPH_WHEN("PreRunAfterBuild");
+
+  const char_t * const kEnvValue = "SET_CAPA_VALUE";
+  char_t npu_collect_path[MMPA_MAX_PATH] = {};
+  mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);
+  const std::string fail_collect_path = (std::string(&npu_collect_path[0U]) + "/mock_fail");
+  mmSetEnv(kEnvValue, fail_collect_path.c_str(), 1);
+
+  gert::GertRuntimeStub runtime_stub;
+  args_table = new void*[4];
+
+  std::map<AscendString, AscendString> options;
+  options.emplace(ge::OPTION_CONST_LIFECYCLE, "graph");
+  options.emplace(ge::OPTION_GRAPH_RUN_MODE, "1");
+  Session session(options);
+  auto compute_graph = ShareGraph::BuildOnlyCustomOpKnowShapeGraph();
+  auto custom_op_node = compute_graph->FindNode("custom_op");
+  custom_op_node->GetOpDesc()->SetType("EagerOnlyMallocOp");
+  auto graph = GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph);
+
+  CustomOpFactory::RegisterCustomOpCreator("EagerOnlyMallocOp", []()->std::unique_ptr<BaseCustomOp> {
+    return std::make_unique<TestEagerOnlyWithMallocCustomOp>();
+  });
+
+  const auto infer_shape_func = [](gert::InferShapeContext *context) -> graphStatus {
+    const auto input_shape = context->GetInputShape(0U);
+    auto output = context->GetOutputShape(0);
+    for (size_t dim = 0UL; dim < input_shape->GetDimNum(); dim++) {
+      output->AppendDim(input_shape->GetDim(dim));
+    }
+    output->SetDimNum(input_shape->GetDimNum());
+    return GRAPH_SUCCESS;
+  };
+  const auto infer_data_type_func = [](gert::InferDataTypeContext *context) -> graphStatus {
+    const auto date_type = context->GetInputDataType(0U);
+    EXPECT_EQ(context->SetOutputDataType(0, date_type), SUCCESS);
+    return GRAPH_SUCCESS;
+  };
+  const auto infer_shape_range_func = [](gert::InferShapeRangeContext *context) -> graphStatus {
+    auto input_shape_range = context->GetInputShapeRange(0U);
+    auto output_shape_range = context->GetOutputShapeRange(0U);
+    output_shape_range->SetMin(const_cast<gert::Shape *>(input_shape_range->GetMin()));
+    output_shape_range->SetMax(const_cast<gert::Shape *>(input_shape_range->GetMax()));
+    return GRAPH_SUCCESS;
+  };
+
+  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2(true);
+  auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
+  ASSERT_NE(space_registry, nullptr);
+  auto op_impl_func = space_registry->CreateOrGetOpImpl("EagerOnlyMallocOp");
+  op_impl_func->infer_shape = infer_shape_func;
+  op_impl_func->infer_datatype = infer_data_type_func;
+  op_impl_func->infer_shape_range = infer_shape_range_func;
+  op_impl_func->output_shape_depend_compute = 1UL;
+
+  uint32_t graph_id = 1;
+  session.AddGraph(graph_id, graph);
+  EXPECT_EQ(session.CompileGraph(graph_id), SUCCESS);
+
+  const CompiledGraphSummaryPtr summary = session.GetCompiledGraphSummary(graph_id);
+  EXPECT_NE(summary, nullptr);
+  size_t weight_size, feature_size;
+  EXPECT_EQ(SUCCESS, summary->GetConstMemorySize(weight_size));
+  EXPECT_EQ(SUCCESS, summary->GetFeatureMemorySize(feature_size));
+
+  std::vector<uint8_t> weight_mem(weight_size, 0);
+  std::vector<uint8_t> feature_mem(feature_size, 0);
+  EXPECT_EQ(SUCCESS, session.SetGraphConstMemoryBase(graph_id, weight_mem.data(), weight_size));
+  EXPECT_EQ(SUCCESS, session.UpdateGraphFeatureMemoryBase(graph_id, feature_mem.data(), feature_size));
+
+  std::vector<ge::Tensor> inputs;
+  std::vector<ge::Tensor> outputs;
+  ConstructCustomInputOutputTensor(3, 1, inputs, outputs);
+  ge::diagnoseSwitch::DisableDumper();
+  runtime_stub.Clear();
+  EXPECT_EQ(SUCCESS, session.RunGraphWithStreamAsync(graph_id, nullptr, inputs, outputs));
+
+  EXPECT_FALSE(CustomOpFactory::IsAddressRefreshable(AscendString("EagerOnlyMallocOp")));
+
+  delete [] args_table;
+  runtime_stub.Clear();
+  mmSetEnv(kEnvValue, "", 1);
+  ReInitGe();
 }
 
 }

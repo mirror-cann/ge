@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -330,7 +330,7 @@ struct TaskArgsRefreshInfo {
   std::stringstream ss;
   ss << "id:" << id << ", offset:0x" << &(std::hex) << offset << ", io_index:" << io_index <<
     ", args_offset:0x" << &(std::hex) << args_offset << ", placement:" << GetArgsPlacementStr(placement) <<
-    ", args_format_policy:" << static_cast<int32_t>(args_format_policy) ;
+    ", args_format_policy:" << static_cast<int32_t>(args_format_policy);
   return ss.str();
   }
 };
@@ -366,6 +366,26 @@ struct IowPaRemapInfo {
 using PisToArgs = std::array<ArgAddrAndLen, static_cast<size_t>(ArgsPlacement::kEnd)>;
 using PisToPersistentWorkspace = std::array<ArgAddrAndLen, static_cast<size_t>(ArgsPlacement::kEnd)>;
 
+struct ArgsAllocationResult {
+  void *host_addr;
+  uint64_t device_addr;
+  size_t size;
+  ArgsPlacement placement;
+  bool is_from_reserved;
+  uint32_t extra_pool_index;
+
+  std::string ToString() const {
+    std::ostringstream oss;
+    oss << "host_addr=0x" << std::hex << reinterpret_cast<uintptr_t>(host_addr)
+        << ", device_addr=0x" << device_addr
+        << ", size=" << std::dec << size
+        << ", placement=" << GetArgsPlacementStr(placement)
+        << ", is_from_reserved=" << (is_from_reserved ? "true" : "false")
+        << ", extra_pool_index=" << extra_pool_index;
+    return oss.str();
+  }
+};
+
 class TaskInfo {
  public:
   TaskInfo() {}
@@ -400,6 +420,19 @@ class TaskInfo {
     }
     auto &arg = host_args.at(0);
     return UpdateHostArgs(active_mem_base_addr, arg.addr, static_cast<size_t>(arg.len));
+  }
+
+  virtual const std::vector<ArgsAllocationResult>& GetArgsAllocationResults() const {
+    static const std::vector<ArgsAllocationResult> empty_results;
+    return empty_results;
+  }
+
+  virtual bool NeedReserveArgsTable() const { return false; }
+
+  virtual Status UpdateHostArgs(void* base_addr, size_t mem_size) {
+    (void)base_addr;
+    (void)mem_size;
+    return SUCCESS;
   }
 
   virtual Status UpdateDumpInfos(void *const host_args, const size_t host_args_max_len) {

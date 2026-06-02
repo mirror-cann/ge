@@ -15,11 +15,13 @@
 #include "graph/compute_graph.h"
 #include "execution_point.h"
 #include "exe_graph/runtime/tensor.h"
+#include "api/session/jit_execution/utils/partitioner/binary_partitioner.h"
 
 namespace ge {
 struct UserGraph {
   uint32_t user_graph_id;
   ComputeGraphPtr compute_graph;
+  std::map<std::string, std::string> graph_options;
 };
 /**
  * 该类用于确定一张UserGraph中的切图结果
@@ -28,7 +30,7 @@ struct UserGraph {
 class ExecutionOrder {
  public:
   ExecutionOrder() = delete;
-  explicit ExecutionOrder(const UserGraph &user_graph) : user_graph_(user_graph), is_unknown_input_shape_(false) {}
+  explicit ExecutionOrder(const UserGraph &user_graph);
 
   // Retrieves the first slice graph to execute.
   // Returns nullptr when failed.
@@ -49,6 +51,8 @@ class ExecutionOrder {
   Status AddNewSlice(const ComputeGraphPtr &graph, const std::vector<GeTensor> &inputs, ExecutionPoint *&new_ep);
   Status ConstructInputTensors(const ComputeGraphPtr &compute_graph);
   Status NormalizeOutputs(const ComputeGraphPtr &compute_graph) const;
+  void SeperateGraphOptions(const std::map<std::string, std::string> &user_graph_options);
+  const std::map<std::string, std::string> &SelectEpOption(const PartionResult &partition_ret) const;
   UserGraph user_graph_;
   // 临时实现
   // 若不同输入shape产生不同的切图结果，需要切换为树实现
@@ -57,6 +61,10 @@ class ExecutionOrder {
   // todo add io relation between slicing graph later
   std::vector<gert::Tensor> graph_inputs_;
   bool is_unknown_input_shape_;
+
+  std::map<std::string, std::string> first_ep_options_;
+  std::map<std::string, std::string> middle_ep_options_;
+  std::map<std::string, std::string> last_ep_options_;
   friend class ExecutionOrderUtil;
 };
 }  // namespace ge

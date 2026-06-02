@@ -1522,6 +1522,13 @@ TEST_F(UtestModelHelper, CheckAndSetNeedSoInOMSameArchShouldKeepExistingBehavior
   EXPECT_FALSE(ge_root_model->GetCustomOpSoSet().empty());
 }
 
+TEST_F(UtestModelHelper, CheckSoArchMatchesTargetNotExistSoShouldFail) {
+  GeRootModel ge_root_model;
+  std::string test_dir = __FILE__;
+  test_dir = test_dir.substr(0, test_dir.rfind("/") + 1);
+  EXPECT_NE(ge_root_model.CheckSoArchMatchesTarget(test_dir + "not_exist_custom_op_ut.so", "x86_64"), SUCCESS);
+}
+
 TEST_F(UtestModelHelper, CollectCustomOpSoFromCustomOppPathShouldCollectAllSoWithoutNameFilter) {
   ScopedHostEnvForModelHelperUt host_env_guard("linux", "aarch64");
   ScopedEnvVarForModelHelperUt custom_opp_guard(kEnvNameCustom);

@@ -52,8 +52,6 @@ Status MergeFinalStatus(Status final_status, Status cur_pass_status) {
 Status FusionPassExecutor::RunPasses(const ComputeGraphPtr &compute_graph, CustomPassStage stage) {
   GE_ASSERT_SUCCESS(InitPassesIfNeed(stage));
   auto graph = GraphUtilsEx::CreateGraphPtrFromComputeGraph(compute_graph);
-  FusionUtils::ResetCycleDetectors();
-  GE_MAKE_GUARD(reset_cycle_detector, [] { FusionUtils::ResetCycleDetectors(); });
   CustomPassContext context;
   // todo if changed, run it next time
   Status final_status = NOT_CHANGED;
@@ -74,6 +72,15 @@ Status FusionPassExecutor::RunPasses(const ComputeGraphPtr &compute_graph, Custo
 
     for (const auto &sub_compute_graph :compute_graph->GetAllSubgraphs()) {
       GE_CHECK_NOTNULL(sub_compute_graph);
+      // 顶层 pass 可能 Replace 掉了某个 PartitionedCall 节点，使其子图变成孤儿：
+      // sub_graph_ 列表里还在，但 parent_node 已经悬空（owner_graph 为 null），其 nodes_ 也可能
+      // 被 inline 进父图。直接给 PatternMatcher 喂这种半死的子图会触发 GetDirectNodePtr SEGV。
+      const auto parent_node = sub_compute_graph->GetParentNode();
+      if (parent_node == nullptr || parent_node->GetOwnerComputeGraph() == nullptr) {
+        GELOGI("[FusionPassExec] Skip orphan subgraph[%s] for pass[%s].",
+               sub_compute_graph->GetName().c_str(), pass_name.c_str());
+        continue;
+      }
       std::string subgraph_pass_name = pass_name + "::" + compute_graph->GetName();
       GE_TRACE_START(PassRunSubgraph);
       auto subgraph = GraphUtilsEx::CreateGraphPtrFromComputeGraph(sub_compute_graph);

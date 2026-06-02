@@ -66,7 +66,6 @@ Status ProgramGenerator::GenerateInterfaceHeader(Om2CodePrinter &code_printer) {
       ast_.Include("acl/acl_base.h"),
       ast_.Include("exe_graph/runtime/tensor.h"),
       ast_.Include("rt.h"),
-      ast_.Include("rts/rts_kernel.h"),
       ast_.Space(),
       ast_.StablePart(StablePartId::kInterfaceMacros),
       ast_.StablePart(StablePartId::kInterfacePointerHelpers),

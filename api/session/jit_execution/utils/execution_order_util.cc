@@ -108,10 +108,12 @@ Status ExecutionOrderUtil::RestoreExecutionOrder(const std::string root_dir, con
 		  "Failed to read slicing result json file[%s].", slicing_result_file_path.c_str());
 
   /* restore the execution points and add them to the EO */
-  for (SliceGraphInfo &info : result.slice_graph_infos) {
+  const size_t ep_count = result.slice_graph_infos.size();
+  for (size_t i = 0; i < ep_count; ++i) {
+    SliceGraphInfo &info = result.slice_graph_infos[i];
     std::unique_ptr<ExecutionPoint> exec_point_ptr;
-    GE_WARN_ASSERT_GRAPH_SUCCESS(ep_util_.RestoreExecutionPoint(root_dir, user_graph_key, info, exec_point_ptr),
-		    "Failed to restore ep.");
+    const std::map<std::string, std::string> &ep_options = (order.slice_graphs_.empty() ? order.first_ep_options_ : (i == ep_count - 1) ? order.last_ep_options_ : order.middle_ep_options_);
+    GE_WARN_ASSERT_GRAPH_SUCCESS(ep_util_.RestoreExecutionPoint(root_dir, user_graph_key, info, ep_options, exec_point_ptr), "Failed to restore ep.");
     GELOGD("Slice graph %lld restoration success.", exec_point_ptr->GetId());
     order.slice_graphs_.emplace_back(std::move(exec_point_ptr));
   }

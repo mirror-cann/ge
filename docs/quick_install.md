@@ -8,19 +8,23 @@
 
 | 安装方式       | 说明                                                         | 使用场景                                                     |
 | :------------- | :----------------------------------------------------------- | :----------------------------------------------------------- |
-| 使用WebIDE安装 | WebIDE可提供在线直接运行的昇腾环境，当前可提供单机算力，默认安装最新商发版CANN软件包（目前是CANN 8.5.0）和固件/驱动包。 | 适用于没有昇腾设备的开发者。                                 |
-|  Docker  | Docker镜像是一种高效部署方式，一键部署CANN包和必备依赖。<br>当前OS仅支持Ubuntu操作系统。 |适用有昇腾设备，需要快速搭建环境的开发者。|
-| 手动安装软件包 | -                                                            | 适用有昇腾设备，想体验手动安装CANN包或体验最新master分支能力的开发者。 |
+| CANNLab | 一站式开发平台，提供在线直接运行的昇腾环境，无需手动安装。<br>当前可提供单机算力，**默认安装最新商发版CANN包**。 | 适用于没有昇腾设备的开发者。                                 |
+|  Docker  | Docker镜像是一种高效部署方式，一键部署CANN包和必备依赖。<br>当前OS仅支持Ubuntu操作系统，**默认安装最新商发版CANN包**。 |适用有昇腾设备，需要快速搭建环境的开发者。|
+| 手动安装 | 手动安装CANN包和基础依赖，灵活性高。 | 适用有昇腾设备，想体验手动安装CANN包或体验最新master分支能力的开发者。 |
 
-### 方式一：使用WebIDE安装
+### 方式一：CANNLab
 
-对于无环境的用户，可直接使用WebIDE开发平台，即“**算子一站式开发平台**”，该平台为您提供在线可直接运行的昇腾环境，环境中已安装必备的软件包，无需手动安装。更多关于开发平台的介绍请参考[LINK](https://gitcode.com/org/cann/discussions/54)。
+对于无昇腾设备的开发者，可直接使用CANNLab云开发环境，即“**一站式开发平台**”，该平台为您提供在线可直接运行的昇腾环境，环境中已安装必备的驱动固件、软件包和依赖，无需手动安装。
 
-1. 进入开源项目，单击“`云开发`”按钮，使用已认证过的华为云账号登录。若未注册或认证，请根据页面提示进行注册和认证。
+> **说明**：环境默认安装最新商发版CANN包，源码下载时注意与软件配套。体验master版本能力或基于master版本进行开发，请参考[**方式三-场景1**](#方式三-场景1)安装最新CANN包依赖。<br>更多关于开发平台的介绍请参考[CANNLab指导](https://gitcode.com/org/cann/discussions/54)。
+
+1. 进入开源项目，单击“`CANNLab`”按钮，使用已认证过的华为云账号登录。若未注册或认证，请根据页面提示进行注册和认证。
 
    <img src="./figures/cloudIDE.png" alt="云平台"  width="750px" height="90px">
 
-2. 根据页面提示创建并启动云开发环境，单击“`连接 > WebIDE`”进入算子一站式开发平台，开源项目的资源默认在`/mnt/workspace`目录下。
+2. 根据页面提示创建NPU环境并配置规格，启动云开发环境后，单击“`连接 > WebIDE`”进入一站式开发平台。
+  
+   当前开源项目资源默认在`/mnt/workspace/gitCode/${gitCode_id}`目录下，\$\{gitCode\_id\}表示开发者个人gitCode账号。
 
    <img src="./figures/webIDE.png" alt="云平台"  width="1000px" height="150px">
 
@@ -122,7 +126,7 @@ docker run --name cann_container \
 
 2. **安装CANN包**    
 
-   **场景1：体验master版本能力或基于master版本进行开发**
+   <a id="方式三-场景1"></a>**场景1：体验master版本能力或基于master版本进行开发**
 
      请单击[下载链接](https://ascend.devcloud.huaweicloud.com/artifactory/cann-run-mirror/software/master)获取最新时间版本，并根据产品型号和环境架构下载对应包。安装命令如下，更多指导请参考[CANN软件安装指南](https://www.hiascend.com/document/redirect/CannCommunityInstWizard)。
 
@@ -132,7 +136,7 @@ docker run --name cann_container \
         # 确保安装包具有可执行权限
         chmod +x Ascend-cann-toolkit_${cann_version}_linux-${arch}.run
         # 安装命令
-        /Ascend-cann-toolkit_${cann_version}_linux-${arch}.run --install --install-path=${install_path}
+        ./Ascend-cann-toolkit_${cann_version}_linux-${arch}.run --install --install-path=${install_path}
         ```
 
         - `${cann_version}`：表示CANN包版本号。

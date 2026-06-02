@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -14,11 +14,13 @@
 #include <type_traits>
 #include "graph/tensor.h"
 #include "exe_graph/runtime/extended_kernel_context.h"
+#include "exe_graph/runtime/kernel_args.h"
 
 namespace gert {
 using rtStream = void *;
+
 class EagerOpExecutionContext : public ExtendedKernelContext {
- public:
+public:
   /**
    * 获取所属的执行流
    * @return
@@ -101,18 +103,36 @@ class EagerOpExecutionContext : public ExtendedKernelContext {
     return GetOutputPointer<Tensor>(index);
   }
 
- private:
+  /**
+   * 为 host 侧 args buffer 分配设备侧内存，并返回只读 KernelArgs 指针。
+   *
+   * KernelArgs 的 args_data 字段保存设备侧 args 地址，用于自定义算子
+   * EagerExecute 中 kernel launch。
+   *
+   * 本接口在模型执行前将 host_args 内容同步到设备侧
+   * 接口返回后调用方可立即释放host_args，无需手动 H2D 拷贝。
+   *
+   * 返回的 args_data 地址为只读，调用方不得通过该指针修改 args_data指向的内容。
+   *
+   * @param host_args Host 侧 args buffer 指针，接口返回后调用方可立即释放。
+   * @param args_size Args buffer 大小（字节）。
+   * @return 只读 KernelArgs 指针，args_data 字段为设备侧 args 地址，
+   *         失败返回 nullptr。
+   */
+  const KernelArgs* MallocReadOnlyDevArgs(void *host_args, size_t args_size) const;
+
   enum class AdditionalInputIndex : uint32_t {
     kDeviceAllocator = 0,
     kStream,
+    kArgsHandler   // Args handler base class pointer
   };
 
   enum class AdditionalOutputIndex : uint32_t {
-    kWorkSpace,
-    // add new extend output here
+    kWorkSpace = 0,
     kNum
   };
 
+protected:
   int64_t GetAdditionalInputStartIndex() const {
     const auto compute_node_info = GetComputeNodeInfo();
     if (compute_node_info == nullptr) {

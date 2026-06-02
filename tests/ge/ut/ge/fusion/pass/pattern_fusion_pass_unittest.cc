@@ -651,5 +651,66 @@ TEST_F(UtestPatternFusionPass, ReplceTarget_AutoUpdateTarget) {
   ASSERT_EQ(sub->GetOutControlNodes().size(), 1U);
   ASSERT_EQ(sub->GetOutControlNodes().at(0)->GetOutControlNodes().at(0)->GetType(), NETOUTPUT);
 }
+// DEBUG 级别下的兜底判环（pattern_fusion_run.cc:87-88）：一次成功的融合使 is_changed=true，
+// 而图里已存在前置 WillCauseCycleIfFuse 局部判环漏掉的环（这里人为在与融合无关的区域注入
+// 一条反向控制边构造环），TopologicalSorting 失败，guard 命中 GELOGE 并返回 FAILED。
+TEST_F(UtestPatternFusionPass, CycleGuard_DebugLevel_DetectsCyclicGraph) {
+  // 打开 DEBUG 级别，使 IsLogEnable(GE_MODULE_NAME, DLOG_DEBUG) 为真。
+  // 用 RAII 保证无论用例是否中途 ASSERT 失败都会复位，避免 DEBUG 级别泄漏到同一二进制内的
+  // 其它用例（否则会误触它们的 cycle guard 造成连锁失败）。
+  dlog_setlevel(GE_MODULE_NAME, DLOG_DEBUG, 1);
+  struct DlogLevelGuard {
+    ~DlogLevelGuard() { dlog_setlevel(GE_MODULE_NAME, DLOG_ERROR, 0); }
+  } dlog_level_guard;
+
+  class TransDataToReluPass : public PatternFusionPass {
+   protected:
+    std::vector<PatternUniqPtr> Patterns() override {
+      std::vector<PatternUniqPtr> patterns;
+      auto pattern_graph = ge::es::EsGraphBuilder("pattern");
+      auto esb_graph = pattern_graph.GetCGraphBuilder();
+      auto data = EsCreateGraphInput(esb_graph, 0);
+      auto transdata = EsTransData(data, "0", "29", 0, 0, 0);
+      esb_graph->SetGraphOutput(transdata, 0);
+      auto pattern = std::make_unique<Pattern>(std::move(*pattern_graph.BuildAndReset()));
+      patterns.emplace_back(std::move(pattern));
+      return patterns;
+    }
+    std::unique_ptr<Graph> Replacement(const unique_ptr<MatchResult> &match_result) override {
+      auto replace_graph = ge::es::EsGraphBuilder("replacement");
+      auto esb_graph = replace_graph.GetCGraphBuilder();
+      auto data = EsCreateGraphInput(esb_graph, 0);
+      auto relu = EsRelu(data);
+      esb_graph->SetGraphOutput(relu, 0);
+      return replace_graph.BuildAndReset();
+    }
+  };
+
+  auto target_compute_graph = gert::ShareGraph::LstmpGraph();
+  // 在与 transdata 融合路径无关的两个节点之间人为构造一对互相指向的控制边，制造全图环。
+  // WillCauseCycleIfFuse 只对融合节点集合做局部判环，不会发现这个环。
+  NodePtr drnn = nullptr;
+  NodePtr net_output = nullptr;
+  for (const auto &node : target_compute_graph->GetDirectNode()) {
+    if (node->GetType() == "DynamicRNNV3") {
+      drnn = node;
+    }
+    if (node->GetType() == NETOUTPUT) {
+      net_output = node;
+    }
+  }
+  ASSERT_NE(drnn, nullptr);
+  ASSERT_NE(net_output, nullptr);
+  // net_output -> drnn 的反向控制边，与已有 drnn -> ... -> net_output 形成环。
+  (void)GraphUtils::AddEdge(net_output->GetOutControlAnchor(), drnn->GetInControlAnchor());
+  ASSERT_NE(target_compute_graph->TopologicalSorting(), GRAPH_SUCCESS);
+
+  auto target_graph = GraphUtilsEx::CreateGraphPtrFromComputeGraph(target_compute_graph);
+  TransDataToReluPass transdata_2_relu_pass;
+  CustomPassContext context;
+  // 融合成功(is_changed) + DEBUG + 全图有环 => 命中 cycle guard，返回 FAILED。
+  auto ret = transdata_2_relu_pass.Run(target_graph, context);
+  EXPECT_EQ(ret, FAILED);
+}
 }  // namespace fusion
 }  // namespace ge

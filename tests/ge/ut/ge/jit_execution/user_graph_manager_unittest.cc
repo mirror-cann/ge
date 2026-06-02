@@ -185,7 +185,7 @@ TEST_F(UserGraphsManagerlUT, IsGraphNeedRebuild_False) {
   uint32_t user_graph_id = 0u;
   auto graph = JitShareGraph::AllNormalNodes();
   auto compute_graph = GraphUtilsEx::GetComputeGraph(*graph.get());
-  const std::map<std::string, std::string> options;
+  const std::map<std::string, std::string> options = {{ge::INPUT_HINT_SHAPE, "0:[2,3,4,5]"}};
   EXPECT_EQ(user_graph_manager.AddGraph(user_graph_id, *graph, options), SUCCESS);
 
   // prepare run task
@@ -222,7 +222,7 @@ TEST_F(UserGraphsManagerlUT, ExecuteGraphWithStreamAsync_Success) {
   uint32_t user_graph_id = 0u;
   auto graph = JitShareGraph::AllNormalNodes();
   auto compute_graph = GraphUtilsEx::GetComputeGraph(*graph.get());
-  const std::map<std::string, std::string> options;
+  const std::map<std::string, std::string> options = {{ge::INPUT_HINT_SHAPE, "0:[2,3,4,5]"}};
   EXPECT_EQ(user_graph_manager.AddGraph(user_graph_id, *graph, options), SUCCESS);
 
   // prepare run task
@@ -316,7 +316,7 @@ TEST_F(UserGraphsManagerlUT, return_compile_load_summary_not_null_execute_succes
   auto graph = JitShareGraph::OneReshapeNode({1, 2, 3, 4}, {4});
   auto compute_graph = GraphUtilsEx::GetComputeGraph(*graph.get());
 
-  const std::map<std::string, std::string> options;
+  const std::map<std::string, std::string> options = {{ge::INPUT_HINT_SHAPE, "0:[2,3,4,5]; 1:[4]"}};
   dlog_setlevel(GE_MODULE_NAME, 0, 1);
   EXPECT_EQ(user_graph_manager.AddGraph(user_graph_id, *graph, options), SUCCESS);
   
@@ -821,4 +821,157 @@ TEST_F(UserGraphsManagerlUT, graph_skip_slice_schedule_resource_op) {
   rtStreamDestroy(new_stream);
   unsetenv("AUTOFUSE_FLAGS");
 }
+
+TEST_F(UserGraphsManagerlUT, add_graph_verify_options_seperation) {
+  ModelExecutor model_executor;
+  model_executor.Initialize({}, 0);
+  GraphManager graph_manager;
+  EXPECT_EQ(graph_manager.Initialize({}, &model_executor), SUCCESS);
+  UserGraphsManager user_graph_manager(graph_manager);
+
+  uint32_t user_graph_id = 0u;
+  auto graph = JitShareGraph::AllNormalNodes();
+  auto compute_graph = GraphUtilsEx::GetComputeGraph(*graph.get());
+  std::map<std::string, std::string> options;
+  options["ge.inputShape"] = "1,2,3,4";
+  options["ge.outputDatatype"] = "float16";
+  options["another.middle"] = "another_value";
+  EXPECT_EQ(user_graph_manager.AddGraph(user_graph_id, *graph, options), SUCCESS);
+
+  auto *ctrl = user_graph_manager.ids_to_user_graph_ctrl_[user_graph_id].get();
+  ASSERT_NE(ctrl, nullptr);
+  EXPECT_EQ(ctrl->order_.first_ep_options_.size(), 3U);
+  EXPECT_EQ(ctrl->order_.middle_ep_options_.size(), 1U);
+  EXPECT_EQ(ctrl->order_.last_ep_options_.size(), 2U);
+
+  // Verify SelectEpOption before slicing: empty slice_graphs_ → first_ep_options_
+  EXPECT_EQ(ctrl->order_.SelectEpOption({}), ctrl->order_.first_ep_options_);
+  EXPECT_NE(ctrl->order_.SelectEpOption({}), ctrl->order_.middle_ep_options_);
+
+  EXPECT_EQ(user_graph_manager.RemoveGraph(user_graph_id), SUCCESS);
+  EXPECT_EQ(user_graph_manager.Finalize(), SUCCESS);
+  EXPECT_EQ(graph_manager.Finalize(), SUCCESS);
+}
+
+TEST_F(UserGraphsManagerlUT, add_graph_verify_options_flow_to_ep_after_slicing) {
+  ModelExecutor model_executor;
+  model_executor.Initialize({}, 0);
+  GraphManager graph_manager;
+  EXPECT_EQ(graph_manager.Initialize({}, &model_executor), SUCCESS);
+  UserGraphsManager user_graph_manager(graph_manager);
+
+  uint32_t user_graph_id = 0u;
+  auto graph = JitShareGraph::AllNormalNodes();
+  std::map<std::string, std::string> options;
+  options["ge.inputShape"] = "1,2,3,4";
+  options["ge.outputDatatype"] = "float16";
+  options["my.custom"] = "custom_val";
+  EXPECT_EQ(user_graph_manager.AddGraph(user_graph_id, *graph, options), SUCCESS);
+
+  std::vector<int64_t> shape_dim = {2, 3, 3, 2};
+  std::vector<gert::Tensor> inputs(1);
+  TensorCheckUtils::ConstructGertTensor(inputs[0], {2, 3, 3, 2}, DT_FLOAT, FORMAT_NCHW);
+
+  std::promise<Status> promise;
+  auto future = promise.get_future();
+  auto *ugm_ptr = &user_graph_manager;
+  const RunAsyncCallbackV2 callback = [&](Status status, std::vector<gert::Tensor> &outputs) {
+    EXPECT_EQ(status, SUCCESS);
+    EXPECT_EQ(outputs.size(), 1);
+    auto *ctrl = ugm_ptr->ids_to_user_graph_ctrl_[user_graph_id].get();
+    if (outputs.empty() || ctrl == nullptr || ctrl->order_.slice_graphs_.empty()) {
+      promise.set_value(FAILED);
+      return FAILED;
+    }
+    auto out_dims = TensorTransUtils::GetDimsFromGertShape(outputs[0].GetStorageShape());
+    EXPECT_EQ(out_dims, shape_dim);
+
+    auto &first_ep = ctrl->order_.slice_graphs_.front();
+    EXPECT_NE(first_ep->GetEpGraphOptions().find("ge.inputShape"), first_ep->GetEpGraphOptions().end());
+    EXPECT_EQ(first_ep->GetEpGraphOptions().size(), 3U);
+
+    if (ctrl->order_.slice_graphs_.size() > 1U) {
+      auto &last_ep = ctrl->order_.slice_graphs_.back();
+      EXPECT_EQ(last_ep->GetEpGraphOptions().find("ge.inputShape"), last_ep->GetEpGraphOptions().end());
+      EXPECT_NE(last_ep->GetEpGraphOptions().find("ge.outputDatatype"), last_ep->GetEpGraphOptions().end());
+    }
+
+    promise.set_value(status);
+    return SUCCESS;
+  };
+  EXPECT_EQ(user_graph_manager.RunGraphAsync(user_graph_id, std::move(inputs), 0, callback), SUCCESS);
+  EXPECT_EQ(future.get(), SUCCESS);
+
+  EXPECT_EQ(user_graph_manager.RemoveGraph(user_graph_id), SUCCESS);
+  EXPECT_EQ(user_graph_manager.Finalize(), SUCCESS);
+  EXPECT_EQ(graph_manager.Finalize(), SUCCESS);
+}
+
+static void VerifyEpOptions(const std::vector<std::unique_ptr<ge::ExecutionPoint>> &slice_graphs) {
+  EXPECT_GT(slice_graphs.size(), 2U) << "should have first + middle + last EPs";
+
+  auto &first_opts = slice_graphs.front()->GetEpGraphOptions();
+  EXPECT_NE(first_opts.find("ge.inputShape"), first_opts.end());
+  EXPECT_EQ(first_opts.size(), 3U);
+
+  for (size_t i = 1; i < slice_graphs.size() - 1; ++i) {
+    auto &mid_opts = slice_graphs[i]->GetEpGraphOptions();
+    EXPECT_EQ(mid_opts.find("ge.inputShape"), mid_opts.end());
+    EXPECT_EQ(mid_opts.find("ge.outputDatatype"), mid_opts.end());
+    EXPECT_NE(mid_opts.find("my.custom"), mid_opts.end());
+    EXPECT_EQ(mid_opts.size(), 1U);
+  }
+
+  auto &last_opts = slice_graphs.back()->GetEpGraphOptions();
+  EXPECT_EQ(last_opts.find("ge.inputShape"), last_opts.end());
+  EXPECT_NE(last_opts.find("ge.outputDatatype"), last_opts.end());
+  EXPECT_NE(last_opts.find("my.custom"), last_opts.end());
+  EXPECT_EQ(last_opts.size(), 2U);
+}
+
+TEST_F(UserGraphsManagerlUT, add_graph_verify_multi_ep_options_seperation) {
+  ModelExecutor model_executor;
+  model_executor.Initialize({}, 0);
+  GraphManager graph_manager;
+  EXPECT_EQ(graph_manager.Initialize({}, &model_executor), SUCCESS);
+  UserGraphsManager user_graph_manager(graph_manager);
+
+  uint32_t user_graph_id = 0u;
+  auto graph = JitShareGraph::TwoReshapeNodeTwoRelu();
+  std::map<std::string, std::string> options;
+  options["ge.inputShape"] = "1,2,3,4";
+  options["ge.outputDatatype"] = "float16";
+  options["my.custom"] = "custom_val";
+  EXPECT_EQ(user_graph_manager.AddGraph(user_graph_id, *graph, options), SUCCESS);
+
+  std::vector<float> data0(2 * 3 * 3 * 2, 0.0f);
+  std::vector<int64_t> shape_data{2, 3, 3, 2};
+  std::vector<gert::Tensor> inputs(2);
+  inputs[0] = {{{2, 3, 3, 2}, {2, 3, 3, 2}}, {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},
+               gert::kOnDeviceHbm, ge::DT_FLOAT, data0.data()};
+  inputs[1] = {{{4}, {4}}, {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},
+               gert::kOnDeviceHbm, ge::DT_INT64, shape_data.data()};
+
+  std::promise<Status> promise;
+  auto future = promise.get_future();
+  auto *ugm_ptr = &user_graph_manager;
+  const RunAsyncCallbackV2 callback = [&](Status status, std::vector<gert::Tensor> &outputs) {
+    EXPECT_EQ(status, SUCCESS);
+    auto *ctrl = ugm_ptr->ids_to_user_graph_ctrl_[user_graph_id].get();
+    if (outputs.empty() || ctrl == nullptr || ctrl->order_.slice_graphs_.empty()) {
+      promise.set_value(FAILED);
+      return FAILED;
+    }
+    VerifyEpOptions(ctrl->order_.slice_graphs_);
+    promise.set_value(status);
+    return SUCCESS;
+  };
+  EXPECT_EQ(user_graph_manager.RunGraphAsync(user_graph_id, std::move(inputs), 0, callback), SUCCESS);
+  EXPECT_EQ(future.get(), SUCCESS);
+
+  EXPECT_EQ(user_graph_manager.RemoveGraph(user_graph_id), SUCCESS);
+  EXPECT_EQ(user_graph_manager.Finalize(), SUCCESS);
+  EXPECT_EQ(graph_manager.Finalize(), SUCCESS);
+}
+
 }  // namespace ge

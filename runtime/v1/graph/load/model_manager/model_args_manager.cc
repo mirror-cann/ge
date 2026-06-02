@@ -1,15 +1,16 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
 #include "graph/load/model_manager/model_args_manager.h"
 
+#include <algorithm>
 #include <numeric>
 
 #include "common/checker.h"
@@ -611,6 +612,7 @@ Status ModelArgsManager::InitTaskInfoV2(domi::ModelTaskDef &model_task_def) {
   ModelArgsLayoutPlannedResult planned_model_args_layout_result;
   GE_ASSERT_SUCCESS(ModelArgsLayoutPlanner(task_indexes_to_refresh_type, task_indexes_to_run_param, host_input_size_)
                         .Plan(planned_model_args_layout_result, AddrUseFor::kAddrUseForArgs));
+
   GE_ASSERT_SUCCESS(AllocModelArgs(planned_model_args_layout_result, model_args_, model_args_len_, op_refresh_placement_));
   std::vector<PisToArgs> task_indexes_to_args;
   GE_ASSERT_SUCCESS(ConstructUpdateData(task_node_map, planned_model_args_layout_result, task_indexes_to_run_param,
@@ -744,7 +746,7 @@ void ModelArgsManager::GenModelArgsAaddrAfterDistributed() {
   // 1、地址刷新算子已加载
   // 2、只有一个placememt需要刷新且placememt有效(即只kernel launch一次算子)
   if (func_handle_ != nullptr && model_args_.size() == 1 &&
-      op_refresh_placement_ == ArgsPlacement::kArgsPlacementHbm) {
+      op_refresh_placement_ == ArgsPlacement::kArgsPlacementHbm && !has_reserve_args_table_) {
     uint64_t offset_num = (model_args_len_[0] - host_input_partition_len_) / sizeof(uint64_t) ;
     // args table表的长度在这边扩展
     if (offset_num > 0 && GenKernelLaunchArgs(offset_num) == SUCCESS &&
@@ -912,6 +914,9 @@ Status ModelArgsManager::ReportKernelLaunchOpProfilingData(const uint64_t begin_
       UpdateHostArgs(active_mem_base_addr);
     }
     up_ = ((model_io_hit_count_ == 0U) && (up_ == kUpdateModelIo)) ? kNoNeedUpdate : up_;
+
+    GE_ASSERT_SUCCESS(UpdateCustomOpHostArgs(active_mem_base_addr));
+
     if (logLevel_ <= DLOG_INFO) {
       GELOGI("Begin to update model args, policy %s, fm_hit_count 0x%" PRIx64 ", model_io_hit_count:0x%" PRIx64
         ", update_addr_num:%" PRIu64 ", va_2_pa:%d.", GetUpdatePolicyStr(up_), fm_hit_count_, model_io_hit_count_,
@@ -1050,6 +1055,8 @@ Status ModelArgsManager::ReportKernelLaunchOpProfilingData(const uint64_t begin_
         GE_ASSERT_RT_OK(rtDevVA2PA(cp_data.device_addr, cp_data.len, stm, davinci_model_->GetAsyncMode()));
       }
     }
+
+    GE_ASSERT_SUCCESS(RefreshExtraH2DCopyDatas(stm));
   }
 
   GetStageTimeInfo(kStageUpdateDsaSqeBegin);
@@ -1172,30 +1179,152 @@ Status ModelArgsManager::AllocModelArgs(const ModelArgsLayoutPlannedResult &layo
       GE_ASSERT_TRUE(!AddOverflow(len, partition_len, len));
     }
 
-    if (len == 0) {
+    const size_t built_in_len = static_cast<size_t>(len);
+    const size_t reserved_len = has_reserve_args_table_ ? reserved_segments_[pli].total_size : 0UL;
+
+    if ((built_in_len == 0UL) && (reserved_len == 0UL)) {
       continue;
     }
 
-    // host and device memory allocation and assignment
-    placed_model_args.model_args_host_addr = ge::MakeUnique<uint8_t[]>(static_cast<size_t>(len));
-    GE_ASSERT_NOTNULL(placed_model_args.model_args_host_addr, "Failed to alloc args %d at host, size %lld", pli, len);
+    size_t total_len = 0UL;
+    GE_ASSERT_TRUE(!AddOverflow(built_in_len, reserved_len, total_len));
 
-    const auto memory_type = GetRtsMemoryType(placed_model_args.placement, len);
-    const auto model_args_device_addr = davinci_model_->MallocDynamicMemory(static_cast<size_t>(len), memory_type);
+    placed_model_args.model_args_host_addr = ge::MakeUnique<uint8_t[]>(total_len);
+    GE_ASSERT_NOTNULL(placed_model_args.model_args_host_addr, "Failed to alloc args %zu at host, total_len %zu", pli, total_len);
+
+    const auto memory_type = GetRtsMemoryType(placed_model_args.placement, static_cast<int64_t>(total_len));
+    const auto model_args_device_addr = davinci_model_->MallocDynamicMemory(total_len, memory_type);
     GE_ASSERT_NOTNULL(model_args_device_addr);
     placed_model_args.model_args_device_addr = PtrToValue(model_args_device_addr);
 
-    GELOGI("Alloc model args len %lld, placement %s, addr 0x%llx for model %u(%s)", len,
-           GetArgsPlacementStr(placed_model_args.placement), placed_model_args.model_args_device_addr,
-           davinci_model_->GetModelId(), davinci_model_->GetOmName().c_str());
+    GELOGI("Alloc model args built_in=%zu, reserved=%zu, placement=%s, addr=0x%llx for model %u(%s)",
+           built_in_len, reserved_len, GetArgsPlacementStr(placed_model_args.placement),
+           placed_model_args.model_args_device_addr, davinci_model_->GetModelId(), davinci_model_->GetOmName().c_str());
+
+    if (reserved_len > 0UL) {
+      reserved_segments_[pli].start_offset = built_in_len;
+      reserved_segments_[pli].current_offset = built_in_len;
+    }
 
     model_args.emplace_back(std::move(placed_model_args));
-    model_args_len.emplace_back(len);
+    model_args_len.emplace_back(static_cast<size_t>(len));
     pls = placed_model_args.placement;
   }
 
   return SUCCESS;
 }
+
+Status ModelArgsManager::AllocateArgsBuffer(size_t size, ArgsPlacement placement, ArgsAllocationResult &result) {
+  GE_ASSERT_TRUE(size > 0UL, "AllocateArgsBuffer size must be positive");
+  GE_ASSERT_TRUE(placement < ArgsPlacement::kEnd, "Invalid placement");
+
+  if (AllocateFromReservedSegment(size, placement, result) == SUCCESS) {
+    return SUCCESS;
+  }
+  if (AllocateFromExistingPool(size, placement, result) == SUCCESS) {
+    return SUCCESS;
+  }
+  return AllocateFromNewPool(size, placement, result);
+}
+
+Status ModelArgsManager::AllocateFromReservedSegment(size_t size, ArgsPlacement placement,
+                                                      ArgsAllocationResult &result) {
+  const size_t placement_idx = static_cast<size_t>(placement);
+  ReservedSegmentInfo &info = reserved_segments_[placement_idx];
+  size_t end_offset = 0UL;
+  size_t segment_end = 0UL;
+  if (AddOverflow(info.current_offset, size, end_offset) ||
+      AddOverflow(info.start_offset, info.total_size, segment_end) ||
+      end_offset > segment_end) {
+    return FAILED;
+  }
+
+  ModelArgs *args = nullptr;
+  for (auto &model_arg : model_args_) {
+    if (model_arg.placement == placement) {
+      args = &model_arg;
+      break;
+    }
+  }
+  if (args == nullptr) {
+    return FAILED;
+  }
+
+  result.host_addr = args->model_args_host_addr.get() + info.current_offset;
+  result.device_addr = args->model_args_device_addr + info.current_offset;
+  result.size = size;
+  result.placement = placement;
+  result.is_from_reserved = true;
+  result.extra_pool_index = std::numeric_limits<uint32_t>::max();
+  info.current_offset += size;
+
+  GELOGD("Allocated args from reserved: size=%zu, placement=%s, host=0x%llx, device=0x%llx",
+         size, GetArgsPlacementStr(placement), PtrToValue(result.host_addr), result.device_addr);
+  return SUCCESS;
+}
+
+Status ModelArgsManager::AllocateFromExistingPool(size_t size, ArgsPlacement placement,
+                                                   ArgsAllocationResult &result) {
+  for (size_t pool_idx = 0UL; pool_idx < extra_args_pools_.size(); ++pool_idx) {
+    ExtraArgsPool &pool = extra_args_pools_[pool_idx];
+    if (pool.placement != placement) {
+      continue;
+    }
+    size_t end_offset = 0UL;
+    if (AddOverflow(pool.allocated_offset, size, end_offset) || end_offset > pool.total_size) {
+      continue;
+    }
+
+    result.host_addr = pool.host_addr.get() + pool.allocated_offset;
+    result.device_addr = pool.device_addr + pool.allocated_offset;
+    result.size = size;
+    result.placement = placement;
+    result.is_from_reserved = false;
+    result.extra_pool_index = static_cast<uint32_t>(pool_idx);
+    pool.allocated_offset += size;
+
+    GELOGD("Allocated args from existing extra pool: pool_idx=%zu, size=%zu, placement=%s",
+           pool_idx, size, GetArgsPlacementStr(placement));
+    return SUCCESS;
+  }
+  return FAILED;
+}
+
+Status ModelArgsManager::AllocateFromNewPool(size_t size, ArgsPlacement placement,
+                                              ArgsAllocationResult &result) {
+  constexpr size_t kMinExtraPoolSize = 4096UL;
+  const size_t pool_size = std::max(size, kMinExtraPoolSize);
+
+  ExtraArgsPool new_pool;
+  new_pool.host_addr = ge::MakeUnique<uint8_t[]>(pool_size);
+  GE_ASSERT_NOTNULL(new_pool.host_addr, "Failed to alloc extra args pool at host, size %zu", pool_size);
+
+  const auto memory_type = GetRtsMemoryType(placement, static_cast<int64_t>(pool_size));
+  void *device_ptr = davinci_model_->MallocDynamicMemory(pool_size, memory_type);
+  GE_ASSERT_NOTNULL(device_ptr);
+  new_pool.device_addr = PtrToValue(device_ptr);
+  new_pool.total_size = pool_size;
+  new_pool.allocated_offset = 0UL;
+  new_pool.placement = placement;
+
+  extra_args_pools_.emplace_back(std::move(new_pool));
+  const uint32_t new_pool_idx = static_cast<uint32_t>(extra_args_pools_.size() - 1UL);
+
+  ExtraArgsPool &pool = extra_args_pools_[new_pool_idx];
+  result.host_addr = pool.host_addr.get() + pool.allocated_offset;
+  result.device_addr = pool.device_addr + pool.allocated_offset;
+  result.size = size;
+  result.placement = placement;
+  result.is_from_reserved = false;
+  result.extra_pool_index = new_pool_idx;
+  pool.allocated_offset += size;
+
+  GELOGI("Created new extra args pool: pool_idx=%u, size=%zu, placement=%s, host=0x%llx, device=0x%llx",
+         new_pool_idx, pool_size, GetArgsPlacementStr(placement),
+         PtrToValue(pool.host_addr.get()), pool.device_addr);
+  return SUCCESS;
+}
+
 Status ModelArgsManager::ConstructUpdateData(const TaskNodeMap &task_node_map,
                                              const ModelArgsLayoutPlannedResult &layout,
                                              const std::vector<TaskRunParam> &task_indexes_to_param,
@@ -1229,6 +1358,11 @@ Status ModelArgsManager::ConstructUpdateData(const TaskNodeMap &task_node_map,
       DebugLogTaskUpdatePolicies(task_node_map, upis, i);
     }
     GE_ASSERT_SUCCESS(AddToTaskUpdateDataToPolicies(i, upis, one_task_update_data));
+
+    // save exact policies for custom operators
+    if (task_list_ptr_->at(i)->NeedReserveArgsTable()) {
+      custom_op_task_to_policies_[i] = upis;
+    }
   }
 
   // 增加host_input的updatda
@@ -1508,16 +1642,23 @@ Status ModelArgsManager::ValidateTaskRunParam(const std::vector<TaskArgsDesc> &a
   return SUCCESS;
 }
 Status ModelArgsManager::ParseModelTaskDef(domi::ModelTaskDef &model_task_def,
-                                           std::vector<TaskRunParam> &task_indexes_to_run_param,
-                                           TaskNodeMap &task_node_map) {
+                                            std::vector<TaskRunParam> &task_indexes_to_run_param,
+                                            TaskNodeMap &task_node_map) {
   const auto need_log = IsLogEnable(GE_MODULE_NAME, DLOG_DEBUG);
   const size_t task_size = static_cast<size_t>(model_task_def.task_size());
   task_list_ptr_->resize(task_size);
 
+  has_reserve_args_table_ = false;
+  for (size_t i = 0UL; i < static_cast<size_t>(ArgsPlacement::kEnd); ++i) {
+    reserved_segments_[i].total_size = 0UL;
+    reserved_segments_[i].start_offset = 0UL;
+    reserved_segments_[i].current_offset = 0UL;
+  }
   davinci_model_->ResetDumpFsmState();
   for (size_t i = 0UL; i < task_size; ++i) {
     domi::TaskDef *const task_def = model_task_def.mutable_task(static_cast<int32_t>(i));
-    auto &task_info = task_list_ptr_->at(i);  
+
+    auto &task_info = task_list_ptr_->at(i);
     task_info = TaskInfoFactory::Instance().Create(static_cast<ModelTaskType>(task_def->type()));
     GE_ASSERT_NOTNULL(task_info, "Failed to create task info from type %d, task index %zu", task_def->type(), i);
     GE_ASSERT_SUCCESS(task_info->ParseTaskRunParam(*task_def, davinci_model_, task_indexes_to_run_param[i]),
@@ -1533,6 +1674,19 @@ Status ModelArgsManager::ParseModelTaskDef(domi::ModelTaskDef &model_task_def,
     if (op_desc != nullptr) {
       GE_ASSERT_SUCCESS(
         davinci_model_->SetDumpFsmState(op_desc->GetName(),static_cast<ModelTaskType>(task_def->type())));
+
+      // 需要地址刷新的自定义算子预留内存，在MallocReadOnlyDevArgs流程里使用
+      if (task_info->NeedReserveArgsTable()) {
+        has_reserve_args_table_ = true;
+        const size_t input_count = op_desc->GetInputsSize();
+        const size_t output_count = op_desc->GetOutputsSize();
+        const size_t args_size = (input_count + output_count + kArgsReserved) * kArgsFieldSize;
+
+        const auto &args_descs = task_indexes_to_run_param[i].args_descs;
+        for (const auto &args_desc : args_descs) {
+          reserved_segments_[static_cast<size_t>(args_desc.placement)].total_size += args_size;
+        }
+      }
     }
 
     if (need_log) {
@@ -1541,6 +1695,10 @@ Status ModelArgsManager::ParseModelTaskDef(domi::ModelTaskDef &model_task_def,
   }
   if (!has_args_) {
     GELOGW("There no args need be managed in model");
+  }
+
+  if (has_reserve_args_table_) {
+    GELOGI("[ModelArgsManager] Detected args refresh custom op");
   }
   return SUCCESS;
 }
@@ -1604,6 +1762,7 @@ Status ModelArgsManager::OnTaskDistributed(const size_t task_index, const TaskIn
       func(task_info);
     }
   }
+
   return SUCCESS;
 }
 ModelArgsManager::TriggerTypesToPolicies ModelArgsManager::GenerateTriggerTypesToCorrespondingUpdatePolicies() const {
@@ -1649,7 +1808,6 @@ Status ModelArgsManager::GetHostInputMem(uint64_t &host_addr, uint64_t &device_a
     device_addr = model_update_data->h2d_copy_datas[0].device_addr;
     GE_ASSERT_TRUE(host_input_size_ <= model_update_data->h2d_copy_datas[0].len,
       "host_input_size:%" PRIu64 ", update len:%" PRIu64, host_input_size_, model_update_data->h2d_copy_datas[0].len);
-    // 使用active membase里的长度
     len = host_input_size_;
     host_addr = PtrToValue(host_input_host_ptr_);
     GELOGI("host input mem from model args table, model_id:%u, "
@@ -1664,6 +1822,258 @@ Status ModelArgsManager::GetHostInputMem(uint64_t &host_addr, uint64_t &device_a
   }
 
   GE_ASSERT_TRUE((host_addr != 0U) && (device_addr != 0U));
+  return SUCCESS;
+}
+
+Status ModelArgsManager::CollectTaskAllocationResults(
+    std::unordered_map<size_t, std::vector<ArgsAllocationResult>> &task_reserved_results,
+    std::unordered_map<size_t, std::vector<ArgsAllocationResult>> &task_extra_results) {
+  for (size_t i = 0; i < task_list_ptr_->size(); ++i) {
+    const auto &results = task_list_ptr_->at(i)->GetArgsAllocationResults();
+    for (const auto &result : results) {
+      if (result.is_from_reserved) {
+        task_reserved_results[i].push_back(result);
+      } else {
+        task_extra_results[i].push_back(result);
+      }
+      GELOGD("[CollectTaskAllocResults] task_index=%zu, %s", i, result.ToString().c_str());
+    }
+  }
+  return SUCCESS;
+}
+
+Status ModelArgsManager::IntegrateReservedH2DCopyDatas() {
+  for (size_t placement_idx = 0; placement_idx < static_cast<size_t>(ArgsPlacement::kEnd); ++placement_idx) {
+    ReservedSegmentInfo &info = reserved_segments_[placement_idx];
+    size_t reserved_used = info.current_offset - info.start_offset;
+    if (reserved_used == 0) {
+      continue;
+    }
+
+    const ModelArgs *model_arg = nullptr;
+    for (const auto &arg : model_args_) {
+      if (arg.placement == static_cast<ArgsPlacement>(placement_idx)) {
+        model_arg = &arg;
+        break;
+      }
+    }
+    if (model_arg == nullptr) {
+      continue;
+    }
+
+    for (size_t policy = static_cast<size_t>(kUpdateModelIo); policy < kUpdatePolicyEnd; ++policy) {
+      auto &model_data = update_policies_to_model_data_[policy];
+      if (model_data == nullptr) {
+        model_data = MakeUnique<ArgsUpdateData>();
+      }
+
+      H2DCopyArg *existing_arg = nullptr;
+      for (auto &h2d_arg : model_data->h2d_copy_datas) {
+        if (h2d_arg.placement == static_cast<ArgsPlacement>(placement_idx)) {
+          existing_arg = &h2d_arg;
+          break;
+        }
+      }
+
+      if (existing_arg != nullptr) {
+        existing_arg->len += reserved_used;
+        GELOGI("[IntegrateReservedH2D] Expanded: policy=%zu, placement=%zu, len=%zu, host=0x%llx, device=0x%" PRIx64,
+               policy, placement_idx, existing_arg->len, PtrToValue(existing_arg->host_addr), existing_arg->device_addr);
+      } else {
+        H2DCopyArg h2d_arg;
+        h2d_arg.len = reserved_used;
+        h2d_arg.device_addr = model_arg->model_args_device_addr + info.start_offset;
+        h2d_arg.host_addr = model_arg->model_args_host_addr.get() + info.start_offset;
+        h2d_arg.placement = static_cast<ArgsPlacement>(placement_idx);
+        GELOGI("[IntegrateReservedH2D] Added: policy=%zu, placement=%zu, len=%zu, host=0x%llx, device=0x%" PRIx64,
+               policy, placement_idx, reserved_used, PtrToValue(h2d_arg.host_addr), h2d_arg.device_addr);
+        model_data->h2d_copy_datas.push_back(std::move(h2d_arg));
+      }
+    }
+  }
+  return SUCCESS;
+}
+
+Status ModelArgsManager::IntegrateExtraH2DCopyDatas() {
+  for (size_t policy = static_cast<size_t>(kUpdateModelIo); policy < static_cast<size_t>(kUpdatePolicyEnd); ++policy) {
+    for (size_t pool_index = 0; pool_index < extra_args_pools_.size(); ++pool_index) {
+      const auto &pool = extra_args_pools_[pool_index];
+      if (pool.allocated_offset == 0) {
+        continue;
+      }
+
+      ArgsUpdateData update_data;
+      H2DCopyArg h2d_arg;
+      h2d_arg.len = pool.allocated_offset;
+      h2d_arg.device_addr = pool.device_addr;
+      h2d_arg.host_addr = pool.host_addr.get();
+      h2d_arg.placement = pool.placement;
+      update_data.h2d_copy_datas.push_back(std::move(h2d_arg));
+      extra_policy_to_update_datas_[static_cast<UpdatePolicy>(policy)].push_back(std::move(update_data));
+
+      GELOGI("[IntegrateExtraH2D] policy=%zu, pool_index=%zu, placement=%s, len=%zu, host=0x%llx, device=0x%" PRIx64,
+             policy, pool_index, GetArgsPlacementStr(pool.placement), pool.allocated_offset,
+             PtrToValue(pool.host_addr.get()), pool.device_addr);
+    }
+  }
+
+  return SUCCESS;
+}
+
+ModelArgsManager::UpdateHostArgsArg *ModelArgsManager::FindOrCreateUpdateArg(ArgsUpdateData &update_data,
+                                                              size_t task_index, TaskInfo *task_info) {
+  for (auto &arg : update_data.update_datas) {
+    if (arg.task_index == task_index) {
+      return &arg;
+    }
+  }
+  UpdateHostArgsArg new_arg;
+  new_arg.task_index = task_index;
+  new_arg.task_info = task_info;
+  update_data.update_datas.push_back(std::move(new_arg));
+  return &update_data.update_datas.back();
+}
+
+void ModelArgsManager::AppendHostArgs(UpdateHostArgsArg *update_arg,
+                                        const std::vector<ArgsAllocationResult> &results) {
+  for (const auto &result : results) {
+    HostArg host_arg;
+    host_arg.addr = result.host_addr;
+    host_arg.len = static_cast<int64_t>(result.size);
+    host_arg.placement = result.placement;
+    update_arg->host_args.push_back(host_arg);
+  }
+}
+
+Status ModelArgsManager::IntegrateReservedUpdateDatas(
+    const std::unordered_map<size_t, std::vector<ArgsAllocationResult>> &task_reserved_results) {
+  for (const auto &[task_index, results] : task_reserved_results) {
+    const auto policy_iter = custom_op_task_to_policies_.find(task_index);
+    if (policy_iter == custom_op_task_to_policies_.end()) {
+      continue;
+    }
+    const auto &policies = policy_iter->second;
+    auto *task_info = task_list_ptr_->at(task_index).get();
+
+    for (const UpdatePolicy policy : policies) {
+      auto &model_update_data = update_policies_to_model_data_[static_cast<size_t>(policy)];
+      if (model_update_data == nullptr) {
+        model_update_data = MakeUnique<ArgsUpdateData>();
+      }
+
+      auto *update_arg = FindOrCreateUpdateArg(*model_update_data, task_index, task_info);
+      AppendHostArgs(update_arg, results);
+
+      custom_op_policies_to_task_infos_[policy].insert(task_info);
+      GELOGI("IntegrateReservedUpdateDatas: task_index=%zu, policy=%zu, task_id=%u",
+             task_index, static_cast<size_t>(policy), task_info->GetTaskID());
+    }
+  }
+  return SUCCESS;
+}
+
+Status ModelArgsManager::IntegrateExtraUpdateDatas(
+    const std::unordered_map<size_t, std::vector<ArgsAllocationResult>> &task_extra_results) {
+  for (const auto &[task_index, results] : task_extra_results) {
+    const auto policy_iter = custom_op_task_to_policies_.find(task_index);
+    if (policy_iter == custom_op_task_to_policies_.end()) {
+      continue;
+    }
+    const auto &policies = policy_iter->second;
+    auto *task_info = task_list_ptr_->at(task_index).get();
+
+    for (const UpdatePolicy policy : policies) {
+      auto &extra_datas = extra_policy_to_update_datas_[policy];
+      if (extra_datas.size() < extra_args_pools_.size()) {
+        extra_datas.resize(extra_args_pools_.size());
+      }
+
+      for (const auto &result : results) {
+        if (result.extra_pool_index >= extra_datas.size()) {
+          continue;
+        }
+        ArgsUpdateData &pool_update_data = extra_datas[result.extra_pool_index];
+        auto *update_arg = FindOrCreateUpdateArg(pool_update_data, task_index, task_info);
+
+        HostArg host_arg;
+        host_arg.addr = result.host_addr;
+        host_arg.len = static_cast<int64_t>(result.size);
+        host_arg.placement = result.placement;
+        update_arg->host_args.push_back(host_arg);
+      }
+
+      custom_op_policies_to_task_infos_[policy].insert(task_info);
+      GELOGI("IntegrateExtraUpdateDatas: task_index=%zu, policy=%zu, task_id=%u",
+             task_index, static_cast<size_t>(policy), task_info->GetTaskID());
+    }
+  }
+  return SUCCESS;
+}
+
+Status ModelArgsManager::IntegrateCustomOpArgs() {
+  if (task_list_ptr_ == nullptr || !has_reserve_args_table_) {
+    return SUCCESS;
+  }
+
+  std::unordered_map<size_t, std::vector<ArgsAllocationResult>> task_reserved_results;
+  std::unordered_map<size_t, std::vector<ArgsAllocationResult>> task_extra_results;
+
+  GE_ASSERT_SUCCESS(CollectTaskAllocationResults(task_reserved_results, task_extra_results));
+  if (!task_reserved_results.empty()) {
+    GE_ASSERT_SUCCESS(IntegrateReservedH2DCopyDatas());
+    GE_ASSERT_SUCCESS(IntegrateReservedUpdateDatas(task_reserved_results));
+  }
+  if (!task_extra_results.empty()) {
+    GE_ASSERT_SUCCESS(IntegrateExtraH2DCopyDatas());
+    GE_ASSERT_SUCCESS(IntegrateExtraUpdateDatas(task_extra_results));
+  }
+
+  GELOGI("[IntegrateCustomArgs] Done, reserved_results=%zu, extra_results=%zu, extra_pools=%zu",
+         task_reserved_results.size(), task_extra_results.size(), extra_args_pools_.size());
+
+  return SUCCESS;
+}
+
+Status ModelArgsManager::UpdateCustomOpHostArgs(uint64_t *active_mem_base_addr) {
+  if (!has_reserve_args_table_) {
+    return SUCCESS;
+  }
+  auto it = custom_op_policies_to_task_infos_.find(up_);
+  if (it == custom_op_policies_to_task_infos_.end()) {
+    return SUCCESS;
+  }
+  for (TaskInfo* task_info : it->second) {
+    Status ret = task_info->UpdateHostArgs(active_mem_base_addr,
+                                           davinci_model_->GetLogicalMemAllocation().size());
+    if (ret != SUCCESS) {
+      GELOGE(ret, "TaskInfo::UpdateHostArgs failed, task_id=%u", task_info->GetTaskID());
+      return ret;
+    }
+    GELOGD("UpdateHostArgs succeeded, task_id=%u", task_info->GetTaskID());
+  }
+  return SUCCESS;
+}
+
+Status ModelArgsManager::RefreshExtraH2DCopyDatas(aclrtStream stm) {
+  if (!has_reserve_args_table_) {
+    return SUCCESS;
+  }
+  auto it = extra_policy_to_update_datas_.find(up_);
+  if (it == extra_policy_to_update_datas_.end()) {
+    return SUCCESS;
+  }
+  for (auto &update_data : it->second) {
+    for (auto &h2d_arg : update_data.h2d_copy_datas) {
+      if (davinci_model_->GetAsyncMode()) {
+        GE_ASSERT_RT_OK(aclrtMemcpyAsync(ValueToPtr(h2d_arg.device_addr), h2d_arg.len, h2d_arg.host_addr,
+                                         h2d_arg.len, ACL_MEMCPY_HOST_TO_BUF_TO_DEVICE, stm));
+      } else {
+        GE_ASSERT_RT_OK(aclrtMemcpy(ValueToPtr(h2d_arg.device_addr), h2d_arg.len, h2d_arg.host_addr,
+                                    h2d_arg.len, ACL_MEMCPY_HOST_TO_DEVICE));
+      }
+      GELOGD("Extra memory H2D refresh: len=%zu, device_addr=0x%" PRIx64, h2d_arg.len, h2d_arg.device_addr);
+    }
+  }
   return SUCCESS;
 }
 

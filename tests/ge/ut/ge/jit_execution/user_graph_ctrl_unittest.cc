@@ -52,6 +52,76 @@ class UserGraphControlUT : public testing::Test {
   }
   gert::GertRuntimeStub gert_stub_;
   std::string env;
+
+  Status RunGraphAsyncSimpleImpl(uint32_t user_graph_id, UserGraphControl *ctrl,
+                                  const std::vector<int64_t> &shape_dim,
+                                  std::vector<gert::Tensor> &gert_inputs) {
+    const RunAsyncCallbackV2 callback = [&](Status status, std::vector<gert::Tensor> &outputs) {
+      EXPECT_EQ(status, SUCCESS);
+      EXPECT_EQ(outputs.size(), 1);
+      if (outputs.empty()) {
+        return FAILED;
+      }
+      auto cur_dims = TensorTransUtils::GetDimsFromGertShape(outputs[0].GetStorageShape());
+      EXPECT_EQ(cur_dims, shape_dim);
+      return SUCCESS;
+    };
+    auto task = MakeUnique<UserGraphExecution>(user_graph_id, gert_inputs, callback, 0);
+    ctrl->RunGraphAsync(task);
+    return SUCCESS;
+  }
+
+  Status RunGraphAsyncNoWaitImpl(uint32_t user_graph_id, UserGraphControl *ctrl,
+                                  std::atomic_int32_t &callback_times,
+                                  const std::vector<int64_t> &shape_dim,
+                                  std::vector<gert::Tensor> &gert_inputs,
+                                  std::mutex &cv_mutex,
+                                  std::condition_variable &finish_condition) {
+    const RunAsyncCallbackV2 callback = [&](Status status, std::vector<gert::Tensor> &outputs) {
+      EXPECT_EQ(status, SUCCESS);
+      EXPECT_EQ(outputs.size(), 1);
+      if (outputs.empty()) {
+        return FAILED;
+      }
+      auto cur_dims = TensorTransUtils::GetDimsFromGertShape(outputs[0].GetStorageShape());
+      EXPECT_EQ(cur_dims, shape_dim);
+      callback_times.fetch_add(1);
+      if (callback_times.load() == 10) {
+        std::lock_guard<std::mutex> lk(cv_mutex);
+        finish_condition.notify_all();
+      }
+      return SUCCESS;
+    };
+
+    auto task = MakeUnique<UserGraphExecution>(user_graph_id, gert_inputs, callback, 0);
+    ctrl->RunGraphAsync(task);
+    return SUCCESS;
+  }
+
+  Status RunGraphAsyncImpl(uint32_t user_graph_id, UserGraphControl *ctrl,
+                            std::atomic_int32_t &callback_times,
+                            const std::vector<int64_t> &shape_dim,
+                            std::vector<gert::Tensor> &gert_inputs) {
+    auto promise_ptr = std::make_shared<std::promise<Status>>();
+    auto future = promise_ptr->get_future();
+
+    const RunAsyncCallbackV2 callback = [&, promise_ptr](Status status, std::vector<gert::Tensor> &outputs) {
+      EXPECT_EQ(status, SUCCESS);
+      EXPECT_EQ(outputs.size(), 1);
+      if (outputs.empty()) {
+        return FAILED;
+      }
+      auto cur_dims = TensorTransUtils::GetDimsFromGertShape(outputs[0].GetStorageShape());
+      EXPECT_EQ(cur_dims, shape_dim);
+      callback_times.fetch_add(1);
+      promise_ptr->set_value(status);
+      return SUCCESS;
+    };
+    auto task = MakeUnique<UserGraphExecution>(user_graph_id, gert_inputs, callback, 0);
+    ctrl->RunGraphAsync(task);
+    EXPECT_EQ(future.get(), SUCCESS);
+    return SUCCESS;
+  }
 };
 
 TEST_F(UserGraphControlUT, AddGraphInstance_Success) {
@@ -64,7 +134,8 @@ TEST_F(UserGraphControlUT, AddGraphInstance_Success) {
   auto compute_graph = GraphUtilsEx::GetComputeGraph(*graph.get());
   CompileContext compile_context(graph_manager);
 
-  auto ctrl = MakeUnique<UserGraphControl>(user_graph_id, compute_graph, compile_context, graph_manager);
+  std::map<std::string, std::string> graph_options;
+  auto ctrl = MakeUnique<UserGraphControl>(user_graph_id, compute_graph, compile_context, graph_manager, graph_options);
   EXPECT_NE(ctrl, nullptr);
   EXPECT_EQ(ctrl->AddGraphInstance(), SUCCESS);
 
@@ -83,7 +154,8 @@ TEST_F(UserGraphControlUT, GetSetCompiledFlag_Success) {
   auto compute_graph = GraphUtilsEx::GetComputeGraph(*graph.get());
   CompileContext compile_context(graph_manager);
 
-  auto ctrl = MakeUnique<UserGraphControl>(user_graph_id, compute_graph, compile_context, graph_manager);
+  std::map<std::string, std::string> graph_options;
+  auto ctrl = MakeUnique<UserGraphControl>(user_graph_id, compute_graph, compile_context, graph_manager, graph_options);
   EXPECT_NE(ctrl, nullptr);
   EXPECT_EQ(ctrl->AddGraphInstance(), SUCCESS);
 
@@ -104,7 +176,8 @@ TEST_F(UserGraphControlUT, AddGraphInstance_MultiThread_Success) {
   auto compute_graph = GraphUtilsEx::GetComputeGraph(*graph.get());
   CompileContext compile_context(graph_manager);
 
-  auto ctrl = MakeUnique<UserGraphControl>(user_graph_id, compute_graph, compile_context, graph_manager);
+  std::map<std::string, std::string> graph_options;
+  auto ctrl = MakeUnique<UserGraphControl>(user_graph_id, compute_graph, compile_context, graph_manager, graph_options);
   EXPECT_NE(ctrl, nullptr);
   ThreadPool thread_pool("tset", 8);
   std::vector<std::future<Status>> futs;
@@ -136,7 +209,8 @@ TEST_F(UserGraphControlUT, RunGraphAsync_Success) {
   auto compute_graph = GraphUtilsEx::GetComputeGraph(*graph.get());
   CompileContext compile_context(graph_manager);
 
-  auto ctrl = MakeUnique<UserGraphControl>(user_graph_id, compute_graph, compile_context, graph_manager);
+  std::map<std::string, std::string> graph_options;
+  auto ctrl = MakeUnique<UserGraphControl>(user_graph_id, compute_graph, compile_context, graph_manager, graph_options);
   EXPECT_NE(ctrl, nullptr);
   EXPECT_EQ(ctrl->AddGraphInstance(), SUCCESS);
 
@@ -169,7 +243,8 @@ TEST_F(UserGraphControlUT, RunGraphAsync_Failed) {
   auto compute_graph = GraphUtilsEx::GetComputeGraph(*graph.get());
   CompileContext compile_context(graph_manager);
 
-  auto ctrl = MakeUnique<UserGraphControl>(user_graph_id, compute_graph, compile_context, graph_manager);
+  std::map<std::string, std::string> graph_options;
+  auto ctrl = MakeUnique<UserGraphControl>(user_graph_id, compute_graph, compile_context, graph_manager, graph_options);
   EXPECT_NE(ctrl, nullptr);
   EXPECT_EQ(ctrl->AddGraphInstance(), SUCCESS);
 
@@ -211,7 +286,8 @@ TEST_F(UserGraphControlUT, RunGraphAsync_MultiThread_MultiJitInstance_Success) {
   auto compute_graph = GraphUtilsEx::GetComputeGraph(*graph.get());
   CompileContext compile_context(graph_manager);
 
-  auto ctrl = MakeUnique<UserGraphControl>(user_graph_id, compute_graph, compile_context, graph_manager);
+  std::map<std::string, std::string> graph_options;
+  auto ctrl = MakeUnique<UserGraphControl>(user_graph_id, compute_graph, compile_context, graph_manager, graph_options);
   EXPECT_NE(ctrl, nullptr);
   ThreadPool thread_pool("tset", 8);
   std::vector<std::future<Status>> futs;
@@ -238,26 +314,8 @@ TEST_F(UserGraphControlUT, RunGraphAsync_MultiThread_MultiJitInstance_Success) {
     gert_inputs.resize(1U);
     TensorCheckUtils::ConstructGertTensor(gert_inputs[0], {2, 3, 3, 2}, DT_FLOAT, FORMAT_NCHW);
 
-    auto fut = thread_pool.commit([&user_graph_id, &ctrl, this, &callback_times, &shape_dim, &gert_inputs]() -> Status {
-      auto promise_ptr = std::make_shared<std::promise<Status>>();
-      auto future = promise_ptr->get_future();
-
-      const RunAsyncCallbackV2 callback = [&, promise_ptr](Status status, std::vector<gert::Tensor> &outputs) {
-        EXPECT_EQ(status, SUCCESS);
-        EXPECT_EQ(outputs.size(), 1);
-        if (outputs.empty()) {
-          return FAILED;
-        }
-        auto cur_dims = TensorTransUtils::GetDimsFromGertShape(outputs[0].GetStorageShape());
-        EXPECT_EQ(cur_dims, shape_dim);
-        callback_times.fetch_add(1);
-        promise_ptr->set_value(status);
-        return SUCCESS;
-      };
-      auto task = MakeUnique<UserGraphExecution>(user_graph_id, gert_inputs, callback, 0);
-      ctrl->RunGraphAsync(task);
-      EXPECT_EQ(future.get(), SUCCESS);
-      return SUCCESS;
+    auto fut = thread_pool.commit([&]() -> Status {
+      return RunGraphAsyncImpl(user_graph_id, ctrl.get(), callback_times, shape_dim, gert_inputs);
     });
     EXPECT_TRUE(fut.valid());
     futs.emplace_back(std::move(fut));
@@ -288,7 +346,8 @@ TEST_F(UserGraphControlUT, RunGraphAsync_MultiThread_OneJitInstance_Success) {
   CompileContext compile_context(graph_manager);
 
   // one jit instance
-  auto ctrl = MakeUnique<UserGraphControl>(user_graph_id, compute_graph, compile_context, graph_manager);
+  std::map<std::string, std::string> graph_options;
+  auto ctrl = MakeUnique<UserGraphControl>(user_graph_id, compute_graph, compile_context, graph_manager, graph_options);
   EXPECT_NE(ctrl, nullptr);
   EXPECT_EQ(ctrl->AddGraphInstance(), SUCCESS);
 
@@ -310,26 +369,8 @@ TEST_F(UserGraphControlUT, RunGraphAsync_MultiThread_OneJitInstance_Success) {
     gert_inputs.resize(1U);
     TensorCheckUtils::ConstructGertTensor(gert_inputs[0], {2, 3, 3, 2}, DT_FLOAT, FORMAT_NCHW);
 
-    auto fut = thread_pool.commit([&user_graph_id, &ctrl, this, &shape_dim, &callback_times, &cv_mutex, &finish_condition, &gert_inputs]() -> Status {
-      const RunAsyncCallbackV2 callback = [&](Status status, std::vector<gert::Tensor> &outputs) {
-        EXPECT_EQ(status, SUCCESS);
-        EXPECT_EQ(outputs.size(), 1);
-        if (outputs.empty()) {
-          return FAILED;
-        }
-        auto cur_dims = TensorTransUtils::GetDimsFromGertShape(outputs[0].GetStorageShape());
-        EXPECT_EQ(cur_dims, shape_dim);
-        callback_times.fetch_add(1);
-        if (callback_times.load() == 10) {
-          std::lock_guard<std::mutex> lk(cv_mutex);
-          finish_condition.notify_all();
-        }
-        return SUCCESS;
-      };
-
-      auto task = MakeUnique<UserGraphExecution>(user_graph_id, gert_inputs, callback, 0);
-      ctrl->RunGraphAsync(task);
-      return SUCCESS;
+    auto fut = thread_pool.commit([&]() -> Status {
+      return RunGraphAsyncNoWaitImpl(user_graph_id, ctrl.get(), callback_times, shape_dim, gert_inputs, cv_mutex, finish_condition);
     });
     EXPECT_TRUE(fut.valid());
     futs.emplace_back(std::move(fut));
@@ -355,7 +396,8 @@ TEST_F(UserGraphControlUT, RunGraphAsync_StaticShape_Success) {
   auto compute_graph = GraphUtilsEx::GetComputeGraph(*graph.get());
   CompileContext compile_context(graph_manager);
 
-  auto ctrl = MakeUnique<UserGraphControl>(user_graph_id, compute_graph, compile_context, graph_manager);
+  std::map<std::string, std::string> graph_options;
+  auto ctrl = MakeUnique<UserGraphControl>(user_graph_id, compute_graph, compile_context, graph_manager, graph_options);
   EXPECT_NE(ctrl, nullptr);
   EXPECT_EQ(ctrl->AddGraphInstance(), SUCCESS);
 
@@ -387,7 +429,8 @@ TEST_F(UserGraphControlUT, RunGraphAsync_StaticShape_MultiThread_Success) {
   auto compute_graph = GraphUtilsEx::GetComputeGraph(*graph.get());
   CompileContext compile_context(graph_manager);
 
-  auto ctrl = MakeUnique<UserGraphControl>(user_graph_id, compute_graph, compile_context, graph_manager);
+  std::map<std::string, std::string> graph_options;
+  auto ctrl = MakeUnique<UserGraphControl>(user_graph_id, compute_graph, compile_context, graph_manager, graph_options);
   EXPECT_NE(ctrl, nullptr);
   ThreadPool thread_pool("tset", 8);
   std::vector<std::future<Status>> futs;
@@ -412,20 +455,8 @@ TEST_F(UserGraphControlUT, RunGraphAsync_StaticShape_MultiThread_Success) {
     std::vector<gert::Tensor> &gert_inputs = thread_2_gert_inputs[i];
     gert_inputs.resize(1U);
     TensorCheckUtils::ConstructGertTensor(gert_inputs[0], {2, 3, 3, 2}, DT_FLOAT, FORMAT_NCHW);
-    auto fut = thread_pool.commit([&user_graph_id, &ctrl, this, &shape_dim, &gert_inputs]() -> Status {
-      const RunAsyncCallbackV2 callback = [&](Status status, std::vector<gert::Tensor> &outputs) {
-        EXPECT_EQ(status, SUCCESS);
-        EXPECT_EQ(outputs.size(), 1);
-        if (outputs.empty()) {
-          return FAILED;
-        }
-        auto cur_dims = TensorTransUtils::GetDimsFromGertShape(outputs[0].GetStorageShape());
-        EXPECT_EQ(cur_dims, shape_dim);
-        return SUCCESS;
-      };
-      auto task = MakeUnique<UserGraphExecution>(user_graph_id, gert_inputs, callback, 0);
-      ctrl->RunGraphAsync(task);
-      return SUCCESS;
+    auto fut = thread_pool.commit([&]() -> Status {
+      return RunGraphAsyncSimpleImpl(user_graph_id, ctrl.get(), shape_dim, gert_inputs);
     });
     EXPECT_TRUE(fut.valid());
     futs.emplace_back(std::move(fut));

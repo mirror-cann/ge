@@ -8,7 +8,9 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
+#include <algorithm>
 #include <fstream>
+#include <unordered_set>
 #include "graph/utils/graph_utils_ex.h"
 #include "graph/utils/op_type_utils.h"
 #include "register/graph_optimizer/fusion_common/graph_pass_util.h"
@@ -97,17 +99,23 @@ std::vector<NodePtr> ToNodePtrs(const std::vector<GNode> &nodes) {
   return node_ptrs;
 }
 }  // namespace
-std::unordered_map<ComputeGraphPtr, CycleDetectorSharedPtr> FusionUtils::graph_2_cycle_detectors_;
 Status FusionUtils::MarkPassNameOnReplacementNodes(const std::unique_ptr<Graph> &replacement,
                                                    const std::unique_ptr<SubgraphBoundary> &subgraph,
                                                    const std::string &pass_name) {
+  GE_ASSERT_NOTNULL(replacement);
+  GE_ASSERT_NOTNULL(subgraph);
   const auto replacement_graph = GraphUtilsEx::GetComputeGraph(*replacement);
+  GE_ASSERT_NOTNULL(replacement_graph);
   InnerSubgraphBoundary inner_boundary;
   std::string boundary_invalid_reason;
   GE_ASSERT_SUCCESS(inner_boundary.Init(*subgraph, boundary_invalid_reason), boundary_invalid_reason.c_str());
   for (const auto &node : replacement_graph->GetAllNodes()) {
+    GE_ASSERT_NOTNULL(node);
+    const auto op_desc = node->GetOpDesc();
+    GE_ASSERT_NOTNULL(op_desc, "Node[%s][%s] has null op_desc.", node->GetNamePtr(), node->GetTypePtr());
     GE_ASSERT_SUCCESS(
-        fe::GraphPassUtil::StoreAndUpdataOriginFusionPassName(node->GetOpDesc(), inner_boundary.GetNodes(), pass_name));
+        fe::GraphPassUtil::StoreAndUpdataOriginFusionPassName(op_desc, inner_boundary.GetNodes(), pass_name),
+        "Failed to mark pass name[%s] on node[%s][%s].", pass_name.c_str(), node->GetNamePtr(), node->GetTypePtr());
   }
   return SUCCESS;
 }
@@ -155,74 +163,58 @@ std::map<string, bool> FusionUtils::ParseFusionSwitch() {
   return pass_name_2_switches;
 }
 
-void FusionUtils::ResetCycleDetectors() {
-  graph_2_cycle_detectors_.clear();
-}
-
-Status FusionUtils::ReCreateCycleDetector(const ComputeGraphPtr &curr_graph) {
-  GELOGD("ReCreate CycleDetector start");
-  GE_ASSERT_SUCCESS(curr_graph->TopologicalSorting());
-  auto detector = GraphUtils::CreateSharedCycleDetector(curr_graph);
-  graph_2_cycle_detectors_[curr_graph] = detector;
-  return SUCCESS;
-}
-
-CycleDetectorSharedPtr FusionUtils::GetOrCreateCycleDetector(const ComputeGraphPtr &curr_graph) {
-  auto iter = graph_2_cycle_detectors_.find(curr_graph);
-  if (iter != graph_2_cycle_detectors_.end()) {
-    return iter->second;
-  }
-  GE_ASSERT_SUCCESS(curr_graph->TopologicalSorting());
-  auto detector = GraphUtils::CreateSharedCycleDetector(curr_graph);
-  graph_2_cycle_detectors_[curr_graph] = detector;
-  return detector;
-}
-
 bool FusionUtils::WillCauseCycleIfFuse(const std::unique_ptr<MatchResult> &match_result) {
-  const auto matched_nodes = ToNodePtrs(match_result->GetMatchedNodes());
+  if (match_result == nullptr) {
+    return false;
+  }
+  auto matched_nodes = ToNodePtrs(match_result->GetMatchedNodes());
+  // 过滤 ToNodePtrs 可能产生的 null（GNode2Node 转换失败、节点已被孤立等），以及 owner_graph 已被
+  // 清空的"半死"节点——上一次 SubgraphRewriter::Replace 的 PruneUnusedNodes 会调用 ClearOwnerGraph(nullptr)
+  matched_nodes.erase(std::remove_if(matched_nodes.begin(), matched_nodes.end(),
+                                     [](const NodePtr &node) {
+                                       return node == nullptr || node->GetOwnerComputeGraph() == nullptr;
+                                     }),
+                      matched_nodes.end());
   if (matched_nodes.empty()) {
     return false;
   }
-
-  const auto owner_graph = (*matched_nodes.begin())->GetOwnerComputeGraph();
-  GE_ASSERT_NOTNULL(owner_graph);
-  auto detector = GetOrCreateCycleDetector(owner_graph);
-  GE_ASSERT_NOTNULL(detector);
-  if (detector->HasDetectedCycle({matched_nodes})) {
-    return true;
+  // 把 matched_nodes 集合 S 融成一个节点是否会成环，等价于：从 S 的某个"外部后继"出发，
+  // 沿有向边（数据+控制后继）正向能否回到 S。能回到即成环。无状态局部 BFS，O(V+E)，
+  // 不依赖任何缓存/连通矩阵，多线程各判各的，天然并发安全。
+  std::unordered_set<const Node *> fused;
+  for (const auto &node : matched_nodes) {
+    fused.insert(node.get());
+  }
+  std::unordered_set<const Node *> visited;
+  std::queue<const Node *> to_visit;
+  // 起点：S 各节点的外部直接后继（跳过 S 内部边）
+  for (const auto &node : matched_nodes) {
+    for (const auto *const out_node : node->GetOutNodesPtr()) {
+      if ((out_node == nullptr) || (fused.count(out_node) > 0)) {
+        continue;
+      }
+      if (visited.insert(out_node).second) {
+        to_visit.push(out_node);
+      }
+    }
+  }
+  // 从外部后继正向 BFS；若回到 S 内任一节点，说明存在经过外部节点又绕回 S 的路径，融合后成环
+  while (!to_visit.empty()) {
+    const auto *const cur = to_visit.front();
+    to_visit.pop();
+    for (const auto *const out_node : cur->GetOutNodesPtr()) {
+      if (out_node == nullptr) {
+        continue;
+      }
+      if (fused.count(out_node) > 0) {
+        return true;
+      }
+      if (visited.insert(out_node).second) {
+        to_visit.push(out_node);
+      }
+    }
   }
   return false;
-}
-
-Status FusionUtils::UpdateToCycleDetector(const ComputeGraphPtr &curr_graph,
-                                          const std::unique_ptr<MatchResult> &match_result,
-                                          const unique_ptr<Graph> &replacement) {
-  (void)match_result;
-  auto replacement_graph = GraphUtilsEx::GetComputeGraph(*replacement);
-  std::vector<NodePtr> replacement_nodes;
-  for (const auto &node : replacement_graph->GetDirectNode()) {
-    if (OpTypeUtils::IsDataNode(node->GetTypePtr()) || (strcmp(node->GetTypePtr(), NETOUTPUT) == 0)) {
-      continue;
-    }
-    replacement_nodes.emplace_back(node);
-  }
-  auto detector = GetOrCreateCycleDetector(curr_graph);
-  GE_ASSERT_NOTNULL(detector);
-  // 成环检测使用的连接矩阵更新函数对应场景：
-  // 函数：ExpandAndUpdate  场景：将目标图中节点融合成单个新节点
-  // 函数：Update 场景：删除待融合节点
-  // 故replacement_nodes.size() == 1时使用ExpandAndUpdate更新连接矩阵
-  // replacement_nodes.size() == 0时使用Update更新连接矩阵
-  // 其他情况重新创建连接矩阵
-  if (replacement_nodes.size() == 1) {
-    auto new_node_name = replacement_nodes[0]->GetName();
-    detector->ExpandAndUpdate(replacement_nodes, new_node_name);
-  }else if(replacement_nodes.size() == 0){
-    detector->Update(curr_graph, replacement_nodes);
-  }else {
-    return ReCreateCycleDetector(curr_graph);
-  }
-  return SUCCESS;
 }
 
 void FusionUtils::RecordFusionStatistic(const uint64_t session_id, const std::string graph_id, const std::string pass_name,

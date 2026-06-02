@@ -12,13 +12,28 @@
 #include "graph/utils/graph_utils.h"
 #include "common/checker.h"
 #include "api/session/jit_execution/utils/jit_infer_utils.h"
-#include "api/session/jit_execution/utils/partitioner/binary_partitioner.h"
 #include "common/memory/tensor_trans_utils.h"
 #include "graph/utils/tensor_adapter.h"
 #include "graph/utils/type_utils.h"
 
 namespace ge {
 namespace {
+const std::unordered_set<std::string> kFirstEPOptions = {INPUT_SHAPE,
+                                                         INPUT_HINT_SHAPE,
+                                                         INPUT_SHAPE_RANGE,
+                                                         INPUT_FORMAT,
+                                                         ge::OPTION_INPUT_REUSE_MEM_INDEXES,
+                                                         OPTION_EXEC_HOST_INPUT_INDEXES,
+                                                         INPUT_FP16_NODES};
+const std::unordered_set<std::string> kLastEPOptions = {OUTPUT_DATATYPE, OPTION_OUTPUT_REUSE_MEM_INDEXES,
+                                                        OUTPUT_NODE_NAME, OUTPUT_MAX_SIZE};
+std::string EpOptionsToString(const std::map<std::string, std::string> &options) {
+  std::stringstream ss;
+  for (const auto &option : options) {
+    ss << option.first << ";";
+  }
+  return ss.str();
+}
 Status SetOutputSizeIfNeed(const ComputeGraphPtr &graph) {
   auto netout_node = graph->GetOrUpdateNetOutputNode();
   GE_ASSERT_NOTNULL(netout_node);
@@ -31,6 +46,26 @@ Status SetOutputSizeIfNeed(const ComputeGraphPtr &graph) {
   return SUCCESS;
 }
 } // namespace
+
+ExecutionOrder::ExecutionOrder(const UserGraph &user_graph) {
+  user_graph_ = user_graph;
+  is_unknown_input_shape_ = false;
+  SeperateGraphOptions(user_graph.graph_options);
+}
+
+void ExecutionOrder::SeperateGraphOptions(const std::map<std::string, std::string> &user_graph_options) {
+  first_ep_options_ = user_graph_options;
+  for (const auto &option : user_graph_options) {
+    if (kFirstEPOptions.count(option.first) > 0) {
+      continue;
+    }
+    if (kLastEPOptions.count(option.first) == 0) {
+      middle_ep_options_.emplace(option);
+    }
+    last_ep_options_.emplace(option);
+  }
+}
+
 Status ExecutionOrder::FirstPoint(const std::vector<GeTensor> &inputs, ExecutionPoint *&first_ep) {
   std::lock_guard<std::mutex> locker(mutex_);
   if (!slice_graphs_.empty()) {
@@ -82,12 +117,14 @@ Status ExecutionOrder::AddNewSlice(const ComputeGraphPtr &graph, const std::vect
   GE_ASSERT_SUCCESS(SetOutputSizeIfNeed(partition_result.sliced_graph));
   GE_DUMP(partition_result.sliced_graph, "SlicedGraph_"+std::to_string(slice_graphs_.size()));
   // use vector index as ep id
+  const auto &ep_options = SelectEpOption(partition_result);
   slice_graphs_.emplace_back(MakeUnique<ExecutionPoint>(slice_graphs_.size(), partition_result.sliced_graph,
-                                                        partition_result.remaining_graph));
+                                                        partition_result.remaining_graph, ep_options));
   GE_ASSERT_NOTNULL(slice_graphs_.back());
   new_ep = slice_graphs_.back().get();
   GE_ASSERT_NOTNULL(new_ep);
-  GELOGI("Add new slice graph[%ld] of user graph [%u]", new_ep->GetId(), user_graph_.user_graph_id);
+  GELOGI("Add new slice graph[%ld] of user graph [%u], options:%s", new_ep->GetId(), user_graph_.user_graph_id,
+         EpOptionsToString(ep_options).c_str());
   return SUCCESS;
 }
 
@@ -158,5 +195,12 @@ const std::vector<gert::Tensor> &ExecutionOrder::GetInputTensors(bool &is_unknow
 
 UserGraph ExecutionOrder::GetUserGraph() const {
   return user_graph_;
+}
+
+const std::map<std::string, std::string> &ExecutionOrder::SelectEpOption(const PartionResult &partition_ret) const {
+  if (slice_graphs_.empty()) {
+    return first_ep_options_;
+  }
+  return partition_ret.remaining_graph == nullptr ? last_ep_options_ : middle_ep_options_;
 }
 }  // namespace ge

@@ -26,6 +26,7 @@ set(LOWERING_SRCS
     lowering/value_holder.cc
     lowering/value_holder_utils.cc
     runtime/eager_op_execution_context.cc
+    runtime/update_args_context.cc
     runtime/op_compile_context.cc
 )
 

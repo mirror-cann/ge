@@ -18,6 +18,8 @@
     <file_info value="include" copy_type="source" src_path="include/external/exe_graph/runtime" dst_path="include/exe_graph/runtime" install_path="$(TARGET_ENV)/include/exe_graph/runtime" install_type="devel" install_mod="440">
         <file value="eager_op_execution_context.h"/>
         <file value="op_compile_context.h"/>
+        <file value="update_args_context.h"/>
+        <file value="kernel_args.h"/>
     </file_info>
     <file_info value="include" copy_type="source" dst_path="include/ge" install_path="$(TARGET_ENV)/include/ge" install_type="devel" install_mod="440">
         <file value="ge_api_error_codes.h"/>

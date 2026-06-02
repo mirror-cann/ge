@@ -20,13 +20,6 @@
 
 #include "runtime/rt_external_stars.h"
 
-typedef struct tagRtDevBinary {
-  uint32_t magic;
-  uint32_t version;
-  const void *data;
-  uint64_t length;
-} rtDevBinary_t;
-
 typedef struct rtFunctionInfo {
   void *pcAddr;
   uint32_t prefetchCnt;
@@ -63,11 +56,7 @@ RTS_API rtError_t rtKernelLaunchFwk(const char_t *opName, void *args, uint32_t a
 RTS_API rtError_t rtAicpuKernelLaunchWithFlag(const rtKernelLaunchNames_t *launchNames, uint32_t numBlocks,
     const rtArgsEx_t *argsInfo, rtSmDesc_t *smDesc, rtStream_t stm, uint32_t flags);
 
-RTS_API rtError_t rtDevBinaryRegister(const rtDevBinary_t *bin, void **hdl);
-
 RTS_API rtError_t rtDevBinaryUnRegister(void *hdl);
-
-RTS_API rtError_t rtRegisterAllKernel(const rtDevBinary_t *bin, void **hdl);
 
 RTS_API rtError_t rtMetadataRegister(void *hdl, const char_t *metadata);
 

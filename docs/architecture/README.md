@@ -38,6 +38,7 @@
 | [Dump 模块](features/datadump.md) | Dump 模块整体设计：架构分层、RT1.0/RT2.0 适配、HCCL 处理、动态开关 |
 | [外置权重](features/external_weight.md) | FileConstant 特性：权重从 OM 分离存储、编译期 Const→FileConstant 转换、RT V1/V2 加载流程、内存管理、全局权重管理器 |
 | [常量折叠](features/constant_folding.md) | 常量折叠优化：编译期常量表达式求值、维度计算、空张量替换、延迟生效机制、多编译阶段流水线 |
+| [融合 Pattern Pass](features/fusion_pattern_pass.md) | 融合 Pattern Pass 机制：PatternFusionPass / DecomposePass 的匹配、过滤、替换、执行阶段和 Python/C++ 接入关系 |
 | [动态分档](features/dynamic_gear.md) | 动态分档特性：动态 Batch / 动态分辨率 / ND 任意维度三种模式、档位枚举、静态子图生成与运行时分发 |
 | [内存冲突处理](features/memory_conflict.md) | 内存冲突防护体系：语义读写冲突、内存布局冲突、子图地址隔离、Inplace 复用冲突、多流并发管理 |
 | [模型缓存](features/model_cache.md) | 编译结果持久化机制：图编译缓存、JIT 编译缓存、算子模型缓存三级体系、缓存命中与失效策略 |

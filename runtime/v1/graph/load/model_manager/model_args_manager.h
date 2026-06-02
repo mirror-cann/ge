@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -21,6 +21,7 @@
 #include <cmath>
 #include <set>
 #include <string>
+#include <unordered_set>
 #include <thread>
 #include <vector>
 
@@ -60,6 +61,8 @@
 namespace ge {
 constexpr uint32_t kAddrRefreshOpParamOffset = 48U;
 constexpr uint32_t kAlign32B = 32;
+constexpr size_t kArgsReserved = 16UL;  // reserved for workspace and future extension
+constexpr size_t kArgsFieldSize = sizeof(void *);
 struct UpdateModelParamTilingData {
     uint32_t totalActiveBaseTblCnt;
     uint32_t blockCnt;
@@ -104,6 +107,7 @@ class ModelArgsManager {
     uint64_t len;
     uint64_t device_addr;
     void *host_addr;
+    ArgsPlacement placement;  // identifies which placement this h2d_copy_arg belongs to
   };
   struct SqeUpdateArg {
     uint32_t stream_id;
@@ -140,6 +144,20 @@ class ModelArgsManager {
       &std::hex << PtrToValue(host_args_addr) << ", device_args_addr:0x" << &std::hex << device_args_addr;
     return ss.str();
   }
+  };
+
+  struct ExtraArgsPool {
+    std::unique_ptr<uint8_t[]> host_addr;  // host memory
+    uint64_t device_addr;                   // device memory
+    size_t total_size;                      // total size
+    size_t allocated_offset;                // allocated offset
+    ArgsPlacement placement;                // memory placement
+  };
+
+  struct ReservedSegmentInfo {
+    size_t start_offset;      // reserved segment start offset (relative to model_args base address)
+    size_t total_size;        // reserved segment total size (capacity)
+    size_t current_offset;    // reserved segment current allocation offset (next allocation start position)
   };
 
   enum AllocForType : int32_t {
@@ -198,6 +216,16 @@ class ModelArgsManager {
   void GenModelArgsAaddrAfterDistributed();
   Status ReportKernelLaunchOpProfilingData(const uint64_t begin_time) const;
   Status OnTaskDistributed(const size_t task_index, const TaskInfo *task_info);
+
+  // Integrate custom op args into unified args refresh flow
+  // Called after all tasks distributed, handles:
+  // - Same segment: merge with built-in args, verify continuity
+  // - Different segment: register separately, verify continuity
+  Status IntegrateCustomOpArgs();
+
+  // Allocate args buffer memory: reserved first, extra fallback
+  Status AllocateArgsBuffer(size_t size, ArgsPlacement placement, ArgsAllocationResult &result);
+
   void SetAllocationHitCount(const uint64_t fm_hit_count, const uint64_t model_io_hit_count) {
     fm_hit_count_ = fm_hit_count;
     model_io_hit_count_ = model_io_hit_count;
@@ -318,8 +346,29 @@ class ModelArgsManager {
                                          PisToArgs &pls_to_args, const NodePtr &node);
 
   Status GenAllocationToIowPaRemapInfos(TaskInfoPtr task_info, const NodePtr &node, std::vector<IowPaRemapInfo> pa_remap_infos);
-
   void InitForUpdate();
+
+  // AllocateArgsBuffer helper functions
+  Status AllocateFromReservedSegment(size_t size, ArgsPlacement placement, ArgsAllocationResult &result);
+  Status AllocateFromExistingPool(size_t size, ArgsPlacement placement, ArgsAllocationResult &result);
+  Status AllocateFromNewPool(size_t size, ArgsPlacement placement, ArgsAllocationResult &result);
+
+  // IntegrateCustomOpArgs helper functions
+  Status CollectTaskAllocationResults(
+      std::unordered_map<size_t, std::vector<ArgsAllocationResult>> &task_reserved_results,
+      std::unordered_map<size_t, std::vector<ArgsAllocationResult>> &task_extra_results);
+  Status IntegrateReservedH2DCopyDatas();
+  Status IntegrateExtraH2DCopyDatas();
+  UpdateHostArgsArg *FindOrCreateUpdateArg(ArgsUpdateData &update_data, size_t task_index, TaskInfo *task_info);
+  void AppendHostArgs(UpdateHostArgsArg *update_arg, const std::vector<ArgsAllocationResult> &results);
+  Status IntegrateReservedUpdateDatas(
+      const std::unordered_map<size_t, std::vector<ArgsAllocationResult>> &task_reserved_results);
+  Status IntegrateExtraUpdateDatas(
+      const std::unordered_map<size_t, std::vector<ArgsAllocationResult>> &task_extra_results);
+
+  Status UpdateCustomOpHostArgs(uint64_t *active_mem_base_addr);
+  Status RefreshExtraH2DCopyDatas(aclrtStream stm);
+
  private:
   uint32_t update_version_{2};
   std::vector<TaskInfoPtr> *task_list_ptr_{nullptr};
@@ -366,6 +415,25 @@ class ModelArgsManager {
   std::vector<std::multiset<IowPaRemapInfo>> allocation_ids_to_iow_pa_remap_infos_;
   uint64_t pa_remap_match_support_num_{0UL};
   uint64_t pa_remap_match_nosupport_num_{0UL};
+
+  // 地址刷新算子: Map from UpdatePolicy to task_info pointers for ArgsUpdater operators
+  std::unordered_map<UpdatePolicy, std::unordered_set<TaskInfo*>> custom_op_policies_to_task_infos_;
+
+  // 地址刷新算子: Map from task_index to exact UpdatePolicy list for custom operators
+  std::unordered_map<size_t, SmallVector<UpdatePolicy, kUpdatePolicyEnd>> custom_op_task_to_policies_;
+
+  // 是否有需要预留args表的自定义算子(NeedReserveArgsTable为true)
+  bool has_reserve_args_table_ = false;
+
+  // Reserved segment info (by placement)
+  std::array<ReservedSegmentInfo, static_cast<size_t>(ArgsPlacement::kEnd)> reserved_segments_;
+
+  // Extra memory pools
+  std::vector<ExtraArgsPool> extra_args_pools_;
+
+  // Extra segment refresh data (unified kUpdateModelIo policy)
+  std::unordered_map<UpdatePolicy, std::vector<ArgsUpdateData>> extra_policy_to_update_datas_;
+
   //  要刷新地址的device addr的host表
   void *model_args_device_offset_;
   void *model_args_device_index_;

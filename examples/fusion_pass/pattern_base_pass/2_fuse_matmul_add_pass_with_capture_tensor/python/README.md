@@ -90,6 +90,6 @@ Define replacement for FuseMatMulAndAddPass in capture tensor sample
 ```
 使用 `data/torch_forward_2.py`（非 FP32 输入等场景）时，在 `MeetRequirements` 阶段可看到：
 ```text
-Only support Add inputs are fp32
+Only support Add inputs are DT_FLOAT, got input0=DT_FLOAT16, input1=DT_FLOAT16
 ```
 （`Define replacement` 仅在通过 `MeetRequirements` 且生成替换图时出现。）

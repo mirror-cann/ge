@@ -46,9 +46,9 @@ Status CompileContext::Compile(uint32_t graph_id, const ComputeGraphPtr &graph, 
 }
 
 Status CompileContext::Compile(uint32_t graph_id, const ComputeGraphPtr &graph, const std::vector<ge::Tensor> &inputs,
-    uint64_t session_id) {
+    const std::map<std::string, std::string> &options, uint64_t session_id) {
   Graph graph_to_add = GraphUtilsEx::CreateGraphFromComputeGraph(graph);
-  GE_ASSERT_SUCCESS(graph_manager_.AddGraph(graph_id, graph_to_add, {}, domi::GetContext()));
+  GE_ASSERT_SUCCESS(graph_manager_.AddGraph(graph_id, graph_to_add, options, domi::GetContext()));
   GELOGI("[Session: ][AddGraph] success to add slice graph id: %ld, session_id: %llu", graph_id, session_id);
   GE_ASSERT_SUCCESS(graph_manager_.CompileGraph(graph_id, session_id, inputs), "graph id: %ld, session_id: %llu",
     graph_id, session_id);

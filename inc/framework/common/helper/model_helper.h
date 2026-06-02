@@ -144,7 +144,7 @@ class GE_FUNC_VISIBILITY ModelHelper : public ModelSaveHelper {
                                        const GeRootModelPtr &ge_root_model, string &output_file_name,
                                        const GeModelPtr &first_ge_model);
   Status SaveCustomOpsPartition(std::shared_ptr<OmFileSaveHelper> &om_file_save_helper,
-                                    const GeRootModelPtr &ge_root_model);
+                                    const GeRootModelPtr &ge_root_model) const;
   Status CollectUsedCustomOpTypes(const GeRootModelPtr &ge_root_model,
                                   std::set<std::string> &used_custom_op_types) const;
   Status SerializeCustomOpKernel(PortableOp *serializable_op, const std::string &op_type_str,

@@ -1833,6 +1833,61 @@ TEST_F(UtestFusionPassExecutor, PythonPassHolder_ReusedAcrossAdapters) {
   pattern_adapter.reset();
   EXPECT_EQ(g_pattern_fusion_runtime_snapshot.destroy_count, 1);
 }
+/**
+ * Subgraph 的 parent node 被人为悬空（owner_graph 置空）后，RunPasses 在遍历子图时
+ * 必须跳过这种孤儿子图（fusion_pass_executor.cc:80,82），而不是喂给 PatternMatcher。
+ */
+TEST_F(UtestFusionPassExecutor, RunPasses_SkipOrphanSubgraph) {
+  // define pass
+  class TransDataToReluPass : public PatternFusionPass {
+   protected:
+    std::vector<PatternUniqPtr> Patterns() override {
+      std::vector<PatternUniqPtr> patterns;
+      auto pattern_graph = ge::es::EsGraphBuilder("pattern");
+      auto esb_graph = pattern_graph.GetCGraphBuilder();
+      auto data = EsCreateGraphInput(esb_graph, 0);
+      auto shape = EsShape(data, DT_INT64);
+      esb_graph->SetGraphOutput(shape, 0);
+      auto pattern = std::make_unique<Pattern>(std::move(*pattern_graph.BuildAndReset()));
+      patterns.emplace_back(std::move(pattern));
+      return patterns;
+    }
+    bool MeetRequirements(const std::unique_ptr<MatchResult> &match_result) override {
+      return true;
+    }
+    std::unique_ptr<Graph> Replacement(const unique_ptr<MatchResult> &match_result) override {
+      auto replace_graph = ge::es::EsGraphBuilder("replacement");
+      auto esb_graph = replace_graph.GetCGraphBuilder();
+      auto data = EsCreateGraphInput(esb_graph, 0);
+      auto relu = EsRelu(data);
+      esb_graph->SetGraphOutput(relu, 0);
+      return replace_graph.BuildAndReset();
+    }
+  };
+  REG_FUSION_PASS(TransDataToReluPass).Stage(CustomPassStage::kAfterInferShape);
+
+  auto target_compute_graph = gert::ShareGraph::IfGraph2();
+  auto target_graph = GraphUtilsEx::CreateGraphPtrFromComputeGraph(target_compute_graph);
+
+  // 人为制造孤儿子图：把某个子图的 parent node 的 owner_graph 置空。
+  const auto subgraphs = target_compute_graph->GetAllSubgraphs();
+  ASSERT_FALSE(subgraphs.empty());
+  size_t orphaned = 0U;
+  for (const auto &sub : subgraphs) {
+    ASSERT_NE(sub, nullptr);
+    const auto parent_node = sub->GetParentNode();
+    if (parent_node != nullptr) {
+      EXPECT_EQ(parent_node->ClearOwnerGraph(nullptr), GRAPH_SUCCESS);
+      EXPECT_EQ(parent_node->GetOwnerComputeGraph(), nullptr);
+      ++orphaned;
+    }
+  }
+  ASSERT_GT(orphaned, 0U);
+
+  FusionPassExecutor pass_executor;
+  // 顶层图能正常处理，孤儿子图被安全跳过，不应崩溃。
+  EXPECT_EQ(pass_executor.RunPasses(target_compute_graph, CustomPassStage::kAfterInferShape), SUCCESS);
+}
 } // namespace fusion
 } // namespace ge
 

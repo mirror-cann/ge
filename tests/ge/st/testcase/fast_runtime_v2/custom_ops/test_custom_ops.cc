@@ -308,7 +308,7 @@ TEST_F(TestCustomNodeKernel, no_input_custom_op_compile_get_output_tensor_succes
  *   1. 三个接口均返回nullptr
  */
 TEST_F(TestCustomNodeKernel, compile_context_output_getters_return_nullptr_without_compute_node_info) {
-  OpCompileContext ctx;
+  OpCompileContext ctx{};
   EXPECT_EQ(ctx.GetOutputTensor(0U), nullptr);
   EXPECT_EQ(ctx.GetRequiredOutputTensor(0U), nullptr);
   EXPECT_EQ(ctx.GetDynamicOutputTensor(0U, 0U), nullptr);

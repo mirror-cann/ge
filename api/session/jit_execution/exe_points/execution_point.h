@@ -25,9 +25,12 @@ static const int64_t MAX_GUARD_CACHE_COUNT = 10;
 class ExecutionPoint {
  public:
   ExecutionPoint() = delete;
-  ExecutionPoint(int64_t id, const ComputeGraphPtr &sliced_graph, const ComputeGraphPtr &remaining_graph)
-      : sliced_graph_id_(id), sliced_graph_(sliced_graph), remaining_graph_(remaining_graph) {
-  }
+  ExecutionPoint(int64_t id, const ComputeGraphPtr &sliced_graph, const ComputeGraphPtr &remaining_graph,
+                 const std::map<std::string, std::string> &graph_options)
+      : sliced_graph_id_(id),
+        sliced_graph_(sliced_graph),
+        sliced_graph_options_(graph_options),
+        remaining_graph_(remaining_graph) {}
 
   bool IsLast() const {
     return remaining_graph_ == nullptr;
@@ -56,10 +59,14 @@ class ExecutionPoint {
   uint32_t GetSavedCacheNum() const {
     return models_.GetSavedCacheNum();
   }
+  const std::map<std::string, std::string> &GetEpGraphOptions() const {
+   return sliced_graph_options_;
+ }
 
  private:
   int64_t sliced_graph_id_ = 0;
   ComputeGraphPtr sliced_graph_;
+  std::map<std::string, std::string> sliced_graph_options_;
   ComputeGraphPtr remaining_graph_;
   // todo io relation between sliced_graph and remaining graph
 

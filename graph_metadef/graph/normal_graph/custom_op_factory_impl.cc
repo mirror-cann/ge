@@ -67,6 +67,14 @@ bool CustomOpFactoryImpl::IsExistOp(const AscendString &op_type) {
   return custom_op_creators_.find(op_type) != custom_op_creators_.end();
 }
 
+bool CustomOpFactoryImpl::IsAddressRefreshable(const AscendString &op_type) {
+  const auto *custom_op = CreateOrGetCustomOp(op_type);
+  if (custom_op == nullptr) {
+    return false;
+  }
+  return dynamic_cast<const ArgsUpdater*>(custom_op) != nullptr;
+}
+
 graphStatus CustomOpFactoryImpl::LoadCustomOpsPartition(const uint8_t *data, size_t len) {
   if ((data == nullptr) || (len == 0U)) {
     GELOGE(GRAPH_PARAM_INVALID, "[CUSTOM OP] custom ops partition data is invalid, data %p, len %zu.", data, len);

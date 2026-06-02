@@ -31,7 +31,8 @@ class ExecutionPointUtil {
 
   // Restore GEPs in EP
   Status RestoreExecutionPoint(const std::string root_dir, const std::string user_graph_key,
-		               const SliceGraphInfo &slice_graph_info, std::unique_ptr<ExecutionPoint> &exec_point_ptr);
+ 		               const SliceGraphInfo &slice_graph_info, const std::map<std::string, std::string> &ep_options,
+                               std::unique_ptr<ExecutionPoint> &exec_point_ptr);
 
   // Save pb files and gep_list.json
   Status SaveExecutionPoint(const std::string root_dir, const std::string user_graph_key,

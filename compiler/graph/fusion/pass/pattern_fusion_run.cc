@@ -52,7 +52,10 @@ Status RunPatternFusion(GraphPtr &graph,
       GE_ASSERT_NOTNULL(boundary);
       const auto replacement_graph = replacement(match_result);
       GE_ASSERT_NOTNULL(replacement_graph);
-      (void)FusionUtils::MarkPassNameOnReplacementNodes(replacement_graph, boundary, pass_name);
+      if (FusionUtils::MarkPassNameOnReplacementNodes(replacement_graph, boundary, pass_name) != SUCCESS) {
+        GELOGW("Failed to mark pass name[%s] on replacement for match[%s], origin pass tracking may be incomplete.",
+               pass_name.c_str(), match_result->ToAscendString().GetString());
+      }
       if (SubgraphRewriter::Replace(*boundary, *replacement_graph) != SUCCESS) {
         AscendString replacement_name;
         GE_ASSERT_GRAPH_SUCCESS(replacement_graph->GetName(replacement_name));
@@ -60,8 +63,6 @@ Status RunPatternFusion(GraphPtr &graph,
                replacement_name.GetString());
         return FAILED;
       }
-      GE_ASSERT_SUCCESS(
-          FusionUtils::UpdateToCycleDetector(GraphUtilsEx::GetComputeGraph(*graph), match_result, replacement_graph));
       if (!is_changed) {
         is_changed = true;
       }
@@ -76,6 +77,16 @@ Status RunPatternFusion(GraphPtr &graph,
                                        pass_name, match_times, effect_times);
     GELOGD("GraphId[%d], GraphFusionPass[%s]: pattern=%s, matched_times=%d, effected_times=%d",
            compute_graph->GetGraphID(), pass_name.c_str(), pattern_name.GetString(), match_times, effect_times);
+  }
+  // 事后兜底（仅 DEBUG 日志级别）：前置 WillCauseCycleIfFuse 是局部判断，万一漏网，这里复用
+  // TopologicalSorting 做全图判环（有环返回非 success），把成环的融合就地拦下并定位到 pass，
+  // 避免带环图流到下游 pass 触发远端 core。release 下不执行，无开销。
+  if (is_changed && IsLogEnable(GE_MODULE_NAME, DLOG_DEBUG)) {
+    const auto compute_graph = GraphUtilsEx::GetComputeGraph(*graph);
+    if ((compute_graph != nullptr) && (compute_graph->TopologicalSorting() != GRAPH_SUCCESS)) {
+      GELOGE(FAILED, "[CycleGuard] Pass[%s] produced a cyclic graph after fusion.", pass_name.c_str());
+      return FAILED;
+    }
   }
   return is_changed ? SUCCESS : NOT_CHANGED;
 }

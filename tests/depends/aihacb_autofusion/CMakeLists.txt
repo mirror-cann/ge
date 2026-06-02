@@ -37,6 +37,10 @@ target_compile_options(aihacb_autofusion_stub PRIVATE
         -include ${CMAKE_CURRENT_SOURCE_DIR}/src/fix_af_attr_store.h
         )
 
+target_link_options(aihacb_autofusion_stub PRIVATE
+        $<$<BOOL:${ENABLE_GCOV}>:--coverage>
+        )
+        
 target_include_directories(aihacb_autofusion_stub BEFORE PRIVATE
         ${AIR_CODE_DIR}/inc
         ${AIR_CODE_DIR}/inc/graph_metadef

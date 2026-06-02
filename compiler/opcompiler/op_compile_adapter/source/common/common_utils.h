@@ -58,6 +58,27 @@ std::string GetMapKeyToString(const std::map<K, V> &value)
     return oss.str();
 }
 
+template<typename K, typename V>
+std::string GetMapKeyToStringWithOr(const std::map<K, V> &value)
+{
+    std::ostringstream oss;
+    bool isFirst = true;
+    size_t index = 0;
+    size_t size = value.size();
+    for (const auto &val : value) {
+        if (isFirst) {
+            isFirst = false;
+        } else if (index == size - 1) {
+            oss << " or ";
+        } else {
+            oss << ", ";
+        }
+        oss << val.first;
+        index++;
+    }
+    return oss.str();
+}
+
 int64_t GetMicroSecondTime();
 
 std::string GetCurrAbsPath();
