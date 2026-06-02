@@ -13,7 +13,8 @@ include(cmake/fetch_cann_cmake.cmake)
 project(CANN-GRAPH-ENGINE)
 
 init_cann_project()
-
+set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ${RULE_LAUNCH})
+set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ${RULE_LAUNCH})
 set(BASE_DIR ${CMAKE_CURRENT_LIST_DIR})
 
 include(cmake/function.cmake)
