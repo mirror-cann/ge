@@ -11,7 +11,7 @@
 #ifndef AUTOFUSE_POST_PROCESS_SCHEDULER_ADAPTER_ASC_BACKEND_SCHEDULER_ADAPTER_H
 #define AUTOFUSE_POST_PROCESS_SCHEDULER_ADAPTER_ASC_BACKEND_SCHEDULER_ADAPTER_H
 
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 #include "graph/compute_graph.h"
 #include "adaption_improve_precision.h"
 

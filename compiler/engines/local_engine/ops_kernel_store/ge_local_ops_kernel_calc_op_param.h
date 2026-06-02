@@ -13,7 +13,7 @@
 
 #include "ge/ge_api_error_codes.h"
 #include "graph/node.h"
-#include "external/ge_common/ge_api_types.h"
+#include "external/ge_common/ge_common_api_types.h"
 
 namespace ge {
 namespace ge_local {

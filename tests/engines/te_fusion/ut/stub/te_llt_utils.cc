@@ -15,7 +15,7 @@
 #undef protected public
 #undef private public
 
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 #include "tensor_engine/fusion_api.h"
 #include "Python_stub.h"
 

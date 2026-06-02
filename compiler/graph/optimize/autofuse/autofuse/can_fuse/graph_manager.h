@@ -16,7 +16,7 @@
 #include <utility>
 #include <vector>
 #include <memory>
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 #include "graph/compute_graph.h"
 
 namespace ge {

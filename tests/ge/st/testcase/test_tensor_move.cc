@@ -27,7 +27,7 @@
 #include "easy_graph/builder/graph_dsl.h"
 #include "ge_graph_dsl/graph_dsl.h"
 #include "graph/operator_reg.h"
-#include "graph_metadef/external/ge_common/ge_api_types.h"
+#include "graph_metadef/external/ge_common/ge_common_api_types.h"
 #include "api/gelib/gelib.h"
 #include "ge/ge_api.h"
 #include "ge_graph_dsl/assert/graph_assert.h"

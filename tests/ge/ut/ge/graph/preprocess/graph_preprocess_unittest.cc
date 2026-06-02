@@ -33,7 +33,7 @@
 #include "macro_utils/dt_public_unscope.h"
 #include "common/share_graph.h"
 #include "graph/ge_local_context.h"
-#include "external/ge_common/ge_api_types.h"
+#include "external/ge_common/ge_common_api_types.h"
 
 using namespace std;
 namespace ge {

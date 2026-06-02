@@ -11,7 +11,7 @@
 #ifndef INC_EXTERNAL_GE_GRAPH_FUSION_FUSION_BASE_PASS_H
 #define INC_EXTERNAL_GE_GRAPH_FUSION_FUSION_BASE_PASS_H
 #include "graph/graph.h"
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 #include "register/register_custom_pass.h"
 
 namespace ge {

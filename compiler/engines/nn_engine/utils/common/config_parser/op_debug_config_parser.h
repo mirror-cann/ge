@@ -19,7 +19,7 @@
 #include "common/fe_type_utils.h"
 #include "common/platform_utils.h"
 #include "common/fe_report_error.h"
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 #include "common/aicore_util_constants.h"
 #include "framework/common/ge_types.h"
 

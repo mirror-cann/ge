@@ -16,7 +16,7 @@
 #include "register/graph_optimizer/fusion_common/unknown_shape_utils.h"
 #include "transfer_range_according_to_format.h"
 #include "common/string_utils.h"
-#include "external/ge_common/ge_api_types.h"
+#include "external/ge_common/ge_common_api_types.h"
 
 namespace fe {
 std::string ShapeRangeToStr(const std::vector<std::pair<int64_t, int64_t>> &shape_range) {

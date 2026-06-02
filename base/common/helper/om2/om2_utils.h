@@ -14,7 +14,7 @@
 #include <string>
 #include "common/opskernel/ops_kernel_info_types.h"
 #include "common/om2/codegen/om2_codegen_types.h"
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 
 namespace ge {
 class Om2Utils {

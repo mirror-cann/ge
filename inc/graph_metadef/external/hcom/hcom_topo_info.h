@@ -13,7 +13,7 @@
 
 #include <unordered_map>
 #include <mutex>
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 
 namespace ge {
 static constexpr uint32_t COMM_MESH = 0b1U;

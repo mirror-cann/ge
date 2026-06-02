@@ -13,7 +13,7 @@
 
 #include <string>
 #include <mutex>
-#include "external/ge_common/ge_api_types.h"
+#include "external/ge_common/ge_common_api_types.h"
 #include "framework/common/debug/log.h"
 #include "ge/ge_api_error_codes.h"
 #include "common/config/configurations.h"

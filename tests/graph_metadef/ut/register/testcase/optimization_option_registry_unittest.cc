@@ -11,7 +11,7 @@
 #include <gtest/gtest.h>
 
 #include "register/optimization_option_registry.h"
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 #include "framework/common/debug/ge_log.h"
 #include "common/ge_common/string_util.h"
 

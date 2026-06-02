@@ -22,7 +22,7 @@
 #include "common/topo_checker.h"
 #include "utils/autofuse_utils.h"
 #include "ge_graph_dsl/graph_dsl.h"
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 #include "graph/compute_graph.h"
 #include "common/plugin/ge_make_unique_util.h"
 #include "graph/ge_context.h"

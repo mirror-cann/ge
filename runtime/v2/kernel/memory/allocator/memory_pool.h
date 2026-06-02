@@ -12,7 +12,7 @@
 #define AIR_CXX_MEMORY_POOL_H
 
 #include "ge/ge_allocator.h"
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 #include "kernel/memory/type/mem_size.h"
 #include "kernel/memory/device/device_allocator.h"
 

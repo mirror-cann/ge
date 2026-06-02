@@ -16,7 +16,7 @@
 #include <vector>
 
 #include "ge_common/ge_api_error_codes.h"
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 #include "ge/ge_data_flow_api.h"
 #include "flow_graph/data_flow.h"
 

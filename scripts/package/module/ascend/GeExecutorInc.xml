@@ -28,6 +28,7 @@
     </file_info>
     <file_info value="include" copy_type="source" dst_path="include/external/ge_common" install_path="$(TARGET_ENV)/include/external/ge_common" install_type="devel" install_mod="440">
         <file value="ge_api_types.h"/>
+        <file value="ge_common_api_types.h"/>
     </file_info>
     <file_info value="include" copy_type="source" dst_path="include/acl" install_path="$(TARGET_ENV)/include/acl" install_type="devel" install_mod="440">
         <file value="acl_mdl.h"/>

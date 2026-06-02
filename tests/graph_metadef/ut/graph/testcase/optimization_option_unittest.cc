@@ -13,7 +13,7 @@
 #include "graph/option/optimization_option.h"
 #include "register/optimization_option_registry.h"
 #include "register/pass_option_utils.h"
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 #include "framework/common/debug/ge_log.h"
 #include "graph/ge_local_context.h"
 

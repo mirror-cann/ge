@@ -29,6 +29,7 @@ ext_modules = [
             workspace_base_dir + "/wrapper",
             workspace_base_dir + "/../..",
             workspace_base_dir + "/../../inc/external",
+            workspace_base_dir + "/../../inc/graph_metadef",
             workspace_base_dir + "/../../inc/graph_metadef/external",
             workspace_base_dir + "/../../inc/parser/external",
             ascend_install_path + "/include",
@@ -42,6 +43,7 @@ ext_modules = [
         include_dirs=[
             "./",
             workspace_base_dir + "/wrapper",
+            workspace_base_dir + "/../../inc/graph_metadef",
             workspace_base_dir + "/../../inc/graph_metadef/external",
             ascend_install_path + "/include"
         ],
@@ -56,6 +58,7 @@ ext_modules = [
         include_dirs=[
             "./",
             workspace_base_dir + "/wrapper",
+            workspace_base_dir + "/../../inc/graph_metadef",
             workspace_base_dir + "/../../inc/graph_metadef/external",
             ascend_install_path + "/pkg_inc/base",
             ascend_install_path + "/include"

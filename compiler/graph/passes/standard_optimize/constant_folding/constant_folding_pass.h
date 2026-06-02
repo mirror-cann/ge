@@ -15,7 +15,7 @@
 #include <vector>
 
 #include "graph/passes/standard_optimize/constant_folding/potential_folding_pass.h"
-#include "external/ge_common/ge_api_types.h"
+#include "external/ge_common/ge_common_api_types.h"
 
 namespace ge {
 class ConstantFoldingPass : public PotentialFoldingPass {

@@ -13,7 +13,7 @@
 #include <unordered_map>
 #include <string>
 #include "common/opskernel/ops_kernel_info_types.h"
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 #include "graph/op_desc.h"
 #include "framework/common/taskdown_common.h"
 #include "fwk_adpt_struct.h"

@@ -12,7 +12,7 @@
 #ifndef AUTOFUSE_AUTOFUSER_H
 #define AUTOFUSE_AUTOFUSER_H
 
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 #include "graph/compute_graph.h"
 #include "ascir.h"
 #include "common/autofuse_base_type.h"

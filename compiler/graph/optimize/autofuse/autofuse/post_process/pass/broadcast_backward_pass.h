@@ -10,7 +10,7 @@
 
 #ifndef AUTOFUSE_POST_PROCESS_PASS_BROADCAST_BACKWARD_PASS_H
 #define AUTOFUSE_POST_PROCESS_PASS_BROADCAST_BACKWARD_PASS_H
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 #include "graph/compute_graph.h"
 
 namespace ge {

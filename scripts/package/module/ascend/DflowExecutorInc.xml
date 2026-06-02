@@ -12,6 +12,7 @@
         <file value="meta_params.h"/>
         <file value="out_options.h"/>
         <file value="attr_value.h"/>
+        <file value="dflow_attr_value.h"/>
         <file value="flow_func_defines.h"/>
         <file value="flow_msg.h"/>
         <file value="meta_context.h"/>

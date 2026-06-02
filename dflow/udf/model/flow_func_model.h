@@ -16,7 +16,7 @@
 #include <unordered_set>
 #include <memory>
 #include <map>
-#include "flow_func/attr_value.h"
+#include "flow_func/dflow_attr_value.h"
 #include "common/common_define.h"
 #include "ff_deployer.pb.h"
 #include "ff_udf_def.pb.h"

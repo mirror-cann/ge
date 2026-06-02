@@ -11,7 +11,7 @@
 #ifndef AUTOFUSE_POST_PROCESS_SCHEDULER_ADAPTER_TORCH_ADAPTION_FALLBACK_LOAD_H
 #define AUTOFUSE_POST_PROCESS_SCHEDULER_ADAPTER_TORCH_ADAPTION_FALLBACK_LOAD_H
 
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 #include "graph/compute_graph.h"
 #include "post_process/post_process_util.h"
 #include "adaption_fallback_load.h"

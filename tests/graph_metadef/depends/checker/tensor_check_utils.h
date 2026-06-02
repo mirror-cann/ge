@@ -12,7 +12,7 @@
 #define TESTS_GRAPH_MATEDEF_UT_GRAPH_COMMON_TENSOR_CHECK_UTILS_H
 
 #include "ge_tensor.h"
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 #include "runtime/tensor.h"
 
 namespace ge {

@@ -11,7 +11,7 @@
 #ifndef AIR_CXX_COMPILER_GRAPH_OPTIMIZE_AUTOFUSE_UTILS_AUTOFUSE_UTILS_H_
 #define AIR_CXX_COMPILER_GRAPH_OPTIMIZE_AUTOFUSE_UTILS_AUTOFUSE_UTILS_H_
 #include <sstream>
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 #include "graph/symbolizer/symbolic.h"
 #include "graph/utils/op_type_utils.h"
 #include "graph/node.h"

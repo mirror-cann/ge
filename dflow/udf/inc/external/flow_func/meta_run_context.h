@@ -13,7 +13,7 @@
 #include <vector>
 #include <memory>
 #include "flow_func_defines.h"
-#include "attr_value.h"
+#include "dflow_attr_value.h"
 #include "flow_msg.h"
 #include "out_options.h"
 

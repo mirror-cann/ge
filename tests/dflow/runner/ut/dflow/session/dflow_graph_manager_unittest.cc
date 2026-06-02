@@ -13,7 +13,7 @@
 #include "common/ge_common/ge_types.h"
 #include "graph/utils/graph_utils_ex.h"
 #include "ge/graph/ops_stub.h"
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 #include "ge/ge_api.h"
 
 namespace ge {

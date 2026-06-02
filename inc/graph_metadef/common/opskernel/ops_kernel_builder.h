@@ -15,7 +15,7 @@
 #include "aicpu_engine_struct.h"
 #include "common/opskernel/ops_kernel_info_types.h"
 #include "graph/node.h"
-#include "external/ge_common/ge_api_types.h"
+#include "external/ge_common/ge_common_api_types.h"
 #include "proto/task.pb.h"
 
 namespace ge {

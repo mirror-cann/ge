@@ -10,7 +10,7 @@
 
 #include <memory>
 #include "graph/graph.h"
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 
 #ifndef INC_EXTERNAL_GRAPH_ENGINE_GE_UTILS_H
 #define INC_EXTERNAL_GRAPH_ENGINE_GE_UTILS_H

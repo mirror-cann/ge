@@ -261,6 +261,7 @@ if("ge-executor" IN_LIST BUILD_COMPONENT)
     )
 
     install(FILES ${CMAKE_SOURCE_DIR}/inc/graph_metadef/external/ge_common/ge_api_types.h
+                  ${CMAKE_SOURCE_DIR}/inc/graph_metadef/external/ge_common/ge_common_api_types.h
             DESTINATION ${ARCH_LINUX_PATH}/include/external/ge_common COMPONENT ge-executor
     )
 
@@ -342,6 +343,7 @@ if("dflow-executor" IN_LIST BUILD_COMPONENT)
             ${CMAKE_SOURCE_DIR}/dflow/udf/inc/external/flow_func/meta_params.h
             ${CMAKE_SOURCE_DIR}/dflow/udf/inc/external/flow_func/out_options.h
             ${CMAKE_SOURCE_DIR}/dflow/udf/inc/external/flow_func/attr_value.h
+            ${CMAKE_SOURCE_DIR}/dflow/udf/inc/external/flow_func/dflow_attr_value.h
             ${CMAKE_SOURCE_DIR}/dflow/udf/inc/external/flow_func/flow_func_defines.h
             ${CMAKE_SOURCE_DIR}/dflow/udf/inc/external/flow_func/flow_msg.h
             ${CMAKE_SOURCE_DIR}/dflow/udf/inc/external/flow_func/meta_context.h

@@ -11,7 +11,7 @@
 #ifndef DFLOW_EXECUTOR_FLOW_MODEL_MANAGER_H
 #define DFLOW_EXECUTOR_FLOW_MODEL_MANAGER_H
 
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 #include "graph/manager/graph_manager_utils.h"
 #include "dflow/inc/data_flow/model/flow_model.h"
 #include "dflow/executor/heterogeneous_model_executor.h"
