@@ -8,9 +8,6 @@
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
 cmake_minimum_required(VERSION 3.14)
-if (ENABLE_OPEN_SRC)
-    find_cann_package(c_base MODULE REQUIRED)
-endif()
 
 set(INSTALL_LIBRARY_DIR lib)
 set(EXECUTOR_SRC_LIST
@@ -84,11 +81,9 @@ PUBLIC
     slog_headers
 )
 
-if (NOT ENABLE_OPEN_SRC)
-    target_link_libraries(ge_executor_c_static PRIVATE
-        c_mmpa_headers
-    )
-endif()
+target_link_libraries(ge_executor_c_static PRIVATE
+ 	c_mmpa_headers
+)
 
 target_link_options(ge_executor_c_static PRIVATE
     -Wl,-Bsymbolic
@@ -103,24 +98,22 @@ install(TARGETS  ge_executor_c_static ${INSTALL_OPTIONAL}
 )
 
 set(PKG_NAME air_c_exec)
-if (NOT ENABLE_OPEN_SRC)
-    install(TARGETS ge_executor_c_static
-            EXPORT ${PKG_NAME}-targets
-            ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR}/c/ge_exec ${INSTALL_OPTIONAL}
-            )
-    if (PACKAGE STREQUAL "opensdk")
-        install(EXPORT ${PKG_NAME}-targets DESTINATION ${INSTALL_CONFIG_DIR}
-            FILE ${PKG_NAME}-targets.cmake EXCLUDE_FROM_ALL
-        )
-        configure_package_config_file(${TOP_DIR}/cmake/config/pkg_config_template.cmake.in
-            ${CMAKE_CURRENT_BINARY_DIR}/${PKG_NAME}-config.cmake
-            INSTALL_DESTINATION ${INSTALL_CONFIG_DIR}
-            PATH_VARS INSTALL_BASE_DIR INSTALL_INCLUDE_DIR INSTALL_LIBRARY_DIR INSTALL_RUNTIME_DIR INSTALL_CONFIG_DIR
-            INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX}
-        )
-        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PKG_NAME}-config.cmake
-            DESTINATION ${INSTALL_CONFIG_DIR} EXCLUDE_FROM_ALL
-        )
-    endif()
+install(TARGETS ge_executor_c_static
+ 	EXPORT ${PKG_NAME}-targets
+ 	ARCHIVE DESTINATION ${INSTALL_LIBRARY_DIR}/c/ge_exec OPTIONAL COMPONENT opensdk
+)
+if (PACKAGE STREQUAL "opensdk")
+ 	install(EXPORT ${PKG_NAME}-targets DESTINATION ${INSTALL_CONFIG_DIR}
+ 	    FILE ${PKG_NAME}-targets.cmake COMPONENT opensdk EXCLUDE_FROM_ALL
+    )
+    configure_package_config_file(${TOP_DIR}/cmake/config/pkg_config_template.cmake.in
+        ${CMAKE_CURRENT_BINARY_DIR}/${PKG_NAME}-config.cmake
+        INSTALL_DESTINATION ${INSTALL_CONFIG_DIR}
+        PATH_VARS INSTALL_BASE_DIR INSTALL_INCLUDE_DIR INSTALL_LIBRARY_DIR INSTALL_RUNTIME_DIR INSTALL_CONFIG_DIR
+        INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX}
+    )
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PKG_NAME}-config.cmake
+        DESTINATION ${INSTALL_CONFIG_DIR} COMPONENT opensdk EXCLUDE_FROM_ALL
+    )
 endif()
 unset(PKG_NAME)
