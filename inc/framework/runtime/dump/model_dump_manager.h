@@ -81,6 +81,8 @@ class VISIBILITY_EXPORT ModelDumpManager {
   // ========================================================================
   Status AddOm2TaskInfo(const Om2TaskInfo& task_info);
 
+  Status PreprocessOm2TaskInfo(const Om2TaskInfo& task_info);
+
   Status IsDataDumpEnabled(const char* op_name, uint8_t* is_data_dump) const;
 
   // ========================================================================

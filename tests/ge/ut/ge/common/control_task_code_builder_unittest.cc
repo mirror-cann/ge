@@ -213,6 +213,38 @@ struct Om2TaskIoEntry {
   uint64_t offset;
 };
 
+enum Om2L0ArgKind {
+    OM2_L0_ARG_INPUT = 0,
+    OM2_L0_ARG_OUTPUT = 1,
+    OM2_L0_ARG_WORKSPACE = 2,
+    OM2_L0_ARG_TILING = 3,
+    OM2_L0_ARG_SHAPE_INFO = 4,
+    OM2_L0_ARG_LEVEL1_DESC = 5,
+    OM2_L0_ARG_PLACEHOLDER = 6,
+    OM2_L0_ARG_CUSTOM_VALUE = 7,
+    OM2_L0_ARG_FFTS_ADDR = 8,
+    OM2_L0_ARG_EVENT_ADDR = 9,
+    OM2_L0_ARG_OVERFLOW_ADDR = 10,
+    OM2_L0_ARG_EMPTY_ADDR = 11
+};
+
+struct Om2L0ArgSlotInfo {
+    uint32_t kind;
+    uint32_t flags;
+    uint64_t args_offset;
+    uint64_t value;
+    uint32_t related_index;
+    uint32_t event_id;
+    uint64_t level1_target_offset;
+};
+
+struct Om2L0TaskRawInfo {
+    uint32_t version;
+    uint32_t need_assert_or_printf;
+    uint64_t arg_num;
+    const struct Om2L0ArgSlotInfo* args;
+};
+
 struct Om2TaskInfo {
   const char* op_name;
   const char* op_type;
@@ -233,13 +265,20 @@ struct Om2TaskInfo {
   uint32_t task_type;
   void* stream;
   uint32_t is_raw_address;
+  const struct Om2L0TaskRawInfo* l0_exception_dump_info;
 };
 
-__attribute__((weak)) int32_t ReportTaskInfo(uint32_t model_id,
-                                              void* instance_handle,
-                                              const struct Om2TaskInfo* task_info,
-                                              const void* extended_attrs,
-                                              size_t extended_attrs_size);
+__attribute__((weak)) int32_t ReportDfxTaskPreprocess(uint32_t model_id,
+                                                       void* instance_handle,
+                                                       const struct Om2TaskInfo* task_info,
+                                                       const void* extended_attrs,
+                                                       size_t extended_attrs_size);
+
+__attribute__((weak)) int32_t ReportDfxTaskPostprocess(uint32_t model_id,
+                                                        void* instance_handle,
+                                                        const struct Om2TaskInfo* task_info,
+                                                        const void* extended_attrs,
+                                                        size_t extended_attrs_size);
 
 __attribute__((weak)) int32_t IsDataDumpEnabled(uint32_t model_id,
                                                       void* instance_handle,

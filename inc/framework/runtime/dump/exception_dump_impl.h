@@ -33,6 +33,8 @@ class ExceptionDumpImpl {
 
   Status SaveOpInfo(const Om2TaskInfo& task_info);
 
+  Status ReportL0ExceptionDumpInfo(const Om2TaskInfo& task_info) const;
+
   bool GetOpDescInfo(const OpDescInfoId& op_id, OpDescInfo& op_info) const;
 
   void Clear();

@@ -39,6 +39,7 @@ class Om2CodegenUtils {
   static bool IsNeedAtomicCleanTask(const OpDescPtr &op_desc);
   static bool IsSeparatelyCleanTask(const OpDescPtr &op_desc, const std::string &kernel_name);
   static bool OpNeedPrint(const OpDescPtr &op_desc);
+  static bool OpNeedAssertOrPrintf(const OpDescPtr &op_desc);
   static bool IsSoftSyncOp(const OpDescPtr &op_desc);
   static bool IsBlockingAicpuOp(const OpDescPtr &op_desc);
   static int32_t TopicTypeToRtsFlag(const int32_t topic_type);
