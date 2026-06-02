@@ -198,7 +198,7 @@ TEST_F(ZipArchiveUt, TestRaiiZipArchive_Ok_ExtractToMemNoCompression) {
       {"example1/demo1.txt", data_str1},
       {"example2/demo2.txt", data_str1},
   };
-  CreateTestZipArchive(archive_path, entries);
+  CreateTestZipArchive(archive_path, entries, false);
   // 测试从内存读取与解压功能
   {
     const auto file_buf = ReadFileToVector(archive_path);
@@ -212,8 +212,75 @@ TEST_F(ZipArchiveUt, TestRaiiZipArchive_Ok_ExtractToMemNoCompression) {
       ASSERT_NE(buff_data, nullptr);
       EXPECT_EQ(buff_size, data_str1.size());
       ASSERT_TRUE(std::memcmp(buff_data.get(), data_str1.data(), buff_size) == 0);
+      ASSERT_GE(buff_data.get(), file_buf.data());
+      ASSERT_LT(buff_data.get(), file_buf.data() + file_buf.size());
     }
   }
+}
+
+TEST_F(ZipArchiveUt, TestRaiiZipArchive_Ok_ExtractToMemEmptyNoCompressionAfterListFiles) {
+  const std::string archive_path = PathUtils::Join({test_work_dir, "__test.zip"});
+  const std::vector<std::pair<std::string, std::string>> entries = {
+      {"empty.bin", ""},
+  };
+  CreateTestZipArchive(archive_path, entries, false);
+
+  const auto file_buf = ReadFileToVector(archive_path);
+  RAIIZipArchive archive(file_buf.data(), file_buf.size());
+  ASSERT_TRUE(archive.IsGood());
+  const auto file_names = archive.ListFiles();
+  ASSERT_EQ(file_names.size(), 1);
+
+  size_t buff_size = 1UL;
+  const auto buff_data = archive.ExtractToMem(file_names[0], buff_size);
+  ASSERT_NE(buff_data, nullptr);
+  EXPECT_EQ(buff_size, 0U);
+}
+
+TEST_F(ZipArchiveUt, TestRaiiZipArchive_Ok_ExtractManyNoCompressionEntriesAfterListFiles) {
+  const std::string archive_path = PathUtils::Join({test_work_dir, "__test.zip"});
+  constexpr size_t kEntryCount = 1500U;
+  std::vector<std::pair<std::string, std::string>> entries;
+  entries.reserve(kEntryCount);
+  for (size_t i = 0U; i < kEntryCount; ++i) {
+    entries.emplace_back("kernels/kernel_" + std::to_string(i) + ".o",
+                         "kernel_bin_payload_" + std::to_string(i));
+  }
+  CreateTestZipArchive(archive_path, entries, false);
+
+  const auto file_buf = ReadFileToVector(archive_path);
+  RAIIZipArchive archive(file_buf.data(), file_buf.size());
+  ASSERT_TRUE(archive.IsGood());
+  const auto file_names = archive.ListFiles();
+  ASSERT_EQ(file_names.size(), entries.size());
+
+  for (size_t i = file_names.size(); i > 0U; --i) {
+    const size_t index = i - 1U;
+    size_t buff_size = 0UL;
+    const auto buff_data = archive.ExtractToMem(file_names[index], buff_size);
+    ASSERT_NE(buff_data, nullptr);
+    ASSERT_EQ(buff_size, entries[index].second.size());
+    ASSERT_EQ(std::memcmp(buff_data.get(), entries[index].second.data(), buff_size), 0);
+  }
+}
+
+TEST_F(ZipArchiveUt, TestRaiiZipArchive_Ok_ExtractToMemNoCompressionWithoutListFiles) {
+  const std::string archive_path = PathUtils::Join({test_work_dir, "__test.zip"});
+  const std::vector<std::pair<std::string, std::string>> entries = {
+      {"kernels/kernel_0.o", "kernel_bin_payload_0"},
+      {"kernels/kernel_1.o", "kernel_bin_payload_1"},
+  };
+  CreateTestZipArchive(archive_path, entries, false);
+
+  const auto file_buf = ReadFileToVector(archive_path);
+  RAIIZipArchive archive(file_buf.data(), file_buf.size());
+  ASSERT_TRUE(archive.IsGood());
+
+  size_t buff_size = 0UL;
+  const auto buff_data = archive.ExtractToMem(entries[1].first, buff_size);
+  ASSERT_NE(buff_data, nullptr);
+  ASSERT_EQ(buff_size, entries[1].second.size());
+  ASSERT_EQ(std::memcmp(buff_data.get(), entries[1].second.data(), buff_size), 0);
 }
 
 TEST_F(ZipArchiveUt, TestRaiiZipArchive_Ok_ExtractToMemNoCompressionLargeFile) {
