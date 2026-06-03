@@ -116,6 +116,10 @@ target_link_options(hcom_gradtune_opskernel_builder PRIVATE
 
 #头文件搜索路径
 if(BUILD_OPEN_PROJECT)
+    generate_cann_stub_library(hcomm_stub
+        OUTPUT_NAME hcomm
+    )
+
     #hcom_graph_adaptor头文件
     target_include_directories(hcom_graph_adaptor PRIVATE
         ${CMAKE_BINARY_DIR}/proto/hcom_graph_adaptor_proto
@@ -178,6 +182,7 @@ if(BUILD_OPEN_PROJECT)
 
     #hcom_graph_adaptor依赖的so,链接选项
     target_link_libraries(hcom_graph_adaptor PRIVATE
+        hccl_headers
         -Wl,--no-as-needed
         adump_headers
         c_sec
@@ -190,7 +195,7 @@ if(BUILD_OPEN_PROJECT)
         gert
         platform
         error_manager
-        hcomm
+        hcomm_stub
         -Wl,--as-needed
         ascend_dump
         unified_dlog
@@ -200,6 +205,7 @@ if(BUILD_OPEN_PROJECT)
 
     #hcom_executor依赖的so,链接选项
     target_link_libraries(hcom_executor PRIVATE
+        hccl_headers
         -Wl,--no-as-needed
         adump_headers
         c_sec
@@ -212,7 +218,7 @@ if(BUILD_OPEN_PROJECT)
         gert
         platform
         error_manager
-        hcomm
+        hcomm_stub
         -Wl,--as-needed
         -lpthread
         json
@@ -220,6 +226,7 @@ if(BUILD_OPEN_PROJECT)
 
     #hcom_opskernel_builder依赖的so,链接选项
     target_link_libraries(hcom_opskernel_builder PRIVATE
+        hccl_headers
         -Wl,--no-as-needed
         adump_headers
         c_sec
@@ -232,7 +239,7 @@ if(BUILD_OPEN_PROJECT)
         gert
         platform
         error_manager
-        hcomm
+        hcomm_stub
         -Wl,--as-needed
         -lpthread
         json
@@ -240,6 +247,7 @@ if(BUILD_OPEN_PROJECT)
 
     #hcom_gradtune_opskernel_builder依赖的so,链接选项
     target_link_libraries(hcom_gradtune_opskernel_builder PRIVATE
+        hccl_headers
         -Wl,--no-as-needed
         adump_headers
         c_sec
@@ -252,7 +260,7 @@ if(BUILD_OPEN_PROJECT)
         gert
         platform
         error_manager
-        hcomm
+        hcomm_stub
         -Wl,--as-needed
         -lpthread
         json

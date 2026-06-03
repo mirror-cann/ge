@@ -61,6 +61,7 @@ target_link_libraries(cmd_flag_info_static PRIVATE
 		mmpa_headers
 		static_mmpa
 		metadef_headers
+		runtime_headers
 		-lrt
 		-ldl
 		)

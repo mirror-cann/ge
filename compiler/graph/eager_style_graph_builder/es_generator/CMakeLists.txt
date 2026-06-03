@@ -27,6 +27,7 @@ target_link_libraries(geir_collector PRIVATE
         c_sec
         slog_headers
         mmpa_headers
+        runtime_headers
         $<$<NOT:$<STREQUAL:${TARGET_SYSTEM_NAME},Android>>:-lrt>
         -ldl
         )

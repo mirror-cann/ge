@@ -597,6 +597,7 @@ target_link_libraries(hybrid_executor_stub PRIVATE
     mmpa_headers
     runtime_headers
     metadef_headers
+    error_manager_headers
     $<$<TARGET_EXISTS:cce_headers>:cce_headers>
     $<$<TARGET_EXISTS:aicpu_headers>:aicpu_headers>
     c_sec_headers

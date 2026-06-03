@@ -31,6 +31,8 @@ set(GE_API_C_WRAPPER_COMMON_LINK_LIBS
         slog_headers
         mmpa_headers
         metadef_headers
+        error_manager_headers
+        runtime_headers
         c_sec
         graph
         graph_base

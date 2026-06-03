@@ -74,6 +74,7 @@ if (ENABLE_OPEN_SRC)
                mmpa_headers
                metadef_headers
                error_manager
+               $<$<TARGET_EXISTS:autofuse_headers>:autofuse_headers>
                ascend_protobuf
                c_sec
                json
@@ -91,6 +92,7 @@ else ()
                ascir_ops_headers
                atrace_headers
                error_manager
+               $<$<TARGET_EXISTS:autofuse_headers>:autofuse_headers>
                ascend_protobuf
                c_sec
                json

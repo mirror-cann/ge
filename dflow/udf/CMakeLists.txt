@@ -89,6 +89,7 @@ target_link_libraries(udf_static PRIVATE
         $<BUILD_INTERFACE:mmpa_headers>
         $<BUILD_INTERFACE:air_headers>
         $<BUILD_INTERFACE:ascend_hal_headers>
+        $<BUILD_INTERFACE:metadef_headers>
         PUBLIC c_sec ascend_protobuf_static
         $<IF:$<STREQUAL:${PRODUCT_SIDE},device>,alog,unified_dlog>
         reader_writer

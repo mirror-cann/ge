@@ -48,6 +48,7 @@ target_link_libraries(aihac_symbolizer
         platform
         symengine
         error_manager
+        runtime_headers
         graph_base
         graph
         slog

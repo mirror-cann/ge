@@ -50,6 +50,7 @@ target_link_libraries(engine PRIVATE
     intf_pub
     metadef_headers
     error_manager
+    runtime_headers
     -Wl,--no-as-needed
     c_sec
     unified_dlog

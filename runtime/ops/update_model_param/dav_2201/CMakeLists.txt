@@ -5,30 +5,16 @@ set_source_files_properties(
     update_model_param.h PROPERTIES LANGUAGE CXX
 )
 
-if(BUILD_PKG_COMPONENT)
+if(BUILD_PKG_COMPONENT AND ENABLE_BUILD_DEVICE AND "ge-executor" IN_LIST BUILD_COMPONENT)
     set(CCEC_PATH ${ASCEND_INSTALL_PATH}/tools/ccec_compiler/bin)
+    find_cann_package(asc_devkit MODULE REQUIRED)
     set(TILING_DEPENDS "")
-    set(INCLUDE_PATHS
-        -I${ASCEND_INSTALL_PATH}/x86_64-linux/asc/
-        -I${ASCEND_INSTALL_PATH}/x86_64-linux/asc/include/
-        -I${ASCEND_INSTALL_PATH}/x86_64-linux/asc/impl
-        -I${ASCEND_INSTALL_PATH}/x86_64-linux/asc/impl/basic_api
-        -I${ASCEND_INSTALL_PATH}/x86_64-linux/asc/impl/simt_api
-        -I${ASCEND_INSTALL_PATH}/x86_64-linux/asc/impl/micro_api
-        -I${ASCEND_INSTALL_PATH}/x86_64-linux/asc/include/basic_api
-        -I${ASCEND_INSTALL_PATH}/x86_64-linux/asc/include/simit_api
-        -I${ASCEND_INSTALL_PATH}/x86_64-linux/asc/include/micro_api
-        -I${ASCEND_INSTALL_PATH}/aarch64-linux/asc/
-        -I${ASCEND_INSTALL_PATH}/aarch64-linux/asc/include/
-        -I${ASCEND_INSTALL_PATH}/aarch64-linux/asc/impl
-        -I${ASCEND_INSTALL_PATH}/aarch64-linux/asc/impl/basic_api
-        -I${ASCEND_INSTALL_PATH}/aarch64-linux/asc/impl/simt_api
-        -I${ASCEND_INSTALL_PATH}/aarch64-linux/asc/impl/micro_api
-        -I${ASCEND_INSTALL_PATH}/aarch64-linux/asc/include/basic_api
-        -I${ASCEND_INSTALL_PATH}/aarch64-linux/asc/include/simit_api
-        -I${ASCEND_INSTALL_PATH}/aarch64-linux/asc/include/micro_api
-        -I${ASCEND_INSTALL_PATH}/include/
-    )
+    get_target_property(ASC_KERNEL_INCLUDE_DIRS asc_kernel_headers INTERFACE_INCLUDE_DIRECTORIES)
+    get_target_property(KERNEL_TILING_INCLUDE_DIRS kernel_tiling_headers INTERFACE_INCLUDE_DIRECTORIES)
+    set(INCLUDE_PATHS "")
+    foreach(dir IN LISTS ASC_KERNEL_INCLUDE_DIRS KERNEL_TILING_INCLUDE_DIRS)
+        list(APPEND INCLUDE_PATHS "-I${dir}")
+    endforeach()
 else()
     set(tiling_script ${TOP_DIR}/asc/asc-devkit/impl/adv_api/cmake/scripts/gen_kernel_tiling_data_def.py)
     set(TILING_GEN_DIR ${CMAKE_CURRENT_BINARY_DIR})

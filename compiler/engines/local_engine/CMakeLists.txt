@@ -63,6 +63,7 @@ target_link_libraries(ge_local_engine PRIVATE
     msprof_headers
     runtime_headers
     cce_headers
+    error_manager_headers
     -Wl,--no-as-needed
     graph
     graph_base
@@ -112,6 +113,7 @@ target_link_libraries(atc_ge_local_engine PRIVATE
     msprof_headers
     runtime_headers
     cce_headers
+    error_manager_headers
     -Wl,--no-as-needed
     graph
     graph_base
@@ -214,6 +216,7 @@ target_link_libraries(atc_ge_local_opskernel_builder PRIVATE
     msprof_headers
     runtime_headers
     cce_headers
+    error_manager_headers
     -Wl,--no-as-needed
     ascend_protobuf
     c_sec
@@ -227,40 +230,6 @@ target_link_libraries(atc_ge_local_opskernel_builder PRIVATE
 set_target_properties(atc_ge_local_opskernel_builder PROPERTIES
     OUTPUT_NAME ge_local_opskernel_builder
     LIBRARY_OUTPUT_DIRECTORY atclib
-)
-
-############ libge_local_opskernel_builder.a ############
-add_library(ge_local_opskernel_builder_static STATIC ${OPS_KERNEL_SRC_LIST})
-
-add_dependencies(ge_local_opskernel_builder_static
-    graphengine_protos
-)
-
-target_compile_options(ge_local_opskernel_builder_static PRIVATE
-    -Werror
-    -fno-common
-    -Wextra
-    -Wfloat-equal
-    -fvisibility=hidden
-)
-
-target_compile_definitions(ge_local_opskernel_builder_static PRIVATE
-    google=ascend_private
-    LOG_CPP
-    FUNC_VISIBILITY
-)
-
-target_include_directories(ge_local_opskernel_builder_static PRIVATE
-    ${CMAKE_CURRENT_LIST_DIR}
-    ${CMAKE_BINARY_DIR}
-    ${CMAKE_BINARY_DIR}/proto/graphengine_protos
-)
-
-target_link_libraries(ge_local_opskernel_builder_static PRIVATE
-    intf_pub
-    metadef_headers
-    ascend_protobuf
-    c_sec
 )
 
 install(TARGETS ge_local_engine ge_local_opskernel_builder ${INSTALL_OPTIONAL}
