@@ -585,8 +585,10 @@ KernelBox StoreMatMul(const ge::OutDataAnchorPtr &dst, const std::vector<ge::InD
   return SetLoopKernel(dst, loop_var).Realize();
 }
 
-static bool IsValidConv2DInputs(const std::vector<ge::InDataAnchorPtr> &inputs) {
-  return inputs.size() >= 2 && inputs.size() <= 4;
+bool IsValidConv2DInputs(const std::vector<ge::InDataAnchorPtr> &inputs) {
+  constexpr size_t kMinConv2DInputs = 2;
+  constexpr size_t kMaxConv2DInputs = 4;
+  return inputs.size() >= kMinConv2DInputs && inputs.size() <= kMaxConv2DInputs;
 }
 
 KernelBox StoreConv2D(const ge::OutDataAnchorPtr &dst, const std::vector<ge::InDataAnchorPtr> &inputs,

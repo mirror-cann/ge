@@ -910,6 +910,73 @@ TEST_F(LoopApiUT, StoreMatmulInputNull2) {
   EXPECT_TRUE(kernel_box.IsExternKernel());
 }
 
+TEST_F(LoopApiUT, IsValidConv2DInputsTooFew) {
+  [this]() {
+    auto data0 = es_graph_->CreateInput(0, "data0", nullptr);
+    data0.SetSymbolShape({"s0"});
+    auto data1 = es_graph_->CreateInput(1, "data1", nullptr);
+    data1.SetSymbolShape({"s0"});
+    auto pack = es::Pack({data0, data1}, 0, 2);
+    pack.SetSymbolShape({"2", "s0"});
+    es_graph_->SetOutput(pack, 0);
+  }();
+
+  auto graph = es_graph_->Build();
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+  auto pack = cg->FindNode("Pack_0");
+  ASSERT_NE(pack, nullptr);
+  std::vector<ge::InDataAnchorPtr> inputs_empty;
+  EXPECT_FALSE(loop::IsValidConv2DInputs(inputs_empty));
+  std::vector<ge::InDataAnchorPtr> inputs_one = {pack->GetInDataAnchor(0)};
+  EXPECT_FALSE(loop::IsValidConv2DInputs(inputs_one));
+}
+
+TEST_F(LoopApiUT, IsValidConv2DInputsValid) {
+  [this]() {
+    auto data0 = es_graph_->CreateInput(0, "data0", nullptr);
+    data0.SetSymbolShape({"s0"});
+    auto data1 = es_graph_->CreateInput(1, "data1", nullptr);
+    data1.SetSymbolShape({"s0"});
+    auto pack = es::Pack({data0, data1}, 0, 2);
+    pack.SetSymbolShape({"2", "s0"});
+    es_graph_->SetOutput(pack, 0);
+  }();
+
+  auto graph = es_graph_->Build();
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+  auto pack = cg->FindNode("Pack_0");
+  ASSERT_NE(pack, nullptr);
+  std::vector<ge::InDataAnchorPtr> inputs_two = {pack->GetInDataAnchor(0), pack->GetInDataAnchor(1)};
+  EXPECT_TRUE(loop::IsValidConv2DInputs(inputs_two));
+  std::vector<ge::InDataAnchorPtr> inputs_three = {pack->GetInDataAnchor(0), pack->GetInDataAnchor(1),
+                                                   pack->GetInDataAnchor(0)};
+  EXPECT_TRUE(loop::IsValidConv2DInputs(inputs_three));
+  std::vector<ge::InDataAnchorPtr> inputs_four = {pack->GetInDataAnchor(0), pack->GetInDataAnchor(1),
+                                                  pack->GetInDataAnchor(0), pack->GetInDataAnchor(1)};
+  EXPECT_TRUE(loop::IsValidConv2DInputs(inputs_four));
+}
+
+TEST_F(LoopApiUT, IsValidConv2DInputsTooMany) {
+  [this]() {
+    auto data0 = es_graph_->CreateInput(0, "data0", nullptr);
+    data0.SetSymbolShape({"s0"});
+    auto data1 = es_graph_->CreateInput(1, "data1", nullptr);
+    data1.SetSymbolShape({"s0"});
+    auto pack = es::Pack({data0, data1}, 0, 2);
+    pack.SetSymbolShape({"2", "s0"});
+    es_graph_->SetOutput(pack, 0);
+  }();
+
+  auto graph = es_graph_->Build();
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+  auto pack = cg->FindNode("Pack_0");
+  ASSERT_NE(pack, nullptr);
+  std::vector<ge::InDataAnchorPtr> inputs_five = {pack->GetInDataAnchor(0), pack->GetInDataAnchor(1),
+                                                  pack->GetInDataAnchor(0), pack->GetInDataAnchor(1),
+                                                  pack->GetInDataAnchor(0)};
+  EXPECT_FALSE(loop::IsValidConv2DInputs(inputs_five));
+}
+
 #define TEST_F_LOOP_INST1(LOOPOP)                                     \
   TEST_F(LoopApiUT, Loop##LOOPOP) {                                   \
     [this]() {                                                        \

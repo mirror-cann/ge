@@ -176,6 +176,7 @@ std::vector<LoopVar> StoreSplit(const std::vector<OutDataAnchorPtr> &outputs,
                                 string &not_lowering_reason);
 KernelBox StoreMatMul(const ge::OutDataAnchorPtr &dst, const std::vector<ge::InDataAnchorPtr> &inputs,
                       const MatMulAttr &matmul_attr);
+bool IsValidConv2DInputs(const std::vector<ge::InDataAnchorPtr> &inputs);
 KernelBox StoreConv2D(const ge::OutDataAnchorPtr &dst, const std::vector<ge::InDataAnchorPtr> &inputs,
                       const Conv2DAttr &conv2d_attr);
 

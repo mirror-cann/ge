@@ -43,7 +43,7 @@ bool TransposeFusionStrategy::CanFuse(const NodePtr &node1, const NodePtr &node2
 }
 
 bool TransposeFusionStrategy::CheckBroadcastNodeFusion(const NodePtr &node1, const NodePtr &node2,
-    const AutoFuseAttrs *attr1, const AutoFuseAttrs *attr2) {
+    const AutoFuseAttrs *attr1, const AutoFuseAttrs *attr2) const {
   auto const backend_spec = optimize::BackendSpec::GetInstance();
   uint32_t transpose_mode = backend_spec->transpose_mode;
   if (transpose_mode == static_cast<uint32_t>(optimize::TransposeMode::TRANSPOSE_MODE_UNNORMAL)) { // 1:非normal模式
@@ -68,7 +68,7 @@ bool TransposeFusionStrategy::CheckBroadcastNodeFusion(const NodePtr &node1, con
 }
 
 bool TransposeFusionStrategy::CheckVerticalFusion(const NodePtr &node1, const NodePtr &node2,
-    const AutoFuseAttrs *attr1, const AutoFuseAttrs *attr2) {
+    const AutoFuseAttrs *attr1, const AutoFuseAttrs *attr2) const {
   // transpose和elementwise融合(A3、A5共同逻辑)
   // 1、仅支持垂直融合
   if (!BackendUtils::IsVertical(node1, node2)) {

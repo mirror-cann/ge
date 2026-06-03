@@ -27,9 +27,9 @@ public:
 
 private:
   bool CheckBroadcastNodeFusion(const NodePtr &node1, const NodePtr &node2,
-      const AutoFuseAttrs *attr1, const AutoFuseAttrs *attr2);
+      const AutoFuseAttrs *attr1, const AutoFuseAttrs *attr2) const;
   bool CheckVerticalFusion(const NodePtr &node1, const NodePtr &node2,
-      const AutoFuseAttrs *attr1, const AutoFuseAttrs *attr2);
+      const AutoFuseAttrs *attr1, const AutoFuseAttrs *attr2) const;
 };
 }
 #endif //AUTOFUSE_CAN_FUSE_STRATEGY_TRANSPOSE_FUSION_STRATEGY_H
