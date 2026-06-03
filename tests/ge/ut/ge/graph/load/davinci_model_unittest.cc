@@ -11487,4 +11487,73 @@ TEST_F(UtestDavinciModel, AllocateArgsBuffer_InvalidArgs_ReturnsFailed) {
   EXPECT_NE(model.AllocateArgsBuffer(32, ArgsPlacement::kEnd, result), SUCCESS);
 }
 
+TEST_F(UtestDavinciModel, UpdateStaticModelArgsByFm_EarlyReturn_WhenNoQueueAttrsAndNoNeedUpdate) {
+  DavinciModel model(0, nullptr);
+  model.SetFeatureBaseRefreshable(true);
+  model.host_input_size_ = 0U;
+  model.input_queue_attrs_.clear();
+  model.output_queue_attrs_.clear();
+
+  EXPECT_EQ(model.UpdateStaticModelArgsByFm(), SUCCESS);
+}
+
+TEST_F(UtestDavinciModel, UpdateStaticModelArgsByFm_ExecutesWhenFeatureBaseNotRefreshable) {
+  DavinciModel model(0, nullptr);
+  model.SetFeatureBaseRefreshable(false);
+  model.host_input_size_ = 0U;
+  model.input_queue_attrs_.clear();
+  model.output_queue_attrs_.clear();
+
+  ComputeGraphPtr graph = MakeShared<ComputeGraph>("test_graph");
+  GeModelPtr ge_model = MakeShared<GeModel>();
+  ge_model->SetGraph(graph);
+  AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 1024);
+  AttrUtils::SetInt(ge_model, ATTR_MODEL_STREAM_NUM, 1);
+  model.Assign(ge_model);
+
+  model.args_manager_.AllocKernelLaunchArgsHostMem(model.logical_mem_allocations_.size());
+
+  EXPECT_EQ(model.UpdateStaticModelArgsByFm(), SUCCESS);
+}
+
+TEST_F(UtestDavinciModel, UpdateStaticModelArgsByFm_ExecutesWhenHostInputSizeNonZero) {
+  DavinciModel model(0, nullptr);
+  model.SetFeatureBaseRefreshable(true);
+  model.host_input_size_ = 1024U;
+  model.input_queue_attrs_.clear();
+  model.output_queue_attrs_.clear();
+
+  ComputeGraphPtr graph = MakeShared<ComputeGraph>("test_graph");
+  GeModelPtr ge_model = MakeShared<GeModel>();
+  ge_model->SetGraph(graph);
+  AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 2048);
+  AttrUtils::SetInt(ge_model, ATTR_MODEL_STREAM_NUM, 1);
+  model.Assign(ge_model);
+
+  model.args_manager_.AllocKernelLaunchArgsHostMem(model.logical_mem_allocations_.size());
+
+  EXPECT_EQ(model.UpdateStaticModelArgsByFm(), SUCCESS);
+}
+
+TEST_F(UtestDavinciModel, UpdateStaticModelArgsByFm_ExecutesWhenHasQueueAttrs) {
+  DavinciModel model(0, nullptr);
+  model.SetFeatureBaseRefreshable(true);
+  model.host_input_size_ = 0U;
+
+  QueueAttrs attr;
+  attr.queue_id = 1;
+  model.input_queue_attrs_.push_back(attr);
+
+  ComputeGraphPtr graph = MakeShared<ComputeGraph>("test_graph");
+  GeModelPtr ge_model = MakeShared<GeModel>();
+  ge_model->SetGraph(graph);
+  AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 2048);
+  AttrUtils::SetInt(ge_model, ATTR_MODEL_STREAM_NUM, 1);
+  model.Assign(ge_model);
+
+  model.args_manager_.AllocKernelLaunchArgsHostMem(model.logical_mem_allocations_.size());
+
+  EXPECT_EQ(model.UpdateStaticModelArgsByFm(), SUCCESS);
+}
+
 }  // namespace ge

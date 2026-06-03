@@ -744,34 +744,28 @@ Status DavinciModel::BindModelStream() {
 
 // 对于纯静态图，在load阶段完成fm相关连的args刷新
 Status DavinciModel::UpdateStaticModelArgsByFm() {
+  const bool has_queue_attrs = (!input_queue_attrs_.empty()) || (!output_queue_attrs_.empty());
+  const bool need_static_update = (!feature_base_refreshable_) || (host_input_size_ > 0U);
+  if (!has_queue_attrs && !need_static_update) {
+    return SUCCESS;
+  }
+
+  GELOGI("Update %s model args, model_id:%u", has_queue_attrs ? "cpu" : "static", model_id_);
   // 首次刷新为all-one-time
   uint32_t ret_up = kUpdatePolicyAllOneTime;
-  if ((!input_queue_attrs_.empty()) || (!output_queue_attrs_.empty())) {
-    GELOGI("Update cpu model args, model_id:%u", model_id_);
-    args_manager_.InitDfxStage1Begin();
-    ConstructActiveMemBaseAddrs();
-    // 此时已经确定了执行时是否走算子化刷新，使用正确的device地址来 更新对应io的device地址
-    GE_ASSERT_SUCCESS(InitCopyHostInputInfos());
-    aclrtStream stream = nullptr;
-    GE_CHK_RT_RET(aclrtCreateStream(&stream));
-    GE_MAKE_GUARD_ACLRTSTREAM(stream);
-    // 加载阶段同老流程走全量model args h2d拷贝
-    GE_ASSERT_SUCCESS(args_manager_.UpdateForExecute(ret_up, stream, kModelLoadStage));
-    args_manager_.InitDfxStatsticsEnd();
-    args_manager_.PrintDfxStatistics(kModelLoadStage);
-    GE_CHK_RT_RET(aclrtSynchronizeStream(stream));
-    GELOGI("Sync stream successfully, model_id: %u", model_id_);
-  } else if ((!feature_base_refreshable_) || (host_input_size_ > 0U)) {
-    GELOGI("Update static model args, model_id: %u", model_id_);
-    args_manager_.InitDfxStage1Begin();
-    ConstructActiveMemBaseAddrs();
-    // 此时已经确定了执行时是否走算子化刷新，使用正确的device地址来 更新对应io的device地址
-    GE_ASSERT_SUCCESS(InitCopyHostInputInfos());
-    // 加载阶段同老流程走全量model args h2d拷贝
-    GE_ASSERT_SUCCESS(args_manager_.UpdateForExecute(ret_up, rt_model_stream_, kModelLoadStage));
-    args_manager_.InitDfxStatsticsEnd();
-    args_manager_.PrintDfxStatistics(kModelLoadStage);
-  }
+  args_manager_.InitDfxStage1Begin();
+  ConstructActiveMemBaseAddrs();
+  // 此时已经确定了执行时是否走算子化刷新，使用正确的device地址来 更新对应io的device地址
+  GE_ASSERT_SUCCESS(InitCopyHostInputInfos());
+  aclrtStream stream = nullptr;
+  GE_CHK_RT_RET(aclrtCreateStream(&stream));
+  GE_MAKE_GUARD_ACLRTSTREAM(stream);
+  // 加载阶段同老流程走全量model args h2d拷贝
+  GE_ASSERT_SUCCESS(args_manager_.UpdateForExecute(ret_up, stream, kModelLoadStage));
+  args_manager_.InitDfxStatsticsEnd();
+  args_manager_.PrintDfxStatistics(kModelLoadStage);
+  GE_CHK_RT_RET(aclrtSynchronizeStream(stream));
+  GELOGI("Sync stream successfully, model_id: %u", model_id_);
   return SUCCESS;
 }
 
