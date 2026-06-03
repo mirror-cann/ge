@@ -5,19 +5,6 @@ protobuf_generate(rts_engine_proto rts_engine_proto_c rts_engine_proto_h
                 TARGET)
 
 set(CCEC_PATH ${ASCEND_INSTALL_PATH}/tools/ccec_compiler/bin)
-set(TILING_DEPENDS "")
-set(INCLUDE_PATHS
-    -I${ASCEND_INSTALL_PATH}/x86_64-linux/asc/
-    -I${ASCEND_INSTALL_PATH}/x86_64-linux/asc/include/
-    -I${ASCEND_INSTALL_PATH}/x86_64-linux/asc/impl
-    -I${ASCEND_INSTALL_PATH}/x86_64-linux/asc/impl/basic_api
-    -I${ASCEND_INSTALL_PATH}/x86_64-linux/asc/impl/simt_api
-    -I${ASCEND_INSTALL_PATH}/x86_64-linux/asc/impl/micro_api
-    -I${ASCEND_INSTALL_PATH}/x86_64-linux/asc/include/basic_api
-    -I${ASCEND_INSTALL_PATH}/x86_64-linux/asc/include/simit_api
-    -I${ASCEND_INSTALL_PATH}/x86_64-linux/asc/include/micro_api
-    -I${ASCEND_INSTALL_PATH}/include/
-)
 
 set(rts_engine_source
     ${AIR_CODE_DIR}/compiler/engines/rts_engine/common/util.cpp
@@ -169,6 +156,7 @@ target_link_libraries(rts_engine_atc PRIVATE
     $<BUILD_INTERFACE:tsch_headers>
     $<BUILD_INTERFACE:runtime_headers>
     $<BUILD_INTERFACE:cce_headers>
+    $<BUILD_INTERFACE:error_manager_headers>
     $<BUILD_INTERFACE:atrace_headers>
     -Wl,--no-as-needed
     ascend_protobuf
@@ -234,8 +222,7 @@ add_custom_command(OUTPUT ${SWITCH_BY_INDEX_OBJ}
     COMMAND ${CCEC_PATH}/ccec ${SWITCH_BY_INDEX_SOURCE} 
     --cce-aicore-only --cce-aicore-arch=dav-n350 -mllvm -cce-aicore-vec-misched=0 
     -mllvm -cce-aicore-addr-transform -mllvm -cce-aicore-dcci-insert-for-scalar=true -c -o 
-    ${SWITCH_BY_INDEX_OBJ} 
-    ${INCLUDE_PATHS}
+    ${SWITCH_BY_INDEX_OBJ}
     )
 
 if(ENABLE_BUILD_DEVICE)

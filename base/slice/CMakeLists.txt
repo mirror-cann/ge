@@ -56,6 +56,7 @@ target_link_libraries(slice
         ascend_protobuf
         c_sec
         error_manager
+        runtime_headers
         unified_dlog
         -Wl,--as-needed
         json

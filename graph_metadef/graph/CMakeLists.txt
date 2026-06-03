@@ -183,6 +183,7 @@ target_link_libraries(graph_base
         slog
         json
         metadef
+        runtime_headers
         -Wl,--as-needed
         $<$<NOT:$<STREQUAL:${TARGET_SYSTEM_NAME},Android>>:-lrt>
         -ldl
@@ -263,7 +264,7 @@ target_link_libraries(graph
         ge_metadef_headers
 )
 
-target_link_libraries(graph PRIVATE graph_base error_manager)
+target_link_libraries(graph PRIVATE graph_base error_manager runtime_headers)
 target_compile_options(graph PRIVATE ${OPTIMIZE_OPTION})
 
 if (${ENABLE_OPEN_SRC} STREQUAL "True")
@@ -321,8 +322,8 @@ else()
 
     target_clone(graph_share graph_static STATIC)
 
-    target_link_libraries(graph_share PRIVATE ascend_protobuf error_manager)
-    target_link_libraries(graph_static PRIVATE ascend_protobuf_static)
+    target_link_libraries(graph_share PRIVATE ascend_protobuf error_manager runtime_headers)
+    target_link_libraries(graph_static PRIVATE ascend_protobuf_static error_manager_headers runtime_headers)
     target_compile_options(graph_share PRIVATE ${OPTIMIZE_OPTION})
     target_compile_options(graph_static PRIVATE $<$<STREQUAL:${TARGET_SYSTEM_NAME},Linux>:${OPTIMIZE_OPTION} -fPIC>)
 
@@ -358,8 +359,8 @@ set(STUB_HEADER_LIST
 
 if (BUILD_OPEN_PROJECT OR ENABLE_OPEN_SRC)
     list(APPEND STUB_HEADER_LIST
-        ${ASCEND_INSTALL_PATH}/include/graph/ascend_string.h
-        ${ASCEND_INSTALL_PATH}/include/graph/types.h
+        ${METADEF_INC_PATH}/graph/ascend_string.h
+        ${METADEF_INC_PATH}/graph/types.h
     )
 else ()
     list(APPEND STUB_HEADER_LIST
@@ -378,7 +379,7 @@ if (NOT "${PRODUCT}" STREQUAL "ascend031")
     )
     if (BUILD_OPEN_PROJECT OR ENABLE_OPEN_SRC)
         list(APPEND STUB_HEADER_LIST
-            ${ASCEND_INSTALL_PATH}/include/graph/tensor.h
+            ${METADEF_INC_PATH}/graph/tensor.h
         )
     else ()
         list(APPEND STUB_HEADER_LIST
@@ -435,6 +436,8 @@ target_link_libraries(atc_stub_graph
         mmpa_headers
         c_sec
         slog_headers
+        error_manager_headers
+        runtime_headers
         $<$<NOT:$<STREQUAL:${TARGET_SYSTEM_NAME},Android>>:-lrt>
         -ldl
     PUBLIC
@@ -490,6 +493,8 @@ target_link_libraries(fwk_stub_graph
         intf_pub
         static_mmpa
         c_sec
+        error_manager_headers
+        runtime_headers
         -Wl,--no-as-needed
         slog
         json

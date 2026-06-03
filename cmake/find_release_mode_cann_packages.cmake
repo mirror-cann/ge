@@ -30,5 +30,7 @@ if (BUILD_OPEN_PROJECT OR ENABLE_OPEN_SRC)
     
     # 使用medadef发布包编译
     find_cann_package(metadef MODULE REQUIRED)
+    # 使用autofuse发布包编译
+    find_cann_package(autofuse MODULE)
     set(PARSER_DIR ${CMAKE_CURRENT_LIST_DIR}/parser)
 endif ()

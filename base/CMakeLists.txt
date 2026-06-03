@@ -623,6 +623,7 @@ target_link_libraries(ge_common_stub
         msprof_headers
         mmpa_headers
         c_sec_headers
+        error_manager_headers
         -lrt
         -ldl
     PUBLIC

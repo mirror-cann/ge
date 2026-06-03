@@ -48,6 +48,7 @@ target_link_libraries(lowering PRIVATE
     intf_pub
     mmpa_headers
     metadef_headers
+    error_manager_headers
     c_sec
     slog
     $<$<NOT:$<STREQUAL:${TARGET_SYSTEM_NAME},Android>>:-lrt>

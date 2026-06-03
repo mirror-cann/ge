@@ -261,6 +261,8 @@ target_link_libraries(deployer_daemon_static PRIVATE
         msprof_headers
         datagw_headers
         air_headers
+        metadef_headers
+        error_manager_headers
         -Wl,--no-as-needed
         unified_dlog
         ascend_protobuf

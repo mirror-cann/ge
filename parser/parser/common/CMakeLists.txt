@@ -80,6 +80,7 @@ target_link_libraries(parser_common
         c_sec
         unified_dlog
         error_manager
+        runtime_headers
         -Wl,--as-needed
         json
         -lrt

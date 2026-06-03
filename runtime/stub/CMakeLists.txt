@@ -82,6 +82,7 @@ target_link_libraries(gert_stub PRIVATE
     msprof_headers
     runtime_headers
     c_sec_headers
+    error_manager_headers
     ${AIR_COMMON_LINK_OPTION}
     $<$<NOT:$<STREQUAL:${TARGET_SYSTEM_NAME},Android>>:-lrt>
     -ldl

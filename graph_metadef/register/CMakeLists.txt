@@ -209,6 +209,7 @@ target_link_libraries(register_static PRIVATE
 
 target_link_libraries(register_static PRIVATE
         ascend_protobuf_static
+        error_manager_headers
         )
 
 set_target_properties(register_static PROPERTIES
@@ -256,6 +257,8 @@ target_link_libraries(op_tiling_o2 PRIVATE
     slog_headers
     mmpa_headers
     metadef_headers
+    error_manager_headers
+    runtime_headers
     ascend_protobuf
     json
     c_sec
@@ -288,8 +291,8 @@ if(NOT BUILD_PKG_COMPONENT)
     )
 else()
     set(STUB_HEADER_LIST
-        ${ASCEND_INSTALL_PATH}/include/register/op_impl_registry.h
-        ${ASCEND_INSTALL_PATH}/include/register/tilingdata_base.h
+        ${METADEF_INC_PATH}/register/op_impl_registry.h
+        ${METADEF_INC_PATH}/register/tilingdata_base.h
         ${GE_METADEF_INC_DIR}/register/graph_register.h
         ${GE_METADEF_INC_DIR}/register/op_lib_register_impl.h
         ${GE_METADEF_INC_DIR}/register/optimization_option_registry.h
@@ -351,6 +354,7 @@ target_link_libraries(stub_register
         slog_headers
         msprof_headers
         runtime_headers
+        error_manager_headers
         c_sec_headers
         ascend_protobuf
         c_sec
