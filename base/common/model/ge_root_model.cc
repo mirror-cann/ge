@@ -237,6 +237,12 @@ Status GeRootModel::CheckAndSetNeedSoInOM() {
   return SUCCESS;
 }
 
+Status GeRootModel::CheckAndSetNeedOpMasterDeviceSo() {
+  GE_ASSERT_SUCCESS(CheckAndSetOpMasterDevice(), "Check op master device failed.");
+  GELOGI("so in om flag:0x%x", so_in_om_);
+  return SUCCESS;
+}
+
 Status GeRootModel::CollectCustomOpSoFromCustomOppPath(const std::string &target_os, const std::string &target_cpu) {
   GE_ASSERT_TRUE(!target_os.empty() && !target_cpu.empty(), "target_os or target_cpu is empty.");
 

@@ -2930,7 +2930,7 @@ Status ModelManager::ExternalAllocatorMalloc(const GraphId graph_id, const uint3
 }
 
 Status ModelManager::InitOpMasterDeviceSo(const uint32_t &model_id, const GeRootModelPtr &ge_root_model) {
-  GE_ASSERT_SUCCESS(ge_root_model->CheckAndSetNeedSoInOM());
+  GE_ASSERT_SUCCESS(ge_root_model->CheckAndSetNeedOpMasterDeviceSo());
   GELOGI("so in om flag:0x%x", ge_root_model->GetSoInOmFlag());
   if (!OpSoStoreUtils::IsSoBinType(ge_root_model->GetSoInOmFlag(), SoBinType::kOpMasterDevice)) {
     return SUCCESS;

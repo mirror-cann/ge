@@ -115,6 +115,7 @@ struct FixedFeatureMemory {
   std::vector<OpSoBinPtr> GetAllSoBin() const;
 
   Status CheckAndSetNeedSoInOM();
+  Status CheckAndSetNeedOpMasterDeviceSo();
 
   uint16_t GetSoInOmFlag() const;
 
