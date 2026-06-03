@@ -1066,6 +1066,7 @@ TEST_F(UtestGeApi, run_graph_with_stream_async) {
 
   std::map<std::string, std::string> options;
   options[ge::OPTION_GRAPH_RUN_MODE] = "0";
+  options[ge::SOC_VERSION] = "Ascend910B";
   ge::GetThreadLocalContext().SetGraphOption(options);
   EXPECT_EQ(GEInitialize(options), SUCCESS);
   Session session(options);
@@ -1140,6 +1141,7 @@ TEST_F(UtestGeApi, run_graph_with_stream_with_dynamic) {
   std::map<std::string, std::string> options;
   options[ge::OPTION_GRAPH_RUN_MODE] = "0";
   options[ge::OO_LEVEL] = "O3";
+  options[ge::SOC_VERSION] = "Ascend910B";
   ge::GetThreadLocalContext().SetGraphOption(options);
   EXPECT_EQ(GEInitialize(options), SUCCESS);
   Session session(options);
@@ -1210,6 +1212,7 @@ TEST_F(UtestGeApi, run_graph_with_stream_with_multi_batch) {
   options["ge.inputShape"] = "data1:-1,-1,-1;data2:-1,-1,-1";
   options["ge.dynamicDims"] = "1,1,1,1,1,1;3,3,3,3,3,3;5,5,5,5,5,5";
   options["ge.dynamicNodeType"] = "1";
+  options[ge::SOC_VERSION] = "Ascend910B";
   ge::GetThreadLocalContext().SetGraphOption(options);
   EXPECT_EQ(GEInitialize(options), SUCCESS);
   Session session(options);

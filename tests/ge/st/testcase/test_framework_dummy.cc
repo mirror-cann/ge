@@ -19,6 +19,7 @@
 #include "ge_graph_dsl/assert/graph_assert.h"
 #include "graph/utils/graph_utils.h"
 #include "graph/utils/graph_utils_ex.h"
+#include "graph/ge_local_context.h"
 #include "mmpa/mmpa_api.h"
 
 #include "common/share_graph.h"
@@ -368,4 +369,138 @@ TEST_F(FrameworkTest, AicoreWithAtomicParseAndTilingSuccess) {
   for (size_t i = 0; i < run_info.GetWorkspaceNum(); ++i) {
     EXPECT_EQ(workspace[i], expect_value[i].second);
   }
+}
+
+/**
+ * 用例描述：测试BuildModel阶段对算子aicore_num属性的校验，合法值应编译成功
+ * 预置条件：
+ *   1. platform_stub中ai_core_cnt=32，vector_core_cnt=32
+ * 测试步骤：
+ *   1. 构造一张简单图，设置_op_aicore_num=16（合法值）
+ *   2. 在Session options中设置ge::SOC_VERSION="Ascend910B2"
+ *   3. 构造Session，执行AddGraph和BuildGraph
+ * 预期结果：
+ *   1. BuildGraph返回SUCCESS
+ */
+TEST_F(FrameworkTest, BuildModelWithValidCoreNum_Success) {
+  DEF_GRAPH(g1) {
+    CHAIN(NODE("data1", DATA)->NODE("add", ADD));
+    CHAIN(NODE("data2", DATA)->NODE("add"));
+  };
+
+  auto graph = ToGeGraph(g1);
+  auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
+  ASSERT_NE(compute_graph, nullptr);
+  auto add_node = compute_graph->FindNode("add");
+  ASSERT_NE(add_node, nullptr);
+  (void)ge::AttrUtils::SetStr(add_node->GetOpDesc(), "_op_aicore_num", "16");
+
+  map<AscendString, AscendString> options;
+  options.insert({AscendString(ge::SOC_VERSION.c_str()), AscendString("Ascend910B2")});
+  Session session(options);
+  session.AddGraph(1, graph, options);
+  std::vector<InputTensorInfo> inputs;
+  auto ret = session.BuildGraph(1, inputs);
+  EXPECT_EQ(ret, SUCCESS);
+}
+
+/**
+ * 用例描述：测试BuildModel阶段对算子aicore_num属性的校验，超出硬件核心数应编译失败
+ * 预置条件：
+ *   1. platform_stub中ai_core_cnt=32
+ * 测试步骤：
+ *   1. 构造一张简单图，设置_op_aicore_num=99999（远超硬件核心数）
+ *   2. 在Session options中设置ge::SOC_VERSION="Ascend910B2"
+ *   3. 构造Session，执行AddGraph和BuildGraph
+ * 预期结果：
+ *   1. BuildGraph返回非SUCCESS
+ */
+TEST_F(FrameworkTest, BuildModelWithInvalidCoreNum_Fail) {
+  DEF_GRAPH(g1) {
+    CHAIN(NODE("data1", DATA)->NODE("add", ADD));
+    CHAIN(NODE("data2", DATA)->NODE("add"));
+  };
+
+  auto graph = ToGeGraph(g1);
+  auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
+  ASSERT_NE(compute_graph, nullptr);
+  auto add_node = compute_graph->FindNode("add");
+  ASSERT_NE(add_node, nullptr);
+  (void)ge::AttrUtils::SetStr(add_node->GetOpDesc(), "_op_aicore_num", "99999");
+
+  map<AscendString, AscendString> options;
+  options.insert({AscendString(ge::SOC_VERSION.c_str()), AscendString("Ascend910B2")});
+  Session session(options);
+  session.AddGraph(1, graph, options);
+  std::vector<InputTensorInfo> inputs;
+  auto ret = session.BuildGraph(1, inputs);
+  EXPECT_NE(ret, SUCCESS);
+}
+
+/**
+ * 用例描述：测试BuildModel阶段对算子vectorcore_num属性的校验，超出硬件核心数应编译失败
+ * 预置条件：
+ *   1. platform_stub中vector_core_cnt=32
+ * 测试步骤：
+ *   1. 构造一张简单图，设置_op_vectorcore_num=99999（远超硬件核心数）
+ *   2. 在Session options中设置ge::SOC_VERSION="Ascend910B2"
+ *   3. 构造Session，执行AddGraph和BuildGraph
+ * 预期结果：
+ *   1. BuildGraph返回非SUCCESS
+ */
+TEST_F(FrameworkTest, BuildModelWithInvalidVectorCoreNum_Fail) {
+  DEF_GRAPH(g1) {
+    CHAIN(NODE("data1", DATA)->NODE("add", ADD));
+    CHAIN(NODE("data2", DATA)->NODE("add"));
+  };
+
+  auto graph = ToGeGraph(g1);
+  auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
+  ASSERT_NE(compute_graph, nullptr);
+  auto add_node = compute_graph->FindNode("add");
+  ASSERT_NE(add_node, nullptr);
+  (void)ge::AttrUtils::SetStr(add_node->GetOpDesc(), "_op_vectorcore_num", "99999");
+
+  map<AscendString, AscendString> options;
+  options.insert({AscendString(ge::SOC_VERSION.c_str()), AscendString("Ascend910B2")});
+  Session session(options);
+  session.AddGraph(1, graph, options);
+  std::vector<InputTensorInfo> inputs;
+  auto ret = session.BuildGraph(1, inputs);
+  EXPECT_NE(ret, SUCCESS);
+}
+
+/**
+ * 用例描述：测试BuildModel阶段对算子core_num属性的校验，存在核数属性但未设置SOC_VERSION时应fail-fast失败
+ * 预置条件：
+ *   1. 显式清空thread-local的global/session选项，确保SOC_VERSION处于未设置状态
+ * 测试步骤：
+ *   1. 构造一张简单图，设置_op_aicore_num=16（合法值）
+ *   2. Session options中不设置ge::SOC_VERSION
+ *   3. 构造Session，执行AddGraph和BuildGraph
+ * 预期结果：
+ *   1. BuildGraph返回非SUCCESS（因核数属性存在却无法获取平台核数进行校验，上报外部错误码E10001）
+ */
+TEST_F(FrameworkTest, BuildModelCoreNumWithoutSocVersion_Fail) {
+  DEF_GRAPH(g1) {
+    CHAIN(NODE("data1", DATA)->NODE("add", ADD));
+    CHAIN(NODE("data2", DATA)->NODE("add"));
+  };
+
+  auto graph = ToGeGraph(g1);
+  auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
+  ASSERT_NE(compute_graph, nullptr);
+  auto add_node = compute_graph->FindNode("add");
+  ASSERT_NE(add_node, nullptr);
+  (void)ge::AttrUtils::SetStr(add_node->GetOpDesc(), "_op_aicore_num", "16");
+
+  map<AscendString, AscendString> options;  // 不设置 SOC_VERSION
+  Session session(options);
+  session.AddGraph(1, graph, options);
+  // build 阶段会用本图（空）options 覆盖 graph 选项，故此处只需清 global/session，确保 SOC_VERSION 三处皆空。
+  GetThreadLocalContext().SetGlobalOption({});
+  GetThreadLocalContext().SetSessionOption({});
+  std::vector<InputTensorInfo> inputs;
+  auto ret = session.BuildGraph(1, inputs);
+  EXPECT_NE(ret, SUCCESS);
 }

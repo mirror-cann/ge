@@ -98,6 +98,73 @@ graphStatus CoreNumUtils::GetGeDefaultPlatformInfo(const std::string &soc_versio
   return GRAPH_SUCCESS;
 }
 
+graphStatus CoreNumUtils::ValidateCoreNumWithOpDesc(const fe::PlatformInfo &platform_info,
+                                                     const ge::OpDescPtr &op_desc) {
+  GE_ASSERT_NOTNULL(op_desc);
+
+  std::string aicore_num_str;
+  if (op_desc->HasAttr(kAiCoreNumOp)) {
+    if (!ge::AttrUtils::GetStr(op_desc, kAiCoreNumOp, aicore_num_str)) {
+      return ReportParamError(kAiCoreNumOp, "<non-string>", "It is not string.");
+    }
+    GELOGD("Validate %s for op[%s], value: %s, platform ai_core_cnt: %d.", kAiCoreNumOp.c_str(),
+           op_desc->GetName().c_str(), aicore_num_str.c_str(), static_cast<int32_t>(platform_info.soc_info.ai_core_cnt));
+    int32_t op_core_num = -1;
+    GE_ASSERT_SUCCESS(ParseAndValidateCoreNum(
+        kAiCoreNumOp, aicore_num_str, 0, static_cast<int32_t>(platform_info.soc_info.ai_core_cnt), op_core_num));
+  }
+
+  std::string vector_core_num_str;
+  if (op_desc->HasAttr(kVectorCoreNumOp)) {
+    if (!ge::AttrUtils::GetStr(op_desc, kVectorCoreNumOp, vector_core_num_str)) {
+      return ReportParamError(kVectorCoreNumOp, "<non-string>", "It is not string.");
+    }
+    GELOGD("Validate %s for op[%s], value: %s, platform vector_core_cnt: %d.", kVectorCoreNumOp.c_str(),
+           op_desc->GetName().c_str(), vector_core_num_str.c_str(),
+           static_cast<int32_t>(platform_info.soc_info.vector_core_cnt));
+    int32_t op_core_num = -1;
+    GE_ASSERT_SUCCESS(ParseAndValidateCoreNum(kVectorCoreNumOp, vector_core_num_str, 0,
+                                              static_cast<int32_t>(platform_info.soc_info.vector_core_cnt), op_core_num));
+  }
+
+  return GRAPH_SUCCESS;
+}
+
+graphStatus CoreNumUtils::ValidateCoreNumWithGraph(const ge::ComputeGraphPtr &compute_graph) {
+  GE_ASSERT_NOTNULL(compute_graph);
+
+  bool is_platform_info_initialized = false;
+  fe::PlatformInfo platform_info;
+  size_t validated_op_count = 0U;
+  for (const auto &node : compute_graph->GetAllNodes()) {
+    GE_ASSERT_NOTNULL(node);
+    const auto op_desc = node->GetOpDesc();
+    GE_ASSERT_NOTNULL(op_desc);
+    if (!op_desc->HasAttr(kAiCoreNumOp) && !op_desc->HasAttr(kVectorCoreNumOp)) {
+      continue;
+    }
+
+    if (!is_platform_info_initialized) {
+      std::string soc_version;
+      GE_ASSERT_SUCCESS(GetThreadLocalContext().GetOption(ge::SOC_VERSION, soc_version), "Get SOC_VERSION failed.");
+      GE_ASSERT_TRUE(!soc_version.empty(), "SOC_VERSION is not set before validating op core num.");
+      GE_ASSERT_SUCCESS(GetGeDefaultPlatformInfo(soc_version, platform_info));
+      is_platform_info_initialized = true;
+      GELOGD("Init platform info for core num validation, graph: %s, soc_version: %s, ai_core_cnt: %d, "
+             "vector_core_cnt: %d.", compute_graph->GetName().c_str(), soc_version.c_str(),
+             static_cast<int32_t>(platform_info.soc_info.ai_core_cnt),
+             static_cast<int32_t>(platform_info.soc_info.vector_core_cnt));
+    }
+    GE_ASSERT_SUCCESS(ValidateCoreNumWithOpDesc(platform_info, op_desc));
+    ++validated_op_count;
+  }
+  if (validated_op_count > 0U) {
+    GELOGD("Validate op core num with graph success, graph: %s, validated op count: %zu.",
+           compute_graph->GetName().c_str(), validated_op_count);
+  }
+  return GRAPH_SUCCESS;
+}
+
 graphStatus CoreNumUtils::UpdateCoreCountWithOpDesc(const std::string &param_name, const std::string &op_core_num_str, int32_t soc_core_num,
                                           const std::string &res_key, std::map<std::string, std::string> &res) {
   int32_t op_core_num = -1;

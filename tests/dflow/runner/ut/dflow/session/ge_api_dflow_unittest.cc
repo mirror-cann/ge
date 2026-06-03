@@ -364,6 +364,7 @@ TEST_F(UtestGeApiDflow, feed_graph_by_rawdata) {
   std::map<std::string, std::string> options;
   options[ge::OPTION_GRAPH_RUN_MODE] = "0";
   options["ge.runFlag"] = "0";
+  options[ge::SOC_VERSION] = "Ascend910B";
   ge::GetThreadLocalContext().SetGraphOption(options);
 
   ComputeGraphPtr com_graph = gert::ShareGraph::AicoreGraph();

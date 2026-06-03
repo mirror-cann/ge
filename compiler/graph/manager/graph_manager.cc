@@ -35,6 +35,7 @@
 #include "base/err_mgr.h"
 #include "graph/ge_global_options.h"
 #include "graph/ir_definitions_recover.h"
+#include "register/core_num_utils.h"
 #include "graph/manager/util/rt_context_util.h"
 #include "graph/partition/dynamic_shape_partition.h"
 #include "graph/passes/control_flow_and_stream/enter_pass.h"
@@ -1358,6 +1359,11 @@ Status GraphManager::BuildModel(const GraphNodePtr &graph_node, const std::vecto
   GE_CHECK_NOTNULL(root_graph);
   GE_DUMP(root_graph, "GraphPreRunBegin");
   GELOGI("Build model start, graph id = %d, graph_name = %s", graph_node->GetGraphId(), root_graph->GetName().c_str());
+
+  // Validate op core_num for every op uniformly (not all ops go through tiling, so this is the only
+  // universal checkpoint). The function itself short-circuits when no op carries a core_num attr, and
+  // fails fast when such attrs exist but SOC_VERSION is unavailable.
+  GE_ASSERT_SUCCESS(CoreNumUtils::ValidateCoreNumWithGraph(root_graph));
 
   ModelCache model_cache;
   GE_CHK_STATUS_RET(model_cache.Init(root_graph, graph_rebuild_state_ctrl_.get()),

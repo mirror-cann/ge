@@ -72,6 +72,7 @@ target_link_libraries(ut_register
 
 target_include_directories(ut_register PRIVATE
     ${GE_METADEF_TEST_DIR}/ut/graph/common
+    ${AIR_CODE_DIR}/inc/graph_metadef
     ${AIR_CODE_DIR}/inc/graph_metadef/external
 )
 

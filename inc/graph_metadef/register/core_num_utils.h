@@ -14,6 +14,7 @@
 #include "graph/ge_error_codes.h"
 #include "platform/platform_info_def.h"
 #include "platform/platform_infos_def.h"
+#include "graph/compute_graph.h"
 #include "graph/op_desc.h"
 
 namespace ge {
@@ -33,6 +34,11 @@ class CoreNumUtils {
                                                   int32_t min_value, int32_t max_value, int32_t &parsed_value);
 
   static graphStatus GetGeDefaultPlatformInfo(const std::string &soc_version, fe::PlatformInfo &platform_info);
+
+  static graphStatus ValidateCoreNumWithOpDesc(const fe::PlatformInfo &platform_info,
+                                               const ge::OpDescPtr &op_desc);
+
+  static graphStatus ValidateCoreNumWithGraph(const ge::ComputeGraphPtr &compute_graph);
 
   static graphStatus UpdateCoreCountWithOpDesc(const std::string &param_name, const std::string &op_core_num_str, int32_t soc_core_num,
                                           const std::string &res_key, std::map<std::string, std::string> &res);

@@ -236,6 +236,8 @@ TEST_F(UserHybridGraphManagerlUT, RunGraphAsyncTest) {
   options["ge.dynamicDims"] = "1,1,1,1,1,1;3,3,3,3,3,3;5,5,5,5,5,5";
   options["ge.dynamicNodeType"] = "1";
   options["ge.compileHybridMode"] = "1";
+  options[ge::SOC_VERSION] = "Ascend910B";
+  empty_options[ge::SOC_VERSION] = "Ascend910B";
   EXPECT_EQ(GEInitialize(empty_options), SUCCESS);
   Session session(empty_options);
   ComputeGraphPtr com_graph = gert::ShareGraph::AicoreGraph();

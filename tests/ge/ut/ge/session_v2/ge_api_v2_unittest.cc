@@ -1128,6 +1128,7 @@ TEST_F(UtestGeApiV2, run_graph_with_stream_async) {
                (void *) &data3[0]};
   std::map<AscendString, AscendString> options;
   options[ge::OPTION_GRAPH_RUN_MODE] = "0";
+  options[ge::SOC_VERSION.c_str()] = "Ascend910B";
   EXPECT_EQ(GEInitializeV2(options), SUCCESS);
   GeSession session(options);
   ComputeGraphPtr com_graph = gert::ShareGraph::AicoreGraph();
@@ -1179,6 +1180,7 @@ TEST_F(UtestGeApiV2, load_graph_not_compile) {
                (void *) &data3[0]};
   std::map<AscendString, AscendString> options;
   options[ge::OPTION_GRAPH_RUN_MODE] = "0";
+  options[ge::SOC_VERSION.c_str()] = "Ascend910B";
   EXPECT_EQ(GEInitializeV2(options), SUCCESS);
   GeSession session(options);
   ComputeGraphPtr com_graph = gert::ShareGraph::AicoreGraph();
@@ -1226,6 +1228,7 @@ TEST_F(UtestGeApiV2, run_graph_with_stream_with_dynamic) {
   std::map<AscendString, AscendString> options;
   options[ge::OPTION_GRAPH_RUN_MODE] = "0";
   options[ge::OO_LEVEL] = "O3";
+  options[ge::SOC_VERSION.c_str()] = "Ascend910B";
   EXPECT_EQ(GEInitializeV2(options), SUCCESS);
   GeSession session(options);
   ComputeGraphPtr com_graph = gert::ShareGraph::AicoreGraph();
@@ -1267,6 +1270,7 @@ TEST_F(UtestGeApiV2, run_graph_with_stream_with_multi_batch) {
   options["ge.inputShape"] = "data1:-1,-1,-1;data2:-1,-1,-1";
   options["ge.dynamicDims"] = "1,1,1,1,1,1;3,3,3,3,3,3;5,5,5,5,5,5";
   options["ge.dynamicNodeType"] = "1";
+  options[ge::SOC_VERSION.c_str()] = "Ascend910B";
   EXPECT_EQ(GEInitializeV2(options), SUCCESS);
   GeSession session(options);
   ComputeGraphPtr com_graph = gert::ShareGraph::AicoreGraph();
@@ -1316,6 +1320,7 @@ TEST_F(UtestGeApiV2, CompileGraph_Success_MultiGraphParallelCompile) {
 
   std::map<AscendString, AscendString> options;
   options[OPTION_ALLOW_MULTI_GRAPH_PARALLEL_COMPILE] = "1";
+  options[ge::SOC_VERSION.c_str()] = "Ascend910B";
   EXPECT_EQ(GEInitializeV2(options), SUCCESS);
   OperatorFactoryImpl::operator_infershape_funcs_->erase("Data");
   OperatorFactoryImpl::operator_infershape_funcs_->erase("Add");
@@ -1372,6 +1377,7 @@ TEST_F(UtestGeApiV2, GetCompiledGraph_Success) {
   options["ge.inputShape"] = "data1:-1,-1,-1;data2:-1,-1,-1";
   options["ge.dynamicDims"] = "1,1,1,1,1,1;3,3,3,3,3,3;5,5,5,5,5,5";
   options["ge.dynamicNodeType"] = "1";
+  options[ge::SOC_VERSION.c_str()] = "Ascend910B";
   EXPECT_EQ(GEInitializeV2(options), SUCCESS);
   GeSession session(options);
   ComputeGraphPtr com_graph = gert::ShareGraph::AicoreGraph();
@@ -1416,6 +1422,7 @@ TEST_F(UtestGeApiV2, GetCompiledGraph_Failed_InvalidOption) {
   options["ge.dynamicDims"] = "1,1,1,1,1,1;3,3,3,3,3,3;5,5,5,5,5,5";
   options["ge.dynamicNodeType"] = "1";
   options["ge.exec.variable_acc"] = "True";
+  options[ge::SOC_VERSION.c_str()] = "Ascend910B";
   EXPECT_EQ(GEInitializeV2(options), SUCCESS);
   GeSession session(options);
   ComputeGraphPtr com_graph = gert::ShareGraph::AicoreGraph();
