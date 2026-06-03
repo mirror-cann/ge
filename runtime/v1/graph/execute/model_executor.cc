@@ -886,6 +886,10 @@ Status ModelExecutor::CheckAndReleaseStream(const GeRootModelPtr &ge_root_model,
   }
 
   GE_CHK_RT_RET(aclrtResetDevice(static_cast<int32_t>(GetContext().DeviceId())));
+  REPORT_INNER_ERR_MSG(
+      "E19999",
+      "Graph id[%u] check and release stream failed, required total stream num[%u], required hccl follow stream num[%u], free stream num[%u]",
+      graph_node->GetGraphId(), required_stream_num, static_cast<uint32_t>(hccl_follow_stream_num), free_stream_num);
   GELOGE(FAILED,
          "Graph id[%u] check and release stream failed, required total stream num[%u], required hccl follow stream "
          "num[%u], free stream num[%u]",
