@@ -323,6 +323,7 @@ aclError PopulateDescFromOm2Data(aclmdlDesc* modelDesc, const ge::ModelData& om2
 
     // Create temporary executor from OM2 data
     gert::Om2ModelLoadArg loadArgs;
+    ACL_REQUIRES_OK(ConstructOm2ModelLoadArg(nullptr, 0U, nullptr, 0U, loadArgs));
     ge::graphStatus ret = ge::GRAPH_SUCCESS;
     // Remove const qualifier for LoadOm2ExecutorFromData call
     ge::ModelData& mutableOm2Data = const_cast<ge::ModelData&>(om2Data);

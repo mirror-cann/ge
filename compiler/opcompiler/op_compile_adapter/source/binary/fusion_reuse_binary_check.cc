@@ -25,7 +25,7 @@
 #include "assemble_json/te_json_utils.h"
 #include "assemble_json/te_json_assemble.h"
 #include "binary/generate_simple_key.h"
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 
 namespace te {
 namespace fusion {

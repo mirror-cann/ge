@@ -74,7 +74,7 @@ target_link_libraries(ut_parser
     fmk_onnx_parser
     -Wl,--whole-archive attr_util_stub -Wl,--no-whole-archive
     error_manager parser_mmpa_stub platform_stub_parser
-    GTest::gtest GTest::gtest_main ascend_protobuf_static parser_slog_stub  c_sec json -lrt -ldl
+    GTestShared::gtest GTestShared::gtest_main ascend_protobuf_static parser_slog_stub  c_sec json -lrt -ldl
     -Wl,--no-as-needed unified_dlog -Wl,--as-needed
     # Workaround for undefined references
     ge_common_base

@@ -97,7 +97,7 @@ target_link_libraries(ut_ge_executor_c_utest
     runtime_headers
     -Wl,--whole-archive
     -Wl,--no-whole-archive
-    GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main ${COMMON_SHARED_LIBRARIES} -lrt -lpthread -lgcov
+    GTestShared::gtest GTestShared::gtest_main GTestShared::gmock GTestShared::gmock_main ${COMMON_SHARED_LIBRARIES} -lrt -lpthread -lgcov
 )
 
 # LiteOS
@@ -168,7 +168,7 @@ target_link_libraries(ut_ge_executor_c_liteos_utest
     runtime_headers
     -Wl,--whole-archive
     -Wl,--no-whole-archive
-    GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main ${COMMON_SHARED_LIBRARIES} -lrt -lpthread -lgcov
+    GTestShared::gtest GTestShared::gtest_main GTestShared::gmock GTestShared::gmock_main ${COMMON_SHARED_LIBRARIES} -lrt -lpthread -lgcov
 )
 
 # liteos static
@@ -228,5 +228,5 @@ target_link_libraries(ut_dbg_liteos_static_utest
     runtime_headers
     -Wl,--whole-archive
     -Wl,--no-whole-archive
-    GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main ${COMMON_SHARED_LIBRARIES} -lrt -lpthread -lgcov
+    GTestShared::gtest GTestShared::gtest_main GTestShared::gmock GTestShared::gmock_main ${COMMON_SHARED_LIBRARIES} -lrt -lpthread -lgcov
 )

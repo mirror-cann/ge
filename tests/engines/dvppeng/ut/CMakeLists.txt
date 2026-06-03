@@ -103,7 +103,7 @@ target_link_libraries(dvpp_engine_utest PRIVATE
     cce_headers
     air_headers
     -Wl,--as-needed
-    GTest::gtest
+    GTestShared::gtest
     error_manager
     graph
     metadef

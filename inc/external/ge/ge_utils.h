@@ -10,7 +10,7 @@
 
 #include <memory>
 #include "graph/graph.h"
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 
 #ifndef INC_EXTERNAL_GRAPH_ENGINE_GE_UTILS_H
 #define INC_EXTERNAL_GRAPH_ENGINE_GE_UTILS_H
@@ -19,10 +19,13 @@ namespace ge {
 class GeUtils {
  public:
   /**
-   * 給定输入shape, 对传入的graph做全图shape推导
-   * 本接口只做shape推导，不对图做任何其他优化（如常量折叠、死边消除等）
-   * @param graph
-   * @return
+   * 给定输入 shape，对传入的 graph 做全图 shape/dtype 推导。
+   * 本接口只做推导，不对图做任何其他优化（如常量折叠、死边消除等）。
+   * 注意：仅覆盖各输入 tensor 的 shape，dtype/format 沿用图中 Data 节点已有的值。
+   *
+   * @param graph        待推导的图
+   * @param input_shape  各输入 tensor 的 shape，顺序与图中 Data 节点的 ATTR_NAME_INDEX 对应
+   * @return SUCCESS 或错误码
    */
   static Status InferShape(const Graph &graph, const std::vector<Shape> &input_shape);
 

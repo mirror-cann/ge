@@ -10,7 +10,7 @@
 
 #ifndef AIR_CXX_COMPILER_GRAPH_OPTIMIZE_AUTOFUSE_SYMBOLIC_INFER_SYMBOLIC_SHAPE_SYMBOLIC_SHAPE_INFER_UTIL_H_
 #define AIR_CXX_COMPILER_GRAPH_OPTIMIZE_AUTOFUSE_SYMBOLIC_INFER_SYMBOLIC_SHAPE_SYMBOLIC_SHAPE_INFER_UTIL_H_
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 #include "exe_graph/runtime/infer_symbol_shape_context.h"
 #include "common/checker.h"
 #include "op_impl_infer_symbol_shape.h"

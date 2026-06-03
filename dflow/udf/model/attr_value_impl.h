@@ -11,7 +11,7 @@
 #ifndef FLOW_FUNC_ATTR_VALUE_IMPL_H
 #define FLOW_FUNC_ATTR_VALUE_IMPL_H
 
-#include "flow_func/attr_value.h"
+#include "flow_func/dflow_attr_value.h"
 #include "ff_udf_attr.pb.h"
 
 namespace FlowFunc {

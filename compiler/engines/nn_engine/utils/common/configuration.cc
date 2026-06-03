@@ -28,7 +28,7 @@
 #include "common/config_parser/modify_mixlist_config_parser.h"
 #include "common/config_parser/op_debug_config_parser.h"
 #include "mmpa/mmpa_api.h"
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 #include "graph/ge_context.h"
 #include "graph/tuning_utils.h"
 #include "graph/ge_local_context.h"

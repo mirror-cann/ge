@@ -29,7 +29,7 @@
 #include "graph/manager/graph_var_manager.h"
 #include "graph_metadef/graph/utils/file_utils.h"
 #include "common/opskernel/ops_kernel_info_types.h"
-#include "external/ge_common/ge_api_types.h"
+#include "external/ge_common/ge_common_api_types.h"
 #include "external/graph/custom_op.h"
 #include "graph/custom_op_factory.h"
 

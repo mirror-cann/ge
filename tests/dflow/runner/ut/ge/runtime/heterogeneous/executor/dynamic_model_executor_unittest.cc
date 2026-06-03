@@ -12,7 +12,7 @@
 #include <iostream>
 #include <gtest/gtest.h>
 
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 #include "macro_utils/dt_public_scope.h"
 #include "executor/dynamic_model_executor.h"
 #include "executor/cpu_sched_event_dispatcher.h"

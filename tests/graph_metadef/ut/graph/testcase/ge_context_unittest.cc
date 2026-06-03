@@ -17,7 +17,7 @@
 #include "graph/ge_local_context.h"
 #include "graph/node.h"
 #include "graph_builder_utils.h"
-#include "external/ge_common/ge_api_types.h"
+#include "external/ge_common/ge_common_api_types.h"
 #include "register/optimization_option_registry.h"
 #include "nlohmann/json.hpp"
 

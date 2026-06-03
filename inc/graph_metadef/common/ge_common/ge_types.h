@@ -16,7 +16,7 @@
 #include <vector>
 
 #include "external/ge_common/ge_api_error_codes.h"
-#include "external/ge_common/ge_api_types.h"
+#include "external/ge_common/ge_common_api_types.h"
 #include "graph/types.h"
 
 namespace ge {

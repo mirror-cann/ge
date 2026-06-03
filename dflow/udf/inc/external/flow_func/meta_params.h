@@ -13,7 +13,7 @@
 #include <vector>
 #include <memory>
 #include "flow_func_defines.h"
-#include "attr_value.h"
+#include "dflow_attr_value.h"
 
 namespace FlowFunc {
 class FLOW_FUNC_VISIBILITY MetaParams {

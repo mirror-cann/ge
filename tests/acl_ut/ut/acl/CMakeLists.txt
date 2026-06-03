@@ -368,9 +368,9 @@ target_link_libraries(acl_utest PRIVATE
     toolchain_stub
     runtime_stub
     profiling_stub
-    GTest::gtest
-    GTest::gtest_main
-    GTest::gmock
-    GTest::gmock_main
+    GTestShared::gtest
+    GTestShared::gtest_main
+    GTestShared::gmock
+    GTestShared::gmock_main
     -lgcov
 )

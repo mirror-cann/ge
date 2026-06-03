@@ -18,10 +18,6 @@
 
 namespace ge {
 namespace dump {
-// ============================================================
-//                   ModelDumpManager 实现
-// ============================================================
-
 Status ModelDumpManager::GlobalInit() {
   GELOGD("ModelDumpManager::GlobalInit start");
   DumpConfig::Instance().Reset();
@@ -31,7 +27,6 @@ Status ModelDumpManager::GlobalInit() {
 ModelDumpManager::ModelDumpManager(uint32_t model_id) : model_id_(model_id) {
   GELOGD("ModelDumpManager constructed, model_id=%u", model_id);
 
-  // 初始化内部子模块
   data_dump_impl_ = std::make_unique<DataDumpImpl>();
   exception_impl_ = std::make_unique<ExceptionDumpImpl>();
   overflow_impl_ = std::make_unique<OverflowDumpImpl>();
@@ -86,6 +81,22 @@ Status ModelDumpManager::IsDataDumpEnabled(const char* op_name, uint8_t* is_data
   GELOGD("IsDataDumpEnabled: op_name=%s, need_data_dump=%u",
          safe_op_name, static_cast<uint32_t>(need_data_dump));
   *is_data_dump = need_data_dump ? 1U : 0U;
+  return SUCCESS;
+}
+
+Status ModelDumpManager::PreprocessOm2TaskInfo(const Om2TaskInfo& task_info) {
+  const char* op_name = (task_info.op_name != nullptr) ? task_info.op_name : "";
+  GELOGD("PreprocessOm2TaskInfo: op_name=%s, stream_id=%u", op_name, task_info.stream_id);
+
+  if (task_info.l0_exception_dump_info == nullptr) {
+    return SUCCESS;
+  }
+
+  Status ret = exception_impl_->ReportL0ExceptionDumpInfo(task_info);
+  if (ret != SUCCESS) {
+    GELOGE(ret, "Report L0 exception dump info failed, op_name=%s", op_name);
+    return ret;
+  }
   return SUCCESS;
 }
 

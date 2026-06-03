@@ -12,7 +12,7 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 #include "runtime/rt.h"
 #include "framework/executor/ge_executor.h"
 #include "framework/generator/ge_generator.h"

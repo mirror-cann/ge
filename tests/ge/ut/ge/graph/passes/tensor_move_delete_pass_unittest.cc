@@ -26,7 +26,7 @@
 #include "easy_graph/builder/graph_dsl.h"
 #include "ge_graph_dsl/graph_dsl.h"
 #include "graph/operator_reg.h"
-#include "external/ge_common/ge_api_types.h"
+#include "external/ge_common/ge_common_api_types.h"
 #include "stub/gert_runtime_stub.h"
 #include "graph/optimize/mem_rw_conflict_optimize.h"
 #include "graph/optimize/mem_layout_conflict_optimize/mem_layout_conflict_util.h"

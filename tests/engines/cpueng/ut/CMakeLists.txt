@@ -270,7 +270,7 @@ target_link_libraries(tf_engine_utest PRIVATE
     air_headers
     datagw_headers
     -Wl,--as-needed
-    GTest::gtest
+    GTestShared::gtest
     slog_aicpu_stub
     stub_for_aicpu
     graph
@@ -311,7 +311,7 @@ if (BUILD_OPEN_PROJECT OR ENABLE_OPEN_SRC)
         graph_base
         register
         opp_registry
-        GTest::gtest
+        GTestShared::gtest
         ascend_protobuf
         platform_headers
         c_sec
@@ -342,7 +342,7 @@ else ()
         graph_base
         register
         opp_registry
-        GTest::gtest
+        GTestShared::gtest
         ascend_protobuf
         platform_headers
         c_sec
@@ -376,7 +376,7 @@ target_link_libraries(host_engine_utest PRIVATE
     error_manager
     register
     opp_registry
-    GTest::gtest
+    GTestShared::gtest
     ascend_protobuf
     platform_headers
     json

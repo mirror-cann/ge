@@ -13,6 +13,7 @@
 #include "common/om2/codegen/ast/ast_build_context.h"
 #include "common/om2/codegen/ast/ast_nodes.h"
 #include "common/om2/codegen/emitter/stable_parts/stable_part_provider.h"
+#include "common/om2/codegen/task_code_builder/task_code_builder_util.h"
 #include "common/helper/om2/om2_utils.h"
 
 #include <gtest/gtest.h>
@@ -693,7 +694,12 @@ TEST_F(Om2CodegenUt, InterfaceDumpApis_EmitInCLinkageAndPtrToU64Outside_Ok) {
       "inline uint64_t PtrToU64(const void *ptr) {\n",
       "extern \"C\" {\n",
       "struct Om2Tensor {\n",
-      "__attribute__((weak)) int32_t ReportTaskInfo(uint32_t model_id,\n",
+      "enum Om2L0ArgKind {\n",
+      "struct Om2L0ArgSlotInfo {\n",
+      "struct Om2L0TaskRawInfo {\n",
+      "const struct Om2L0TaskRawInfo* l0_exception_dump_info;\n",
+      "__attribute__((weak)) int32_t ReportDfxTaskPreprocess(uint32_t model_id,\n",
+      "__attribute__((weak)) int32_t ReportDfxTaskPostprocess(uint32_t model_id,\n",
   });
   EXPECT_LT(output.find("inline uint64_t PtrToU64"), output.find("extern \"C\" {"));
   EXPECT_GT(output.find("struct Om2Tensor"), output.find("extern \"C\" {"));
@@ -715,10 +721,45 @@ TEST_F(Om2CodegenUt, LoadAndRunDumpHelpers_EmitInAnonymousNamespace_Ok) {
       "namespace om2 {\n",
       "namespace {\n",
       "Om2Tensor BuildOm2Tensor(void *device_address, uint64_t size, int32_t data_type,\n",
+      "aclError ReportOm2TaskPreprocess(const char *op_name, const char *op_type, uint64_t op_desc_id,\n",
+      "AssembleOm2TaskInfo(&task_info, op_name, op_type, 0U, stream_id, op_desc_id,\n",
+      "task_info.l0_exception_dump_info = l0_info;\n",
+      "if (ReportDfxTaskPreprocess != nullptr && instance_handle != nullptr) {\n",
+      "ReportDfxTaskPreprocess(model_id, instance_handle, &task_info, nullptr, 0U)",
       "aclError ReportLaunchedOm2Task(const char *op_name, const char *op_type, uint64_t op_desc_id,\n",
+      "task_info.l0_exception_dump_info = nullptr;\n",
+      "if (ReportDfxTaskPostprocess != nullptr && instance_handle != nullptr) {\n",
       "const std::vector<uint64_t> &workspace_addrs,\n",
       "OM2_CHK_TRUE(workspace_addrs.size() == workspace_sizes.size());\n",
       "uint8_t GetIsDataDump(const char *op_name, uint32_t model_id, void *instance_handle) {\n",
+  });
+}
+
+TEST_F(Om2CodegenUt, BuildL0ArgSlotEntries_EmitsTensorWorkspaceAndIgnoredKinds) {
+  AstContext ctx;
+  AstBuildContext ast(ctx);
+
+  AddrSemantic input;
+  input.kind = AddrValueKind::kInputInstance;
+  input.byte_size = 32U;
+  input.tensor_info = Om2TensorInfo{};
+  input.tensor_info->args_offset = 0U;
+  input.tensor_info->size = 32U;
+
+  AddrSemantic workspace;
+  workspace.kind = AddrValueKind::kWorkspace;
+  workspace.byte_size = 128U;
+
+  AddrSemantic placeholder;
+  placeholder.kind = AddrValueKind::kPlaceholder;
+
+  auto *entries = TaskCodeBuilderUtil::BuildL0ArgSlotEntries(ast, {input, workspace, placeholder});
+  ASSERT_NE(entries, nullptr);
+  auto output = EmitNode(*entries);
+  ExpectContainsAll(output, {
+      "{OM2_L0_ARG_INPUT, 0U, 0U, 0UL, 0U, 0U, 0U}",
+      "{OM2_L0_ARG_WORKSPACE, 0U, 8U, 0UL, 0U, 0U, 0U}",
+      "{OM2_L0_ARG_PLACEHOLDER, 0U, 16U, 0UL, 0U, 0U, 0U}",
   });
 }
 

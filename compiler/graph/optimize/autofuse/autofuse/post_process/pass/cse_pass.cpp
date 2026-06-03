@@ -12,7 +12,7 @@
 #include <string>
 #include <set>
 #include <queue>
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 #include "asc_graph_pass.h"
 #include "ascir_ops.h"
 #include "framework/common/debug/ge_log.h"

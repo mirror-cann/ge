@@ -163,6 +163,7 @@ set(COMPILER_SRC_LIST
     "graph/fusion/subgraph_boundary.cc"
     "graph/fusion/graph_rewriter.cc"
     "graph/fusion/fusion_utils.cc"
+    "graph/fusion/infer_shape_util.cc"
     "graph/fusion/pass/decompose_pass.cc"
     "graph/fusion/pass/decompose_pass_v2.cc"
     "graph/fusion/pass/decompose_pass_run.cc"

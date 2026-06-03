@@ -1345,6 +1345,8 @@ TEST(UtestIrBuild, aclgrphBuildInitialize_test) {
   std::map<std::string, std::string> global_options3;
   global_options3[ge::DETERMINISTIC] = "1";
   global_options3["ge.deterministicLevel"] = "1";
+  global_options3[ge::OPTION_HOST_ENV_OS] = "linux";
+  global_options3[ge::OPTION_HOST_ENV_CPU] = "x86_64";
   ret = ge::aclgrphBuildInitialize(global_options3);
   auto &options = GetMutableGlobalOptions();
   auto it = options.find(ge::DETERMINISTIC);
@@ -1362,6 +1364,8 @@ TEST(UtestIrBuild, aclgrphBuildInitialize_test) {
 
   std::map<std::string, std::string> global_options4;
   global_options4[ge::OP_PRECISION_MODE] = "op_precision.ini";
+  global_options4[ge::OPTION_HOST_ENV_OS] = "linux";
+  global_options4[ge::OPTION_HOST_ENV_CPU] = "x86_64";
   ret = ge::aclgrphBuildInitialize(global_options4);
   options = GetMutableGlobalOptions();
   it = options.find(ge::OP_PRECISION_MODE);
@@ -1388,6 +1392,8 @@ TEST(UtestIrBuild, aclgrphBuildInitialize_test) {
 TEST(UtestIrBuild, aclgrphBuildInitialize_test_fail) {
   std::map<std::string, std::string> global_options2;
   global_options2["ge.optionInvalid"] = "invalid";
+  global_options2[ge::OPTION_HOST_ENV_OS] = "linux";
+  global_options2[ge::OPTION_HOST_ENV_CPU] = "x86_64";
   EXPECT_EQ(ge::aclgrphBuildInitialize(global_options2), ge::GRAPH_SUCCESS);
   ge::aclgrphBuildFinalize();
 }
@@ -2103,6 +2109,8 @@ TEST(UtestIrBuild, ir_build_export_compile_stat_valid) {
   std::map<std::string, std::string> global_options;
   std::map<std::string, std::string> build_options;
   global_options[OPTION_EXPORT_COMPILE_STAT] = "0";
+  global_options[ge::OPTION_HOST_ENV_OS] = "linux";
+  global_options[ge::OPTION_HOST_ENV_CPU] = "x86_64";
   EXPECT_EQ(ge::aclgrphBuildInitialize(global_options), GRAPH_SUCCESS);
   EXPECT_NE(ge::aclgrphBuildModel(graph_1, build_options, model_1), GRAPH_SUCCESS);
   EXPECT_EQ(GetThreadLocalContext().GetOption(OPTION_EXPORT_COMPILE_STAT, opt_value), ge::GRAPH_SUCCESS);

@@ -11,7 +11,7 @@
 #ifndef AIR_CXX_COMPILER_GRAPH_OPTIMIZE_SYMBOLIC_CODEGEN_SYMBOL_CHECK_CODEGEN_H_
 #define AIR_CXX_COMPILER_GRAPH_OPTIMIZE_SYMBOLIC_CODEGEN_SYMBOL_CHECK_CODEGEN_H_
 
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 #include "graph/compute_graph.h"
 #include "exe_graph/runtime/tensor.h"
 

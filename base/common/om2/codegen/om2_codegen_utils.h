@@ -13,7 +13,7 @@
 #include <unordered_map>
 #include <string>
 #include "common/opskernel/ops_kernel_info_types.h"
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 #include "graph/op_desc.h"
 #include "framework/common/taskdown_common.h"
 #include "fwk_adpt_struct.h"
@@ -39,6 +39,7 @@ class Om2CodegenUtils {
   static bool IsNeedAtomicCleanTask(const OpDescPtr &op_desc);
   static bool IsSeparatelyCleanTask(const OpDescPtr &op_desc, const std::string &kernel_name);
   static bool OpNeedPrint(const OpDescPtr &op_desc);
+  static bool OpNeedAssertOrPrintf(const OpDescPtr &op_desc);
   static bool IsSoftSyncOp(const OpDescPtr &op_desc);
   static bool IsBlockingAicpuOp(const OpDescPtr &op_desc);
   static int32_t TopicTypeToRtsFlag(const int32_t topic_type);

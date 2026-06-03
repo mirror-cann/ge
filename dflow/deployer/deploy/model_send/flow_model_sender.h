@@ -13,7 +13,7 @@
 
 #include <map>
 #include "proto/deployer.pb.h"
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 #include "dflow/base/deploy/deploy_planner.h"
 #include "common/config/device_debug_config.h"
 #include "deploy/deployer/deploy_state.h"

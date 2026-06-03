@@ -133,6 +133,7 @@ class KernelTaskCodeBuilder : public TaskCodeBuilder {
   Status BuildAddrGenInfoForEventAddr(const AddrSemantic &semantic, RenderedAddrInfo &addr_gen_info) const;
   Status BuildAddrGenInfoForTiling(const AddrSemantic &semantic, RenderedAddrInfo &addr_gen_info) const;
   ExprRef BuildReportLaunchedTaskCall() const;
+  ExprRef BuildReportTaskPreprocessCall(Arg l0_info) const;
   Status CheckTaskSupport() const;
   Status GetKernelTaskMeta(const domi::TaskDef &task_def, domi::KernelContext &kernel_context,
                            uint32_t &args_size, uint32_t &kernel_type) const;
@@ -155,6 +156,7 @@ class KernelTaskCodeBuilder : public TaskCodeBuilder {
   std::vector<size_t> materialized_output_indices_;
   std::string kernel_name_;
   bool op_need_print_{false};
+  bool op_need_assert_or_printf_{false};
   bool is_soft_sync_op_{false};
   bool is_separately_clean_task_{false};
   bool is_blocking_aicpu_op_{false};

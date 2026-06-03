@@ -17,6 +17,7 @@ OUTPUT_PATH="${BASEPATH}/output"
 BUILD_RELATIVE_PATH="build"
 BUILD_PATH="${BASEPATH}/${BUILD_RELATIVE_PATH}/"
 PYTHON_PATH=python3
+RULE_LAUNCH_ARG=""
 
 # MDC build para
 ENABLE_BUILD_DEVICE=ON
@@ -146,11 +147,10 @@ checkopts() {
   BUILD_COMPONENT_COMPILER="ge-compiler"
   BUILD_COMPONENT_EXECUTOR="ge-executor"
   BUILD_COMPONENT_DFLOW="dflow-executor"
-  THIRD_PARTY_DL="${BASEPATH}/build_third_party.sh"
   BUILD_OUT_PATH="${BASEPATH}/build_out"
   
   # Process the options
-  parsed_args=$(getopt -a -o j:hvf: -l help,verbose,ge_compiler,ge_executor,dflow,asan,cov,cann_3rd_lib_path:,extra-cmake-args:,output_path:,build_type:,build-type:,python_path:,enable-sign,sign-script:,version: -- "$@") || {
+  parsed_args=$(getopt -a -o j:hvf: -l help,verbose,ge_compiler,ge_executor,dflow,asan,cov,rule_launch:,cann_3rd_lib_path:,extra-cmake-args:,output_path:,build_type:,build-type:,python_path:,enable-sign,sign-script:,version: -- "$@") || {
     usage
     exit 1
   }
@@ -227,6 +227,10 @@ checkopts() {
         ;;
       --version)
         VERSION_INFO=$2
+        shift 2
+        ;;
+      --rule_launch)
+        RULE_LAUNCH_ARG="-D RULE_LAUNCH=$2"
         shift 2
         ;;
       -f)
@@ -397,7 +401,6 @@ build_single_pkg() {
   mk_dir "${component_build_path}"
   echo "===== Build GE package: ${component} (pid $$) ====="
   cd "${component_build_path}"
-
   execute_command "cmake -D BUILD_OPEN_PROJECT=True \
         -D ENABLE_OPEN_SRC=True \
         -D ENABLE_ASAN=${ENABLE_ASAN} \
@@ -419,6 +422,7 @@ build_single_pkg() {
         -D USE_CXX11_ABI=${USE_CXX11_ABI} \
         -D LLVM_PATH=${LLVM_PATH} \
         -D CMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} \
+        ${RULE_LAUNCH_ARG} \
         ${BASEPATH}"
 
   execute_command "make ${component} ${VERBOSE} -j${THREAD_NUM}"
@@ -440,17 +444,6 @@ main() {
 
   env
   g++ -v
-
-  # 编译三方库
-  if [ "X$ENABLE_DFLOW_EXECUTOR_PKG" == "Xon" ]; then
-    bash ${THIRD_PARTY_DL} ${CANN_3RD_LIB_PATH} ${THREAD_NUM} ${BUILD_COMPONENT_DFLOW} ${ENABLE_BUILD_DEVICE} ${USE_CXX11_ABI} ${CMAKE_TOOLCHAIN_FILE}
-  fi
-  if [ "X$ENABLE_GE_EXECUTOR_PKG" == "Xon" ]; then
-    bash ${THIRD_PARTY_DL} ${CANN_3RD_LIB_PATH} ${THREAD_NUM} ${BUILD_COMPONENT_EXECUTOR} ${ENABLE_BUILD_DEVICE} ${USE_CXX11_ABI} ${CMAKE_TOOLCHAIN_FILE}
-  fi
-  if [ "X$ENABLE_GE_COMPILER_PKG" == "Xon" ]; then
-    bash ${THIRD_PARTY_DL} ${CANN_3RD_LIB_PATH} ${THREAD_NUM} ${BUILD_COMPONENT_COMPILER} ${ENABLE_BUILD_DEVICE} ${USE_CXX11_ABI} ${CMAKE_TOOLCHAIN_FILE}
-  fi
 
   echo "---------------- Build GE package ----------------"
   mk_dir ${OUTPUT_PATH}

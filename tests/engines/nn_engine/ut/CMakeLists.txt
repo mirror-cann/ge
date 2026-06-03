@@ -246,8 +246,8 @@ target_link_libraries(fe_ut PRIVATE
         compress
         error_manager
         json
-        GTest::gtest
-        GTest::gtest_main
+        GTestShared::gtest
+        GTestShared::gtest_main
         c_sec_static
         mmpa_stub
         slog_stub
@@ -256,5 +256,5 @@ target_link_libraries(fe_ut PRIVATE
         easy_graph
         ge_graph_dsl
         intf_llt_pub
- 	GTest::gmock
+ 	GTestShared::gmock
  	mockcpp_static)

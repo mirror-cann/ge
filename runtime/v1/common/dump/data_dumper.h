@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,7 +27,6 @@
 #include "framework/common/ge_types.h"
 #include "runtime/base.h"
 #include "dump/adump_pub.h"
-#include "dump/adump_api.h"
 
 namespace ge {
 struct FirstLevelAddressInfo {
@@ -208,6 +207,7 @@ class DataDumper {
   void FillOutputTensorInfos(const OpDescPtr &op_desc, uintptr_t args_base, size_t input_count,
                             const std::map<uint64_t, uint64_t>& cust_offset,
                             std::vector<Adx::TensorInfo>& tensors) const;
+  Status FillNonTaskOutputTensorInfo(const InnerDumpInfo &dump_info, std::vector<Adx::TensorInfo>& tensors) const;
   Status FillRawTensorInfos(const InnerDumpInfo &dump_info, std::vector<Adx::TensorInfo> &tensors,
                           bool dump_input = true, bool dump_output = true) const;
   std::vector<Adx::DumpAttr> BuildDumpAttrs() const;

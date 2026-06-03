@@ -53,7 +53,6 @@ target_link_libraries(aihac_symbolizer
         slog
         Boost::boost
         -Wl,--as-needed
-        ascend_protobuf_shared_headers
         ascend_protobuf
         $<$<NOT:$<STREQUAL:${TARGET_SYSTEM_NAME},Android>>:-lrt>
         -ldl

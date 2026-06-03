@@ -19,5 +19,5 @@
 #include <memory>
 #include "graph/tensor.h"
 #include "graph/types.h"
-#include "external/ge_common/ge_api_types.h"
+#include "external/ge_common/ge_common_api_types.h"
 #endif  // INC_EXTERNAL_GE_GE_API_TYPES_H_

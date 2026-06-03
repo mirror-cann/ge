@@ -47,7 +47,7 @@ function(protobuf_generate comp c_var h_var)
     set(${c_var})
     set(${h_var})
     set(_add_target FALSE)
-    set(_protoc_grogram ${PROTOC_PROGRAM})
+    set(_protoc_grogram $<TARGET_FILE:host_protoc>)
 
     set(extra_option "")
     foreach (arg ${ARGN})
@@ -94,7 +94,7 @@ function(protobuf_generate comp c_var h_var)
                 COMMAND ${CMAKE_COMMAND} -E make_directory "${proto_output_path}"
                 COMMAND ${CMAKE_COMMAND} -E echo "generate proto cpp_out ${comp} by ${abs_file}"
                 COMMAND ${_protoc_grogram} -I${file_dir} ${extra_option} --cpp_out=${proto_output_path} ${abs_file}
-                DEPENDS ${abs_file}
+                DEPENDS ${abs_file} host_protoc
                 COMMENT "Running C++ protocol buffer compiler on ${file}" VERBATIM)
     endforeach ()
 
@@ -146,9 +146,9 @@ function(protobuf_generate_grpc comp c_var h_var)
                 OUTPUT "${proto_output_path}/${file_name}.pb.cc" "${proto_output_path}/${file_name}.pb.h"
                 WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
                 COMMAND ${CMAKE_COMMAND} -E make_directory "${proto_output_path}"
-                COMMAND ${PROTOC_PROGRAM} -I${file_dir} ${extra_option} --cpp_out=${proto_output_path} ${abs_file}
-                COMMAND ${PROTOC_PROGRAM} -I${file_dir} ${extra_option} --grpc_out=${proto_output_path} --plugin=protoc-gen-grpc=${GRPC_CPP_PLUGIN_PROGRAM} ${abs_file}
-                DEPENDS ${abs_file}
+                COMMAND $<TARGET_FILE:host_protoc> -I${file_dir} ${extra_option} --cpp_out=${proto_output_path} ${abs_file}
+                COMMAND $<TARGET_FILE:host_protoc> -I${file_dir} ${extra_option} --grpc_out=${proto_output_path} --plugin=protoc-gen-grpc=$<TARGET_FILE:grpc_cpp_plugin> ${abs_file}
+                DEPENDS ${abs_file} host_protoc grpc_cpp_plugin
                 COMMENT "Running C++ protocol buffer complier on ${file}" VERBATIM)
     endforeach ()
 
@@ -188,7 +188,7 @@ function(protobuf_generate_py comp py_var)
                 WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
                 COMMAND ${CMAKE_COMMAND} -E make_directory "${proto_output_path}"
                 COMMAND ${CMAKE_COMMAND} -E echo "generate proto cpp_out ${comp} by ${abs_file}"
-                COMMAND ${PROTOC_PROGRAM} -I${file_dir} --python_out=${proto_output_path} ${abs_file}
+                COMMAND $<TARGET_FILE:host_protoc> -I${file_dir} --python_out=${proto_output_path} ${abs_file}
                 DEPENDS ${abs_file}
                 COMMENT "Running PYTHON protocol buffer compiler on ${file}" VERBATIM )
     endforeach ()

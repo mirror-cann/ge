@@ -13,7 +13,8 @@ include(cmake/fetch_cann_cmake.cmake)
 project(CANN-GRAPH-ENGINE)
 
 init_cann_project()
-
+set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ${RULE_LAUNCH})
+set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ${RULE_LAUNCH})
 set(BASE_DIR ${CMAKE_CURRENT_LIST_DIR})
 
 include(cmake/function.cmake)
@@ -57,21 +58,11 @@ endif ()
 if (NOT DEFINED CMAKE_MODULE_PATH)
     set(CMAKE_MODULE_PATH
         ${CANN_CMAKE_DIR}/modules
-        ${CANN_3RD_LIB_PATH}/cmake/modules
     )
 endif()
 
 if (NOT DEFINED CMAKE_PREFIX_PATH)
     set(CMAKE_PREFIX_PATH
-        ${CANN_3RD_LIB_PATH}/lib_cache/protoc
-        ${CANN_3RD_LIB_PATH}/lib_cache/grpc
-        ${CANN_3RD_LIB_PATH}/lib_cache/protobuf_static
-        ${CANN_3RD_LIB_PATH}/lib_cache/protobuf_shared
-        ${CANN_3RD_LIB_PATH}/lib_cache/protobuf_host_static
-        ${CANN_3RD_LIB_PATH}/lib_cache/gtest_shared/lib64/cmake/GTest
-        ${CANN_3RD_LIB_PATH}/lib_cache/benchmark
-        ${CANN_3RD_LIB_PATH}/lib_cache/symengine/lib/cmake/symengine
-        ${CANN_3RD_LIB_PATH}/lib_cache/boost/lib/cmake/Boost-1.87.0
         ${ASCEND_INSTALL_PATH}
         ${ASCEND_INSTALL_PATH}/pkg_inc
     )
@@ -109,7 +100,7 @@ endif()
 
 if (ENABLE_ACL_UT)
     include(cmake/intf_pub_linux.cmake)
-    find_package(GTest CONFIG REQUIRED)
+    add_cann_third_party(gtest_shared)
     find_cann_package(securec MODULE REQUIRED)
     add_cann_third_party(json)
     add_subdirectory(tests/acl_ut)
@@ -195,7 +186,7 @@ option(BUILD_OPEN_PROJECT "Enable air compile in opensource." FALSE)
 
 include(cmake/find_3rd_party_packages.cmake)
 if ((CMAKE_BUILD_TYPE MATCHES GCOV) OR ENABLE_GE_DT)
-    find_package(GTest CONFIG REQUIRED)
+    add_cann_third_party(gtest_shared)
 endif ()
 
 if(BUILD_PKG_COMPONENT)

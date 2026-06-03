@@ -251,7 +251,7 @@ target_link_libraries(tf_engine_stest PRIVATE
     air_headers
     datagw_headers
     -Wl,--as-needed
-    GTest::gtest
+    GTestShared::gtest
     stub_for_aicpu
     graph
     metadef
@@ -301,7 +301,7 @@ if (BUILD_OPEN_PROJECT OR ENABLE_OPEN_SRC)
         graph_base
         register
         opp_registry
-        GTest::gtest
+        GTestShared::gtest
         ascend_protobuf
         platform_headers
         c_sec
@@ -332,7 +332,7 @@ else ()
         graph_base
         register
         opp_registry
-        GTest::gtest
+        GTestShared::gtest
         ascend_protobuf
         platform_headers
         c_sec
@@ -374,7 +374,7 @@ target_link_libraries(host_engine_stest PRIVATE
     graph_base
     register
     opp_registry
-    GTest::gtest
+    GTestShared::gtest
     ascend_protobuf
     platform_headers
     c_sec

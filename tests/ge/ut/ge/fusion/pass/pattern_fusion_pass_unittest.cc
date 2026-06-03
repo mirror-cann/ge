@@ -21,6 +21,7 @@
 
 #include "ge/fusion/pass/pattern_fusion_pass.h"
 #include "ge/fusion/pattern.h"
+#include "ge/fusion/infer_shape_util.h"
 
 #include "common/topo_checker.h"
 #include "register/custom_pass_context_impl.h"
@@ -42,7 +43,7 @@ PatternUniqPtr BuildSingleTransDataPattern() {
 }
 
 // Replacement: data -> relu，所有节点挂 input shape 透传到 output 的 stub infer func。
-GraphUniqPtr BuildReluReplacementWithInfer() {
+GraphUniqPtr BuildReluReplacementWithStubInfer() {
   auto replace_graph_builder = ge::es::EsGraphBuilder("replacement");
   auto esb_graph = replace_graph_builder.GetCGraphBuilder();
   auto data = EsCreateGraphInput(esb_graph, 0);
@@ -61,23 +62,9 @@ GraphUniqPtr BuildReluReplacementWithInfer() {
   return replacement_graph;
 }
 
-// 从 match_result 的 boundary 取每个输入的 shape，作为 InferShape 的输入。
-std::vector<ge::Shape> CollectInputShapesFromBoundary(const std::unique_ptr<MatchResult> &match_result) {
-  std::vector<SubgraphInput> subgraph_inputs;
-  match_result->ToSubgraphBoundary()->GetAllInputs(subgraph_inputs);
-  std::vector<ge::Shape> input_shapes;
-  for (const auto &subgraph_input : subgraph_inputs) {
-    auto boundary_input = subgraph_input.GetAllInputs();
-    auto node_output = boundary_input.at(0);
-    TensorDesc tensor_desc;
-    node_output.node.GetOutputDesc(node_output.index, tensor_desc);
-    input_shapes.emplace_back(tensor_desc.GetShape());
-  }
-  return input_shapes;
-}
-
-// 校验融合后图的拓扑：DynamicRNNV3 / x_reshape / y_reshape 的连接关系，并定位 transdata_4
-// 对应的 Relu，比对其 input/output shape；返回 true 表示找到了 transdata_4 的 Relu。
+// 校验融合后图的拓扑：DynamicRNNV3 / x_reshape / y_reshape 的连接关系，以及每个 Relu 的
+// 数据 dump 属性；定位到 transdata_4 对应的 Relu 时再比对 input/output shape。
+// 返回 true 表示找到了 transdata_4 对应的 Relu 节点。
 bool VerifyReplacedTopologyAndShape(const ComputeGraphPtr &graph) {
   bool found_transdata_4 = false;
   for (const auto &node : graph->GetDirectNode()) {
@@ -205,9 +192,8 @@ TEST_F(UtestPatternFusionPass, SingleNode_1Input_1Output_AfterInfershape) {
       return patterns;
     }
     std::unique_ptr<Graph> Replacement(const unique_ptr<MatchResult> &match_result) override {
-      auto replacement_graph = BuildReluReplacementWithInfer();
-      const auto input_shapes = CollectInputShapesFromBoundary(match_result);
-      GE_ASSERT_SUCCESS(GeUtils::InferShape(*replacement_graph, input_shapes));
+      auto replacement_graph = BuildReluReplacementWithStubInfer();
+      GE_ASSERT_SUCCESS(InferShapeUtil::InferShape(*replacement_graph, *match_result));
       return replacement_graph;
     }
   };

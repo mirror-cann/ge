@@ -15,7 +15,7 @@
 #include "graph/compute_graph.h"
 #include "ge_context.h"
 #include "ge_local_context.h"
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 #include "ge_common/debug/ge_log.h"
 
 namespace ge {

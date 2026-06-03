@@ -70,18 +70,18 @@ target_link_libraries(autofuse_test PRIVATE
         gert
         metadef_headers
         ascendcl_stub
-        GTest::gtest
-        GTest::gtest_main
-        GTest::gmock
-        GTest::gmock_main
+        GTestShared::gtest
+        GTestShared::gtest_main
+        GTestShared::gmock
+        GTestShared::gmock_main
         es_ge_test
         intf_llt_pub
         -Wl,--whole-archive
         rt2_registry_static
         -Wl,--no-whole-archive
         json
-        ge_running_env ge_runtime_stub GTest::gtest GTest::gtest_main GTest::gmock_main ${COMMON_SHARED_LIBRARIES} -lrt -ldl
-        -Wl,--no-as-needed GTest::gmock -Wl,--as-needed
+        ge_running_env ge_runtime_stub GTestShared::gtest GTestShared::gtest_main GTestShared::gmock_main ${COMMON_SHARED_LIBRARIES} -lrt -ldl
+        -Wl,--no-as-needed GTestShared::gmock -Wl,--as-needed
 )
 
 target_link_options(autofuse_test PRIVATE

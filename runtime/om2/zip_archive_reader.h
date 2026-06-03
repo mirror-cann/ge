@@ -15,6 +15,7 @@
 #include <cstddef>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "common/ge_common/ge_types.h"
@@ -39,7 +40,7 @@ class RAIIZipArchive {
 
   ~RAIIZipArchive();
   bool IsGood() const {
-    return zip_handle_ != nullptr;
+    return (zip_handle_ != nullptr) && entry_cache_ready_;
   }
   /**
    * Lists all regular files in the ZIP archive, excluding directories.
@@ -56,12 +57,26 @@ class RAIIZipArchive {
   ReadonlyByteBuffer ExtractToMem(const std::string &entry_name, size_t &buff_size) const;
 
  private:
-  ReadonlyByteBuffer FastReadRawDataToMem(const std::string &entry_name, const size_t pos_in_central_dir,
-                                          const size_t buff_size) const;
+  struct CachedZipEntry {
+    unz64_file_pos file_pos;
+    uint64_t uncompressed_size = 0U;
+    uint64_t raw_data_offset = 0U;
+    // 仅未压缩 entry 的 raw_data_offset 可直接用于零拷贝读取。
+    bool raw_data_ready = false;
+  };
+
+  bool BuildEntryCache();
+  bool CacheCurrentEntry(const std::string &entry_name, const unz_file_info64 &file_info);
+  bool GoToEntry(const std::string &entry_name) const;
+  bool GetCachedRawData(const std::string &entry_name, size_t &buff_size, ReadonlyByteBuffer &raw_data) const;
+  bool GetRawDataOffset(const size_t pos_in_central_dir, const size_t buff_size, uint64_t &raw_data_offset) const;
 
  private:
   MemoryFileReadonly mem_file_{};
   unzFile zip_handle_ = nullptr;
+  std::unordered_map<std::string, CachedZipEntry> entry_cache_;
+  std::vector<std::string> entry_names_;
+  bool entry_cache_ready_ = false;
 };
 }  // namespace ge
 

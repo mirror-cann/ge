@@ -10,7 +10,7 @@
 #include <filesystem>
 #include <gtest/gtest.h>
 #include "mockcpp/mockcpp.hpp"
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 #include "common/common_utils.h"
 #include "python_adapter/python_api_call.h"
 #include "common/compile_result_utils.h"

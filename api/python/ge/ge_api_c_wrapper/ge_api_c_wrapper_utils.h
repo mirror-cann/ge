@@ -18,7 +18,7 @@
 #include "graph/ascend_string.h"
 #include "graph/utils/math_util.h"
 #include "common/checker.h"
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 #include "ge/eager_style_graph_builder/c/esb_funcs.h"
 
 namespace ge {

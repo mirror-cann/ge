@@ -12,7 +12,7 @@ target_link_options(pgo_add_abs_inductor_concat_test_codegen PRIVATE -Wl,--no-as
 target_link_libraries(pgo_add_abs_inductor_concat_test_codegen
     atrace optimize att codegen common_stub share_graph ascgen_common
     aihac_symbolizer asc_slog_stub error_manager metadef json
-    GTest::gtest GTest::gtest_main)
+    GTestShared::gtest GTestShared::gtest_main)
 target_compile_definitions(pgo_add_abs_inductor_concat_test_codegen PRIVATE
     ATT_SO_NAME="./libatt.so"
     KERNEL_SRC_LIST="${PGO_ADD_ABS_INDUCTOR_CONCAT_TILING_DEF}:${PGO_ADD_ABS_INDUCTOR_CONCAT_HOST_CODE}:${PGO_ADD_ABS_INDUCTOR_CONCAT_DEVICE_CODE}"
@@ -32,7 +32,7 @@ add_custom_target(pgo_add_abs_inductor_concat_test_codegen_outputs
     DEPENDS ${PGO_ADD_ABS_INDUCTOR_CONCAT_TILING_DEF} ${PGO_ADD_ABS_INDUCTOR_CONCAT_HOST_CODE} ${PGO_ADD_ABS_INDUCTOR_CONCAT_DEVICE_CODE})
 add_executable(pgo_add_abs_inductor_concat_test_e2e test_e2e_pgo_add_abs_inductor_concat_split_compile.cpp)
 add_dependencies(pgo_add_abs_inductor_concat_test_e2e pgo_add_abs_inductor_concat_test_codegen_outputs)
-target_link_libraries(pgo_add_abs_inductor_concat_test_e2e dl GTest::gtest GTest::gtest_main unified_dlog)
+target_link_libraries(pgo_add_abs_inductor_concat_test_e2e dl GTestShared::gtest GTestShared::gtest_main unified_dlog)
 target_include_directories(pgo_add_abs_inductor_concat_test_e2e PRIVATE ${PGO_ADD_ABS_INDUCTOR_CONCAT_WORKDIR})
 target_compile_definitions(pgo_add_abs_inductor_concat_test_e2e PRIVATE
     TILING_DEF_FILE="${PGO_ADD_ABS_INDUCTOR_CONCAT_TILING_DEF}"

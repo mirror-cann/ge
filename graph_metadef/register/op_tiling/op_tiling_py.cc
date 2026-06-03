@@ -24,7 +24,7 @@
 #include "common/util/tiling_utils.h"
 #include "platform/platform_info.h"
 #include "exe_graph/runtime/storage_shape.h"
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 #include "graph_metadef/common/ge_common/util.h"
 #include "base/err_mgr.h"
 #include "exe_graph/lowering/kernel_run_context_builder.h"

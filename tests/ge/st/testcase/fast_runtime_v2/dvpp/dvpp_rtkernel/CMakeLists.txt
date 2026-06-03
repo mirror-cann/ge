@@ -41,9 +41,9 @@ target_link_libraries(st_dvpp_runtime2_test PRIVATE
         gert
         -Wl,--whole-archive
         -Wl,--no-whole-archive
-        GTest::gtest
-        GTest::gmock
-        GTest::gtest_main
+        GTestShared::gtest
+        GTestShared::gmock
+        GTestShared::gtest_main
         c_sec
         ascendcl_stub
         mockcpp_static

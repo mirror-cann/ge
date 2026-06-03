@@ -139,13 +139,7 @@ set(src_path
     ${ASCEND_INSTALL_PATH}/include/msprof
     ${ASCEND_INSTALL_PATH}/include/adump/external
     ${ASCEND_INSTALL_PATH}/include/slog/toolchain
-
-    ${CANN_3RD_LIB_PATH}/json/include
-
-    ${CANN_3RD_LIB_PATH}/protoc/include
-
     ${CMAKE_BINARY_DIR}/proto/hcce
-
     ${CMAKE_CURRENT_SOURCE_DIR}/../stub
     ${AIR_CODE_DIR}/tests/engines/hccl_engine/third_party/mockcpp/mockcpp-2.7/3rdparty
     ${AIR_CODE_DIR}/tests/engines/hccl_engine/third_party/mockcpp/mockcpp-2.7/include
@@ -174,7 +168,6 @@ target_compile_definitions(hccl_engine_stest PRIVATE
 
 target_link_options(hccl_engine_stest PRIVATE
     -Wl,-rpath,${ASCEND_COMPILER_DIR}
-    -Wl,-rpath,${CANN_3RD_LIB_PATH}/gtest_shared/lib64
     -Wl,-rpath,${AIR_CODE_DIR}/build/graph_metadef/register
     -Wl,-rpath,${AIR_CODE_DIR}/build/graph_metadef/graph
 )
@@ -196,7 +189,7 @@ target_link_libraries(hcce_st_llt PRIVATE
     runtime
     msprof_headers
     -Wl,--as-needed
-    GTest::gtest GTest::gtest_main GTest::gmock
+    GTestShared::gtest GTestShared::gtest_main GTestShared::gmock
     ${LIBRARY_MOCKCPP}
     error_manager
     hcomm
@@ -221,7 +214,7 @@ target_link_libraries(hccl_engine_stest PRIVATE
     runtime
     msprof_headers
     -Wl,--as-needed
-    GTest::gtest GTest::gtest_main GTest::gmock
+    GTestShared::gtest GTestShared::gtest_main GTestShared::gmock
     ${LIBRARY_MOCKCPP}
     error_manager
     graph

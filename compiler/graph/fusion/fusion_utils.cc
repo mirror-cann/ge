@@ -16,6 +16,7 @@
 #include "register/graph_optimizer/fusion_common/graph_pass_util.h"
 #include "graph/ge_context.h"
 #include "common/util.h"
+#include "common/plugin/ge_make_unique_util.h"
 #include "common/framework_types_internal.h"
 #include "nlohmann/json.hpp"
 #include "fusion_utils.h"
@@ -99,6 +100,37 @@ std::vector<NodePtr> ToNodePtrs(const std::vector<GNode> &nodes) {
   return node_ptrs;
 }
 }  // namespace
+std::unique_ptr<SubgraphBoundary> FusionUtils::BuildSubgraphBoundaryFromNode(const NodePtr &node) {
+  GE_ASSERT_NOTNULL(node);
+  std::vector<SubgraphInput> subgraph_inputs;
+  std::map<OutDataAnchorPtr, size_t> out_anchor_2_idx;
+  for (const auto &in_anchor : node->GetAllInDataAnchors()) {
+    GE_ASSERT_NOTNULL(in_anchor);
+    const auto peer_out_anchor = in_anchor->GetPeerOutAnchor();
+    if (peer_out_anchor == nullptr) {
+      continue;
+    }
+    NodeIo node_input = {NodeAdapter::Node2GNode(node), in_anchor->GetIdx()};
+    const auto iter = out_anchor_2_idx.find(peer_out_anchor);
+    if (iter == out_anchor_2_idx.cend()) {
+      SubgraphInput subgraph_input({node_input});
+      subgraph_inputs.emplace_back(subgraph_input);
+      out_anchor_2_idx.emplace(peer_out_anchor, subgraph_inputs.size() - 1);
+    } else {
+      auto idx = iter->second;
+      GE_ASSERT_TRUE(idx < subgraph_inputs.size());
+      subgraph_inputs[idx].AddInput(node_input);
+    }
+  }
+  std::vector<SubgraphOutput> subgraph_outputs;
+  for (const auto &out_anchor : node->GetAllOutDataAnchors()) {
+    GE_ASSERT_NOTNULL(out_anchor);
+    NodeIo node_output = {NodeAdapter::Node2GNode(node), out_anchor->GetIdx()};
+    subgraph_outputs.emplace_back(node_output);
+  }
+  return ge::MakeUnique<SubgraphBoundary>(subgraph_inputs, subgraph_outputs);
+}
+
 Status FusionUtils::MarkPassNameOnReplacementNodes(const std::unique_ptr<Graph> &replacement,
                                                    const std::unique_ptr<SubgraphBoundary> &subgraph,
                                                    const std::string &pass_name) {

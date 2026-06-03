@@ -14,7 +14,7 @@
 #include <string>
 #include <vector>
 #include "nlohmann/json.hpp"
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 
 namespace ge {
 struct ItemDeviceInfo {

@@ -154,6 +154,16 @@ bool Om2CodegenUtils::OpNeedPrint(const OpDescPtr &op_desc) {
   return true;
 }
 
+bool Om2CodegenUtils::OpNeedAssertOrPrintf(const OpDescPtr &op_desc) {
+  const std::string kOpDfxOptions = "_op_dfx_options";
+  const std::string kOpDfxAssert = "assert";
+  const std::string kOpDfxPrintf = "printf";
+  std::vector<std::string> dfx_opts;
+  (void)ge::AttrUtils::GetListStr(op_desc, kOpDfxOptions, dfx_opts);
+  return (std::find(dfx_opts.begin(), dfx_opts.end(), kOpDfxAssert) != dfx_opts.end()) ||
+         (std::find(dfx_opts.begin(), dfx_opts.end(), kOpDfxPrintf) != dfx_opts.end());
+}
+
 bool Om2CodegenUtils::IsSoftSyncOp(const OpDescPtr &op_desc) {
   bool is_soft_sync_op = false;
   (void)AttrUtils::GetBool(op_desc, ATTR_NAME_STATIC_TO_DYNAMIC_SOFT_SYNC_OP, is_soft_sync_op);

@@ -6566,6 +6566,7 @@ TEST_F(DavinciModelTest, Adump_Interface_DirectCall) {
 
   DataDumper::InnerDumpInfo dump_info;
   dump_info.op = op_desc;
+  dump_info.is_task = true;
   dump_info.is_raw_address = false;
   dump_info.args = 0x1000;
   dump_info.stream = reinterpret_cast<rtStream_t>(0xdeadbeef);
@@ -6601,6 +6602,7 @@ TEST_F(DavinciModelTest, Adump_OverflowNotSupported_Direct) {
 
   DataDumper::InnerDumpInfo dump_info;
   dump_info.op = op_desc;
+  dump_info.is_task = true;
   dump_info.is_raw_address = false;
   dump_info.args = 0x1000;
   dump_info.stream = reinterpret_cast<rtStream_t>(0xdeadbeef);
@@ -6736,6 +6738,7 @@ TEST_F(DavinciModelTest, Adump_InputOutputBlacklist) {
   // 构造 InnerDumpInfo
   DataDumper::InnerDumpInfo dump_info;
   dump_info.op = op_desc;
+  dump_info.is_task = true;
   dump_info.is_raw_address = false;
   dump_info.args = 0x1000;
   dump_info.stream = reinterpret_cast<rtStream_t>(0xdeadbeef);
@@ -6911,6 +6914,138 @@ TEST_F(DavinciModelTest, Adump_InputNode) {
 
   // 验证 Adump 被调用（主算子一次，输入节点一次，共两次）
   EXPECT_EQ(g_adump_record.call_count, 1);
+}
+
+/**
+ * 用例描述：测试 Adump 模式下 Data 输入节点作为非 task dump entry 时使用下游输入槽位生成输出地址。
+ * 预置条件：构造 Data 连接到 Conv 第 2 个输入，开启 Adump 能力并设置 dump all。
+ * 测试步骤：调用 SaveDumpTask 保存 Conv task，触发主算子和 Data 输入节点的 Adump 上报。
+ * 预期结果：Data 节点按输出张量上报，args offset 为下游输入槽位 1，size 与 Conv 对应输入一致。
+ */
+TEST_F(DavinciModelTest, Adump_InputNodeOutputUseInputAnchorOffset) {
+  RuntimeParam rts_param;
+  DataDumper dumper(&rts_param);
+  dumper.overflow_enabled_ = true;
+  dumper.persistent_unlimited_enabled_ = true;
+  dumper.adump_interface_available_ = true;
+  dumper.SetModelName("test_model");
+  dumper.SetModelId(123);
+  dumper.SetOmName("test_om");
+  dumper.dump_properties_.SetDumpMode("all");
+
+  GeTensorDesc data_tensor(GeShape({1, 2, 3, 4}), FORMAT_NCHW, DT_FLOAT);
+  TensorUtils::SetSize(data_tensor, 96);
+  OpDescPtr data_op = CreateOpDesc("data", "Data");
+  data_op->AddOutputDesc(data_tensor);
+
+  GeTensorDesc filter_tensor(GeShape({1, 1, 3, 3}), FORMAT_NCHW, DT_FLOAT);
+  TensorUtils::SetSize(filter_tensor, 36);
+  OpDescPtr op_desc = CreateOpDesc("conv", "conv");
+  op_desc->AddInputDesc(filter_tensor);
+  op_desc->AddInputDesc(data_tensor);
+  op_desc->AddOutputDesc(data_tensor);
+
+  dumper.input_map_.insert({op_desc->GetName(), {data_op, 1, 0}});
+
+  rtStream_t fake_stream = reinterpret_cast<rtStream_t>(0x3333);
+  ResetAdumpRecord();
+  dumper.SaveDumpTask({0,0,0,0}, op_desc, 0x1000, {}, {}, ModelTaskType::MODEL_TASK_KERNEL, false, fake_stream);
+
+  EXPECT_EQ(g_adump_record.call_count, 2);
+  EXPECT_EQ(g_adump_record.op_name, "data");
+  ASSERT_EQ(g_adump_record.tensors.size(), 1);
+  EXPECT_EQ(g_adump_record.tensors[0].type, Adx::TensorType::OUTPUT);
+  EXPECT_EQ(g_adump_record.tensors[0].argsOffSet, 1U);
+  EXPECT_EQ(g_adump_record.tensors[0].tensorSize, 96U);
+  EXPECT_EQ(reinterpret_cast<uintptr_t>(g_adump_record.tensors[0].tensorAddr), 0x1000U + sizeof(void *));
+}
+
+/**
+ * 用例描述：测试 Adump 模式下 Data 输入节点无自定义 offset 映射时使用下游输入槽位生成输出地址。
+ * 预置条件：构造非 task Data dump entry，开启 Adump 能力并设置 dump output。
+ * 测试步骤：直接调用 DumpOpWithAdump 处理非 task Data dump entry。
+ * 预期结果：Data 节点按输出张量上报，args offset 为 input_anchor_index，size 使用 data_size。
+ */
+TEST_F(DavinciModelTest, Adump_InputNodeOutputUseInputAnchorOffsetWithoutCustomOffset) {
+  RuntimeParam rts_param;
+  DataDumper dumper(&rts_param);
+  dumper.overflow_enabled_ = true;
+  dumper.persistent_unlimited_enabled_ = true;
+  dumper.adump_interface_available_ = true;
+  dumper.SetModelName("test_model");
+  dumper.SetModelId(123);
+  dumper.SetOmName("test_om");
+  dumper.dump_properties_.SetDumpMode("output");
+
+  GeTensorDesc data_tensor(GeShape({1, 2, 3, 4}), FORMAT_NCHW, DT_FLOAT);
+  TensorUtils::SetSize(data_tensor, 96);
+  OpDescPtr data_op = CreateOpDesc("data", "Data");
+  data_op->AddOutputDesc(data_tensor);
+
+  DataDumper::InnerDumpInfo dump_info;
+  dump_info.op = data_op;
+  dump_info.is_task = false;
+  dump_info.is_raw_address = false;
+  dump_info.args = 0x1000;
+  dump_info.input_anchor_index = 2;
+  dump_info.output_anchor_index = 0;
+  dump_info.dims = data_tensor.GetShape().GetDims();
+  dump_info.data_size = 96;
+  dump_info.stream = reinterpret_cast<rtStream_t>(0x4444);
+  dump_info.is_op_debug = false;
+  dump_info.cust_to_relevant_offset_ = {};
+
+  ResetAdumpRecord();
+  Status ret = dumper.DumpOpWithAdump(dump_info);
+  EXPECT_EQ(ret, SUCCESS);
+
+  EXPECT_EQ(g_adump_record.call_count, 1);
+  ASSERT_EQ(g_adump_record.tensors.size(), 1);
+  EXPECT_EQ(g_adump_record.tensors[0].type, Adx::TensorType::OUTPUT);
+  EXPECT_EQ(g_adump_record.tensors[0].argsOffSet, 2U);
+  EXPECT_EQ(g_adump_record.tensors[0].tensorSize, 96U);
+  EXPECT_EQ(reinterpret_cast<uintptr_t>(g_adump_record.tensors[0].tensorAddr), 0x1000U + 2U * sizeof(void *));
+}
+
+/**
+ * 用例描述：测试 Adump 模式下 Data 输入节点的自定义 offset 映射缺失时跳过输出上报。
+ * 预置条件：构造非 task Data dump entry，设置不包含 input_anchor_index 的自定义 offset 映射。
+ * 测试步骤：直接调用 DumpOpWithAdump 处理非 task Data dump entry。
+ * 预期结果：接口返回成功，但不调用 AdumpDumpTensorWithCfg。
+ */
+TEST_F(DavinciModelTest, Adump_InputNodeOutputSkipWhenCustomOffsetMissing) {
+  RuntimeParam rts_param;
+  DataDumper dumper(&rts_param);
+  dumper.overflow_enabled_ = true;
+  dumper.persistent_unlimited_enabled_ = true;
+  dumper.adump_interface_available_ = true;
+  dumper.SetModelName("test_model");
+  dumper.SetModelId(123);
+  dumper.SetOmName("test_om");
+  dumper.dump_properties_.SetDumpMode("output");
+
+  GeTensorDesc data_tensor(GeShape({1, 2, 3, 4}), FORMAT_NCHW, DT_FLOAT);
+  TensorUtils::SetSize(data_tensor, 96);
+  OpDescPtr data_op = CreateOpDesc("data", "Data");
+  data_op->AddOutputDesc(data_tensor);
+
+  DataDumper::InnerDumpInfo dump_info;
+  dump_info.op = data_op;
+  dump_info.is_task = false;
+  dump_info.is_raw_address = false;
+  dump_info.args = 0x1000;
+  dump_info.input_anchor_index = 2;
+  dump_info.output_anchor_index = 0;
+  dump_info.dims = data_tensor.GetShape().GetDims();
+  dump_info.data_size = 96;
+  dump_info.stream = reinterpret_cast<rtStream_t>(0x5555);
+  dump_info.is_op_debug = false;
+  dump_info.cust_to_relevant_offset_ = {{0, 1}};
+
+  ResetAdumpRecord();
+  Status ret = dumper.DumpOpWithAdump(dump_info);
+  EXPECT_EQ(ret, SUCCESS);
+  EXPECT_EQ(g_adump_record.call_count, 0);
 }
 
 TEST_F(DavinciModelTest, DavinciModelExecute_SubgraphDump_Blacklist_RootGraph) {

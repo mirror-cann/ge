@@ -1,12 +1,12 @@
 /**
- * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
- * CANN Open Software License Agreement Version 2.0 (the "License").
- * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
- * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
- * See LICENSE in the root of the software repository for the full text of the License.
- */
+* Copyright (c) 2025 Huawei Technologies Co., Ltd.
+* This program is free software, you can redistribute it and/or modify it under the terms and conditions of
+* CANN Open Software License Agreement Version 2.0 (the "License").
+* Please refer to the License for details. You may not use this file except in compliance with the License.
+* THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
+* INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
+* See LICENSE in the root of the software repository for the full text of the License.
+*/
 
 #include <string>
 #include <gtest/gtest.h>
@@ -15,6 +15,10 @@
 #include "graph/utils/attr_utils.h"
 #include "graph/utils/node_adapter.h"
 #include "graph/utils/graph_utils_ex.h"
+#include "graph/utils/graph_utils.h"
+#include "graph/utils/op_desc_utils.h"
+#include "graph/debug/ge_attr_define.h"
+#include "graph/ge_tensor.h"
 #include "api/gelib/gelib.h"
 #include "ge/ge_api.h"
 
@@ -25,28 +29,31 @@
 namespace ge {
 namespace {
 const std::string kAicoreEngineName = "AIcoreEngine";
+
+graphStatus StubInferFunc(Operator &op) {
+  auto in = op.GetInputDesc(0);
+  auto out = op.GetOutputDesc(0);
+  out.SetShape(in.GetShape());
+  out.SetDataType(in.GetDataType());
+  op.UpdateOutputDesc((int)0, out);
+  return GRAPH_SUCCESS;
+}
 }
 class UtestGeUtils : public testing::Test {
  public:
- static void SetUpTestSuite() {
-   std::map<string, string> options;
-   EXPECT_EQ(GELib::Initialize(options), SUCCESS);
-   auto instance = GELib::GetInstance();
-   EXPECT_NE(instance, nullptr);
- }
- static void TearDownTestSuite() {
-   GEFinalize();
-   GELib::GetInstance()->Finalize();
- }
- protected:
-  void SetUp() override {}
-
-  void TearDown() override {}
+  static void SetUpTestSuite() {
+    std::map<string, string> options;
+    EXPECT_EQ(GELib::Initialize(options), SUCCESS);
+    auto instance = GELib::GetInstance();
+    EXPECT_NE(instance, nullptr);
+  }
+  static void TearDownTestSuite() {
+    GELib::GetInstance()->Finalize();
+  }
 };
 
 TEST_F(UtestGeUtils, CheckNodeSupportOnAicore_NotSupport) {
-  // make node
-  OpDescPtr add_op = std::make_shared<OpDesc>("add", "Add");
+  OpDescPtr add_op = std::make_shared<OpDesc>("add", "Fool");
   AttrUtils::SetBool(add_op, "is_supported", false);
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("default");
   auto add_node = graph->AddNode(add_op);
@@ -56,20 +63,14 @@ TEST_F(UtestGeUtils, CheckNodeSupportOnAicore_NotSupport) {
   AscendString unsupported_reason;
   EXPECT_NE(GeUtils::CheckNodeSupportOnAicore(add_gnode, is_support, unsupported_reason), SUCCESS);
   EXPECT_TRUE(!is_support);
-  EXPECT_STREQ(unsupported_reason.GetString(), "Cannot get op info by op type Add");
+  EXPECT_STREQ(unsupported_reason.GetString(), "Cannot get op info by op type Fool");
 }
 
 TEST_F(UtestGeUtils, InferShape_SUCCESS) {
   auto compute_graph = gert::ShareGraph::AicoreGraph();
   auto graph = GraphUtilsEx::CreateGraphPtrFromComputeGraph(compute_graph);
 
-  const auto stub_infer_func = [](Operator &op) {
-    auto input_shape = op.GetInputDesc(0).GetShape();
-    auto output_desc = op.GetOutputDesc(0);
-    output_desc.SetShape(input_shape);
-    op.UpdateOutputDesc((int)0, output_desc);
-    return GRAPH_SUCCESS;
-  };
+  const auto stub_infer_func = StubInferFunc;
   for (const auto &node : compute_graph->GetDirectNode()) {
     auto output_shape_before_infer = node->GetOpDesc()->GetOutputDesc(0).GetShape();
     node->GetOpDesc()->AddInferFunc(stub_infer_func);

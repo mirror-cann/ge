@@ -11,6 +11,7 @@
 #include <iostream>
 #include "es_all_ops.h"
 #include "ge/fusion/pass/decompose_pass.h"
+#include "ge/fusion/infer_shape_util.h"
 #include "ge/ge_utils.h"
 
 using namespace ge;
@@ -108,17 +109,11 @@ protected:
 private:
     // 因为pass会被重复执行，不建议使用私有成员
     // 如果使用，需要保证pass对象的可重入性
-    bool InferShape(const GNode &matched_node, const Graph &graph) {
-        // Shape推导
-        std::vector<Shape> input_shapes;
-        auto input_size = matched_node.GetInputsSize();
-        for (int i = 0; i < static_cast<int>(input_size); i++) {
-            TensorDesc tensor_desc;
-            matched_node.GetInputDesc(i, tensor_desc);
-            input_shapes.emplace_back(tensor_desc.GetShape());
-        }
-        if (GeUtils::InferShape(graph, input_shapes) != SUCCESS) {
-            std::cout << "InferShape failed" << std::endl;
+    bool InferShapeAndCheckSupport(const GNode &matched_node, const Graph &graph) {
+        // 使用 ge::fusion::InferShapeUtil 提供的 InferShape 接口做 shape/dtype 推导
+        // 该接口会自动从 matched_node 边界获取输入 tensor desc（shape/dtype/format）
+        if (InferShapeUtil::InferShape(graph, matched_node) != SUCCESS) {
+            std::cout << "InferShapeUtil::InferShape failed" << std::endl;
             return false;
         }
         return true;

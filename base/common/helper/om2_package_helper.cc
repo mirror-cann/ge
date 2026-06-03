@@ -210,7 +210,7 @@ Status RepackOm2Model(const std::string &output_file_name, const SimpleZipArchiv
 
 Status CollectModelIoNodes(const ComputeGraphPtr &graph, ModelIoNodes &io_nodes) {
   uint32_t data_index = 0U;
-  const std::set<std::string> kDataOpTypes{DATA, AIPPDATA, ANN_DATA};
+  const std::set<std::string> kDataOpTypes{DATA, REFDATA, AIPPDATA, ANN_DATA};
   for (const auto &node : graph->GetDirectNode()) {
     const auto &op_desc = node->GetOpDesc();
     GE_ASSERT_NOTNULL(op_desc);

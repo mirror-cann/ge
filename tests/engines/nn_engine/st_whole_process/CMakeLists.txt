@@ -115,10 +115,10 @@ target_link_libraries(fe_st_whole_process PRIVATE
         compress
         error_manager
         json
-        GTest::gtest
-        GTest::gtest_main
-        GTest::gmock
-        GTest::gmock_main
+        GTestShared::gtest
+        GTestShared::gtest_main
+        GTestShared::gmock
+        GTestShared::gmock_main
         c_sec_static
         easy_graph
         #cann_kb

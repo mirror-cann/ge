@@ -145,9 +145,6 @@ if("ge-compiler" IN_LIST BUILD_COMPONENT)
     install(DIRECTORY ${CMAKE_SOURCE_DIR}/inc/external/flow_graph
             DESTINATION ${ARCH_LINUX_PATH}/include COMPONENT ge-compiler
     )
-    install(FILES ${CMAKE_SOURCE_DIR}/inc/external/llm_datadist/llm_datadist.h
-            DESTINATION ${ARCH_LINUX_PATH}/include/llm_datadist COMPONENT ge-compiler
-    )
     install(FILES ${CMAKE_SOURCE_DIR}/compiler/engines/hccl_engine/inc/hcom_gradient_split_tune.h
                   ${CMAKE_SOURCE_DIR}/compiler/engines/hccl_engine/inc/hcom_ops_stores.h
             DESTINATION ${ARCH_LINUX_PATH}/include/ge COMPONENT ge-compiler
@@ -156,16 +153,13 @@ if("ge-compiler" IN_LIST BUILD_COMPONENT)
                   ${CMAKE_SOURCE_DIR}/inc/external/ge/ge_utils.h
             DESTINATION ${ARCH_LINUX_PATH}/include/ge COMPONENT ge-compiler
     )
-    install(FILES ${CMAKE_SOURCE_DIR}/inc/external/llm_datadist/llm_error_codes.h
-                  ${CMAKE_SOURCE_DIR}/inc/external/llm_datadist/llm_engine_types.h
-            DESTINATION ${ARCH_LINUX_PATH}/include/ge COMPONENT ge-compiler
-    )
     install(FILES ${CMAKE_SOURCE_DIR}/inc/external/ge/fusion/graph_rewriter.h
                   ${CMAKE_SOURCE_DIR}/inc/external/ge/fusion/match_result.h
                   ${CMAKE_SOURCE_DIR}/inc/external/ge/fusion/pattern.h
                   ${CMAKE_SOURCE_DIR}/inc/external/ge/fusion/pattern_matcher.h
                   ${CMAKE_SOURCE_DIR}/inc/external/ge/fusion/subgraph_boundary.h
                   ${CMAKE_SOURCE_DIR}/inc/external/ge/fusion/pattern_matcher_config.h
+                  ${CMAKE_SOURCE_DIR}/inc/external/ge/fusion/infer_shape_util.h
             DESTINATION ${ARCH_LINUX_PATH}/include/ge/fusion COMPONENT ge-compiler
     )
     install(FILES ${CMAKE_SOURCE_DIR}/inc/external/ge/fusion/pass/decompose_pass.h
@@ -267,6 +261,7 @@ if("ge-executor" IN_LIST BUILD_COMPONENT)
     )
 
     install(FILES ${CMAKE_SOURCE_DIR}/inc/graph_metadef/external/ge_common/ge_api_types.h
+                  ${CMAKE_SOURCE_DIR}/inc/graph_metadef/external/ge_common/ge_common_api_types.h
             DESTINATION ${ARCH_LINUX_PATH}/include/external/ge_common COMPONENT ge-executor
     )
 
@@ -348,6 +343,7 @@ if("dflow-executor" IN_LIST BUILD_COMPONENT)
             ${CMAKE_SOURCE_DIR}/dflow/udf/inc/external/flow_func/meta_params.h
             ${CMAKE_SOURCE_DIR}/dflow/udf/inc/external/flow_func/out_options.h
             ${CMAKE_SOURCE_DIR}/dflow/udf/inc/external/flow_func/attr_value.h
+            ${CMAKE_SOURCE_DIR}/dflow/udf/inc/external/flow_func/dflow_attr_value.h
             ${CMAKE_SOURCE_DIR}/dflow/udf/inc/external/flow_func/flow_func_defines.h
             ${CMAKE_SOURCE_DIR}/dflow/udf/inc/external/flow_func/flow_msg.h
             ${CMAKE_SOURCE_DIR}/dflow/udf/inc/external/flow_func/meta_context.h

@@ -10,24 +10,151 @@
 
 #include "framework/runtime/dump/exception_dump_impl.h"
 #include "framework/common/debug/ge_log.h"
+#include "common/checker.h"
 #include "framework/runtime/dump/dump_config.h"
+#include "framework/runtime/subscriber/global_dumper.h"
 #include <dump/adump_api.h>
 #include "common/dump/adump_opinfo_builder.h"
 #include "runtime/kernel.h"
 #include <limits>
 #include <cstdint>
+#include <sstream>
+#include <inttypes.h>
 
 namespace ge {
 namespace dump {
 namespace {
 constexpr uint64_t kBit8Shift = 56UL;
-constexpr uint8_t kCustomLevel2AddrFlag = 0x1U;
-constexpr uint8_t kShapeLevel2AddrFlag = 0x2U;
-constexpr uint8_t kTilingDataAddrFlag = 0x3U;
+constexpr uint64_t kL0ArgDescValueMask = 0x00FFFFFFFFFFFFFFUL;
+constexpr uint8_t kL0ArgDescTypeIgnored = 1U;
+constexpr uint8_t kL0ArgDescTypeShapeInfo = 3U;
+constexpr uint8_t kL0ArgDescTypeTiling = 4U;
+constexpr uint64_t kAssertWorkspaceFlag = 4UL;
 constexpr size_t kAtomicIndex = 0UL;
 constexpr size_t kSizeNumIndex = 1UL;
 
-// 辅助函数：序列化 vector 成字符串
+uint64_t EncodeL0ArgDesc(uint8_t type, uint64_t value) {
+  return (static_cast<uint64_t>(type) << kBit8Shift) | (value & kL0ArgDescValueMask);
+}
+
+bool IsL0ExceptionDumpEnabled(const Om2L0TaskRawInfo &l0_info) {
+  return gert::GlobalDumper::GetInstance()->IsEnable(gert::DumpType::kLiteExceptionDump) ||
+         (l0_info.need_assert_or_printf != 0U);
+}
+
+bool IsL1ExceptionDumpEnabled() {
+  return DumpConfig::Instance().GetDumpScene() == GE_DUMP_EXCEPTION_AIC_ERR_NORM;
+}
+
+Status GetL0InputSize(const Om2TaskInfo &task_info, const Om2L0ArgSlotInfo &slot, uint64_t &size) {
+  if ((task_info.input_num > 0U) && (task_info.inputs == nullptr)) {
+    GELOGE(PARAM_INVALID, "[Check][Param] OM2 task input entries is null, input_num=%u.", task_info.input_num);
+    return PARAM_INVALID;
+  }
+  for (uint64_t i = 0U; i < task_info.input_num; ++i) {
+    if (task_info.inputs[i].offset == slot.args_offset) {
+      GE_ASSERT_NOTNULL(task_info.inputs[i].tensor);
+      size = task_info.inputs[i].tensor->size;
+      return SUCCESS;
+    }
+  }
+  GELOGE(PARAM_INVALID, "[Check][Param] OM2 L0 input slot offset=%lu is not found.", slot.args_offset);
+  return PARAM_INVALID;
+}
+
+Status GetL0OutputSize(const Om2TaskInfo &task_info, const Om2L0ArgSlotInfo &slot, uint64_t &size) {
+  if ((task_info.output_num > 0U) && (task_info.outputs == nullptr)) {
+    GELOGE(PARAM_INVALID, "[Check][Param] OM2 task output entries is null, output_num=%u.", task_info.output_num);
+    return PARAM_INVALID;
+  }
+  for (uint32_t i = 0U; i < task_info.output_num; ++i) {
+    if (task_info.outputs[i].offset == slot.args_offset) {
+      GE_ASSERT_NOTNULL(task_info.outputs[i].tensor);
+      size = task_info.outputs[i].tensor->size;
+      return SUCCESS;
+    }
+  }
+  GELOGE(PARAM_INVALID, "[Check][Param] OM2 L0 output slot offset=%lu is not found.", slot.args_offset);
+  return PARAM_INVALID;
+}
+
+Status GetL0WorkspaceSize(const Om2TaskInfo &task_info, const Om2L0ArgSlotInfo &slot, uint64_t &size) {
+  if ((task_info.workspace_sizes == nullptr) || (slot.related_index >= task_info.workspace_num)) {
+    GELOGE(PARAM_INVALID, "[Check][Param] OM2 L0 workspace slot index=%u is invalid, workspace_num=%u.",
+           slot.related_index, task_info.workspace_num);
+    return PARAM_INVALID;
+  }
+  size = task_info.workspace_sizes[slot.related_index];
+  return SUCCESS;
+}
+
+Status AppendL0SizeFromRawSlot(const Om2TaskInfo &task_info, const Om2L0ArgSlotInfo &slot,
+                               bool need_assert_or_printf, bool &has_assert_workspace,
+                               std::vector<uint64_t> &l0_size_list) {
+  switch (slot.kind) {
+    case OM2_L0_ARG_INPUT: {
+      uint64_t input_size = 0U;
+      GE_CHK_STATUS_RET(GetL0InputSize(task_info, slot, input_size));
+      l0_size_list.emplace_back(input_size);
+      return SUCCESS;
+    }
+    case OM2_L0_ARG_OUTPUT: {
+      uint64_t output_size = 0U;
+      GE_CHK_STATUS_RET(GetL0OutputSize(task_info, slot, output_size));
+      l0_size_list.emplace_back(output_size);
+      return SUCCESS;
+    }
+    case OM2_L0_ARG_WORKSPACE: {
+      uint64_t workspace_size = 0U;
+      GE_CHK_STATUS_RET(GetL0WorkspaceSize(task_info, slot, workspace_size));
+      if (need_assert_or_printf && !has_assert_workspace) {
+        workspace_size = EncodeL0ArgDesc(kAssertWorkspaceFlag, workspace_size);
+        has_assert_workspace = true;
+      }
+      l0_size_list.emplace_back(workspace_size);
+      return SUCCESS;
+    }
+    case OM2_L0_ARG_SHAPE_INFO:
+      l0_size_list.emplace_back(EncodeL0ArgDesc(kL0ArgDescTypeShapeInfo, slot.value));
+      return SUCCESS;
+    case OM2_L0_ARG_TILING:
+      l0_size_list.emplace_back(EncodeL0ArgDesc(kL0ArgDescTypeTiling, slot.value));
+      return SUCCESS;
+    case OM2_L0_ARG_LEVEL1_DESC:
+    case OM2_L0_ARG_PLACEHOLDER:
+    case OM2_L0_ARG_CUSTOM_VALUE:
+    case OM2_L0_ARG_FFTS_ADDR:
+    case OM2_L0_ARG_EVENT_ADDR:
+    case OM2_L0_ARG_OVERFLOW_ADDR:
+    case OM2_L0_ARG_EMPTY_ADDR:
+      l0_size_list.emplace_back(EncodeL0ArgDesc(kL0ArgDescTypeIgnored, 0U));
+      return SUCCESS;
+    default:
+      GELOGE(PARAM_INVALID, "[Check][Param] Unsupported OM2 L0 arg kind=%u.", slot.kind);
+      return PARAM_INVALID;
+  }
+}
+
+Status BuildL0SizeListFromRawInfo(const Om2TaskInfo &task_info, std::vector<uint64_t> &l0_size_list) {
+  const auto *raw_info = task_info.l0_exception_dump_info;
+  if (raw_info == nullptr) {
+    return SUCCESS;
+  }
+  if ((raw_info->arg_num > 0U) && (raw_info->args == nullptr)) {
+    GELOGE(PARAM_INVALID, "[Check][Param] OM2 L0 args is null, arg_num=%lu.", raw_info->arg_num);
+    return PARAM_INVALID;
+  }
+
+  l0_size_list.reserve(static_cast<size_t>(raw_info->arg_num));
+  bool has_assert_workspace = false;
+  const bool need_assert_or_printf = raw_info->need_assert_or_printf != 0U;
+  for (uint64_t i = 0U; i < raw_info->arg_num; ++i) {
+    GE_CHK_STATUS_RET(AppendL0SizeFromRawSlot(task_info, raw_info->args[i], need_assert_or_printf,
+                                             has_assert_workspace, l0_size_list));
+  }
+  return SUCCESS;
+}
+
 template<typename T>
 std::string ToString(const std::vector<T>& vec) {
   std::stringstream ss;
@@ -96,6 +223,51 @@ ExceptionDumpImpl::ExceptionDumpImpl(uint32_t device_id) : device_id_(device_id)
 }
 
 ExceptionDumpImpl::~ExceptionDumpImpl() = default;
+
+Status ExceptionDumpImpl::ReportL0ExceptionDumpInfo(const Om2TaskInfo& task_info) const {
+  const char* op_name = (task_info.op_name != nullptr) ? task_info.op_name : "";
+  const auto *raw_info = task_info.l0_exception_dump_info;
+  if (raw_info == nullptr) {
+    GELOGD("OM2 L0 exception dump raw info is null, skip op=%s", op_name);
+    return SUCCESS;
+  }
+  if ((raw_info->arg_num > 0U) && (raw_info->args == nullptr)) {
+    GELOGE(PARAM_INVALID, "[Check][Param] OM2 L0 args is null, arg_num=%lu.", raw_info->arg_num);
+    return PARAM_INVALID;
+  }
+  if (!IsL0ExceptionDumpEnabled(*raw_info)) {
+    GELOGD("L0 exception dump is disabled, skip op=%s", op_name);
+    return SUCCESS;
+  }
+
+  GELOGD("OM2 L0 exception dump build size list, op=%s, arg_num=%lu, need_assert_or_printf=%u",
+         op_name, raw_info->arg_num, raw_info->need_assert_or_printf);
+  std::vector<uint64_t> l0_size_list;
+  GE_CHK_STATUS_RET(BuildL0SizeListFromRawInfo(task_info, l0_size_list));
+  if (l0_size_list.empty()) {
+    GELOGW("OM2 L0 size list is empty, op=%s", op_name);
+    return SUCCESS;
+  }
+
+  const size_t limit_adx_size = (Adx::MAX_TENSOR_NUM - Adx::ADUMP_ARGS_EXCEPTION_HEAD);
+  const size_t nums = (l0_size_list.size() > limit_adx_size) ? limit_adx_size : l0_size_list.size();
+  rtArgsSizeInfo_t rt_args_size{};
+  rt_args_size.infoAddr = Adx::AdumpGetSizeInfoAddr(static_cast<uint32_t>(nums + Adx::ADUMP_ARGS_EXCEPTION_HEAD),
+                                                    rt_args_size.atomicIndex);
+  GE_ASSERT_NOTNULL(rt_args_size.infoAddr);
+  auto *adump_addr = static_cast<uint64_t *>(rt_args_size.infoAddr);
+  adump_addr[kAtomicIndex] = static_cast<uint64_t>(rt_args_size.atomicIndex);
+  adump_addr[kSizeNumIndex] = static_cast<uint64_t>(nums);
+  for (size_t i = 0UL; i < nums; ++i) {
+    adump_addr[Adx::ADUMP_ARGS_EXCEPTION_HEAD + i] = l0_size_list[i];
+    GELOGD("OM2 op[%s] L0 size info idx[%zu], val[%" PRIu64 "]", op_name,
+           Adx::ADUMP_ARGS_EXCEPTION_HEAD + i, l0_size_list[i]);
+  }
+  GE_CHK_RT_RET(rtSetExceptionExtInfo(&rt_args_size));
+  GELOGI("Report OM2 L0 exception dump info success, op=%s, arg_num=%lu, reported_num=%zu, atomic_index=%u",
+         op_name, raw_info->arg_num, nums, rt_args_size.atomicIndex);
+  return SUCCESS;
+}
 
 Status ExceptionDumpImpl::SaveOpInfo(const Om2TaskInfo& task_info) {
   const char* op_name = (task_info.op_name != nullptr) ? task_info.op_name : "";
@@ -184,8 +356,7 @@ Status ExceptionDumpImpl::SaveOpInfo(const Om2TaskInfo& task_info) {
   // 保存到 list，与 V1 exception_dumper 保持一致
   op_info_list_.push_back(op_info);
 
-  // L1 Exception Dump：只有 exception dump 开关打开时才上报给 Adump
-  if (DumpConfig::Instance().IsExceptionDumpEnabled()) {
+  if (IsL1ExceptionDumpEnabled()) {
     Status ret = ReportL1ExceptionDumpInfo(task_info, op_info);
     if (ret != SUCCESS) {
       GELOGW("Report L1 exception dump info failed, op=%s", op_name);

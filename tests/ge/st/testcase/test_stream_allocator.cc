@@ -470,6 +470,17 @@ ComputeGraphPtr BuildDynamicFftsGraph() {
   return root_graph;
 }
 
+ComputeGraphPtr BuildSimpleDynamicGraph() {
+  DEF_GRAPH(root) {
+    const auto data = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1});
+    const auto relu = OP_CFG(RELU).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1});
+    CHAIN(NODE("data0", data)->NODE("relu0", relu)->NODE(NODE_NAME_NET_OUTPUT, NETOUTPUT));
+  };
+  auto root_graph = ToComputeGraph(root);
+  root_graph->SetGraphUnknownFlag(true);
+  return root_graph;
+}
+
 Graph BuildGraphWithAttachedResources() {
   NamedAttrs named_attr_stream0;
   EXPECT_TRUE(AttrUtils::SetStr(named_attr_stream0, ATTR_NAME_ATTACHED_STREAM_POLICY, "group"));
@@ -2451,5 +2462,36 @@ TEST_F(STEST_stream_allocator, UserDefinedStreamLabel_with_SingleStreamOption_fa
   // Check ErrorMsg Print in Screen
   auto error_msg = std::string(error_message::GetErrMgrErrorMessage().get());
   EXPECT_TRUE(error_msg.find("Stream labels are not supported in SingleStream mode") != std::string::npos);
+}
+
+/**
+ * 用例描述：测试动态shape多流与auto multi-stream并行模式同时开启时编译失败
+ * 预置条件：通过环境变量开启动态shape多流，Session选项设置auto multi-stream为LoadBalance模式
+ * 测试步骤：
+ *   1. 构造一张动态shape图
+ *   2. 设置ENABLE_DYNAMIC_SHAPE_MULTI_STREAM=1和ge.autoMultistreamParallelMode=LoadBalance:8
+ *   3. 通过Session执行AddGraph和BuildGraph触发编译
+ * 预期结果：
+ *   1. AddGraph成功
+ *   2. BuildGraph失败，提示动态shape多流与auto multi-stream并行模式不能同时开启
+ */
+TEST_F(STEST_stream_allocator, dynamic_multi_stream_with_auto_multistream_parallel_mode_failed) {
+  error_message::ErrMgrInit(error_message::ErrorMessageMode::INTERNAL_MODE);
+  setenv("ENABLE_DYNAMIC_SHAPE_MULTI_STREAM", "1", 0);
+  auto root_graph = BuildSimpleDynamicGraph();
+  auto graph = GraphUtilsEx::CreateGraphFromComputeGraph(root_graph);
+
+  map<string, string> options = {{"ge.autoMultistreamParallelMode", "LoadBalance:8"}};
+  Session session(options);
+  auto ret = session.AddGraph(0, graph, options);
+  EXPECT_EQ(ret, SUCCESS);
+
+  std::vector<InputTensorInfo> inputs;
+  ret = session.BuildGraph(0, inputs);
+  EXPECT_EQ(ret, FAILED);
+  auto error_msg = std::string(error_message::GetErrMgrErrorMessage().get());
+  EXPECT_TRUE(error_msg.find("Dynamic multi-stream and auto multi-stream parallel mode could not both enabled") !=
+              std::string::npos);
+  unsetenv("ENABLE_DYNAMIC_SHAPE_MULTI_STREAM");
 }
 }  // namespace ge

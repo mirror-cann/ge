@@ -412,15 +412,6 @@ main() {
   export ASCEND_CUSTOM_PATH=${ASCEND_INSTALL_PATH}
   ASCEND_INSTALL_LIB_PATH=${ASCEND_INSTALL_PATH}/$(uname -m)-linux/lib64/
 
-  # Build third party libraries first
-  echo "---------------- build third party packages start ----------------"
-  bash ${BASEPATH}/build_third_party.sh ${CANN_3RD_LIB_PATH} ${THREAD_NUM} ""
-  if [ $? -ne 0 ]; then
-    echo "build third party packages failed."
-    exit 1
-  fi
-  echo "---------------- build third party packages finished ----------------"
-
   build_ascgen-dev || { echo "ascgen-dev build failed."; exit 1; }
 
   METADEF_SOS=$(find ${BUILD_PATH}/graph_metadef -name *.so)

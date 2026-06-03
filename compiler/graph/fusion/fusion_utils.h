@@ -39,6 +39,11 @@ class FusionUtils {
 
   static void RecordFusionStatistic(const uint64_t session_id, const std::string graph_id, const std::string pass_name,
                                               const int match_times, const int effect_times);
+
+  // 以单节点为边界构造 SubgraphBoundary：节点的每个入边对应一个 SubgraphInput
+  // （多个 in_anchor 共享同一 peer out_anchor 时合并为一个 input），每个出边对应一个 SubgraphOutput。
+  // 用于 DecomposePass::Run 与 ge::fusion::InferShapeUtil::InferShape(Graph, GNode) 复用同一构造逻辑。
+  static std::unique_ptr<SubgraphBoundary> BuildSubgraphBoundaryFromNode(const NodePtr &node);
 };
 
 struct InnerSubgraphBoundary {

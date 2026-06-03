@@ -12,6 +12,8 @@
 #include "common/share_graph.h"
 #include "es_ge_test_ops.h"
 #include "graph/debug/ge_attr_define.h"
+#include "graph/utils/attr_utils.h"
+#include "graph/utils/graph_utils.h"
 #include "graph/utils/graph_utils_ex.h"
 #include "graph/utils/node_adapter.h"
 
@@ -19,6 +21,9 @@
 
 #include "ge/fusion/pass/decompose_pass.h"
 #include "ge/fusion/pattern.h"
+#include "ge/fusion/infer_shape_util.h"
+#include "graph/passes/base_pass.h"
+#include "graph/shape_refiner.h"
 
 #include "common/topo_checker.h"
 #include "register/custom_pass_context_impl.h"
@@ -26,6 +31,21 @@
 namespace ge {
 namespace fusion {
 using namespace ge::es;
+namespace {
+// v1 infer funcs avoid the symbolic infer-datatype path (which needs an
+// initialized space registry, unavailable in this UT context).
+graphStatus StubInferFunc(Operator &op) {
+  auto in = op.GetInputDesc(0);
+  auto out = op.GetOutputDesc(0);
+  out.SetShape(in.GetShape());
+  out.SetDataType(in.GetDataType());
+  (void)op.UpdateOutputDesc(static_cast<uint32_t>(0), out);
+  return GRAPH_SUCCESS;
+}
+graphStatus NoOpInferFunc(Operator &) {
+  return GRAPH_SUCCESS;
+}
+}  // namespace
 class UtestDecomposePass : public testing::Test {
 public:
   static void SetUpTestSuite() {
@@ -160,6 +180,85 @@ TEST_F(UtestDecomposePass, ReplacementInvalid_Failed) {
   auto ret = transdata_2_relu_pass.Run(target_graph, context);
   EXPECT_NE(ret, NOT_CHANGED);
   EXPECT_NE(ret, SUCCESS);
+}
+
+TEST_F(UtestDecomposePass, InferShapeForReplacementGraph_BasicShapeDtypeInfer) {
+  class TransDataInferShapePass : public DecomposePass {
+   public:
+    TransDataInferShapePass(const std::vector<AscendString> &op_types) : DecomposePass(op_types) {}
+   protected:
+    std::unique_ptr<Graph> Replacement(const GNode &matched_node) override {
+      // The matched Add node has 2 inputs, so the replacement must declare 2
+      // Data nodes (input counts must match the matched subgraph boundary).
+      // The second input is unused here (Relu only consumes input 0).
+      auto replacement = std::make_shared<ComputeGraph>("replacement");
+      const GeTensorDesc desc(GeShape({-1, -1, -1}), FORMAT_ND, DT_FLOAT);
+
+      auto data0_op = std::make_shared<OpDesc>("input_0", "Data");
+      data0_op->AddInputDesc(desc);
+      data0_op->AddOutputDesc(desc);
+      AttrUtils::SetInt(data0_op, ATTR_NAME_INDEX, 0);
+      data0_op->AddInferFunc(NoOpInferFunc);
+      auto data0 = replacement->AddNode(data0_op);
+
+      auto data1_op = std::make_shared<OpDesc>("input_1", "Data");
+      data1_op->AddInputDesc(desc);
+      data1_op->AddOutputDesc(desc);
+      AttrUtils::SetInt(data1_op, ATTR_NAME_INDEX, 1);
+      data1_op->AddInferFunc(NoOpInferFunc);
+      (void)replacement->AddNode(data1_op);
+
+      auto relu_op = std::make_shared<OpDesc>("relu", "Relu");
+      relu_op->AddInputDesc(desc);
+      relu_op->AddOutputDesc(desc);
+      relu_op->AddInferFunc(StubInferFunc);
+      auto relu = replacement->AddNode(relu_op);
+
+      auto netoutput_op = std::make_shared<OpDesc>("netoutput", "NetOutput");
+      netoutput_op->AddInputDesc(desc);
+      netoutput_op->AddInferFunc(NoOpInferFunc);
+      auto netoutput = replacement->AddNode(netoutput_op);
+
+      (void)GraphUtils::AddEdge(data0->GetOutDataAnchor(0), relu->GetInDataAnchor(0));
+      (void)GraphUtils::AddEdge(relu->GetOutDataAnchor(0), netoutput->GetInDataAnchor(0));
+
+      auto replacement_graph =
+          std::make_unique<Graph>(GraphUtilsEx::CreateGraphFromComputeGraph(replacement));
+      EXPECT_EQ(InferShapeUtil::InferShape(*replacement_graph, matched_node), SUCCESS);
+      return replacement_graph;
+    }
+  };
+
+  auto target_compute_graph = gert::ShareGraph::AicoreGraph();
+  auto data1 = target_compute_graph->FindNode("data1");
+  ASSERT_NE(data1, nullptr);
+  GeTensorDesc data1_desc(GeShape({1, 2, 3}), FORMAT_ND, DT_FLOAT16);
+  data1->GetOpDesc()->MutableOutputDesc(0)->SetShape(GeShape({1, 2, 3}));
+  data1->GetOpDesc()->MutableOutputDesc(0)->SetDataType(DT_FLOAT16);
+  data1->GetOpDesc()->MutableOutputDesc(0)->SetFormat(FORMAT_ND);
+
+  auto target_graph = GraphUtilsEx::CreateGraphPtrFromComputeGraph(target_compute_graph);
+  CustomPassContext context;
+  context.SetPassName("TransDataInferShapePass");
+  TransDataInferShapePass pass({"Add"});
+  EXPECT_EQ(pass.Run(target_graph, context), SUCCESS);
+
+  NodePtr relu_node_after_replace = nullptr;
+  for (const auto &node : target_compute_graph->GetDirectNode()) {
+    if (node->GetType() == "Relu") {
+      relu_node_after_replace = node;
+      break;
+    }
+  }
+  ASSERT_NE(relu_node_after_replace, nullptr);
+
+  auto relu_out_desc = relu_node_after_replace->GetOpDesc()->GetOutputDesc(0);
+  auto relu_shape = relu_out_desc.GetShape();
+  EXPECT_EQ(relu_shape.GetDimNum(), 3U);
+  EXPECT_EQ(relu_shape.GetDim(0), 1);
+  EXPECT_EQ(relu_shape.GetDim(1), 2);
+  EXPECT_EQ(relu_shape.GetDim(2), 3);
+  EXPECT_EQ(relu_out_desc.GetDataType(), DT_FLOAT16);
 }
 } // namespace fusion
 } // namespace ge

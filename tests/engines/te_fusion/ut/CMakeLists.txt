@@ -111,8 +111,8 @@ target_link_libraries(tefusion_ut PRIVATE
         compress
         error_manager
         json
-        GTest::gtest
-        GTest::gtest_main
+        GTestShared::gtest
+        GTestShared::gtest_main
         c_sec_static
         mmpa_stub
         slog_stub
@@ -127,5 +127,5 @@ target_link_libraries(tefusion_ut PRIVATE
         acl_rt
         graph_base
         ge_common_base
-   	GTest::gmock
+   	GTestShared::gmock
    	mockcpp_static)

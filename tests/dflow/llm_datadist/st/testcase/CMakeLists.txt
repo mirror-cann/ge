@@ -38,7 +38,6 @@ target_include_directories(llm_engine_test PRIVATE
         ${AIR_CODE_DIR}/dflow/llm_datadist/v1/flow_func
         ${AIR_CODE_DIR}/dflow/llm_datadist/v1/common
         ${AIR_CODE_DIR}/tests/depends/llm_datadist/src
-        ${CANN_3RD_LIB_PATH}/json/include
         ${ASCGEN_DIR}/inc
         ${AIR_CODE_DIR}/api/session
 )
@@ -67,7 +66,7 @@ target_link_libraries(llm_engine_test
         llm_engine
         ascend_dump
         ${AIR_COMMON_LINK_OPTION}
-        GTest::gtest GTest::gtest_main GTest::gmock
+        GTestShared::gtest GTestShared::gtest_main GTestShared::gmock
         -Wl,--no-as-needed
         unified_dlog
 )

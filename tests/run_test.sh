@@ -782,9 +782,6 @@ main() {
   TEST_SUMMARY_FILE="${OUTPUT_PATH}/.test_summary_$$.tmp"
   export TEST_SUMMARY_FILE
 
-  # build cann 3rd lib
-  bash ${BASEPATH}/build_third_party.sh ${CANN_3RD_LIB_PATH} ${THREAD_NUM} "LLT"
-
   # build acl ut
   if [ "X$ENABLE_ACL_UT" = "Xon" ]; then
     echo "---------------- acl ut build start ----------------"

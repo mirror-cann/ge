@@ -11,7 +11,7 @@
 #ifndef AUTOFUSE_POST_PROCESS_ASC_BACKEND_POST_PROCESSOR_H
 #define AUTOFUSE_POST_PROCESS_ASC_BACKEND_POST_PROCESSOR_H
 
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 #include "graph/compute_graph.h"
 #include "scheduler_adapter/asc_backend_scheduler_adapter.h"
 #include "pass/asc_graph_pass.h"

@@ -198,8 +198,8 @@ target_link_libraries(ut_libge_helper_utest
     ge_runtime_stub
     ge_running_env
     -Wl,--no-whole-archive
-    GTest::gtest GTest::gtest_main GTest::gmock_main ${COMMON_SHARED_LIBRARIES} -lrt -ldl -lpthread
-    -Wl,--no-as-needed memset_stubs GTest::gmock -Wl,--as-needed
+    GTestShared::gtest GTestShared::gtest_main GTestShared::gmock_main ${COMMON_SHARED_LIBRARIES} -lrt -ldl -lpthread
+    -Wl,--no-as-needed memset_stubs GTestShared::gmock -Wl,--as-needed
 )
 
 add_test(NAME ut_libge_helper_utest COMMAND ut_libge_helper_utest --gtest_output=xml:${CMAKE_INSTALL_PREFIX}/report/ut/ut_libge_helper_utest.xml)

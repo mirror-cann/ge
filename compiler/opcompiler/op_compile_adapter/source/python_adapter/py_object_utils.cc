@@ -17,7 +17,7 @@
 #include "assemble_json/te_json_assemble.h"
 #include "python_adapter/py_wrapper.h"
 #include "python_adapter/py_decouple.h"
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 
 namespace te {
 namespace fusion {

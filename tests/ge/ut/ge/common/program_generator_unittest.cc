@@ -125,6 +125,38 @@ struct Om2TaskIoEntry {
   uint64_t offset;
 };
 
+enum Om2L0ArgKind {
+    OM2_L0_ARG_INPUT = 0,
+    OM2_L0_ARG_OUTPUT = 1,
+    OM2_L0_ARG_WORKSPACE = 2,
+    OM2_L0_ARG_TILING = 3,
+    OM2_L0_ARG_SHAPE_INFO = 4,
+    OM2_L0_ARG_LEVEL1_DESC = 5,
+    OM2_L0_ARG_PLACEHOLDER = 6,
+    OM2_L0_ARG_CUSTOM_VALUE = 7,
+    OM2_L0_ARG_FFTS_ADDR = 8,
+    OM2_L0_ARG_EVENT_ADDR = 9,
+    OM2_L0_ARG_OVERFLOW_ADDR = 10,
+    OM2_L0_ARG_EMPTY_ADDR = 11
+};
+
+struct Om2L0ArgSlotInfo {
+    uint32_t kind;
+    uint32_t flags;
+    uint64_t args_offset;
+    uint64_t value;
+    uint32_t related_index;
+    uint32_t event_id;
+    uint64_t level1_target_offset;
+};
+
+struct Om2L0TaskRawInfo {
+    uint32_t version;
+    uint32_t need_assert_or_printf;
+    uint64_t arg_num;
+    const struct Om2L0ArgSlotInfo* args;
+};
+
 struct Om2TaskInfo {
   const char* op_name;
   const char* op_type;
@@ -145,13 +177,20 @@ struct Om2TaskInfo {
   uint32_t task_type;
   void* stream;
   uint32_t is_raw_address;
+  const struct Om2L0TaskRawInfo* l0_exception_dump_info;
 };
 
-__attribute__((weak)) int32_t ReportTaskInfo(uint32_t model_id,
-                                              void* instance_handle,
-                                              const struct Om2TaskInfo* task_info,
-                                              const void* extended_attrs,
-                                              size_t extended_attrs_size);
+__attribute__((weak)) int32_t ReportDfxTaskPreprocess(uint32_t model_id,
+                                                       void* instance_handle,
+                                                       const struct Om2TaskInfo* task_info,
+                                                       const void* extended_attrs,
+                                                       size_t extended_attrs_size);
+
+__attribute__((weak)) int32_t ReportDfxTaskPostprocess(uint32_t model_id,
+                                                        void* instance_handle,
+                                                        const struct Om2TaskInfo* task_info,
+                                                        const void* extended_attrs,
+                                                        size_t extended_attrs_size);
 
 __attribute__((weak)) int32_t IsDataDumpEnabled(uint32_t model_id,
                                                       void* instance_handle,
@@ -200,6 +239,38 @@ aclError AssembleOm2TaskInfo(Om2TaskInfo *task_info, const char *op_name, const 
   task_info->task_type = task_type;
   task_info->stream = stream;
   task_info->is_raw_address = is_raw_address;
+  task_info->l0_exception_dump_info = nullptr;
+  return ACL_SUCCESS;
+}
+
+aclError ReportOm2TaskPreprocess(const char *op_name, const char *op_type, uint64_t op_desc_id,
+                                uintptr_t args_base, uint64_t args_size,
+                                const std::vector<Om2TaskIoEntry> &inputs,
+                                const std::vector<Om2TaskIoEntry> &outputs,
+                                const std::vector<uint64_t> &workspace_addrs,
+                                const std::vector<uint64_t> &workspace_sizes,
+                                uint32_t task_type, void *stream,
+                                const Om2L0TaskRawInfo *l0_info,
+                                uint32_t model_id, void *instance_handle,
+                                uint32_t is_raw_address = 0U) {
+  uint32_t stream_id = 0U;
+  OM2_CHK_STATUS(aclrtStreamGetId(stream, reinterpret_cast<int32_t *>(&stream_id)));
+
+  OM2_CHK_TRUE(workspace_addrs.size() == workspace_sizes.size());
+
+  Om2TaskInfo task_info{};
+  OM2_CHK_STATUS(AssembleOm2TaskInfo(&task_info, op_name, op_type, 0U, stream_id, op_desc_id,
+                                      args_base, args_size,
+                                      inputs.data(), static_cast<uint64_t>(inputs.size()),
+                                      outputs.data(), static_cast<uint32_t>(outputs.size()),
+                                      workspace_addrs.empty() ? nullptr : workspace_addrs.data(),
+                                      workspace_sizes.empty() ? nullptr : workspace_sizes.data(),
+                                      static_cast<uint32_t>(workspace_addrs.size()),
+                                      task_type, stream, is_raw_address));
+  task_info.l0_exception_dump_info = l0_info;
+  if (ReportDfxTaskPreprocess != nullptr && instance_handle != nullptr) {
+    OM2_CHK_STATUS(ReportDfxTaskPreprocess(model_id, instance_handle, &task_info, nullptr, 0U));
+  }
   return ACL_SUCCESS;
 }
 
@@ -229,8 +300,9 @@ aclError ReportLaunchedOm2Task(const char *op_name, const char *op_type, uint64_
                                       workspace_sizes.empty() ? nullptr : workspace_sizes.data(),
                                       static_cast<uint32_t>(workspace_addrs.size()),
                                       task_type, stream, is_raw_address));
-  if (ReportTaskInfo != nullptr && instance_handle != nullptr) {
-    OM2_CHK_STATUS(ReportTaskInfo(model_id, instance_handle, &task_info, nullptr, 0U));
+  task_info.l0_exception_dump_info = nullptr;
+  if (ReportDfxTaskPostprocess != nullptr && instance_handle != nullptr) {
+    OM2_CHK_STATUS(ReportDfxTaskPostprocess(model_id, instance_handle, &task_info, nullptr, 0U));
   }
   return ACL_SUCCESS;
 }
@@ -1707,6 +1779,9 @@ aclError Om2Model::Load() {
   auto op2_ws0 = GET_ADDR(total_dev_mem_ptr_, 0);
   LaunchKernelCfgHolder op2_cfg_holder;
   AssembleLaunchConfig(op2_cfg_holder, {0U, ACL_RT_ENGINE_TYPE_AIC, 0U, false, GetIsDataDump("add1", model_id_, instance_handle_), 0U, 0U});
+  const Om2L0ArgSlotInfo op2_l0_arg_slots[] = {{OM2_L0_ARG_INPUT, 0U, 0U, 0UL, 0U, 0U, 0U}, {OM2_L0_ARG_INPUT, 0U, 8U, 0UL, 1U, 0U, 0U}, {OM2_L0_ARG_OUTPUT, 0U, 16U, 0UL, 2U, 0U, 0U}, {OM2_L0_ARG_WORKSPACE, 0U, 24U, 0UL, 0U, 0U, 0U}};
+  const Om2L0TaskRawInfo op2_l0_info = {1U, 0U, 4UL, op2_l0_arg_slots};
+  OM2_CHK_STATUS(ReportOm2TaskPreprocess("add1", "Add", 2U, reinterpret_cast<uintptr_t>(args_table_.GetArgsInfo(0)->dev_addr), args_table_.GetArgsInfo(0)->size, {{&op2_input0, 0U}, {&op2_input1, 8U}}, {{&op2_output0, 16U}}, {PtrToU64(op2_ws0)}, {64U}, 0U, stream_list_[0], &op2_l0_info, model_id_, instance_handle_));
   OM2_CHK_STATUS(KernelTaskDistribute(FlattenHostArgs(op2_input0, op2_input1, op2_output0, op2_ws0), args_table_.GetArgsInfo(0), func_handles_[0], 8, stream_list_[0], &op2_cfg_holder.cfg));
   OM2_CHK_STATUS(ReportLaunchedOm2Task("add1", "Add", 2U, reinterpret_cast<uintptr_t>(args_table_.GetArgsInfo(0)->dev_addr), args_table_.GetArgsInfo(0)->size, {{&op2_input0, 0U}, {&op2_input1, 8U}}, {{&op2_output0, 16U}}, {PtrToU64(op2_ws0)}, {64U}, 0U, stream_list_[0], model_id_, instance_handle_));
 
@@ -1942,6 +2017,9 @@ aclError Om2Model::Load() {
   auto op2_ws0 = GET_ADDR(total_dev_mem_ptr_, 0);
   LaunchKernelCfgHolder op2_cfg_holder;
   AssembleLaunchConfig(op2_cfg_holder, {0U, ACL_RT_ENGINE_TYPE_AIC, 0U, false, GetIsDataDump("add1", model_id_, instance_handle_), 0U, 0U});
+  const Om2L0ArgSlotInfo op2_l0_arg_slots[] = {{OM2_L0_ARG_INPUT, 0U, 0U, 0UL, 0U, 0U, 0U}, {OM2_L0_ARG_INPUT, 0U, 8U, 0UL, 1U, 0U, 0U}, {OM2_L0_ARG_OUTPUT, 0U, 16U, 0UL, 2U, 0U, 0U}, {OM2_L0_ARG_WORKSPACE, 0U, 24U, 0UL, 0U, 0U, 0U}};
+  const Om2L0TaskRawInfo op2_l0_info = {1U, 0U, 4UL, op2_l0_arg_slots};
+  OM2_CHK_STATUS(ReportOm2TaskPreprocess("add1", "Add", 2U, reinterpret_cast<uintptr_t>(args_table_.GetArgsInfo(0)->dev_addr), args_table_.GetArgsInfo(0)->size, {{&op2_input0, 0U}, {&op2_input1, 8U}}, {{&op2_output0, 16U}}, {PtrToU64(op2_ws0)}, {64U}, 0U, stream_list_[0], &op2_l0_info, model_id_, instance_handle_));
   OM2_CHK_STATUS(KernelTaskDistribute(FlattenHostArgs(op2_input0, op2_input1, op2_output0, op2_ws0), args_table_.GetArgsInfo(0), func_handles_[0], 8, stream_list_[0], &op2_cfg_holder.cfg));
   OM2_CHK_STATUS(ReportLaunchedOm2Task("add1", "Add", 2U, reinterpret_cast<uintptr_t>(args_table_.GetArgsInfo(0)->dev_addr), args_table_.GetArgsInfo(0)->size, {{&op2_input0, 0U}, {&op2_input1, 8U}}, {{&op2_output0, 16U}}, {PtrToU64(op2_ws0)}, {64U}, 0U, stream_list_[0], model_id_, instance_handle_));
 
@@ -2460,6 +2538,9 @@ aclError Om2Model::Load() {
   Om2Tensor op2_output0 = BuildOm2Tensor(GET_ADDR(total_dev_mem_ptr_, 1024), 200704UL, 1, 0, op2_output0_shape);
   LaunchKernelCfgHolder op2_cfg_holder;
   AssembleLaunchConfig(op2_cfg_holder, {0U, ACL_RT_ENGINE_TYPE_AIC, 0U, false, GetIsDataDump("add1", model_id_, instance_handle_), 0U, 0U});
+  const Om2L0ArgSlotInfo op2_l0_arg_slots[] = {{OM2_L0_ARG_LEVEL1_DESC, 0U, 0U, 0UL, 0U, 0U, 24U}, {OM2_L0_ARG_LEVEL1_DESC, 0U, 8U, 0UL, 0U, 0U, 80U}, {OM2_L0_ARG_LEVEL1_DESC, 0U, 16U, 0UL, 0U, 0U, 136U}, {OM2_L0_ARG_SHAPE_INFO, 0U, 24U, 6UL, 0U, 0U, 0U}, {OM2_L0_ARG_INPUT, 0U, 72U, 0UL, 9U, 0U, 0U}, {OM2_L0_ARG_SHAPE_INFO, 0U, 80U, 6UL, 0U, 0U, 0U}, {OM2_L0_ARG_INPUT, 0U, 128U, 0UL, 16U, 0U, 0U}, {OM2_L0_ARG_SHAPE_INFO, 0U, 136U, 6UL, 0U, 0U, 0U}, {OM2_L0_ARG_OUTPUT, 0U, 184U, 0UL, 23U, 0U, 0U}};
+  const Om2L0TaskRawInfo op2_l0_info = {1U, 0U, 9UL, op2_l0_arg_slots};
+  OM2_CHK_STATUS(ReportOm2TaskPreprocess("add1", "Add", 2U, reinterpret_cast<uintptr_t>(args_table_.GetArgsInfo(0)->dev_addr), args_table_.GetArgsInfo(0)->size, {{&op2_input0, 72U}, {&op2_input1, 128U}}, {{&op2_output0, 184U}}, {}, {}, 0U, stream_list_[0], &op2_l0_info, model_id_, instance_handle_));
   OM2_CHK_STATUS(KernelTaskDistribute(FlattenHostArgs(op2_io_desc0, op2_io_desc1, op2_io_desc2, op2_shape_info0, op2_input0, op2_shape_info1, op2_input1, op2_shape_info2, op2_output0), args_table_.GetArgsInfo(0), func_handles_[0], 8, stream_list_[0], &op2_cfg_holder.cfg));
   OM2_CHK_STATUS(ReportLaunchedOm2Task("add1", "Add", 2U, reinterpret_cast<uintptr_t>(args_table_.GetArgsInfo(0)->dev_addr), args_table_.GetArgsInfo(0)->size, {{&op2_input0, 72U}, {&op2_input1, 128U}}, {{&op2_output0, 184U}}, {}, {}, 0U, stream_list_[0], model_id_, instance_handle_));
 
@@ -3150,6 +3231,30 @@ GeRootModelPtr CreateGeRootModelWithAicoreOpWithoutArgsFormat() {
   return ge_root_model;
 }
 
+TEST_F(ProgramGeneratorUt, GenerateLoadAndRunSourceForAicoreAssertDfxSetsL0RawFlag) {
+  GeRootModelPtr ge_root_model = CreateGeRootModelWithAicoreOpWithoutArgsFormat();
+  auto set_assert_dfx = [](const ComputeGraphPtr &graph) {
+    if (graph == nullptr) {
+      return;
+    }
+    for (const auto &node : graph->GetDirectNode()) {
+      auto op_desc = node->GetOpDesc();
+      if ((op_desc != nullptr) && (op_desc->GetType() == "Add")) {
+        (void)AttrUtils::SetListStr(op_desc, "_op_dfx_options", std::vector<std::string>{"assert"});
+      }
+    }
+  };
+  set_assert_dfx(ge_root_model->GetRootGraph());
+  const auto ge_model = ge_root_model->GetSubgraphInstanceNameToModel().begin()->second;
+  set_assert_dfx(ge_model->GetGraph());
+  auto generator = CreateProgramGenerator(ge_root_model);
+  std::map<GeneratedFileIndex, std::string> outputs;
+  ASSERT_EQ(GenerateProgramFiles(generator, outputs), SUCCESS);
+
+  const auto &load_run = outputs[GeneratedFileIndex::kLoadingAndRunningFile];
+  EXPECT_NE(load_run.find("const Om2L0TaskRawInfo op2_l0_info = {1U, 1U,"), std::string::npos);
+}
+
 TEST_F(ProgramGeneratorUt, GenerateLoadAndRunSourceForAicoreWithoutArgsFormat_Ok) {
   GeRootModelPtr ge_root_model = CreateGeRootModelWithAicoreOpWithoutArgsFormat();
   auto generator = CreateProgramGenerator(ge_root_model);
@@ -3164,6 +3269,8 @@ TEST_F(ProgramGeneratorUt, GenerateLoadAndRunSourceForAicoreWithoutArgsFormat_Ok
   // args_table_.GetArgsInfo should be generated for the args table entry
   EXPECT_NE(load_run.find("args_table_.GetArgsInfo"), std::string::npos);
   EXPECT_NE(load_run.find("ACL_MEMCPY_HOST_TO_DEVICE"), std::string::npos);
+  EXPECT_NE(load_run.find("OM2_L0_ARG_TILING"), std::string::npos);
+  EXPECT_EQ(load_run.find("OM2_L0_ARG_TILING, 0U, 32U, 0UL"), std::string::npos);
   // GLOBALWORKSPACE_TYPE branch: overflow_addr should be appended
   EXPECT_NE(load_run.find("overflow_addr_"), std::string::npos);
 }

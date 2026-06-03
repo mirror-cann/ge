@@ -41,8 +41,8 @@ target_include_directories(mmpa_stub PRIVATE
 target_link_libraries(mmpa_stub PRIVATE
         -Wl,--no-as-needed
         c_sec
-        GTest::gtest
-        GTest::gtest_main
-        GTest::gmock
-        GTest::gmock_main
+        GTestShared::gtest
+        GTestShared::gtest_main
+        GTestShared::gmock
+        GTestShared::gmock_main
 )

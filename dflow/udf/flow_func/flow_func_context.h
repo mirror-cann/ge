@@ -15,7 +15,7 @@
 #include "flow_func/meta_context.h"
 #include "flow_func/meta_params.h"
 #include "flow_func/meta_run_context.h"
-#include "flow_func/attr_value.h"
+#include "flow_func/dflow_attr_value.h"
 #include "mbuf_flow_msg.h"
 #include "flow_model.h"
 

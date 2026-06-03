@@ -9,6 +9,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <fstream>
 #include "macro_utils/dt_public_scope.h"
 #include "graph/passes/memory_conflict/atomic_addr_clean_pass.h"
 #include "common/op/ge_op_utils.h"
@@ -27,6 +28,7 @@
 #include "common/opskernel/ops_kernel_info_types.h"
 #include "engines/manager/opskernel_manager/ops_kernel_manager.h"
 #include "graph/debug/ge_attr_define.h"
+#include "common/plugin/plugin_manager.h"
 
 using namespace testing;
 using namespace domi;
@@ -54,13 +56,29 @@ class TestOpsKernelInfoStore : public OpsKernelInfoStore {
 }
 class UtestGraphPassesAtomicAddrCleanPass : public Test {
 public:
- void SetUp() {
-   std::map<AscendString, AscendString> options;
-   GEInitialize(options);
- }
- void TearDown() {
-   GEFinalize();
- }
+void SetUp() {
+    std::string path = GetModelPath();
+    path.append("plugin/nnengine/ge_config/");
+    std::string json_path = path + "engine_conf.json";
+    std::string json_backup_path = path + "engine_conf_backup_atomic.json";
+    system(("mkdir -p " + path).c_str());
+    system(("cp " + json_path + " " + json_backup_path).c_str());
+    std::ofstream ofs(json_path.c_str(), std::ios::out);
+    ofs << "{\"schedule_units\":[{\"id\":\"TS_1\",\"name\":\"scheduler\",\"cal_engines\":"
+        << "[{\"id\":\"AIcoreEngine\",\"name\":\"AICORE\",\"independent\":false,\"skip_assign_stream\":false,\"attach\":false}"
+        << ",{\"id\":\"DNN_VM_GE_LOCAL\",\"name\":\"GE_LOCAL\",\"independent\":false,\"skip_assign_stream\":true,\"attach\":true}"
+        << ",{\"id\":\"DNN_VM_HOST_CPU\",\"name\":\"HOST_CPU\",\"independent\":false,\"skip_assign_stream\":true,\"attach\":true}"
+        << ",{\"id\":\"DNN_VM_AICPU\",\"name\":\"AICPU\",\"independent\":false,\"skip_assign_stream\":false,\"attach\":true}"
+        << ",{\"id\":\"DNN_HCCL\",\"name\":\"HCCL\",\"independent\":true,\"skip_assign_stream\":false,\"attach\":false}"
+        << "]}]}";
+    ofs.close();
+    std::map<AscendString, AscendString> options;
+    GEInitialize(options);
+    system(("mv " + json_backup_path + " " + json_path).c_str());
+  }
+  void TearDown() {
+    GEFinalize();
+  }
 
   UtestGraphPassesAtomicAddrCleanPass() {
     graph_ = std::make_shared<ComputeGraph>("test");

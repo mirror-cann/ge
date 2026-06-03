@@ -17,7 +17,7 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 #include "graph_metadef/graph/debug/ge_util.h"
 #include "graph/utils/graph_utils.h"
 #include "fusion/autofuse_attrs.h"

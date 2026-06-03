@@ -161,6 +161,7 @@ Status KernelTaskCodeBuilder::Contribute(TaskSemanticContributeContext &context)
   GE_ASSERT_SUCCESS(ResolveKernelName(semantic_, context.op_desc, context.task_def, kernel_name_));
   GE_ASSERT_NOTNULL(context.op_desc);
   op_need_print_ = Om2CodegenUtils::OpNeedPrint(context.op_desc);
+  op_need_assert_or_printf_ = Om2CodegenUtils::OpNeedAssertOrPrintf(context.op_desc);
   is_soft_sync_op_ = IsAllKernelTask(semantic_) && Om2CodegenUtils::IsSoftSyncOp(context.op_desc);
   is_separately_clean_task_ = (!IsAllKernelTask(semantic_)) &&
                               Om2CodegenUtils::IsSeparatelyCleanTask(context.op_desc, kernel_name_);
@@ -501,6 +502,18 @@ Status KernelTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> &items) {
     auto cfg_holder = AppendLaunchConfigSetup(op_index, items,
                                               ast_.Call("GetIsDataDump", {
                                                   Arg::StringLiteral(header_.op_name), model_id_, instance_handle_}));
+    const std::string l0_arg_slots_name = "op" + std::to_string(op_index) + "_l0_arg_slots";
+    auto l0_arg_slots = ast_.Var("const Om2L0ArgSlotInfo *", l0_arg_slots_name);
+    items.emplace_back(ast_.VarDecl("const Om2L0ArgSlotInfo", l0_arg_slots_name + "[]",
+                                    TaskCodeBuilderUtil::BuildL0ArgSlotEntries(ast_, semantic_.ordered_arg_values)));
+    const std::string l0_info_name = "op" + std::to_string(op_index) + "_l0_info";
+    auto l0_info = ast_.Var("const Om2L0TaskRawInfo", l0_info_name);
+    items.emplace_back(ast_.VarDecl(l0_info, ast_.InitList({
+        "1U",
+        op_need_assert_or_printf_ ? "1U" : "0U",
+        std::to_string(semantic_.ordered_arg_values.size()) + "UL",
+        l0_arg_slots})));
+    items.emplace_back(ChkStatus(BuildReportTaskPreprocessCall(l0_info.Addr())));
     items.emplace_back(ChkStatus(ast_.Call("KernelTaskDistribute", {
         FlattenHostArgs(args_vars),
         args_table_.Attr("GetArgsInfo")(static_cast<int64_t>(semantic_.args_table_entry->table_index)),
@@ -848,6 +861,14 @@ ExprRef KernelTaskCodeBuilder::BuildReportLaunchedTaskCall() const {
       ast_, header_, semantic_.args_table_entry.has_value() ? &(*semantic_.args_table_entry) : nullptr,
       semantic_.input_addrs, semantic_.output_addrs, semantic_.workspace_addrs, semantic_.task_type,
       stream_list_[static_cast<int64_t>(semantic_.launch.stream_id)], model_id_, instance_handle_, args_table_, true);
+}
+
+ExprRef KernelTaskCodeBuilder::BuildReportTaskPreprocessCall(Arg l0_info) const {
+  return TaskCodeBuilderUtil::BuildReportTaskPreprocessCall(
+      ast_, header_, semantic_.args_table_entry.has_value() ? &(*semantic_.args_table_entry) : nullptr,
+      semantic_.input_addrs, semantic_.output_addrs, semantic_.workspace_addrs, semantic_.task_type,
+      stream_list_[static_cast<int64_t>(semantic_.launch.stream_id)], model_id_, instance_handle_, args_table_, l0_info,
+      true);
 }
 
 Status KernelTaskCodeBuilder::AppendAicpuArgsCode(Arg iow_addr, const VarRef &args_var,
@@ -1467,6 +1488,7 @@ void KernelTaskCodeBuilder::AppendOrderedTilingArg(const TaskSemanticContributeC
   AddrSemantic tiling_semantic;
   tiling_semantic.kind = AddrValueKind::kTiling;
   tiling_semantic.symbol_hint = "op" + std::to_string(context.op_index) + "_tiling";
+  tiling_semantic.byte_size = tiling_data_.size();
   AppendOrderedArg(tiling_semantic);
 }
 
@@ -1515,6 +1537,7 @@ Status KernelTaskCodeBuilder::BuildOrderedArgValuesForAicore(const TaskSemanticC
   GE_ASSERT_SUCCESS(GetKernelTaskMeta(context.task_def, kernel_context, args_size, kernel_type));
   if (kernel_context.args_format().empty()) {
     GELOGI("Op %s has empty args format.", context.op_desc->GetNamePtr());
+    GE_ASSERT_SUCCESS(CopyTilingDataIfNeeded(context, args_format_holder));
     GE_ASSERT_SUCCESS(BuildOrderedArgValuesWithoutArgsFormat(context));
     return SUCCESS;
   }
@@ -1569,6 +1592,7 @@ Status KernelTaskCodeBuilder::BuildOrderedArgValuesWithoutArgsFormat(const TaskS
     AddrSemantic tiling_semantic;
     tiling_semantic.kind = AddrValueKind::kTiling;
     tiling_semantic.symbol_hint = "op" + std::to_string(context.op_index) + "_tiling";
+    tiling_semantic.byte_size = tiling_data_.size();
     GE_ASSERT_SUCCESS(AppendOrderedArgValueForCommon(tiling_semantic, addr_offset));
     addr_offset += kAddressLen;
     args_addr_num++;

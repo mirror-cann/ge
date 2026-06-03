@@ -11,7 +11,7 @@
 #ifndef AUTOFUSE_POST_PROCESS_SCHEDULER_ADAPTER_ADAPTION_OPTIMIZE_TRANSPOSE_COUNT_H
 #define AUTOFUSE_POST_PROCESS_SCHEDULER_ADAPTER_ADAPTION_OPTIMIZE_TRANSPOSE_COUNT_H
 
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 #include "graph/compute_graph.h"
 #include "ascendc_ir/ascendc_ir_core/ascendc_ir.h"
 #include "post_process/post_process_util.h"

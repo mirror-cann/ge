@@ -35,9 +35,9 @@ target_link_options(test_common PRIVATE
 )
 
 target_link_libraries(test_common PRIVATE
-    GTest::gtest
-    GTest::gmock
-    GTest::gtest_main
+    GTestShared::gtest
+    GTestShared::gmock
+    GTestShared::gtest_main
     -lgcov
     -Wl,--no-as-needed
     asc_slog_stub

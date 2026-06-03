@@ -28,7 +28,6 @@ target_include_directories(llm_wrapper PRIVATE
         ${AIR_CODE_DIR}/dflow/llm_datadist/v1
         ${AIR_CODE_DIR}/dflow/llm_datadist/v1/common
         ${AIR_CODE_DIR}/tests/depends/llm_datadist/src
-        ${CANN_3RD_LIB_PATH}/json/include
         ${AIR_CODE_DIR}/api/session
 )
 

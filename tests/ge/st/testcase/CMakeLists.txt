@@ -160,7 +160,7 @@ target_link_libraries(graph_engine_test
     ge_running_env
     ge_runtime_stub
     -Wl,--no-whole-archive gert_op_impl
-    es_ge_test ge_graph_dsl st_stubs GTest::gtest GTest::gmock GTest::gmock_main
+    es_ge_test ge_graph_dsl st_stubs GTestShared::gtest GTestShared::gmock GTestShared::gmock_main
     -ldl
 )
 
@@ -246,7 +246,7 @@ target_link_libraries(ge_common_atc
     ge_running_env
     ge_runtime_stub
     -Wl,--no-whole-archive gert_op_impl
-    es_ge_test ge_graph_dsl st_stubs GTest::gtest GTest::gmock GTest::gmock_main
+    es_ge_test ge_graph_dsl st_stubs GTestShared::gtest GTestShared::gmock GTestShared::gmock_main
     -ldl
     )
 
@@ -276,6 +276,7 @@ add_executable(graph_engine_compile_test
         "${AIR_CODE_DIR}/tests/ge/ut/ge/fusion/subgraph_boundary_unittest.cc"
         "${AIR_CODE_DIR}/tests/ge/ut/ge/fusion/graph_rewriter_unittest.cc"
         "${AIR_CODE_DIR}/tests/ge/ut/ge/fusion/match_result_unittest.cc"
+        "${AIR_CODE_DIR}/tests/ge/ut/ge/fusion/infer_shape_util_unittest.cc"
         "${AIR_CODE_DIR}/tests/ge/ut/ge/fusion/pass/pattern_fusion_pass_unittest.cc"
         "${AIR_CODE_DIR}/tests/ge/ut/ge/fusion/pass/decompose_pass_unittest.cc"
         "${AIR_CODE_DIR}/tests/ge/ut/ge/fusion/pass/decompose_pass_v2_unittest.cc"
@@ -361,7 +362,7 @@ target_link_libraries(graph_engine_compile_test
         -Wl,--whole-archive
         ascendcl_stub
         -Wl,--no-whole-archive es_ge_test ge_runtime_stub 
-        gert_op_impl ge_running_env ge_graph_dsl st_stubs ge_runtime_stub GTest::gtest GTest::gmock GTest::gmock_main
+        gert_op_impl ge_running_env ge_graph_dsl st_stubs ge_runtime_stub GTestShared::gtest GTestShared::gmock GTestShared::gmock_main
         -ldl
         )
 

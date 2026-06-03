@@ -391,6 +391,70 @@ TEST_F(UtestDataDumper, DumpOutputWithoutTask_success) {
   EXPECT_EQ(data_dumper.DumpOutput(inner_dump_info, task), SUCCESS);
 }
 
+TEST_F(UtestDataDumper, DumpOpWithAdumpForNonTaskUseInputAnchorOffset) {
+  ResetAdumpCall();
+  RuntimeParam rts_param;
+  DataDumper data_dumper(&rts_param);
+  data_dumper.SetModelName("test");
+  data_dumper.SetModelId(2333);
+  data_dumper.dump_properties_.SetDumpMode("output");
+
+  GeTensorDesc tensor(GeShape({1, 2, 3, 4}), FORMAT_NCHW, DT_FLOAT);
+  OpDescPtr op_desc = CreateOpDesc("data", DATA);
+  op_desc->AddOutputDesc(tensor);
+
+  DataDumper::InnerDumpInfo inner_dump_info;
+  inner_dump_info.op = op_desc;
+  inner_dump_info.is_task = false;
+  inner_dump_info.is_raw_address = false;
+  inner_dump_info.args = 0x1000;
+  inner_dump_info.input_anchor_index = 1;
+  inner_dump_info.output_anchor_index = 0;
+  inner_dump_info.dims = {1, 2, 3, 4};
+  inner_dump_info.data_size = 96;
+  inner_dump_info.cust_to_relevant_offset_ = {{1, 3}};
+  inner_dump_info.is_op_debug = false;
+  inner_dump_info.stream = reinterpret_cast<rtStream_t>(0x1234);
+
+  EXPECT_EQ(data_dumper.DumpOpWithAdump(inner_dump_info), SUCCESS);
+  ASSERT_EQ(g_adump_call.call_count, 1);
+  ASSERT_EQ(g_adump_call.tensors.size(), 1);
+  EXPECT_EQ(g_adump_call.tensors[0].type, Adx::TensorType::OUTPUT);
+  EXPECT_EQ(g_adump_call.tensors[0].argsOffSet, 3U);
+  EXPECT_EQ(reinterpret_cast<uintptr_t>(g_adump_call.tensors[0].tensorAddr), 0x1000U + 3U * sizeof(void *));
+  EXPECT_EQ(g_adump_call.tensors[0].tensorSize, 96U);
+  EXPECT_EQ(g_adump_call.tensors[0].shape, std::vector<int64_t>({1, 2, 3, 4}));
+}
+
+TEST_F(UtestDataDumper, DumpOpWithAdumpForNonTaskSkipWhenInputAnchorNotMapped) {
+  ResetAdumpCall();
+  RuntimeParam rts_param;
+  DataDumper data_dumper(&rts_param);
+  data_dumper.SetModelName("test");
+  data_dumper.SetModelId(2333);
+  data_dumper.dump_properties_.SetDumpMode("output");
+
+  GeTensorDesc tensor(GeShape({1, 2, 3, 4}), FORMAT_NCHW, DT_FLOAT);
+  OpDescPtr op_desc = CreateOpDesc("data", DATA);
+  op_desc->AddOutputDesc(tensor);
+
+  DataDumper::InnerDumpInfo inner_dump_info;
+  inner_dump_info.op = op_desc;
+  inner_dump_info.is_task = false;
+  inner_dump_info.is_raw_address = false;
+  inner_dump_info.args = 0x1000;
+  inner_dump_info.input_anchor_index = 1;
+  inner_dump_info.output_anchor_index = 0;
+  inner_dump_info.dims = {1, 2, 3, 4};
+  inner_dump_info.data_size = 96;
+  inner_dump_info.cust_to_relevant_offset_ = {{0, 2}};
+  inner_dump_info.is_op_debug = false;
+  inner_dump_info.stream = reinterpret_cast<rtStream_t>(0x1234);
+
+  EXPECT_EQ(data_dumper.DumpOpWithAdump(inner_dump_info), SUCCESS);
+  EXPECT_EQ(g_adump_call.call_count, 0);
+}
+
 TEST_F(UtestDataDumper, DumpOutput_test) {
   ComputeGraphPtr graph = make_shared<ComputeGraph>("default");
   RuntimeParam rts_param;

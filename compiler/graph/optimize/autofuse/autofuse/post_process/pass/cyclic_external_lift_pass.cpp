@@ -11,7 +11,7 @@
 #include "cyclic_external_lift_pass.h"
 #include <string>
 #include <set>
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 #include "framework/common/debug/ge_log.h"
 #include "common/checker.h"
 #include "graph/utils/node_utils.h"

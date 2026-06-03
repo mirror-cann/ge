@@ -1199,6 +1199,54 @@ void DataDumper::FillOutputTensorInfos(const OpDescPtr &op_desc, uintptr_t args_
   }
 }
 
+Status DataDumper::FillNonTaskOutputTensorInfo(const InnerDumpInfo &dump_info,
+                                               std::vector<Adx::TensorInfo>& tensors) const {
+  const auto &op_desc = dump_info.op;
+  GE_CHECK_NOTNULL(op_desc);
+  if (IsInOutputOpBlacklist(op_desc, kDataTypeOutput)) {
+    GELOGI("[Dumper] Node name %s, Node type: %s, output index %zu is in optype-blacklist, skip to dump this output.",
+           op_desc->GetName().c_str(), op_desc->GetType().c_str(), kDataTypeOutput);
+    return SUCCESS;
+  }
+
+  const auto output_tensor = op_desc->GetOutputDescPtr(static_cast<uint32_t>(dump_info.output_anchor_index));
+  if (output_tensor == nullptr) {
+    GELOGE(PARAM_INVALID, "[Get][OutputDescPtr] output_tensor is null in op:%s, index:%d, size:%zu.",
+           op_desc->GetName().c_str(), dump_info.output_anchor_index, op_desc->GetOutputsSize());
+    return PARAM_INVALID;
+  }
+
+  uint64_t offset_idx = static_cast<uint64_t>(dump_info.input_anchor_index);
+  const auto &cust_to_relevant = dump_info.cust_to_relevant_offset_;
+  if (!cust_to_relevant.empty()) {
+    auto iter = cust_to_relevant.find(offset_idx);
+    if (iter == cust_to_relevant.end()) {
+      GELOGD("Skip to dump op [%s] output idx [%d]", op_desc->GetNamePtr(), dump_info.output_anchor_index);
+      return SUCCESS;
+    }
+    offset_idx = iter->second;
+  }
+
+  bool no_tiling_mem_type = false;
+  (void)AttrUtils::GetBool(output_tensor, ATTR_NAME_TENSOR_NO_TILING_MEM_TYPE, no_tiling_mem_type);
+  Adx::TensorInfo info;
+  info.type = Adx::TensorType::OUTPUT;
+  info.tensorSize = static_cast<size_t>(dump_info.data_size);
+  info.format = static_cast<int32_t>(output_tensor->GetFormat());
+  info.dataType = static_cast<int32_t>(output_tensor->GetDataType());
+  info.tensorAddr = reinterpret_cast<int64_t*>(dump_info.args + offset_idx * kAddrLength);
+  info.addrType = no_tiling_mem_type ? Adx::AddressType::NOTILING : Adx::AddressType::TRADITIONAL;
+  info.placement = static_cast<int32_t>(gert::TensorPlacement::kOnDeviceHbm);
+  info.argsOffSet = static_cast<uint32_t>(offset_idx);
+  info.shape = dump_info.dims;
+  if (output_tensor->IsOriginShapeInitialized()) {
+    info.originShape = output_tensor->GetOriginShape().GetDims();
+  }
+
+  tensors.push_back(info);
+  return SUCCESS;
+}
+
 // 填充工作空间 Tensor 信息
 void DataDumper::FillWorkspaceTensorInfos(const InnerDumpInfo &dump_info, std::vector<Adx::TensorInfo>& tensors) const {
   const auto &workspace_bytes = dump_info.op->GetWorkspaceBytes();
@@ -1345,15 +1393,22 @@ Status DataDumper::DumpOpWithAdump(const InnerDumpInfo &dump_info) {
     size_t input_count = dump_info.op->GetInputsSize();
     GELOGD("[Adump] Normal mode: op %s, inputs=%zu, outputs=%zu, args_base=0x%lx",
            op_name.c_str(), input_count, dump_info.op->GetOutputsSize(), dump_info.args);
-    
-    if (dump_input) {
-      FillInputTensorInfos(op_desc, dump_info.args, dump_info.cust_to_relevant_offset_, tensors);
-    }
-    if (dump_output) {
-      FillOutputTensorInfos(op_desc, dump_info.args, input_count, dump_info.cust_to_relevant_offset_, tensors);
-    }
-    if (is_op_debug) {
-      FillWorkspaceTensorInfos(dump_info, tensors);
+
+    if (!dump_info.is_task) {
+      if (dump_output) {
+        GE_CHK_STATUS_RET(FillNonTaskOutputTensorInfo(dump_info, tensors),
+                          "[Adump] Fill non-task output tensor info failed for op %s", op_name.c_str());
+      }
+    } else {
+      if (dump_input) {
+        FillInputTensorInfos(op_desc, dump_info.args, dump_info.cust_to_relevant_offset_, tensors);
+      }
+      if (dump_output) {
+        FillOutputTensorInfos(op_desc, dump_info.args, input_count, dump_info.cust_to_relevant_offset_, tensors);
+      }
+      if (is_op_debug) {
+        FillWorkspaceTensorInfos(dump_info, tensors);
+      }
     }
   }
 

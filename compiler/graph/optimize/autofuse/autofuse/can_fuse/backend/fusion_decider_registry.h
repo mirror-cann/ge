@@ -10,7 +10,7 @@
 
 #ifndef AUTOFUSE_CAN_FUSE_BACKEND_FUSION_DECIDER_REGISTRY_H_
 #define AUTOFUSE_CAN_FUSE_BACKEND_FUSION_DECIDER_REGISTRY_H_
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 #include "graph/compute_graph.h"
 #include "fusion/fusion_decider.h"
 #include "common/autofuse_base_type.h"

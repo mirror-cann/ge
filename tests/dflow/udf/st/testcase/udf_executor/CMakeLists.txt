@@ -81,7 +81,7 @@ target_link_libraries(st_flow_func_executor PRIVATE
         $<BUILD_INTERFACE:mmpa_headers>
         $<BUILD_INTERFACE:ascend_hal_headers>
         $<BUILD_INTERFACE:datagw_headers>
-        GTest::gtest GTest::gmock GTest::gmock_main
+        GTestShared::gtest GTestShared::gmock GTestShared::gmock_main
 )
 
 target_compile_options(st_flow_func_executor PRIVATE

@@ -19,24 +19,48 @@ constexpr int32_t SUCCESS = 0;
 
 // 对外暴露的 C API 函数，需要 extern "C" 确保 C 链接
 extern "C" {
-int32_t OM2_C_API_EXPORT ReportTaskInfo(uint32_t model_id,
-                                      void* instance_handle,
-                                      const struct Om2TaskInfo* task_info,
-                                      const void* extended_attrs,
-                                      size_t extended_attrs_size) {
-  // 预留参数
+int32_t OM2_C_API_EXPORT ReportDfxTaskPreprocess(uint32_t model_id,
+                                                 void* instance_handle,
+                                                 const struct Om2TaskInfo* task_info,
+                                                 const void* extended_attrs,
+                                                 size_t extended_attrs_size) {
   (void)model_id;
-  (void)extended_attrs;
-  (void)extended_attrs_size;
+
+  if ((extended_attrs != nullptr) || (extended_attrs_size != 0U)) {
+    GELOGW("Extended attrs is reserved and must be null, skip preprocess");
+    return PARAM_INVALID;
+  }
 
   if ((instance_handle == nullptr) || (task_info == nullptr)) {
-    GELOGW("ModelDumpManager handle or task_info is null, skip");
+    GELOGW("ModelDumpManager handle or task_info is null, skip preprocess");
+    return PARAM_INVALID;
+  }
+
+  auto* manager = static_cast<ge::dump::ModelDumpManager*>(instance_handle);
+  return static_cast<int32_t>(manager->PreprocessOm2TaskInfo(*task_info));
+}
+
+int32_t OM2_C_API_EXPORT ReportDfxTaskPostprocess(uint32_t model_id,
+                                                  void* instance_handle,
+                                                  const struct Om2TaskInfo* task_info,
+                                                  const void* extended_attrs,
+                                                  size_t extended_attrs_size) {
+  (void)model_id;
+
+  if ((extended_attrs != nullptr) || (extended_attrs_size != 0U)) {
+    GELOGW("Extended attrs is reserved and must be null, skip postprocess");
+    return PARAM_INVALID;
+  }
+
+  if ((instance_handle == nullptr) || (task_info == nullptr)) {
+    GELOGW("ModelDumpManager handle or task_info is null, skip postprocess");
     return PARAM_INVALID;
   }
 
   auto* manager = static_cast<ge::dump::ModelDumpManager*>(instance_handle);
   return static_cast<int32_t>(manager->AddOm2TaskInfo(*task_info));
 }
+
 
 int32_t OM2_C_API_EXPORT IsDataDumpEnabled(uint32_t model_id,
                                           void* instance_handle,

@@ -42,11 +42,6 @@ bash build.sh --cov                 # 启用代码覆盖率
 bash build.sh --output_path=<PATH>  # 设置自定义输出路径
 ```
 
-### 第三方依赖
-```bash
-bash build_third_party.sh
-```
-
 ## 测试
 
 ### DT 测试开发

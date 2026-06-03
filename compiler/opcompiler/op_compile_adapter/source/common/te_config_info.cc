@@ -14,7 +14,7 @@
 #include "inc/te_fusion_log.h"
 #include "inc/te_fusion_util_constants.h"
 #include "common/common_utils.h"
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 #include "graph/ge_context.h"
 
 namespace te {

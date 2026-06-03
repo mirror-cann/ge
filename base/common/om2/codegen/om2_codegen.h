@@ -12,7 +12,7 @@
 #define AIR_CXX_BASE_COMMON_OM2_CODEGEN_OM2_CODEGEN_H_
 
 #include "common/model/ge_model.h"
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 #include "common/om2/codegen/om2_codegen_types.h"
 
 namespace ge {

@@ -15,7 +15,7 @@
 #include "graph/ge_local_context.h"
 #undef protected public
 #undef private public
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 using namespace std;
 using namespace testing;
 namespace te {

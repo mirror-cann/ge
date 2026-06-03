@@ -65,9 +65,9 @@ class PatternFusionPass : public FusionBasePass {
    * @param match_result
    * @return
    */
-  virtual GraphUniqPtr Replacement(const std::unique_ptr<MatchResult> &match_result) = 0;
+virtual GraphUniqPtr Replacement(const std::unique_ptr<MatchResult> &match_result) = 0;
 
- private:
+  private:
   std::unique_ptr<PatternMatcherConfig> match_config_;
 };
 

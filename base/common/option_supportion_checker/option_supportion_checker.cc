@@ -10,7 +10,7 @@
 
 #include "option_supportion_checker.h"
 
-#include "external/ge_common/ge_api_types.h"
+#include "external/ge_common/ge_common_api_types.h"
 #include "common/ge_common/ge_types.h"
 #include "framework/common/debug/ge_log.h"
 #include "graph/tuning_utils.h"

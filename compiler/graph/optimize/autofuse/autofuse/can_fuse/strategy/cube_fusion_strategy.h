@@ -10,7 +10,7 @@
 
 #ifndef AIR_CXX_COMPILER_GRAPH_OPTIMIZE_AUTOFUSE_CAN_FUSE_STRATEGY_CUBE_FUSION_STRATEGY_H_
 #define AIR_CXX_COMPILER_GRAPH_OPTIMIZE_AUTOFUSE_CAN_FUSE_STRATEGY_CUBE_FUSION_STRATEGY_H_
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 #include "can_fuse/strategy/fusion_strategy.h"
 
 namespace ge {

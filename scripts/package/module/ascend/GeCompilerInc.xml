@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <block name="GeCompilerInc" copy_type="delivery" src_path="" dst_path="" install_path="" install_own="$username:$usergroup" install_mod="550" install_type="all">
     <dir_info value="GeCompilerInc">
+        <path value="$(TARGET_ENV)/include/ge" install_mod="550"/>
         <path value="$(TARGET_ENV)/include/ge/fusion" install_mod="555"/>
         <path value="$(TARGET_ENV)/include/ge/fusion/pass" install_mod="555"/>
         <path value="$(TARGET_ENV)/include/ge/cmake" install_mod="555"/>
@@ -55,6 +56,7 @@
         <file value="pattern_matcher.h"/>
         <file value="subgraph_boundary.h"/>
         <file value="pattern_matcher_config.h"/>
+        <file value="infer_shape_util.h"/>
     </file_info>
     <file_info value="include" copy_type="source" dst_path="include/ge/fusion/pass" install_path="$(TARGET_ENV)/include/ge/fusion/pass" install_type="devel" install_mod="440">
         <file value="decompose_pass.h"/>
