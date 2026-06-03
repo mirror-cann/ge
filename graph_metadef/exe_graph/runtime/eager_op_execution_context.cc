@@ -53,7 +53,7 @@ rtStream EagerOpExecutionContext::GetStream() const {
 }
 
 Tensor *EagerOpExecutionContext::MallocOutputTensor(size_t index, const StorageShape &shape,
-                                                    const StorageFormat &format, const ge::DataType dtype) {
+                                                    const StorageFormat &format, ge::DataType dtype) {
   auto additional_start_index = GetAdditionalInputStartIndex();
   GE_ASSERT_TRUE(additional_start_index >= 0);
   auto gert_allocator =
