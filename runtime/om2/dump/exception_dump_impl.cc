@@ -12,7 +12,6 @@
 #include "framework/common/debug/ge_log.h"
 #include "common/checker.h"
 #include "framework/runtime/dump/dump_config.h"
-#include "framework/runtime/subscriber/global_dumper.h"
 #include <dump/adump_api.h>
 #include "common/dump/adump_opinfo_builder.h"
 #include "runtime/kernel.h"
@@ -38,7 +37,7 @@ uint64_t EncodeL0ArgDesc(uint8_t type, uint64_t value) {
 }
 
 bool IsL0ExceptionDumpEnabled(const Om2L0TaskRawInfo &l0_info) {
-  return gert::GlobalDumper::GetInstance()->IsEnable(gert::DumpType::kLiteExceptionDump) ||
+  return (DumpConfig::Instance().GetDumpScene() == GE_DUMP_EXCEPTION_AIC_ERR_BRIEF) ||
          (l0_info.need_assert_or_printf != 0U);
 }
 

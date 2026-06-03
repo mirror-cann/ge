@@ -19,7 +19,6 @@
 #include "framework/runtime/dump/overflow_dump_impl.h"
 #include "framework/runtime/dump/data_dump_impl.h"
 #include "framework/runtime/dump/exception_dump_impl.h"
-#include "framework/runtime/subscriber/global_dumper.h"
 #include "common/ge_common/ge_log.h"
 #include "dump_stub.h"
 
@@ -567,7 +566,6 @@ TEST(ExceptionDumpImplTest, ReportL0ExceptionDumpInfoArgNumWithoutArgsReturnsInv
 
 TEST(ExceptionDumpImplTest, ReportL0ExceptionDumpInfoLiteDumpDisabledReturnsSuccess) {
     DumpConfig::Instance().Reset();
-    gert::GlobalDumper::GetInstance()->SetEnableFlags(0U);
     DumpStub::GetInstance().Clear();
 
     ExceptionDumpImpl impl;
