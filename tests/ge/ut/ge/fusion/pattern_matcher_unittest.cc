@@ -827,5 +827,76 @@ TEST_F(UtestPatternMatcher, InvalidBoundary_ForceSelfContained_Match) {
 
   EXPECT_EQ(match_ret.size(), 1);
 }
+
+/**
+ * 复现并验证 MatchNext 多输出场景下的循环退出 bug 修复。
+ *
+ * pattern graph:              target graph (4 个完整实例 + 1 个 decoy exp):
+ *
+ *      data                    data_i           ...            data_decoy
+ *       |                        |                                 |
+ *      abs1                    abs_i                             exp_decoy  (无 abs，分支匹配失败)
+ *     /    \                   /    \
+ *   exp    relu             exp_i  relu_i
+ *   (o0)   (o1)               \     /
+ *                              add_i
+ *                                |
+ *                            netoutput
+ *
+ * 第 0 个输出(exp)的 producer 有 5 个(exp_0..3 + exp_decoy)，第 1 个输出(relu)的 producer 有 4 个，
+ * 且 relu 以实例逆序创建，与 exp 的候选顺序错位。修复前次输出游标跨主坐标不重置且耗尽即 return nullptr，
+ * 只能匹配到 1 个实例；修复后应匹配出全部 4 个完整实例。
+ */
+TEST_F(UtestPatternMatcher, MultiOutput_Output0MoreProducersThanOutput1_AllMatched) {
+  // build pattern graph: data -> abs1 -> {exp(o0), relu(o1)}
+  auto pattern_graph = es::EsGraphBuilder("pattern");
+  auto esb_pattern = pattern_graph.GetCGraphBuilder();
+  auto p_data = EsCreateGraphInput(esb_pattern, 0);
+  auto p_abs1 = EsAbs(p_data);
+  auto p_exp = EsExp(p_abs1, 0, 0, 0);
+  auto p_relu = EsRelu(p_abs1);
+  esb_pattern->SetGraphOutput(p_exp, 0);
+  esb_pattern->SetGraphOutput(p_relu, 1);
+  auto graph = pattern_graph.BuildAndReset();
+  auto pattern = std::make_unique<Pattern>(std::move(*graph));
+
+  // build target graph
+  constexpr int kInstanceNum = 4;
+  auto target_graph_builder = es::EsGraphBuilder("target");
+  auto esb_target = target_graph_builder.GetCGraphBuilder();
+  std::vector<EsCTensorHolder *> t_abs;
+  std::vector<EsCTensorHolder *> t_exp;
+  // 先按实例顺序创建 abs 与 exp
+  for (int i = 0; i < kInstanceNum; ++i) {
+    auto data_i = EsCreateGraphInput(esb_target, i);
+    auto abs_i = EsAbs(data_i);
+    t_abs.emplace_back(abs_i);
+    t_exp.emplace_back(EsExp(abs_i, 0, 0, 0));
+  }
+  // relu 以实例逆序创建，使 output1 候选顺序与 output0 错位
+  std::vector<EsCTensorHolder *> t_relu(kInstanceNum, nullptr);
+  for (int i = kInstanceNum - 1; i >= 0; --i) {
+    t_relu[i] = EsRelu(t_abs[i]);
+  }
+  // 每个实例 exp/relu 汇聚到 add 再到 netoutput，保证子图边界自洽
+  for (int i = 0; i < kInstanceNum; ++i) {
+    auto add_i = EsAdd(t_exp[i], t_relu[i]);
+    esb_target->SetGraphOutput(add_i, i);
+  }
+  // 额外的 decoy exp：输入直接来自 data，没有 abs，分支匹配会失败，使 output0 的 producer 达到 5 个
+  auto decoy_data = EsCreateGraphInput(esb_target, kInstanceNum);
+  auto decoy_exp = EsExp(decoy_data, 0, 0, 0);
+  esb_target->SetGraphOutput(decoy_exp, kInstanceNum);
+  auto target_graph = target_graph_builder.BuildAndReset();
+
+  PatternMatcher matcher(std::move(pattern), std::make_shared<Graph>(*target_graph));
+  std::vector<std::unique_ptr<MatchResult>> match_ret;
+  std::unique_ptr<MatchResult> match;
+  while ((match = matcher.MatchNext()), match != nullptr) {
+    match_ret.emplace_back(std::move(match));
+  }
+
+  EXPECT_EQ(match_ret.size(), static_cast<size_t>(kInstanceNum));
+}
 } // namespace fusion
 } // namespace ge

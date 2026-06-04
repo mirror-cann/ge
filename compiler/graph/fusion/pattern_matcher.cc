@@ -8,7 +8,6 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-#include <stack>
 #include <queue>
 #include <utility>
 #include "ge/fusion/pattern_matcher.h"
@@ -135,6 +134,10 @@ struct MatchCoordinateSeq {
     }
   }
 
+  size_t Size() const {
+    return coordinates_.size();
+  }
+
  private:
   bool HasNext() const {
     return (sliding_cursor_ + 1) < static_cast<int64_t>(coordinates_.size());
@@ -204,15 +207,6 @@ bool IsValidMatch(const MatchResult &match) {
   return true;
 }
 
-void FetchNextMainCoordinate(MatchCoordinateSeq &main_cor_seq, std::stack<MatchCoordinatePtr> &candidates) {
-  while (!candidates.empty()) {
-    candidates.pop();
-  }
-  auto main_coor =  main_cor_seq.NextMatchCoordinate();
-  if (main_coor != nullptr) {
-    candidates.emplace(main_coor);
-  }
-}
 } // namespace
 
 class PatternMatcherImpl {
@@ -266,61 +260,45 @@ class PatternMatcherImpl {
    */
   std::unique_ptr<MatchResult> MatchNext() {
     GE_ASSERT_SUCCESS(Initialize(), "Failed to init pattern matcher.");
-    // 算法以第0个输出匹配到nodes为匹配序列，第0个输出对应的匹配坐标称为 主要匹配坐标 MainMatchCoordinate
+    // 算法以第0个输出匹配到的nodes为匹配序列，第0个输出对应的匹配坐标称为 主要匹配坐标 MainMatchCoordinate。
     // idx_2_coordinate_seqs_ at least has 1 element, checked in Initialize
     auto &main_coordinate_seq = idx_2_coordinate_seqs_[0];
-    const auto &cur_main_coordinate = main_coordinate_seq.NextMatchCoordinate();
-    if (cur_main_coordinate == nullptr) {
-      return nullptr;
+    // 每次外层调用沿主序列推进一个主坐标。若当前主坐标找不到一致的完整匹配，则继续尝试下一个主坐标，
+    // 而不是中断整个匹配：旧实现会因某个次输出的候选游标耗尽就直接 return nullptr，且次输出游标跨主坐标
+    // 从不重置，当第0个输出的producer多于后续输出时，会漏掉后面本应命中的图实例。
+    // 维测：打印各pattern输出在目标图中收集到的候选producer个数。历史bug正是各输出候选数不一致
+    // （如第0个输出5个、第1个输出4个）时，次输出游标耗尽提前中断匹配，这里把候选规模显式记录下来。
+    for (size_t i = 0U; i < idx_2_coordinate_seqs_.size(); ++i) {
+      GELOGD("[MATCH]Pattern output[%zu] collected %zu candidate producer(s) in target graph.", i,
+             idx_2_coordinate_seqs_[i].Size());
     }
-    auto match = MakeUnique<MatchResult>(pattern_.get());
-    GE_ASSERT_NOTNULL(match);
-
-    std::stack<MatchCoordinatePtr> candidates;
-    candidates.emplace(cur_main_coordinate);
-    GELOGD("[MATCH]Start match main coordinate [%s][%s]", cur_main_coordinate->node->GetNamePtr(),
-           cur_main_coordinate->node->GetTypePtr());
-    const size_t p_output_count = pattern_out_anchors_.size();
-    while (!candidates.empty()) {
-      const auto &match_coordinate = candidates.top();
-      const auto curr_out_idx = match_coordinate->pattern_output_idx;  // 当前pattern图的图输出id
-      GE_ASSERT_TRUE(curr_out_idx < pattern_out_anchors_.size());
-      if (match_coordinate->IsValid() &&
-          MatchBranchByOutTensor(match_coordinate->node, pattern_out_anchors_[curr_out_idx], *match)) {
-        if (curr_out_idx >= (p_output_count - 1)) {
-          // 最后一个pattern output匹配成功
-          // found match， 非main_coordinate_seq的cursor置0，准备进入下一个图实例匹配
-          // 校验stack里node个数符合pattern中输出个数
-          GE_ASSERT_TRUE(candidates.size() == p_output_count);
-          if (IsValidMatch(*match)) {
-            GELOGD("[MATCH][FOUND] %s", match->ToAscendString().GetString());
-            return match;
-          }
-          // 否则走下一个main候选坐标的匹配
-          match = MakeUnique<MatchResult>(pattern_.get());
-          GE_ASSERT_NOTNULL(match);
-          FetchNextMainCoordinate(main_coordinate_seq, candidates);
-          continue;
-        } else {
-          // 当前分支匹配成功，还有下一个pattern output待匹配
-          const size_t next_out_idx = curr_out_idx + 1;
-          const auto next_out_coordinate = idx_2_coordinate_seqs_[next_out_idx].NextMatchCoordinate();
-          if (next_out_coordinate == nullptr) {
-            candidates.pop();  // 当前pattern output的coordinate出栈，下一个coordinate候选者入栈
-            continue;
-          }
-          candidates.emplace(next_out_coordinate);
-          continue;
-        }
+    MatchCoordinatePtr main_coordinate;
+    while ((main_coordinate = main_coordinate_seq.NextMatchCoordinate()) != nullptr) {
+      if (!main_coordinate->IsValid()) {
+        GELOGD("[MATCH]Skip invalid main coordinate (node already removed from graph).");
+        continue;
       }
-      candidates.pop();  // 当前图输出的coordinate出栈，下一个coordinate候选者入栈
-      auto next_coordinate = idx_2_coordinate_seqs_[curr_out_idx].NextMatchCoordinate();
-      if (next_coordinate == nullptr) {
-        return nullptr;
+      GELOGD("[MATCH]Start match main coordinate [%s][%s]", main_coordinate->node->GetNamePtr(),
+             main_coordinate->node->GetTypePtr());
+      auto match = MakeUnique<MatchResult>(pattern_.get());
+      GE_ASSERT_NOTNULL(match);
+      // 先匹配第0个输出（主坐标）的分支
+      if (!MatchBranchByOutTensor(main_coordinate->node, pattern_out_anchors_[0], *match)) {
+        GELOGD("[MATCH][MISS]Main coordinate [%s][%s] branch mismatch, try next main coordinate.",
+               main_coordinate->node->GetNamePtr(), main_coordinate->node->GetTypePtr());
+        continue;
       }
-      // 若当前match idx没匹配上，需要在当前branch序列继续向下匹配
-      candidates.emplace(next_coordinate);
+      // 再回溯匹配剩余输出（1..N-1）的一致坐标，命中且边界合法则返回
+      if (MatchRemainingOutputs(1U, *match)) {
+        GELOGD("[MATCH][FOUND] %s", match->ToAscendString().GetString());
+        return match;
+      }
+      // 关键：当前主坐标找不到一致的完整匹配，回退到下一个主坐标继续，而非中断整个匹配（旧bug即在此中断）
+      GELOGD("[MATCH][BACKTRACK]Main coordinate [%s][%s] matched output0 but no consistent assignment "
+             "for remaining outputs, backtrack to next main coordinate.",
+             main_coordinate->node->GetNamePtr(), main_coordinate->node->GetTypePtr());
     }
+    GELOGD("[MATCH]All main coordinates exhausted, no more match.");
     return nullptr;
   }
 
@@ -329,6 +307,10 @@ class PatternMatcherImpl {
     return GetNodeMatcher(p_node)->IsMatch(p_node, t_node);
   }
   bool MatchBranchByOutTensor(const NodePtr &t_out_node, const OutDataAnchorPtr &p_out_anchor, MatchResult &match_ret) const;
+  // 在输出 0..out_idx-1 已匹配（结果累积在 match 中）的前提下，回溯匹配输出 out_idx..N-1。
+  // 每个输出层都先重置自身候选游标再遍历全部候选，并对 match 做快照以支持失败回溯；
+  // 所有输出匹配完成且边界合法时返回 true，并将完整匹配结果写回 match。
+  bool MatchRemainingOutputs(size_t out_idx, MatchResult &match);
   Status GetMatchCoordinatesByIdx(const ge::ComputeGraphPtr &t_graph, const NodePtr &p_output_node,
                                   const size_t p_output_idx, MatchCoordinateSeq &cor_seq) const;
 
@@ -392,6 +374,40 @@ Status PatternMatcherImpl::GetMatchCoordinatesByIdx(const ge::ComputeGraphPtr &t
     }
   }
   return SUCCESS;
+}
+
+bool PatternMatcherImpl::MatchRemainingOutputs(size_t out_idx, MatchResult &match) {
+  if (out_idx >= pattern_out_anchors_.size()) {
+    // 所有输出均已匹配，校验整体子图边界是否自洽
+    const bool boundary_valid = IsValidMatch(match);
+    GELOGD("[MATCH]All %zu pattern output(s) assigned, subgraph boundary valid=%d.", pattern_out_anchors_.size(),
+           static_cast<int32_t>(boundary_valid));
+    return boundary_valid;
+  }
+  auto &cor_seq = idx_2_coordinate_seqs_[out_idx];
+  cor_seq.ResetSlidingCursor();  // 每个主坐标下，次输出都需从头遍历全部候选，避免游标跨主坐标残留导致漏匹配
+  GELOGD("[MATCH]Match output[%zu] over %zu candidate(s), sliding cursor reset.", out_idx, cor_seq.Size());
+  MatchCoordinatePtr coordinate;
+  while ((coordinate = cor_seq.NextMatchCoordinate()) != nullptr) {
+    if (!coordinate->IsValid()) {
+      GELOGD("[MATCH]Skip invalid candidate for output[%zu] (node already removed from graph).", out_idx);
+      continue;
+    }
+    MatchResult trial_match = match;  // 快照，分支失败时回溯，不污染同层其它候选
+    if (MatchBranchByOutTensor(coordinate->node, pattern_out_anchors_[out_idx], trial_match) &&
+        MatchRemainingOutputs(out_idx + 1U, trial_match)) {
+      match = trial_match;
+      GELOGD("[MATCH]Output[%zu] matched candidate [%s][%s].", out_idx, coordinate->node->GetNamePtr(),
+             coordinate->node->GetTypePtr());
+      return true;
+    }
+    GELOGD("[MATCH][MISS]Output[%zu] candidate [%s][%s] inconsistent, try next candidate.", out_idx,
+           coordinate->node->GetNamePtr(), coordinate->node->GetTypePtr());
+  }
+  // 关键：当前层全部候选都无法与已匹配部分一致。返回false让上层回溯，绝不能在此中断整个匹配（旧bug根因）。
+  GELOGD("[MATCH][BACKTRACK]Output[%zu] exhausted all %zu candidate(s) with no consistent match, backtrack.", out_idx,
+         cor_seq.Size());
+  return false;
 }
 
 bool PatternMatcherImpl::MatchBranchByOutTensor(const NodePtr &t_out_node, const OutDataAnchorPtr &p_out_anchor,
