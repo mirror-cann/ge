@@ -442,7 +442,6 @@ HcclResult HcomOpsKernelBuilder::SetSuperKernelScopeAttr(ge::Node &node) {
   HcclReduceOp reduction = HcclReduceOp::HCCL_REDUCE_SUM;
   u32 aivCoreLimit = 0;
   char algName[ALG_NAME_MAX_LEN];
-  char *pAlgName = algName;
   
   // 用于判断是否走 Aiv 的参数准备
   CHK_RET(PrepareSelectAivParam(node, sCollectiveType, hcomComm, sGroup, rankSize,
@@ -451,11 +450,7 @@ HcclResult HcomOpsKernelBuilder::SetSuperKernelScopeAttr(ge::Node &node) {
   bool openSourceTag = false;
   CHK_RET(IsUsingOpenSource(openSourceTag));
   if (openSourceTag) {
-    CHK_RET(HcceSelectAlgGraphMode(sGroup.c_str(), count, dataType, reduction, opType, aivCoreLimit, &ifAiv,
-                          &pAlgName));
-    strncpy_s(algName, ALG_NAME_MAX_LEN, pAlgName, ALG_NAME_MAX_LEN - 1);
-    algName[ALG_NAME_MAX_LEN - 1] = '\0';
-    free(pAlgName);
+    CHK_RET(HcceSelectAlgGraphMode(sGroup.c_str(), count, dataType, reduction, opType, aivCoreLimit, &ifAiv, algName));
   } else {
     #ifdef HCOM_SELECT_ALG_POINTER_MODE
       CHK_RET(HcomSelectAlg(hcomComm, sGroup.c_str(), count, countsPtr, dataType, reduction, opType, aivCoreLimit, &ifAiv,
@@ -880,12 +875,11 @@ HcclResult HcomOpsKernelBuilder::CalcOpRunningResources(const ge::Node &node, st
     HcclReduceOp reduction = HcclReduceOp::HCCL_REDUCE_SUM;
     u32 aivCoreLimit = 0;
     char algName[ALG_NAME_MAX_LEN];
-    char *pAlgName = algName;
     
     // 用于判断是否走 Aiv 的参数准备
     CHK_RET(PrepareSelectAivParam(const_cast<ge::Node &>(node), sCollectiveType, hcomComm, sGroupAiv, rankSize,
             count, counts, dataType, opType, reduction, aivCoreLimit)); 
-    CHK_RET(HcceSelectAlgGraphMode(sGroupAiv.c_str(), count, dataType, reduction, opType, aivCoreLimit, &ifAiv, &pAlgName));
+    CHK_RET(HcceSelectAlgGraphMode(sGroupAiv.c_str(), count, dataType, reduction, opType, aivCoreLimit, &ifAiv, algName));
 
     if (ifAiv) {
       HCCL_INFO("[HcomOpsKernelBuilder][HcomCalcOpRunningParam] Aiv mode no need for substream.");
