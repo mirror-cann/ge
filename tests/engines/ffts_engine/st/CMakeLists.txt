@@ -55,9 +55,7 @@ add_executable(ffts_st
         ${FFTS_ROOT_PATH}/task_builder/data_ctx/prefetch_manual_task_builder.cc
         ${FFTS_ROOT_PATH}/task_builder/fftsplus_ops_kernel_builder.cc
         ${FFTS_ROOT_PATH}/task_builder/fftsplus_task_builder.cc
-        ${FFTS_ROOT_PATH}/task_builder/mode/auto/auto_thread_task_builder.cc
         ${FFTS_ROOT_PATH}/task_builder/mode/data_task_builder.cc
-        ${FFTS_ROOT_PATH}/task_builder/mode/manual/manual_thread_task_builder.cc
         ${FFTS_ROOT_PATH}/task_builder/thread_ctx/dsa_manual_task_builder.cc
         ${FFTS_ROOT_PATH}/task_builder/mode/mixl2/mixl2_mode_task_builder.cc
         ${FFTS_ROOT_PATH}/task_builder/mode/memory_slice.cc

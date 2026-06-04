@@ -21,8 +21,6 @@
 #include "inc/ffts_error_codes.h"
 #include "inc/ffts_type.h"
 #include "task_builder/fftsplus_ops_kernel_builder.h"
-#include "task_builder/mode/auto/auto_thread_task_builder.h"
-#include "task_builder/mode/manual/manual_thread_task_builder.h"
 #include "graph/node.h"
 #include "graph_builder_utils.h"
 #include "graph/utils/tensor_utils.h"

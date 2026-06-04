@@ -143,64 +143,6 @@ Status FFTSPlusOpsKernelBuilder::CalcOpRunningParam(ge::Node &node) {
   return SUCCESS;
 }
 
-TheadTaskBuilderPtr FFTSPlusOpsKernelBuilder::GetNormBuilder(const ge::Node &node, ge::ComputeGraphPtr &sgt_graph,
-                                                             domi::TaskDef &task_def, uint64_t &ready_num,
-                                                             uint64_t &total_num) {
-  ge::OpDescPtr op_desc = node.GetOpDesc();
-  TheadTaskBuilderPtr base_mode_ptr = nullptr;
-  std::string sub_graph_name = op_desc->GetSubgraphInstanceName(0);
-  if (sub_graph_name.empty()) {
-    return base_mode_ptr;
-  }
-  auto ai_graph = node.GetOwnerComputeGraph();
-  if (ai_graph == nullptr) {
-    return base_mode_ptr;
-  }
-  auto root_graph = ge::GraphUtils::FindRootGraph(ai_graph);
-  if (root_graph == nullptr) {
-    return base_mode_ptr;
-  }
-  sgt_graph = root_graph->GetSubgraph(sub_graph_name);
-  if (sgt_graph == nullptr) {
-    return base_mode_ptr;
-  }
-  Status status = GenPersistentContext(node, ready_num, total_num, task_def);
-  if (status != SUCCESS) {
-    return base_mode_ptr;
-  }
-  base_mode_ptr = GetFftsPlusMode(node, *sgt_graph);
-  return base_mode_ptr;
-}
-
-Status FFTSPlusOpsKernelBuilder::ChooseGenFftsPlusContextId(TheadTaskBuilderPtr base_mode_ptr,
-                                                            ge::ComputeGraphPtr sgt_graph,
-                                                            std::vector<ge::NodePtr> &sub_graph_nodes,
-                                                            const ge::Node &node,
-                                                            std::pair<uint64_t, uint64_t> &context_num) const {
-  FFTS_CHECK_NOTNULL(base_mode_ptr);
-  (void)base_mode_ptr->Initialize();
-  uint64_t ready_context_num = context_num.first;
-  uint64_t total_context_number = context_num.second;
-  Status status;
-  std::vector<ge::NodePtr> atomic_nodes;
-  if (CONTROL_OP_V2_TYPE.find(node.GetType()) == CONTROL_OP_V2_TYPE.end()) {
-    status = base_mode_ptr->GenFftsPlusContextId(*sgt_graph, sub_graph_nodes, ready_context_num, total_context_number,
-                                                 atomic_nodes);
-  } else {
-    FFTS_LOGD("ChooseGenFftsPlusContextId RTSCONTROL");
-    auto owngraph = node.GetOwnerComputeGraph();
-    ge::Node &temp_node = const_cast<ge::Node&>(node);
-    ge::NodePtr node_ptr = temp_node.shared_from_this();
-    FFTS_CHECK_NOTNULL(node_ptr);
-    sub_graph_nodes.emplace_back(node_ptr);
-    status = base_mode_ptr->GenFftsPlusContextId(*owngraph, sub_graph_nodes, ready_context_num, total_context_number,
-                                                 atomic_nodes);
-  }
-  context_num.first = ready_context_num;
-  context_num.second = total_context_number;
-  return status;
-}
-
 Status FFTSPlusOpsKernelBuilder::InitLibPath() {
   Dl_info dl_info;
   EngineManager &(*instance_ptr)(const std::string &) = &EngineManager::Instance;
@@ -1024,12 +966,8 @@ Status FFTSPlusOpsKernelBuilder::GenerateTask(const ge::Node &node, ge::RunConte
     FFTS_MAKE_SHARED(mixl2_mode_task_builder_ptr = std::make_shared<Mixl2ModeTaskBuilder>(), return FAILED);
     base_mode_ptr = mixl2_mode_task_builder_ptr;
   } else {
-    base_mode_ptr = GetNormBuilder(node, sgt_graph, task_def, ready_context_num, total_context_number);
-    FFTS_CHECK_NOTNULL(sgt_graph);
-    status = GenSerialDependency(sgt_graph);
-    if (status != SUCCESS) {
-      return status;
-    }
+    FFTS_LOGE("Failed to generatetask for node [%s].", node.GetName().c_str());
+    return FAILED;
   }
   FFTS_CHECK_NOTNULL(base_mode_ptr);
   (void)base_mode_ptr->Initialize();
@@ -1099,67 +1037,6 @@ Status FFTSPlusOpsKernelBuilder::GenerateTask(const ge::Node &node, ge::RunConte
   return SUCCESS;
 }
 
-Status FFTSPlusOpsKernelBuilder::GenPersistentContext(const ge::Node &node, uint64_t &ready_context_num,
-                                                      uint64_t &total_context_number, domi::TaskDef &task_def) const {
-  domi::FftsPlusTaskDef *ffts_plus_task_def = task_def.mutable_ffts_plus_task();
-  CachePersistTaskBuilder cp;
-  if (cp.GenContextDef(node, ffts_plus_task_def) == SUCCESS) {
-    total_context_number++;
-    ready_context_num++;
-  }
-  return SUCCESS;
-}
-
-TheadTaskBuilderPtr FFTSPlusOpsKernelBuilder::GetFftsPlusMode(const ge::Node &part_node,
-                                                              const ge::ComputeGraph &sgt_graph) {
-  ModeType mode_type = ModeType::MANUAL_MODE_TYPE;
-
-  for (const auto &node : sgt_graph.GetDirectNode()) {
-    if (node == nullptr) {
-      continue;
-    }
-    if (fe::UnknownShapeUtils::IsUnknownShapeOp(*node->GetOpDesc())) {
-      // Dynamic shape, auto thread
-      mode_type = ModeType::DYNAMIC_MODE_TYPE;
-      break;
-    } else {
-      ThreadSliceMapPtr slice_info_ptr = nullptr;
-      slice_info_ptr = node->GetOpDesc()->TryGetExtAttr(kAttrSgtStructInfo, slice_info_ptr);
-      if (slice_info_ptr != nullptr && slice_info_ptr->thread_mode == kAutoMode) {
-        mode_type = ModeType::AUTO_MODE_TYPE;
-        break;
-      }
-    }
-  }
-  if (mode_type != ModeType::DYNAMIC_MODE_TYPE) {
-    FFTS_LOGD("Partitioncall[%s]'s graph [%s] mode type is not dynamic mode.", part_node.GetName().c_str(),
-              sgt_graph.GetName().c_str());
-    (void)ge::AttrUtils::SetStr(part_node.GetOpDesc(), ge::kAttrLowingFunc, ge::kFFTSStaticGraphLowerFunc);
-  }
-  switch (mode_type) {
-    case ModeType::MANUAL_MODE_TYPE: {
-      ManualTheadTaskBuilderPtr manual_thread_task_builder_ptr;
-      FFTS_MAKE_SHARED(manual_thread_task_builder_ptr = std::make_shared<ManualTheadTaskBuilder>(), return nullptr);
-      return manual_thread_task_builder_ptr;
-    }
-    case ModeType::AUTO_MODE_TYPE: {
-      AutoTheadTaskBuilderPtr auto_thread_task_builder_ptr;
-      FFTS_MAKE_SHARED(auto_thread_task_builder_ptr = std::make_shared<AutoTheadTaskBuilder>(), return nullptr);
-      return auto_thread_task_builder_ptr;
-    }
-    case ModeType::DYNAMIC_MODE_TYPE: {
-      AutoTheadTaskBuilderPtr auto_thread_task_builder_ptr;
-      FFTS_MAKE_SHARED(auto_thread_task_builder_ptr = std::make_shared<AutoTheadTaskBuilder>(), return nullptr);
-      (void)ge::AttrUtils::SetStr(part_node.GetOpDesc(), ge::kAttrLowingFunc, ge::kFFTSGraphLowerFunc);
-      auto_thread_task_builder_ptr->SetModeType(ModeType::DYNAMIC_MODE_TYPE);
-      return auto_thread_task_builder_ptr;
-    }
-
-    default:
-      return nullptr;
-  }
-}
-
 std::string FFTSPlusOpsKernelBuilder::ConvSqeTypeToStr(uint32_t context_type) const {
   auto iter = kCtxTypeStrMap.find(static_cast<rtFftsPlusContextType_t>(context_type));
   if (iter != kCtxTypeStrMap.end()) {
@@ -1221,51 +1098,5 @@ bool FFTSPlusOpsKernelBuilder::IsNoCtx(const ge::NodePtr &node) const {
     return true;
   }
   return false;
-}
-
-Status FFTSPlusOpsKernelBuilder::GenSerialDependency(const ge::ComputeGraphPtr &sub_graph) const {
-  uint64_t sub_stream_id;
-  map<uint64_t, ge::NodePtr> dependencies;
-  for (auto &node : sub_graph->GetDirectNode()) {
-    FFTS_CHECK_NOTNULL(node);
-    if (!ge::AttrUtils::GetInt(node->GetOpDesc(), ge::ATTR_NAME_SUB_STREAM_ID, sub_stream_id)) {
-      continue;
-    }
-
-    if (IsNoCtx(node)) {
-      continue;
-    }
-    auto iter = dependencies.find(sub_stream_id);
-    if (iter == dependencies.end()) {
-      dependencies[sub_stream_id] = node;
-      continue;
-    }
-
-    if (!IsNoEdge(iter->second, node)) {
-      dependencies[sub_stream_id] = node;
-      continue;
-    }
-    // set post node
-    std::shared_ptr<std::vector<ge::NodePtr>> non_edge_succlist  = nullptr;
-    FFTS_MAKE_SHARED(non_edge_succlist = std::make_shared<std::vector<ge::NodePtr>>(), return FAILED);
-    if (non_edge_succlist == nullptr) {
-      return FAILED;
-    }
-    non_edge_succlist->emplace_back(node);
-    FFTS_CHECK_NOTNULL(iter->second);
-    iter->second->GetOpDesc()->SetExtAttr(kNonEdgeSuccList, non_edge_succlist);
-
-    // set pre node non_edge_succlist
-    std::shared_ptr<std::vector<ge::NodePtr>> non_edge_pre_node  = nullptr;
-    FFTS_MAKE_SHARED(non_edge_pre_node = std::make_shared<std::vector<ge::NodePtr>>(), return FAILED);
-    if (non_edge_pre_node == nullptr) {
-      return FAILED;
-    }
-    non_edge_pre_node->emplace_back(iter->second);
-    node->GetOpDesc()->SetExtAttr(kNonEdgePreNodes, non_edge_pre_node);
-
-    dependencies[sub_stream_id] = node;
-  }
-  return SUCCESS;
 }
 }  // namespace ffts

@@ -18,14 +18,11 @@
 #include "task_builder/mode/data_task_builder.h"
 #include "task_builder/data_ctx/cache_persistent_manual_task_builder.h"
 #include "task_builder/mode/thread_task_builder.h"
-#include "task_builder/mode/manual/manual_thread_task_builder.h"
 #include "task_builder/mode/mixl2/mixl2_mode_task_builder.h"
-#include "task_builder/mode/auto/auto_thread_task_builder.h"
 
 namespace ffts {
 using TheadTaskBuilderPtr = std::shared_ptr<TheadTaskBuilder>;
-using ManualTheadTaskBuilderPtr = std::shared_ptr<ManualTheadTaskBuilder>;
-using AutoTheadTaskBuilderPtr = std::shared_ptr<AutoTheadTaskBuilder>;
+using RunContextPtr = std::shared_ptr<ge::RunContext>;
 using Mixl2ModeTaskBuilderPtr = std::shared_ptr<Mixl2ModeTaskBuilder>;
 using PluginManagerPtr = std::shared_ptr<PluginManager>;
 using ScheculePolicyPassFunc = std::function<Status(domi::TaskDef &, std::vector<ffts::FftsPlusContextPath> &)>;
@@ -84,22 +81,9 @@ class FFTSPlusOpsKernelBuilder : public ge::OpsKernelBuilder {
   Status GenerateTask(const ge::Node &node, ge::RunContext &context, std::vector<domi::TaskDef> &task_defs) override;
 
  private:
-  TheadTaskBuilderPtr GetNormBuilder(const ge::Node &node, ge::ComputeGraphPtr &sgt_graph,
-                                     domi::TaskDef &task_def, uint64_t &ready_num, uint64_t &total_num);
-  Status GenPersistentContext(const ge::Node &node, uint64_t &ready_context_num, uint64_t &total_context_number,
-                              domi::TaskDef &task_def) const;
-  TheadTaskBuilderPtr GetFftsPlusMode(const ge::Node &part_node, const ge::ComputeGraph &sgt_graph);
-  Status GenerateAutoThreadTask();
-  Status GenerateManualThreadTask();
-  Status WritePrefetchBitmapToFirst64Bytes(domi::FftsPlusTaskDef *ffts_plus_task_def);
   std::string ConvSqeTypeToStr(uint32_t context_type) const;
   Status GenSubGraphSqeDef(domi::TaskDef &task_def, const uint64_t &ready_context_num,
                            const ge::ComputeGraph &sgt_graph) const;
-  Status ChooseGenFftsPlusContextId(TheadTaskBuilderPtr base_mode_ptr,
-                                    ge::ComputeGraphPtr sgt_graph,
-                                    std::vector<ge::NodePtr> &sub_graph_nodes,
-                                    const ge::Node &node,
-                                    std::pair<uint64_t, uint64_t> &context_num) const;
   Status InitLibPath();
   Status SetSingleCtxPolicyPri(uint32_t type, domi::FftsPlusCtxDef *ffts_plus_ctx_def,
                                FftsPlusContextPath &ctx_path) const;
@@ -111,7 +95,6 @@ class FFTSPlusOpsKernelBuilder : public ge::OpsKernelBuilder {
                                          TimeLineOptimizerContext &timeCtx) const;
   Status RemoveDuplicateDependencies(domi::TaskDef &task_def, TimeLineOptimizerContext &timeCtx) const;
   bool IsNoCtx(const ge::NodePtr &node) const;
-  Status GenSerialDependency(const ge::ComputeGraphPtr &sub_graph) const;
   Status TimelineLayoutOptimize(uint64_t ready_context_num, const ge::Node &node, domi::TaskDef &task_def) const;
   void PrintTaskDefContent(domi::FftsPlusTaskDef *ffts_plus_task_def) const;
   void SortContextPathByMaxPreIndex(const vector<FftsPlusContextPath> &context_paths,
