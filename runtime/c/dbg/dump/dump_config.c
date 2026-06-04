@@ -61,7 +61,7 @@ static ModelDumpConfig *GetModelDumpConfig(const char *mdlName) {
   size_t size = VectorSize(&g_dumpCfgList.dumpList);
   for (size_t index = 0UL; index < size; ++index) {
     ModelDumpConfig *config = (ModelDumpConfig *)VectorAt(&g_dumpCfgList.dumpList, index);
-    if ((config != NULL) && (config->mdlName != NULL) && (strcmp(config->mdlName, mdlName) == 0)) {
+    if ((config != NULL) && (config->mdlName != NULL) && (mdlName != NULL) && (strcmp(config->mdlName, mdlName) == 0)) {
       GELOGI("modelName[%s] is matched.", mdlName);
       return config;
     }
