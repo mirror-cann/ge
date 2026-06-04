@@ -16,6 +16,7 @@
 | 自定义算子的自定义pass样例（Python 版本）     | [README](5_add_zero_pass_in_custom_op/python/README.md)                  |
 | 拆分分组卷积的自定义pass样例                | [README](6_decompose_grouped_conv_to_splited_pass/cpp/README.md)         |
 | 拆分分组卷积的自定义pass样例（Python版本）     | [README](6_decompose_grouped_conv_to_splited_pass/python/README.md)      |
+| BatchMatMul展平为MatMul的自定义pass样例       | [README](7_batch_matmul_flatten_pass/cpp/README.md)                    |
 
 ## 开发指南
 
