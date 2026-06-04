@@ -147,7 +147,6 @@ target_compile_definitions(host_cpu_opskernel_builder PRIVATE
 )
 
 target_compile_definitions(aicpu_const_folding PRIVATE
-    _FORTIFY_SOURCE=2
     google=ascend_private
     LOG_CPP
     HOST_VISIBILITY
@@ -160,7 +159,7 @@ target_link_options(aicpu_const_folding PRIVATE
 )
 
 target_link_libraries(aicpu_ascend_engine PRIVATE
-    intf_pub
+    ge_intf_pub
     msprof_headers
     runtime_headers
     cce_headers
@@ -183,7 +182,7 @@ target_link_libraries(aicpu_ascend_engine PRIVATE
 )
 
 target_link_libraries(host_cpu_engine PRIVATE
-    intf_pub
+    ge_intf_pub
     msprof_headers
     runtime_headers
     cce_headers
@@ -206,7 +205,7 @@ target_link_libraries(host_cpu_engine PRIVATE
 )
 
 target_link_libraries(host_cpu_opskernel_builder PRIVATE
-    intf_pub
+    ge_intf_pub
     msprof_headers
     runtime_headers
     cce_headers
@@ -231,7 +230,7 @@ target_link_libraries(host_cpu_opskernel_builder PRIVATE
 
 if (BUILD_OPEN_PROJECT OR ENABLE_OPEN_SRC)
     target_link_libraries(aicpu_const_folding PRIVATE
-        intf_pub
+        ge_intf_pub
         aicpu_headers
         air_headers
         mmpa_headers
@@ -247,7 +246,7 @@ if (BUILD_OPEN_PROJECT OR ENABLE_OPEN_SRC)
     )
 else ()
     target_link_libraries(aicpu_const_folding PRIVATE
-        intf_pub
+        ge_intf_pub
         air_headers
         mmpa_headers
         -Wl,--no-as-needed

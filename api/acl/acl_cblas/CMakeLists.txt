@@ -39,7 +39,6 @@ target_include_directories(acl_cblas PRIVATE
 
 target_compile_options(acl_cblas PRIVATE
     $<$<STREQUAL:${TARGET_SYSTEM_NAME},Linux>:-fvisibility=hidden>
-    $<$<CONFIG:Release>:-O2>
     $<$<STREQUAL:${TARGET_SYSTEM_NAME},Windows>:/utf-8>
     $<$<AND:$<STREQUAL:${TARGET_SYSTEM_NAME},Windows>,$<STREQUAL:${CMAKE_CONFIGURATION_TYPES},Debug>>:/MTd>
     $<$<AND:$<STREQUAL:${TARGET_SYSTEM_NAME},Windows>,$<STREQUAL:${CMAKE_CONFIGURATION_TYPES},Release>>:/MT>
@@ -49,7 +48,6 @@ target_compile_definitions(acl_cblas PRIVATE
     $<IF:$<STREQUAL:${TARGET_SYSTEM_NAME},Windows>,OS_TYPE=WIN,OS_TYPE=0>
     FUNC_VISIBILITY
     $<$<STREQUAL:${ENABLE_ACL_UT},ON>:ONLY_ENABLE_ACL_UT>
-    _FORTIFY_SOURCE=2
 )
 
 target_link_options(acl_cblas PRIVATE
@@ -59,7 +57,7 @@ target_link_options(acl_cblas PRIVATE
 )
 
 target_link_libraries(acl_cblas PRIVATE
-    $<BUILD_INTERFACE:intf_pub>
+    $<BUILD_INTERFACE:ge_intf_pub>
     $<$<NOT:$<BOOL:${ENABLE_OPEN_SRC}>>:$<BUILD_INTERFACE:slog_headers>>
     $<$<NOT:$<BOOL:${ENABLE_OPEN_SRC}>>:$<BUILD_INTERFACE:msprof_headers>>
     $<$<NOT:$<BOOL:${ENABLE_OPEN_SRC}>>:$<BUILD_INTERFACE:mmpa_headers>>

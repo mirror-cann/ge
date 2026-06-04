@@ -99,7 +99,7 @@ else()
 endif()
 
 if (ENABLE_ACL_UT)
-    include(cmake/intf_pub_linux.cmake)
+    include(cmake/ge_intf_pub_linux.cmake)
     add_cann_third_party(gtest_shared)
     find_cann_package(securec MODULE REQUIRED)
     add_cann_third_party(json)
@@ -163,7 +163,7 @@ set(INSTALL_INCLUDE_DIR include)
 set(INSTALL_CONFIG_DIR cmake)
 
 include(CMakePackageConfigHelpers)
-include(cmake/intf_pub_linux.cmake)
+include(cmake/ge_intf_pub_linux.cmake)
 include(cmake/build_type.cmake)
 
 if (ENABLE_DFLOW_UT OR ENABLE_DFLOW_ST)

@@ -19,7 +19,7 @@ add_library(geir_collector STATIC
 target_compile_options(geir_collector PRIVATE ${AIR_COMMON_COMPILE_OPTION})
 
 target_link_libraries(geir_collector PRIVATE
-        intf_pub
+        ge_intf_pub
         graph
         graph_base
         metadef
@@ -49,7 +49,7 @@ add_library(gen_esb_impl STATIC
 
 target_compile_options(gen_esb_impl PRIVATE ${AIR_COMMON_COMPILE_OPTION})
 target_link_libraries(gen_esb_impl PRIVATE
-        intf_pub
+        ge_intf_pub
         graph
         graph_base
         error_manager
@@ -63,4 +63,4 @@ target_link_libraries(gen_esb_impl PRIVATE
         )
 add_executable(gen_esb main.cc)
 target_compile_options(gen_esb PRIVATE ${AIR_COMMON_COMPILE_OPTION})
-target_link_libraries(gen_esb PRIVATE c_sec metadef  intf_pub cmd_flag_info_static gen_esb_impl json)
+target_link_libraries(gen_esb PRIVATE c_sec metadef  ge_intf_pub cmd_flag_info_static gen_esb_impl json)

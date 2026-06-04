@@ -32,7 +32,7 @@ target_compile_definitions(opskernel PRIVATE
         )
 
 target_link_libraries(opskernel PRIVATE
-        intf_pub
+        ge_intf_pub
         mmpa_headers
         msprof_headers
         runtime_headers

@@ -43,7 +43,6 @@ target_include_directories(ge_executor_c_static PRIVATE
 )
 
 set(COMMON_COMPILE_OPTIONS
-    -Os
     -fvisibility=hidden
     -fno-common
     -Wextra
@@ -70,7 +69,7 @@ elseif(${TARGET_SYSTEM_NAME} STREQUAL "Linux")
 endif()
 
 target_link_libraries(ge_executor_c_static PRIVATE
-    $<BUILD_INTERFACE:intf_pub>
+    $<BUILD_INTERFACE:ge_intf_pub_Os>
     c_sec_headers
     msprof_headers
     error_manager_headers

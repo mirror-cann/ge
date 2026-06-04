@@ -75,7 +75,7 @@ add_dependencies(gert_stub stub_gert)
 target_include_directories(gert_stub PRIVATE ${GERT_INCLUDING_PATH})
 target_compile_definitions(gert_stub PRIVATE ${GERT_COMPILE_DEF})
 target_link_libraries(gert_stub PRIVATE
-    intf_pub
+    ge_intf_pub_Os
     slog_headers
     ge_metadef_headers
     mmpa_headers
@@ -89,7 +89,7 @@ target_link_libraries(gert_stub PRIVATE
 )
 
 target_compile_options(gert_stub PRIVATE
-    -fvisibility=hidden -Os -fno-common -Wfloat-equal
+    -fvisibility=hidden -fno-common -Wfloat-equal
     -Werror=return-type
     -Wno-unused-parameter
 )

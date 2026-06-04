@@ -114,7 +114,7 @@ target_compile_definitions(fe PRIVATE
         )
 
 target_link_libraries(fe PRIVATE
-        intf_pub
+        ge_intf_pub
         msprof_headers
         cce_headers
         $<$<BOOL:${BUILD_OPEN_PROJECT}>:op_compile_adapter_headers>

@@ -22,4 +22,4 @@ set_target_properties(constant_folding_ops_stub PROPERTIES
     OUTPUT_NAME "constant_folding_ops"
 )
 
-target_link_libraries(constant_folding_ops_stub PRIVATE $<BUILD_INTERFACE:intf_pub>)
+target_link_libraries(constant_folding_ops_stub PRIVATE $<BUILD_INTERFACE:ge_intf_pub>)

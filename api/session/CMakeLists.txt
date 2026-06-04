@@ -59,7 +59,7 @@ target_link_options(ge_runner_v2 PRIVATE
 
 target_link_libraries(ge_runner_v2
     PRIVATE
-        intf_pub
+        ge_intf_pub
         cce_headers
         ge_compiler
         ge_executor_shared
@@ -144,7 +144,7 @@ target_link_options(ge_runner PRIVATE
 
 target_link_libraries(ge_runner
     PRIVATE
-        intf_pub
+        ge_intf_pub
         cce_headers
         ge_compiler
         ge_executor_shared

@@ -18,7 +18,7 @@ target_include_directories(flowfunc_wrapper PRIVATE
 )
 
 target_link_libraries(flowfunc_wrapper PRIVATE
-        $<BUILD_INTERFACE:intf_pub>
+        $<BUILD_INTERFACE:ge_intf_pub>
         $<BUILD_INTERFACE:udf_headers>
         $<BUILD_INTERFACE:slog_headers>
         $<BUILD_INTERFACE:metadef_headers>

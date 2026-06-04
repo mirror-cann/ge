@@ -80,7 +80,7 @@ target_link_options(fmk_parser PRIVATE
 
 target_link_libraries(fmk_parser
     PRIVATE
-        intf_pub
+        ge_intf_pub
         air_headers
         json
     PUBLIC
@@ -139,7 +139,7 @@ target_include_directories(fmk_parser_stub PRIVATE
 )
 
 target_link_libraries(fmk_parser_stub PRIVATE
-    intf_pub
+    ge_intf_pub
     ge_metadef_headers
 )
 

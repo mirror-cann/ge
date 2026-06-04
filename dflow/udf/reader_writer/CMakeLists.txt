@@ -36,7 +36,7 @@ target_compile_options(reader_writer PRIVATE
 )
 
 target_link_libraries(reader_writer PRIVATE
-    $<BUILD_INTERFACE:intf_pub>
+    $<BUILD_INTERFACE:ge_intf_pub>
     $<BUILD_INTERFACE:slog_headers>
     $<BUILD_INTERFACE:ascend_hal_headers>
     -ldl

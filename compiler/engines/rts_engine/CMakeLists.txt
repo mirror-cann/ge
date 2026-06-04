@@ -96,7 +96,7 @@ target_link_options(rts_engine PRIVATE
 )
 
 target_link_libraries(rts_engine PRIVATE
-    intf_pub
+    ge_intf_pub
     msprof_headers
     runtime_headers
     cce_headers
@@ -149,7 +149,7 @@ target_compile_options(rts_engine_atc PRIVATE
         )
 
 target_link_libraries(rts_engine_atc PRIVATE
-    $<BUILD_INTERFACE:intf_pub>
+    $<BUILD_INTERFACE:ge_intf_pub>
     $<BUILD_INTERFACE:mmpa_headers>
     $<BUILD_INTERFACE:msprof_headers>
     $<BUILD_INTERFACE:slog_headers>
@@ -198,7 +198,7 @@ target_compile_options(rts_kernel_builder_host_static PRIVATE
         )
 
 target_link_libraries(rts_kernel_builder_host_static PRIVATE
-        $<BUILD_INTERFACE:intf_pub>
+        $<BUILD_INTERFACE:ge_intf_pub>
         $<BUILD_INTERFACE:tsch_headers>
         $<BUILD_INTERFACE:runtime_headers> $<BUILD_INTERFACE:cce_headers> graph
         register

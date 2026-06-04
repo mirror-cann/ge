@@ -63,7 +63,7 @@ add_library(aicpu_tf_engine SHARED
 )
 ###aicpu_ms_engine
 target_link_libraries(aicpu_tf_engine PRIVATE
-    intf_pub
+    ge_intf_pub
     msprof_headers
     cce_headers
     air_headers

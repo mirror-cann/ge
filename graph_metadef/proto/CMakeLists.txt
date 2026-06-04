@@ -85,7 +85,7 @@ add_dependencies(metadef_graph_protos_obj metadef_protos)
 target_compile_definitions(metadef_graph_protos_obj PRIVATE
         google=ascend_private
         )
-target_link_libraries(metadef_graph_protos_obj PRIVATE ascend_protobuf intf_pub)
+target_link_libraries(metadef_graph_protos_obj PRIVATE ascend_protobuf ge_intf_pub)
 target_compile_options(metadef_graph_protos_obj PRIVATE
         $<$<CONFIG:Release>:-O2>
         $<$<OR:$<STREQUAL:${PRODUCT_SIDE},host>,$<STREQUAL:${ENABLE_OPEN_SRC},True>>:-fexceptions>
@@ -99,7 +99,7 @@ add_dependencies(metadef_tensorflow_protos_obj metadef_protos)
 target_compile_definitions(metadef_tensorflow_protos_obj PRIVATE
         google=ascend_private
         )
-target_link_libraries(metadef_tensorflow_protos_obj PRIVATE ascend_protobuf intf_pub)
+target_link_libraries(metadef_tensorflow_protos_obj PRIVATE ascend_protobuf ge_intf_pub)
 target_compile_options(metadef_tensorflow_protos_obj PRIVATE
         $<$<CONFIG:Release>:-O2>
         $<$<OR:$<STREQUAL:${PRODUCT_SIDE},host>,$<STREQUAL:${ENABLE_OPEN_SRC},True>>:-fexceptions>
@@ -113,7 +113,7 @@ add_dependencies(metadef_aicpu_protos_obj metadef_protos)
 target_compile_definitions(metadef_aicpu_protos_obj PRIVATE
         google=ascend_private
         )
-target_link_libraries(metadef_aicpu_protos_obj PRIVATE ascend_protobuf intf_pub)
+target_link_libraries(metadef_aicpu_protos_obj PRIVATE ascend_protobuf ge_intf_pub)
 target_compile_options(metadef_aicpu_protos_obj PRIVATE
         $<$<CONFIG:Release>:-O2>
         $<$<OR:$<STREQUAL:${PRODUCT_SIDE},host>,$<STREQUAL:${ENABLE_OPEN_SRC},True>>:-fexceptions>
@@ -127,7 +127,7 @@ add_dependencies(metadef_attr_group_protos_obj metadef_protos)
 target_compile_definitions(metadef_attr_group_protos_obj PRIVATE
         google=ascend_private
         )
-target_link_libraries(metadef_attr_group_protos_obj PRIVATE ascend_protobuf intf_pub)
+target_link_libraries(metadef_attr_group_protos_obj PRIVATE ascend_protobuf ge_intf_pub)
 target_compile_options(metadef_attr_group_protos_obj PRIVATE
         $<$<CONFIG:Release>:-O2>
         $<$<OR:$<STREQUAL:${PRODUCT_SIDE},host>,$<STREQUAL:${ENABLE_OPEN_SRC},True>>:-fexceptions>
@@ -168,7 +168,7 @@ target_compile_options(stub_op_common PRIVATE
 
 target_link_libraries(stub_op_common
     PRIVATE
-        intf_pub
+        ge_intf_pub
         c_sec
     PUBLIC
         ge_metadef_headers

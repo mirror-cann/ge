@@ -43,7 +43,7 @@ target_compile_options(llm_engine PRIVATE
         -ftrapv)
 
 target_link_libraries(llm_engine PRIVATE
-        $<BUILD_INTERFACE:intf_pub>
+        $<BUILD_INTERFACE:ge_intf_pub>
         $<BUILD_INTERFACE:slog_headers>
         $<BUILD_INTERFACE:mmpa_headers>
         $<BUILD_INTERFACE:hccl_headers>

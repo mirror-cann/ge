@@ -52,7 +52,7 @@ target_include_directories(om2_executor PRIVATE
 
 target_link_libraries(om2_executor PRIVATE
         ${AIR_COMMON_LINK_OPTION}
-        intf_pub
+        ge_intf_pub
         slog_headers
         msprof_headers
         ge_metadef_headers

@@ -50,7 +50,7 @@ if (NOT TARGET flow_graph)
 
     target_link_libraries(flow_graph
             PRIVATE
-            intf_pub
+            ge_intf_pub
             static_mmpa
             -Wl,--no-as-needed
             graph_base

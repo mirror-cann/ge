@@ -50,7 +50,7 @@ target_link_options(cpu_compiler PRIVATE
 )
 
 target_link_libraries(cpu_compiler PRIVATE
-    intf_pub
+    ge_intf_pub
     msprof_headers
     static_mmpa
     ge_proto_common

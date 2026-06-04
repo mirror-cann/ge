@@ -64,7 +64,7 @@ target_compile_definitions(ge_fusion_model_protos_obj PRIVATE
     google=ascend_private
 )
 
-target_link_libraries(ge_fusion_model_protos_obj PRIVATE ascend_protobuf intf_pub)
+target_link_libraries(ge_fusion_model_protos_obj PRIVATE ascend_protobuf ge_intf_pub)
 
 target_compile_options(ge_fusion_model_protos_obj PRIVATE
     -Werror
@@ -89,7 +89,7 @@ target_compile_definitions(ge_proto_common PRIVATE
 )
 
 target_link_libraries(ge_proto_common PRIVATE
-    intf_pub
+    ge_intf_pub
     ascend_protobuf
 )
 endif ()
@@ -449,7 +449,7 @@ target_link_options(ge_compiler PRIVATE
 
 target_link_libraries(ge_compiler
     PRIVATE
-        intf_pub
+        ge_intf_pub
         cce_headers
         msprof_headers
         static_mmpa
@@ -526,7 +526,7 @@ target_include_directories(ge_python_pass_bridge SYSTEM PRIVATE
 
 target_link_libraries(ge_python_pass_bridge
     PRIVATE
-        intf_pub
+        ge_intf_pub
         register
         graph
         unified_dlog

@@ -26,7 +26,7 @@ add_library(eager_style_graph_builder_base SHARED ${EAGER_STYLE_GRAPH_BUILDER})
 target_compile_options(eager_style_graph_builder_base PRIVATE ${AIR_COMMON_DYNAMIC_COMPILE_OPTION})
 target_link_libraries(eager_style_graph_builder_base
         PRIVATE
-        intf_pub
+        ge_intf_pub
         slog_headers
         unified_dlog
         air_headers
@@ -50,7 +50,7 @@ target_compile_options(eager_style_graph_builder_base_static PRIVATE ${AIR_COMMO
         )
 target_link_libraries(eager_style_graph_builder_base_static
         PRIVATE
-        intf_pub
+        ge_intf_pub
         slog_headers
         unified_dlog
         air_headers

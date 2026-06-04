@@ -27,7 +27,7 @@ set(PYATC_WRAPPER_SRCS
 )
 
 set(GE_API_C_WRAPPER_COMMON_LINK_LIBS
-        intf_pub
+        ge_intf_pub
         slog_headers
         mmpa_headers
         ge_metadef_headers
@@ -102,7 +102,7 @@ target_link_options(pyatc_wrapper PRIVATE
         -Wl,-Bsymbolic
 )
 target_link_libraries(pyatc_wrapper PRIVATE
-        intf_pub
+        ge_intf_pub
         atc_static
         -lrt
         -ldl

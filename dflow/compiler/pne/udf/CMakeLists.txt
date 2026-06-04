@@ -55,7 +55,7 @@ target_link_options(udf_compiler PRIVATE
 )
 
 target_link_libraries(udf_compiler PRIVATE
-    intf_pub
+    ge_intf_pub
     msprof_headers
     static_mmpa
     ge_proto_common

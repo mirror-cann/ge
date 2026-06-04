@@ -62,7 +62,7 @@ target_link_options(npu_sched_model_loader PRIVATE
         )
 
 target_link_libraries(npu_sched_model_loader PRIVATE
-        intf_pub
+        ge_intf_pub
         msprof_headers
         datagw_headers
         -Wl,--no-as-needed
@@ -195,7 +195,7 @@ target_link_options(model_deployer PRIVATE
         )
 
 target_link_libraries(model_deployer PRIVATE
-        intf_pub
+        ge_intf_pub
         acl_rt
         msprof_headers
         datagw_headers
@@ -258,7 +258,7 @@ target_include_directories(deployer_daemon_static PUBLIC
         )
 
 target_link_libraries(deployer_daemon_static PRIVATE
-        intf_pub
+        ge_intf_pub
         msprof_headers
         datagw_headers
         air_headers
@@ -303,7 +303,7 @@ target_link_options(deployer_daemon PRIVATE
         )
 
 target_link_libraries(deployer_daemon PRIVATE
-        intf_pub
+        ge_intf_pub
         msprof_headers
         datagw_headers
         air_headers
@@ -389,7 +389,7 @@ target_include_directories(npu_executor_static PUBLIC
         )
 
 target_link_libraries(npu_executor_static PRIVATE
-        intf_pub
+        ge_intf_pub
         msprof_headers
         datagw_headers
         air_headers
@@ -438,7 +438,7 @@ target_link_options(npu_executor_main PRIVATE
         -Wl,--exclude-libs,ALL)
 
 target_link_libraries(npu_executor_main PRIVATE
-        intf_pub
+        ge_intf_pub
         datagw_headers
         cce_headers
         hccl_headers
@@ -544,7 +544,7 @@ target_link_options(host_cpu_executor_main PRIVATE
         -Wl,--exclude-libs,ALL)
 
 target_link_libraries(host_cpu_executor_main PRIVATE
-        intf_pub
+        ge_intf_pub
         datagw_headers
         hccl_headers
         air_headers

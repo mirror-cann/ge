@@ -70,7 +70,7 @@ add_dependencies(parser_graph_library_proto_obj parser_protos)
 target_compile_definitions(parser_graph_library_proto_obj PRIVATE
     google=ascend_private
 )
-target_link_libraries(parser_graph_library_proto_obj PRIVATE ascend_protobuf intf_pub)
+target_link_libraries(parser_graph_library_proto_obj PRIVATE ascend_protobuf ge_intf_pub)
 target_compile_options(parser_graph_library_proto_obj PRIVATE
     $<$<OR:$<STREQUAL:${PRODUCT_SIDE},host>,$<STREQUAL:${ENABLE_OPEN_SRC},True>>:-fexceptions>
     $<$<OR:$<STREQUAL:${TARGET_SYSTEM_NAME},Linux>,$<STREQUAL:${TARGET_SYSTEM_NAME},Android>>:-fno-common -Wextra -Wfloat-equal>
@@ -84,7 +84,7 @@ add_dependencies(parser_tensorflow_protos_obj parser_protos)
 target_compile_definitions(parser_tensorflow_protos_obj PRIVATE
     google=ascend_private
 )
-target_link_libraries(parser_tensorflow_protos_obj PRIVATE ascend_protobuf intf_pub)
+target_link_libraries(parser_tensorflow_protos_obj PRIVATE ascend_protobuf ge_intf_pub)
 target_compile_options(parser_tensorflow_protos_obj PRIVATE
     $<$<OR:$<STREQUAL:${PRODUCT_SIDE},host>,$<STREQUAL:${ENABLE_OPEN_SRC},True>>:-fexceptions>
     $<$<OR:$<STREQUAL:${TARGET_SYSTEM_NAME},Linux>,$<STREQUAL:${TARGET_SYSTEM_NAME},Android>>:-fno-common -Wextra -Wfloat-equal>
@@ -98,7 +98,7 @@ add_dependencies(parser_onnx_protos_obj parser_protos)
 target_compile_definitions(parser_onnx_protos_obj PRIVATE
     google=ascend_private
 )
-target_link_libraries(parser_onnx_protos_obj PRIVATE ascend_protobuf intf_pub)
+target_link_libraries(parser_onnx_protos_obj PRIVATE ascend_protobuf ge_intf_pub)
 target_compile_options(parser_onnx_protos_obj PRIVATE
     $<$<OR:$<STREQUAL:${PRODUCT_SIDE},host>,$<STREQUAL:${ENABLE_OPEN_SRC},True>>:-fexceptions>
     $<$<OR:$<STREQUAL:${TARGET_SYSTEM_NAME},Linux>,$<STREQUAL:${TARGET_SYSTEM_NAME},Android>>:-fno-common -Wextra -Wfloat-equal>
@@ -112,7 +112,7 @@ add_dependencies(parser_caffe_proto_obj parser_protos)
 target_compile_definitions(parser_caffe_proto_obj PRIVATE
     google=ascend_private
 )
-target_link_libraries(parser_caffe_proto_obj PRIVATE ascend_protobuf intf_pub)
+target_link_libraries(parser_caffe_proto_obj PRIVATE ascend_protobuf ge_intf_pub)
 target_compile_options(parser_caffe_proto_obj PRIVATE
     $<$<OR:$<STREQUAL:${PRODUCT_SIDE},host>,$<STREQUAL:${ENABLE_OPEN_SRC},True>>:-fexceptions>
     $<$<OR:$<STREQUAL:${TARGET_SYSTEM_NAME},Linux>,$<STREQUAL:${TARGET_SYSTEM_NAME},Android>>:-fno-common -Wextra -Wfloat-equal>
@@ -139,7 +139,7 @@ target_link_options(_caffe_parser PRIVATE
 
 target_link_libraries(_caffe_parser
     PRIVATE
-        intf_pub
+        ge_intf_pub
         -Wl,--no-as-needed
         ascend_protobuf
         -Wl,--as-needed

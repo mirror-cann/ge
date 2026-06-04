@@ -27,5 +27,5 @@ add_library(stackcore SHARED
 )
 
 target_link_libraries(stackcore PRIVATE
-    $<BUILD_INTERFACE:intf_pub>
+    $<BUILD_INTERFACE:ge_intf_pub>
 )

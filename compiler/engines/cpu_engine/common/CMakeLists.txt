@@ -62,7 +62,7 @@ add_library(aicpu_engine_common SHARED
 
 ##-----aicpu_engine_common
 target_link_libraries(aicpu_engine_common PRIVATE
-    intf_pub
+    ge_intf_pub
     msprof_headers
     runtime_headers
     cce_headers

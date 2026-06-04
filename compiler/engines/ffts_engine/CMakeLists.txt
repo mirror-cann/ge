@@ -52,7 +52,7 @@ target_compile_options(ffts PRIVATE
         -Wno-deprecated-declarations)
 
 target_link_libraries(ffts PRIVATE
-        intf_pub
+        ge_intf_pub
         mmpa_headers
         msprof_headers
         runtime_headers

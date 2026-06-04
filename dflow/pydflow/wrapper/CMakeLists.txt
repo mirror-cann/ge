@@ -18,7 +18,7 @@ target_include_directories(dflow_wrapper PRIVATE
 )
 
 target_link_libraries(dflow_wrapper PRIVATE
-        $<BUILD_INTERFACE:intf_pub>
+        $<BUILD_INTERFACE:ge_intf_pub>
         $<BUILD_INTERFACE:slog_headers>
         $<BUILD_INTERFACE:udf_headers>
         $<BUILD_INTERFACE:metadef_headers>
@@ -64,7 +64,7 @@ target_compile_definitions(data_wrapper PRIVATE
 )
 
 target_link_libraries(data_wrapper PRIVATE
-        $<BUILD_INTERFACE:intf_pub>
+        $<BUILD_INTERFACE:ge_intf_pub>
         $<BUILD_INTERFACE:udf_headers>
         $<BUILD_INTERFACE:metadef_headers>
         $<BUILD_INTERFACE:pybind_options>

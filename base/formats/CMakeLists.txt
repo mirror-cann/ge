@@ -64,7 +64,7 @@ target_link_options(formats PRIVATE
 )
 
 target_link_libraries(formats PRIVATE
-    intf_pub
+    ge_intf_pub
     -Wl,--no-as-needed
     graph
     graph_base

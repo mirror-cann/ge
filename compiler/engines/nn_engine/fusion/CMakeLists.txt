@@ -78,7 +78,7 @@ target_compile_definitions(fusion_pass PRIVATE
         )
 
 target_link_libraries(fusion_pass PRIVATE
-        intf_pub
+        ge_intf_pub
         msprof_headers
         $<$<BOOL:${BUILD_OPEN_PROJECT}>:op_compile_adapter_headers>
         $<$<NOT:$<BOOL:${BUILD_OPEN_PROJECT}>>:$<BUILD_INTERFACE:tensor_engine_headers>>

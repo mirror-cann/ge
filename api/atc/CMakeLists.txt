@@ -54,7 +54,7 @@ target_link_options(cmd_flag_info_static PRIVATE
 		)
 
 target_link_libraries(cmd_flag_info_static PRIVATE
-		intf_pub
+		ge_intf_pub
 		c_sec
 		error_manager
 		slog
@@ -100,7 +100,7 @@ target_link_options(atc_static PRIVATE
         )
 
 target_link_libraries(atc_static PRIVATE
-        intf_pub
+        ge_intf_pub
         cce_headers
         msprof_headers
         ge_metadef_headers
@@ -143,7 +143,7 @@ target_link_options(atc_atc.bin PRIVATE
         )
 
 target_link_libraries(atc_atc.bin PRIVATE
-        intf_pub
+        ge_intf_pub
         atc_static
         )
 
@@ -166,7 +166,7 @@ target_link_options(fwk_atc.bin PRIVATE
         )
 
 target_link_libraries(fwk_atc.bin PRIVATE
-        intf_pub
+        ge_intf_pub
         atc_static
         )
 

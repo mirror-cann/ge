@@ -38,4 +38,4 @@ target_compile_options(st_stubs PRIVATE
 target_link_libraries(st_stubs PUBLIC intf_llt_pub ge_graph_dsl ge_running_env GTestShared::gtest GTestShared::gmock GTestShared::gmock_main datagw_headers)
 
 add_library(memset_stubs STATIC ${CMAKE_CURRENT_SOURCE_DIR}/src/memset.c)
-target_link_libraries(memset_stubs PRIVATE intf_pub)
+target_link_libraries(memset_stubs PRIVATE ge_intf_pub)

@@ -55,7 +55,7 @@ target_link_options(fmk_onnx_parser PRIVATE
 
 target_link_libraries(fmk_onnx_parser
     PRIVATE
-        intf_pub
+        ge_intf_pub
         air_headers
         static_mmpa
         -Wl,--no-as-needed
@@ -109,7 +109,7 @@ target_include_directories(fmk_onnx_parser_stub PRIVATE
 )
 
 target_link_libraries(fmk_onnx_parser_stub PRIVATE
-    intf_pub
+    ge_intf_pub
     ge_metadef_headers
 )
 

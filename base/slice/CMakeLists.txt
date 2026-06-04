@@ -49,7 +49,7 @@ target_link_options(slice PRIVATE
 
 target_link_libraries(slice
     PRIVATE
-        intf_pub
+        ge_intf_pub
         -Wl,--no-as-needed
         graph
         graph_base

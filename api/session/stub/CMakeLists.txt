@@ -42,7 +42,7 @@ target_compile_options(atc_stub_ge_compiler PRIVATE
 )
 
 target_link_libraries(atc_stub_ge_compiler PRIVATE
-    intf_pub
+    ge_intf_pub
     ge_metadef_headers
     eager_style_graph_builder_base_headers
 )
@@ -75,7 +75,7 @@ target_compile_options(fwk_stub_ge_runner_v2 PRIVATE
 
 target_link_libraries(fwk_stub_ge_runner_v2
     PRIVATE
-        intf_pub
+        ge_intf_pub
         ge_metadef_headers
         eager_style_graph_builder_base_headers
     PUBLIC
@@ -110,7 +110,7 @@ target_compile_options(fwk_stub_ge_runner PRIVATE
 
 target_link_libraries(fwk_stub_ge_runner
     PRIVATE
-        intf_pub
+        ge_intf_pub
         ge_metadef_headers
         eager_style_graph_builder_base_headers
     PUBLIC

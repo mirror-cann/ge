@@ -66,7 +66,7 @@ else()
     )
  
     target_link_libraries(hcom_gradient_split_tune   PRIVATE
-        $<BUILD_INTERFACE:intf_pub>
+        $<BUILD_INTERFACE:ge_intf_pub>
         $<BUILD_INTERFACE:slog_headers>
         $<BUILD_INTERFACE:hccl_headers>
         $<BUILD_INTERFACE:mmpa_headers>

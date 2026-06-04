@@ -60,7 +60,7 @@ target_include_directories(gert_static PUBLIC
         )
 target_compile_definitions(gert_static PRIVATE ${GERT_COMPILE_DEF})
 target_link_libraries(gert_static PRIVATE
-        intf_pub
+        ge_intf_pub
         cce_headers
         slog_headers
         msprof_headers
@@ -90,7 +90,7 @@ target_include_directories(gert PRIVATE
 )
 target_compile_definitions(gert PRIVATE ${GERT_COMPILE_DEF})
 target_link_libraries(gert PRIVATE
-        intf_pub
+        ge_intf_pub
         $<$<TARGET_EXISTS:cce_headers>:cce_headers>
         $<$<TARGET_EXISTS:aicpu_headers>:aicpu_headers>
         msprof_headers

@@ -38,7 +38,7 @@ target_include_directories(_ge_pass_native PRIVATE
 )
 
 target_link_libraries(_ge_pass_native PRIVATE
-        $<BUILD_INTERFACE:intf_pub>
+        $<BUILD_INTERFACE:ge_intf_pub>
         $<BUILD_INTERFACE:slog_headers>
         $<BUILD_INTERFACE:mmpa_headers>
         $<BUILD_INTERFACE:pybind_options>

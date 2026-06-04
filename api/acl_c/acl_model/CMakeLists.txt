@@ -79,7 +79,7 @@ if (${TARGET_SYSTEM_NAME} STREQUAL "Linux")
     )
 
     target_link_libraries(${ASCENDCL_C_COMPILE_TARGET} PRIVATE
-        $<BUILD_INTERFACE:intf_pub>
+        $<BUILD_INTERFACE:ge_intf_pub>
         $<BUILD_INTERFACE:runtime_headers>
         c_base_headers
         c_sec_headers
@@ -144,7 +144,7 @@ elseif (${TARGET_SYSTEM_NAME} STREQUAL "LiteOS")
     )
 
     target_link_libraries(${ASCENDCL_C_COMPILE_TARGET} PRIVATE
-        $<BUILD_INTERFACE:intf_pub>
+        $<BUILD_INTERFACE:ge_intf_pub>
         $<BUILD_INTERFACE:runtime_headers>
         c_base_headers
         c_sec_headers

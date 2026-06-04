@@ -10,6 +10,7 @@
 
 #include "register/op_tiling.h"
 
+#include <cinttypes>
 #include <nlohmann/json.hpp>
 #include "graph/operator.h"
 #include "framework/common/debug/ge_log.h"
@@ -544,7 +545,7 @@ ge::graphStatus PostProcMemoryCheck(const ge::Operator &op, OpRunInfoV2 &run_inf
     GELOGD("The ori_op_para_size of node [%s] is %lu.", op_desc->GetName().c_str(), ori_op_para_size);
     if (!run_info.SetMemCheckBaseOffset(ori_op_para_size)) {
       REPORT_INNER_ERR_MSG("E19999",
-                           "[register][op_tiling][PostProcMemoryCheck]Node:%s set mem check offset:%lu failed.",
+                           "[register][op_tiling][PostProcMemoryCheck]Node:%s set mem check offset:%" PRIu64 " failed.",
                            op_desc->GetName().c_str(), ori_op_para_size);
       return ge::GRAPH_FAILED;
     }

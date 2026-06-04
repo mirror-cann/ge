@@ -45,7 +45,7 @@ target_include_directories(lowering PRIVATE
 )
 
 target_link_libraries(lowering PRIVATE
-    intf_pub
+    ge_intf_pub
     mmpa_headers
     ge_metadef_headers
     error_manager_headers
@@ -128,14 +128,13 @@ target_include_directories(stub_lowering PRIVATE
 target_compile_options(stub_lowering PRIVATE
     -Wfloat-equal
     -fno-common
-    -Os
     -Werror=return-type
     -Wno-unused-parameter
 )
 
 target_link_libraries(stub_lowering
     PRIVATE
-        intf_pub
+        ge_intf_pub_Os
         c_sec_headers
     PUBLIC
         ge_metadef_headers

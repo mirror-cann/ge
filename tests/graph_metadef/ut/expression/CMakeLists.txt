@@ -39,7 +39,7 @@ target_compile_definitions(ut_expression PRIVATE
     LOG_CPP
 )
 
-# intf_pub包含stdc++11 当前需要按照更高版本来编译ut
+# ge_intf_pub包含stdc++11 当前需要按照更高版本来编译ut
 target_link_libraries(ut_expression PRIVATE
     -lgcov
     -Wl,--no-as-needed

@@ -39,7 +39,7 @@ target_compile_definitions(op_compile_adapter PRIVATE
 
 target_link_libraries(op_compile_adapter
     PRIVATE
-        intf_pub
+        ge_intf_pub
         ge_metadef_headers
         msprof_headers
         runtime_headers

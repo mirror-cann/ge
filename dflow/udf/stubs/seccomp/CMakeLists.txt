@@ -24,6 +24,6 @@ set_target_properties(seccomp_stub PROPERTIES
     SOVERSION 2)
 
 target_link_libraries(seccomp_stub PRIVATE
-    $<BUILD_INTERFACE:intf_pub>
+    $<BUILD_INTERFACE:ge_intf_pub>
     $<BUILD_INTERFACE:seccomp_headers>
 )

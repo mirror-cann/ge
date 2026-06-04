@@ -8,114 +8,76 @@
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
 
+include_guard(GLOBAL)
+
 if ((CMAKE_BUILD_TYPE MATCHES GCOV) OR (CMAKE_BUILD_TYPE MATCHES Debug))
     set(OPTIMIZE_OPTION "-O0")
 else ()
     set(OPTIMIZE_OPTION "-O2")
 endif ()
 
-include_guard(GLOBAL)
-if (TARGET intf_pub)
-    message(STATUS "found intf_pub")
-    return()
-endif ()
+########## imported intf_pub_base|intf_pub ##########
+add_cann_target_options()
 
-########## intf_pub_base ##########
-add_library(intf_pub_base INTERFACE)
-
-target_compile_options(intf_pub_base INTERFACE
-    ${OPTIMIZE_OPTION}
-    -Werror -fno-common -Wextra -Wfloat-equal -Wall -fPIC
+########## ge_intf_pub_base ##########
+add_library(ge_intf_pub_base INTERFACE)
+target_link_libraries(ge_intf_pub_base INTERFACE
+    $<BUILD_INTERFACE:intf_pub_base>
+)
+target_compile_options(ge_intf_pub_base INTERFACE
+    -Werror
     $<$<AND:$<CXX_COMPILER_ID:GNU>,$<VERSION_GREATER_EQUAL:${CMAKE_CXX_COMPILER_VERSION},14.0>>:-Wno-free-nonheap-object>
-    -fstack-protector-strong
-    $<$<NOT:$<STREQUAL:${OPTIMIZE_OPTION},-O0>>:-D_FORTIFY_SOURCE=2>
     $<$<CONFIG:Debug>:-g>
-    $<$<BOOL:${ENABLE_ASAN}>:
-        -Wno-maybe-uninitialized -fsanitize=address -fsanitize=leak -fsanitize-recover=address,all
-        -fno-stack-protector -fno-omit-frame-pointer -g>
+    $<$<BOOL:${ENABLE_ASAN}>:-Wno-maybe-uninitialized>
     $<$<BOOL:${ENABLE_GCOV}>:
         -g
-        --coverage -fprofile-arcs -ftest-coverage
         -DFUNC_VISIBILITY
         -DFMK_SUPPORT_DUMP
         -DFWK_SUPPORT_TRAINING_TRACE>
 )
-
-target_compile_definitions(intf_pub_base INTERFACE
+target_compile_definitions(ge_intf_pub_base INTERFACE
     $<$<OR:$<STREQUAL:${PRODUCT_SIDE},device>,$<BOOL:${MDC_COMPILE_RUNTIME}>>:_GLIBCXX_USE_CXX11_ABI=1>
     $<$<AND:$<NOT:$<STREQUAL:${PRODUCT_SIDE},device>>,$<NOT:$<BOOL:${MDC_COMPILE_RUNTIME}>>>:_GLIBCXX_USE_CXX11_ABI=0>
-    $<$<CONFIG:Release>:CFG_BUILD_NDEBUG>
-    $<$<CONFIG:Debug>:CFG_BUILD_DEBUG>
-    LINUX=0
     $<$<BOOL:${ENABLE_TEST}>:SUPPORT_LARGE_MODEL_ENABLE=1>
 )
-
-target_link_options(intf_pub_base INTERFACE
-    -Wl,-z,relro
-    -Wl,-z,now
-    -Wl,-z,noexecstack
-    $<$<CONFIG:Release>:-Wl,--build-id=none>
-    $<$<CONFIG:Release>:-s>
-    $<$<STREQUAL:$<TARGET_PROPERTY:TYPE>,EXECUTABLE>:-pie>
-    $<$<BOOL:${ENABLE_ASAN}>:-fsanitize=address -fsanitize=leak -fsanitize-recover=address>
+target_link_options(ge_intf_pub_base INTERFACE
     $<$<AND:$<BOOL:${ENABLE_ASAN}>,$<BOOL:${MDC_COMPILE_RUNTIME}>>:-lunwind -shared-libasan>
-    $<$<BOOL:${ENABLE_GCOV}>:-fprofile-arcs -ftest-coverage>
 )
-
-target_link_libraries(intf_pub_base INTERFACE
-    $<$<BOOL:${ENABLE_GCOV}>:-lgcov>
-    -lpthread
+target_link_libraries(ge_intf_pub_base INTERFACE
     -lrt
     -ldl
 )
 
-########## intf_pub ##########
-add_library(intf_pub INTERFACE)
-
-target_compile_options(intf_pub INTERFACE
-    $<$<COMPILE_LANGUAGE:CXX>:-std=c++17>
+########## ge_intf_pub ##########
+add_library(ge_intf_pub INTERFACE)
+target_compile_options(ge_intf_pub INTERFACE
+    ${OPTIMIZE_OPTION}
+    $<$<NOT:$<STREQUAL:${OPTIMIZE_OPTION},-O0>>:-D_FORTIFY_SOURCE=2>
+)
+target_link_libraries(ge_intf_pub INTERFACE
+    $<BUILD_INTERFACE:intf_pub>
+    $<BUILD_INTERFACE:ge_intf_pub_base>
 )
 
-target_link_libraries(intf_pub INTERFACE
-    $<BUILD_INTERFACE:intf_pub_base>
+########## ge_intf_pub_Os ##########
+add_library(ge_intf_pub_Os INTERFACE)
+target_compile_options(ge_intf_pub_Os INTERFACE
+    -Os
+)
+target_link_libraries(ge_intf_pub_Os INTERFACE
+    $<BUILD_INTERFACE:intf_pub>
+    $<BUILD_INTERFACE:ge_intf_pub_base>
 )
 
-########## intf_pub c++11 ##########
-add_library(intf_pub_cxx11 INTERFACE)
-
-target_compile_options(intf_pub_cxx11 INTERFACE
-    $<$<COMPILE_LANGUAGE:CXX>:-std=c++11>
-)
-
-target_link_libraries(intf_pub_cxx11 INTERFACE
-    $<BUILD_INTERFACE:intf_pub_base>
-)
-
-########## intf_pub c++14 ##########
-add_library(intf_pub_cxx14 INTERFACE)
-
-target_compile_options(intf_pub_cxx14 INTERFACE
-    $<$<COMPILE_LANGUAGE:CXX>:-std=c++14>
-)
-
-target_link_libraries(intf_pub_cxx14 INTERFACE
-    $<BUILD_INTERFACE:intf_pub_base>
-)
-
-########## intf_pub c++17 ##########
-add_library(intf_pub_cxx17 INTERFACE)
-
-target_compile_options(intf_pub_cxx17 INTERFACE
-    $<$<COMPILE_LANGUAGE:CXX>:-std=c++17>
-)
-
-target_link_libraries(intf_pub_cxx17 INTERFACE
-    $<BUILD_INTERFACE:intf_pub_base>
+########## ge_intf_pub c++14 ##########
+add_library(ge_intf_pub_cxx14 INTERFACE)
+target_link_libraries(ge_intf_pub_cxx14 INTERFACE
+    $<BUILD_INTERFACE:intf_pub_cxx14>
+    $<BUILD_INTERFACE:ge_intf_pub_base>
 )
 
 #  屏蔽pybind里的编译告警
 add_library(pybind_options INTERFACE)
-
 target_compile_options(pybind_options INTERFACE
         -Wno-float-equal
         -Wno-missing-field-initializers

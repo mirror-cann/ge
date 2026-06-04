@@ -84,7 +84,7 @@ target_include_directories(udf_static PUBLIC
 target_link_libraries(udf_static PRIVATE
         -ldl
         ${AIR_COMMON_LINK_OPTION}
-        $<BUILD_INTERFACE:intf_pub>
+        $<BUILD_INTERFACE:ge_intf_pub>
         $<BUILD_INTERFACE:slog_headers>
         $<BUILD_INTERFACE:mmpa_headers>
         $<BUILD_INTERFACE:air_headers>
@@ -120,7 +120,7 @@ target_compile_options(udf_executor PRIVATE
 )
 
 target_link_libraries(udf_executor PRIVATE
-    $<BUILD_INTERFACE:intf_pub>
+    $<BUILD_INTERFACE:ge_intf_pub>
     $<BUILD_INTERFACE:slog_headers>
     $<BUILD_INTERFACE:mmpa_headers>
     $<BUILD_INTERFACE:air_headers>

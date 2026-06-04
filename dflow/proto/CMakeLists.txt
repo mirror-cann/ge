@@ -20,7 +20,7 @@ add_dependencies(flow_graph_protos_obj data_flow_protos)
 target_compile_definitions(flow_graph_protos_obj PRIVATE
         google=ascend_private
 )
-target_link_libraries(flow_graph_protos_obj PRIVATE ascend_protobuf intf_pub)
+target_link_libraries(flow_graph_protos_obj PRIVATE ascend_protobuf ge_intf_pub)
 target_compile_options(flow_graph_protos_obj PRIVATE
         $<$<CONFIG:Release>:-O2>
         $<$<STREQUAL:${TARGET_SYSTEM_NAME},Linux>:-fPIC>

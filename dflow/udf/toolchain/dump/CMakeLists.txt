@@ -61,7 +61,7 @@ target_compile_options(udf_dump PRIVATE
 )
 
 target_link_libraries(udf_dump PRIVATE
-    $<BUILD_INTERFACE:intf_pub>
+    $<BUILD_INTERFACE:ge_intf_pub>
     $<BUILD_INTERFACE:slog_headers>
     $<BUILD_INTERFACE:mmpa_headers>
     $<BUILD_INTERFACE:ascend_hal_headers>

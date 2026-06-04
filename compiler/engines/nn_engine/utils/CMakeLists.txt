@@ -42,7 +42,7 @@ target_compile_definitions(aicore_utils PRIVATE
 
 target_link_libraries(aicore_utils
         PRIVATE
-                intf_pub
+                ge_intf_pub
                 msprof_headers
                 runtime_headers
                 -Wl,--no-as-needed

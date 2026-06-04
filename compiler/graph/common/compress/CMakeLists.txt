@@ -32,7 +32,7 @@ target_compile_options(compress PRIVATE
 target_link_libraries(compress
         PRIVATE
                 runtime_headers
-                intf_pub
+                ge_intf_pub
                 -Wl,--no-as-needed
                 c_sec
                 -Wl,--as-needed
@@ -68,7 +68,7 @@ target_compile_options(compress_static PRIVATE
 
 target_link_libraries(compress_static PRIVATE
         $<BUILD_INTERFACE:runtime_headers>
-        $<BUILD_INTERFACE:intf_pub>
+        $<BUILD_INTERFACE:ge_intf_pub>
         -Wl,--no-as-needed
         c_sec
         -Wl,--as-needed
@@ -94,7 +94,7 @@ target_compile_options(compressweight PRIVATE
 
 target_link_libraries(compressweight PRIVATE
         $<BUILD_INTERFACE:runtime_headers>
-        $<BUILD_INTERFACE:intf_pub>
+        $<BUILD_INTERFACE:ge_intf_pub>
         -Wl,--no-as-needed
         c_sec
         compress
@@ -121,7 +121,7 @@ target_compile_options(compressweight_static PRIVATE
 
 target_link_libraries(compressweight_static PRIVATE
         $<BUILD_INTERFACE:runtime_headers>
-        $<BUILD_INTERFACE:intf_pub>
+        $<BUILD_INTERFACE:ge_intf_pub>
         -Wl,--no-as-needed
         c_sec
         compress

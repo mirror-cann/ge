@@ -55,10 +55,6 @@ target_include_directories(stub_acl_cblas PRIVATE
     ${TOP_DIR}/runtime/include/external/acl
 )
 
-target_compile_definitions(stub_acl_cblas PRIVATE
-    _FORTIFY_SOURCE=2
-)
-
 target_compile_options(stub_acl_cblas PRIVATE
     -Wno-unused-parameter
 )
@@ -70,7 +66,7 @@ set_target_properties(stub_acl_cblas
 )
 
 target_link_libraries(stub_acl_cblas PRIVATE
-    $<BUILD_INTERFACE:intf_pub>
+    $<BUILD_INTERFACE:ge_intf_pub>
     $<BUILD_INTERFACE:runtime_headers>
     $<$<NOT:$<STREQUAL:${TARGET_SYSTEM_NAME},Android>>:-lrt>
     -ldl
@@ -86,9 +82,6 @@ target_include_directories(stub_acl_op_compiler PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/../../../inc/external/acl
 )
 
-target_compile_definitions(stub_acl_op_compiler PRIVATE
-    _FORTIFY_SOURCE=2
-)
 set_target_properties(stub_acl_op_compiler
     PROPERTIES
     OUTPUT_NAME acl_op_compiler
@@ -100,7 +93,7 @@ target_compile_options(stub_acl_op_compiler PRIVATE
 )
 
 target_link_libraries(stub_acl_op_compiler PRIVATE
-    $<BUILD_INTERFACE:intf_pub>
+    $<BUILD_INTERFACE:ge_intf_pub>
     $<BUILD_INTERFACE:runtime_headers>
     $<$<NOT:$<STREQUAL:${TARGET_SYSTEM_NAME},Android>>:-lrt>
     -ldl
@@ -118,10 +111,6 @@ target_include_directories(stub_acl_op_executor PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/../../../inc/external/acl
 )
 
-target_compile_definitions(stub_acl_op_executor PRIVATE
-    _FORTIFY_SOURCE=2
-)
-
 target_compile_options(stub_acl_op_executor PRIVATE
     -Wno-unused-parameter
 )
@@ -133,7 +122,7 @@ set_target_properties(stub_acl_op_executor
 )
 
 target_link_libraries(stub_acl_op_executor PRIVATE
-    $<BUILD_INTERFACE:intf_pub>
+    $<BUILD_INTERFACE:ge_intf_pub>
     $<BUILD_INTERFACE:runtime_headers>
     $<$<NOT:$<STREQUAL:${TARGET_SYSTEM_NAME},Android>>:-lrt>
     -ldl
@@ -151,10 +140,6 @@ target_include_directories(stub_acl_mdl PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/../../../inc/external/acl
 )
 
-target_compile_definitions(stub_acl_mdl PRIVATE
-    _FORTIFY_SOURCE=2
-)
-
 target_compile_options(stub_acl_mdl PRIVATE
     -Wno-unused-parameter
 )
@@ -167,7 +152,7 @@ set_target_properties(stub_acl_mdl
 
 target_link_libraries(stub_acl_mdl PRIVATE
     acl_rt
-    $<BUILD_INTERFACE:intf_pub>
+    $<BUILD_INTERFACE:ge_intf_pub>
     $<BUILD_INTERFACE:runtime_headers>
     $<$<NOT:$<STREQUAL:${TARGET_SYSTEM_NAME},Android>>:-lrt>
     -ldl
@@ -204,10 +189,6 @@ target_include_directories(stub_acl_mdl_impl PRIVATE
     ${TOP_DIR}/runtime/include/external/acl
 )
 
-target_compile_definitions(stub_acl_mdl_impl PRIVATE
-    _FORTIFY_SOURCE=2
-)
-
 target_compile_options(stub_acl_mdl_impl PRIVATE
     -Wno-unused-parameter
 )
@@ -219,7 +200,7 @@ set_target_properties(stub_acl_mdl_impl
 )
 
 target_link_libraries(stub_acl_mdl_impl PRIVATE
-    $<BUILD_INTERFACE:intf_pub>
+    $<BUILD_INTERFACE:ge_intf_pub>
     $<BUILD_INTERFACE:runtime_headers>
     $<$<NOT:$<STREQUAL:${TARGET_SYSTEM_NAME},Android>>:-lrt>
     -ldl

@@ -39,7 +39,7 @@ target_link_options(aihac_symbolizer PRIVATE
 
 target_link_libraries(aihac_symbolizer
     PRIVATE
-        intf_pub
+        ge_intf_pub
         static_mmpa
         -Wl,--no-as-needed
         c_sec

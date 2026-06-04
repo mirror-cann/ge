@@ -70,7 +70,7 @@ target_link_options(parser_common PRIVATE
 
 target_link_libraries(parser_common
     PRIVATE
-        intf_pub
+        ge_intf_pub
         air_headers
         static_mmpa
         -Wl,--no-as-needed

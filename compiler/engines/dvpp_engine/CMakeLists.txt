@@ -83,7 +83,7 @@ target_link_options(dvpp_engine PRIVATE
 )
 
 target_link_libraries(dvpp_engine PRIVATE
-    intf_pub
+    ge_intf_pub
     msprof_headers
     runtime_headers
     cce_headers

@@ -29,7 +29,7 @@ target_compile_options(func2graph PRIVATE
 )
 
 target_link_libraries(func2graph PUBLIC
-        intf_pub
+        ge_intf_pub
         parser_headers
         ascend_protobuf_static
 )

@@ -404,7 +404,7 @@ else()
 
     #hcom_graph_adaptor依赖的so,链接选项
     target_link_libraries(hcom_graph_adaptor PRIVATE
-        $<BUILD_INTERFACE:intf_pub_cxx14>
+        $<BUILD_INTERFACE:ge_intf_pub_cxx14>
         $<BUILD_INTERFACE:slog_headers>
         $<BUILD_INTERFACE:msprof_headers>
         $<BUILD_INTERFACE:mmpa_headers>
@@ -432,7 +432,7 @@ else()
 
     #hcom_executor依赖的so,链接选项
     target_link_libraries(hcom_executor PRIVATE
-        $<BUILD_INTERFACE:intf_pub_cxx14>
+        $<BUILD_INTERFACE:ge_intf_pub_cxx14>
         $<BUILD_INTERFACE:slog_headers>
         $<BUILD_INTERFACE:msprof_headers>
         $<BUILD_INTERFACE:mmpa_headers>
@@ -458,7 +458,7 @@ else()
 
     #hcom_opskernel_builder依赖的so,链接选项
     target_link_libraries(hcom_opskernel_builder PRIVATE
-        $<BUILD_INTERFACE:intf_pub_cxx14>
+        $<BUILD_INTERFACE:ge_intf_pub_cxx14>
         $<BUILD_INTERFACE:slog_headers>
         $<BUILD_INTERFACE:msprof_headers>
         $<BUILD_INTERFACE:mmpa_headers>
@@ -483,7 +483,7 @@ else()
 
     #hcom_gradtune_opskernel_builder依赖的so,链接选项
     target_link_libraries(hcom_gradtune_opskernel_builder PRIVATE
-        $<BUILD_INTERFACE:intf_pub_cxx14>
+        $<BUILD_INTERFACE:ge_intf_pub_cxx14>
         $<BUILD_INTERFACE:slog_headers>
         $<BUILD_INTERFACE:msprof_headers>
         $<BUILD_INTERFACE:mmpa_headers>

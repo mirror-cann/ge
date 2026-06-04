@@ -31,7 +31,7 @@ target_compile_options(udf_profiling PRIVATE
 )
 
 target_link_libraries(udf_profiling PRIVATE
-    $<BUILD_INTERFACE:intf_pub>
+    $<BUILD_INTERFACE:ge_intf_pub>
     $<BUILD_INTERFACE:slog_headers>
     $<IF:$<STREQUAL:${PRODUCT_SIDE},device>,alog,unified_dlog>
 )

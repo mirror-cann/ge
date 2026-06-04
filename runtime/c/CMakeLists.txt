@@ -9,5 +9,6 @@
 # -----------------------------------------------------------------------------------------------------------
 cmake_minimum_required(VERSION 3.14)
 set(AIR_CODE_DIR ${CMAKE_CURRENT_LIST_DIR}/../../)
+include(${AIR_CODE_DIR}/cmake/ge_intf_pub_linux.cmake)
 add_subdirectory(executor)
 add_subdirectory(dbg)

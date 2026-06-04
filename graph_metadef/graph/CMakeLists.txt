@@ -176,7 +176,7 @@ target_link_options(graph_base PRIVATE
 
 target_link_libraries(graph_base
     PRIVATE
-        intf_pub
+        ge_intf_pub
         static_mmpa
         -Wl,--no-as-needed
         c_sec
@@ -247,7 +247,7 @@ target_link_options(graph PRIVATE
 
 target_link_libraries(graph
     PRIVATE
-        intf_pub
+        ge_intf_pub
         static_mmpa
         -Wl,--no-as-needed
         c_sec
@@ -305,7 +305,7 @@ else()
 
     target_link_libraries(graph_share
             PRIVATE
-            intf_pub
+            ge_intf_pub
             static_mmpa
             -Wl,--no-as-needed
             c_sec
@@ -425,14 +425,13 @@ target_include_directories(atc_stub_graph PRIVATE
 target_compile_options(atc_stub_graph PRIVATE
     -Wfloat-equal
     -fno-common
-    -Os
     -Werror=return-type
     -Wno-unused-parameter
 )
 
 target_link_libraries(atc_stub_graph
     PRIVATE
-        intf_pub
+        ge_intf_pub_Os
         mmpa_headers
         c_sec
         slog_headers
@@ -490,7 +489,7 @@ target_include_directories(fwk_stub_graph PRIVATE
 
 target_link_libraries(fwk_stub_graph
     PRIVATE
-        intf_pub
+        ge_intf_pub
         static_mmpa
         c_sec
         error_manager_headers

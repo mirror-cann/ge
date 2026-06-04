@@ -127,7 +127,7 @@ target_link_libraries(register
     PUBLIC
         ge_metadef_headers
     PRIVATE
-        intf_pub
+        ge_intf_pub
         msprof_headers
         $<$<TARGET_EXISTS:cce_headers>:cce_headers>
         $<$<TARGET_EXISTS:aicpu_headers>:aicpu_headers>
@@ -197,7 +197,7 @@ target_include_directories(register_static PRIVATE
 target_link_libraries(register_static PRIVATE
     c_sec
     json
-    intf_pub
+    ge_intf_pub
     slog_headers
     msprof_headers
     mmpa_headers
@@ -253,7 +253,7 @@ target_compile_definitions(op_tiling_o2 PRIVATE
 )
 
 target_link_libraries(op_tiling_o2 PRIVATE
-    intf_pub
+    ge_intf_pub
     slog_headers
     mmpa_headers
     ge_metadef_headers
@@ -349,7 +349,7 @@ target_compile_options(stub_register_options INTERFACE
 
 target_link_libraries(stub_register
     PRIVATE
-        intf_pub
+        ge_intf_pub
         stub_register_options
         slog_headers
         msprof_headers

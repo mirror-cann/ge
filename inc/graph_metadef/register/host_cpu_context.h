@@ -21,7 +21,6 @@ class HostCpuContext {
   ~HostCpuContext() = default;
  private:
   class Impl;
-  Impl *impl_;
 };
 } // namespace ge
 
