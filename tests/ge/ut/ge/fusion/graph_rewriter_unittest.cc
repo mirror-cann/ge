@@ -9,6 +9,7 @@
  */
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <algorithm>
 #include "common/share_graph.h"
 #include "es_ge_test_ops_c.h"
 #include "es_ge_test_ops.h"
@@ -549,6 +550,106 @@ TEST_F(UtestMatchReplacer, delete_nodes_in_boundary) {
                 "success");
     }
   }
+}
+
+TEST_F(UtestMatchReplacer, ReplaceWithCtxSuccess) {
+  ComputeGraphPtr target_compute_graph = gert::ShareGraph::BuildStaticAbsReluExpAddNodeGraph();
+
+  SubgraphBoundary boundary;
+  for (const auto &node : target_compute_graph->GetDirectNode()) {
+    if (node->GetName() != "abs1") {
+      continue;
+    }
+    auto out_nodes = node->GetOutDataNodes();
+    EXPECT_EQ(out_nodes.size(), 2);
+    boundary = BuildBoundary({{{node, 0}}}, {{out_nodes.at(0), 0}, {out_nodes.at(1), 0}});
+  }
+
+  auto replace_graph_builder = es::EsGraphBuilder("replace");
+  auto replace_esb_graph = replace_graph_builder.GetCGraphBuilder();
+  auto data_replace = EsCreateGraphInput(replace_esb_graph, 0);
+  auto relu_r = EsRelu(data_replace);
+  auto abs_r = EsAbs(data_replace);
+  replace_esb_graph->SetGraphOutput(relu_r, 0);
+  replace_esb_graph->SetGraphOutput(abs_r, 1);
+  auto replace_graph = replace_graph_builder.BuildAndReset();
+
+  CustomPassContext ctx;
+  ctx.SetPassName("rewrite_ctx_pass");
+  EXPECT_EQ(SubgraphRewriter::Replace(boundary, std::move(*replace_graph), ctx), SUCCESS);
+
+  bool has_rewrite_pass_name = false;
+  for (const auto &node : target_compute_graph->GetDirectNode()) {
+    std::vector<std::string> pass_names;
+    if (!AttrUtils::GetListStr(node->GetOpDesc(), "pass_name", pass_names)) {
+      continue;
+    }
+    has_rewrite_pass_name =
+      has_rewrite_pass_name || (std::find(pass_names.begin(), pass_names.end(), "rewrite_ctx_pass") != pass_names.end());
+  }
+  EXPECT_TRUE(has_rewrite_pass_name);
+}
+
+TEST_F(UtestMatchReplacer, ReplaceWithCtxFailedWhenCanFuseFailed) {
+  ComputeGraphPtr target_compute_graph = gert::ShareGraph::BuildStaticAbsReluExpAddNodeGraph();
+
+  NodePtr abs_node = nullptr;
+  NodePtr exp_node = nullptr;
+  NodePtr add_node = nullptr;
+  for (const auto &node : target_compute_graph->GetDirectNode()) {
+    if (node->GetType() == "Abs") {
+      abs_node = node;
+    } else if (node->GetType() == "Exp") {
+      exp_node = node;
+    } else if (node->GetType() == "Add") {
+      add_node = node;
+    }
+  }
+  ASSERT_NE(abs_node, nullptr);
+  ASSERT_NE(exp_node, nullptr);
+  ASSERT_NE(add_node, nullptr);
+
+  (void)AttrUtils::SetStr(abs_node->GetOpDesc(), public_attr::USER_STREAM_LABEL, "stream_a");
+  (void)AttrUtils::SetStr(exp_node->GetOpDesc(), public_attr::USER_STREAM_LABEL, "stream_b");
+
+  SubgraphBoundary boundary = BuildBoundary({{{abs_node, 0}}}, {{add_node, 0}});
+
+  auto replace_graph_builder = es::EsGraphBuilder("replace");
+  auto replace_esb_graph = replace_graph_builder.GetCGraphBuilder();
+  auto data_replace = EsCreateGraphInput(replace_esb_graph, 0);
+  auto relu_r = EsRelu(data_replace);
+  replace_esb_graph->SetGraphOutput(relu_r, 0);
+  auto replace_graph = replace_graph_builder.BuildAndReset();
+
+  CustomPassContext ctx;
+  ctx.SetPassName("rewrite_ctx_pass");
+  EXPECT_EQ(SubgraphRewriter::Replace(boundary, std::move(*replace_graph), ctx), FAILED);
+}
+
+TEST_F(UtestMatchReplacer, ReplaceWithCtxFailedWhenReportFuseFailed) {
+  ComputeGraphPtr target_compute_graph = gert::ShareGraph::BuildStaticAbsReluExpAddNodeGraph();
+
+  SubgraphBoundary boundary;
+  for (const auto &node : target_compute_graph->GetDirectNode()) {
+    if (node->GetName() != "abs1") {
+      continue;
+    }
+    auto out_nodes = node->GetOutDataNodes();
+    EXPECT_EQ(out_nodes.size(), 2);
+    boundary = BuildBoundary({{{node, 0}}}, {{out_nodes.at(0), 0}, {out_nodes.at(1), 0}});
+  }
+
+  auto replace_graph_builder = es::EsGraphBuilder("replace");
+  auto replace_esb_graph = replace_graph_builder.GetCGraphBuilder();
+  auto data_replace = EsCreateGraphInput(replace_esb_graph, 0);
+  auto relu_r = EsRelu(data_replace);
+  auto abs_r = EsAbs(data_replace);
+  replace_esb_graph->SetGraphOutput(relu_r, 0);
+  replace_esb_graph->SetGraphOutput(abs_r, 1);
+  auto replace_graph = replace_graph_builder.BuildAndReset();
+
+  CustomPassContext ctx;
+  EXPECT_NE(SubgraphRewriter::Replace(boundary, std::move(*replace_graph), ctx), SUCCESS);
 }
 
 /**

@@ -291,6 +291,7 @@ set(PASS_TEST_FILES
     "fusion/pass/decompose_pass_unittest.cc"
     "fusion/pass/decompose_pass_v2_unittest.cc"
     "fusion/pass/reg_pass_unittest.cc"
+    "fusion/pass/graph_fuse_inspector_utils_unittest.cc"
 )
 
 set(KERNEL_TEST_FILES

@@ -57,6 +57,7 @@
         <file value="subgraph_boundary.h"/>
         <file value="pattern_matcher_config.h"/>
         <file value="infer_shape_util.h"/>
+        <file value="graph_fuse_inspector_utils.h"/>
     </file_info>
     <file_info value="include" copy_type="source" dst_path="include/ge/fusion/pass" install_path="$(TARGET_ENV)/include/ge/fusion/pass" install_type="devel" install_mod="440">
         <file value="decompose_pass.h"/>

@@ -99,6 +99,48 @@ std::vector<NodePtr> ToNodePtrs(const std::vector<GNode> &nodes) {
   }
   return node_ptrs;
 }
+
+// 公共实现：过滤无效节点后做局部 BFS 判环。
+// matched_nodes 需已确保非空且均为有效节点（非 nullptr 且有 owner_graph）。
+static bool WillCauseCycleIfFuseImpl(const std::vector<NodePtr> &matched_nodes) {
+  // 把 matched_nodes 集合 S 融成一个节点是否会成环，等价于：从 S 的某个"外部后继"出发，
+  // 沿有向边（数据+控制后继）正向能否回到 S。能回到即成环。无状态局部 BFS，O(V+E)，
+  // 不依赖任何缓存/连通矩阵，多线程各判各的，天然并发安全。
+  std::unordered_set<const Node *> fused;
+  for (const auto &node : matched_nodes) {
+    fused.insert(node.get());
+  }
+  std::unordered_set<const Node *> visited;
+  std::queue<const Node *> to_visit;
+  // 起点：S 各节点的外部直接后继（跳过 S 内部边）
+  for (const auto &node : matched_nodes) {
+    for (const auto *const out_node : node->GetOutNodesPtr()) {
+      if ((out_node == nullptr) || (fused.count(out_node) > 0)) {
+        continue;
+      }
+      if (visited.insert(out_node).second) {
+        to_visit.push(out_node);
+      }
+    }
+  }
+  // 从外部后继正向 BFS；若回到 S 内任一节点，说明存在经过外部节点又绕回 S 的路径，融合后成环
+  while (!to_visit.empty()) {
+    const auto *const cur = to_visit.front();
+    to_visit.pop();
+    for (const auto *const out_node : cur->GetOutNodesPtr()) {
+      if (out_node == nullptr) {
+        continue;
+      }
+      if (fused.count(out_node) > 0) {
+        return true;
+      }
+      if (visited.insert(out_node).second) {
+        to_visit.push(out_node);
+      }
+    }
+  }
+  return false;
+}
 }  // namespace
 std::unique_ptr<SubgraphBoundary> FusionUtils::BuildSubgraphBoundaryFromNode(const NodePtr &node) {
   GE_ASSERT_NOTNULL(node);
@@ -210,43 +252,22 @@ bool FusionUtils::WillCauseCycleIfFuse(const std::unique_ptr<MatchResult> &match
   if (matched_nodes.empty()) {
     return false;
   }
-  // 把 matched_nodes 集合 S 融成一个节点是否会成环，等价于：从 S 的某个"外部后继"出发，
-  // 沿有向边（数据+控制后继）正向能否回到 S。能回到即成环。无状态局部 BFS，O(V+E)，
-  // 不依赖任何缓存/连通矩阵，多线程各判各的，天然并发安全。
-  std::unordered_set<const Node *> fused;
-  for (const auto &node : matched_nodes) {
-    fused.insert(node.get());
-  }
-  std::unordered_set<const Node *> visited;
-  std::queue<const Node *> to_visit;
-  // 起点：S 各节点的外部直接后继（跳过 S 内部边）
-  for (const auto &node : matched_nodes) {
-    for (const auto *const out_node : node->GetOutNodesPtr()) {
-      if ((out_node == nullptr) || (fused.count(out_node) > 0)) {
-        continue;
-      }
-      if (visited.insert(out_node).second) {
-        to_visit.push(out_node);
-      }
+  return WillCauseCycleIfFuseImpl(matched_nodes);
+}
+
+bool FusionUtils::WillCauseCycleIfFuse(const std::vector<NodePtr> &nodes) {
+  // 过滤 nullptr 及 owner_graph 已被清空的"半死"节点
+  std::vector<NodePtr> valid_nodes;
+  valid_nodes.reserve(nodes.size());
+  for (const auto &node : nodes) {
+    if (node != nullptr && node->GetOwnerComputeGraph() != nullptr) {
+      valid_nodes.push_back(node);
     }
   }
-  // 从外部后继正向 BFS；若回到 S 内任一节点，说明存在经过外部节点又绕回 S 的路径，融合后成环
-  while (!to_visit.empty()) {
-    const auto *const cur = to_visit.front();
-    to_visit.pop();
-    for (const auto *const out_node : cur->GetOutNodesPtr()) {
-      if (out_node == nullptr) {
-        continue;
-      }
-      if (fused.count(out_node) > 0) {
-        return true;
-      }
-      if (visited.insert(out_node).second) {
-        to_visit.push(out_node);
-      }
-    }
+  if (valid_nodes.empty()) {
+    return false;
   }
-  return false;
+  return WillCauseCycleIfFuseImpl(valid_nodes);
 }
 
 void FusionUtils::RecordFusionStatistic(const uint64_t session_id, const std::string graph_id, const std::string pass_name,

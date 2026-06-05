@@ -283,6 +283,8 @@ add_executable(graph_engine_compile_test
         "${AIR_CODE_DIR}/tests/ge/ut/ge/fusion/pass/decompose_pass_unittest.cc"
         "${AIR_CODE_DIR}/tests/ge/ut/ge/fusion/pass/decompose_pass_v2_unittest.cc"
         "${AIR_CODE_DIR}/tests/ge/ut/ge/fusion/pass/reg_pass_unittest.cc"
+        "${AIR_CODE_DIR}/tests/ge/ut/ge/fusion/pass/graph_builder_utils.cc"
+        "${AIR_CODE_DIR}/tests/ge/ut/ge/fusion/pass/graph_fuse_inspector_utils_unittest.cc"
         "${AIR_CODE_DIR}/tests/ge/ut/ge/fusion/pass/fusion_pass_executor_unittest.cc"
         "${AIR_CODE_DIR}/tests/ge/st/testcase/test_autofuse_offline.cc"
         "${AIR_CODE_DIR}/tests/ge/st/testcase/test_v1_loop.cc"

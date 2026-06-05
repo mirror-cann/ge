@@ -17,6 +17,7 @@
 #include <queue>
 #include <algorithm>
 #include "ge/fusion/pass/pattern_fusion_pass.h"
+#include "ge/fusion/graph_fuse_inspector_utils.h"
 
 using namespace ge;
 using namespace fusion;
@@ -80,7 +81,12 @@ bool JudgeTransposeNode(const GNodePtr &node_ptr, int &cnt) {
     return false;
 }
 
-bool RemoveTransposeAndRelink(const GraphPtr &graph, const GNodePtr &node_ptr) {
+bool RemoveTransposeAndRelink(const GraphPtr &graph, const GNodePtr &node_ptr, CustomPassContext &pass_context) {
+    AscendString failed_reason;
+    if (!GraphFuseInspectorUtils::CanFuse({*node_ptr}, failed_reason)) {
+      std::cout << failed_reason.GetString() << std::endl;
+      return false;
+    }
     auto [data_node, data_output_index] = node_ptr->GetInDataNodesAndPortIndexs(dataIdxOfTransposeInputs);
     auto [perm_node, perm_output_index] = node_ptr->GetInDataNodesAndPortIndexs(permIdxOfTransposeInputs);
     if (graph->RemoveEdge(*data_node, data_output_index, *node_ptr, dataIdxOfTransposeInputs) != GRAPH_SUCCESS ||
@@ -98,13 +104,17 @@ bool RemoveTransposeAndRelink(const GraphPtr &graph, const GNodePtr &node_ptr) {
             return false;
         }
     }
+    if (GraphFuseInspectorUtils::ReportFuse({*node_ptr}, {}, pass_context) != SUCCESS) {
+      std::cout << "ReportFuse failed" << std::endl;
+      return false;
+    }
     if (graph->RemoveNode(*perm_node) != GRAPH_SUCCESS || graph->RemoveNode(*node_ptr) != GRAPH_SUCCESS) {
         return false;
     }
     return true;
 }
 
-bool DeleteTransposePairBehindIfExist(const GraphPtr &graph, const GNode &conv_node) {
+bool DeleteTransposePairBehindIfExist(const GraphPtr &graph, const GNode &conv_node, CustomPassContext &pass_context) {
     // 广度遍历寻找conv_node后的transpose
     std::queue<GNodePtr> bfs_node_queue;
     int transpose_cnt = 0;
@@ -134,7 +144,7 @@ bool DeleteTransposePairBehindIfExist(const GraphPtr &graph, const GNode &conv_n
         if (node_ptr->GetType(node_type) != GRAPH_SUCCESS) {return false;}
         if (node_type == "Transpose" && JudgeTransposeNode(node_ptr,transpose_cnt)) {
             // 删除节点(包括const)并重新连边
-            if (!RemoveTransposeAndRelink(graph, node_ptr)) {
+            if (!RemoveTransposeAndRelink(graph, node_ptr, pass_context)) {
                 std::cout << "RemoveTransposeAndRelink failed "<< std::endl;
                 return false;
             };
@@ -183,7 +193,7 @@ public:
                 *graph = origin_graph;
                 return FAILED;
             }
-            if (!DeleteTransposePairBehindIfExist(graph, node)) {
+            if (!DeleteTransposePairBehindIfExist(graph, node, pass_context)) {
                 std::cout << "DeleteTransposePairBehindIfExist failed" << std::endl;
                 *graph = origin_graph;
                 return FAILED;

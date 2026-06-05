@@ -155,6 +155,7 @@ if("ge-compiler" IN_LIST BUILD_COMPONENT)
     )
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/inc/external/ge/fusion/graph_rewriter.h
                   ${CMAKE_CURRENT_SOURCE_DIR}/inc/external/ge/fusion/match_result.h
+                  ${CMAKE_SOURCE_DIR}/inc/external/ge/fusion/graph_fuse_inspector_utils.h
                   ${CMAKE_CURRENT_SOURCE_DIR}/inc/external/ge/fusion/pattern.h
                   ${CMAKE_CURRENT_SOURCE_DIR}/inc/external/ge/fusion/pattern_matcher.h
                   ${CMAKE_CURRENT_SOURCE_DIR}/inc/external/ge/fusion/subgraph_boundary.h

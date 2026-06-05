@@ -111,7 +111,7 @@ std::unique_ptr<SubgraphBoundary> ConstructSubgraphBoundary(const GNode &concat_
     return boundary;
 }
 
-bool MoveReluBeforeConcat(const GNode &concat_node) {
+bool MoveReluBeforeConcat(const GNode &concat_node, CustomPassContext &pass_context) {
     // 根据concat节点构造替换结构replacement
     const auto replacement = Replacement(concat_node);
     if (!replacement) {
@@ -125,7 +125,7 @@ bool MoveReluBeforeConcat(const GNode &concat_node) {
         return false;
     }
     // 替换
-    if (SubgraphRewriter::Replace(*boundary, *replacement) != SUCCESS) {
+  if (SubgraphRewriter::Replace(*boundary, *replacement, pass_context) != SUCCESS) {
         std::cout << "Replace failed" << std::endl;
         return false;
     }
@@ -166,7 +166,7 @@ public:
         }
         // 遍历每个符合条件的concat_node，移动relu
         for (auto &node: concat_nodes) {
-            if (!MoveReluBeforeConcat(node)) {
+            if (!MoveReluBeforeConcat(node, pass_context)) {
                 std::cout << "MoveReluBeforeConcat failed" << std::endl;
                 *graph = origin_graph;
                 return FAILED;

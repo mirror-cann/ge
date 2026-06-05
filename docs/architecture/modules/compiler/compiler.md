@@ -297,6 +297,13 @@ Python 层会自动创建 ES `GraphBuilder`、图输入、图输出和 pattern c
 
 面向开发者的机制说明和开发步骤见 [融合 Pattern Pass 机制](../../features/fusion_pattern_pass.md)。
 
+为了降低自定义 `FusionBasePass` 的接入成本，`ge/fusion/graph_fuse_inspector_utils.h` 增加了 `GraphFuseInspectorUtils` 对外工具类。它将原来分散在 `ComputeGraph::IsSupportFuse`、`FusionUtils::WillCauseCycleIfFuse`、`FusionUtils::UpdateToCycleDetector` 与融合统计逻辑中的关键步骤收敛成两个开放能力：
+
+- `CanFuse(nodes_before_fuse, failed_reason)`：执行可融合性校验（属性一致性 + 成环检测），失败原因通过 `failed_reason` 返回。
+- `ReportFuse(nodes_before_fuse, nodes_after_fuse, ctx)`：在改图后且释放旧节点前调用，使用 `ctx` 中的 `pass_name` 标记新节点融合来源，更新成环检测器并记录融合维测；当 `nodes_after_fuse` 为空时表示仅删除节点。
+
+在 `SubgraphRewriter` 中新增了 `Replace(subgraph, replacement, ctx)` 重载，将 `CanFuse` 和 `ReportFuse` 串联到统一改图流程中：改图前检查可融合性，改图后上报融合结果，再删除旧节点。
+
 ### 3.4 自动融合（AutofuseOptimize）
 
 自动融合在精度调整后、格式调整前执行，时机选择很关键：精度已经确定（不会再插入 Cast），但格式尚未固定（还有变换的空间）。

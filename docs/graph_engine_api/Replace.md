@@ -36,6 +36,7 @@
 ```
 static Status Replace(const SubgraphBoundary &subgraph, const Graph &replacement)
 static Status Replace(const SubgraphBoundary &subgraph, Graph &&replacement)
+static Status Replace(const SubgraphBoundary &subgraph, Graph &&replacement, CustomPassContext &ctx)
 ```
 
 ## 参数说明<a name="section6956456"></a>
@@ -61,6 +62,13 @@ static Status Replace(const SubgraphBoundary &subgraph, Graph &&replacement)
 <td class="cellrowborder" valign="top" width="10.01%" headers="mcps1.1.4.1.2 "><p id="p61192456711"><a name="p61192456711"></a><a name="p61192456711"></a>输入</p>
 </td>
 <td class="cellrowborder" valign="top" width="76.6%" headers="mcps1.1.4.1.3 "><p id="p8679235113112"><a name="p8679235113112"></a><a name="p8679235113112"></a>替换图。（用于描述子图即将替换为什么图结构）</p>
+</td>
+</tr>
+<tr id="row_ctx_replace"><td class="cellrowborder" valign="top" width="13.389999999999999%" headers="mcps1.1.4.1.1 "><p id="p_ctx_replace"><a name="p_ctx_replace"></a><a name="p_ctx_replace"></a>ctx</p>
+</td>
+<td class="cellrowborder" valign="top" width="10.01%" headers="mcps1.1.4.1.2 "><p id="p_ctx_replace_in"><a name="p_ctx_replace_in"></a><a name="p_ctx_replace_in"></a>输入</p>
+</td>
+<td class="cellrowborder" valign="top" width="76.6%" headers="mcps1.1.4.1.3 "><p id="p_ctx_replace_desc"><a name="p_ctx_replace_desc"></a><a name="p_ctx_replace_desc"></a>Pass上下文。使用该重载时会自动执行可融合检查与融合结果上报，且通过ctx中的pass_name记录融合来源。</p>
 </td>
 </tr>
 </tbody>

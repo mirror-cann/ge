@@ -15,6 +15,7 @@
 #include "graph/debug/ge_attr_define.h"
 #include "graph/ir_definitions_recover.h"
 #include "register/graph_optimizer/fusion_common/graph_pass_util.h"
+#include "ge/fusion/graph_fuse_inspector_utils.h"
 #include "common/checker.h"
 #include "common/util/mem_utils.h"
 #include "common/framework_types_internal.h"
@@ -51,6 +52,15 @@ std::vector<NodePtr> CollectNodes(const ComputeGraphPtr &replacement) {
     all_nodes_except_io.emplace_back(node);
   }
   return all_nodes_except_io;
+}
+
+std::vector<GNode> ToGNodes(const std::vector<NodePtr> &nodes) {
+  std::vector<GNode> gnodes;
+  gnodes.reserve(nodes.size());
+  for (const auto &node : nodes) {
+    gnodes.emplace_back(NodeAdapter::Node2GNode(node));
+  }
+  return gnodes;
 }
 
 Status CollectIO(const ComputeGraphPtr &replacement, std::map<int32_t, NodePtr> &index_2_data_node,
@@ -222,7 +232,9 @@ Status RelinkSubgraphIO(const InnerSubgraphBoundary &subgraph, const std::map<in
 }
 
 Status ReplaceSubgraph(const ComputeGraphPtr &target_graph, const InnerSubgraphBoundary &subgraph,
-                       const ComputeGraphPtr &replacement) {
+                       const ComputeGraphPtr &replacement,
+                       const std::vector<GNode> *nodes_before_fuse = nullptr,
+                       CustomPassContext *ctx = nullptr) {
   std::string unsupport_fuse_reason;
   // todo check subgraph is valid
   GE_ASSERT_TRUE(target_graph->IsSupportFuse(subgraph.GetNodes(), unsupport_fuse_reason),
@@ -242,6 +254,11 @@ Status ReplaceSubgraph(const ComputeGraphPtr &target_graph, const InnerSubgraphB
 
   // todo cycle search on replacement
   GE_ASSERT_SUCCESS(RelinkSubgraphIO(subgraph, r_index_2_data_node, r_index_2_output_data_anchor));
+
+  if ((nodes_before_fuse != nullptr) && (ctx != nullptr)) {
+    const auto nodes_after_fuse = ToGNodes(r_nodes_except_io);
+    GE_ASSERT_SUCCESS(GraphFuseInspectorUtils::ReportFuse(*nodes_before_fuse, nodes_after_fuse, *ctx));
+  }
 
   // mv all ctrl from match to replacement io boundary, after that still need cycle search?
   if (!r_nodes_except_io.empty()) {
@@ -279,5 +296,39 @@ Status SubgraphRewriter::Replace(const SubgraphBoundary &subgraph, const Graph &
 Status SubgraphRewriter::Replace(const SubgraphBoundary &subgraph, Graph &&replacement) {
   return Replace(subgraph, replacement);
 }
+
+Status SubgraphRewriter::Replace(const SubgraphBoundary &subgraph, const Graph &replacement, CustomPassContext &ctx) {
+  InnerSubgraphBoundary boundary;
+  std::string boundary_invalid_reason;
+  GE_ASSERT_SUCCESS(boundary.Init(subgraph, boundary_invalid_reason), boundary_invalid_reason.c_str());
+  const auto replacement_compute_graph = GraphUtilsEx::GetComputeGraph(replacement);
+  GE_ASSERT_NOTNULL(replacement_compute_graph);
+  GE_ASSERT_GRAPH_SUCCESS(ge::RecoverIrDefinitions(replacement_compute_graph), "Recover ir definitions failed");
+  std::stringstream invalid_reason;
+  if (!IsReplacementValid(replacement_compute_graph, subgraph, invalid_reason)) {
+    GELOGE(FAILED, "[REPLACE][INVALID] replacement[%s], Reason: %s", replacement_compute_graph->GetName().c_str(),
+           invalid_reason.str().c_str());
+    return FAILED;
+  }
+
+  const auto nodes_before_fuse = ToGNodes(boundary.GetNodes());
+  AscendString failed_reason;
+  if (!GraphFuseInspectorUtils::CanFuse(nodes_before_fuse, failed_reason)) {
+    const auto *reason = failed_reason.GetString();
+    GELOGW("[REPLACE]CanFuse failed, reason: %s", reason == nullptr ? "" : reason);
+    return FAILED;
+  }
+
+  ComputeGraphPtr replacement_backup = MakeShared<ComputeGraph>("replacment");
+  GE_ASSERT_NOTNULL(replacement_backup);
+  GE_ASSERT_SUCCESS(GraphUtils::CopyComputeGraph(replacement_compute_graph, replacement_backup));
+
+  return ReplaceSubgraph(boundary.GetOwnerGraph(), boundary, replacement_backup, &nodes_before_fuse, &ctx);
+}
+
+Status SubgraphRewriter::Replace(const SubgraphBoundary &subgraph, Graph &&replacement, CustomPassContext &ctx) {
+  return Replace(subgraph, replacement, ctx);
+}
+
 } // namespace fusion
 }  // namespace ge

@@ -37,6 +37,9 @@ class FusionUtils {
   // 实现为从融合集合的外部后继做正向遍历看能否绕回集合，无状态、无缓存，多线程并发安全。
   static bool WillCauseCycleIfFuse(const std::unique_ptr<MatchResult> &match_result);
 
+  // 重载：直接接收节点集合，判断融合后是否成环。
+  static bool WillCauseCycleIfFuse(const std::vector<NodePtr> &nodes);
+
   static void RecordFusionStatistic(const uint64_t session_id, const std::string graph_id, const std::string pass_name,
                                               const int match_times, const int effect_times);
 
