@@ -131,12 +131,13 @@ TEST_F(AicpuConstFoldingTest, InitCpuConstantFoldingNew_LoadSoTraversal)
     std::string cmd_mkdir = "mkdir -p " + host_cpu_dir;
     ASSERT_EQ(system(cmd_mkdir.c_str()), 0);
 
-    // Create files matching lib*constant_folding_ops.so pattern
-    std::ofstream(host_cpu_dir + "libmath_constant_folding_ops.so").close();
-    std::ofstream(host_cpu_dir + "libnn_constant_folding_ops.so").close();
-    std::ofstream(host_cpu_dir + "libcv_constant_folding_ops.so").close();
+    // Create files matching libopconstant_folding_*.so pattern
+    std::ofstream(host_cpu_dir + "libopconstant_folding_math.so").close();
+    std::ofstream(host_cpu_dir + "libopconstant_folding_nn.so").close();
+    std::ofstream(host_cpu_dir + "libopconstant_folding_cv.so").close();
     // Create files that should NOT match the pattern
     std::ofstream(host_cpu_dir + "libother.so").close();
+    std::ofstream(host_cpu_dir + "libmath_constant_folding_ops.so").close();
     std::ofstream(host_cpu_dir + "notlib_constant_folding_ops.so").close();
     // libconstant_folding_ops.so should be excluded (loaded by host_cpu_engine separately)
     std::ofstream(host_cpu_dir + "libconstant_folding_ops.so").close();
@@ -230,7 +231,7 @@ TEST_F(AicpuConstFoldingTest, CpuConstantFoldingComputeNew_MissingOutput)
     ASSERT_EQ(ret, -1);
 }
 
-// 验证: 多个 libxxx_constant_folding_ops.so 共存场景下, Init 不会因为
+// 验证: 多个 libopconstant_folding_*.so 共存场景下, Init 不会因为
 // 每个 so 都有独立的 CpuKernelRegister 单例而发生 this/成员函数错配的
 // coredump, Compute 回落到 V1 路径仍能正常工作.
 TEST_F(AicpuConstFoldingTest, InitCpuConstantFoldingNew_MultiOpsSoNoCrash)
@@ -240,9 +241,9 @@ TEST_F(AicpuConstFoldingTest, InitCpuConstantFoldingNew_MultiOpsSoNoCrash)
     std::string cmd_mkdir = "mkdir -p " + host_cpu_dir;
     ASSERT_EQ(system(cmd_mkdir.c_str()), 0);
 
-    std::ofstream(host_cpu_dir + "libmath_constant_folding_ops.so").close();
-    std::ofstream(host_cpu_dir + "libnn_constant_folding_ops.so").close();
-    std::ofstream(host_cpu_dir + "libcv_constant_folding_ops.so").close();
+    std::ofstream(host_cpu_dir + "libopconstant_folding_math.so").close();
+    std::ofstream(host_cpu_dir + "libopconstant_folding_nn.so").close();
+    std::ofstream(host_cpu_dir + "libopconstant_folding_cv.so").close();
 
     setenv("ASCEND_HOME_PATH", tmp_dir.c_str(), 1);
     int32_t init_ret = InitCpuConstantFoldingNew([]() -> ge::HostCpuOp * {
