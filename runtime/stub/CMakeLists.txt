@@ -37,7 +37,6 @@ set(GERT_COMPILE_DEF
 set(STUB_HEADER_LIST
     ${AIR_CODE_DIR}/inc/framework/runtime/exe_graph_resource_guard.h
     ${AIR_CODE_DIR}/inc/framework/runtime/gert_api.h
-    ${AIR_CODE_DIR}/inc/framework/runtime/mem_allocator.h
     ${AIR_CODE_DIR}/inc/framework/runtime/model_v2_executor.h
     ${AIR_CODE_DIR}/inc/framework/runtime/model_desc.h
     ${AIR_CODE_DIR}/inc/framework/runtime/stream_executor.h

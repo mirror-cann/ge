@@ -527,6 +527,8 @@ set(STUB_HEADER_LIST
     ${AIR_CODE_DIR}/runtime/v1/single_op/single_op.h
     ${AIR_CODE_DIR}/runtime/v1/single_op/single_op_manager.h
     ${AIR_CODE_DIR}/runtime/v1/single_op/stream_resource.h
+    ${AIR_CODE_DIR}/runtime/v1/hybrid/executor/runtime_v2/scalable_allocator_manager.h
+    ${AIR_CODE_DIR}/inc/framework/runtime/mem_allocator.h
 )
 
 list(TRANSFORM STUB_HEADER_LIST
