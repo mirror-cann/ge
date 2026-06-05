@@ -727,7 +727,7 @@ HcclResult HcomOpUtils::CalcCommonCount(const ge::OpDescPtr &op, const std::stri
       blockSize = is_continuous_input ? (inputSize + ALIGNED_SIZE - 1) / ALIGNED_SIZE * ALIGNED_SIZE : inputSize;
     } else if (sCollectiveType == HCCL_KERNEL_OP_TYPE_ALLTOALL) {
       // ALLTOALL 类型算子默认不对齐
-      blockSize = inputSize;
+      blockSize = inputSize / rankSize;
     } else {
       // 其他算子默认对齐
       blockSize = (inputSize + ALIGNED_SIZE - 1) / ALIGNED_SIZE * ALIGNED_SIZE;
