@@ -31,16 +31,21 @@ if(BUILD_OPEN_PROJECT)
     target_include_directories(hcom_gradient_split_tune  PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/inc
         ${CMAKE_CURRENT_SOURCE_DIR}/../inc
+        ${ASCEND_INSTALL_PATH}/include/msprof
+        ${ASCEND_INSTALL_PATH}/include/slog/toolchain
         ${AIR_CODE_DIR}/inc
         ${AIR_CODE_DIR}/inc/graph_metadef
         ${METADEF_DIR}/inc
     )
- 
+
+    target_link_directories(hcom_gradient_split_tune PRIVATE
+        ${ASCEND_INSTALL_PATH}/lib
+    )
+
     target_link_libraries(hcom_gradient_split_tune   PRIVATE
         -Wl,--no-as-needed
         hccl_headers
         slog_headers
-        ge_metadef_headers
         mmpa
         platform
         c_sec
@@ -77,3 +82,4 @@ target_link_libraries(hcom_gradient_split_tune PRIVATE json)
 install(TARGETS hcom_gradient_split_tune
     LIBRARY DESTINATION lib  ${INSTALL_OPTIONAL}
 )
+
