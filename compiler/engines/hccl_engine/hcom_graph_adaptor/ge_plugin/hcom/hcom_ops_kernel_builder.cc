@@ -1873,15 +1873,10 @@ HcclResult HcomOpsKernelBuilder::SetHcomOpParam(const ge::Node &node, HcomOpPara
     hcomOpParam->All2AllDataDes.recvType = recvType;
     hcomOpParam->All2AllDataDes.sendCountMatrix = static_cast<void *>(sendCountMatrix.data());
   }
-  ret = hccl::HcomOpUtils::GetRankIdsFromGroupList(sGroup, curRanks);
-  if (ret == HCCL_SUCCESS) {
-    hcomOpParam->groupList = static_cast<u32 *>(curRanks.data());
-    hcomOpParam->groupListSize = curRanks.size();
-  } else if (ret == HCCL_E_NOT_FOUND) {
-    HCCL_INFO("get groupListString failed");
-  } else {
-    return ret;
-  }
+
+  CHK_RET(hccl::HcomOpUtils::GetRankIdsFromGroupList(sGroup, curRanks));
+  hcomOpParam->groupList = static_cast<u32 *>(curRanks.data());
+  hcomOpParam->groupListSize = curRanks.size();
 
   if ((ge::GetThreadLocalContext().GetOption(ge::OPTION_EXEC_RANK_TABLE, rankTableStr) == ge::GRAPH_SUCCESS) &&
       !rankTableStr.empty()) {
