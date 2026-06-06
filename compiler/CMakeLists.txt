@@ -421,21 +421,17 @@ target_compile_options(ge_compiler PRIVATE
 
 target_include_directories(ge_compiler  PRIVATE
     ${AIR_CODE_DIR}/inc/graph_metadef
+    ${AIR_CODE_DIR}/compiler/graph/optimize/autofuse/inc
 )
 
 target_include_directories(ge_compiler SYSTEM PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${AIR_CODE_DIR}
     ${AIR_CODE_DIR}/base
-    ${AIR_CODE_DIR}/compiler/graph/optimize/autofuse/inc
-    ${AIR_CODE_DIR}/inc
     ${AIR_CODE_DIR}/inc/external
     ${AIR_CODE_DIR}/inc/framework
-    ${AIR_CODE_DIR}/inc/graph_metadef/external
-    ${ASCGEN_DIR}/inc
     ${CMAKE_BINARY_DIR}
     ${CMAKE_BINARY_DIR}/proto/graphengine_protos
-    ${ASCGEN_DIR}/inc
     ${METADEF_DIR}/base/registry
     ${METADEF_DIR}/register
     ${METADEF_DIR}/pkg_inc

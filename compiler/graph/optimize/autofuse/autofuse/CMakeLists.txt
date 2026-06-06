@@ -80,7 +80,7 @@ if (ENABLE_OPEN_SRC)
                c_sec
                json
                aihac_symbolizer
-               aihac_codegen_toolkit
+               aihac_codegen
         )
 else ()
         target_link_libraries(aihac_autofusion PRIVATE
