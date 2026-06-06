@@ -65,7 +65,6 @@ target_link_libraries(aicpu_engine_common PRIVATE
     ge_intf_pub
     msprof_headers
     runtime_headers
-    cce_headers
     datagw_headers
     mmpa_headers
     c_sec

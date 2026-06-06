@@ -86,7 +86,6 @@ target_link_libraries(dvpp_engine PRIVATE
     ge_intf_pub
     msprof_headers
     runtime_headers
-    cce_headers
     air_headers
     -Wl,--no-as-needed
     unified_dlog

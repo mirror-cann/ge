@@ -199,6 +199,7 @@ if(BUILD_OPEN_PROJECT)
         -Wl,--as-needed
         ascend_dump
         unified_dlog
+        runtime_headers
         -lpthread
         json
     )
@@ -242,6 +243,8 @@ if(BUILD_OPEN_PROJECT)
         platform
         error_manager
         hcomm_stub
+        runtime_headers
+        slog_headers
         -Wl,--as-needed
         -lpthread
         json
@@ -263,6 +266,8 @@ if(BUILD_OPEN_PROJECT)
         platform
         error_manager
         hcomm_stub
+        runtime_headers
+        slog_headers
         -Wl,--as-needed
         -lpthread
         json
@@ -410,7 +415,6 @@ else()
         $<BUILD_INTERFACE:mmpa_headers>
         $<BUILD_INTERFACE:hccl_headers>
         $<BUILD_INTERFACE:runtime_headers>
-        $<BUILD_INTERFACE:cce_headers>
         $<BUILD_INTERFACE:network_headers>
         -Wl,--no-as-needed
         c_sec
@@ -438,7 +442,6 @@ else()
         $<BUILD_INTERFACE:mmpa_headers>
         $<BUILD_INTERFACE:hccl_headers>
         $<BUILD_INTERFACE:runtime_headers>
-        $<BUILD_INTERFACE:cce_headers>
         $<BUILD_INTERFACE:network_headers>
         -Wl,--no-as-needed
         c_sec
@@ -464,7 +467,6 @@ else()
         $<BUILD_INTERFACE:mmpa_headers>
         $<BUILD_INTERFACE:hccl_headers>
         $<BUILD_INTERFACE:runtime_headers>
-        $<BUILD_INTERFACE:cce_headers>
         $<BUILD_INTERFACE:network_headers>
         -Wl,--no-as-needed
         c_sec
@@ -489,7 +491,6 @@ else()
         $<BUILD_INTERFACE:mmpa_headers>
         $<BUILD_INTERFACE:hccl_headers>
         $<BUILD_INTERFACE:runtime_headers>
-        $<BUILD_INTERFACE:cce_headers>
         $<BUILD_INTERFACE:network_headers>
         -Wl,--no-as-needed
         c_sec

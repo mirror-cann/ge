@@ -60,7 +60,6 @@ target_link_options(ge_runner_v2 PRIVATE
 target_link_libraries(ge_runner_v2
     PRIVATE
         ge_intf_pub
-        cce_headers
         ge_compiler
         ge_executor_shared
         davinci_executor
@@ -88,6 +87,7 @@ target_link_libraries(ge_runner_v2
         ascend_protobuf
         json
         jit_exe
+        runtime_headers
         -Wl,--no-as-needed
         -lrt
         -ldl
@@ -145,7 +145,6 @@ target_link_options(ge_runner PRIVATE
 target_link_libraries(ge_runner
     PRIVATE
         ge_intf_pub
-        cce_headers
         ge_compiler
         ge_executor_shared
         davinci_executor
@@ -173,6 +172,7 @@ target_link_libraries(ge_runner
         json
         jit_exe
         ge_runner_v2
+        runtime_headers
         -Wl,--no-as-needed
         -lrt
         -ldl

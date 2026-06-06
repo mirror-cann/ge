@@ -32,6 +32,7 @@ target_link_libraries(eager_style_graph_builder_base
         air_headers
         error_manager
         mmpa_headers
+        runtime_headers
         graph
         graph_base
         aihac_symbolizer

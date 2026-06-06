@@ -73,6 +73,7 @@ target_link_libraries(udf_compiler PRIVATE
     error_manager
     unified_dlog
     runtime
+    runtime_headers
     -Wl,--as-needed
     json
     -lrt

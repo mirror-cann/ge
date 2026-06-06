@@ -99,7 +99,6 @@ target_link_libraries(rts_engine PRIVATE
     ge_intf_pub
     msprof_headers
     runtime_headers
-    cce_headers
     air_headers
     -Wl,--no-as-needed
     slog
@@ -155,7 +154,6 @@ target_link_libraries(rts_engine_atc PRIVATE
     $<BUILD_INTERFACE:slog_headers>
     $<BUILD_INTERFACE:tsch_headers>
     $<BUILD_INTERFACE:runtime_headers>
-    $<BUILD_INTERFACE:cce_headers>
     $<BUILD_INTERFACE:error_manager_headers>
     $<BUILD_INTERFACE:atrace_headers>
     -Wl,--no-as-needed
@@ -200,7 +198,7 @@ target_compile_options(rts_kernel_builder_host_static PRIVATE
 target_link_libraries(rts_kernel_builder_host_static PRIVATE
         $<BUILD_INTERFACE:ge_intf_pub>
         $<BUILD_INTERFACE:tsch_headers>
-        $<BUILD_INTERFACE:runtime_headers> $<BUILD_INTERFACE:cce_headers> graph
+        $<BUILD_INTERFACE:runtime_headers> graph
         register
         ascend_protobuf
         c_sec

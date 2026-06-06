@@ -12,6 +12,10 @@ cmake_minimum_required(VERSION 3.16)
 include(../fetch_cann_cmake.cmake)
 project (udf_device)
 
+if (NOT DEFINED HI_PYTHON)
+    set(HI_PYTHON python3)
+endif()
+
 init_cann_project(PRODUCT_SIDE "device" PREPEND_MODULE_PATH)
 
 get_filename_component(GE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../.." ABSOLUTE)

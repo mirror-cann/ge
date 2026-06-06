@@ -451,7 +451,7 @@ target_link_options(ge_compiler PRIVATE
 target_link_libraries(ge_compiler
     PRIVATE
         ge_intf_pub
-        cce_headers
+        ge_metadef_headers
         msprof_headers
         static_mmpa
         ge_proto_common
@@ -479,7 +479,6 @@ target_link_libraries(ge_compiler
     PUBLIC
         ge_common
         air_headers
-        ge_metadef_headers
 )
 
 add_library(ge_python_pass_bridge SHARED
@@ -537,6 +536,7 @@ target_link_libraries(ge_python_pass_bridge
         ge_common
         air_headers
         ge_metadef_headers
+        error_manager_headers
 )
 
     ###############################################################

@@ -9,10 +9,6 @@
 # -----------------------------------------------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 3.14)
-if (ENABLE_OPEN_SRC)
-    find_cann_package(c_base MODULE REQUIRED)
-    find_cann_package(c_mmpa MODULE REQUIRED)
-endif()
 
 set(INSTALL_LIBRARY_DIR lib)
 set(ACL_RUNTIME_SRC_LIST

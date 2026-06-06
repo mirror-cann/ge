@@ -47,8 +47,8 @@ target_link_libraries(llm_engine PRIVATE
         $<BUILD_INTERFACE:slog_headers>
         $<BUILD_INTERFACE:mmpa_headers>
         $<BUILD_INTERFACE:hccl_headers>
-        PUBLIC c_sec
-        ascendcl_headers
+        PUBLIC
+        c_sec
         acl_rt
         alog
         graph
@@ -62,6 +62,7 @@ target_link_libraries(llm_engine PRIVATE
         runtime
         msprof_headers
         ascend_protobuf
+        error_manager_headers
         -Wl,--no-as-needed
         unified_dlog
         )
