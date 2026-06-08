@@ -68,6 +68,15 @@ class SymbolicShapeComputeUT : public testing::Test {
     auto es_graph = EsBuildGraphAndReset(graph_builder);
     return reinterpret_cast<Graph*>(es_graph);
   }
+
+  // 辅助函数:构建GeTensor
+  static GeTensor BuildTensor(const std::vector<int64_t> &shape, Format format, DataType dtype) {
+    Shape ge_shape(shape);
+    TensorDesc td{ge_shape, format, dtype};
+    td.SetOriginShape(ge_shape);
+    Tensor tensor{td};
+    return TensorAdapter::AsGeTensor(tensor);
+  }
 };
 
 graphStatus UnsqueezeTest(gert::InferSymbolComputeContext *context) {
@@ -193,6 +202,8 @@ IMPL_OP(Div).InferShape(InferShapeDoNothing).InferOutDataTypeSameWithFirstInput(
 IMPL_OP(Cast).InferShape(InferShapeDoNothing).InferOutDataTypeSameWithFirstInput();
 IMPL_OP(Data).InferShape(InferShapeDoNothing).InferOutDataTypeSameWithFirstInput();
 IMPL_OP(ConcatV2D).InferShape(InferShapeDoNothing).InferOutDataTypeSameWithFirstInput();
+IMPL_OP(Add).InferShape(InferShapeDoNothing).InferOutDataTypeSameWithFirstInput();
+IMPL_OP(Gather).InferShape(InferShapeDoNothing).InferOutDataTypeSameWithFirstInput();
 
 void FixReduceProdIrAttrs(const ComputeGraphPtr &cg, bool keep_dims, bool noop_with_empty_axes) {
   for (auto &node : cg->GetAllNodes()) {
@@ -1378,34 +1389,6 @@ TEST_F(SymbolicShapeComputeUT, test_stridedslice_AttrStartInput_symbols_value_in
   op_desc->MutableInputDesc(2)->SetShape(GeShape({1}));
   op_desc->MutableInputDesc(3)->SetShape(GeShape({1}));
 
-  SymbolicShapeInference ssi;
-  ASSERT_EQ(ssi.Infer(cg), ge::SUCCESS);
-  auto attr = op_desc->GetOutputDesc(0).template GetAttrsGroup<SymbolicDescAttr>();
-  ASSERT_EQ(attr, nullptr);
-}
-
-TEST_F(SymbolicShapeComputeUT, test_stridedslice_symbols_value_format_invalid) {
-  auto data0 = EsCreateGraphInputWithDetails(graph_, 0, "data0", nullptr, C_DataType::C_DT_FLOAT, C_Format::C_FORMAT_ND, nullptr, 0);
-  ASSERT_EQ(EsSetOriginSymbolShape(data0, std::vector<const char *>({"(s0 * s1)", "(s0 + s1)", "s0", "3"}).data(), 4), 0);
-  auto shape1 = EsShape(data0, 3);  // DT_INT32
-  auto const_node0 = EsCreateGraphInputWithDetails(graph_, 1, "data0", nullptr, C_DataType::C_DT_FLOAT, C_Format::C_FORMAT_ND, nullptr, 0);
-  ASSERT_EQ(EsSetOriginSymbolShape(const_node0, std::vector<const char *>({"1", "2", "2"}).data(), 3), 0);
-
-  std::vector<int64_t> const_data1 = {4};
-  auto const_node1 = EsCreateVectorInt64(graph_, const_data1.data(), 1);
-  ASSERT_EQ(EsSetOriginSymbolShape(const_node1, std::vector<const char *>({"1", "2", "2"}).data(), 3), 0);
-  std::vector<int64_t> const_data2 = {2};
-  auto const_node2 = EsCreateVectorInt64(graph_, const_data2.data(), 1);
-  ASSERT_EQ(EsSetOriginSymbolShape(const_node2, std::vector<const char *>({"1", "2", "2"}).data(), 3), 0);
-  auto strided_slice = EsStridedSlice(shape1, shape1, const_node1, const_node2, 0, 0, 0, 0, 1);
-  ASSERT_EQ(EsSetGraphOutput(strided_slice, 0), 0);
-  auto graph = std::unique_ptr<Graph>(reinterpret_cast<Graph *>(EsBuildGraphAndReset(graph_)));
-
-  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
-  ASSERT_NE(cg, nullptr);
-  auto strided_slice_node = cg->FindFirstNodeMatchType(STRIDEDSLICE);
-  ASSERT_NE(strided_slice_node, nullptr);
-  auto op_desc = strided_slice_node->GetOpDesc();
   SymbolicShapeInference ssi;
   ASSERT_EQ(ssi.Infer(cg), ge::SUCCESS);
   auto attr = op_desc->GetOutputDesc(0).template GetAttrsGroup<SymbolicDescAttr>();
@@ -2656,6 +2639,118 @@ TEST_F(SymbolicShapeComputeUT, test_stridedslice_infershape) {
   std::vector<ExpectNodeInfo> expect_node_vec;
   expect_node_vec.push_back(expect_node);
   ASSERT_EQ(RunSymbolInferenceTest(cg, expect_node_vec, input_vec), SUCCESS);
+}
+
+TEST_F(SymbolicShapeComputeUT, test_stridedslicev2_with_const) {
+  std::vector<int32_t> const_data0 = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
+  std::vector<int64_t> const_dim = {4, 3};
+  auto const0 = EsCreateConstInt32(graph_, const_data0.data(), const_dim.data(), const_dim.size());
+  // begin=[0], end=[3], axes=[0], strides=[2]
+  auto const1 = EsCreateVectorInt64(graph_, std::vector<int64_t>({0}).data(), 1);
+  auto const2 = EsCreateVectorInt64(graph_, std::vector<int64_t>({3}).data(), 1);
+  auto const3 = EsCreateVectorInt64(graph_, std::vector<int64_t>({0}).data(), 1);
+  auto const4 = EsCreateVectorInt64(graph_, std::vector<int64_t>({2}).data(), 1);
+  auto strided_slice = EsStridedSliceV2(const0, const1, const2, const3, const4, 0, 0, 0, 0, 0);
+  ASSERT_EQ(EsSetGraphOutput(strided_slice, 0), 0);
+  auto graph = std::unique_ptr<Graph>(reinterpret_cast<Graph *>(EsBuildGraphAndReset(graph_)));
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+  ASSERT_NE(cg, nullptr);
+  auto node = cg->FindFirstNodeMatchType(STRIDEDSLICEV2);
+  ASSERT_NE(node, nullptr);
+  auto op_desc = node->GetOpDesc();
+  op_desc->MutableInputDesc(0)->SetShape(GeShape({4, 3}));
+  op_desc->MutableInputDesc(1)->SetShape(GeShape({1}));
+  op_desc->MutableInputDesc(2)->SetShape(GeShape({1}));
+  op_desc->MutableInputDesc(3)->SetShape(GeShape({1}));
+  op_desc->MutableInputDesc(4)->SetShape(GeShape({1}));
+  // x=[4,3], axes=[0], begin[0]=0 end[0]=3 stride[0]=2 → dim 0: ceil((3-0)/2)=2
+  // dim 1 not in axes → default end=3 stride=1 → dim 1: 3
+  const std::vector<Expression> expect_output_shape = {Symbol(2), Symbol(3)};
+  // values: x[0::2, :] = rows 0,2 → [1,2,3, 7,8,9]
+  const std::vector<Expression> expect_symbolic_value = {Symbol(1), Symbol(2), Symbol(3),
+                                                         Symbol(7), Symbol(8), Symbol(9)};
+  ExpectNodeInfo expect_node(STRIDEDSLICEV2, expect_output_shape, {}, {}, expect_symbolic_value);
+  ASSERT_EQ(RunSymbolInferenceTest(cg, {expect_node}, {}), SUCCESS);
+}
+
+TEST_F(SymbolicShapeComputeUT, test_stridedslicev2_no_optional) {
+  std::vector<int32_t> const_data0 = {1, 2, 3, 4, 5, 6};
+  std::vector<int64_t> const_dim = {2, 3};
+  auto const0 = EsCreateConstInt32(graph_, const_data0.data(), const_dim.data(), const_dim.size());
+  // begin=[1], end=[2] (只提供 axes 的默认值 [0])
+  auto const1 = EsCreateVectorInt64(graph_, std::vector<int64_t>({1}).data(), 1);
+  auto const2 = EsCreateVectorInt64(graph_, std::vector<int64_t>({2}).data(), 1);
+  // axes, strides 为 nullptr → 默认 axes=[0], strides=[1]
+  auto strided_slice = EsStridedSliceV2(const0, const1, const2, nullptr, nullptr, 0, 0, 0, 0, 0);
+  ASSERT_EQ(EsSetGraphOutput(strided_slice, 0), 0);
+  auto graph = std::unique_ptr<Graph>(reinterpret_cast<Graph *>(EsBuildGraphAndReset(graph_)));
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+  ASSERT_NE(cg, nullptr);
+  auto node = cg->FindFirstNodeMatchType(STRIDEDSLICEV2);
+  ASSERT_NE(node, nullptr);
+  auto op_desc = node->GetOpDesc();
+  op_desc->MutableInputDesc(0)->SetShape(GeShape({2, 3}));
+  op_desc->MutableInputDesc(1)->SetShape(GeShape({1}));
+  op_desc->MutableInputDesc(2)->SetShape(GeShape({1}));
+  // begin=[1], end=[2], 默认 axes=[0], 默认 strides=1 → dim 0: (2-1)/1=1
+  const std::vector<Expression> expect_output_shape = {Symbol(1), Symbol(3)};
+  const std::vector<Expression> expect_symbolic_value = {Symbol(4), Symbol(5), Symbol(6)};
+  ExpectNodeInfo expect_node(STRIDEDSLICEV2, expect_output_shape, {}, {}, expect_symbolic_value);
+  ASSERT_EQ(RunSymbolInferenceTest(cg, {expect_node}, {}), SUCCESS);
+}
+
+TEST_F(SymbolicShapeComputeUT, test_stridedslicev3_with_const) {
+  std::vector<int32_t> const_data0 = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
+  std::vector<int64_t> const_dim = {4, 3};
+  auto const0 = EsCreateConstInt32(graph_, const_data0.data(), const_dim.data(), const_dim.size());
+  // axes=[0], begin=[1], end=[3], strides=[2]
+  auto const1 = EsCreateVectorInt64(graph_, std::vector<int64_t>({1}).data(), 1);
+  auto const2 = EsCreateVectorInt64(graph_, std::vector<int64_t>({3}).data(), 1);
+  auto const3 = EsCreateVectorInt64(graph_, std::vector<int64_t>({0}).data(), 1);
+  auto const4 = EsCreateVectorInt64(graph_, std::vector<int64_t>({2}).data(), 1);
+  auto strided_slice = EsStridedSliceV3(const0, const1, const2, const3, const4);
+  ASSERT_EQ(EsSetGraphOutput(strided_slice, 0), 0);
+  auto graph = std::unique_ptr<Graph>(reinterpret_cast<Graph *>(EsBuildGraphAndReset(graph_)));
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+  ASSERT_NE(cg, nullptr);
+  auto node = cg->FindFirstNodeMatchType(STRIDEDSLICEV3);
+  ASSERT_NE(node, nullptr);
+  auto op_desc = node->GetOpDesc();
+  op_desc->MutableInputDesc(0)->SetShape(GeShape({4, 3}));
+  op_desc->MutableInputDesc(1)->SetShape(GeShape({1}));
+  op_desc->MutableInputDesc(2)->SetShape(GeShape({1}));
+  op_desc->MutableInputDesc(3)->SetShape(GeShape({1}));
+  op_desc->MutableInputDesc(4)->SetShape(GeShape({1}));
+  // axes=[0], begin[0]=1 end[0]=3 strides[0]=2 → dim0: ceil((3-1)/2)=1, dim1: 3(不变)
+  const std::vector<Expression> expect_output_shape = {Symbol(1), Symbol(3)};
+  const std::vector<Expression> expect_symbolic_value = {Symbol(4), Symbol(5), Symbol(6)};
+  ExpectNodeInfo expect_node(STRIDEDSLICEV3, expect_output_shape, {}, {}, expect_symbolic_value);
+  ASSERT_EQ(RunSymbolInferenceTest(cg, {expect_node}, {}), SUCCESS);
+}
+
+TEST_F(SymbolicShapeComputeUT, test_stridedslicev3_no_optional) {
+  std::vector<int32_t> const_data0 = {1, 2, 3, 4, 5, 6};
+  std::vector<int64_t> const_dim = {2, 3};
+  auto const0 = EsCreateConstInt32(graph_, const_data0.data(), const_dim.data(), const_dim.size());
+  // begin=[1], end=[2], axes=nullptr → 默认 axes=[0], 默认 strides=1
+  auto const1 = EsCreateVectorInt64(graph_, std::vector<int64_t>({1}).data(), 1);
+  auto const2 = EsCreateVectorInt64(graph_, std::vector<int64_t>({2}).data(), 1);
+  auto strided_slice = EsStridedSliceV3(const0, const1, const2, nullptr, nullptr);
+  ASSERT_EQ(EsSetGraphOutput(strided_slice, 0), 0);
+  auto graph = std::unique_ptr<Graph>(reinterpret_cast<Graph *>(EsBuildGraphAndReset(graph_)));
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+  ASSERT_NE(cg, nullptr);
+  auto node = cg->FindFirstNodeMatchType(STRIDEDSLICEV3);
+  ASSERT_NE(node, nullptr);
+  auto op_desc = node->GetOpDesc();
+  op_desc->MutableInputDesc(0)->SetShape(GeShape({2, 3}));
+  op_desc->MutableInputDesc(1)->SetShape(GeShape({1}));
+  op_desc->MutableInputDesc(2)->SetShape(GeShape({1}));
+  // axes=nullptr → 默认 [0], begin[0]=1 end[0]=2 → dim0: ceil((2-1)/1)=1, dim1: 3(不变)
+  const std::vector<Expression> expect_output_shape = {Symbol(1), Symbol(3)};
+  const std::vector<Expression> expect_symbolic_value = {Symbol(4), Symbol(5), Symbol(6)};
+  ExpectNodeInfo expect_node(STRIDEDSLICEV3, expect_output_shape, {}, {}, expect_symbolic_value);
+  ASSERT_EQ(RunSymbolInferenceTest(cg, {expect_node}, {}), SUCCESS);
 }
 
 /**
@@ -4045,5 +4140,143 @@ TEST_F(SymbolicShapeComputeUT, InferShapeForSimpleGraphShapeNEOriginShape) {
   input_vec.emplace_back(ge::TensorAdapter::AsGeTensor(tensor1));
 
   ASSERT_NE(SymbolicShapeSymbolizer::Symbolize(cg, input_vec), ge::SUCCESS);
+}
+
+//
+// ┌────────┐  (0,0)   
+// │const_0 │ ────────────
+// └────────┘             |
+// ┌────────┐  (0,1)   ┌──────────┐ (0,0)    ┌─────────────┐
+// │const_1 │ ───────> │   Add    │ ───────> │ Node_Output │
+// └────────┘          └──────────┘          └─────────────┘
+// const0: [2, 3] values=[1,2,3,4,5,6], const1: [3] values=[10,20,30]
+// broadcast output: [2, 3] values=[11,22,33,14,25,36]
+TEST_F(SymbolicShapeComputeUT, test_add_with_const_broadcast) {
+  std::vector<int32_t> const_data0 = {1, 2, 3, 4, 5, 6};
+  std::vector<int64_t> const_dim0 = {2, 3};
+  auto const0 = EsCreateConstInt32(graph_, const_data0.data(), const_dim0.data(), const_dim0.size());
+  std::vector<int32_t> const_data1 = {10, 20, 30};
+  std::vector<int64_t> const_dim1 = {3};
+  auto const1 = EsCreateConstInt32(graph_, const_data1.data(), const_dim1.data(), const_dim1.size());
+  auto add = EsAdd(const0, const1);
+  ASSERT_EQ(EsSetGraphOutput(add, 0), 0);
+  auto graph = std::unique_ptr<Graph>(reinterpret_cast<Graph *>(EsBuildGraphAndReset(graph_)));
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+  ASSERT_NE(cg, nullptr);
+  auto add_node = cg->FindFirstNodeMatchType(ADD);
+  ASSERT_NE(add_node, nullptr);
+  auto op_desc = add_node->GetOpDesc();
+  op_desc->MutableInputDesc(0)->SetShape(GeShape({2, 3}));
+  op_desc->MutableInputDesc(1)->SetShape(GeShape({3}));
+  std::vector<Expression> expect_symbolic_value = {
+      Symbol(11), Symbol(22), Symbol(33), Symbol(14), Symbol(25), Symbol(36)};
+  std::vector<Expression> expect_symbolic_shape = {Symbol(2), Symbol(3)};
+  ExpectNodeInfo expect_node(ADD, expect_symbolic_shape, {}, {}, expect_symbolic_value);
+  std::vector<ExpectNodeInfo> expect_node_vec;
+  expect_node_vec.push_back(expect_node);
+  ASSERT_EQ(RunSymbolInferenceTest(cg, expect_node_vec, {}), SUCCESS);
+}
+
+//
+// ┌────────┐  (0,0)   
+// │const_0 │ ────────────
+// └────────┘             |
+// ┌────────┐  (0,1)   ┌──────────┐ (0,0)    ┌─────────────┐
+// │const_1 │ ───────> │   Add    │ ───────> │ Node_Output │
+// └────────┘          └──────────┘          └─────────────┘
+// const0: [3] values=[1,2,3], const1: [1] values=[10]
+// broadcast output: [3] values=[11,12,13]
+TEST_F(SymbolicShapeComputeUT, test_add_with_scalar_broadcast) {
+  std::vector<int32_t> const_data0 = {1, 2, 3};
+  std::vector<int64_t> const_dim0 = {3};
+  auto const0 = EsCreateConstInt32(graph_, const_data0.data(), const_dim0.data(), const_dim0.size());
+  auto const1 = EsCreateScalarInt32(graph_, 10);
+  auto add = EsAdd(const0, const1);
+  ASSERT_EQ(EsSetGraphOutput(add, 0), 0);
+  auto graph = std::unique_ptr<Graph>(reinterpret_cast<Graph *>(EsBuildGraphAndReset(graph_)));
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+  ASSERT_NE(cg, nullptr);
+  auto add_node = cg->FindFirstNodeMatchType(ADD);
+  ASSERT_NE(add_node, nullptr);
+  auto op_desc = add_node->GetOpDesc();
+  op_desc->MutableInputDesc(0)->SetShape(GeShape({3}));
+  op_desc->MutableInputDesc(1)->SetShape(GeShape());
+  std::vector<Expression> expect_symbolic_value = {Symbol(11), Symbol(12), Symbol(13)};
+  std::vector<Expression> expect_symbolic_shape = {Symbol(3)};
+  ExpectNodeInfo expect_node(ADD, expect_symbolic_shape, {}, {}, expect_symbolic_value);
+  std::vector<ExpectNodeInfo> expect_node_vec;
+  expect_node_vec.push_back(expect_node);
+  ASSERT_EQ(RunSymbolInferenceTest(cg, expect_node_vec, {}), SUCCESS);
+}
+
+//
+// ┌────────┐  (0,0)   
+// │const_0 │ ────────────
+// └────────┘             |
+// ┌────────┐  (0,1)   ┌──────────┐ (0,0)    ┌─────────────┐
+// │const_1 │ ───────> │  Gather  │ ───────> │ Node_Output │
+// └────────┘          └──────────┘          └─────────────┘
+// param: [3, 2] values=[0,1,2,3,4,5], indices: [2] values=[0,2], axis=0, batch_dims=0
+// output: [2, 2] values=[0,1,4,5]
+TEST_F(SymbolicShapeComputeUT, test_gather_const_hostcompute) {
+  std::vector<int32_t> param_const_data = {0, 1, 2, 3, 4, 5};
+  std::vector<int64_t> param_const_dim = {3, 2};
+  auto param_const = EsCreateConstInt32(graph_, param_const_data.data(),
+      param_const_dim.data(), param_const_dim.size());
+  std::vector<int32_t> indice_const_data = {0, 2};
+  std::vector<int64_t> indice_const_dim = {2};
+  auto indice_const = EsCreateConstInt32(graph_, indice_const_data.data(),
+      indice_const_dim.data(), indice_const_dim.size());
+  auto gather = EsGather(param_const, indice_const, true, 0, false, false);
+  ASSERT_EQ(EsSetGraphOutput(gather, 0), 0);
+  auto graph = std::unique_ptr<Graph>(reinterpret_cast<Graph *>(EsBuildGraphAndReset(graph_)));
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+  ASSERT_NE(cg, nullptr);
+  auto gather_node = cg->FindFirstNodeMatchType(GATHER);
+  ASSERT_NE(gather_node, nullptr);
+  auto op_desc = gather_node->GetOpDesc();
+  std::vector<Expression> expect_symbolic_value = {Symbol(0), Symbol(1), Symbol(4), Symbol(5)};
+  std::vector<Expression> expect_symbolic_shape = {Symbol(2), Symbol(2)};
+  ExpectNodeInfo expect_node(GATHER, expect_symbolic_shape, {}, {}, expect_symbolic_value);
+  std::vector<ExpectNodeInfo> expect_node_vec;
+  expect_node_vec.push_back(expect_node);
+  ASSERT_EQ(RunSymbolInferenceTest(cg, expect_node_vec, {}), SUCCESS);
+}
+
+//
+// ┌────────┐  (0,0)   
+// │const_0 │ ────────────
+// └────────┘             |
+// ┌────────┐  (0,1)   ┌──────────┐ (0,0)    ┌─────────────┐
+// │const_1 │ ───────> │  Gather  │ ───────> │ Node_Output │
+// └────────┘          └──────────┘          └─────────────┘
+// param: [2, 3] values=[0,1,2,3,4,5], indices: [2] values=[1,2], axis=0, batch_dims=0
+// output: [2, 3] values=[3,4,5, 6,7,8] -> wait, param is [2,3], indices=[1,2] but 2 is out of range
+// Let me use indices=[0,1] instead
+// param: [2, 3] values=[0,1,2,3,4,5], indices: [2] values=[0,1], axis=0, batch_dims=0
+// output: [2, 3] values=[0,1,2,3,4,5]
+TEST_F(SymbolicShapeComputeUT, test_gather_const_hostcompute_full) {
+  std::vector<int32_t> param_const_data = {0, 1, 2, 3, 4, 5};
+  std::vector<int64_t> param_const_dim = {2, 3};
+  auto param_const = EsCreateConstInt32(graph_, param_const_data.data(),
+      param_const_dim.data(), param_const_dim.size());
+  std::vector<int32_t> indice_const_data = {1, 0};
+  std::vector<int64_t> indice_const_dim = {2};
+  auto indice_const = EsCreateConstInt32(graph_, indice_const_data.data(),
+      indice_const_dim.data(), indice_const_dim.size());
+  auto gather = EsGather(param_const, indice_const, true, 0, false, false);
+  ASSERT_EQ(EsSetGraphOutput(gather, 0), 0);
+  auto graph = std::unique_ptr<Graph>(reinterpret_cast<Graph *>(EsBuildGraphAndReset(graph_)));
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+  ASSERT_NE(cg, nullptr);
+  auto gather_node = cg->FindFirstNodeMatchType(GATHER);
+  ASSERT_NE(gather_node, nullptr);
+  auto op_desc = gather_node->GetOpDesc();
+  std::vector<Expression> expect_symbolic_value = {Symbol(3), Symbol(4), Symbol(5), Symbol(0), Symbol(1), Symbol(2)};
+  std::vector<Expression> expect_symbolic_shape = {Symbol(2), Symbol(3)};
+  ExpectNodeInfo expect_node(GATHER, expect_symbolic_shape, {}, {}, expect_symbolic_value);
+  std::vector<ExpectNodeInfo> expect_node_vec;
+  expect_node_vec.push_back(expect_node);
+  ASSERT_EQ(RunSymbolInferenceTest(cg, expect_node_vec, {}), SUCCESS);
 }
 }  // namespace ge

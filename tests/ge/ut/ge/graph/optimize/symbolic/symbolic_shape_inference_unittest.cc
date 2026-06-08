@@ -59,6 +59,9 @@ class SymbolicShapeInferenceUT : public testing::Test {
       {"Expand", {1}},
       {"MatrixDiagV2", {1, 2, 3}},
       {"DynamicStitch", {0}},
+      {"StridedSlice", {1, 2, 3}},
+      {"StridedSliceV2", {1, 2, 3, 4}},
+      {"StridedSliceV3", {1, 2, 3, 4}},
     };
     for (const auto &dep: kDataDeps) {
       auto impl = registry->CreateOrGetOpImpl(dep.op_name);
@@ -5137,4 +5140,141 @@ TEST_F(SymbolicShapeInferenceUT, InferSymbolicShapeForFusedInferAttentionScorePa
   TestFusedInferAttentionScoreException(query_shape, key_shape, value_shape, num_heads, input_layout, num_heads, softmax_lse_flag, block_table_shape);
 }
 
+// StridedSlice: input shape 为符号，begin/end/strides 为常量，严格校验每个输出维度
+TEST_F(SymbolicShapeInferenceUT, test_stridedslice_infershape_with_symbolic_input_shape) {
+  auto data0 = EsCreateGraphInputWithDetails(graph_, 0, "data_0", nullptr, C_DataType::C_DT_FLOAT, C_Format::C_FORMAT_ND, nullptr, 0);
+  ASSERT_EQ(EsSetOriginSymbolShape(data0, std::vector<const char *>({"s0", "s1", "s2"}).data(), 3), 0);
+
+  std::vector<int64_t> begin_value = {1, 2, 0};
+  auto data1 = EsCreateVectorInt64(graph_, begin_value.data(), 3);
+  std::vector<int64_t> end_value = {4, 5, 7};
+  auto data2 = EsCreateVectorInt64(graph_, end_value.data(), 3);
+  std::vector<int64_t> strides_value = {1, 1, 1};
+  auto data3 = EsCreateVectorInt64(graph_, strides_value.data(), 3);
+
+  auto strided_slice = EsStridedSlice(data0, data1, data2, data3, 0, 0, 0, 0, 0);
+  ASSERT_EQ(EsSetGraphOutput(strided_slice, 0), 0);
+
+  auto graph = std::unique_ptr<Graph>(reinterpret_cast<Graph *>(EsBuildGraphAndReset(graph_)));
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+  ASSERT_NE(cg, nullptr);
+
+  DataInfo di0 = {ge::FORMAT_ND, DT_FLOAT, {-1, -1, -1}};
+  SetNoStorage(cg, "data_0", di0, 0);
+
+  std::vector<ge::GeTensor> input_vec;
+  {
+    ge::Shape shape({5, 6, 7});
+    ge::TensorDesc td{shape, ge::FORMAT_ND, DT_FLOAT};
+    td.SetOriginShape(shape);
+    ge::Tensor tensor{td};
+    input_vec.emplace_back(ge::TensorAdapter::AsGeTensor(tensor));
+  }
+
+  const std::vector<Expression> expect_output_shape = {Symbol(3), Symbol(3), Symbol("s2")};
+  ExpectNodeInfo expect_node(STRIDEDSLICE, expect_output_shape, {}, {}, {});
+  ASSERT_EQ(RunSymbolInferenceTest(cg, {expect_node}, input_vec), SUCCESS);
+}
+
+// StridedSliceV2: input shape 为符号，begin/end/axes/strides 为常量，严格校验每个输出维度
+TEST_F(SymbolicShapeInferenceUT, test_stridedslicev2_infershape_with_symbolic_input_shape) {
+  auto data0 = EsCreateGraphInputWithDetails(graph_, 0, "data_0", nullptr, C_DataType::C_DT_FLOAT, C_Format::C_FORMAT_ND, nullptr, 0);
+  ASSERT_EQ(EsSetOriginSymbolShape(data0, std::vector<const char *>({"s0", "s1", "s2"}).data(), 3), 0);
+
+  std::vector<int64_t> begin_value = {1, 2, 0};
+  auto data1 = EsCreateVectorInt64(graph_, begin_value.data(), 3);
+  std::vector<int64_t> end_value = {4, 5, 7};
+  auto data2 = EsCreateVectorInt64(graph_, end_value.data(), 3);
+  std::vector<int64_t> axes_value = {0, 1, 2};
+  auto data3 = EsCreateVectorInt64(graph_, axes_value.data(), axes_value.size());
+  std::vector<int64_t> strides_value = {1, 1, 1};
+  auto data4 = EsCreateVectorInt64(graph_, strides_value.data(), strides_value.size());
+
+  auto strided_slice = EsStridedSliceV2(data0, data1, data2, data3, data4, 0, 0, 0, 0, 0);
+  ASSERT_EQ(EsSetGraphOutput(strided_slice, 0), 0);
+
+  auto graph = std::unique_ptr<Graph>(reinterpret_cast<Graph *>(EsBuildGraphAndReset(graph_)));
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+  ASSERT_NE(cg, nullptr);
+
+  DataInfo di0 = {ge::FORMAT_ND, DT_FLOAT, {-1, -1, -1}};
+  SetNoStorage(cg, "data_0", di0, 0);
+
+  std::vector<ge::GeTensor> input_vec;
+  {
+    ge::Shape shape({5, 6, 7});
+    ge::TensorDesc td{shape, ge::FORMAT_ND, DT_FLOAT};
+    td.SetOriginShape(shape);
+    ge::Tensor tensor{td};
+    input_vec.emplace_back(ge::TensorAdapter::AsGeTensor(tensor));
+  }
+
+  const std::vector<Expression> expect_output_shape = {Symbol(3), Symbol(3), Symbol("s2")};
+  ExpectNodeInfo expect_node(STRIDEDSLICEV2, expect_output_shape, {}, {}, {});
+  ASSERT_EQ(RunSymbolInferenceTest(cg, {expect_node}, input_vec), SUCCESS);
+}
+
+// StridedSliceV3: begin/end/strides 全为符号，严格校验每个输出维度
+TEST_F(SymbolicShapeInferenceUT, test_stridedslicev3_infershape_with_symbolic_begin_end) {
+  auto data0 = EsCreateGraphInputWithDetails(graph_, 0, "data_0", nullptr, C_DataType::C_DT_FLOAT, C_Format::C_FORMAT_ND, nullptr, 0);
+  auto data1 = EsCreateGraphInputWithDetails(graph_, 1, "data_1", nullptr, C_DataType::C_DT_INT64, C_Format::C_FORMAT_ND, nullptr, 0);
+  auto data2 = EsCreateGraphInputWithDetails(graph_, 2, "data_2", nullptr, C_DataType::C_DT_INT64, C_Format::C_FORMAT_ND, nullptr, 0);
+  auto data3 = EsCreateGraphInputWithDetails(graph_, 3, "data_3", nullptr, C_DataType::C_DT_INT64, C_Format::C_FORMAT_ND, nullptr, 0);
+  auto data4 = EsCreateGraphInputWithDetails(graph_, 4, "data_4", nullptr, C_DataType::C_DT_INT64, C_Format::C_FORMAT_ND, nullptr, 0);
+  ASSERT_EQ(EsSetOriginSymbolShape(data0, std::vector<const char *>({"s0", "s1", "s2", "s3", "s4"}).data(), 5), 0);
+
+  auto strided_slice = EsStridedSliceV3(data0, data1, data2, data3, data4);
+  ASSERT_EQ(EsSetGraphOutput(strided_slice, 0), 0);
+
+  auto graph = std::unique_ptr<Graph>(reinterpret_cast<Graph *>(EsBuildGraphAndReset(graph_)));
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+  ASSERT_NE(cg, nullptr);
+
+  DataInfo di0 = {ge::FORMAT_ND, DT_FLOAT, {-1, -1, -1, -1, -1}};
+  SetNoStorage(cg, "data_0", di0, 0);
+  DataInfo di_param = {ge::FORMAT_ND, DT_INT64, {4}};
+  SetNoStorage(cg, "data_1", di_param, 1);
+  SetNoStorage(cg, "data_2", di_param, 2);
+  SetNoStorage(cg, "data_3", di_param, 3);
+  SetNoStorage(cg, "data_4", di_param, 4);
+
+  auto set_symbolic_value = [](const ComputeGraphPtr &cg, const std::string &name,
+                                std::vector<Expression> values) {
+    auto node = cg->FindNode(name);
+    ASSERT_NE(node, nullptr);
+    auto attr = node->GetOpDesc()->MutableOutputDesc(0)->template GetOrCreateAttrsGroup<SymbolicDescAttr>();
+    attr->symbolic_tensor.SetSymbolicValue(ge::MakeUnique<std::vector<Expression>>(std::move(values)));
+  };
+  set_symbolic_value(cg, "data_1", {Symbol("s5"), Symbol("s6"), Symbol("s7"), Symbol("s8")});
+  set_symbolic_value(cg, "data_2", {Symbol("s9"), Symbol("s10"), Symbol("s11"), Symbol("s12")});
+  set_symbolic_value(cg, "data_3", {Symbol(0), Symbol(1), Symbol(2), Symbol(3)});
+  set_symbolic_value(cg, "data_4", {Symbol("s13"), Symbol("s14"), Symbol("s15"), Symbol("s16")});
+
+  std::vector<ge::GeTensor> input_vec;
+  {
+    ge::Shape shape({5, 6, 7, 8, 9});
+    ge::TensorDesc td{shape, ge::FORMAT_ND, DT_FLOAT};
+    td.SetOriginShape(shape);
+    ge::Tensor tensor{td};
+    input_vec.emplace_back(ge::TensorAdapter::AsGeTensor(tensor));
+  }
+  for (int i = 0; i < 4; i++) {
+    std::vector<int64_t> vals = {0, 1, 2, 3};
+    ge::Shape shape({4});
+    ge::TensorDesc td{shape, ge::FORMAT_ND, DT_INT64};
+    td.SetOriginShape(shape);
+    ge::Tensor tensor{td};
+    tensor.SetData(reinterpret_cast<const uint8_t *>(vals.data()), vals.size() * sizeof(int64_t));
+    input_vec.emplace_back(ge::TensorAdapter::AsGeTensor(tensor));
+  }
+
+  const std::vector<Expression> expect_output_shape = {
+      sym::Ceiling((Symbol("s9") - Symbol("s5")) / Symbol("s13")),
+      sym::Ceiling((Symbol("s10") - Symbol("s6")) / Symbol("s14")),
+      sym::Ceiling((Symbol("s11") - Symbol("s7")) / Symbol("s15")),
+      sym::Ceiling((Symbol("s12") - Symbol("s8")) / Symbol("s16")),
+      Symbol("s4")};
+  ExpectNodeInfo expect_node(STRIDEDSLICEV3, expect_output_shape, {}, {}, {});
+  ASSERT_EQ(RunSymbolInferenceTest(cg, {expect_node}, input_vec), SUCCESS);
+}
 } // namespace ge

@@ -164,12 +164,7 @@ graphStatus CalOutputSymbolShape(gert::InferSymbolComputeContext *context,
   }
   return GRAPH_SUCCESS;
 }
-}  // namespace
-
-static graphStatus GatherV2SymbolicKernelCompute(gert::InferSymbolComputeContext *context) {
-  GE_ASSERT_NOTNULL(context);
-  GELOGD("GatherV2 Symbolic Kernel in, node %s[%s].", context->GetNodeName(), context->GetNodeType());
-  // 获取param的shape
+graphStatus GatherCompute(gert::InferSymbolComputeContext *context, int64_t axis, int64_t batch_dims) {
   std::vector<int64_t> param_dims;
   std::vector<ge::Expression> param_values;
   auto ret = GetInputDimsAndValue(context, kParamIndex, param_dims, param_values);
@@ -189,18 +184,6 @@ static graphStatus GatherV2SymbolicKernelCompute(gert::InferSymbolComputeContext
   if (ret != GRAPH_SUCCESS) {
     return ret;
   }
-  // 获取axis
-  int64_t axis = 0L;
-  ret = GetAxis(context, axis);
-  if (ret != GRAPH_SUCCESS) {
-    return ret;
-  }
-  // 获取batchdim
-  auto attrs = context->GetAttrs();
-  GE_ASSERT_NOTNULL(attrs);
-  auto batch_dims_attr = attrs->GetAttrPointer<int64_t>(kBatchDimAttrIndex);
-  GE_ASSERT_NOTNULL(batch_dims_attr);
-  int64_t batch_dims = *batch_dims_attr;
   GE_ASSERT_SUCCESS(NormalizeInput(context, indice_dims, param_dims, axis, batch_dims));
   auto symbolic_tensor = context->GetOutputSymbolTensor(kOutputIndex);
   GE_ASSERT_NOTNULL(symbolic_tensor);
@@ -214,5 +197,41 @@ static graphStatus GatherV2SymbolicKernelCompute(gert::InferSymbolComputeContext
       SymbolicInferUtil::DumpSymbolTensor(*symbolic_tensor).c_str());
   return SUCCESS;
 }
+}  // namespace
+
+static graphStatus GatherV2SymbolicKernelCompute(gert::InferSymbolComputeContext *context) {
+  GE_ASSERT_NOTNULL(context);
+  GELOGD("GatherV2 Symbolic Kernel in, node %s[%s].", context->GetNodeName(), context->GetNodeType());
+  int64_t axis = 0L;
+  auto ret = GetAxis(context, axis);
+  if (ret != GRAPH_SUCCESS) {
+    return ret;
+  }
+  auto attrs = context->GetAttrs();
+  GE_ASSERT_NOTNULL(attrs);
+  auto batch_dims_attr = attrs->GetAttrPointer<int64_t>(kBatchDimAttrIndex);
+  GE_ASSERT_NOTNULL(batch_dims_attr);
+  return GatherCompute(context, axis, *batch_dims_attr);
+}
 REGISTER_SYMBOLIC_KERNEL(GatherV2, GatherV2SymbolicKernelCompute);
+
+namespace {
+constexpr size_t kGatherBatchDimAttrIndex = 1UL;
+}  // namespace
+
+static graphStatus GatherSymbolicKernelCompute(gert::InferSymbolComputeContext *context) {
+  GE_ASSERT_NOTNULL(context);
+  GELOGD("Gather Symbolic Kernel in, node %s[%s].", context->GetNodeName(), context->GetNodeType());
+  int64_t axis = 0L;
+  int64_t batch_dims = 0L;
+  auto attrs = context->GetAttrs();
+  if (attrs != nullptr && attrs->GetAttrNum() > kGatherBatchDimAttrIndex) {
+    auto batch_dims_attr = attrs->GetAttrPointer<int64_t>(kGatherBatchDimAttrIndex);
+    if (batch_dims_attr != nullptr) {
+      batch_dims = *batch_dims_attr;
+    }
+  }
+  return GatherCompute(context, axis, batch_dims);
+}
+REGISTER_SYMBOLIC_KERNEL(Gather, GatherSymbolicKernelCompute);
 }  // namespace ge
