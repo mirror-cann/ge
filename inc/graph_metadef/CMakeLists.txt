@@ -26,9 +26,7 @@ endif ()
 # IMPORTED target 的 -isystem 被搜索，避免 auto_fuse 头文件冲突导致编译失败
 if(NOT TARGET ge_metadef_headers)
     add_library(ge_metadef_headers INTERFACE)
-    if(TARGET metadef_headers)
-        target_link_libraries(ge_metadef_headers INTERFACE metadef_headers)
-    endif()
+    target_link_libraries(ge_metadef_headers INTERFACE metadef_headers)
     target_include_directories(ge_metadef_headers INTERFACE
         $<BUILD_INTERFACE:${GE_METADEF_INC_DIR}>
         $<BUILD_INTERFACE:${GE_METADEF_INC_DIR}/graph>
