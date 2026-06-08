@@ -545,7 +545,7 @@ elseif (BUILD_OPEN_PROJECT OR ENABLE_OPEN_SRC)
             add_dependencies(ge-executor acl_mdl acl_mdl_impl acl_mdl_impl_om2 acl_op_executor acl_op_executor_impl acl_cblas)
             add_dependencies(ge-executor ge_common_stub stub_lowering atc_stub_graph gert_stub hybrid_executor_stub stub_register stub_acl_mdl
                     stub_acl_cblas stub_acl_op_executor)
-            if(ENABLE_BUILD_DEVICE) # 交叉编译
+            if(NOT ENABLE_MOD_EXT) # 交叉编译
                 add_dependencies(ge-executor runtime_update_model_param_dav_2201)
                 add_dependencies(ge-compiler switch_by_index)
             endif()

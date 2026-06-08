@@ -21,6 +21,7 @@ RULE_LAUNCH_ARG=""
 
 # MDC build para
 ENABLE_BUILD_DEVICE=ON
+ENABLE_MOD_EXT=OFF
 USE_CXX11_ABI=1
 CMAKE_TOOLCHAIN_FILE=""
 MDC_BUILD_COMPONENT=""
@@ -102,6 +103,10 @@ parse_cmake_extra_args() {
                 USE_CXX11_ABI="$value"
                 echo "[MDC compile] Set USE_CXX11_ABI to ${USE_CXX11_ABI}."
                 ;;
+            "ENABLE_MOD_EXT")
+                ENABLE_MOD_EXT="$value"
+                echo "[MDC compile] Set ENABLE_MOD_EXT to ${ENABLE_MOD_EXT}."
+                ;;
             "CMAKE_TOOLCHAIN_FILE")
                 CMAKE_TOOLCHAIN_FILE="${CMAKE_TOOLCHAIN_PREFIX}/${value}"
                 export LLVM_PATH="${BASEPATH}/../build/bin/os/pegasus_llvm_libs/pegasus_llvm_x86_ubuntu_22_04_adk/hcc_arm64le_llvm/bin"
@@ -112,6 +117,10 @@ parse_cmake_extra_args() {
                 ;;
         esac
     done
+
+    if [[ "$ENABLE_BUILD_DEVICE" != "ON" ]]; then
+        ENABLE_MOD_EXT=ON
+    fi
 
     lower_abi=$(echo "$USE_CXX11_ABI" | tr '[:upper:]' '[:lower:]')
     if [[ "$lower_abi" == "on" || "$USE_CXX11_ABI" == "1" ]]; then
@@ -422,6 +431,7 @@ build_single_pkg() {
         -D USE_CXX11_ABI=${USE_CXX11_ABI} \
         -D LLVM_PATH=${LLVM_PATH} \
         -D CMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} \
+        -D ENABLE_MOD_EXT=${ENABLE_MOD_EXT} \
         ${RULE_LAUNCH_ARG} \
         ${BASEPATH}"
 
