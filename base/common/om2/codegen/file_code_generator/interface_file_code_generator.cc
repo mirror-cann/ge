@@ -140,37 +140,29 @@ void InterfaceFileCodeGenerator::DealParamForOm2ModelClass(std::vector<DeclNode 
                                                            const RuntimeResourceSemantic &runtime) {
   if (runtime.kernel_bin_num > 0U) {
     items.push_back(ast_.Field("std::vector<aclrtBinHandle>", "bin_handles_"));
-    items.push_back(ast_.Field("std::vector<aclrtFuncHandle>", "func_handles_"));
   }
-  if (runtime.stream_num > 0U) {
-    items.push_back(ast_.Field("std::vector<aclrtStream>", "stream_list_"));
-  }
-  if (runtime.notify_num > 0U) {
-    items.push_back(ast_.Field("std::vector<aclrtNotify>", "notify_list_"));
-  }
-  if (runtime.event_num > 0U) {
-    items.push_back(ast_.Field("std::vector<aclrtEvent>", "event_list_"));
-  }
+  items.push_back(ast_.Field("std::vector<aclrtFuncHandle>", "func_handles_"));
+  items.push_back(ast_.Field("std::vector<aclrtStream>", "stream_list_"));
+  items.push_back(ast_.Field("std::vector<aclrtNotify>", "notify_list_"));
+  items.push_back(ast_.Field("std::vector<aclrtEvent>", "event_list_"));
+  items.push_back(ast_.Field("std::vector<aclrtLabel>", "label_list_"));
   if (runtime.label_num > 0U) {
-    items.push_back(ast_.Field("std::vector<aclrtLabel>", "label_list_"));
     items.push_back(ast_.Field("aclrtLabelList", "aclrt_label_list_"));
   }
-  if (runtime.has_label_switch || runtime.has_label_goto) {
-    items.push_back(ast_.Field("std::vector<aclrtLabel>", "label_used_"));
-    if (runtime.has_label_switch) {
-      items.push_back(ast_.DeclareMethod("CreateLabelListForLabelSwitch",
-                                        {ast_.Var("uint32_t", "op_index"),
-                                          ast_.Var("std::vector<uint32_t>", "label_list_indexs")}, "aclError"));
-      items.push_back(ast_.Field("std::map<uint32_t, aclrtLabelList>", "label_switch_label_list_"));
-    }
-    if (runtime.has_label_goto) {
-      items.push_back(ast_.DeclareMethod("CreateLabelListForLabelGotoEx",
-                                        {ast_.Var("uint32_t", "op_index"),
-                                          ast_.Var("uint32_t", "label_index")}, "aclError"));
-      items.push_back(ast_.Field("std::vector<void *>", "label_goto_ex_index_values_"));
-      items.push_back(ast_.Field("std::map<uint32_t, std::pair<void *, uint32_t>>", "label_goto_args_"));
-      items.push_back(ast_.Field("std::map<uint32_t, aclrtLabelList>", "label_goto_ex_label_list_"));
-    }
+  items.push_back(ast_.Field("std::vector<aclrtLabel>", "label_used_"));
+  items.push_back(ast_.Field("std::map<uint32_t, aclrtLabelList>", "label_switch_label_list_"));
+  items.push_back(ast_.Field("std::map<uint32_t, std::pair<void *, uint32_t>>", "label_goto_args_"));
+  items.push_back(ast_.Field("std::map<uint32_t, aclrtLabelList>", "label_goto_ex_label_list_"));
+  if (runtime.has_label_switch) {
+    items.push_back(ast_.DeclareMethod("CreateLabelListForLabelSwitch",
+                                      {ast_.Var("uint32_t", "op_index"),
+                                        ast_.Var("std::vector<uint32_t>", "label_list_indexs")}, "aclError"));
+  }
+  if (runtime.has_label_goto) {
+    items.push_back(ast_.DeclareMethod("CreateLabelListForLabelGotoEx",
+                                      {ast_.Var("uint32_t", "op_index"),
+                                        ast_.Var("uint32_t", "label_index")}, "aclError"));
+    items.push_back(ast_.Field("std::vector<void *>", "label_goto_ex_index_values_"));
   }
 }
 

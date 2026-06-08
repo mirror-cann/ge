@@ -94,7 +94,8 @@ enum class StablePartId : uint8_t {
   kInterfaceDumpApis,
   kLoadAndRunDumpHelpers,
   kCreateLabelListForLabelSwitch,
-  kCreateLabelListForLabelGotoEx
+  kCreateLabelListForLabelGotoEx,
+  kOpDefStructs,
 };
 
 enum class StablePartPlacement : uint8_t {
@@ -680,16 +681,54 @@ class LambdaExpr final : public Expr {
   BlockStmt *body_;
 };
 
+class CCastExpr final : public Expr {
+ public:
+  static CCastExpr *Create(AstContext &ctx, const std::string &target_type, Expr *expr);
+  CCastExpr(StringRef target_type, Expr *expr) : target_type_(target_type), expr_(expr) {}
+  Status Accept(CodeEmitter &emitter, std::string &output) const override;
+
+  StringRef GetTargetType() const { return target_type_; }
+  Expr *GetExpr() const { return expr_; }
+
+ private:
+  StringRef target_type_;
+  Expr *expr_;
+};
+
 class InitListExpr final : public Expr {
  public:
-  static InitListExpr *Create(AstContext &ctx, const std::vector<Expr *> &elements);
-  explicit InitListExpr(ArrayRef<Expr *> elements) : Expr(), elements_(elements) {}
+  static InitListExpr *Create(AstContext &ctx, const std::vector<Expr *> &elements,
+                              bool compact = false);
+  explicit InitListExpr(ArrayRef<Expr *> elements, bool compact = false)
+      : Expr(), elements_(elements), compact_(compact) {}
   Status Accept(CodeEmitter &emitter, std::string &output) const override final;
 
   ArrayRef<Expr *> GetElements() const { return elements_; }
+  bool IsCompact() const { return compact_; }
 
  private:
   ArrayRef<Expr *> elements_;
+  bool compact_{false};
+};
+
+class DesignatedInitListExpr final : public Expr {
+ public:
+  static DesignatedInitListExpr *Create(AstContext &ctx,
+                                         const std::vector<std::string> &names,
+                                         const std::vector<Expr *> &values,
+                                         bool compact = false);
+  DesignatedInitListExpr(ArrayRef<StringRef> names, ArrayRef<Expr *> values, bool compact)
+      : names_(names), values_(values), compact_(compact) {}
+  Status Accept(CodeEmitter &emitter, std::string &output) const override;
+
+  ArrayRef<StringRef> GetNames() const { return names_; }
+  ArrayRef<Expr *> GetValues() const { return values_; }
+  bool IsCompact() const { return compact_; }
+
+ private:
+  ArrayRef<StringRef> names_;
+  ArrayRef<Expr *> values_;
+  bool compact_{false};
 };
 
 class CommentStmt final : public Stmt {
@@ -815,6 +854,39 @@ class RangeForStmt final : public Stmt {
   StringRef type_spec_;
   StringRef name_;
   Expr *range_;
+  BlockStmt *body_;
+};
+
+class CaseStmt final : public Stmt {
+ public:
+  static CaseStmt *Create(AstContext &ctx, Expr *value);
+  explicit CaseStmt(Expr *value) : value_(value) {}
+  Status Accept(CodeEmitter &emitter, std::string &output) const override;
+
+  Expr *GetValue() const { return value_; }
+
+ private:
+  Expr *value_;  // nullptr for default case
+};
+
+class BreakStmt final : public Stmt {
+ public:
+  static BreakStmt *Create(AstContext &ctx);
+  BreakStmt() = default;
+  Status Accept(CodeEmitter &emitter, std::string &output) const override;
+};
+
+class SwitchStmt final : public Stmt {
+ public:
+  static SwitchStmt *Create(AstContext &ctx, Expr *cond, BlockStmt *body);
+  SwitchStmt(Expr *cond, BlockStmt *body) : cond_(cond), body_(body) {}
+  Status Accept(CodeEmitter &emitter, std::string &output) const override;
+
+  Expr *GetCond() const { return cond_; }
+  BlockStmt *GetBody() const { return body_; }
+
+ private:
+  Expr *cond_;
   BlockStmt *body_;
 };
 

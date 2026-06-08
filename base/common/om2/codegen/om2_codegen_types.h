@@ -31,6 +31,7 @@ constexpr int64_t kInvalidOpIndex = -1;
 constexpr int64_t kInvalidOpId = -1;
 constexpr int32_t kInvalidAnchorIndex = -1;
 constexpr uint64_t kSessionScopeMemoryMask = 0x100000000UL;
+constexpr int32_t kWidthPerChar = 3;  // 转八进制字符串时每个字符的宽度
 
 struct OpInputEdges {
   std::vector<int64_t> input_op_ids;

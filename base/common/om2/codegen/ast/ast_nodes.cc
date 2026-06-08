@@ -320,11 +320,34 @@ LambdaExpr *LambdaExpr::Create(AstContext &ctx, const std::vector<std::string> &
 
 Status LambdaExpr::Accept(CodeEmitter &emitter, std::string &output) const { return emitter.Emit(*this, output); }
 
-InitListExpr *InitListExpr::Create(AstContext &ctx, const std::vector<Expr *> &elements) {
-  return AllocateNode<InitListExpr>(ctx, CopyArray(ctx, elements));
+InitListExpr *InitListExpr::Create(AstContext &ctx, const std::vector<Expr *> &elements,
+                                   bool compact) {
+  return AllocateNode<InitListExpr>(ctx, CopyArray(ctx, elements), compact);
 }
 
 Status InitListExpr::Accept(CodeEmitter &emitter, std::string &output) const { return emitter.Emit(*this, output); }
+
+CCastExpr *CCastExpr::Create(AstContext &ctx, const std::string &target_type, Expr *expr) {
+  return AllocateNode<CCastExpr>(ctx, ctx.CopyString(target_type.c_str()), expr);
+}
+
+Status CCastExpr::Accept(CodeEmitter &emitter, std::string &output) const { return emitter.Emit(*this, output); }
+
+DesignatedInitListExpr *DesignatedInitListExpr::Create(AstContext &ctx,
+                                                       const std::vector<std::string> &names,
+                                                       const std::vector<Expr *> &values,
+                                                       bool compact) {
+  auto *arena = static_cast<StringRef *>(ctx.Allocate(names.size() * sizeof(StringRef)));
+  for (size_t i = 0U; i < names.size(); ++i) {
+    new (&arena[i]) StringRef(ctx.CopyString(names[i].c_str()));
+  }
+  return AllocateNode<DesignatedInitListExpr>(ctx, ArrayRef<StringRef>(arena, names.size()),
+                                              CopyArray(ctx, values), compact);
+}
+
+Status DesignatedInitListExpr::Accept(CodeEmitter &emitter, std::string &output) const {
+  return emitter.Emit(*this, output);
+}
 
 CommentStmt *CommentStmt::Create(AstContext &ctx, const std::string &text) {
   return AllocateNode<CommentStmt>(ctx, ctx.CopyString(text.c_str()));
@@ -387,4 +410,19 @@ RangeForStmt *RangeForStmt::Create(AstContext &ctx, const std::string &type_spec
 }
 
 Status RangeForStmt::Accept(CodeEmitter &emitter, std::string &output) const { return emitter.Emit(*this, output); }
+
+CaseStmt *CaseStmt::Create(AstContext &ctx, Expr *value) {
+  return AllocateNode<CaseStmt>(ctx, value);
+}
+Status CaseStmt::Accept(CodeEmitter &emitter, std::string &output) const { return emitter.Emit(*this, output); }
+
+BreakStmt *BreakStmt::Create(AstContext &ctx) {
+  return AllocateNode<BreakStmt>(ctx);
+}
+Status BreakStmt::Accept(CodeEmitter &emitter, std::string &output) const { return emitter.Emit(*this, output); }
+
+SwitchStmt *SwitchStmt::Create(AstContext &ctx, Expr *cond, BlockStmt *body) {
+  return AllocateNode<SwitchStmt>(ctx, cond, body);
+}
+Status SwitchStmt::Accept(CodeEmitter &emitter, std::string &output) const { return emitter.Emit(*this, output); }
 }  // namespace ge

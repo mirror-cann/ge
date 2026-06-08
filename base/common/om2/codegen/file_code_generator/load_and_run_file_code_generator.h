@@ -30,12 +30,16 @@ class LoadAndRunFileCodeGenerator : public Om2ModelClassGeneratorBase {
   StructDecl *BuildLaunchKernelCfgHolder() const;
   StructDecl *BuildLaunchKernelConfig() const;
   FunctionDef *BuildAssembleLaunchConfig() const;
+  DeclNode *BuildOpDefTable(const Om2CodegenModel &codegen_model,
+                            const std::vector<TaskCodeBuilderPtr> &task_code_builders) const;
 
  private:
   Status BuildLoadBody(std::vector<BodyItem> &body, const Om2CodegenModel &codegen_model,
                        const std::vector<TaskCodeBuilderPtr> &task_code_builders);
   Status BuildRunBodyImpl(std::vector<BodyItem> &body, const Om2CodegenModel &codegen_model, bool is_async);
   Status BuildCommonHelperFunctions(std::vector<DeclNode *> &items) const;
+  Status BuildDispatchOp(std::vector<DeclNode *> &items,
+                         const std::vector<TaskCodeBuilderPtr> &task_code_builders) const;
 };
 }  // namespace ge
 

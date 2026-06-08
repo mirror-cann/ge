@@ -10,6 +10,9 @@
 
 #include "common/om2/codegen/file_code_generator/load_and_run_file_code_generator.h"
 
+#include <iomanip>
+#include <sstream>
+#include <map>
 #include <typeindex>
 #include <unordered_set>
 
@@ -38,6 +41,7 @@ std::vector<DeclNode *> LoadAndRunFileCodeGenerator::BuildAnonymousNamespaceItem
     }
     GE_ASSERT_SUCCESS(task_code_builder->RenderDistHelper(items));
   }
+  GE_ASSERT_SUCCESS(BuildDispatchOp(items, task_code_builders));
   return items;
 }
 
@@ -53,17 +57,50 @@ MethodDef *LoadAndRunFileCodeGenerator::BuildGetRtModelHandleMethod() const {
 }
 
 Status LoadAndRunFileCodeGenerator::BuildLoadBody(std::vector<BodyItem> &body, const Om2CodegenModel &codegen_model,
-                                                const std::vector<TaskCodeBuilderPtr> &task_code_builders) {
+                                                  const std::vector<TaskCodeBuilderPtr> &task_code_builders) {
   body.push_back(dev_ext_info_mem_ptrs_.Resize(codegen_model.aicpu_task_count));
+  uint32_t op_idx = 0;
   for (const auto &task_code_builder : task_code_builders) {
     GE_ASSERT_NOTNULL(task_code_builder);
-    std::vector<BodyItem> task_body;
-    GE_ASSERT_SUCCESS(task_code_builder->RenderDistribution(task_body));
-    body.push_back(ast_.Block(task_body));
+    if (task_code_builder->SupportsTableDriven()) {
+      // 表驱动模式：调用 DispatchOp
+      const auto stream_id = static_cast<int64_t>(task_code_builder->GetHeader().stream_id);
+      body.push_back(ChkStatus(
+          ast_.Call("DispatchOp", {ast_.Var("OpDef", "kOpDefs")[static_cast<int64_t>(op_idx)].Addr(),
+                                   ast_.InitList({total_dev_mem_ptr_, session_scope_mem_ptr_, constants_, args_table_,
+                                                  func_handles_.Attr("data")(), stream_list_[stream_id], model_id_,
+                                                  instance_handle_, mem_event_id_mem_map_,
+                                                  dev_dynamic_mem_ptrs_, overflow_addr_})})));
+      op_idx++;
+    } else {
+      // RenderDistribution 模式：直接生成代码
+      std::vector<BodyItem> task_body;	 
+      GE_ASSERT_SUCCESS(task_code_builder->RenderDistribution(task_body));	 
+      body.push_back(ast_.Block(task_body));
+    }
   }
   body.push_back(ChkStatus(AclmdlRIBuildEnd(model_handle_, nullptr)));
   body.push_back(ast_.Return("ACL_SUCCESS"));
   return SUCCESS;
+}
+
+DeclNode *LoadAndRunFileCodeGenerator::BuildOpDefTable(const Om2CodegenModel &codegen_model,
+                                                       const std::vector<TaskCodeBuilderPtr> &task_code_builders) const {
+  (void)codegen_model;
+  std::vector<Arg> entries;
+  for (const auto &task_code_builder : task_code_builders) {
+    GE_ASSERT_NOTNULL(task_code_builder);
+    if (!task_code_builder->SupportsTableDriven()) {
+      continue;  // 跳过不支持表驱动的 task
+    }
+    const auto dispatch_type = static_cast<uint32_t>(task_code_builder->GetTaskType());
+
+    std::vector<std::pair<std::string, Arg>> fields;
+    GE_ASSERT_SUCCESS(task_code_builder->RenderOpDefTableFields(fields, dispatch_type));
+
+    entries.push_back(ast_.InitListWithDesignators(fields));
+  }
+  return ast_.Field("const OpDef", "kOpDefs[]", ast_.InitList(entries));
 }
 
 MethodDef *LoadAndRunFileCodeGenerator::BuildRunAsyncMethod(const Om2CodegenModel &codegen_model) {
@@ -230,6 +267,55 @@ FunctionDef *LoadAndRunFileCodeGenerator::BuildAssembleLaunchConfig() const {
       ast_.Assign(holder.Attr("cfg").Attr("attrs"), attrs[0].Addr()),
       ast_.Assign(holder.Attr("cfg").Attr("numAttrs"), actual_cfg_num),
   };
-  return ast_.DefineFunction("AssembleLaunchConfig", {holder, launch_config}, "void", ast_.Body(body));
+  body.push_back(ast_.Return("ACL_SUCCESS"));
+  return ast_.DefineFunction("AssembleLaunchConfig", {holder, launch_config}, "aclError", ast_.Body(body));
+}
+
+Status LoadAndRunFileCodeGenerator::BuildDispatchOp(
+    std::vector<DeclNode *> &items,
+    const std::vector<TaskCodeBuilderPtr> &task_code_builders) const {
+  // Collect unique dispatch type → first builder mapping
+  // Use the first builder for each dispatch type (all builders mapping to same type are equivalent)
+  // Only include table-driven task types
+  std::map<uint32_t, TaskCodeBuilderPtr> type_to_builder;
+  for (const auto &builder : task_code_builders) {
+    GE_ASSERT_NOTNULL(builder);
+    if (!builder->SupportsTableDriven()) {
+      continue;  // 跳过不支持表驱动的 task
+    }
+    const uint32_t dtype = static_cast<uint32_t>(builder->GetTaskType());
+    type_to_builder[dtype] = builder;
+  }
+
+  // Build switch body items: case labels + case body + break + default
+  std::vector<BodyItem> switch_body;
+
+  for (const auto &[dtype, builder] : type_to_builder) {
+    // case label: raw ModelTaskType value
+    switch_body.push_back(ast_.Case(ast_.UInt(dtype)));
+    // case body from builder (wrap in Block to avoid cross-init of case-scoped variables)
+    std::vector<BodyItem> case_body;
+    GE_ASSERT_SUCCESS(builder->RenderDispatchOpCaseBody(case_body));
+    switch_body.push_back(ast_.Block(case_body));
+    // break
+    switch_body.push_back(ast_.Break());
+  }
+
+  // default case
+  switch_body.push_back(ast_.Case(Arg(nullptr)));  // default:
+  switch_body.push_back(ast_.Return("ACL_ERROR_FAILURE"));
+
+  // Build the DispatchOp function
+  auto op = ast_.Var("const OpDef *", "op");
+  auto ctx = ast_.Var("const DispatchOpContext &", "ctx");
+  auto dispatch_op = ast_.DefineFunction("DispatchOp", {op, ctx}, "aclError", {
+      ast_.Switch(
+          ast_.StaticCast("OpDispatchType",
+              ast_.Var("", "op").Arrow("dispatch_type")),
+          switch_body),
+      ast_.Return("ACL_SUCCESS"),
+  });
+  items.push_back(dispatch_op);
+  return SUCCESS;
 }
 }  // namespace ge

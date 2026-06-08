@@ -41,7 +41,6 @@ constexpr char_t const *kMaxAtomicCleanTilingSize = "atomic_op_para_size";
 constexpr char_t const *kLocalMemorySize = "local_memory_size";
 constexpr uint32_t kUBAlignedLen = 32U;
 constexpr int32_t kSessionInfoOffset = 8;
-constexpr int32_t kWidthPerChar = 3;
 constexpr uint32_t kAicpuArgsExtInfoAddrOffset = 12U;
 constexpr uint32_t kAicpuArgsioAddrOffset = 20U;
 
@@ -77,6 +76,14 @@ bool IsAicoreTask(const KernelTaskSemantic &semantic) {
   return IsAllKernelTask(semantic) || Om2CodegenUtils::IsAICoreKernel(semantic.kernel_type);
 }
 
+uint32_t ConvertEngineType(const std::string &engine_type_str) {
+  if (engine_type_str == "ACL_RT_ENGINE_TYPE_AIV") {
+    return 1U;
+  }
+  return 0U;  // ACL_RT_ENGINE_TYPE_AIC
+}
+
+
 bool IsAicpuTask(const KernelTaskSemantic &semantic) {
   return semantic.kernel_type == ge::ccKernelType::AI_CPU;
 }
@@ -99,7 +106,6 @@ uint64_t GetOrderedArgsByteSize(const std::vector<AddrSemantic> &ordered_args) {
   }
   return size;
 }
-
 }  // namespace
 
 void KernelTaskCodeBuilder::AppendOrderedArgValue(const AddrSemantic &semantic) {
@@ -121,6 +127,196 @@ void KernelTaskCodeBuilder::AppendOrderedArgValue(const AddrSemantic &semantic) 
   semantic_.ordered_arg_values.push_back(semantic);
 }
 
+OpDefBuildData KernelTaskCodeBuilder::GetOpDefBuildData() const {
+  OpDefBuildData data;
+  // 公共字段：args_idx
+  uint32_t args_idx = semantic_.args_table_entry.has_value()
+                          ? static_cast<uint32_t>(semantic_.args_table_entry->table_index) : 0U;
+
+  // 表驱动：AddrValueKind → arg 字段构造器
+  using ArgBuilder = void (KernelTaskCodeBuilder::*)(const AddrSemantic &, OpArgBuildData &) const;
+  static const std::unordered_map<AddrValueKind, ArgBuilder> kArgBuilders = {
+    {AddrValueKind::kInputInstance,   &KernelTaskCodeBuilder::BuildInputInstanceArg},
+    {AddrValueKind::kOutputInstance,  &KernelTaskCodeBuilder::BuildOutputInstanceArg},
+    {AddrValueKind::kWorkspace,       &KernelTaskCodeBuilder::BuildWorkspaceArg},
+    {AddrValueKind::kConstTensor,     &KernelTaskCodeBuilder::BuildConstTensorArg},
+    {AddrValueKind::kLevel1DescPtr,   &KernelTaskCodeBuilder::BuildLevel1DescArg},
+    {AddrValueKind::kCustomValue,     &KernelTaskCodeBuilder::BuildCustomValueArg},
+    {AddrValueKind::kPlaceholder,     &KernelTaskCodeBuilder::BuildPlaceholderArg},
+    {AddrValueKind::kOptionalEmpty,   &KernelTaskCodeBuilder::BuildOptionalEmptyArg},
+    {AddrValueKind::kFftsAddr,        &KernelTaskCodeBuilder::BuildFftsAddrArg},
+    {AddrValueKind::kEventAddr,       &KernelTaskCodeBuilder::BuildEventAddrArg},
+    {AddrValueKind::kOverflowAddr,    &KernelTaskCodeBuilder::BuildOverflowAddrArg},
+    {AddrValueKind::kTiling,          &KernelTaskCodeBuilder::BuildTilingArg},
+  };
+
+  uint64_t current_args_offset = 0U;
+  for (const auto &addr : semantic_.ordered_arg_values) {
+    // kShapeInfoBuffer 产生多个条目且独自管理 args_offset，需特殊处理
+    if (addr.kind == AddrValueKind::kShapeInfoBuffer) {
+      HandleShapeInfoBufferArg(addr, current_args_offset, data.ordered_args);
+      continue;
+    }
+
+    OpArgBuildData arg;
+    const auto it = kArgBuilders.find(addr.kind);
+    if (it != kArgBuilders.end()) {
+      (this->*(it->second))(addr, arg);
+    } else {
+      BuildDefaultArg(addr, arg);
+    }
+
+    if (addr.memory_type == (kSessionScopeMemoryMask | RT_MEMORY_HBM)) {
+      arg.mem_src = 0xFFFFFFFFU;
+    }
+    arg.args_offset = current_args_offset;
+    current_args_offset += kAddressLen;
+    data.ordered_args.push_back(std::move(arg));
+  }
+
+  AicoreTaskData aicore = BuildAicoreTaskData(args_idx, static_cast<uint32_t>(data.ordered_args.size()));
+  data.task_specific = std::move(aicore);
+  return data;
+}
+
+// ==================== GetOpDefBuildData 子构建器（表驱动） ====================
+
+void KernelTaskCodeBuilder::BuildInputInstanceArg(const AddrSemantic &addr, OpArgBuildData &arg) const {
+  arg.mem_src = 0U;
+  arg.offset = static_cast<uint64_t>(addr.mem_offset);
+  if (addr.tensor_info.has_value()) {
+    arg.type = OP_ARG_INPUT;
+    arg.size = addr.tensor_info->size;
+    arg.data_type = addr.tensor_info->data_type;
+    arg.format = addr.tensor_info->format;
+    arg.shape_dims = addr.tensor_info->shape_dims;
+  } else {
+    arg.type = OP_ARG_RAW_ADDR;
+    arg.size = addr.byte_size;
+  }
+}
+
+void KernelTaskCodeBuilder::BuildOutputInstanceArg(const AddrSemantic &addr, OpArgBuildData &arg) const {
+  arg.mem_src = 0U;
+  arg.offset = static_cast<uint64_t>(addr.mem_offset);
+  if (addr.tensor_info.has_value()) {
+    arg.type = OP_ARG_OUTPUT;
+    arg.size = addr.tensor_info->size;
+    arg.data_type = addr.tensor_info->data_type;
+    arg.format = addr.tensor_info->format;
+    arg.shape_dims = addr.tensor_info->shape_dims;
+  } else {
+    arg.type = OP_ARG_RAW_ADDR;
+    arg.size = addr.byte_size;
+  }
+}
+
+void KernelTaskCodeBuilder::BuildWorkspaceArg(const AddrSemantic &addr, OpArgBuildData &arg) const {
+  arg.type = OP_ARG_WORKSPACE;
+  arg.mem_src = 0U;
+  arg.offset = static_cast<uint64_t>(addr.mem_offset);
+  arg.size = addr.byte_size;
+}
+
+void KernelTaskCodeBuilder::BuildConstTensorArg(const AddrSemantic &addr, OpArgBuildData &arg) const {
+  arg.type = OP_ARG_CONST_TENSOR;
+  arg.mem_src = addr.const_index.has_value() ? static_cast<uint32_t>(*addr.const_index + 1) : 0U;
+  arg.offset = 0;
+  if (addr.tensor_info.has_value()) {
+    arg.size = addr.tensor_info->size;
+    arg.data_type = addr.tensor_info->data_type;
+    arg.format = addr.tensor_info->format;
+    arg.shape_dims = addr.tensor_info->shape_dims;
+  }
+}
+
+void KernelTaskCodeBuilder::BuildLevel1DescArg(const AddrSemantic &addr, OpArgBuildData &arg) const {
+  arg.type = OP_ARG_LEVEL1_DESC;
+  if (semantic_.args_table_entry.has_value() && addr.level1_target_offset.has_value()) {
+    arg.custom_value = semantic_.args_table_entry->host_offset + *addr.level1_target_offset;
+  }
+}
+
+void KernelTaskCodeBuilder::BuildCustomValueArg(const AddrSemantic &addr, OpArgBuildData &arg) const {
+  arg.type = OP_ARG_CUSTOM_VALUE;
+  arg.custom_value = addr.custom_value;
+}
+
+void KernelTaskCodeBuilder::BuildPlaceholderArg(const AddrSemantic &addr, OpArgBuildData &arg) const {
+  (void)addr;
+  arg.type = OP_ARG_PLACEHOLDER;
+}
+
+void KernelTaskCodeBuilder::BuildOptionalEmptyArg(const AddrSemantic &addr, OpArgBuildData &arg) const {
+  (void)addr;
+  arg.type = OP_ARG_OPTIONAL_EMPTY;
+}
+
+void KernelTaskCodeBuilder::BuildFftsAddrArg(const AddrSemantic &addr, OpArgBuildData &arg) const {
+  (void)addr;
+  arg.type = OP_ARG_FFTS_ADDR;
+}
+
+void KernelTaskCodeBuilder::BuildEventAddrArg(const AddrSemantic &addr, OpArgBuildData &arg) const {
+  arg.type = OP_ARG_EVENT_ADDR;
+  arg.custom_value = addr.event_id;
+}
+
+void KernelTaskCodeBuilder::BuildOverflowAddrArg(const AddrSemantic &addr, OpArgBuildData &arg) const {
+  (void)addr;
+  arg.type = OP_ARG_OVERFLOW_ADDR;
+}
+
+void KernelTaskCodeBuilder::BuildTilingArg(const AddrSemantic &addr, OpArgBuildData &arg) const {
+  (void)addr;
+  arg.type = OP_ARG_TILING;
+  arg.raw_data.assign(tiling_data_.begin(), tiling_data_.end());
+}
+
+void KernelTaskCodeBuilder::BuildDefaultArg(const AddrSemantic &addr, OpArgBuildData &arg) const {
+  arg.type = OP_ARG_RAW_ADDR;
+  arg.mem_src = 0U;
+  arg.offset = static_cast<uint64_t>(addr.mem_offset);
+}
+
+void KernelTaskCodeBuilder::HandleShapeInfoBufferArg(const AddrSemantic &addr, uint64_t &current_args_offset,
+                                                     std::vector<OpArgBuildData> &ordered_args) const {
+  if (!addr.shape_info.has_value()) {
+    return;
+  }
+  for (int64_t dim : *addr.shape_info) {
+    OpArgBuildData shape_arg;
+    shape_arg.type = OP_ARG_SHAPE_INFO;
+    shape_arg.custom_value = static_cast<uint64_t>(dim);
+    if (addr.memory_type == (kSessionScopeMemoryMask | RT_MEMORY_HBM)) {
+      shape_arg.mem_src = 0xFFFFFFFFU;
+    }
+    shape_arg.args_offset = current_args_offset;
+    current_args_offset += kAddressLen;
+    ordered_args.push_back(std::move(shape_arg));
+  }
+}
+
+AicoreTaskData KernelTaskCodeBuilder::BuildAicoreTaskData(uint32_t args_idx, uint32_t num_io_addrs) const {
+  AicoreTaskData aicore;
+  aicore.args_idx = args_idx;
+  aicore.func_idx = semantic_.launch.func_handle_index;
+  GELOGI("[OM2] GetOpDefBuildData: op=%s, func_idx=%u", header_.op_name.c_str(), aicore.func_idx);
+  aicore.block_dim = semantic_.launch.block_dim;
+  aicore.schedule_mode = semantic_.launch.config.schedule_mode;
+  aicore.engine_type = ConvertEngineType(semantic_.launch.config.engine_type);
+  aicore.block_dim_offset = semantic_.launch.config.block_dim_offset;
+  aicore.is_block_task_prefetch = semantic_.launch.config.is_block_task_prefetch;
+  aicore.time_out = semantic_.launch.config.time_out;
+  aicore.local_memory_size = semantic_.launch.config.local_memory_size;
+  aicore.task_type = static_cast<uint32_t>(semantic_.task_type);
+  aicore.need_assert_or_printf = op_need_assert_or_printf_ ? 1U : 0U;
+  aicore.num_io_addrs = num_io_addrs;
+  aicore.ordered_arg_values = semantic_.ordered_arg_values;
+  return aicore;
+}
+
+
 Status KernelTaskCodeBuilder::AppendOrderedArgValueForCommon(const AddrSemantic &semantic, const uint64_t addr_offset) {
   if (semantic.memory_app == MemoryAppType::kModelIo) {
     io_addr_refresh_records_.push_back(
@@ -136,6 +332,11 @@ void KernelTaskCodeBuilder::AppendOrderedArg(const AddrSemantic &semantic) {
   AppendOrderedArgValue(semantic);
   current_args_offset_ += GetOrderedArgByteSize(semantic);
 }
+
+bool KernelTaskCodeBuilder::SupportsTableDriven() const {
+  return IsAicoreTask(semantic_);  // 仅 AICORE 走表驱动，AICPU 走 RenderDistribution
+}
+
 
 Status KernelTaskCodeBuilder::ValidateLevel1DescTargetOffsets() const {
   for (size_t i = 0UL; i < semantic_.ordered_arg_values.size(); ++i) {
@@ -269,6 +470,8 @@ Status KernelTaskCodeBuilder::BuildLaunchSemantic(const TaskSemanticContributeCo
   GE_ASSERT_TRUE(func_handle_it != context.func_handle_indices->end(),
                  "[OM2] Func handle key %s not found.", func_handle_key.c_str());
   launch_semantic.func_handle_index = func_handle_it->second;
+  GELOGI("[OM2] BuildLaunchSemantic: op=%s, func_handle_key=%s, func_idx=%u", context.op_desc->GetNamePtr(),
+         func_handle_key.c_str(), launch_semantic.func_handle_index);
   return SUCCESS;
 }
 
@@ -909,6 +1112,7 @@ void KernelTaskCodeBuilder::AssignTaskLocalIoNames() {
     }
   }
 }
+
 ExprRef KernelTaskCodeBuilder::BuildReportTaskPreprocessCall(Arg l0_info) const {
   return TaskCodeBuilderUtil::BuildReportTaskPreprocessCall(
       ast_, header_, semantic_.args_table_entry.has_value() ? &(*semantic_.args_table_entry) : nullptr,
@@ -1710,6 +1914,346 @@ Status KernelTaskCodeBuilder::BuildAicpuExtInfoSemantic(const TaskSemanticContri
   semantic_.aicpu_ext_info->total_len = ext_info_buffer.size();
   semantic_.aicpu_ext_info->session_info_offset = session_info_offset;
   semantic_.aicpu_ext_info->serialized_bytes = std::move(ext_info_buffer);
+  return SUCCESS;
+}
+
+Status KernelTaskCodeBuilder::RenderDispatchOpCaseBody(std::vector<BodyItem> &items) {
+  auto op = ast_.Var("const OpDef *", "op");
+  auto ctx = ast_.Var("const DispatchOpContext &", "ctx");
+
+  // 阶段1：前置声明（cfg_holder, launch_config, args_info, 各种 vector）
+  auto setup = BuildDispatchSetup(op, ctx);
+  items.insert(items.end(), setup.begin(), setup.end());
+
+  // 阶段2：地址解析循环（查表法 dispatch）
+  items.push_back(BuildDispatchLoop(op, ctx));
+
+  // 阶段3：后置调用（l0_info, ReportOm2TaskPreprocess, KernelTaskDistribute, ReportLaunchedOm2Task）
+  auto distribution = BuildDistribution(op, ctx);
+  items.insert(items.end(), distribution.begin(), distribution.end());
+
+  return SUCCESS;
+}
+
+std::vector<BodyItem> KernelTaskCodeBuilder::BuildDispatchSetup(
+    const VarRef &op, const VarRef &ctx) {
+  return {
+    ast_.VarDecl(ast_.Var("LaunchKernelCfgHolder", "cfg_holder")),
+    ast_.VarDecl(ast_.Var("LaunchKernelConfig", "launch_config"),
+        ast_.InitListWithDesignators(std::vector<std::pair<std::string, Arg>>{
+            {"schedule_mode", op.Arrow("task_data").Attr("aicore").Attr("launch").Attr("schedule_mode")},
+            {"engine_type", ast_.StaticCast("aclrtEngineType",
+                op.Arrow("task_data").Attr("aicore").Attr("launch").Attr("engine_type"))},
+            {"block_dim_offset", op.Arrow("task_data").Attr("aicore").Attr("launch").Attr("block_dim_offset")},
+            {"is_block_task_prefetch", op.Arrow("task_data").Attr("aicore").Attr("launch").Attr("is_block_task_prefetch")},
+            {"is_data_dump", ast_.Call("GetIsDataDump",
+                {op.Arrow("op_name"), ctx.Attr("model_id"), ctx.Attr("instance_handle")})},
+            {"time_out", op.Arrow("task_data").Attr("aicore").Attr("launch").Attr("time_out")},
+            {"local_memory_size", op.Arrow("task_data").Attr("aicore").Attr("launch").Attr("local_memory_size")},
+        })),
+    ChkStatus(ast_.Call("AssembleLaunchConfig",
+        {ast_.Var("", "cfg_holder"), ast_.Var("", "launch_config")})),
+    ast_.VarDecl(ast_.Var("ArgsInfo *", "args_info"),
+        ctx.Attr("args_table").Attr("GetArgsInfo")(
+            op.Arrow("task_data").Attr("aicore").Attr("args_idx"))),
+    ChkNotNull(ast_.Var("", "args_info")),
+    // -- 声明 ordered_io_addrs 和 Report IO 向量 --
+    ast_.VarDecl(ast_.Var("std::vector<uint64_t>", "ordered_io_addrs")),
+    ast_.VarDecl(ast_.Var("std::vector<Om2Tensor>", "io_tensors")),
+    ast_.Call("", {ast_.Var("", "io_tensors").Attr("reserve")(op.Arrow("task_data").Attr("aicore").Attr("num_io_addrs"))}),
+    ast_.VarDecl(ast_.Var("std::vector<Om2TaskIoEntry>", "report_inputs")),
+    ast_.VarDecl(ast_.Var("std::vector<Om2TaskIoEntry>", "report_outputs")),
+    ast_.VarDecl(ast_.Var("std::vector<uint64_t>", "report_workspace_addrs")),
+    ast_.VarDecl(ast_.Var("std::vector<uint64_t>", "report_workspace_sizes")),
+  };
+}
+
+BodyItem KernelTaskCodeBuilder::BuildDispatchLoop(
+    const VarRef &op, const VarRef &ctx) {
+  auto a = ast_.Var("const auto &", "a");
+  return ast_.For(
+      ast_.VarDecl("uint32_t", "j", ast_.UInt(0)),
+      ast_.Var("", "j") < op.Arrow("task_data").Attr("aicore").Attr("num_io_addrs"),
+      ast_.PostInc(ast_.Var("", "j")), std::initializer_list<BodyItem>{
+          ast_.VarDecl(a, op.Arrow("argsInfo")[ast_.Var("", "j")]),
+          ast_.VarDecl(ast_.Var("uint64_t", "_addr"), ast_.UInt(0)),
+          ast_.Switch(ast_.Var("", "a").Attr("type"), std::vector<BodyItem>{
+              // INPUT / OUTPUT → 共享 handler（内部根据 a.type 区分）
+              ast_.Case(ast_.Var("", "OP_ARG_INPUT")),
+              ast_.Case(ast_.Var("", "OP_ARG_OUTPUT")),
+              ast_.Block(HandleInputOutputArg(a, ctx)),
+              // WORKSPACE
+              ast_.Case(ast_.Var("", "OP_ARG_WORKSPACE")),
+              ast_.Block(HandleWorkspaceArg(a, ctx)),
+              // CONST_TENSOR
+              ast_.Case(ast_.Var("", "OP_ARG_CONST_TENSOR")),
+              ast_.Block(HandleConstTensorArg(a, ctx)),
+              // LEVEL1_DESC
+              ast_.Case(ast_.Var("", "OP_ARG_LEVEL1_DESC")),
+              ast_.Block(HandleLevel1DescArg(a, ctx)),
+              // SHAPE_INFO / CUSTOM_VALUE → 共享 handler
+              ast_.Case(ast_.Var("", "OP_ARG_SHAPE_INFO")),
+              ast_.Case(ast_.Var("", "OP_ARG_CUSTOM_VALUE")),
+              ast_.Block(HandleShapeInfoOrCustomValueArg(a)),
+              // PLACEHOLDER / OPTIONAL_EMPTY → 共享 handler
+              ast_.Case(ast_.Var("", "OP_ARG_PLACEHOLDER")),
+              ast_.Case(ast_.Var("", "OP_ARG_OPTIONAL_EMPTY")),
+              ast_.Block(HandlePlaceholderOrOptionalEmptyArg()),
+              // FFTS_ADDR
+              ast_.Case(ast_.Var("", "OP_ARG_FFTS_ADDR")),
+              ast_.Block(HandleFftsAddrArg()),
+              // EVENT_ADDR
+              ast_.Case(ast_.Var("", "OP_ARG_EVENT_ADDR")),
+              ast_.Block(HandleEventAddrArg(a, ctx)),
+              // OVERFLOW_ADDR
+              ast_.Case(ast_.Var("", "OP_ARG_OVERFLOW_ADDR")),
+              ast_.Block(HandleOverflowAddrArg(ctx)),
+              // TILING
+              ast_.Case(ast_.Var("", "OP_ARG_TILING")),
+              ast_.Block(HandleTilingArg(a, ctx)),
+              // default
+              ast_.Case(Arg(nullptr)),
+              ast_.Block(HandleDefaultArg()),
+          }),
+          ast_.Var("", "ordered_io_addrs").PushBack(ast_.Var("", "_addr")),
+      });
+}
+
+std::vector<BodyItem> KernelTaskCodeBuilder::BuildDistribution(
+    const VarRef &op, const VarRef &ctx) {
+  return {
+    ast_.VarDecl(ast_.Var("Om2L0TaskRawInfo", "l0_info"),
+        ast_.InitList({
+            ast_.UInt(1U),
+            op.Arrow("task_data").Attr("aicore").Attr("l0").Attr("need_assert_or_printf"),
+            ast_.StaticCast("uint64_t", op.Arrow("task_data").Attr("aicore").Attr("l0").Attr("num_l0_slots")),
+            op.Arrow("task_data").Attr("aicore").Attr("l0").Attr("l0_slots")})),
+    ChkStatus(ast_.Call("ReportOm2TaskPreprocess", {
+        op.Arrow("op_name"),
+        op.Arrow("task_data").Attr("aicore").Attr("op_type"),
+        ast_.UInt(0),  // op_desc_id (not in OpDef struct, default to 0)
+        ast_.ReinterpretCast("uintptr_t", ast_.Var("", "args_info").Arrow("dev_addr")),
+        ast_.Var("", "args_info").Arrow("size"),
+        ast_.Var("", "report_inputs"),
+        ast_.Var("", "report_outputs"),
+        ast_.Var("", "report_workspace_addrs"),
+        ast_.Var("", "report_workspace_sizes"),
+        ast_.StaticCast("uint32_t", op.Arrow("dispatch_type")),
+        ctx.Attr("stream"),
+        ast_.Var("", "l0_info").Addr(),
+        ctx.Attr("model_id"),
+        ctx.Attr("instance_handle")})),
+    ChkStatus(ast_.Call("KernelTaskDistribute",
+        {ast_.Var("", "ordered_io_addrs"), ast_.Var("", "args_info"),
+        ctx.Attr("func_handles")[op.Arrow("task_data").Attr("aicore").Attr("kernel").Attr("func_idx")],
+        op.Arrow("task_data").Attr("aicore").Attr("kernel").Attr("block_dim"),
+        ctx.Attr("stream"), ast_.Var("", "cfg_holder").Attr("cfg").Addr()})),
+    // -- Report（empty vector 的 data() 返回 nullptr）--
+    ChkStatus(ast_.Call("ReportLaunchedOm2Task", {
+        op.Arrow("op_name"),
+        op.Arrow("task_data").Attr("aicore").Attr("op_type"),
+        ast_.UInt(0),  // op_desc_id (not in OpDef struct, default to 0)
+        ast_.ReinterpretCast("uintptr_t", ast_.Var("", "args_info").Arrow("dev_addr")),
+        ast_.Var("", "args_info").Arrow("size"),
+        ast_.Var("", "report_inputs").Data(),
+        ast_.StaticCast("uint64_t", ast_.Var("", "report_inputs").Size()),
+        ast_.Var("", "report_outputs").Data(),
+        ast_.StaticCast("uint32_t", ast_.Var("", "report_outputs").Size()),
+        ast_.Var("", "report_workspace_addrs").Data(),
+        ast_.Var("", "report_workspace_sizes").Data(),
+        ast_.StaticCast("uint32_t", ast_.Var("", "report_workspace_sizes").Size()),
+        ast_.StaticCast("uint32_t", op.Arrow("dispatch_type")),
+        ctx.Attr("stream"),
+        ctx.Attr("model_id"),
+        ctx.Attr("instance_handle")})),
+  };
+}
+
+std::vector<BodyItem> KernelTaskCodeBuilder::HandleInputOutputArg(const VarRef &a, const VarRef &ctx) {
+  return {
+    ast_.Assign(ast_.Var("", "_addr"),
+        ast_.ReinterpretCast("uint64_t",
+            ast_.Call("ResolveOpAddr", {a.Attr("addr").Attr("mem_src"), a.Attr("addr").Attr("offset"),
+                                        ctx.Attr("total_dev_mem_ptr"), ctx.Attr("session_scope_mem_ptr"),
+                                        ctx.Attr("constants")}))),
+    ast_.Var("", "io_tensors").PushBack(ast_.Call("BuildOm2Tensor", {
+        ast_.ReinterpretCast("void *", ast_.Var("", "_addr")),
+        a.Attr("data").Attr("tensor").Attr("size"),
+        a.Attr("data").Attr("tensor").Attr("data_type"),
+        a.Attr("data").Attr("tensor").Attr("format"),
+        a.Attr("data").Attr("tensor").Attr("shape"),
+        a.Attr("data").Attr("tensor").Attr("num_shape_dims")})),
+    ast_.VarDecl(ast_.Var("Om2TaskIoEntry", "_entry"), ast_.InitList({
+        ast_.Var("", "io_tensors").Attr("back")().Addr(),
+        a.Attr("data").Attr("tensor").Attr("args_offset")})),
+    ast_.If(
+        a.Attr("type") == ast_.Var("", "OP_ARG_INPUT"),
+        {ast_.Var("", "report_inputs").PushBack(ast_.Var("", "_entry"))},
+        {ast_.Var("", "report_outputs").PushBack(ast_.Var("", "_entry"))}),
+    ast_.Break(),
+  };
+}
+
+std::vector<BodyItem> KernelTaskCodeBuilder::HandleWorkspaceArg(
+    const VarRef &a, const VarRef &ctx) {
+  return {
+    ast_.Assign(ast_.Var("", "_addr"),
+        ast_.ReinterpretCast("uint64_t",
+            ast_.Call("ResolveOpAddr",
+                {a.Attr("addr").Attr("mem_src"),
+                 a.Attr("addr").Attr("offset"),
+                 ctx.Attr("total_dev_mem_ptr"),
+                 ctx.Attr("session_scope_mem_ptr"),
+                 ctx.Attr("constants")}))),
+    ast_.Var("", "report_workspace_addrs").PushBack(ast_.Var("", "_addr")),
+    ast_.Var("", "report_workspace_sizes").PushBack(
+        a.Attr("data").Attr("tensor").Attr("size")),
+    ast_.Break(),
+  };
+}
+
+std::vector<BodyItem> KernelTaskCodeBuilder::HandleConstTensorArg(
+    const VarRef &a, const VarRef &ctx) {
+  return {
+    ast_.Assign(ast_.Var("", "_addr"),
+        ast_.ReinterpretCast("uint64_t",
+            ast_.Call("ResolveOpAddr",
+                {a.Attr("addr").Attr("mem_src"),
+                 a.Attr("addr").Attr("offset"),
+                 ctx.Attr("total_dev_mem_ptr"),
+                 ctx.Attr("session_scope_mem_ptr"),
+                 ctx.Attr("constants")}))),
+    ast_.Break(),
+  };
+}
+
+std::vector<BodyItem> KernelTaskCodeBuilder::HandleLevel1DescArg(
+    const VarRef &a, const VarRef &ctx) {
+  return {
+    ast_.VarDecl(ast_.Var("void *", "_desc"),
+        ctx.Attr("args_table").Attr("GetDevArgAddr")(
+            a.Attr("data").Attr("custom_value"))),
+    ChkNotNull(ast_.Var("", "_desc")),
+    ast_.Assign(ast_.Var("", "_addr"),
+        ast_.ReinterpretCast("uint64_t", ast_.Var("", "_desc"))),
+    ast_.Break(),
+  };
+}
+
+std::vector<BodyItem> KernelTaskCodeBuilder::HandleShapeInfoOrCustomValueArg(
+    const VarRef &a) {
+  return {
+    ast_.Assign(ast_.Var("", "_addr"),
+        a.Attr("data").Attr("custom_value")),
+    ast_.Break(),
+  };
+}
+
+std::vector<BodyItem> KernelTaskCodeBuilder::HandlePlaceholderOrOptionalEmptyArg() {
+  return {
+    ast_.Assign(ast_.Var("", "_addr"), ast_.UInt(0)),
+    ast_.Break(),
+  };
+}
+
+std::vector<BodyItem> KernelTaskCodeBuilder::HandleFftsAddrArg() {
+  return {
+    ast_.VarDecl(ast_.Var("void *", "_ffts"), Arg(nullptr)),
+    ChkStatus(ast_.Call("aclrtGetHardwareSyncAddr",
+        {ast_.Var("", "_ffts").Addr()})),
+    ast_.Assign(ast_.Var("", "_addr"),
+        ast_.ReinterpretCast("uint64_t", ast_.Var("", "_ffts"))),
+    ast_.Break(),
+  };
+}
+
+std::vector<BodyItem> KernelTaskCodeBuilder::HandleEventAddrArg(
+    const VarRef &a, const VarRef &ctx) {
+  return {
+    ast_.VarDecl(ast_.Var("void *", "_event"), Arg(nullptr)),
+    ChkStatus(ast_.Call("GetEventIdAddr",
+        {ast_.Var("", "_event"),
+         ctx.Attr("event_id_mem_map"),
+         ast_.StaticCast("uint32_t",
+             a.Attr("data").Attr("custom_value")),
+         ctx.Attr("dev_dynamic_mem_ptrs")})),
+    ast_.Assign(ast_.Var("", "_addr"),
+        ast_.ReinterpretCast("uint64_t", ast_.Var("", "_event"))),
+    ast_.Break(),
+  };
+}
+
+std::vector<BodyItem> KernelTaskCodeBuilder::HandleOverflowAddrArg(
+    const VarRef &ctx) {
+  return {
+    ast_.Assign(ast_.Var("", "_addr"),
+        ast_.ReinterpretCast("uint64_t",
+            ctx.Attr("overflow_addr"))),
+    ast_.Break(),
+  };
+}
+
+std::vector<BodyItem> KernelTaskCodeBuilder::HandleTilingArg(
+    const VarRef &a, const VarRef &ctx) {
+  return {
+    ast_.VarDecl(ast_.Var("void *", "_tiling"), Arg(nullptr)),
+    ChkStatus(ast_.Call("MallocDeviceMemory",
+        {ast_.Var("", "_tiling"),
+         a.Attr("data").Attr("tiling").Attr("raw_data_len"),
+         ast_.UInt(2),
+         ctx.Attr("dev_dynamic_mem_ptrs")})),
+    ChkStatus(ast_.Call("aclrtMemcpy",
+        {ast_.Var("", "_tiling"),
+         a.Attr("data").Attr("tiling").Attr("raw_data_len"),
+         a.Attr("data").Attr("tiling").Attr("raw_data"),
+         a.Attr("data").Attr("tiling").Attr("raw_data_len"),
+         ast_.Var("", "ACL_MEMCPY_HOST_TO_DEVICE")})),
+    ast_.Assign(ast_.Var("", "_addr"),
+        ast_.ReinterpretCast("uint64_t", ast_.Var("", "_tiling"))),
+    ast_.Break(),
+  };
+}
+
+std::vector<BodyItem> KernelTaskCodeBuilder::HandleDefaultArg() {
+  return {
+    ast_.Assign(ast_.Var("", "_addr"), ast_.UInt(0)),
+    ast_.Break(),
+  };
+}
+
+Status KernelTaskCodeBuilder::RenderOpDefTableFields(std::vector<std::pair<std::string, Arg>> &fields, uint32_t dispatch_type) {
+  TaskCodeBuilder::RenderOpDefTableFields(fields, dispatch_type);
+  const auto &opdef_data = GetOpDefBuildData();
+  const auto &header = GetHeader();
+  const auto &data = std::get<AicoreTaskData>(opdef_data.task_specific);
+  auto launch_fields = std::vector<std::pair<std::string, Arg>>{
+      {"schedule_mode", data.schedule_mode},
+      {"engine_type", static_cast<int64_t>(data.engine_type)},
+      {"block_dim_offset", data.block_dim_offset},
+      {"is_block_task_prefetch", data.is_block_task_prefetch},
+      {"time_out", data.time_out},
+      {"local_memory_size", data.local_memory_size},
+  };
+  auto kernel_fields = std::vector<std::pair<std::string, Arg>>{
+      {"block_dim", data.block_dim},
+      {"func_idx", static_cast<int64_t>(data.func_idx)},
+  };
+  auto l0_fields = std::vector<std::pair<std::string, Arg>>{
+      {"need_assert_or_printf", static_cast<int64_t>(data.need_assert_or_printf)},
+      {"num_l0_slots", static_cast<int64_t>(data.ordered_arg_values.size())},
+      {"l0_slots", ast_.CCast("const Om2L0ArgSlotInfo[]",
+          TaskCodeBuilderUtil::BuildL0ArgSlotEntries(ast_, data.ordered_arg_values))},
+  };
+  auto aicore_fields = std::vector<std::pair<std::string, Arg>>{
+      {"op_type", Arg::StringLiteral(header.op_type)},
+      {"num_io_addrs", static_cast<int64_t>(data.num_io_addrs)},
+      {"args_idx", static_cast<int64_t>(data.args_idx)},
+      {"launch", ast_.InitListWithDesignators(launch_fields, true)},
+      {"kernel", ast_.InitListWithDesignators(kernel_fields, true)},
+      {"l0", ast_.InitListWithDesignators(l0_fields, true)},
+  };
+  GELOGI("[OM2] BuildOpDefTable: op=%s, func_idx=%u", header.op_name.c_str(), data.func_idx);
+  fields.push_back({"task_data", ast_.InitListWithDesignators({{"aicore", ast_.InitListWithDesignators(aicore_fields)}})});
   return SUCCESS;
 }
 

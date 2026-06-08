@@ -60,7 +60,9 @@ class CppEmitter final : public CodeEmitter {
   Status Emit(const CppArrowMemberExpr &node, std::string &output) override final;
   Status Emit(const CppCastExpr &node, std::string &output) override final;
   Status Emit(const LambdaExpr &node, std::string &output) override final;
+  Status Emit(const CCastExpr &node, std::string &output) override final;
   Status Emit(const InitListExpr &node, std::string &output) override final;
+  Status Emit(const DesignatedInitListExpr &node, std::string &output) override final;
   Status Emit(const CommentStmt &node, std::string &output) override final;
   Status Emit(const BlankLineStmt &node, std::string &output) override final;
   Status Emit(const VarDeclStmt &node, std::string &output) override final;
@@ -70,6 +72,9 @@ class CppEmitter final : public CodeEmitter {
   Status Emit(const IfStmt &node, std::string &output) override final;
   Status Emit(const ForStmt &node, std::string &output) override final;
   Status Emit(const RangeForStmt &node, std::string &output) override final;
+  Status Emit(const CaseStmt &node, std::string &output) override final;
+  Status Emit(const BreakStmt &node, std::string &output) override final;
+  Status Emit(const SwitchStmt &node, std::string &output) override final;
 
  private:
   void AppendIndent(std::string &output) const;

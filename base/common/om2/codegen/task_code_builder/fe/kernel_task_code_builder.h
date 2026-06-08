@@ -32,12 +32,18 @@ class KernelTaskCodeBuilder : public TaskCodeBuilder {
  public:
   explicit KernelTaskCodeBuilder(AstBuildContext &ast)
       : TaskCodeBuilder(ast), cust_value_var_index_(0), place_holder_var_index_(0) {}
-  Status RenderDistribution(std::vector<BodyItem> &items) override;
   Status RenderDistHelper(std::vector<DeclNode *> &items) override;
+  Status RenderDistribution(std::vector<BodyItem> &items) override;
   Status Contribute(TaskSemanticContributeContext &context) override;
   const KernelTaskSemantic &GetTaskSemantic() const {
     return semantic_;
   }
+  ModelTaskType GetTaskType() const override { return semantic_.task_type; }
+  OpDefBuildData GetOpDefBuildData() const override;
+  Status RenderDispatchOpCaseBody(std::vector<BodyItem> &items) override;
+  Status RenderOpDefTableFields(std::vector<std::pair<std::string, Arg>> &fields, uint32_t dispatch_type) override;
+
+  bool SupportsTableDriven() const override;
 
   int64_t ParseOpIndex(const domi::TaskDef &task_def) override;
 
@@ -134,6 +140,25 @@ class KernelTaskCodeBuilder : public TaskCodeBuilder {
   Status BuildAddrGenInfoForEventAddr(const AddrSemantic &semantic, RenderedAddrInfo &addr_gen_info) const;
   Status BuildAddrGenInfoForTiling(const AddrSemantic &semantic, RenderedAddrInfo &addr_gen_info) const;
   ExprRef BuildReportTaskPreprocessCall(Arg l0_info) const;
+
+  // ── RenderDispatchOpCaseBody 拆分方法 ──
+  std::vector<BodyItem> BuildDispatchSetup(const VarRef &op, const VarRef &ctx);
+  BodyItem BuildDispatchLoop(const VarRef &op, const VarRef &ctx);
+  std::vector<BodyItem> BuildDistribution(const VarRef &op, const VarRef &ctx);
+
+  // ── 地址解析 handler（每个 OpArgType 对应一个）──
+  std::vector<BodyItem> HandleInputOutputArg(const VarRef &a, const VarRef &ctx);
+  std::vector<BodyItem> HandleWorkspaceArg(const VarRef &a, const VarRef &ctx);
+  std::vector<BodyItem> HandleConstTensorArg(const VarRef &a, const VarRef &ctx);
+  std::vector<BodyItem> HandleLevel1DescArg(const VarRef &a, const VarRef &ctx);
+  std::vector<BodyItem> HandleShapeInfoOrCustomValueArg(const VarRef &a);
+  std::vector<BodyItem> HandlePlaceholderOrOptionalEmptyArg();
+  std::vector<BodyItem> HandleFftsAddrArg();
+  std::vector<BodyItem> HandleEventAddrArg(const VarRef &a, const VarRef &ctx);
+  std::vector<BodyItem> HandleOverflowAddrArg(const VarRef &ctx);
+  std::vector<BodyItem> HandleTilingArg(const VarRef &a, const VarRef &ctx);
+  std::vector<BodyItem> HandleDefaultArg();
+
   void AssignTaskLocalIoNames();
   Status CheckTaskSupport() const;
   Status GetKernelTaskMeta(const domi::TaskDef &task_def, domi::KernelContext &kernel_context,
@@ -150,6 +175,25 @@ class KernelTaskCodeBuilder : public TaskCodeBuilder {
     int32_t &session_info_offset, const uint32_t num_inputs, const uint32_t num_outputs, const std::string &node_name,
     const bool all_shape) const;
   Status AppendDistributionForAicpu(const std::vector<Arg> &args_vars, std::vector<BodyItem> &items);
+
+  // GetOpDefBuildData 子构建器（表驱动）
+  void BuildInputInstanceArg(const AddrSemantic &addr, OpArgBuildData &arg) const;
+  void BuildOutputInstanceArg(const AddrSemantic &addr, OpArgBuildData &arg) const;
+  void BuildWorkspaceArg(const AddrSemantic &addr, OpArgBuildData &arg) const;
+  void BuildConstTensorArg(const AddrSemantic &addr, OpArgBuildData &arg) const;
+  void BuildLevel1DescArg(const AddrSemantic &addr, OpArgBuildData &arg) const;
+  void BuildCustomValueArg(const AddrSemantic &addr, OpArgBuildData &arg) const;
+  void BuildPlaceholderArg(const AddrSemantic &addr, OpArgBuildData &arg) const;
+  void BuildOptionalEmptyArg(const AddrSemantic &addr, OpArgBuildData &arg) const;
+  void BuildFftsAddrArg(const AddrSemantic &addr, OpArgBuildData &arg) const;
+  void BuildEventAddrArg(const AddrSemantic &addr, OpArgBuildData &arg) const;
+  void BuildOverflowAddrArg(const AddrSemantic &addr, OpArgBuildData &arg) const;
+  void BuildTilingArg(const AddrSemantic &addr, OpArgBuildData &arg) const;
+  void BuildDefaultArg(const AddrSemantic &addr, OpArgBuildData &arg) const;
+  void HandleShapeInfoBufferArg(const AddrSemantic &addr, uint64_t &current_args_offset,
+                                std::vector<OpArgBuildData> &ordered_args) const;
+  AicoreTaskData BuildAicoreTaskData(uint32_t args_idx, uint32_t num_io_addrs) const;
+
  private:
   std::vector<RenderedAddrInfo> args_addr_nodes_;
   int32_t cust_value_var_index_;

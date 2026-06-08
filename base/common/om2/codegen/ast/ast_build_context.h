@@ -209,8 +209,11 @@ class AstBuildContext {
   MethodDef *DefineMethod(const std::string &owner, const std::string &name, std::initializer_list<VarRef> params,
                           const std::string &return_type, std::initializer_list<MemberInitSpec> member_inits,
                           std::initializer_list<BodyItem> items) const;
-  InitListExpr *InitList(std::initializer_list<Arg> items) const;
-  InitListExpr *InitList(const std::vector<Arg> &items) const;
+  CCastExpr *CCast(const std::string &target_type, Arg expr) const;
+  InitListExpr *InitList(std::initializer_list<Arg> items, bool compact = false) const;
+  InitListExpr *InitList(const std::vector<Arg> &items, bool compact = false) const;
+  DesignatedInitListExpr *InitListWithDesignators(
+      const std::vector<std::pair<std::string, Arg>> &members, bool compact = false) const;
   VarRef Var(const std::string &type_name, const std::string &symbol_name) const;
   ExprRef Assign(Arg lhs, Arg rhs) const;
   ExprRef Deref(Arg expr) const;
@@ -238,6 +241,9 @@ class AstBuildContext {
   RangeForStmt *RangeFor(const VarRef &loop_var, Arg range, std::initializer_list<BodyItem> items) const;
   RangeForStmt *RangeFor(const std::string &type_spec, const std::string &name, Arg range,
                          std::initializer_list<BodyItem> items) const;
+  SwitchStmt *Switch(Arg cond, const std::vector<BodyItem> &items) const;
+  CaseStmt *Case(Arg value) const;
+  BreakStmt *Break() const;
   MemberInitSpec MemberInit(const std::string &member_name, Arg init) const;
   std::vector<Stmt *> Body(std::initializer_list<BodyItem> items) const;
   std::vector<Stmt *> Body(const std::vector<BodyItem> &items) const;

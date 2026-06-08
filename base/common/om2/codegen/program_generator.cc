@@ -45,7 +45,6 @@ Status ProgramGenerator::GenerateProgram(Om2CodePrinter &code_printer) {
 Status ProgramGenerator::GenerateInterfaceHeader(Om2CodePrinter &code_printer) {
   InterfaceFileCodeGenerator interface_handler(ast_);
   auto external_api_decls = interface_handler.BuildExternalApiDecls();
-  (void)external_api_decls.insert(external_api_decls.begin(), ast_.StablePart(StablePartId::kInterfaceDumpApis));
   auto *translation_unit = ast_.File({
       ast_.Include("iostream", IncludeDecl::Kind::kAngle),
       ast_.Include("cstddef", IncludeDecl::Kind::kAngle),
@@ -69,6 +68,7 @@ Status ProgramGenerator::GenerateInterfaceHeader(Om2CodePrinter &code_printer) {
       ast_.Space(),
       ast_.StablePart(StablePartId::kInterfaceMacros),
       ast_.StablePart(StablePartId::kInterfacePointerHelpers),
+      ast_.StablePart(StablePartId::kInterfaceDumpApis),
       ast_.Namespace("om2", {
           ast_.Field("constexpr int32_t", "INPUT_NUM", static_cast<int>(codegen_model_.model_io.input_count)),
           ast_.Field("constexpr int32_t", "OUTPUT_NUM", static_cast<int>(codegen_model_.model_io.output_count)),
@@ -80,6 +80,7 @@ Status ProgramGenerator::GenerateInterfaceHeader(Om2CodePrinter &code_printer) {
           interface_handler.BuildTfAiCpuExInfoStruct(),
           ast_.StablePart(StablePartId::kScopeGuard, StablePartPlacement::kNamespace),
           interface_handler.BuildOm2ArgsTableClass(),
+          ast_.StablePart(StablePartId::kOpDefStructs, StablePartPlacement::kNamespace),
           interface_handler.BuildOm2ModelClass(codegen_model_),
       }),
       ast_.ExternBlock("C", external_api_decls),
@@ -164,6 +165,7 @@ Status ProgramGenerator::GenerateLoadAndRunSource(Om2CodePrinter &code_printer) 
   auto anonymous_items = load_and_run_handler.BuildAnonymousNamespaceItems(codegen_model_, task_code_builder_list_);
   (void)anonymous_items.insert(anonymous_items.begin(), ast_.StablePart(StablePartId::kLoadAndRunDumpHelpers,
                                                                   StablePartPlacement::kNamespace));
+  anonymous_items.push_back(load_and_run_handler.BuildOpDefTable(codegen_model_, task_code_builder_list_));
   auto *translation_unit = ast_.File({
       ast_.Include(codegen_model_.model_name + "_interface.h"),
       ast_.Space(),

@@ -390,17 +390,34 @@ MethodDef *AstBuildContext::DefineMethod(const std::string &owner, const std::st
                       std::vector<MemberInitSpec>(member_inits.begin(), member_inits.end()), Body(items));
 }
 
-InitListExpr *AstBuildContext::InitList(std::initializer_list<Arg> items) const {
-  return InitList(std::vector<Arg>(items.begin(), items.end()));
+CCastExpr *AstBuildContext::CCast(const std::string &target_type, Arg expr) const {
+  return CCastExpr::Create(ctx_, target_type, ResolveArg(expr, ctx_));
 }
 
-InitListExpr *AstBuildContext::InitList(const std::vector<Arg> &items) const {
+InitListExpr *AstBuildContext::InitList(std::initializer_list<Arg> items, bool compact) const {
+  return InitList(std::vector<Arg>(items.begin(), items.end()), compact);
+}
+
+InitListExpr *AstBuildContext::InitList(const std::vector<Arg> &items, bool compact) const {
   std::vector<Expr *> resolved;
   resolved.reserve(items.size());
   for (const auto &item : items) {
     resolved.push_back(ResolveArg(item, ctx_));
   }
-  return InitListExpr::Create(ctx_, resolved);
+  return InitListExpr::Create(ctx_, resolved, compact);
+}
+
+DesignatedInitListExpr *AstBuildContext::InitListWithDesignators(
+    const std::vector<std::pair<std::string, Arg>> &members, bool compact) const {
+  std::vector<std::string> names;
+  std::vector<Expr *> values;
+  names.reserve(members.size());
+  values.reserve(members.size());
+  for (const auto &member : members) {
+    names.push_back(member.first);
+    values.push_back(ResolveArg(member.second, ctx_));
+  }
+  return DesignatedInitListExpr::Create(ctx_, names, values, compact);
 }
 
 VarRef AstBuildContext::Var(const std::string &type_name, const std::string &symbol_name) const {
@@ -512,6 +529,25 @@ RangeForStmt *AstBuildContext::RangeFor(const VarRef &loop_var, Arg range, std::
 RangeForStmt *AstBuildContext::RangeFor(const std::string &type_spec, const std::string &name, Arg range,
                                         std::initializer_list<BodyItem> items) const {
   return RangeForStmt::Create(ctx_, type_spec, name, ResolveArg(range, ctx_), BlockStmt::Create(ctx_, Body(items)));
+}
+
+SwitchStmt *AstBuildContext::Switch(Arg cond, const std::vector<BodyItem> &items) const {
+  return SwitchStmt::Create(ctx_, ResolveArg(cond, ctx_), BlockStmt::Create(ctx_, Body(items)));
+}
+
+CaseStmt *AstBuildContext::Case(Arg value) const {
+  auto *val = ResolveArg(value, ctx_);
+  if (val != nullptr) {
+    if (auto *literal = dynamic_cast<LiteralExpr *>(val);
+        literal != nullptr && literal->GetKind() == LiteralExpr::Kind::kNullptr) {
+      val = nullptr;
+    }
+  }
+  return CaseStmt::Create(ctx_, val);
+}
+
+BreakStmt *AstBuildContext::Break() const {
+  return BreakStmt::Create(ctx_);
 }
 
 MemberInitSpec AstBuildContext::MemberInit(const std::string &member_name, Arg init) const {

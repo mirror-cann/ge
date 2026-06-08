@@ -753,19 +753,89 @@ Status CppEmitter::Emit(const LambdaExpr &node, std::string &output) {
   return node.GetBody()->Accept(*this, output);
 }
 
+Status CppEmitter::Emit(const CCastExpr &node, std::string &output) {
+  output.append("(");
+  AppendStringRef(node.GetTargetType(), output);
+  output.append(")");
+  return node.GetExpr()->Accept(*this, output);
+}
+
 Status CppEmitter::Emit(const InitListExpr &node, std::string &output) {
-  (void)output.append("{");
   const auto elements = node.GetElements();
-  for (size_t i = 0; i < elements.Size(); ++i) {
-    if (i > 0) {
-      (void)output.append(", ");
+  if (node.IsCompact()) {
+    output.append("{\n");
+    if (indent_level_ < std::numeric_limits<size_t>::max()) {
+      indent_level_++;
     }
-    const auto status = elements[i]->Accept(*this, output);
+    for (size_t i = 0; i < elements.Size(); ++i) {
+      AppendIndent(output);
+      const auto status = elements[i]->Accept(*this, output);
+      if (status != SUCCESS) {
+        return status;
+      }
+      output.append(",\n");
+    }
+    if (indent_level_ > 0U) {
+      indent_level_--;
+    }
+    AppendIndent(output);
+    output.append("}");
+  } else {
+    output.append("{");
+    for (size_t i = 0; i < elements.Size(); ++i) {
+      if (i > 0) {
+        output.append(", ");
+      }
+      const auto status = elements[i]->Accept(*this, output);
+      if (status != SUCCESS) {
+        return status;
+      }
+    }
+    output.append("}");
+  }
+  return SUCCESS;
+}
+
+Status CppEmitter::Emit(const DesignatedInitListExpr &node, std::string &output) {
+  const auto names = node.GetNames();
+  const auto values = node.GetValues();
+  if (node.IsCompact()) {
+    output.append("{");
+    for (size_t i = 0; i < names.Size(); ++i) {
+      if (i > 0) {
+        output.append(", ");
+      }
+      output.append(".");
+      AppendStringRef(names[i], output);
+      output.append(" = ");
+      const auto status = values[i]->Accept(*this, output);
+      if (status != SUCCESS) {
+        return status;
+      }
+    }
+    output.append("}");
+    return SUCCESS;
+  }
+  output.append("{\n");
+  if (indent_level_ < std::numeric_limits<size_t>::max()) {
+    indent_level_++;
+  }
+  for (size_t i = 0; i < names.Size(); ++i) {
+    AppendIndent(output);
+    output.append(".");
+    AppendStringRef(names[i], output);
+    output.append(" = ");
+    const auto status = values[i]->Accept(*this, output);
     if (status != SUCCESS) {
       return status;
     }
+    output.append(",\n");
   }
-  (void)output.append("}");
+  if (indent_level_ > 0U) {
+    indent_level_--;
+  }
+  AppendIndent(output);
+  output.append("}");
   return SUCCESS;
 }
 
@@ -824,6 +894,9 @@ Status CppEmitter::Emit(const ReturnStmt &node, std::string &output) {
 }
 
 Status CppEmitter::Emit(const BlockStmt &node, std::string &output) {
+  if (!output.empty() && output.back() == '\n') {
+    AppendIndent(output);
+  }
   (void)output.append("{\n");
   if (indent_level_ < std::numeric_limits<uint32_t>::max()) {
     indent_level_++;
@@ -901,6 +974,46 @@ Status CppEmitter::Emit(const RangeForStmt &node, std::string &output) {
     return status;
   }
   (void)output.append(") ");
+  return node.GetBody()->Accept(*this, output);
+}
+
+Status CppEmitter::Emit(const CaseStmt &node, std::string &output) {
+  // Remove trailing newline from previous statement for proper label formatting
+  if (!output.empty() && output.back() == '\n') {
+    output.pop_back();
+  }
+  output.append("\n");
+  AppendIndent(output);
+  if (node.GetValue() != nullptr) {
+    output.append("case ");
+    auto status = node.GetValue()->Accept(*this, output);
+    if (status != SUCCESS) {
+      return status;
+    }
+    output.append(":");
+  } else {
+    output.append("default:");
+  }
+  output.append("\n");
+  return SUCCESS;
+}
+
+Status CppEmitter::Emit(const BreakStmt &node, std::string &output) {
+  (void)node;
+  AppendIndent(output);
+  output.append("break;\n");
+  return SUCCESS;
+}
+
+Status CppEmitter::Emit(const SwitchStmt &node, std::string &output) {
+  AppendIndent(output);
+  output.append("switch (");
+  auto status = node.GetCond()->Accept(*this, output);
+  if (status != SUCCESS) {
+    return status;
+  }
+  // Delegate to BlockStmt which emits { ... }
+  output.append(") ");
   return node.GetBody()->Accept(*this, output);
 }
 }  // namespace ge

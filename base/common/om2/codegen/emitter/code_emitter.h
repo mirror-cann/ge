@@ -51,7 +51,9 @@ class MemberExpr;
 class CppArrowMemberExpr;
 class CppCastExpr;
 class LambdaExpr;
+class CCastExpr;
 class InitListExpr;
+class DesignatedInitListExpr;
 class CommentStmt;
 class BlankLineStmt;
 class VarDeclStmt;
@@ -61,6 +63,9 @@ class BlockStmt;
 class IfStmt;
 class ForStmt;
 class RangeForStmt;
+class CaseStmt;
+class BreakStmt;
+class SwitchStmt;
 
 class CodeEmitter {
  public:
@@ -101,7 +106,9 @@ class CodeEmitter {
   virtual Status Emit(const CppArrowMemberExpr &node, std::string &output) = 0;
   virtual Status Emit(const CppCastExpr &node, std::string &output) = 0;
   virtual Status Emit(const LambdaExpr &node, std::string &output) = 0;
+  virtual Status Emit(const CCastExpr &node, std::string &output) = 0;
   virtual Status Emit(const InitListExpr &node, std::string &output) = 0;
+  virtual Status Emit(const DesignatedInitListExpr &node, std::string &output) = 0;
   virtual Status Emit(const CommentStmt &node, std::string &output) = 0;
   virtual Status Emit(const BlankLineStmt &node, std::string &output) = 0;
   virtual Status Emit(const VarDeclStmt &node, std::string &output) = 0;
@@ -111,6 +118,9 @@ class CodeEmitter {
   virtual Status Emit(const IfStmt &node, std::string &output) = 0;
   virtual Status Emit(const ForStmt &node, std::string &output) = 0;
   virtual Status Emit(const RangeForStmt &node, std::string &output) = 0;
+  virtual Status Emit(const CaseStmt &node, std::string &output) = 0;
+  virtual Status Emit(const BreakStmt &node, std::string &output) = 0;
+  virtual Status Emit(const SwitchStmt &node, std::string &output) = 0;
 };
 
 }  // namespace ge

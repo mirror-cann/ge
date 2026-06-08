@@ -300,42 +300,36 @@ Status BuildControlCodegenModel(const GeModelPtr &ge_model) {
 }
 
 TEST_F(ControlTaskCodeGeneratorUt, GenerateControlTaskFiles_Ok) {
-  std::cout << "=== CONTROL_STAGE: create_model ===" << std::endl;
   const auto ge_model = CreateGeModelWithControlTasks();
   ASSERT_NE(ge_model, nullptr);
   AstContext ast_ctx;
   AstBuildContext ast(ast_ctx);
   std::vector<TaskCodeBuilderPtr> task_code_builders;
   Om2CodegenModel codegen_model;
-  std::cout << "=== CONTROL_STAGE: create_task_handlers ===" << std::endl;
   ASSERT_EQ(Om2CodegenModelBuilder::CreateTaskCodeBuilders(ge_model, ast, task_code_builders, codegen_model), SUCCESS);
 
   Om2ConstMetas const_metas;
   Om2CodegenModelBuilder builder;
-  std::cout << "=== CONTROL_STAGE: build_codegen_model ===" << std::endl;
   ASSERT_EQ(builder.Build(ge_model, task_code_builders, codegen_model, const_metas), SUCCESS);
 
   ProgramGenerator generator(ast, task_code_builders, codegen_model);
-  std::cout << "=== CONTROL_STAGE: generate_program ===" << std::endl;
   Om2CodePrinter code_printer("g1");
   ASSERT_EQ(generator.GenerateProgram(code_printer), SUCCESS);
   Om2CodegenArtifacts artifacts;
   code_printer.GetOutputFiles(artifacts);
 
-  std::cout << "=== CONTROL_STAGE: emit_interface ===" << std::endl;
   std::string header_file;
   ASSERT_EQ(ReadGeneratedArtifact(artifacts, GeneratedFileIndex::kInterfaceHeaderFile, header_file), SUCCESS);
   ASSERT_FALSE(header_file.empty());
 
-  std::cout << "=== CONTROL_STAGE: emit_resources ===" << std::endl;
   std::string resources_file;
   ASSERT_EQ(ReadGeneratedArtifact(artifacts, GeneratedFileIndex::kResourcesFile, resources_file), SUCCESS);
   ASSERT_FALSE(resources_file.empty());
 
-  std::cout << "=== CONTROL_STAGE: emit_load_and_run ===" << std::endl;
   std::string load_file;
   ASSERT_EQ(ReadGeneratedArtifact(artifacts, GeneratedFileIndex::kLoadingAndRunningFile, load_file), SUCCESS);
   ASSERT_FALSE(load_file.empty());
+
 
   EXPECT_NE(load_file.find("KernelLabelSwitchByIndexDistribute"), std::string::npos);
   EXPECT_NE(load_file.find("OM2_CHK_STATUS(KernelLabelSwitchByIndexDistribute("),
@@ -428,6 +422,20 @@ inline uint64_t PtrToU64(const void *ptr) {
   return static_cast<uint64_t>(reinterpret_cast<uintptr_t>(ptr));
 }
 
+inline void *ResolveOpAddr(uint32_t mem_src, uint64_t offset,
+                          void *total_dev_mem_ptr, void *session_scope_mem_ptr,
+                          void **constants) {
+  void *base_ptr;
+  if (mem_src == 0xFFFFFFFFU) {
+    base_ptr = session_scope_mem_ptr;
+  } else if (mem_src == 0U) {
+    base_ptr = total_dev_mem_ptr;
+  } else {
+    base_ptr = constants[mem_src - 1U];
+  }
+  return GET_ADDR(base_ptr, offset);
+}
+
 extern "C" {
 struct Om2Tensor {
   uint64_t device_address;
@@ -459,6 +467,83 @@ inline std::vector<uint64_t> FlattenHostArgs(Args&&... args) {
   (append_arg(std::forward<Args>(args)), ...);
   return buf;
 }
+
+struct Om2TaskIoEntry {
+  const struct Om2Tensor *tensor;
+  uint64_t offset;
+};
+
+enum Om2L0ArgKind {
+    OM2_L0_ARG_INPUT = 0,
+    OM2_L0_ARG_OUTPUT = 1,
+    OM2_L0_ARG_WORKSPACE = 2,
+    OM2_L0_ARG_TILING = 3,
+    OM2_L0_ARG_SHAPE_INFO = 4,
+    OM2_L0_ARG_LEVEL1_DESC = 5,
+    OM2_L0_ARG_PLACEHOLDER = 6,
+    OM2_L0_ARG_CUSTOM_VALUE = 7,
+    OM2_L0_ARG_FFTS_ADDR = 8,
+    OM2_L0_ARG_EVENT_ADDR = 9,
+    OM2_L0_ARG_OVERFLOW_ADDR = 10,
+    OM2_L0_ARG_EMPTY_ADDR = 11
+};
+
+struct Om2L0ArgSlotInfo {
+    uint32_t kind;
+    uint32_t flags;
+    uint64_t args_offset;
+    uint64_t value;
+    uint32_t related_index;
+    uint32_t event_id;
+    uint64_t level1_target_offset;
+};
+
+struct Om2L0TaskRawInfo {
+    uint32_t version;
+    uint32_t need_assert_or_printf;
+    uint64_t arg_num;
+    const struct Om2L0ArgSlotInfo* args;
+};
+
+struct Om2TaskInfo {
+  const char* op_name;
+  const char* op_type;
+  uint32_t task_id;
+  uint32_t stream_id;
+  uint32_t context_id;
+  uint32_t thread_id;
+  uint64_t op_desc_id;
+  uintptr_t args_base;
+  uint64_t args_size;
+  uint64_t input_num;
+  const struct Om2TaskIoEntry* inputs;
+  uint32_t output_num;
+  const struct Om2TaskIoEntry* outputs;
+  uint32_t workspace_num;
+  const uint64_t* workspace_addrs;
+  const uint64_t* workspace_sizes;
+  uint32_t task_type;
+  void* stream;
+  uint32_t is_raw_address;
+  const struct Om2L0TaskRawInfo* l0_exception_dump_info;
+};
+
+__attribute__((weak)) int32_t ReportDfxTaskPreprocess(uint32_t model_id,
+                                                       void* instance_handle,
+                                                       const struct Om2TaskInfo* task_info,
+                                                       const void* extended_attrs,
+                                                       size_t extended_attrs_size);
+
+__attribute__((weak)) int32_t ReportDfxTaskPostprocess(uint32_t model_id,
+                                                        void* instance_handle,
+                                                        const struct Om2TaskInfo* task_info,
+                                                        const void* extended_attrs,
+                                                        size_t extended_attrs_size);
+
+__attribute__((weak)) int32_t IsDataDumpEnabled(uint32_t model_id,
+                                                      void* instance_handle,
+                                                      const char* op_name,
+                                                      uint8_t* is_data_dump);
 
 namespace om2 {
 constexpr int32_t INPUT_NUM = 1;
@@ -547,6 +632,118 @@ class Om2ArgsTable {
     std::vector<std::vector<void *>> iow_args_addrs_;
 };
 
+// 算子分发类型枚举
+enum OpDispatchType : uint32_t {
+    DISPATCH_AICORE = 0,        // AI Core / AICPU 算子执行
+};
+
+// 算子参数类型枚举
+enum OpArgType : int32_t {
+    OP_ARG_INPUT = 0,          // 输入张量
+    OP_ARG_OUTPUT = 1,         // 输出张量
+    OP_ARG_WORKSPACE = 2,      // 工作空间
+    OP_ARG_CONST_TENSOR = 3,   // 常量张量
+    OP_ARG_LEVEL1_DESC = 4,    // Level1 描述符
+    OP_ARG_SHAPE_INFO = 5,     // Shape 信息
+    OP_ARG_CUSTOM_VALUE = 6,   // 自定义值
+    OP_ARG_PLACEHOLDER = 7,    // 占位符
+    OP_ARG_OPTIONAL_EMPTY = 8, // 可选空参数
+    OP_ARG_FFTS_ADDR = 9,      // FFTS 地址
+    OP_ARG_EVENT_ADDR = 10,    // 事件地址
+    OP_ARG_OVERFLOW_ADDR = 11, // 溢出地址
+    OP_ARG_TILING = 12,        // Tiling 数据
+    OP_ARG_RAW_ADDR = 13,      // 原始地址
+};
+
+// 算子参数信息结构体
+struct OpArgInfo {
+  int32_t type;                      // 参数类型（OpArgType，switch 条件）
+  struct {                           // 地址解析（INPUT/OUTPUT/WORKSPACE/CONST_TENSOR）
+    uint32_t mem_src;                // 内存来源（0=设备内存，0xFFFFFFFF=session，≥1=常量数组索引）
+    uint64_t offset;                 // 内存偏移量
+  } addr;
+  union {
+    struct {                         // Tensor 元数据（INPUT/OUTPUT）
+      uint64_t size;                 // 数据大小（字节），WORKSPACE 也用此字段
+      int32_t data_type;             // 数据类型
+      int32_t format;                // 数据格式
+      int64_t shape[8];              // Shape 维度数组（最多8维）
+      uint32_t num_shape_dims;       // 实际 shape 维度数
+      uint64_t args_offset;          // args table 内字节偏移
+    } tensor;
+    uint64_t custom_value;           // 自定义值（LEVEL1_DESC/SHAPE_INFO/CUSTOM_VALUE/EVENT_ADDR）
+    struct {                         // Tiling 数据（TILING）
+      const uint8_t *raw_data;       // 原始数据指针
+      uint32_t raw_data_len;         // 原始数据长度
+    } tiling;
+  } data;
+};
+
+// 算子定义结构体
+struct OpDef {
+  OpDispatchType dispatch_type;   // 分发类型，决定走哪个 case 分支
+  const char *op_name;            // 算子名称，用于日志和 Report 上报
+  const OpArgInfo *argsInfo;           // 参数信息数组，地址解析时遍历
+  // 各 task 专属数据下沉到 union（后续适配其他 task 时再增加对应成员）
+  union {
+    struct {                      // AICORE 专属 (kernel_type=0)
+      const char *op_type;        // 算子类型名，用于 Report 上报
+      uint32_t num_io_addrs;      // IO 地址数量，控制地址解析循环次数
+      uint32_t args_idx;          // 参数表索引，用于 GetArgsInfo 查找
+      struct {                    // Launch 配置，构建 LaunchKernelConfig → AssembleLaunchConfig
+        uint8_t schedule_mode;    // 调度模式
+        uint32_t engine_type;     // 引擎类型
+        uint32_t block_dim_offset;// BlockDim 偏移量
+        bool is_block_task_prefetch; // 是否预取 Block Task
+        uint16_t time_out;        // 超时时间
+        uint32_t local_memory_size;  // 本地内存大小
+      } launch;
+      struct {                    // Kernel 执行参数，传给 KernelTaskDistribute
+        uint32_t block_dim;       // Block 维度
+        uint32_t func_idx;        // 函数句柄索引，用于查找 func_handles
+      } kernel;
+      struct {                    // L0 信息，构建 Om2L0TaskRawInfo
+        uint32_t need_assert_or_printf; // 是否需要 assert/printf
+        uint32_t num_l0_slots;    // L0 slot 数量
+        const Om2L0ArgSlotInfo *l0_slots; // L0 slot 信息数组
+      } l0;
+    } aicore;
+    struct {  // AICPU 专属（共享 DISPATCH_AICORE, kernel_type=1）
+      uint32_t kernel_type;
+      uint32_t args_idx;
+      uint32_t num_io_addrs;
+      uint32_t func_idx;
+      uint32_t block_dim;
+      uint8_t schedule_mode;
+      uint32_t engine_type;
+      uint32_t block_dim_offset;
+      bool is_block_task_prefetch;
+      uint16_t time_out;
+      uint32_t local_memory_size;
+      uint32_t ext_info_len;
+      int32_t session_info_offset;
+      uint32_t aicpu_task_index;
+      uint32_t task_type;
+    } aicpu;
+  } task_data;
+};
+
+// 算子分发上下文结构体
+struct DispatchOpContext {
+  void *total_dev_mem_ptr;   // 设备总内存指针
+  void *session_scope_mem_ptr; // Session 作用域内存指针
+  void **constants;          // 常量数组
+  Om2ArgsTable &args_table;  // 参数表
+  aclrtFuncHandle *func_handles; // 函数句柄数组
+  aclrtStream stream;        // 执行流
+  uint32_t model_id;         // 模型 ID
+  void *instance_handle;     // 实例句柄
+  std::map<uint32_t, void *> &event_id_mem_map; // 事件 ID 到内存的映射
+  std::vector<void *> &dev_dynamic_mem_ptrs; // 设备动态内存指针列表
+  void *overflow_addr;       // 溢出地址
+};
+
+
 class Om2Model {
   public:
     Om2Model(const char **bin_files, const void **bin_data, size_t *bin_size, size_t bin_num, void **constants, void *work_ptr, uint64_t *session_id, uint32_t model_id, void *instance_handle);
@@ -561,18 +758,19 @@ class Om2Model {
   private:
     void **constants_;
     aclmdlRI model_handle_;
+    std::vector<aclrtFuncHandle> func_handles_;
     std::vector<aclrtStream> stream_list_;
     std::vector<aclrtNotify> notify_list_;
     std::vector<aclrtEvent> event_list_;
     std::vector<aclrtLabel> label_list_;
     aclrtLabelList aclrt_label_list_;
     std::vector<aclrtLabel> label_used_;
-    aclError CreateLabelListForLabelSwitch(uint32_t op_index, std::vector<uint32_t> label_list_indexs);
     std::map<uint32_t, aclrtLabelList> label_switch_label_list_;
-    aclError CreateLabelListForLabelGotoEx(uint32_t op_index, uint32_t label_index);
-    std::vector<void *> label_goto_ex_index_values_;
     std::map<uint32_t, std::pair<void *, uint32_t>> label_goto_args_;
     std::map<uint32_t, aclrtLabelList> label_goto_ex_label_list_;
+    aclError CreateLabelListForLabelSwitch(uint32_t op_index, std::vector<uint32_t> label_list_indexs);
+    aclError CreateLabelListForLabelGotoEx(uint32_t op_index, uint32_t label_index);
+    std::vector<void *> label_goto_ex_index_values_;
     void *total_dev_mem_ptr_;
     bool is_stream_list_bind_;
     std::unordered_map<std::string, BinDataInfo> bin_info_map_;
@@ -591,7 +789,7 @@ class Om2Model {
 #ifdef __cplusplus
 extern "C" {
 #endif
-)" + GetInterfaceDumpApisExpected() + R"(
+
 aclError Om2ModelCreate(om2::Om2ModelHandle *model_handle, aclmdlRI *rt_model_handle, const char **bin_files, const void **bin_data, size_t *bin_size, int bin_num, void **constants, void *work_ptr, uint64_t *session_id, uint32_t model_id, void *instance_handle);
 
 aclError Om2ModelLoad(om2::Om2ModelHandle *model_handle);
@@ -606,7 +804,7 @@ aclError Om2ModelDestroy(om2::Om2ModelHandle *model_handle);
 }
 #endif
 )";
-  const std::string expected_resources = R"(#include "_interface.h"
+const std::string expected_resources = R"(#include "_interface.h"
 
 namespace om2 {
 Om2Model::Om2Model(const char **bin_files, const void **bin_data, size_t *bin_size, size_t bin_num, void **constants, void *work_ptr, uint64_t *session_id, uint32_t model_id, void *instance_handle)

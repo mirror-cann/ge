@@ -23,7 +23,6 @@ namespace {
 const std::string kAttrAicpuAllshape = "_AllShape";
 const std::string kTfSessionTask = "TfSessionTask";
 constexpr int64_t kOffset = 8;
-constexpr int32_t kWidthPerChar = 3;
 }
 
 std::string KernelExTaskCodeBuilder::SerializeBytesToOctalString(const std::vector<uint8_t> &buffer) {
