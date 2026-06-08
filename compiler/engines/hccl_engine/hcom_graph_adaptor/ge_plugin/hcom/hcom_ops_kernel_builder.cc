@@ -442,7 +442,6 @@ HcclResult HcomOpsKernelBuilder::SetSuperKernelScopeAttr(ge::Node &node) {
   HcclReduceOp reduction = HcclReduceOp::HCCL_REDUCE_SUM;
   u32 aivCoreLimit = 0;
   char algName[ALG_NAME_MAX_LEN];
-  char *pAlgName = algName;
   
   // 用于判断是否走 Aiv 的参数准备
   CHK_RET(PrepareSelectAivParam(node, sCollectiveType, hcomComm, sGroup, rankSize,
@@ -451,11 +450,7 @@ HcclResult HcomOpsKernelBuilder::SetSuperKernelScopeAttr(ge::Node &node) {
   bool openSourceTag = false;
   CHK_RET(IsUsingOpenSource(openSourceTag));
   if (openSourceTag) {
-    CHK_RET(HcceSelectAlgGraphMode(sGroup.c_str(), count, dataType, reduction, opType, aivCoreLimit, &ifAiv,
-                          &pAlgName));
-    strncpy_s(algName, ALG_NAME_MAX_LEN, pAlgName, ALG_NAME_MAX_LEN - 1);
-    algName[ALG_NAME_MAX_LEN - 1] = '\0';
-    free(pAlgName);
+    CHK_RET(HcceSelectAlgGraphMode(sGroup.c_str(), count, dataType, reduction, opType, aivCoreLimit, &ifAiv, algName));
   } else {
     #ifdef HCOM_SELECT_ALG_POINTER_MODE
       CHK_RET(HcomSelectAlg(hcomComm, sGroup.c_str(), count, countsPtr, dataType, reduction, opType, aivCoreLimit, &ifAiv,
@@ -868,6 +863,33 @@ HcclResult HcomOpsKernelBuilder::CalcOpRunningResources(const ge::Node &node, st
       CHK_RET(HcceCalcOpResOnlineGraphMode(opParamPtr, &opMemSize, &streamNum, &taskNum, &aivCoreNum));
     }
     
+    // 算法是否为aiv
+    bool ifAiv = false;
+    int64_t hcomComm = 0;
+    std::string sGroupAiv;
+    u32 rankSize = 0;
+    u64 count = 0;
+    std::vector<int64_t> counts;
+    HcclDataType dataType = HCCL_DATA_TYPE_RESERVED;
+    HcclCMDType opType = HcclCMDType::HCCL_CMD_INVALID;
+    HcclReduceOp reduction = HcclReduceOp::HCCL_REDUCE_SUM;
+    u32 aivCoreLimit = 0;
+    char algName[ALG_NAME_MAX_LEN];
+    
+    // 用于判断是否走 Aiv 的参数准备
+    CHK_RET(PrepareSelectAivParam(const_cast<ge::Node &>(node), sCollectiveType, hcomComm, sGroupAiv, rankSize,
+            count, counts, dataType, opType, reduction, aivCoreLimit)); 
+    CHK_RET(HcceSelectAlgGraphMode(sGroupAiv.c_str(), count, dataType, reduction, opType, aivCoreLimit, &ifAiv, algName));
+
+    if (ifAiv) {
+      HCCL_INFO("[HcomOpsKernelBuilder][HcomCalcOpRunningParam] Aiv mode no need for substream.");
+      constexpr u32 AIV_WORKSPACE_MEM_SIZE = 512;
+      constexpr u32 AIV_TASK_NUM = 3;
+      streamNum = 0;
+      opMemSize = AIV_WORKSPACE_MEM_SIZE;
+      taskNum = AIV_TASK_NUM;
+    }
+
     if (!ge::AttrUtils::SetInt(node.GetOpDesc(), "hccl_aiv_core_num", static_cast<int64_t>(aivCoreNum))) {
       HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] op[%s]: set aivCore number[%llu] to OpDesc failed.", 
                  HCOM_ERROR_CODE(HCCL_E_PARA), hcomOpParam.opType, aivCoreNum);
@@ -1851,15 +1873,10 @@ HcclResult HcomOpsKernelBuilder::SetHcomOpParam(const ge::Node &node, HcomOpPara
     hcomOpParam->All2AllDataDes.recvType = recvType;
     hcomOpParam->All2AllDataDes.sendCountMatrix = static_cast<void *>(sendCountMatrix.data());
   }
-  ret = hccl::HcomOpUtils::GetRankIdsFromGroupList(sGroup, curRanks);
-  if (ret == HCCL_SUCCESS) {
-    hcomOpParam->groupList = static_cast<u32 *>(curRanks.data());
-    hcomOpParam->groupListSize = curRanks.size();
-  } else if (ret == HCCL_E_NOT_FOUND) {
-    HCCL_INFO("get groupListString failed");
-  } else {
-    return ret;
-  }
+
+  CHK_RET(hccl::HcomOpUtils::GetRankIdsFromGroupList(sGroup, curRanks));
+  hcomOpParam->groupList = static_cast<u32 *>(curRanks.data());
+  hcomOpParam->groupListSize = curRanks.size();
 
   if ((ge::GetThreadLocalContext().GetOption(ge::OPTION_EXEC_RANK_TABLE, rankTableStr) == ge::GRAPH_SUCCESS) &&
       !rankTableStr.empty()) {

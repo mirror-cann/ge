@@ -727,7 +727,7 @@ HcclResult HcomOpUtils::CalcCommonCount(const ge::OpDescPtr &op, const std::stri
       blockSize = is_continuous_input ? (inputSize + ALIGNED_SIZE - 1) / ALIGNED_SIZE * ALIGNED_SIZE : inputSize;
     } else if (sCollectiveType == HCCL_KERNEL_OP_TYPE_ALLTOALL) {
       // ALLTOALL 类型算子默认不对齐
-      blockSize = inputSize;
+      blockSize = inputSize / rankSize;
     } else {
       // 其他算子默认对齐
       blockSize = (inputSize + ALIGNED_SIZE - 1) / ALIGNED_SIZE * ALIGNED_SIZE;
@@ -943,7 +943,6 @@ HcclResult GetRankIdsFromGroupListV2(const std::string &groupName, const std::st
 
   if (!groupFound) {
     HCCL_INFO("group[%s] not found in v2 format group list", groupName.c_str());
-    return HCCL_E_NOT_FOUND;
   }
 
   return HCCL_SUCCESS;
@@ -968,7 +967,8 @@ HcclResult HcomOpUtils::GetRankIdsFromGroupList(const std::string &groupName, st
     }
   }
 
-  HCCL_INFO("group[%s] not found in any group list format", groupName.c_str());
-  return HCCL_E_NOT_FOUND;
+  // 没有配置对应option，或者json内的groupName不匹配，不会报错，默认按照全局通信域规格计算资源
+  HCCL_INFO("get groupListString failed, groupName[%s].", groupName.c_str());
+  return HCCL_SUCCESS;
 }
 }  // namespace hccl

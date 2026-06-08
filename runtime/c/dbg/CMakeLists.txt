@@ -9,9 +9,6 @@
 # -----------------------------------------------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 3.14)
-if (ENABLE_OPEN_SRC)
-    find_cann_package(c_base MODULE REQUIRED)
-endif()
 
 set(INSTALL_LIBRARY_DIR lib)
 set(MAINTAIN_SRC_LIST
@@ -183,25 +180,16 @@ elseif(${TARGET_SYSTEM_NAME} STREQUAL "LiteOS")
     # LiteOS打包
     set(DBG_STATIC_LIB_NAME "libge_dbg.a")
     set(GE_DBG_C_STATIC_LIB_MRI "${CMAKE_CURRENT_BINARY_DIR}/ge_dbg_c_static.mri")
-    if(NOT ENABLE_OPEN_SRC)
-        add_custom_command(
-            OUTPUT ${GE_DBG_C_STATIC_LIB_MRI}
-            COMMAND ${CMAKE_COMMAND} -E touch ${GE_DBG_C_STATIC_LIB_MRI}
-            COMMAND ${CMAKE_COMMAND} -E echo "create ${CMAKE_CURRENT_BINARY_DIR}/${DBG_STATIC_LIB_NAME}" >> ${GE_DBG_C_STATIC_LIB_MRI}
-            COMMAND ${CMAKE_COMMAND} -E echo "addlib $<TARGET_FILE:ge_dbg_c_static_debug>" >> ${GE_DBG_C_STATIC_LIB_MRI}
-            COMMAND ${CMAKE_COMMAND} -E echo "addlib $<TARGET_FILE:c_json_static>" >> ${GE_DBG_C_STATIC_LIB_MRI}
-            COMMAND ${CMAKE_COMMAND} -E echo "save" >> ${GE_DBG_C_STATIC_LIB_MRI}
-            COMMAND ${CMAKE_COMMAND} -E echo "end" >> ${GE_DBG_C_STATIC_LIB_MRI}
-            DEPENDS ge_dbg_c_static_debug c_json_static
-        )
-    else()
-        file(WRITE ${GE_DBG_C_STATIC_LIB_MRI}
-        "create ${CMAKE_CURRENT_BINARY_DIR}/${DBG_STATIC_LIB_NAME}
-            addlib ${CMAKE_CURRENT_BINARY_DIR}/libge_dbg_debug.a
-            addlib ${ASCEND_INSTALL_PATH}/lib64/c/libc_json.a
-            save
-            end")
-    endif()
+    add_custom_command(
+ 	    OUTPUT ${GE_DBG_C_STATIC_LIB_MRI}
+ 	    COMMAND ${CMAKE_COMMAND} -E touch ${GE_DBG_C_STATIC_LIB_MRI}
+ 	    COMMAND ${CMAKE_COMMAND} -E echo "create ${CMAKE_CURRENT_BINARY_DIR}/${DBG_STATIC_LIB_NAME}" >> ${GE_DBG_C_STATIC_LIB_MRI}
+ 	    COMMAND ${CMAKE_COMMAND} -E echo "addlib $<TARGET_FILE:ge_dbg_c_static_debug>" >> ${GE_DBG_C_STATIC_LIB_MRI}
+ 	    COMMAND ${CMAKE_COMMAND} -E echo "addlib $<TARGET_FILE:c_json_static>" >> ${GE_DBG_C_STATIC_LIB_MRI}
+ 	    COMMAND ${CMAKE_COMMAND} -E echo "save" >> ${GE_DBG_C_STATIC_LIB_MRI}
+ 	    COMMAND ${CMAKE_COMMAND} -E echo "end" >> ${GE_DBG_C_STATIC_LIB_MRI}
+ 	    DEPENDS ge_dbg_c_static_debug c_json_static
+ 	)
 
     add_custom_target(
         ge_dbg_c_static_lib_mri ALL

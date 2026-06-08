@@ -450,7 +450,7 @@ static Status ProcFifoInfo(const ModelData *modelData, uint8_t *tlvValue, uint32
     }
     mdlDesc->part.fifoPtr = geFifoInfo->fifoBaseAddr;
     geFifoInfo->fifoAllAddr[0] = (uintptr_t)geFifoInfo->fifoBaseAddr;
-    for (uint8_t i = 1; i < geFifoInfo->fifoNum; i++) {
+    for (uint32_t i = 1; i < geFifoInfo->fifoNum; i++) {
       GELOGI("index[%u], mem_size[%lu].", i, tlvFifoInfo->mem_size[i - 1]);
       geFifoInfo->fifoAllAddr[i] = geFifoInfo->fifoAllAddr[i - 1] + tlvFifoInfo->mem_size[i - 1];
       offset += memTlvSize;

@@ -40,18 +40,9 @@ if (${TARGET_SYSTEM_NAME} STREQUAL "Linux")
     set(ASCENDCL_C_COMPILE_TARGET ascendcl_c)
     add_library(${ASCENDCL_C_COMPILE_TARGET} SHARED ${ACL_SRC_LIST})
     target_include_directories(${ASCENDCL_C_COMPILE_TARGET} PRIVATE
-        if(NOT ENABLE_OPEN_SRC)
-            ${TOP_DIR}/inc/external
-            ${TOP_DIR}/runtime/src/acl/aclrt_c/common
-            ${TOP_DIR}/runtime/pkg_inc/base
-        else()
-            $<$<BOOL:${ENABLE_OPEN_SRC}>:${ASCEND_INSTALL_PATH}/include/experiment>
-            $<$<BOOL:${ENABLE_OPEN_SRC}>:${CANN_GE_DIR}/inc>
-            $<$<BOOL:${ENABLE_OPEN_SRC}>:${ASCEND_OPENSDK_DIR}/include/runtime>
-            $<$<BOOL:${ENABLE_OPEN_SRC}>:${ASCEND_OPENSDK_DIR}/include/runtime/runtime>
-            $<$<BOOL:${ENABLE_OPEN_SRC}>:${ASCEND_INSTALL_PATH}/include/experiment/msprof>
-            $<$<BOOL:${ENABLE_OPEN_SRC}>:${ASCEND_INSTALL_PATH}/include/experiment/slog>
-        endif()
+        ${TOP_DIR}/inc/external
+ 	    ${TOP_DIR}/runtime/src/acl/aclrt_c/common
+ 	    ${TOP_DIR}/runtime/pkg_inc/base
         ${CMAKE_CURRENT_SOURCE_DIR}/model
         ${CMAKE_CURRENT_SOURCE_DIR}/../../../inc
 
@@ -84,7 +75,7 @@ if (${TARGET_SYSTEM_NAME} STREQUAL "Linux")
         -Wl,--as-needed
         slog_headers
         -s
-        $<$<NOT:$<BOOL:${ENABLE_OPEN_SRC}>>:$<BUILD_INTERFACE:msprof_headers>>
+        $<BUILD_INTERFACE:msprof_headers>
         c_mmpa_headers
     )
 
@@ -105,17 +96,8 @@ elseif (${TARGET_SYSTEM_NAME} STREQUAL "LiteOS")
     set(ASCENDCL_C_COMPILE_TARGET ascendcl_c_static_liteos)
     add_library(${ASCENDCL_C_COMPILE_TARGET} STATIC ${ACL_SRC_LIST})
     target_include_directories(${ASCENDCL_C_COMPILE_TARGET} PRIVATE
-        if(NOT ENABLE_OPEN_SRC)
-            ${TOP_DIR}/inc/external
-            ${TOP_DIR}/runtime/src/acl/aclrt_c/common
-        else()
-            $<$<BOOL:${ENABLE_OPEN_SRC}>:${ASCEND_INSTALL_PATH}/include/experiment>
-            $<$<BOOL:${ENABLE_OPEN_SRC}>:${CANN_GE_DIR}/inc>
-            $<$<BOOL:${ENABLE_OPEN_SRC}>:${ASCEND_OPENSDK_DIR}/include/runtime>
-            $<$<BOOL:${ENABLE_OPEN_SRC}>:${ASCEND_OPENSDK_DIR}/include/runtime/runtime>
-            $<$<BOOL:${ENABLE_OPEN_SRC}>:${ASCEND_INSTALL_PATH}/include/experiment/msprof>
-            $<$<BOOL:${ENABLE_OPEN_SRC}>:${ASCEND_INSTALL_PATH}/include/experiment/slog>
-        endif()
+        ${TOP_DIR}/inc/external
+ 	    ${TOP_DIR}/runtime/src/acl/aclrt_c/common
         ${CMAKE_CURRENT_SOURCE_DIR}/model
         ${CMAKE_CURRENT_SOURCE_DIR}/../../../inc
 
@@ -149,7 +131,7 @@ elseif (${TARGET_SYSTEM_NAME} STREQUAL "LiteOS")
         -Wl,--as-needed
         slog_headers
         -s
-        $<$<NOT:$<BOOL:${ENABLE_OPEN_SRC}>>:$<BUILD_INTERFACE:msprof_headers>>
+        $<BUILD_INTERFACE:msprof_headers>
         c_mmpa_headers
     )
 
@@ -168,29 +150,18 @@ elseif (${TARGET_SYSTEM_NAME} STREQUAL "LiteOS")
     # LiteOS打包
     set(ASCENDCL_C_STATIC_LIB_NAME "libascendcl.a")
     set(ASCENDCL_C_STATIC_LIB_MRI "${CMAKE_CURRENT_BINARY_DIR}/ascendcl_c_static.mri")
-    if(NOT ENABLE_OPEN_SRC)
-        add_custom_command(
-            OUTPUT ${ASCENDCL_C_STATIC_LIB_MRI}
-            COMMAND ${CMAKE_COMMAND} -E touch ${ASCENDCL_C_STATIC_LIB_MRI}
-            COMMAND ${CMAKE_COMMAND} -E echo "create ${CMAKE_CURRENT_BINARY_DIR}/${ASCENDCL_C_STATIC_LIB_NAME}" >> ${ASCENDCL_C_STATIC_LIB_MRI}
-            COMMAND ${CMAKE_COMMAND} -E echo "addlib $<TARGET_FILE:ascendcl_c_static_liteos>" >> ${ASCENDCL_C_STATIC_LIB_MRI}
-            COMMAND ${CMAKE_COMMAND} -E echo "addlib $<TARGET_FILE:ge_executor_c_static>" >> ${ASCENDCL_C_STATIC_LIB_MRI}
-            COMMAND ${CMAKE_COMMAND} -E echo "addlib $<TARGET_FILE:c_base_static>" >> ${ASCENDCL_C_STATIC_LIB_MRI}
-            COMMAND ${CMAKE_COMMAND} -E echo "addlib $<TARGET_FILE:runtime_static>" >> ${ASCENDCL_C_STATIC_LIB_MRI}
-            COMMAND ${CMAKE_COMMAND} -E echo "save" >> ${ASCENDCL_C_STATIC_LIB_MRI}
-            COMMAND ${CMAKE_COMMAND} -E echo "end" >> ${ASCENDCL_C_STATIC_LIB_MRI}
-            DEPENDS ascendcl_c_static_liteos ge_executor_c_static c_base_static runtime_static
-        )
-    else()
-        file(WRITE ${ASCENDCL_C_STATIC_LIB_MRI}
-        "create ${CMAKE_CURRENT_BINARY_DIR}/${ASCENDCL_C_STATIC_LIB_NAME}
-            addlib ${CMAKE_CURRENT_BINARY_DIR}/libascendcl_liteos.a
-            addlib ${ASCEND_INSTALL_PATH}/lib64/c/ge_exec/libge_executor.a
-            addlib ${ASCEND_INSTALL_PATH}/lib64/c/runtime/libruntime.a
-            addlib ${ASCEND_INSTALL_PATH}/lib64/libc_base.a
-            save
-            end")
-    endif()
+    add_custom_command(
+ 	    OUTPUT ${ASCENDCL_C_STATIC_LIB_MRI}
+ 	    COMMAND ${CMAKE_COMMAND} -E touch ${ASCENDCL_C_STATIC_LIB_MRI}
+ 	    COMMAND ${CMAKE_COMMAND} -E echo "create ${CMAKE_CURRENT_BINARY_DIR}/${ASCENDCL_C_STATIC_LIB_NAME}" >> ${ASCENDCL_C_STATIC_LIB_MRI}
+ 	    COMMAND ${CMAKE_COMMAND} -E echo "addlib $<TARGET_FILE:ascendcl_c_static_liteos>" >> ${ASCENDCL_C_STATIC_LIB_MRI}
+ 	    COMMAND ${CMAKE_COMMAND} -E echo "addlib $<TARGET_FILE:ge_executor_c_static>" >> ${ASCENDCL_C_STATIC_LIB_MRI}
+ 	    COMMAND ${CMAKE_COMMAND} -E echo "addlib $<TARGET_FILE:c_base_static>" >> ${ASCENDCL_C_STATIC_LIB_MRI}
+ 	    COMMAND ${CMAKE_COMMAND} -E echo "addlib $<TARGET_FILE:runtime_static>" >> ${ASCENDCL_C_STATIC_LIB_MRI}
+ 	    COMMAND ${CMAKE_COMMAND} -E echo "save" >> ${ASCENDCL_C_STATIC_LIB_MRI}
+ 	    COMMAND ${CMAKE_COMMAND} -E echo "end" >> ${ASCENDCL_C_STATIC_LIB_MRI}
+ 	    DEPENDS ascendcl_c_static_liteos ge_executor_c_static c_base_static runtime_static
+ 	)
 
     add_custom_target(
         generate_mri_file ALL
