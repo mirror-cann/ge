@@ -40,8 +40,6 @@
 
 namespace ge {
 namespace {
-const uint64_t kStopOnFailure = 1U;
-
 void PrepareOutputs(const ExecutionPoint &ep, std::vector<gert::Tensor> &outputs,
                     std::vector<GeTensor> &output_ge_tensors) {
   outputs.resize(ep.GetEpOutNum());
@@ -263,7 +261,6 @@ Status JitExecutor::RunWithCallback(UserGraphExecution &&task) {
       JIT_ASSERT_SUCCESS(TensorTransUtils::TransRtTensorToGeTensor((*outputs)[i], ge_tensors[i]), task);
     }
     JIT_ASSERT_SUCCESS(order_.NextPoint(*ep, ge_tensors, ep), task);
-    free_mem_block_callback();
     if (ep != nullptr) {
       std::swap(inputs, outputs);
       GE_ASSERT_SUCCESS(CopyHostInputToDeviceAfterSlice(inputs, input_mem_block, device_allocator_));
