@@ -335,7 +335,7 @@ Status GEPass::Run(const NamesToPass &names_to_passes, bool with_filter) {
   if (graph_ == root_graph_) {
     // 只在根图打印pass的统计信息
     for (const auto &name_to_pass : filtered_names_to_passes) {
-      GEEVENT("[GEPERFTRACE] The time cost of %s is [%lu] micro seconds, call count is [%lu]", name_to_pass.first.c_str(),
+      GELOGI("[GEPERFTRACE] The time cost of %s is [%lu] micro seconds, call count is [%lu]", name_to_pass.first.c_str(),
               name_to_pass.second->MutablePerf().time_cost_, name_to_pass.second->MutablePerf().call_num_);
     }
   }

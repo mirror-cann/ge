@@ -1990,27 +1990,27 @@ Status GraphPrepare::SaveOriginalGraphToOmModel() const {
 
 #define PP_RUN_AND_DUMP(name, func, ...)                                               \
   do {                                                                                 \
-    GE_RUN(Prepare, func, __VA_ARGS__);                                                \
+    GE_TRACE_RUN(Prepare, func, __VA_ARGS__);                                          \
     GE_DUMP(compute_graph, "PrepareAfter" name);                                       \
     GELOGI("Prepare %s on graph %s success.", name, compute_graph->GetName().c_str()); \
   } while (0)
 
 #define PP_RUN_AND_DUMP_PERF(name, func, ...)                                          \
   do {                                                                                 \
-    GE_RUN_PERF(Prepare, func, __VA_ARGS__);                                           \
+    GE_TRACE_RUN_PERF(Prepare, func, __VA_ARGS__);                                     \
     GE_DUMP(compute_graph, "PrepareAfter" name);                                       \
     GELOGI("Prepare %s on graph %s success.", name, compute_graph->GetName().c_str()); \
   } while (0)
 
 #define PP_RUN(name, func, ...)                                                        \
   do {                                                                                 \
-    GE_RUN(Prepare, func, __VA_ARGS__);                                                \
+    GE_TRACE_RUN(Prepare, func, __VA_ARGS__);                                          \
     GELOGI("Prepare %s on graph %s success.", name, compute_graph->GetName().c_str()); \
   } while (0)
 
 #define PP_RUN_PERF(name, func, ...)                                                   \
   do {                                                                                 \
-    GE_RUN_PERF(Prepare, func, __VA_ARGS__);                                           \
+    GE_TRACE_RUN_PERF(Prepare, func, __VA_ARGS__);                                     \
     GELOGI("Prepare %s on graph %s success.", name, compute_graph->GetName().c_str()); \
   } while (0)
 

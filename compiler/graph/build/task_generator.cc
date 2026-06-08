@@ -728,7 +728,7 @@ Status TaskGenerator::GenerateTaskForNodes(const std::vector<Node *> nodes) {
     // fusion node场景所有node都重新做gen task，因为fusion node不只是对自己GenTask，还会对同一个group key的node GenTask
     // todo 可以改成第二次GenTask时就只对部分node GenTaskForNormalNode
     std::map<int64_t, std::vector<NodePtr>> fusion_nodes;
-    GE_RUN_PERF(TaskGenerator, SaveFusionNodes, fusion_nodes, nodes_);
+    GE_TRACE_RUN(TaskGenerator, SaveFusionNodes, fusion_nodes, nodes_);
     if (!fusion_nodes.empty()) {
       for(const auto &node : nodes_) {
         // 个别节点会二次GenTask，所以需要将第一次的结果清空
@@ -773,16 +773,16 @@ Status TaskGenerator::GenerateTaskForNodes(const std::vector<Node *> nodes) {
 }
 
 Status TaskGenerator::GenerateTask(const ComputeGraphPtr &graph, Model &model) {
-  GE_RUN_PERF(TaskGenerator, PrepareForGenerateTask, graph);
+  GE_TRACE_RUN(TaskGenerator, PrepareForGenerateTask, graph);
   std::string soc_version;
   (void)GetThreadLocalContext().GetOption(ge::SOC_VERSION, soc_version);
   if (kNanoSocVersion.count(soc_version) > 0) {
     PreRuntimeParam runtime_param;
     auto model_ptr = ge::MakeShared<ge::Model>(model);
     InitRuntimeParams(model_ptr, runtime_param);
-    GE_RUN_PERF(TaskGenerator, InitZeroCopyInfo, graph, runtime_param);
+    GE_TRACE_RUN(TaskGenerator, InitZeroCopyInfo, graph, runtime_param);
   }
-  GE_RUN_PERF(TaskGenerator, GenerateTaskForNodes, nodes_);
+  GE_TRACE_RUN(TaskGenerator, GenerateTaskForNodes, nodes_);
   return SUCCESS;
 }
 
@@ -1009,7 +1009,7 @@ Status TaskGenerator::GetTaskInfo(const ComputeGraphPtr &graph, uint64_t session
   GE_ASSERT_NOTNULL(graph);
   session_id_ = session_id;
   GELOGD("Begin to gen task info with graph:%s session_id:%lu", graph->GetName().c_str(), session_id);
-  GE_RUN_PERF(TaskGenerator, GenerateTask, graph, model);
+  GE_TRACE_RUN(TaskGenerator, GenerateTask, graph, model);
   return SUCCESS;
 }
 
@@ -1092,7 +1092,7 @@ Status TaskGenerator::GenModelTaskDef(const ComputeGraphPtr &graph, uint64_t ses
     GE_ASSERT_NOTNULL(task_def);
     *task_def = task_def_temp;
   }
-  GE_RUN_PERF(TaskGenerator, AddModelTaskToModel, model_task_def, session_id, model, *run_context_);
+  GE_TRACE_RUN(TaskGenerator, AddModelTaskToModel, model_task_def, session_id, model, *run_context_);
   return SUCCESS;
 }
 
