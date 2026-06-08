@@ -31,8 +31,7 @@
 namespace gert {
 namespace bg {
 namespace {
-const char *kLaunchKernelTypes[] = {"LaunchKernelWithFlag", "LaunchKernelWithHandle", "AtomicLaunchKernelWithFlag", "AtomicLaunchKernelWithHandle",
-                                    "LaunchMixKernelWithHandle", "LaunchMixKernelWithFlag"};
+const char *kLaunchKernelTypes[] = {"LaunchMixKernelV2", "LaunchKernelV2", "AtomicLaunchKernelV2"};
 
 bool IsTargetLaunchNode(const ge::FastNode *const node) {
   const auto node_type = node->GetTypePtr();
@@ -78,12 +77,9 @@ ge::graphStatus FilterAndCopyInCtrlEdges(const ge::FastNode *launch_node, const 
 }
 
 const std::unordered_map<std::string, int32_t> kLaunchKernelNamesToIoAddrIndexes = {
-    {"LaunchKernelWithFlag", static_cast<int32_t>(kernel::WithArgs::kIoAddrs)},
-    {"AtomicLaunchKernelWithHandle", static_cast<int32_t>(kernel::WithAtomicHandle::kIoAddrs)},
-    {"AtomicLaunchKernelWithFlag", static_cast<int32_t>(kernel::WithAtomic::kIoAddrs)},
-    {"LaunchKernelWithHandle", static_cast<int32_t>(kernel::WithHandle::kIoAddrs)},
-    {"LaunchMixKernelWithHandle", static_cast<int32_t>(kernel::WithHandle::kIoAddrs)},
-    {"LaunchMixKernelWithFlag", static_cast<int32_t>(kernel::WithArgs::kIoAddrs)}};
+    {"LaunchMixKernelV2", static_cast<int32_t>(kernel::WithArgs::kIoAddrs)},
+    {"LaunchKernelV2", static_cast<int32_t>(kernel::WithArgs::kIoAddrs)},
+    {"AtomicLaunchKernelV2", static_cast<int32_t>(kernel::WithAtomic::kIoAddrs)}};
 
 struct CopyNode {
   ge::FastNode *copy_node;

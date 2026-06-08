@@ -819,7 +819,6 @@ ge::graphStatus FreeFixedFeatureMemory(KernelContext *context) {
   (void)gert_tensor_data->Free();
   return ge::GRAPH_SUCCESS;
 }
-
 REGISTER_KERNEL(FreeFixedFeatureMemory)
     .RunFunc(FreeFixedFeatureMemory)
     .ConcurrentCriticalSectionKey(kKernelUseMemory);

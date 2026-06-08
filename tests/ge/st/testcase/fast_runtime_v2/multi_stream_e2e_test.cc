@@ -104,16 +104,16 @@ class GraphExecutorMultiStreamSystemTest : public bg::BgTest {
   }
 };
 
-const std::string TransDataStubName = "TransDataStubBin";
-const std::string TransData13StubName = "TransData17StubBin";
+const std::string TransDataStubName = "te_TransData_12345_AicoreKernel";
+const std::string TransData13StubName = "te_TransData17_12345_AicoreKernel";
 const std::string DynamicAtomicStubName = "DynamicAtomicBin";
 const std::string DynamicRnnv3StubName = "DynamicRNNV3StubBin";
-const std::string AddStubName = "AddStubBin";
-const std::string AssignStubName = "AssignStubBin";
-const std::string CastStubName = "CastStubBin";
-const std::string ReluStubName = "ReluStubBin";
-const std::string MulStubName = "MulStubBin";
-const std::string ReduceSumStubName = "ReduceSumStubBin";
+const std::string AddStubName = "te_Add_12345_AicoreKernel";
+const std::string AssignStubName = "te_Assign_12345_AicoreKernel";
+const std::string CastStubName = "te_Cast_12345_AicoreKernel";
+const std::string ReluStubName = "te_Relu_12345_AicoreKernel";
+const std::string MulStubName = "te_Mul_12345_AicoreKernel";
+const std::string ReduceSumStubName = "te_ReduceSum_12345_AicoreKernel";
 
 /*
  *  data1  data2
@@ -143,7 +143,7 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case01_TwoStream_AccessMemCrossStream
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
   auto ge_root_model = builder.AddTaskDef("Add", AiCoreTaskDefFaker(AddStubName))
-      .AddTaskDef("Relu", AiCoreTaskDefFaker(ReluStubName))
+      .AddTaskDef("Relu", AiCoreTaskDefFaker(ReluStubName).WithHandle())
       .SetRootModelStreamNum(stream_num)
       .SetRootModelEventNum(event_num)
       .BuildGeRootModel();
@@ -178,12 +178,23 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case01_TwoStream_AccessMemCrossStream
     ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
 
     // check stream in launch arg
-    auto add_launch_args = runtime_stub.GetRtsRuntimeStub().PopLaunchArgsByStubName(AddStubName);
+    auto &launch_args_map = runtime_stub.GetRtsRuntimeStub().GetLaunchWithHandleArgs();
+    ASSERT_GE(launch_args_map.size(), 1U);
+    ge::GeFakeLaunchArgs *add_launch_args = nullptr;
+    ge::GeFakeLaunchArgs *relu_launch_args = nullptr;
+    auto all_rt_streams = runtime_stub.GetRtsRuntimeStub().GetAllRtStreams();
+    for (auto &pair : launch_args_map) {
+      for (auto *args : pair.second) {
+        if (args->GetStream() == stream) {
+          add_launch_args = args;
+        } else if (args->GetStream() == all_rt_streams[1]) {
+          relu_launch_args = args;
+        }
+      }
+    }
     ASSERT_NE(add_launch_args, nullptr);
     ASSERT_EQ(add_launch_args->GetStream(), stream);  // main stream 0
-    auto relu_launch_args = runtime_stub.GetRtsRuntimeStub().PopLaunchArgsByStubName(ReluStubName);
     ASSERT_NE(relu_launch_args, nullptr);
-    auto all_rt_streams = runtime_stub.GetRtsRuntimeStub().GetAllRtStreams();
     ASSERT_EQ(relu_launch_args->GetStream(), all_rt_streams[1]);  // stream 1
 
     // check kernel trace
@@ -264,9 +275,9 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case02_TwoStream_ConsumersInAndCrossS
   auto graph = ShareGraph::MultiStreamGraphConsumersInAndCrossStream(stream_num, event_num);
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
-  auto ge_root_model = builder.AddTaskDef("Cast", AiCoreTaskDefFaker(CastStubName))
-      .AddTaskDef("Relu", AiCoreTaskDefFaker(ReluStubName).AtomicStubNum(DynamicAtomicStubName))
-      .AddTaskDef("TransData", AiCoreTaskDefFaker(TransDataStubName))
+  auto ge_root_model = builder.AddTaskDef("Cast", AiCoreTaskDefFaker(CastStubName).WithHandle())
+      .AddTaskDef("Relu", AiCoreTaskDefFaker(ReluStubName).WithHandle().AtomicStubNum(DynamicAtomicStubName))
+      .AddTaskDef("TransData", AiCoreTaskDefFaker(TransDataStubName).WithHandle())
       .SetRootModelStreamNum(stream_num)
       .SetRootModelEventNum(event_num)
       .BuildGeRootModel();
@@ -303,15 +314,28 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case02_TwoStream_ConsumersInAndCrossS
     auto all_rt_streams = runtime_stub.GetRtsRuntimeStub().GetAllRtStreams();
 
     // check stream in launch arg
-    auto cast_launch_args = runtime_stub.GetRtsRuntimeStub().PopLaunchArgsByStubName(CastStubName);
+    auto &launch_args_map = runtime_stub.GetRtsRuntimeStub().GetLaunchWithHandleArgs();
+    ASSERT_GE(launch_args_map.size(), 1U);
+    ge::GeFakeLaunchArgs *cast_launch_args = nullptr;
+    ge::GeFakeLaunchArgs *transdata_launch_args = nullptr;
+    ge::GeFakeLaunchArgs *relu_launch_args = nullptr;
+    for (auto &pair : launch_args_map) {
+      for (auto *args : pair.second) {
+        if (args->GetStream() == stream) {
+          if (cast_launch_args == nullptr) {
+            cast_launch_args = args;
+          } else {
+            transdata_launch_args = args;
+          }
+        } else if (args->GetStream() == all_rt_streams[1]) {
+          relu_launch_args = args;
+        }
+      }
+    }
     ASSERT_NE(cast_launch_args, nullptr);
     ASSERT_EQ(cast_launch_args->GetStream(), stream);
-
-    auto transdata_launch_args = runtime_stub.GetRtsRuntimeStub().PopLaunchArgsByStubName(TransDataStubName);
     ASSERT_NE(transdata_launch_args, nullptr);
     ASSERT_EQ(transdata_launch_args->GetStream(), stream);
-
-    auto relu_launch_args = runtime_stub.GetRtsRuntimeStub().PopLaunchArgsByStubName(ReluStubName);
     ASSERT_NE(relu_launch_args, nullptr);
     ASSERT_EQ(relu_launch_args->GetStream(), all_rt_streams[1]);
 
@@ -419,7 +443,18 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case03_TwoStream_HostMemAccessCrossSt
 
     // check stream in launch arg
     auto all_rt_streams = runtime_stub.GetRtsRuntimeStub().GetAllRtStreams();
-    auto add_launch_args = runtime_stub.GetRtsRuntimeStub().PopLaunchArgsByStubName(AddStubName);
+    auto &launch_args_map = runtime_stub.GetRtsRuntimeStub().GetLaunchWithHandleArgs();
+    ASSERT_GE(launch_args_map.size(), 1U);
+    ge::GeFakeLaunchArgs *add_launch_args = nullptr;
+    for (auto &pair : launch_args_map) {
+      for (auto *args : pair.second) {
+        if (args->GetStream() == all_rt_streams[1]) {
+          add_launch_args = args;
+          break;
+        }
+      }
+      if (add_launch_args != nullptr) break;
+    }
     ASSERT_NE(add_launch_args, nullptr);
     ASSERT_EQ(add_launch_args->GetStream(), all_rt_streams[1]);  // stream 1
 
@@ -491,9 +526,9 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case04_TwoStream_AccessRefMemCrossStr
   auto graph = ShareGraph::MultiStreamGraphAccessRefMemCrossStream(stream_num, event_num);
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
-  auto ge_root_model = builder.AddTaskDef("Assign", AiCoreTaskDefFaker(AssignStubName))
-      .AddTaskDef("TransData", AiCoreTaskDefFaker(TransDataStubName))
-      .AddTaskDef("Relu", AiCoreTaskDefFaker(ReluStubName))
+  auto ge_root_model = builder.AddTaskDef("Assign", AiCoreTaskDefFaker(AssignStubName).WithHandle())
+      .AddTaskDef("TransData", AiCoreTaskDefFaker(TransDataStubName).WithHandle())
+      .AddTaskDef("Relu", AiCoreTaskDefFaker(ReluStubName).WithHandle())
       .SetRootModelStreamNum(stream_num)
       .SetRootModelEventNum(event_num)
       .BuildGeRootModel();
@@ -528,11 +563,21 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case04_TwoStream_AccessRefMemCrossStr
 
     // check stream in launch arg
     auto all_rt_streams = runtime_stub.GetRtsRuntimeStub().GetAllRtStreams();
-    auto assign_launch_args = runtime_stub.GetRtsRuntimeStub().PopLaunchArgsByStubName(AssignStubName);
+    auto &launch_args_map = runtime_stub.GetRtsRuntimeStub().GetLaunchWithHandleArgs();
+    ASSERT_GE(launch_args_map.size(), 1U);
+    ge::GeFakeLaunchArgs *assign_launch_args = nullptr;
+    ge::GeFakeLaunchArgs *relu_launch_args = nullptr;
+    for (auto &pair : launch_args_map) {
+      for (auto *args : pair.second) {
+        if (args->GetStream() == all_rt_streams[0]) {
+          assign_launch_args = args;
+        } else if (args->GetStream() == all_rt_streams[1]) {
+          relu_launch_args = args;
+        }
+      }
+    }
     ASSERT_NE(assign_launch_args, nullptr);
     ASSERT_EQ(assign_launch_args->GetStream(), all_rt_streams[0]);  // stream 0
-
-    auto relu_launch_args = runtime_stub.GetRtsRuntimeStub().PopLaunchArgsByStubName(ReluStubName);
     ASSERT_NE(relu_launch_args, nullptr);
     ASSERT_EQ(relu_launch_args->GetStream(), all_rt_streams[1]);  // stream 1
 
@@ -609,9 +654,9 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case05_TwoStream_RefMemAccessCrossStr
   auto graph = ShareGraph::MultiStreamGraphRefMemCrossStream(stream_num, event_num);
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
-  auto ge_root_model = builder.AddTaskDef("Assign", AiCoreTaskDefFaker(AssignStubName))
-      .AddTaskDef("TransData", AiCoreTaskDefFaker(TransDataStubName))
-      .AddTaskDef("Relu", AiCoreTaskDefFaker(ReluStubName))
+  auto ge_root_model = builder.AddTaskDef("Assign", AiCoreTaskDefFaker(AssignStubName).WithHandle())
+      .AddTaskDef("TransData", AiCoreTaskDefFaker(TransDataStubName).WithHandle())
+      .AddTaskDef("Relu", AiCoreTaskDefFaker(ReluStubName).WithHandle())
       .SetRootModelStreamNum(stream_num)
       .SetRootModelEventNum(event_num)
       .BuildGeRootModel();
@@ -623,23 +668,27 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case05_TwoStream_RefMemAccessCrossStr
 
   // check the topo order is correct
   auto assign_launch_node =
-    ge::ExecuteGraphUtils::FindNodesByTypeFromAllNodes(exe_graph.get(), "LaunchKernelWithFlag");
+    ge::ExecuteGraphUtils::FindNodesByTypeFromAllNodes(exe_graph.get(), "LaunchKernelV2");
   ASSERT_EQ(assign_launch_node.size(), 1U);
   EXPECT_EQ(FastNodeTopoChecker(assign_launch_node.at(0))
                 .StrictConnectFrom({{"SplitRtStreams",1},
                                     {"InnerData",0},
                                     {"CacheableTiling", 1},
                                     {"AllocBatchHbm", 0},
-                                    {"InnerData", 0},
-                                    {"InnerData", 0},
-                                    {"InnerData", 0},
+                                    {"InnerData",0},
+                                    {"InnerData",0},
+                                    {"InnerData",0},
+                                    {"InnerData",0},
                                     {"CacheableTiling", 6},
-                                    {"InnerData", 0},
+                                    {"InnerData",0},
                                     {"CacheableTiling", 11},
                                     {"CacheableTiling", 7},
-                                    {"AccessMemCrossStream", 0}, // input 0
-                                    {"AccessMemCrossStream", 0},  // input 1
-                                    {"AccessMemCrossStream", 0}, // output 0 ref input 0
+                                    {"CacheableTiling", 0},
+                                    {"InnerData",0},
+                                    {"InnerData",0},
+                                    {"AccessMemCrossStream", 0},
+                                    {"AccessMemCrossStream", 0},
+                                    {"AccessMemCrossStream", 0},
                                     {"SplitDataTensor", 0},
                                     {"SplitDataTensor", 0},
                                     {"InferShape", 0},
@@ -648,7 +697,6 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case05_TwoStream_RefMemAccessCrossStr
                                     {"SendEvents", -1}}),
             "success");
 }
-
 /*
      ┌──────────────────────────────────────────────┐
      │                                              │
@@ -691,8 +739,8 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case06_TwoStream_WithStaticSubGraph_o
   auto graph = ShareGraph::MultiStreamGraphDynamicAndStaticGraph(stream_num, event_num);
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
-  auto ge_root_model = builder.AddTaskDef("TransData", AiCoreTaskDefFaker(TransDataStubName))
-      .AddTaskDef("Relu", AiCoreTaskDefFaker(ReluStubName))
+  auto ge_root_model = builder.AddTaskDef("TransData", AiCoreTaskDefFaker(TransDataStubName).WithHandle())
+      .AddTaskDef("Relu", AiCoreTaskDefFaker(ReluStubName).WithHandle())
       .SetRootModelStreamNum(stream_num)
       .SetRootModelEventNum(event_num)
       .BuildGeRootModel();
@@ -727,11 +775,21 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case06_TwoStream_WithStaticSubGraph_o
     // check stream in launch arg
     auto all_rt_streams = runtime_stub.GetRtsRuntimeStub().GetAllRtStreams();
     ASSERT_EQ(all_rt_streams.size(), stream_num);
-    auto relu_launch_args = runtime_stub.GetRtsRuntimeStub().PopLaunchArgsByStubName(ReluStubName);
+    auto &launch_args_map = runtime_stub.GetRtsRuntimeStub().GetLaunchWithHandleArgs();
+    ASSERT_GE(launch_args_map.size(), 1U);
+    ge::GeFakeLaunchArgs *relu_launch_args = nullptr;
+    ge::GeFakeLaunchArgs *transdata_launch_args = nullptr;
+    for (auto &pair : launch_args_map) {
+      for (auto *args : pair.second) {
+        if (args->GetStream() == all_rt_streams[1]) {
+          relu_launch_args = args;
+        } else if (args->GetStream() == all_rt_streams[0]) {
+          transdata_launch_args = args;
+        }
+      }
+    }
     ASSERT_NE(relu_launch_args, nullptr);
     ASSERT_EQ(relu_launch_args->GetStream(), all_rt_streams[1]);  // stream 1. 0~1 dynamic stream, 2~4 static stream
-
-    auto transdata_launch_args = runtime_stub.GetRtsRuntimeStub().PopLaunchArgsByStubName(TransDataStubName);
     ASSERT_NE(transdata_launch_args, nullptr);
     ASSERT_EQ(transdata_launch_args->GetStream(), all_rt_streams[0]);  // stream 0
 
@@ -798,7 +856,7 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case07_TwoStream_WithFileConstant_ok)
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
   auto ge_root_model = builder
-      .AddTaskDef("Relu", AiCoreTaskDefFaker(ReluStubName))
+      .AddTaskDef("Relu", AiCoreTaskDefFaker(ReluStubName).WithHandle().WithHandle())
       .SetRootModelStreamNum(stream_num)
       .SetRootModelEventNum(event_num)
       .BuildGeRootModel();
@@ -1035,7 +1093,7 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case09_TwoStream_ExternalAllocator_Re
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
   auto ge_root_model = builder.AddTaskDef("Add", AiCoreTaskDefFaker(AddStubName))
-      .AddTaskDef("Relu", AiCoreTaskDefFaker(ReluStubName))
+      .AddTaskDef("Relu", AiCoreTaskDefFaker(ReluStubName).WithHandle())
       .SetRootModelStreamNum(stream_num)
       .SetRootModelEventNum(event_num)
       .BuildGeRootModel();
@@ -1111,7 +1169,7 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case10_TwoStream_ExternalAllocator_In
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
   auto ge_root_model = builder.AddTaskDef("Add", AiCoreTaskDefFaker(AddStubName))
-      .AddTaskDef("Relu", AiCoreTaskDefFaker(ReluStubName))
+      .AddTaskDef("Relu", AiCoreTaskDefFaker(ReluStubName).WithHandle())
       .SetRootModelStreamNum(stream_num)
       .SetRootModelEventNum(event_num)
       .BuildGeRootModel();
@@ -1162,14 +1220,14 @@ TEST_F(GraphExecutorMultiStreamSystemTest, MultiStreamL2Allocator_Constructor_Co
 TEST_F(GraphExecutorMultiStreamSystemTest, Case11_rtMalloc_Failed) {
   int64_t stream_num = 1;
   int64_t event_num = 0;
-  auto graph = ShareGraph::MultiStreamTwoNodeGraph(stream_num, event_num);
+auto graph = ShareGraph::MultiStreamTwoNodeGraph(stream_num, event_num);
   graph->TopologicalSorting();
-  GeModelBuilder builder(graph);
+GeModelBuilder builder(graph);
   auto ge_root_model = builder.AddTaskDef("Add", AiCoreTaskDefFaker(AddStubName))
-                           .AddTaskDef("Relu", AiCoreTaskDefFaker(ReluStubName))
-                           .SetRootModelStreamNum(stream_num)
-                           .SetRootModelEventNum(event_num)
-                           .BuildGeRootModel();
+      .AddTaskDef("Relu", AiCoreTaskDefFaker(ReluStubName).WithHandle())
+      .SetRootModelStreamNum(stream_num)
+      .SetRootModelEventNum(event_num)
+      .BuildGeRootModel();
 
   bg::ValueHolder::PopGraphFrame();  // 不需要BgTest自带的Frame
   auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model);

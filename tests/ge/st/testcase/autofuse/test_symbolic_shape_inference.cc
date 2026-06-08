@@ -2182,9 +2182,8 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForLayerNormV4) {
   data0.SetOriginSymbolShape(std::vector<const char *>({"s0", "s1", "s2"}));
   ASSERT_NE(data0.GetCTensorHolder(), nullptr);
 
-  std::vector<int64_t> const_data0 = {1, 2};
-  std::vector<int64_t> const_dim = {2};
-  auto normalized_shape = builder_->CreateConst(const_data0, const_dim);
+  auto normalized_shape = builder_->CreateInput(1, "norm_shape");
+  normalized_shape.SetOriginSymbolShape(std::vector<const char *>({"2"}));
 
   auto s0 = ge::Symbol("s0");
   auto s1 = ge::Symbol("s1");

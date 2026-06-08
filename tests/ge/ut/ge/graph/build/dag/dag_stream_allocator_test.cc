@@ -90,5 +90,75 @@ TEST_F(DagStreamAllocatorTest, ByPathCover_DataNetOutputNodes_AssignedByAlgorith
   EXPECT_EQ(config.required_streams, 1);
 }
 
+TEST_F(DagStreamAllocatorTest, ByPathCover_SerialLabelNodes_AssignedToSameAppendedStream) {
+  auto n1 = graph_->AddNode("n1", "Op1");
+  auto n2 = graph_->AddNode("n2", "Op2");
+  auto n3 = graph_->AddNode("n3", "Op3");
+  auto n4 = graph_->AddNode("n4", "Op4");
+  n2->SetSerialFlag("label_a");
+  n3->SetSerialFlag("label_a");
+  graph_->AddEdge(n1, 0, n2, 0);
+  graph_->AddEdge(n2, 0, n3, 0);
+  graph_->AddEdge(n3, 0, n4, 0);
+
+  StreamAllocConfig config{-1, 0, 0};
+  DagStreamAllocator::ByPathCover(*graph_, config);
+
+  EXPECT_EQ(n2->GetStreamId(), n3->GetStreamId());
+  EXPECT_NE(n1->GetStreamId(), INVALID_STREAM_ID);
+  EXPECT_NE(n4->GetStreamId(), INVALID_STREAM_ID);
+  EXPECT_EQ(n2->GetStreamId(), config.required_streams - 1);
+  EXPECT_EQ(config.required_streams, 2);
+}
+
+TEST_F(DagStreamAllocatorTest, ByPathCover_AllSerialNodes_ReturnsSerialLabelCount) {
+  auto n1 = graph_->AddNode("n1", "Op1");
+  auto n2 = graph_->AddNode("n2", "Op2");
+  auto n3 = graph_->AddNode("n3", "Op3");
+  n1->SetSerialFlag("label_a");
+  n2->SetSerialFlag("label_b");
+  n3->SetSerialFlag("label_a");
+  graph_->AddEdge(n1, 0, n2, 0);
+  graph_->AddEdge(n2, 0, n3, 0);
+
+  StreamAllocConfig config{-1, 0, 5};
+  DagStreamAllocator::ByPathCover(*graph_, config);
+
+  EXPECT_EQ(config.required_streams, 2);
+  EXPECT_EQ(n1->GetStreamId(), 5);
+  EXPECT_EQ(n3->GetStreamId(), 5);
+  EXPECT_EQ(n2->GetStreamId(), 6);
+}
+
+TEST_F(DagStreamAllocatorTest, ByPathCover_StreamLimitDoesNotLimitSerialStreams) {
+  auto n1 = graph_->AddNode("n1", "Op1");
+  auto n2 = graph_->AddNode("n2", "Op2");
+  auto n3 = graph_->AddNode("n3", "Op3");
+  n2->SetSerialFlag("label_a");
+  n3->SetSerialFlag("label_b");
+  graph_->AddEdge(n1, 0, n2, 0);
+  graph_->AddEdge(n1, 0, n3, 0);
+
+  StreamAllocConfig config{0, 0, 0};
+  DagStreamAllocator::ByPathCover(*graph_, config);
+
+  EXPECT_EQ(n1->GetStreamId(), 0);
+  EXPECT_EQ(n2->GetStreamId(), 1);
+  EXPECT_EQ(n3->GetStreamId(), 2);
+  EXPECT_EQ(config.required_streams, 3);
+}
+
+TEST_F(DagStreamAllocatorTest, ByPathCover_EdgeToNodeOutsideGraph_AbortWithoutAssignStream) {
+  auto n1 = graph_->AddNode("n1", "Op1");
+  auto external_node = std::make_shared<DAGNode>("external", "Op2");
+  ASSERT_EQ(graph_->AddEdge(n1, 0, external_node, 0), graphStatus::SUCCESS);
+
+  StreamAllocConfig config{-1, 0, 0};
+  DagStreamAllocator::ByPathCover(*graph_, config);
+
+  EXPECT_EQ(config.required_streams, 0);
+  EXPECT_EQ(n1->GetStreamId(), INVALID_STREAM_ID);
+}
+
 }  // namespace test
 }  // namespace minidag

@@ -14,6 +14,7 @@
 #include <securec.h>
 #include <iostream>
 #include "mmpa/mmpa_api.h"
+#include "common/debug/log.h"
 
 namespace gert {
 namespace {
@@ -56,7 +57,11 @@ ge::GeFakeLaunchArgs *RuntimeStubImpl::PopLaunchArgsByStubFunc(const void *stubF
 }
 
 ge::GeFakeLaunchArgs *RuntimeStubImpl::PopLaunchArgsByStubName(const std::string &stub_name) {
-  auto handle = reinterpret_cast<void *>(&stub_names_to_handles_[stub_name]);
+  auto iter = stub_names_to_handles_.find(stub_name);
+  if (iter == stub_names_to_handles_.end()) {
+    return nullptr;
+  }
+  auto handle = reinterpret_cast<void *>(&iter->second);
   return PopLaunchArgsBy(handle);
 }
 
@@ -655,15 +660,20 @@ aclError AclRuntimeStubImpl::aclrtLaunchKernelV2(aclrtFuncHandle funcHandle, uin
 
 aclError AclRuntimeStubImpl::aclrtRegisterCpuFunc(const aclrtBinHandle handle, const char *funcName,
     const char *kernelName, aclrtFuncHandle *funcHandle) {
-  uint64_t stub_func_addr = 0x1600;
-  *funcHandle = reinterpret_cast<void *>(static_cast<uintptr_t>(stub_func_addr));
+  *funcHandle = &stub_names_to_handles_[std::string(kernelName)];
   return ACL_SUCCESS;
 }
 
 aclError AclRuntimeStubImpl::aclrtBinaryGetFunction(const aclrtBinHandle binHandle, const char *kernelName,
     aclrtFuncHandle *funcHandle) {
-  uint64_t stub_func_addr = 0x1600;
-  *funcHandle = reinterpret_cast<void *>(static_cast<uintptr_t>(stub_func_addr));
+  *funcHandle = &stub_names_to_handles_[std::string(kernelName)];
+  return ACL_SUCCESS;
+}
+
+aclError AclRuntimeStubImpl::aclrtBinaryGetFunctionByEntry(aclrtBinHandle binHandle, uint64_t funcEntry,
+    aclrtFuncHandle *funcHandle) {
+  std::string key = std::to_string(funcEntry);
+  *funcHandle = &stub_names_to_handles_[key];
   return ACL_SUCCESS;
 }
 
@@ -673,6 +683,7 @@ aclError AclRuntimeStubImpl::aclrtLaunchKernelWithHostArgs(aclrtFuncHandle funcH
   const std::lock_guard<std::mutex> lk(global_mtx_);
   all_launch_args_.emplace_back(funcHandle, numBlocks, stream, cfg, hostArgs, argsSize,
                                 placeHolderArray, placeHolderNum, std::move(last_tag_));
+  launch_with_handle_args_[funcHandle].emplace_back(&all_launch_args_.back());
   cpu_launch_args_["cpu_new_args_launch_with_place_holder"].emplace_back(&all_launch_args_.back());
   last_stream_ = static_cast<uint64_t>(reinterpret_cast<uintptr_t>(stream));
   if (stream_to_task_id_.find(last_stream_) != stream_to_task_id_.end()) {

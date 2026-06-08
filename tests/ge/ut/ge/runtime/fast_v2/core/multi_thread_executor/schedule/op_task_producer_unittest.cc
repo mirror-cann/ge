@@ -194,8 +194,8 @@ TEST_F(OpTaskProducerUnitTest, task_hasloop_success) {
       .KernelAttr({{1, {"transdata", "Tiling"}},
                    {2, {"transdata", "Tiling"}},
                    {3, {"transdata", "AllocMemHbm"}},
-                   {4, {"transdata", "AtomicLaunchKernelWithFlag"}},
-                   {5, {"transdata", "LaunchKernelWithHandle"}}})
+                   {4, {"transdata", "AtomicLaunchKernelV2"}},
+                   {5, {"transdata", "LaunchKernelV2"}}})
       .Chain({1, 2, 3, 4, 5})
       .Chain({1, 3})
       .Chain({2, 4})

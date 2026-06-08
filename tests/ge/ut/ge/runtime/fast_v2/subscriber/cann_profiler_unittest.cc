@@ -100,8 +100,8 @@ void TestReportNodeBasicInfo() {
   auto context = KernelRunContextFaker()
                      .NodeName("test1")
                      .NodeType("test1")
-                     .KernelType("LaunchKernelWithHandle")
-                     .KernelName("LaunchKernelWithHandle")
+                     .KernelType("LaunchKernelV2")
+                     .KernelName("LaunchKernelV2")
                      .KernelIONum(3, 1)
                      .Build();
 
@@ -350,7 +350,7 @@ TEST_F(CannProfilerUT, InitProfiler_InitTaskAndTensorInfoOk_WithEmptyComputeNode
   auto execution_data = reinterpret_cast<const ExecutionData *>(executor->GetExeGraphExecutor(kMainExeGraph)->GetExecutionData());
   for (size_t i=0UL; i<execution_data->base_ed.node_num; ++i) {
     std::string kernel_type = reinterpret_cast<const KernelExtendInfo *>(execution_data->base_ed.nodes[i]->context.kernel_extend_info)->GetKernelType();
-    if (kernel_type == "LaunchKernelWithHandle") {
+    if (kernel_type == "LaunchKernelV2") {
       const_cast<KernelRunContext *>(&execution_data->base_ed.nodes[i]->context)->compute_node_info = nullptr;
     }
   }
@@ -1064,7 +1064,7 @@ TEST_F(CannProfilerUT, InitProfiler_Aiv_SetEngineType) {
   auto dfx_extend_info = std::unique_ptr<uint8_t[]>(new (std::nothrow) uint8_t[100]);
   *const_cast<uint32_t *>(reinterpret_cast<DfxExtendInfo *>(dfx_extend_info.get())->GetTaskTypeAddr()) =
       static_cast<uint32_t>(MSPROF_GE_TASK_TYPE_AIV);
-  profiler.SetEngineType(node_id, "LaunchKernelWithHandle", reinterpret_cast<DfxExtendInfo *>(dfx_extend_info.get()));
+  profiler.SetEngineType(node_id, "LaunchKernelV2", reinterpret_cast<DfxExtendInfo *>(dfx_extend_info.get()));
   EXPECT_EQ(profiler.prof_extend_infos_[node_id].engine_type, static_cast<uint32_t>(MSPROF_GE_TASK_TYPE_AIV));
 }
 

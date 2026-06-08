@@ -256,6 +256,33 @@ bool StreamUtils::EnableCvParallel() {
   return false;
 }
 
+bool StreamUtils::IsAivNode(const NodePtr &node) {
+  std::string core_type;
+  const auto op_desc = node->GetOpDesc();
+  bool is_aiv = false;
+  if (AttrUtils::GetStr(op_desc, ATTR_NAME_CUBE_VECTOR_CORE_TYPE, core_type)) {
+    if ((core_type == kTaskTypeAiv) || (core_type == kTaskTypeMixAiv)) {
+      is_aiv = true;
+    } else {
+      if ((core_type == "MIX")) {
+        (void)AttrUtils::GetBool(op_desc, "_mix_is_aiv", is_aiv);
+      }
+    }
+  }
+  return is_aiv;
+}
+
+
+bool StreamUtils::IsAicNode(const NodePtr &node) {
+  std::string core_type;
+  const auto op_desc = node->GetOpDesc();
+  if (AttrUtils::GetStr(op_desc, ATTR_NAME_CUBE_VECTOR_CORE_TYPE, core_type)) {
+    return !IsAivNode(node);
+  }
+  return false;
+}
+
+
 // trans string to map, "0:0,1:0,2:1" to {{0,0}, {1,0}, {2,1}}
 Status StreamUtils::TransStrToMap(const std::string &map_str, std::map<int64_t, int64_t> &result) {
   std::stringstream ss(map_str);

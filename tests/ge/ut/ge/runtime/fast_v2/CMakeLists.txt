@@ -41,6 +41,7 @@ target_compile_options(ut_fast_runtime2_test PRIVATE
 target_compile_definitions(ut_fast_runtime2_test PRIVATE
         google=ascend_private
         CMAKE_BINARY_DIR=\"${CMAKE_BINARY_DIR}\"
+        RUN_TEST
         )
 
 target_include_directories(ut_fast_runtime2_test PRIVATE

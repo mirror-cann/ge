@@ -588,7 +588,7 @@ TEST_F(FFTSAICoreKernelTestST, test_atomic_aicore_update_context) {
   run_context.value_holder[2].Set((void *)&blk, nullptr);
   ProfNodeAdditionInfo info;
   CannProfilingInfoWrapper prof_info(&info);
-  ASSERT_EQ(registry.FindKernelFuncs("AtomicLaunchKernelWithFlag")->profiling_info_filler(run_context, prof_info),
+  ASSERT_EQ(registry.FindKernelFuncs("AtomicLaunchKernelV2")->profiling_info_filler(run_context, prof_info),
             ge::GRAPH_SUCCESS);
 }
 

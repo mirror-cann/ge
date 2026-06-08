@@ -129,7 +129,6 @@ target_link_libraries(register
     PRIVATE
         ge_intf_pub
         msprof_headers
-        $<$<TARGET_EXISTS:cce_headers>:cce_headers>
         $<$<TARGET_EXISTS:aicpu_headers>:aicpu_headers>
         runtime_headers
         -Wl,--whole-archive
@@ -201,7 +200,6 @@ target_link_libraries(register_static PRIVATE
     slog_headers
     msprof_headers
     mmpa_headers
-    $<$<TARGET_EXISTS:cce_headers>:cce_headers>
     $<$<TARGET_EXISTS:aicpu_headers>:aicpu_headers>
     runtime_headers
     ge_metadef_headers

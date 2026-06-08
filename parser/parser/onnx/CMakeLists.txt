@@ -70,6 +70,7 @@ target_link_libraries(fmk_onnx_parser
         -lrt
         -ldl
         error_manager
+        runtime_headers
     PUBLIC
         parser_headers
 )

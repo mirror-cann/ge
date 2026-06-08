@@ -178,7 +178,7 @@ TEST_F(MiniDAGStreamPassTest, EndToEnd_DAGNodeProperties) {
   ASSERT_NE(ge_graph, nullptr);
 
   std::shared_ptr<minidag::DAGGraph> dag;
-  auto ret = minidag::DAGAdapter::FromGEGraph(ge_graph, dag);
+  auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, SUCCESS);
   ASSERT_NE(dag, nullptr);
 
@@ -212,7 +212,7 @@ TEST_F(MiniDAGStreamPassTest, EndToEnd_DAGEdgeProperties) {
   ASSERT_NE(ge_graph, nullptr);
 
   std::shared_ptr<minidag::DAGGraph> dag;
-  auto ret = minidag::DAGAdapter::FromGEGraph(ge_graph, dag);
+  auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, SUCCESS);
   ASSERT_NE(dag, nullptr);
 
@@ -244,7 +244,7 @@ TEST_F(MiniDAGStreamPassTest, EndToEnd_DAGNodeEdgeRelations) {
   ASSERT_NE(ge_graph, nullptr);
 
   std::shared_ptr<minidag::DAGGraph> dag;
-  auto ret = minidag::DAGAdapter::FromGEGraph(ge_graph, dag);
+  auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, SUCCESS);
   ASSERT_NE(dag, nullptr);
 
@@ -279,7 +279,7 @@ TEST_F(MiniDAGStreamPassTest, EndToEnd_DAGNodeCostProperties) {
   ASSERT_NE(ge_graph, nullptr);
 
   std::shared_ptr<minidag::DAGGraph> dag;
-  auto ret = minidag::DAGAdapter::FromGEGraph(ge_graph, dag);
+  auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, SUCCESS);
   ASSERT_NE(dag, nullptr);
 
@@ -319,7 +319,7 @@ TEST_F(MiniDAGStreamPassTest, EndToEnd_CompleteGraphStructure) {
   ASSERT_NE(ge_graph, nullptr);
 
   std::shared_ptr<minidag::DAGGraph> dag;
-  auto ret = minidag::DAGAdapter::FromGEGraph(ge_graph, dag);
+  auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, SUCCESS);
   ASSERT_NE(dag, nullptr);
 
@@ -350,7 +350,7 @@ TEST_F(MiniDAGStreamPassTest, EndToEnd_RefreshStreamIdsToGE) {
   ASSERT_NE(ge_graph, nullptr);
 
   std::shared_ptr<minidag::DAGGraph> dag;
-  auto ret = minidag::DAGAdapter::FromGEGraph(ge_graph, dag);
+  auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, SUCCESS);
   ASSERT_NE(dag, nullptr);
 
@@ -462,7 +462,7 @@ TEST_F(MiniDAGStreamPassTest, Adapter_ControlEdgeConversion) {
   graph->AddControlEdge(add1, netoutput);
 
   std::shared_ptr<minidag::DAGGraph> dag;
-  auto ret = minidag::DAGAdapter::FromGEGraph(graph, dag);
+  auto ret = DAGAdapter::FromGEGraph(graph, dag);
   ASSERT_EQ(ret, ge::SUCCESS);
   ASSERT_NE(dag, nullptr);
 
@@ -497,7 +497,7 @@ TEST_F(MiniDAGStreamPassTest, Adapter_ControlEdgeNodeRelation) {
   graph->AddControlEdge(relu1, netoutput);
 
   std::shared_ptr<minidag::DAGGraph> dag;
-  auto ret = minidag::DAGAdapter::FromGEGraph(graph, dag);
+  auto ret = DAGAdapter::FromGEGraph(graph, dag);
   ASSERT_EQ(ret, ge::SUCCESS);
   ASSERT_NE(dag, nullptr);
 

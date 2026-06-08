@@ -955,8 +955,6 @@ target_compile_options(ut_python_pass_artifact_selector_utest PRIVATE ${AIR_COMM
 
 target_include_directories(ut_python_pass_artifact_selector_utest PRIVATE
     ${AIR_CODE_DIR}
-    ${JSON_INCLUDE}
-    ${JSON_SOURCE}
     ${ASCEND_INSTALL_PATH}/include
     ${ASCGEN_DIR}/inc
 )

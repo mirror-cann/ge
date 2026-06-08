@@ -336,6 +336,10 @@ struct RtKernelLaunchArgsEx {
     return tilingData;
   }
 
+  size_t GetTilingDataOffset() {
+    return args_desc_.GetOffset(ArgsType::kTilingData);
+  }
+
   ge::graphStatus UpdateBaseArgsSize() {
     if (base.hostInputInfoNum != 0) {
       base.argsSize = args_desc_.GetOffset(ArgsType::kHostInputData) + host_input_data_size_;

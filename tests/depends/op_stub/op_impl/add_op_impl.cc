@@ -289,7 +289,7 @@ IMPL_OP(Cos).InputsDataDependency({});
 IMPL_OP(ViewCopy).InputsDataDependency({});
 IMPL_OP(InplaceIndexAdd).InputsDataDependency({});
 IMPL_OP(Swish).InputsDataDependency({});
-IMPL_OP(LayerNormV4).InputsDataDependency({1});
+IMPL_OP(LayerNormV4).InputsDataDependency({});
 IMPL_OP(Index).InputsDataDependency({1});
 IMPL_OP(FlashAttentionScore).InputsDataDependency({});
 IMPL_OP(FusedInferAttentionScore).InputsDataDependency({});

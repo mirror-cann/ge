@@ -219,7 +219,7 @@ ge::graphStatus InferShapeRangeForWhere(InferShapeRangeContext *context) {
     return ge::GRAPH_SUCCESS;
 }
 ```
-- 注：一二三类算子的定义可以参考[op_impl_dev_guide.md](docs/custom_op/op_impl/op_impl_dev_guide.md)
+- 注：一二三类算子的定义可以参考[op_impl_dev_guide.md](docs/custom_op/custom_op_v1/op_impl_dev_guide.md)
 ## 5 编译期实现
 
 ### 5.1 整体流程

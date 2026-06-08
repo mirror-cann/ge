@@ -75,7 +75,7 @@ target_link_libraries(st_flow_func_executor PRIVATE
         reader_writer
         udf_profiling
         -rdynamic
-        mockcpp_static
+        mockcpp
         $<BUILD_INTERFACE:intf_llt_pub>
         $<BUILD_INTERFACE:slog_headers>
         $<BUILD_INTERFACE:mmpa_headers>

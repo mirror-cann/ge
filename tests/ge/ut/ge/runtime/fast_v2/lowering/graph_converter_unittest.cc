@@ -41,7 +41,7 @@ using namespace ge;
 namespace gert {
 extern const LowerResult *LoweringComputeGraph(const ge::ComputeGraphPtr &graph, LoweringGlobalData &global_data);
 namespace {
-constexpr const char *kAtomicLaunchKernelType = "AtomicLaunchKernelWithFlag";
+constexpr const char *kAtomicLaunchKernelType = "AtomicLaunchKernelV2";
 void CheckAtomicInfoInComputeNodeInfo(const ge::ExecuteGraph *const exe_graph,
                                       const ge::FastNode *const atomic_kernel_node,
                                       const char *atomic_compute_node_name, size_t atomic_compute_node_input_num) {
@@ -182,7 +182,7 @@ auto root_model = GeModelBuilder(graph).BuildGeRootModel();
       GraphConverter().SetModelDescHolder(&model_desc_holder).ConvertComputeGraphToExecuteGraph(graph, global_data);
   ASSERT_NE(exe_graph, nullptr);
 
-  const std::string kernel_type = "LaunchKernelWithHandle";
+  const std::string kernel_type = "LaunchKernelV2";
   const std::string add1_kernel_launch_node_name_prefix = kernel_type + "_" + "add1";
   const std::string add2_kernel_launch_node_name_prefix = kernel_type + "_" + "add2";
   ge::FastNode *add1_kernel_launch_node = nullptr;
@@ -623,7 +623,7 @@ TEST_F(GraphConverterUT, MultiStream_LoweringTwoNodeCrossStream) {
   ASSERT_EQ(FastNodeTopoChecker(access_cross_stream_relu).StrictConnectFrom({{"AllocMemHbm", 0}, {"Const", 0}}, true),
             "success");
   ASSERT_EQ(FastNodeTopoChecker(access_cross_stream_relu)
-                .StrictConnectTo(0, {{"LaunchKernelWithHandle", 13}, {"FreeMemory", 0}}),
+                .StrictConnectTo(0, {{"LaunchKernelV2", 15}, {"FreeMemory", 0}}),
             "success");
   ASSERT_EQ(FastNodeTopoChecker(access_cross_stream_relu).StrictConnectTo(-1, {{"FreeMemory", -1}}), "success");
   // check SendEvent connection
@@ -633,11 +633,11 @@ TEST_F(GraphConverterUT, MultiStream_LoweringTwoNodeCrossStream) {
                                                              {"CreateGertEvents", 0},  // all gert events
                                                              {"Data", 0},              // rt_events
                                                              {"SelectL2Allocator", 0},
-                                                             {"LaunchKernelWithHandle", -1}},
+                                                             {"LaunchKernelV2", -1}},
                                                             true),
             "success");
   ASSERT_EQ(FastNodeTopoChecker(send_add).StrictConnectTo(
-                -1, {{"LaunchKernelWithHandle", -1}, {"WaitEvents", -1}, {"SendEvents", -1}}),
+                -1, {{"LaunchKernelV2", -1}, {"WaitEvents", -1}, {"SendEvents", -1}}),
             "success");
 
   // check WaitEvents connection
@@ -647,12 +647,12 @@ TEST_F(GraphConverterUT, MultiStream_LoweringTwoNodeCrossStream) {
                                                               {"CreateGertEvents", 0},
                                                               {"Data", 0},
                                                               {"SelectL2Allocator", 0},
-                                                              {"LaunchKernelWithHandle", -1},
+                                                              {"LaunchKernelV2", -1},
                                                               {"SendEvents", -1}},
                                                              true),
             "success");
   ASSERT_EQ(FastNodeTopoChecker(wait_relu).StrictConnectTo(
-                -1, {{"LaunchKernelWithHandle", -1}, {"EnsureTensorAtOutMemory", -1}, {"WaitEvents", -1}}),
+                -1, {{"LaunchKernelV2", -1}, {"EnsureTensorAtOutMemory", -1}, {"WaitEvents", -1}}),
             "success");
 }
 /*
@@ -796,14 +796,14 @@ TEST_F(GraphConverterUT, LoweringGraph_DataWithRefNode_OK) {
   auto graph = ShareGraph::BuildAssignReshapeGraph();
   graph->TopologicalSorting();
 
-  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto root_model = GeModelBuilder(graph).FakeTbeBin({"Assign"}).BuildGeRootModel();
   auto global_data = GlobalDataFaker(root_model)
                          .FakeWithHandleAiCore("Assign", false)
                          .Build();
   auto model_desc_holder = ModelDescHolderFaker().Build();
   auto exe_graph =
       GraphConverter().SetModelDescHolder(&model_desc_holder).ConvertComputeGraphToExecuteGraph(graph, global_data);
-
+  ASSERT_NE(exe_graph, nullptr);
   CheckGraphGenerally(exe_graph.get());
   CheckAllocFreeStageMatch(exe_graph.get());
   auto nodes = GetNodeTypes(exe_graph->GetAllNodes());

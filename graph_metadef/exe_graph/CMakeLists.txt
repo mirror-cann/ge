@@ -35,13 +35,14 @@ add_library(lowering SHARED ${LOWERING_SRCS})
 
 target_include_directories(lowering PRIVATE
     ${METADEF_DIR}
-)
-
-target_include_directories(lowering PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}
     ${CMAKE_BINARY_DIR}
     ${CMAKE_BINARY_DIR}/proto/metadef_protos
     ${AIR_CODE_DIR}/inc/graph_metadef
+    ${AIR_CODE_DIR}
+    ${AIR_CODE_DIR}/base
+    ${CMAKE_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/base
 )
 
 target_link_libraries(lowering PRIVATE
@@ -123,6 +124,10 @@ target_include_directories(stub_lowering PRIVATE
     ${CMAKE_BINARY_DIR}
     ${CMAKE_BINARY_DIR}/proto/metadef_protos
     ${AIR_CODE_DIR}/inc
+    ${AIR_CODE_DIR}
+    ${AIR_CODE_DIR}/base
+    ${CMAKE_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/base
 )
 
 target_compile_options(stub_lowering PRIVATE

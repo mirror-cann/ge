@@ -113,7 +113,7 @@ Status RunMiniDAGStreamPass(const ConstGraphPtr &graph, StreamPassContext &conte
 
     // 5. 构建DAG
     std::shared_ptr<minidag::DAGGraph> dag;
-    auto ret = minidag::DAGAdapter::FromGEGraph(graph, dag);
+    auto ret = DAGAdapter::FromGEGraph(graph, dag);
     if (ret != GRAPH_SUCCESS || dag == nullptr) {
         GELOGE(FAILED, "MiniDAGStreamPass failed: FromGEGraph returned error");
         return FAILED;
@@ -130,7 +130,7 @@ Status RunMiniDAGStreamPass(const ConstGraphPtr &graph, StreamPassContext &conte
     }
 
     // 8. 写回GE图
-    ret = minidag::DAGAdapter::RefreshStreamIdsToGE(*dag, graph, context);
+    ret = DAGAdapter::RefreshStreamIdsToGE(*dag, graph, context);
     if (ret != GRAPH_SUCCESS) {
         GELOGE(FAILED, "RefreshStreamIdsToGE failed: ret=%d", ret);
         return FAILED;

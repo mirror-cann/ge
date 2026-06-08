@@ -337,14 +337,14 @@ void RunGraphFailThenSuccess(const TaskProducerType &producer_type) {
   ASSERT_NE(model_executor->Execute({i3.value}, inputs0.data(), inputs0.size(), outputs.data(), outputs.size()),
             ge::GRAPH_SUCCESS);
   // 执行失败，和失败结点关联的后续launch结点都不会执行
-  ASSERT_EQ(ess->GetExecuteCountByNodeNameAndKernelType("add0", "LaunchKernelWithHandle"), 0);
+  ASSERT_EQ(ess->GetExecuteCountByNodeNameAndKernelType("add0", "LaunchKernelV2"), 0);
 
   // 第二次执行成功
   ess->Clear();
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs0.data(), inputs0.size(), outputs.data(), outputs.size()),
             ge::GRAPH_SUCCESS);
   // 执行成功，所有launch结点都正常执行
-  ASSERT_EQ(ess->GetExecuteCountByNodeNameAndKernelType("add0", "LaunchKernelWithHandle"), 1);
+  ASSERT_EQ(ess->GetExecuteCountByNodeNameAndKernelType("add0", "LaunchKernelV2"), 1);
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
 

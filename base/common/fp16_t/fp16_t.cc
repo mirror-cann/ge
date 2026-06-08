@@ -735,7 +735,7 @@ TagFp16 &TagFp16::operator=(const float32_t f_val) & {
   s_ret = static_cast<uint16_t>((ui32_v & kFp32SignMask) >> kFp32SignIndex);
   // 8 bit exponent
   e_f = (ui32_v & kFp32ExpMask) >> kFp32ManLen;
-  // 23 bit mantissa dont't need to care about denormal
+  // 23 bit mantissa don't need to care about denormal
   m_f = (ui32_v & kFp32ManMask);
   m_len_delta = kFp32ManLen - kFp16ManLen;
 

@@ -138,7 +138,29 @@ TEST_F(NetworkLstmpST, Lstmp_LaunchArgCorrect) {
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
 
   // CheckRtsLaunchParas
-  auto dynmic_automic_launch_args = runtime_stub.GetRtsRuntimeStub().PopLaunchArgsByStubName(DynamicAtomicStubName);// 不需要修改么？
+  // LaunchKernelV2 always uses handle-based launch, not stub-based launch.
+  // stub_names_to_handles_ is always empty, all launch args are stored in launch_with_handle_args_.
+  // Use GetLaunchWithHandleArgs() to get launch args.
+  auto &launch_args_map = runtime_stub.GetRtsRuntimeStub().GetLaunchWithHandleArgs();
+  ASSERT_FALSE(launch_args_map.empty());
+
+  // Collect all launch args from all handles
+  std::vector<ge::GeFakeLaunchArgs *> all_launch_args;
+  for (auto &handle_args_pair : launch_args_map) {
+    for (auto &args : handle_args_pair.second) {
+      all_launch_args.push_back(args);
+    }
+  }
+  ASSERT_GE(all_launch_args.size(), 4U);
+
+  // Find DynamicAtomicAddrClean launch args by argsSize=88
+  ge::GeFakeLaunchArgs *dynmic_automic_launch_args = nullptr;
+  for (auto *args : all_launch_args) {
+    if (args->GetArgsEx()->argsSize == 88) {
+      dynmic_automic_launch_args = args;
+      break;
+    }
+  }
   ASSERT_NE(dynmic_automic_launch_args, nullptr);
   ASSERT_EQ(dynmic_automic_launch_args->GetStream(), stream);
   ASSERT_EQ(dynmic_automic_launch_args->GetArgsEx()->argsSize, 88);
@@ -147,7 +169,14 @@ TEST_F(NetworkLstmpST, Lstmp_LaunchArgCorrect) {
   auto automic_tiling = dynmic_automic_launch_args->GetArgsTilingData<DynamicAtomicAddrCleanParam>();
   ASSERT_EQ(automic_tiling->need_core_num_input_scalar, 8);
 
-  auto transdata_launch_args = runtime_stub.GetRtsRuntimeStub().PopLaunchArgsByStubName(TransDataStubName);
+  // Find TransData launch args by argsSize=352
+  ge::GeFakeLaunchArgs *transdata_launch_args = nullptr;
+  for (auto *args : all_launch_args) {
+    if (args->GetArgsEx()->argsSize == 352) {
+      transdata_launch_args = args;
+      break;
+    }
+  }
   ASSERT_NE(transdata_launch_args, nullptr);
   ASSERT_EQ(transdata_launch_args->GetStream(), stream);
   ASSERT_EQ(transdata_launch_args->GetArgsEx()->argsSize, 352);
@@ -156,16 +185,30 @@ TEST_F(NetworkLstmpST, Lstmp_LaunchArgCorrect) {
   auto transdata_tiling = transdata_launch_args->GetArgsTilingData<kernel::transdata::TransDataMode1010Param>();
   ASSERT_EQ(transdata_tiling->tiling_mode, 1010);
 
-  auto transdata13_launch_args = runtime_stub.GetRtsRuntimeStub().PopLaunchArgsByStubName(TransData13StubName);
+  // Find transdata_13 launch args by argsSize=408
+  ge::GeFakeLaunchArgs *transdata13_launch_args = nullptr;
+  for (auto *args : all_launch_args) {
+    if (args->GetArgsEx()->argsSize == 408) {
+      transdata13_launch_args = args;
+      break;
+    }
+  }
   ASSERT_NE(transdata13_launch_args, nullptr);
   ASSERT_EQ(transdata13_launch_args->GetStream(), stream);
   ASSERT_EQ(transdata13_launch_args->GetArgsEx()->argsSize, 408);
   ASSERT_EQ(transdata13_launch_args->GetArgsEx()->tilingAddrOffset, 24);
   ASSERT_EQ(transdata13_launch_args->GetArgsEx()->tilingDataOffset, 32);
-  auto transdata13_tiling = transdata_launch_args->GetArgsTilingData<kernel::transdata::TransDataMode1010Param>();
-  ASSERT_EQ(transdata13_tiling->tiling_mode, 1010);
+  auto transdata13_tiling = transdata13_launch_args->GetArgsTilingData<kernel::transdata::TransDataMode1010Param>();
+  ASSERT_EQ(transdata13_tiling->tiling_mode, 2010);
 
-  auto dynamic_launch_args = runtime_stub.GetRtsRuntimeStub().PopLaunchArgsByStubName(DynamicRnnv3StubName);
+  // Find DynamicRNNV3 launch args by argsSize=268
+  ge::GeFakeLaunchArgs *dynamic_launch_args = nullptr;
+  for (auto *args : all_launch_args) {
+    if (args->GetArgsEx()->argsSize == 268) {
+      dynamic_launch_args = args;
+      break;
+    }
+  }
   ASSERT_NE(dynamic_launch_args, nullptr);
   EXPECT_EQ(dynamic_launch_args->GetStream(), stream);
   EXPECT_EQ(dynamic_launch_args->GetArgsEx()->argsSize, 268);

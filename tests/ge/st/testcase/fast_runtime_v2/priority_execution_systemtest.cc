@@ -74,7 +74,11 @@ int64_t GetPriority(const ge::ExecuteGraph *main_graph, const std::string &key_n
 void CheckKernelPriority(const ge::ComputeGraphPtr &graph, const ge::ExecuteGraph *exe_graph,
                          const std::string &compute_node_name, const std::string &kernel_type,
                          const int64_t decrease = 0) {
-  auto launch_priority = GetPriority(exe_graph, kernel_type + "_" + compute_node_name);
+  auto main_node = ge::ExecuteGraphUtils::FindFirstNodeMatchType(const_cast<ge::ExecuteGraph *>(exe_graph), "Main");
+  ASSERT_NE(main_node, nullptr);
+  auto main_graph = ge::FastNodeUtils::GetSubgraphFromNode(main_node, 0);
+  ASSERT_NE(main_graph, nullptr);
+  auto launch_priority = GetPriority(main_graph, kernel_type + "_" + compute_node_name);
   ASSERT_NE(launch_priority, -1);
   auto node_id = graph->FindNode(compute_node_name)->GetOpDesc()->GetId();
   auto expect_priority = (node_id * kExpansion) + (kExpansion - 1) - decrease;
@@ -83,9 +87,13 @@ void CheckKernelPriority(const ge::ComputeGraphPtr &graph, const ge::ExecuteGrap
 
 void CheckAicpuLaunchTfKernelPriority(const ge::ComputeGraphPtr &graph, const ge::ExecuteGraph *exe_graph,
                                       const std::string &compute_node_name) {
-  auto launch_priority = GetPriority(exe_graph, "AicpuLaunchTfKernel_" + compute_node_name);
+  auto main_node = ge::ExecuteGraphUtils::FindFirstNodeMatchType(const_cast<ge::ExecuteGraph *>(exe_graph), "Main");
+  ASSERT_NE(main_node, nullptr);
+  auto main_graph = ge::FastNodeUtils::GetSubgraphFromNode(main_node, 0);
+  ASSERT_NE(main_graph, nullptr);
+  auto launch_priority = GetPriority(main_graph, "AicpuLaunchTfKernel_" + compute_node_name);
   ASSERT_NE(launch_priority, -1);
-  auto memcpy_launch_priority = GetPriority(exe_graph, "AicpuLaunchTfKernel_" + compute_node_name + "_FakeMemCpy");
+  auto memcpy_launch_priority = GetPriority(main_graph, "AicpuLaunchTfKernel_" + compute_node_name + "_FakeMemCpy");
   ASSERT_NE(memcpy_launch_priority, -1);
   auto node_id = graph->FindNode(compute_node_name)->GetOpDesc()->GetId();
   ASSERT_EQ((node_id * kExpansion) + (kExpansion - 1), launch_priority);
@@ -108,29 +116,29 @@ void CheckComputeNodeOrderEqualToExecuteNodeOrder(const ge::ComputeGraphPtr &gra
 
   std::vector<int64_t> execute_node_order;
   execute_node_order.emplace_back(
-      ess->GetExecuteIndexByNodeNameAndKernelType("transdata_10_AtomicClean", "AtomicLaunchKernelWithFlag"));
+      ess->GetExecuteIndexByNodeNameAndKernelType("transdata_10_AtomicClean", "AtomicLaunchKernelV2"));
   execute_node_order.emplace_back(
-      ess->GetExecuteIndexByNodeNameAndKernelType("transdata_10", "LaunchKernelWithHandle"));
+      ess->GetExecuteIndexByNodeNameAndKernelType("transdata_10", "LaunchKernelV2"));
   execute_node_order.emplace_back(
-      ess->GetExecuteIndexByNodeNameAndKernelType("transdata_8_AtomicClean", "AtomicLaunchKernelWithFlag"));
+      ess->GetExecuteIndexByNodeNameAndKernelType("transdata_8_AtomicClean", "AtomicLaunchKernelV2"));
   execute_node_order.emplace_back(
-      ess->GetExecuteIndexByNodeNameAndKernelType("transdata_8", "LaunchKernelWithHandle"));
+      ess->GetExecuteIndexByNodeNameAndKernelType("transdata_8", "LaunchKernelV2"));
   execute_node_order.emplace_back(
-      ess->GetExecuteIndexByNodeNameAndKernelType("transdata_4_AtomicClean", "AtomicLaunchKernelWithFlag"));
+      ess->GetExecuteIndexByNodeNameAndKernelType("transdata_4_AtomicClean", "AtomicLaunchKernelV2"));
   execute_node_order.emplace_back(
-      ess->GetExecuteIndexByNodeNameAndKernelType("transdata_4", "LaunchKernelWithHandle"));
+      ess->GetExecuteIndexByNodeNameAndKernelType("transdata_4", "LaunchKernelV2"));
   execute_node_order.emplace_back(
-      ess->GetExecuteIndexByNodeNameAndKernelType("transdata_13_AtomicClean", "AtomicLaunchKernelWithFlag"));
+      ess->GetExecuteIndexByNodeNameAndKernelType("transdata_13_AtomicClean", "AtomicLaunchKernelV2"));
   execute_node_order.emplace_back(
-      ess->GetExecuteIndexByNodeNameAndKernelType("transdata_13", "LaunchKernelWithHandle"));
+      ess->GetExecuteIndexByNodeNameAndKernelType("transdata_13", "LaunchKernelV2"));
   execute_node_order.emplace_back(
-      ess->GetExecuteIndexByNodeNameAndKernelType("transdata_15_AtomicClean", "AtomicLaunchKernelWithFlag"));
+      ess->GetExecuteIndexByNodeNameAndKernelType("transdata_15_AtomicClean", "AtomicLaunchKernelV2"));
   execute_node_order.emplace_back(
-      ess->GetExecuteIndexByNodeNameAndKernelType("transdata_15", "LaunchKernelWithHandle"));
+      ess->GetExecuteIndexByNodeNameAndKernelType("transdata_15", "LaunchKernelV2"));
   execute_node_order.emplace_back(
-      ess->GetExecuteIndexByNodeNameAndKernelType("transdata_17_AtomicClean", "AtomicLaunchKernelWithFlag"));
+      ess->GetExecuteIndexByNodeNameAndKernelType("transdata_17_AtomicClean", "AtomicLaunchKernelV2"));
   execute_node_order.emplace_back(
-      ess->GetExecuteIndexByNodeNameAndKernelType("transdata_17", "LaunchKernelWithHandle"));
+      ess->GetExecuteIndexByNodeNameAndKernelType("transdata_17", "LaunchKernelV2"));
   auto pre_execute_node_id = execute_node_order[0];
   for (size_t i = 1; i < execute_node_order.size(); ++i) {
     ASSERT_TRUE(pre_execute_node_id < execute_node_order[i]);
@@ -240,18 +248,18 @@ TEST_F(PriorityExecutionST, Check_Priority_With_Aicore_Atomic_success) {
   auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model);
   ASSERT_NE(exe_graph, nullptr);
 
-  CheckKernelPriority(graph, exe_graph.get(), "transdata_10", "LaunchKernelWithHandle");
-  CheckKernelPriority(graph, exe_graph.get(), "transdata_10", "AtomicLaunchKernelWithFlag", kDecrease);
-  CheckKernelPriority(graph, exe_graph.get(), "transdata_8", "LaunchKernelWithHandle");
-  CheckKernelPriority(graph, exe_graph.get(), "transdata_8", "AtomicLaunchKernelWithFlag", kDecrease);
-  CheckKernelPriority(graph, exe_graph.get(), "transdata_4", "LaunchKernelWithHandle");
-  CheckKernelPriority(graph, exe_graph.get(), "transdata_4", "AtomicLaunchKernelWithFlag", kDecrease);
-  CheckKernelPriority(graph, exe_graph.get(), "transdata_13", "LaunchKernelWithHandle");
-  CheckKernelPriority(graph, exe_graph.get(), "transdata_13", "AtomicLaunchKernelWithFlag", kDecrease);
-  CheckKernelPriority(graph, exe_graph.get(), "transdata_15", "LaunchKernelWithHandle");
-  CheckKernelPriority(graph, exe_graph.get(), "transdata_15", "AtomicLaunchKernelWithFlag", kDecrease);
-  CheckKernelPriority(graph, exe_graph.get(), "transdata_17", "LaunchKernelWithHandle");
-  CheckKernelPriority(graph, exe_graph.get(), "transdata_17", "AtomicLaunchKernelWithFlag", kDecrease);
+  CheckKernelPriority(graph, exe_graph.get(), "transdata_10", "LaunchKernelV2");
+  CheckKernelPriority(graph, exe_graph.get(), "transdata_10", "AtomicLaunchKernelV2", kDecrease);
+  CheckKernelPriority(graph, exe_graph.get(), "transdata_8", "LaunchKernelV2");
+  CheckKernelPriority(graph, exe_graph.get(), "transdata_8", "AtomicLaunchKernelV2", kDecrease);
+  CheckKernelPriority(graph, exe_graph.get(), "transdata_4", "LaunchKernelV2");
+  CheckKernelPriority(graph, exe_graph.get(), "transdata_4", "AtomicLaunchKernelV2", kDecrease);
+  CheckKernelPriority(graph, exe_graph.get(), "transdata_13", "LaunchKernelV2");
+  CheckKernelPriority(graph, exe_graph.get(), "transdata_13", "AtomicLaunchKernelV2", kDecrease);
+  CheckKernelPriority(graph, exe_graph.get(), "transdata_15", "LaunchKernelV2");
+  CheckKernelPriority(graph, exe_graph.get(), "transdata_15", "AtomicLaunchKernelV2", kDecrease);
+  CheckKernelPriority(graph, exe_graph.get(), "transdata_17", "LaunchKernelV2");
+  CheckKernelPriority(graph, exe_graph.get(), "transdata_17", "AtomicLaunchKernelV2", kDecrease);
 
   auto main_node = ge::ExecuteGraphUtils::FindFirstNodeMatchType(exe_graph.get(), "Main");
   ASSERT_NE(main_node, nullptr);
@@ -259,7 +267,7 @@ TEST_F(PriorityExecutionST, Check_Priority_With_Aicore_Atomic_success) {
   ASSERT_NE(main_graph, nullptr);
   auto priority1 = GetPriority(main_graph, "SelectL2Allocator_cell_state_float32");
   ASSERT_NE(priority1, -1);
-  auto priority2 = GetPriority(main_graph, "AtomicLaunchKernelWithFlag_transdata_10_AtomicClean");
+  auto priority2 = GetPriority(main_graph, "AtomicLaunchKernelV2_transdata_10_AtomicClean");
   // SelectAllocator被最高优先级的target节点标定
   ASSERT_EQ(priority1, priority2);
 
@@ -417,13 +425,13 @@ TEST_F(PriorityExecutionST, Check_Priority_With_ThirdNode_success) {
   auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model);
   ASSERT_NE(exe_graph, nullptr);
 
-  CheckKernelPriority(graph, exe_graph.get(), "add1", "LaunchKernelWithHandle");
-  CheckKernelPriority(graph, exe_graph.get(), "nonzero", "LaunchKernelWithHandle");
+  CheckKernelPriority(graph, exe_graph.get(), "add1", "LaunchKernelV2");
+  CheckKernelPriority(graph, exe_graph.get(), "nonzero", "LaunchKernelV2");
   CheckKernelPriority(graph, exe_graph.get(), "nonzero", "SyncStream");
 
   GertRuntimeStub runtime_stub;
   runtime_stub.GetSlogStub().SetLevel(1);
-  runtime_stub.GetKernelStub().StubTiling().SetUp("LaunchKernelWithHandle", StubLaunch_UpdateOutputShape);
+  runtime_stub.GetKernelStub().StubTiling().SetUp("LaunchKernelV2", StubLaunch_UpdateOutputShape);
 
   auto model_executor = ModelV2Executor::Create(exe_graph, ge_root_model);
   ASSERT_NE(model_executor, nullptr);

@@ -114,10 +114,7 @@ if (ENABLE_OPEN_SRC)
 endif ()
 
 include(GoogleTest)
-
-add_library(aihac_codegen_toolkit SHARED IMPORTED)
-set_target_properties(aihac_codegen_toolkit PROPERTIES
-    IMPORTED_LOCATION "${ASCEND_INSTALL_PATH}/lib64/libaihac_codegen.so")
+find_cann_package(aihac_codegen MODULE)
 
 if (DEFINED RUN_TEST)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")

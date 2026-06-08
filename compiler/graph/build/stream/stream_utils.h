@@ -68,6 +68,8 @@ class StreamUtils {
   static bool EnableSingleStream();
   static bool EnableDynamicShapeMultiStream();
   static bool EnableCvParallel();
+  static bool IsAivNode(const NodePtr &node);
+  static bool IsAicNode(const NodePtr &node);
 
   static Status TransStrToMap(const std::string &map_str, std::map<int64_t, int64_t> &result);
   static std::string TransMapToStr(const std::map<int64_t, int64_t> &map);

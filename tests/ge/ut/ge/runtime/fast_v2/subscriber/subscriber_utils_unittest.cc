@@ -24,21 +24,21 @@ TEST_F(SubscriberUtilsUT, GetKernelType_GetInvalidKernelTypeHash_WhenForAddInfo)
 }
 
 TEST_F(SubscriberUtilsUT, GetKernelType_GetValidKernelTypeHash_WhenForAddInfo) {
-  const char *kernel_type = "LaunchKernelWithHandle";
+  const char *kernel_type = "LaunchKernelV2";
   auto type_hash = SubscriberUtils::GetProfKernelType(kernel_type, true);
   EXPECT_EQ(type_hash, MSPROF_REPORT_NODE_LAUNCH_TYPE);
 }
 
 TEST_F(SubscriberUtilsUT, GetKernelType_GetInValidKernelTypeHash_WhenForApiInfoAndAddInfoOn) {
   ge::diagnoseSwitch::EnableProfiling({ProfilingType::kTaskTime});
-  const char *kernel_type = "LaunchKernelWithHandle";
+  const char *kernel_type = "LaunchKernelV2";
   auto type_hash = SubscriberUtils::GetProfKernelType(kernel_type, false);
   EXPECT_EQ(type_hash, kInvalidProfKernelType);
 }
 
 TEST_F(SubscriberUtilsUT, GetKernelType_GetValidKernelTypeHash_WhenForApiInfoAndAddInfoOff) {
   ge::diagnoseSwitch::DisableProfiling();
-  const char *kernel_type = "LaunchKernelWithHandle";
+  const char *kernel_type = "LaunchKernelV2";
   auto type_hash = SubscriberUtils::GetProfKernelType(kernel_type, false);
   EXPECT_EQ(type_hash, MSPROF_REPORT_NODE_LAUNCH_TYPE);
 }

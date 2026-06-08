@@ -81,7 +81,7 @@ add_custom_target(ge_python_main_wheel DEPENDS ${GE_PYTHON_MAIN_WHEEL})
 add_custom_target(ge_python_native_wheel DEPENDS ${GE_PYTHON_PASS_NATIVE_WHEEL})
 add_custom_target(ge_python_pass_native_wheel_matrix
          COMMAND ${HI_PYTHON} ${CMAKE_CURRENT_SOURCE_DIR}/python_pass_native_build/build_python_pass_native_matrix.py
-            --source-dir ${CMAKE_SOURCE_DIR}
+            --source-dir ${AIR_CODE_DIR}
             --build-dir ${CMAKE_BINARY_DIR}
             --work-dir ${CMAKE_CURRENT_BINARY_DIR}/native_wheel_matrix_build
             --dist-dir ${GE_PYTHON_PASS_NATIVE_MATRIX_DIST_DIR}

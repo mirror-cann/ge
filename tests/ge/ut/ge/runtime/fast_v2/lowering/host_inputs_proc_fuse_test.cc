@@ -36,7 +36,7 @@ class HostInputsProcFuseUT : public testing::Test {};
  * before HostInputsProcFuse pass:
  *                netoutput
  *                    |
- *           LaunchKernelWithHandle
+ *           LaunchKernelV2
  *           /                 \
  * MakeSureTensorAtDevice  MakeSureTensorAtDevice
  *        |                             |
@@ -49,7 +49,7 @@ class HostInputsProcFuseUT : public testing::Test {};
  *  after HostInputsProcFuse pass:
  *                netoutput
  *                    |
- *           LaunchKernelWithHandle
+ *           LaunchKernelV2
  *                    |
  *            OptimizeHostInputs
  *             /               \
@@ -91,9 +91,9 @@ TEST_F(HostInputsProcFuseUT, TestSingleAicoreGraph) {
                                         {"Data", 6},
                                         {"FreeBatchHbm", 1},
                                         {"FreeMemory", 3},
-                                        {"CompatibleInferShape", 1},
+                                        {"InferShape", 1},
                                         {"InnerData", 32},
-                                        {"LaunchKernelWithHandle", 1},
+                                        {"LaunchKernelV2", 1},
                                         {"CopyFlowLaunch", 1},
                                         {"SplitRtStreams", 1},
                                         {"OutputData", 1},
@@ -143,9 +143,9 @@ TEST_F(HostInputsProcFuseUT, TestSingleAicoreGraph) {
  *             netoutput
  *               /
  *              /
- *  LaunchKernelWithHandle2
+ *  LaunchKernelV22
  *           \            ...  ...
- *            \          LaunchKernelWithHandle1
+ *            \          LaunchKernelV21
  *             \          /                \
  *          MakeSureTensorAtDevice  MakeSureTensorAtDevice
  *                      |                          |
@@ -159,9 +159,9 @@ TEST_F(HostInputsProcFuseUT, TestSingleAicoreGraph) {
  *             netoutput
  *               /
  *              /
- *  LaunchKernelWithHandle2
+ *  LaunchKernelV22
  *           \            ...  ...
- *     CopyFlowLaunch     LaunchKernelWithHandle1
+ *     CopyFlowLaunch     LaunchKernelV21
  *             \          /                \
  *              \   CopyFlowLaunch        OptimizeHostInputs
  *               \       |                          |
@@ -204,9 +204,9 @@ TEST_F(HostInputsProcFuseUT, TestTwoAicoreGraph) {
                                         {"Data", 6},
                                         {"FreeBatchHbm", 2},
                                         {"FreeMemory", 5},
-                                        {"CompatibleInferShape", 2},
-                                        {"InnerData", 51},
-                                        {"LaunchKernelWithHandle", 2},
+                                        {"InferShape", 2},
+                                        {"InnerData", 52},
+                                        {"LaunchKernelV2", 2},
                                         {"SplitRtStreams", 1},
                                         {"CopyFlowLaunch", 2},
                                         {"OutputData", 1},
@@ -255,7 +255,7 @@ TEST_F(HostInputsProcFuseUT, TestTwoAicoreGraph) {
  *before HostInputsProcFuse pass:
  *                 netoutput
  *                    |
- *           LaunchKernelWithFlag
+ *           LaunchKernelV2
  *           /                  \
  * MakeSureTensorAtDevice  MakeSureTensorAtDevice
  *        |                             |
@@ -269,7 +269,7 @@ TEST_F(HostInputsProcFuseUT, TestTwoAicoreGraph) {
  * after HostInputsProcFuse pass:
  *                  netoutput
  *                      |
- *            LaunchKernelWithFlag
+ *            LaunchKernelV2
  *                      |
  *              OptimizeHostInputs
  *              /                \
@@ -301,25 +301,26 @@ TEST_F(HostInputsProcFuseUT, TestAicoreStaticGraph) {
                 .StrictDirectNodeTypes({{"AllocBatchHbm", 1},
                                         {"AllocMemHbm", 1},
                                         {"BuildTensor", 1},
-                                        {"InferShape", 1},
                                         {"CalcTensorSizeFromStorage", 2},
-                                        {"Data", 6},
                                         {"CopyD2H", 1},
+                                        {"CopyFlowLaunch", 1},
+                                        {"CreateHostL2Allocator", 1},
+                                        {"Data", 6},
                                         {"EnsureTensorAtOutMemory", 1},
                                         {"FreeBatchHbm", 1},
                                         {"FreeMemory", 4},
                                         {"FreeTensorMemory", 1},
-                                        {"InnerData", 28},
-                                        {"SplitRtStreams", 1},
-                                        {"LaunchKernelWithFlag", 1},
-                                        {"CopyFlowLaunch", 1},
-                                        {"OutputData", 1},
+                                        {"InferShape", 1},
+                                        {"InnerData", 32},
+                                        {"LaunchKernelV2", 1},
                                         {"NetOutput", 1},
+                                        {"OutputData", 1},
                                         {"SelectL1Allocator", 2},
                                         {"SelectL2Allocator", 1},
-                                        {"CreateHostL2Allocator", 1},
                                         {"SplitDataTensor", 2},
-                                        {"SyncStream", 1}}),
+                                        {"SplitRtStreams", 1},
+                                        {"SyncStream", 1}
+                                        }),
             "success");
 }
 }  // namespace gert

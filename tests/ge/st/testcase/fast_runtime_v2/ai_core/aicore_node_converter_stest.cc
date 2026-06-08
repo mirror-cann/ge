@@ -129,6 +129,7 @@ public:
   void TestAicoreNodeConvert(int type) {
     auto graph = ShareGraph::AicoreGraph();
     auto add_node = graph->FindNode("add1");
+    (void)ge::AttrUtils::SetStr(add_node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_add_12345");
     std::vector<std::string> dfx_opts = {kOpDfxPrintf, kOpDfxAssert};
     (void)ge::AttrUtils::SetListStr(add_node->GetOpDesc(), gert::kOpDfxOptions, dfx_opts);
     (void)ge::AttrUtils::SetInt(add_node->GetOpDesc(), gert::kOpDfxBufferSize, 12345);
@@ -380,7 +381,7 @@ TEST_F(AicoreNodeConverterST, ConvertStaticNodeReuseBinary) {
   FastNodeTopoChecker checker(add_ret.out_addrs[0]);
   EXPECT_EQ(checker.StrictConnectFrom(std::vector<FastSrcNode>({{"SelectL2Allocator", 0}, {"CalcTensorSizeFromStorage", 0}}), true),
             "success");
-  EXPECT_EQ(checker.StrictConnectTo(0, std::vector<FastSrcNode>({{"FreeMemory", 0}, {"LaunchKernelWithFlag", 13}})),
+  EXPECT_EQ(checker.StrictConnectTo(0, std::vector<FastSrcNode>({{"FreeMemory", 0}, {"LaunchKernelV2", 17}})),
             "success");
   EXPECT_EQ(checker.InChecker().DataFromByType("CalcTensorSizeFromStorage").DataFromByType("Const").Result(),
             "success");
@@ -417,7 +418,7 @@ TEST_F(AicoreNodeConverterST, ConvertPartSupportAicoreNode) {
   FastNode *aicore_launch_node = nullptr;
   FastNode *cpu_launch_node = nullptr;
   for (auto &node : exe_graph->GetAllNodes()) {
-  if (node->GetType() == "LaunchKernelWithFlag") {
+  if (node->GetType() == "LaunchKernelV2") {
   aicore_launch_node = node;
   } else if (node->GetType() == "AicpuLaunchTfKernel") {
   cpu_launch_node = node;

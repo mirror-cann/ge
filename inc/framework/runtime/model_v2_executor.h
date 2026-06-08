@@ -30,6 +30,11 @@
 #include "framework/runtime/stream_allocator.h"
 #include "framework/runtime/event_allocator.h"
 #include "common/host_resource_center/host_resource_center.h"
+
+namespace ge {
+class AicoreKernelHandlesManager;
+}  // namespace ge
+
 namespace gert {
 enum class ExecutorState { kInit, kLoaded };
 inline const ge::char_t *GetSubExeGraphTypeStr(const SubExeGraphType type) {
@@ -264,6 +269,7 @@ class VISIBILITY_EXPORT ModelV2Executor {
 
   // For output reuse input memory address validation
   std::vector<std::pair<size_t, size_t>> io_same_addr_pairs_;
+  std::shared_ptr<ge::AicoreKernelHandlesManager> aicore_manager_;
 };
 }  // namespace gert
 

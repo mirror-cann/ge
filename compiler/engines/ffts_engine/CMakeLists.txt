@@ -56,7 +56,6 @@ target_link_libraries(ffts PRIVATE
         mmpa_headers
         msprof_headers
         runtime_headers
-        cce_headers
         $<$<BOOL:${BUILD_OPEN_PROJECT}>:op_compile_adapter_headers>
         $<$<NOT:$<BOOL:${BUILD_OPEN_PROJECT}>>:$<BUILD_INTERFACE:tensor_engine_headers>>
         platform

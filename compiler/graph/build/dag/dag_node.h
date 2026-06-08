@@ -47,6 +47,8 @@ class DAGNode : public std::enable_shared_from_this<DAGNode> {
   std::vector<std::shared_ptr<DAGNode>> GetOutputNodes() const;
   const NodeCost& GetCost() const;
   void SetCost(const NodeCost &cost);
+  void SetSerialFlag(const std::string &flag);
+  const std::string& GetSerialFlag() const;
 
  private:
   std::string name_;
@@ -54,6 +56,7 @@ class DAGNode : public std::enable_shared_from_this<DAGNode> {
   int64_t stream_id_ = INVALID_STREAM_ID;
   int64_t topo_id_ = INVALID_TOPO_ID;
   NodeCost cost_;
+  std::string serial_flag_;
   std::vector<std::weak_ptr<DAGEdge>> in_edges_;
   std::vector<std::weak_ptr<DAGEdge>> out_edges_;
   friend class DAGGraph;

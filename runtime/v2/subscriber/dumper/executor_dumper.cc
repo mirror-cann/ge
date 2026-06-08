@@ -1297,8 +1297,7 @@ ge::Status ExecutorDumper::FillExceptionDumpInfoByKernel(const Node &node) {
 }
 
 ge::Status ExecutorDumper::PrepareExceptionDump(const Node &node, const char *kernel_type, NodeDumpUnit &dump_unit) {
-  if (!IsLaunchWithHandleNode(kernel_type) && !IsLaunchWithFlagNode(kernel_type) &&
-      !IsAiCpuLaunchNode(kernel_type) && !IsUpdateContext(kernel_type)) {
+  if (!IsLaunchKernelV2Node(kernel_type) && !IsAiCpuLaunchNode(kernel_type) && !IsUpdateContext(kernel_type)) {
     return ge::SUCCESS;
   }
   auto compute_node = dump_unit.node;

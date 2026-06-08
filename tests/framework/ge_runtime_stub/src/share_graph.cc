@@ -306,7 +306,9 @@ ComputeGraphPtr ShareGraph::BuildAtomicAicoreGraph() {
   AttrUtils::SetStr(trans1->GetOpDesc(), "_atomic_compile_info_key", "_atomic_compile_info_key");
   AttrUtils::SetStr(trans1->GetOpDesc(), "_atomic_compile_info_json",
                     "{\"vars\": {\"ub_size\": 131072, \"core_num\": 8, \"workspace_num\": 1}}");
-
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -322,7 +324,9 @@ ComputeGraphPtr ShareGraph::BuildMemSetAicoreGraph() {
   auto graph = ToComputeGraph(g1);
   AttrUtils::SetInt(graph->FindNode("data1")->GetOpDesc(), "index", 0);
   auto trans1 = graph->FindNode("trans1");
+  (void)ge::AttrUtils::SetStr(trans1->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_transdata_12345");
   auto memset = graph->FindNode("memset");
+  (void)ge::AttrUtils::SetStr(memset->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_memset_12345");
   memset->GetOpDesc()->SetSrcName({"trans1"});
   memset->GetOpDesc()->SetSrcIndex({0});
   auto net_output = graph->FindNode("NetOutput");
@@ -346,7 +350,9 @@ ComputeGraphPtr ShareGraph::BuildMemSetAicoreGraph() {
   AttrUtils::SetStr(memset->GetOpDesc(), "compile_info_key", "_atomic_compile_info_key");
   AttrUtils::SetStr(memset->GetOpDesc(), "compile_info_json",
                     "{\"vars\": {\"ub_size\": 131072, \"core_num\": 8, \"workspace_num\": 2}}");
-
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -380,6 +386,7 @@ ComputeGraphPtr ShareGraph::AicoreGraph() {
   data2->GetOpDesc()->SetOpEngineName(kEngineNameGeLocal);
 
   auto add1 = graph->FindNode("add1");
+  (void)ge::AttrUtils::SetStr(add1->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_add_12345");
   AddCompileResult(add1, false);
   SetNoStorage(add1->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {-1, -1, -1});
   add1->GetOpDesc()->SetOpKernelLibName(kEngineNameAiCore);
@@ -397,6 +404,9 @@ ComputeGraphPtr ShareGraph::AicoreGraph() {
   net_output->GetOpDesc()->SetOpKernelLibName(kEngineNameGeLocal);
   net_output->GetOpDesc()->SetOpEngineName(kEngineNameGeLocal);
   SetGraphOutShapeRange(graph);
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -604,12 +614,14 @@ ComputeGraphPtr ShareGraph::AicoreGraphTwoAdd() {
   data2->GetOpDesc()->SetOpEngineName(kEngineNameGeLocal);
 
   auto add1 = graph->FindNode("add1");
+  (void)ge::AttrUtils::SetStr(add1->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_add_12345");
   AddCompileResult(add1, false);
   SetNoStorage(add1->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {-1, -1 - 1, -1});
   add1->GetOpDesc()->SetOpKernelLibName(kEngineNameAiCore);
   add1->GetOpDesc()->SetOpEngineName(kEngineNameAiCore);
 
   auto add2 = graph->FindNode("add2");
+  (void)ge::AttrUtils::SetStr(add2->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_add_12345");
   AddCompileResult(add2, false);
   SetNoStorage(add2->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {-1, -1 - 1, -1});
   add2->GetOpDesc()->SetOpKernelLibName(kEngineNameAiCore);
@@ -621,6 +633,9 @@ ComputeGraphPtr ShareGraph::AicoreGraphTwoAdd() {
   net_output->GetOpDesc()->SetOpKernelLibName(kEngineNameGeLocal);
   net_output->GetOpDesc()->SetOpEngineName(kEngineNameGeLocal);
   SetGraphOutShapeRange(graph);
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -690,6 +705,9 @@ ComputeGraphPtr ShareGraph::AtcNanoGraph() {
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"add3"});
   net_output->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -754,6 +772,9 @@ ge::Graph ShareGraph::MultiBatchGraph() {
   auto net_output = compute_graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"add3"});
   net_output->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : compute_graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -789,6 +810,7 @@ ComputeGraphPtr ShareGraph::AddWith4InputsAicoreGraph() {
   AttrUtils::SetInt(data4->GetOpDesc(), "index", 3);
 
   auto add1 = graph->FindNode("add1");
+  (void)ge::AttrUtils::SetStr(add1->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_add_12345");
   AddCompileResult(add1, false);
   SetNoStorage(add1->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {-1, -1 - 1, -1});
   AttrUtils::SetBool(add1->GetOpDesc(), "globalworkspace_type", true);
@@ -814,6 +836,9 @@ ComputeGraphPtr ShareGraph::AddWith4InputsAicoreGraph() {
   net_output->GetOpDesc()->SetSrcName({"add1"});
   net_output->GetOpDesc()->SetSrcIndex({0});
   SetGraphOutShapeRange(graph);
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -859,30 +884,36 @@ ComputeGraphPtr ShareGraph::AicoreWithRtsOverflowGraph() {
   AttrUtils::SetInt(data4->GetOpDesc(), "index", 3);
 
   auto reducesum1 = graph->FindNode("reducesum1");
+  (void)ge::AttrUtils::SetStr(reducesum1->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_reducesum1_12345");
   AddCompileResult(reducesum1, false);
   reducesum1->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameAiCore);
   SetNoStorage(reducesum1->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {});
   reducesum1->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
 
   auto clear_float_status = graph->FindNode("ClearFloatStatus");
+  (void)ge::AttrUtils::SetStr(clear_float_status->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_ClearFloatStatus_12345");
   SetNoStorage(clear_float_status->GetOpDesc(), FORMAT_ND, DT_INT32, {8});
   clear_float_status->GetOpDesc()->SetOpEngineName(ge::kEngineNameRts);
   clear_float_status->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameRts);
 
   auto clear_float_statusv2 = graph->FindNode("ClearFloatStatusv2");
+  (void)ge::AttrUtils::SetStr(clear_float_statusv2->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_ClearFloatStatus_22345");
   clear_float_statusv2->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameRts);
 
   auto cmo = graph->FindNode("cmo_1");
+  (void)ge::AttrUtils::SetStr(cmo->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_cmo_22345");
   cmo->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameRts);
   AttrUtils::SetInt(cmo->GetOpDesc(), "max_size", 1024);
   AttrUtils::SetInt(cmo->GetOpDesc(), "type", 6);
 
   auto get_float_status = graph->FindNode("GetFloatStatus");
+  (void)ge::AttrUtils::SetStr(get_float_status->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_GetFloatStatus_22345");
   SetNoStorage(get_float_status->GetOpDesc(), FORMAT_ND, DT_INT32, {8});
   get_float_status->GetOpDesc()->SetOpEngineName(ge::kEngineNameRts);
   get_float_status->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameRts);
 
   auto get_float_statusv2 = graph->FindNode("GetFloatStatusv2");
+  (void)ge::AttrUtils::SetStr(get_float_statusv2->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_GetFloatStatus_22345");
   SetNoStorage(get_float_statusv2->GetOpDesc(), FORMAT_ND, DT_INT32, {8});
   get_float_statusv2->GetOpDesc()->SetOpEngineName(ge::kEngineNameRts);
   get_float_statusv2->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameRts);
@@ -890,6 +921,9 @@ ComputeGraphPtr ShareGraph::AicoreWithRtsOverflowGraph() {
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"reducesum1", "ClearFloatStatus", "GetFloatStatus", "GetFloatStatusv2"});
   net_output->GetOpDesc()->SetSrcIndex({0, 1, 2, 3});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -910,12 +944,14 @@ ComputeGraphPtr ShareGraph::AicoreWithCmoGraph() {
   AttrUtils::SetInt(data2->GetOpDesc(), "index", 1);
 
   auto reducesum1 = graph->FindNode("reducesum1");
+  (void)ge::AttrUtils::SetStr(reducesum1->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_reducesum_12345");
   AddCompileResult(reducesum1, false);
   reducesum1->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameAiCore);
   SetNoStorage(reducesum1->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {32, 64});
   reducesum1->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
 
   auto cmo_node = graph->FindNode("cmo");
+  (void)ge::AttrUtils::SetStr(cmo_node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_cmo_node_12345");
   SetNoStorage(cmo_node->GetOpDesc(), FORMAT_ND, DT_INT32, {32, 64});
   AttrUtils::SetInt(cmo_node->GetOpDesc(), "offset", 32);
   cmo_node->GetOpDesc()->SetOpEngineName(ge::kEngineNameRts);
@@ -924,6 +960,9 @@ ComputeGraphPtr ShareGraph::AicoreWithCmoGraph() {
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"reducesum1"});
   net_output->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -969,25 +1008,30 @@ ComputeGraphPtr ShareGraph::AicoreWithRtsDebugOverflowGraph() {
   AttrUtils::SetInt(data4->GetOpDesc(), "index", 3);
 
   auto reducesum1 = graph->FindNode("reducesum1");
+  (void)ge::AttrUtils::SetStr(reducesum1->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_reduceSum_12345");
   AddCompileResult(reducesum1, false);
   reducesum1->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameAiCore);
   SetNoStorage(reducesum1->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {});
   reducesum1->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
 
   auto clear_float_status = graph->FindNode("ClearFloatDebugStatus2");
+  (void)ge::AttrUtils::SetStr(clear_float_status->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_NPUClearFloatDebugStatus_12345");
   SetNoStorage(clear_float_status->GetOpDesc(), FORMAT_ND, DT_INT32, {8});
   clear_float_status->GetOpDesc()->SetOpEngineName(ge::kEngineNameRts);
   clear_float_status->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameRts);
 
   auto clear_float_statusv2 = graph->FindNode("ClearFloatDebugStatus1");
+  (void)ge::AttrUtils::SetStr(clear_float_statusv2->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_NPUClearFloatDebugStatus_123456");
   clear_float_statusv2->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameRts);
 
   auto get_float_status = graph->FindNode("GetFloatDebugStatus1");
+  (void)ge::AttrUtils::SetStr(get_float_status->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_NPUGetFloatDebugStatus_12345");
   SetNoStorage(get_float_status->GetOpDesc(), FORMAT_ND, DT_INT32, {8});
   get_float_status->GetOpDesc()->SetOpEngineName(ge::kEngineNameRts);
   get_float_status->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameRts);
 
   auto get_float_statusv2 = graph->FindNode("GetFloatDebugStatus2");
+  (void)ge::AttrUtils::SetStr(get_float_statusv2->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_NPUGetFloatDebugStatus_123456");
   SetNoStorage(get_float_statusv2->GetOpDesc(), FORMAT_ND, DT_INT32, {8});
   get_float_statusv2->GetOpDesc()->SetOpEngineName(ge::kEngineNameRts);
   get_float_statusv2->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameRts);
@@ -995,6 +1039,9 @@ ComputeGraphPtr ShareGraph::AicoreWithRtsDebugOverflowGraph() {
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"reducesum1", "ClearFloatDebugStatus2", "GetFloatDebugStatus1", "GetFloatDebugStatus2"});
   net_output->GetOpDesc()->SetSrcIndex({0, 1, 2, 3});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -1031,6 +1078,9 @@ ComputeGraphPtr ShareGraph::FrameworkOPGraph(const string &real_node_type) {
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"reshape1"});
   net_output->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -1072,6 +1122,9 @@ ComputeGraphPtr ShareGraph::VariableOPGraph(const string &real_node_type) {
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"reshape1"});
   net_output->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -1107,18 +1160,24 @@ ge::ComputeGraphPtr ShareGraph::AicoreStaticGraph(bool is_with_atomic) {
   data2->GetOpDesc()->SetOpKernelLibName(kEngineNameGeLocal);
 
   auto add1 = graph->FindNode("add1");
+  (void)ge::AttrUtils::SetStr(add1->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_add_12345");
   add1->GetOpDesc()->SetOpKernelLibName(kEngineNameAiCore);
+  (void)ge::AttrUtils::SetStr(add1->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_add_12345");
   AddCompileResult(add1, is_with_atomic);
 
   auto reshape1 = graph->FindNode("reshape1");
   reshape1->GetOpDesc()->AppendIrInput("x", kIrInputRequired);
   reshape1->GetOpDesc()->AppendIrInput("shape", kIrInputRequired);
   reshape1->GetOpDesc()->SetOpKernelLibName(kEngineNameGeLocal);
+  (void)ge::AttrUtils::SetStr(reshape1->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_add_12345");
 
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"reshape1"});
   net_output->GetOpDesc()->SetSrcIndex({0});
 
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 /*
@@ -1157,12 +1216,14 @@ ge::ComputeGraphPtr ShareGraph::MultiStreamWithHostMemAccessCrossStream(int64_t 
   SetNoStorage(data2->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, {4});
 
   auto shape = graph->FindNode("shape");
+  (void)ge::AttrUtils::SetStr(shape->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_shape_12345");
   shape->GetOpDesc()->AppendIrInput("x", kIrInputRequired);
   shape->GetOpDesc()->SetOpKernelLibName(kEngineNameGeLocal);
   shape->GetOpDesc()->SetStreamId(0);
   AttrUtils::SetListInt(shape->GetOpDesc(), ge::ATTR_NAME_SEND_EVENT_IDS, {1});
 
   auto add1 = graph->FindNode("add1");
+  (void)ge::AttrUtils::SetStr(add1->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_add_12345");
   add1->GetOpDesc()->SetOpKernelLibName(kEngineNameAiCore);
   add1->GetOpDesc()->SetStreamId(1);
   AddCompileResult(add1, false);
@@ -1176,6 +1237,9 @@ ge::ComputeGraphPtr ShareGraph::MultiStreamWithHostMemAccessCrossStream(int64_t 
   net_output->GetOpDesc()->SetStreamId(0);
   AttrUtils::SetListInt(net_output->GetOpDesc(), ge::ATTR_NAME_RECV_EVENT_IDS, {2});
   graph->SetGraphUnknownFlag(true);
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -1243,6 +1307,7 @@ ge::ComputeGraphPtr ShareGraph::ShapeToMultiAiCoreGraph() {
   SetNoStorage(data2->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, {4});
 
   auto shape = graph->FindNode("shape");
+  (void)ge::AttrUtils::SetStr(shape->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_shape_12345");
   shape->GetOpDesc()->AppendIrInput("x", kIrInputRequired);
   shape->GetOpDesc()->AppendIrAttrName("dtype");
   shape->GetOpDesc()->SetOpKernelLibName(kEngineNameGeLocal);
@@ -1265,6 +1330,9 @@ ge::ComputeGraphPtr ShareGraph::ShapeToMultiAiCoreGraph() {
   net_output->GetOpDesc()->SetSrcName({"add1", "relu"});
   net_output->GetOpDesc()->SetSrcIndex({0, 1});
   graph->SetGraphUnknownFlag(true);
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -1423,6 +1491,8 @@ ComputeGraphPtr ShareGraph::LstmpGraph() {
   x_reshape->GetOpDesc()->AppendIrInput("shape", kIrInputRequired);
 
   auto transdata_4 = graph->FindNode("transdata_4");
+  (void)ge::AttrUtils::SetStr(transdata_4->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_transdata_412345");
+  (void)ge::AttrUtils::SetStr(transdata_4->GetOpDesc(), "_memset_kernel_bin_id", "te_memset_412345");
   transdata_4->GetOpDesc()->MutableOutputDesc(0)->SetDataType(ge::DT_FLOAT16);
   transdata_4->GetOpDesc()->MutableOutputDesc(0)->SetShape(GeShape({1, -1, 256}));
   transdata_4->GetOpDesc()->MutableOutputDesc(0)->SetOriginShape(GeShape({1, 16, -1, 16, 16}));
@@ -1441,6 +1511,8 @@ ComputeGraphPtr ShareGraph::LstmpGraph() {
   transdata_4->GetOpDesc()->SetWorkspaceBytes({2});
 
   auto transdata_8 = graph->FindNode("transdata_8");
+  (void)ge::AttrUtils::SetStr(transdata_8->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_transdata_812345");
+  (void)ge::AttrUtils::SetStr(transdata_8->GetOpDesc(), "_memset_kernel_bin_id", "te_memset_812345");
   transdata_8->GetOpDesc()->MutableOutputDesc(0)->SetDataType(ge::DT_FLOAT16);
   transdata_8->GetOpDesc()->MutableOutputDesc(0)->SetShape(GeShape({1, -1, 512}));
   transdata_8->GetOpDesc()->MutableOutputDesc(0)->SetOriginShape(GeShape({1, 32, -1, 16, 16}));
@@ -1459,6 +1531,8 @@ ComputeGraphPtr ShareGraph::LstmpGraph() {
   transdata_8->GetOpDesc()->SetWorkspaceBytes({2});
 
   auto transdata_10 = graph->FindNode("transdata_10");
+  (void)ge::AttrUtils::SetStr(transdata_10->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_transdata_1012345");
+  (void)ge::AttrUtils::SetStr(transdata_10->GetOpDesc(), "_memset_kernel_bin_id", "te_memset_1012345");
   transdata_10->GetOpDesc()->MutableOutputDesc(0)->SetDataType(ge::DT_FLOAT16);
   transdata_10->GetOpDesc()->MutableOutputDesc(0)->SetShape(GeShape({1, -1, 512}));
   transdata_10->GetOpDesc()->MutableOutputDesc(0)->SetOriginShape(GeShape({1, 32, -1, 16, 16}));
@@ -1477,6 +1551,8 @@ ComputeGraphPtr ShareGraph::LstmpGraph() {
   transdata_10->GetOpDesc()->SetWorkspaceBytes({2});
 
   auto transdata_13 = graph->FindNode("transdata_13");
+  (void)ge::AttrUtils::SetStr(transdata_13->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_transdata_1312345");
+  (void)ge::AttrUtils::SetStr(transdata_13->GetOpDesc(), "_memset_kernel_bin_id", "te_memset_1312345");
   transdata_13->GetOpDesc()->MutableOutputDesc(0)->SetDataType(DT_FLOAT16);
   transdata_13->GetOpDesc()->MutableOutputDesc(0)->SetShape(GeShape({1, -1, 512}));
   transdata_13->GetOpDesc()->MutableOutputDesc(0)->SetOriginShape(GeShape({1, -1, 512}));
@@ -1495,6 +1571,8 @@ ComputeGraphPtr ShareGraph::LstmpGraph() {
   transdata_13->GetOpDesc()->SetWorkspaceBytes({2});
 
   auto transdata_15 = graph->FindNode("transdata_15");
+  (void)ge::AttrUtils::SetStr(transdata_15->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_transdata_1512345");
+  (void)ge::AttrUtils::SetStr(transdata_15->GetOpDesc(), "_memset_kernel_bin_id", "te_memset_1512345");
   transdata_15->GetOpDesc()->MutableOutputDesc(0)->SetDataType(DT_FLOAT16);
   transdata_15->GetOpDesc()->MutableOutputDesc(0)->SetShape(GeShape({1, -1, 512}));
   transdata_15->GetOpDesc()->MutableOutputDesc(0)->SetOriginShape(GeShape({1, -1, 512}));
@@ -1513,6 +1591,8 @@ ComputeGraphPtr ShareGraph::LstmpGraph() {
   transdata_15->GetOpDesc()->SetWorkspaceBytes({2});
 
   auto transdata_17 = graph->FindNode("transdata_17");
+  (void)ge::AttrUtils::SetStr(transdata_17->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_transdata_1712345");
+  (void)ge::AttrUtils::SetStr(transdata_17->GetOpDesc(), "_memset_kernel_bin_id", "te_memset_712345");
   transdata_17->GetOpDesc()->MutableOutputDesc(0)->SetDataType(DT_FLOAT16);
   transdata_17->GetOpDesc()->MutableOutputDesc(0)->SetShape(GeShape({1, -1, 512}));
   transdata_17->GetOpDesc()->MutableOutputDesc(0)->SetOriginShape(GeShape({1, -1, 512}));
@@ -1531,6 +1611,7 @@ ComputeGraphPtr ShareGraph::LstmpGraph() {
   transdata_17->GetOpDesc()->SetWorkspaceBytes({2});
 
   auto drnnv3 = graph->FindNode("drnnv3");
+  (void)ge::AttrUtils::SetStr(drnnv3->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_drnnv_1712345");
   drnnv3->GetOpDesc()->SetOpKernelLibName(kEngineNameAiCore);
   for (size_t i = 0; i < drnnv3->GetAllOutDataAnchorsSize(); ++i) {
     drnnv3->GetOpDesc()->MutableOutputDesc(i)->SetDataType(ge::DT_FLOAT16);
@@ -1581,6 +1662,9 @@ ComputeGraphPtr ShareGraph::LstmpGraph() {
     }
   }
 
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -1645,6 +1729,9 @@ ComputeGraphPtr ShareGraph::BuildStringNodeGraph() {
 
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcName({"add1"});
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -1687,6 +1774,9 @@ ComputeGraphPtr ShareGraph::BuildSingleConstPlaceHolderGraph(void *addr, size_t 
   SetNoStorage(noutput->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, shape_new);
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcName({"constplaceholder1"});
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -1721,12 +1811,12 @@ ComputeGraphPtr ShareGraph::BuildSingleNodeGraph(const std::string &node_type,
   data2->GetOpDesc()->MutableAllInputName() = {{"x", 0}};
 
   auto add1 = graph->FindNode("add1");
+  (void)ge::AttrUtils::SetStr(add1->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node_type + "_12345");
   add1->GetOpDesc()->MutableAllInputName() = {{"x1", 0}, {"x2", 1}};
   add1->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameAiCore);
   SetNoStorage(add1->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, shape[2]);
   SetShapeRangeNoStorage(add1->GetOpDesc(), min_shape[2], max_shape[2]);
   AttrUtils::SetInt(add1->GetOpDesc(), ge::ATTR_NAME_UNKNOWN_SHAPE_TYPE, 1);
-  AttrUtils::SetStr(add1->GetOpDesc(), "_kernel_bin_id", "te_add_12345");
   AttrUtils::SetBool(add1->GetOpDesc(), "SmallShapeHostcpu", true);
   add1->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
   AddCompileResult(add1, false);
@@ -1737,6 +1827,9 @@ ComputeGraphPtr ShareGraph::BuildSingleNodeGraph(const std::string &node_type,
 
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcName({"add1"});
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+    (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -1774,6 +1867,7 @@ ComputeGraphPtr ShareGraph::BuildAddUnSqueezeGraph(const std::string &node_type,
   data2->GetOpDesc()->MutableAllInputName() = {{"x", 0}};
 
   auto add1 = graph->FindNode("add1");
+  (void)ge::AttrUtils::SetStr(add1->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_add_12345");
   add1->GetOpDesc()->MutableAllInputName() = {{"x1", 0}, {"x2", 1}};
   add1->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameAiCore);
   SetNoStorage(add1->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, shape[2]);
@@ -1785,6 +1879,7 @@ ComputeGraphPtr ShareGraph::BuildAddUnSqueezeGraph(const std::string &node_type,
   AddCompileResult(add1, false);
 
   auto unqueeze = graph->FindNode("unsqueeze");
+  (void)ge::AttrUtils::SetStr(unqueeze->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_unqueeze_12345");
   unqueeze->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameGeLocal);
   SetNoStorage(unqueeze->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, shape[2]);
   SetShapeRangeNoStorage(unqueeze->GetOpDesc(), min_shape[2], max_shape[2]);
@@ -1797,6 +1892,9 @@ ComputeGraphPtr ShareGraph::BuildAddUnSqueezeGraph(const std::string &node_type,
 
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcName({"add1", "unsqueeze"});
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcIndex({0, 1});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -1848,6 +1946,9 @@ ComputeGraphPtr ShareGraph::BuildAddAsTwoOutputGraph(const std::string &node_typ
 
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcName({"add1", "add1"});
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcIndex({0, 1});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -1887,6 +1988,9 @@ ComputeGraphPtr ShareGraph::BuildUnsqueezeAsTwoOutputGraph(std::vector<std::init
 
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcName({"unsqueeze", "unsqueeze"});
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcIndex({0, 1});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -1917,6 +2021,9 @@ ComputeGraphPtr ShareGraph::BuildInputAsTwoOutputGraph(std::vector<std::initiali
 
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcName({"data1", "data1"});
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcIndex({0, 1});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -1973,6 +2080,9 @@ ComputeGraphPtr ShareGraph::BuildAssignAsTwoOutputGraph(std::vector<std::initial
 
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcName({"assign", "assign"});
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcIndex({0, 1});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -2034,6 +2144,9 @@ ComputeGraphPtr ShareGraph::BuildAddToUnSqueezeGraph(const std::string &node_typ
 
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcName({"unsqueeze", "unsqueeze"});
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcIndex({0, 1});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -2075,6 +2188,9 @@ ComputeGraphPtr ShareGraph::BuildSingleHcclNodeGraph(const std::string &node_typ
 
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcName({"hcom_reduce"});
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -2134,6 +2250,9 @@ ComputeGraphPtr ShareGraph::BuildTwoHcclNodeGraph(const std::string &node_type,
 
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcName({"hcom_reduce"});
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -2193,6 +2312,9 @@ ComputeGraphPtr ShareGraph::BuildDsaRandomNormalGraph(const std::string &node_ty
 
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcName({"randomnormal"});
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -2232,6 +2354,7 @@ ge::ComputeGraphPtr ShareGraph::BuildAiCoreThirdClassNodeGraph() {
   data2->GetOpDesc()->MutableAllInputName() = {{"x", 0}};
 
   auto add1 = graph->FindNode("add1");
+  (void)ge::AttrUtils::SetStr(add1->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_add_12345");
   add1->GetOpDesc()->MutableAllInputName() = {{"x1", 0}, {"x2", 1}};
   add1->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameAiCore);
   SetNoStorage(add1->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, {-1, 2, 3, 4});
@@ -2241,6 +2364,7 @@ ge::ComputeGraphPtr ShareGraph::BuildAiCoreThirdClassNodeGraph() {
   AddCompileResult(add1, false);
 
   auto nonzero = graph->FindNode("nonzero");
+  (void)ge::AttrUtils::SetStr(nonzero->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_nonzero_12345");
   nonzero->GetOpDesc()->MutableAllInputName() = {{"x1", 0}, {"x2", 1}};
   nonzero->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameAiCore);
   SetNoStorage(nonzero->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, {-1, 2, 3, 4});
@@ -2255,6 +2379,9 @@ ge::ComputeGraphPtr ShareGraph::BuildAiCoreThirdClassNodeGraph() {
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"nonzero"});
   net_output->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -2290,6 +2417,7 @@ ge::ComputeGraphPtr ShareGraph::BuildTwoAddNodeGraph() {
   data2->GetOpDesc()->MutableAllInputName() = {{"x", 0}};
 
   auto add1 = graph->FindNode("add1");
+  (void)ge::AttrUtils::SetStr(add1->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_add_12345");
   add1->GetOpDesc()->MutableAllInputName() = {{"x1", 0}, {"x2", 1}};
   add1->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameAiCore);
   SetNoStorage(add1->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, {-1, -1, -1, -1});
@@ -2299,6 +2427,7 @@ ge::ComputeGraphPtr ShareGraph::BuildTwoAddNodeGraph() {
   add1->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
 
   auto add2 = graph->FindNode("add2");
+  (void)ge::AttrUtils::SetStr(add2->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_add_12345");
   add2->GetOpDesc()->MutableAllInputName() = {{"x1", 0}, {"x2", 1}};
   add2->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameAiCore);
   SetNoStorage(add2->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, {-1, -1, -1, -1});
@@ -2310,6 +2439,9 @@ ge::ComputeGraphPtr ShareGraph::BuildTwoAddNodeGraph() {
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"add2"});
   net_output->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -2370,6 +2502,7 @@ ge::ComputeGraphPtr ShareGraph::BuildFakeGetTensorNodeGraph() {
   AddCompileResult(fake_node1, false);
 
   auto fake_node2 = graph->FindNode("fake_node2");
+  (void)ge::AttrUtils::SetStr(fake_node2->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_fake_node_12345");
   fake_node2->GetOpDesc()->MutableAllInputName() = {{"x1", 0}, {"x2", 1}};
   fake_node2->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameAiCore);
   SetNoStorage(fake_node2->GetOpDesc(), ge::FORMAT_NCHW, DT_FLOAT, {-1, -1, -1, -1});
@@ -2378,6 +2511,7 @@ ge::ComputeGraphPtr ShareGraph::BuildFakeGetTensorNodeGraph() {
   AddCompileResult(fake_node2, false);
 
   auto fake_node3 = graph->FindNode("fake_node3");
+  (void)ge::AttrUtils::SetStr(fake_node3->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_fake_node_13345");
   fake_node3->GetOpDesc()->MutableAllInputName() = {{"x1", 0}, {"x2", 1}};
   fake_node3->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameAiCpuTf);
   SetNoStorage(fake_node3->GetOpDesc(), ge::FORMAT_NCHW, DT_FLOAT, {-1, -1, -1, -1});
@@ -2388,6 +2522,9 @@ ge::ComputeGraphPtr ShareGraph::BuildFakeGetTensorNodeGraph() {
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"fake_node3"});
   net_output->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -2421,6 +2558,7 @@ ge::ComputeGraphPtr ShareGraph::BuildFakeDeterministicNodeGraph() {
   data2->GetOpDesc()->MutableAllInputName() = {{"x", 0}};
 
   auto fake_node1 = graph->FindNode("fake_node1");
+  (void)ge::AttrUtils::SetStr(fake_node1->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_fake_node1_12345");
   fake_node1->GetOpDesc()->MutableAllInputName() = {{"x1", 0}, {"x2", 1}};
   fake_node1->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameAiCore);
   SetNoStorage(fake_node1->GetOpDesc(), ge::FORMAT_NCHW, DT_FLOAT, {-1, -1, -1, -1});
@@ -2434,6 +2572,9 @@ ge::ComputeGraphPtr ShareGraph::BuildFakeDeterministicNodeGraph() {
 
   (void)AttrUtils::SetInt(graph, ge::DETERMINISTIC, 1);
   (void)AttrUtils::SetInt(graph, "ge.deterministicLevel", 2);
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -2486,6 +2627,7 @@ ge::ComputeGraphPtr ShareGraph::BuildFakeGetTensorNodeZeroCopyGraph() {
   data4->GetOpDesc()->MutableAllInputName() = {{"x", 0}};
 
   auto fake_node1 = graph->FindNode("fake_node1");
+  (void)ge::AttrUtils::SetStr(fake_node1->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_fake_node_12345");
   fake_node1->GetOpDesc()->MutableAllInputName() = {{"x1", 0}, {"x2", 1}};
   fake_node1->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameAiCpuTf);
   SetNoStorage(fake_node1->GetOpDesc(), ge::FORMAT_NCHW, DT_FLOAT, {-1, -1, -1, -1});
@@ -2494,6 +2636,7 @@ ge::ComputeGraphPtr ShareGraph::BuildFakeGetTensorNodeZeroCopyGraph() {
   AddCompileResult(fake_node1, false);
 
   auto fake_node2 = graph->FindNode("fake_node2");
+  (void)ge::AttrUtils::SetStr(fake_node2->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_fake_node_123456");
   fake_node2->GetOpDesc()->MutableAllInputName() = {{"x1", 0}, {"x2", 1}};
   fake_node2->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameAiCore);
   SetNoStorage(fake_node2->GetOpDesc(), ge::FORMAT_NCHW, DT_FLOAT, {-1, -1, -1, -1});
@@ -2502,6 +2645,7 @@ ge::ComputeGraphPtr ShareGraph::BuildFakeGetTensorNodeZeroCopyGraph() {
   AddCompileResult(fake_node2, false);
 
   auto fake_node3 = graph->FindNode("fake_node3");
+  (void)ge::AttrUtils::SetStr(fake_node3->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_fake_node_1234567");
   fake_node3->GetOpDesc()->MutableAllInputName() = {{"x1", 0}, {"x2", 1}};
   fake_node3->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameAiCpuTf);
   SetNoStorage(fake_node3->GetOpDesc(), ge::FORMAT_NCHW, DT_FLOAT, {-1, -1, -1, -1});
@@ -2512,6 +2656,9 @@ ge::ComputeGraphPtr ShareGraph::BuildFakeGetTensorNodeZeroCopyGraph() {
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"fake_node2", "fake_node3"});
   net_output->GetOpDesc()->SetSrcIndex({0, 1});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -2561,6 +2708,9 @@ ge::ComputeGraphPtr ShareGraph::BuildStaticTwoAddNodeGraph() {
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"add2"});
   net_output->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -2622,6 +2772,9 @@ ge::ComputeGraphPtr ShareGraph::BuildStaticAbsReluExpAddNodeGraph() {
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"add"});
   net_output->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -2671,6 +2824,9 @@ ge::ComputeGraphPtr ShareGraph::BuildStaticAbsExpReluNodeGraph() {
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"exp", "relu"});
   net_output->GetOpDesc()->SetSrcIndex({0, 1});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -2732,6 +2888,9 @@ ge::ComputeGraphPtr ShareGraph::BuildStaticAbsTwoAddNodeGraph() {
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"add2"});
   net_output->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -2787,6 +2946,9 @@ ge::ComputeGraphPtr ShareGraph::BuildStaticAbsAddExpNodeGraph() {
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"exp", "add"});
   net_output->GetOpDesc()->SetSrcIndex({0, 1});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -2839,6 +3001,9 @@ ge::ComputeGraphPtr ShareGraph::BuildStaticAbsReduceReluNodeGraph() {
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"reduceSum", "relu"});
   net_output->GetOpDesc()->SetSrcIndex({0, 1});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -2947,6 +3112,9 @@ ge::ComputeGraphPtr ShareGraph::BuildStaticTwoReduceThreeAddNodeGraph() {
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"add3"});
   net_output->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -3015,6 +3183,9 @@ ge::ComputeGraphPtr ShareGraph::BuildStaticAddReduceNodeGraph() {
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"add2"});
   net_output->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -3083,6 +3254,9 @@ ge::ComputeGraphPtr ShareGraph::BuildStaticAbsAddReduceNodeGraph() {
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"add1", "reduceSum2"});
   net_output->GetOpDesc()->SetSrcIndex({0, 1});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -3137,6 +3311,9 @@ ge::ComputeGraphPtr ShareGraph::BuildStaticAbsTwoReduceNodeGraph() {
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"reduceSum", "reduceMax"});
   net_output->GetOpDesc()->SetSrcIndex({0, 1});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -3186,6 +3363,9 @@ ge::ComputeGraphPtr ShareGraph::BuildStaticTwoReduceNodeGraph() {
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"reduceSum"});
   net_output->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -3258,6 +3438,9 @@ ge::ComputeGraphPtr ShareGraph::BuildStaticReduceAbsReluNodeGraph() {
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"relu"});
   net_output->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -3325,6 +3508,9 @@ ge::ComputeGraphPtr ShareGraph::BuildStaticReduceAddReluNodeGraph() {
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"relu"});
   net_output->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -3394,6 +3580,9 @@ ge::ComputeGraphPtr ShareGraph::BuildStaticTwoReduceReluNodeGraph() {
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"reduceSum"});
   net_output->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -3458,6 +3647,9 @@ ge::ComputeGraphPtr ShareGraph::BuildStaticAbsReluAbsExpNodeGraph() {
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"exp"});
   net_output->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -3529,6 +3721,9 @@ ge::ComputeGraphPtr ShareGraph::BuildStaticAbsReluAddNodeGraph() {
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"abs2"});
   net_output->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -3587,6 +3782,9 @@ ge::ComputeGraphPtr ShareGraph::BuildStaticAbsReluReduceSumNodeGraph() {
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"reduceSum"});
   net_output->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -3658,6 +3856,9 @@ ge::ComputeGraphPtr ShareGraph::BuildStaticReluAddAbsReluNodeGraph() {
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"relu2"});
   net_output->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -3722,6 +3923,9 @@ ge::ComputeGraphPtr ShareGraph::BuildStaticReluAddReduceSumNodeGraph() {
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"reduceSum"});
   net_output->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -3790,6 +3994,9 @@ ge::ComputeGraphPtr ShareGraph::BuildStaticReluAddAddNodeGraph() {
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"add2"});
   net_output->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -3846,6 +4053,9 @@ ge::ComputeGraphPtr ShareGraph::BuildThreeAddNodeGraph() {
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"add2"});
   net_output->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -3897,6 +4107,9 @@ ge::ComputeGraphPtr ShareGraph::BuildTwoAddNodeKnownShapeGraph() {
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"add2"});
   net_output->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -3950,6 +4163,9 @@ ge::ComputeGraphPtr ShareGraph::Aicpu4thGraph() {
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"add2"});
   net_output->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -3978,6 +4194,7 @@ ComputeGraphPtr ShareGraph::BuildReshapeGraph() {
   net_output->GetOpDesc()->SetSrcIndex({0});
 
   auto reshape1 = graph->FindNode("reshape1");
+  (void)ge::AttrUtils::SetStr(reshape1->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_reshape1_12345");
   SetNoStorage(reshape1->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, {2, -1});
   reshape1->GetOpDesc()->AppendIrInput("x", kIrInputRequired);
   reshape1->GetOpDesc()->AppendIrInput("shape", kIrInputRequired);
@@ -3987,6 +4204,9 @@ ComputeGraphPtr ShareGraph::BuildReshapeGraph() {
   name_index["shape"] = 1;
   graph->SetGraphUnknownFlag(true);
 
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -4055,6 +4275,9 @@ ComputeGraphPtr ShareGraph::BuildReshapeGraph2() {
 
   graph->SetGraphUnknownFlag(true);
 
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -4097,6 +4320,9 @@ ComputeGraphPtr ShareGraph::BuildGatherShapesGraph() {
 
   ge::AttrUtils::SetListListInt(goal_node->GetOpDesc(), "axes", {{1, 0}, {0, 2}});
   ge::AttrUtils::SetInt(goal_node->GetOpDesc(), "dtype", ge::DT_INT64);
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -4359,6 +4585,9 @@ ge::ComputeGraphPtr ShareGraph::BuildShapeToReshapeGraph() {
   net_output->GetOpDesc()->SetSrcName({"reshape1"});
   net_output->GetOpDesc()->SetSrcIndex({0});
 
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -5567,6 +5796,9 @@ ComputeGraphPtr ShareGraph::GraphWithFifoWindowCache() {
   netoutput->GetOpDesc()->SetSrcName({"conv"});
   netoutput->GetOpDesc()->SetSrcIndex({0});
 
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 ComputeGraphPtr ShareGraph::MatmulOmBinaryGraph() {
@@ -6505,7 +6737,10 @@ ComputeGraphPtr ShareGraph::MatmulOmBinaryGraphV2() {
     name_index["input1"] = 2;
     name_index["input2"] = 3;
     name_index["input3"] = 4;
-    return graph;
+    for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
+  return graph;
   };
 
   auto sub_graph_builder = [](const std::string &name, const std::string &type, ge::NodePtr parent,
@@ -6567,6 +6802,9 @@ ComputeGraphPtr ShareGraph::MatmulOmBinaryGraphV2() {
     parent->GetOpDesc()->AddSubgraphName(graph->GetName());  // Om is already like this...
     parent->GetOpDesc()->SetSubgraphInstanceName(parent->GetOpDesc()->GetSubgraphInstanceNames().size() - 1U,
                                                  graph->GetName());
+    for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+    }
     return graph;
   };
 
@@ -6593,8 +6831,11 @@ ComputeGraphPtr ShareGraph::SimpleFooGraph() {
   int index = 0;
   for (auto &node : main_graph->GetDirectNode()) {
     if (node->GetType() == "RefData") {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_RefData_12345");
       ge::AttrUtils::SetInt(node->GetOpDesc(), "index", index++);
       node->GetOpDesc()->MutableAllInputName() = {{"x", 0}};
+    } else if (node->GetType() == "Foo") {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_Foo_12345");
     }
   }
   auto netoutput = main_graph->FindFirstNodeMatchType("NetOutput");
@@ -6734,6 +6975,9 @@ ComputeGraphPtr ShareGraph::BuildDataDependencyNodeGraph() {
 
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcName({"expandims"});
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -6770,6 +7014,9 @@ ge::ComputeGraphPtr ShareGraph::BuildAddConditionCalcGraph() {
 
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcName({"condition_calc"});
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -6818,6 +7065,9 @@ ComputeGraphPtr ShareGraph::BuildOpTilingGraph(const std::string &node_type) {
       ->GetOpDesc()
       ->SetSrcName({"real_tiling_node", "real_tiling_node", "real_tiling_node", "real_tiling_node"});
   graph->FindNode("NetOutput_0")->GetOpDesc()->SetSrcIndex({0, 1, 2, 3});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -6895,6 +7145,7 @@ ComputeGraphPtr ShareGraph::BuildGraphWithUBFusionNode() {
   compute_graph->FindNode("NetOutput")->GetOpDesc()->SetSrcName({"add_mul"});
   compute_graph->FindNode("NetOutput")->GetOpDesc()->SetSrcIndex({0});
   auto add_mul_fused_node = compute_graph->FindNode("add_mul");
+  (void)ge::AttrUtils::SetStr(add_mul_fused_node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_add_mul_12345");
   add_mul_fused_node->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameAiCore);
   add_mul_fused_node->GetOpDesc()->MutableInputDesc(0)->SetShape(GeShape({-2}));
   auto fused_compute_graph = ToComputeGraph(fuse_origin_graph);
@@ -6904,8 +7155,10 @@ ComputeGraphPtr ShareGraph::BuildGraphWithUBFusionNode() {
 
   // set engine
   fused_compute_graph->FindNode("add_a")->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameAiCore);
+  (void)ge::AttrUtils::SetStr(fused_compute_graph->FindNode("add_a")->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_add_12345");
   AddCompileResult(fused_compute_graph->FindNode("add_a"), false);
   fused_compute_graph->FindNode("mul_a")->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameAiCore);
+  (void)ge::AttrUtils::SetStr(fused_compute_graph->FindNode("mul_a")->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_mul_12345");
   AddCompileResult(fused_compute_graph->FindNode("mul_a"), false);
   SetGraphOutShapeRange(compute_graph);
   return compute_graph;
@@ -7740,6 +7993,7 @@ ge::ComputeGraphPtr ShareGraph::BuildWithAllConstKnownSubgraph2() {
   compute_graph->SetGraphUnknownFlag(true);
 
   auto add_node = compute_graph->FindNode("add");
+  (void)ge::AttrUtils::SetStr(add_node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_add_12345");
   AddCompileResult(add_node, false);
 
   auto sub_graph = ToGeGraph(g2);
@@ -7869,6 +8123,9 @@ ComputeGraphPtr ShareGraph::SimpleStaticGraph() {
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcIndex({0});
   graph->FindNode("NetOutput")->GetOpDesc()->SetInputOffset({0});
   SetOffsetForDataNetoutput(graph);
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -7895,6 +8152,9 @@ ComputeGraphPtr ShareGraph::SimpleStaticPartitionedCallGraph() {
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcIndex({0});
   graph->FindNode("NetOutput")->GetOpDesc()->SetInputOffset({0});
   SetOffsetForDataNetoutput(graph);
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -7970,6 +8230,9 @@ ComputeGraphPtr SingleNodeGraphBuilder::Build(const ge::NodePtr &parent) {
     ge::GraphUtils::FindRootGraph(parent->GetOwnerComputeGraph())->AddSubgraph(graph);
   }
 
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -7980,6 +8243,9 @@ ComputeGraphPtr SingleNodeGraphBuilder::BuildSubGraph(const ge::NodePtr &parent,
       continue;
     }
     AttrUtils::SetInt(node->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX, parent_start++);
+  }
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
   }
   return graph;
 }
@@ -7997,6 +8263,9 @@ ComputeGraphPtr ShareGraph::IfWithKnownShapeSubGraph(const std::string &graph_na
   auto else_graph = SingleNodeGraphBuilder("static_else", "StaticFoo").BuildSubGraph(if_node, 1);
   ge::AttrUtils::SetBool(else_graph, "_stub_force_known_shape", true);
   SetOffsetForDataNetoutput(graph);
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -8026,6 +8295,9 @@ ComputeGraphPtr ShareGraph::IfWithKnownSubGraphAndMultiOutputs(const std::string
   auto else_graph = SingleNodeGraphBuilder("static_else", "StaticFoo").BuildSubGraph(if_node, 1);
   ge::AttrUtils::SetBool(else_graph, "_stub_force_known_shape", true);
 
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -8047,6 +8319,9 @@ ComputeGraphPtr ShareGraph::AicoreNoCompileResultGraph() {
 
   auto add1 = graph->FindNode("add1");
   SetNoStorage(add1->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {-1, -1 - 1, -1});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -8074,6 +8349,7 @@ ComputeGraphPtr ShareGraph::BuildDataDependencySingleOpNodeGraph() {
   AddCompileResult(graph->FindNode("reshape"), false);
 
   auto reshape1 = graph->FindNode("reshape");
+  (void)ge::AttrUtils::SetStr(reshape1->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_reshape_12345");
   reshape1->GetOpDesc()->AppendIrInput("x", kIrInputRequired);
   reshape1->GetOpDesc()->AppendIrInput("shape", kIrInputRequired);
   auto &name_index = reshape1->GetOpDesc()->MutableAllInputName();
@@ -8083,6 +8359,9 @@ ComputeGraphPtr ShareGraph::BuildDataDependencySingleOpNodeGraph() {
 
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcName({"reshape"});
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -8127,6 +8406,9 @@ ComputeGraphPtr ShareGraph::BuildIdentityNGraph() {
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"identity_n", "identity"});
   net_output->GetOpDesc()->SetSrcIndex({0, 1});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -8189,6 +8471,9 @@ ComputeGraphPtr ShareGraph::BuildNoOpGraph() {
 
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcName({"add1", "add2"});
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcIndex({0, 1});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 /*
@@ -8245,6 +8530,10 @@ ge::ComputeGraphPtr ShareGraph::ThirdAicpuOpGraph() {
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"nonzero"});
   net_output->GetOpDesc()->SetSrcIndex({0});
+
+  for (auto &node : graph->GetAllNodes()) {
+    (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -8306,6 +8595,9 @@ ge::ComputeGraphPtr ShareGraph::BuildHostCpuDataFlowGraph() {
 
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcName({"sequence2"});
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -8331,6 +8623,7 @@ ComputeGraphPtr ShareGraph::BuildZeroInputAicoreGraph() {
   AttrUtils::SetInt(data2->GetOpDesc(), "index", 1);
 
   auto reducesum1 = graph->FindNode("reducesum1");
+  (void)ge::AttrUtils::SetStr(reducesum1->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_reducesum1_12345");
   AddCompileResult(reducesum1, false);
   reducesum1->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameAiCore);
   SetNoStorage(reducesum1->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {});
@@ -8339,6 +8632,9 @@ ComputeGraphPtr ShareGraph::BuildZeroInputAicoreGraph() {
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"reducesum1"});
   net_output->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -8371,6 +8667,9 @@ ComputeGraphPtr ShareGraph::BuildSizeGraph() {
   goal_node->GetOpDesc()->MutableAllInputName() = {{"x1", 0}};
 
   ge::AttrUtils::SetInt(goal_node->GetOpDesc(), "dtype", ge::DT_INT64);
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 /*
@@ -8405,6 +8704,9 @@ ge::ComputeGraphPtr ShareGraph::BuildCtrlToConstGraph() {
   GE_ASSERT_NOTNULL(net_output);
   net_output->GetOpDesc()->SetSrcName({"cast0", "cast1"});
   net_output->GetOpDesc()->SetSrcIndex({0, 1});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 /*
@@ -8437,6 +8739,9 @@ ComputeGraphPtr ShareGraph::BuildRankGraph() {
   name_index.clear();
   name_index["x"] = 0;
 
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 /*  Netoutput
@@ -8477,6 +8782,9 @@ ComputeGraphPtr ShareGraph::BuildCompatibleInferShapeRangeGraph() {
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"test_no_infer"});
   net_output->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -8723,6 +9031,9 @@ ge::ComputeGraphPtr ShareGraph::BuildMinimumGradAndAddGraph() {
 
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcName({"mg", "add0"});
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcIndex({0, 0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -8780,6 +9091,9 @@ ge::ComputeGraphPtr ShareGraph::ConcatV2ConstDependencyGraph() {
 
   netoutput->GetOpDesc()->SetSrcName({"concatv2"});
   netoutput->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -8944,6 +9258,9 @@ ge::ComputeGraphPtr ShareGraph::IFASingleGraph() {
   netoutput->GetOpDesc()->SetSrcName({"IncreFlashAttention"});
   netoutput->GetOpDesc()->SetSrcIndex({0});
   netoutput->GetOpDesc()->SetInputOffset({1184});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -9008,6 +9325,9 @@ ge::ComputeGraphPtr ShareGraph::CTCBeamSearchDecoderSingleGraph() {
 
   netoutput->GetOpDesc()->SetSrcName({"AddN"});
   netoutput->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -9096,6 +9416,9 @@ ge::ComputeGraphPtr ShareGraph::GroupedMatMulAllReduceSingleGraph() {
 
   netoutput->GetOpDesc()->SetSrcName({"IncreFlashAttention"});
   netoutput->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -9190,6 +9513,9 @@ ge::ComputeGraphPtr ShareGraph::BatchSingleGraph() {
   netoutput->GetOpDesc()->SetSrcName({"AddN"});
   netoutput->GetOpDesc()->SetSrcIndex({0});
   netoutput->GetOpDesc()->SetInputOffset({1024});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -9286,6 +9612,9 @@ ge::ComputeGraphPtr ShareGraph::ConcatV2ValueDependencyGraph() {
 
   netoutput->GetOpDesc()->SetSrcName({"concatv2"});
   netoutput->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 /*
@@ -9344,6 +9673,9 @@ ge::ComputeGraphPtr ShareGraph::ConcatV2MultiOutNodesGraph() {
 
   netoutput->GetOpDesc()->SetSrcName({"concatv2", "size"});
   netoutput->GetOpDesc()->SetSrcIndex({0, 1});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -9374,6 +9706,9 @@ ComputeGraphPtr ShareGraph::IfWithDifferentPlacementSubgraph() {
     auto foo =
         gert::NodeBuilder("foo", "IfOrCaseNodeConverterUT_ReqDevice").Input(data).Output(ge::DT_FLOAT).Build(graph);
     gert::NodeBuilder("output", ge::NETOUTPUT).Input(foo).Build(graph);
+    for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+    }
     return graph;
   }();
   auto else_graph = []() {
@@ -9386,7 +9721,10 @@ ComputeGraphPtr ShareGraph::IfWithDifferentPlacementSubgraph() {
     auto foo =
         gert::NodeBuilder("bar", "IfOrCaseNodeConverterUT_ReqHost").Input(data).Output(ge::DT_FLOAT).Build(graph);
     gert::NodeBuilder("output1", ge::NETOUTPUT).Input(foo).Build(graph);
-    return graph;
+    for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
+  return graph;
   }();
 
   auto graph = std::make_shared<ge::ComputeGraph>("main");
@@ -9401,6 +9739,9 @@ ComputeGraphPtr ShareGraph::IfWithDifferentPlacementSubgraph() {
                    .Output(ge::DT_FLOAT)
                    .Build(graph);
   gert::NodeBuilder("output2", ge::NETOUTPUT).Input(if_op).Build(graph);
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -9441,6 +9782,9 @@ ComputeGraphPtr ShareGraph::BuildFileConstantGraph() {
   ge::AttrUtils::SetListInt(FileConstant->GetOpDesc(), "shape", shape);
   ge::AttrUtils::SetListInt(FileConstant->GetOpDesc(), "original_shape", original_shape);
   ge::TensorUtils::SetSize(*FileConstant->GetOpDesc()->MutableOutputDesc(0), 100);
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -9482,6 +9826,9 @@ ComputeGraphPtr ShareGraph::Build2FileConstantWithCtrlEdgeGraph() {
 	  ge::AttrUtils::SetDataType(FileConstant->GetOpDesc(), "dtype", DT_INT32);
 	  ge::AttrUtils::SetListInt(FileConstant->GetOpDesc(), "shape", shape);
 	  ge::AttrUtils::SetListInt(FileConstant->GetOpDesc(), "original_shape", original_shape);
+  }
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
   }
   return graph;
 }
@@ -9544,6 +9891,9 @@ ComputeGraphPtr ShareGraph::Build2StageGraph() {
 
   auto output = NodeBuilder("output", ge::NETOUTPUT).Input(stage2).Build(graph);
   GE_DUMP(graph, "Graph_2stage_pipeline_systemtest");
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -9634,6 +9984,9 @@ ComputeGraphPtr ShareGraph::Build1to2StageGraph() {
 
   auto output = NodeBuilder("output", ge::NETOUTPUT).Input(stage2).Input(stage3).Build(graph);
   GE_DUMP(graph, "Graph_1to2_stage_pipeline_systemtest");
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -9716,6 +10069,9 @@ ComputeGraphPtr ShareGraph::Build2StageWith1ToNGraph() {
 
   auto output = NodeBuilder("output", ge::NETOUTPUT).Input(stage2).Input(stage2, 1).Input(stage2, 2).Build(graph);
   GE_DUMP(graph, "Graph_2stage_pipeline_systemtest");
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -9819,6 +10175,9 @@ ComputeGraphPtr ShareGraph::Build2to1StageGraph() {
 
   auto output = NodeBuilder("output", ge::NETOUTPUT).Input(stage3, 0).Input(stage3, 1).Build(graph);
   GE_DUMP(graph, "Graph_2to1_stage_pipeline_systemtest");
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -9876,6 +10235,9 @@ ComputeGraphPtr ShareGraph::BuildFakeNodeGraphWithMultipleInput() {
 
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcName({"add1"});
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -9936,6 +10298,9 @@ ge::ComputeGraphPtr ShareGraph::BuildLotsOfNodes(size_t node_num) {
   op_desc->SetSrcName(src_names);
   op_desc->SetSrcIndex(src_indexes);
   graph->AddNode(op_desc);
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -9998,6 +10363,9 @@ ComputeGraphPtr ShareGraph::TensorListGraph() {
   net_output->GetOpDesc()->SetSrcName({"TensorListPopBack1"});
   net_output->GetOpDesc()->SetSrcIndex({0});
   SetNoStorage(net_output->GetOpDesc(), ge::FORMAT_ND, DT_INT32, {1});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -10020,6 +10388,9 @@ ComputeGraphPtr ShareGraph::BuildAippDataGraph() {
   net_output->GetOpDesc()->SetSrcName({"aippData1"});
   net_output->GetOpDesc()->SetSrcIndex({0});
   net_output->GetOpDesc()->SetInputOffset({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 /*
@@ -10058,6 +10429,9 @@ ComputeGraphPtr ShareGraph::AicpuOpWithDTSTRINGGraph() {
   net_output->GetOpDesc()->SetSrcName({"asString1"});
   net_output->GetOpDesc()->SetSrcIndex({0});
   SetNoStorage(net_output->GetOpDesc(), ge::FORMAT_ND, DT_STRING, {});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -10100,6 +10474,9 @@ ComputeGraphPtr ShareGraph::BuildBlockGraph() {
   name_index["x2"] = 1;
   graph->SetGraphUnknownFlag(true);
 
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -10135,12 +10512,14 @@ ge::ComputeGraphPtr ShareGraph::AutoFuseNodeGraph() {
   AttrUtils::SetInt(data3->GetOpDesc(), "index", 3);
 
   auto autofuse_node = graph->FindNode("fused_graph");
+  (void)ge::AttrUtils::SetStr(autofuse_node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_AscBackend_12345");
   AddCompileResult(autofuse_node, false);
   SetNoStorage(autofuse_node->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {-1, -1});
   autofuse_node->GetOpDesc()->SetOpKernelLibName(kEngineNameAiCore);
   autofuse_node->GetOpDesc()->SetWorkspaceBytes({2});
 
   auto autofuse_node1 = graph->FindNode("fused_graph1");
+  (void)ge::AttrUtils::SetStr(autofuse_node1->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_AscBackend_12345");
   AddCompileResult(autofuse_node1, false);
   SetNoStorage(autofuse_node1->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {-1, -1});
   autofuse_node1->GetOpDesc()->SetOpKernelLibName(kEngineNameAiCore);
@@ -10150,6 +10529,9 @@ ge::ComputeGraphPtr ShareGraph::AutoFuseNodeGraph() {
   net_output->GetOpDesc()->SetSrcName({"fused_graph", "fused_graph1"});
   net_output->GetOpDesc()->SetSrcIndex({0, 1});
   SetNoStorage(autofuse_node->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {-1, -1});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -10231,6 +10613,9 @@ ComputeGraphPtr ShareGraph::SingleInputAicoreGraph() {
   net_output->GetOpDesc()->SetSrcName({"add"});
   net_output->GetOpDesc()->SetSrcIndex({0});
   SetGraphOutShapeRange(graph);
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -10968,6 +11353,9 @@ ComputeGraphPtr ShareGraph::BuildStrideSliceGraph(std::vector<std::initializer_l
 
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcName({"stride_slice"});
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -11022,6 +11410,9 @@ ComputeGraphPtr ShareGraph::BuildSliceWriteNormalGraph(const std::string &node_t
 
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcName({"slice_write"});
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -11068,6 +11459,9 @@ ComputeGraphPtr ShareGraph::BuildRefnodeGraph() {
 
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcName({"refnode"});
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -11175,6 +11569,9 @@ Graph ShareGraph::BuildAtomicNodeConnectNetoutput() {
   auto node = root_graph->FindNode("add_1");
   std::vector<int64_t> atomic_output_index{0, 1};
   (void) ge::AttrUtils::SetListInt(node->GetOpDesc(), ATOMIC_ATTR_OUTPUT_INDEX, atomic_output_index);
+  for (auto &node : root_graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -11209,6 +11606,9 @@ Graph ShareGraph::BuildAtomicNodeConnectNetoutputThroughRefNode() {
   auto node = root_graph->FindNode("add_1");
   std::vector<int64_t> atomic_output_index{0, 1};
   (void) ge::AttrUtils::SetListInt(node->GetOpDesc(), ATOMIC_ATTR_OUTPUT_INDEX, atomic_output_index);
+  for (auto &node : root_graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -11315,6 +11715,9 @@ ComputeGraphPtr ShareGraph::BuildDsaRandomNormalKnownGraph() {
   auto graph = ToComputeGraph(g1);
   auto random_normal_node = graph->FindNode("random_normal");
   random_normal_node->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameDsa);
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -11359,6 +11762,9 @@ ComputeGraphPtr ShareGraph::BuildAddAndDsaRandomNormalKnownGraph() {
   auto graph = ToComputeGraph(g1);
   auto random_normal_node = graph->FindNode("random_normal");
   random_normal_node->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameDsa);
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -11398,6 +11804,9 @@ ComputeGraphPtr ShareGraph::BuildVarConnectToSplit() {
   (void)ge::AttrUtils::SetInt(split_node->GetOpDesc(), ge::ATTR_NAME_REUSE_INPUT_ON_DIM_INDEX, 0);
   // 如果不设置，会被设置为动态shape图
   AttrUtils::SetBool(graph, ATTR_NAME_NO_NEED_DYNAMIC_SHAPE_PARTITION, true);
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -11433,6 +11842,9 @@ ge::Graph ShareGraph::BuildHcomGraph() {
   auto op_desc = node->GetOpDesc();
   op_desc->SetWorkspace({0, 0});
   op_desc->SetWorkspaceBytes({32, 32});
+  for (auto &node : compute_graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -11459,6 +11871,10 @@ ge::Graph ShareGraph::BuildHcomGraphWithTwoOutputs(const std::string hcom_node_t
   };
 
   auto graph = ToGeGraph(g1);
+  auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
+  for (auto &node : compute_graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -11492,6 +11908,9 @@ ge::Graph ShareGraph::BuildHcomGraphWithRefData() {
   op_desc->SetOpKernelLibName("ops_kernel_info_hccl");
   op_desc->SetWorkspace({0, 0});
   op_desc->SetWorkspaceBytes({32, 32});
+  for (auto &node : compute_graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 /*
@@ -11514,6 +11933,9 @@ ComputeGraphPtr ShareGraph::FixedAddrNodeGraph1() {
   net_output->GetOpDesc()->SetSrcName({"id3", "id4"});
   net_output->GetOpDesc()->SetSrcIndex({0, 0});
   graph->TopologicalSorting();
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 /*
@@ -11550,6 +11972,9 @@ ComputeGraphPtr ShareGraph::FixedAddrNodeGraph() {
   net_output->GetOpDesc()->SetSrcName({"id3", "id4"});
   net_output->GetOpDesc()->SetSrcIndex({0, 0});
   graph->TopologicalSorting();
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 /*
@@ -11578,6 +12003,9 @@ ge::ComputeGraphPtr ShareGraph::FixedAddrConnectToPhonyConcat() {
   net_output->GetOpDesc()->SetSrcName({"DsaNode"});
   net_output->GetOpDesc()->SetSrcIndex({0});
   graph->TopologicalSorting();
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -11645,6 +12073,10 @@ ge::Graph ShareGraph::NetoutputNotSupportZeroCopy() {
   };
 
   auto graph = ToGeGraph(g1);
+  auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
+  for (auto &node : compute_graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -11674,6 +12106,9 @@ ge::ComputeGraphPtr ShareGraph::FixedAddrConnectToMultiPeers() {
   net_output->GetOpDesc()->SetSrcName({"id2", "id3"});
   net_output->GetOpDesc()->SetSrcIndex({0, 0});
   graph->TopologicalSorting();
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 /*
@@ -11737,6 +12172,9 @@ ge::ComputeGraphPtr ShareGraph::BuildAiCoreRtsDsaNodeKnownShapeGraph() {
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"id1"});
   net_output->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 /*
@@ -11793,6 +12231,9 @@ ge::ComputeGraphPtr ShareGraph::BuildAiCoreRtsDsaToIdentityKnownShapeGraph() {
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"id1"});
   net_output->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 /*
@@ -11868,6 +12309,9 @@ ge::ComputeGraphPtr ShareGraph::BuildGraphHasLabelSwitch() {
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"add2"});
   net_output->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -12109,6 +12553,9 @@ ComputeGraphPtr ShareGraph::BuildInputDirectlyConnectedToOutputGraph() {
 
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcName({"data1"});
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcIndex({0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 /*
@@ -12145,6 +12592,7 @@ ComputeGraphPtr ShareGraph::MultiStreamTwoNodeGraph(int64_t &stream_num, int64_t
   data2->GetOpDescBarePtr()->SetStreamId(0);
 
   auto add1 = graph->FindNode("add1");
+  (void)ge::AttrUtils::SetStr(add1->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_add_12345");
   AddCompileResult(add1, false);
   SetNoStorage(add1->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {-1, -1, -1, -1});
   add1->GetOpDesc()->SetOpKernelLibName(kEngineNameAiCore);
@@ -12154,6 +12602,7 @@ ComputeGraphPtr ShareGraph::MultiStreamTwoNodeGraph(int64_t &stream_num, int64_t
   add1->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
 
   auto relu = graph->FindNode("relu");
+  (void)ge::AttrUtils::SetStr(relu->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_relu_12345");
   AddCompileResult(relu, false);
   SetNoStorage(relu->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {-1, -1, -1, -1});
   relu->GetOpDesc()->SetOpKernelLibName(kEngineNameAiCore);
@@ -12173,6 +12622,9 @@ ComputeGraphPtr ShareGraph::MultiStreamTwoNodeGraph(int64_t &stream_num, int64_t
 
   SetGraphOutShapeRange(graph);
   graph->SetGraphUnknownFlag(true);
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -12369,6 +12821,7 @@ ComputeGraphPtr ShareGraph::MultiStreamGraphConsumersInAndCrossStream(int64_t &s
   data1->GetOpDescBarePtr()->SetStreamId(0);
 
   auto cast = graph->FindNode("cast");
+  (void)ge::AttrUtils::SetStr(cast->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_cast_12345");
   AddCompileResult(cast, false);
   SetNoStorage(cast->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {-1, -1 - 1, -1});
   cast->GetOpDesc()->SetOpKernelLibName(kEngineNameAiCore);
@@ -12378,6 +12831,7 @@ ComputeGraphPtr ShareGraph::MultiStreamGraphConsumersInAndCrossStream(int64_t &s
   cast->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
 
   auto transdata = graph->FindNode("transdata");
+  (void)ge::AttrUtils::SetStr(transdata->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_transdata_12345");
   AddCompileResult(transdata, false);
   SetNoStorage(transdata->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {-1, -1 - 1, -1});
   transdata->GetOpDesc()->SetOpKernelLibName(kEngineNameAiCore);
@@ -12386,6 +12840,7 @@ ComputeGraphPtr ShareGraph::MultiStreamGraphConsumersInAndCrossStream(int64_t &s
   transdata->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
 
   auto relu = graph->FindNode("relu");
+  (void)ge::AttrUtils::SetStr(relu->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_relu_12345");
   AddCompileResult(relu, true);
   SetNoStorage(relu->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {-1, -1 - 1, -1});
   relu->GetOpDesc()->SetOpKernelLibName(kEngineNameAiCore);
@@ -12403,6 +12858,9 @@ ComputeGraphPtr ShareGraph::MultiStreamGraphConsumersInAndCrossStream(int64_t &s
   net_output->GetOpDescBarePtr()->SetStreamId(0);
   AttrUtils::SetListInt(net_output->GetOpDesc(), ge::ATTR_NAME_RECV_EVENT_IDS, {1});
   SetGraphOutShapeRange(graph);
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -12455,6 +12913,7 @@ ComputeGraphPtr ShareGraph::MultiStreamGraphAccessRefMemCrossStream(int64_t &str
   data1->GetOpDescBarePtr()->SetStreamId(0);
 
   auto assign = graph->FindNode("assign");
+  (void)ge::AttrUtils::SetStr(assign->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_add_12345");
   AddCompileResult(assign, false);
   SetNoStorage(assign->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {-1, -1 - 1, -1});
   assign->GetOpDesc()->SetOpKernelLibName(kEngineNameAiCore);
@@ -12464,6 +12923,7 @@ ComputeGraphPtr ShareGraph::MultiStreamGraphAccessRefMemCrossStream(int64_t &str
   assign->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
 
   auto transdata = graph->FindNode("transdata");
+  (void)ge::AttrUtils::SetStr(transdata->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_transdata_12345");
   AddCompileResult(transdata, false);
   SetNoStorage(transdata->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {-1, -1 - 1, -1});
   transdata->GetOpDesc()->SetOpKernelLibName(kEngineNameAiCore);
@@ -12472,6 +12932,7 @@ ComputeGraphPtr ShareGraph::MultiStreamGraphAccessRefMemCrossStream(int64_t &str
   transdata->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
 
   auto relu = graph->FindNode("relu");
+  (void)ge::AttrUtils::SetStr(relu->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_relu_12345");
   AddCompileResult(relu, false);
   SetNoStorage(relu->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {-1, -1 - 1, -1});
   relu->GetOpDesc()->SetOpKernelLibName(kEngineNameAiCore);
@@ -12489,6 +12950,9 @@ ComputeGraphPtr ShareGraph::MultiStreamGraphAccessRefMemCrossStream(int64_t &str
   net_output->GetOpDescBarePtr()->SetStreamId(0);
   AttrUtils::SetListInt(net_output->GetOpDesc(), ge::ATTR_NAME_RECV_EVENT_IDS, {1});
   SetGraphOutShapeRange(graph);
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 /*
@@ -12535,6 +12999,7 @@ ge::ComputeGraphPtr ShareGraph::MultiStreamGraphRefMemCrossStream(int64_t &strea
   data1->GetOpDescBarePtr()->SetOutputOffset({456});
 
   auto assign = graph->FindNode("assign");
+  (void)ge::AttrUtils::SetStr(assign->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_assign_12345");
   AddCompileResult(assign, false);
   SetNoStorage(assign->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {-1, -1 - 1, -1});
   assign->GetOpDesc()->SetOpKernelLibName(kEngineNameAiCore);
@@ -12552,6 +13017,9 @@ ge::ComputeGraphPtr ShareGraph::MultiStreamGraphRefMemCrossStream(int64_t &strea
   AttrUtils::SetListInt(net_output->GetOpDesc(), ge::ATTR_NAME_RECV_EVENT_IDS, {2});
   net_output->GetOpDescBarePtr()->SetInputOffset({0});
   SetGraphOutShapeRange(graph);
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 /*
@@ -12697,16 +13165,19 @@ ComputeGraphPtr ShareGraph::MultiStreamGraphDynamicAndStaticGraph(int64_t &strea
   add_node->GetOpDesc()->SetExtAttr(OP_EXTATTR_CUSTAICPU_KERNEL, kernel_bin_ptr);
 
   auto relu_node = root_graph->FindNode("relu");
+  (void)ge::AttrUtils::SetStr(relu_node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_relu_12345");
   AddCompileResult(relu_node, false);
   SetNoStorage(relu_node->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {-1, -1 - 1, -1});
   SetShapeRangeNoStorage(relu_node->GetOpDesc(), {1, 1}, {-1, -1});
   auto transdata_node = root_graph->FindNode("transdata");
+  (void)ge::AttrUtils::SetStr(transdata_node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_transdata_12345");
   transdata_node->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
   SetShapeRangeNoStorage(transdata_node->GetOpDesc(), {1, 1}, {-1, -1});
   AddCompileResult(transdata_node, false);
   SetNoStorage(transdata_node->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {-1, -1 - 1, -1});
 
   auto known_node = root_graph->FindNode("known_op");
+  (void)ge::AttrUtils::SetStr(known_node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_known_op_12345");
   SetSubGraph(root_graph, known_node, compute_graph1);
 
   AddCompileResult(known_node, false);
@@ -12810,6 +13281,7 @@ ComputeGraphPtr ShareGraph::MultiStreamGraphFileConstantGraph(int64_t &stream_nu
   root_graph->SetGraphUnknownFlag(true);
 
   auto relu_node = root_graph->FindNode("relu");
+  (void)ge::AttrUtils::SetStr(relu_node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_relu_12345");
   AddCompileResult(relu_node, false);
   relu_node->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
   SetNoStorage(relu_node->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {-1, -1 - 1, -1});
@@ -12945,6 +13417,7 @@ ComputeGraphPtr ShareGraph::MultiStreamGraphWithFirstEventSyncGraph(int64_t &str
   AttrUtils::SetListInt(data2->GetOpDesc(), ge::ATTR_NAME_SEND_EVENT_IDS, {0});
 
   auto add1 = graph->FindNode("add1");
+  (void)ge::AttrUtils::SetStr(add1->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_add_12345");
   AddCompileResult(add1, false);
   SetNoStorage(add1->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {-1, -1 - 1, -1});
   add1->GetOpDesc()->SetOpKernelLibName(kEngineNameAiCore);
@@ -12962,6 +13435,9 @@ ComputeGraphPtr ShareGraph::MultiStreamGraphWithFirstEventSyncGraph(int64_t &str
 
   SetGraphOutShapeRange(graph);
   graph->SetGraphUnknownFlag(true);
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 /*
@@ -13008,6 +13484,7 @@ ComputeGraphPtr ShareGraph::MultiStreamGraphWithLastEventSyncGraph(int64_t &stre
   AttrUtils::SetListInt(data2->GetOpDesc(), ge::ATTR_NAME_SEND_EVENT_IDS, {1});
 
   auto add = graph->FindNode("add1");
+  (void)ge::AttrUtils::SetStr(add->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_add_12345");
   AddCompileResult(add, false);
   SetNoStorage(add->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {-1, -1 - 1, -1});
   add->GetOpDesc()->SetOpKernelLibName(kEngineNameAiCpuTf);
@@ -13017,6 +13494,7 @@ ComputeGraphPtr ShareGraph::MultiStreamGraphWithLastEventSyncGraph(int64_t &stre
   add->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
 
   auto relu_node = graph->FindFirstNodeMatchType("Relu");
+  (void)ge::AttrUtils::SetStr(relu_node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_relu_12345");
   AddCompileResult(relu_node, false);
   relu_node->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
 
@@ -13029,6 +13507,9 @@ ComputeGraphPtr ShareGraph::MultiStreamGraphWithLastEventSyncGraph(int64_t &stre
 
   SetGraphOutShapeRange(graph);
   graph->SetGraphUnknownFlag(true);
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -13081,6 +13562,9 @@ ge::ComputeGraphPtr ShareGraph::BuildStaticMinimumGradAndAddGraph() {
 
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcName({"mg", "add0"});
   graph->FindNode("NetOutput")->GetOpDesc()->SetSrcIndex({0, 0});
+  for (auto &node : graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -13115,6 +13599,9 @@ Graph ShareGraph::BuildCVParallelGraph() {
   GE_ASSERT_TRUE(aiv2 != nullptr);
   AttrUtils::SetStr(aic1->GetOpDesc(), ge::ATTR_NAME_CUBE_VECTOR_CORE_TYPE, kTaskTypeAicore);
   AttrUtils::SetStr(aic2->GetOpDesc(), ge::ATTR_NAME_CUBE_VECTOR_CORE_TYPE, kTaskTypeAicore);
+  for (auto &node : root_graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 
@@ -13144,6 +13631,9 @@ Graph ShareGraph::BuildCVSerialGraph() {
   GE_ASSERT_TRUE(aiv2 != nullptr);
   AttrUtils::SetStr(aic1->GetOpDesc(), ge::ATTR_NAME_CUBE_VECTOR_CORE_TYPE, kTaskTypeAicore);
   AttrUtils::SetStr(aic2->GetOpDesc(), ge::ATTR_NAME_CUBE_VECTOR_CORE_TYPE, kTaskTypeAicore);
+  for (auto &node : root_graph->GetAllNodes()) {
+      (void)ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_BIN_ID, "te_" + node->GetName() + "_12345");
+  }
   return graph;
 }
 

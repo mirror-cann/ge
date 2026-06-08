@@ -602,7 +602,7 @@ TEST_F(ModelOutTensorZeroCopyUT, DoNotZeroCopy_WhenNoAllocKernel) {
  * before ModelOutTensorZeroCopy pass:
  *           netoutput
  *            /      \
- *           /   LaunchKernelWithHandle
+ *           /   LaunchKernelV2
  *          /        /
  *        BuildTensor
  *              |
@@ -612,7 +612,7 @@ TEST_F(ModelOutTensorZeroCopyUT, DoNotZeroCopy_WhenNoAllocKernel) {
  *  after ModelOutTensorZeroCopy pass:
  *           netoutput
  *            /      \
- *           /   LaunchKernelWithHandle
+ *           /   LaunchKernelV2
  *          /        /
  * AllocModelOutTensor
  *              ... ...
@@ -646,7 +646,7 @@ TEST_F(ModelOutTensorZeroCopyUT, TestSingleAicoreGraph) {
                                         {"FreeMemory", 3},
                                         {"InferShape", 1},
                                         {"InnerData", 23},
-                                        {"LaunchKernelWithHandle", 1},
+                                        {"LaunchKernelV2", 1},
                                         {"CopyFlowLaunch", 1},
                                         {"OutputData", 1},
                                         {"NetOutput", 1},

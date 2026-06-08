@@ -59,8 +59,8 @@ TEST_F(CannTraceProfilerUT, CannTracingProfiler_test_ok) {
   auto context = gert::KernelRunContextFaker()
       .NodeName("test1")
       .NodeType("test1")
-      .KernelType("LaunchKernelWithHandle")
-      .KernelName("LaunchKernelWithHandle")
+      .KernelType("LaunchKernelV2")
+      .KernelName("LaunchKernelV2")
       .KernelIONum(3, 1)
       .Build();
 

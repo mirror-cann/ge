@@ -256,7 +256,7 @@ inline Status OptimizeTransposeCountPro(AscGraph &asc_graph, [[maybe_unused]] co
   std::vector<std::vector<int64_t>> unique_loop_axes;
   GE_ASSERT_SUCCESS(FindUniqueLoopAxesForLoadStore(asc_graph, unique_loop_axes));
   if (unique_loop_axes.size() <= 1U) {
-    GELOGI("only one or zero unique loop axes in graph %s, dont't need to optimize transpose count.",
+    GELOGI("only one or zero unique loop axes in graph %s, don't need to optimize transpose count.",
            asc_graph.GetName().c_str());
     return SUCCESS;
   }

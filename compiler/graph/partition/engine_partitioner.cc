@@ -122,31 +122,6 @@ bool IsLinkedInGraph(const NodePtr &src_node, const NodePtr &dst_node) {
   return false;
 }
 
-bool IsAivNode(const NodePtr &node) {
-  std::string core_type;
-  const auto op_desc = node->GetOpDesc();
-  bool is_aiv = false;
-  if (ge::AttrUtils::GetStr(op_desc, ge::ATTR_NAME_CUBE_VECTOR_CORE_TYPE, core_type)) {
-    if ((core_type == kTaskTypeAiv) || (core_type == kTaskTypeMixAiv)) {
-      is_aiv = true;
-    } else {
-      if ((core_type == "MIX")) {
-        (void)ge::AttrUtils::GetBool(op_desc, "_mix_is_aiv", is_aiv);
-      }
-    }
-  }
-  return is_aiv;
-}
-
-bool IsAicNode(const NodePtr &node) {
-  std::string core_type;
-  const auto op_desc = node->GetOpDesc();
-  if (ge::AttrUtils::GetStr(op_desc, ATTR_NAME_CUBE_VECTOR_CORE_TYPE, core_type)) {
-    return !IsAivNode(node);
-  }
-  return false;
-}
-
 // 根据topo序找到aiv前后相邻的aic节点，如果aiv和其中至少1个aic在图上没有通路则可以并发
 void MarkCvParallelAivNodes(const ComputeGraphPtr &graph) {
   if (!StreamUtils::EnableCvParallel()) {
@@ -156,11 +131,11 @@ void MarkCvParallelAivNodes(const ComputeGraphPtr &graph) {
   NodePtr pre_aic = nullptr;
   std::vector<decltype(aiv_to_adjacent_aic_nodes.begin())> aiv_iters;
   for (auto node : graph->GetDirectNode()) {
-    if (IsAivNode(node)) {
+    if (StreamUtils::IsAivNode(node)) {
       auto insert_ret = aiv_to_adjacent_aic_nodes.insert({node, {pre_aic, nullptr}});
       aiv_iters.emplace_back(insert_ret.first);
     }
-    if (IsAicNode(node)) {
+    if (StreamUtils::IsAicNode(node)) {
       for (auto iter : aiv_iters) {
         if ((iter != aiv_to_adjacent_aic_nodes.end()) && (iter->second.second == nullptr)) {
           iter->second.second = node;

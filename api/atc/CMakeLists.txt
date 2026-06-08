@@ -101,7 +101,6 @@ target_link_options(atc_static PRIVATE
 
 target_link_libraries(atc_static PRIVATE
         ge_intf_pub
-        cce_headers
         msprof_headers
         ge_metadef_headers
         ascend_protobuf
@@ -124,6 +123,7 @@ target_link_libraries(atc_static PRIVATE
         runtime
         slog
         mmpa
+        runtime_headers
         -lrt
         -ldl
 		${AIR_COMMON_LINK_OPTION}

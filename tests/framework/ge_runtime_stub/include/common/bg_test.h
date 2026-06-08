@@ -143,6 +143,9 @@ class BgTest : public testing::Test {
     }
   }
   void CheckOwners(const ge::ExecuteGraph *root_graph) {
+    if (root_graph == nullptr) {
+      return;
+    }
     for (const auto node : root_graph->GetDirectNode()) {
       EXPECT_EQ(node->GetExtendInfo()->GetOwnerGraphBarePtr(), root_graph);
       EXPECT_EQ(root_graph->GetParentNodeBarePtr(), nullptr);

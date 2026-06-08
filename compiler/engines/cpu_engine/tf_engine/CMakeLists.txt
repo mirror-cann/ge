@@ -65,11 +65,11 @@ add_library(aicpu_tf_engine SHARED
 target_link_libraries(aicpu_tf_engine PRIVATE
     ge_intf_pub
     msprof_headers
-    cce_headers
     air_headers
     datagw_headers
     c_sec_headers
     mmpa_headers
+    runtime_headers
     -Wl,--no-as-needed
     ascend_protobuf
     aicpu_engine_common

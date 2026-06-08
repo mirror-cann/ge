@@ -235,7 +235,6 @@ target_include_directories(ge_executor PRIVATE
 
 target_link_libraries(ge_executor PRIVATE
     ge_intf_pub_Os
-    cce_headers
     slog_headers
     msprof_headers
     adump_headers
@@ -306,7 +305,6 @@ target_link_options(ge_executor_shared PRIVATE
 target_link_libraries(ge_executor_shared
     PRIVATE
         ge_intf_pub
-        $<$<TARGET_EXISTS:cce_headers>:cce_headers>
         $<$<TARGET_EXISTS:aicpu_headers>:aicpu_headers>
         msprof_headers
         adump_headers
@@ -388,7 +386,6 @@ target_link_options(davinci_executor PRIVATE
 target_link_libraries(davinci_executor
   PRIVATE
     ge_intf_pub
-    $<$<TARGET_EXISTS:cce_headers>:cce_headers>
     $<$<TARGET_EXISTS:aicpu_headers>:aicpu_headers>
     msprof_headers
     adump_headers
@@ -486,7 +483,6 @@ target_link_options(hybrid_executor PRIVATE
 target_link_libraries(hybrid_executor
   PRIVATE
     ge_intf_pub
-    $<$<TARGET_EXISTS:cce_headers>:cce_headers>
     $<$<TARGET_EXISTS:aicpu_headers>:aicpu_headers>
     msprof_headers
     mmpa_headers
@@ -527,6 +523,8 @@ set(STUB_HEADER_LIST
     ${AIR_CODE_DIR}/runtime/v1/single_op/single_op.h
     ${AIR_CODE_DIR}/runtime/v1/single_op/single_op_manager.h
     ${AIR_CODE_DIR}/runtime/v1/single_op/stream_resource.h
+    ${AIR_CODE_DIR}/runtime/v1/hybrid/executor/runtime_v2/scalable_allocator_manager.h
+    ${AIR_CODE_DIR}/inc/framework/runtime/mem_allocator.h
 )
 
 list(TRANSFORM STUB_HEADER_LIST
@@ -601,7 +599,6 @@ target_link_libraries(hybrid_executor_stub PRIVATE
     runtime_headers
     ge_metadef_headers
     error_manager_headers
-    $<$<TARGET_EXISTS:cce_headers>:cce_headers>
     $<$<TARGET_EXISTS:aicpu_headers>:aicpu_headers>
     c_sec_headers
     ascend_protobuf

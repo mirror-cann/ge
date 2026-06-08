@@ -41,7 +41,7 @@ target_link_libraries(ut_dvpp_runtime2_test PRIVATE
         GTestShared::gmock
         GTestShared::gtest_main
         c_sec
-        mockcpp_static
+        mockcpp
         )
 
 add_test(NAME ut_dvpp_runtime2_test COMMAND ut_dvpp_runtime2_test --gtest_output=xml:${CMAKE_INSTALL_PREFIX}/report/ut/ut_dvpp_runtime2_test.xml)

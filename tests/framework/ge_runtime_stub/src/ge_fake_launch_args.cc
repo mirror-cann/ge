@@ -146,8 +146,30 @@ GeFakeLaunchArgs::GeFakeLaunchArgs(aclrtFuncHandle funcHandle, uint32_t numBlock
   (void)cfg;
   (void)funcHandle;
   args_addr_ = hostArgs;
-  (void)placeHolderArray;
-  (void)placeHolderNum;
+  args_ = hostArgs;
+  if ((placeHolderArray != nullptr) && (placeHolderNum > 0U)) {
+    size_t host_input_num = placeHolderNum;
+    bool has_tiling = false;
+    if (placeHolderArray[placeHolderNum - 1U].dataOffset < static_cast<uint32_t>(argsSize)) {
+      has_tiling = true;
+      host_input_num = placeHolderNum - 1U;
+    }
+    size_t data_size = sizeof(rtArgsEx_t) + host_input_num * sizeof(rtHostInputInfo_t);
+    args_holder_ = std::unique_ptr<uint8_t[]>(new (std::nothrow) uint8_t[data_size]());
+    args_ex_ = reinterpret_cast<rtArgsEx_t *>(args_holder_.get());
+    args_ex_->args = hostArgs;
+    args_ex_->argsSize = static_cast<uint32_t>(argsSize);
+    args_ex_->hostInputInfoPtr = reinterpret_cast<rtHostInputInfo_t *>(args_holder_.get() + sizeof(rtArgsEx_t));
+    args_ex_->hostInputInfoNum = static_cast<uint32_t>(host_input_num);
+    for (size_t idx = 0U; idx < host_input_num; ++idx) {
+      args_ex_->hostInputInfoPtr[idx].addrOffset = placeHolderArray[idx].addrOffset;
+      args_ex_->hostInputInfoPtr[idx].dataOffset = placeHolderArray[idx].dataOffset;
+    }
+    if (has_tiling) {
+      args_ex_->tilingAddrOffset = placeHolderArray[placeHolderNum - 1U].addrOffset;
+      args_ex_->tilingDataOffset = placeHolderArray[placeHolderNum - 1U].dataOffset;
+    }
+  }
 }
 
 GeFakeLaunchArgs::GeFakeLaunchArgs(aclrtFuncHandle funcHandle, uint32_t numBlocks,

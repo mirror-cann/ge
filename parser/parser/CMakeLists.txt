@@ -88,6 +88,7 @@ target_link_libraries(fmk_parser
         -Wl,--no-as-needed
         ascend_protobuf
         error_manager
+        runtime_headers
         parser_common
         graph
         register

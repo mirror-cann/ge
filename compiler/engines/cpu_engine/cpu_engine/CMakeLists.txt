@@ -162,7 +162,6 @@ target_link_libraries(aicpu_ascend_engine PRIVATE
     ge_intf_pub
     msprof_headers
     runtime_headers
-    cce_headers
     air_headers
     c_sec_headers
     mmpa_headers
@@ -185,7 +184,6 @@ target_link_libraries(host_cpu_engine PRIVATE
     ge_intf_pub
     msprof_headers
     runtime_headers
-    cce_headers
     air_headers
     c_sec_headers
     mmpa_headers
@@ -208,7 +206,6 @@ target_link_libraries(host_cpu_opskernel_builder PRIVATE
     ge_intf_pub
     msprof_headers
     runtime_headers
-    cce_headers
     air_headers
     c_sec_headers
     mmpa_headers
@@ -231,9 +228,12 @@ target_link_libraries(host_cpu_opskernel_builder PRIVATE
 if (BUILD_OPEN_PROJECT OR ENABLE_OPEN_SRC)
     target_link_libraries(aicpu_const_folding PRIVATE
         ge_intf_pub
-        aicpu_headers
+        $<$<TARGET_EXISTS:aicpu_headers>:aicpu_headers>
         air_headers
         mmpa_headers
+        metadef_headers
+        runtime_headers
+        c_sec_headers
         -Wl,--no-as-needed
         constant_folding_ops_stub
         slog_headers

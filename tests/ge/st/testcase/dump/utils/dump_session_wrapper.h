@@ -91,6 +91,8 @@ inline GraphAndIoNum BuildGraph_OneAdd(bool dynamic) {
 
   auto graph = ToComputeGraph(one_add);
   graph->SetGraphUnknownFlag(dynamic);
+  auto add_node = graph->FindNode("_add_0");
+  AttrUtils::SetStr(add_node->GetOpDesc(), ATTR_NAME_KERNEL_BIN_ID, "te_add_12345");
   return { graph, 2, 1 };
 }
 
@@ -127,6 +129,10 @@ inline GraphAndIoNum BuildGraph_TwoAdd(bool dynamic) {
 
   auto graph = ToComputeGraph(two_add);
   graph->SetGraphUnknownFlag(dynamic);
+  auto add_node0 = graph->FindNode("_add_0");
+  AttrUtils::SetStr(add_node0->GetOpDesc(), ATTR_NAME_KERNEL_BIN_ID, "te_add_12345");
+  auto add_node1 = graph->FindNode("_add_1");
+  AttrUtils::SetStr(add_node1->GetOpDesc(), ATTR_NAME_KERNEL_BIN_ID, "te_add_12345");
   return { graph, 2, 1 };
 }
 } // namespace ge

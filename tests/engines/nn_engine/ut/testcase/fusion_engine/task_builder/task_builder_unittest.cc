@@ -117,7 +117,7 @@ class UTEST_TaskBuilder : public testing::Test
 {
 protected:
     static void SetUpTestCase() {
-        fe::InitPlatformInfo("Ascend910B1", true);
+        fe::InitPlatformInfo("Ascend310P3", true);
     }
     static void SetOpDecSize(NodePtr& node){
         OpDesc::Vistor<GeTensorDesc> tensors = node->GetOpDesc()->GetAllInputsDesc();
@@ -477,7 +477,7 @@ TEST_F(UTEST_TaskBuilder, fill_taskdef_cust_log)
 
 TEST_F(UTEST_TaskBuilder, mix_static_node_generate_task_1)
 {
-  PlatformInfoManager::Instance().opti_compilation_infos_.SetSocVersion("Ascend310P3");
+  fe::InitPlatformInfo("Ascend310P3", true);
   std::vector<domi::TaskDef> task_defs;
   ge::NodePtr node = CreateNormalNode(1);
   ge::AttrUtils::SetStr(node->GetOpDesc(), fe::ATTR_NAME_CUBE_VECTOR_CORE_TYPE, kCoreTypeMixVectorCore);
@@ -487,13 +487,13 @@ TEST_F(UTEST_TaskBuilder, mix_static_node_generate_task_1)
   graph->SetGraphUnknownFlag(false);
   FillNodeParaType(node);
   Status status = task_builder_->GenerateKernelTask(*node, context_, task_defs);
-  EXPECT_NE(status, fe::SUCCESS);
+  EXPECT_EQ(status, fe::SUCCESS);
   EXPECT_EQ(task_defs.size(), 2);
 }
 
 TEST_F(UTEST_TaskBuilder, mix_static_node_generate_task_2)
 {
-  PlatformInfoManager::Instance().opti_compilation_infos_.SetSocVersion("Ascend310P3");
+  fe::InitPlatformInfo("Ascend310P3", true);
   std::vector<domi::TaskDef> task_defs;
   ge::NodePtr node = CreateNormalNode(1);
   ge::AttrUtils::SetStr(node->GetOpDesc(), fe::ATTR_NAME_CUBE_VECTOR_CORE_TYPE, kCoreTypeMixVectorCore);
@@ -505,13 +505,13 @@ TEST_F(UTEST_TaskBuilder, mix_static_node_generate_task_2)
   graph->SetGraphUnknownFlag(false);
   FillNodeParaType(node);
   Status status = task_builder_->GenerateKernelTask(*node, context_, task_defs);
-  EXPECT_NE(status, fe::SUCCESS);
-  EXPECT_EQ(task_defs.size(), 2);
+  EXPECT_EQ(status, fe::SUCCESS);
+  EXPECT_EQ(task_defs.size(), 7);
 }
 
 TEST_F(UTEST_TaskBuilder, mix_static_node_generate_task_3)
 {
-  PlatformInfoManager::Instance().opti_compilation_infos_.SetSocVersion("Ascend310P3");
+  fe::InitPlatformInfo("Ascend310P3", true);
   std::vector<domi::TaskDef> task_defs;
   ge::NodePtr node = CreateNormalNode(1);
   ge::AttrUtils::SetStr(node->GetOpDesc(), fe::ATTR_NAME_CUBE_VECTOR_CORE_TYPE, kCoreTypeMixAICore);
@@ -523,13 +523,13 @@ TEST_F(UTEST_TaskBuilder, mix_static_node_generate_task_3)
   graph->SetGraphUnknownFlag(false);
   FillNodeParaType(node);
   Status status = task_builder_->GenerateKernelTask(*node, context_, task_defs);
-  EXPECT_NE(status, fe::SUCCESS);
+  EXPECT_EQ(status, fe::SUCCESS);
   EXPECT_EQ(task_defs.size(), 2);
 }
 
 TEST_F(UTEST_TaskBuilder, mix_dynamic_node_generate_task_1)
 {
-  PlatformInfoManager::Instance().opti_compilation_infos_.SetSocVersion("Ascend310P3");
+  fe::InitPlatformInfo("Ascend310P3", true);
   std::vector<domi::TaskDef> task_defs;
   ge::NodePtr node = CreateNormalNode(1);
   ge::AttrUtils::SetStr(node->GetOpDesc(), fe::ATTR_NAME_CUBE_VECTOR_CORE_TYPE, kCoreTypeMixVectorCore);
@@ -539,9 +539,9 @@ TEST_F(UTEST_TaskBuilder, mix_dynamic_node_generate_task_1)
   graph->SetParentNode(node);
   FillNodeParaType(node);
   Status status = task_builder_->GenerateKernelTask(*node, context_, task_defs);
-  EXPECT_NE(status, fe::SUCCESS);
+  EXPECT_EQ(status, fe::SUCCESS);
   uint32_t all_core_num = 0;
-  EXPECT_EQ(ge::AttrUtils::HasAttr(node->GetOpDesc(), ATTR_NAME_MIX_CORE_NUM_VEC), false);
+  EXPECT_EQ(ge::AttrUtils::HasAttr(node->GetOpDesc(), ATTR_NAME_MIX_CORE_NUM_VEC), true);
 }
 
 TEST_F(UTEST_TaskBuilder, tiling_sink_suc)
@@ -1685,4 +1685,19 @@ TEST_F(UTEST_TaskBuilder, tiling_sink_calc_param_with_impl_op){
   ret = aicore_ops_kernel_builder_ptr->CalcTilingSinkRunningParam(true, *src_node, proc_flag);
   proc_flag = true;
   ret = aicore_ops_kernel_builder_ptr->CalcTilingSinkRunningParam(true, *src_node, proc_flag);
+}
+
+TEST_F(UTEST_TaskBuilder, mix_aicore_dyn_unknown_flag)
+{
+  fe::InitPlatformInfo("Ascend310P3", true);
+  std::vector<domi::TaskDef> task_defs;
+  ge::NodePtr node = CreateNormalNode(0);
+  ge::AttrUtils::SetStr(node->GetOpDesc(), fe::ATTR_NAME_CUBE_VECTOR_CORE_TYPE, kCoreTypeMixAICore);
+  auto graph = std::make_shared<ComputeGraph>("test");
+  (void)node->SetOwnerComputeGraph(graph);
+  graph->SetGraphUnknownFlag(true);
+  FillNodeParaType(node);
+  Status status = task_builder_->GenerateKernelTask(*node, context_, task_defs);
+  EXPECT_EQ(status, fe::SUCCESS);
+  EXPECT_EQ(ge::AttrUtils::HasAttr(node->GetOpDesc(), ATTR_NAME_MIX_CORE_NUM_VEC), true);
 }

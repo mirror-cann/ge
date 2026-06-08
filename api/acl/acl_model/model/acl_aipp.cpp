@@ -676,7 +676,7 @@ public:
 
         sRet = static_cast<uint16_t>((ui32V & acl::FP32_SIGN_MASK) >> acl::FP32_SIGN_INDEX); // 4Byte->2Byte
         eF = (ui32V & acl::FP32_EXP_MASK) >> acl::FP32_MAN_LEN; // 8 bit exponent
-        mF = (ui32V & acl::FP32_MAN_MASK); // 23 bit mantissa dont't need to care about denormal
+        mF = (ui32V & acl::FP32_MAN_MASK); // 23 bit mantissa don't need to care about denormal
         mLenDelta = acl::FP32_MAN_LEN - acl::FP16_MAN_LEN;
 
         bool needRound = false;

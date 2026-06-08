@@ -130,4 +130,4 @@ target_link_libraries(tefusion_ut PRIVATE
         graph_base
         ge_common_base
    	GTestShared::gmock
-   	mockcpp_static)
+   	mockcpp)

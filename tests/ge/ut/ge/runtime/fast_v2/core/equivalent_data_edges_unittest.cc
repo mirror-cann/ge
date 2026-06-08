@@ -244,7 +244,7 @@ TEST_F(EquivalentDataEdgesUT, RefOk) {
   ASSERT_EQ(tiling_nodes.size(), 1);
   auto tiling_node = tiling_nodes[0];
 
-  auto launch_nodes = ge::ExecuteGraphUtils::FindNodesByTypeFromAllNodes(exe_graph.get(), "LaunchKernelWithHandle");
+  auto launch_nodes = ge::ExecuteGraphUtils::FindNodesByTypeFromAllNodes(exe_graph.get(), "LaunchKernelV2");
   ASSERT_EQ(launch_nodes.size(), 1);
   auto launch_node = launch_nodes[0];
 
@@ -271,7 +271,7 @@ TEST_F(EquivalentDataEdgesUT, InnerDataLinkToNetOutput) {
   auto holder1 = bg::If<bg::ValueHolder>(
       data0,
       [&]() -> std::vector<bg::ValueHolderPtr> {
-        auto launch = bg::ValueHolder::CreateSingleDataOutput("LaunchKernelWithHandle", {data0});
+        auto launch = bg::ValueHolder::CreateSingleDataOutput("LaunchKernelV2", {data0});
         return {data0, launch};
       },
       [&]() -> std::vector<bg::ValueHolderPtr> {
@@ -282,7 +282,7 @@ TEST_F(EquivalentDataEdgesUT, InnerDataLinkToNetOutput) {
   auto holder2 = bg::If<bg::ValueHolder>(
       data0,
       [&]() -> std::vector<bg::ValueHolderPtr> {
-        auto launch = bg::ValueHolder::CreateSingleDataOutput("LaunchKernelWithHandle", {data0});
+        auto launch = bg::ValueHolder::CreateSingleDataOutput("LaunchKernelV2", {data0});
         return {data0, launch};
       },
       [&]() -> std::vector<bg::ValueHolderPtr> {

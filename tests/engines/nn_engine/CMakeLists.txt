@@ -332,8 +332,7 @@ set(FFTS_SRC_CC_LIST
         ${FFTS_ROOT_PATH}/task_builder/thread_ctx/runtime_ops_auto_task_builder.cc
         ${FFTS_ROOT_PATH}/task_builder/mixl2_ctx/mix_l2_task_builder.cc)
 
-include(ut/testcase/op_compile_adapter/cmake/third_party/mockcpp.cmake)
-
+add_cann_third_party(mockcpp)
 add_subdirectory(depends/slog)
 add_subdirectory(depends/mmpa)
 add_subdirectory(depends/runtime)

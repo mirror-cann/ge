@@ -20,6 +20,10 @@
 #include "exe_graph/lowering/lowering_opt.h"
 #include "common/ge_common/ge_types.h"
 
+namespace ge {
+class AicoreKernelHandlesManager;
+}  // namespace ge
+
 namespace gert {
 constexpr int64_t kRtMemoryTypeHbm = 0x2;
 constexpr int64_t kDefaultMainStreamId = 0;
@@ -27,6 +31,8 @@ constexpr int64_t kDefaultMainStreamId = 0;
 constexpr const ge::char_t *kGlobalDataModelStreamNum = "ModelStreamNum";
 class LoweringGlobalData {
  public:
+  ~LoweringGlobalData();
+
   struct NodeCompileResult {
     const std::vector<domi::TaskDef> &GetTaskDefs() const {
       return task_defs;
@@ -170,6 +176,14 @@ class LoweringGlobalData {
     return host_resource_center_;
   }
 
+  void SetAicoreKernelHandlesManager(std::shared_ptr<ge::AicoreKernelHandlesManager> m) {
+    aicore_manager_ = std::move(m);
+  }
+  
+  std::shared_ptr<ge::AicoreKernelHandlesManager> GetAicoreKernelHandlesManager() const {
+    return aicore_manager_;
+  }
+
  private:
   struct HolderByGraphs {
     bg::ValueHolderPtr holders[static_cast<size_t>(ExecuteGraphType::kNum)];
@@ -199,6 +213,7 @@ class LoweringGlobalData {
   void *host_resource_center_{nullptr};
   // user set file constant device memory, key is file name
   std::map<std::string, ge::FileConstantMem> file_constant_mems_;
+  std::shared_ptr<ge::AicoreKernelHandlesManager> aicore_manager_;
 };
 }  // namespace gert
 #endif  // AIR_CXX_RUNTIME_V2_LOWERING_LOWERING_GLOBAL_DATA_H_

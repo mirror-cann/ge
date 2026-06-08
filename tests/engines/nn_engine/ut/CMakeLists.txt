@@ -257,4 +257,4 @@ target_link_libraries(fe_ut PRIVATE
         ge_graph_dsl
         intf_llt_pub
  	GTestShared::gmock
- 	mockcpp_static)
+ 	mockcpp)

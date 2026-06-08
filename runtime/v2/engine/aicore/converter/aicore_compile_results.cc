@@ -25,6 +25,7 @@
 #include "register/op_tiling_info.h"
 #include "register/op_tiling/op_tiling_constants.h"
 #include "common/opskernel/ops_kernel_info_types.h"
+#include "common/kernel_handles_manager/aicore_kernel_handles_manager.h"
 
 namespace gert {
 namespace {
@@ -369,7 +370,68 @@ gert::kernel::MIX_KERNEL_REQ_TYPE GetMixAiCoreKernelType(const ge::OpDescPtr &op
                       : gert::kernel::MIX_KERNEL_REQ_TYPE::MIX_SINGLE_KERNEL;
   }
 }
+
+ge::OpKernelBinPtr GetTbeKernelBin(const ge::OpDescPtr &op_desc, bool is_atomic_node) {
+  std::string kernel_key = is_atomic_node ? ge::EXT_ATTR_ATOMIC_TBE_KERNEL : ge::OP_EXTATTR_NAME_TBE_KERNEL;
+  return op_desc->TryGetExtAttr(kernel_key, ge::OpKernelBinPtr());
+}
+
+ge::Status GetBinaryMagic(const ge::OpDescPtr &op_desc, bool is_atomic_node, uint32_t &binary_magic) {
+  static const std::unordered_map<std::string, uint32_t> binary_magics = {
+    {"RT_DEV_BINARY_MAGIC_ELF_AICPU", RT_DEV_BINARY_MAGIC_ELF_AICPU},
+    {"RT_DEV_BINARY_MAGIC_ELF", RT_DEV_BINARY_MAGIC_ELF},
+    {"RT_DEV_BINARY_MAGIC_ELF_AIVEC", RT_DEV_BINARY_MAGIC_ELF_AIVEC},
+    {"RT_DEV_BINARY_MAGIC_ELF_AICUBE", RT_DEV_BINARY_MAGIC_ELF_AICUBE},
+    {"FFTS_BINARY_MAGIC_ELF_MIX_AIC", RT_DEV_BINARY_MAGIC_ELF_AICUBE},
+    {"FFTS_BINARY_MAGIC_ELF_MIX_AIV", RT_DEV_BINARY_MAGIC_ELF_AIVEC},
+  };
+  std::string tvm_magic_key = is_atomic_node ? ge::ATOMIC_ATTR_TVM_MAGIC : ge::TVM_ATTR_NAME_MAGIC;
+  auto tvm_magic_str = ge::AttrUtils::GetStr(op_desc, tvm_magic_key);
+  if (tvm_magic_str == nullptr) {
+    GELOGE(ge::FAILED, "Failed to get tvm magic by key %s on node %s.", tvm_magic_key.c_str(), op_desc->GetName().c_str());
+    return ge::FAILED;
+  }
+  auto iter = binary_magics.find(*tvm_magic_str);
+  if (iter == binary_magics.end()) {
+    GELOGE(ge::FAILED, "[Check][JsonStr]Unexpected tvm magic %s, magic key %s", tvm_magic_str->c_str(),
+           tvm_magic_key.c_str());
+    return ge::FAILED;
+  }
+  binary_magic = iter->second;
+  return ge::SUCCESS;
+}
+
+ge::Status GetTbeKernelId(const ge::OpDescPtr &op_desc, bool is_atomic_node, std::string &kernel_bin_id) {
+  std::string kernel_id_attr = is_atomic_node ? kAttrMemsetKernelBinId : kAttrKernelBinId;
+  GE_ASSERT_TRUE(ge::AttrUtils::GetStr(op_desc, kernel_id_attr, kernel_bin_id),
+                "[%s][%s] Get kernel id from attr %s failed.",
+                op_desc->GetNamePtr(), op_desc->GetTypePtr(), kernel_id_attr.c_str());
+  return ge::SUCCESS;
+}
 }  // namespace
+bg::ValueHolderPtr ConstructAicoreBinHandle(const ge::NodePtr &node, bool is_atomic_node,
+                                             LoweringGlobalData &global_data) {
+  ge::AicoreRegisterInfo aicore_register_info;
+  auto op_desc = node->GetOpDesc();
+  GE_ASSERT_SUCCESS(GetBinaryMagic(op_desc, is_atomic_node, aicore_register_info.magic));
+  aicore_register_info.kernel_bin = GetTbeKernelBin(op_desc, is_atomic_node);
+  GE_ASSERT_NOTNULL(aicore_register_info.kernel_bin, "[%s][%s] Get aicore kernel bin failed.",
+                    op_desc->GetNamePtr(), op_desc->GetTypePtr());
+  GE_ASSERT_SUCCESS(GetTbeKernelId(op_desc, is_atomic_node, aicore_register_info.kernel_bin_name));
+
+  auto manager = global_data.GetAicoreKernelHandlesManager();
+  if (manager == nullptr) {
+    manager = std::make_shared<ge::AicoreKernelHandlesManager>();
+    global_data.SetAicoreKernelHandlesManager(manager);
+  }
+
+  const auto bin_name = manager->GenerateKey(aicore_register_info);
+  aclrtBinHandle bin_handle = manager->GetOrRegisterKernel(aicore_register_info, bin_name);
+  GE_ASSERT_NOTNULL(bin_handle, "Failed to register kernel for %s.",
+                    aicore_register_info.kernel_bin_name.c_str());
+
+  return bg::ValueHolder::CreateConst(&bin_handle, sizeof(bin_handle));
+}
 
 bg::ValueHolderPtr SinkBinForAicore(const ge::NodePtr &node,
                                     const LoweringGlobalData::NodeCompileResult *compile_result) {

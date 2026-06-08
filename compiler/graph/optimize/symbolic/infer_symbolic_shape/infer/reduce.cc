@@ -202,13 +202,13 @@ graphStatus InferShape4LayerNormV3(gert::InferSymbolShapeContext *context) {
 /**
  * LayerNormV4 算子的符号化shape推导
  * 【算子功能】对输入张量进行层归一化操作，输出归一化后的值、均值和反向标准差
- *            输入：x(输入张量)、norm_shape(归一化维度形状)
+ *            输入：x(输入张量)、norm_shape(归一化维度)
  *            输出：y(归一化后的张量)、mean(均值)、rstd(反向标准差)
  * 【算子约束】
  *      1. norm_shape的长度必须 <= 输入张量的维度数
  *      2. 归一化从倒数第norm_shape_len个维度开始到最后一个维度
  * 【推导逻辑】
- *      1. 获取输入x的形状和norm_shape的值
+ *      1. 获取输入x的形状，从norm_shape的shape获取norm_shape_len
  *      2. y的形状与输入x相同
  *      3. 计算归一化起始轴begin_norm_axis = x_dim_num - norm_shape_len
  *      4. 从begin_norm_axis到最后一个维度进行reduce操作(keep_dims=True)得到mean和rstd的形状
@@ -218,10 +218,8 @@ graphStatus InferShape4LayerNormV3(gert::InferSymbolShapeContext *context) {
 graphStatus InferShape4LayerNormV4(gert::InferSymbolShapeContext *context) {
   auto x_shape = context->GetInputSymbolShape(0);
   GE_UNSUPPORTED_IF_NULL(x_shape);
-  auto norm_shape_tensor = context->GetInputSymbolTensor(1);
-  GE_UNSUPPORTED_IF_NULL(norm_shape_tensor);
-  auto norm_shape_value = norm_shape_tensor->GetSymbolicValue();
-  GE_UNSUPPORTED_IF_NULL(norm_shape_value);
+  auto norm_shape_shape = context->GetInputSymbolShape(1);
+  GE_UNSUPPORTED_IF_NULL(norm_shape_shape);
 
   auto out_y_shape = context->GetOutputSymbolShape(0);
   GE_ASSERT_NOTNULL(out_y_shape);
@@ -234,7 +232,14 @@ graphStatus InferShape4LayerNormV4(gert::InferSymbolShapeContext *context) {
   *out_y_shape = *x_shape;
 
   int64_t real_dim_num = static_cast<int64_t>(x_shape->GetDimNum());
-  int64_t norm_shape_len = norm_shape_value->size();
+
+  // get norm_shape_len from norm_shape's shape
+  GE_ASSERT_TRUE(norm_shape_shape->GetDimNum() <= 1, "Shape of norm_shape should be 1 dimensions!");
+  int64_t norm_shape_len = norm_shape_shape->IsScalar() ? 1 : 0;
+  if (!norm_shape_shape->IsScalar()) {
+    GE_ASSERT_TRUE(norm_shape_shape->GetDim(0).GetConstValue<int64_t>(norm_shape_len),
+                   "norm_shape_len must be a constant value");
+  }
 
   GE_ASSERT_TRUE(real_dim_num >= norm_shape_len, "norm_shape_len(%ld) must be <= xshape rank(%ld)", norm_shape_len, real_dim_num);
 

@@ -116,7 +116,6 @@ target_compile_definitions(fe PRIVATE
 target_link_libraries(fe PRIVATE
         ge_intf_pub
         msprof_headers
-        cce_headers
         $<$<BOOL:${BUILD_OPEN_PROJECT}>:op_compile_adapter_headers>
         $<$<NOT:$<BOOL:${BUILD_OPEN_PROJECT}>>:$<BUILD_INTERFACE:tensor_engine_headers>>
         $<BUILD_INTERFACE:atrace_headers>
@@ -138,6 +137,7 @@ target_link_libraries(fe PRIVATE
         fusion_pass
         opskernel
         static_mmpa
+        runtime_headers
         -Wl,--no-as-needed
         json
         -ldl)

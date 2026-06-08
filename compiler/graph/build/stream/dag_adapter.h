@@ -16,31 +16,31 @@
 #include "graph/build/dag/dag_graph.h"
 #include "external/register/register_custom_pass.h"
 
-namespace minidag {
+namespace ge {
 class DAGAdapter {
  public:
-  static ge::graphStatus ToGEStatus(graphStatus status);
-  static ge::graphStatus FromGEGraph(const ge::ConstGraphPtr &ge_graph,
-                                      std::shared_ptr<DAGGraph> &dag);
-  static ge::graphStatus RefreshStreamIdsToGE(
-      const DAGGraph &dag,
-      const ge::ConstGraphPtr &ge_graph,
-      ge::StreamPassContext &context);
+  static graphStatus ToGEStatus(minidag::graphStatus status);
+  static graphStatus FromGEGraph(const ConstGraphPtr &ge_graph,
+                                      std::shared_ptr<minidag::DAGGraph> &dag);
+  static graphStatus RefreshStreamIdsToGE(
+      const minidag::DAGGraph &dag,
+      const ConstGraphPtr &ge_graph,
+      StreamPassContext &context);
   DAGAdapter() = delete;
 
  private:
-  static graphStatus ConvertNodes(const ge::ConstGraphPtr &ge_graph, DAGGraph &dag);
-  static graphStatus ConvertEdges(const ge::ConstGraphPtr &ge_graph, DAGGraph &dag);
+  static graphStatus ConvertNodes(const ConstGraphPtr &ge_graph, minidag::DAGGraph &dag);
+  static graphStatus ConvertEdges(const ConstGraphPtr &ge_graph, minidag::DAGGraph &dag);
   static graphStatus ConvertDataEdgesForNode(
-      const ge::GNode &gnode,
-      const std::shared_ptr<DAGNode> &src_node,
-      DAGGraph &dag,
+      const GNode &gnode,
+      const std::shared_ptr<minidag::DAGNode> &src_node,
+      minidag::DAGGraph &dag,
       int64_t &edge_count);
   static graphStatus ConvertControlEdgesForNode(
-      const ge::GNode &gnode,
-      const std::shared_ptr<DAGNode> &src_node,
-      DAGGraph &dag,
+      const GNode &gnode,
+      const std::shared_ptr<minidag::DAGNode> &src_node,
+      minidag::DAGGraph &dag,
       int64_t &edge_count);
 };
-}  // namespace minidag
+}  // namespace ge
 #endif  // GE_GRAPH_BUILD_STREAM_DAG_ADAPTER_H_

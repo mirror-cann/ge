@@ -312,7 +312,7 @@ TEST_F(TrustOutputTensorST, TrustOutputTensor_UpdateOutputShape_WhenType3Node) {
   ge::DumpGraph(exe_graph.get(), "E2EType3Graph");
 
   GertRuntimeStub runtime_stub;
-  runtime_stub.GetKernelStub().StubTiling().SetUp("LaunchKernelWithHandle", StubLaunch_UpdateOutputShape);
+  runtime_stub.GetKernelStub().StubTiling().SetUp("LaunchKernelV2", StubLaunch_UpdateOutputShape);
 
   auto model_executor = ModelV2Executor::Create(exe_graph, ge_root_model);
   ASSERT_NE(model_executor, nullptr);
@@ -597,7 +597,7 @@ TEST_F(TrustOutputTensorST, TrustOutputTensorAndAlwaysZeroCopy_UpdateOutputShape
   ge::DumpGraph(exe_graph.get(), "E2EType3Graph");
 
   GertRuntimeStub runtime_stub;
-  runtime_stub.GetKernelStub().StubTiling().SetUp("LaunchKernelWithHandle", StubLaunch_UpdateOutputShape);
+  runtime_stub.GetKernelStub().StubTiling().SetUp("LaunchKernelV2", StubLaunch_UpdateOutputShape);
 
   auto model_executor = ModelV2Executor::Create(exe_graph, ge_root_model);
   ASSERT_NE(model_executor, nullptr);

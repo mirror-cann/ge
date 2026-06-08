@@ -27,6 +27,7 @@ target_include_directories(runtime_headers INTERFACE
         ${ASCEND_INSTALL_PATH}/pkg_inc
         ${ASCEND_INSTALL_PATH}/pkg_inc/runtime
         ${ASCEND_INSTALL_PATH}/pkg_inc/runtime/runtime
+        ${ASCEND_INSTALL_PATH}/pkg_inc/aicpu
         ${ASCEND_INSTALL_PATH}/pkg_inc/aicpu/aicpu_schedule
         ${ASCEND_INSTALL_PATH}/include
         ${ASCEND_INSTALL_PATH}/include/acl

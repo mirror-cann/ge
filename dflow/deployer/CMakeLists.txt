@@ -440,7 +440,6 @@ target_link_options(npu_executor_main PRIVATE
 target_link_libraries(npu_executor_main PRIVATE
         ge_intf_pub
         datagw_headers
-        cce_headers
         hccl_headers
         air_headers
         -Wl,--whole-archive
@@ -548,7 +547,6 @@ target_link_libraries(host_cpu_executor_main PRIVATE
         datagw_headers
         hccl_headers
         air_headers
-        cce_headers
         -Wl,--no-as-needed
         ascend_protobuf
         unified_dlog
@@ -584,6 +582,7 @@ if ("dflow-executor" IN_LIST BUILD_COMPONENT)
                 -Wl,--no-as-needed
                 acl_rt
                 acl_mdl
+                runtime_headers
                 )
 else ()
         target_link_libraries(host_cpu_executor_main PRIVATE

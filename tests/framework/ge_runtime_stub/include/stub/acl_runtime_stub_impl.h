@@ -138,6 +138,8 @@ class AclRuntimeStubImpl : public ge::AclRuntimeStub {
       const char *kernelName, aclrtFuncHandle *funcHandle) override;
   aclError aclrtBinaryGetFunction(const aclrtBinHandle binHandle, const char *kernelName,
       aclrtFuncHandle *funcHandle) override;
+  aclError aclrtBinaryGetFunctionByEntry(aclrtBinHandle binHandle, uint64_t funcEntry, 
+      aclrtFuncHandle *funcHandle) override;
   aclError aclrtLaunchKernelWithHostArgs(aclrtFuncHandle funcHandle, uint32_t numBlocks,
       aclrtStream stream, aclrtLaunchKernelCfg *cfg, void *hostArgs, size_t argsSize,
       aclrtPlaceHolderInfo *placeHolderArray, size_t placeHolderNum) override;

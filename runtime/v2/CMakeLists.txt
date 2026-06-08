@@ -61,7 +61,6 @@ target_include_directories(gert_static PUBLIC
 target_compile_definitions(gert_static PRIVATE ${GERT_COMPILE_DEF})
 target_link_libraries(gert_static PRIVATE
         ge_intf_pub
-        cce_headers
         slog_headers
         msprof_headers
         adump_headers
@@ -87,11 +86,11 @@ target_include_directories(gert PRIVATE
         ${METADEF_DIR}/pkg_inc
         ${AIR_CODE_DIR}/inc/graph_metadef
         ${TOP_DIR}/metadef/inc
+        ${ASCEND_INSTALL_PATH}/pkg_inc
 )
 target_compile_definitions(gert PRIVATE ${GERT_COMPILE_DEF})
 target_link_libraries(gert PRIVATE
         ge_intf_pub
-        $<$<TARGET_EXISTS:cce_headers>:cce_headers>
         $<$<TARGET_EXISTS:aicpu_headers>:aicpu_headers>
         msprof_headers
         mmpa_headers

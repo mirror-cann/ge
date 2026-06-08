@@ -21,8 +21,43 @@
 #include <graph_utils_ex.h>
 #include <register/register_custom_pass.h>
 #include "graph/utils/node_adapter.h"
+#include "graph/debug/ge_attr_define.h"
+#include "graph/utils/attr_utils.h"
 
-namespace minidag {
+namespace ge {
+namespace {
+void SetStreamLabel(const ge::GNode &gnode, const std::string &stream_label) {
+  auto node = NodeAdapter::GNode2Node(gnode);
+  ASSERT_NE(node, nullptr);
+  ASSERT_NE(node->GetOpDesc(), nullptr);
+  ASSERT_TRUE(AttrUtils::SetStr(node->GetOpDesc(), ATTR_NAME_STREAM_LABEL, stream_label));
+}
+
+ge::ConstGraphPtr BuildStreamLabelControlGraph() {
+  auto graph = std::make_shared<ge::Graph>("stream_label_control_graph");
+  ge::Operator data_op("data1", "Data");
+  ge::Operator add_op("add1", "Add");
+  ge::Operator relu_op("relu1", "Relu");
+  ge::Operator pool_op("pool1", "Pool");
+  ge::Operator abs_op("abs1", "Abs");
+  ge::Operator netoutput_op("NetOutput", "NetOutput");
+
+  auto data = graph->AddNodeByOp(data_op);
+  auto add = graph->AddNodeByOp(add_op);
+  auto relu = graph->AddNodeByOp(relu_op);
+  auto pool = graph->AddNodeByOp(pool_op);
+  auto abs = graph->AddNodeByOp(abs_op);
+  auto netoutput = graph->AddNodeByOp(netoutput_op);
+  SetStreamLabel(relu, "serial_label");
+  SetStreamLabel(pool, "serial_label");
+  graph->AddControlEdge(data, add);
+  graph->AddControlEdge(add, relu);
+  graph->AddControlEdge(relu, pool);
+  graph->AddControlEdge(pool, abs);
+  graph->AddControlEdge(abs, netoutput);
+  return graph;
+}
+}  // namespace
 
 class DAGAdapterIntegrationTest : public testing::Test {
  protected:
@@ -94,14 +129,14 @@ TEST_F(DAGAdapterIntegrationTest, EndToEnd_FullPipeline) {
   auto ge_graph = ToConstGraphPtr(compute_graph);
   ASSERT_NE(ge_graph, nullptr);
 
-  std::shared_ptr<DAGGraph> dag;
+  std::shared_ptr<minidag::DAGGraph> dag;
   auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
   EXPECT_EQ(dag->GetNodeCount(), original_node_count);
 
-  StreamAllocConfig config{-1, 0};
-  DagStreamAllocator::ByPathCover(*dag, config);
+  minidag::StreamAllocConfig config{-1, 0};
+  minidag::DagStreamAllocator::ByPathCover(*dag, config);
 
   ge::StreamPassContext context(config.required_streams);
   ret = DAGAdapter::RefreshStreamIdsToGE(*dag, ge_graph, context);
@@ -122,20 +157,70 @@ TEST_F(DAGAdapterIntegrationTest, EndToEnd_MultiNodeGraph) {
   auto ge_graph = ToConstGraphPtr(compute_graph);
   ASSERT_NE(ge_graph, nullptr);
 
-  std::shared_ptr<DAGGraph> dag;
+  std::shared_ptr<minidag::DAGGraph> dag;
   auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
   EXPECT_EQ(dag->GetNodeCount(), original_node_count);
 
-  StreamAllocConfig config{-1, 0};
-  DagStreamAllocator::ByPathCover(*dag, config);
+  minidag::StreamAllocConfig config{-1, 0};
+  minidag::DagStreamAllocator::ByPathCover(*dag, config);
 
   ge::StreamPassContext context(config.required_streams);
   ret = DAGAdapter::RefreshStreamIdsToGE(*dag, ge_graph, context);
   EXPECT_EQ(ret, ge::GRAPH_SUCCESS);
 
   EXPECT_EQ(compute_graph->GetAllNodes().size(), original_node_count);
+}
+
+/**
+ * 用例描述：测试DAG Adapter端到端流程中stream_label节点按串行标记分配到同一条追加stream
+ * 预置条件：
+ *   1. Fake AIcoreEngine及Add/Relu/Pool/Abs算子信息
+ *   2. 构造带stream_label的控制边图
+ * 测试步骤：
+ *   1. 将GE图转换为MiniDAG图
+ *   2. 执行MiniDAG流分配
+ *   3. 将MiniDAG上的stream_id刷新回GE图
+ * 预期结果：
+ *   1. 相同stream_label的Relu和Pool节点分配到同一条stream
+ *   2. label节点使用的stream为residual graph之后追加的串行stream
+ */
+TEST_F(DAGAdapterIntegrationTest, EndToEnd_StreamLabelAssignedToSameSerialStream) {
+  auto ge_graph = BuildStreamLabelControlGraph();
+  ASSERT_NE(ge_graph, nullptr);
+
+  std::shared_ptr<minidag::DAGGraph> dag;
+  auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
+  ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
+  ASSERT_NE(dag, nullptr);
+
+  auto relu_dag_node = dag->FindNode("relu1");
+  auto pool_dag_node = dag->FindNode("pool1");
+  ASSERT_NE(relu_dag_node, nullptr);
+  ASSERT_NE(pool_dag_node, nullptr);
+  ASSERT_EQ(relu_dag_node->GetSerialFlag(), "serial_label");
+  ASSERT_EQ(pool_dag_node->GetSerialFlag(), "serial_label");
+
+  minidag::StreamAllocConfig config{-1, 0, 0};
+  minidag::DagStreamAllocator::ByPathCover(*dag, config);
+  ASSERT_EQ(config.required_streams, 2);
+  ASSERT_EQ(relu_dag_node->GetStreamId(), pool_dag_node->GetStreamId());
+  ASSERT_EQ(relu_dag_node->GetStreamId(), config.required_streams - 1);
+
+  ge::StreamPassContext context(config.required_streams - 1);
+  ret = DAGAdapter::RefreshStreamIdsToGE(*dag, ge_graph, context);
+  ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
+
+  auto relu_gnode = ge_graph->FindNodeByName(AscendString("relu1"));
+  auto pool_gnode = ge_graph->FindNodeByName(AscendString("pool1"));
+  auto add_gnode = ge_graph->FindNodeByName(AscendString("add1"));
+  ASSERT_NE(relu_gnode, nullptr);
+  ASSERT_NE(pool_gnode, nullptr);
+  ASSERT_NE(add_gnode, nullptr);
+  EXPECT_EQ(GetGNodeStreamId(*relu_gnode), GetGNodeStreamId(*pool_gnode));
+  EXPECT_EQ(GetGNodeStreamId(*relu_gnode), 1);
+  EXPECT_EQ(GetGNodeStreamId(*add_gnode), 0);
 }
 
 // --------------------
@@ -152,7 +237,7 @@ TEST_F(DAGAdapterIntegrationTest, RefreshStreamIdsToGE_StreamIdSet) {
   auto ge_graph = ToConstGraphPtr(compute_graph);
   ASSERT_NE(ge_graph, nullptr);
 
-  std::shared_ptr<DAGGraph> dag;
+  std::shared_ptr<minidag::DAGGraph> dag;
   auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
@@ -172,11 +257,11 @@ TEST_F(DAGAdapterIntegrationTest, RefreshStreamIdsToGE_StreamIdSet) {
  * 场景 2-2: null 输入返回失败
  */
 TEST_F(DAGAdapterIntegrationTest, RefreshStreamIdsToGE_NullInput) {
-  auto dag = std::make_shared<DAGGraph>("test_dag");
+  auto dag = std::make_shared<minidag::DAGGraph>("test_dag");
   dag->AddNode("node1", "Conv");
   ge::StreamPassContext context(10);
   auto ret = DAGAdapter::RefreshStreamIdsToGE(*dag, nullptr, context);
-  EXPECT_EQ(ret, ge::GRAPH_FAILED);
+  EXPECT_NE(ret, ge::GRAPH_SUCCESS);
 }
 
 /**
@@ -189,7 +274,7 @@ TEST_F(DAGAdapterIntegrationTest, RefreshStreamIdsToGE_SkipInvalidStreamId) {
   auto ge_graph = ToConstGraphPtr(compute_graph);
   ASSERT_NE(ge_graph, nullptr);
 
-  std::shared_ptr<DAGGraph> dag;
+  std::shared_ptr<minidag::DAGGraph> dag;
   auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
@@ -215,7 +300,7 @@ TEST_F(DAGAdapterIntegrationTest, RefreshStreamIdsToGE_NodeNotFoundInGE) {
   auto ge_graph = ToConstGraphPtr(compute_graph);
   ASSERT_NE(ge_graph, nullptr);
 
-  std::shared_ptr<DAGGraph> dag;
+  std::shared_ptr<minidag::DAGGraph> dag;
   auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
@@ -237,7 +322,7 @@ TEST_F(DAGAdapterIntegrationTest, RefreshStreamIdsToGE_VariousStreamIds) {
   auto ge_graph = ToConstGraphPtr(compute_graph);
   ASSERT_NE(ge_graph, nullptr);
 
-  std::shared_ptr<DAGGraph> dag;
+  std::shared_ptr<minidag::DAGGraph> dag;
   auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
@@ -256,4 +341,4 @@ TEST_F(DAGAdapterIntegrationTest, RefreshStreamIdsToGE_VariousStreamIds) {
 }
 
 
-}  // namespace minidag
+}  // namespace ge

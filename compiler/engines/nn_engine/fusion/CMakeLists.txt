@@ -91,8 +91,10 @@ target_link_libraries(fusion_pass PRIVATE
         register
         c_sec
         runtime
+        runtime_headers
         ascend_protobuf
         error_manager
+        error_manager_headers
         aicore_utils
         opskernel
         static_mmpa

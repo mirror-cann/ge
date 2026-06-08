@@ -179,12 +179,9 @@ GeRootModelPtr CreateGeRootModelWithAicoreOp() {
   }
 
   const auto ge_model = ge_root_model->GetSubgraphInstanceNameToModel().begin()->second;
-  std::vector<uint64_t> weights_value(64, 1024);
-  const size_t weight_size = weights_value.size() * sizeof(uint64_t);
-  ge_model->SetWeight(Buffer::CopyFrom(reinterpret_cast<uint8_t *>(weights_value.data()), weight_size));
 
   (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 2048);
-  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_WEIGHT_SIZE, weight_size);
+  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_WEIGHT_SIZE, 0);
   (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_STREAM_NUM, 1);
 
   return ge_root_model;
@@ -980,7 +977,7 @@ TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithAicoreNode) {
       "fake_test/data/model_0/runtime/Makefile",
       "fake_test/data/model_0/runtime/libg1_om2.so",
       "fake_test/data/constants/model_0_constants_config.json",
-      "fake_test/data/kernels_npu_arch/add1_faked_kernel.o",
+      "fake_test/data/kernels_npu_arch/te_Add_12345_AicoreKernel.o",
       "fake_test/data/model_0/model_meta.json",
       "fake_test/data/model_0/debug/op_attr.json",
       "fake_test/manifest.json",
@@ -1012,7 +1009,7 @@ TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithInternalConst) {
       "fake_test/data/model_0/runtime/libg1_om2.so",
       "fake_test/data/constants/constant_0",
       "fake_test/data/constants/model_0_constants_config.json",
-      "fake_test/data/kernels_npu_arch/add1_faked_kernel.o",
+      "fake_test/data/kernels_npu_arch/te_Add_12345_AicoreKernel.o",
       "fake_test/data/model_0/model_meta.json",
     "fake_test/data/model_0/debug/op_attr.json",
       "fake_test/manifest.json",
@@ -1058,7 +1055,7 @@ TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithFileConstMeta) {
       "fake_test/data/model_0/runtime/libg1_om2.so",
       "fake_test/data/constants/constant_0",
       "fake_test/data/constants/model_0_constants_config.json",
-      "fake_test/data/kernels_npu_arch/add1_faked_kernel.o",
+      "fake_test/data/kernels_npu_arch/te_Add_12345_AicoreKernel.o",
       "fake_test/data/model_0/model_meta.json",
       "fake_test/data/model_0/debug/op_attr.json",
       "fake_test/manifest.json",
@@ -1213,7 +1210,7 @@ TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithAicoreOp2) {
       "fake_test/data/model_0/runtime/Makefile",
       "fake_test/data/model_0/runtime/libg1_om2.so",
       "fake_test/data/constants/model_0_constants_config.json",
-      "fake_test/data/kernels_npu_arch/add1_faked_kernel.o",
+      "fake_test/data/kernels_npu_arch/te_Add_12345_AicoreKernel.o",
       "fake_test/data/model_0/model_meta.json",
       "fake_test/data/model_0/debug/op_attr.json",
       "fake_test/manifest.json",
@@ -1248,7 +1245,7 @@ TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithAicoreOpOfDynamicIo) {
       "fake_test/data/model_0/runtime/Makefile",
       "fake_test/data/model_0/runtime/libg1_om2.so",
       "fake_test/data/constants/model_0_constants_config.json",
-      "fake_test/data/kernels_npu_arch/add1_faked_kernel.o",
+      "fake_test/data/kernels_npu_arch/te_Add_12345_AicoreKernel.o",
       "fake_test/data/model_0/model_meta.json",
       "fake_test/data/model_0/debug/op_attr.json",
       "fake_test/manifest.json",
@@ -1495,7 +1492,7 @@ TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithCmoTask) {
       "fake_test/data/model_0/runtime/Makefile",
       "fake_test/data/model_0/runtime/libg1_om2.so",
       "fake_test/data/constants/model_0_constants_config.json",
-      "fake_test/data/kernels_npu_arch/add1_faked_kernel.o",
+      "fake_test/data/kernels_npu_arch/te_Add_12345_AicoreKernel.o",
       "fake_test/data/model_0/model_meta.json",
       "fake_test/data/model_0/debug/op_attr.json",
       "fake_test/manifest.json",
@@ -1527,7 +1524,7 @@ TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithBarrierTask) {
       "fake_test/data/model_0/runtime/Makefile",
       "fake_test/data/model_0/runtime/libg1_om2.so",
       "fake_test/data/constants/model_0_constants_config.json",
-      "fake_test/data/kernels_npu_arch/add1_faked_kernel.o",
+      "fake_test/data/kernels_npu_arch/te_Add_12345_AicoreKernel.o",
       "fake_test/data/model_0/model_meta.json",
       "fake_test/data/model_0/debug/op_attr.json",
       "fake_test/manifest.json",
@@ -1559,7 +1556,7 @@ TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithCmoAddrTask) {
       "fake_test/data/model_0/runtime/Makefile",
       "fake_test/data/model_0/runtime/libg1_om2.so",
       "fake_test/data/constants/model_0_constants_config.json",
-      "fake_test/data/kernels_npu_arch/add1_faked_kernel.o",
+      "fake_test/data/kernels_npu_arch/te_Add_12345_AicoreKernel.o",
       "fake_test/data/model_0/model_meta.json",
       "fake_test/data/model_0/debug/op_attr.json",
       "fake_test/manifest.json",
@@ -1591,7 +1588,7 @@ TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithCmoAddrTaskExplicitFormat) {
       "fake_test/data/model_0/runtime/Makefile",
       "fake_test/data/model_0/runtime/libg1_om2.so",
       "fake_test/data/constants/model_0_constants_config.json",
-      "fake_test/data/kernels_npu_arch/add1_faked_kernel.o",
+      "fake_test/data/kernels_npu_arch/te_Add_12345_AicoreKernel.o",
       "fake_test/data/model_0/model_meta.json",
       "fake_test/data/model_0/debug/op_attr.json",
       "fake_test/manifest.json",

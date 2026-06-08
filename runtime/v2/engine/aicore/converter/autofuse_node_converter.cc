@@ -40,33 +40,48 @@ constexpr char const *kAutofuseLoweringFunc = "kAutoFuseLoweringFunc";
 bg::ValueHolderPtr AutofuseLaunch(const ge::NodePtr &node,
                                   const LowerInput &lower_input,
                                   const std::vector<bg::ValueHolderPtr> &tiling_results,
-                                  const domi::TaskDef *task_def,
                                   const std::vector<bg::ValueHolderPtr> &output_shapes,
                                   const std::vector<bg::DevMemValueHolderPtr> &output_addrs,
-                                  const bg::DevMemValueHolderPtr& workspace_addr) {
+                                  const bg::DevMemValueHolderPtr& workspace_addr,
+                                  const domi::TaskDef *task_def) {
   auto global_data = lower_input.global_data;
-  // sink bin
-  auto node_bin = SinkBinForAicore(node, global_data->FindCompiledResult(node));
+  // get bin handle
+  auto bin_handle = ConstructAicoreBinHandle(node, false, *(global_data));
   // shapebuffer_addr
   auto shapebuffer_addr = bg::AllocShapeBufferMem(kOnDeviceHbm, node, *(global_data));
+  // get qos attrs
+  bg::ValueHolderPtr cfg_attrs = nullptr;
+  size_t actual_cfg_num = GetLaunchKernelV2Attr(cfg_attrs, task_def, node);
+
   // get qos info
   bg::ValueHolderPtr qos = nullptr;
-  if (GetQosInfo(qos) != ge::SUCCESS) {
+  if (GetQosInfo(qos, actual_cfg_num) != ge::SUCCESS) {
     return {};
   }
-  auto node_info = task_def->kernel_with_handle().node_info() + "/";
-  auto node_info_holder = bg::ValueHolder::CreateConst(node_info.c_str(), node_info.size() + 1, true);
+  // Kernel name
+  std::string kernel_name_str;
+  if (!ge::AttrUtils::GetStr(node->GetOpDesc(), node->GetName() + "_kernelname", "_kernelname", kernel_name_str)) {
+    GELOGD("Kernel name is empty for node: %s, unable to retrieve.", node->GetName().c_str());
+  }
+  auto kernel_name_holder = bg::ValueHolder::CreateConst(kernel_name_str.c_str(), kernel_name_str.size() + 1, true);
+
+  // withHandle flag
+  uint32_t with_handle_flag = 1U;
+  auto with_handle_flag_holder = bg::ValueHolder::CreateConst(&with_handle_flag, sizeof(with_handle_flag), false);
+  
   DfxExeArg dfx_exe_arg = GetOpDfxExeArg(node);
   auto dfx_holder = bg::ValueHolder::CreateConst(&dfx_exe_arg, sizeof(dfx_exe_arg));
-  auto launch_arg_ref = bg::LaunchKernelWithHandle(
+
+  auto launch_arg_ref = bg::LaunchKernelV2(
       {
           global_data->GetStream(),
-          node_bin,
+          bin_handle,
           tiling_results[static_cast<size_t>(TilingContext::kOutputBlockDim)],
           tiling_results[TilingContext::kOutputScheduleMode],
           tiling_results[TilingContext::kOutputLocalMemorySize],
           workspace_addr,
           shapebuffer_addr,
+          cfg_attrs,
           qos,
           lower_input.input_shapes,
           output_shapes,
@@ -74,9 +89,10 @@ bg::ValueHolderPtr AutofuseLaunch(const ge::NodePtr &node,
           global_data,
           dfx_holder,
           tiling_results[static_cast<size_t>(kernel::TilingExOutputIndex::kRtArg)],
+          tiling_results[TilingContext::kOutputTilingKey],
+          kernel_name_holder,
+          with_handle_flag_holder,
       },
-      tiling_results[TilingContext::kOutputTilingKey],
-      node_info_holder,
       lower_input.input_addrs,
       output_addrs);
   FE_ASSERT_NOTNULL(launch_arg_ref);
@@ -202,7 +218,7 @@ LowerResult LoweringAutofuseNode(const ge::NodePtr &node, const LowerInput &lowe
                                               tiling_results[static_cast<size_t>(TilingContext::kOutputWorkspace)],
                                               *global_data);
   auto launch_arg_ref = AutofuseLaunch(node, lower_input, tiling_results,
-                                       task_def, output_shapes, output_addrs, workspace_addr);
+                                       output_shapes, output_addrs, workspace_addr, task_def);
   for (size_t i = 0; i < lower_input.input_addrs.size(); ++i) {
     auto guarder = lower_input.input_addrs[i]->GetGuarder();
     if (guarder != nullptr) {

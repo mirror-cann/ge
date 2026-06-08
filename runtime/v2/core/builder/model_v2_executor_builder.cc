@@ -160,6 +160,8 @@ std::unique_ptr<ModelV2Executor> ModelV2ExecutorBuilder::Build(const ExecutorOpt
   GE_TIMESTAMP_EVENT_END(ModelV2ExecutorBuilderBuild, "ModelV2ExecutorBuilderBuild::All");
   executor->host_resource_center_ = root_model_->GetHostResourceCenterPtr();
   SetOutputReuseInputMemIndexes(*executor);
+  executor->aicore_manager_ = exe_graph_->TryGetExtAttr<std::shared_ptr<ge::AicoreKernelHandlesManager>>(
+      "AicoreKernelHandlesManager", nullptr);
   return executor;
 }
 

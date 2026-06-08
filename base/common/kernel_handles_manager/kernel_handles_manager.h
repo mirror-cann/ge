@@ -26,7 +26,7 @@ struct KernelBinInfo {
 
 struct AicoreRegisterInfo {
   std::string kernel_bin_name;
-  int32_t magic{0};
+  uint32_t magic{0};
   KernelBinPtr kernel_bin{nullptr};
 };
 

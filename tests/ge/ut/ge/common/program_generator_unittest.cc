@@ -1682,7 +1682,7 @@ aclError RegisterCustAicpuKernel(aclrtBinHandle &bin_handle, aclrtFuncHandle &fu
 }
 } // namespace
 aclError Om2Model::RegisterKernels() {
-  OM2_CHK_STATUS(RegisterAicoreKernel(bin_handles_[0], func_handles_[0], {ACL_RT_BINARY_MAGIC_ELF_VECTOR_CORE, false, 0, "add1_faked_kernel", "add1_faked_kernel.o"}, bin_info_map_));
+  OM2_CHK_STATUS(RegisterAicoreKernel(bin_handles_[0], func_handles_[0], {ACL_RT_BINARY_MAGIC_ELF_VECTOR_CORE, false, 0, "te_Add_12345_AicoreKernel", "te_Add_12345_AicoreKernel.o"}, bin_info_map_));
   return ACL_SUCCESS;
 }
 } // namespace om2

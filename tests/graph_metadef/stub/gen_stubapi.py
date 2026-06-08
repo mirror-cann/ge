@@ -356,6 +356,7 @@ RETURN_STATEMENTS = {
     'ops::HcclServerType': '    return HcclServerType::MAX;',
     'OppSoDesc& OppSoDesc::operator=': '    return *this;',
     'std::vector<ge::AscendString>': '    return {};',
+    'gert::Allocators*': '    return nullptr;',
 }
 
 # skip some private methods to Reduce the size of stub.so

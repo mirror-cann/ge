@@ -65,8 +65,7 @@ set(TEFUSION_SRC_CC_LIST
  	    ${OP_COMPILE_ADAPTER_ROOT_PATH}/source/assemble_json/te_op_custom_utils.cc
  	    ${OP_COMPILE_ADAPTER_ROOT_PATH}/source/file_handle/te_file_handle.cc)
 
-include(ut/testcase/op_compile_adapter/cmake/third_party/mockcpp.cmake)
-
+add_cann_third_party(mockcpp)
 SET(FE_ROOT_PATH ${AIR_CODE_DIR}/compiler/engines/nn_engine)
 set(FE_TEST_ROOT_PATH ${AIR_CODE_DIR}/tests/engines/nn_engine)
 add_subdirectory(depends/slog)

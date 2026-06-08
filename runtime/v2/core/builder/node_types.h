@@ -57,11 +57,8 @@ inline bool IsInferShapeNode(const char *const node_type) {
 inline bool IsPureInferShapeNode(const char *const node_type) {
   return (strcmp(node_type, "InferShape") == 0);
 }
-inline bool IsLaunchWithHandleNode(const char *const node_type) {
-  return (strcmp(node_type, "LaunchKernelWithHandle") == 0) || (strcmp(node_type, "LaunchMixKernelWithHandle") == 0);
-}
-inline bool IsLaunchWithFlagNode(const char *const node_type) {
-  return (strcmp(node_type, "LaunchKernelWithFlag") == 0) || (strcmp(node_type, "LaunchMixKernelWithFlag") == 0);
+inline bool IsLaunchKernelV2Node(const char *const node_type) {
+  return (strcmp(node_type, "LaunchKernelV2") == 0) || (strcmp(node_type, "LaunchMixKernelV2") == 0);
 }
 inline bool IsLaunchFFTSPlusTaskNode(const char *const node_type) {
   return (strcmp(node_type, "LaunchFFTSPlusTask") == 0) || (strcmp(node_type, "LaunchFFTSPlusTaskNoCopy") == 0);
@@ -89,10 +86,10 @@ inline bool IsUpdateContext(const char *const node_type) {
          IsStaAutoUpdateContext(node_type) || IsMixL2UpdateContext(node_type);
 }
 inline bool IsAtomicLaunchNode(const char *const node_type) {
-  return (strcmp(node_type, "AtomicLaunchKernelWithFlag") == 0) || (strcmp(node_type, "AtomicLaunchKernelWithHandle") == 0);
+  return (strcmp(node_type, "AtomicLaunchKernelV2") == 0);
 }
 inline bool IsAiCoreLaunchNode(const char *const node_type) {
-  return IsLaunchWithHandleNode(node_type) || IsLaunchWithFlagNode(node_type) || IsAtomicLaunchNode(node_type);
+  return IsAtomicLaunchNode(node_type) || IsLaunchKernelV2Node(node_type);
 }
 inline bool IsAiCpuLaunchTfNode(const char *const node_type) {
   return (strcmp(node_type, "AicpuLaunchTfKernel") == 0);

@@ -4216,19 +4216,14 @@ TEST_F(SymbolicShapeInferFuncUT, InferSymbolicShapeForLayerNormV4) {
   auto s2 = shape_env.CreateSymbol(6, MakeShared<InputShapeSource>(0, 2));
   auto kone = ge::Symbol(1);
   auto x_shape = gert::SymbolShape({s0, s1, s2});
-  auto gamma_shape = gert::SymbolShape({s1, s2});
-  auto beta_shape = gert::SymbolShape({s1, s2});
   InferSymbolShapeContextTestBuilder builder("LayerNormV4", "LayerNormV4");
 
-  // 正常场景1：norm_shape是一维张量
-  // x_shape={s0, s1, s2} norm_shape value={s1 ,s2}
+  // 正常场景：归一化最后2个维度
+  // x_shape={s0, s1, s2} norm_shape shape={2}
   // 期望Y_shape={s0, s1, s2}, Mean_shape={s0, 1, 1}, Rstd_shape={s0, 1, 1}
-  std::vector<ge::Expression> norm_shape_value = {s1, s2};
   auto op_desc = builder.GetOrCreateOpDescPtr();
   auto infer_context = builder.AppendInputSymbolTensor(x_shape)
-                              .AppendInputSymbolTensor(gert::SymbolShape({ge::Symbol(2)}), true, &norm_shape_value)
-                              .AppendInputSymbolTensor(gamma_shape)
-                              .AppendInputSymbolTensor(beta_shape)
+                              .AppendInputSymbolTensor(gert::SymbolShape({ge::Symbol(2)}))
                               .OutputNum(3).Build();
 
   auto func = GetInferFunc("LayerNormV4");
@@ -4241,28 +4236,38 @@ TEST_F(SymbolicShapeInferFuncUT, InferSymbolicShapeForLayerNormV4) {
   ASSERT_EQ(infer_context->GetOutputSymbolShape(1)->GetDims(), expect_shape2.GetDims());
   ASSERT_EQ(infer_context->GetOutputSymbolShape(2)->GetDims(), expect_shape3.GetDims());
 
-  // 异常场景1：norm_shape的长度超过输入X的维度
-  // x_shape={s0, s1, s2} norm_shape value={s0, s1, s2, s0} (长度为4，超过x_shape的维度3)
-  builder.Destroy();
-  op_desc = builder.GetOrCreateOpDescPtr();
-  std::vector<ge::Expression> invalid_norm_shape_value = {s0, s1, s2, s0};
-  infer_context = builder.AppendInputSymbolTensor(x_shape)
-                          .AppendInputSymbolTensor(gert::SymbolShape({ge::Symbol(4)}), true, &invalid_norm_shape_value)
-                          .AppendInputSymbolTensor(gamma_shape)
-                          .AppendInputSymbolTensor(beta_shape)
-                          .OutputNum(3).Build();
-  ASSERT_EQ(func.first(infer_context), ge::PARAM_INVALID);
-
-  // 异常场景2：norm_shape为nullptr
-  // x_shape={s0, s1, s2} norm_shape=nullptr
+  // 正常场景2：norm_shape为scalar，norm_shape_len=1
+  // x_shape={s0, s1, s2} norm_shape shape={}
+  // 期望Y_shape={s0, s1, s2}, Mean_shape={s0, s1, 1}, Rstd_shape={s0, s1, 1}
   builder.Destroy();
   op_desc = builder.GetOrCreateOpDescPtr();
   infer_context = builder.AppendInputSymbolTensor(x_shape)
                           .AppendInputSymbolTensor(gert::SymbolShape())
-                          .AppendInputSymbolTensor(gamma_shape)
-                          .AppendInputSymbolTensor(beta_shape)
                           .OutputNum(3).Build();
-  ASSERT_EQ(func.first(infer_context), ge::UNSUPPORTED);
+  ASSERT_EQ(func.first(infer_context), ge::GRAPH_SUCCESS);
+  expect_shape2 = gert::SymbolShape({s0, s1, kone});
+  expect_shape3 = gert::SymbolShape({s0, s1, kone});
+  ASSERT_EQ(infer_context->GetOutputSymbolShape(0)->GetDims(), expect_shape1.GetDims());
+  ASSERT_EQ(infer_context->GetOutputSymbolShape(1)->GetDims(), expect_shape2.GetDims());
+  ASSERT_EQ(infer_context->GetOutputSymbolShape(2)->GetDims(), expect_shape3.GetDims());
+
+  // 异常场景1：norm_shape的维度数 > 1
+  // x_shape={s0, s1, s2} norm_shape shape={2, 3}
+  builder.Destroy();
+  op_desc = builder.GetOrCreateOpDescPtr();
+  infer_context = builder.AppendInputSymbolTensor(x_shape)
+                          .AppendInputSymbolTensor(gert::SymbolShape({ge::Symbol(2), ge::Symbol(3)}))
+                          .OutputNum(3).Build();
+  ASSERT_EQ(func.first(infer_context), ge::PARAM_INVALID);
+
+  // 异常场景2：norm_shape的长度超过输入X的维度
+  // x_shape={s0, s1, s2} norm_shape shape={4} (长度为4，超过x_shape的维度3)
+  builder.Destroy();
+  op_desc = builder.GetOrCreateOpDescPtr();
+  infer_context = builder.AppendInputSymbolTensor(x_shape)
+                          .AppendInputSymbolTensor(gert::SymbolShape({ge::Symbol(4)}))
+                          .OutputNum(3).Build();
+  ASSERT_EQ(func.first(infer_context), ge::PARAM_INVALID);
 }
 
 TEST_F(SymbolicShapeInferFuncUT, InferSymbolicShapeForConv2DBackpropInputD) {

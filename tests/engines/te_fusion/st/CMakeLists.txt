@@ -113,7 +113,7 @@ target_link_libraries(tefusion_st PRIVATE
         GTestShared::gtest_main
         GTestShared::gmock
         GTestShared::gmock_main
-        mockcpp_static
+        mockcpp
         c_sec_static
         easy_graph
         ge_graph_dsl

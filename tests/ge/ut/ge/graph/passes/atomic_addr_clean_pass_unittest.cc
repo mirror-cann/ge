@@ -61,9 +61,16 @@ void SetUp() {
     path.append("plugin/nnengine/ge_config/");
     std::string json_path = path + "engine_conf.json";
     std::string json_backup_path = path + "engine_conf_backup_atomic.json";
+    std::string json_tmp_path = path + "engine_conf_tmp_atomic.json";
     system(("mkdir -p " + path).c_str());
-    system(("cp " + json_path + " " + json_backup_path).c_str());
-    std::ofstream ofs(json_path.c_str(), std::ios::out);
+    {
+      std::ifstream ifs(json_path);
+      if (ifs.is_open()) {
+        ifs.close();
+        system(("cp " + json_path + " " + json_backup_path).c_str());
+      }
+    }
+    std::ofstream ofs(json_tmp_path.c_str(), std::ios::out);
     ofs << "{\"schedule_units\":[{\"id\":\"TS_1\",\"name\":\"scheduler\",\"cal_engines\":"
         << "[{\"id\":\"AIcoreEngine\",\"name\":\"AICORE\",\"independent\":false,\"skip_assign_stream\":false,\"attach\":false}"
         << ",{\"id\":\"DNN_VM_GE_LOCAL\",\"name\":\"GE_LOCAL\",\"independent\":false,\"skip_assign_stream\":true,\"attach\":true}"
@@ -71,10 +78,18 @@ void SetUp() {
         << ",{\"id\":\"DNN_VM_AICPU\",\"name\":\"AICPU\",\"independent\":false,\"skip_assign_stream\":false,\"attach\":true}"
         << ",{\"id\":\"DNN_HCCL\",\"name\":\"HCCL\",\"independent\":true,\"skip_assign_stream\":false,\"attach\":false}"
         << "]}]}";
+    ofs.flush();
     ofs.close();
+    rename(json_tmp_path.c_str(), json_path.c_str());
     std::map<AscendString, AscendString> options;
     GEInitialize(options);
-    system(("mv " + json_backup_path + " " + json_path).c_str());
+    {
+      std::ifstream ifs(json_backup_path);
+      if (ifs.is_open()) {
+        ifs.close();
+        rename(json_backup_path.c_str(), json_path.c_str());
+      }
+    }
   }
   void TearDown() {
     GEFinalize();

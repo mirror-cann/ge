@@ -28,6 +28,6 @@ target_link_directories(intf_llt_pub INTERFACE
 target_link_libraries(intf_llt_pub INTERFACE
         GTestShared::gtest
         -lpthread
-        mockcpp_static
+        mockcpp
 )
 

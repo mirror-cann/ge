@@ -421,21 +421,17 @@ target_compile_options(ge_compiler PRIVATE
 
 target_include_directories(ge_compiler  PRIVATE
     ${AIR_CODE_DIR}/inc/graph_metadef
+    ${AIR_CODE_DIR}/compiler/graph/optimize/autofuse/inc
 )
 
 target_include_directories(ge_compiler SYSTEM PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${AIR_CODE_DIR}
     ${AIR_CODE_DIR}/base
-    ${AIR_CODE_DIR}/compiler/graph/optimize/autofuse/inc
-    ${AIR_CODE_DIR}/inc
     ${AIR_CODE_DIR}/inc/external
     ${AIR_CODE_DIR}/inc/framework
-    ${AIR_CODE_DIR}/inc/graph_metadef/external
-    ${ASCGEN_DIR}/inc
     ${CMAKE_BINARY_DIR}
     ${CMAKE_BINARY_DIR}/proto/graphengine_protos
-    ${ASCGEN_DIR}/inc
     ${METADEF_DIR}/base/registry
     ${METADEF_DIR}/register
     ${METADEF_DIR}/pkg_inc
@@ -451,7 +447,7 @@ target_link_options(ge_compiler PRIVATE
 target_link_libraries(ge_compiler
     PRIVATE
         ge_intf_pub
-        cce_headers
+        ge_metadef_headers
         msprof_headers
         static_mmpa
         ge_proto_common
@@ -479,7 +475,6 @@ target_link_libraries(ge_compiler
     PUBLIC
         ge_common
         air_headers
-        ge_metadef_headers
 )
 
 add_library(ge_python_pass_bridge SHARED
@@ -537,6 +532,7 @@ target_link_libraries(ge_python_pass_bridge
         ge_common
         air_headers
         ge_metadef_headers
+        error_manager_headers
 )
 
     ###############################################################

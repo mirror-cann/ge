@@ -46,7 +46,7 @@ target_link_libraries(st_dvpp_runtime2_test PRIVATE
         GTestShared::gtest_main
         c_sec
         ascendcl_stub
-        mockcpp_static
+        mockcpp
         ${AIR_COMMON_LINK_OPTION}
         # Workaround for undefined reference.
         ascendcl_stub

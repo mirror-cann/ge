@@ -22,16 +22,20 @@ std::vector<ValueHolderPtr> BuildLaunchCommonHead(const CommonLaunchArg &launch_
                                                   const size_t &io_num) {
   std::vector<ValueHolderPtr> inputs;
   inputs.emplace_back(launch_arg.stream);
-  inputs.emplace_back(launch_arg.bin_addr);
+  inputs.emplace_back(launch_arg.bin_handle);
   inputs.emplace_back(launch_arg.block_dim);
   inputs.emplace_back(launch_arg.workspace_addrs);
   inputs.emplace_back(launch_arg.shapebuffer_addr);
+  inputs.emplace_back(launch_arg.cfg_attrs);
   inputs.emplace_back(launch_arg.qos);
   inputs.emplace_back(ValueHolder::CreateConst(&io_num, sizeof(io_num)));
   inputs.emplace_back(launch_arg.schedule_mode);
   inputs.emplace_back(launch_arg.dfx_holder);
   inputs.emplace_back(launch_arg.rt_arg);
   inputs.emplace_back(launch_arg.local_mem_size);
+  inputs.emplace_back(launch_arg.tiling_key);
+  inputs.emplace_back(launch_arg.kernel_name);
+  inputs.emplace_back(launch_arg.with_handle_flag);
   return inputs;
 }
 enum class CoreNumType {
@@ -77,6 +81,7 @@ bool BuildLaunchCommonTail(const CommonLaunchArg &launch_arg, std::vector<ValueH
   } else if (core_type == kCoreTypeMixAICore) {
     mix_args.mix_type = kernel::MixType::MIX_AICORE;
   } else {
+    GELOGD("Node[%s]: core_type[%s] is not MixCoreType.", op_desc->GetNamePtr(), core_type.c_str());
     return false;
   }
   if (ge::AttrUtils::HasAttr(op_desc, kDisableMixVectorCore)) {
@@ -86,6 +91,8 @@ bool BuildLaunchCommonTail(const CommonLaunchArg &launch_arg, std::vector<ValueH
   std::vector<uint32_t> core_num_v;
   (void)ge::AttrUtils::GetListInt(op_desc, kMixCoreNumVec, core_num_v);
   if (core_num_v.size() != static_cast<size_t>(CoreNumType::TYPE_NUM)) {
+    GELOGD("Node[%s]: core_num_v.size[%lu] is not equal to [%lu].", 
+      op_desc->GetNamePtr(), core_num_v.size(), static_cast<size_t>(CoreNumType::TYPE_NUM));
     return false;
   }
   mix_args.all_core_num = core_num_v[static_cast<size_t>(CoreNumType::ALL_CORE)];
@@ -105,34 +112,13 @@ bool BuildLaunchCommonTail(const CommonLaunchArg &launch_arg, std::vector<ValueH
     return false;
   }
   (void)ge::AttrUtils::SetBool(op_desc, kEnableMixVectorCore, true);
+  GELOGD("Node[%s]: _enable_mix_vector_core has been set to true.", op_desc->GetNamePtr());
   return true;
 }
-
 }  // namespace
-ValueHolderPtr LaunchKernelWithHandle(const CommonLaunchArg &launch_arg,
-                                      const ValueHolderPtr &stub_func,
-                                      const ValueHolderPtr &node_info,
-                                      const std::vector<DevMemValueHolderPtr> &input_addrs,
-                                      const std::vector<DevMemValueHolderPtr> &output_addrs) {
-  size_t io_num = input_addrs.size() + output_addrs.size();
-  std::vector<ValueHolderPtr> inputs = BuildLaunchCommonHead(launch_arg, io_num);
-  inputs.emplace_back(stub_func);
-  inputs.emplace_back(node_info);
-  inputs.insert(inputs.cend(), input_addrs.cbegin(), input_addrs.cend());
-  inputs.insert(inputs.cend(), output_addrs.cbegin(), output_addrs.cend());
-  inputs.insert(inputs.cend(), launch_arg.input_shapes.cbegin(), launch_arg.input_shapes.cend());
-  inputs.insert(inputs.cend(), launch_arg.output_shapes.cbegin(), launch_arg.output_shapes.cend());
-  auto ret = BuildLaunchCommonTail(launch_arg, inputs);
-  if (ret) {
-    return ValueHolder::CreateVoid<ValueHolder>("LaunchMixKernelWithHandle", inputs);
-  } else {
-    return ValueHolder::CreateVoid<ValueHolder>("LaunchKernelWithHandle", inputs);
-  }
-}
-
-ValueHolderPtr LaunchKernelWithFlag(const CommonLaunchArg &launch_arg,
-                                    const std::vector<DevMemValueHolderPtr> &input_addrs,
-                                    const std::vector<DevMemValueHolderPtr> &output_addrs) {
+ValueHolderPtr LaunchKernelV2(const CommonLaunchArg &launch_arg,
+                              const std::vector<DevMemValueHolderPtr> &input_addrs,
+                              const std::vector<DevMemValueHolderPtr> &output_addrs) {
   size_t io_num = input_addrs.size() + output_addrs.size();
   std::vector<ValueHolderPtr> inputs = BuildLaunchCommonHead(launch_arg, io_num);
   inputs.insert(inputs.cend(), input_addrs.cbegin(), input_addrs.cend());
@@ -141,36 +127,22 @@ ValueHolderPtr LaunchKernelWithFlag(const CommonLaunchArg &launch_arg,
   inputs.insert(inputs.cend(), launch_arg.output_shapes.cbegin(), launch_arg.output_shapes.cend());
   auto ret = BuildLaunchCommonTail(launch_arg, inputs);
   if (ret) {
-    return ValueHolder::CreateVoid<ValueHolder>("LaunchMixKernelWithFlag", inputs);
+    return ValueHolder::CreateVoid<ValueHolder>("LaunchMixKernelV2", inputs);
   } else {
-    return ValueHolder::CreateVoid<ValueHolder>("LaunchKernelWithFlag", inputs);
+    return ValueHolder::CreateVoid<ValueHolder>("LaunchKernelV2", inputs);
   }
 }
 
-ValueHolderPtr AtomicLaunchKernelWithHandle(const CommonLaunchArg &launch_arg,
-                                            const ValueHolderPtr &stub_func,
-                                            const ValueHolderPtr &clean_workspace_indexes,
-                                            const std::vector<DevMemValueHolderPtr> &clean_output_addrs,
-                                            const ValueHolderPtr &clean_workspace_addrs) {
-  size_t io_num = clean_output_addrs.size(); // only clean output addrs
-  std::vector<ValueHolderPtr> inputs = BuildLaunchCommonHead(launch_arg, io_num);
-  inputs.emplace_back(stub_func);
-  inputs.emplace_back(clean_workspace_indexes);
-  inputs.insert(inputs.cend(), clean_output_addrs.cbegin(), clean_output_addrs.cend());
-  inputs.emplace_back(clean_workspace_addrs);
-  return ValueHolder::CreateVoid<ValueHolder>("AtomicLaunchKernelWithHandle", inputs);
-}
-
-ValueHolderPtr AtomicLaunchKernelWithFlag(const CommonLaunchArg &launch_arg,
-                                          const ValueHolderPtr &clean_workspace_indexes,
-                                          const std::vector<DevMemValueHolderPtr> &clean_output_addrs,
-                                          const ValueHolderPtr &clean_workspace_addrs) {
+ValueHolderPtr AtomicLaunchKernelV2(const CommonLaunchArg &launch_arg,
+                                    const ValueHolderPtr &clean_workspace_indexes,
+                                    const std::vector<DevMemValueHolderPtr> &clean_output_addrs,
+                                    const ValueHolderPtr &clean_workspace_addrs) {
   size_t io_num = clean_output_addrs.size();  // only clean output addrs
   std::vector<ValueHolderPtr> inputs = BuildLaunchCommonHead(launch_arg, io_num);
   inputs.emplace_back(clean_workspace_indexes);
   inputs.insert(inputs.cend(), clean_output_addrs.cbegin(), clean_output_addrs.cend());
   inputs.emplace_back(clean_workspace_addrs);
-  return ValueHolder::CreateVoid<ValueHolder>("AtomicLaunchKernelWithFlag", inputs);
+  return ValueHolder::CreateVoid<ValueHolder>("AtomicLaunchKernelV2", inputs);
 }
 
 ValueHolderPtr LaunchFFTSPlusTaskNoCopy(const ValueHolderPtr &stream, bg::ValueHolderPtr task_info_para,

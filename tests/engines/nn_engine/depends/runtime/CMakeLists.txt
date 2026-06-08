@@ -37,3 +37,4 @@ target_link_libraries(runtime_stub_fe
 install(TARGETS runtime_stub_fe ${INSTALL_OPTIONAL}
         EXPORT runtime_stub_fe-targets
         LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR})
+stub_module(runtime runtime_stub_fe)

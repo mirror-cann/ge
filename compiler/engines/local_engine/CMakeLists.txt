@@ -161,7 +161,7 @@ target_link_libraries(ge_local_opskernel_builder PRIVATE
     ge_intf_pub
     msprof_headers
     runtime_headers
-    cce_headers
+    metadef_headers
     -Wl,--no-as-needed
     ascend_protobuf
     c_sec
@@ -171,6 +171,7 @@ target_link_libraries(ge_local_opskernel_builder PRIVATE
     graph_base
     ge_common_base
     -Wl,--as-needed
+    error_manager_headers
     ${AIR_COMMON_LINK_OPTION}
 )
 
@@ -213,7 +214,6 @@ target_link_libraries(atc_ge_local_opskernel_builder PRIVATE
     ge_intf_pub
     msprof_headers
     runtime_headers
-    cce_headers
     error_manager_headers
     -Wl,--no-as-needed
     ascend_protobuf

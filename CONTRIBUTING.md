@@ -4,7 +4,7 @@
 
 1. 如何提交PR
 2. gitcode工作流
-3. 流水线触发命令
+3. 流水线触发命令（[线上流水线问题指导](https://gitcode.com/cann/ge/wiki/%E7%BA%BF%E4%B8%8A%E6%B5%81%E6%B0%B4%E7%BA%BF%E9%97%AE%E9%A2%98%E6%8C%87%E5%AF%BC.md)）
 4. 代码检视
 5. 其他注意事项
    详情可以参考[cann-community](https://gitcode.com/cann/community)。

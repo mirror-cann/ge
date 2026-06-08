@@ -13,8 +13,12 @@
 #include "common/checker.h"
 #include "exe_graph/lowering/frame_selector.h"
 #include "graph/fast_graph/execute_graph.h"
+#include "common/kernel_handles_manager/aicore_kernel_handles_manager.h"
 
 namespace gert {
+
+LoweringGlobalData::~LoweringGlobalData() = default;
+
 namespace {
 constexpr const ge::char_t *kGlobalDataL2AllocatorsPrefix = "L2_Allocators_";
 const std::set<gert::TensorPlacement> kCurrentAllocatorSupportPlacement = {

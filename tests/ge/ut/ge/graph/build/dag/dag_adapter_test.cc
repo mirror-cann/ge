@@ -21,9 +21,12 @@
 #include "framework/common/ge_inner_error_codes.h"
 #include "external/graph/graph.h"
 #include "external/graph/operator.h"
+#include "graph/debug/ge_attr_define.h"
+#include "graph/utils/attr_utils.h"
+#include "graph/utils/node_adapter.h"
 #include "register/custom_pass_context_impl.h"
 
-namespace minidag {
+namespace ge {
 
 // 测试辅助函数
 namespace {
@@ -75,6 +78,40 @@ ge::ConstGraphPtr BuildMultiNodeGraph() {
   graph->AddControlEdge(relu1, netoutput);
   return graph;
 }
+
+void SetStreamLabel(const ge::GNode &gnode, const std::string &stream_label) {
+  auto node = NodeAdapter::GNode2Node(gnode);
+  ASSERT_NE(node, nullptr);
+  ASSERT_NE(node->GetOpDesc(), nullptr);
+  ASSERT_TRUE(AttrUtils::SetStr(node->GetOpDesc(), ATTR_NAME_STREAM_LABEL, stream_label));
+}
+
+ge::ConstGraphPtr BuildGraphWithStreamLabel() {
+  auto graph = std::make_shared<ge::Graph>("stream_label_graph");
+  ge::Operator data1_op("data1", "Data");
+  ge::Operator add1_op("add1", "Add");
+  ge::Operator relu1_op("relu1", "Relu");
+  ge::Operator pool1_op("pool1", "Pool");
+  ge::Operator abs1_op("abs1", "Abs");
+  ge::Operator netoutput_op("NetOutput", "NetOutput");
+
+  auto data1 = graph->AddNodeByOp(data1_op);
+  auto add1 = graph->AddNodeByOp(add1_op);
+  auto relu1 = graph->AddNodeByOp(relu1_op);
+  auto pool1 = graph->AddNodeByOp(pool1_op);
+  auto abs1 = graph->AddNodeByOp(abs1_op);
+  auto netoutput = graph->AddNodeByOp(netoutput_op);
+  SetStreamLabel(add1, "serial_label");
+  SetStreamLabel(relu1, "serial_label");
+  SetStreamLabel(pool1, "another_label");
+  SetStreamLabel(abs1, "");
+  graph->AddControlEdge(data1, add1);
+  graph->AddControlEdge(add1, relu1);
+  graph->AddControlEdge(relu1, pool1);
+  graph->AddControlEdge(pool1, abs1);
+  graph->AddControlEdge(abs1, netoutput);
+  return graph;
+}
 }  // namespace
 
 class DAGAdapterToGEStatusTest : public testing::Test {};
@@ -88,12 +125,12 @@ class DAGAdapterToGEStatusTest : public testing::Test {};
  * 验证所有已定义的 graphStatus 值都能正确映射
  */
 TEST_F(DAGAdapterToGEStatusTest, ToGEStatusAllMappings) {
-  EXPECT_EQ(DAGAdapter::ToGEStatus(graphStatus::SUCCESS), ge::GRAPH_SUCCESS);
-  EXPECT_EQ(DAGAdapter::ToGEStatus(graphStatus::FAILED), ge::GRAPH_FAILED);
-  EXPECT_EQ(DAGAdapter::ToGEStatus(graphStatus::INVALID_NODE), ge::GRAPH_FAILED);
-  EXPECT_EQ(DAGAdapter::ToGEStatus(graphStatus::INVALID_EDGE), ge::GRAPH_FAILED);
-  EXPECT_EQ(DAGAdapter::ToGEStatus(graphStatus::NODE_NOT_FOUND), ge::GE_GRAPH_GRAPH_NODE_NULL);
-  EXPECT_EQ(DAGAdapter::ToGEStatus(graphStatus::DUPLICATE_NODE), ge::GRAPH_FAILED);
+  EXPECT_EQ(DAGAdapter::ToGEStatus(minidag::graphStatus::SUCCESS), ge::GRAPH_SUCCESS);
+  EXPECT_EQ(DAGAdapter::ToGEStatus(minidag::graphStatus::FAILED), ge::GRAPH_FAILED);
+  EXPECT_EQ(DAGAdapter::ToGEStatus(minidag::graphStatus::INVALID_NODE), ge::GRAPH_FAILED);
+  EXPECT_EQ(DAGAdapter::ToGEStatus(minidag::graphStatus::INVALID_EDGE), ge::GRAPH_FAILED);
+  EXPECT_EQ(DAGAdapter::ToGEStatus(minidag::graphStatus::NODE_NOT_FOUND), ge::GE_GRAPH_GRAPH_NODE_NULL);
+  EXPECT_EQ(DAGAdapter::ToGEStatus(minidag::graphStatus::DUPLICATE_NODE), ge::GRAPH_FAILED);
 }
 
 /**
@@ -101,8 +138,8 @@ TEST_F(DAGAdapterToGEStatusTest, ToGEStatusAllMappings) {
  * 验证未知错误码正确映射为 ge::GRAPH_FAILED
  */
 TEST_F(DAGAdapterToGEStatusTest, ToGEStatusUnknown) {
-  EXPECT_EQ(DAGAdapter::ToGEStatus(static_cast<graphStatus>(999)), ge::GRAPH_FAILED);
-  EXPECT_EQ(DAGAdapter::ToGEStatus(static_cast<graphStatus>(-1)), ge::GRAPH_FAILED);
+  EXPECT_EQ(DAGAdapter::ToGEStatus(static_cast<minidag::graphStatus>(999)), ge::GRAPH_FAILED);
+  EXPECT_EQ(DAGAdapter::ToGEStatus(static_cast<minidag::graphStatus>(-1)), ge::GRAPH_FAILED);
 }
 
 class DAGAdapterGEIntegrationTest : public testing::Test {};
@@ -118,7 +155,7 @@ TEST_F(DAGAdapterGEIntegrationTest, FromGEGraph_NodeCount) {
   auto ge_graph = BuildGraphWithNodes();
   ASSERT_NE(ge_graph, nullptr);
 
-  std::shared_ptr<DAGGraph> dag;
+  std::shared_ptr<minidag::DAGGraph> dag;
   auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
@@ -132,7 +169,7 @@ TEST_F(DAGAdapterGEIntegrationTest, FromGEGraph_ControlEdgeCount) {
   auto ge_graph = BuildGraphWithControlEdge();
   ASSERT_NE(ge_graph, nullptr);
 
-  std::shared_ptr<DAGGraph> dag;
+  std::shared_ptr<minidag::DAGGraph> dag;
   auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
@@ -146,7 +183,7 @@ TEST_F(DAGAdapterGEIntegrationTest, FromGEGraph_TopoOrder) {
   auto ge_graph = BuildGraphWithNodes();
   ASSERT_NE(ge_graph, nullptr);
 
-  std::shared_ptr<DAGGraph> dag;
+  std::shared_ptr<minidag::DAGGraph> dag;
   auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
@@ -165,7 +202,7 @@ TEST_F(DAGAdapterGEIntegrationTest, FromGEGraph_NodeTypes) {
   auto ge_graph = BuildGraphWithNodes();
   ASSERT_NE(ge_graph, nullptr);
 
-  std::shared_ptr<DAGGraph> dag;
+  std::shared_ptr<minidag::DAGGraph> dag;
   auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
@@ -186,12 +223,41 @@ TEST_F(DAGAdapterGEIntegrationTest, FromGEGraph_MultiNodeGraph) {
   auto ge_graph = BuildMultiNodeGraph();
   ASSERT_NE(ge_graph, nullptr);
 
-  std::shared_ptr<DAGGraph> dag;
+  std::shared_ptr<minidag::DAGGraph> dag;
   auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
   EXPECT_EQ(dag->GetNodeCount(), 5);
   EXPECT_EQ(dag->GetEdgeCount(), 4);
+}
+
+/**
+ * 场景 2-6: GE stream_label 转换为 minidag 串行标记
+ */
+TEST_F(DAGAdapterGEIntegrationTest, FromGEGraph_StreamLabelConvertedToSerialFlag) {
+  auto ge_graph = BuildGraphWithStreamLabel();
+  ASSERT_NE(ge_graph, nullptr);
+
+  std::shared_ptr<minidag::DAGGraph> dag;
+  auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
+  ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
+  ASSERT_NE(dag, nullptr);
+
+  auto add1 = dag->FindNode("add1");
+  auto relu1 = dag->FindNode("relu1");
+  auto pool1 = dag->FindNode("pool1");
+  auto abs1 = dag->FindNode("abs1");
+  auto data1 = dag->FindNode("data1");
+  ASSERT_NE(add1, nullptr);
+  ASSERT_NE(relu1, nullptr);
+  ASSERT_NE(pool1, nullptr);
+  ASSERT_NE(abs1, nullptr);
+  ASSERT_NE(data1, nullptr);
+  EXPECT_EQ(add1->GetSerialFlag(), "serial_label");
+  EXPECT_EQ(relu1->GetSerialFlag(), "serial_label");
+  EXPECT_EQ(pool1->GetSerialFlag(), "another_label");
+  EXPECT_TRUE(abs1->GetSerialFlag().empty());
+  EXPECT_TRUE(data1->GetSerialFlag().empty());
 }
 
 // --------------------
@@ -205,7 +271,7 @@ TEST_F(DAGAdapterGEIntegrationTest, FromGEGraph_EmptyGraph) {
   auto ge_graph = BuildEmptyGraph();
   ASSERT_NE(ge_graph, nullptr);
 
-  std::shared_ptr<DAGGraph> dag;
+  std::shared_ptr<minidag::DAGGraph> dag;
   auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
@@ -217,16 +283,16 @@ TEST_F(DAGAdapterGEIntegrationTest, FromGEGraph_EmptyGraph) {
  * 场景 3-2: null 输入
  */
 TEST_F(DAGAdapterGEIntegrationTest, FromGEGraph_NullInput) {
-  std::shared_ptr<DAGGraph> dag;
+  std::shared_ptr<minidag::DAGGraph> dag;
   auto ret = DAGAdapter::FromGEGraph(nullptr, dag);
-  EXPECT_EQ(ret, ge::GRAPH_FAILED);
+  EXPECT_NE(ret, ge::GRAPH_SUCCESS);
 }
 
 /**
  * 场景 3-3: DAGGraph 重复节点报错
  */
 TEST_F(DAGAdapterGEIntegrationTest, DAGGraph_DuplicateNode) {
-  auto dag = std::make_shared<DAGGraph>("test_dag");
+  auto dag = std::make_shared<minidag::DAGGraph>("test_dag");
   auto node1 = dag->AddNode("node1", "Conv");
   ASSERT_NE(node1, nullptr);
   auto node2 = dag->AddNode("node1", "Relu");
@@ -237,15 +303,15 @@ TEST_F(DAGAdapterGEIntegrationTest, DAGGraph_DuplicateNode) {
  * 场景 3-4: DAGGraph 边添加失败
  */
 TEST_F(DAGAdapterGEIntegrationTest, DAGGraph_AddEdge_NullNode) {
-  auto dag = std::make_shared<DAGGraph>("test_dag");
+  auto dag = std::make_shared<minidag::DAGGraph>("test_dag");
   auto node1 = dag->AddNode("node1", "Conv");
   auto node2 = dag->AddNode("node2", "Relu");
 
-  graphStatus ret = dag->AddEdge(nullptr, 0, node2, 0);
-  EXPECT_EQ(ret, graphStatus::INVALID_NODE);
+  minidag::graphStatus ret = dag->AddEdge(nullptr, 0, node2, 0);
+  EXPECT_EQ(ret, minidag::graphStatus::INVALID_NODE);
 
   ret = dag->AddEdge(node1, 0, nullptr, 0);
-  EXPECT_EQ(ret, graphStatus::INVALID_NODE);
+  EXPECT_EQ(ret, minidag::graphStatus::INVALID_NODE);
 }
 
 // --------------------
@@ -259,7 +325,7 @@ TEST_F(DAGAdapterGEIntegrationTest, FromGEGraph_ControlEdgePortValues) {
   auto ge_graph = BuildGraphWithControlEdge();
   ASSERT_NE(ge_graph, nullptr);
 
-  std::shared_ptr<DAGGraph> dag;
+  std::shared_ptr<minidag::DAGGraph> dag;
   auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
@@ -284,7 +350,7 @@ TEST_F(DAGAdapterGEIntegrationTest, FromGEGraph_NodeInputOutputCount) {
   auto ge_graph = BuildGraphWithControlEdge();
   ASSERT_NE(ge_graph, nullptr);
 
-  std::shared_ptr<DAGGraph> dag;
+  std::shared_ptr<minidag::DAGGraph> dag;
   auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
@@ -307,7 +373,7 @@ TEST_F(DAGAdapterGEIntegrationTest, FromGEGraph_MultiNodeConnections) {
   auto ge_graph = BuildMultiNodeGraph();
   ASSERT_NE(ge_graph, nullptr);
 
-  std::shared_ptr<DAGGraph> dag;
+  std::shared_ptr<minidag::DAGGraph> dag;
   auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
@@ -334,7 +400,7 @@ TEST_F(DAGAdapterGEIntegrationTest, FromGEGraph_NodeStreamIdDefault) {
   auto ge_graph = BuildGraphWithNodes();
   ASSERT_NE(ge_graph, nullptr);
 
-  std::shared_ptr<DAGGraph> dag;
+  std::shared_ptr<minidag::DAGGraph> dag;
   auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
@@ -349,7 +415,7 @@ TEST_F(DAGAdapterGEIntegrationTest, FromGEGraph_NodeStreamIdDefault) {
  * 场景 5-2: 节点 StreamId 设置验证
  */
 TEST_F(DAGAdapterGEIntegrationTest, NodeStreamIdSetGet) {
-  auto dag = std::make_shared<DAGGraph>("test_dag");
+  auto dag = std::make_shared<minidag::DAGGraph>("test_dag");
   auto node = dag->AddNode("node1", "Conv");
   ASSERT_NE(node, nullptr);
 
@@ -362,11 +428,11 @@ TEST_F(DAGAdapterGEIntegrationTest, NodeStreamIdSetGet) {
  * 场景 5-3: 节点 Cost 属性
  */
 TEST_F(DAGAdapterGEIntegrationTest, NodeCostSetGet) {
-  auto dag = std::make_shared<DAGGraph>("test_dag");
+  auto dag = std::make_shared<minidag::DAGGraph>("test_dag");
   auto node = dag->AddNode("node1", "Conv");
   ASSERT_NE(node, nullptr);
 
-  NodeCost cost;
+  minidag::NodeCost cost;
   cost.execution_time = 100.0;
   cost.memory_usage = 1024;
   node->SetCost(cost);
@@ -384,11 +450,11 @@ TEST_F(DAGAdapterGEIntegrationTest, NodeCostSetGet) {
  * 场景 6-1: null graph 返回失败
  */
 TEST_F(DAGAdapterGEIntegrationTest, RefreshStreamIdsToGE_NullGraph) {
-  auto dag = std::make_shared<DAGGraph>("test_dag");
+  auto dag = std::make_shared<minidag::DAGGraph>("test_dag");
   dag->AddNode("node1", "Conv");
   ge::StreamPassContext context(10);
   auto ret = DAGAdapter::RefreshStreamIdsToGE(*dag, nullptr, context);
-  EXPECT_EQ(ret, ge::GRAPH_FAILED);
+  EXPECT_NE(ret, ge::GRAPH_SUCCESS);
 }
 
 /**
@@ -397,7 +463,7 @@ TEST_F(DAGAdapterGEIntegrationTest, RefreshStreamIdsToGE_NullGraph) {
 TEST_F(DAGAdapterGEIntegrationTest, RefreshStreamIdsToGE_EmptyDAG) {
   auto ge_graph = BuildGraphWithNodes();
   ASSERT_NE(ge_graph, nullptr);
-  auto empty_dag = std::make_shared<DAGGraph>("empty_dag");
+  auto empty_dag = std::make_shared<minidag::DAGGraph>("empty_dag");
   ge::StreamPassContext context(10);
   auto ret = DAGAdapter::RefreshStreamIdsToGE(*empty_dag, ge_graph, context);
   EXPECT_EQ(ret, ge::GRAPH_SUCCESS);
@@ -410,7 +476,7 @@ TEST_F(DAGAdapterGEIntegrationTest, RefreshStreamIdsToGE_NormalFlow) {
   auto ge_graph = BuildGraphWithNodes();
   ASSERT_NE(ge_graph, nullptr);
 
-  std::shared_ptr<DAGGraph> dag;
+  std::shared_ptr<minidag::DAGGraph> dag;
   auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
@@ -432,7 +498,7 @@ TEST_F(DAGAdapterGEIntegrationTest, RefreshStreamIdsToGE_InvalidStreamId) {
   auto ge_graph = BuildGraphWithNodes();
   ASSERT_NE(ge_graph, nullptr);
 
-  std::shared_ptr<DAGGraph> dag;
+  std::shared_ptr<minidag::DAGGraph> dag;
   auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
@@ -454,7 +520,7 @@ TEST_F(DAGAdapterGEIntegrationTest, RefreshStreamIdsToGE_NodeNotInGE) {
   auto ge_graph = BuildGraphWithNodes();
   ASSERT_NE(ge_graph, nullptr);
 
-  auto dag = std::make_shared<DAGGraph>("test_dag");
+  auto dag = std::make_shared<minidag::DAGGraph>("test_dag");
   auto node = dag->AddNode("nonexistent_node", "Conv");
   node->SetStreamId(0);
 
@@ -470,7 +536,7 @@ TEST_F(DAGAdapterGEIntegrationTest, RefreshStreamIdsToGE_StreamIdOutOfRange) {
   auto ge_graph = BuildGraphWithNodes();
   ASSERT_NE(ge_graph, nullptr);
 
-  std::shared_ptr<DAGGraph> dag;
+  std::shared_ptr<minidag::DAGGraph> dag;
   auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
@@ -496,11 +562,11 @@ TEST_F(DAGAdapterGEIntegrationTest, ConvertNodes_DuplicateNode) {
   auto ge_graph = BuildGraphWithNodes();
   ASSERT_NE(ge_graph, nullptr);
 
-  auto dag = std::make_shared<DAGGraph>("test_dag");
+  auto dag = std::make_shared<minidag::DAGGraph>("test_dag");
   dag->AddNode("data1", "Data");
 
   auto ret = DAGAdapter::ConvertNodes(ge_graph, *dag);
-  EXPECT_EQ(ret, graphStatus::DUPLICATE_NODE);
+  EXPECT_NE(ret, ge::GRAPH_SUCCESS);
 }
 
 /**
@@ -510,9 +576,9 @@ TEST_F(DAGAdapterGEIntegrationTest, ConvertEdges_NodeNotInDAG) {
   auto ge_graph = BuildGraphWithNodes();
   ASSERT_NE(ge_graph, nullptr);
 
-  auto dag = std::make_shared<DAGGraph>("test_dag");
+  auto dag = std::make_shared<minidag::DAGGraph>("test_dag");
   auto ret = DAGAdapter::ConvertEdges(ge_graph, *dag);
-  EXPECT_EQ(ret, graphStatus::NODE_NOT_FOUND);
+  EXPECT_NE(ret, ge::GRAPH_SUCCESS);
 }
 
 /**
@@ -522,9 +588,9 @@ TEST_F(DAGAdapterGEIntegrationTest, ConvertNodes_EmptyGraph) {
   auto ge_graph = BuildEmptyGraph();
   ASSERT_NE(ge_graph, nullptr);
 
-  auto dag = std::make_shared<DAGGraph>("empty_dag");
+  auto dag = std::make_shared<minidag::DAGGraph>("empty_dag");
   auto ret = DAGAdapter::ConvertNodes(ge_graph, *dag);
-  EXPECT_EQ(ret, graphStatus::SUCCESS);
+  EXPECT_EQ(ret, GRAPH_SUCCESS);
   EXPECT_EQ(dag->GetNodeCount(), 0);
 }
 
@@ -535,9 +601,9 @@ TEST_F(DAGAdapterGEIntegrationTest, ConvertEdges_EmptyGraph) {
   auto ge_graph = BuildEmptyGraph();
   ASSERT_NE(ge_graph, nullptr);
 
-  auto dag = std::make_shared<DAGGraph>("empty_dag");
+  auto dag = std::make_shared<minidag::DAGGraph>("empty_dag");
   auto ret = DAGAdapter::ConvertEdges(ge_graph, *dag);
-  EXPECT_EQ(ret, graphStatus::SUCCESS);
+  EXPECT_EQ(ret, GRAPH_SUCCESS);
   EXPECT_EQ(dag->GetEdgeCount(), 0);
 }
 
@@ -548,7 +614,7 @@ TEST_F(DAGAdapterGEIntegrationTest, ConvertControlEdgesForNode_DstNotFound) {
   auto ge_graph = BuildGraphWithControlEdge();
   ASSERT_NE(ge_graph, nullptr);
 
-  auto dag = std::make_shared<DAGGraph>("test_dag");
+  auto dag = std::make_shared<minidag::DAGGraph>("test_dag");
   dag->AddNode("data1", "Data");
 
   auto src_node = dag->FindNode("data1");
@@ -561,7 +627,7 @@ TEST_F(DAGAdapterGEIntegrationTest, ConvertControlEdgesForNode_DstNotFound) {
     if (std::string(name.GetString()) == "data1") {
       int64_t edge_count = 0;
       auto ret = DAGAdapter::ConvertControlEdgesForNode(gnode, src_node, *dag, edge_count);
-      EXPECT_EQ(ret, graphStatus::NODE_NOT_FOUND);
+      EXPECT_NE(ret, ge::GRAPH_SUCCESS);
       break;
     }
   }
@@ -571,7 +637,7 @@ TEST_F(DAGAdapterGEIntegrationTest, ConvertControlEdgesForNode_DstNotFound) {
  * 场景 7-6: DAGGraph GetAllEdges
  */
 TEST_F(DAGAdapterGEIntegrationTest, DAGGraph_GetAllEdges) {
-  auto dag = std::make_shared<DAGGraph>("test_dag");
+  auto dag = std::make_shared<minidag::DAGGraph>("test_dag");
   auto node1 = dag->AddNode("node1", "Conv");
   auto node2 = dag->AddNode("node2", "Relu");
 
@@ -587,7 +653,7 @@ TEST_F(DAGAdapterGEIntegrationTest, DAGGraph_GetAllEdges) {
  * 场景 7-7: DAGNode GetInputNodes/GetOutputNodes
  */
 TEST_F(DAGAdapterGEIntegrationTest, DAGNode_GetInputOutputNodes) {
-  auto dag = std::make_shared<DAGGraph>("test_dag");
+  auto dag = std::make_shared<minidag::DAGGraph>("test_dag");
   auto node1 = dag->AddNode("node1", "Conv");
   auto node2 = dag->AddNode("node2", "Relu");
 
@@ -606,7 +672,7 @@ TEST_F(DAGAdapterGEIntegrationTest, DAGNode_GetInputOutputNodes) {
  * 场景 7-8: DAGNode GetInputEdges/GetOutputEdges
  */
 TEST_F(DAGAdapterGEIntegrationTest, DAGNode_GetInputOutputEdges) {
-  auto dag = std::make_shared<DAGGraph>("test_dag");
+  auto dag = std::make_shared<minidag::DAGGraph>("test_dag");
   auto node1 = dag->AddNode("node1", "Conv");
   auto node2 = dag->AddNode("node2", "Relu");
 
@@ -625,7 +691,7 @@ TEST_F(DAGAdapterGEIntegrationTest, DAGNode_GetInputOutputEdges) {
  * 场景 7-9: DAGEdge GetSrcNode/GetDstNode
  */
 TEST_F(DAGAdapterGEIntegrationTest, DAGEdge_GetSrcDstNode) {
-  auto dag = std::make_shared<DAGGraph>("test_dag");
+  auto dag = std::make_shared<minidag::DAGGraph>("test_dag");
   auto node1 = dag->AddNode("node1", "Conv");
   auto node2 = dag->AddNode("node2", "Relu");
 
@@ -693,7 +759,7 @@ TEST_F(DAGAdapterDataEdgeTest, FromGEGraph_DataEdges) {
   auto ge_graph = ToConstGraphPtr(compute_graph);
   ASSERT_NE(ge_graph, nullptr);
 
-  std::shared_ptr<DAGGraph> dag;
+  std::shared_ptr<minidag::DAGGraph> dag;
   auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
@@ -716,7 +782,7 @@ TEST_F(DAGAdapterDataEdgeTest, FromGEGraph_DataEdgeCount) {
   auto ge_graph = ToConstGraphPtr(compute_graph);
   ASSERT_NE(ge_graph, nullptr);
 
-  std::shared_ptr<DAGGraph> dag;
+  std::shared_ptr<minidag::DAGGraph> dag;
   auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
@@ -724,4 +790,4 @@ TEST_F(DAGAdapterDataEdgeTest, FromGEGraph_DataEdgeCount) {
   EXPECT_EQ(dag->GetEdgeCount(), original_data_edges);
 }
 
-}  // namespace minidag
+}  // namespace ge

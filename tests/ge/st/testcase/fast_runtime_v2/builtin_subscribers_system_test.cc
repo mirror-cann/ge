@@ -230,11 +230,11 @@ void TestFallibleTiling(bool rollback) {
   ess->PrintExecutionSummary();
   if (rollback) {
     EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "AicpuLaunchTfKernel"), 1);
-    EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "LaunchKernelWithFlag"), 0);
+    EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "LaunchKernelV2"), 0);
 
   } else {
     EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "AicpuLaunchTfKernel"), 0);
-    EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "LaunchKernelWithFlag"), 1);
+    EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "LaunchKernelV2"), 1);
   }
   Shape expect_out_shape{1, 2, 3, 4};
   EXPECT_EQ(outputs.GetTensorList()[0]->GetShape().GetStorageShape(), expect_out_shape);

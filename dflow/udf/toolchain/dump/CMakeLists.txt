@@ -67,6 +67,7 @@ target_link_libraries(udf_dump PRIVATE
     $<BUILD_INTERFACE:ascend_hal_headers>
     $<BUILD_INTERFACE:c_sec_headers>
     $<BUILD_INTERFACE:datagw_headers>
+    $<BUILD_INTERFACE:runtime_headers>
     -ldl
     ${AIR_COMMON_LINK_OPTION}
     PUBLIC c_sec

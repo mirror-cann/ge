@@ -62,7 +62,7 @@ TEST_F(GraphExecutorWithGracefulExitST, SingleNodeAiCore_ExecuteFailed) {
   ge::DumpGraph(exe_graph.get(), "E2EAddGraph");
 
   GertRuntimeStub runtime_stub;
-  runtime_stub.GetKernelStub().SetUp("LaunchKernelWithFlag", LaunchKernelWithFlagFailedFake);
+  runtime_stub.GetKernelStub().SetUp("LaunchKernelV2", LaunchKernelWithFlagFailedFake);
   auto model_executor = ModelV2Executor::Create(exe_graph, root_model);
   ASSERT_NE(model_executor, nullptr);
   EXPECT_EQ(model_executor->Load(), ge::GRAPH_SUCCESS);

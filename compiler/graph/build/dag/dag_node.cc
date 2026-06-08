@@ -106,4 +106,12 @@ void DAGNode::AddInputEdge(const std::shared_ptr<DAGEdge>& edge) {
 void DAGNode::AddOutputEdge(const std::shared_ptr<DAGEdge>& edge) {
   out_edges_.push_back(edge);
 }
+
+void DAGNode::SetSerialFlag(const std::string &flag) {
+  serial_flag_ = flag;
+}
+
+const std::string &DAGNode::GetSerialFlag() const {
+  return serial_flag_;
+}
 }  // namespace minidag

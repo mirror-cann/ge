@@ -96,7 +96,7 @@ target_link_libraries(udf_static PRIVATE
         mmpa
         ascend_hal_stub
         $<$<STREQUAL:${PRODUCT_SIDE},device>:stackcore>
-        $<$<STREQUAL:${PRODUCT_SIDE},device>:seccomp_stub>
+        $<$<STREQUAL:${PRODUCT_SIDE},device>:ge_seccomp_stub>
         )
 
 add_executable(udf_executor
@@ -137,7 +137,7 @@ target_link_libraries(udf_executor PRIVATE
     -Wl,--no-whole-archive
     udf_dump
     -ldl
-    $<$<STREQUAL:${PRODUCT_SIDE},device>:seccomp_stub>
+    $<$<STREQUAL:${PRODUCT_SIDE},device>:ge_seccomp_stub>
 )
 
 set(INSTALL_LIBRARY_DIR lib)

@@ -12,6 +12,7 @@
 #include "bg_variable.h"
 #include "common/checker.h"
 #include "common/debug/ge_log.h"
+#include "common/util/mem_utils.h"
 #include "exe_graph/lowering/exe_graph_attrs.h"
 #include "exe_graph/lowering/frame_selector.h"
 #include "graph/debug/ge_attr_define.h"

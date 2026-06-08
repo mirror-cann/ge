@@ -241,7 +241,7 @@ Status GenerateMixTask(const ge::Node &node, std::vector<domi::TaskDef> &task_de
   }
   auto own_graph = node.GetOwnerComputeGraph();
   FE_CHECK_NOTNULL(own_graph);
-  bool is_in_dyn_graph = (own_graph->GetParentNode() != nullptr) && own_graph->GetGraphUnknownFlag();
+  bool is_in_dyn_graph = own_graph->GetGraphUnknownFlag();
   FE_LOGD("Node[%s] is in %s graph flag.", node.GetNamePtr(), is_in_dyn_graph ? "dynamic" : "static");
   if (is_in_dyn_graph) {
     return DynMixSetCoreNum(node, core_num_v);

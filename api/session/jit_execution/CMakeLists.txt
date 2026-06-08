@@ -44,7 +44,6 @@ target_link_libraries(jit_exe PRIVATE
         ge_metadef_headers
         msprof_headers
         error_manager
-        cce_headers
         c_sec
         ascend_protobuf
         runtime
@@ -52,6 +51,7 @@ target_link_libraries(jit_exe PRIVATE
         json
         static_mmpa
         ge_compiler
+        runtime_headers
 )
 
 install(TARGETS jit_exe ${INSTALL_OPTIONAL}
