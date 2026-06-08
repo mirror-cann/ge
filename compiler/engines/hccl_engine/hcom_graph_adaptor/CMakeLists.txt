@@ -129,7 +129,6 @@ if(BUILD_OPEN_PROJECT)
         ${CMAKE_CURRENT_SOURCE_DIR}/ge_plugin/auto_tuning
         ${CMAKE_CURRENT_SOURCE_DIR}/ge_plugin
         ${CMAKE_CURRENT_SOURCE_DIR}/ge_plugin/calculation_tool
-        ${ASCEND_INSTALL_PATH}/pkg_inc/dump
         ${AIR_CODE_DIR}/inc
         ${AIR_CODE_DIR}/inc/external
         ${METADEF_DIR}/inc
@@ -144,7 +143,6 @@ if(BUILD_OPEN_PROJECT)
         ${CMAKE_CURRENT_SOURCE_DIR}/ge_plugin/auto_tuning
         ${CMAKE_CURRENT_SOURCE_DIR}/ge_plugin
         ${CMAKE_CURRENT_SOURCE_DIR}/ge_plugin/calculation_tool
-        ${ASCEND_INSTALL_PATH}/pkg_inc/dump
         ${AIR_CODE_DIR}/inc
         ${AIR_CODE_DIR}/inc/external
         ${METADEF_DIR}/inc
@@ -159,7 +157,6 @@ if(BUILD_OPEN_PROJECT)
         ${CMAKE_CURRENT_SOURCE_DIR}/ge_plugin/auto_tuning
         ${CMAKE_CURRENT_SOURCE_DIR}/ge_plugin
         ${CMAKE_CURRENT_SOURCE_DIR}/ge_plugin/calculation_tool
-        ${ASCEND_INSTALL_PATH}/pkg_inc/dump
         ${AIR_CODE_DIR}/inc
         ${AIR_CODE_DIR}/inc/external
         ${METADEF_DIR}/inc
@@ -174,7 +171,6 @@ if(BUILD_OPEN_PROJECT)
         ${CMAKE_CURRENT_SOURCE_DIR}/ge_plugin/auto_tuning
         ${CMAKE_CURRENT_SOURCE_DIR}/ge_plugin
         ${CMAKE_CURRENT_SOURCE_DIR}/ge_plugin/calculation_tool
-        ${ASCEND_INSTALL_PATH}/pkg_inc/dump
         ${AIR_CODE_DIR}/inc
         ${AIR_CODE_DIR}/inc/external
         ${METADEF_DIR}/inc
