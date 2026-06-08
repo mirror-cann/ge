@@ -58,10 +58,10 @@ class HcomOpsKernelBuilder : public HCCLOpsKernelBuilder {
                                           const std::string &algName, std::string &funcName);
   HcclResult SetAivSuperKernelBinaryAttrFor950(const ge::OpDescPtr &opDescPtr, HcclCMDType opType,
                                                HcclDataType dataType, const std::string &algName,
-                                               std::string &funcName, const std::string & binPath) const;
+                                               std::string &funcName, const std::string &binPath) const;
   HcclResult SetAivSuperKernelBinaryAttrForDeter(const ge::OpDescPtr &opDescPtr, HcclCMDType opType,
                                                  const std::string &algName, std::string &funcName,
-                                                 const std::string & binPath) const;
+                                                 const std::string &binPath) const;
   HcclResult SetSuperKernelBlockDim(const ge::OpDescPtr &opDescPtr, const std::string &group, HcclCMDType opType,
                                     u64 count, void *counts, HcclDataType dataType, u32 aivCoreLimit, char *algName,
                                     u32 rankSize) const;

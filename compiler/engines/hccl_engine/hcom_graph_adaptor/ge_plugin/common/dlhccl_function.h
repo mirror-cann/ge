@@ -213,7 +213,7 @@ class DlHcclFunction {
       dlHcclRecvGraphModeFunc;
   std::function<HcclResult(void *sendBuf, void *recvBuf, uint64_t sendCount, HcclDataType dataType, HcclReduceOp op, const char *group, void *stream, const char *optag, void **streams, size_t streamCount, void *scratchMemAddr, uint64_t scratchMemSize)>
       dlHcclAllReduceGraphModeFunc;
-  std::function<HcclResult(void *sendBuf, void *recvBuf, uint64_t count, HcclDataType dataType, HcclReduceOp op, uint32_t root, const char * group, void *stream, const char *opTag, void **streams, size_t streamCount, void *scratchMemAddr, uint64_t scratchMemSize)>
+  std::function<HcclResult(void *sendBuf, void *recvBuf, uint64_t count, HcclDataType dataType, HcclReduceOp op, uint32_t root, const char *group, void *stream, const char *opTag, void **streams, size_t streamCount, void *scratchMemAddr, uint64_t scratchMemSize)>
       dlHcclReduceGraphModeFunc;
   std::function<HcclResult(void *sendBuf, void *recvBuf, uint64_t recvCount, HcclDataType dataType, HcclReduceOp op, const char *group, void *stream, const char *optag, void **streams, size_t streamCount, void *scratchMemAddr, uint64_t scratchMemSize)>
       dlHcclReduceScatterGraphModeFunc;
