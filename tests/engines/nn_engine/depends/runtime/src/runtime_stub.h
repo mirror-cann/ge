@@ -13,7 +13,6 @@
 
 #include <vector>
 #include "runtime/rt.h"
-#include "runtime/rts/rts_kernel.h"
 #include <memory>
 
 namespace ge {
@@ -53,15 +52,6 @@ class RuntimeStub {
   virtual rtError_t rtKernelLaunchWithFlagV2(const void *stubFunc, uint32_t blockDim, rtArgsEx_t *argsInfo,
                                              rtSmDesc_t *smDesc, rtStream_t stm, uint32_t flags,
                                              const rtTaskCfgInfo_t *cfgInfo) {
-    return RT_ERROR_NONE;
-  }
-  virtual rtError_t rtsFuncGetByEntry(const rtBinHandle binHandle, const uint64_t funcEntry, rtFuncHandle *funcHandle)
-  {
-    return RT_ERROR_NONE;
-  }
-  virtual rtError_t rtsLaunchKernelWithHostArgs(rtFuncHandle funcHandle, uint32_t blockDim, rtStream_t stm, rtKernelLaunchCfg_t *cfg,
-    void *hostArgs, uint32_t argsSize, rtPlaceHolderInfo_t *placeHolderArray, uint32_t placeHolderNum)
-  {
     return RT_ERROR_NONE;
   }
   virtual rtError_t rtKernelGetAddrAndPrefCntV2(void *handle, const uint64_t tilingKey, const void *const stubFunc,

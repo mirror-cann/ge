@@ -450,26 +450,18 @@ rtError_t RuntimeStub::rtModelGetTaskId(void *handle, uint32_t *task_id, uint32_
   return RT_ERROR_NONE;
 }
 
+rtError_t RuntimeStub::rtGetDeviceCapability(int32_t device, int32_t moduleType, int32_t featureType, int32_t *value) {
+  (void) device;
+  (void) moduleType;
+  (void) featureType;
+  *value = 16;
+  return RT_ERROR_NONE;
+}
+
 rtError_t RuntimeStub::rtBinarySetExceptionCallback(rtBinHandle binHandle, rtOpExceptionCallback exceptionFunc, void *userData) {
   (void) binHandle;
   (void) exceptionFunc;
   (void) userData;
-  return RT_ERROR_NONE;
-}
-
-rtError_t RuntimeStub::rtsGetThreadLastTaskId(uint32_t *taskId) {
-  if (*taskId == 999) {
-    return -1;
-  }
-  *taskId = 0;
-  return RT_ERROR_NONE;
-}
-
-rtError_t RuntimeStub::rtsDeviceGetCapability(int32_t deviceId, int32_t devFeatureType, int32_t *val)
-{
-  (void) deviceId;
-  (void) devFeatureType;
-  *val = 16;
   return RT_ERROR_NONE;
 }
 
@@ -1458,20 +1450,8 @@ rtError_t rtBinarySetExceptionCallback(rtBinHandle binHandle, rtOpExceptionCallb
   return ge::RuntimeStub::GetInstance()->rtBinarySetExceptionCallback(binHandle, exceptionFunc, userData);
 }
 
-rtError_t rtsGetThreadLastTaskId(uint32_t *taskId)
-{
-  if (std::string(__FUNCTION__) == g_runtime_stub_mock) {
-    return -1;
-  }
-  return ge::RuntimeStub::GetInstance()->rtsGetThreadLastTaskId(taskId);
-}
-
-rtError_t rtsDeviceGetCapability(int32_t deviceId, int32_t devFeatureType, int32_t *val)
-{
-  if (std::string(__FUNCTION__) == g_runtime_stub_mock) {
-    return -1;
-  }
-  return ge::RuntimeStub::GetInstance()->rtsDeviceGetCapability(deviceId, devFeatureType, val);
+rtError_t rtGetDeviceCapability(int32_t device, int32_t moduleType, int32_t featureType, int32_t *value) {
+  return ge::RuntimeStub::GetInstance()->rtGetDeviceCapability(device, moduleType, featureType, value);
 }
 
 rtError_t rtDebugRegisterForStream(rtStream_t stream, uint32_t flag, const void *addr, uint32_t *streamId, uint32_t *taskId) {

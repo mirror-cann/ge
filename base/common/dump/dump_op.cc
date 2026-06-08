@@ -25,7 +25,7 @@
 #include "proto/ge_ir.pb.h"
 #include "proto/op_mapping.pb.h"
 #include "runtime/rt.h"
-// 待rt.h移除后再替换为rt_external_device.h
+// 待rt.h删除后再替换
 #include "rts/rts_device.h"
 #include "aicpu_task_struct.h"
 #include "graph/debug/ge_attr_define.h"
@@ -682,7 +682,7 @@ Status DumpOp::LaunchDumpOp(const bool is_single_op_dump, bool need_device_args)
     stream_id_ = static_cast<uint32_t>(temp_stream_id);
   }
   int32_t bit_width;
-  GE_CHK_RT(rtsDeviceGetCapability(device_id, RT_FEATURE_SYSTEM_TASKID_BIT_WIDTH, &bit_width));
+  GE_CHK_RT(rtGetDeviceCapability(device_id, RT_MODULE_TYPE_SYSTEM, RT_FEATURE_SYSTEM_TASKID_BIT_WIDTH, &bit_width));
   if (bit_width == k16BitWidth) {
     task_id_ = task_id_ & k16BitsMask;
   }

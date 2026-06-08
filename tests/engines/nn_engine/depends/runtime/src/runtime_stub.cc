@@ -504,16 +504,7 @@ rtError_t rtKernelLaunchWithFlagV2(const void *stubFunc, uint32_t blockDim, rtAr
   return ge::RuntimeStub::GetInstance()->rtKernelLaunchWithFlagV2(
       stubFunc, blockDim, argsInfo, smDesc, stm, flags, cfgInfo);
 }
-rtError_t rtsFuncGetByEntry(const rtBinHandle binHandle, const uint64_t funcEntry, rtFuncHandle *funcHandle) {
-    return ge::RuntimeStub::GetInstance()->rtsFuncGetByEntry(
-        binHandle, funcEntry, funcHandle);
-}
-  
-rtError_t rtsLaunchKernelWithHostArgs(rtFuncHandle funcHandle, uint32_t blockDim, rtStream_t stm, rtKernelLaunchCfg_t *cfg,
-    void *hostArgs, uint32_t argsSize, rtPlaceHolderInfo_t *placeHolderArray, uint32_t placeHolderNum) {
-  return ge::RuntimeStub::GetInstance()->rtsLaunchKernelWithHostArgs
-  (funcHandle, blockDim, stm, cfg, hostArgs, argsSize, placeHolderArray, placeHolderNum);
-}
+
 rtError_t rtKernelGetAddrAndPrefCntV2(void *handle, const uint64_t tilingKey, const void *const stubFunc,
                                       const uint32_t flag, rtKernelDetailInfo_t *kernelInfo) {
   return ge::RuntimeStub::GetInstance()->rtKernelGetAddrAndPrefCntV2(handle, tilingKey, stubFunc, flag, kernelInfo);

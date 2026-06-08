@@ -185,7 +185,6 @@ class RuntimeStubImpl : public ge::RuntimeStub {
   rtError_t rtLaunchSqeUpdateTask(uint32_t streamId, uint32_t taskId, void *src, uint64_t cnt, rtStream_t stm) override;
   rtError_t rtModelCreate(rtModel_t *model, uint32_t flag) override;
   rtError_t rtModelGetTaskId(void *handle, uint32_t *task_id, uint32_t *stream_id) override;
-  rtError_t rtsDeviceGetCapability(int32_t deviceId, int32_t devFeatureType, int32_t *val) override;
   rtError_t rtSetExceptionExtInfo(const rtArgsSizeInfo_t * const sizeInfo) override;
 
   rtError_t rtModelExecute(rtModel_t model, rtStream_t stream, uint32_t flag) override;

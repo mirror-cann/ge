@@ -18,7 +18,7 @@
 #include "core/utils/tensor_utils.h"
 #include "core/debug/kernel_tracing.h"
 #include "acl/acl_rt.h"
-#include "rts/rts_stream.h"
+#include "runtime/rt_external_stream.h"
 #include "kernel/common_kernel_impl/platform.h"
 
 namespace gert {

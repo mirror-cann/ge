@@ -9985,7 +9985,7 @@ TEST_F(UtestDavinciModel, InputBatchCopyH2DWithMergeH2DDisabled) {
   input_data.blobs.emplace_back(DataBuffer(input_buffer, input0_size, false));
   input_data.blobs.emplace_back(DataBuffer(input_buffer, input1_size, false, 1U));  // d2d
   input_data.blobs.emplace_back(DataBuffer(input_buffer, input2_size, false));
-  // all CopyInputData -> rtsMemcpyBatch
+  // all CopyInputData -> aclrtMemcpyBatch
   EXPECT_EQ(davinci_model.HandleInputData(input_data), SUCCESS);
   EXPECT_EQ(AclRuntimeStub::GetInstance()->input_mem_copy_batch_count_, 2);
 
@@ -10080,7 +10080,7 @@ TEST_F(UtestDavinciModel, InputBatchCopyH2DWithDeviceIdIs1) {
   input_data.blobs.emplace_back(DataBuffer(input_buffer, input0_size, false));
   input_data.blobs.emplace_back(DataBuffer(input_buffer, input1_size, false, 1U));  // d2d
   input_data.blobs.emplace_back(DataBuffer(input_buffer, input2_size, false));
-  // all CopyInputData -> rtsMemcpyBatch
+  // all CopyInputData -> aclrtMemcpyBatch
   EXPECT_EQ(davinci_model.HandleInputData(input_data), SUCCESS);
   EXPECT_EQ(AclRuntimeStub::GetInstance()->input_mem_copy_batch_count_, 2);
 
@@ -10283,7 +10283,7 @@ TEST_F(UtestDavinciModel, InputBatchCopyH2DButNotSupportedWithMergeH2DDisabled) 
   input_data.blobs.emplace_back(DataBuffer(input_buffer, input0_size, false));
   input_data.blobs.emplace_back(DataBuffer(input_buffer, input1_size, false, 1U)); // d2d
   input_data.blobs.emplace_back(DataBuffer(input_buffer, input2_size, false));
-  // all CopyInputData -> rtsMemcpyBatch
+  // all CopyInputData -> aclrtMemcpyBatch
   EXPECT_EQ(davinci_model.HandleInputData(input_data), SUCCESS);
   EXPECT_EQ(RuntimeStub::GetInstance()->input_mem_copy_batch_count_, 0);
 
@@ -10483,7 +10483,7 @@ TEST_F(UtestDavinciModel, InputBatchCopyH2DFailedWithMergeH2DDisabled) {
   input_data.blobs.emplace_back(DataBuffer(input_buffer, input0_size, false));
   input_data.blobs.emplace_back(DataBuffer(input_buffer, input1_size, false, 1U));
   input_data.blobs.emplace_back(DataBuffer(input_buffer, input2_size, false));
-  // all CopyInputData -> rtsMemcpyBatch
+  // all CopyInputData -> aclrtMemcpyBatch
   EXPECT_EQ(davinci_model.HandleInputData(input_data), RT_FAILED);
 
   free(input_buffer);
@@ -10556,7 +10556,7 @@ TEST_F(UtestDavinciModel, InputBatchCopyH2DEnbledButOneInputWithMergeH2DEnabled)
   EXPECT_NE(input_buffer, nullptr);
 
   input_data.blobs.emplace_back(DataBuffer(input_buffer, input0_size, false, 1));  // d2d
-  // all CopyInputData -> rtsMemcpyBatch
+  // all CopyInputData -> aclrtMemcpyBatch
   EXPECT_EQ(davinci_model.HandleInputData(input_data), SUCCESS);
   EXPECT_EQ(RuntimeStub::GetInstance()->input_mem_copy_batch_count_, 0);
 
@@ -10630,7 +10630,7 @@ TEST_F(UtestDavinciModel, InputBatchCopyH2DEnbledButOneInputWithMergeH2DDisabled
   EXPECT_NE(input_buffer, nullptr);
 
   input_data.blobs.emplace_back(DataBuffer(input_buffer, input0_size, false));
-  // all CopyInputData -> rtsMemcpyBatch
+  // all CopyInputData -> aclrtMemcpyBatch
   EXPECT_EQ(davinci_model.HandleInputData(input_data), SUCCESS);
   EXPECT_EQ(RuntimeStub::GetInstance()->input_mem_copy_batch_count_, 0);
 
@@ -10732,7 +10732,7 @@ TEST_F(UtestDavinciModel, InputBatchCopyFallbackFailedWithMergeH2DDisabled) {
   input_data.blobs.emplace_back(DataBuffer(input_buffer, input0_size, false));
   input_data.blobs.emplace_back(DataBuffer(input_buffer, input1_size, false));
   input_data.blobs.emplace_back(DataBuffer(input_buffer, input2_size, false));
-  // all CopyInputData -> rtsMemcpyBatch
+  // all CopyInputData -> aclrtMemcpyBatch
   EXPECT_NE(davinci_model.HandleInputData(input_data), SUCCESS);
   EXPECT_EQ(RuntimeStub::GetInstance()->input_mem_copy_batch_count_, 0);
 

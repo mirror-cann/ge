@@ -336,14 +336,6 @@ const std::list<ge::GeFakeLaunchArgs> &RuntimeStubImpl::GetAllLaunchArgs() const
   return all_launch_args_;
 }
 
-rtError_t RuntimeStubImpl::rtsDeviceGetCapability(int32_t deviceId, int32_t devFeatureType, int32_t *val)
-{
-  (void) deviceId;
-  (void) devFeatureType;
-  *val = 16;
-  return RT_ERROR_NONE;
-}
-
 rtError_t RuntimeStubImpl::rtSetExceptionExtInfo(const rtArgsSizeInfo_t * const sizeInfo) {
   lite_exception_args_.emplace_back(reinterpret_cast<uintptr_t>(sizeInfo->infoAddr));
   return RT_ERROR_NONE;

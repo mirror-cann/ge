@@ -25,7 +25,7 @@
 #include "graph_metadef/graph/utils/file_utils.h"
 #include "framework/common/runtime_tensor_desc.h"
 #include "runtime/rt.h"
-// 待rt.h移除后再替换为rt_external_device.h，目前替换后有符号存在歧义问题
+// 待rt.h删除后再替换
 #include "runtime/rts/rts_device.h"
 #include "acl/acl_rt.h"
 #include "common/aclrt_malloc_helper.h"
@@ -160,7 +160,7 @@ Status DataDumper::SaveOpDebugId(const uint32_t task_id, const uint32_t stream_i
   GE_CHK_RT(aclrtGetDevice(&device_id));
   GE_RETURN_WITH_LOG_IF_TRUE(device_id < 0, "Check device_id %d failed", device_id);
 
-  GE_CHK_RT(rtsDeviceGetCapability(device_id, RT_FEATURE_SYSTEM_TASKID_BIT_WIDTH, &bit_width));
+  GE_CHK_RT(rtGetDeviceCapability(device_id, RT_MODULE_TYPE_SYSTEM, RT_FEATURE_SYSTEM_TASKID_BIT_WIDTH, &bit_width));
   if (bit_width == k16BitWidth) {
     op_debug_task_id_ = task_id & k16BitsMask;
   } else {

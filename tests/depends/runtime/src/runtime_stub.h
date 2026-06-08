@@ -213,10 +213,7 @@ class RuntimeStub {
   virtual rtError_t rtModelBindStream(rtModel_t model, rtStream_t stream, uint32_t flag);
   virtual rtError_t rtModelUnbindStream(rtModel_t model, rtStream_t stream);
   virtual rtError_t rtModelGetTaskId(void *handle, uint32_t *task_id, uint32_t *stream_id);
-
-  // 待engines调用处删除后移除
-  virtual rtError_t rtsGetThreadLastTaskId(uint32_t *taskId);
-  virtual rtError_t rtsDeviceGetCapability(int32_t deviceId, int32_t devFeatureType, int32_t *val);
+  virtual rtError_t rtGetDeviceCapability(int32_t device, int32_t moduleType, int32_t featureType, int32_t *value);
 
   virtual rtError_t rtModelExecute(rtModel_t model, rtStream_t stream, uint32_t flag){
     return RT_ERROR_NONE;
