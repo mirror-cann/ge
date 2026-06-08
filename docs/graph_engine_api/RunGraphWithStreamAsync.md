@@ -39,7 +39,7 @@
     如下两种情况用户可以不分配输出内存：
 
     -   用户通过[RegisterExternalAllocator](RegisterExternalAllocator.md)设置了外置allocator，如果没有分配输出内存，由GE调用外置allocator的接口分配内存，用户需要在外置allocator析构前释放这块内存。
-    -   用户没有设置外置allocator，动态图场景，如果没有分配输出内存，GE使用内置allocator分配内存，内存的生命周期与图的生命周期保持一致，用户需要在图卸载前（Session析构前、GEFinalize前）主动释放此内存。
+    -   用户没有设置外置allocator，静态图或动态图场景，如果没有分配输出内存，GE使用内置allocator分配内存，内存的生命周期与图的生命周期保持一致，用户需要在图卸载前（Session析构前、GEFinalize前）主动释放此内存。
 
 ## 函数原型<a name="section1831611148519"></a>
 

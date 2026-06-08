@@ -86,6 +86,7 @@ ge::Status GeSessionExecuteGraphWithStreamAsync(ge::Session &session, uint32_t g
 <td class="cellrowborder" valign="top" width="12.4%" headers="mcps1.1.4.1.2 "><p id="p1475110353246"><a name="p1475110353246"></a><a name="p1475110353246"></a>输出</p>
 </td>
 <td class="cellrowborder" valign="top" width="74.53%" headers="mcps1.1.4.1.3 "><p id="p1764645915393"><a name="p1764645915393"></a><a name="p1764645915393"></a>当前子图对应的输出数据，为Device上的内存空间。</p>
+<p id="p1764645915395"><a name="p1764645915395"></a><a name="p1764645915395"></a>如果没有分配输出内存，且未通过[RegisterExternalAllocator](RegisterExternalAllocator.md)注册外置allocator，GE使用内置allocator分配内存，用户需要在图卸载前主动释放此内存。</p>
 </td>
 </tr>
 </tbody>
@@ -115,7 +116,7 @@ ge::Status GeSessionExecuteGraphWithStreamAsync(ge::Session &session, uint32_t g
 
 ## 约束说明<a name="section24049039"></a>
 
--   调用该接口前，需要确定好Device上分配的内存大小。
+-   调用该接口前，需要确定好Device上分配的内存大小。若未注册外置allocator且未分配输出内存，GE使用内置allocator分配内存，用户需要在图卸载前主动释放此内存。
 -   调用该接口前，需要完成[CompileGraph](CompileGraph.md)及[GeSessionLoadGraph](GeSessionLoadGraph.md)流程。
 -   调用该接口前，需要通过acl提供的**aclrtCreateStream**接口创建Stream。
 -   得到输出运行结果前，需要通过**aclrtSynchronizeStream**接口保证Stream上的任务已经执行完。
