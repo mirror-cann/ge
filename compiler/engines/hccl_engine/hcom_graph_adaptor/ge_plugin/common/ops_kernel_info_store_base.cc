@@ -173,7 +173,7 @@ HcclResult HCCLOpsKernelInfoStore::GetWorkSpaceTaskInfo(const ge::GETaskKernelHc
                                                             void **workSpace, uint64_t &memSize) const {
   *workSpace = hcclInfo.workSpaceAddr;
   memSize = hcclInfo.workSpaceMemSize;
-  HCCL_INFO("get input address[0x%016llx] len[%llu] from task info success.", (uintptr_t)hcclInfo.workSpaceAddr, hcclInfo.workSpaceMemSize);
+  HCCL_INFO("get input address[0x%016llx] len[%llu] from task info success.", static_cast<uintptr_t>(hcclInfo.workSpaceAddr), hcclInfo.workSpaceMemSize);
   return HCCL_SUCCESS;
 }
 
