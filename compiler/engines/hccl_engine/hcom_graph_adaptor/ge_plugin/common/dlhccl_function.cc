@@ -378,11 +378,11 @@ HcclResult DlHcclFunction::dlHcclSetAivSelectOpParamGraphMode(OpParamGraphModePt
   return dlHcclSetAivSelectOpParamGraphModeFunc(opParam, aivCoreLimit);
 }
 
-HcclResult DlHcclFunction::dlHcclCalcOpResOfflineGraphMode(OpParamGraphModePtr opParam, u64 *opMemSize, u32 *streamNum, u32 *taskNum, const u32 *aivCoreNum) {
+HcclResult DlHcclFunction::dlHcclCalcOpResOfflineGraphMode(OpParamGraphModePtr opParam, u64 *opMemSize, u32 *streamNum, u32 *taskNum, u32 *aivCoreNum) {
   return dlHcclCalcOpResOfflineGraphModeFunc(opParam, opMemSize, streamNum, taskNum, aivCoreNum);
 }
 
-HcclResult DlHcclFunction::dlHcclCalcOpResOnlineGraphMode(OpParamGraphModePtr opParam, u64 *opMemSize, u32 *streamNum, u32 *taskNum, const u32 *aivCoreNum) {
+HcclResult DlHcclFunction::dlHcclCalcOpResOnlineGraphMode(OpParamGraphModePtr opParam, u64 *opMemSize, u32 *streamNum, u32 *taskNum, u32 *aivCoreNum) {
   return dlHcclCalcOpResOnlineGraphModeFunc(opParam, opMemSize, streamNum, taskNum, aivCoreNum);
 }
 
@@ -449,11 +449,11 @@ HcclResult DlHcclFunction::dlHcclSetAivCoreLimitGraphMode(const char *group, u32
 }
 
 HcclResult DlHcclFunction::dlHcclSelectAlgGraphMode(const char *group, u64 count, HcclDataType dataType, HcclReduceOp op, HcclCMDType opType,
-                           int32_t aivCoreLimit, bool *ifAiv, const char *algName) {
+                           int32_t aivCoreLimit, bool *ifAiv, char *algName) {
     return dlHcclSelectAlgGraphModeFunc(group, count, dataType, op, opType, aivCoreLimit, ifAiv, algName);
 }
 
-HcclResult DlHcclFunction::dlHcclCalcAivCoreNumGraphMode(u32 aivCoreLimit, const u32 *blockDim) {
+HcclResult DlHcclFunction::dlHcclCalcAivCoreNumGraphMode(u32 aivCoreLimit, u32 *blockDim) {
     return dlHcclCalcAivCoreNumGraphModeFunc(aivCoreLimit, blockDim);
 }
 
