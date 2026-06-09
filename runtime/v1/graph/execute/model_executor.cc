@@ -835,8 +835,8 @@ Status ModelExecutor::GetStreamNum(const GeRootModelPtr &ge_root_model, uint32_t
     return FAILED;
   }
   stream_num = model_stream_num + static_cast<uint32_t>(hccl_follow_stream) + kExecuteStreamNumPerModel;
-  GELOGI("model total stream num: %u, model stream num: %u, hccl follow stream num: %zu", stream_num, model_stream_num,
-         hccl_follow_stream);
+  GELOGI("model_id=%u, model total stream num: %u, model stream num: %u, hccl follow stream num: %zu",
+         ge_root_model->GetModelId(), stream_num, model_stream_num, hccl_follow_stream);
 
   return SUCCESS;
 }

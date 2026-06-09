@@ -69,7 +69,8 @@ Status HcclTaskInfo::Init(const domi::TaskDef &task_def, DavinciModel *const dav
   // Get HCCL op
   hccl_op_desc_ = davinci_model_->GetOpByIndex(op_index);
   GE_CHECK_NOTNULL(hccl_op_desc_);
-  GELOGI("HcclTaskInfo Init, logical stream id: %u, op_index is: %u, op:%s(%s)", logic_stream_id_, op_index,
+  GELOGI("model_id=%u, HcclTaskInfo Init, logical stream id: %u, op_index is: %u, op:%s(%s)",
+         davinci_model_->GetModelId(), logic_stream_id_, op_index,
          hccl_op_desc_->GetName().c_str(), hccl_op_desc_->GetType().c_str());
   GetPrivateDefByTaskDef(hccl_op_desc_, task_def);
 
@@ -160,8 +161,9 @@ Status HcclTaskInfo::Init(const domi::TaskDef &task_def, DavinciModel *const dav
   TransToGETaskInfo(ge_task);
   const auto result = ops_kernel_store_->PrepareTaskAsync(ge_task);
   GE_CHK_BOOL_RET_STATUS(result == HCCL_SUCCESS, INTERNAL_ERROR, "[Prepare][Task] fail, return ret:%u", result);
-  GELOGI("HcclTaskInfo Init Success, prepare task success for op:%s(%s), logic stream id: %u, stream: %p.",
-      hccl_op_desc_->GetName().c_str(), hccl_op_desc_->GetType().c_str(), task_def.stream_id(), stream_);
+  GELOGI("model_id=%u, HcclTaskInfo Init Success, prepare task success for op:%s(%s), logic stream id: %u, stream: %p.",
+      davinci_model_->GetModelId(), hccl_op_desc_->GetName().c_str(), hccl_op_desc_->GetType().c_str(),
+      task_def.stream_id(), stream_);
   return SUCCESS;
 }
 
@@ -219,12 +221,12 @@ Status HcclTaskInfo::SetFollowStream(const ConstOpDescPtr &op_desc) {
     const std::vector<aclrtStream> &follow_stream_usage = main_follow_stream_mapping.at(main_stream_id);
     GE_CHECK_GE(hccl_stream_num, 0);
     if (static_cast<size_t>(hccl_stream_num) <= follow_stream_usage.size()) {
-      GELOGI("capacity of follow stream is enough to be reused.");
+      GELOGI("model_id=%u, capacity of follow stream is enough to be reused.", davinci_model_->GetModelId());
       for (size_t i = 0UL; i < static_cast<size_t>(hccl_stream_num); i++) {
         hccl_stream_list_.emplace_back(follow_stream_usage.at(i));
       }
     } else {
-      GELOGI("need to reuse follow stream and create new follow stream.");
+      GELOGI("model_id=%u, need to reuse follow stream and create new follow stream.", davinci_model_->GetModelId());
       const size_t created_stream_num = follow_stream_usage.size();
       for (const auto &stream : follow_stream_usage) {
         hccl_stream_list_.emplace_back(stream);
@@ -236,10 +238,11 @@ Status HcclTaskInfo::SetFollowStream(const ConstOpDescPtr &op_desc) {
         return RT_ERROR_TO_GE_STATUS(ret);
       }
     }
-    GELOGI("Initialize hccl slave stream success, hcclStreamNum =%" PRId64, hccl_stream_num);
+    GELOGI("model_id=%u, Initialize hccl slave stream success, hcclStreamNum =%" PRId64,
+           davinci_model_->GetModelId(), hccl_stream_num);
   } else {
-    GELOGI("need to create follow stream for %s with new mainstream %" PRId64 ".",
-      op_desc->GetName().c_str(), main_stream_id);
+    GELOGI("model_id=%u, need to create follow stream for %s with new mainstream %" PRId64 ".",
+      davinci_model_->GetModelId(), op_desc->GetName().c_str(), main_stream_id);
     const auto ret = CreateStream(hccl_stream_num, main_stream_id);
     if (ret != SUCCESS) {
       GELOGE(RT_FAILED, "[Create][Stream] for %s failed, stream id:%" PRId64 ", stream num:%" PRId64 ".",
@@ -251,7 +254,7 @@ Status HcclTaskInfo::SetFollowStream(const ConstOpDescPtr &op_desc) {
 }
 
 Status HcclTaskInfo::CreateStream(const int64_t stream_num, const int64_t main_stream_id) {
-  GELOGI("Start to create %" PRId64 " hccl stream.", stream_num);
+  GELOGI("model_id=%u, Start to create %" PRId64 " hccl stream.", davinci_model_->GetModelId(), stream_num);
   const bool isOverflowDetectionOpen = GetContext().IsOverflowDetectionOpen();
   GE_ASSERT_NOTNULL(davinci_model_->GetReusableStreamAllocator());
   // task num of follow stream cannot exceed that of main stream
@@ -273,7 +276,7 @@ Status HcclTaskInfo::CreateStream(const int64_t stream_num, const int64_t main_s
     GELOGD("hccl_stream addr is=%p", stream);
     davinci_model_->SaveHcclFollowStream(main_stream_id, stream);
   }
-  GELOGI("CreateStream success.");
+  GELOGI("model_id=%u, CreateStream success.", davinci_model_->GetModelId());
   return SUCCESS;
 }
 

@@ -615,12 +615,12 @@ void PrintOptionsWithLengthLimit(const std::map<std::string, std::string> &optio
     const std::string &value = item.second;
     
     if (value.length() > max_line_length) {
-      GELOGI("[option]%s: %s, value: %s", prefix.c_str(), key.c_str(), value.substr(0, max_line_length).c_str());
+      GELOGI("[option]%s: %s, value: [%s].", prefix.c_str(), key.c_str(), value.substr(0, max_line_length).c_str());
       for (size_t i = max_line_length; i < value.length(); i += max_line_length) {
         GELOGI("%s", value.substr(i, max_line_length).c_str());
       }
     } else {
-      GELOGI("[option]%s: %s, value: %s.", prefix.c_str(), key.c_str(), value.c_str());
+      GELOGI("[option]%s: %s, value: [%s].", prefix.c_str(), key.c_str(), value.c_str());
     }
   }
 }

@@ -702,7 +702,7 @@ Status DavinciModel::InitRuntimeParams() {
   if ((var_manager != nullptr) && (!var_manager->HasMemoryManager())) {
     var_manager->SetMemManager(&MemManager::Instance());
   }
-  GELOGI("InitRuntimeParams: %s.", runtime_param_.ToString().c_str());
+  GELOGI("InitRuntimeParams: model_id=%u, %s.", model_id_, runtime_param_.ToString().c_str());
   return SUCCESS;
 }
 
@@ -728,15 +728,15 @@ Status DavinciModel::BindModelStream() {
                  stream_list_.size());
   for (const auto &pair : stream_to_first_task_id_) {
     first_task_id_to_stream[pair.second] = pair.first;
-    GELOGI("stream id %" PRId64 ", first task id %" PRId64, pair.first, pair.second);
+    GELOGI("model_id=%u, stream id %" PRId64 ", first task id %" PRId64, model_id_, pair.first, pair.second);
   }
   for (const auto &pair : first_task_id_to_stream) {
     auto stream_id = pair.second;
     const auto bind_flag =
         (active_stream_indication_.count(stream_id) == 0U) ?
         ACL_MODEL_STREAM_FLAG_HEAD : ACL_MODEL_STREAM_FLAG_DEFAULT;
-    GELOGI("aclmdlRIBindStream[%zu] stream: %p, flag: %#x",
-        stream_id, stream_list_[stream_id], static_cast<uint32_t>(bind_flag));
+    GELOGI("model_id=%u, aclmdlRIBindStream[%zu] stream: %p, flag: %#x",
+        model_id_, stream_id, stream_list_[stream_id], static_cast<uint32_t>(bind_flag));
     GE_CHK_RT_RET(aclmdlRIBindStream(rt_model_handle_,
         stream_list_[stream_id], static_cast<uint32_t>(bind_flag)));
   }
@@ -888,7 +888,7 @@ Status DavinciModel::RecoverModel() {
   }
 
   for(const auto& pair : stream_to_task_index_list_) {
-    GELOGI("recover stream:%" PRIu64 ", task num:%zu", pair.first, pair.second.size());
+    GELOGI("model_id=%u, recover stream:%" PRIu64 ", task num:%zu", model_id_, pair.first, pair.second.size());
     // 从流清理
     if (main_follow_stream_mapping_.find(pair.first) != main_follow_stream_mapping_.end()) {
       for (auto &follow_stream : main_follow_stream_mapping_[pair.first]) {
@@ -1453,7 +1453,7 @@ Status DavinciModel::InitRuntimeResource() {
   for (uint32_t i = 0U; i < runtime_param_.stream_num; ++i) {
     uint32_t stream_flags = RT_STREAM_PERSISTENT;
     if (huge_streams.count(static_cast<int32_t>(i)) > 0U) {
-      GELOGI("Stream %u is huge stream.", i);
+      GELOGI("model_id=%u, Stream %u is huge stream.", model_id_, i);
       stream_flags |= RT_STREAM_HUGE;
     }
     if (hcom_streams_.count(i) > 0U || hcom_attach_streams_.count(i) > 0U) {
@@ -6117,7 +6117,8 @@ Status DavinciModel::SetStreamLockOrUnlocK(aclrtStream stm, const bool is_lock) 
 }
 
 Status DavinciModel::DistributeTask(const domi::ModelTaskDef &model_task_def) {
-  GELOGI("DistributeTask in: model task: %d, cpu task: %zu", model_task_def.task().size(), cpu_task_list_.size());
+  GELOGI("model_id=%u, DistributeTask in: model task: %d, cpu task: %zu",
+         model_id_, model_task_def.task().size(), cpu_task_list_.size());
   if (!stream_list_.empty()) {
     GE_ASSERT_SUCCESS(SetStreamLockOrUnlocK(stream_list_[0], true));
   }
@@ -6178,7 +6179,7 @@ Status DavinciModel::DistributeTask(const domi::ModelTaskDef &model_task_def) {
 
   // launch dump kernel to aicpu
   GE_CHK_STATUS_RET(data_dumper_.LoadDumpInfo(), "[Load][DumpInfo] failed, model_id: %u.", model_id_);
-  GELOGI("DistributeTask out");
+  GELOGI("model_id=%u, DistributeTask out", model_id_);
   return SUCCESS;
 }
 
@@ -7867,12 +7868,12 @@ Status DavinciModel::AddHeadStream() {
   }
 
   if (active_stream_list_.size() == 1U) {
-    GELOGI("Just one active stream, take as head stream.");
+    GELOGI("model_id=%u, Just one active stream, take as head stream.", model_id_);
     rt_head_stream_ = active_stream_list_[0U];
     is_pure_head_stream_ = false;
   } else {
     // Create stream which rt_model_handel running on, this is S0, TS stream.
-    GELOGI("Multiple active stream: %zu, create head stream.", active_stream_list_.size());
+    GELOGI("model_id=%u, Multiple active stream: %zu, create head stream.", model_id_, active_stream_list_.size());
     GE_CHECK_NOTNULL(reusable_stream_allocator_);
     GE_ASSERT_SUCCESS(reusable_stream_allocator_->GetOrCreateRtStream(rt_head_stream_, runtime_model_id_, priority_,
                                                                       RT_STREAM_PERSISTENT));
