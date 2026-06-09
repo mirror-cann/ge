@@ -67,7 +67,7 @@ HcclResult HcceDestroyOpParamGraphMode(OpParamGraphModePtr opParam);
 HcclResult HcceSetOpParamGraphModeOpType(OpParamGraphModePtr opParam, const char *opType);
 // RAII 工具类，用于管理 OpParamGraphModePtr 资源
 struct OpParamGraphModeDeleter {
-  void operator()(OpParamGraphModePtr ptr) const{
+  void operator()(OpParamGraphModePtr ptr) {
     if (ptr != nullptr) {
       HcceDestroyOpParamGraphMode(ptr);
     }

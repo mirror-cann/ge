@@ -257,7 +257,7 @@ HcclResult DlHcclFunction::initHcclGraphModeFunctions() {
   return HCCL_SUCCESS;
 }
 
-bool DlHcclFunction::isLoadHcclGraphModeFunctions() const{
+bool DlHcclFunction::isLoadHcclGraphModeFunctions() {
   return isHcclGraphModeFunctionsLoaded_;
 };
 
