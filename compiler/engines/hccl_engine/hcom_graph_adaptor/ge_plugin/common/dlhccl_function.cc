@@ -449,7 +449,7 @@ HcclResult DlHcclFunction::dlHcclSetAivCoreLimitGraphMode(const char *group, u32
 }
 
 HcclResult DlHcclFunction::dlHcclSelectAlgGraphMode(const char *group, u64 count, HcclDataType dataType, HcclReduceOp op, HcclCMDType opType,
-                           int32_t aivCoreLimit, bool *ifAiv, const char *algName) {
+                           int32_t aivCoreLimit, bool *ifAiv, char *algName) {
     return dlHcclSelectAlgGraphModeFunc(group, count, dataType, op, opType, aivCoreLimit, ifAiv, algName);
 }
 
