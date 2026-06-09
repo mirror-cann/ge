@@ -52,7 +52,7 @@ class AutoTuningHcomOpsKernelInfoStore : public HcomOpsKernelInfoStore {
   // add
   HcclResult HcomReduceOpKernel(const ge::GETaskInfo &task);
   HcclResult HcomReduceScatterOpKernel(const ge::GETaskInfo &task);
-  HcclResult HcomSendOpKernel(const ge::GETaskInfo &task);
+  HcclResult HcomSendOpKernel(const ge::GETaskInfo &task) const;
   HcclResult HcomReceiveOpKernel(const ge::GETaskInfo &task);
   HcclResult InitAlltoAllHostMem(HcclDataType recvType, u64 recvCount, void *hostMemEmpty);
 
