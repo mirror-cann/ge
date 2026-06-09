@@ -346,8 +346,8 @@ Status GetStridedSliceDIndexInput(const gert::InferSymbolShapeContext *context, 
   return SUCCESS;
 }
 
-graphStatus GetValueFromInputConstData(const gert::InferSymbolShapeContext *context, const size_t index,
-                                       std::vector<Expression> &dims) {
+graphStatus GetValueFromInputData(const gert::InferSymbolShapeContext *context, const size_t index,
+                                  std::vector<Expression> &dims) {
   GE_ASSERT_NOTNULL(context);
   const auto input_tensor = context->GetInputSymbolTensor(index);
   GE_UNSUPPORTED_IF_NULL(input_tensor);
@@ -359,27 +359,22 @@ graphStatus GetValueFromInputConstData(const gert::InferSymbolShapeContext *cont
   }
   for (const auto &symbol : *symbols) {
     int64_t dim = 0L;
-    // 确定值有效
-    if (symbol.GetConstValue(dim) == false) {
-      return UNSUPPORTED;
-    }
-    dims.emplace_back(Symbol(dim));
+    bool is_const = symbol.GetConstValue(dim);
+    dims.emplace_back(is_const ? Symbol(dim) : symbol);
+    GELOGD("GetValueFromInputData: idx=%zu is_const=%d val=%s node=%s[%s]", index, is_const,
+           dims.back().Serialize().get(), context->GetNodeName(), context->GetNodeType());
   }
   return SUCCESS;
 }
 
 Status GetStridedSliceIndexInput(const gert::InferSymbolShapeContext *context, StrdedSliceIndexInputs &index_input,
                                  size_t stride_index, bool is_stride_optional = false) {
-  auto ret = GetValueFromInputConstData(context, kStartInputIndex, index_input.start_indexes);
-  if (ret != SUCCESS) {
-    return ret;
-  }
-  ret = GetValueFromInputConstData(context, kEndInputIndex, index_input.end_indexes);
-  if (ret != SUCCESS) {
-    return ret;
-  }
+  auto ret = GetValueFromInputData(context, kStartInputIndex, index_input.start_indexes);
+  if (ret != SUCCESS) { return ret; }
+  ret = GetValueFromInputData(context, kEndInputIndex, index_input.end_indexes);
+  if (ret != SUCCESS) { return ret; }
   return (is_stride_optional && context->GetInputSymbolTensor(stride_index) == nullptr) ?
-    SUCCESS : GetValueFromInputConstData(context, stride_index, index_input.strides_indexes);
+    SUCCESS : GetValueFromInputData(context, stride_index, index_input.strides_indexes);
 }
 
 Status ConstructAxis(const gert::InferSymbolShapeContext *context, int64_t input_dim_num, std::vector<int64_t> &axes) {
@@ -409,14 +404,14 @@ Status ConstructBeginList(const gert::InferSymbolShapeContext *context, const st
                           const std::vector<int64_t> &axes, std::vector<Expression> &start_indexes) {
   start_indexes.resize(x_dims.size(), Symbol(0));
   std::vector<Expression> begin_values;
-  const graphStatus ret = GetValueFromInputConstData(context, kStartInputIndex, begin_values);
+  const graphStatus ret = GetValueFromInputData(context, kStartInputIndex, begin_values);
   if (ret != SUCCESS) {
-    GELOGI("Begin list is not const for node %s, error code %u.", context->GetNodeName(), static_cast<uint32_t>(ret));
+    GELOGI("Begin list is not available for node %s, error code %u.", context->GetNodeName(), static_cast<uint32_t>(ret));
     return ret;
   }
   for (size_t i = 0UL; i < axes.size() && i < x_dims.size(); ++i) {
     start_indexes[axes[i]] = begin_values[i];
-    GELOGD("Index %zu axe %lld begin %s", i, axes[i], begin_values[i].Serialize().get());
+    GELOGD("ConstructBegin: idx %zu axe %lld value %s", i, axes[i], begin_values[i].Serialize().get());
   }
 
   return SUCCESS;
@@ -428,14 +423,14 @@ Status ConstructEndList(const gert::InferSymbolShapeContext *context, const std:
     end_indexes.push_back(x_dims[i]);
   }
   std::vector<Expression> end_values;
-  const graphStatus ret = GetValueFromInputConstData(context, kEndInputIndex, end_values);
+  const graphStatus ret = GetValueFromInputData(context, kEndInputIndex, end_values);
   if (ret != SUCCESS) {
-    GELOGI("End list is not const for node %s, error code %u.", context->GetNodeName(), static_cast<uint32_t>(ret));
+    GELOGI("End list is not available for node %s, error code %u.", context->GetNodeName(), static_cast<uint32_t>(ret));
     return ret;
   }
   for (size_t i = 0UL; i < axes.size() && i < x_dims.size(); i++) {
     end_indexes[axes[i]] = end_values[i];
-    GELOGD("Index %zu axe %lld end %s", i, axes[i], end_values[i].Serialize().get());
+    GELOGD("ConstructEnd: idx %zu axe %lld value %s", i, axes[i], end_values[i].Serialize().get());
   }
 
   return SUCCESS;
@@ -450,13 +445,13 @@ Status ConstructStrideList(const gert::InferSymbolShapeContext *context, const s
   }
 
   std::vector<Expression> stride_values;
-  if (GetValueFromInputConstData(context, kStridesV2InputIndex, stride_values) != SUCCESS) {
+  if (GetValueFromInputData(context, kStridesV2InputIndex, stride_values) != SUCCESS) {
     GELOGW("Failed to get const stride values for node %s.", context->GetNodeName());
     return UNSUPPORTED;
   }
   for (size_t i = 0UL; i < axes.size() && i < x_dims.size(); i++) {
     strides_indexes[axes[i]] = stride_values[i];
-    GELOGD("Index %zu axe %lld stride %s", i, axes[i], strides_indexes[i].Serialize().get());
+    GELOGD("ConstructStride: idx %zu axe %lld value %s", i, axes[i], strides_indexes[i].Serialize().get());
   }
 
   return SUCCESS;
