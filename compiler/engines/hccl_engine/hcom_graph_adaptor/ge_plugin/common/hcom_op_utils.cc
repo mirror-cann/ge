@@ -231,7 +231,7 @@ HcclResult HcomOpUtils::CreateFusionConfigVersion(std::string &configVersion) {
   return HCCL_SUCCESS;
 }
 #endif
-HcclResult HcomOpUtils::GetPathFromEnv(char *getTunePath, std::string &fusionPath) {
+HcclResult HcomOpUtils::GetPathFromEnv(const char *getTunePath, std::string &fusionPath) {
   std::string libPath;
   if (getTunePath != nullptr) {
     libPath = getTunePath;
