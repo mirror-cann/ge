@@ -103,7 +103,7 @@ class DlHcclFunction {
   HcclResult dlHcclSetAivCoreLimitGraphMode(const char *group, u32 aivCoreLimit);
   HcclResult dlHcclSelectAlgGraphMode(const char *group, u64 count, HcclDataType dataType, HcclReduceOp op, HcclCMDType opType,
     int32_t aivCoreLimit, bool *ifAiv, const char *algName);
-  HcclResult dlHcclCalcAivCoreNumGraphMode(u32 aivCoreLimit, const u32 *blockDim);
+  HcclResult dlHcclCalcAivCoreNumGraphMode(u32 aivCoreLimit, u32 *blockDim);
   HcclResult dlHcclGetAlgExecParamGraphMode(const char *tag, const char *group, u64 count, void *inputPtr, void *outputPtr,
                                   HcclCMDType opType, bool clearEnable, HcclDataType dataType, HcclReduceOp op,
                                   void **commContext, u64 *len, u32 aivCoreLimit);

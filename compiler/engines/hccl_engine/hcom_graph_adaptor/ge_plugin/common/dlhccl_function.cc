@@ -453,7 +453,7 @@ HcclResult DlHcclFunction::dlHcclSelectAlgGraphMode(const char *group, u64 count
     return dlHcclSelectAlgGraphModeFunc(group, count, dataType, op, opType, aivCoreLimit, ifAiv, algName);
 }
 
-HcclResult DlHcclFunction::dlHcclCalcAivCoreNumGraphMode(u32 aivCoreLimit, const u32 *blockDim) {
+HcclResult DlHcclFunction::dlHcclCalcAivCoreNumGraphMode(u32 aivCoreLimit, u32 *blockDim) {
     return dlHcclCalcAivCoreNumGraphModeFunc(aivCoreLimit, blockDim);
 }
 
