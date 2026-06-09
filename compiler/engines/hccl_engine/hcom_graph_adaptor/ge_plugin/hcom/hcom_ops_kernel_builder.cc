@@ -1882,7 +1882,7 @@ HcclResult HcomOpsKernelBuilder::SetHcomOpParam(const ge::Node &node, HcomOpPara
       !rankTableStr.empty()) {
     hcomOpParam->rankTable = const_cast<char *>(rankTableStr.c_str());
   } else {
-    HCCL_INFO("get rankTableStr failed");
+    HCCL_INFO("rankTableStr not found");
   }
 
   std::string rankTablePath;
@@ -1896,7 +1896,7 @@ HcclResult HcomOpsKernelBuilder::SetHcomOpParam(const ge::Node &node, HcomOpPara
                 HCCL_E_INTERNAL);
     hcomOpParam->rankTable = const_cast<char *>(rankTableM.c_str());
   } else {
-    HCCL_INFO("get rankTablePath failed");
+    HCCL_INFO("rankTablePath not found");
   }
 
   HCCL_INFO(
