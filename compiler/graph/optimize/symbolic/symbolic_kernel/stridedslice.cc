@@ -22,8 +22,6 @@ constexpr size_t kXInputIndex = 0UL;
 constexpr size_t kStartInputIndex = 1UL;
 constexpr size_t kEndInputIndex = 2UL;
 constexpr size_t kStridesInputIndex = 3UL;
-constexpr size_t kAxesV2InputIndex = 3UL;     // V2: axes 在 index 3
-constexpr size_t kStridesV2InputIndex = 4UL;  // V2: strides 在 index 4
 constexpr size_t kOutputIndex = 0UL;
 
 enum class StridedSliceAttrIndex {
@@ -456,85 +454,6 @@ Status HandleMaskAttr(const std::pair<int64_t, int64_t> &ellipsis_mask_range,
   HandleBeginEndMask(strided_slice_attr, input_append_axis_shape, ellipsis_mask_range, index_input);
   return SUCCESS;
 }
-// StridedSliceV2: 通过 axes 将 begin/end/strides 映射到完整 rank 长度的数组
-Status ConstructV2IndexInput(gert::InferSymbolComputeContext *context,
-                             const std::vector<int64_t> &input_dims, StrdedSliceIndexInputs &index_input) {
-  std::vector<int64_t> begin_values;
-  auto ret = GetValueFromInputConstData(context, kStartInputIndex, begin_values);
-  if (ret != SUCCESS) { return ret; }
-  std::vector<int64_t> end_values;
-  ret = GetValueFromInputConstData(context, kEndInputIndex, end_values);
-  if (ret != SUCCESS) { return ret; }
-
-  int64_t rank = static_cast<int64_t>(input_dims.size());
-  // axes: 默认 0,1,...,len(begin)-1
-  std::vector<int64_t> axes;
-  auto axes_tensor = context->GetInputSymbolTensor(kAxesV2InputIndex);
-  if (axes_tensor != nullptr && axes_tensor->GetSymbolicValue() != nullptr) {
-    for (const auto &symbol : *axes_tensor->GetSymbolicValue()) {
-      int64_t val = 0L;
-      if (!symbol.GetConstValue(val)) { return UNSUPPORTED; }
-      axes.push_back(val >= 0 ? val : val + rank);
-    }
-  }
-  if (axes.empty()) {
-    for (int64_t i = 0L; i < static_cast<int64_t>(begin_values.size()) && i < rank; i++) { axes.push_back(i); }
-  }
-
-  // strides: 默认全 1
-  std::vector<int64_t> stride_values(axes.size(), 1L);
-  auto strides_tensor = context->GetInputSymbolTensor(kStridesV2InputIndex);
-  if (strides_tensor != nullptr && strides_tensor->GetSymbolicValue() != nullptr) {
-    stride_values.clear();
-    for (const auto &symbol : *strides_tensor->GetSymbolicValue()) {
-      int64_t val = 0L;
-      if (!symbol.GetConstValue(val)) { return UNSUPPORTED; }
-      stride_values.push_back(val);
-    }
-  }
-
-  // 构造 rank 长度数组: 默认 begin=0, end=input_dim, strides=1
-  index_input.start_indexes.assign(rank, 0L);
-  index_input.end_indexes = input_dims;
-  index_input.strides_indexes.assign(rank, 1L);
-  for (size_t i = 0UL; i < axes.size() && i < begin_values.size() && i < end_values.size(); i++) {
-    auto axis = axes[i];
-    GE_ASSERT_TRUE(axis >= 0 && axis < rank, "axis=%lld out of range [0, %lld)", axis, rank);
-    index_input.start_indexes[axis] = begin_values[i];
-    index_input.end_indexes[axis] = end_values[i];
-    if (i < stride_values.size()) { index_input.strides_indexes[axis] = stride_values[i]; }
-  }
-  return NormalizeInput(index_input.start_indexes, input_dims);
-}
-graphStatus ComputeStridedSliceOutput(gert::InferSymbolComputeContext *context,
-                                       StrdedSliceIndexInputs &index_input,
-                                       const std::vector<int64_t> &input_x_dims,
-                                       const std::vector<Expression> *input_x_symbols) {
-  StridedSliceAttr strided_slice_attr;
-  GetStridedSliceMaskAttr(context, strided_slice_attr);
-  HandleMaskConflict(strided_slice_attr);
-  std::pair<int64_t, int64_t> ellipsis_mask_range =
-      GetEllipsisMaskRange(strided_slice_attr, static_cast<int64_t>(index_input.start_indexes.size()),
-                           static_cast<int64_t>(input_x_dims.size()));
-  std::vector<int64_t> input_append_axis_shape;
-  GE_ASSERT_SUCCESS(AppendNewAxis(ellipsis_mask_range, strided_slice_attr.new_axis_mask, input_x_dims,
-                                  input_append_axis_shape, index_input));
-  GE_ASSERT_SUCCESS(HandleMaskAttr(ellipsis_mask_range, input_append_axis_shape, strided_slice_attr, index_input));
-
-  auto out_symbols_tensor = context->GetOutputSymbolTensor(kOutputIndex);
-  GE_ASSERT_NOTNULL(out_symbols_tensor);
-  std::vector<Expression> output_symbols_shape;
-  GE_ASSERT_SUCCESS(
-      CalcOutputShape(strided_slice_attr.shrink_axis_mask, ellipsis_mask_range, index_input, output_symbols_shape));
-  GE_ASSERT_NOTNULL(out_symbols_tensor->MutableSymbolicValue());
-  out_symbols_tensor->MutableOriginSymbolShape().MutableDims() = output_symbols_shape;
-  auto output_symbols_value = out_symbols_tensor->MutableSymbolicValue();
-  GE_ASSERT_SUCCESS(
-      StridedSliceOutputSymbolsValue(*input_x_symbols, input_append_axis_shape, index_input, *output_symbols_value));
-  GELOGD("%s[%s] kernel success, %s", context->GetNodeName(), context->GetNodeType(),
-         SymbolicInferUtil::DumpSymbolTensor(*out_symbols_tensor).c_str());
-  return SUCCESS;
-}
 }  // namespace
 
 static graphStatus StridedSliceSymbolicKernelCompute(gert::InferSymbolComputeContext *context) {
@@ -562,68 +481,31 @@ static graphStatus StridedSliceSymbolicKernelCompute(gert::InferSymbolComputeCon
            context->GetNodeName(), context->GetNodeType());
     return UNSUPPORTED;
   }
-  return ComputeStridedSliceOutput(context, index_input, input_x_dims, input_x_symbols);
-}
-REGISTER_SYMBOLIC_KERNEL(StridedSlice, StridedSliceSymbolicKernelCompute);
-REGISTER_SYMBOLIC_KERNEL(StridedSliceD, StridedSliceSymbolicKernelCompute);
-
-static graphStatus StridedSliceV2SymbolicKernelCompute(gert::InferSymbolComputeContext *context) {
-  GE_ASSERT_NOTNULL(context);
-  GELOGD("StridedSliceV2 Symbolic Kernel in, node %s[%s].", context->GetNodeName(), context->GetNodeType());
-  std::vector<int64_t> input_x_dims;
-  if (!context->GetConstInputDims(kXInputIndex, input_x_dims)) { return UNSUPPORTED; }
-  auto input_x_symbols = context->GetInputSymbolTensor(kXInputIndex)->GetSymbolicValue();
-  if (input_x_symbols == nullptr) {
-    GELOGW("SymbolicKernel compute unsupported, reason: get input symbolic value failed, node %s[%s].",
-           context->GetNodeName(), context->GetNodeType());
-    return UNSUPPORTED;
-  }
-
-  StrdedSliceIndexInputs index_input;
-  auto ret = ConstructV2IndexInput(context, input_x_dims, index_input);
-  if (ret != SUCCESS) { return ret; }
-
-  return ComputeStridedSliceOutput(context, index_input, input_x_dims, input_x_symbols);
-}
-REGISTER_SYMBOLIC_KERNEL(StridedSliceV2, StridedSliceV2SymbolicKernelCompute);
-
-// StridedSliceV3: 无 mask 属性，仅按 axes 对 begin/end/strides 做切片，输出 shape 保留全部维度
-static graphStatus StridedSliceV3SymbolicKernelCompute(gert::InferSymbolComputeContext *context) {
-  GE_ASSERT_NOTNULL(context);
-  GELOGD("StridedSliceV3 Symbolic Kernel in, node %s[%s].", context->GetNodeName(), context->GetNodeType());
-  std::vector<int64_t> input_x_dims;
-  if (!context->GetConstInputDims(kXInputIndex, input_x_dims)) { return UNSUPPORTED; }
-  auto input_x_symbols = context->GetInputSymbolTensor(kXInputIndex)->GetSymbolicValue();
-
-  StrdedSliceIndexInputs index_input;
-  auto ret = ConstructV2IndexInput(context, input_x_dims, index_input);
-  if (ret != SUCCESS) { return ret; }
-
-  // V3 无 mask，直接逐轴计算：Ceiling((end - begin) / stride)
-  std::vector<int64_t> output_dims = input_x_dims;
-  for (size_t i = 0UL; i < index_input.start_indexes.size() && i < index_input.end_indexes.size(); i++) {
-    auto stride = i < index_input.strides_indexes.size() ? index_input.strides_indexes[i] : 1L;
-    GE_ASSERT_TRUE(stride != 0L, "strides[%zu] is 0", i);
-    int64_t result_dim = std::max(0L, static_cast<int64_t>(
-        std::ceil(static_cast<float>(index_input.end_indexes[i] - index_input.start_indexes[i]) /
-                  static_cast<float>(stride))));
-    output_dims[i] = result_dim;
-  }
+  StridedSliceAttr strided_slice_attr;
+  GetStridedSliceMaskAttr(context, strided_slice_attr);
+  HandleMaskConflict(strided_slice_attr);
+  std::pair<int64_t, int64_t> ellipsis_mask_range =
+      GetEllipsisMaskRange(strided_slice_attr, static_cast<int64_t>(index_input.start_indexes.size()),
+                           static_cast<int64_t>(input_x_dims.size()));
+  std::vector<int64_t> input_append_axis_shape;
+  GE_ASSERT_SUCCESS(AppendNewAxis(ellipsis_mask_range, strided_slice_attr.new_axis_mask, input_x_dims,
+                                  input_append_axis_shape, index_input));
+  GE_ASSERT_SUCCESS(HandleMaskAttr(ellipsis_mask_range, input_append_axis_shape, strided_slice_attr, index_input));
 
   auto out_symbols_tensor = context->GetOutputSymbolTensor(kOutputIndex);
   GE_ASSERT_NOTNULL(out_symbols_tensor);
   std::vector<Expression> output_symbols_shape;
-  for (auto dim : output_dims) { output_symbols_shape.emplace_back(Symbol(dim)); }
+  GE_ASSERT_SUCCESS(
+      CalcOutputShape(strided_slice_attr.shrink_axis_mask, ellipsis_mask_range, index_input, output_symbols_shape));
   GE_ASSERT_NOTNULL(out_symbols_tensor->MutableSymbolicValue());
   out_symbols_tensor->MutableOriginSymbolShape().MutableDims() = output_symbols_shape;
-  if (input_x_symbols != nullptr) {
-    auto output_symbols_value = out_symbols_tensor->MutableSymbolicValue();
-    GE_ASSERT_SUCCESS(
-        StridedSliceOutputSymbolsValue(*input_x_symbols, input_x_dims, index_input, *output_symbols_value));
-  }
+  auto output_symbols_value = out_symbols_tensor->MutableSymbolicValue();
+  GE_ASSERT_SUCCESS(
+      StridedSliceOutputSymbolsValue(*input_x_symbols, input_append_axis_shape, index_input, *output_symbols_value));
   GELOGD("%s[%s] kernel success, %s", context->GetNodeName(), context->GetNodeType(),
          SymbolicInferUtil::DumpSymbolTensor(*out_symbols_tensor).c_str());
   return SUCCESS;
 }
-REGISTER_SYMBOLIC_KERNEL(StridedSliceV3, StridedSliceV3SymbolicKernelCompute);
+REGISTER_SYMBOLIC_KERNEL(StridedSlice, StridedSliceSymbolicKernelCompute);
+REGISTER_SYMBOLIC_KERNEL(StridedSliceD, StridedSliceSymbolicKernelCompute);
 }  // namespace ge

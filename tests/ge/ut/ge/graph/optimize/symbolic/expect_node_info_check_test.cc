@@ -16,16 +16,6 @@ bool ExpectNodeInfo::ExpectShapeCheck(const gert::SymbolShape &real_shape) const
     GE_ASSERT_TRUE(real_shape.IsScalar());
   }
   GE_ASSERT_EQ(real_shape.GetDimNum(), GetExpectSymbolOutputShape().size());
-  if (real_shape.GetDims() != GetExpectSymbolOutputShape()) {
-    std::string real_str, expect_str;
-    for (size_t i = 0; i < real_shape.GetDimNum(); i++) {
-      real_str += std::string(real_shape.GetDim(i).Serialize().get()) + (i + 1 < real_shape.GetDimNum() ? ", " : "");
-      expect_str += std::string(GetExpectSymbolOutputShape()[i].Serialize().get()) +
-                    (i + 1 < GetExpectSymbolOutputShape().size() ? ", " : "");
-    }
-    GELOGE(ge::FAILED, "ExpectShapeCheck FAIL: node=%s, actual=[%s], expected=[%s]",
-           GetNodeName().c_str(), real_str.c_str(), expect_str.c_str());
-  }
   GE_ASSERT_TRUE(real_shape.GetDims() == GetExpectSymbolOutputShape());
   return true;
 }
