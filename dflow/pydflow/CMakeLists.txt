@@ -15,7 +15,7 @@ endif ()
 
 if (BUILD_OPEN_PROJECT OR ENABLE_OPEN_SRC)
     set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_LIST_DIR}/cmake/modules)
-    find_package(udf MODULE REQUIRED)
+    find_cann_package(udf MODULE REQUIRED)
 endif ()
 
 add_custom_target(dataflow_python ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/dataflow-0.0.1-py3-none-any.whl)
