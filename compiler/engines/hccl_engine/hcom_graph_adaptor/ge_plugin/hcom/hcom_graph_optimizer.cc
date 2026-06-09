@@ -1522,7 +1522,7 @@ HcclResult HcomGraphOptimizer::SetHcclOpParam(const ge::Node &node, HcomOpParam 
     }
 
     count = *std::max_element(sendCounts.begin(), sendCounts.end());
-    ret = HcceSetOpParamGraphModeDataCount(opParamPtr, &count);
+    ret = HcceSetOpParamGraphModeDataCount(opParam, &count);
     HCCL_INFO("ALLTOALLV Count[%llu]", count);
     CHK_PRT_RET(
       ret != HCCL_SUCCESS,
