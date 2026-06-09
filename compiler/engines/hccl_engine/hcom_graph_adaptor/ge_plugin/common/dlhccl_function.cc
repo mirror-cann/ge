@@ -378,11 +378,11 @@ HcclResult DlHcclFunction::dlHcclSetAivSelectOpParamGraphMode(OpParamGraphModePt
   return dlHcclSetAivSelectOpParamGraphModeFunc(opParam, aivCoreLimit);
 }
 
-HcclResult DlHcclFunction::dlHcclCalcOpResOfflineGraphMode(OpParamGraphModePtr opParam, u64 *opMemSize, u32 *streamNum, u32 *taskNum, const u32 *aivCoreNum) {
+HcclResult DlHcclFunction::dlHcclCalcOpResOfflineGraphMode(OpParamGraphModePtr opParam, u64 *opMemSize, u32 *streamNum, u32 *taskNum, u32 *aivCoreNum) {
   return dlHcclCalcOpResOfflineGraphModeFunc(opParam, opMemSize, streamNum, taskNum, aivCoreNum);
 }
 
-HcclResult DlHcclFunction::dlHcclCalcOpResOnlineGraphMode(OpParamGraphModePtr opParam, u64 *opMemSize, u32 *streamNum, u32 *taskNum, const u32 *aivCoreNum) {
+HcclResult DlHcclFunction::dlHcclCalcOpResOnlineGraphMode(OpParamGraphModePtr opParam, u64 *opMemSize, u32 *streamNum, u32 *taskNum, u32 *aivCoreNum) {
   return dlHcclCalcOpResOnlineGraphModeFunc(opParam, opMemSize, streamNum, taskNum, aivCoreNum);
 }
 

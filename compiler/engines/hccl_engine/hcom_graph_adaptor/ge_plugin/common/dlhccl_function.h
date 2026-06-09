@@ -79,8 +79,8 @@ class DlHcclFunction {
   HcclResult dlHcclSetOpParamGraphModeRankSize(OpParamGraphModePtr opParam, const u32 *rankSize);
   HcclResult dlHcclSetOpParamGraphModeHCCLBufferSize(OpParamGraphModePtr opParam, const u64 *hcclBufferSize);
   HcclResult dlHcclSetAivSelectOpParamGraphMode(OpParamGraphModePtr opParam, u32 aivCoreLimit);
-  HcclResult dlHcclCalcOpResOfflineGraphMode(OpParamGraphModePtr opParam, u64 *opMemSize, u32 *streamNum, u32 *taskNum, const u32 *aivCoreNum);
-  HcclResult dlHcclCalcOpResOnlineGraphMode(OpParamGraphModePtr opParam, u64 *opMemSize, u32 *streamNum, u32 *taskNum, const u32 *aivCoreNum);
+  HcclResult dlHcclCalcOpResOfflineGraphMode(OpParamGraphModePtr opParam, u64 *opMemSize, u32 *streamNum, u32 *taskNum, u32 *aivCoreNum);
+  HcclResult dlHcclCalcOpResOnlineGraphMode(OpParamGraphModePtr opParam, u64 *opMemSize, u32 *streamNum, u32 *taskNum, u32 *aivCoreNum);
   HcclResult dlHcclAllGatherGraphMode(void *sendBuf, void *recvBuf, uint64_t sendCount, HcclDataType dataType, const char *group, void *stream, const char *optag, void **streams, size_t streamCount, void *scratchMemAddr, uint64_t scratchMemSize);
   HcclResult dlHcclBroadcastGraphMode(void *buf, uint64_t count, HcclDataType dataType, uint32_t root, const char *group, void *stream, const char *optag, void **streams, size_t streamCount, void *scratchMemAddr, uint64_t scratchMemSize);
   HcclResult dlHcclReduceScatterVGraphMode(void *sendBuf, const void *sendCounts, const void *sendDispls, void *recvBuf,
