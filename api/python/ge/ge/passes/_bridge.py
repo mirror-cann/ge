@@ -16,7 +16,7 @@ import sys
 import threading
 from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Dict, Optional, cast
+from typing import Dict, Optional, cast, List
 
 from ge.graph import Graph
 from ge.graph import Node
@@ -106,7 +106,7 @@ def _release_replacement_graph(replacement: Graph, pass_name: str) -> int:
     return release_graph(replacement)
 
 
-def get_pass_patterns(instance_id: str) -> list[int]:
+def get_pass_patterns(instance_id: str) -> List[int]:
     pass_instance = _get_pattern_fusion_pass(instance_id)
     patterns = pass_instance.patterns()
     if patterns is None:

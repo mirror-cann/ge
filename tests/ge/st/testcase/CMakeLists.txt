@@ -351,6 +351,7 @@ target_include_directories(graph_engine_compile_test PRIVATE
 target_link_options(graph_engine_compile_test PRIVATE
         -Wl,--disable-new-dtags
         -Wl,-rpath,${CMAKE_BINARY_DIR}/compiler
+        -rdynamic
 )
 target_link_libraries(graph_engine_compile_test
         intf_llt_pub

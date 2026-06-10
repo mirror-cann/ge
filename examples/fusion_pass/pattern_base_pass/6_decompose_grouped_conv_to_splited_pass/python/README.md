@@ -23,11 +23,11 @@ python/
 ## 前置条件
 
 - 已完成 CANN 环境变量设置，设置方式为 `source ${ASCEND_PATH}/set_env.sh`，更多指导请参考 [C++ 样例 README](../cpp/README.md) 的配置环境变量步骤
-- **run 包编译使用的 Python 版本**与执行本样例的 Python 版本一致。原因是 Python pass 相关扩展模块等与编译时 Python ABI 相关，版本不一致时可能导入失败或加载异常
 - CANN 软件包安装请参考 [环境准备](../../../../../docs/build.md#1-环境准备)
 - 已安装图编译流程相关 Python 依赖：`attrs`、`decorator`、`sympy`、`numpy`、`psutil`、`scipy`
 
 run 包已包含 GE Python 运行时所需的 `ge_py` wheel，本节不需要再单独安装 `ge_py-*.whl`。
+Python pass 运行时会加载基于 `pybind11` 的预编译二进制组件。CANN 包优先提供与当前 Python 版本匹配的产物；若无匹配产物，会自动进入 fallback 编译流程。fallback 编译需要当前 Python 环境中已安装 `pybind11`。
 如果执行时提示缺少 `Conv2D` 等 ES API，再按下文“ES API 缺失时处理（可选）”生成并加载 `es_all`。
 
 ## 使用方式
@@ -74,20 +74,3 @@ export LD_LIBRARY_PATH="$PWD/build/es_output/lib64:${LD_LIBRARY_PATH:-}"
 Define MeetRequirements for PythonDecomposeGroupedConvToSplitedPass
 Define Replacement for PythonDecomposeGroupedConvToSplitedPass
 ```
-
-## Conda 环境示例（Python 3.11）
-
-如果本机没有现成的匹配环境，可以参考下面的方式创建：
-
-```bash
-conda create -n ge-pass-py311 python=3.11 -y
-conda activate ge-pass-py311
-python -m pip install --upgrade pip
-python -m pip install attrs decorator sympy numpy psutil scipy
-```
-
-创建环境后，请确认：
-
-- 该环境中的 Python 版本与 run 包编译时使用的 Python 版本一致
-- 再按 [C++ 样例 README](../cpp/README.md) 的配置环境变量步骤，完成环境变量设置
-- 最后按本文使用方式设置 `ASCEND_GE_PY_PASS_PATH` 并参考 C++ 样例的运行步骤

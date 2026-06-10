@@ -9,6 +9,7 @@
  */
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <atomic>
 #include <dlfcn.h>
 #include <sys/stat.h>
 #include <fstream>
@@ -16,6 +17,7 @@
 #include <sstream>
 #include <cstdio>
 #include <cstdlib>
+#include <cwchar>
 #include <unistd.h>
 #include <vector>
 #include "common/share_graph.h"
@@ -386,6 +388,36 @@ PatternFusionPassRuntimeSnapshot g_pattern_fusion_runtime_snapshot;
 void ResetPatternFusionRuntimeSnapshot() {
   g_pattern_fusion_runtime_snapshot = {};
 }
+
+std::atomic<bool> g_force_py_is_initialized_init_failure{false};
+std::atomic<uint32_t> g_py_is_initialized_call_count{0U};
+
+int QueryRealPyIsInitializedForUt() {
+  using PyIsInitializedFn = int (*)();
+  auto *py_is_initialized = reinterpret_cast<PyIsInitializedFn>(dlsym(RTLD_NEXT, "Py_IsInitialized"));
+  return (py_is_initialized == nullptr) ? 0 : py_is_initialized();
+}
+
+extern "C" int Py_IsInitialized() {
+  if (g_force_py_is_initialized_init_failure.load(std::memory_order_acquire)) {
+    const auto call_count = g_py_is_initialized_call_count.fetch_add(1U, std::memory_order_acq_rel);
+    return (call_count == 0U) ? 0 : QueryRealPyIsInitializedForUt();
+  }
+  return QueryRealPyIsInitializedForUt();
+}
+
+class ScopedPyIsInitializedInitFailureForUt {
+ public:
+  ScopedPyIsInitializedInitFailureForUt() {
+    g_py_is_initialized_call_count.store(0U, std::memory_order_release);
+    g_force_py_is_initialized_init_failure.store(true, std::memory_order_release);
+  }
+
+  ~ScopedPyIsInitializedInitFailureForUt() {
+    g_force_py_is_initialized_init_failure.store(false, std::memory_order_release);
+    g_py_is_initialized_call_count.store(0U, std::memory_order_release);
+  }
+};
 
 void *OpenLibraryFailedForUt(const char *path, int flags) {
   (void)path;
@@ -1434,8 +1466,64 @@ TEST_F(UtestFusionPassExecutor, PythonPassBridgeCApi_ConfiguredNativeModulePathF
   EXPECT_EQ(g_direct_bridge_registered_count, 0);
 
   PythonFusionPassBridgeArtifactConfig empty_config = {nullptr, nullptr};
-  EXPECT_EQ(api->set_artifact_config(&empty_config), SUCCESS);
+  ASSERT_EQ(api->set_artifact_config(&empty_config), SUCCESS);
+  g_direct_bridge_registered_count = 0;
+  EXPECT_EQ(api->register_passes(&registrar), FAILED);
+  EXPECT_EQ(g_direct_bridge_registered_count, 0);
   ForgetNativeModuleForUt();
+}
+
+TEST_F(UtestFusionPassExecutor, PythonPassPybindBridge_InterpreterInitializationFailed) {
+  ScopedTempDir temp_dir;
+  temp_dir.MakeDir("ge/passes");
+  WriteFile(temp_dir.CreateFilePath("ge/__init__.py"), "");
+  WriteFile(temp_dir.CreateFilePath("ge/passes/__init__.py"),
+            "def clear_registered_passes():\n"
+            "    pass\n");
+  const auto native_module_path = temp_dir.CreateFilePath("ge/passes/fake_native.py");
+  WriteFile(native_module_path, "configured_native_loaded = True\n");
+  WriteFile(temp_dir.CreateFilePath("ge/passes/_bridge.py"),
+            "def load_and_get_pass_descriptors():\n"
+            "    return []\n"
+            "\n"
+            "def clear_pass_holders():\n"
+            "    pass\n"
+            "\n"
+            "def clear_loaded_pass_modules():\n"
+            "    pass\n");
+  const auto *api = LoadBridgeApiForUt();
+  ASSERT_NE(api, nullptr);
+  ASSERT_NE(api->set_artifact_config, nullptr);
+  ASSERT_NE(api->register_passes, nullptr);
+  ASSERT_NE(api->reset_bridge_state, nullptr);
+
+  ForgetNativeModuleForUt();
+  const auto temp_python_path = temp_dir.FilePath("");
+  const char *old_python_path = getenv("PYTHONPATH");
+  const std::string python_path =
+      ((old_python_path == nullptr) || (old_python_path[0] == '\0'))
+          ? temp_python_path
+          : (temp_python_path + ":" + old_python_path);
+  ScopedEnvVar scoped_python_path("PYTHONPATH", python_path);
+  ScopedPythonPathForUt scoped_sys_path(temp_python_path);
+  PythonFusionPassBridgeArtifactConfig config = {nullptr, native_module_path.c_str()};
+  ASSERT_EQ(api->set_artifact_config(&config), SUCCESS);
+  api->reset_bridge_state();
+
+  PythonFusionPassRegistrar registrar = {&RecordPythonPassFromDirectBridge};
+  ASSERT_EQ(api->register_passes(&registrar), SUCCESS);
+  ASSERT_NE(QueryRealPyIsInitializedForUt(), 0);
+  api->reset_bridge_state();
+
+  g_direct_bridge_registered_count = 0;
+  {
+    ScopedPyIsInitializedInitFailureForUt scoped_init_failure;
+    EXPECT_EQ(api->register_passes(&registrar), FAILED);
+    EXPECT_GE(g_py_is_initialized_call_count.load(std::memory_order_acquire), 2U);
+  }
+  api->reset_bridge_state();
+  ForgetNativeModuleForUt();
+  EXPECT_EQ(g_direct_bridge_registered_count, 0);
 }
 
 TEST_F(UtestFusionPassExecutor, PythonPassBridgeCApi_LoadsConfiguredNativeModulePath) {

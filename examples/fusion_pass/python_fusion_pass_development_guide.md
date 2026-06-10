@@ -306,6 +306,8 @@ class PythonMyDecomposePass(DecomposePass):
 ```bash
 source ${ASCEND_PATH}/set_env.sh
 ```
+`ASCEND_PATH` 指向 CANN Toolkit 安装目录，更多安装路径说明见 [快速安装](../../docs/quick_install.md)。
+Python pass 运行时会加载基于 `pybind11` 构建的预编译二进制组件，该组件与 Python 版本相关。CANN 包内包含多 Python 版本的预编译产物，并默认安装当前 Python 版本对应的产物。运行时会优先加载与当前 Python 版本匹配的产物；如果不存在匹配产物，会进入 fallback 编译流程，fallback 编译依赖当前 Python 环境中已安装 `pybind11`。
 
 再告诉 GE 从哪里加载 Python pass：
 

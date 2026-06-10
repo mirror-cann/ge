@@ -226,7 +226,7 @@ def _replace_placeholders(value: str, replacements: Dict[str, str]) -> str:
     return resolved
 
 
-def _resolve_build_config(config: dict, python_info: PythonBuildInfo) -> dict:
+def _resolve_build_config(config: dict, python_info: PythonBuildInfo, fallback_root: Path) -> dict:
     if python_info.pybind_include is None:
         raise RuntimeError("Cannot resolve pybind11 include. Please install pybind11 for this Python.")
     if python_info.library is None:
@@ -243,6 +243,7 @@ def _resolve_build_config(config: dict, python_info: PythonBuildInfo) -> dict:
         "@CANN_INCLUDE_DIR@": os.fspath(cann_include),
         "@CANN_PKG_INC@": os.fspath(cann_pkg_inc),
         "@CANN_LIB64@": os.fspath(cann_lib64),
+        "@FALLBACK_ROOT@": os.fspath(fallback_root),
     }
 
     def resolve_obj(obj):
@@ -274,18 +275,21 @@ def _iter_target_sources(target_name: str, build_inputs: _BuildInputs) -> Iterab
     yield from sources
 
 
-def _target_include_args(target_config: dict, build_inputs: _BuildInputs) -> List[str]:
-    include_args: List[str] = []
-    for include_dir in target_config.get("include_dirs", []):
-        path = Path(include_dir)
-        if not path.is_absolute():
-            path = build_inputs.root / path
-        include_args.extend(["-I", os.fspath(path)])
-    return include_args
+def _target_compile_base_args(target_config: dict) -> List[str]:
+    compile_args: List[str] = []
+    for key in ("cxx_defines", "cxx_includes", "cxx_flags"):
+        args = target_config.get(key)
+        if not isinstance(args, list):
+            raise RuntimeError(f"Missing fallback {key}.")
+        compile_args.extend(args)
+    return compile_args
 
 
-def _target_define_args(target_config: dict) -> List[str]:
-    return [f"-D{define}" for define in target_config.get("defines", [])]
+def _target_link_args(target_config: dict) -> List[str]:
+    link_args = target_config.get("link_args")
+    if not isinstance(link_args, list):
+        raise RuntimeError("Missing fallback link args.")
+    return link_args
 
 
 def _compile_target_objects(target_name: str, target_config: dict,
@@ -293,11 +297,7 @@ def _compile_target_objects(target_name: str, target_config: dict,
     compiler = os.environ.get("CXX") or "c++"
     obj_dir = work_dir / f"{target_name}_obj"
     obj_dir.mkdir(parents=True, exist_ok=True)
-    base_args = (
-        _target_define_args(target_config) +
-        _target_include_args(target_config, build_inputs) +
-        list(target_config.get("compile_options", []))
-    )
+    base_args = _target_compile_base_args(target_config)
     objects: List[Path] = []
     for index, source_path in enumerate(_iter_target_sources(target_name, build_inputs)):
         object_path = obj_dir / f"{index}_{source_path.stem}.o"
@@ -312,11 +312,7 @@ def _link_target(target_config: dict, objects: List[Path], work_dir: Path) -> Pa
     output = work_dir / target_config["output"]
     command = [compiler, "-shared", "-o", os.fspath(output)]
     command.extend(os.fspath(obj) for obj in objects)
-    for library_dir in target_config.get("library_dirs", []):
-        if library_dir:
-            command.append("-L" + library_dir)
-    command.extend(target_config.get("link_options", []))
-    command.extend(link_library for link_library in target_config.get("link_libraries", []) if link_library)
+    command.extend(_target_link_args(target_config))
     _run_command(command)
     return output
 
@@ -337,6 +333,9 @@ def _build_targets(config: dict, build_inputs: _BuildInputs, work_dir: Path) -> 
         output_name = target_config.get("output")
         if not isinstance(output_name, str) or not output_name:
             raise RuntimeError(f"Missing fallback target output: {target_name}")
+        for key in ("cxx_defines", "cxx_includes", "cxx_flags", "link_args"):
+            if not isinstance(target_config.get(key), list):
+                raise RuntimeError(f"Missing fallback target {key}: {target_name}")
         built_targets[output_name] = _build_target(target_name, target_config, build_inputs, work_dir)
     return built_targets
 
@@ -345,7 +344,7 @@ def _compile_artifact_set(build_inputs: _BuildInputs, work_dir: Path) -> _Compil
     python_info = _query_current_python_build_info()
     if python_info is None:
         raise RuntimeError("Cannot resolve current Python build info.")
-    config = _resolve_build_config(build_inputs.config, python_info)
+    config = _resolve_build_config(build_inputs.config, python_info, build_inputs.root)
     work_dir.mkdir(parents=True, exist_ok=True)
     artifact_paths = _build_targets(config, build_inputs, work_dir)
     return _CompiledArtifactSet(artifact_paths=artifact_paths, python_info=python_info)

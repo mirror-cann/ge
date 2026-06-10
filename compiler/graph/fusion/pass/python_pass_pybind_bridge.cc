@@ -239,7 +239,7 @@ class PythonFusionPassPybindBridge {
         py::initialize_interpreter();
         owns_interpreter_ = true;
       } catch (const std::exception &err) {
-        GELOGW("Python interpreter initialization failed: %s", err.what());
+        GELOGE(FAILED, "Python interpreter initialization failed: %s", err.what());
         return FAILED;
       }
     }
@@ -248,10 +248,10 @@ class PythonFusionPassPybindBridge {
       SyncProcessEnvToPythonUnlocked();
       EnsureBridgeModuleUnlocked();
     } catch (const py::error_already_set &err) {
-      GELOGW("Prepare GE python pass module failed: %s", err.what());
+      GELOGE(FAILED, "Prepare GE python pass module failed: %s", err.what());
       return FAILED;
     } catch (const std::exception &err) {
-      GELOGW("Prepare GE python pass module failed: %s", err.what());
+      GELOGE(FAILED, "Prepare GE python pass module failed: %s", err.what());
       return FAILED;
     }
     return SUCCESS;
@@ -270,7 +270,7 @@ class PythonFusionPassPybindBridge {
 
   py::object LoadPassNativeModuleUnlocked() const {
     if (native_module_path_.empty()) {
-      return py::module_::import(kPassNativeModuleName);
+      throw std::runtime_error("python pass native module path is not configured");
     }
 
     py::module_ sys = py::module_::import("sys");

@@ -25,7 +25,6 @@ from pathlib import Path
 
 PACKAGE_NAME = "ge-py-pass-bridge"
 DIST_NAME = "ge_py_pass_bridge"
-COMPAT_NATIVE_MODULE = "_ge_pass_native.so"
 
 
 def _copy_artifact_files(artifact_dir: Path, artifact_root: Path) -> None:
@@ -34,15 +33,6 @@ def _copy_artifact_files(artifact_dir: Path, artifact_root: Path) -> None:
             target_path = artifact_root / file_path.relative_to(artifact_dir)
             target_path.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(file_path, target_path)
-
-
-def _copy_compat_native_module(artifact_dir: Path, project_dir: Path) -> None:
-    native_module = artifact_dir / COMPAT_NATIVE_MODULE
-    if not native_module.is_file():
-        raise RuntimeError(f"Cannot find native module for compatibility import: {native_module}")
-    compat_module = project_dir / "ge" / "passes" / COMPAT_NATIVE_MODULE
-    compat_module.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(native_module, compat_module)
 
 
 def _write_setup_py(project_dir: Path, version: str) -> None:
@@ -75,7 +65,7 @@ setup(
     description="GraphEngine Python pass native artifacts",
     packages=find_namespace_packages(include=["ge", "ge.*"]),
     include_package_data=True,
-    package_data={{"ge.passes": ["{COMPAT_NATIVE_MODULE}", "python_pass_artifacts/*/*"]}},
+    package_data={{"ge.passes": ["python_pass_artifacts/*/*"]}},
     distclass=BinaryDistribution,
     cmdclass={{"bdist_wheel": NativeBdistWheel}},
     zip_safe=False,
@@ -113,7 +103,6 @@ def build_wheel(args: argparse.Namespace) -> Path:
     artifact_root = project_dir / "ge" / "passes" / "python_pass_artifacts" / artifact_set_name
     artifact_root.mkdir(parents=True, exist_ok=True)
     _copy_artifact_files(artifact_dir, artifact_root)
-    _copy_compat_native_module(artifact_dir, project_dir)
     _write_setup_py(project_dir, args.version)
     try:
         _run_bdist_wheel(project_dir, output_dir, args.python_tag, args.wheel_platform)

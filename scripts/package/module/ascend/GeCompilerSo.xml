@@ -38,7 +38,6 @@
         <file value="libge_runner.so" file_type="shared"/>
         <file value="libge_runner_v2.so" file_type="shared"/>
         <file value="libeager_style_graph_builder_base.so" file_type="shared"/>
-        <file value="libge_python_pass_bridge.so" file_type="shared"/>
         <file value="libeager_style_graph_builder_base_static.a" file_type="static"/>
         <file value="libllm_engine.so" file_type="shared"/>
         <file value="libslice.so" file_type="shared"/>

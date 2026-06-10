@@ -15,6 +15,7 @@
 
 #include <string>
 
+#include "framework/common/debug/ge_log.h"
 #include "python_pass_artifact_selector.h"
 
 namespace ge {
@@ -195,6 +196,7 @@ inline bool RunEvalExpressionInProcess(const char *expression, std::string &resu
   result_utf8.clear();
   InProcessPythonApi py_api;
   if (!py_api.Resolve()) {
+    GELOGE(FAILED, "In-process python pass fallback codegen failed, required libpython symbols are not resolvable.");
     return false;
   }
 
@@ -206,11 +208,17 @@ inline bool RunEvalExpressionInProcess(const char *expression, std::string &resu
       ? py_api.run_string(expression, kPyEvalInput, globals, globals)
       : nullptr;
   if (result == nullptr) {
-    (void)py_api.FormatActivePythonError();
+    const auto error_message = py_api.FormatActivePythonError();
+    if (error_message.empty()) {
+      GELOGE(FAILED, "In-process python pass fallback codegen failed.");
+    } else {
+      GELOGE(FAILED, "In-process python pass fallback codegen failed: %s", error_message.c_str());
+    }
     return false;
   }
   const char *utf8 = py_api.unicode_as_utf8(result);
   if ((utf8 == nullptr) || (utf8[0] == '\0')) {
+    GELOGE(FAILED, "In-process python pass fallback codegen failed: result is empty.");
     py_api.dec_ref(result);
     return false;
   }
@@ -230,19 +238,34 @@ inline bool RunFallbackCodegenViaSubprocess(const python_pass_artifact::PythonRu
     python_command = ResolveCompatiblePythonCommand(runtime_key, deps.probe_runtime);
   }
   if (python_command.empty()) {
+    GELOGE(FAILED, "Python pass fallback codegen failed, no python command for runtime key[%s].",
+           runtime_key.ToString().c_str());
     return false;
   }
 
   std::string output;
   if (!deps.read_command_output(std::string(python_command) + kSubProcessFallbackScript, output)) {
+    GELOGE(FAILED, "Subprocess python pass fallback codegen failed, command[%s], output[%s].",
+           python_command.c_str(), output.c_str());
     return false;
   }
   gen_artifact_root = FetchLineByPrefix(output, kSubProcessFallbackRootPrefix);
-  return !gen_artifact_root.empty();
+  if (gen_artifact_root.empty()) {
+    GELOGE(FAILED, "Subprocess python pass fallback codegen failed, command[%s], "
+           "missing artifact root marker in output[%s].",
+           python_command.c_str(), output.c_str());
+    return false;
+  }
+  GELOGI("Subprocess python pass fallback codegen success, gen artifact root[%s].", gen_artifact_root.c_str());
+  return true;
 }
 
 inline bool RunFallbackCodegenInProcess(std::string &gen_artifact_root) {
-  return RunEvalExpressionInProcess(kInProcessFallbackExpression, gen_artifact_root);
+  if (!RunEvalExpressionInProcess(kInProcessFallbackExpression, gen_artifact_root)) {
+    return false;
+  }
+  GELOGI("In-process python pass fallback codegen success, gen artifact root[%s].", gen_artifact_root.c_str());
+  return true;
 }
 
 inline bool RunFallbackCodegen(const python_pass_artifact::PythonRuntimeKey &runtime_key,

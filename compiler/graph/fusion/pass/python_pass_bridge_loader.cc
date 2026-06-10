@@ -30,14 +30,12 @@
 namespace ge {
 namespace fusion {
 namespace {
-constexpr const char *kPythonFusionPassBridgeLibName = "libge_python_pass_bridge.so";
 constexpr const char *kPyIsInitializedSymbol = "Py_IsInitialized";
 constexpr const char *kPyGetVersionSymbol = "Py_GetVersion";
 constexpr const char *kPythonRuntimeProbeScript =
     " -c \"import sys; print('cp%d%d' % sys.version_info[:2]); print(sys.version.split()[0])\" 2>/dev/null";
 
 using python_pass_artifact::BuildPrebuiltBridgeLibraryCandidates;
-using python_pass_artifact::BuildLegacyBridgeLibraryCandidates;
 using python_pass_artifact::ParsePythonTag;
 using python_pass_artifact::PythonRuntimeKey;
 namespace loader_helper = python_pass_bridge_loader;
@@ -205,8 +203,7 @@ class PythonFusionPassBridgeLoader {
     const auto loader_library_path = GetLoaderLibraryPath();
     const auto deps = BuildBridgeLoadDependencies();
     if (TryLoadPrebuiltBridge(runtime_key, loader_library_path, deps) ||
-        TryLoadFallbackBridge(runtime_key, deps) ||
-        TryLoadLegacyBridge(runtime_key, loader_library_path, deps)) {
+        TryLoadFallbackBridge(runtime_key, deps)) {
       return SUCCESS;
     }
     GELOGE(FAILED, "Load python pass bridge library failed.");
@@ -250,12 +247,6 @@ class PythonFusionPassBridgeLoader {
     const auto candidate = python_pass_artifact::LoadBridgeCandidateFromArtifactRoot(
         gen_artifact_root, runtime_key, kPythonFusionPassBridgeAbiVersion);
     return TryLoadBridgeCandidates(runtime_key, {candidate}, deps);
-  }
-
-  bool TryLoadLegacyBridge(const PythonRuntimeKey &runtime_key, const std::string &loader_library_path,
-                           const loader_helper::BridgeLoadDependencies &deps) {
-    const auto candidates = BuildLegacyBridgeLibraryCandidates(loader_library_path, kPythonFusionPassBridgeLibName);
-    return TryLoadBridgeCandidates(runtime_key, candidates, deps);
   }
 
   std::mutex mutex_;

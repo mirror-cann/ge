@@ -374,20 +374,6 @@ TEST(PythonPassArtifactSelectorTest, BuildPrebuiltBridgeLibraryCandidatesReturns
   EXPECT_NE(candidates[0].artifact_root.find("cp313-linux"), std::string::npos);
 }
 
-TEST(PythonPassArtifactSelectorTest, BuildLegacyBridgeLibraryCandidatesReturnsLoaderLocalAndBareName) {
-  const ScopedEnvVar python_path(selector::kPythonPathEnvName, "");
-  ScopedTempTree tree;
-  ASSERT_FALSE(tree.Root().empty());
-  tree.MakeDir("run/lib64");
-
-  const auto candidates = selector::BuildLegacyBridgeLibraryCandidates(
-      tree.Path("run/lib64/ge_compiler.so"), "libge_python_pass_bridge.so");
-
-  ASSERT_EQ(candidates.size(), 2U);
-  EXPECT_EQ(candidates[0].bridge_path, tree.Path("run/lib64/libge_python_pass_bridge.so"));
-  EXPECT_EQ(candidates[1].bridge_path, "libge_python_pass_bridge.so");
-}
-
 TEST(PythonPassArtifactSelectorTest, BuildPrebuiltBridgeLibraryCandidatesSkipsInvalidManifest) {
   const ScopedEnvVar python_path(selector::kPythonPathEnvName, "");
   ScopedTempTree tree;
@@ -502,12 +488,7 @@ TEST(PythonPassBridgeLoaderHelperTest, BridgeApiValidationChecksAbiAndRequiredCa
   EXPECT_FALSE(loader_helper::IsBridgeApiValid(&invalid_api, 1U));
 }
 
-TEST(PythonPassBridgeLoaderHelperTest, BuildArtifactConfigKeepsEmptyFallbackConfig) {
-  const selector::BridgeLibraryCandidate legacy_candidate{"libge_python_pass_bridge.so", "", ""};
-  const auto legacy_config = loader_helper::BuildArtifactConfig(legacy_candidate);
-  EXPECT_EQ(legacy_config.artifact_root, nullptr);
-  EXPECT_EQ(legacy_config.native_module_path, nullptr);
-
+TEST(PythonPassBridgeLoaderHelperTest, BuildArtifactConfigSetsCandidateConfig) {
   const auto candidate = MakeBridgeCandidate();
   const auto config = loader_helper::BuildArtifactConfig(candidate);
   ASSERT_NE(config.artifact_root, nullptr);

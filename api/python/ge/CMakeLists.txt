@@ -106,6 +106,8 @@ add_custom_command(
                 ${GE_PYTHON_PASS_FALLBACK_CODEGEN_INIT_PY}
          COMMAND ${HI_PYTHON} ${CMAKE_CURRENT_SOURCE_DIR}/python_pass_native_build/gen_fallback_resources.py
             --output-dir ${GE_PYTHON_PASS_FALLBACK_CODEGEN_DIR}
+            --build-dir ${CMAKE_BINARY_DIR}
+            --cann-root ${ASCEND_INSTALL_PATH}
             --bridge-abi ${GE_PYTHON_PASS_BRIDGE_ABI_VERSION}
             --bridge-source ${GE_PYTHON_PASS_BRIDGE_SOURCES}
             --bridge-header ${GE_PYTHON_PASS_BRIDGE_HEADERS}

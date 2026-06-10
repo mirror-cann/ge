@@ -377,20 +377,6 @@ inline std::vector<BridgeLibraryCandidate> BuildPrebuiltBridgeLibraryCandidates(
   return candidates;
 }
 
-inline std::vector<BridgeLibraryCandidate> BuildLegacyBridgeLibraryCandidates(
-    const std::string &loader_library_path, const char *bridge_library_name) {
-  std::vector<BridgeLibraryCandidate> candidates;
-  if (!loader_library_path.empty()) {
-    candidates.push_back(BridgeLibraryCandidate{
-        JoinPath(DirName(loader_library_path), bridge_library_name),
-        "",
-        "",
-    });
-  }
-  candidates.push_back(BridgeLibraryCandidate{bridge_library_name, "", ""});
-  return candidates;
-}
-
 }  // namespace python_pass_artifact
 }  // namespace fusion
 }  // namespace ge
