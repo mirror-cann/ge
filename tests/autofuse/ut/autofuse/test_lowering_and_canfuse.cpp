@@ -1898,4 +1898,57 @@ TEST_F(LoweringAndCanfuseUT, SliceWithMixedLoadTypes) {
   SetCurShapeEnvContext(nullptr);
 }
 
+TEST_F(LoweringAndCanfuseUT, BroadcastToProdAxisProbe) {
+  [this]() {
+    auto data0 = es_graph_->CreateInput(0, "data0", nullptr);
+    data0.SetSymbolShape({"2500", "1", "1"});
+    auto shape = CreateConst(*es_graph_, ge::DT_INT64, {3}, std::vector<int64_t>{2500, 1, 125});
+    shape.SetSymbolShape({"3"});
+    auto broadcast = es::BroadcastTo(data0, shape);
+    broadcast.SetSymbolShape({"2500", "1", "125"});
+    auto prod = es::ReduceProdD(broadcast, {2}, true);
+    prod.SetSymbolShape({"2500", "1", "1"});
+    es_graph_->SetOutput(prod, 0);
+  }();
+
+  auto graph = es_graph_->Build();
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+
+  ge::AscIrLowerer lowerer;
+  ASSERT_EQ(lowerer.Lowering(cg), GRAPH_SUCCESS);
+  ASSERT_EQ(asc_adapt::GeFallback(cg), GRAPH_SUCCESS);
+  ASSERT_EQ(asc_adapt::SaveReduceOriginalAxisToFuseAttr(cg), GRAPH_SUCCESS);
+  FusionStrategySolver fusion_strategy_solver;
+  FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new AscBackendFusionDecider()));
+  EXPECT_EQ(fusion_strategy_solver.Fuse(cg), SUCCESS);
+  ASSERT_EQ(lowerer.Lifting(cg), GRAPH_SUCCESS);
+  AscBackendPostProcessor post_processor;
+  EXPECT_EQ(post_processor.Do(cg), SUCCESS);
+
+  size_t broadcast_count = 0U;
+  size_t prod_count = 0U;
+  for (const auto &node : cg->GetDirectNode()) {
+    if ((node->GetType() != kAscBackendType) && (node->GetType() != kFusedAscBackendType)) {
+      continue;
+    }
+    auto attr = BackendUtils::GetNodeAutoFuseAttr(node);
+    if ((attr == nullptr) || (attr->GetAscGraph() == nullptr)) {
+      continue;
+    }
+    EXPECT_EQ(attr->GetReduceOriginalAxis(), std::vector<int64_t>({0, 1}));
+    EXPECT_EQ(AutofuseUtils::VectorToStr(attr->GetReduceOriginalRepeats()), "[2500, 125]");
+    for (const auto &asc_node : attr->GetAscGraph()->GetAllNodes()) {
+      if (asc_node->GetType() == att::kBroadcast) {
+        ++broadcast_count;
+      }
+      if (asc_node->GetType() == "Prod") {
+        ++prod_count;
+      }
+    }
+  }
+  EXPECT_EQ(broadcast_count, 1U);
+  EXPECT_GT(prod_count, 0U);
+  SetCurShapeEnvContext(nullptr);
+}
+
 }  // namespace ge

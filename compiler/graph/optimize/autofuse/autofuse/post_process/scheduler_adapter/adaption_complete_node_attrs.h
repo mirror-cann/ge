@@ -290,6 +290,34 @@ inline Status FlashContinueGraphAxis(std::vector<AxisPtr> &axis, const std::vect
   return SUCCESS;
 }
 
+inline Status RemoveReduceOriginalInvalidAxis(const NodePtr &asc_node,
+                                             const std::vector<int64_t> &graph_invalid_axis_id) {
+  auto attr = BackendUtils::GetNodeAutoFuseAttr(asc_node);
+  GE_ASSERT_NOTNULL(attr);
+  auto reduce_original_axis = attr->GetReduceOriginalAxis();
+  auto reduce_original_repeats = attr->GetReduceOriginalRepeats();
+  if (reduce_original_axis.empty() || reduce_original_repeats.empty()) {
+    return SUCCESS;
+  }
+  GE_ASSERT_TRUE(reduce_original_axis.size() == reduce_original_repeats.size());
+
+  for (const auto axis_id : graph_invalid_axis_id) {
+    const auto it = std::find(reduce_original_axis.begin(), reduce_original_axis.end(), axis_id);
+    if (it == reduce_original_axis.end()) {
+      continue;
+    }
+    const auto axis_idx = static_cast<size_t>(std::distance(reduce_original_axis.begin(), it));
+    GELOGD("reduce original axis id %ld is del in node %s(%s).", axis_id, asc_node->GetName().c_str(),
+           asc_node->GetType().c_str());
+    reduce_original_axis.erase(reduce_original_axis.begin() + axis_idx);
+    reduce_original_repeats.erase(reduce_original_repeats.begin() + axis_idx);
+  }
+  GE_ASSERT_SUCCESS(FlashContinueNodeAxis(reduce_original_axis, graph_invalid_axis_id));
+  attr->SetReduceOriginalAxis(reduce_original_axis);
+  attr->SetReduceOriginalRepeats(reduce_original_repeats);
+  return SUCCESS;
+}
+
 inline Status RemoveGraphInvalidAxis(AscGraph &asc_graph, const std::vector<int64_t> &graph_invalid_axis_id) {
   const auto graph_attr = AscGraphUtils::GetComputeGraph(asc_graph)->GetAttrsGroup<AscGraphAttr>();
   GE_ASSERT_NOTNULL(graph_attr);
@@ -363,10 +391,12 @@ inline Status RemoveNodeInvalidAxis(const NodePtr &node, const std::vector<int64
   return SUCCESS;
 }
 
-inline Status RemoveInvalidAxis(AscGraph &asc_graph, const std::vector<int64_t> &graph_invalid_axis_id) {
+inline Status RemoveInvalidAxis(AscGraph &asc_graph, const NodePtr &asc_node,
+                                const std::vector<int64_t> &graph_invalid_axis_id) {
   if (graph_invalid_axis_id.empty()) {
     return SUCCESS;
   }
+  GE_ASSERT_SUCCESS(RemoveReduceOriginalInvalidAxis(asc_node, graph_invalid_axis_id));
   GE_ASSERT_SUCCESS(RemoveGraphInvalidAxis(asc_graph, graph_invalid_axis_id));
   for (const auto &node : AscGraphUtils::GetComputeGraph(asc_graph)->GetAllNodes()) {
     // torch data 没有任何轴或者node属性信息，直接跳过； gather data在前面特殊处理了
@@ -587,7 +617,7 @@ inline Status GetAndRemoveInvalidAxis(AscGraph &asc_graph, const NodePtr &asc_no
   GE_ASSERT_SUCCESS(RemoveGatherInvalidAxis(asc_graph, graph_invalid_axis_id));
   // 5、删除和刷新无效轴（使用 std::greater<int64_t> 作为比较器，实现从大到小的排序，删除轴后，剩余轴进行刷轴要从大到小开始刷）
   std::sort(graph_invalid_axis_id.begin(), graph_invalid_axis_id.end(), std::greater<int64_t>());
-  GE_ASSERT_SUCCESS(RemoveInvalidAxis(asc_graph, graph_invalid_axis_id));
+  GE_ASSERT_SUCCESS(RemoveInvalidAxis(asc_graph, asc_node, graph_invalid_axis_id));
   return SUCCESS;
 }
 
