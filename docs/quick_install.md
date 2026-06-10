@@ -120,46 +120,46 @@ docker run --name cann_container \
 
 ### 方式三：手动安装软件包
 
-1. **安装驱动与固件（可选，仅运行[样例](../examples/README.md)依赖）**
+- **场景1：体验master版本能力或基于master版本进行开发**   
 
-    驱动与固件的下载和安装操作请参考《[CANN软件安装指南](https://www.hiascend.com/document/redirect/CannCommunityInstWizard)》中“准备软件包”和“安装NPU驱动和固件”章节。驱动与固件是运行样例依赖，若仅编译环境，可以不安装。
+    1. **安装驱动与固件（可选，仅运行[样例](../examples/README.md)依赖）**
 
-2. **安装CANN包**    
+        驱动与固件是运行态依赖，若仅编译源码，可以不安装。使用`npu-smi info`检查是否有NPU相关信息，若没有，请参考《[CANN快速安装](https://www.hiascend.com/cann/download)》完成驱动与固件安装。
 
-   <a id="方式三-场景1"></a>**场景1：体验master版本能力或基于master版本进行开发**
+   2. **安装CANN包**
 
-     请单击[下载链接](https://ascend.devcloud.huaweicloud.com/artifactory/cann-run-mirror/software/master)获取最新时间版本，并根据产品型号和环境架构下载对应包。安装命令如下，更多指导请参考[CANN软件安装指南](https://www.hiascend.com/document/redirect/CannCommunityInstWizard)。
+         请单击[下载链接](https://ascend.devcloud.huaweicloud.com/artifactory/cann-run-mirror/software/master)获取最新时间版本，并根据产品型号和环境架构下载对应包。安装命令如下，更多指导请参考[CANN软件安装指南](https://www.hiascend.com/document/redirect/CannCommunityInstWizard)。
 
-     1. 安装CANN Toolkit开发套件包。
+         - 安装CANN Toolkit开发套件包。
 
-        ```bash
-        # 确保安装包具有可执行权限
-        chmod +x Ascend-cann-toolkit_${cann_version}_linux-${arch}.run
-        # 安装命令
-        ./Ascend-cann-toolkit_${cann_version}_linux-${arch}.run --install --install-path=${install_path}
-        ```
+            ```bash
+            # 确保安装包具有可执行权限
+            chmod +x Ascend-cann-toolkit_${cann_version}_linux-${arch}.run
+            # 安装命令
+            ./Ascend-cann-toolkit_${cann_version}_linux-${arch}.run --install --install-path=${install_path}
+            ```
 
-        - `${cann_version}`：表示CANN包版本号。
-        - `${arch}`：表示CPU架构，如`aarch64`、`x86_64`。
-        - `${install_path}`：表示指定安装路径，需要与Toolkit包安装在相同路径，root用户默认安装在`/usr/local/Ascend`目录。
+            - `${cann_version}`：表示CANN包版本号。
+            - `${arch}`：表示CPU架构，如`aarch64`、`x86_64`。
+            - `${install_path}`：表示指定安装路径，需要与Toolkit包安装在相同路径，root用户默认安装在`/usr/local/Ascend`目录。
     
-     2. 安装CANN ops算子包（可选，仅运行[样例](../examples/README.md)依赖）。
+         - 安装CANN ops算子包（可选，仅运行[样例](../examples/README.md)依赖）。
 
-        ```bash
-        # 确保安装包具有可执行权限
-        chmod +x Ascend-cann-${soc_name}-ops_${cann_version}_linux-${arch}.run
-        # 安装命令
-        ./Ascend-cann-${soc_name}-ops_${cann_version}_linux-${arch}.run --install --install-path=${install_path}
-        ```
+            ```bash
+            # 确保安装包具有可执行权限
+            chmod +x Ascend-cann-${soc_name}-ops_${cann_version}_linux-${arch}.run
+            # 安装命令
+            ./Ascend-cann-${soc_name}-ops_${cann_version}_linux-${arch}.run --install --install-path=${install_path}
+            ```
 
-        其中`${soc_name}`表示NPU型号名称。
+            其中`${soc_name}`表示NPU型号名称。
 
-     3. 安装运行依赖（可选，仅运行[样例](../examples/README.md)依赖）。
+         - 安装运行依赖（可选，仅运行[样例](../examples/README.md)依赖）。
 
-        ```bash
-        pip3 install attrs cython numpy decorator sympy cffi pyyaml pathlib2 psutil protobuf==3.20.0 scipy requests absl-py
-        ```
+            ```bash
+            pip3 install attrs cython numpy decorator sympy cffi pyyaml pathlib2 psutil protobuf==3.20.0 scipy requests absl-py
+            ```
 
-   **场景2：体验已发布版本能力或基于已发布版本进行开发**
+- **场景2：体验已发布版本能力或基于已发布版本进行开发**
 
     如果您想体验**官网正式发布的CANN包**能力，请访问[CANN官网下载中心](https://www.hiascend.com/cann/download)，选择对应版本CANN软件包（仅支持CANN 8.5.0及后续版本）进行安装。   
