@@ -159,7 +159,7 @@ checkopts() {
   BUILD_OUT_PATH="${BASEPATH}/build_out"
   
   # Process the options
-  parsed_args=$(getopt -a -o j:hvf: -l help,verbose,ge_compiler,ge_executor,dflow,asan,cov,rule_launch:,cann_3rd_lib_path:,extra-cmake-args:,output_path:,build_type:,build-type:,python_path:,enable-sign,sign-script:,version: -- "$@") || {
+  parsed_args=$(getopt -a -o j:hvf: -l help,verbose,ge_compiler,ge_executor,dflow,asan,tsan,cov,rule_launch:,cann_3rd_lib_path:,extra-cmake-args:,output_path:,build_type:,build-type:,python_path:,enable-sign,sign-script:,version: -- "$@") || {
     usage
     exit 1
   }
@@ -199,6 +199,10 @@ checkopts() {
         ;;
       --asan)
         ENABLE_ASAN="on"
+        shift
+        ;;
+      --tsan)
+        ENABLE_TSAN="on"
         shift
         ;;
       --cov)
@@ -413,6 +417,7 @@ build_single_pkg() {
   execute_command "cmake -D BUILD_OPEN_PROJECT=True \
         -D ENABLE_OPEN_SRC=True \
         -D ENABLE_ASAN=${ENABLE_ASAN} \
+        -D ENABLE_TSAN=${ENABLE_TSAN} \
         -D ENABLE_GCOV=${ENABLE_GCOV} \
         -D BUILD_METADEF=${BUILD_METADEF} \
         -D CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} \

@@ -171,7 +171,7 @@ target_include_directories(graph_base PRIVATE
 
 target_link_options(graph_base PRIVATE
     -Wl,-Bsymbolic
-    -Wl,--no-undefined
+    $<$<NOT:$<BOOL:${ENABLE_TSAN}>>:-Wl,--no-undefined>
 )
 
 target_link_libraries(graph_base
