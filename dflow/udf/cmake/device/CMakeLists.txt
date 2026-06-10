@@ -72,6 +72,7 @@ if (ENABLE_SIGN)
     install(FILES
             ${udf_compat_sign_file}
             DESTINATION compat
+            PERMISSIONS OWNER_READ GROUP_READ
             COMPONENT dflow-executor
     )
 
@@ -139,12 +140,14 @@ if (ENABLE_SIGN)
     install(FILES
             ${runtime_device_sign_file}
             DESTINATION runtime/lib64
+            PERMISSIONS OWNER_READ GROUP_READ
             COMPONENT dflow-executor
     )
 else ()
     install(
             FILES "${CMAKE_BINARY_DIR}/${PACKAGE_TAR_FILE_NAME}"
             DESTINATION compat
+            PERMISSIONS OWNER_READ GROUP_READ
             COMPONENT dflow-executor
     )
 endif ()
