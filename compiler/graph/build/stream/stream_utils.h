@@ -12,7 +12,7 @@
 #define GE_GRAPH_BUILD_STREAM_STREAM_UTILS_H_
 
 #include "engines/manager/engine_manager/dnnengine_manager.h"
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 #include "graph/any_value.h"
 #include "graph/manager/graph_manager_utils.h"
 #include "graph/utils/node_utils.h"

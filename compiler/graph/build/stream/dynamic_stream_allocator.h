@@ -11,7 +11,7 @@
 #ifndef GE_GRAPH_BUILD_STREAM_DYNAMIC_STREAM_ALLOCATOR_H_
 #define GE_GRAPH_BUILD_STREAM_DYNAMIC_STREAM_ALLOCATOR_H_
 
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 #include "graph/any_value.h"
 #include "graph/manager/graph_manager_utils.h"
 #include "stream_utils.h"

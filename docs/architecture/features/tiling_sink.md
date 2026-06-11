@@ -408,7 +408,7 @@ sequenceDiagram
 
 | 模块 | 文件路径 | 核心内容 |
 |------|---------|---------|
-| 选项定义 | `inc/graph_metadef/external/ge_common/ge_api_types.h` | `TILING_SCHEDULE_OPTIMIZE` 常量 |
+| 选项定义 | `inc/graph_metadef/external/ge_common/ge_common_api_types.h` | `TILING_SCHEDULE_OPTIMIZE` 常量 |
 | 选项校验 | `compiler/api/aclgrph/option_utils.cc` | `CheckTilingScheduleOptimizeParamValid` |
 | atc 入口 | `api/atc/main_impl.cc` | 命令行参数解析 |
 | 图分区标记 | `compiler/graph/partition/dynamic_shape_partition.cc` | `IsSupportTilingSink`、`JudgeUnknownShapeForTilingDependNode` |

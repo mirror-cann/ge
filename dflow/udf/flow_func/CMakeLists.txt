@@ -29,7 +29,7 @@ set(flow_func_so_files
     mbuf_flow_msg.cpp
     mbuf_flow_msg_queue.cpp
     flow_func_timer.cpp
-    ascend_string.cpp
+    flow_func_ascend_string.cpp
     out_options.cpp
     flow_func_helper.cpp
     ../common/data_utils.cpp

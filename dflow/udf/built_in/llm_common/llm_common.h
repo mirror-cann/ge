@@ -21,7 +21,7 @@
 #include "flow_func/flow_msg.h"
 #include "fsm/state_define.h"
 #include "hccl/base.h"
-#include "flow_func/ascend_string.h"
+#include "flow_func/flow_func_ascend_string.h"
 #include "tensor_data_type.h"
 
 namespace FlowFunc {

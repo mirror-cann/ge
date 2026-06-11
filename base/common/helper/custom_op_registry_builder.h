@@ -13,7 +13,7 @@
 
 #include <vector>
 
-#include "external/ge_common/ge_api_types.h"
+#include "external/ge_common/ge_common_api_types.h"
 #include "graph/custom_op_registry.h"
 
 namespace ge {
