@@ -163,7 +163,7 @@ HcclResult HcomExecutor::Initialize() {
 
     // 启动回调处理线程
     parralMap_[MsgQueueType::OPBASE_QUEUE].callbackNotifyThread.reset(
-        new (std::nothrow) std::thread(&HcomExecutor::CallbackNotifyThreadLoop, std::ref(*this), MsgQueueType::OPBASE_QUEUE));
+        new (std::nothrow) std::thread(&HcomExecutor::CallbackNotifyThreadLoop, this, MsgQueueType::OPBASE_QUEUE));
     CHK_PRT_BREAK(!parralMap_[MsgQueueType::OPBASE_QUEUE].callbackNotifyThread,
                   HCCL_ERROR("[Initialize][HcomExecutor]OPBASED callback Notify threadPtr is Null"), errorFlag = true);
 
@@ -724,7 +724,7 @@ HcclResult HcomExecutor::RunGather(std::vector<u64> &addrInfo, std::vector<u64> 
 
   std::vector<std::unique_ptr<std::thread>> threads(GATHER_THREAD_NUM);
   for (u32 num = 0; num < GATHER_THREAD_NUM; num++) {
-    threads[num].reset(new (std::nothrow) std::thread(&HcomExecutor::GatherMemCopyThread, std::ref(*this), tmpHostMemPtr.get(),
+    threads[num].reset(new (std::nothrow) std::thread(&HcomExecutor::GatherMemCopyThread, this, tmpHostMemPtr.get(),
                                                       offset[num], std::ref(addrInfo), num * perThreadCount * NUM_TWO,
                                                       perThreadCounts[num], memSize));
     CHK_PRT_RET(!threads[num],
