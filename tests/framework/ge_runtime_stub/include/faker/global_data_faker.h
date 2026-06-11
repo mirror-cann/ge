@@ -122,11 +122,9 @@ class GlobalDataFaker {
 
   LoweringGlobalData Build(size_t stream_num = 1) {
     LoweringGlobalData global_data;
-    if (bg::ValueHolder::GetCurrentFrame() != nullptr) {
-      global_data.LoweringAndSplitRtStreams(stream_num);
-      global_data.SetExternalAllocator(bg::ValueHolder::CreateFeed(
-          static_cast<int64_t>(ExecuteArgIndex::kExternalAllocator)));
-    }
+    global_data.LoweringAndSplitRtStreams(stream_num);
+    global_data.SetExternalAllocator(bg::ValueHolder::CreateFeed(
+        static_cast<int64_t>(ExecuteArgIndex::kExternalAllocator)));
     for (const auto &node : graph_->GetAllNodes()) {
       auto iter = node_types_to_faker_.find(node->GetName());
       if (iter == node_types_to_faker_.end()) {

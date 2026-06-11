@@ -80,7 +80,7 @@ void TestHybridModelExecuteWithIterationLoop() {
   netoutput->GetOpDesc()->SetSrcIndex({0});
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
-  auto ge_root_model = builder.FakeTbeBin({"Add"}).BuildGeRootModel();
+  auto ge_root_model = builder.BuildGeRootModel();
 
   HybridModel hybrid_model(ge_root_model);
   hybrid_model.root_graph_item_.reset(new GraphItem);
@@ -1328,7 +1328,7 @@ TEST_F(UtestHybridRt2Executor, ExecuteWithStreamAsync_execute_model_online_dynam
   options["ge.vectorcoreNum"] = "1";
   ge::GetThreadLocalContext().SetSessionOption(options);
   GeModelBuilder builder(graph);
-  auto ge_root_model = builder.FakeTbeBin({"Add"}).BuildGeRootModel();
+  auto ge_root_model = builder.BuildGeRootModel();
 
   HybridModel hybrid_model(ge_root_model);
   hybrid_model.root_graph_item_.reset(new GraphItem);
@@ -1406,7 +1406,7 @@ TEST_F(UtestHybridRt2Executor, TfExecuteDynamicShapeWithBatchH2dDeviceId0) {
   options_map[configure_option::INPUT_BATCH_CPY] = input_batch_cpy_str;
   ge::GetThreadLocalContext().SetSessionOption(options_map);
   GeModelBuilder builder(graph);
-  auto ge_root_model = builder.FakeTbeBin({"Add"}).BuildGeRootModel();
+  auto ge_root_model = builder.BuildGeRootModel();
 
   HybridModel hybrid_model(ge_root_model);
   hybrid_model.root_graph_item_.reset(new GraphItem);
@@ -1465,7 +1465,7 @@ TEST_F(UtestHybridRt2Executor, TfExecuteDynamicShapeWithBatchH2dDeviceId1) {
   options_map[configure_option::INPUT_BATCH_CPY] = input_batch_cpy_str;
   ge::GetThreadLocalContext().SetSessionOption(options_map);
   GeModelBuilder builder(graph);
-  auto ge_root_model = builder.FakeTbeBin({"Add"}).BuildGeRootModel();
+  auto ge_root_model = builder.BuildGeRootModel();
 
   HybridModel hybrid_model(ge_root_model);
   hybrid_model.root_graph_item_.reset(new GraphItem);
@@ -1596,6 +1596,7 @@ TEST_F(UtestHybridRt2Executor, ExecuteWithStreamAsync_execute_model_online_dynam
                               (void *) data_buf.get()};
     ret = executor_rt_v2.ExecuteWithStreamAsync(input_tensor, output_tensor, stream);
     EXPECT_EQ(ret, SUCCESS);
+    
     executor_rt_v2.run_ctx_.host_exec_flag_ = false;
     unique_ptr<uint8_t[]> data_buf1(new(std::nothrow) uint8_t[4]);
 
@@ -1649,7 +1650,7 @@ TEST_F(UtestHybridRt2Executor, ExecuteWithStreamAsync_execute_model_online_dynam
   auto graph = ShareGraph::AicoreGraph();
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
-  auto ge_root_model = builder.FakeTbeBin({"Add"}).BuildGeRootModel();
+  auto ge_root_model = builder.BuildGeRootModel();
 
   HybridModel hybrid_model(ge_root_model);
   hybrid_model.root_graph_item_.reset(new GraphItem);
@@ -1696,7 +1697,7 @@ TEST_F(UtestHybridRt2Executor, ExecuteWithStreamAsync_execute_model_online_host_
   auto graph = ShareGraph::AicoreGraph();
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
-  auto ge_root_model = builder.FakeTbeBin({"Add"}).BuildGeRootModel();
+  auto ge_root_model = builder.BuildGeRootModel();
 
   HybridModel hybrid_model(ge_root_model);
   hybrid_model.root_graph_item_.reset(new GraphItem);
@@ -1732,7 +1733,7 @@ TEST_F(UtestHybridRt2Executor, ExecuteWithStreamAsync_execute_model_online_host_
   auto graph = ShareGraph::AicoreGraph();
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
-  auto ge_root_model = builder.FakeTbeBin({"Add"}).BuildGeRootModel();
+  auto ge_root_model = builder.BuildGeRootModel();
 
   HybridModel hybrid_model(ge_root_model);
   hybrid_model.root_graph_item_.reset(new GraphItem);
@@ -1794,7 +1795,7 @@ TEST_F(UtestHybridRt2Executor, ExecuteOnlineModel_RecycleAfterExecute_GertTensor
   auto graph = ShareGraph::AicoreGraph();
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
-  auto ge_root_model = builder.FakeTbeBin({"Add"}).BuildGeRootModel();
+  auto ge_root_model = builder.BuildGeRootModel();
 
   HybridModel hybrid_model(ge_root_model);
   hybrid_model.root_graph_item_.reset(new GraphItem);
@@ -1826,7 +1827,7 @@ TEST_F(UtestHybridRt2Executor, Execute_Success_SkipBatchMemcpyWhenSizeIsZero) {
   auto graph = ShareGraph::AicoreGraph();
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
-  auto ge_root_model = builder.FakeTbeBin({"Add"}).BuildGeRootModel();
+  auto ge_root_model = builder.BuildGeRootModel();
 
   std::map<std::string, std::string> options;
   options["ge.inputBatchCpy"] = "1";
@@ -1870,7 +1871,7 @@ TEST_F(UtestHybridRt2Executor, HandleResult_RecycleWhenEOS) {
   auto graph = ShareGraph::AicoreGraph();
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
-  auto ge_root_model = builder.FakeTbeBin({"Add"}).BuildGeRootModel();
+  auto ge_root_model = builder.BuildGeRootModel();
 
   HybridModel hybrid_model(ge_root_model);
   hybrid_model.root_graph_item_.reset(new GraphItem);
@@ -1923,7 +1924,7 @@ TEST_F(UtestHybridRt2Executor, HandleResult_BatchH2d_RecycleWhenEOS) {
   auto graph = ShareGraph::AicoreGraph();
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
-  auto ge_root_model = builder.FakeTbeBin({"Add"}).BuildGeRootModel();
+  auto ge_root_model = builder.BuildGeRootModel();
 
   std::map<std::string, std::string> options;
   options["ge.inputBatchCpy"] = "1";
@@ -1994,7 +1995,7 @@ TEST_F(UtestHybridRt2Executor, HandleResult_BatchH2dButNotSupport_RecycleWhenEOS
   auto graph = ShareGraph::AicoreGraph();
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
-  auto ge_root_model = builder.FakeTbeBin({"Add"}).BuildGeRootModel();
+  auto ge_root_model = builder.BuildGeRootModel();
 
   std::map<std::string, std::string> options;
   options["ge.inputBatchCpy"] = "1";
@@ -2068,7 +2069,7 @@ TEST_F(UtestHybridRt2Executor, HandleResult_BatchH2dButFailed_RecycleWhenEOS) {
   auto graph = ShareGraph::AicoreGraph();
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
-  auto ge_root_model = builder.FakeTbeBin({"Add"}).BuildGeRootModel();
+  auto ge_root_model = builder.BuildGeRootModel();
 
   std::map<std::string, std::string> options;
   options["ge.inputBatchCpy"] = "1";
@@ -2125,7 +2126,7 @@ TEST_F(UtestHybridRt2Executor, HandleResult_BatchH2dFallbackButFailed_RecycleWhe
   auto graph = ShareGraph::AicoreGraph();
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
-  auto ge_root_model = builder.FakeTbeBin({"Add"}).BuildGeRootModel();
+  auto ge_root_model = builder.BuildGeRootModel();
 
   std::map<std::string, std::string> options;
   options["ge.inputBatchCpy"] = "1";
@@ -2280,7 +2281,7 @@ TEST_F(UtestHybridRt2Executor, HandleResult_RecycleWhenError) {
   auto graph = ShareGraph::AicoreGraph();
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
-  auto ge_root_model = builder.FakeTbeBin({"Add"}).BuildGeRootModel();
+  auto ge_root_model = builder.BuildGeRootModel();
 
   HybridModel hybrid_model(ge_root_model);
   hybrid_model.root_graph_item_.reset(new GraphItem);

@@ -27,35 +27,20 @@
 #include "runtime/subscriber/global_dumper.h"
 #include "depends/profiler/src/dump_stub.h"
 #include "macro_utils/dt_public_unscope.h"
-#include "common/kernel_handles_manager/kernel_handles_manager.h"
-#include "common/kernel_handles_manager/aicore_kernel_handles_manager.h"
-#include "graph/op_kernel_bin.h"
 
 namespace gert {
 using namespace ge;
 using namespace kernel;
 
 namespace kernel {
-extern ge::graphStatus AiCoreLaunchKernelV2(KernelContext *context);
-extern ge::graphStatus AiCoreLaunchMixKernelV2(KernelContext *context);
+extern ge::graphStatus AiCoreLaunchKernelWithHandle(KernelContext *context);
+extern ge::graphStatus AiCoreLaunchKernelWithFlag(KernelContext *context);
+extern ge::graphStatus AiCoreLaunchMixKernelWithHandle(KernelContext *context);
+extern ge::graphStatus AiCoreLaunchMixKernelWithFlag(KernelContext *context);
+extern ge::graphStatus AtomicAiCoreLaunchKernelWithHandle(KernelContext *context);
 }
 namespace {
 using ComputeNodeDesc = RtKernelLaunchArgsEx::ComputeNodeDesc;
-using CustAICPUKernelPtr = std::shared_ptr<ge::OpKernelBin>;
-struct FakeRuntimeGetFuncValue : AclRuntimeStubImpl {
-  aclError aclrtBinaryGetFunction(const aclrtBinHandle binHandle, const char *kernelName,
-                                  aclrtFuncHandle *funcHandle) override {
-    *funcHandle = reinterpret_cast<void *>(0x1600);
-    return ACL_SUCCESS;
-  }
-  aclError aclrtBinaryGetFunctionByEntry(aclrtBinHandle binHandle,
-                                         uint64_t funcEntry,
-                                         aclrtFuncHandle *funcHandle) override {
-    *funcHandle = reinterpret_cast<void *>(0x1600);
-    return ACL_SUCCESS;
-  }
-};
-
 void CreateDefaultArgsInfo(ArgsInfosDesc::ArgsInfo *args_info, size_t input_num, size_t output_num) {
   auto node_io_num = input_num + output_num;
   for (size_t idx = 0U; idx < node_io_num; ++idx) {
@@ -157,21 +142,7 @@ struct AiKernelLaunchContext {
     handle = reinterpret_cast<void *>(0x12);
     schem = 0;
     dev_fun = 100;
-    size_t actual_cfg_num = 0UL;
-    attrs[actual_cfg_num].id = ACL_RT_LAUNCH_KERNEL_ATTR_SCHEM_MODE;
-    attrs[actual_cfg_num].value.schemMode = 0U;
-    actual_cfg_num++;
-    attrs[actual_cfg_num].id = ACL_RT_LAUNCH_KERNEL_ATTR_DYN_UBUF_SIZE;
-    attrs[actual_cfg_num].value.dynUBufSize = 0U;
-    actual_cfg_num++;
-    attrs[actual_cfg_num].id = ACL_RT_LAUNCH_KERNEL_ATTR_ENGINE_TYPE;
-    attrs[actual_cfg_num].value.engineType = ACL_RT_ENGINE_TYPE_AIC;
-    actual_cfg_num++;
-    attrs[actual_cfg_num].id = ACL_RT_LAUNCH_KERNEL_ATTR_BLOCKDIM_OFFSET;
-    attrs[actual_cfg_num].value.blockDimOffset = 1U;
-    actual_cfg_num++;
-    cfg.attrs = &attrs[0];
-    cfg.numAttrs = actual_cfg_num;
+    cfg = {1U,1U, 0U};
     ComputeNodeDesc node_desc = {.input_num = input_num,
                                  .output_num = output_num,
                                  .workspace_cap = 8,
@@ -200,7 +171,6 @@ struct AiKernelLaunchContext {
     memory::SingleStreamL2Allocator single_stream_l2_allocator{&stub_allocator};
     mem_block.ReInit(&single_stream_l2_allocator, &block, memory::BlockAllocType(memory::BlockAllocType::kNorm, 0U));
     work_space_gtd = GertTensorData(mem_block.GetAddr(), mem_block.GetSize(), TensorPlacement::kOnDeviceHbm, 0);
-    InitAicoreRegisterInfo();
   }
 
   AiKernelLaunchContext(size_t input_num, size_t output_num, uint64_t io_addr, const Shape &shape,
@@ -215,21 +185,7 @@ struct AiKernelLaunchContext {
     handle = reinterpret_cast<void *>(0x12);
     schem = 0;
     dev_fun = 100;
-    size_t actual_cfg_num = 0UL;
-    attrs[actual_cfg_num].id = ACL_RT_LAUNCH_KERNEL_ATTR_SCHEM_MODE;
-    attrs[actual_cfg_num].value.schemMode = 0U;
-    actual_cfg_num++;
-    attrs[actual_cfg_num].id = ACL_RT_LAUNCH_KERNEL_ATTR_DYN_UBUF_SIZE;
-    attrs[actual_cfg_num].value.dynUBufSize = 0U;
-    actual_cfg_num++;
-    attrs[actual_cfg_num].id = ACL_RT_LAUNCH_KERNEL_ATTR_ENGINE_TYPE;
-    attrs[actual_cfg_num].value.engineType = ACL_RT_ENGINE_TYPE_AIC;
-    actual_cfg_num++;
-    attrs[actual_cfg_num].id = ACL_RT_LAUNCH_KERNEL_ATTR_BLOCKDIM_OFFSET;
-    attrs[actual_cfg_num].value.blockDimOffset = 1U;
-    actual_cfg_num++;
-    cfg.attrs = &attrs[0];
-    cfg.numAttrs = actual_cfg_num;
+    cfg = {1U,1U, 0U};
     dfx_arg = {true, true, 12345};
     ComputeNodeDesc node_desc = {.input_num = input_num,
                                  .output_num = output_num,
@@ -247,7 +203,6 @@ struct AiKernelLaunchContext {
     memory::SingleStreamL2Allocator single_stream_l2_allocator{&stub_allocator};
     mem_block.ReInit(&single_stream_l2_allocator, &block, memory::BlockAllocType(memory::BlockAllocType::kNorm, 0U));
     work_space_gtd = GertTensorData(mem_block.GetAddr(), mem_block.GetSize(), TensorPlacement::kOnDeviceHbm, 0);
-    InitAicoreRegisterInfo();
   }
   AiKernelLaunchContext(size_t input_num, size_t output_num, uint64_t io_addr, const Shape &shape, bool need_overflow,
                         TensorAddress overflow_addr, bool is_mix = false)
@@ -261,21 +216,7 @@ struct AiKernelLaunchContext {
     handle = reinterpret_cast<void *>(0x12);
     schem = 0;
     dev_fun = 100;
-    size_t actual_cfg_num = 0UL;
-    attrs[actual_cfg_num].id = ACL_RT_LAUNCH_KERNEL_ATTR_SCHEM_MODE;
-    attrs[actual_cfg_num].value.schemMode = 0U;
-    actual_cfg_num++;
-    attrs[actual_cfg_num].id = ACL_RT_LAUNCH_KERNEL_ATTR_DYN_UBUF_SIZE;
-    attrs[actual_cfg_num].value.dynUBufSize = 0U;
-    actual_cfg_num++;
-    attrs[actual_cfg_num].id = ACL_RT_LAUNCH_KERNEL_ATTR_ENGINE_TYPE;
-    attrs[actual_cfg_num].value.engineType = ACL_RT_ENGINE_TYPE_AIC;
-    actual_cfg_num++;
-    attrs[actual_cfg_num].id = ACL_RT_LAUNCH_KERNEL_ATTR_BLOCKDIM_OFFSET;
-    attrs[actual_cfg_num].value.blockDimOffset = 1U;
-    actual_cfg_num++;
-    cfg.attrs = &attrs[0];
-    cfg.numAttrs = actual_cfg_num;
+    cfg={1,1};
     dfx_arg = {true, true, 12345};
     ComputeNodeDesc node_desc = {.input_num = input_num,
         .output_num = output_num,
@@ -295,7 +236,6 @@ struct AiKernelLaunchContext {
     memory::SingleStreamL2Allocator single_stream_l2_allocator{&stub_allocator};
     mem_block.ReInit(&single_stream_l2_allocator, &block, memory::BlockAllocType(memory::BlockAllocType::kNorm, 0U));
     work_space_gtd = GertTensorData(mem_block.GetAddr(), mem_block.GetSize(), TensorPlacement::kOnDeviceHbm, 0);
-    InitAicoreRegisterInfo();
   }
 
   AiKernelLaunchContext(size_t input_num, size_t output_num, uint64_t io_addr, const Shape &shape, bool need_overflow,
@@ -311,21 +251,7 @@ struct AiKernelLaunchContext {
     handle = reinterpret_cast<void *>(0x12);
     schem = 0;
     dev_fun = 100;
-    size_t actual_cfg_num = 0UL;
-    attrs[actual_cfg_num].id = ACL_RT_LAUNCH_KERNEL_ATTR_SCHEM_MODE;
-    attrs[actual_cfg_num].value.schemMode = 0U;
-    actual_cfg_num++;
-    attrs[actual_cfg_num].id = ACL_RT_LAUNCH_KERNEL_ATTR_DYN_UBUF_SIZE;
-    attrs[actual_cfg_num].value.dynUBufSize = 0U;
-    actual_cfg_num++;
-    attrs[actual_cfg_num].id = ACL_RT_LAUNCH_KERNEL_ATTR_ENGINE_TYPE;
-    attrs[actual_cfg_num].value.engineType = ACL_RT_ENGINE_TYPE_AIC;
-    actual_cfg_num++;
-    attrs[actual_cfg_num].id = ACL_RT_LAUNCH_KERNEL_ATTR_BLOCKDIM_OFFSET;
-    attrs[actual_cfg_num].value.blockDimOffset = 1U;
-    actual_cfg_num++;
-    cfg.attrs = &attrs[0];
-    cfg.numAttrs = actual_cfg_num;
+    cfg={1,1};
     dfx_arg = {true, true, 12345};
     ComputeNodeDesc node_desc = {.input_num = input_num,
         .output_num = output_num,
@@ -346,16 +272,6 @@ struct AiKernelLaunchContext {
     memory::SingleStreamL2Allocator single_stream_l2_allocator{&stub_allocator};
     mem_block.ReInit(&single_stream_l2_allocator, &block, memory::BlockAllocType(memory::BlockAllocType::kNorm, 0U));
     work_space_gtd = GertTensorData(mem_block.GetAddr(), mem_block.GetSize(), TensorPlacement::kOnDeviceHbm, 0);
-    InitAicoreRegisterInfo();
-  }
-
-  void InitAicoreRegisterInfo() {
-    const char test_bin[] = "test_kernel_bin";
-    std::vector<char> buffer(test_bin, test_bin + strlen(test_bin));
-    kernel_bin_ptr = std::make_shared<ge::OpKernelBin>("test_kernel", std::move(buffer));
-    aicore_register_info.kernel_bin_name = "test_kernel";
-    aicore_register_info.magic = RT_DEV_BINARY_MAGIC_ELF_AIVEC;
-    aicore_register_info.kernel_bin = kernel_bin_ptr;
   }
 
   KernelContext *WithFlag(uint64_t block_dim = 1) {
@@ -420,11 +336,65 @@ struct AiKernelLaunchContext {
     return *this;
   }
 
+  KernelContext *WithHandle(uint64_t block_dim = 1) {
+    constexpr auto fixed_input_num = static_cast<size_t>(kernel::WithHandle::kIoAddrs);
+    size_t in_num = fixed_input_num + io_num + io_num;
+    if (is_mix_vec) {
+      in_num += 4;
+      t_block_dim = block_dim;
+    }
+    context = BuildKernelRunContext(in_num, 1);
+    InitCommonInput(io_num);
+    context.value_holder[static_cast<size_t>(kernel::WithHandle::kTilingKey)].Set(reinterpret_cast<void *>(dev_fun),
+                                                                                  nullptr);
+    context.value_holder[static_cast<size_t>(kernel::WithHandle::kNodeInfo)].Set(const_cast<char *>(node_info.c_str()),
+                                                                                 nullptr);
+    if (io_num > MAX_IO_NUM) {
+      return context;
+    }
+    for (size_t i = 0; i < io_num; i++) {
+      tensor_datas[i] = {tensor_addr, 0U, kTensorPlacementEnd, -1};
+      context.value_holder[i + fixed_input_num].Set(reinterpret_cast<void *>(&tensor_datas[i]), nullptr);
+      context.value_holder[i + fixed_input_num + io_num].Set(&store_shape, nullptr);
+    }
+    if (is_mix_vec) {
+      mix_args.mix_type = kernel::MixType::MIX_VECTOR_CORE;
+      mix_args.all_core_num = 15;
+      mix_args.ai_core_num = 8;
+      mix_args.vec_core_num = 7;
+      context.value_holder[fixed_input_num + io_num + io_num + 0].Set(&mix_args, nullptr);
+      context.value_holder[fixed_input_num + io_num + io_num + 1].Set(sub_stream, nullptr);
+      context.value_holder[fixed_input_num + io_num + io_num + 2].Set(rt_notify1, nullptr);
+      context.value_holder[fixed_input_num + io_num + io_num + 3].Set(rt_notify2, nullptr);
+    }
+    return context;
+  }
+
   KernelContext *WithAtomicFlag() {
     constexpr auto fixed_input_num = static_cast<size_t>(kernel::WithAtomic::kIoAddrs);
     context = BuildKernelRunContext(fixed_input_num + output_num_ + 1, 1);
     InitCommonInput(output_num_);
     context.value_holder[static_cast<size_t>(kernel::WithAtomic::kWorkspaceIndex)].Set(
+        reinterpret_cast<void *>(clean_ws_index.get()), nullptr);
+    if (output_num_ > MAX_IO_NUM) {
+      return context;
+    }
+    for (size_t i = 0; i < output_num_; i++) {
+      tensor_datas[i] = {tensor_addr, 0U, kTensorPlacementEnd, -1};
+      context.value_holder[fixed_input_num + i].Set(reinterpret_cast<void *>(&tensor_datas[i]), nullptr);
+    }
+
+    context.value_holder[fixed_input_num + output_num_].Set(clean_work_space.get(), nullptr);
+    return context;
+  }
+
+  KernelContext *WithAtomicHandle() {
+    constexpr auto fixed_input_num = static_cast<size_t>(kernel::WithAtomicHandle::kIoAddrs);
+    context = BuildKernelRunContext(fixed_input_num + output_num_ + 1, 1);
+    InitCommonInput(output_num_);
+    context.value_holder[static_cast<size_t>(kernel::WithAtomicHandle::kTilingKey)].Set(
+        reinterpret_cast<void *>(dev_fun), nullptr);
+    context.value_holder[static_cast<size_t>(kernel::WithAtomicHandle::kWorkspaceIndex)].Set(
         reinterpret_cast<void *>(clean_ws_index.get()), nullptr);
     if (output_num_ > MAX_IO_NUM) {
       return context;
@@ -439,46 +409,38 @@ struct AiKernelLaunchContext {
 
   void InitCommonInput(uint64_t add_num) {
     context.value_holder[0].Set(stream, nullptr);
-    context.value_holder[1].Set(reinterpret_cast<void *>(&aicore_register_info), nullptr);
+    context.value_holder[1].Set(handle, nullptr);
     context.value_holder[2].Set(reinterpret_cast<void *>(t_block_dim), nullptr);
     context.value_holder[3].Set(work_space.get(), nullptr);
     context.value_holder[4].Set(nullptr, nullptr);
-    context.value_holder[5].Set(reinterpret_cast<void *>(&attrs[0]), nullptr);
-    context.value_holder[6].Set(reinterpret_cast<void *>(&cfg), nullptr);
-    context.value_holder[7].Set(reinterpret_cast<void *>(add_num), nullptr);
-    context.value_holder[8].Set(reinterpret_cast<void *>(schem), nullptr);
-    context.value_holder[9].Set(reinterpret_cast<void *>(&dfx_arg), nullptr);
-    context.value_holder[10].Set(reinterpret_cast<void *>(launch_args.get()), nullptr);
-    context.value_holder[11].Set(reinterpret_cast<void *>(local_mem_size), nullptr);
-    context.value_holder[12].Set(reinterpret_cast<void *>(dev_fun), nullptr);
-    context.value_holder[13].Set(reinterpret_cast<void *>(const_cast<char*>(kernel_name.c_str())), nullptr);
-    context.value_holder[14].Set(reinterpret_cast<void *>(0U), nullptr);
-    context.value_holder[15].Set(reinterpret_cast<void *>(&aicore_kernel_handles_manager), nullptr);
+    context.value_holder[5].Set(reinterpret_cast<void *>(&cfg), nullptr);
+    context.value_holder[6].Set(reinterpret_cast<void *>(add_num), nullptr);
+    context.value_holder[7].Set(reinterpret_cast<void *>(schem), nullptr);
+    context.value_holder[8].Set(reinterpret_cast<void *>(&dfx_arg), nullptr);
+    context.value_holder[9].Set(reinterpret_cast<void *>(launch_args.get()), nullptr);
+    context.value_holder[10].Set(reinterpret_cast<void *>(local_mem_size), nullptr);
   }
+
   gert::memory::CachingMemAllocator stub_allocator{0, 1};
 
   KernelRunContextHolder context;
   void *stream;
-  ge::AicoreRegisterInfo aicore_register_info;
-  ge::OpKernelBinPtr kernel_bin_ptr;
   void *handle;
-  std::string kernel_name = "kernel_name";
+
   uint64_t t_block_dim;
   uint64_t schem;
-  uint64_t dev_fun;
   gert::DfxExeArg dfx_arg;
   uint32_t local_mem_size = 200;
+  uint64_t dev_fun;
   uint64_t io_num;
   uint64_t output_num_;
-  aclrtLaunchKernelAttr attrs[4];
-  aclrtLaunchKernelCfg cfg;
-  AicoreKernelHandlesManager aicore_kernel_handles_manager;
+  rtTaskCfgInfo_t cfg;
   std::string node_info;
   GertTensorData tensor_datas[10];
   WorkerSpace worker_space;
   memory::MultiStreamMemBlock mem_block;
-  ge::MemBlock block;
   GertTensorData work_space_gtd;
+  ge::MemBlock block;
   void *tensor_addr;
   bool is_mix_vec;
   uint32_t all_core_num = 15;
@@ -495,123 +457,86 @@ struct AiKernelLaunchContext {
   rtNotify_t rt_notify2 = reinterpret_cast<void *>(0x11);
 };
 
-TEST_F(AiKernelLaunchUT, test_ai_AiCoreLaunchKernelV2_run_success) {
+TEST_F(AiKernelLaunchUT, test_ai_AiCoreLaunchKernelWithHandle_run_success) {
   AiKernelLaunchContext context(1, 1, 0x11, Shape({2, 2, 3}));
-  GertRuntimeStub runtime_stub(std::make_unique<RuntimeStubImpl>(), true, std::unique_ptr<AclRuntimeStubImpl>(new FakeRuntimeGetFuncValue()));
-  ASSERT_NE(registry.FindKernelFuncs("LaunchKernelV2"), nullptr);
-  ASSERT_EQ(kernel::AiCoreLaunchKernelV2(context.WithFlag()), ge::GRAPH_SUCCESS);
-  auto launch_args = runtime_stub.GetAclRuntimeStub().PopCpuLaunchArgsByKernelName("cpu_new_args_launch_with_place_holder");
+  GertRuntimeStub runtime_stub;
+  ASSERT_NE(registry.FindKernelFuncs("LaunchKernelWithHandle"), nullptr);
+  ASSERT_EQ(kernel::AiCoreLaunchKernelWithHandle(context.WithHandle()), ge::GRAPH_SUCCESS);
+  auto launch_args = runtime_stub.GetRtsRuntimeStub().PopLaunchArgsBy(context.handle);
   ASSERT_NE(launch_args, nullptr);
   ASSERT_EQ(launch_args->GetStream(), context.stream);
-  auto io_addrs = reinterpret_cast<uint64_t *>(launch_args->GetArgBase());
+  auto io_addrs = reinterpret_cast<uint64_t *>(launch_args->GetArgsEx()->args);
   ASSERT_EQ(io_addrs[0], 0x11);
-  auto ret = registry.FindKernelFuncs("LaunchKernelV2")->trace_printer(context.WithFlag());
+
+  auto ret = registry.FindKernelFuncs("LaunchKernelWithHandle")->trace_printer(context.WithHandle());
 }
 
-TEST_F(AiKernelLaunchUT, test_AiCoreLaunchMixKernelV2_run_success) {
+TEST_F(AiKernelLaunchUT, test_AiCoreLaunchMixKernelWithHandle_run_success) {
   AiKernelLaunchContext context(1, 1, 0x11, Shape({2, 2, 3}), true);
-  GertRuntimeStub runtime_stub(std::make_unique<RuntimeStubImpl>(), true, std::unique_ptr<AclRuntimeStubImpl>(new FakeRuntimeGetFuncValue()));
-  ASSERT_NE(registry.FindKernelFuncs("LaunchMixKernelV2"), nullptr);
-  ASSERT_EQ(kernel::AiCoreLaunchMixKernelV2(context.WithFlag(15)), ge::GRAPH_SUCCESS);
-  auto launch_args = runtime_stub.GetAclRuntimeStub().PopCpuLaunchArgsByKernelName("cpu_new_args_launch_with_place_holder");
+  GertRuntimeStub runtime_stub;
+  ASSERT_NE(registry.FindKernelFuncs("LaunchMixKernelWithHandle"), nullptr);
+  ASSERT_EQ(kernel::AiCoreLaunchMixKernelWithHandle(context.WithHandle(15)), ge::GRAPH_SUCCESS);
+  auto launch_args = runtime_stub.GetRtsRuntimeStub().PopLaunchArgsBy(context.handle);
   ASSERT_NE(launch_args, nullptr);
   ASSERT_EQ(launch_args->GetStream(), context.stream);
-  auto io_addrs = reinterpret_cast<uint64_t *>(launch_args->GetArgBase());
+  auto io_addrs = reinterpret_cast<uint64_t *>(launch_args->GetArgsEx()->args);
   ASSERT_EQ(io_addrs[0], 0x11);
 
-  auto ret = registry.FindKernelFuncs("LaunchMixKernelV2")->trace_printer(context.WithFlag());
+  auto ret = registry.FindKernelFuncs("LaunchMixKernelWithHandle")->trace_printer(context.WithHandle());
   // profiling
   ProfNodeAdditionInfo info;
   CannProfilingInfoWrapper prof_info(&info);
-  registry.FindKernelFuncs("LaunchMixKernelV2")->profiling_info_filler(context.WithFlag(), prof_info);
+  registry.FindKernelFuncs("LaunchMixKernelWithHandle")->profiling_info_filler(context.WithHandle(), prof_info);
 }
 
-
-TEST_F(AiKernelLaunchUT, test_AiCoreLaunchMixKernelV2_run_success1) {
+TEST_F(AiKernelLaunchUT, test_AiCoreLaunchMixKernelWithHandle_run_success1) {
   AiKernelLaunchContext context(1, 1, 0x11, Shape({2, 2, 3}), true);
-  GertRuntimeStub runtime_stub(std::make_unique<RuntimeStubImpl>(), true, std::unique_ptr<AclRuntimeStubImpl>(new FakeRuntimeGetFuncValue()));
-  ASSERT_NE(registry.FindKernelFuncs("LaunchMixKernelV2"), nullptr);
-  ASSERT_EQ(kernel::AiCoreLaunchMixKernelV2(context.WithFlag(8)), ge::GRAPH_SUCCESS);
-  auto launch_args = runtime_stub.GetAclRuntimeStub().PopCpuLaunchArgsByKernelName("cpu_new_args_launch_with_place_holder");
+  GertRuntimeStub runtime_stub;
+  ASSERT_NE(registry.FindKernelFuncs("LaunchMixKernelWithHandle"), nullptr);
+  ASSERT_EQ(kernel::AiCoreLaunchMixKernelWithHandle(context.WithHandle(8)), ge::GRAPH_SUCCESS);
+  auto launch_args = runtime_stub.GetRtsRuntimeStub().PopLaunchArgsBy(context.handle);
   ASSERT_NE(launch_args, nullptr);
   ASSERT_EQ(launch_args->GetStream(), context.stream);
-  auto io_addrs = reinterpret_cast<uint64_t *>(launch_args->GetArgBase());
+  auto io_addrs = reinterpret_cast<uint64_t *>(launch_args->GetArgsEx()->args);
   ASSERT_EQ(io_addrs[0], 0x11);
 }
 
-TEST_F(AiKernelLaunchUT, AiCoreLaunchKernelV2_need_overflow_success) {
-  AiKernelLaunchContext context(1, 1, 0x11, Shape({2, 2, 3}), true, g_overflow_addr);
-  GertRuntimeStub runtime_stub(std::make_unique<RuntimeStubImpl>(), true, std::unique_ptr<AclRuntimeStubImpl>(new FakeRuntimeGetFuncValue()));
-  ASSERT_EQ(kernel::AiCoreLaunchKernelV2(context.WithFlag()), ge::GRAPH_SUCCESS);
-  auto launch_args = runtime_stub.GetAclRuntimeStub().PopCpuLaunchArgsByKernelName("cpu_new_args_launch_with_place_holder");
+TEST_F(AiKernelLaunchUT, test_AiCoreLaunchMixKernelWithFlag_run_success) {
+  AiKernelLaunchContext context(1, 1, 0x11, Shape({2, 2, 3}), true);
+  context.WorkSpace(2);
+  GertRuntimeStub runtime_stub;
+  ASSERT_EQ(registry.FindKernelFuncs("LaunchMixKernelWithFlag")->run_func(context.WithFlag(15)), ge::GRAPH_SUCCESS);
+  auto launch_args = runtime_stub.GetRtsRuntimeStub().PopLaunchArgsBy(context.handle);
   ASSERT_NE(launch_args, nullptr);
-  auto args_host_buffer = reinterpret_cast<uint64_t *>(launch_args->GetArgBase());
+  ASSERT_EQ(launch_args->GetStream(), context.stream);
+  auto io_addrs = reinterpret_cast<uint64_t *>(launch_args->GetArgsEx()->args);
+  ASSERT_EQ(io_addrs[0], 0x11);
+}
+
+TEST_F(AiKernelLaunchUT, AiCoreLaunchKernelWithHandle_need_overflow_success) {
+  AiKernelLaunchContext context(1, 1, 0x11, Shape({2, 2, 3}), true, g_overflow_addr);
+  GertRuntimeStub runtime_stub;
+  ASSERT_EQ(kernel::AiCoreLaunchKernelWithHandle(context.WithHandle()), ge::GRAPH_SUCCESS);
+  auto launch_args = runtime_stub.GetRtsRuntimeStub().PopLaunchArgsBy(context.handle);
+  ASSERT_NE(launch_args, nullptr);
+  auto args_host_buffer = reinterpret_cast<uint64_t *>(launch_args->GetArgsEx()->args);
   for (size_t i = 0U; i < context.io_num; ++i) {
     ASSERT_EQ(args_host_buffer[i], 0x11);
   }
+  ASSERT_EQ(launch_args->GetArgsEx()->tilingAddrOffset, context.io_num * sizeof(void *));
+  auto overflow_idx = context.io_num + (launch_args->GetArgsEx()->hasTiling ? 1U : 0U);
+  ASSERT_EQ(args_host_buffer[overflow_idx], 0x01);
+  EXPECT_EQ(args_host_buffer[overflow_idx + 1U], 0);
 }
 
-TEST_F(AiKernelLaunchUT, test_AiCoreLaunchKernelV2_input_check_faild) {
-  auto run_context = BuildKernelRunContext(6, 1);
-  ASSERT_NE(registry.FindKernelFuncs("LaunchKernelV2"), nullptr);
-  ASSERT_NE(registry.FindKernelFuncs("LaunchKernelV2")->run_func(run_context), ge::GRAPH_SUCCESS);
-}
-
-TEST_F(AiKernelLaunchUT, test_ai_AiCoreLaunchKernelV2_run_failed) {
-  AiKernelLaunchContext context(1, 1, 0x11, Shape({2, 2, 3}));
-  struct FakeRuntime : AclRuntimeStubImpl {
-    aclError aclrtLaunchKernelWithHostArgs(aclrtFuncHandle funcHandle, uint32_t numBlocks,
-            aclrtStream stream, aclrtLaunchKernelCfg *cfg, void *hostArgs, size_t argsSize,
-            aclrtPlaceHolderInfo *placeHolderArray, size_t placeHolderNum) {
-      return 0x01;
-    }
-  };
-  GertRuntimeStub stub(std::make_unique<RuntimeStubImpl>(), true, std::unique_ptr<AclRuntimeStubImpl>(new FakeRuntime()));
-  ASSERT_EQ(registry.FindKernelFuncs("LaunchKernelV2")->run_func(context.WithFlag()), 0x01);
-}
-
-TEST_F(AiKernelLaunchUT, test_LaunchKernelV2_para_check_failed) {
-  auto run_context = BuildKernelRunContext(6, 1);
-  ASSERT_NE(registry.FindKernelFuncs("LaunchKernelV2")->run_func(run_context), ge::GRAPH_SUCCESS);
-}
-
-TEST_F(AiKernelLaunchUT, test_AiCoreLaunchKernelV2_run_failed) {
-  AiKernelLaunchContext context(1, 1, 0x11, Shape({2, 2, 3}));
-  struct FakeRuntime : AclRuntimeStubImpl {
-    aclError aclrtLaunchKernelWithHostArgs(aclrtFuncHandle funcHandle, uint32_t numBlocks,
-            aclrtStream stream, aclrtLaunchKernelCfg *cfg, void *hostArgs, size_t argsSize,
-            aclrtPlaceHolderInfo *placeHolderArray, size_t placeHolderNum) {
-      return 0x01;
-    }
-  };
-  GertRuntimeStub stub(std::make_unique<RuntimeStubImpl>(), true, std::unique_ptr<AclRuntimeStubImpl>(new FakeRuntime()));
-  ASSERT_EQ(registry.FindKernelFuncs("LaunchKernelV2")->run_func(context.WithFlag()), 0x01);
-}
-
-TEST_F(AiKernelLaunchUT, test_AiCoreLaunchKernelV2_run_success) {
-  AiKernelLaunchContext context(1, 1, 0x11, Shape({2, 2, 3}));
-  context.WorkSpace(2);
-  GertRuntimeStub runtime_stub;
-  ASSERT_EQ(registry.FindKernelFuncs("LaunchKernelV2")->run_func(context.WithFlag()), ge::GRAPH_SUCCESS);
-  auto launch_args = runtime_stub.GetAclRuntimeStub().PopCpuLaunchArgsByKernelName("cpu_new_args_launch_with_place_holder");
-  ASSERT_NE(launch_args, nullptr);
-  ASSERT_EQ(launch_args->GetStream(), context.stream);
-  auto io_addrs = reinterpret_cast<uint64_t *>(launch_args->GetArgBase());
-  ASSERT_EQ(io_addrs[0], 0x11);
-
-  auto ret = registry.FindKernelFuncs("LaunchKernelV2")->trace_printer(context.WithFlag());
-  EXPECT_FALSE(ret.empty());
-}
-
-
-TEST_F(AiKernelLaunchUT, AiCoreLaunchKernelV2_need_overflow_and_workspaces_success) {
+TEST_F(AiKernelLaunchUT, AiCoreLaunchKernelWithHandle_need_overflow_and_workspaces_success) {
   AiKernelLaunchContext context(4U, 2U, 0x11, Shape({2, 2, 3}),true, g_overflow_addr);
   context.WorkSpace(2U);
-  GertRuntimeStub runtime_stub(std::make_unique<RuntimeStubImpl>(), true, std::unique_ptr<AclRuntimeStubImpl>(new FakeRuntimeGetFuncValue()));
-  ASSERT_EQ(kernel::AiCoreLaunchKernelV2(context.WithFlag()), ge::GRAPH_SUCCESS);
-  auto launch_args = runtime_stub.GetAclRuntimeStub().PopCpuLaunchArgsByKernelName("cpu_new_args_launch_with_place_holder");
+  GertRuntimeStub runtime_stub;
+  ASSERT_EQ(kernel::AiCoreLaunchKernelWithHandle(context.WithHandle()), ge::GRAPH_SUCCESS);
+  auto launch_args = runtime_stub.GetRtsRuntimeStub().PopLaunchArgsBy(context.handle);
   ASSERT_NE(launch_args, nullptr);
-  auto args_host_buffer = reinterpret_cast<uint64_t *>(launch_args->GetArgBase());
+  auto args_host_buffer = reinterpret_cast<uint64_t *>(launch_args->GetArgsEx()->args);
   for (size_t i = 0U; i < context.io_num; ++i) {
     ASSERT_EQ(args_host_buffer[i], 0x11);
   }
@@ -619,99 +544,185 @@ TEST_F(AiKernelLaunchUT, AiCoreLaunchKernelV2_need_overflow_and_workspaces_succe
   ASSERT_NE(reinterpret_cast<uint64_t *>(args_host_buffer[workspace_offset]), nullptr);
   EXPECT_EQ(args_host_buffer[workspace_offset], 0x22);
   EXPECT_EQ(args_host_buffer[workspace_offset + 1U], 0x22);
+  ASSERT_EQ(launch_args->GetArgsEx()->tilingAddrOffset, (context.io_num + 2U) * sizeof(void *));
+  auto overflow_offset = workspace_offset + 2U + (launch_args->GetArgsEx()->hasTiling ? 1U : 0U);
+  EXPECT_EQ(overflow_offset, 8);
+  ASSERT_EQ(reinterpret_cast<uint64_t *>(args_host_buffer[overflow_offset]), reinterpret_cast<void *>(0x01));
+  EXPECT_EQ(reinterpret_cast<uint64_t *>(args_host_buffer[overflow_offset + 1U]), nullptr);
 }
 
-TEST_F(AiKernelLaunchUT, test_AtomicLaunchKernelV2_para_check_failed) {
+TEST_F(AiKernelLaunchUT, test_AiCoreLaunchKernelWithHandle_input_check_failed) {
   auto run_context = BuildKernelRunContext(6, 1);
-  ASSERT_NE(registry.FindKernelFuncs("AtomicLaunchKernelV2")->run_func(run_context), ge::GRAPH_SUCCESS);
+  ASSERT_NE(registry.FindKernelFuncs("LaunchKernelWithHandle"), nullptr);
+  ASSERT_NE(registry.FindKernelFuncs("LaunchKernelWithHandle")->run_func(run_context), ge::GRAPH_SUCCESS);
 }
 
-TEST_F(AiKernelLaunchUT, test_AtomicLaunchKernelV2_para_check_run_faild) {
+TEST_F(AiKernelLaunchUT, test_ai_AiCoreLaunchKernelWithHandle_run_failed) {
   AiKernelLaunchContext context(1, 1, 0x11, Shape({2, 2, 3}));
-  struct FakeRuntime : AclRuntimeStubImpl {
-    aclError aclrtLaunchKernelWithHostArgs(aclrtFuncHandle funcHandle, uint32_t numBlocks,
-            aclrtStream stream, aclrtLaunchKernelCfg *cfg, void *hostArgs, size_t argsSize,
-            aclrtPlaceHolderInfo *placeHolderArray, size_t placeHolderNum) {
-      return ACL_SUCCESS;
+  struct FakeRuntime : RuntimeStubImpl {
+    rtError_t rtKernelLaunchWithHandleV2(void *handle, uint64_t devFunc, uint32_t blockDim, rtArgsEx_t *args,
+                                         rtSmDesc_t *smDesc, rtStream_t stream, const rtTaskCfgInfo_t *cfgInfo) {
+      return 0x01;
     }
   };
-  GertRuntimeStub stub(std::make_unique<RuntimeStubImpl>(), true, std::unique_ptr<AclRuntimeStubImpl>(new FakeRuntime()));
-  ASSERT_NE(registry.FindKernelFuncs("AtomicLaunchKernelV2")->run_func(context.WithAtomicFlag()),
+  GertRuntimeStub stub(std::unique_ptr<RuntimeStubImpl>(new FakeRuntime()));
+  ASSERT_EQ(registry.FindKernelFuncs("LaunchKernelWithHandle")->run_func(context.WithHandle()), 0x01);
+}
+
+TEST_F(AiKernelLaunchUT, test_LaunchKernelWithFlag_para_check_failed) {
+  auto run_context = BuildKernelRunContext(6, 1);
+  ASSERT_NE(registry.FindKernelFuncs("LaunchKernelWithFlag")->run_func(run_context), ge::GRAPH_SUCCESS);
+}
+
+TEST_F(AiKernelLaunchUT, test_AiCoreLaunchKernelWithFlag_run_failed) {
+  AiKernelLaunchContext context(1, 1, 0x11, Shape({2, 2, 3}));
+  struct FakeRuntime : RuntimeStubImpl {
+    rtError_t rtKernelLaunchWithFlagV2(const void *stubFunc, uint32_t blockDim, rtArgsEx_t *argsInfo,
+                                       rtSmDesc_t *smDesc, rtStream_t stream, uint32_t flag,
+                                       const rtTaskCfgInfo_t *cfgInfo) {
+      return 0x01;
+    }
+  };
+  GertRuntimeStub stub(std::unique_ptr<RuntimeStubImpl>(new FakeRuntime()));
+  ASSERT_EQ(registry.FindKernelFuncs("LaunchKernelWithFlag")->run_func(context.WithFlag()), 0x01);
+}
+
+TEST_F(AiKernelLaunchUT, test_AiCoreLaunchKernelWithFlag_run_success) {
+  AiKernelLaunchContext context(1, 1, 0x11, Shape({2, 2, 3}));
+  context.WorkSpace(2);
+  GertRuntimeStub runtime_stub;
+  ASSERT_EQ(registry.FindKernelFuncs("LaunchKernelWithFlag")->run_func(context.WithFlag()), ge::GRAPH_SUCCESS);
+  auto launch_args = runtime_stub.GetRtsRuntimeStub().PopLaunchArgsBy(context.handle);
+  ASSERT_NE(launch_args, nullptr);
+  ASSERT_EQ(launch_args->GetStream(), context.stream);
+  auto io_addrs = reinterpret_cast<uint64_t *>(launch_args->GetArgsEx()->args);
+  ASSERT_EQ(io_addrs[0], 0x11);
+
+  auto ret = registry.FindKernelFuncs("LaunchKernelWithFlag")->trace_printer(context.WithFlag());
+  EXPECT_FALSE(ret.empty());
+}
+
+
+TEST_F(AiKernelLaunchUT, AiCoreLaunchKernelWithFlag_need_overflow_and_workspaces_success) {
+  AiKernelLaunchContext context(4U, 2U, 0x11, Shape({2, 2, 3}), true, g_overflow_addr);
+  context.WorkSpace(2U);
+  GertRuntimeStub runtime_stub;
+  ASSERT_EQ(kernel::AiCoreLaunchKernelWithFlag(context.WithFlag()), ge::GRAPH_SUCCESS);
+  auto launch_args = runtime_stub.GetRtsRuntimeStub().PopLaunchArgsBy(context.handle);
+  ASSERT_NE(launch_args, nullptr);
+  auto args_host_buffer = reinterpret_cast<uint64_t *>(launch_args->GetArgsEx()->args);
+  for (size_t i = 0U; i < context.io_num; ++i) {
+    ASSERT_EQ(args_host_buffer[i], 0x11);
+  }
+  auto workspace_offset = context.io_num;
+  ASSERT_NE(reinterpret_cast<uint64_t *>(args_host_buffer[workspace_offset]), nullptr);
+  EXPECT_EQ(args_host_buffer[workspace_offset], 0x22);
+  EXPECT_EQ(args_host_buffer[workspace_offset + 1U], 0x22);
+  ASSERT_EQ(launch_args->GetArgsEx()->tilingAddrOffset, (context.io_num + 2U) * sizeof(void *));
+  auto overflow_offset = workspace_offset + 2U + (launch_args->GetArgsEx()->hasTiling ? 1U : 0U);
+  EXPECT_EQ(overflow_offset, 8);
+  ASSERT_EQ(reinterpret_cast<uint64_t *>(args_host_buffer[overflow_offset]), reinterpret_cast<void *>(0x01));
+  EXPECT_EQ(reinterpret_cast<uint64_t *>(args_host_buffer[overflow_offset + 1U]), nullptr);
+}
+
+TEST_F(AiKernelLaunchUT, test_AtomicLaunchKernelWithFlag_para_check_failed) {
+  auto run_context = BuildKernelRunContext(6, 1);
+  ASSERT_NE(registry.FindKernelFuncs("AtomicLaunchKernelWithFlag")->run_func(run_context), ge::GRAPH_SUCCESS);
+}
+
+TEST_F(AiKernelLaunchUT, test_AtomicLaunchKernelWithFlag_para_check_run_failed) {
+  AiKernelLaunchContext context(1, 1, 0x11, Shape({2, 2, 3}));
+  struct FakeRuntime : RuntimeStubImpl {
+    rtError_t rtKernelLaunchWithFlagV2(const void *stubFunc, uint32_t blockDim, rtArgsEx_t *argsInfo, rtSmDesc_t *smDesc,
+                                     rtStream_t stream, uint32_t flag, const rtTaskCfgInfo_t *cfgInfo) {
+      return 0x01;
+    }
+  };
+  GertRuntimeStub stub(std::unique_ptr<RuntimeStubImpl>(new FakeRuntime()));
+  ASSERT_NE(registry.FindKernelFuncs("AtomicLaunchKernelWithFlag")->run_func(context.WithAtomicFlag()),
             ge::GRAPH_SUCCESS);
 }
 
-TEST_F(AiKernelLaunchUT, test_AtomicLaunchKernelV2_run_success) {
+TEST_F(AiKernelLaunchUT, test_AtomicLaunchKernelWithFlag_run_success) {
   AiKernelLaunchContext context(1, 1, 0x11, Shape({2, 2, 3}));
   context.CleanWorkSpace(2);
   GertRuntimeStub runtime_stub;
-  ASSERT_EQ(registry.FindKernelFuncs("AtomicLaunchKernelV2")
+  ASSERT_EQ(registry.FindKernelFuncs("AtomicLaunchKernelWithFlag")
                 ->run_func(context.CleanWorkspaceIndex({}).WithAtomicFlag()),
             ge::GRAPH_SUCCESS);
-  auto launch_args = runtime_stub.GetAclRuntimeStub().PopCpuLaunchArgsByKernelName("cpu_new_args_launch_with_place_holder");
+  auto launch_args = runtime_stub.GetRtsRuntimeStub().PopLaunchArgsBy(context.handle);
   ASSERT_NE(launch_args, nullptr);
   ASSERT_EQ(launch_args->GetStream(), context.stream);
-  ASSERT_EQ(launch_args->GetArgSize(), 88);
-  auto io_addrs = reinterpret_cast<uint64_t *>(launch_args->GetArgBase());
+  ASSERT_EQ(launch_args->GetArgsEx()->argsSize, 88);
+  ASSERT_EQ(launch_args->GetArgsEx()->tilingAddrOffset, 8);
+  auto io_addrs = reinterpret_cast<uint64_t *>(launch_args->GetArgsEx()->args);
   ASSERT_EQ(io_addrs[0], 0x11);
   ASSERT_NE(io_addrs[1], stub_mem_hbm_addr);
 }
 
-TEST_F(AiKernelLaunchUT, AtomicLaunchKernelV2_need_overflow_and_workspaces_success) {
+TEST_F(AiKernelLaunchUT, AtomicLaunchKernelWithFlag_need_overflow_and_workspaces_success) {
   AiKernelLaunchContext context(3, 2, 0x11, Shape({2, 2, 3}), true, g_overflow_addr);
   context.CleanWorkSpace(2);
   GertRuntimeStub runtime_stub;
-  ASSERT_EQ(registry.FindKernelFuncs("AtomicLaunchKernelV2")
+  ASSERT_EQ(registry.FindKernelFuncs("AtomicLaunchKernelWithFlag")
                 ->run_func(context.CleanWorkspaceIndex({0}).WithAtomicFlag()),
             ge::GRAPH_SUCCESS);
-  auto launch_args = runtime_stub.GetAclRuntimeStub().PopCpuLaunchArgsByKernelName("cpu_new_args_launch_with_place_holder");
+  auto launch_args = runtime_stub.GetRtsRuntimeStub().PopLaunchArgsBy(context.handle);
   ASSERT_NE(launch_args, nullptr);
-  auto args_host_buffer = reinterpret_cast<uint64_t *>(launch_args->GetArgBase());
+  ASSERT_EQ(launch_args->GetArgsEx()->tilingAddrOffset, 24);
+  auto args_host_buffer = reinterpret_cast<uint64_t *>(launch_args->GetArgsEx()->args);
   for (size_t i = 0U; i < context.output_num_; ++i) {
     EXPECT_EQ(args_host_buffer[i], 0x11);
   }
   auto workspace_offset = context.output_num_;
   ASSERT_NE(reinterpret_cast<uint64_t *>(args_host_buffer[workspace_offset]), nullptr);
   EXPECT_EQ(args_host_buffer[workspace_offset], 0x22);
+  auto overflow_offset = workspace_offset + 1U + (launch_args->GetArgsEx()->hasTiling ? 1U : 0U);
+  EXPECT_EQ(overflow_offset, 3U);
+  ASSERT_EQ(reinterpret_cast<uint64_t *>(args_host_buffer[overflow_offset]), reinterpret_cast<void *>(0x01));
+  EXPECT_EQ(reinterpret_cast<uint64_t *>(args_host_buffer[overflow_offset + 1U]), nullptr);
 }
 
-TEST_F(AiKernelLaunchUT, test_AtomicLaunchKernelV2_with_clean_workspace_run_success) {
+TEST_F(AiKernelLaunchUT, test_AtomicLaunchKernelWithFlag_with_clean_workspace_run_success) {
   AiKernelLaunchContext context(2, 1, 0x11, Shape({2, 2, 3}));
   context.CleanWorkSpace(2);
   GertRuntimeStub runtime_stub;
-  ASSERT_EQ(registry.FindKernelFuncs("AtomicLaunchKernelV2")
+  ASSERT_EQ(registry.FindKernelFuncs("AtomicLaunchKernelWithFlag")
                 ->run_func(context.CleanWorkspaceIndex({0}).WithAtomicFlag()),
             ge::GRAPH_SUCCESS);
-  auto launch_args = runtime_stub.GetAclRuntimeStub().PopCpuLaunchArgsByKernelName("cpu_new_args_launch_with_place_holder");
+  auto launch_args = runtime_stub.GetRtsRuntimeStub().PopLaunchArgsBy(context.handle);
   ASSERT_NE(launch_args, nullptr);
   ASSERT_EQ(launch_args->GetStream(), context.stream);
-  ASSERT_EQ(launch_args->GetArgSize(), 96);
-  auto io_addrs = reinterpret_cast<uint64_t *>(launch_args->GetArgBase());
+  ASSERT_EQ(launch_args->GetArgsEx()->argsSize, 96);
+  ASSERT_EQ(launch_args->GetArgsEx()->tilingAddrOffset, 16);
+  auto io_addrs = reinterpret_cast<uint64_t *>(launch_args->GetArgsEx()->args);
   ASSERT_EQ(io_addrs[0], 0x11);
   ASSERT_EQ(io_addrs[1], stub_mem_hbm_addr);
 
-  auto ret = registry.FindKernelFuncs("AtomicLaunchKernelV2")
+  auto ret = registry.FindKernelFuncs("AtomicLaunchKernelWithFlag")
                  ->trace_printer(context.CleanWorkspaceIndex({0}).WithAtomicFlag());
   EXPECT_FALSE(ret.empty());
 }
 
-TEST_F(AiKernelLaunchUT, test_AtomicLaunchKernelV2_with_profiling_filler) {
+TEST_F(AiKernelLaunchUT, test_AtomicLaunchKernelWithFlag_with_profiling_filler) {
   AiKernelLaunchContext context(2, 1, 0x11, Shape({2, 2, 3}));
   context.CleanWorkSpace(2);
   GertRuntimeStub runtime_stub;
-  ASSERT_EQ(registry.FindKernelFuncs("AtomicLaunchKernelV2")
+  ASSERT_EQ(registry.FindKernelFuncs("AtomicLaunchKernelWithFlag")
                 ->run_func(context.CleanWorkspaceIndex({0}).WithAtomicFlag()),
             ge::GRAPH_SUCCESS);
-  auto launch_args = runtime_stub.GetAclRuntimeStub().PopCpuLaunchArgsByKernelName("cpu_new_args_launch_with_place_holder");
+  auto launch_args = runtime_stub.GetRtsRuntimeStub().PopLaunchArgsBy(context.handle);
   ASSERT_NE(launch_args, nullptr);
   ASSERT_EQ(launch_args->GetStream(), context.stream);
-  ASSERT_EQ(launch_args->GetArgSize(), 96);
-  auto io_addrs = reinterpret_cast<uint64_t *>(launch_args->GetArgBase());
+  ASSERT_EQ(launch_args->GetArgsEx()->argsSize, 96);
+  ASSERT_EQ(launch_args->GetArgsEx()->tilingAddrOffset, 16);
+  auto io_addrs = reinterpret_cast<uint64_t *>(launch_args->GetArgsEx()->args);
   ASSERT_EQ(io_addrs[0], 0x11);
   ASSERT_EQ(io_addrs[1], stub_mem_hbm_addr);
 
   ProfNodeAdditionInfo info{};
   CannProfilingInfoWrapper wrapper(&info);
-  ASSERT_EQ(registry.FindKernelFuncs("AtomicLaunchKernelV2")
+  ASSERT_EQ(registry.FindKernelFuncs("AtomicLaunchKernelWithFlag")
                 ->profiling_info_filler(context.WithAtomicFlag(), wrapper), ge::SUCCESS);
 }
 
@@ -728,32 +739,108 @@ TEST_F(AiKernelLaunchUT, test_ffts_task_launch) {
   delete [] sqe_ctx;
 }
 
-TEST_F(AiKernelLaunchUT, AiCoreLaunchKernelV2_Success_EnableLiteExeption) {
+TEST_F(AiKernelLaunchUT, AiCoreLaunchKernelWithHandle_Success_EnableLiteExeption) {
   ge::DumpStub::GetInstance().Clear();
   AiKernelLaunchContext context(2, 1, 0x11, Shape({2, 2, 3}));
   context.WorkSpace(2);
-  GertRuntimeStub runtime_stub(std::make_unique<RuntimeStubImpl>(), true, std::unique_ptr<AclRuntimeStubImpl>(new FakeRuntimeGetFuncValue()));
-  ASSERT_NE(registry.FindKernelFuncs("LaunchKernelV2"), nullptr);
-  ASSERT_EQ(kernel::AiCoreLaunchKernelV2(context.WithFlag()), ge::GRAPH_SUCCESS);
-  auto launch_args = runtime_stub.GetAclRuntimeStub().PopCpuLaunchArgsByKernelName("cpu_new_args_launch_with_place_holder");
+  GertRuntimeStub runtime_stub;
+  ASSERT_NE(registry.FindKernelFuncs("LaunchKernelWithHandle"), nullptr);
+  ASSERT_EQ(kernel::AiCoreLaunchKernelWithHandle(context.WithHandle()), ge::GRAPH_SUCCESS);
+  auto launch_args = runtime_stub.GetRtsRuntimeStub().PopLaunchArgsBy(context.handle);
   ASSERT_NE(launch_args, nullptr);
   ASSERT_EQ(launch_args->GetStream(), context.stream);
-  auto io_addrs = reinterpret_cast<uint64_t *>(launch_args->GetArgBase());
+  auto io_addrs = reinterpret_cast<uint64_t *>(launch_args->GetArgsEx()->args);
   ASSERT_EQ(io_addrs[0], 0x11);
-  EXPECT_EQ(DumpStub::GetInstance().GetUnits().size(), 8);
+  ASSERT_EQ(DumpStub::GetInstance().GetUnits().size(), 8);
   EXPECT_EQ(DumpStub::GetInstance().GetUnits()[7][0], 8); // 2 + dy_desc(1) + input size(2) + output size(1) + ws size(2)
   EXPECT_EQ(DumpStub::GetInstance().GetUnits()[7][1], 6); // input size(1) + output size(1)
 }
 
-TEST_F(AiKernelLaunchUT, AiCoreLaunchKernelV2_need_shapebuffer_success) {
-  AiKernelLaunchContext context(1, 1, 0x11, Shape({2, 2, 3}), true, g_overflow_addr, true, g_shape_buffer_addr);
-  GertRuntimeStub runtime_stub(std::make_unique<RuntimeStubImpl>(), true, std::unique_ptr<AclRuntimeStubImpl>(new FakeRuntimeGetFuncValue()));
-  ASSERT_EQ(kernel::AiCoreLaunchKernelV2(context.WithFlag()), ge::GRAPH_SUCCESS);
-  auto launch_args = runtime_stub.GetAclRuntimeStub().PopCpuLaunchArgsByKernelName("cpu_new_args_launch_with_place_holder");
+TEST_F(AiKernelLaunchUT, test_AiCoreLaunchMixKernelWithHandle_run_mix_success) {
+  AiKernelLaunchContext context(2, 1, 0x11, Shape({2, 2, 3}), true, true, 0xFFFFU);
+  GertRuntimeStub runtime_stub;
+  ASSERT_NE(registry.FindKernelFuncs("LaunchMixKernelWithHandle"), nullptr);
+  ASSERT_EQ(kernel::AiCoreLaunchMixKernelWithHandle(context.WithHandle(15)), ge::GRAPH_SUCCESS);
+  auto launch_args = runtime_stub.GetRtsRuntimeStub().PopLaunchArgsBy(context.handle);
   ASSERT_NE(launch_args, nullptr);
-  auto args_host_buffer = reinterpret_cast<uint64_t *>(launch_args->GetArgBase());
+  ASSERT_EQ(launch_args->GetStream(), context.stream);
+  auto ret = registry.FindKernelFuncs("LaunchMixKernelWithHandle")->trace_printer(context.WithHandle());
+  // profiling
+  ProfNodeAdditionInfo info;
+  CannProfilingInfoWrapper prof_info(&info);
+  registry.FindKernelFuncs("LaunchMixKernelWithHandle")->profiling_info_filler(context.WithHandle(), prof_info);
+}
+
+TEST_F(AiKernelLaunchUT, test_AiCoreLaunchMixKernelWithHandle_run_mix_fail) {
+  AiKernelLaunchContext context(3, 1, 0x11, Shape({2, 2, 3}), true, true, -1);
+  GertRuntimeStub runtime_stub;
+  ASSERT_NE(registry.FindKernelFuncs("LaunchMixKernelWithHandle"), nullptr);
+  ASSERT_EQ(kernel::AiCoreLaunchMixKernelWithHandle(context.WithHandle(15)), ge::GRAPH_SUCCESS);
+  auto launch_args = runtime_stub.GetRtsRuntimeStub().PopLaunchArgsBy(context.handle);
+  ASSERT_NE(launch_args, nullptr);
+  ASSERT_EQ(launch_args->GetStream(), context.stream);
+  auto ret = registry.FindKernelFuncs("LaunchMixKernelWithHandle")->trace_printer(context.WithHandle());
+  // profiling
+  ProfNodeAdditionInfo info;
+  CannProfilingInfoWrapper prof_info(&info);
+  registry.FindKernelFuncs("LaunchMixKernelWithHandle")->profiling_info_filler(context.WithHandle(), prof_info);
+}
+
+TEST_F(AiKernelLaunchUT, AiCoreLaunchKernelWithHandle_need_shapebuffer_success) {
+  AiKernelLaunchContext context(1, 1, 0x11, Shape({2, 2, 3}), true, g_overflow_addr, true, g_shape_buffer_addr);
+  GertRuntimeStub runtime_stub;
+  ASSERT_EQ(kernel::AiCoreLaunchKernelWithHandle(context.WithHandle()), ge::GRAPH_SUCCESS);
+  auto launch_args = runtime_stub.GetRtsRuntimeStub().PopLaunchArgsBy(context.handle);
+  ASSERT_NE(launch_args, nullptr);
+  auto args_host_buffer = reinterpret_cast<uint64_t *>(launch_args->GetArgsEx()->args);
   for (size_t i = 0U; i < context.io_num; ++i) {
     ASSERT_EQ(args_host_buffer[i], 0x11);
   }
+  ASSERT_EQ(launch_args->GetArgsEx()->tilingAddrOffset, (context.io_num + 1) * sizeof(void *));
+}
+
+TEST_F(AiKernelLaunchUT, test_AtomicLaunchKernelWithHandle_run_success) {
+  AiKernelLaunchContext context(1, 1, 0x11, Shape({2, 2, 3}));
+  context.CleanWorkSpace(2);
+  GertRuntimeStub runtime_stub;
+  ASSERT_NE(registry.FindKernelFuncs("AtomicLaunchKernelWithHandle"), nullptr);
+  ASSERT_EQ(kernel::AtomicAiCoreLaunchKernelWithHandle(context.CleanWorkspaceIndex({}).WithAtomicHandle()),
+            ge::GRAPH_SUCCESS);
+  auto launch_args = runtime_stub.GetRtsRuntimeStub().PopLaunchArgsBy(context.handle);
+  ASSERT_NE(launch_args, nullptr);
+  ASSERT_EQ(launch_args->GetStream(), context.stream);
+  auto io_addrs = reinterpret_cast<uint64_t *>(launch_args->GetArgsEx()->args);
+  ASSERT_EQ(io_addrs[0], 0x11);
+
+  auto ret = registry.FindKernelFuncs("AtomicLaunchKernelWithHandle")
+                 ->trace_printer(context.CleanWorkspaceIndex({}).WithAtomicHandle());
+  EXPECT_FALSE(ret.empty());
+
+  ProfNodeAdditionInfo info{};
+  CannProfilingInfoWrapper wrapper(&info);
+  ASSERT_EQ(registry.FindKernelFuncs("AtomicLaunchKernelWithHandle")
+                ->profiling_info_filler(context.CleanWorkspaceIndex({}).WithAtomicHandle(), wrapper),
+            ge::SUCCESS);
+}
+
+TEST_F(AiKernelLaunchUT, test_AtomicLaunchKernelWithHandle_para_check_failed) {
+  auto run_context = BuildKernelRunContext(6, 1);
+  ASSERT_NE(registry.FindKernelFuncs("AtomicLaunchKernelWithHandle"), nullptr);
+  ASSERT_NE(registry.FindKernelFuncs("AtomicLaunchKernelWithHandle")->run_func(run_context), ge::GRAPH_SUCCESS);
+}
+
+TEST_F(AiKernelLaunchUT, test_AtomicLaunchKernelWithHandle_run_failed) {
+  AiKernelLaunchContext context(1, 1, 0x11, Shape({2, 2, 3}));
+  context.CleanWorkSpace(2);
+  struct FakeRuntime : RuntimeStubImpl {
+    rtError_t rtKernelLaunchWithHandleV2(void *handle, uint64_t devFunc, uint32_t blockDim, rtArgsEx_t *args,
+                                         rtSmDesc_t *smDesc, rtStream_t stream, const rtTaskCfgInfo_t *cfgInfo) {
+      return 0x01;
+    }
+  };
+  GertRuntimeStub stub(std::unique_ptr<RuntimeStubImpl>(new FakeRuntime()));
+  ASSERT_EQ(registry.FindKernelFuncs("AtomicLaunchKernelWithHandle")
+                ->run_func(context.CleanWorkspaceIndex({}).WithAtomicHandle()),
+            0x01);
 }
 }  // namespace gert

@@ -50,11 +50,7 @@ GertRuntimeStub::~GertRuntimeStub() {
 bool GertRuntimeStub::CheckLaunchWhenStubTiling() {
   for (auto &iter : rts_runtime_stub_->GetLaunchWithHandleArgs()) {
     for (auto launch_arg : iter.second) {
-      auto tiling_data = launch_arg->GetArgsTilingData<uint64_t>();
-      if (tiling_data == nullptr) {
-        continue;
-      }
-      if (*tiling_data != 100) {
+      if (*launch_arg->GetArgsTilingData<uint64_t>() != 100) {
         return false;
       }
     }
@@ -62,11 +58,7 @@ bool GertRuntimeStub::CheckLaunchWhenStubTiling() {
   if (acl_runtime_stub_ != nullptr) {
     for (auto &iter : acl_runtime_stub_->GetLaunchWithHandleArgs()) {
       for (auto launch_arg : iter.second) {
-        auto tiling_data = launch_arg->GetArgsTilingData<uint64_t>();
-        if (tiling_data == nullptr) {
-          continue;
-        }
-        if (*tiling_data != 100) {
+        if (*launch_arg->GetArgsTilingData<uint64_t>() != 100) {
           return false;
         }
       }

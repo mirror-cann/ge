@@ -89,20 +89,7 @@ TEST_F(GraphExecutorWithOverflowKernelUnitTest, SingleNodeAiCore_SupportOverflow
             ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   // CheckRtsLaunchParas
-  // LaunchKernelV2 always uses handle-based launch, not stub-based launch.
-  // stub_names_to_handles_ is always empty, all launch args are stored in launch_with_handle_args_.
-  // Use GetLaunchWithHandleArgs() to get launch args.
-  auto &launch_args_map = runtime_stub.GetRtsRuntimeStub().GetLaunchWithHandleArgs();
-  ASSERT_FALSE(launch_args_map.empty());
-  
-  // Get first launch args (Add kernel)
-  ge::GeFakeLaunchArgs *add_launch_args = nullptr;
-  for (auto &handle_args_pair : launch_args_map) {
-    if (!handle_args_pair.second.empty()) {
-      add_launch_args = handle_args_pair.second.front();
-      break;
-    }
-  }
+  auto add_launch_args = runtime_stub.GetRtsRuntimeStub().PopLaunchArgsByStubName("te_add_12345");
   ASSERT_NE(add_launch_args, nullptr);
   EXPECT_EQ(add_launch_args->GetStream(), stream);
   EXPECT_EQ(add_launch_args->GetArgsEx()->argsSize, 184);
@@ -165,20 +152,7 @@ TEST_F(GraphExecutorWithOverflowKernelUnitTest, SingleNodeAiCore_SupportOverflow
             ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   // CheckRtsLaunchParas
-  // LaunchKernelV2 always uses handle-based launch, not stub-based launch.
-  // stub_names_to_handles_ is always empty, all launch args are stored in launch_with_handle_args_.
-  // Use GetLaunchWithHandleArgs() to get launch args.
-  auto &launch_args_map2 = runtime_stub.GetRtsRuntimeStub().GetLaunchWithHandleArgs();
-  ASSERT_FALSE(launch_args_map2.empty());
-  
-  // Get first launch args (Add kernel)
-  ge::GeFakeLaunchArgs *add_launch_args = nullptr;
-  for (auto &handle_args_pair : launch_args_map2) {
-    if (!handle_args_pair.second.empty()) {
-      add_launch_args = handle_args_pair.second.front();
-      break;
-    }
-  }
+  auto add_launch_args = runtime_stub.GetRtsRuntimeStub().PopLaunchArgsByStubName("te_add_12345");
   ASSERT_NE(add_launch_args, nullptr);
   EXPECT_EQ(add_launch_args->GetStream(), stream);
   EXPECT_EQ(add_launch_args->GetArgsEx()->argsSize, 184);

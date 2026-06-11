@@ -504,7 +504,6 @@ rtError_t rtKernelLaunchWithFlagV2(const void *stubFunc, uint32_t blockDim, rtAr
   return ge::RuntimeStub::GetInstance()->rtKernelLaunchWithFlagV2(
       stubFunc, blockDim, argsInfo, smDesc, stm, flags, cfgInfo);
 }
-
 rtError_t rtKernelGetAddrAndPrefCntV2(void *handle, const uint64_t tilingKey, const void *const stubFunc,
                                       const uint32_t flag, rtKernelDetailInfo_t *kernelInfo) {
   return ge::RuntimeStub::GetInstance()->rtKernelGetAddrAndPrefCntV2(handle, tilingKey, stubFunc, flag, kernelInfo);

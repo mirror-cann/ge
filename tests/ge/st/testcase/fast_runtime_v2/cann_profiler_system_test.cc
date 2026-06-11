@@ -772,7 +772,7 @@ class CannProfilerST : public bg::BgTest {
     auto execution_data = reinterpret_cast<const ExecutionData *>(model_executor->GetExeGraphExecutor(kMainExeGraph)->GetExecutionData());
     for (size_t i = 0UL; i < execution_data->base_ed.node_num; ++i) {
       std::string kernel_type = reinterpret_cast<const KernelExtendInfo *>(execution_data->base_ed.nodes[i]->context.kernel_extend_info)->GetKernelType();
-      if (kernel_type == "LaunchKernelV2") {
+      if (kernel_type == "LaunchKernelWithHandle") {
         const_cast<KernelExtendInfo *>(reinterpret_cast<const KernelExtendInfo *>(execution_data->base_ed.nodes[i]->context.kernel_extend_info))->SetKernelType("AicpuHostCompute");
       }
     }

@@ -119,9 +119,9 @@ TEST_F(ModelHelperTest, SaveToOmRootModel_For_Nano) {
   auto ge_model_map = ge_root_model->GetSubgraphInstanceNameToModel();
   auto ge_model = ge_model_map[graph->GetName()];
   auto model_task_def = ge_model->GetModelTaskDefPtr();
-  model_task_def->mutable_task(0)->mutable_kernel()->set_kernel_name("te_Add_12345_AicoreKernel");
-  model_task_def->mutable_task(1)->mutable_kernel()->set_kernel_name("te_Add_12345_AicoreKernel");
-  model_task_def->mutable_task(2)->mutable_kernel()->set_kernel_name("te_Add_12345_AicoreKernel");
+  model_task_def->mutable_task(0)->mutable_kernel()->set_kernel_name("add1_faked_kernel");
+  model_task_def->mutable_task(1)->mutable_kernel()->set_kernel_name("add2_faked_kernel");
+  model_task_def->mutable_task(2)->mutable_kernel()->set_kernel_name("add3_faked_kernel");
 
   graph->FindNode("add1")->GetOpDesc()->SetInputOffset({0, 2048});
   graph->FindNode("add1")->GetOpDesc()->SetOutputOffset({0});
@@ -163,9 +163,9 @@ TEST_F(ModelHelperTest, SaveToOmRootModel_For_NanoHostFunc) {
   auto ge_model_map = ge_root_model->GetSubgraphInstanceNameToModel();
   auto model = ge_model_map[graph->GetName()];
   auto model_task_def = model->GetModelTaskDefPtr();
-  model_task_def->mutable_task(0)->mutable_kernel()->set_kernel_name("te_Add_12345_AicoreKernel");
-  model_task_def->mutable_task(1)->mutable_kernel()->set_kernel_name("te_Add_12345_AicoreKernel");
-  model_task_def->mutable_task(2)->mutable_kernel()->set_kernel_name("te_Add_12345_AicoreKernel");
+  model_task_def->mutable_task(0)->mutable_kernel()->set_kernel_name("add1_faked_kernel");
+  model_task_def->mutable_task(1)->mutable_kernel()->set_kernel_name("add2_faked_kernel");
+  model_task_def->mutable_task(2)->mutable_kernel()->set_kernel_name("add3_faked_kernel");
 
   graph->FindNode("add1")->GetOpDesc()->SetInputOffset({0, 2048});
   graph->FindNode("add1")->GetOpDesc()->SetOutputOffset({0});
@@ -262,7 +262,6 @@ TEST_F(ModelHelperTest, SaveToOmRootModel_For_NanoWHILESwitch) {
   (void)mmGetEnv("LD_LIBRARY_PATH", old_env, MMPA_MAX_PATH);
   setenv("LD_LIBRARY_PATH", (ascend_install_path + "/fwkacllib/lib64").c_str(), 1);
   auto graph = ShareGraph::WhileGraph3();
-  graph->SetName("aaa_main");
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
   auto ge_root_model = builder.BuildGeRootModel();
@@ -468,8 +467,6 @@ TEST_F(ModelHelperTest, SaveToOmRootModel_For_NanoWHILESwitch) {
     context->set_args_offset(args_offset, 9 * sizeof(uint16_t));
   }
 
-  // ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
-
   auto om_path = PathJoin(GetRunPath().c_str(), "temp");
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_exeom_for_nano");
@@ -479,7 +476,6 @@ TEST_F(ModelHelperTest, SaveToOmRootModel_For_NanoWHILESwitch) {
   NanoModelSaveHelper helper;
   helper.SetSaveMode(true);
   dlog_setlevel(-1, 0, 1);
-  // Status ret = helper.SaveToOmRootModel(ge_root_model, output, model_buff, false);
   Status ret = helper.SaveToExeOmModel(ge_model, output, model_buff);
 
   EXPECT_EQ(ret, SUCCESS);
@@ -701,8 +697,6 @@ TEST_F(ModelHelperTest, SaveToOmRootModel_For_NanoIFSwitch) {
     context->set_args_offset(args_offset, 9 * sizeof(uint16_t));
   }
 
-  // ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
-
   auto om_path = PathJoin(GetRunPath().c_str(), "temp");
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_exeom_for_nano");
@@ -711,7 +705,6 @@ TEST_F(ModelHelperTest, SaveToOmRootModel_For_NanoIFSwitch) {
   ModelBufferData model_buff;
   NanoModelSaveHelper helper;
   helper.SetSaveMode(true);
-  // Status ret = helper.SaveToOmRootModel(ge_root_model, output, model_buff, false);
   Status ret = helper.SaveToExeOmModel(ge_model, output, model_buff);
 
   EXPECT_EQ(ret, SUCCESS);

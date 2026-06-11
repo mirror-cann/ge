@@ -107,11 +107,11 @@ TEST_F(UtestModelCompressManager, Compress_Decompress_With_Tensor_Attrs) {
 
   (void)ge_model->GetAttr(ATTR_MODEL_ATTR_NAME_ENUM, attr_value);
   attr_value.GetValue(enum_attr_names);
-  ASSERT_EQ(enum_attr_names.size(), 11);
+  ASSERT_EQ(enum_attr_names.size(), 10);
 
   (void)ge_model->GetAttr(ATTR_MODEL_ATTR_VALUE_ENUM, attr_value);
   attr_value.GetValue(enum_attr_values);
-  ASSERT_EQ(enum_attr_values.size(), 10);
+  ASSERT_EQ(enum_attr_values.size(), 5);
 
   ret = ModelCompressManager::Decompress(ge_model);
   EXPECT_EQ(ret, SUCCESS);
@@ -122,7 +122,7 @@ TEST_F(UtestModelCompressManager, Compress_Decompress_With_Tensor_Attrs) {
 
   (void)dst_ge_model->GetAttr(ATTR_MODEL_ATTR_NAME_ENUM, attr_value);
   attr_value.GetValue(enum_attr_names);
-  ASSERT_EQ(enum_attr_names.size(), 11);
+  ASSERT_EQ(enum_attr_names.size(), 10);
 
   ret = ModelCompressManager::Compress(dst_ge_model);
   EXPECT_EQ(ret, SUCCESS);

@@ -24,8 +24,5 @@ bg::ValueHolderPtr SinkBinForFFTSAicore(const ge::NodePtr &node, std::vector<bg:
 bg::ValueHolderPtr SinkBinForMixAiCore(const ge::NodePtr &node, std::vector<bg::ValueHolderPtr> &tiling_ret);
 
 bg::ValueHolderPtr SinkFFTSStaAutoNodeBin(const ge::NodePtr &node);
-
-bg::ValueHolderPtr ConstructAicoreBinHandle(const ge::NodePtr &node, bool is_atomic_node,
-                                             LoweringGlobalData &global_data);
 }
 #endif  // AIR_CXX_RUNTIME_V2_NODE_CONVERTER_AICORE_COMPILE_RESULTS_H_

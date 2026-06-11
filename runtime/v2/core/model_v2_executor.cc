@@ -28,7 +28,6 @@
 #include "subscriber/profiler/cann_profiler_v2.h"
 #include "framework/runtime/model_rt_var_manager.h"
 #include "graph/manager/session_id_manager.h"
-#include "base/common/kernel_handles_manager/aicore_kernel_handles_manager.h"
 #include "acl/acl_rt.h"
 
 namespace gert {
@@ -218,10 +217,6 @@ ge::graphStatus ModelV2Executor::UnLoad() {
   GE_ASSERT_SUCCESS(ret, "Failed to execute de-init graph");
   ret = graphs_[kDeInitExeGraph].UnLoad();
   GE_ASSERT_SUCCESS(ret, "Failed to unload de-init graph");
-  if (aicore_manager_) {
-    GE_ASSERT_SUCCESS(aicore_manager_->ClearKernel());
-    aicore_manager_.reset();
-  }
   state_ = ExecutorState::kInit;
 
   // todo:OpImplRegistryHolderManager::GetInstance().UpdateOpImplRegistries();

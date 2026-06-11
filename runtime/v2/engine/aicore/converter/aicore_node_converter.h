@@ -24,9 +24,7 @@ std::vector<bg::ValueHolderPtr> SetOutputShape(const ge::NodePtr &node,
                                                const bg::ValueHolderPtr &stream,
                                                const std::vector<bg::ValueHolderPtr> &output_shapes);
 bool IsThirdClassOp(const ge::OpDescPtr &op_desc);
-bool IsVectorTask(const ge::NodePtr &node);
-size_t GetLaunchKernelV2Attr(bg::ValueHolderPtr &cfg_attrs, const domi::TaskDef *task_def, const ge::NodePtr &node);
-ge::Status GetQosInfo(bg::ValueHolderPtr &qos, size_t actual_cfg_num);
+ge::Status GetQosInfo(bg::ValueHolderPtr &qos);
 ge::NodePtr BuildAtomicNode(const ge::NodePtr &origin_node, const bg::AtomicLoweringArg &atomic_lowering_arg,
                             std::vector<bg::ValueHolderPtr> &output_clean_sizes,
                             std::vector<bg::DevMemValueHolderPtr> &output_clean_addrs, ge::ComputeGraphPtr &graph);

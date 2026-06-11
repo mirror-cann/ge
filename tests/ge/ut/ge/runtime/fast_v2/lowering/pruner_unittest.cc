@@ -94,25 +94,25 @@ TEST_F(PrunerUT, Prune_DeleteNodes_MultipleStartNodes) {
   ASSERT_EQ(ExeGraphSummaryChecker(graph.get()).StrictDirectNodeTypes({{"Data", 3}}), "success");
 }
 /*
- *  LaunchKernelV2
+ *  LaunchKernelWithFlag
  *    /  \
  * data0  data1
  */
 TEST_F(PrunerUT, Prune_IgnoreNode_ModifyDevice) {
   auto data0 = bg::ValueHolder::CreateFeed(0);
   auto data1 = bg::ValueHolder::CreateFeed(0);
-  bg::ValueHolder::CreateSingleDataOutput("LaunchKernelV2", {data0, data1});
+  bg::ValueHolder::CreateSingleDataOutput("LaunchKernelWithFlag", {data0, data1});
   auto frame = bg::ValueHolder::PopGraphFrame();
   ASSERT_NE(frame, nullptr);
   auto graph = frame->GetExecuteGraph();
   ASSERT_NE(graph, nullptr);
 
-  auto launch_node = ge::ExecuteGraphUtils::FindFirstNodeMatchType(graph.get(), "LaunchKernelV2");
+  auto launch_node = ge::ExecuteGraphUtils::FindFirstNodeMatchType(graph.get(), "LaunchKernelWithFlag");
   ASSERT_NE(launch_node, nullptr);
   bool changed = false;
   ASSERT_EQ(bg::Pruner().PruneFromNodes({launch_node}, changed), ge::GRAPH_SUCCESS);
   ASSERT_FALSE(changed);
-  ASSERT_EQ(ExeGraphSummaryChecker(graph.get()).StrictDirectNodeTypes({{"Data", 2}, {"LaunchKernelV2", 1}}),
+  ASSERT_EQ(ExeGraphSummaryChecker(graph.get()).StrictDirectNodeTypes({{"Data", 2}, {"LaunchKernelWithFlag", 1}}),
             "success");
 }
 /*
@@ -142,7 +142,7 @@ TEST_F(PrunerUT, Prune_DeleteAllocMemAndFree_WhenAllocOutNoUse) {
   ASSERT_EQ(ExeGraphSummaryChecker(graph.get()).StrictDirectNodeTypes({{"Data", 2}}), "success");
 }
 /*
- *   FreeMemory  LaunchKernelV2
+ *   FreeMemory  LaunchKernelWithFlag
  *           \    /
  *         AllocMemory
  *            /  \
@@ -153,7 +153,7 @@ TEST_F(PrunerUT, Prune_DoNotDelete_WhenAllocOutInUse) {
   auto data1 = bg::ValueHolder::CreateFeed(1);
   auto addr = bg::ValueHolder::CreateSingleDataOutput("AllocMemory", {data0, data1});
   bg::ValueHolder::CreateVoidGuarder("FreeMemory", addr, {});
-  bg::ValueHolder::CreateVoid<bg::ValueHolder>("LaunchKernelV2", {addr});
+  bg::ValueHolder::CreateVoid<bg::ValueHolder>("LaunchKernelWithFlag", {addr});
 
   auto frame = bg::ValueHolder::PopGraphFrame();
   ASSERT_NE(frame, nullptr);
@@ -168,7 +168,7 @@ TEST_F(PrunerUT, Prune_DoNotDelete_WhenAllocOutInUse) {
   ASSERT_FALSE(changed);
   ASSERT_EQ(
       ExeGraphSummaryChecker(graph.get())
-          .StrictDirectNodeTypes({{"Data", 2}, {"AllocMemory", 1}, {"FreeMemory", 1}, {"LaunchKernelV2", 1}}),
+          .StrictDirectNodeTypes({{"Data", 2}, {"AllocMemory", 1}, {"FreeMemory", 1}, {"LaunchKernelWithFlag", 1}}),
       "success");
 }
 /*
@@ -278,20 +278,20 @@ TEST_F(PrunerUT, Prune_DeleteNodesFollowTopo_MultipleNodes3) {
   ASSERT_EQ(ExeGraphSummaryChecker(graph.get()).StrictDirectNodeTypes({{"Data", 3}}), "success");
 }
 /*
- *  LaunchKernelV2
+ *  LaunchKernelWithFlag
  *    /  \
  * data0  data1
  */
 TEST_F(PrunerUT, Prune_Failed_WhenStartNodeCannodeDelete) {
   auto data0 = bg::ValueHolder::CreateFeed(0);
   auto data1 = bg::ValueHolder::CreateFeed(0);
-  auto launch_holder = bg::ValueHolder::CreateSingleDataOutput("LaunchKernelV2", {data0, data1});
+  auto launch_holder = bg::ValueHolder::CreateSingleDataOutput("LaunchKernelWithFlag", {data0, data1});
   auto frame = bg::ValueHolder::PopGraphFrame();
   ASSERT_NE(frame, nullptr);
   auto graph = frame->GetExecuteGraph();
   ASSERT_NE(graph, nullptr);
 
-  auto launch_node = ge::ExecuteGraphUtils::FindFirstNodeMatchType(graph.get(), "LaunchKernelV2");
+  auto launch_node = ge::ExecuteGraphUtils::FindFirstNodeMatchType(graph.get(), "LaunchKernelWithFlag");
   ASSERT_NE(launch_node, nullptr);
   bool changed = false;
 

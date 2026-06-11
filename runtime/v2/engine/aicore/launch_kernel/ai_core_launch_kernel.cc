@@ -16,7 +16,6 @@
 #include "runtime/rt.h"
 #include "adump_pub.h"
 #include "adump_api.h"
-#include "common/kernel_handles_manager/aicore_kernel_handles_manager.h"
 #include "graph/ge_error_codes.h"
 #include "exe_graph/runtime/tiling_data.h"
 #include "graph/def_types.h"
@@ -29,6 +28,7 @@
 #include "core/debug/kernel_tracing.h"
 #include "common/dump/kernel_tracing_utils.h"
 #include "common/checker.h"
+#include "runtime/mem.h"
 #include "runtime/context.h"
 #include "exe_graph/runtime/gert_tensor_data.h"
 #include "exe_graph/runtime/dfx_info_filler.h"
@@ -37,6 +37,8 @@
 #include "common/dump/exception_dumper.h"
 #include "framework/runtime/subscriber/global_dumper.h"
 #include "graph/small_vector.h"
+#include "runtime/rts/rts_stream.h"
+#include "runtime/rts/rts_kernel.h"
 #include "aprof_pub.h"
 #include "acl/acl_rt.h"
 
@@ -45,103 +47,12 @@ using namespace ge;
 namespace gert {
 namespace kernel {
 namespace {
-constexpr uint32_t k2BitsMask = 0x00000003U;
+constexpr uint32_t k2BitsMask = 0x00000003U;   // 2  bits, 0000,0011
 enum class MixKernel {
-  kMixArgs,
+  kMixArgs,  // begin at kIoAddrs + 2 * kIoNum
   kNotifyIds
 };
-
-struct LaunchCommonInputs {
-  void *stream{nullptr};
-  aclrtBinHandle bin_handle{nullptr};
-  size_t tiling_key{0};
-  char *kernel_name{nullptr};
-  const uint32_t *block_dim{nullptr};
-  RtKernelLaunchArgsEx *args{nullptr};
-  aclrtLaunchKernelAttr *cfg_attrs{nullptr};
-  aclrtLaunchKernelCfg *cfg{nullptr};
-  uint32_t schedule_mode{0};
-  uint32_t local_mem_size{0};
-  uint32_t with_handle_flag{0};
-};
 static_assert(std::is_standard_layout<RtKernelLaunchArgsEx>::value, "The class RtKernelLaunchArgsEx must be a POD");
-
-ge::graphStatus UpdatePlaceHolderInfo(std::vector<aclrtPlaceHolderInfo> &infos, RtKernelLaunchArgsEx *args, bool has_tiling) {
-  for (size_t idx = 0U; idx < args->GetBase()->hostInputInfoNum; ++idx) {
-    infos[idx].addrOffset = args->GetBase()->hostInputInfoPtr[idx].addrOffset;
-    infos[idx].dataOffset = args->GetBase()->hostInputInfoPtr[idx].dataOffset;
-  }
-  if (has_tiling) {
-    infos[args->GetBase()->hostInputInfoNum].addrOffset = args->GetBase()->tilingAddrOffset;
-    infos[args->GetBase()->hostInputInfoNum].dataOffset = args->GetTilingDataOffset();
-  }
-  return ge::GRAPH_SUCCESS;
-}
-
-LaunchCommonInputs GetLaunchCommonInputs(KernelContext *context) {
-  LaunchCommonInputs inputs;
-  inputs.stream = context->GetInputValue<void *>(static_cast<int32_t>(InputCommon::kStream));
-  FE_ASSERT_NOTNULL(inputs.stream);
-  inputs.bin_handle = context->GetInputValue<aclrtBinHandle>(static_cast<int32_t>(InputCommon::kBinHandle));
-  FE_ASSERT_NOTNULL(inputs.bin_handle);
-  inputs.tiling_key = context->GetInputValue<size_t>(static_cast<int32_t>(InputCommon::kTilingKey));
-  inputs.kernel_name = context->GetInputValue<char *>(static_cast<int32_t>(InputCommon::kKernelName));
-  FE_ASSERT_NOTNULL(inputs.kernel_name);
-  inputs.block_dim = context->GetInputPointer<uint32_t>(static_cast<int32_t>(InputCommon::kBlockDim));
-  FE_ASSERT_NOTNULL(inputs.block_dim);
-  inputs.args = context->MutableInputPointer<RtKernelLaunchArgsEx>(static_cast<size_t>(InputCommon::kRtArg));
-  FE_ASSERT_NOTNULL(inputs.args);
-  inputs.cfg_attrs = context->MutableInputPointer<aclrtLaunchKernelAttr>(static_cast<size_t>(InputCommon::kCfgAttrs));
-  FE_ASSERT_NOTNULL(inputs.cfg_attrs);
-  inputs.cfg = context->MutableInputPointer<aclrtLaunchKernelCfg>(static_cast<size_t>(InputCommon::kCfg));
-  FE_ASSERT_NOTNULL(inputs.cfg);
-  inputs.schedule_mode = context->GetInputValue<uint32_t>(static_cast<uint32_t>(InputCommon::kScheduleMode));
-  inputs.local_mem_size = context->GetInputValue<uint32_t>(static_cast<uint32_t>(InputCommon::kLocalMemSize));
-  inputs.with_handle_flag = context->GetInputValue<uint32_t>(static_cast<uint32_t>(InputCommon::kWithHandleFlag));
-  return inputs;
-}
-
-ge::graphStatus PrepareLaunchConfig(LaunchCommonInputs &inputs) {
-  if (inputs.cfg_attrs == nullptr) {
-    GELOGE(ge::FAILED, "cfg_attrs is nullptr");
-    return ge::GRAPH_FAILED;
-  }
-  if (inputs.cfg == nullptr) {
-    GELOGE(ge::FAILED, "cfg is nullptr");
-    return ge::GRAPH_FAILED;
-  }
-  inputs.cfg_attrs[0].value.schemMode = static_cast<uint8_t>(inputs.schedule_mode & k2BitsMask);
-  inputs.cfg_attrs[1].value.dynUBufSize = inputs.local_mem_size;
-  inputs.cfg->attrs = inputs.cfg_attrs;
-  return ge::GRAPH_SUCCESS;
-}
-
-struct PlaceHolderInfo {
-  bool has_tiling{false};
-  uint32_t place_holder_num{0};
-};
-
-PlaceHolderInfo GetPlaceHolderInfo(RtKernelLaunchArgsEx *args) {
-  PlaceHolderInfo info;
-  if (args->GetTilingDataOffset() < args->GetBase()->argsSize) {
-    info.has_tiling = true;
-    info.place_holder_num++;
-  }
-  info.place_holder_num += args->GetBase()->hostInputInfoNum;
-  return info;
-}
-
-ge::Status LaunchKernelWithPlaceHolder(aclrtFuncHandle funcHandle, uint32_t block_dim, rtStream_t stream,
-                                       aclrtLaunchKernelCfg *cfg, void *hostArgs, uint32_t argsSize,
-                                       RtKernelLaunchArgsEx *args, const PlaceHolderInfo &info) {
-  if (info.place_holder_num == 0U) {
-    aclrtPlaceHolderInfo without_info = {};
-    return aclrtLaunchKernelWithHostArgs(funcHandle, block_dim, stream, cfg, hostArgs, argsSize, &without_info, 0U);
-  }
-  std::vector<aclrtPlaceHolderInfo> infos(info.place_holder_num);
-  (void)UpdatePlaceHolderInfo(infos, args, info.has_tiling);
-  return aclrtLaunchKernelWithHostArgs(funcHandle, block_dim, stream, cfg, hostArgs, argsSize, infos.data(), info.place_holder_num);
-}
 const char *kLaunchArgsTypeName[static_cast<uint32_t>(RtKernelLaunchArgsEx::ArgsType::kArgsTypeEnd)] = {
     "ArgsCompiledArgs", "ArgsInputsAddr", "ArgsOutputsAddr", "ShapeBufferAddr",
     "WorkspacesAddr", "TilingDataAddr", "OverflowAddr", "TilingData",
@@ -285,20 +196,20 @@ void PrintHostData(const RtKernelLaunchArgsEx *args, std::vector<std::string> &m
 std::vector<std::string> PrintLaunchArgs(const KernelContext *context) {
   auto stream = context->GetInputValue<void *>(static_cast<int32_t>(InputCommon::kStream));
   FE_ASSERT_NOTNULL(stream);
-  auto bin_handle = context->GetInputValue<aclrtBinHandle>(static_cast<int32_t>(InputCommon::kBinHandle));
-  FE_ASSERT_NOTNULL(bin_handle);
-  auto block_dim = context->GetInputPointer<uint32_t>(static_cast<int32_t>(InputCommon::kBlockDim));
+  auto handle = context->GetInputValue<void *>(static_cast<int32_t>(InputCommon::kBinHandle));
+  FE_ASSERT_NOTNULL(handle);
+  auto block_dim = context->GetInputPointer<uint64_t>(static_cast<int32_t>(InputCommon::kBlockDim));
   FE_ASSERT_NOTNULL(block_dim);
-  auto schedule_mode = context->GetInputValue<uint32_t>(static_cast<int32_t>(InputCommon::kScheduleMode));
-  auto local_mem_size = context->GetInputValue<uint32_t>(static_cast<int32_t>(InputCommon::kLocalMemSize));
+  auto cfg = context->GetInputPointer<rtTaskCfgInfo_t>(static_cast<size_t>(InputCommon::kCfg));
+  FE_ASSERT_NOTNULL(cfg);
   auto args = context->GetInputPointer<RtKernelLaunchArgsEx>(static_cast<size_t>(InputCommon::kRtArg));
   FE_ASSERT_NOTNULL(args);
   std::vector<std::string> msgs;
   std::stringstream ss;
   ss << "Launch function arguments: "
-     << "BinHandle " << std::hex << bin_handle << ", block dim " << *block_dim << ", args " << args->GetBase() << ", stream "
-     << stream << ", schedule mode: " << std::to_string(schedule_mode) << ", local mem size: "
-     << std::to_string(local_mem_size);
+     << "Handle " << std::hex << handle << ", block dim " << *block_dim << ", args " << args->GetBase() << ", stream "
+     << stream << ", schedule mode: " << std::to_string(cfg->schemMode) << ", local mem size: "
+     << std::to_string(cfg->localMemorySize);
   msgs.emplace_back(ss.str());
   msgs.emplace_back(PrintStreamIdAndTaskId(context));
   msgs.emplace_back(PrintArgsGeneralInfo(args));
@@ -311,14 +222,15 @@ std::vector<std::string> PrintLaunchArgs(const KernelContext *context) {
   return msgs;
 }
 struct MixLaunchArgs {
-  aclrtFuncHandle funcHandle;
-  uint32_t block_dim;
-  rtStream_t stm;
-  aclrtLaunchKernelCfg *cfgInfo;
-  void *hostArgs;
-  uint32_t argsSize;
-  aclrtPlaceHolderInfo *placeHolderArray;
-  uint32_t placeHolderNum;
+  bool is_dynamic;
+  void *handle;
+  uint64_t tiling_key;
+  uint64_t block_dim;
+  rtArgsEx_t *arg_ex;
+  rtSmDesc_t *smDesc;
+  void *stream;
+  uint32_t flags;
+  rtTaskCfgInfo_t *cfgInfo;
 };
 
 struct MixTaskPara {
@@ -465,7 +377,7 @@ static ge::graphStatus UpdateEachArgsInfo(const KernelContext *context, const ge
     FE_ASSERT_NOTNULL(tensor_data);
     FE_RETURN_IF_ERROR(args.SetIoAddr(io_arg->arg_offset, tensor_data->GetAddr()));
     const_cast<IoArgsInfo::IoArg *>(io_arg)->data_size = tensor_data->GetSize();
-    GELOGD("Arg id[%zu] set addr[%lx] with offset[%zu]. Tensor size is [%zu].", args_info_idx, tensor_data->GetAddr(), io_arg->arg_offset, tensor_data->GetSize());
+    GELOGD("Arg id[%zu] set addr[%lx] with offset[%zu].", args_info_idx, tensor_data->GetAddr(), io_arg->arg_offset);
     if (io_arg->is_need_merged_copy) {
       auto io_shape = context->GetInputValue<StorageShape *>(addr_start + io_num + input_i);
       FE_ASSERT_NOTNULL(io_shape);
@@ -513,7 +425,7 @@ ge::graphStatus UpdateArgs(const KernelContext *context, const int32_t addr_star
   return ge::GRAPH_SUCCESS;
 }
 
-ge::graphStatus UpdateAtomicArgs(const KernelContext *context, const int32_t addr_start, RtKernelLaunchArgsEx &args) {
+ge::graphStatus UpdateAtomicArgs(const KernelContext *context, const int32_t addr_start, const int32_t workspaceIndex, RtKernelLaunchArgsEx &args) {
   // todo 部分和 UpdateArgs 重复的代码可考虑提取
   auto &tiling_data = args.GetTilingData();
   FE_RETURN_IF_ERROR(args.UpdateBaseByTilingSize(tiling_data.GetDataSize()));
@@ -521,7 +433,7 @@ ge::graphStatus UpdateAtomicArgs(const KernelContext *context, const int32_t add
 
   auto io_num = context->GetInputPointer<size_t>(static_cast<int32_t>(InputCommon::kIoNum));
   auto ws_indexes =
-      context->GetInputPointer<TypedContinuousVector<int64_t>>(static_cast<int32_t>(WithAtomic::kWorkspaceIndex));
+      context->GetInputPointer<TypedContinuousVector<int64_t>>(workspaceIndex);
   if (io_num == nullptr || ws_indexes == nullptr) {
     return ge::GRAPH_FAILED;
   }
@@ -553,22 +465,6 @@ ge::graphStatus UpdateAtomicArgs(const KernelContext *context, const int32_t add
       ws_indexes->GetSize() * sizeof(TensorAddress) + (*io_num) * sizeof(TensorAddress));
   FE_RETURN_IF_ERROR(UpdateOverflowAddr(args));
   return ge::GRAPH_SUCCESS;
-}
-
-aclrtFuncHandle GetFuncHandle(const aclrtBinHandle &bin_handle, const uint64_t &tiling_key, const char_t *kernel_name, uint32_t with_handle_flag) {
-  GE_ASSERT_NOTNULL(bin_handle);
-  aclrtFuncHandle func_handle = nullptr;
-  if (with_handle_flag != 0U) {
-    GELOGD("Get func handle by tiling key: %lu", tiling_key);
-    GE_ASSERT_RT_OK(aclrtBinaryGetFunctionByEntry(bin_handle, tiling_key, &func_handle),
-    "Get func handle by tiling key [%lu] failed.", tiling_key);
-  } else {
-    GELOGD("Get func handle by kernel name: %s", kernel_name);
-    GE_ASSERT_RT_OK(aclrtBinaryGetFunction(bin_handle, kernel_name, &func_handle),
-    "Get func handle by kernel name [%s] failed.", kernel_name);
-  }
-  FE_ASSERT_NOTNULL(func_handle, "Failed to get func handle.");
-  return func_handle;
 }
 
 ge::graphStatus AicoreHandleUpdateGeExceptionDumpInfo(const KernelContext *context,
@@ -629,11 +525,15 @@ MixTaskPara CalcMixTaskParaByType(const MixLaunchArgs &launch_args, const MixCor
 
 ge::graphStatus LaunchMixMainTask(MixLaunchArgs &launch_args, MixTaskPara &mix_para) {
   mix_prof_data.main_begin_time = MsprofSysCycleTime();
-  launch_args.cfgInfo->attrs[2].value.engineType = aclrtEngineType::ACL_RT_ENGINE_TYPE_AIC;
-  launch_args.cfgInfo->attrs[3].value.blockDimOffset = mix_para.main_offset;
-  FE_CHK_RT_RET(aclrtLaunchKernelWithHostArgs(launch_args.funcHandle, launch_args.block_dim, launch_args.stm, 
-                                            launch_args.cfgInfo, launch_args.hostArgs, launch_args.argsSize, 
-                                            launch_args.placeHolderArray, launch_args.placeHolderNum));
+  if (launch_args.is_dynamic) {
+    launch_args.cfgInfo->blockDimOffset = mix_para.main_offset;
+    FE_CHK_RT_RET(rtKernelLaunchWithHandleV2(launch_args.handle, launch_args.tiling_key, mix_para.main_blk_dim,
+        launch_args.arg_ex, launch_args.smDesc, launch_args.stream, launch_args.cfgInfo));
+  } else {
+    launch_args.cfgInfo->blockDimOffset = mix_para.main_offset;
+    FE_CHK_RT_RET(rtKernelLaunchWithFlagV2(launch_args.handle, mix_para.main_blk_dim, launch_args.arg_ex,
+        launch_args.smDesc, launch_args.stream, launch_args.flags, launch_args.cfgInfo));
+  }
   mix_prof_data.main_end_time = MsprofSysCycleTime();
   return ge::GRAPH_SUCCESS;
 }
@@ -658,28 +558,40 @@ ge::graphStatus ProcMixVectorCoreTask(const KernelContext *context, MixLaunchArg
   FE_ASSERT_NOTNULL(rt_notify2);
   auto shape_buffer =
       context->GetInputValue<gert::GertTensorData *>(static_cast<size_t>(InputCommon::kShapeBufferAddr));
-  FE_CHK_RT_RET(aclrtRecordNotify(rt_notify1, launch_args.stm));
+  FE_CHK_RT_RET(aclrtRecordNotify(rt_notify1, launch_args.stream));
   FE_CHK_RT_RET(aclrtWaitAndResetNotify(rt_notify1, sub_stream, UINT32_MAX));
   auto &io_args_info = args.GetIoArgsInfo();
-  // main
-  launch_args.cfgInfo->attrs[2].value.engineType = aclrtEngineType::ACL_RT_ENGINE_TYPE_AIC;
-  launch_args.cfgInfo->attrs[3].value.blockDimOffset = mix_para.main_offset;
-  mix_prof_data.main_begin_time = MsprofSysCycleTime();
-  FE_CHK_RT_RET(aclrtLaunchKernelWithHostArgs(launch_args.funcHandle, launch_args.block_dim, launch_args.stm, 
-                                            launch_args.cfgInfo, launch_args.hostArgs, launch_args.argsSize, 
-                                            launch_args.placeHolderArray, launch_args.placeHolderNum));
-  mix_prof_data.main_end_time = MsprofSysCycleTime();
-  FE_ASSERT_GRAPH_SUCCESS(SaveAicoreL0ExceptionDump(io_args_info, io_num, context, addr_start, shape_buffer));
-  // sub
-  launch_args.cfgInfo->attrs[2].value.engineType = aclrtEngineType::ACL_RT_ENGINE_TYPE_AIV;
-  launch_args.cfgInfo->attrs[3].value.blockDimOffset = mix_para.sub_offset;
-  mix_prof_data.sub_begin_time = MsprofSysCycleTime();
-  FE_CHK_RT_RET(aclrtLaunchKernelWithHostArgs(launch_args.funcHandle, launch_args.block_dim, sub_stream, 
-                                            launch_args.cfgInfo, launch_args.hostArgs, launch_args.argsSize, 
-                                            launch_args.placeHolderArray, launch_args.placeHolderNum));
-  mix_prof_data.sub_end_time = MsprofSysCycleTime();
+  if (launch_args.is_dynamic) {
+    // main
+    launch_args.cfgInfo->blockDimOffset = mix_para.main_offset;
+    mix_prof_data.main_begin_time = MsprofSysCycleTime();
+    FE_CHK_RT_RET(rtKernelLaunchWithHandleV2(launch_args.handle, launch_args.tiling_key, mix_para.main_blk_dim,
+        launch_args.arg_ex, launch_args.smDesc, launch_args.stream, launch_args.cfgInfo));
+    mix_prof_data.main_end_time = MsprofSysCycleTime();
+    FE_ASSERT_GRAPH_SUCCESS(SaveAicoreL0ExceptionDump(io_args_info, io_num, context, addr_start, shape_buffer));
+    // sub
+    launch_args.cfgInfo->blockDimOffset = mix_para.sub_offset;
+    mix_prof_data.sub_begin_time = MsprofSysCycleTime();
+    FE_CHK_RT_RET(rtVectorCoreKernelLaunchWithHandle(launch_args.handle, launch_args.tiling_key, mix_para.sub_blk_dim,
+        launch_args.arg_ex, launch_args.smDesc, sub_stream, launch_args.cfgInfo));
+    mix_prof_data.sub_end_time = MsprofSysCycleTime();
+  } else {
+    // main
+    launch_args.cfgInfo->blockDimOffset = mix_para.main_offset;
+    mix_prof_data.main_begin_time = MsprofSysCycleTime();
+    FE_CHK_RT_RET(rtKernelLaunchWithFlagV2(launch_args.handle, mix_para.main_blk_dim, launch_args.arg_ex,
+        launch_args.smDesc, launch_args.stream, launch_args.flags, launch_args.cfgInfo));
+    mix_prof_data.main_end_time = MsprofSysCycleTime();
+    FE_ASSERT_GRAPH_SUCCESS(SaveAicoreL0ExceptionDump(io_args_info, io_num, context, addr_start, shape_buffer));
+    // sub
+    launch_args.cfgInfo->blockDimOffset = mix_para.sub_offset;
+    mix_prof_data.sub_begin_time = MsprofSysCycleTime();
+    FE_CHK_RT_RET(rtVectorCoreKernelLaunch(launch_args.handle, mix_para.sub_blk_dim, launch_args.arg_ex,
+                                           launch_args.smDesc, sub_stream, launch_args.flags, launch_args.cfgInfo));
+    mix_prof_data.sub_end_time = MsprofSysCycleTime();
+  }
   FE_CHK_RT_RET(aclrtRecordNotify(rt_notify2, sub_stream));
-  FE_CHK_RT_RET(aclrtWaitAndResetNotify(rt_notify2, launch_args.stm, UINT32_MAX));
+  FE_CHK_RT_RET(aclrtWaitAndResetNotify(rt_notify2, launch_args.stream, UINT32_MAX));
   GELOGI("Mix vector core launched main/sub block dim [%ld][%ld] successfully", mix_para.main_blk_dim, mix_para.sub_blk_dim);
   return ge::GRAPH_SUCCESS;
 }
@@ -701,6 +613,63 @@ ge::graphStatus AICoreDfxPrintProc(KernelContext *context, rtStream_t stream) {
   return ge::GRAPH_SUCCESS;
 }
 
+ge::graphStatus AiCoreLaunchKernelWithHandle(KernelContext *context) {
+  auto stream = context->GetInputValue<void *>(static_cast<int32_t>(InputCommon::kStream));
+  FE_ASSERT_NOTNULL(stream);
+  auto handle = context->GetInputValue<void *>(static_cast<int32_t>(InputCommon::kBinHandle));
+  FE_ASSERT_NOTNULL(handle);
+  auto dev_fun = context->GetInputValue<size_t>(static_cast<int32_t>(WithHandle::kTilingKey));
+  auto node_info = context->GetInputStrPointer(static_cast<int32_t>(WithHandle::kNodeInfo));
+  FE_ASSERT_NOTNULL(node_info);
+  auto block_dim = context->GetInputPointer<uint64_t>(static_cast<int32_t>(InputCommon::kBlockDim));
+  FE_ASSERT_NOTNULL(block_dim);
+  auto cfg = context->MutableInputPointer<rtTaskCfgInfo_t>(static_cast<size_t>(InputCommon::kCfg));
+  FE_ASSERT_NOTNULL(cfg);
+  auto schedule_mode = context->GetInputValue<uint32_t>(static_cast<uint32_t>(InputCommon::kScheduleMode));
+  auto args = context->MutableInputPointer<RtKernelLaunchArgsEx>(static_cast<size_t>(InputCommon::kRtArg));
+  auto local_mem_size = context->GetInputValue<uint32_t>(static_cast<uint32_t>(InputCommon::kLocalMemSize));
+  FE_ASSERT_NOTNULL(args);
+  cfg->schemMode = static_cast<uint8_t>(schedule_mode & k2BitsMask);
+  cfg->localMemorySize = local_mem_size;
+  int32_t addr_start = static_cast<int32_t>(WithHandle::kIoAddrs);
+  FE_RETURN_IF_ERROR(UpdateArgs(context, addr_start, *args));
+  auto ret = rtKernelLaunchWithHandleV2(handle, dev_fun, *block_dim, args->GetBase(), nullptr, stream, cfg);
+  if (ret != RT_ERROR_NONE) {
+    GELOGE(ret, "Failed to launch kernel with handle");
+    return ret;
+  }
+  return AICoreDfxPrintProc(context, stream);
+}
+REGISTER_KERNEL(LaunchKernelWithHandle).RunFunc(AiCoreLaunchKernelWithHandle).TracePrinter(PrintLaunchArgs).
+    ExceptionDumpInfoFiller(AicoreHandleUpdateGeExceptionDumpInfo);
+
+
+ge::graphStatus AiCoreLaunchMixKernelWithHandle(KernelContext *context) {
+  auto stream = context->GetInputValue<void *>(static_cast<int32_t>(InputCommon::kStream));
+  FE_ASSERT_NOTNULL(stream);
+  auto handle = context->GetInputValue<void *>(static_cast<int32_t>(InputCommon::kBinHandle));
+  FE_ASSERT_NOTNULL(handle);
+  auto block_dim = context->GetInputPointer<uint64_t>(static_cast<int32_t>(InputCommon::kBlockDim));
+  FE_ASSERT_NOTNULL(block_dim);
+  auto cfg = context->MutableInputPointer<rtTaskCfgInfo_t>(static_cast<size_t>(InputCommon::kCfg));
+  FE_ASSERT_NOTNULL(cfg);
+  auto dev_fun = context->GetInputValue<size_t>(static_cast<int32_t>(WithHandle::kTilingKey));
+  auto node_info = context->GetInputStrPointer(static_cast<int32_t>(WithHandle::kNodeInfo));
+  FE_ASSERT_NOTNULL(node_info);
+  auto schedule_mode = context->GetInputValue<uint32_t>(static_cast<uint32_t>(InputCommon::kScheduleMode));
+  auto args = context->MutableInputPointer<RtKernelLaunchArgsEx>(static_cast<size_t>(InputCommon::kRtArg));
+  auto local_mem_size = context->GetInputValue<uint32_t>(static_cast<uint32_t>(InputCommon::kLocalMemSize));
+  cfg->localMemorySize = local_mem_size;
+  FE_ASSERT_NOTNULL(args);
+  cfg->schemMode = static_cast<uint8_t>(schedule_mode & k2BitsMask);
+  int32_t addr_start = static_cast<int32_t>(WithHandle::kIoAddrs);
+  FE_RETURN_IF_ERROR(UpdateArgs(context, addr_start, *args));
+  auto ret = ProcMixVectorCoreTask(context, {true, handle, dev_fun, *block_dim, args->GetBase(), nullptr,
+                                                 stream, 0U, cfg}, addr_start, *args);
+  FE_RETURN_IF_ERROR(ret);
+  return AICoreDfxPrintProc(context, stream);
+}
+
 ge::graphStatus FillMixVectorProfilingInfo(const KernelContext *context, ProfilingInfoWrapper &prof_info) {
   (void)context;
   prof_info.SetMixLaunchEnable(mix_prof_data.sub_task_enable);
@@ -713,85 +682,110 @@ ge::graphStatus FillMixVectorProfilingInfo(const KernelContext *context, Profili
   GELOGI("Mix vector core report profiling data success");
   return ge::GRAPH_SUCCESS;
 }
+REGISTER_KERNEL(LaunchMixKernelWithHandle).RunFunc(AiCoreLaunchMixKernelWithHandle).TracePrinter(PrintLaunchArgs).
+    ExceptionDumpInfoFiller(AicoreHandleUpdateGeExceptionDumpInfo).ProfilingInfoFiller(FillMixVectorProfilingInfo);
+
+ge::graphStatus AiCoreLaunchKernelWithFlag(KernelContext *context) {
+  auto stream = context->GetInputValue<void *>(static_cast<int32_t>(InputCommon::kStream));
+  FE_ASSERT_NOTNULL(stream);
+  auto block_dim = context->GetInputPointer<uint64_t>(static_cast<int32_t>(InputCommon::kBlockDim));
+  FE_ASSERT_NOTNULL(block_dim);
+  auto cfg = context->MutableInputPointer<rtTaskCfgInfo_t>(static_cast<size_t>(InputCommon::kCfg));
+  FE_ASSERT_NOTNULL(cfg);
+  auto handle = context->GetInputValue<void *>(static_cast<int32_t>(InputCommon::kBinHandle));
+  FE_ASSERT_NOTNULL(handle);
+  auto schedule_mode = context->GetInputValue<uint32_t>(static_cast<uint32_t>(InputCommon::kScheduleMode));
+  cfg->schemMode = static_cast<uint8_t>(schedule_mode & k2BitsMask);
+  auto args = context->MutableInputPointer<RtKernelLaunchArgsEx>(static_cast<size_t>(InputCommon::kRtArg));
+  FE_ASSERT_NOTNULL(args);
+  auto local_mem_size = context->GetInputValue<uint32_t>(static_cast<uint32_t>(InputCommon::kLocalMemSize));
+  cfg->localMemorySize = local_mem_size;
+  int32_t addr_start = static_cast<int32_t>(WithArgs::kIoAddrs);
+  FE_RETURN_IF_ERROR(UpdateArgs(context, addr_start, *args));
+  FE_CHK_RT_RET(rtKernelLaunchWithFlagV2(handle, *block_dim, args->GetBase(), nullptr, stream, 0U, cfg));
+  return AICoreDfxPrintProc(context, stream);
+}
+REGISTER_KERNEL(LaunchKernelWithFlag).RunFunc(AiCoreLaunchKernelWithFlag).TracePrinter(PrintLaunchArgs);
+
+ge::graphStatus AiCoreLaunchMixKernelWithFlag(KernelContext *context) {
+  auto stream = context->GetInputValue<void *>(static_cast<int32_t>(InputCommon::kStream));
+  FE_ASSERT_NOTNULL(stream);
+  auto handle = context->GetInputValue<void *>(static_cast<int32_t>(InputCommon::kBinHandle));
+  FE_ASSERT_NOTNULL(handle);
+  auto block_dim = context->GetInputPointer<uint64_t>(static_cast<int32_t>(InputCommon::kBlockDim));
+  FE_ASSERT_NOTNULL(block_dim);
+  auto cfg = context->MutableInputPointer<rtTaskCfgInfo_t>(static_cast<size_t>(InputCommon::kCfg));
+  FE_ASSERT_NOTNULL(cfg);
+  auto schedule_mode = context->GetInputValue<uint32_t>(static_cast<uint32_t>(InputCommon::kScheduleMode));
+  cfg->schemMode = static_cast<uint8_t>(schedule_mode & k2BitsMask);
+  auto args = context->MutableInputPointer<RtKernelLaunchArgsEx>(static_cast<size_t>(InputCommon::kRtArg));
+  FE_ASSERT_NOTNULL(args);
+  auto local_mem_size = context->GetInputValue<uint32_t>(static_cast<uint32_t>(InputCommon::kLocalMemSize));
+  cfg->localMemorySize = local_mem_size;
+  int32_t addr_start = static_cast<int32_t>(WithArgs::kIoAddrs);
+  FE_RETURN_IF_ERROR(UpdateArgs(context, addr_start, *args));
+  auto ret = ProcMixVectorCoreTask(context, {false, handle, 0U, *block_dim, args->GetBase(), nullptr,
+                                                 stream, 0U, cfg}, addr_start, *args);
+  FE_RETURN_IF_ERROR(ret);
+  return AICoreDfxPrintProc(context, stream);
+}
+REGISTER_KERNEL(LaunchMixKernelWithFlag).RunFunc(AiCoreLaunchMixKernelWithFlag).TracePrinter(PrintLaunchArgs)
+    .ProfilingInfoFiller(FillMixVectorProfilingInfo);
 
 ge::graphStatus FillAtomicAiCoreProfilingInfo(const KernelContext *context, ProfilingInfoWrapper &prof_info) {
-  auto block_dim = context->GetInputPointer<uint32_t>(static_cast<int32_t>(InputCommon::kBlockDim));
+  auto block_dim = context->GetInputPointer<uint64_t>(static_cast<int32_t>(InputCommon::kBlockDim));
   FE_ASSERT_NOTNULL(block_dim);
   prof_info.SetBlockDim(*block_dim);
   return ge::GRAPH_SUCCESS;
 }
 
-ge::graphStatus AiCoreLaunchMixKernelV2(KernelContext *context) {
-  LaunchCommonInputs inputs = GetLaunchCommonInputs(context);
-  FE_RETURN_IF_ERROR(PrepareLaunchConfig(inputs));
-  int32_t addr_start = static_cast<int32_t>(WithArgs::kIoAddrs);
-  FE_RETURN_IF_ERROR(UpdateArgs(context, addr_start, *inputs.args));
-  auto funcHandle = GetFuncHandle(inputs.bin_handle, inputs.tiling_key, inputs.kernel_name, inputs.with_handle_flag);
-  const auto compute_node_info = static_cast<const ComputeNodeInfo *>(context->GetComputeNodeExtend());
-  FE_ASSERT_NOTNULL(compute_node_info);
-  PlaceHolderInfo place_holder_info = GetPlaceHolderInfo(inputs.args);
-  std::vector<aclrtPlaceHolderInfo> infos(place_holder_info.place_holder_num);
-  aclrtPlaceHolderInfo *place_holder_ptr = nullptr;
-  if (place_holder_info.place_holder_num > 0U) {
-    UpdatePlaceHolderInfo(infos, inputs.args, place_holder_info.has_tiling);
-    place_holder_ptr = infos.data();
-  } else {
-    static aclrtPlaceHolderInfo without_info = {};
-    place_holder_ptr = &without_info;
-  }
-  ge::Status ret = ProcMixVectorCoreTask(context,
-      {funcHandle, *inputs.block_dim, inputs.stream, inputs.cfg, inputs.args->GetArgBase(),
-       inputs.args->GetBase()->argsSize, place_holder_ptr, place_holder_info.place_holder_num}, addr_start, *inputs.args);
+ge::graphStatus AtomicAiCoreLaunchKernelWithHandle(KernelContext *context) {
+  auto stream = context->GetInputValue<void *>(static_cast<int32_t>(InputCommon::kStream));
+  FE_ASSERT_NOTNULL(stream);
+  auto handle = context->GetInputValue<void *>(static_cast<int32_t>(InputCommon::kBinHandle));
+  FE_ASSERT_NOTNULL(handle);
+  auto dev_fun = context->GetInputValue<size_t>(static_cast<int32_t>(WithAtomicHandle::kTilingKey));
+  auto block_dim = context->GetInputPointer<uint64_t>(static_cast<int32_t>(InputCommon::kBlockDim));
+  FE_ASSERT_NOTNULL(block_dim);
+  auto schedule_mode = context->GetInputValue<uint32_t>(static_cast<uint32_t>(InputCommon::kScheduleMode));
+  auto cfg = context->MutableInputPointer<rtTaskCfgInfo_t>(static_cast<size_t>(InputCommon::kCfg));
+  FE_ASSERT_NOTNULL(cfg);
+  cfg->schemMode = static_cast<uint8_t>(schedule_mode & k2BitsMask);
+  auto args = context->MutableInputPointer<RtKernelLaunchArgsEx>(static_cast<size_t>(InputCommon::kRtArg));
+  FE_ASSERT_NOTNULL(args);
+  auto local_mem_size = context->GetInputValue<uint32_t>(static_cast<uint32_t>(InputCommon::kLocalMemSize));
+  cfg->localMemorySize = local_mem_size;
+  FE_RETURN_IF_ERROR(UpdateAtomicArgs(context, static_cast<int32_t>(WithAtomicHandle::kIoAddrs), static_cast<int32_t>(WithAtomicHandle::kWorkspaceIndex), *args));
+  auto ret = rtKernelLaunchWithHandleV2(handle, dev_fun, *block_dim, args->GetBase(), nullptr, stream, cfg);
   if (ret != RT_ERROR_NONE) {
-    GELOGE(ret, "LaunchMixKernelV2 failed. Node: %s.", compute_node_info->GetNodeName());
-  }
-  return AICoreDfxPrintProc(context, inputs.stream);
-}
-REGISTER_KERNEL(LaunchMixKernelV2).RunFunc(AiCoreLaunchMixKernelV2).TracePrinter(PrintLaunchArgs).
-    ExceptionDumpInfoFiller(AicoreHandleUpdateGeExceptionDumpInfo).ProfilingInfoFiller(FillMixVectorProfilingInfo);
-
-ge::graphStatus AiCoreLaunchKernelV2(KernelContext *context) {
-  LaunchCommonInputs inputs = GetLaunchCommonInputs(context);
-  FE_RETURN_IF_ERROR(PrepareLaunchConfig(inputs));
-  int32_t addr_start = static_cast<int32_t>(WithArgs::kIoAddrs);
-  FE_RETURN_IF_ERROR(UpdateArgs(context, addr_start, *inputs.args));
-  auto funcHandle = GetFuncHandle(inputs.bin_handle, inputs.tiling_key, inputs.kernel_name, inputs.with_handle_flag);
-  PlaceHolderInfo place_holder_info = GetPlaceHolderInfo(inputs.args);
-  ge::Status ret = LaunchKernelWithPlaceHolder(funcHandle, *inputs.block_dim, inputs.stream, inputs.cfg,
-      inputs.args->GetArgBase(), inputs.args->GetBase()->argsSize, inputs.args, place_holder_info);
-  const auto compute_node_info = static_cast<const ComputeNodeInfo *>(context->GetComputeNodeExtend());
-  FE_ASSERT_NOTNULL(compute_node_info);
-  if (ret != RT_ERROR_NONE) {
-    GELOGE(ret, "LaunchKernelV2 failed. Node: %s.", compute_node_info->GetNodeName());
-    return ret;
-  }
-  return AICoreDfxPrintProc(context, inputs.stream);
-}
-REGISTER_KERNEL(LaunchKernelV2).RunFunc(AiCoreLaunchKernelV2).TracePrinter(PrintLaunchArgs);
-
-ge::graphStatus AtomicAiCoreLaunchKernelV2(KernelContext *context) {
-  LaunchCommonInputs inputs = GetLaunchCommonInputs(context);
-  FE_RETURN_IF_ERROR(PrepareLaunchConfig(inputs));
-  FE_RETURN_IF_ERROR(UpdateAtomicArgs(context, static_cast<int32_t>(WithAtomic::kIoAddrs), *inputs.args));
-  auto funcHandle = GetFuncHandle(inputs.bin_handle, inputs.tiling_key, inputs.kernel_name, inputs.with_handle_flag);
-  aclrtPlaceHolderInfo info = {};
-  uint32_t placeHolderNum = 0;
-  if (inputs.args->GetTilingDataOffset() < inputs.args->GetBase()->argsSize) {
-    info.addrOffset = inputs.args->GetBase()->tilingAddrOffset;
-    info.dataOffset = inputs.args->GetTilingDataOffset();
-    placeHolderNum++;
-  }
-  auto ret = aclrtLaunchKernelWithHostArgs(funcHandle, *inputs.block_dim, inputs.stream, inputs.cfg,
-      inputs.args->GetArgBase(), inputs.args->GetBase()->argsSize, &info, placeHolderNum);
-  const auto compute_node_info = static_cast<const ComputeNodeInfo *>(context->GetComputeNodeExtend());
-  FE_ASSERT_NOTNULL(compute_node_info);
-  if (ret != RT_ERROR_NONE) {
-    GELOGE(ret, "AtomicLaunchKernelV2 failed. Node: %s.", compute_node_info->GetNodeName());
+    GELOGE(ret, "Failed to launch kernel with handle");
     return ret;
   }
   return ge::GRAPH_SUCCESS;
 }
-REGISTER_KERNEL(AtomicLaunchKernelV2).RunFunc(AtomicAiCoreLaunchKernelV2).TracePrinter(PrintLaunchArgs)
+REGISTER_KERNEL(AtomicLaunchKernelWithHandle).RunFunc(AtomicAiCoreLaunchKernelWithHandle).TracePrinter(PrintLaunchArgs)
 .ProfilingInfoFiller(FillAtomicAiCoreProfilingInfo);
+
+ge::graphStatus AtomicAiCoreLaunchKernelWithFlag(KernelContext *context) {
+  auto stream = context->GetInputValue<void *>(static_cast<int32_t>(InputCommon::kStream));
+  FE_ASSERT_NOTNULL(stream);
+  auto handle = context->GetInputValue<void *>(static_cast<int32_t>(InputCommon::kBinHandle));
+  FE_ASSERT_NOTNULL(handle);
+  auto block_dim = context->GetInputPointer<uint64_t>(static_cast<int32_t>(InputCommon::kBlockDim));
+  FE_ASSERT_NOTNULL(block_dim);
+  auto schedule_mode = context->GetInputValue<uint32_t>(static_cast<uint32_t>(InputCommon::kScheduleMode));
+  auto cfg = context->MutableInputPointer<rtTaskCfgInfo_t>(static_cast<size_t>(InputCommon::kCfg));
+  FE_ASSERT_NOTNULL(cfg);
+  cfg->schemMode = static_cast<uint8_t>(schedule_mode & k2BitsMask);
+  auto args = context->MutableInputPointer<RtKernelLaunchArgsEx>(static_cast<size_t>(InputCommon::kRtArg));
+  FE_ASSERT_NOTNULL(args);
+  auto local_mem_size = context->GetInputValue<uint32_t>(static_cast<uint32_t>(InputCommon::kLocalMemSize));
+  cfg->localMemorySize = local_mem_size;
+  FE_RETURN_IF_ERROR(UpdateAtomicArgs(context, static_cast<int32_t>(WithAtomic::kIoAddrs), static_cast<int32_t>(WithAtomic::kWorkspaceIndex), *args));
+  FE_CHK_RT_RET(rtKernelLaunchWithFlagV2(handle, *block_dim, args->GetBase(), nullptr, stream, 0U, cfg));
+  return ge::GRAPH_SUCCESS;
+}
+REGISTER_KERNEL(AtomicLaunchKernelWithFlag).RunFunc(AtomicAiCoreLaunchKernelWithFlag).TracePrinter(PrintLaunchArgs)
+  .ProfilingInfoFiller(FillAtomicAiCoreProfilingInfo);
 }  // namespace kernel
 }  // namespace gert
