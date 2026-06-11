@@ -89,9 +89,9 @@ rm -rf build_ut/ build_st/ output/ build/ build_out/ cov/ build_cmake_gcov/
 | [`zero_copy.md`](docs/architecture/features/zero_copy.md) | 零拷贝、zero copy、模型输入/输出、用户输入/输出、用户内存/地址 | `*zero_copy*` |
 | [`concat_no_task.md`](docs/architecture/features/concat_no_task.md) | Concat No Task、concat优化、连续内存拼接、虚拟算子、不生成Task | `*concat_notask*` |
 | [`ge_local_operator.md`](docs/architecture/features/ge_local_operator.md) | GE Local算子、本地算子、GeLocal引擎、NoOp、GeDeletedOp、PhonyConcat、PhonySplit | `*local_engine*`、`*ge_local*` |
-| [`engine.md`](docs/architecture/features/engine.md) | 引擎、Engine、引擎选择、引擎注册、引擎分区、EnginePlacer、EnginePartitioner、DNNEngine、OpsKernelInfoStore | `compiler/engines/`、`*engine_placer*`、`*dnnengine*` |
+| [`engine.md`](docs/architecture/features/engine.md) | 引擎、Engine、引擎选择、引擎注册、引擎分区、EnginePlacer、EnginePartitioner、DNNEngine、OpsKernelInfoStore | `compiler/engines/`、`*engine_place*`、`*dnnengine*` |
 | [`tiling_sink.md`](docs/architecture/features/tiling_sink.md) | Tiling下沉、tiling sink、AICPU Tiling、tiling_schedule_optimize | `*tiling_sink*`、`*fe_gentask_utils*` |
-| [`graph_spliter.md`](docs/architecture/features/graph_spliter.md) | 图拆分、Graph Split、动静拆分、DynamicShapePartitioner、EnginePartitioner、cluster、PartitionedCall | `compiler/graph/partition/`、`*dynamic_shape_partition*` |
+| [`graph_splitter.md`](docs/architecture/features/graph_splitter.md) | 图拆分、Graph Split、动静拆分、DynamicShapePartitioner、EnginePartitioner、cluster、PartitionedCall | `compiler/graph/partition/`、`*dynamic_shape_partition*` |
 | [`known_shape_executor.md`](docs/architecture/features/known_shape_executor.md) | 静态执行器、Known Shape Executor、Task Sink、DavinciModel、地址刷新、模型下沉 | `runtime/v1/graph/load/model_manager/` |
 | [`unknown_shape_executor.md`](docs/architecture/features/unknown_shape_executor.md) | 动态执行器、Unknown Shape Executor、RT2.0、Lowering、ExecuteGraph、ModelV2Executor、动态shape执行 | `runtime/v2/`、`runtime/v1/hybrid/executor/` |
 | [`stream_allocator.md`](docs/architecture/features/stream_allocator.md) | 流分配、stream、多流、流复用、event同步、流激活 | `compiler/graph/build/stream/` |
