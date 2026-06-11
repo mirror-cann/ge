@@ -52,15 +52,15 @@ std::unique_ptr<bg::GraphFrame> BuildGraph1() {
 
   auto alloc1 = bg::ValueHolder::CreateSingleDataOutput("AllocMemory", {allocator, size});
   bg::ValueHolder::CreateVoidGuarder("FreeMemory", alloc1, {});
-  auto launch1 = bg::ValueHolder::CreateVoid<bg::ValueHolder>("LaunchKernelV2", {stream, alloc1});
+  auto launch1 = bg::ValueHolder::CreateVoid<bg::ValueHolder>("LaunchKernelWithFlag", {stream, alloc1});
 
   auto alloc2 = bg::ValueHolder::CreateSingleDataOutput("AllocMemory", {allocator, size});
   bg::ValueHolder::CreateVoidGuarder("FreeMemory", alloc2, {});
-  auto launch2 = bg::ValueHolder::CreateVoid<bg::ValueHolder>("LaunchKernelV2", {stream, alloc1, alloc2});
+  auto launch2 = bg::ValueHolder::CreateVoid<bg::ValueHolder>("LaunchKernelWithFlag", {stream, alloc1, alloc2});
 
   auto alloc3 = bg::ValueHolder::CreateSingleDataOutput("AllocMemory", {allocator, size});
   bg::ValueHolder::CreateVoidGuarder("FreeMemory", alloc3, {});
-  auto launch3 = bg::ValueHolder::CreateVoid<bg::ValueHolder>("LaunchKernelV2", {stream, alloc2, alloc3});
+  auto launch3 = bg::ValueHolder::CreateVoid<bg::ValueHolder>("LaunchKernelWithFlag", {stream, alloc2, alloc3});
 
   bg::ValueHolder::AddDependency(launch1, launch2);
   bg::ValueHolder::AddDependency(launch2, launch3);
@@ -104,26 +104,26 @@ std::unique_ptr<bg::GraphFrame> BuildGraph2() {
 
   auto alloc1 = bg::ValueHolder::CreateSingleDataOutput("AllocMemory", {allocator, size});
   bg::ValueHolder::CreateVoidGuarder("FreeMemory", alloc1, {});
-  auto launch1 = bg::ValueHolder::CreateVoid<bg::ValueHolder>("LaunchKernelV2", {stream, alloc1});
+  auto launch1 = bg::ValueHolder::CreateVoid<bg::ValueHolder>("LaunchKernelWithFlag", {stream, alloc1});
 
   auto alloc2 = bg::ValueHolder::CreateSingleDataOutput("AllocMemory", {allocator, size});
   bg::ValueHolder::CreateVoidGuarder("FreeMemory", alloc2, {});
-  auto launch2 = bg::ValueHolder::CreateVoid<bg::ValueHolder>("LaunchKernelV2", {stream, alloc1, alloc2});
+  auto launch2 = bg::ValueHolder::CreateVoid<bg::ValueHolder>("LaunchKernelWithFlag", {stream, alloc1, alloc2});
   bg::ValueHolder::AddDependency(launch1, launch2);
 
   auto alloc3 = bg::ValueHolder::CreateSingleDataOutput("AllocMemory", {allocator, size});
   bg::ValueHolder::CreateVoidGuarder("FreeMemory", alloc3, {});
-  auto launch3 = bg::ValueHolder::CreateVoid<bg::ValueHolder>("LaunchKernelV2", {stream, alloc1, alloc3});
+  auto launch3 = bg::ValueHolder::CreateVoid<bg::ValueHolder>("LaunchKernelWithFlag", {stream, alloc1, alloc3});
   bg::ValueHolder::AddDependency(launch1, launch3);
 
   auto alloc4 = bg::ValueHolder::CreateSingleDataOutput("AllocMemory", {allocator, size});
   bg::ValueHolder::CreateVoidGuarder("FreeMemory", alloc4, {});
-  auto launch4 = bg::ValueHolder::CreateVoid<bg::ValueHolder>("LaunchKernelV2", {stream, alloc1, alloc4});
+  auto launch4 = bg::ValueHolder::CreateVoid<bg::ValueHolder>("LaunchKernelWithFlag", {stream, alloc1, alloc4});
   bg::ValueHolder::AddDependency(launch1, launch4);
 
   auto alloc5 = bg::ValueHolder::CreateSingleDataOutput("AllocMemory", {allocator, size});
   bg::ValueHolder::CreateVoidGuarder("FreeMemory", alloc5, {});
-  auto launch5 = bg::ValueHolder::CreateVoid<bg::ValueHolder>("LaunchKernelV2", {stream, alloc2, alloc3, alloc4, alloc5});
+  auto launch5 = bg::ValueHolder::CreateVoid<bg::ValueHolder>("LaunchKernelWithFlag", {stream, alloc2, alloc3, alloc4, alloc5});
   bg::ValueHolder::AddDependency(launch2, launch5);
   bg::ValueHolder::AddDependency(launch3, launch5);
   bg::ValueHolder::AddDependency(launch4, launch5);
@@ -156,16 +156,16 @@ std::unique_ptr<bg::GraphFrame> BuildGraph3() {
   auto alloc1 = bg::ValueHolder::CreateSingleDataOutput("AllocMemory", {allocator, size});
   bg::ValueHolder::CreateVoidGuarder("FreeMemory", alloc1, {});
   bg::ValueHolder::CreateVoid<bg::ValueHolder>("Foo", {alloc1});
-  auto launch1 = bg::ValueHolder::CreateVoid<bg::ValueHolder>("LaunchKernelV2", {stream, alloc1});
+  auto launch1 = bg::ValueHolder::CreateVoid<bg::ValueHolder>("LaunchKernelWithFlag", {stream, alloc1});
 
   auto alloc2 = bg::ValueHolder::CreateSingleDataOutput("AllocMemory", {allocator, size});
   bg::ValueHolder::CreateVoidGuarder("FreeMemory", alloc2, {});
-  auto launch2 = bg::ValueHolder::CreateVoid<bg::ValueHolder>("LaunchKernelV2", {stream, alloc1, alloc2});
+  auto launch2 = bg::ValueHolder::CreateVoid<bg::ValueHolder>("LaunchKernelWithFlag", {stream, alloc1, alloc2});
 
   auto alloc3 = bg::ValueHolder::CreateSingleDataOutput("AllocMemory", {allocator, size});
   bg::ValueHolder::CreateVoidGuarder("FreeMemory", alloc3, {});
   bg::ValueHolder::CreateVoid<bg::ValueHolder>("Bar", {alloc3});
-  auto launch3 = bg::ValueHolder::CreateVoid<bg::ValueHolder>("LaunchKernelV2", {stream, alloc2, alloc3});
+  auto launch3 = bg::ValueHolder::CreateVoid<bg::ValueHolder>("LaunchKernelWithFlag", {stream, alloc2, alloc3});
 
   bg::ValueHolder::AddDependency(launch1, launch2);
   bg::ValueHolder::AddDependency(launch2, launch3);
@@ -198,16 +198,16 @@ std::unique_ptr<bg::GraphFrame> BuildGraph4() {
 
   auto alloc1 = bg::ValueHolder::CreateSingleDataOutput("AllocMemory", {allocator, size});
   bg::ValueHolder::CreateVoidGuarder("FreeMemory", alloc1, {});
-  auto launch1 = bg::ValueHolder::CreateVoid<bg::ValueHolder>("LaunchKernelV2", {stream, alloc1});
+  auto launch1 = bg::ValueHolder::CreateVoid<bg::ValueHolder>("LaunchKernelWithFlag", {stream, alloc1});
 
   auto if_ret = bg::If<bg::ValueHolder>(
       bg::ValueHolder::CreateFeed(2),
       [&]() -> std::vector<bg::ValueHolderPtr> {
-        bg::ValueHolder::CreateVoid<bg::ValueHolder>("LaunchKernelV2", {stream, alloc1});
+        bg::ValueHolder::CreateVoid<bg::ValueHolder>("LaunchKernelWithFlag", {stream, alloc1});
         return {};
       },
       [&]() -> std::vector<bg::ValueHolderPtr> {
-        bg::ValueHolder::CreateVoid<bg::ValueHolder>("LaunchKernelV2", {stream, alloc1});
+        bg::ValueHolder::CreateVoid<bg::ValueHolder>("LaunchKernelWithFlag", {stream, alloc1});
         return {};
       });
 
@@ -215,7 +215,7 @@ std::unique_ptr<bg::GraphFrame> BuildGraph4() {
 
   auto alloc2 = bg::ValueHolder::CreateSingleDataOutput("AllocMemory", {allocator, size});
   bg::ValueHolder::CreateVoidGuarder("FreeMemory", alloc2, {});
-  auto launch2 = bg::ValueHolder::CreateVoid<bg::ValueHolder>("LaunchKernelV2", {stream, alloc2});
+  auto launch2 = bg::ValueHolder::CreateVoid<bg::ValueHolder>("LaunchKernelWithFlag", {stream, alloc2});
 
   auto frame = bg::ValueHolder::PopGraphFrame();
   GE_ASSERT_NOTNULL(frame);

@@ -130,7 +130,7 @@ TEST_F(ModelV2ExecutorBuilderUT, RefsHasTheSameAddr) {
   ASSERT_EQ(tiling_nodes.size(), 1);
   auto tiling_node = tiling_nodes[0];
 
-  auto launch_nodes = ModelV2ExecutorTestHelper::GetNodesByKernelType(execution_data, "LaunchKernelV2");
+  auto launch_nodes = ModelV2ExecutorTestHelper::GetNodesByKernelType(execution_data, "LaunchKernelWithHandle");
   ASSERT_EQ(launch_nodes.size(), 1);
 
   // zero copy tiling-data

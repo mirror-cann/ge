@@ -58,7 +58,6 @@ std::vector<ValueHolderPtr> CreateTiling() {
 }
 
 std::vector<ValueHolderPtr> CreateLaunchKernelCommonInputs(const vector<ValueHolderPtr> &tiling_out) {
-  size_t io_num = 0;
   std::vector<ValueHolderPtr> common_inputs = {
       ValueHolder::CreateFeed(0),
       ValueHolder::CreateSingleDataOutput("InnerData", {}),
@@ -67,23 +66,20 @@ std::vector<ValueHolderPtr> CreateLaunchKernelCommonInputs(const vector<ValueHol
       ValueHolder::CreateSingleDataOutput("InnerData", {}),
       ValueHolder::CreateSingleDataOutput("InnerData", {}),
       ValueHolder::CreateSingleDataOutput("InnerData", {}),
-      ValueHolder::CreateConst(&io_num, sizeof(io_num)),
       tiling_out[TilingContext::kOutputScheduleMode],
       ValueHolder::CreateSingleDataOutput("InnerData", {}),
       tiling_out[static_cast<size_t>(kernel::TilingExOutputIndex::kRtArg)],
-      ValueHolder::CreateSingleDataOutput("InnerData", {}),
-      tiling_out[TilingContext::kOutputTilingKey],
-      ValueHolder::CreateSingleDataOutput("InnerData", {}),
-      ValueHolder::CreateSingleDataOutput("InnerData", {}),
+      ValueHolder::CreateFeed(0),
   };
-  common_inputs.emplace_back(ValueHolder::CreateSingleDataOutput("InnerData", {}));
 
   return common_inputs;
 }
 
-std::vector<ValueHolderPtr> CreateLaunchKernelV2CommonInputsForStaticOp() {
+std::vector<ValueHolderPtr> CreateLaunchKernelWithFlagCommonInputs() {
   auto tiling_out = CreateTiling();
-  return CreateLaunchKernelCommonInputs(tiling_out);
+  auto inputs = CreateLaunchKernelCommonInputs(tiling_out);
+  inputs.emplace_back(ValueHolder::CreateSingleDataOutput("InnerData", {}));
+  return inputs;
 }
 
 std::vector<ValueHolderPtr> CreateTilingMemCheck() {
@@ -115,14 +111,22 @@ ValueHolderPtr CreateAllocBatchHbm() {
   };
   return ValueHolder::CreateSingleDataOutput("AllocBatchHbm", inputs);
 }
-std::vector<ValueHolderPtr> CreateLaunchKernelV2CommonInputs() {
+std::vector<ValueHolderPtr> CreateLaunchKernelWithHandleCommonInputs() {
   const auto tiling_out = CreateTiling();
-  return CreateLaunchKernelCommonInputs(tiling_out);
+  auto inputs = CreateLaunchKernelCommonInputs(tiling_out);
+  inputs.emplace_back(tiling_out[TilingContext::kOutputTilingKey]);
+  inputs.emplace_back(ValueHolder::CreateSingleDataOutput("InnerData", {}));
+  inputs.emplace_back(ValueHolder::CreateSingleDataOutput("InnerData", {}));
+  return inputs;
 }
 
-std::vector<ValueHolderPtr> CreateLaunchKernelV2CommonInputsMemCheck() {
+std::vector<ValueHolderPtr> CreateLaunchKernelWithHandleCommonInputsMemCheck() {
   const auto tiling_out = CreateTilingMemCheck();
-  return CreateLaunchKernelCommonInputs(tiling_out);
+  auto inputs = CreateLaunchKernelCommonInputs(tiling_out);
+  inputs.emplace_back(tiling_out[TilingContext::kOutputTilingKey]);
+  inputs.emplace_back(ValueHolder::CreateSingleDataOutput("InnerData", {}));
+  inputs.emplace_back(ValueHolder::CreateSingleDataOutput("InnerData", {}));
+  return inputs;
 }
 
 ValueHolderPtr CreateMakeSureTensorAtDevice() {
@@ -166,7 +170,7 @@ ValueHolderPtr CreateCopyH2D() {
  *before HostInputsProcFuse pass:
  *                 netoutput
  *                    |
- *           LaunchKernelV2
+ *           LaunchKernelWithFlag
  *           /                  \
  *  MakeSureTensorAtDevice     data2
  *        |
@@ -180,7 +184,7 @@ ValueHolderPtr CreateCopyH2D() {
  * after HostInputsProcFuse pass:
  *                  netoutput
  *                      |
- *            LaunchKernelV2
+ *            LaunchKernelWithFlag
  *                 /           \
  *         CopyFlowLaunch      data2
  *              /
@@ -192,12 +196,12 @@ ValueHolderPtr CreateCopyH2D() {
  *
  */
 
-TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_1H1D_MakeSureTensorAtDevice) {
+TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelWithFlag_1H1D_MakeSureTensorAtDevice) {
   auto make_sure_tensor_at_device = CreateMakeSureTensorAtDevice();
-  auto launch_kernel_inputs = CreateLaunchKernelV2CommonInputsForStaticOp();
+  auto launch_kernel_inputs = CreateLaunchKernelWithFlagCommonInputs();
   launch_kernel_inputs.emplace_back(make_sure_tensor_at_device);
   launch_kernel_inputs.emplace_back(CreateAllocBatchHbm());
-  auto launch_kernel = ValueHolder::CreateSingleDataOutput("LaunchKernelV2", launch_kernel_inputs);
+  auto launch_kernel = ValueHolder::CreateSingleDataOutput("LaunchKernelWithFlag", launch_kernel_inputs);
 
   auto frame = ValueHolder::PopGraphFrame({launch_kernel}, {});
   ASSERT_NE(frame, nullptr);
@@ -207,15 +211,15 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_1H1D_MakeSureTensorAtDevice) {
   EXPECT_EQ(ExeGraphSummaryChecker(graph.get())
                 .StrictDirectNodeTypes({{"AllocBatchHbm", 1},
                                         {"CalcTensorSizeFromStorage", 1},
-                                        {"Const", 2},
-                                        {"Data", 8},
-                                        {"FreeMemory", 1},
-                                        {"InnerData", 15},
-                                        {"LaunchKernelV2", 1},
+                                        {"Const", 1},
                                         {"MakeSureTensorAtDevice", 1},
+                                        {"Data", 9},
+                                        {"Tiling", 1},
+                                        {"FreeMemory", 1},
+                                        {"InnerData", 12},
+                                        {"LaunchKernelWithFlag", 1},
                                         {"SplitTensor", 1},
-                                        {"NetOutput", 1},
-                                        {"Tiling", 1}}),
+                                        {"NetOutput", 1}}),
             "success");
 
   bool changed = false;
@@ -225,15 +229,15 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_1H1D_MakeSureTensorAtDevice) {
   EXPECT_EQ(ExeGraphSummaryChecker(graph.get())
                 .StrictDirectNodeTypes({{"AllocBatchHbm", 1},
                                         {"CalcTensorSizeFromStorage", 1},
-                                        {"Const", 4},
+                                        {"Const", 3},
                                         {"CopyFlowLaunch", 1},
-                                        {"Data", 8},
+                                        {"Data", 9},
+                                        {"Tiling", 1},
                                         {"FreeMemory", 1},
-                                        {"InnerData", 15},
-                                        {"LaunchKernelV2", 1},
+                                        {"InnerData", 12},
+                                        {"LaunchKernelWithFlag", 1},
                                         {"SplitTensor", 1},
-                                        {"NetOutput", 1},
-                                        {"Tiling", 1}}),
+                                        {"NetOutput", 1}}),
             "success");
 
   auto copy_flow_launch_nodes = ge::ExecuteGraphUtils::FindNodesByTypeFromAllNodes(graph.get(), "CopyFlowLaunch");
@@ -245,13 +249,13 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_1H1D_MakeSureTensorAtDevice) {
     EXPECT_EQ(src_node->GetType(), "Tiling");
     EXPECT_EQ(in_edge->src_output, static_cast<size_t>(kernel::TilingExOutputIndex::kRtArg));
   }
-  CheckFreeMemoryInControlEdge(graph.get(), "LaunchKernelV2", 1);
+  CheckFreeMemoryInControlEdge(graph.get(), "LaunchKernelWithFlag", 1);
 }
 
 /*
  *                 netoutput
  *                    |
- *           LaunchKernelV2
+ *           LaunchKernelWithFlag
  *           /                  \
  * MakeSureTensorAtDevice  MakeSureTensorAtDevice
  *        |                             |
@@ -265,7 +269,7 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_1H1D_MakeSureTensorAtDevice) {
  * after HostInputsProcFuse pass:
  *                  netoutput
  *                      |
- *            LaunchKernelV2
+ *            LaunchKernelWithFlag
  *                      |
  *                CopyFlowLaunch
  *              /                \
@@ -276,12 +280,12 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_1H1D_MakeSureTensorAtDevice) {
  *      data1                         data2
  *
  */
-TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_2H1D_ForStaticOp) {
-  auto launch_kernel_inputs = CreateLaunchKernelV2CommonInputsForStaticOp();
+TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelWithFlag_2H1D) {
+  auto launch_kernel_inputs = CreateLaunchKernelWithFlagCommonInputs();
   launch_kernel_inputs.emplace_back(CreateMakeSureTensorAtDevice());
   launch_kernel_inputs.emplace_back(CreateAllocBatchHbm());
   launch_kernel_inputs.emplace_back(CreateMakeSureTensorAtDevice());
-  auto launch_kernel = ValueHolder::CreateSingleDataOutput("LaunchKernelV2", launch_kernel_inputs);
+  auto launch_kernel = ValueHolder::CreateSingleDataOutput("LaunchKernelWithFlag", launch_kernel_inputs);
 
   auto frame = ValueHolder::PopGraphFrame({launch_kernel}, {});
   ASSERT_NE(frame, nullptr);
@@ -291,13 +295,13 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_2H1D_ForStaticOp) {
   EXPECT_EQ(ExeGraphSummaryChecker(graph.get())
                 .StrictDirectNodeTypes({{"AllocBatchHbm", 1},
                                         {"CalcTensorSizeFromStorage", 2},
-                                        {"Const", 3},
+                                        {"Const", 2},
                                         {"MakeSureTensorAtDevice", 2},
-                                        {"Data", 10},
+                                        {"Data", 11},
                                         {"Tiling", 1},
                                         {"FreeMemory", 2},
-                                        {"InnerData", 17},
-                                        {"LaunchKernelV2", 1},
+                                        {"InnerData", 14},
+                                        {"LaunchKernelWithFlag", 1},
                                         {"SplitTensor", 2},
                                         {"NetOutput", 1}}),
             "success");
@@ -309,13 +313,13 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_2H1D_ForStaticOp) {
   EXPECT_EQ(ExeGraphSummaryChecker(graph.get())
                 .StrictDirectNodeTypes({{"AllocBatchHbm", 1},
                                         {"CalcTensorSizeFromStorage", 2},
-                                        {"Const", 5},
+                                        {"Const", 4},
                                         {"CopyFlowLaunch", 1},
-                                        {"Data", 10},
+                                        {"Data", 11},
                                         {"Tiling", 1},
                                         {"FreeMemory", 2},
-                                        {"InnerData", 17},
-                                        {"LaunchKernelV2", 1},
+                                        {"InnerData", 14},
+                                        {"LaunchKernelWithFlag", 1},
                                         {"SplitTensor", 2},
                                         {"NetOutput", 1}}),
             "success");
@@ -329,14 +333,14 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_2H1D_ForStaticOp) {
     EXPECT_EQ(src_node->GetType(), "Tiling");
     EXPECT_EQ(in_edge->src_output, static_cast<size_t>(kernel::TilingExOutputIndex::kRtArg));
   }
-  CheckFreeMemoryInControlEdge(graph.get(), "LaunchKernelV2", 2);
+  CheckFreeMemoryInControlEdge(graph.get(), "LaunchKernelWithFlag", 2);
 }
 
 /*
  *before HostInputsProcFuse pass:
  *                 netoutput
  *                    |
- *           LaunchKernelV2
+ *           LaunchKernelWithHandle
  *           /                  \
  *  MakeSureTensorAtDevice     data2
  *        |
@@ -350,7 +354,7 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_2H1D_ForStaticOp) {
  * after HostInputsProcFuse pass:
  *                  netoutput
  *                      |
- *            LaunchKernelV2
+ *            LaunchKernelWithHandle
  *                   /        \
  *          CopyFlowLaunch   data2
  *              /
@@ -361,12 +365,12 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_2H1D_ForStaticOp) {
  *      data1
  *
  */
-TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_1H1D) {
+TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelWithHandle_1H1D) {
   auto make_sure_tensor_at_device = CreateMakeSureTensorAtDevice();
-  auto launch_kernel_inputs = CreateLaunchKernelV2CommonInputs();
+  auto launch_kernel_inputs = CreateLaunchKernelWithHandleCommonInputs();
   launch_kernel_inputs.emplace_back(make_sure_tensor_at_device);
   launch_kernel_inputs.emplace_back(CreateAllocBatchHbm());
-  auto launch_kernel = ValueHolder::CreateSingleDataOutput("LaunchKernelV2", launch_kernel_inputs);
+  auto launch_kernel = ValueHolder::CreateSingleDataOutput("LaunchKernelWithHandle", launch_kernel_inputs);
   auto frame = ValueHolder::PopGraphFrame({launch_kernel}, {});
   ASSERT_NE(frame, nullptr);
   auto graph = frame->GetExecuteGraph();
@@ -375,13 +379,13 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_1H1D) {
   EXPECT_EQ(ExeGraphSummaryChecker(graph.get())
                 .StrictDirectNodeTypes({{"AllocBatchHbm", 1},
                                         {"CalcTensorSizeFromStorage", 1},
-                                        {"Const", 2},
+                                        {"Const", 1},
                                         {"MakeSureTensorAtDevice", 1},
-                                        {"Data", 8},
+                                        {"Data", 9},
                                         {"Tiling", 1},
                                         {"FreeMemory", 1},
-                                        {"InnerData", 15},
-                                        {"LaunchKernelV2", 1},
+                                        {"InnerData", 13},
+                                        {"LaunchKernelWithHandle", 1},
                                         {"SplitTensor", 1},
                                         {"Tiling", 1},
                                         {"NetOutput", 1}}),
@@ -394,13 +398,13 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_1H1D) {
   EXPECT_EQ(ExeGraphSummaryChecker(graph.get())
                 .StrictDirectNodeTypes({{"AllocBatchHbm", 1},
                                         {"CalcTensorSizeFromStorage", 1},
-                                        {"Const", 4},
+                                        {"Const", 3},
                                         {"CopyFlowLaunch", 1},
-                                        {"Data", 8},
+                                        {"Data", 9},
                                         {"Tiling", 1},
                                         {"FreeMemory", 1},
-                                        {"InnerData", 15},
-                                        {"LaunchKernelV2", 1},
+                                        {"InnerData", 13},
+                                        {"LaunchKernelWithHandle", 1},
                                         {"SplitTensor", 1},
                                         {"Tiling", 1},
                                         {"NetOutput", 1}}),
@@ -414,13 +418,13 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_1H1D) {
     ASSERT_NE(src_node, nullptr);
     EXPECT_EQ(src_node->GetType(), "Tiling");
   }
-  CheckFreeMemoryInControlEdge(graph.get(), "LaunchKernelV2", 1);
+  CheckFreeMemoryInControlEdge(graph.get(), "LaunchKernelWithHandle", 1);
 }
 
 /*
  *                netoutput
  *                    |
- *           LaunchKernelV2
+ *           LaunchKernelWithHandle
  *           /                 \
  * MakeSureTensorAtDevice  MakeSureTensorAtDevice
  *        |                             |
@@ -433,7 +437,7 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_1H1D) {
  *  after HostInputsProcFuse pass:
  *                netoutput
  *                    |
- *           LaunchKernelV2
+ *           LaunchKernelWithHandle
  *                    |
  *               CopyFlowLaunch
  *             /               \
@@ -445,13 +449,13 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_1H1D) {
  *
  *
  */
-TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_2H1D) {
-  auto launch_kernel_inputs = CreateLaunchKernelV2CommonInputs();
+TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelWithHandle_2H1D) {
+  auto launch_kernel_inputs = CreateLaunchKernelWithHandleCommonInputs();
   launch_kernel_inputs.emplace_back(CreateMakeSureTensorAtDevice());
   launch_kernel_inputs.emplace_back(CreateMakeSureTensorAtDevice());
   launch_kernel_inputs.emplace_back(CreateAllocBatchHbm());
 
-  auto launch_kernel = ValueHolder::CreateSingleDataOutput("LaunchKernelV2", launch_kernel_inputs);
+  auto launch_kernel = ValueHolder::CreateSingleDataOutput("LaunchKernelWithHandle", launch_kernel_inputs);
 
   auto frame = ValueHolder::PopGraphFrame({launch_kernel}, {});
   ASSERT_NE(frame, nullptr);
@@ -461,12 +465,12 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_2H1D) {
   EXPECT_EQ(ExeGraphSummaryChecker(graph.get())
                 .StrictDirectNodeTypes({{"AllocBatchHbm", 1},
                                         {"CalcTensorSizeFromStorage", 2},
-                                        {"Const", 3},
+                                        {"Const", 2},
                                         {"MakeSureTensorAtDevice", 2},
-                                        {"Data", 10},
+                                        {"Data", 11},
                                         {"FreeMemory", 2},
-                                        {"InnerData", 17},
-                                        {"LaunchKernelV2", 1},
+                                        {"InnerData", 15},
+                                        {"LaunchKernelWithHandle", 1},
                                         {"SplitTensor", 2},
                                         {"Tiling", 1},
                                         {"NetOutput", 1}}),
@@ -479,12 +483,12 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_2H1D) {
   EXPECT_EQ(ExeGraphSummaryChecker(graph.get())
                 .StrictDirectNodeTypes({{"AllocBatchHbm", 1},
                                         {"CalcTensorSizeFromStorage", 2},
-                                        {"Const", 5},
+                                        {"Const", 4},
                                         {"CopyFlowLaunch", 1},
-                                        {"Data", 10},
+                                        {"Data", 11},
                                         {"FreeMemory", 2},
-                                        {"InnerData", 17},
-                                        {"LaunchKernelV2", 1},
+                                        {"InnerData", 15},
+                                        {"LaunchKernelWithHandle", 1},
                                         {"SplitTensor", 2},
                                         {"Tiling", 1},
                                         {"NetOutput", 1}}),
@@ -501,16 +505,16 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_2H1D) {
     // RefFrom整改后, 数据边替代了原先的控制边, Tiling到CopyFlowLaunch之间没有控制边
     EXPECT_NE(topo_checker.InChecker().CtrlFromByType("Tiling").Result(), "success");
   }
-  CheckFreeMemoryInControlEdge(graph.get(), "LaunchKernelV2", 2);
+  CheckFreeMemoryInControlEdge(graph.get(), "LaunchKernelWithHandle", 2);
 }
 /*
  * before HostInputsProcFuse pass:
  *             netoutput
  *               /
  *              /
- *  LaunchKernelV22
+ *  LaunchKernelWithHandle2
  *            \            ...  ...
- *   FreeMem   \          LaunchKernelV21         FreeMem
+ *   FreeMem   \          LaunchKernelWithHandle1         FreeMem
  *         \    \          /                \             /
  *          MakeSureTensorAtDevice  MakeSureTensorAtDevice
  *                      |                          |
@@ -524,7 +528,7 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_2H1D) {
  *             netoutput
  *               /
  *              /
- *  LaunchKernelV22
+ *  LaunchKernelWithHandle2
  *           \                        ...  ...
  *  FreeMem   \               FreeMem  LaunchKernel1   FreeMem
  *      \      \                  \      |  |        /
@@ -537,19 +541,19 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_2H1D) {
  *                    data1                      data2
  *
  */
-TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_2LaunchKernel) {
-  auto launch_kernel_inputs1 = CreateLaunchKernelV2CommonInputs();
+TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelWithHandle_2LaunchKernel) {
+  auto launch_kernel_inputs1 = CreateLaunchKernelWithHandleCommonInputs();
   auto make_sure_tensor_at_device1 = CreateMakeSureTensorAtDevice();
   launch_kernel_inputs1.emplace_back(make_sure_tensor_at_device1);
   launch_kernel_inputs1.emplace_back(CreateAllocBatchHbm());
-  auto launch_kernel1 = ValueHolder::CreateSingleDataOutput("LaunchKernelV2", launch_kernel_inputs1);
+  auto launch_kernel1 = ValueHolder::CreateSingleDataOutput("LaunchKernelWithHandle", launch_kernel_inputs1);
 
-  auto launch_kernel_inputs2 = CreateLaunchKernelV2CommonInputs();
+  auto launch_kernel_inputs2 = CreateLaunchKernelWithHandleCommonInputs();
   launch_kernel_inputs2.emplace_back(CreateMakeSureTensorAtDevice());
   launch_kernel_inputs2.emplace_back(CreateAllocBatchHbm());
   launch_kernel_inputs2.emplace_back(make_sure_tensor_at_device1);
   launch_kernel_inputs2.emplace_back(launch_kernel1);
-  auto launch_kernel2 = ValueHolder::CreateSingleDataOutput("LaunchKernelV2", launch_kernel_inputs2);
+  auto launch_kernel2 = ValueHolder::CreateSingleDataOutput("LaunchKernelWithHandle", launch_kernel_inputs2);
 
   auto frame = ValueHolder::PopGraphFrame({launch_kernel2}, {});
   ASSERT_NE(frame, nullptr);
@@ -561,12 +565,12 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_2LaunchKernel) {
   EXPECT_EQ(ExeGraphSummaryChecker(graph.get())
                 .StrictDirectNodeTypes({{"AllocBatchHbm", 2},
                                         {"CalcTensorSizeFromStorage", 2},
-                                        {"Const", 4},
+                                        {"Const", 2},
                                         {"MakeSureTensorAtDevice", 2},
-                                        {"Data", 16},
+                                        {"Data", 18},
                                         {"FreeMemory", 2},
-                                        {"InnerData", 30},
-                                        {"LaunchKernelV2", 2},
+                                        {"InnerData", 26},
+                                        {"LaunchKernelWithHandle", 2},
                                         {"SplitTensor", 2},
                                         {"Tiling", 2},
                                         {"NetOutput", 1}}),
@@ -581,12 +585,12 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_2LaunchKernel) {
   EXPECT_EQ(ExeGraphSummaryChecker(graph.get())
                 .StrictDirectNodeTypes({{"AllocBatchHbm", 2},
                                         {"CalcTensorSizeFromStorage", 2},
-                                        {"Const", 8},
+                                        {"Const", 6},
                                         {"CopyFlowLaunch", 2},
-                                        {"Data", 16},
+                                        {"Data", 18},
                                         {"FreeMemory", 3},
-                                        {"InnerData", 30},
-                                        {"LaunchKernelV2", 2},
+                                        {"InnerData", 26},
+                                        {"LaunchKernelWithHandle", 2},
                                         {"SplitTensor", 2},
                                         {"Tiling", 2},
                                         {"NetOutput", 1}}),
@@ -602,7 +606,7 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_2LaunchKernel) {
   }
 
   FastNodeTopoChecker topo_checker1(launch_kernel1);
-  EXPECT_EQ(topo_checker1.ConnectFromByType({"CopyFlowLaunch"}), true);
+  EXPECT_EQ(topo_checker1.ConnectFromByType({"MakeSureTensorAtDevice"}), false);
   EXPECT_EQ(topo_checker1.StrictConnectFrom({
                 {"Data", 0},
                 {"InnerData", 0},
@@ -611,16 +615,14 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_2LaunchKernel) {
                 {"InnerData", 0},
                 {"InnerData", 0},
                 {"InnerData", 0},
-                {"Const", 0},
                 {"Tiling", TilingContext::kOutputScheduleMode},
                 {"InnerData", 0},
                 {"Tiling", static_cast<size_t>(kernel::TilingExOutputIndex::kRtArg)},
-                {"InnerData", 0}, 
+                {"Data", 0},
                 {"Tiling", TilingContext::kOutputTilingKey},
                 {"InnerData", 0},
                 {"InnerData", 0},
-                {"InnerData", 0},
-                {"CopyFlowLaunch", 0},
+                {"CopyFlowLaunch", 0},  // copy flow
                 {"AllocBatchHbm", 0},
             }),
             "success");
@@ -634,31 +636,30 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_2LaunchKernel) {
                 {"InnerData", 0},
                 {"InnerData", 0},
                 {"InnerData", 0},
-                {"Const", 0},
                 {"Tiling", TilingContext::kOutputScheduleMode},
                 {"InnerData", 0},
                 {"Tiling", static_cast<size_t>(kernel::TilingExOutputIndex::kRtArg)},
-                {"InnerData", 0},
+                {"Data", 0},
                 {"Tiling", TilingContext::kOutputTilingKey},
                 {"InnerData", 0},
                 {"InnerData", 0},
-                {"InnerData", 0},
-                {"CopyFlowLaunch", 0},
+                {"CopyFlowLaunch", 0},  // copy flow
                 {"AllocBatchHbm", 0},
-                {"CopyFlowLaunch", 1},
-                {"LaunchKernelV2", 0},
-}),
+                {"CopyFlowLaunch", 1},  // copy flow
+                {"LaunchKernelWithHandle", 0},
+            }),
             "success");
-  CheckFreeMemoryInControlEdge(graph.get(), "LaunchKernelV2", 3);
+  CheckFreeMemoryInControlEdge(graph.get(), "LaunchKernelWithHandle", 3);
 }
+
 /*
- *before HostInputsProcFuse pass:
+ * before HostInputsProcFuse pass:
  *             netoutput
  *               /
  *              /
- *  LaunchKernelV21                   LaunchKernelV23
+ *  LaunchKernelWithHandle1                   LaunchKernelWithHandle3
  *            \            ...  ...                /
- *   FreeMem   \     LaunchKernelV22      /
+ *   FreeMem   \     LaunchKernelWithHandle2      /
  *         \    \          /                     /
  *                MakeSureTensorAtDevice
  *                      |
@@ -672,7 +673,7 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_2LaunchKernel) {
  *             netoutput
  *               /
  *              /
- *  LaunchKernelV21
+ *  LaunchKernelWithHandle1
  *           \                        ...  ...
  *  FreeMem   \          FreeMem  LaunchKernel2      FreeMem  LaunchKernel3
  *      \      \             \      |                \      |
@@ -685,22 +686,22 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_2LaunchKernel) {
  *                    data1
  *
  */
-TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_3LaunchKernel) {
-  auto launch_kernel_inputs1 = CreateLaunchKernelV2CommonInputs();
+TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelWithHandle_3LaunchKernel) {
+  auto launch_kernel_inputs1 = CreateLaunchKernelWithHandleCommonInputs();
   auto make_sure_tensor_at_device1 = CreateMakeSureTensorAtDevice();
   launch_kernel_inputs1.emplace_back(make_sure_tensor_at_device1);
   launch_kernel_inputs1.emplace_back(CreateAllocBatchHbm());
-  auto launch_kernel1 = ValueHolder::CreateSingleDataOutput("LaunchKernelV2", launch_kernel_inputs1);
+  auto launch_kernel1 = ValueHolder::CreateSingleDataOutput("LaunchKernelWithHandle", launch_kernel_inputs1);
 
-  auto launch_kernel_inputs2 = CreateLaunchKernelV2CommonInputs();
+  auto launch_kernel_inputs2 = CreateLaunchKernelWithHandleCommonInputs();
   launch_kernel_inputs2.emplace_back(make_sure_tensor_at_device1);
   launch_kernel_inputs2.emplace_back(CreateAllocBatchHbm());
-  auto launch_kernel2 = ValueHolder::CreateSingleDataOutput("LaunchKernelV2", launch_kernel_inputs2);
+  auto launch_kernel2 = ValueHolder::CreateSingleDataOutput("LaunchKernelWithHandle", launch_kernel_inputs2);
 
-  auto launch_kernel_inputs3 = CreateLaunchKernelV2CommonInputs();
+  auto launch_kernel_inputs3 = CreateLaunchKernelWithHandleCommonInputs();
   launch_kernel_inputs3.emplace_back(make_sure_tensor_at_device1);
   launch_kernel_inputs3.emplace_back(CreateAllocBatchHbm());
-  auto launch_kernel3 = ValueHolder::CreateSingleDataOutput("LaunchKernelV2", launch_kernel_inputs3);
+  auto launch_kernel3 = ValueHolder::CreateSingleDataOutput("LaunchKernelWithHandle", launch_kernel_inputs3);
 
   auto frame = ValueHolder::PopGraphFrame({launch_kernel3}, {});
   ASSERT_NE(frame, nullptr);
@@ -710,12 +711,12 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_3LaunchKernel) {
   EXPECT_EQ(ExeGraphSummaryChecker(graph.get())
                 .StrictDirectNodeTypes({{"AllocBatchHbm", 3},
                                         {"CalcTensorSizeFromStorage", 1},
-                                        {"Const", 4},
+                                        {"Const", 1},
                                         {"MakeSureTensorAtDevice", 1},
-                                        {"Data", 20},
+                                        {"Data", 23},
                                         {"FreeMemory", 1},
-                                        {"InnerData", 41},
-                                        {"LaunchKernelV2", 3},
+                                        {"InnerData", 35},
+                                        {"LaunchKernelWithHandle", 3},
                                         {"SplitTensor", 1},
                                         {"Tiling", 3},
                                         {"NetOutput", 1}}),
@@ -734,12 +735,12 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_3LaunchKernel) {
   EXPECT_EQ(ExeGraphSummaryChecker(graph.get())
                 .StrictDirectNodeTypes({{"AllocBatchHbm", 3},
                                         {"CalcTensorSizeFromStorage", 1},
-                                        {"Const", 10},
+                                        {"Const", 7},
                                         {"CopyFlowLaunch", 3},
-                                        {"Data", 20},
+                                        {"Data", 23},
                                         {"FreeMemory", 3},
-                                        {"InnerData", 41},
-                                        {"LaunchKernelV2", 3},
+                                        {"InnerData", 35},
+                                        {"LaunchKernelWithHandle", 3},
                                         {"SplitTensor", 1},
                                         {"Tiling", 3},
                                         {"NetOutput", 1}}),
@@ -755,7 +756,7 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_3LaunchKernel) {
   }
 
   FastNodeTopoChecker topo_checker1(launch_kernel1);
-  EXPECT_EQ(topo_checker1.ConnectFromByType({"CopyFlowLaunch"}), true);
+  EXPECT_EQ(topo_checker1.ConnectFromByType({"MakeSureTensorAtDevice"}), false);
   EXPECT_EQ(topo_checker1.StrictConnectFrom({
                 {"Data", 0},
                 {"InnerData", 0},
@@ -764,16 +765,14 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_3LaunchKernel) {
                 {"InnerData", 0},
                 {"InnerData", 0},
                 {"InnerData", 0},
-                {"Const", 0},
                 {"Tiling", TilingContext::kOutputScheduleMode},
                 {"InnerData", 0},
                 {"Tiling", static_cast<size_t>(kernel::TilingExOutputIndex::kRtArg)},
-                {"InnerData", 0},
+                {"Data", 0},
                 {"Tiling", TilingContext::kOutputTilingKey},
                 {"InnerData", 0},
                 {"InnerData", 0},
-                {"InnerData", 0},
-                {"CopyFlowLaunch", 0},
+                {"CopyFlowLaunch", 0},  // copy flow
                 {"AllocBatchHbm", 0},
             }),
             "success");
@@ -786,26 +785,24 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_3LaunchKernel) {
                                              {"InnerData", 0},
                                              {"InnerData", 0},
                                              {"InnerData", 0},
-                                             {"Const", 0},
                                              {"Tiling", TilingContext::kOutputScheduleMode},
                                              {"InnerData", 0},
                                              {"Tiling", static_cast<size_t>(kernel::TilingExOutputIndex::kRtArg)},
-                                             {"InnerData", 0},
+                                             {"Data", 0},
                                              {"Tiling", TilingContext::kOutputTilingKey},
                                              {"InnerData", 0},
                                              {"InnerData", 0},
-                                             {"InnerData", 0},
-                                             {"CopyFlowLaunch", 0},
+                                             {"CopyFlowLaunch", 0},  // copy flow
                                              {"AllocBatchHbm", 0}}),
             "success");
-  CheckFreeMemoryInControlEdge(graph.get(), "LaunchKernelV2", 3);
+  CheckFreeMemoryInControlEdge(graph.get(), "LaunchKernelWithHandle", 3);
   ge::GetThreadLocalContext().SetGlobalOption(back_options);
 }
 
 /*
  *               netoutput
  *                    |
- *          LaunchKernelV2
+ *          LaunchKernelWithHandle
  *                   \/
  *          MakeSureTensorAtDevice
  *                   |
@@ -818,7 +815,7 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_3LaunchKernel) {
  *  after HostInputsProcFuse pass:
  *               netoutput
  *                   |
- *          LaunchKernelV2
+ *          LaunchKernelWithHandle
  *                   \/
  *            CopyFlowLaunch
  *                    |
@@ -830,14 +827,14 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_3LaunchKernel) {
  *
  *
  */
-TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_2H1D_2) {
-  auto launch_kernel_inputs = CreateLaunchKernelV2CommonInputs();
+TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelWithHandle_2H1D_2) {
+  auto launch_kernel_inputs = CreateLaunchKernelWithHandleCommonInputs();
   auto make_sure_tensor_at_device = CreateMakeSureTensorAtDevice();
   launch_kernel_inputs.emplace_back(make_sure_tensor_at_device);
   launch_kernel_inputs.emplace_back(make_sure_tensor_at_device);
   launch_kernel_inputs.emplace_back(CreateAllocBatchHbm());
 
-  auto launch_kernel = ValueHolder::CreateSingleDataOutput("LaunchKernelV2", launch_kernel_inputs);
+  auto launch_kernel = ValueHolder::CreateSingleDataOutput("LaunchKernelWithHandle", launch_kernel_inputs);
   auto frame = ValueHolder::PopGraphFrame({launch_kernel}, {});
   ASSERT_NE(frame, nullptr);
   auto graph = frame->GetExecuteGraph();
@@ -846,12 +843,12 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_2H1D_2) {
   EXPECT_EQ(ExeGraphSummaryChecker(graph.get())
                 .StrictDirectNodeTypes({{"AllocBatchHbm", 1},
                                         {"CalcTensorSizeFromStorage", 1},
-                                        {"Const", 2},
+                                        {"Const", 1},
                                         {"MakeSureTensorAtDevice", 1},
-                                        {"Data", 8},
+                                        {"Data", 9},
                                         {"FreeMemory", 1},
-                                        {"InnerData", 15},
-                                        {"LaunchKernelV2", 1},
+                                        {"InnerData", 13},
+                                        {"LaunchKernelWithHandle", 1},
                                         {"SplitTensor", 1},
                                         {"Tiling", 1},
                                         {"NetOutput", 1}}),
@@ -864,12 +861,12 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_2H1D_2) {
   EXPECT_EQ(ExeGraphSummaryChecker(graph.get())
                 .StrictDirectNodeTypes({{"AllocBatchHbm", 1},
                                         {"CalcTensorSizeFromStorage", 1},
-                                        {"Const", 4},
+                                        {"Const", 3},
                                         {"CopyFlowLaunch", 1},
-                                        {"Data", 8},
+                                        {"Data", 9},
                                         {"FreeMemory", 1},
-                                        {"InnerData", 15},
-                                        {"LaunchKernelV2", 1},
+                                        {"InnerData", 13},
+                                        {"LaunchKernelWithHandle", 1},
                                         {"SplitTensor", 1},
                                         {"Tiling", 1},
                                         {"NetOutput", 1}}),
@@ -883,14 +880,14 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_2H1D_2) {
     ASSERT_NE(src_node, nullptr);
     EXPECT_EQ(src_node->GetType(), "Tiling");
   }
-  CheckFreeMemoryInControlEdge(graph.get(), "LaunchKernelV2", 1);
+  CheckFreeMemoryInControlEdge(graph.get(), "LaunchKernelWithHandle", 1);
 }
 
 /*
  *before HostInputsProcFuse pass:
  *                 netoutput
  *                    |
- *           LaunchKernelV2
+ *           LaunchKernelWithFlag
  *           /                  \
  *     CopyH2D                  data2
  *        |
@@ -904,7 +901,7 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_2H1D_2) {
  * after HostInputsProcFuse pass:
  *                  netoutput
  *                      |
- *            LaunchKernelV2
+ *            LaunchKernelWithFlag
  *                 /           \
  *         CopyFlowLaunch      data2
  *              /
@@ -915,12 +912,12 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_2H1D_2) {
  *      data1
  *
  */
-TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_1H1D_H2D) {
+TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelWithFlag_1H1D_H2D) {
   auto copy_h2d = CreateCopyH2D();
-  auto launch_kernel_inputs = CreateLaunchKernelV2CommonInputsForStaticOp();
+  auto launch_kernel_inputs = CreateLaunchKernelWithFlagCommonInputs();
   launch_kernel_inputs.emplace_back(copy_h2d);
   launch_kernel_inputs.emplace_back(CreateAllocBatchHbm());
-  auto launch_kernel = ValueHolder::CreateSingleDataOutput("LaunchKernelV2", launch_kernel_inputs);
+  auto launch_kernel = ValueHolder::CreateSingleDataOutput("LaunchKernelWithFlag", launch_kernel_inputs);
   auto frame = ValueHolder::PopGraphFrame({launch_kernel}, {});
   ASSERT_NE(frame, nullptr);
   auto graph = frame->GetExecuteGraph();
@@ -931,13 +928,13 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_1H1D_H2D) {
   EXPECT_EQ(ExeGraphSummaryChecker(graph.get())
                 .StrictDirectNodeTypes({{"AllocBatchHbm", 1},
                                         {"CalcTensorSizeFromStorage", 1},
-                                        {"Const", 2},
+                                        {"Const", 1},
                                         {"CopyH2D", 1},
-                                        {"Data", 8},
+                                        {"Data", 9},
                                         {"Tiling", 1},
                                         {"FreeMemory", 1},
-                                        {"InnerData", 15},
-                                        {"LaunchKernelV2", 1},
+                                        {"InnerData", 12},
+                                        {"LaunchKernelWithFlag", 1},
                                         {"SplitTensor", 1},
                                         {"NetOutput", 1}}),
             "success");
@@ -949,13 +946,13 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_1H1D_H2D) {
   EXPECT_EQ(ExeGraphSummaryChecker(graph.get())
                 .StrictDirectNodeTypes({{"AllocBatchHbm", 1},
                                         {"CalcTensorSizeFromStorage", 1},
-                                        {"Const", 4},
+                                        {"Const", 3},
                                         {"CopyFlowLaunch", 1},
-                                        {"Data", 8},
+                                        {"Data", 9},
                                         {"Tiling", 1},
                                         {"FreeMemory", 1},
-                                        {"InnerData", 15},
-                                        {"LaunchKernelV2", 1},
+                                        {"InnerData", 12},
+                                        {"LaunchKernelWithFlag", 1},
                                         {"SplitTensor", 1},
                                         {"NetOutput", 1}}),
             "success");
@@ -967,7 +964,7 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_1H1D_H2D) {
   const auto src_node = in_edge->src;
   ASSERT_NE(src_node, nullptr);
   EXPECT_EQ(src_node->GetType(), "Tiling");
-  CheckFreeMemoryInControlEdge(graph.get(), "LaunchKernelV2", 1);
+  CheckFreeMemoryInControlEdge(graph.get(), "LaunchKernelWithFlag", 1);
   // 校验PassChangedInfo是否成功设置
   auto pass_changed_info =
       original_copyh2d_nodes[0]->GetOpDescBarePtr()->TryGetExtAttr(kPassChangedInfo, PassChangedKernels{});
@@ -982,9 +979,9 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_1H1D_H2D) {
  *             netoutput
  *               /
  *              /
- *  LaunchKernelV22
+ *  LaunchKernelWithHandle2
  *            \            ...  ...
- *   FreeMem   \        LaunchKernelV21         FreeMem
+ *   FreeMem   \        LaunchKernelWithHandle1         FreeMem
  *         \    \       /                \             /
  *              CopyH2D             MakeSureTensorAtDevice
  *                 \                               |
@@ -998,7 +995,7 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_1H1D_H2D) {
  *             netoutput
  *               /
  *              /
- *  LaunchKernelV22
+ *  LaunchKernelWithHandle2
  *           \                        ...  ...
  *  FreeMem   \               FreeMem  LaunchKernel1   FreeMem
  *      \      \                  \      |  |        /
@@ -1011,57 +1008,57 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_1H1D_H2D) {
  *                    data1                      data2
  *
  */
-TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_2LaunchKernel_H2D) {
-  auto launch_kernel_inputs1 = CreateLaunchKernelV2CommonInputs();
+TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelWithHandle_2LaunchKernel_H2D) {
+  auto launch_kernel_inputs1 = CreateLaunchKernelWithHandleCommonInputs();
   auto copy_h2d = CreateCopyH2D();
   launch_kernel_inputs1.emplace_back(copy_h2d);
   launch_kernel_inputs1.emplace_back(CreateAllocBatchHbm());
-  auto launch_kernel1 = ValueHolder::CreateSingleDataOutput("LaunchKernelV2", launch_kernel_inputs1);
+  auto launch_kernel1 = ValueHolder::CreateSingleDataOutput("LaunchKernelWithHandle", launch_kernel_inputs1);
 
-  auto launch_kernel_inputs2 = CreateLaunchKernelV2CommonInputs();
+  auto launch_kernel_inputs2 = CreateLaunchKernelWithHandleCommonInputs();
   launch_kernel_inputs2.emplace_back(CreateMakeSureTensorAtDevice());
   launch_kernel_inputs2.emplace_back(CreateAllocBatchHbm());
   launch_kernel_inputs2.emplace_back(copy_h2d);
   launch_kernel_inputs2.emplace_back(launch_kernel1);
-  auto launch_kernel2 = ValueHolder::CreateSingleDataOutput("LaunchKernelV2", launch_kernel_inputs2);
+  auto launch_kernel2 = ValueHolder::CreateSingleDataOutput("LaunchKernelWithHandle", launch_kernel_inputs2);
 
   auto frame = ValueHolder::PopGraphFrame({launch_kernel2}, {});
   ASSERT_NE(frame, nullptr);
   auto graph = frame->GetExecuteGraph();
   ASSERT_NE(graph, nullptr);
 
-EXPECT_EQ(ExeGraphSummaryChecker(graph.get())
-                 .StrictDirectNodeTypes({{"AllocBatchHbm", 2},
-                                         {"CalcTensorSizeFromStorage", 2},
-                                         {"Const", 4},
-                                         {"MakeSureTensorAtDevice", 1},
-                                         {"CopyH2D", 1},
-                                         {"Data", 16},
-                                         {"FreeMemory", 2},
-                                         {"InnerData", 30},
-                                         {"LaunchKernelV2", 2},
-                                         {"SplitTensor", 2},
-                                         {"Tiling", 2},
-                                         {"NetOutput", 1}}),
-             "success");
+  EXPECT_EQ(ExeGraphSummaryChecker(graph.get())
+                .StrictDirectNodeTypes({{"AllocBatchHbm", 2},
+                                        {"CalcTensorSizeFromStorage", 2},
+                                        {"Const", 2},
+                                        {"MakeSureTensorAtDevice", 1},
+                                        {"CopyH2D", 1},
+                                        {"Data", 18},
+                                        {"FreeMemory", 2},
+                                        {"InnerData", 26},
+                                        {"LaunchKernelWithHandle", 2},
+                                        {"SplitTensor", 2},
+                                        {"Tiling", 2},
+                                        {"NetOutput", 1}}),
+            "success");
 
   bool changed = false;
   EXPECT_EQ(CopyFlowLaunchFuse().Run(graph.get(), changed), ge::GRAPH_SUCCESS);
   EXPECT_EQ(changed, true);
   ASSERT_NE(graph, nullptr);
-EXPECT_EQ(ExeGraphSummaryChecker(graph.get())
-                  .StrictDirectNodeTypes({{"AllocBatchHbm", 2},
-                                          {"CalcTensorSizeFromStorage", 2},
-                                          {"Const", 8},
-                                          {"CopyFlowLaunch", 2},
-                                          {"Data", 16},
-                                          {"FreeMemory", 3},
-                                          {"InnerData", 30},
-                                          {"LaunchKernelV2", 2},
-                                          {"SplitTensor", 2},
-                                          {"Tiling", 2},
-                                          {"NetOutput", 1}}),
-              "success");
+  EXPECT_EQ(ExeGraphSummaryChecker(graph.get())
+                .StrictDirectNodeTypes({{"AllocBatchHbm", 2},
+                                        {"CalcTensorSizeFromStorage", 2},
+                                        {"Const", 6},
+                                        {"CopyFlowLaunch", 2},
+                                        {"Data", 18},
+                                        {"FreeMemory", 3},
+                                        {"InnerData", 26},
+                                        {"LaunchKernelWithHandle", 2},
+                                        {"SplitTensor", 2},
+                                        {"Tiling", 2},
+                                        {"NetOutput", 1}}),
+            "success");
 
   auto copy_flow_launch_nodes = ge::ExecuteGraphUtils::FindNodesByTypeFromAllNodes(graph.get(), "CopyFlowLaunch");
   for (auto &node : copy_flow_launch_nodes) {
@@ -1073,7 +1070,7 @@ EXPECT_EQ(ExeGraphSummaryChecker(graph.get())
   }
 
   FastNodeTopoChecker topo_checker1(launch_kernel1);
-  EXPECT_EQ(topo_checker1.ConnectFromByType({"CopyFlowLaunch"}), true);
+  EXPECT_EQ(topo_checker1.ConnectFromByType({"MakeSureTensorAtDevice"}), false);
   EXPECT_EQ(topo_checker1.StrictConnectFrom({
                 {"Data", 0},
                 {"InnerData", 0},
@@ -1082,16 +1079,14 @@ EXPECT_EQ(ExeGraphSummaryChecker(graph.get())
                 {"InnerData", 0},
                 {"InnerData", 0},
                 {"InnerData", 0},
-                {"Const", 0},
                 {"Tiling", TilingContext::kOutputScheduleMode},
                 {"InnerData", 0},
                 {"Tiling", static_cast<size_t>(kernel::TilingExOutputIndex::kRtArg)},
-                {"InnerData", 0},
+                {"Data", 0},
                 {"Tiling", TilingContext::kOutputTilingKey},
                 {"InnerData", 0},
                 {"InnerData", 0},
-                {"InnerData", 0},
-                {"CopyFlowLaunch", 0},
+                {"CopyFlowLaunch", 0},  // copy flow
                 {"AllocBatchHbm", 0},
             }),
             "success");
@@ -1105,28 +1100,26 @@ EXPECT_EQ(ExeGraphSummaryChecker(graph.get())
                 {"InnerData", 0},
                 {"InnerData", 0},
                 {"InnerData", 0},
-                {"Const", 0},
                 {"Tiling", TilingContext::kOutputScheduleMode},
                 {"InnerData", 0},
                 {"Tiling", static_cast<size_t>(kernel::TilingExOutputIndex::kRtArg)},
-                {"InnerData", 0},
+                {"Data", 0},
                 {"Tiling", TilingContext::kOutputTilingKey},
                 {"InnerData", 0},
                 {"InnerData", 0},
-                {"InnerData", 0},
-                {"CopyFlowLaunch", 0},
+                {"CopyFlowLaunch", 0},  // copy flow
                 {"AllocBatchHbm", 0},
-                {"CopyFlowLaunch", 1},
-                {"LaunchKernelV2", 0},
-}),
-             "success");
-  CheckFreeMemoryInControlEdge(graph.get(), "LaunchKernelV2", 3);
+                {"CopyFlowLaunch", 1},  // copy flow
+                {"LaunchKernelWithHandle", 0},
+            }),
+            "success");
+  CheckFreeMemoryInControlEdge(graph.get(), "LaunchKernelWithHandle", 3);
 }
 /*
  *before HostInputsProcFuse pass:
  *                 netoutput
  *                    |
- *           LaunchKernelV2
+ *           LaunchKernelWithHandle
  *           /                  \
  *  MakeSureTensorAtDevice     data2
  *        |
@@ -1140,7 +1133,7 @@ EXPECT_EQ(ExeGraphSummaryChecker(graph.get())
  * after HostInputsProcFuse pass:
  *                  netoutput
  *                      |
- *            LaunchKernelV2
+ *            LaunchKernelWithHandle
  *                   /        \
  *          CopyFlowLaunch   data2
  *              /
@@ -1151,32 +1144,32 @@ EXPECT_EQ(ExeGraphSummaryChecker(graph.get())
  *      data1
  *
  */
-TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelV2_1H1D_MEMCHECK) {
+TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelWithHandle_1H1D_MEMCHECK) {
   auto make_sure_tensor_at_device = CreateMakeSureTensorAtDevice();
-  auto launch_kernel_inputs = CreateLaunchKernelV2CommonInputsMemCheck();
+  auto launch_kernel_inputs = CreateLaunchKernelWithHandleCommonInputsMemCheck();
   launch_kernel_inputs.emplace_back(make_sure_tensor_at_device);
   launch_kernel_inputs.emplace_back(CreateAllocBatchHbm());
-  auto launch_kernel = ValueHolder::CreateSingleDataOutput("LaunchKernelV2", launch_kernel_inputs);
+  auto launch_kernel = ValueHolder::CreateSingleDataOutput("LaunchKernelWithHandle", launch_kernel_inputs);
   auto frame = ValueHolder::PopGraphFrame({launch_kernel}, {});
   ASSERT_NE(frame, nullptr);
   auto graph = frame->GetExecuteGraph();
   ASSERT_NE(graph, nullptr);
 
-EXPECT_EQ(ExeGraphSummaryChecker(graph.get())
-                 .StrictDirectNodeTypes({{"AllocBatchHbm", 1},
-                                         {"CalcTensorSizeFromStorage", 1},
-                                         {"Const", 3},
-                                         {"MakeSureTensorAtDevice", 1},
-                                         {"Data", 8},
-                                         {"FreeMemory", 1},
-                                         {"InnerData", 15},
-                                         {"LaunchKernelV2", 1},
-                                         {"SplitTensor", 1},
-                                         {"Tiling", 1},
-                                         {"TilingAppendDfxInfo", 1},
-                                         {"TilingAppendWorkspace", 1},
-                                         {"NetOutput", 1}}),
-             "success");
+  EXPECT_EQ(ExeGraphSummaryChecker(graph.get())
+                .StrictDirectNodeTypes({{"AllocBatchHbm", 1},
+                                        {"CalcTensorSizeFromStorage", 1},
+                                        {"Const", 2},
+                                        {"MakeSureTensorAtDevice", 1},
+                                        {"Data", 9},
+                                        {"FreeMemory", 1},
+                                        {"InnerData", 13},
+                                        {"LaunchKernelWithHandle", 1},
+                                        {"SplitTensor", 1},
+                                        {"Tiling", 1},
+                                        {"TilingAppendDfxInfo", 1},
+                                        {"TilingAppendWorkspace", 1},
+                                        {"NetOutput", 1}}),
+            "success");
 
   bool changed = false;
   EXPECT_EQ(CopyFlowLaunchFuse().Run(graph.get(), changed), ge::GRAPH_SUCCESS);
@@ -1185,12 +1178,12 @@ EXPECT_EQ(ExeGraphSummaryChecker(graph.get())
   EXPECT_EQ(ExeGraphSummaryChecker(graph.get())
                 .StrictDirectNodeTypes({{"AllocBatchHbm", 1},
                                         {"CalcTensorSizeFromStorage", 1},
-                                        {"Const", 5},
+                                        {"Const", 4},
                                         {"CopyFlowLaunch", 1},
-                                        {"Data", 8},
+                                        {"Data", 9},
                                         {"FreeMemory", 1},
-                                        {"InnerData", 15},
-                                        {"LaunchKernelV2", 1},
+                                        {"InnerData", 13},
+                                        {"LaunchKernelWithHandle", 1},
                                         {"SplitTensor", 1},
                                         {"Tiling", 1},
                                         {"TilingAppendDfxInfo", 1},
@@ -1209,7 +1202,7 @@ EXPECT_EQ(ExeGraphSummaryChecker(graph.get())
     FastNodeTopoChecker topo_checker(node);
     EXPECT_EQ(topo_checker.InChecker().CtrlFromByType("TilingAppendDfxInfo").Result(), "success");
   }
-  CheckFreeMemoryInControlEdge(graph.get(), "LaunchKernelV2", 1);
+  CheckFreeMemoryInControlEdge(graph.get(), "LaunchKernelWithHandle", 1);
 }
 }  // namespace bg
 }  // namespace gert

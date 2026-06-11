@@ -86,7 +86,6 @@ target_include_directories(gert PRIVATE
         ${METADEF_DIR}/pkg_inc
         ${AIR_CODE_DIR}/inc/graph_metadef
         ${TOP_DIR}/metadef/inc
-        ${ASCEND_INSTALL_PATH}/pkg_inc
 )
 target_compile_definitions(gert PRIVATE ${GERT_COMPILE_DEF})
 target_link_libraries(gert PRIVATE

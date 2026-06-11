@@ -20,7 +20,7 @@ aclrtBinHandle AicoreKernelHandlesManager::RegisterKernel(const KernelRegisterIn
   GE_ASSERT_TRUE(!bin_name.empty(), "Bin handle name is empty.");
   auto *aicore_register_info = std::get_if<AicoreRegisterInfo>(&register_info);
   GE_ASSERT_NOTNULL(aicore_register_info);
-  const uint32_t magic = aicore_register_info->magic;
+  const int32_t magic = aicore_register_info->magic;
   const auto kernel_bin = aicore_register_info->kernel_bin;
   GE_ASSERT_NOTNULL(kernel_bin, "Aicore kernel bin is nullptr, bin_name: %s", bin_name.c_str());
 

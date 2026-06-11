@@ -1914,18 +1914,3 @@ TEST_F(STEST_TaskBuilder, tiling_sink_for_sk){
   ret = GenerateTaskSuperKernel(op_exe_res_ctx, tasks, param);
   EXPECT_NE(ret, fe::FAILED);
 }
-
-TEST_F(STEST_TaskBuilder, mix_aicore_dyn_unknown_flag)
-{
-  fe::InitPlatformInfo("Ascend310P3", true);
-  std::vector<domi::TaskDef> task_defs;
-  ge::NodePtr node = CreateNormalNode(0);
-  ge::AttrUtils::SetStr(node->GetOpDesc(), fe::ATTR_NAME_CUBE_VECTOR_CORE_TYPE, kCoreTypeMixAICore);
-  auto graph = std::make_shared<ComputeGraph>("test");
-  (void)node->SetOwnerComputeGraph(graph);
-  graph->SetGraphUnknownFlag(true);
-  FillNodeParaType(node);
-  Status status = task_builder_->GenerateKernelTask(*node, context_, task_defs);
-  EXPECT_EQ(status, fe::SUCCESS);
-  EXPECT_EQ(ge::AttrUtils::HasAttr(node->GetOpDesc(), ATTR_NAME_MIX_CORE_NUM_VEC), true);
-}

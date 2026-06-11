@@ -65,10 +65,7 @@ struct GeFakeLaunchArgs {
   }
 
   const void **GetLaunchAddresses() const {
-    if (args_ex_ != nullptr) {
-      return static_cast<const void **>(args_ex_->args);
-    }
-    return static_cast<const void **>(args_);
+    return static_cast<const void **>(GetArgsEx()->args);
   }
 
   const rtArgsEx_t* GetArgsEx() const {
@@ -81,9 +78,6 @@ struct GeFakeLaunchArgs {
 
   template<class T>
   const T* GetArgsTilingData() const{
-    if (args_ex_ == nullptr) {
-      return nullptr;
-    }
     return reinterpret_cast<T*>(reinterpret_cast<uint8_t*>(args_ex_->args) + args_ex_->tilingDataOffset);
   }
   const std::string *GetTag() const {
@@ -114,10 +108,6 @@ struct GeFakeLaunchArgs {
     return args_addr_;
   }
 
-  void *GetArgBase() const {
-    return args_;
-  }
-
   void SetArgsAddr(void *addr) {
     args_addr_ = addr;
   }
@@ -128,10 +118,9 @@ struct GeFakeLaunchArgs {
 
  private:
   const void *handle_;
-  void *args_{nullptr};
   uint64_t devFunc_;
   uint32_t blockDim_;
-  rtArgsEx_t *args_ex_{nullptr};
+  rtArgsEx_t *args_ex_;
   rtArgsEx_t *args_ex_raw_{nullptr};
   rtSmDesc_t *smDesc_;
   rtStream_t stream_;

@@ -905,10 +905,6 @@ ge::ExecuteGraphPtr GraphConverter::ConvertComputeGraphToExecuteGraph(const ge::
   GE_ASSERT_SUCCESS(ValidateExeGraph(main_graph_nodes));
   // todo 这个extattr会被删除，因为compute graph无法序列化，删除后通过其他方式传给subscriber
   exe_graph->SetExtAttr(kComputeGraph, graph);
-  auto manager = global_data.GetAicoreKernelHandlesManager();
-  if (manager != nullptr) {
-    exe_graph->SetExtAttr("AicoreKernelHandlesManager", manager);
-  }
   GE_TIMESTAMP_EVENT_END(ConvertComputeGraphToExecuteGraphAll, "ConvertComputeGraphToExecuteGraph::All");
   return exe_graph;
 }

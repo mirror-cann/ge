@@ -90,7 +90,7 @@ inline std::unique_ptr<ModelV2Executor> BuildExecutorFromSingleNodeForDump(bool 
     ge::AttrUtils::SetListInt(node->GetOpDesc(), ge::ATTR_NAME_AICPU_WORKSPACE_TYPE,
                               {ge::AicpuWorkSpaceType::CUST_LOG});
   }
-  auto root_model = GeModelBuilder(compute_graph).FakeTbeBin({"Add"}).BuildGeRootModel();
+  auto root_model = GeModelBuilder(compute_graph).BuildGeRootModel();
   root_model->SetModelName("test_model");
   auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("Add", false).Build();
 
@@ -109,7 +109,7 @@ inline std::unique_ptr<ModelV2Executor> BuildExecutorFromSingleNodeForDump(bool 
 inline std::unique_ptr<ModelV2Executor> BuildExecutorTraningTrace() {
   auto compute_graph = ShareGraph::BuildTwoAddNodeGraph();
   compute_graph->TopologicalSorting();
-  auto root_model = GeModelBuilder(compute_graph).FakeTbeBin({"Add"}).BuildGeRootModel();
+  auto root_model = GeModelBuilder(compute_graph).BuildGeRootModel();
   auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("Add", false).Build();
   auto model_desc_holder = ModelDescHolderFaker().Build();
   auto exe_graph = GraphConverter()

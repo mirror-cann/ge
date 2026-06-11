@@ -218,6 +218,7 @@ class RuntimeStubImpl : public ge::RuntimeStub {
     uint64_t data;     // binary data
     uint64_t length;   // binary length
   };
+  std::map<const void *, HandleArgsPtrList> launch_with_handle_args_;
   std::map<BinData, BinHandle> bin_data_to_handles_;
   std::map<std::string, HandleArgsPtrList> cpu_launch_args_;
   std::map<uintptr_t, uintptr_t> dst_addrs_to_src_addrs_;

@@ -121,28 +121,25 @@ void GeModelBuilder::FakeTbeBinToNodes() {
     const auto &cfg = iter->second;
     ge::AttrUtils::SetStr(node->GetOpDesc(), "compile_info_json", compile_info_json);
     ge::AttrUtils::SetInt(node->GetOpDesc(), "op_para_size", 2048);
-    std::string kernel_bin_id = "te_" + node->GetType() + "_12345_AicoreKernel";
-    auto name = kernel_bin_id;
+    auto name = node->GetName() + "_faked_kernel";
     auto bin = std::make_shared<ge::OpKernelBin>(name, CreateStubBin());
     node->GetOpDesc()->SetExtAttr(ge::OP_EXTATTR_NAME_TBE_KERNEL, bin);
     ge::AttrUtils::SetStr(node->GetOpDesc(), ge::TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF_AIVEC");
     ge::AttrUtils::SetStr(node->GetOpDesc(), ge::TVM_ATTR_NAME_METADATA, "FakeMeta");
     ge::AttrUtils::SetStr(node->GetOpDesc(), node->GetName() + "_kernelname", name);
     ge::AttrUtils::SetStr(node->GetOpDesc(), "_kernelname", name);
-    ge::AttrUtils::SetStr(node->GetOpDesc(), "_kernel_bin_id", kernel_bin_id);
 
     if (cfg.need_atomic) {
       ge::AttrUtils::SetStr(node->GetOpDesc(), "_atomic_compile_info_json", "{}");
       ge::AttrUtils::SetInt(node->GetOpDesc(), "atomic_op_para_size", 2048);
-      std::string atomic_kernel_bin_id = "te_" + node->GetType() + "_12345_atomic_AicoreKernel";
-      ge::AttrUtils::SetStr(node->GetOpDesc(), "_memset_kernel_bin_id", atomic_kernel_bin_id);
 
-      auto atomic_bin = std::make_shared<ge::OpKernelBin>(atomic_kernel_bin_id, CreateStubBin());
+      name = node->GetName() + "_faked_atomic_kernel";
+      auto atomic_bin = std::make_shared<ge::OpKernelBin>(name, CreateStubBin());
       node->GetOpDesc()->SetExtAttr(ge::EXT_ATTR_ATOMIC_TBE_KERNEL, atomic_bin);
       ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATOMIC_ATTR_TVM_MAGIC, "RT_DEV_BINARY_MAGIC_ELF_AIVEC");
       ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATOMIC_ATTR_TVM_METADATA, "FakeAtomicMeta");
-      ge::AttrUtils::SetStr(node->GetOpDesc(), node->GetName() + "_atomic_kernelname", atomic_kernel_bin_id);
-      ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATOMIC_ATTR_TBE_KERNEL_NAME, atomic_kernel_bin_id);
+      ge::AttrUtils::SetStr(node->GetOpDesc(), node->GetName() + "_atomic_kernelname", name);
+      ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATOMIC_ATTR_TBE_KERNEL_NAME, name);
 
     }
   }

@@ -271,7 +271,7 @@ TEST_F(ExecutorDumperUT, DumperInit_InitKerelIdxesToDumpUnits_WithSingleNodeGrap
   auto infer_shape_exe_node = dumper->kernel_names_to_exe_nodes_[infer_shape_kernel_name];
   EXPECT_EQ(dumper->kernel_idxes_to_dump_units_[infer_shape_exe_node->node_id][0],
             &dumper->node_names_to_dump_units_["add1"]);
-  auto launch_kernel_name = FindKernelNameByStartKeyWord(exe_graph.get(), "LaunchKernelV2_add1");
+  auto launch_kernel_name = FindKernelNameByStartKeyWord(exe_graph.get(), "LaunchKernelWithHandle_add1");
   auto launch_exe_node = dumper->kernel_names_to_exe_nodes_[launch_kernel_name];
   ASSERT_NE(launch_exe_node, nullptr);
   EXPECT_EQ(dumper->kernel_idxes_to_dump_units_[launch_exe_node->node_id][0],
@@ -926,12 +926,12 @@ TEST_F(ExecutorDumperUT, OverflowDump_OverflowDetected_StreamSyncReturnOverflow)
   auto kernel_launch_context_holder = KernelRunContextFaker()
                                           .NodeName("add1")
                                           .KernelIONum(2, 1)
-                                          .KernelType("LaunchKernelV2")
-                                          .KernelName("Add_LaunchKernelV2")
+                                          .KernelType("LaunchKernelWithHandle")
+                                          .KernelName("Add_LaunchKernelWithHandle")
                                           .Build();
   Node add_kernel_launch_node{"", 0, nullptr, *kernel_launch_context_holder.GetContext<KernelRunContext>()};
   for (auto &kernel_name_and_exe_node : dumper->kernel_names_to_exe_nodes_) {
-    if (!FindKernelNameByStartKeyWord(kernel_name_and_exe_node.first, "LaunchKernelV2").empty()) {
+    if (!FindKernelNameByStartKeyWord(kernel_name_and_exe_node.first, "LaunchKernelWithHandle").empty()) {
       add_kernel_launch_node.node_id = kernel_name_and_exe_node.second->node_id;
     }
   }
@@ -1026,12 +1026,12 @@ TEST_F(ExecutorDumperUT, OverflowDump_NoDataDump_ComputeNodeInfoIsNullptr) {
   auto kernel_launch_context_holder = KernelRunContextFaker()
                                           .NodeName("add1")
                                           .KernelIONum(2, 1)
-                                          .KernelType("LaunchKernelV2")
-                                          .KernelName("Add_LaunchKernelV2")
+                                          .KernelType("LaunchKernelWithHandle")
+                                          .KernelName("Add_LaunchKernelWithHandle")
                                           .Build();
   Node add_kernel_launch_node{"", 0, nullptr, *kernel_launch_context_holder.GetContext<KernelRunContext>()};
   for (auto &kernel_name_and_exe_node : dumper->kernel_names_to_exe_nodes_) {
-    if (!FindKernelNameByStartKeyWord(kernel_name_and_exe_node.first, "LaunchKernelV2").empty()) {
+    if (!FindKernelNameByStartKeyWord(kernel_name_and_exe_node.first, "LaunchKernelWithHandle").empty()) {
       add_kernel_launch_node.node_id = kernel_name_and_exe_node.second->node_id;
     }
   }
@@ -1109,12 +1109,12 @@ TEST_F(ExecutorDumperUT, OverflowDump_NoOverflowDetected_StreamSyncOK) {
   auto kernel_launch_context_holder = KernelRunContextFaker()
                                           .NodeName("add1")
                                           .KernelIONum(2, 1)
-                                          .KernelType("LaunchKernelV2")
-                                          .KernelName("Add_LaunchKernelV2")
+                                          .KernelType("LaunchKernelWithHandle")
+                                          .KernelName("Add_LaunchKernelWithHandle")
                                           .Build();
   Node add_kernel_launch_node{"", 0, nullptr, *kernel_launch_context_holder.GetContext<KernelRunContext>()};
   for (auto &kernel_name_and_exe_node : dumper->kernel_names_to_exe_nodes_) {
-    if (!FindKernelNameByStartKeyWord(kernel_name_and_exe_node.first, "LaunchKernelV2").empty()) {
+    if (!FindKernelNameByStartKeyWord(kernel_name_and_exe_node.first, "LaunchKernelWithHandle").empty()) {
       add_kernel_launch_node.node_id = kernel_name_and_exe_node.second->node_id;
     }
   }
@@ -1189,12 +1189,12 @@ TEST_F(ExecutorDumperUT, OverflowDump_NoOverflowDetected_StreamSyncTimeOut) {
   auto kernel_launch_context_holder = KernelRunContextFaker()
                                           .NodeName("add1")
                                           .KernelIONum(2, 1)
-                                          .KernelType("LaunchKernelV2")
-                                          .KernelName("Add_LaunchKernelV2")
+                                          .KernelType("LaunchKernelWithHandle")
+                                          .KernelName("Add_LaunchKernelWithHandle")
                                           .Build();
   Node add_kernel_launch_node{"", 0, nullptr, *kernel_launch_context_holder.GetContext<KernelRunContext>()};
   for (auto &kernel_name_and_exe_node : dumper->kernel_names_to_exe_nodes_) {
-    if (!FindKernelNameByStartKeyWord(kernel_name_and_exe_node.first, "LaunchKernelV2").empty()) {
+    if (!FindKernelNameByStartKeyWord(kernel_name_and_exe_node.first, "LaunchKernelWithHandle").empty()) {
       add_kernel_launch_node.node_id = kernel_name_and_exe_node.second->node_id;
     }
   }
@@ -1672,7 +1672,7 @@ TEST_F(ExecutorDumperUT, ExceptionDump_PrepareExceptionDumpSuccess_WithEmptyAddr
   auto graph = ShareGraph::BuildSingleNodeGraph();
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
-  auto ge_root_model = builder.AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle()).FakeTbeBin({"Add"}).BuildGeRootModel();
+  auto ge_root_model = builder.AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle()).BuildGeRootModel();
 
   auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model);
   ASSERT_NE(exe_graph, nullptr);
@@ -1732,12 +1732,12 @@ TEST_F(ExecutorDumperUT, ExceptionDump_PrepareExceptionDumpSuccess_WithEmptyAddr
                                     reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
             ge::GRAPH_SUCCESS);
   auto fake_node_1 = FakeNodeHelper::FakeNode("add1", "AicpuLaunchCCKernel", FindFirstNonEmptyId(dumper));
-  EXPECT_EQ(dumper->PrepareExceptionDump(fake_node_1.node, "LaunchKernelV2", dump_unit), ge::SUCCESS);
+  EXPECT_EQ(dumper->PrepareExceptionDump(fake_node_1.node, "LaunchKernelWithHandle", dump_unit), ge::SUCCESS);
   const auto &dump_op_infos = ge::DumpStub::GetInstance().GetOpInfos();
   EXPECT_EQ(dump_op_infos.size(), 2U);
-  EXPECT_EQ(dump_op_infos[0].tensorInfos.size(), 3U);
-  EXPECT_EQ(dump_op_infos[0].tensorInfos[0].argsOffSet, 0U);
-  EXPECT_EQ(dump_op_infos[0].tensorInfos[2].argsOffSet, 2U);
+  EXPECT_EQ(dump_op_infos[0].tensorInfos.size(), 19U);
+  EXPECT_EQ(dump_op_infos[0].tensorInfos[0].argsOffSet, std::numeric_limits<uint32_t>::max());
+  EXPECT_EQ(dump_op_infos[0].tensorInfos[2].argsOffSet, std::numeric_limits<uint32_t>::max());
   ge::DumpStub::GetInstance().ClearOpInfos();
 
   // all field should be cleared

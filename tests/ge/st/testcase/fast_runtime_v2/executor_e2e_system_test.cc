@@ -290,7 +290,7 @@ LowerResult LoweringAdd(const ge::NodePtr &node, const LowerInput &lower_input) 
   auto size_holder = bg::ValueHolder::CreateConst(&output_size, sizeof(output_size));
   auto output_addrs = bg::AllocOutputMemory(kOnDeviceHbm, node, {size_holder}, *(lower_input.global_data));
   auto compute_holder = bg::ValueHolder::CreateVoid<bg::ValueHolder>(
-      "LaunchKernelV2", {lower_input.input_addrs[1], output_addrs[0], lower_input.global_data->GetStream()});
+      "LaunchKernelWithHandle", {lower_input.input_addrs[1], output_addrs[0], lower_input.global_data->GetStream()});
 
   return {HyperStatus::Success(), {compute_holder}, {lower_input.input_shapes[0]}, output_addrs};
 }
@@ -1148,7 +1148,7 @@ TEST_F(GraphExecutorWithKernelUnitTest, Test_Control_Edge_Execute_Order_Success)
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(),
                                     reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
             ge::GRAPH_SUCCESS);
-  std::string kernel_type = "LaunchKernelV2";
+  std::string kernel_type = "LaunchKernelWithHandle";
   EXPECT_GT(ess->GetExecuteIndexByNodeNameAndKernelType("add1", kernel_type),
             ess->GetExecuteIndexByNodeNameAndKernelType("add2", kernel_type));
   ASSERT_EQ(model_executor->ExecuteSync(inputs.GetTensorList(), inputs.size(),
@@ -1631,9 +1631,7 @@ TEST_F(GraphExecutorWithKernelUnitTest, TopologicalExecuteFailThenSuccess) {
   ge::DumpGraph(exe_graph.get(), "IfCondByShapeGraph");
 
   GertRuntimeStub runtime_stub;
-  runtime_stub.GetKernelStub().AllKernelRegisteredAndSuccess({"LaunchKernelV2"});
-  runtime_stub.GetKernelStub().StubTiling();
-  runtime_stub.GetKernelStub().SetUp("LaunchKernelV2", LaunchKernelFailedByLaunchFlagFake);
+  runtime_stub.GetKernelStub().SetUp("LaunchKernelWithHandle", LaunchKernelFailedByLaunchFlagFake);
 
   auto model_executor = ModelV2Executor::Create(exe_graph, ge_root_model);
   ASSERT_NE(model_executor, nullptr);
@@ -1660,16 +1658,16 @@ TEST_F(GraphExecutorWithKernelUnitTest, TopologicalExecuteFailThenSuccess) {
   ASSERT_NE(model_executor->Execute({i3.value}, inputs0.data(), inputs0.size(), outputs.data(), outputs.size()),
             ge::GRAPH_SUCCESS);
   // 执行失败，和失败结点关联的后续launch结点都不会执行
-  ASSERT_EQ(ess->GetExecuteCountByNodeNameAndKernelType("add0", "LaunchKernelV2"), 1);
-  ASSERT_EQ(ess->GetExecuteCountByNodeNameAndKernelType("cast0", "LaunchKernelV2"), 0);
+  ASSERT_EQ(ess->GetExecuteCountByNodeNameAndKernelType("add0", "LaunchKernelWithHandle"), 1);
+  ASSERT_EQ(ess->GetExecuteCountByNodeNameAndKernelType("cast0", "LaunchKernelWithFlag"), 0);
 
   // 第二次执行成功
   ess->Clear();
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs0.data(), inputs0.size(), outputs.data(), outputs.size()),
             ge::GRAPH_SUCCESS);
   // 执行成功，所有launch结点都正常执行
-  ASSERT_EQ(ess->GetExecuteCountByNodeNameAndKernelType("add0", "LaunchKernelV2"), 1);
-  ASSERT_EQ(ess->GetExecuteCountByNodeNameAndKernelType("cast0", "LaunchKernelV2"), 1);
+  ASSERT_EQ(ess->GetExecuteCountByNodeNameAndKernelType("add0", "LaunchKernelWithHandle"), 1);
+  ASSERT_EQ(ess->GetExecuteCountByNodeNameAndKernelType("cast0", "LaunchKernelWithFlag"), 1);
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   rtStreamDestroy(stream);
@@ -1692,17 +1690,15 @@ TEST_F(GraphExecutorWithKernelUnitTest, PriorityTopologicalExecuteFailThenSucces
   compute_graph->TopologicalSorting();
   GE_DUMP(compute_graph, "computegraph_IfGraph4");
 
-  auto ge_root_model = GeModelBuilder(compute_graph).AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin")).BuildGeRootModel();
+  auto ge_root_model = GeModelBuilder(compute_graph).AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle()).BuildGeRootModel();
   auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model);
   ASSERT_NE(exe_graph, nullptr);
   ge::DumpGraph(exe_graph.get(), "exe_graph_IfGraph4");
 
   GertRuntimeStub runtime_stub;
   runtime_stub.GetSlogStub().SetLevelInfo();
-  runtime_stub.GetKernelStub().AllKernelRegisteredAndSuccess({"LaunchKernelV2"});
-  runtime_stub.GetKernelStub().StubTiling();
   g_launch_flag = 0U;
-  runtime_stub.GetKernelStub().SetUp("LaunchKernelV2", LaunchKernelFailedByLaunchFlagFake);
+  runtime_stub.GetKernelStub().SetUp("LaunchKernelWithFlag", LaunchKernelFailedByLaunchFlagFake);
 
   auto model_executor = ModelV2Executor::Create(exe_graph, ge_root_model);
   ASSERT_NE(model_executor, nullptr);
@@ -1728,13 +1724,13 @@ TEST_F(GraphExecutorWithKernelUnitTest, PriorityTopologicalExecuteFailThenSucces
       model_executor->Execute({stream_value.value}, inputs.data(), inputs.size(), outputs.data(), outputs.size()),
       ge::GRAPH_SUCCESS);
   // 执行失败，和失败结点关联的后续launch结点都不会执行
-  ASSERT_EQ(ess->GetExecuteCountByNodeNameAndKernelType("add4", "LaunchKernelV2"), 0);
-  ASSERT_EQ(ess->GetExecuteCountByNodeNameAndKernelType("add2", "LaunchKernelV2"), 0);
-  ASSERT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "LaunchKernelV2"), 1);
-  ASSERT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "LaunchKernelV2"), 1);
-  ASSERT_FALSE(runtime_stub.GetSlogStub().FindLogRegex(DLOG_ERROR, "KernelTrace") >= 0);
+  ASSERT_EQ(ess->GetExecuteCountByNodeNameAndKernelType("add4", "LaunchKernelWithFlag"), 1);
+  ASSERT_EQ(ess->GetExecuteCountByNodeNameAndKernelType("add2", "LaunchKernelWithHandle"), 0);
+  ASSERT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "LaunchKernelWithHandle"), 2);
+  ASSERT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "LaunchKernelWithFlag"), 1);
+  ASSERT_TRUE(runtime_stub.GetSlogStub().FindLogRegex(DLOG_ERROR, "KernelTrace") >= 0);
   ASSERT_EQ(runtime_stub.GetSlogStub().FindLogRegex(DLOG_ERROR, "KernelTrace"),
-            runtime_stub.GetSlogStub().FindLogRegex(DLOG_ERROR, "LaunchKernelV2"));
+            runtime_stub.GetSlogStub().FindLogRegex(DLOG_ERROR, "LaunchKernelWithFlag"));
 
   // 第二次执行成功
   ess->Clear();
@@ -1742,14 +1738,14 @@ TEST_F(GraphExecutorWithKernelUnitTest, PriorityTopologicalExecuteFailThenSucces
       model_executor->Execute({stream_value.value}, inputs.data(), inputs.size(), outputs.data(), outputs.size()),
       ge::GRAPH_SUCCESS);
   // 执行成功，所有launch结点都正常执行
-  ASSERT_EQ(ess->GetExecuteCountByNodeNameAndKernelType("add4", "LaunchKernelV2"), 1);
-  ASSERT_EQ(ess->GetExecuteCountByNodeNameAndKernelType("add2", "LaunchKernelV2"), 1);
-  ASSERT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "LaunchKernelV2"), 5);
-  ASSERT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "LaunchKernelV2"), 5);
+  ASSERT_EQ(ess->GetExecuteCountByNodeNameAndKernelType("add4", "LaunchKernelWithFlag"), 1);
+  ASSERT_EQ(ess->GetExecuteCountByNodeNameAndKernelType("add2", "LaunchKernelWithHandle"), 1);
+  ASSERT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "LaunchKernelWithHandle"), 3);
+  ASSERT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "LaunchKernelWithFlag"), 1);
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  ASSERT_FALSE(runtime_stub.GetSlogStub().FindInfoLogRegex("TilingData: ") != -1);
-  ASSERT_FALSE(runtime_stub.GetSlogStub().FindInfoLogRegex("Input/Output sizes:") != -1);
+  ASSERT_TRUE(runtime_stub.GetSlogStub().FindInfoLogRegex("TilingData: ") != -1);
+  ASSERT_TRUE(runtime_stub.GetSlogStub().FindInfoLogRegex("Input/Output sizes:") != -1);
   runtime_stub.Clear();
   rtStreamDestroy(stream);
 }

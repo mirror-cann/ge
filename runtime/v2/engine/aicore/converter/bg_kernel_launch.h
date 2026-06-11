@@ -16,13 +16,12 @@ namespace gert {
 namespace bg {
 struct CommonLaunchArg {
   ValueHolderPtr stream;
-  ValueHolderPtr bin_handle;
+  ValueHolderPtr bin_addr;
   ValueHolderPtr block_dim;
   ValueHolderPtr schedule_mode;
   ValueHolderPtr local_mem_size;
   ValueHolderPtr workspace_addrs;
   ValueHolderPtr shapebuffer_addr;
-  ValueHolderPtr cfg_attrs;
   ValueHolderPtr qos;
   std::vector<ValueHolderPtr> input_shapes;
   std::vector<ValueHolderPtr> output_shapes;
@@ -30,9 +29,6 @@ struct CommonLaunchArg {
   LoweringGlobalData *global_data;
   ValueHolderPtr dfx_holder;
   ValueHolderPtr rt_arg;
-  ValueHolderPtr tiling_key;
-  ValueHolderPtr kernel_name;
-  ValueHolderPtr with_handle_flag;
 };
 
 struct AtomicLoweringArg {
@@ -41,13 +37,24 @@ struct AtomicLoweringArg {
   std::vector<ValueHolderPtr> output_sizes;
   std::vector<DevMemValueHolderPtr> output_addrs;
 };
-ValueHolderPtr LaunchKernelV2(const CommonLaunchArg &launch_arg,
-                              const std::vector<DevMemValueHolderPtr> &input_addrs,
-                              const std::vector<DevMemValueHolderPtr> &output_addrs);
-ValueHolderPtr AtomicLaunchKernelV2(const CommonLaunchArg &launch_arg,
-                                    const ValueHolderPtr &clean_workspace_indexes,
-                                    const std::vector<DevMemValueHolderPtr> &clean_output_addrs,
-                                    const ValueHolderPtr &clean_workspace_addrs);
+
+ValueHolderPtr LaunchKernelWithHandle(const CommonLaunchArg &launch_arg,
+                                      const ValueHolderPtr &stub_func,
+                                      const ValueHolderPtr &node_info,
+                                      const std::vector<DevMemValueHolderPtr> &input_addrs,
+                                      const std::vector<DevMemValueHolderPtr> &output_addrs);
+ValueHolderPtr LaunchKernelWithFlag(const CommonLaunchArg &launch_arg,
+                                    const std::vector<DevMemValueHolderPtr> &input_addrs,
+                                    const std::vector<DevMemValueHolderPtr> &output_addrs);
+ValueHolderPtr AtomicLaunchKernelWithHandle(const CommonLaunchArg &launch_arg,
+                                            const ValueHolderPtr &stub_func,
+                                            const ValueHolderPtr &clean_workspace_indexes,
+                                            const std::vector<DevMemValueHolderPtr> &clean_output_addrs,
+                                            const ValueHolderPtr &clean_workspace_addrs);
+ValueHolderPtr AtomicLaunchKernelWithFlag(const CommonLaunchArg &launch_arg,
+                                          const ValueHolderPtr &clean_workspace_indexes,
+                                          const std::vector<DevMemValueHolderPtr> &clean_output_addrs,
+                                          const ValueHolderPtr &clean_workspace_addrs);
 ValueHolderPtr LaunchFFTSPlusTaskNoCopy(const ValueHolderPtr &stream, bg::ValueHolderPtr task_info_para,
     bg::ValueHolderPtr need_launch, bg::ValueHolderPtr dfx_holder, bg::ValueHolderPtr workspaces_addr);
 ValueHolderPtr LaunchStarsKernel(const ValueHolderPtr &sqe_addr,

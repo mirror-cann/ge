@@ -368,17 +368,17 @@ class AICoreLoweringST : public testing::Test {
     if (rollback) {
       if (rollback_fail) {
         EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "ReportRollbackError"), 1);
-        EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "LaunchKernelV2"), 0);
+        EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "LaunchKernelWithHandle"), 0);
       } else {
         EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "AicpuLaunchTfKernel"), 1);
-        EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "LaunchKernelV2"), 0);
+        EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "LaunchKernelWithHandle"), 0);
       }
     } else {
       if (is_mix) {
-        EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "LaunchKernelV2"), 1);
+        EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "LaunchMixKernelWithHandle"), 1);
       } else {
         EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "AicpuLaunchTfKernel"), 0);
-        EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "LaunchKernelV2"), 1);
+        EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "LaunchKernelWithHandle"), 1);
       }
     }
 
@@ -462,13 +462,13 @@ class AICoreLoweringST : public testing::Test {
     ess->PrintExecutionSummary();
     if (rollback) {
       EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "AicpuLaunchTfKernel"), 1);
-      EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "LaunchKernelV2"), 0);
+      EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "LaunchKernelWithFlag"), 0);
     } else {
       if (is_mix) {
         EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "LaunchMixKernelWithFlag"), 1);
       } else {
         EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "AicpuLaunchTfKernel"), 0);
-        EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "LaunchKernelV2"), 1);
+        EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "LaunchKernelWithFlag"), 1);
       }
     }
 
@@ -534,9 +534,9 @@ class AICoreLoweringST : public testing::Test {
               ge::GRAPH_SUCCESS);
     ess->PrintExecutionSummary();
     if (sup_empty) {
-      EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "LaunchKernelV2"), 0);
+      EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "LaunchKernelWithFlag"), 0);
     } else {
-      EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "LaunchKernelV2"), 1);
+      EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "LaunchKernelWithFlag"), 1);
     }
     Shape expect_out_shape;
     if (sup_empty) {
@@ -614,7 +614,7 @@ class AICoreLoweringST : public testing::Test {
               ge::GRAPH_SUCCESS);
     ess->PrintExecutionSummary();
 
-    EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "LaunchKernelV2"), 1);
+    EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "LaunchKernelWithHandle"), 1);
 
     Shape expect_out_shape{1, 2, 3, 4};
     EXPECT_EQ(outputs.GetTensorList()[0]->GetShape().GetStorageShape(), expect_out_shape);
@@ -697,7 +697,7 @@ TEST_F(AICoreLoweringST, TestAutofuseNodeBase) {
   ASSERT_EQ(model_executor->Execute({stream_value.value}, inputs.GetTensorList(),
                                     inputs.size(),outputs.GetTensorList(), outputs.size()),
             ge::GRAPH_SUCCESS);
-  EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("AscBackend", "LaunchKernelV2"), 2);
+  EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("AscBackend", "LaunchKernelWithHandle"), 2);
   Shape expect_out_shape{5, 6, 4};
   auto output_shape0 = outputs.GetTensorList()[0]->GetShape().GetStorageShape();
   ASSERT_EQ(output_shape0.GetDimNum(), expect_out_shape.GetDimNum());
@@ -806,7 +806,7 @@ TEST_F(AICoreLoweringST, TestAutofuseNodeTilingParse) {
   ASSERT_EQ(model_executor->Execute({stream_value.value}, inputs.GetTensorList(),
                                     inputs.size(),outputs.GetTensorList(), outputs.size()),
             ge::GRAPH_SUCCESS);
-  EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("AscBackend", "LaunchKernelV2"), 2);
+  EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("AscBackend", "LaunchKernelWithHandle"), 2);
   Shape expect_out_shape{5, 6, 4};
   auto output_shape0 = outputs.GetTensorList()[0]->GetShape().GetStorageShape();
   ASSERT_EQ(output_shape0.GetDimNum(), expect_out_shape.GetDimNum());
@@ -856,7 +856,7 @@ TEST_F(AICoreLoweringST, TestAutofuseNodeDlopenAutofuseSoNodeCheck) {
   ASSERT_EQ(model_executor->Execute({stream_value.value}, inputs.GetTensorList(),
                                     inputs.size(),outputs.GetTensorList(), outputs.size()),
             ge::GRAPH_SUCCESS);
-  EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("AscBackend", "LaunchKernelV2"), 2);
+  EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("AscBackend", "LaunchKernelWithHandle"), 2);
   Shape expect_out_shape{5, 6, 4};
   auto output_shape0 = outputs.GetTensorList()[0]->GetShape().GetStorageShape();
   ASSERT_EQ(output_shape0.GetDimNum(), expect_out_shape.GetDimNum());

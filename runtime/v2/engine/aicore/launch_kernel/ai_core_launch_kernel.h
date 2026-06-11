@@ -14,35 +14,37 @@
 namespace gert {
 namespace kernel {
 enum class InputCommon {
-  kStream,
+  kStream,  //
   kBinHandle,
   kBlockDim,
   kWorkspaceAddr,
   kShapeBufferAddr,
-  kCfgAttrs,
   kCfg,
   kIoNum,
   kScheduleMode,
   kDfxArgs,
   kRtArg,
   kLocalMemSize,
-  kTilingKey,
-  kKernelName,
-  kWithHandleFlag,
   kNum
 };
 enum class WithHandle {
-  kTilingKey = static_cast<int32_t>(InputCommon::kNum),
+  kTilingKey = static_cast<int32_t>(InputCommon::kNum),  //
   kNodeInfo,
   kIoAddrs,
   kNum
 };
 enum class WithArgs {
-  kIoAddrs = static_cast<int32_t>(InputCommon::kNum),
+  kIoAddrs = static_cast<int32_t>(InputCommon::kNum),  //
   kNum
 };
 enum class WithAtomic {
-  kWorkspaceIndex = static_cast<int32_t>(InputCommon::kNum),
+  kWorkspaceIndex = static_cast<int32_t>(InputCommon::kNum),  //
+  kIoAddrs,
+  kNum
+};
+enum class WithAtomicHandle {
+  kTilingKey = static_cast<int32_t>(InputCommon::kNum), //
+  kWorkspaceIndex, //
   kIoAddrs,
   kNum
 };
