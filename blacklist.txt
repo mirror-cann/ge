@@ -38,3 +38,4 @@ compiler/graph/fusion/graph_rewriter.cc
 dflow/executor/data_flow_executor_utils.cc
 compiler/graph/optimize/autofuse/autofuse_optimize.cc
 graph_metadef/register/shape_inference.cc
+dflow/udf/flow_func/flow_func_ascend_string.cpp

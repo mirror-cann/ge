@@ -339,6 +339,7 @@ if("dflow-executor" IN_LIST BUILD_COMPONENT)
     )
     install(FILES
             ${CMAKE_CURRENT_SOURCE_DIR}/dflow/udf/inc/external/flow_func/ascend_string.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/dflow/udf/inc/external/flow_func/flow_func_ascend_string.h
             ${CMAKE_CURRENT_SOURCE_DIR}/dflow/udf/inc/external/flow_func/balance_config.h
             ${CMAKE_CURRENT_SOURCE_DIR}/dflow/udf/inc/external/flow_func/flow_func_log.h
             ${CMAKE_CURRENT_SOURCE_DIR}/dflow/udf/inc/external/flow_func/flow_msg_queue.h

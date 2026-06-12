@@ -41,6 +41,7 @@ const static std::map<std::string, std::set<std::string>> kStrValueRange = {
     {"framework", {"0", "1", "3", "5"}},
     {"op_debug_level", {"0", "1", "2", "3", "4"}},
     {"mode", {"0", "1", "3", "5", "6", "7","30"}},
+    {"jit_compile", {"0", "1", "2"}},
     {"core_type", {"AiCore", "VectorCore"}},
     {"log", {"debug", "info", "warning", "error", "null"}},
     {"op_compiler_cache_mode", {"enable", "disable", "force"}},
@@ -96,6 +97,7 @@ public:
   std::string& GetFlagValueString() { return value_string_; }
   bool& GetFlagValueBool() { return value_bool_; }
   int32_t& GetFlagValueInt32() { return value_int32_; }
+  GfStatus CheckValue(const std::string &value) const;
   void PrintTypeError(const char *type);
   void PrintValueError();
   std::string PrintValueRange();
@@ -193,11 +195,7 @@ void CmdFlagInfo::PrintValueError() {
 GfStatus CmdFlagInfo::SetFlagValue(const std::string &value)
 {
   value_string_ = value;
-  const auto it = kStrValueRange.find(flag_name_);
-  if ((it != kStrValueRange.cend()) && (it->second.count(value_string_) == 0U)) {
-    PrintValueError();
-    return GF_FAILED;
-  }
+  GE_CHK_BOOL_EXEC(CheckValue(value) == GF_SUCCESS, return GF_FAILED, "[Check][FlagValue]failed.");
   if ((data_type_ == DataType::Bool) && (StringToBool(value_string_, value_bool_) != GF_SUCCESS)) {
     PrintTypeError("bool");
     return GF_FAILED;
@@ -208,6 +206,39 @@ GfStatus CmdFlagInfo::SetFlagValue(const std::string &value)
   }
   if (kDeprecatedFlags.count(flag_name_) > 0U) {
     GELOG_DEPRECATED(flag_name_);
+  }
+  return GF_SUCCESS;
+}
+
+GfStatus CmdFlagInfo::CheckValue(const std::string &value) const
+{
+  const auto it = kStrValueRange.find(flag_name_);
+  if ((it != kStrValueRange.cend()) && (it->second.count(value) == 0U)) {
+    const std::string old_value = value_string_;
+    const_cast<CmdFlagInfo *>(this)->value_string_ = value;
+    const_cast<CmdFlagInfo *>(this)->PrintValueError();
+    const_cast<CmdFlagInfo *>(this)->value_string_ = old_value;
+    return GF_FAILED;
+  }
+  if (data_type_ == DataType::Bool) {
+    bool value_bool = false;
+    if (StringToBool(value, value_bool) != GF_SUCCESS) {
+      const std::string old_value = value_string_;
+      const_cast<CmdFlagInfo *>(this)->value_string_ = value;
+      const_cast<CmdFlagInfo *>(this)->PrintTypeError("bool");
+      const_cast<CmdFlagInfo *>(this)->value_string_ = old_value;
+      return GF_FAILED;
+    }
+  }
+  if (data_type_ == DataType::Int32) {
+    int32_t value_int32 = 0;
+    if (StringToInt32(value, value_int32) != GF_SUCCESS) {
+      const std::string old_value = value_string_;
+      const_cast<CmdFlagInfo *>(this)->value_string_ = value;
+      const_cast<CmdFlagInfo *>(this)->PrintTypeError("int32");
+      const_cast<CmdFlagInfo *>(this)->value_string_ = old_value;
+      return GF_FAILED;
+    }
   }
   return GF_SUCCESS;
 }
@@ -428,6 +459,28 @@ std::unordered_map<std::string, std::string> &GetUserOptions()
 {
   static std::unordered_map<std::string, std::string> user_options;
   return user_options;
+}
+
+GfStatus CheckFlagValue(const std::string &name, const std::string &value)
+{
+  const CmdFlagInfoMap &info_map = GetCmdFlagInfoMap();
+  for (const auto &info : info_map) {
+    if ((info.second != nullptr) && (info.second->GetFlagName() == name)) {
+      return info.second->CheckValue(value);
+    }
+  }
+  return GF_FAILED;
+}
+
+GfStatus SetFlagValue(const std::string &name, const std::string &value)
+{
+  const CmdFlagInfoMap &info_map = GetCmdFlagInfoMap();
+  for (const auto &info : info_map) {
+    if ((info.second != nullptr) && (info.second->GetFlagName() == name)) {
+      return info.second->SetFlagValue(value);
+    }
+  }
+  return GF_FAILED;
 }
 
 GfStatus ParseCommandLine(int32_t argc, char* argv[])

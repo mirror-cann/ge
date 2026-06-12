@@ -28,9 +28,15 @@
 #include "depends/mmpa/src/mmpa_stub.h"
 #include "faker/space_registry_faker.h"
 
+#include <fstream>
+#include <vector>
+
 DECLARE_bool(help);
+DECLARE_bool(raw_ge_options_ignore_unsupported);
 DECLARE_int32(virtual_type);
 DECLARE_string(model);
+DECLARE_string(save_original_model);
+DECLARE_string(static_model_ops_lower_limit);
 
 namespace ge {
 class AtcCommonSTest : public AtcTest {
@@ -59,6 +65,51 @@ class AtcCommonSTest : public AtcTest {
   }
 
  public:
+  std::string WriteRawOptionsJson(const std::string &file_name, const std::string &content) const {
+    auto raw_dir = PathJoin(GetRunPath().c_str(), "temp");
+    Mkdir(raw_dir.c_str());
+    const auto raw_path = PathJoin(raw_dir.c_str(), file_name.c_str());
+    std::ofstream raw_file(raw_path);
+    raw_file << content;
+    return raw_path;
+  }
+
+  int32_t RunAtcWithRawOptions(const std::string &output_name, const std::string &raw_options_path,
+                               const std::vector<std::string> &extra_args = {},
+                               bool add_default_input_shape = true, bool add_default_framework = true,
+                               bool add_default_soc_version = true) const {
+    auto om_path = PathJoin(GetRunPath().c_str(), "temp");
+    Mkdir(om_path.c_str());
+    om_path = PathJoin(om_path.c_str(), output_name.c_str());
+
+    std::vector<std::string> args = {"atc",
+                                     "--model=st_run_data/origin_model/add.pb",
+                                     "--output=" + om_path,
+                                     "--input_format=NCHW",
+                                     "--raw_ge_options=" + raw_options_path};
+    if (add_default_framework) {
+      args.push_back("--framework=3");
+    }
+    if (add_default_soc_version) {
+      args.push_back("--soc_version=Ascend310");
+    }
+    if (add_default_input_shape) {
+      args.push_back("--input_shape=Placeholder_1:1,256,256,3");
+    }
+    args.insert(args.end(), extra_args.begin(), extra_args.end());
+
+    std::vector<char *> argv;
+    argv.reserve(args.size());
+    for (auto &arg : args) {
+      argv.push_back(const_cast<char *>(arg.c_str()));
+    }
+    return main_impl(static_cast<int32_t>(argv.size()), argv.data());
+  }
+
+  void ResetAtcFlagsForTest() {
+    AtcTest::TearDown();
+  }
+
   std::string test_case_name;
   std::string test_work_dir;
 };
@@ -2529,6 +2580,446 @@ TEST_F(AtcCommonSTest, GeFlags_param_ok04) {
   EXPECT_EQ(FLAGS_model, "model_value");
 }
 
+TEST_F(AtcCommonSTest, GeFlags_param_jit_compile_ok) {
+  char *argv[] = {"atc",
+                  "--jit_compile=2"};
+  int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
+  EXPECT_EQ(ret, 0);
+  EXPECT_EQ(ge::flgs::GetUserOptions()["jit_compile"], "2");
+}
+
+TEST_F(AtcCommonSTest, GeFlags_param_optimization_switch_ok) {
+  char *argv[] = {"atc",
+                  "--optimization_switch=PassA:on;PassB:off"};
+  int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
+  EXPECT_EQ(ret, 0);
+  EXPECT_EQ(ge::flgs::GetUserOptions()["optimization_switch"], "PassA:on;PassB:off");
+}
+
+TEST_F(AtcCommonSTest, GeFlags_param_static_model_ops_lower_limit_ok) {
+  char *argv[] = {"atc",
+                  "--static_model_ops_lower_limit=-1"};
+  int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
+  EXPECT_EQ(ret, 0);
+  EXPECT_EQ(ge::flgs::GetUserOptions()["static_model_ops_lower_limit"], "-1");
+}
+
+TEST_F(AtcCommonSTest, GeFlags_param_raw_ge_options_ok) {
+  char *argv[] = {"atc",
+                  "--raw_ge_options=/tmp/options.json"};
+  int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
+  EXPECT_EQ(ret, 0);
+  EXPECT_EQ(ge::flgs::GetUserOptions()["raw_ge_options"], "/tmp/options.json");
+}
+
+TEST_F(AtcCommonSTest, GeFlags_param_raw_ge_options_ignore_unsupported_ok) {
+  char *argv[] = {"atc",
+                  "--raw_ge_options_ignore_unsupported=true"};
+  int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
+  EXPECT_EQ(ret, 0);
+  EXPECT_EQ(ge::flgs::GetUserOptions()["raw_ge_options_ignore_unsupported"], "true");
+}
+
+TEST_F(AtcCommonSTest, GeFlags_teardown_resets_raw_ge_options_flag_state) {
+  char *argv[] = {"atc",
+                  "--raw_ge_options=/tmp/options.json",
+                  "--raw_ge_options_ignore_unsupported=true"};
+  int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
+  EXPECT_EQ(ret, 0);
+  EXPECT_TRUE(FLAGS_raw_ge_options_ignore_unsupported);
+
+  EXPECT_EQ(ge::flgs::SetFlagValue("save_original_model", "yes"), ge::flgs::GF_SUCCESS);
+  EXPECT_EQ(ge::flgs::SetFlagValue("static_model_ops_lower_limit", "-2"), ge::flgs::GF_SUCCESS);
+  EXPECT_EQ(FLAGS_save_original_model, "yes");
+  EXPECT_EQ(FLAGS_static_model_ops_lower_limit, "-2");
+
+  ResetAtcFlagsForTest();
+
+  EXPECT_FALSE(FLAGS_raw_ge_options_ignore_unsupported);
+  EXPECT_TRUE(FLAGS_save_original_model.empty());
+  EXPECT_TRUE(FLAGS_static_model_ops_lower_limit.empty());
+  EXPECT_TRUE(FLAGS_raw_ge_options.empty());
+  EXPECT_EQ(ge::flgs::GetUserOptions().count("raw_ge_options_ignore_unsupported"), 0U);
+  EXPECT_EQ(ge::flgs::GetUserOptions().count("raw_ge_options"), 0U);
+  EXPECT_EQ(ge::flgs::GetUserOptions().count("save_original_model"), 0U);
+  EXPECT_EQ(ge::flgs::GetUserOptions().count("static_model_ops_lower_limit"), 0U);
+}
+
+TEST_F(AtcCommonSTest, GeFlags_raw_ge_options_unsupported_failed) {
+  const auto raw_path = WriteRawOptionsJson("raw_ge_options_unsupported.json", R"({
+    "compile options": {
+      "graph": {
+        "ge.unsupported.option": "1"
+      }
+    }
+  })");
+  const int32_t ret = RunAtcWithRawOptions("raw_ge_options_unsupported", raw_path);
+  EXPECT_NE(ret, 0);
+  ReInitGe();
+}
+
+TEST_F(AtcCommonSTest, GeFlags_raw_ge_options_without_compile_options_failed) {
+  const auto raw_path = WriteRawOptionsJson("raw_ge_options_without_compile_options.json", R"({
+    "execute options": {
+      "graph": {
+        "ge.unsupported.option": "1"
+      }
+    }
+  })");
+  const int32_t ret = RunAtcWithRawOptions("raw_ge_options_without_compile_options", raw_path);
+  EXPECT_NE(ret, 0);
+  ReInitGe();
+}
+
+TEST_F(AtcCommonSTest, GeFlags_raw_ge_options_not_exist_failed) {
+  const auto raw_path = PathJoin(GetRunPath().c_str(), "raw_ge_options_not_exist.json");
+  const int32_t ret = RunAtcWithRawOptions("raw_ge_options_not_exist", raw_path);
+  EXPECT_NE(ret, 0);
+  ReInitGe();
+}
+
+TEST_F(AtcCommonSTest, GeFlags_raw_ge_options_invalid_json_failed) {
+  const auto raw_path = WriteRawOptionsJson("raw_ge_options_invalid_json.json", "{ invalid json");
+  const int32_t ret = RunAtcWithRawOptions("raw_ge_options_invalid_json", raw_path);
+  EXPECT_NE(ret, 0);
+  ReInitGe();
+}
+
+TEST_F(AtcCommonSTest, GeFlags_raw_ge_options_unsupported_level_failed) {
+  const auto raw_path = WriteRawOptionsJson("raw_ge_options_unsupported_level.json", R"({
+    "compile options": {
+      "execute": {
+        "ge.jit_compile": "2"
+      }
+    }
+  })");
+  const int32_t ret = RunAtcWithRawOptions("raw_ge_options_unsupported_level", raw_path);
+  EXPECT_NE(ret, 0);
+  ReInitGe();
+}
+
+TEST_F(AtcCommonSTest, GeFlags_raw_ge_options_level_not_object_failed) {
+  const auto raw_path = WriteRawOptionsJson("raw_ge_options_level_not_object.json", R"({
+    "compile options": {
+      "graph": "ge.jit_compile=2"
+    }
+  })");
+  const int32_t ret = RunAtcWithRawOptions("raw_ge_options_level_not_object", raw_path);
+  EXPECT_NE(ret, 0);
+  ReInitGe();
+}
+
+TEST_F(AtcCommonSTest, GeFlags_raw_ge_options_empty_key_failed) {
+  const auto raw_path = WriteRawOptionsJson("raw_ge_options_empty_key.json", R"({
+    "compile options": {
+      "graph": {
+        "": "1"
+      }
+    }
+  })");
+  const int32_t ret = RunAtcWithRawOptions("raw_ge_options_empty_key", raw_path);
+  EXPECT_NE(ret, 0);
+  ReInitGe();
+}
+
+TEST_F(AtcCommonSTest, GeFlags_raw_ge_options_non_string_value_failed) {
+  const auto raw_path = WriteRawOptionsJson("raw_ge_options_non_string_value.json", R"({
+    "compile options": {
+      "graph": {
+        "ge.jit_compile": 2
+      }
+    }
+  })");
+  const int32_t ret = RunAtcWithRawOptions("raw_ge_options_non_string_value", raw_path);
+  EXPECT_NE(ret, 0);
+  ReInitGe();
+}
+
+TEST_F(AtcCommonSTest, GeFlags_raw_ge_options_jit_compile_invalid_failed) {
+  const auto raw_path = WriteRawOptionsJson("raw_ge_options_jit_compile_invalid.json", R"({
+    "compile options": {
+      "graph": {
+        "ge.jit_compile": "3"
+      }
+    }
+  })");
+  const int32_t ret = RunAtcWithRawOptions("raw_ge_options_jit_compile_invalid", raw_path);
+  EXPECT_NE(ret, 0);
+  ReInitGe();
+}
+
+TEST_F(AtcCommonSTest, GeFlags_raw_ge_options_static_model_ops_lower_limit_invalid) {
+  const auto raw_path = WriteRawOptionsJson("raw_ge_options_static_model_ops_lower_limit_invalid.json", R"({
+    "compile options": {
+      "graph": {
+        "ge.exec.static_model_ops_lower_limit": "-2"
+      }
+    }
+  })");
+  const int32_t ret = RunAtcWithRawOptions("raw_ge_options_static_model_ops_lower_limit_invalid", raw_path);
+  EXPECT_NE(ret, 0);
+  ReInitGe();
+}
+
+TEST_F(AtcCommonSTest, GeFlags_raw_ge_options_deterministic_invalid_failed) {
+  const auto raw_path = WriteRawOptionsJson("raw_ge_options_deterministic_invalid.json", R"({
+    "compile options": {
+      "graph": {
+        "ge.deterministic": "2"
+      }
+    }
+  })");
+  const int32_t ret = RunAtcWithRawOptions("raw_ge_options_deterministic_invalid", raw_path);
+  EXPECT_NE(ret, 0);
+  ReInitGe();
+}
+
+TEST_F(AtcCommonSTest, GeFlags_raw_ge_options_virtual_type_invalid_failed) {
+  const auto raw_path = WriteRawOptionsJson("raw_ge_options_virtual_type_invalid.json", R"({
+    "compile options": {
+      "graph": {
+        "ge.virtual_type": "2"
+      }
+    }
+  })");
+  const int32_t ret = RunAtcWithRawOptions("raw_ge_options_virtual_type_invalid", raw_path);
+  EXPECT_NE(ret, 0);
+  ReInitGe();
+}
+
+TEST_F(AtcCommonSTest, GeFlags_raw_ge_options_allow_hf32_invalid_failed) {
+  const auto raw_path = WriteRawOptionsJson("raw_ge_options_allow_hf32_invalid.json", R"({
+    "compile options": {
+      "graph": {
+        "ge.exec.allow_hf32": "maybe"
+      }
+    }
+  })");
+  const int32_t ret = RunAtcWithRawOptions("raw_ge_options_allow_hf32_invalid", raw_path);
+  EXPECT_NE(ret, 0);
+  ReInitGe();
+}
+
+TEST_F(AtcCommonSTest, GeFlags_raw_ge_options_save_original_model_invalid_failed) {
+  const auto raw_path = WriteRawOptionsJson("raw_ge_options_save_original_model_invalid.json", R"({
+    "compile options": {
+      "graph": {
+        "ge.saveOriginalModel": "yes"
+      }
+    }
+  })");
+  const int32_t ret = RunAtcWithRawOptions("raw_ge_options_save_original_model_invalid", raw_path);
+  EXPECT_NE(ret, 0);
+  ReInitGe();
+}
+
+TEST_F(AtcCommonSTest, GeFlags_raw_ge_options_output_type_node_format_success) {
+  domi::GetContext().final_out_nodes_map = {std::make_pair("add_test_1:0", std::make_pair("add_test_1", 0))};
+  const auto raw_path = WriteRawOptionsJson("raw_ge_options_output_type_node_format.json", R"({
+    "compile options": {
+      "graph": {
+        "ge.outputDatatype": "add_test_1:0:FP16"
+      }
+    }
+  })");
+  const int32_t ret = RunAtcWithRawOptions("raw_ge_options_output_type_node_format", raw_path,
+                                           {"--out_nodes=add_test_1:0"});
+  EXPECT_EQ(ret, 0);
+  domi::GetContext().final_out_nodes_map.clear();
+  ReInitGe();
+}
+
+TEST_F(AtcCommonSTest, GeFlags_raw_ge_options_output_type_invalid_failed) {
+  const auto raw_path = WriteRawOptionsJson("raw_ge_options_output_type_invalid.json", R"({
+    "compile options": {
+      "graph": {
+        "ge.outputDatatype": "invalid"
+      }
+    }
+  })");
+  const int32_t ret = RunAtcWithRawOptions("raw_ge_options_output_type_invalid", raw_path);
+  EXPECT_NE(ret, 0);
+  ReInitGe();
+}
+
+TEST_F(AtcCommonSTest, GeFlags_raw_ge_options_input_shape_success) {
+  const auto raw_path = WriteRawOptionsJson("raw_ge_options_input_shape.json", R"({
+    "compile options": {
+      "graph": {
+        "ge.inputShape": "Placeholder_1:1,256,256,3"
+      }
+    }
+  })");
+  const int32_t ret = RunAtcWithRawOptions("raw_ge_options_input_shape", raw_path, {}, false);
+  EXPECT_EQ(ret, 0);
+  ReInitGe();
+}
+
+TEST_F(AtcCommonSTest, GeFlags_raw_ge_options_ignore_unsupported_success) {
+  const auto raw_path = WriteRawOptionsJson("raw_ge_options_ignore_unsupported_success.json", R"({
+    "compile options": {
+      "graph": {
+        "ge.unsupported.option": "1",
+        "ge.jit_compile": "2"
+      }
+    }
+  })");
+  const int32_t ret = RunAtcWithRawOptions("raw_ge_options_ignore_unsupported_success", raw_path,
+                                           {"--raw_ge_options_ignore_unsupported=true"});
+  EXPECT_EQ(ret, 0);
+  ReInitGe();
+}
+
+TEST_F(AtcCommonSTest, GeFlags_raw_ge_options_graph_overrides_session_global) {
+  const auto raw_path = WriteRawOptionsJson("raw_ge_options_graph_overrides_session_global.json", R"({
+    "compile options": {
+      "global": {
+        "ge.exec.static_model_ops_lower_limit": "-2"
+      },
+      "session": {
+        "ge.exec.static_model_ops_lower_limit": "-2"
+      },
+      "graph": {
+        "ge.exec.static_model_ops_lower_limit": "-1"
+      }
+    }
+  })");
+  const int32_t ret = RunAtcWithRawOptions("raw_ge_options_graph_overrides_session_global", raw_path);
+  EXPECT_EQ(ret, 0);
+  ReInitGe();
+}
+
+TEST_F(AtcCommonSTest, GeFlags_raw_ge_options_cli_overrides_raw) {
+  const auto raw_path = WriteRawOptionsJson("raw_ge_options_cli_overrides_raw.json", R"({
+    "compile options": {
+      "graph": {
+        "ge.socVersion": "InvalidSoc"
+      }
+    }
+  })");
+  const int32_t ret = RunAtcWithRawOptions("raw_ge_options_cli_overrides_raw", raw_path);
+  EXPECT_EQ(ret, 0);
+  ReInitGe();
+}
+
+TEST_F(AtcCommonSTest, GeFlags_raw_ge_options_required_soc_version_not_replaced_failed) {
+  const auto raw_path = WriteRawOptionsJson("raw_ge_options_required_soc_version_not_replaced.json", R"({
+    "compile options": {
+      "graph": {
+        "ge.socVersion": "Ascend310"
+      }
+    }
+  })");
+  const int32_t ret = RunAtcWithRawOptions("raw_ge_options_required_soc_version_not_replaced", raw_path, {}, true,
+                                           true, false);
+  EXPECT_NE(ret, 0);
+  ReInitGe();
+}
+
+TEST_F(AtcCommonSTest, GeFlags_raw_ge_options_required_framework_not_replaced_failed) {
+  const auto raw_path = WriteRawOptionsJson("raw_ge_options_required_framework_not_replaced.json", R"({
+    "compile options": {
+      "graph": {
+        "ge.frameworkType": "3"
+      }
+    }
+  })");
+  const int32_t ret = RunAtcWithRawOptions("raw_ge_options_required_framework_not_replaced", raw_path, {}, true,
+                                           false, true);
+  EXPECT_NE(ret, 0);
+  ReInitGe();
+}
+
+TEST_F(AtcCommonSTest, GeFlags_raw_ge_options_invalid_value_not_skipped_by_cli_failed) {
+  const auto raw_path = WriteRawOptionsJson("raw_ge_options_invalid_value_not_skipped_by_cli.json", R"({
+    "compile options": {
+      "graph": {
+        "ge.jit_compile": "3"
+      }
+    }
+  })");
+  const int32_t ret = RunAtcWithRawOptions("raw_ge_options_invalid_value_not_skipped_by_cli", raw_path,
+                                           {"--jit_compile=2"});
+  EXPECT_NE(ret, 0);
+  ReInitGe();
+}
+
+TEST_F(AtcCommonSTest, GeFlags_raw_ge_options_execute_options_ignored) {
+  const auto raw_path = WriteRawOptionsJson("raw_ge_options_execute_options_ignored.json", R"({
+    "compile options": {
+      "graph": {
+        "ge.jit_compile": "2"
+      }
+    },
+    "execute options": {
+      "graph": {
+        "ge.unsupported.option": "1"
+      }
+    }
+  })");
+  const int32_t ret = RunAtcWithRawOptions("raw_ge_options_execute_options_ignored", raw_path);
+  EXPECT_EQ(ret, 0);
+  ReInitGe();
+}
+
+TEST_F(AtcCommonSTest, GeFlags_raw_ge_options_optimization_switch_success) {
+  const auto raw_path = WriteRawOptionsJson("raw_ge_options_optimization_switch.json", R"({
+    "compile options": {
+      "graph": {
+        "ge.optimizationSwitch": "PassA:on"
+      }
+    }
+  })");
+  const int32_t ret = RunAtcWithRawOptions("raw_ge_options_optimization_switch", raw_path);
+  EXPECT_EQ(ret, 0);
+  ReInitGe();
+}
+
+TEST_F(AtcCommonSTest, GeFlags_raw_ge_options_display_model_info_success) {
+  const auto raw_path = WriteRawOptionsJson("raw_ge_options_display_model_info.json", R"({
+    "compile options": {
+      "graph": {
+        "ge.display_model_info": "0"
+      }
+    }
+  })");
+  const int32_t ret = RunAtcWithRawOptions("raw_ge_options_display_model_info", raw_path);
+  EXPECT_EQ(ret, 0);
+  ReInitGe();
+}
+
+TEST_F(AtcCommonSTest, GeFlags_raw_ge_options_om2_unsupported_option_failed) {
+  const auto raw_path = WriteRawOptionsJson("raw_ge_options_om2_unsupported_option.json", R"({
+    "compile options": {
+      "graph": {
+        "ge.saveOriginalModel": "true"
+      }
+    }
+  })");
+  const int32_t ret = RunAtcWithRawOptions("raw_ge_options_om2_unsupported_option", raw_path, {"--mode=7"});
+  EXPECT_NE(ret, 0);
+  ReInitGe();
+}
+
+TEST_F(AtcCommonSTest, GeFlags_param_static_model_ops_lower_limit_invalid) {
+  auto om_path = PathJoin(GetRunPath().c_str(), "temp");
+  Mkdir(om_path.c_str());
+  om_path = PathJoin(om_path.c_str(), "static_model_ops_lower_limit_invalid");
+  std::string model_arg = "--model=st_run_data/origin_model/add.pb";
+  std::string output_arg = "--output=" + om_path;
+  char *argv[] = {"atc",
+                  const_cast<char *>(model_arg.c_str()),
+                  const_cast<char *>(output_arg.c_str()),
+                  "--framework=3",
+                  "--input_format=NCHW",
+                  "--soc_version=Ascend310",
+                  "--input_shape=Placeholder_1:1,256,256,3",
+                  "--static_model_ops_lower_limit=-2"};
+  int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
+  EXPECT_NE(ret, 0);
+  ReInitGe();
+}
+
 TEST_F(AtcCommonSTest, GeFlags_param_err01) {
   char *argv[] = {"atc", "--dump_mode=3"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
@@ -2555,6 +3046,12 @@ TEST_F(AtcCommonSTest, GeFlags_param_err04) {
 
 TEST_F(AtcCommonSTest, GeFlags_param_err05) {
   char *argv[] = {"atc", "--op_debug_level=3.6"};
+  int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
+  EXPECT_NE(ret, 0);
+}
+
+TEST_F(AtcCommonSTest, GeFlags_param_jit_compile_invalid) {
+  char *argv[] = {"atc", "--jit_compile=3"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
 }

@@ -13,7 +13,10 @@ target_include_directories(eager_style_graph_builder_base_headers INTERFACE
         ${AIR_CODE_DIR}/inc/external/ge/eager_style_graph_builder/c
         ${AIR_CODE_DIR}/inc/external/ge/eager_style_graph_builder/cpp
         )
-
+target_link_libraries(eager_style_graph_builder_base_headers INTERFACE
+        air_headers
+        ge_metadef_headers
+        )
 add_library(eager_style_graph_builder_base_inner_headers INTERFACE)
 target_include_directories(eager_style_graph_builder_base_inner_headers INTERFACE
         ${AIR_CODE_DIR}/inc/framework/graph/eager_style_graph_builder

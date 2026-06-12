@@ -46,7 +46,7 @@ GE 的模型缓存体系覆盖三个层次：
 | `ge.graph_compiler_cache_dir` | 缓存文件存储目录（必须为已存在的目录） | `"./cache_dir"` |
 | `ge.graph_key` | 图的唯一标识，用于区分不同图的缓存 | `"my_model_v1"` |
 
-选项定义位于 `inc/graph_metadef/external/ge_common/ge_api_types.h`：
+选项定义位于 `inc/graph_metadef/external/ge_common/ge_common_api_types.h`：
 
 ```
 const char_t *const OPTION_GRAPH_COMPILER_CACHE_DIR = "ge.graph_compiler_cache_dir";

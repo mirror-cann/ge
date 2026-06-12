@@ -11,7 +11,7 @@
 #ifndef INC_EXTERNAL_GE_FUSION_INFER_SHAPE_UTIL_H_
 #define INC_EXTERNAL_GE_FUSION_INFER_SHAPE_UTIL_H_
 #include "graph/graph.h"
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 #include "ge/fusion/subgraph_boundary.h"
 #include "ge/fusion/match_result.h"
 

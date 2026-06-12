@@ -156,6 +156,16 @@ class FusionPriorityManager {
 
   Status LoadBufferPriorityCfg(std::map<std::string, int32_t> &buffer_fusion_priority_map) const;
 
+  Status InitCustomPasses(const bool &is_single_op_scene,
+                          vector<FusionPassOrRule> &custom_pass_or_rule_vec) const;
+
+  Status InitCustomRules(vector<FusionPassOrRule> &custom_pass_or_rule_vec) const;
+
+  Status InitBuiltInPasses(const bool &is_single_op_scene,
+                           vector<FusionPassOrRule> &built_in_pass_or_rule_vec) const;
+
+  Status InitBuiltInRules(vector<FusionPassOrRule> &built_in_pass_or_rule_vec) const;
+
   Status GetGraphFusionPassesAndRules(const bool &is_single_op_scene,
                                       std::vector<FusionPassOrRule> &custom_pass_or_rule_vec,
                                       std::vector<FusionPassOrRule> &built_in_pass_or_rule_vec) const;

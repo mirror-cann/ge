@@ -117,6 +117,43 @@ public:
      * @param [in] NA
      * @return [out] NA
      */
+    bool ValidateAndGetRelBuildTask(const OpBuildTaskResultPtr &taskRes,
+                                    OpBuildTaskPtr &relBuildTaskPtr,
+                                    std::pair<uint64_t, uint64_t> &graphMapKey);
+    void PrepareOpInfo(const OpBuildTaskPtr &relBuildTaskPtr,
+                       const OpBuildTaskResultPtr &taskRes,
+                       std::string &opNames,
+                       std::string &opTypes,
+                       std::string &opModuleNames,
+                       int loglevel);
+    void PreparePreCompileInfo(const OpBuildTaskResultPtr &taskRes,
+                               std::string &opPattern,
+                               std::string &coreType,
+                               std::string &prebuiltOptions);
+    void LogTaskDetails(const OpBuildTaskResultPtr &taskRes,
+                        const std::string &opNames,
+                        const std::string &opTypes,
+                        const std::string &opModuleNames,
+                        const std::string &opPattern,
+                        const std::string &coreType,
+                        const std::string &prebuiltOptions,
+                        int loglevel);
+    void ProcessErrorInfo(const OpBuildTaskPtr &relBuildTaskPtr,
+                          const OpBuildTaskResultPtr &taskRes,
+                          const std::string &opNames,
+                          const std::string &opTypes,
+                          const std::string &opModuleNames,
+                          int loglevel,
+                          std::string &errorMsg);
+    bool SetBuildResults(OpBuildTaskPtr &relBuildTaskPtr,
+                         OpBuildTaskResultPtr &taskRes);
+    void AddToFinishedTaskList(const OpBuildTaskPtr &relBuildTaskPtr,
+                               const OpBuildTaskResultPtr &taskRes,
+                               FinComTask &finshedTaskItem);
+    void LogTaskCompletion(const FinComTask &finshedTaskItem,
+                           const OpBuildTaskPtr &relBuildTaskPtr,
+                           const std::string &opNames,
+                           const std::string &opTypes);
     bool GetFinishedCompilationTask(uint64_t graphId);
 
     bool SaveBuildTask(const OpBuildTaskPtr &task);
@@ -147,7 +184,7 @@ public:
 
     bool TaskFusionProcess(const OpBuildTaskPtr &opTask);
 
-    static bool RefreshCacheAndSinalManager();
+    static bool RefreshCacheAndSignalManager();
 
     bool GetCompileFileFromCache(const std::string &kernelName, std::string &jsonPath, std::string &binPath);
 

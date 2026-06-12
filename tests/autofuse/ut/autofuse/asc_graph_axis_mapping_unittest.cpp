@@ -671,6 +671,114 @@ std::shared_ptr<AscGraph> CreatAddAscGraphFor3Repeats(ge::AscGraph &graph) {
   return std::shared_ptr<ge::AscGraph>(new ge::AscGraph(graph));
 }
 
+std::shared_ptr<AscGraph> CreatAbsAscGraphFor1_20_40(ge::AscGraph &graph) {
+  auto ONE = Symbol(1);
+  auto TWENTY = Symbol(20);
+  auto FORTY = Symbol(40);
+
+  auto a = graph.CreateAxis("A", ONE);
+  auto b = graph.CreateAxis("B", TWENTY);
+  auto c = graph.CreateAxis("C", FORTY);
+
+  af::ascir_op::Data x1("x1_abs_1_20_40", graph);
+  x1.attr.sched.axis = {a.id, b.id, c.id};
+  x1.attr.sched.loop_axis = b.id;
+  *x1.y.axis = {a.id, b.id, c.id};
+  *x1.y.repeats = {ONE, TWENTY, FORTY};
+  *x1.y.strides = {TWENTY * FORTY, FORTY, ONE};
+
+  af::ascir_op::Load x1Local("x1Local_abs_1_20_40");
+  x1Local.x = x1.y;
+  x1Local.attr.sched.axis = {a.id, b.id, c.id};
+  *x1Local.y.axis = {a.id, b.id, c.id};
+  *x1Local.y.repeats = {ONE, TWENTY, FORTY};
+  *x1Local.y.strides = {TWENTY * FORTY, FORTY, ONE};
+
+  af::ascir_op::Abs abs("abs_1_20_40");
+  abs.x = x1Local.y;
+  abs.attr.sched.axis = {a.id, b.id, c.id};
+  *abs.y.axis = {a.id, b.id, c.id};
+  *abs.y.repeats = {ONE, TWENTY, FORTY};
+  *abs.y.strides = {TWENTY * FORTY, FORTY, ONE};
+
+  af::ascir_op::Store x_store("x_store_abs_1_20_40");
+  x_store.x = abs.y;
+  x_store.attr.sched.axis = {a.id, b.id, c.id};
+  x_store.attr.sched.loop_axis = b.id;
+  *x_store.y.axis = {a.id, b.id, c.id};
+  *x_store.y.repeats = {ONE, TWENTY, FORTY};
+  *x_store.y.strides = {TWENTY * FORTY, FORTY, ONE};
+
+  af::ascir_op::Output x_out("x_out_abs_1_20_40");
+  x_out.x = x_store.y;
+  x_out.attr.sched.axis = {a.id, b.id, c.id};
+  x_out.attr.sched.loop_axis = b.id;
+  *x_out.y.axis = {a.id, b.id, c.id};
+  *x_out.y.repeats = {ONE, TWENTY, FORTY};
+  *x_out.y.strides = {TWENTY * FORTY, FORTY, ONE};
+  auto x_out_node = graph.FindNode("x_out_abs_1_20_40");
+  auto compute_graph = x_out_node->GetOwnerComputeGraph();
+  std::vector<std::pair<NodePtr, int32_t>> output_nodes{{x_out_node, 0}};
+  compute_graph->SetOutputSize(1U);
+  compute_graph->SetGraphOutNodesInfo(output_nodes);
+  return std::shared_ptr<ge::AscGraph>(new ge::AscGraph(graph));
+}
+
+std::shared_ptr<AscGraph> CreatAbsAscGraphFor1_20_40_1(ge::AscGraph &graph) {
+  auto ONE = Symbol(1);
+  auto ZERO = Symbol(0);
+  auto TWENTY = Symbol(20);
+  auto FORTY = Symbol(40);
+
+  auto a = graph.CreateAxis("A", ONE);
+  auto b = graph.CreateAxis("B", TWENTY);
+  auto c = graph.CreateAxis("C", FORTY);
+  auto d = graph.CreateAxis("D", ONE);
+
+  af::ascir_op::Data x1("x1_abs_1_20_40_1", graph);
+  x1.attr.sched.axis = {a.id, b.id, c.id, d.id};
+  x1.attr.sched.loop_axis = b.id;
+  *x1.y.axis = {a.id, b.id, c.id, d.id};
+  *x1.y.repeats = {ONE, TWENTY, FORTY, ONE};
+  *x1.y.strides = {TWENTY * FORTY, FORTY, ONE, ZERO};
+
+  af::ascir_op::Load x1Local("x1Local_abs_1_20_40_1");
+  x1Local.x = x1.y;
+  x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id};
+  *x1Local.y.axis = {a.id, b.id, c.id, d.id};
+  *x1Local.y.repeats = {ONE, TWENTY, FORTY, ONE};
+  *x1Local.y.strides = {TWENTY * FORTY, FORTY, ONE, ZERO};
+
+  af::ascir_op::Abs abs("abs_1_20_40_1");
+  abs.x = x1Local.y;
+  abs.attr.sched.axis = {a.id, b.id, c.id, d.id};
+  *abs.y.axis = {a.id, b.id, c.id, d.id};
+  *abs.y.repeats = {ONE, TWENTY, FORTY, ONE};
+  *abs.y.strides = {TWENTY * FORTY, FORTY, ONE, ZERO};
+
+  af::ascir_op::Store x_store("x_store_abs_1_20_40_1");
+  x_store.x = abs.y;
+  x_store.attr.sched.axis = {a.id, b.id, c.id, d.id};
+  x_store.attr.sched.loop_axis = b.id;
+  *x_store.y.axis = {a.id, b.id, c.id, d.id};
+  *x_store.y.repeats = {ONE, TWENTY, FORTY, ONE};
+  *x_store.y.strides = {TWENTY * FORTY, FORTY, ONE, ZERO};
+
+  af::ascir_op::Output x_out("x_out_abs_1_20_40_1");
+  x_out.x = x_store.y;
+  x_out.attr.sched.axis = {a.id, b.id, c.id, d.id};
+  x_out.attr.sched.loop_axis = b.id;
+  *x_out.y.axis = {a.id, b.id, c.id, d.id};
+  *x_out.y.repeats = {ONE, TWENTY, FORTY, ONE};
+  *x_out.y.strides = {TWENTY * FORTY, FORTY, ONE, ZERO};
+  auto x_out_node = graph.FindNode("x_out_abs_1_20_40_1");
+  auto compute_graph = x_out_node->GetOwnerComputeGraph();
+  std::vector<std::pair<NodePtr, int32_t>> output_nodes{{x_out_node, 0}};
+  compute_graph->SetOutputSize(1U);
+  compute_graph->SetGraphOutNodesInfo(output_nodes);
+  return std::shared_ptr<ge::AscGraph>(new ge::AscGraph(graph));
+}
+
 // 测试只有data load场景，不能循环融合
 std::shared_ptr<AscGraph> CreatAddAscGraphOnlyDataLoad(ge::AscGraph &graph) {
   auto ONE = Symbol(1);
@@ -1765,6 +1873,36 @@ TEST_F(AscGraphAxisMappingTest, AscBackendFusionDecider_Slice_Horizontal_Has_Sam
   ASSERT_NE(slice2_node, nullptr);
   NodeFuseInfo node_fuse_info;
   ASSERT_EQ(node_fuse_info.UpdateNodeFuseInfo(slice1_node, slice2_node), SUCCESS);
+}
+
+TEST_F(AscGraphAxisMappingTest, AscGraphAxisMapping_UniqueAxisSizeAnchor_KeepLeadingOneAxis) {
+  ComputeGraphPtr compute_graph = BuildGraph1("AscBackend");
+  ASSERT_NE(compute_graph, nullptr);
+  auto addn1 = compute_graph->FindNode("AddN1");
+  ASSERT_NE(addn1, nullptr);
+  auto shape1 = compute_graph->FindNode("Shape");
+  ASSERT_NE(shape1, nullptr);
+
+  auto op_desc1 = addn1->GetOpDescBarePtr();
+  auto op_desc2 = shape1->GetOpDescBarePtr();
+  ASSERT_NE(op_desc1, nullptr);
+  ASSERT_NE(op_desc2, nullptr);
+  auto attr1 = GetOrCreateAutoFuseAttrs(op_desc1);
+  auto attr2 = GetOrCreateAutoFuseAttrs(op_desc2);
+  ASSERT_NE(attr1, nullptr);
+  ASSERT_NE(attr2, nullptr);
+
+  ge::AscGraph pre_graph("pre_abs_1_20_40");
+  ge::AscGraph cur_graph("cur_abs_1_20_40_1");
+  attr1->SetAscGraph(CreatAbsAscGraphFor1_20_40(pre_graph));
+  attr2->SetAscGraph(CreatAbsAscGraphFor1_20_40_1(cur_graph));
+
+  NodeFuseInfo node_fuse_info;
+  ASSERT_EQ(node_fuse_info.UpdateNodeFuseInfo(addn1, shape1), SUCCESS);
+  AscGraphAxisMapping asc_graph_axis_map;
+  EXPECT_EQ(asc_graph_axis_map.CreateSubGraphAxisMapInfo(addn1, shape1, node_fuse_info), SUCCESS);
+  EXPECT_EQ(asc_graph_axis_map.GetNode1AxisMap(), (AxisPairSet{{0, 0}, {1, 1}, {2, 2}}));
+  EXPECT_EQ(asc_graph_axis_map.GetNode2AxisMap(), (AxisPairSet{{0, 0}, {1, 1}, {2, 2}, {3, 3}}));
 }
 }  // namespace
 }  // namespace ge

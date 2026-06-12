@@ -31,13 +31,13 @@ bool CheckMemoryL1MemoryL2(const std::string &opType, const std::vector<TbeOpPar
 {
     for (size_t i = 0; i < inPutsOrOutPuts.size(); i++) {
         const std::vector<TbeOpTensor> &tensors = inPutsOrOutPuts.at(i).GetTensors();
-        if (tensors.size() == 0) {
+        if (tensors.empty()) {
             continue;
         }
         for (const TbeOpTensor &tensor : tensors) {
             size_t addrType = tensor.GetAddrType();
             if (addrType == RT_MEMORY_L1 || addrType == RT_MEMORY_L2) {
-                TE_INFOLOG("opType [%s], index[%d].addrType = [%d].", opType.c_str(), i, addrType);
+                TE_INFOLOG("opType [%s], index[%zu].addrType = [%zu].", opType.c_str(), i, addrType);
                 return true;
             }
         }
@@ -97,6 +97,10 @@ PyObject* GenerateDictFromContext()
     });
 
     const char* custom_opp_path = aclGetCustomOpLibPath();
+    TE_FUSION_CHECK(custom_opp_path == nullptr, {
+        TE_ERRLOG("custom_opp_path is nullptr.");
+        return nullptr;
+    });
     TE_FUSION_CHECK(!SetContextItem(pyContextDict, kCUSTOM_OPP_PATH, std::string(custom_opp_path)), {
         TE_ERRLOG("Failed to set context value [%s].", custom_opp_path);
         return nullptr;
@@ -116,34 +120,49 @@ bool SetContextItem(PyObject *pyContextDict, const std::string &optKey, const st
 }
 
 void GenerateExtraInfoForFusionOpContext(const std::vector<ge::Node *> &oriNodes, PyObject *pyContextDict) {
-    std::string maxCustAicNum = "-1";
-    std::string maxCustAivNum = "-1";
+    int maxCustAicNum = -1;
+    int maxCustAivNum = -1;
     for (const auto &node : oriNodes) {
         const auto opDescPtr = node->GetOpDesc();
         std::string custAicNum;
         ge::AttrUtils::GetStr(opDescPtr, kAicCntKeyOp, custAicNum);
-        if (custAicNum != "" && std::stoi(custAicNum) >= 0  && std::stoi(custAicNum) > std::stoi(maxCustAicNum)) {
-            maxCustAicNum = custAicNum;
+        if (!custAicNum.empty()) {
+            try {
+                int aicNum = std::stoi(custAicNum);
+                if (aicNum >= 0 && aicNum > maxCustAicNum) {
+                    maxCustAicNum = aicNum;
+                }
+            } catch (const std::exception &e) {
+                TE_WARNLOG("Invalid custAicNum [%s]: %s", custAicNum.c_str(), e.what());
+            }
         }
+
         std::string custAivNum;
         ge::AttrUtils::GetStr(opDescPtr, kAivCntKeyOp, custAivNum);
-        if (custAivNum != "" && std::stoi(custAivNum) >= 0 && std::stoi(custAivNum) > std::stoi(maxCustAivNum)) {
-            maxCustAivNum = custAivNum;
+        if (!custAivNum.empty()) {
+            try {
+                int aivNum = std::stoi(custAivNum);
+                if (aivNum >= 0 && aivNum > maxCustAivNum) {
+                    maxCustAivNum = aivNum;
+                }
+            } catch (const std::exception &e) {
+                TE_WARNLOG("Invalid custAivNum [%s]: %s", custAivNum.c_str(), e.what());
+            }
         }
     }
 
-    if (maxCustAicNum == "-1" && maxCustAivNum == "-1") {
+    if (maxCustAicNum == -1 && maxCustAivNum == -1) {
         TE_INFOLOG("Both custAicNum and custAivNum attr are empty, skipping set pyContextDict");
         return;
     }
 
-    TE_INFOLOG("maxCustAicNum is [%s], maxCustAivNum is [%s]", maxCustAicNum.c_str(), maxCustAivNum.c_str());
+    TE_INFOLOG("maxCustAicNum is [%d], maxCustAivNum is [%d]", maxCustAicNum, maxCustAivNum);
 
-    TE_FUSION_CHECK(!SetContextItem(pyContextDict, kAicCntKeyOp, maxCustAicNum), {
+    TE_FUSION_CHECK(!SetContextItem(pyContextDict, kAicCntKeyOp, std::to_string(maxCustAicNum)), {
         TE_ERRLOG("Failed to set context value [%s].", kAicCntKeyOp);
     });
 
-    TE_FUSION_CHECK(!SetContextItem(pyContextDict, kAivCntKeyOp, maxCustAivNum), {
+    TE_FUSION_CHECK(!SetContextItem(pyContextDict, kAivCntKeyOp, std::to_string(maxCustAivNum)), {
         TE_ERRLOG("Failed to set context value [%s].", kAivCntKeyOp);
     });
 }
@@ -397,6 +416,10 @@ bool JudgeAttrIsVariableAttr(const TbeAttrValue &attrValue, const std::vector<st
 
 std::string GetSessionGraphId(const ge::Node *node)
 {
+    if (node == nullptr) {
+        TE_WARNLOG("node is null.");
+        return "";
+    }
     std::string keyStr = ATTR_NAME_SESSION_GRAPH_ID;
     std::string sessionGraphId = "";
     ge::ComputeGraphPtr ownerGraph = node->GetOwnerComputeGraph();
@@ -504,6 +527,9 @@ std::string GetTaskNodeName(const OpBuildTaskPtr &opTask)
 }
 
 void UpdateOpModulePath(const std::string &opsPathNamePrefix, std::string &opModule, size_t pos, bool flag) {
+    if (pos == 0) {
+        return;
+    }
     std::string opModulePrefixPart = opModule.substr(0, pos);
     std::string opModuleSuffixPart = opModule.substr(pos + 1, opModule.size() - 1);
     if (flag) {
@@ -618,17 +644,15 @@ bool IsOpParameterValid(const std::string &opModule, const std::string &opFuncNa
 
 void OriginalOpNamesSplicing(const std::vector<std::string> &originalOpNames, std::string &opNameStr)
 {
-    uint32_t idx = 0;
     for (const auto &opName : originalOpNames) {
         if (!opName.empty()) {
-            if (idx == 0) {
-                opNameStr = opName;
+            if (!opNameStr.empty()) {
+                opNameStr += ",";
             }
-            opNameStr = opNameStr + "," + opName;
+            opNameStr += opName;
         }
-        idx++;
     }
-    if (opNameStr != "") {
+    if (!opNameStr.empty()) {
         opNameStr = "[" + opNameStr + "]";
     }
 }
@@ -677,7 +701,6 @@ ge::Node *GetPreviousNode(const ge::Node *node, const uint32_t index)
     if (node == nullptr) {
         return nullptr;
     }
-    ge::InDataAnchorPtr inAnchor = node->GetInDataAnchor(static_cast<int32_t>(index));
     if (node->GetInDataAnchor(index) == nullptr || node->GetInDataAnchor(index)->GetPeerOutAnchor() == nullptr ||
         node->GetInDataAnchor(index)->GetPeerOutAnchor()->GetOwnerNode() == nullptr) {
         return nullptr;
@@ -687,14 +710,18 @@ ge::Node *GetPreviousNode(const ge::Node *node, const uint32_t index)
 }
 
 bool GetSubOpLoc(int64_t skCount, int64_t skSubId, std::string &locStr) {
+    if (skCount <= 0 || skSubId < 0 || skSubId >= skCount) {
+        TE_WARNLOG("Invalid parameters: skCount=%ld, skSubId=%ld", skCount, skSubId);
+        return false;
+    }
     if (skSubId == 0) {
         locStr = "start";
-    } else if (skSubId > 0 && skSubId < (skCount - 1)) {
-        locStr = "middle";
-    } else if (skSubId == (skCount - 1)) {
+    } else if (skSubId == skCount - 1) {
         locStr = "end";
+    } else {
+        locStr = "middle";
     }
-    return !locStr.empty();
+    return true;
 }
 } // namespace fusion
 } // namespace te

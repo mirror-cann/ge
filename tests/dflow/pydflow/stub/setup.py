@@ -52,7 +52,7 @@ ext_modules = [
         "flow_func_wrapper",
         [
             workspace_base_dir + "/wrapper/flow_func_wrapper/flow_func_wrapper.cpp",
-            "./flow_func/ascend_string.cpp",
+            "./flow_func/flow_func_ascend_string.cpp",
             "./flow_func/flow_func_stub.cpp",
         ],
         include_dirs=[

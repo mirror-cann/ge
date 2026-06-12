@@ -74,8 +74,8 @@ Status LoadAndRunFileCodeGenerator::BuildLoadBody(std::vector<BodyItem> &body, c
       op_idx++;
     } else {
       // RenderDistribution 模式：直接生成代码
-      std::vector<BodyItem> task_body;	 
-      GE_ASSERT_SUCCESS(task_code_builder->RenderDistribution(task_body));	 
+      std::vector<BodyItem> task_body;
+      GE_ASSERT_SUCCESS(task_code_builder->RenderDistribution(task_body));
       body.push_back(ast_.Block(task_body));
     }
   }

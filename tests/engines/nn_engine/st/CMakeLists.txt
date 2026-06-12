@@ -41,6 +41,7 @@ set(FE_NORMAL_ST_SRC_CC_LIST
         ${CMAKE_CURRENT_LIST_DIR}/testcase/common/fusion_statistic/buffer_fusion_info_collector_st.cc
         ${CMAKE_CURRENT_LIST_DIR}/testcase/common/st_lxfusion_json_util.cc
         ${CMAKE_CURRENT_LIST_DIR}/testcase/common/dump_util_stest.cc
+        ${CMAKE_CURRENT_LIST_DIR}/testcase/common/fe_report_error_stest.cc
         ${CMAKE_CURRENT_LIST_DIR}/testcase/common/math_util_stest.cc
         ${CMAKE_CURRENT_LIST_DIR}/testcase/common/axis_name_util_stest.cc
         #${CMAKE_CURRENT_LIST_DIR}/testcase/common/op_info_common_stest.cc
@@ -56,6 +57,7 @@ set(FE_NORMAL_ST_SRC_CC_LIST
         ${CMAKE_CURRENT_LIST_DIR}/testcase/fusion_rule_manager/fusion_rule_manager_stest.cc
         ${CMAKE_CURRENT_LIST_DIR}/testcase/fusion_rule_parser/fusion_rule_cycle_detection_stest.cc
         ${CMAKE_CURRENT_LIST_DIR}/testcase/fusion_config_manager/fusion_config_parser_stest.cc
+        ${CMAKE_CURRENT_LIST_DIR}/testcase/fusion_config_manager/fusion_priority_manager_stest.cc
         ${CMAKE_CURRENT_LIST_DIR}/testcase/graph_optimizer/graph_fusion/pass_fusion_manager/node_optimize/stridedwrite_optimizer_st.cc
         ${CMAKE_CURRENT_LIST_DIR}/testcase/graph_optimizer/graph_fusion/pass_fusion_manager/node_optimize/stridedread_optimizer_st.cc
         ${CMAKE_CURRENT_LIST_DIR}/testcase/graph_optimizer/graph_fusion/pass_fusion_manager/node_optimize/checker/concat_optimize_checker_stest.cc

@@ -327,11 +327,75 @@ TEST_F(UTEST_tbe_op_store_adapter, test_set_extra_params) {
   std::string op_module   = "";
   std::string op_type     = "tbe";
   std::string core_type   = "AIcoreEngine";
-  OpDescPtr conv_op = std::make_shared<OpDesc>("Conv", "conv");
+OpDescPtr conv_op = std::make_shared<OpDesc>("Conv", "conv");
 
   TbeInfoAssembler tbe;
   TbeOpInfo op_info(op_name, op_module, op_type, core_type);
   ge::AttrUtils::SetStr(*(conv_op.get()), "_op_aicore_num", "10");
   ge::AttrUtils::SetStr(*(conv_op.get()), "_op_vectorcore_num", "10");
   tbe.SetCustCoreNum(*(conv_op.get()), op_info);
+}
+
+TEST_F(UTEST_tbe_op_store_adapter, serial_pre_build_op_failed_coverage)
+{
+  TbeOpStoreAdapterPtr tbe_adapter_ptr = std::make_shared<TbeOpStoreAdapter>(AI_CORE_NAME);
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
+  OpDescPtr op_desc = std::make_shared<OpDesc>("test_op", "Add");
+  NodePtr node = graph->AddNode(op_desc);
+  
+  vector<PreCompileNodePara> compile_para_vec;
+  PreCompileNodePara comp_para;
+  comp_para.node = node.get();
+  comp_para.tbe_op_info_ptr = nullptr;
+  compile_para_vec.push_back(comp_para);
+  
+  Status status = tbe_adapter_ptr->SerialPreCompileOp(compile_para_vec);
+}
+
+TEST_F(UTEST_tbe_op_store_adapter, parallel_pre_compile_coverage)
+{
+  TbeOpStoreAdapterPtr tbe_adapter_ptr = std::make_shared<TbeOpStoreAdapter>(AI_CORE_NAME);
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
+  
+  vector<PreCompileNodePara> compile_para_vec;
+  PreCompileNodePara comp_para;
+  OpDescPtr op_desc = std::make_shared<OpDesc>("test_op", "Add");
+  NodePtr node = graph->AddNode(op_desc);
+  comp_para.node = node.get();
+  compile_para_vec.push_back(comp_para);
+  
+  Status status = tbe_adapter_ptr->ParallelPreCompileOp(compile_para_vec);
+}
+
+TEST_F(UTEST_tbe_op_store_adapter, serial_pre_compile_with_multiple_nodes)
+{
+  TbeOpStoreAdapterPtr tbe_adapter_ptr = std::make_shared<TbeOpStoreAdapter>(AI_CORE_NAME);
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
+  
+  vector<PreCompileNodePara> compile_para_vec;
+  for (int i = 0; i < 3; ++i) {
+    PreCompileNodePara comp_para;
+    OpDescPtr op_desc = std::make_shared<OpDesc>("test_op_" + to_string(i), "Add");
+    NodePtr node = graph->AddNode(op_desc);
+    comp_para.node = node.get();
+    compile_para_vec.push_back(comp_para);
+  }
+  
+  Status status = tbe_adapter_ptr->SerialPreCompileOp(compile_para_vec);
+}
+
+TEST_F(UTEST_tbe_op_store_adapter, task_fusion_basic_coverage)
+{
+  TbeOpStoreAdapterPtr tbe_adapter_ptr = std::make_shared<TbeOpStoreAdapter>(AI_CORE_NAME);
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
+  
+  ScopeNodeIdMap fusion_nodes_map;
+  CompileResultMap compile_ret_map;
+  
+  OpDescPtr op_desc = std::make_shared<OpDesc>("fusion_op", "Add");
+  NodePtr node = graph->AddNode(op_desc);
+  vector<ge::Node*> nodes = {node.get()};
+  fusion_nodes_map[0] = nodes;
+  
+  Status status = tbe_adapter_ptr->TaskFusion(fusion_nodes_map, compile_ret_map);
 }

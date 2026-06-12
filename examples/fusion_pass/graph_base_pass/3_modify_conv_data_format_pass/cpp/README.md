@@ -68,7 +68,7 @@
    cmake ..
    ```
 
-4. 执行make命令编译自定义pass so，成功编译后通过make modify_conv_data_format_pass.so安装到自定义融合pass目录下。
+4. 执行如下命令编译自定义pass so，并将编译后的动态库文件libmodify_conv_data_format_pass.so安装到自定义融合pass目录下。
    可以在make后增加可选参数`-j$(nproc)`用于并行执行构建任务，`$(nproc)`动态获取CPU核心数。
    ```
    make -j$(nproc) modify_conv_data_format_pass
@@ -133,7 +133,7 @@
     - ATC工具命令执行完成后，目录下生成一系列.pbtxt文件。
       对比以下dump图：
         - `ge_onnx_xxxxx_PreRunBegin.pbtxt`执行前dump图
-        - `ge_onnx_xxxxx_RunCustomPass_BeforeInferShape.pbtxt`执行InferShape后的自定义pass dump图
+        - `ge_onnx_xxxxx_RunCustomPassBeforeInferShape.pbtxt`执行InferShape前的自定义pass dump图
 
    可以发现模型已按预期优化，即卷积算子的`data_format`被修改为`NHWC`，卷积算子后的`transpose`被删除。
 

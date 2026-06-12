@@ -5,6 +5,7 @@
     </dir_info>
     <file_info value="include" copy_type="source" src_path="" dst_path="include/flow_func" install_path="$(TARGET_ENV)/include/flow_func" install_type="devel" install_mod="440">
         <file value="ascend_string.h"/>
+        <file value="flow_func_ascend_string.h"/>
         <file value="balance_config.h"/>
         <file value="flow_func_log.h"/>
         <file value="flow_msg_queue.h"/>

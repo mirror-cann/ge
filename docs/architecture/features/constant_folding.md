@@ -85,7 +85,7 @@ aclgrphBuildModel(graph, build_options, modelBufferData);
 | `ge.oo.constantFolding` | `"true"` / `"false"` | aclgrphBuildInitialize, aclgrphBuildModel, atc | 控制常量折叠优化开关 |
 | `ge.oo.level` | `"O1"` / `"O2"` / `"O3"` | 同上 | 优化等级，O1 及以上默认启用常量折叠 |
 
-配置参数定义位于 `inc/graph_metadef/external/ge_common/ge_api_types.h`，常量名 `OO_CONSTANT_FOLDING`，实际配置键为 `"ge.oo.constantFolding"`。
+配置参数定义位于 `inc/graph_metadef/external/ge_common/ge_common_api_types.h`，常量名 `OO_CONSTANT_FOLDING`，实际配置键为 `"ge.oo.constantFolding"`。
 
 选项注册位于 `base/common/option_register.cc`：
 

@@ -526,6 +526,7 @@ set(MULTI_PARTS_TEST_FILES
     "graph/fuzz_compile/fuzz_compile_bin_selector_unittest.cc"
     "graph/fuzz_compile/one_node_single_bin_selector_unittest.cc"
     "session/main_unittest.cc"
+    "session/atc_raw_options_unittest.cc"
     "session/omg_omg_unittest.cc"
     "session/single_op_parser_unittest.cc"
     "session/ge_api_unittest.cc"

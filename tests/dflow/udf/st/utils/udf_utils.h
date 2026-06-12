@@ -21,7 +21,7 @@
 #include "stub/udf_stub.h"
 #include "ascend_hal.h"
 #include "flow_func/tensor_data_type.h"
-#include "flow_func/ascend_string.h"
+#include "flow_func/flow_func_ascend_string.h"
 
 namespace FlowFunc {
 const std::string &GetUdfModelPath();

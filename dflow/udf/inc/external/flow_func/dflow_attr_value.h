@@ -14,7 +14,7 @@
 #include <memory>
 #include "flow_func_defines.h"
 #include "tensor_data_type.h"
-#include "ascend_string.h"
+#include "flow_func_ascend_string.h"
 
 namespace FlowFunc {
 class FLOW_FUNC_VISIBILITY AttrValue {

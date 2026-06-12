@@ -11,9 +11,12 @@
 #include "framework/runtime/dump/model_dump_manager.h"
 #include "framework/runtime/dump/dump_config.h"
 #include "framework/runtime/dump/dump_callback_manager.h"
+#include "framework/runtime/dump/profiling_callback_manager.h"
 #include "framework/runtime/dump/data_dump_impl.h"
 #include "framework/runtime/dump/exception_dump_impl.h"
 #include "framework/runtime/dump/overflow_dump_impl.h"
+#include "framework/runtime/dump/profiling_impl.h"
+#include "common/checker.h"
 #include "framework/common/debug/ge_log.h"
 
 namespace ge {
@@ -21,7 +24,9 @@ namespace dump {
 Status ModelDumpManager::GlobalInit() {
   GELOGD("ModelDumpManager::GlobalInit start");
   DumpConfig::Instance().Reset();
-  return DumpCallbackManager::GlobalInit();
+  GE_ASSERT_SUCCESS(DumpCallbackManager::GlobalInit());
+  GE_ASSERT_SUCCESS(ProfilingCallbackManager::GlobalInit());
+  return SUCCESS;
 }
 
 ModelDumpManager::ModelDumpManager(uint32_t model_id) : model_id_(model_id) {
@@ -30,6 +35,7 @@ ModelDumpManager::ModelDumpManager(uint32_t model_id) : model_id_(model_id) {
   data_dump_impl_ = std::make_unique<DataDumpImpl>();
   exception_impl_ = std::make_unique<ExceptionDumpImpl>();
   overflow_impl_ = std::make_unique<OverflowDumpImpl>();
+  profiling_impl_ = std::make_unique<ProfilingImpl>();
 }
 
 ModelDumpManager::~ModelDumpManager() {
@@ -61,6 +67,20 @@ Status ModelDumpManager::SetModelDumpInfo(const ModelDumpInfo& model_info) {
   }
 
   return SUCCESS;
+}
+
+Status ModelDumpManager::ReportModelLoadBegin() const {
+  if (profiling_impl_ == nullptr) {
+    return SUCCESS;
+  }
+  return profiling_impl_->ReportModelLoadBegin(model_info_);
+}
+
+Status ModelDumpManager::ReportModelLoadEnd() const {
+  if (profiling_impl_ == nullptr) {
+    return SUCCESS;
+  }
+  return profiling_impl_->ReportModelLoadEnd(model_info_);
 }
 
 Status ModelDumpManager::IsDataDumpEnabled(const char* op_name, uint8_t* is_data_dump) const {
@@ -135,6 +155,13 @@ Status ModelDumpManager::AddOm2TaskInfo(const Om2TaskInfo& task_info) {
   if (ret != SUCCESS) {
     GELOGE(ret, "Save task exception info failed, op_name=%s", op_name);
     return ret;
+  }
+
+  if (profiling_impl_ != nullptr) {
+    const Status prof_ret = profiling_impl_->SaveTaskInfo(task_info, model_info_);
+    if (prof_ret != SUCCESS) {
+      GELOGW("Save profiling task info failed, op_name=%s, ret=%u", op_name, prof_ret);
+    }
   }
 
   return SUCCESS;

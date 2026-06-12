@@ -19,6 +19,8 @@
 #include "acl/acl_rt.h"
 
 namespace ge {
+using Om2ProfilingCommandNotifier = void (*)(const void *, uint32_t);
+
 namespace {
 constexpr size_t kDeviceListIndex = 3U;
 constexpr uint32_t kCommandNum = 6U;
@@ -33,6 +35,9 @@ const std::string kProfilingModelSubscribe = "prof_model_subscribe";
 const std::string kProfilingModelUnsubscribe = "prof_model_cancel_subscribe";
 const std::string kProfilingModelId = "modelId";
 constexpr int32_t RT_ERROR = -1;
+Om2ProfilingCommandNotifier g_om2_profiling_notifier = nullptr;
+bool g_has_cached_profiling_command = false;
+MsprofCommandHandle g_cached_profiling_command{};
 
 enum class ProfCommandHandleType : uint32_t {
   kProfCommandHandleInit = 0,
@@ -232,6 +237,18 @@ rtError_t HandleCtrlSwitch(const MsprofCommandHandle &prof_command_handle) {
   return ExecuteCommand(type, prof_command_handle, prof_params);
 }
 
+void NotifyOm2ProfilingCommand(const MsprofCommandHandle &prof_command_handle) {
+  g_cached_profiling_command = prof_command_handle;
+  g_has_cached_profiling_command = true;
+  const auto notifier = g_om2_profiling_notifier;
+  if (notifier == nullptr) {
+    GELOGD("Skip notifying OM2 profiling command, notifier is not registered, type=%u", prof_command_handle.type);
+    return;
+  }
+  GELOGD("Notify OM2 profiling command, type=%u", prof_command_handle.type);
+  notifier(static_cast<const void *>(&prof_command_handle), sizeof(MsprofCommandHandle));
+}
+
 rtError_t HandleCtrlSetStepInfo(const ProfStepInfoCmd_t &prof_set_stepinfo) {
   int32_t device_id = 0;
   const aclError rt_ret = aclrtGetDevice(&device_id);
@@ -252,6 +269,14 @@ rtError_t HandleCtrlSetStepInfo(const ProfStepInfoCmd_t &prof_set_stepinfo) {
 }
 } // namespace
 
+void RegisterOm2ProfilingCommandNotifierImpl(Om2ProfilingCommandNotifier notifier) {
+  g_om2_profiling_notifier = notifier;
+  if ((notifier != nullptr) && g_has_cached_profiling_command) {
+    GELOGD("Notify cached OM2 profiling command, type=%u", g_cached_profiling_command.type);
+    notifier(static_cast<const void *>(&g_cached_profiling_command), sizeof(MsprofCommandHandle));
+  }
+}
+
 rtError_t ProfCtrlHandle(const uint32_t ctrl_type, void *const ctrl_data, const uint32_t data_len) {
   if ((ctrl_data == nullptr) || (data_len == 0U)) {
     GELOGE(PARAM_INVALID, "[Check][Param]The prof comand is invalid.");
@@ -260,6 +285,7 @@ rtError_t ProfCtrlHandle(const uint32_t ctrl_type, void *const ctrl_data, const 
 
   if (ctrl_type == RT_PROF_CTRL_SWITCH) {
     const MsprofCommandHandle *const prof_command_handle = PtrToPtr<void, MsprofCommandHandle>(ctrl_data);
+    NotifyOm2ProfilingCommand(*prof_command_handle);
     return HandleCtrlSwitch(*prof_command_handle);
   } else if (ctrl_type == PROF_CTRL_STEPINFO) {
     const ProfStepInfoCmd_t *const prof_command_handle = PtrToPtr<void, ProfStepInfoCmd_t>(ctrl_data);
@@ -270,3 +296,8 @@ rtError_t ProfCtrlHandle(const uint32_t ctrl_type, void *const ctrl_data, const 
   return RT_ERROR;
 }
 }  // namespace ge
+
+extern "C" __attribute__((visibility("default"))) void RegisterOm2ProfilingCommandNotifier(
+    void (*notifier)(const void *, uint32_t)) {
+  ge::RegisterOm2ProfilingCommandNotifierImpl(notifier);
+}

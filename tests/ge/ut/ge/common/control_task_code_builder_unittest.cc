@@ -252,6 +252,7 @@ struct Om2TaskInfo {
   uint32_t stream_id;
   uint32_t context_id;
   uint32_t thread_id;
+  uint32_t block_dim;
   uint64_t op_desc_id;
   uintptr_t args_base;
   uint64_t args_size;
@@ -268,6 +269,7 @@ struct Om2TaskInfo {
   const struct Om2L0TaskRawInfo* l0_exception_dump_info;
 };
 
+extern "C" {
 __attribute__((weak)) int32_t ReportDfxTaskPreprocess(uint32_t model_id,
                                                        void* instance_handle,
                                                        const struct Om2TaskInfo* task_info,
@@ -284,6 +286,7 @@ __attribute__((weak)) int32_t IsDataDumpEnabled(uint32_t model_id,
                                                       void* instance_handle,
                                                       const char* op_name,
                                                       uint8_t* is_data_dump);
+}
 )";
 }
 
@@ -512,6 +515,7 @@ struct Om2TaskInfo {
   uint32_t stream_id;
   uint32_t context_id;
   uint32_t thread_id;
+  uint32_t block_dim;
   uint64_t op_desc_id;
   uintptr_t args_base;
   uint64_t args_size;
@@ -528,6 +532,7 @@ struct Om2TaskInfo {
   const struct Om2L0TaskRawInfo* l0_exception_dump_info;
 };
 
+extern "C" {
 __attribute__((weak)) int32_t ReportDfxTaskPreprocess(uint32_t model_id,
                                                        void* instance_handle,
                                                        const struct Om2TaskInfo* task_info,
@@ -544,6 +549,7 @@ __attribute__((weak)) int32_t IsDataDumpEnabled(uint32_t model_id,
                                                       void* instance_handle,
                                                       const char* op_name,
                                                       uint8_t* is_data_dump);
+}
 
 namespace om2 {
 constexpr int32_t INPUT_NUM = 1;

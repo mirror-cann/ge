@@ -59,7 +59,7 @@ const std::string EM_INNER_WARN = "W29999";
 /* Failed to compile Op [%s]. (optype: [%s])
  * parameter0,parameter1
  * */
-const std::string EM_COMPLIE_FAILED = "E20001";
+const std::string EM_COMPILE_FAILED = "E20001";
 
 /* Value [%s] for environment variable [%s] is invalid when %s.
  * parameter0,parameter1,parameter2

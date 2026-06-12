@@ -100,6 +100,7 @@ struct Om2TaskInfo {
     uint32_t stream_id;        // 输入，运行时 stream ID。
     uint32_t context_id;       // 输入，运行时 context ID。
     uint32_t thread_id;        // 输入，运行时 thread ID。
+    uint32_t block_dim;        // 输入，Kernel launch block dim，非 Kernel 任务填 0。
     uint64_t op_desc_id;       // 输入，OpDesc ID。
     uintptr_t args_base;       // 输入，args buffer 基地址。
     uint64_t args_size;        // 输入，args buffer 大小，单位为字节。

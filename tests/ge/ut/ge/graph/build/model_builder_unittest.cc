@@ -47,7 +47,7 @@
 #include "graph/utils/tensor_utils.h"
 #include "graph/attr_value.h"
 #include "graph/debug/ge_attr_define.h"
-#include "external/ge_common/ge_api_types.h"
+#include "external/ge_common/ge_common_api_types.h"
 #include "graph/utils/graph_utils.h"
 #include "engines/manager/opskernel_manager/ops_kernel_builder_manager.h"
 #include "common/opskernel/ops_kernel_info_store.h"

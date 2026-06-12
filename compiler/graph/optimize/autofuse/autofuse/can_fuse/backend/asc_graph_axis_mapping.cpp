@@ -8,6 +8,9 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
+#include <algorithm>
+#include <iterator>
+
 #include "asc_graph_axis_mapping.h"
 #include "common/checker.h"
 #include "graph/utils/node_utils.h"
@@ -22,6 +25,121 @@
 #include "can_fuse/strategy/fusion_strategy_registry.h"
 
 namespace ge {
+namespace {
+size_t CountRepeat(const std::vector<Expression> &repeats, const Expression &repeat) {
+  return static_cast<size_t>(std::count(repeats.begin(), repeats.end(), repeat));
+}
+
+int32_t FindRepeatIndex(const std::vector<Expression> &repeats, const Expression &repeat) {
+  return static_cast<int32_t>(std::distance(repeats.begin(), std::find(repeats.begin(), repeats.end(), repeat)));
+}
+
+struct AxisIndexMatchState {
+  AxisIndexMatchState(const size_t node_size, const size_t base_size)
+      : node_to_base(node_size, -1), base_to_node(base_size, -1) {}
+
+  bool IsNodeMapped(const int32_t node_index) const {
+    return node_to_base[node_index] != -1;
+  }
+
+  bool IsBaseMapped(const int32_t base_index) const {
+    return base_to_node[base_index] != -1;
+  }
+
+  bool HasMapping(const int32_t node_index, const int32_t base_index) const {
+    return (node_to_base[node_index] == base_index) && (base_to_node[base_index] == node_index);
+  }
+
+  Status Insert(const int32_t node_index, const int32_t base_index) {
+    if (IsNodeMapped(node_index) || IsBaseMapped(base_index)) {
+      return HasMapping(node_index, base_index) ? SUCCESS : FAILED;
+    }
+    node_to_base[node_index] = base_index;
+    base_to_node[base_index] = node_index;
+    return SUCCESS;
+  }
+
+  std::vector<int32_t> node_to_base;
+  std::vector<int32_t> base_to_node;
+};
+
+Status MapUniqueRepeatAxes(const std::vector<Expression> &node_repeats, const std::vector<Expression> &base_repeats,
+                           AxisIndexMatchState &match_state) {
+  for (size_t node_index = 0U; node_index < node_repeats.size(); ++node_index) {
+    const auto &repeat = node_repeats[node_index];
+    if ((CountRepeat(node_repeats, repeat) != 1U) || (CountRepeat(base_repeats, repeat) != 1U)) {
+      continue;
+    }
+    GE_ASSERT_SUCCESS(match_state.Insert(static_cast<int32_t>(node_index), FindRepeatIndex(base_repeats, repeat)));
+  }
+  return SUCCESS;
+}
+
+Status ExtendAxisIndex(const std::vector<Expression> &node_repeats, const std::vector<Expression> &base_repeats,
+                       int32_t node_index, int32_t base_index, const int32_t step, AxisIndexMatchState &match_state) {
+  for (; (node_index >= 0) && (base_index >= 0) && (node_index < static_cast<int32_t>(node_repeats.size())) &&
+         (base_index < static_cast<int32_t>(base_repeats.size()));
+       node_index += step, base_index += step) {
+    if (match_state.IsNodeMapped(node_index) || match_state.IsBaseMapped(base_index)) {
+      if (match_state.HasMapping(node_index, base_index)) {
+        continue;
+      }
+      break;
+    }
+    if (node_repeats[node_index] != base_repeats[base_index]) {
+      break;
+    }
+    GE_ASSERT_SUCCESS(match_state.Insert(node_index, base_index));
+  }
+  return SUCCESS;
+}
+
+Status ExtendAxisIndexFromAnchors(const std::vector<Expression> &node_repeats,
+                                  const std::vector<Expression> &base_repeats, AxisIndexMatchState &match_state) {
+  for (size_t node_index = 0U; node_index < node_repeats.size(); ++node_index) {
+    const auto anchor_node_index = static_cast<int32_t>(node_index);
+    if (!match_state.IsNodeMapped(anchor_node_index)) {
+      continue;
+    }
+    const auto anchor_base_index = match_state.node_to_base[node_index];
+    GE_ASSERT_SUCCESS(
+        ExtendAxisIndex(node_repeats, base_repeats, anchor_node_index - 1, anchor_base_index - 1, -1, match_state));
+    GE_ASSERT_SUCCESS(
+        ExtendAxisIndex(node_repeats, base_repeats, anchor_node_index + 1, anchor_base_index + 1, 1, match_state));
+  }
+  return SUCCESS;
+}
+
+Status FillUnmappedAxisIndex(const std::vector<Expression> &node_repeats, const std::vector<Expression> &base_repeats,
+                             AxisIndexMatchState &match_state) {
+  for (int32_t node_index = static_cast<int32_t>(node_repeats.size()) - 1; node_index >= 0; --node_index) {
+    if (match_state.IsNodeMapped(node_index)) {
+      continue;
+    }
+    bool found = false;
+    for (int32_t base_index = static_cast<int32_t>(base_repeats.size()) - 1; base_index >= 0; --base_index) {
+      if ((base_repeats[base_index] == node_repeats[node_index]) && !match_state.IsBaseMapped(base_index)) {
+        GE_ASSERT_SUCCESS(match_state.Insert(node_index, base_index));
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      return FAILED;
+    }
+  }
+  return SUCCESS;
+}
+
+Status BuildAxisIndex(const AxisIndexMatchState &match_state, std::vector<uint32_t> &axis_index) {
+  for (const int32_t base_index : match_state.node_to_base) {
+    GE_ASSERT_TRUE(base_index >= 0);
+    axis_index.emplace_back(static_cast<uint32_t>(base_index));
+  }
+  return SUCCESS;
+}
+}  // namespace
+
 Status NodeFuseInfo::GetSubgraphSameInputIndex(const NodePtr &node1, const NodePtr &node2,
                                                std::vector<std::pair<int32_t, int32_t>> &same_input_map) const {
   const auto node1_in_data_size = node1->GetAllInDataAnchorsSize();
@@ -447,55 +565,26 @@ Status AscGraphAxisMapping::GetCurNodeAscGraphAttrs(const NodePtr &node, const i
 }
 
 Status AscGraphAxisMapping::FindAxisIndex(std::vector<ge::Expression> &node_repeats,
-                                          std::vector<ge::Expression> &base_repeats,
-                                          std::vector<uint32_t> &axis_index) const {
-  std::unordered_set<size_t> used_indices;
-  size_t start_index = 0;
-
-  // 1. 优先尝试找到连续匹配（从右到左）
-  for (int i = static_cast<int>(node_repeats.size()) - 1; i >= 0; --i) {
-    bool found = false;
-    for (int j = static_cast<int>(base_repeats.size()) - 1; j >= static_cast<int>(start_index); --j) {
-      if ((base_repeats[j] == node_repeats[i]) && (used_indices.find(j) == used_indices.end())) {
-        axis_index.insert(axis_index.begin(), j);
-        used_indices.insert(j);
-        found = true;
-        start_index = j;
-        break;
-      }
-    }
-    if (!found) {
-      break;
-    }
-  }
-
-  if (axis_index.size() == node_repeats.size()) {
-    GELOGD_IF(open_log_, "find axis index info: repeats(%s), base repeats(%s), axis_index(%s).",
-              AutofuseUtils::VectorToStr(node_repeats).c_str(), AutofuseUtils::VectorToStr(base_repeats).c_str(),
-              AutofuseUtils::VectorToStr(axis_index).c_str());
-    return SUCCESS;
-  }
-
-  // 2. 如果连续匹配失败，回退到随机匹配（从右到左）
+                                           std::vector<ge::Expression> &base_repeats,
+                                           std::vector<uint32_t> &axis_index) const {
   axis_index.clear();
-  used_indices.clear();
+  AxisIndexMatchState match_state(node_repeats.size(), base_repeats.size());
 
-  for (int i = static_cast<int>(node_repeats.size()) - 1; i >= 0; --i) {
-    bool found = false;
-    for (int j = static_cast<int>(base_repeats.size()) - 1; j >= 0; --j) {
-      if ((base_repeats[j] == node_repeats[i]) && (used_indices.find(j) == used_indices.end())) {
-        axis_index.insert(axis_index.begin(), j);
-        used_indices.insert(j);
-        found = true;
-        break;
-      }
-    }
-    if (!found) {
-      GELOGD_IF(open_log_, "some axis repeat(%s) don't find from base repeats(%s).",
-                AutofuseUtils::VectorToStr(node_repeats).c_str(), AutofuseUtils::VectorToStr(base_repeats).c_str());
-      return FAILED;
-    }
+  // 两侧都唯一的 repeat 没有歧义，优先作为锚点，避免重复 repeat 被右侧兜底误配。
+  GE_ASSERT_SUCCESS(MapUniqueRepeatAxes(node_repeats, base_repeats, match_state));
+
+  // 以唯一轴锚点为中心向两侧扩展，保留重复轴和唯一轴之间的相邻关系。
+  GE_ASSERT_SUCCESS(ExtendAxisIndexFromAnchors(node_repeats, base_repeats, match_state));
+
+  // 没有锚点可辅助判断的剩余轴，沿用原先从右到左的贪心匹配策略。
+  if (FillUnmappedAxisIndex(node_repeats, base_repeats, match_state) != SUCCESS) {
+    GELOGD_IF(open_log_, "some axis repeat(%s) don't find from base repeats(%s).",
+              AutofuseUtils::VectorToStr(node_repeats).c_str(), AutofuseUtils::VectorToStr(base_repeats).c_str());
+    return FAILED;
   }
+
+  // 按 node 轴顺序输出，避免多阶段匹配的发现顺序影响 axis_index 语义。
+  GE_ASSERT_SUCCESS(BuildAxisIndex(match_state, axis_index));
   GELOGD("find axis index info: repeats(%s), base repeats(%s), axis_index(%s).",
          AutofuseUtils::VectorToStr(node_repeats).c_str(), AutofuseUtils::VectorToStr(base_repeats).c_str(),
          AutofuseUtils::VectorToStr(axis_index).c_str());

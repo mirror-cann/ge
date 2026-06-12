@@ -51,7 +51,7 @@
 | [GE Local 算子](features/ge_local_operator.md) | GE Local 引擎：承载非计算型节点（Data、Constant、控制流、形状变换等）的专用引擎，运行期零计算开销 |
 | [引擎](features/engine.md) | Engine 引擎体系：插件化引擎架构、优先级驱动自动选择、编译期引擎注册与分区、运行时分发 |
 | [Tiling 下沉](features/tiling_sink.md) | Tiling 下沉特性：将 Tiling 计算从 Host 搬到 Device AICPU 执行，消除 Host-Device 同步开销 |
-| [图拆分](features/graph_spliter.md) | 图拆分特性：动静 Shape 拆分、引擎级拆分、流水线阶段拆分、JIT 增量拆分 |
+| [图拆分](features/graph_splitter.md) | 图拆分特性：动静 Shape 拆分、引擎级拆分、流水线阶段拆分、JIT 增量拆分 |
 | [静态执行器](features/known_shape_executor.md) | 静态子图执行器：Task Sink 预分发、DavinciModel 加载/执行、混合执行模式地址刷新 |
 | [动态执行器](features/unknown_shape_executor.md) | RT2.0 动态 Shape 执行器：Lowering 机制、ExecuteGraph、ModelV2Executor、三子图生命周期、Kernel 注册系统 |
 | [Stream Allocator](features/stream_allocator.md) | 流分配特性：逻辑流分配、同步事件管理、物理流拆分、流激活机制 |

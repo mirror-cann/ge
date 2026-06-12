@@ -1253,3 +1253,72 @@ TEST_F(STEST_tbe_op_store_adapter, trans_dtype_to_string01) {
   TransDtypeToString(ge_dtype, dtype_str);
   EXPECT_EQ(dtype_str, "float8_e8m0");
 }
+
+TEST_F(STEST_tbe_op_store_adapter, trans_dtype_to_string02_float8_e5m2) {
+  const ge::DataType ge_dtype = ge::DT_FLOAT8_E5M2;
+  string dtype_str;
+  TransDtypeToString(ge_dtype, dtype_str);
+  EXPECT_EQ(dtype_str, "float8_e5m2");
+}
+
+TEST_F(STEST_tbe_op_store_adapter, trans_dtype_to_string03_int4) {
+  const ge::DataType ge_dtype = ge::DT_INT4;
+  string dtype_str;
+  TransDtypeToString(ge_dtype, dtype_str);
+  EXPECT_EQ(dtype_str, "int4");
+}
+
+TEST_F(STEST_tbe_op_store_adapter, trans_dtype_to_string04_uint8) {
+  const ge::DataType ge_dtype = ge::DT_UINT8;
+  string dtype_str;
+  TransDtypeToString(ge_dtype, dtype_str);
+  EXPECT_EQ(dtype_str, "uint8");
+}
+
+TEST_F(STEST_tbe_op_store_adapter, TaskFusion_MockFailed_Coverage670to674) {
+  TbeOpStoreAdapter compile_tbe_op(AI_CORE_NAME);
+  compile_tbe_op.TaskFusionFunc = [](const vector<ge::Node*>&, ge::OpDescPtr, uint64_t, uint64_t) {
+    return te::OP_BUILD_FAIL;
+  };
+  
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
+  OpDescPtr op_desc = std::make_shared<OpDesc>("test_op", "Add");
+  GeTensorDesc tensor_desc(GeShape({1, 2}), FORMAT_NCHW, DT_FLOAT);
+  op_desc->AddInputDesc(tensor_desc);
+  op_desc->AddOutputDesc(tensor_desc);
+  AttrUtils::SetInt(op_desc, "_fe_imply_type", 6);
+  NodePtr node = graph->AddNode(op_desc);
+  
+  vector<ge::Node*> nodes = {node.get()};
+  ScopeNodeIdMap fusion_nodes_map;
+  fusion_nodes_map[0] = nodes;
+  
+  CompileResultMap compile_ret_map;
+  
+  Status status = compile_tbe_op.TaskFusion(fusion_nodes_map, compile_ret_map);
+  EXPECT_NE(status, fe::SUCCESS);
+}
+
+TEST_F(STEST_tbe_op_store_adapter, SuperKernelCompile_MockFailed_Coverage740to744) {
+  TbeOpStoreAdapter compile_tbe_op(AI_CORE_NAME);
+  compile_tbe_op.BuildSuperKernel = [](const vector<ge::Node*>&, ge::OpDescPtr, uint64_t, uint64_t) {
+    return te::OP_BUILD_FAIL;
+  };
+  
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
+  OpDescPtr op_desc = std::make_shared<OpDesc>("spk_op", "Add");
+  GeTensorDesc tensor_desc(GeShape({1, 2}), FORMAT_NCHW, DT_FLOAT);
+  op_desc->AddInputDesc(tensor_desc);
+  op_desc->AddOutputDesc(tensor_desc);
+  AttrUtils::SetInt(op_desc, "_fe_imply_type", 6);
+  NodePtr node = graph->AddNode(op_desc);
+  
+  vector<ge::Node*> nodes = {node.get()};
+  ScopeNodeIdMap fusion_nodes_map;
+  fusion_nodes_map[0] = nodes;
+  
+  CompileResultMap compile_ret_map;
+  
+  Status status = compile_tbe_op.SuperKernelCompile(fusion_nodes_map, compile_ret_map);
+  EXPECT_NE(status, fe::SUCCESS);
+}

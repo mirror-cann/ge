@@ -69,6 +69,13 @@ add_executable(fe_ut
         ${CMAKE_CURRENT_LIST_DIR}/testcase/fusion_engine/fusion_rule_parser/fusion_rule_json_edge_uttest.cc
         ${CMAKE_CURRENT_LIST_DIR}/testcase/fusion_engine/fusion_rule_parser/fusion_rule_json_outer_uttest.cc
         ${CMAKE_CURRENT_LIST_DIR}/testcase/fusion_engine/fusion_config_manager/fusion_config_parser_unittest.cc
+        ${CMAKE_CURRENT_LIST_DIR}/testcase/fusion_engine/fusion_config_manager/fusion_priority_manager_unittest.cc
+        ${CMAKE_CURRENT_LIST_DIR}/testcase/fusion_engine/fusion_config_manager/fusion_priority_manager_precise_unittest.cc
+        ${CMAKE_CURRENT_LIST_DIR}/testcase/fusion_engine/fusion_config_manager/fusion_priority_manager_error_path_unittest.cc
+        ${CMAKE_CURRENT_LIST_DIR}/testcase/fusion_engine/fe_report_error_unittest.cc
+        ${CMAKE_CURRENT_LIST_DIR}/testcase/fusion_engine/fe_report_error_coverage_unittest.cc
+        ${CMAKE_CURRENT_LIST_DIR}/testcase/fusion_engine/adapter/tbe_adapter/tbe_op_store_adapter_precise_unittest.cc
+        ${CMAKE_CURRENT_LIST_DIR}/testcase/fusion_engine/adapter/tbe_adapter/tbe_op_store_adapter_error_path_unittest.cc
         ${CMAKE_CURRENT_LIST_DIR}/testcase/fusion_engine/graph_optimizer/fusion_common/fusion_pass_manager_ut.cc
         ${CMAKE_CURRENT_LIST_DIR}/testcase/fusion_engine/graph_optimizer/fusion_common/graph_node_map_util_ut.cc
         ${CMAKE_CURRENT_LIST_DIR}/testcase/fusion_engine/graph_optimizer/dynamic_shape_optimizer/fuzzy_compiler/fuzzy_generalize_utest.cc

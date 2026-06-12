@@ -183,6 +183,7 @@ struct Om2TaskInfo {
   uint32_t stream_id;
   uint32_t context_id;
   uint32_t thread_id;
+  uint32_t block_dim;
   uint64_t op_desc_id;
   uintptr_t args_base;
   uint64_t args_size;
@@ -199,6 +200,7 @@ struct Om2TaskInfo {
   const struct Om2L0TaskRawInfo* l0_exception_dump_info;
 };
 
+extern "C" {
 __attribute__((weak)) int32_t ReportDfxTaskPreprocess(uint32_t model_id,
                                                        void* instance_handle,
                                                        const struct Om2TaskInfo* task_info,
@@ -215,6 +217,7 @@ __attribute__((weak)) int32_t IsDataDumpEnabled(uint32_t model_id,
                                                       void* instance_handle,
                                                       const char* op_name,
                                                       uint8_t* is_data_dump);
+}
 )";
 }
 
@@ -232,8 +235,8 @@ std::string GetLoadAndRunDumpHelpersExpected() {
 }
 
 aclError AssembleOm2TaskInfo(Om2TaskInfo *task_info, const char *op_name, const char *op_type,
-                             uint32_t task_id, uint32_t stream_id, uint64_t op_desc_id,
-                             uintptr_t args_base, uint64_t args_size,
+                             uint32_t task_id, uint32_t stream_id, uint32_t block_dim,
+                             uint64_t op_desc_id, uintptr_t args_base, uint64_t args_size,
                              const Om2TaskIoEntry *inputs, uint64_t input_num,
                              const Om2TaskIoEntry *outputs, uint32_t output_num,
                              const uint64_t *workspace_addrs, const uint64_t *workspace_sizes,
@@ -245,6 +248,7 @@ aclError AssembleOm2TaskInfo(Om2TaskInfo *task_info, const char *op_name, const 
   task_info->stream_id = stream_id;
   task_info->context_id = 0U;
   task_info->thread_id = 0U;
+  task_info->block_dim = block_dim;
   task_info->op_desc_id = op_desc_id;
   task_info->args_base = args_base;
   task_info->args_size = args_size;
@@ -268,7 +272,7 @@ aclError ReportOm2TaskPreprocess(const char *op_name, const char *op_type, uint6
                                 const std::vector<Om2TaskIoEntry> &outputs,
                                 const std::vector<uint64_t> &workspace_addrs,
                                 const std::vector<uint64_t> &workspace_sizes,
-                                uint32_t task_type, void *stream,
+                                uint32_t task_type, uint32_t block_dim, void *stream,
                                 const Om2L0TaskRawInfo *l0_info,
                                 uint32_t model_id, void *instance_handle,
                                 uint32_t is_raw_address = 0U) {
@@ -278,8 +282,8 @@ aclError ReportOm2TaskPreprocess(const char *op_name, const char *op_type, uint6
   OM2_CHK_TRUE(workspace_addrs.size() == workspace_sizes.size());
 
   Om2TaskInfo task_info{};
-  OM2_CHK_STATUS(AssembleOm2TaskInfo(&task_info, op_name, op_type, 0U, stream_id, op_desc_id,
-                                      args_base, args_size,
+  OM2_CHK_STATUS(AssembleOm2TaskInfo(&task_info, op_name, op_type, 0U, stream_id, block_dim,
+                                      op_desc_id, args_base, args_size,
                                       inputs.data(), static_cast<uint64_t>(inputs.size()),
                                       outputs.data(), static_cast<uint32_t>(outputs.size()),
                                       workspace_addrs.empty() ? nullptr : workspace_addrs.data(),
@@ -299,7 +303,7 @@ aclError ReportLaunchedOm2Task(const char *op_name, const char *op_type, uint64_
                                const Om2TaskIoEntry *outputs, uint32_t output_num,
                                const uint64_t *workspace_addrs, const uint64_t *workspace_sizes,
                                uint32_t workspace_num,
-                               uint32_t task_type, void *stream,
+                               uint32_t task_type, uint32_t block_dim, void *stream,
                                uint32_t model_id, void *instance_handle,
                                uint32_t is_raw_address = 0U) {
   uint32_t task_id = 0U;
@@ -309,8 +313,8 @@ aclError ReportLaunchedOm2Task(const char *op_name, const char *op_type, uint64_
   OM2_CHK_STATUS(aclrtStreamGetId(stream, reinterpret_cast<int32_t *>(&stream_id)));
 
   Om2TaskInfo task_info{};
-  OM2_CHK_STATUS(AssembleOm2TaskInfo(&task_info, op_name, op_type, task_id, stream_id, op_desc_id,
-                                      args_base, args_size,
+  OM2_CHK_STATUS(AssembleOm2TaskInfo(&task_info, op_name, op_type, task_id, stream_id, block_dim,
+                                      op_desc_id, args_base, args_size,
                                       inputs, input_num,
                                       outputs, output_num,
                                       workspace_addrs, workspace_sizes, workspace_num,
@@ -1458,6 +1462,7 @@ struct Om2TaskInfo {
   uint32_t stream_id;
   uint32_t context_id;
   uint32_t thread_id;
+  uint32_t block_dim;
   uint64_t op_desc_id;
   uintptr_t args_base;
   uint64_t args_size;
@@ -1474,6 +1479,7 @@ struct Om2TaskInfo {
   const struct Om2L0TaskRawInfo* l0_exception_dump_info;
 };
 
+extern "C" {
 __attribute__((weak)) int32_t ReportDfxTaskPreprocess(uint32_t model_id,
                                                        void* instance_handle,
                                                        const struct Om2TaskInfo* task_info,
@@ -1490,6 +1496,7 @@ __attribute__((weak)) int32_t IsDataDumpEnabled(uint32_t model_id,
                                                       void* instance_handle,
                                                       const char* op_name,
                                                       uint8_t* is_data_dump);
+}
 
 namespace om2 {
 constexpr int32_t INPUT_NUM = 2;
@@ -1936,8 +1943,8 @@ Om2Tensor BuildOm2Tensor(void *device_address, uint64_t size, int32_t data_type,
 }
 
 aclError AssembleOm2TaskInfo(Om2TaskInfo *task_info, const char *op_name, const char *op_type,
-                             uint32_t task_id, uint32_t stream_id, uint64_t op_desc_id,
-                             uintptr_t args_base, uint64_t args_size,
+                             uint32_t task_id, uint32_t stream_id, uint32_t block_dim,
+                             uint64_t op_desc_id, uintptr_t args_base, uint64_t args_size,
                              const Om2TaskIoEntry *inputs, uint64_t input_num,
                              const Om2TaskIoEntry *outputs, uint32_t output_num,
                              const uint64_t *workspace_addrs, const uint64_t *workspace_sizes,
@@ -1949,6 +1956,7 @@ aclError AssembleOm2TaskInfo(Om2TaskInfo *task_info, const char *op_name, const 
   task_info->stream_id = stream_id;
   task_info->context_id = 0U;
   task_info->thread_id = 0U;
+  task_info->block_dim = block_dim;
   task_info->op_desc_id = op_desc_id;
   task_info->args_base = args_base;
   task_info->args_size = args_size;
@@ -1972,7 +1980,7 @@ aclError ReportOm2TaskPreprocess(const char *op_name, const char *op_type, uint6
                                 const std::vector<Om2TaskIoEntry> &outputs,
                                 const std::vector<uint64_t> &workspace_addrs,
                                 const std::vector<uint64_t> &workspace_sizes,
-                                uint32_t task_type, void *stream,
+                                uint32_t task_type, uint32_t block_dim, void *stream,
                                 const Om2L0TaskRawInfo *l0_info,
                                 uint32_t model_id, void *instance_handle,
                                 uint32_t is_raw_address = 0U) {
@@ -1982,8 +1990,8 @@ aclError ReportOm2TaskPreprocess(const char *op_name, const char *op_type, uint6
   OM2_CHK_TRUE(workspace_addrs.size() == workspace_sizes.size());
 
   Om2TaskInfo task_info{};
-  OM2_CHK_STATUS(AssembleOm2TaskInfo(&task_info, op_name, op_type, 0U, stream_id, op_desc_id,
-                                      args_base, args_size,
+  OM2_CHK_STATUS(AssembleOm2TaskInfo(&task_info, op_name, op_type, 0U, stream_id, block_dim,
+                                      op_desc_id, args_base, args_size,
                                       inputs.data(), static_cast<uint64_t>(inputs.size()),
                                       outputs.data(), static_cast<uint32_t>(outputs.size()),
                                       workspace_addrs.empty() ? nullptr : workspace_addrs.data(),
@@ -2003,7 +2011,7 @@ aclError ReportLaunchedOm2Task(const char *op_name, const char *op_type, uint64_
                                const Om2TaskIoEntry *outputs, uint32_t output_num,
                                const uint64_t *workspace_addrs, const uint64_t *workspace_sizes,
                                uint32_t workspace_num,
-                               uint32_t task_type, void *stream,
+                               uint32_t task_type, uint32_t block_dim, void *stream,
                                uint32_t model_id, void *instance_handle,
                                uint32_t is_raw_address = 0U) {
   uint32_t task_id = 0U;
@@ -2013,8 +2021,8 @@ aclError ReportLaunchedOm2Task(const char *op_name, const char *op_type, uint64_
   OM2_CHK_STATUS(aclrtStreamGetId(stream, reinterpret_cast<int32_t *>(&stream_id)));
 
   Om2TaskInfo task_info{};
-  OM2_CHK_STATUS(AssembleOm2TaskInfo(&task_info, op_name, op_type, task_id, stream_id, op_desc_id,
-                                      args_base, args_size,
+  OM2_CHK_STATUS(AssembleOm2TaskInfo(&task_info, op_name, op_type, task_id, stream_id, block_dim,
+                                      op_desc_id, args_base, args_size,
                                       inputs, input_num,
                                       outputs, output_num,
                                       workspace_addrs, workspace_sizes, workspace_num,
@@ -2264,9 +2272,9 @@ aclError DispatchOp(const OpDef *op, const DispatchOpContext &ctx) {
         ordered_io_addrs.push_back(_addr);
       }
       Om2L0TaskRawInfo l0_info = {1U, op->task_data.aicore.l0.need_assert_or_printf, static_cast<uint64_t>(op->task_data.aicore.l0.num_l0_slots), op->task_data.aicore.l0.l0_slots};
-      OM2_CHK_STATUS(ReportOm2TaskPreprocess(op->op_name, op->task_data.aicore.op_type, 0U, reinterpret_cast<uintptr_t>(args_info->dev_addr), args_info->size, report_inputs, report_outputs, report_workspace_addrs, report_workspace_sizes, static_cast<uint32_t>(op->dispatch_type), ctx.stream, &l0_info, ctx.model_id, ctx.instance_handle));
+      OM2_CHK_STATUS(ReportOm2TaskPreprocess(op->op_name, op->task_data.aicore.op_type, 0U, reinterpret_cast<uintptr_t>(args_info->dev_addr), args_info->size, report_inputs, report_outputs, report_workspace_addrs, report_workspace_sizes, static_cast<uint32_t>(op->dispatch_type), op->task_data.aicore.kernel.block_dim, ctx.stream, &l0_info, ctx.model_id, ctx.instance_handle));
       OM2_CHK_STATUS(KernelTaskDistribute(ordered_io_addrs, args_info, ctx.func_handles[op->task_data.aicore.kernel.func_idx], op->task_data.aicore.kernel.block_dim, ctx.stream, &cfg_holder.cfg));
-      OM2_CHK_STATUS(ReportLaunchedOm2Task(op->op_name, op->task_data.aicore.op_type, 0U, reinterpret_cast<uintptr_t>(args_info->dev_addr), args_info->size, report_inputs.data(), static_cast<uint64_t>(report_inputs.size()), report_outputs.data(), static_cast<uint32_t>(report_outputs.size()), report_workspace_addrs.data(), report_workspace_sizes.data(), static_cast<uint32_t>(report_workspace_sizes.size()), static_cast<uint32_t>(op->dispatch_type), ctx.stream, ctx.model_id, ctx.instance_handle));
+      OM2_CHK_STATUS(ReportLaunchedOm2Task(op->op_name, op->task_data.aicore.op_type, 0U, reinterpret_cast<uintptr_t>(args_info->dev_addr), args_info->size, report_inputs.data(), static_cast<uint64_t>(report_inputs.size()), report_outputs.data(), static_cast<uint32_t>(report_outputs.size()), report_workspace_addrs.data(), report_workspace_sizes.data(), static_cast<uint32_t>(report_workspace_sizes.size()), static_cast<uint32_t>(op->dispatch_type), op->task_data.aicore.kernel.block_dim, ctx.stream, ctx.model_id, ctx.instance_handle));
     }
     break;
     default:
@@ -2410,8 +2418,8 @@ Om2Tensor BuildOm2Tensor(void *device_address, uint64_t size, int32_t data_type,
 }
 
 aclError AssembleOm2TaskInfo(Om2TaskInfo *task_info, const char *op_name, const char *op_type,
-                             uint32_t task_id, uint32_t stream_id, uint64_t op_desc_id,
-                             uintptr_t args_base, uint64_t args_size,
+                             uint32_t task_id, uint32_t stream_id, uint32_t block_dim,
+                             uint64_t op_desc_id, uintptr_t args_base, uint64_t args_size,
                              const Om2TaskIoEntry *inputs, uint64_t input_num,
                              const Om2TaskIoEntry *outputs, uint32_t output_num,
                              const uint64_t *workspace_addrs, const uint64_t *workspace_sizes,
@@ -2423,6 +2431,7 @@ aclError AssembleOm2TaskInfo(Om2TaskInfo *task_info, const char *op_name, const 
   task_info->stream_id = stream_id;
   task_info->context_id = 0U;
   task_info->thread_id = 0U;
+  task_info->block_dim = block_dim;
   task_info->op_desc_id = op_desc_id;
   task_info->args_base = args_base;
   task_info->args_size = args_size;
@@ -2446,7 +2455,7 @@ aclError ReportOm2TaskPreprocess(const char *op_name, const char *op_type, uint6
                                 const std::vector<Om2TaskIoEntry> &outputs,
                                 const std::vector<uint64_t> &workspace_addrs,
                                 const std::vector<uint64_t> &workspace_sizes,
-                                uint32_t task_type, void *stream,
+                                uint32_t task_type, uint32_t block_dim, void *stream,
                                 const Om2L0TaskRawInfo *l0_info,
                                 uint32_t model_id, void *instance_handle,
                                 uint32_t is_raw_address = 0U) {
@@ -2456,8 +2465,8 @@ aclError ReportOm2TaskPreprocess(const char *op_name, const char *op_type, uint6
   OM2_CHK_TRUE(workspace_addrs.size() == workspace_sizes.size());
 
   Om2TaskInfo task_info{};
-  OM2_CHK_STATUS(AssembleOm2TaskInfo(&task_info, op_name, op_type, 0U, stream_id, op_desc_id,
-                                      args_base, args_size,
+  OM2_CHK_STATUS(AssembleOm2TaskInfo(&task_info, op_name, op_type, 0U, stream_id, block_dim,
+                                      op_desc_id, args_base, args_size,
                                       inputs.data(), static_cast<uint64_t>(inputs.size()),
                                       outputs.data(), static_cast<uint32_t>(outputs.size()),
                                       workspace_addrs.empty() ? nullptr : workspace_addrs.data(),
@@ -2477,7 +2486,7 @@ aclError ReportLaunchedOm2Task(const char *op_name, const char *op_type, uint64_
                                const Om2TaskIoEntry *outputs, uint32_t output_num,
                                const uint64_t *workspace_addrs, const uint64_t *workspace_sizes,
                                uint32_t workspace_num,
-                               uint32_t task_type, void *stream,
+                               uint32_t task_type, uint32_t block_dim, void *stream,
                                uint32_t model_id, void *instance_handle,
                                uint32_t is_raw_address = 0U) {
   uint32_t task_id = 0U;
@@ -2487,8 +2496,8 @@ aclError ReportLaunchedOm2Task(const char *op_name, const char *op_type, uint64_
   OM2_CHK_STATUS(aclrtStreamGetId(stream, reinterpret_cast<int32_t *>(&stream_id)));
 
   Om2TaskInfo task_info{};
-  OM2_CHK_STATUS(AssembleOm2TaskInfo(&task_info, op_name, op_type, task_id, stream_id, op_desc_id,
-                                      args_base, args_size,
+  OM2_CHK_STATUS(AssembleOm2TaskInfo(&task_info, op_name, op_type, task_id, stream_id, block_dim,
+                                      op_desc_id, args_base, args_size,
                                       inputs, input_num,
                                       outputs, output_num,
                                       workspace_addrs, workspace_sizes, workspace_num,
@@ -2738,9 +2747,9 @@ aclError DispatchOp(const OpDef *op, const DispatchOpContext &ctx) {
         ordered_io_addrs.push_back(_addr);
       }
       Om2L0TaskRawInfo l0_info = {1U, op->task_data.aicore.l0.need_assert_or_printf, static_cast<uint64_t>(op->task_data.aicore.l0.num_l0_slots), op->task_data.aicore.l0.l0_slots};
-      OM2_CHK_STATUS(ReportOm2TaskPreprocess(op->op_name, op->task_data.aicore.op_type, 0U, reinterpret_cast<uintptr_t>(args_info->dev_addr), args_info->size, report_inputs, report_outputs, report_workspace_addrs, report_workspace_sizes, static_cast<uint32_t>(op->dispatch_type), ctx.stream, &l0_info, ctx.model_id, ctx.instance_handle));
+      OM2_CHK_STATUS(ReportOm2TaskPreprocess(op->op_name, op->task_data.aicore.op_type, 0U, reinterpret_cast<uintptr_t>(args_info->dev_addr), args_info->size, report_inputs, report_outputs, report_workspace_addrs, report_workspace_sizes, static_cast<uint32_t>(op->dispatch_type), op->task_data.aicore.kernel.block_dim, ctx.stream, &l0_info, ctx.model_id, ctx.instance_handle));
       OM2_CHK_STATUS(KernelTaskDistribute(ordered_io_addrs, args_info, ctx.func_handles[op->task_data.aicore.kernel.func_idx], op->task_data.aicore.kernel.block_dim, ctx.stream, &cfg_holder.cfg));
-      OM2_CHK_STATUS(ReportLaunchedOm2Task(op->op_name, op->task_data.aicore.op_type, 0U, reinterpret_cast<uintptr_t>(args_info->dev_addr), args_info->size, report_inputs.data(), static_cast<uint64_t>(report_inputs.size()), report_outputs.data(), static_cast<uint32_t>(report_outputs.size()), report_workspace_addrs.data(), report_workspace_sizes.data(), static_cast<uint32_t>(report_workspace_sizes.size()), static_cast<uint32_t>(op->dispatch_type), ctx.stream, ctx.model_id, ctx.instance_handle));
+      OM2_CHK_STATUS(ReportLaunchedOm2Task(op->op_name, op->task_data.aicore.op_type, 0U, reinterpret_cast<uintptr_t>(args_info->dev_addr), args_info->size, report_inputs.data(), static_cast<uint64_t>(report_inputs.size()), report_outputs.data(), static_cast<uint32_t>(report_outputs.size()), report_workspace_addrs.data(), report_workspace_sizes.data(), static_cast<uint32_t>(report_workspace_sizes.size()), static_cast<uint32_t>(op->dispatch_type), op->task_data.aicore.kernel.block_dim, ctx.stream, ctx.model_id, ctx.instance_handle));
     }
     break;
     default:
@@ -2896,8 +2905,8 @@ Om2Tensor BuildOm2Tensor(void *device_address, uint64_t size, int32_t data_type,
 }
 
 aclError AssembleOm2TaskInfo(Om2TaskInfo *task_info, const char *op_name, const char *op_type,
-                             uint32_t task_id, uint32_t stream_id, uint64_t op_desc_id,
-                             uintptr_t args_base, uint64_t args_size,
+                             uint32_t task_id, uint32_t stream_id, uint32_t block_dim,
+                             uint64_t op_desc_id, uintptr_t args_base, uint64_t args_size,
                              const Om2TaskIoEntry *inputs, uint64_t input_num,
                              const Om2TaskIoEntry *outputs, uint32_t output_num,
                              const uint64_t *workspace_addrs, const uint64_t *workspace_sizes,
@@ -2909,6 +2918,7 @@ aclError AssembleOm2TaskInfo(Om2TaskInfo *task_info, const char *op_name, const 
   task_info->stream_id = stream_id;
   task_info->context_id = 0U;
   task_info->thread_id = 0U;
+  task_info->block_dim = block_dim;
   task_info->op_desc_id = op_desc_id;
   task_info->args_base = args_base;
   task_info->args_size = args_size;
@@ -2932,7 +2942,7 @@ aclError ReportOm2TaskPreprocess(const char *op_name, const char *op_type, uint6
                                 const std::vector<Om2TaskIoEntry> &outputs,
                                 const std::vector<uint64_t> &workspace_addrs,
                                 const std::vector<uint64_t> &workspace_sizes,
-                                uint32_t task_type, void *stream,
+                                uint32_t task_type, uint32_t block_dim, void *stream,
                                 const Om2L0TaskRawInfo *l0_info,
                                 uint32_t model_id, void *instance_handle,
                                 uint32_t is_raw_address = 0U) {
@@ -2942,8 +2952,8 @@ aclError ReportOm2TaskPreprocess(const char *op_name, const char *op_type, uint6
   OM2_CHK_TRUE(workspace_addrs.size() == workspace_sizes.size());
 
   Om2TaskInfo task_info{};
-  OM2_CHK_STATUS(AssembleOm2TaskInfo(&task_info, op_name, op_type, 0U, stream_id, op_desc_id,
-                                      args_base, args_size,
+  OM2_CHK_STATUS(AssembleOm2TaskInfo(&task_info, op_name, op_type, 0U, stream_id, block_dim,
+                                      op_desc_id, args_base, args_size,
                                       inputs.data(), static_cast<uint64_t>(inputs.size()),
                                       outputs.data(), static_cast<uint32_t>(outputs.size()),
                                       workspace_addrs.empty() ? nullptr : workspace_addrs.data(),
@@ -2963,7 +2973,7 @@ aclError ReportLaunchedOm2Task(const char *op_name, const char *op_type, uint64_
                                const Om2TaskIoEntry *outputs, uint32_t output_num,
                                const uint64_t *workspace_addrs, const uint64_t *workspace_sizes,
                                uint32_t workspace_num,
-                               uint32_t task_type, void *stream,
+                               uint32_t task_type, uint32_t block_dim, void *stream,
                                uint32_t model_id, void *instance_handle,
                                uint32_t is_raw_address = 0U) {
   uint32_t task_id = 0U;
@@ -2973,8 +2983,8 @@ aclError ReportLaunchedOm2Task(const char *op_name, const char *op_type, uint64_
   OM2_CHK_STATUS(aclrtStreamGetId(stream, reinterpret_cast<int32_t *>(&stream_id)));
 
   Om2TaskInfo task_info{};
-  OM2_CHK_STATUS(AssembleOm2TaskInfo(&task_info, op_name, op_type, task_id, stream_id, op_desc_id,
-                                      args_base, args_size,
+  OM2_CHK_STATUS(AssembleOm2TaskInfo(&task_info, op_name, op_type, task_id, stream_id, block_dim,
+                                      op_desc_id, args_base, args_size,
                                       inputs, input_num,
                                       outputs, output_num,
                                       workspace_addrs, workspace_sizes, workspace_num,
@@ -3151,7 +3161,7 @@ aclError Om2Model::Load() {
     OM2_CHK_STATUS(AicpuKernelTaskDistribute(op2_args, args_table_.GetArgsInfo(0), func_handles_[0], 8, stream_list_[0], &op2_cfg_holder.cfg));
     const Om2TaskIoEntry op2_report_inputs[] = {{&op2_input0, 0U}, {&op2_input1, 0U}};
     const Om2TaskIoEntry op2_report_outputs[] = {{&op2_output0, 0U}};
-    OM2_CHK_STATUS(ReportLaunchedOm2Task("add1", "Add", 2U, reinterpret_cast<uintptr_t>(args_table_.GetArgsInfo(0)->dev_addr), args_table_.GetArgsInfo(0)->size, op2_report_inputs, 2UL, op2_report_outputs, 1U, nullptr, nullptr, 0U, 0U, stream_list_[0], model_id_, instance_handle_));
+    OM2_CHK_STATUS(ReportLaunchedOm2Task("add1", "Add", 2U, reinterpret_cast<uintptr_t>(args_table_.GetArgsInfo(0)->dev_addr), args_table_.GetArgsInfo(0)->size, op2_report_inputs, 2UL, op2_report_outputs, 1U, nullptr, nullptr, 0U, 0U, 8U, stream_list_[0], model_id_, instance_handle_));
 
   }
   {
@@ -3174,7 +3184,7 @@ aclError Om2Model::Load() {
     OM2_CHK_STATUS(AicpuKernelTaskDistribute(op3_args, args_table_.GetArgsInfo(1), func_handles_[0], 8, stream_list_[0], &op3_cfg_holder.cfg));
     const Om2TaskIoEntry op3_report_inputs[] = {{&op3_input0, 0U}, {&op3_input1, 0U}};
     const Om2TaskIoEntry op3_report_outputs[] = {{&op3_output0, 0U}};
-    OM2_CHK_STATUS(ReportLaunchedOm2Task("add2", "Add", 3U, reinterpret_cast<uintptr_t>(args_table_.GetArgsInfo(1)->dev_addr), args_table_.GetArgsInfo(1)->size, op3_report_inputs, 2UL, op3_report_outputs, 1U, nullptr, nullptr, 0U, 0U, stream_list_[0], model_id_, instance_handle_));
+    OM2_CHK_STATUS(ReportLaunchedOm2Task("add2", "Add", 3U, reinterpret_cast<uintptr_t>(args_table_.GetArgsInfo(1)->dev_addr), args_table_.GetArgsInfo(1)->size, op3_report_inputs, 2UL, op3_report_outputs, 1U, nullptr, nullptr, 0U, 0U, 8U, stream_list_[0], model_id_, instance_handle_));
 
   }
   OM2_CHK_STATUS(aclmdlRIBuildEnd(model_handle_, nullptr));
@@ -3285,8 +3295,8 @@ Om2Tensor BuildOm2Tensor(void *device_address, uint64_t size, int32_t data_type,
 }
 
 aclError AssembleOm2TaskInfo(Om2TaskInfo *task_info, const char *op_name, const char *op_type,
-                             uint32_t task_id, uint32_t stream_id, uint64_t op_desc_id,
-                             uintptr_t args_base, uint64_t args_size,
+                             uint32_t task_id, uint32_t stream_id, uint32_t block_dim,
+                             uint64_t op_desc_id, uintptr_t args_base, uint64_t args_size,
                              const Om2TaskIoEntry *inputs, uint64_t input_num,
                              const Om2TaskIoEntry *outputs, uint32_t output_num,
                              const uint64_t *workspace_addrs, const uint64_t *workspace_sizes,
@@ -3298,6 +3308,7 @@ aclError AssembleOm2TaskInfo(Om2TaskInfo *task_info, const char *op_name, const 
   task_info->stream_id = stream_id;
   task_info->context_id = 0U;
   task_info->thread_id = 0U;
+  task_info->block_dim = block_dim;
   task_info->op_desc_id = op_desc_id;
   task_info->args_base = args_base;
   task_info->args_size = args_size;
@@ -3321,7 +3332,7 @@ aclError ReportOm2TaskPreprocess(const char *op_name, const char *op_type, uint6
                                 const std::vector<Om2TaskIoEntry> &outputs,
                                 const std::vector<uint64_t> &workspace_addrs,
                                 const std::vector<uint64_t> &workspace_sizes,
-                                uint32_t task_type, void *stream,
+                                uint32_t task_type, uint32_t block_dim, void *stream,
                                 const Om2L0TaskRawInfo *l0_info,
                                 uint32_t model_id, void *instance_handle,
                                 uint32_t is_raw_address = 0U) {
@@ -3331,8 +3342,8 @@ aclError ReportOm2TaskPreprocess(const char *op_name, const char *op_type, uint6
   OM2_CHK_TRUE(workspace_addrs.size() == workspace_sizes.size());
 
   Om2TaskInfo task_info{};
-  OM2_CHK_STATUS(AssembleOm2TaskInfo(&task_info, op_name, op_type, 0U, stream_id, op_desc_id,
-                                      args_base, args_size,
+  OM2_CHK_STATUS(AssembleOm2TaskInfo(&task_info, op_name, op_type, 0U, stream_id, block_dim,
+                                      op_desc_id, args_base, args_size,
                                       inputs.data(), static_cast<uint64_t>(inputs.size()),
                                       outputs.data(), static_cast<uint32_t>(outputs.size()),
                                       workspace_addrs.empty() ? nullptr : workspace_addrs.data(),
@@ -3352,7 +3363,7 @@ aclError ReportLaunchedOm2Task(const char *op_name, const char *op_type, uint64_
                                const Om2TaskIoEntry *outputs, uint32_t output_num,
                                const uint64_t *workspace_addrs, const uint64_t *workspace_sizes,
                                uint32_t workspace_num,
-                               uint32_t task_type, void *stream,
+                               uint32_t task_type, uint32_t block_dim, void *stream,
                                uint32_t model_id, void *instance_handle,
                                uint32_t is_raw_address = 0U) {
   uint32_t task_id = 0U;
@@ -3362,8 +3373,8 @@ aclError ReportLaunchedOm2Task(const char *op_name, const char *op_type, uint64_
   OM2_CHK_STATUS(aclrtStreamGetId(stream, reinterpret_cast<int32_t *>(&stream_id)));
 
   Om2TaskInfo task_info{};
-  OM2_CHK_STATUS(AssembleOm2TaskInfo(&task_info, op_name, op_type, task_id, stream_id, op_desc_id,
-                                      args_base, args_size,
+  OM2_CHK_STATUS(AssembleOm2TaskInfo(&task_info, op_name, op_type, task_id, stream_id, block_dim,
+                                      op_desc_id, args_base, args_size,
                                       inputs, input_num,
                                       outputs, output_num,
                                       workspace_addrs, workspace_sizes, workspace_num,
@@ -3613,9 +3624,9 @@ aclError DispatchOp(const OpDef *op, const DispatchOpContext &ctx) {
         ordered_io_addrs.push_back(_addr);
       }
       Om2L0TaskRawInfo l0_info = {1U, op->task_data.aicore.l0.need_assert_or_printf, static_cast<uint64_t>(op->task_data.aicore.l0.num_l0_slots), op->task_data.aicore.l0.l0_slots};
-      OM2_CHK_STATUS(ReportOm2TaskPreprocess(op->op_name, op->task_data.aicore.op_type, 0U, reinterpret_cast<uintptr_t>(args_info->dev_addr), args_info->size, report_inputs, report_outputs, report_workspace_addrs, report_workspace_sizes, static_cast<uint32_t>(op->dispatch_type), ctx.stream, &l0_info, ctx.model_id, ctx.instance_handle));
+      OM2_CHK_STATUS(ReportOm2TaskPreprocess(op->op_name, op->task_data.aicore.op_type, 0U, reinterpret_cast<uintptr_t>(args_info->dev_addr), args_info->size, report_inputs, report_outputs, report_workspace_addrs, report_workspace_sizes, static_cast<uint32_t>(op->dispatch_type), op->task_data.aicore.kernel.block_dim, ctx.stream, &l0_info, ctx.model_id, ctx.instance_handle));
       OM2_CHK_STATUS(KernelTaskDistribute(ordered_io_addrs, args_info, ctx.func_handles[op->task_data.aicore.kernel.func_idx], op->task_data.aicore.kernel.block_dim, ctx.stream, &cfg_holder.cfg));
-      OM2_CHK_STATUS(ReportLaunchedOm2Task(op->op_name, op->task_data.aicore.op_type, 0U, reinterpret_cast<uintptr_t>(args_info->dev_addr), args_info->size, report_inputs.data(), static_cast<uint64_t>(report_inputs.size()), report_outputs.data(), static_cast<uint32_t>(report_outputs.size()), report_workspace_addrs.data(), report_workspace_sizes.data(), static_cast<uint32_t>(report_workspace_sizes.size()), static_cast<uint32_t>(op->dispatch_type), ctx.stream, ctx.model_id, ctx.instance_handle));
+      OM2_CHK_STATUS(ReportLaunchedOm2Task(op->op_name, op->task_data.aicore.op_type, 0U, reinterpret_cast<uintptr_t>(args_info->dev_addr), args_info->size, report_inputs.data(), static_cast<uint64_t>(report_inputs.size()), report_outputs.data(), static_cast<uint32_t>(report_outputs.size()), report_workspace_addrs.data(), report_workspace_sizes.data(), static_cast<uint32_t>(report_workspace_sizes.size()), static_cast<uint32_t>(op->dispatch_type), op->task_data.aicore.kernel.block_dim, ctx.stream, ctx.model_id, ctx.instance_handle));
     }
     break;
     default:

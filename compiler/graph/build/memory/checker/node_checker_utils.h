@@ -10,7 +10,7 @@
 
 #ifndef GE_GRAPH_BUILD_MEMORY_CHECKER_NODE_CHECKER_UTILS_H_
 #define GE_GRAPH_BUILD_MEMORY_CHECKER_NODE_CHECKER_UTILS_H_
-#include "ge_common/ge_api_types.h"
+#include "ge_common/ge_common_api_types.h"
 #include "ge_common/ge_api_error_codes.h"
 #include "node_checker_register.h"
 #include "graph/node.h"

@@ -90,7 +90,7 @@ bool PreBuildManager::DoPrebuildOp(const OpBuildTaskPtr &opTask)
     bool res = false;
     TE_DBGLOG("Start to prebuild single op.");
 
-    if (!TeFusionManager::RefreshCacheAndSinalManager()) {
+    if (!TeFusionManager::RefreshCacheAndSignalManager()) {
         return false;
     }
 

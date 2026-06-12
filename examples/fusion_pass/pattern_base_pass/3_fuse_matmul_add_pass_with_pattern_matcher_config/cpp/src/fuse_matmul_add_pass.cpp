@@ -27,7 +27,7 @@ using namespace fusion;
 // |o>       \    /
 // |o>        Add
 // |o>-----------------------------------
-// 融合说明：本例识别上图中左边的split的属性num_split是否等于1,来判断是否可删除该节点
+// 融合说明：本例识别上图左侧 MatMul+Add(Const) 子图，在满足 PatternMatcherConfig（常量值匹配、IR 属性匹配）条件时，将其替换为 GEMM 节点
 class MatmulAddFusionPass : public PatternFusionPass {
   //重写构造函数，使能const值匹配能力与ir属性及其值匹配能力
 public:

@@ -13,7 +13,7 @@
 #include <memory>
 #include <string>
 #include <utility>
-#include<functional>
+#include <functional>
 #include "common/configuration.h"
 #include "graph/ge_local_context.h"
 #include "common/fe_context_utils.h"
@@ -61,9 +61,10 @@ const std::vector<FusionPassOrRule>& FusionPriorityManager::GetSortedGraphFusion
     }
   }
   
-  static std::vector<FusionPassOrRule> empty_result;
+  static const std::vector<FusionPassOrRule> empty_result;
   return empty_result;
 }
+
 const std::vector<BufferFusionInfo>& FusionPriorityManager::GetSortedBufferFusionList(
                                                             const ge::ComputeGraph &graph) {
   size_t hash_key = GetCurrentHashedKey();
@@ -233,29 +234,29 @@ Status FusionPriorityManager::LoadBufferPriorityCfg(std::map<std::string, int32_
   return fusion_config_parser_ptr_->GetFusionPriorityByFusionType(UB_FUSION, buffer_fusion_priority_map);
 }
 
-Status FusionPriorityManager::GetGraphFusionPassesAndRules(const bool &is_single_op_scene,
-                                                           vector<FusionPassOrRule> &custom_pass_or_rule_vec,
-                                                           vector<FusionPassOrRule> &built_in_pass_or_rule_vec) const {
-  // init custom pass
+Status FusionPriorityManager::InitCustomPasses(const bool &is_single_op_scene,
+                                                vector<FusionPassOrRule> &custom_pass_or_rule_vec) const {
+  FE_LOGD("InitCustomPasses start.");
+  GraphFusionPassType pass_type;
   if (engine_name_ == fe::AI_CORE_NAME) {
-    if (GetGraphFusionPassInfosByType(CUSTOM_AI_CORE_GRAPH_PASS, is_single_op_scene,
-                                      custom_pass_or_rule_vec) != SUCCESS) {
-      REPORT_FE_ERROR(
-          "[GraphOpt][FusionConfig][InitPassRule] Failed to init sorted custom graph fusion passes for engine:%s",
-          engine_name_.c_str());
-      return FAILED;
-    }
+    pass_type = CUSTOM_AI_CORE_GRAPH_PASS;
+  } else if (engine_name_ == fe::VECTOR_CORE_NAME) {
+    pass_type = CUSTOM_VECTOR_CORE_GRAPH_PASS;
   } else {
-    if (GetGraphFusionPassInfosByType(CUSTOM_VECTOR_CORE_GRAPH_PASS, is_single_op_scene,
-                                      custom_pass_or_rule_vec) != SUCCESS) {
-      REPORT_FE_ERROR(
-          "[GraphOpt][FusionConfig][InitPassRule] Failed to init sorted custom graph fusion passes for engine:%s",
-          engine_name_.c_str());
-      return FAILED;
-    }
+    REPORT_FE_ERROR(
+        "[GraphOpt][FusionConfig][InitPassRule] Invalid engine name:%s, expected AI_CORE or VECTOR_CORE",
+        engine_name_.c_str());
+    return FAILED;
   }
 
-  // init custom rule
+  if (GetGraphFusionPassInfosByType(pass_type, is_single_op_scene, custom_pass_or_rule_vec) != SUCCESS) {
+    return FAILED;
+  }
+  return SUCCESS;
+}
+
+Status FusionPriorityManager::InitCustomRules(vector<FusionPassOrRule> &custom_pass_or_rule_vec) const {
+  FE_LOGD("InitCustomRules start.");
   vector<FusionPassOrRule> custom_graph_fusion_rule_infos;
   if (GetGraphFusionRuleInfosByType(RuleType::CUSTOM_GRAPH_RULE, custom_graph_fusion_rule_infos) != SUCCESS) {
     REPORT_FE_ERROR(
@@ -265,14 +266,19 @@ Status FusionPriorityManager::GetGraphFusionPassesAndRules(const bool &is_single
   }
   custom_pass_or_rule_vec.insert(custom_pass_or_rule_vec.cend(),
                                  custom_graph_fusion_rule_infos.cbegin(), custom_graph_fusion_rule_infos.cend());
+  return SUCCESS;
+}
 
-  // init built-in pass
+Status FusionPriorityManager::InitBuiltInPasses(const bool &is_single_op_scene,
+                                                 vector<FusionPassOrRule> &built_in_pass_or_rule_vec) const {
+  FE_LOGD("InitBuiltInPasses start.");
   vector<GraphFusionPassType> pass_type_vec;
   if (engine_name_ == fe::AI_CORE_NAME) {
     pass_type_vec = GRAPH_FUSION_PASS_TYPE_AICORE_VEC;
-  } else if (engine_name_ == fe::VECTOR_CORE_NAME) {
+  } else {
     pass_type_vec = GRAPH_FUSION_PASS_TYPE_VECTORCORE_VEC;
   }
+
   for (auto pass_type : pass_type_vec) {
     if (GetGraphFusionPassInfosByType(pass_type, is_single_op_scene, built_in_pass_or_rule_vec) != SUCCESS) {
       REPORT_FE_ERROR(
@@ -281,11 +287,13 @@ Status FusionPriorityManager::GetGraphFusionPassesAndRules(const bool &is_single
       return FAILED;
     }
   }
+  return SUCCESS;
+}
 
-  // init built-in rule
+Status FusionPriorityManager::InitBuiltInRules(vector<FusionPassOrRule> &built_in_pass_or_rule_vec) const {
+  FE_LOGD("InitBuiltInRules start.");
   vector<FusionPassOrRule> built_in_graph_fusion_rule_infos;
-  if (GetGraphFusionRuleInfosByType(RuleType::BUILT_IN_GRAPH_RULE,
-                                    built_in_graph_fusion_rule_infos) != SUCCESS) {
+  if (GetGraphFusionRuleInfosByType(RuleType::BUILT_IN_GRAPH_RULE, built_in_graph_fusion_rule_infos) != SUCCESS) {
     REPORT_FE_ERROR(
         "[GraphOpt][FusionConfig][InitPassRule] Failed to init sorted built-in graph fusion rules for engine:%s",
         engine_name_.c_str());
@@ -293,6 +301,24 @@ Status FusionPriorityManager::GetGraphFusionPassesAndRules(const bool &is_single
   }
   built_in_pass_or_rule_vec.insert(built_in_pass_or_rule_vec.cend(),
                                    built_in_graph_fusion_rule_infos.cbegin(), built_in_graph_fusion_rule_infos.cend());
+  return SUCCESS;
+}
+
+Status FusionPriorityManager::GetGraphFusionPassesAndRules(const bool &is_single_op_scene,
+                                                           vector<FusionPassOrRule> &custom_pass_or_rule_vec,
+                                                           vector<FusionPassOrRule> &built_in_pass_or_rule_vec) const {
+  if (InitCustomPasses(is_single_op_scene, custom_pass_or_rule_vec) != SUCCESS) {
+    return FAILED;
+  }
+  if (InitCustomRules(custom_pass_or_rule_vec) != SUCCESS) {
+    return FAILED;
+  }
+  if (InitBuiltInPasses(is_single_op_scene, built_in_pass_or_rule_vec) != SUCCESS) {
+    return FAILED;
+  }
+  if (InitBuiltInRules(built_in_pass_or_rule_vec) != SUCCESS) {
+    return FAILED;
+  }
   return SUCCESS;
 }
 

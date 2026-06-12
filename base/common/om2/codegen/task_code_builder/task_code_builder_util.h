@@ -27,7 +27,7 @@ class TaskCodeBuilderUtil {
                                              const std::vector<AddrSemantic> &input_addrs,
                                              const std::vector<AddrSemantic> &output_addrs,
                                              const std::vector<AddrSemantic> &workspace_addrs,
-                                             ModelTaskType task_type, Arg stream,
+                                             ModelTaskType task_type, uint32_t block_dim, Arg stream,
                                              const VarRef &model_id, const VarRef &instance_handle,
                                              const VarRef &args_table, bool use_args_info_size,
                                              bool is_raw_address = false);
@@ -36,7 +36,7 @@ class TaskCodeBuilderUtil {
                                                const std::vector<AddrSemantic> &input_addrs,
                                                const std::vector<AddrSemantic> &output_addrs,
                                                const std::vector<AddrSemantic> &workspace_addrs,
-                                               ModelTaskType task_type, Arg stream,
+                                               ModelTaskType task_type, uint32_t block_dim, Arg stream,
                                                const VarRef &model_id, const VarRef &instance_handle,
                                                const VarRef &args_table, Arg l0_info,
                                                bool use_args_info_size,

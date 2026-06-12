@@ -194,6 +194,12 @@ Stage2 在分区并合并后运行，此时需要处理：
 
 GE 的三阶段优化流程保证了优化顺序的可预测性——这对一个需要支持多种 AI 框架后端的编译器来说至关重要。GE 通过 `FusionPassExecutor` 提供了自定义 Pass 扩展点（`fusion/pass/fusion_pass_executor.h`），允许用户注册自定义融合 Pass。
 
+### 2.4 ATC 编译选项入口
+
+ATC 离线编译入口在 `api/atc/main_impl.cc` 中将命令行参数和可选 raw JSON 配置合并为一份扁平 options map，再传入 GE Compiler。raw JSON 只解析 `"compile options"`；ATC 会先按 CLI 优先级把 raw value 注入对应 `FLAGS_*`，复用原 CLI 校验、解析和副作用，再构造最终 options。进入编译器后不再区分 option 来源。
+
+相关设计见 [ATC Raw GE Options](../../features/atc_raw_ge_options.md)。
+
 ## 3. 融合优化
 
 ### 3.1 两条融合路线

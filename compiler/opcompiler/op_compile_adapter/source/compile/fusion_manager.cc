@@ -86,14 +86,16 @@ const std::string ATTR_NAME_SUPPORT_RELATION_REUSED = "_param_reused_relation";
 
 namespace {
 void PrintOp(const OpBuildTaskPtr &relBuildTaskPtr, const OpBuildTaskResultPtr &taskRes,
-             string &opNames, string &opTypes, int loglevel)
-{
+             string &opNames, string &opTypes, int loglevel) {
     size_t index = 0;
     if (relBuildTaskPtr->pPrebuildOp == nullptr) {
         size_t sizeOfNodes = relBuildTaskPtr->opNodes.size();
         for (auto node : relBuildTaskPtr->opNodes) {
+            if (node == nullptr) {
+                index++;
+                continue;
+            }
             opNames += node->GetName();
-
             opTypes += node->GetType();
             if (index < sizeOfNodes - 1) {
                 opNames += ", ";
@@ -105,11 +107,9 @@ void PrintOp(const OpBuildTaskPtr &relBuildTaskPtr, const OpBuildTaskResultPtr &
         (void)relBuildTaskPtr->pPrebuildOp->GetRealName(opNames);
         relBuildTaskPtr->pPrebuildOp->GetOpType(opTypes);
     }
-
     if (taskRes->errArgs.empty()) {
         return;
     }
-
     if (taskRes->type == 0) {
         TE_FUSION_LOG_FULL(loglevel, "Failed to pre-compile node [opName:%s, opType: %s].",
                            opNames.c_str(), opTypes.c_str());
@@ -130,7 +130,7 @@ void PrintOp(const OpBuildTaskPtr &relBuildTaskPtr, const OpBuildTaskResultPtr &
                                GetInputNodesDesc(*relBuildTaskPtr->opNodes[0]).c_str());
         }
     } else if (taskRes->type == OP_TASK_TYPE_FUSION) {
-        TE_INFOLOG("Compile fusion nodes [opName: %s, opType: %s] not successfully.", opNames.c_str(), opTypes.c_str());
+        TE_INFOLOG("Compile fusion nodes [opName: %s, opType: %s] unsuccessfully.", opNames.c_str(), opTypes.c_str());
     }
     if (taskRes->type == 0 || taskRes->type == 1) {
         TE_FUSION_LOG_FULL(loglevel, "Failed to compile node [opName:%s, opType: %s].",
@@ -239,21 +239,16 @@ void ParseAndPrintArgsString(const string& opNames, const string& opTypes,
 
 void OutputOverstepLog(const string &tailLine, int loglevel)
 {
-    if (tailLine.length() > (MSG_LENGTH - PLAIN_PREFIX_SIZE)) {
-        string spiltTailLine;
-        size_t end = (MSG_LENGTH - PLAIN_PREFIX_SIZE);
-        for (size_t start = 0;start < tailLine.length();) {
-            if (end > tailLine.length()) {
-                spiltTailLine = tailLine.substr(start, tailLine.length() - start);
-                TE_FUSION_LOG(loglevel, "Stack: \n  %s", spiltTailLine.c_str());
-            }
-            spiltTailLine = tailLine.substr(start, end - start);
-            start = end;
-            end = end + (MSG_LENGTH - PLAIN_PREFIX_SIZE);
-            TE_FUSION_LOG(loglevel, "Stack: \n  %s", spiltTailLine.c_str());
-        }
-    } else {
+    const size_t maxLength = MSG_LENGTH - PLAIN_PREFIX_SIZE;
+    if (tailLine.length() <= maxLength) {
         TE_FUSION_LOG(loglevel, "Stack: \n  %s", tailLine.c_str());
+        return;
+    }
+
+    for (size_t start = 0; start < tailLine.length(); start += maxLength) {
+        size_t length = std::min(maxLength, tailLine.length() - start);
+        string spiltTailLine = tailLine.substr(start, length);
+        TE_FUSION_LOG(loglevel, "Stack: \n  %s", spiltTailLine.c_str());
     }
 }
 
@@ -424,15 +419,15 @@ bool TeFusionManager::SetOpParamsL1Info(ge::Node *pNode)
     return PythonApiCall::Instance().SetL1SpaceSize(tbeOpInfo->GetL1Space());
 }
 
-bool TeFusionManager::RefreshCacheAndSinalManager()
+bool TeFusionManager::RefreshCacheAndSignalManager()
 {
     if (!TeConfigInfo::Instance().RefreshConfigItems()) {
-        TE_WARNLOG("Failed to refresh config params.")
+        TE_WARNLOG("Failed to refresh config params.");
         return false;
     }
     // init cache manager
     if (!TeCacheManager::Instance().Initialize()) {
-        TE_WARNLOG("Failed to initialize cache manager.")
+        TE_WARNLOG("Failed to initialize cache manager.");
         return false;
     }
     SignalManager::Instance().SaveKernelTempDir(TeConfigInfo::Instance().GetKernelMetaTempDir());
@@ -481,7 +476,7 @@ bool TeFusionManager::IsOpdebugCompile(const std::vector<ge::Node *> &nodes)
 
 bool TeFusionManager::CanReuseBuildDiskCache(const OpBuildTaskPtr &opTask)
 {
-    if (opTask->opNodes.size() == 0) {
+    if (opTask->opNodes.empty()) {
         TE_WARNLOGF("There is no node in opTask.");
         return false;
     }
@@ -490,7 +485,7 @@ bool TeFusionManager::CanReuseBuildDiskCache(const OpBuildTaskPtr &opTask)
     if (IsOpdebugCompile(opTask->opNodes)) {
         DfxInfoManager::Instance().RecordStatistics(
             StatisticsType::DISK_CACHE, RecordEventType::REUSE_FAIL);
-        TE_DBGLOGF("Node[%s] is cannot reused DiskCache.", opTask->opNodes[0]->GetName().c_str());
+        TE_DBGLOGF("Node[%s] cannot be reused DiskCache.", opTask->opNodes[0]->GetName().c_str());
         return false;
     }
 
@@ -1450,7 +1445,7 @@ void TeFusionManager::GetOpModuleName(const OpBuildTaskPtr &relBuildTaskPtr, str
             const TbeOpInfo &tbeOpInfo = *opInfo;
             UpdateOpModuleFromStaicToDynamicAndAddPrefix(tbeOpInfo, name);
             if (idx != 0) {
-                opModuleNames += + " | ";
+                opModuleNames += " | ";
             }
             opModuleNames += name;
             opModuleNames += ".py";
@@ -1467,7 +1462,8 @@ void TeFusionManager::GetOpModuleName(const OpBuildTaskPtr &relBuildTaskPtr, str
 bool TeFusionManager::UpdateInhibitionInfoForLog()
 {
     const std::time_t now = std::time(nullptr);
-    const std::tm *const ptm = std::localtime(&now);
+    std::tm tm_result;
+    const std::tm *const ptm = localtime_r(&now, &tm_result);
     if (ptm == nullptr) {
         TE_WARNLOG("Get local time failed.");
         return false;
@@ -1483,7 +1479,8 @@ bool TeFusionManager::UpdateInhibitionInfoForLog()
 bool TeFusionManager::IsTimeToPrintProgressHint()
 {
     const std::time_t now = std::time(nullptr);
-    const std::tm *const ptm = std::localtime(&now);
+    std::tm tm_result;
+    const std::tm *const ptm = localtime_r(&now, &tm_result);
     if (ptm == nullptr) {
         TE_WARNLOG("Get local time failed.");
         return false;
@@ -1508,86 +1505,172 @@ void TeFusionManager::PrintProgressHint()
     }
 }
 
-bool TeFusionManager::GetFinishedCompilationTask(uint64_t graphId)
-{
+bool TeFusionManager::ValidateAndGetRelBuildTask(const OpBuildTaskResultPtr &taskRes,
+                                                   OpBuildTaskPtr &relBuildTaskPtr,
+                                                   std::pair<uint64_t, uint64_t> &graphMapKey) {
+    if (taskRes == nullptr) {
+        TE_ERRLOG("Parse build task result error");
+        return false;
+    }
+
+    graphMapKey.first = taskRes->graphId;
+    graphMapKey.second = taskRes->taskId;
+
+    const auto historyGraphItr = dispatchedTask_.find(graphMapKey);
+    if (historyGraphItr == dispatchedTask_.end()) {
+        TE_WARNLOG("Couldn't find related compilation task[%lu:%lu] in dispatchedTask_, maybe timed-out",
+                   graphMapKey.first, graphMapKey.second);
+        return false;
+    }
+
+    relBuildTaskPtr = historyGraphItr->second;
+    if (relBuildTaskPtr == nullptr) {
+        TE_ERRLOG("relBuildTaskPtr is nullptr for task[%lu:%lu]", graphMapKey.first, graphMapKey.second);
+        return false;
+    }
+
+    dispatchedTask_.erase(historyGraphItr);
+    return true;
+}
+
+void TeFusionManager::PrepareOpInfo(const OpBuildTaskPtr &relBuildTaskPtr,
+                                     const OpBuildTaskResultPtr &taskRes,
+                                     std::string &opNames,
+                                     std::string &opTypes,
+                                     std::string &opModuleNames,
+                                     int loglevel) {
+    PrintOp(relBuildTaskPtr, taskRes, opNames, opTypes, loglevel);
+    GetOpModuleName(relBuildTaskPtr, opModuleNames);
+}
+
+void TeFusionManager::PreparePreCompileInfo(const OpBuildTaskResultPtr &taskRes,
+                                             std::string &opPattern,
+                                             std::string &coreType,
+                                             std::string &prebuiltOptions) {
+    opPattern.clear();
+    coreType.clear();
+    prebuiltOptions.clear();
+
+    if (taskRes->preCompileRetPtr != nullptr) {
+        opPattern = taskRes->preCompileRetPtr->opPattern;
+        coreType = taskRes->preCompileRetPtr->coreType;
+        prebuiltOptions = taskRes->preCompileRetPtr->prebuiltOptions;
+    } else {
+        TE_WARNLOG("preCompileRetPtr is nullptr for task[%lu:%lu]", taskRes->graphId, taskRes->taskId);
+    }
+}
+
+void TeFusionManager::LogTaskDetails(const OpBuildTaskResultPtr &taskRes,
+                                      const std::string &opNames,
+                                      const std::string &opTypes,
+                                      const std::string &opModuleNames,
+                                      const std::string &opPattern,
+                                      const std::string &coreType,
+                                      const std::string &prebuiltOptions,
+                                      int loglevel) {
+    TE_FUSION_LOG_FULL(loglevel,
+        "TaskID[%lu:%lu], opNames[%s], opType[%s], status[%d], result[%s], File[%s], compile result{%s},"
+        " key[%s], pattern[%s], core type[%s], prebuilt_options[%s], json file path[%s].",
+        taskRes->graphId, taskRes->taskId, opNames.c_str(), opTypes.c_str(), taskRes->statusCode,
+        taskRes->result.c_str(), opModuleNames.c_str(),
+        taskRes->infoMsg.c_str(), taskRes->compile_info_key.c_str(), opPattern.c_str(),
+        coreType.c_str(), prebuiltOptions.c_str(), taskRes->jsonFilePath.c_str());
+}
+
+void TeFusionManager::ProcessErrorInfo(const OpBuildTaskPtr &relBuildTaskPtr,
+                                        const OpBuildTaskResultPtr &taskRes,
+                                        const std::string &opNames,
+                                        const std::string &opTypes,
+                                        const std::string &opModuleNames,
+                                        int loglevel,
+                                        std::string &errorMsg) {
+    if (taskRes->result == COMPILER_PROCESS_DIED && taskRes->errArgs.empty()) {
+        return;
+    }
+    ParseAndPrintArgsString(opNames, opTypes, taskRes, loglevel);
+    ParseAndPrintArgsExceptionStack(opNames, taskRes, loglevel, errorMsg);
+    ReportBuildErrMessage(relBuildTaskPtr, opModuleNames, taskRes, errorMsg);
+}
+
+bool TeFusionManager::SetBuildResults(OpBuildTaskPtr &relBuildTaskPtr,
+                                       OpBuildTaskResultPtr &taskRes) {
+    if (relBuildTaskPtr->pPrebuildOp == nullptr) {
+        TE_FUSION_CHECK(!(SetBuildResult(relBuildTaskPtr, taskRes)), {
+            TE_ERRLOG("Setting task[%lu:%lu] build result failed.", taskRes->graphId, taskRes->taskId);
+            return false;
+        });
+    } else {
+        TE_FUSION_CHECK(!(SetPreBuildResult(relBuildTaskPtr, taskRes)), {
+            TE_ERRLOG("Task[%lu:%lu] set prebuild result failed.", taskRes->graphId, taskRes->taskId);
+            return false;
+        });
+    }
+    return true;
+}
+
+void TeFusionManager::AddToFinishedTaskList(const OpBuildTaskPtr &relBuildTaskPtr,
+                                             const OpBuildTaskResultPtr &taskRes,
+                                             FinComTask &finshedTaskItem) {
+    finshedTaskItem.teNodeOpDesc = relBuildTaskPtr->outNode;
+    finshedTaskItem.graphId = taskRes->graphId;
+    finshedTaskItem.taskId = taskRes->taskId;
+    finshedTaskItem.status = taskRes->statusCode;
+    finshedTaskItem.errMsg = taskRes->infoMsg;
+    finComTaskList.push_back(finshedTaskItem);
+}
+
+void TeFusionManager::LogTaskCompletion(const FinComTask &finshedTaskItem,
+                                        const OpBuildTaskPtr &relBuildTaskPtr,
+                                        const std::string &opNames,
+                                        const std::string &opTypes) {
+    TE_INFOLOG("Get finished task[%lu:%lu] status[%s] from compile list.",
+               finshedTaskItem.graphId, finshedTaskItem.taskId,
+               (finshedTaskItem.status == 0) ? "success" : "unsuccess");
+
+    std::time_t now = std::time(nullptr);
+    TE_DBGLOG("Task[%lu:%lu] for [node:%s, type:%s] cost %lfs after dispatch.",
+              finshedTaskItem.graphId, finshedTaskItem.taskId,
+              opNames.c_str(), opTypes.c_str(),
+              std::difftime(now, relBuildTaskPtr->start_time));
+}
+
+bool TeFusionManager::GetFinishedCompilationTask(uint64_t graphId) {
     std::vector<OpBuildTaskResultPtr> taskRetVec;
     if (!PythonAdapterManager::Instance().GetFinishedCompilationTask(graphId, taskRetVec)) {
         return false;
     }
-    // parser finished task list from python list to C++ list
+
     for (OpBuildTaskResultPtr &taskRes : taskRetVec) {
-        if (taskRes == nullptr) {
-            TE_ERRLOG("Parse build task result error");
-            return false;
+        OpBuildTaskPtr relBuildTaskPtr = nullptr;
+        std::pair<uint64_t, uint64_t> graphMapKey;
+        if (!ValidateAndGetRelBuildTask(taskRes, relBuildTaskPtr, graphMapKey)) {
+            continue;
         }
 
         int loglevel = SetLogLevel(taskRes);
-        std::pair<uint64_t, uint64_t> graphMapKey;
-        graphMapKey.first = taskRes->graphId;
-        graphMapKey.second = taskRes->taskId;
+        std::string opNames;
+        std::string opTypes;
+        std::string opModuleNames;
+        PrepareOpInfo(relBuildTaskPtr, taskRes, opNames, opTypes, opModuleNames, loglevel);
 
-        const std::map<OpTaskKey, OpBuildTaskPtr>::const_iterator historyGraphItr = dispatchedTask_.find(graphMapKey);
-        if (historyGraphItr == dispatchedTask_.end()) {
-            TE_WARNLOG("Couldn't find related compilation task[%lu:%lu] in dispatchedTask_, maybe timed-out",
-                       graphMapKey.first, graphMapKey.second);
-            continue;
+        std::string opPattern;
+        std::string coreType;
+        std::string prebuiltOptions;
+        PreparePreCompileInfo(taskRes, opPattern, coreType, prebuiltOptions);
+
+        LogTaskDetails(taskRes, opNames, opTypes, opModuleNames, opPattern, coreType, prebuiltOptions, loglevel);
+
+        std::string errorMsg;
+        ProcessErrorInfo(relBuildTaskPtr, taskRes, opNames, opTypes, opModuleNames, loglevel, errorMsg);
+
+        if (!SetBuildResults(relBuildTaskPtr, taskRes)) {
+            return false;
         }
-        OpBuildTaskPtr relBuildTaskPtr = historyGraphItr->second;
-        TE_FUSION_CHECK(relBuildTaskPtr == nullptr, return false);
-
-        dispatchedTask_.erase(historyGraphItr);
-        string opNames;
-        string opTypes;
-
-        PrintOp(relBuildTaskPtr, taskRes, opNames, opTypes, loglevel);
-        string opModuleNames;
-        GetOpModuleName(relBuildTaskPtr, opModuleNames);
-        TE_FUSION_LOG_FULL(loglevel,
-            "TaskID[%lu:%lu], opNames[%s], opType[%s], status[%d], result[%s], File[%s], compile result{%s},"
-            " key[%s], pattern[%s], core type[%s], prebuilt_options[%s], json file path[%s].",
-            taskRes->graphId, taskRes->taskId, opNames.c_str(), opTypes.c_str(), taskRes->statusCode,
-            taskRes->result.c_str(), opModuleNames.c_str(),
-            taskRes->infoMsg.c_str(), taskRes->compile_info_key.c_str(), taskRes->preCompileRetPtr->opPattern.c_str(),
-            taskRes->preCompileRetPtr->coreType.c_str(), taskRes->preCompileRetPtr->prebuiltOptions.c_str(),
-            taskRes->jsonFilePath.c_str());
-        if (taskRes->result == COMPILER_PROCESS_DIED && taskRes->errArgs.empty()) {
-            continue;
-        }
-        ParseAndPrintArgsString(opNames, opTypes, taskRes, loglevel);
-        string errorMsg;
-        ParseAndPrintArgsExceptionStack(opNames, taskRes, loglevel, errorMsg);
-        ReportBuildErrMessage(relBuildTaskPtr, opModuleNames, taskRes, errorMsg);
 
         FinComTask finshedTaskItem;
-        if (relBuildTaskPtr->pPrebuildOp == nullptr) {
-            finshedTaskItem.teNodeOpDesc = relBuildTaskPtr->outNode;
-            TE_FUSION_CHECK(!(SetBuildResult(relBuildTaskPtr, taskRes)), {
-                TE_ERRLOG("Setting task[%lu:%lu] build result failed.",
-                                taskRes->graphId, taskRes->taskId);
-                return false;
-            });
-        } else {
-            TE_FUSION_CHECK(!(SetPreBuildResult(relBuildTaskPtr, taskRes)), {
-                TE_ERRLOG("Task[%lu:%lu] set prebuild result failed.",
-                                taskRes->graphId, taskRes->taskId);
-                return false;
-            });
-        }
+        AddToFinishedTaskList(relBuildTaskPtr, taskRes, finshedTaskItem);
+        LogTaskCompletion(finshedTaskItem, relBuildTaskPtr, opNames, opTypes);
 
-        finshedTaskItem.graphId = taskRes->graphId;
-        finshedTaskItem.taskId = taskRes->taskId;
-        finshedTaskItem.status = taskRes->statusCode;
-        finshedTaskItem.errMsg = taskRes->infoMsg;
-        finComTaskList.push_back(finshedTaskItem);
-        TE_INFOLOG("Get finished task[%lu:%lu] status[%s] from compile list.",
-                   finshedTaskItem.graphId, finshedTaskItem.taskId,
-                   (finshedTaskItem.status == 0) ? "success" : "unsuccess");
-
-        std::time_t now = std::time(nullptr);
-        TE_DBGLOG("Task[%lu:%lu] for [node:%s, type:%s] cost %lfs after dispatch.", finshedTaskItem.graphId,
-                  finshedTaskItem.taskId, opNames.c_str(), opTypes.c_str(),
-                  std::difftime(now, relBuildTaskPtr->start_time));
-        // get task from cashed task list
         TE_FUSION_CHECK(!FinishPendingTask(relBuildTaskPtr, taskRes), {
             TE_ERRLOG("Unable to get cached task.");
             return false;
@@ -1798,7 +1881,7 @@ void TeFusionManager::DelDispatchedTaskByKey(uint64_t graphId, uint64_t taskId)
 
 void TeFusionManager::DelDispatchedTask(std::vector<OpBuildTaskPtr> &vecOpBuildTask, int index)
 {
-    if (vecOpBuildTask.size() == 0) {
+    if (vecOpBuildTask.empty()) {
         return;
     }
 
@@ -1982,7 +2065,7 @@ OpBuildResCode TeFusionManager::BuildTbeOp(OpBuildTaskPtr &opTask,
     opTask->isBuildBinarySingleOp = false;
     opTask->isBuildBinaryFusionOp = false;
     TE_DBGLOG("Sgt slice shape index is [%lu], buildType is [%d]", opTask->sgt_slice_shape_index, opTask->buildType);
-    if (!RefreshCacheAndSinalManager()) {
+    if (!RefreshCacheAndSignalManager()) {
         TE_WARNLOG("Failed to init compile cache.");
         return OP_BUILD_FAIL;
     }

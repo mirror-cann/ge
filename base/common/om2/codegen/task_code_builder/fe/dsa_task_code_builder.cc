@@ -278,7 +278,7 @@ void DSATaskCodeBuilder::RenderHbmArgsCopy(const VarRef &sqe_var, std::vector<Bo
   (void)TaskCodeBuilderUtil::AppendReportLaunchedTaskCall(
       ast_, items, "op" + std::to_string(header_.op_index) + "_dsa", header_,
       hbm_entry_.has_value() ? &(*hbm_entry_) : nullptr, input_addrs_, output_addrs_, workspace_addrs_,
-      ModelTaskType::MODEL_TASK_DSA, stream_list_[static_cast<int64_t>(header_.stream_id)], model_id_,
+      ModelTaskType::MODEL_TASK_DSA, 0U, stream_list_[static_cast<int64_t>(header_.stream_id)], model_id_,
       instance_handle_, args_table_, false, true);
 }
 

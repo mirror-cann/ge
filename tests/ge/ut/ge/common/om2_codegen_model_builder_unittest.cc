@@ -1282,7 +1282,7 @@ TEST_F(Om2CodegenModelBuilderUt, RenderDistribution_UsesSemanticLaunchAndArgs_Ai
                       "reinterpret_cast<uintptr_t>(args_table_.GetArgsInfo(0)->dev_addr), "
                       "args_table_.GetArgsInfo(0)->size, op2_report_inputs, 2UL, op2_report_outputs, 1U, "
                       "op2_report_workspace_addrs, op2_report_workspace_sizes, 1U, 0U, "
-                      "stream_list_[0], model_id_, instance_handle_))"),
+                      "8U, stream_list_[0], model_id_, instance_handle_))"),
             std::string::npos);
   EXPECT_NE(code.find("args_table_.GetArgsInfo(" +
                           std::to_string(kernel_task.args_table_entry->table_index) + ")"),
@@ -1317,7 +1317,7 @@ TEST_F(Om2CodegenModelBuilderUt, RenderDistribution_UsesConstInputTensor_Aicore_
                       "reinterpret_cast<uintptr_t>(args_table_.GetArgsInfo(0)->dev_addr), "
                       "args_table_.GetArgsInfo(0)->size, op2_report_inputs, 2UL, op2_report_outputs, 1U, "
                       "op2_report_workspace_addrs, op2_report_workspace_sizes, 1U, 0U, "
-                      "stream_list_[0], model_id_, instance_handle_))"),
+                      "8U, stream_list_[0], model_id_, instance_handle_))"),
             std::string::npos);
 }
 

@@ -93,7 +93,7 @@ Status GraphOptimize::OptimizeSubGraph(ComputeGraphPtr &compute_graph, const std
     OpsKernelManager::GetInstance().GetGraphOptimizerByEngine(engine_name, graph_optimizer);
     AddNodeInputProperty(compute_graph);
 
-    if (compute_graph->GetDirectNode().size() == 0) {
+    if (compute_graph->GetDirectNode().empty()) {
       GELOGW("[OptimizeSubGraph] compute_graph do not has any node.");
       return SUCCESS;
     }

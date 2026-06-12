@@ -725,6 +725,7 @@ TEST_F(Om2CodegenUt, LoadAndRunDumpHelpers_EmitInAnonymousNamespace_Ok) {
       "aclError ReportLaunchedOm2Task(const char *op_name, const char *op_type, uint64_t op_desc_id,\n",
       "const uint64_t *workspace_addrs, const uint64_t *workspace_sizes,\n",
       "uint32_t workspace_num,\n",
+      "uint32_t task_type, uint32_t block_dim, void *stream,\n",
       "uint8_t GetIsDataDump(const char *op_name, uint32_t model_id, void *instance_handle) {\n",
   });
 }

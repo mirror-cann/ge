@@ -19,8 +19,11 @@
 #include "framework/runtime/dump/overflow_dump_impl.h"
 #include "framework/runtime/dump/data_dump_impl.h"
 #include "framework/runtime/dump/exception_dump_impl.h"
+#include "framework/runtime/dump/profiling_config.h"
+#include "framework/runtime/dump/profiling_callback_manager.h"
 #include "common/ge_common/ge_log.h"
 #include "dump_stub.h"
+#include "aprof_pub.h"
 
 using namespace testing;
 using namespace ge::dump;
@@ -712,6 +715,133 @@ TEST(OverflowDumpImplTest, ConstructorDestructorTest) {
 TEST(OverflowDumpImplTest, IsOpDebugEnabledDefaultTest) {
     OverflowDumpImpl impl;
     EXPECT_FALSE(impl.IsOpDebugEnabled());
+}
+
+// ProfilingConfig 测试类
+class ProfilingConfigTest : public Test {
+ protected:
+  void SetUp() override {
+    ProfilingConfig::Instance().Disable();
+  }
+
+  void TearDown() override {
+    ProfilingConfig::Instance().Disable();
+  }
+};
+
+TEST_F(ProfilingConfigTest, ProfilingConfigDefaultDisabled) {
+  EXPECT_FALSE(ProfilingConfig::Instance().IsEnabled());
+  EXPECT_FALSE(ProfilingConfig::Instance().IsTaskTimeEnabled());
+  EXPECT_FALSE(ProfilingConfig::Instance().IsDeviceEnabled());
+}
+
+TEST_F(ProfilingConfigTest, ProfilingConfigEnableAndDisable) {
+  ProfilingOptions options;
+  options.task_time_enabled = true;
+  options.device_enabled = true;
+  options.module = 0x3U;
+  options.cache_flag = 1U;
+  options.device_list = {0U, 1U};
+  options.config_params.emplace("devNums", "2");
+  options.config_params.emplace("devIdList", "0,1");
+
+  EXPECT_EQ(ProfilingConfig::Instance().Enable(options), SUCCESS);
+  EXPECT_TRUE(ProfilingConfig::Instance().IsEnabled());
+  EXPECT_TRUE(ProfilingConfig::Instance().IsTaskTimeEnabled());
+  EXPECT_TRUE(ProfilingConfig::Instance().IsDeviceEnabled());
+
+  const auto saved_options = ProfilingConfig::Instance().GetOptions();
+  EXPECT_EQ(saved_options.module, 0x3U);
+  EXPECT_EQ(saved_options.cache_flag, 1U);
+  ASSERT_EQ(saved_options.device_list.size(), 2U);
+  EXPECT_EQ(saved_options.device_list[0U], 0U);
+  EXPECT_EQ(saved_options.device_list[1U], 1U);
+  EXPECT_EQ(saved_options.config_params.at("devNums"), "2");
+  EXPECT_EQ(saved_options.config_params.at("devIdList"), "0,1");
+
+  ProfilingConfig::Instance().Disable();
+  EXPECT_FALSE(ProfilingConfig::Instance().IsEnabled());
+}
+
+TEST_F(ProfilingConfigTest, StartEnablesConfig) {
+  ProfilingConfig::Instance().Disable();
+
+  MsprofCommandHandle cmd = {};
+  cmd.type = 1U;
+  cmd.profSwitch = PROF_TASK_TIME_MASK | PROF_TASK_TIME_L1_MASK;
+  cmd.cacheFlag = 7U;
+  cmd.devNums = 2U;
+  cmd.devIdList[0U] = 0U;
+  cmd.devIdList[1U] = 1U;
+
+  rtError_t ret = ProfilingCallbackManager::ProfilingCtrlCallback(RT_PROF_CTRL_SWITCH, &cmd, sizeof(cmd));
+  EXPECT_EQ(ret, RT_ERROR_NONE);
+
+  EXPECT_TRUE(ProfilingConfig::Instance().IsEnabled());
+  EXPECT_TRUE(ProfilingConfig::Instance().IsTaskTimeEnabled());
+  EXPECT_TRUE(ProfilingConfig::Instance().IsDeviceEnabled());
+
+  const auto options = ProfilingConfig::Instance().GetOptions();
+  EXPECT_EQ(options.module, PROF_TASK_TIME_MASK | PROF_TASK_TIME_L1_MASK);
+  EXPECT_EQ(options.cache_flag, 7U);
+  ASSERT_EQ(options.device_list.size(), 2U);
+  EXPECT_EQ(options.device_list[0U], 0U);
+  EXPECT_EQ(options.device_list[1U], 1U);
+  EXPECT_EQ(options.config_params.at("devNums"), "2");
+  EXPECT_EQ(options.config_params.at("devIdList"), "0,1");
+}
+
+TEST_F(ProfilingConfigTest, StopDisablesConfig) {
+  // First enable profiling
+  ProfilingOptions options;
+  options.task_time_enabled = true;
+  options.device_enabled = true;
+  ASSERT_EQ(ProfilingConfig::Instance().Enable(options), SUCCESS);
+  EXPECT_TRUE(ProfilingConfig::Instance().IsEnabled());
+
+  // Then send stop command
+  MsprofCommandHandle cmd = {};
+  cmd.type = 2U;
+
+  rtError_t ret = ProfilingCallbackManager::ProfilingCtrlCallback(RT_PROF_CTRL_SWITCH, &cmd, sizeof(cmd));
+  EXPECT_EQ(ret, RT_ERROR_NONE);
+  EXPECT_FALSE(ProfilingConfig::Instance().IsEnabled());
+}
+
+TEST_F(ProfilingConfigTest, IgnoreUnsupportedCtrlType) {
+  ProfilingOptions options;
+  options.task_time_enabled = true;
+  ASSERT_EQ(ProfilingConfig::Instance().Enable(options), SUCCESS);
+  EXPECT_TRUE(ProfilingConfig::Instance().IsEnabled());
+
+  rtError_t ret = ProfilingCallbackManager::ProfilingCtrlCallback(0U, nullptr, 0U);
+  EXPECT_EQ(ret, RT_ERROR_NONE);
+  EXPECT_TRUE(ProfilingConfig::Instance().IsEnabled());
+
+  MsprofCommandHandle cmd = {};
+  cmd.type = 2U;
+  ret = ProfilingCallbackManager::ProfilingCtrlCallback(3U, &cmd, sizeof(cmd));
+  EXPECT_EQ(ret, RT_ERROR_NONE);
+  EXPECT_TRUE(ProfilingConfig::Instance().IsEnabled());
+}
+
+TEST_F(ProfilingConfigTest, RejectsInvalidInput) {
+  // First enable profiling
+  ProfilingOptions options;
+  options.task_time_enabled = true;
+  ASSERT_EQ(ProfilingConfig::Instance().Enable(options), SUCCESS);
+  EXPECT_TRUE(ProfilingConfig::Instance().IsEnabled());
+
+  // Test null data
+  rtError_t ret = ProfilingCallbackManager::ProfilingCtrlCallback(RT_PROF_CTRL_SWITCH, nullptr, 0U);
+  EXPECT_EQ(ret, static_cast<rtError_t>(-1));
+  EXPECT_TRUE(ProfilingConfig::Instance().IsEnabled());
+
+  // Test zero data_len
+  MsprofCommandHandle cmd = {};
+  ret = ProfilingCallbackManager::ProfilingCtrlCallback(RT_PROF_CTRL_SWITCH, &cmd, 0U);
+  EXPECT_EQ(ret, static_cast<rtError_t>(-1));
+  EXPECT_TRUE(ProfilingConfig::Instance().IsEnabled());
 }
 
 }  // namespace ge

@@ -282,8 +282,8 @@ ACL_FUNC_VISIBILITY aclError GetCurGearIndex(const aclmdlDesc *const modelDesc,
     return ACL_ERROR_FAILURE;
 }
 
-ACL_FUNC_VISIBILITY aclError GetCurOuputShapeInfo(const aclmdlDesc *const modelDesc, const size_t idex,
-                                                   const size_t curGearIndex, aclmdlIODims *const dims)
+ACL_FUNC_VISIBILITY aclError GetCurOuputShapeInfo(const aclmdlDesc* const modelDesc, const size_t index,
+                                                  const size_t curGearIndex, aclmdlIODims* const dims)
 {
     ACL_LOG_DEBUG("curGearIndex is %zu, dynamicOutputShapeInfoSize is %zu , modelId is %u",
         curGearIndex, modelDesc->dynamicOutputShape.size(), modelDesc->modelId);
@@ -294,16 +294,16 @@ ACL_FUNC_VISIBILITY aclError GetCurOuputShapeInfo(const aclmdlDesc *const modelD
             return ACL_ERROR_FAILURE;
         }
         if (((static_cast<int64_t>(curGearIndex) == it[0U]) || (it[0U] == -1)) &&
-            (static_cast<int64_t>(idex) == it[1U])) {
+            (static_cast<int64_t>(index) == it[1U])) {
             int32_t idx = 0;
             for (size_t i = 2U; i < it.size(); ++i) {
                 dims->dims[idx] = it[i];
                 idx++;
             }
             dims->dimCount = it.size() - 2U;
-            const aclmdlTensorDesc &tensorDesc = modelDesc->outputDesc[idex];
+            const aclmdlTensorDesc &tensorDesc = modelDesc->outputDesc[index];
             const auto ret = GetTensorDescNameToDims(modelDesc, tensorDesc.name,
-                                                     TensorType::OUTPUT_TENSOR_TYPE, idex, dims);
+                                                     TensorType::OUTPUT_TENSOR_TYPE, index, dims);
             if (ret != ACL_SUCCESS) {
                 ACL_LOG_INNER_ERROR("[Get][TensorDescName]get tensor desc name to dims failed, errorCode = %d", ret);
                 return ret;

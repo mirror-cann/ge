@@ -130,7 +130,7 @@ Status TaskCodeBuilderUtil::AppendReportLaunchedTaskCall(AstBuildContext &ast, s
                                                          const std::vector<AddrSemantic> &input_addrs,
                                                          const std::vector<AddrSemantic> &output_addrs,
                                                          const std::vector<AddrSemantic> &workspace_addrs,
-                                                         ModelTaskType task_type, Arg stream,
+                                                         ModelTaskType task_type, uint32_t block_dim, Arg stream,
                                                          const VarRef &model_id, const VarRef &instance_handle,
                                                          const VarRef &args_table, bool use_args_info_size,
                                                          bool is_raw_address) {
@@ -193,6 +193,7 @@ Status TaskCodeBuilderUtil::AppendReportLaunchedTaskCall(AstBuildContext &ast, s
   }
   (void)args.emplace_back(ast.UInt(static_cast<uint32_t>(workspace_num)));
   (void)args.emplace_back(ast.UInt(static_cast<uint32_t>(task_type)));
+  (void)args.emplace_back(ast.UInt(block_dim));
   (void)args.emplace_back(stream);
   (void)args.emplace_back(model_id);
   (void)args.emplace_back(instance_handle);
@@ -206,7 +207,7 @@ Status TaskCodeBuilderUtil::AppendReportLaunchedTaskCall(AstBuildContext &ast, s
 ExprRef TaskCodeBuilderUtil::BuildReportTaskPreprocessCall(
     AstBuildContext &ast, const TaskSemanticHeader &header, const ArgsTableEntrySemantic *args_table_entry,
     const std::vector<AddrSemantic> &input_addrs, const std::vector<AddrSemantic> &output_addrs,
-    const std::vector<AddrSemantic> &workspace_addrs, ModelTaskType task_type, Arg stream,
+    const std::vector<AddrSemantic> &workspace_addrs, ModelTaskType task_type, uint32_t block_dim, Arg stream,
     const VarRef &model_id, const VarRef &instance_handle, const VarRef &args_table, Arg l0_info,
     bool use_args_info_size, bool is_raw_address) {
   std::vector<Arg> args;
@@ -228,6 +229,7 @@ ExprRef TaskCodeBuilderUtil::BuildReportTaskPreprocessCall(
   (void)args.emplace_back(TaskCodeBuilderUtil::BuildWorkspaceAddrs(ast, workspace_addrs));
   (void)args.emplace_back(TaskCodeBuilderUtil::BuildWorkspaceSizes(ast, workspace_addrs));
   (void)args.emplace_back(ast.UInt(static_cast<uint32_t>(task_type)));
+  (void)args.emplace_back(ast.UInt(block_dim));
   (void)args.emplace_back(stream);
   (void)args.emplace_back(l0_info);
   (void)args.emplace_back(model_id);

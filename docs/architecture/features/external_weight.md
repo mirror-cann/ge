@@ -7,7 +7,7 @@
 | 接口 | 文件 | 说明 |
 |------|------|------|
 | ATC `--external_weight` | `api/atc/main_impl.cc` | 0=内嵌(默认), 1=独立文件, 2=合并文件 |
-| `ge.externalWeight` option | `inc/graph_metadef/external/ge_common/ge_api_types.h` | 在线编译时设置，Hybrid 模式默认=1 |
+| `ge.externalWeight` option | `inc/graph_metadef/external/ge_common/ge_common_api_types.h` | 在线编译时设置，Hybrid 模式默认=1 |
 | `ge.externalWeightDir` option | 同上 | 指定权重落盘路径 |
 | `aclmdlSetExternalWeightAddress` | `inc/external/acl/acl_mdl.h` | 加载时设置用户 Device 内存，优先级高于 ACL_MDL_WEIGHT_PATH_PTR |
 | `CompiledGraphSummary::GetExternalWeightPaths` | `inc/external/ge/ge_graph_compile_summary.h` | 编译后获取 `ExternalWeightDesc` 列表（路径/大小/偏移/ID） |

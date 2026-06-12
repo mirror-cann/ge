@@ -686,7 +686,7 @@ Status KernelTaskCodeBuilder::AppendDistributionForAicpu(const std::vector<Arg> 
       ast_, items, "op" + std::to_string(header_.op_index), header_,
       semantic_.args_table_entry.has_value() ? &(*semantic_.args_table_entry) : nullptr,
       semantic_.input_addrs, semantic_.output_addrs, semantic_.workspace_addrs,
-      semantic_.task_type, stream_list_[static_cast<int64_t>(semantic_.launch.stream_id)],
+      semantic_.task_type, semantic_.launch.block_dim, stream_list_[static_cast<int64_t>(semantic_.launch.stream_id)],
       model_id_, instance_handle_, args_table_, /*use_args_info_size=*/true));
   return SUCCESS;
 }
@@ -733,7 +733,7 @@ Status KernelTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> &items) {
         ast_, items, "op" + std::to_string(header_.op_index), header_,
         semantic_.args_table_entry.has_value() ? &(*semantic_.args_table_entry) : nullptr,
         semantic_.input_addrs, semantic_.output_addrs, semantic_.workspace_addrs,
-        semantic_.task_type, stream_list_[static_cast<int64_t>(semantic_.launch.stream_id)],
+        semantic_.task_type, semantic_.launch.block_dim, stream_list_[static_cast<int64_t>(semantic_.launch.stream_id)],
         model_id_, instance_handle_, args_table_, /*use_args_info_size=*/true));
   } else if (IsAicpuTask(semantic_) || IsCustAicpuTask(semantic_)) {
     GE_ASSERT_SUCCESS(AppendDistributionForAicpu(args_vars, items));
@@ -1117,8 +1117,8 @@ ExprRef KernelTaskCodeBuilder::BuildReportTaskPreprocessCall(Arg l0_info) const 
   return TaskCodeBuilderUtil::BuildReportTaskPreprocessCall(
       ast_, header_, semantic_.args_table_entry.has_value() ? &(*semantic_.args_table_entry) : nullptr,
       semantic_.input_addrs, semantic_.output_addrs, semantic_.workspace_addrs, semantic_.task_type,
-      stream_list_[static_cast<int64_t>(semantic_.launch.stream_id)], model_id_, instance_handle_, args_table_, l0_info,
-      true);
+      semantic_.launch.block_dim, stream_list_[static_cast<int64_t>(semantic_.launch.stream_id)], model_id_,
+      instance_handle_, args_table_, l0_info, true);
 }
 
 Status KernelTaskCodeBuilder::AppendAicpuArgsCode(Arg iow_addr, const VarRef &args_var,
@@ -2039,6 +2039,7 @@ std::vector<BodyItem> KernelTaskCodeBuilder::BuildDistribution(
         ast_.Var("", "report_workspace_addrs"),
         ast_.Var("", "report_workspace_sizes"),
         ast_.StaticCast("uint32_t", op.Arrow("dispatch_type")),
+        op.Arrow("task_data").Attr("aicore").Attr("kernel").Attr("block_dim"),
         ctx.Attr("stream"),
         ast_.Var("", "l0_info").Addr(),
         ctx.Attr("model_id"),
@@ -2063,6 +2064,7 @@ std::vector<BodyItem> KernelTaskCodeBuilder::BuildDistribution(
         ast_.Var("", "report_workspace_sizes").Data(),
         ast_.StaticCast("uint32_t", ast_.Var("", "report_workspace_sizes").Size()),
         ast_.StaticCast("uint32_t", op.Arrow("dispatch_type")),
+        op.Arrow("task_data").Attr("aicore").Attr("kernel").Attr("block_dim"),
         ctx.Attr("stream"),
         ctx.Attr("model_id"),
         ctx.Attr("instance_handle")})),

@@ -540,7 +540,9 @@ class Om2ModelExecutor::Impl {
     GE_ASSERT_SUCCESS(CreateModel(model_data, weight_buf, kernel_bin_info, constants_json, load_arg, session_id,
                                   constants));
     GE_ASSERT_SUCCESS(InitModelDumpInfo(load_arg));
+    ReportModelLoadBegin();
     GE_ASSERT_SUCCESS(LoadModel());
+    ReportModelLoadEnd();
     GE_ASSERT_SUCCESS(DispatchDumpInfo());
     weight_buf.reset(nullptr);
     kernel_bin_info.clear();
@@ -576,6 +578,26 @@ class Om2ModelExecutor::Impl {
     GE_ASSERT_SUCCESS(dump_manager_->SetModelDumpInfo(model_dump_info));
     GELOGI("[OM2][Dump] Set model dump info success, model_id=%u.", model_dump_info.model_id);
     return ge::SUCCESS;
+  }
+
+  void ReportModelLoadBegin() const {
+    if (dump_manager_ == nullptr) {
+      return;
+    }
+    const ge::Status ret = dump_manager_->ReportModelLoadBegin();
+    if (ret != ge::SUCCESS) {
+      GELOGW("[OM2][Profiling] Report model load begin failed, model_id=%u, ret=%u.", model_id_, ret);
+    }
+  }
+
+  void ReportModelLoadEnd() const {
+    if (dump_manager_ == nullptr) {
+      return;
+    }
+    const ge::Status ret = dump_manager_->ReportModelLoadEnd();
+    if (ret != ge::SUCCESS) {
+      GELOGW("[OM2][Profiling] Report model load end failed, model_id=%u, ret=%u.", model_id_, ret);
+    }
   }
 
   ge::Status LoadModel() {

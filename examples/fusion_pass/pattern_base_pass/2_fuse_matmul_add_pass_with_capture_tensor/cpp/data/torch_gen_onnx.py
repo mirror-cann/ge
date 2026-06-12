@@ -27,7 +27,7 @@ def convert():
     model.eval()
     x, y = torch.randn(2, 3), torch.randn(3, 2)
     z = torch.randn(2, 2)
-    # 当前atc工具opset_version最高支持18,若torch版本默认导出opset_version过高，请如下显示指定opset_version
+    # 当前atc工具opset_version最高支持18,若torch版本默认导出opset_version过高，请如下显式指定opset_version
     # torch.onnx.export(model, (x, y, z), "model.onnx", opset_version=11, do_constant_folding=False)
     torch.onnx.export(model, (x, y, z), "model.onnx", do_constant_folding=False)
 

@@ -500,7 +500,8 @@ Status KernelExTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> &items)
       ast_, items, "op" + std::to_string(header_.op_index) + "_kernel_ex", header_,
       semantic_.args_table_entry.has_value() ? &(*semantic_.args_table_entry) : nullptr,
       semantic_.input_addrs, semantic_.output_addrs, semantic_.workspace_addrs, semantic_.task_type,
-      stream_list_[static_cast<int64_t>(semantic_.launch.stream_id)], model_id_, instance_handle_, args_table_, true));
+      semantic_.launch.block_dim, stream_list_[static_cast<int64_t>(semantic_.launch.stream_id)], model_id_,
+      instance_handle_, args_table_, true));
   return SUCCESS;
 }
 

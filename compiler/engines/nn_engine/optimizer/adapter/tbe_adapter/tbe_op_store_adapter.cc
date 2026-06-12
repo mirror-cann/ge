@@ -229,7 +229,7 @@ Status TbeOpStoreAdapter::SerialPreCompileOp(vector<PreCompileNodePara> &compile
     // call pre-compile func, and return pattern of op, such as reduction,
     bool result = PreBuildTbeOp(*tbe_op_info_ptr, 0, 0);
     if (!result) {
-      ErrorMessageDetail error_msg(EM_COMPLIE_FAILED,
+      ErrorMessageDetail error_msg(EM_COMPILE_FAILED,
           {comp_para.node->GetOpDesc()->GetName(), comp_para.node->GetOpDesc()->GetType()});
       ReportErrorMessage(error_msg);
       REPORT_FE_ERROR("[SubGraphOpt][Compile][SerialPreComOp] Failed to pre-build Tbe op.");
@@ -625,7 +625,7 @@ Status TbeOpStoreAdapter::ParallelPreCompileOp(vector<PreCompileNodePara> &compi
     bool result = PreBuildTbeOp(*comp_para.tbe_op_info_ptr, taskId, thread_id);
     if (!result) {
       // op_name,op_type,graph_id,thread_id,task_id
-      ErrorMessageDetail error_msg(EM_COMPLIE_FAILED, {comp_para.node->GetOpDesc()->GetName(),
+      ErrorMessageDetail error_msg(EM_COMPILE_FAILED, {comp_para.node->GetOpDesc()->GetName(),
                                    comp_para.node->GetOpDesc()->GetType()});
       ReportErrorMessage(error_msg);
     }
@@ -667,7 +667,7 @@ Status TbeOpStoreAdapter::SetTaskFusionTask(const uint64_t thread_id, const int6
   ge::Node *first_node = nodes[0];
   te::OpBuildResCode ret = TaskFusionFunc(nodes, first_node->GetOpDesc(), taskId, thread_id);
   if (ret != te::OP_BUILD_SUCC) {
-    ErrorMessageDetail error_msg(EM_COMPLIE_FAILED, {first_node->GetName(), first_node->GetType()});
+    ErrorMessageDetail error_msg(EM_COMPILE_FAILED, {first_node->GetName(), first_node->GetType()});
     ReportErrorMessage(error_msg);
     REPORT_FE_ERROR("[SubGraphOpt][TaskFusion] Failed to do task fusion for nodes[%s, %s], task id[%lu], thread id[%lu].",
                     first_node->GetName().c_str(), first_node->GetType().c_str(), taskId, thread_id);
@@ -737,7 +737,7 @@ Status TbeOpStoreAdapter::SetSuperKernelTask(const uint64_t thread_id, const int
   ge::Node *first_node = nodes[0];
   te::OpBuildResCode ret = BuildSuperKernel(nodes, first_node->GetOpDesc(), taskId, thread_id);
   if (ret != te::OP_BUILD_SUCC) {
-    ErrorMessageDetail error_msg(EM_COMPLIE_FAILED, {first_node->GetName(), first_node->GetType()});
+    ErrorMessageDetail error_msg(EM_COMPILE_FAILED, {first_node->GetName(), first_node->GetType()});
     ReportErrorMessage(error_msg);
     REPORT_FE_ERROR("[SPK] Failed to do super kernel compile for nodes[%s, %s], task id[%lu], thread id[%lu].",
     first_node->GetName().c_str(), first_node->GetType().c_str(), taskId, thread_id);
@@ -1293,7 +1293,7 @@ Status TbeOpStoreAdapter::DoFuzzBuildTbeOp(std::vector<ge::Node *> &node_vec, ui
   FE_LOGD("Start to do fuzz build tbe op[%s].", node->GetName().c_str());
   te::OpBuildResCode result = FuzzBuildTbeOp(taskId, thread_id, *node);
   if (result == te::OP_BUILD_FAIL) {
-    ErrorMessageDetail error_msg(EM_COMPLIE_FAILED, {op_desc->GetName(), op_desc->GetType()});
+    ErrorMessageDetail error_msg(EM_COMPILE_FAILED, {op_desc->GetName(), op_desc->GetType()});
     ReportErrorMessage(error_msg);
     REPORT_FE_ERROR("[SubGraphOpt][Compile][DoFuzzBuild]Failed to fuzz compile te fusion op %s, tid:%lu, taskId:%lu.",
         op_desc->GetName().c_str(), thread_id, taskId);
@@ -1352,7 +1352,7 @@ Status TbeOpStoreAdapter::SetTeTask(std::vector<ge::Node *> &node_vec, uint64_t 
   te::OpBuildResCode result =
       TeFusion(node_vec, op_desc_ptr, buff_fus_to_del_nodes, taskId, thread_id, op_compile_strategy);
   if (result == te::OP_BUILD_FAIL) {
-    ErrorMessageDetail error_msg(EM_COMPLIE_FAILED,
+    ErrorMessageDetail error_msg(EM_COMPILE_FAILED,
                                  {node_vec[0]->GetOpDesc()->GetName(), node_vec[0]->GetOpDesc()->GetType()});
     ReportErrorMessage(error_msg);
     REPORT_FE_ERROR("[SubGraphOpt][Compile][SetTeTask] Compile te fusion op %s failed, tid:%lu, taskId:%lu",
@@ -1415,7 +1415,7 @@ Status TbeOpStoreAdapter::SgtSetTeTask(std::vector<ge::Node *> &node_vec, uint64
   te::OpBuildResCode result = TeFusionV(node_vec, op_desc_ptr, buff_fus_to_del_nodes, taskId, thread_id,
                                         slice_shape_index, op_compile_strategy);
   if (result == te::OP_BUILD_FAIL) {
-    ErrorMessageDetail error_msg(EM_COMPLIE_FAILED,
+    ErrorMessageDetail error_msg(EM_COMPILE_FAILED,
                                  {node_vec[0]->GetOpDesc()->GetName(), node_vec[0]->GetOpDesc()->GetType()});
     ReportErrorMessage(error_msg);
     REPORT_FE_ERROR("[SubGraphOpt][Compile][SgtSetTeTask] Compile te fusion op %s failed, tid:%lu, taskId:%lu",

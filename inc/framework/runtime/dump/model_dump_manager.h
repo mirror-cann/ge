@@ -27,6 +27,7 @@ namespace dump {
 class DataDumpImpl;
 class ExceptionDumpImpl;
 class OverflowDumpImpl;
+class ProfilingImpl;
 
 // ============================================================
 //              复用 C API 中的结构体定义
@@ -75,6 +76,8 @@ class VISIBILITY_EXPORT ModelDumpManager {
   // 模型级信息接口
   // ========================================================================
   Status SetModelDumpInfo(const ModelDumpInfo& model_info);
+  Status ReportModelLoadBegin() const;
+  Status ReportModelLoadEnd() const;
 
   // ========================================================================
   // Task 级信息接口
@@ -107,6 +110,7 @@ class VISIBILITY_EXPORT ModelDumpManager {
   std::unique_ptr<DataDumpImpl> data_dump_impl_;
   std::unique_ptr<ExceptionDumpImpl> exception_impl_;
   std::unique_ptr<OverflowDumpImpl> overflow_impl_;
+  std::unique_ptr<ProfilingImpl> profiling_impl_;
 };
 
 }  // namespace dump

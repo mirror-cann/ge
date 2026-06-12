@@ -24,7 +24,27 @@
 
 #include "depends/runtime/src/runtime_stub.h"
 
+extern "C" void RegisterOm2ProfilingCommandNotifier(void (*notifier)(const void *, uint32_t));
+
 namespace ge {
+namespace {
+uint32_t g_om2_notifier_called_count = 0U;
+MsprofCommandHandle g_om2_notified_command{};
+uint32_t g_om2_notified_len = 0U;
+
+void ResetOm2NotifierState() {
+  g_om2_notifier_called_count = 0U;
+  g_om2_notified_command = {};
+  g_om2_notified_len = 0U;
+}
+
+void Om2ProfilingNotifier(const void *data, uint32_t len) {
+  ++g_om2_notifier_called_count;
+  g_om2_notified_command = *static_cast<const MsprofCommandHandle *>(data);
+  g_om2_notified_len = len;
+}
+}  // namespace
+
 class ProfilingInitTest : public testing::Test {
  protected:
   void SetUp() {}
@@ -111,5 +131,35 @@ TEST_F(ProfilingInitTest, ProfOpDetailProfiling_Ok) {
   Status ret = ProfilingManager::Instance().ProfStartProfiling(module, config_para, 1);
   EXPECT_EQ(ret, ge::SUCCESS);
   EXPECT_EQ(ModelManager::GetInstance().DeleteModel(davinci_model_id), SUCCESS);
+}
+
+/**
+ * 用例描述：测试 profiling ctrl switch 命令能够同步通知 OM2 profiling 回调
+ * 预置条件：注册 OM2 profiling command notifier，并构造一个非法 type 的 ctrl switch 命令避免依赖模型执行环境
+ * 测试步骤：
+ *   1. 注册 OM2 profiling command notifier
+ *   2. 调用 ProfCtrlHandle 下发 RT_PROF_CTRL_SWITCH 命令
+ *   3. 取消注册 notifier
+ * 预期结果：
+ *   1. ProfCtrlHandle 返回失败，OM1 原有非法命令处理语义不变
+ *   2. OM2 notifier 被调用一次，收到的命令内容和长度正确
+ */
+TEST_F(ProfilingInitTest, ProfCtrlSwitchNotifyOm2Notifier_Ok) {
+  RegisterOm2ProfilingCommandNotifier(Om2ProfilingNotifier);
+  ResetOm2NotifierState();
+
+  MsprofCommandHandle command{};
+  command.type = 6U;
+  command.modelId = 789U;
+  command.profSwitch = 0x9ABCU;
+  EXPECT_EQ(ProfCtrlHandle(RT_PROF_CTRL_SWITCH, &command, sizeof(command)), -1);
+
+  EXPECT_EQ(g_om2_notifier_called_count, 1U);
+  EXPECT_EQ(g_om2_notified_len, sizeof(MsprofCommandHandle));
+  EXPECT_EQ(g_om2_notified_command.type, command.type);
+  EXPECT_EQ(g_om2_notified_command.modelId, command.modelId);
+  EXPECT_EQ(g_om2_notified_command.profSwitch, command.profSwitch);
+  RegisterOm2ProfilingCommandNotifier(nullptr);
+  ResetOm2NotifierState();
 }
 }  // namespace ge
