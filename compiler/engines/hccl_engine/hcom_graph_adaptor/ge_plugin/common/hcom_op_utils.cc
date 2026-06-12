@@ -968,7 +968,7 @@ HcclResult HcomOpUtils::GetRankIdsFromGroupList(const std::string &groupName, st
   }
 
   // 没有配置对应option，或者json内的groupName不匹配，不会报错，默认按照全局通信域规格计算资源
-  HCCL_INFO("get groupListString failed, groupName[%s].", groupName.c_str());
+  HCCL_INFO("[GetRankIdsFromGroupList] OPTION_EXEC_HCOM_GROUPLIST is not found, groupName[%s].", groupName.c_str());
   return HCCL_SUCCESS;
 }
 }  // namespace hccl
