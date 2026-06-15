@@ -71,3 +71,8 @@ install(TARGETS ${PROJECT_NAME}
         LIBRARY DESTINATION ${ASCEND_PATH}/opp/vendors/${PASS_SO_DIR}/custom_fusion_passes
 )
 install(CODE "message(STATUS \"so file of ${PROJECT_NAME} is ready！\")")
+
+add_custom_target(clean_custom_pass
+        COMMAND ${CMAKE_COMMAND} -E rm -f ${ASCEND_PATH}/opp/vendors/${PASS_SO_DIR}/custom_fusion_passes/lib${PROJECT_NAME}.so
+        COMMENT "Remove installed custom fusion pass ${PROJECT_NAME}"
+)

@@ -10,6 +10,7 @@ else ()
 endif ()
 
 set(PASS_SO_DIR pass_so_dir) # 可根据实际修改
+get_filename_component(GE_ROOT "${CMAKE_CURRENT_LIST_DIR}/../../../../.." ABSOLUTE)
 set(INCLUDE_DIR ${ASCEND_PATH}/include)
 aux_source_directory(${PROJECT_SOURCE_DIR}/src SRC_LIST)
 
@@ -47,6 +48,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
         ${INCLUDE_DIR}/register
         ${INCLUDE_DIR}
         ${INCLUDE_DIR}/external
+        ${GE_ROOT}/inc/external
         ${CMAKE_CURRENT_BINARY_DIR}/es_output/include/es_all
 )
 
@@ -71,3 +73,8 @@ install(TARGETS ${PROJECT_NAME}
         LIBRARY DESTINATION ${ASCEND_PATH}/opp/vendors/${PASS_SO_DIR}/custom_fusion_passes
 )
 install(CODE "message(STATUS \"so file of ${PROJECT_NAME} is ready！\")")
+
+add_custom_target(clean_custom_pass
+        COMMAND ${CMAKE_COMMAND} -E rm -f ${ASCEND_PATH}/opp/vendors/${PASS_SO_DIR}/custom_fusion_passes/lib${PROJECT_NAME}.so
+        COMMENT "Remove installed custom fusion pass ${PROJECT_NAME}"
+)

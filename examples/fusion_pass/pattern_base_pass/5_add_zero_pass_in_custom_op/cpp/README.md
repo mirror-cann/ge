@@ -75,6 +75,12 @@
    make install
    ```
 
+   样例验证完成后，执行如下命令清理安装到 CANN 包下的自定义 pass so，避免影响后续 UT/ST：
+
+   ```
+   make clean_custom_pass
+   ```
+
 ## pass编写
 1. 定义类`AddCustomZeroPass`继承`PatternFusionPass`。
 2. 重写基类`PatternFusionPass`中的3个函数：

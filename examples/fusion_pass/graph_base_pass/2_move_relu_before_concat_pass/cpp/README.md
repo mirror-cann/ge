@@ -75,6 +75,12 @@
    make install
    ```
 
+   样例验证完成后，执行如下命令清理安装到 CANN 包下的自定义 pass so，避免影响后续 UT/ST：
+
+   ```
+   make clean_custom_pass
+   ```
+
 ## 程序运行
 
 1. 配置环境变量(如已执行，跳过)。
@@ -149,4 +155,3 @@
       export ASCEND_SLOG_PRINT_TO_STDOUT=1 #日志打印到屏幕
       export ASCEND_GLOBAL_LOG_LEVEL=0 #日志级别为debug级别
      ```
-     

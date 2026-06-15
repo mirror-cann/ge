@@ -62,6 +62,12 @@
    make install
    ```
 
+   样例验证完成后，执行如下命令清理安装到 CANN 包下的自定义 pass so，避免影响后续 UT/ST：
+
+   ```
+   make clean_custom_pass
+   ```
+
 ## 程序运行<a name="section4524573456563512"></a>
 
 1. 配置环境变量(如已执行，跳过)。
@@ -148,4 +154,3 @@
        FuseMatMulAndAddPass end.
        ```
 
-       

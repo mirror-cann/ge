@@ -22,6 +22,18 @@ else
     CANN_DIR=/usr/local/Ascend/cann
 fi
 
+cleanup() {
+    installed_so=${CANN_DIR}/opp/vendors/pass_so_dir/custom_fusion_passes/libbatch_matmul_flatten_pass.so
+    if [ -f "$installed_so" ] && [ -w "$installed_so" ]; then
+        rm -f "$installed_so"
+        echo "  ✓ CANN安装的pass so已清理"
+    elif [ -f "$installed_so" ]; then
+        echo "  ⚠ CANN安装的pass so需要sudo权限清理，跳过（可手动执行: sudo rm $installed_so）"
+    fi
+}
+
+trap cleanup EXIT
+
 # 默认参数
 BATCH=${1:-32}
 M=${2:-64}
@@ -293,37 +305,5 @@ fi
 
 rm -f /tmp/bmm_flatten_verify_results.txt
 
-# ========================================
-# 步骤6：清理中间文件
-# ========================================
 echo ""
-echo "========================================"
-echo "步骤6：清理中间文件"
-echo "========================================"
-echo ""
-
-rm -f *.om *.onnx
-echo "  ✓ ONNX和OM模型已清理"
-
-rm -f *.pbtxt *.txt
-echo "  ✓ dump图文件已清理"
-
-rm -f *.json
-echo "  ✓ 其他临时文件已清理"
-
-rm -f benchmark_model
-echo "  ✓ benchmark_model已清理"
-
-rm -rf ${PASS_DIR}/build
-echo "  ✓ build目录已清理"
-
-installed_so=${CANN_DIR}/opp/vendors/pass_so_dir/custom_fusion_passes/libbatch_matmul_flatten_pass.so
-if [ -f "$installed_so" ] && [ -w "$installed_so" ]; then
-    rm -f "$installed_so"
-    echo "  ✓ CANN安装的pass so已清理"
-elif [ -f "$installed_so" ]; then
-    echo "  ⚠ CANN安装的pass so需要sudo权限清理，跳过（可手动执行: sudo rm $installed_so）"
-fi
-
-echo ""
-echo "✓✓✓ 验证完成，所有中间文件已清理"
+echo "✓✓✓ 验证完成"
