@@ -239,7 +239,7 @@ Status ModifyMixlistConfigParser::VerifyMixlist() const {
     if (kPrecisionReduceUpdateTemplate.find(item.second) == kPrecisionReduceUpdateTemplate.end()) {
       std::string mix_list_desc = GetMixlistDesc(item.second);
       ErrorMessageDetail err_msg(EM_INVALID_CONTENT,
-                                 {ge::MODIFY_MIXLIST, modify_mixlist_path_,
+                                 {"modify_mixlist", modify_mixlist_path_,
                                   "Operation " + mix_list_desc + " for op " + item.first + " is invalid"});
       ReportErrorMessage(err_msg);
       FE_LOGE("The mix list value[%s] of op type[%s] is invalid.", mix_list_desc.c_str(), item.first.c_str());
