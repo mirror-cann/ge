@@ -31,7 +31,7 @@ repos:
 
   # C++ 代码格式化检查
   - repo: https://gitcode.com/pre-commit-clang/mirrors-clang-format
-    rev: v18.1.8
+    rev: v22.1.5
     hooks:
       - id: clang-format
         files: \.(c|h|cpp|hpp|cc|hh|cxx|hxx|asc)$

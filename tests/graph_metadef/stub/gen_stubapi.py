@@ -636,9 +636,6 @@ class H2CC(object):
             line = self.input_content[self.line_index]
             if pattern_visibility.search(line):
                 line = pattern_visibility.sub('', line)
-                if not line.strip():
-                    self.line_index += 1
-                    continue
             if pattern_override.search(line):
                 line = pattern_override.sub('', line)
             if pattern_weak.search(line):
@@ -741,19 +738,9 @@ class H2CC(object):
             self.line_index += 1
             return "continue", line, start_i
 
-        # skip variable declarations (line ends with a word, not with ')')
-        if not line.rstrip().endswith(')'):
-            self.line_index += 1
-            return "continue", line, start_i
-
         # deal with case of 'return type' and 'func_name' are not in the same line, like: 'int \n abc(int a, int b)'
         pre_line = self.input_content[start_i - 1]
-        visibility_keywords = GE_ATTR.split() + [VISIBILITY_ATTR, 'FMK_FUNC_HOST_VISIBILITY', 'FMK_FUNC_DEV_VISIBILITY']
-        if pre_line.strip() in visibility_keywords:
-            pass
-        elif re.search(
-            r'^\s*(inline\s+)?(' + '|'.join(visibility_keywords) +
-            r'\s+)?(const\s+)?[a-zA-Z0-9_]+\s*$', pre_line):
+        if not pattern_visibility.search(pre_line) and re.search(r'^\s*(inline)?\s*[a-zA-Z0-9_]+\s*$', pre_line):
             line = pre_line + line
         line = line.lstrip()
         return "pass", line, start_i
