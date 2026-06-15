@@ -87,7 +87,7 @@ export DUMP_GE_GRAPH=2
 - 如果使用默认值，可以省略对应参数（使用默认值）或显式传入
 - ES API 会根据属性类型进行类型检查，确保传入的值类型正确
 
-例如算子原型MatMul如下所示，ES构图提供了API方法为 MatMul()， 方法中的ATTR属性为是否对矩阵进行装置，支持在 C++、C  层使用
+例如算子原型MatMul如下所示，ES构图提供了API方法为 MatMul()， 方法中的ATTR属性为是否对矩阵进行转置，支持在 C++、C  层使用
 ```bash
   REG_OP(MatMul)
   .INPUT(x1, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT32, DT_BF16, DT_HIFLOAT8}))
@@ -105,7 +105,7 @@ export DUMP_GE_GRAPH=2
 
 **C API中：**
 ```
-EsCTensorHolder* EsMatMul(EsCTensorHolder *x1, EsCTensorHolder *x2, EsCTensorHolder *bias, bool transpose_x1, bool transpose_x1);
+EsCTensorHolder* EsMatMul(EsCTensorHolder *x1, EsCTensorHolder *x2, EsCTensorHolder *bias, bool transpose_x1, bool transpose_x2);
 ```
 **C++ API：**
 ```

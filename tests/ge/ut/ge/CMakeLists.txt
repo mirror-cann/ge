@@ -1065,6 +1065,47 @@ target_link_options(ut_fusion_pass_executor_utest PRIVATE
 
 # 安装 ge_py wheel 到测试专用目录
 set(FUSION_PASS_PY_INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/fusion_pass_py_install)
+set(FUSION_PASS_PY_NATIVE_FIXUP_SCRIPT ${CMAKE_CURRENT_BINARY_DIR}/fusion_pass_py_native_fixup.cmake)
+
+file(WRITE ${FUSION_PASS_PY_NATIVE_FIXUP_SCRIPT} [=[
+function(ge_python_pass_artifacts_complete result)
+    set(complete FALSE)
+    set(artifact_root "${INSTALL_DIR}/ge/passes/python_pass_artifacts")
+    if (IS_DIRECTORY "${artifact_root}")
+        file(GLOB artifact_dirs LIST_DIRECTORIES true "${artifact_root}/*")
+        foreach (artifact_dir IN LISTS artifact_dirs)
+            if (IS_DIRECTORY "${artifact_dir}"
+                    AND EXISTS "${artifact_dir}/manifest.json"
+                    AND EXISTS "${artifact_dir}/libge_python_pass_bridge.so"
+                    AND EXISTS "${artifact_dir}/_ge_pass_native.so")
+                set(complete TRUE)
+                break()
+            endif ()
+        endforeach ()
+    endif ()
+    set(${result} ${complete} PARENT_SCOPE)
+endfunction()
+
+ge_python_pass_artifacts_complete(artifact_complete)
+if (artifact_complete)
+    return()
+endif ()
+
+message(STATUS "GE python pass native artifacts are incomplete; extracting ${NATIVE_WHEEL}")
+execute_process(
+    COMMAND "${HI_PYTHON}" -m zipfile -e "${NATIVE_WHEEL}" "${INSTALL_DIR}"
+    RESULT_VARIABLE unzip_result
+    ERROR_VARIABLE unzip_error
+)
+if (NOT unzip_result EQUAL 0)
+    message(FATAL_ERROR "Failed to extract ${NATIVE_WHEEL}: ${unzip_error}")
+endif ()
+
+ge_python_pass_artifacts_complete(artifact_complete)
+if (NOT artifact_complete)
+    message(FATAL_ERROR "Native wheel does not contain complete python pass artifacts: ${NATIVE_WHEEL}")
+endif ()
+]=])
 
 add_custom_command(
     OUTPUT ${FUSION_PASS_PY_INSTALL_DIR}/.installed
@@ -1074,6 +1115,11 @@ add_custom_command(
             ${CMAKE_BINARY_DIR}/api/python/ge/ge_py-0.0.1-py3-none-any.whl
             ${GE_PYTHON_PASS_NATIVE_WHEEL}
             --force-reinstall
+    COMMAND ${CMAKE_COMMAND}
+            -DINSTALL_DIR=${FUSION_PASS_PY_INSTALL_DIR}
+            -DNATIVE_WHEEL=${GE_PYTHON_PASS_NATIVE_WHEEL}
+            -DHI_PYTHON=${HI_PYTHON}
+            -P ${FUSION_PASS_PY_NATIVE_FIXUP_SCRIPT}
     COMMAND ${HI_PYTHON} -m pip install --target ${FUSION_PASS_PY_INSTALL_DIR}
             ${CMAKE_BINARY_DIR}/tests/ge/ut/ge/graph/eager_style_graph_builder/graph_construction_test/output/whl/es_ut_test-1.0.0-py3-none-any.whl --force-reinstall
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:eager_style_graph_builder_base> ${FUSION_PASS_PY_INSTALL_DIR}/ge/_capi/

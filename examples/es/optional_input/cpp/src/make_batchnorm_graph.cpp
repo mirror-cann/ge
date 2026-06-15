@@ -60,12 +60,12 @@ int RunGraph(ge::Graph &graph, const std::vector<ge::Tensor> &inputs,
 
 void MakeBatchNormGraphByEsAndDump() {
   std::unique_ptr<ge::Graph> graph = MakeBatchNormGraphByEs();
-  graph->DumpToFile(ge::Graph::DumpFormat::kOnnx, ge::AscendString("make_batchnorm_garph"));
+  graph->DumpToFile(ge::Graph::DumpFormat::kOnnx, ge::AscendString("make_batchnorm_graph"));
 }
 
 std::unique_ptr<ge::Graph> MakeBatchNormGraphByEs() {
   // 1、创建图构建器
-  auto graph_builder = std::make_unique<EsGraphBuilder>("MakeBatchNormGarph");
+  auto graph_builder = std::make_unique<EsGraphBuilder>("MakeBatchNormGraph");
   // 2、创建输入节点
   auto input = graph_builder->CreateInput(0, "input", ge::DT_FLOAT, ge::FORMAT_NCHW, {1, 3, 1, 2});
   auto mean = graph_builder->CreateInput(1, "mean", ge::DT_FLOAT, ge::FORMAT_ND, {3});

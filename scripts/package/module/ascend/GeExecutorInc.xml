@@ -14,6 +14,7 @@
         <path value="$(TARGET_ENV)/include/acl/error_codes" install_mod="555"/>
         <path value="$(TARGET_ENV)/include/transformer" install_mod="555"/>
         <path value="$(TARGET_ENV)/include/proto" install_mod="555"/>
+        <path value="$(TARGET_ENV)/pkg_inc/register" install_mod="555"/>
     </dir_info>
     <file_info value="include" copy_type="source" src_path="include/external/exe_graph/runtime" dst_path="include/exe_graph/runtime" install_path="$(TARGET_ENV)/include/exe_graph/runtime" install_type="devel" install_mod="440">
         <file value="eager_op_execution_context.h"/>
@@ -81,5 +82,9 @@
     </file_info>
     <file_info value="include" copy_type="source" dst_path="include/proto" install_path="$(TARGET_ENV)/include/proto" install_type="devel" install_mod="440">
         <file value="ge_ir.proto"/>
+    </file_info>
+    <file_info value="include" copy_type="source" dst_path="pkg_inc/register" install_path="$(TARGET_ENV)/pkg_inc/register" install_type="devel" install_mod="440">
+        <file value="amct_interface.h"/>
+        <file value="amct_registry.h"/>
     </file_info>
 </block>

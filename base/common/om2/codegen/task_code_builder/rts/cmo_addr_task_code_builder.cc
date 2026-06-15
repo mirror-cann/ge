@@ -36,9 +36,9 @@ void CmoAddrTaskCodeBuilder::AppendOrderedArgValue(const AddrSemantic &semantic,
   ordered_arg_values_.push_back(semantic);
 }
 
-std::string CmoAddrTaskCodeBuilder::BuildAutoArgsFormat(const TaskSemanticContributeContext &context) {
+std::string CmoAddrTaskCodeBuilder::BuildAutoArgsFormat(const TaskSemanticContributeContext &context) const {
   const GeTensorDesc &tensor_desc = context.op_desc->GetInputDesc(0U);
-  int64_t num_cnt = tensor_desc.GetShape().IsScalar() ? 1 : tensor_desc.GetShape().GetShapeSize();
+  const int64_t num_cnt = tensor_desc.GetShape().IsScalar() ? 1 : tensor_desc.GetShape().GetShapeSize();
   int64_t shape_len = GetSizeInBytes(num_cnt, tensor_desc.GetDataType());
   GE_ASSERT_TRUE(shape_len > 0);
   int64_t offset{0};
@@ -51,7 +51,7 @@ std::string CmoAddrTaskCodeBuilder::BuildAutoArgsFormat(const TaskSemanticContri
   if (max_size == 0U) {
     max_size = kMaxPrefetchLen;
   }
-  uint32_t len_inner = std::min(static_cast<uint32_t>(shape_len), max_size);
+  const uint32_t len_inner = std::min(static_cast<uint32_t>(shape_len), max_size);
   std::string format_str = "{}{.32b}{#.32b" + std::to_string(len_inner) + "}{i_instance0*}{}";
   GELOGI("CmoAddrTaskCodeBuilder: auto format, shape_len[%" PRId64 "], offset[%" PRId64
          "], max_size[%u], len_inner[%u]",
@@ -73,10 +73,9 @@ Status CmoAddrTaskCodeBuilder::Contribute(TaskSemanticContributeContext &context
                          : cmo_addr_task.args_format();
   GE_ASSERT_SUCCESS(ArgsFormatDesc::Parse(context.op_desc, args_format_str_, arg_descs_));
 
-  uint64_t logical_src_mem_type = 0U;
   AddrSemantic src_addr_node;
   GE_ASSERT_SUCCESS(Om2ModelUtils::GetRtAddress(context, static_cast<uintptr_t>(cmo_addr_task.src()),
-                                                logical_src_mem_type, src_addr_node, true, 0U));
+                                                src_addr_node, true, 0U));
 
   GE_ASSERT_SUCCESS(BuildOrderedArgs(context, src_addr_node));
 
@@ -91,7 +90,7 @@ Status CmoAddrTaskCodeBuilder::Contribute(TaskSemanticContributeContext &context
 Status CmoAddrTaskCodeBuilder::BuildOrderedArgs(TaskSemanticContributeContext &context,
                                                 const AddrSemantic &src_addr_node) {
   const uint64_t current_host_offset = *context.next_host_args_offset;
-  align_offset_ = (current_host_offset + kAlignment - 1) / kAlignment * kAlignment - current_host_offset;
+  align_offset_ = (current_host_offset + kAlignment - 1U) / kAlignment * kAlignment - current_host_offset;
 
   args_size_ = 0U;
   arg_sizes_.clear();
@@ -111,7 +110,7 @@ Status CmoAddrTaskCodeBuilder::BuildOrderedArgs(TaskSemanticContributeContext &c
     arg_sizes_.push_back(arg_size);
   }
 
-  entry_.emplace();
+  (void)entry_.emplace();
   entry_->table_index = *context.next_args_table_index;
   total_args_size_ = align_offset_ + args_size_ + kAlignment;
   entry_->args_size = total_args_size_;
@@ -125,25 +124,15 @@ Status CmoAddrTaskCodeBuilder::BuildOrderedArgs(TaskSemanticContributeContext &c
 Status CmoAddrTaskCodeBuilder::CollectIoAddrVars(std::vector<BodyItem> &items, std::vector<Arg> &args_vars) {
   for (const auto &semantic : ordered_arg_values_) {
     if (semantic.kind == AddrValueKind::kInputInstance || semantic.kind == AddrValueKind::kOutputInstance) {
-      if (!semantic.tensor_info.has_value()) {
-        GELOGE(FAILED, "[OM2] CmoAddrAsync tensor info is required for %s.", semantic.symbol_hint.c_str());
-        return FAILED;
-      }
-      const auto &tensor_info = *semantic.tensor_info;
-      const std::string shape_var_name = semantic.symbol_hint + "_shape";
-      items.push_back(
-          ast_.VarDecl("std::vector<int64_t>", shape_var_name, ast_.InitList(ConvertToArgs(tensor_info.shape_dims))));
       auto &base_ptr = (semantic.memory_type == (kSessionScopeMemoryMask | RT_MEMORY_HBM))
                            ? session_scope_mem_ptr_ : total_dev_mem_ptr_;
-      items.push_back(ast_.VarDecl(
-          "Om2Tensor", semantic.symbol_hint,
-          ast_.Call("BuildOm2Tensor",
-                    {GetAddr(base_ptr, semantic.mem_offset), ast_.ULong(tensor_info.size),
-                     tensor_info.data_type, tensor_info.format, ast_.Var("std::vector<int64_t>", shape_var_name).Data(),
-                     ast_.Var("std::vector<int64_t>", shape_var_name).Size()})));
-      args_vars.emplace_back(ast_.Var("auto", semantic.symbol_hint));
+      items.push_back(
+          ast_.VarDecl("auto", semantic.symbol_hint, GetAddr(base_ptr, semantic.mem_offset)));
+      (void)args_vars.emplace_back(ast_.Var("auto", semantic.symbol_hint));
     } else if (semantic.kind == AddrValueKind::kConstTensor) {
-      args_vars.emplace_back(ast_.Var("auto", semantic.symbol_hint));
+      items.push_back(ast_.VarDecl("auto", semantic.symbol_hint,
+          Arg(constants_[static_cast<int64_t>(*semantic.const_index)])));
+      (void)args_vars.emplace_back(ast_.Var("auto", semantic.symbol_hint));
     } else {
       GELOGE(FAILED, "[OM2] CmoAddrAsync unsupported addr kind %d.", static_cast<int32_t>(semantic.kind));
       return FAILED;
@@ -156,7 +145,7 @@ void CmoAddrTaskCodeBuilder::RenderCustomValueWriteback(std::vector<BodyItem> &i
   size_t host_offset = align_offset_;
   for (size_t i = 0; i < arg_descs_.size(); ++i) {
     if (arg_descs_[i].addr_type == AddrType::CUSTOM_VALUE) {
-      const uint64_t value = *reinterpret_cast<const uint64_t *>(arg_descs_[i].reserved);
+      const uint64_t value = *PtrToPtr<uint8_t, const uint64_t>(arg_descs_[i].reserved);
       auto host_base = args_table_.Attr("GetArgsInfo")(static_cast<int64_t>(entry_->table_index)).Arrow("host_addr");
       auto target_ptr = ast_.ReinterpretCast(
           arg_descs_[i].ir_idx == static_cast<int32_t>(ArgsFormatWidth::BIT32) ? "uint32_t *" : "uint64_t *",
@@ -181,7 +170,7 @@ Status CmoAddrTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> &items) 
   const std::string ioaddr_var_name =
       "op" + std::to_string(header_.op_index) + "_iow_addr0";
   auto ioaddr_var = ast_.Var("std::vector<uint64_t>", ioaddr_var_name);
-  items.emplace_back(ast_.VarDecl(ioaddr_var, FlattenHostArgs(args_vars)));
+  (void)items.emplace_back(ast_.VarDecl(ioaddr_var, FlattenHostArgs(args_vars)));
 
   auto dev_addr_expr = ast_.Call("ValueToPtr", {ast_.Call("PtrToValue", {
       args_table_.Attr("GetArgsInfo")(static_cast<int64_t>(entry_->table_index)).Arrow("dev_addr")}) + align_offset_});
@@ -192,7 +181,7 @@ Status CmoAddrTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> &items) 
       "KernelCmoAddrTaskDistribute",
       {ast_.Str(header_.op_name),
        dev_addr_expr,
-       ast_.UInt(static_cast<uint32_t>(args_size_)), ast_.StaticCast("rtCmoOpCode_t", cmo_op_code_),
+       ast_.UInt(static_cast<uint64_t>(args_size_)), ast_.StaticCast("rtCmoOpCode_t", cmo_op_code_),
        stream_list_[static_cast<int32_t>(header_.stream_id)], ast_.UInt(0)})));
 
   items.push_back(ChkStatus(AclrtMemcpy(

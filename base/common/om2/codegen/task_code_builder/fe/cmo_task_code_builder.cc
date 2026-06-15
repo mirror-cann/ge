@@ -33,10 +33,9 @@ Status CmoTaskCodeBuilder::Contribute(TaskSemanticContributeContext &context) {
   cmo_task_info_.striderOuter = cmo_task_def.strider_outer();
   cmo_task_info_.striderInner = cmo_task_def.strider_inner();
 
-  uint64_t logical_mem_type = 0U;
   GE_ASSERT_SUCCESS(Om2ModelUtils::GetRtAddress(context,
-                                                     static_cast<uintptr_t>(cmo_task_def.source_addr()),
-                                                     logical_mem_type, source_addr_, true, 0U));
+                                                static_cast<uintptr_t>(cmo_task_def.source_addr()),
+                                                source_addr_, true, 0U));
 
   GELOGI(
       "CmoTaskCodeBuilder: cmoType[%u], logicId[%u], opCode[%u], qos[%u], partId[%u], pmg[%u], "
@@ -67,13 +66,13 @@ Status CmoTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> &items) {
   auto cmo_info_var = ast_.Var("rtCmoTaskInfo_t", "cmo_info");
   items.push_back(ast_.VarDecl(
       cmo_info_var,
-      ast_.InitList({ast_.StaticCast("uint16_t", cmo_task_info_.cmoType), ast_.UInt(cmo_task_info_.logicId),
+      ast_.InitList({ast_.StaticCast("uint16_t", cmo_task_info_.cmoType), ast_.UInt(static_cast<uint64_t>(cmo_task_info_.logicId)),
                      ast_.StaticCast("uint8_t", cmo_task_info_.qos), ast_.StaticCast("uint8_t", cmo_task_info_.partId),
                      ast_.StaticCast("uint8_t", cmo_task_info_.pmg), ast_.StaticCast("uint16_t", cmo_task_info_.opCode),
                      ast_.StaticCast("uint16_t", cmo_task_info_.numInner),
-                     ast_.StaticCast("uint16_t", cmo_task_info_.numOuter), ast_.UInt(cmo_task_info_.lengthInner),
-                     source_addr_expr, ast_.UInt(cmo_task_info_.striderOuter),
-                     ast_.UInt(cmo_task_info_.striderInner)})));
+                     ast_.StaticCast("uint16_t", cmo_task_info_.numOuter), ast_.UInt(static_cast<uint64_t>(cmo_task_info_.lengthInner)),
+                     source_addr_expr, ast_.UInt(static_cast<uint64_t>(cmo_task_info_.striderOuter)),
+                     ast_.UInt(static_cast<uint64_t>(cmo_task_info_.striderInner))})));
 
   items.push_back(ChkStatus(ast_.Call(
       "KernelCmoTaskDistribute", {cmo_info_var, stream_list_[static_cast<int32_t>(header_.stream_id)], ast_.UInt(0)})));

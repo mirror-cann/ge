@@ -26,7 +26,7 @@ class CustomOpRegistryBuilder {
 
  private:
   static Status AddCreatorsFromSoHandles(const std::vector<CustomOpSoHandlePtr> &so_handles,
-                                         const CustomOpRegistryPtr &registry, DlsymFunc dlsym_func);
+                                         const CustomOpRegistryPtr &registry, const DlsymFunc dlsym_func);
 };
 }  // namespace ge
 

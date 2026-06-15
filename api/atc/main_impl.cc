@@ -50,6 +50,7 @@
 #include "graph_metadef/graph/utils/file_utils.h"
 #include "register/optimization_option_registry.h"
 #include "register/op_lib_register_impl.h"
+#include "register/amct_registry.h"
 
 namespace {
 using json = nlohmann::json;
@@ -1472,8 +1473,6 @@ static Status SetAttrOptions(Graph &graph) {
 }
 }
 
-Status CallAmctInterface(Graph &graph, std::map<std::string, std::string> &options);
-
 Status CallAmctInterface(Graph &graph, std::map<std::string, std::string> &options) {
   auto it = options.find(std::string(ge::COMPRESSION_OPTIMIZE_CONF));
   if ((it != options.end()) && (!it->second.empty())) {
@@ -1481,9 +1480,22 @@ Status CallAmctInterface(Graph &graph, std::map<std::string, std::string> &optio
     void* handle = mmDlopen(kAmctSo, static_cast<int32_t>(MMPA_RTLD_NOW));
     GE_CHECK_NOTNULL(handle);
     GE_MAKE_GUARD(close_handle, [&handle]() {
+      // dlClose 前先析构 IAmctCalibration
+      GeAmctRegistry::GetInstance().Unregister();
       (void)mmDlclose(handle);
     });
 
+    const auto ret = GeAmctRegistry::GetInstance().Invoke(graph, options);
+    if (ret != GRAPH_PARAM_INVALID) {
+      if ((ret != GRAPH_NOT_CHANGED) && (ret != GRAPH_SUCCESS)) {
+        GELOGE(FAILED, "ATC call amct graph calibration interface failed");
+        return FAILED;
+      }
+      GELOGI("Enable AMCT via amct calibration class succeeded.");
+      return SUCCESS;
+    }
+
+    // 计划：需要待AMCT组件合入后，再删除原始流程。
     const auto amctGraphCalibration = reinterpret_cast<amctStatus (*)
             (ge::Graph &, const std::map<std::string, std::string> &)>(mmDlsym(handle, "amctGraphCalibration"));
     if (amctGraphCalibration == nullptr) {

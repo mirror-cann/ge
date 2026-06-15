@@ -17,16 +17,6 @@
 
 namespace ge {
 struct TaskSemanticContributeContext;
-enum IowMemType : uint64_t {
- 	   kFmMemType = 0x1000000000UL,
- 	   kFixMemType,
- 	   kWeightMemType,
- 	   kVarMemType,
- 	   kVarAutoMemType,
- 	   kConstantMemType,
- 	   kAicpuMemMallMemType,
- 	   kAbsoluteMemType
- 	 };
 constexpr uint64_t kMemoryVarLogicBase = 34359738368U; // 32UL * 1024UL * 1024UL * 1024UL;
 constexpr uint64_t kMemoryHostFeatureMapLogicBase = 68719476736U; // 64UL * 1024UL * 1024UL * 1024UL;
 constexpr uint64_t kMemoryVarAddressSize = kMemoryHostFeatureMapLogicBase - kMemoryVarLogicBase;
@@ -47,7 +37,7 @@ class Om2ModelUtils {
   static Status BuildOutputTensorInfo(const GeTensorDescPtr &tensor_desc, Om2TensorInfo &tensor_info);
 
   static Status GetRtAddress(const TaskSemanticContributeContext &context, const uintptr_t logic_addr,
-                                    uint64_t &mem_type, AddrSemantic &addr_node, bool isInput, uint32_t index);
+                                    AddrSemantic &addr_node, bool isInput, uint32_t index);
 
   static uint32_t ArgsSizeAlign8(uint32_t args_size);
   static uint64_t ArgsSizeAlign8(uint64_t args_size);
@@ -92,16 +82,16 @@ class Om2ModelUtils {
   static Status GetRtOutputAddress(const TaskSemanticContributeContext &context,
                                    const int64_t logical_offset, AddrSemantic &addr_node, uint32_t index);
   static Status GetRtFmAddress(const TaskSemanticContributeContext &context,
-                               const int64_t logical_offset, uint64_t &mem_type,
+                               const int64_t logical_offset,
                                AddrSemantic &addr_node, bool is_input, uint32_t index);
   static Status GetRtWeightAddress(const TaskSemanticContributeContext &context,
-                                   const int64_t logical_offset, uint64_t &mem_type,
+                                   const int64_t logical_offset,
                                    AddrSemantic &addr_node, uint32_t index);
   static Status GetRtVarAddress(const TaskSemanticContributeContext &context,
-                                const uintptr_t logic_addr, uint64_t &mem_type,
+                                const uintptr_t logic_addr,
                                 AddrSemantic &addr_node);
   static Status GetRtUnknownAddress(const TaskSemanticContributeContext &context,
-                                    const uintptr_t logic_addr, uint64_t &mem_type);
+                                    const uintptr_t logic_addr);
   static Status GetRtEmptyAddress(const TaskSemanticContributeContext &context,
                                   AddrSemantic &addr_node, bool is_input, uint32_t index);
   static Status CollectWorkspaceMemAttrs(const ConstOpDescPtr &op_desc, WorkspaceMemAttrs &attrs);

@@ -277,7 +277,7 @@ TEST_F(DAGGraphTest, NodeCostSetGet) {
   ASSERT_NE(node, nullptr);
 
   const auto& default_cost = node->GetCost();
-  EXPECT_EQ(default_cost.execution_time, 0.0);
+  EXPECT_EQ(default_cost.execution_time, -1.0);
   EXPECT_EQ(default_cost.memory_usage, 0);
 
   NodeCost cost;

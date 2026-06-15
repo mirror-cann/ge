@@ -68,7 +68,7 @@ Status LabelSwitchByIndexTaskCodeBuilder::RenderDistribution(std::vector<BodyIte
     const auto device_addr = (input_addr_node.kind == AddrValueKind::kConstTensor && input_addr_node.const_index.has_value())
                                  ? Arg(constants_[static_cast<int64_t>(*input_addr_node.const_index)])
                                  : Arg(GetAddr(total_dev_mem_ptr_, input_addr_node.mem_offset));
-    items.emplace_back(ast_.VarDecl("Om2Tensor", input_addr_node.symbol_hint, ast_.Call("BuildOm2Tensor", {
+    (void)items.emplace_back(ast_.VarDecl("Om2Tensor", input_addr_node.symbol_hint, ast_.Call("BuildOm2Tensor", {
         device_addr,
         ast_.ULong(tensor_info.size),
         tensor_info.data_type,

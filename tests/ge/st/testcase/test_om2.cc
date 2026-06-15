@@ -190,6 +190,73 @@ GeRootModelPtr CreateGeRootModelWithAicoreOp() {
   return ge_root_model;
 }
 
+GeRootModelPtr CreateGeRootModelWithAtomicAicoreOp() {
+  const std::string args_format = "{i_instance0*}{i_instance1*}{o_instance0*}{ws0*}";
+  auto graph = gert::ShareGraph::AicoreStaticGraph();
+  graph->TopologicalSorting();
+  gert::GeModelBuilder builder(graph);
+  auto ge_root_model =
+      builder
+          .AddTaskDef("Add", gert::AiCoreTaskDefFaker("add_stub").AtomicStubNum("atomic_add_stub")
+                                 .ArgsFormat(args_format))
+          .FakeTbeBin({gert::GeModelBuilder::TbeConfig("Add", true)})
+          .BuildGeRootModel();
+  auto &compute_graph = ge_root_model->GetRootGraph();
+
+  compute_graph->SetGraphUnknownFlag(false);
+  OpDescPtr add_desc = nullptr;
+  for (const auto &node : compute_graph->GetDirectNode()) {
+    auto op_desc = node->GetOpDesc();
+    if (op_desc == nullptr) {
+      return nullptr;
+    }
+    if (op_desc->GetType() == DATA) {
+      op_desc->SetOutputOffset({1024});
+    } else if (op_desc->GetType() == NETOUTPUT) {
+      op_desc->SetInputOffset({3072});
+    } else {
+      if (op_desc->GetType() == "Add") {
+        op_desc->AppendIrInput("x1", kIrInputRequired);
+        op_desc->AppendIrInput("x2", kIrInputRequired);
+        op_desc->AppendIrOutput("y", kIrOutputRequired);
+        (void)AttrUtils::SetBool(op_desc, ATTR_NAME_NEED_GENTASK_ATOMIC, true);
+        (void)AttrUtils::SetStr(op_desc, kAtomicPrefix + TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF_AIVEC");
+        add_desc = op_desc;
+      }
+      op_desc->SetInputOffset(std::vector<int64_t>(op_desc->GetInputsSize(), 1024));
+      op_desc->SetOutputOffset(std::vector<int64_t>(op_desc->GetOutputsSize(), 1024));
+      op_desc->SetWorkspaceBytes(std::vector<int64_t>(1, 64));
+      op_desc->SetWorkspace(std::vector<int64_t>(1, 0));
+    }
+  }
+
+  const auto &name_to_ge_model = ge_root_model->GetSubgraphInstanceNameToModel();
+  if ((add_desc == nullptr) || name_to_ge_model.empty()) {
+    return nullptr;
+  }
+  const auto ge_model = name_to_ge_model.begin()->second;
+  auto *model_task_def = ge_model->GetModelTaskDefPtr().get();
+  const auto kernel_name_ptr = AttrUtils::GetStr(add_desc, "_kernelname");
+  const auto atomic_kernel_name_ptr = AttrUtils::GetStr(add_desc, ATOMIC_ATTR_TBE_KERNEL_NAME);
+  if ((model_task_def == nullptr) || (model_task_def->task_size() < 2) ||
+      (kernel_name_ptr == nullptr) || (atomic_kernel_name_ptr == nullptr)) {
+    return nullptr;
+  }
+  model_task_def->mutable_task(0)->mutable_kernel()->set_kernel_name(*atomic_kernel_name_ptr);
+  model_task_def->mutable_task(0)->mutable_kernel()->mutable_context()->set_args_format(args_format);
+  model_task_def->mutable_task(1)->mutable_kernel()->set_kernel_name(*kernel_name_ptr);
+  model_task_def->mutable_task(1)->mutable_kernel()->mutable_context()->set_args_format(args_format);
+
+  std::vector<uint64_t> weights_value(64, 1024);
+  const size_t weight_size = weights_value.size() * sizeof(uint64_t);
+  ge_model->SetWeight(Buffer::CopyFrom(reinterpret_cast<uint8_t *>(weights_value.data()), weight_size));
+
+  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 2048);
+  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_WEIGHT_SIZE, weight_size);
+  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_STREAM_NUM, 1);
+  return ge_root_model;
+}
+
 GeRootModelPtr CreateGeRootModelWithInternalConstOp() {
   auto ge_root_model = CreateGeRootModelWithAicoreOp();
   if (ge_root_model == nullptr) {
@@ -398,6 +465,7 @@ GeRootModelPtr CreateGeRootModelWithCustAicpuOp() {
     }
   }
 
+  CustAICPUKernelStore cust_aicpu_kernel_store;
   // Set CUST_AICPU kernel binary on op_desc extended attributes
   for (const auto &node : compute_graph->GetDirectNode()) {
     auto op_desc = node->GetOpDesc();
@@ -405,9 +473,12 @@ GeRootModelPtr CreateGeRootModelWithCustAicpuOp() {
       std::vector<char> kernel_bin(64, '\0');
       auto cust_aicpu_kernel = std::make_shared<ge::OpKernelBin>("libcust_aicpu_kernel.so", std::move(kernel_bin));
       op_desc->SetExtAttr(ge::OP_EXTATTR_CUSTAICPU_KERNEL, cust_aicpu_kernel);
+      cust_aicpu_kernel_store.AddCustAICPUKernel(cust_aicpu_kernel);
       (void)ge::AttrUtils::SetStr(op_desc, "kernelSo", "libcust_aicpu_kernel.so");
     }
   }
+  (void)cust_aicpu_kernel_store.Build();
+  ge_model->SetCustAICPUKernelStore(cust_aicpu_kernel_store);
 
   std::vector<uint64_t> weights_value(64, 1024);
   const size_t weight_size = weights_value.size() * sizeof(uint64_t);
@@ -836,6 +907,104 @@ JsonFile ExtractConstantsConfig(const RAIIZipArchive &archive, const std::string
 }
 
 // -----------------------------------------------------------------------
+// Helper: AiCore 模型 + separately-clean atomic task，
+// 用于覆盖 KernelTaskCodeBuilder::BuildLaunchSemantic 中
+// is_separately_clean_task_ 分支 (func_handle_key = ATOMIC_ATTR_TBE_KERNEL_NAME + "_atomic")
+// -----------------------------------------------------------------------
+GeRootModelPtr CreateGeRootModelWithSeparatelyCleanAicoreOp() {
+  auto graph = gert::ShareGraph::AicoreStaticGraph();
+  graph->TopologicalSorting();
+  gert::GeModelBuilder builder(graph);
+  auto ge_root_model =
+      builder
+          .AddTaskDef(
+              "Add",
+              gert::AiCoreTaskDefFaker("add_stub")
+                  .AtomicStubNum("add_atomic_stub")
+                  .ArgsFormat("{i_instance0*}{i_instance1*}{o_instance0*}{ws0*}"))
+          .FakeTbeBin({gert::GeModelBuilder::TbeConfig("Add", true)})
+          .BuildGeRootModel();
+  auto &compute_graph = ge_root_model->GetRootGraph();
+
+  compute_graph->SetGraphUnknownFlag(false);
+  for (const auto &node : compute_graph->GetDirectNode()) {
+    auto op_desc = node->GetOpDesc();
+    if (op_desc == nullptr) {
+      continue;
+    }
+    if (op_desc->GetType() == DATA) {
+      op_desc->SetOutputOffset({1024});
+    } else if (op_desc->GetType() == NETOUTPUT) {
+      op_desc->SetInputOffset({3072});
+    } else if (op_desc->GetType() == "Add") {
+      op_desc->AppendIrInput("x1", kIrInputRequired);
+      op_desc->AppendIrInput("x2", kIrInputRequired);
+      op_desc->AppendIrOutput("y", kIrOutputRequired);
+      op_desc->SetInputOffset(std::vector<int64_t>(op_desc->GetInputsSize(), 1024));
+      op_desc->SetOutputOffset(std::vector<int64_t>(op_desc->GetOutputsSize(), 1024));
+      op_desc->SetWorkspaceBytes(std::vector<int64_t>(1, 64));
+      op_desc->SetWorkspace(std::vector<int64_t>(1, 0));
+      // Enable IsNeedAtomicCleanTask -> true
+      (void)AttrUtils::SetBool(op_desc, ATTR_NAME_NEED_GENTASK_ATOMIC, true);
+    } else if (op_desc->GetType() == "Reshape") {
+      op_desc->AppendIrInput("x", kIrInputRequired);
+      op_desc->AppendIrInput("shape", kIrInputRequired);
+      op_desc->SetInputOffset(std::vector<int64_t>(op_desc->GetInputsSize(), 1024));
+      op_desc->SetOutputOffset(std::vector<int64_t>(op_desc->GetOutputsSize(), 1024));
+    }
+  }
+
+  const auto ge_model = ge_root_model->GetSubgraphInstanceNameToModel().begin()->second;
+
+  // Make <op_name>_atomic_kernelname match _kernelname so IsSeparatelyCleanTask returns true.
+  // SyncKernelNameFromOpDesc sets all task_defs' kernel_name to _kernelname,
+  // so the attribute checked by IsSeparatelyCleanTask must equal _kernelname.
+  auto sync_atomic_kernelname = [](const ComputeGraphPtr &g) {
+    for (const auto &node : g->GetDirectNode()) {
+      auto op_desc = node->GetOpDesc();
+      if ((op_desc != nullptr) && (op_desc->GetType() == "Add")) {
+        std::string kernel_name;
+        if (AttrUtils::GetStr(op_desc, "_kernelname", kernel_name)) {
+          (void)AttrUtils::SetStr(op_desc, op_desc->GetName() + "_atomic_kernelname", kernel_name);
+        }
+      }
+    }
+  };
+  sync_atomic_kernelname(compute_graph);
+  const auto model_graph = ge_model->GetGraph();
+  if (model_graph != nullptr) {
+    sync_atomic_kernelname(model_graph);
+  }
+
+  // HACK: GetMagic uses kAtomicPrefix + TVM_ATTR_NAME_MAGIC = "_atomictvm_magic"
+  // (no underscore) to look up the atomic magic attribute, but FakeTbeBinToNodes
+  // sets ATOMIC_ATTR_TVM_MAGIC = "_atomic_tvm_magic" (with underscore).
+  // Set both keys so the atomic kernel binary registration succeeds.
+  auto sync_atomic_tvm_magic = [](const ComputeGraphPtr &g) {
+    for (const auto &node : g->GetDirectNode()) {
+      auto op_desc = node->GetOpDesc();
+      if ((op_desc != nullptr) && (op_desc->GetType() == "Add")) {
+        (void)AttrUtils::SetStr(op_desc, "_atomictvm_magic", "RT_DEV_BINARY_MAGIC_ELF_AIVEC");
+      }
+    }
+  };
+  sync_atomic_tvm_magic(compute_graph);
+  if (model_graph != nullptr) {
+    sync_atomic_tvm_magic(model_graph);
+  }
+
+  std::vector<uint64_t> weights_value(64, 1024);
+  const size_t weight_size = weights_value.size() * sizeof(uint64_t);
+  ge_model->SetWeight(Buffer::CopyFrom(reinterpret_cast<uint8_t *>(weights_value.data()), weight_size));
+
+  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 2048);
+  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_WEIGHT_SIZE, weight_size);
+  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_STREAM_NUM, 1);
+
+  return ge_root_model;
+}
+
+// -----------------------------------------------------------------------
 // Helper: 在现有 AiCore 模型上添加 CMO task_def
 // -----------------------------------------------------------------------
 GeRootModelPtr CreateGeRootModelWithCmoTask(uint32_t cmo_type = 1U,
@@ -986,6 +1155,44 @@ TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithAicoreNode) {
       "fake_test/manifest.json",
   };
   ExpectOm2ArchiveFiles(archive, expect_files);
+}
+
+TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithAtomicAicoreNode) {
+  Om2PackageHelper om2_packager;
+  const auto ge_root_model = CreateGeRootModelWithAtomicAicoreOp();
+  ASSERT_NE(ge_root_model, nullptr);
+  ModelBufferData model_data;
+  const std::string output_file = PathUtils::Join({test_work_dir, kZipFileBaseName + "_atomic.om2"});
+  ASSERT_EQ(om2_packager.SaveToOmRootModel(ge_root_model, output_file, model_data, false), SUCCESS);
+  ASSERT_EQ(mmAccess2(output_file.c_str(), M_F_OK), EOK);
+
+  uint32_t model_buf_size = 0;
+  const auto model_buf = GetBinDataFromFile(output_file, model_buf_size);
+  RAIIZipArchive archive(reinterpret_cast<const uint8_t *>(model_buf.get()), model_buf_size);
+  ASSERT_TRUE(archive.IsGood());
+  const std::set<std::string> expect_files = {
+      "fake_test_atomic/data/model_0/runtime/g1_kernel_reg.cpp",
+      "fake_test_atomic/data/model_0/runtime/g1_resources.cpp",
+      "fake_test_atomic/data/model_0/runtime/g1_args_manager.cpp",
+      "fake_test_atomic/data/model_0/runtime/g1_load_and_run.cpp",
+      "fake_test_atomic/data/model_0/runtime/g1_interface.h",
+      "fake_test_atomic/data/model_0/runtime/Makefile",
+      "fake_test_atomic/data/model_0/runtime/libg1_om2.so",
+      "fake_test_atomic/data/constants/model_0_constants_config.json",
+      "fake_test_atomic/data/kernels_npu_arch/add1_faked_kernel.o",
+      "fake_test_atomic/data/kernels_npu_arch/add1_faked_atomic_kernel.o",
+      "fake_test_atomic/data/model_0/model_meta.json",
+      "fake_test_atomic/data/model_0/debug/op_attr.json",
+      "fake_test_atomic/manifest.json",
+  };
+  ExpectOm2ArchiveFiles(archive, expect_files);
+
+  size_t kernel_reg_size = 0U;
+  const auto kernel_reg_buf =
+      archive.ExtractToMem("fake_test_atomic/data/model_0/runtime/g1_kernel_reg.cpp", kernel_reg_size);
+  ASSERT_NE(kernel_reg_buf, nullptr);
+  const std::string kernel_reg(reinterpret_cast<const char *>(kernel_reg_buf.get()), kernel_reg_size);
+  EXPECT_NE(kernel_reg.find("add1_faked_atomic_kernel"), std::string::npos);
 }
 
 TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithInternalConst) {
@@ -1284,7 +1491,7 @@ TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithAicpuOp) {
       "fake_test/data/model_0/runtime/libg1_om2.so",
       "fake_test/data/constants/model_0_constants_config.json",
       "fake_test/data/model_0/model_meta.json",
-    "fake_test/data/model_0/debug/op_attr.json",
+      "fake_test/data/model_0/debug/op_attr.json",
       "fake_test/manifest.json",
   };
   EXPECT_EQ(file_names.size(), expect_files.size());
@@ -1308,7 +1515,7 @@ TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithCustAicpuOp) {
   RAIIZipArchive archive(reinterpret_cast<const uint8_t *>(model_buf.get()), model_buf_size);
   ASSERT_TRUE(archive.IsGood());
   const auto file_names = archive.ListFiles();
-  const std::set<std::string> expect_files = {
+  const std::set<std::string> expect_files_without_cust_kernel = {
       "fake_test/data/model_0/runtime/g1_kernel_reg.cpp",
       "fake_test/data/model_0/runtime/g1_resources.cpp",
       "fake_test/data/model_0/runtime/g1_args_manager.cpp",
@@ -1321,10 +1528,17 @@ TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithCustAicpuOp) {
       "fake_test/data/model_0/debug/op_attr.json",
       "fake_test/manifest.json",
   };
-  EXPECT_EQ(file_names.size(), expect_files.size());
+  EXPECT_EQ(file_names.size(), expect_files_without_cust_kernel.size() + 1U);
+  bool found_cust_kernel = false;
   for (const auto &file_name : file_names) {
-    EXPECT_EQ(expect_files.count(file_name), 1);
+    if ((file_name.find("fake_test/data/kernels_npu_arch/") != std::string::npos) &&
+        (file_name.find("_CustAicpuKernel.o") != std::string::npos)) {
+      found_cust_kernel = true;
+      continue;
+    }
+    EXPECT_EQ(expect_files_without_cust_kernel.count(file_name), 1);
   }
+  EXPECT_TRUE(found_cust_kernel);
 }
 
 TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithTfAicpuOp) {
@@ -1623,7 +1837,6 @@ TEST_F(Om2St, SaveModelInfo_WithMbatchOriginInputDims_SerializesOriginDims) {
   const std::string output_file = PathUtils::Join({test_work_dir, "test_origin_dims.om2"});
   SyncKernelNameForAllModels(ge_root_model);
   ASSERT_EQ(om2_packager.SaveToOmRootModel(ge_root_model, output_file, model_data, false), SUCCESS);
-
   uint32_t model_buf_size = 0;
   const auto model_buf = GetBinDataFromFile(output_file, model_buf_size);
   RAIIZipArchive archive(reinterpret_cast<const uint8_t *>(model_buf.get()), model_buf_size);
@@ -1697,5 +1910,44 @@ TEST_F(Om2St, SaveModelInfo_WithDynamicBatchCase_WritesDynamicBatchInfo) {
   ASSERT_EQ(raw.at("user_designate_shape_order").size(), 2U);
   EXPECT_EQ(raw.at("user_designate_shape_order")[0], JsonFile::json("data1"));
   EXPECT_EQ(raw.at("user_designate_shape_order")[1], JsonFile::json("data2"));
+}
+
+
+TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithSeparatelyCleanTask) {
+  Om2PackageHelper om2_packager;
+  const auto ge_root_model = CreateGeRootModelWithSeparatelyCleanAicoreOp();
+  ASSERT_NE(ge_root_model, nullptr);
+  ModelBufferData model_data;
+  const std::string output_file = PathUtils::Join({test_work_dir, kZipFileBaseName + ".om2"});
+  SyncKernelNameForAllModels(ge_root_model);
+  // SaveToOmRootModel internally invokes codegen; the is_separately_clean_task_ path
+  // is exercised in BuildLaunchSemantic when resolving func_handle_key via
+  // ATOMIC_ATTR_TBE_KERNEL_NAME + "_atomic".
+  ASSERT_EQ(om2_packager.SaveToOmRootModel(ge_root_model, output_file, model_data, false), SUCCESS);
+  ASSERT_EQ(mmAccess2(output_file.c_str(), M_F_OK), EOK);
+
+  uint32_t model_buf_size = 0;
+  const auto model_buf = GetBinDataFromFile(output_file, model_buf_size);
+  RAIIZipArchive archive(reinterpret_cast<const uint8_t *>(model_buf.get()), model_buf_size);
+  ASSERT_TRUE(archive.IsGood());
+  // Compared with the plain AICore test, the atomic clean task registers an extra
+  // kernel binary "te_Add_12345_atomic_AicoreKernel.o" via BuildKernelRegistryForAicore.
+  const std::set<std::string> expect_files = {
+      "fake_test/data/model_0/runtime/g1_kernel_reg.cpp",
+      "fake_test/data/model_0/runtime/g1_resources.cpp",
+      "fake_test/data/model_0/runtime/g1_args_manager.cpp",
+      "fake_test/data/model_0/runtime/g1_load_and_run.cpp",
+      "fake_test/data/model_0/runtime/g1_interface.h",
+      "fake_test/data/model_0/runtime/Makefile",
+      "fake_test/data/model_0/runtime/libg1_om2.so",
+      "fake_test/data/constants/model_0_constants_config.json",
+      "fake_test/data/kernels_npu_arch/add1_faked_kernel.o",
+      "fake_test/data/kernels_npu_arch/add1_faked_atomic_kernel.o",
+      "fake_test/data/model_0/model_meta.json",
+      "fake_test/data/model_0/debug/op_attr.json",
+      "fake_test/manifest.json",
+  };
+  ExpectOm2ArchiveFiles(archive, expect_files);
+  GELOGI("Om2St: separately-clean atomic task packaging succeeded.");
 }
 }  // namespace ge

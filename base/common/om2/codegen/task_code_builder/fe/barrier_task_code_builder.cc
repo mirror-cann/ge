@@ -45,11 +45,11 @@ Status BarrierTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> &items) 
       ast_.Comment("============================= " + header_.op_name + " (Barrier) ==============================="));
 
   std::vector<Arg> cmo_info_init;
-  cmo_info_init.reserve(barrier_info_count_);
+  cmo_info_init.reserve(static_cast<size_t>(barrier_info_count_));
   for (int32_t i = 0; i < barrier_info_count_; ++i) {
     cmo_info_init.push_back(ast_.InitList(
         {ast_.StaticCast("uint16_t", barrier_task_info_.cmoInfo[i].cmoType),
-         ast_.UInt(barrier_task_info_.cmoInfo[i].logicId)}));
+         ast_.UInt(static_cast<uint64_t>(barrier_task_info_.cmoInfo[i].logicId))}));
   }
 
   auto barrier_info_var = ast_.Var("rtBarrierTaskInfo_t", "barrier_info");

@@ -97,10 +97,6 @@ class JsonFile {
     return data_;
   }
 
-  json &Raw() {
-    return data_;
-  }
-
  private:
   static constexpr int32_t kJsonPrettyIndent = 4;
   json data_;

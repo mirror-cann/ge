@@ -989,7 +989,10 @@ TEST_F(Om2PackageHelperUt, SaveCustAICpuKernels_Ok_DuplicateKernelOnlyOnce) {
   const char kernel_data[] = "fake_cust_aicpu_kernel_bin";
   std::vector<char> kernel_bin(kernel_data, kernel_data + strlen(kernel_data));
   auto cust_kernel = std::make_shared<ge::OpKernelBin>("libcust_aicpu_kernel.so", std::move(kernel_bin));
-  ge_model->GetCustAICPUKernelStore().AddCustAICPUKernel(cust_kernel);
+  CustAICPUKernelStore cust_aicpu_kernel_store;
+  cust_aicpu_kernel_store.AddCustAICPUKernel(cust_kernel);
+  ASSERT_TRUE(cust_aicpu_kernel_store.Build());
+  ge_model->SetCustAICPUKernelStore(cust_aicpu_kernel_store);
 
   auto graph = std::make_shared<ComputeGraph>("g1");
   GeTensorDesc tensor_desc(GeShape({1, 1}), FORMAT_ND, DT_FLOAT);
@@ -1012,6 +1015,14 @@ TEST_F(Om2PackageHelperUt, SaveCustAICpuKernels_Ok_DuplicateKernelOnlyOnce) {
 
   ASSERT_EQ(Om2PackageHelper::SaveCustAICpuKernels(zip_writer, ge_model), SUCCESS);
   ASSERT_TRUE(zip_writer->SaveModelDataToFile());
+
+  uint32_t model_buf_size = 0;
+  const auto model_buf = GetBinDataFromFile(output_file, model_buf_size);
+  RAIIZipArchive archive(reinterpret_cast<const uint8_t *>(model_buf.get()), model_buf_size);
+  ASSERT_TRUE(archive.IsGood());
+  const auto file_names = archive.ListFiles();
+  ASSERT_EQ(file_names.size(), 1U);
+  EXPECT_NE(file_names[0].find("_CustAicpuKernel.o"), std::string::npos);
 }
 
 TEST_F(Om2PackageHelperUt, SaveCustAICpuKernels_Ok_EmptyKernelStore) {
@@ -1090,14 +1101,24 @@ TEST_F(Om2PackageHelperUt, SaveTbeKernels_AtomicKernel_Ok) {
   const auto kernel_bin_dir = FormatOm2Path(OM2_KERNELS_DIR_FORMAT, "npu_arch");
   bool found_normal = false;
   bool found_atomic = false;
+  std::string atomic_entry;
   for (const auto &name : file_names) {
     if (name.find(kernel_bin_dir) != std::string::npos) {
       if (name.find("normal_kernel") != std::string::npos) { found_normal = true; }
-      if (name.find("atomic_kernel") != std::string::npos) { found_atomic = true; }
+      if (name.find("atomic_kernel") != std::string::npos) {
+        found_atomic = true;
+        atomic_entry = name;
+      }
     }
   }
   EXPECT_TRUE(found_normal) << "Normal kernel not saved";
   EXPECT_TRUE(found_atomic) << "Atomic kernel not saved";
+
+  size_t extracted_atomic_size = 0U;
+  const auto extracted_atomic_buf = archive.ExtractToMem(atomic_entry, extracted_atomic_size);
+  ASSERT_NE(extracted_atomic_buf, nullptr);
+  EXPECT_EQ(extracted_atomic_size, strlen(atomic_kernel_data));
+  EXPECT_EQ(memcmp(extracted_atomic_buf.get(), atomic_kernel_data, extracted_atomic_size), 0);
 }
 
 TEST_F(Om2PackageHelperUt, SaveTbeKernels_AtomicKernel_DuplicateNotSavedTwice) {

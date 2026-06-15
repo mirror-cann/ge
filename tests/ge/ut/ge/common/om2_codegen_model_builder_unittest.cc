@@ -213,6 +213,73 @@ GeRootModelPtr CreateGeRootModelWithAicoreOp2() {
   return ge_root_model;
 }
 
+GeRootModelPtr CreateGeRootModelWithAtomicAicoreOp() {
+  const std::string args_format = "{i_instance0*}{i_instance1*}{o_instance0*}{ws0*}";
+  auto graph = gert::ShareGraph::AicoreStaticGraph();
+  graph->TopologicalSorting();
+  gert::GeModelBuilder builder(graph);
+  auto ge_root_model =
+      builder
+          .AddTaskDef("Add", gert::AiCoreTaskDefFaker("add_stub").AtomicStubNum("atomic_add_stub")
+                                 .ArgsFormat(args_format))
+          .FakeTbeBin({gert::GeModelBuilder::TbeConfig("Add", true)})
+          .BuildGeRootModel();
+  auto &compute_graph = ge_root_model->GetRootGraph();
+
+  compute_graph->SetGraphUnknownFlag(false);
+  OpDescPtr add_desc = nullptr;
+  for (const auto &node : compute_graph->GetDirectNode()) {
+    auto op_desc = node->GetOpDesc();
+    if (op_desc == nullptr) {
+      return nullptr;
+    }
+    if (op_desc->GetType() == DATA) {
+      op_desc->SetOutputOffset({1024});
+    } else if (op_desc->GetType() == NETOUTPUT) {
+      op_desc->SetInputOffset({3072});
+    } else {
+      if (op_desc->GetType() == "Add") {
+        op_desc->AppendIrInput("x1", kIrInputRequired);
+        op_desc->AppendIrInput("x2", kIrInputRequired);
+        op_desc->AppendIrOutput("y", kIrOutputRequired);
+        (void)AttrUtils::SetBool(op_desc, ATTR_NAME_NEED_GENTASK_ATOMIC, true);
+        (void)AttrUtils::SetStr(op_desc, kAtomicPrefix + TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF_AIVEC");
+        add_desc = op_desc;
+      }
+      op_desc->SetInputOffset(std::vector<int64_t>(op_desc->GetInputsSize(), 1024));
+      op_desc->SetOutputOffset(std::vector<int64_t>(op_desc->GetOutputsSize(), 1024));
+      op_desc->SetWorkspaceBytes(std::vector<int64_t>(1, 64));
+      op_desc->SetWorkspace(std::vector<int64_t>(1, 0));
+    }
+  }
+
+  const auto &name_to_ge_model = ge_root_model->GetSubgraphInstanceNameToModel();
+  if ((add_desc == nullptr) || name_to_ge_model.empty()) {
+    return nullptr;
+  }
+  const auto ge_model = name_to_ge_model.begin()->second;
+  auto *model_task_def = ge_model->GetModelTaskDefPtr().get();
+  const auto kernel_name_ptr = AttrUtils::GetStr(add_desc, "_kernelname");
+  const auto atomic_kernel_name_ptr = AttrUtils::GetStr(add_desc, ATOMIC_ATTR_TBE_KERNEL_NAME);
+  if ((model_task_def == nullptr) || (model_task_def->task_size() < 2) ||
+      (kernel_name_ptr == nullptr) || (atomic_kernel_name_ptr == nullptr)) {
+    return nullptr;
+  }
+  model_task_def->mutable_task(0)->mutable_kernel()->set_kernel_name(*atomic_kernel_name_ptr);
+  model_task_def->mutable_task(0)->mutable_kernel()->mutable_context()->set_args_format(args_format);
+  model_task_def->mutable_task(1)->mutable_kernel()->set_kernel_name(*kernel_name_ptr);
+  model_task_def->mutable_task(1)->mutable_kernel()->mutable_context()->set_args_format(args_format);
+
+  std::vector<uint64_t> weights_value(64, 1024);
+  const size_t weight_size = weights_value.size() * sizeof(uint64_t);
+  ge_model->SetWeight(Buffer::CopyFrom(reinterpret_cast<uint8_t *>(weights_value.data()), weight_size));
+
+  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 2048);
+  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_WEIGHT_SIZE, weight_size);
+  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_STREAM_NUM, 1);
+  return ge_root_model;
+}
+
 GeRootModelPtr CreateGeRootModelWithConstInputOp() {
   GeRootModelPtr ge_root_model = CreateGeRootModelWithAicoreOp();
   if (ge_root_model == nullptr) {
@@ -1021,6 +1088,52 @@ TEST_F(Om2CodegenModelBuilderUt, BuildKernelRegistry_Aicore_Ok) {
   EXPECT_EQ(binary.func_handle_index, 0U);
 }
 
+TEST_F(Om2CodegenModelBuilderUt, BuildKernelRegistryAndLaunch_AicoreAtomic_Ok) {
+  GeRootModelPtr ge_root_model = CreateGeRootModelWithAtomicAicoreOp();
+  ASSERT_NE(ge_root_model, nullptr);
+  Om2CodegenModel doc;
+  std::vector<TaskCodeBuilderPtr> task_builders;
+  const auto ge_model = ge_root_model->GetSubgraphInstanceNameToModel().begin()->second;
+  ASSERT_NE(ge_model, nullptr);
+
+  ASSERT_EQ(Om2CodegenModelBuilder::CreateTaskCodeBuilders(ge_model, GetOm2CodegenModelBuilderUtAst(),
+                                                           task_builders, doc),
+            SUCCESS);
+  Om2CodegenModelBuilder builder;
+  Om2ConstMetas const_metas;
+  ASSERT_EQ(builder.Build(ge_model, task_builders, doc, const_metas), SUCCESS);
+
+  const std::string kernel_name = "add1_faked_kernel";
+  const std::string atomic_kernel_name = "add1_faked_atomic_kernel";
+  const std::string atomic_func_handle_key = atomic_kernel_name + "_atomic";
+  ASSERT_EQ(doc.kernel_registry.binaries.size(), 2U);
+  EXPECT_EQ(doc.runtime.kernel_bin_num, 2U);
+  ASSERT_EQ(doc.kernel_registry.func_handle_indices.size(), 2U);
+  ASSERT_EQ(doc.kernel_registry.func_handle_indices.count(kernel_name), 1U);
+  ASSERT_EQ(doc.kernel_registry.func_handle_indices.count(atomic_func_handle_key), 1U);
+  const uint32_t kernel_func_idx = doc.kernel_registry.func_handle_indices.at(kernel_name);
+  const uint32_t atomic_func_idx = doc.kernel_registry.func_handle_indices.at(atomic_func_handle_key);
+  EXPECT_NE(kernel_func_idx, atomic_func_idx);
+
+  const auto atomic_binary_it = std::find_if(doc.kernel_registry.binaries.begin(), doc.kernel_registry.binaries.end(),
+                                            [&atomic_kernel_name](const KernelBinaryRecord &binary) {
+                                              return binary.kernel_name == atomic_kernel_name;
+                                            });
+  ASSERT_NE(atomic_binary_it, doc.kernel_registry.binaries.end());
+  EXPECT_EQ(atomic_binary_it->kind, KernelBinaryKind::kAicore);
+  EXPECT_EQ(atomic_binary_it->file_name, "add1_faked_atomic_kernel.o");
+  EXPECT_EQ(atomic_binary_it->magic, "ACL_RT_BINARY_MAGIC_ELF_VECTOR_CORE");
+  EXPECT_EQ(atomic_binary_it->func_handle_index, atomic_func_idx);
+
+  ASSERT_EQ(task_builders.size(), 2U);
+  const auto *atomic_task_builder = dynamic_cast<KernelTaskCodeBuilder *>(task_builders[0].get());
+  const auto *kernel_task_builder = dynamic_cast<KernelTaskCodeBuilder *>(task_builders[1].get());
+  ASSERT_NE(atomic_task_builder, nullptr);
+  ASSERT_NE(kernel_task_builder, nullptr);
+  EXPECT_EQ(atomic_task_builder->GetTaskSemantic().launch.func_handle_index, atomic_func_idx);
+  EXPECT_EQ(kernel_task_builder->GetTaskSemantic().launch.func_handle_index, kernel_func_idx);
+}
+
 TEST_F(Om2CodegenModelBuilderUt, BuildKernelRegistry_Aicpu_Ok) {
   GeRootModelPtr ge_root_model = CreateGeRootModelWithAicpuOp();
   ASSERT_NE(ge_root_model, nullptr);
@@ -1372,7 +1485,7 @@ TEST_F(Om2CodegenModelBuilderUt, RenderDistribution_UsesTensorAndDeviceAddress_M
   std::vector<BodyItem> items;
   ASSERT_EQ(memcpy_async_builder->RenderDistribution(items), SUCCESS);
   const auto code = EmitCodeFromBodyItems(items);
-  EXPECT_NE(code.find("Om2Tensor op2_output0 = BuildOm2Tensor(GET_ADDR(total_dev_mem_ptr_, 2048),"),
+  EXPECT_NE(code.find("auto op2_output0 = GET_ADDR(total_dev_mem_ptr_, 2048)"),
             std::string::npos);
   EXPECT_NE(code.find("FlattenHostArgs(op2_input0, op2_output0)"), std::string::npos);
   EXPECT_NE(code.find("memcpy_s(args_table_.GetArgsInfo(1)->host_addr"), std::string::npos);

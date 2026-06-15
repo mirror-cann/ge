@@ -430,8 +430,6 @@ Status Om2ModelUtils::GetRtInputAddress(const TaskSemanticContributeContext &con
     int64_t tensor_size = 0;
     GE_CHK_STATUS_EXEC(TensorUtils::GetSize(*tensor_desc, tensor_size), return FAILED);
     addr_node.byte_size = static_cast<uint64_t>(tensor_size);
-    (void)addr_node.tensor_info.emplace();
-    GE_ASSERT_SUCCESS(BuildInputTensorInfo(tensor_desc, *addr_node.tensor_info));
     GE_ASSERT_SUCCESS(ResolveInputVarName(*context.op_id_to_input_edges, context.op_desc, context.op_index, index,
                                           index, addr_node.symbol_hint,
                                           addr_node.is_reused_from_upstream));
@@ -446,7 +444,7 @@ Status Om2ModelUtils::GetRtInputAddress(const TaskSemanticContributeContext &con
 }
 
 Status Om2ModelUtils::GetRtAddress(const TaskSemanticContributeContext &context, const uintptr_t logic_addr,
-                                    uint64_t &mem_type, AddrSemantic &addr_node, bool isInput, uint32_t index) {
+                                    AddrSemantic &addr_node, bool isInput, uint32_t index) {
   GE_ASSERT_NOTNULL(context.runtime);
 
   GELOGI("[OM2][GetRtAddress] op=%s, logic_addr=0x%" PRIxPTR ", isInput=%d, index=%u",
@@ -463,31 +461,30 @@ Status Om2ModelUtils::GetRtAddress(const TaskSemanticContributeContext &context,
       (logic_addr < (context.runtime->logic_mem_base + context.runtime->total_mem_size))) {
     GELOGI("[OM2][GetRtAddress] logic_addr 0x%" PRIxPTR " falls into FM range, isInput=%d", logic_addr, isInput);
     return GetRtFmAddress(context, static_cast<int64_t>(logic_addr) - static_cast<int64_t>(context.runtime->logic_mem_base),
-                          mem_type, addr_node, isInput, index);
+                          addr_node, isInput, index);
   }
   if ((context.runtime->logic_weight_base <= logic_addr) &&
       (logic_addr < (context.runtime->logic_weight_base + context.runtime->total_weight_size))) {
     GELOGI("[OM2][GetRtAddress] logic_addr 0x%" PRIxPTR " falls into Weight range", logic_addr);
     return GetRtWeightAddress(context, static_cast<int64_t>(logic_addr) - static_cast<int64_t>(context.runtime->logic_weight_base),
-                              mem_type, addr_node, index);
+                              addr_node, index);
   }
   if (is_check_var_manager && (context.runtime->logic_var_base <= logic_addr) &&
       (logic_addr < (context.runtime->logic_var_base + max_var_mem_size))) {
     GELOGI("[OM2][GetRtAddress] logic_addr 0x%" PRIxPTR " falls into Var range", logic_addr);
-    return GetRtVarAddress(context, logic_addr, mem_type, addr_node);
+    return GetRtVarAddress(context, logic_addr, addr_node);
   }
   if (logic_addr != 0U) {
     GELOGW("[OM2][GetRtAddress] logic_addr 0x%" PRIxPTR " falls into Unknown range", logic_addr);
-    return GetRtUnknownAddress(context, logic_addr, mem_type);
+    return GetRtUnknownAddress(context, logic_addr);
   }
   GELOGI("[OM2][GetRtAddress] logic_addr is 0, falls into Empty range");
   return GetRtEmptyAddress(context, addr_node, isInput, index);
 }
 
 Status Om2ModelUtils::GetRtFmAddress(const TaskSemanticContributeContext &context,
-                                     const int64_t logical_offset, uint64_t &mem_type,
+                                     const int64_t logical_offset,
                                      AddrSemantic &addr_node, bool is_input, uint32_t index) {
-  mem_type = kFmMemType;
   GELOGI("logical_offset %" PRId64 ", index %u", logical_offset, index);
   if (is_input) {
     return GetRtInputAddress(context, logical_offset, addr_node, index);
@@ -508,8 +505,6 @@ Status Om2ModelUtils::GetRtOutputAddress(const TaskSemanticContributeContext &co
     int64_t tensor_size = 0;
     GE_CHK_STATUS_EXEC(TensorUtils::GetSize(*tensor_desc, tensor_size), return FAILED);
     addr_node.byte_size = static_cast<uint64_t>(tensor_size);
-    (void)addr_node.tensor_info.emplace();
-    GE_ASSERT_SUCCESS(BuildOutputTensorInfo(tensor_desc, *addr_node.tensor_info));
     const int64_t current_op_id = context.op_desc->GetId();
     GE_ASSERT_TRUE(context.op_id_to_input_edges->find(current_op_id) != context.op_id_to_input_edges->end(),
                    "[OM2] Current op_id %" PRId64 " not found in op_id_to_input_edges", current_op_id);
@@ -526,7 +521,7 @@ Status Om2ModelUtils::GetRtOutputAddress(const TaskSemanticContributeContext &co
 }
 
 Status Om2ModelUtils::GetRtWeightAddress(const TaskSemanticContributeContext &context,
-                                         const int64_t logical_offset, uint64_t &mem_type,
+                                         const int64_t logical_offset,
                                          AddrSemantic &addr_node, uint32_t index) {
   GE_ASSERT_TRUE(context.weight_offset_to_varname != nullptr,
                  "[OM2] weight_offset_to_varname is null for weight offset %" PRId64 ".", logical_offset);
@@ -543,15 +538,12 @@ Status Om2ModelUtils::GetRtWeightAddress(const TaskSemanticContributeContext &co
     const GeTensorDescPtr tensor_desc = context.op_desc->MutableInputDesc(index);
     GE_ASSERT_TRUE(tensor_desc != nullptr, "[OM2] Op: %s, Index: %u, has no input",
                    context.op_desc->GetName().c_str(), index);
-    (void)addr_node.tensor_info.emplace();
-    GE_ASSERT_SUCCESS(BuildInputTensorInfo(tensor_desc, *addr_node.tensor_info));
   }
-  mem_type = kWeightMemType;
   return SUCCESS;
 }
 
 Status Om2ModelUtils::GetRtVarAddress(const TaskSemanticContributeContext &context,
-                                      const uintptr_t logic_addr, uint64_t &mem_type,
+                                      const uintptr_t logic_addr,
                                       AddrSemantic &addr_node) {
   const auto iter = context.fileconst_output_offset_to_varname->find(logic_addr);
   if (iter != context.fileconst_output_offset_to_varname->end()) {
@@ -559,8 +551,6 @@ Status Om2ModelUtils::GetRtVarAddress(const TaskSemanticContributeContext &conte
     addr_node.kind = AddrValueKind::kConstTensor;
     GE_ASSERT_SUCCESS(ResolveConstIndex(addr_node.symbol_hint, addr_node.const_index.emplace()));
     addr_node.mem_offset = static_cast<int64_t>(logic_addr);
-    addr_node.is_reused_from_upstream = true;
-    mem_type = kConstantMemType;
     return SUCCESS;
   }
   REPORT_INNER_ERR_MSG("E19999", "Var Manager is not implemented, logic addr:0x%" PRIx64 " abnormal",
@@ -571,7 +561,7 @@ Status Om2ModelUtils::GetRtVarAddress(const TaskSemanticContributeContext &conte
 }
 
 Status Om2ModelUtils::GetRtUnknownAddress(const TaskSemanticContributeContext &context,
-                                          const uintptr_t logic_addr, uint64_t &mem_type) {
+                                          const uintptr_t logic_addr) {
   for (const auto &iter : context.runtime->memory_infos) {
     const auto &mem_info = iter.second;
     GE_ASSERT_TRUE(mem_info.logic_memory_base >= 0);
@@ -580,9 +570,8 @@ Status Om2ModelUtils::GetRtUnknownAddress(const TaskSemanticContributeContext &c
                                      : static_cast<uint64_t>(mem_info.logic_memory_base);
     GE_ASSERT_TRUE(mem_info.memory_size >= 0);
     if ((logic_begin <= logic_addr) && (logic_addr < logic_begin + static_cast<uint64_t>(mem_info.memory_size))) {
-      mem_type = mem_info.memory_type;
-      REPORT_INNER_ERR_MSG("E19999", "mem_type %" PRIu64 " is not supported.", mem_type);
-      GELOGE(PARAM_INVALID, "mem_type %" PRIu64 " is not supported.", mem_type);
+      REPORT_INNER_ERR_MSG("E19999", "mem_type %" PRIu64 " is not supported.", mem_info.memory_type);
+      GELOGE(PARAM_INVALID, "mem_type %" PRIu64 " is not supported.", mem_info.memory_type);
       return PARAM_INVALID;
     }
   }

@@ -25,8 +25,8 @@ Status StreamActiveTaskCodeBuilder::Contribute(TaskSemanticContributeContext &co
   const uint32_t op_index = context.task_def.stream_active().op_index();
   auto it = context.op_index_to_count_map->find(op_index);
   if (it == context.op_index_to_count_map->end()) {
-    internal_index = 0;
-    (*context.op_index_to_count_map)[op_index] = 1;
+    internal_index = 0U;
+    (*context.op_index_to_count_map)[op_index] = 1U;
   } else {
     internal_index = it->second;
     ++(*context.op_index_to_count_map)[op_index];

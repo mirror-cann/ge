@@ -135,7 +135,7 @@ bg::ValueHolderPtr FindCustomOpFunc(const ge::NodePtr &node, LoweringGlobalData 
     return bg::FrameSelector::OnInitRoot([&node, &global_data]() -> std::vector<bg::ValueHolderPtr> {
       auto node_type = ValueHolder::CreateConst(node->GetTypePtr(), node->GetType().size() + 1, true);
       ge::CustomOpRegistry *custom_op_registry = global_data.GetCustomOpRegistry().get();
-      auto registry_holder = ValueHolder::CreateConst(&custom_op_registry, sizeof(custom_op_registry));
+      auto registry_holder = ValueHolder::CreateConst(&custom_op_registry, sizeof(ge::CustomOpRegistry *));
       return {ValueHolder::CreateSingleDataOutput("FindCustomOp", {node_type, registry_holder})};
     });
   };
@@ -147,7 +147,7 @@ std::vector<ValueHolderPtr> BuildCustomOpInferShapeGraph(const ge::NodePtr &node
                                                          LoweringGlobalData &global_data) {
   auto custom_op_func = FindCustomOpFunc(node, global_data);
   auto infer_shape_func = kernel::InferCustomOpShapeFromInput;
-  auto infer_shape_func_holder = ValueHolder::CreateConst(&infer_shape_func, sizeof(infer_shape_func));
+  auto infer_shape_func_holder = ValueHolder::CreateConst(&infer_shape_func, sizeof(decltype(infer_shape_func)));
   auto inputs = input_shapes;
   inputs.emplace_back(custom_op_func);
   inputs.emplace_back(infer_shape_func_holder);

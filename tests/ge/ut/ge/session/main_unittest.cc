@@ -28,6 +28,8 @@
 #include "ge_runtime_stub/include/common/share_graph.h"
 #include "ge_graph_dsl/graph_dsl.h"
 #include "register/optimization_option_registry.h"
+#include "register/amct_interface.h"
+#include "register/amct_registry.h"
 #include "depends/mmpa/src/mmpa_stub.h"
 
 using namespace domi;
@@ -1204,6 +1206,7 @@ Status CallAmctInterface(ge::Graph &graph, std::map<std::string, std::string> &o
 char g_handleStub;
 bool g_isError = false;
 using amctStatus = int32_t;
+// 待后续与原始流程一起删除
 amctStatus amctGraphCalibration(ge::Graph &graph, const std::map<std::string, std::string> &options) {
   auto compute_graph = ge::GraphUtilsEx::GetComputeGraph(graph);
   if (compute_graph != nullptr) {
@@ -1212,6 +1215,17 @@ amctStatus amctGraphCalibration(ge::Graph &graph, const std::map<std::string, st
     return static_cast<amctStatus>(ge::GRAPH_FAILED);
   }
 }
+
+class AmctCalibration : public IAmctCalibration {
+public:
+  graphStatus Calibrate(Graph& graph, const std::map<std::string, std::string>& options) override {
+    auto compute_graph = ge::GraphUtilsEx::GetComputeGraph(graph);
+    if (compute_graph != nullptr) {
+      return ge::GRAPH_SUCCESS;
+    }
+    return g_isError ? ge::GRAPH_FAILED : ge::GRAPH_SUCCESS;
+  }
+};
 
 class MockMmpa : public ge::MmpaStubApiGe {
  public:
@@ -1244,6 +1258,7 @@ TEST_F(UtestMain, MainImplTest_amct_interface) {
   EXPECT_EQ(ret, 0);
 
   options[COMPRESSION_OPTIMIZE_CONF] = "path_test";
+  REG_AMCT_CALIBRATION(AmctCalibration); // 执行一次CallAmctInterface后就会unregister
   g_isError = true;
   ret = CallAmctInterface(graph, options);
   EXPECT_NE(ret, 0);
@@ -1252,6 +1267,7 @@ TEST_F(UtestMain, MainImplTest_amct_interface) {
   ret = CallAmctInterface(graph, options);
   EXPECT_NE(ret, 0);
 
+  REG_AMCT_CALIBRATION(AmctCalibration);
   graph.SetValid();
   ret = CallAmctInterface(graph, options);
   EXPECT_EQ(ret, 0);

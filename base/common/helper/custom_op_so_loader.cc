@@ -323,7 +323,7 @@ CustomOpSoHandlePtr CustomOpSoLoader::GetLoadedHandle(const std::string &fingerp
 
 Status CustomOpSoLoader::LoadCustomOpSoBinCandidate(const OpSoBinPtr &so_bin, const std::string &diagnostic_so_key,
                                                     const std::string &fingerprint_key,
-                                                    CustomOpSoHandlePtr &candidate_handle) {
+                                                    CustomOpSoHandlePtr &candidate_handle) const {
   auto new_handle = std::make_shared<CustomOpSoHandle>(fingerprint_key, nullptr, so_bin->GetSoName(),
                                                        so_bin->GetBinDataSize(), kInvalidFd);
   PendingSoResource pending_resource;

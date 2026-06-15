@@ -27,6 +27,8 @@
 #include "common/env_path.h"
 #include "depends/mmpa/src/mmpa_stub.h"
 #include "faker/space_registry_faker.h"
+#include "register/amct_interface.h"
+#include "register/amct_registry.h"
 
 #include <fstream>
 #include <vector>
@@ -118,6 +120,7 @@ char g_handleStub;
 bool g_dlsymError = false;
 bool g_amctError = false;
 using amctStatus = int32_t;
+// 待后续与原始流程一起删除
 amctStatus amctGraphCalibration(ge::Graph &graph, const std::map<std::string, std::string> &options) {
   if (g_amctError) {
     return static_cast<amctStatus>(ge::GRAPH_FAILED);
@@ -149,6 +152,24 @@ public:
       return dlsym(handle, func_name);
     }
 };
+
+class AmctCalibrationTest : public IAmctCalibration {
+public:
+  graphStatus Calibrate(Graph& graph, const std::map<std::string, std::string>& options) override {
+    if (g_amctError) {
+	return ge::GRAPH_FAILED;
+    }
+    return ge::GRAPH_SUCCESS;
+  }
+};
+
+class AmctCalibrationTest2 : public IAmctCalibration {
+public:
+  graphStatus Calibrate(Graph& graph, const std::map<std::string, std::string>& options) override {
+    return ge::GRAPH_SUCCESS;
+  }
+};
+
 
 TEST_F(AtcCommonSTest, pb_model_common_1) {
   std::vector<OpRegistrationData> registrationDatas = domi::OpRegistry::Instance()->registrationDatas;
@@ -733,6 +754,11 @@ TEST_F(AtcCommonSTest, pb_model_precheck_fail) {
 
 TEST_F(AtcCommonSTest, pb_model_amct_interface) {
   ReInitGe();
+
+  // 注册具体的AmctCalibration
+  REG_AMCT_CALIBRATION(AmctCalibrationTest);
+  REG_AMCT_CALIBRATION(AmctCalibrationTest2); // 仅保留首次注册的
+
   MmpaStub::GetInstance().SetImpl(std::make_shared<MockMmpa>());
   auto om_path = PathJoin(GetRunPath().c_str(), "temp");
   Mkdir(om_path.c_str());

@@ -100,6 +100,10 @@ graphStatus DAGAdapter::ConvertNodes(const ConstGraphPtr &ge_graph, minidag::DAG
     if (!stream_label.empty()) {
       dag_node->SetSerialFlag(stream_label);
     }
+    // stream id如果是-1的节点一定不是device有计算任务的节点，所以执行耗时设置为0
+    if (op_desc->GetStreamId() == INVALID_STREAM_ID) {
+      cost.execution_time = 0.0f;
+    }
     dag_node->SetCost(cost);
     dag_node->SetTopoId(topo_id++);
   }

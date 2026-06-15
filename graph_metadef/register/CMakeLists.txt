@@ -35,6 +35,7 @@ set(SRC_LIST
     "graph_optimizer/fusion_statistic/fusion_statistic_recorder.cc"
     "op_kernel_registry.cpp"
     "auto_mapping_util.cpp"
+    "amct_registry.cc"
     "ffts_plus_update_manager.cc"
     "ffts_node_converter_registry.cc"
     "ffts_node_calculater_registry.cc"

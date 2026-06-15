@@ -82,9 +82,9 @@ export DUMP_GE_GRAPH=2
 - 参数：共 5 个，依次为 cond， input， output_num， then_branch， else_branch
 - 返回值：输出 output
 
-**C API中：**
+**Python API中：**
 ```
-If(const: Union[TensorHolder, TensorLike], input List[Union[TensorHolder, TensorLike]], output_num: int, then_branch: Graph, else_branch: Graph);
+If(cond: Union[TensorHolder, TensorLike], input: List[Union[TensorHolder, TensorLike]], output_num: int, then_branch: Graph, else_branch: Graph) -> List[TensorHolder]:
 ```
 注：
 1、使用TensorLike类型表达输入，以支持实参可以直接传递数值的情况

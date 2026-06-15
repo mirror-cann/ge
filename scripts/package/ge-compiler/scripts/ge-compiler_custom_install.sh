@@ -204,6 +204,59 @@ ge_compiler_clean_python_pass_artifacts() {
     rm -fr "${_pythonlocalpath}/ge/passes/python_pass_artifacts" 2> /dev/null
 }
 
+ge_compiler_python_pass_artifacts_complete() {
+    local _pythonlocalpath="$1"
+    local _artifact_root="${_pythonlocalpath}/ge/passes/python_pass_artifacts"
+    local _artifact_dir
+    [ -d "${_artifact_root}" ] || return 1
+    for _artifact_dir in "${_artifact_root}"/*; do
+        if [ -d "${_artifact_dir}" ] &&
+            [ -f "${_artifact_dir}/manifest.json" ] &&
+            [ -f "${_artifact_dir}/libge_python_pass_bridge.so" ] &&
+            [ -f "${_artifact_dir}/_ge_pass_native.so" ]; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+ge_compiler_extract_bridge_wheel() {
+    local _bridge_wheel="$1"
+    local _target_dir="$2"
+    if command -v python3 >/dev/null 2>&1; then
+        python3 -m zipfile -e "${_bridge_wheel}" "${_target_dir}" 2> /dev/null && return 0
+    fi
+    if command -v unzip >/dev/null 2>&1; then
+        unzip -oq "${_bridge_wheel}" -d "${_target_dir}" 2> /dev/null
+        return $?
+    fi
+    return 1
+}
+
+ge_compiler_fix_python_pass_artifacts() {
+    local _pythonlocalpath="$1"
+    local _bridge_wheel="$2"
+    if [ "$pylocal" != "y" ] || [ -z "${_pythonlocalpath}" ] || [ ! -d "${_pythonlocalpath}" ] ||
+        [ -z "${_bridge_wheel}" ] || [ ! -f "${_bridge_wheel}" ]; then
+        return 0
+    fi
+    if ge_compiler_python_pass_artifacts_complete "${_pythonlocalpath}"; then
+        return 0
+    fi
+
+    log "INFO" "python pass native artifacts are incomplete, extract ${_bridge_wheel} to fix."
+    if ! ge_compiler_extract_bridge_wheel "${_bridge_wheel}" "${_pythonlocalpath}"; then
+        log "WARNING" "extract ${_bridge_wheel} failed."
+        return 1
+    fi
+    if ! ge_compiler_python_pass_artifacts_complete "${_pythonlocalpath}"; then
+        log "WARNING" "fix python pass native artifacts failed."
+        return 1
+    fi
+    log "INFO" "python pass native artifacts fixed successfully."
+    return 0
+}
+
 ge_compiler_install_ge_package() {
     local _ge_package="$1"
     local _wheel_dir="$2"
@@ -262,6 +315,7 @@ ge_compiler_install_ge_package() {
     else
         log "INFO" "install ${_ge_package} and ${_bridge_requirement} successfully!"
     fi
+    ge_compiler_fix_python_pass_artifacts "${_pythonlocalpath}" "${_bridge_wheel}"
 }
 
 WHL_INSTALL_DIR_PATH="${common_parse_dir}/python/site-packages"

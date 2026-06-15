@@ -666,7 +666,10 @@ Status Om2CodegenModelBuilder::BuildKernelRegistryForAicore(Om2CodegenModel &cod
   GE_CHK_STATUS(RegisterKernel(aicore_sign, kernel_name, tiling_key, false));
 
   std::string atomic_kernel_name;
-  (void)AttrUtils::GetStr(op_desc, ATOMIC_ATTR_TBE_KERNEL_NAME, atomic_kernel_name);
+  const auto atomic_kernel_name_ptr = AttrUtils::GetStr(op_desc, ATOMIC_ATTR_TBE_KERNEL_NAME);
+  if (atomic_kernel_name_ptr != nullptr) {
+    atomic_kernel_name = *atomic_kernel_name_ptr;
+  }
   if (!atomic_kernel_name.empty()) {
     GE_CHK_STATUS(RegisterKernel(atomic_kernel_name + "_atomic", atomic_kernel_name, 0U, true));
   }

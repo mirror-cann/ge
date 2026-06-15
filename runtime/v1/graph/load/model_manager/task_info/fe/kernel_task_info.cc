@@ -32,6 +32,7 @@
 #include "adump_pub.h"
 #include "acl/acl_rt.h"
 #include "register/op_tiling/op_tiling_constants.h"
+#include "graph/utils/op_type_utils.h"
 #include "common/kernel_handles_manager/kernel_handle_utils.h"
 #include "graph/load/model_manager/kernel/kernel_register_info_builder.h"
 #include "acl/acl_rt.h"
@@ -186,6 +187,7 @@ ge::Status ConstructDfxInfo(const ge::OpDescPtr &op_desc,
                             const optiling::OpRunInfoV2 &run_info,
                             const std::vector<ge::ArgDesc> &arg_descs,
                             std::string &dfx_info) {
+  GELOGI("Start to construct dfx info for node: %s.", op_desc == nullptr ? "null" : op_desc->GetNamePtr());
   bool is_mem_check_enable = false;
   (void)ge::AttrUtils::GetBool(op_desc, optiling::kMemoryCheck, is_mem_check_enable);
   bool is_args_exception_enable = Adx::AdumpGetDumpSwitch(Adx::DumpType::ARGS_EXCEPTION);
@@ -1647,10 +1649,13 @@ Status KernelTaskInfo::CopyTilingDataIfNeeded() {
     has_tiling_ = true;
     std::string tiling_data = run_info->GetAllTilingData().str();
     if (!is_separately_clean_task_) {
-      std::string dfx_info;
-      GE_CHK_STATUS_RET(ConstructDfxInfo(op_desc_, *run_info, args_format_holder_.arg_descs, dfx_info),
-          "Append memcheck data for node: %s failed.", op_desc_->GetNamePtr());
-      tiling_data += dfx_info;
+      bool skip_append_dfx_info = ge::OpTypeUtils::IsAutofuseNode(op_desc_);
+      if (!skip_append_dfx_info) {
+        std::string dfx_info;
+        GE_CHK_STATUS_RET(ConstructDfxInfo(op_desc_, *run_info, args_format_holder_.arg_descs, dfx_info),
+            "ConstructDfxInfo failed for node: %s, skip append dfx info.", op_desc_->GetNamePtr());
+        tiling_data += dfx_info;
+      }
     }
     tiling_data_size_ = tiling_data.size();
     tiling_data_addr_ = davinci_model_->MallocDynamicMemory(tiling_data_size_);

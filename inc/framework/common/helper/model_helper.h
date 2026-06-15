@@ -25,7 +25,7 @@
 
 namespace ge {
 using NodeRefreshInfo = std::map<NodePtr, std::map<NodePtr, std::vector<std::pair<size_t, int64_t>>>>;
-Status LoadCustomOpsToRegistry(const uint8_t *data, size_t len, const CustomOpRegistryPtr &registry);
+Status LoadCustomOpsToRegistry(const uint8_t *data, const size_t len, const CustomOpRegistryPtr &registry);
 
 class GeModel;
 class GeRootModel;

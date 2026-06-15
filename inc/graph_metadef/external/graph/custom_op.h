@@ -125,7 +125,7 @@ using CustomOpCreateFunc = ge::BaseCustomOp *(*)();
 class CustomOpCreatorRegister {
 public:
   CustomOpCreatorRegister(const AscendString &operator_type, const BaseOpCreator &op_creator);
-  CustomOpCreatorRegister(const AscendString &operator_type, CustomOpCreateFunc op_creator);
+  CustomOpCreatorRegister(const AscendString &operator_type, const CustomOpCreateFunc op_creator);
   ~CustomOpCreatorRegister() = default;
 };
 }  // namespace ge

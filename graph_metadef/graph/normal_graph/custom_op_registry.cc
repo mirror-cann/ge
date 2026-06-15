@@ -95,15 +95,21 @@ graphStatus DeserializeCustomKernelItem(CustomOpRegistry &registry, const Parsed
 }  // namespace
 
 CustomOpRegistry::~CustomOpRegistry() {
-  std::vector<std::string> op_types;
-  {
-    const std::lock_guard<std::mutex> lock(mu_);
-    for (const auto &entry : creators_) {
-      op_types.push_back(entry.first.GetString());
+  try {
+    std::vector<std::string> op_types;
+    {
+      const std::lock_guard<std::mutex> lock(mu_);
+      for (const auto &entry : creators_) {
+        op_types.push_back(entry.first.GetString());
+      }
     }
-  }
-  if (!op_types.empty()) {
-    OperatorFactoryImpl::RemoveCustomOpCreators(op_types);
+    if (!op_types.empty()) {
+      OperatorFactoryImpl::RemoveCustomOpCreators(op_types);
+    }
+  } catch (const std::exception &e) {
+    GELOGW("[CUSTOM OP] Exception in CustomOpRegistry destructor: %s", e.what());
+  } catch (...) {
+    GELOGW("[CUSTOM OP] Unknown exception in CustomOpRegistry destructor.");
   }
 }
 

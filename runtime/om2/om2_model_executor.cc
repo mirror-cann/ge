@@ -129,7 +129,7 @@ ge::Status CreateSoMemFd(const std::string &file_name, const void *data, const s
                  file_name.c_str(), size, static_cast<long long>(write_count));
   GE_ASSERT_TRUE(lseek(fd, 0, SEEK_SET) >= 0, "[OM2][Seek][MemFd] Failed, file=%s", file_name.c_str());
 
-  fd_path = "/proc/self/fd/" + std::to_string(fd);
+  fd_path = "/proc/" + std::to_string(getpid()) + "/fd/" + std::to_string(fd);
   GE_DISMISS_GUARD(memfd_cleanup);
   return ge::SUCCESS;
 }

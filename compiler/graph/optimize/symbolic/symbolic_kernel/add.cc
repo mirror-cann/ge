@@ -86,7 +86,7 @@ graphStatus SetOutputShapeAndValue(gert::InferSymbolComputeContext *context,
   return SUCCESS;
 }
 
-graphStatus ComputeBroadcastShape(gert::InferSymbolComputeContext *context,
+graphStatus ComputeBroadcastShape(const gert::InferSymbolComputeContext *context,
                                   const std::vector<int64_t> &x1_dims, const std::vector<int64_t> &x2_dims,
                                   std::vector<int64_t> &output_dims) {
   size_t max_rank = std::max(x1_dims.size(), x2_dims.size());

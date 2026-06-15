@@ -1954,10 +1954,12 @@ REGISTER_LOWERING(Pack) {
   LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(node->GetInDataAnchor(0), dims) == GRAPH_SUCCESS,
                               node, "Failed to get 0th-input symbol shape.");
   const auto dim_num = static_cast<int64_t>(dims.size());
-  // 1. dim_num = 0, 实际为首轴concat，支持
+
+  // 1. dim_num = 0, 实际为首轴concat，暂不支持
+  LOWERING_WARN_RECORD_REASON(dim_num > 0, node, "Scalar input is not supported now");
   // 2. 非尾轴concat，支持
   // 3. 尾轴concat，输入个数<=kMaxInputForPackTailDim可以走优化后的kernel，支持，大于则不支持
-  LOWERING_WARN_RECORD_REASON((dim_num == 0) || ((axis != -1) && (axis < dim_num)) ||
+  LOWERING_WARN_RECORD_REASON(((axis != -1) && (axis < dim_num)) ||
                               (node->GetAllInDataAnchorsSize() <= kMaxInputForPackTailDim), node,
                               "Pack on the last axis and num_inputs(%u) > %u is not supported yet,"
                               "input_shape = %s, axis = %ld", node->GetAllInDataAnchorsSize(), kMaxInputForPackTailDim,

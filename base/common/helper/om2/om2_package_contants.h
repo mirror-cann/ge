@@ -8,8 +8,8 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-#ifndef BASE_COMMON_HELPER_OM2_OM2_PACKAGE_CONSTANTS_H_
-#define BASE_COMMON_HELPER_OM2_OM2_PACKAGE_CONSTANTS_H_
+#ifndef BASE_COMMON_HELPER_OM2_OM2_PACKAGE_CONTANTS_H_
+#define BASE_COMMON_HELPER_OM2_OM2_PACKAGE_CONTANTS_H_
 
 #include <string>
 #include <vector>
@@ -31,26 +31,27 @@ namespace ge {
   DO(OM2_KERNELS_DIR_FORMAT, "data/kernels_%s/");                  \
   DO(OM2_CONSTANTS_DIR, "data/constants/");                        \
   DO(OM2_CONSTANTS_FILE_PREFIX, "constant_");                      \
-  DO(OM2_CONSTANTS_CONFIG_PATH_FORMAT, "data/constants/model_%s_constants_config.json";)
+  DO(OM2_CONSTANTS_CONFIG_PATH_FORMAT, "data/constants/model_%s_constants_config.json")
 
-#define DEFINE_OM2_CONST(name, value) inline constexpr const char *name = value
-FORALL_OM2_CONSTANTS(DEFINE_OM2_CONST)
+#define DEFINE_OM2_CONST(name, value) inline constexpr const char *name = (value)
+FORALL_OM2_CONSTANTS(DEFINE_OM2_CONST);
 #undef DEFINE_OM2_CONST
 
 template <typename... Args>
 std::string FormatOm2Path(const char *fmt, Args... args) {
-  // 先计算所需长度（不包括终止符）
   const int32_t len = snprintf(nullptr, 0, fmt, args...);
   if (len < 0) {
     return "";
   }
 
-  std::vector<char> buf(static_cast<size_t>(len + 1), '\0');
-  if (snprintf_s(buf.data(), buf.size(), buf.size() - 1, fmt, args...) < 0) {
+  const size_t content_len = static_cast<size_t>(len);
+  const size_t buf_len = content_len + 1U;
+  std::vector<char> buf(buf_len, '\0');
+  if (snprintf_s(buf.data(), buf_len, content_len, fmt, args...) < 0) {
     return "";
   }
 
   return {buf.data()};
 }
 }  // namespace ge
-#endif  // BASE_COMMON_HELPER_OM2_OM2_PACKAGE_CONSTANTS_H_
+#endif  // BASE_COMMON_HELPER_OM2_OM2_PACKAGE_CONTANTS_H_

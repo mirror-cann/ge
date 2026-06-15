@@ -30,9 +30,10 @@ namespace ge {
 namespace {
 constexpr int32_t kMemZipOk = 0;
 constexpr int32_t kMemZipError = -1;
-constexpr uint64_t kMemInitialCapacity = 64 * 1024;
-constexpr int32_t kMemGrowFactor = 2;
-constexpr int64_t kBufSize = 16384UL;  // same as UNZ_BUFSIZE
+constexpr uint64_t kMemInitialCapacity = 64UL * 1024UL;
+constexpr uint32_t kMemGrowFactor = 2U;
+constexpr int64_t kBufSize = 16384L;  // same as UNZ_BUFSIZE
+constexpr size_t kBufVectorSize = 16384UL;  // same as UNZ_BUFSIZE
 constexpr uint32_t kMaxWriteSize = std::numeric_limits<uint32_t>::max();
 constexpr uint32_t kMaxFileNameLength = 4096U;  // same as UNZ_MAXFILENAMEINZIP
 
@@ -49,7 +50,7 @@ int MemGrow(MemoryFile *mem_file, const uint64_t new_size) {
   while (new_capacity < new_size) {
     if (CheckUint64MulOverflow(new_capacity, kMemGrowFactor) != SUCCESS) {
       GELOGE(FAILED,
-             "[MEMZIP] Memory file capacity overflow: current_capacity[%lu bytes], grow_factor[%d], target_size[%zu "
+             "[MEMZIP] Memory file capacity overflow: current_capacity[%lu bytes], grow_factor[%u], target_size[%zu "
              "bytes]",
              new_capacity, kMemGrowFactor, new_size);
       return kMemZipError;
@@ -90,9 +91,9 @@ voidpf ZCALLBACK MemOpenFileFuncWithBuffer(voidpf opaque, const void *filename, 
   }
 
   mem_file->buffer = nullptr;
-  mem_file->length = 0;
-  mem_file->capacity = 0;
-  mem_file->position = 0;
+  mem_file->length = 0UL;
+  mem_file->capacity = 0UL;
+  mem_file->position = 0UL;
   mem_file->error = kMemZipOk;
   mem_file->grow_mode = 1;
   mem_file->release_from_outside = 1;
@@ -291,7 +292,7 @@ voidpf ZCALLBACK MemOpenFileFuncReadonly(voidpf opaque, const void *filename, in
     GELOGE(FAILED, "[MEMZIP] Opaque pointer is null. Cannot initialize memory file.");
     return nullptr;
   }
-  mem_file_readonly->position = 0;
+  mem_file_readonly->position = 0UL;
   return mem_file_readonly;
 }
 
@@ -358,7 +359,7 @@ std::string GetBaseName(const std::string &path) {
   }
 
   const auto pos_slash = path.find_last_of('/');
-  std::string file_name = (pos_slash == std::string::npos) ? path : path.substr(pos_slash + 1);
+  std::string file_name = (pos_slash == std::string::npos) ? path : path.substr(pos_slash + 1U);
   if (file_name.empty()) {
     return "";
   }
@@ -488,7 +489,7 @@ bool ZipArchiveWriter::WriteFile(const std::string &entry_name, const std::strin
   GE_ASSERT_TRUE(ret == ZIP_OK, "Failed to open zip entry [%s], ret = %d", arc_name_with_prefix.c_str(), ret);
   GE_MAKE_GUARD(close_file_in_zip, [this]() { (void)zipCloseFileInZip(zip_handle_); });
 
-  std::vector<char_t> buffer(kBufSize);
+  std::vector<char_t> buffer(kBufVectorSize);
   auto remaining = static_cast<int64_t>(file_size);
   while (remaining > 0) {
     const int64_t chunk = remaining > kBufSize ? kBufSize : remaining;

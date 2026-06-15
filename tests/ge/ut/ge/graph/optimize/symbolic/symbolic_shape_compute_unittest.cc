@@ -4279,4 +4279,39 @@ TEST_F(SymbolicShapeComputeUT, test_gather_const_hostcompute_full) {
   expect_node_vec.push_back(expect_node);
   ASSERT_EQ(RunSymbolInferenceTest(cg, expect_node_vec, {}), SUCCESS);
 }
+
+TEST_F(SymbolicShapeComputeUT, test_stridedslice_ellipsis_zero_dim_expansion) {
+  std::vector<int32_t> const_data0 = {0, 1, 2, 3, 4};
+  std::vector<int64_t> const_dim0 = {5};
+  auto const_node0 = EsCreateConstInt32(graph_, const_data0.data(), const_dim0.data(), const_dim0.size());
+  std::vector<int32_t> const_data1 = {0, 0};
+  std::vector<int64_t> const_dim1 = {2};
+  auto const_node1 = EsCreateConstInt32(graph_, const_data1.data(), const_dim1.data(), const_dim1.size());
+  std::vector<int32_t> const_data2 = {0, 100};
+  std::vector<int64_t> const_dim2 = {2};
+  auto const_node2 = EsCreateConstInt32(graph_, const_data2.data(), const_dim2.data(), const_dim2.size());
+  std::vector<int32_t> const_data3 = {1, 1};
+  std::vector<int64_t> const_dim3 = {2};
+  auto const_node3 = EsCreateConstInt32(graph_, const_data3.data(), const_dim3.data(), const_dim3.size());
+  auto strided_slice = EsStridedSlice(const_node0, const_node1, const_node2, const_node3, 2, 0, 1, 0, 0);
+  ASSERT_EQ(EsSetGraphOutput(strided_slice, 0), 0);
+  auto graph = std::unique_ptr<Graph>(reinterpret_cast<Graph *>(EsBuildGraphAndReset(graph_)));
+
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+  ASSERT_NE(cg, nullptr);
+  auto strided_slice_node = cg->FindFirstNodeMatchType(STRIDEDSLICE);
+  ASSERT_NE(strided_slice_node, nullptr);
+  auto op_desc = strided_slice_node->GetOpDesc();
+  op_desc->MutableInputDesc(0)->SetShape(GeShape({5}));
+  op_desc->MutableInputDesc(1)->SetShape(GeShape({2}));
+  op_desc->MutableInputDesc(2)->SetShape(GeShape({2}));
+  op_desc->MutableInputDesc(3)->SetShape(GeShape({2}));
+
+  std::vector<Expression> expect_symbolic_shape = {Symbol(5)};
+  std::vector<Expression> expect_symbolic_value = {Symbol(0), Symbol(1), Symbol(2), Symbol(3), Symbol(4)};
+  ExpectNodeInfo expect_node(STRIDEDSLICE, expect_symbolic_shape, {}, {}, expect_symbolic_value);
+  std::vector<ExpectNodeInfo> expect_node_vec;
+  expect_node_vec.push_back(expect_node);
+  ASSERT_EQ(RunSymbolInferenceTest(cg, expect_node_vec, {}), SUCCESS);
+}
 }  // namespace ge

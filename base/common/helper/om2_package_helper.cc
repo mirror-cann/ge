@@ -148,7 +148,7 @@ Status RewriteOm2ConstantsConfig(const std::string &output_file_name, JsonFile &
     GE_ASSERT_TRUE(!new_file_path.empty(), "[OM2] Failed to make external weight path, output=%s",
                    output_file_name.c_str());
     const_info["file_name"] = file_name;
-    const_info.erase("file_path");
+    (void)const_info.erase("file_path");
     old_file_to_new_file[old_file_path] = new_file_path;
     changed = true;
   }
@@ -241,8 +241,9 @@ Status BuildInputJsonArray(const std::map<uint32_t, OpDescPtr> &input_ops, JsonF
     const auto &tensor_desc = op_desc->GetInputDescPtr(0);
     GE_ASSERT_NOTNULL(tensor_desc);
     int64_t input_size = 0;
-    if (AttrUtils::GetInt(*op_desc->GetOutputDescPtr(0U), ATTR_NAME_SPECIAL_INPUT_SIZE, input_size) &&
-        (input_size > 0)) {
+    const auto output_desc = op_desc->GetOutputDescPtr(0U);
+    if ((output_desc != nullptr) &&
+        AttrUtils::GetInt(*output_desc, ATTR_NAME_SPECIAL_INPUT_SIZE, input_size) && (input_size > 0)) {
       GELOGI("data[%s] output has special size [%" PRId64 "]", op_desc->GetName().c_str(), input_size);
     } else {
       GE_CHK_STATUS_RET(TensorUtils::GetSize(*tensor_desc, input_size), "[Get][InputSize] failed in op: %s.",
@@ -495,7 +496,10 @@ Status Om2PackageHelper::SaveTbeKernels(std::shared_ptr<ZipArchiveWriter> &zip_w
       (void)added_kernels.insert(kernel_name);
     }
     std::string atomic_kernel_name;
-    (void)AttrUtils::GetStr(node->GetOpDesc(), ATOMIC_ATTR_TBE_KERNEL_NAME, atomic_kernel_name);
+    const auto atomic_kernel_name_ptr = AttrUtils::GetStr(node->GetOpDesc(), ATOMIC_ATTR_TBE_KERNEL_NAME);
+    if (atomic_kernel_name_ptr != nullptr) {
+      atomic_kernel_name = *atomic_kernel_name_ptr;
+    }
     if (!atomic_kernel_name.empty()) {
       const auto atomic_kernel_bin = tbe_kernel_store.FindKernel(atomic_kernel_name);
       if ((atomic_kernel_bin != nullptr) && (added_kernels.count(atomic_kernel_name) == 0)) {
@@ -504,7 +508,7 @@ Status Om2PackageHelper::SaveTbeKernels(std::shared_ptr<ZipArchiveWriter> &zip_w
         const auto entry_path = kernel_bin_dir + Om2CodegenUtils::GetKernelNameWithExtension(atomic_kernel_name);
         GE_ASSERT_TRUE(zip_writer->WriteBytes(entry_path, atomic_kernel_bin->GetBinData(),
                                               atomic_kernel_bin->GetBinDataSize(), false));
-        added_kernels.insert(atomic_kernel_name);
+        (void)added_kernels.insert(atomic_kernel_name);
       }
     }
   }
@@ -530,8 +534,8 @@ Status Om2PackageHelper::SaveCustAICpuKernels(std::shared_ptr<ZipArchiveWriter> 
       auto kernel_bin = cust_aicpu_kernel_store.FindKernel(kernel_name);
       if ((kernel_bin != nullptr) && (added_kernels.count(kernel_name) == 0)) {
         GELOGD("[OM2] Save kernel for node [%s], kernel name is [%s]", node->GetName().c_str(), kernel_name.c_str());
-        const size_t hash_id = std::hash<std::string>{}(std::string(kernel_bin->GetBinData(),
-          kernel_bin->GetBinData() + kernel_bin->GetBinDataSize()));
+        const size_t hash_id = std::hash<std::string>{}(std::string(
+            reinterpret_cast<const char *>(kernel_bin->GetBinData()), kernel_bin->GetBinDataSize()));
         const auto entry_path = kernel_bin_dir + std::to_string(hash_id) + "_CustAicpuKernel.o";
         GE_ASSERT_TRUE(zip_writer->WriteBytes(entry_path, kernel_bin->GetBinData(), kernel_bin->GetBinDataSize(), false));
         (void)added_kernels.insert(cust_aicpu_kernel->GetName());

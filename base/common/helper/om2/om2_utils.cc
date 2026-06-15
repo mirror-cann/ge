@@ -10,6 +10,7 @@
 
 #include "om2_utils.h"
 #include <cctype>
+#include <limits>
 #include <regex>
 #include <sstream>
 #include <sys/syscall.h>
@@ -47,7 +48,10 @@ Status CreateMemFdFile(const std::string &name, const std::string &data, MemFdFi
   GE_DISMISSABLE_GUARD(memfd_file_cleanup, [&file]() { CloseMemFdFile(file); });
 
   if (!data.empty()) {
-    const auto write_count = mmWrite(file.fd, const_cast<char_t *>(data.data()), data.size());
+    GE_ASSERT_TRUE(data.size() <= static_cast<size_t>(std::numeric_limits<uint32_t>::max()),
+                   "[OM2] memfd data is too large, name=%s, size=%zu", name.c_str(), data.size());
+    const auto write_count = mmWrite(file.fd, const_cast<char_t *>(data.data()),
+                                     static_cast<uint32_t>(data.size()));
     GE_ASSERT_TRUE(write_count == static_cast<int64_t>(data.size()),
                    "[OM2] Failed to write memfd %s, expected=%zu, actual=%" PRId64, name.c_str(),
                    static_cast<int64_t>(data.size()), static_cast<int64_t>(write_count));
@@ -90,7 +94,7 @@ Status ReadFdToString(const int32_t fd, std::string &data) {
     if (read_size == 0) {
       break;
     }
-    data.append(buffer.data(), static_cast<size_t>(read_size));
+    (void)data.append(buffer.data(), static_cast<size_t>(read_size));
   }
   return SUCCESS;
 }
@@ -116,7 +120,7 @@ std::string JoinFdPaths(const std::vector<MemFdFile> &files) {
 
 bool IsMakefileLineContinued(const std::string &data, const size_t line_begin, const size_t line_end) {
   size_t pos = line_end;
-  while ((pos > line_begin) && std::isspace(static_cast<uint8_t>(data[pos - 1U]))) {
+  while ((pos > line_begin) && (std::isspace(static_cast<uint8_t>(data[pos - 1U])) != 0)) {
     --pos;
   }
   return (pos > line_begin) && (data[pos - 1U] == '\\');
@@ -185,7 +189,7 @@ Status CreateCompileCppFiles(const Om2CodegenArtifacts &artifacts, const std::st
     bool replaced = false;
     pos = compile_data.find(old_include, pos);
     while (pos != std::string::npos) {
-      compile_data.replace(pos, old_include.size(), new_include);
+      (void)compile_data.replace(pos, old_include.size(), new_include);
       pos += new_include.size();
       replaced = true;
       pos = compile_data.find(old_include, pos);

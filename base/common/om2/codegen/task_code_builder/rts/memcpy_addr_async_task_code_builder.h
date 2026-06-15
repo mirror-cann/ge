@@ -30,7 +30,7 @@ class MemcpyAddrAsyncTaskCodeBuilder : public TaskCodeBuilder {
   Status CalcArgSizes(const TaskSemanticContributeContext &context);
   Status BuildOrderedArgs(TaskSemanticContributeContext &context,
                           const AddrSemantic &src_addr_node, const AddrSemantic &dst_addr_node);
-  void CollectIoAddrVars(std::vector<BodyItem> &items, std::vector<Arg> &args_vars);
+  Status CollectIoAddrVars(std::vector<BodyItem> &items, std::vector<Arg> &args_vars);
   void RenderCustomValueWriteback(std::vector<BodyItem> &items);
 
   std::vector<AddrSemantic> ordered_arg_values_;

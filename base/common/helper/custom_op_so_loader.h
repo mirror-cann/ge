@@ -26,7 +26,8 @@
 namespace ge {
 class CustomOpSoHandle {
  public:
-  CustomOpSoHandle(std::string fingerprint_key, void *handle, std::string so_name, size_t bin_size, int32_t mem_fd);
+  CustomOpSoHandle(std::string fingerprint_key, void *handle, std::string so_name, const size_t bin_size,
+                   const int32_t mem_fd);
   ~CustomOpSoHandle();
   CustomOpSoHandle(const CustomOpSoHandle &) = delete;
   CustomOpSoHandle &operator=(const CustomOpSoHandle &) = delete;
@@ -39,7 +40,7 @@ class CustomOpSoHandle {
 
  private:
   friend class CustomOpSoLoader;
-  void AdoptResource(void *handle, int32_t mem_fd) noexcept;
+  void AdoptResource(void *handle, const int32_t mem_fd) noexcept;
 
   std::string fingerprint_key_;
   void *handle_;
@@ -72,7 +73,7 @@ class CustomOpSoLoader {
   CustomOpSoHandlePtr GetLoadedHandle(const std::string &fingerprint_key);
   Status LoadCustomOpSoBinCandidate(const OpSoBinPtr &so_bin, const std::string &diagnostic_so_key,
                                     const std::string &fingerprint_key,
-                                    CustomOpSoHandlePtr &candidate_handle);
+                                    CustomOpSoHandlePtr &candidate_handle) const;
   void PublishOrReuseLoadedHandle(const std::string &fingerprint_key, const CustomOpSoHandlePtr &candidate_handle,
                                   CustomOpSoHandlePtr &loaded_handle);
   void Cleanup();

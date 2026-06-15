@@ -28,7 +28,7 @@ class CmoAddrTaskCodeBuilder : public TaskCodeBuilder {
   void AppendOrderedArgValue(const AddrSemantic &semantic, uint64_t current_host_offset);
   Status CollectIoAddrVars(std::vector<BodyItem> &items, std::vector<Arg> &args_vars);
   void RenderCustomValueWriteback(std::vector<BodyItem> &items);
-  std::string BuildAutoArgsFormat(const TaskSemanticContributeContext &context);
+  std::string BuildAutoArgsFormat(const TaskSemanticContributeContext &context) const;
 
   std::string args_format_str_;
   std::vector<ArgDesc> arg_descs_;

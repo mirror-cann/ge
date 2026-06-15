@@ -14,6 +14,7 @@
 | es构图可选输入样例        | [C++样例](optional_input/cpp/README.md)<br>[Python样例](optional_input/python/README.md)                   |
 | es构图私有属性样例        | [C++样例](private_attributes/cpp/README.md)<br>[Python样例](private_attributes/python/README.md)           |
 | es构图transformer样例 | [C++样例](transformer/cpp/README.md)<br>[Python样例](transformer/python/README.md)                         |
+| es构图transformer_nz样例 | [C++样例](transformer_nz/cpp/README.md)<br>[Python样例](transformer_nz/python/README.md)                   |
 | es构图集合通信hccl_tp样例 | [C++样例](hccl_tp/cpp/README.md)<br>[Python样例](hccl_tp/python/README.md)                                 |
 | es构图集合通信hccl_ep样例 | [C++样例](hccl_ep/cpp/README.md)<br>[Python样例](hccl_ep/python/README.md)                                 |
 | es构图异步执行的样例       | [C++样例](operator_overload_async/cpp/README.md)<br>[Python样例](operator_overload_async/python/README.md) |

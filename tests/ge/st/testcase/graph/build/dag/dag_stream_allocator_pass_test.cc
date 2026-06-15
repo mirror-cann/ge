@@ -285,7 +285,7 @@ TEST_F(MiniDAGStreamPassTest, EndToEnd_DAGNodeCostProperties) {
 
   for (const auto& node : dag->GetAllNodes()) {
     const auto& cost = node->GetCost();
-    EXPECT_EQ(cost.execution_time, 0.0);
+    EXPECT_EQ(cost.execution_time, -1.0);
     EXPECT_EQ(cost.memory_usage, 0);
   }
 

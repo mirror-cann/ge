@@ -316,6 +316,23 @@ def _compile_base_args(target: TargetBuildInfo, python_info: PythonBuildInfo) ->
         _filter_python_related_includes(target.includes) + target.flags
 
 
+def _is_werror_flag(flag: str) -> bool:
+    return flag == "-Werror" or flag.startswith("-Werror=")
+
+
+def _without_werror(target: TargetBuildInfo) -> Tuple[TargetBuildInfo, List[str]]:
+    removed = [flag for flag in target.flags if _is_werror_flag(flag)]
+    if not removed:
+        return target, []
+    return TargetBuildInfo(
+        cwd=target.cwd,
+        defines=target.defines,
+        includes=target.includes,
+        flags=[flag for flag in target.flags if not _is_werror_flag(flag)],
+        link_args=target.link_args,
+    ), removed
+
+
 def _version_from_tag(tag: str) -> Tuple[int, int]:
     version = tag[2:]
     return int(version[0]), int(version[1:])
@@ -534,7 +551,17 @@ def _log_python_build_info(python_info: PythonBuildInfo) -> None:
           f"pybind11[{_format_optional_path(python_info.pybind_include)}], link_python[yes], rpath_python[no]")
 
 
-def _build_native_artifacts(args: argparse.Namespace, python_info: PythonBuildInfo) -> Optional[Path]:
+def _strip_optional_werror(tag: str, bridge_target: TargetBuildInfo,
+                           native_target: TargetBuildInfo) -> Tuple[TargetBuildInfo, TargetBuildInfo]:
+    bridge_target, removed_bridge_flags = _without_werror(bridge_target)
+    native_target, removed_native_flags = _without_werror(native_target)
+    removed_flags = removed_bridge_flags + removed_native_flags
+    print(f"Build optional {tag} native artifacts without Werror: stripped_flags[{_format_list(removed_flags)}]")
+    return bridge_target, native_target
+
+
+def _build_native_artifacts(args: argparse.Namespace, python_info: PythonBuildInfo,
+                            is_current_tag: bool) -> Optional[Path]:
     tag_work_dir = args.work_dir / python_info.tag
     if args.fresh and tag_work_dir.exists():
         shutil.rmtree(tag_work_dir)
@@ -543,6 +570,8 @@ def _build_native_artifacts(args: argparse.Namespace, python_info: PythonBuildIn
 
     bridge_target = _load_target_build_info(args.build_dir, "compiler", "ge_python_pass_bridge")
     native_target = _load_target_build_info(args.build_dir, "api/python/ge/ge/passes", "_ge_pass_native")
+    if not is_current_tag:
+        bridge_target, native_target = _strip_optional_werror(python_info.tag, bridge_target, native_target)
     header_ok, header_error = _can_compile_python_header(args, bridge_target,
                                                          tag_work_dir / "header_probe", python_info)
     if not header_ok:
@@ -589,7 +618,7 @@ def _copy_current_wheel(args: argparse.Namespace, tag: str) -> Optional[Path]:
     return target
 
 
-def _build_one(args: argparse.Namespace, tag: str, python: str) -> List[Path]:
+def _build_one(args: argparse.Namespace, tag: str, python: str, is_current_tag: bool) -> List[Path]:
     if args.dry_run:
         print(f"{tag}: {python} -> {args.work_dir / tag}")
         return []
@@ -609,7 +638,7 @@ def _build_one(args: argparse.Namespace, tag: str, python: str) -> List[Path]:
     if copied is not None:
         print(f"Reuse current native wheel for {tag}: wheel[{copied}], link_result[parent ge_python_native_wheel]")
         return [copied]
-    artifact_dir = _build_native_artifacts(args, python_info)
+    artifact_dir = _build_native_artifacts(args, python_info, is_current_tag)
     if artifact_dir is None:
         return []
     return [_build_wheel(args, tag, artifact_dir)]
@@ -662,7 +691,14 @@ def main() -> None:
         python = pythons.get(tag)
         if python is None:
             continue
-        tag_wheels = _build_one(args, tag, python)
+        is_current_tag = tag == args.current_tag
+        try:
+            tag_wheels = _build_one(args, tag, python, is_current_tag)
+        except Exception as err:
+            if is_current_tag:
+                raise
+            print(f"Skip optional {tag}: native wheel build failed for {python}:\n{err}", file=sys.stderr)
+            continue
         built_wheels.extend(tag_wheels)
         if tag_wheels:
             built_tags.append(tag)

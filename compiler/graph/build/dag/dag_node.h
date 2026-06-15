@@ -25,7 +25,7 @@ struct NodeCost {
   size_t compute_cycles = 0;
   size_t memory_usage = 0;
   size_t bandwidth_usage = 0;
-  float execution_time = 0.0f;
+  float execution_time = -1.0f; // 执行耗时，单位是us, -1是默认值
   size_t cube_block_num = 0;
   size_t vec_block_num = 0;
 };

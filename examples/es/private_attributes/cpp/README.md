@@ -1,14 +1,14 @@
 # 样例使用指导
 
 ## 1、功能描述
-本样例使用Sigmod私有属性进行构图，旨在帮助构图开发者快速理解私有属性的定义并使用私有属性进行构图
+本样例使用Sigmoid私有属性进行构图，旨在帮助构图开发者快速理解私有属性的定义并使用私有属性进行构图
 ## 2、目录结构
 ```angular2html
 cpp/
 ├── src/
 |   └── CMakeLists.txt           // CMake构建文件
 |   └── es_showcase.h            // 头文件
-|   └── make_sigmod_graph.cpp    // sample文件
+|   └── make_sigmoid_graph.cpp   // sample文件
 ├── CMakeLists.txt               // CMake构建文件
 ├── main.cpp                     // 程序主入口
 ├── README.md                    // README文件

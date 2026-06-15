@@ -25,7 +25,7 @@ from ge.es.all import BatchNorm
 
 def build_batch_norm_graph():
     # 1、创建图构建器
-    builder = GraphBuilder("MakeBatchNormGarph")
+    builder = GraphBuilder("MakeBatchNormGraph")
     # 2、创建图输入节点 
     input_tensor_holder = builder.create_input(
         index=0,

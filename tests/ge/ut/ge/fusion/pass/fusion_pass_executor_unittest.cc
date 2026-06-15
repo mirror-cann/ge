@@ -1997,5 +1997,6 @@ extern "C" const char *__lsan_default_suppressions() {
          "leak:pybind11::detail::make_static_property_type\n"
          "leak:pybind11::detail::make_object_base_type\n"
          "leak:pybind11::detail::get_internals\n"
-         "leak:pybind11::detail::get_local_internals\n";
+         "leak:pybind11::detail::get_local_internals\n"
+         "leak:libpython\n";
 }

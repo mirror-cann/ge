@@ -79,7 +79,7 @@ export DUMP_GE_GRAPH=2
 ### 4.2、概念说明：
 可选输入是指算子的某些输入是非必选输入。
 
-例如 BatchNorm 算子原型如下所示，ES 构图生成的API是`BatchNorm()`，支持在 Python 层使用
+例如 BatchNorm 算子原型如下所示，ES 构图生成的API是`BatchNorm()`，支持在 C++ 层使用
 ```bash
   REG_OP(BatchNorm)
     .INPUT(x, TensorType({DT_FLOAT16,DT_FLOAT}))

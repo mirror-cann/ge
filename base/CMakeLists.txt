@@ -558,22 +558,12 @@ list(TRANSFORM STUB_HEADER_LIST
     OUTPUT_VARIABLE STUB_SRC_LIST
 )
 
-if(NOT BUILD_PKG_COMPONENT)
-    # TODO:待整包下线后删除
-    add_custom_command(
-        OUTPUT ${STUB_SRC_LIST}
-        COMMAND echo "Generating ge_common_stub files."
-                && ${HI_PYTHON} ${METADEF_DIR}/tests/stub/gen_stubapi.py ${CMAKE_CURRENT_BINARY_DIR} ${STUB_HEADER_LIST}
-                && echo "Generating stub files end."
-    )
-else()
-    add_custom_command(
-        OUTPUT ${STUB_SRC_LIST}
-        COMMAND echo "Generating ge_common_stub files."
-                && ${HI_PYTHON} ${GE_METADEF_DIR}/../tests/graph_metadef/stub/gen_stubapi.py ${CMAKE_CURRENT_BINARY_DIR} ${STUB_HEADER_LIST}
-                && echo "Generating stub files end."
-    )
-endif()
+add_custom_command(
+    OUTPUT ${STUB_SRC_LIST}
+    COMMAND echo "Generating ge_common_stub files."
+            && ${HI_PYTHON} ${GE_METADEF_DIR}/../tests/graph_metadef/stub/gen_stubapi.py ${CMAKE_CURRENT_BINARY_DIR} ${STUB_HEADER_LIST}
+            && echo "Generating stub files end."
+)
 
 add_custom_target(stub_ge_common DEPENDS ${STUB_SRC_LIST})
 
