@@ -19,6 +19,7 @@
 #include "graph/load/model_manager/model_manager.h"
 #include "graph/optimize/symbolic/infer_symbolic_shape/symbolic_infer_util.h"
 #include "graph/utils/op_type_utils.h"
+#include "graph/debug/ge_attr_define.h"
 #include "acl/acl_rt.h"
 
 #define JIT_ASSERT(exp, tsk, ...)              \
@@ -76,20 +77,6 @@ Status FreeInputsAllocByJit(std::vector<MemBlock *> &input_blocks) {
   return SUCCESS;
 }
 
-Status CopyHostInputToDeviceAfterSlice(std::vector<gert::Tensor> *inputs, std::vector<MemBlock *> &input_mem_block,
-                                       std::shared_ptr<ge::Allocator> device_allocator) {
-  MemBlock *mem_block_to_keep = nullptr;
-  for (size_t i = 0U; i < inputs->size(); i++) {
-    if ((*inputs)[i].GetPlacement() == gert::TensorPlacement::kOnHost) {
-      GE_ASSERT_SUCCESS(TensorTransUtils::HostTensorToDeviceGertTensor(
-          device_allocator.get(), (*inputs)[i].GetAddr(), (*inputs)[i].GetSize(), (*inputs)[i], mem_block_to_keep));
-      GE_ASSERT_NOTNULL(mem_block_to_keep);
-      input_mem_block.emplace_back(mem_block_to_keep);
-    }
-  }
-  return SUCCESS;
-}
-
 Status GetAllCondInputData(const ComputeGraphPtr &graph, std::set<size_t> &data_idx) {
   GE_ASSERT_NOTNULL(graph);
   for (const auto &node : graph->GetAllNodes()) {
@@ -123,6 +110,27 @@ Status BuildCompileInputs(const std::vector<gert::Tensor> &ori_inputs, const Com
   }
   return SUCCESS;
 }
+
+void MarkHostTensorOnDataNodes(const std::vector<gert::Tensor> &inputs, const ExecutionPoint &ep) {
+  auto sliced_graph = ep.GetSlicedGraph();
+  if (sliced_graph == nullptr) {
+    return;
+  }
+  for (const auto &node : sliced_graph->GetDirectNode()) {
+    if (!OpTypeUtils::IsDataNode(node->GetType())) {
+      continue;
+    }
+    int32_t data_index = -1;
+    (void)AttrUtils::GetInt(node->GetOpDesc(), ATTR_NAME_INDEX, data_index);
+    if (data_index < 0 || static_cast<size_t>(data_index) >= inputs.size()) {
+      continue;
+    }
+    if (inputs[data_index].GetPlacement() == gert::TensorPlacement::kOnHost) {
+      (void)AttrUtils::SetBool(node->GetOpDesc(), ATTR_NAME_HOST_TENSOR, true);
+    }
+  }
+}
+
 }  // namespace
 JitExecutor::JitExecutor(GraphManager &graph_manager, UserGraphExecutionQueue &task_queue, ExecutionOrder &order,
                          CompileContext &compile_context, CompiledModelCache &cmc, std::mutex &mutex)
@@ -245,15 +253,6 @@ Status JitExecutor::RunWithCallback(UserGraphExecution &&task) {
   auto inputs = &tensors0;
   auto outputs = &tensors1;
 
-  std::vector<MemBlock *> input_mem_block;
-  auto free_mem_block_callback = [&input_mem_block] () {
-    for (auto &mem_block : input_mem_block) {
-      mem_block->Free();
-    }
-    input_mem_block.clear();
-  };
-  GE_MAKE_GUARD(free_mem, free_mem_block_callback);
-
   while (ep != nullptr) {
     PrepareOutputs(*ep, *outputs, ge_tensors);
     GE_ASSERT_SUCCESS(ProcessAndExecuteGraphAsync(task, stream_, *inputs, *outputs, ep));
@@ -263,7 +262,7 @@ Status JitExecutor::RunWithCallback(UserGraphExecution &&task) {
     JIT_ASSERT_SUCCESS(order_.NextPoint(*ep, ge_tensors, ep), task);
     if (ep != nullptr) {
       std::swap(inputs, outputs);
-      GE_ASSERT_SUCCESS(CopyHostInputToDeviceAfterSlice(inputs, input_mem_block, device_allocator_));
+      MarkHostTensorOnDataNodes(*inputs, *ep);
     }
   }
   JIT_ASSERT_RT_OK(aclrtSynchronizeStream(stream_), task);

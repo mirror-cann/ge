@@ -153,6 +153,12 @@ class HybridModelRtV2Executor : public HybridModelExecutor {
   Status PostProcResult(std::vector<GeTensor> &outputs) const;
   Status InitCtx();
   Status CheckInputIsOnDevice();
+  void InitHostInputFlags(const ge::ComputeGraphPtr &root_graph);
+  Status InitModelIdentity(const std::shared_ptr<ge::GeRootModel> &ge_root_model,
+                         const ge::ComputeGraphPtr &root_graph);
+  Status InitExecutorAndProfiler(const std::shared_ptr<ge::GeRootModel> &ge_root_model);
+  Status InitIoDescriptors(const ge::ComputeGraphPtr &root_graph);
+  Status InitModelArgsAndLoad();
   Status AllocatorRecycle(const aclrtStream stream) const;
   Status RecycleOutputs(std::vector<gert::Tensor> &outputs, const aclrtStream stream) const;
   Status TryUpdateStreamCoreLimits(const aclrtStream stream);
@@ -205,6 +211,7 @@ class HybridModelRtV2Executor : public HybridModelExecutor {
 
   std::vector<gert::Tensor *> rt_inputs_;
   std::vector<gert::Tensor *> rt_outputs_;
+  std::vector<bool> is_host_input_;
   std::unique_ptr<ProfilerCollector> profiler_collector_;
   GraphExecutionContext context_;
   GEThreadLocalContext ge_context_;
