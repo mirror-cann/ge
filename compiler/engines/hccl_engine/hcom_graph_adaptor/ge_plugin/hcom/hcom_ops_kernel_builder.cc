@@ -392,6 +392,15 @@ HcclResult HcomOpsKernelBuilder::SetAivSuperKernelBinaryAttrs(const ge::OpDescPt
       }
     }
   }
+  // 步骤4：校验二进制文件是否存在
+  std::string binFilePath;
+  if (ge::AttrUtils::GetStr(opDescPtr, "bin_file_path", binFilePath)) {
+    char resolvedPath[PATH_MAX];
+    if (realpath(binFilePath.c_str(), resolvedPath) == nullptr) {
+      HCCL_ERROR("[AIV][SetAivSuperKernelBinaryAttrs]path %s is not supported by superkernel for unsupported data type", binFilePath.c_str());
+      return HCCL_E_INTERNAL;
+    }
+  }
   return HCCL_SUCCESS;
 }
 
