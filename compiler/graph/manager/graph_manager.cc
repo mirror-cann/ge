@@ -4968,13 +4968,23 @@ Status GraphManager::GetOmeContextByGraphId(const GraphId &graph_id, OmeContext 
 Status GraphManager::ConstructInputTensors(const ComputeGraphPtr &compute_graph, const std::vector<GeShape> &hint_shape,
                                            std::vector<GeTensor> &inputs, bool support_unknown_shape) const {
   std::vector<GeTensor> inputs_temp;
+  std::vector<NodePtr> input_nodes;
   for (const auto &node : compute_graph->GetInputNodes()) {
+    input_nodes.emplace_back(node);
+  }
+  std::sort(input_nodes.begin(), input_nodes.end(), [](const NodePtr &a, const NodePtr &b) {
+    int64_t idx_a = std::numeric_limits<int64_t>::max();
+    int64_t idx_b = std::numeric_limits<int64_t>::max();
+    (void)AttrUtils::GetInt(a->GetOpDesc(), ATTR_NAME_INDEX, idx_a);
+    (void)AttrUtils::GetInt(b->GetOpDesc(), ATTR_NAME_INDEX, idx_b);
+    return idx_a < idx_b;
+  });
+  for (const auto &node : input_nodes) {
     GE_ASSERT_NOTNULL(node);
     GE_ASSERT_NOTNULL(node->GetOpDesc());
     const auto &tensor_desc = node->GetOpDesc()->GetOutputDesc(0U);
     if (tensor_desc.IsValid()) {
-      GELOGE(FAILED, "The tensor desc of input node %s:%s is invalid", node->GetName().c_str(),
-             node->GetType().c_str());
+      GELOGE(FAILED, "The tensor desc of input node %s:%s is invalid", node->GetName().c_str(), node->GetType().c_str());
       return FAILED;
     }
 
