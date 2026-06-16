@@ -89,7 +89,6 @@ if(COMPILABLE_ADD_BUILD_CUSTOM_OP)
       lowering
       register
       gert
-      custom_op_registry_static
       dl
       -Wl,--as-needed
     )

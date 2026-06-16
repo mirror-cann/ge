@@ -44,7 +44,6 @@
 #include "common/dump/dump_manager.h"
 #include "common/dump/dump_callback.h"
 #include "graph/operator_factory_impl.h"
-#include "common/helper/custom_op_so_loader.h"
 
 namespace {
 constexpr size_t kDynamicBatchSizeVecSize = 1U;
@@ -344,7 +343,6 @@ Status GeExecutor::FinalizeEx() {
     ProfilingProperties::Instance().ClearProperties();
   }
 
-  CustomOpSoLoader::Finalize();
   OpsKernelExecutorManager::GetInstance().Finalize();
   HostMemManager::Instance().Finalize();
 

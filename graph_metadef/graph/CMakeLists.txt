@@ -96,10 +96,8 @@ SET(GRAPH_SOURCE_LIST
     "type/ascend_string.cc"
     "attr/attr_value.cc"
     "type/axis_type_info.cc"
-    "normal_graph/custom_op_creator_register.cc"
     "normal_graph/custom_op_factory.cc"
-    "normal_graph/custom_op_pull_registry.cc"
-    "normal_graph/custom_op_registry.cc"
+    "normal_graph/custom_op_factory_impl.cc"
     "normal_graph/operator_factory.cc"
     "normal_graph/operator_factory_impl.cc"
     "normal_graph/graph.cc"
@@ -229,7 +227,6 @@ target_compile_options(graph PRIVATE
 
 target_compile_definitions(graph PRIVATE
     $<$<OR:$<STREQUAL:${PRODUCT_SIDE},host>,$<STREQUAL:${ENABLE_OPEN_SRC},True>>:FMK_SUPPORT_DUMP>
-    CUSTOM_OP_PULL_REGISTRY_HIDDEN_EXPORT
     google=ascend_private
     $<IF:$<STREQUAL:${TARGET_SYSTEM_NAME},Windows>,OS_TYPE=WIN,OS_TYPE=0>
     $<$<STREQUAL:${TARGET_SYSTEM_NAME},Windows>:SECUREC_USING_STD_SECURE_LIB=0 NOMINMAX>
@@ -240,9 +237,6 @@ target_include_directories(graph PRIVATE
     ${CMAKE_BINARY_DIR}
     ${CMAKE_BINARY_DIR}/proto/metadef_protos
     ${AIR_CODE_DIR}/inc/graph_metadef
-    ${AIR_CODE_DIR}/inc/graph_metadef/external
-    ${ASCEND_INSTALL_PATH}/include/graph
-    ${ASCEND_INSTALL_PATH}/include
     ${TOP_DIR}/runtime/include/external
     ${TOP_DIR}/runtime/include/external/acl
 )
@@ -273,31 +267,6 @@ target_link_libraries(graph
 
 target_link_libraries(graph PRIVATE graph_base runtime_headers)
 target_compile_options(graph PRIVATE ${OPTIMIZE_OPTION})
-
-add_library(custom_op_registry_static STATIC
-    "normal_graph/custom_op_creator_register.cc"
-    "normal_graph/custom_op_pull_registry.cc"
-)
-
-target_compile_options(custom_op_registry_static PRIVATE
-    $<$<STREQUAL:${TARGET_SYSTEM_NAME},Linux>:-fPIC -fvisibility=hidden -fvisibility-inlines-hidden>
-)
-
-target_include_directories(custom_op_registry_static PRIVATE
-    ${CMAKE_CURRENT_LIST_DIR}
-    ${CMAKE_BINARY_DIR}
-    ${CMAKE_BINARY_DIR}/proto/metadef_protos
-    ${AIR_CODE_DIR}/inc/graph_metadef
-    ${AIR_CODE_DIR}/inc/graph_metadef/external
-    ${ASCEND_INSTALL_PATH}/include/graph
-    ${ASCEND_INSTALL_PATH}/include
-    ${TOP_DIR}/runtime/include/external
-    ${TOP_DIR}/runtime/include/external/acl
-)
-
-target_link_libraries(custom_op_registry_static
-    PRIVATE intf_pub c_sec_headers runtime_headers
-    PUBLIC metadef_headers)
 
 if (${ENABLE_OPEN_SRC} STREQUAL "True")
 else()
@@ -407,8 +376,6 @@ endif ()
 if (NOT "${PRODUCT}" STREQUAL "ascend031")
     list(APPEND STUB_HEADER_LIST
         ${GE_METADEF_INC_DIR}/external/graph/operator.h
-        ${GE_METADEF_INC_DIR}/graph/custom_op_pull_registry.h
-        ${GE_METADEF_INC_DIR}/graph/custom_op_registry.h
         ${GE_METADEF_INC_DIR}/graph/ge_tensor.h
     )
     if (BUILD_OPEN_PROJECT OR ENABLE_OPEN_SRC)

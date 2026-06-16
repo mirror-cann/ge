@@ -31,19 +31,9 @@
 #include "aicore/converter/autofuse_node_converter.h"
 #include "graph/custom_op_factory.h"
 #include "graph/custom_op.h"
-#include "graph/custom_op_registry.h"
-#include "kernel/common_kernel_impl/infer_shape.h"
 
 namespace gert {
 namespace bg {
-ge::ShapeInferOp *FindShapeInferOpInCustomOpRegistry(const ge::AscendString &op_type,
-                                              const LoweringGlobalData &global_data) {
-  ge::BaseCustomOp *custom_op = nullptr;
-  const auto &custom_op_registry = global_data.GetCustomOpRegistry();
-  custom_op = (custom_op_registry == nullptr) ? nullptr : custom_op_registry->CreateOrGetCustomOp(op_type);
-  return dynamic_cast<ge::ShapeInferOp *>(custom_op);
-}
-
 namespace {
 constexpr char const *kRetValType  = "_RetVal";
 struct LowerIOShapes {
@@ -127,30 +117,6 @@ std::vector<ValueHolderPtr> BuildInferShapeGraph(const ge::NodePtr &node,
     type + "_FindInferShapeFunc_" + to_string(static_cast<int32_t>(opp_impl_version)), builder)[0];
   auto inputs = input_shapes;
   inputs.emplace_back(infer_func);
-  return ValueHolder::CreateDataOutput("InferShape", inputs, node->GetAllOutDataAnchorsSize());
-}
-
-bg::ValueHolderPtr FindCustomOpFunc(const ge::NodePtr &node, LoweringGlobalData &global_data) {
-  auto builder = [&node, &global_data]() -> std::vector<bg::ValueHolderPtr> {
-    return bg::FrameSelector::OnInitRoot([&node, &global_data]() -> std::vector<bg::ValueHolderPtr> {
-      auto node_type = ValueHolder::CreateConst(node->GetTypePtr(), node->GetType().size() + 1, true);
-      ge::CustomOpRegistry *custom_op_registry = global_data.GetCustomOpRegistry().get();
-      auto registry_holder = ValueHolder::CreateConst(&custom_op_registry, sizeof(custom_op_registry));
-      return {ValueHolder::CreateSingleDataOutput("FindCustomOp", {node_type, registry_holder})};
-    });
-  };
-  return global_data.GetOrCreateUniqueValueHolder(node->GetType() + "_FindCustomOp_", builder)[0];
-}
-
-std::vector<ValueHolderPtr> BuildCustomOpInferShapeGraph(const ge::NodePtr &node,
-                                                         const std::vector<ValueHolderPtr> &input_shapes,
-                                                         LoweringGlobalData &global_data) {
-  auto custom_op_func = FindCustomOpFunc(node, global_data);
-  auto infer_shape_func = kernel::InferCustomOpShapeFromInput;
-  auto infer_shape_func_holder = ValueHolder::CreateConst(&infer_shape_func, sizeof(infer_shape_func));
-  auto inputs = input_shapes;
-  inputs.emplace_back(custom_op_func);
-  inputs.emplace_back(infer_shape_func_holder);
   return ValueHolder::CreateDataOutput("InferShape", inputs, node->GetAllOutDataAnchorsSize());
 }
 
@@ -278,8 +244,10 @@ std::vector<ValueHolderPtr> InferCustomOpShape(const ge::NodePtr &node,
   }
   const auto op_desc = node->GetOpDesc();
   GE_ASSERT_NOTNULL(op_desc);
-  if (FindShapeInferOpInCustomOpRegistry(node->GetTypePtr(), global_data) != nullptr) {
-    return BuildCustomOpInferShapeGraph(node, input_shapes, global_data);
+  auto custom_op = ge::CustomOpFactory::CreateOrGetCustomOp(node->GetTypePtr());
+  auto shape_infer_op = dynamic_cast<ge::ShapeInferOp *>(custom_op);
+  if (shape_infer_op != nullptr) {
+    return BuildInferShapeGraph(node, input_shapes, global_data);
   }
   const std::string infer_rule = ge::InferenceRule::GetInferenceRule(op_desc);
   if (!infer_rule.empty()) {

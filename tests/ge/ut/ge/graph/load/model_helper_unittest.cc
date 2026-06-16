@@ -14,13 +14,7 @@
 #include <algorithm>
 #include <cstring>
 #include <cstdlib>
-#include <atomic>
-#include <chrono>
-#include <condition_variable>
 #include <fstream>
-#include <mutex>
-#include <set>
-#include <thread>
 #include <utility>
 #include "mmpa/mmpa_api.h"
 #include "macro_utils/dt_public_scope.h"
@@ -52,8 +46,6 @@
 #include "common/opskernel/ops_kernel_info_types.h"
 #include "graph/custom_op.h"
 #include "graph/custom_op_factory.h"
-#include "graph/custom_op_registry.h"
-#include "depends/mmpa/src/mmpa_stub.h"
 
 using namespace std;
 extern std::string g_runtime_stub_mock;
@@ -74,43 +66,7 @@ constexpr const char *kPortableOpEmptyTypeForModelHelper = "ModelHelperPortableO
 constexpr const char *kPortableOpSerializeFailTypeForModelHelper = "ModelHelperPortableOpSerializeFailForUt";
 constexpr const char *kNonPortableOpTypeForModelHelper = "ModelHelperNonPortableOpForUt";
 constexpr const char *kUnregisteredPortableOpTypeForModelHelper = "ModelHelperUnregisteredPortableOpForUt";
-constexpr const char *kRegistryOnlyPortableOpTypeForModelHelper = "ModelHelperRegistryOnlyPortableOpForUt";
 const std::vector<uint8_t> kPortableKernelBinForModelHelper = {0x11U, 0x22U, 0x33U};
-std::atomic<size_t> g_custom_op_loader_dlopen_count{0U};
-std::mutex g_custom_op_loader_dlopen_mutex;
-std::condition_variable g_custom_op_loader_dlopen_cv;
-bool g_custom_op_loader_release_dlopen = false;
-
-class BlockingDlopenMmpaStubForUt : public MmpaStubApiGe {
- public:
-  void *DlOpen(const char *file_name, int32_t mode) override {
-    {
-      std::unique_lock<std::mutex> lock(g_custom_op_loader_dlopen_mutex);
-      ++g_custom_op_loader_dlopen_count;
-      g_custom_op_loader_dlopen_cv.notify_all();
-      g_custom_op_loader_dlopen_cv.wait(lock, [] { return g_custom_op_loader_release_dlopen; });
-    }
-    return MmpaStubApiGe::DlOpen(file_name, mode);
-  }
-};
-
-class ScopedCustomOpLoaderBlockingDlopenForUt {
- public:
-  ScopedCustomOpLoaderBlockingDlopenForUt() {
-    g_custom_op_loader_dlopen_count = 0U;
-    g_custom_op_loader_release_dlopen = false;
-    MmpaStub::GetInstance().SetImpl(std::make_shared<BlockingDlopenMmpaStubForUt>());
-  }
-
-  ~ScopedCustomOpLoaderBlockingDlopenForUt() {
-    {
-      std::lock_guard<std::mutex> lock(g_custom_op_loader_dlopen_mutex);
-      g_custom_op_loader_release_dlopen = true;
-    }
-    g_custom_op_loader_dlopen_cv.notify_all();
-    MmpaStub::GetInstance().Reset();
-  }
-};
 
 static bool FindNotLoadedSystemSoForModelHelperUt(std::string &so_path) {
   const std::vector<std::string> so_dirs = {"/lib/aarch64-linux-gnu", "/usr/lib/aarch64-linux-gnu", "/lib/x86_64-linux-gnu",
@@ -125,31 +81,6 @@ static bool FindNotLoadedSystemSoForModelHelperUt(std::string &so_path) {
       }
       so_path = candidate;
       return true;
-    }
-  }
-  return false;
-}
-
-static bool FindTwoReadableSystemSosForModelHelperUt(std::string &first_so_path, std::string &second_so_path) {
-  const std::vector<std::string> so_dirs = {"/lib/aarch64-linux-gnu", "/usr/lib/aarch64-linux-gnu",
-                                            "/lib/x86_64-linux-gnu", "/usr/lib/x86_64-linux-gnu",
-                                            "/lib64", "/usr/lib64"};
-  const std::vector<std::string> so_names = {"libz.so.1", "liblzma.so.5", "libbz2.so.1.0", "libuuid.so.1",
-                                             "libffi.so.8", "libcrypt.so.1", "libm.so.6"};
-  std::set<std::string> found_paths;
-  for (const auto &so_dir : so_dirs) {
-    for (const auto &so_name : so_names) {
-      const std::string candidate = so_dir + "/" + so_name;
-      if ((found_paths.find(candidate) != found_paths.end()) || (mmAccess2(candidate.c_str(), M_R_OK) != EN_OK)) {
-        continue;
-      }
-      if (first_so_path.empty()) {
-        first_so_path = candidate;
-      } else {
-        second_so_path = candidate;
-        return true;
-      }
-      (void)found_paths.emplace(candidate);
     }
   }
   return false;
@@ -567,7 +498,6 @@ static GeRootModelPtr CreateGeRootModelForModelHelperUt(const std::string &root_
   if (ge_root_model->Initialize(root_graph) != SUCCESS) {
     return nullptr;
   }
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
 
   auto sub_graph = std::make_shared<ComputeGraph>("sub_graph_for_custom_kernels");
   if (!sub_op_type.empty()) {
@@ -657,7 +587,6 @@ static GeRootModelPtr ConstructGeRootModel(bool is_dynamic_shape = true,
   AttrUtils::SetBool(graph, ATTR_NAME_DYNAMIC_SHAPE_PARTITIONED, is_dynamic_shape);
   GeRootModelPtr ge_root_model = std::make_shared<GeRootModel>();
   EXPECT_EQ(ge_root_model->Initialize(graph), SUCCESS);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
   GeModelPtr ge_model = std::make_shared<GeModel>();
   ge_root_model->subgraph_instance_name_to_model_["graph"] = ge_model;
   ge_model->SetGraph(graph);
@@ -682,47 +611,6 @@ class UtestModelHelper : public testing::Test {
 
   void TearDown() override {
     GetThreadLocalContext().SetGlobalOption(old_global_options_);
-  }
-
-  void RunConcurrentLoadSameFingerprint(CustomOpSoLoader &loader,
-                                        const OpSoBinPtr &so_bin,
-                                        std::vector<CustomOpSoHandlePtr> &first_handles,
-                                        std::vector<CustomOpSoHandlePtr> &second_handles,
-                                        Status &first_status,
-                                        Status &second_status) {
-    ScopedCustomOpLoaderBlockingDlopenForUt dlopen_guard;
-    std::thread first_thread([&]() {
-      first_status = loader.LoadCustomOpSoBins({so_bin}, first_handles);
-    });
-    bool first_dlopen_started = false;
-    {
-      std::unique_lock<std::mutex> lock(g_custom_op_loader_dlopen_mutex);
-      first_dlopen_started = g_custom_op_loader_dlopen_cv.wait_for(lock, std::chrono::seconds(5),
-          [] { return g_custom_op_loader_dlopen_count.load() == 1U; });
-    }
-    if (!first_dlopen_started) {
-      {
-        std::lock_guard<std::mutex> lock(g_custom_op_loader_dlopen_mutex);
-        g_custom_op_loader_release_dlopen = true;
-      }
-      g_custom_op_loader_dlopen_cv.notify_all();
-      first_thread.join();
-      ASSERT_TRUE(first_dlopen_started);
-    }
-    std::thread second_thread([&]() {
-      second_status = loader.LoadCustomOpSoBins({so_bin}, second_handles);
-    });
-    bool both_dlopen_started = false;
-    {
-      std::unique_lock<std::mutex> lock(g_custom_op_loader_dlopen_mutex);
-      both_dlopen_started = g_custom_op_loader_dlopen_cv.wait_for(lock, std::chrono::seconds(5),
-          [] { return g_custom_op_loader_dlopen_count.load() == 2U; });
-      g_custom_op_loader_release_dlopen = true;
-    }
-    g_custom_op_loader_dlopen_cv.notify_all();
-    first_thread.join();
-    second_thread.join();
-    ASSERT_TRUE(both_dlopen_started);
   }
 
  private:
@@ -936,7 +824,6 @@ TEST_F(UtestModelHelper, SoBinSaveToOmRootModel)
   AttrUtils::SetBool(graph, ATTR_NAME_DYNAMIC_SHAPE_PARTITIONED, true);
   GeRootModelPtr ge_root_model = std::make_shared<GeRootModel>();
   EXPECT_EQ(ge_root_model->Initialize(graph), SUCCESS);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
   GeModelPtr ge_model = std::make_shared<GeModel>();
   ge::ComputeGraphPtr subgraph = std::make_shared<ge::ComputeGraph>("subgraph");
   ge_model->SetGraph(subgraph);
@@ -1195,7 +1082,6 @@ TEST_F(UtestModelHelper, SoBinSaveToOmModel)
   AttrUtils::SetBool(graph, ATTR_NAME_DYNAMIC_SHAPE_PARTITIONED, true);
   GeRootModelPtr ge_root_model = std::make_shared<GeRootModel>();
   EXPECT_EQ(ge_root_model->Initialize(graph), SUCCESS);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
   ge::ComputeGraphPtr subgraph = std::make_shared<ge::ComputeGraph>("subgraph");
   GeModelPtr ge_model = std::make_shared<GeModel>();
   ge_model->SetGraph(subgraph);
@@ -1290,8 +1176,7 @@ TEST_F(UtestModelHelper, LoadOpSoBinSuccess)
   so_patition.size = so_payload.size();
   cur_ctx.partition_datas_.push_back(so_patition);
   load_helper.model_contexts_.push_back(cur_ctx);
-  std::vector<CustomOpSoHandlePtr> loaded_handles;
-  EXPECT_EQ(model_helper.LoadOpSoBin(load_helper, ge_root_model, loaded_handles), SUCCESS);
+  EXPECT_EQ(model_helper.LoadOpSoBin(load_helper, ge_root_model), SUCCESS);
 }
 
 TEST_F(UtestModelHelper, LoadTilingDataSuccess) {
@@ -1336,7 +1221,7 @@ TEST_F(UtestModelHelper, LoadCustomOpsPartitionMissingSuccess) {
   load_helper.model_contexts_.emplace_back(OmFileContext{});
 
   ModelHelper model_helper;
-  EXPECT_EQ(model_helper.LoadCustomOps(load_helper, nullptr), SUCCESS);
+  EXPECT_EQ(model_helper.LoadCustomOps(load_helper), SUCCESS);
 }
 
 TEST_F(UtestModelHelper, LoadCustomOpsEmptyPartitionSuccess) {
@@ -1352,145 +1237,7 @@ TEST_F(UtestModelHelper, LoadCustomOpsEmptyPartitionSuccess) {
   load_helper.model_contexts_.push_back(cur_ctx);
 
   ModelHelper model_helper;
-  EXPECT_EQ(model_helper.LoadCustomOps(load_helper, nullptr), SUCCESS);
-}
-
-TEST_F(UtestModelHelper, GeRootModelCustomOpRegistryShouldBeSharedByFork) {
-  auto registry = std::make_shared<CustomOpRegistry>();
-  GeRootModel root_model;
-  root_model.SetCustomOpRegistry(registry);
-
-  EXPECT_EQ(root_model.GetCustomOpRegistry(), registry);
-  const auto forked_model = root_model.Fork();
-  ASSERT_NE(forked_model, nullptr);
-  EXPECT_EQ(forked_model->GetCustomOpRegistry(), registry);
-}
-
-TEST_F(UtestModelHelper, LoadCustomOpsWithRegistryShouldNotUseGlobalFactory) {
-  OmFileLoadHelper load_helper;
-  load_helper.is_inited_ = true;
-
-  const auto payload = BuildExpectedCustomOpsDataForModelHelperUt(kRegistryOnlyPortableOpTypeForModelHelper,
-                                                                  kPortableKernelBinForModelHelper);
-  OmFileContext cur_ctx;
-  ModelPartition custom_partition;
-  custom_partition.type = ModelPartitionType::CUSTOM_OPS;
-  custom_partition.data = payload.data();
-  custom_partition.size = payload.size();
-  cur_ctx.partition_datas_.push_back(custom_partition);
-  load_helper.model_contexts_.push_back(cur_ctx);
-
-  auto registry = std::make_shared<CustomOpRegistry>();
-  ASSERT_EQ(registry->RegisterCreator(kRegistryOnlyPortableOpTypeForModelHelper,
-                                      []() -> std::unique_ptr<BaseCustomOp> {
-                                        return std::make_unique<ModelHelperPortableOpForUt>();
-                                      }), GRAPH_SUCCESS);
-  ASSERT_FALSE(CustomOpFactory::IsExistOp(kRegistryOnlyPortableOpTypeForModelHelper));
-
-  ModelHelper model_helper;
-  EXPECT_EQ(model_helper.LoadCustomOps(load_helper, registry), SUCCESS);
-  EXPECT_TRUE(registry->HasCustomOp(kRegistryOnlyPortableOpTypeForModelHelper));
-  EXPECT_FALSE(CustomOpFactory::IsExistOp(kRegistryOnlyPortableOpTypeForModelHelper));
-}
-
-TEST_F(UtestModelHelper, LoadCustomOpRegistryShouldCreateEmptyModelRegistryWhenNoSoBinsOrCustomOps) {
-  OmFileLoadHelper load_helper;
-  load_helper.is_inited_ = true;
-  load_helper.model_contexts_.emplace_back(OmFileContext{});
-
-  auto graph = std::make_shared<ComputeGraph>("task5_no_custom_op_registry_graph");
-  auto ge_root_model = std::make_shared<GeRootModel>();
-  ASSERT_EQ(ge_root_model->Initialize(graph), SUCCESS);
-  ASSERT_EQ(ge_root_model->GetCustomOpRegistry(), nullptr);
-
-  ModelHelper model_helper;
-  EXPECT_EQ(model_helper.LoadCustomOpRegistry(load_helper, ge_root_model), SUCCESS);
-  ASSERT_NE(ge_root_model->GetCustomOpRegistry(), nullptr);
-  EXPECT_NE(ge_root_model->GetCustomOpRegistry(), CustomOpFactory::GetGlobalRegistryPtr());
-}
-
-TEST_F(UtestModelHelper, LoadCustomOpRegistryShouldFailWhenCustomOpsExistWithoutSoBins) {
-  OmFileLoadHelper load_helper;
-  load_helper.is_inited_ = true;
-
-  const auto payload = BuildExpectedCustomOpsDataForModelHelperUt(kRegistryOnlyPortableOpTypeForModelHelper,
-                                                                  kPortableKernelBinForModelHelper);
-  OmFileContext cur_ctx;
-  ModelPartition custom_partition;
-  custom_partition.type = ModelPartitionType::CUSTOM_OPS;
-  custom_partition.data = payload.data();
-  custom_partition.size = payload.size();
-  cur_ctx.partition_datas_.push_back(custom_partition);
-  load_helper.model_contexts_.push_back(cur_ctx);
-
-  auto graph = std::make_shared<ComputeGraph>("task5_custom_ops_without_so_bins_graph");
-  auto ge_root_model = std::make_shared<GeRootModel>();
-  ASSERT_EQ(ge_root_model->Initialize(graph), SUCCESS);
-
-  ModelHelper model_helper;
-  EXPECT_NE(model_helper.LoadCustomOpRegistry(load_helper, ge_root_model), SUCCESS);
-  EXPECT_EQ(ge_root_model->GetCustomOpRegistry(), nullptr);
-}
-
-TEST_F(UtestModelHelper, LoadCustomOpRegistryShouldFailAndReleaseLeaseWhenPullSymbolsMissing) {
-  CustomOpSoLoader::GetInstance().Cleanup();
-  std::string source_so_path;
-  ASSERT_TRUE(FindNotLoadedSystemSoForModelHelperUt(source_so_path));
-  std::vector<char_t> so_data;
-  ASSERT_TRUE(ReadSoDataForModelHelperUt(source_so_path, so_data));
-  const auto custom_op_so_bin = BuildCustomOpSoBinForModelHelperUt("libtask5_missing_pull_symbols.so", "vendor_ut",
-                                                                   so_data);
-  ASSERT_NE(custom_op_so_bin, nullptr);
-
-  std::vector<uint8_t> so_payload;
-  ASSERT_TRUE(BuildSoBinsPayloadForModelHelperUt({custom_op_so_bin}, so_payload));
-  OmFileLoadHelper load_helper;
-  load_helper.is_inited_ = true;
-  OmFileContext cur_ctx;
-  ModelPartition so_partition;
-  so_partition.type = ModelPartitionType::SO_BINS;
-  so_partition.data = so_payload.data();
-  so_partition.size = so_payload.size();
-  cur_ctx.partition_datas_.push_back(so_partition);
-  load_helper.model_contexts_.push_back(cur_ctx);
-
-  auto graph = std::make_shared<ComputeGraph>("task5_missing_pull_symbols_graph");
-  auto ge_root_model = std::make_shared<GeRootModel>();
-  ASSERT_EQ(ge_root_model->Initialize(graph), SUCCESS);
-
-  ModelHelper model_helper;
-  EXPECT_NE(model_helper.LoadCustomOpRegistry(load_helper, ge_root_model), SUCCESS);
-  EXPECT_EQ(ge_root_model->GetCustomOpRegistry(), nullptr);
-  ASSERT_EQ(CustomOpSoLoader::GetInstance().loaded_states_.size(), 1U);
-  EXPECT_TRUE(CustomOpSoLoader::GetInstance().loaded_states_.begin()->second.expired());
-  CustomOpSoLoader::GetInstance().Cleanup();
-}
-
-TEST_F(UtestModelHelper, ValidateCustomOpsDeserializedFailsWhenUsedCreatorHasNoInstance) {
-  const auto ge_root_model = CreateGeRootModelForModelHelperUt(kRegistryOnlyPortableOpTypeForModelHelper, "");
-  ASSERT_NE(ge_root_model, nullptr);
-  auto registry = std::make_shared<CustomOpRegistry>();
-  ASSERT_EQ(registry->RegisterCreator(kRegistryOnlyPortableOpTypeForModelHelper,
-                                      []() -> std::unique_ptr<BaseCustomOp> {
-                                        return std::make_unique<ModelHelperPortableOpForUt>();
-                                      }), GRAPH_SUCCESS);
-
-  ModelHelper model_helper;
-  EXPECT_NE(model_helper.ValidateCustomOpsDeserialized(ge_root_model, registry), SUCCESS);
-}
-
-TEST_F(UtestModelHelper, ValidateCustomOpsDeserializedSucceedsWhenUsedCreatorHasInstance) {
-  const auto ge_root_model = CreateGeRootModelForModelHelperUt(kRegistryOnlyPortableOpTypeForModelHelper, "");
-  ASSERT_NE(ge_root_model, nullptr);
-  auto registry = std::make_shared<CustomOpRegistry>();
-  ASSERT_EQ(registry->RegisterCreator(kRegistryOnlyPortableOpTypeForModelHelper,
-                                      []() -> std::unique_ptr<BaseCustomOp> {
-                                        return std::make_unique<ModelHelperPortableOpForUt>();
-                                      }), GRAPH_SUCCESS);
-  ASSERT_NE(registry->CreateOrGetCustomOp(kRegistryOnlyPortableOpTypeForModelHelper), nullptr);
-
-  ModelHelper model_helper;
-  EXPECT_EQ(model_helper.ValidateCustomOpsDeserialized(ge_root_model, registry), SUCCESS);
+  EXPECT_EQ(model_helper.LoadCustomOps(load_helper), SUCCESS);
 }
 
 TEST_F(UtestModelHelper, SerializeCustomOpKernelNullPortableOpReturnsFailed) {
@@ -1509,12 +1256,11 @@ TEST_F(UtestModelHelper, SerializeCustomOpKernelPortableOpSerializeFailedPropaga
   EXPECT_EQ(merged_kernels, std::vector<uint8_t>({0xCDU}));
 }
 
-TEST_F(UtestModelHelper, SerializeCustomOpKernelPortableOpSerializeEmptyReturnsFailed) {
+TEST_F(UtestModelHelper, SerializeCustomOpKernelPortableOpSerializeEmptySkipsAppend) {
   ModelHelper model_helper;
   std::vector<uint8_t> merged_kernels = {0xDEU};
   ModelHelperPortableOpEmptyForUt portable_op;
-  EXPECT_NE(model_helper.SerializeCustomOpKernel(&portable_op, kPortableOpEmptyTypeForModelHelper, merged_kernels),
-            SUCCESS);
+  EXPECT_EQ(model_helper.SerializeCustomOpKernel(&portable_op, kPortableOpEmptyTypeForModelHelper, merged_kernels), SUCCESS);
   EXPECT_EQ(merged_kernels, std::vector<uint8_t>({0xDEU}));
 }
 
@@ -1546,7 +1292,7 @@ TEST_F(UtestModelHelper, SerializeCustomOpKernelPortableOpSerializeSuccessAppend
   EXPECT_EQ(kernel_bin, kPortableKernelBinForModelHelper);
 }
 
-TEST_F(UtestModelHelper, SaveCustomOpsPartitionPortableOpsWithoutKernelBinReturnsFailed) {
+TEST_F(UtestModelHelper, SaveCustomOpsPartitionPortableOpsWithoutKernelBinSkipsPartition) {
   RegisterCustomOpCreatorForModelHelperUt(kPortableOpEmptyTypeForModelHelper, []() -> std::unique_ptr<BaseCustomOp> {
     return std::make_unique<ModelHelperPortableOpEmptyForUt>();
   });
@@ -1556,24 +1302,8 @@ TEST_F(UtestModelHelper, SaveCustomOpsPartitionPortableOpsWithoutKernelBinReturn
 
   std::shared_ptr<OmFileSaveHelper> om_file_save_helper = std::make_shared<OmFileSaveHelper>();
   ModelHelper model_helper;
-  EXPECT_NE(model_helper.SaveCustomOpsPartition(om_file_save_helper, ge_root_model), SUCCESS);
+  EXPECT_EQ(model_helper.SaveCustomOpsPartition(om_file_save_helper, ge_root_model), SUCCESS);
   EXPECT_TRUE(om_file_save_helper->model_contexts_.empty());
-}
-
-TEST_F(UtestModelHelper, SaveCustomOpsPartitionAnyPortableOpWithoutKernelBinReturnsFailed) {
-  RegisterCustomOpCreatorForModelHelperUt(kPortableOpTypeForModelHelper, []() -> std::unique_ptr<BaseCustomOp> {
-    return std::make_unique<ModelHelperPortableOpForUt>();
-  });
-  RegisterCustomOpCreatorForModelHelperUt(kPortableOpEmptyTypeForModelHelper, []() -> std::unique_ptr<BaseCustomOp> {
-    return std::make_unique<ModelHelperPortableOpEmptyForUt>();
-  });
-  const auto ge_root_model = CreateGeRootModelForModelHelperUt(kPortableOpTypeForModelHelper,
-                                                               kPortableOpEmptyTypeForModelHelper);
-  ASSERT_NE(ge_root_model, nullptr);
-
-  std::shared_ptr<OmFileSaveHelper> om_file_save_helper = std::make_shared<OmFileSaveHelper>();
-  ModelHelper model_helper;
-  EXPECT_NE(model_helper.SaveCustomOpsPartition(om_file_save_helper, ge_root_model), SUCCESS);
 }
 
 TEST_F(UtestModelHelper, SaveCustomOpsPartitionSerializeFailedReturnsFailed) {
@@ -1968,8 +1698,7 @@ TEST_F(UtestModelHelper, LoadOpSoBinCustomTypeInvalidPayloadShouldFail) {
 
   ModelHelper model_helper;
   model_helper.model_ = ge_model;
-  std::vector<CustomOpSoHandlePtr> loaded_handles;
-  EXPECT_NE(model_helper.LoadOpSoBin(load_helper, ge_root_model, loaded_handles), SUCCESS);
+  EXPECT_NE(model_helper.LoadOpSoBin(load_helper, ge_root_model), SUCCESS);
 }
 
 TEST_F(UtestModelHelper, CustomOpSoLoaderLoadSuccessAndCleanupShouldReleaseHandleAndFd) {
@@ -1984,22 +1713,17 @@ TEST_F(UtestModelHelper, CustomOpSoLoaderLoadSuccessAndCleanupShouldReleaseHandl
   std::string fd_path;
   {
     CustomOpSoLoader loader;
-    std::vector<CustomOpSoHandlePtr> loaded_handles;
-    ASSERT_EQ(loader.LoadCustomOpSoBins({so_bin}, loaded_handles), SUCCESS);
-    ASSERT_EQ(loaded_handles.size(), 1U);
+    ASSERT_EQ(loader.LoadCustomOpSoBins({so_bin}), SUCCESS);
     ASSERT_EQ(loader.loaded_states_.size(), 1U);
     so_key = loader.loaded_states_.begin()->first;
-    EXPECT_EQ(so_key, loaded_handles[0]->GetFingerprintKey());
-    EXPECT_EQ(loaded_handles[0]->GetSoName(), "libcustom_op_loader_fallback_ut.so");
-    ASSERT_NE(loaded_handles[0]->GetHandle(), nullptr);
-    ASSERT_NE(loaded_handles[0]->mem_fd_, -1);
-    fd_path = BuildProcFdPathForModelHelperUt(loaded_handles[0]->mem_fd_);
+    const auto &state = loader.loaded_states_.begin()->second;
+    ASSERT_NE(state.handle, nullptr);
+    ASSERT_NE(state.mem_fd, -1);
+    fd_path = BuildProcFdPathForModelHelperUt(state.mem_fd);
     ASSERT_EQ(mmAccess2(fd_path.c_str(), M_F_OK), EN_OK);
 
     loader.Cleanup();
     EXPECT_TRUE(loader.loaded_states_.empty());
-    EXPECT_EQ(mmAccess2(fd_path.c_str(), M_F_OK), EN_OK);
-    loaded_handles.clear();
   }
 
   EXPECT_FALSE(so_key.empty());
@@ -2024,9 +1748,7 @@ TEST_F(UtestModelHelper, CustomOpSoLoaderShouldIgnoreLegacyCacheDirEnvAndNeverWr
   const std::string expected_disk_so_path = cache_dir + "/vendor_ut_libcustom_op_loader_cache_env_ut.so";
   {
     CustomOpSoLoader loader;
-    std::vector<CustomOpSoHandlePtr> loaded_handles;
-    ASSERT_EQ(loader.LoadCustomOpSoBins({so_bin}, loaded_handles), SUCCESS);
-    ASSERT_EQ(loaded_handles.size(), 1U);
+    ASSERT_EQ(loader.LoadCustomOpSoBins({so_bin}), SUCCESS);
     ASSERT_EQ(loader.loaded_states_.size(), 1U);
     EXPECT_NE(mmAccess2(expected_disk_so_path.c_str(), M_F_OK), EN_OK);
     loader.Cleanup();
@@ -2038,7 +1760,7 @@ TEST_F(UtestModelHelper, CustomOpSoLoaderShouldIgnoreLegacyCacheDirEnvAndNeverWr
   (void)mmRmdir(cache_dir.c_str());
 }
 
-TEST_F(UtestModelHelper, CustomOpSoLoaderLoadSameContentReturnsSameLeaseFromWeakCache) {
+TEST_F(UtestModelHelper, CustomOpSoLoaderLoadSamePathSameContentSkipsReload) {
   std::string source_so_path;
   ASSERT_TRUE(FindNotLoadedSystemSoForModelHelperUt(source_so_path));
   std::vector<char_t> so_data;
@@ -2048,204 +1770,65 @@ TEST_F(UtestModelHelper, CustomOpSoLoaderLoadSameContentReturnsSameLeaseFromWeak
 
   {
     CustomOpSoLoader loader;
-    std::vector<CustomOpSoHandlePtr> first_loaded_handles;
-    ASSERT_EQ(loader.LoadCustomOpSoBins({so_bin}, first_loaded_handles), SUCCESS);
-    ASSERT_EQ(first_loaded_handles.size(), 1U);
+    ASSERT_EQ(loader.LoadCustomOpSoBins({so_bin}), SUCCESS);
     ASSERT_EQ(loader.loaded_states_.size(), 1U);
     const auto first_it = loader.loaded_states_.begin();
     const auto first_key = first_it->first;
-    ASSERT_FALSE(first_key.empty());
-    ASSERT_EQ(first_key.size(), 16U);
-    ASSERT_NE(first_loaded_handles[0]->GetHandle(), nullptr);
-    ASSERT_NE(first_loaded_handles[0]->mem_fd_, -1);
-    ASSERT_EQ(mmAccess2(BuildProcFdPathForModelHelperUt(first_loaded_handles[0]->mem_fd_).c_str(), M_F_OK), EN_OK);
+    const auto first_state = first_it->second;
+    ASSERT_NE(first_state.handle, nullptr);
+    ASSERT_NE(first_state.mem_fd, -1);
+    ASSERT_EQ(mmAccess2(BuildProcFdPathForModelHelperUt(first_state.mem_fd).c_str(), M_F_OK), EN_OK);
 
-    std::vector<CustomOpSoHandlePtr> second_loaded_handles;
-    ASSERT_EQ(loader.LoadCustomOpSoBins({so_bin}, second_loaded_handles), SUCCESS);
-    ASSERT_EQ(second_loaded_handles.size(), 1U);
+    ASSERT_EQ(loader.LoadCustomOpSoBins({so_bin}), SUCCESS);
     ASSERT_EQ(loader.loaded_states_.size(), 1U);
     const auto second_it = loader.loaded_states_.find(first_key);
     ASSERT_NE(second_it, loader.loaded_states_.end());
-    EXPECT_EQ(second_loaded_handles[0], first_loaded_handles[0]);
-    EXPECT_EQ(second_it->second.lock(), first_loaded_handles[0]);
+    EXPECT_EQ(second_it->second.handle, first_state.handle);
+    EXPECT_EQ(second_it->second.mem_fd, first_state.mem_fd);
+    EXPECT_EQ(second_it->second.fingerprint.bin_size, first_state.fingerprint.bin_size);
+    EXPECT_EQ(second_it->second.fingerprint.content_hash, first_state.fingerprint.content_hash);
 
     loader.Cleanup();
     EXPECT_TRUE(loader.loaded_states_.empty());
   }
 }
 
-TEST_F(UtestModelHelper, CustomOpSoLoaderFingerprintShouldUseHexHashOnly) {
-  const std::vector<char_t> so_data = {'a', 'b', 'c'};
-  const auto so_bin = BuildCustomOpSoBinForModelHelperUt("libcustom_op_loader_hash_ut.so", "vendor_ut", so_data);
+TEST_F(UtestModelHelper, CustomOpSoLoaderLoadSamePathDifferentContentShouldFail) {
+  std::string source_so_path;
+  ASSERT_TRUE(FindNotLoadedSystemSoForModelHelperUt(source_so_path));
+  std::vector<char_t> so_data;
+  ASSERT_TRUE(ReadSoDataForModelHelperUt(source_so_path, so_data));
+  ASSERT_FALSE(so_data.empty());
+
+  const auto so_bin = BuildCustomOpSoBinForModelHelperUt("libcustom_op_loader_conflict_ut.so", "vendor_ut", so_data);
   ASSERT_NE(so_bin, nullptr);
 
-  CustomOpSoLoader loader;
-  std::string fingerprint_key;
-  ASSERT_EQ(loader.CalculateSoBinFingerprint(so_bin, fingerprint_key), SUCCESS);
-  EXPECT_EQ(fingerprint_key.size(), 16U);
-  for (char c : fingerprint_key) {
-    EXPECT_TRUE((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f'));
-  }
-}
-
-TEST_F(UtestModelHelper, CustomOpSoLoaderLoadSameNameDifferentContentShouldReturnIndependentLeases) {
-  std::string first_so_path;
-  std::string second_so_path;
-  ASSERT_TRUE(FindTwoReadableSystemSosForModelHelperUt(first_so_path, second_so_path));
-  std::vector<char_t> first_so_data;
-  std::vector<char_t> second_so_data;
-  ASSERT_TRUE(ReadSoDataForModelHelperUt(first_so_path, first_so_data));
-  ASSERT_TRUE(ReadSoDataForModelHelperUt(second_so_path, second_so_data));
-  ASSERT_NE(first_so_data, second_so_data);
-
-  const auto first_so_bin = BuildCustomOpSoBinForModelHelperUt("libcustom_op_loader_same_name_ut.so", "vendor_ut",
-                                                               first_so_data);
-  const auto second_so_bin = BuildCustomOpSoBinForModelHelperUt("libcustom_op_loader_same_name_ut.so", "vendor_ut",
-                                                                second_so_data);
-  ASSERT_NE(first_so_bin, nullptr);
-  ASSERT_NE(second_so_bin, nullptr);
+  std::vector<char_t> modified_so_data = so_data;
+  modified_so_data[0U] = static_cast<char_t>(modified_so_data[0U] ^ 0x1);
+  const auto modified_so_bin = BuildCustomOpSoBinForModelHelperUt("libcustom_op_loader_conflict_ut.so", "vendor_ut",
+                                                                   modified_so_data);
+  ASSERT_NE(modified_so_bin, nullptr);
 
   {
     CustomOpSoLoader loader;
-    std::vector<CustomOpSoHandlePtr> loaded_handles;
-    ASSERT_EQ(loader.LoadCustomOpSoBins({first_so_bin, second_so_bin}, loaded_handles), SUCCESS);
-    ASSERT_EQ(loaded_handles.size(), 2U);
-    ASSERT_EQ(loader.loaded_states_.size(), 2U);
-    EXPECT_EQ(loaded_handles[0]->GetSoName(), loaded_handles[1]->GetSoName());
-    EXPECT_NE(loaded_handles[0], loaded_handles[1]);
-    EXPECT_NE(loaded_handles[0]->GetHandle(), loaded_handles[1]->GetHandle());
-    EXPECT_NE(loaded_handles[0]->GetFingerprintKey(), loaded_handles[1]->GetFingerprintKey());
-    EXPECT_EQ(loaded_handles[0]->GetFingerprintKey().size(), 16U);
-    EXPECT_EQ(loaded_handles[1]->GetFingerprintKey().size(), 16U);
+    ASSERT_EQ(loader.LoadCustomOpSoBins({so_bin}), SUCCESS);
+    ASSERT_EQ(loader.loaded_states_.size(), 1U);
+    const auto first_it = loader.loaded_states_.begin();
+    const auto first_key = first_it->first;
+    const auto first_state = first_it->second;
+
+    EXPECT_NE(loader.LoadCustomOpSoBins({modified_so_bin}), SUCCESS);
+    ASSERT_EQ(loader.loaded_states_.size(), 1U);
+    const auto second_it = loader.loaded_states_.find(first_key);
+    ASSERT_NE(second_it, loader.loaded_states_.end());
+    EXPECT_EQ(second_it->second.handle, first_state.handle);
+    EXPECT_EQ(second_it->second.mem_fd, first_state.mem_fd);
+    EXPECT_EQ(second_it->second.fingerprint.bin_size, first_state.fingerprint.bin_size);
+    EXPECT_EQ(second_it->second.fingerprint.content_hash, first_state.fingerprint.content_hash);
 
     loader.Cleanup();
     EXPECT_TRUE(loader.loaded_states_.empty());
   }
-}
-
-TEST_F(UtestModelHelper, CustomOpSoLoaderWeakCacheShouldExpireAfterReturnedHandlesRelease) {
-  std::string source_so_path;
-  ASSERT_TRUE(FindNotLoadedSystemSoForModelHelperUt(source_so_path));
-  std::vector<char_t> so_data;
-  ASSERT_TRUE(ReadSoDataForModelHelperUt(source_so_path, so_data));
-  const auto so_bin = BuildCustomOpSoBinForModelHelperUt("libcustom_op_loader_internal_lease_ut.so", "vendor_ut",
-                                                         so_data);
-  ASSERT_NE(so_bin, nullptr);
-
-  CustomOpSoLoader loader;
-  CustomOpSoHandlePtr first_handle;
-  {
-    std::vector<CustomOpSoHandlePtr> loaded_handles;
-    ASSERT_EQ(loader.LoadCustomOpSoBins({so_bin}, loaded_handles), SUCCESS);
-    ASSERT_EQ(loaded_handles.size(), 1U);
-    first_handle = loaded_handles[0];
-    ASSERT_EQ(loader.loaded_states_.size(), 1U);
-    ASSERT_FALSE(loader.loaded_states_.begin()->second.expired());
-  }
-  ASSERT_EQ(loader.loaded_states_.size(), 1U);
-  ASSERT_FALSE(loader.loaded_states_.begin()->second.expired());
-  first_handle.reset();
-  ASSERT_TRUE(loader.loaded_states_.begin()->second.expired());
-
-  std::vector<CustomOpSoHandlePtr> reloaded_handles;
-  ASSERT_EQ(loader.LoadCustomOpSoBins({so_bin}, reloaded_handles), SUCCESS);
-  ASSERT_EQ(reloaded_handles.size(), 1U);
-  ASSERT_EQ(loader.loaded_states_.size(), 1U);
-  EXPECT_EQ(loader.loaded_states_.begin()->second.lock(), reloaded_handles[0]);
-
-  loader.Cleanup();
-  EXPECT_TRUE(loader.loaded_states_.empty());
-}
-
-TEST_F(UtestModelHelper, CustomOpSoLoaderBatchFailureShouldReleasePreviouslyDlopenLeaseWithoutOwner) {
-  std::string source_so_path;
-  ASSERT_TRUE(FindNotLoadedSystemSoForModelHelperUt(source_so_path));
-  std::vector<char_t> valid_so_data;
-  ASSERT_TRUE(ReadSoDataForModelHelperUt(source_so_path, valid_so_data));
-  const auto valid_so_bin = BuildCustomOpSoBinForModelHelperUt("libcustom_op_loader_batch_valid_ut.so", "vendor_ut",
-                                                               valid_so_data);
-  ASSERT_NE(valid_so_bin, nullptr);
-
-  const std::vector<char_t> invalid_so_data = {'n', 'o', 't', '_', 'e', 'l', 'f'};
-  const auto invalid_so_bin = BuildCustomOpSoBinForModelHelperUt("libcustom_op_loader_batch_invalid_ut.so",
-                                                                 "vendor_ut", invalid_so_data);
-  ASSERT_NE(invalid_so_bin, nullptr);
-
-  CustomOpSoLoader loader;
-  std::vector<CustomOpSoHandlePtr> loaded_handles;
-  EXPECT_NE(loader.LoadCustomOpSoBins({valid_so_bin, invalid_so_bin}, loaded_handles), SUCCESS);
-  EXPECT_TRUE(loaded_handles.empty());
-  ASSERT_EQ(loader.loaded_states_.size(), 1U);
-  ASSERT_TRUE(loader.loaded_states_.begin()->second.expired());
-
-  loader.Cleanup();
-  EXPECT_TRUE(loader.loaded_states_.empty());
-}
-
-TEST_F(UtestModelHelper, CustomOpSoLoaderConcurrentSameFingerprintShouldReusePublishedHandle) {
-  std::string source_so_path;
-  ASSERT_TRUE(FindNotLoadedSystemSoForModelHelperUt(source_so_path));
-  std::vector<char_t> so_data;
-  ASSERT_TRUE(ReadSoDataForModelHelperUt(source_so_path, so_data));
-  const auto so_bin = BuildCustomOpSoBinForModelHelperUt("libcustom_op_loader_concurrent_reuse_ut.so", "vendor_ut",
-                                                         so_data);
-  ASSERT_NE(so_bin, nullptr);
-
-  CustomOpSoLoader loader;
-  std::vector<CustomOpSoHandlePtr> first_loaded_handles;
-  std::vector<CustomOpSoHandlePtr> second_loaded_handles;
-  Status first_status = FAILED;
-  Status second_status = FAILED;
-  RunConcurrentLoadSameFingerprint(loader, so_bin, first_loaded_handles, second_loaded_handles,
-                                   first_status, second_status);
-  ASSERT_EQ(first_status, SUCCESS);
-  ASSERT_EQ(second_status, SUCCESS);
-  ASSERT_EQ(first_loaded_handles.size(), 1U);
-  ASSERT_EQ(second_loaded_handles.size(), 1U);
-  EXPECT_EQ(first_loaded_handles[0], second_loaded_handles[0]);
-  EXPECT_EQ(loader.loaded_states_.size(), 1U);
-  loader.Cleanup();
-}
-
-TEST_F(UtestModelHelper, CustomOpSoLoaderEmptyBinDataShouldFailWithoutPublishingCache) {
-  auto empty_so_data = std::unique_ptr<char_t[]>(new (std::nothrow) char_t[1U]);
-  ASSERT_NE(empty_so_data, nullptr);
-  const auto empty_so_bin = std::make_shared<OpSoBin>("libcustom_op_loader_empty_ut.so", "vendor_ut",
-                                                      std::move(empty_so_data), 0U, SoBinType::kCustomOp);
-  ASSERT_NE(empty_so_bin, nullptr);
-
-  CustomOpSoLoader loader;
-  std::vector<CustomOpSoHandlePtr> loaded_handles;
-  EXPECT_NE(loader.LoadCustomOpSoBins({empty_so_bin}, loaded_handles), SUCCESS);
-  EXPECT_TRUE(loaded_handles.empty());
-  EXPECT_TRUE(loader.loaded_states_.empty());
-}
-
-TEST_F(UtestModelHelper, CustomOpSoLoaderDlopenFailureShouldNotPoisonWeakCache) {
-  const std::vector<char_t> invalid_so_data = {'n', 'o', 't', '_', 'e', 'l', 'f'};
-  const auto invalid_so_bin = BuildCustomOpSoBinForModelHelperUt("libcustom_op_loader_invalid_ut.so", "vendor_ut",
-                                                                 invalid_so_data);
-  ASSERT_NE(invalid_so_bin, nullptr);
-
-  CustomOpSoLoader loader;
-  std::vector<CustomOpSoHandlePtr> invalid_loaded_handles;
-  EXPECT_NE(loader.LoadCustomOpSoBins({invalid_so_bin}, invalid_loaded_handles), SUCCESS);
-  EXPECT_TRUE(invalid_loaded_handles.empty());
-  EXPECT_TRUE(loader.loaded_states_.empty());
-
-  std::string source_so_path;
-  ASSERT_TRUE(FindNotLoadedSystemSoForModelHelperUt(source_so_path));
-  std::vector<char_t> valid_so_data;
-  ASSERT_TRUE(ReadSoDataForModelHelperUt(source_so_path, valid_so_data));
-  const auto valid_so_bin = BuildCustomOpSoBinForModelHelperUt("libcustom_op_loader_invalid_ut.so", "vendor_ut",
-                                                               valid_so_data);
-  ASSERT_NE(valid_so_bin, nullptr);
-
-  std::vector<CustomOpSoHandlePtr> valid_loaded_handles;
-  EXPECT_EQ(loader.LoadCustomOpSoBins({valid_so_bin}, valid_loaded_handles), SUCCESS);
-  EXPECT_EQ(valid_loaded_handles.size(), 1U);
-  EXPECT_EQ(loader.loaded_states_.size(), 1U);
-  loader.Cleanup();
 }
 
 TEST_F(UtestModelHelper, LoadOpSoBinDataFail)
@@ -2269,8 +1852,7 @@ TEST_F(UtestModelHelper, LoadOpSoBinDataFail)
   cur_ctx.partition_datas_.push_back(so_patition);
   load_helper.model_contexts_.push_back(cur_ctx);
   model_helper.model_ = ge_model;
-  std::vector<CustomOpSoHandlePtr> loaded_handles;
-  EXPECT_EQ(model_helper.LoadOpSoBin(load_helper, ge_root_model, loaded_handles), SUCCESS);
+  EXPECT_EQ(model_helper.LoadOpSoBin(load_helper, ge_root_model), SUCCESS);
 }
 
 TEST_F(UtestModelHelper, LoadOpSoBinDataNonEmptyInvalidPayloadShouldFail) {
@@ -2294,8 +1876,7 @@ TEST_F(UtestModelHelper, LoadOpSoBinDataNonEmptyInvalidPayloadShouldFail) {
 
   ModelHelper model_helper;
   model_helper.model_ = ge_model;
-  std::vector<CustomOpSoHandlePtr> loaded_handles;
-  EXPECT_NE(model_helper.LoadOpSoBin(load_helper, ge_root_model, loaded_handles), SUCCESS);
+  EXPECT_NE(model_helper.LoadOpSoBin(load_helper, ge_root_model), SUCCESS);
 }
 
 TEST_F(UtestModelHelper, GetBinDataSuccess) {
@@ -2336,7 +1917,6 @@ TEST_F(UtestModelHelper, SoBinSaveToOmModel_CPU_OS_EMPTY)
   AttrUtils::SetBool(graph, ATTR_NAME_DYNAMIC_SHAPE_PARTITIONED, true);
   GeRootModelPtr ge_root_model = std::make_shared<GeRootModel>();
   EXPECT_EQ(ge_root_model->Initialize(graph), SUCCESS);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
   GeModelPtr ge_model = std::make_shared<GeModel>();
   ge_root_model->subgraph_instance_name_to_model_["graph"] = ge_model;
   ge_model->SetGraph(graph);
@@ -2404,7 +1984,6 @@ TEST_F(UtestModelHelper, SoBinSaveToOmRootModelErrByFileNameTooLong)
   AttrUtils::SetBool(graph, ATTR_NAME_DYNAMIC_SHAPE_PARTITIONED, true);
   GeRootModelPtr ge_root_model = std::make_shared<GeRootModel>();
   EXPECT_EQ(ge_root_model->Initialize(graph), SUCCESS);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
   GeModelPtr ge_model = std::make_shared<GeModel>();
   ge_root_model->subgraph_instance_name_to_model_["graph"] = ge_model;
   ge_model->SetGraph(graph);
@@ -2688,8 +2267,7 @@ TEST_F(UtestModelHelper, SaveAndLoadOfflineAutofuseSo) {
   OmFileLoadHelper load_helper;
   std::vector<uint8_t> so_payload;
   ASSERT_TRUE(BuildOfflineAutofuseSoBinsForModelHelperUt(load_helper, so_payload));
-  std::vector<CustomOpSoHandlePtr> loaded_handles;
-  EXPECT_EQ(model_helper.LoadOpSoBin(load_helper, ge_root_model, loaded_handles), SUCCESS);
+  EXPECT_EQ(model_helper.LoadOpSoBin(load_helper, ge_root_model), SUCCESS);
 
   const auto &root_model = model_helper.GetGeRootModel();
   const auto &so_list = root_model->GetAllSoBin();
@@ -2715,7 +2293,6 @@ TEST_F(UtestModelHelper, SaveToOm_for_SubPkg_Opp) {
   ComputeGraphPtr root_graph = ge::MakeShared<ComputeGraph>("subgraph");
   (void)AttrUtils::SetBool(root_graph, ATTR_NAME_DYNAMIC_SHAPE_PARTITIONED, true);
   ge_root_model->SetRootGraph(root_graph);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
   EXPECT_EQ(ge_root_model->CheckAndSetNeedSoInOM(), SUCCESS);
   EXPECT_EQ(ge_root_model->GetSoInOmFlag(), 0x8000);
   FillModelTaskDef(ge_model);

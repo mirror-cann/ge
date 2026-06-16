@@ -10,60 +10,10 @@
 
 #include "graph/load/model_manager/task_info/task_info.h"
 #include <gtest/gtest.h>
-#include "graph/custom_op.h"
-#include "graph/custom_op_factory.h"
-#include "graph/custom_op_registry.h"
-#include "graph/load/model_manager/davinci_model.h"
-#include "graph/load/model_manager/task_info/ge/custom_task_info.h"
 namespace ge {
 class TaskInfoUT : public testing::Test {};
 TEST_F(TaskInfoUT, GetArgsPlacementStr_ReturnUnknown_OutOfRange) {
   ASSERT_STREQ(GetArgsPlacementStr(ArgsPlacement::kEnd), "unknown");
   ASSERT_STREQ(GetArgsPlacementStr(static_cast<ArgsPlacement>(100)), "unknown");
-}
-
-class TaskInfoRegistryOnlyCustomOp : public EagerExecuteOp {
- public:
-  graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
-    (void)ctx;
-    return SUCCESS;
-  }
-};
-
-TEST_F(TaskInfoUT, CustomTaskInfoDistributeDoesNotFallbackToGlobalRegistry) {
-  const std::string op_type = "GlobalOnlyCustomTaskOp";
-  ASSERT_EQ(CustomOpFactory::RegisterCustomOpCreator(op_type.c_str(), []() -> std::unique_ptr<BaseCustomOp> {
-    return std::make_unique<TaskInfoRegistryOnlyCustomOp>();
-  }), GRAPH_SUCCESS);
-  ASSERT_NE(CustomOpFactory::CreateOrGetCustomOp(op_type.c_str()), nullptr);
-
-  DavinciModel davinci_model(0, nullptr);
-  davinci_model.SetCustomOpRegistry(MakeShared<CustomOpRegistry>());
-  auto op_desc = MakeShared<OpDesc>("custom_task", op_type);
-
-  CustomTaskInfo task_info;
-  task_info.davinci_model_ = &davinci_model;
-  task_info.op_desc_ = op_desc;
-
-  EXPECT_NE(task_info.Distribute(), GRAPH_SUCCESS);
-}
-
-TEST_F(TaskInfoUT, CustomTaskInfoDistributeUsesGlobalRegistry) {
-  const std::string op_type = "OnlineGlobalCustomTaskOp";
-  ASSERT_EQ(CustomOpFactory::RegisterCustomOpCreator(op_type.c_str(), []() -> std::unique_ptr<BaseCustomOp> {
-    return std::make_unique<TaskInfoRegistryOnlyCustomOp>();
-  }), GRAPH_SUCCESS);
-  auto *global_op = CustomOpFactory::CreateOrGetCustomOp(op_type.c_str());
-  ASSERT_NE(global_op, nullptr);
-
-  DavinciModel davinci_model(0, nullptr);
-  davinci_model.SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
-  auto op_desc = MakeShared<OpDesc>("custom_task_online", op_type);
-
-  CustomTaskInfo task_info;
-  task_info.davinci_model_ = &davinci_model;
-  task_info.op_desc_ = op_desc;
-
-  EXPECT_EQ(task_info.Distribute(), GRAPH_SUCCESS);
 }
 }  // namespace ge

@@ -44,7 +44,6 @@
 #include "stub/gert_runtime_stub.h"
 #include "depends/ascendcl/src/ascendcl_stub.h"
 #include "register/optimization_option_registry.h"
-#include "graph/custom_op_factory.h"
 
 using namespace std;
 using namespace testing;
@@ -119,7 +118,6 @@ static GeRootModelPtr ConstructGeRootModel(
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("graph");
   GeRootModelPtr ge_root_model = std::make_shared<GeRootModel>();
   EXPECT_EQ(ge_root_model->Initialize(graph), SUCCESS);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
   GeModelPtr ge_model = std::make_shared<GeModel>();
   ge_root_model->subgraph_instance_name_to_model_["graph"] = ge_model;
   ge_model->SetGraph(graph);
@@ -853,7 +851,6 @@ TEST_F(UtestModelManagerModelManager, test_load_model_online) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   GeRootModelPtr ge_root_model = make_shared<GeRootModel>();
   EXPECT_EQ(ge_root_model->Initialize(graph), SUCCESS);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
   GraphNodePtr graph_node = MakeShared<GraphNode>(0);
 
   ge::ProfilingProperties::Instance().SetSubscribeInfo(0, model_id, true);
@@ -893,7 +890,6 @@ TEST_F(UtestModelManagerModelManager, AutoDumpDebugJsonOnline_DumpGeGraphEnabled
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_auto_dump_online");
   GeRootModelPtr ge_root_model = make_shared<GeRootModel>();
   ASSERT_EQ(ge_root_model->Initialize(graph), SUCCESS);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
 
   GeModelPtr ge_model = MakeShared<GeModel>();
   ge_model->SetGraph(graph);

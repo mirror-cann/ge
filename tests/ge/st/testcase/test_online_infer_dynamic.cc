@@ -28,7 +28,6 @@
 #include "depends/runtime/src/runtime_stub.h"
 #include "ge_running_env/ge_running_env_faker.h"
 #include "ge_running_env/fake_graph_optimizer.h"
-#include "graph/custom_op_factory.h"
 #include "graph/utils/graph_utils_ex.h"
 #include "graph/utils/op_desc_utils.h"
 #include "runtime/subscriber/global_dumper.h"
@@ -481,7 +480,6 @@ Status OnlineInferDynamic(const ComputeGraphPtr &graph, const GeModelPtr &ge_mod
                           const DynamicAttribute &dynamic_callback, const bool sink_dynamic = false) {
   GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
   EXPECT_EQ(ge_root_model->Initialize(graph), SUCCESS);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
   ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
 
   GraphId graph_id = 1001;
@@ -1017,7 +1015,6 @@ TEST_F(OnlineInferTest, online_infer_dynamic_execute_invalide_input) {
 
     GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
     EXPECT_EQ(ge_root_model->Initialize(graph), SUCCESS);
-    ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
     ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
 
     GraphId graph_id = 1001;

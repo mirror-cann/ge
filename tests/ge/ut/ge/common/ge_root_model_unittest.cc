@@ -19,7 +19,6 @@
 
 #include "macro_utils/dt_public_scope.h"
 #include "common/model/ge_root_model.h"
-#include "graph/custom_op_factory.h"
 #include "ge_graph_dsl/graph_dsl.h"
 #include "macro_utils/dt_public_unscope.h"
 #include "common/op_tiling/op_tiling_rt2.h"
@@ -80,7 +79,6 @@ TEST_F(UtestGeRootModel, CheckSoInDynamicSuccsess) {
   auto root_graph = std::make_shared<ComputeGraph>("root-graph");
   auto root_model = std::make_shared<GeRootModel>();
   EXPECT_EQ(root_model->Initialize(root_graph), SUCCESS);
-  root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
 
   AttrUtils::SetBool(root_graph, ATTR_NAME_DYNAMIC_SHAPE_PARTITIONED, true);
 
@@ -92,7 +90,6 @@ TEST_F(UtestGeRootModel, CheckSoInStaticSuccsess) {
   auto root_graph = std::make_shared<ComputeGraph>("root-graph");
   auto root_model = std::make_shared<GeRootModel>();
   EXPECT_EQ(root_model->Initialize(root_graph), SUCCESS);
-  root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
 
   OpDescPtr dy_op = std::make_shared<OpDesc>("padv4", "PadV4");
   vector<int64_t> dims = {1, 2, 3, 4};
@@ -126,7 +123,6 @@ TEST_F(UtestGeRootModel, CheckSoInSuccsessRetFalse) {
   auto root_graph = std::make_shared<ComputeGraph>("root-graph");
   auto root_model = std::make_shared<GeRootModel>();
   EXPECT_EQ(root_model->Initialize(root_graph), SUCCESS);
-  root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
 
   OpDescPtr dy_op = std::make_shared<OpDesc>("padv4", "PadV4");
   vector<int64_t> dims = {1, 2, 3, 4};

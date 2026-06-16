@@ -527,7 +527,9 @@ ge::graphStatus SetFixedFeatureMemory(const ge::GeRootModelPtr &root_model, Lowe
 
 ge::ExecuteGraphPtr ModelConverter::ConvertGeModelToExecuteGraph(const ge::GeRootModelPtr &root_model,
                                                                  const Args &args) {
-  if ((root_model == nullptr) || (root_model->GetRootGraph() == nullptr)) { return nullptr; }
+  if ((root_model == nullptr) || (root_model->GetRootGraph() == nullptr)) {
+    return nullptr;
+  }
 
   GE_ASSERT_SUCCESS(CreateModelDesc(root_model, args.stream_allocator, args.event_allocator, args.notify_allocator));
 
@@ -541,7 +543,11 @@ ge::ExecuteGraphPtr ModelConverter::ConvertGeModelToExecuteGraph(const ge::GeRoo
   if (flatten_graph == nullptr) {
     GE_ASSERT_GRAPH_SUCCESS(ReadInCompileResults(root_graph, root_model, nodes_to_task_defs, graph_to_static_models));
     InitConstWeights(root_model, require_weight_size);
-    flatten_graph = GraphUnfolder::IsGraphNeedUnfold(root_graph) ? FlattenComputeGraph(root_graph) : root_graph;
+    if (GraphUnfolder::IsGraphNeedUnfold(root_graph)) {
+      flatten_graph = FlattenComputeGraph(root_graph);
+    } else {
+      flatten_graph = root_graph;
+    }
     GE_ASSERT_NOTNULL(flatten_graph);
     GE_ASSERT_GRAPH_SUCCESS(ge::RecoverIrDefinitions(flatten_graph), "Failed to recover ir definitions");
     root_model->SetFlattenGraph(flatten_graph);
@@ -556,9 +562,6 @@ ge::ExecuteGraphPtr ModelConverter::ConvertGeModelToExecuteGraph(const ge::GeRoo
   LoweringGlobalData global_data =
       BuildGlobalData(flatten_graph, std::move(nodes_to_task_defs), std::move(graph_to_static_models),
                       root_model->GetHostResourceCenterPtr().get());
-  auto custom_op_registry = root_model->GetCustomOpRegistry();
-  GE_ASSERT_NOTNULL(custom_op_registry, "Custom op registry of root model is nullptr.");
-  global_data.SetCustomOpRegistry(custom_op_registry);
   global_data.SetModelWeightSize(static_cast<size_t>(require_weight_size));
   auto registries = GetModelDescHolder().GetSpaceRegistries();
   GE_ASSERT_NOTNULL(registries);
@@ -569,8 +572,9 @@ ge::ExecuteGraphPtr ModelConverter::ConvertGeModelToExecuteGraph(const ge::GeRoo
   if (args.file_constant_mems != nullptr) {
     global_data.SetFileConstantMem(*args.file_constant_mems);
   }
-  auto graph = GraphConverter().SetModelDescHolder(&model_desc_holder_)
-                               .ConvertComputeGraphToExecuteGraph(flatten_graph, args.option, global_data);
+  auto graph = GraphConverter()
+                   .SetModelDescHolder(&model_desc_holder_)
+                   .ConvertComputeGraphToExecuteGraph(flatten_graph, args.option, global_data);
   GE_ASSERT_NOTNULL(graph, "Failed lowering compute graph %s", flatten_graph->GetName().c_str());
   ge::DumpGraph(graph.get(), "ExecuteGraphAfterSplit");
   return graph;

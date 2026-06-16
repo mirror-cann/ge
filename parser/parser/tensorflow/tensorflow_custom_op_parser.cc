@@ -21,6 +21,7 @@
 #include "parser/common/acl_graph_parser_util.h"
 #include "base/err_msg.h"
 #include "parser/tensorflow_parser.h"
+#include "custom_op_factory_impl.h"
 #include "register/scope/scope_fusion_pass_register.h"
 #include "framework/common/debug/ge_log.h"
 #include "graph/debug/ge_attr_define.h"

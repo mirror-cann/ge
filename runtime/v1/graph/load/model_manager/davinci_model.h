@@ -35,7 +35,6 @@
 #include "graph/model.h"
 #include "graph/node.h"
 #include "graph/op_desc.h"
-#include "graph/custom_op_registry.h"
 #include "graph/utils/attr_utils.h"
 #include "graph/utils/tensor_utils.h"
 #include "graph/utils/args_format_desc_utils.h"
@@ -857,22 +856,6 @@ class DavinciModel {
   }
   void SetSpaceRegistries(std::shared_ptr<gert::OpImplSpaceRegistryV2Array> space_registries) {
     space_registries_ = space_registries;
-  }
-
-  void SetCustomOpRegistry(const CustomOpRegistryPtr &registry) {
-    custom_op_registry_ = registry;
-  }
-
-  void SetCustomOpRegistryRaw(CustomOpRegistry *registry) {
-    if (registry == nullptr) {
-      custom_op_registry_ = nullptr;
-      return;
-    }
-    custom_op_registry_ = CustomOpRegistryPtr(registry, [](CustomOpRegistry *) {});
-  }
-
-  const CustomOpRegistryPtr &GetCustomOpRegistry() const {
-    return custom_op_registry_;
   }
 
   ExceptionDumper *MutableExceptionDumper() {
@@ -1715,7 +1698,6 @@ class DavinciModel {
   bool is_stream_sync_timeout_ = false;
 
   std::shared_ptr<gert::OpImplSpaceRegistryV2Array> space_registries_;
-  CustomOpRegistryPtr custom_op_registry_{nullptr};
   MsprofGeTaskType GetTaskType(const domi::FftsPlusCtxDef &ctx_def) const;
   uint32_t GetBlockDim(const domi::FftsPlusCtxDef &ctx_def) const;
   uint32_t GetThreadId(const domi::FftsPlusCtxDef &ctx_def) const;

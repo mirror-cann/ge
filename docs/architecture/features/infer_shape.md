@@ -349,8 +349,6 @@ InferStorageShape()  分发入口
 3. 算子 InferShape 函数通过 `InferShapeContext` 接口读取输入 Shape、写入输出 OriginShape
 4. `TransformAllOutputsShape()` 自动将输出 OriginShape 转换为 StorageShape（维度扩展 + 格式转换）
 
-`FindInferShapeFunc` 仅服务于 `OpImplSpaceRegistryV2` 路径。lowering 阶段只有在 `IsInferShapeRegistered()` 已确认当前 op type 存在 v2 infer_shape 时才会构造该节点，因此运行期再次查找失败代表 registry/type/version 前后不一致，应直接失败。自定义算子的 ShapeInferOp 不通过该节点回退到进程级 `CustomOpFactory`，而是走 `LoweringCustomNode -> InferCustomOpShape -> FindCustomOp -> InferCustomOpShapeFromInput`，并使用 `GeRootModel` 注入到 `LoweringGlobalData` 的模型级 `CustomOpRegistry`。
-
 ### 6.2 执行图优化
 
 #### FindInferShapeFunc 去重

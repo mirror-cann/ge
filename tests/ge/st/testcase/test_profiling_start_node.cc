@@ -22,7 +22,6 @@
 #include "graph/op_desc.h"
 #include "ge/ut/ge/test_tools_task_info.h"
 #include "runtime/subscriber/global_profiler.h"
-#include "graph/custom_op_factory.h"
 
 namespace ge {
 class ProfilingStartNodeTest : public testing::Test {
@@ -177,7 +176,6 @@ TEST_F(ProfilingStartNodeTest, test_execute_graph_with_profiling_success) {
 
   GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
   EXPECT_EQ(ge_root_model->Initialize(graph), SUCCESS);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
   ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
 
   GraphId graph_id = 1001;

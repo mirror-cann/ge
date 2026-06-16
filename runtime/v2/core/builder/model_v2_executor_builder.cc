@@ -142,7 +142,6 @@ std::unique_ptr<ModelV2Executor> ModelV2ExecutorBuilder::Build(const ExecutorOpt
   }
   GE_TIMESTAMP_EVENT_END(BuildGraph, "ModelV2ExecutorBuilderBuild::BuildGraph");
   GE_ASSERT_NOTNULL(root_model_);
-  executor->custom_op_registry_ = root_model_->GetCustomOpRegistry();
 
   ge::ComputeGraphPtr root_graph = root_model_->GetRootGraph();
   GE_ASSERT_NOTNULL(root_graph);

@@ -33,7 +33,6 @@
 #include "graph/utils/op_desc_utils.h"
 #include "engine/aicore/fe_rt2_common.h"
 #include "graph/args_format_desc.h"
-#include "graph/custom_op_factory.h"
 
 #include "base/registry/op_impl_space_registry_v2.h"
 #include "common/opskernel/ops_kernel_info_types.h"
@@ -3491,7 +3490,6 @@ TEST_F(UtestFftsPlusTaskInfo, success_ffts_plus_profiling) {
 
   GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
   EXPECT_EQ(ge_root_model->Initialize(root_graph), SUCCESS);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
   ge_root_model->SetSubgraphInstanceNameToModel(root_graph->GetName(), ge_model);
 
   GraphId graph_id = 1001;

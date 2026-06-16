@@ -11,9 +11,8 @@
 #include "custom_op_kernel.h"
 #include "register/kernel_registry.h"
 #include "common/checker.h"
-#include "graph/custom_op.h"
 #include "graph/custom_op_factory.h"
-#include "graph/custom_op_registry.h"
+#include "graph/custom_op.h"
 #include "kernel/memory/multi_stream_mem_block.h"
 #include "graph/def_types.h"
 #include "graph/utils/type_utils.h"
@@ -80,10 +79,8 @@ std::string PrintStreamIdAndTaskId() {
 ge::graphStatus FindCustomOpFunc(KernelContext *context) {
   const char *node_type = context->GetInputValue<char *>(0);
   GE_ASSERT_NOTNULL(node_type, "Failed to find custom op func, node type is nullptr");
-  auto custom_op_registry = context->GetInputValue<ge::CustomOpRegistry *>(1);
-  GE_ASSERT_NOTNULL(custom_op_registry, "Failed to find custom op func, custom op registry is nullptr.");
-  ge::BaseCustomOp *custom_op_ptr = custom_op_registry->CreateOrGetCustomOp(node_type);
-  GE_ASSERT_NOTNULL(custom_op_ptr, "Failed to find custom op func for op type %s in custom op registry.", node_type);
+  auto custom_op_ptr = ge::CustomOpFactory::CreateOrGetCustomOp(node_type);
+  GE_ASSERT_NOTNULL(custom_op_ptr);
   auto chain = context->GetOutput(0);
   GE_ASSERT_NOTNULL(chain);
   chain->Set(custom_op_ptr, nullptr);

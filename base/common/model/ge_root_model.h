@@ -24,7 +24,6 @@
 #include "common/memory/feature_memory_impl.h"
 #include "common/host_resource_center/host_resource_center.h"
 #include "ge/ge_ir_build.h"
-#include "graph/custom_op_registry.h"
 
 namespace ge {
 class PortableOp;
@@ -162,14 +161,6 @@ struct FixedFeatureMemory {
     return custom_op_so_set_;
   }
 
-  void SetCustomOpRegistry(const CustomOpRegistryPtr &registry) {
-    custom_op_registry_ = registry;
-  }
-
-  const CustomOpRegistryPtr &GetCustomOpRegistry() const {
-    return custom_op_registry_;
-  }
-
   std::shared_ptr<GeRootModel> Fork();
 
   inline void SetRootGraph(const ComputeGraphPtr &graph) {
@@ -228,7 +219,6 @@ struct FixedFeatureMemory {
   std::unordered_set<std::string> op_master_device_so_set_{};
   std::unordered_set<std::string> autofuse_so_set_{};
   std::unordered_set<std::string> custom_op_so_set_{};
-  CustomOpRegistryPtr custom_op_registry_ = nullptr;
 };
 using GeRootModelPtr = std::shared_ptr<ge::GeRootModel>;
 }  // namespace ge

@@ -23,7 +23,6 @@
 #include "depends/ascendcl/src/ascendcl_stub.h"
 #include "graph/custom_op.h"
 #include "graph/custom_op_factory.h"
-#include "graph/custom_op_registry.h"
 #include "exe_graph/runtime/kernel_args.h"
 #include "framework/runtime/args_handler.h"
 
@@ -423,10 +422,6 @@ std::string GenerateUniqueOpType() {
 }
 
 void SetUpMinimalDavinciModel(DavinciModel &model, const OpDescPtr &op_desc) {
-  if (model.GetCustomOpRegistry() == nullptr) {
-    model.SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
-  }
-
   // Set input shape {2, 3} so input tensor has verifiable origin shape
   auto in_desc = op_desc->MutableInputDesc(0);
   if (in_desc != nullptr) {
@@ -501,29 +496,6 @@ class TestFailArgsUpdaterCustomOp : public ArgsUpdater, public EagerExecuteOp {
 class TestNonEagerCustomOp : public BaseCustomOp {};
 
 }  // namespace
-
-TEST_F(UtestCustomTaskInfo, ParseTaskRunParam_UsesModelCustomOpRegistry) {
-  const std::string op_type = GenerateUniqueOpType();
-  auto registry = std::make_shared<CustomOpRegistry>();
-  ASSERT_NE(registry, nullptr);
-  ASSERT_EQ(registry->RegisterCreator(op_type.c_str(), []() -> std::unique_ptr<BaseCustomOp> {
-    return std::make_unique<TestArgsUpdaterCustomOp>();
-  }), GRAPH_SUCCESS);
-
-  DavinciModel model(0, nullptr);
-  model.SetCustomOpRegistry(registry);
-  const auto op_desc = CreateOpDesc(op_type, op_type, 1, 1);
-  SetUpMinimalDavinciModel(model, op_desc);
-
-  domi::TaskDef task_def;
-  task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_CUSTOM_KERNEL));
-  task_def.mutable_kernel()->mutable_context()->set_op_index(op_desc->GetId());
-
-  CustomTaskInfo task_info;
-  TaskRunParam task_run_param;
-  EXPECT_EQ(task_info.ParseTaskRunParam(task_def, &model, task_run_param), SUCCESS);
-  EXPECT_TRUE(task_info.NeedReserveArgsTable());
-}
 
 class UtestCustomTaskInfoE2E : public testing::Test {
  protected:

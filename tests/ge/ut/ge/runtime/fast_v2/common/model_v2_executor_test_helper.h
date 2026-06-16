@@ -71,10 +71,6 @@ class ModelV2ExecutorTestHelper {
                                            Tensor **outputs, size_t output_num) {
     return executor->CheckIoReuseAddrs(inputs, input_num, outputs, output_num);
   }
-
-  static const ge::CustomOpRegistryPtr &GetCustomOpRegistry(ModelV2Executor *executor) {
-    return executor->custom_op_registry_;
-  }
 };
 }  // namespace gert
 

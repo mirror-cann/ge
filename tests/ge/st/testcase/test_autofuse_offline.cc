@@ -150,8 +150,7 @@ TEST_F(AutofuseOfflineSt, CheckSaveAutofuseSo) {
   so_patition.size = so_payload.size();
   cur_ctx.partition_datas_.push_back(so_patition);
   load_helper.model_contexts_.push_back(cur_ctx);
-  std::vector<CustomOpSoHandlePtr> loaded_handles;
-  EXPECT_EQ(model_helper.LoadOpSoBin(load_helper, ge_root_model, loaded_handles), SUCCESS);
+  EXPECT_EQ(model_helper.LoadOpSoBin(load_helper, ge_root_model), SUCCESS);
 }
 
 // ge-dev失败，ge仓正常，两个仓合并时，再打开。

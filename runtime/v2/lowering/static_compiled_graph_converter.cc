@@ -200,12 +200,9 @@ bg::ValueHolderPtr FileConstantMemToContinuousVecHolder(LoweringGlobalData &glob
   return bg::CreateContVecHolder(name_and_mems);
 }
 
-bg::ValueHolderPtr CreateCustomOpRegistryHolder(LoweringGlobalData &global_data) {
-  ge::CustomOpRegistry *custom_op_registry = global_data.GetCustomOpRegistry().get();
-  return bg::ValueHolder::CreateConst(&custom_op_registry, sizeof(custom_op_registry));
-}
-
-bg::ValueHolderPtr CreateAssignWeightMemoryHolder(ge::GeModel *ge_model, LoweringGlobalData &global_data) {
+std::vector<bg::ValueHolderPtr> CreateDavinciModelOnInitRoot(const ge::ComputeGraphPtr &graph, ge::GeModel *ge_model,
+                                                             LoweringGlobalData &global_data) {
+  // construct DavinciModel Init weight info
   std::vector<int64_t> flatten_weight = GetFlattenOffsetInfo(ge_model);
   GE_ASSERT_TRUE(flatten_weight.size() == kFlattenKeySize);
   TensorData weight_tensor;
@@ -218,12 +215,7 @@ bg::ValueHolderPtr CreateAssignWeightMemoryHolder(ge::GeModel *ge_model, Lowerin
   auto assign_mem_holder = bg::ValueHolder::CreateSingleDataOutput(
       kernel::kAssignWeightMemory,
       {weight_info_holder, bg::HolderOnInit(AssignDeviceMem::GetOrCreateMemAssigner(global_data)), stream_id_holder});
-  return assign_mem_holder;
-}
 
-std::vector<bg::ValueHolderPtr> CreateDavinciModelCommonInputs(const ge::ComputeGraphPtr &graph,
-                                                               ge::GeModel *ge_model,
-                                                               LoweringGlobalData &global_data) {
   auto model_holder = bg::ValueHolder::CreateConst(&ge_model, sizeof(uintptr_t));
   GE_ASSERT(IsValidHolder(model_holder));
   // todo rt_session不作为init的输出，而是提供方法获取init图里的节点。这样子DavinciModelCreate可以在init图中
@@ -233,35 +225,6 @@ std::vector<bg::ValueHolderPtr> CreateDavinciModelCommonInputs(const ge::Compute
   GE_ASSERT_NOTNULL(root_graph);
   const uint32_t root_graph_id = root_graph->GetGraphID();
   const auto root_graph_id_holder = bg::ValueHolder::CreateConst(&root_graph_id, sizeof(uint32_t));
-  return {model_holder, session_id, CreateAssignWeightMemoryHolder(ge_model, global_data), step_id,
-          root_graph_id_holder, bg::HolderOnInit(bg::GetSpaceRegistries(global_data)),
-          bg::HolderOnInit(bg::GetFileConstantWeightDir(global_data)),
-          bg::HolderOnInit(bg::ReusableStreamAllocator(global_data))};
-}
-
-std::vector<bg::ValueHolderPtr> CreateWorkspaceMemFromInit(LoweringGlobalData &global_data) {
-  auto builder = [&global_data]() -> std::vector<bg::ValueHolderPtr> {
-    auto init_outputs = bg::FrameSelector::OnInitRoot(
-        [&global_data]() -> std::vector<bg::ValueHolderPtr> {
-          int64_t size = global_data.GetStaticModelWsSize();
-          const auto memory_size_holder = bg::ValueHolder::CreateConst(&size, sizeof(size));
-          const auto memory_holder = bg::AllocMem(kOnDeviceHbm, memory_size_holder, global_data, bg::kMainStream);
-          return {memory_holder};
-        });
-    return init_outputs;
-  };
-  auto init_outputs = global_data.GetOrCreateUniqueValueHolder("WorkspaceMemFromInit", builder);
-  GE_ASSERT_TRUE(init_outputs.size() == 1U);
-  return init_outputs;
-}
-
-void AppendCustomOpRegistryInputs(std::vector<bg::ValueHolderPtr> &inputs, LoweringGlobalData &global_data) {
-  inputs.emplace_back(CreateCustomOpRegistryHolder(global_data));
-}
-
-std::vector<bg::ValueHolderPtr> CreateDavinciModelOnInitRoot(const ge::ComputeGraphPtr &graph, ge::GeModel *ge_model,
-                                                             LoweringGlobalData &global_data) {
-  auto davinci_model_inputs = CreateDavinciModelCommonInputs(graph, ge_model, global_data);
   std::string is_addr_fixed_opt;
   (void)ge::GetContext().GetOption(kStaticModelAddrFixed, is_addr_fixed_opt);
   std::string frozen_input;
@@ -271,13 +234,16 @@ std::vector<bg::ValueHolderPtr> CreateDavinciModelOnInitRoot(const ge::ComputeGr
   GE_ASSERT_SUCCESS(MallocFixedFeatureMemOnInitRootIfNeed(global_data, fixed_holder));
   const auto file_constant_mem_holder = FileConstantMemToContinuousVecHolder(global_data);
   if (is_addr_fixed_opt.empty()) {
-    davinci_model_inputs.insert(davinci_model_inputs.end(),
-        {fixed_holder[kHbmFixedAddrIndex], fixed_holder[kHbmFixedSizeIndex],
-         bg::HolderOnInit(fixed_holder[kHbmFixedTensorDataIndex]), fixed_holder[kP2pFixedAddrIndex],
-         fixed_holder[kP2pFixedSizeIndex], bg::HolderOnInit(fixed_holder[kP2pFixedTensorDataIndex]), frozen_holder,
-         file_constant_mem_holder});
-    AppendCustomOpRegistryInputs(davinci_model_inputs, global_data);
-    return bg::ValueHolder::CreateDataOutput("DavinciModelCreate", davinci_model_inputs, 1U);
+    return bg::ValueHolder::CreateDataOutput(
+        "DavinciModelCreate",
+        {model_holder, session_id, assign_mem_holder, step_id, root_graph_id_holder,
+         bg::HolderOnInit(bg::GetSpaceRegistries(global_data)),
+         bg::HolderOnInit(bg::GetFileConstantWeightDir(global_data)),
+         bg::HolderOnInit(bg::ReusableStreamAllocator(global_data)), fixed_holder[kHbmFixedAddrIndex],
+         fixed_holder[kHbmFixedSizeIndex], bg::HolderOnInit(fixed_holder[kHbmFixedTensorDataIndex]),
+         fixed_holder[kP2pFixedAddrIndex], fixed_holder[kP2pFixedSizeIndex],
+         bg::HolderOnInit(fixed_holder[kP2pFixedTensorDataIndex]), frozen_holder, file_constant_mem_holder},
+        1U);
   }
 
   // 临时方案，解决HCCL算子二级地址拷贝性能问题，待HCCL 1230正式方案上库后删除
@@ -291,9 +257,25 @@ std::vector<bg::ValueHolderPtr> CreateDavinciModelOnInitRoot(const ge::ComputeGr
    *
    * 正式方案由HCCL模块适配上库。
   */
-  auto init_outputs = CreateWorkspaceMemFromInit(global_data);
-  davinci_model_inputs.emplace_back(bg::HolderOnInit(init_outputs[0U]));
-  return bg::ValueHolder::CreateDataOutput("DavinciModelCreateV2", davinci_model_inputs, 1U);
+  auto builder = [&global_data]() -> std::vector<bg::ValueHolderPtr> {
+    auto init_outputs = bg::FrameSelector::OnInitRoot(
+        [&global_data]() -> std::vector<bg::ValueHolderPtr> {
+        int64_t size = global_data.GetStaticModelWsSize();
+        const auto memory_size_holder = bg::ValueHolder::CreateConst(&size, sizeof(size));
+        const auto memory_holder = bg::AllocMem(kOnDeviceHbm, memory_size_holder, global_data, bg::kMainStream);
+        return {memory_holder};
+      });
+    return init_outputs;
+  };
+  auto init_outputs = global_data.GetOrCreateUniqueValueHolder("WorkspaceMemFromInit", builder);
+  GE_ASSERT_TRUE(init_outputs.size() == 1U);
+  return bg::ValueHolder::CreateDataOutput(
+          "DavinciModelCreateV2",
+          {model_holder, session_id, assign_mem_holder, step_id, root_graph_id_holder,
+           bg::HolderOnInit(bg::GetSpaceRegistries(global_data)),
+           bg::HolderOnInit(bg::GetFileConstantWeightDir(global_data)),
+           bg::HolderOnInit(bg::ReusableStreamAllocator(global_data)), bg::HolderOnInit(init_outputs[0U])},
+          1U);
 }
 
 bg::ValueHolderPtr CreateDavinciModel(const ge::ComputeGraphPtr &graph, ge::GeModel *ge_model,

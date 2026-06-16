@@ -17,7 +17,6 @@
 #include "ge/ut/ge/test_tools_task_info.h"
 #include "common/dump/dump_properties.h"
 #include "common/dump/dump_manager.h"
-#include "graph/custom_op_factory.h"
 #include "graph_metadef/depends/checker/tensor_check_utils.h"
 #include "mmpa/mmpa_api.h"
 using namespace std;
@@ -455,7 +454,6 @@ TEST_F(DynamicKnownTest, execute_known_from_dynamic) {
 
   GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
   EXPECT_EQ(ge_root_model->Initialize(graph), SUCCESS);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
   BuildGraphModel2(dynamic, mem_offset, ge_root_model);
   BuildGraphModel3(davinci, mem_offset, ge_root_model, then_branch, else_branch);
   BuildGraphModel4(collect, mem_offset, ge_root_model);

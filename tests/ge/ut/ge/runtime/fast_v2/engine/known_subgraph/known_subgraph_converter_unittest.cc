@@ -342,9 +342,7 @@ TEST_F(KnownSubgraphNodeConverterUT, KnownSubgraph_WithGlobalWorkspace_ConvertSu
       ge::FastNodeUtils::GetSubgraphFromNode(ge::ExecuteGraphUtils::FindFirstNodeMatchType(exe_graph.get(), "Main"), 0);
   ASSERT_NE(main_graph, nullptr);
 
-  auto create_davinci_model_v2 = ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_graph, "DavinciModelCreateV2");
-  ASSERT_NE(create_davinci_model_v2, nullptr);
-  EXPECT_EQ(create_davinci_model_v2->GetDataInNum(), 9U);
+  EXPECT_NE(ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_graph, "DavinciModelCreateV2"), nullptr);
   EXPECT_EQ(ge::ExecuteGraphUtils::FindFirstNodeMatchType(main_graph, "DavinciModelUpdateWorkspaces"), nullptr);
 
   GertRuntimeStub runtime_stub;
@@ -675,9 +673,7 @@ TEST_F(KnownSubgraphNodeConverterUT, KnownSubgraph_NoNeedMallocOutputMem_RefNode
       ge::FastNodeUtils::GetSubgraphFromNode(ge::ExecuteGraphUtils::FindFirstNodeMatchType(exe_graph.get(), "Main"), 0);
   ASSERT_NE(main_graph, nullptr);
 
-  auto create_davinci_model_v2 = ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_graph, "DavinciModelCreateV2");
-  ASSERT_NE(create_davinci_model_v2, nullptr);
-  EXPECT_EQ(create_davinci_model_v2->GetDataInNum(), 9U);
+  EXPECT_NE(ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_graph, "DavinciModelCreateV2"), nullptr);
   EXPECT_EQ(ge::ExecuteGraphUtils::FindFirstNodeMatchType(main_graph, "DavinciModelUpdateWorkspaces"), nullptr);
   EXPECT_EQ(ge::ExecuteGraphUtils::FindFirstNodeMatchType(main_graph, "AllocModelOutTensor"), nullptr);
   auto davinci_model_execute_kernel = ge::ExecuteGraphUtils::FindFirstNodeMatchType(main_graph, "DavinciModelExecute");

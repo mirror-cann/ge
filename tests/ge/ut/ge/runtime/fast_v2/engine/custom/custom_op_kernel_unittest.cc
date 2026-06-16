@@ -16,11 +16,9 @@
 #include "faker/ge_model_builder.h"
 #include "lowering/model_converter.h"
 #include "faker/fake_value.h"
-#include "faker/kernel_run_context_facker.h"
 #include "framework/runtime/executor_option/multi_thread_executor_option.h"
 #include "graph/custom_op_factory.h"
 #include "graph/custom_op.h"
-#include "graph/custom_op_registry.h"
 #include "core/executor/multi_thread_topological/executor/schedule/producer/task_producer_factory.h"
 #include "core/executor/multi_thread_topological/executor/schedule/config/task_scheduler_config.h"
 #include "core/executor/multi_thread_topological/execution_data/multi_thread_execution_data.h"
@@ -95,14 +93,6 @@ class TestBaseCustomOpWithInferShape : public EagerExecuteOp {
     gert::StorageFormat out_format_0 = output_desc_0->GetFormat();
     gert::Tensor* ge_output_0 = ctx->MallocOutputTensor(0, out_shape_0, out_format_0, out_dtype_0);
     GE_ASSERT_NOTNULL(ge_output_0);
-    return SUCCESS;
-  }
-};
-
-class TestRegistryOnlyCustomOp : public EagerExecuteOp {
- public:
-  graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
-    (void)ctx;
     return SUCCESS;
   }
 };
@@ -206,23 +196,14 @@ static ComputeGraphPtr BuildCustomOpGraphWithInferRule(const std::string &rule) 
   return graph;
 }
 
-static CustomOpRegistryPtr BuildCustomOpRegistryForRt2(const BaseOpCreator &creator) {
-  auto custom_op_registry = std::make_shared<CustomOpRegistry>();
-  EXPECT_NE(custom_op_registry, nullptr);
-  EXPECT_EQ(custom_op_registry->RegisterCreator("CustomOp", creator), GRAPH_SUCCESS);
-  EXPECT_NE(custom_op_registry->CreateOrGetCustomOp("CustomOp"), nullptr);
-  return custom_op_registry;
-}
-
 TEST_F(CustomNodeKernelUT, custom_op_kernel_execute_test) {
   auto graph = ShareGraph::BuildCustomOpGraph();
   graph->TopologicalSorting();
-  auto custom_op_registry = BuildCustomOpRegistryForRt2([]()->std::unique_ptr<BaseCustomOp> {
+  CustomOpFactory::RegisterCustomOpCreator("CustomOp", []()->std::unique_ptr<BaseCustomOp> {
     return std::make_unique<TestBaseCustomOp>();
   });
   GeModelBuilder builder(graph);
   auto ge_root_model = builder.BuildGeRootModel();
-  ge_root_model->SetCustomOpRegistry(custom_op_registry);
   bg::ValueHolder::PopGraphFrame();
   auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model, {});
   ASSERT_NE(exe_graph, nullptr);
@@ -251,64 +232,6 @@ TEST_F(CustomNodeKernelUT, custom_op_kernel_execute_test) {
   rtStreamDestroy(stream);
 }
 
-TEST_F(CustomNodeKernelUT, find_custom_op_uses_model_registry) {
-  const std::string node_type = "RegistryOnlyCustomOpForRt2";
-  auto custom_op_registry = std::make_shared<CustomOpRegistry>();
-  ASSERT_EQ(custom_op_registry->RegisterCreator(node_type.c_str(), []() -> std::unique_ptr<BaseCustomOp> {
-    return std::make_unique<TestRegistryOnlyCustomOp>();
-  }), GRAPH_SUCCESS);
-  auto *expected_op = custom_op_registry->CreateOrGetCustomOp(node_type.c_str());
-  ASSERT_NE(expected_op, nullptr);
-
-  auto run_context = BuildKernelRunContext(3, 1);
-  run_context.value_holder[0].Set(const_cast<char *>(node_type.c_str()), nullptr);
-  run_context.value_holder[1].Set(custom_op_registry.get(), nullptr);
-  run_context.value_holder[2].Set((void *)1, nullptr);
-
-  auto find_func = KernelRegistry::GetInstance().FindKernelFuncs("FindCustomOp");
-  ASSERT_NE(find_func, nullptr);
-  ASSERT_EQ(find_func->run_func(run_context), GRAPH_SUCCESS);
-  ASSERT_EQ(*run_context.GetContext<KernelContext>()->GetOutputPointer<BaseCustomOp *>(0), expected_op);
-}
-
-TEST_F(CustomNodeKernelUT, find_custom_op_does_not_fallback_to_global_registry) {
-  const std::string node_type = "GlobalOnlyCustomOpForRt2";
-  ASSERT_EQ(CustomOpFactory::RegisterCustomOpCreator(node_type.c_str(), []() -> std::unique_ptr<BaseCustomOp> {
-    return std::make_unique<TestRegistryOnlyCustomOp>();
-  }), GRAPH_SUCCESS);
-  auto *global_op = CustomOpFactory::CreateOrGetCustomOp(node_type.c_str());
-  ASSERT_NE(global_op, nullptr);
-
-  auto custom_op_registry = std::make_shared<CustomOpRegistry>();
-  auto run_context = BuildKernelRunContext(3, 1);
-  run_context.value_holder[0].Set(const_cast<char *>(node_type.c_str()), nullptr);
-  run_context.value_holder[1].Set(custom_op_registry.get(), nullptr);
-  run_context.value_holder[2].Set((void *)1, nullptr);
-
-  auto find_func = KernelRegistry::GetInstance().FindKernelFuncs("FindCustomOp");
-  ASSERT_NE(find_func, nullptr);
-  ASSERT_NE(find_func->run_func(run_context), GRAPH_SUCCESS);
-}
-
-TEST_F(CustomNodeKernelUT, find_custom_op_uses_global_registry) {
-  const std::string node_type = "OnlineGlobalCustomOpForRt2";
-  ASSERT_EQ(CustomOpFactory::RegisterCustomOpCreator(node_type.c_str(), []() -> std::unique_ptr<BaseCustomOp> {
-    return std::make_unique<TestRegistryOnlyCustomOp>();
-  }), GRAPH_SUCCESS);
-  auto *global_op = CustomOpFactory::CreateOrGetCustomOp(node_type.c_str());
-  ASSERT_NE(global_op, nullptr);
-
-  auto run_context = BuildKernelRunContext(3, 1);
-  run_context.value_holder[0].Set(const_cast<char *>(node_type.c_str()), nullptr);
-  run_context.value_holder[1].Set(CustomOpFactory::GetGlobalRegistryPtr().get(), nullptr);
-  run_context.value_holder[2].Set((void *)0, nullptr);
-
-  auto find_func = KernelRegistry::GetInstance().FindKernelFuncs("FindCustomOp");
-  ASSERT_NE(find_func, nullptr);
-  ASSERT_EQ(find_func->run_func(run_context), GRAPH_SUCCESS);
-  ASSERT_EQ(*run_context.GetContext<KernelContext>()->GetOutputPointer<BaseCustomOp *>(0), global_op);
-}
-
 TEST_F(CustomNodeKernelUT, custom_op_with_inference_rule_execute_test) {
   RegisterInferShapeKernels();
   const std::string rule = R"({"shape":{"inputs":[["s0"],["s1"],["s2"]],"outputs":[["s0"]]}})";
@@ -317,12 +240,11 @@ TEST_F(CustomNodeKernelUT, custom_op_with_inference_rule_execute_test) {
     GTEST_SKIP() << "JIT compiler not available, skip test";
   }
 
-  auto custom_op_registry = BuildCustomOpRegistryForRt2([]()->std::unique_ptr<BaseCustomOp> {
+  CustomOpFactory::RegisterCustomOpCreator("CustomOp", []()->std::unique_ptr<BaseCustomOp> {
     return std::make_unique<TestBaseCustomOpWithInferShape>();
   });
   GeModelBuilder builder(graph);
   auto ge_root_model = builder.BuildGeRootModel();
-  ge_root_model->SetCustomOpRegistry(custom_op_registry);
   bg::ValueHolder::PopGraphFrame();
   auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model, {});
   ASSERT_NE(exe_graph, nullptr);

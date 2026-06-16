@@ -120,7 +120,7 @@ GenerateOfflineModel()
 
 **文件路径**: `base/common/model/ge_root_model.cc`
 
-检测逻辑分为四个独立的检查函数：
+检测逻辑分为三个独立的检查函数：
 
 #### 3.2.1 CheckAndSetSpaceRegistry
 
@@ -141,12 +141,6 @@ GenerateOfflineModel()
 **触发条件**：图节点包含 `bin_file_path` 属性。
 
 **说明**：Autofuse 是 GE 的算子自动融合优化特性，融合后的算子会生成独立的 .so 文件，需要随模型一起分发。
-
-#### 3.2.4 CheckAndSetCustomOpSo
-
-**触发条件**：图中存在当前 `GeRootModel` 持有的 `CustomOpRegistry` 能识别的 `PortableOp` 自定义算子。
-
-**说明**：`GraphManager::PreRun()` 在 `BuildModel()` 返回后会把编译期进程级全局 `CustomOpRegistry` 显式绑定到当前 `GeRootModel`。后续自定义算子 SO 收集和 `CUSTOM_OPS` 分区序列化均通过 `ge_root_model->GetCustomOpRegistry()` 访问自定义算子，保存流程不再直接访问 `CustomOpFactory`。已有 OM 重新打包时如果模型未携带 custom op registry，则仅跳过 custom op 分区处理，不回退到进程级全局 registry。
 
 ### 3.3 收集阶段：LoadAndStoreOppSo
 
@@ -244,13 +238,7 @@ OpMasterDevice SO 的加载采用两套去重策略：
 - **内置 SO**：通过 so 名称去重（类型+版本号保证唯一），相同名称的 SO 只保留一份
 - **自定义 SO**：通过二进制内容去重，将完整 SO 数据作为 key 建立映射。当多个模型引用内容相同但文件名不同的自定义算子时，系统能识别并复用已有 SO，避免重复加载
 
-#### 4.2.3 CUSTOM_OPS 分区加载
-
-**文件路径**: `base/common/helper/model_custom_kernels_helper.cc`
-
-离线 OM 中的 `CUSTOM_OPS` 分区承载自定义算子实例序列化数据。离线加载 root model 时，即使 OM 未携带自定义算子 SO 或非空 `CUSTOM_OPS` 分区，也会创建模型级空 `CustomOpRegistry` 并注入 `GeRootModel`，用于标识该模型的自定义算子查找域。加载非空 `CUSTOM_OPS` 分区时必须写入当前模型持有的 `CustomOpRegistry`，禁止回退到进程级全局 `CustomOpFactory`，避免多模型私有自定义算子状态互相污染。RT2 `ModelConverter::ConvertGeModelToExecuteGraph()` 只消费 `GeRootModel` 已注入的 registry；若 registry 为空则视为上游构造异常，不在 Convert 阶段回退全局 registry。
-
-#### 4.2.4 兼容性校验
+#### 4.2.3 兼容性校验
 
 **文件路径**: `base/common/helper/model_helper.cc`
 

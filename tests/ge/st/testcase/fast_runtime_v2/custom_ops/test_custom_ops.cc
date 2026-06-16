@@ -381,8 +381,7 @@ TEST_F(TestCustomNodeKernel, custom_op_shape_infer_op_execute_test) {
             GRAPH_SUCCESS);
   EXPECT_EQ(custom_shape_infer_count, 1U);
   EXPECT_EQ(custom_shape_infer_execute_count, 1U);
-  // 这里没有单独的 "InferShape" kernel 事件；ShapeInferOp::InferShape 是在
-  // ExecuteCustomOpWithInferShape 内部直接被调用的，所以统计应看执行 kernel。
+  EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType(op_type, "InferShape"), 1);
   EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType(op_type, "ExecuteCustomOpWithInferShape"), 1);
   EXPECT_EQ(model_executor->UnLoad(), GRAPH_SUCCESS);
   rtStreamDestroy(stream);

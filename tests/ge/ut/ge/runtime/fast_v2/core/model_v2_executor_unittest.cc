@@ -32,7 +32,6 @@
 #include "framework/runtime/model_rt_var_manager.h"
 #include "graph/load/model_manager/model_manager.h"
 #include "common/opskernel/ops_kernel_info_types.h"
-#include "graph/custom_op_factory.h"
 
 // using namespace ge;
 namespace gert {
@@ -82,7 +81,6 @@ static ge::GeRootModelPtr ConstructGeRootModel(
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("graph");
   ge::GeRootModelPtr ge_root_model = std::make_shared<ge::GeRootModel>();
   EXPECT_EQ(ge_root_model->Initialize(graph), ge::SUCCESS);
-  ge_root_model->SetCustomOpRegistry(ge::CustomOpFactory::GetGlobalRegistryPtr());
   ge::GeModelPtr ge_model = std::make_shared<ge::GeModel>();
   ge_root_model->SetSubgraphInstanceNameToModel("graph", ge_model);
   ge_model->SetGraph(graph);

@@ -12,6 +12,7 @@
 #include "framework/common/helper/model_helper.h"
 #include "common/checker.h"
 #include "common/helper/model_parser_base.h"
+#include "common/helper/custom_op_so_loader.h"
 #include "common/model/ge_model.h"
 #include "common/model/ge_root_model.h"
 #include "common/op_so_store/op_so_store_utils.h"
@@ -1335,7 +1336,8 @@ Status ModelHelper::GenerateGeRootModel(const OmFileLoadHelper &om_load_helper, 
     GE_CHECK_NOTNULL(model_);
     GE_ASSERT_SUCCESS(root_model_->Initialize(model_->GetGraph()));
     root_model_->SetModelName(model_->GetName());
-    GE_CHK_STATUS_RET(LoadCustomOpRegistry(om_load_helper, root_model_), "[Generate][LoadCustomOpRegistry]Failed");
+    GE_CHK_STATUS_RET(LoadOpSoBin(om_load_helper, root_model_), "[Generate][LoadOpSoBin]Failed");
+    GE_CHK_STATUS_RET(LoadCustomOps(om_load_helper), "[Generate][LoadCustomOps]Failed");
     GE_CHK_STATUS_RET(LoadTilingData(om_load_helper, root_model_), "[Generate][LoadTilingData]Failed");
     root_model_->SetSubgraphInstanceNameToModel(model_->GetGraph()->GetName(), model_);
     return SUCCESS;
@@ -1348,7 +1350,8 @@ Status ModelHelper::GenerateGeRootModel(const OmFileLoadHelper &om_load_helper, 
       GE_ASSERT_SUCCESS(root_model_->Initialize(cur_model->GetGraph()));
       root_model_->SetModelName(cur_model->GetName());
       model_ = cur_model;
-      GE_CHK_STATUS_RET(LoadCustomOpRegistry(om_load_helper, root_model_), "[Generate][LoadCustomOpRegistry]Failed");
+      GE_CHK_STATUS_RET(LoadOpSoBin(om_load_helper, root_model_), "[Generate][LoadOpSoBin]Failed");
+      GE_CHK_STATUS_RET(LoadCustomOps(om_load_helper), "[Generate][LoadCustomOps]Failed");
       GE_CHK_STATUS_RET(LoadTilingData(om_load_helper, root_model_), "[Generate][LoadTilingData]Failed");
       if (IsPartitionedGraph(cur_model)) {
         if (!gert::GraphUnfolder::IsGraphNeedUnfold(cur_model->GetGraph())) {
@@ -1495,6 +1498,56 @@ Status ModelHelper::LoadCustAICPUKernelStore(const OmFileLoadHelper &om_load_hel
   return SUCCESS;
 }
 
+Status ModelHelper::LoadOpSoBin(const OmFileLoadHelper &om_load_helper,
+                                const GeRootModelPtr &ge_root_model) const {
+  ModelPartition partition_kernel_def;
+  if (om_load_helper.GetModelPartition(ModelPartitionType::SO_BINS, partition_kernel_def, 0U)
+      == SUCCESS) {
+    GELOGD("Kernels partition size:%" PRIu64 "", partition_kernel_def.size);
+    if (ge_root_model->LoadSoBinData(partition_kernel_def.data, partition_kernel_def.size)) {
+      // 取出AutofuseSo并存放到扩展属性
+      auto root_graph = ge_root_model->GetRootGraph();
+      GE_ASSERT_NOTNULL(root_graph);
+      std::map<std::string, ge::OpSoBinPtr> bin_file_buffer;
+      auto all_so_bin = ge_root_model->GetAllSoBin();
+      std::vector<OpSoBinPtr> custom_op_so_bins;
+      for (const auto &op_so_bin_ptr : all_so_bin) {
+        if (op_so_bin_ptr == nullptr) {
+          continue;
+        }
+        if (op_so_bin_ptr->GetSoBinType() == SoBinType::kAutofuse) {
+          std::string so_path = op_so_bin_ptr->GetVendorName() + "/" + op_so_bin_ptr->GetSoName();
+          bin_file_buffer[so_path] = op_so_bin_ptr;
+          GELOGD("Added autofuse so_path:%s", so_path.c_str());
+        } else if (op_so_bin_ptr->GetSoBinType() == SoBinType::kCustomOp) {
+          custom_op_so_bins.emplace_back(op_so_bin_ptr);
+        }
+      }
+      if (!bin_file_buffer.empty()) {
+        root_graph->SetExtAttr<std::map<std::string, ge::OpSoBinPtr>>("bin_file_buffer", bin_file_buffer);
+      }
+      GE_ASSERT_SUCCESS(LoadCustomOpSoBins(custom_op_so_bins));
+      SaveOpSoInfo(ge_root_model);
+      GELOGD("Load so bin store success");
+    } else {
+      GELOGW("Load so bin store unsuccessful");
+      GE_ASSERT_TRUE(partition_kernel_def.size == 0U,
+                     "Load so bin store failed when SO_BINS partition is non-empty, size:%" PRIu64,
+                     partition_kernel_def.size);
+    }
+  }
+  return SUCCESS;
+}
+
+Status ModelHelper::LoadCustomOpSoBins(const std::vector<OpSoBinPtr> &custom_so_bins) const {
+  if (custom_so_bins.empty()) {
+    return SUCCESS;
+  }
+  GE_ASSERT_SUCCESS(CustomOpSoLoader::GetInstance().LoadCustomOpSoBins(custom_so_bins),
+                    "Load custom op so bins from SO_BINS failed.");
+  return SUCCESS;
+}
+
 Status ModelHelper::LoadTilingData(const OmFileLoadHelper &om_load_helper, const GeRootModelPtr &ge_root_model) const {
   ModelPartition partition_kernel_def;
   (void)om_load_helper.GetModelPartition(ModelPartitionType::TILING_DATA, partition_kernel_def, 0U);
@@ -1509,6 +1562,18 @@ Status ModelHelper::LoadTilingData(const OmFileLoadHelper &om_load_helper, const
         HostResourceSerializer::RecoverOpRunInfoToExtAttrs(*host_resource_center, ge_root_model->GetRootGraph()));
   }
   return SUCCESS;
+}
+
+void ModelHelper::SaveOpSoInfo(const GeRootModelPtr &ge_root_model) const {
+  SoInOmInfo so_info;
+  (void) ge::AttrUtils::GetStr(*(model_.get()), "host_env_os", so_info.os_info);
+  (void) ge::AttrUtils::GetStr(*(model_.get()), "host_env_cpu", so_info.cpu_info);
+  (void) ge::AttrUtils::GetStr(*(model_.get()), ATTR_MODEL_OPP_VERSION, so_info.opp_version);
+  (void) ge::AttrUtils::GetStr(*(model_.get()), ATTR_MODEL_COMPILER_VERSION, so_info.compiler_version);
+  GELOGD("Save so info with host_env_os:%s, host_env_cpu:%s, opp_version:%s, compiler_version:%s",
+         so_info.os_info.c_str(), so_info.cpu_info.c_str(), so_info.opp_version.c_str(),
+         so_info.compiler_version.c_str());
+  ge_root_model->SetSoInOmInfo(so_info);
 }
 
 GeModelPtr ModelHelper::GetGeModel() {

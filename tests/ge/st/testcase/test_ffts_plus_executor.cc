@@ -28,7 +28,6 @@
 #include "register/op_impl_kernel_registry.h"
 #include "register/kernel_registry.h"
 #include "common/sgt_slice_type.h"
-#include "graph/custom_op_factory.h"
 #include "faker/space_registry_faker.h"
 #include "graph/load/model_manager/model_manager.h"
 #include "graph/utils/op_desc_utils.h"
@@ -402,7 +401,6 @@ static void RunPureStaticFftsPlusGraph(const ComputeGraphPtr &root_graph, const 
 
   GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
   ge_root_model->Initialize(root_graph);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
   ge_root_model->SetSubgraphInstanceNameToModel(root_graph->GetName(), ge_model);
 
   GraphId graph_id = 1001;
@@ -436,7 +434,6 @@ static void RunDynamicStaticFftsPlusGraph(const ComputeGraphPtr &root_graph,
 
   GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
   ge_root_model->Initialize(root_graph);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
   ge_root_model->SetModelName(root_graph->GetName());
   GeModelPtr ge_sub_model = MakeShared<GeModel>();
   ge_sub_model->SetModelTaskDef(model_task_def);
@@ -559,7 +556,6 @@ TEST_F(FftsPlusTest, dsa_graph) {
   // Build GeModel.
   GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
   ge_root_model->Initialize(root_graph);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
 
   const auto model_task_def = MakeShared<domi::ModelTaskDef>();
   const auto ge_model = MakeShared<GeModel>();
@@ -619,8 +615,7 @@ TEST_F(FftsPlusTest, dsa_graph_set_input1_value) {
   RTS_STUB_RETURN_VALUE(rtQueryFunctionRegistered, rtError_t, 0x78000001);
 
   GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
-  ge_root_model->Initialize(root_graph);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
+  ge_root_model->Initialize(root_graph);;
   ge_root_model->SetSubgraphInstanceNameToModel(root_graph->GetName(), ge_model);
 
   GraphId graph_id = 1001;
@@ -660,7 +655,6 @@ TEST_F(FftsPlusTest, dsa_graph_with_dump) {
 
   GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
   ge_root_model->Initialize(root_graph);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
   ge_root_model->SetSubgraphInstanceNameToModel(root_graph->GetName(), ge_model);
 
   GraphId graph_id = 1001;
@@ -783,7 +777,6 @@ TEST_F(FftsPlusTest, ffts_plus_graph_load_success) {
 
     GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
     ge_root_model->Initialize(root_graph);
-    ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
     ge_root_model->SetSubgraphInstanceNameToModel(root_graph->GetName(), ge_model);
 
     GraphId graph_id = 1001;
@@ -825,7 +818,6 @@ TEST_F(FftsPlusTest, ffts_plus_graph_load_success) {
 
     GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
     ge_root_model->Initialize(root_graph);
-    ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
     ge_root_model->SetSubgraphInstanceNameToModel(root_graph->GetName(), ge_model);
 
     GraphId graph_id = 1001;
@@ -929,7 +921,6 @@ TEST_F(FftsPlusTest, ffts_plus_error_tracking_test) {
 
   GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
   ge_root_model->Initialize(root_graph);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
   ge_root_model->SetSubgraphInstanceNameToModel(root_graph->GetName(), ge_model);
 
   GraphId graph_id = 1001;
@@ -995,7 +986,6 @@ TEST_F(FftsPlusTest, ffts_plus_graph_manual_load_success) {
 
   GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
   ge_root_model->Initialize(root_graph);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
   ge_root_model->SetSubgraphInstanceNameToModel(root_graph->GetName(), ge_model);
 
   GraphId graph_id = 1001;
@@ -1062,7 +1052,6 @@ TEST_F(FftsPlusTest, ffts_plus_graph_load_success_with_tiling_data) {
 
   GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
   ge_root_model->Initialize(root_graph);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
   ge_root_model->SetSubgraphInstanceNameToModel(root_graph->GetName(), ge_model);
 
   GraphId graph_id = 1001;
@@ -1120,7 +1109,6 @@ TEST_F(FftsPlusTest, ffts_plus_graph_load_with_exceptiondump) {
 
   GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
   ge_root_model->Initialize(root_graph);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
   ge_root_model->SetSubgraphInstanceNameToModel(root_graph->GetName(), ge_model);
 
   GraphId graph_id = 1001;
@@ -1198,7 +1186,6 @@ TEST_F(FftsPlusTest, ffts_plus_graph_with_aicpu_load_no_block_success) {
   RTS_STUB_RETURN_VALUE(rtQueryFunctionRegistered, rtError_t, 0x78000001);
   GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
   ge_root_model->Initialize(root_graph);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
   ge_root_model->SetSubgraphInstanceNameToModel(root_graph->GetName(), ge_model);
 
   GraphId graph_id = 1001;
@@ -1246,7 +1233,6 @@ TEST_F(FftsPlusTest, ffts_plus_graph_with_aicpu_load_failed) {
   RTS_STUB_RETURN_VALUE(rtQueryFunctionRegistered, rtError_t, 0x78000001);
   GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
   ge_root_model->Initialize(root_graph);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
   ge_root_model->SetSubgraphInstanceNameToModel(root_graph->GetName(), ge_model);
 
   GraphId graph_id = 1001;
@@ -1432,7 +1418,6 @@ TEST_F(FftsPlusTest, FftsPlusTest_ffts_plus_auto_graph_with_mix_load_fail) {
 
   GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
   ge_root_model->Initialize(root_graph);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
   ge_root_model->SetSubgraphInstanceNameToModel(root_graph->GetName(), ge_model);
 
   GraphId graph_id = 1001;
@@ -1484,7 +1469,6 @@ TEST_F(FftsPlusTest, FftsPlusTest_ffts_plus_auto_graph_with_mix_load_success) {
 
   GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
   ge_root_model->Initialize(root_graph);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
   ge_root_model->SetSubgraphInstanceNameToModel(root_graph->GetName(), ge_model);
 
   GraphId graph_id = 1001;
@@ -1573,7 +1557,6 @@ TEST_F(FftsPlusTest, FftsPlusTest_ffts_plus_graph_mix_prof_Test) {
 
   GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
   ge_root_model->Initialize(root_graph);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
   ge_root_model->SetSubgraphInstanceNameToModel(root_graph->GetName(), ge_model);
 
   GraphId graph_id = 1001;
@@ -1642,7 +1625,6 @@ TEST_F(FftsPlusTest, ffts_plus_graph_load_with_level1update) {
 
   GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
   ge_root_model->Initialize(root_graph);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
   ge_root_model->SetSubgraphInstanceNameToModel(root_graph->GetName(), ge_model);
 
   GraphId graph_id = 1001;

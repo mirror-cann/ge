@@ -312,11 +312,6 @@ MockFunctionTest& MockFunctionTest::aclStubInstance()
 
 void MockFunctionTest::ResetToDefaultMock() {
     // delegates the default actions of the RTS methods to aclStub
-    ResetRtMocks();
-    ResetDataBufferMocks();
-}
-
-void MockFunctionTest::ResetRtMocks() {
     ON_CALL(*this, aclrtMalloc)
         .WillByDefault([this](void **devPtr, size_t size, aclrtMemMallocPolicy policy) {
           return aclStub::aclrtMalloc(devPtr, size, policy);
@@ -329,21 +324,6 @@ void MockFunctionTest::ResetRtMocks() {
         .WillByDefault([this](void *devPtr) {
           return aclStub::aclrtFree(devPtr);
         });
-    ON_CALL(*this, aclrtFree)
-        .WillByDefault([this](void *devPtr) {
-          return aclStub::aclrtFree(devPtr);
-        });
-    ON_CALL(*this, aclrtMemcpy)
-        .WillByDefault([this](void *dst, size_t destMax, const void *src, size_t count, aclrtMemcpyKind kind) {
-          return aclStub::aclrtMemcpy(dst, destMax, src, count, kind);
-        });
-    ON_CALL(*this, aclrtCtxGetCurrentDefaultStream)
-        .WillByDefault([this](aclrtStream *stream) {
-          return aclStub::aclrtCtxGetCurrentDefaultStream(stream);
-        });
-}
-
-void MockFunctionTest::ResetDataBufferMocks() {
     ON_CALL(*this, aclCreateDataBuffer)
         .WillByDefault([this](void *data, size_t size) {
           return aclStub::aclCreateDataBuffer(data, size);
@@ -363,6 +343,22 @@ void MockFunctionTest::ResetDataBufferMocks() {
     ON_CALL(*this, aclGetDataBufferSize)
         .WillByDefault([this](const aclDataBuffer *dataBuffer) {
           return aclStub::aclGetDataBufferSize(dataBuffer);
+        });
+    ON_CALL(*this, aclrtMemcpy)
+        .WillByDefault([this](void *dst, size_t destMax, const void *src, size_t count, aclrtMemcpyKind kind) {
+          return aclStub::aclrtMemcpy(dst, destMax, src, count, kind);
+        });
+    ON_CALL(*this, aclrtCtxGetCurrentDefaultStream)
+        .WillByDefault([this](aclrtStream *stream) {
+          return aclStub::aclrtCtxGetCurrentDefaultStream(stream);
+        });
+    ON_CALL(*this, SetModelStreamPriority)
+        .WillByDefault([this](uint32_t model_id, uint32_t priority) {
+          return this->aclStub::SetModelStreamPriority(model_id, priority);
+        });
+    ON_CALL(*this, GetModelStreamPriority)
+        .WillByDefault([this](uint32_t model_id, uint32_t &priority) {
+          return this->aclStub::GetModelStreamPriority(model_id, priority);
         });
 }
 

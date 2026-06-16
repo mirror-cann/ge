@@ -31,6 +31,7 @@
 #include "common/opskernel/ops_kernel_info_types.h"
 #include "external/ge_common/ge_common_api_types.h"
 #include "external/graph/custom_op.h"
+#include "graph/custom_op_factory.h"
 
 namespace ge {
 namespace {
@@ -154,19 +155,16 @@ Status GetP2pFixedFeatureMemorySize(const GeRootModel *ge_root_model, size_t &p2
   return SUCCESS;
 }
 
-Status CollectCustomOpTypesFromGraph(const ComputeGraphPtr &graph, const CustomOpRegistryPtr &custom_op_registry,
-                                     std::set<std::string> &used_custom_op_types) {
+void CollectCustomOpTypesFromGraph(const ComputeGraphPtr &graph, std::set<std::string> &used_custom_op_types) {
   if (graph == nullptr) {
-    return SUCCESS;
+    return;
   }
-  GE_ASSERT_NOTNULL(custom_op_registry);
   for (const auto &node : graph->GetAllNodes()) {
     const auto &op_type = node->GetType();
-    if (custom_op_registry->HasCreator(AscendString(op_type.c_str()))) {
+    if (CustomOpFactory::IsExistOp(AscendString(op_type.c_str()))) {
       (void)used_custom_op_types.insert(op_type);
     }
   }
-  return SUCCESS;
 }
 }
 Status GeRootModel::Initialize(const ComputeGraphPtr &root_graph) {
@@ -375,25 +373,23 @@ Status GeRootModel::ResolvePortableOpSoPath(const std::string &op_type, Portable
 
 Status GeRootModel::CheckAndSetCustomOpSo() {
   GE_ASSERT_NOTNULL(root_graph_);
-  GE_ASSERT_NOTNULL(custom_op_registry_);
   std::string target_os;
   std::string target_cpu;
   GE_ASSERT_SUCCESS(GetTargetHostEnv(target_os, target_cpu), "Get target host env failed.");
   const bool is_cross_compile = IsCrossCompileTarget(target_os, target_cpu);
   std::set<std::string> used_custom_op_types;
-  GE_ASSERT_SUCCESS(CollectCustomOpTypesFromGraph(root_graph_, custom_op_registry_, used_custom_op_types));
+  CollectCustomOpTypesFromGraph(root_graph_, used_custom_op_types);
   for (const auto &item : subgraph_instance_name_to_model_) {
     const auto &ge_model = item.second;
     if (ge_model == nullptr || ge_model->GetGraph() == nullptr || ge_model->GetGraph() == root_graph_) {
       continue;
     }
-    GE_ASSERT_SUCCESS(CollectCustomOpTypesFromGraph(ge_model->GetGraph(), custom_op_registry_,
-                                                    used_custom_op_types));
+    CollectCustomOpTypesFromGraph(ge_model->GetGraph(), used_custom_op_types);
   }
 
   bool has_portable_custom_op = false;
   for (const auto &op_type : used_custom_op_types) {
-    auto op = custom_op_registry_->CreateOrGetCustomOp(AscendString(op_type.c_str()));
+    auto op = CustomOpFactory::CreateOrGetCustomOp(AscendString(op_type.c_str()));
     GE_ASSERT_NOTNULL(op);
     auto *portable_op = dynamic_cast<PortableOp *>(op);
     if (portable_op == nullptr) {
@@ -638,7 +634,6 @@ std::shared_ptr<GeRootModel> GeRootModel::Fork() {
   ge_root_model->op_master_device_so_set_ = this->op_master_device_so_set_;
   ge_root_model->autofuse_so_set_ = this->autofuse_so_set_;
   ge_root_model->custom_op_so_set_ = this->custom_op_so_set_;
-  ge_root_model->custom_op_registry_ = this->custom_op_registry_;
   return ge_root_model;
 }
 }  // namespace ge

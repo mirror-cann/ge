@@ -19,7 +19,6 @@
 #include "graph/execute/model_executor.h"
 #include "graph_metadef/depends/checker/tensor_check_utils.h"
 #include "mmpa/mmpa_api.h"
-#include "graph/custom_op_factory.h"
 
 using namespace std;
 using namespace testing;
@@ -236,7 +235,6 @@ static Status DynamicStackExecute(ComputeGraphPtr &graph, const GeModelPtr &ge_m
                                   const int32_t input_num, const size_t output_num, const bool check_output = true) {
   GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
   EXPECT_EQ(ge_root_model->Initialize(graph), SUCCESS);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
   ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
 
   GraphId graph_id = 1001;

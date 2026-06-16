@@ -16,7 +16,6 @@
 #include "graph/utils/type_utils.h"
 #include "common/checker.h"
 #include "graph/fast_graph/fast_node.h"
-#include "graph/custom_op.h"
 
 namespace gert {
 namespace kernel {
@@ -67,21 +66,6 @@ inline ge::graphStatus TransformAllOutputsShape(const ComputeNodeInfo *compute_n
                       compute_node_info->GetNodeName(), index);
   }
   return ge::GRAPH_SUCCESS;
-}
-
-inline ge::graphStatus InferCustomOpShapeFromInput(InferShapeContext *context) {
-  auto kernel_context = reinterpret_cast<KernelContext *>(context);
-  GE_ASSERT_NOTNULL(kernel_context);
-  const auto input_num = kernel_context->GetInputNum();
-  GE_ASSERT(input_num > 1U);
-  auto custom_op = kernel_context->GetInputValue<ge::BaseCustomOp *>(input_num - 2U);
-  GE_ASSERT_NOTNULL(custom_op);
-  auto shape_infer_op = dynamic_cast<ge::ShapeInferOp *>(custom_op);
-  if (shape_infer_op == nullptr) {
-    GELOGE(ge::GRAPH_FAILED, "Custom op does not implement ShapeInferOp.");
-    return ge::GRAPH_FAILED;
-  }
-  return shape_infer_op->InferShape(context);
 }
 
 inline ge::graphStatus BuildInferShapeOutputs(const ge::FastNode *node, KernelContext *context) {

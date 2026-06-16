@@ -116,7 +116,6 @@ class ShapeInferOp : virtual public BaseCustomOp {
 };
 
 using BaseOpCreator = std::function<std::unique_ptr<BaseCustomOp>()>;
-using CustomOpCreateFunc = ge::BaseCustomOp *(*)();
 
 /**
  * 自定义算子创建器注册辅助类。
@@ -125,16 +124,14 @@ using CustomOpCreateFunc = ge::BaseCustomOp *(*)();
 class CustomOpCreatorRegister {
 public:
   CustomOpCreatorRegister(const AscendString &operator_type, const BaseOpCreator &op_creator);
-  CustomOpCreatorRegister(const AscendString &operator_type, CustomOpCreateFunc op_creator);
   ~CustomOpCreatorRegister() = default;
 };
 }  // namespace ge
 
 #define REG_JOIN(g_register, y) g_register##y
 #define REG_AUTO_MAPPING_OP(custom_op_class) REG_AUTO_MAPPING_OP_UNIQ(__COUNTER__, custom_op_class)
-#define REG_AUTO_MAPPING_OP_UNIQ(ctr, custom_op_class)                                            \
-  static ge::BaseCustomOp *REG_JOIN(custom_op_pull_creator, ctr)() { return new custom_op_class(); } \
-  static const ge::CustomOpCreatorRegister REG_JOIN(custom_op_register, ctr)(                    \
-      #custom_op_class, REG_JOIN(custom_op_pull_creator, ctr))
+#define REG_AUTO_MAPPING_OP_UNIQ(ctr, custom_op_class)             \
+  static const ge::CustomOpCreatorRegister REG_JOIN(custom_op_register, ctr)( \
+      #custom_op_class, []() -> std::unique_ptr<ge::BaseCustomOp> { return std::make_unique<custom_op_class>(); })
 
 #endif  // METADEF_CXX_INC_GRAPH_BASE_CUSTOM_OP_H

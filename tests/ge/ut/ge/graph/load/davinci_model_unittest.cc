@@ -161,18 +161,6 @@ void TestNnExecute() {
   dlog_setlevel(GE_MODULE_NAME, DLOG_ERROR, 0);
 }
 
-TEST(DavinciModelCustomOpRegistry, SetAndGetCustomOpRegistry) {
-  DavinciModel model(0, nullptr);
-  auto registry = MakeShared<CustomOpRegistry>();
-  ASSERT_NE(registry, nullptr);
-
-  model.SetCustomOpRegistry(registry);
-  EXPECT_EQ(model.GetCustomOpRegistry(), registry);
-
-  model.SetCustomOpRegistryRaw(registry.get());
-  EXPECT_EQ(model.GetCustomOpRegistry().get(), registry.get());
-}
-
 void TestNnExecuteWithGertTensor() {
   DavinciModel model(0, nullptr);
   ComputeGraphPtr graph = MakeShared<ComputeGraph>("default");

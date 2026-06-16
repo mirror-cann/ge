@@ -62,7 +62,6 @@ RETURN_STATEMENTS = {
     'InferenceContextPtr': '    return nullptr;',
     'SubgraphBuilder': '    return nullptr;',
     'OperatorImplPtr': '    return nullptr;',
-    'CustomOpRegistryPtr': '    return nullptr;',
     'OutHandler': '    return nullptr;',
     'std::vector<int64_t>': '    return {};',
     'std::vector<std::string>': '    return {};',
@@ -227,8 +226,6 @@ RETURN_STATEMENTS = {
     'Operator': '    return Operator();',
     'std::unique_ptr<BaseCustomOp>': 'return nullptr;',
     'BaseCustomOp*': '    return nullptr;',
-    'CustomOpRegistry& CustomOpFactory::':
-        '    static CustomOpRegistry registry;\n    return registry;',
     'std::map<size_t, std::pair<size_t, size_t>>': '    return {};',
     'GeTensor': '    return GeTensor();',
     'GeTensorPtr': '    return nullptr;',

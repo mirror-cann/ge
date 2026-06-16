@@ -24,11 +24,9 @@
 
 #include "common/model/ge_model.h"
 #define private public
-#include "common/helper/custom_op_registry_builder.h"
 #include "common/helper/custom_op_so_loader.h"
 #include "common/model/ge_root_model.h"
 #undef private
-#include "depends/mmpa/src/mmpa_stub.h"
 #include "common/plugin/plugin_manager.h"
 #include "framework/common/helper/model_helper.h"
 #include "framework/common/helper/om_file_helper.h"
@@ -36,8 +34,6 @@
 #include "graph/ge_local_context.h"
 #include "graph/custom_op.h"
 #include "graph/custom_op_factory.h"
-#include "graph/custom_op_pull_registry.h"
-#include "graph/custom_op_registry.h"
 #include "mmpa/mmpa_api.h"
 
 namespace ge {
@@ -53,27 +49,10 @@ constexpr const char *kSaveEmptySubType = "StModelHelperSaveEmptySubPortableOp";
 constexpr const char *kSaveSuccessRootType = "StModelHelperSaveSuccessRootPortableOp";
 constexpr const char *kSaveSuccessSubType = "StModelHelperSaveSuccessSubPortableOp";
 constexpr const char *kLoadSuccessType = "StModelHelperLoadSuccessPortableOp";
-constexpr const char *kLoadToRegistryType = "StModelHelperLoadToRegistryPortableOp";
-constexpr const char *kPullRegistryType = "StModelHelperPullRegistryPortableOp";
-constexpr const char *kCreatorRegisterType = "StModelHelperCreatorRegisterPortableOp";
-constexpr const char *kBuilderPullOpA = "StModelHelperBuilderPullOpA";
-constexpr const char *kBuilderPullOpB = "StModelHelperBuilderPullOpB";
-constexpr const char *kSymbolAbiVersion = "GetRegisteredCustomOpCreatorAbiVersion";
-constexpr const char *kSymbolCreatorNum = "GetRegisteredCustomOpCreatorNum";
-constexpr const char *kSymbolCreators = "GetRegisteredCustomOpCreators";
 
 const std::vector<uint8_t> kPortableKernelBin = {0x11U, 0x22U, 0x33U};
 size_t g_deserialize_called_count = 0U;
 size_t g_last_deserialize_bin_size = 0U;
-
-struct FakeSoCreatorsForSt {
-  uint32_t abi_version = kCustomOpCreatorPullAbiVersion;
-  int32_t get_creators_ret = 0;
-  std::vector<CustomOpTypeToCreator> creators;
-};
-
-FakeSoCreatorsForSt g_fake_so_a;
-FakeSoCreatorsForSt g_fake_so_b;
 
 class TestableModelHelper : public ModelHelper {
  public:
@@ -164,109 +143,6 @@ class PortableOpForDeserializeRecord : public EagerExecuteOp, public PortableOp 
   }
 };
 
-class BuilderPullOpA : public BaseCustomOp {};
-class BuilderPullOpB : public BaseCustomOp {};
-
-class FakeSoHandleMmpaStubForSt : public MmpaStubApiGe {
- public:
-  int32_t DlClose(void *handle) override {
-    if ((handle == reinterpret_cast<void *>(0xA001U)) || (handle == reinterpret_cast<void *>(0xB001U))) {
-      return 0;
-    }
-    return MmpaStubApiGe::DlClose(handle);
-  }
-};
-
-BaseCustomOp *CreateBuilderPullOpA() {
-  return new BuilderPullOpA();
-}
-
-BaseCustomOp *CreateBuilderPullOpB() {
-  return new BuilderPullOpB();
-}
-
-BaseCustomOp *CreatePullRegistryOp() {
-  return new PortableOpForSerializeSuccess();
-}
-
-uint32_t GetFakeAbiVersionA() {
-  return g_fake_so_a.abi_version;
-}
-
-uint32_t GetFakeAbiVersionB() {
-  return g_fake_so_b.abi_version;
-}
-
-size_t GetFakeCreatorNumA() {
-  return g_fake_so_a.creators.size();
-}
-
-size_t GetFakeCreatorNumB() {
-  return g_fake_so_b.creators.size();
-}
-
-int32_t CopyFakeCreatorsForSt(const FakeSoCreatorsForSt &fake_so, CustomOpTypeToCreator *creators,
-                              const size_t creator_num, const size_t creator_struct_size) {
-  if (fake_so.get_creators_ret != 0) {
-    return fake_so.get_creators_ret;
-  }
-  if ((creator_num < fake_so.creators.size()) || ((creator_num > 0U) && (creators == nullptr)) ||
-      (creator_struct_size < sizeof(CustomOpTypeToCreator))) {
-    return -1;
-  }
-  for (size_t i = 0U; i < fake_so.creators.size(); ++i) {
-    auto *creator_addr = reinterpret_cast<uint8_t *>(creators) + (i * creator_struct_size);
-    auto *creator = reinterpret_cast<CustomOpTypeToCreator *>(creator_addr);
-    *creator = fake_so.creators[i];
-  }
-  return 0;
-}
-
-int32_t GetFakeCreatorsA(CustomOpTypeToCreator *creators, size_t creator_num, size_t creator_struct_size) {
-  return CopyFakeCreatorsForSt(g_fake_so_a, creators, creator_num, creator_struct_size);
-}
-
-int32_t GetFakeCreatorsB(CustomOpTypeToCreator *creators, size_t creator_num, size_t creator_struct_size) {
-  return CopyFakeCreatorsForSt(g_fake_so_b, creators, creator_num, creator_struct_size);
-}
-
-void *ResolveFakeSymbolsForSt(void *handle, const char *symbol) {
-  if ((handle == reinterpret_cast<void *>(0xA001U)) && (std::strcmp(symbol, kSymbolAbiVersion) == 0)) {
-    return reinterpret_cast<void *>(&GetFakeAbiVersionA);
-  }
-  if ((handle == reinterpret_cast<void *>(0xA001U)) && (std::strcmp(symbol, kSymbolCreatorNum) == 0)) {
-    return reinterpret_cast<void *>(&GetFakeCreatorNumA);
-  }
-  if ((handle == reinterpret_cast<void *>(0xA001U)) && (std::strcmp(symbol, kSymbolCreators) == 0)) {
-    return reinterpret_cast<void *>(&GetFakeCreatorsA);
-  }
-  if ((handle == reinterpret_cast<void *>(0xB001U)) && (std::strcmp(symbol, kSymbolAbiVersion) == 0)) {
-    return reinterpret_cast<void *>(&GetFakeAbiVersionB);
-  }
-  if ((handle == reinterpret_cast<void *>(0xB001U)) && (std::strcmp(symbol, kSymbolCreatorNum) == 0)) {
-    return reinterpret_cast<void *>(&GetFakeCreatorNumB);
-  }
-  if ((handle == reinterpret_cast<void *>(0xB001U)) && (std::strcmp(symbol, kSymbolCreators) == 0)) {
-    return reinterpret_cast<void *>(&GetFakeCreatorsB);
-  }
-  return nullptr;
-}
-
-void *ResolveMissingCreatorNumForSt(void *handle, const char *symbol) {
-  if (std::strcmp(symbol, kSymbolCreatorNum) == 0) {
-    return nullptr;
-  }
-  return ResolveFakeSymbolsForSt(handle, symbol);
-}
-
-CustomOpTypeToCreator MakeCreatorForSt(const char *op_type, const CustomOpCreateFunc creator) {
-  return CustomOpTypeToCreator{sizeof(CustomOpTypeToCreator), op_type, creator};
-}
-
-CustomOpSoHandlePtr MakeFakeSoHandleForSt(void *handle, const std::string &name) {
-  return std::make_shared<CustomOpSoHandle>(name, handle, name, 0U, -1);
-}
-
 static void RegisterCustomOpCreatorForSt(const std::string &op_type, const BaseOpCreator &creator) {
   const auto ret = CustomOpFactory::RegisterCustomOpCreator(op_type.c_str(), creator);
   EXPECT_TRUE((ret == GRAPH_SUCCESS) || (ret == GRAPH_FAILED));
@@ -296,7 +172,6 @@ static GeRootModelPtr CreateRootModelForCustomOps(const std::string &root_op_typ
   if (ge_root_model->Initialize(root_graph) != SUCCESS) {
     return nullptr;
   }
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
 
   auto sub_graph = std::make_shared<ComputeGraph>("st_sub_graph_for_custom_kernels_helper");
   if (!sub_op_type.empty()) {
@@ -496,127 +371,9 @@ static void GetCurrentEnvWithFallbackForSt(std::string &current_env_os, std::str
 
 class TestModelCustomOpsHelper : public testing::Test {
  protected:
-  void SetUp() override {
-    g_fake_so_a = FakeSoCreatorsForSt{};
-    g_fake_so_b = FakeSoCreatorsForSt{};
-    MmpaStub::GetInstance().SetImpl(std::make_shared<FakeSoHandleMmpaStubForSt>());
-  }
-
-  void TearDown() override {
-    g_fake_so_a = FakeSoCreatorsForSt{};
-    g_fake_so_b = FakeSoCreatorsForSt{};
-    MmpaStub::GetInstance().Reset();
-  }
-
-  void RunInvalidCreatorTests(const std::shared_ptr<CustomOpRegistry> &registry,
-                             const std::vector<CustomOpSoHandlePtr> &so_handles) {
-    const std::vector<CustomOpTypeToCreator> invalid_creators = {
-        MakeCreatorForSt(nullptr, CreateBuilderPullOpA),
-        MakeCreatorForSt("", CreateBuilderPullOpA),
-        MakeCreatorForSt(kBuilderPullOpA, nullptr),
-        CustomOpTypeToCreator{sizeof(CustomOpTypeToCreator) - 1U, kBuilderPullOpA, CreateBuilderPullOpA}};
-    for (const auto &invalid_creator : invalid_creators) {
-      g_fake_so_a = FakeSoCreatorsForSt{};
-      g_fake_so_a.creators = {invalid_creator};
-      EXPECT_NE(CustomOpRegistryBuilder::AddCreatorsFromSoHandles(so_handles, registry, ResolveFakeSymbolsForSt),
-                SUCCESS);
-      EXPECT_FALSE(registry->HasCreator(kBuilderPullOpA));
-    }
-  }
-
-  void RunDuplicateHandleTest(const std::shared_ptr<CustomOpRegistry> &registry) {
-    g_fake_so_a = FakeSoCreatorsForSt{};
-    g_fake_so_b = FakeSoCreatorsForSt{};
-    g_fake_so_a.creators = {MakeCreatorForSt(kBuilderPullOpA, CreateBuilderPullOpA)};
-    g_fake_so_b.creators = {MakeCreatorForSt(kBuilderPullOpA, CreateBuilderPullOpB)};
-    std::vector<CustomOpSoHandlePtr> duplicate_handles = {
-        MakeFakeSoHandleForSt(reinterpret_cast<void *>(0xA001U), "fake_a"),
-        MakeFakeSoHandleForSt(reinterpret_cast<void *>(0xB001U), "fake_b")};
-    EXPECT_NE(CustomOpRegistryBuilder::AddCreatorsFromSoHandles(duplicate_handles, registry, ResolveFakeSymbolsForSt),
-              SUCCESS);
-    EXPECT_FALSE(registry->HasCreator(kBuilderPullOpA));
-  }
+  void SetUp() override {}
+  void TearDown() override {}
 };
-
-TEST_F(TestModelCustomOpsHelper, pull_registry_c_abi_returns_registered_local_creators) {
-  RegisterCustomOpLocalCreator(nullptr, CreatePullRegistryOp);
-  RegisterCustomOpLocalCreator("", CreatePullRegistryOp);
-  RegisterCustomOpLocalCreator(kPullRegistryType, nullptr);
-
-  const size_t creator_num_before = GetRegisteredCustomOpCreatorNum();
-  RegisterCustomOpLocalCreator(kPullRegistryType, CreatePullRegistryOp);
-  const size_t creator_num_after = GetRegisteredCustomOpCreatorNum();
-  ASSERT_EQ(GetRegisteredCustomOpCreatorAbiVersion(), kCustomOpCreatorPullAbiVersion);
-  ASSERT_EQ(creator_num_after, creator_num_before + 1U);
-  EXPECT_NE(GetRegisteredCustomOpCreators(nullptr, creator_num_after, sizeof(CustomOpTypeToCreator)), 0);
-
-  std::vector<CustomOpTypeToCreator> creators(creator_num_after);
-  EXPECT_NE(GetRegisteredCustomOpCreators(creators.data(), creator_num_after - 1U, sizeof(CustomOpTypeToCreator)), 0);
-  EXPECT_NE(GetRegisteredCustomOpCreators(creators.data(), creator_num_after,
-                                          sizeof(CustomOpTypeToCreator) - 1U), 0);
-  ASSERT_EQ(GetRegisteredCustomOpCreators(creators.data(), creator_num_after, sizeof(CustomOpTypeToCreator)), 0);
-
-  const auto iter = std::find_if(creators.begin(), creators.end(), [](const CustomOpTypeToCreator &creator) {
-    return (creator.op_type != nullptr) && (std::strcmp(creator.op_type, kPullRegistryType) == 0);
-  });
-  ASSERT_NE(iter, creators.end());
-  EXPECT_EQ(iter->struct_size, sizeof(CustomOpTypeToCreator));
-  EXPECT_EQ(iter->creator, CreatePullRegistryOp);
-  std::unique_ptr<BaseCustomOp> op(iter->creator());
-  EXPECT_NE(dynamic_cast<PortableOpForSerializeSuccess *>(op.get()), nullptr);
-}
-
-TEST_F(TestModelCustomOpsHelper, custom_op_creator_register_registers_local_and_global_creator) {
-  const size_t creator_num_before = GetRegisteredCustomOpCreatorNum();
-  CustomOpCreatorRegister creator_register(AscendString(kCreatorRegisterType), CreatePullRegistryOp);
-  (void)creator_register;
-  EXPECT_EQ(GetRegisteredCustomOpCreatorNum(), creator_num_before + 1U);
-  EXPECT_TRUE(CustomOpFactory::IsExistOp(kCreatorRegisterType));
-  EXPECT_NE(dynamic_cast<PortableOpForSerializeSuccess *>(
-                CustomOpFactory::CreateOrGetCustomOp(kCreatorRegisterType)), nullptr);
-}
-
-TEST_F(TestModelCustomOpsHelper, custom_op_registry_builder_covers_pull_creator_success_and_failures) {
-  auto registry = std::make_shared<CustomOpRegistry>();
-  EXPECT_NE(CustomOpRegistryBuilder::AddCreatorsFromSoHandles({}, nullptr, ResolveFakeSymbolsForSt), SUCCESS);
-  EXPECT_NE(CustomOpRegistryBuilder::AddCreatorsFromSoHandles({}, registry, nullptr), SUCCESS);
-  EXPECT_EQ(CustomOpRegistryBuilder::AddCreatorsFromSoHandles({}, registry), SUCCESS);
-
-  std::vector<CustomOpSoHandlePtr> null_handles = {nullptr};
-  EXPECT_NE(CustomOpRegistryBuilder::AddCreatorsFromSoHandles(null_handles, registry, ResolveFakeSymbolsForSt),
-            SUCCESS);
-
-  g_fake_so_a.creators = {MakeCreatorForSt(kBuilderPullOpA, CreateBuilderPullOpA)};
-  std::vector<CustomOpSoHandlePtr> so_handles = {MakeFakeSoHandleForSt(reinterpret_cast<void *>(0xA001U), "fake_a")};
-  EXPECT_NE(CustomOpRegistryBuilder::AddCreatorsFromSoHandles(so_handles, registry, ResolveMissingCreatorNumForSt),
-            SUCCESS);
-  EXPECT_FALSE(registry->HasCreator(kBuilderPullOpA));
-
-  g_fake_so_a.abi_version = kCustomOpCreatorPullAbiVersion + 1U;
-  EXPECT_NE(CustomOpRegistryBuilder::AddCreatorsFromSoHandles(so_handles, registry, ResolveFakeSymbolsForSt),
-            SUCCESS);
-  EXPECT_FALSE(registry->HasCreator(kBuilderPullOpA));
-
-  g_fake_so_a = FakeSoCreatorsForSt{};
-  g_fake_so_a.get_creators_ret = -1;
-  g_fake_so_a.creators = {MakeCreatorForSt(kBuilderPullOpA, CreateBuilderPullOpA)};
-  EXPECT_NE(CustomOpRegistryBuilder::AddCreatorsFromSoHandles(so_handles, registry, ResolveFakeSymbolsForSt),
-            SUCCESS);
-  EXPECT_FALSE(registry->HasCreator(kBuilderPullOpA));
-
-  RunInvalidCreatorTests(registry, so_handles);
-  RunDuplicateHandleTest(registry);
-
-  g_fake_so_a = FakeSoCreatorsForSt{};
-  g_fake_so_a.creators = {MakeCreatorForSt(kBuilderPullOpA, CreateBuilderPullOpA),
-                          MakeCreatorForSt(kBuilderPullOpB, CreateBuilderPullOpB)};
-  EXPECT_EQ(CustomOpRegistryBuilder::AddCreatorsFromSoHandles(so_handles, registry, ResolveFakeSymbolsForSt),
-            SUCCESS);
-  EXPECT_TRUE(registry->HasCreator(kBuilderPullOpA));
-  EXPECT_TRUE(registry->HasCreator(kBuilderPullOpB));
-  EXPECT_NE(dynamic_cast<BuilderPullOpA *>(registry->CreateOrGetCustomOp(kBuilderPullOpA)), nullptr);
-  EXPECT_NE(dynamic_cast<BuilderPullOpB *>(registry->CreateOrGetCustomOp(kBuilderPullOpB)), nullptr);
-}
 
 TEST_F(TestModelCustomOpsHelper, collect_used_custom_op_types_collects_root_subgraph_and_skips_invalid_subgraphs) {
   RegisterCustomOpCreatorForSt(kCollectRootType, []() -> std::unique_ptr<BaseCustomOp> {
@@ -653,8 +410,7 @@ TEST_F(TestModelCustomOpsHelper, serialize_custom_op_kernel_covers_all_target_br
 
   std::vector<uint8_t> empty_bin_merged_kernels = {0xD4U};
   PortableOpForSerializeEmpty portable_op_empty;
-  EXPECT_NE(model_helper.SerializeCustomOpKernel(&portable_op_empty, kSerializeEmptyType, empty_bin_merged_kernels),
-            SUCCESS);
+  EXPECT_EQ(model_helper.SerializeCustomOpKernel(&portable_op_empty, kSerializeEmptyType, empty_bin_merged_kernels), SUCCESS);
   EXPECT_EQ(empty_bin_merged_kernels, std::vector<uint8_t>({0xD4U}));
 
   std::vector<uint8_t> success_merged_kernels = {0xE5U};
@@ -674,7 +430,7 @@ TEST_F(TestModelCustomOpsHelper, serialize_custom_op_kernel_covers_all_target_br
   EXPECT_EQ(header.bin_len, kPortableKernelBin.size());
 }
 
-TEST_F(TestModelCustomOpsHelper, save_custom_kernels_partition_fails_when_serialized_kernel_bin_empty) {
+TEST_F(TestModelCustomOpsHelper, save_custom_kernels_partition_skips_when_merged_kernels_empty_after_loop) {
   RegisterCustomOpCreatorForSt(kSaveEmptyRootType, []() -> std::unique_ptr<BaseCustomOp> {
     return std::make_unique<PortableOpForSerializeEmpty>();
   });
@@ -687,7 +443,7 @@ TEST_F(TestModelCustomOpsHelper, save_custom_kernels_partition_fails_when_serial
 
   auto om_file_save_helper = std::make_shared<OmFileSaveHelper>();
   TestableModelHelper model_helper;
-  EXPECT_NE(model_helper.SaveCustomOpsPartition(om_file_save_helper, ge_root_model), SUCCESS);
+  EXPECT_EQ(model_helper.SaveCustomOpsPartition(om_file_save_helper, ge_root_model), SUCCESS);
 }
 
 TEST_F(TestModelCustomOpsHelper, save_custom_kernels_partition_success_with_non_empty_used_custom_op_types) {
@@ -711,10 +467,10 @@ TEST_F(TestModelCustomOpsHelper, load_custom_kernels_returns_success_when_partit
   OmFileLoadHelper load_helper;
   load_helper.is_inited_ = true;
   load_helper.model_contexts_.emplace_back(OmFileContext{});
-  EXPECT_EQ(model_helper.LoadCustomOps(load_helper, nullptr), SUCCESS);
+  EXPECT_EQ(model_helper.LoadCustomOps(load_helper), SUCCESS);
 }
 
-TEST_F(TestModelCustomOpsHelper, load_custom_kernels_returns_failed_when_registry_is_null) {
+TEST_F(TestModelCustomOpsHelper, load_custom_kernels_loads_non_empty_partition_successfully) {
   RegisterCustomOpCreatorForSt(kLoadSuccessType, []() -> std::unique_ptr<BaseCustomOp> {
     return std::make_unique<PortableOpForDeserializeRecord>();
   });
@@ -735,28 +491,9 @@ TEST_F(TestModelCustomOpsHelper, load_custom_kernels_returns_failed_when_registr
   g_deserialize_called_count = 0U;
   g_last_deserialize_bin_size = 0U;
   TestableModelHelper model_helper;
-  EXPECT_EQ(model_helper.LoadCustomOps(load_helper, nullptr), FAILED);
-  EXPECT_EQ(g_deserialize_called_count, 0U);
-  EXPECT_EQ(g_last_deserialize_bin_size, 0U);
-}
-
-TEST_F(TestModelCustomOpsHelper, load_custom_ops_to_registry_uses_given_registry_only) {
-  const std::vector<uint8_t> serialized_bin = {0x44U, 0x55U};
-  const auto payload = BuildCustomKernelPartitionPayload(kLoadToRegistryType, serialized_bin);
-  auto registry = std::make_shared<CustomOpRegistry>();
-  ASSERT_EQ(registry->RegisterCreator(kLoadToRegistryType, []() -> std::unique_ptr<BaseCustomOp> {
-    return std::make_unique<PortableOpForDeserializeRecord>();
-  }), GRAPH_SUCCESS);
-  ASSERT_FALSE(CustomOpFactory::IsExistOp(kLoadToRegistryType));
-
-  g_deserialize_called_count = 0U;
-  g_last_deserialize_bin_size = 0U;
-  EXPECT_EQ(LoadCustomOpsToRegistry(payload.data(), payload.size(), registry), SUCCESS);
-
+  EXPECT_EQ(model_helper.LoadCustomOps(load_helper), SUCCESS);
   EXPECT_EQ(g_deserialize_called_count, 1U);
   EXPECT_EQ(g_last_deserialize_bin_size, serialized_bin.size());
-  EXPECT_NE(registry->FindCustomOp(kLoadToRegistryType), nullptr);
-  EXPECT_FALSE(CustomOpFactory::IsExistOp(kLoadToRegistryType));
 }
 
 TEST_F(TestModelCustomOpsHelper, custom_op_so_loader_load_success_repeat_and_conflict_are_stable) {
@@ -769,15 +506,10 @@ TEST_F(TestModelCustomOpsHelper, custom_op_so_loader_load_success_repeat_and_con
   CustomOpSoLoader loader;
   const auto so_bin = BuildCustomOpSoBinForSt("libst_custom_loader_conflict.so", "st_vendor", so_data);
   ASSERT_NE(so_bin, nullptr);
-  std::vector<CustomOpSoHandlePtr> first_loaded_handles;
-  ASSERT_EQ(loader.LoadCustomOpSoBins({so_bin}, first_loaded_handles), SUCCESS);
-  ASSERT_EQ(first_loaded_handles.size(), 1U);
+  ASSERT_EQ(loader.LoadCustomOpSoBins({so_bin}), SUCCESS);
   ASSERT_EQ(loader.loaded_states_.size(), 1U);
 
-  std::vector<CustomOpSoHandlePtr> second_loaded_handles;
-  EXPECT_EQ(loader.LoadCustomOpSoBins({so_bin}, second_loaded_handles), SUCCESS);
-  ASSERT_EQ(second_loaded_handles.size(), 1U);
-  EXPECT_EQ(first_loaded_handles[0], second_loaded_handles[0]);
+  EXPECT_EQ(loader.LoadCustomOpSoBins({so_bin}), SUCCESS);
   EXPECT_EQ(loader.loaded_states_.size(), 1U);
 
   std::vector<char_t> modified_so_data = so_data;
@@ -785,9 +517,7 @@ TEST_F(TestModelCustomOpsHelper, custom_op_so_loader_load_success_repeat_and_con
   const auto modified_so_bin = BuildCustomOpSoBinForSt("libst_custom_loader_conflict.so", "st_vendor",
                                                         modified_so_data);
   ASSERT_NE(modified_so_bin, nullptr);
-  std::vector<CustomOpSoHandlePtr> invalid_loaded_handles;
-  EXPECT_NE(loader.LoadCustomOpSoBins({modified_so_bin}, invalid_loaded_handles), SUCCESS);
-  EXPECT_TRUE(invalid_loaded_handles.empty());
+  EXPECT_NE(loader.LoadCustomOpSoBins({modified_so_bin}), SUCCESS);
   EXPECT_EQ(loader.loaded_states_.size(), 1U);
 
   loader.Cleanup();
@@ -796,9 +526,7 @@ TEST_F(TestModelCustomOpsHelper, custom_op_so_loader_load_success_repeat_and_con
 
 TEST_F(TestModelCustomOpsHelper, custom_op_so_loader_get_instance_and_empty_input_success) {
   auto &loader = CustomOpSoLoader::GetInstance();
-  std::vector<CustomOpSoHandlePtr> loaded_handles;
-  EXPECT_EQ(loader.LoadCustomOpSoBins({}, loaded_handles), SUCCESS);
-  EXPECT_TRUE(loaded_handles.empty());
+  EXPECT_EQ(loader.LoadCustomOpSoBins({}), SUCCESS);
   loader.Cleanup();
 }
 

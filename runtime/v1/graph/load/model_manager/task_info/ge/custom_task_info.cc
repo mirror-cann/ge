@@ -18,13 +18,11 @@
 #include "exe_graph/runtime/eager_op_execution_context.h"
 #include "exe_graph/runtime/update_args_context.h"
 #include "framework/runtime/args_handler.h"
+#include "graph/custom_op_factory.h"
+#include "graph/custom_op.h"
 #include "graph/debug/ge_util.h"
 #include "graph/load/model_manager/model_manager.h"
 #include "graph/load/model_manager/model_utils.h"
-#include "graph/manager/graph_var_manager.h"
-#include "graph/utils/node_utils.h"
-#include "graph/custom_op.h"
-#include "graph/custom_op_registry.h"
 #include "graph/load/model_manager/sink_only_allocator.h"
 #include "graph/load/model_manager/task_info/ge/sink_op_args_handler.h"
 #include "graph/manager/graph_var_manager.h"
@@ -174,10 +172,7 @@ Status CustomTaskInfo::ParseTaskRunParam(const domi::TaskDef &task_def, DavinciM
   workspace_addrs_ = ModelUtils::GetWorkspaceDataAddrsValue(rts_param, op_desc_, workspace_mem_types_);
 
   AscendString op_type(op_desc_->GetType().c_str());
-  const auto &custom_op_registry = davinci_model->GetCustomOpRegistry();
-  GE_ASSERT_NOTNULL(custom_op_registry, "[CUSTOM OP] custom op registry is nullptr for op %s.",
-                    op_desc_->GetName().c_str());
-  is_args_refreshable_ = custom_op_registry->IsAddressRefreshable(op_type);
+  is_args_refreshable_ = CustomOpFactory::IsAddressRefreshable(op_type);
 
   for (size_t i = 0UL; i < input_data_addrs_.size(); i++) {
     task_run_param.parsed_input_addrs.push_back({input_data_addrs_[i], input_mem_types_[i], is_args_refreshable_, {0}});
@@ -294,13 +289,8 @@ Status CustomTaskInfo::Distribute() {
   const TaskProfGuarder prof_guarder(this);
 
   AscendString op_type(op_desc_->GetType().c_str());
-  GE_ASSERT_NOTNULL(davinci_model_);
-  const auto &custom_op_registry = davinci_model_->GetCustomOpRegistry();
-  GE_ASSERT_NOTNULL(custom_op_registry, "[CUSTOM OP] custom op registry is nullptr for op %s.",
-                    op_desc_->GetName().c_str());
-  BaseCustomOp *custom_op_ptr = custom_op_registry->CreateOrGetCustomOp(op_type);
-  GE_ASSERT_NOTNULL(custom_op_ptr, "[CUSTOM OP] custom op %s is not found in registry.",
-                    op_desc_->GetType().c_str());
+  auto custom_op_ptr = CustomOpFactory::CreateOrGetCustomOp(op_type);
+  GE_ASSERT_NOTNULL(custom_op_ptr);
 
   args_update_op_ = dynamic_cast<ArgsUpdater*>(custom_op_ptr);
   if (args_update_op_ != nullptr) {

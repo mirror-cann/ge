@@ -24,7 +24,6 @@
 #include "graph/utils/graph_dump_utils.h"
 #include "kernel/common_kernel_impl/tiling.h"
 #include "graph/debug/ge_attr_define.h"
-#include "graph/custom_op_registry.h"
 
 namespace gert {
 class ModelV2ExecutorBuilderUT : public bg::BgTest {
@@ -149,37 +148,6 @@ TEST_F(ModelV2ExecutorBuilderUT, RefsHasTheSameAddr) {
           ->GetValue<void *>(),
       ModelV2ExecutorTestHelper::GetOutChain(alloc_node, static_cast<size_t>(AllocLaunchArgOutputs::kRtArg))
           ->GetValue<void *>());
-}
-
-TEST_F(ModelV2ExecutorBuilderUT, CustomOpRegistryKeepsAliveAfterRootModelRelease) {
-  std::weak_ptr<ge::CustomOpRegistry> registry_weak;
-  std::unique_ptr<ModelV2Executor> model_executor;
-  {
-    auto compute_graph = ShareGraph::BuildSingleNodeGraph();
-    compute_graph->TopologicalSorting();
-    auto root_model = GeModelBuilder(compute_graph).BuildGeRootModel();
-    auto registry = std::make_shared<ge::CustomOpRegistry>();
-    registry_weak = registry;
-    root_model->SetCustomOpRegistry(registry);
-
-    auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("Add", false).Build();
-    ModelDescHolder model_desc_holder = ModelDescHolderFaker().Build();
-    model_desc_holder.SetSpaceRegistry(SpaceRegistryFaker().Build());
-    auto exe_graph = GraphConverter()
-        .SetModelDescHolder(&model_desc_holder)
-        .ConvertComputeGraphToExecuteGraph(compute_graph, global_data);
-    ASSERT_NE(exe_graph, nullptr);
-
-    model_executor = ModelV2Executor::Create(exe_graph, root_model);
-    ASSERT_NE(model_executor, nullptr);
-    ASSERT_EQ(ModelV2ExecutorTestHelper::GetCustomOpRegistry(model_executor.get()), registry);
-    root_model.reset();
-    registry.reset();
-  }
-
-  ASSERT_FALSE(registry_weak.expired());
-  model_executor.reset();
-  ASSERT_TRUE(registry_weak.expired());
 }
 
 TEST_F(ModelV2ExecutorBuilderUT, BuildFromFrameworkOpSingleNodeGraph) {

@@ -17,181 +17,18 @@
 #include "framework/common/framework_types_internal.h"
 #include "../graph/custom_ops_stub.h"
 #include "graph/custom_op_factory.h"
-#include "graph/custom_op_registry.h"
 #include "ge/ge_api_error_codes.h"
 #include "macro_utils/dt_public_scope.h"
 #include "macro_utils/dt_public_unscope.h"
 #include "securec.h"
 
 using namespace ge;
-namespace {
-class RegistryTestOp : public BaseCustomOp {};
-class RegistryDuplicateReplacementOp : public BaseCustomOp {};
-
-class RegistryPortableOp : public PortableOp {
- public:
-  graphStatus Serialize(std::vector<uint8_t> &buffer) override {
-    buffer = {1U, 2U, 3U};
-    return GRAPH_SUCCESS;
-  }
-
-  graphStatus Deserialize(const std::vector<uint8_t> &buffer) override {
-    deserialized_buffer = buffer;
-    return GRAPH_SUCCESS;
-  }
-
-  std::vector<uint8_t> deserialized_buffer;
-};
-
-class FactoryCallbackPortableOp : public PortableOp {
- public:
-  graphStatus Serialize(std::vector<uint8_t> &buffer) override {
-    buffer.clear();
-    return GRAPH_SUCCESS;
-  }
-
-  graphStatus Deserialize(const std::vector<uint8_t> &buffer) override {
-    (void)buffer;
-    const auto dependency_op = CustomOpFactory::CreateOrGetCustomOp("FactoryCallbackDependencyOp");
-    return (dependency_op == nullptr) ? GRAPH_FAILED : GRAPH_SUCCESS;
-  }
-};
-
-std::vector<uint8_t> BuildCustomOpPartition(const std::string &name, const std::vector<uint8_t> &bin) {
-  ge::CustomKernelItemHeader header{ge::kCustomKernelItemMagic, static_cast<uint32_t>(name.size()),
-                                    static_cast<uint32_t>(bin.size())};
-  std::vector<uint8_t> payload(sizeof(header) + name.size() + bin.size(), 0U);
-  (void)memcpy_s(payload.data(), payload.size(), &header, sizeof(header));
-  (void)memcpy_s(payload.data() + sizeof(header), payload.size() - sizeof(header), name.data(), name.size());
-  if (!bin.empty()) {
-    (void)memcpy_s(payload.data() + sizeof(header) + name.size(),
-                   payload.size() - sizeof(header) - name.size(), bin.data(), bin.size());
-  }
-  return payload;
-}
-}  // namespace
-
 class UtestCustomOpFactory : public testing::Test {
  protected:
   void SetUp() {}
 
   void TearDown() {}
 };
-
-TEST(UtestCustomOpRegistry, rejects_null_creator) {
-  CustomOpRegistry registry;
-  EXPECT_EQ(ge::GRAPH_PARAM_INVALID, registry.RegisterCreator("RegistryNullCreator", nullptr));
-  EXPECT_EQ(false, registry.HasCreator("RegistryNullCreator"));
-}
-
-TEST(UtestCustomOpRegistry, rejects_duplicate_creator) {
-  CustomOpRegistry registry;
-  const auto creator = []() -> std::unique_ptr<BaseCustomOp> { return std::make_unique<RegistryTestOp>(); };
-  EXPECT_EQ(ge::GRAPH_SUCCESS, registry.RegisterCreator("RegistryDuplicateCreator", creator));
-  EXPECT_EQ(ge::GRAPH_FAILED, registry.RegisterCreator("RegistryDuplicateCreator", creator));
-}
-
-TEST(UtestCustomOpRegistry, duplicate_creator_keeps_original_creator) {
-  CustomOpRegistry registry;
-  EXPECT_EQ(ge::GRAPH_SUCCESS,
-            registry.RegisterCreator("RegistryDuplicateKeepsOriginal",
-                                     []() -> std::unique_ptr<BaseCustomOp> {
-                                       return std::make_unique<RegistryTestOp>();
-                                     }));
-  EXPECT_EQ(ge::GRAPH_FAILED,
-            registry.RegisterCreator("RegistryDuplicateKeepsOriginal",
-                                     []() -> std::unique_ptr<BaseCustomOp> {
-                                       return std::make_unique<RegistryDuplicateReplacementOp>();
-                                     }));
-
-  const auto op = registry.CreateOrGetCustomOp("RegistryDuplicateKeepsOriginal");
-  EXPECT_NE(nullptr, dynamic_cast<RegistryTestOp *>(op));
-  EXPECT_EQ(nullptr, dynamic_cast<RegistryDuplicateReplacementOp *>(op));
-}
-
-TEST(UtestCustomOpRegistry, create_or_get_returns_same_instance) {
-  CustomOpRegistry registry;
-  EXPECT_EQ(ge::GRAPH_SUCCESS,
-            registry.RegisterCreator("RegistryCreateOnce",
-                                     []() -> std::unique_ptr<BaseCustomOp> {
-                                       return std::make_unique<RegistryTestOp>();
-                                     }));
-
-  const auto first = registry.CreateOrGetCustomOp("RegistryCreateOnce");
-  const auto second = registry.CreateOrGetCustomOp("RegistryCreateOnce");
-  EXPECT_NE(nullptr, first);
-  EXPECT_EQ(first, second);
-}
-
-TEST(UtestCustomOpRegistry, find_custom_op_does_not_create_implicitly) {
-  CustomOpRegistry registry;
-  EXPECT_EQ(ge::GRAPH_SUCCESS,
-            registry.RegisterCreator("RegistryFindNoCreate",
-                                     []() -> std::unique_ptr<BaseCustomOp> {
-                                       return std::make_unique<RegistryTestOp>();
-                                     }));
-
-  EXPECT_EQ(nullptr, registry.FindCustomOp("RegistryFindNoCreate"));
-  EXPECT_EQ(false, registry.HasCustomOp("RegistryFindNoCreate"));
-}
-
-TEST(UtestCustomOpRegistry, find_custom_op_returns_created_instance) {
-  CustomOpRegistry registry;
-  EXPECT_EQ(ge::GRAPH_SUCCESS,
-            registry.RegisterCreator("RegistryFindAfterCreate",
-                                     []() -> std::unique_ptr<BaseCustomOp> {
-                                       return std::make_unique<RegistryTestOp>();
-                                     }));
-
-  const auto created = registry.CreateOrGetCustomOp("RegistryFindAfterCreate");
-  EXPECT_NE(nullptr, created);
-  EXPECT_EQ(created, registry.FindCustomOp("RegistryFindAfterCreate"));
-  EXPECT_EQ(true, registry.HasCustomOp("RegistryFindAfterCreate"));
-}
-
-TEST(UtestCustomOpRegistry, load_custom_ops_partition_deserializes_registered_portable_op) {
-  CustomOpRegistry registry;
-  EXPECT_EQ(ge::GRAPH_SUCCESS,
-            registry.RegisterCreator("RegistryPortablePartition",
-                                     []() -> std::unique_ptr<BaseCustomOp> {
-                                       return std::make_unique<RegistryPortableOp>();
-                                     }));
-  const std::vector<uint8_t> kernel_bin = {0x1U, 0x2U, 0x3U};
-  const auto payload = BuildCustomOpPartition("RegistryPortablePartition", kernel_bin);
-
-  EXPECT_EQ(ge::GRAPH_SUCCESS, registry.LoadCustomOpsPartition(payload.data(), payload.size()));
-  const auto *op = dynamic_cast<RegistryPortableOp *>(registry.FindCustomOp("RegistryPortablePartition"));
-  ASSERT_NE(nullptr, op);
-  EXPECT_EQ(kernel_bin, op->deserialized_buffer);
-}
-
-TEST(UtestCustomOpFactory, facade_registers_and_creates_through_global_registry) {
-  const auto ret = CustomOpFactory::RegisterCustomOpCreator(
-      "FactoryGlobalRegistryOp", []() -> std::unique_ptr<BaseCustomOp> {
-        return std::make_unique<RegistryTestOp>();
-      });
-  EXPECT_TRUE((ret == ge::GRAPH_SUCCESS) || (ret == ge::GRAPH_FAILED));
-
-  EXPECT_EQ(true, CustomOpFactory::IsExistOp("FactoryGlobalRegistryOp"));
-  EXPECT_NE(nullptr, CustomOpFactory::CreateOrGetCustomOp("FactoryGlobalRegistryOp"));
-}
-
-TEST(UtestCustomOpFactory, load_custom_ops_partition_allows_factory_callback_from_deserialize) {
-  const auto dependency_ret = CustomOpFactory::RegisterCustomOpCreator(
-      "FactoryCallbackDependencyOp", []() -> std::unique_ptr<BaseCustomOp> {
-        return std::make_unique<RegistryTestOp>();
-      });
-  EXPECT_TRUE((dependency_ret == ge::GRAPH_SUCCESS) || (dependency_ret == ge::GRAPH_FAILED));
-
-  const auto callback_ret = CustomOpFactory::RegisterCustomOpCreator(
-      "FactoryCallbackPortableOp", []() -> std::unique_ptr<BaseCustomOp> {
-        return std::make_unique<FactoryCallbackPortableOp>();
-      });
-  EXPECT_TRUE((callback_ret == ge::GRAPH_SUCCESS) || (callback_ret == ge::GRAPH_FAILED));
-
-  const auto payload = BuildCustomOpPartition("FactoryCallbackPortableOp", {0x1U});
-  EXPECT_EQ(ge::GRAPH_SUCCESS, CustomOpFactory::LoadCustomOpsPartition(payload.data(), payload.size()));
-}
 
 
 TEST(UtestCustomOpFactory, create_or_get_custom_op) {

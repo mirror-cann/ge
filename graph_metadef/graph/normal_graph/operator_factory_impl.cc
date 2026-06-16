@@ -498,19 +498,6 @@ void OperatorFactoryImpl::BackupAndClearRegInfoOnce() {
   });
 }
 
-void OperatorFactoryImpl::RemoveCustomOpCreators(const std::vector<std::string> &op_types) {
-  if (operator_creators_v2_ != nullptr) {
-    for (const auto &op_type : op_types) {
-      operator_creators_v2_->erase(op_type);
-    }
-  }
-  if (operator_creators_ != nullptr) {
-    for (const auto &op_type : op_types) {
-      operator_creators_->erase(op_type);
-    }
-  }
-}
-
 void OperatorFactoryImpl::MergeBackupCreatorsOnce() {
   static std::once_flag flag;
   std::call_once(flag, []() {

@@ -25,7 +25,6 @@
 #include "mmpa/mmpa_api.h"
 #include "securec.h"
 #include "graph/operator_reg.h"
-#include "graph_metadef/graph/custom_op_factory.h"
 #include "graph/utils/op_desc_utils.h"
 #include "framework/common/ge_types.h"
 #include "stub/hostcpu_mmpa_stub.h"
@@ -836,7 +835,6 @@ TEST_F(ModelHelperTest, SaveToOm_for_SplitAndUpgraded_Opp) {
   ComputeGraphPtr root_graph = ge::MakeShared<ComputeGraph>("subgraph");
   (void)AttrUtils::SetBool(root_graph, ATTR_NAME_DYNAMIC_SHAPE_PARTITIONED, true);
   ge_root_model->SetRootGraph(root_graph);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
   EXPECT_EQ(ge_root_model->CheckAndSetNeedSoInOM(), SUCCESS);
   EXPECT_EQ(ge_root_model->GetSoInOmFlag(), 0x8000);
 

@@ -30,7 +30,7 @@
 #include "framework/runtime/stream_allocator.h"
 #include "framework/runtime/event_allocator.h"
 #include "common/host_resource_center/host_resource_center.h"
-#include "graph/custom_op_registry.h"
+
 namespace gert {
 enum class ExecutorState { kInit, kLoaded };
 inline const ge::char_t *GetSubExeGraphTypeStr(const SubExeGraphType type) {
@@ -236,7 +236,6 @@ class VISIBILITY_EXPORT ModelV2Executor {
   // to keep host resource live longer than resource_guard_
   // resource guarder may holding pointer from host_resource_center_
   ge::HostResourceCenterPtr host_resource_center_;
-  ge::CustomOpRegistryPtr custom_op_registry_;
   TopologicalResourceGuard resource_guard_;
   std::array<ExeGraphExecutor, kSubExeGraphTypeEnd> graphs_;
   ModelDesc *model_desc_ = nullptr;

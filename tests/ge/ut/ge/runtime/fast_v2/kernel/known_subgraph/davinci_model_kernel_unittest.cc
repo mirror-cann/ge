@@ -23,7 +23,6 @@
 #include "graph/manager/graph_var_manager.h"
 #include "exe_graph/runtime/gert_tensor_data.h"
 #include "graph_builder/bg_reusable_stream_allocator.h"
-#include "graph/custom_op_registry.h"
 
 using namespace ge;
 namespace gert {
@@ -69,7 +68,6 @@ class DavinciModelUt : public testing::Test {
  public:
   void SetUp() override {
     mmSetEnv("GE_USE_STATIC_MEMORY", "4", 1);
-    custom_op_registry_ = std::make_shared<ge::CustomOpRegistry>();
     auto space_registry_array = SpaceRegistryFaker().BuildRegistryArray();
     ASSERT_NE(space_registry_array, nullptr);
     context_holder_with_davinci_model_ = BuildContextForCreateDavinciModel(space_registry_array);
@@ -77,7 +75,6 @@ class DavinciModelUt : public testing::Test {
     EXPECT_EQ(ret, ge::SUCCESS);
     davinci_model_ = context_holder_with_davinci_model_.value_holder[static_cast<size_t>(kernel::DavinciModelCreateInput::kDavinciModelCreateInputEnd)].GetPointer<ge::DavinciModel>();
     EXPECT_NE(davinci_model_, nullptr);
-    EXPECT_EQ(davinci_model_->GetCustomOpRegistry().get(), custom_op_registry_.get());
     auto ret2 = registry.FindKernelFuncs("DavinciModelCreate")->trace_printer(context_holder_with_davinci_model_);
     EXPECT_FALSE(ret2.empty());
   }
@@ -165,8 +162,6 @@ class DavinciModelUt : public testing::Test {
     auto frozen_inputs_data = static_cast<void *>(const_cast<char *>(kInputFrozenIndex));
     context.value_holder[14].Set(frozen_inputs_data, nullptr);
     FillFileConstantVec(context);
-    context.value_holder[static_cast<size_t>(kernel::DavinciModelCreateInput::kCustomOpRegistry)]
-        .Set(custom_op_registry_.get(), nullptr);
     (void)bg::ValueHolder::PopGraphFrame();
     return context;
   }
@@ -326,7 +321,6 @@ class DavinciModelUt : public testing::Test {
   GertTensorData weight_info_;
   uint32_t file_constant_mem[256];
   std::unique_ptr<uint8_t[]> file_constant_mem_data_;
-  std::shared_ptr<ge::CustomOpRegistry> custom_op_registry_;
 };
 
 TEST_F(DavinciModelUt, UpdateWorkspacesSuccess) {

@@ -34,7 +34,6 @@
 #include "graph/args_format_desc.h"
 #include "common/opskernel/ops_kernel_info_types.h"
 #include "common/tbe_handle_store/tbe_handle_store.h"
-#include "graph/custom_op_factory.h"
 
 using namespace std;
 using namespace testing;
@@ -164,7 +163,6 @@ TEST_F(StestScatteredCollection, mixl2_graph_load_and_success) {
   {
     GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
     EXPECT_EQ(ge_root_model->Initialize(root_graph), SUCCESS);
-    ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
     ge_root_model->SetSubgraphInstanceNameToModel(root_graph->GetName(), ge_model);
 
     GraphId graph_id = 1001;
@@ -307,7 +305,6 @@ TEST_F(StestScatteredCollection, mixl2_with_args_format_graph_load_and_success) 
   {
     GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
     EXPECT_EQ(ge_root_model->Initialize(root_graph), SUCCESS);
-    ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
     ge_root_model->SetSubgraphInstanceNameToModel(root_graph->GetName(), ge_model);
 
     GraphId graph_id = 1001;
@@ -481,7 +478,6 @@ TEST_F(StestScatteredCollection, mixl2_mem_check_success) {
   {
     GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
     EXPECT_EQ(ge_root_model->Initialize(root_graph), SUCCESS);
-    ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
     ge_root_model->SetSubgraphInstanceNameToModel(root_graph->GetName(), ge_model);
 
     GraphId graph_id = 1001;
@@ -639,7 +635,6 @@ TEST_F(StestScatteredCollection, ifa_aicore_with_args_format_graph_load_and_succ
   {
     GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
     EXPECT_EQ(ge_root_model->Initialize(root_graph), SUCCESS);
-    ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
     ge_root_model->SetSubgraphInstanceNameToModel(root_graph->GetName(), ge_model);
 
     GraphId graph_id = 1001;
@@ -810,7 +805,6 @@ TEST_F(StestScatteredCollection, ifa_aicore_with_tiling_sink_graph_load_and_succ
   {
     GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
     EXPECT_EQ(ge_root_model->Initialize(root_graph), SUCCESS);
-    ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
     ge_root_model->SetSubgraphInstanceNameToModel(root_graph->GetName(), ge_model);
 
     GraphId graph_id = 1001;
@@ -987,7 +981,6 @@ TEST_F(StestScatteredCollection, mc2kernel_runtime_tiling_success) {
   {
     GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
     EXPECT_EQ(ge_root_model->Initialize(root_graph), SUCCESS);
-    ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
     ge_root_model->SetSubgraphInstanceNameToModel(root_graph->GetName(), ge_model);
 
     GraphId graph_id = 1001;
@@ -1130,7 +1123,6 @@ TEST_F(StestScatteredCollection, mc2kernel_graph_load_and_success) {
   {
     GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
     EXPECT_EQ(ge_root_model->Initialize(root_graph), SUCCESS);
-    ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
     ge_root_model->SetSubgraphInstanceNameToModel(root_graph->GetName(), ge_model);
 
     GraphId graph_id = 1001;

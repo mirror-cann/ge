@@ -21,12 +21,9 @@
 #include "platform/platform_info.h"
 #include "common/op_so_store/op_so_store.h"
 #include "common/host_resource_center/host_resource_serializer.h"
-#include "graph/custom_op_registry.h"
 
 namespace ge {
 using NodeRefreshInfo = std::map<NodePtr, std::map<NodePtr, std::vector<std::pair<size_t, int64_t>>>>;
-Status LoadCustomOpsToRegistry(const uint8_t *data, size_t len, const CustomOpRegistryPtr &registry);
-
 class GeModel;
 class GeRootModel;
 class PortableOp;
@@ -218,7 +215,6 @@ class GE_FUNC_VISIBILITY ModelHelper : public ModelSaveHelper {
                             const size_t mode_index) const;
   Status LoadCustAICPUKernelStore(const OmFileLoadHelper &om_load_helper, const GeModelPtr &cur_model,
                                   const size_t mode_index) const;
-  Status LoadCustomOpRegistry(const OmFileLoadHelper &om_load_helper, const GeRootModelPtr &ge_root_model) const;
 
   Status SaveModelDef(shared_ptr<OmFileSaveHelper> &om_file_save_helper, const GeModelPtr &ge_model,
                       Buffer &model_buffer, const size_t model_index = 0U) const;
@@ -229,11 +225,8 @@ class GE_FUNC_VISIBILITY ModelHelper : public ModelSaveHelper {
   Status SaveAllModelPartiton(shared_ptr<OmFileSaveHelper> &om_file_save_helper, const GeModelPtr &ge_model,
                               Buffer &model_buffer, Buffer &task_buffer, const size_t model_index = 0U) const;
 
-  Status LoadOpSoBin(const OmFileLoadHelper &om_load_helper, const GeRootModelPtr &ge_root_model,
-                     std::vector<CustomOpSoHandlePtr> &loaded_handles) const;
-  Status ValidateCustomOpsDeserialized(const GeRootModelPtr &ge_root_model,
-                                       const CustomOpRegistryPtr &registry) const;
-  Status LoadCustomOps(const OmFileLoadHelper &om_load_helper, const CustomOpRegistryPtr &registry) const;
+  Status LoadOpSoBin(const OmFileLoadHelper &om_load_helper, const GeRootModelPtr &ge_root_model) const;
+  Status LoadCustomOps(const OmFileLoadHelper &om_load_helper) const;
   Status LoadTilingData(const OmFileLoadHelper &om_load_helper, const GeRootModelPtr &ge_root_model) const;
   Status SaveTilingData(std::shared_ptr<OmFileSaveHelper> &om_file_save_helper, const GeRootModelPtr &ge_root_model);
   void SaveOpSoInfo(const GeRootModelPtr &ge_root_model) const;
@@ -246,8 +239,7 @@ class GE_FUNC_VISIBILITY ModelHelper : public ModelSaveHelper {
   Status SaveOpMasterDeviceSoBin(const GeRootModelPtr &ge_root_model);
   Status SaveAutofuseSoBin(const GeRootModelPtr &ge_root_model);
   Status SaveCustomOpSoBin(const GeRootModelPtr &ge_root_model);
-  Status LoadCustomOpSoBins(const std::vector<OpSoBinPtr> &custom_so_bins,
-                            std::vector<CustomOpSoHandlePtr> &loaded_handles) const;
+  Status LoadCustomOpSoBins(const std::vector<OpSoBinPtr> &custom_so_bins) const;
   Status SaveRootModelPartitions(std::shared_ptr<OmFileSaveHelper> &om_file_save_helper,
                                  const GeRootModelPtr &ge_root_model, const GeModelPtr &first_ge_model,
                                  string &output_file_name, const bool has_asc_node);

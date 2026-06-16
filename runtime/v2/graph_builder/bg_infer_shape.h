@@ -13,7 +13,6 @@
 #include "exe_graph/lowering/value_holder.h"
 #include "graph/node.h"
 #include "graph/debug/ge_attr_define.h"
-#include "graph/custom_op.h"
 #include "exe_graph/lowering/lowering_global_data.h"
 
 namespace gert {
@@ -27,8 +26,6 @@ std::vector<ValueHolderPtr> InferStorageShape(const ge::NodePtr &node, const std
 std::vector<ValueHolderPtr> InferCustomOpShape(const ge::NodePtr &node,
                                                 const std::vector<ValueHolderPtr> &input_shapes,
                                                 LoweringGlobalData &global_data);
-ge::ShapeInferOp *FindShapeInferOpInCustomOpRegistry(const ge::AscendString &op_type,
-                                              const LoweringGlobalData &global_data);
 std::vector<ValueHolderPtr> InferUbGraphShape(const ge::ComputeGraphPtr &compute_graph,
                                               const std::vector<ValueHolderPtr> &input_shapes,
                                               LoweringGlobalData &global_data);

@@ -38,8 +38,6 @@
 namespace gert {
 namespace kernel {
 namespace {
-constexpr size_t kDavinciModelCreateV2OuterFmMemIndex = 8U;
-
 uintptr_t GetRunMemory(const ge::DavinciModel &davinci_model, const MemoryBaseTypeOffset &type_offset_pair) {
   const ge::RuntimeParam &param = davinci_model.GetRuntimeParam();
   switch (type_offset_pair.base_type) {
@@ -70,50 +68,6 @@ ge::GeModelPtr GetGeModel(const KernelContext *const context) {
   const auto ge_model_holder = context->GetInputValue<ge::GeModel *>(0U);
   GE_ASSERT_NOTNULL(ge_model_holder);
   return ge_model_holder->shared_from_this();
-}
-
-ge::graphStatus InitDavinciModelCommon(KernelContext *context, const ge::GeModelPtr &ge_model,
-                                       ge::DavinciModel &davinci_model) {
-  GE_CHECK_NOTNULL(context);
-  GE_CHECK_NOTNULL(ge_model);
-  davinci_model.Assign(ge_model);
-  SetDaviciModel(davinci_model, ge_model);
-
-  const size_t session_id_index = 1U;
-  const auto session_id_ptr = context->GetInputPointer<uint64_t>(session_id_index);
-  GE_CHECK_NOTNULL(session_id_ptr);
-  (void)davinci_model.UpdateSessionId(*session_id_ptr);
-  const size_t step_id_index = static_cast<size_t>(DavinciModelCreateInput::kStepId);
-  davinci_model.SetGlobalStep(ge::PtrToValue(context->GetInputValue<void *>(step_id_index)), sizeof(int64_t));
-  const uint32_t root_graph_id =
-      context->GetInputValue<uint32_t>(static_cast<size_t>(DavinciModelCreateInput::kRootGraphId));
-  davinci_model.SetRootGraphId(root_graph_id);
-  GE_ASSERT_SUCCESS(davinci_model.InitRuntimeParams());
-
-  auto space_registries_ptr = context->GetInputValue<gert::OpImplSpaceRegistryV2Array *>(
-      static_cast<size_t>(DavinciModelCreateInput::kSpaceRegistry));
-  GE_CHECK_NOTNULL(space_registries_ptr);
-  davinci_model.SetSpaceRegistries(std::make_shared<OpImplSpaceRegistryV2Array>(*space_registries_ptr));
-
-  const auto file_constant_weight_dir_holder =
-      context->GetInputPointer<ge::char_t *>(static_cast<size_t>(DavinciModelCreateInput::kFileConstantWeightDir));
-  GE_ASSERT_NOTNULL(file_constant_weight_dir_holder);
-  const std::string file_constant_weight_dir(*file_constant_weight_dir_holder);
-  GELOGD("Get file constant weight dir [%s] for davinci model.", file_constant_weight_dir.c_str());
-  davinci_model.SetFileConstantWeightDir(file_constant_weight_dir);
-
-  const auto reusable_stream_allocator = context->GetInputValue<ge::ReusableStreamAllocator *>(
-      static_cast<size_t>(DavinciModelCreateInput::kRtStreamReuse));
-  GE_CHECK_NOTNULL(reusable_stream_allocator);
-  davinci_model.SetReusableStreamAllocator(reusable_stream_allocator);
-  return ge::SUCCESS;
-}
-
-void SetInferDumpPropertiesIfNeed(ge::DavinciModel &davinci_model) {
-  const auto dump_properties = ge::DumpManager::GetInstance().GetDumpProperties(ge::kInferSessionId);
-  if (dump_properties.IsDumpOpen() || dump_properties.IsOpDebugOpen()) {
-    davinci_model.SetDumpProperties(dump_properties);
-  }
 }
 
 ge::Status UpdateModelGraphInputIndex(const ge::ComputeGraphPtr &graph, std::set<uint32_t> &input_index_set) {
@@ -245,10 +199,34 @@ ge::graphStatus DavinciModelCreate(KernelContext *context) {
 
   auto davinci_model_ptr = ge::MakeUnique<ge::DavinciModel>(0, nullptr);
   GE_CHECK_NOTNULL(davinci_model_ptr);
-  GE_ASSERT_SUCCESS(InitDavinciModelCommon(context, ge_model, *davinci_model_ptr));
-  const auto custom_op_registry =
-    context->GetInputValue<ge::CustomOpRegistry *>(static_cast<size_t>(DavinciModelCreateInput::kCustomOpRegistry));
-  davinci_model_ptr->SetCustomOpRegistryRaw(custom_op_registry);
+  davinci_model_ptr->Assign(ge_model);
+  SetDaviciModel(*davinci_model_ptr.get(), ge_model);
+  const size_t session_id_index = 1U;
+  const auto session_id_ptr = context->GetInputPointer<uint64_t>(session_id_index);
+  GE_CHECK_NOTNULL(session_id_ptr);
+  davinci_model_ptr->UpdateSessionId(*session_id_ptr);
+  const size_t step_id_index = static_cast<size_t>(DavinciModelCreateInput::kStepId);
+  davinci_model_ptr->SetGlobalStep(ge::PtrToValue(context->GetInputValue<void *>(step_id_index)), sizeof(int64_t));
+  const uint32_t root_graph_id =
+      context->GetInputValue<uint32_t>(static_cast<size_t>(DavinciModelCreateInput::kRootGraphId));
+  davinci_model_ptr->SetRootGraphId(root_graph_id);
+  GE_ASSERT_SUCCESS(davinci_model_ptr->InitRuntimeParams());
+  auto space_registries_ptr = context->GetInputValue<gert::OpImplSpaceRegistryV2Array *>(
+    static_cast<size_t>(DavinciModelCreateInput::kSpaceRegistry));
+  GE_CHECK_NOTNULL(space_registries_ptr);
+  davinci_model_ptr->SetSpaceRegistries(std::make_shared<OpImplSpaceRegistryV2Array>(*space_registries_ptr));
+
+  const auto file_constant_weight_dir_holder =
+      context->GetInputPointer<ge::char_t *>(static_cast<size_t>(DavinciModelCreateInput::kFileConstantWeightDir));
+  GE_ASSERT_NOTNULL(file_constant_weight_dir_holder);
+  std::string file_constant_weight_dir(*file_constant_weight_dir_holder);
+  GELOGD("Get file constant weight dir [%s] for davinci model.", file_constant_weight_dir.c_str());
+  davinci_model_ptr->SetFileConstantWeightDir(file_constant_weight_dir);
+
+  const auto reusable_stream_allocator = context->GetInputValue<ge::ReusableStreamAllocator *>(
+      static_cast<size_t>(DavinciModelCreateInput::kRtStreamReuse));
+  GE_CHECK_NOTNULL(reusable_stream_allocator);
+  davinci_model_ptr->SetReusableStreamAllocator(reusable_stream_allocator);
 
   const auto &file_constant_names_and_mems =
       context->GetInputPointer<ContinuousVector>(static_cast<size_t>(DavinciModelCreateInput::kFileConstantUserMem));
@@ -269,7 +247,10 @@ ge::graphStatus DavinciModelCreate(KernelContext *context) {
     GELOGE(ge::GRAPH_FAILED, "davinci model init variable memory failed");
     return ret;
   }
-  SetInferDumpPropertiesIfNeed(*davinci_model_ptr);
+  const auto dump_properties = ge::DumpManager::GetInstance().GetDumpProperties(ge::kInferSessionId);
+  if (dump_properties.IsDumpOpen() || dump_properties.IsOpDebugOpen()) {
+    davinci_model_ptr->SetDumpProperties(dump_properties);
+  }
   ge::ModelParam param{};
   GE_ASSERT_SUCCESS(InitParam(context, param));
   const auto frozen_indices_holder = context->GetInputPointer<ge::char_t *>(
@@ -479,16 +460,46 @@ ge::graphStatus DavinciModelCreateV2(KernelContext *context) {
 
   auto davinci_model_ptr = ge::MakeUnique<ge::DavinciModel>(0, nullptr);
   GE_CHECK_NOTNULL(davinci_model_ptr);
-  GE_ASSERT_SUCCESS(InitDavinciModelCommon(context, ge_model, *davinci_model_ptr));
+  davinci_model_ptr->Assign(ge_model);
+  SetDaviciModel(*davinci_model_ptr.get(), ge_model);
+  const size_t session_id_index = 1U;
+  const auto session_id_ptr = context->GetInputPointer<uint64_t>(session_id_index);
+  GE_CHECK_NOTNULL(session_id_ptr);
+  davinci_model_ptr->UpdateSessionId(*session_id_ptr);
+  const size_t step_id_index = static_cast<size_t>(DavinciModelCreateInput::kStepId);
+  davinci_model_ptr->SetGlobalStep(ge::PtrToValue(context->GetInputValue<void *>(step_id_index)), sizeof(int64_t));
+  const uint32_t root_graph_id =
+      context->GetInputValue<uint32_t>(static_cast<size_t>(DavinciModelCreateInput::kRootGraphId));
+  davinci_model_ptr->SetRootGraphId(root_graph_id);
+  GE_ASSERT_SUCCESS(davinci_model_ptr->InitRuntimeParams());
+  auto space_registries_ptr = context->GetInputValue<gert::OpImplSpaceRegistryV2Array *>(
+    static_cast<size_t>(DavinciModelCreateInput::kSpaceRegistry));
+  GE_CHECK_NOTNULL(space_registries_ptr);
+  davinci_model_ptr->SetSpaceRegistries(std::make_shared<OpImplSpaceRegistryV2Array>(*space_registries_ptr));
+
+  const auto file_constant_weight_dir_holder =
+      context->GetInputPointer<ge::char_t *>(static_cast<size_t>(DavinciModelCreateInput::kFileConstantWeightDir));
+  GE_ASSERT_NOTNULL(file_constant_weight_dir_holder);
+  std::string file_constant_weight_dir(*file_constant_weight_dir_holder);
+  GELOGD("Get file constant weight dir [%s] for davinci model.", file_constant_weight_dir.c_str());
+  davinci_model_ptr->SetFileConstantWeightDir(file_constant_weight_dir);
+
+  const auto reusable_stream_allocator = context->GetInputValue<ge::ReusableStreamAllocator *>(
+      static_cast<size_t>(DavinciModelCreateInput::kRtStreamReuse));
+  GE_CHECK_NOTNULL(reusable_stream_allocator);
+  davinci_model_ptr->SetReusableStreamAllocator(reusable_stream_allocator);
 
   GE_ASSERT_SUCCESS(davinci_model_ptr->InitVariableMem());
-  SetInferDumpPropertiesIfNeed(*davinci_model_ptr);
+  const auto dump_properties = ge::DumpManager::GetInstance().GetDumpProperties(ge::kInferSessionId);
+  if (dump_properties.IsDumpOpen() || dump_properties.IsOpDebugOpen()) {
+    davinci_model_ptr->SetDumpProperties(dump_properties);
+  }
   const auto weight_tensor = context->GetInputPointer<GertTensorData>(2U);
   GE_CHECK_NOTNULL(weight_tensor);
   ge::ModelParam param{};
   param.weight_base = ge::PtrToValue(weight_tensor->GetAddr());
   param.weight_size = weight_tensor->GetSize();
-  const auto outer_fm_mem = context->GetInputPointer<TensorData>(kDavinciModelCreateV2OuterFmMemIndex);
+  const auto outer_fm_mem = context->GetInputPointer<TensorData>(8U);
   GE_ASSERT_NOTNULL(outer_fm_mem);
   GE_ASSERT_SUCCESS(davinci_model_ptr->Init(param, outer_fm_mem->GetAddr()));
 

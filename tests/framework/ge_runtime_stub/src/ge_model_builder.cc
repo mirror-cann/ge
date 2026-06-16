@@ -15,7 +15,6 @@
 #include "utils/tensor_utils.h"
 #include "common/debug/log.h"
 #include "graph/debug/ge_attr_define.h"
-#include "graph/custom_op_factory.h"
 #include "common/host_resource_center/host_resource_center.h"
 #include "common/env_path.h"
 #include "common/ge_common/scope_guard.h"
@@ -292,7 +291,6 @@ ge::GeRootModelPtr GeModelBuilder::BuildGeRootModel() {
   const auto root_graph = ge_model->GetGraph();
   if (root_graph != nullptr) {
     out_model->Initialize(root_graph);
-    out_model->SetCustomOpRegistry(ge::CustomOpFactory::GetGlobalRegistryPtr());
     out_model->SetSubgraphInstanceNameToModel(root_graph->GetName(), ge_model);
   }
 

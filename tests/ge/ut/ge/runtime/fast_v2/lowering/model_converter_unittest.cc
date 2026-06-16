@@ -22,8 +22,6 @@
 #include "runtime/continuous_buffer.h"
 #include "runtime/model_desc.h"
 #include "lowering/model_converter.h"
-#include "exe_graph/lowering/lowering_global_data.h"
-#include "graph/custom_op_registry.h"
 
 using namespace ge;
 namespace gert {
@@ -138,42 +136,6 @@ TEST_F(ModelConverterUT, LoadModelDescFromRootModel) {
   EXPECT_NE(model_desc->GetOutputDesc(0)->GetName(), nullptr);
 
   gert::DestroyVersionInfo();
-}
-
-TEST_F(ModelConverterUT, ConvertShouldFailWhenRootModelHasNoCustomOpRegistry) {
-  gert::CreateVersionInfo();
-  auto graph = ShareGraph::BuildTwoAddNodeGraph();
-  graph->TopologicalSorting();
-  auto ge_root_model = GeModelBuilder(graph).BuildGeRootModel();
-  ge_root_model->SetCustomOpRegistry(nullptr);
-  ASSERT_EQ(ge_root_model->GetCustomOpRegistry(), nullptr);
-
-  ModelConverter model_converter;
-  EXPECT_EQ(model_converter.ConvertGeModelToExecuteGraph(ge_root_model), nullptr);
-
-  gert::DestroyVersionInfo();
-}
-
-TEST_F(ModelConverterUT, LoweringGlobalDataKeepsCustomOpRegistryAfterRootModelRelease) {
-  std::weak_ptr<CustomOpRegistry> registry_weak;
-  LoweringGlobalData global_data;
-  {
-    auto graph = ShareGraph::BuildSingleNodeGraph();
-    graph->TopologicalSorting();
-    auto ge_root_model = GeModelBuilder(graph).BuildGeRootModel();
-    auto registry = std::make_shared<CustomOpRegistry>();
-    registry_weak = registry;
-    ge_root_model->SetCustomOpRegistry(registry);
-
-    global_data.SetCustomOpRegistry(ge_root_model->GetCustomOpRegistry());
-    ge_root_model.reset();
-    registry.reset();
-  }
-
-  ASSERT_FALSE(registry_weak.expired());
-  ASSERT_NE(global_data.GetCustomOpRegistry(), nullptr);
-  global_data.SetCustomOpRegistry(nullptr);
-  ASSERT_TRUE(registry_weak.expired());
 }
 
 TEST_F(ModelConverterUT, ConvertWithRollBackSingleStreamForStreamNotEnough) {
