@@ -172,6 +172,8 @@ class ReusableStreamAllocator {
 | `PARALLEL_GROUP`（节点属性） | 静态 Shape | 并行组标识，同组算子分配到独立流 |
 | `ATTACHED_STREAM_INFO`（节点属性） | 静态 Shape | 附着流信息，一个节点可产生多条流 |
 
+单流模式与 `STREAM_LABEL` / `USER_STREAM_LABEL` 互斥；如果 `ge.enableSingleStream` 对应的对外参数被设置为 true 且子图带有 StreamLabel，逻辑流分配返回参数错误并上报 `E10055`。
+
 ## 4 具体实现
 
 ### 4.1 静态 Shape 逻辑流分配

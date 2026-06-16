@@ -418,11 +418,15 @@ Status SingleStreamPass::Run(ComputeGraphPtr graph, const std::vector<SubgraphPt
     if (!StreamUtils::HasAssignedStream(*subgraph)) {
       const std::string &stream_label = subgraph->subgraph_info.GetStreamLabel();
       if (!stream_label.empty()) {
-        REPORT_INNER_ERR_MSG("E19999", "Stream labels are not supported in SingleStream mode "
-                             "(subgraph: %s, stream label: %s)", subgraph->name.c_str(), stream_label.c_str());
-        GELOGE(INTERNAL_ERROR, "[Get][Label] Stream labels are not supported (subgraph: %s, stream label: %s).",
-               subgraph->name.c_str(), stream_label.c_str());
-        return INTERNAL_ERROR;
+        const std::string option_name = GetContext().GetReadableName(ENABLE_SINGLE_STREAM);
+        const std::string reason =
+            "Option " + option_name + "=true conflicts with stream label \"" + stream_label +
+            "\"; set " + option_name + " to false";
+        REPORT_PREDEFINED_ERR_MSG("E10055", std::vector<const char *>({"reason"}),
+                                  std::vector<const char *>({reason.c_str()}));
+        GELOGE(PARAM_INVALID, "[Check][StreamLabel] stream label %s on subgraph %s conflicts with option %s=true.",
+               stream_label.c_str(), subgraph->name.c_str(), option_name.c_str());
+        return PARAM_INVALID;
       }
       subgraph->stream_id = new_stream;
     }

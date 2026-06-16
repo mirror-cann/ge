@@ -2538,7 +2538,6 @@ TEST_F(STEST_stream_allocator, user_defined_stream_label_success) {
    *     (2) 打屏错误码提示两个配置冲突
  */
 TEST_F(STEST_stream_allocator, UserDefinedStreamLabel_with_SingleStreamOption_failed) {
-  error_message::ErrMgrInit(error_message::ErrorMessageMode::INTERNAL_MODE);
   auto graph = MultiStreamShareGraph::TwoNodeGraphWithUserStreamLabel();
   // new session & add graph
   map<string, string> options;
@@ -2553,10 +2552,10 @@ TEST_F(STEST_stream_allocator, UserDefinedStreamLabel_with_SingleStreamOption_fa
   std::vector<InputTensorInfo> inputs;
   // build_graph through session
   ret = session.BuildGraph(0, inputs);
-  EXPECT_EQ(ret, FAILED); // Stream labels are not supported in SingleStream mode
+  EXPECT_EQ(ret, FAILED); // stream label conflicts with single stream option
   // Check ErrorMsg Print in Screen
   auto error_msg = std::string(error_message::GetErrMgrErrorMessage().get());
-  EXPECT_TRUE(error_msg.find("Stream labels are not supported in SingleStream mode") != std::string::npos);
+  EXPECT_TRUE(error_msg.find("conflicts with stream label") != std::string::npos);
   options["ge.enableSingleStream"] = "false";
   GELib::Initialize(options);
 }
