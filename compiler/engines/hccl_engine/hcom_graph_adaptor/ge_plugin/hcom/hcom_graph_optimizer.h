@@ -88,7 +88,7 @@ class HcomGraphOptimizer : public ge::GraphOptimizer {
   HcclResult SetHcclOpParam(const ge::Node &node, HcomOpParam *hcomOpParam, OpParamGraphModePtr opParam, std::string &sCollectiveType,
                             std::vector<int64_t> &sendCounts, std::vector<int64_t> &sendDispls,
                             std::vector<int64_t> &recvCounts, std::vector<int64_t> &recvDispls);
-  HcclResult GetAivParam(const ge::Node &node, std::string &sCollectiveType, u32 &aivCoreLimit);
+  HcclResult GetAivParam(const ge::Node &node, std::string &sCollectiveType, u32 &aivCoreLimit) const;
   HcclResult SetOpWorkerSpaceForKnowShape(ge::Node &node, u64 &opMemSize);
   HcclResult GetOriginalGraphShapeTypeFromDesc(const ge::OpDescPtr &op, u32 &shapeType);
   HcclResult CheckForceUnknown(const ge::Node &node, u32 &taskNum);
@@ -96,7 +96,7 @@ class HcomGraphOptimizer : public ge::GraphOptimizer {
                                      u32 &streamNum, u64 &opMemSize, u32 &taskNum, u32 &aivCoreNum);
   HcclResult SetOpRunningParamAttributes(ge::Node &node, const std::string &sCollectiveType,
                                           u32 &streamNum, u64 opMemSize);
-  bool TryGetOpDesc(const ge::NodePtr &nodePtr, ge::OpDescPtr &opDescPtr);
+  bool TryGetOpDesc(const ge::NodePtr &nodePtr, ge::OpDescPtr &opDescPtr) const;
 
   bool IsSubgraphMultiBatch(ge::ComputeGraph &graph);
 

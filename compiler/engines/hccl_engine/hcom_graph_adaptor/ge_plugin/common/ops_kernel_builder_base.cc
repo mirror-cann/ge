@@ -89,7 +89,7 @@ HcclResult HCCLOpsKernelBuilder::SetOpOutputMemSize(ge::Node &node, const std::s
   return HCCL_SUCCESS;
 }
 
-HcclResult HCCLOpsKernelBuilder::CalcHCCLOutputMemSize(const std::string &sCollectiveType, int64_t &memSize, const ge::GeTensorDesc &desc_temp) {
+HcclResult HCCLOpsKernelBuilder::CalcHCCLOutputMemSize(const std::string &sCollectiveType, int64_t &memSize, const ge::GeTensorDesc &desc_temp) const {
   HCCL_DEBUG("[HCCLOpsKernelBuilder][CalcHCCLOutputMemSize]Before sCollectiveType[%s], memSize[%lld B]",
     sCollectiveType.c_str(), memSize);
   // 通过ge接口获取32B对齐后的memSize

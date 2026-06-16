@@ -42,7 +42,7 @@ class AutoTuningHcomOpsKernelInfoStore : public HcomOpsKernelInfoStore {
   HcclResult GetRankSizeFromTaskInfo(const ge::GETaskInfo &task, uint32_t &rankSize);
   HcclResult GetHcclInfo(const ge::GETaskInfo &task, ge::GETaskKernelHcclInfo &hcclInfo);
   HcclResult HCCLOpsKernel(const ge::GETaskInfo &task, const std::string &sCollectiveType);
-  HcclResult HcomBroadcastOpKernel(const ge::GETaskInfo &task);
+  HcclResult HcomBroadcastOpKernel(const ge::GETaskInfo &task) const;
   HcclResult HcomAllReduceOpKernel(const ge::GETaskInfo &task);
   HcclResult HcomAllGatherOpKernel(const ge::GETaskInfo &task);
   HcclResult HcomAlltoAllVOpKernel(const ge::GETaskInfo &task);
@@ -52,8 +52,8 @@ class AutoTuningHcomOpsKernelInfoStore : public HcomOpsKernelInfoStore {
   // add
   HcclResult HcomReduceOpKernel(const ge::GETaskInfo &task);
   HcclResult HcomReduceScatterOpKernel(const ge::GETaskInfo &task);
-  HcclResult HcomSendOpKernel(const ge::GETaskInfo &task);
-  HcclResult HcomReceiveOpKernel(const ge::GETaskInfo &task);
+  HcclResult HcomSendOpKernel(const ge::GETaskInfo &task) const;
+  HcclResult HcomReceiveOpKernel(const ge::GETaskInfo &task) const;
   HcclResult InitAlltoAllHostMem(HcclDataType recvType, u64 recvCount, void *hostMemEmpty);
 
   std::map<u64, std::map<HcclDataType, AclHostMemPtr>> mapCountTypeHostMem_;

@@ -88,7 +88,7 @@ HcclResult HcceSetOpParamGraphModeHCCLBufferSize(OpParamGraphModePtr opParam, co
 // 图模式算子函数
 HcclResult HcceAllGatherGraphMode(void *sendBuf, void *recvBuf, uint64_t sendCount, HcclDataType dataType, const char *group, void *stream, const char *tag, void **streams, size_t streamCount, void *scratchMemAddr, uint64_t scratchMemSize);
 HcclResult HcceBroadcastGraphMode(void *buf, uint64_t count, HcclDataType dataType, uint32_t root, const char *group, void *stream, const char *tag, void **streams, size_t streamCount, void *scratchMemAddr, uint64_t scratchMemSize);
-HcclResult HcceAllGatherVGraphMode(void *sendBuf, void *recvBuf, uint64_t sendCount, const void *recvCounts, const void *recvDispls, HcclDataType dataType, const char* group, aclrtStream stream, const char *tag, void **streams, size_t streamCount, void *scratchMemAddr, uint64_t scratchMemSiz);
+HcclResult HcceAllGatherVGraphMode(void *sendBuf, void *recvBuf, uint64_t sendCount, const void *recvCounts, const void *recvDispls, HcclDataType dataType, const char* group, aclrtStream stream, const char *tag, void **streams, size_t streamCount, void *scratchMemAddr, uint64_t scratchMemSize);
 HcclResult HcceAlltoAllGraphMode(const void *sendBuf, uint64_t sendCount, HcclDataType sendType, const void *recvBuf, uint64_t recvCount, HcclDataType recvType, 
   const char *group, void *stream, const char *tag, void **streams, size_t streamCount, void *scratchMemAddr, uint64_t scratchMemSize);
 HcclResult HcceAlltoAllVGraphMode(const void *sendBuf, const void *sendCounts, const void *sdispls, HcclDataType sendType,

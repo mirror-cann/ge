@@ -76,7 +76,7 @@ HcclResult HcomOpsKernelInfoStore::GetSupportedOP(std::vector<std::string> &hccl
   return HCCL_SUCCESS;
 }
 
-bool HcomOpsKernelInfoStore::IsOpTypeCCLTag(const std::string &opType) {
+bool HcomOpsKernelInfoStore::IsOpTypeCCLTag(const std::string &opType) const {
   return (opType == HCCL_KERNEL_OP_TYPE_BROADCAST || opType == HCCL_KERNEL_OP_TYPE_ALLREDUCE ||
           opType == HCCL_KERNEL_OP_TYPE_ALLGATHER || opType == HCCL_KERNEL_OP_TYPE_REDUCESCATTER ||
           opType == HCCL_KERNEL_OP_TYPE_REDUCE || opType == HCCL_KERNEL_OP_TYPE_ALLTOALLV ||
@@ -267,21 +267,21 @@ HcclResult HcomOpsKernelInfoStore::GetOriginalGraphShapeTypeFromTaskInfo(const g
   return HCCL_SUCCESS;
 }
 
-HcclResult HcomOpsKernelInfoStore::GetGroupFromTaskInfo(const ge::GETaskInfo &task, std::string &sGroup) {
+HcclResult HcomOpsKernelInfoStore::GetGroupFromTaskInfo(const ge::GETaskInfo &task, std::string &sGroup) const {
   HCCL_KERNEL_INFO_PRIVATE_DEF *privateDefBuf = reinterpret_cast<HCCL_KERNEL_INFO_PRIVATE_DEF *>(task.privateDef);
   sGroup = reinterpret_cast<const char *>(privateDefBuf->group);
   HCCL_INFO("get group[%s] from task info success.", sGroup.c_str());
   return HCCL_SUCCESS;
 }
 
-HcclResult HcomOpsKernelInfoStore::GetDestRankFromTaskInfo(const ge::GETaskInfo &task, u32 &destRank) {
+HcclResult HcomOpsKernelInfoStore::GetDestRankFromTaskInfo(const ge::GETaskInfo &task, u32 &destRank) const {
   HCCL_KERNEL_INFO_PRIVATE_DEF *privateDefBuf = reinterpret_cast<HCCL_KERNEL_INFO_PRIVATE_DEF *>(task.privateDef);
   destRank = privateDefBuf->destRank;
   HCCL_INFO("get dest rank[%u] from task info success.", destRank);
   return HCCL_SUCCESS;
 }
 
-HcclResult HcomOpsKernelInfoStore::GetSrcRankFromTaskInfo(const ge::GETaskInfo &task, u32 &srcRank) {
+HcclResult HcomOpsKernelInfoStore::GetSrcRankFromTaskInfo(const ge::GETaskInfo &task, u32 &srcRank) const {
   HCCL_KERNEL_INFO_PRIVATE_DEF *privateDefBuf = reinterpret_cast<HCCL_KERNEL_INFO_PRIVATE_DEF *>(task.privateDef);
   srcRank = privateDefBuf->srcRank;
   HCCL_INFO("get src rank[%u] from task info success.", srcRank);
@@ -402,7 +402,7 @@ void HcomOpsKernelInfoStore::GetAlltoAllVParams(const ge::GETaskInfo &task, uint
 }
 
 void HcomOpsKernelInfoStore::GetReduceScatterVParams(const ge::GETaskInfo &task, uintptr_t &sendBuf, void *&sendCounts,
-                                                     void *&sendDispls, uintptr_t &recvBuf, int64_t &recvCount) {
+                                                     void *&sendDispls, uintptr_t &recvBuf, int64_t &recvCount) const {
   HCCL_REDUCESCATTERV_KERNEL_INFO_PRIVATE_DEF *privateDefPtr =
       reinterpret_cast<HCCL_REDUCESCATTERV_KERNEL_INFO_PRIVATE_DEF *>(task.privateDef);
   sendCounts = privateDefPtr->paramsInfo.sendCounts;
@@ -856,7 +856,6 @@ HcclResult HcomOpsKernelInfoStore::HcomAllReduceOpKernel(const ge::GETaskInfo &t
     const char *groupName = nullptr;
     if (comm == static_cast<int64_t>(CommNumHcom::COMM_VALUE_DEFAULT)) {
       groupName = group.c_str();
-
     } else {
       char *tmp = nullptr;
       CHK_RET(HcomGetGroupNameByOpBase(comm, &tmp));
@@ -881,7 +880,7 @@ HcclResult HcomOpsKernelInfoStore::HcomAllReduceOpKernel(const ge::GETaskInfo &t
 }
 
 HcclResult HcomOpsKernelInfoStore::CheckTensorNumAndTensorSize(const ge::GETaskInfo &task, u64 count, u32 unitSize,
-                                                               u64 commInputSize) {
+                                                               u64 commInputSize) const {
   HCCL_KERNEL_INFO_PRIVATE_DEF *privateDefBuf = reinterpret_cast<HCCL_KERNEL_INFO_PRIVATE_DEF *>(task.privateDef);
   size_t tensorNum = privateDefBuf->tensorNum;
   if (tensorNum > 1 && ((count * unitSize) > commInputSize)) {
@@ -962,7 +961,6 @@ HcclResult HcomOpsKernelInfoStore::HcomAllReduceLoop(const ge::GETaskInfo &task,
     const char *groupName = nullptr;
     if (comm == static_cast<int64_t>(CommNumHcom::COMM_VALUE_DEFAULT)) {
       groupName = group.c_str();
-
     } else {
       char *tmp = nullptr;
       CHK_RET(HcomGetGroupNameByOpBase(comm, &tmp));
@@ -1356,7 +1354,7 @@ HcclResult HcomOpsKernelInfoStore::RefreshAllgatherOutputAddr(DevType deviceType
 }
 
 HcclResult HcomOpsKernelInfoStore::GetHcomOutCCLbufferSize(u64 &commOutputSize, u32 shapeType, const int64_t &hcomComm,
-                                                           const std::string &sGroup) {
+                                                           const std::string &sGroup) const {
   HCCL_DEBUG("[GetHcomOutCCLbufferSize] shapeType[%u]", shapeType);
   void *commOutputPtr = nullptr;
   if (hcomComm == static_cast<int64_t>(CommNumHcom::COMM_VALUE_DEFAULT)) {
@@ -1378,7 +1376,7 @@ HcclResult HcomOpsKernelInfoStore::GetHcomOutCCLbufferSize(u64 &commOutputSize, 
 }
 
 HcclResult HcomOpsKernelInfoStore::GetHcomInCCLbufferSize(u64 &commInputSize, u32 shapeType, const int64_t &hcomComm,
-                                                          const std::string &sGroup) {
+                                                          const std::string &sGroup) const {
   HCCL_DEBUG("[GetHcomInCCLbufferSize] shapeType[%u]", shapeType);
   void *commInputPtr = nullptr;
   if (hcomComm == static_cast<int64_t>(CommNumHcom::COMM_VALUE_DEFAULT)) {
@@ -1906,7 +1904,6 @@ HcclResult HcomOpsKernelInfoStore::HcomReduceOpKernel(const ge::GETaskInfo &task
     const char *groupName = nullptr;
     if (comm == static_cast<int64_t>(CommNumHcom::COMM_VALUE_DEFAULT)) {
       groupName = group.c_str();
-
     } else {
       char *tmp = nullptr;
       CHK_RET(HcomGetGroupNameByOpBase(comm, &tmp));
@@ -2003,7 +2000,6 @@ HcclResult HcomOpsKernelInfoStore::HcomReduceLoop(const ge::GETaskInfo &task, co
     const char *groupName = nullptr;
     if (comm == static_cast<int64_t>(CommNumHcom::COMM_VALUE_DEFAULT)) {
       groupName = group.c_str();
-
     } else {
       char *tmp = nullptr;
       CHK_RET(HcomGetGroupNameByOpBase(comm, &tmp));
@@ -2345,7 +2341,7 @@ HcclResult HcomOpsKernelInfoStore::GetHcomAlltoallVOpMemSize(u32 shapeType, cons
                                                              const int64_t &hcomComm, const std::string &sGroup,
                                                              HcclDataType sendType, HcclDataType recvType,
                                                              void *sendCounts, void *sendDispls, void *recvCounts,
-                                                             void *recvDispls, u64 &inputMemSize, u64 &outputMemSize) {
+                                                             void *recvDispls, u64 &inputMemSize, u64 &outputMemSize) const {
   HCCL_DEBUG("[GetHcomAlltoallVOpMemSize] sCollectiveType[%s]", sCollectiveType.c_str());
   CHK_PRT_RET((shapeType != ORIGINAL_GRAPH_UNKNOWNSHAPE_TYPE), HCCL_DEBUG("No need to get op MemSize"), HCCL_SUCCESS);
 
@@ -2381,7 +2377,7 @@ HcclResult HcomOpsKernelInfoStore::GetHcomAlltoallVCOpMemSize(u32 shapeType, con
                                                               const int64_t &hcomComm, const std::string &sGroup,
                                                               HcclDataType sendType, HcclDataType recvType,
                                                               void *sendCountMatrix, u64 &inputMemSize,
-                                                              u64 &outputMemSize) {
+                                                              u64 &outputMemSize) const {
   HCCL_DEBUG("[GetHcomAlltoallVCOpMemSize] sCollectiveType[%s]", sCollectiveType.c_str());
   CHK_PRT_RET((shapeType != ORIGINAL_GRAPH_UNKNOWNSHAPE_TYPE), HCCL_DEBUG("No need to get op MemSize"), HCCL_SUCCESS);
 
@@ -2485,7 +2481,7 @@ HcclResult HcomOpsKernelInfoStore::GetCommCCLBuf(u32 shapeType, const int64_t &h
 }
 
 HcclResult HcomOpsKernelInfoStore::CheckOutputMemSize(u32 shapeType, const int64_t &hcomComm, const std::string &sGroup,
-                                                      u64 outputMemSize) {
+                                                      u64 outputMemSize) const {
   CHK_PRT_RET(shapeType != ORIGINAL_GRAPH_UNKNOWNSHAPE_TYPE, HCCL_INFO("not need to check output mem size"),
               HCCL_SUCCESS);
 
@@ -2535,7 +2531,7 @@ HcclResult HcomOpsKernelInfoStore::GetCommCCLBuf(u32 shapeType, const std::strin
 
 HcclResult HcomOpsKernelInfoStore::SetWorkspaceResourceFromtagVec(const ge::GETaskInfo &task, const char *group,
                                                                   const std::vector<std::string> &tagVec, void *memPtr,
-                                                                  u64 maxSize) {
+                                                                  u64 maxSize) const{
   for (u32 loopTime = 0; loopTime < tagVec.size(); loopTime++) {
     CHK_RET(SetWorkspaceResource(tagVec[loopTime], group, task.kernelHcclInfo[0].hcclStreamList, memPtr, maxSize));
     HCCL_INFO("load task: tag[%s] sub stream size is %u,size is %llu bytes.", (tagVec[loopTime]).c_str(),
@@ -2912,7 +2908,7 @@ HcclResult HcomOpsKernelInfoStore::SaveReduceDumpTask(std::vector<ge::HcclDumpIn
   return HCCL_SUCCESS;
 }
 
-HcclResult HcomOpsKernelInfoStore::ConfigHcclDumpDebugMode() {
+HcclResult HcomOpsKernelInfoStore::ConfigHcclDumpDebugMode() const {
   // 该接口通过key值，获取ge session级别option的value
   std::string dumpDebugValue;
   bool dumpDebug;
@@ -2924,7 +2920,7 @@ HcclResult HcomOpsKernelInfoStore::ConfigHcclDumpDebugMode() {
       dumpDebug = dumpFlag;
     } else {
       CHK_RET(SalStrToInt(dumpDebugValue, HCCL_BASE_DECIMAL, value));  // 校验是否为有效值
-      dumpDebug = value ? true : false;
+      dumpDebug = (value != 0) ? true : false;
     }
     HCCL_INFO("LoadTask: enable_dump_debug mode is [%d] (OPTION_EXEC_ENABLE_DUMP_DEBUG[%s]), value[%u].", dumpDebug,
               dumpDebugValue.c_str(), value);
@@ -2935,12 +2931,12 @@ HcclResult HcomOpsKernelInfoStore::ConfigHcclDumpDebugMode() {
   return HCCL_SUCCESS;
 }
 
-HcclResult HcomOpsKernelInfoStore::InitHcom() {
+HcclResult HcomOpsKernelInfoStore::InitHcom() const {
   return HcomInitialize();
 }
 
 HcclResult HcomOpsKernelInfoStore::GetJsonProperty(const nlohmann::json &obj, const char *propName,
-                                                   nlohmann::json &propValue) {
+                                                   nlohmann::json &propValue) const {
   /* 查找json对象中是否有该属性, 不存在的属性不能直接访问 */
   if (obj.find(propName) == obj.end()) {
     HCCL_WARNING("json object has no property called %s", propName);
@@ -2953,7 +2949,7 @@ HcclResult HcomOpsKernelInfoStore::GetJsonProperty(const nlohmann::json &obj, co
 }
 
 HcclResult HcomOpsKernelInfoStore::GetJsonArrayMemberProperty(const nlohmann::json &obj, const u32 index,
-                                                              const char *propName, u32 &propValue) {
+                                                              const char *propName, u32 &propValue) const {
   if (!obj.is_array() || index >= obj.size()) {
     HCCL_ERROR("[Get][JsonArrayMemberProperty]errNo[0x%016llx] index[%u] is out of json object range",
                HCOM_ERROR_CODE(HCCL_E_NOT_FOUND), index);
@@ -3023,7 +3019,7 @@ HcclResult HcomOpsKernelInfoStore::TransfromRealRankId(const ge::GETaskInfo &tas
   return HCCL_SUCCESS;
 }
 
-HcclResult HcomOpsKernelInfoStore::CheckOfflineDevTypeIsSame(const ge::GETaskInfo &task) {
+HcclResult HcomOpsKernelInfoStore::CheckOfflineDevTypeIsSame(const ge::GETaskInfo &task) const {
   HCCL_KERNEL_INFO_PRIVATE_DEF *privateDefBuf = reinterpret_cast<HCCL_KERNEL_INFO_PRIVATE_DEF *>(task.privateDef);
   HCCL_DEBUG("[CheckOfflineDevTypeIsSame] isOfflineComp[%u] devType[%u]", privateDefBuf->isOfflineComp,
              privateDefBuf->devType);
@@ -3038,7 +3034,7 @@ HcclResult HcomOpsKernelInfoStore::CheckOfflineDevTypeIsSame(const ge::GETaskInf
   return HCCL_SUCCESS;
 }
 
-bool HcomOpsKernelInfoStore::IsRefresh(ge::GETaskInfo &task, const std::string &opType, u32 shapeType) {
+bool HcomOpsKernelInfoStore::IsRefresh(ge::GETaskInfo &task, const std::string &opType, u32 shapeType) const {
   // gather broadcast alltoall alltoallv暂不支持按照needRefrsh变量刷新
   if (opType == HCCL_KERNEL_OP_TYPE_ALLREDUCE || opType == HCCL_KERNEL_OP_TYPE_ALLGATHER ||
       opType == HCCL_KERNEL_OP_TYPE_REDUCESCATTER || opType == HCCL_KERNEL_OP_TYPE_REDUCE ||

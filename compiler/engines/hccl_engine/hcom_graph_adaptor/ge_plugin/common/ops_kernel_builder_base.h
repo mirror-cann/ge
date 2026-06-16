@@ -50,7 +50,7 @@ class HCCLOpsKernelBuilder : public ge::OpsKernelBuilder {
   };
   virtual HcclResult CheckSupportedOP(const std::string &sCollectiveType) const;
   HcclResult SetOpOutputMemSize(ge::Node &node, const std::string &sCollectiveType);
-  HcclResult CalcHCCLOutputMemSize(const std::string &sCollectiveType, int64_t &memSize, const ge::GeTensorDesc &desc_temp);
+  HcclResult CalcHCCLOutputMemSize(const std::string &sCollectiveType, int64_t &memSize, const ge::GeTensorDesc &desc_temp) const;
 };
 }  // namespace hccl
 #endif  // __OPS_KERNEL_INFO_STORE__BASEH__

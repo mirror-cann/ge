@@ -39,7 +39,7 @@ class HcomOpsKernelBuilder : public HCCLOpsKernelBuilder {
   HcclResult SetHcclOpParam(const ge::Node &node, HcomOpParam *hcomOpParam, OpParamGraphModePtr opParam, std::string &sCollectiveType,
                             std::vector<int64_t> &sendCounts, std::vector<int64_t> &sendDispls,
                             std::vector<int64_t> &recvCounts, std::vector<int64_t> &recvDispls);
-  HcclResult GetAivParam(const ge::Node &node, std::string &sCollectiveType, u32 &aivCoreLimit);
+  HcclResult GetAivParam(const ge::Node &node, std::string &sCollectiveType, u32 &aivCoreLimit) const;
   HcclResult SetOpWorkerSpaceForKnowShape(ge::Node &node, u64 &opMemSize);
   HcclResult GetSupportedOP(std::vector<std::string> &hcclSupportOp) const override;
   HcclResult SetOpMemAttr(ge::Node &node, const std::string &sCollectiveType, const u64 &opMemSize) override;
@@ -58,10 +58,10 @@ class HcomOpsKernelBuilder : public HCCLOpsKernelBuilder {
                                           const std::string &algName, std::string &funcName);
   HcclResult SetAivSuperKernelBinaryAttrFor950(const ge::OpDescPtr &opDescPtr, HcclCMDType opType,
                                                HcclDataType dataType, const std::string &algName,
-                                               std::string &funcName, const std::string & binPath) const;
+                                               std::string &funcName, const std::string &binPath) const;
   HcclResult SetAivSuperKernelBinaryAttrForDeter(const ge::OpDescPtr &opDescPtr, HcclCMDType opType,
                                                  const std::string &algName, std::string &funcName,
-                                                 const std::string & binPath) const;
+                                                 const std::string &binPath) const;
   HcclResult SetSuperKernelBlockDim(const ge::OpDescPtr &opDescPtr, const std::string &group, HcclCMDType opType,
                                     u64 count, void *counts, HcclDataType dataType, u32 aivCoreLimit, char *algName,
                                     u32 rankSize) const;
@@ -87,7 +87,7 @@ class HcomOpsKernelBuilder : public HCCLOpsKernelBuilder {
   HcclResult SetPrivateDefWithTensorInfo(const ge::Node &node, HCCL_KERNEL_INFO_PRIVATE_DEF &privateDefBuf,
                                          domi::TaskDef &taskDef);
   HcclResult GetCrackParamsInfo(const ge::Node &node, u32 tensorNum, int64_t *tensorOffset, int64_t *tensorSize,
-                                int64_t *crackOffset, int64_t *crackSize);
+                                int64_t *crackOffset, int64_t *crackSize) const;
   HcclResult GetTensorParamsInfo(const ge::Node &node, u32 tensorNum, int64_t *tensorOffset, int64_t *tensorSize);
   HcclResult SetAlltoAllVDataTypeToDef(const ge::OpDescPtr &op, HCCL_ALLTOALLV_KERNEL_INFO_PRIVATE_DEF &privateDefBuf);
   HcclResult CopyAlltoAllVCParamsToDef(const ge::Node &node, HCCL_ALLTOALLV_KERNEL_INFO_PRIVATE_DEF &privateDefBuf);
@@ -100,7 +100,7 @@ class HcomOpsKernelBuilder : public HCCLOpsKernelBuilder {
                                    u64 &count, std::vector<int64_t> &counts, HcclDataType &dataType, HcclCMDType &opType,
                                    HcclReduceOp &reduction, u32 &aivCoreLimit);
   HcclResult JudgeIsAivMode(ge::Node &node, const std::string& sCollectiveType, bool &ifAiv);
-  HcclResult GetCountsFromOpDesc(const ge::Node &node, std::vector<int64_t> &counts, HcclCMDType opType);
+  HcclResult GetCountsFromOpDesc(const ge::Node &node, std::vector<int64_t> &counts, HcclCMDType opType) const;
   HcclResult SetAttachedStreamInfoList(ge::Node &node, const std::string &group);  // 设置附属从流信息
   HcclResult TaskDefSetNumBlocks(const ge::Node &node, domi::TaskDef &taskDef, const std::string sCollectiveType,
                                  const u32 aivCoreLimit);

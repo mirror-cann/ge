@@ -106,7 +106,7 @@ HcclResult AutoTuningHcomOpsKernelInfoStore::HCCLOpsKernel(const ge::GETaskInfo 
   return HCCL_SUCCESS;
 }
 
-HcclResult AutoTuningHcomOpsKernelInfoStore::HcomBroadcastOpKernel([[maybe_unused]] const ge::GETaskInfo &task) {
+HcclResult AutoTuningHcomOpsKernelInfoStore::HcomBroadcastOpKernel([[maybe_unused]] const ge::GETaskInfo &task) const {
   return HCCL_SUCCESS;
 }
 
@@ -394,11 +394,11 @@ HcclResult AutoTuningHcomOpsKernelInfoStore::HcomReduceScatterOpKernel(const ge:
   return HCCL_SUCCESS;
 }
 
-HcclResult AutoTuningHcomOpsKernelInfoStore::HcomReceiveOpKernel([[maybe_unused]] const ge::GETaskInfo &task) {
+HcclResult AutoTuningHcomOpsKernelInfoStore::HcomReceiveOpKernel([[maybe_unused]] const ge::GETaskInfo &task) const {
   return HCCL_SUCCESS;
 }
 
-HcclResult AutoTuningHcomOpsKernelInfoStore::HcomSendOpKernel([[maybe_unused]] const ge::GETaskInfo &task) {
+HcclResult AutoTuningHcomOpsKernelInfoStore::HcomSendOpKernel([[maybe_unused]] const ge::GETaskInfo &task) const {
   return HCCL_SUCCESS;
 }
 

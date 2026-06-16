@@ -51,8 +51,8 @@ class HCCLOpsKernelInfoStore : public ge::OpsKernelInfoStore {
   HcclResult GetReduceTypeFromTaskInfo(const ge::GETaskKernelHcclInfo &hcclInfo, HcclReduceOp &opType);
   HcclResult GetGlobalWorkSpaceAddrFromTaskInfo(const ge::GETaskKernelHcclInfo &hcclInfo,
                                                 std::vector<void *> &globalWorkSpaceAddr);
-  HcclResult GetStreamsFromTaskInfo(const ge::GETaskKernelHcclInfo &hcclInfo, std::vector<rtStream_t> &streams);
-  HcclResult GetWorkSpaceTaskInfo(const ge::GETaskKernelHcclInfo &hcclInfo, void **workSpace, uint64_t &memSize);
+  HcclResult GetStreamsFromTaskInfo(const ge::GETaskKernelHcclInfo &hcclInfo, std::vector<rtStream_t> &streams) const;
+  HcclResult GetWorkSpaceTaskInfo(const ge::GETaskKernelHcclInfo &hcclInfo, void **workSpace, uint64_t &memSize) const;
 };
 }  // namespace hccl
 #endif  // OPS_KERNEL_INFO_STORE__BASEH

@@ -912,7 +912,6 @@ HcclResult GetRankIdsFromGroupListV2(const std::string &groupName, const std::st
   for (const auto &groupInfo : groupList) {
     HCCL_DEBUG("groupInfo:%s", groupInfo.dump().c_str());
 
-
     if (!groupInfo.contains("HcclCommconfig") || !groupInfo.contains("RankIds")) {
       HCCL_ERROR("[GetRankIdsFromGroupListV2] HcclCommconfig or RankIds not found, invalid group list format");
       return HCCL_E_PARA;
