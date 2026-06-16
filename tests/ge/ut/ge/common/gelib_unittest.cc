@@ -209,4 +209,20 @@ TEST_F(UtestGeLib, set_OptionNameMap) {
   EXPECT_EQ(GEInit::Finalize(), SUCCESS);
 }
 
+TEST_F(UtestGeLib, IsNeedSetDevice) {
+  auto p1 = std::make_shared<GELib>();
+
+  p1->is_train_mode_ = true;
+  p1->device_id_ = 0;
+  EXPECT_TRUE(p1->IsNeedSetDevice());
+
+  p1->is_train_mode_ = false;
+  p1->device_id_ = 2;
+  EXPECT_TRUE(p1->IsNeedSetDevice());
+
+  p1->is_train_mode_ = false;
+  p1->device_id_ = -1;
+  EXPECT_FALSE(p1->IsNeedSetDevice());
+}
+
 } // namespace ge

@@ -289,7 +289,7 @@ Status GELib::SystemInitialize(const std::map<std::string, std::string> &options
   // 1.`is_train_mode_` means case: train
   // 2.`(!is_train_mode_) && (device_id_ != kDefaultDeviceIdForInfer)` means case: online infer
   // these two case with logical device id
-  if (is_train_mode_ || (device_id_ != kDefaultDeviceIdForInfer)) {
+  if (IsNeedSetDevice()) {
     mode = is_train_mode_ ? "Training" : "Online infer";
     GetContext().SetCtxDeviceId(static_cast<uint32_t>(device_id_));
     GE_CHK_STATUS_RET(aclrtSetDevice(device_id_));
@@ -307,7 +307,7 @@ Status GELib::SystemFinalize() {
                   return SUCCESS);
 
   std::string mode = "Infer";
-  if (is_train_mode_ || (device_id_ != kDefaultDeviceIdForInfer)) {
+  if (IsNeedSetDevice()) {
     mode = is_train_mode_ ? "Training" : "Online infer";
     GE_CHK_RT(aclrtResetDevice(device_id_));
   }
@@ -334,6 +334,10 @@ Status GELib::SetRTSocVersion(std::map<std::string, std::string> &new_options) c
   return SUCCESS;
 }
 
+bool GELib::IsNeedSetDevice() const {
+  return is_train_mode_ || (device_id_ != kDefaultDeviceIdForInfer);
+}
+
 std::string GELib::GetPath() {
   return GetModelPath();
 }
@@ -345,6 +349,13 @@ Status GELib::Finalize() {
   if (!init_flag_) {
     GELOGW("GELib not initialize");
     return SUCCESS;
+  }
+
+  // Cross-thread fix: GEFinalize may be called on a different thread than GEInitialize.
+  // aclrtSetDevice is thread-bound, so re-bind the device to the current thread before
+  // any finalize logic that may call aclrtGetDevice internally.
+  if (IsNeedSetDevice()) {
+    GE_CHK_RT(aclrtSetDevice(device_id_));
   }
 
   Status final_state = SUCCESS;
