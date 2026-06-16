@@ -205,7 +205,7 @@ if [[ "X$ENABLE_GE_C_LLT" = "Xon" ]]; then
         rm -rf ${BASEPATH}/cov_executor_c_ut
         mk_dir ${BASEPATH}/cov_executor_c_ut
         lcov -c -d ${BUILD_PATH}/tests/test_c/ut/testcase/executor -o cov_executor_c_ut/tmp.info
-        lcov -r cov_executor_c_ut/tmp.info '*/output/*' '*/${BUILD_RELATIVE_PATH}/opensrc/*' '*/gtest_shared/*' '*/third_party/*' '*/tests/test_c/*' '/usr/local/*' '/usr/include/*' '*/metadef/*' '*/parser/*' '*/c_base/*' -o cov_executor_c_ut/coverage.info
+        lcov -r cov_executor_c_ut/tmp.info '*/output/*' '*/${BUILD_RELATIVE_PATH}/opensrc/*' '*/gtest_shared/*' '*/third_party/*' '*/tests/test_c/*' '/usr/local/*' '/usr/include/*' '*/metadef/*' '*/parser/*' '*/c_base/*' -o cov_executor_c_ut/coverage.info --ignore-errors mismatch,empty,unused
         cd ${BASEPATH}/cov_executor_c_ut
         genhtml coverage.info
       fi
@@ -214,7 +214,7 @@ if [[ "X$ENABLE_GE_C_LLT" = "Xon" ]]; then
         rm -rf ${BASEPATH}/cov_executor_c_st
         mk_dir ${BASEPATH}/cov_executor_c_st
         lcov -c -d ${BUILD_PATH}/tests/test_c/ut/testcase/executor -o cov_executor_c_st/tmp.info
-        lcov -r cov_executor_c_st/tmp.info '*/output/*' '*/${BUILD_RELATIVE_PATH}/opensrc/*' '*/gtest_shared/*' '*/third_party/*' '*/tests/test_c/*' '/usr/local/*' '/usr/include/*' '*/metadef/*' '*/parser/*' '*/c_base/*' -o cov_executor_c_st/coverage.info
+        lcov -r cov_executor_c_st/tmp.info '*/output/*' '*/${BUILD_RELATIVE_PATH}/opensrc/*' '*/gtest_shared/*' '*/third_party/*' '*/tests/test_c/*' '/usr/local/*' '/usr/include/*' '*/metadef/*' '*/parser/*' '*/c_base/*' -o cov_executor_c_st/coverage.info --ignore-errors mismatch,empty,unused
         cd ${BASEPATH}/cov_executor_c_st
         genhtml coverage.info
       fi

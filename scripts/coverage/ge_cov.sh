@@ -61,7 +61,7 @@ function run_all_coverage(){
     pushd "${PWD}" >/dev/null
         cd ${PROJECT_HOME} 
         lcov -c -d build/tests/ge/ut/ge -d build/tests/ge/ut/common/graph/ -o ${ALL_COV_GEN_PATH}/tmp.info
-        lcov -r ${ALL_COV_GEN_PATH}/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/tests/*' '/usr/local/*' '/usr/include/*' '*/metadef/*' '*/parser/*' -o ${ALL_COV_GEN_PATH}/coverage.info
+        lcov -r ${ALL_COV_GEN_PATH}/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/tests/*' '/usr/local/*' '/usr/include/*' '*/metadef/*' '*/parser/*' -o ${ALL_COV_GEN_PATH}/coverage.info --ignore-errors mismatch,empty,unused
         cd ${ALL_COV_GEN_PATH}
         genhtml coverage.info
     popd  >/dev/null

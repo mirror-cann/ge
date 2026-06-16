@@ -115,6 +115,7 @@ graphengine:
       - inc/external/acl
       - graph_metadef/graph/attr/ge_attr_define.cc
       - runtime/v2/engine/aicpu
+      - graph_metadef/graph/stub/stub_operator_factory_impl.cc
   llt:
     ut_check:true
     st_check:true

@@ -362,7 +362,7 @@ run_llt_with_cov()
         cd "${BASEPATH}"
         mk_dir "${BASEPATH}/cov_fe_ut/"
         lcov -c -d build/tests/engines/nn_engine/ut -o cov_fe_ut/tmp.info
-        lcov -r cov_fe_ut/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/test/*' '/usr/local/*' '/usr/include/*'  -o cov_fe_ut/coverage.info
+        lcov -r cov_fe_ut/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/test/*' '/usr/local/*' '/usr/include/*'  -o cov_fe_ut/coverage.info --ignore-errors mismatch,empty,unused
         cd "${BASEPATH}/cov_fe_ut/"
         genhtml coverage.info
         echo "---------------- Finish the generating coverage of fe ut ----------------"
@@ -393,7 +393,7 @@ run_llt_with_cov()
         cd "${BASEPATH}"
         mk_dir "${BASEPATH}/cov_fe_st/"
         lcov -c -d build/tests/engines/nn_engine/st -o cov_fe_st/tmp.info
-        lcov -r cov_fe_st/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/test/*' '/usr/local/*' '/usr/include/*'  -o cov_fe_st/coverage.info
+        lcov -r cov_fe_st/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/test/*' '/usr/local/*' '/usr/include/*'  -o cov_fe_st/coverage.info --ignore-errors mismatch,empty,unused
         cd "${BASEPATH}/cov_fe_st/"
         genhtml coverage.info
       fi
@@ -418,7 +418,7 @@ run_llt_with_cov()
         cd "${BASEPATH}"
         mk_dir "${BASEPATH}/cov_fe_st_whole_process/"
         lcov -c -d build/tests/engines/nn_engine/st -o cov_fe_st_whole_process/tmp.info
-        lcov -r cov_fe_st_whole_process/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/test/*' '/usr/local/*' '/usr/include/*'  -o cov_fe_st_whole_process/coverage.info
+        lcov -r cov_fe_st_whole_process/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/test/*' '/usr/local/*' '/usr/include/*'  -o cov_fe_st_whole_process/coverage.info --ignore-errors mismatch,empty,unused
         cd "${BASEPATH}/cov_fe_st_whole_process/"
         genhtml coverage.info
       fi
@@ -438,7 +438,7 @@ run_llt_with_cov()
         cd "${BASEPATH}"
         mk_dir "${BASEPATH}/cov_ffts_ut/"
         lcov -c -d build/tests/engines/ffts_engine/ut -o cov_ffts_ut/tmp.info
-        lcov -r cov_ffts_ut/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/test/*' '/usr/local/*' '/usr/include/*'  -o cov_ffts_ut/coverage.info
+        lcov -r cov_ffts_ut/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/test/*' '/usr/local/*' '/usr/include/*'  -o cov_ffts_ut/coverage.info --ignore-errors mismatch,empty,unused
         cd "${BASEPATH}/cov_ffts_ut/"
         genhtml coverage.info
         echo "---------------- Finish the generating coverage of ffts ut ----------------"
@@ -455,7 +455,7 @@ run_llt_with_cov()
         cd "${BASEPATH}"
         mk_dir "${BASEPATH}/cov_ffts_st/"
         lcov -c -d build/tests/engines/ffts_engine/st -o cov_ffts_st/tmp.info
-        lcov -r cov_ffts_st/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/test/*' '/usr/local/*' '/usr/include/*'  -o cov_ffts_st/coverage.info
+        lcov -r cov_ffts_st/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/test/*' '/usr/local/*' '/usr/include/*'  -o cov_ffts_st/coverage.info --ignore-errors mismatch,empty,unused
         cd "${BASEPATH}/cov_ffts_st/"
         genhtml coverage.info
       fi
@@ -483,7 +483,7 @@ run_llt_with_cov()
         fi
         mk_dir "${BASEPATH}/cov_rts_ut/"
         lcov -c -d ${BASEPATH}/build/tests/engines/rts_engine/ut -o ${BASEPATH}/cov_rts_ut/tmp.info
-        lcov -r ${BASEPATH}/cov_rts_ut/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/test/*' '/usr/local/*' '/usr/include/*' -o ${BASEPATH}/cov_rts_ut/coverage.info
+        lcov -r ${BASEPATH}/cov_rts_ut/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/test/*' '/usr/local/*' '/usr/include/*' -o ${BASEPATH}/cov_rts_ut/coverage.info --ignore-errors mismatch,empty,unused
         cd "${BASEPATH}/cov_rts_ut/"
         genhtml coverage.info
         echo "---------------- Finish the generating coverage of rts ut ----------------"
@@ -506,7 +506,7 @@ run_llt_with_cov()
         fi
         mk_dir "${BASEPATH}/cov_rts_st/"
         lcov -c -d ${BASEPATH}/build/tests/engines/rts_engine/ut -o ${BASEPATH}/cov_rts_st/tmp.info
-        lcov -r ${BASEPATH}/cov_rts_st/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/test/*' '/usr/local/*' '/usr/include/*' -o ${BASEPATH}/cov_rts_st/coverage.info
+        lcov -r ${BASEPATH}/cov_rts_st/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/test/*' '/usr/local/*' '/usr/include/*' -o ${BASEPATH}/cov_rts_st/coverage.info --ignore-errors mismatch,empty,unused
         cd "${BASEPATH}/cov_rts_st/"
         genhtml coverage.info
       fi
@@ -534,7 +534,7 @@ run_llt_with_cov()
         fi
         mk_dir "${BASEPATH}/cov_aicpu_ut/"
         lcov -c -d build/tests/engines/cpueng/ut -o cov_aicpu_ut/tmp.info
-        lcov -r cov_aicpu_ut/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/test/*' '/usr/local/*' '/usr/include/*'  -o cov_aicpu_ut/coverage.info
+        lcov -r cov_aicpu_ut/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/test/*' '/usr/local/*' '/usr/include/*'  -o cov_aicpu_ut/coverage.info --ignore-errors mismatch,empty,unused
         cd "${BASEPATH}/cov_aicpu_ut/"
         genhtml coverage.info
         echo "---------------- Finish the generating coverage of aicpu ut ----------------"
@@ -558,7 +558,7 @@ run_llt_with_cov()
         fi
         mk_dir "${BASEPATH}/cov_aicpu_st/"
         lcov -c -d build/tests/engines/cpueng/st -o cov_aicpu_st/tmp.info
-        lcov -r cov_aicpu_st/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/test/*' '/usr/local/*' '/usr/include/*'  -o cov_aicpu_st/coverage.info
+        lcov -r cov_aicpu_st/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/test/*' '/usr/local/*' '/usr/include/*'  -o cov_aicpu_st/coverage.info --ignore-errors mismatch,empty,unused
         cd "${BASEPATH}/cov_aicpu_st/"
         genhtml coverage.info
       fi
@@ -585,7 +585,7 @@ run_llt_with_cov()
         fi
         mk_dir "${BASEPATH}/cov_dvpp_ut/"
         lcov -c -d ${BASEPATH}/build/tests/engines/dvppeng/ut -o ${BASEPATH}/cov_dvpp_ut/tmp.info
-        lcov -r ${BASEPATH}/cov_dvpp_ut/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/test/*' '/usr/local/*' '/usr/include/*' -o ${BASEPATH}/cov_dvpp_ut/coverage.info
+        lcov -r ${BASEPATH}/cov_dvpp_ut/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/test/*' '/usr/local/*' '/usr/include/*' -o ${BASEPATH}/cov_dvpp_ut/coverage.info --ignore-errors mismatch,empty,unused
         cd "${BASEPATH}/cov_dvpp_ut/"
         genhtml coverage.info
         echo "---------------- Finish the generating coverage of dvpp ut ----------------"
@@ -608,7 +608,7 @@ run_llt_with_cov()
         fi
         mk_dir "${BASEPATH}/cov_dvpp_st/"
         lcov -c -d ${BASEPATH}/build/tests/engines/dvppeng/ut -o ${BASEPATH}/cov_dvpp_st/tmp.info
-        lcov -r ${BASEPATH}/cov_dvpp_st/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/test/*' '/usr/local/*' '/usr/include/*' -o ${BASEPATH}/cov_dvpp_st/coverage.info
+        lcov -r ${BASEPATH}/cov_dvpp_st/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/test/*' '/usr/local/*' '/usr/include/*' -o ${BASEPATH}/cov_dvpp_st/coverage.info --ignore-errors mismatch,empty,unused
         cd "${BASEPATH}/cov_dvpp_st/"
         genhtml coverage.info
       fi
@@ -635,7 +635,7 @@ run_llt_with_cov()
         fi
         mk_dir "${BASEPATH}/cov_hcce_ut/"
         lcov -c -d ${BASEPATH}/build/tests/engines/hccl_engine/ut -o ${BASEPATH}/cov_hcce_ut/tmp.info
-        lcov -r ${BASEPATH}/cov_hcce_ut/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/tests/*' '/usr/local/*' '/usr/include/*' '*/opensdk/*' '*/inc/*' -o ${BASEPATH}/cov_hcce_ut/coverage.info
+        lcov -r ${BASEPATH}/cov_hcce_ut/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/tests/*' '/usr/local/*' '/usr/include/*' '*/opensdk/*' '*/inc/*' -o ${BASEPATH}/cov_hcce_ut/coverage.info --ignore-errors mismatch,empty,unused
         cd "${BASEPATH}/cov_hcce_ut/"
         genhtml coverage.info
         echo "---------------- Finish the generating coverage of hcce ut ----------------"
@@ -658,7 +658,7 @@ run_llt_with_cov()
         fi
         mk_dir "${BASEPATH}/cov_hcce_st/"
         lcov -c -d ${BASEPATH}/build/tests/engines/hccl_engine/st -o ${BASEPATH}/cov_hcce_st/tmp.info
-        lcov -r ${BASEPATH}/cov_hcce_st/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/tests/*' '/usr/local/*' '/usr/include/*' '*/opensdk/*' '*/inc/*' -o ${BASEPATH}/cov_hcce_st/coverage.info
+        lcov -r ${BASEPATH}/cov_hcce_st/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/tests/*' '/usr/local/*' '/usr/include/*' '*/opensdk/*' '*/inc/*' -o ${BASEPATH}/cov_hcce_st/coverage.info --ignore-errors mismatch,empty,unused
         cd "${BASEPATH}/cov_hcce_st/"
         genhtml coverage.info
       fi

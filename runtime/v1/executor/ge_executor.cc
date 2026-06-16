@@ -43,6 +43,7 @@
 #include "framework/runtime/model_rt_var_manager.h"
 #include "common/dump/dump_manager.h"
 #include "common/dump/dump_callback.h"
+#include "graph/operator_factory_impl.h"
 
 namespace {
 constexpr size_t kDynamicBatchSizeVecSize = 1U;
@@ -271,17 +272,13 @@ Status GeExecutor::Initialize(const std::map<std::string, std::string> &options)
     return SUCCESS;
   }
 
+  // 备份并清空注册信息map
+  OperatorFactoryImpl::BackupAndClearRegInfoOnce();
+
   GELOGI("Init GeExecutor begin.");
   GE_ASSERT_GRAPH_SUCCESS(OpLibRegistry::GetInstance().PreProcessForCustomOp());
-  OpTilingManager::GetInstance().LoadSo();
 
   const std::string path_base = GetModelPath();
-  const Status init_hostcpu_engine_status = HostCpuEngine::GetInstance().Initialize(path_base);
-  if (init_hostcpu_engine_status != SUCCESS) {
-    GELOGE(init_hostcpu_engine_status, "[initialize][HostCpuEngine] failed");
-    return init_hostcpu_engine_status;
-  }
-
   const Status rt_plugin_status = ge::RuntimePluginLoader::GetInstance().Initialize(path_base);
   if (rt_plugin_status != SUCCESS) {
     GELOGE(rt_plugin_status, "[Init][RTv2]Failed to initialize rtv2 plugin.");
@@ -289,8 +286,13 @@ Status GeExecutor::Initialize(const std::map<std::string, std::string> &options)
   }
 
   GE_CHK_STATUS_RET_NOLOG(OpsKernelExecutorManager::GetInstance().Initialize(options));
-  InitOpsProtoManager();
+  // 加载顺序遵循3.0目录结构，按op_graph->op_impl->op_proto->framework顺序加载，详细规则见PluginManager::GetOpsProtoPath注释
   gert::OppPackageUtils::LoadAllOppPackage();
+
+ // libops_host_cpu.h include all_ops.h头文件，注册了原型，需要放到开源so后面加载
+  GE_CHK_STATUS_RET(HostCpuEngine::GetInstance().Initialize(path_base), "[initialize][HostCpuEngine] failed");
+  OpTilingManager::GetInstance().LoadSo();
+  InitOpsProtoManager();
 
   GE_CHK_STATUS_RET(HostMemManager::Instance().Initialize());
 
@@ -318,8 +320,9 @@ Status GeExecutor::Initialize(const std::map<std::string, std::string> &options)
   // 注册回调
   GE_ASSERT_SUCCESS(RegErrorTrackingCallBack());
 
+  //将备份的注册信息低优先级merge到当前map
+  OperatorFactoryImpl::MergeBackupCreatorsOnce();
   ProfilingProperties::Instance().SetExecuteProfiling(options);
-
   is_inited_.store(true);
   GELOGI("Init GeExecutor over.");
   return SUCCESS;

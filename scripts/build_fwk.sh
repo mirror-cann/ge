@@ -761,7 +761,7 @@ if [[ "X$ENABLE_GE_ST" = "Xon" ]] || [[ "X$ENABLE_RT2_ST" = "Xon" ]] || [[ "X$EN
                              "*/${BUILD_RELATIVE_PATH}/opensrc/*" "*/${BUILD_RELATIVE_PATH}/proto/*" \
                              "*/${BUILD_RELATIVE_PATH}/grpc_*" '*/third_party/*' '*/tests/*' '/usr/local/*' \
                              '/usr/include/*' '*/metadef/*' \
-                             "${ASCEND_INSTALL_PATH}/*" "${ASCEND_3RD_LIB_PATH}/*" -o cov/coverage.info
+                             "${ASCEND_INSTALL_PATH}/*" "${ASCEND_3RD_LIB_PATH}/*" -o cov/coverage.info --ignore-errors mismatch,empty,unused
         cd ${BASEPATH}/cov
         genhtml coverage.info
 

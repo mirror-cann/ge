@@ -158,7 +158,7 @@ run_llt()
       cd "${BASEPATH}"
       mk_dir "${BASEPATH}/cov_ffts_ut/"
       lcov -c -d build/tests/engines/ffts_engine/ut -o cov_ffts_ut/tmp.info
-      lcov -r cov_ffts_ut/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/test/*' '/usr/local/*' '/usr/include/*'  -o cov_ffts_ut/coverage.info
+      lcov -r cov_ffts_ut/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/test/*' '/usr/local/*' '/usr/include/*'  -o cov_ffts_ut/coverage.info --ignore-errors mismatch,empty,unused
       cd "${BASEPATH}/cov_ffts_ut/"
       genhtml coverage.info
       cd "${BASEPATH}"
@@ -175,7 +175,7 @@ run_llt()
       cd "${BASEPATH}"
       mk_dir "${BASEPATH}/cov_ffts_st/"
       lcov -c -d build/tests/engines/ffts_engine/st -o cov_ffts_st/tmp.info
-      lcov -r cov_ffts_st/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/test/*' '/usr/local/*' '/usr/include/*'  -o cov_ffts_st/coverage.info
+      lcov -r cov_ffts_st/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/test/*' '/usr/local/*' '/usr/include/*'  -o cov_ffts_st/coverage.info --ignore-errors mismatch,empty,unused
       cd "${BASEPATH}/cov_ffts_st/"
       genhtml coverage.info
       cd "${BASEPATH}"

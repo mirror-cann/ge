@@ -551,10 +551,20 @@ run_ut_acl() {
   cd ${BASEPATH}
   rm -rf ${BASEPATH}/cov
   mkdir ${BASEPATH}/cov
-  lcov -c -d ${BUILD_RELATIVE_PATH}/tests/acl_ut/ut/acl -o cov/tmp.info
-  lcov -r cov/tmp.info '*/output/*' "*/${BUILD_RELATIVE_PATH}/opensrc/*" "*/${BUILD_RELATIVE_PATH}/proto/*" \
-      '*/third_party/*' '*/tests/*' '/usr/local/*' '/usr/include/*' \
-      "${ASCEND_INSTALL_PATH}/*" "${ASCEND_3RD_LIB_PATH}/*" -o cov/coverage.info
+  set +e
+  lcov -c -d ${BUILD_RELATIVE_PATH}/tests/acl_ut/ut/acl -o cov/tmp.info --ignore-errors mismatch,empty,negative
+  set -e
+
+  if [ ! -s "cov/tmp.info" ] || ! grep -q "SF:" "cov/tmp.info"; then
+    echo "No valid cpp coverage data found; skip filtering."
+    touch cov/coverage.info
+  else
+    set +e
+    lcov -r cov/tmp.info '*/output/*' "*/${BUILD_RELATIVE_PATH}/opensrc/*" "*/${BUILD_RELATIVE_PATH}/proto/*" \
+        '*/third_party/*' '*/tests/*' '/usr/local/*' '/usr/include/*' \
+        "${ASCEND_INSTALL_PATH}/*" "${ASCEND_3RD_LIB_PATH}/*" -o cov/coverage.info --ignore-errors mismatch,empty,unused
+    set -e
+  fi
   cd ${BASEPATH}/cov
   genhtml coverage.info
 }

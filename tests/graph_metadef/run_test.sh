@@ -235,7 +235,7 @@ main() {
         -o cov/tmp.info
       lcov -r cov/tmp.info '*/output/*' "*/${BUILD_RELATIVE_PATH}/opensrc/*" "*/${BUILD_RELATIVE_PATH}/proto/*" \
                            '*/third_party/*' '*/tests/*' '/usr/*' \
-                           "${ASCEND_INSTALL_PATH}/*" "${ASCEND_3RD_LIB_PATH}/*" -o cov/coverage.info
+                           "${ASCEND_INSTALL_PATH}/*" "${ASCEND_3RD_LIB_PATH}/*" -o cov/coverage.info --ignore-errors mismatch,empty,unused
       cd "${BASEPATH}/cov"
       genhtml coverage.info
     fi

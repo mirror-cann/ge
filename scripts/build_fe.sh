@@ -245,7 +245,7 @@ run_llt()
       cd "${BASEPATH}"
       mkdir "${BASEPATH}/cov_fe_ut/"
       lcov -c -d build/tests/engines/nn_engine/ut -o cov_fe_ut/tmp.info
-      lcov -r cov_fe_ut/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/test/*' '/usr/local/*' '/usr/include/*'  -o cov_fe_ut/coverage.info
+      lcov -r cov_fe_ut/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/test/*' '/usr/local/*' '/usr/include/*'  -o cov_fe_ut/coverage.info --ignore-errors mismatch,empty,unused
       cd "${BASEPATH}/cov_fe_ut/"
       genhtml coverage.info
       cd "${BASEPATH}"
@@ -268,7 +268,7 @@ run_llt()
       cd "${BASEPATH}"
       mkdir "${BASEPATH}/cov_fe_st/"
       lcov -c -d build/tests/engines/nn_engine/st -o cov_fe_st/tmp.info
-      lcov -r cov_fe_st/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/test/*' '/usr/local/*' '/usr/include/*'  -o cov_fe_st/coverage.info
+      lcov -r cov_fe_st/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/test/*' '/usr/local/*' '/usr/include/*'  -o cov_fe_st/coverage.info --ignore-errors mismatch,empty,unused
       cd "${BASEPATH}/cov_fe_st/"
       genhtml coverage.info
       cd "${BASEPATH}"
@@ -291,7 +291,7 @@ run_llt()
       cd "${BASEPATH}"
       mkdir "${BASEPATH}/cov_fe_st_whole_process/"
       lcov -c -d build/tests/engines/nn_engine/st -o cov_fe_st_whole_process/tmp.info
-      lcov -r cov_fe_st_whole_process/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/test/*' '/usr/local/*' '/usr/include/*'  -o cov_fe_st_whole_process/coverage.info
+      lcov -r cov_fe_st_whole_process/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/test/*' '/usr/local/*' '/usr/include/*'  -o cov_fe_st_whole_process/coverage.info --ignore-errors mismatch,empty,unused
       cd "${BASEPATH}/cov_fe_st_whole_process/"
       genhtml coverage.info
     fi

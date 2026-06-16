@@ -149,10 +149,8 @@ void OpsProtoManager::LoadOpsProtoPluginSo(const std::string &path) {
 
   // Load .so file
   for (const auto &elem : file_list) {
-    OperatorFactoryImpl::SetRegisterOverridable(true);
     void *const handle = mmDlopen(elem.c_str(), static_cast<int32_t>(static_cast<uint32_t>(MMPA_RTLD_NOW) |
         static_cast<uint32_t>(MMPA_RTLD_GLOBAL)));
-    OperatorFactoryImpl::SetRegisterOverridable(false);
     if (handle == nullptr) {
       const char_t *error = mmDlerror();
       error = (error == nullptr) ? "" : error;
