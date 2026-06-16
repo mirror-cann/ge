@@ -1819,6 +1819,10 @@ ge::graphStatus NormTilingCompileInfo(KernelContext *context) {
   if (compile_info == nullptr || json_str == nullptr) {
     return ge::GRAPH_FAILED;
   }
+  if (json_str[0] == '\0') {
+    GELOGI("norm compile info json is empty, skip parse");
+    return ge::GRAPH_SUCCESS;
+  }
   const nlohmann::json &parsed_json_obj = nlohmann::json::parse(json_str);
   compile_info->ParseAxisInfo(parsed_json_obj);
   compile_info->ParseGraphInfo(parsed_json_obj);

@@ -21,12 +21,19 @@ const char *const kEnvName = "ASCEND_OPP_PATH";
 const char *const kAscendHomePath = "ASCEND_HOME_PATH";
 const std::string kInner = "built-in";
 const std::string kVendor = "vendors";
-const std::string kx86OpsProtoPath = "/op_proto/lib/linux/x86_64/";
-const std::string kx86OpMasterPath = "/op_impl/ai_core/tbe/op_tiling/lib/linux/x86_64/";
+std::string GetCurArch() {
+#if defined(__aarch64__)
+  return "aarch64";
+#else
+  return "x86_64";
+#endif
+}
+const std::string kOpsProtoPath = "/op_proto/lib/linux/" + GetCurArch() + "/";
+const std::string kOpMasterPath = "/op_impl/ai_core/tbe/op_tiling/lib/linux/" + GetCurArch() + "/";
 void *handle = nullptr;
 
 void CopyStubSoToOppPath(const std::string &path_stub_so, const std::string &opp_path, const std::string &suffix) {
-  std::string inner_x86_opmaster_path = opp_path + suffix + kx86OpMasterPath;
+  std::string inner_x86_opmaster_path = opp_path + suffix + kOpMasterPath;
   GELOGD("inner_x86_opmaster_path:%s", inner_x86_opmaster_path.c_str());
   system(("mkdir -p " + inner_x86_opmaster_path).c_str());
   std::string opmaster_rt2_path = inner_x86_opmaster_path + "libopmaster_rt2.0.so";
@@ -34,7 +41,7 @@ void CopyStubSoToOppPath(const std::string &path_stub_so, const std::string &opp
   GELOGD("command: %s", command.c_str());
   system(command.c_str());
 
-  std::string inner_x86_opsproto_path = opp_path + suffix + kx86OpsProtoPath;
+  std::string inner_x86_opsproto_path = opp_path + suffix + kOpsProtoPath;
   GELOGD("inner_x86_opsproto_path:%s", inner_x86_opsproto_path.c_str());
   system(("mkdir -p " + inner_x86_opsproto_path).c_str());
   std::string opsproto_rt2_path = inner_x86_opsproto_path + "libopsproto_rt2.0.so";
@@ -105,7 +112,7 @@ std::vector<std::string> CreateSceneInfo() {
   std::string scene_info_path = opp_path + "scene.info";
   system(("touch " + scene_info_path).c_str());
   system(("echo 'os=linux' > " + scene_info_path).c_str());
-  system(("echo 'arch=x86_64' >> " + scene_info_path).c_str());
+  system(("echo 'arch=" + GetCurArch() + "' >> " + scene_info_path).c_str());
 
   return {scene_info_path, opp_path, model_path};
 }
@@ -141,7 +148,7 @@ void CreateOpmasterSoEnvInfoFunc(std::string opp_path) {
   system(("mkdir -p " + path_vendors).c_str());
   system(("echo 'load_priority=customize' > " + path_config).c_str());
 
-  std::string inner_x86_opmaster_path = opp_path + kInner + kx86OpMasterPath;
+  std::string inner_x86_opmaster_path = opp_path + kInner + kOpMasterPath;
   GELOGD("inner_x86_opmaster_path:%s", inner_x86_opmaster_path.c_str());
   system(("mkdir -p " + inner_x86_opmaster_path).c_str());
   std::string opmaster_rt2_path = inner_x86_opmaster_path + "libopmaster_rt2.0.so";
@@ -149,7 +156,7 @@ void CreateOpmasterSoEnvInfoFunc(std::string opp_path) {
   GELOGD("command: %s", command.c_str());
   system(command.c_str());
 
-  std::string inner_x86_opsproto_path = opp_path + kInner + kx86OpsProtoPath;
+  std::string inner_x86_opsproto_path = opp_path + kInner + kOpsProtoPath;
   GELOGD("inner_x86_opsproto_path:%s", inner_x86_opsproto_path.c_str());
   system(("mkdir -p " + inner_x86_opsproto_path).c_str());
   std::string opsproto_rt2_path = inner_x86_opsproto_path + "libopsproto_rt2.0.so";

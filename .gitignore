@@ -22,6 +22,8 @@
 .claude/skills/_remote/
 .claude/skills/gitcode-pr
 .claude/skills/gitcode-issue
+.claude/skills/api-doc-generator
+.claude/skills/gitcode-pipeline
 
 # IDE
 .vscode

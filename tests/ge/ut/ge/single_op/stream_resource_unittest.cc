@@ -80,10 +80,10 @@ TEST_F(UtestStreamResource, MallocMemory_NoReuseAllocated_WithoutExternalAllocat
   EXPECT_NE(res.MallocMemory("malloc mem", 10, false, mem), nullptr);
   EXPECT_NE(mem,  (ge::MemBlock *)0x01);
   EXPECT_EQ(res.internal_allocator_.memory_list_.size(), 1);
-  auto last_alloc = mem;
+  auto last_size = mem->GetSize();
   EXPECT_NE(res.MallocMemory("malloc mem", 2048, false, mem), nullptr);
   EXPECT_EQ(res.internal_allocator_.memory_list_.size(), 1);
-  EXPECT_NE(last_alloc, mem);
+  EXPECT_NE(last_size, mem->GetSize());
 }
 
 TEST_F(UtestStreamResource, MallocMemory_MockRtMallocFail_WithoutExternalAllocator) {
