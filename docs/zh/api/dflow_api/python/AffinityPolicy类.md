@@ -21,7 +21,7 @@ def __init__(self, inner_type):
     self.inner_type = inner_type
 ```
 
->![](public_sys-resources/icon-note.gif) **说明：**
+>[!NOTE]说明
 >按行和按列亲和的策略只用于设置[BalanceConfig](BalanceConfig构造函数.md)均衡分发。
 
 ## 参数说明

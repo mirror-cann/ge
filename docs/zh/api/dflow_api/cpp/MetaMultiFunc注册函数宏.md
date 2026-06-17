@@ -17,7 +17,7 @@
 FLOW_FUNC_REGISTRAR(clazz)
 ```
 
->![](public_sys-resources/icon-note.gif) **说明：**
+>[!NOTE]说明
 >该函数的使用示例如下：
 >FLOW\_FUNC\_REGISTRAR\(UserFlowFunc\).RegProcFunc\("xxx\_func", &UserFlowFunc::Proc1\).RegProcFunc\("xxx\_func", &UserFlowFunc::Proc2\);
 
