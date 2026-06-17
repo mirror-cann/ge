@@ -769,6 +769,10 @@ ge::graphStatus AutofuseNodeWithMatmulTiling(const ge::Operator &op, const fe::P
                                              OpRunInfoV2 &run_info, ge::ConstNodePtr node) {
   ge::Operator matmul_op = ge::OpDescUtils::CreateOperatorFromNode(node);
   auto op_desc = ge::OpDescUtils::GetOpDescFromOperator(matmul_op);
+  // CV自动融合场景强制设置offset_x为0x80，触发isForceBasicApi
+  auto node_op_desc = node->GetOpDesc();
+  (void)ge::AttrUtils::SetInt(node_op_desc, "offset_x", 0x80);
+  (void)ge::AttrUtils::SetInt(op_desc, "offset_x", 0x80);
   const auto &space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry(
       static_cast<gert::OppImplVersionTag>(op_desc->GetOppImplVersion()));
   GE_ASSERT_NOTNULL(space_registry);
