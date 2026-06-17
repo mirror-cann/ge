@@ -89,6 +89,7 @@ HcclResult GetOffDeviceTypeWithoutDev(DevType &devType) {
 #else
     tempDevType = DevType::DEV_TYPE_910_95;
 #endif
+    devType = tempDevType;
     return HCCL_SUCCESS;
   }
 
@@ -96,7 +97,7 @@ HcclResult GetOffDeviceTypeWithoutDev(DevType &devType) {
     tempDevType = DevType::DEV_TYPE_MC62;
     return HCCL_SUCCESS;
   }
-  
+
   auto iter = SOC_VER_CONVERT.find(socVersion);
   if (iter == SOC_VER_CONVERT.end()) {
     HCCL_ERROR("[Get][DeviceType]errNo[0x%016llx] rtGetSocVersion get illegal chipver, chip_ver[%s].",
@@ -120,6 +121,15 @@ HcclResult GetOffDeviceTypeWithoutDev(DevType &devType) {
   return HCCL_SUCCESS;
 }
 
+static bool IsStrictDeterministicSupported(DevType devType) {
+#ifdef MACRO_DEV_TYPE_NEW
+  return devType == DevType::DEV_TYPE_910B || devType == DevType::DEV_TYPE_910_93 || devType == DevType::DEV_TYPE_950;
+#else
+  return devType == DevType::DEV_TYPE_910B || devType == DevType::DEV_TYPE_910_93 ||
+         devType == DevType::DEV_TYPE_910_95;
+#endif
+}
+
 HcclResult GetDeterministic(u8 &deterministic) {
   deterministic = DETERMINISTIC_DISABLE;  // 默认为不支持
   DevType devType;
@@ -136,7 +146,7 @@ HcclResult GetDeterministic(u8 &deterministic) {
     } else if (hcclDeterministicEnv == "TRUE") {
       deterministic = DETERMINISTIC_ENABLE;
     } else if (hcclDeterministicEnv == "STRICT") {
-      CHK_PRT_RET(devType != DevType::DEV_TYPE_910B && devType != DevType::DEV_TYPE_910_93,
+      CHK_PRT_RET(!IsStrictDeterministicSupported(devType),
                   HCCL_ERROR("ParserHcclDeterministic: "
                              "reduce order preservation is not supported for devType[%d]",
                              devType),
@@ -154,7 +164,7 @@ HcclResult GetDeterministic(u8 &deterministic) {
       if (geOption == "1") {
         deterministic = DETERMINISTIC_ENABLE;
       } else if (geOption == "2") {
-        CHK_PRT_RET(devType != DevType::DEV_TYPE_910B && devType != DevType::DEV_TYPE_910_93,
+        CHK_PRT_RET(!IsStrictDeterministicSupported(devType),
                     HCCL_ERROR("ParserHcclDeterministic: "
                                "reduce order preservation is not supported for devType[%d]",
                                devType),
