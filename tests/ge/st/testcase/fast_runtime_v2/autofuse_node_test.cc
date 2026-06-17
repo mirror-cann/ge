@@ -25,6 +25,7 @@
 #include "engine/gelocal/inputs_converter.h"
 #include "framework/ge_runtime_stub/include/common/bg_test.h"
 #include "graph_metadef/graph/utils/file_utils.h"
+#include "graph/debug/ge_attr_define.h"
 
 using namespace ge;
 namespace gert {
@@ -224,6 +225,22 @@ TEST_F(AutofuseNodeST, CheckAutofuseSoNoBinFileBuffer) {
   ASSERT_FALSE(autofuse_ret.result.IsSuccess());
 
   graph->DelExtAttr("bin_file_buffer");
+}
+
+TEST_F(AutofuseNodeST, LoweringDataNodeSetHostTensorPlacement) {
+  auto graph = BuildAutofuseGraph();
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("AscBackend", false).Build();
+  global_data.SetExternalAllocator(nullptr, ExecuteGraphType::kInit);
+  global_data.SetExternalAllocator(nullptr, ExecuteGraphType::kMain);
+  LowerInput data_input = {{}, {}, &global_data};
+
+  auto data0 = graph->FindNode("data0");
+  ASSERT_NE(data0, nullptr);
+  (void)ge::AttrUtils::SetBool(data0->GetOpDesc(), ge::ATTR_NAME_HOST_TENSOR, true);
+  auto data0_ret = LoweringDataNode(data0, data_input);
+  ASSERT_TRUE(data0_ret.result.IsSuccess());
+  ASSERT_EQ(data0_ret.out_addrs[0]->GetPlacement(), static_cast<int32_t>(kOnHost));
 }
 }
 }

@@ -14,6 +14,8 @@
 #include <gtest/gtest.h>
 #include "ge_graph_dsl/graph_dsl.h"
 #include "engine/gelocal/inputs_converter.h"
+#include "graph/debug/ge_attr_define.h"
+#include "graph/ge_local_context.h"
 #include "graph/utils/graph_utils.h"
 #include "graph/utils/graph_utils_ex.h"
 #include "graph_builder/value_holder_generator.h"
@@ -602,5 +604,23 @@ TEST_F(AutofuseNodeUT, autofuse_so_offline_no_bin_file_buffer_test) {
   ASSERT_FALSE(autofuse_ret.result.IsSuccess());
 
   graph->DelExtAttr("bin_file_buffer");
+}
+
+TEST_F(AutofuseNodeUT, lowering_data_node_set_host_tensor_placement_test) {
+  auto graph = BuildAutofuseGraph();
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("AscBackend", false).Build();
+  global_data.SetExternalAllocator(nullptr, ExecuteGraphType::kInit);
+  global_data.SetExternalAllocator(nullptr, ExecuteGraphType::kMain);
+  bg::LowerConstDataNode(global_data);
+  LowerInput data_input = {{}, {}, &global_data};
+
+  // Case 1: 设置 ATTR_NAME_HOST_TENSOR = true，验证 placement 为 kOnHost
+  auto data0 = graph->FindNode("data0");
+  ASSERT_NE(data0, nullptr);
+  (void)ge::AttrUtils::SetBool(data0->GetOpDesc(), ge::ATTR_NAME_HOST_TENSOR, true);
+  auto data0_ret = LoweringDataNode(data0, data_input);
+  ASSERT_TRUE(data0_ret.result.IsSuccess());
+  ASSERT_EQ(data0_ret.out_addrs[0]->GetPlacement(), static_cast<int32_t>(kOnHost));
 }
 }

@@ -74,6 +74,20 @@ const ge::GeTensor *GetWeightFromResourceCenter(const ge::NodePtr &node, gert::L
   return weight_resource->GetWeight();
 }
 } // namespace
+
+void SetFeedDataPlacement(const ge::NodePtr &node, const bg::ValueHolderPtr &address, int32_t index) {
+  bool is_host_tensor = false;
+  (void)ge::AttrUtils::GetBool(node->GetOpDesc(), ge::ATTR_NAME_HOST_TENSOR, is_host_tensor);
+  if (is_host_tensor) {
+    address->SetPlacement(kOnHost);
+    GELOGI("Data node [%s] index=%d, is host tensor, set placement onHost", node->GetNamePtr(), index);
+  } else if (IsInputPlacementOnDeviceHbm()) {
+    address->SetPlacement(kOnDeviceHbm);
+  } else {
+    address->SetPlacement(kTensorPlacementEnd);
+  }
+}
+
 void VecToSmallVec(const std::vector<int64_t> &src, Shape &dst) {
   dst.SetDimNum(0);
   for (const auto &src_data : src) {
@@ -243,12 +257,7 @@ LowerResult LoweringDataNode(const ge::NodePtr &node, const LowerInput &lower_in
                                                            logic_stream_id);
   CONVERTER_CHECK_HOLDERS_ALL_OK(split_outputs, static_cast<size_t>(kernel::SplitTensorOutputs::kNum));
   auto address = split_outputs[static_cast<size_t>(kernel::SplitTensorOutputs::kTensorData)];
-  // unknown placement when lowering data node
-  if (IsInputPlacementOnDeviceHbm()) {
-    address->SetPlacement(kOnDeviceHbm);
-  } else {
-    address->SetPlacement(kTensorPlacementEnd);
-  }
+  SetFeedDataPlacement(node, address, index);
   return {HyperStatus::Success(),
           {},
           {split_outputs[static_cast<size_t>(kernel::SplitTensorOutputs::kShape)]},

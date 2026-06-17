@@ -21,9 +21,11 @@
 #include "common/memory/tensor_trans_utils.h"
 #include "common/checker.h"
 #include "graph/ge_context.h"
+#include "graph/debug/ge_attr_define.h"
 #include "graph/manager/mem_manager.h"
 #include "graph/manager/host_mem_allocator.h"
 #include "graph/manager/host_mem_manager.h"
+#include "graph/utils/op_type_utils.h"
 #include "graph/utils/type_utils.h"
 #include "graph/utils/tensor_utils_ex.h"
 #include "graph/runtime_inference_context.h"
@@ -710,10 +712,31 @@ Status HybridModelRtV2Executor::CheckInputIsOnDevice() {
   // 如果输入Data是kOnDeviceHbm，后续rt2 lowering时就会减少构图，避免执行时判断是否需要H2D
   if (!run_ctx_.host_exec_flag_ && IsInputPlacementOnDeviceHbm()) {
     for (size_t i = 0U; i < num_inputs_; i++) {
-      GE_ASSERT_TRUE(rt_inputs_[i]->GetPlacement() == gert::kOnDeviceHbm);
+      if (!is_host_input_[i]) {
+        GE_ASSERT_TRUE(rt_inputs_[i]->GetPlacement() == gert::kOnDeviceHbm);
+      }
     }
   }
   return SUCCESS;
+}
+
+void HybridModelRtV2Executor::InitHostInputFlags(const ge::ComputeGraphPtr &root_graph) {
+  is_host_input_.resize(num_inputs_, false);
+  for (const auto &node : root_graph->GetDirectNode()) {
+    if (!OpTypeUtils::IsDataNode(node->GetType())) {
+      continue;
+    }
+    int32_t data_index = -1;
+    (void)AttrUtils::GetInt(node->GetOpDesc(), ATTR_NAME_INDEX, data_index);
+    if (data_index < 0 || static_cast<size_t>(data_index) >= num_inputs_) {
+      continue;
+    }
+    bool is_host = false;
+    (void)AttrUtils::GetBool(node->GetOpDesc(), ATTR_NAME_HOST_TENSOR, is_host);
+    is_host_input_[data_index] = is_host;
+    GELOGD("[IS-HOST-INPUT]Input[%d] data node [%s] is_host_tensor=%d", data_index, node->GetName().c_str(),
+           static_cast<int>(is_host));
+  }
 }
 
 Status HybridModelRtV2Executor::InitCtx() {
@@ -777,6 +800,15 @@ Status HybridModelRtV2Executor::Init(CallbackManager *const callback_manager) {
   GE_ASSERT_NOTNULL(ge_root_model);
   auto root_graph = ge_root_model->GetRootGraph();
   GE_ASSERT_NOTNULL(root_graph);
+  GE_ASSERT_SUCCESS(InitModelIdentity(ge_root_model, root_graph));
+  GE_ASSERT_SUCCESS(InitExecutorAndProfiler(ge_root_model));
+  GE_ASSERT_SUCCESS(InitIoDescriptors(root_graph));
+  GE_ASSERT_SUCCESS(InitModelArgsAndLoad());
+  return ge::SUCCESS;
+}
+
+Status HybridModelRtV2Executor::InitModelIdentity(
+    const std::shared_ptr<ge::GeRootModel> &ge_root_model, const ge::ComputeGraphPtr &root_graph) {
   name_ = root_graph->GetName();
   model_id_ = model_->GetModelId();
   ge_root_model->SetCurModelId(model_id_);
@@ -785,7 +817,11 @@ Status HybridModelRtV2Executor::Init(CallbackManager *const callback_manager) {
     GE_ASSERT_NOTNULL(named_model.second, "Compiled model of graph %s is nullptr", named_model.first.c_str());
     named_model.second->SetModelId(model_id_);
   }
+  return ge::SUCCESS;
+}
 
+Status HybridModelRtV2Executor::InitExecutorAndProfiler(
+    const std::shared_ptr<ge::GeRootModel> &ge_root_model) {
   executor_ =
       gert::RtV2ExecutorFactory::Create(ge_root_model, run_ctx_.dev_resource_allocator_, &run_ctx_.session_);
   GE_ASSERT_NOTNULL(executor_, "Failed create rt2 executor for model %s", name_.c_str());
@@ -799,7 +835,10 @@ Status HybridModelRtV2Executor::Init(CallbackManager *const callback_manager) {
     extend_info.stream = stream_;
     executor_->AddSubscriber(extend_info);
   }
+  return ge::SUCCESS;
+}
 
+Status HybridModelRtV2Executor::InitIoDescriptors(const ge::ComputeGraphPtr &root_graph) {
   auto model_input_desc = executor_->GetAllInputsDesc(num_inputs_);
   auto model_output_desc = executor_->GetAllOutputsDesc(num_outputs_);
   bool enable_dynamic_batch = false;
@@ -808,6 +847,7 @@ Status HybridModelRtV2Executor::Init(CallbackManager *const callback_manager) {
     GELOGI("Hybrid model of graph %s is multi batch, should exclude the last input", name_.c_str());
     num_inputs_--;
   }
+  InitHostInputFlags(root_graph);
   GELOGI("Hybrid model of graph %s has %zu inputs and %zu outputs", name_.c_str(), num_inputs_, num_outputs_);
   inputs_holder_.resize(num_inputs_);
   for (size_t i = 0U; i < num_inputs_; i++) {
@@ -840,6 +880,10 @@ Status HybridModelRtV2Executor::Init(CallbackManager *const callback_manager) {
     GE_ASSERT_NOTNULL(output_descs_.back(), "Failed create output %zu tensor desc", i);
     output_descs_.back()->SetOriginFormat(origin_format);
   }
+  return ge::SUCCESS;
+}
+
+Status HybridModelRtV2Executor::InitModelArgsAndLoad() {
   GELOGI("Load model of graph: %s, session: %lu, device: %u", run_ctx_.graph_name_.c_str(), run_ctx_.session_id_,
          run_ctx_.device_id_);
   gert::ModelExecuteArg model_args;
