@@ -93,7 +93,14 @@ bool ReadProtoFromText(const char_t *const file, google::protobuf::Message *cons
 
   google::protobuf::io::IstreamInputStream input(&fs);
   const bool ret = google::protobuf::TextFormat::Parse(&input, message);
-  GE_ASSERT_TRUE(ret, "[Parse][File]Through [google::protobuf::TextFormat::Parse] failed, file %s", file);
+  if (!ret) {
+    (void)REPORT_PREDEFINED_ERR_MSG(
+        "E13005",
+        std::vector<const char *>({"file"}),
+        std::vector<const char *>({file})
+    );
+    GELOGE(ge::FAILED, "[Parse][File]invoke [google::protobuf::TextFormat::Parse] failed, file %s", file);
+  }
   fs.close();
 
   return ret;
