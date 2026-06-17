@@ -150,7 +150,6 @@ class KernelTaskCodeBuilder : public TaskCodeBuilder {
   // ── 地址解析 handler（每个 OpArgType 对应一个）──
   std::vector<BodyItem> HandleInputOutputArg(const VarRef &a, const VarRef &ctx);
   std::vector<BodyItem> HandleWorkspaceArg(const VarRef &a, const VarRef &ctx);
-  std::vector<BodyItem> HandleConstTensorArg(const VarRef &a, const VarRef &ctx);
   std::vector<BodyItem> HandleLevel1DescArg(const VarRef &a, const VarRef &ctx);
   std::vector<BodyItem> HandleShapeInfoOrCustomValueArg(const VarRef &a);
   std::vector<BodyItem> HandlePlaceholderOrOptionalEmptyArg();

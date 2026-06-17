@@ -1978,16 +1978,14 @@ BodyItem KernelTaskCodeBuilder::BuildDispatchLoop(
           ast_.VarDecl(a, op.Arrow("argsInfo")[ast_.Var("", "j")]),
           ast_.VarDecl(ast_.Var("uint64_t", "_addr"), ast_.UInt(0)),
           ast_.Switch(ast_.Var("", "a").Attr("type"), std::vector<BodyItem>{
-              // INPUT / OUTPUT → 共享 handler（内部根据 a.type 区分）
+              // INPUT / OUTPUT / CONST_TENSOR → 共享 handler（内部根据 a.type 区分）
               ast_.Case(ast_.Var("", "OP_ARG_INPUT")),
               ast_.Case(ast_.Var("", "OP_ARG_OUTPUT")),
+              ast_.Case(ast_.Var("", "OP_ARG_CONST_TENSOR")),
               ast_.Block(HandleInputOutputArg(a, ctx)),
               // WORKSPACE
               ast_.Case(ast_.Var("", "OP_ARG_WORKSPACE")),
               ast_.Block(HandleWorkspaceArg(a, ctx)),
-              // CONST_TENSOR
-              ast_.Case(ast_.Var("", "OP_ARG_CONST_TENSOR")),
-              ast_.Block(HandleConstTensorArg(a, ctx)),
               // LEVEL1_DESC
               ast_.Case(ast_.Var("", "OP_ARG_LEVEL1_DESC")),
               ast_.Block(HandleLevel1DescArg(a, ctx)),
@@ -2089,7 +2087,8 @@ std::vector<BodyItem> KernelTaskCodeBuilder::HandleInputOutputArg(const VarRef &
         ast_.Var("", "io_tensors").Attr("back")().Addr(),
         a.Attr("data").Attr("tensor").Attr("args_offset")})),
     ast_.If(
-        a.Attr("type") == ast_.Var("", "OP_ARG_INPUT"),
+        a.Attr("type") == ast_.Var("", "OP_ARG_INPUT") ||
+            a.Attr("type") == ast_.Var("", "OP_ARG_CONST_TENSOR"),
         {ast_.Var("", "report_inputs").PushBack(ast_.Var("", "_entry"))},
         {ast_.Var("", "report_outputs").PushBack(ast_.Var("", "_entry"))}),
     ast_.Break(),
@@ -2113,22 +2112,6 @@ std::vector<BodyItem> KernelTaskCodeBuilder::HandleWorkspaceArg(
     ast_.Break(),
   };
 }
-
-std::vector<BodyItem> KernelTaskCodeBuilder::HandleConstTensorArg(
-    const VarRef &a, const VarRef &ctx) {
-  return {
-    ast_.Assign(ast_.Var("", "_addr"),
-        ast_.ReinterpretCast("uint64_t",
-            ast_.Call("ResolveOpAddr",
-                {a.Attr("addr").Attr("mem_src"),
-                 a.Attr("addr").Attr("offset"),
-                 ctx.Attr("total_dev_mem_ptr"),
-                 ctx.Attr("session_scope_mem_ptr"),
-                 ctx.Attr("constants")}))),
-    ast_.Break(),
-  };
-}
-
 std::vector<BodyItem> KernelTaskCodeBuilder::HandleLevel1DescArg(
     const VarRef &a, const VarRef &ctx) {
   return {

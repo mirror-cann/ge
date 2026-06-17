@@ -2408,11 +2408,12 @@ aclError DispatchOp(const OpDef *op, const DispatchOpContext &ctx) {
         switch (a.type) {
           case OP_ARG_INPUT:
           case OP_ARG_OUTPUT:
+          case OP_ARG_CONST_TENSOR:
           {
             _addr = reinterpret_cast<uint64_t>(ResolveOpAddr(a.addr.mem_src, a.addr.offset, ctx.total_dev_mem_ptr, ctx.session_scope_mem_ptr, ctx.constants));
             io_tensors.push_back(BuildOm2Tensor(reinterpret_cast<void *>(_addr), a.data.tensor.size, a.data.tensor.data_type, a.data.tensor.format, a.data.tensor.shape, a.data.tensor.num_shape_dims));
             Om2TaskIoEntry _entry = {&io_tensors.back(), a.data.tensor.args_offset};
-            if ((a.type == OP_ARG_INPUT)) {
+            if (((a.type == OP_ARG_INPUT) || (a.type == OP_ARG_CONST_TENSOR))) {
               report_inputs.push_back(_entry);
             } else {
               report_outputs.push_back(_entry);
@@ -2424,11 +2425,6 @@ aclError DispatchOp(const OpDef *op, const DispatchOpContext &ctx) {
             _addr = reinterpret_cast<uint64_t>(ResolveOpAddr(a.addr.mem_src, a.addr.offset, ctx.total_dev_mem_ptr, ctx.session_scope_mem_ptr, ctx.constants));
             report_workspace_addrs.push_back(_addr);
             report_workspace_sizes.push_back(a.data.tensor.size);
-            break;
-          }
-          case OP_ARG_CONST_TENSOR:
-          {
-            _addr = reinterpret_cast<uint64_t>(ResolveOpAddr(a.addr.mem_src, a.addr.offset, ctx.total_dev_mem_ptr, ctx.session_scope_mem_ptr, ctx.constants));
             break;
           }
           case OP_ARG_LEVEL1_DESC:
@@ -2883,11 +2879,12 @@ aclError DispatchOp(const OpDef *op, const DispatchOpContext &ctx) {
         switch (a.type) {
           case OP_ARG_INPUT:
           case OP_ARG_OUTPUT:
+          case OP_ARG_CONST_TENSOR:
           {
             _addr = reinterpret_cast<uint64_t>(ResolveOpAddr(a.addr.mem_src, a.addr.offset, ctx.total_dev_mem_ptr, ctx.session_scope_mem_ptr, ctx.constants));
             io_tensors.push_back(BuildOm2Tensor(reinterpret_cast<void *>(_addr), a.data.tensor.size, a.data.tensor.data_type, a.data.tensor.format, a.data.tensor.shape, a.data.tensor.num_shape_dims));
             Om2TaskIoEntry _entry = {&io_tensors.back(), a.data.tensor.args_offset};
-            if ((a.type == OP_ARG_INPUT)) {
+            if (((a.type == OP_ARG_INPUT) || (a.type == OP_ARG_CONST_TENSOR))) {
               report_inputs.push_back(_entry);
             } else {
               report_outputs.push_back(_entry);
@@ -2899,11 +2896,6 @@ aclError DispatchOp(const OpDef *op, const DispatchOpContext &ctx) {
             _addr = reinterpret_cast<uint64_t>(ResolveOpAddr(a.addr.mem_src, a.addr.offset, ctx.total_dev_mem_ptr, ctx.session_scope_mem_ptr, ctx.constants));
             report_workspace_addrs.push_back(_addr);
             report_workspace_sizes.push_back(a.data.tensor.size);
-            break;
-          }
-          case OP_ARG_CONST_TENSOR:
-          {
-            _addr = reinterpret_cast<uint64_t>(ResolveOpAddr(a.addr.mem_src, a.addr.offset, ctx.total_dev_mem_ptr, ctx.session_scope_mem_ptr, ctx.constants));
             break;
           }
           case OP_ARG_LEVEL1_DESC:
@@ -3780,11 +3772,12 @@ aclError DispatchOp(const OpDef *op, const DispatchOpContext &ctx) {
         switch (a.type) {
           case OP_ARG_INPUT:
           case OP_ARG_OUTPUT:
+          case OP_ARG_CONST_TENSOR:
           {
             _addr = reinterpret_cast<uint64_t>(ResolveOpAddr(a.addr.mem_src, a.addr.offset, ctx.total_dev_mem_ptr, ctx.session_scope_mem_ptr, ctx.constants));
             io_tensors.push_back(BuildOm2Tensor(reinterpret_cast<void *>(_addr), a.data.tensor.size, a.data.tensor.data_type, a.data.tensor.format, a.data.tensor.shape, a.data.tensor.num_shape_dims));
             Om2TaskIoEntry _entry = {&io_tensors.back(), a.data.tensor.args_offset};
-            if ((a.type == OP_ARG_INPUT)) {
+            if (((a.type == OP_ARG_INPUT) || (a.type == OP_ARG_CONST_TENSOR))) {
               report_inputs.push_back(_entry);
             } else {
               report_outputs.push_back(_entry);
@@ -3796,11 +3789,6 @@ aclError DispatchOp(const OpDef *op, const DispatchOpContext &ctx) {
             _addr = reinterpret_cast<uint64_t>(ResolveOpAddr(a.addr.mem_src, a.addr.offset, ctx.total_dev_mem_ptr, ctx.session_scope_mem_ptr, ctx.constants));
             report_workspace_addrs.push_back(_addr);
             report_workspace_sizes.push_back(a.data.tensor.size);
-            break;
-          }
-          case OP_ARG_CONST_TENSOR:
-          {
-            _addr = reinterpret_cast<uint64_t>(ResolveOpAddr(a.addr.mem_src, a.addr.offset, ctx.total_dev_mem_ptr, ctx.session_scope_mem_ptr, ctx.constants));
             break;
           }
           case OP_ARG_LEVEL1_DESC:

@@ -214,6 +214,7 @@ class TaskCodeBuilder : public Om2ModelClassGeneratorBase {
       {OP_ARG_INPUT,        &TaskCodeBuilder::BuildTensorDataField},
       {OP_ARG_OUTPUT,       &TaskCodeBuilder::BuildTensorDataField},
       {OP_ARG_WORKSPACE,    &TaskCodeBuilder::BuildWorkspaceDataField},
+      {OP_ARG_CONST_TENSOR, &TaskCodeBuilder::BuildTensorDataField},
       {OP_ARG_LEVEL1_DESC,  &TaskCodeBuilder::BuildCustomValueDataField},
       {OP_ARG_SHAPE_INFO,   &TaskCodeBuilder::BuildCustomValueDataField},
       {OP_ARG_CUSTOM_VALUE, &TaskCodeBuilder::BuildCustomValueDataField},
@@ -252,7 +253,7 @@ class TaskCodeBuilder : public Om2ModelClassGeneratorBase {
     }, true);
   }
 
-  // data.tensor（INPUT/OUTPUT）：{size, data_type, format, shape, num_shape_dims, args_offset}
+  // data.tensor（INPUT/OUTPUT/CONST_TENSOR）：{size, data_type, format, shape, num_shape_dims, args_offset}
   Arg BuildTensorDataField(const OpArgBuildData &a) const {
     std::vector<int64_t> padded_shape(kShapeMaxDims, 0);
     for (size_t i = 0; i < a.shape_dims.size() && i < kShapeMaxDims; ++i) {
