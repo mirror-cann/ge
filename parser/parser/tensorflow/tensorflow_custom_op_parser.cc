@@ -15,6 +15,7 @@
 #include <iostream>
 #include <regex>
 #include <dlfcn.h>
+#include <unistd.h>
 #include <memory>
 #include <mutex>
 #include "parser/common/convert/pb2json.h"
@@ -575,7 +576,7 @@ Status TensorFlowCustomOpParser::ParseCustomOp(const std::unordered_map<std::str
   // generate register code
   std::string all_reg_op_strings;
   GE_ASSERT_SUCCESS(BuildCustomOpStrings(custom_nodes_map, all_reg_op_strings));
-  const std::string out_dir("./custom_op_tmp");
+  const std::string out_dir("./custom_op_tmp_" + std::to_string(getpid()));
   const std::string header_path = out_dir + "/op_reg_custom.h";
   const std::string cc_path = out_dir + "/op_custom.cc";
   const std::string so_path = out_dir + "/lib_op_custom.so";

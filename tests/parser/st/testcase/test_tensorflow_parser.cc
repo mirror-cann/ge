@@ -9,6 +9,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <unistd.h>
 #include "file_utils.h"
 #include "parser/common/op_parser_factory.h"
 #include "parser/tensorflow/tensorflow_parser_internal.h"
@@ -5868,4 +5869,25 @@ TEST_F(STestTensorflowCustomOpParser, FullCoverage_AllBranches) {
   EXPECT_NE(reg_op.find("    .ATTR(dims, IntList, {1, 2})\n"), std::string::npos);
   EXPECT_NE(reg_op.find("    .ATTR(extra, String, \"extra_val\")\n"), std::string::npos);
 }
+
+TEST_F(STestTensorflowCustomOpParser, ParseCustomOp_OutDirContainsPid) {
+  const std::string old_dir = "./custom_op_tmp";
+  const std::string marker_file = old_dir + "/marker.txt";
+  EXPECT_EQ(ge::CreateDir(old_dir), 0);
+  EXPECT_EQ(TensorFlowCustomOpParser::WriteTextFile(marker_file, "marker"), SUCCESS);
+
+  NodeDef* node_def = InitNodeDefWithOpDefAttr();
+  std::unordered_map<std::string, const domi::tensorflow::NodeDef *> custom_nodes_map;
+  custom_nodes_map[node_def->name()] = node_def;
+  TensorFlowCustomOpParser parser;
+  Status ret_status = parser.ParseCustomOp(custom_nodes_map);
+  EXPECT_NE(ret_status, FAILED);
+
+  EXPECT_EQ(mmAccess(marker_file.c_str()), EN_OK);
+  EXPECT_EQ(TensorFlowCustomOpParser::DeleteTmpDirectoryContents(old_dir), SUCCESS);
+
+  delete node_def;
+  custom_nodes_map.clear();
+}
+
 } // namespace ge
