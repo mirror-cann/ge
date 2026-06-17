@@ -5,7 +5,7 @@
         <path value="runtime"/>
         <path value="runtime/bin"/>
     </dir_info>
-    <file_info value="bin" copy_type="delivery" src_path="" dst_path="bin" install_path="$(TARGET_ENV)/bin" install_type="devel" install_mod="550">
+    <file_info value="bin" copy_type="delivery" src_path="" dst_path="$(TARGET_ENV)/bin" install_path="$(TARGET_ENV)/bin" install_type="devel" install_mod="550">
         <file value="deployer_daemon" file_type="executable"/>
         <file value="npu_executor_main" file_type="executable"/>
         <file value="host_cpu_executor_main" file_type="executable"/>

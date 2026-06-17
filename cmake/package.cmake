@@ -363,14 +363,6 @@ if("dflow-executor" IN_LIST BUILD_COMPONENT)
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/dflow/deployer/monitor_cpu.sh
             DESTINATION ${ARCH_LINUX_PATH}/bin COMPONENT dflow-executor
             RENAME "monitor.sh")
-    # 兼容性处理：copy_all 模式下 expand_content_list 的 pkg_softlink 未被共享 package.py 处理，
-    # 直接在 cmake install 阶段创建 runtime/bin/monitor.sh -> ../../x86_64-linux/bin/monitor.sh
-    install(CODE "
-        set(symlink_dir \"\${CMAKE_INSTALL_PREFIX}/runtime/bin\")
-        file(MAKE_DIRECTORY \${symlink_dir})
-        execute_process(COMMAND ln -sfn ../../${ARCH_LINUX_PATH}/bin/monitor.sh monitor.sh
-                        WORKING_DIRECTORY \${symlink_dir})
-    " COMPONENT dflow-executor)
     install(TARGETS flow_func ${INSTALL_OPTIONAL}
             LIBRARY DESTINATION ${ARCH_LINUX_PATH}/devlib/linux/${TARGET_ARCH} COMPONENT dflow-executor)
     install(TARGETS flow_func ${INSTALL_OPTIONAL}
@@ -417,8 +409,8 @@ if(BUILD_COMPONENT)
     # Per-component build: BUILD_COMPONENT contains exactly one component.
     list(GET BUILD_COMPONENT 0 current_component)
     if("dflow-executor" IN_LIST BUILD_COMPONENT)
-        set_cann_cpack_config(${current_component} ENABLE_DEVICE "${ENABLE_BUILD_DEVICE}")
+        set_cann_cpack_config(${current_component} ENABLE_DEVICE "${ENABLE_BUILD_DEVICE}" PACKAGE_TYPE "${PACKAGE_TYPE}")
     else()
-        set_cann_cpack_config(${current_component})
+        set_cann_cpack_config(${current_component} PACKAGE_TYPE "${PACKAGE_TYPE}")
     endif()
 endif()

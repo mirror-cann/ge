@@ -42,9 +42,11 @@ usage() {
   echo "    -h, --help        Print usage"
   echo "    -v, --verbose     Show detailed build commands during the build process"
   echo "    -j<N>             Set the number of threads used for building GE, default is 8"
-  echo "    --ge_compiler   Build ge-compiler run package with kernel bin"
-  echo "    --ge_executor   Build ge-executor run package with kernel bin"
-  echo "    --dflow         Build dflow-executor run package with kernel bin"
+  echo "    --ge_compiler   Build ge-compiler package with kernel bin"
+  echo "    --ge_executor   Build ge-executor package with kernel bin"
+  echo "    --dflow         Build dflow-executor package with kernel bin"
+  echo "    --pkg-type=<TYPE>"
+  echo "                   Specify package type (TYPE option: run/rpm/deb), Default: run"
   echo "    --asan            Enable AddressSanitizer"
   echo "    --cov             Enable Coverage"
   echo "    --build-type=<TYPE>"
@@ -69,6 +71,17 @@ usage() {
 check_build_type() {
   arg_value="$1"
   if [ "X$arg_value" != "XRelease" ] && [ "X$arg_value" != "XDebug" ]; then
+    echo "Invalid value $arg_value for option --$2"
+    usage
+    exit 1
+  fi
+}
+
+# check value of pkg-type option
+# usage: check_pkg_type pkg-type
+check_pkg_type() {
+  arg_value="$1"
+  if [ "X$arg_value" != "Xrun" ] && [ "X$arg_value" != "Xrpm" ] && [ "X$arg_value" != "Xdeb" ]; then
     echo "Invalid value $arg_value for option --$2"
     usage
     exit 1
@@ -152,6 +165,8 @@ checkopts() {
   BUILD_METADEF="on"
   CMAKE_BUILD_TYPE="Release"
 
+  PACKAGE_TYPE="run"
+
   BUILD_COMPONENT=""
   BUILD_COMPONENT_COMPILER="ge-compiler"
   BUILD_COMPONENT_EXECUTOR="ge-executor"
@@ -159,7 +174,7 @@ checkopts() {
   BUILD_OUT_PATH="${BASEPATH}/build_out"
   
   # Process the options
-  parsed_args=$(getopt -a -o j:hvf: -l help,verbose,ge_compiler,ge_executor,dflow,asan,tsan,cov,rule_launch:,cann_3rd_lib_path:,extra-cmake-args:,output_path:,build_type:,build-type:,python_path:,enable-sign,sign-script:,version: -- "$@") || {
+  parsed_args=$(getopt -a -o j:hvf: -l help,verbose,ge_compiler,ge_executor,dflow,asan,tsan,cov,rule_launch:,cann_3rd_lib_path:,extra-cmake-args:,output_path:,build_type:,build-type:,pkg-type:,python_path:,enable-sign,sign-script:,version: -- "$@") || {
     usage
     exit 1
   }
@@ -220,6 +235,11 @@ checkopts() {
       --build-type)
         check_build_type "$2" build-type
         CMAKE_BUILD_TYPE="$2"
+        shift 2
+        ;;
+      --pkg-type)
+        check_pkg_type "$2" pkg-type
+        PACKAGE_TYPE="$2"
         shift 2
         ;;
       --extra-cmake-args)
@@ -432,6 +452,7 @@ build_single_pkg() {
         -D ENABLE_SIGN=${ENABLE_SIGN} \
         -D CUSTOM_SIGN_SCRIPT=${CUSTOM_SIGN_SCRIPT} \
         -D VERSION_INFO=${VERSION_INFO} \
+        -D PACKAGE_TYPE=${PACKAGE_TYPE} \
         -D ENABLE_BUILD_DEVICE=${ENABLE_BUILD_DEVICE} \
         -D USE_CXX11_ABI=${USE_CXX11_ABI} \
         -D LLVM_PATH=${LLVM_PATH} \

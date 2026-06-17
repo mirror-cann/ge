@@ -9,21 +9,21 @@
         <version>package/dflow-executor/version.xml</version>
         <cleanup>share/info/dflow-executor/script/cleanup.sh</cleanup>
         <parallel>true</parallel>
+        <copy_all>true</copy_all>
     </package_info>
     <version_info install="true" install_path="dflow-executor" install_own="$username:$usergroup" install_mod="440"/>
-    <copy_all>true</copy_all>
     <generate_info value="dflow-executor_version.h" dst_path="$(TARGET_ENV)/include/version" install_path="$(TARGET_ENV)/include/version" install_mod="440" install_type="devel" generator="version_header">
        <DFLOW_VERSION>$(ASCEND_VER)</DFLOW_VERSION>
        <DFLOW_TIMESTAMP>$(TIMESTAMP_NO)</DFLOW_TIMESTAMP>
     </generate_info>
-    <generate_info value="scene.info" dst_path="share/info/dflow-executor" install_path="share/info/dflow-executor" install_mod="440">
+    <generate_info value="scene.info" dst_path="share/info/dflow-executor" install_path="share/info/dflow-executor" install_mod="644">
         <os>$(OS_NAME)</os>
         <os_version>$(OS_VER)</os_version>
         <arch>$(ARCH)</arch>
     </generate_info>
     <file_info value="dflow-executor_script" copy_type="source" dst_path="share/info/dflow-executor" install_path="share/info/dflow-executor">
         <file value="script" entity="true"/>
-        <file value="version.info" dst_path="share/info/dflow-executor" install_path="share/info/dflow-executor"/>
+        <file value="version.info" dst_path="share/info/dflow-executor" install_path="share/info/dflow-executor" install_mod="440"/>
     </file_info>
     <block_info dependtree="false" dst_path="$(TARGET_ENV)" block_conf_path="ascend">
         <block name="EngineeringCommon"/>
