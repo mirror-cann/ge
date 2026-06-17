@@ -66,18 +66,6 @@ GfStatus ParseCommandLine(int32_t argc, char* argv[]);
  * @return     : unordered_map<string, string>, key is flag name, value is flag value
  */
 std::unordered_map<std::string, std::string> &GetUserOptions();
-
-/*
- * @brief      : check one flag value without updating parsed flag state
- * @return     : ==0 success; !=0 failure
- */
-GfStatus CheckFlagValue(const std::string &name, const std::string &value);
-
-/*
- * @brief      : set one flag value without recording it as a user command line option
- * @return     : ==0 success; !=0 failure
- */
-GfStatus SetFlagValue(const std::string &name, const std::string &value);
 } // namespace flgs
 } // namespace ge
 

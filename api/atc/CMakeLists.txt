@@ -10,8 +10,6 @@
 
 set(SRC_LIST
         "omg.cc"
-        "atc_flags.cc"
-        "atc_option_map.cc"
         "main_impl.cc"
         "cmd_flag_info.cc"
         )

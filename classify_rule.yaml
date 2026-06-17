@@ -122,7 +122,6 @@ graphengine:
       - runtime/v2/engine/aicpu
       - base/common/atrace
       - graph_metadef/graph/stub/stub_operator_factory_impl.cc
-      - api/atc/atc_flags.cc
   llt:
     ut_check:true
     st_check:true
