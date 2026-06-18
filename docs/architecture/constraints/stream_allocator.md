@@ -148,6 +148,7 @@
    - 主流分配完成后才能分配附着流
    - Event ID必须连续，通过Nodes2SyncInfos统一管理
    - 分档场景StreamLabel需要加档位信息
+   - 打了`ATTR_NAME_RTS_LABEL_NODE`属性的节点必须分配在默认流上（根图主流0，或子图父节点所在的流），不能跟随子图的stream_id。该约束在NodeStreamUpdatePass中执行，确保控制流标签节点（如LabelSet、LabelGotoEx、LabelSwitchByIndex等）与其父节点在同一流上执行，避免跨流控制流语义错误
 
 2. **动态shape约束**：
    - 多流开启时，ac_parallel_enable值只能是"0"、"1"、空

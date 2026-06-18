@@ -199,17 +199,15 @@ graphStatus DAGAdapter::RefreshStreamIdsToGE(
       continue;
     }
 
-    // Adapter 层过滤：跳过 Data/NetOutput 类型节点
-    AscendString node_type;
-    if (gnode->GetType(node_type) != GRAPH_SUCCESS) {
-      GELOGW("GetType failed for node %s, treat as unknown type and skip",
-             dag_node->GetName().c_str());
-      ++skip_count;
-      continue;
-    }
-    std::string type_str(node_type.GetString());
-    if (type_str == "Data" || type_str == "NetOutput") {
-      GELOGD("Skip Data/NetOutput node: %s", dag_node->GetName().c_str());
+    const auto compute_node = NodeAdapter::GNode2Node(*gnode);
+    auto op_desc = compute_node->GetOpDesc();
+    GE_ASSERT_NOTNULL(op_desc);
+    // Adapter 层过滤：跳过 NetOutput/Label相关的节点
+    const auto &node_type = op_desc->GetTypePtr();
+    bool rts_label_node = false;
+    (void) AttrUtils::GetBool(op_desc, ATTR_NAME_RTS_LABEL_NODE, rts_label_node);
+    if ((node_type == "NetOutput") || rts_label_node) {
+      GELOGD("Skip special node: %s", dag_node->GetName().c_str());
       ++filtered_count;
       continue;
     }
@@ -222,8 +220,7 @@ graphStatus DAGAdapter::RefreshStreamIdsToGE(
     }
 
     // 设置到GE
-    const auto compute_node = NodeAdapter::GNode2Node(*gnode);
-    const auto &origin_stream_id = compute_node->GetOpDesc()->GetStreamId();
+    const auto &origin_stream_id = op_desc->GetStreamId();
     if (origin_stream_id == INVALID_STREAM_ID) {
       GELOGD("Node %s origin stream id is invalid, skip", dag_node->GetName().c_str());
       ++skip_count;

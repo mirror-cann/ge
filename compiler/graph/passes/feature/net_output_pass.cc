@@ -301,7 +301,8 @@ Status NetOutputPass::AddCtrlEdgesBetweenLeafAndNetOutput(const ComputeGraphPtr 
 Status NetOutputPass::SetNetOutputFormat(const ge::NodePtr &net_output) const {
   auto op_desc = net_output->GetOpDesc();
   GE_ASSERT_NOTNULL(op_desc);
-  for (size_t i = 0U; i < op_desc->GetAllInputsDesc().size(); i++) {
+  auto input_size = op_desc->GetAllInputsSize();
+  for (size_t i = 0U; i < input_size; i++) {
     auto input_desc = op_desc->MutableInputDesc(i);
     GE_ASSERT_NOTNULL(input_desc);
     input_desc->SetFormat(FORMAT_ND);
