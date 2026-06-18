@@ -31,8 +31,7 @@
 #include "graph/passes/pass_utils.h"
 #include "api/aclgrph/option_utils.h"
 #include "common/context/local_context.h"
-#include "runtime/config.h"
-#include "runtime/dev.h"
+#include "rt_external_device.h"
 #include "common/ge_common/ge_types.h"
 #include "base/registry/op_impl_space_registry_v2.h"
 #include "graph_metadef/common/ge_common/util.h"
@@ -146,7 +145,7 @@ Status IsSupportTilingSink(gert::DataDependentInterpreter &ddi, bool &is_support
   if (!is_build_graph_offline) {
     int32_t value = 0;
     constexpr int32_t STUB_DEV_ID = 64;
-    GE_CHK_RT_RET(aclrtGetDeviceCapability(STUB_DEV_ID, ACL_FEATURE_TSCPU_TASK_UPDATE_SUPPORT_AIC_AIV, &value));
+    GE_CHK_ACL_RET(aclrtGetDeviceCapability(STUB_DEV_ID, ACL_FEATURE_TSCPU_TASK_UPDATE_SUPPORT_AIC_AIV, &value));
     if (value != ACL_DEV_FEATURE_SUPPORT) {
       GELOGD("tiling sink feature not support.");
       return SUCCESS;

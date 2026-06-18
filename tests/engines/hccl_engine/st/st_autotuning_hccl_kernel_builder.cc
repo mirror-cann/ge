@@ -31,7 +31,7 @@
 #include "hccl_stub.h"
 #include <stdlib.h>
 #include <pthread.h>
-#include <runtime/rt.h>
+#include "rt_external.h"
 #include <iostream>
 #include <fstream>
 #include "llt_hccl_stub_ge.h"

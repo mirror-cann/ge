@@ -18,6 +18,7 @@
 #include "ops_kernel_builder/aicore_ops_kernel_builder.h"
 #include "graph/utils/tensor_utils.h"
 #include "ops_kernel_builder/task_builder/superkernel_task_builder.h"
+#include "framework/common/runtime_model_ge.h"
 #include "ops_kernel_builder/task_builder/superkernel_args_format_utils.h"
 #include "graph/ge_context.h"
 #include "graph/ge_local_context.h"
@@ -410,7 +411,7 @@ TEST_F(SuperkernelTaskBuilderUT, get_arg_format_v2_null) {
 
 TEST_F(SuperkernelTaskBuilderUT, get_arg_format_v2) {
     domi::TaskDef task_def{};
-    task_def.set_type(RT_MODEL_TASK_KERNEL);
+    task_def.set_type(ACL_RT_MODEL_TASK_KERNEL);
     std::string args_format;
 
     ge::Status status = fe::GetArgFormatV2(task_def, args_format);
@@ -419,7 +420,7 @@ TEST_F(SuperkernelTaskBuilderUT, get_arg_format_v2) {
 
 TEST_F(SuperkernelTaskBuilderUT, get_arg_format_v2_all_kernel) {
     domi::TaskDef task_def{};
-    task_def.set_type(RT_MODEL_TASK_ALL_KERNEL);
+    task_def.set_type(ACL_RT_MODEL_TASK_ALL_KERNEL);
     std::string args_format;
 
     ge::Status status = fe::GetArgFormatV2(task_def, args_format);
@@ -454,7 +455,7 @@ TEST_F(SuperkernelTaskBuilderUT, kernel_launch_fail_1) {
 TEST_F(SuperkernelTaskBuilderUT, kernel_launch_fail_2) {
     std::string stub_func = "test_kernel";
     domi::TaskDef task_def = {};
-    task_def.set_type(RT_MODEL_TASK_KERNEL);
+    task_def.set_type(ACL_RT_MODEL_TASK_KERNEL);
     task_def.set_stream_id(1);
     domi::KernelDef *kernel_def = task_def.mutable_kernel();
     kernel_def->set_kernel_name("A"); 
@@ -524,7 +525,7 @@ TEST_F(SuperkernelTaskBuilderUT, get_spk_workspace_null) {
 
 TEST_F(SuperkernelTaskBuilderUT, set_taskdef_value) {
     domi::TaskDef task_def{};
-    task_def.set_type(RT_MODEL_TASK_KERNEL);
+    task_def.set_type(ACL_RT_MODEL_TASK_KERNEL);
     std::string args_format;
     ge::OpDescPtr op_desc = std::make_shared<ge::OpDesc>("A", "A");
 
@@ -534,7 +535,7 @@ TEST_F(SuperkernelTaskBuilderUT, set_taskdef_value) {
 
 TEST_F(SuperkernelTaskBuilderUT, get_arg_format) {
     domi::TaskDef task_def{};
-    task_def.set_type(RT_MODEL_TASK_PREPROCESS_KERNEL);
+    task_def.set_type(ACL_RT_MODEL_TASK_PREPROCESS_KERNEL);
     auto kernel_def = task_def.mutable_kernel();
     kernel_def->set_block_dim(24);
     auto kernel_context = kernel_def->mutable_context();
@@ -577,7 +578,7 @@ TEST_F(SuperkernelTaskBuilderUT, get_arg_format) {
 
 TEST_F(SuperkernelTaskBuilderUT, get_arg_format_2) {
     domi::TaskDef task_def{};
-    task_def.set_type(RT_MODEL_TASK_PREPROCESS_KERNEL);
+    task_def.set_type(ACL_RT_MODEL_TASK_PREPROCESS_KERNEL);
     auto kernel_def = task_def.mutable_kernel();
     kernel_def->set_block_dim(24);
     auto kernel_context = kernel_def->mutable_context();
@@ -618,7 +619,7 @@ TEST_F(SuperkernelTaskBuilderUT, get_arg_format_2) {
 
 TEST_F(SuperkernelTaskBuilderUT, get_arg_format_4) {
     domi::TaskDef task_def{};
-    task_def.set_type(RT_MODEL_TASK_KERNEL);
+    task_def.set_type(ACL_RT_MODEL_TASK_KERNEL);
     auto kernel_def = task_def.mutable_kernel();
     kernel_def->set_block_dim(24);
     auto kernel_context = kernel_def->mutable_context();
@@ -661,7 +662,7 @@ TEST_F(SuperkernelTaskBuilderUT, get_arg_format_4) {
 
 TEST_F(SuperkernelTaskBuilderUT, get_arg_format_3) {
     domi::TaskDef task_def{};
-    task_def.set_type(RT_MODEL_TASK_ALL_KERNEL);
+    task_def.set_type(ACL_RT_MODEL_TASK_ALL_KERNEL);
     auto kernel_def = task_def.mutable_kernel();
     kernel_def->set_block_dim(24);
     auto kernel_context = kernel_def->mutable_context();
@@ -703,7 +704,7 @@ TEST_F(SuperkernelTaskBuilderUT, get_arg_format_3) {
 
 TEST_F(SuperkernelTaskBuilderUT, set_arg_format_value) {
     domi::TaskDef task_def{};
-    task_def.set_type(RT_MODEL_TASK_KERNEL);
+    task_def.set_type(ACL_RT_MODEL_TASK_KERNEL);
     auto kernel_def = task_def.mutable_kernel();
     kernel_def->set_block_dim(24);
     auto kernel_context = kernel_def->mutable_context();
@@ -745,7 +746,7 @@ TEST_F(SuperkernelTaskBuilderUT, set_arg_format_value) {
 
 TEST_F(SuperkernelTaskBuilderUT, set_arg_format_value_1) {
     domi::TaskDef task_def{};
-    task_def.set_type(RT_MODEL_TASK_KERNEL);
+    task_def.set_type(ACL_RT_MODEL_TASK_KERNEL);
     auto kernel_def = task_def.mutable_kernel();
     kernel_def->set_block_dim(24);
     auto kernel_context = kernel_def->mutable_context();

@@ -11,7 +11,7 @@
 #ifndef FFTS_ENGINE_TASK_BUILDER_MODE_THREAD_TASK_BUILDER_H_
 #define FFTS_ENGINE_TASK_BUILDER_MODE_THREAD_TASK_BUILDER_H_
 
-#include <runtime/rt.h>
+#include "rt_external.h"
 #include "common/opskernel/ops_kernel_builder.h"
 #include "graph/compute_graph.h"
 #include "inc/ffts_error_codes.h"

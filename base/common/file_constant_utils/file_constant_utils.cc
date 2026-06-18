@@ -31,7 +31,7 @@
 #include "graph/utils/op_desc_utils_ex.h"
 #include "graph/utils/node_utils.h"
 #include "graph/utils/graph_utils.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "mmpa/mmpa_api.h"
 #include "base/err_mgr.h"
 #include "graph_metadef/common/ge_common/util.h"

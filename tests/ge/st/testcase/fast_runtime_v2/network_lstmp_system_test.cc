@@ -126,7 +126,7 @@ TEST_F(NetworkLstmpST, Lstmp_LaunchArgCorrect) {
   auto inputs = FakeTensors({2048}, 3);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.GetTensorList(),
@@ -175,7 +175,7 @@ TEST_F(NetworkLstmpST, Lstmp_LaunchArgCorrect) {
   auto dynamic_tiling = dynamic_launch_args->GetArgsTilingData<DynamicRnnV3Param>();
   ASSERT_EQ(dynamic_tiling->sequenceLength, 8);
   runtime_stub.Clear();
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 TEST_F(NetworkLstmpST, Lstmp_LaunchTilingArgsMatches) {
   auto exe_graph = GenerateLstmpExeGraph();
@@ -192,7 +192,7 @@ TEST_F(NetworkLstmpST, Lstmp_LaunchTilingArgsMatches) {
   auto inputs = FakeTensors({2048}, 3);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.GetTensorList(),
                                     outputs.size()),
@@ -203,6 +203,6 @@ TEST_F(NetworkLstmpST, Lstmp_LaunchTilingArgsMatches) {
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   ASSERT_TRUE(stub.CheckLaunchWhenStubTiling());
   stub.Clear();
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 }  // namespace gert

@@ -88,13 +88,13 @@ Status GraphExecutionContext::Synchronize(const rtStream_t rt_stream) {
   }
 
   if (rt_ret == ACL_ERROR_RT_STREAM_SYNC_TIMEOUT) {
-    GELOGE(rt_ret, "[Invoke][rtStreamSynchronizeWithTimeout] failed, ret:%d.", rt_ret);
-    REPORT_INNER_ERR_MSG("E19999", "rtStreamSynchronizeWithTimeout failed, ret:%d.", rt_ret);
+    GELOGE(rt_ret, "[Invoke][aclrtSynchronizeStreamWithTimeout] failed, ret:%d.", rt_ret);
+    REPORT_INNER_ERR_MSG("E19999", "aclrtSynchronizeStreamWithTimeout failed, ret:%d.", rt_ret);
     return FAILED;
   }
 
-  GELOGE(RT_FAILED, "[Invoke][rtStreamSynchronizeWithTimeout] failed, ret = %d", rt_ret);
-  REPORT_INNER_ERR_MSG("E19999", "invoke rtStreamSynchronizeWithTimeout failed, ret = %d", rt_ret);
+  GELOGE(RT_FAILED, "[Invoke][aclrtSynchronizeStreamWithTimeout] failed, ret = %d", rt_ret);
+  REPORT_INNER_ERR_MSG("E19999", "invoke aclrtSynchronizeStreamWithTimeout failed, ret = %d", rt_ret);
   return RT_FAILED;
 }
 

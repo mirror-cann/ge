@@ -14,7 +14,7 @@
 #include <cstdint>
 
 #include "common/ge_common/ge_types.h"
-#include "runtime/base.h"
+#include "rt_external_base.h"
 
 namespace ge {
 namespace dump {

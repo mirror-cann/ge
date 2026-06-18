@@ -414,8 +414,8 @@ Status FftsPlusTaskInfo::Distribute() {
 
   GE_CHK_RT_RET(ge::rtFftsPlusTaskLaunchWithFlag(&ffts_plus_task_info_, stream_, dump_flag_));
   GE_CHECK_NOTNULL(davinci_model_);
-  GE_CHK_RT_RET(aclrtGetThreadLastTaskId(&task_id_));
-  GE_CHK_RT_RET(aclrtStreamGetId(stream_, reinterpret_cast<int32_t*>(&stream_id_)));
+  GE_CHK_ACL_RET(aclrtGetThreadLastTaskId(&task_id_));
+  GE_CHK_ACL_RET(aclrtStreamGetId(stream_, reinterpret_cast<int32_t*>(&stream_id_)));
 
   std::shared_ptr<TilingContextAddr> default_ctx_ptr = nullptr;
   std::shared_ptr<TilingContextAddr> tiling_context_addr =

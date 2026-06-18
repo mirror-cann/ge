@@ -16,7 +16,7 @@
 #include "exe_graph/lowering/frame_selector.h"
 #include "graph/debug/ge_attr_define.h"
 #include "graph_builder/bg_checker.h"
-#include "runtime/rt.h"
+#include "rt_external.h"
 #include "storage_format.h"
 #include "value_holder_generator.h"
 #include "exe_graph/lowering/value_holder_utils.h"

@@ -55,7 +55,7 @@ Status IdentityNodeTask::DoCopyTensor(const TaskContext &context, const int32_t 
     const auto output = context.MutableOutput(index);
     GE_CHECK_NOTNULL(input);
     GE_CHECK_NOTNULL(output);
-    GE_CHK_RT_RET(aclrtMemcpyAsync(output->MutableData(),
+    GE_CHK_ACL_RET(aclrtMemcpyAsync(output->MutableData(),
                                 output->GetSize(),
                                 input->GetData(),
                                 static_cast<uint64_t>(copy_size),
@@ -78,9 +78,9 @@ Status NpuGetFloatStatusTask::ExecuteAsync(TaskContext &context, const std::func
   const auto output_addr = output->MutableData();
   const size_t args_size = sizeof(uint8_t *);
   if (args_ == nullptr) {
-    GE_CHK_RT_RET(ge::AclrtMalloc(&args_, args_size, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+    GE_CHK_ACL_RET(ge::AclrtMalloc(&args_, args_size, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
   }
-  GE_CHK_RT_RET(aclrtMemcpyAsync(args_, args_size, &output_addr, args_size, ACL_MEMCPY_HOST_TO_BUF_TO_DEVICE,
+  GE_CHK_ACL_RET(aclrtMemcpyAsync(args_, args_size, &output_addr, args_size, ACL_MEMCPY_HOST_TO_BUF_TO_DEVICE,
                        context.GetStream()));
 
   const uint32_t mode = 0U;

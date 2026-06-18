@@ -11,7 +11,7 @@
 #include "memory_kernel.h"
 
 #include <cinttypes>
-#include "runtime/rt.h"
+#include "rt_external.h"
 #include "common/checker.h"
 #include "kernel/memory.h"
 #include "register/kernel_registry.h"

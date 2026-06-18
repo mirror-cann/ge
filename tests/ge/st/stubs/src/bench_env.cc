@@ -11,7 +11,7 @@
 #include "utils/bench_env.h"
 #include <iostream>
 #include <vector>
-#include "runtime/rt.h"
+#include "rt_external.h"
 #include "framework/executor/ge_executor.h"
 #include "ge_graph_dsl/graph_dsl.h"
 #include "single_op/single_op.h"

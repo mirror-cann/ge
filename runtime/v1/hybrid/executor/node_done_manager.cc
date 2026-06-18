@@ -11,8 +11,8 @@
 #include "hybrid/executor/node_done_manager.h"
 #include <chrono>
 #include "framework/common/debug/ge_log.h"
-#include "runtime/base.h"
-#include "runtime/dev.h"
+#include "rt_external_base.h"
+#include "rt_external_device.h"
 #include "exec_runtime/execution_runtime_utils.h"
 
 namespace ge {

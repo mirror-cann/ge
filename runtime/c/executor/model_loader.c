@@ -11,8 +11,8 @@
 #include "model_loader.h"
 #include "maintain_manager.h"
 #include "model_manager.h"
-#include "runtime/rt_model.h"
-#include "runtime/mem.h"
+#include "rt_external_model.h"
+#include "rt_external_mem.h"
 #include "maintain_manager.h"
 
 typedef struct {
@@ -92,7 +92,7 @@ static ModelDescRefObj *CreateModelDescRefObj(void) {
   mdlDescRefObj->modelDesc.modelDbgHandle = NULL;
   InitModelInOutInfo(&mdlDescRefObj->modelDesc.ioInfo);
   InitModelFifoInfo(&mdlDescRefObj->modelDesc.fifoInfo);
-  mdlDescRefObj->modelDesc.memType = RT_MEMORY_DEFAULT;
+  mdlDescRefObj->modelDesc.memType = ACL_MEM_MALLOC_HUGE_FIRST;
   GELOGD("create model desc ref obj success.");
   return mdlDescRefObj;
 }

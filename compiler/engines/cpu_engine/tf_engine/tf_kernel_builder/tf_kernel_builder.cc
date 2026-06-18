@@ -16,7 +16,6 @@
 #include "util/tf_util.h"
 #include "error_code/error_code.h"
 #include "ir2tf/ir2tf_parser_factory.h"
-#include "runtime/kernel.h"
 #include "base/err_msg.h"
 #include "graph/debug/ge_attr_define.h"
 #include "graph/utils/graph_utils.h"
@@ -26,6 +25,8 @@
 #include"util/util.h"
 #include "common/sgt_slice_type.h"
 #include "tf_kernel_info/tf_kernel_info.h"
+#include "common/ge_rts_decl.h"
+#include "framework/common/runtime_model_ge.h"
 
 using domi::tensorflow::NodeDef;
 
@@ -244,7 +245,7 @@ ge::Status TfKernelBuilder::GenerateTask(const ge::Node &node, const ge::RunCont
       GenMemCopyTask(data_info_size, task, mem_copy_task_info);
 
       domi::TaskDef task_def;
-      task_def.set_type(RT_MODEL_TASK_KERNEL_EX);
+      task_def.set_type(ACL_RT_MODEL_TASK_KERNEL_EX);
       domi::KernelExDef *kernel_def_ex = task_def.mutable_kernel_ex();
       AICPU_CHECK_NOTNULL_ERRCODE(kernel_def_ex, ErrorCode::INPUT_PARAM_NULL);
       kernel_def_ex->set_args(reinterpret_cast<void *>(&task), sizeof(STR_FWK_OP_KERNEL));
@@ -611,7 +612,7 @@ ge::Status TfKernelBuilder::ConstructExtendInfoAndTaskdef(const ge::Node &node, 
               str_tf_kernel->extInfoLen, op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
 
   g_task_def.set_stream_id(op_desc_ptr->GetStreamId());
-  g_task_def.set_type(RT_MODEL_TASK_KERNEL_EX);
+  g_task_def.set_type(ACL_RT_MODEL_TASK_KERNEL_EX);
 
   g_task_def.set_sqe_num(kBasicTfOpSqeNumber);
   bool is_blocking_aicpu_op = false;

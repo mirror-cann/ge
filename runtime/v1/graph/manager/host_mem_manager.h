@@ -26,7 +26,7 @@
 #include "graph/ge_tensor.h"
 #include "graph/op_desc.h"
 #include "graph/tensor.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 
 namespace ge {
 struct SharedMemInfo {

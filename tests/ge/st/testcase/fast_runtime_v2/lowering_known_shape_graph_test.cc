@@ -17,7 +17,7 @@
 #include "faker/global_data_faker.h"
 #include "runtime/model_v2_executor.h"
 #include "common/bg_test.h"
-#include "runtime/dev.h"
+#include "acl/acl_rt.h"
 #include "kernel/memory/caching_mem_allocator.h"
 #include "stub/gert_runtime_stub.h"
 #include "op_impl/less_important_op_impl.h"
@@ -49,7 +49,7 @@ class KnownShapeGraphUnitTest : public bg::BgTest {
  protected:
   void SetUp() override {
     bg::BgTest::SetUp();
-    rtSetDevice(0);
+    aclrtSetDevice(0);
   }
 };
 
@@ -83,7 +83,7 @@ TEST_F(KnownShapeGraphUnitTest, ControlFlowNodeWithKnownShapeSubgraph) {
   auto output_holder = TensorFaker().Placement(kOnHost).DataType(ge::DT_INT64).Build();
   std::vector<Tensor *> outputs{output_holder.GetTensor()};
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ess->Clear();
@@ -95,6 +95,6 @@ TEST_F(KnownShapeGraphUnitTest, ControlFlowNodeWithKnownShapeSubgraph) {
   // todo 做一个基于图的校验方式，校验某个Node必然在另一个Node前面执行
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 }  // namespace gert

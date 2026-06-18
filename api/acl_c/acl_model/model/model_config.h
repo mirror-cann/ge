@@ -12,7 +12,7 @@
 #define ACL_MODEL_CONFIG_API_H_
 #include <stdbool.h>
 #include "acl/acl_mdl.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #define ACL_MDL_LOAD_TYPE_SIZET_BIT (0x1 << ACL_MDL_LOAD_TYPE_SIZET)
 #define ACL_MDL_PATH_PTR_BIT        (0x1 << ACL_MDL_PATH_PTR)
 #define ACL_MDL_MEM_ADDR_PTR_BIT    (0x1 << ACL_MDL_MEM_ADDR_PTR)

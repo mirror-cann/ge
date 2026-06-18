@@ -144,7 +144,7 @@ Status KnownNodeTask::Init(TaskContext &context) {
 Status KnownNodeTask::InitDavinciModel(const HybridModel &model, const TensorBuffer *const weight_buffer) {
   GELOGD("[Init][DavinciModel] start");
   int32_t device_id = 0;
-  GE_CHK_RT_RET(aclrtGetDevice(&device_id));
+  GE_CHK_ACL_RET(aclrtGetDevice(&device_id));
   davinci_model_->SetDeviceId(static_cast<uint32_t>(device_id));
   davinci_model_->InitRuntimeParams();
   GE_CHK_STATUS_RET(davinci_model_->InitVariableMem(), "[Init][VariableMem] failed");

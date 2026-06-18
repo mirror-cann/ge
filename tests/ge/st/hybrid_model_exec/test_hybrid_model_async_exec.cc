@@ -11,7 +11,7 @@
 #include <tuple>
 #include <gtest/gtest.h>
 #include "acl/acl_rt.h"
-#include "runtime/rt.h"
+#include "rt_external.h"
 #include "macro_utils/dt_public_scope.h"
 #include "framework/executor/ge_executor.h"
 #include "graph_builder/bg_memory.h"
@@ -340,7 +340,7 @@ TEST_F(HybridModelAsyncTest, test_pipeline_stage_execute_success) {
   config.num_executors = 2;
   config.num_stages = 1;
   config.iteration_end = 2;
-  rtCtxGetCurrent(&config.rt_context);
+  aclrtGetCurrentContext(&config.rt_context);
 
   HybridModelPipelineExecutor pip_executor(&hybrid_model, 1, nullptr);
   HybridModelExecutor::ExecuteArgs args;
@@ -360,7 +360,7 @@ TEST_F(HybridModelAsyncTest, test_pipeline_stage_execute_success) {
   StageExecutor::StageTask task_info_1;
   task_info_1.stage = 0;
   task_info_1.iteration = 0;
-  EXPECT_EQ(rtEventCreate(&task_info_1.event), RT_ERROR_NONE);
+  EXPECT_EQ(aclrtCreateEvent(&task_info_1.event), RT_ERROR_NONE);
   EXPECT_EQ(executor.ExecuteAsync(task_info_1), SUCCESS);
   EXPECT_EQ(executor.Start({}, {}, 2), SUCCESS);
 
@@ -370,21 +370,21 @@ TEST_F(HybridModelAsyncTest, test_pipeline_stage_execute_success) {
   const char_t *const kEnvRecordPath = "CONSTANT_FOLDING_PASS_9";
   char_t record_path[MMPA_MAX_PATH] = "mock_fail";
   mmSetEnv(kEnvRecordPath, &record_path[0U], MMPA_MAX_PATH);
-  EXPECT_EQ(rtEventCreate(&task_info_2.event), RT_ERROR_NONE);
+  EXPECT_EQ(aclrtCreateEvent(&task_info_2.event), RT_ERROR_NONE);
   EXPECT_EQ(executor.ExecuteAsync(task_info_2), SUCCESS);
   EXPECT_NE(executor.Start({}, {}, 2), SUCCESS);
 
   StageExecutor::StageTask task_info_3;
   task_info_3.stage = 0;
   task_info_3.iteration = 2;
-  EXPECT_EQ(rtEventCreate(&task_info_3.event), RT_ERROR_NONE);
+  EXPECT_EQ(aclrtCreateEvent(&task_info_3.event), RT_ERROR_NONE);
   EXPECT_EQ(executor.ExecuteAsync(task_info_3), SUCCESS);
   EXPECT_NE(executor.Start({}, {}, 2), SUCCESS);
 
   // release the memory held by task_info.event
   // task_info_2 and task_info_3 need to be released
-  EXPECT_EQ(rtEventDestroy(task_info_2.event), RT_ERROR_NONE);
-  EXPECT_EQ(rtEventDestroy(task_info_3.event), RT_ERROR_NONE);
+  EXPECT_EQ(aclrtDestroyEvent(task_info_2.event), RT_ERROR_NONE);
+  EXPECT_EQ(aclrtDestroyEvent(task_info_3.event), RT_ERROR_NONE);
 
   executor.ExecuteEndTaskAndReleae();
   executor.Reset();

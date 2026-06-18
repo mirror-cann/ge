@@ -144,7 +144,7 @@ TEST(UtestRtVarManager, restore_varibles_external_var) {
   auto rt_var_manager = ModelRtVarManager::Instance(default_session_id);
   ASSERT_NE(rt_var_manager, nullptr);
   void *var_addr = nullptr;
-  rtMalloc(&var_addr, 204800, RT_MEMORY_DEFAULT,GE_MODULE_NAME_U16);
+  aclrtMalloc(&var_addr, 204800, ACL_MEM_MALLOC_HUGE_FIRST);
   EXPECT_EQ(rt_var_manager->Init(0, 0, 204800, var_addr, 204800), SUCCESS);
 
   auto var_manager = VarManager::Instance(default_session_id);
@@ -173,7 +173,7 @@ TEST(UtestRtVarManager, restore_varibles_external_var) {
   gert::TensorData rt_tensor_data;
   EXPECT_EQ(rt_var_manager->GetVarShapeAndMemory("var0", rt_shape, rt_tensor_data), SUCCESS);
   EXPECT_NE(rt_var_manager->GetVarShapeAndMemory("constant", rt_shape, rt_tensor_data), SUCCESS);
-  rtFree(var_addr);
+  aclrtFree(var_addr);
   VarManager::Instance(default_session_id)->Destory();
 }
 }  // namespace ge

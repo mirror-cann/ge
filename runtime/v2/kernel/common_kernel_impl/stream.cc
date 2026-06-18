@@ -13,7 +13,7 @@
 #include "utils/utils.h"
 #include "core/debug/kernel_tracing.h"
 #include "common/checker.h"
-#include "runtime/stream.h"
+#include "rt_external_stream.h"
 
 namespace gert {
 ge::graphStatus SyncStream(KernelContext *context) {

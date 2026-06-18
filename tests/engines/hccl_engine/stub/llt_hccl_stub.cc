@@ -8,7 +8,7 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-#include <runtime/rt.h>
+#include "rt_external.h"
 #include <hccl/base.h>
 #include <hccl/hccl_types.h>
 #include <securec.h>
@@ -22,8 +22,8 @@
 #include <fcntl.h>           /* For O_* constants */
 #include <arpa/inet.h>
 #include <time.h>
-#include <runtime/base.h>
-#include <runtime/dev.h>
+#include "rt_external_base.h"
+#include "rt_external_device.h"
 #include <map>
 #include <stdlib.h>
 #include <set>
@@ -33,7 +33,7 @@
 #include "hccl_stub.h"
 #include "llt_hccl_stub_fp16.h"
 #include "hcom_acl_adapter.h"
-#include <runtime/kernel.h>
+#include "rt_external_kernel.h"
 #include "mmpa_api.h"
 #include "acl/acl_rt.h"
 
@@ -178,7 +178,7 @@ int dlog_setlevel(int moduleId, int level, int enableEvent)
  * @return RT_ERROR_INVALID_RESOURCE_HANDLE for error input stream handle
  * @return ACL_ERROR_RT_PARAM_INVALID for error input priority
  */
-rtError_t rtStreamCreate(rtStream_t* stream, int32_t priority)
+aclError aclrtCreateStreamWithConfig(aclrtStream *stream, uint32_t priority, uint32_t flag)
 {
     // Mod for optimize runtime Stub by l on 2018-01-11 Below
     stream_class* rtstream;
@@ -255,7 +255,7 @@ rtError_t rtGetMaxStreamAndTask(uint32_t streamType, uint32_t *maxStrCount, uint
  */
 rtError_t rtStreamCreateWithFlags(rtStream_t * stream, int32_t priority, uint32_t flags)
 {
-    return rtStreamCreate(stream, priority);
+    return aclrtCreateStreamWithConfig(stream, priority, 0);
 }
 
 aclError aclrtSetStreamAttribute(aclrtStream stream, aclrtStreamAttr stmAttrType, aclrtStreamAttrValue *value)
@@ -278,7 +278,7 @@ std::map<uint64_t, std::vector<void *>> g_tidStreamMap;
  * @return RT_ERROR_NONE for ok
  * @return RT_ERROR_INVALID_RESOURCE_HANDLE for error input stream handle
  */
-rtError_t rtStreamDestroy(rtStream_t stream)
+aclError aclrtDestroyStream(aclrtStream stream)
 {
     // Mod for optimize runtime Stub by l on 2018-01-11 Below
     stream_class* rtstream = NULL;
@@ -351,7 +351,7 @@ void* rtIpcOpenBasePtrLookup(const void *ptr)
 
 aclError aclrtDestroyStreamForce(aclrtStream stream)
 {
-    return rtStreamDestroy(stream);
+    return aclrtDestroyStream(stream);
 }
 
 /**

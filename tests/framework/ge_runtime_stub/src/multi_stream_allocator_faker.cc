@@ -40,7 +40,7 @@ MultiStreamAllocatorFaker::Holder MultiStreamAllocatorFaker::Build() const {
 
   for (int64_t i = 0; i < stream_num_; ++i) {
     rtStream_t stream;
-    rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIMARY_DEFAULT));
+    aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIMARY_DEFAULT), 0);
     auto allocator = std::make_unique<MultiStreamL2Allocator>(holder.l1_allocator.get(), placement_, i, stream,
                                                               l2_allocators, all_l2_mem_pool);
     l2_allocators_vec[i] = allocator.get();
@@ -62,7 +62,7 @@ GertTensorData MultiStreamAllocatorFaker::Holder::Alloc(int64_t stream_id, size_
 }
 MultiStreamAllocatorFaker::Holder::~Holder() {
   for (auto stream : streams) {
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
   }
   auto deleter = [](void *ptr) {
     delete [] static_cast<uint8_t *>(ptr);

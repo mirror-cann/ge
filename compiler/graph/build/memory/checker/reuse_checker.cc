@@ -19,7 +19,7 @@
 #include "graph/build/memory/block_mem_assigner.h"
 #include "graph/optimize/mem_layout_conflict_optimize/mem_layout_conflict_util.h"
 #include "graph/unfold/graph_unfolder.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "node_checker_utils.h"
 
 namespace ge {

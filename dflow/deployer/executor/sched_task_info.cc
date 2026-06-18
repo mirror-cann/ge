@@ -440,7 +440,7 @@ Status SchedTaskNotifyWait::Init(const uint32_t notify_id) {
   GE_PRINT_DYNAMIC_MEMORY(aclrtMalloc, "args data.", args_size_);
   AicpuNotifyKernelArgs notify_param{};
   notify_param.notify_id = notify_id;
-  GE_CHK_RT_RET(aclrtMemcpy(args_, args_size_, &notify_param, sizeof(notify_param), ACL_MEMCPY_HOST_TO_DEVICE));
+  GE_CHK_ACL_RET(aclrtMemcpy(args_, args_size_, &notify_param, sizeof(notify_param), ACL_MEMCPY_HOST_TO_DEVICE));
   return SUCCESS;
 }
 

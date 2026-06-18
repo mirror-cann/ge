@@ -9,7 +9,7 @@
  */
 
 #include "error_tracking.h"
-#include "runtime/rt.h"
+#include "rt_external.h"
 #include "framework/common/debug/log.h"
 #include "graph/debug/ge_attr_define.h"
 #include "graph/utils/attr_utils.h"

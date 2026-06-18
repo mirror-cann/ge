@@ -51,6 +51,7 @@ if(${TARGET_SYSTEM_NAME} STREQUAL "Linux")
         ${AIR_CODE_DIR}/inc/external
         ${AIR_CODE_DIR}/inc/framework/executor_c/c_base
         ${AIR_CODE_DIR}/inc/framework/executor_c/c_mmpa
+        ${TOP_DIR}/runtime/include/external
     )
 
     target_compile_options(ge_dbg_c PRIVATE
@@ -100,6 +101,7 @@ elseif(${TARGET_SYSTEM_NAME} STREQUAL "LiteOS")
         ${AIR_CODE_DIR}/inc/external
         ${AIR_CODE_DIR}/inc/framework/executor_c/c_base
         ${AIR_CODE_DIR}/inc/framework/executor_c/c_mmpa
+        ${TOP_DIR}/runtime/include/external
     )
 
     target_compile_options(ge_dbg_c_static_stub PRIVATE
@@ -145,6 +147,7 @@ elseif(${TARGET_SYSTEM_NAME} STREQUAL "LiteOS")
         ${AIR_CODE_DIR}/inc/external
         ${AIR_CODE_DIR}/inc/framework/executor_c/c_base
         ${AIR_CODE_DIR}/inc/framework/executor_c/c_mmpa
+        ${TOP_DIR}/runtime/include/external
     )
 
     target_compile_options(ge_dbg_c_static_debug PRIVATE

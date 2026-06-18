@@ -9,6 +9,8 @@
  */
 #include "superkernel_args_format_utils.h"
 #include "common/fe_log.h"
+#include "common/ge_rts_decl.h"
+#include "framework/common/runtime_model_ge.h"
 #include "platform/platform_info.h"
 
 namespace fe {
@@ -70,13 +72,13 @@ ge::Status GetWorkspacePattern(const ge::Node &node, std::string &super_kernel_a
 
 ge::Status GetArgFormatV2(domi::TaskDef &task_temp, std::string &args_format) {
     args_format = "";
-    if (task_temp.type() == RT_MODEL_TASK_KERNEL || (task_temp.type() == RT_MODEL_TASK_PREPROCESS_KERNEL)) {
+    if (task_temp.type() == ACL_RT_MODEL_TASK_KERNEL || (task_temp.type() == ACL_RT_MODEL_TASK_PREPROCESS_KERNEL)) {
         auto kernel_def = task_temp.mutable_kernel();
         FE_CHECK_NOTNULL(kernel_def);
         auto kernel_context = kernel_def->mutable_context();
         FE_CHECK_NOTNULL(kernel_context);
         args_format = kernel_context->args_format();
-    } else if(task_temp.type() == RT_MODEL_TASK_ALL_KERNEL) {
+    } else if(task_temp.type() == ACL_RT_MODEL_TASK_ALL_KERNEL) {
         auto kernel_def_with_handle = task_temp.mutable_kernel_with_handle();
         FE_CHECK_NOTNULL(kernel_def_with_handle);
         auto kernel_context_with_handle = kernel_def_with_handle->mutable_context();
@@ -122,7 +124,7 @@ bool IsAICpuKernelType(ge::ccKernelType kernel_type) {
 
 bool KernelLaunch(const std::string &stub_func, const uint32_t block_dim, const void *args,
                                 uint32_t args_size, const rtSmDesc_t *sm_desc, domi::TaskDef &task_def) {
-    task_def.set_type(static_cast<uint32_t>(RT_MODEL_TASK_KERNEL));
+    task_def.set_type(static_cast<uint32_t>(ACL_RT_MODEL_TASK_KERNEL));
     domi::KernelDef *kernel_def = task_def.mutable_kernel();
     if (kernel_def == nullptr) {
         FE_LOGE("[GenTask][KernelLaunch] kernel_def is nullptr.");
@@ -177,21 +179,21 @@ ge::Status SetArgFormatValue(uint32_t args_size_workspace, std::vector<std::vect
                 continue;
             }
             uint32_t args_size = 0;
-            if (single_task.type() == static_cast<uint32_t>(RT_MODEL_TASK_KERNEL)) {
+            if (single_task.type() == static_cast<uint32_t>(ACL_RT_MODEL_TASK_KERNEL)) {
                 kernel_def_tmp = single_task.mutable_kernel();
                 FE_CHECK_NOTNULL(kernel_def_tmp);
                 args_size = kernel_def_tmp->args_size();
-                FE_LOGI( "task_arg.type is RT_MODEL_TASK_KERNEL args_size: %d %d", args_size, __LINE__);
+                FE_LOGI( "task_arg.type is ACL_RT_MODEL_TASK_KERNEL args_size: %d %d", args_size, __LINE__);
             } else {
                 FE_LOGW( "The Task type [%u] is invalid.", single_task.type());
                 // notify wait task
                 continue;
             }
-            FE_LOGI( "RT_MODEL_TASK_KERNEL sec_ret %d", __LINE__);
+            FE_LOGI( "ACL_RT_MODEL_TASK_KERNEL sec_ret %d", __LINE__);
             uint8_t sec_ret = 1;
-            FE_LOGI( "RT_MODEL_TASK_KERNEL BEGIN MEMCPY");
+            FE_LOGI( "ACL_RT_MODEL_TASK_KERNEL BEGIN MEMCPY");
             if (args_size_total == 0) {
-                FE_LOGI( "Skip the RT_MODEL_TASK_KERNEL memcpy procedure for args_size_total is 0.");
+                FE_LOGI( "Skip the ACL_RT_MODEL_TASK_KERNEL memcpy procedure for args_size_total is 0.");
                 continue;
             }
             sec_ret = memcpy_s((uint8_t*)all_args_buff_total + args_size_cur, static_cast<size_t>(args_size_total),
@@ -200,7 +202,7 @@ ge::Status SetArgFormatValue(uint32_t args_size_workspace, std::vector<std::vect
                 FE_LOGE( "memcpy_s is fail");
                 return FAILED;
             }
-            FE_LOGI( "RT_MODEL_TASK_KERNEL AFTER MEMCPY");
+            FE_LOGI( "ACL_RT_MODEL_TASK_KERNEL AFTER MEMCPY");
             args_size_cur += args_size;
             args_size_total -= args_size;
             std::vector<uint32_t> sk_send_event_ids;
@@ -243,7 +245,7 @@ ge::Status FillTaskDefAfterGenTask(const ge::OpDescPtr &op_desc, domi::TaskDef &
     (void)ge::AttrUtils::GetInt(op_desc, "_soft_sync_schedule_mode", schedule_mode);
     FE_LOGD("FillTaskDefAfterGenTask", "Set schedule mode[%u] on task of op[%s, %s]. ", schedule_mode, op_desc->GetNamePtr(), op_desc->GetTypePtr());
     domi::KernelContext *kernel_context = nullptr;
-    if (task_def.type() == RT_MODEL_TASK_KERNEL) {
+    if (task_def.type() == ACL_RT_MODEL_TASK_KERNEL) {
         domi::KernelDef *kernel_def = task_def.mutable_kernel();
         FE_CHECK_NOTNULL(kernel_def);
         kernel_def->set_kernel_name(attr_val_kernel_name);
@@ -296,7 +298,7 @@ int64_t GetSuperKernelWorkspace(const ge::Node &node) {
 }
 
 bool IsAICpuTaskDef(domi::TaskDef &task_temp, domi::KernelContext *&kernel_context) {
-    if (task_temp.type() == RT_MODEL_TASK_PREPROCESS_KERNEL) {
+    if (task_temp.type() == ACL_RT_MODEL_TASK_PREPROCESS_KERNEL) {
         auto kernel_def = task_temp.mutable_kernel();
         FE_CHECK(kernel_def == nullptr, FE_LOGW("IsAICpuTaskDef kernel_def is null pointer!"), return false);
         kernel_context = kernel_def->mutable_context();
@@ -343,16 +345,16 @@ ge::Status GetArgFormat(const std::vector<ge::Node *> &sub_nodes, uint32_t &args
                 tasks.emplace_back(single_task);
             } else {
                 uint32_t args_size;
-                if (single_task.type() == static_cast<uint32_t>(RT_MODEL_TASK_KERNEL)) {
+                if (single_task.type() == static_cast<uint32_t>(ACL_RT_MODEL_TASK_KERNEL)) {
                     kernel_def_tmp = single_task.mutable_kernel();
                     FE_CHECK_NOTNULL(kernel_def_tmp);
                     args_size = kernel_def_tmp->args_size();
-                    FE_LOGI( "task_arg.type is RT_MODEL_TASK_KERNEL args_size: %d %d", args_size, __LINE__);
-                } else if (single_task.type() == static_cast<uint32_t>(RT_MODEL_TASK_ALL_KERNEL)) {
+                    FE_LOGI( "task_arg.type is ACL_RT_MODEL_TASK_KERNEL args_size: %d %d", args_size, __LINE__);
+                } else if (single_task.type() == static_cast<uint32_t>(ACL_RT_MODEL_TASK_ALL_KERNEL)) {
                     auto kernel_def_with_handle = single_task.mutable_kernel_with_handle();
                     FE_CHECK_NOTNULL(kernel_def_with_handle);
                     args_size = kernel_def_with_handle->args_size();
-                    FE_LOGI( "task_arg.type is RT_MODEL_TASK_ALL_KERNEL args_size: %d %d", args_size, __LINE__);
+                    FE_LOGI( "task_arg.type is ACL_RT_MODEL_TASK_ALL_KERNEL args_size: %d %d", args_size, __LINE__);
                 } else {
                     FE_LOGE( "The task type[%u] is invalid.", single_task.type());
                     continue;
@@ -494,7 +496,7 @@ ge::Status GenTaskForSuperKernel(const ge::Node &node, std::vector<std::vector<d
         return ge::FAILED;
     }
     FE_LOGI("GenTaskForSuperKernel fill super kernel task def finished");
-    superkernel_task_def.set_type(RT_MODEL_TASK_SUPER_KERNEL);
+    superkernel_task_def.set_type(ACL_RT_MODEL_TASK_SUPER_KERNEL);
     tasks.emplace_back(superkernel_task_def);
     FE_LOGI("set superkernel type success.");
     free(all_args_buff_total);

@@ -16,7 +16,7 @@
 #include <framework/common/debug/log.h>
 #include "framework/common/debug/ge_log.h"
 #include "graph/ge_context.h"
-#include "runtime/dev.h"
+#include "rt_external_device.h"
 #include "graph/manager/mem_manager.h"
 #include "macro_utils/dt_public_unscope.h"
 

@@ -7,6 +7,7 @@
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
+#include "rt_external_ffts_define.h"
 #include "label_set_op.h"
 #include "op_factory.h"
 #include "graph/debug/ge_attr_define.h"

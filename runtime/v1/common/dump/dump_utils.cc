@@ -10,7 +10,7 @@
 
 #include "dump_utils.h"
 #include "adump_api.h"
-#include "runtime/kernel.h"
+#include "rt_external_kernel.h"
 #include "framework/common/debug/log.h"
 #include "framework/runtime/subscriber/global_dumper.h"
 #include "common/checker.h"

@@ -22,6 +22,7 @@
 #include "external/ge/ge_api_types.h" // ge对内options
 #include "common/ge_common/ge_types.h"
 #include "hcom_executor.h"
+#include "framework/common/runtime_model_ge.h"
 #include "v80_rank_table.h"
 #include <iostream>
 #include <fstream>
@@ -303,7 +304,7 @@ TEST_F(HcomKernelInfoTest, ut_LoadTask)
     ge::Status ret;
     HcomOpsKernelInfoStore hcomKernelInfo;
 
-    rtError_t rt_ret = rtStreamCreate(&stream, 5);
+    aclError rt_ret = aclrtCreateStreamWithConfig(&stream, 5, 0);
     EXPECT_EQ(rt_ret, RT_ERROR_NONE);
 
     ge::GETaskInfo task;
@@ -324,7 +325,7 @@ TEST_F(HcomKernelInfoTest, ut_LoadTask)
     privateDefBuf.isOfflineComp = true;
     privateDefBuf.devType = DevType::DEV_TYPE_910;
     privateDefBuf.aivCoreLimit = 48;
-    task.type = RT_MODEL_TASK_HCCL;
+    task.type = ACL_RT_MODEL_TASK_HCCL;
     task.stream = stream;
 
     std::int64_t offset[privateDefBuf.tensorNum] = {33280,33792,34304};
@@ -387,7 +388,7 @@ TEST_F(HcomKernelInfoTest, ut_LoadTask)
     task.id = taskID++;
     ret = hcomKernelInfo.LoadTask(task);
     EXPECT_EQ(ret, ge::INTERNAL_ERROR);
-    task.type = RT_MODEL_TASK_HCCL;
+    task.type = ACL_RT_MODEL_TASK_HCCL;
     // privateDefLen invalid
     task.privateDefLen = 0;
     task.id = taskID++;
@@ -595,7 +596,7 @@ TEST_F(HcomKernelInfoTest, ut_LoadTask)
     newTask.kernelHcclInfo.push_back(hcclInfo);
     newTask.stream = stream;
     newTask.streamID = 1;
-    newTask.type = RT_MODEL_TASK_HCCL;
+    newTask.type = ACL_RT_MODEL_TASK_HCCL;
     newTask.privateDef = reinterpret_cast<void *>(&allgathervPrivateDefBuf);
     newTask.privateDefLen = sizeof(HCCL_ALLGATHERV_KERNEL_INFO_PRIVATE_DEF);
     MOCKER(HcomAllGatherV)
@@ -717,7 +718,7 @@ TEST_F(HcomKernelInfoTest, ut_LoadTask)
     newTask_rs.kernelHcclInfo.push_back(hcclInfo);
     newTask_rs.stream = stream;
     newTask_rs.streamID = 1;
-    newTask_rs.type = RT_MODEL_TASK_HCCL;
+    newTask_rs.type = ACL_RT_MODEL_TASK_HCCL;
     newTask_rs.privateDef = reinterpret_cast<void *>(&reducescattervPrivateDefBuf);
     newTask_rs.privateDefLen = sizeof(HCCL_REDUCESCATTERV_KERNEL_INFO_PRIVATE_DEF);
     newTask_rs.kernelHcclInfo[0].opType=HCCL_REDUCE_SUM;
@@ -898,7 +899,7 @@ TEST_F(HcomKernelInfoTest, ut_LoadTask)
     sal_free(privateDefPtr_allreduce);
     sal_free(privateDefPtr_allgather);
     sal_free(privateDefPtr_reducescatter);
-    rt_ret = rtStreamDestroy(stream);
+    rt_ret = aclrtDestroyStream(stream);
     HcomDestroy();
     EXPECT_EQ(rt_ret, RT_ERROR_NONE);
     remove(file_name_t);
@@ -948,7 +949,7 @@ TEST_F(HcomKernelInfoTest, ut_LoadTask_comm)
     ge::Status ret;
     HcomOpsKernelInfoStore hcomKernelInfo;
 
-    rtError_t rt_ret = rtStreamCreate(&stream, 5);
+    aclError rt_ret = aclrtCreateStreamWithConfig(&stream, 5, 0);
     EXPECT_EQ(rt_ret, RT_ERROR_NONE);
 
     int64_t hcomComm = 0;
@@ -976,7 +977,7 @@ TEST_F(HcomKernelInfoTest, ut_LoadTask_comm)
     privateDefBuf.isOfflineComp = true;
     privateDefBuf.devType = DevType::DEV_TYPE_910;
     privateDefBuf.aivCoreLimit = 48;
-    task.type = RT_MODEL_TASK_HCCL;
+    task.type = ACL_RT_MODEL_TASK_HCCL;
     task.stream = stream;
 
     std::int64_t offset[privateDefBuf.tensorNum] = {33280,33792,34304};
@@ -1050,7 +1051,7 @@ TEST_F(HcomKernelInfoTest, ut_LoadTask_comm)
     // HcomBroadcast
     // load task success
     task.id = taskID++;
-    task.type = RT_MODEL_TASK_HCCL;
+    task.type = ACL_RT_MODEL_TASK_HCCL;
     ret = hcomKernelInfo.LoadTask(task);
     GlobalMockObject::verify();
 
@@ -1059,7 +1060,7 @@ TEST_F(HcomKernelInfoTest, ut_LoadTask_comm)
     sal_free(dumpbuf);
     sal_free(privateDefPtr);
     sal_free(privateDefPtr_broadcast);
-    rt_ret = rtStreamDestroy(stream);
+    rt_ret = aclrtDestroyStream(stream);
     HcomDestroy();
     EXPECT_EQ(rt_ret, RT_ERROR_NONE);
     remove(file_name_t);
@@ -1106,7 +1107,7 @@ TEST_F(HcomKernelInfoTest, ut_SetUnkownWorkSpace)
     privateDefBuf.srTag = 3;
     privateDefBuf.originalGraphShapeType = 1;
     privateDefBuf.aivCoreLimit = 48;
-    task.type = RT_MODEL_TASK_HCCL;
+    task.type = ACL_RT_MODEL_TASK_HCCL;
     task.privateDef = (void *)&privateDefBuf.group[0];
     task.privateDefLen = sizeof(HCCL_KERNEL_INFO_PRIVATE_DEF);
     task.kernelHcclInfo[0].hccl_type=HCCL_KERNEL_OP_TYPE_REDUCESCATTER;
@@ -1178,7 +1179,7 @@ TEST_F(HcomKernelInfoTest, ut_SetUnkownWorkSpace310p)
     privateDefBuf.srTag = 3;
     privateDefBuf.originalGraphShapeType = 1;
     privateDefBuf.aivCoreLimit = 48;
-    task.type = RT_MODEL_TASK_HCCL;
+    task.type = ACL_RT_MODEL_TASK_HCCL;
     task.privateDef = (void *)&privateDefBuf.group[0];
     task.privateDefLen = sizeof(HCCL_KERNEL_INFO_PRIVATE_DEF);
     task.kernelHcclInfo[0].hccl_type=HCCL_KERNEL_OP_TYPE_REDUCESCATTER;
@@ -1710,7 +1711,7 @@ TEST_F(HcomKernelInfoTest, ut_hcom_alltoallv_loadtask)
     task.kernelHcclInfo.push_back(hcclInfo);
     task.stream = stream;
     task.streamID = 1;
-    task.type = RT_MODEL_TASK_HCCL;
+    task.type = ACL_RT_MODEL_TASK_HCCL;
     task.privateDef = reinterpret_cast<void *>(&alltoallvPrivateDefBuf);
     task.privateDefLen = sizeof(HCCL_ALLTOALLV_KERNEL_INFO_PRIVATE_DEF);
     HcomOpsKernelInfoStore infoStore;
@@ -1830,7 +1831,7 @@ TEST_F(HcomKernelInfoTest, ut_hcom_alltoall_loadtask)
     task.kernelHcclInfo.push_back(hcclInfo);
     task.stream = stream;
     task.streamID = 1;
-    task.type = RT_MODEL_TASK_HCCL;
+    task.type = ACL_RT_MODEL_TASK_HCCL;
     task.privateDef = reinterpret_cast<void *>(&alltoallvPrivateDefBuf);
     task.privateDefLen = sizeof(HCCL_ALLTOALLV_KERNEL_INFO_PRIVATE_DEF);
     HcomOpsKernelInfoStore infoStore;
@@ -1906,7 +1907,7 @@ TEST_F(HcomKernelInfoTest, ut_hcom_offline_build_init_hcom)
     task.kernelHcclInfo.push_back(hcclInfo);
     task.stream = stream;
     task.streamID = 1;
-    task.type = RT_MODEL_TASK_HCCL;
+    task.type = ACL_RT_MODEL_TASK_HCCL;
     task.privateDef = reinterpret_cast<void *>(&alltoallvPrivateDefBuf);
     task.privateDefLen = sizeof(HCCL_ALLTOALLV_KERNEL_INFO_PRIVATE_DEF);
     HcomOpsKernelInfoStore infoStore;
@@ -2007,7 +2008,7 @@ TEST_F(HcomKernelInfoTest, ut_hcom_loadtask_checkTaskID)
     rtStream_t stream;
     // HcomOpsKernelInfoStore hcomKernelInfo;
 
-    rtError_t rt_ret = rtStreamCreate(&stream, 5);
+    aclError rt_ret = aclrtCreateStreamWithConfig(&stream, 5, 0);
     EXPECT_EQ(rt_ret, RT_ERROR_NONE);
 
     ge ::Status ge_ret;
@@ -2059,7 +2060,7 @@ TEST_F(HcomKernelInfoTest, ut_hcom_loadtask_checkTaskID)
     privateDefBuf.privateDefSize = sizeof(HCCL_KERNEL_INFO_PRIVATE_DEF);
     privateDefBuf.aivCoreLimit = 48;
     task.id = 1;
-    task.type = RT_MODEL_TASK_HCCL;
+    task.type = ACL_RT_MODEL_TASK_HCCL;
     task.stream = stream;
 
     std::int64_t offset[privateDefBuf.tensorNum] = {16};
@@ -2108,7 +2109,7 @@ TEST_F(HcomKernelInfoTest, ut_hcom_loadtask_checkTaskID)
     sal_free(recvbuf);
     sal_free(dumpbuf);
     sal_free(privateDefPtr);
-    rt_ret = rtStreamDestroy(stream);
+    rt_ret = aclrtDestroyStream(stream);
     EXPECT_EQ(rt_ret, RT_ERROR_NONE);
 
     ge_ret = opsKernerInfoStorePtr->Finalize();
@@ -2164,7 +2165,7 @@ TEST_F(HcomKernelInfoTest, ut_unloadtask)
     rtStream_t stream;
     // HcomOpsKernelInfoStore hcomKernelInfo;
 
-    rtError_t rt_ret = rtStreamCreate(&stream, 5);
+    aclError rt_ret = aclrtCreateStreamWithConfig(&stream, 5, 0);
     EXPECT_EQ(rt_ret, RT_ERROR_NONE);
 
     ge ::Status ge_ret;
@@ -2211,7 +2212,7 @@ TEST_F(HcomKernelInfoTest, ut_unloadtask)
     privateDefBuf.privateDefSize = sizeof(HCCL_KERNEL_INFO_PRIVATE_DEF);
     privateDefBuf.aivCoreLimit = 48;
     task.id = 2;
-    task.type = RT_MODEL_TASK_HCCL;
+    task.type = ACL_RT_MODEL_TASK_HCCL;
     task.stream = stream;
 
     std::int64_t offset[privateDefBuf.tensorNum] = {16,32,64};
@@ -2263,7 +2264,7 @@ TEST_F(HcomKernelInfoTest, ut_unloadtask)
 
     sal_free(sendbuf);
     sal_free(recvbuf);
-    rt_ret = rtStreamDestroy(stream);
+    rt_ret = aclrtDestroyStream(stream);
     EXPECT_EQ(rt_ret, RT_ERROR_NONE);
 
     ge_ret = opsKernerInfoStorePtr->UnloadTask(task);
@@ -2319,7 +2320,7 @@ TEST_F(HcomKernelInfoTest, ut_task_overflow)
     }
 
     rtStream_t stream;
-    rtError_t rt_ret = rtStreamCreate(&stream, 5);
+    aclError rt_ret = aclrtCreateStreamWithConfig(&stream, 5, 0);
     EXPECT_EQ(rt_ret, RT_ERROR_NONE);
 
     ge ::Status ge_ret;
@@ -2370,7 +2371,7 @@ TEST_F(HcomKernelInfoTest, ut_task_overflow)
     privateDefBuf.privateDefSize = sizeof(HCCL_KERNEL_INFO_PRIVATE_DEF);
     privateDefBuf.aivCoreLimit = 48;
     task.id = 3;
-    task.type = RT_MODEL_TASK_HCCL;
+    task.type = ACL_RT_MODEL_TASK_HCCL;
     task.stream = stream;
 
     std::int64_t offset[privateDefBuf.tensorNum] = {16,32,64};
@@ -2423,7 +2424,7 @@ TEST_F(HcomKernelInfoTest, ut_task_overflow)
     sal_free(sendbuf);
     sal_free(recvbuf);
     sal_free(dumpbuf);
-    rt_ret = rtStreamDestroy(stream);
+    rt_ret = aclrtDestroyStream(stream);
     EXPECT_EQ(rt_ret, RT_ERROR_NONE);
 
     ge_ret = opsKernerInfoStorePtr->UnloadTask(task);
@@ -2508,7 +2509,7 @@ TEST_F(HcomKernelInfoTest, ut_hcom_loadtask_int64)
     }
 
     rtStream_t stream;
-    rtError_t rt_ret = rtStreamCreate(&stream, 5);
+    aclError rt_ret = aclrtCreateStreamWithConfig(&stream, 5, 0);
     EXPECT_EQ(rt_ret, RT_ERROR_NONE);
 
     ge ::Status ge_ret;
@@ -2559,7 +2560,7 @@ TEST_F(HcomKernelInfoTest, ut_hcom_loadtask_int64)
     privateDefBuf.privateDefSize = sizeof(HCCL_KERNEL_INFO_PRIVATE_DEF);
     privateDefBuf.aivCoreLimit = 48;
     task.id = 4;
-    task.type = RT_MODEL_TASK_HCCL;
+    task.type = ACL_RT_MODEL_TASK_HCCL;
     task.stream = stream;
 
     std::int64_t offset[privateDefBuf.tensorNum] = {16,32,64};
@@ -2605,7 +2606,7 @@ TEST_F(HcomKernelInfoTest, ut_hcom_loadtask_int64)
     sal_free(recvbuf);
     sal_free(dumpbuf);
     sal_free(privateDefPtr);
-    rt_ret = rtStreamDestroy(stream);
+    rt_ret = aclrtDestroyStream(stream);
     EXPECT_EQ(rt_ret, RT_ERROR_NONE);
 
     ge_ret = opsKernerInfoStorePtr->Finalize();
@@ -2840,7 +2841,7 @@ TEST_F(HcomKernelInfoTest, ut_GetOpKernelLoopTime1)
     privateDefBuf.comm = 0;
     privateDefBuf.originalGraphShapeType = ORIGINAL_GRAPH_UNKNOWNSHAPE_TYPE;
     task.id = 5;
-    task.type = RT_MODEL_TASK_HCCL;
+    task.type = ACL_RT_MODEL_TASK_HCCL;
     task.privateDef = (void *)&privateDefBuf.group[0];
     task.privateDefLen = sizeof(HCCL_KERNEL_INFO_PRIVATE_DEF);
     task.kernelHcclInfo[0].count=count;
@@ -2902,7 +2903,7 @@ TEST_F(HcomKernelInfoTest, ut_GetOpKernelLoopTime2)
     privateDefBuf.comm = 1;
     privateDefBuf.originalGraphShapeType = ORIGINAL_GRAPH_UNKNOWNSHAPE_TYPE;
     task.id = 6;
-    task.type = RT_MODEL_TASK_HCCL;
+    task.type = ACL_RT_MODEL_TASK_HCCL;
     task.privateDef = (void *)&privateDefBuf.group[0];
     task.privateDefLen = sizeof(HCCL_KERNEL_INFO_PRIVATE_DEF);
     task.kernelHcclInfo[0].count=count;
@@ -3006,7 +3007,7 @@ TEST_F(HcomKernelInfoTest, ut_SetAttachedStream)
     privateDefBuf.isOfflineComp = true;
     privateDefBuf.devType = DevType::DEV_TYPE_910;
     task.id = 7;
-    task.type = RT_MODEL_TASK_HCCL;
+    task.type = ACL_RT_MODEL_TASK_HCCL;
     task.privateDef = (void *)&privateDefBuf.group[0];
     task.privateDefLen = sizeof(HCCL_KERNEL_INFO_PRIVATE_DEF);
 
@@ -3026,7 +3027,7 @@ TEST_F(HcomKernelInfoTest, ut_HcomAicpuStreamRegister)
 {
     HcomOpsKernelInfoStore hcomKernelInfo;
     ge::GETaskInfo task;
-    rtStreamCreate(&task.stream, 5);
+    aclrtCreateStreamWithConfig(&task.stream, 5, 0);
     std::string group1 = "test1";
 
     int64_t commStub = 0;
@@ -3041,7 +3042,7 @@ TEST_F(HcomKernelInfoTest, ut_HcomAicpuStreamRegister)
     EXPECT_EQ(hcomKernelInfo.HcomAicpuStreamUnRegister(task), HCCL_SUCCESS);
     EXPECT_EQ(hcomKernelInfo.HcomAicpuStreamUnRegister(task), HCCL_SUCCESS);
 
-    rtStreamDestroy(task.stream);
+    aclrtDestroyStream(task.stream);
     GlobalMockObject::verify();
 }
 
@@ -3053,7 +3054,7 @@ TEST_F(HcomKernelInfoTest, ut_LoadTaskSetAivCoreLimit)
     HCCL_KERNEL_INFO_PRIVATE_DEF privateDefBuf;
 
     task.id = 8;
-    task.type = RT_MODEL_TASK_HCCL;
+    task.type = ACL_RT_MODEL_TASK_HCCL;
     task.privateDef = (void *)&privateDefBuf;
     task.privateDefLen = sizeof(HCCL_KERNEL_INFO_PRIVATE_DEF);
 
@@ -3542,7 +3543,7 @@ TEST_F(HcomKernelInfoTest, Ut_GetAlltoAllVCParams_When_AllParamsValid_Expect_Cor
     ge::GETaskInfo task;
     task.kernelHcclInfo.push_back(hcclInfo);
     task.streamID = 1;
-    task.type = RT_MODEL_TASK_HCCL;
+    task.type = ACL_RT_MODEL_TASK_HCCL;
     task.privateDef = reinterpret_cast<void *>(&alltoallvPrivateDefBuf);
     task.privateDefLen = sizeof(HCCL_ALLTOALLV_KERNEL_INFO_PRIVATE_DEF);
     HcomOpsKernelInfoStore infoStore;

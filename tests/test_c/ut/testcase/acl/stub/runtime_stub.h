@@ -12,9 +12,9 @@
 #define UT_TESTCASE_C_RUNTIME_STUB_H_
 
 #include <gmock/gmock.h>
-#include "runtime/base.h"
-#include "runtime/mem.h"
-#include "runtime/rt.h"
+#include "rt_external_base.h"
+#include "rt_external_mem.h"
+#include "rt_external.h"
 #include "acl/acl_base.h"
 #include "acl/acl_rt.h"
 
@@ -27,16 +27,16 @@ public:
   MOCK_METHOD0(rtInit, rtError_t());
   MOCK_METHOD2(rtSubscribeReport, rtError_t(uint64_t threadId, rtStream_t stream));
   MOCK_METHOD2(rtUnSubscribeReport, rtError_t(uint64_t threadId, rtStream_t stream));
-  MOCK_METHOD4(rtCallbackLaunch, rtError_t(rtCallback_t callBackFunc, void *fnData, rtStream_t stream, bool isBlock));
+  MOCK_METHOD4(rtCallbackLaunch, rtError_t(aclrtCallback callBackFunc, void *fnData, rtStream_t stream, bool isBlock));
   MOCK_METHOD1(rtProcessReport, rtError_t(int32_t timeout));
 
   MOCK_METHOD2(rtSubscribeHostFunc, rtError_t(uint64_t threadId, rtStream_t stream));
   MOCK_METHOD2(rtUnSubscribeHostFunc, rtError_t(uint64_t threadId, rtStream_t stream));
   MOCK_METHOD1(rtProcessHostFunc, rtError_t(int32_t timeout));
-  MOCK_METHOD1(rtCtxGetCurrent, rtError_t(rtContext_t *ctx));
-  MOCK_METHOD1(rtGetRunMode, rtError_t(rtRunMode *mode));
-  MOCK_METHOD2(rtStreamCreateWithConfig, rtError_t(rtStream_t *stream, rtStreamConfigHandle *handle));
+  MOCK_METHOD1(aclrtGetCurrentContext, rtError_t(aclrtContext *ctx));
+  MOCK_METHOD1(rtGetRunMode, rtError_t(aclrtRunMode *mode));
+  MOCK_METHOD2(rtStreamCreateWithConfig, rtError_t(rtStream_t *stream, aclrtStreamConfigHandle *handle));
 };
 
-rtError_t rtGetRunMode_Device_Normal_Invoke(rtRunMode *mode);
+rtError_t rtGetRunMode_Device_Normal_Invoke(aclrtRunMode *mode);
 #endif

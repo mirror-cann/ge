@@ -20,7 +20,7 @@
 #include "faker/rt2_var_manager_faker.h"
 #include "runtime/model_v2_executor.h"
 #include "common/bg_test.h"
-#include "runtime/dev.h"
+#include "acl/acl_rt.h"
 #include "kernel/memory/caching_mem_allocator.h"
 #include "stub/gert_runtime_stub.h"
 #include "faker/aicpu_taskdef_faker.h"
@@ -117,7 +117,7 @@ void TestFileConstantLoadStatus(const std::string &om_dir, const std::string &om
   }
   runtime_stub.GetSlogStub().SetLevel(DLOG_DEBUG);
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   error_code = model_executor->Load({stream});
   EXPECT_EQ(error_code, load_status);
   ASSERT_TRUE(mmRmdir(om_dir.c_str()) == 0);
@@ -133,7 +133,7 @@ void TestFileConstantLoadStatus(const std::string &om_dir, const std::string &om
   EXPECT_EQ(is_from_location_attr, is_from_location_attr_expected);
 
   if (error_code != ge::GRAPH_SUCCESS) {
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
     return;
   }
 
@@ -150,14 +150,14 @@ void TestFileConstantLoadStatus(const std::string &om_dir, const std::string &om
   }
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 }
 class GeLocalTest : public bg::BgTest {
  protected:
   void SetUp() override {
     bg::BgTest::SetUp();
-    rtSetDevice(0);
+    aclrtSetDevice(0);
   }
   void TearDown() override {
     Test::TearDown();
@@ -193,7 +193,7 @@ TEST_F(GeLocalTest, MultiBatchShapesOK) {
   auto output_holder3 = TensorFaker().Placement(kOnHost).DataType(ge::DT_INT32).Shape({4}).Build();
   std::vector<Tensor *> outputs{output_holder.GetTensor(), output_holder2.GetTensor(), output_holder3.GetTensor()};
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ess->Clear();
@@ -202,7 +202,7 @@ TEST_F(GeLocalTest, MultiBatchShapesOK) {
             ge::GRAPH_SUCCESS);
   ess->Clear();
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(GeLocalTest, GatherShapesOK) {
@@ -231,7 +231,7 @@ TEST_F(GeLocalTest, GatherShapesOK) {
   std::vector<Tensor *> outputs{output_holder.GetTensor()};
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ess->Clear();
@@ -241,7 +241,7 @@ TEST_F(GeLocalTest, GatherShapesOK) {
   EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("GatherShapes", "GatherShapesKernel"), 1);
   ess->Clear();
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(GeLocalTest, KnownSubgraphWithAllConstNoNeedToUseDavinciModel_ExecuteSuccess) {
@@ -274,7 +274,7 @@ TEST_F(GeLocalTest, KnownSubgraphWithAllConstNoNeedToUseDavinciModel_ExecuteSucc
   auto inputs = FakeTensors({2, 2}, 1);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ess->Clear();
@@ -287,7 +287,7 @@ TEST_F(GeLocalTest, KnownSubgraphWithAllConstNoNeedToUseDavinciModel_ExecuteSucc
             ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
 
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   mem_block->Free();
 }
 
@@ -352,7 +352,7 @@ TEST_F(GeLocalTest, PartitionedCallLowerInnerData_ExecuteSuccess) {
   auto inputs = FakeTensors({2, 2}, 1);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ess->Clear();
@@ -364,7 +364,7 @@ TEST_F(GeLocalTest, PartitionedCallLowerInnerData_ExecuteSuccess) {
     reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
 
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   mem_block->Free();
 }
 
@@ -392,7 +392,7 @@ TEST_F(GeLocalTest, SizeOK) {
   std::vector<Tensor *> outputs{output_holder.GetTensor()};
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ess->Clear();
@@ -402,7 +402,7 @@ TEST_F(GeLocalTest, SizeOK) {
   EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Size", "GetShapeSizeKernel"), 1);
   ess->Clear();
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(GeLocalTest, RankOK) {
@@ -431,7 +431,7 @@ TEST_F(GeLocalTest, RankOK) {
   std::vector<Tensor *> outputs{output_holder.GetTensor()};
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ess->Clear();
@@ -444,7 +444,7 @@ TEST_F(GeLocalTest, RankOK) {
   auto tensor_data = output_holder.GetTensor()->GetData<int32_t>();
   ASSERT_EQ(*tensor_data, 4);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(GeLocalTest, FileConstantOK) {
@@ -483,7 +483,7 @@ TEST_F(GeLocalTest, FileConstantOK) {
   runtime_stub.Clear();
   auto ess = StartExecutorStatistician(model_executor);
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   EXPECT_EQ(model_executor->Load({stream}), ge::GRAPH_SUCCESS);
   auto inputs = FakeTensors({}, 0);
   auto output_holder = TensorFaker().Placement(kOnDeviceHbm).DataType(ge::DT_INT32).Shape({5, 5}).Build();
@@ -499,7 +499,7 @@ TEST_F(GeLocalTest, FileConstantOK) {
   ASSERT_EQ(tensor_data[5], 5);
   ess->PrintExecutionSummary();
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 /**
@@ -708,7 +708,7 @@ TEST_F(GeLocalTest, FileConstantLoadSuccess_VarMgrIsExist) {
   ASSERT_NE(model_executor, nullptr);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   ASSERT_EQ(model_executor->Load({stream}, {&rt_session}), ge::GRAPH_SUCCESS);
 
   auto inputs = FakeTensors({}, 0);
@@ -724,7 +724,7 @@ TEST_F(GeLocalTest, FileConstantLoadSuccess_VarMgrIsExist) {
   }
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 // 用例描述：离线场景+静态子图+子图内FileConstant直连Netoutput场景，davinci model kernel执行成功，权重加载成功。
@@ -780,7 +780,7 @@ TEST_F(GeLocalTest, StaticSubgraphWithFileConstantLinkNetoutput_FileConstantLoad
   auto inputs = FakeTensors({2, 2}, 1);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ess->Clear();
@@ -794,7 +794,7 @@ TEST_F(GeLocalTest, StaticSubgraphWithFileConstantLinkNetoutput_FileConstantLoad
 
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   ASSERT_TRUE(mmRmdir(om_dir.c_str()) == 0);
 }
 
@@ -830,7 +830,7 @@ TEST_F(GeLocalTest, FileConstantLocationAttrOK) {
   ASSERT_NE(model_executor, nullptr);
   auto ess = StartExecutorStatistician(model_executor);
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   EXPECT_EQ(model_executor->Load({stream}), ge::GRAPH_SUCCESS);
   auto inputs = FakeTensors({}, 0);
   auto output_holder = TensorFaker().Placement(kOnDeviceHbm).DataType(ge::DT_INT32).Shape({5, 5}).Build();
@@ -846,7 +846,7 @@ TEST_F(GeLocalTest, FileConstantLocationAttrOK) {
   ASSERT_EQ(tensor_data[5], 5);
   ess->PrintExecutionSummary();
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(GeLocalTest, FileConstantFileIdAttrOK) {
@@ -888,7 +888,7 @@ TEST_F(GeLocalTest, FileConstantFileIdAttrOK) {
   ASSERT_NE(model_executor, nullptr);
   auto ess = StartExecutorStatistician(model_executor);
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   EXPECT_EQ(model_executor->Load({stream}), ge::GRAPH_SUCCESS);
   auto inputs = FakeTensors({}, 0);
   auto output_holder = TensorFaker().Placement(kOnDeviceHbm).DataType(ge::DT_INT32).Shape({5, 5}).Build();
@@ -904,7 +904,7 @@ TEST_F(GeLocalTest, FileConstantFileIdAttrOK) {
   ASSERT_EQ(tensor_data[5], 5);
   ess->PrintExecutionSummary();
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(GeLocalTest, FileConstantWithCtrlEdgeConvertOK) {
@@ -952,7 +952,7 @@ TEST_F(GeLocalTest, FileConstantWithCtrlEdgeConvertOK) {
   ASSERT_NE(model_executor, nullptr);
   auto ess = StartExecutorStatistician(model_executor);
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   EXPECT_EQ(model_executor->Load({stream}), ge::GRAPH_SUCCESS);
 
   auto inputs = FakeTensors({}, 0);
@@ -972,7 +972,7 @@ TEST_F(GeLocalTest, FileConstantWithCtrlEdgeConvertOK) {
   ASSERT_EQ(tensor_data1[5], 5);
   ess->PrintExecutionSummary();
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 // FileConstant的执行已挪到加载阶段

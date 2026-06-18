@@ -19,8 +19,8 @@
 #include "graph/op_kernel_bin.h"
 #include "common/tbe_handle_store/kernel_store.h"
 #include "exe_graph/runtime/gert_tensor_data.h"
-#include "runtime/base.h"
-#include "runtime/context.h"
+#include "rt_external_base.h"
+#include "common/ge_rts_decl.h"
 #include "exe_graph/runtime/kernel_context.h"
 
 namespace gert {

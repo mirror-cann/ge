@@ -11,7 +11,7 @@
 #include <gtest/gtest.h>
 #include <vector>
 
-#include "runtime/rt.h"
+#include "rt_external.h"
 
 #include "macro_utils/dt_public_scope.h"
 #include "hybrid/model/graph_item.h"

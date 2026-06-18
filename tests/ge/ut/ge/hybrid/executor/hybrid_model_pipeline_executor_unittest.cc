@@ -51,7 +51,7 @@ TEST_F(UtestStageExecutor, run_success) {
   config.num_executors = 2;
   config.num_stages = 1;
   config.iteration_end = 2;
-  rtCtxGetCurrent(&config.rt_context);
+  aclrtGetCurrentContext(&config.rt_context);
 
   HybridModelPipelineExecutor pip_executor(&hybrid_model, 1, nullptr);
   HybridModelExecutor::ExecuteArgs args;
@@ -71,14 +71,14 @@ TEST_F(UtestStageExecutor, run_success) {
   StageExecutor::StageTask task_info_1;
   task_info_1.stage = 0;
   task_info_1.iteration = 0;
-  EXPECT_EQ(rtEventCreate(&task_info_1.event), RT_ERROR_NONE);
+  EXPECT_EQ(aclrtCreateEvent(&task_info_1.event), RT_ERROR_NONE);
   EXPECT_EQ(executor.ExecuteAsync(task_info_1), SUCCESS);
   EXPECT_EQ(executor.Start({}, {}, 2), SUCCESS);
 
   StageExecutor::StageTask task_info_2;
   task_info_2.stage = 0;
   task_info_2.iteration = 1;
-  EXPECT_EQ(rtEventCreate(&task_info_2.event), RT_ERROR_NONE);
+  EXPECT_EQ(aclrtCreateEvent(&task_info_2.event), RT_ERROR_NONE);
   EXPECT_EQ(executor.ExecuteAsync(task_info_2), SUCCESS);
   EXPECT_EQ(executor.Start({}, {}, 2), SUCCESS);
   executor.ExecuteEndTaskAndReleae();
@@ -96,7 +96,7 @@ TEST_F(UtestStageExecutor, execute_online_success) {
   config.num_executors = 2;
   config.num_stages = 1;
   config.iteration_end = 2;
-  rtCtxGetCurrent(&config.rt_context);
+  aclrtGetCurrentContext(&config.rt_context);
 
   HybridModelPipelineExecutor pip_executor(&hybrid_model, 1, nullptr);
   ASSERT_EQ(pip_executor.config_.iteration_end, 0);

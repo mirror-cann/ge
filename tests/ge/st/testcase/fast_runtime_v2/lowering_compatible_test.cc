@@ -12,7 +12,7 @@
 #include <iostream>
 #include "faker/fake_value.h"
 #include "faker/global_data_faker.h"
-#include "runtime/dev.h"
+#include "acl/acl_rt.h"
 #include "kernel/memory/caching_mem_allocator.h"
 #include "stub/gert_runtime_stub.h"
 #include "faker/ge_model_builder.h"
@@ -44,7 +44,7 @@ class LowerCompatibleUnitTest : public bg::BgTest {
  protected:
   void SetUp() override {
     bg::BgTest::SetUp();
-    rtSetDevice(0);
+    aclrtSetDevice(0);
   }
 };
 namespace {
@@ -270,7 +270,7 @@ TEST_F(LowerCompatibleUnitTest, Lowering_Execute_Model_On_Compatible_InferShape_
   auto i1 = FakeValue<Tensor>(Tensor{{{}, {}}, {ge::FORMAT_ND, ge::FORMAT_ND, {}}, kOnHost, ge::DT_INT32, &data_i1});
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
   ASSERT_EQ(model_executor->Execute({i3.value},
                                     std::vector<Tensor *>({i0.holder.get(), i1.holder.get()}).data(), 2,
@@ -284,7 +284,7 @@ TEST_F(LowerCompatibleUnitTest, Lowering_Execute_Model_On_Compatible_InferShape_
   // input x shape [1, 2, 3, 4]  input_axis value [2]
   // expect output shape[1,2,1,3,4]
   ASSERT_EQ(outputs.at(0).GetShape().GetStorageShape(), gert::Shape({1,2,1,3,4})); // check output shape
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   mem_block->Free();
 }
 
@@ -323,7 +323,7 @@ TEST_F(LowerCompatibleUnitTest, Lowering_Execute_Model_On_Compatible_infer_tilin
   auto i1 = FakeValue<Tensor>(Tensor{{{2048}, {2048}}, {ge::FORMAT_ND, ge::FORMAT_ND, {}}, kOnDeviceHbm, ge::DT_FLOAT16, mem_block->GetAddr()});
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
   ASSERT_EQ(model_executor->Execute({i3.value},
                                     std::vector<Tensor *>({i0.holder.get(), i1.holder.get()}).data(), 2,
@@ -337,7 +337,7 @@ TEST_F(LowerCompatibleUnitTest, Lowering_Execute_Model_On_Compatible_infer_tilin
   // input_0 shape [2048]  input_1 shape [2048]
   // expect output shape[4096]
   ASSERT_EQ(outputs.at(0).GetShape().GetStorageShape().GetDim(0), 2048 + 2048); // check output shape
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   mem_block->Free();
 }
 
@@ -374,7 +374,7 @@ TEST_F(LowerCompatibleUnitTest, Lowering_Execute_Model_On_Compatible_infer_tilin
   auto i1 = FakeValue<Tensor>(Tensor{{{2048}, {2048}}, {ge::FORMAT_ND, ge::FORMAT_ND, {}}, kOnDeviceHbm, ge::DT_FLOAT16, mem_block->GetAddr()});
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
   ASSERT_EQ(model_executor->Execute({i3.value},
                                     std::vector<Tensor *>({i0.holder.get(), i1.holder.get()}).data(), 2,
@@ -387,7 +387,7 @@ TEST_F(LowerCompatibleUnitTest, Lowering_Execute_Model_On_Compatible_infer_tilin
   // expect output shape[4096]
   ASSERT_EQ(outputs.at(0).GetShape().GetStorageShape().GetDim(0), 2048 + 2048); // check output shape
 
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   mem_block->Free();
 }
 
@@ -437,7 +437,7 @@ TEST_F(LowerCompatibleUnitTest, InferShapeRange_ExecuteSuccess) {
   auto inputs = std::vector<Tensor *>({i0.holder.get(), i1.holder.get()});
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
   ess->Clear();
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.data(), inputs.size(), outputs.data(), outputs.size()),
@@ -449,6 +449,6 @@ TEST_F(LowerCompatibleUnitTest, InferShapeRange_ExecuteSuccess) {
   EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("TestNoInferShapeRange", "CreateTensorRangesAndShapeRanges"), 1);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   bg::ShapeRangeInferenceResult::ErrorResult();
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 } // namespace gert

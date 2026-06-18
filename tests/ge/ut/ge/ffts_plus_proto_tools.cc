@@ -12,7 +12,7 @@
 
 #include <memory>
 
-#include "runtime/rt.h"
+#include "rt_external.h"
 #include "common/sgt_slice_type.h"
 #include "graph/utils/attr_utils.h"
 #include "graph/utils/tensor_utils.h"

@@ -13,7 +13,7 @@
 #include <gmock/gmock.h>
 
 #include "ge_common/ge_common_api_types.h"
-#include "runtime/rt.h"
+#include "rt_external.h"
 #include "framework/executor/ge_executor.h"
 #include "framework/generator/ge_generator.h"
 #include "ge_graph_dsl/graph_dsl.h"

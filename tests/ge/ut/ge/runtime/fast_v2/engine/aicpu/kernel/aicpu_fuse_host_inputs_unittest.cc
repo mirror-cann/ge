@@ -45,7 +45,7 @@ TEST_F(AicpuFuseHostInputsUT, TestTfOneInputSuccess) {
   std::vector<int32_t> indexes(1, 0);
   run_context.value_holder[1].Set(indexes.data(), nullptr);  
   run_context.value_holder[2].Set(reinterpret_cast<void *>(0x11), nullptr); // stream
-  auto allocator = memory::CachingMemAllocator(1, RT_MEMORY_TYPE_DEVICE);
+  auto allocator = memory::CachingMemAllocator(1, 2);  // 2 = RT_MEMORY_TYPE_DEVICE
   memory::SingleStreamL2Allocator single_stream_l2_allocator(&allocator);
 
   run_context.value_holder[3].Set(&single_stream_l2_allocator, nullptr);

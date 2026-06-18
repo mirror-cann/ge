@@ -28,6 +28,8 @@
 #include "hcom_graph_optimizer.h"
 #include "graph/ge_local_context.h"
 #include "hccl/hccl_ex.h"
+#include "common/ge_rts_decl.h"
+#include "framework/common/runtime_model_ge.h"
 #include "hccl/base.h"
 #include "adump_api.h"  // 工具dump开关
 #include "hcom/hcom_topo_info.h"
@@ -3189,7 +3191,7 @@ ge::Status HcomOpsKernelInfoStore::LoadTask(ge::GETaskInfo &task) {
               HCCL_E_PARA);
 
   ge::GETaskKernelHcclInfo hcclInfo = hcclInfos[0];  // HCOM场景下只会有一个
-  CHK_PRT_RET((task.type != RT_MODEL_TASK_HCCL),
+  CHK_PRT_RET((task.type != ACL_RT_MODEL_TASK_HCCL),
               HCCL_ERROR("[Load][Task]errNo[0x%016llx] TaskType[%u] from"
                          "taskinfo is invalid.",
                          HCOM_ERROR_CODE(HCCL_E_PARA), task.type),

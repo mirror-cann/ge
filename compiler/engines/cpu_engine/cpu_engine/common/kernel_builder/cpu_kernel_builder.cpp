@@ -8,6 +8,8 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
+#include "common/ge_rts_decl.h"
+#include "framework/common/runtime_model_ge.h"
 #include "cpu_kernel_builder.h"
 #include "acl/acl_rt.h"
 #include "fwk_adpt_struct.h"
@@ -232,7 +234,7 @@ ge::Status CpuKernelBuilder::GenerateMemCopyTask(
     return state;
   }
   domi::TaskDef task_def;
-  task_def.set_type(RT_MODEL_TASK_KERNEL);
+  task_def.set_type(ACL_RT_MODEL_TASK_KERNEL);
   domi::KernelDef *kernel_def = task_def.mutable_kernel();
   AICPU_CHECK_NOTNULL(kernel_def);
 
@@ -313,7 +315,7 @@ ge::Status CpuKernelBuilder::GenerateTask(const ge::Node &node,
   }
   g_op_index = op_desc_ptr->GetId();
   domi::TaskDef task_def;
-  task_def.set_type(RT_MODEL_TASK_KERNEL);
+  task_def.set_type(ACL_RT_MODEL_TASK_KERNEL);
   task_def.set_sqe_num(kBasicAicpuOpSqeNumber);
   bool is_blocking_aicpu_op = false;
   (void)ge::AttrUtils::GetBool(op_desc_ptr, ge::ATTR_NAME_IS_BLOCKING_OP, is_blocking_aicpu_op);

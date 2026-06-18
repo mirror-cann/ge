@@ -20,6 +20,7 @@
 #include "auto_tuning_plugin.h"
 #include "auto_tuning_hcom_ops_kernel_info_store.h"
 #include "auto_tuning_hcom_ops_kernel_builder.h"
+#include "framework/common/runtime_model_ge.h"
 #include "hcom_ops_kernel_info_store.h"
 #include "ops_kernel_info_store_base.h"
 #include "hcom_ops_stores.h"
@@ -31,7 +32,7 @@
 #include "hccl_stub.h"
 #include <stdlib.h>
 #include <pthread.h>
-#include <runtime/rt.h>
+#include "rt_external.h"
 #include <iostream>
 #include <fstream>
 #include "llt_hccl_stub_ge.h"
@@ -254,7 +255,7 @@ TEST_F(HcomGradientSplitTuneTest, ut_Gradient_AutoTuning_E2E)
     u32 result_type = taskDefList[0].type();
     u32 result_stream_id = taskDefList[0].stream_id();
     std::string result_hccl_hccl_type = taskDefList[0].mutable_kernel_hccl()->hccl_type();
-    EXPECT_EQ(result_type, RT_MODEL_TASK_HCCL);
+    EXPECT_EQ(result_type, ACL_RT_MODEL_TASK_HCCL);
     EXPECT_EQ(result_stream_id, streamId);
     EXPECT_EQ(result_hccl_hccl_type, HCCL_KERNEL_OP_TYPE_ALLREDUCE);
 
@@ -264,7 +265,7 @@ TEST_F(HcomGradientSplitTuneTest, ut_Gradient_AutoTuning_E2E)
     s8* recv = (s8*)sal_malloc(10 * sizeof(float));
     sal_memset(recv, 10 * sizeof(float), 0, 10 * sizeof(float));
     rtStream_t stream;
-    rtError_t rt_ret = rtStreamCreate(&stream, 5);
+    aclError rt_ret = aclrtCreateStreamWithConfig(&stream, 5, 0);
     EXPECT_EQ(rt_ret, RT_ERROR_NONE); 
 
     ge::GETaskInfo task;
@@ -278,7 +279,7 @@ TEST_F(HcomGradientSplitTuneTest, ut_Gradient_AutoTuning_E2E)
     task.kernelHcclInfo[0].opType=HCCL_REDUCE_SUM;
     task.kernelHcclInfo[0].rootId=0;
     task.kernelHcclInfo[0].hcclQosCfg=INVALID_QOSCFG;
-    task.type = RT_MODEL_TASK_HCCL;
+    task.type = ACL_RT_MODEL_TASK_HCCL;
     task.stream = stream;
     AUTO_TUNING_HCCL_KERNEL_INFO_PRIVATE_DEF privateDefBuf = {2, 0, HCCL_DATA_TYPE_INT8}; 
     task.privateDef = (void *)&privateDefBuf.rankSize;
@@ -298,7 +299,7 @@ TEST_F(HcomGradientSplitTuneTest, ut_Gradient_AutoTuning_E2E)
     ge_ret = Finalize();
     EXPECT_EQ(ge_ret, ge::SUCCESS);
 
-    rt_ret = rtStreamDestroy(stream);
+    rt_ret = aclrtDestroyStream(stream);
     EXPECT_EQ(rt_ret, RT_ERROR_NONE);
     sal_free(sendbuf);
     sal_free(recv); 
@@ -321,7 +322,7 @@ TEST_F(HcomGradientSplitTuneTest, ut_gradient_HcomOpsKernelInfoStore_AllGather_l
     s8* recv = (s8*)sal_malloc(20 * sizeof(float));
     HCCL_INFO("recv is [%p]", recv);
     sal_memset(recv, 20 * sizeof(float), 0, 20 * sizeof(float));
-    rtError_t rt_ret = rtStreamCreate(&stream, 5);
+    aclError rt_ret = aclrtCreateStreamWithConfig(&stream, 5, 0);
     EXPECT_EQ(rt_ret, RT_ERROR_NONE); 
     ge::GETaskKernelHcclInfo hcclInfo;
     task.kernelHcclInfo.push_back(hcclInfo); 
@@ -333,7 +334,7 @@ TEST_F(HcomGradientSplitTuneTest, ut_gradient_HcomOpsKernelInfoStore_AllGather_l
     task.kernelHcclInfo[0].opType=HCCL_REDUCE_SUM;
     task.kernelHcclInfo[0].rootId=0;
     task.kernelHcclInfo[0].hcclQosCfg=INVALID_QOSCFG; 
-    task.type = RT_MODEL_TASK_HCCL;
+    task.type = ACL_RT_MODEL_TASK_HCCL;
     task.stream = stream;
     AUTO_TUNING_HCCL_KERNEL_INFO_PRIVATE_DEF privateDefBuf = {2, 0, HCCL_DATA_TYPE_INT8}; 
     task.privateDef = (void *)&privateDefBuf.rankSize;
@@ -342,7 +343,7 @@ TEST_F(HcomGradientSplitTuneTest, ut_gradient_HcomOpsKernelInfoStore_AllGather_l
     ge_ret = athcomOpsKernelInfo.LoadTask(task);
     EXPECT_EQ(ge_ret, ge::SUCCESS);
     
-    rt_ret = rtStreamDestroy(stream);
+    rt_ret = aclrtDestroyStream(stream);
     EXPECT_EQ(rt_ret, RT_ERROR_NONE);
     sal_free(sendbuf);
     sal_free(recv); 
@@ -359,7 +360,7 @@ TEST_F(HcomGradientSplitTuneTest, ut_gradient_HcomOpsKernelInfoStore_AllReduce_l
     sal_memset(sendbuf, 10 * sizeof(float), 0, 10 * sizeof(float));
     s8* recv = (s8*)sal_malloc(10 * sizeof(float));
     sal_memset(recv, 10 * sizeof(float), 0, 10 * sizeof(float));
-    rtError_t rt_ret = rtStreamCreate(&stream, 5);
+    aclError rt_ret = aclrtCreateStreamWithConfig(&stream, 5, 0);
     EXPECT_EQ(rt_ret, RT_ERROR_NONE); 
     ge::GETaskKernelHcclInfo hcclInfo;
     task.kernelHcclInfo.push_back(hcclInfo); 
@@ -371,7 +372,7 @@ TEST_F(HcomGradientSplitTuneTest, ut_gradient_HcomOpsKernelInfoStore_AllReduce_l
     task.kernelHcclInfo[0].opType=HCCL_REDUCE_SUM;
     task.kernelHcclInfo[0].rootId=0;
     task.kernelHcclInfo[0].hcclQosCfg=INVALID_QOSCFG; 
-    task.type = RT_MODEL_TASK_HCCL;
+    task.type = ACL_RT_MODEL_TASK_HCCL;
     task.stream = stream;
     
     AUTO_TUNING_HCCL_KERNEL_INFO_PRIVATE_DEF privateDefBuf = {2, 0, HCCL_DATA_TYPE_INT8}; 
@@ -380,7 +381,7 @@ TEST_F(HcomGradientSplitTuneTest, ut_gradient_HcomOpsKernelInfoStore_AllReduce_l
 
     ge_ret = athcomOpsKernelInfo.LoadTask(task);
     EXPECT_EQ(ge_ret, ge::SUCCESS);
-    rt_ret = rtStreamDestroy(stream);
+    rt_ret = aclrtDestroyStream(stream);
     EXPECT_EQ(rt_ret, RT_ERROR_NONE);
 
     sal_free(sendbuf);
@@ -398,7 +399,7 @@ TEST_F(HcomGradientSplitTuneTest, ut_gradient_HcomOpsKernelInfoStore_Broadcast_l
     sal_memset(sendbuf, 10 * sizeof(float), 0, 10 * sizeof(float));
     s8* recv = (s8*)sal_malloc(10 * sizeof(float));
     sal_memset(recv, 10 * sizeof(float), 0, 10 * sizeof(float));
-    rtError_t rt_ret = rtStreamCreate(&stream, 5);
+    aclError rt_ret = aclrtCreateStreamWithConfig(&stream, 5, 0);
     EXPECT_EQ(rt_ret, RT_ERROR_NONE); 
     ge::GETaskKernelHcclInfo hcclInfo;
     task.kernelHcclInfo.push_back(hcclInfo); 
@@ -410,7 +411,7 @@ TEST_F(HcomGradientSplitTuneTest, ut_gradient_HcomOpsKernelInfoStore_Broadcast_l
     task.kernelHcclInfo[0].opType=HCCL_REDUCE_SUM;
     task.kernelHcclInfo[0].rootId=0;
     task.kernelHcclInfo[0].hcclQosCfg=INVALID_QOSCFG; 
-    task.type = RT_MODEL_TASK_HCCL;
+    task.type = ACL_RT_MODEL_TASK_HCCL;
     task.stream = stream;
     
     AUTO_TUNING_HCCL_KERNEL_INFO_PRIVATE_DEF privateDefBuf = {2, 0, HCCL_DATA_TYPE_INT8}; 
@@ -419,7 +420,7 @@ TEST_F(HcomGradientSplitTuneTest, ut_gradient_HcomOpsKernelInfoStore_Broadcast_l
 
     ge_ret = athcomOpsKernelInfo.LoadTask(task);
     EXPECT_EQ(ge_ret, ge::SUCCESS);
-    rt_ret = rtStreamDestroy(stream);
+    rt_ret = aclrtDestroyStream(stream);
     EXPECT_EQ(rt_ret, RT_ERROR_NONE);
     sal_free(sendbuf);
     sal_free(recv); 
@@ -436,7 +437,7 @@ TEST_F(HcomGradientSplitTuneTest, ut_gradient_HcomOpsKernelInfoStore_AlltoAllx_l
     sal_memset(sendbuf, 10 * sizeof(float), 0, 10 * sizeof(float));
     s8* recv = (s8*)sal_malloc(10 * sizeof(float));
     sal_memset(recv, 10 * sizeof(float), 0, 10 * sizeof(float));
-    rtError_t rt_ret = rtStreamCreate(&stream, 5);
+    aclError rt_ret = aclrtCreateStreamWithConfig(&stream, 5, 0);
     EXPECT_EQ(rt_ret, RT_ERROR_NONE); 
     ge::GETaskKernelHcclInfo hcclInfo;
     task.kernelHcclInfo.push_back(hcclInfo); 
@@ -448,7 +449,7 @@ TEST_F(HcomGradientSplitTuneTest, ut_gradient_HcomOpsKernelInfoStore_AlltoAllx_l
     task.kernelHcclInfo[0].opType=HCCL_REDUCE_SUM;
     task.kernelHcclInfo[0].rootId=0;
     task.kernelHcclInfo[0].hcclQosCfg=INVALID_QOSCFG; 
-    task.type = RT_MODEL_TASK_HCCL;
+    task.type = ACL_RT_MODEL_TASK_HCCL;
     task.stream = stream;
     
     AUTO_TUNING_HCCL_KERNEL_INFO_PRIVATE_DEF privateDefBuf = {2, 0}; 
@@ -466,7 +467,7 @@ TEST_F(HcomGradientSplitTuneTest, ut_gradient_HcomOpsKernelInfoStore_AlltoAllx_l
     ge_ret = athcomOpsKernelInfo.LoadTask(task);
     EXPECT_EQ(ge_ret, ge::SUCCESS);
 
-    rt_ret = rtStreamDestroy(stream);
+    rt_ret = aclrtDestroyStream(stream);
     EXPECT_EQ(rt_ret, RT_ERROR_NONE);
     sal_free(sendbuf);
     sal_free(recv); 
@@ -557,7 +558,7 @@ TEST_F(HcomGradientSplitTuneTest, ut_gradient_HcomOpsKernelInfoStore_Reduce_load
     sal_memset(sendbuf, 10 * sizeof(float), 0, 10 * sizeof(float));
     s8* recv = (s8*)sal_malloc(10 * sizeof(float));
     sal_memset(recv, 10 * sizeof(float), 0, 10 * sizeof(float));
-    rtError_t rt_ret = rtStreamCreate(&stream, 5);
+    aclError rt_ret = aclrtCreateStreamWithConfig(&stream, 5, 0);
     EXPECT_EQ(rt_ret, RT_ERROR_NONE); 
     ge::GETaskKernelHcclInfo hcclInfo;
     task.kernelHcclInfo.push_back(hcclInfo); 
@@ -569,7 +570,7 @@ TEST_F(HcomGradientSplitTuneTest, ut_gradient_HcomOpsKernelInfoStore_Reduce_load
     task.kernelHcclInfo[0].opType=HCCL_REDUCE_SUM;
     task.kernelHcclInfo[0].rootId=0;
     task.kernelHcclInfo[0].hcclQosCfg=INVALID_QOSCFG; 
-    task.type = RT_MODEL_TASK_HCCL;
+    task.type = ACL_RT_MODEL_TASK_HCCL;
     task.stream = stream;
     
     AUTO_TUNING_HCCL_KERNEL_INFO_PRIVATE_DEF privateDefBuf = {2, 0, HCCL_DATA_TYPE_INT8}; 
@@ -578,7 +579,7 @@ TEST_F(HcomGradientSplitTuneTest, ut_gradient_HcomOpsKernelInfoStore_Reduce_load
 
     ge_ret = athcomOpsKernelInfo.LoadTask(task);
     EXPECT_EQ(ge_ret, ge::SUCCESS);
-    rt_ret = rtStreamDestroy(stream);
+    rt_ret = aclrtDestroyStream(stream);
     EXPECT_EQ(rt_ret, RT_ERROR_NONE);
     sal_free(sendbuf);
     sal_free(recv); 
@@ -595,7 +596,7 @@ TEST_F(HcomGradientSplitTuneTest, ut_gradient_HcomOpsKernelInfoStore_ReduceScatt
     sal_memset(sendbuf, 10 * sizeof(float), 0, 10 * sizeof(float));
     s8* recv = (s8*)sal_malloc(10 * sizeof(float));
     sal_memset(recv, 10 * sizeof(float), 0, 10 * sizeof(float));
-    rtError_t rt_ret = rtStreamCreate(&stream, 5);
+    aclError rt_ret = aclrtCreateStreamWithConfig(&stream, 5, 0);
     EXPECT_EQ(rt_ret, RT_ERROR_NONE); 
     ge::GETaskKernelHcclInfo hcclInfo;
     task.kernelHcclInfo.push_back(hcclInfo); 
@@ -607,7 +608,7 @@ TEST_F(HcomGradientSplitTuneTest, ut_gradient_HcomOpsKernelInfoStore_ReduceScatt
     task.kernelHcclInfo[0].opType=HCCL_REDUCE_SUM;
     task.kernelHcclInfo[0].rootId=0;
     task.kernelHcclInfo[0].hcclQosCfg=INVALID_QOSCFG; 
-    task.type = RT_MODEL_TASK_HCCL;
+    task.type = ACL_RT_MODEL_TASK_HCCL;
     task.stream = stream;
     
     AUTO_TUNING_HCCL_KERNEL_INFO_PRIVATE_DEF privateDefBuf = {2, 0, HCCL_DATA_TYPE_INT8}; 
@@ -616,7 +617,7 @@ TEST_F(HcomGradientSplitTuneTest, ut_gradient_HcomOpsKernelInfoStore_ReduceScatt
 
     ge_ret = athcomOpsKernelInfo.LoadTask(task);
     EXPECT_EQ(ge_ret, ge::SUCCESS);
-    rt_ret = rtStreamDestroy(stream);
+    rt_ret = aclrtDestroyStream(stream);
     EXPECT_EQ(rt_ret, RT_ERROR_NONE);
     sal_free(sendbuf);
     sal_free(recv); 
@@ -633,7 +634,7 @@ TEST_F(HcomGradientSplitTuneTest, ut_gradient_HcomOpsKernelInfoStore_Send_load)
     sal_memset(sendbuf, 10 * sizeof(float), 0, 10 * sizeof(float));
     s8* recv = (s8*)sal_malloc(10 * sizeof(float));
     sal_memset(recv, 10 * sizeof(float), 0, 10 * sizeof(float));
-    rtError_t rt_ret = rtStreamCreate(&stream, 5);
+    aclError rt_ret = aclrtCreateStreamWithConfig(&stream, 5, 0);
     EXPECT_EQ(rt_ret, RT_ERROR_NONE); 
     ge::GETaskKernelHcclInfo hcclInfo;
     task.kernelHcclInfo.push_back(hcclInfo); 
@@ -645,7 +646,7 @@ TEST_F(HcomGradientSplitTuneTest, ut_gradient_HcomOpsKernelInfoStore_Send_load)
     task.kernelHcclInfo[0].opType=HCCL_REDUCE_SUM;
     task.kernelHcclInfo[0].rootId=0;
     task.kernelHcclInfo[0].hcclQosCfg=INVALID_QOSCFG; 
-    task.type = RT_MODEL_TASK_HCCL;
+    task.type = ACL_RT_MODEL_TASK_HCCL;
     task.stream = stream;
     
     AUTO_TUNING_HCCL_KERNEL_INFO_PRIVATE_DEF privateDefBuf = {2, 0, HCCL_DATA_TYPE_INT8}; 
@@ -654,7 +655,7 @@ TEST_F(HcomGradientSplitTuneTest, ut_gradient_HcomOpsKernelInfoStore_Send_load)
 
     ge_ret = athcomOpsKernelInfo.LoadTask(task);
     EXPECT_EQ(ge_ret, ge::SUCCESS);
-    rt_ret = rtStreamDestroy(stream);
+    rt_ret = aclrtDestroyStream(stream);
     EXPECT_EQ(rt_ret, RT_ERROR_NONE);
     sal_free(sendbuf);
     sal_free(recv); 
@@ -671,7 +672,7 @@ TEST_F(HcomGradientSplitTuneTest, ut_gradient_HcomOpsKernelInfoStore_Receive_loa
     sal_memset(sendbuf, 10 * sizeof(float), 0, 10 * sizeof(float));
     s8* recv = (s8*)sal_malloc(10 * sizeof(float));
     sal_memset(recv, 10 * sizeof(float), 0, 10 * sizeof(float));
-    rtError_t rt_ret = rtStreamCreate(&stream, 5);
+    aclError rt_ret = aclrtCreateStreamWithConfig(&stream, 5, 0);
     EXPECT_EQ(rt_ret, RT_ERROR_NONE); 
     ge::GETaskKernelHcclInfo hcclInfo;
     task.kernelHcclInfo.push_back(hcclInfo); 
@@ -683,7 +684,7 @@ TEST_F(HcomGradientSplitTuneTest, ut_gradient_HcomOpsKernelInfoStore_Receive_loa
     task.kernelHcclInfo[0].opType=HCCL_REDUCE_SUM;
     task.kernelHcclInfo[0].rootId=0;
     task.kernelHcclInfo[0].hcclQosCfg=INVALID_QOSCFG; 
-    task.type = RT_MODEL_TASK_HCCL;
+    task.type = ACL_RT_MODEL_TASK_HCCL;
     task.stream = stream;
     
     AUTO_TUNING_HCCL_KERNEL_INFO_PRIVATE_DEF privateDefBuf = {2, 0, HCCL_DATA_TYPE_INT8}; 
@@ -692,7 +693,7 @@ TEST_F(HcomGradientSplitTuneTest, ut_gradient_HcomOpsKernelInfoStore_Receive_loa
 
     ge_ret = athcomOpsKernelInfo.LoadTask(task);
     EXPECT_EQ(ge_ret, ge::SUCCESS);
-    rt_ret = rtStreamDestroy(stream);
+    rt_ret = aclrtDestroyStream(stream);
     EXPECT_EQ(rt_ret, RT_ERROR_NONE);
     sal_free(sendbuf);
     sal_free(recv); 

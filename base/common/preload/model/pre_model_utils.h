@@ -13,7 +13,7 @@
 
 #include "common/model/ge_root_model.h"
 #include "common/math/math_util.h"
-#include "runtime/rt_preload_task.h"
+#include "rt_external_preload.h"
 
 namespace ge {
 struct ArgOffset {

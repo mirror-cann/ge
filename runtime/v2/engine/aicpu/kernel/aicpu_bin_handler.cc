@@ -16,8 +16,8 @@
 #include "graph_metadef/graph/utils/file_utils.h"
 #include "graph/load/model_manager/model_manager.h"
 #include "framework/common/debug/log.h"
-#include "runtime/dev.h"
-#include "runtime/context.h"
+#include "rt_external_device.h"
+#include "common/ge_rts_decl.h"
 
  
 using namespace ge;
@@ -131,8 +131,8 @@ ge::graphStatus CustBinHandlerManager::LoadAndGetBinHandle(const std::string &so
     return ge::FAILED;
   }
 
-  rtContext_t current_ctx = nullptr;
-  GE_CHK_RT_RET(aclrtGetCurrentContext(&current_ctx));
+  aclrtContext current_ctx = nullptr;
+  GE_CHK_ACL_RET(aclrtGetCurrentContext(&current_ctx));
   const uintptr_t resource_id = reinterpret_cast<uintptr_t>(current_ctx);
 
   const std::lock_guard<std::recursive_mutex> lk(mutex_);
@@ -174,8 +174,8 @@ ge::graphStatus CustBinHandlerManager::GetBinHandle(const std::string &so_name, 
     return ge::FAILED;
   }
 
-  rtContext_t current_ctx = nullptr;
-  GE_CHK_RT_RET(aclrtGetCurrentContext(&current_ctx));
+  aclrtContext current_ctx = nullptr;
+  GE_CHK_ACL_RET(aclrtGetCurrentContext(&current_ctx));
   const uintptr_t resource_id = reinterpret_cast<uintptr_t>(current_ctx);
 
   const std::lock_guard<std::recursive_mutex> lk(mutex_);

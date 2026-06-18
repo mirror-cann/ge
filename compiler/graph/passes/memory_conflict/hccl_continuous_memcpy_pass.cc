@@ -20,7 +20,7 @@
 #include "graph/utils/graph_utils.h"
 #include "graph/utils/op_desc_utils.h"
 #include "graph/utils/op_type_utils.h"
-#include "runtime/rt.h"
+#include "rt_external.h"
 #include "checker.h"
 
 namespace {

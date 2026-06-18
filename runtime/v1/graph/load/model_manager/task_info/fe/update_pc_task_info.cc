@@ -54,7 +54,7 @@ Status UpdatePCTaskInfo::Distribute() {
   taskUpdateInfo.val.aicAivTaskAttr.funcEntryAddr = reinterpret_cast<void *>(tiling_context_addr->tiling_key_addr);
   taskUpdateInfo.val.aicAivTaskAttr.blockDimAddr = reinterpret_cast<uint64_t *>(tiling_context_addr->block_dim_addr);
 
-  GE_CHK_RT_RET(aclrtTaskUpdateAsync(sink_task_info->stream, sink_task_info->task_id, &taskUpdateInfo, stream_));
+  GE_CHK_ACL_RET(aclrtTaskUpdateAsync(sink_task_info->stream, sink_task_info->task_id, &taskUpdateInfo, stream_));
 
   is_support_redistribute_ = true;
   GELOGI("UpdatePCTaskInfo %s Distribute Success, stream: %p.", op_desc_->GetNamePtr(), stream_);

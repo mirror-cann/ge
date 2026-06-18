@@ -20,7 +20,7 @@
 #include "graph/utils/tensor_utils.h"
 #include "graph/debug/ge_attr_define.h"
 #include "framework/common/framework_types_internal.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 
 namespace ge {
 constexpr int32_t kSessionNoReuse = 1;

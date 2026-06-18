@@ -50,6 +50,8 @@
 #include "kernel/known_subgraph/davinci_model_kernel.h"
 #include "graph/utils/attr_utils.h"
 #include "exe_graph/lowering/value_holder_utils.h"
+#include "rt_external_stream.h"
+#include "rt_external_kernel.h"
 #include "acl/acl_rt.h"
 #include "common/aclrt_malloc_helper.h"
 
@@ -93,7 +95,7 @@ ge::Status CopyH2D(const void *host_addr, const ge::GeTensorDesc &td, const size
       (builtin_tensor_data_size == 0UL) || (builtin_tensor_data_size >= static_cast<uint64_t>(tensor_size));
   GE_ASSERT_TRUE(is_tensor_size_valid, "Built in tensor data size %zu < calc_tensor_size %zu, do nothing.",
                  builtin_tensor_data_size, tensor_size);
-  GE_ASSERT_RT_OK(ge::AclrtMalloc(&device_addr, tensor_size, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+  GE_ASSERT_ACL_OK(ge::AclrtMalloc(&device_addr, tensor_size, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
   allocated_mem.emplace_back(device_addr);
   dump_addrs.emplace_back(reinterpret_cast<uintptr_t>(device_addr));
   GE_ASSERT_RT_OK(aclrtMemcpy(device_addr, tensor_size, host_addr, tensor_size, ACL_MEMCPY_HOST_TO_DEVICE));
@@ -180,7 +182,7 @@ bool IsNeedCheckOverflowNode(const char *const node_type) {
 }
 ge::Status CheckOverflow(const Node &node, const aclrtStream stream, bool &is_overflow) {
   auto timeout = ge::GetContext().StreamSyncTimeout();
-  const auto rt_ret = rtStreamSynchronizeWithTimeout(stream, timeout);
+  const auto rt_ret = aclrtSynchronizeStreamWithTimeout(stream, timeout);
   if ((rt_ret == ACL_ERROR_RT_OVER_FLOW) || (rt_ret == ACL_ERROR_RT_AICORE_OVER_FLOW) ||
       (rt_ret == ACL_ERROR_RT_AIVEC_OVER_FLOW)) {
     is_overflow = true;
@@ -190,9 +192,9 @@ ge::Status CheckOverflow(const Node &node, const aclrtStream stream, bool &is_ov
            compute_node_type);
     return ge::SUCCESS;
   } else if (rt_ret == ACL_ERROR_RT_STREAM_SYNC_TIMEOUT) {
-    GELOGE(rt_ret, "[Invoke][rtStreamSynchronizeWithTimeout] failed, stream synchronize timeout:%d, ret:%d.", timeout,
+    GELOGE(rt_ret, "[Invoke][aclrtSynchronizeStreamWithTimeout] failed, stream synchronize timeout:%d, ret:%d.", timeout,
            rt_ret);
-    REPORT_INNER_ERR_MSG("E19999", "rtStreamSynchronizeWithTimeout failed, stream synchronize timeout:%d, ret:%d.",
+    REPORT_INNER_ERR_MSG("E19999", "aclrtSynchronizeStreamWithTimeout failed, stream synchronize timeout:%d, ret:%d.",
                       timeout, rt_ret);
     return ge::FAILED;
   } else {
@@ -238,9 +240,9 @@ ge::Status NormalProcessor(const ge::OpDescPtr &op_desc, ge::ExceptionDumper *du
     uint32_t task_id = 0U;
     uint32_t stream_id = 0U;
     int32_t device_id = 0;
-    GE_CHK_RT_RET(aclrtGetThreadLastTaskId(&task_id));
-    GE_CHK_RT_RET(aclrtStreamGetId(stream, reinterpret_cast<int32_t*>(&stream_id)));
-    GE_CHK_RT_RET(aclrtGetDevice(&device_id));
+    GE_CHK_RT_RET(rtsGetThreadLastTaskId(&task_id));
+    GE_CHK_ACL_RET(aclrtStreamGetId(stream, reinterpret_cast<int32_t*>(&stream_id)));
+    GE_CHK_ACL_RET(aclrtGetDevice(&device_id));
     ge::OpDescInfoId id(task_id, stream_id, device_id);
     dumper->SaveDumpOpInfo(op_desc, extra_dump_unit, id, true);
   }
@@ -251,7 +253,7 @@ ge::Status FftsPlusProcessor(const ge::OpDescPtr &op_desc, ge::ExceptionDumper *
                              ge::ExtraOpInfo &extra_dump_unit, const aclrtStream &stream) {
   (void) stream;
   int32_t device_id = 0;
-  GE_CHK_RT_RET(aclrtGetDevice(&device_id));
+  GE_CHK_ACL_RET(aclrtGetDevice(&device_id));
   ge::OpDescInfoId id(UINT32_MAX, UINT32_MAX, device_id);
   for (const auto &ctx : dump_unit.context_list) {
     id.context_id = ctx.context_id;
@@ -1155,7 +1157,7 @@ ge::Status ExecutorDumper::FillDumpInfoByKernel(const Node &node) {
 ge::Status ExecutorDumper::UpdateStepNum() {
   void *step_id = nullptr;
   if (global_step_addr_ == 0U) {
-    GE_CHK_RT_RET(ge::AclrtMalloc(&step_id, sizeof(uint64_t), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+    GE_CHK_ACL_RET(ge::AclrtMalloc(&step_id, sizeof(uint64_t), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
     global_step_addr_ = static_cast<uintptr_t>(ge::PtrToValue(step_id));
   }
   step_id = ge::ValueToPtr(static_cast<uint64_t>(global_step_addr_));
@@ -1496,7 +1498,7 @@ ge::Status ExecutorDumper::DumpOpDebug() {
     data_dumper->SetModelId(extend_info_->model_id);
     GELOGD("[Overflow][Dumper]model name[%s], model id[%u].", extend_info_->model_name.c_str(), extend_info_->model_id);
     int32_t device_id = 0;
-    GE_CHK_RT_RET(aclrtGetDevice(&device_id));
+    GE_CHK_ACL_RET(aclrtGetDevice(&device_id));
     GE_ASSERT_TRUE(device_id >= 0);
     data_dumper->SetDeviceId(static_cast<uint32_t>(device_id));
 

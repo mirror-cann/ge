@@ -14,7 +14,7 @@
 #include "framework/runtime/dump/dump_config.h"
 #include <dump/adump_api.h>
 #include "common/dump/adump_opinfo_builder.h"
-#include "runtime/kernel.h"
+#include "rt_external_kernel.h"
 #include <limits>
 #include <cstdint>
 #include <sstream>

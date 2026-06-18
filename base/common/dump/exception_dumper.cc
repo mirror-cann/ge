@@ -30,7 +30,7 @@
 #include "graph/utils/attr_utils.h"
 #include "framework/common/util.h"
 #include "common/plugin/ge_make_unique_util.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "exception_dumper.h"
 #include "common/dump/kernel_tracing_utils.h"
 #include "common/sgt_slice_type.h"

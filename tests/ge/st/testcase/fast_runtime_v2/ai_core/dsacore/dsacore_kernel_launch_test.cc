@@ -11,7 +11,7 @@
 #include <gtest/gtest.h>
 #include <kernel/memory/mem_block.h>
 #include "stub/gert_runtime_stub.h"
-#include "runtime/rt.h"
+#include "rt_external.h"
 #include "faker/kernel_run_context_facker.h"
 #include "register/kernel_registry.h"
 #include "kernel/memory/caching_mem_allocator.h"

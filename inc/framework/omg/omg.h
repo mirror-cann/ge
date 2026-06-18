@@ -25,7 +25,7 @@
 #include "graph/compute_graph.h"
 #include "graph/graph.h"
 #include "graph/model.h"
-#include "runtime/kernel.h"
+#include "rt_external_kernel.h"
 
 namespace ge {
 /**

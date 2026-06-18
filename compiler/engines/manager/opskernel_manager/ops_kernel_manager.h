@@ -28,7 +28,7 @@
 #include "graph/manager/util/graph_optimize_utility.h"
 #include "framework/common/ge_inner_error_codes.h"
 #include "ge/ge_api_types.h"
-#include "runtime/base.h"
+#include "rt_external_base.h"
 
 
 namespace ge {

@@ -14,7 +14,7 @@
 #include "faker/allocator_faker.h"
 #include "exe_graph/runtime/storage_shape.h"
 #include "register/kernel_registry.h"
-#include "runtime/rt.h"
+#include "rt_external.h"
 #include "faker/kernel_run_context_faker.h"
 #include "operator_reg.h"
 

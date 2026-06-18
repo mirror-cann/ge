@@ -88,7 +88,7 @@ Status UpdateInputsBufferAddr(const StreamResource *const stream_resource, const
     }
     GELOGD("Do h2d for %zu input, dst size is %zu, src length is %" PRIu64 ".",
         input_index, size, update_buffers[input_index].length);
-    GE_CHK_RT_RET(aclrtMemcpyAsync(dst_addr, size, update_buffers[input_index].data,
+    GE_CHK_ACL_RET(aclrtMemcpyAsync(dst_addr, size, update_buffers[input_index].data,
         update_buffers[input_index].length, ACL_MEMCPY_HOST_TO_BUF_TO_DEVICE, stream));
     update_buffers[input_index].data = dst_addr;
     dst_addr = PtrToPtr<void, uint8_t>(ValueToPtr(PtrToValue(dst_addr) + size));

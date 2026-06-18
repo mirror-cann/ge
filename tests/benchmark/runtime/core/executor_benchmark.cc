@@ -11,7 +11,7 @@
 #include <benchmark/benchmark.h>
 #include "faker/fake_value.h"
 #include "common/share_graph.h"
-#include "runtime/dev.h"
+#include "rt_external_device.h"
 #include "stub/gert_runtime_stub.h"
 
 #include "graph/types.h"
@@ -143,7 +143,7 @@ static void ExecutorWithKernelRunForLstmpExeGraph(benchmark::State &state) {
                                      const_cast<void *>(mem_block->GetAddr())});
 
   rtStream_t stream;
-  rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT));
+  aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
   model_executor->Execute({i3.value}, std::vector<Tensor *>({i0.holder.get(), i1.holder.get(), i2.holder.get()}).data(),
                           3, reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size());
@@ -153,7 +153,7 @@ static void ExecutorWithKernelRunForLstmpExeGraph(benchmark::State &state) {
                             reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size());
   }
   model_executor->UnLoad();
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   mem_block->Free();
 }
 
@@ -202,7 +202,7 @@ static void ParallelExecutorWithKernelRunForLstmpExeGraph(benchmark::State &stat
                                      const_cast<void *>(mem_block->GetAddr())});
 
   rtStream_t stream;
-  rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT));
+  aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
   model_executor->Execute({i3.value},
                           std::vector<Tensor *>({i0.holder.get(), i1.holder.get(), i2.holder.get()}).data(),
@@ -213,7 +213,7 @@ static void ParallelExecutorWithKernelRunForLstmpExeGraph(benchmark::State &stat
                             reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size());
   }
   model_executor->UnLoad();
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   mem_block->Free();
 }
 

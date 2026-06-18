@@ -19,7 +19,7 @@
 #include "faker/aicpu_taskdef_faker.h"
 #include "runtime/model_v2_executor.h"
 #include "common/bg_test.h"
-#include "runtime/dev.h"
+#include "rt_external_device.h"
 
 #include "stub/gert_runtime_stub.h"
 #include "op_impl/less_important_op_impl.h"
@@ -113,7 +113,7 @@ TEST_F(Runtime2AllocatorSystemTest, ExternalAllocator_SingleNodeAiCpuTf_ExecuteS
   auto inputs = FakeTensors({2048, 1, 1, 1}, 2);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
   std::unique_ptr<Allocators> allocators(CreateDefaultAllocators().release());
 
@@ -125,7 +125,7 @@ TEST_F(Runtime2AllocatorSystemTest, ExternalAllocator_SingleNodeAiCpuTf_ExecuteS
                                     outputs.GetTensorList(), outputs.size()),
             ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(Runtime2AllocatorSystemTest, ExternalAllocator_SingleNodeDataDependency_ExecuteSuccess) {
@@ -162,7 +162,7 @@ TEST_F(Runtime2AllocatorSystemTest, ExternalAllocator_SingleNodeDataDependency_E
   auto inputs = std::vector<Tensor *>({inputs0.GetTensorList()[0], inputs1.GetTensorList()[0]});
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i3.value, allocators.get()}, inputs.data(), inputs.size(),
@@ -173,7 +173,7 @@ TEST_F(Runtime2AllocatorSystemTest, ExternalAllocator_SingleNodeDataDependency_E
                                     reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
             ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(Runtime2AllocatorSystemTest, test_allocate_mem_block_try_recycle_then_malloc_when_mem_cannot_alloc) {
@@ -192,10 +192,6 @@ TEST_F(Runtime2AllocatorSystemTest, test_allocate_mem_block_try_recycle_then_mal
         return -1;
       }
       *dev_ptr = new uint8_t [1];
-      return RT_ERROR_NONE;
-    }
-    rtError_t aclrtFree(void *dev_ptr) {
-      delete[](uint8_t *) dev_ptr;
       return RT_ERROR_NONE;
     }
     aclError aclrtGetMemInfo(aclrtMemAttr attr, size_t *free, size_t *total) {
@@ -244,7 +240,7 @@ TEST_F(Runtime2AllocatorSystemTest, test_alloc_total_exceed_thresold) {
 
 TEST_F(Runtime2AllocatorSystemTest, test_set_memory_pool_threshold) {
   struct FakeRuntime : RuntimeStubImpl {
-    rtError_t rtMemGetInfoEx(rtMemInfoType_t memInfoType, size_t *free, size_t *total) override {
+    rtError_t aclrtGetMemInfo(aclrtMemAttr memInfoType, size_t *free, size_t *total) override {
       *free = 60UL * 1024UL * 1024UL * 1024UL;
       *total = 60UL * 1024UL * 1024UL * 1024UL;
       return RT_ERROR_NONE;
@@ -330,7 +326,7 @@ TEST_F(Runtime2AllocatorSystemTest, expandable_memory_allocator_fail) {
 TEST_F(Runtime2AllocatorSystemTest, ExternalAllocator_NodeoutputAndWorkspaceUseSameAllocator) {
 
   struct FakeRuntime : RuntimeStubImpl {
-    rtError_t rtMemGetInfoEx(rtMemInfoType_t memInfoType, size_t *free, size_t *total) override {
+    rtError_t aclrtGetMemInfo(aclrtMemAttr memInfoType, size_t *free, size_t *total) override {
       *free = 60UL * 1024UL * 1024UL * 1024UL;
       *total = 60UL * 1024UL * 1024UL * 1024UL;
       return RT_ERROR_NONE;
@@ -377,7 +373,7 @@ TEST_F(Runtime2AllocatorSystemTest, ExternalAllocator_NodeoutputAndWorkspaceUseS
   auto inputs = std::vector<Tensor *>({inputs0.GetTensorList()[0], inputs1.GetTensorList()[0]});
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
   std::unique_ptr<Allocators> allocators(CreateDefaultAllocators().release());
 
@@ -420,7 +416,7 @@ TEST_F(Runtime2AllocatorSystemTest, ExternalAllocator_NodeoutputAndWorkspaceUseS
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor2->UnLoad(), ge::GRAPH_SUCCESS);
 
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 /**
@@ -464,7 +460,7 @@ TEST_F(Runtime2AllocatorSystemTest, ExternalAllocator_AllwaysExternalAllocator) 
   std::vector<Tensor *> outputs = {output.GetTensor()};
   auto inputs = FakeTensors({1, 2, 3, 4}, 2);
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Load({i3.value, allocators.get()}), ge::GRAPH_SUCCESS);
@@ -476,7 +472,7 @@ TEST_F(Runtime2AllocatorSystemTest, ExternalAllocator_AllwaysExternalAllocator) 
   EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Data", "SelectL1Allocator"), 1);
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   ge::RuntimeStub::Reset();
 }
 

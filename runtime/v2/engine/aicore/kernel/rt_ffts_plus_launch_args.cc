@@ -12,7 +12,7 @@
 #include "register/ffts_node_converter_registry.h"
 #include "register/ffts_node_calculater_registry.h"
 #include "engine/aicore/fe_rt2_common.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "common/math/math_util.h"
 #include "exe_graph/runtime/kernel_context.h"
 #include "register/kernel_registry_impl.h"

@@ -126,7 +126,7 @@ TEST_F(UtestHcclTaskInfo, test_SetFollowStream) {
 
   AttrUtils::SetInt(op_desc, "used_stream_num", 2);
   EXPECT_EQ(hccl_task_info.SetFollowStream(op_desc), SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(UtestHcclTaskInfo, success_task_init_args) {
@@ -671,11 +671,11 @@ TEST_F(UtestHcclTaskInfo, Calculate_Update_Args) {
   EXPECT_EQ(ret, SUCCESS);
   EXPECT_EQ(host_args[0], 12405353);
   EXPECT_EQ(host_args[1], 12405409);
-  (void)rtFree(hccl_task_info.input_hccl_dump_.proto_size_dev_mem_);
+  (void)aclrtFree(hccl_task_info.input_hccl_dump_.proto_size_dev_mem_);
   hccl_task_info.input_hccl_dump_.proto_size_dev_mem_ = nullptr;
   ret = hccl_task_info.UpdateHostArgs(active_base_addr, static_cast<void *>(host_args.data()), 2 * sizeof(int64_t));
   EXPECT_NE(ret, SUCCESS);
-  (void)rtFree(hccl_task_info.input_hccl_dump_.proto_dev_mem_);
+  (void)aclrtFree(hccl_task_info.input_hccl_dump_.proto_dev_mem_);
   hccl_task_info.input_hccl_dump_.proto_dev_mem_ = nullptr;
   ret = hccl_task_info.UpdateHostArgs(active_base_addr, static_cast<void *>(host_args.data()), 2 * sizeof(int64_t));
   EXPECT_NE(ret, SUCCESS);
@@ -735,10 +735,10 @@ TEST_F(UtestHcclTaskInfo, InsertDumpOp_SetRootGraphName) {
   EXPECT_EQ(ret, SUCCESS);
   // Cleanup
   if (hccl_task_info.input_hccl_dump_.proto_dev_mem_ != nullptr) {
-    (void)rtFree(hccl_task_info.input_hccl_dump_.proto_dev_mem_);
+    (void)aclrtFree(hccl_task_info.input_hccl_dump_.proto_dev_mem_);
   }
   if (hccl_task_info.input_hccl_dump_.proto_size_dev_mem_ != nullptr) {
-    (void)rtFree(hccl_task_info.input_hccl_dump_.proto_size_dev_mem_);
+    (void)aclrtFree(hccl_task_info.input_hccl_dump_.proto_size_dev_mem_);
   }
 }
 }  // namespace ge

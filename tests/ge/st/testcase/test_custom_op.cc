@@ -15,7 +15,7 @@
 #include "common/share_graph.h"
 #include "faker/global_data_faker.h"
 #include "faker/fake_value.h"
-#include "runtime/base.h"
+#include "rt_external_base.h"
 #include "ge/ge_api.h"
 #include "ge/ge_api_error_codes.h"
 #include "ge/ge_graph_compile_summary.h"

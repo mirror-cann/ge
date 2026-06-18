@@ -26,11 +26,10 @@
 #include "runtime/subscriber/global_profiler.h"
 #include "common/checker.h"
 #include "common/dump/kernel_tracing_utils.h"
-#include "runtime/kernel.h"
+#include "rt_external_kernel.h"
 #include "common/aclrt_malloc_helper.h"
 #include "common/dump/dump_utils.h"
 #include "common/error_tracking/error_tracking.h"
-
 
 namespace ge {
 namespace {
@@ -85,7 +84,7 @@ Status OpTask::SaveExceptionDumpInfo() {
     gert::PrintHex(reinterpret_cast<void **>(extra_op_info.args), extra_op_info.args_size / sizeof(void *), ss);
     extra_op_info.args_before_execute = ss.str();
     int32_t dev_id = 0;
-    GE_CHK_RT_RET(aclrtGetDevice(&dev_id));
+    GE_CHK_ACL_RET(aclrtGetDevice(&dev_id));
     ge::OpDescInfoId id(task_id_, stream_id_, dev_id);
     gert::GlobalDumper::GetInstance()->MutableExceptionDumper()->SaveDumpOpInfo(op_desc_, extra_op_info, id, true);
   }
@@ -139,8 +138,8 @@ Status OpTask::OpenDump(aclrtStream const stream) {
 
 Status OpTask::GetTaskIdAndStreamId(aclrtStream const stream) {
   if (ProfilingManager::Instance().ProfilingModelLoadOn()) {
-    GE_CHK_RT_RET(aclrtGetThreadLastTaskId(&task_id_));
-    GE_CHK_RT_RET(aclrtStreamGetId(stream, reinterpret_cast<int32_t*>(&stream_id_)));
+    GE_CHK_ACL_RET(aclrtGetThreadLastTaskId(&task_id_));
+    GE_CHK_ACL_RET(aclrtStreamGetId(stream, reinterpret_cast<int32_t*>(&stream_id_)));
   }
   return SUCCESS;
 }
@@ -975,8 +974,8 @@ Status AiCpuBaseTask::SetExtInfoAndType(const std::string &kernel_ext_info, cons
     }
   }
 
-  GE_CHK_RT_RET(ge::AclrtMalloc(&ext_info_addr_dev_, aicpu_ext_handle_->GetExtInfoLen(), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
-  GE_CHK_RT_RET(aclrtMemcpy(ext_info_addr_dev_, aicpu_ext_handle_->GetExtInfoLen(),
+  GE_CHK_ACL_RET(ge::AclrtMalloc(&ext_info_addr_dev_, aicpu_ext_handle_->GetExtInfoLen(), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+  GE_CHK_ACL_RET(aclrtMemcpy(ext_info_addr_dev_, aicpu_ext_handle_->GetExtInfoLen(),
       aicpu_ext_handle_->GetExtInfo(), aicpu_ext_handle_->GetExtInfoLen(),
       ACL_MEMCPY_HOST_TO_DEVICE));
   return SUCCESS;
@@ -1046,7 +1045,7 @@ Status AiCpuBaseTask::UpdateExtInfo(const std::vector<GeTensorDesc> &input_desc,
     }
   }
   // aicpu_ext_handle_->GetExtInfoLen() 已校验过非空
-  GE_CHK_RT_RET(aclrtMemcpyAsync(ext_info_addr_dev_, aicpu_ext_handle_->GetExtInfoLen(), // check size
+  GE_CHK_ACL_RET(aclrtMemcpyAsync(ext_info_addr_dev_, aicpu_ext_handle_->GetExtInfoLen(), // check size
       aicpu_ext_handle_->GetExtInfo(), aicpu_ext_handle_->GetExtInfoLen(),
       ACL_MEMCPY_HOST_TO_BUF_TO_DEVICE, stream));
 
@@ -1061,7 +1060,7 @@ Status AiCpuBaseTask::UpdateOutputShape(std::vector<GeTensorDesc> &output_desc) 
   }
   GELOGD("Start to update DEPEND_SHAPE_RANGE AiCpuBaseTask outputshape.");
 
-  GE_CHK_RT_RET(aclrtMemcpy(aicpu_ext_handle_->GetExtInfo(), aicpu_ext_handle_->GetExtInfoLen(),
+  GE_CHK_ACL_RET(aclrtMemcpy(aicpu_ext_handle_->GetExtInfo(), aicpu_ext_handle_->GetExtInfoLen(),
       ext_info_addr_dev_, aicpu_ext_handle_->GetExtInfoLen(), ACL_MEMCPY_DEVICE_TO_HOST));
 
   for (size_t i = 0U; i < num_outputs_; ++i) {
@@ -1286,13 +1285,13 @@ Status AiCpuBaseTask::PrepareCopyInputs(const std::vector<DataBuffer> &outputs) 
 
   const size_t copy_input_buf_len = num_outputs_ * kCopyNum * sizeof(uint64_t);
 
-  GE_CHK_RT_RET(aclrtMemcpy(copy_input_release_flag_dev_, copy_input_buf_len,
+  GE_CHK_ACL_RET(aclrtMemcpy(copy_input_release_flag_dev_, copy_input_buf_len,
       copy_input_release_flag.data(), copy_input_buf_len, ACL_MEMCPY_HOST_TO_DEVICE));
-  GE_CHK_RT_RET(aclrtMemcpy(copy_input_data_size_dev_, copy_input_buf_len,
+  GE_CHK_ACL_RET(aclrtMemcpy(copy_input_data_size_dev_, copy_input_buf_len,
       copy_input_data_size.data(), copy_input_buf_len, ACL_MEMCPY_HOST_TO_DEVICE));
-  GE_CHK_RT_RET(aclrtMemcpy(copy_input_src_dev_, copy_input_buf_len,
+  GE_CHK_ACL_RET(aclrtMemcpy(copy_input_src_dev_, copy_input_buf_len,
       copy_input_src.data(), copy_input_buf_len, ACL_MEMCPY_HOST_TO_DEVICE));
-  GE_CHK_RT_RET(aclrtMemcpy(copy_input_dst_dev_, copy_input_buf_len,
+  GE_CHK_ACL_RET(aclrtMemcpy(copy_input_dst_dev_, copy_input_buf_len,
       copy_input_dst.data(), copy_input_buf_len, ACL_MEMCPY_HOST_TO_DEVICE));
   return SUCCESS;
 }
@@ -1301,13 +1300,13 @@ Status AiCpuBaseTask::ReadResultSummaryAndPrepareMemory() {
   for (size_t i = 0U; i < num_outputs_; ++i) {
     auto &result_summary = output_summary_host_[i];
 
-    GE_CHK_RT_RET(aclrtMemcpy(&result_summary, sizeof(aicpu::FWKAdapter::ResultSummary),
+    GE_CHK_ACL_RET(aclrtMemcpy(&result_summary, sizeof(aicpu::FWKAdapter::ResultSummary),
         output_summary_[i], sizeof(aicpu::FWKAdapter::ResultSummary),
         ACL_MEMCPY_DEVICE_TO_HOST));
     const size_t shape_data_size = result_summary.shape_data_size;
     void *shape_buffer = nullptr;
     if (shape_data_size > 0U) {
-      GE_CHK_RT_RET(ge::AclrtMalloc(&shape_buffer, shape_data_size, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+      GE_CHK_ACL_RET(ge::AclrtMalloc(&shape_buffer, shape_data_size, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
     }
     out_shape_hbm_.emplace_back(shape_buffer);
   }
@@ -1325,7 +1324,7 @@ Status AiCpuCCTask::CopyDataToHbm(std::vector<DataBuffer> &outputs,
                                              block_dim_, &args_ex,
                                              nullptr, stream, RT_KERNEL_DEFAULT);
   GE_CHK_RT_RET(ret);
-  GE_CHK_RT_RET(aclrtSynchronizeStream(stream));
+  GE_CHK_ACL_RET(aclrtSynchronizeStream(stream));
   return SUCCESS;
 }
 
@@ -1335,7 +1334,7 @@ Status AiCpuTask::CopyDataToHbm(std::vector<DataBuffer> &outputs,
 
   GE_CHK_RT_RET(rtKernelLaunchEx(copy_task_args_buf_, static_cast<uint32_t>(sizeof(STR_FWK_OP_KERNEL)),
                                  RT_KERNEL_DEFAULT, stream));
-  GE_CHK_RT_RET(aclrtSynchronizeStream(stream));
+  GE_CHK_ACL_RET(aclrtSynchronizeStream(stream));
   return SUCCESS;
 }
 
@@ -1349,7 +1348,7 @@ Status AiCpuBaseTask::UpdateShapeByHbmBuffer(std::vector<GeTensorDesc> &output_d
       const uint32_t dim_num = static_cast<uint32_t>(result_summary.shape_data_size / sizeof(int64_t));
       const std::unique_ptr<int64_t[]> shape_addr = MakeUnique<int64_t[]>(static_cast<size_t>(dim_num));
       GE_CHECK_NOTNULL(shape_addr);
-      GE_CHK_RT_RET(aclrtMemcpy(shape_addr.get(), result_summary.shape_data_size, shape_hbm,
+      GE_CHK_ACL_RET(aclrtMemcpy(shape_addr.get(), result_summary.shape_data_size, shape_hbm,
           result_summary.shape_data_size, ACL_MEMCPY_DEVICE_TO_HOST));
 
       for (size_t dim_idx = 0U; dim_idx < dim_num; ++dim_idx) {
@@ -1410,17 +1409,17 @@ Status AiCpuTask::InitForSummaryAndCopy() {
   output_summary_.resize(num_outputs_);
   for (size_t i = 0U; i < num_outputs_; ++i) {
     constexpr size_t result_summary_size = sizeof(aicpu::FWKAdapter::ResultSummary);
-    GE_CHK_RT_RET(ge::AclrtMalloc(&output_summary_[i], result_summary_size, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+    GE_CHK_ACL_RET(ge::AclrtMalloc(&output_summary_[i], result_summary_size, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
   }
   output_summary_host_.resize(num_outputs_);
 
   const size_t copy_input_buf_len = num_outputs_ * kCopyNum * sizeof(uint64_t);
 
-  GE_CHK_RT_RET(ge::AclrtMalloc(&copy_input_release_flag_dev_, copy_input_buf_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
-  GE_CHK_RT_RET(ge::AclrtMalloc(&copy_input_data_size_dev_, copy_input_buf_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
-  GE_CHK_RT_RET(ge::AclrtMalloc(&copy_input_src_dev_, copy_input_buf_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
-  GE_CHK_RT_RET(ge::AclrtMalloc(&copy_input_dst_dev_, copy_input_buf_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
-  GE_CHK_RT_RET(ge::AclrtMalloc(&copy_task_args_buf_, sizeof(STR_FWK_OP_KERNEL), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+  GE_CHK_ACL_RET(ge::AclrtMalloc(&copy_input_release_flag_dev_, copy_input_buf_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+  GE_CHK_ACL_RET(ge::AclrtMalloc(&copy_input_data_size_dev_, copy_input_buf_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+  GE_CHK_ACL_RET(ge::AclrtMalloc(&copy_input_src_dev_, copy_input_buf_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+  GE_CHK_ACL_RET(ge::AclrtMalloc(&copy_input_dst_dev_, copy_input_buf_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+  GE_CHK_ACL_RET(ge::AclrtMalloc(&copy_task_args_buf_, sizeof(STR_FWK_OP_KERNEL), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
 
   std::vector<uint64_t> copy_io_addr;
   copy_io_addr.emplace_back(PtrToValue(copy_input_release_flag_dev_));
@@ -1430,9 +1429,9 @@ Status AiCpuTask::InitForSummaryAndCopy() {
 
   const uint64_t copy_io_addr_size = sizeof(uint64_t) * static_cast<uint64_t>(copy_io_addr.size());
 
-  GE_CHK_RT_RET(ge::AclrtMalloc(&copy_ioaddr_dev_, copy_io_addr_size, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+  GE_CHK_ACL_RET(ge::AclrtMalloc(&copy_ioaddr_dev_, copy_io_addr_size, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
 
-  GE_CHK_RT_RET(aclrtMemcpy(copy_ioaddr_dev_, copy_io_addr_size,
+  GE_CHK_ACL_RET(aclrtMemcpy(copy_ioaddr_dev_, copy_io_addr_size,
       copy_io_addr.data(), copy_io_addr_size, ACL_MEMCPY_HOST_TO_DEVICE));
   return SUCCESS;
 }
@@ -1445,9 +1444,9 @@ Status AiCpuTask::SetMemCopyTask(const domi::KernelExDef &kernel_def) {
         static_cast<uint64_t>(sizeof(STR_FWK_OP_KERNEL)), kernel_def.args_size());
     return ACL_ERROR_GE_PARAM_INVALID;
   }
-  GE_CHK_RT_RET(ge::AclrtMalloc(&copy_workspace_buf_, static_cast<uint64_t>(kernel_def.task_info_size()), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+  GE_CHK_ACL_RET(ge::AclrtMalloc(&copy_workspace_buf_, static_cast<uint64_t>(kernel_def.task_info_size()), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
   GE_CHECK_GE(kernel_def.task_info().size(), static_cast<size_t>(kernel_def.task_info_size()));
-  GE_CHK_RT_RET(aclrtMemcpy(copy_workspace_buf_, static_cast<uint64_t>(kernel_def.task_info_size()),
+  GE_CHK_ACL_RET(aclrtMemcpy(copy_workspace_buf_, static_cast<uint64_t>(kernel_def.task_info_size()),
       kernel_def.task_info().data(), static_cast<uint64_t>(kernel_def.task_info_size()),
       ACL_MEMCPY_HOST_TO_DEVICE));
 
@@ -1465,7 +1464,7 @@ Status AiCpuTask::SetMemCopyTask(const domi::KernelExDef &kernel_def) {
   aicpu_task.fwkKernelBase.fwk_kernel.extInfoAddr = 0U;
   aicpu_task.fwkKernelBase.fwk_kernel.extInfoLen = 0U;
 
-  GE_CHK_RT_RET(aclrtMemcpy(copy_task_args_buf_, sizeof(STR_FWK_OP_KERNEL),
+  GE_CHK_ACL_RET(aclrtMemcpy(copy_task_args_buf_, sizeof(STR_FWK_OP_KERNEL),
       &aicpu_task, sizeof(STR_FWK_OP_KERNEL), ACL_MEMCPY_HOST_TO_DEVICE));
   return SUCCESS;
 }
@@ -1488,10 +1487,10 @@ Status AiCpuTask::LaunchKernel(const std::vector<GeTensorDesc> &input_desc,
 
   GE_CHK_STATUS_RET_NOLOG(LaunchKernel(stream));
   if (unknown_type_ == DEPEND_SHAPE_RANGE) {
-    GE_CHK_RT_RET(aclrtSynchronizeStream(stream));
+    GE_CHK_ACL_RET(aclrtSynchronizeStream(stream));
     GE_CHK_STATUS_RET_NOLOG(UpdateOutputShape(output_desc));
   } else if (unknown_type_ == DEPEND_COMPUTE) {
-    GE_CHK_RT_RET(aclrtSynchronizeStream(stream));
+    GE_CHK_ACL_RET(aclrtSynchronizeStream(stream));
     GE_CHK_STATUS_RET_NOLOG(UpdateShapeAndDataByResultSummary(output_desc, output_buffers, stream));
   } else {
     // something else
@@ -1518,10 +1517,10 @@ Status AiCpuCCTask::LaunchKernel(const std::vector<GeTensorDesc> &input_desc,
 
   GE_CHK_STATUS_RET_NOLOG(LaunchKernel(stream));
   if (unknown_type_ == DEPEND_SHAPE_RANGE) {
-    GE_CHK_RT_RET(aclrtSynchronizeStream(stream));
+    GE_CHK_ACL_RET(aclrtSynchronizeStream(stream));
     GE_CHK_STATUS_RET_NOLOG(UpdateOutputShape(output_desc));
   } else if (unknown_type_ == DEPEND_COMPUTE) {
-    GE_CHK_RT_RET(aclrtSynchronizeStream(stream));
+    GE_CHK_ACL_RET(aclrtSynchronizeStream(stream));
     GE_CHK_STATUS_RET_NOLOG(UpdateShapeAndDataByResultSummary(output_desc, output_buffers, stream));
   } else {
     // something else
@@ -1539,16 +1538,16 @@ Status AiCpuCCTask::InitForSummaryAndCopy() {
   output_summary_.resize(num_outputs_);
   for (size_t i = 0U; i < num_outputs_; ++i) {
     constexpr size_t result_summary_size = sizeof(aicpu::FWKAdapter::ResultSummary);
-    GE_CHK_RT_RET(ge::AclrtMalloc(&output_summary_[i], result_summary_size, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+    GE_CHK_ACL_RET(ge::AclrtMalloc(&output_summary_[i], result_summary_size, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
   }
   output_summary_host_.resize(num_outputs_);
 
   const size_t copy_input_buf_len = num_outputs_ * kCopyNum * sizeof(uint64_t);
 
-  GE_CHK_RT_RET(ge::AclrtMalloc(&copy_input_release_flag_dev_, copy_input_buf_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
-  GE_CHK_RT_RET(ge::AclrtMalloc(&copy_input_data_size_dev_, copy_input_buf_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
-  GE_CHK_RT_RET(ge::AclrtMalloc(&copy_input_src_dev_, copy_input_buf_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
-  GE_CHK_RT_RET(ge::AclrtMalloc(&copy_input_dst_dev_, copy_input_buf_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+  GE_CHK_ACL_RET(ge::AclrtMalloc(&copy_input_release_flag_dev_, copy_input_buf_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+  GE_CHK_ACL_RET(ge::AclrtMalloc(&copy_input_data_size_dev_, copy_input_buf_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+  GE_CHK_ACL_RET(ge::AclrtMalloc(&copy_input_src_dev_, copy_input_buf_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+  GE_CHK_ACL_RET(ge::AclrtMalloc(&copy_input_dst_dev_, copy_input_buf_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
 
   copy_io_addr_.emplace_back(PtrToValue(copy_input_release_flag_dev_));
   copy_io_addr_.emplace_back(PtrToValue(copy_input_data_size_dev_));
@@ -1899,7 +1898,7 @@ MixL2OpTask::~MixL2OpTask() noexcept {
 
 Status NpuGetFloatStatusTask::LaunchKernel(aclrtStream const stream) {
   GELOGD("NpuGetFloatStatusTask launch in.");
-  GE_CHK_RT_RET(aclrtMemcpyAsync(args_, args_size_, &output_addr_,
+  GE_CHK_ACL_RET(aclrtMemcpyAsync(args_, args_size_, &output_addr_,
       args_size_, ACL_MEMCPY_HOST_TO_BUF_TO_DEVICE, stream));
   GE_CHK_RT_RET(ge::rtNpuGetFloatStatus(args_, output_size_, mode_, stream));
   return SUCCESS;
@@ -1924,7 +1923,7 @@ Status NpuClearFloatStatusTask::LaunchKernel(aclrtStream const stream) {
 
 Status NpuGetFloatDebugStatusTask::LaunchKernel(aclrtStream const stream) {
   GELOGD("NpuGetFloatDebugStatusTask launch in.");
-  GE_CHK_RT_RET(aclrtMemcpyAsync(args_, args_size_, &output_addr_,
+  GE_CHK_ACL_RET(aclrtMemcpyAsync(args_, args_size_, &output_addr_,
       args_size_, ACL_MEMCPY_HOST_TO_BUF_TO_DEVICE, stream));
   GE_CHK_RT_RET(ge::rtNpuGetFloatDebugStatus(args_, output_size_, mode_, stream));
   return SUCCESS;
@@ -1984,13 +1983,13 @@ Status DsaTask::UpdateDsaSqe(aclrtStream const stream) {
            workspace_input_addr, sizeof(uint64_t) * 2U, input_addr.data(), sizeof(uint64_t) * input_addr.size(),
            stream);
     // 此处无需校验，可以保证原地址非空且src_size > 0
-    GE_CHK_RT_RET(aclrtMemcpyAsync(ValueToPtr(workspace_input_addr), sizeof(uint64_t) * 2U, input_addr.data(),
+    GE_CHK_ACL_RET(aclrtMemcpyAsync(ValueToPtr(workspace_input_addr), sizeof(uint64_t) * 2U, input_addr.data(),
         sizeof(uint64_t) * input_addr.size(), ACL_MEMCPY_HOST_TO_BUF_TO_DEVICE, stream));
   } else {
     GELOGD("Try to do async memory copy, dst_addr = %p, dst_size = %zu, src_addr = %d, src_size = %zu, stream = %p",
            workspace_input_addr, sizeof(uint64_t) * 2U, input_data_, sizeof(input_data_), stream);
     // 此处无需校验，可以保证原地址非空且src_size > 0
-    GE_CHK_RT_RET(aclrtMemcpyAsync(ValueToPtr(workspace_input_addr), sizeof(uint64_t) * 2U, input_data_,
+    GE_CHK_ACL_RET(aclrtMemcpyAsync(ValueToPtr(workspace_input_addr), sizeof(uint64_t) * 2U, input_data_,
         sizeof(input_data_), ACL_MEMCPY_HOST_TO_BUF_TO_DEVICE, stream));
   }
 

@@ -17,7 +17,7 @@
 #include "framework/common/framework_types_internal.h"
 #include "graph/compute_graph.h"
 #include "graph/model.h"
-#include "runtime/rt.h"
+#include "rt_external.h"
 
 namespace ge {
 /*lint -e148*/

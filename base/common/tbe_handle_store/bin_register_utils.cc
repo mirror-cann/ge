@@ -9,8 +9,8 @@
  */
 
 #include "common/tbe_handle_store/bin_register_utils.h"
-
-#include "runtime/rt.h"
+#include "rt_external.h"
+#include "common/ge_rts_decl.h"
 #include "common/plugin/ge_make_unique_util.h"
 #include "common/util.h"
 #include "common/tbe_handle_store/kernel_store.h"
@@ -86,7 +86,7 @@ Status BinRegisterUtils::RegisterBin(const OpDesc &op_desc, const std::string &s
     GE_IF_BOOL_EXEC(AttrUtils::GetStr(op_desc_ptr, key_for_kernel_name, attr_names.kKernelNameSuffix, kernel_name),
                     GELOGI("Get original type of kernel_name"));
     GELOGI("TBE: binfile_key=%s, kernel_name=%s", stub_name.c_str(), kernel_name.c_str());
-    GE_CHK_RT_RET(rtFunctionRegister(bin_handle, stub_name.c_str(), stub_name.c_str(), kernel_name.c_str(), 0U));
+    GE_CHK_RT_RET(rtFunctionRegister(bin_handle, stub_name.c_str(), stub_name.c_str(), kernel_name.c_str(), FUNC_MODE_NORMAL));
   }
   (void)KernelBinRegistry::GetInstance().GetUnique(stub_name);
   GE_CHK_RT_RET(rtGetFunctionByName(stub_name.c_str(), &stub_func));

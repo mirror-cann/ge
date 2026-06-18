@@ -28,7 +28,7 @@
 #include "framework/common/debug/ge_log.h"
 #include "register/graph_optimizer/graph_fusion/connection_matrix.h"
 #include "register/graph_optimizer/fusion_common/op_slice_info.h"
-#include "runtime/kernel.h"
+#include "common/ge_rts_decl.h"
 
 using namespace std;
 using namespace domi;

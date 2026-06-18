@@ -11,7 +11,7 @@
 #include "runtime_ops_auto_task_builder.h"
 #include "inc/ffts_utils.h"
 #include "common/opskernel/ops_kernel_info_types.h"
-#include "runtime/base.h"
+#include "rt_external_base.h"
 #include "common/resource_def.h"
 namespace ffts {
 RuntimeOpsAutoTaskBuilder::RuntimeOpsAutoTaskBuilder() {}

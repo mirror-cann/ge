@@ -9,12 +9,13 @@
  */
 
 #include "adapter/tbe_adapter/kernel_launch/tbe_kernel_launch.h"
+#include "framework/common/runtime_model_ge.h"
 #include "common/fe_log.h"
 #include "common/aicore_util_attr_define.h"
 #include "common/aicore_util_constants.h"
 #include "common/fe_inner_error_codes.h"
 #include "rt_error_codes.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "common/platform_utils.h"
 
 namespace fe {
@@ -96,7 +97,7 @@ Status TbeKernelLaunch::AddAppendArgs(const ge::Node &node, void *all_args_buff,
 
 bool TbeKernelLaunch::KernelLaunch(const std::string &stub_func, const uint32_t block_dim, const void *args,
                                    uint32_t args_size, const rtSmDesc_t *sm_desc, domi::TaskDef &task_def) {
-  task_def.set_type(static_cast<uint32_t>(RT_MODEL_TASK_KERNEL));
+  task_def.set_type(static_cast<uint32_t>(ACL_RT_MODEL_TASK_KERNEL));
   domi::KernelDef *kernel_def = task_def.mutable_kernel();
   if (kernel_def == nullptr) {
     FE_LOGE("[GenTask][KernelLaunch] kernel_def is nullptr.");
@@ -128,7 +129,7 @@ bool TbeKernelLaunch::KernelLaunch(const std::string &stub_func, const uint32_t 
 
 bool TbeKernelLaunch::KernelLaunchWithHandle(const uint32_t block_dim, const void *args, uint32_t args_size,
                                              const rtSmDesc_t *sm_desc, domi::TaskDef &task_def) {
-  task_def.set_type(static_cast<uint32_t>(RT_MODEL_TASK_ALL_KERNEL));
+  task_def.set_type(static_cast<uint32_t>(ACL_RT_MODEL_TASK_ALL_KERNEL));
   domi::KernelDefWithHandle *kernel_def_with_handle = task_def.mutable_kernel_with_handle();
   if (kernel_def_with_handle == nullptr) {
     FE_LOGE("[GenTask][KernelLaunchWithHandle] kernel_def_with_handle is nullptr.");

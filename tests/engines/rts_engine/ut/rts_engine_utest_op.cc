@@ -34,7 +34,7 @@
 #include "end_graph_op.h"
 #include "common/error_code/error_code.h"
 #include "op_factory.h"
-#include "runtime/rt_model.h"
+#include "rt_external_model.h"
 
 #undef protected
 #undef private

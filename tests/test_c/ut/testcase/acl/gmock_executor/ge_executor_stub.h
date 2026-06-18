@@ -15,7 +15,7 @@
 #include <gmock/gmock.h>
 #include "acl/acl_base.h"
 #include "framework/executor_c/ge_executor.h"
-#include "runtime/rt.h"
+#include "rt_external.h"
 
 class GeExecutorStubMock {
 public:

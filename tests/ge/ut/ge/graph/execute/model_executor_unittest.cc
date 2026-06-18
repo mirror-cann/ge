@@ -297,7 +297,7 @@ TEST_F(UtestModelExecutorTest, test_check_and_release_stream_success) {
       case 2: {
         shared_ptr<domi::ModelTaskDef> model_task_def = std::make_shared<domi::ModelTaskDef>();
         ge_model->SetModelTaskDef(model_task_def);
-        (void)rtGetAvailStreamNum(RT_NORMAL_STREAM, &stream_num_dev_avail);
+        (void)aclrtGetStreamAvailableNum(&stream_num_dev_avail);
         EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_STREAM_NUM, stream_num_dev_avail + 1));
         EXPECT_EQ(model_executor.LoadGraph(ge_root_model, graph_node), SUCCESS);
         break;
@@ -355,13 +355,13 @@ TEST_F(UtestModelExecutorTest, test_check_and_release_stream_failed) {
       case 2: {
         shared_ptr<domi::ModelTaskDef> model_task_def = std::make_shared<domi::ModelTaskDef>();
         ge_model->SetModelTaskDef(model_task_def);
-        (void)rtGetAvailStreamNum(RT_NORMAL_STREAM, &stream_num_dev_avail);
+        (void)aclrtGetStreamAvailableNum(&stream_num_dev_avail);
         EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_STREAM_NUM, stream_num_dev_avail + 32));
         EXPECT_EQ(model_executor.LoadGraph(ge_root_model, graph_node), FAILED);
         break;
       }
       case 3: {
-        (void)rtGetAvailStreamNum(RT_NORMAL_STREAM, &stream_num_dev_avail);
+        (void)aclrtGetStreamAvailableNum(&stream_num_dev_avail);
         EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_STREAM_NUM, stream_num_dev_avail + 32));
         EXPECT_EQ(model_executor.LoadGraph(ge_root_model, graph_node), FAILED);
         break;
@@ -495,7 +495,7 @@ TEST_F(UtestModelExecutorTest, test_check_and_release_event_failed) {
         shared_ptr<domi::ModelTaskDef> model_task_def = std::make_shared<domi::ModelTaskDef>();
         ge_model->SetModelTaskDef(model_task_def);
 
-        (void)rtGetAvailEventNum(&event_num_dev_avail);
+        (void)aclrtGetEventAvailNum(&event_num_dev_avail);
         EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_EVENT_NUM, event_num_dev_avail + 32));
         EXPECT_EQ(model_executor.LoadGraph(ge_root_model, graph_node), FAILED);
         break;
@@ -508,7 +508,7 @@ TEST_F(UtestModelExecutorTest, test_check_and_release_event_failed) {
         shared_ptr<domi::ModelTaskDef> model_task_def = std::make_shared<domi::ModelTaskDef>();
         ge_model->SetModelTaskDef(model_task_def);
 
-        (void)rtGetAvailEventNum(&event_num_dev_avail);
+        (void)aclrtGetEventAvailNum(&event_num_dev_avail);
         EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_EVENT_NUM, event_num_dev_avail + 32));
         EXPECT_EQ(model_executor.LoadGraph(ge_root_model, graph_node), FAILED);
         break;
@@ -1260,12 +1260,12 @@ TEST_F(UtestModelExecutorTest, test_run_graph_with_stream) {
   std::vector<GeTensor> outputs;
 
   rtStream_t stream = nullptr;
-  rtStreamCreate(&stream, 0);
-  EXPECT_EQ(model_executor.RunGraphWithStream(graph_node, graph_id, stream, inputs, outputs), PARAM_INVALID);
+  aclrtCreateStreamWithConfig(&stream, 0, 0);
+  EXPECT_EQ(model_executor.RunGraphWithStream(graph_node, graph_id, stream, inputs, outputs), 1343225857);
 
   EXPECT_EQ(model_executor.Finalize(), SUCCESS);
 
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 
@@ -1303,7 +1303,7 @@ TEST_F(UtestModelExecutorTest, test_execute_graph_with_stream) {
   std::vector<gert::Tensor> gert_outputs;
 
   rtStream_t stream = nullptr;
-  rtStreamCreate(&stream, 0);
+  aclrtCreateStreamWithConfig(&stream, 0, 0);
   GeTensor tensor;
   std::vector<GeTensor> inputs{tensor};
   std::vector<GeTensor> outputs;
@@ -1312,7 +1312,7 @@ TEST_F(UtestModelExecutorTest, test_execute_graph_with_stream) {
   GraphNodePtr graph_node_2 = MakeShared<ge::GraphNode>(2);
   EXPECT_NE(model_executor.ExecuteGraphWithStream(graph_node_2, 2, stream, gert_inputs, gert_outputs), SUCCESS);
   EXPECT_EQ(model_executor.Finalize(), SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 static bool is_err_cb_called = false;

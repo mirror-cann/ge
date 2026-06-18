@@ -40,7 +40,6 @@ target_include_directories(profiler_stub SYSTEM PRIVATE
         ${AIR_CODE_DIR}/inc/framework
         ${METADEF_DIR}/inc/external
         )
-#set_target_properties(profiler_stub PROPERTIES LIBRARY_OUTPUT_NAME profapi)
 
 stub_module(profapi_share profiler_stub)
 stub_module(msprofiler_fwk_share profiler_stub)

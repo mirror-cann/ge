@@ -1068,7 +1068,7 @@ TEST_F(DynamicModelExecutorTest, PublishOutputWithoutExecuteEventContinue) {
 
 TEST_F(DynamicModelExecutorTest, PrepareInputsIsEventInput) {
   void *host_input_buf = nullptr;
-  rtMallocHost(&host_input_buf, 16, 0);
+  aclrtMallocHost(&host_input_buf, 16);
   ASSERT_NE(host_input_buf, nullptr);
   DynamicModelExecutor executor(true);
   executor.num_inputs_ = 1;
@@ -1083,7 +1083,7 @@ TEST_F(DynamicModelExecutorTest, PrepareInputsIsEventInput) {
   EXPECT_EQ(model_inputs[0].data, host_input_buf);
   EXPECT_EQ(model_inputs[0].placement, kPlacementHost);
   EXPECT_EQ(model_inputs[0].length, 512);
-  rtFreeHost(host_input_buf);
+  aclrtFreeHost(host_input_buf);
 }
 TEST_F(DynamicModelExecutorTest, PrepareOutputsOfDummyQ) {
   DynamicModelExecutor executor(true);

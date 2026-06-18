@@ -11,7 +11,7 @@
 #include <gtest/gtest.h>
 #include <vector>
 
-#include "runtime/rt.h"
+#include "rt_external.h"
 #include "ge_graph_dsl/graph_dsl.h"
 
 #include "macro_utils/dt_public_scope.h"

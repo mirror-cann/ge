@@ -12,7 +12,7 @@
 #define AIR_CXX_BASE_COMMON_OM2_CODEGEN_TASK_CODE_BUILDER_FE_BARRIER_TASK_CODE_BUILDER_H_
 
 #include "common/om2/codegen/task_code_builder/task_code_builder.h"
-#include "runtime/rt.h"
+#include "rt_external.h"
 
 namespace ge {
 class BarrierTaskCodeBuilder : public TaskCodeBuilder {

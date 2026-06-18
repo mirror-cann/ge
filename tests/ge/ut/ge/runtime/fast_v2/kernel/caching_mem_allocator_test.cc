@@ -12,7 +12,7 @@
 #include "kernel/memory/caching_mem_allocator.h"
 #include "kernel/memory/single_stream_l2_allocator.h"
 #include "kernel/memory/multi_stream_l2_allocator.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include <cmath>
 #include "stub/gert_runtime_stub.h"
 #include "faker/multi_stream_allocator_faker.h"

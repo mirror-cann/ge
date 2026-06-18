@@ -12,7 +12,7 @@
 #define FUSION_ENGINE_FUSION_GRAPH_OPTIMIZER_STREAM_GRAPH_OPTIMIZER_L2_OPTIMIZER_L2_OPTIMIZER_H_
 
 #include "graph/compute_graph.h"
-#include "runtime/base.h"
+#include "rt_external_base.h"
 #include "register/graph_optimizer/graph_optimize_register_error_codes.h"
 
 namespace fe {

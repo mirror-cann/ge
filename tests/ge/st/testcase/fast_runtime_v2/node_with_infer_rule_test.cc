@@ -32,7 +32,7 @@
 #include "framework/common/ge_types.h"
 #include "graph/utils/graph_utils.h"
 #include "graph/utils/op_desc_utils.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "ge_graph_dsl/graph_dsl.h"
 #include "graph/optimize/symbolic/expect_node_info_check_test.h"
 #include "faker/space_registry_faker.h"
@@ -335,7 +335,7 @@ TEST_F(ShapeRuleOpST, ComplexRuleVertical) {
   ASSERT_EQ(model_executor->Load(), ge::GRAPH_SUCCESS);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i1 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i1.value}, rule_maker.input_ptrs.data(), rule_maker.input_ptrs.size(),
@@ -345,7 +345,7 @@ TEST_F(ShapeRuleOpST, ComplexRuleVertical) {
   EXPECT_EQ(rule_maker.CheckEqual(), "");
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(ShapeRuleOpST, ComplexRuleHorizontal) {
@@ -371,7 +371,7 @@ TEST_F(ShapeRuleOpST, ComplexRuleHorizontal) {
   ASSERT_EQ(model_executor->Load(), ge::GRAPH_SUCCESS);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i1 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i1.value}, rule_maker.input_ptrs.data(), rule_maker.input_ptrs.size(),
@@ -381,7 +381,7 @@ TEST_F(ShapeRuleOpST, ComplexRuleHorizontal) {
   EXPECT_EQ(rule_maker.CheckEqual(), "");
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(ShapeRuleOpST, ComplexRuleVerticalJit) {
@@ -412,7 +412,7 @@ TEST_F(ShapeRuleOpST, ComplexRuleVerticalJit) {
   ASSERT_EQ(model_executor->Load(), ge::GRAPH_SUCCESS);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i1 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i1.value}, rule_maker.input_ptrs.data(), rule_maker.input_ptrs.size(),
@@ -422,7 +422,7 @@ TEST_F(ShapeRuleOpST, ComplexRuleVerticalJit) {
   EXPECT_EQ(rule_maker.CheckEqual(), "");
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(ShapeRuleOpST, ComplexRuleHorizontalJit) {
@@ -448,7 +448,7 @@ TEST_F(ShapeRuleOpST, ComplexRuleHorizontalJit) {
   ASSERT_EQ(model_executor->Load(), ge::GRAPH_SUCCESS);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i1 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i1.value}, rule_maker.input_ptrs.data(), rule_maker.input_ptrs.size(),
@@ -458,7 +458,7 @@ TEST_F(ShapeRuleOpST, ComplexRuleHorizontalJit) {
   EXPECT_EQ(rule_maker.CheckEqual(), "");
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 class CustomOpWithInferRuleST : public testing::Test {
@@ -519,7 +519,7 @@ TEST_F(CustomOpWithInferRuleST, CustomOpShapeInferenceByRule) {
   auto outputs = FakeTensors({2048}, 1);
   auto inputs = FakeTensors({2048}, 3);
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(),
@@ -527,6 +527,6 @@ TEST_F(CustomOpWithInferRuleST, CustomOpShapeInferenceByRule) {
             ge::GRAPH_SUCCESS);
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 }  // namespace gert

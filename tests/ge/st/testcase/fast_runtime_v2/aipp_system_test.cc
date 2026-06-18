@@ -16,7 +16,7 @@
 #include "lowering/graph_converter.h"
 #include "runtime/model_v2_executor.h"
 #include "common/bg_test.h"
-#include "runtime/dev.h"
+#include "rt_external_device.h"
 #include "stub/gert_runtime_stub.h"
 #include "graph/debug/ge_attr_define.h"
 #include "proto/insert_op.pb.h"

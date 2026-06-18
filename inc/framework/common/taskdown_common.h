@@ -11,9 +11,10 @@
 #ifndef INC_FRAMEWORK_COMMON_TASKDOWN_COMMON_H_
 #define INC_FRAMEWORK_COMMON_TASKDOWN_COMMON_H_
 
-#include "runtime/rt.h"
+#include "rt_external.h"
 #include <stdint.h>
 #include "ge/framework/common/taskdown_common.h"
+#include "runtime_model_ge.h"
 
 namespace ge {
 

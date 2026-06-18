@@ -16,9 +16,10 @@
 #include "parse_json_file.h"
 #include "tlv_parse.h"
 #include "dump_config.h"
-#include "runtime/dev.h"
-#include "runtime/rt_model.h"
-#include "runtime/mem.h"
+#include "rt_external_device.h"
+#include "acl/acl_rt.h"
+#include "rt_external_model.h"
+#include "rt_external_mem.h"
 #include "framework/executor_c/ge_log.h"
 #include "ge/ge_error_codes.h"
 #include "framework/executor_c/ge_executor.h"
@@ -187,7 +188,7 @@ static char *ConcatDumpPath(char *dumpPath) {
     (void)strftime(timeStamp, BUFFER_SIZE, "%Y%m%d%H%M%S", ptm);
   }
   int32_t deviceId = 0;
-  (void)rtGetDevice(&deviceId);
+  (void)aclrtGetDevice(&deviceId);
   bool result = 0;
   char devIdStr[IDMAX];
   uint32_t devLen = IntToStr((size_t)deviceId, devIdStr, IDMAX);

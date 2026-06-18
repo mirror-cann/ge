@@ -10,7 +10,7 @@
 
 #ifndef AIR_CXX_RUNTIME_V2_GRAPH_BUILDER_AICPU_BLOCK_CHECKER_H_
 #define AIR_CXX_RUNTIME_V2_GRAPH_BUILDER_AICPU_BLOCK_CHECKER_H_
-#include <runtime/rt.h>
+#include "rt_external.h"
 #include "common/debug/ge_log.h"
 #include "common/checker.h"
 #include "aicpu_args_handler.h"

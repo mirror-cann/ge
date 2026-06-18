@@ -70,7 +70,7 @@ class CtrlOpST : public testing::Test {
     std::vector<Tensor *> outputs{output0_holder.GetTensor(), output1_holder.GetTensor()};
 
     rtStream_t stream;
-    ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
 
     ASSERT_EQ(model_executor->Load(), ge::GRAPH_SUCCESS);
 
@@ -89,7 +89,7 @@ class CtrlOpST : public testing::Test {
     ASSERT_EQ(output1_holder.GetTensor()->GetShape(), output1_expect_shape);
 
     ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
   }
   void RunIfGraph2(TensorHolder &pred_tensor, bool expect_branch) {
     auto compute_graph = ShareGraph::IfGraph2();
@@ -115,7 +115,7 @@ class CtrlOpST : public testing::Test {
     auto output_holder = TensorFaker().Placement(kOnHost).DataType(ge::DT_INT64).Shape({8}).Build();
     std::vector<Tensor *> outputs{output_holder.GetTensor()};
     rtStream_t stream;
-    ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
     auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
     auto shape_count = expect_branch ? 1 : 0;
@@ -144,7 +144,7 @@ class CtrlOpST : public testing::Test {
     EXPECT_EQ(memcmp(output_holder.GetTensor()->GetAddr(), &output_data[0], output_data.GetDimNum() * 8), 0);
 
     ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
   }
   void RunIfGraph3(TensorHolder &pred_tensor, bool expect_branch) {
     auto compute_graph = ShareGraph::IfGraph3();
@@ -169,7 +169,7 @@ class CtrlOpST : public testing::Test {
     auto output_holder = TensorFaker().Placement(kOnHost).DataType(ge::DT_FLOAT).Shape({8, 3, 224, 224}).Build();
     std::vector<Tensor *> outputs{output_holder.GetTensor()};
     rtStream_t stream;
-    ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
     auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
     ess->Clear();
@@ -189,7 +189,7 @@ class CtrlOpST : public testing::Test {
     EXPECT_EQ(output_holder.GetTensor()->GetShape().GetOriginShape(), gert::Shape({8,3,224,224}));
 
     ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
   }
   void RunCaseGraph(TensorHolder &index_tensor, int32_t expect_branch) {
     auto compute_graph = ShareGraph::CaseGraph();
@@ -215,7 +215,7 @@ class CtrlOpST : public testing::Test {
     auto output_holder = TensorFaker().Placement(kOnHost).DataType(ge::DT_INT64).Shape({8}).Build();
     std::vector<Tensor *> outputs{output_holder.GetTensor()};
     rtStream_t stream;
-    ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
     auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
     size_t shape_count = 0, rank_count = 0, size_count = 0;
@@ -250,7 +250,7 @@ class CtrlOpST : public testing::Test {
     EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Size", "FakeExecuteNode"), size_count);
 
     ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
   }
 };
 TEST_F(CtrlOpST, IfOp_ExecuteCorrectBranch_WhenTrue) {
@@ -336,7 +336,7 @@ TEST_F(CtrlOpST, WhileOp) {
     auto outputs = FakeTensors({}, 1, &output);
 
     rtStream_t stream;
-    ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
     auto i1 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
     auto inputs = FakeTensors({}, 1);
@@ -355,7 +355,7 @@ TEST_F(CtrlOpST, WhileOp) {
     EXPECT_EQ(*static_cast<int32_t *>(static_cast<gert::Tensor *>(outputs.GetAddrList()[0])->GetAddr()), 8);
 
     ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
   }
 }
 
@@ -403,7 +403,7 @@ TEST_F(CtrlOpST, WhileOpWithXBody) {
     ASSERT_EQ(model_executor->Load(), ge::GRAPH_SUCCESS);
 
     rtStream_t stream;
-    ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
     auto i1 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
     ASSERT_EQ(model_executor->Execute({i1.value}, inputs.data(), inputs.size(), outputs.data(), outputs.size()),
@@ -413,7 +413,7 @@ TEST_F(CtrlOpST, WhileOpWithXBody) {
     EXPECT_EQ(*static_cast<int32_t *>(outputs[1]->GetAddr()), 1);
 
     ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
   }
 }
 
@@ -484,7 +484,7 @@ TEST_F(CtrlOpST, WhileOpCascadeExecuteMultiTimes) {
       ASSERT_EQ(model_executor->Load(), ge::GRAPH_SUCCESS);
 
       rtStream_t stream;
-      ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+      ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
       auto i1 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
       ASSERT_EQ(model_executor->Execute({i1.value}, inputs.data(), inputs.size(), outputs.data(), outputs.size()),
@@ -494,7 +494,7 @@ TEST_F(CtrlOpST, WhileOpCascadeExecuteMultiTimes) {
       EXPECT_EQ(*static_cast<int32_t *>(outputs[1]->GetAddr()), 5);
 
       ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-      rtStreamDestroy(stream);
+      aclrtDestroyStream(stream);
     }
   }
 }

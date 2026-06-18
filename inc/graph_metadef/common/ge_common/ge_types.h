@@ -41,7 +41,7 @@ enum class GraphStage : int64_t {
   GRAPH_STAGE_RESERVED
 };
 
-const char_t *const kGraphDumpStage = "DumpStage";
+constexpr const char_t *const kGraphDumpStage = "DumpStage";
 
 const std::map<std::string, std::string> kFwkTypeToStr = {{"0", "Caffe"},
                                                           {"1", "MindSpore"},
@@ -102,8 +102,8 @@ const std::string kEngineNameAiCore = "AIcoreEngine";
 const std::string kEngineNameDvpp = "dvpp_ops_kernel";
 const std::string kEngineNameDsa = "DSAEngine";
 const std::string kAtomicOpType = "DynamicAtomicAddrClean";
-const char_t *const kAICpuKernelLibName = "aicpu_kernel_lib_name";
-const char_t *const kPartiallySupported = "partially_supported";
+constexpr const char_t *const kAICpuKernelLibName = "aicpu_kernel_lib_name";
+constexpr const char_t *const kPartiallySupported = "partially_supported";
 
 // runtime2.0 lowering func
 const std::string kAttrLowingFunc = "_ge_attr_lowering_func";
@@ -128,8 +128,8 @@ constexpr size_t kNumTaskWithAtomicAddrCleanTask = 2U;
 constexpr uint32_t INVALID_MODEL_ID = 0xFFFFFFFFU;
 
 // dynamic execute mode
-const char_t *const kLazyRecompile = "lazy_recompile";
-const char_t *const kIsCopyOuputAddr = "1";
+constexpr const char_t *const kLazyRecompile = "lazy_recompile";
+constexpr const char_t *const kIsCopyOuputAddr = "1";
 
 constexpr size_t kMaxHostMemInputLen = 128U;  // 64 aligned
 
@@ -546,31 +546,31 @@ struct ModelQueueParam {
 
 // internal options
 // 1: Graph resource evaluation does not limit model memory size.
-const char_t *const EVALUATE_GRAPH_RESOURCE_MODE = "ge.evaluateGraphResourceMode";
+constexpr const char_t *const EVALUATE_GRAPH_RESOURCE_MODE = "ge.evaluateGraphResourceMode";
 
 // 3: Config all resource and device mesh
-const char_t *const RESOURCE_CONFIG_PATH = "ge.resourceConfigPath";
+constexpr const char_t *const RESOURCE_CONFIG_PATH = "ge.resourceConfigPath";
 
 // 5: auto recompute attribute
-const char_t *const RECOMPUTE = "ge.recompute";
-const char_t *const GRAPH_SLICE_MODE = "ge.graphSliceMode";
+constexpr const char_t *const RECOMPUTE = "ge.recompute";
+constexpr const char_t *const GRAPH_SLICE_MODE = "ge.graphSliceMode";
 
 // 6: Topological Sorting Mode
-const char_t *const OPTION_TOPOSORTING_MODE = "ge.topoSortingMode";
+constexpr const char_t *const OPTION_TOPOSORTING_MODE = "ge.topoSortingMode";
 
-const char_t *const OPTION_EXEC_RANK_TABLE = "ge.exec.rankTable";
-const char_t *const OPTION_EXEC_HCOM_GROUPLIST = "ge.exec.hcomGrouplist";
-const char_t *const OPTION_EXEC_HCOM_RANK_MAPPING = "ge.exec.hcomRankMapping";
-const char_t *const OPTION_EXEC_HCOM_GROUPLIST_V2 = "ge.exec.hcomGrouplistV2";
-const char_t *const OPTION_EXEC_GLOBAL_HCCL_COMM_CONFIG = "ge.exec.globalHcclCommConfig";
+constexpr const char_t *const OPTION_EXEC_RANK_TABLE = "ge.exec.rankTable";
+constexpr const char_t *const OPTION_EXEC_HCOM_GROUPLIST = "ge.exec.hcomGrouplist";
+constexpr const char_t *const OPTION_EXEC_HCOM_RANK_MAPPING = "ge.exec.hcomRankMapping";
+constexpr const char_t *const OPTION_EXEC_HCOM_GROUPLIST_V2 = "ge.exec.hcomGrouplistV2";
+constexpr const char_t *const OPTION_EXEC_GLOBAL_HCCL_COMM_CONFIG = "ge.exec.globalHcclCommConfig";
 
-const char_t *const OPTION_NUMA_CONFIG = "ge.numaConfig";
+constexpr const char_t *const OPTION_NUMA_CONFIG = "ge.numaConfig";
 
 // 7: config format mode(expirimental option)
-const char_t *const OPTION_EXEC_FORMAT_MODEL = "ge.exec.formatMode";
+constexpr const char_t *const OPTION_EXEC_FORMAT_MODEL = "ge.exec.formatMode";
 
 // 8: config build graph mode(online or offline)
-const char_t *const OPTION_BUILD_GRAPH_MODE = "ge.buildGraphMode";
+constexpr const char_t *const OPTION_BUILD_GRAPH_MODE = "ge.buildGraphMode";
 
 // Configure Attribute Compression flag(true or false, default true for backward compatibility)
 const std::string ENABLE_ATTR_COMPRESSION = "ge.enableAttrCompression";

@@ -8,6 +8,7 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
+#include "framework/common/runtime_model_ge.h"
 #include "dvpp_builder_910b.h"
 #include "util/dvpp_constexpr.h"
 #include "util/dvpp_define.h"
@@ -38,7 +39,7 @@ DvppErrorCode DvppBuilder910B::GenerateTask(const ge::Node& node,
       return DvppErrorCode::kInputParamNull);
 
   domi::TaskDef task;
-  task.set_type(RT_MODEL_TASK_DVPP);
+  task.set_type(ACL_RT_MODEL_TASK_DVPP);
   // no need to set streamID for task, GE will reallocate stream
   domi::DvppTaskDef* dvpp_task = task.mutable_dvpp_task();
   DVPP_CHECK_IF_THEN_DO(dvpp_task == nullptr,

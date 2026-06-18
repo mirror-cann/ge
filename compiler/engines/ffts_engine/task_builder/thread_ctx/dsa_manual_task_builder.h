@@ -14,7 +14,7 @@
 #include "common/opskernel/ops_kernel_info_types.h"
 #include "proto/task.pb.h"
 #include "inc/ffts_type.h"
-#include "runtime/rt.h"
+#include "rt_external.h"
 
 namespace ffts {
 enum class DistributionType {

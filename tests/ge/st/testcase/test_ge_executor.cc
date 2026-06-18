@@ -35,6 +35,7 @@
 #include "framework/common/ge_model_inout_types.h"
 #include "ge/ut/ge/graph/passes/graph_builder_utils.h"
 #include "depends/runtime/src/runtime_stub.h"
+#include "acl/acl_rt.h"
 #include "runtime/v2/kernel/memory/rts_caching_mem_allocator.h"
 #include "macro_utils/dt_public_unscope.h"
 #include "stub/gert_runtime_stub.h"
@@ -49,7 +50,7 @@ namespace ge {
 
 class MockMemRuntime : public ge::RuntimeStub {
  public:
-  rtError_t rtMemGetInfoEx(rtMemInfoType_t memInfoType, size_t *free, size_t *total) override {
+  rtError_t aclrtGetMemInfo(aclrtMemAttr memInfoType, size_t *free, size_t *total) override {
     *free = 32UL * 1024UL * 1024UL * 1024UL;
     *total = 32UL * 1024UL * 1024UL * 1024UL;
     return RT_ERROR_NONE;
@@ -2093,40 +2094,40 @@ TEST_F(GeExecutorTest, release_single_operator_resource) {
     uint32_t model_id = 0;
     uint32_t device_id = 0;
 
-    EXPECT_EQ(rtSetDevice(device_id), RT_ERROR_NONE);
+    EXPECT_EQ(aclrtSetDevice(device_id), ACL_SUCCESS);
     EXPECT_EQ(ge_executor_.LoadModelFromData(model_id, model_data, nullptr, 0U, nullptr, 0U), SUCCESS);
     {
       rtStream_t stream = nullptr;
-      rtStreamCreate(&stream, 0);
+      aclrtCreateStreamWithConfig(&stream, 0, 0);
       EXPECT_EQ(ge_executor_.ExecModel(model_id, stream, run_input_data, run_output_data, true), SUCCESS);
       {
         EXPECT_EQ(ge_executor_.ReleaseSingleOpResource(stream), SUCCESS);
-        rtStreamDestroy(stream);
+        aclrtDestroyStream(stream);
       }
     }
     {
       rtStream_t stream = nullptr;
-      rtStreamCreate(&stream, 0);
+      aclrtCreateStreamWithConfig(&stream, 0, 0);
       EXPECT_EQ(ge_executor_.ExecModel(model_id, stream, run_input_data, run_output_data, true), SUCCESS);
       {
         EXPECT_EQ(ge_executor_.ReleaseSingleOpResource(stream), SUCCESS);
-        rtStreamDestroy(stream);
+        aclrtDestroyStream(stream);
       }
     }
     {
       rtStream_t stream = nullptr;
-      rtStreamCreate(&stream, 0);
+      aclrtCreateStreamWithConfig(&stream, 0, 0);
       EXPECT_EQ(ge_executor_.ExecModel(model_id, stream, run_input_data, run_output_data, true), SUCCESS);
       {
         EXPECT_EQ(ge_executor_.ReleaseSingleOpResource(stream), SUCCESS);
-        rtStreamDestroy(stream);
+        aclrtDestroyStream(stream);
       }
     }
     EXPECT_EQ(ge_executor_.UnloadModel(model_id), SUCCESS);
     {
       uint32_t device_id = 256U;
       EXPECT_EQ(ge_executor_.ClearCustomAicpuSo(device_id), SUCCESS);
-      EXPECT_EQ(rtDeviceReset(device_id), RT_ERROR_NONE);
+      EXPECT_EQ(aclrtResetDevice(device_id), ACL_SUCCESS);
     }
   }
 }

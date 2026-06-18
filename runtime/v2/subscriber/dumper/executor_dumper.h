@@ -27,7 +27,7 @@
 #include "register/kernel_registry.h"
 #include "lowering/pass_changed_kernels_info.h"
 #include "lowering/placement/placed_lowering_result.h"
-#include "runtime/base.h"
+#include "rt_external_base.h"
 #include "runtime/model_v2_executor.h"
 #include "runtime/subscriber/built_in_subscriber_definitions.h"
 #include "runtime/subscriber/executor_subscriber_c.h"

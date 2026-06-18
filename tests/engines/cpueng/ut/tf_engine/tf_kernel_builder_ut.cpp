@@ -26,11 +26,9 @@
 #include "config/ops_json_file.h"
 #include "graph/utils/tensor_utils.h"
 #include "graph/utils/op_desc_utils_ex.h"
-#include "runtime/context.h"
-#include "runtime/stream.h"
-#include "runtime/rt_model.h"
-#include "runtime/kernel.h"
-#include "runtime/mem.h"
+#include "common/ge_rts_decl.h"
+#include "rt_external_stream.h"
+#include "rt_external_model.h"
 #include "common/sgt_slice_type.h"
 
 using namespace aicpu;

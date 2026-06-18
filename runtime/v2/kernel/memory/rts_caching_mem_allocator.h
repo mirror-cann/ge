@@ -15,11 +15,11 @@
 #include <array>
 #include <memory>
 #include <map>
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "ge/ge_api_types.h"
 #include "kernel/memory/allocator/scalable_allocator.h"
 #include "ge/ge_allocator.h"
-#include "runtime/base.h"
+#include "rt_external_base.h"
 #include "runtime/mem_allocator.h"
 
 namespace gert {

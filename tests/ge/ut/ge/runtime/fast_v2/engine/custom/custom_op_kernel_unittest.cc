@@ -237,7 +237,7 @@ TEST_F(CustomNodeKernelUT, custom_op_kernel_execute_test) {
   auto outputs = FakeTensors({2048}, 1);
   auto inputs = FakeTensors({2048}, 3);
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0U), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   auto ess = StartExecutorStatistician(model_executor);
@@ -248,7 +248,7 @@ TEST_F(CustomNodeKernelUT, custom_op_kernel_execute_test) {
                                     reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
             GRAPH_SUCCESS);
   ge::diagnoseSwitch::DisableProfiling();
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(CustomNodeKernelUT, find_custom_op_uses_model_registry) {
@@ -336,7 +336,7 @@ TEST_F(CustomNodeKernelUT, custom_op_with_inference_rule_execute_test) {
   auto outputs = FakeTensors({2048}, 1);
   auto inputs = FakeTensors({2048}, 3);
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0U), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   auto ess = StartExecutorStatistician(model_executor);
@@ -347,7 +347,7 @@ TEST_F(CustomNodeKernelUT, custom_op_with_inference_rule_execute_test) {
                                     reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
             GRAPH_SUCCESS);
   ge::diagnoseSwitch::DisableProfiling();
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
-}
-}
+}  // namespace kernel
+}  // namespace gert

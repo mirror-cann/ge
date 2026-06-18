@@ -22,6 +22,7 @@
 #include "external/ge/ge_api_types.h" // ge对内options
 #include "common/ge_common/ge_types.h"
 #include "hcom_executor.h"
+#include "framework/common/runtime_model_ge.h"
 #include "v80_rank_table.h"
 #include <iostream>
 #include <fstream>
@@ -522,7 +523,7 @@ TEST_F(HcomKernelBuilderTest, ut_generateTask)
     u32 result_srcRank = (privateDefBuf->srcRank);
     u32 result_destRank = (privateDefBuf->destRank);
     u32 result_srTag = (privateDefBuf->srTag);
-    EXPECT_EQ(result_type, RT_MODEL_TASK_HCCL);
+    EXPECT_EQ(result_type, ACL_RT_MODEL_TASK_HCCL);
     EXPECT_EQ(result_stream_id, streamId);
     EXPECT_EQ(result_hccl_hccl_type, type);
     EXPECT_EQ(result_group, tempStr);
@@ -550,7 +551,7 @@ TEST_F(HcomKernelBuilderTest, ut_generateTask)
     result_srcRank = (privateDefBuf->srcRank);
     result_destRank = (privateDefBuf->destRank);
     result_srTag = (privateDefBuf->srTag);
-    EXPECT_EQ(result_type, RT_MODEL_TASK_HCCL);
+    EXPECT_EQ(result_type, ACL_RT_MODEL_TASK_HCCL);
     EXPECT_EQ(result_stream_id, streamId);
     EXPECT_EQ(result_hccl_hccl_type, type);
     EXPECT_EQ(result_group, tempStr);
@@ -588,7 +589,7 @@ TEST_F(HcomKernelBuilderTest, ut_generateTask)
     result_srcRank = (privateDefBuf->srcRank);
     result_destRank = (privateDefBuf->destRank);
     result_srTag = (privateDefBuf->srTag);
-    EXPECT_EQ(result_type, RT_MODEL_TASK_HCCL);
+    EXPECT_EQ(result_type, ACL_RT_MODEL_TASK_HCCL);
     EXPECT_EQ(result_stream_id, streamId);
     EXPECT_EQ(result_hccl_hccl_type, type);
     EXPECT_EQ(result_group, tempStr);
@@ -908,7 +909,7 @@ TEST_F(HcomKernelBuilderTest, ut_generateTask_by_comm_pytorch)
     u32 result_srcRank = (privateDefBuf->srcRank);
     u32 result_destRank = (privateDefBuf->destRank);
     u32 result_srTag = (privateDefBuf->srTag);
-    EXPECT_EQ(result_type, RT_MODEL_TASK_HCCL);
+    EXPECT_EQ(result_type, ACL_RT_MODEL_TASK_HCCL);
     EXPECT_EQ(result_stream_id, streamId);
     EXPECT_EQ(result_hccl_hccl_type, type);
     EXPECT_EQ(result_comm, hcomComm);
@@ -932,7 +933,7 @@ TEST_F(HcomKernelBuilderTest, ut_generateTask_by_comm_pytorch)
     result_srcRank = (privateDefBuf->srcRank);
     result_destRank = (privateDefBuf->destRank);
     result_srTag = (privateDefBuf->srTag);
-    EXPECT_EQ(result_type, RT_MODEL_TASK_HCCL);
+    EXPECT_EQ(result_type, ACL_RT_MODEL_TASK_HCCL);
     EXPECT_EQ(result_stream_id, streamId);
     EXPECT_EQ(result_hccl_hccl_type, type);
     EXPECT_EQ(result_comm, hcomComm);
@@ -969,7 +970,7 @@ TEST_F(HcomKernelBuilderTest, ut_generateTask_by_comm_pytorch)
     result_srcRank = (privateDefBuf->srcRank);
     result_destRank = (privateDefBuf->destRank);
     result_srTag = (privateDefBuf->srTag);
-    EXPECT_EQ(result_type, RT_MODEL_TASK_HCCL);
+    EXPECT_EQ(result_type, ACL_RT_MODEL_TASK_HCCL);
     EXPECT_EQ(result_stream_id, streamId);
     EXPECT_EQ(result_hccl_hccl_type, type);
     EXPECT_EQ(result_comm, hcomComm);
@@ -1062,7 +1063,7 @@ TEST_F(HcomKernelBuilderTest, ut_generateTask_by_comm_pytorch2)
     u32 result_srcRank = (privateDefBuf->srcRank);
     u32 result_destRank = (privateDefBuf->destRank);
     u32 result_srTag = (privateDefBuf->srTag);
-    EXPECT_EQ(result_type, RT_MODEL_TASK_HCCL);
+    EXPECT_EQ(result_type, ACL_RT_MODEL_TASK_HCCL);
     EXPECT_EQ(result_stream_id, streamId);
     EXPECT_EQ(result_hccl_hccl_type, type);
     EXPECT_EQ(result_comm, hcomComm);
@@ -1086,7 +1087,7 @@ TEST_F(HcomKernelBuilderTest, ut_generateTask_by_comm_pytorch2)
     result_srcRank = (privateDefBuf->srcRank);
     result_destRank = (privateDefBuf->destRank);
     result_srTag = (privateDefBuf->srTag);
-    EXPECT_EQ(result_type, RT_MODEL_TASK_HCCL);
+    EXPECT_EQ(result_type, ACL_RT_MODEL_TASK_HCCL);
     EXPECT_EQ(result_stream_id, streamId);
     EXPECT_EQ(result_hccl_hccl_type, type);
     EXPECT_EQ(result_comm, hcomComm);
@@ -1123,7 +1124,7 @@ TEST_F(HcomKernelBuilderTest, ut_generateTask_by_comm_pytorch2)
     result_srcRank = (privateDefBuf->srcRank);
     result_destRank = (privateDefBuf->destRank);
     result_srTag = (privateDefBuf->srTag);
-    EXPECT_EQ(result_type, RT_MODEL_TASK_HCCL);
+    EXPECT_EQ(result_type, ACL_RT_MODEL_TASK_HCCL);
     EXPECT_EQ(result_stream_id, streamId);
     EXPECT_EQ(result_hccl_hccl_type, type);
     EXPECT_EQ(result_comm, hcomComm);

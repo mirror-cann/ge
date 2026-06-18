@@ -10,6 +10,7 @@
 
 #include "tensor_trans_utils.h"
 #include "common/checker.h"
+#include "framework/common/debug/ge_log.h"
 #include "graph_metadef/common/ge_common/util.h"
 #include "common/util/mem_utils.h"
 #include "graph/utils/tensor_utils.h"
@@ -353,7 +354,7 @@ Status TensorTransUtils::TransRtTensorToTensor(const std::vector<gert::Tensor> &
         GE_CHECK_NOTNULL(aligned_ptr);
         auto data_buf = aligned_ptr->MutableGet();
         GE_CHECK_NOTNULL(data_buf);
-        GE_CHK_RT_RET(aclrtMemcpy(data_buf, static_cast<uint64_t>(output_size), rt_tensor.GetAddr(),
+        GE_CHK_ACL_RET(aclrtMemcpy(data_buf, static_cast<uint64_t>(output_size), rt_tensor.GetAddr(),
             static_cast<uint64_t>(output_size), ACL_MEMCPY_DEVICE_TO_HOST));
         ge_tensor.SetData(aligned_ptr, static_cast<size_t>(output_size));
       } else {
@@ -526,7 +527,7 @@ Status TensorTransUtils::TransGertTensorToHost(const gert::Tensor &src_tensor, g
     GE_CHECK_NOTNULL(aligned_ptr);
     auto data_buf = aligned_ptr->MutableGet();
     GE_CHECK_NOTNULL(data_buf);
-    GE_CHK_RT_RET(aclrtMemcpy(data_buf, static_cast<uint64_t>(output_size), src_tensor.GetAddr(),
+    GE_CHK_ACL_RET(aclrtMemcpy(data_buf, static_cast<uint64_t>(output_size), src_tensor.GetAddr(),
         static_cast<uint64_t>(output_size), ACL_MEMCPY_DEVICE_TO_HOST));
 
     // 创建 GeTensor 来持有数据，并使用 TensorWrapper 管理生命周期

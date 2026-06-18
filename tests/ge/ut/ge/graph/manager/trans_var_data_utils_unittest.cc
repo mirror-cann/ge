@@ -18,7 +18,7 @@
 #include "framework/common/framework_types_internal.h"
 #include "graph/compute_graph.h"
 #include "graph/ge_context.h"
-#include "runtime/dev.h"
+#include "rt_external_device.h"
 #include "graph/manager/mem_manager.h"
 #include "mmpa/mmpa_api.h"
 #include "macro_utils/dt_public_unscope.h"

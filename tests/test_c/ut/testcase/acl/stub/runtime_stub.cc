@@ -22,10 +22,22 @@ rtError_t rtMalloc(void **devPtr, uint64_t size, rtMemType_t type, uint16_t modu
     return RT_ERROR_NONE;
 }
 
-rtError_t rtFree(void *devPtr)
+aclError aclrtMalloc(void **devPtr, size_t size, aclrtMemMallocPolicy policy)
 {
-    free(devPtr);
-    return RT_ERROR_NONE;
+    (void)policy;
+    if (size == 0) {
+      return ACL_ERROR_INVALID_PARAM;
+    }
+    *devPtr = malloc(size);
+    return ACL_SUCCESS;
+}
+
+aclError aclrtFree(void *devPtr)
+{
+    if (devPtr != nullptr) {
+        free(devPtr);
+    }
+    return ACL_SUCCESS;
 }
 
 rtError_t rtMemcpy(void *dst, uint64_t destMax, const void *src, uint64_t count, rtMemcpyKind_t kind)
@@ -49,11 +61,11 @@ rtError_t rtMemset(void *devPtr, uint64_t destMax, uint32_t value, uint64_t coun
     return RT_ERROR_NONE;
 }
 
-rtError_t rtMemGetInfoEx(rtMemInfoType_t memInfoType, size_t *free, size_t *total)
+rtError_t aclrtGetMemInfo(aclrtMemAttr memInfoType, size_t *free, size_t *total)
 {
     (void)free;
     (void)total;
-    if (memInfoType > (rtMemInfoType_t)ACL_HBM_MEM_P2P_NORMAL) {
+    if (memInfoType > (aclrtMemAttr)ACL_HBM_MEM_P2P_NORMAL) {
       return ACL_ERROR_RT_INVALID_MEMORY_TYPE;
     }
     return RT_ERROR_NONE;
@@ -93,11 +105,10 @@ rtError_t rtGetDevice(int32_t *device)
     return RT_ERROR_NONE;
 }
 
-rtError_t rtCtxCreateEx(rtContext_t *ctx, uint32_t flags, int32_t device)
+aclError aclrtCreateContext(aclrtContext *ctx, int32_t device)
 {
-    (void)flags;
     (void)device;
-    if (ctx == NULL || ctx == (rtContext_t *)0x2) {
+    if (ctx == NULL || ctx == (aclrtContext *)0x2) {
         return ACL_ERROR_INVALID_PARAM;
     }
     if (device < 0) {
@@ -106,17 +117,17 @@ rtError_t rtCtxCreateEx(rtContext_t *ctx, uint32_t flags, int32_t device)
     return RT_ERROR_NONE;
 }
 
-rtError_t rtCtxDestroyEx(rtContext_t ctx)
+aclError aclrtDestroyContext(aclrtContext ctx)
 {
-    if (ctx == NULL || ctx == (rtContext_t)0x2) {
+    if (ctx == NULL || ctx == (aclrtContext)0x2) {
         return ACL_ERROR_INVALID_PARAM;
     }
     return RT_ERROR_NONE;
 }
 
-rtError_t rtCtxSetCurrent(rtContext_t ctx)
+aclError aclrtSetCurrentContext(aclrtContext ctx)
 {
-    if (ctx == NULL || ctx == (rtContext_t)0x2) {
+    if (ctx == NULL || ctx == (aclrtContext)0x2) {
         return ACL_ERROR_INVALID_PARAM;
     }
     return RT_ERROR_NONE;
@@ -139,7 +150,7 @@ rtError_t rtStreamGetSqid(const rtStream_t stream, uint32_t* sqId)
     return RT_ERROR_NONE;
 }
 
-rtError_t rtStreamDestroy(rtStream_t stream)
+aclError aclrtDestroyStream(aclrtStream stream)
 {
     if (stream == NULL || stream == (rtStream_t)0x2) {
         return ACL_ERROR_INVALID_PARAM;
@@ -174,7 +185,7 @@ rtError_t rtUnSubscribeReport(uint64_t threadId, rtStream_t stream)
     return RuntimeStubMock::GetInstance().rtUnSubscribeReport(threadId, stream);
 }
 
-rtError_t rtCallbackLaunch(rtCallback_t callBackFunc, void *fnData, rtStream_t stream, bool isBlock)
+rtError_t rtCallbackLaunch(aclrtCallback callBackFunc, void *fnData, rtStream_t stream, bool isBlock)
 {
     return RuntimeStubMock::GetInstance().rtCallbackLaunch(callBackFunc, fnData, stream, isBlock);
 }
@@ -198,22 +209,22 @@ rtError_t rtProcessHostFunc(int32_t timeout)
     return RuntimeStubMock::GetInstance().rtProcessHostFunc(timeout);
 }
 
-rtError_t rtCtxGetCurrent(rtContext_t *ctx)
+aclError aclrtGetCurrentContext(aclrtContext *ctx)
 {
-    return RuntimeStubMock::GetInstance().rtCtxGetCurrent(ctx);
+    return RuntimeStubMock::GetInstance().aclrtGetCurrentContext(ctx);
 }
 
-rtError_t rtGetRunMode(rtRunMode *mode)
+rtError_t rtGetRunMode(aclrtRunMode *mode)
 {
     return RuntimeStubMock::GetInstance().rtGetRunMode(mode);
 }
 
-rtError_t rtStreamCreateWithConfig(rtStream_t *stream, rtStreamConfigHandle *handle)
+rtError_t rtStreamCreateWithConfig(rtStream_t *stream, aclrtStreamConfigHandle *handle)
 {
     return RuntimeStubMock::GetInstance().rtStreamCreateWithConfig(stream, handle);
 }
 
-rtError_t rtGetRunMode_Device_Normal_Invoke(rtRunMode *mode) {
-  *mode = RT_RUN_MODE_OFFLINE;
+rtError_t rtGetRunMode_Device_Normal_Invoke(aclrtRunMode *mode) {
+  *mode = ACL_DEVICE;
   return RT_ERROR_NONE;
 }

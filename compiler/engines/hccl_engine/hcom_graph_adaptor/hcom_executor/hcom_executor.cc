@@ -16,6 +16,7 @@
 #include "framework/common/ge_types.h"  // ge对外options
 #include "hcom_executor_internel.h"
 #include "adapter_dlhcclfunc.h"
+#include "common/ge_rts_decl.h"
 
 HcclResult HcomExecInitialize() {
   HCCL_INFO("Hcom Excutor Initialize start.");
@@ -142,7 +143,7 @@ HcclResult HcomExecutor::Initialize() {
   } else {
     REPORT_PREDEFINED_ERR_MSG("EI0007", std::vector<const char *>({"resource_type", "resource_info"}),
                               std::vector<const char *>({"stream", "streamType: STREAM_TYPE_ONLINE"}));
-    HCCL_ERROR("[Stream]Construct stream failed, errNo[0x%016llx] rtStreamCreate error",
+    HCCL_ERROR("[Stream]Construct stream failed, errNo[0x%016llx] aclrtCreateStreamWithConfig error",
                HCCL_ERROR_CODE(HCCL_E_RUNTIME));
   }
 

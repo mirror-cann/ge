@@ -16,7 +16,7 @@
 #include "common/fe_graph_common.h"
 #include "graph/debug/ge_attr_define.h"
 #include "register/graph_optimizer/fusion_common/unknown_shape_utils.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 
 using namespace ge;
 namespace fe {

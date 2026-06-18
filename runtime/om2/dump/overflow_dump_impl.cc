@@ -11,7 +11,7 @@
 #include "framework/runtime/dump/overflow_dump_impl.h"
 #include "framework/runtime/dump/dump_config.h"
 #include "framework/common/debug/ge_log.h"
-#include "runtime/rt.h"
+#include "rt_external.h"
 #include "acl/acl_rt.h"
 
 namespace ge {

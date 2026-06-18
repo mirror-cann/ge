@@ -16,7 +16,7 @@
 #include "aicpu_engine_struct.h"
 #include "graph/op_desc.h"
 #include "exe_graph/runtime/shape.h"
-#include "runtime/rt.h"
+#include "rt_external.h"
 
 namespace gert {
 using AicpuShapeAndType = aicpu::FWKAdapter::ShapeAndType;

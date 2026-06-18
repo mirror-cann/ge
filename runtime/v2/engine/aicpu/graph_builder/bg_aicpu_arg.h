@@ -11,7 +11,7 @@
 #ifndef AIR_CXX_RUNTIME_V2_GRAPH_BUILDER_BG_AICPU_ARG_H_
 #define AIR_CXX_RUNTIME_V2_GRAPH_BUILDER_BG_AICPU_ARG_H_
 #include "bg_ext_info.h"
-#include "runtime/kernel.h"
+#include "rt_external_kernel.h"
 #include "fwk_adpt_struct.h"
 #include "aicpu_engine_struct.h"
 #include "graph_builder/bg_infer_shape.h"

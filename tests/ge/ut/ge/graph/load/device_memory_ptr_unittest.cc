@@ -11,12 +11,12 @@
 #include "graph/load/model_manager/device_memory_ptr.h"
 #include <gtest/gtest.h>
 #include "stub/gert_runtime_stub.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 namespace ge {
 namespace {
 uint64_t AllocDevice() {
   void *ptr = nullptr;
-  rtMalloc(&ptr, 1024, RT_MEMORY_HBM, 0);
+  aclrtMalloc(&ptr, 1024, ACL_MEM_MALLOC_HUGE_ONLY);
   return PtrToValue(ptr);
 }
 }  // namespace

@@ -18,7 +18,7 @@
 #include "graph/def_types.h"
 #include "graph/utils/type_utils.h"
 #include "exe_graph/runtime/eager_op_execution_context.h"
-#include "runtime/kernel.h"
+#include "rt_external_kernel.h"
 
 namespace gert {
 namespace kernel {

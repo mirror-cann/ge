@@ -15,6 +15,7 @@
 #undef private
 #include <stdio.h>
 #include <iostream>
+#include "framework/common/runtime_model_ge.h"
 #include <fstream>
 #include <sstream>
 #include <fcntl.h>
@@ -23,7 +24,8 @@
 #include <vector>
 #include "sys/stat.h"
 #include "inc/ffts_type.h"
-#include "runtime/rt_model.h"
+#include "rt_external_model.h"
+#include "acl/acl_rt.h"
 #include "rt_error_codes.h"
 #include "graph/ge_tensor.h"
 #include "graph/op_desc.h"
@@ -223,9 +225,9 @@ protected:
 
     void SetUp()
     {
-        rtContext_t rt_context;
-        assert(rtCtxCreate(&rt_context, RT_CTX_GEN_MODE, 0) == ACL_RT_SUCCESS);
-        assert(rtCtxSetCurrent(rt_context) == ACL_RT_SUCCESS);
+        aclrtContext rt_context;
+        assert(aclrtCreateContext(&rt_context, 0) == ACL_RT_SUCCESS);
+        assert(aclrtSetCurrentContext(rt_context) == ACL_RT_SUCCESS);
         //cce::cceSysInit();
 
         Configuration::Instance(fe::AI_CORE_NAME).ops_store_info_vector_ = (all_fe_ops_store_info_adapter);
@@ -251,9 +253,9 @@ protected:
         task_builder_.reset();
         DestroyContext(context_);
 
-        rtContext_t rt_context;
-        assert(rtCtxGetCurrent(&rt_context) == ACL_RT_SUCCESS);
-        assert(rtCtxDestroy(rt_context) == ACL_RT_SUCCESS);
+        aclrtContext rt_context;
+        assert(aclrtGetCurrentContext(&rt_context) == ACL_RT_SUCCESS);
+        assert(aclrtDestroyContext(rt_context) == ACL_RT_SUCCESS);
         aicore_ops_kernel_builder_ptr->Finalize();
         dsa_ops_kernel_builder_ptr_->Finalize();
     }
@@ -1351,7 +1353,7 @@ TEST_F(STEST_TaskBuilder, tiling_sink_gen_task_fail){
   domi::TaskDef task_def_new;
   domi::TaskDef *task_def_real = &task_def_new;
   domi::FftsPlusTaskDef *ffts_plus_task_def = task_def_real->mutable_ffts_plus_task();
-  task_def_real->set_type(RT_MODEL_TASK_FFTS_PLUS_TASK);
+  task_def_real->set_type(ACL_RT_MODEL_TASK_FFTS_PLUS_TASK);
   ffts_plus_task_def->set_op_index(1);
   task_def_real->set_stream_id(1);
   ge::ArgsFormatDescUtils args_desc_util;
@@ -1403,10 +1405,10 @@ TEST_F(STEST_TaskBuilder, op_gentask_success){
   ret = aicore_ops_kernel_builder_ptr->GenerateTask(*src_node, context_, tasks);
   EXPECT_NE(tasks.size(), 0);
   domi::TaskDef head_task;
-  head_task.set_type(RT_MODEL_TASK_EVENT_WAIT);
+  head_task.set_type(ACL_RT_MODEL_TASK_EVENT_WAIT);
   tasks.insert(tasks.begin(), head_task);
   domi::TaskDef tail_task;
-  tail_task.set_type(RT_MODEL_TASK_EVENT_WAIT);
+  tail_task.set_type(ACL_RT_MODEL_TASK_EVENT_WAIT);
   tasks.push_back(tail_task);
   bool reg_flag = false;
   ret = fe::GenerateOpExtTask(*src_node, false, tasks, reg_flag);
@@ -1467,7 +1469,7 @@ TEST_F(STEST_TaskBuilder, tiling_sink_gen_task_310p_suc){
   ge::AttrUtils::SetListNamedAttrs(src_op, ge::ATTR_NAME_ATTACHED_STREAM_INFO_LIST, attrs);
   ge::AttrUtils::SetListNamedAttrs(src_op, ge::ATTR_NAME_ATTACHED_SYNC_RES_INFO_LIST, attrs);
   domi::TaskDef task_def_new;
-  task_def_new.set_type(RT_MODEL_TASK_ALL_KERNEL);
+  task_def_new.set_type(ACL_RT_MODEL_TASK_ALL_KERNEL);
   domi::KernelDefWithHandle *kernel_def = task_def_new.mutable_kernel_with_handle();
   kernel_def->set_args_size(66);
   string args(66, '1');
@@ -1535,7 +1537,7 @@ TEST_F(STEST_TaskBuilder, tiling_sink_gen_task_310p_oppkernel_path_fail){
   ge::AttrUtils::SetListNamedAttrs(src_op, ge::ATTR_NAME_ATTACHED_STREAM_INFO_LIST, attrs);
   ge::AttrUtils::SetListNamedAttrs(src_op, ge::ATTR_NAME_ATTACHED_SYNC_RES_INFO_LIST, attrs);
   domi::TaskDef task_def_new;
-  task_def_new.set_type(RT_MODEL_TASK_ALL_KERNEL);
+  task_def_new.set_type(ACL_RT_MODEL_TASK_ALL_KERNEL);
   domi::KernelDefWithHandle *kernel_def = task_def_new.mutable_kernel_with_handle();
   kernel_def->set_args_size(66);
   string args(66, '1');
@@ -1611,7 +1613,7 @@ TEST_F(STEST_TaskBuilder, tiling_sink_gen_task_310p_oppkernel_path){
   ge::AttrUtils::SetListNamedAttrs(src_op, ge::ATTR_NAME_ATTACHED_STREAM_INFO_LIST, attrs);
   ge::AttrUtils::SetListNamedAttrs(src_op, ge::ATTR_NAME_ATTACHED_SYNC_RES_INFO_LIST, attrs);
   domi::TaskDef task_def_new;
-  task_def_new.set_type(RT_MODEL_TASK_ALL_KERNEL);
+  task_def_new.set_type(ACL_RT_MODEL_TASK_ALL_KERNEL);
   domi::KernelDefWithHandle *kernel_def = task_def_new.mutable_kernel_with_handle();
   kernel_def->set_args_size(66);
   string args(66, '1');
@@ -1680,7 +1682,7 @@ TEST_F(STEST_TaskBuilder, tiling_sink_gen_task_310p_add_tiling){
   ge::AttrUtils::SetListNamedAttrs(src_op, ge::ATTR_NAME_ATTACHED_STREAM_INFO_LIST, attrs);
   ge::AttrUtils::SetListNamedAttrs(src_op, ge::ATTR_NAME_ATTACHED_SYNC_RES_INFO_LIST, attrs);
   domi::TaskDef task_def_new;
-  task_def_new.set_type(RT_MODEL_TASK_ALL_KERNEL);
+  task_def_new.set_type(ACL_RT_MODEL_TASK_ALL_KERNEL);
   domi::KernelDefWithHandle *kernel_def = task_def_new.mutable_kernel_with_handle();
   kernel_def->set_args_size(44);
   string args(44, '1');
@@ -1755,7 +1757,7 @@ TEST_F(STEST_TaskBuilder, tiling_sink_gen_task_multi_ops_path){
   ge::AttrUtils::SetListNamedAttrs(src_op, ge::ATTR_NAME_ATTACHED_STREAM_INFO_LIST, attrs);
   ge::AttrUtils::SetListNamedAttrs(src_op, ge::ATTR_NAME_ATTACHED_SYNC_RES_INFO_LIST, attrs);
   domi::TaskDef task_def_new;
-  task_def_new.set_type(RT_MODEL_TASK_ALL_KERNEL);
+  task_def_new.set_type(ACL_RT_MODEL_TASK_ALL_KERNEL);
   domi::KernelDefWithHandle *kernel_def = task_def_new.mutable_kernel_with_handle();
   kernel_def->set_args_size(66);
   string args(66, '1');
@@ -1897,7 +1899,7 @@ TEST_F(STEST_TaskBuilder, tiling_sink_for_sk){
   ge::AttrUtils::SetListNamedAttrs(src_op, ge::ATTR_NAME_ATTACHED_STREAM_INFO_LIST, attrs);
   ge::AttrUtils::SetListNamedAttrs(src_op, ge::ATTR_NAME_ATTACHED_SYNC_RES_INFO_LIST, attrs);
   domi::TaskDef task_def_new;
-  task_def_new.set_type(RT_MODEL_TASK_ALL_KERNEL);
+  task_def_new.set_type(ACL_RT_MODEL_TASK_ALL_KERNEL);
   domi::KernelDefWithHandle *kernel_def = task_def_new.mutable_kernel_with_handle();
   kernel_def->set_args_size(66);
   string args(66, '1');

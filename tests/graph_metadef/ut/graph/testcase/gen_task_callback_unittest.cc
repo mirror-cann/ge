@@ -11,7 +11,7 @@
 #include <gtest/gtest.h>
 #include "graph/kernel_launch_info.h"
 #include "graph/arg_desc_info.h"
-#include "runtime/rt_model.h"
+#include "rt_external_model.h"
 #include "proto/task.pb.h"
 #include "exe_graph/runtime/exe_res_generation_context.h"
 #include "exe_graph/lowering/exe_res_generation_ctx_builder.h"

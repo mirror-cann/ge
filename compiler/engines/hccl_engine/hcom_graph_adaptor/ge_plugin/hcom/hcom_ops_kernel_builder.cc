@@ -28,6 +28,8 @@
 #include "graph/utils/op_desc_utils.h"
 #include "graph/ge_local_context.h"
 #include "framework/memory/memory_api.h"
+#include "common/ge_rts_decl.h"
+#include "framework/common/runtime_model_ge.h"
 #include "framework/common/ge_types.h"  // ge对外options
 #include "hccl/hcom.h"
 #include "register/ops_kernel_builder_registry.h"
@@ -1253,7 +1255,7 @@ HcclResult HcomOpsKernelBuilder::GenerateTaskDef(const ge::Node &node, HCCL_KERN
               HCCL_ERROR("[Generate][Task]node[%s]: kernelDefHccl is null.", node.GetOpDesc()->GetName().c_str()),
               HCCL_E_PTR);
 
-  taskDef.set_type(RT_MODEL_TASK_HCCL);
+  taskDef.set_type(ACL_RT_MODEL_TASK_HCCL);
   taskDef.set_stream_id(node.GetOpDesc()->GetStreamId());
 
   kernelDefHccl->set_hccl_type(node.GetOpDesc()->GetType());

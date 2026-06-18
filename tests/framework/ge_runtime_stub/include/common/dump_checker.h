@@ -454,18 +454,6 @@ class DumpCheckRuntimeStub : public gert::RuntimeStubImpl {
     return RT_ERROR_NONE;
   }
 
-  rtError_t rtFree(void *dev_ptr) override {
-    if (dev_ptr == nullptr) {
-      return RT_ERROR_NONE;
-    }
-    // RT2 frees step_id_addr before unloading DatadumpInfo.
-    if (dev_ptr == dump_checker_.step_id_addr_) {
-      GELOGI("step_id_addr_ about to be freed, with value[%u]", *dump_checker_.step_id_addr_);
-      dump_checker_.step_id_addr_ = nullptr;
-    }
-    delete[](uint8_t *) dev_ptr;
-    return RT_ERROR_NONE;
-  }
   DumpChecker &GetDumpChecker() {
     return dump_checker_;
   }

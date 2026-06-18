@@ -109,7 +109,7 @@ Status RefInputTask::RefOneByOne(const TaskContext &context) const {
                                   std::vector<const char_t *>({reason.c_str()}));
         return GRAPH_PARAM_INVALID;
       }
-      GE_CHK_RT_RET(aclrtMemcpyAsync(output->MutableData(), output->GetSize(), input->GetData(),
+      GE_CHK_ACL_RET(aclrtMemcpyAsync(output->MutableData(), output->GetSize(), input->GetData(),
           static_cast<uint64_t>(expected_size), ACL_MEMCPY_DEVICE_TO_DEVICE, context.GetStream()));
     } else {
       GE_CHK_STATUS_RET(context.SetOutput(out_index, *input));
@@ -191,7 +191,7 @@ Status DependInputShapeTask::CopyDataToOutput(const size_t output_num,
            tensor_value_out->GetData(), tensor_value_out->GetSize(), tensor_data_out.GetSize());
 
     if (tensor_data_out.GetSize() > 0UL) {
-      GE_CHK_RT_RET(aclrtMemcpyAsync(tensor_value_out->MutableData(),
+      GE_CHK_ACL_RET(aclrtMemcpyAsync(tensor_value_out->MutableData(),
                                   tensor_value_out->GetSize(),
                                   tensor_data_out.GetData(),
                                   tensor_data_out.GetSize(),

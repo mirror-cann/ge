@@ -24,7 +24,7 @@
 #include "aipp_param_check.h"
 #include "acl_resource_manager.h"
 #include "framework/runtime/model_v2_executor.h"
-#include "runtime/base.h"
+#include "rt_external_base.h"
 #include "model_common.h"
 
 namespace {

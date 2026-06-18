@@ -159,12 +159,6 @@ class MockMalloc : public RuntimeStub {
     return RT_ERROR_NONE;
   }
 
-  rtError_t rtFree(void *dev_ptr) override {
-    total_malloc_size = 0;
-    delete[](uint8_t *) dev_ptr;
-    return RT_ERROR_NONE;
-  }
-
  private:
   uint64_t total_malloc_size = 0;
 };

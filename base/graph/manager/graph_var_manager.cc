@@ -21,7 +21,7 @@
 #include "common/plugin/ge_make_unique_util.h"
 #include "common/math/math_util.h"
 #include "common/const_place_holder_utils/const_place_holder_utils.h"
-#include "runtime/dev.h"
+#include "rt_external_device.h"
 #include "common/checker.h"
 #include "formats/utils/formats_trans_utils.h"
 #include "base/err_msg.h"
@@ -52,7 +52,7 @@ ge::Status InitVarIfHasInitValue(const VarDevAddrMgr *const var_mgr, void *var_d
     const auto init_value_size = init_value->GetData().GetSize();
     GE_ASSERT_TRUE(init_value_size <= static_cast<size_t>(var_size), "_init_value size too big."
                    " var_size: %" PRId64 ", init_value_size: %zu", var_size, init_value_size);
-    GE_CHK_RT_RET(aclrtMemcpy(var_dev_addr, static_cast<uint64_t>(var_size),
+    GE_CHK_ACL_RET(aclrtMemcpy(var_dev_addr, static_cast<uint64_t>(var_size),
         init_value->GetData().GetData(), init_value_size, ACL_MEMCPY_HOST_TO_DEVICE)); 
     GELOGI("variable offset[%p] has _init_value attr, init value success, var_dev_addr: %p, tensor size: %" PRId64 ","
            " value size: %zu, ", var_mgr->logic_addr, var_dev_addr, var_size, init_value_size);
@@ -1184,7 +1184,7 @@ ge::Status VarManager::VarManagerToDeserial(const uint64_t session_id, const dep
   if (var_resource_ == nullptr) {
     version_ = static_cast<SessionVersion>(info.version());
     int32_t device_id = -1;
-    GE_CHK_RT_RET(aclrtGetDevice(&device_id));
+    GE_CHK_ACL_RET(aclrtGetDevice(&device_id));
     device_id_ = static_cast<uint32_t>(device_id);
     GELOGD("[VarManager] Success to get device id = %u.", device_id_);
     session_id_ = info.session_id();

@@ -12,7 +12,7 @@
 #include "framework/common/util.h"
 #include "framework/common/fmk_error_codes.h"
 #include "common/plugin/ge_make_unique_util.h"
-#include "runtime/rt.h"
+#include "rt_external.h"
 #include "graph/def_types.h"
 
 namespace ge {

@@ -18,7 +18,7 @@
 #include "core/executor/multi_thread_topological/executor/schedule/config/task_scheduler_config.h"
 #include "core/executor/multi_thread_topological/execution_data/multi_thread_execution_data.h"
 #include "common/bg_test.h"
-#include "runtime/dev.h"
+#include "acl/acl_rt.h"
 #include "kernel/memory/caching_mem_allocator.h"
 #include "stub/gert_runtime_stub.h"
 #include "op_impl/data_flow_op_impl.h"
@@ -49,7 +49,7 @@ class MultiThreadExecutorE2ESystemTest : public bg::BgTest {
  protected:
   void SetUp() override {
     bg::BgTest::SetUp();
-    rtSetDevice(0);
+    aclrtSetDevice(0);
     constexpr int32_t kEnvNoOverwrite = 0;
     int32_t mmRet = 0;
     MM_SYS_SET_ENV(MM_ENV_MAX_RUNTIME_CORE_NUMBER, "3", kEnvNoOverwrite, mmRet);
@@ -126,7 +126,7 @@ void TaskParallelScheduleBy(const TaskProducerType &producer_type) {
                                      const_cast<void *>(mem_block->GetAddr())});
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
   ASSERT_EQ(model_executor->Execute({i3.value},
                                     std::vector<Tensor *>({i0.holder.get(), i1.holder.get(), i2.holder.get()}).data(),
@@ -139,7 +139,7 @@ void TaskParallelScheduleBy(const TaskProducerType &producer_type) {
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   ASSERT_TRUE(runtime_stub.CheckLaunchWhenStubTiling());
   multi_thread_ed->scheduler->Dump();
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   mem_block->Free();
 }
 
@@ -168,7 +168,7 @@ void RunIfGraph(TensorHolder &pred_tensor, bool expect_branch, const TaskProduce
   auto output_holder = TensorFaker().Placement(kOnHost).DataType(ge::DT_INT64).Shape({8}).Build();
   std::vector<Tensor *> outputs{output_holder.GetTensor()};
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   auto output_shape = expect_branch ? Shape({4}) : Shape({});
@@ -187,7 +187,7 @@ void RunIfGraph(TensorHolder &pred_tensor, bool expect_branch, const TaskProduce
   EXPECT_EQ(memcmp(output_holder.GetTensor()->GetAddr(), &output_data[0], output_data.GetDimNum() * 8), 0);
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 void RunWhileGraph(const TaskProducerType &producer_type) {
@@ -234,7 +234,7 @@ void RunWhileGraph(const TaskProducerType &producer_type) {
     auto outputs = FakeTensors({}, 1, &output);
 
     rtStream_t stream;
-    ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
     auto i1 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
     auto inputs = FakeTensors({}, 1);
@@ -253,7 +253,7 @@ void RunWhileGraph(const TaskProducerType &producer_type) {
     EXPECT_EQ(*static_cast<int32_t *>(static_cast<gert::Tensor *>(outputs.GetAddrList()[0])->GetAddr()), 8);
 
     ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
   }
 }
 
@@ -282,7 +282,7 @@ void RunCaseGraph(TensorHolder &index_tensor, const TaskProducerType &producer_t
   auto output_holder = TensorFaker().Placement(kOnHost).DataType(ge::DT_INT64).Shape({8}).Build();
   std::vector<Tensor *> outputs{output_holder.GetTensor()};
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({stream_value.value}, inputs.data(), inputs.size(), outputs.data(), outputs.size()),
@@ -292,7 +292,7 @@ void RunCaseGraph(TensorHolder &index_tensor, const TaskProducerType &producer_t
             ge::GRAPH_SUCCESS);
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 void RunGraphFailThenSuccess(const TaskProducerType &producer_type) {
@@ -328,7 +328,7 @@ void RunGraphFailThenSuccess(const TaskProducerType &producer_type) {
   auto inputs0 = std::vector<Tensor *>({i0.GetTensor(), i1.GetTensor()});
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   // 第一次执行失败
@@ -358,7 +358,7 @@ void RunGraphFailThenSuccess(const TaskProducerType &producer_type) {
   ASSERT_EQ(new_model_executor->Execute({i3.value}, inputs0.data(), inputs0.size(), outputs.data(), outputs.size()),
             ge::GRAPH_SUCCESS);
   ASSERT_EQ(new_model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(MultiThreadExecutorE2ESystemTest, fail_then_success_by_kernel) {
@@ -481,7 +481,7 @@ TEST_F(MultiThreadExecutorE2ESystemTest, schedule_by_kernel_and_profiling_succes
                                      const_cast<void *>(mem_block->GetAddr())});
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
   ASSERT_EQ(model_executor->Execute({i3.value},
                                     std::vector<Tensor *>({i0.holder.get(), i1.holder.get(), i2.holder.get()}).data(),
@@ -492,7 +492,7 @@ TEST_F(MultiThreadExecutorE2ESystemTest, schedule_by_kernel_and_profiling_succes
 
   EXPECT_EQ(report_event_count, 6);
   multi_thread_ed->scheduler->Dump();
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   mem_block->Free();
   ProfilingTestUtil::Instance().Clear();
   ge::diagnoseSwitch::MutableProfiling().SetEnableFlag(0);

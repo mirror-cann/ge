@@ -10,7 +10,7 @@
 
 #include "graph/load/model_manager/task_info/rts/memcpy_addr_async_task_info.h"
 
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "graph/args_format_desc.h"
 #include "graph/load/model_manager/davinci_model.h"
 #include "graph/load/model_manager/model_utils.h"
@@ -146,7 +146,7 @@ Status MemcpyAddrAsyncTaskInfo::Distribute() {
     GELOGE(RT_FAILED, "[Call][rtMemcpyAsyncWithCfg] failed, size:%" PRIu64 ", ret:%d", dst_max_, rt_ret);
     return RT_ERROR_TO_GE_STATUS(rt_ret);
   }
-  GE_CHK_RT_RET(aclrtMemcpy(host_args_aligned_, args_size_, ValueToPtr(device_args_aligned_), args_size_,
+  GE_CHK_ACL_RET(aclrtMemcpy(host_args_aligned_, args_size_, ValueToPtr(device_args_aligned_), args_size_,
       ACL_MEMCPY_DEVICE_TO_HOST));
 
   uintptr_t host_addr = PtrToValue(host_args_aligned_);

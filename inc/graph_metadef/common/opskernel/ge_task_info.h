@@ -15,7 +15,7 @@
 #include <string>
 #include <vector>
 #include "acl/acl_rt.h"
-#include "runtime/rt.h"
+#include "rt_external.h"
 #include "graph/op_desc.h"
 
 namespace ge {

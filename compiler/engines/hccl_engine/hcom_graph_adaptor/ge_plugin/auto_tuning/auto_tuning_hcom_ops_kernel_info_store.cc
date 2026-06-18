@@ -23,6 +23,8 @@
 #include "framework/common/fmk_error_codes.h"
 #include "hcom_acl_adapter.h"
 #include "hcom_op_utils.h"
+#include "common/ge_rts_decl.h"
+#include "framework/common/runtime_model_ge.h"
 
 using namespace std;
 
@@ -411,7 +413,7 @@ ge::Status AutoTuningHcomOpsKernelInfoStore::LoadTask(ge::GETaskInfo &task) {
   // 设定为算子信息库工作流程
   ge::GETaskKernelHcclInfo hcclInfo;
   CHK_RET(GetHcclInfo(task, hcclInfo));
-  CHK_PRT_RET((task.type != RT_MODEL_TASK_HCCL),
+  CHK_PRT_RET((task.type != ACL_RT_MODEL_TASK_HCCL),
               HCCL_ERROR("[Load][Task]errNo[0x%016llx] TaskType[%u] from"
                          "taskinfo is invalid.",
                          HCOM_ERROR_CODE(HCCL_E_PARA), task.type),

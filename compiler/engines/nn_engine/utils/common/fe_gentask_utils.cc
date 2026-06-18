@@ -10,7 +10,8 @@
 #include <regex>
 #include "common/fe_gentask_utils.h"
 #include "common/platform_utils.h"
-#include "runtime/rt_model.h"
+#include "rt_external_model.h"
+#include "framework/common/runtime_model_ge.h"
 #include "graph/utils/args_format_desc_utils.h"
 #include "platform/platform_info.h"
 #include "framework/common/taskdown_common.h"
@@ -33,8 +34,8 @@ const std::unordered_set<int64_t> BUILT_IN_IMPLY_TYPE{
   EN_IMPL_RL, EN_IMPL_PLUGIN_TBE, EN_IMPL_VECTOR_CORE_HW_TBE
 };
 
-const std::set<rtModelTaskType_t> op_task_list = {RT_MODEL_TASK_VECTOR_ALL_KERNEL, RT_MODEL_TASK_FFTS_PLUS_TASK,
-                                                  RT_MODEL_TASK_ALL_KERNEL, RT_MODEL_TASK_KERNEL};
+const std::set<aclrtModelTaskType_t> op_task_list = {ACL_RT_MODEL_TASK_VECTOR_ALL_KERNEL, ACL_RT_MODEL_TASK_FFTS_PLUS_TASK,
+                                                     ACL_RT_MODEL_TASK_ALL_KERNEL, ACL_RT_MODEL_TASK_KERNEL};
 
 Status GetExecuteMode(const ge::Node &node, gert::ExecuteMode &exe_mode) {
   const  auto own_graph = node.GetOwnerComputeGraph();
@@ -169,7 +170,7 @@ Status CreateTilingTask(const gert::ExeResGenerationContext* context, const Para
   FE_CHECK(stream_v.size() != 1, FE_LOGE("Node[%s, %s] stream_v size is not equal to 1", context->GetNodeName(),
            context->GetNodeType()), return FAILED);
   const int64_t stream_id = stream_v[0].stream_id;
-  aicpu_task.set_type(RT_MODEL_TASK_PREPROCESS_KERNEL);
+  aicpu_task.set_type(ACL_RT_MODEL_TASK_PREPROCESS_KERNEL);
   aicpu_task.set_stream_id(stream_id);
 
   std::string task_args;
@@ -209,7 +210,7 @@ Status CreateRefreshTask(const gert::ExeResGenerationContext* context, domi::Tas
   FE_CHECK(stream_v.size() != 1, FE_LOGE("Node[%s, %s] stream_v size is not equal to 1", context->GetNodeName(),
            context->GetNodeType()), return FAILED);
   const int64_t stream_id = stream_v[0].stream_id;
-  task.set_type(RT_MODEL_TASK_UPDATE);
+  task.set_type(ACL_RT_MODEL_TASK_UPDATE);
   task.set_stream_id(stream_id);
   task.mutable_update_pc_task()->set_op_index(context->GetOpId());
   task.mutable_update_pc_task()->set_stream_id(stream_id);
@@ -230,7 +231,7 @@ Status CreateRecordTask(const gert::ExeResGenerationContext* context, domi::Task
   task.mutable_event_ex()->set_op_index(context->GetOpId());
   task.set_event_id(event_id);
   FE_LOGI("Node[%s, %s] event_id is %d", context->GetNodeName(), context->GetNodeType(), event_id);
-  task.set_type(RT_MODEL_TASK_EVENT_RECORD);
+  task.set_type(ACL_RT_MODEL_TASK_EVENT_RECORD);
 
   const vector<gert::StreamInfo> stream_v = context->GetAttachedStreamInfos();
   FE_CHECK(stream_v.size() != 1, FE_LOGE("Node[%s, %s] stream_v size is not equal to 1", context->GetNodeName(),
@@ -248,7 +249,7 @@ Status CreateWaitTask(const gert::ExeResGenerationContext* context, domi::TaskDe
   task.mutable_event_ex()->set_op_index(context->GetOpId());
   task.set_event_id(event_id);
   FE_LOGI("Node[%s, %s] event_id is %d", context->GetNodeName(), context->GetNodeType(), event_id);
-  task.set_type(RT_MODEL_TASK_EVENT_WAIT);
+  task.set_type(ACL_RT_MODEL_TASK_EVENT_WAIT);
 
   const int64_t stream_id = context->GetStreamId();
   task.set_stream_id(stream_id);
@@ -256,7 +257,7 @@ Status CreateWaitTask(const gert::ExeResGenerationContext* context, domi::TaskDe
 }
 
 Status CreateNopTask(const gert::ExeResGenerationContext* context, domi::TaskDef &task) {
-  task.set_type(RT_MODEL_TASK_NOP);
+  task.set_type(ACL_RT_MODEL_TASK_NOP);
   const int64_t stream_id = context->GetStreamId();
   task.set_stream_id(stream_id);
   return SUCCESS;
@@ -366,11 +367,11 @@ Status PreProcessTasks(const gert::ExeResGenerationContext* context, std::vector
   auto op_name = context->GetNodeName();
   auto op_type = context->GetNodeType();
   for (; i < tasks.size(); ++i) {
-    if (tasks[i].type() == RT_MODEL_TASK_FFTS_PLUS_TASK) {
+    if (tasks[i].type() == ACL_RT_MODEL_TASK_FFTS_PLUS_TASK) {
       if (ProcessFftsPlusTask(context, tasks[i]) == FAILED) return FAILED;
       break; // 找到当前aicoretask，直接break
     }
-    if (tasks[i].type() == RT_MODEL_TASK_ALL_KERNEL || tasks[i].type() == RT_MODEL_TASK_VECTOR_ALL_KERNEL) {
+    if (tasks[i].type() == ACL_RT_MODEL_TASK_ALL_KERNEL || tasks[i].type() == ACL_RT_MODEL_TASK_VECTOR_ALL_KERNEL) {
       if (ProcessMixAicoreTask(context, tasks[i]) == FAILED) return FAILED;
       break; // 找到当前aicoretask，直接break
     }
@@ -438,7 +439,7 @@ ge::Status GenerateTaskSuperKernel(const gert::ExeResGenerationContext* context,
   int64_t index = -1L;
   // find aicore task
   for (int64_t i = static_cast<int64_t>(tasks.size()) - 1; i >= 0; i--) {
-    if ((tasks[i].type() == RT_MODEL_TASK_KERNEL) || (tasks[i].type() == RT_MODEL_TASK_ALL_KERNEL)) {
+    if ((tasks[i].type() == ACL_RT_MODEL_TASK_KERNEL) || (tasks[i].type() == ACL_RT_MODEL_TASK_ALL_KERNEL)) {
       index = i;
       break;
     }
@@ -449,13 +450,13 @@ ge::Status GenerateTaskSuperKernel(const gert::ExeResGenerationContext* context,
   FE_LOGD("FIA aicore index: %ld.", index);
   // get aicore context
   domi::KernelContext *kernel_context;
-  if (tasks[index].type() == RT_MODEL_TASK_KERNEL) {
+  if (tasks[index].type() == ACL_RT_MODEL_TASK_KERNEL) {
     auto kernel_def = tasks[index].mutable_kernel();
     FE_CHECK(kernel_def == nullptr,
              FE_LOGE("kernel_def for aicore task is nullptr."),
              return FAILED);
     kernel_context = kernel_def->mutable_context();
-  } else if (tasks[index].type() == RT_MODEL_TASK_ALL_KERNEL) {
+  } else if (tasks[index].type() == ACL_RT_MODEL_TASK_ALL_KERNEL) {
     auto kernelWithHandle = tasks[index].mutable_kernel_with_handle();
     FE_CHECK(kernelWithHandle == nullptr,
              FE_LOGE("The kernel_def for the aicore task is nullptr."),
@@ -629,7 +630,7 @@ Status GenerateOpExtTask(const ge::Node &node, const bool is_tiling_sink, std::v
   std::vector<int> op_task_defs;
   int index = 0;
   for (const auto &task : task_defs) {
-    rtModelTaskType_t task_type = static_cast<rtModelTaskType_t>(task.type());
+    aclrtModelTaskType_t task_type = static_cast<aclrtModelTaskType_t>(task.type());
     if (op_task_list.count(task_type) == 0U) {
       index++;
       continue;

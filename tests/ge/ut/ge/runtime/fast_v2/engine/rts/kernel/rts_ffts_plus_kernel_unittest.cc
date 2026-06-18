@@ -118,7 +118,7 @@ TEST_F(RtsFFTSPlusKernelTestUT, sdma_update_with_level1addr) {
   auto *buff_ptr = &task_info_ptr->args[buf_offset];
   for (int i = 0; i < 4; ++i) {
     auto context = reinterpret_cast<rtFftsPlusSdmaCtx_t *>(buff_ptr);
-    context->contextType = RT_FFTS_SUB_TASK_TYPE_SDMA;
+    context->contextType = 8;  // 8 = RT_FFTS_SUB_TASK_TYPE_SDMA
     buff_ptr += sizeof(rtFftsPlusSdmaCtx_t);
   }
 

@@ -22,10 +22,10 @@
 #include "graph/compute_graph.h"
 #include "proto/ge_ir.pb.h"
 #include "proto/op_mapping.pb.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "graph/load/model_manager/task_info/task_info.h"
 #include "framework/common/ge_types.h"
-#include "runtime/base.h"
+#include "rt_external_base.h"
 #include "dump/adump_pub.h"
 
 namespace ge {

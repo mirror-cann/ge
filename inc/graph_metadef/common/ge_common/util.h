@@ -55,7 +55,7 @@ using AddrGetter = std::function<const void*(size_t)>;
 #define GE_MAKE_GUARD_RTSTREAM(var)    \
   GE_MAKE_GUARD(var, [&var]() {           \
     if ((var) != nullptr) {            \
-      GE_CHK_RT(rtStreamDestroy(var)); \
+      GE_CHK_RT(aclrtDestroyStream(var)); \
     }                                  \
   })
 

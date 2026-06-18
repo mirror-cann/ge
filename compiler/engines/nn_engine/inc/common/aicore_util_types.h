@@ -16,7 +16,7 @@
 #include <vector>
 #include "graph/anchor.h"
 #include "graph/op_desc.h"
-#include "runtime/kernel.h"
+#include "common/ge_rts_decl.h"
 
 namespace fe {
 struct FusionOpSrc {

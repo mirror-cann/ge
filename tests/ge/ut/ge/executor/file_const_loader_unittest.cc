@@ -20,7 +20,7 @@
 #include "depends/ascendcl/src/ascendcl_stub.h"
 #include "graph/utils/file_utils.h"
 #include "mmpa/mmpa_api.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "file_const_loader.h"
 #include "om2_external_weight_manager.h"
 #include "om2_file_utils.h"
@@ -256,7 +256,7 @@ TEST_F(FileConstLoaderUt, prepare_individual_from_file_ok) {
   ASSERT_NE(const_addr, nullptr);
   ASSERT_EQ(owned_buffers.size(), 1U);
   EXPECT_EQ(*(static_cast<uint8_t *>(const_addr)), 12U);
-  (void)rtFree(owned_buffers[0]);
+  (void)aclrtFree(owned_buffers[0]);
 }
 
 TEST_F(FileConstLoaderUt, prepare_individual_consts_reuses_same_file_and_offset_only) {
@@ -296,7 +296,7 @@ TEST_F(FileConstLoaderUt, prepare_individual_consts_reuses_same_file_and_offset_
 
   EXPECT_TRUE(owned_buffers.empty());
   for (auto *buffer : owned_buffers) {
-    (void)rtFree(buffer);
+    (void)aclrtFree(buffer);
   }
   gert::Om2VarManagerPool::Instance().RemoveManager(ctx.session_id);
   gert::Om2ExternalWeightManagerPool::Instance().RemoveManager(ctx.session_id);
@@ -328,7 +328,7 @@ TEST_F(FileConstLoaderUt, prepare_individual_consts_rejects_same_key_with_differ
   std::vector<void *> constants(2U, nullptr);
   EXPECT_NE(gert::PrepareIndividualConsts({const_item0, const_item1}, ctx, 0, constants), SUCCESS);
   for (auto *buffer : owned_buffers) {
-    (void)rtFree(buffer);
+    (void)aclrtFree(buffer);
   }
   gert::Om2VarManagerPool::Instance().RemoveManager(ctx.session_id);
   gert::Om2ExternalWeightManagerPool::Instance().RemoveManager(ctx.session_id);
@@ -358,7 +358,7 @@ TEST_F(FileConstLoaderUt, prepare_individual_consts_supports_zero_size_file_cons
   EXPECT_EQ(constants[0], nullptr);
   EXPECT_TRUE(owned_buffers.empty());
   for (auto *buffer : owned_buffers) {
-    (void)rtFree(buffer);
+    (void)aclrtFree(buffer);
   }
   gert::Om2VarManagerPool::Instance().RemoveManager(ctx.session_id);
   gert::Om2ExternalWeightManagerPool::Instance().RemoveManager(ctx.session_id);
@@ -413,7 +413,7 @@ TEST_F(FileConstLoaderUt, prepare_combined_from_file_loads_once_and_maps_offsets
   EXPECT_EQ(*(static_cast<uint8_t *>(constants[0])), 21U);
   EXPECT_EQ(*(static_cast<uint8_t *>(constants[1])), 22U);
   EXPECT_EQ(static_cast<uint8_t *>(constants[1]) - static_cast<uint8_t *>(constants[0]), 1);
-  (void)rtFree(owned_buffers[0]);
+  (void)aclrtFree(owned_buffers[0]);
 }
 
 TEST_F(FileConstLoaderUt, prepare_combined_from_large_file_copies_by_block_and_maps_offsets_ok) {

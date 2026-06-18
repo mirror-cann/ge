@@ -10,7 +10,7 @@
 
 #include "platform_info_util.h"
 
-#include "runtime/rt.h"
+#include "rt_external.h"
 #include "common/debug/log.h"
 #include "platform/platform_info.h"
 #include "platform/soc_spec.h"

@@ -185,7 +185,7 @@ TEST_F(KernelTaskProducerUnitTest, kernel_while_graph_success) {
     auto outputs = FakeTensors({}, 1, &output);
 
     rtStream_t stream;
-    ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0U), RT_ERROR_NONE);
     auto i1 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
     auto inputs = FakeTensors({}, 1);
@@ -204,7 +204,7 @@ TEST_F(KernelTaskProducerUnitTest, kernel_while_graph_success) {
     EXPECT_EQ(*static_cast<int32_t *>(static_cast<gert::Tensor *>(outputs.GetAddrList()[0])->GetAddr()), 8);
 
     ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
   }
 }
 
@@ -263,7 +263,7 @@ TEST_F(KernelTaskProducerUnitTest, kerne_Lstmp_graph_success) {
                                      const_cast<void *>(mem_block->GetAddr())});
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0U), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
   ASSERT_EQ(model_executor->Execute({i3.value},
                                     std::vector<Tensor *>({i0.holder.get(), i1.holder.get(), i2.holder.get()}).data(),
@@ -275,7 +275,7 @@ TEST_F(KernelTaskProducerUnitTest, kerne_Lstmp_graph_success) {
             ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   ASSERT_TRUE(runtime_stub.CheckLaunchWhenStubTiling());
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   mem_block->Free();
 }
 
@@ -305,7 +305,7 @@ TEST_F(KernelTaskProducerUnitTest, kerne_fail_then_success_graph_success) {
   std::vector<Tensor *> outputs = {output.GetTensor()};
   auto inputs = FakeTensors({1, 2, 3, 4}, 2);
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0U), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Load({i3.value}), ge::GRAPH_SUCCESS);
@@ -325,7 +325,7 @@ TEST_F(KernelTaskProducerUnitTest, kerne_fail_then_success_graph_success) {
 
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   ge::RuntimeStub::Reset();
 }
 

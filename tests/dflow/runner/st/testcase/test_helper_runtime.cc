@@ -3842,7 +3842,7 @@ TEST_F(STEST_helper_runtime, TestEnqueueAndDequeueSuccess) {
 
   RuntimeStub::SetInstance(std::make_shared<MockRuntime>());
   GE_MAKE_GUARD(recover, []() { MmpaStub::GetInstance().Reset(); });
-  g_runtime_stub_mock = "rtCtxGetCurrent";
+  g_runtime_stub_mock = "aclrtGetCurrentContext";
   GE_MAKE_GUARD(mock, []() { g_runtime_stub_mock = ""; });
   GeTensor output_tensor;
   ASSERT_EQ(exchange_service.DequeueTensor(0, client_queue_id, output_tensor, control_info), SUCCESS);

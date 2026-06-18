@@ -16,7 +16,7 @@
 #include "graph_builder/converter_checker.h"
 #include "kernel/common_kernel_impl/build_tensor.h"
 #include "register/node_converter_registry.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "exe_graph/lowering/frame_selector.h"
 
 namespace gert {

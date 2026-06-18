@@ -11,7 +11,7 @@
 #include "common/profiling_definitions.h"
 #include "ge/ge_api_error_codes.h"
 #include "framework/common/debug/ge_log.h"
-#include "runtime/dev.h"
+#include "rt_external_device.h"
 #include "mmpa/mmpa_api.h"
 #include "graph/def_types.h"
 #include "aprof_pub.h"

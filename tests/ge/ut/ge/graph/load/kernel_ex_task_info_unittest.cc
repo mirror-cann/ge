@@ -18,6 +18,7 @@
 
 #include "graph/load/model_manager/task_info/aicpu/kernel_ex_task_info.h"
 #include "aicpu_engine_struct.h"
+#include "depends/ascendcl/src/ascendcl_stub.h"
 #include "depends/runtime/src/runtime_stub.h"
 #include "ge/ut/ge/ffts_plus_proto_tools.h"
 #include "graph/load/model_manager/model_utils.h"
@@ -27,9 +28,11 @@ class UtestKernelExTaskInfo : public testing::Test {
  protected:
   void SetUp() {
     RTS_STUB_SETUP();
+    AclRuntimeStub::SetInstance(std::make_shared<AclRuntimeStub>());
   }
 
   void TearDown() {
+    AclRuntimeStub::Reset();
     RTS_STUB_TEARDOWN();
   }
 };
@@ -110,26 +113,26 @@ TEST_F(UtestKernelExTaskInfo, success_kernel_ex_task_release) {
 
   void *ptr = nullptr;
   kernel_ex_task_info.kernel_buf_ = nullptr;
-  rtMalloc(&kernel_ex_task_info.input_output_addr_, 64, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&kernel_ex_task_info.input_output_addr_, 64, ACL_MEM_MALLOC_HUGE_ONLY);
   ptr = kernel_ex_task_info.input_output_addr_;
   EXPECT_EQ(kernel_ex_task_info.Release(), SUCCESS);
-  rtFree(ptr);
+  aclrtFree(ptr);
 
   kernel_ex_task_info.input_output_addr_ = nullptr;
-  rtMalloc(&kernel_ex_task_info.kernel_buf_, 64, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
-  rtFree(kernel_ex_task_info.kernel_buf_);
+  aclrtMalloc(&kernel_ex_task_info.kernel_buf_, 64, ACL_MEM_MALLOC_HUGE_ONLY);
+  aclrtFree(kernel_ex_task_info.kernel_buf_);
   EXPECT_EQ(kernel_ex_task_info.Release(), SUCCESS);
 
   void *addr = nullptr;
-  rtMalloc(&addr, 64, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&addr, 64, ACL_MEM_MALLOC_HUGE_ONLY);
   kernel_ex_task_info.ext_args_.emplace_back(addr);
-  rtMalloc(&kernel_ex_task_info.kernel_buf_, 64, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
-  rtMalloc(&kernel_ex_task_info.input_output_addr_, 64, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&kernel_ex_task_info.kernel_buf_, 64, ACL_MEM_MALLOC_HUGE_ONLY);
+  aclrtMalloc(&kernel_ex_task_info.input_output_addr_, 64, ACL_MEM_MALLOC_HUGE_ONLY);
   ptr = kernel_ex_task_info.input_output_addr_;
-  rtFree(addr);
-  rtFree(kernel_ex_task_info.kernel_buf_);
+  aclrtFree(addr);
+  aclrtFree(kernel_ex_task_info.kernel_buf_);
   EXPECT_EQ(kernel_ex_task_info.Release(), SUCCESS);
-  rtFree(ptr);
+  aclrtFree(ptr);
 }
 
 // test kernel_ex_task_Release

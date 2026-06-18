@@ -4225,7 +4225,7 @@ TEST_F(UTEST_ACL_Model, RuntimeV2ExecuteWithNullOutput)
     ret = aclmdlExecute(modelId, dataset, datasetOut);
     EXPECT_EQ(ret, ACL_SUCCESS);
     /// TODO: rtMalloc
-    /// TODO: rtFree
+    /// TODO: aclrtFree
     // EXPECT_NE(aclGetDataBufferAddr(datasetOut->blobs[0].dataBuf), nullptr);
     EXPECT_EQ(aclrtFree(aclGetDataBufferAddr(datasetOut->blobs[0].dataBuf)), ACL_SUCCESS);
 

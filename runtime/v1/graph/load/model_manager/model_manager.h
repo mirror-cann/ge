@@ -36,8 +36,8 @@
 #include "hybrid/hybrid_davinci_model.h"
 #include "hybrid/executor/runtime_v2/scalable_allocator_manager.h"
 #include "mmpa/mmpa_api.h"
-#include "runtime/context.h"
-#include "runtime/rt.h"
+#include "common/ge_rts_decl.h"
+#include "rt_external.h"
 #include "framework/runtime/rt_session.h"
 #include "graph/manager/session_id_manager.h"
 

@@ -24,9 +24,7 @@
 #include "graph/utils/tensor_utils.h"
 #include "graph_metadef/graph/utils/file_utils.h"
 #include "framework/common/runtime_tensor_desc.h"
-#include "runtime/rt.h"
-// 待rt.h删除后再替换
-#include "runtime/rts/rts_device.h"
+#include "rt_external.h"
 #include "acl/acl_rt.h"
 #include "common/aclrt_malloc_helper.h"
 
@@ -1479,7 +1477,7 @@ Status DataDumper::UnloadDumpInfoByModel(uint32_t model_id) {
     GE_FREE_RT_LOG(dev_mem_unload_for_model_);
   }
 
-  GE_ASSERT_RT_OK(ge::AclrtMalloc(&dev_mem_unload_for_model_, proto_size, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+  GE_ASSERT_ACL_OK(ge::AclrtMalloc(&dev_mem_unload_for_model_, proto_size, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
   GE_ASSERT_RT_OK(aclrtMemcpy(dev_mem_unload_for_model_, proto_size, proto_str.c_str(),
       proto_size, ACL_MEMCPY_HOST_TO_DEVICE));
   GE_ASSERT_TRUE(rtDatadumpInfoLoad(dev_mem_unload_for_model_, static_cast<uint32_t>(proto_size)) == RT_ERROR_NONE);

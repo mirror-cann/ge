@@ -52,6 +52,7 @@ rtError_t aclStub::rtGetSocSpec(const char *label, const char *key, char *value,
     return RT_ERROR_NONE;
 }
 
+extern "C" {
 rtError_t rtFunctionRegister(void *binHandle,
                             const void *stubFunc,
                             const char *stubName,
@@ -87,4 +88,5 @@ rtError_t rtGetSocSpec(const char *label, const char *key, char *value, const ui
         (void)strcpy_s(value, maxLen, "2201");
     }
     return MockFunctionTest::aclStubInstance().rtGetSocSpec(label, key, value, maxLen);
+}
 }

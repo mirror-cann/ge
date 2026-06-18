@@ -16,7 +16,7 @@
 #include "common/omg_util/omg_util.h"
 #include "graph/ge_context.h"
 #include "graph/utils/type_utils.h"
-#include "runtime/rt.h"
+#include "rt_external.h"
 
 namespace ge {
 Status SwitchToStreamSwitchPass::Run(ComputeGraphPtr graph) {

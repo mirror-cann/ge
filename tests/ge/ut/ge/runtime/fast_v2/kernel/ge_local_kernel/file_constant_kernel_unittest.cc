@@ -61,7 +61,7 @@ struct FileConstantKernelUt : public testing::Test {
                      std::string &file_name)
         : rt_session_(rt_session),
           var_id_(var_id),
-          allocator_(0, RT_MEMORY_TYPE_HOST),
+          allocator_(0, 1),  // 1 = RT_MEMORY_TYPE_HOST
           stream_(reinterpret_cast<void *>(0x11)),
           output_size_(100U),
           file_constant_weight_dir_(file_constant_weight_dir),

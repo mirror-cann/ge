@@ -11,7 +11,7 @@
 #include <gtest/gtest.h>
 #include "acl/acl_rt.h"
 #include "stub/gert_runtime_stub.h"
-#include "runtime/rt.h"
+#include "rt_external.h"
 
 namespace gert {
 class GertRuntimeStubUT : public testing::Test {};

@@ -20,7 +20,7 @@
 #include "ge/ge_api_types.h"
 #include "ge/ge_allocator.h"
 #include "kernel/memory/allocator/scalable_allocator.h"
-#include "runtime/base.h"
+#include "rt_external_base.h"
 #include "runtime/mem_allocator.h"
 #include "caching_mem_allocator.h"
 

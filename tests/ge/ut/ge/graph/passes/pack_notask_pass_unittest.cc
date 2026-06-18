@@ -17,7 +17,7 @@
 #include "graph/utils/graph_utils_ex.h"
 #include "graph_builder_utils.h"
 #include "ge_graph_dsl/graph_dsl.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "graph/passes/memory_optimize/pack_notask_pass.h"
 
 using namespace std;

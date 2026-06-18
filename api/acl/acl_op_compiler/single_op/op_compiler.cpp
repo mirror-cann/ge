@@ -20,7 +20,7 @@
 #include "acl/acl_rt.h"
 #include "platform/platform_info.h"
 #include "platform/soc_spec.h"
-#include "runtime/base.h"
+#include "rt_external_base.h"
 
 #define NPUARCH_TO_STR(arch) std::to_string(static_cast<uint32_t>(arch))
 

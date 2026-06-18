@@ -14,7 +14,7 @@
 #include "common/share_graph.h"
 #include "faker/global_data_faker.h"
 #include "faker/model_data_faker.h"
-#include "runtime/dev.h"
+#include "rt_external_device.h"
 #include "kernel/memory/caching_mem_allocator.h"
 #include "stub/gert_runtime_stub.h"
 #include "op_impl/less_important_op_impl.h"

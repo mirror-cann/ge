@@ -440,7 +440,7 @@ aclError aclrtSynchronizeStream(aclrtStream stream)
 
 aclError aclrtCreateStream(aclrtStream *stream)
 {
-    rtStreamCreate(stream, 0);
+    aclrtCreateStreamWithConfig(stream, 0, 0);
     return ACL_SUCCESS;
 }
 

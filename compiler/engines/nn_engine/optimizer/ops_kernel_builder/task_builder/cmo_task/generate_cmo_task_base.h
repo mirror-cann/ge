@@ -17,7 +17,7 @@
 #include "adapter/tbe_adapter/tbe_task_builder_adapter.h"
 #include "graph/types.h"
 #include "graph/utils/tensor_utils.h"
-#include "runtime/rt_model.h"
+#include "rt_external_model.h"
 #include "proto/task.pb.h"
 
 namespace fe {

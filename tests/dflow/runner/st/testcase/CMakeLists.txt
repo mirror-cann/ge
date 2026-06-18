@@ -73,6 +73,7 @@ target_compile_options(helper_runtime_test PRIVATE
 target_link_libraries(helper_runtime_test
     intf_llt_pub
     -Wl,-z,muldefs
+    profiler_stub
     model_deployer
     dflow_runner
     ge_compiler
@@ -88,6 +89,9 @@ target_link_libraries(helper_runtime_test
     hybrid_executor
     davinci_executor
     mmpa_stub
+    adump_server
+    adcore
+    ascend_dump
     -Wl,--whole-archive
     df_memset_stubs
     -Wl,--no-whole-archive

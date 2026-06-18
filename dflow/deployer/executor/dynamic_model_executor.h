@@ -23,7 +23,7 @@
 #include "acl/acl_mdl.h"
 #include "acl/acl_rt.h"
 // for rtMbufPtr_t
-#include "runtime/rt.h"
+#include "rt_external.h"
 
 namespace ge {
 class DynamicModelExecutor {

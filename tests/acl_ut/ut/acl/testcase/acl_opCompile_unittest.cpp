@@ -10,7 +10,7 @@
 
 #include "acl/acl.h"
 #include "acl/acl_op_compiler.h"
-#include "runtime/dev.h"
+#include "rt_external_device.h"
 
 #include <string>
 

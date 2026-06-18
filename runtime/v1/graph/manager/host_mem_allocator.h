@@ -16,7 +16,7 @@
 
 #include "framework/common/ge_inner_error_codes.h"
 #include "graph_metadef/graph/aligned_ptr.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 
 namespace ge {
 class HostMemAllocator {

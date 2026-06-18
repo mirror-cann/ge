@@ -16,7 +16,7 @@
 #include <vector>
 #include "register/graph_optimizer/graph_optimize_register_error_codes.h"
 #include "graph/node.h"
-#include "runtime/kernel.h"
+#include "common/ge_rts_decl.h"
 
 namespace fe {
 const uint32_t L2_CTRL_REMAP_SIZE = 64;

@@ -12,7 +12,7 @@
 #define INC_FRAMEWORK_COMMON_GE_PROFILING_H_
 
 #include "ge/ge_api_error_codes.h"
-#include "runtime/base.h"
+#include "rt_external_base.h"
 
 GE_FUNC_VISIBILITY ge::Status ProfGetDeviceFormGraphId(const uint32_t graph_id, uint32_t &device_id);
 

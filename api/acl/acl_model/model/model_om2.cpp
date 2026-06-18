@@ -8,7 +8,7 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-#include <base.h>
+#include "rt_external_base.h"
 
 #include "model/acl_model_impl_om2.h"
 #include "model_desc_internal.h"

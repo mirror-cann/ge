@@ -20,8 +20,8 @@
 #include "graph/utils/node_utils.h"
 #include "graph/debug/ge_attr_define.h"
 #include "rt_error_codes.h"
-#include "runtime/rt_model.h"
-#include "runtime/mem.h"
+#include "rt_external_model.h"
+#include "rt_external_mem.h"
 
 namespace ffts {
 MixL2TaskBuilder::MixL2TaskBuilder() {}

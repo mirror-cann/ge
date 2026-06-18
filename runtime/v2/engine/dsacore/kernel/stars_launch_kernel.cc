@@ -9,8 +9,8 @@
  */
 
 #include <cstddef>
-#include "runtime/kernel.h"
-#include "runtime/rt.h"
+#include "rt_external_kernel.h"
+#include "rt_external.h"
 #include "acl/acl_rt.h"
 #include "graph/ge_error_codes.h"
 #include "graph/def_types.h"

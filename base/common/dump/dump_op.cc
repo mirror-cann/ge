@@ -24,9 +24,7 @@
 #include "graph/utils/tensor_utils.h"
 #include "proto/ge_ir.pb.h"
 #include "proto/op_mapping.pb.h"
-#include "runtime/rt.h"
-// 待rt.h删除后再替换
-#include "rts/rts_device.h"
+#include "rt_external.h"
 #include "aicpu_task_struct.h"
 #include "graph/debug/ge_attr_define.h"
 #include "graph/utils/attr_utils.h"
@@ -357,8 +355,8 @@ Status DumpOp::ExecutorDumpOp(bool need_device_args) {
   rtArgsEx_t args_for_launch = {};
   if (need_device_args) {
     GE_ASSERT_TRUE(launch_kernel_args_dev_mem_ == nullptr);
-    GE_CHK_RT_RET(ge::AclrtMalloc(&launch_kernel_args_dev_mem_, args_size, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
-    GE_CHK_RT_RET(aclrtMemcpy(launch_kernel_args_dev_mem_, args_size, &args[0U], args_size, ACL_MEMCPY_HOST_TO_DEVICE));
+    GE_CHK_ACL_RET(ge::AclrtMalloc(&launch_kernel_args_dev_mem_, args_size, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+    GE_CHK_ACL_RET(aclrtMemcpy(launch_kernel_args_dev_mem_, args_size, &args[0U], args_size, ACL_MEMCPY_HOST_TO_DEVICE));
     args_for_launch.args = launch_kernel_args_dev_mem_;
     args_for_launch.isNoNeedH2DCopy = 1U;
   } else {
@@ -556,7 +554,7 @@ Status DumpOp::BuildFftsSubOpTask(toolkit::aicpu::dump::OpMappingInfo &op_mappin
 Status DumpOp::GenerateFftsDump(const DumpProperties &dump_properties, void *&load_dump_info, uint32_t &load_dump_len,
                                 void *&unload_dump_info, uint32_t &unload_dump_len, const bool is_single_op_dump) {
   int32_t device_id = 0;
-  GE_CHK_RT_RET(aclrtGetDevice(&device_id));
+  GE_CHK_ACL_RET(aclrtGetDevice(&device_id));
   GE_RETURN_WITH_LOG_IF_TRUE(device_id < 0, "Check device_id %d failed", device_id);
   dump_properties_ = dump_properties;
 
@@ -590,8 +588,8 @@ Status DumpOp::GenerateFftsDump(const DumpProperties &dump_properties, void *&lo
     GE_FREE_RT_LOG(proto_dev_mem_);
   }
 
-  GE_CHK_RT_RET(ge::AclrtMalloc(&proto_dev_mem_, proto_size, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
-  GE_CHK_RT_RET(aclrtMemcpy(proto_dev_mem_, proto_size, proto_msg.c_str(), proto_size, ACL_MEMCPY_HOST_TO_DEVICE));
+  GE_CHK_ACL_RET(ge::AclrtMalloc(&proto_dev_mem_, proto_size, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+  GE_CHK_ACL_RET(aclrtMemcpy(proto_dev_mem_, proto_size, proto_msg.c_str(), proto_size, ACL_MEMCPY_HOST_TO_DEVICE));
 
   load_dump_info = proto_dev_mem_;
   load_dump_len = static_cast<uint32_t>(proto_size);
@@ -631,9 +629,9 @@ Status DumpOp::BuildUnLoadFftsDumpInfo(void *&unload_dump_info, uint32_t &unload
     GE_FREE_RT_LOG(dev_mem_unload_);
   }
 
-  GE_CHK_RT_RET(ge::AclrtMalloc(&dev_mem_unload_, proto_size, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+  GE_CHK_ACL_RET(ge::AclrtMalloc(&dev_mem_unload_, proto_size, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
   GE_PRINT_DYNAMIC_MEMORY(aclrtMalloc, "unload dump information.", proto_size);
-  GE_CHK_RT_RET(aclrtMemcpy(dev_mem_unload_, proto_size, proto_str.c_str(), proto_size, ACL_MEMCPY_HOST_TO_DEVICE));
+  GE_CHK_ACL_RET(aclrtMemcpy(dev_mem_unload_, proto_size, proto_str.c_str(), proto_size, ACL_MEMCPY_HOST_TO_DEVICE));
 
   unload_dump_info = dev_mem_unload_;
   unload_dump_len = static_cast<uint32_t>(proto_size);
@@ -647,7 +645,7 @@ Status DumpOp::LaunchDumpOp(const bool is_single_op_dump, bool need_device_args)
 
   int32_t device_id = 0;
   const aclError rt_ret = aclrtGetDevice(&device_id);
-  if (rt_ret != ACL_SUCCESS) {
+  if (rt_ret != ACL_ERROR_NONE) {
     GELOGE(RT_ERROR_TO_GE_STATUS(rt_ret), "[Call][aclrtGetDevice]Failed, ret %d", rt_ret);
     REPORT_INNER_ERR_MSG("E19999", "[Call][aclrtGetDevice]Failed, ret %d", rt_ret);
     return RT_ERROR_TO_GE_STATUS(rt_ret);

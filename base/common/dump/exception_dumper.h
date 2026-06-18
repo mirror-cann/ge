@@ -20,6 +20,7 @@
 #include "exe_graph/runtime/dfx_info_filler.h"
 #include "common/dump/kernel_tracing_utils.h"
 #include "framework/common/debug/ge_log.h"
+#include "rt_external_mem.h"
 #include "graph_metadef/common/ge_common/util.h"
 #include "common/aclrt_malloc_helper.h"
 

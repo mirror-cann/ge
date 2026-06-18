@@ -12,7 +12,7 @@
 
 #include "macro_utils/dt_public_scope.h"
 #include "common/tbe_handle_store/tbe_handle_store.h"
-#include "runtime/kernel.h"
+#include "rt_external_kernel.h"
 #include "macro_utils/dt_public_unscope.h"
 
 namespace ge {

@@ -16,7 +16,7 @@
 #include "framework/common/ge_types.h"
 #include "framework/common/ge_visibility.h"
 #include "framework/runtime/dump/model_dump_c_api.h"
-#include "runtime/base.h"
+#include "rt_external_base.h"
 
 namespace ge {
 namespace dump {

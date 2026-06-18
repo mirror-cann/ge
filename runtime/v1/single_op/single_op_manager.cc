@@ -15,7 +15,7 @@
 
 #include "graph/manager/mem_manager.h"
 #include "hybrid/common/npu_memory_allocator.h"
-#include "runtime/stream.h"
+#include "rt_external_stream.h"
 #include "acl/acl_rt.h"
 
 namespace ge {
@@ -144,7 +144,7 @@ Status SingleOpManager::GetResourceId(aclrtStream const stream, uintptr_t &resou
   if (stream == nullptr) {
     // get current context default stream
     rtStream_t curCtxDefaultStream = nullptr;
-    GE_CHK_RT_RET(aclrtCtxGetCurrentDefaultStream(&curCtxDefaultStream));
+    GE_CHK_ACL_RET(aclrtCtxGetCurrentDefaultStream(&curCtxDefaultStream));
     GELOGI("use current context default stream as resource index");
     resource_id = static_cast<uintptr_t>(PtrToValue(curCtxDefaultStream));
   } else {

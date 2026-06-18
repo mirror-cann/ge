@@ -17,7 +17,7 @@
 #include "exe_graph/runtime/storage_shape.h"
 #include "common/debug/log.h"
 #include "common/table_driven.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "kernel/kernel_log.h"
 #include "kernel/memory/mem_block.h"
 #include "kernel/memory/caching_mem_allocator.h"
@@ -208,7 +208,7 @@ ge::graphStatus CopyTensorDataToD(const StorageTensorDesc &tensor_desc, GertAllo
     const auto copy_direction = TensorPlacementUtils::IsOnHost(tensor_desc.tensor_data->GetPlacement())
                                     ? ACL_MEMCPY_HOST_TO_BUF_TO_DEVICE
                                     : ACL_MEMCPY_DEVICE_TO_DEVICE;
-    GE_CHK_RT_RET(aclrtMemcpyAsync(mem_block->GetAddr(), alloc_size, tensor_desc.tensor_data->GetAddr(),
+    GE_CHK_ACL_RET(aclrtMemcpyAsync(mem_block->GetAddr(), alloc_size, tensor_desc.tensor_data->GetAddr(),
         unaligned_tensor_size, copy_direction, stream));
     KERNEL_TRACE(
         "[MEM]StreamCopy, src addr %p, src tensor size %zu, src placement %s, dst addr %p,"
@@ -387,7 +387,7 @@ ge::graphStatus CopyTensorDataH2H(KernelContext *context) {
   KERNEL_CHECK_NOTNULL(host_block);
   KERNEL_CHECK(host_block->GetAddr() != nullptr, "malloc failed, tensor size=%zu", alloc_size);
   if (tensor_data_size > 0U) {
-    GE_CHK_RT_RET(aclrtMemcpy(host_block->GetAddr(), static_cast<uint64_t>(tensor_data_size), src_gtd->GetAddr(),
+    GE_CHK_ACL_RET(aclrtMemcpy(host_block->GetAddr(), static_cast<uint64_t>(tensor_data_size), src_gtd->GetAddr(),
         tensor_data_size, ACL_MEMCPY_HOST_TO_HOST));
   }
   host_gtd->ShareFrom(GertTensorData{static_cast<size_t>(tensor_data_size), host_gtd->GetPlacement(),
@@ -410,7 +410,7 @@ ge::graphStatus CopyD2D(KernelContext *context) {
     return ge::GRAPH_FAILED;
   }
   if (tensor_size > 0U) {
-    GE_CHK_RT_RET(aclrtMemcpyAsync(dst_tensor_data->GetAddr(), tensor_size,
+    GE_CHK_ACL_RET(aclrtMemcpyAsync(dst_tensor_data->GetAddr(), tensor_size,
         src_tensor_data->GetAddr(), tensor_size, ACL_MEMCPY_DEVICE_TO_DEVICE, stream));
   }
 
@@ -497,7 +497,7 @@ ge::graphStatus TensorToOut(const StorageShape &shape, GertTensorData &tensor_da
       return ge::GRAPH_FAILED;
     }
     if (copy_type == ACL_MEMCPY_HOST_TO_HOST) {
-      GE_CHK_RT_RET(aclrtMemcpy(dst_address, out_tensor.GetTensorData().GetSize(),
+      GE_CHK_ACL_RET(aclrtMemcpy(dst_address, out_tensor.GetTensorData().GetSize(),
           src_address, copy_size, copy_type));
       return ge::GRAPH_SUCCESS;
     }
@@ -578,7 +578,7 @@ ge::graphStatus SinkWeightData(KernelContext *context) {
   if (src_size > 0U) {
     // rts will copy another host memory if use RT_MEMCPY_HOST_TO_DEVICE_EX,
     // here is weight mem, ge can ensure its lifetime so use RT_MEMCPY_HOST_TO_DEVICE to reduce host mem
-    GE_CHK_RT_RET(aclrtMemcpyAsync(dest_addr, dest_size, src_addr, src_size, ACL_MEMCPY_HOST_TO_DEVICE, stream));
+    GE_CHK_ACL_RET(aclrtMemcpyAsync(dest_addr, dest_size, src_addr, src_size, ACL_MEMCPY_HOST_TO_DEVICE, stream));
   }
   auto device_gtd =
       context->GetOutputPointer<gert::GertTensorData>(static_cast<size_t>(SinkWeightDataOutputs::kTensorData));

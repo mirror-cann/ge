@@ -9,6 +9,7 @@
  */
 
 #include "ops_kernel_builder/task_builder/task_builder.h"
+#include "framework/common/runtime_model_ge.h"
 
 #include <securec.h>
 #include <string>
@@ -27,9 +28,9 @@
 #include "adapter/common/task_builder_adapter_factory.h"
 #include "graph/utils/node_utils.h"
 #include "rt_error_codes.h"
-#include "runtime/rt_model.h"
-#include "runtime/mem.h"
-#include "runtime/stream.h"
+#include "rt_external_model.h"
+#include "rt_external_mem.h"
+#include "rt_external_stream.h"
 
 namespace fe {
 namespace {
@@ -79,8 +80,8 @@ MixTaskPara CalcMixTaskParaByType(string &core_type, int64_t block_dim, int64_t 
 Status UpdateMixAiCoreTask(MixTaskPara &para, domi::TaskDef& main_task, domi::TaskDef& sub_task) {
   domi::KernelContext *main_kernel_context = nullptr;
   domi::KernelContext *sub_kernel_context = nullptr;
-  if (main_task.type() == RT_MODEL_TASK_KERNEL) {
-    sub_task.set_type(RT_MODEL_TASK_VECTOR_KERNEL);
+  if (main_task.type() == ACL_RT_MODEL_TASK_KERNEL) {
+    sub_task.set_type(ACL_RT_MODEL_TASK_VECTOR_KERNEL);
     domi::KernelDef *main_kernel_def = main_task.mutable_kernel();
     FE_CHECK_NOTNULL(main_kernel_def);
     main_kernel_context = main_kernel_def->mutable_context();
@@ -95,7 +96,7 @@ Status UpdateMixAiCoreTask(MixTaskPara &para, domi::TaskDef& main_task, domi::Ta
     domi::KernelDefWithHandle *main_kernel_def = main_task.mutable_kernel_with_handle();
     FE_CHECK_NOTNULL(main_kernel_def);
     main_kernel_context = main_kernel_def->mutable_context();
-    sub_task.set_type(RT_MODEL_TASK_VECTOR_ALL_KERNEL);
+    sub_task.set_type(ACL_RT_MODEL_TASK_VECTOR_ALL_KERNEL);
     domi::KernelDefWithHandle *sub_kernel_def = sub_task.mutable_kernel_with_handle();
     FE_CHECK_NOTNULL(sub_kernel_def);
     sub_kernel_context = sub_kernel_def->mutable_context();
@@ -135,22 +136,22 @@ Status FillMixExtraTask(const ge::Node &node, string &core_type, MixTaskPara &pa
   domi::TaskDef sub_wait;
   sub_wait.set_notify_id(notify_id_v[0]);
   sub_wait.set_stream_id(sub_stream_id);
-  sub_wait.set_type(RT_MODEL_TASK_NOTIFY_WAIT);
+  sub_wait.set_type(ACL_RT_MODEL_TASK_NOTIFY_WAIT);
 
   domi::TaskDef main_record;
   main_record.set_notify_id(notify_id_v[0]);
   main_record.set_stream_id(main_stream_id);
-  main_record.set_type(RT_MODEL_TASK_NOTIFY_RECORD);
+  main_record.set_type(ACL_RT_MODEL_TASK_NOTIFY_RECORD);
 
   domi::TaskDef sub_record;
   sub_record.set_notify_id(notify_id_v[1]);
   sub_record.set_stream_id(sub_stream_id);
-  sub_record.set_type(RT_MODEL_TASK_NOTIFY_RECORD);
+  sub_record.set_type(ACL_RT_MODEL_TASK_NOTIFY_RECORD);
 
   domi::TaskDef main_wait;
   main_wait.set_notify_id(notify_id_v[1]);
   main_wait.set_stream_id(main_stream_id);
-  main_wait.set_type(RT_MODEL_TASK_NOTIFY_WAIT);
+  main_wait.set_type(ACL_RT_MODEL_TASK_NOTIFY_WAIT);
 
   task_defs.insert(task_defs.begin() + task_defs.size() - 1, main_record);
   task_defs.emplace_back(sub_wait);
@@ -229,7 +230,7 @@ Status GenerateMixTask(const ge::Node &node, std::vector<domi::TaskDef> &task_de
     return SUCCESS;
   }
   auto &ai_task = task_defs[task_defs.size() - 1];
-  if (ai_task.type() != RT_MODEL_TASK_KERNEL && ai_task.type() != RT_MODEL_TASK_ALL_KERNEL) {
+  if (ai_task.type() != ACL_RT_MODEL_TASK_KERNEL && ai_task.type() != ACL_RT_MODEL_TASK_ALL_KERNEL) {
     REPORT_FE_ERROR("[GenTask][GenerateMixTask] Op[%s][%s] did not find ai core task.",
                     node.GetNamePtr(), node.GetTypePtr());
     return FAILED;
@@ -318,7 +319,7 @@ void TaskBuilder::StartKernelFusion(const ge::OpDescPtr &op_desc_ptr, const int3
 
   FE_LOGD("Start kernel fusion from node %s, type %s.", op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
   domi::TaskDef task_def = {};
-  task_def.set_type(RT_MODEL_TASK_FUSION_START);
+  task_def.set_type(ACL_RT_MODEL_TASK_FUSION_START);
   task_def.set_stream_id(stream_id);
   task_defs.push_back(task_def);
 }
@@ -333,7 +334,7 @@ void TaskBuilder::EndKernelFusion(const ge::OpDescPtr &op_desc_ptr, const int32_
 
   FE_LOGD("Finish kernel fusion of node %s, type %s.", op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
   domi::TaskDef task_def = {};
-  task_def.set_type(RT_MODEL_TASK_FUSION_END);
+  task_def.set_type(ACL_RT_MODEL_TASK_FUSION_END);
   task_def.set_stream_id(stream_id);
   task_defs.push_back(task_def);
 }
@@ -428,7 +429,7 @@ Status TaskBuilder::FillTaskDefAfterGenTask(const ge::OpDescPtr &op_desc, domi::
   (void)ge::AttrUtils::GetInt(op_desc, kAttrScheduleMode, schedule_mode);
   FE_LOGD("Set schedule mode[%u] on task of op[%s, %s].", schedule_mode, op_desc->GetNamePtr(), op_desc->GetTypePtr());
   domi::KernelContext *kernel_context = nullptr;
-  if (task_def.type() == RT_MODEL_TASK_KERNEL) {
+  if (task_def.type() == ACL_RT_MODEL_TASK_KERNEL) {
     domi::KernelDef *kernel_def = task_def.mutable_kernel();
     FE_CHECK_NOTNULL(kernel_def);
     kernel_def->set_kernel_name(attr_val_kernel_name);
@@ -438,7 +439,7 @@ Status TaskBuilder::FillTaskDefAfterGenTask(const ge::OpDescPtr &op_desc, domi::
     kernel_def->set_schedule_mode(schedule_mode);
     kernel_context = kernel_def->mutable_context();
   }
-  if (task_def.type() == RT_MODEL_TASK_ALL_KERNEL) {
+  if (task_def.type() == ACL_RT_MODEL_TASK_ALL_KERNEL) {
     domi::KernelDefWithHandle *kernel_def_with_handle = task_def.mutable_kernel_with_handle();
     FE_CHECK_NOTNULL(kernel_def_with_handle);
     std::string first_kernel_name;

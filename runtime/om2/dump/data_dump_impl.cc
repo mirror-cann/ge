@@ -12,7 +12,7 @@
 #include "framework/runtime/dump/dump_config.h"
 #include "framework/common/debug/ge_log.h"
 #include "framework/common/framework_types_internal.h"
-#include "runtime/rt.h"
+#include "rt_external.h"
 #include "acl/acl_rt.h"
 
 namespace ge {

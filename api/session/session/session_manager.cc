@@ -47,7 +47,7 @@ Status SessionManager::Finalize() {
 Status SessionManager::SetRtContext(SessionId session_id, aclrtContext rt_context) const {
   GELOGI("set rt_context RT_CTX_NORMAL_MODE, device id:%u.", GetContext().DeviceId());
   GE_CHK_STATUS_RET(aclrtCreateContext(&rt_context, static_cast<int32_t>(GetContext().DeviceId())));
-  GE_CHK_RT_RET(aclrtSetCurrentContext(rt_context));
+  GE_CHK_ACL_RET(aclrtSetCurrentContext(rt_context));
   RtContextUtil::GetInstance().AddRtContext(session_id, rt_context);
   return SUCCESS;
 }

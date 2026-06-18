@@ -8,6 +8,7 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
+#include "common/ge_rts_decl.h"
 #include "cmo_addr_op.h"
 
 #include "op_factory.h"

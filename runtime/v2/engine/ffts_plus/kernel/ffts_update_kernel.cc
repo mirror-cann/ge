@@ -129,7 +129,7 @@ ge::graphStatus FFTSTaskAndArgsCopy(KernelContext *context) {
   void* dev_addr_base = dev_addr->GetAddr();
   void* host_addr_base = host_addr->GetAddr();
   GELOGD("H2D{%lx}{%lx}{%zu}{%zu}.", dev_addr_base, host_addr_base, dev_addr->GetSize(), host_addr->GetSize());
-GE_CHK_RT_RET(aclrtMemcpyAsync(dev_addr_base, dev_addr->GetSize(), host_addr_base,
+GE_CHK_ACL_RET(aclrtMemcpyAsync(dev_addr_base, dev_addr->GetSize(), host_addr_base,
                                host_addr->GetSize(), ACL_MEMCPY_HOST_TO_BUF_TO_DEVICE, stream));
   return ge::GRAPH_SUCCESS;
 }

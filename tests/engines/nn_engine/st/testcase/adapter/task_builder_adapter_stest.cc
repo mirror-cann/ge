@@ -34,7 +34,8 @@
 #include "adapter/adapter_itf/task_builder_adapter.h"
 #undef private
 #undef protected
-#include "runtime/kernel.h"
+#include "rt_external_kernel.h"
+#include "acl/acl_rt.h"
 
 using namespace std;
 using namespace testing;
@@ -72,9 +73,9 @@ class STEST_TaskBuilderAdapter : public testing::Test
 protected:
     void SetUp()
     {
-        rtContext_t rtContext;
-        assert(rtCtxCreate(&rtContext, RT_CTX_GEN_MODE, 0) == ACL_RT_SUCCESS);
-        assert(rtCtxSetCurrent(rtContext) == ACL_RT_SUCCESS);
+        aclrtContext rtContext;
+        assert(aclrtCreateContext(&rtContext, 0) == ACL_RT_SUCCESS);
+        assert(aclrtSetCurrentContext(rtContext) == ACL_RT_SUCCESS);
 
 
         node_ = CreateNode();
@@ -88,9 +89,9 @@ protected:
         DestroyContext(context_);
         node_.reset();
 
-        rtContext_t rtContext;
-        assert(rtCtxGetCurrent(&rtContext) == ACL_RT_SUCCESS);
-        assert(rtCtxDestroy(rtContext) == ACL_RT_SUCCESS);
+        aclrtContext rtContext;
+        assert(aclrtGetCurrentContext(&rtContext) == ACL_RT_SUCCESS);
+        assert(aclrtDestroyContext(rtContext) == ACL_RT_SUCCESS);
 
 
     }

@@ -10,7 +10,7 @@
 
 #include "common/mem_conflict_share_graph.h"
 #include <limits>
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "ge_graph_dsl/graph_dsl.h"
 #include "common/ge_inner_attrs.h"
 #include "framework/common/framework_types_internal.h"

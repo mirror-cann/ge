@@ -40,7 +40,7 @@
 #include "common/helper/om_file_helper.h"
 #include "platform/platform_info.h"
 
-#include "runtime/kernel.h"
+#include "rt_external_kernel.h"
 
 #include "adx_datadump_server.h"
 #include "adump_api.h"
@@ -309,6 +309,8 @@ public:
     virtual aclError aclopSetAttrBool(aclopAttr *attr, const char *attrName, uint8_t attrValue);
     virtual aclError aclrtGetCurrentContext(aclrtContext *context);
     virtual aclError aclrtSetCurrentContext(aclrtContext context);
+    virtual aclError aclrtCreateContext(aclrtContext *context, int32_t deviceId);
+    virtual aclError aclrtDestroyContext(aclrtContext context);
 
     // mmpa
     virtual INT32 mmGetTid();
@@ -558,6 +560,8 @@ public:
     MOCK_METHOD3(aclopSetAttrBool, aclError(aclopAttr *attr, const char *attrName, uint8_t attrValue));
     MOCK_METHOD1(aclrtGetCurrentContext, aclError(aclrtContext *context));
     MOCK_METHOD1(aclrtSetCurrentContext, aclError(aclrtContext context));
+    MOCK_METHOD2(aclrtCreateContext, aclError(aclrtContext *context, int32_t deviceId));
+    MOCK_METHOD1(aclrtDestroyContext, aclError(aclrtContext context));
 
     // mmpa
     MOCK_METHOD0(mmGetTid, INT32());

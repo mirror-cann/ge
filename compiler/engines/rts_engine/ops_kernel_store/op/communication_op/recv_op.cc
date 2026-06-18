@@ -7,6 +7,7 @@
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
+#include "common/ge_rts_decl.h"
 #include "recv_op.h"
 
 #include "common/constant/constant.h"
@@ -84,7 +85,7 @@ Status RecvOpMem::Init() {
 Status RecvOpMem::Run(vector<TaskDef> &tasks) {
   RTS_LOGI("Recv mem op:%s wait value start", name_.c_str());
   TaskDef taskDef = {};
-  taskDef.set_type(RT_MODEL_TASK_MEM_EVENT_WAIT);
+  taskDef.set_type(ACL_RT_MODEL_TASK_MEM_EVENT_WAIT);
   taskDef.set_stream_id(op_desc_->GetStreamId());
   taskDef.set_event_id(eventId_);
 
@@ -94,7 +95,7 @@ Status RecvOpMem::Run(vector<TaskDef> &tasks) {
   }
 
   domi::EventExDef *event_ex_def = taskDef.mutable_event_ex();
-  event_ex_def->set_event_type(RT_MODEL_TASK_MEM_EVENT_WAIT);
+  event_ex_def->set_event_type(ACL_RT_MODEL_TASK_MEM_EVENT_WAIT);
   event_ex_def->set_op_index(static_cast<uint32_t>(op_desc_->GetId()));
 
   tasks.push_back(taskDef);

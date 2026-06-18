@@ -15,8 +15,8 @@
 #include "exe_graph/runtime/continuous_vector.h"
 #include "core/debug/kernel_tracing.h"
 #include "kernel/common_kernel_impl/calc_tenorsize_from_shape.h"
-#include "runtime/rt_ffts_plus.h"
-#include "runtime/rt_ffts_plus_define.h"
+#include "rt_external_ffts.h"
+#include "rt_external_ffts_define.h"
 #include "exe_graph/runtime/gert_tensor_data.h"
 #include "kernel/memory/ffts_mem_allocator.h"
 

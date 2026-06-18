@@ -36,7 +36,7 @@
 #include "exe_graph/lowering/tiling_context_builder.h"
 #include "register/op_tiling/op_tiling_constants.h"
 #include "register/op_tiling_registry.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "exe_graph/runtime/storage_shape.h"
 #include "graph/ge_local_context.h"
 #include "mmpa/mmpa_api.h"
@@ -46,7 +46,7 @@
 #include "graph/utils/attr_utils.h"
 #include "base/err_msg.h"
 #include "base/registry/op_impl_space_registry_v2.h"
-#include "runtime/dev.h"
+#include "rt_external_device.h"
 #include "register/core_num_utils.h"
 #include "acl/acl_rt.h"
 

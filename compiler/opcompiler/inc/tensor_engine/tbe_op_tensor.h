@@ -13,7 +13,7 @@
 
 #include <vector>
 #include <tuple>
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "tensor_engine/fusion_types.h"
 
 namespace te {

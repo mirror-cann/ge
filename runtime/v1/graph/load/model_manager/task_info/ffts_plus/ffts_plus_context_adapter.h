@@ -13,7 +13,7 @@
 
 #include "ge/ge_api_error_codes.h"
 
-#include "runtime/rt.h"
+#include "rt_external.h"
 #include "proto/task.pb.h"
 #include "graph/load/model_manager/task_info/task_info.h"
 #include "graph/load/model_manager/task_info/ffts_plus/ffts_plus_args_helper.h"

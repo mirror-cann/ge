@@ -8,7 +8,7 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 #include "stream_switchN_op.h"
-#include "runtime/rt.h"
+#include "rt_external.h"
 
 #include "graph/debug/ge_attr_define.h"
 #include "op_factory.h"

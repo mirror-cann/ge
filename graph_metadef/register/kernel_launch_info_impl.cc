@@ -11,7 +11,7 @@
 #include "kernel_launch_info_impl.h"
 #include "graph_metadef/graph/debug/ge_util.h"
 #include "common/checker.h"
-#include "runtime/rt_model.h"
+#include "rt_external_model.h"
 #include "ge/framework/common/taskdown_common.h"
 #include "common/opskernel/ops_kernel_info_types.h"
 
@@ -142,7 +142,7 @@ bool KernelLaunchInfoImpl::ProcessFusionTask(const gert::ExeResGenerationContext
     if (!ProcessFusionSubTask(sub_task, fusion_task_def)) {
       return false;
     }
-    uint32_t task_sqe_num = sub_task->task_def_.sqe_num();
+    const uint32_t task_sqe_num = sub_task->task_def_.sqe_num();
     if (task_sqe_num == 0) {
       sqe_num++;
     } else {

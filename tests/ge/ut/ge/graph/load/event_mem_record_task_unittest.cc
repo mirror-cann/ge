@@ -39,7 +39,7 @@ TEST_F(UtestEventMemRecordTask, init_and_distribute_event_record_task_info) {
   model.stream_list_ = { stream };
 
   rtEvent_t event = nullptr;
-  rtEventCreate(&event);
+  aclrtCreateEvent(&event);
   model.event_list_ = { event };
 
   model.op_list_[0] = CreateOpDesc("op_name", "op_type");

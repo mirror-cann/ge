@@ -29,7 +29,7 @@ StreamAllocator::StreamAllocator(int32_t priority, uint32_t flags)
 StreamAllocator::~StreamAllocator() {
   const auto streams = Streams();
   for (size_t i = 1U; i < streams->GetSize(); ++i) {
-    (void)rtStreamDestroy(streams->MutableData()[i]);
+    (void)aclrtDestroyStream(streams->MutableData()[i]);
   }
   (void)streams->SetSize(0U);
 }

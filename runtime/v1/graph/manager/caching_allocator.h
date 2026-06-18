@@ -18,7 +18,7 @@
 #include "graph/node.h"
 #include "graph/manager/block_memory.h"
 #include "graph/manager/graph_mem_allocator.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "acl/acl_rt.h"
 
 namespace ge {

@@ -176,12 +176,13 @@ static aclError SetMdlLoadDynamicTaskSize(aclmdlConfigHandle *const handle, cons
 static aclError SetMdlLoadMemType(aclmdlConfigHandle *const handle, const void *const attrValue) {
   const size_t memPolicy = *((const size_t *)attrValue);
   rtMemType_t type = RT_MEMORY_DEFAULT;
-  aclError ret = GetMemTypeFromPolicy(memPolicy, &type);
+  // 仅仅用于合法值校验
+  aclError ret = GetMemTypeFromPolicy((aclrtMemMallocPolicy)memPolicy, &type);
   if (ret != ACL_SUCCESS) {
     return ret;
   }
-  handle->memType = type;
-  ACL_LOG_INFO("set memType[%u] success.", type);
+  handle->memType = memPolicy;
+  ACL_LOG_INFO("set memType[%zu] success.", handle->memType);
   return ACL_SUCCESS;
 }
 
@@ -315,7 +316,7 @@ aclmdlConfigHandle *aclmdlCreateConfigHandle() {
   configHandle->mdlLoadType = 0UL;
   configHandle->mdlSize = 0UL;
   configHandle->attrState = 0UL;
-  configHandle->memType = RT_MEMORY_DEFAULT;
+  configHandle->memType = (size_t)ACL_MEM_MALLOC_HUGE_FIRST;
   aclmdlExeOMInfo info = {0};
   configHandle->exeOMInfo = info;
   aclmdlExeOMDesc desc = {0UL};

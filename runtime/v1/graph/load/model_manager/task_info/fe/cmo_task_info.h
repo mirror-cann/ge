@@ -12,7 +12,7 @@
 #define GE_GRAPH_LOAD_MODEL_MANAGER_TASK_INFO_CMO_TASK_INFO_H_
 
 #include "graph/load/model_manager/task_info/task_info.h"
-#include "runtime/rt.h"
+#include "rt_external.h"
 
 namespace ge {
 class CmoTaskInfo : public TaskInfo {

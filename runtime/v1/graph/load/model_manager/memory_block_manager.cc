@@ -11,7 +11,7 @@
 #include "memory_block_manager.h"
 #include "common/checker.h"
 #include "ge_common/debug/log.h"
-#include "runtime/rt.h"
+#include "rt_external.h"
 #include "graph/manager/mem_manager.h"
 #include "acl/acl_rt.h"
 #include "common/aclrt_malloc_helper.h"

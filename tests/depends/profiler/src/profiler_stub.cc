@@ -10,8 +10,10 @@
 
 #include "profiling_test_util.h"
 #include "mmpa/mmpa_api.h"
-#include "runtime/base.h"
+#include "rt_external_base.h"
 #include "aprof_pub.h"
+
+extern "C" {
 
 rtError_t rtRegDeviceStateCallback(const char *regName, rtDeviceStateCallback callback) {
   return 0;
@@ -70,6 +72,10 @@ int32_t MsprofReportEvent(uint32_t agingFlag, const MsprofEvent *event) {
   return ge::ProfilingTestUtil::Instance().RunProfFunc(0, ge::InfoType::kEvent, const_cast<MsprofEvent *>(event), 1);
 }
 
+int32_t MsprofReportData(uint32_t moduleId, uint32_t type, VOID_PTR data, uint32_t len) {
+  return 0;
+}
+
 uint64_t MsprofSysCycleTime() {
   return 1;
 }
@@ -109,6 +115,8 @@ int32_t MsprofStop(uint32_t dataType, const void *data, uint32_t dataLen) {
   }
   return 0;
 }
+
+} // extern "C"
 
 ge::ProfilingTestUtil &ge::ProfilingTestUtil::Instance() {
   static ge::ProfilingTestUtil profiling_test_util;

@@ -11,7 +11,7 @@
 #ifndef GE_GRAPH_LOAD_NEW_MODEL_MANAGER_TASK_INFO_MEMCPY_ADDR_ASYNC_TASK_INFO_H_
 #define GE_GRAPH_LOAD_NEW_MODEL_MANAGER_TASK_INFO_MEMCPY_ADDR_ASYNC_TASK_INFO_H_
 
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "graph/op_desc.h"
 #include "graph/args_format_desc.h"
 #include "graph/load/model_manager/task_info/args_io_addrs_updater.h"

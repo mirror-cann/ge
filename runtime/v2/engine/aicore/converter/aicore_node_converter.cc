@@ -22,7 +22,7 @@
 #include "aicore_compile_results.h"
 #include "exe_graph/runtime/tiling_context.h"
 #include "common/hyper_status.h"
-#include "runtime/rt_model.h"
+#include "rt_external_model.h"
 #include "aicore/launch_kernel/rt_kernel_launch_args_ex.h"
 #include "exe_graph/runtime/gert_tensor_data.h"
 #include "graph/debug/ge_attr_define.h"

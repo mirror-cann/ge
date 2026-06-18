@@ -361,7 +361,7 @@ TEST_F(AclnnTwoStagesSt, MultiThreadExecutor_Ok_OnlyTwoStagesAclnnOps) {
   auto inputs = FakeTensors({2048}, 2);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   auto ess = StartExecutorStatistician(model_executor);
@@ -380,7 +380,7 @@ TEST_F(AclnnTwoStagesSt, MultiThreadExecutor_Ok_OnlyTwoStagesAclnnOps) {
 
   multi_thread_ed->scheduler->Dump();
   runtime_stub.Clear();
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 
   MM_SYS_UNSET_ENV(MM_ENV_MAX_RUNTIME_CORE_NUMBER, mmRet);
   (void) mmRet;
@@ -413,7 +413,7 @@ TEST_F(AclnnTwoStagesSt, PriorityTopologicalExecute_Ok_OnlyTwoStagesAclnnOps) {
   auto inputs = FakeTensors({2048}, 2);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   auto ess = StartExecutorStatistician(model_executor);
@@ -428,7 +428,7 @@ TEST_F(AclnnTwoStagesSt, PriorityTopologicalExecute_Ok_OnlyTwoStagesAclnnOps) {
   EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "BuildDualStageAclnnOpFwkData"), 0);
 
   runtime_stub.Clear();
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(AclnnTwoStagesSt, MultiThreadExecutor_Ok_HybridAclnnOps) {
@@ -459,7 +459,7 @@ TEST_F(AclnnTwoStagesSt, MultiThreadExecutor_Ok_HybridAclnnOps) {
   auto inputs = FakeTensors({2048}, 2);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   auto ess = StartExecutorStatistician(model_executor);
@@ -477,7 +477,7 @@ TEST_F(AclnnTwoStagesSt, MultiThreadExecutor_Ok_HybridAclnnOps) {
   EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "BuildDualStageAclnnOpFwkData"), 0);
 
   runtime_stub.Clear();
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(AclnnTwoStagesSt, PriorityTopologicalExecute_Ok_HybridAclnnOps) {
@@ -508,7 +508,7 @@ TEST_F(AclnnTwoStagesSt, PriorityTopologicalExecute_Ok_HybridAclnnOps) {
   auto inputs = FakeTensors({2048}, 2);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   auto ess = StartExecutorStatistician(model_executor);
@@ -525,7 +525,7 @@ TEST_F(AclnnTwoStagesSt, PriorityTopologicalExecute_Ok_HybridAclnnOps) {
   EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "BuildDualStageAclnnOpFwkData"), 0);
 
   runtime_stub.Clear();
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(AclnnTwoStagesSt, PriorityTopologicalExecute_Ok_OnlyTwoStagesAclnnOps_WsZeroSize) {
@@ -556,7 +556,7 @@ TEST_F(AclnnTwoStagesSt, PriorityTopologicalExecute_Ok_OnlyTwoStagesAclnnOps_WsZ
   auto inputs = FakeTensors({2048}, 2);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   auto ess = StartExecutorStatistician(model_executor);
@@ -566,6 +566,6 @@ TEST_F(AclnnTwoStagesSt, PriorityTopologicalExecute_Ok_OnlyTwoStagesAclnnOps_WsZ
             GRAPH_SUCCESS);
 
   runtime_stub.Clear();
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 } // gert

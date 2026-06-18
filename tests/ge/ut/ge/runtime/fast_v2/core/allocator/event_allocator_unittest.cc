@@ -54,7 +54,7 @@ TEST_F(EventAllocatorUT, Acquire_Success_Shrink) {
 
 TEST_F(EventAllocatorUT, AcquireEvents_Fail_NoEnoughEventResource) {
   uint32_t max_event_num = 0;
-  ASSERT_EQ(rtGetAvailEventNum(&max_event_num), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtGetEventAvailNum(&max_event_num), RT_ERROR_NONE);
   size_t n_events = max_event_num + 8U;
   EventAllocator ea;
   EXPECT_EQ(ea.AcquireEvents(n_events), nullptr);

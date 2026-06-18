@@ -17,7 +17,7 @@
 #include <vector>
 
 #include "framework/common/ge_inner_error_codes.h"
-#include "runtime/stream.h"
+#include "rt_external_stream.h"
 #include "single_op/single_op.h"
 #include "hybrid/executor/node_done_manager.h"
 #include "hybrid/executor/callback_manager.h"

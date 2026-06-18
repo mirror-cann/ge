@@ -17,6 +17,7 @@
 #include "runtime_stub.h"
 #include "runtime/rt.h"
 #include "runtime/rt_preload_task.h"
+#include "acl/acl_rt.h"
 
 extern std::string g_runtime_stub_mock;
 std::string g_runtime_stub_mock = "";
@@ -1043,6 +1044,27 @@ RTS_API rtError_t rtGetElfOffset(void * const elfData, const uint32_t elfLen, ui
   (void)elfLen;
   (void)offset;
   return 0;
+}
+
+aclError aclrtCreateContext(aclrtContext *context, int32_t deviceId) {
+  (void)context;
+  (void)deviceId;
+  return ACL_SUCCESS;
+}
+
+aclError aclrtDestroyContext(aclrtContext context) {
+  (void)context;
+  return ACL_SUCCESS;
+}
+
+aclError aclrtSetCurrentContext(aclrtContext context) {
+  (void)context;
+  return ACL_SUCCESS;
+}
+
+aclError aclrtGetCurrentContext(aclrtContext *context) {
+  (void)context;
+  return ACL_SUCCESS;
 }
 }
 #ifdef __cplusplus

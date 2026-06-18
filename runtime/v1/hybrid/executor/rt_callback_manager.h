@@ -18,7 +18,8 @@
 #include "common/blocking_queue.h"
 #include "ge/ge_api_error_codes.h"
 #include "acl/acl_rt.h"
-#include "runtime/rt.h"
+#include "rt_external.h"
+#include "common/ge_rts_decl.h"
 
 namespace ge {
 namespace hybrid {

@@ -18,7 +18,7 @@
 #include "faker/aicpu_taskdef_faker.h"
 #include "runtime/model_v2_executor.h"
 #include "common/bg_test.h"
-#include "runtime/dev.h"
+#include "acl/acl_rt.h"
 #include "kernel/memory/caching_mem_allocator.h"
 #include "kernel/memory/multi_stream_l2_allocator.h"
 #include "stub/gert_runtime_stub.h"
@@ -85,13 +85,13 @@ class GraphExecutorMultiStreamSystemTest : public bg::BgTest {
   void SetUp() override {
     setenv("ENABLE_TILING_CACHE", "0", 1);
     bg::BgTest::SetUp();
-    rtSetDevice(0);
+    aclrtSetDevice(0);
     std::string opp_path = "./";
     std::string opp_version = "version.info";
     setenv("ASCEND_OPP_PATH", opp_path.c_str(), 1);
     system(("touch " + opp_version).c_str());
     system(("echo 'Version=3.20.T100.0.B356' > " + opp_version).c_str());
-    memory::RtsCachingMemAllocator::GetAllocator(0, RT_MEMORYINFO_HBM)->Recycle();
+    memory::RtsCachingMemAllocator::GetAllocator(0, 1)->Recycle();
     memory::RtsCachingMemAllocator::device_id_to_allocators_.clear();
   }
 
@@ -229,7 +229,7 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case01_TwoStream_AccessMemCrossStream
         .AppendExpectEvent(kBirthRecycleRe, 0) // (7) trigger BirthRecycle at stream 0
         .AsYouWish());
     model_executor.reset(nullptr);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
   }
   runtime_stub.Clear();
 }
@@ -345,7 +345,7 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case02_TwoStream_ConsumersInAndCrossS
       EXPECT_EQ(task_on_stream1[i], expect_task_infos_on_stream1[i]);
     }
 
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
   }
   runtime_stub.Clear();
 }
@@ -458,7 +458,7 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case03_TwoStream_HostMemAccessCrossSt
     // check shape output goes to launch args
     EXPECT_EQ(add_launch_args->GetArgsEx()->hostInputInfoNum, 1);
     EXPECT_EQ(add_launch_args->GetArgsEx()->hostInputInfoPtr[0].addrOffset, 0); //?
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
   }
   runtime_stub.Clear();
 }
@@ -577,7 +577,7 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case04_TwoStream_AccessRefMemCrossStr
                     .AppendExpectEvent(kSendEventWithMem, 1)
                     .AppendExpectEvent(kWaitEventWithMem, 0)
                     .AsYouWish());
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
   }
   runtime_stub.Clear();
 }
@@ -769,7 +769,7 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case06_TwoStream_WithStaticSubGraph_o
                                       outputs.size()),
               ge::GRAPH_SUCCESS);
     ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
   }
   runtime_stub.Clear();
 }
@@ -831,7 +831,7 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case07_TwoStream_WithFileConstant_ok)
               ge::GRAPH_SUCCESS);
 
     ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
   }
   runtime_stub.Clear();
 }
@@ -912,7 +912,7 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case07_TwoStream_WithFirstEventSync_o
       EXPECT_EQ(task_on_stream1[i], expect_task_infos_on_stream1[i]);
     }
     model_executor.reset(nullptr);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
   }
   runtime_stub.Clear();
 }
@@ -1003,7 +1003,7 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case08_TwoStream_WithLastEventSync_ok
       EXPECT_EQ(task_on_stream1[i], expect_task_infos_on_stream1[i]);
     }
     model_executor.reset(nullptr);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
   }
   runtime_stub.Clear();
 }
@@ -1079,7 +1079,7 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case09_TwoStream_ExternalAllocator_Re
     ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
 
     model_executor.reset(nullptr);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
   }
   runtime_stub.Clear();
 }
@@ -1145,7 +1145,7 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case10_TwoStream_ExternalAllocator_In
     ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
 
     model_executor.reset(nullptr);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
   }
   ASSERT_NE(output_tensor.GetAddr(), nullptr);
   ASSERT_EQ(output_tensor.MutableTensorData().Free(), ge::GRAPH_SUCCESS);

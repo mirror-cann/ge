@@ -114,7 +114,7 @@ TEST_F(TilingCacheSt, MultiThreadExecutor_Ok_EnableTilingCache) {
                                      ge::DT_FLOAT16,
                                      const_cast<void *>(mem_block->GetAddr())});
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   auto ess = StartExecutorStatistician(model_executor);
@@ -141,7 +141,7 @@ TEST_F(TilingCacheSt, MultiThreadExecutor_Ok_EnableTilingCache) {
   ASSERT_TRUE(runtime_stub.CheckLaunchWhenStubTiling());
   multi_thread_ed->scheduler->Dump();
   runtime_stub.Clear();
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   mem_block->Free();
 }
 
@@ -175,7 +175,7 @@ TEST_F(TilingCacheSt, PriorityTopologicalExecute_Ok_EnableTilingCache) {
   auto output_holder = TensorFaker().Placement(kOnDeviceHbm).DataType(ge::DT_FLOAT).Shape({8, 3, 224, 224}).Build();
   std::vector<Tensor *> outputs{output_holder.GetTensor()};
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   // 第一次执行, 全部走TilingFunc
@@ -194,7 +194,7 @@ TEST_F(TilingCacheSt, PriorityTopologicalExecute_Ok_EnableTilingCache) {
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   runtime_stub.Clear();
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(TilingCacheSt, PriorityTopologicalExecute_Ok_SameStorageShapeMissCache) {
@@ -266,7 +266,7 @@ TEST_F(TilingCacheSt, PriorityTopologicalExecute_Ok_SameStorageShapeMissCache) {
   std::vector<Tensor *> outputs2{output_holder2.GetTensor()};
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   // 第一次执行, 全部走TilingFunc
@@ -286,7 +286,7 @@ TEST_F(TilingCacheSt, PriorityTopologicalExecute_Ok_SameStorageShapeMissCache) {
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   runtime_stub.Clear();
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(TilingCacheSt, DataDependentNodes_Ok_EnableTilingCache) {
@@ -319,7 +319,7 @@ TEST_F(TilingCacheSt, DataDependentNodes_Ok_EnableTilingCache) {
   auto outputs = FakeTensors({}, 4);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   // 第一次执行, 全部走TilingFunc
@@ -340,7 +340,7 @@ TEST_F(TilingCacheSt, DataDependentNodes_Ok_EnableTilingCache) {
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   runtime_stub.Clear();
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   dlog_setlevel(GE_MODULE_NAME, DLOG_ERROR, 0);
 }
 
@@ -373,7 +373,7 @@ TEST_F(TilingCacheSt, DataDependentNodes_Ok_EnableTilingCacheFail) {
   auto outputs = FakeTensors({}, 4);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   // 第一次执行, 全部走TilingFunc
@@ -394,6 +394,6 @@ TEST_F(TilingCacheSt, DataDependentNodes_Ok_EnableTilingCacheFail) {
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   runtime_stub.Clear();
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 }

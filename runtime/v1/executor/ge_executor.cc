@@ -30,8 +30,7 @@
 #include "base/registry/opp_package_utils.h"
 #include "register/op_lib_register_impl.h"
 #include "host_cpu_engine/host_cpu_engine.h"
-#include "runtime/base.h"
-#include "runtime/config.h"
+#include "rt_external_base.h"
 #include "common/profiling/command_handle.h"
 #include "common/profiling_definitions.h"
 #include "hybrid/common/npu_memory_allocator.h"
@@ -1317,7 +1316,7 @@ Status GeExecutor::ReleaseSingleOpResource(void *const stream) {
 
 Status GeExecutor::ClearCustomAicpuSo(const uint32_t device_id) {
   int32_t cur_device_id = -1;
-  GE_CHK_RT_RET(aclrtGetDevice(&cur_device_id));
+  GE_CHK_ACL_RET(aclrtGetDevice(&cur_device_id));
   if (device_id != static_cast<uint32_t>(cur_device_id)) {
     GELOGW("given device_id[%u] is not equal to cur_device_id[%i], skip clear so", device_id, cur_device_id);
     return SUCCESS;

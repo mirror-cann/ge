@@ -5,7 +5,7 @@
 #include "rts_ffts_plus_ops_kernel_builder.h"
 #include "graph/compute_graph.h"
 #include "rts_engine_utest_stub.h"
-#include "runtime/rt_model.h"
+#include "rt_external_model.h"
 #include "common/util.h"
 #undef protected
 #undef private

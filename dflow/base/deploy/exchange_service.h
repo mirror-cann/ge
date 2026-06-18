@@ -16,7 +16,7 @@
 #include "ge/ge_api_error_codes.h"
 #include "graph/ge_tensor.h"
 #include "framework/common/debug/ge_log.h"
-#include "runtime/rt.h"
+#include "rt_external.h"
 
 namespace ge {
 // bit 0

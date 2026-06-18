@@ -17,9 +17,10 @@
 #include <mutex>
 #include <string>
 #include "mmpa/mmpa_api.h"
-#include "runtime/rt.h"
-#include "acl/acl_rt.h"
+#include "rt_external.h"
+#include "common/ge_rts_decl.h"
 
+#include "acl/acl_rt.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -157,8 +158,6 @@ class RuntimeStub {
 
   virtual rtError_t rtMalloc(void **dev_ptr, uint64_t size, rtMemType_t type, uint16_t moduleId);
 
-  virtual rtError_t rtFree(void *dev_ptr);
-
   virtual rtError_t rtEschedWaitEvent(int32_t device_id,
                                       uint32_t group_id,
                                       uint32_t thread_id,
@@ -187,7 +186,7 @@ class RuntimeStub {
 
   virtual rtError_t rtGeneralCtrl(uintptr_t *ctrl, uint32_t num, uint32_t type);
 
-  virtual rtError_t rtMemGetInfoEx(rtMemInfoType_t memInfoType, size_t *free, size_t *total);
+  virtual rtError_t aclrtGetMemInfo(aclrtMemAttr memInfoType, size_t *free, size_t *total);
 
   virtual rtError_t rtMemGrpCacheAlloc(const char *name,
                                        int32_t devId,
@@ -214,6 +213,12 @@ class RuntimeStub {
   virtual rtError_t rtModelUnbindStream(rtModel_t model, rtStream_t stream);
   virtual rtError_t rtModelGetTaskId(void *handle, uint32_t *task_id, uint32_t *stream_id);
   virtual rtError_t rtGetDeviceCapability(int32_t device, int32_t moduleType, int32_t featureType, int32_t *value);
+  virtual rtError_t rtsStreamGetId(void *stm, int32_t *streamId);
+  virtual rtError_t rtsSetStreamResLimit(rtStream_t stm, const rtDevResLimitType_t type, const uint32_t value);
+  virtual rtError_t rtsUseStreamResInCurrentThread(const rtStream_t stm);
+
+  virtual rtError_t rtsGetThreadLastTaskId(uint32_t *taskId);
+  virtual rtError_t rtsDeviceGetCapability(int32_t deviceId, int32_t devFeatureType, int32_t *val);
 
   virtual rtError_t rtModelExecute(rtModel_t model, rtStream_t stream, uint32_t flag){
     return RT_ERROR_NONE;
@@ -263,10 +268,6 @@ class RuntimeStub {
     return RT_ERROR_NONE;
   }
 
-  virtual rtError_t rtCtxCreate(rtContext_t *ctx, uint32_t flags, int32_t device) {
-    return RT_ERROR_NONE;
-  }
-
   virtual rtError_t rtCtxGetCurrentDefaultStream(rtStream_t* stm);
 
   virtual rtError_t rtDatadumpInfoLoad(const void *dump_info, uint32_t length) {
@@ -278,8 +279,41 @@ class RuntimeStub {
     return RT_ERROR_NONE;
   }
 
+  virtual rtError_t rtsFuncGetByName(const rtBinHandle binHandle, const char *kernelName,
+                                     rtFuncHandle *funcHandle) {
+    uint64_t stub_func_addr = 0x1600;
+    *funcHandle = reinterpret_cast<void *>(static_cast<uintptr_t>(stub_func_addr));
+    return RT_ERROR_NONE;
+  }
+
+  virtual rtError_t rtsRegisterCpuFunc(const rtBinHandle binHandle, const char_t * const funcName,
+                                       const char_t * const kernelName, rtFuncHandle *funcHandle) {
+    uint64_t stub_func_addr = 0x1600;
+    *funcHandle = reinterpret_cast<void *>(static_cast<uintptr_t>(stub_func_addr));
+    return RT_ERROR_NONE;
+  }
+
   virtual rtError_t rtGetDevice(int32_t *deviceId);
 
+  virtual rtError_t rtsFuncGetByEntry(const rtBinHandle binHandle, const uint64_t funcEntry,
+      rtFuncHandle *funcHandle) {
+    uint64_t stub_func_addr = 0x1700;
+    *funcHandle = reinterpret_cast<void *>(static_cast<uintptr_t>(stub_func_addr));
+    return RT_ERROR_NONE;
+  }
+
+  virtual rtError_t rtsBinaryUnload(const rtBinHandle binHandle) {
+    return RT_ERROR_NONE;
+  }
+
+  virtual rtError_t rtsLaunchKernelWithDevArgs(rtFuncHandle funcHandle, uint32_t blockDim, rtStream_t stm,
+      rtKernelLaunchCfg_t *cfg, const void *args, uint32_t argsSize, void *reserve) {
+    return RT_ERROR_NONE;
+  }
+
+  virtual rtError_t rtsGetHardwareSyncAddr(void **addr) {
+    return RT_ERROR_NONE;
+  }
  private:
   static std::mutex mutex_;
   static std::shared_ptr<RuntimeStub> instance_;
@@ -359,13 +393,9 @@ RTS_STUB_OUTBOUND_EXTERN(rtEventCreate, rtEvent_t, event);
 RTS_STUB_RETURN_EXTERN(rtGetEventID, rtError_t);
 RTS_STUB_OUTBOUND_EXTERN(rtEventCreate, uint32_t, event_id);
 
-RTS_STUB_RETURN_EXTERN(rtNotifyCreate, rtError_t);
-RTS_STUB_OUTBOUND_EXTERN(rtNotifyCreate, rtNotify_t , notify);
-
 RTS_STUB_RETURN_EXTERN(rtNotifyWait, rtError_t);
 
 RTS_STUB_RETURN_EXTERN(rtGetNotifyID, rtError_t);
-RTS_STUB_OUTBOUND_EXTERN(rtNotifyCreate, uint32_t, notify_id);
 
 RTS_STUB_RETURN_EXTERN(rtQueryFunctionRegistered, rtError_t);
 

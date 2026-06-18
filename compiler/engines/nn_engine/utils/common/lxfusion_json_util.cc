@@ -12,7 +12,7 @@
 #include "common/fe_log.h"
 #include "common/aicore_util_attr_define.h"
 #include "graph/debug/ge_attr_define.h"
-#include "runtime/kernel.h"
+#include "rt_external_kernel.h"
 
 namespace {
 const std::string RtSmData_L2MirrorAddr = "L2_mirror_addr";

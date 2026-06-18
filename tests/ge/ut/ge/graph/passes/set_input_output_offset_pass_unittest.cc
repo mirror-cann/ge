@@ -13,7 +13,7 @@
 #include <string>
 #include <gtest/gtest.h>
 #include "common/plugin/ge_make_unique_util.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "graph/passes/memory_conflict/set_input_output_offset_pass.h"
 
 using namespace domi;

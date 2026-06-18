@@ -14,7 +14,7 @@
 #include "framework/common/debug/log.h"
 #include "graph/ge_context.h"
 #include "acl/acl_rt.h"
-#include "runtime/context.h"
+#include "common/ge_rts_decl.h"
 
 namespace ge {
 namespace {
@@ -27,12 +27,12 @@ RtContextUtil &RtContextUtil::GetInstance() {
 }
 
 Status RtContextUtil::SetRtContext(const uint64_t session_id, const uint32_t graph_id, const int32_t device_id,
-                                   const rtCtxMode_t mode, aclrtContext rt_context) const {
+                                   const uint32_t mode, aclrtContext rt_context) const {
   GELOGI("set rt_context, session id: %lu, graph id: %u, mode %d, device id:%u.", session_id,
          graph_id, static_cast<int32_t>(mode), ge::GetContext().DeviceId());
 
   GE_CHK_STATUS_RET(aclrtCreateContext(&rt_context, device_id));
-  GE_CHK_RT_RET(aclrtSetCurrentContext(rt_context));
+  GE_CHK_ACL_RET(aclrtSetCurrentContext(rt_context));
   RtContextUtil::GetInstance().AddRtContext(session_id, graph_id, rt_context);
 
   return SUCCESS;

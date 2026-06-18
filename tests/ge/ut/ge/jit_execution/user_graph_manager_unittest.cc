@@ -434,7 +434,7 @@ TEST_F(UserGraphsManagerlUT, return_compile_load_summary_not_null_execute_succes
   EXPECT_EQ(graph_manager.Initialize({}, &model_executor), SUCCESS);
   UserGraphsManager user_graph_manager(graph_manager);
   rtStream_t new_stream;
-  (void)rtStreamCreate(&new_stream, 0);
+  (void)aclrtCreateStreamWithConfig(&new_stream, 0, 0);
 
   uint32_t user_graph_id = 0u;
   auto graph = JitShareGraph::OneReshapeNode({1, 2, 3, 4}, {4});
@@ -490,7 +490,7 @@ TEST_F(UserGraphsManagerlUT, return_compile_load_summary_not_null_execute_succes
 
   EXPECT_EQ(user_graph_manager.Finalize(), SUCCESS);
   EXPECT_EQ(graph_manager.Finalize(), SUCCESS);
-  rtStreamDestroy(new_stream);
+  aclrtDestroyStream(new_stream);
   dlog_setlevel(GE_MODULE_NAME, 3, 1);
 }
 
@@ -501,7 +501,7 @@ TEST_F(UserGraphsManagerlUT, return_compile_load_summary_execute_success_when_in
   EXPECT_EQ(graph_manager.Initialize({}, &model_executor), SUCCESS);
   UserGraphsManager user_graph_manager(graph_manager);
   rtStream_t new_stream;
-  (void)rtStreamCreate(&new_stream, 0);
+  (void)aclrtCreateStreamWithConfig(&new_stream, 0, 0);
 
   uint32_t user_graph_id = 0u;
   auto graph = JitShareGraph::AllNormalNodes({1, 2, 3, 4});
@@ -548,7 +548,7 @@ TEST_F(UserGraphsManagerlUT, return_compile_load_summary_execute_success_when_in
 
   EXPECT_EQ(user_graph_manager.Finalize(), SUCCESS);
   EXPECT_EQ(graph_manager.Finalize(), SUCCESS);
-  rtStreamDestroy(new_stream);
+  aclrtDestroyStream(new_stream);
   dlog_setlevel(GE_MODULE_NAME, 3, 1);
 }
 
@@ -559,7 +559,7 @@ TEST_F(UserGraphsManagerlUT, return_compile_load_summary_execute_success_when_in
   EXPECT_EQ(graph_manager.Initialize({}, &model_executor), SUCCESS);
   UserGraphsManager user_graph_manager(graph_manager);
   rtStream_t new_stream;
-  (void)rtStreamCreate(&new_stream, 0);
+  (void)aclrtCreateStreamWithConfig(&new_stream, 0, 0);
 
   uint32_t user_graph_id = 0u;
   auto graph = JitShareGraph::AllNormalNodes({1, 2, 3, 4});
@@ -616,7 +616,7 @@ TEST_F(UserGraphsManagerlUT, return_compile_load_summary_execute_success_when_in
 
   EXPECT_EQ(user_graph_manager.Finalize(), SUCCESS);
   EXPECT_EQ(graph_manager.Finalize(), SUCCESS);
-  rtStreamDestroy(new_stream);
+  aclrtDestroyStream(new_stream);
   dlog_setlevel(GE_MODULE_NAME, 3, 1);
 }
 
@@ -627,7 +627,7 @@ TEST_F(UserGraphsManagerlUT, return_compile_summary_execute_success_when_input_s
   EXPECT_EQ(graph_manager.Initialize({}, &model_executor), SUCCESS);
   UserGraphsManager user_graph_manager(graph_manager);
   rtStream_t new_stream;
-  (void)rtStreamCreate(&new_stream, 0);
+  (void)aclrtCreateStreamWithConfig(&new_stream, 0, 0);
 
   uint32_t user_graph_id = 0u;
   auto graph = JitShareGraph::AllNormalNodes({1, 2, 3, 4});
@@ -669,7 +669,7 @@ TEST_F(UserGraphsManagerlUT, return_compile_summary_execute_success_when_input_s
 
   EXPECT_EQ(user_graph_manager.Finalize(), SUCCESS);
   EXPECT_EQ(graph_manager.Finalize(), SUCCESS);
-  rtStreamDestroy(new_stream);
+  aclrtDestroyStream(new_stream);
   dlog_setlevel(GE_MODULE_NAME, 3, 1);
 }
 
@@ -709,7 +709,7 @@ TEST_F(UserGraphsManagerlUT, graph_skip_slice_schedule_dynamic_batch) {
   EXPECT_EQ(graph_manager.Initialize({}, &model_executor), SUCCESS);
   UserGraphsManager user_graph_manager(graph_manager);
   rtStream_t new_stream;
-  (void)rtStreamCreate(&new_stream, 0);
+  (void)aclrtCreateStreamWithConfig(&new_stream, 0, 0);
 
   uint32_t user_graph_id = 0u;
   auto graph = JitShareGraph::AllNormalNodes({1, 2, 3, 4});
@@ -722,7 +722,7 @@ TEST_F(UserGraphsManagerlUT, graph_skip_slice_schedule_dynamic_batch) {
   
   EXPECT_EQ(user_graph_manager.Finalize(), SUCCESS);
   EXPECT_EQ(graph_manager.Finalize(), SUCCESS);
-  rtStreamDestroy(new_stream);
+  aclrtDestroyStream(new_stream);
   unsetenv("AUTOFUSE_FLAGS");
 }
 
@@ -735,7 +735,7 @@ TEST_F(UserGraphsManagerlUT, graph_skip_slice_schedule_aoe_mode) {
   EXPECT_EQ(graph_manager.Initialize({}, &model_executor), SUCCESS);
   UserGraphsManager user_graph_manager(graph_manager);
   rtStream_t new_stream;
-  (void)rtStreamCreate(&new_stream, 0);
+  (void)aclrtCreateStreamWithConfig(&new_stream, 0, 0);
 
   uint32_t user_graph_id = 1u;
   auto graph = JitShareGraph::AllNormalNodes({1, 2, 3, 4});
@@ -748,7 +748,7 @@ TEST_F(UserGraphsManagerlUT, graph_skip_slice_schedule_aoe_mode) {
   
   EXPECT_EQ(user_graph_manager.Finalize(), SUCCESS);
   EXPECT_EQ(graph_manager.Finalize(), SUCCESS);
-  rtStreamDestroy(new_stream);
+  aclrtDestroyStream(new_stream);
   unsetenv("AUTOFUSE_FLAGS");
 }
 
@@ -761,7 +761,7 @@ TEST_F(UserGraphsManagerlUT, graph_skip_slice_schedule_unsupported_op) {
   EXPECT_EQ(graph_manager.Initialize({}, &model_executor), SUCCESS);
   UserGraphsManager user_graph_manager(graph_manager);
   rtStream_t new_stream;
-  (void)rtStreamCreate(&new_stream, 0);
+  (void)aclrtCreateStreamWithConfig(&new_stream, 0, 0);
 
   uint32_t user_graph_id = 2u;
   auto graph = JitShareGraph::AllNormalNodes({1, 2, 3, 4});
@@ -783,7 +783,7 @@ TEST_F(UserGraphsManagerlUT, graph_skip_slice_schedule_unsupported_op) {
   
   EXPECT_EQ(user_graph_manager.Finalize(), SUCCESS);
   EXPECT_EQ(graph_manager.Finalize(), SUCCESS);
-  rtStreamDestroy(new_stream);
+  aclrtDestroyStream(new_stream);
   unsetenv("AUTOFUSE_FLAGS");
 }
 
@@ -796,7 +796,7 @@ TEST_F(UserGraphsManagerlUT, graph_skip_slice_schedule_resource_op) {
   EXPECT_EQ(graph_manager.Initialize({}, &model_executor), SUCCESS);
   UserGraphsManager user_graph_manager(graph_manager);
   rtStream_t new_stream;
-  (void)rtStreamCreate(&new_stream, 0);
+  (void)aclrtCreateStreamWithConfig(&new_stream, 0, 0);
 
   uint32_t user_graph_id = 3u;
   auto graph = JitShareGraph::AllNormalNodes({1, 2, 3, 4});
@@ -818,7 +818,7 @@ TEST_F(UserGraphsManagerlUT, graph_skip_slice_schedule_resource_op) {
   
   EXPECT_EQ(user_graph_manager.Finalize(), SUCCESS);
   EXPECT_EQ(graph_manager.Finalize(), SUCCESS);
-  rtStreamDestroy(new_stream);
+  aclrtDestroyStream(new_stream);
   unsetenv("AUTOFUSE_FLAGS");
 }
 

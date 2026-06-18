@@ -26,11 +26,9 @@
 #include "graph/utils/tensor_utils.h"
 #include "graph/compute_graph.h"
 #include "graph/op_kernel_bin.h"
-#include "runtime/context.h"
-#include "runtime/stream.h"
-#include "runtime/rt_model.h"
-#include "runtime/kernel.h"
-#include "runtime/mem.h"
+#include "common/ge_rts_decl.h"
+#include "rt_external_stream.h"
+#include "rt_external_model.h"
 #include "../test_utils.h"
 
 using namespace std;

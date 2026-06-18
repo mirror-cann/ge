@@ -181,7 +181,7 @@ Status SingleOpModel::InitModel() {
 
 Status SingleOpModel::ParseOpModelParams() {
   int32_t device_id = 0;
-  GE_CHK_RT_RET(aclrtGetDevice(&device_id));
+  GE_CHK_ACL_RET(aclrtGetDevice(&device_id));
   GE_ASSERT_SUCCESS(
       ModelUtils::InitRuntimeParams(root_ge_model_, model_params_.runtime_param, static_cast<uint32_t>(device_id)));
   model_params_.runtime_param.session_id = UINT64_MAX;
@@ -222,7 +222,7 @@ Status SingleOpModel::MallocWeight(StreamResource &resource) {
       return ACL_ERROR_GE_DEVICE_MEMORY_OPERATE_FAILED;
     }
     GELOGI("To copy weight to device. weight size = %zu.", root_ge_model_->GetWeightSize());
-    GE_CHK_RT_RET(aclrtMemcpy(weight_base, model_params_.runtime_param.weight_size, root_ge_model_->GetWeightData(),
+    GE_CHK_ACL_RET(aclrtMemcpy(weight_base, model_params_.runtime_param.weight_size, root_ge_model_->GetWeightData(),
         root_ge_model_->GetWeightSize(), ACL_MEMCPY_HOST_TO_DEVICE));
     model_params_.runtime_param.weight_base = reinterpret_cast<uintptr_t>(weight_base);
   }
@@ -877,7 +877,7 @@ Status SingleOpModel::BuildDynamicOp(StreamResource &resource, DynamicSingleOpIm
                       "[Set][OverflowAddr]failed.");
     GE_CHK_STATUS_RET(single_op.hybrid_model_->Init(true), "[Init][HybridModel]Failed.");
     int32_t device_id = 0;
-    GE_CHK_RT_RET(aclrtGetDevice(&device_id));
+    GE_CHK_ACL_RET(aclrtGetDevice(&device_id));
     ThreadPool *thread_pool = nullptr;
     GE_CHK_STATUS_RET_NOLOG(resource.GetThreadPool(&thread_pool));
     single_op.hybrid_model_executor_ = MakeUnique<hybrid::HybridModelRtV1Executor>(single_op.hybrid_model_.get(),

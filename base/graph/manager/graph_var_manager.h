@@ -25,7 +25,7 @@
 #include "framework/common/util.h"
 #include "graph/ge_tensor.h"
 #include "graph/op_desc.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "graph/manager/memory_manager.h"
 #include "proto/var_manager.pb.h"
 #include "graph/ge_local_context.h"

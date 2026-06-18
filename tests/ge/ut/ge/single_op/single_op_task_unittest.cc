@@ -16,7 +16,7 @@
 #include "graph/op_desc.h"
 #include "hybrid/node_executor/aicpu/aicpu_ext_info_handler.h"
 #include "framework/common/profiling_definitions.h"
-#include "runtime/rt.h"
+#include "rt_external.h"
 
 #include "macro_utils/dt_public_scope.h"
 #include "single_op/single_op_model.h"
@@ -326,10 +326,10 @@ TEST_F(UtestSingleOpTask, test_soft_sync_op) {
   tbe_task.stream_resource_ = stream_resource.get();
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, 0), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, 0, 0), RT_ERROR_NONE);
 
   EXPECT_EQ(tbe_task.LaunchKernel(stream), 0);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(UtestSingleOpTask, TestSoftSyncExecute_SaveExceptionDumper_WithExceptionDumperOn) {
@@ -356,7 +356,7 @@ TEST_F(UtestSingleOpTask, TestSoftSyncExecute_SaveExceptionDumper_WithExceptionD
 
   ge::DumpStub::GetInstance().ClearOpInfos();
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, 0), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, 0, 0), RT_ERROR_NONE);
 
   EXPECT_EQ(tbe_task.LaunchKernel(stream), 0);
   tbe_task.PostProcess(stream);
@@ -367,14 +367,14 @@ TEST_F(UtestSingleOpTask, TestSoftSyncExecute_SaveExceptionDumper_WithExceptionD
   EXPECT_EQ(AdxGetAdditionalInfo(op_info, "is_host_args"), "true");
 
   ge::DumpStub::GetInstance().ClearOpInfos();
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   ge::diagnoseSwitch::DisableDumper();
 }
 
 TEST_F(UtestSingleOpTask, test_aicpu_task_launch_kernel) {
   AiCpuCCTask task;
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, 0), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, 0, 0), RT_ERROR_NONE);
   task.num_inputs_ = 2;
   task.num_outputs_ = 1;
   task.input_is_const_ = {1, 0};
@@ -392,7 +392,7 @@ TEST_F(UtestSingleOpTask, test_aicpu_task_launch_kernel) {
   summary.raw_data_ptr = 0;
   summary.raw_data_size = 1;
   void *shape_buffer = nullptr;
-  rtMalloc(&shape_buffer, 1, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&shape_buffer, 1, ACL_MEM_MALLOC_HUGE_ONLY);
   task.out_shape_hbm_.emplace_back(shape_buffer);
   task.memcpy_so_name_ = "libcpu_kernel.so";
   task.memcpy_kernel_name_ = "RunCpuKernel";
@@ -408,7 +408,7 @@ TEST_F(UtestSingleOpTask, test_aicpu_task_launch_kernel) {
   task.memcpy_args_.reset(new(std::nothrow) uint8_t[task.memcpy_args_size_]());
   memcpy_s(task.memcpy_args_.get(), task.memcpy_args_size_, memcpy_args.c_str(), memcpy_args.size());
   ASSERT_EQ(task.CopyDataToHbm(outputs, stream), SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(UtestSingleOpTask, test_aicpu_task_update_io_addr) {
@@ -483,11 +483,11 @@ TEST_F(UtestSingleOpTask, test_blocking_aicpu_op_01) {
   AiCpuCCTask aicpu_task;
   aicpu_task.SetOpDesc(op_desc);
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, 0), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, 0, 0), RT_ERROR_NONE);
 
   ASSERT_EQ(aicpu_task.SetExtInfoAndType(kernel_def.kernel_ext_info(), 0), SUCCESS);
   ASSERT_EQ(aicpu_task.LaunchKernel(stream), SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(UtestSingleOpTask, test_blocking_aicpu_op_02) {
@@ -514,11 +514,11 @@ TEST_F(UtestSingleOpTask, test_blocking_aicpu_op_02) {
   AiCpuTask aicpu_task;
   aicpu_task.SetOpDesc(op_desc);
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, 0), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, 0, 0), RT_ERROR_NONE);
 
   ASSERT_EQ(aicpu_task.SetExtInfoAndType(kernel_def.kernel_ext_info(), 0), SUCCESS);
   ASSERT_EQ(aicpu_task.LaunchKernel(stream), SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(UtestSingleOpTask, test_blocking_aicpu_op_fail) {
@@ -543,7 +543,7 @@ TEST_F(UtestSingleOpTask, test_blocking_aicpu_op_fail) {
   auto op_desc = make_shared<OpDesc>("deque", "Deque");
   ge::AttrUtils::SetBool(op_desc, ATTR_NAME_IS_BLOCKING_OP, true);
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, 0), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, 0, 0), RT_ERROR_NONE);
 
   {
     AiCpuTask aicpu_task;
@@ -559,7 +559,7 @@ TEST_F(UtestSingleOpTask, test_blocking_aicpu_op_fail) {
     EXPECT_EQ(aicpu_task.LaunchKernel(stream), SUCCESS);
   }
 
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(UtestSingleOpTask, test_update_node_by_shape) {

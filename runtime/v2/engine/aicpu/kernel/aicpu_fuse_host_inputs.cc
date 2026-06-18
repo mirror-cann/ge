@@ -18,6 +18,8 @@
 #include "core/debug/kernel_tracing.h"
 #include "kernel/kernel_log.h"
 #include "kernel/memory/mem_block.h"
+#include "rt_external_mem.h"
+#include "common/ge_rts_decl.h"
 #include "kernel/memory/caching_mem_allocator.h"
 #include "exe_graph/runtime/gert_mem_allocator.h"
 #include "kernel/common_kernel_impl/memory_copy.h"

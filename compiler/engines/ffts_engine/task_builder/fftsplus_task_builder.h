@@ -19,7 +19,7 @@
 #include "proto/task.pb.h"
 #include "inc/ffts_type.h"
 #include "common/opskernel/ops_kernel_info_types.h"
-#include "runtime/rt.h"
+#include "rt_external.h"
 #include "common/sgt_slice_type.h"
 #include "inc/ffts_log.h"
 

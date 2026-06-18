@@ -135,10 +135,10 @@ Status RunStaticTestCast(OpDescPtr &op_desc) {
   GeExecutor ge_executor;
   rtStream_t stream = nullptr;
   GE_MAKE_GUARD(stream_destroy, [&stream](){
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
     stream = nullptr;
   });
-  rtStreamCreate(&stream, 0);
+  aclrtCreateStreamWithConfig(&stream, 0, 0);
   EXPECT_EQ(ge_executor.LoadSingleOpV2("aicore_op", model_data, stream, &single_op, 4), SUCCESS);
 
   std::vector<DataBuffer> inputs;
@@ -255,10 +255,10 @@ TEST_F(SingleOpProfilingSt, testSingleopExecuteAsync2WithMemory) {
   std::mutex stream_mu;
   rtStream_t stream = nullptr;
   GE_MAKE_GUARD(stream_destroy, [&stream](){
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
     stream = nullptr;
   });
-  rtStreamCreate(&stream, 0);
+  aclrtCreateStreamWithConfig(&stream, 0, 0);
   SingleOpImpl single_op(res, &stream_mu, stream);
 
   vector<DataBuffer> input_buffers;

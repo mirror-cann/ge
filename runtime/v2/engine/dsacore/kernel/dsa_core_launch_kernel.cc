@@ -10,7 +10,7 @@
 
 #include <cstddef>
 #include <iomanip>
-#include "runtime/rt.h"
+#include "rt_external.h"
 #include "acl/acl_rt.h"
 #include "graph/ge_error_codes.h"
 #include "graph/def_types.h"

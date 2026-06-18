@@ -18,7 +18,7 @@
 #include "framework/common/ge_types.h"
 #include "exe_graph/runtime/tiling_context.h"
 #include "common/hyper_status.h"
-#include "runtime/rt_model.h"
+#include "rt_external_model.h"
 #include "aicore/launch_kernel/rt_kernel_launch_args_ex.h"
 #include "graph/debug/ge_attr_define.h"
 #include "register/op_tiling/op_tiling_constants.h"

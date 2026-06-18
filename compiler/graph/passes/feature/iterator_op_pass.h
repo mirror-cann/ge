@@ -13,7 +13,7 @@
 
 #include "graph/graph.h"
 #include "graph/passes/graph_pass.h"
-#include "runtime/rt.h"
+#include "rt_external.h"
 
 namespace ge {
 class IteratorOpPass : public GraphPass {

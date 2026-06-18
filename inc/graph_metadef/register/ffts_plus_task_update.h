@@ -15,7 +15,7 @@
 
 #include "graph/node.h"
 #include "register/op_tiling_registry.h"
-#include "runtime/rt_ffts_plus.h"
+#include "rt_external_ffts.h"
 #include "external/ge_common/ge_api_error_codes.h"
 
 namespace ge {

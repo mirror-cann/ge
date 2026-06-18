@@ -12,7 +12,7 @@
 #define INC_REGISTER_FFTS_PLUS_ENGINE_UPDATE_H_
 #include "graph/utils/graph_utils.h"
 #include "graph/utils/tensor_utils.h"
-#include "runtime/rt_ffts_plus.h"
+#include "rt_external_ffts.h"
 #include "common/sgt_slice_type.h"
 namespace ffts {
 class FFTSPlusEngineUpdate {

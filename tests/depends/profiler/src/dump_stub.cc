@@ -14,7 +14,7 @@
 #include "dump_stub.h"
 #include "adump_pub.h"
 #include "adump_api.h"
-#include "runtime/base.h"
+#include "rt_external_base.h"
 #include "acl/acl_dump.h"
 
 namespace ge {

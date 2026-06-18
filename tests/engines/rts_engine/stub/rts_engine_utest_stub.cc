@@ -3,6 +3,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include "framework/common/runtime_model_ge.h"
 #include <utility>
 #include <vector>
 #include <list>
@@ -106,28 +107,28 @@ int dlog_getlevel(int module_id, int *enable_event) {
 int rtSetTaskGenCallback_stub_with_notify(rtTaskGenCallback callback) {
   void *model;
   rtTaskInfo_t task;
-  task.type = RT_MODEL_TASK_MEMCPY_ASYNC;
+  task.type = ACL_RT_MODEL_TASK_MEMCPY_ASYNC;
   callback(model, &task);
 
-  task.type = RT_MODEL_TASK_LABEL_SET;
+  task.type = ACL_RT_MODEL_TASK_LABEL_SET;
   callback(model, &task);
 
-  task.type = RT_MODEL_TASK_STREAM_LABEL_SWITCH_BY_INDEX;
+  task.type = ACL_RT_MODEL_TASK_STREAM_LABEL_SWITCH_BY_INDEX;
   callback(model, &task);
 
-  task.type = RT_MODEL_TASK_STREAM_SWITCH;
+  task.type = ACL_RT_MODEL_TASK_STREAM_SWITCH;
   callback(model, &task);
 
-  task.type = RT_MODEL_TASK_NPU_GET_FLOAT_STATUS;
+  task.type = ACL_RT_MODEL_TASK_NPU_GET_FLOAT_STATUS;
   callback(model, &task);
 
-  task.type = RT_MODEL_TASK_NPU_CLEAR_FLOAT_STATUS;
+  task.type = ACL_RT_MODEL_TASK_NPU_CLEAR_FLOAT_STATUS;
   callback(model, &task);
 
-  task.type = RT_MODEL_TASK_NPU_GET_DEBUG_FLOAT_STATUS;
+  task.type = ACL_RT_MODEL_TASK_NPU_GET_DEBUG_FLOAT_STATUS;
   callback(model, &task);
 
-  task.type = RT_MODEL_TASK_NPU_CLEAR_DEBUG_FLOAT_STATUS;
+  task.type = ACL_RT_MODEL_TASK_NPU_CLEAR_DEBUG_FLOAT_STATUS;
   callback(model, &task);
 
   return 0;
@@ -137,7 +138,7 @@ int rtSetTaskGenCallback_stub_with_memcpyaddr(rtTaskGenCallback callback) {
   void *model;
   rtTaskInfo_t task;
 
-  task.type = RT_MODEL_TASK_MEMCPY_ADDR_ASYNC;
+  task.type = ACL_RT_MODEL_TASK_MEMCPY_ADDR_ASYNC;
   callback(model, &task);
 
   return 0;
@@ -147,10 +148,10 @@ int rtSetTaskGenCallback_stub(rtTaskGenCallback callback) {
   void *model;
   rtTaskInfo_t task;
 
-  task.type = RT_MODEL_TASK_NOTIFY_RECORD;
+  task.type = ACL_RT_MODEL_TASK_NOTIFY_RECORD;
   callback(model, &task);
 
-  task.type = RT_MODEL_TASK_NOTIFY_WAIT;
+  task.type = ACL_RT_MODEL_TASK_NOTIFY_WAIT;
   callback(model, &task);
 
   return 0;
@@ -160,7 +161,7 @@ int rtSetTaskGenCallback_stub_with_cmoAddr(rtTaskGenCallback callback) {
   void *model;
   rtTaskInfo_t task;
 
-  task.type = RT_MODEL_TASK_CMO_ADDR;
+  task.type = ACL_RT_MODEL_TASK_CMO_ADDR;
   callback(model, &task);
   return 0;
 }

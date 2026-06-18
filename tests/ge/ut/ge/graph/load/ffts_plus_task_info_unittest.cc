@@ -60,7 +60,7 @@ class UtestFftsPlusTaskInfo : public testing::Test {
   void TearDown() {
     MockRuntime::Reset();
     if (g_dev != nullptr) {
-      rtFree(g_dev);
+      aclrtFree(g_dev);
       g_dev = nullptr;
     }
     if (g_host != nullptr) {
@@ -114,7 +114,7 @@ TEST_F(UtestFftsPlusTaskInfo, fail_ffts_plus_task_info_start) {
   EXPECT_EQ(op_index, 0);
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -158,7 +158,7 @@ TEST_F(UtestFftsPlusTaskInfo, success_ffts_plus_task_info_software_start) {
   EXPECT_EQ(ffts_plus_task_info.ParseTaskRunParam(task_def, &davinci_model, task_run_param), SUCCESS);
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -238,7 +238,7 @@ TEST_F(UtestFftsPlusTaskInfo, fail_ffts_plus_task_info_software_end_label) {
   EXPECT_EQ(ffts_plus_task_info.ParseTaskRunParam(task_def, &davinci_model, task_run_param), SUCCESS);
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -282,7 +282,7 @@ TEST_F(UtestFftsPlusTaskInfo, success_ffts_plus_task_info_software_end) {
   EXPECT_EQ(ffts_plus_task_info.ParseTaskRunParam(task_def, &davinci_model, task_run_param), SUCCESS);
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -322,7 +322,7 @@ TEST_F(UtestFftsPlusTaskInfo, fail_ffts_plus_task_info_software_ctx_lable) {
   EXPECT_EQ(ffts_plus_task_info.ParseTaskRunParam(task_def, &davinci_model, task_run_param), SUCCESS);
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -375,7 +375,7 @@ TEST_F(UtestFftsPlusTaskInfo, success_ffts_plus_task_info_software_ctx) {
   EXPECT_EQ(ffts_plus_task_info.ParseTaskRunParam(task_def, &davinci_model, task_run_param), SUCCESS);
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -413,7 +413,7 @@ TEST_F(UtestFftsPlusTaskInfo, fail_ffts_plus_task_info_hardware_notify_ctx) {
 
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -449,7 +449,7 @@ TEST_F(UtestFftsPlusTaskInfo, success_ffts_plus_task_info_hardware_notify_ctx) {
 
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -487,7 +487,7 @@ TEST_F(UtestFftsPlusTaskInfo, failed_ffts_plus_task_info_hardware_sdma_ctx) {
 
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -533,7 +533,7 @@ TEST_F(UtestFftsPlusTaskInfo, success_ffts_plus_task_info_hardware_sdma_ctx) {
 
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -571,7 +571,7 @@ TEST_F(UtestFftsPlusTaskInfo, failed_ffts_plus_task_info_hardware_writeval_ctx) 
 
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -608,7 +608,7 @@ TEST_F(UtestFftsPlusTaskInfo, success_ffts_plus_task_info_hardware_writeval_ctx)
 
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -645,7 +645,7 @@ TEST_F(UtestFftsPlusTaskInfo, failed_ffts_plus_task_info_hardware_aicpu_ctx_id) 
 
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -697,7 +697,7 @@ TEST_F(UtestFftsPlusTaskInfo, failed_ffts_plus_task_info_hardware_aicpu_fwk_ctx)
 
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -738,7 +738,7 @@ TEST_F(UtestFftsPlusTaskInfo, failed_ffts_plus_task_info_hardware_aicpu_ctx) {
   EXPECT_EQ(task_info.ParseTaskRunParam(task_def, &davinci_model, task_run_param), SUCCESS);
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -776,7 +776,7 @@ TEST_F(UtestFftsPlusTaskInfo, failed_ffts_plus_task_info_hardware_data_ctx) {
   EXPECT_EQ(task_info.ParseTaskRunParam(task_def, &davinci_model, task_run_param), SUCCESS);
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -813,7 +813,7 @@ TEST_F(UtestFftsPlusTaskInfo, success_ffts_plus_task_info_hardware_data_ctx) {
   EXPECT_EQ(task_info.ParseTaskRunParam(task_def, &davinci_model, task_run_param), SUCCESS);
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -851,7 +851,7 @@ TEST_F(UtestFftsPlusTaskInfo, failed_ffts_plus_task_info_hardware_caseswitch_ctx
   EXPECT_EQ(task_info.ParseTaskRunParam(task_def, &davinci_model, task_run_param), SUCCESS);
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -891,7 +891,7 @@ TEST_F(UtestFftsPlusTaskInfo, success_ffts_plus_task_info_hardware_caseswitch_ct
   EXPECT_EQ(task_info.ParseTaskRunParam(task_def, &davinci_model, task_run_param), SUCCESS);
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -929,7 +929,7 @@ TEST_F(UtestFftsPlusTaskInfo, ffts_plus_task_info_hardware_candswitch_ctx_param)
   EXPECT_EQ(task_info.ParseTaskRunParam(task_def, &davinci_model, task_run_param), SUCCESS);
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -969,7 +969,7 @@ TEST_F(UtestFftsPlusTaskInfo, failed_ffts_plus_task_info_hardware_candswitch_ctx
 
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -1008,7 +1008,7 @@ TEST_F(UtestFftsPlusTaskInfo, success_ffts_plus_task_info_hardware_candswitch_ct
 
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -1049,7 +1049,7 @@ TEST_F(UtestFftsPlusTaskInfo, fail_ffts_plus_task_info_hardware_aicaiv_ctx_1) {
 
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -1092,7 +1092,7 @@ TEST_F(UtestFftsPlusTaskInfo, fail_ffts_plus_task_info_hardware_aicaiv_ctx_2) {
 
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -1146,7 +1146,7 @@ TEST_F(UtestFftsPlusTaskInfo, success_ffts_plus_task_info_cache_persistent_ctx) 
 
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -1197,7 +1197,7 @@ TEST_F(UtestFftsPlusTaskInfo, failed_ffts_plus_task_info_hardware_aicaiv_ctx) {
   EXPECT_EQ(task_info.ParseTaskRunParam(task_def, &davinci_model, task_run_param), SUCCESS);
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -1242,7 +1242,7 @@ TEST_F(UtestFftsPlusTaskInfo, success_ffts_plus_task_info_hardware_aicaiv_ctx) {
 
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -1285,7 +1285,7 @@ TEST_F(UtestFftsPlusTaskInfo, fail_ffts_plus_task_info_hardware_aicaiv_ctx) {
 
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -1369,7 +1369,7 @@ TEST_F(UtestFftsPlusTaskInfo, success_ffts_plus_task_info_hardware_aicaiv_ctx_wi
 
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -1416,7 +1416,7 @@ TEST_F(UtestFftsPlusTaskInfo, fail_ffts_plus_task_info_hardware_mixaicaiv_ctx_1)
 
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -1493,7 +1493,7 @@ TEST_F(UtestFftsPlusTaskInfo, success_ffts_plus_task_info_hardware_mixaicaiv_ctx
 
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -1539,7 +1539,7 @@ TEST_F(UtestFftsPlusTaskInfo, fail_ffts_plus_task_info_hardware_mixaicaiv_ctx_2)
 
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -1592,7 +1592,7 @@ TEST_F(UtestFftsPlusTaskInfo, failed_ffts_plus_task_info_hardware_mixaicaiv_ctx)
 
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -1654,7 +1654,7 @@ TEST_F(UtestFftsPlusTaskInfo, success_ffts_plus_task_info_hardware_mixaicaiv_ctx
 
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -1720,7 +1720,7 @@ TEST_F(UtestFftsPlusTaskInfo, success_ffts_plus_task_info_hardware_auto_mixaicai
 
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -1791,7 +1791,7 @@ TEST_F(UtestFftsPlusTaskInfo, success_ffts_plus_task_info_hardware_mixaicaiv_ctx
 
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -1833,7 +1833,7 @@ TEST_F(UtestFftsPlusTaskInfo, fail_ffts_plus_task_info_hardware_ctx_ex) {
 
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -1870,7 +1870,7 @@ TEST_F(UtestFftsPlusTaskInfo, success_ffts_plus_task_info_hardware_ctx_ex) {
 
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -1922,7 +1922,7 @@ TEST_F(UtestFftsPlusTaskInfo, success_ffts_plus_task_info_distribute) {
   EXPECT_EQ(task_info.Distribute(), SUCCESS);
   EXPECT_FALSE(task_info.IsSupportReDistribute());
   dlog_setlevel(GE_MODULE_NAME, DLOG_ERROR, 0);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 // test FftsPlusTaskInfo FindDumpArgs
@@ -1982,7 +1982,7 @@ TEST_F(UtestFftsPlusTaskInfo, fail_ffts_plus_task_info_aicpu_fwk_ctx_copy_worksp
 
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -2028,7 +2028,7 @@ TEST_F(UtestFftsPlusTaskInfo, success_ffts_plus_task_info_aicpu_fwk_ctx) {
 
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -2101,7 +2101,7 @@ TEST_F(UtestFftsPlusTaskInfo, success_ffts_plus_task_info_dsa_ctx) {
   EXPECT_EQ(task_info.ParseTaskRunParam(task_def, &davinci_model, task_run_param), SUCCESS);
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len + 256 + 256;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -2188,7 +2188,7 @@ TEST_F(UtestFftsPlusTaskInfo, success_ffts_plus_task_info_dsa_ctx_2) {
   EXPECT_EQ(task_info.ParseTaskRunParam(task_def, &davinci_model, task_run_param), SUCCESS);
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len + 256;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -2258,7 +2258,7 @@ TEST_F(UtestFftsPlusTaskInfo, success_ffts_plus_task_info_stateless_dsa_ctx) {
 
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -2312,7 +2312,7 @@ TEST_F(UtestFftsPlusTaskInfo, success_ffts_plus_task_info_aicpu_fwk_ctx_with_io)
 
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -2356,7 +2356,7 @@ TEST_F(UtestFftsPlusTaskInfo, success_ffts_plus_task_info_aicpu_op_ctx) {
 
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -2399,7 +2399,7 @@ TEST_F(UtestFftsPlusTaskInfo, success_ffts_plus_task_info_aicpu_block_op_ctx) {
 
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -2440,7 +2440,7 @@ TEST_F(UtestFftsPlusTaskInfo, fail_ffts_plus_task_info_aicpu_block_op_ctx_rts) {
 
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -2482,7 +2482,7 @@ TEST_F(UtestFftsPlusTaskInfo, fail_ffts_plus_task_info_aicpu_block_op_ctx_not_su
 
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -2527,7 +2527,7 @@ TEST_F(UtestFftsPlusTaskInfo, success_ffts_plus_task_info_custom_aicpu_op_ctx) {
 
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -2579,7 +2579,7 @@ TEST_F(UtestFftsPlusTaskInfo, success_ffts_plus_task_info_aicpu_op_ctx_with_io) 
 
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -2640,7 +2640,7 @@ TEST_F(UtestFftsPlusTaskInfo, update_ctx_level1_addr_success) {
 
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -2866,7 +2866,7 @@ TEST_F(UtestFftsPlusTaskInfo, manual_ffts_subgraph_args_init) {
 
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -3022,7 +3022,7 @@ TEST_F(UtestFftsPlusTaskInfo, FftsPlusTaskInfo_MixAicAiv_MixEnhanced_Init_Succes
   EXPECT_EQ(ffts_plus_task_info.ParseTaskRunParam(task_def, &davinci_model, task_run_param), SUCCESS);
   PisToArgs args;
   g_arg_len = 1024;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -3070,7 +3070,7 @@ TEST_F(UtestFftsPlusTaskInfo, FftsPlusTaskInfo_MixAicAiv_MixEnhanced_Init_Succes
   EXPECT_EQ(ffts_plus_task_info.ParseTaskRunParam(task_def, &davinci_model, task_run_param), SUCCESS);
   PisToArgs args;
   g_arg_len = 1024;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -3135,7 +3135,7 @@ TEST_F(UtestFftsPlusTaskInfo, success_dump_ffts_plus_aicaiv_ctx) {
   EXPECT_EQ(task_info.ParseTaskRunParam(task_def, &davinci_model, task_run_param), SUCCESS);
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -3182,7 +3182,7 @@ TEST_F(UtestFftsPlusTaskInfo, success_dump_ffts_plus_cmo_ctx) {
   EXPECT_EQ(task_info.ParseTaskRunParam(task_def, &davinci_model, task_run_param), SUCCESS);
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -3246,7 +3246,7 @@ TEST_F(UtestFftsPlusTaskInfo, success_dump_ffts_plus_mixaiv_ctx) {
   EXPECT_EQ(task_info.ParseTaskRunParam(task_def, &davinci_model, task_run_param), SUCCESS);
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -3311,7 +3311,7 @@ TEST_F(UtestFftsPlusTaskInfo, success_dump_ffts_plus_mixaic_ctx) {
   EXPECT_EQ(task_info.ParseTaskRunParam(task_def, &davinci_model, task_run_param), SUCCESS);
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -3354,7 +3354,7 @@ TEST_F(UtestFftsPlusTaskInfo, success_dump_ffts_plus_aicpu_ctx) {
   EXPECT_EQ(task_info.ParseTaskRunParam(task_def, &davinci_model, task_run_param), SUCCESS);
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -3600,7 +3600,7 @@ TEST_F(UtestFftsPlusTaskInfo, load_mixl2_with_args_format_successfully) {
   EXPECT_EQ(task_info.ParseTaskRunParam(task_def, &davinci_model, task_run_param), SUCCESS);
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -3627,7 +3627,7 @@ TEST_F(UtestFftsPlusTaskInfo, load_mixl2_with_args_format_successfully) {
   EXPECT_EQ(golden, cust_to_relevant);
   HiddenInputsFuncRegistry::GetInstance().type_to_funcs_.clear();
   task_info.Release();
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(UtestFftsPlusTaskInfo, load_ifa_with_tiling_dependence_successfully) {
@@ -3725,7 +3725,7 @@ TEST_F(UtestFftsPlusTaskInfo, load_ifa_with_tiling_dependence_successfully) {
   EXPECT_EQ(task_info.ParseTaskRunParam(task_def, &davinci_model, task_run_param), SUCCESS);
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -3746,7 +3746,7 @@ TEST_F(UtestFftsPlusTaskInfo, load_ifa_with_tiling_dependence_successfully) {
   EXPECT_TRUE(sink_task_info != nullptr);
 
   task_info.Release();
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(UtestFftsPlusTaskInfo, load_mixl2_with_args_format_with_l0_exception_dump_successfully) {
@@ -3847,7 +3847,7 @@ TEST_F(UtestFftsPlusTaskInfo, load_mixl2_with_args_format_with_l0_exception_dump
   EXPECT_EQ(task_info.ParseTaskRunParam(task_def, &davinci_model, task_run_param), SUCCESS);
   PisToArgs args;
   g_arg_len = task_run_param.args_descs[0U].args_len;
-  rtMalloc(&g_dev, g_arg_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&g_dev, g_arg_len, ACL_MEM_MALLOC_HUGE_ONLY);
   g_host = malloc(g_arg_len);
   args[0U].host_addr = g_host;
   args[0U].dev_addr = PtrToValue(g_dev);
@@ -3861,7 +3861,7 @@ TEST_F(UtestFftsPlusTaskInfo, load_mixl2_with_args_format_with_l0_exception_dump
   EXPECT_TRUE(sink_task_info != nullptr);
 
   task_info.Release();
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   gert::GlobalDumper::GetInstance()->SetEnableFlags(0UL);
 }
 }  // namespace ge

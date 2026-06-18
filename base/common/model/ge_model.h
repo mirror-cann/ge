@@ -16,7 +16,7 @@
 #include <string>
 
 #include "securec.h"
-#include "runtime/rt.h"
+#include "rt_external.h"
 #include "common/tbe_handle_store/tbe_kernel_store.h"
 #include "common/tbe_handle_store/cust_aicpu_kernel_store.h"
 #include "framework/common/ge_types.h"

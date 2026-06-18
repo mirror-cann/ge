@@ -9,7 +9,7 @@
  */
 
 #include "stub.h"
-#include "runtime/stream.h"
+#include "rt_external_stream.h"
 #include "mmpa/mmpa_api.h"
 
 using namespace ge;

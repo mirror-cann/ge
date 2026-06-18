@@ -15,7 +15,7 @@
 #include <array>
 #include <memory>
 #include <unordered_map>
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "mem_block.h"
 #include "ge/ge_api_types.h"
 #include "ge/ge_allocator.h"

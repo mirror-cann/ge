@@ -10,8 +10,8 @@
 
 #include "reusable_stream_allocator.h"
 
-#include "runtime/rt_model.h"
-#include "runtime/stream.h"
+#include "rt_external_model.h"
+#include "rt_external_stream.h"
 #include "common/math/math_util.h"
 #include "graph_metadef/common/ge_common/util.h"
 

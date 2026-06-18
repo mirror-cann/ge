@@ -9,6 +9,7 @@
  */
 
 #include "ops_kernel_builder/task_builder/dsa_task_builder.h"
+#include "framework/common/runtime_model_ge.h"
 
 #include <securec.h>
 #include <string>
@@ -27,8 +28,8 @@
 #include "graph/utils/op_desc_utils.h"
 #include "graph/debug/ge_attr_define.h"
 #include "rt_error_codes.h"
-#include "runtime/rt_model.h"
-#include "runtime/mem.h"
+#include "rt_external_model.h"
+#include "rt_external_mem.h"
 #include "common/fe_graph_common.h"
 
 namespace fe {
@@ -88,7 +89,7 @@ Status DsaTaskBuilder::GenerateTask(const ge::Node &node, const ge::RunContext &
   context_.dataMemBase = context.dataMemBase;
 
   domi::TaskDef task_def;
-  task_def.set_type(RT_MODEL_TASK_DSA_TASK);
+  task_def.set_type(ACL_RT_MODEL_TASK_DSA_TASK);
   auto dsa_task_def = task_def.mutable_dsa_task();
   FE_CHECK_NOTNULL(dsa_task_def);
   dsa_task_def->set_op_index(opDesc->GetId());

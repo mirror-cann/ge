@@ -15,7 +15,8 @@
 #include "graph/ge_context.h"
 #include "graph/utils/tensor_utils.h"
 #include "graph/def_types.h"
-#include "runtime/rt.h"
+#include "framework/common/debug/ge_log.h"
+#include "rt_external.h"
 #include "acl/acl_rt.h"
 #include "base/err_msg.h"
 #include "common/aclrt_malloc_helper.h"
@@ -26,7 +27,7 @@ Status SharedMemAllocator::Allocate(SharedMemInfo &mem_info) {
   GELOGD("SharedMemAllocator::Malloc host mem size= %zu for devid:[%u].", mem_info.mem_size, device_id);
 
   const int32_t dev_id = static_cast<int32_t>(device_id);
-  GE_CHK_RT_RET(aclrtSetDevice(dev_id));
+  GE_CHK_ACL_RET(aclrtSetDevice(dev_id));
   // DeviceReset before memory finished!
   GE_MAKE_GUARD(not_used_var, [&dev_id]() { GE_CHK_RT(aclrtResetDevice(dev_id)); });
 

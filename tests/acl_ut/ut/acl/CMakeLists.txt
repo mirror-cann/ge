@@ -251,6 +251,7 @@ target_link_libraries(ut_acl_op_exec_src PRIVATE
     ut_acl_model_src
     c_sec
     json
+    runtime_stub
     -lgcov
 )
 

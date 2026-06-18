@@ -12,7 +12,7 @@
 #include "common/bg_test.h"
 #include "common/share_graph.h"
 #include "common/helper/model_helper.h"
-#include "runtime/dev.h"
+#include "rt_external_device.h"
 #include "faker/ge_model_builder.h"
 #include "faker/kernel_run_context_facker.h"
 #include "faker/aicore_taskdef_faker.h"
@@ -56,7 +56,7 @@ class ModelConverterUT : public bg::BgTest {
  protected:
   void SetUp() override {
     bg::BgTest::SetUp();
-    rtSetDevice(0);
+    aclrtSetDevice(0);
   }
   void TearDown() override {
     Test::TearDown();

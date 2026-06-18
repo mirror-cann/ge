@@ -11,7 +11,7 @@
 #ifndef RESOURCE_DEF_H__
 #define RESOURCE_DEF_H__
 
-#include "runtime/rt.h"
+#include "rt_external.h"
 
 namespace fe {
 /**

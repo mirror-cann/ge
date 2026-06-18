@@ -18,7 +18,7 @@
 #include "framework/common/ge_types.h"
 #include "framework/runtime/dump/model_dump_manager.h"
 #include "common/opskernel/ops_kernel_info_types.h"
-#include "runtime/base.h"
+#include "rt_external_base.h"
 #include "proto/op_mapping.pb.h"
 
 namespace ge {

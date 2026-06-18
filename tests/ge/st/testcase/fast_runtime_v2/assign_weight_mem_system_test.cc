@@ -15,7 +15,7 @@
 #include "faker/ge_model_builder.h"
 #include "faker/model_data_faker.h"
 #include "faker/fake_value.h"
-#include "runtime/rt.h"
+#include "acl/acl_rt.h"
 #include "exe_graph/lowering/value_holder.h"
 #include "register/op_tiling_info.h"
 #include "graph/debug/ge_attr_define.h"
@@ -51,7 +51,7 @@ TEST_F(AssignWeightMemST, BigMemSinkWeightSUCCESS) {
   // malloc device mem
   size_t weight_size = 10U; //require 8
   void *weight_mem = nullptr;
-  auto rt_ret = rtMalloc(&weight_mem, weight_size, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  auto rt_ret = aclrtMalloc(&weight_mem, weight_size, ACL_MEM_MALLOC_NORMAL_ONLY);
   ASSERT_EQ(rt_ret, RT_ERROR_NONE);
   ge::ModelData model_data = model_data_holder.Get();
   
@@ -76,7 +76,7 @@ TEST_F(AssignWeightMemST, BigMemSinkWeightSUCCESS) {
                                     outputs.size());
   executor->UnLoad();
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
-  rt_ret = rtFree(weight_mem);
+  rt_ret = aclrtFree(weight_mem);
   ASSERT_EQ(rt_ret, RT_ERROR_NONE);
 }
 
@@ -102,7 +102,7 @@ TEST_F(AssignWeightMemST, BigMemSinkWeightSUCCESS_bin_Reuse) {
   // malloc device mem
   size_t weight_size = 10U;  // require 8
   void *weight_mem = nullptr;
-  auto rt_ret = rtMalloc(&weight_mem, weight_size, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  auto rt_ret = aclrtMalloc(&weight_mem, weight_size, ACL_MEM_MALLOC_NORMAL_ONLY);
   ASSERT_EQ(rt_ret, RT_ERROR_NONE);
   ge::ModelData model_data = model_data_holder.Get();
 
@@ -127,7 +127,7 @@ TEST_F(AssignWeightMemST, BigMemSinkWeightSUCCESS_bin_Reuse) {
   ret = executor->ExecuteSync(inputs.GetTensorList(), inputs.size(), outputs.GetTensorList(), outputs.size());
   executor->UnLoad();
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
-  rt_ret = rtFree(weight_mem);
+  rt_ret = aclrtFree(weight_mem);
   ASSERT_EQ(rt_ret, RT_ERROR_NONE);
 }
 
@@ -140,7 +140,7 @@ TEST_F(AssignWeightMemST, SmallMemSinkWeight_FreeBeforeRun_StillRunOK) {
   // malloc device mem
   size_t weight_size = 4U; //require 8
   void *weight_mem = nullptr;
-  auto rt_ret = rtMalloc(&weight_mem, weight_size, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  auto rt_ret = aclrtMalloc(&weight_mem, weight_size, ACL_MEM_MALLOC_NORMAL_ONLY);
   ASSERT_EQ(rt_ret, RT_ERROR_NONE);
   ge::ModelData model_data = model_data_holder.Get();
 
@@ -149,7 +149,7 @@ TEST_F(AssignWeightMemST, SmallMemSinkWeight_FreeBeforeRun_StillRunOK) {
   auto executor = LoadExecutorFromModelData(model_data, ret);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   // weight_mem is small than requred(8) by model, will alloc in framework, so free meme will still run ok
-  rt_ret = rtFree(weight_mem);
+  rt_ret = aclrtFree(weight_mem);
   ASSERT_EQ(rt_ret, RT_ERROR_NONE);
 
   uint64_t session_id = 100U;

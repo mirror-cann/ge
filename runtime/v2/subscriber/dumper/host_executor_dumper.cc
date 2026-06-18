@@ -137,7 +137,7 @@ ge::Status HostExecutorDumper::DoHostDataDump(NodeDumpUnit &dump_unit, const ge:
   }
 
   void *step_id = nullptr;
-  GE_ASSERT_RT_OK(ge::AclrtMalloc(&step_id, sizeof(uint64_t), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+  GE_ASSERT_ACL_OK(ge::AclrtMalloc(&step_id, sizeof(uint64_t), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
   const auto callback = [&dump_unit, &step_id]() {
     GE_CHK_RT(aclrtFree(step_id));
     dump_unit.Clear();

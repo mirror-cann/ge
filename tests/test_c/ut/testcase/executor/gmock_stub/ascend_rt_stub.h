@@ -14,10 +14,11 @@
 #include <dlfcn.h>
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
-#include "runtime/stream.h"
-#include "runtime/rt_model.h"
-#include "runtime/mem.h"
-#include "runtime/dev.h"
+#include "acl/acl_rt.h"
+#include "rt_external_stream.h"
+#include "rt_external_model.h"
+#include "rt_external_mem.h"
+#include "rt_external_device.h"
 
 #define MALLOC_SIZE_INVALID 666
 #define MALLOC_SIZE_ABNORMAL 24
@@ -30,7 +31,6 @@ public:
     return mock;
   }
   rtError_t rtGetDevice(int32_t *devId);
-  rtError_t rtFree(void *devPtr) ;
   rtError_t rtDumpDeInit();
   MOCK_METHOD0(rtDumpInit, rtError_t());
   MOCK_METHOD4(rtMalloc, rtError_t(void **devPtr, uint64_t size, rtMemType_t type, const uint16_t moduleId));
@@ -48,8 +48,12 @@ public:
   MOCK_METHOD0(dlerror, char *());
   MOCK_METHOD2(access, int(const char *name, int type));
 };
+rtError_t rtMalloc(void **devPtr, uint64_t size, rtMemType_t type, const uint16_t moduleId);
 rtError_t rtMalloc_Normal_Invoke(void **devPtr, uint64_t size, rtMemType_t type, const uint16_t moduleId);
 rtError_t rtMalloc_Abnormal_Invoke(void **devPtr, uint64_t size, rtMemType_t type, const uint16_t moduleId);
+aclError aclrtMalloc(void **devPtr, size_t size, aclrtMemMallocPolicy policy);
+aclError aclrtFree(void *devPtr);
+aclError aclrtGetDevice(int32_t *deviceId);
 rtError_t rtMemcpy_Normal_Invoke(void *dst, uint64_t destMax, const void* src, uint64_t cnt, rtMemcpyKind_t kind);
 rtError_t rtMemcpy_Abnormal_Invoke(void *dst, uint64_t destMax, const void* src, uint64_t cnt, rtMemcpyKind_t kind);
 

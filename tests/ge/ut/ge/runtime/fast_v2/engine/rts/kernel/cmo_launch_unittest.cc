@@ -15,7 +15,7 @@
 #include "register/kernel_registry.h"
 #include "faker/fake_value.h"
 #include "task.pb.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "common/runtime_api_wrapper.h"
 
 namespace gert {

@@ -14,7 +14,7 @@
 
 #include "common/ge_inner_error_codes.h"
 #include "common/util.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "omg/omg_inner_types.h"
 
 #include "macro_utils/dt_public_scope.h"

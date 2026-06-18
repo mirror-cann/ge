@@ -161,7 +161,7 @@ Status ArgsFormatUtils::SinkTilingContext(const NodePtr &node, DavinciModel &dav
   }
 
   // H2D
-  GE_CHK_RT_RET(aclrtMemcpy(device_addr, total_plain_size, host_pointer.get(),
+  GE_CHK_ACL_RET(aclrtMemcpy(device_addr, total_plain_size, host_pointer.get(),
       total_plain_size, ACL_MEMCPY_HOST_TO_DEVICE));
 
   std::shared_ptr<TilingContextAddr> tiling_context_addr = MakeShared<TilingContextAddr>();

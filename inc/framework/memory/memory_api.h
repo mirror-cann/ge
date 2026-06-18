@@ -13,7 +13,7 @@
 
 #include "ge/ge_api_error_codes.h"
 #include "graph/compute_graph.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 
 namespace ge {
 enum MemStorageType {

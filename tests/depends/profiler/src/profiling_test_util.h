@@ -17,7 +17,8 @@
 #include <map>
 #include <vector>
 #include <cstring>
-#include "runtime/base.h"
+#include "rt_external_base.h"
+#include "profiling/prof_common.h"
 
 namespace ge {
 enum InfoType {

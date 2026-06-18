@@ -18,7 +18,7 @@
 #include "exe_graph/runtime/storage_shape.h"
 #include "exe_graph/runtime/tensor.h"
 #include "register/kernel_registry.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "exe_graph/runtime/gert_tensor_data.h"
 #include "graph_metadef/common/ge_common/util.h"
 

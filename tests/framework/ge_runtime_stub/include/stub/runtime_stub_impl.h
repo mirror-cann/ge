@@ -178,10 +178,9 @@ class RuntimeStubImpl : public ge::RuntimeStub {
   rtError_t rtMemcpyAsyncPtr(void *memcpy_addr_info, uint64_t dst_max, uint64_t count, rtMemcpyKind_t kind,
                              rtStream_t stream, uint32_t qos_cfg) override;
 
-  rtError_t rtMemGetInfoEx(rtMemInfoType_t memInfoType, size_t *free, size_t *total) override;
+  rtError_t aclrtGetMemInfo(aclrtMemAttr memInfoType, size_t *free, size_t *total) override;
 
   rtError_t rtMalloc(void **dev_ptr, uint64_t size, rtMemType_t type, uint16_t moduleId) override;
-  rtError_t rtFree(void *dev_ptr) override;
   rtError_t rtLaunchSqeUpdateTask(uint32_t streamId, uint32_t taskId, void *src, uint64_t cnt, rtStream_t stm) override;
   rtError_t rtModelCreate(rtModel_t *model, uint32_t flag) override;
   rtError_t rtModelGetTaskId(void *handle, uint32_t *task_id, uint32_t *stream_id) override;
@@ -190,10 +189,8 @@ class RuntimeStubImpl : public ge::RuntimeStub {
   rtError_t rtModelExecute(rtModel_t model, rtStream_t stream, uint32_t flag) override;
   rtError_t rtEventRecord(rtEvent_t event, rtStream_t stream) override;
   rtError_t rtStreamWaitEvent(rtEvent_t event, rtStream_t stream) override;
-  rtError_t rtStreamCreate(rtStream_t *stream, int32_t priority) override;
   rtError_t rtStreamCreateWithFlags(rtStream_t *stream, int32_t priority, uint32_t flags) override;
   rtError_t rtStreamDestroyForce(rtStream_t stream) override;
-  rtError_t rtStreamDestroy(rtStream_t stream) override;
   rtError_t rtEventCreateWithFlag(rtEvent_t *event, uint32_t flag) override;
   rtError_t rtStreamTaskClean(rtStream_t stm) override;
  public:

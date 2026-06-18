@@ -13,7 +13,7 @@
 #include <cstdint>
 #include <vector>
 #include <string>
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 
 namespace ge {
 constexpr size_t kHugePagesize = 2U * 1024U * 1024U;

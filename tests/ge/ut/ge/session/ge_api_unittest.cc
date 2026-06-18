@@ -1619,15 +1619,9 @@ TEST_F(UtestGeApi, Session_export_compile_stat_invalid) {
 }
 
 namespace {
-  class AbnormalRtsStub : public RuntimeStub {
-  public:
-    rtError_t rtCtxCreate(rtContext_t *ctx, uint32_t flags, int32_t device) override {
-      return 1; // failed
-    }
-  };
   class AbnormalAclStub : public AclRuntimeStub {
   public:
-    rtError_t aclrtCreateContext(aclrtContext*context, int32_t deviceId) override {
+    aclError aclrtCreateContext(aclrtContext*context, int32_t deviceId) override {
       return 1; // failed
     }
   };

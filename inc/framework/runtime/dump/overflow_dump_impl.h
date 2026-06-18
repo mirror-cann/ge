@@ -13,7 +13,7 @@
 
 #include <cstdint>
 #include "framework/common/ge_types.h"
-#include "runtime/rt.h"
+#include "rt_external.h"
 
 namespace ge {
 namespace dump {

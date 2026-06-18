@@ -3927,7 +3927,7 @@ TEST_F(DavinciModelTest, davinci_model_load_check_and_release_event_resource_fai
   (void)BuildGraphNode(graph_id_2, graph_node_2, flow_root_model_2, ge_model_2);
 
   uint32_t event_num_dev_avail;
-  (void)rtGetAvailEventNum(&event_num_dev_avail);
+  (void)aclrtGetEventAvailNum(&event_num_dev_avail);
   EXPECT_TRUE(AttrUtils::SetInt(ge_model_2, ATTR_MODEL_EVENT_NUM, event_num_dev_avail + 33));
   EXPECT_EQ(model_executor.LoadGraph(flow_root_model_2, graph_node_2), FAILED);
   EXPECT_EQ(model_mgr.model_map_.size(), 0);

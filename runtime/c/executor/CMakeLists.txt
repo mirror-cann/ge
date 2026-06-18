@@ -33,6 +33,7 @@ target_include_directories(ge_executor_c_static PRIVATE
     ${AIR_CODE_DIR}/inc/framework/executor_c/c_base
     ${AIR_CODE_DIR}/inc/framework/executor_c/c_mmpa
     ${AIR_CODE_DIR}/runtime/c/executor
+    ${TOP_DIR}/runtime/include/external
     $<$<STREQUAL:${TARGET_SYSTEM_NAME},LiteOS>:${AIR_CODE_DIR}/runtime/c/dbg/profiling>
     $<$<STREQUAL:${TARGET_SYSTEM_NAME},LiteOS>:${AIR_CODE_DIR}/runtime/c/dbg/dump>
     $<$<STREQUAL:${TARGET_SYSTEM_NAME},LiteOS>:${AIR_CODE_DIR}/runtime/c/dbg/>

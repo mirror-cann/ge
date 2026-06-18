@@ -222,7 +222,7 @@ Status HybridModelRtV1Executor::Execute(ExecuteArgs &args) {
   // In heterogeneous executor, gloabl_step is updated by markStep task
   if (!ExecutionRuntimeUtils::IsInHeterogeneousExecutor()) {
     if (context_.global_step != nullptr) {
-      GE_CHK_RT_RET(aclrtMemcpyAsync(context_.global_step, sizeof(uint64_t), &context_.iteration,
+      GE_CHK_ACL_RET(aclrtMemcpyAsync(context_.global_step, sizeof(uint64_t), &context_.iteration,
           sizeof(uint64_t), ACL_MEMCPY_HOST_TO_BUF_TO_DEVICE, context_.stream));
     }
   }
@@ -286,8 +286,8 @@ Status HybridModelRtV1Executor::Cleanup() {
 }
 
 Status HybridModelRtV1Executor::InitExecutionContext(CallbackManager *const callback_manager) {
-  GE_CHK_RT_RET(aclrtGetCurrentContext(&context_.rt_context));
-  GE_CHK_RT_RET(aclrtSetCurrentContext(context_.rt_context));
+  GE_CHK_ACL_RET(aclrtGetCurrentContext(&context_.rt_context));
+  GE_CHK_ACL_RET(aclrtSetCurrentContext(context_.rt_context));
 
   context_.is_host_cpu = ::ge::GetContext().GetHostExecFlag();
   context_.global_step = model_->GetGlobalStep();

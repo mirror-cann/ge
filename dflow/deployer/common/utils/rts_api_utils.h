@@ -11,7 +11,7 @@
 #ifndef AIR_RUNTIME_COMMON_UTILS_RTS_API_UTILS_H_
 #define AIR_RUNTIME_COMMON_UTILS_RTS_API_UTILS_H_
 #include "framework/common/debug/log.h"
-#include "runtime/rt.h"
+#include "rt_external.h"
 #include "acl/acl.h"
 #include "common/df_chk.h"
 

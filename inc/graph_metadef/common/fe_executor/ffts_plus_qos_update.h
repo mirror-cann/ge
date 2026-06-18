@@ -11,7 +11,7 @@
 #ifndef FFTS_PLUS_QOS_UPDATE_H_
 #define FFTS_PLUS_QOS_UPDATE_H_
 
-#include "runtime/rt_ffts_plus_define.h"
+#include "rt_external_ffts_define.h"
 #include "graph/utils/node_utils.h"
 namespace ffts {
 

@@ -12,6 +12,7 @@
 #define GE_EXECUTOR_C_MODEL_MANAGER_H_
 #include "framework/executor_c/ge_executor_types.h"
 #include "framework/executor_c/types.h"
+#include "acl/acl_rt.h"
 #include "ref_obj.h"
 #ifdef __cplusplus
 extern "C" {
@@ -34,7 +35,7 @@ typedef struct {
   uint64_t stepId;
   void *modelDbgHandle;
   ModelFifoInfo fifoInfo;
-  size_t memType;
+  aclrtMemMallocPolicy memType;
 } GeModelDesc;
 
 typedef struct {

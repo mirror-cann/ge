@@ -22,6 +22,8 @@
 #include "framework/runtime/dump/profiling_config.h"
 #include "graph_metadef/common/opskernel/ops_kernel_info_types.h"
 #include "mmpa/mmpa_api.h"
+#include "aprof_pub.h"
+#include "profiling/prof_common.h"
 
 namespace ge {
 namespace dump {

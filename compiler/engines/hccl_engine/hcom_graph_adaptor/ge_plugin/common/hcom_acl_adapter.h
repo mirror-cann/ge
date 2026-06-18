@@ -11,8 +11,9 @@
 #ifndef HCOM_ACL_ADAPTER_H
 #define HCOM_ACL_ADAPTER_H
 
-#include "runtime/rt.h"
+#include "rt_external.h"
 #include "acl/acl_rt.h"
+#include "common/ge_rts_decl.h"
 #include "hcom_log.h"
 
 enum class HcclRtMemcpyKind {
@@ -58,8 +59,5 @@ HcclResult hrtEventQuery(aclrtEvent event);
 HcclResult hrtEventDestroy(aclrtEvent event);
 
 HcclResult hrtStreamCreateWithFlags(aclrtStream *stream, int32_t priority, uint32_t flags);
-
-extern rtError_t rtMemcpyAsync(void *dst, uint64_t dest_max, const void *src, uint64_t count, rtMemcpyKind_t kind,
-                               rtStream_t stream);
 
 #endif

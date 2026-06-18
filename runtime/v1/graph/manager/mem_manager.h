@@ -25,7 +25,7 @@
 #include "graph/manager/host_mem_allocator.h"
 #include "graph/manager/session_scope_mem_allocator.h"
 #include "graph/node.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "graph/manager/memory_manager.h"
 #include "runtime/mem_allocator.h"
 #include "base/err_msg.h"

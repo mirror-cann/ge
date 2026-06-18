@@ -21,7 +21,8 @@
 #include "graph/load/model_manager/ts_mem_mall.h"
 #include "graph/load/model_manager/task_info/task_info_factory.h"
 #include "proto/task.pb.h"
-#include "runtime/rt_dfx.h"
+#include "common/ge_rts_decl.h"
+#include "rt_external_stream.h"
 #include "acl/acl_rt.h"
 
 namespace ge {

@@ -22,7 +22,7 @@
 #include "session/inner_session.h"
 #include "jit_execution/user_graphs_manager.h"
 #include "session/user_hybrid_graph_manager.h"
-#include "runtime/base.h"
+#include "rt_external_base.h"
 #include "acl/acl_rt.h"
 
 namespace ge {

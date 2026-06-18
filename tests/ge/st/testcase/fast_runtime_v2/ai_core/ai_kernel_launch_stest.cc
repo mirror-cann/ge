@@ -19,7 +19,7 @@
 #include "kernel/memory/single_stream_l2_allocator.h"
 #include "faker/kernel_run_context_facker.h"
 #include "register/kernel_registry.h"
-#include "runtime/rt_ffts_plus.h"
+#include "rt_external_ffts.h"
 #include "graph/op_kernel_bin.h"
 #include "graph_builder/bg_tiling.h"
 #include "exe_graph/runtime/gert_tensor_data.h"

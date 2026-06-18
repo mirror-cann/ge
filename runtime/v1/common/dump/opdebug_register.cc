@@ -85,7 +85,7 @@ Status OpdebugRegister::CreateOpDebugTaskByStream(aclrtStream const stream, cons
   auto &op_debug_task = op_debug_tasks_[stream];
   op_debug_task = MakeUnique<OpDebugTask>();
   GE_CHECK_NOTNULL(op_debug_task);
-  GE_CHK_RT_RET(ge::AclrtMallocForTaskScheduler(&op_debug_task->op_debug_addr_, kOpDebugMemorySize, ACL_MEM_MALLOC_HUGE_FIRST, GE_MODULE_NAME_U16));
+  GE_CHK_ACL_RET(ge::AclrtMallocForTaskScheduler(&op_debug_task->op_debug_addr_, kOpDebugMemorySize, ACL_MEM_MALLOC_HUGE_FIRST, GE_MODULE_NAME_U16));
   GE_CHK_RT_RET(rtDebugRegisterForStream(stream, op_debug_mode, op_debug_task->op_debug_addr_,
                                          &op_debug_task->debug_stream_id_, &op_debug_task->debug_task_id_));
   return SUCCESS;
@@ -93,8 +93,8 @@ Status OpdebugRegister::CreateOpDebugTaskByStream(aclrtStream const stream, cons
 
 Status OpdebugRegister::MallocP2PDebugMem(const void * const op_debug_addr) {
   const uint64_t debug_addrs_tmp = PtrToValue(op_debug_addr);
-  GE_CHK_RT_RET(aclrtMalloc(&p2p_debug_addr_, kDebugP2pSize, ACL_MEM_TYPE_HIGH_BAND_WIDTH));
-  GE_CHK_RT_RET(aclrtMemcpy(p2p_debug_addr_, sizeof(uint64_t), &debug_addrs_tmp, sizeof(uint64_t),
+  GE_CHK_ACL_RET(ge::AclrtMalloc(&p2p_debug_addr_, kDebugP2pSize, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+  GE_CHK_ACL_RET(aclrtMemcpy(p2p_debug_addr_, sizeof(uint64_t), &debug_addrs_tmp, sizeof(uint64_t),
       ACL_MEMCPY_HOST_TO_DEVICE));
   return SUCCESS;
 }

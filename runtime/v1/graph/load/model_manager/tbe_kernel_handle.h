@@ -17,7 +17,7 @@
 
 #include "graph/op_desc.h"
 #include "common/tbe_handle_store/tbe_kernel_store.h"
-#include "runtime/rt.h"
+#include "common/ge_rts_decl.h"
 
 namespace ge {
 bool IsTbeTask(const OpDescPtr &op_desc);

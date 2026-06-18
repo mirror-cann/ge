@@ -12,7 +12,7 @@
 #define GE_EXECUTOR_C_DBG_DUMP_H_
 #include "framework/executor_c/ge_executor_types.h"
 #include "ge/ge_error_codes.h"
-#include "runtime/rt_model.h"
+#include "rt_external_model.h"
 #ifdef __cplusplus
 extern "C" {
 #endif

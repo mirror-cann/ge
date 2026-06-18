@@ -15,7 +15,7 @@
 #include "core/executor_error_code.h"
 #include "runtime/model_v2_executor.h"
 #include "graph/def_types.h"
-#include "runtime/dev.h"
+#include "rt_external_device.h"
 #include "register/kernel_registry.h"
 #include "framework/runtime/subscriber/global_tracer.h"
 

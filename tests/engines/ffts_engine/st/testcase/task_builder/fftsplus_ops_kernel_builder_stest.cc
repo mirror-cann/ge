@@ -13,6 +13,7 @@
 #include <iostream>
 #include <algorithm>
 #include <list>
+#include "framework/common/runtime_model_ge.h"
 #include "ffts_llt_utils.h"
 #define private public
 #include "base/registry/op_impl_space_registry_v2.h"
@@ -34,12 +35,10 @@
 #include "graph/anchor.h"
 #include "graph/compute_graph.h"
 #include "graph/debug/ge_attr_define.h"
-#include "runtime/context.h"
+#include "common/ge_rts_decl.h"
 #include "register/op_ext_gentask_registry.h"
-#include "runtime/stream.h"
-#include "runtime/rt_model.h"
-#include "runtime/kernel.h"
-#include "runtime/mem.h"
+#include "rt_external_stream.h"
+#include "rt_external_model.h"
 #include "../test_utils.h"
 
 using namespace std;
@@ -2751,7 +2750,7 @@ TEST_F(FFTSPlusOpsKernelBuilderSTest, tiling_sink_gentask_for_ffts)
   uint64_t gen_ctx_num = ffts_plus_task_def->ffts_plus_ctx_size();
   EXPECT_EQ(gen_ctx_num, 2);
 
-  task_def.set_type(RT_MODEL_TASK_FFTS_PLUS_TASK);
+  task_def.set_type(ACL_RT_MODEL_TASK_FFTS_PLUS_TASK);
   domi::KernelDefWithHandle *kernel_def = task_def.mutable_kernel_with_handle();
   kernel_def->set_args_size(66);
   string args(66, '1');

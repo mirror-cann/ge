@@ -69,7 +69,7 @@ TEST_F(ZeroCopyST, ZeroCopy_Enabled_WhenOuptutGiven) {
   auto inputs = FakeTensors({8 * 3 * 224 * 224}, 2);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   runtime_stub.Clear();
@@ -99,7 +99,7 @@ TEST_F(ZeroCopyST, ZeroCopy_Enabled_WhenOuptutGiven) {
   ASSERT_TRUE(runtime_stub.GetRtsRuntimeStub().GetRtMemcpyRecords().empty());
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 /**
@@ -147,7 +147,7 @@ TEST_F(ZeroCopyST, ZeroCopy_If) {
   auto inputs = FakeTensors({8 * 3 * 224 * 224}, 2);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   runtime_stub.Clear();
@@ -177,7 +177,7 @@ TEST_F(ZeroCopyST, ZeroCopy_If) {
   ASSERT_TRUE(runtime_stub.GetRtsRuntimeStub().GetRtMemcpyRecords().empty());
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 /**
@@ -225,7 +225,7 @@ TEST_F(ZeroCopyST, ZeroCopy_Disable_WhenOuptutGivenButPlacementNotMatch) {
   auto inputs = FakeTensors({8 * 3 * 224 * 224}, 2);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   runtime_stub.Clear();
@@ -255,7 +255,7 @@ TEST_F(ZeroCopyST, ZeroCopy_Disable_WhenOuptutGivenButPlacementNotMatch) {
   ASSERT_FALSE(runtime_stub.GetAclRuntimeStub().GetRtMemcpyRecords().empty());
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 /**
@@ -300,7 +300,7 @@ TEST_F(ZeroCopyST, ZeroCopy_Disable_WhenOuptutNotGiven) {
   auto inputs = FakeTensors({8 * 3 * 224 * 224}, 2);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   runtime_stub.Clear();
@@ -323,7 +323,7 @@ TEST_F(ZeroCopyST, ZeroCopy_Disable_WhenOuptutNotGiven) {
   ASSERT_EQ(runtime_stub.GetRtsRuntimeStub().GetRtMemcpyRecords().size(), 0U);
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 /**
  * 用例描述：用户提供输出，但是模型输出不需要申请内存，模型输出拷贝到用户提供的输出地址
@@ -404,7 +404,7 @@ TEST_F(ZeroCopyST, AlwaysZeroCopy_Enabled_WhenOuptutGiven) {
   auto inputs = FakeTensors({8 * 3 * 224 * 224}, 2);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   runtime_stub.Clear();
@@ -434,7 +434,7 @@ TEST_F(ZeroCopyST, AlwaysZeroCopy_Enabled_WhenOuptutGiven) {
   ASSERT_TRUE(runtime_stub.GetRtsRuntimeStub().GetRtMemcpyRecords().empty());
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 /**
@@ -482,7 +482,7 @@ TEST_F(ZeroCopyST, AlwaysZeroCopy_Enabled_Unknown_Aicpu_WhenOuptutGiven) {
   auto inputs = FakeTensors({8 * 3 * 224 * 224}, 2);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.data(), outputs.size()),
@@ -492,7 +492,7 @@ TEST_F(ZeroCopyST, AlwaysZeroCopy_Enabled_Unknown_Aicpu_WhenOuptutGiven) {
             ge::GRAPH_SUCCESS);
   EXPECT_TRUE(out_addr == output.GetTensor()->GetAddr());
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 /**
@@ -543,7 +543,7 @@ TEST_F(ZeroCopyST, AlwaysZeroCopy_Success_WhenAllocNodeNotFound) {
   std::vector<Tensor *> inputs = {input.GetTensor()};
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   runtime_stub.Clear();
@@ -569,7 +569,7 @@ TEST_F(ZeroCopyST, AlwaysZeroCopy_Success_WhenAllocNodeNotFound) {
   ASSERT_EQ(runtime_stub.GetRtsRuntimeStub().GetRtMemcpyRecords().size(), 0U);
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 /**
@@ -613,7 +613,7 @@ TEST_F(ZeroCopyST, AlwaysZeroCopy_Failed_WhenOuptutNotGiven) {
   auto inputs = FakeTensors({8 * 3 * 224 * 224}, 2);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   runtime_stub.Clear();
@@ -624,7 +624,7 @@ TEST_F(ZeroCopyST, AlwaysZeroCopy_Failed_WhenOuptutNotGiven) {
             ge::PARAM_INVALID);
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 /**
  * 用例描述：always-zero-copy功能使能后，如果输出Tensor的长度不足，执行失败
@@ -670,7 +670,7 @@ TEST_F(ZeroCopyST, AlwaysZeroCopy_Failed_WhenOuptutSizeNotEnough) {
   auto inputs = FakeTensors({1, 2, 3, 4}, 2);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   runtime_stub.Clear();
@@ -681,7 +681,7 @@ TEST_F(ZeroCopyST, AlwaysZeroCopy_Failed_WhenOuptutSizeNotEnough) {
             ge::GRAPH_SUCCESS);
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 #endif
 }  // namespace gert

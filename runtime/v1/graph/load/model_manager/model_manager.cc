@@ -518,10 +518,10 @@ Status ModelManager::KernelLaunchEx(const aicpu::FWKAdapter::FWKOperateType op_t
 
       const uint64_t kernel_size = sizeof(uint64_t) * (v_aicpu_kernel.size());
       void *aicpu_kernel_addr = nullptr;
-      GE_CHK_RT_RET(ge::AclrtMalloc(&aicpu_kernel_addr, kernel_size, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+      GE_CHK_ACL_RET(ge::AclrtMalloc(&aicpu_kernel_addr, kernel_size, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
       allocated_mem.emplace_back(aicpu_kernel_addr);
 
-      GE_CHK_RT_RET(aclrtMemcpy(aicpu_kernel_addr, kernel_size, v_aicpu_kernel.data(), kernel_size,
+      GE_CHK_ACL_RET(aclrtMemcpy(aicpu_kernel_addr, kernel_size, v_aicpu_kernel.data(), kernel_size,
           ACL_MEMCPY_HOST_TO_DEVICE));
       param_base.fwkKernelBase.fwk_kernel.kernelID = PtrToValue(aicpu_kernel_addr);
       // In the scene of loading once and running many times, the kernel needs to be destroyed many times,
@@ -531,11 +531,11 @@ Status ModelManager::KernelLaunchEx(const aicpu::FWKAdapter::FWKOperateType op_t
 
   void *device_base = nullptr;
   constexpr size_t op_kernel_size = sizeof(STR_FWK_OP_KERNEL);
-  GE_CHK_RT_RET(ge::AclrtMalloc(&device_base, op_kernel_size, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+  GE_CHK_ACL_RET(ge::AclrtMalloc(&device_base, op_kernel_size, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
   allocated_mem.emplace_back(device_base);
-  GE_CHK_RT_RET(aclrtMemcpy(device_base, op_kernel_size, &param_base, op_kernel_size, ACL_MEMCPY_HOST_TO_DEVICE));
+  GE_CHK_ACL_RET(aclrtMemcpy(device_base, op_kernel_size, &param_base, op_kernel_size, ACL_MEMCPY_HOST_TO_DEVICE));
 
-  GE_CHK_RT_RET(aclrtCreateStream(&stream));
+  GE_CHK_ACL_RET(aclrtCreateStream(&stream));
   KernelRegisterInfo register_info;
   GE_ASSERT_SUCCESS(KernelRegisterInfoBuilder::ConstructAicpuRegisterInfo("TfSessionTask",
       "libtf_kernels.so", "TFOperateAPI", "TFKernel", register_info));
@@ -552,7 +552,7 @@ Status ModelManager::KernelLaunchEx(const aicpu::FWKAdapter::FWKOperateType op_t
   launch_kernel_param.block_dim = 1U;
   launch_kernel_param.stream = stream;
   GE_ASSERT_SUCCESS(KernelHandleUtils::LaunchKernel(func_handle, launch_kernel_param));
-  GE_CHK_RT_RET(aclrtSynchronizeStream(stream));
+  GE_CHK_ACL_RET(aclrtSynchronizeStream(stream));
   return SUCCESS;
 }
 
@@ -562,7 +562,7 @@ Status ModelManager::DestroyAicpuSessionForDevice(const uint64_t session_id,
   GELOGI("DestroyAicpuSession device id:%u", device_id);
   if (need_set_device) {
     GELOGI("Set device %u.", device_id);
-    GE_CHK_RT_RET(aclrtSetDevice(static_cast<int32_t>(device_id)));
+    GE_CHK_ACL_RET(aclrtSetDevice(static_cast<int32_t>(device_id)));
   }
 
   const auto ret = KernelLaunchEx(aicpu::FWKAdapter::FWKOperateType::FWK_ADPT_SESSION_DESTROY, session_id, 0U, 0U);
@@ -572,7 +572,7 @@ Status ModelManager::DestroyAicpuSessionForDevice(const uint64_t session_id,
 
   if (need_set_device) {
     GELOGI("Reset device %u.", device_id);
-    GE_CHK_RT_RET(aclrtResetDevice(static_cast<int32_t>(device_id)));
+    GE_CHK_ACL_RET(aclrtResetDevice(static_cast<int32_t>(device_id)));
   }
   return ret;
 }
@@ -955,7 +955,7 @@ Status ModelManager::SyncExecuteModel(const uint32_t model_id, const std::vector
   const auto &model = GetModel(model_id);
   GE_CHECK_NOTNULL(model);
   const auto device_id = model->GetDeviceId();
-  GE_CHK_RT_RET(aclrtSetDevice(static_cast<int32_t>(device_id)));
+  GE_CHK_ACL_RET(aclrtSetDevice(static_cast<int32_t>(device_id)));
   GE_MAKE_GUARD(reset_device, [device_id]() {
     GE_CHK_RT(aclrtResetDevice(static_cast<int32_t>(device_id)));
   });
@@ -1489,7 +1489,7 @@ Status ModelManager::LoadModelOffline(const ModelData &model, const ModelParam &
   GE_CHK_STATUS_RET(FileConstantUtils::RefreshRelativePath(model_helper.GetGeRootModel()->GetRootGraph()),
                     "Failed to refresh relative path, model_id:%u.", model_id);
   int32_t device_id = -1;
-  GE_CHK_RT_RET(aclrtGetDevice(&device_id));
+  GE_CHK_ACL_RET(aclrtGetDevice(&device_id));
   (void)MsprofSetDeviceIdByGeModelIdx(model_id, static_cast<uint32_t>(device_id));
   /// In multi-threaded inference,  using the same session_id among multiple threads may cause some threads to fail.
   /// These session_ids come from the same model, so the values of session_id are the same.
@@ -1641,7 +1641,7 @@ Status ModelManager::LoadModelWithQueueParam(uint32_t &model_id,
   GenModelId(model_id);
   davinci_model->SetId(model_id);
   int32_t device_id = -1;
-  GE_CHK_RT_RET(aclrtGetDevice(&device_id));
+  GE_CHK_ACL_RET(aclrtGetDevice(&device_id));
   GELOGD("Get device_id %d success", device_id);
   davinci_model->SetDeviceId(static_cast<uint32_t>(device_id));
   ret = davinci_model->SetQueIds(model_queue_param.input_queues_attrs, model_queue_param.output_queues_attrs);
@@ -1714,7 +1714,7 @@ Status ModelManager::LoadModelWithoutQ(uint32_t &model_id, const GeRootModelPtr 
   davinci_model->SetDumpProperties(dump_properties_);
   davinci_model->SetNeedModelConfig(true);
   int32_t device_id = -1;
-  GE_CHK_RT_RET(aclrtGetDevice(&device_id));
+  GE_CHK_ACL_RET(aclrtGetDevice(&device_id));
   GELOGD("Get device_id %d success", device_id);
   davinci_model->SetDeviceId(static_cast<uint32_t>(device_id));
   GE_CHK_STATUS_RET(davinci_model->InitSpaceRegistry(root_model), "Get space registry failed!");
@@ -1949,7 +1949,7 @@ Status ModelManager::CreateAicpuSession(const uint64_t session_id) {
   const std::lock_guard<std::recursive_mutex> lk(map_mutex_);
   auto &device_ids = sess_id_to_device_ids_[session_id];
   int32_t device_id = 0;
-  GE_CHK_RT_RET(aclrtGetDevice(&device_id));
+  GE_CHK_ACL_RET(aclrtGetDevice(&device_id));
   GELOGI("CreateAicpuSession device id:%d", device_id);
   const auto &it = device_ids.find(static_cast<uint32_t>(device_id));
   // never been created by any model
@@ -1978,7 +1978,7 @@ Status ModelManager::LoadCustAicpuSo(const CustAICPUKernelPtr &aicpu_kernel, con
 
   // get current context
   aclrtContext rt_cur_ctx = nullptr;
-  GE_CHK_RT_RET(aclrtGetCurrentContext(&rt_cur_ctx));
+  GE_CHK_ACL_RET(aclrtGetCurrentContext(&rt_cur_ctx));
 
   // use current context as resource key
   const std::lock_guard<std::mutex> lk(cust_aicpu_mutex_);
@@ -2019,7 +2019,7 @@ Status ModelManager::LaunchKernelCustAicpuSo(const std::string &kernel_name) {
   }
   // get current context
   aclrtContext rt_cur_ctx = nullptr;
-  GE_CHK_RT_RET(aclrtGetCurrentContext(&rt_cur_ctx));
+  GE_CHK_ACL_RET(aclrtGetCurrentContext(&rt_cur_ctx));
 
   const uintptr_t resource_id = static_cast<uintptr_t>(PtrToValue(rt_cur_ctx));
   const auto it = cust_aicpu_so_.find(resource_id);
@@ -2070,9 +2070,9 @@ Status ModelManager::LaunchKernelCustAicpuSo(const std::string &kernel_name) {
     void *d_aicpu_data = nullptr;
     void *d_so_name = nullptr;
 
-    GE_CHK_RT_RET(ge::AclrtMalloc(&d_aicpu_data, aicpu_data_length, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+    GE_CHK_ACL_RET(ge::AclrtMalloc(&d_aicpu_data, aicpu_data_length, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
     allocated_mem.push_back(d_aicpu_data);
-    GE_CHK_RT_RET(ge::AclrtMalloc(&d_so_name, so_name.size(), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+    GE_CHK_ACL_RET(ge::AclrtMalloc(&d_so_name, so_name.size(), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
     allocated_mem.push_back(d_so_name);
     GE_CHK_RT(aclrtMemcpy(d_aicpu_data, aicpu_data_length, aicpu_data, aicpu_data_length, ACL_MEMCPY_HOST_TO_DEVICE));
     GE_CHK_RT(aclrtMemcpy(d_so_name, so_name.size(), so_name.c_str(), so_name.size(), ACL_MEMCPY_HOST_TO_DEVICE));
@@ -2092,7 +2092,7 @@ Status ModelManager::LaunchKernelCustAicpuSo(const std::string &kernel_name) {
 
   void *args = nullptr;
   const size_t args_size = sizeof(CustAicpuSoBuf) * v_cust_so.size();
-  GE_CHK_RT_RET(ge::AclrtMalloc(&args, args_size, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+  GE_CHK_ACL_RET(ge::AclrtMalloc(&args, args_size, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
   allocated_mem.push_back(args);
   GE_CHK_RT(aclrtMemcpy(args, args_size, v_cust_so.data(), args_size, ACL_MEMCPY_HOST_TO_DEVICE));
 
@@ -2117,7 +2117,7 @@ Status ModelManager::LaunchKernelCustAicpuSo(const std::string &kernel_name) {
   GELOGI("Load cust so, soNameAddrOffset %u, kernelNameAddrOffset %u, timeout %u", args_info.soNameAddrOffset,
          args_info.kernelNameAddrOffset, args_info.timeout);
 
-  GE_CHK_RT_RET(aclrtSynchronizeStream(stream));
+  GE_CHK_ACL_RET(aclrtSynchronizeStream(stream));
   GELOGI("Cpu kernel launch task success.");
   return SUCCESS;
 }
@@ -2137,7 +2137,7 @@ Status ModelManager::LaunchCustAicpuSo() {
 Status ModelManager::GetPlatformInfosSoName(std::string &so_name) {
   // get current context
   aclrtContext rt_cur_ctx = nullptr;
-  GE_CHK_RT_RET(aclrtGetCurrentContext(&rt_cur_ctx));
+  GE_CHK_ACL_RET(aclrtGetCurrentContext(&rt_cur_ctx));
   const uintptr_t resource_id = static_cast<uintptr_t>(PtrToValue(rt_cur_ctx));
   std::vector<std::string> v_so_name;
   {
@@ -2283,11 +2283,11 @@ Status ModelManager::LaunchKernelBuiltinAicpuSo(const std::string &kernel_name, 
     const size_t aicpu_data_len = it_so.second.kernel_ptr->GetBinDataSize();
     const std::string &so_name = it_so.first;
     if (kernel_name == kLoadBuiltinSo) {
-      GE_CHK_RT_RET(ge::AclrtMalloc(&d_aicpu_data, aicpu_data_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
-      GE_CHK_RT_RET(aclrtMemcpy(d_aicpu_data, aicpu_data_len, aicpu_data, aicpu_data_len, ACL_MEMCPY_HOST_TO_DEVICE));
+      GE_CHK_ACL_RET(ge::AclrtMalloc(&d_aicpu_data, aicpu_data_len, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+      GE_CHK_ACL_RET(aclrtMemcpy(d_aicpu_data, aicpu_data_len, aicpu_data, aicpu_data_len, ACL_MEMCPY_HOST_TO_DEVICE));
     }
-    GE_CHK_RT_RET(ge::AclrtMalloc(&d_so_name, so_name.size(), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
-    GE_CHK_RT_RET(aclrtMemcpy(d_so_name, so_name.size(), so_name.c_str(), so_name.size(), ACL_MEMCPY_HOST_TO_DEVICE));
+    GE_CHK_ACL_RET(ge::AclrtMalloc(&d_so_name, so_name.size(), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+    GE_CHK_ACL_RET(aclrtMemcpy(d_so_name, so_name.size(), so_name.c_str(), so_name.size(), ACL_MEMCPY_HOST_TO_DEVICE));
 
     LoadSoFromBufArgs aicpu_so_buf;
     ConstructLoadSoFromBufArgs(d_aicpu_data, aicpu_data_len, d_so_name, so_name.length(), aicpu_so_buf);
@@ -2312,7 +2312,7 @@ Status ModelManager::LaunchKernelBuiltinAicpuSo(const std::string &kernel_name, 
            kernel_name.c_str(), PtrToValue(stream));
     GELOGI("Load build in so, soNameAddrOffset %u, kernelNameAddrOffset %u, timeout %u", args_info.soNameAddrOffset,
            args_info.kernelNameAddrOffset, args_info.timeout);
-    GE_CHK_RT_RET(aclrtSynchronizeStream(stream));
+    GE_CHK_ACL_RET(aclrtSynchronizeStream(stream));
   }
   return SUCCESS;
 }
@@ -2440,7 +2440,7 @@ Status ModelManager::SyncExecuteHybridModel(const uint32_t model_id, const std::
   const auto &model = GetHybridModel(model_id);
   GE_ASSERT_NOTNULL(model);
   const auto device_id = model->GetDeviceId();
-  GE_CHK_RT_RET(aclrtSetDevice(static_cast<int32_t>(device_id)));
+  GE_CHK_ACL_RET(aclrtSetDevice(static_cast<int32_t>(device_id)));
   GE_MAKE_GUARD(reset_device, [device_id]() {
     GE_CHK_RT(aclrtResetDevice(static_cast<int32_t>(device_id)));
   });
@@ -2502,24 +2502,24 @@ Status ModelManager::LaunchKernelCheckAicpuOp(const std::vector<std::string> &ai
 
   // malloc sysOpInfoList in SysOpCheckInfo
   void *d_req_op_list = nullptr;
-  GE_CHK_RT_RET(ge::AclrtMalloc(&d_req_op_list, op_nums * sizeof(SysOpInfo), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+  GE_CHK_ACL_RET(ge::AclrtMalloc(&d_req_op_list, op_nums * sizeof(SysOpInfo), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
   allocated_mem.push_back(d_req_op_list);
 
   // malloc sysOpInfoList in SysOpCheckResp
   void *d_res_op_list = nullptr;
-  GE_CHK_RT_RET(ge::AclrtMalloc(&d_res_op_list, op_nums * sizeof(SysOpInfo), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+  GE_CHK_ACL_RET(ge::AclrtMalloc(&d_res_op_list, op_nums * sizeof(SysOpInfo), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
   allocated_mem.push_back(d_res_op_list);
 
   // malloc returnCodeList in SysOpCheckResp
   void *d_ret_code_list = nullptr;
-  GE_CHK_RT_RET(ge::AclrtMalloc(&d_ret_code_list, op_nums * sizeof(ReturnCode), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+  GE_CHK_ACL_RET(ge::AclrtMalloc(&d_ret_code_list, op_nums * sizeof(ReturnCode), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
   allocated_mem.push_back(d_ret_code_list);
 
   for (const auto &op_type : aicpu_optype_list) {
     SysOpInfo op_info;
     // malloc op_type name in SysOpInfo
     void *d_op_type_name = nullptr;
-    GE_CHK_RT_RET(ge::AclrtMalloc(&d_op_type_name, op_type.length(), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+    GE_CHK_ACL_RET(ge::AclrtMalloc(&d_op_type_name, op_type.length(), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
 
     allocated_mem.push_back(d_op_type_name);
     GE_CHK_RT(aclrtMemcpy(d_op_type_name, op_type.length(), op_type.c_str(),
@@ -2534,7 +2534,7 @@ Status ModelManager::LaunchKernelCheckAicpuOp(const std::vector<std::string> &ai
     SysOpInfo op_info;
     // malloc op_type name in SysOpInfo
     void *d_op_type_name = nullptr;
-    GE_CHK_RT_RET(ge::AclrtMalloc(&d_op_type_name, op_type.length(), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+    GE_CHK_ACL_RET(ge::AclrtMalloc(&d_op_type_name, op_type.length(), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
 
     allocated_mem.push_back(d_op_type_name);
     GE_CHK_RT(aclrtMemcpy(d_op_type_name, op_type.size(), op_type.c_str(),
@@ -2569,7 +2569,7 @@ Status ModelManager::LaunchKernelCheckAicpuOp(const std::vector<std::string> &ai
   GE_CHK_BOOL_RET_STATUS(ret == EOK, FAILED, "[Memcpy] Call memcpy failed from src op_check_info_res, ret=%d", ret);
 
   aclrtStream stream = nullptr;
-  GE_CHK_RT_RET(aclrtCreateStream(&stream));
+  GE_CHK_ACL_RET(aclrtCreateStream(&stream));
   GE_MAKE_GUARD(stream_guard, [&stream]() {
     GE_CHK_RT(aclrtDestroyStream(stream));
   });
@@ -2580,7 +2580,7 @@ Status ModelManager::LaunchKernelCheckAicpuOp(const std::vector<std::string> &ai
   GE_CHK_RT(rtCpuKernelLaunchWithFlag(nullptr,
       kernel_name.c_str(), 1U, &args_info, nullptr, stream, RT_KERNEL_DEFAULT));
 
-  GE_CHK_RT_RET(aclrtSynchronizeStream(stream));
+  GE_CHK_ACL_RET(aclrtSynchronizeStream(stream));
 
   // Check the response
   const void *const d_op_check_info_res = ValueToPtr(PtrToValue(args.get()) + op_check_info_req.offSetLen);
@@ -2795,7 +2795,7 @@ Status ModelManager::UnloadTaskForDavinciModel(const DumpProperties &dump_proper
     bool is_set = false;
     if ((aclrtGetDevice(&device_id) != ACL_SUCCESS) || (device_id < 0)) {
       device_id = static_cast<int32_t>(davinci_model->GetDeviceId());
-      GE_CHK_RT_RET(aclrtSetDevice(device_id));
+      GE_CHK_ACL_RET(aclrtSetDevice(device_id));
       is_set = true;
     }
     davinci_model->UnloadDumpInfo();

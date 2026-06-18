@@ -23,7 +23,7 @@
 #include "graph/compute_graph.h"
 #include "graph/manager/graph_manager_utils.h"
 #include "graph/model.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "base/err_mgr.h"
 #include "framework/common/ge_model_inout_types.h"
 #include "acl/acl_rt.h"

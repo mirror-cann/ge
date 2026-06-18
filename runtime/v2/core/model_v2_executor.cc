@@ -29,6 +29,7 @@
 #include "framework/runtime/model_rt_var_manager.h"
 #include "graph/manager/session_id_manager.h"
 #include "acl/acl_rt.h"
+#include "common/ge_rts_decl.h"
 
 namespace gert {
 namespace {

@@ -21,7 +21,7 @@
 #include "graph/utils/op_desc_utils.h"
 #include "graph/utils/tensor_utils.h"
 #include "array_ops.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "faker/fake_value.h"
 #include "common/tbe_handle_store/kernel_store.h"
 

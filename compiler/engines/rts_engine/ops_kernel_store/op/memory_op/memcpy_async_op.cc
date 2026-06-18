@@ -8,6 +8,7 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
+#include "rt_external_ffts_define.h"
 #include "memcpy_async_op.h"
 
 #include "op_factory.h"

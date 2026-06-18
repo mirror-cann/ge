@@ -9,8 +9,8 @@
 #include <vector>
 #include <list>
 #include <deque>
-#include "runtime/dev.h"
-#include "runtime/rt_model.h"
+#include "rt_external_device.h"
+#include "rt_external_model.h"
 
 using namespace std;
 

@@ -74,12 +74,6 @@ class MockMalloc : public RuntimeStub {
     return RT_ERROR_NONE;
   }
 
-  rtError_t rtFree(void *dev_ptr) override {
-    malloc_flag -= 1;
-    delete[](uint8_t *) dev_ptr;
-    return RT_ERROR_NONE;
-  }
-
   int64_t malloc_flag = 0;
 };
 

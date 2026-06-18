@@ -16,7 +16,7 @@
 #include <string>
 #include "ge/ge_api_error_codes.h"
 #include "graph/op_desc.h"
-#include "runtime/rt.h"
+#include "rt_external.h"
 #include "proto/task.pb.h"
 #include "graph/load/model_manager/task_info/task_info.h"
 #include "hybrid/node_executor/aicpu/aicpu_ext_info_handler.h"

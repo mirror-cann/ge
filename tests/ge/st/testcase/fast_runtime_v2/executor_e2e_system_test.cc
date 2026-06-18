@@ -18,7 +18,7 @@
 #include "faker/global_data_faker.h"
 #include "runtime/model_v2_executor.h"
 #include "common/bg_test.h"
-#include "runtime/dev.h"
+#include "acl/acl_rt.h"
 #include "kernel/memory/caching_mem_allocator.h"
 #include "stub/gert_runtime_stub.h"
 #include "op_impl/less_important_op_impl.h"
@@ -75,7 +75,7 @@ void CheckModelOutputManagerIsNull(ComputeGraphPtr graph, size_t input_num, bool
   auto inputs = FakeTensors({2048}, input_num);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.data(),
@@ -95,20 +95,20 @@ void CheckModelOutputManagerIsNull(ComputeGraphPtr graph, size_t input_num, bool
   out2.MutableTensorData().Free();
   ASSERT_EQ(out1.GetAddr(), nullptr);
   ASSERT_EQ(out2.GetAddr(), nullptr);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 class GraphExecutorWithKernelUnitTest : public bg::BgTest {
  protected:
   void SetUp() override {
     bg::BgTest::SetUp();
-    rtSetDevice(0);
+    aclrtSetDevice(0);
     std::string opp_path = "./";
     std::string opp_version = "version.info";
     setenv("ASCEND_OPP_PATH", opp_path.c_str(), 1);
     setenv("GE_USE_STATIC_MEMORY", "3", 1);
     system(("touch " + opp_version).c_str());
     system(("echo 'Version=3.20.T100.0.B356' > " + opp_version).c_str());
-    memory::RtsCachingMemAllocator::GetAllocator(0, RT_MEMORYINFO_HBM)->Recycle();
+    memory::RtsCachingMemAllocator::GetAllocator(0, 1)->Recycle();
     memory::RtsCachingMemAllocator::device_id_to_allocators_.clear();
   }
 
@@ -173,10 +173,10 @@ TEST_F(GraphExecutorWithKernelUnitTest, SingleNodeReshape_LoadUnloadSuccess2) {
   auto model_executor = ModelV2Executor::Create(exe_graph, root_model);
   ASSERT_NE(model_executor, nullptr);
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   EXPECT_EQ(model_executor->Load({stream}), ge::GRAPH_SUCCESS);
   EXPECT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(GraphExecutorWithKernelUnitTest, SingleNodeAiCore_LoadUnloadSuccess) {
@@ -374,7 +374,7 @@ TEST_F(GraphExecutorWithKernelUnitTest, SingleNodeReshape_ExecuteSuccess) {
   auto inputs = FakeTensors({2048}, 1);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(),
@@ -385,7 +385,7 @@ TEST_F(GraphExecutorWithKernelUnitTest, SingleNodeReshape_ExecuteSuccess) {
                                         reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
             ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(GraphExecutorWithKernelUnitTest, SingleNodeAiCore_ExecuteSuccess) {
@@ -412,7 +412,7 @@ TEST_F(GraphExecutorWithKernelUnitTest, SingleNodeAiCore_ExecuteSuccess) {
   auto inputs = FakeTensors({2048}, 2);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.GetTensorList(),
@@ -423,7 +423,7 @@ TEST_F(GraphExecutorWithKernelUnitTest, SingleNodeAiCore_ExecuteSuccess) {
                                     outputs.size()),
             ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(GraphExecutorWithKernelUnitTest, SingleNodeAiCore_with_frozen_input_ExecuteSuccess) {
@@ -459,7 +459,7 @@ TEST_F(GraphExecutorWithKernelUnitTest, SingleNodeAiCore_with_frozen_input_Execu
   auto inputs = FakeTensors({2048}, 2);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.GetTensorList(),
@@ -470,7 +470,7 @@ TEST_F(GraphExecutorWithKernelUnitTest, SingleNodeAiCore_with_frozen_input_Execu
                                     outputs.size()),
             ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(GraphExecutorWithKernelUnitTest, SingleNodeAiCore_GetOutNodeNameSuccess) {
@@ -548,7 +548,7 @@ TEST_F(GraphExecutorWithKernelUnitTest, ExecuteModel_HostInput) {
                                      const_cast<void *>(mem_block->GetAddr())});
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
   ASSERT_EQ(model_executor->Execute({i3.value},
                                     std::vector<Tensor *>({i0.holder.get(), i1.holder.get(), i2.holder.get()}).data(),
@@ -561,7 +561,7 @@ TEST_F(GraphExecutorWithKernelUnitTest, ExecuteModel_HostInput) {
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   ASSERT_TRUE(runtime_stub.CheckLaunchWhenStubTiling());
   runtime_stub.Clear();
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   mem_block->Free();
   ge::GetThreadLocalContext().SetGlobalOption(back_options);
 }
@@ -610,7 +610,7 @@ TEST_F(GraphExecutorWithKernelUnitTest, ExecuteModel_BinaryKernel) {
       {{}, {}}, {ge::FORMAT_ND, ge::FORMAT_ND, {}}, kOnHost, ge::DT_FLOAT16, const_cast<void *>(mem_block->GetAddr())});
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
   ASSERT_EQ(model_executor->Execute({i3.value},
                                     std::vector<Tensor *>({i0.holder.get(), i1.holder.get(), i2.holder.get()}).data(),
@@ -621,7 +621,7 @@ TEST_F(GraphExecutorWithKernelUnitTest, ExecuteModel_BinaryKernel) {
                                     3, reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
             ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   mem_block->Free();
 }
 
@@ -659,7 +659,7 @@ TEST_F(GraphExecutorWithKernelUnitTest, Lowering_Execute_Model_On_UB_fusion_node
       Tensor{{{3}, {3}}, {ge::FORMAT_ND, ge::FORMAT_ND, {}}, kOnDeviceHbm, ge::DT_FLOAT16, mem_block->GetAddr()});
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
   ASSERT_EQ(model_executor->Execute({i3.value},
                                     std::vector<Tensor *>({i0.holder.get(), i1.holder.get(), i2.holder.get()}).data(),
@@ -677,7 +677,7 @@ TEST_F(GraphExecutorWithKernelUnitTest, Lowering_Execute_Model_On_UB_fusion_node
   // input_2 shape [3]
   // expect output shape[(2+2)*3]
   ASSERT_EQ(outputs.at(0).GetShape().GetStorageShape().GetDim(0), 6);  // check output shape
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   mem_block->Free();
 }
 
@@ -776,7 +776,7 @@ TEST_F(GraphExecutorWithKernelUnitTest, SingleNodeAiCpuTf_ExecuteSuccess) {
   auto inputs = FakeTensors({2048, 1, 1, 1}, 2);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.GetTensorList(),
@@ -787,7 +787,7 @@ TEST_F(GraphExecutorWithKernelUnitTest, SingleNodeAiCpuTf_ExecuteSuccess) {
                                     outputs.size()),
             ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(GraphExecutorWithKernelUnitTest, SingleNodeAiCpuCC_ExecuteSuccess) {
@@ -811,14 +811,14 @@ TEST_F(GraphExecutorWithKernelUnitTest, SingleNodeAiCpuCC_ExecuteSuccess) {
   auto inputs = FakeTensors({2048, 1, 1, 1}, 2);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.GetTensorList(),
                                     outputs.size()),
             ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(GraphExecutorWithKernelUnitTest, SingleNodeHostAiCpu_ExecuteSuccess) {
@@ -860,7 +860,7 @@ TEST_F(GraphExecutorWithKernelUnitTest, SingleNodeHostAiCpu_ExecuteSuccess) {
   auto inputs = std::vector<Tensor *>({i0.holder.get(), i1.holder.get()});
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.data(), inputs.size(),
@@ -868,7 +868,7 @@ TEST_F(GraphExecutorWithKernelUnitTest, SingleNodeHostAiCpu_ExecuteSuccess) {
             ge::GRAPH_SUCCESS);
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   mem_block->Free();
 }
 
@@ -911,7 +911,7 @@ TEST_F(GraphExecutorWithKernelUnitTest, SingleNodeHostKernel_ExecuteSuccess) {
   auto inputs = std::vector<Tensor *>({i0.holder.get(), i1.holder.get()});
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.data(), inputs.size(),
@@ -919,7 +919,7 @@ TEST_F(GraphExecutorWithKernelUnitTest, SingleNodeHostKernel_ExecuteSuccess) {
             ge::GRAPH_SUCCESS);
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   mem_block->Free();
 }
 
@@ -977,14 +977,14 @@ TEST_F(GraphExecutorWithKernelUnitTest, SingleStringNodeAiCpu_ExecuteSuccess) {
   ConstructStringTensor(i1.holder.get());
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.data(), inputs.size(),
                                     reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
                                     ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   mem_block->Free();
 }
 
@@ -1043,7 +1043,7 @@ TEST_F(GraphExecutorWithKernelUnitTest, SingleNodeDataDependency_ExecuteSuccess)
   auto inputs = std::vector<Tensor *>({inputs0.GetTensorList()[0], inputs1.GetTensorList()[0]});
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.data(), inputs.size(),
                                     reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
@@ -1053,7 +1053,7 @@ TEST_F(GraphExecutorWithKernelUnitTest, SingleNodeDataDependency_ExecuteSuccess)
                                     reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
             ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(GraphExecutorWithKernelUnitTest, SingleNodeIdentityN_MixPlacement_ExecuteSuccess) {
@@ -1090,7 +1090,7 @@ TEST_F(GraphExecutorWithKernelUnitTest, SingleNodeIdentityN_MixPlacement_Execute
   auto inputs = FakeTensors({2048}, 2, const_cast<void *>(host_mem_block->GetAddr()));
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   // execute exe_graph
@@ -1107,7 +1107,7 @@ TEST_F(GraphExecutorWithKernelUnitTest, SingleNodeIdentityN_MixPlacement_Execute
   ASSERT_EQ(outputs.at(0).GetPlacement(), kOnHost);       // check output placement
   ASSERT_EQ(outputs.at(1).GetPlacement(), kOnDeviceHbm);  // check output placement
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   host_mem_block->Free();
 }
 
@@ -1141,7 +1141,7 @@ TEST_F(GraphExecutorWithKernelUnitTest, Test_Control_Edge_Execute_Order_Success)
 
   auto inputs = FakeTensors({2048}, 4, const_cast<void *>(host_mem_block->GetAddr()));
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
   ess->Clear();
   // execute exe graph
@@ -1158,7 +1158,7 @@ TEST_F(GraphExecutorWithKernelUnitTest, Test_Control_Edge_Execute_Order_Success)
             ess->GetExecuteIndexByNodeNameAndKernelType("add2", kernel_type));
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   host_mem_block->Free();
 }
 
@@ -1200,7 +1200,7 @@ TEST_F(GraphExecutorWithKernelUnitTest, ThirdAicpuOp_ExecuteSuccess) {
   auto inputs = std::vector<Tensor *>({i0.holder.get(), i1.holder.get()});
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
   ess->Clear();
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.data(), inputs.size(),
@@ -1214,7 +1214,7 @@ TEST_F(GraphExecutorWithKernelUnitTest, ThirdAicpuOp_ExecuteSuccess) {
   EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("NonZero", "CreateTensorRangesAndShapeRanges"), 1);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   bg::ShapeRangeInferenceResult::ErrorResult();
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(GraphExecutorWithKernelUnitTest, DataFlowOnMainRootLast_ExecuteSuccess) {
@@ -1269,7 +1269,7 @@ TEST_F(GraphExecutorWithKernelUnitTest, DataFlowOnMainRootLast_ExecuteSuccess) {
   auto inputs = std::vector<Tensor *>({i0.holder.get(), i1.holder.get()});
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ess->Clear();
@@ -1294,7 +1294,7 @@ TEST_F(GraphExecutorWithKernelUnitTest, DataFlowOnMainRootLast_ExecuteSuccess) {
   // DestroyTestStepContainer execute once for each model
   EXPECT_EQ(std::count(stat_exec_nodes_count.begin(), stat_exec_nodes_count.end(), "DestroyTestStepContainer"), 1);
   stat_exec_nodes_count.clear();
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   mem_block->Free();
   FreeDataFlowMemory();
 }
@@ -1325,13 +1325,13 @@ TEST_F(GraphExecutorWithKernelUnitTest, ZeroTensorInput_ExecuteSuccess) {
   auto outputs = FakeTensors({}, 1);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.data(), inputs.size(),
                                     reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
             ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(GraphExecutorWithKernelUnitTest, RtsOverflowDetection_ExecuteSuccess) {
@@ -1363,13 +1363,13 @@ TEST_F(GraphExecutorWithKernelUnitTest, RtsOverflowDetection_ExecuteSuccess) {
   auto outputs = FakeTensors({}, 4);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.data(), inputs.size(),
   reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
   ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(GraphExecutorWithKernelUnitTest, RtsDebugOverflowDetection_ExecuteSuccess) {
@@ -1402,13 +1402,13 @@ TEST_F(GraphExecutorWithKernelUnitTest, RtsDebugOverflowDetection_ExecuteSuccess
   auto outputs = FakeTensors({}, 4);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.data(), inputs.size(),
                                     reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
             ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(GraphExecutorWithKernelUnitTest, Cmo_ExecuteSuccess) {
@@ -1442,13 +1442,13 @@ TEST_F(GraphExecutorWithKernelUnitTest, Cmo_ExecuteSuccess) {
   auto outputs = FakeTensors({2048}, 1);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.data(), inputs.size(),
                                     reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
             ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   dlog_setlevel(GE_MODULE_NAME, DLOG_ERROR, 0);
 }
 
@@ -1475,7 +1475,7 @@ TEST_F(GraphExecutorWithKernelUnitTest, OnolineLoadModelWithSameRootGraphTwice) 
   // malloc device mem
   size_t weight_size = 10U;  // require 8
   void *weight_mem = nullptr;
-  auto rt_ret = rtMalloc(&weight_mem, weight_size, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  auto rt_ret = aclrtMalloc(&weight_mem, weight_size, ACL_MEM_MALLOC_NORMAL_ONLY);
   ASSERT_EQ(rt_ret, RT_ERROR_NONE);
   ge::ModelData model_data = model_data_holder.Get();
   GELOGI("alloc weight size[%zu], addr[%p]", weight_size, weight_mem);
@@ -1511,7 +1511,7 @@ TEST_F(GraphExecutorWithKernelUnitTest, OnolineLoadModelWithSameRootGraphTwice) 
   ret = executor2->ExecuteSync(inputs.GetTensorList(), inputs.size(), outputs.GetTensorList(), outputs.size());
   executor2->UnLoad();
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
-  rt_ret = rtFree(weight_mem);
+  rt_ret = aclrtFree(weight_mem);
   ASSERT_EQ(rt_ret, RT_ERROR_NONE);
 }
 
@@ -1538,7 +1538,7 @@ TEST_F(GraphExecutorWithKernelUnitTest, BlockAiCpuTf_ExecuteSuccess) {
   auto inputs = FakeTensors({1, 1}, 2);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(),
@@ -1547,7 +1547,7 @@ TEST_F(GraphExecutorWithKernelUnitTest, BlockAiCpuTf_ExecuteSuccess) {
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   ASSERT_TRUE(runtime_stub.GetSlogStub().FindInfoLogRegex("Launch aicpu inputs/outputs sizes") != -1);
   runtime_stub.Clear();
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(GraphExecutorWithKernelUnitTest, LowerFromGeModelWithNullTaskDef) {
@@ -1591,14 +1591,14 @@ TEST_F(GraphExecutorWithKernelUnitTest, SingleNodeReshape_rtStreamSynchronize_ti
   auto inputs = FakeTensors({2048}, 1);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_NE(model_executor->ExecuteSync(inputs.GetTensorList(), inputs.size(),
                                         reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
             ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   unsetenv(kTimeoutEnvPath);
 }
 uint32_t g_launch_flag = 0U;
@@ -1649,7 +1649,7 @@ TEST_F(GraphExecutorWithKernelUnitTest, TopologicalExecuteFailThenSuccess) {
   auto inputs0 = std::vector<Tensor *>({i0.GetTensor(), i1.GetTensor()});
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   // 第一次执行失败
@@ -1670,7 +1670,7 @@ TEST_F(GraphExecutorWithKernelUnitTest, TopologicalExecuteFailThenSuccess) {
   ASSERT_EQ(ess->GetExecuteCountByNodeNameAndKernelType("cast0", "LaunchKernelWithFlag"), 1);
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 /**
@@ -1714,7 +1714,7 @@ TEST_F(GraphExecutorWithKernelUnitTest, PriorityTopologicalExecuteFailThenSucces
   auto output_holder = TensorFaker().Placement(kOnDeviceHbm).DataType(ge::DT_FLOAT).Shape({8, 3, 224, 224}).Build();
   std::vector<Tensor *> outputs{output_holder.GetTensor()};
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   // 第一次执行失败
@@ -1747,7 +1747,7 @@ TEST_F(GraphExecutorWithKernelUnitTest, PriorityTopologicalExecuteFailThenSucces
   ASSERT_TRUE(runtime_stub.GetSlogStub().FindInfoLogRegex("TilingData: ") != -1);
   ASSERT_TRUE(runtime_stub.GetSlogStub().FindInfoLogRegex("Input/Output sizes:") != -1);
   runtime_stub.Clear();
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(GraphExecutorWithKernelUnitTest, check_model_output_manager_not_null_success) {

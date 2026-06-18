@@ -80,7 +80,7 @@ Status KernelExTaskInfo::InitTaskExtInfo(const std::string &ext_info, const OpDe
   }
   ext_info_addr_ = davinci_model_->MallocDynamicMemory(ext_handle.GetExtInfoLen(), mem_type_);
   GE_ASSERT_NOTNULL(ext_info_addr_);
-  GE_CHK_RT_RET(aclrtMemcpy(ext_info_addr_, ext_handle.GetExtInfoLen(), ext_handle.GetExtInfo(),
+  GE_CHK_ACL_RET(aclrtMemcpy(ext_info_addr_, ext_handle.GetExtInfoLen(), ext_handle.GetExtInfo(),
       ext_handle.GetExtInfoLen(), memcpy_kind_));
   GELOGD("Op %s use %s mem %p for ext info with flag %d", op_desc->GetName().c_str(),
          mem_type_ == RT_MEMORY_HOST_SVM ? "host" : "device", ext_info_addr_, deploy_type_flag_);
@@ -130,7 +130,7 @@ Status KernelExTaskInfo::InitInputOutputAddr(const PisToArgs &args, const IowAdd
 }
 
 Status KernelExTaskInfo::AssembleKernelBuffer(const STR_FWK_OP_KERNEL * const fwk_op_kernel) const {
-  GE_CHK_RT_RET(aclrtMemcpy(kernel_buf_, kernel_buf_size_, PtrToPtr<STR_FWK_OP_KERNEL, void>(fwk_op_kernel),
+  GE_CHK_ACL_RET(aclrtMemcpy(kernel_buf_, kernel_buf_size_, PtrToPtr<STR_FWK_OP_KERNEL, void>(fwk_op_kernel),
       kernel_buf_size_, memcpy_kind_));
   GELOGD("Op %s use %s mem %p for kernel_buf with flag %d", op_desc_->GetName().c_str(),
          mem_type_ == RT_MEMORY_HOST_SVM ? "host" : "device", kernel_buf_, deploy_type_flag_);
@@ -392,7 +392,7 @@ Status KernelExTaskInfo::AssembleWorkSpaceAddr(const domi::KernelExDef &kernel_d
   // 故此处用独立申请的地址，后面修改为persistent workspace
   void *workspace_base_addr = davinci_model_->MallocDynamicMemory(kernel_def.task_info().size(), mem_type_);
   GE_ASSERT_NOTNULL(workspace_base_addr);
-  GE_CHK_RT_RET(aclrtMemcpy(workspace_base_addr, kernel_def.task_info().size(), kernel_def.task_info().data(),
+  GE_CHK_ACL_RET(aclrtMemcpy(workspace_base_addr, kernel_def.task_info().size(), kernel_def.task_info().data(),
       kernel_def.task_info().size(), memcpy_kind_));
   workspace_data_addrs_.emplace_back(workspace_base_addr);
 
@@ -420,8 +420,8 @@ Status KernelExTaskInfo::Distribute() {
   launch_kernel_param.launch_config.is_data_dump = is_data_dump_;
   GE_ASSERT_SUCCESS(KernelHandleUtils::LaunchKernel(func_handle_, launch_kernel_param));
   GE_CHECK_NOTNULL(davinci_model_);
-  GE_CHK_RT_RET(aclrtGetThreadLastTaskId(&task_id_));
-  GE_CHK_RT_RET(aclrtStreamGetId(stream_, reinterpret_cast<int32_t*>(&stream_id_)));
+  GE_CHK_ACL_RET(aclrtGetThreadLastTaskId(&task_id_));
+  GE_CHK_ACL_RET(aclrtStreamGetId(stream_, reinterpret_cast<int32_t*>(&stream_id_)));
 
   GELOGI("KernelExTaskInfo %s Distribute Success. task id: %u, stream id: %u, stream: %p.",
          op_desc_->GetNamePtr(), task_id_, stream_id_, stream_);
@@ -500,11 +500,11 @@ Status KernelExTaskInfo::DistributeWaitTaskForAicpuBlockingOp() const {
   uint32_t timeout = 0xffffffff;
   (void)AttrUtils::GetInt(op_desc_, ATTR_NAME_BLOCKING_OP_TIMEOUT, timeout);
   if (timeout != 0xffffffff) {
-    GE_CHK_RT_RET(aclrtStreamWaitEventWithTimeout(stream_, rt_event, static_cast<int32_t>(timeout)));
+    GE_CHK_ACL_RET(aclrtStreamWaitEventWithTimeout(stream_, rt_event, static_cast<int32_t>(timeout)));
   } else {
-    GE_CHK_RT_RET(aclrtStreamWaitEvent(stream_, rt_event));
+    GE_CHK_ACL_RET(aclrtStreamWaitEvent(stream_, rt_event));
   }
-  GE_CHK_RT_RET(aclrtResetEvent(rt_event, stream_));
+  GE_CHK_ACL_RET(aclrtResetEvent(rt_event, stream_));
 
   return SUCCESS;
 }

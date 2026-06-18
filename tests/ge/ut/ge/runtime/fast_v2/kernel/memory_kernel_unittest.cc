@@ -30,7 +30,7 @@
 #include "graph/types.h"
 #include "kernel/memory/rts_caching_mem_allocator.h"
 #include "kernel/memory/multi_stream_l2_allocator.h"
-#include "runtime/rt.h"
+#include "rt_external.h"
 #include "checker/memory_profiling_log_matcher.h"
 #include "stub/gert_runtime_stub.h"
 #include "core/utils/tensor_utils.h"
@@ -390,7 +390,7 @@ TEST_F(MemoryKernelUT, CreateAllocator_Success_DeviceHbmOutput) {
 
   // 校验创建的allocator类型不是RT_MEMORY_DEFAULT
   int32_t device_id = 0;
-  rtGetDevice(&device_id);
+  aclrtGetDevice(&device_id);
   const auto iter = memory::RtsCachingMemAllocator::device_id_to_allocators_[device_id].find(RT_MEMORY_DEFAULT);
   EXPECT_EQ(iter, memory::RtsCachingMemAllocator::device_id_to_allocators_[device_id].end());
 }
@@ -412,7 +412,7 @@ TEST_F(MemoryKernelUT, GetUserAllocatorOrFixedBaseAllocator_Success_DeviceHbmOut
   auto chain = create_hbm_context->GetOutput(0);
   auto allocator_in_chain = chain->GetValue<ge::Allocator *>();
   int32_t device_id = 0;
-  rtGetDevice(&device_id);
+  aclrtGetDevice(&device_id);
   ge::Allocator *allocator = ge::SessionMemAllocator<ge::FixedBaseExpandableAllocator>::Instance().GetMemAllocator(session_id, device_id).get();
 
   EXPECT_EQ(ge::PtrToValue(allocator_in_chain), ge::PtrToValue(allocator));
@@ -436,7 +436,7 @@ TEST_F(MemoryKernelUT, GerUserAllocatorOrFixedBaseAllocator_Success_DeviceP2pOut
   auto chain = context->GetOutput(0);
   auto allocator_in_chain = chain->GetValue<ge::Allocator *>();
   int32_t device_id = 0;
-  rtGetDevice(&device_id);
+  aclrtGetDevice(&device_id);
   ge::Allocator *hbm_allocator = ge::SessionMemAllocator<ge::FixedBaseExpandableAllocator>::Instance().GetMemAllocator(session_id, device_id).get();
   EXPECT_NE(allocator_in_chain, hbm_allocator);
 
@@ -469,7 +469,7 @@ TEST_F(MemoryKernelUT, AllocFixedFeatureMemory_Success_CheckAddress) {
   uint32_t session_id = 120515021;
   int32_t device_id = 0;
   uint32_t mem_size = 4U * 1024U * 1024U;
-  rtGetDevice(&device_id);
+  aclrtGetDevice(&device_id);
   auto allocator = ge::SessionMemAllocator<ge::FixedBaseExpandableAllocator>::Instance().GetMemAllocator(session_id, device_id);
   memory::CachingMemAllocator caching_mem_allocator(0, RT_MEMORY_HBM);
   memory::SingleStreamL2Allocator single_stream_l2_allocator(&caching_mem_allocator);
@@ -519,7 +519,7 @@ TEST_F(MemoryKernelUT, FreeFixedFeatureMemory_Success) {
   uint32_t session_id = 120515021;
   int32_t device_id = 0;
   uint32_t mem_size = 4U * 1024U * 1024U;
-  rtGetDevice(&device_id);
+  aclrtGetDevice(&device_id);
   auto allocator = ge::SessionMemAllocator<ge::FixedBaseExpandableAllocator>::Instance().GetMemAllocator(session_id, device_id);
   ge::Allocator *interface_allocator = allocator.get();
   memory::CachingMemAllocator caching_mem_allocator(0, RT_MEMORY_HBM);
@@ -562,7 +562,7 @@ TEST_F(MemoryKernelUT, CreateAllocator_Success_DeviceP2pOutput) {
   ASSERT_EQ(registry.FindKernelFuncs("CreateL1Allocator")->run_func(create_hbm_context), ge::GRAPH_SUCCESS);
 
   int32_t device_id = 0;
-  rtGetDevice(&device_id);
+  aclrtGetDevice(&device_id);
   const auto iter = memory::RtsCachingMemAllocator::device_id_to_allocators_[device_id].find(RT_MEMORY_P2P_DDR);
   EXPECT_NE(iter, memory::RtsCachingMemAllocator::device_id_to_allocators_[device_id].end());
 }

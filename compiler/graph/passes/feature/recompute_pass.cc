@@ -19,7 +19,7 @@
 #include "graph/ge_context.h"
 #include "graph/tuning_utils.h"
 #include "mmpa/mmpa_api.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "framework/common/debug/ge_log.h"
 #include "framework/common/ge_inner_error_codes.h"
 #include "framework/common/util.h"

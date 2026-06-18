@@ -10,7 +10,7 @@
 
 #include <cstring>
 #include "utils/model_data_builder.h"
-#include "runtime/rt.h"
+#include "rt_external.h"
 #include "graph/model.h"
 #include "graph/utils/graph_utils_ex.h"
 #include "graph/graph.h"

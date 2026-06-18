@@ -26,7 +26,7 @@
 #include "om2_file_utils.h"
 #include "om2_malloc_helper.h"
 #include "om2_thread_pool.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 
 namespace gert {
 namespace {

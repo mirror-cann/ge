@@ -10,7 +10,7 @@
 
 #include <gtest/gtest.h>
 #include "kernel/memory/host_mem_allocator.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include <cmath>
 #include "stub/gert_runtime_stub.h"
 #include "core/utils/tensor_utils.h"

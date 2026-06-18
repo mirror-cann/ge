@@ -10,8 +10,8 @@
 
 #include "model_parse.h"
 #include "maintain_manager.h"
-#include "runtime/mem.h"
-#include "runtime/rt_model.h"
+#include "rt_external_mem.h"
+#include "rt_external_model.h"
 #include "framework/executor_c/ge_log.h"
 #include "ge/ge_error_codes.h"
 #include "sort_vector.h"
@@ -33,37 +33,37 @@ static int32_t ModelDescRefObjCmp(void *a, void *b, void *appInfo) {
 
 static void FreeModelDescMem(GeModelDesc *modelDesc) {
   if ((modelDesc->innerPtrState & INNER_TBE_KERNELS_PTR) != 0) {
-    (void)rtFree(modelDesc->part.kernelPtr);
+    (void)aclrtFree(modelDesc->part.kernelPtr);
     modelDesc->part.kernelPtr = NULL;
   }
 
   if ((modelDesc->innerPtrState & INNER_WEIGHTS_DATA_PTR) != 0) {
-    (void)rtFree(modelDesc->part.weightPtr);
+    (void)aclrtFree(modelDesc->part.weightPtr);
     modelDesc->part.weightPtr = NULL;
   }
 
   if ((modelDesc->innerPtrState & INNER_STATIC_TASK_DESC_PTR) != 0) {
-    (void)rtFree(modelDesc->part.taskPtr);
+    (void)aclrtFree(modelDesc->part.taskPtr);
     modelDesc->part.taskPtr = NULL;
   }
 
   if ((modelDesc->innerPtrState & INNER_TASK_PARAM_PTR) != 0) {
-    (void)rtFree(modelDesc->part.paramPtr);
+    (void)aclrtFree(modelDesc->part.paramPtr);
     modelDesc->part.paramPtr = NULL;
   }
 
   if ((modelDesc->innerPtrState & INNER_DYNAMIC_TASK_DESC_PTR) != 0) {
-    (void)rtFree(modelDesc->part.dynTaskPtr);
+    (void)aclrtFree(modelDesc->part.dynTaskPtr);
     modelDesc->part.dynTaskPtr = NULL;
   }
 
   if ((modelDesc->innerPtrState & INNER_PRE_MODEL_DESC_PTR) != 0) {
-    (void)rtFree(modelDesc->part.modelDescPtr);
+    (void)aclrtFree(modelDesc->part.modelDescPtr);
     modelDesc->part.modelDescPtr = NULL;
   }
 
   if ((modelDesc->innerPtrState & INNER_FIFO_PTR) != 0) {
-    (void)rtFree(modelDesc->part.fifoPtr);
+    (void)aclrtFree(modelDesc->part.fifoPtr);
     modelDesc->part.fifoPtr = NULL;
   }
 

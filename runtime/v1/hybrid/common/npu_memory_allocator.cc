@@ -16,7 +16,7 @@
 #include "graph/ge_context.h"
 #include "graph/manager/mem_manager.h"
 #include "graph/utils/tensor_utils_ex.h"
-#include "runtime/rt.h"
+#include "rt_external.h"
 #include "common/aclrt_malloc_helper.h"
 #include "hybrid/common/npu_memory_allocator.h"
 #include "acl/acl_rt.h"

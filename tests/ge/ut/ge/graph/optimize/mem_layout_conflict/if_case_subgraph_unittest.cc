@@ -13,7 +13,7 @@
 #include "result_checker.h"
 #include "graph/compute_graph.h"
 #include "compiler/graph/optimize/mem_layout_conflict_optimize/mem_layout_conflict_optimizer.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 
 namespace ge {
 class UtestMemLayoutConflictIfCaseSubgraph : public testing::Test {

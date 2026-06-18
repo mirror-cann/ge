@@ -317,7 +317,7 @@ ge::graphStatus ConstructInferShapeRangeContextOutputs(
 
 ge::graphStatus UpdateOpDescOutShape(const ge::OpDescPtr &op_desc, gert::InferShapeContext *infer_shape_ctx) {
   for (size_t index = 0UL; index < op_desc->GetOutputsSize(); index++) {
-    auto &dst_out_shape = op_desc->MutableOutputDesc(static_cast<size_t>(index))->MutableShape();
+    auto &dst_out_shape = op_desc->MutableOutputDesc(static_cast<uint32_t>(index))->MutableShape();
     const auto *shape = infer_shape_ctx->GetOutputShape(index);
     GE_ASSERT_NOTNULL(shape);
     dst_out_shape.SetDimNum(shape->GetDimNum());
@@ -667,7 +667,7 @@ ge::graphStatus CustomOpInferDataTypeOnCompile(ge::ShapeInferOp *shape_infer_op,
   GE_CHK_STATUS_RET(ret, "[Check][CustomOpInferDataType] result failed, op_desc[%s], ret[%d]",
                     op_desc->GetName().c_str(), ret);
   for (size_t i = 0UL; i < op_desc->GetOutputsSize(); i++) {
-    const auto &out_desc = op_desc->MutableOutputDesc(static_cast<size_t>(i));
+    const auto &out_desc = op_desc->MutableOutputDesc(static_cast<uint32_t>(i));
     out_desc->SetDataType(kernel_context->GetOutputDataType(i));
     out_desc->SetOriginDataType(kernel_context->GetOutputDataType(i));
   }
@@ -770,7 +770,7 @@ ge::graphStatus InferDataTypeOnCompile(const ge::OpDescPtr &op_desc) {
   const ge::graphStatus ret = InferDtypeByRegisteredFuncOrRule(functions, op_desc, kernel_context);
   GE_CHK_STATUS_RET(ret, "[Check][InferDataType] result failed, op_desc[%s], ret[%d]", op_desc->GetName().c_str(), ret);
   for (size_t i = 0UL; i < op_desc->GetOutputsSize(); i++) {
-    const auto &out_desc = op_desc->MutableOutputDesc(static_cast<size_t>(i));
+    const auto &out_desc = op_desc->MutableOutputDesc(static_cast<uint32_t>(i));
     out_desc->SetDataType(kernel_context->GetOutputDataType(i));
   }
   return ge::GRAPH_SUCCESS;

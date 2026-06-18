@@ -500,7 +500,7 @@ Status TaskGenerator::GenerateTaskForNormalNode(Node *const node, const std::str
   GetThreadLocalContext() = ge_context;
   error_message::SetErrMgrContext(error_context);
   if (device_id != kInvalidDeviceId) {
-    GE_CHK_RT_RET(aclrtSetDevice(device_id));
+    GE_CHK_ACL_RET(aclrtSetDevice(device_id));
   }
   GE_MAKE_GUARD(reset_device, [device_id]() {
     if (device_id != kInvalidDeviceId) {
@@ -548,7 +548,7 @@ Status TaskGenerator::GenerateTaskForFftsNode(Node *ffts_node, const std::string
   GetThreadLocalContext() = ge_context;
   error_message::SetErrMgrContext(error_context);
   if (device_id != kInvalidDeviceId) {
-    GE_CHK_RT_RET(aclrtSetDevice(device_id));
+    GE_CHK_ACL_RET(aclrtSetDevice(device_id));
   }
   GE_MAKE_GUARD(reset_device, [device_id]() {
     if (device_id != kInvalidDeviceId) {

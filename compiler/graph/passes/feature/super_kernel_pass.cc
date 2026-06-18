@@ -22,7 +22,7 @@
 #include "graph/utils/graph_utils.h"
 #include "graph/utils/node_utils.h"
 #include "graph/utils/op_desc_utils.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "graph/manager/graph_var_manager.h"
 #include "graph/passes/pass_utils.h"
 #include "graph/ge_context.h"

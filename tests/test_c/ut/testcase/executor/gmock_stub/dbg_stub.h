@@ -14,10 +14,10 @@
 #include <dlfcn.h>
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
-#include "runtime/stream.h"
-#include "runtime/rt_model.h"
-#include "runtime/mem.h"
-#include "runtime/dev.h"
+#include "rt_external_stream.h"
+#include "rt_external_model.h"
+#include "rt_external_mem.h"
+#include "rt_external_device.h"
 #include "toolchain/prof_api.h"
 typedef int32_t (*ProfCommandHandle)(uint32_t type, void *data, uint32_t len);
 class DbgStubMock {

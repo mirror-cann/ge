@@ -9,7 +9,7 @@
  */
 
 #include "dump_thread_manager.h"
-#include "runtime/rt_model.h"
+#include "rt_external_model.h"
 #include "framework/executor_c/ge_log.h"
 #include "ge/ge_error_codes.h"
 static Status StartDumpThread(void) {

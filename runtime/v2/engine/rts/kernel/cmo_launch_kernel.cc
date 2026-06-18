@@ -10,7 +10,7 @@
 
 #include <sstream>
 #include "graph/ge_error_codes.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "register/kernel_registry_impl.h"
 #include "common/checker.h"
 #include "exe_graph/runtime/gert_tensor_data.h"

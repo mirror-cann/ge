@@ -11,7 +11,7 @@
 #include <gtest/gtest.h>
 #include "faker/kernel_run_context_facker.h"
 #include "faker/continuous_vector_builder.h"
-#include "runtime/base.h"
+#include "rt_external_base.h"
 #include "depends/mmpa/src/mmpa_stub.h"
 #include "common/ge_inner_error_codes.h"
 #include "register/kernel_registry.h"

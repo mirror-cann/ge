@@ -18,7 +18,7 @@
 #include "faker/global_data_faker.h"
 #include "runtime/model_v2_executor.h"
 #include "common/bg_test.h"
-#include "runtime/dev.h"
+#include "acl/acl_rt.h"
 #include "kernel/memory/caching_mem_allocator.h"
 #include "stub/gert_runtime_stub.h"
 #include "op_impl/less_important_op_impl.h"
@@ -34,7 +34,7 @@ class GraphExecutorWithOverflowKernelUnitTest : public bg::BgTest {
  protected:
   void SetUp() override {
     bg::BgTest::SetUp();
-    rtSetDevice(0);
+    aclrtSetDevice(0);
   }
 };
 const std::string DynamicAtomicStubName = "DynamicAtomicBin";
@@ -77,7 +77,7 @@ TEST_F(GraphExecutorWithOverflowKernelUnitTest, SingleNodeAiCore_SupportOverflow
   auto inputs = std::vector<Tensor *>({i0.holder.get(), i1.holder.get()});
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.data(), inputs.size(),
@@ -100,7 +100,7 @@ TEST_F(GraphExecutorWithOverflowKernelUnitTest, SingleNodeAiCore_SupportOverflow
   EXPECT_NE(args_host_buffer[add_launch_args->GetArgsEx()->tilingAddrOffset / 8 + 1U], nullptr);
   EXPECT_EQ(args_host_buffer[add_launch_args->GetArgsEx()->tilingAddrOffset / 8 + 1U],
             args_host_buffer[add_launch_args->GetArgsEx()->tilingDataOffset / 8 - 1U]);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(GraphExecutorWithOverflowKernelUnitTest, SingleNodeAiCore_SupportOverflow_ExecuteSuccess) {
@@ -140,7 +140,7 @@ TEST_F(GraphExecutorWithOverflowKernelUnitTest, SingleNodeAiCore_SupportOverflow
   auto inputs = std::vector<Tensor *>({i0.holder.get(), i1.holder.get()});
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.data(), inputs.size(),
@@ -163,6 +163,6 @@ TEST_F(GraphExecutorWithOverflowKernelUnitTest, SingleNodeAiCore_SupportOverflow
   EXPECT_NE(args_host_buffer[add_launch_args->GetArgsEx()->tilingAddrOffset / 8 + 1U], nullptr);
   EXPECT_EQ(args_host_buffer[add_launch_args->GetArgsEx()->tilingAddrOffset / 8 + 1U],
             args_host_buffer[add_launch_args->GetArgsEx()->tilingDataOffset / 8 - 1U]);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 }

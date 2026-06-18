@@ -11,7 +11,7 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include <vector>
-#include "runtime/rt.h"
+#include "rt_external.h"
 
 #include "macro_utils/dt_public_scope.h"
 #include "hybrid/model/hybrid_model.h"

@@ -299,6 +299,16 @@ aclError aclStub::aclrtSetCurrentContext(aclrtContext context)
     return ACL_SUCCESS;
 }
 
+aclError aclStub::aclrtCreateContext(aclrtContext *context, int32_t deviceId)
+{
+    return ACL_SUCCESS;
+}
+
+aclError aclStub::aclrtDestroyContext(aclrtContext context)
+{
+    return ACL_SUCCESS;
+}
+
 MockFunctionTest::MockFunctionTest()
 {
     ResetToDefaultMock();
@@ -340,6 +350,14 @@ void MockFunctionTest::ResetRtMocks() {
     ON_CALL(*this, aclrtCtxGetCurrentDefaultStream)
         .WillByDefault([this](aclrtStream *stream) {
           return aclStub::aclrtCtxGetCurrentDefaultStream(stream);
+        });
+    ON_CALL(*this, aclrtCreateContext)
+        .WillByDefault([this](aclrtContext *context, int32_t deviceId) {
+          return aclStub::aclrtCreateContext(context, deviceId);
+        });
+    ON_CALL(*this, aclrtDestroyContext)
+        .WillByDefault([this](aclrtContext context) {
+          return aclStub::aclrtDestroyContext(context);
         });
 }
 
@@ -558,6 +576,16 @@ aclError aclrtGetCurrentContext(aclrtContext *context)
 aclError aclrtSetCurrentContext(aclrtContext context)
 {
     return MockFunctionTest::aclStubInstance().aclrtSetCurrentContext(context);
+}
+
+aclError aclrtCreateContext(aclrtContext *context, int32_t deviceId)
+{
+    return MockFunctionTest::aclStubInstance().aclrtCreateContext(context, deviceId);
+}
+
+aclError aclrtDestroyContext(aclrtContext context)
+{
+    return MockFunctionTest::aclStubInstance().aclrtDestroyContext(context);
 }
 
 aclError aclrtDeviceGetStreamPriorityRange(int32_t *leastPriority, int32_t *greatestPriority)

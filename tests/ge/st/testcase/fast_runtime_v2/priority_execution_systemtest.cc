@@ -188,7 +188,7 @@ TEST_F(PriorityExecutionST, Memory_FreeBeforeAlloc) {
   auto inputs = FakeTensors({2048}, 3);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   checker->Clear();
@@ -208,7 +208,7 @@ TEST_F(PriorityExecutionST, Memory_FreeBeforeAlloc) {
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   runtime_stub.Clear();
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 /**
@@ -276,7 +276,7 @@ TEST_F(PriorityExecutionST, Check_Priority_With_Aicore_Atomic_success) {
   auto inputs = FakeTensors({2048}, 3);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ess->Clear();
@@ -293,7 +293,7 @@ TEST_F(PriorityExecutionST, Check_Priority_With_Aicore_Atomic_success) {
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   runtime_stub.Clear();
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 /**
@@ -335,7 +335,7 @@ TEST_F(PriorityExecutionST, Check_Priority_With_Aicpu_MemCpy_success) {
   auto inputs = FakeTensors({2048, 1, 1, 1}, 2);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.GetTensorList(),
@@ -346,7 +346,7 @@ TEST_F(PriorityExecutionST, Check_Priority_With_Aicpu_MemCpy_success) {
                                     outputs.size()),
             ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 /**
@@ -383,12 +383,12 @@ TEST_F(PriorityExecutionST, Check_Priority_With_DavinciModelExecute_success) {
   auto inputs = FakeTensors({2, 2}, 2);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
   ret = executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.GetTensorList(), outputs.size());
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   executor->UnLoad();
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 /**
@@ -436,7 +436,7 @@ TEST_F(PriorityExecutionST, Check_Priority_With_ThirdNode_success) {
   auto inputs = FakeTensors({1, 2, 3, 4}, 2);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.data(), outputs.size()),
@@ -446,7 +446,7 @@ TEST_F(PriorityExecutionST, Check_Priority_With_ThirdNode_success) {
   ASSERT_TRUE(runtime_stub.GetSlogStub().FindInfoLogRegex("output storage shapes") != -1);
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 /**
@@ -508,7 +508,7 @@ TEST_F(PriorityExecutionST, LoadFromOm_Check_Priority_With_DavinciModelExecute_s
   auto inputs = FakeTensors({2, 2}, 2);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
   ess->Clear();
   ret = executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.GetTensorList(), outputs.size());
@@ -517,7 +517,7 @@ TEST_F(PriorityExecutionST, LoadFromOm_Check_Priority_With_DavinciModelExecute_s
   ASSERT_EQ(ess->GetExecuteCountByNodeNameAndKernelType("mul", "AicpuLaunchCCKernel"), 1);
 
   executor->UnLoad();
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   gert::DestroyVersionInfo();
   delete[] static_cast<ge::char_t *>(model_data.model_data);
   model_data.model_data = nullptr;

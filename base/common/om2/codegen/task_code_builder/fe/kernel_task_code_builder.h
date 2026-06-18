@@ -12,6 +12,7 @@
 #define AIR_CXX_BASE_COMMON_OM2_CODEGEN_TASK_CODE_BUILDER_FE_KERNEL_TASK_CODE_BUILDER_H_
 
 #include "common/om2/codegen/task_code_builder/task_code_builder.h"
+
 #include "fwk_adpt_struct.h"
 #include "graph/utils/args_format_desc_utils.h"
 #include "framework/common/taskdown_common.h"

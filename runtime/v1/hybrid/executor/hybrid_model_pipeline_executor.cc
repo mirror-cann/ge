@@ -47,8 +47,8 @@ Status StageExecutor::Init() {
   GELOGD("[Executor: %d] Start to init StateExecutor", id_);
   context_.rt_context = pipe_config_->rt_context;
   GE_CHK_STATUS_RET_NOLOG(InitExecutionContext());
-  GE_CHK_RT_RET(aclrtCreateStream(&stream_));
-  GE_CHK_RT_RET(aclrtCreateStream(&hccl_stream_));
+  GE_CHK_ACL_RET(aclrtCreateStream(&stream_));
+  GE_CHK_ACL_RET(aclrtCreateStream(&hccl_stream_));
   context_.stream = stream_;
   context_.hccl_stream = hccl_stream_;
 
@@ -90,7 +90,7 @@ void StageExecutor::ExecuteEndTaskAndReleae() {
 Status StageExecutor::Start(const std::vector<TensorValue> &inputs, const std::vector<ConstGeTensorDescPtr> &input_desc,
                             const int32_t iteration_count) {
   GELOGD("[Executor: %d] thread start", id_);
-  GE_CHK_RT_RET(aclrtSetCurrentContext(context_.rt_context));
+  GE_CHK_ACL_RET(aclrtSetCurrentContext(context_.rt_context));
   int32_t num_loops = iteration_count / pipe_config_->num_executors;
   if (id_ < (iteration_count % iteration_count)) {
     num_loops += 1;
@@ -119,7 +119,7 @@ Status StageExecutor::Start(const std::vector<TensorValue> &inputs, const std::v
 
     if (task_info.event != nullptr) {
       GELOGD("[%d] Add StreamWaitEvent", id_);
-      GE_CHK_RT_RET(aclrtStreamWaitEvent(stream_, task_info.event));
+      GE_CHK_ACL_RET(aclrtStreamWaitEvent(stream_, task_info.event));
       RECORD_MODEL_EXECUTION_EVENT(&context_, "[iteration = %ld] [Stage = %d] EventWait End", task_info.iteration,
                                    task_info.stage);
     }
@@ -152,8 +152,8 @@ Status StageExecutor::Start(const std::vector<TensorValue> &inputs, const std::v
       }
     });
     if (((task_info.iteration + 1) % iteration_count) > 0) {
-      GE_CHK_RT_RET(aclrtCreateEvent(&next_task.event));
-      GE_CHK_RT_RET(aclrtRecordEvent(next_task.event, context_.hccl_stream));
+      GE_CHK_ACL_RET(aclrtCreateEvent(&next_task.event));
+      GE_CHK_ACL_RET(aclrtRecordEvent(next_task.event, context_.hccl_stream));
     }
 
     const auto sync_result = Synchronize();
@@ -170,7 +170,7 @@ Status StageExecutor::Start(const std::vector<TensorValue> &inputs, const std::v
     }
     stage_subject_->Release(task_info.stage);
     if (task_info.event != nullptr) {
-      GE_CHK_RT_RET(aclrtDestroyEvent(task_info.event));
+      GE_CHK_ACL_RET(aclrtDestroyEvent(task_info.event));
       RECORD_MODEL_EXECUTION_EVENT(&context_, "[iteration = %ld] [Stage = %d] EventDestroy End", task_info.iteration,
                                    task_info.stage);
     }
@@ -255,7 +255,7 @@ HybridModelPipelineExecutor::HybridModelPipelineExecutor(HybridModel *const mode
 }
 
 Status StageExecutor::InitExecutionContext() {
-  GE_CHK_RT_RET(aclrtSetCurrentContext(context_.rt_context));
+  GE_CHK_ACL_RET(aclrtSetCurrentContext(context_.rt_context));
 
   context_.model = model_;
   context_.session_id = ::ge::GetContext().SessionId();
@@ -296,7 +296,7 @@ Status HybridModelPipelineExecutor::Init(CallbackManager *const callback_manager
   GE_CHK_STATUS_RET_NOLOG(context_.InitProfiler());
   model_id_ = model_->GetModelId();
   GELOGD("Number of stages = %d, number of executors = %d", config_.num_stages, config_.num_executors);
-  GE_CHK_RT_RET(aclrtGetCurrentContext(&config_.rt_context));
+  GE_CHK_ACL_RET(aclrtGetCurrentContext(&config_.rt_context));
   GE_CHK_STATUS_RET_NOLOG(InitStageExecutors());
   GE_CHK_STATUS_RET(InitInputDesc(), "[Init][InputDesc] failed, model_id:%u.", model_->GetModelId());
   return SUCCESS;

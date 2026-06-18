@@ -24,6 +24,7 @@
 #include "common/profiling_definitions.h"
 #include "common/checker.h"
 #include "graph_metadef/common/ge_common/util.h"
+#include "common/ge_rts_decl.h"
 
 namespace ge {
 namespace hybrid {
@@ -212,14 +213,14 @@ Status HybridModelAsyncExecutor::Init(const aclrtStream stream) {
       if (default_stream_guarder.default_stream == nullptr) {
         GE_CHK_RT_RET(rtStreamCreateWithFlags(&default_stream_guarder.default_stream,
                                               static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT), stream_flags));
-        GE_CHK_RT_RET(aclrtSetStreamFailureMode(default_stream_guarder.default_stream, ACL_STOP_ON_FAILURE));
+        GE_CHK_ACL_RET(aclrtSetStreamFailureMode(default_stream_guarder.default_stream, ACL_STOP_ON_FAILURE));
         GELOGD("Create default stream=%p, device id = %u", default_stream_guarder.default_stream, device_id_);
       }
       default_stream_guarder.stream_ref_count++;
       stream_ = default_stream_guarder.default_stream;
     } else {
       GE_CHK_RT_RET(rtStreamCreateWithFlags(&stream_, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT), stream_flags));
-      GE_CHK_RT_RET(aclrtSetStreamFailureMode(stream_, ACL_STOP_ON_FAILURE));
+      GE_CHK_ACL_RET(aclrtSetStreamFailureMode(stream_, ACL_STOP_ON_FAILURE));
       GELOGD("Create stream=%p, device id = %u", stream_, device_id_);
       owner_stream_ = true;
     }
@@ -232,7 +233,7 @@ Status HybridModelAsyncExecutor::Init(const aclrtStream stream) {
 Status HybridModelAsyncExecutor::RunInternal() {
   const auto device_id = static_cast<int32_t>(device_id_);
   GELOGD("Hybrid model start. model_id = %u, device_id = %u", model_id_, device_id_);
-  GE_CHK_RT_RET(aclrtSetDevice(device_id));
+  GE_CHK_ACL_RET(aclrtSetDevice(device_id));
   // DeviceReset before thread run finished!
   GE_MAKE_GUARD(not_used_var, [&device_id] { GE_CHK_RT(aclrtResetDevice(device_id)); });
 

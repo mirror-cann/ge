@@ -12,7 +12,7 @@
 #define GE_GRAPH_PASSES_SWAP_SPACE_PASS_H_
 
 #include "graph/passes/graph_pass.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 
 #include <vector>
 

@@ -153,7 +153,7 @@ class MixL2LoweringST : public testing::Test {
     FakeTensors outputs = FakeTensors({4, 4, 4, 4}, 1);
 
     rtStream_t stream;
-    ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0U), RT_ERROR_NONE);
     auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
     ess->Clear();
@@ -168,7 +168,7 @@ class MixL2LoweringST : public testing::Test {
     EXPECT_EQ(outputs.GetTensorList()[0]->GetShape().GetStorageShape(), expect_out_shape);
 
     ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
   }
 };
 /***********************************************************************************************************************

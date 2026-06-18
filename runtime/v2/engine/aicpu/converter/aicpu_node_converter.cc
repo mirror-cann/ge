@@ -29,7 +29,7 @@
 #include "graph_builder/bg_rt_session.h"
 #include "engine/aicpu/kernel/aicpu_resource_manager.h"
 #include "graph/utils/graph_utils.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "exe_graph/lowering/frame_selector.h"
 
 namespace gert {

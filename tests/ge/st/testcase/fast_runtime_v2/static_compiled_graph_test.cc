@@ -19,7 +19,7 @@
 #include "faker/global_data_faker.h"
 #include "runtime/model_v2_executor.h"
 #include "common/bg_test.h"
-#include "runtime/dev.h"
+#include "acl/acl_rt.h"
 #include "kernel/memory/caching_mem_allocator.h"
 #include "stub/gert_runtime_stub.h"
 #include "op_impl/dynamic_rnn_impl.h"
@@ -47,7 +47,7 @@ class StaticCompiledGraphTest : public bg::BgTest {
  protected:
   void SetUp() override {
     bg::BgTest::SetUp();
-    rtSetDevice(0);
+    aclrtSetDevice(0);
   }
   void TearDown() override {
     Test::TearDown();
@@ -246,7 +246,7 @@ TEST_F(StaticCompiledGraphTest, KnownSubgraph_ExecuteSuccess) {
   auto inputs = FakeTensors({2, 2}, 1);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ess->Clear();
@@ -265,7 +265,7 @@ TEST_F(StaticCompiledGraphTest, KnownSubgraph_ExecuteSuccess) {
             ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
 
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   mem_block->Free();
   ge::GetThreadLocalContext().SetGlobalOption(back_options);
 }
@@ -324,7 +324,7 @@ TEST_F(StaticCompiledGraphTest, KnownSubgraph_WithVariable_And_SubMemInfo_Execut
   auto inputs = FakeTensors({2, 2}, 1);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ess->Clear();
@@ -337,7 +337,7 @@ TEST_F(StaticCompiledGraphTest, KnownSubgraph_WithVariable_And_SubMemInfo_Execut
             ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
 
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   mem_block->Free();
   VarManager::Instance(session_id)->FreeVarMemory();
 }
@@ -428,7 +428,7 @@ TEST_F(StaticCompiledGraphTest, KnownSubgraph_WithGlobalWorkspace_ExecuteSuccess
   auto inputs = FakeTensors({2, 2}, 1);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ess->Clear();
@@ -442,7 +442,7 @@ TEST_F(StaticCompiledGraphTest, KnownSubgraph_WithGlobalWorkspace_ExecuteSuccess
   EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("PartitionedCall", "DavinciModelUpdateWorkspaces"), 0);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
 
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   mem_block->Free();
   ge::GetThreadLocalContext().SetGraphOption({{}});
 }
@@ -488,7 +488,7 @@ TEST_F(StaticCompiledGraphTest, KnownSubgraphWithAddNode_FakeTiling_ExecuteSucce
   auto inputs = FakeTensors({2, 2}, 1);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ess->Clear();
@@ -499,7 +499,7 @@ TEST_F(StaticCompiledGraphTest, KnownSubgraphWithAddNode_FakeTiling_ExecuteSucce
             ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
 
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   mem_block->Free();
   ge::GetThreadLocalContext().SetGlobalOption(back_options);
 }

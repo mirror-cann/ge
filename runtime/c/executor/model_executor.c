@@ -14,22 +14,22 @@
 #include "framework/executor_c/ge_log.h"
 #include "ge/ge_error_codes.h"
 #include "maintain_manager.h"
-#include "runtime/stream.h"
-#include "runtime/mem.h"
-#include "runtime/rt_model.h"
+#include "rt_external_stream.h"
+#include "rt_external_mem.h"
+#include "rt_external_model.h"
 static void *ModelGetIoAddr(uint32_t in_nums, uint32_t out_nums,
                             const InputData *input_data,
                             OutputData *output_data, GeModelDesc *mdlDesc) {
   uint32_t ioa_size = in_nums + out_nums;
   GELOGI("output->ioa_size:%u, ioa_size:%u", output_data->ioa_size, ioa_size);
   if ((output_data->ioa_size < ioa_size) && (output_data->io_addr != NULL)) {
-    rtFree(output_data->io_addr);
+    aclrtFree(output_data->io_addr);
     output_data->io_addr = NULL;
   }
   uint32_t fifo_num = mdlDesc->fifoInfo.fifoNum;
   uint64_t addr_size = sizeof(uint64_t) * (ioa_size + fifo_num);
   if (output_data->io_addr == NULL) {
-    if (rtMalloc((void **)&output_data->io_addr, addr_size, mdlDesc->memType, 0) != RT_ERROR_NONE) {
+    if (aclrtMalloc((void **)&output_data->io_addr, addr_size, mdlDesc->memType) != ACL_ERROR_NONE) {
       output_data->io_addr = NULL;
       output_data->ioa_size = 0;
       return NULL;
@@ -39,7 +39,7 @@ static void *ModelGetIoAddr(uint32_t in_nums, uint32_t out_nums,
   if (output_data->io_addr_host == NULL) {
     output_data->io_addr_host = mmMalloc(addr_size);
     if (output_data->io_addr_host == NULL) {
-      (void)rtFree(output_data->io_addr);
+      (void)aclrtFree(output_data->io_addr);
       output_data->io_addr = NULL;
       output_data->ioa_size = 0;
       return NULL;
@@ -60,7 +60,7 @@ static void *ModelGetIoAddr(uint32_t in_nums, uint32_t out_nums,
     ioa_src_addr_host[index++] = mdlDesc->fifoInfo.fifoAllAddr[i];
   }
   if (rtMemcpy(ioa_src_addr, addr_size, ioa_src_addr_host, addr_size, RT_MEMCPY_HOST_TO_DEVICE) != RT_ERROR_NONE) {
-    (void)rtFree(output_data->io_addr);
+    (void)aclrtFree(output_data->io_addr);
     (void)mmFree(output_data->io_addr_host);
     output_data->io_addr = NULL;
     output_data->io_addr_host = NULL;

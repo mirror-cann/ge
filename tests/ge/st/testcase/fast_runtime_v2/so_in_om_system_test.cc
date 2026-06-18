@@ -16,7 +16,7 @@
 #include "lowering/graph_converter.h"
 #include "faker/global_data_faker.h"
 #include "faker/model_data_faker.h"
-#include "runtime/dev.h"
+#include "acl/acl_rt.h"
 #include "kernel/memory/caching_mem_allocator.h"
 #include "stub/gert_runtime_stub.h"
 #include "op_impl/less_important_op_impl.h"
@@ -216,7 +216,7 @@ class MockMmpa : public MmpaStubApiGe {
 class SoInOmST : public testing::Test {
  protected:
   void SetUp() override {
-    rtSetDevice(0);
+    aclrtSetDevice(0);
     MmpaStub::GetInstance().Reset();
     ge::GetThreadLocalContext().SetGlobalOption(options);
     // creates a temporary opp directory
@@ -271,7 +271,7 @@ TEST_F(SoInOmST, RunPackageSoLoad_0001) {
     ASSERT_EQ(error_code, ge::GRAPH_SUCCESS);
 
     rtStream_t stream;
-    ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
 
     auto model_executor = stream_executor->GetOrCreateLoaded(stream, {stream, nullptr});
     ASSERT_NE(model_executor, nullptr);
@@ -289,7 +289,7 @@ TEST_F(SoInOmST, RunPackageSoLoad_0001) {
                                       outputs.size()),
               ge::GRAPH_SUCCESS);
     ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
     system(("rm -f " + path).c_str());
   }
 }
@@ -394,7 +394,7 @@ TEST_F(SoInOmST, OmSoLoad_0001) {
     ASSERT_EQ(error_code, ge::GRAPH_SUCCESS);
 
     rtStream_t stream;
-    ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
 
     auto model_executor = stream_executor->GetOrCreateLoaded(stream, {stream, nullptr});
     ASSERT_NE(model_executor, nullptr);
@@ -412,7 +412,7 @@ TEST_F(SoInOmST, OmSoLoad_0001) {
                                       outputs.size()),
               ge::GRAPH_SUCCESS);
     ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
   }
 
   ASSERT_EQ(GetOmSoFilesNumFromDisk(), 0);
@@ -706,7 +706,7 @@ TEST_F(SoInOmST, MultiSoLoad_0001) {
     ASSERT_EQ(error_code, ge::GRAPH_SUCCESS);
 
     rtStream_t stream;
-    ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
 
     auto model_executor = stream_executor->GetOrCreateLoaded(stream, {stream, nullptr});
     ASSERT_NE(model_executor, nullptr);
@@ -724,7 +724,7 @@ TEST_F(SoInOmST, MultiSoLoad_0001) {
                                       outputs.size()),
               ge::GRAPH_SUCCESS);
     ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
   }
 
   ASSERT_EQ(GetOmSoFilesNumFromDisk(), 0);
@@ -787,7 +787,7 @@ TEST_F(SoInOmST, MultiSoLoad_0002) {
     ASSERT_EQ(error_code, ge::GRAPH_SUCCESS);
 
     rtStream_t stream;
-    ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
 
     auto model_executor = stream_executor->GetOrCreateLoaded(stream, {stream, nullptr});
     ASSERT_NE(model_executor, nullptr);
@@ -805,7 +805,7 @@ TEST_F(SoInOmST, MultiSoLoad_0002) {
                                       outputs.size()),
               ge::GRAPH_SUCCESS);
     ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
   }
 
   ASSERT_EQ(GetOmSoFilesNumFromDisk(), 0);
@@ -867,7 +867,7 @@ TEST_F(SoInOmST, ParallelOmLoad_0001) {
     ASSERT_EQ(error_code, ge::GRAPH_SUCCESS);
 
     rtStream_t stream1;
-    ASSERT_EQ(rtStreamCreate(&stream1, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream1, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
 
     auto model_executor1 = stream_executor1->GetOrCreateLoaded(stream1, {stream1, nullptr});
     ASSERT_NE(model_executor1, nullptr);
@@ -904,7 +904,7 @@ TEST_F(SoInOmST, ParallelOmLoad_0001) {
       ASSERT_EQ(error_code, ge::GRAPH_SUCCESS);
 
       rtStream_t stream2;
-      ASSERT_EQ(rtStreamCreate(&stream2, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+      ASSERT_EQ(aclrtCreateStreamWithConfig(&stream2, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
 
       auto model_executor2 = stream_executor2->GetOrCreateLoaded(stream2, {stream2, nullptr});
       ASSERT_NE(model_executor2, nullptr);
@@ -919,12 +919,12 @@ TEST_F(SoInOmST, ParallelOmLoad_0001) {
                 ge::GRAPH_SUCCESS);
       // 模型2卸载
       ASSERT_EQ(model_executor2->UnLoad(), ge::GRAPH_SUCCESS);
-      rtStreamDestroy(stream2);
+      aclrtDestroyStream(stream2);
     }
 
     // 模型1卸载
     ASSERT_EQ(model_executor1->UnLoad(), ge::GRAPH_SUCCESS);
-    rtStreamDestroy(stream1);
+    aclrtDestroyStream(stream1);
   }
 
   system(("rm -f " + scene_info_path).c_str());
@@ -978,7 +978,7 @@ TEST_F(SoInOmST, ParallelOmLoad_0002) {
     ASSERT_EQ(error_code, ge::GRAPH_SUCCESS);
 
     rtStream_t stream1;
-    ASSERT_EQ(rtStreamCreate(&stream1, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream1, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
 
     auto model_executor1 = stream_executor1->GetOrCreateLoaded(stream1, {stream1, nullptr});
     ASSERT_NE(model_executor1, nullptr);
@@ -1014,7 +1014,7 @@ TEST_F(SoInOmST, ParallelOmLoad_0002) {
     ASSERT_EQ(error_code, ge::GRAPH_SUCCESS);
 
     rtStream_t stream2;
-    ASSERT_EQ(rtStreamCreate(&stream2, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream2, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
 
     auto model_executor2 = stream_executor2->GetOrCreateLoaded(stream2, {stream2, nullptr});
     ASSERT_NE(model_executor2, nullptr);
@@ -1029,9 +1029,9 @@ TEST_F(SoInOmST, ParallelOmLoad_0002) {
               ge::GRAPH_SUCCESS);
 
     ASSERT_EQ(model_executor1->UnLoad(), ge::GRAPH_SUCCESS);
-    rtStreamDestroy(stream1);
+    aclrtDestroyStream(stream1);
     ASSERT_EQ(model_executor2->UnLoad(), ge::GRAPH_SUCCESS);
-    rtStreamDestroy(stream2);
+    aclrtDestroyStream(stream2);
   }
   system(("rm -f " + scene_info_path).c_str());
   LoadDefaultSpaceRegistry();
@@ -1086,7 +1086,7 @@ TEST_F(SoInOmST, ParallelOmLoad_0003) {
     ASSERT_EQ(error_code, ge::GRAPH_SUCCESS);
 
     rtStream_t stream1;
-    ASSERT_EQ(rtStreamCreate(&stream1, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream1, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
 
     auto model_executor1 = stream_executor1->GetOrCreateLoaded(stream1, {stream1, nullptr});
     ASSERT_NE(model_executor1, nullptr);
@@ -1123,7 +1123,7 @@ TEST_F(SoInOmST, ParallelOmLoad_0003) {
       ASSERT_EQ(error_code, ge::GRAPH_SUCCESS);
 
       rtStream_t stream2;
-      ASSERT_EQ(rtStreamCreate(&stream2, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+      ASSERT_EQ(aclrtCreateStreamWithConfig(&stream2, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
 
       auto model_executor2 = stream_executor2->GetOrCreateLoaded(stream2, {stream2, nullptr});
       ASSERT_NE(model_executor2, nullptr);
@@ -1138,12 +1138,12 @@ TEST_F(SoInOmST, ParallelOmLoad_0003) {
                 ge::GRAPH_SUCCESS);
       // 模型2卸载
       ASSERT_EQ(model_executor2->UnLoad(), ge::GRAPH_SUCCESS);
-      rtStreamDestroy(stream2);
+      aclrtDestroyStream(stream2);
     }
 
     // 模型1卸载
     ASSERT_EQ(model_executor1->UnLoad(), ge::GRAPH_SUCCESS);
-    rtStreamDestroy(stream1);
+    aclrtDestroyStream(stream1);
   }
   system(("rm -f " + scene_info_path).c_str());
   LoadDefaultSpaceRegistry();
@@ -1200,7 +1200,7 @@ TEST_F(SoInOmST, ParallelOmLoad_0004) {
     ASSERT_EQ(error_code, ge::GRAPH_SUCCESS);
 
     rtStream_t stream1;
-    ASSERT_EQ(rtStreamCreate(&stream1, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream1, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
 
     auto model_executor1 = stream_executor1->GetOrCreateLoaded(stream1, {stream1, nullptr});
     ASSERT_NE(model_executor1, nullptr);
@@ -1237,7 +1237,7 @@ TEST_F(SoInOmST, ParallelOmLoad_0004) {
       ASSERT_EQ(error_code, ge::GRAPH_SUCCESS);
 
       rtStream_t stream2;
-      ASSERT_EQ(rtStreamCreate(&stream2, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+      ASSERT_EQ(aclrtCreateStreamWithConfig(&stream2, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
 
       auto model_executor2 = stream_executor2->GetOrCreateLoaded(stream2, {stream2, nullptr});
       ASSERT_NE(model_executor2, nullptr);
@@ -1252,12 +1252,12 @@ TEST_F(SoInOmST, ParallelOmLoad_0004) {
                 ge::GRAPH_SUCCESS);
       // 模型2卸载
       ASSERT_EQ(model_executor2->UnLoad(), ge::GRAPH_SUCCESS);
-      rtStreamDestroy(stream2);
+      aclrtDestroyStream(stream2);
     }
 
     // 模型1卸载
     ASSERT_EQ(model_executor1->UnLoad(), ge::GRAPH_SUCCESS);
-    rtStreamDestroy(stream1);
+    aclrtDestroyStream(stream1);
   }
   system(("rm -f " + scene_info_path).c_str());
   UnLoadDefaultSpaceRegistry();
@@ -1318,7 +1318,7 @@ TEST_F(SoInOmST, ParallelOmLoad_0005) {
     ASSERT_EQ(error_code, ge::GRAPH_SUCCESS);
 
     rtStream_t stream1;
-    ASSERT_EQ(rtStreamCreate(&stream1, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream1, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
 
     auto model_executor1 = stream_executor1->GetOrCreateLoaded(stream1, {stream1, nullptr});
     ASSERT_NE(model_executor1, nullptr);
@@ -1355,7 +1355,7 @@ TEST_F(SoInOmST, ParallelOmLoad_0005) {
       ASSERT_EQ(error_code, ge::GRAPH_SUCCESS);
 
       rtStream_t stream2;
-      ASSERT_EQ(rtStreamCreate(&stream2, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+      ASSERT_EQ(aclrtCreateStreamWithConfig(&stream2, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
 
       auto model_executor2 = stream_executor2->GetOrCreateLoaded(stream2, {stream2, nullptr});
       ASSERT_NE(model_executor2, nullptr);
@@ -1370,12 +1370,12 @@ TEST_F(SoInOmST, ParallelOmLoad_0005) {
                 ge::GRAPH_SUCCESS);
       // 模型2卸载
       ASSERT_EQ(model_executor2->UnLoad(), ge::GRAPH_SUCCESS);
-      rtStreamDestroy(stream2);
+      aclrtDestroyStream(stream2);
     }
 
     // 模型1卸载
     ASSERT_EQ(model_executor1->UnLoad(), ge::GRAPH_SUCCESS);
-    rtStreamDestroy(stream1);
+    aclrtDestroyStream(stream1);
   }
   system(("rm -f " + scene_info_path).c_str());
 }
@@ -1432,7 +1432,7 @@ TEST_F(SoInOmST, BuiltInAndCustomizeSoLoad) {
   ASSERT_EQ(error_code, ge::GRAPH_SUCCESS);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
 
   auto model_executor = stream_executor->GetOrCreateLoaded(stream, {stream, nullptr});
   ASSERT_NE(model_executor, nullptr);
@@ -1450,7 +1450,7 @@ TEST_F(SoInOmST, BuiltInAndCustomizeSoLoad) {
                                     outputs.size()),
             ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 
   ASSERT_EQ(GetOmSoFilesNumFromDisk(), 0);
   system(("rm -rf " + scene_info_path).c_str());
@@ -1502,7 +1502,7 @@ TEST_F(SoInOmST, MultiCustomizeSoLoad) {
   ASSERT_EQ(error_code, ge::GRAPH_SUCCESS);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
 
   auto model_executor = stream_executor->GetOrCreateLoaded(stream, {stream, nullptr});
   ASSERT_NE(model_executor, nullptr);
@@ -1519,7 +1519,7 @@ TEST_F(SoInOmST, MultiCustomizeSoLoad) {
                                     outputs.size()),
             ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 
   ASSERT_EQ(GetOmSoFilesNumFromDisk(), 0);
   system(("rm -rf " + scene_info_path).c_str());

@@ -265,7 +265,7 @@ rtError_t RuntimeStubImpl::rtMemcpyAsyncPtr(void *memcpy_addr_info, uint64_t dst
   return RuntimeStub::rtMemcpyAsyncPtr(memcpy_addr_info, dst_max, count, kind, stream, qos_cfg);
 }
 
-rtError_t RuntimeStubImpl::rtMemGetInfoEx(rtMemInfoType_t memInfoType, size_t *free, size_t *total) {
+rtError_t RuntimeStubImpl::aclrtGetMemInfo(aclrtMemAttr memInfoType, size_t *free, size_t *total) {
   *free = 128UL * 1024UL * 1024UL;
   *total = 256UL * 1024UL * 1024UL;
   return RT_ERROR_NONE;
@@ -282,14 +282,6 @@ rtError_t RuntimeStubImpl::rtMalloc(void **dev_ptr, uint64_t size, rtMemType_t t
     addrs_to_mem_info_[*dev_ptr] = MemoryInfo{*dev_ptr, size, type, moduleId};
   }
   return ret;
-}
-rtError_t RuntimeStubImpl::rtFree(void *dev_ptr) {
-  const std::lock_guard<std::mutex> lk(global_mtx_);
-  auto iter = addrs_to_mem_info_.find(dev_ptr);
-  if (iter != addrs_to_mem_info_.end()) {
-    addrs_to_mem_info_.erase(iter);
-  }
-  return RuntimeStub::rtFree(dev_ptr);
 }
 rtError_t RuntimeStubImpl::rtLaunchSqeUpdateTask(uint32_t streamId, uint32_t taskId, void *src, uint64_t cnt,
                                                  rtStream_t stm) {
@@ -343,12 +335,8 @@ rtError_t RuntimeStubImpl::rtEventRecord(rtEvent_t event, rtStream_t stream) {
 }
 rtError_t RuntimeStubImpl::rtStreamWaitEvent(rtStream_t stream, rtEvent_t event) {
   stream_stub_.LaunchTaskToStream(TaskTypeOnStream::rtStreamWaitEvent, stream);
-  event_stub_.LaunchEventWaitToStream(event, stream);
-  return RT_ERROR_NONE;
-}
-rtError_t RuntimeStubImpl::rtStreamCreate(rtStream_t *stream, int32_t priority) {
-  stream_stub_.CreateStream(stream);
-  return RT_ERROR_NONE;
+   event_stub_.LaunchEventWaitToStream(event, stream);
+   return RT_ERROR_NONE;
 }
 rtError_t RuntimeStubImpl::rtStreamCreateWithFlags(rtStream_t *stream, int32_t priority, uint32_t flags) {
   stream_stub_.CreateStream(stream);
@@ -371,12 +359,8 @@ rtError_t RuntimeStubImpl::rtGetAvailStreamNum(uint32_t streamType, uint32_t *co
   return RT_ERROR_NONE;
 }
 rtError_t RuntimeStubImpl::rtStreamDestroyForce(rtStream_t stream) {
-  stream_stub_.DestoryStream(stream);
-  return RT_ERROR_NONE;
-}
-rtError_t RuntimeStubImpl::rtStreamDestroy(rtStream_t stream) {
-  stream_stub_.DestoryStream(stream);
-  return RT_ERROR_NONE;
+   stream_stub_.DestoryStream(stream);
+   return RT_ERROR_NONE;
 }
 rtError_t RuntimeStubImpl::rtEventCreateWithFlag(rtEvent_t *event, uint32_t flag) {
   return RuntimeStub::rtEventCreateWithFlag(event, flag);

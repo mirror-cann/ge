@@ -457,7 +457,7 @@ ge::graphStatus ReserveReusableStreamResource(const ModelDesc &model_desc,
   GE_ASSERT_NOTNULL(events, "Failed to reserve events, num %zu", model_desc.GetReusableEventNum());
 
   int32_t device_id = 0;
-  GE_CHK_RT_RET(aclrtGetDevice(&device_id));
+  GE_CHK_ACL_RET(aclrtGetDevice(&device_id));
   auto notifies = notify_allocator->AcquireNotifies(device_id, model_desc.GetReusableNotifyNum());
   GE_ASSERT_NOTNULL(notifies, "Failed to reserve notifies, num %zu", model_desc.GetReusableNotifyNum());
   return ge::GRAPH_SUCCESS;

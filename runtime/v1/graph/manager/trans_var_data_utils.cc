@@ -455,7 +455,7 @@ Status TransVarDataUtils::TransAllVarData(const std::vector<NodePtr> &variable_n
   }
 
   aclrtContext context = nullptr;
-  GE_CHK_RT_RET(aclrtGetCurrentContext(&context));
+  GE_CHK_ACL_RET(aclrtGetCurrentContext(&context));
 
   ThreadPool executor("ge_vartrans", kDefaultVarTransThreadNum, true);
   std::vector<std::future<Status>> vector_future;

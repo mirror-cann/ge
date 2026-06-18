@@ -31,10 +31,10 @@ TEST_F(UtestMemoryBlockManager, MallocSuccess) {
       return RT_ERROR_NONE;
     }
 
-    rtError_t aclrtFree(void *dev_ptr) override {
+    aclError aclrtFree(void *dev_ptr) override {
       free_count++;
       delete[](uint8_t *) dev_ptr;
-      return RT_ERROR_NONE;
+      return ACL_SUCCESS;
     }
 
     uint32_t alloc_count = 0U;

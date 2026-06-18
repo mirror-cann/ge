@@ -14,7 +14,7 @@
 #include "graph/load/model_manager/model_utils.h"
 #include "graph/utils/tensor_utils.h"
 #include "graph/utils/node_utils.h"
-#include "runtime/rt.h"
+#include "rt_external.h"
 #include "common/aclrt_malloc_helper.h"
 #include "aicpu_resources.h"
 
@@ -57,14 +57,14 @@ Status AiCpuResources::CreateQueue(const std::string &name, const uint32_t depth
   GELOGD("Start to create queue, name = %s, depth = %u", name.c_str(), depth);
   std::vector<uint8_t> task_args;
   void *queue_id_dev = nullptr;
-  GE_CHK_RT_RET(ge::AclrtMalloc(&queue_id_dev, sizeof(queue_id), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+  GE_CHK_ACL_RET(ge::AclrtMalloc(&queue_id_dev, sizeof(queue_id), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
   GE_MAKE_GUARD(queue_id_dev, [&queue_id_dev]() {
     GE_CHK_RT(aclrtFree(queue_id_dev));
   });
   GE_CHK_STATUS_RET_NOLOG(
       BuildCreateQueueTask(static_cast<uintptr_t>(PtrToValue(queue_id_dev)), name, depth, task_args));
   GE_CHK_STATUS_RET(ExecuteKernel(kKernelNameCreateQueue, task_args));
-  GE_CHK_RT_RET(aclrtMemcpy(&queue_id, sizeof(queue_id), queue_id_dev,
+  GE_CHK_ACL_RET(aclrtMemcpy(&queue_id, sizeof(queue_id), queue_id_dev,
       sizeof(queue_id), ACL_MEMCPY_DEVICE_TO_HOST));
   GELOGD("Queue created successfully, name = %s, queue id = %u", name.c_str(), queue_id);
   return SUCCESS;
@@ -152,7 +152,7 @@ Status AiCpuResources::ExecuteKernel(const char_t *const so_name,
                                      const std::string &kernel_name,
                                      const std::vector<uint8_t> &task_args) {
   aclrtStream stream = nullptr;
-  GE_CHK_RT_RET(aclrtCreateStream(&stream));
+  GE_CHK_ACL_RET(aclrtCreateStream(&stream));
   GE_MAKE_GUARD_ACLRTSTREAM(stream);
   rtArgsEx_t args_info = {};
   args_info.args = const_cast<void *>(static_cast<const void *>(task_args.data()));
@@ -161,7 +161,7 @@ Status AiCpuResources::ExecuteKernel(const char_t *const so_name,
   GE_CHK_RT_RET(rtCpuKernelLaunchWithFlag(so_name,
       kernel_name.c_str(), kKernelBlockDim, &args_info, nullptr, stream, RT_KERNEL_DEFAULT));
   GELOGD("Launch kernel successfully, kernel name = %s", kernel_name.c_str());
-  GE_CHK_RT_RET(aclrtSynchronizeStream(stream));
+  GE_CHK_ACL_RET(aclrtSynchronizeStream(stream));
   GELOGD("Sync stream successfully, kernel name = %s", kernel_name.c_str());
   return SUCCESS;
 }
@@ -434,9 +434,9 @@ Status AiCpuResources::SetStaticModelShapeConfig(const AiCpuModelShapeConfig &co
   }
 
   void *tlv_device_addr = nullptr;
-  GE_CHK_RT_RET(ge::AclrtMalloc(&tlv_device_addr, config_buff.size(), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+  GE_CHK_ACL_RET(ge::AclrtMalloc(&tlv_device_addr, config_buff.size(), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
   GE_MAKE_GUARD(tlv_device_addr, [&tlv_device_addr]() { GE_CHK_RT(aclrtFree(tlv_device_addr)); });
-  GE_CHK_RT_RET(aclrtMemcpy(tlv_device_addr, config_buff.size(), config_buff.data(),
+  GE_CHK_ACL_RET(aclrtMemcpy(tlv_device_addr, config_buff.size(), config_buff.data(),
       config_buff.size(), ACL_MEMCPY_HOST_TO_DEVICE));
   AiCpuModelShapeConfig config_with_input_desc = config;
   GE_CHK_BOOL_RET_STATUS(tlv_data_len <= UINT32_MAX, FAILED, "tlv_data_len %zu greater than uint32_max.", tlv_data_len);

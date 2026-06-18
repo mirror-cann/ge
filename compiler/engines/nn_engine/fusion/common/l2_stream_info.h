@@ -15,7 +15,7 @@
 #include <string>
 #include <mutex>
 #include "register/graph_optimizer/graph_optimize_register_error_codes.h"
-#include "runtime/base.h"
+#include "rt_external_base.h"
 #include "common/l2fusion_struct.h"
 
 namespace fe {

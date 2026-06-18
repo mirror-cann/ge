@@ -22,9 +22,9 @@
 #include "aicore/launch_kernel/ai_core_launch_kernel.h"
 #include "common/dump/kernel_tracing_utils.h"
 #include "exe_graph/runtime/tiling_data.h"
-#include "runtime/rt_ffts_plus_define.h"
-#include "runtime/rt_ffts_plus.h"
-#include "runtime/mem.h"
+#include "rt_external_ffts_define.h"
+#include "rt_external_ffts.h"
+#include "rt_external_mem.h"
 #include "engine/aicore/kernel/rt_ffts_plus_launch_args.h"
 #include "engine/ffts_plus/converter/ffts_plus_proto_transfer.h"
 #include "common/dump/exception_dumper.h"
@@ -310,7 +310,7 @@ ge::graphStatus FFTSUpdateMixL2Args(KernelContext *context) {
   size_t arg_index = 0;
   if (need_mode_addr == 1U) {
     void *mode_addr_ptr = nullptr;
-    GE_CHK_RT_RET(aclrtGetHardwareSyncAddr(&mode_addr_ptr));
+    GE_CHK_ACL_RET(aclrtGetHardwareSyncAddr(&mode_addr_ptr));
     InitMixL2Addrs(arg_index++, mode_addr_ptr, args_host_data);
   }
 

@@ -9,7 +9,7 @@
  */
 
 #include "securec.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "model_desc.h"
 #include "model_parse.h"
 
@@ -33,8 +33,8 @@ static Status ParseModelDesc(const ModelData *modelData, size_t offset,
                              uint8_t *data, size_t size, GeModelDesc *mdlDesc) {
   void *dstAddr = modelData->part.modelDescPtr;
   if ((modelData->part.modelDescPtr == NULL) || (modelData->part.modelDescSize < size)) {
-    rtError_t rtRet = rtMalloc((void **)&dstAddr, size, mdlDesc->memType, 0);
-    if (rtRet != RT_ERROR_NONE) {
+    aclError rtRet = aclrtMalloc((void **)&dstAddr, size, mdlDesc->memType);
+    if (rtRet != ACL_ERROR_NONE) {
       return ACL_ERROR_GE_MEMORY_OPERATE_FAILED;
     }
     mdlDesc->innerPtrState = mdlDesc->innerPtrState | INNER_PRE_MODEL_DESC_PTR;
@@ -58,8 +58,8 @@ static Status ParseWeightData(const ModelData *modelData, size_t offset,
                               uint8_t *data, size_t size, GeModelDesc *mdlDesc) {
   void *dstAddr = modelData->part.weightPtr;
   if ((modelData->part.weightPtr == NULL) || (modelData->part.weightSize < size)) {
-    rtError_t rtRet = rtMalloc((void **)&dstAddr, size, mdlDesc->memType, 0);
-    if (rtRet != RT_ERROR_NONE) {
+    aclError rtRet = aclrtMalloc((void **)&dstAddr, size, mdlDesc->memType);
+    if (rtRet != ACL_ERROR_NONE) {
       return ACL_ERROR_GE_MEMORY_OPERATE_FAILED;
     }
     mdlDesc->innerPtrState = mdlDesc->innerPtrState | INNER_WEIGHTS_DATA_PTR;
@@ -83,8 +83,8 @@ static Status ParseTbeKernels(const ModelData *modelData, size_t offset,
                               uint8_t *data, size_t size, GeModelDesc *mdlDesc) {
   void *dstAddr = modelData->part.kernelPtr;
   if ((modelData->part.kernelPtr == NULL) || (modelData->part.kernelSize < size)) {
-    rtError_t rtRet = rtMalloc((void **)&dstAddr, size, mdlDesc->memType, 0);
-    if (rtRet != RT_ERROR_NONE) {
+    aclError rtRet = aclrtMalloc((void **)&dstAddr, size, mdlDesc->memType);
+    if (rtRet != ACL_ERROR_NONE) {
       return ACL_ERROR_GE_MEMORY_OPERATE_FAILED;
     }
     mdlDesc->innerPtrState = mdlDesc->innerPtrState | INNER_TBE_KERNELS_PTR;
@@ -108,8 +108,8 @@ static Status ParseStaticTaskDesc(const ModelData *modelData, size_t offset,
                                   uint8_t *data, size_t size, GeModelDesc *mdlDesc) {
   void *dstAddr = modelData->part.taskPtr;
   if ((modelData->part.taskPtr == NULL) || (modelData->part.taskSize < size)) {
-    rtError_t rtRet = rtMalloc((void **)&dstAddr, size, mdlDesc->memType, 0);
-    if (rtRet != RT_ERROR_NONE) {
+    aclError rtRet = aclrtMalloc((void **)&dstAddr, size, mdlDesc->memType);
+    if (rtRet != ACL_ERROR_NONE) {
       return ACL_ERROR_GE_MEMORY_OPERATE_FAILED;
     }
     mdlDesc->innerPtrState = mdlDesc->innerPtrState | INNER_STATIC_TASK_DESC_PTR;
@@ -134,8 +134,8 @@ static Status ParseDynamicTaskDesc(const ModelData *modelData, size_t offset,
                                    uint8_t *data, size_t size, GeModelDesc *mdlDesc) {
   void *dstAddr = modelData->part.dynTaskPtr;
   if ((modelData->part.dynTaskPtr == NULL) || (modelData->part.dynTaskSize < size)) {
-    rtError_t rtRet = rtMalloc((void **)&dstAddr, size, mdlDesc->memType, 0);
-    if (rtRet != RT_ERROR_NONE) {
+    aclError rtRet = aclrtMalloc((void **)&dstAddr, size, mdlDesc->memType);
+    if (rtRet != ACL_ERROR_NONE) {
       return ACL_ERROR_GE_MEMORY_OPERATE_FAILED;
     }
     mdlDesc->innerPtrState = mdlDesc->innerPtrState | INNER_DYNAMIC_TASK_DESC_PTR;
@@ -159,8 +159,8 @@ static Status ParseTaskParam(const ModelData *modelData, size_t offset,
                              uint8_t *data, size_t size, GeModelDesc *mdlDesc) {
   void *dstAddr = modelData->part.paramPtr;
   if ((modelData->part.paramPtr == NULL) || (modelData->part.paramSize < size)) {
-    rtError_t rtRet = rtMalloc((void **)&dstAddr, size, mdlDesc->memType, 0);
-    if (rtRet != RT_ERROR_NONE) {
+    aclError rtRet = aclrtMalloc((void **)&dstAddr, size, mdlDesc->memType);
+    if (rtRet != ACL_ERROR_NONE) {
       return ACL_ERROR_GE_MEMORY_OPERATE_FAILED;
     }
     mdlDesc->innerPtrState = mdlDesc->innerPtrState | INNER_TASK_PARAM_PTR;
@@ -440,9 +440,9 @@ static Status ProcFifoInfo(const ModelData *modelData, uint8_t *tlvValue, uint32
     }
     geFifoInfo->fifoBaseAddr = modelData->part.fifoPtr;
     if ((modelData->part.fifoPtr == NULL) || (modelData->part.fifoSize < geFifoInfo->totalSize)) {
-      rtError_t rtRet = rtMalloc(&geFifoInfo->fifoBaseAddr, geFifoInfo->totalSize, mdlDesc->memType, 0);
-      if (rtRet != RT_ERROR_NONE) {
-        GELOGE(ACL_ERROR_GE_INTERNAL_ERROR, "rtMalloc failed.");
+      aclError rtRet = aclrtMalloc(&geFifoInfo->fifoBaseAddr, geFifoInfo->totalSize, mdlDesc->memType);
+      if (rtRet != ACL_ERROR_NONE) {
+        GELOGE(ACL_ERROR_GE_INTERNAL_ERROR, "aclrtMalloc failed.");
         return ACL_ERROR_GE_LOAD_MODEL;
       }
       mdlDesc->innerPtrState = mdlDesc->innerPtrState | INNER_FIFO_PTR;

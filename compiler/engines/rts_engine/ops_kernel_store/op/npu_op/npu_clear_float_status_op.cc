@@ -7,6 +7,8 @@
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
+#include "common/ge_rts_decl.h"
+#include "framework/common/runtime_model_ge.h"
 #include "npu_clear_float_status_op.hpp"
 
 #include "op_factory.h"
@@ -31,7 +33,7 @@ Status NpuClearFloatStatusOp::Init() {
 Status NpuClearFloatStatusOp::Run(vector<TaskDef> &tasks) {
   RTS_LOGI("NPU clear float status op run start, node: %s.", name_.c_str());
   domi::TaskDef taskDef = {};
-  taskDef.set_type(RT_MODEL_TASK_NPU_CLEAR_FLOAT_STATUS);
+  taskDef.set_type(ACL_RT_MODEL_TASK_NPU_CLEAR_FLOAT_STATUS);
   taskDef.set_stream_id(op_desc_->GetStreamId());
   domi::NpuClearFloatStatusDef *npuClearStatusDef = taskDef.mutable_npu_clear_float_status();
   npuClearStatusDef->set_mode(check_mode_);

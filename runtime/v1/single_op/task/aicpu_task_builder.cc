@@ -36,10 +36,10 @@ Status AiCpuTaskBuilder::SetFmkOpKernel(const void *const io_addr, const void *c
 
 Status AiCpuTaskBuilder::InitWorkspaceAndIO(AiCpuTask &task, const SingleOpModelParam &param) const {
   GE_CHECK_GE(kernel_def_.task_info().size(), kernel_def_.task_info_size());
-  GE_CHK_RT_RET(ge::AclrtMalloc(&task.workspace_addr_,
+  GE_CHK_ACL_RET(ge::AclrtMalloc(&task.workspace_addr_,
                                 static_cast<uint64_t>(kernel_def_.task_info_size()),
                                 task.mem_type_, GE_MODULE_NAME_U16));
-  GE_CHK_RT_RET(aclrtMemcpy(task.workspace_addr_, static_cast<uint64_t>(kernel_def_.task_info_size()),
+  GE_CHK_ACL_RET(aclrtMemcpy(task.workspace_addr_, static_cast<uint64_t>(kernel_def_.task_info_size()),
       kernel_def_.task_info().data(), static_cast<uint64_t>(kernel_def_.task_info_size()),
       task.memcpy_kind_));
 
@@ -61,7 +61,7 @@ Status AiCpuTaskBuilder::InitWorkspaceAndIO(AiCpuTask &task, const SingleOpModel
            task.host_mem_input_data_offset_);
   }
   task.io_addr_size_ = task.io_addr_host_.size() * sizeof(void *);
-  GE_CHK_RT_RET(ge::AclrtMalloc(&task.io_addr_, task.io_addr_size_, task.mem_type_,
+  GE_CHK_ACL_RET(ge::AclrtMalloc(&task.io_addr_, task.io_addr_size_, task.mem_type_,
                                 GE_MODULE_NAME_U16));
   return SUCCESS;
 }
@@ -93,9 +93,9 @@ Status AiCpuTaskBuilder::BuildTask(ge::AiCpuTask &task, const SingleOpModelParam
   fwk_op_kernel.fwkKernelBase.fwk_kernel.sessionID = std::numeric_limits<uint64_t>::max();
   fwk_op_kernel.fwkKernelBase.fwk_kernel.kernelID = kernel_id;
   fwk_op_kernel.fwkKernelBase.fwk_kernel.opType = aicpu::FWKAdapter::FWKOperateType::FWK_ADPT_KERNEL_RUN_NO_SESS;
-  GE_CHK_RT_RET(ge::AclrtMalloc(&task.args_, sizeof(STR_FWK_OP_KERNEL), task.mem_type_,
+  GE_CHK_ACL_RET(ge::AclrtMalloc(&task.args_, sizeof(STR_FWK_OP_KERNEL), task.mem_type_,
                                 GE_MODULE_NAME_U16));
-  GE_CHK_RT_RET(aclrtMemcpy(task.args_, sizeof(STR_FWK_OP_KERNEL),
+  GE_CHK_ACL_RET(aclrtMemcpy(task.args_, sizeof(STR_FWK_OP_KERNEL),
       &fwk_op_kernel, sizeof(STR_FWK_OP_KERNEL), task.memcpy_kind_));
 
   task.arg_size_ = sizeof(STR_FWK_OP_KERNEL);

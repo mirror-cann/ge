@@ -316,7 +316,7 @@ TEST_F(UtestCpuQueueSchedule, CpuTaskMarkStep_Init_failed) {
 
 TEST_F(UtestCpuQueueSchedule, CpuTaskMarkStep_Init_Succ) {
   rtStream_t stream;
-  rtStreamCreate(&stream, 0);
+  aclrtCreateStreamWithConfig(&stream, 0, 0);
   CpuTaskMarkStep cpu_task_mark_step(stream);
   GroupInfo group_info;
   group_info.group_total_count = 0U;
@@ -324,13 +324,13 @@ TEST_F(UtestCpuQueueSchedule, CpuTaskMarkStep_Init_Succ) {
   group_info.group_policy = 0U;
   std::string dump_step = "0|2-4|8";
   void* malloc_mem = nullptr;
-  (void)rtMalloc(&malloc_mem, sizeof(uint64_t), RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  (void)aclrtMalloc(&malloc_mem, sizeof(uint64_t), ACL_MEM_MALLOC_HUGE_ONLY);
   uintptr_t step_id = static_cast<uintptr_t>(PtrToValue(malloc_mem));
 
   EXPECT_EQ(cpu_task_mark_step.Init(group_info, dump_step, step_id, false), SUCCESS);
   EXPECT_EQ(cpu_task_mark_step.Distribute(), SUCCESS);
-  rtStreamDestroy(stream);
-  rtFree(ValueToPtr(static_cast<uint64_t>(step_id)));
+  aclrtDestroyStream(stream);
+  aclrtFree(ValueToPtr(static_cast<uint64_t>(step_id)));
   step_id = 0U;
 }
 
@@ -420,7 +420,7 @@ TEST_F(UtestCpuQueueSchedule, CpuTaskModelRepeat_Init_failed) {
 
 TEST_F(UtestCpuQueueSchedule, CpuTaskModelBatchDequeue) {
   rtStream_t stream;
-  rtStreamCreate(&stream, 0);
+  aclrtCreateStreamWithConfig(&stream, 0, 0);
   CpuTaskModelBatchDequeue dequeue_task(stream);
 
   domi::TaskDef task_def;
@@ -434,12 +434,12 @@ TEST_F(UtestCpuQueueSchedule, CpuTaskModelBatchDequeue) {
   EXPECT_EQ(ret, SUCCESS);
   EXPECT_EQ(in_mbufs.size(), 2);
   EXPECT_EQ(dequeue_task.Distribute(), SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(UtestCpuQueueSchedule, CpuTaskModelGatherDequeue) {
   rtStream_t stream;
-  rtStreamCreate(&stream, 0);
+  aclrtCreateStreamWithConfig(&stream, 0, 0);
   CpuTaskModelGatherDequeue dequeue_task(stream);
 
   domi::TaskDef task_def;
@@ -490,7 +490,7 @@ TEST_F(UtestCpuQueueSchedule, CpuTaskModelGatherDequeue) {
   EXPECT_EQ(reinterpret_cast<uint32_t *>(ptr->queue_device_type_addr)[2], 0);
 
   EXPECT_EQ(dequeue_task.Distribute(), SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(UtestCpuQueueSchedule, CpuInputMemCpy_Init_failed) {

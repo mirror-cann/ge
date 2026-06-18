@@ -161,7 +161,7 @@ TEST_F(SuperFastKernelTest, st_mc2_HcomCreateSuperkernelResource)
     std::vector<void *> contexts;
     nodeGroup->SetType("MatmulAllReduce");
     rtStream_t stream;
-    EXPECT_EQ(rtStreamCreate(&stream, 0), RT_ERROR_NONE);
+    EXPECT_EQ(aclrtCreateStreamWithConfig(&stream, 0, 0), RT_ERROR_NONE);
 
     shared_ptr<std::vector<void *>> rt_resource_list = std::make_shared<std::vector<void *>>();
     rt_resource_list->push_back(stream);
@@ -174,7 +174,7 @@ TEST_F(SuperFastKernelTest, st_mc2_HcomCreateSuperkernelResource)
     hcomComm = reinterpret_cast<int64_t>(hcclComm);
     MOCKER(HcomGetCommHandleByGroup).stubs().with(mockcpp::any(), outBound(hcomComm)).will(returnValue(HCCL_SUCCESS));
     EXPECT_EQ(HcomCreateSuperkernelResource(nodeGroup, contexts), ge::GRAPH_FAILED);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
 }
 
 TEST_F(SuperFastKernelTest, st_GetAivCoreLimit)

@@ -10,7 +10,7 @@
 
 #include "model_desc.h"
 #include "model_parse.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "framework/executor_c/ge_log.h"
 #include "ge/ge_error_codes.h"
 Status CheckOmHeadWithMem(const ModelData *model_data) {
@@ -107,7 +107,7 @@ static Status GetModelFifoSize(const ModelData *modelData, size_t *fifoSize) {
   }
 
   if (mdlDesc.fifoInfo.fifoBaseAddr != NULL) {
-    (void)rtFree(mdlDesc.fifoInfo.fifoBaseAddr);
+    (void)aclrtFree(mdlDesc.fifoInfo.fifoBaseAddr);
     mdlDesc.fifoInfo.fifoBaseAddr = NULL;
   }
   DeInitModelFifoInfo(&(mdlDesc.fifoInfo));

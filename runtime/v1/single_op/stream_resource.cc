@@ -11,7 +11,7 @@
 #include "single_op/stream_resource.h"
 
 #include "framework/common/debug/log.h"
-#include "runtime/rt.h"
+#include "rt_external.h"
 #include "common/aclrt_malloc_helper.h"
 #include "single_op/single_op_model.h"
 #include "framework/runtime/device_memory_recorder.h"
@@ -119,7 +119,7 @@ Status StreamResource::DeleteOperator(const uint64_t key) {
   if (it != op_map_.end()) {
     // need to stream sync before erase
     GELOGI("static op %" PRIu64 " need to be deleted, start to sync stream %p", key, stream_);
-    GE_CHK_RT_RET(aclrtSynchronizeStream(stream_));
+    GE_CHK_ACL_RET(aclrtSynchronizeStream(stream_));
     (void)op_map_.erase(it);
     GELOGI("static op %" PRIu64 " delete success", key);
   }
@@ -132,7 +132,7 @@ Status StreamResource::DeleteDynamicOperator(const uint64_t key) {
   if (it != dynamic_op_map_.end()) {
     // need to stream sync before erase
     GELOGI("dynamic op %" PRIu64 " need to be deleted, start to sync stream %p", key, stream_);
-    GE_CHK_RT_RET(aclrtSynchronizeStream(stream_));
+    GE_CHK_ACL_RET(aclrtSynchronizeStream(stream_));
     (void)dynamic_op_map_.erase(it);
     GELOGI("dynamic op %" PRIu64 " delete success", key);
   }

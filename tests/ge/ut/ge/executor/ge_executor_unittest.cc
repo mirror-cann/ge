@@ -15,7 +15,7 @@
 #include "common/ge_inner_error_codes.h"
 #include "common/framework_types_internal.h"
 #include "common/util.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "common/util.h"
 #include "omg/omg_inner_types.h"
 #include "ge_graph_dsl/graph_dsl.h"
@@ -435,14 +435,14 @@ TEST_F(UtestGeExecutor, execute_async1) {
   StreamResource *res = new (std::nothrow) StreamResource(1);
   std::mutex stream_mu;
   rtStream_t stream = nullptr;
-  rtStreamCreate(&stream, 0);
+  aclrtCreateStreamWithConfig(&stream, 0, 0);
   SingleOp *single_op = new (std::nothrow) SingleOp(res, &stream_mu, stream);
   SingleOpModelParam model_params;
   single_op->impl_->model_param_.reset(new (std::nothrow)SingleOpModelParam(model_params));
   retStatus = ge_executor.ExecuteAsync(single_op, inputs, outputs);
   EXPECT_EQ(retStatus, ACL_ERROR_GE_PARAM_INVALID);
   delete single_op;
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   delete res;
 }
 
@@ -476,7 +476,7 @@ TEST_F(UtestGeExecutor, clear_custom_aicpu_so) {
   EXPECT_EQ(mm.LaunchKernelCustAicpuSo("empty_cust_aicpu"), SUCCESS);
 
   // deleteCustOp after Launch will deleted.
-  uintptr_t resource_id = 1;    // for rtCtxGetCurrent stub
+  uintptr_t resource_id = 1;    // for aclrtGetCurrentContext stub
   std::vector<char> kernel_bin(256);
   auto &cust_resource_001 = mm.cust_aicpu_so_[resource_id];
   auto tbe_kernel = std::shared_ptr<OpKernelBin>(new OpKernelBin("deleteCustOp", std::move(kernel_bin)));
@@ -1780,12 +1780,6 @@ TEST_F(UtestGeExecutor, malloc_after_release_resource) {
 TEST_F(UtestGeExecutor, finalize_after_reset_device) {
   class RuntimeMock : public RuntimeStub {
    public:
-    rtError_t rtFree(void *dev_ptr) override {
-      EXPECT_TRUE(!device_reset_);
-      delete[](uint8_t *) dev_ptr;
-      return RT_ERROR_NONE;
-    }
-
     rtError_t rtDeviceReset(int32_t device) override {
       device_reset_ = true;
       return RT_ERROR_NONE;
@@ -1825,14 +1819,6 @@ TEST_F(UtestGeExecutor, finalize_after_reset_device) {
 TEST_F(UtestGeExecutor, finalize_after_reset_device_fail) {
   class RuntimeMock : public RuntimeStub {
    public:
-    rtError_t rtFree(void *dev_ptr) override {
-      if (device_reset_) {
-        return -1;
-      }
-      delete[](uint8_t *) dev_ptr;
-      return RT_ERROR_NONE;
-    }
-
     rtError_t rtDeviceReset(int32_t device) override {
       device_reset_ = true;
       return RT_ERROR_NONE;

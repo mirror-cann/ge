@@ -10,7 +10,7 @@
 
 #include "graph/load/model_manager/task_info/rts/cmo_addr_task_info.h"
 
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "graph/load/model_manager/davinci_model.h"
 #include "graph/load/model_manager/model_utils.h"
 #include "graph/args_format_desc.h"
@@ -149,10 +149,10 @@ Status CmoAddrTaskInfo::Distribute() {
   SetTaskTag(op_desc_->GetNamePtr());
 
   GE_CHK_RT_RET(rtCmoAddrTaskLaunch(args_, format_args_size_, cmo_op_code_, stream_, 0U));
-  GE_CHK_RT_RET(aclrtGetThreadLastTaskId(&task_id_));
-  GE_CHK_RT_RET(aclrtStreamGetId(stream_, reinterpret_cast<int32_t*>(&stream_id_)));
+  GE_CHK_ACL_RET(aclrtGetThreadLastTaskId(&task_id_));
+  GE_CHK_ACL_RET(aclrtStreamGetId(stream_, reinterpret_cast<int32_t*>(&stream_id_)));
 
-  GE_CHK_RT_RET(aclrtMemcpy(host_args_, format_args_size_, args_, format_args_size_, ACL_MEMCPY_DEVICE_TO_HOST));
+  GE_CHK_ACL_RET(aclrtMemcpy(host_args_, format_args_size_, args_, format_args_size_, ACL_MEMCPY_DEVICE_TO_HOST));
   uintptr_t host_addr = PtrToValue(host_args_);
   for (const auto &iter : format_) {
     if (iter.addr_type == AddrType::CUSTOM_VALUE) {

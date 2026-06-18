@@ -34,6 +34,30 @@ rtError_t rtMalloc(void **devPtr, uint64_t size, rtMemType_t type, const uint16_
   return RtStubMock::GetInstance().rtMalloc(devPtr, size, type, moduleId);
 }
 
+aclError aclrtMalloc(void **devPtr, size_t size, aclrtMemMallocPolicy policy) {
+  (void)policy;
+  if ((size == MALLOC_SIZE_INVALID) || (size == MALLOC_SIZE_ABNORMAL) || (size == 0)) {
+    return ACL_ERROR_INVALID_PARAM;
+  }
+  *devPtr = malloc(size);
+  return ACL_SUCCESS;
+}
+
+aclError aclrtFree(void *devPtr) {
+  if (devPtr != nullptr) {
+    free(devPtr);
+  }
+  return ACL_SUCCESS;
+}
+
+aclError aclrtGetDevice(int32_t *deviceId) {
+  if (deviceId == nullptr) {
+    return ACL_ERROR_INVALID_PARAM;
+  }
+  *deviceId = 0;
+  return ACL_SUCCESS;
+}
+
 rtError_t rtMemcpy_Normal_Invoke(void *dst, uint64_t destMax, const void* src, uint64_t cnt, rtMemcpyKind_t kind) {
   (void)dst;
   (void)src;
@@ -56,11 +80,6 @@ rtError_t rtMemcpy_Abnormal_Invoke(void *dst, uint64_t destMax, const void* src,
 
 rtError_t rtMemcpy(void *dst, uint64_t destMax, const void* src, uint64_t cnt, rtMemcpyKind_t kind) {
   return RtStubMock::GetInstance().rtMemcpy(dst, destMax, src, cnt, kind);
-}
-
-rtError_t rtFree(void *devPtr) {
-  free(devPtr);
-  return RT_ERROR_NONE;
 }
 
 rtError_t rtGetDevice(int32_t *devId) {

@@ -114,7 +114,7 @@ Status DSATaskInfo::InitWorkspace(const OpDescPtr &op_desc, const domi::DSATaskD
 
   // todo: 后面修改成静态图不可刷新场景, 在此拷贝, 采用model; 注意不支持刷新的也需要在此拷贝
   if ((!davinci_model_->IsFeatureBaseRefreshable()) || (!support_refresh_)) {
-    GE_CHK_RT_RET(aclrtMemcpy(ValueToPtr(hbm_args), dev_size, workspace_io_addrs_.data(),
+    GE_CHK_ACL_RET(aclrtMemcpy(ValueToPtr(hbm_args), dev_size, workspace_io_addrs_.data(),
         sizeof(uint64_t) * workspace_io_addrs_.size(), ACL_MEMCPY_HOST_TO_DEVICE));
   }
 
@@ -308,8 +308,8 @@ Status DSATaskInfo::Distribute() {
   }
   const TaskProfGuarder prof_guarder(this);
   GE_CHK_RT_RET(ge::rtStarsTaskLaunchWithFlag(&dsa_sqe_, static_cast<uint32_t>(sizeof(dsa_sqe_)), stream_, dump_flag_));
-  GE_CHK_RT_RET(aclrtGetThreadLastTaskId(&task_id_));
-  GE_CHK_RT_RET(aclrtStreamGetId(stream_, reinterpret_cast<int32_t*>(&stream_id_)));
+  GE_CHK_ACL_RET(aclrtGetThreadLastTaskId(&task_id_));
+  GE_CHK_ACL_RET(aclrtStreamGetId(stream_, reinterpret_cast<int32_t*>(&stream_id_)));
   GELOGI("DSATaskInfo %s Distribute TaskId[%u], stream id [%u], dumpflag [%u] Success.",
          op_desc_->GetNamePtr(), task_id_, stream_id_, dump_flag_);
 

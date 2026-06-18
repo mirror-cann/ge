@@ -14,7 +14,7 @@
 #include <cstdint>
 #include "graph/utils/node_utils.h"
 #include "graph/utils/math_util.h"
-#include "runtime/kernel.h"
+#include "rt_external_kernel.h"
 #include "exe_graph/runtime/tensor.h"
 #include "exe_graph/runtime/continuous_vector.h"
 #include "exe_graph/runtime/tiling_data.h"

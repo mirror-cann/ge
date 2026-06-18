@@ -37,7 +37,7 @@ ge::graphStatus lstsmpGraphExec() {
       Tensor{{{1, 8, 512}, {1, 8, 512}}, {ge::FORMAT_ND, ge::FORMAT_ND, {}}, kOnDeviceHbm, ge::DT_FLOAT16, input_tensor_buffer});
 
   rtStream_t stream;
-  rtStreamCreate(&stream ,static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT));
+  aclrtCreateStreamWithConfig(&stream ,static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT));
 
   auto i4 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 

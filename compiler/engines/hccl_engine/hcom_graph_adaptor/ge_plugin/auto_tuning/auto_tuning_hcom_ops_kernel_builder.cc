@@ -15,6 +15,8 @@
 #include "graph/utils/tensor_utils.h"
 #include "register/ops_kernel_builder_registry.h"
 #include "hcom_op_utils.h"
+#include "common/ge_rts_decl.h"
+#include "framework/common/runtime_model_ge.h"
 
 namespace hccl {
 REGISTER_OPS_KERNEL_BUILDER(AUTOTUNE_HCCL_OPS_LIB_NAME, hccl::AutoTuningHcomOpsKernelBuilder);
@@ -144,7 +146,7 @@ ge::Status AutoTuningHcomOpsKernelBuilder::GenerateTask(const ge::Node &node, [[
   CHK_PRT_RET((kernelDefHccl == nullptr),
               HCCL_ERROR("[Generate][Task]errNo[0x%016llx] kernelDefHccl is null.", HCOM_ERROR_CODE(HCCL_E_PTR)),
               ge::INTERNAL_ERROR);
-  taskDef.set_type(RT_MODEL_TASK_HCCL);
+  taskDef.set_type(ACL_RT_MODEL_TASK_HCCL);
   taskDef.set_stream_id(node.GetOpDesc()->GetStreamId());
   std::string sCollectiveType = node.GetOpDesc()->GetType();
   HcclResult ret = CheckSupportedOP(sCollectiveType);

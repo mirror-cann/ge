@@ -15,7 +15,7 @@
 #include <map>
 #include <vector>
 #include <mutex>
-#include "runtime/rt.h"
+#include "rt_external.h"
 
 namespace ge {
 class DeviceAbnormalStatusHandler {

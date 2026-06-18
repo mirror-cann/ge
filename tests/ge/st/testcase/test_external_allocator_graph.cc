@@ -15,7 +15,7 @@
 #include "common/share_graph.h"
 #include "faker/global_data_faker.h"
 #include "graph/load/model_manager/model_manager.h"
-#include "runtime/base.h"
+#include "acl/acl_rt.h"
 #include "ge/ge_api.h"
 #include "ge/ge_api_error_codes.h"
 #include "ge/ge_graph_compile_summary.h"
@@ -45,7 +45,7 @@ class ExternalAllocatorUtStub : public Allocator {
  public:
   MemBlock *Malloc(size_t size) override {
     void *mem = nullptr;
-    (void)rtMalloc(&mem, size, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+    (void)aclrtMalloc(&mem, size, ACL_MEM_MALLOC_NORMAL_ONLY);
     malloc_cnt++;
     return new (std::nothrow) MemBlock(*this, mem, size);
   }
@@ -55,7 +55,7 @@ class ExternalAllocatorUtStub : public Allocator {
   }
   void Free(MemBlock *block) override {
     if (block != nullptr) {
-      rtFree(block->GetAddr());
+      aclrtFree(block->GetAddr());
       delete block;
     }
   }

@@ -13,7 +13,6 @@
 
 #include <cstdint>
 #include "framework/runtime/dump/model_dump_manager.h"
-#include "runtime/base.h"
 
 namespace ge {
 namespace dump {

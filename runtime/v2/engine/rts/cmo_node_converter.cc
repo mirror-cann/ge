@@ -14,7 +14,7 @@
 #include "graph/utils/node_utils.h"
 #include "graph_builder/converter_checker.h"
 #include "engine/node_converter_utils.h"
-#include "runtime/rt_stars_define.h"
+#include "rt_external_stars_define.h"
 
 namespace gert {
 constexpr uint32_t kMaxPrefetchLen = 120U * 1024U * 1024U;

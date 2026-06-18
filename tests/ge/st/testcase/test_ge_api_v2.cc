@@ -32,7 +32,7 @@
 #include "graph/load/model_manager/model_manager.h"
 #include "macro_utils/dt_public_unscope.h"
 #include "graph_metadef/depends/checker/tensor_check_utils.h"
-#include "runtime/base.h"
+#include "acl/acl_rt.h"
 #include "utils/taskdef_builder.h"
 #include "ge_graph_dsl/assert/graph_assert.h"
 #include "common/args_checker.h"
@@ -1529,7 +1529,7 @@ TEST_F(GeApiV2Test, DynamicMode_RunGraphWithStreamAsync_NotAllocOutputs) {
     EXPECT_EQ(ret, SUCCESS);
 
     rtStream_t stream = nullptr;
-    rtStreamCreate(&stream, 0);
+    aclrtCreateStreamWithConfig(&stream, 0, 0);
 
     ret = session.LoadGraph(graph_id, {}, stream);
     EXPECT_EQ(ret, SUCCESS);
@@ -1539,7 +1539,7 @@ TEST_F(GeApiV2Test, DynamicMode_RunGraphWithStreamAsync_NotAllocOutputs) {
     TensorCheckUtils::ConstructGertTensor(inputs[1]);
     ret = session.RunGraphWithStreamAsync(graph_id, stream, inputs, outputs);
     EXPECT_EQ(ret, SUCCESS);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
 
     ret = session.RemoveGraph(graph_id);
     EXPECT_EQ(ret, SUCCESS);
@@ -1567,14 +1567,14 @@ TEST_F(GeApiV2Test, RunGraphWithStreamAsync_WithoutCompileAndLoad) {
     session.AddGraph(graph_id, graph);
 
     rtStream_t stream = nullptr;
-    rtStreamCreate(&stream, 0);
+    aclrtCreateStreamWithConfig(&stream, 0, 0);
     std::vector<gert::Tensor> inputs(2);
     std::vector<gert::Tensor> outputs;
     TensorCheckUtils::ConstructGertTensor(inputs[0]);
     TensorCheckUtils::ConstructGertTensor(inputs[1]);
     auto ret = session.RunGraphWithStreamAsync(graph_id, stream, inputs, outputs);
     EXPECT_EQ(ret, SUCCESS);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
 
     ret = session.RemoveGraph(graph_id);
     EXPECT_EQ(ret, SUCCESS);
@@ -1602,7 +1602,7 @@ TEST_F(GeApiV2Test, RunGraphWithStreamAsync_WithoutCompile) {
     session.AddGraph(graph_id, graph);
 
     rtStream_t stream = nullptr;
-    rtStreamCreate(&stream, 0);
+    aclrtCreateStreamWithConfig(&stream, 0, 0);
 
     auto ret = session.LoadGraph(graph_id, {}, stream);
     EXPECT_EQ(ret, SUCCESS);
@@ -1613,7 +1613,7 @@ TEST_F(GeApiV2Test, RunGraphWithStreamAsync_WithoutCompile) {
     TensorCheckUtils::ConstructGertTensor(inputs[1]);
     ret = session.RunGraphWithStreamAsync(graph_id, stream, inputs, outputs);
     EXPECT_EQ(ret, SUCCESS);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
 
     ret = session.RemoveGraph(graph_id);
     EXPECT_EQ(ret, SUCCESS);
@@ -1642,14 +1642,14 @@ TEST_F(GeApiV2Test, RunGraphWithStreamAsync_WithoutLoad) {
     auto ret = session.CompileGraph(graph_id);
     EXPECT_EQ(ret, SUCCESS);
     rtStream_t stream = nullptr;
-    rtStreamCreate(&stream, 0);
+    aclrtCreateStreamWithConfig(&stream, 0, 0);
     std::vector<gert::Tensor> inputs(2);
     std::vector<gert::Tensor> outputs;
     TensorCheckUtils::ConstructGertTensor(inputs[0]);
     TensorCheckUtils::ConstructGertTensor(inputs[1]);
     ret = session.RunGraphWithStreamAsync(graph_id, stream, inputs, outputs);
     EXPECT_EQ(ret, SUCCESS);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
 
     ret = session.RemoveGraph(graph_id);
     EXPECT_EQ(ret, SUCCESS);
@@ -1766,7 +1766,7 @@ TEST_F(GeApiV2Test, GetCompileGraphModel_Success_Dynamic) {
 
   ModelExecuteArg execute_arg;
   rtStream_t stream = nullptr;
-  rtStreamCreate(&stream, 0);
+  aclrtCreateStreamWithConfig(&stream, 0, 0);
   ASSERT_NE(stream, nullptr);
   execute_arg.stream = stream;
 
@@ -1791,7 +1791,7 @@ TEST_F(GeApiV2Test, GetCompileGraphModel_Success_Dynamic) {
   EXPECT_TRUE(VarManager::Instance(session_id)->IsVarExist("ge_global_step"));
   session.DestroyResources();
   EXPECT_FALSE(VarManager::Instance(session_id)->IsVarExist("ge_global_step"));
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   ReInitGe();
 }
 
@@ -1827,14 +1827,14 @@ TEST_F(GeApiV2Test, GeSessionUnloadDynamicModel_NotReleaseVarMemory) {
     TensorCheckUtils::ConstructGertTensor(outputs[0]);
 
     rtStream_t stream = nullptr;
-    rtStreamCreate(&stream, 0);
+    aclrtCreateStreamWithConfig(&stream, 0, 0);
 
     ret = session.LoadGraph(graph_id, {}, stream);
     EXPECT_EQ(ret, SUCCESS);
 
     ret = session.RunGraphWithStreamAsync(graph_id, stream, inputs, outputs);
     EXPECT_EQ(ret, SUCCESS);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
 
     session_id = session.GetSessionId();
     EXPECT_TRUE(VarManager::Instance(session_id)->IsVarExist("ge_global_step"));
@@ -1896,7 +1896,7 @@ TEST_F(GeApiV2Test, GetCompileGraphModel_Success_Dynamic_LoadWithoutRtSession) {
 
   ModelExecuteArg execute_arg;
   rtStream_t stream = nullptr;
-  rtStreamCreate(&stream, 0);
+  aclrtCreateStreamWithConfig(&stream, 0, 0);
   ASSERT_NE(stream, nullptr);
   execute_arg.stream = stream;
 
@@ -1914,7 +1914,7 @@ TEST_F(GeApiV2Test, GetCompileGraphModel_Success_Dynamic_LoadWithoutRtSession) {
 
   ret = executor->Execute(execute_arg, &inputs[0], inputs.size(), &outputs[0], 1);
   EXPECT_EQ(ret, SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   ReInitGe();
 }
 
@@ -2006,7 +2006,7 @@ Status CopyWeights(const std::vector<ExternalWeightDescPtr> &external_weight_pat
 
     void *dev_ptr = nullptr;
     const auto alloc_size = (file_size + 32 - 1) / 32 * 32;
-    if (rtMalloc(&dev_ptr, alloc_size, RT_MEMORY_HBM, GE_MODULE_NAME) != 0) {
+    if (aclrtMalloc(&dev_ptr, alloc_size, ACL_MEM_MALLOC_NORMAL_ONLY) != ACL_SUCCESS) {
       std::cerr << "无法分配设备内存" << std::endl;
       return FAILED;
     }
@@ -2077,7 +2077,7 @@ TEST_F(GeApiV2Test, GetCompileGraphModel_UserSetExternalWeightAddress_Success_Lo
   ge::ModelLoadArg load_args{};
   GE_MAKE_GUARD(free_device_mem, [&load_args] () {
     for (const auto &external_weight_path : load_args.file_constant_mems) {
-      rtFree(const_cast<void *>(external_weight_path.device_mem));
+      aclrtFree(const_cast<void *>(external_weight_path.device_mem));
     }
   });
   ASSERT_EQ(CopyWeights(external_weight_paths, load_args.file_constant_mems), 0);
@@ -2280,14 +2280,14 @@ TEST_F(GeApiV2Test, GeSessionNotDestroyedAfterGEFinalizeV2) {
   TensorCheckUtils::ConstructGertTensor(outputs[0]);
 
   rtStream_t stream = nullptr;
-  rtStreamCreate(&stream, 0);
+  aclrtCreateStreamWithConfig(&stream, 0, 0);
 
   ret = session->LoadGraph(graph_id, {}, stream);
   EXPECT_EQ(ret, SUCCESS);
 
   ret = session->RunGraphWithStreamAsync(graph_id, stream, inputs, outputs);
   EXPECT_EQ(ret, SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 
   // 调用 GEFinalizeV2，不主动 delete session
   EXPECT_EQ(GEFinalizeV2(), SUCCESS);
@@ -2335,14 +2335,14 @@ TEST_F(GeApiV2Test, GeSessionAddGraphFailedAfterGEFinalizeV2) {
   TensorCheckUtils::ConstructGertTensor(outputs[0]);
 
   rtStream_t stream = nullptr;
-  rtStreamCreate(&stream, 0);
+  aclrtCreateStreamWithConfig(&stream, 0, 0);
 
   ret = session->LoadGraph(graph_id, {}, stream);
   EXPECT_EQ(ret, SUCCESS);
 
   ret = session->RunGraphWithStreamAsync(graph_id, stream, inputs, outputs);
   EXPECT_EQ(ret, SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 
   // 调用 GEFinalizeV2
   EXPECT_EQ(GEFinalizeV2(), SUCCESS);

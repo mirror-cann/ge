@@ -13,8 +13,8 @@
 #include "graph/debug/ge_attr_define.h"
 #include "common/opskernel/ops_kernel_info_types.h"
 #include "rt_error_codes.h"
-#include "runtime/rt_model.h"
-#include "runtime/mem.h"
+#include "rt_external_model.h"
+#include "rt_external_mem.h"
 namespace ffts {
 static const std::string kOpConstValueList = "_const_value_list";
 static const std::string kConstantOp = "Constant";

@@ -121,7 +121,7 @@ Status GELib::Initialize(const std::map<std::string, std::string> &options) {
       GE_ASSERT_SUCCESS(ge::ConvertToInt32(wait_iter->second.c_str(), wait_timeout), "convert [%s] to int failed.",
                         wait_iter->second.c_str());
       if (wait_timeout >= 0) {
-        GE_CHK_RT_RET(aclrtSetOpWaitTimeout(static_cast<uint32_t>(wait_timeout)));
+        GE_CHK_ACL_RET(aclrtSetOpWaitTimeout(static_cast<uint32_t>(wait_timeout)));
         GELOGI("Succeeded in setting aclrtSetOpWaitTimeout[%s] to runtime.", wait_iter->second.c_str());
       }
     }
@@ -134,8 +134,8 @@ Status GELib::Initialize(const std::map<std::string, std::string> &options) {
       GE_ASSERT_SUCCESS(ge::ConvertToInt32(op_execute_timeout.c_str(), execute_timeout), "convert [%s] to int failed.",
                         op_execute_timeout.c_str());
       if (execute_timeout >= 0) {
-        GE_CHK_RT_RET(rtSetOpExecuteTimeOut(static_cast<uint32_t>(execute_timeout)));
-        GELOGI("Succeeded in setting rtSetOpExecuteTimeOut[%s] to runtime.", exe_iter->second.c_str());
+        GE_CHK_ACL_RET(aclrtSetOpExecuteTimeOut(static_cast<uint32_t>(execute_timeout)));
+        GELOGI("Succeeded in setting aclrtSetOpExecuteTimeOut[%s] to runtime.", exe_iter->second.c_str());
       }
     }
   }

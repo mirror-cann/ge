@@ -20,6 +20,7 @@
 #include "graph/utils/graph_utils.h"
 #include "graph/utils/op_desc_utils_ex.h"
 #include "common/profiling/profiling_manager.h"
+#include "framework/common/runtime_model_ge.h"
 #include "common/dump/dump_manager.h"
 #include "common/opskernel/ops_kernel_info_store.h"
 #include "graph/load/model_manager/davinci_model.h"
@@ -2709,7 +2710,7 @@ TEST_F(UtestDavinciModel, LoadWithQueue_WithDummyQ) {
   model.output_data_info_[0] = zero_copy_offset;
   rtStream_t active_stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
-  rtStreamCreate(&active_stream, 0);
+  aclrtCreateStreamWithConfig(&active_stream, 0, 0);
   model.active_stream_list_ = {active_stream};
   ge::ExecutionRuntimeUtils::EnableInHeterogeneousExecutor();
   ModelQueueParam queue_param;
@@ -2721,7 +2722,7 @@ TEST_F(UtestDavinciModel, LoadWithQueue_WithDummyQ) {
   model.SetModelQueueParam(queue_param);
   EXPECT_EQ(model.LoadWithQueue(), SUCCESS); // AddHeadStream
   ge::ExecutionRuntimeUtils::in_heterogeneous_executor_ = false;
-  rtStreamDestroy(active_stream);
+  aclrtDestroyStream(active_stream);
 }
 
 TEST_F(UtestDavinciModel, LoadWithQueue_ReportStatus_succ) {
@@ -2733,7 +2734,7 @@ TEST_F(UtestDavinciModel, LoadWithQueue_ReportStatus_succ) {
   model.output_data_info_[0] = zero_copy_offset;
   rtStream_t active_stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
-  rtStreamCreate(&active_stream, 0);
+  aclrtCreateStreamWithConfig(&active_stream, 0, 0);
   model.active_stream_list_ = {active_stream};
   ge::ExecutionRuntimeUtils::EnableInHeterogeneousExecutor();
   model.need_report_status_ = true;
@@ -2746,7 +2747,7 @@ TEST_F(UtestDavinciModel, LoadWithQueue_ReportStatus_succ) {
   model.SetModelQueueParam(queue_param);
   EXPECT_EQ(model.LoadWithQueue(), SUCCESS);
   ge::ExecutionRuntimeUtils::in_heterogeneous_executor_ = false;
-  rtStreamDestroy(active_stream);
+  aclrtDestroyStream(active_stream);
 }
 
 TEST_F(UtestDavinciModel, LoadWithQueue_ReportStatus_fail) {
@@ -2758,7 +2759,7 @@ TEST_F(UtestDavinciModel, LoadWithQueue_ReportStatus_fail) {
   model.output_data_info_[0] = zero_copy_offset;
   rtStream_t active_stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
-  rtStreamCreate(&active_stream, 0);
+  aclrtCreateStreamWithConfig(&active_stream, 0, 0);
   model.active_stream_list_ = {active_stream};
   ge::ExecutionRuntimeUtils::EnableInHeterogeneousExecutor();
   model.need_report_status_ = true;
@@ -2772,7 +2773,7 @@ TEST_F(UtestDavinciModel, LoadWithQueue_ReportStatus_fail) {
   model.SetModelQueueParam(queue_param);
   EXPECT_NE(model.LoadWithQueue(), SUCCESS);
   ge::ExecutionRuntimeUtils::in_heterogeneous_executor_ = false;
-  rtStreamDestroy(active_stream);
+  aclrtDestroyStream(active_stream);
 }
 
 TEST_F(UtestDavinciModel, LoadWithQueue_ControlInput) {
@@ -2782,13 +2783,13 @@ TEST_F(UtestDavinciModel, LoadWithQueue_ControlInput) {
   model.input_queue_attrs_.emplace_back(inputQueue1);
   rtStream_t active_stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
-  rtStreamCreate(&active_stream, 0);
+  aclrtCreateStreamWithConfig(&active_stream, 0, 0);
   model.active_stream_list_ = {active_stream};
   ge::ExecutionRuntimeUtils::EnableInHeterogeneousExecutor();
   EXPECT_EQ(model.LoadWithQueue(), SUCCESS);
   EXPECT_TRUE(model.use_control_input_queue_);
   ge::ExecutionRuntimeUtils::in_heterogeneous_executor_ = false;
-  rtStreamDestroy(active_stream);
+  aclrtDestroyStream(active_stream);
 }
 
 TEST_F(UtestDavinciModel, LoadWithQueue_ControlOutput) {
@@ -2800,13 +2801,13 @@ TEST_F(UtestDavinciModel, LoadWithQueue_ControlOutput) {
   model.output_queue_attrs_.emplace_back(outputQueue1);
   rtStream_t active_stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
-  rtStreamCreate(&active_stream, 0);
+  aclrtCreateStreamWithConfig(&active_stream, 0, 0);
   model.active_stream_list_ = {active_stream};
   ge::ExecutionRuntimeUtils::EnableInHeterogeneousExecutor();
   EXPECT_EQ(model.LoadWithQueue(), SUCCESS);
   EXPECT_TRUE(model.use_control_output_queue_);
   ge::ExecutionRuntimeUtils::in_heterogeneous_executor_ = false;
-  rtStreamDestroy(active_stream);
+  aclrtDestroyStream(active_stream);
 }
 
 TEST_F(UtestDavinciModel, LoadWithQueue_ControlOutputWithDummyQ) {
@@ -2818,13 +2819,13 @@ TEST_F(UtestDavinciModel, LoadWithQueue_ControlOutputWithDummyQ) {
   model.output_queue_attrs_.emplace_back(outputQueue1);
   rtStream_t active_stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
-  rtStreamCreate(&active_stream, 0);
+  aclrtCreateStreamWithConfig(&active_stream, 0, 0);
   model.active_stream_list_ = {active_stream};
   ge::ExecutionRuntimeUtils::EnableInHeterogeneousExecutor();
   EXPECT_EQ(model.LoadWithQueue(), SUCCESS);
   EXPECT_TRUE(model.use_control_output_queue_);
   ge::ExecutionRuntimeUtils::in_heterogeneous_executor_ = false;
-  rtStreamDestroy(active_stream);
+  aclrtDestroyStream(active_stream);
 }
 
 TEST_F(UtestDavinciModel, LoadWithQueue_HWQ_ReportStatus_succ) {
@@ -2837,7 +2838,7 @@ TEST_F(UtestDavinciModel, LoadWithQueue_HWQ_ReportStatus_succ) {
   model.output_queue_attrs_.emplace_back(outputQueue1);
   rtStream_t active_stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
-  rtStreamCreate(&active_stream, 0);
+  aclrtCreateStreamWithConfig(&active_stream, 0, 0);
   model.active_stream_list_ = {active_stream};
   ge::ExecutionRuntimeUtils::EnableInHeterogeneousExecutor();
   model.need_report_status_ = true;
@@ -2855,7 +2856,7 @@ TEST_F(UtestDavinciModel, LoadWithQueue_HWQ_ReportStatus_succ) {
   queue_param.copy_inputs_for_non_zero_copy = true;
   model.SetModelQueueParam(queue_param);
   EXPECT_EQ(model.LoadWithHardwareQueue(), SUCCESS);
-  rtStreamDestroy(active_stream);
+  aclrtDestroyStream(active_stream);
 }
 
 // 覆盖 input_queue_attrs_.size() > 1 分支：多路输入时应发射 RT_DQS_TASK_FRAME_ALIGN
@@ -2872,7 +2873,7 @@ TEST_F(UtestDavinciModel, LoadWithHardwareQueue_MultiInputQueues_FrameAlignLaunc
   model.output_queue_attrs_.emplace_back(outputQueue1);
   rtStream_t active_stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
-  rtStreamCreate(&active_stream, 0);
+  aclrtCreateStreamWithConfig(&active_stream, 0, 0);
   model.active_stream_list_ = {active_stream};
   ZeroCopyOffset zero_copy_offset;
   std::map<uintptr_t, std::vector<uintptr_t>> virtual_addr_out_data;
@@ -2883,7 +2884,7 @@ TEST_F(UtestDavinciModel, LoadWithHardwareQueue_MultiInputQueues_FrameAlignLaunc
   model.input_data_info_[1] = zero_copy_offset;
   model.output_data_info_[0] = zero_copy_offset;
   EXPECT_EQ(model.LoadWithHardwareQueue(), SUCCESS);
-  rtStreamDestroy(active_stream);
+  aclrtDestroyStream(active_stream);
 }
 
 TEST_F(UtestDavinciModel, CpuModelDequeue_WithInputAlignAttrs) {
@@ -2897,7 +2898,7 @@ TEST_F(UtestDavinciModel, CpuModelDequeue_WithInputAlignAttrs) {
   model.output_queue_attrs_.emplace_back(output_queue_1);
   rtStream_t active_stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
-  rtStreamCreate(&active_stream, 0);
+  aclrtCreateStreamWithConfig(&active_stream, 0, 0);
   model.active_stream_list_ = {active_stream};
   model.model_queue_param_.input_align_attrs = {.align_max_cache_num = 4,
                                                 .align_timeout = 200,
@@ -2905,7 +2906,7 @@ TEST_F(UtestDavinciModel, CpuModelDequeue_WithInputAlignAttrs) {
 
   EXPECT_EQ(model.CpuModelDequeue(), SUCCESS);
   EXPECT_EQ(model.input_mbuf_list_.size(), 2);
-  rtStreamDestroy(active_stream);
+  aclrtDestroyStream(active_stream);
 }
 
 TEST_F(UtestDavinciModel, Helper_CopyInput_succ) {
@@ -2940,11 +2941,11 @@ TEST_F(UtestDavinciModel, Helper_CopyInput_succ) {
   model.copy_only_addrs_.Insert(0x2222);
   rtStream_t active_stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
-  rtStreamCreate(&active_stream, 0);
+  aclrtCreateStreamWithConfig(&active_stream, 0, 0);
   model.active_stream_list_ = {active_stream};
   EXPECT_EQ(model.CpuInputCopyProcess(), SUCCESS); // AddHeadStream
   ge::ExecutionRuntimeUtils::in_heterogeneous_executor_ = false;
-  rtStreamDestroy(active_stream);
+  aclrtDestroyStream(active_stream);
 }
 
 TEST_F(UtestDavinciModel, Helper_CopyInput_with_desc) {
@@ -2975,11 +2976,11 @@ TEST_F(UtestDavinciModel, Helper_CopyInput_with_desc) {
   model.copy_only_addrs_.Insert(0x10101010);
   rtStream_t active_stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
-  rtStreamCreate(&active_stream, 0);
+  aclrtCreateStreamWithConfig(&active_stream, 0, 0);
   model.active_stream_list_ = {active_stream};
   EXPECT_EQ(model.CpuInputCopyProcess(), SUCCESS); // AddHeadStream
   ge::ExecutionRuntimeUtils::in_heterogeneous_executor_ = false;
-  rtStreamDestroy(active_stream);
+  aclrtDestroyStream(active_stream);
 }
 
 TEST_F(UtestDavinciModel, Helper_CopyInput_Fail) {
@@ -2993,7 +2994,7 @@ TEST_F(UtestDavinciModel, Helper_CopyInput_Fail) {
   ge::ExecutionRuntimeUtils::EnableInHeterogeneousExecutor();
   rtStream_t active_stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
-  rtStreamCreate(&active_stream, 0);
+  aclrtCreateStreamWithConfig(&active_stream, 0, 0);
   model.active_stream_list_ = {active_stream};
 
   EXPECT_EQ(model.input_data_info_.size(), 0);
@@ -3030,7 +3031,7 @@ TEST_F(UtestDavinciModel, Helper_CopyInput_Fail) {
 
   EXPECT_EQ(model.CpuInputCopyProcess(), SUCCESS);
   ge::ExecutionRuntimeUtils::in_heterogeneous_executor_ = false;
-  rtStreamDestroy(active_stream);
+  aclrtDestroyStream(active_stream);
 }
 
 TEST_F(UtestDavinciModel, Helper_InputShapeValidate) {
@@ -3061,7 +3062,7 @@ TEST_F(UtestDavinciModel, Helper_InputShapeValidate) {
   ge::ExecutionRuntimeUtils::EnableInHeterogeneousExecutor();
   rtStream_t active_stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
-  rtStreamCreate(&active_stream, 0);
+  aclrtCreateStreamWithConfig(&active_stream, 0, 0);
   model.active_stream_list_ = {active_stream};
 
   EXPECT_EQ(model.input_data_info_.size(), 0);
@@ -3077,7 +3078,7 @@ TEST_F(UtestDavinciModel, Helper_InputShapeValidate) {
 
   EXPECT_EQ(model.CpuStaticInputShapeValidate(), SUCCESS);
   ge::ExecutionRuntimeUtils::in_heterogeneous_executor_ = false;
-  rtStreamDestroy(active_stream);
+  aclrtDestroyStream(active_stream);
 }
 
 class ClassTest {
@@ -4179,7 +4180,7 @@ TEST_F(UtestDavinciModel, RunWithTask_GertTensor) {
   model.data_inputer_.Push(args);
   domi::ModelTaskDef model_task_def;
   domi::TaskDef *task = model_task_def.add_task();
-  task->set_type(RT_MODEL_TASK_PROFILER_TRACE);
+  task->set_type(ACL_RT_MODEL_TASK_PROFILER_TRACE);
   task->_impl_.stream_id_ = 0;
   rtStream_t stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
@@ -5727,7 +5728,7 @@ TEST_F(UtestDavinciModel, Assign_fail) {
   void *addr1 = new uint8_t[1];
   void *addr2 = new uint8_t[1];
   model->stream_2_event_[addr1] = addr2;
-  g_runtime_stub_mock = "rtEventDestroy";
+  g_runtime_stub_mock = "aclrtDestroyEvent";
   delete model;
   delete[] (uint8_t *)addr1;
 }
@@ -8170,18 +8171,18 @@ TEST_F(UtestDavinciModel, static_graph_memory_outer_alloc) {
   {
   // extend size statis memory
   DavinciModel model1(0, nullptr);
-  model1.Assign(ge_model);
-  ModelParam param;
-  void *mem_base = nullptr;
-  rtMalloc(&mem_base, 4096U, RT_MEMORY_HBM, 45U);
-  EXPECT_TRUE(mem_base!=nullptr);
+   model1.Assign(ge_model);
+   ModelParam param;
+   void *mem_base = nullptr;
+   aclrtMalloc(&mem_base, 4096U, ACL_MEM_MALLOC_HUGE_ONLY);
+   EXPECT_TRUE(mem_base!=nullptr);
   param.mem_base = reinterpret_cast<uintptr_t>(mem_base);
   EXPECT_EQ(model1.Init(param), SUCCESS);
   EXPECT_EQ(model1.GetFmMemoryInfos().size(), 1);
   EXPECT_EQ(SessionMemAllocator<ActiveMemoryAllocator>::Instance()
     .GetMemAllocator(model1.GetSessionId(), 0)->active_memorys_.size(), 0);
 
-  rtFree(mem_base);
+  aclrtFree(mem_base);
   }
   graph_options[STATIC_MEMORY_POLICY] = "";
   GetThreadLocalContext().SetGraphOption(graph_options);
@@ -8515,10 +8516,10 @@ TEST_F(UtestDavinciModel, MallocDynamicMemorySuccess) {
       return RT_ERROR_NONE;
     }
 
-    rtError_t aclrtFree(void *dev_ptr) override {
+    aclError aclrtFree(void *dev_ptr) override {
       --call_count;
       delete[](uint8_t *) dev_ptr;
-      return RT_ERROR_NONE;
+      return ACL_SUCCESS;
     }
     uint32_t call_count = 0U;
     uint32_t size_local = 0;

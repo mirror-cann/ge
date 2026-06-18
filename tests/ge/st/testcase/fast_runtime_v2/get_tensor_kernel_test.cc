@@ -199,7 +199,7 @@ TEST_F(Runtime2GetTensorKernelSystemTest, GetTensorKernelSystemTest) {
   auto inputs = FakeTensors({16, 2, 2, 1}, 4, nullptr, kOnDeviceHbm, ge::FORMAT_NCHW);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(),
@@ -210,7 +210,7 @@ TEST_F(Runtime2GetTensorKernelSystemTest, GetTensorKernelSystemTest) {
                                     outputs.GetTensorList(), outputs.size()),
             ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 /**
@@ -252,7 +252,7 @@ TEST_F(Runtime2GetTensorKernelSystemTest, DeterministicSystemTest) {
   auto inputs = FakeTensors({16, 2, 2, 1}, 2, nullptr, kOnDeviceHbm, ge::FORMAT_NCHW);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(),
@@ -263,7 +263,7 @@ TEST_F(Runtime2GetTensorKernelSystemTest, DeterministicSystemTest) {
                                     outputs.GetTensorList(), outputs.size()),
             ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 /**
@@ -312,7 +312,7 @@ TEST_F(Runtime2GetTensorKernelSystemTest, GetTensorKernelSystemTestAlwaysZeroCop
   auto inputs = FakeTensors({16, 2, 2, 1}, 4, nullptr, kOnDeviceHbm, ge::FORMAT_NCHW);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(),
@@ -323,6 +323,6 @@ TEST_F(Runtime2GetTensorKernelSystemTest, GetTensorKernelSystemTestAlwaysZeroCop
                                     outputs.data(), outputs.size()),
             ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 }

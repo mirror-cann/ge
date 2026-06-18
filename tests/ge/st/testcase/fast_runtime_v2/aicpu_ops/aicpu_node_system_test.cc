@@ -17,7 +17,7 @@
 #include "faker/global_data_faker.h"
 #include "runtime/model_v2_executor.h"
 #include "common/bg_test.h"
-#include "runtime/dev.h"
+#include "acl/acl_rt.h"
 #include "kernel/memory/caching_mem_allocator.h"
 #include "stub/gert_runtime_stub.h"
 #include "op_impl/dynamic_rnn_impl.h"
@@ -44,7 +44,7 @@ class AicpuE2ESt : public bg::BgTest {
  protected:
   void SetUp() override {
     bg::BgTest::SetUp();
-    rtSetDevice(0);
+    aclrtSetDevice(0);
   }
   void TearDown() override {
     Test::TearDown();
@@ -71,13 +71,13 @@ void CheckAndExecute(ComputeGraphPtr &graph, TaskDefFaker &task_def) {
   auto inputs = FakeTensors({2048, 1, 1, 1}, 2);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.GetTensorList(),
                                     outputs.size()), ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 void CheckAndExecute3rdOp(ComputeGraphPtr &graph, TaskDefFaker &task_def) {
@@ -97,7 +97,7 @@ void CheckAndExecute3rdOp(ComputeGraphPtr &graph, TaskDefFaker &task_def) {
   auto outputs = FakeTensors({2}, 1);
   auto inputs = FakeTensors({2048, 2, 3, 4}, 2);
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   auto ess = StartExecutorStatistician(model_executor);
@@ -108,7 +108,7 @@ void CheckAndExecute3rdOp(ComputeGraphPtr &graph, TaskDefFaker &task_def) {
   EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("NonZero", "InferShapeRange"), 1);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   bg::ShapeRangeInferenceResult::ErrorResult();
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 }  // namespace
 
@@ -218,13 +218,13 @@ TEST_F(AicpuE2ESt, TensorListOp_ExecuteSuccess) {
   auto outputs = FakeTensors({2}, 1);
   auto inputs = FakeTensors({2048, 2, 3, 4}, 4);
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.GetTensorList(),
                                     outputs.size()), ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(AicpuE2ESt, ThirdAicpuOpHostCpuEngine_ExecuteSuccess) {

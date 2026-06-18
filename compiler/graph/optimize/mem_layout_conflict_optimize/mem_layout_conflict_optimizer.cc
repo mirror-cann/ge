@@ -12,7 +12,7 @@
 #include "graph/optimize/graph_optimize.h"
 #include "mem_layout_conflict_util.h"
 #include "graph/optimize/mem_layout_conflict_optimize/checker/checker.h"
-#include "runtime/rt.h"
+#include "rt_external.h"
 #include "common/checker.h"
 #include "graph/utils/node_utils.h"
 #include "graph/utils/op_type_utils.h"

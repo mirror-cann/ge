@@ -15,7 +15,7 @@
 #include "framework/common/debug/ge_log.h"
 #include "graph/def_types.h"
 #include "graph/ge_context.h"
-#include "runtime/dev.h"
+#include "rt_external_device.h"
 #include "graph/manager/mem_manager.h"
 #include "common/math/math_util.h"
 #include "graph_metadef/common/ge_common/util.h"
@@ -93,7 +93,7 @@ Status RdmaPoolAllocator::InitMemory(const size_t mem_size) {
   const std::string purpose = "Memory for rdma pool";
   const std::lock_guard<std::recursive_mutex> lock(mutex_);
   const int32_t dev_id = static_cast<int32_t>(device_id);
-  GE_CHK_RT_RET(aclrtSetDevice(dev_id));
+  GE_CHK_ACL_RET(aclrtSetDevice(dev_id));
   // DeviceReset before memory finished!
   GE_MAKE_GUARD(not_used_var, [&dev_id]() { GE_CHK_RT(aclrtResetDevice(dev_id)); });
 

@@ -121,7 +121,7 @@ TEST_F(TrustOutputTensorST, TrustOutputTensor_NoInferShape_WhenEnable) {
   auto inputs = FakeTensors({8 * 3 * 224 * 224}, 2);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
 
@@ -146,7 +146,7 @@ TEST_F(TrustOutputTensorST, TrustOutputTensor_NoInferShape_WhenEnable) {
   EXPECT_NE(ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_graph, "NoOp"), nullptr);
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 /**
@@ -200,7 +200,7 @@ TEST_F(TrustOutputTensorST, TrustOutputTensor_Failed_WhenDisableZeroCopy) {
   auto inputs = FakeTensors({8 * 3 * 224 * 224}, 2);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   runtime_stub.GetSlogStub().Clear();
@@ -209,7 +209,7 @@ TEST_F(TrustOutputTensorST, TrustOutputTensor_Failed_WhenDisableZeroCopy) {
   EXPECT_EQ(runtime_stub.GetSlogStub().FindErrorLogEndsWith("Failed to copy output tensor data to the given buffer, output tensor data size 4849664 is less than copy size size 25690112"), 0);
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 /**
@@ -259,7 +259,7 @@ TEST_F(TrustOutputTensorST, TrustOutputTensor_InferShape_WhenDefault) {
   auto inputs = FakeTensors({8 * 3 * 224 * 224}, 2);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ess->Clear();
@@ -276,7 +276,7 @@ TEST_F(TrustOutputTensorST, TrustOutputTensor_InferShape_WhenDefault) {
   EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "InferShape"), 2);
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 /**
@@ -325,7 +325,7 @@ TEST_F(TrustOutputTensorST, TrustOutputTensor_UpdateOutputShape_WhenType3Node) {
   auto inputs = FakeTensors({1, 2, 3, 4}, 2);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.data(), outputs.size()),
@@ -342,7 +342,7 @@ TEST_F(TrustOutputTensorST, TrustOutputTensor_UpdateOutputShape_WhenType3Node) {
   EXPECT_EQ(output.GetTensor()->GetStorageShape(), Shape({1, 2, 3, 1}));
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 /**
@@ -388,7 +388,7 @@ TEST_F(TrustOutputTensorST, TrustOutputTensor_InferShape_WhenNodeHasMultipleOutp
   auto inputs = FakeTensors({1, 2, 3, 4}, 3);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.GetTensorList(),
@@ -410,7 +410,7 @@ TEST_F(TrustOutputTensorST, TrustOutputTensor_InferShape_WhenNodeHasMultipleOutp
   EXPECT_EQ(outputs.GetTensorList()[1]->GetStorageShape(), Shape({5, 6, 7, 8}));
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 /**
  * 用例描述：打开trust_output_tensor和always_zero_copy开关时，执行成功
@@ -463,7 +463,7 @@ TEST_F(TrustOutputTensorST, TrustOutputTensor_NoInferShapeAndAllocModelOut_WhenE
   auto inputs = FakeTensors({8 * 3 * 224 * 224}, 2);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ess->Clear();
@@ -501,7 +501,7 @@ TEST_F(TrustOutputTensorST, TrustOutputTensor_NoInferShapeAndAllocModelOut_WhenE
   }
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 /**
@@ -553,7 +553,7 @@ TEST_F(TrustOutputTensorST, TrustOutputTensorAndAlwaysZeroCopy_CheckOutTensorSiz
   auto inputs = FakeTensors({8 * 3 * 224 * 224}, 2);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ess->Clear();
@@ -562,7 +562,7 @@ TEST_F(TrustOutputTensorST, TrustOutputTensorAndAlwaysZeroCopy_CheckOutTensorSiz
             ge::GRAPH_SUCCESS);
   EXPECT_EQ(runtime_stub.GetSlogStub().FindErrorLogEndsWith("The output tensor memory size[1605664] is smaller than the actual size[25690112] required by tensor."), 0);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 /**
@@ -610,7 +610,7 @@ TEST_F(TrustOutputTensorST, TrustOutputTensorAndAlwaysZeroCopy_UpdateOutputShape
   auto inputs = FakeTensors({1, 2, 3, 4}, 2);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.data(), outputs.size()),
@@ -624,7 +624,7 @@ TEST_F(TrustOutputTensorST, TrustOutputTensorAndAlwaysZeroCopy_UpdateOutputShape
   EXPECT_EQ(output.GetTensor()->GetStorageShape(), Shape({1, 2, 3, 1}));
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 /**
@@ -708,7 +708,7 @@ TEST_F(TrustOutputTensorST, TrustOutputTensor_NoInferShapeButHasFindInferShape_W
   auto inputs = FakeTensors({8 * 3 * 224 * 224}, 2);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ess->Clear();
@@ -729,7 +729,7 @@ TEST_F(TrustOutputTensorST, TrustOutputTensor_NoInferShapeButHasFindInferShape_W
   EXPECT_NE(ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_graph, "FindInferShapeFunc"), nullptr);
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 }  // namespace gert

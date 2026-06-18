@@ -18,7 +18,6 @@
 #include <vector>
 
 #include "common/ge_common/ge_types.h"
-#include "runtime/base.h"
 
 namespace ge {
 namespace dump {

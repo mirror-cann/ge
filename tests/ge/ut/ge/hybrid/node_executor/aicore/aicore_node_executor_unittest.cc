@@ -204,7 +204,7 @@ TEST_F(UtestAiCoreNodeExecutor, callback_success) {
   auto cb_func = entry.second.first;
   auto cb_args = entry.second.second;
   cb_func(cb_args);
-  (void)rtEventDestroy((rtEvent_t)entry.first);
+  (void)aclrtDestroyEvent((rtEvent_t)entry.first);
 }
 
 // Used by test_Load_Task_without_task_def
@@ -413,5 +413,97 @@ TEST_F(UtestAiCoreNodeExecutor, check_overflow_test) {
   mmSetEnv(kEnvOverFlowPath, &over_flow_path[0U], MMPA_MAX_PATH);
   ASSERT_EQ(aicore_node_task->CheckOverflow(task_context), SUCCESS);
   unsetenv(kEnvOverFlowPath);
+}
+
+TEST_F(UtestAiCoreNodeExecutor, check_overflow_stream_sync_timeout) {
+  std::unique_ptr<AiCoreOpTask> task1(new AiCoreOpTask());
+  OpDescPtr op_desc = CreateOpDesc("Add", "Add", 2, 1, false);
+  ge::AttrUtils::SetInt(*op_desc, ge::ATTR_NAME_UNKNOWN_SHAPE_TYPE, DEPEND_SHAPE_RANGE);
+  domi::TaskDef task_def;
+  BuildDefaultTaskDef(task_def);
+  auto graph = make_shared<ComputeGraph>("graph");
+  auto node = graph->AddNode(op_desc);
+  EXPECT_EQ(task1->Init(node, task_def), ge::SUCCESS);
+
+  std::unique_ptr<NodeItem> new_node;
+  BuildDefaultNodeItem(node, new_node);
+
+  GraphItem graph_item;
+  graph_item.node_items_.emplace_back(new_node.get());
+  graph_item.total_inputs_ = 2;
+  graph_item.total_outputs_ = 1;
+
+  GeRootModelPtr ge_root_model = std::make_shared<GeRootModel>();
+  EXPECT_EQ(ge_root_model->Initialize(graph), SUCCESS);
+  ge_root_model->SetModelName("test_name");
+  HybridModel hybrid_model(ge_root_model);
+
+  GraphExecutionContext graph_context;
+  graph_context.model = &hybrid_model;
+  SubgraphContext subgraph_context(&graph_item, &graph_context);
+  ASSERT_EQ(subgraph_context.Init(), SUCCESS);
+  graph_context.callback_manager = new (std::nothrow) RtCallbackManager();
+  graph_context.own_callback_manager = true;
+
+  auto node_state = subgraph_context.GetNodeState(new_node.get());
+  ASSERT_NE(node_state, nullptr);
+  std::vector<std::unique_ptr<AiCoreOpTask>> tasks;
+  tasks.emplace_back(std::move(task1));
+  std::unique_ptr<AiCoreNodeTask> aicore_node_task;
+  aicore_node_task.reset(new (std::nothrow) AiCoreNodeTask(std::move(tasks)));
+
+  auto task_context = *node_state->GetTaskContext();
+  task_context.execution_context_->dump_properties.is_train_op_debug_ = true;
+  const char_t *const kTimeoutEnvPath = "TIMEOUT";
+  char_t timeout_path[MMPA_MAX_PATH] = "timeout";
+  mmSetEnv(kTimeoutEnvPath, &timeout_path[0U], MMPA_MAX_PATH);
+  ASSERT_EQ(aicore_node_task->CheckOverflow(task_context), FAILED);
+  unsetenv(kTimeoutEnvPath);
+}
+
+TEST_F(UtestAiCoreNodeExecutor, check_overflow_other_rt_error) {
+  std::unique_ptr<AiCoreOpTask> task1(new AiCoreOpTask());
+  OpDescPtr op_desc = CreateOpDesc("Add", "Add", 2, 1, false);
+  ge::AttrUtils::SetInt(*op_desc, ge::ATTR_NAME_UNKNOWN_SHAPE_TYPE, DEPEND_SHAPE_RANGE);
+  domi::TaskDef task_def;
+  BuildDefaultTaskDef(task_def);
+  auto graph = make_shared<ComputeGraph>("graph");
+  auto node = graph->AddNode(op_desc);
+  EXPECT_EQ(task1->Init(node, task_def), ge::SUCCESS);
+
+  std::unique_ptr<NodeItem> new_node;
+  BuildDefaultNodeItem(node, new_node);
+
+  GraphItem graph_item;
+  graph_item.node_items_.emplace_back(new_node.get());
+  graph_item.total_inputs_ = 2;
+  graph_item.total_outputs_ = 1;
+
+  GeRootModelPtr ge_root_model = std::make_shared<GeRootModel>();
+  EXPECT_EQ(ge_root_model->Initialize(graph), SUCCESS);
+  ge_root_model->SetModelName("test_name");
+  HybridModel hybrid_model(ge_root_model);
+
+  GraphExecutionContext graph_context;
+  graph_context.model = &hybrid_model;
+  SubgraphContext subgraph_context(&graph_item, &graph_context);
+  ASSERT_EQ(subgraph_context.Init(), SUCCESS);
+  graph_context.callback_manager = new (std::nothrow) RtCallbackManager();
+  graph_context.own_callback_manager = true;
+
+  auto node_state = subgraph_context.GetNodeState(new_node.get());
+  ASSERT_NE(node_state, nullptr);
+  std::vector<std::unique_ptr<AiCoreOpTask>> tasks;
+  tasks.emplace_back(std::move(task1));
+  std::unique_ptr<AiCoreNodeTask> aicore_node_task;
+  aicore_node_task.reset(new (std::nothrow) AiCoreNodeTask(std::move(tasks)));
+
+  auto task_context = *node_state->GetTaskContext();
+  task_context.execution_context_->dump_properties.is_train_op_debug_ = true;
+  const char_t *const kEnvRecordPath = "CONSTANT_FOLDING_PASS_9";
+  char_t record_path[MMPA_MAX_PATH] = "mock_fail";
+  mmSetEnv(kEnvRecordPath, &record_path[0U], MMPA_MAX_PATH);
+  ASSERT_NE(aicore_node_task->CheckOverflow(task_context), SUCCESS);
+  unsetenv(kEnvRecordPath);
 }
 }  // namespace ge

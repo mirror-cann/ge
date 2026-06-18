@@ -15,7 +15,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
-#include <runtime/rt.h>
+#include "rt_external.h"
 #include <iostream>
 #include <fstream>
 
@@ -293,7 +293,7 @@ TEST_F(HcomExecutorTest, st_executor_broadcast) {
   ret = hccl::HcomExecutor::GetInstance().InitHcclComm(nullptr, hcclComm);
   EXPECT_EQ(ret, HCCL_SUCCESS);
 
-  rt_ret = rtStreamCreate(&stream, 5);
+  rt_ret = aclrtCreateStreamWithConfig(&stream, 5, 0);
   EXPECT_EQ(rt_ret, RT_ERROR_NONE);
   sendbuf = (s8 *)sal_malloc(count * sizeof(s8));
   sal_memset(sendbuf, count * sizeof(s8), 0, count * sizeof(s8));
@@ -339,7 +339,7 @@ TEST_F(HcomExecutorTest, st_executor_broadcast) {
   EXPECT_EQ(ret, HCCL_SUCCESS);
 
   sal_free(sendbuf);
-  rt_ret = rtStreamDestroy(stream);
+  rt_ret = aclrtDestroyStream(stream);
 
   ret = HcomDestroy();
   EXPECT_EQ(ret, HCCL_SUCCESS);
@@ -384,7 +384,7 @@ TEST_F(HcomExecutorTest, st_executor_allreduce) {
   ret = hccl::HcomExecutor::GetInstance().InitHcclComm(nullptr, hcclComm);
   EXPECT_EQ(ret, HCCL_SUCCESS);
 
-  rt_ret = rtStreamCreate(&stream, 5);
+  rt_ret = aclrtCreateStreamWithConfig(&stream, 5, 0);
   EXPECT_EQ(rt_ret, RT_ERROR_NONE);
   sendbuf = (s8 *)sal_malloc(count * sizeof(s8));
   sal_memset(sendbuf, count * sizeof(s8), 0, count * sizeof(s8));
@@ -429,7 +429,7 @@ TEST_F(HcomExecutorTest, st_executor_allreduce) {
   EXPECT_EQ(ret, HCCL_SUCCESS);
   sal_free(sendbuf);
   sal_free(recvbuf);
-  rt_ret = rtStreamDestroy(stream);
+  rt_ret = aclrtDestroyStream(stream);
 
   ret = HcomDestroy();
   EXPECT_EQ(ret, HCCL_SUCCESS);
@@ -473,7 +473,7 @@ TEST_F(HcomExecutorTest, st_executor_equeue_allreduce_mix) {
   ret = hccl::HcomExecutor::GetInstance().InitHcclComm(nullptr, hcclComm);
   EXPECT_EQ(ret, HCCL_SUCCESS);
 
-  rt_ret = rtStreamCreate(&stream, 5);
+  rt_ret = aclrtCreateStreamWithConfig(&stream, 5, 0);
   EXPECT_EQ(rt_ret, RT_ERROR_NONE);
   sendbuf = (s8 *)sal_malloc(count * sizeof(s8));
   sal_memset(sendbuf, count * sizeof(s8), 0, count * sizeof(s8));
@@ -542,7 +542,7 @@ TEST_F(HcomExecutorTest, st_executor_equeue_allreduce_mix) {
   EXPECT_EQ(ret, HCCL_SUCCESS);
   sal_free(sendbuf);
   sal_free(recvbuf);
-  rt_ret = rtStreamDestroy(stream);
+  rt_ret = aclrtDestroyStream(stream);
 
   ret = HcomDestroy();
   EXPECT_EQ(ret, HCCL_SUCCESS);
@@ -589,7 +589,7 @@ TEST_F(HcomExecutorTest, st_executor_equeue_allreduce) {
   ret = hccl::HcomExecutor::GetInstance().InitHcclComm(nullptr, hcclComm);
   EXPECT_EQ(ret, HCCL_SUCCESS);
 
-  rt_ret = rtStreamCreate(&stream, 5);
+  rt_ret = aclrtCreateStreamWithConfig(&stream, 5, 0);
   EXPECT_EQ(rt_ret, RT_ERROR_NONE);
   sendbuf = (s8 *)sal_malloc(count * sizeof(s8));
   sal_memset(sendbuf, count * sizeof(s8), 0, count * sizeof(s8));
@@ -645,7 +645,7 @@ TEST_F(HcomExecutorTest, st_executor_equeue_allreduce) {
   EXPECT_EQ(ret, HCCL_SUCCESS);
   sal_free(sendbuf);
   sal_free(recvbuf);
-  rt_ret = rtStreamDestroy(stream);
+  rt_ret = aclrtDestroyStream(stream);
 
   ret = HcomDestroy();
   EXPECT_EQ(ret, HCCL_SUCCESS);
@@ -692,7 +692,7 @@ TEST_F(HcomExecutorTest, st_executor_equeue_reduce_scatter) {
   ret = hccl::HcomExecutor::GetInstance().InitHcclComm(nullptr, hcclComm);
   EXPECT_EQ(ret, HCCL_SUCCESS);
 
-  rt_ret = rtStreamCreate(&stream, 5);
+  rt_ret = aclrtCreateStreamWithConfig(&stream, 5, 0);
   EXPECT_EQ(rt_ret, RT_ERROR_NONE);
   sendbuf = (s8 *)sal_malloc(count * sizeof(s8));
   sal_memset(sendbuf, count * sizeof(s8), 0, count * sizeof(s8));
@@ -746,7 +746,7 @@ TEST_F(HcomExecutorTest, st_executor_equeue_reduce_scatter) {
   EXPECT_EQ(ret, HCCL_SUCCESS);
   sal_free(sendbuf);
   sal_free(recvbuf);
-  rt_ret = rtStreamDestroy(stream);
+  rt_ret = aclrtDestroyStream(stream);
 
   ret = HcomDestroy();
   EXPECT_EQ(ret, HCCL_SUCCESS);
@@ -1435,7 +1435,7 @@ TEST_F(HcomExecutorTest, st_executor_reduce) {
   ret = hccl::HcomExecutor::GetInstance().InitHcclComm(nullptr, hcclComm);
   EXPECT_EQ(ret, HCCL_SUCCESS);
 
-  rt_ret = rtStreamCreate(&stream, 5);
+  rt_ret = aclrtCreateStreamWithConfig(&stream, 5, 0);
   EXPECT_EQ(rt_ret, RT_ERROR_NONE);
   sendbuf = (s8 *)sal_malloc(count * sizeof(s8));
   sal_memset(sendbuf, count * sizeof(s8), 0, count * sizeof(s8));

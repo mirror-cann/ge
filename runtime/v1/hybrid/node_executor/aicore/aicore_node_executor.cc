@@ -15,7 +15,8 @@
 #include "graph/ge_context.h"
 #include "hybrid/executor/hybrid_execution_context.h"
 #include "single_op/task/build_task_utils.h"
-
+#include "rt_external_stream.h"
+#include "rt_external_kernel.h"
 
 namespace ge {
 namespace hybrid {
@@ -302,12 +303,12 @@ Status AiCoreNodeTask::CheckOverflow(TaskContext &context) const {
       GELOGW("Dynamic shape op %s is over flow", context.GetNodeName());
       return SUCCESS;
     } else if (rt_ret == ACL_ERROR_RT_STREAM_SYNC_TIMEOUT) {
-      GELOGE(rt_ret, "[Invoke][rtStreamSynchronizeWithTimeout] failed, ret:%d.", rt_ret);
-      REPORT_INNER_ERR_MSG("E19999", "rtStreamSynchronizeWithTimeout failed, ret:%d.", rt_ret);
+      GELOGE(rt_ret, "[Invoke][aclrtSynchronizeStreamWithTimeout] failed, ret:%d.", rt_ret);
+      REPORT_INNER_ERR_MSG("E19999", "aclrtSynchronizeStreamWithTimeout failed, ret:%d.", rt_ret);
       return FAILED;
     } else if (rt_ret != RT_ERROR_NONE) {
       GELOGE(RT_FAILED, "[Invoke][RtStreamSynchronize] failed, ret:%d.", rt_ret);
-      REPORT_INNER_ERR_MSG("E19999", "rtStreamSynchronize failed, ret:%d.", rt_ret);
+      REPORT_INNER_ERR_MSG("E19999", "aclrtSynchronizeStream failed, ret:%d.", rt_ret);
       return RT_ERROR_TO_GE_STATUS(rt_ret);
     } else {
       // add for misra rule 6-4-2

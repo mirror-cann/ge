@@ -19,7 +19,7 @@
 #include <vector>
 #include "framework/common/ge_inner_error_codes.h"
 #include "graph/node.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "graph/build/memory/hybrid_mem_assigner.h"
 #include "graph/build/memory/graph_mem_splitter.h"
 

@@ -8,6 +8,8 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
+#include "common/ge_rts_decl.h"
+#include "framework/common/runtime_model_ge.h"
 #include "fftsplus_ops_kernel_builder.h"
 #include <list>
 #include "inc/ffts_utils.h"
@@ -1025,7 +1027,7 @@ Status FFTSPlusOpsKernelBuilder::GenerateTask(const ge::Node &node, ge::RunConte
     return FAILED;
   }
   domi::FftsPlusTaskDef *ffts_plus_task_def = task_def_real->mutable_ffts_plus_task();
-  task_def_real->set_type(RT_MODEL_TASK_FFTS_PLUS_TASK);
+  task_def_real->set_type(ACL_RT_MODEL_TASK_FFTS_PLUS_TASK);
   ffts_plus_task_def->set_op_index(op_desc->GetId());
   task_def_real->set_stream_id(op_desc->GetStreamId());
   task_defs.push_back(*task_def_real);

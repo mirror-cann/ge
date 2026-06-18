@@ -24,7 +24,7 @@
 #undef private
 #undef protected
 
-#include "runtime/base.h"
+#include "rt_external_base.h"
 #include "graph/ge_tensor.h"
 #include "graph/compute_graph.h"
 #include "graph/op_desc.h"

@@ -20,7 +20,7 @@
 #include "init_ge.h"
 #include "ge_running_env/path_utils.h"
 #include "api/atc/main_impl.h"
-#include "runtime/rt.h"
+#include "rt_external.h"
 #include "framework/executor/ge_executor.h"
 #include "framework/generator/ge_generator.h"
 #include "single_op/single_op.h"
@@ -391,7 +391,7 @@ class SingleOpTest : public testing::Test {
 
   void SetUp() {
     env_.InstallDefault();
-    rtStreamCreate(&stream_, 0);
+    aclrtCreateStreamWithConfig(&stream_, 0, 0);
     gert::GlobalProfilingWrapper::GetInstance()->SetEnableFlags(0);
   }
 
@@ -399,7 +399,7 @@ class SingleOpTest : public testing::Test {
     MockRuntime::SetInstance(nullptr);
     GeExecutor::ReleaseSingleOpResource(stream_);
     GeExecutor::ReleaseResource();
-    rtStreamDestroy(stream_);
+    aclrtDestroyStream(stream_);
     GEFinalize();
     ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
 

@@ -235,7 +235,7 @@ TEST_F(TestCustomNodeKernel, custom_op_kernel_execute_test) {
   auto outputs = FakeTensors({2048}, 1);
   auto inputs = FakeTensors({2048}, 3);
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   auto ess = StartExecutorStatistician(model_executor);
@@ -255,7 +255,7 @@ TEST_F(TestCustomNodeKernel, custom_op_kernel_execute_test) {
       .AppendExpectEvent(kFreeRe, 0)  // (3) free on stream 0, trigger LocalRecycle
       .AsYouWish());
   ge::diagnoseSwitch::DisableProfiling();
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 /**
@@ -369,7 +369,7 @@ TEST_F(TestCustomNodeKernel, custom_op_shape_infer_op_execute_test) {
   auto outputs = FakeTensors({2048}, 1);
   auto inputs = FakeTensors({2048}, 3);
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   custom_shape_infer_count = 0U;
@@ -385,7 +385,7 @@ TEST_F(TestCustomNodeKernel, custom_op_shape_infer_op_execute_test) {
   // ExecuteCustomOpWithInferShape 内部直接被调用的，所以统计应看执行 kernel。
   EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType(op_type, "ExecuteCustomOpWithInferShape"), 1);
   EXPECT_EQ(model_executor->UnLoad(), GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 }
 }

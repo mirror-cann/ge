@@ -8,6 +8,7 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
+#include "common/ge_rts_decl.h"
 #include "common/l2_stream_info.h"
 #include "common/fe_log.h"
 

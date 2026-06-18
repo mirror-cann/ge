@@ -27,6 +27,7 @@
 #include "graph/def_types.h"
 #include "exe_graph/runtime/gert_tensor_data.h"
 #include "framework/common/ge_types.h"
+#include "rt_external_mem.h"
 
 namespace gert {
 namespace {

@@ -17,6 +17,7 @@
 #include "graph/op_desc.h"
 #include "framework/common/taskdown_common.h"
 #include "fwk_adpt_struct.h"
+#include "common/ge_rts_decl.h"
 
 namespace ge {
 const std::map<int32_t, int32_t> kTopicTypeToRtsFlagMap {

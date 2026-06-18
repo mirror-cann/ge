@@ -10,9 +10,9 @@
 
 #ifndef AIR_CXX_BASE_COMMON_RUNTIME_API_WRAPPER_H_
 #define AIR_CXX_BASE_COMMON_RUNTIME_API_WRAPPER_H_
-#include "runtime/rt_ffts_plus.h"
-#include "runtime/rt_stars.h"
-#include "runtime/mem.h"
+#include "rt_external_ffts.h"
+#include "rt_external_stars.h"
+#include "rt_external_mem.h"
 
 namespace ge {
 rtError_t rtFftsPlusTaskLaunchWithFlag(const rtFftsPlusTaskInfo_t *const fftsPlusTaskInfo, const void *const stm,

@@ -11,7 +11,7 @@
 #include <gtest/gtest.h>
 #include <vector>
 #include <mmpa/mmpa_api.h>
-#include "runtime/rt.h"
+#include "rt_external.h"
 
 #include "macro_utils/dt_public_scope.h"
 #include "single_op/stream_resource.h"
@@ -100,4 +100,40 @@ TEST_F(UtestStreamResource, MallocMemory_MockRtMemsetFail_WithoutExternalAllocat
   res.allocator_ = &res.internal_allocator_;
   auto mem = (ge::MemBlock *)0x01;
   EXPECT_EQ(res.MallocMemory("malloc mem", 321, false, mem), nullptr);
+}
+
+TEST_F(UtestStreamResource, DeleteOperator_Success) {
+  StreamResource res((uintptr_t)1);
+  std::mutex mu;
+  SingleOp *single_op = new (std::nothrow) SingleOp(&res, &mu, nullptr);
+  res.op_map_[0].reset(single_op);
+  EXPECT_EQ(res.DeleteOperator(0), SUCCESS);
+  EXPECT_EQ(res.GetOperator(0), nullptr);
+}
+
+TEST_F(UtestStreamResource, DeleteOperator_SyncFail) {
+  StreamResource res((uintptr_t)1);
+  std::mutex mu;
+  SingleOp *single_op = new (std::nothrow) SingleOp(&res, &mu, nullptr);
+  res.op_map_[0].reset(single_op);
+  mmSetEnv("CONSTANT_FOLDING_PASS_9", "mock_fail", 1);
+  EXPECT_NE(res.DeleteOperator(0), SUCCESS);
+  unsetenv("CONSTANT_FOLDING_PASS_9");
+}
+
+TEST_F(UtestStreamResource, DeleteDynamicOperator_Success) {
+  StreamResource res((uintptr_t)1);
+  DynamicSingleOp *dynamic_op = new (std::nothrow) DynamicSingleOp(nullptr, 0, nullptr, nullptr);
+  res.dynamic_op_map_[0].reset(dynamic_op);
+  EXPECT_EQ(res.DeleteDynamicOperator(0), SUCCESS);
+  EXPECT_EQ(res.GetDynamicOperator(0), nullptr);
+}
+
+TEST_F(UtestStreamResource, DeleteDynamicOperator_SyncFail) {
+  StreamResource res((uintptr_t)1);
+  DynamicSingleOp *dynamic_op = new (std::nothrow) DynamicSingleOp(nullptr, 0, nullptr, nullptr);
+  res.dynamic_op_map_[0].reset(dynamic_op);
+  mmSetEnv("CONSTANT_FOLDING_PASS_9", "mock_fail", 1);
+  EXPECT_NE(res.DeleteDynamicOperator(0), SUCCESS);
+  unsetenv("CONSTANT_FOLDING_PASS_9");
 }

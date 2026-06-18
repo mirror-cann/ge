@@ -21,7 +21,7 @@
 #include "kernel/memory/host_mem_allocator.h"
 #include "kernel/memory/caching_mem_allocator.h"
 #include "kernel/memory/external_allocator.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "graph/utils/graph_utils.h"
 #include "graph/load/model_manager/model_manager.h"
 #include "acl/acl_rt.h"

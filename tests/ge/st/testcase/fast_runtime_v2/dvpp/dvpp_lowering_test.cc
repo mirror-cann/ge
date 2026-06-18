@@ -21,7 +21,7 @@
 #include "graph/utils/graph_utils.h"
 #include "graph/utils/graph_dump_utils.h"
 #include "kernel/memory/caching_mem_allocator.h"
-#include "runtime/dev.h"
+#include "acl/acl_rt.h"
 // stub and faker
 #include "stub/gert_runtime_stub.h"
 #include "check/executor_statistician.h"
@@ -36,7 +36,7 @@ class DvppGraphExecutorWithKernelUnitTest : public bg::BgTest {
  protected:
   void SetUp() override {
     bg::BgTest::SetUp();
-    rtSetDevice(0);
+    aclrtSetDevice(0);
   }
 };
 
@@ -70,9 +70,9 @@ TEST_F(DvppGraphExecutorWithKernelUnitTest, Dvpp_ExecuteSuccess) {
   auto inputs  = FakeTensors({2048}, 2);
   auto outputs = FakeTensors({2048}, 1);
 
-  rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, 
-      static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  aclrtStream stream;
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, 
+      static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0U), ACL_SUCCESS);
   auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({stream_value.value},
@@ -85,6 +85,6 @@ TEST_F(DvppGraphExecutorWithKernelUnitTest, Dvpp_ExecuteSuccess) {
             expect_out_shape);
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 }  // namespace gert

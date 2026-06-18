@@ -25,7 +25,7 @@ using namespace gert;
 namespace {
 class MockRuntime : public ge::RuntimeStub {
  public:
-  rtError_t rtMemGetInfoEx(rtMemInfoType_t memInfoType, size_t *free, size_t *total) override {
+  rtError_t aclrtGetMemInfo(aclrtMemAttr memInfoType, size_t *free, size_t *total) override {
     *free = 64UL * 1024UL * 1024UL;
     *total = 56UL * 1024UL * 1024UL * 1024UL;
     return RT_ERROR_NONE;

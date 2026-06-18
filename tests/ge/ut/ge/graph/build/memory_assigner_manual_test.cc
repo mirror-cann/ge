@@ -144,7 +144,7 @@ class UtestMemoryAssignerManualTest : public testing::Test {
  private:
   void InitGeLib() {
     class MockRuntime : public RuntimeStub {
-      rtError_t rtMemGetInfoEx(rtMemInfoType_t mem_info_type, size_t *free, size_t *total) override {
+      rtError_t aclrtGetMemInfo(aclrtMemAttr mem_info_type, size_t *free, size_t *total) override {
         *free = 60UL * 1024UL * 1024UL * 1024UL;
         *total = 60UL * 1024UL * 1024UL * 1024UL;
         return RT_ERROR_NONE;

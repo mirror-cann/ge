@@ -195,7 +195,7 @@ class FFTSLoweringST : public testing::Test {
     std::vector<Tensor *> outputs{output.GetTensor()};
 
     rtStream_t stream;
-    ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
     auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
     ess->Clear();
@@ -211,7 +211,7 @@ class FFTSLoweringST : public testing::Test {
               ()[0]->GetShape().GetStorageShape(), expect_out_shape);
 
     ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
   }
   void TestFFTSLowering(GeRootModelPtr &root_model, LoweringGlobalData &global_data, const bool dump_flag, bool is_empty) {
     auto graph = root_model->GetRootGraph();
@@ -235,7 +235,7 @@ class FFTSLoweringST : public testing::Test {
     std::vector<Tensor *> outputs{output.GetTensor()};
 
     rtStream_t stream;
-    ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
     auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
     ess->Clear();
@@ -257,7 +257,7 @@ class FFTSLoweringST : public testing::Test {
     }
 
     ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
   }
   void TestFFTSStaticLowering(GeRootModelPtr &root_model, LoweringGlobalData &global_data) {
     auto graph = root_model->GetRootGraph();
@@ -282,7 +282,7 @@ class FFTSLoweringST : public testing::Test {
     std::vector<Tensor *> outputs{output.GetTensor()};
 
     rtStream_t stream;
-    ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
     auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
     ess->Clear();
@@ -297,7 +297,7 @@ class FFTSLoweringST : public testing::Test {
     EXPECT_EQ(outputs.data()[0]->GetShape().GetStorageShape(), expect_out_shape);
 
     ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
   }
   void TestFFTSAutoStaticLowering(GeRootModelPtr &root_model, LoweringGlobalData &global_data) {
     auto graph = root_model->GetRootGraph();
@@ -322,7 +322,7 @@ class FFTSLoweringST : public testing::Test {
     std::vector<Tensor *> outputs{output.GetTensor()};
 
     rtStream_t stream;
-    ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
     auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
     ess->Clear();
@@ -337,7 +337,7 @@ class FFTSLoweringST : public testing::Test {
     EXPECT_EQ(outputs.data()[0]->GetShape().GetStorageShape(), expect_out_shape);
 
     ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
   }
   void TestFFTSByMultiThreadExecutor(GeRootModelPtr &root_model, LoweringGlobalData &global_data,
                                      TaskProducerType type) {
@@ -363,7 +363,7 @@ class FFTSLoweringST : public testing::Test {
     std::vector<Tensor *> outputs{output.GetTensor()};
 
     rtStream_t stream;
-    ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
     auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
     ASSERT_EQ(model_executor->Execute({stream_value.value}, inputs.GetTensorList(), inputs.size(), outputs.data(),
                                       outputs.size()),
@@ -373,7 +373,7 @@ class FFTSLoweringST : public testing::Test {
     EXPECT_EQ(outputs.data()[0]->GetShape().GetStorageShape(), expect_out_shape);
 
     ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
   }
 };
 

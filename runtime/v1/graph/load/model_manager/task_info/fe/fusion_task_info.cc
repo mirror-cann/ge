@@ -24,7 +24,7 @@
 #include "graph/utils/attr_utils.h"
 #include "graph/utils/op_desc_utils.h"
 #include "graph/utils/node_utils_ex.h"
-#include "runtime/kernel.h"
+#include "rt_external_kernel.h"
 #include "common/op_tiling/tiling_memcheck.h"
 #include "common/op_tiling/tiling_dfx.h"
 #include "common/opskernel/ops_kernel_info_types.h"
@@ -731,7 +731,7 @@ Status FusionTaskInfo::CopyTilingDataIfNeeded() {
   tiling_data_size_ = tiling_data_host_.size();
   tiling_data_addr_ = davinci_model_->MallocDynamicMemory(tiling_data_size_);
   GE_CHECK_NOTNULL(tiling_data_addr_);
-  GE_CHK_RT_RET(aclrtMemcpy(tiling_data_addr_, tiling_data_size_,
+  GE_CHK_ACL_RET(aclrtMemcpy(tiling_data_addr_, tiling_data_size_,
       tiling_data_host_.data(), tiling_data_host_.size(), ACL_MEMCPY_HOST_TO_DEVICE));
 
   GELOGI("Success to update tiling data to io_addr of %s, device addr: %p, size: %zu, host tiling data addr: %p",

@@ -14,7 +14,7 @@
 #include <type_traits>
 #include "exe_graph/runtime/base_type.h"
 #include "engine/aicore/kernel/aicore_update_kernel.h"
-#include "runtime/kernel.h"
+#include "common/ge_rts_decl.h"
 
 namespace gert {
 namespace kernel {

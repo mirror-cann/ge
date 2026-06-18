@@ -95,9 +95,9 @@ public:
     return 0;
   }
 
-  rtError_t rtCtxCreate(rtContext_t *ctx, uint32_t flags, int32_t device) {
+  aclError aclrtCreateContext(aclrtContext *ctx, int32_t device) {
     static uintptr_t x = 1;
-    *ctx = (rtContext_t *)x;
+    *ctx = (aclrtContext *)x;
     return 0;
   }
 };
@@ -121,7 +121,7 @@ TEST_F(HeterogeneousExchangeServiceTest, TestEnqueueAndDequeueClientQ) {
     ASSERT_EQ(exchange_service.Enqueue(0, queue_id, buf, sizeof(buf), control_info), SUCCESS);
   }
   ASSERT_EQ(exchange_service.Dequeue(0, queue_id, buf, 100, control_info), SUCCESS);
-  g_runtime_stub_mock = "rtCtxGetCurrent";
+  g_runtime_stub_mock = "aclrtGetCurrentContext";
   GE_MAKE_GUARD(mock, []() { g_runtime_stub_mock = ""; });
   GeTensor tensor;
   ASSERT_EQ(exchange_service.DequeueTensor(0, queue_id, tensor, control_info), SUCCESS);

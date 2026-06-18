@@ -19,7 +19,7 @@
 #include <vector>
 #include <list>
 
-#include "runtime/rt.h"
+#include "rt_external.h"
 #include "framework/common/ge_inner_error_codes.h"
 #include "framework/common/framework_types_internal.h"
 #include "framework/common/util.h"

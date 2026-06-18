@@ -15,7 +15,7 @@
 #include <string>
 #include <vector>
 #include "graph/buffer.h"
-#include "runtime/rt_model.h"
+#include "rt_external_model.h"
 
 namespace ge {
 /*lint -e148*/

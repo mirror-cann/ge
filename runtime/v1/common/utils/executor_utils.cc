@@ -312,9 +312,9 @@ Status ExecutorUtils::AssembleReuseBinaryArgs(const OpDescPtr &op_desc, optiling
       memcpy_kind = op_desc->HasAttr(ge::ATTR_SINGLE_OP_SCENE) ? ACL_MEMCPY_HOST_TO_HOST : ACL_MEMCPY_HOST_TO_DEVICE;
   void *const tiling_data_addr = ge::ValueToPtr(ge::PtrToValue(args_ex.args) + args_ex.tilingDataOffset);
   void *const tiling_addr_offset = ge::ValueToPtr(ge::PtrToValue(args_ex.args) + args_ex.tilingAddrOffset);
-  GE_CHK_RT_RET(aclrtMemcpy(tiling_addr_offset, sizeof(uintptr_t), &tiling_data_addr,
+  GE_CHK_ACL_RET(aclrtMemcpy(tiling_addr_offset, sizeof(uintptr_t), &tiling_data_addr,
       sizeof(uintptr_t), memcpy_kind));
-  GE_CHK_RT_RET(aclrtMemcpy(tiling_data_addr, max_tiling_size, run_info.GetAllTilingData().str().data(),
+  GE_CHK_ACL_RET(aclrtMemcpy(tiling_data_addr, max_tiling_size, run_info.GetAllTilingData().str().data(),
       tiling_data_size, memcpy_kind));
 
   GELOGD("Update args of %s, block dim: %u, tiling key: %" PRIu64 ", tilingAddrOffset: %u,"

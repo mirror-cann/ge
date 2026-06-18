@@ -8,7 +8,7 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "graph/optimize/mem_layout_conflict_optimize/mem_layout_conflict_util.h"
 #include "graph/optimize/mem_layout_conflict_optimize/checker/check_register.h"
 #include "graph/optimize/mem_layout_conflict_optimize/checker/checker_log.h"

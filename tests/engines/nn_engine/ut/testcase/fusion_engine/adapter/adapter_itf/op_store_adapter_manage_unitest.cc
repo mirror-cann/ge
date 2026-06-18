@@ -30,7 +30,7 @@
 #include "adapter/adapter_itf/op_store_adapter.h"
 #include "adapter/common/op_store_adapter_manager.h"
 #include "adapter/tbe_adapter/tbe_op_store_adapter.h"
-#include "runtime/kernel.h"
+#include "rt_external_kernel.h"
 #include "common/configuration.h"
 using namespace std;
 using namespace testing;

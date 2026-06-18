@@ -23,7 +23,7 @@
 #include "graph/utils/tensor_utils.h"
 #include "common/plugin/ge_make_unique_util.h"
 #include "depends/runtime/src/runtime_stub.h"
-#include "runtime/rt.h"
+#include "rt_external.h"
 #include "mmpa/mmpa_api.h"
 #include "graph/ge_local_context.h"
 #include "macro_utils/dt_public_unscope.h"

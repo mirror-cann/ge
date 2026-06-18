@@ -63,7 +63,7 @@ TEST_F(ConstPlaceHolderST, ConstPlaceHolderSTOK) {
   std::vector<Tensor *> outputs = {output.GetTensor()};
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   runtime_stub.Clear();
@@ -73,6 +73,6 @@ TEST_F(ConstPlaceHolderST, ConstPlaceHolderSTOK) {
   auto &launch_args = runtime_stub.GetRtsRuntimeStub().GetLaunchWithHandleArgs();
   ASSERT_EQ(launch_args.size(), 0U);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 }  // namespace gert

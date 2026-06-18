@@ -37,7 +37,7 @@ extern "C" {
 }
 #endif /*__cplusplus*/
 #include "hccl/hcom.h"
-#include "runtime/base.h"
+#include "rt_external_base.h"
 #include "llt_hccl_stub_sal_pub.h"
 #define EVENT_UNIQUE_ID_BYTES (SAL_UNIQUE_ID_BYTES + 11)
 #define EVENT_UNIQUE_ID_PREFIX "hccl-event-"

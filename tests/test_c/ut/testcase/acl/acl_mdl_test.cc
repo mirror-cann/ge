@@ -525,7 +525,7 @@ TEST_F(AclMdlTest, aclmdlSetConfigOpt_memType) {
   memPolicy = (size_t)ACL_MEM_MALLOC_HUGE_FIRST;
   ret = aclmdlSetConfigOpt(handle, ACL_MDL_MEM_MALLOC_POLICY_SIZET, &memPolicy, sizeof(memPolicy));
   EXPECT_EQ(ret, ACL_SUCCESS);
-  EXPECT_EQ(handle->memType, RT_MEMORY_POLICY_HUGE_PAGE_FIRST | RT_MEMORY_DEFAULT);
+  EXPECT_EQ(handle->memType, (size_t)ACL_MEM_MALLOC_HUGE_FIRST);
   aclmdlDestroyConfigHandle(handle);
 }
 

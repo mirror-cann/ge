@@ -20,7 +20,7 @@
 #include <list>
 #include <stack>
 
-#include "runtime/rt.h"
+#include "rt_external.h"
 #include "graph/compute_graph.h"
 #include "graph/node.h"
 #include "graph/utils/graph_utils.h"

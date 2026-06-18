@@ -1606,7 +1606,7 @@ Status ModelHelper::GetHardwareInfo(std::map<std::string, std::string> &options)
 
 Status ModelHelper::InitRuntimePlatform() {
   int32_t device_id = -1;
-  GE_CHK_RT_RET(aclrtGetDevice(&device_id));
+  GE_CHK_ACL_RET(aclrtGetDevice(&device_id));
   // init platform info
   const char *soc_version = aclrtGetSocName();
   GE_ASSERT_NOTNULL(soc_version);
@@ -1656,7 +1656,7 @@ Status ModelHelper::HandleDeviceInfo(fe::PlatFormInfos &platform_infos) const {
 Status ModelHelper::HandleDeviceInfo(fe::PlatFormInfos &platform_infos, fe::PlatformInfo &origin_platform_info) const {
   GELOGD("Begin to handle device info.");
   int32_t device_id = -1;
-  GE_CHK_RT_RET(aclrtGetDevice(&device_id));
+  GE_CHK_ACL_RET(aclrtGetDevice(&device_id));
 
   const char *soc_version = aclrtGetSocName();
   GE_ASSERT_NOTNULL(soc_version);

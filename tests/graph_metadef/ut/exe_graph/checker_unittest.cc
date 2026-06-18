@@ -10,7 +10,7 @@
 
 #include "common/checker.h"
 #include <gtest/gtest.h>
-#include "runtime/base.h"
+#include "rt_external_base.h"
 #include "hyper_status.h"
 namespace {
 template<typename T>

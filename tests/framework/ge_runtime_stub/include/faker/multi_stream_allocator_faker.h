@@ -13,7 +13,8 @@
 #include "kernel/memory/multi_stream_l2_allocator.h"
 #include "exe_graph/runtime/gert_tensor_data.h"
 #include "exe_graph/runtime/kernel_context.h"
-#include "runtime/stream.h"
+#include "rt_external_stream.h"
+#include "common/ge_rts_decl.h"
 namespace gert {
 namespace memory {
 class MultiStreamAllocatorFaker {

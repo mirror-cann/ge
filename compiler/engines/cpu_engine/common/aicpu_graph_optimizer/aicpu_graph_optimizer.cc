@@ -20,7 +20,7 @@
 #include "graph/ge_local_context.h"
 #include "graph_optimizer_utils.h"
 #include "optimizer.h"
-#include "runtime/dev.h"
+#include "rt_external_device.h"
 #include "util/log.h"
 #include "util/util.h"
 #include "util/constant.h"

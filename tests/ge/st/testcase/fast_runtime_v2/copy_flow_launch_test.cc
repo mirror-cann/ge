@@ -19,7 +19,7 @@
 #include "runtime/model_v2_executor.h"
 #include "engine/aicore/fe_rt2_common.h"
 #include "common/bg_test.h"
-#include "runtime/dev.h"
+#include "acl/acl_rt.h"
 #include "kernel/memory/caching_mem_allocator.h"
 #include "stub/gert_runtime_stub.h"
 #include "op_impl/less_important_op_impl.h"
@@ -142,7 +142,7 @@ class GraphExecutorWithCopyFlowLaunchKernelUnitTest : public bg::BgTest {
  protected:
   void SetUp() override {
     bg::BgTest::SetUp();
-    rtSetDevice(0);
+    aclrtSetDevice(0);
   }
 };
 const std::string DynamicAtomicStubName = "DynamicAtomicBin";
@@ -185,7 +185,7 @@ TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleNodeAiCore_CopyFlowL
   auto input_tensor2 = TensorFaker().Placement(kOnHost).DataType(ge::DT_INT32).Build();
   std::vector<Tensor *> inputs{input_tensor1.GetTensor(), input_tensor2.GetTensor()};
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.data(), inputs.size(),
@@ -222,7 +222,7 @@ TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleNodeAiCore_CopyFlowL
   EXPECT_EQ(args_host_buffer[add_launch_args->GetArgsEx()->tilingAddrOffset / 8 + 1U],
             args_host_buffer[add_launch_args->GetArgsEx()->tilingDataOffset / 8 - 1U]);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleNodeAiCore_CopyFlowLaunch_WithTwoFlowLaunch) {
@@ -257,7 +257,7 @@ TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleNodeAiCore_CopyFlowL
   auto input_tensor2 = TensorFaker().Placement(kOnHost).DataType(ge::DT_INT32).Build();
   std::vector<Tensor *> inputs{input_tensor1.GetTensor(), input_tensor2.GetTensor()};
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.data(), inputs.size(),
@@ -294,7 +294,7 @@ TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleNodeAiCore_CopyFlowL
   EXPECT_EQ(args_host_buffer[add_launch_args->GetArgsEx()->tilingAddrOffset / 8 + 1U],
             args_host_buffer[add_launch_args->GetArgsEx()->tilingDataOffset / 8 - 1U]);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleNodeAiCore_CopyFlowLaunch_NoFlowLaunch) {
@@ -328,7 +328,7 @@ TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleNodeAiCore_CopyFlowL
   auto input_tensor2 = TensorFaker().Placement(kOnHost).DataType(ge::DT_INT32).Shape({2048}).Build();
   std::vector<Tensor *> inputs{input_holder1.GetTensor(), input_tensor2.GetTensor()};
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.data(), inputs.size(),
@@ -349,7 +349,7 @@ TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleNodeAiCore_CopyFlowL
   EXPECT_EQ(args_host_buffer[add_launch_args->GetArgsEx()->tilingAddrOffset / 8 + 1U],
             args_host_buffer[add_launch_args->GetArgsEx()->tilingDataOffset / 8 - 1U]);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleNodeAiCore_BinaryArgs_AllRequired) {
@@ -389,7 +389,7 @@ TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleNodeAiCore_BinaryArg
   std::vector<Tensor *> inputs{input_tensor1.GetTensor(), input_tensor2.GetTensor(), input_tensor3.GetTensor(),
                                input_tensor4.GetTensor()};
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.data(), inputs.size(),
@@ -405,7 +405,7 @@ TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleNodeAiCore_BinaryArg
   EXPECT_EQ(add_launch_args->GetArgsEx()->tilingAddrOffset, GetTilingAddrOffset(args_info.size()));
   EXPECT_EQ(add_launch_args->GetArgsEx()->tilingDataOffset, GetTilingDataOffset(args_info.size()));
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleNodeAiCore_BinaryArgs_OneEmptyOptionalInput) {
   auto graph = ShareGraph::AddWith4InputsAicoreGraph();
@@ -445,7 +445,7 @@ TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleNodeAiCore_BinaryArg
   std::vector<Tensor *> inputs{input_tensor1.GetTensor(), input_tensor2.GetTensor(), input_tensor3.GetTensor(),
                                input_tensor4.GetTensor()};
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.data(), inputs.size(),
@@ -461,7 +461,7 @@ TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleNodeAiCore_BinaryArg
   EXPECT_EQ(add_launch_args->GetArgsEx()->tilingAddrOffset, GetTilingAddrOffset(args_info.size()));
   EXPECT_EQ(add_launch_args->GetArgsEx()->tilingDataOffset, GetTilingDataOffset(args_info.size()));
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleNodeAiCore_BinaryArgs_DynamicInput) {
   auto graph = ShareGraph::AddWith4InputsAicoreGraph();
@@ -503,7 +503,7 @@ TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleNodeAiCore_BinaryArg
   std::vector<Tensor *> inputs{input_tensor1.GetTensor(), input_tensor2.GetTensor(), input_tensor3.GetTensor(),
                                input_tensor4.GetTensor()};
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.data(), inputs.size(),
@@ -520,7 +520,7 @@ TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleNodeAiCore_BinaryArg
   EXPECT_EQ(add_launch_args->GetArgsEx()->tilingDataOffset, GetTilingDataOffset(args_info.size()));
   EXPECT_EQ(add_launch_args->GetArgsEx()->hostInputInfoPtr[0].addrOffset, 8);
   EXPECT_EQ(add_launch_args->GetArgsEx()->hostInputInfoPtr[0].dataOffset, 200);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleNodeAiCore_BinaryArgs_EmptyDynamicInput) {
   auto graph = ShareGraph::AddWith4InputsAicoreGraph();
@@ -559,7 +559,7 @@ TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleNodeAiCore_BinaryArg
   std::vector<Tensor *> inputs{input_tensor1.GetTensor(), input_tensor2.GetTensor(), input_tensor3.GetTensor(),
                                input_tensor4.GetTensor()};
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.data(), inputs.size(),
@@ -574,7 +574,7 @@ TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleNodeAiCore_BinaryArg
   EXPECT_EQ(add_launch_args->GetArgsEx()->argsSize, GetArgsSize(args_info.size(), 0, 0));
   EXPECT_EQ(add_launch_args->GetArgsEx()->tilingAddrOffset, GetTilingAddrOffset(5));
   EXPECT_EQ(add_launch_args->GetArgsEx()->tilingDataOffset, GetTilingDataOffset(5));
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleNodeAiCore_BinaryArgs_CopyFlowLaunch_MixScene1) {
   auto graph = ShareGraph::AddWith4InputsAicoreGraph();
@@ -616,7 +616,7 @@ TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleNodeAiCore_BinaryArg
   std::vector<Tensor *> inputs{input_tensor1.GetTensor(), input_tensor2.GetTensor(), input_tensor3.GetTensor(),
                                input_tensor4.GetTensor()};
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.data(), inputs.size(),
@@ -640,7 +640,7 @@ TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleNodeAiCore_BinaryArg
   EXPECT_EQ(add_launch_args->GetArgsEx()->hostInputInfoPtr[3].addrOffset, 8);
   EXPECT_EQ(add_launch_args->GetArgsEx()->hostInputInfoPtr[3].dataOffset, 320);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 /* *
  * 用例描述：测试ArgsInfo中，对于第1个和第2个输入arg都是来自同一个输出的场景，随路拷贝能够只拷贝1次tensor，且记录2次HostInputInfo，其中dataOffset相同
@@ -690,7 +690,7 @@ TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, CopyFlowLaunch_SingleNodeA
   std::vector<Tensor *> inputs{input_tensor1.GetTensor(), input_tensor2.GetTensor(), input_tensor3.GetTensor(),
                                input_tensor4.GetTensor()};
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.data(), inputs.size(),
@@ -718,7 +718,7 @@ TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, CopyFlowLaunch_SingleNodeA
   EXPECT_EQ(add_launch_args->GetArgsEx()->hostInputInfoPtr[4].dataOffset,
             add_launch_args->GetArgsEx()->hostInputInfoPtr[3].dataOffset);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleNodeAiCore_BinaryArgs_CopyFlowLaunch_MixScene2) {
@@ -760,7 +760,7 @@ TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleNodeAiCore_BinaryArg
   std::vector<Tensor *> inputs{input_tensor1.GetTensor(), input_tensor2.GetTensor(), input_tensor3.GetTensor(),
                                input_tensor4.GetTensor()};
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.data(), inputs.size(),
@@ -786,7 +786,7 @@ TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleNodeAiCore_BinaryArg
   EXPECT_EQ(add_launch_args->GetArgsEx()->hostInputInfoPtr[4].addrOffset, 288);
   EXPECT_EQ(add_launch_args->GetArgsEx()->hostInputInfoPtr[4].dataOffset, 308);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleNodeAiCore_BinaryArgs_CopyFlowLaunch_MixScene3) {
@@ -828,7 +828,7 @@ TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleNodeAiCore_BinaryArg
   std::vector<Tensor *> inputs{input_tensor1.GetTensor(), input_tensor2.GetTensor(), input_tensor3.GetTensor(),
                                input_tensor4.GetTensor()};
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.data(), inputs.size(),
@@ -854,7 +854,7 @@ TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleNodeAiCore_BinaryArg
   EXPECT_EQ(add_launch_args->GetArgsEx()->hostInputInfoPtr[4].addrOffset, 320);
   EXPECT_EQ(add_launch_args->GetArgsEx()->hostInputInfoPtr[4].dataOffset, 340);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleNodeAiCore_OutOfOrderArgsInfo_MultiExcuteSUCCESS) {
@@ -898,7 +898,7 @@ TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleNodeAiCore_OutOfOrde
   std::vector<Tensor *> inputs{input_tensor1.GetTensor(), input_tensor2.GetTensor(), input_tensor3.GetTensor(),
                                input_tensor4.GetTensor()};
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.data(), inputs.size(),
@@ -948,7 +948,7 @@ TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleNodeAiCore_OutOfOrde
   EXPECT_EQ(add_launch_args->GetArgsEx()->hostInputInfoPtr[4].dataOffset, 384);
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleNodeAiCore_BinaryArgs_AtomicClean) {
   auto graph = ShareGraph::AddWith4InputsAicoreGraph();
@@ -992,7 +992,7 @@ TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleNodeAiCore_BinaryArg
   std::vector<Tensor *> inputs{input_tensor1.GetTensor(), input_tensor2.GetTensor(), input_tensor3.GetTensor(),
                                input_tensor4.GetTensor()};
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.data(), inputs.size(),
@@ -1008,7 +1008,7 @@ TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleNodeAiCore_BinaryArg
   EXPECT_EQ(add_launch_args->GetArgsEx()->tilingDataOffset, 184);
   EXPECT_EQ(add_launch_args->GetArgsEx()->hostInputInfoNum, 0);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   runtime_stub.Clear();
 }
 
@@ -1056,7 +1056,7 @@ TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleHostCopyToTwoAiCoreN
   auto input_tensor2 = TensorFaker().Placement(kOnHost).DataType(ge::DT_INT32).Build();
   std::vector<Tensor *> inputs{input_tensor1.GetTensor(), input_tensor2.GetTensor()};
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   dlog_setlevel(GE_MODULE_NAME, 0, 0);
@@ -1156,7 +1156,7 @@ TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleHostCopyToTwoAiCoreN
                                                 {"InnerData", 0},
                                             }),
             "success");
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   dlog_setlevel(GE_MODULE_NAME, 3, 0);
 }
 }  // namespace gert

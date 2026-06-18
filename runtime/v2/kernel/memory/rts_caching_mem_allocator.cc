@@ -17,7 +17,7 @@
 #include "caching_mem_allocator.h"
 #include "rts_caching_mem_allocator.h"
 
-#include "runtime/rt.h"
+#include "rt_external.h"
 
 #include "framework/common/debug/ge_log.h"
 #include "common/checker.h"

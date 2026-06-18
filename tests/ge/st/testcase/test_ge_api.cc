@@ -23,7 +23,7 @@
 #include "graph/load/model_manager/model_manager.h"
 #include "macro_utils/dt_public_unscope.h"
 
-#include "runtime/base.h"
+#include "rt_external_base.h"
 #include "utils/taskdef_builder.h"
 #include "ge_graph_dsl/assert/graph_assert.h"
 #include "common/args_checker.h"
@@ -1607,7 +1607,7 @@ TEST_F(GeApiTest, DynamicMode_RunGraphWithStreamAsync_NotAllocOutputs) {
     EXPECT_EQ(ret, SUCCESS);
 
     rtStream_t stream = nullptr;
-    rtStreamCreate(&stream, 0);
+    aclrtCreateStreamWithConfig(&stream, 0, 0);
 
     ret = session.LoadGraph(graph_id, {}, stream);
     EXPECT_EQ(ret, SUCCESS);
@@ -1619,7 +1619,7 @@ TEST_F(GeApiTest, DynamicMode_RunGraphWithStreamAsync_NotAllocOutputs) {
     outputs.clear();
     ret = session.RunGraphWithStreamAsync(graph_id, stream, inputs, outputs);
     EXPECT_EQ(ret, SUCCESS);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
     ret = session.RemoveGraph(graph_id);
     EXPECT_EQ(ret, SUCCESS);
   }

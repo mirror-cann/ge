@@ -15,8 +15,8 @@ set(FE_SRC_CPP
 add_library(runtime_stub_fe SHARED
         ${FE_SRC_CPP})
 
-#target_include_directories(runtime_stub_fe PRIVATE
-#        )
+target_include_directories(runtime_stub_fe PUBLIC
+        ${CMAKE_SOURCE_DIR}/inc)
 
 # add it for slog compile at 12.16
 target_compile_definitions(runtime_stub_fe PRIVATE

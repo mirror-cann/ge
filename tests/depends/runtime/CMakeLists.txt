@@ -10,7 +10,11 @@
 
 add_library(runtime_stub SHARED src/runtime_stub.cc)
 target_compile_options(runtime_stub PRIVATE -g)
-target_include_directories(runtime_stub PRIVATE ${CMAKE_CURRENT_LIST_DIR}/src)
+target_include_directories(runtime_stub PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}/src
+PUBLIC
+    ${CMAKE_SOURCE_DIR}/inc
+)
 target_link_libraries(runtime_stub
     PRIVATE
         intf_llt_pub

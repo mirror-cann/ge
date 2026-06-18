@@ -13,7 +13,7 @@
 #include <cstdint>
 #include <memory>
 #include <unordered_map>
-#include "runtime/rt_model.h"
+#include "rt_external_model.h"
 #include "aicpu_task_struct.h"
 #include "proto/task.pb.h"
 #include "graph/op_desc.h"

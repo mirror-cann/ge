@@ -269,7 +269,7 @@ TEST_F(UtestGEExecutorTest, GeExecutorCaseLoadModelFromData) {
   EXPECT_EQ(GeLoadModelFromData(&model_id, &model_data), SUCCESS);
   EXPECT_EQ(UnloadModel(model_id), SUCCESS);
   FreeModelData(&model_data);
-  rtFree(weightspace);
+  aclrtFree(weightspace);
   GeDbgDeInit();
   GeFinalize();
 }
@@ -413,20 +413,20 @@ TEST_F(UtestGEExecutorTest, GeExecutorCaseModelExec) {
   EXPECT_EQ(ExecModel(model_id, &execDesc, false, &inputData, &outputData1), SUCCESS);
 
   EXPECT_EQ(UnloadModel(model_id), SUCCESS);
-  rtFree(workspace);
-  rtFree(weightspace);
+  aclrtFree(workspace);
+  aclrtFree(weightspace);
   DeInitVector(&inputData.blobs);
   DeInitVector(&outputData.blobs);
   DeInitVector(&outputData1.blobs);
   if (outputData.io_addr != NULL) {
-    rtFree(outputData.io_addr);
+    aclrtFree(outputData.io_addr);
   }
   if (outputData.io_addr_host != NULL) {
     mmFree(outputData.io_addr_host);
   }
   outputData.ioa_size = 0;
   if (outputData1.io_addr != NULL) {
-    rtFree(outputData1.io_addr);
+    aclrtFree(outputData1.io_addr);
   }
   if (outputData1.io_addr_host != NULL) {
     mmFree(outputData1.io_addr_host);
@@ -516,12 +516,12 @@ TEST_F(UtestGEExecutorTest, GeExecutorCaseModelExecErr) {
   model_id = 1000;
   EXPECT_EQ(ExecModel(model_id, &execDesc, true, &inputData, &outputData), ACL_ERROR_GE_EXEC_MODEL_ID_INVALID);
   EXPECT_EQ(UnloadModel(model_id), ACL_ERROR_GE_EXEC_MODEL_ID_INVALID);
-  rtFree(workspace);
-  rtFree(weightspace);
+  aclrtFree(workspace);
+  aclrtFree(weightspace);
   DeInitVector(&inputData.blobs);
   DeInitVector(&outputData.blobs);
   if (outputData.io_addr != NULL) {
-    rtFree(outputData.io_addr);
+    aclrtFree(outputData.io_addr);
   }
   if (outputData.io_addr_host != NULL) {
     mmFree(outputData.io_addr_host);
@@ -600,12 +600,12 @@ TEST_F(UtestGEExecutorTest, GeExecutorCaseModelExecErr_InvalidInputNums) {
   EXPECT_CALL(RtStubMock::GetInstance(), rtStreamGetSqid(_,_)).Times(1).WillOnce(Return(RT_ERROR_NONE));
   EXPECT_EQ(ExecModel(model_id, &execDesc, false, &inputData, &outputData), ACL_ERROR_GE_PARAM_INVALID);
   EXPECT_EQ(UnloadModel(model_id), SUCCESS);
-  rtFree(workspace);
-  rtFree(weightspace);
+  aclrtFree(workspace);
+  aclrtFree(weightspace);
   DeInitVector(&inputData.blobs);
   DeInitVector(&outputData.blobs);
   if (outputData.io_addr != NULL) {
-    rtFree(outputData.io_addr);
+    aclrtFree(outputData.io_addr);
   }
   if (outputData.io_addr_host != NULL) {
     mmFree(outputData.io_addr_host);
@@ -692,12 +692,12 @@ TEST_F(UtestGEExecutorTest, GeExecutorCaseModelExecErr_ExecModelFail) {
   EXPECT_CALL(RtStubMock::GetInstance(), rtStreamGetSqid(_,_)).Times(1).WillOnce(Return(RT_ERROR_NONE));
   EXPECT_EQ(ExecModel(model_id, &execDesc, false, &inputData, &outputData), ACL_ERROR_GE_MEMORY_ALLOCATION);
   EXPECT_EQ(UnloadModel(model_id), SUCCESS);
-  rtFree(workspace);
-  rtFree(weightspace);
+  aclrtFree(workspace);
+  aclrtFree(weightspace);
   DeInitVector(&inputData.blobs);
   DeInitVector(&outputData.blobs);
   if (outputData.io_addr != NULL) {
-    rtFree(outputData.io_addr);
+    aclrtFree(outputData.io_addr);
   }
   if (outputData.io_addr_host != NULL) {
     mmFree(outputData.io_addr_host);
@@ -795,12 +795,12 @@ TEST_F(UtestGEExecutorTest, GeExecutorCase_ModelExecuteInner) {
   EXPECT_EQ(ExecModel(model_id, &execDesc, false, &inputData, &outputData), ACL_ERROR_GE_MEMORY_ALLOCATION);
 
   EXPECT_EQ(UnloadModel(model_id), SUCCESS);
-  rtFree(workspace);
-  rtFree(weightspace);
+  aclrtFree(workspace);
+  aclrtFree(weightspace);
   DeInitVector(&inputData.blobs);
   DeInitVector(&outputData.blobs);;
   if (outputData.io_addr != NULL) {
-    rtFree(outputData.io_addr);
+    aclrtFree(outputData.io_addr);
   }
   if (outputData.io_addr_host != NULL) {
     mmFree(outputData.io_addr_host);
@@ -935,7 +935,7 @@ TEST_F(UtestGEExecutorTest, GeExecutorCase1LoadModelFromDataErr) {
   EXPECT_EQ(weight_size, 103);
   EXPECT_EQ(GeLoadModelFromData(&model_id, &model_data), ACL_ERROR_GE_MEMORY_OPERATE_FAILED);
   EXPECT_EQ(UnloadModel(model_id), ACL_ERROR_GE_EXEC_MODEL_ID_INVALID);
-  rtFree(weightspace);
+  aclrtFree(weightspace);
   GeDbgDeInit();
   GeFinalize();
 }
@@ -1001,7 +1001,7 @@ TEST_F(UtestGEExecutorTest, GeExecutorCase2LoadModelFromDataErr) {
   EXPECT_CALL(RtStubMock::GetInstance(), rtNanoModelDestroy(_)).Times(AnyNumber()).WillOnce(Return(RT_ERROR_NONE));
   EXPECT_EQ(GeLoadModelFromData(&model_id, &model_data), ACL_ERROR_GE_MEMORY_ALLOCATION);
   EXPECT_EQ(UnloadModel(model_id), ACL_ERROR_GE_EXEC_MODEL_ID_INVALID);
-  rtFree(weightspace);
+  aclrtFree(weightspace);
   GeDbgDeInit();
   GeFinalize();
 }

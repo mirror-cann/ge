@@ -10,7 +10,7 @@
 
 #include "single_op/task/build_task_utils.h"
 
-#include "runtime/rt.h"
+#include "rt_external.h"
 #include "graph/load/model_manager/model_utils.h"
 #include "graph/manager/graph_var_manager.h"
 #include "graph/utils/type_utils.h"

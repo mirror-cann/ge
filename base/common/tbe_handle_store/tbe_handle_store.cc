@@ -9,11 +9,10 @@
  */
 
 #include "common/tbe_handle_store/tbe_handle_store.h"
-
 #include <limits>
 #include "framework/common/ge_inner_error_codes.h"
 #include "framework/common/debug/log.h"
-#include "runtime/kernel.h"
+#include "common/ge_rts_decl.h"
 #include "common/plugin/ge_make_unique_util.h"
 #include "common/checker.h"
 #include "base/err_msg.h"

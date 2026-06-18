@@ -232,7 +232,7 @@ TEST_F(AclnnNodeExeUTest, MultiThreadExecutor_Ok_OnlyTwoStagesAclnnOps) {
   auto inputs = FakeTensors({2048}, 2);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0U), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   auto ess = StartExecutorStatistician(model_executor);
@@ -251,7 +251,7 @@ TEST_F(AclnnNodeExeUTest, MultiThreadExecutor_Ok_OnlyTwoStagesAclnnOps) {
 
   multi_thread_ed->scheduler->Dump();
   runtime_stub.Clear();
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 
   MM_SYS_UNSET_ENV(MM_ENV_MAX_RUNTIME_CORE_NUMBER, mmRet);
   AclnnNodeExeUTest::execute_op_prepare_call_times = 0;
@@ -323,7 +323,7 @@ TEST_F(AclnnNodeExeUTest, MultiThreadExecutor_Ok_OneStageAclnnOps) {
   auto inputs = FakeTensors({2048}, 2);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0U), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   auto ess = StartExecutorStatistician(model_executor);
@@ -344,7 +344,7 @@ TEST_F(AclnnNodeExeUTest, MultiThreadExecutor_Ok_OneStageAclnnOps) {
 
   multi_thread_ed->scheduler->Dump();
   runtime_stub.Clear();
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   AclnnNodeExeUTest::execute_op_prepare_call_times = 0;
   AclnnNodeExeUTest::execute_op_launch_call_times = 0;
 

@@ -13,7 +13,7 @@
 
 #include <map>
 #include <string>
-#include "runtime/kernel.h"
+#include "common/ge_rts_decl.h"
 
 namespace fe {
 struct L2Data {

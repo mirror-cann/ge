@@ -20,7 +20,7 @@
 #include "graph/utils/node_utils.h"
 #include "graph/utils/op_desc_utils.h"
 #include "graph/utils/tensor_utils.h"
-#include "runtime/rt.h"
+#include "rt_external.h"
 #include "graph/utils/op_type_utils.h"
 #include "exec_runtime/execution_runtime_utils.h"
 #include "api/aclgrph/option_utils.h"
@@ -44,7 +44,7 @@ Status MemcpyAddrAsyncPass::Run(ComputeGraphPtr graph) {
   GE_CHK_BOOL_RET_STATUS(rt_ret == RT_ERROR_NONE, RT_FAILED, "Call rtGetRtCapability failed, ret = 0x%x",
                          static_cast<uint32_t>(rt_ret));
 
-  if (value == RT_CAPABILITY_NOT_SUPPORT) {
+  if (value == ACL_DEV_FEATURE_NOT_SUPPORT) {
     GELOGW("Not support zero copy, skip it.");
     return SUCCESS;
   }

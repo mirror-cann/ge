@@ -18,7 +18,7 @@
 #include "graph/utils/tensor_utils.h"
 #include "graph/node.h"
 #include "graph/manager/graph_var_manager.h"
-#include "runtime/context.h"
+#include "common/ge_rts_decl.h"
 
 namespace ge {
 class TransVarDataUtils {

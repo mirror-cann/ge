@@ -26,7 +26,7 @@
 #include "graph/utils/op_desc_utils.h"
 #include "graph/utils/node_utils_ex.h"
 #include "graph/utils/node_utils.h"
-#include "runtime/kernel.h"
+#include "rt_external_kernel.h"
 #include "common/kernel_handles_manager/kernel_handle_utils.h"
 #include "graph/load/model_manager/kernel/kernel_register_info_builder.h"
 #include "acl/acl_rt.h"
@@ -806,7 +806,7 @@ Status SuperKernelV2TaskInfo::AssembleIoByArgsFormat() {
         }
         case AddrType::FFTS_ADDR: {
           void *mode_addr_ptr = nullptr;
-          GE_CHK_RT_RET(aclrtGetHardwareSyncAddr(&mode_addr_ptr));
+          GE_CHK_ACL_RET(aclrtGetHardwareSyncAddr(&mode_addr_ptr));
           l0_dump_list_.push_back(std::numeric_limits<uint64_t>::max()); // 占位
           AppendIoAddr(reinterpret_cast<uint64_t>(mode_addr_ptr), kAbsoluteMemType);
           break;

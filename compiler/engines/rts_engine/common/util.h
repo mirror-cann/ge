@@ -11,7 +11,7 @@
 #define RTS_ENGINE_COMMON_UTIL_H
 
 #include <cstdint>
-#include "runtime/base.h"
+#include "rt_external_base.h"
 #include "external/ge/ge_api_error_codes.h"
 #include "graph/utils/node_utils.h"
 

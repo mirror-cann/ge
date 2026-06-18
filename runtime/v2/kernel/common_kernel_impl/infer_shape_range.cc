@@ -13,7 +13,7 @@
 #include "register/kernel_registry.h"
 #include "framework/common/debug/ge_log.h"
 #include "kernel/kernel_log.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "transfer_shape_according_to_format.h"
 #include "infer_shape.h"
 #include "base/registry/op_impl_space_registry_v2.h"

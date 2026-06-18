@@ -25,7 +25,7 @@
 #include "../../inc/framework/runtime/om2_context.h"
 #include "graph/utils/type_utils_inner.h"
 #include "graph_metadef/common/ge_common/util.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "common/helper/om2/json_file.h"
 #include "common/compile_profiling/ge_call_wrapper.h"
 #include "file_const_loader.h"

@@ -12,7 +12,7 @@
 #include <cinttypes>
 #include "framework/common/debug/ge_log.h"
 #include "engine/node_converter_utils.h"
-#include "runtime/rt_model.h"
+#include "rt_external_model.h"
 #include "framework/common/taskdown_common.h"
 #include "framework/common/ge_types.h"
 #include "graph/utils/math_util.h"

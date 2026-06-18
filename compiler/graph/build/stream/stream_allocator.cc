@@ -27,6 +27,7 @@
 #include "assign_attached_notify_pass.h"
 #include "assign_attached_event_pass.h"
 #include "common/util.h"
+#include "common/ge_rts_decl.h"
 
 namespace {
 constexpr int64_t kTaskNumPerNormalNode = 3;
@@ -661,7 +662,7 @@ Status StreamAllocator::InsertSyncNodesByLogicStream(int64_t &stream_num, int64_
   GE_ASSERT_SUCCESS(CoverAllStreamByNetoutput());
   GE_ASSERT_SUCCESS(GenerateSyncEventNodes(), "[GenerateSyncEventNodes] failed! graph:%s",
                     whole_graph_->GetName().c_str());
-  notify_types_.resize(notify_num_, RT_NOTIFY_DEFAULT);
+  notify_types_.resize(notify_num_, ACL_NOTIFY_DEFAULT);
   GE_ASSERT_SUCCESS(AssignAttachedNotifyResource());
   GE_ASSERT_SUCCESS(AssignAttachedEventResource());
 

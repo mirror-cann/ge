@@ -16,7 +16,7 @@
 #include "common/profiling/profiling_properties.h"
 #include "common/global_variables/diagnose_switch.h"
 #include "framework/runtime/device_memory_recorder.h"
-#include "runtime/dev.h"
+#include "rt_external_device.h"
 #include "common/scope_guard.h"
 #include "common/util.h"
 #include "graph_metadef/common/ge_common/util.h"

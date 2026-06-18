@@ -22,7 +22,7 @@
 #include"tune_log.h"
 #include "hccl_stub.h"
 #include <pthread.h>
-#include <runtime/rt.h>
+#include "rt_external.h"
 #include <iostream>
 #include <fstream>
 #include "llt_hccl_stub_ge.h"

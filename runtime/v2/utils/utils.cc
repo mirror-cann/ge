@@ -11,7 +11,8 @@
 #include "utils.h"
 #include "ge/ge_api_types.h"
 #include "rt_error_codes.h"
-#include "runtime/rt.h"
+#include "rt_external.h"
+#include "acl/acl_rt.h"
 #include "graph/ge_context.h"
 #include "graph/ge_local_context.h"
 #include "common/debug/ge_log.h"
@@ -35,11 +36,11 @@ ge::Status GetStreamByIndex(const Node *node, aclrtStream &stream, size_t index)
 
 ge::Status DoRtStreamSyncWithTimeout(aclrtStream stream) {
   auto timeout = ge::GetContext().StreamSyncTimeout();
-  auto rt_ret = rtStreamSynchronizeWithTimeout(stream, timeout);
+  auto rt_ret = aclrtSynchronizeStreamWithTimeout(stream, timeout);
   if (rt_ret == ACL_ERROR_RT_STREAM_SYNC_TIMEOUT) {
-    GELOGE(rt_ret, "[Invoke][rtStreamSynchronizeWithTimeout] failed, stream synchronize timeout:%d, ret:%d.", timeout,
+    GELOGE(rt_ret, "[Invoke][aclrtSynchronizeStreamWithTimeout] failed, stream synchronize timeout:%d, ret:%d.", timeout,
            rt_ret);
-    REPORT_INNER_ERR_MSG("E19999", "rtStreamSynchronizeWithTimeout failed, stream synchronize timeout:%d, ret:%d.",
+    REPORT_INNER_ERR_MSG("E19999", "aclrtSynchronizeStreamWithTimeout failed, stream synchronize timeout:%d, ret:%d.",
                       timeout, rt_ret);
     return ge::FAILED;
   } else if (rt_ret == ACL_ERROR_RT_END_OF_SEQUENCE) {

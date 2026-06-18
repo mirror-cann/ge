@@ -13,7 +13,7 @@
 #include "framework/common/debug/ge_log.h"
 #include "framework/common/debug/log.h"
 #include "common/profiling/profiling_properties.h"
-#include "runtime/base.h"
+#include "rt_external_base.h"
 #include "common/profiling/command_handle.h"
 #include "common/profiling/profiling_manager.h"
 #include "mmpa/mmpa_api.h"

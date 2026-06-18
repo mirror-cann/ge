@@ -276,7 +276,7 @@ Status TBEKernelHandle::FunctionRegister(const OpDescPtr &op_desc, const std::st
   const void *const kernel_unique_ids_addr = bin_handle_store.GetUniqueIdPtr(bin_handle, kernel_name, inserted);
   if (inserted) {
     GE_CHK_RT_RET(
-        rtFunctionRegister(bin_handle, kernel_unique_ids_addr, bin_handle_key.c_str(), kernel_name.c_str(), 0U));
+        rtFunctionRegister(bin_handle, kernel_unique_ids_addr, bin_handle_key.c_str(), kernel_name.c_str(), FUNC_MODE_NORMAL));
   }
 
   uint64_t tiling_key = 0U;

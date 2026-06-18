@@ -15,7 +15,7 @@
 #include <map>
 #include <mutex>
 
-#include "runtime/context.h"
+#include "common/ge_rts_decl.h"
 #include "ge/ge_api_error_codes.h"
 #include "acl/acl_rt.h"
 
@@ -25,7 +25,7 @@ class RtContextUtil {
   static RtContextUtil &GetInstance();
 
   Status SetRtContext(const uint64_t session_id, const uint32_t graph_id, const int32_t device_id,
-                      const rtCtxMode_t mode, aclrtContext rt_context) const;
+                      const uint32_t mode, aclrtContext rt_context) const;
   void AddRtContext(uint64_t session_id, aclrtContext context);
   void AddRtContext(uint64_t session_id, uint32_t graph_id, aclrtContext context);
   void DestroyRtContexts(uint64_t session_id);

@@ -21,7 +21,7 @@
 #include "graph/op_desc.h"
 #include "framework/common/ge_inner_error_codes.h"
 #include "register/register_types.h"
-#include "runtime/stream.h"
+#include "rt_external_stream.h"
 #include "common/profiling/profiling_properties.h"
 #include "framework/runtime/subscriber/global_profiler.h"
 #include "framework/runtime/model_v2_executor.h"

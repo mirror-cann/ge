@@ -9,6 +9,7 @@
  */
 
 #include "adapter/tbe_adapter/tbe_task_builder_adapter.h"
+#include "framework/common/runtime_model_ge.h"
 #include "adapter/tbe_adapter/kernel_launch/l2_cache_kernel_launch.h"
 #include "common/fe_log.h"
 #include "common/platform_utils.h"
@@ -849,7 +850,7 @@ Status TbeTaskBuilderAdapter::Run(domi::TaskDef &task_def) {
                     op_name.c_str(), op_type.c_str(), ret);
     return FAILED;
   }
-  if (task_def.type() == RT_MODEL_TASK_KERNEL) {
+  if (task_def.type() == ACL_RT_MODEL_TASK_KERNEL) {
     domi::KernelDef *kernel_def = task_def.mutable_kernel();
     FE_CHECK_NOTNULL(kernel_def);
     FE_LOGD("Node[%s, %s]:Task type[%u] append kernel.", op_type.c_str(), op_name.c_str(), task_def.type());

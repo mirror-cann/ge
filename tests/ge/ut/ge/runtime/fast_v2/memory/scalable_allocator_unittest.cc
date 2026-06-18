@@ -35,7 +35,7 @@ using namespace testing;
 namespace {
 class MockRuntime : public ge::RuntimeStub {
  public:
-  rtError_t rtMemGetInfoEx(rtMemInfoType_t memInfoType, size_t *free, size_t *total) override {
+  rtError_t aclrtGetMemInfo(aclrtMemAttr memInfoType, size_t *free, size_t *total) override {
     *free = 64UL * 1024UL * 1024UL;
     *total = PAGE_MEM_SIZE_THRESHOLD_DEFAULT[1U];
     return RT_ERROR_NONE;
@@ -905,7 +905,7 @@ TEST_F(ScaleAllocatorTest, ffts_allocator_split_memory_reuse) {
 TEST_F(ScaleAllocatorTest, alloc_total_exceed_thresold) {
   class MockRuntime : public ge::RuntimeStub {
    public:
-    rtError_t rtMemGetInfoEx(rtMemInfoType_t memInfoType, size_t *free, size_t *total) override {
+    rtError_t aclrtGetMemInfo(aclrtMemAttr memInfoType, size_t *free, size_t *total) override {
       *free = 64UL * 1024UL * 1024UL;
       *total = PAGE_MEM_SIZE_THRESHOLD_DEFAULT[1U];
       return RT_ERROR_NONE;

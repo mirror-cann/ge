@@ -98,7 +98,7 @@ Status MemoryAllocator::FreeMemory(void *memory_addr, const uint32_t device_id) 
       GELOGW("Can't Find block memory addr device_id = %u", device_id);
     }
   }
-  GE_CHK_RT_RET(aclrtFree(memory_addr));
+  GE_CHK_ACL_RET(aclrtFree(memory_addr));
   memory_addr = nullptr;
   return ge::SUCCESS;
 }

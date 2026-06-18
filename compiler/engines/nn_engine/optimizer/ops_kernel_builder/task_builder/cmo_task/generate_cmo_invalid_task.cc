@@ -9,6 +9,7 @@
  */
 
 #include "ops_kernel_builder/task_builder/cmo_task/generate_cmo_invalid_task.h"
+#include "framework/common/runtime_model_ge.h"
 #include "common/fe_log.h"
 #include "graph/ge_tensor.h"
 #include "graph/def_types.h"
@@ -29,7 +30,7 @@ Status GenerateCMOInvalidTask::GenerateTask(std::vector<domi::TaskDef> &task_def
     }
     domi::TaskDef task_def;
     task_def.set_stream_id(stream_id);
-    task_def.set_type(RT_MODEL_TASK_CMO);
+    task_def.set_type(ACL_RT_MODEL_TASK_CMO);
     domi::CmoTaskDef *cmo_task_def = task_def.mutable_cmo_task();
     if (cmo_task_def == nullptr) {
       FE_LOGW("Failed to create cmo task definition for node [%s].", node_.GetName().c_str());

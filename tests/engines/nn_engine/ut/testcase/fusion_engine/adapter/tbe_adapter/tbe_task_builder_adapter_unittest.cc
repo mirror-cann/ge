@@ -12,7 +12,7 @@
 #include <nlohmann/json.hpp>
 
 #include <vector>
-#include "runtime/rt_model.h"
+#include "rt_external_model.h"
 #include "rt_error_codes.h"
 #include "graph/ge_tensor.h"
 #include "graph/compute_graph.h"
@@ -86,9 +86,9 @@ protected:
     }
     void SetUp()
     {
-        rtContext_t rtContext;
-        assert(rtCtxCreate(&rtContext, RT_CTX_GEN_MODE, 0) == ACL_RT_SUCCESS);
-        assert(rtCtxSetCurrent(rtContext) == ACL_RT_SUCCESS);
+        aclrtContext rtContext;
+        assert(aclrtCreateContext(&rtContext, 0) == ACL_RT_SUCCESS);
+        assert(aclrtSetCurrentContext(rtContext) == ACL_RT_SUCCESS);
 
         node_ = CreateNode();
         context_ = CreateContext();
@@ -101,9 +101,9 @@ protected:
         DestroyContext(context_);
         node_.reset();
 
-        rtContext_t rtContext;
-        assert(rtCtxGetCurrent(&rtContext) == ACL_RT_SUCCESS);
-        assert(rtCtxDestroy(rtContext) == ACL_RT_SUCCESS);
+        aclrtContext rtContext;
+        assert(aclrtGetCurrentContext(&rtContext) == ACL_RT_SUCCESS);
+        assert(aclrtDestroyContext(rtContext) == ACL_RT_SUCCESS);
     }
   static void CheckGraphReadMode(GeTensorDescPtr tensor_desc, L2CacheReadMode expect) {
     int32_t read_mode;

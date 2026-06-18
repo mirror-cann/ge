@@ -19,7 +19,7 @@
 #include "acl/acl_tdt_queue.h"
 #include "acl/acl_mdl.h"
 #include "acl/ops/acl_cblas.h"
-#include "runtime/base.h"
+#include "rt_external_base.h"
 #undef private
 #endif
 

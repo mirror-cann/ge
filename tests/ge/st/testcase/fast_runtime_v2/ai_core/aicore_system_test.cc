@@ -351,7 +351,7 @@ class AICoreLoweringST : public testing::Test {
     auto outputs = FakeTensors({1, 2, 3, 4}, 1);
 
     rtStream_t stream;
-    ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
     auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
     ess->Clear();
@@ -391,7 +391,7 @@ class AICoreLoweringST : public testing::Test {
     registry->erase("Add");
 
     ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
   }
 
   void TestFallibleTiling1(bool rollback, TilingType tiling_type, bool is_mix = false) {
@@ -452,7 +452,7 @@ class AICoreLoweringST : public testing::Test {
     auto outputs = FakeTensors({1, 2, 3, 4}, 1);
 
     rtStream_t stream;
-    ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
     auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
     ess->Clear();
@@ -481,7 +481,7 @@ class AICoreLoweringST : public testing::Test {
     registry->erase("Add");
 
     ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
   }
 
   void TestInferShapeEmptyTensor(bool sup_empty, bool unknown_dim) {
@@ -525,7 +525,7 @@ class AICoreLoweringST : public testing::Test {
     }
 
     rtStream_t stream;
-    ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
     auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
     ess->Clear();
@@ -550,7 +550,7 @@ class AICoreLoweringST : public testing::Test {
     EXPECT_EQ(outputs.GetTensorList()[0]->GetShape().GetStorageShape(), expect_out_shape);
 
     ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
   }
   void TestNodeWithOptAndDynamic1() {
     auto graph = BuildFallibleTilingNodeComputeGraph(false);
@@ -605,7 +605,7 @@ class AICoreLoweringST : public testing::Test {
     auto outputs = FakeTensors({1, 2, 3, 4}, 1);
 
     rtStream_t stream;
-    ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
     auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
     ess->Clear();
@@ -626,7 +626,7 @@ class AICoreLoweringST : public testing::Test {
     registry->erase("Add");
 
     ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
   }
 };
 
@@ -691,7 +691,7 @@ TEST_F(AICoreLoweringST, TestAutofuseNodeBase) {
   FakeTensors outputs = FakeTensors({5, 6, 4}, 2);
   // 4、图执行
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
   ess->Clear();
   ASSERT_EQ(model_executor->Execute({stream_value.value}, inputs.GetTensorList(),
@@ -710,7 +710,7 @@ TEST_F(AICoreLoweringST, TestAutofuseNodeBase) {
     EXPECT_EQ(output_shape1.GetDim(i), expect_out_shape.GetDim(i));
   }
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(AICoreLoweringST, TestAutofuseNodeWithTilingCacheAndInferMerge) {
@@ -747,7 +747,7 @@ TEST_F(AICoreLoweringST, TestAutofuseNodeWithTilingCacheAndInferMerge) {
   FakeTensors inputs = FakeTensors({2, 3}, 4);
   FakeTensors outputs = FakeTensors({5, 6, 4}, 2);
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
   ess->Clear();
   // 第一次迭代，添加Tiling缓存
@@ -767,7 +767,7 @@ TEST_F(AICoreLoweringST, TestAutofuseNodeWithTilingCacheAndInferMerge) {
   EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("AscBackend", "CacheableTiling"), 4);
   EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("AscBackend", "GetSymbolTilingCacheKey"), 4);
   EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("AscBackend", "InferShape"), 2);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   stub.GetSlogStub().SetLevel(DLOG_ERROR);
   stub.GetSlogStub().Clear();
 }
@@ -800,7 +800,7 @@ TEST_F(AICoreLoweringST, TestAutofuseNodeTilingParse) {
   FakeTensors outputs = FakeTensors({5, 6, 4}, 2);
   // 4、图执行
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
   ess->Clear();
   ASSERT_EQ(model_executor->Execute({stream_value.value}, inputs.GetTensorList(),
@@ -819,7 +819,7 @@ TEST_F(AICoreLoweringST, TestAutofuseNodeTilingParse) {
     EXPECT_EQ(output_shape1.GetDim(i), expect_out_shape.GetDim(i));
   }
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(AICoreLoweringST, TestAutofuseNodeDlopenAutofuseSoNodeCheck) {
@@ -850,7 +850,7 @@ TEST_F(AICoreLoweringST, TestAutofuseNodeDlopenAutofuseSoNodeCheck) {
   FakeTensors outputs = FakeTensors({5, 6, 4}, 2);
   // 4、图执行
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
   ess->Clear();
   ASSERT_EQ(model_executor->Execute({stream_value.value}, inputs.GetTensorList(),
@@ -869,7 +869,7 @@ TEST_F(AICoreLoweringST, TestAutofuseNodeDlopenAutofuseSoNodeCheck) {
     EXPECT_EQ(output_shape1.GetDim(i), expect_out_shape.GetDim(i));
   }
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(AICoreLoweringST, AutofuseInferKernelTraceTest) {
@@ -900,13 +900,13 @@ TEST_F(AICoreLoweringST, AutofuseInferKernelTraceTest) {
   FakeTensors outputs = FakeTensors({5, 6, 4}, 2);
   // 4、图执行
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
   ess->Clear();
   ASSERT_EQ(model_executor->Execute({stream_value.value}, inputs.GetTensorList(),
                                     inputs.size(),outputs.GetTensorList(), outputs.size()),
             ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 
   ASSERT_NE(stub.GetSlogStub().FindLog(DLOG_INFO, "Symbolic infos: s0: 2, s1: 3, s2: 2."), -1);
   stub.GetSlogStub().SetLevel(DLOG_ERROR);

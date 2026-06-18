@@ -16,9 +16,9 @@
 #include <memory>
 
 #include "common/math/math_util.h"
-#include "runtime/base.h"
+#include "rt_external_base.h"
 #include "framework/common/debug/ge_log.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "graph_metadef/common/ge_common/util.h"
 #include "common/aclrt_malloc_helper.h"
 

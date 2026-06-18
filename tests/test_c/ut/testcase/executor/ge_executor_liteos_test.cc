@@ -231,7 +231,7 @@ TEST_F(UtestGEExecutorLiteOSTest, LoadDataFromFile_LoadModelFromData_WithoutUser
 
 static void RtFree(uint8_t **ptr) {
   if (*ptr != nullptr) {
-    (void)rtFree(*ptr);
+    (void)aclrtFree(*ptr);
     *ptr = nullptr;
   }
 }
@@ -369,7 +369,7 @@ TEST_F(UtestGEExecutorLiteOSTest, LoadDataFromFile_LoadModelFromData_WithuserDat
   DeInitVector(&inputData.blobs);
   DeInitVector(&outputData.blobs);
   if (outputData.io_addr != NULL) {
-    rtFree(outputData.io_addr);
+    aclrtFree(outputData.io_addr);
   }
   if (outputData.io_addr_host != NULL) {
     mmFree(outputData.io_addr_host);

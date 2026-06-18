@@ -96,7 +96,7 @@ Status NodeDoneCallback::PrepareConstInputs(const NodeItem &node_item) const {
       GELOGD("[%s] To cache output[%d] to host, size = %zu", node_item.NodeName().c_str(),
              output_idx, output_tensor->GetSize());
       if (tensor_size > 0) {
-        GE_CHK_RT_RET(aclrtMemcpy(host_buffer.data(), static_cast<uint64_t>(tensor_size),
+        GE_CHK_ACL_RET(aclrtMemcpy(host_buffer.data(), static_cast<uint64_t>(tensor_size),
             output_tensor->GetData(), static_cast<uint64_t>(tensor_size), ACL_MEMCPY_DEVICE_TO_HOST));
       }
       (void)ge_tensor->SetData(std::move(host_buffer));
@@ -194,13 +194,13 @@ Status NodeDoneCallback::DumpDynamicNode() {
                      : kDefaultTimeOut;
   const auto rt_ret = aclrtSynchronizeStreamWithTimeout(stream, timeout);
   if (rt_ret == ACL_ERROR_RT_STREAM_SYNC_TIMEOUT) {
-    GELOGE(rt_ret, "[Invoke][rtStreamSynchronizeWithTimeout] failed, ret:%d.", rt_ret);
-    REPORT_INNER_ERR_MSG("E19999", "rtStreamSynchronizeWithTimeout failed, ret:%d.", rt_ret);
+    GELOGE(rt_ret, "[Invoke][aclrtSynchronizeStreamWithTimeout] failed, ret:%d.", rt_ret);
+    REPORT_INNER_ERR_MSG("E19999", "aclrtSynchronizeStreamWithTimeout failed, ret:%d.", rt_ret);
     return FAILED;
   }
   if (rt_ret != RT_ERROR_NONE) {
     GELOGE(RT_FAILED, "[Call][RtStreamSynchronize] failed, ret = %d.", rt_ret);
-    REPORT_INNER_ERR_MSG("E19999", "call rtStreamSynchronize failed, ret = %d.", rt_ret);
+    REPORT_INNER_ERR_MSG("E19999", "call aclrtSynchronizeStream failed, ret = %d.", rt_ret);
     return static_cast<uint32_t>(rt_ret);
   }
   return SUCCESS;

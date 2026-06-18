@@ -9,6 +9,7 @@
  */
 
 #include "ops_kernel_builder/task_builder/cmo_task/generate_cmo_barrier_task.h"
+#include "framework/common/runtime_model_ge.h"
 #include "common/fe_log.h"
 
 namespace fe {
@@ -21,7 +22,7 @@ Status GenerateCMOBarrierTask::GenerateTask(std::vector<domi::TaskDef> &task_def
                                             const std::vector<CmoAttr> &cmo_attrs) {
   domi::TaskDef task_def;
   task_def.set_stream_id(stream_id);
-  task_def.set_type(RT_MODEL_TASK_BARRIER);
+  task_def.set_type(ACL_RT_MODEL_TASK_BARRIER);
   domi::CmoBarrierTaskDef *cmo_task_def = task_def.mutable_cmo_barrier_task();
   if (cmo_task_def == nullptr) {
     FE_LOGW("Create cmo task def for node[%s] failed.", node_.GetName().c_str());

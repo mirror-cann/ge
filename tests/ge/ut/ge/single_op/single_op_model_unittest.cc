@@ -15,7 +15,7 @@
 #include "graph/load/model_manager/model_utils.h"
 #include "graph/utils/graph_utils.h"
 #include "graph/utils/op_type_utils.h"
-#include "runtime/rt.h"
+#include "rt_external.h"
 #include "single_op/single_op_model.h"
 #include "aicpu_task_struct.h"
 #include "single_op/task/tbe_task_builder.h"
@@ -538,7 +538,7 @@ TEST_F(UtestSingleOpModel, BuildTaskList) {
   StreamResource *res = new (std::nothrow) StreamResource(1);
   std::mutex stream_mu;
   rtStream_t stream = nullptr;
-  rtStreamCreate(&stream, 0);
+  aclrtCreateStreamWithConfig(&stream, 0, 0);
   SingleOpImpl single_op(res, &stream_mu, stream);
   model.model_helper_.model_ = ge_model;
   model.op_list_.emplace(0, node);
@@ -548,7 +548,7 @@ TEST_F(UtestSingleOpModel, BuildTaskList) {
   for (auto &task: single_op.tasks_) {
     ASSERT_EQ(task->LaunchKernel(single_op.stream_), SUCCESS);
   }
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   delete res;
 }
 
@@ -597,7 +597,7 @@ TEST_F(UtestSingleOpModel, build_dynamic_task01) {
   SingleOpModel model("model", model_data_str.c_str(), model_data_str.size());
   std::mutex stream_mu;
   rtStream_t stream = nullptr;
-  rtStreamCreate(&stream, 0);
+  aclrtCreateStreamWithConfig(&stream, 0, 0);
   DynamicSingleOpImpl single_op(nullptr, 0, &stream_mu, stream);
   model.model_helper_.model_ = ge_model;
   auto op_desc = std::make_shared<ge::OpDesc>("add", "Add");
@@ -630,7 +630,7 @@ TEST_F(UtestSingleOpModel, build_dynamic_task01) {
 
   AtomicAddrCleanOpTask *atomic_task = nullptr;
   ASSERT_NE(model.BuildAtomicTask(*task_def5, &atomic_task, *res), SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   delete res;
 }
 
@@ -666,7 +666,7 @@ TEST_F(UtestSingleOpModel, build_dynamic_task02) {
   SingleOpModel model("model", model_data_str.c_str(), model_data_str.size());
   std::mutex stream_mu;
   rtStream_t stream = nullptr;
-  rtStreamCreate(&stream, 0);
+  aclrtCreateStreamWithConfig(&stream, 0, 0);
   DynamicSingleOpImpl single_op(nullptr, 0, &stream_mu, stream);
   model.model_helper_.model_ = ge_model;
   auto op_desc = std::make_shared<ge::OpDesc>("add", "Add");
@@ -686,7 +686,7 @@ TEST_F(UtestSingleOpModel, build_dynamic_task02) {
   model.node_tasks_[node] = {*task_def};
   ASSERT_NE(model.BuildTaskListForDynamicOp(*res, single_op), SUCCESS);
   delete res;
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(UtestSingleOpModel, build_memcpoy_task) {
@@ -786,7 +786,7 @@ TEST_F(UtestSingleOpModel, BuildClearFloatTask) {
   StreamResource *res = new (std::nothrow) StreamResource(1);
   std::mutex stream_mu;
   rtStream_t stream = nullptr;
-  rtStreamCreate(&stream, 0);
+  aclrtCreateStreamWithConfig(&stream, 0, 0);
   SingleOpImpl single_op(res, &stream_mu, stream);
   model.model_helper_.model_ = ge_model;
   model.op_list_.emplace(0, node);
@@ -797,7 +797,7 @@ TEST_F(UtestSingleOpModel, BuildClearFloatTask) {
   for (auto &task: single_op.tasks_) {
     ASSERT_EQ(task->LaunchKernel(single_op.stream_), SUCCESS);
   }
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   delete res;
 }
 
@@ -834,7 +834,7 @@ TEST_F(UtestSingleOpModel, BuildGetFloatTask) {
   StreamResource *res = new (std::nothrow) StreamResource(1);
   std::mutex stream_mu;
   rtStream_t stream = nullptr;
-  rtStreamCreate(&stream, 0);
+  aclrtCreateStreamWithConfig(&stream, 0, 0);
   SingleOpImpl single_op(res, &stream_mu, stream);
   model.model_helper_.model_ = ge_model;
   model.op_list_.emplace(0, node);
@@ -845,7 +845,7 @@ TEST_F(UtestSingleOpModel, BuildGetFloatTask) {
   for (auto &task: single_op.tasks_) {
     ASSERT_EQ(task->LaunchKernel(single_op.stream_), SUCCESS);
   }
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   delete res;
 }
 
@@ -878,7 +878,7 @@ TEST_F(UtestSingleOpModel, BuildClearFloatDugStatusTask) {
   StreamResource *res = new (std::nothrow) StreamResource(1);
   std::mutex stream_mu;
   rtStream_t stream = nullptr;
-  rtStreamCreate(&stream, 0);
+  aclrtCreateStreamWithConfig(&stream, 0, 0);
   SingleOpImpl single_op(res, &stream_mu, stream);
   model.model_helper_.model_ = ge_model;
   model.op_list_.emplace(0, node);
@@ -889,7 +889,7 @@ TEST_F(UtestSingleOpModel, BuildClearFloatDugStatusTask) {
   for (auto &task : single_op.tasks_) {
     ASSERT_EQ(task->LaunchKernel(single_op.stream_), SUCCESS);
   }
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   delete res;
 }
 
@@ -926,7 +926,7 @@ TEST_F(UtestSingleOpModel, BuildGetFloatDebugStatusTask) {
   StreamResource *res = new (std::nothrow) StreamResource(1);
   std::mutex stream_mu;
   rtStream_t stream = nullptr;
-  rtStreamCreate(&stream, 0);
+  aclrtCreateStreamWithConfig(&stream, 0, 0);
   SingleOpImpl single_op(res, &stream_mu, stream);
   model.model_helper_.model_ = ge_model;
   model.op_list_.emplace(0, node);
@@ -937,7 +937,7 @@ TEST_F(UtestSingleOpModel, BuildGetFloatDebugStatusTask) {
   for (auto &task : single_op.tasks_) {
     ASSERT_EQ(task->LaunchKernel(single_op.stream_), SUCCESS);
   }
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   delete res;
 }
 
@@ -985,7 +985,7 @@ TEST_F(UtestSingleOpModel, BuildDsaTask_no_state) {
   StreamResource *res = new (std::nothrow) StreamResource(1);
   std::mutex stream_mu;
   rtStream_t stream = nullptr;
-  rtStreamCreate(&stream, 0);
+  aclrtCreateStreamWithConfig(&stream, 0, 0);
   SingleOpImpl single_op(res, &stream_mu, stream);
   model.model_helper_.model_ = ge_model;
   model.op_list_.emplace(0, node);
@@ -995,7 +995,7 @@ TEST_F(UtestSingleOpModel, BuildDsaTask_no_state) {
   for (auto &task: single_op.tasks_) {
     ASSERT_EQ(task->LaunchKernel(single_op.stream_), SUCCESS);
   }
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   delete res;
 }
 
@@ -1047,7 +1047,7 @@ TEST_F(UtestSingleOpModel, BuildDsaTask_has_state) {
   StreamResource *res = new (std::nothrow) StreamResource(1);
   std::mutex stream_mu;
   rtStream_t stream = nullptr;
-  rtStreamCreate(&stream, 0);
+  aclrtCreateStreamWithConfig(&stream, 0, 0);
   SingleOpImpl single_op(res, &stream_mu, stream);
   model.model_helper_.model_ = ge_model;
   model.op_list_.emplace(0, node);
@@ -1057,7 +1057,7 @@ TEST_F(UtestSingleOpModel, BuildDsaTask_has_state) {
   for (auto &task: single_op.tasks_) {
     ASSERT_EQ(task->LaunchKernel(single_op.stream_), SUCCESS);
   }
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   delete res;
 }
 

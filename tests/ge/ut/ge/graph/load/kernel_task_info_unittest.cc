@@ -1532,7 +1532,7 @@ TEST_F(UtestKernelTaskInfo, kernel_task_info_update_args_aicpu) {
   kernel_task_info.args_size_ = 120;
   kernel_task_info.args_addr_.resize(kernel_task_info.args_size_);
   kernel_task_info.io_addrs_ = { PtrToValue((void*)0x12345678), PtrToValue((void*)0x22345678) };
-  rtMalloc(&kernel_task_info.args_, kernel_task_info.args_size_, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+  aclrtMalloc(&kernel_task_info.args_, kernel_task_info.args_size_, ACL_MEM_MALLOC_HUGE_ONLY);
   kernel_task_info.args_io_addrs_updater_.v_mem_allocation_id_and_offset_.push_back({0,0});
   kernel_task_info.args_io_addrs_updater_.v_mem_allocation_id_and_offset_.push_back({1,1});
   std::vector<uint64_t> active_base_addr;
@@ -1546,7 +1546,7 @@ TEST_F(UtestKernelTaskInfo, kernel_task_info_update_args_aicpu) {
   EXPECT_EQ(kernel_task_info.UpdateHostArgs(active_base_addr, args.data(), 128), SUCCESS);
   model.SetFeatureBaseRefreshable(true);
   EXPECT_EQ(kernel_task_info.UpdateHostArgs(active_base_addr, args.data(), 128), SUCCESS);
-  rtFree((void*)kernel_task_info.args_);
+  aclrtFree((void*)kernel_task_info.args_);
 }
 
 TEST_F(UtestKernelTaskInfo, blocking_aicpu_op) {
@@ -1826,7 +1826,7 @@ TEST_F(UtestKernelTaskInfo, test_SetIoAddr) {
 TEST_F(UtestKernelTaskInfo, test_SetIoAddrWithTilingData) {
   DavinciModel model(0, nullptr);
   model.runtime_param_.mem_size = 10000000U;
-  ASSERT_EQ(rtMalloc(&model.globalworkspace_overflow_addr_, static_cast<uint64_t>(16), RT_MEMORY_HBM, GE_MODULE_NAME_U16),
+  ASSERT_EQ(aclrtMalloc(&model.globalworkspace_overflow_addr_, static_cast<uint64_t>(16), ACL_MEM_MALLOC_HUGE_ONLY),
             SUCCESS);
   OpDescPtr op_desc = CreateOpDesc("FrameworkOp", "FrameworkOp", 0, 1);
   op_desc->SetWorkspace({0x55});
@@ -1880,7 +1880,7 @@ TEST_F(UtestKernelTaskInfo, test_SetIoAddrWithTilingData) {
   kernel_task_info.SetIoAddrs();
   // output index + workspace index
   EXPECT_EQ(kernel_task_info.io_addrs_.size(), 4);
-  rtFree((void*)model.globalworkspace_overflow_addr_);
+  aclrtFree((void*)model.globalworkspace_overflow_addr_);
 }
 
 UINT32 StubTiling(gert::TilingContext *context) {
@@ -2030,7 +2030,7 @@ TEST_F(UtestKernelTaskInfo, mc2_static_bin_reuse) {
   MemAllocation fm_mem_allocation = {0, static_cast<uint64_t>(model.runtime_param_.mem_base),
                                      model.runtime_param_.mem_size, ge::MemAllocation::Type::FEATURE_MAP, 0U};
   model.logical_mem_allocations_.emplace_back(fm_mem_allocation);
-  ASSERT_EQ(rtMalloc(&model.globalworkspace_overflow_addr_, static_cast<uint64_t>(16), RT_MEMORY_HBM, GE_MODULE_NAME_U16),
+  ASSERT_EQ(aclrtMalloc(&model.globalworkspace_overflow_addr_, static_cast<uint64_t>(16), ACL_MEM_MALLOC_HUGE_ONLY),
             SUCCESS);
   ModelHelper model_helper;
   model_helper.HandleDeviceInfo(model.platform_infos_);
@@ -2141,7 +2141,7 @@ TEST_F(UtestKernelTaskInfo, mc2_static_bin_reuse) {
   HiddenInputsFuncRegistry::GetInstance().type_to_funcs_.clear();
   free((void*)args[0].dev_addr);
   dlog_setlevel(GE_MODULE_NAME, DLOG_DEBUG, 0);
-  rtFree((void*)model.globalworkspace_overflow_addr_);
+  aclrtFree((void*)model.globalworkspace_overflow_addr_);
   dlog_setlevel(GE_MODULE_NAME, DLOG_ERROR, 0);
 }
 
@@ -2182,7 +2182,7 @@ TEST_F(UtestKernelTaskInfo, mc2_fusion_task_static_bin_reuse_with_sub_aicore_ccu
 
   model.logical_mem_allocations_.emplace_back(io_mem_allocation);
 
-  ASSERT_EQ(rtMalloc(&model.globalworkspace_overflow_addr_, static_cast<uint64_t>(16), RT_MEMORY_HBM, GE_MODULE_NAME_U16),
+  ASSERT_EQ(aclrtMalloc(&model.globalworkspace_overflow_addr_, static_cast<uint64_t>(16), ACL_MEM_MALLOC_HUGE_ONLY),
             SUCCESS);
   ModelHelper model_helper;
   model_helper.HandleDeviceInfo(model.platform_infos_);
@@ -2450,7 +2450,7 @@ TEST_F(UtestKernelTaskInfo, mc2_fusion_task_static_bin_reuse_with_sub_aicore_ccu
 
   HiddenInputsFuncRegistry::GetInstance().type_to_funcs_.clear();
   free((void*)args[0].dev_addr);
-  rtFree((void*)model.globalworkspace_overflow_addr_);
+  aclrtFree((void*)model.globalworkspace_overflow_addr_);
   dlog_setlevel(GE_MODULE_NAME, DLOG_ERROR, 0);
 }
 
@@ -2490,7 +2490,7 @@ TEST_F(UtestKernelTaskInfo, mc2_fusion_task_static_bin_reuse_with_sub_aicore_aic
 
   model.logical_mem_allocations_.emplace_back(io_mem_allocation);
 
-  ASSERT_EQ(rtMalloc(&model.globalworkspace_overflow_addr_, static_cast<uint64_t>(16), RT_MEMORY_HBM, GE_MODULE_NAME_U16),
+  ASSERT_EQ(aclrtMalloc(&model.globalworkspace_overflow_addr_, static_cast<uint64_t>(16), ACL_MEM_MALLOC_HUGE_ONLY),
             SUCCESS);
   ModelHelper model_helper;
   model_helper.HandleDeviceInfo(model.platform_infos_);
@@ -2656,7 +2656,7 @@ TEST_F(UtestKernelTaskInfo, mc2_fusion_task_static_bin_reuse_with_sub_aicore_aic
 
   HiddenInputsFuncRegistry::GetInstance().type_to_funcs_.clear();
   free((void*)args[0].dev_addr);
-  rtFree((void*)model.globalworkspace_overflow_addr_);
+  aclrtFree((void*)model.globalworkspace_overflow_addr_);
 }
 
 TEST_F(UtestKernelTaskInfo, mc2_fusion_task_stubfunc_with_sub_aicore_ccu) {
@@ -2689,7 +2689,7 @@ TEST_F(UtestKernelTaskInfo, mc2_fusion_task_stubfunc_with_sub_aicore_ccu) {
   MemAllocation fm_mem_allocation = {0, static_cast<uint64_t>(model.runtime_param_.mem_base),
                                      model.runtime_param_.mem_size, ge::MemAllocation::Type::FEATURE_MAP, 0U};
   model.logical_mem_allocations_.emplace_back(fm_mem_allocation);
-  ASSERT_EQ(rtMalloc(&model.globalworkspace_overflow_addr_, static_cast<uint64_t>(16), RT_MEMORY_HBM, GE_MODULE_NAME_U16),
+  ASSERT_EQ(aclrtMalloc(&model.globalworkspace_overflow_addr_, static_cast<uint64_t>(16), ACL_MEM_MALLOC_HUGE_ONLY),
             SUCCESS);
   ModelHelper model_helper;
   model_helper.HandleDeviceInfo(model.platform_infos_);
@@ -2932,7 +2932,7 @@ TEST_F(UtestKernelTaskInfo, mc2_fusion_task_stubfunc_with_sub_aicore_ccu) {
 
   HiddenInputsFuncRegistry::GetInstance().type_to_funcs_.clear();
   free((void*)args[0].dev_addr);
-  rtFree((void*)model.globalworkspace_overflow_addr_);
+  aclrtFree((void*)model.globalworkspace_overflow_addr_);
 }
 
 
@@ -4769,7 +4769,7 @@ TEST_F(UtestKernelTaskInfo, tiling_sink_success) {
                                      model.runtime_param_.mem_size, ge::MemAllocation::Type::FEATURE_MAP, 0U};
   model.logical_mem_allocations_.emplace_back(fm_mem_allocation);
   ASSERT_EQ(
-      rtMalloc(&model.globalworkspace_overflow_addr_, static_cast<uint64_t>(16), RT_MEMORY_HBM, GE_MODULE_NAME_U16),
+      aclrtMalloc(&model.globalworkspace_overflow_addr_, static_cast<uint64_t>(16), ACL_MEM_MALLOC_HUGE_ONLY),
       SUCCESS);
   ModelHelper model_helper;
   model_helper.HandleDeviceInfo(model.platform_infos_);
@@ -4926,7 +4926,7 @@ TEST_F(UtestKernelTaskInfo, tiling_sink_success) {
     free((void *)args[0].dev_addr);
   }
 
-  rtFree((void *)model.globalworkspace_overflow_addr_);
+  aclrtFree((void *)model.globalworkspace_overflow_addr_);
   dlog_setlevel(GE_MODULE_NAME, DLOG_ERROR, 1);
 }
 

@@ -12,7 +12,7 @@
 #define AIR_CXX_RUNTIME_V2_NODE_CONVERTER_DSACORE_NODE_CONVERTER_H_
 #include "graph/node.h"
 #include "register/node_converter_registry.h"
-#include "runtime/rt.h"
+#include "rt_external.h"
 #include "exe_graph/lowering/value_holder.h"
 #include "exe_graph/lowering/lowering_global_data.h"
 

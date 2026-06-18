@@ -16,7 +16,7 @@
 #include "graph/op_desc.h"
 #include "common/dump/dump_properties.h"
 #include "proto/op_mapping.pb.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "acl/acl_rt.h"
 
 namespace ge {

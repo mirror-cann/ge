@@ -517,7 +517,7 @@ TEST_F(UtestModelManagerModelManager, test_launch_kernel_cust_aicpu) {
   EXPECT_EQ(mm.LaunchKernelCustAicpuSo("empty_cust_aicpu"), SUCCESS);
 
   // deleteCustOp after Launch will deleted.
-  uintptr_t resource_id = 1;    // for rtCtxGetCurrent stub
+  uintptr_t resource_id = 1;    // for aclrtGetCurrentContext stub
   std::vector<char> kernel_bin(256);
   auto &cust_resource_001 = mm.cust_aicpu_so_[resource_id];
   auto tbe_kernel = std::shared_ptr<OpKernelBin>(new OpKernelBin("deleteCustOp", std::move(kernel_bin)));
@@ -532,7 +532,7 @@ TEST_F(UtestModelManagerModelManager, test_launch_kernel_cust_aicpu) {
 TEST_F(UtestModelManagerModelManager, test_cust_aicpu_repeated_launch) {
   ModelManager mm;
   // deleteCustOp after Launch will deleted.
-  uintptr_t resource_id = 1;    // for rtCtxGetCurrent stub
+  uintptr_t resource_id = 1;    // for aclrtGetCurrentContext stub
   std::vector<char> kernel_bin(256);
   auto &cust_resource_001 = mm.cust_aicpu_so_[resource_id];
   auto tbe_kernel = std::shared_ptr<OpKernelBin>(new OpKernelBin("op", std::move(kernel_bin)));
@@ -608,7 +608,7 @@ TEST_F(UtestModelManagerModelManager, test_launch_custom_aicpu_platform_infos_fr
   EXPECT_NE(cust_platform_infos_addr_2_4_1, cust_platform_infos_addr_4_8_1);
   EXPECT_NE(cust_platform_infos_addr_4_8_1, cust_platform_infos_addr_global_0);
 
-  uintptr_t resource_id = 1;    // for rtCtxGetCurrent stub.
+  uintptr_t resource_id = 1;    // for aclrtGetCurrentContext stub.
   std::string so_name = "b.so";
   std::vector<char> kernel_bin(256);
   auto &cust_resource_001 = mm.cust_aicpu_so_[resource_id];
@@ -727,7 +727,7 @@ TEST_F(UtestModelManagerModelManager, test_launch_custom_aicpu_platform_infos_fr
   EXPECT_NE(cust_platform_infos_addr_2_4_1, cust_platform_infos_addr_4_8_1);
   EXPECT_NE(cust_platform_infos_addr_4_8_1, cust_platform_infos_addr_global_0);
 
-  uintptr_t resource_id = 1;    // for rtCtxGetCurrent stub.
+  uintptr_t resource_id = 1;    // for aclrtGetCurrentContext stub.
   std::string so_name = "b.so";
   std::vector<char> kernel_bin(256);
   auto &cust_resource_001 = mm.cust_aicpu_so_[resource_id];
@@ -1269,7 +1269,7 @@ TEST_F(UtestModelManagerModelManager, DestroyAicpuSessionMultiDeviceSuccess) {
   ModelManager mm;
   GetContext().SetCtxDeviceId(0);
   mm.sess_id_to_device_ids_[0] = {0};
-  g_runtime_stub_mock = "rtCtxGetCurrent";
+  g_runtime_stub_mock = "aclrtGetCurrentContext";
   mm.DestroyAicpuSession(0, false);
   EXPECT_EQ(mm.sess_id_to_device_ids_.size(), 0);
   g_runtime_stub_mock = "";
@@ -1291,7 +1291,7 @@ TEST_F(UtestModelManagerModelManager, DestroyAicpuSessionWithSocketClosed) {
   ModelManager mm;
   GetContext().SetCtxDeviceId(0);
   mm.sess_id_to_device_ids_[0] = {0};
-  g_runtime_stub_mock = "rtCtxGetCurrent";
+  g_runtime_stub_mock = "aclrtGetCurrentContext";
   mm.SetSocketCloseStatus(true);
   mm.DestroyAicpuSession(0, false);
   EXPECT_NE(mm.sess_id_to_device_ids_.size(), 0);
@@ -1302,7 +1302,7 @@ TEST_F(UtestModelManagerModelManager, DestroyAicpuSessionWithSingleDevice) {
   ModelManager mm;
   GetContext().SetCtxDeviceId(0);
   mm.sess_id_to_device_ids_[0] = {0};
-  g_runtime_stub_mock = "rtCtxGetCurrent";
+  g_runtime_stub_mock = "aclrtGetCurrentContext";
   mm.DestroyAicpuSession(0, true, 1);
   EXPECT_NE(mm.sess_id_to_device_ids_.size(), 0);
   g_runtime_stub_mock = "";

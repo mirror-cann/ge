@@ -21,6 +21,7 @@
 #include "dflow/base/deploy/deploy_planner.h"
 #include "deploy/flowrm/flowgw_client.h"
 #include "prof_common.h"
+#include "prof_api.h"
 
 namespace ge {
 namespace {

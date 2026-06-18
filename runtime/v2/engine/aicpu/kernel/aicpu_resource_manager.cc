@@ -11,12 +11,12 @@
 #include "aicpu_resource_manager.h"
 #include "framework/common/debug/ge_log.h"
 #include "exe_graph/runtime/kernel_context.h"
-#include "runtime/kernel.h"
+#include "rt_external_kernel.h"
 #include "common/checker.h"
 #include "common/debug/log.h"
 #include "framework/common/scope_guard.h"
-#include "runtime/mem.h"
-#include "runtime/context.h"
+#include "rt_external_mem.h"
+#include "common/ge_rts_decl.h"
 #include "aicpu_engine_struct.h"
 #include "register/kernel_registry.h"
 #include "register/host_cpu_context.h"
@@ -28,7 +28,7 @@ namespace gert {
 namespace {
 void FreeHbmMem(void *p) {
   if (p != nullptr) {
-    (void) rtFree(p);
+    (void) aclrtFree(p);
   }
 }
 
@@ -170,8 +170,8 @@ void AicpuResourceManager::ClearTensors() {
 
 ge::graphStatus AicpuResourceManager::HasLoadedCustAicpuSo(const std::string &so_name, bool &loaded) {
   // get current context
-  rtContext_t rt_current_ctx = nullptr;
-  GE_CHK_RT_RET(aclrtGetCurrentContext(&rt_current_ctx));
+  aclrtContext rt_current_ctx = nullptr;
+  GE_CHK_ACL_RET(aclrtGetCurrentContext(&rt_current_ctx));
  
   // use current context as resource key
   const std::lock_guard<std::mutex> lk(cust_aicpu_so_mutex_);
@@ -214,7 +214,7 @@ ge::graphStatus CreateOutputForStepId(const ge::FastNode *node, KernelContext *c
   GE_CHECK_NOTNULL(chain);
 
   void *step_id = nullptr;
-  GE_ASSERT_RT_OK(ge::AclrtMalloc(&step_id, sizeof(int64_t), RT_MEMORY_HBM,
+  GE_ASSERT_ACL_OK(ge::AclrtMalloc(&step_id, sizeof(int64_t), RT_MEMORY_HBM,
                                   GE_MODULE_NAME_U16));
   chain->Set(step_id, FreeHbmMem);
   return ge::GRAPH_SUCCESS;

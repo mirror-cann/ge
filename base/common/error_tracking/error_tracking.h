@@ -13,7 +13,7 @@
 
 #include <mutex>
 #include "graph/op_desc.h"
-#include "runtime/base.h"
+#include "rt_external_base.h"
 
 namespace ge {
 struct ErrorTrackingOpInfo {

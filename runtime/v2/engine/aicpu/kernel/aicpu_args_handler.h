@@ -13,7 +13,7 @@
 #include <string>
 #include <memory>
 #include "graph/def_types.h"
-#include "runtime/kernel.h"
+#include "rt_external_kernel.h"
 #include "ge/ge_api_error_codes.h"
 #include "graph/ge_error_codes.h"
 

@@ -9,6 +9,7 @@
  */
 
 #include "ops_kernel_builder/task_builder/superkernel_task_builder.h"
+#include "framework/common/runtime_model_ge.h"
 #include "common/fe_log.h"
 #include "common/scope_allocator.h"
 #include "common/fe_op_info_common.h"
@@ -26,7 +27,7 @@
 #include "graph/utils/op_desc_utils.h"
 #include "graph/utils/tensor_utils.h"
 #include "graph/utils/anchor_utils.h"
-#include "runtime/stream.h"
+#include "rt_external_stream.h"
 #include "graph/args_format_desc.h"
 #include "adapter/tbe_adapter/kernel_launch/tbe_kernel_launch.h"
 #include "register/op_ext_gentask_registry.h"
@@ -207,14 +208,14 @@ Status SuperkernelTaskBuilder::SetTaskArgsAttr(const ge::NodePtr &node, TaskBuil
   }
   // set args attr
   vector<int64_t> task_args_vec;
-  if (task_def.type() == static_cast<uint32_t>(RT_MODEL_TASK_ALL_KERNEL)) {
+  if (task_def.type() == static_cast<uint32_t>(ACL_RT_MODEL_TASK_ALL_KERNEL)) {
     domi::KernelDefWithHandle *kernel_def_with_handle = task_def.mutable_kernel_with_handle();
     FE_CHECK_NOTNULL(kernel_def_with_handle);
     uint32_t args_size = kernel_def_with_handle->args_size();
     const void *args = reinterpret_cast<const void*>(kernel_def_with_handle->args().data());
     FE_CHECK_NOTNULL(args);
     ConvertArgsToVec(args, args_size, task_args_vec);
-  } else if (task_def.type() == static_cast<uint32_t>(RT_MODEL_TASK_KERNEL)) {
+  } else if (task_def.type() == static_cast<uint32_t>(ACL_RT_MODEL_TASK_KERNEL)) {
     domi::KernelDef *kernel_def = task_def.mutable_kernel();
     FE_CHECK_NOTNULL(kernel_def);
     uint32_t args_size = kernel_def->args_size();
@@ -445,11 +446,11 @@ Status GetArgFormat(std::vector<domi::TaskDef> &tasks, std::string &args_format)
   args_format = "";
   for (auto &task_temp : tasks) {
     domi::KernelContext *kernel_context = nullptr;
-    if (task_temp.type() == RT_MODEL_TASK_KERNEL) {
+    if (task_temp.type() == ACL_RT_MODEL_TASK_KERNEL) {
       auto kernel_def = task_temp.mutable_kernel();
       FE_CHECK_NOTNULL(kernel_def);
       kernel_context = kernel_def->mutable_context();
-    } else if (task_temp.type() == RT_MODEL_TASK_ALL_KERNEL) {
+    } else if (task_temp.type() == ACL_RT_MODEL_TASK_ALL_KERNEL) {
       auto kernel_with_handle = task_temp.mutable_kernel_with_handle();
       FE_CHECK_NOTNULL(kernel_with_handle);
       kernel_context = kernel_with_handle->mutable_context();
@@ -504,7 +505,7 @@ Status GenerateSubKernelExtTask(const ge::Node &node, ge::RunContext &context, s
 bool IsTilingSinkTask(std::vector<domi::TaskDef> &sub_tasks, const std::string &sub_arg_format) {
   bool has_tiling_task = false;
   for (auto &sub_task : sub_tasks) {
-    if (sub_task.type() == RT_MODEL_TASK_PREPROCESS_KERNEL) {
+    if (sub_task.type() == ACL_RT_MODEL_TASK_PREPROCESS_KERNEL) {
       has_tiling_task = true;
       break;
     }

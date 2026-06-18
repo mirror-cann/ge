@@ -430,7 +430,7 @@ class CannProfilerST : public bg::BgTest {
     std::vector<Tensor *> outputs{output.GetTensor()};
 
     rtStream_t stream;
-    ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
     auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
     bg::BufferPool buffer_pool;
@@ -483,7 +483,7 @@ class CannProfilerST : public bg::BgTest {
     ASSERT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<CannProfilerV2>(BuiltInSubscriberType::kCannProfilerV2), nullptr);
     ASSERT_EQ(model_executor->Execute({stream_value.value}, inputs.GetTensorList(), inputs.size(), outputs.data(), outputs.size()), ge::GRAPH_SUCCESS);
     ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
   }
 
   static void BuildExecutorInner3(std::unique_ptr<ModelV2Executor> &model_executor, const LoweringOption &option) {
@@ -703,7 +703,7 @@ class CannProfilerST : public bg::BgTest {
     FakeTensors outputs = FakeTensors({4, 4, 4, 4}, 1);
 
     rtStream_t stream;
-    ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
     auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
     ess->Clear();
@@ -718,7 +718,7 @@ class CannProfilerST : public bg::BgTest {
     EXPECT_EQ(outputs.GetTensorList()[0]->GetShape().GetStorageShape(), expect_out_shape);
 
     ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
   }
 
  protected:
@@ -734,7 +734,7 @@ class CannProfilerST : public bg::BgTest {
     auto inputs = FakeTensors({2048}, 2);
 
     rtStream_t stream;
-    ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
     auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
     ASSERT_NE(
@@ -744,7 +744,7 @@ class CannProfilerST : public bg::BgTest {
                                       reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
               ge::GRAPH_SUCCESS);
     ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
   }
 
   static void TestProfiling() {
@@ -754,7 +754,7 @@ class CannProfilerST : public bg::BgTest {
     auto inputs = FakeTensors({2048}, 2);
 
     rtStream_t stream;
-    ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
     auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
     ASSERT_NE(
@@ -764,7 +764,7 @@ class CannProfilerST : public bg::BgTest {
                                       reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
               ge::GRAPH_SUCCESS);
     ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
   }
 
   static void TestProfilingHost() {
@@ -781,7 +781,7 @@ class CannProfilerST : public bg::BgTest {
     auto inputs = FakeTensors({2048}, 2);
 
     rtStream_t stream;
-    ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
     auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
     ASSERT_NE(
@@ -796,7 +796,7 @@ class CannProfilerST : public bg::BgTest {
     profiler->InitLaunchApi(12345, "AicpuHostCompute", fake_api);
     ASSERT_EQ(fake_api.type, MSPROF_REPORT_NODE_HOST_OP_EXEC_TYPE);
     ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
   }
 
   static void TestMemoryProfiling() {
@@ -806,7 +806,7 @@ class CannProfilerST : public bg::BgTest {
     auto inputs = FakeTensors({2048}, 2);
 
     rtStream_t stream;
-    ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
     auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
     ASSERT_NE(
@@ -821,7 +821,7 @@ class CannProfilerST : public bg::BgTest {
     // turn off prof
     ge::diagnoseSwitch::DisableProfiling();
     ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
   }
 
   static void TestMemoryProfilingWithTwoNode() {
@@ -831,7 +831,7 @@ class CannProfilerST : public bg::BgTest {
     auto inputs = FakeTensors({2048}, 2);
 
     rtStream_t stream;
-    ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
     auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
     ASSERT_NE(
@@ -846,7 +846,7 @@ class CannProfilerST : public bg::BgTest {
     // turn off prof
     ge::diagnoseSwitch::DisableProfiling();
     ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
   }
 
   static void TestContextInfoProfiling() {
@@ -856,7 +856,7 @@ class CannProfilerST : public bg::BgTest {
     auto inputs = FakeTensors({2048}, 2);
 
     rtStream_t stream;
-    ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
     auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
     ASSERT_NE(
         model_executor->GetSubscribers().GetBuiltInSubscriber<CannProfilerV2>(BuiltInSubscriberType::kCannProfilerV2),
@@ -865,7 +865,7 @@ class CannProfilerST : public bg::BgTest {
                                       reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
               ge::GRAPH_SUCCESS);
     ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
   }
 
   static void TestMixVector() {
@@ -875,7 +875,7 @@ class CannProfilerST : public bg::BgTest {
     auto inputs = FakeTensors({2048}, 2);
 
     rtStream_t stream;
-    ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
     auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
     ASSERT_NE(
         model_executor->GetSubscribers().GetBuiltInSubscriber<CannProfilerV2>(BuiltInSubscriberType::kCannProfilerV2),
@@ -886,7 +886,7 @@ class CannProfilerST : public bg::BgTest {
     EXPECT_EQ(model_executor.get()->GetModelDesc().GetReusableStreamNum(), 2);
     EXPECT_EQ(model_executor.get()->GetModelDesc().GetAttachedStreamNum(), 1);
     ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
   }
 
   static void TestLaunchInfoProfiling() {
@@ -981,7 +981,7 @@ class CannProfilerST : public bg::BgTest {
     auto outputs = FakeTensors({2, 2}, 3);
     auto inputs = FakeTensors({2, 2}, 1, mem_block.get());
     rtStream_t stream;
-    ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
     auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
     ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(),
@@ -998,7 +998,7 @@ class CannProfilerST : public bg::BgTest {
               ge::GRAPH_SUCCESS);
     ge::diagnoseSwitch::DisableProfiling();
     ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-    rtStreamDestroy(stream);
+    aclrtDestroyStream(stream);
   }
 };
 
@@ -1087,7 +1087,7 @@ TEST_F(CannProfilerST, InitCannProfilingV1_Ok) {
   auto inputs = FakeTensors({2048}, 2);
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.GetTensorList(),
@@ -1095,7 +1095,7 @@ TEST_F(CannProfilerST, InitCannProfilingV1_Ok) {
             ge::GRAPH_SUCCESS);
   ASSERT_EQ(executor->UnLoad(), ge::GRAPH_SUCCESS);
   ge::diagnoseSwitch::EnableProfiling({ProfilingType::kDevice});
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 /**

@@ -17,6 +17,7 @@
 #include "common/utils/heterogeneous_profiler.h"
 #include "common/utils/rts_api_utils.h"
 #include "common/dump/dump_manager.h"
+#include "common/ge_rts_decl.h"
 #include "aicpu_schedule/aicpusd_interface.h"
 #include "aicpu_schedule/aicpusd_info.h"
 #include "queue_schedule/dgw_client.h"
@@ -182,7 +183,7 @@ Status DynamicModelExecutor::LoadModel(const ModelData &model_data,
 }
 
 void DynamicModelExecutor::DestroyDatasetResource() {
-  rtCtxSetCurrent(rt_context_);
+  aclrtSetCurrentContext(rt_context_);
   GEEVENT("Destroy dataset resource begin, inner model_id = %u.", model_id_);
   if (model_desc_ != nullptr) {
     (void) aclmdlDestroyDesc(model_desc_);
@@ -233,7 +234,7 @@ void DynamicModelExecutor::UnloadModel() {
     }
     GEEVENT("UnloadModel model external weight success, inner model_id = %u.", model_id_);
   }
-  rtCtxSetCurrent(rt_context_);
+  aclrtSetCurrentContext(rt_context_);
   if (handle_ != nullptr) {
     (void) aclmdlDestroyConfigHandle(handle_);
     handle_ = nullptr;
@@ -1060,7 +1061,7 @@ Status DynamicModelExecutor::DoLoadModel(const ModelData &model_data, const Comp
   int32_t device_id = is_host_ ? GetContext().DeviceId() : device_id_;
   aclError ret = aclrtSetDevice(device_id);
   GE_ASSERT_TRUE(ret == ACL_SUCCESS, "ACL set device id failed.");
-  rtCtxSetCurrent(rt_context_);
+  aclrtSetCurrentContext(rt_context_);
   GE_CHK_STATUS_RET(InitExternalWeightMem(root_graph, external_weight_mem_data_), "Failed to init external weright mem.");
   handle_ = aclmdlCreateConfigHandle();
   GE_CHECK_NOTNULL(handle_, "Create acl load config handle failed.");
@@ -1207,7 +1208,7 @@ Status DynamicModelExecutor::CreateOutputDataset(const std::vector<DataBuffer> &
 Status DynamicModelExecutor::DoExecuteModel(const std::vector<DataBuffer> &inputs, std::vector<DataBuffer> &outputs) {
   GE_CHK_STATUS_RET(CreateInputDataset(inputs), "Failed to prepare acl type input dataset.");
   GE_CHK_STATUS_RET(CreateOutputDataset(outputs), "Failed to prepare acl type output dataset.");
-  rtCtxSetCurrent(rt_context_);
+  aclrtSetCurrentContext(rt_context_);
   auto ret = aclmdlExecute(model_id_, input_dataset_, output_dataset_);
   GE_ASSERT_TRUE(ret == ACL_SUCCESS, "Failed to execute model.");
 
@@ -1243,7 +1244,7 @@ Status DynamicModelExecutor::ParseModelOutputToTensorDesc(const aclTensorDesc *a
 
 Status DynamicModelExecutor::GetGlobalStepAddr() {
   int32_t device_id = -1;
-  GE_CHK_RT_RET(rtGetDevice(&device_id));
+  DF_CHK_ACL_RET(aclrtGetDevice(&device_id));
   GEEVENT("Current process procedure maybe runtime 2.0. Create global_step memory now.");
   if (is_host_) {
     GELOGI("Alloc global step memory for host cpu model.");

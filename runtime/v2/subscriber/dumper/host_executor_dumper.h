@@ -22,7 +22,7 @@
 #include "exe_graph/runtime/kernel_context.h"
 #include "lowering/pass_changed_kernels_info.h"
 #include "lowering/placement/placed_lowering_result.h"
-#include "runtime/base.h"
+#include "rt_external_base.h"
 #include "runtime/subscriber/executor_subscriber_c.h"
 #include "runtime/subscriber/global_dumper.h"
 #include "common/model/ge_root_model.h"

@@ -17,7 +17,7 @@
 #include "graph/utils/inference_rule.h"
 #include "framework/common/debug/ge_log.h"
 #include "kernel/kernel_log.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "core/debug/kernel_tracing.h"
 #include "graph/utils/type_utils.h"
 #include "exe_graph/runtime/gert_tensor_data.h"

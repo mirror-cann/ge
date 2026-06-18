@@ -16,8 +16,7 @@
 #include "aicpu_engine_struct.h"
 #include "graph/op_desc.h"
 #include "graph/ge_tensor.h"
-#include "runtime/mem.h"
-#include "runtime/kernel.h"
+#include "common/ge_rts_decl.h"
 #include "acl/acl_rt.h"
 
 namespace ge {

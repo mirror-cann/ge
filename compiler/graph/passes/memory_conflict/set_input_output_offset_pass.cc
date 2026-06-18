@@ -11,7 +11,7 @@
 #include "graph/passes/memory_conflict/set_input_output_offset_pass.h"
 #include "graph/utils/node_utils.h"
 #include "checker.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 
 namespace ge {
 Status SetInputOutputOffsetPass::Run(ComputeGraphPtr graph) {

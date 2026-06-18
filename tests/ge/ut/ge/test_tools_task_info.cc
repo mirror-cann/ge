@@ -23,6 +23,7 @@
 #include "hybrid/node_executor/aicpu/aicpu_ext_info_handler.h"
 #include "ffts_plus_proto_tools.h"
 #include "common/opskernel/ops_kernel_info_types.h"
+#include "prof_common.h"
 
 namespace ge {
 std::set<std::string> actual_info_type = {};
@@ -155,7 +156,7 @@ void SetUnknownOpKernel(const ComputeGraphPtr &graph, uint32_t &mem_offset, bool
 
   size_t free_mem = 0U;
   size_t total_mem_size = 0U;
-  rtMemGetInfoEx(RT_MEMORYINFO_HBM, &free_mem, &total_mem_size);
+  aclrtGetMemInfo(ACL_HBM_MEM, &free_mem, &total_mem_size);
   ASSERT_EQ(VarManager::Instance(graph->GetSessionID())->SetMemoryMallocSize({}, total_mem_size), SUCCESS);
   ASSERT_EQ(VarManager::Instance(graph->GetSessionID())->Init(0, graph->GetSessionID(), 0, 0), SUCCESS);
   ASSERT_EQ(VarMemAssignUtil::AssignVarMemory(graph), SUCCESS);

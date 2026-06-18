@@ -30,7 +30,7 @@
 #include "graph/utils/tensor_utils_ex.h"
 #include "memory_app_type_classifier.h"
 #include "model_args_layout_planner.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "task_args_refresh_type_classifier.h"
 #include "task_node_map.h"
 
@@ -774,7 +774,7 @@ Status ModelArgsManager::PrintKernelLaunchArgsDfxInfo(aclrtStream const stm) {
             i, active_mem_base_addr[i]);
   }
 
-  GE_CHK_RT_RET(aclrtSynchronizeStream(stm));
+  GE_CHK_ACL_RET(aclrtSynchronizeStream(stm));
   std::vector<uint64_t> model_args_device_addrs(model_args_len_[0] / sizeof(uint64_t), 0);
   (void)aclrtMemcpy(model_args_device_addrs.data(), model_args_len_[0],
       ValueToPtr(model_args_[0].model_args_device_addr), model_args_len_[0], ACL_MEMCPY_DEVICE_TO_HOST);
@@ -1010,7 +1010,7 @@ Status ModelArgsManager::ReportKernelLaunchOpProfilingData(const uint64_t begin_
     bool l0_prof_enable = gert::GlobalProfilingWrapper::GetInstance()->IsEnabled(gert::ProfilingType::kTaskTime);
     uint64_t kernel_launch_prof_begin_time = 0;
     GE_IF_BOOL_EXEC(l0_prof_enable, kernel_launch_prof_begin_time = MsprofSysCycleTime());
-    GE_IF_BOOL_EXEC(dfx_info_.get_model_args_device_table_flag, GE_CHK_RT_RET(aclrtSynchronizeStream(stm)));
+    GE_IF_BOOL_EXEC(dfx_info_.get_model_args_device_table_flag, GE_CHK_ACL_RET(aclrtSynchronizeStream(stm)));
 
     LaunchKernelParam launch_kernel_param;
     launch_kernel_param.stream = stm;

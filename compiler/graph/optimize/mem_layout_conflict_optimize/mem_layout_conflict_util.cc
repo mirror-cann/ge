@@ -12,7 +12,7 @@
 #include <algorithm>
 #include <atomic>
 #include <stack>
-#include "runtime/rt.h"
+#include "rt_external.h"
 #include "common/checker.h"
 #include "graph/ge_context.h"
 #include "graph/utils/node_utils.h"

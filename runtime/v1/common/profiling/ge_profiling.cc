@@ -11,7 +11,7 @@
 #include "framework/common/profiling/ge_profiling.h"
 #include "common/profiling/profiling_manager.h"
 
-#include "runtime/rt.h"
+#include "rt_external.h"
 #include "framework/common/debug/log.h"
 #include "graph/load/graph_loader.h"
 #include "graph/ge_context.h"

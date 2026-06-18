@@ -11,9 +11,9 @@
 #include "ai_core_launch_kernel.h"
 #include <cstddef>
 #include <iomanip>
-#include "runtime/kernel.h"
-#include "runtime/mem.h"
-#include "runtime/rt.h"
+#include "rt_external_kernel.h"
+#include "rt_external_mem.h"
+#include "rt_external.h"
 #include "adump_pub.h"
 #include "adump_api.h"
 #include "graph/ge_error_codes.h"
@@ -28,8 +28,7 @@
 #include "core/debug/kernel_tracing.h"
 #include "common/dump/kernel_tracing_utils.h"
 #include "common/checker.h"
-#include "runtime/mem.h"
-#include "runtime/context.h"
+#include "common/ge_rts_decl.h"
 #include "exe_graph/runtime/gert_tensor_data.h"
 #include "exe_graph/runtime/dfx_info_filler.h"
 #include "engine/aicore/fe_rt2_common.h"
@@ -37,8 +36,7 @@
 #include "common/dump/exception_dumper.h"
 #include "framework/runtime/subscriber/global_dumper.h"
 #include "graph/small_vector.h"
-#include "runtime/rts/rts_stream.h"
-#include "runtime/rts/rts_kernel.h"
+#include "rt_external_stream.h"
 #include "aprof_pub.h"
 #include "acl/acl_rt.h"
 
@@ -362,7 +360,7 @@ static ge::graphStatus UpdateEachArgsInfo(const KernelContext *context, const ge
     FE_ASSERT_NOTNULL(io_arg);
     if (io_arg->start_index == 0xFFFF) {
       void *mode_addr_ptr = nullptr;
-      GE_CHK_RT_RET(aclrtGetHardwareSyncAddr(&mode_addr_ptr));
+      GE_CHK_ACL_RET(aclrtGetHardwareSyncAddr(&mode_addr_ptr));
       GELOGD("Mix set sync addr: [%ld].", reinterpret_cast<uint64_t>(mode_addr_ptr));
       GE_RETURN_IF_ERROR(args.SetIoAddr(io_arg->arg_offset, mode_addr_ptr));
       continue;

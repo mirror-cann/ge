@@ -68,7 +68,7 @@ Status DynamicStreamAllocator::AssignAttachedResource(const ComputeGraphPtr &com
   }
   AssignAttachedStreamPass attach_stream_pass;
   AssignAttachedNotifyPass attached_notify_pass;
-  notify_types.resize(notify_num, RT_NOTIFY_DEFAULT);
+  notify_types.resize(notify_num, ACL_NOTIFY_DEFAULT);
   uint32_t cur_notify_num = static_cast<uint32_t>(notify_num);
   for (const auto &dyn_graph : dyn_graphs) {
     GE_ASSERT_SUCCESS(attach_stream_pass.Run(dyn_graph, stream_num));

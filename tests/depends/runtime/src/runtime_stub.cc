@@ -18,11 +18,9 @@
 #include "rt_error_codes.h"
 #include "acl/acl_rt.h"
 #include <iostream>
-// 待rt.h删除后再替换
-#include "runtime/rts/rts_dqs.h"
-#include "runtime/rts/rts_kernel.h"
+#include "rt_external_dqs.h"
 
-#include "runtime/kernel.h"
+#include "rt_external_kernel.h"
 
 extern std::string g_runtime_stub_mock;
 extern std::string g_runtime_stub_mock_v2;
@@ -276,11 +274,6 @@ rtError_t RuntimeStub::rtMalloc(void **dev_ptr, uint64_t size, rtMemType_t type,
   return RT_ERROR_NONE;
 }
 
-rtError_t RuntimeStub::rtFree(void *dev_ptr) {
-  delete[](uint8_t *) dev_ptr;
-  return RT_ERROR_NONE;
-}
-
 rtError_t RuntimeStub::rtEschedWaitEvent(int32_t device_id,
                                          uint32_t group_id,
                                          uint32_t thread_id,
@@ -289,7 +282,7 @@ rtError_t RuntimeStub::rtEschedWaitEvent(int32_t device_id,
   return RT_ERROR_NONE;
 }
 
-rtError_t RuntimeStub::rtMemGetInfoEx(rtMemInfoType_t memInfoType, size_t *free, size_t *total) {
+rtError_t RuntimeStub::aclrtGetMemInfo(aclrtMemAttr memInfoType, size_t *free, size_t *total) {
   *free = 64UL * 1024UL * 1024UL;
   *total = 128UL * 1024UL * 1024UL;
   return RT_ERROR_NONE;
@@ -458,6 +451,16 @@ rtError_t RuntimeStub::rtGetDeviceCapability(int32_t device, int32_t moduleType,
   return RT_ERROR_NONE;
 }
 
+rtError_t RuntimeStub::rtsStreamGetId(void *stm, int32_t *streamId)
+{
+  (void) stm;
+  if (*streamId == 999) {
+    return -1;
+  }
+  *streamId = 0;
+  return RT_ERROR_NONE;
+}
+
 rtError_t RuntimeStub::rtBinarySetExceptionCallback(rtBinHandle binHandle, rtOpExceptionCallback exceptionFunc, void *userData) {
   (void) binHandle;
   (void) exceptionFunc;
@@ -465,6 +468,34 @@ rtError_t RuntimeStub::rtBinarySetExceptionCallback(rtBinHandle binHandle, rtOpE
   return RT_ERROR_NONE;
 }
 
+rtError_t RuntimeStub::rtsSetStreamResLimit(rtStream_t stm, const rtDevResLimitType_t type, const uint32_t value) {
+  (void) stm;
+  (void) type;
+  (void) value;
+  return RT_ERROR_NONE;
+}
+
+rtError_t RuntimeStub::rtsUseStreamResInCurrentThread(const rtStream_t stm) {
+  (void) stm;
+  return RT_ERROR_NONE;
+}
+
+rtError_t RuntimeStub::rtsGetThreadLastTaskId(uint32_t *taskId)
+{
+  if (*taskId == 999) {
+    return -1;
+  }
+  *taskId = 0;
+  return RT_ERROR_NONE;
+}
+
+rtError_t RuntimeStub::rtsDeviceGetCapability(int32_t deviceId, int32_t devFeatureType, int32_t *val)
+{
+  (void) deviceId;
+  (void) devFeatureType;
+  *val = 16;
+  return RT_ERROR_NONE;
+}
 rtError_t RuntimeStub::rtStreamWaitEvent(rtStream_t stream, rtEvent_t event) {
   return GET_STUB_RETURN_VALUE(rtStreamWaitEvent, rtError_t, RT_ERROR_NONE);
 }
@@ -612,7 +643,6 @@ void rtStubTearDown() {
   DEL_STUB_RETURN_VALUE(rtEventCreate, rtError_t);
   DEL_STUB_RETURN_VALUE(rtGetEventID, rtError_t);
 
-  DEL_STUB_RETURN_VALUE(rtNotifyCreate, rtError_t);
   DEL_STUB_RETURN_VALUE(rtNotifyWait, rtError_t);
   DEL_STUB_RETURN_VALUE(rtGetNotifyID, rtError_t);
   DEL_STUB_RETURN_VALUE(rtQueryFunctionRegistered, rtError_t);
@@ -684,7 +714,7 @@ rtError_t rtGetNotifyID(rtNotify_t notify, uint32_t *notify_id) {
     return -1;
   }
   *notify_id = 0;
-  return GET_STUB_RETURN_VALUE(rtNotifyCreate, rtError_t, RT_ERROR_NONE);
+  return GET_STUB_RETURN_VALUE(rtGetNotifyID, rtError_t, RT_ERROR_NONE);
 }
 
 ADD_STUB_RETURN_VALUE(rtQueryFunctionRegistered, rtError_t);
@@ -692,33 +722,10 @@ rtError_t rtQueryFunctionRegistered(const char *stub_name) {
   return GET_STUB_RETURN_VALUE(rtQueryFunctionRegistered, rtError_t, RT_ERROR_NONE);
 }
 
-rtError_t rtCtxSetCurrent(rtContext_t ctx)
-{
-  const char * const kEnvRecordPath = "SET_TRANS_VAR_DATA";
-  char record_path[MMPA_MAX_PATH] = {};
-  (void)mmGetEnv(kEnvRecordPath, &record_path[0], static_cast<uint32_t>(MMPA_MAX_PATH));
-
-  if (std::string(&record_path[0]).find("mock_fail") != std::string::npos) {
-    return -1;
-  }
-  return RT_ERROR_NONE;
-}
-
 aclError aclrtStreamGetId(aclrtStream stream, int32_t *stream_id) {
   *stream_id = 0;
   return ACL_SUCCESS;
 }
-
-rtError_t rtCtxGetCurrent(rtContext_t *ctx) {
-  if (__FUNCTION__ == g_runtime_stub_mock) {
-    return -1;
-  }
-  uintptr_t x = 1;
-  *ctx = (rtContext_t *)x;
-  return RT_ERROR_NONE;
-}
-
-rtError_t rtCtxSetDryRun(rtContext_t ctx, rtDryRunFlag_t enable, uint32_t flag) { return RT_ERROR_NONE; }
 
 rtError_t rtEventGetTimeStamp(uint64_t *time, rtEvent_t event) {
   *time = 12345;
@@ -731,10 +738,6 @@ rtError_t rtEventCreateWithFlag(rtEvent_t *event, uint32_t flag) {
 
 rtError_t rtEventCreateExWithFlag(rtEvent_t *event, uint32_t flag) {
   return rtEventCreate(event);
-}
-
-rtError_t rtNotifyCreateWithFlag(int32_t deviceId, rtNotify_t *notify, uint32_t flag) {
-  return rtNotifyCreate(deviceId, notify);
 }
 
 rtError_t rtEventRecord(rtEvent_t event, rtStream_t stream) {
@@ -753,15 +756,6 @@ rtError_t rtEventDestroySync(rtEvent_t event) {
   g_free_event_num++;
   delete[](int *) event;
   return RT_ERROR_NONE;
-}
-
-ADD_STUB_RETURN_VALUE(rtNotifyCreate, rtError_t);
-rtError_t rtNotifyCreate(int32_t deviceId, rtNotify_t *notify) {
-  if (__FUNCTION__ == g_runtime_stub_mock) {
-    return -1;
-  }
-  *notify = new int[NOTIFY_LENTH];
-  return GET_STUB_RETURN_VALUE(rtNotifyCreate, rtError_t, RT_ERROR_NONE);
 }
 
 ADD_STUB_RETURN_VALUE(rtNotifyWait, rtError_t);
@@ -797,10 +791,6 @@ ADD_STUB_RETURN_VALUE(rtMalloc, rtError_t);
 rtError_t rtMalloc(void **dev_ptr, uint64_t size, rtMemType_t type, uint16_t moduleId) {
   return GET_STUB_RETURN_VALUE(rtMalloc, rtError_t,
     ge::RuntimeStub::GetInstance()->rtMalloc(dev_ptr, size, type, moduleId));
-}
-
-rtError_t rtFree(void *dev_ptr) {
-  return ge::RuntimeStub::GetInstance()->rtFree(dev_ptr);
 }
 
 ADD_STUB_RETURN_VALUE(rtMallocHost, rtError_t);
@@ -1086,10 +1076,10 @@ rtError_t rtMemGetInfo(size_t *free, size_t *total) {
   return RT_ERROR_NONE;
 }
 
-rtError_t rtMemGetInfoEx(rtMemInfoType_t memInfoType, size_t *free, size_t *total) {
+rtError_t aclrtGetMemInfo(aclrtMemAttr memInfoType, size_t *free, size_t *total) {
   *free = 64UL * 1024UL * 1024UL;
   *total = 128UL * 1024UL * 1024UL;
-  return ge::RuntimeStub::GetInstance()->rtMemGetInfoEx(memInfoType, free, total);
+  return ge::RuntimeStub::GetInstance()->aclrtGetMemInfo(memInfoType, free, total);
 }
 
 rtError_t rtMemAllocManaged(void **ptr, uint64_t size, uint32_t flag, uint16_t moduleId) {
@@ -1175,10 +1165,6 @@ rtError_t rtGetAddrByFun(const void *stubFunc, void **addr) {
   return RT_ERROR_NONE;
 }
 
-rtError_t rtCtxCreate(rtContext_t *ctx, uint32_t flags, int32_t device) {
-  return ge::RuntimeStub::GetInstance()->rtCtxCreate(ctx, flags, device);
-}
-
 rtError_t rtKernelLaunchEx(void *args, uint32_t args_size, uint32_t flags, rtStream_t stream_) {
   const char * const kEnvRecordPath = "CONSTANT_FOLDING_PASS_6";
   char record_path[MMPA_MAX_PATH] = {};
@@ -1210,9 +1196,6 @@ rtError_t rtEndGraphEx(rtModel_t model, rtStream_t stream, uint32_t flags)
 rtError_t rtProfilerStop(uint64_t profConfig, int32_t numsDev, uint32_t *deviceList) {
   return RT_ERROR_NONE;
 }
-
-
-rtError_t rtCtxDestroy(rtContext_t ctx) { return RT_ERROR_NONE; }
 
 rtError_t rtProfilerStart(uint64_t profConfig, int32_t numsDev, uint32_t *deviceList) {
   return RT_ERROR_NONE;
@@ -1362,21 +1345,6 @@ rtError_t rtSetTaskFailCallback(rtTaskFailCallback callback)
   return RT_ERROR_NONE;
 }
 
-rtError_t rtMallocHostSharedMemory(rtMallocHostSharedMemoryIn *in,
-		                               rtMallocHostSharedMemoryOut *out)
-{
-  out->ptr = new uint8_t[in->size];
-  out->devPtr = new uint8_t[in->size];
-  return RT_ERROR_NONE;
-}
-
-rtError_t rtFreeHostSharedMemory(rtFreeHostSharedMemoryIn *in)
-{
-  delete[] (uint8_t*)in->ptr;
-  delete[] (uint8_t*)in->devPtr;
-  return RT_ERROR_NONE;
-}
-
 rtError_t rtDebugRegister(rtModel_t model, uint32_t flag, const void *addr, uint32_t *streamId, uint32_t *taskId)
 {
   return RT_ERROR_NONE;
@@ -1446,6 +1414,14 @@ rtError_t rtGetTaskIdAndStreamID(uint32_t *taskId, uint32_t *streamId)
  return RT_ERROR_NONE;
 }
 
+rtError_t rtsStreamGetId(void *stm, int32_t *streamId)
+{
+  if (std::string(__FUNCTION__) == g_runtime_stub_mock) {
+    return -1;
+  }
+  return ge::RuntimeStub::GetInstance()->rtsStreamGetId(stm, streamId);
+}
+
 rtError_t rtBinarySetExceptionCallback(rtBinHandle binHandle, rtOpExceptionCallback exceptionFunc, void *userData) {
   return ge::RuntimeStub::GetInstance()->rtBinarySetExceptionCallback(binHandle, exceptionFunc, userData);
 }
@@ -1454,15 +1430,41 @@ rtError_t rtGetDeviceCapability(int32_t device, int32_t moduleType, int32_t feat
   return ge::RuntimeStub::GetInstance()->rtGetDeviceCapability(device, moduleType, featureType, value);
 }
 
+rtError_t rtsSetStreamResLimit(rtStream_t stm, const rtDevResLimitType_t type, const uint32_t value) {
+  if (std::string(__FUNCTION__) == g_runtime_stub_mock) {
+    return -1;
+  }
+  return ge::RuntimeStub::GetInstance()->rtsSetStreamResLimit(stm, type, value);
+}
+
+rtError_t rtsUseStreamResInCurrentThread(const rtStream_t stm) {
+  if (std::string(__FUNCTION__) == g_runtime_stub_mock) {
+    return -1;
+  }
+  return ge::RuntimeStub::GetInstance()->rtsUseStreamResInCurrentThread(stm);
+}
+
+rtError_t rtsGetThreadLastTaskId(uint32_t *taskId)
+{
+  if (std::string(__FUNCTION__) == g_runtime_stub_mock) {
+    return -1;
+  }
+  return ge::RuntimeStub::GetInstance()->rtsGetThreadLastTaskId(taskId);
+}
+
+rtError_t rtsDeviceGetCapability(int32_t deviceId, int32_t devFeatureType, int32_t *val)
+{
+  if (std::string(__FUNCTION__) == g_runtime_stub_mock) {
+    return -1;
+  }
+  return ge::RuntimeStub::GetInstance()->rtsDeviceGetCapability(deviceId, devFeatureType, val);
+}
+
 rtError_t rtDebugRegisterForStream(rtStream_t stream, uint32_t flag, const void *addr, uint32_t *streamId, uint32_t *taskId) {
   return RT_ERROR_NONE;
 }
 
 rtError_t rtDebugUnRegisterForStream(rtStream_t stream) {
-  return RT_ERROR_NONE;
-}
-
-rtError_t rtFftsTaskLaunch(rtFftsTaskInfo_t *fftsTaskInfo, rtStream_t stream) {
   return RT_ERROR_NONE;
 }
 
@@ -1528,10 +1530,6 @@ rtError_t rtProfRegisterCtrlCallback(uint32_t logId, rtProfCtrlHandle callback) 
 }
 
 rtError_t rtFftsPlusTaskLaunchWithFlag(rtFftsPlusTaskInfo_t *fftsPlusTaskInfo, rtStream_t stream, uint32_t flag) {
-  return RT_ERROR_NONE;
-}
-
-rtError_t rtFftsTaskLaunchWithFlag(rtFftsTaskInfo_t *fftsTaskInfo, rtStream_t stream, uint32_t flag) {
   return RT_ERROR_NONE;
 }
 
@@ -1860,13 +1858,49 @@ rtError_t rtStreamAbort(rtStream_t stm) {
   return RT_ERROR_NONE;
 }
 
+rtError_t rtsValueWrite(const void * const devAddr, const uint64_t value, const uint32_t flag, rtStream_t stm) {
+  return RT_ERROR_NONE;
+}
+
+rtError_t rtsValueWait(const void * const devAddr, const uint64_t value, const uint32_t flag, rtStream_t stm) {
+  return RT_ERROR_NONE;
+}
+
 rtError_t rtStreamTaskClean(rtStream_t stm) {
   return ge::RuntimeStub::GetInstance()->rtStreamTaskClean(stm);
 }
 
+rtError_t rtsFuncGetByName(const rtBinHandle binHandle, const char *kernelName,
+                           rtFuncHandle *funcHandle)
+{
+  return ge::RuntimeStub::GetInstance()->rtsFuncGetByName(binHandle, kernelName, funcHandle);
+}
 
 rtError_t rtFusionLaunch(void * const fusionInfo, rtStream_t const stm, rtFusionArgsEx_t *argsInfo) {
   return 0;
+}
+
+rtError_t rtsFuncGetByEntry(const rtBinHandle binHandle, const uint64_t funcEntry, rtFuncHandle *funcHandle) {
+  return ge::RuntimeStub::GetInstance()->rtsFuncGetByEntry(binHandle, funcEntry, funcHandle);
+}
+
+rtError_t rtsRegisterCpuFunc(rtBinHandle binHandle, const char_t * const funcName, const char_t * const kernelName,
+    rtFuncHandle *funcHandle) {
+  return ge::RuntimeStub::GetInstance()->rtsRegisterCpuFunc(binHandle, funcName, kernelName, funcHandle);
+}
+
+rtError_t rtsBinaryUnload(const rtBinHandle binHandle) {
+  return ge::RuntimeStub::GetInstance()->rtsBinaryUnload(binHandle);
+}
+
+rtError_t rtsLaunchKernelWithDevArgs(rtFuncHandle funcHandle, uint32_t blockDim, rtStream_t stm,
+    rtKernelLaunchCfg_t *cfg, const void *args, uint32_t argsSize, void *reserve) {
+  return ge::RuntimeStub::GetInstance()->rtsLaunchKernelWithDevArgs(funcHandle, blockDim,
+      stm, cfg, args, argsSize, reserve);
+}
+
+rtError_t rtsGetHardwareSyncAddr(void **addr) {
+  return ge::RuntimeStub::GetInstance()->rtsGetHardwareSyncAddr(addr);
 }
 
 rtError_t rtLaunchDqsTask(const rtStream_t stm, const rtDqsTaskCfg_t * const taskCfg) {

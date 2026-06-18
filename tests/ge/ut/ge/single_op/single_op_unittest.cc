@@ -11,7 +11,7 @@
 #include <gtest/gtest.h>
 #include <vector>
 
-#include "runtime/rt.h"
+#include "rt_external.h"
 
 #include "macro_utils/dt_public_scope.h"
 #include "hybrid/model/graph_item.h"
@@ -46,7 +46,7 @@ TEST_F(UtestSingleOp, test_dynamic_singleop_execute_async) {
   uintptr_t resource_id = 0;
   std::mutex stream_mu;
   rtStream_t stream = nullptr;
-  rtStreamCreate(&stream, 0);
+  aclrtCreateStreamWithConfig(&stream, 0, 0);
   DynamicSingleOp dynamic_single_op(&tensor_pool_, resource_id, &stream_mu, stream);
 
   vector<int64_t> dims_vec_0 = {2};
@@ -67,7 +67,7 @@ TEST_F(UtestSingleOp, test_dynamic_singleop_execute_async) {
 
   // UpdateRunInfo failed
   EXPECT_EQ(dynamic_single_op.ExecuteAsync(input_desc, input_buffers, output_desc, output_buffers), ACL_ERROR_GE_PARAM_INVALID);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   delete[] (char*)data_buffer.data;
 }
 
@@ -75,7 +75,7 @@ TEST_F(UtestSingleOp, test_dynamic_singleop_execute_async1) {
   uintptr_t resource_id = 0;
   std::mutex stream_mu;
   rtStream_t stream = nullptr;
-  rtStreamCreate(&stream, 0);
+  aclrtCreateStreamWithConfig(&stream, 0, 0);
   DynamicSingleOpImpl dynamic_single_op(&tensor_pool_, resource_id, &stream_mu, stream);
   dynamic_single_op.num_inputs_ = 1;
 
@@ -113,7 +113,7 @@ TEST_F(UtestSingleOp, test_dynamic_singleop_execute_async1) {
   dynamic_single_op.op_task_->op_desc_ = desc_ptr;
   // UpdateRunInfo failed
   EXPECT_EQ(dynamic_single_op.ExecuteAsync(input_desc, input_buffers, output_desc, output_buffers), ACL_ERROR_GE_PARAM_INVALID);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   delete[] (char*)data_buffer.data;
 }
 
@@ -149,7 +149,7 @@ TEST_F(UtestSingleOp, test_singleop_execute_async1) {
   StreamResource *res = new (std::nothrow) StreamResource(1);
   std::mutex stream_mu;
   rtStream_t stream = nullptr;
-  rtStreamCreate(&stream, 0);
+  aclrtCreateStreamWithConfig(&stream, 0, 0);
   SingleOpImpl single_op(res, &stream_mu, stream);
 
   vector<DataBuffer> input_buffers;
@@ -195,7 +195,7 @@ TEST_F(UtestSingleOp, test_singleop_execute_async1) {
     EXPECT_EQ(tbe_task->args_ex_.hostInputInfoPtr[0].dataOffset, 8);
   }
   delete[] (char*)data_buffer.data;
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   delete res;
 }
 
@@ -203,7 +203,7 @@ TEST_F(UtestSingleOp, test_singleop_aicore_host_mem_input) {
   StreamResource *res = new (std::nothrow) StreamResource(1);
   std::mutex stream_mu;
   rtStream_t stream = nullptr;
-  rtStreamCreate(&stream, 0);
+  aclrtCreateStreamWithConfig(&stream, 0, 0);
   SingleOpImpl single_op(res, &stream_mu, stream);
 
   vector<DataBuffer> input_buffers;
@@ -252,7 +252,7 @@ TEST_F(UtestSingleOp, test_singleop_aicore_host_mem_input) {
     EXPECT_EQ(hostValueInArgs, inputValue);
   }
 
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   delete res;
 }
 
@@ -260,7 +260,7 @@ TEST_F(UtestSingleOp, test_singleop_aicpu_tf_kernel_host_mem_input) {
   StreamResource *res = new (std::nothrow) StreamResource(1);
   std::mutex stream_mu;
   rtStream_t stream = nullptr;
-  rtStreamCreate(&stream, 0);
+  aclrtCreateStreamWithConfig(&stream, 0, 0);
   SingleOpImpl single_op(res, &stream_mu, stream);
 
   vector<DataBuffer> input_buffers;
@@ -310,7 +310,7 @@ TEST_F(UtestSingleOp, test_singleop_aicpu_tf_kernel_host_mem_input) {
   // check host memory input args
   hostValueAddr = ValueToPtr(PtrToValue(task->io_addr_) + sizeof(inputValue));
   EXPECT_EQ(task->io_addr_host_[0U], hostValueAddr);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   delete res;
 }
 
@@ -318,7 +318,7 @@ TEST_F(UtestSingleOp, test_singleop_aicpu_host_mem_input) {
   StreamResource *res = new (std::nothrow) StreamResource(1);
   std::mutex stream_mu;
   rtStream_t stream = nullptr;
-  rtStreamCreate(&stream, 0);
+  aclrtCreateStreamWithConfig(&stream, 0, 0);
   SingleOpImpl single_op(res, &stream_mu, stream);
 
   // input
@@ -373,7 +373,7 @@ TEST_F(UtestSingleOp, test_singleop_aicpu_host_mem_input) {
   // task is null
   single_op.tasks_.emplace_back(nullptr);
   EXPECT_FALSE(single_op.CheckHostMemInputOptimization(input_buffers));
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   delete res;
 }
 
@@ -407,7 +407,7 @@ TEST_F(UtestSingleOp, test_hybrid_check_host_mem_input_opt) {
   StreamResource *res = new (std::nothrow) StreamResource(1);
   std::mutex stream_mu;
   rtStream_t stream = nullptr;
-  rtStreamCreate(&stream, 0);
+  aclrtCreateStreamWithConfig(&stream, 0, 0);
   DynamicSingleOpImpl single_op(&tensor_pool_, 0, &stream_mu, stream);
   std::shared_ptr<ge::GeRootModel> root_model = ge::MakeShared<ge::GeRootModel>();
   single_op.hybrid_model_.reset(new (std::nothrow)hybrid::HybridModel(root_model));
@@ -455,7 +455,7 @@ TEST_F(UtestSingleOp, test_hybrid_check_host_mem_input_opt) {
   single_op.hybrid_model_->node_items_.emplace(node, std::move(node_item));
   ASSERT_TRUE(single_op.CheckHostMemInputOptimization(input_buffers));
   ASSERT_TRUE(aicore_task1->need_host_mem_opt_);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   delete res;
 }
 
@@ -464,7 +464,7 @@ TEST_F(UtestSingleOp, test_singleop_execute_async2) {
   StreamResource *res = new (std::nothrow) StreamResource(1);
   std::mutex stream_mu;
   rtStream_t stream = nullptr;
-  rtStreamCreate(&stream, 0);
+  aclrtCreateStreamWithConfig(&stream, 0, 0);
   SingleOpImpl single_op(res, &stream_mu, stream);
 
   vector<DataBuffer> input_buffers;
@@ -496,7 +496,7 @@ TEST_F(UtestSingleOp, test_singleop_execute_async2) {
   single_op.inputs_desc_.emplace_back(tensor);
   EXPECT_EQ(single_op.ExecuteAsync(input_buffers, output_buffers), SUCCESS);
   ge::diagnoseSwitch::DisableProfiling();
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   delete[] (char*)data_buffer.data;
   delete res;
 }
@@ -505,7 +505,7 @@ TEST_F(UtestSingleOp, test_set_host_mem) {
   std::mutex stream_mu_;
   DynamicSingleOpImpl single_op(&tensor_pool_, 0, &stream_mu_, nullptr);
   rtStream_t stream = nullptr;
-  rtStreamCreate(&stream, 0);
+  aclrtCreateStreamWithConfig(&stream, 0, 0);
   std::shared_ptr<ge::GeRootModel> root_model = ge::MakeShared<ge::GeRootModel>();
   single_op.hybrid_model_.reset(new (std::nothrow)hybrid::HybridModel(root_model));
   single_op.hybrid_model_->root_graph_item_.reset(MakeGraphItem());
@@ -523,14 +523,14 @@ TEST_F(UtestSingleOp, test_set_host_mem) {
 
   single_op.hostmem_node_id_map_.emplace(0, 0);
   EXPECT_EQ(single_op.SetHostTensorValue(input_descs, input_buffers), SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(UtestSingleOp, dynamic_single_CheckHostMemInputOptimization) {
   uintptr_t resource_id = 0;
   std::mutex stream_mu;
   rtStream_t stream = nullptr;
-  rtStreamCreate(&stream, 0);
+  aclrtCreateStreamWithConfig(&stream, 0, 0);
   DynamicSingleOpImpl dynamic_single_op(&tensor_pool_, resource_id, &stream_mu, stream);
   dynamic_single_op.num_inputs_ = 1;
 
@@ -589,14 +589,14 @@ TEST_F(UtestSingleOp, dynamic_single_CheckHostMemInputOptimization) {
   EXPECT_FALSE(flag);
   EXPECT_FALSE(atomic_task->need_host_mem_opt_);
   delete[] (char *)data_buffer.data;
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(UtestSingleOp, test_dynamic_singleop_execute_async_with_host_input) {
   uintptr_t resource_id = 0;
   std::mutex stream_mu;
   rtStream_t stream = nullptr;
-  rtStreamCreate(&stream, 0);
+  aclrtCreateStreamWithConfig(&stream, 0, 0);
   DynamicSingleOpImpl dynamic_single_op(&tensor_pool_, resource_id, &stream_mu, stream);
   dynamic_single_op.num_inputs_ = 1;
 
@@ -646,7 +646,7 @@ TEST_F(UtestSingleOp, test_dynamic_singleop_execute_async_with_host_input) {
   dynamic_single_op.ExecuteAsync(input_desc, input_buffers, output_desc, output_buffers);
   EXPECT_EQ(tbe_task->need_host_mem_opt_, false);
   delete[] (char *)data_buffer.data;
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(UtestSingleOp, test_OpenDump) {

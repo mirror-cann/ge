@@ -11,7 +11,7 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include <vector>
-#include "runtime/rt.h"
+#include "rt_external.h"
 
 #include "macro_utils/dt_public_scope.h"
 #include "graph/utils/node_utils.h"
@@ -135,13 +135,13 @@ TEST_F(UtestGeHybrid, aicore_op_task_init_success) {
   auto node = graph->AddNode(op_desc);
   ASSERT_EQ(aicore_task->Init(node, task_def), SUCCESS);
   rtStream_t stream = nullptr;
-  rtStreamCreate(&stream, 0);
+  aclrtCreateStreamWithConfig(&stream, 0, 0);
   ASSERT_EQ(aicore_task->LaunchKernel(stream), SUCCESS);
   char handle = '0';
   aicore_task->handle_ = &handle;
   aicore_task->tiling_key_ = 1;
   ASSERT_EQ(aicore_task->LaunchKernel(stream), SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(UtestGeHybrid, aicore_op_task_init_success2) {
@@ -171,13 +171,13 @@ TEST_F(UtestGeHybrid, aicore_op_task_init_success2) {
   auto node = graph->AddNode(op_desc);
   ASSERT_EQ(aicore_task->InitWithTaskDef(node, task_def), SUCCESS);
   rtStream_t stream = nullptr;
-  rtStreamCreate(&stream, 0);
+  aclrtCreateStreamWithConfig(&stream, 0, 0);
   ASSERT_EQ(aicore_task->LaunchKernel(stream), SUCCESS);
   char handle = '0';
   aicore_task->handle_ = &handle;
   aicore_task->tiling_key_ = 1;
   ASSERT_EQ(aicore_task->LaunchKernel(stream), SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(UtestGeHybrid, task_update_tiling_info) {
@@ -369,7 +369,7 @@ TEST_F(UtestGeHybrid, TestForTryMalloc) {
   ASSERT_EQ(allocator2->TryFreeAndMalloc(1, &buffer), SUCCESS);
   ASSERT_NE(buffer, nullptr);
   hybrid::NpuMemoryAllocator::Finalize();
-  rtFree(buffer);
+  aclrtFree(buffer);
 }
 
 TEST_F(UtestGeHybrid, init_weight_success) {
@@ -1101,7 +1101,7 @@ TEST_F(UtestGeHybrid, test_dynamic_singleop_CheckHostMemInputOptimization) {
   uintptr_t resource_id = 0;
   std::mutex stream_mu;
   rtStream_t stream = nullptr;
-  rtStreamCreate(&stream, 0);
+  aclrtCreateStreamWithConfig(&stream, 0, 0);
   DynamicSingleOpImpl dynamic_single_op(nullptr, resource_id, &stream_mu, stream);
 
   vector<DataBuffer> input_buffers;
@@ -1144,7 +1144,7 @@ TEST_F(UtestGeHybrid, test_dynamic_singleop_CheckHostMemInputOptimization) {
 
   dynamic_single_op.node_with_hostmem_.emplace_back(node);
   ASSERT_EQ(dynamic_single_op.CheckHostMemInputOptimization(input_buffers), true);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
 }
 
 TEST_F(UtestGeHybrid, aicore_op_task_update_args_wit_host_input) {
@@ -1213,6 +1213,18 @@ TEST_F(UtestGeHybrid, TestHybridDavinciModelMethods) {
   std::vector<std::string> user_input_shape_order{"test"};
   model->GetUserDesignateShapeOrder(user_input_shape_order);
   ASSERT_EQ(user_input_shape_order.size(), 0);
+}
+
+TEST_F(UtestGeHybrid, Synchronize_StreamSyncTimeout_ReturnsFailed) {
+  const char_t *const kTimeoutEnvPath = "TIMEOUT";
+  char_t record_path[MMPA_MAX_PATH] = "timeout";
+  mmSetEnv(kTimeoutEnvPath, &record_path[0U], MMPA_MAX_PATH);
+
+  GraphExecutionContext execution_context;
+  auto ret = execution_context.Synchronize(nullptr);
+  EXPECT_EQ(ret, FAILED);
+
+  unsetenv(kTimeoutEnvPath);
 }
 
 TEST_F(UtestGeHybrid, index_taskdefs_no_task) {

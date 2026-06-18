@@ -15,7 +15,7 @@
 #include "common/plugin/ge_make_unique_util.h"
 #include "ffts_mem_allocator.h"
 
-#include "runtime/rt.h"
+#include "rt_external.h"
 
 #include "framework/common/debug/ge_log.h"
 #include "common/checker.h"

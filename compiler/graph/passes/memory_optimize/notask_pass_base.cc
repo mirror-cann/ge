@@ -10,7 +10,7 @@
 
 #include "graph/passes/memory_optimize/notask_pass_base.h"
 #include "graph/utils/node_utils.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "graph/utils/type_utils.h"
 #include "common/memory/mem_type_utils.h"
 #include "common/checker.h"

@@ -57,7 +57,7 @@ Status HybridModelExecutor::SyncVarData() const {
   if (global_step_var != nullptr) {
     std::vector<uint64_t> v_step;
     v_step.push_back(iterator_count_);
-    GE_CHK_RT_RET(aclrtMemcpy(global_step_var->MutableData(), global_step_var->GetSize(),
+    GE_CHK_ACL_RET(aclrtMemcpy(global_step_var->MutableData(), global_step_var->GetSize(),
         v_step.data(), v_step.size() * sizeof(uint64_t), ACL_MEMCPY_HOST_TO_DEVICE));
   } else {
     GELOGD("No GLOBAL_STEP variable was found.");
@@ -148,7 +148,7 @@ Status HybridModelExecutor::CopyDataToExecutArgs(const int64_t tensor_size, Hybr
            args.inputs[input_index].GetData(),
            mem_size,
            data_buf.length);
-    GE_CHK_RT_RET(aclrtMemcpy(args.inputs[input_index].MutableData(), mem_size, data_buf.data,
+    GE_CHK_ACL_RET(aclrtMemcpy(args.inputs[input_index].MutableData(), mem_size, data_buf.data,
         data_buf.length, ACL_MEMCPY_HOST_TO_DEVICE));
   }
   return SUCCESS;
@@ -288,7 +288,7 @@ Status HybridModelExecutor::CopyOutputs(HybridModelExecutor::ExecuteArgs &args, 
         GE_CHECK_NOTNULL(aligned_ptr);
         auto data_buf = aligned_ptr->MutableGet();
         GE_CHECK_NOTNULL(data_buf);
-        GE_CHK_RT_RET(aclrtMemcpy(data_buf, static_cast<uint64_t>(output_size), output_tensor.GetData(),
+        GE_CHK_ACL_RET(aclrtMemcpy(data_buf, static_cast<uint64_t>(output_size), output_tensor.GetData(),
             static_cast<uint64_t>(output_size), ACL_MEMCPY_DEVICE_TO_HOST));
         GeTensor ge_tensor(ge_tensor_desc);
         ge_tensor.SetData(aligned_ptr, static_cast<size_t>(output_size));
@@ -365,7 +365,7 @@ Status HybridModelExecutor::CopyOutputs(const std::vector<gert::Tensor> &executo
         GE_CHECK_NOTNULL(aligned_ptr);
         auto data_buf = aligned_ptr->MutableGet();
         GE_CHECK_NOTNULL(data_buf);
-        GE_CHK_RT_RET(aclrtMemcpy(data_buf, static_cast<uint64_t>(output_size), arg_output.GetAddr(),
+        GE_CHK_ACL_RET(aclrtMemcpy(data_buf, static_cast<uint64_t>(output_size), arg_output.GetAddr(),
             static_cast<uint64_t>(output_size), ACL_MEMCPY_DEVICE_TO_HOST));
         GeTensor ge_tensor;
         ge_tensor.SetData(aligned_ptr, static_cast<size_t>(output_size));

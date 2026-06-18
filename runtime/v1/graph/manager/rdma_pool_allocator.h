@@ -18,7 +18,7 @@
 #include "graph/manager/block_memory.h"
 #include "graph/manager/graph_mem_allocator.h"
 #include "graph/node.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 
 namespace ge {
 class RdmaPoolAllocator {

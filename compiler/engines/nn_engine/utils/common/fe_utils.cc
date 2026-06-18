@@ -20,7 +20,7 @@
 #include "common/fe_inner_error_codes.h"
 #include "common/math_util.h"
 #include "common/util/op_info_util.h"
-#include "runtime/rt.h"
+#include "rt_external.h"
 #include "ops_store/ops_kernel_manager.h"
 #include "graph/utils/op_desc_utils.h"
 #include "graph/utils/type_utils.h"

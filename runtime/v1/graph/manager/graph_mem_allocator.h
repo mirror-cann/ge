@@ -19,7 +19,7 @@
 
 #include "framework/common/debug/ge_log.h"
 #include "graph/node.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "runtime/mem_allocator.h"
 
 namespace ge {

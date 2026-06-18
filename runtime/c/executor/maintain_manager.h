@@ -13,7 +13,7 @@
 #include "framework/executor_c/ge_executor_types.h"
 #include "framework/executor_c/ge_executor.h"
 #include "framework/executor_c/types.h"
-#include "runtime/rt_model.h"
+#include "rt_external_model.h"
 #ifdef __cplusplus
 extern "C" {
 #endif

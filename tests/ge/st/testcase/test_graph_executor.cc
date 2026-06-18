@@ -15,7 +15,7 @@
 #include "common/ge_inner_error_codes.h"
 #include "common/framework_types_internal.h"
 #include "common/util.h"
-#include "runtime/mem.h"
+#include "acl/acl_rt.h"
 #include "common/util.h"
 #include "omg/omg_inner_types.h"
 #include "ge_graph_dsl/graph_dsl.h"
@@ -383,7 +383,7 @@ TEST_F(StestGraphExecutor, execute_graph_sync_multi_atomic_memset) {
   EXPECT_EQ(model->GenOutputTensorInfo(output_data, outputs), SUCCESS);
 
   void *goverflow_addr = nullptr;
-  EXPECT_EQ(rtMalloc(&goverflow_addr, static_cast<uint64_t>(16), RT_MEMORY_HBM, GE_MODULE_NAME_U16), SUCCESS);
+  EXPECT_EQ(aclrtMalloc(&goverflow_addr, static_cast<size_t>(16), ACL_MEM_MALLOC_NORMAL_ONLY), ACL_SUCCESS);
   model->SetOverflowAddr(goverflow_addr);
 
   ModelManager::GetInstance().InsertModel(0U, model);
@@ -398,7 +398,7 @@ TEST_F(StestGraphExecutor, execute_graph_sync_multi_atomic_memset) {
   ge_root_model->SetModelId(0);
   EXPECT_EQ(graph_executer.ExecuteGraph(0, ge_root_model, input_tensor, output_tensor), SUCCESS);
   EXPECT_EQ(ModelManager::GetInstance().DeleteModel(0U), SUCCESS);
-  EXPECT_EQ(rtFree(goverflow_addr), 0);
+  EXPECT_EQ(aclrtFree(goverflow_addr), ACL_SUCCESS);
 }
 
 TEST_F(StestGraphExecutor, execute_graph_async_with_gert_tensor_multi_atomic_memset) {
@@ -490,7 +490,7 @@ TEST_F(StestGraphExecutor, execute_graph_async_with_gert_tensor_multi_atomic_mem
   EXPECT_EQ(model->GenOutputTensorInfo(output_data, outputs), SUCCESS);
 
   void *goverflow_addr = nullptr;
-  EXPECT_EQ(rtMalloc(&goverflow_addr, static_cast<uint64_t>(16), RT_MEMORY_HBM, GE_MODULE_NAME_U16), SUCCESS);
+  EXPECT_EQ(aclrtMalloc(&goverflow_addr, static_cast<size_t>(16), ACL_MEM_MALLOC_NORMAL_ONLY), ACL_SUCCESS);
   model->SetOverflowAddr(goverflow_addr);
 
   ModelManager::GetInstance().InsertModel(0U, model);
@@ -518,7 +518,7 @@ TEST_F(StestGraphExecutor, execute_graph_async_with_gert_tensor_multi_atomic_mem
   GraphNodePtr graph_node = MakeShared<ge::GraphNode>(1);
   EXPECT_EQ(graph_executer.ExecuteGraphWithStream(nullptr, graph_node, ge_root_model, gert_inputs, gert_outputs), SUCCESS);
   EXPECT_EQ(ModelManager::GetInstance().DeleteModel(0U), SUCCESS);
-  EXPECT_EQ(rtFree(goverflow_addr), 0);
+  EXPECT_EQ(aclrtFree(goverflow_addr), ACL_SUCCESS);
 }
 
 TEST_F(StestGraphExecutor, execute_graph_async_multi) {

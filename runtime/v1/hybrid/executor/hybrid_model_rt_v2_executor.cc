@@ -135,9 +135,9 @@ ge::Status DoRtStreamSyncWithTimeout(aclrtStream stream) {
   auto timeout = ge::GetContext().StreamSyncTimeout();
   auto rt_ret = aclrtSynchronizeStreamWithTimeout(stream, timeout);
   if (rt_ret == ACL_ERROR_RT_STREAM_SYNC_TIMEOUT) {
-    GELOGE(rt_ret, "[Invoke][rtStreamSynchronizeWithTimeout] failed, stream synchronize timeout:%d, ret:%d.", timeout,
+    GELOGE(rt_ret, "[Invoke][aclrtSynchronizeStreamWithTimeout] failed, stream synchronize timeout:%d, ret:%d.", timeout,
            rt_ret);
-    REPORT_INNER_ERR_MSG("E19999", "rtStreamSynchronizeWithTimeout failed, stream synchronize timeout:%d, ret:%d.",
+    REPORT_INNER_ERR_MSG("E19999", "aclrtSynchronizeStreamWithTimeout failed, stream synchronize timeout:%d, ret:%d.",
                       timeout, rt_ret);
     return ge::FAILED;
   } else if (rt_ret == ACL_ERROR_RT_END_OF_SEQUENCE) {
@@ -343,7 +343,7 @@ Status GraphVarVisitor::AssembleDeviceSharedConstants(const vector<ge::NodePtr> 
 Status GraphVarVisitor::CopySharedConstant(const std::shared_ptr<ge::VarManager> &var_manager, uint32_t device_id,
                                            const std::vector<SharedConstantCopyHelper> &helpers) const {
   // every thread needs to aclrtSetDevice
-  GE_CHK_RT_RET(aclrtSetDevice(static_cast<int32_t>(device_id)));
+  GE_CHK_ACL_RET(aclrtSetDevice(static_cast<int32_t>(device_id)));
   GE_MAKE_GUARD(reset_device, [device_id]() {
       GE_CHK_RT(aclrtResetDevice(static_cast<int32_t>(device_id)));
   });
@@ -509,7 +509,7 @@ Status GraphVarVisitor::PreLoadFileConstant(const ge::OpDescPtr &op_desc, const 
 Status GraphVarVisitor::LoadFileConstantToDevice(const ExternalWeightManagerPtr &manager, const uint32_t device_id,
                                                  std::vector<H2DCopyHelper> &node_infos) const {
   // every thread needs to aclrtSetDevice
-  GE_CHK_RT_RET(aclrtSetDevice(static_cast<int32_t>(device_id)));
+  GE_CHK_ACL_RET(aclrtSetDevice(static_cast<int32_t>(device_id)));
   GE_MAKE_GUARD(reset_device, [device_id]() {
     GE_CHK_RT(aclrtResetDevice(static_cast<int32_t>(device_id)));
   });
@@ -1076,7 +1076,7 @@ Status HybridModelRtV2Executor::TryUpdateStreamCoreLimits(const aclrtStream stre
   if (!run_ctx_.aicore_num_str_.empty()) {
     GE_CHK_STATUS_RET(CoreNumUtils::ParseAndValidateCoreNum(ge::GetContext().GetReadableName(AICORE_NUM), run_ctx_.aicore_num_str_, 0, INT32_MAX, aicore_num));
     if (aicore_num > 0) {
-      GE_CHK_RT_RET(aclrtSetStreamResLimit(stream, ACL_RT_DEV_RES_CUBE_CORE, static_cast<uint32_t>(aicore_num)));
+      GE_CHK_ACL_RET(aclrtSetStreamResLimit(stream, ACL_RT_DEV_RES_CUBE_CORE, static_cast<uint32_t>(aicore_num)));
       update_stream_core_num = true;
     }
   }
@@ -1084,13 +1084,13 @@ Status HybridModelRtV2Executor::TryUpdateStreamCoreLimits(const aclrtStream stre
   if (!run_ctx_.vectorcore_num_str_.empty()) {
     GE_CHK_STATUS_RET(CoreNumUtils::ParseAndValidateCoreNum(ge::GetContext().GetReadableName(kVectorcoreNum), run_ctx_.vectorcore_num_str_, 0, INT32_MAX, vectorcore_num));
     if (vectorcore_num > 0) {
-      GE_CHK_RT_RET(aclrtSetStreamResLimit(stream, ACL_RT_DEV_RES_VECTOR_CORE, static_cast<uint32_t>(vectorcore_num)));
+      GE_CHK_ACL_RET(aclrtSetStreamResLimit(stream, ACL_RT_DEV_RES_VECTOR_CORE, static_cast<uint32_t>(vectorcore_num)));
       update_stream_core_num = true;
     }
   }
 
   if (update_stream_core_num) {
-    GE_CHK_RT_RET(aclrtUseStreamResInCurrentThread(stream));
+    GE_CHK_ACL_RET(aclrtUseStreamResInCurrentThread(stream));
     GELOGI("Bind stream resource limit in caller thread success, configured(cube=%d, vector=%d).",
            aicore_num, vectorcore_num);
   }
@@ -1307,7 +1307,7 @@ Status HybridModelRtV2Executor::Execute(const InputData &input_data, ExecuteArgs
   int32_t cur_device_id = -1;
   if (run_ctx_.enable_input_batch_cpy_) {
     ResetMemcpyBatchParams();
-    GE_CHK_RT_RET(aclrtGetDevice(&cur_device_id));
+    GE_CHK_ACL_RET(aclrtGetDevice(&cur_device_id));
   }
   size_t idx = 0;
   for (size_t i = 0U; i < num_inputs_; ++i) {
@@ -1453,7 +1453,7 @@ Status HybridModelRtV2Executor::Execute(const std::vector<gert::Tensor> &inputs,
   int32_t cur_device_id = -1;
   if (run_ctx_.enable_input_batch_cpy_) {
     ResetMemcpyBatchParams();
-    GE_CHK_RT_RET(aclrtGetDevice(&cur_device_id));
+    GE_CHK_ACL_RET(aclrtGetDevice(&cur_device_id));
   }
   size_t idx = 0;
   for (size_t i = 0U; i < num_inputs_; ++i) {

@@ -59,14 +59,14 @@ void ExecutorRun(ModelV2Executor *executor) {
   auto inputs = FakeTensors({2048}, 2);
 
   rtStream_t rt_stream;
-  ASSERT_EQ(rtStreamCreate(&rt_stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&rt_stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(rt_stream));
 
   ASSERT_EQ(
       executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.GetTensorList(), outputs.size()),
       ge::GRAPH_SUCCESS);
   ASSERT_EQ(executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(rt_stream);
+  aclrtDestroyStream(rt_stream);
 }
 }  // namespace
 class ExecutorDumperUT : public bg::BgTest {
@@ -556,7 +556,7 @@ TEST_F(ExecutorDumperUT, ExceptionDump_Ok_PrepareExceptionDump) {
   auto inputs = FakeTensors{{2048}, 2, mem_block.get()};
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(),
                                     reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
@@ -567,7 +567,7 @@ TEST_F(ExecutorDumperUT, ExceptionDump_Ok_PrepareExceptionDump) {
   EXPECT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper),
             nullptr);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   ge::diagnoseSwitch::DisableDumper();
 }
 
@@ -614,7 +614,7 @@ TEST_F(ExecutorDumperUT, ExceptionDump_Ok_CUST_AICPU) {
   auto inputs = FakeTensors{{2048}, 2, mem_block.get()};
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(),
                                     reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
@@ -625,7 +625,7 @@ TEST_F(ExecutorDumperUT, ExceptionDump_Ok_CUST_AICPU) {
   EXPECT_NE(model_executor->GetSubscribers().MutableBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper),
             nullptr);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   ge::diagnoseSwitch::DisableDumper();
 }
 
@@ -673,7 +673,7 @@ TEST_F(ExecutorDumperUT, ExceptionDump_HOSTADDR_CUST_AICPU) {
   auto inputs = FakeTensors{{2048}, 2, mem_block.get(), kOnHost};
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(),
                                     reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
@@ -684,7 +684,7 @@ TEST_F(ExecutorDumperUT, ExceptionDump_HOSTADDR_CUST_AICPU) {
   EXPECT_NE(model_executor->GetSubscribers().MutableBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper),
             nullptr);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   ge::diagnoseSwitch::DisableDumper();
 }
 
@@ -1726,7 +1726,7 @@ TEST_F(ExecutorDumperUT, ExceptionDump_PrepareExceptionDumpSuccess_WithEmptyAddr
   ge::DumpStub::GetInstance().ClearOpInfos();
 
   rtStream_t stream;
-  ASSERT_EQ(rtStreamCreate(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT)), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(),
                                     reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
@@ -1752,7 +1752,7 @@ TEST_F(ExecutorDumperUT, ExceptionDump_PrepareExceptionDumpSuccess_WithEmptyAddr
   EXPECT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper),
             nullptr);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
-  rtStreamDestroy(stream);
+  aclrtDestroyStream(stream);
   ge::diagnoseSwitch::DisableDumper();
 }
 

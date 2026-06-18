@@ -237,7 +237,7 @@ class ExternalAllocatorUtStub : public Allocator {
  public:
   MemBlock *Malloc(size_t size) override {
     void *mem = nullptr;
-    (void)rtMalloc(&mem, size, RT_MEMORY_HBM, GE_MODULE_NAME_U16);
+    (void)aclrtMalloc(&mem, size, ACL_MEM_MALLOC_HUGE_ONLY);
     malloc_cnt++;
     return new (std::nothrow) MemBlock(*this, mem, size);
   }
@@ -247,7 +247,7 @@ class ExternalAllocatorUtStub : public Allocator {
   }
   void Free(MemBlock *block) override {
     if (block != nullptr) {
-      rtFree(block->GetAddr());
+      aclrtFree(block->GetAddr());
       free_cnt++;
       delete block;
     }

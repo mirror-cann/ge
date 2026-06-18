@@ -21,7 +21,7 @@
 #include "exe_graph/runtime/tensor.h"
 #include "kernel/memory/mem_block.h"
 #include "aicpu_engine_struct.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 #include "common/checker.h"
 #include "common/aclrt_malloc_helper.h"
 #include "aicpu_task_struct.h"
@@ -88,7 +88,7 @@ ge::graphStatus AicpuArgsHandler::MallocMem() {
   host_buffer_ = ge::MakeUnique<uint8_t[]>(buffer_size_);
   GE_ASSERT_NOTNULL(host_buffer_);
   if (need_device_ext_) {
-    GE_ASSERT_RT_OK(ge::AclrtMalloc(&ext_info_device_buffer_, ext_info_size_, RT_MEMORY_HBM,
+    GE_ASSERT_ACL_OK(ge::AclrtMalloc(&ext_info_device_buffer_, ext_info_size_, RT_MEMORY_HBM,
                                     GE_MODULE_NAME_U16));
   }
   args_.args = host_buffer_.get();

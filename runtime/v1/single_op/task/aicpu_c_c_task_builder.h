@@ -15,7 +15,7 @@
 #include "aicpu_task_struct.h"
 #include "single_op/single_op.h"
 #include "single_op/single_op_model.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 
 namespace ge {
 class AiCpuCCTaskBuilder {

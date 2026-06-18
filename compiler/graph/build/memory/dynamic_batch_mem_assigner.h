@@ -14,7 +14,7 @@
 #include <map>
 #include <vector>
 
-#include "runtime/rt.h"
+#include "rt_external.h"
 #include "framework/common/ge_inner_error_codes.h"
 #include "graph/build/memory/block_mem_assigner.h"
 

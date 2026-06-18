@@ -19,7 +19,7 @@
 #include "common/resource_def.h"
 #include "graph/anchor.h"
 #include "graph/node.h"
-#include "runtime/base.h"
+#include "rt_external_base.h"
 #include "register/graph_optimizer/graph_optimize_register_error_codes.h"
 
 namespace fe {

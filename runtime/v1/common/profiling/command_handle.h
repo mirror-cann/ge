@@ -11,7 +11,7 @@
 #ifndef GE_COMMON_PROFILING_COMMAND_HANDLE_H_
 #define GE_COMMON_PROFILING_COMMAND_HANDLE_H_
 
-#include "runtime/base.h"
+#include "rt_external_base.h"
 
 namespace ge {
 // RTS Callback(runtime/base.h): typedef rtError_t (*rtProfCtrlHandle)(uint32_t type, void *data, uint32_t len)

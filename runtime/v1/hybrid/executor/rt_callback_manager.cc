@@ -33,7 +33,7 @@ Status RtCallbackManager::RegisterCallback(const rtStream_t stream,
   GELOGD("To register callback");
   aclrtEvent event = nullptr;
   GE_PROFILING_START(kRtEventCreateRecord);
-  GE_CHK_RT_RET(aclrtCreateEventWithFlag(&event, ACL_EVENT_CAPTURE_STREAM_PROGRESS));
+  GE_CHK_ACL_RET(aclrtCreateEventWithFlag(&event, ACL_EVENT_CAPTURE_STREAM_PROGRESS));
   const auto rt_ret = aclrtRecordEvent(event, stream);
   GE_PROFILING_END(gert::profiling::kUnknownName, gert::profiling::kRtEventCreateRecord, kRtEventCreateRecord);
   if (rt_ret != ACL_SUCCESS) {
@@ -56,7 +56,7 @@ Status RtCallbackManager::RegisterCallback(const rtStream_t stream,
 
 Status RtCallbackManager::Init() {
   aclrtContext ctx = nullptr;
-  GE_CHK_RT_RET(aclrtGetCurrentContext(&ctx));
+  GE_CHK_ACL_RET(aclrtGetCurrentContext(&ctx));
   ret_future_ = std::async(std::launch::async, [this](const aclrtContext context,
       const struct error_message::ErrorManagerContext &error_context) ->Status {
     error_message::SetErrMgrContext(error_context);
@@ -72,7 +72,7 @@ Status RtCallbackManager::Init() {
 }
 
 Status RtCallbackManager::CallbackProcess(const aclrtContext context) {
-  GE_CHK_RT_RET(aclrtSetCurrentContext(context));
+  GE_CHK_ACL_RET(aclrtSetCurrentContext(context));
   std::pair<aclrtEvent, std::pair<rtCallback_t, void *>> entry;
   bool rt_timeout = false;
   while (true) {

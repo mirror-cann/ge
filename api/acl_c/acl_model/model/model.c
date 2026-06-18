@@ -10,10 +10,11 @@
 
 #include "acl/acl_mdl.h"
 #include "acl/acl_base.h"
+#include "acl/acl_rt.h"
 #include "framework/executor_c/ge_executor.h"
 #include "model_desc_internal.h"
 #include "log_inner.h"
-#include "runtime/rt.h"
+#include "rt_external_stream.h"
 #include "model_config.h"
 
 static void SetPartFromHandle(const aclmdlConfigHandle *handle, ModelData *data) {
@@ -226,7 +227,7 @@ aclError aclmdlDestroyDataset(const aclmdlDataset *dataset) {
   DataSet *geDataSet = (DataSet *)dataset;
   DeInitVector(&geDataSet->blobs);
   if (geDataSet->io_addr != NULL) {
-    (void)rtFree(geDataSet->io_addr);
+    (void)aclrtFree(geDataSet->io_addr);
   }
   if (geDataSet->io_addr_host != NULL) {
     (void)mmFree(geDataSet->io_addr_host);

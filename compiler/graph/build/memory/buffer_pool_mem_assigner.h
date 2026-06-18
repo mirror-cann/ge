@@ -16,7 +16,7 @@
 #include <unordered_map>
 #include "graph/build/memory/mem_assigner.h"
 #include "graph/node.h"
-#include "runtime/mem.h"
+#include "rt_external_mem.h"
 
 namespace ge {
 class BufferPoolMemAssigner : public MemAssigner {

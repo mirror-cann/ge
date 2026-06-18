@@ -10,7 +10,7 @@
 
 #include <string.h>
 #include <string>
-#include "runtime/rt_mem_queue.h"
+#include "rt_external_mem.h"
 
 RTS_API rtError_t rtMemGrpCreate(const char *name, const rtMemGrpConfig_t *cfg) {
   const std::string group_name(name);

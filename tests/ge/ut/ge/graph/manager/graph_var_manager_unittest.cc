@@ -667,7 +667,7 @@ TEST_F(UtestGraphVarManagerTest, test_external_var) {
   EXPECT_NE(logic_addr, nullptr);
   const size_t total_var_size = VarManager::Instance(0)->GetVarMemSize(RT_MEMORY_HBM);
   void *external_var_addr = nullptr;
-  rtMalloc(&external_var_addr, total_var_size, RT_MEMORY_DEFAULT, GE_MODULE_NAME_U16);
+  aclrtMalloc(&external_var_addr, total_var_size, ACL_MEM_MALLOC_HUGE_FIRST);
   EXPECT_NE(external_var_addr, nullptr);
   VarManager::Instance(0)->SetExternalVar(external_var_addr, total_var_size);
 
@@ -675,7 +675,7 @@ TEST_F(UtestGraphVarManagerTest, test_external_var) {
   EXPECT_NE(dev_addr, nullptr);
   const size_t real_offset = PtrToValue(logic_addr) - VarManager::Instance(0)->GetVarMemLogicBase();
   EXPECT_EQ(dev_addr, (PtrToPtr<void, uint8_t>(external_var_addr) + real_offset));
-  rtFree(external_var_addr);
+  aclrtFree(external_var_addr);
   VarManager::Instance(0)->SetExternalVar(nullptr, 0);
 }
 
