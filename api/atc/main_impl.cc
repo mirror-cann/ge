@@ -2101,8 +2101,8 @@ Status CheckAndRunSingleOp() {
   if ((FLAGS_display_model_info == "1") || (FLAGS_framework != -1) || (!FLAGS_insert_op_conf.empty()) ||
       (FLAGS_mode != static_cast<int32_t>(RunMode::GEN_OM_MODEL))) {
     std::string reason(
-        "When --singleop is specified, only one of the following parameters can be used: {--display_model_info, "
-        "--mode, --framework, --insert_op_conf}.");
+        "When --singleop is specified, --display_model_info=1, --framework, --insert_op_conf, "
+        "and --mode values other than 0 are not supported.");
     REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char *>({"parameter", "value", "reason"}),
                               std::vector<const char *>({"--singleop", FLAGS_singleop.c_str(), reason.c_str()}));
     GELOGE(FAILED, "[Check][Parameter]%s", reason.c_str());
