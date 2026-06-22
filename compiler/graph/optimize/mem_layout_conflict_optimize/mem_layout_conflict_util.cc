@@ -21,6 +21,7 @@
 #include "checker/checker_log.h"
 #include "exec_runtime/execution_runtime_utils.h"
 #include "common/memory/mem_type_utils.h"
+#include "common/plugin/ge_make_unique_util.h"
 #include "graph/manager/graph_var_manager.h"
 #include "graph/custom_op_factory.h"
 

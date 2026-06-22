@@ -9,7 +9,6 @@
  */
 
 #include "subscriber_utils.h"
-#include "aprof_pub.h"
 #include "core/builder/node_types.h"
 #include "runtime/subscriber/global_profiler.h"
 #include "utils/extern_math_util.h"

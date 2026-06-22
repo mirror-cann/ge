@@ -13,7 +13,6 @@
 #include <map>
 #include <vector>
 #include "framework/common/debug/ge_log.h"
-#include "common/plugin/ge_make_unique_util.h"
 #include "graph/utils/graph_utils.h"
 #include "graph/small_vector.h"
 namespace ge {

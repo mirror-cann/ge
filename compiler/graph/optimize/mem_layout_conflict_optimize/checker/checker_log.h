@@ -13,6 +13,7 @@
 
 #include <sstream>
 #include "graph/small_vector.h"
+#include "graph/utils/graph_utils.h"
 #include "common/ge_common/debug/log.h"
 #include "checker.h"
 
