@@ -1,0 +1,36 @@
+﻿# GetGraphBuilder（GraphPp类）
+
+## 产品支持情况
+
+- Atlas A3 训练系列产品/Atlas A3 推理系列产品：支持
+- Atlas A2 推理系列产品/Atlas A2 训练系列产品：支持
+
+## 函数功能
+
+获取GraphPp中Graph的创建函数。
+
+## 函数原型
+
+```cpp
+GraphBuilder GetGraphBuilder() const
+```
+
+## 参数说明
+
+无
+
+## 返回值
+
+Graph的创建函数，函数原型如下。
+
+```cpp
+std::function<ge::Graph()>
+```
+
+## 异常处理
+
+无。
+
+## 约束说明
+
+无。

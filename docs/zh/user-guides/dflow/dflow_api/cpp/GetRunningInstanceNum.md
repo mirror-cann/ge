@@ -1,0 +1,32 @@
+﻿# GetRunningInstanceNum
+
+## 产品支持情况
+
+- Atlas A3 训练系列产品/Atlas A3 推理系列产品：支持
+- Atlas A2 推理系列产品/Atlas A2 训练系列产品：支持
+
+## 函数功能
+
+获取正在运行的实例数量。
+
+## 函数原型
+
+```cpp
+int32_t GetRunningInstanceNum() const 
+```
+
+## 参数说明
+
+无
+
+## 返回值
+
+返回运行的实例个数。
+
+## 异常处理
+
+无。
+
+## 约束说明
+
+无。

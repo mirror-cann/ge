@@ -1,0 +1,7 @@
+# 应用场景
+
+DataFlow可用于多模型串接下沉执行场景，在该场景下，DataFlow可以对自定义计算节点或模型进行编排，通过数据驱动模型执行，其中被定义成GraphProcessPoint的节点可以完全下沉到device侧执行，且相邻的两个GraphProcessPoint之间的数据传输将在device-device间进行。上述机制减少了host和device之间控制面和数据面的交互，降低整个DataFlow图执行的时延，从而提升整体性能。
+
+如下图所示DataFlow图中包含了两个FuncProcessPoint（UDF0和UDF1），两个GraphProcessPoint分别用于加载ONNX模型和pb模型进行推理，GraphProcessPoint可以完全下沉到device侧执行，数据在UDF0、UDF1处理结束后传递到device，两个模型的执行和数据传递将完全在device进行。样例代码请参考[完整样例参考](sample_reference.md)。
+
+![](figures/260109145241276.png)
