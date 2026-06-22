@@ -666,7 +666,7 @@ Status FusionConfigParser::JudgePriority(string level_elem, int32_t priority_val
 Status FusionConfigParser::CheckLastLayerFormatForPriorityPart(string type_elem, string fusion_elem,
                                                                nlohmann::json pass_switch_file_json,
                                                                const string &owner_type) const {
-  unordered_set<string> pass_name_set;
+  std::set<string> pass_name_set;
   for (auto &elem3 : pass_switch_file_json[type_elem][fusion_elem].items()) {
     string level_elem = elem3.key();
     string level_elem_string = StringUtils::Trim(level_elem);
