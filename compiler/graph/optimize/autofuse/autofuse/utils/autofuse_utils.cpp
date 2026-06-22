@@ -47,6 +47,7 @@ const char_t *const kNpuCollectPath = "NPU_COLLECT_PATH";
 const char_t *const kDumpGraphPath = "DUMP_GRAPH_PATH";
 const char_t *const kDumpGEGraph = "DUMP_GE_GRAPH";
 const char_t *const kDumpGraphLevel = "DUMP_GRAPH_LEVEL";
+const char_t *const kDumpGraphFormat = "DUMP_GRAPH_FORMAT";
 
 enum class DumpGraphLevel:int64_t {
   kDumpGraphLevel1 = 1,
@@ -84,12 +85,48 @@ bool NoNeedDumpGraphBySuffix(const std::string &suffix) {
   return true;
 }
 
-bool IsNoNeedDump() {
-  char dump_ge_graph[MMPA_MAX_PATH] = {'\0'};
+std::string GetDumpFormatStr(DumpFormat dump_format) {
+  switch (dump_format) {
+    case DumpFormat::GE_PROTO:
+      return "ge_proto";
+    case DumpFormat::ONNX:
+      return "onnx";
+    case DumpFormat::READABLE:
+      return "readable";
+    default:
+      return "unknown";
+  }
+}
+
+
+bool IsDumpFormatMatch(DumpFormat dump_format, const std::string &env_dump_format) {
+  std::string lower_env_dump_format = env_dump_format;
+  std::transform(lower_env_dump_format.begin(), lower_env_dump_format.end(), lower_env_dump_format.begin(),
+                 [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+  const std::string dump_format_str = GetDumpFormatStr(dump_format);
+  const auto &format_names = StringUtils::Split(lower_env_dump_format, '|');
+  return std::any_of(format_names.begin(), format_names.end(), [&dump_format_str](const std::string &format) {
+    return format.find(dump_format_str) != std::string::npos;
+  });
+}
+
+bool IsNoNeedDump(DumpFormat dump_format) {
+  char_t dump_ge_graph[MMPA_MAX_PATH] = {'\0'};
   const int32_t res = mmGetEnv(kDumpGEGraph, &(dump_ge_graph[0U]), static_cast<uint32_t>(MMPA_MAX_PATH));
   if (res != EN_OK) {
     return true;
   }
+
+  char_t dump_graph_format[MMPA_MAX_PATH] = {'\0'};
+  std::string dump_graph_format_str = "ge_proto|onnx";
+  if (mmGetEnv(kDumpGraphFormat, &(dump_graph_format[0U]), static_cast<uint32_t>(MMPA_MAX_PATH)) == EN_OK &&
+      dump_graph_format[0U] != '\0') {
+    dump_graph_format_str = dump_graph_format;
+  }
+  if (!IsDumpFormatMatch(dump_format, dump_graph_format_str)) {
+    return true;
+  }
+
   auto dump_level = (dump_ge_graph[0U] != '\0') ? std::strtol(&(dump_ge_graph[0U]), nullptr, kBaseOfIntegerValue)
                                                 : static_cast<int64_t>(ge::DumpLevel::NO_DUMP);
   if ((dump_level == static_cast<int64_t>(ge::DumpLevel::NO_DUMP)) ||
@@ -360,7 +397,7 @@ std::string ProcessGeneralFormat(const std::vector<std::string> &parts) {
 
 void AutofuseUtils::DumpGraphToOnnx(const ge::ComputeGraph &compute_graph, const std::string &module_name,
                                     const std::string &suffix) {
-  if (IsNoNeedDump() || NoNeedDumpGraphBySuffix(suffix)) {
+  if (IsNoNeedDump(ge::DumpFormat::ONNX) || NoNeedDumpGraphBySuffix(suffix)) {
     return;
   }
 
@@ -370,7 +407,7 @@ void AutofuseUtils::DumpGraphToOnnx(const ge::ComputeGraph &compute_graph, const
 
 void AutofuseUtils::DumpGEGraph(const ge::ComputeGraphPtr &graph, const std::string &module_name,
                                 const std::string &suffix) {
-  if (IsNoNeedDump() || NoNeedDumpGraphBySuffix(suffix)) {
+  if (IsNoNeedDump(ge::DumpFormat::GE_PROTO) || NoNeedDumpGraphBySuffix(suffix)) {
     return;
   }
 
@@ -380,7 +417,7 @@ void AutofuseUtils::DumpGEGraph(const ge::ComputeGraphPtr &graph, const std::str
 
 void AutofuseUtils::DumpGEGraphLevel1(const ge::ComputeGraphPtr &graph, const std::string &module_name,
                                       const std::string &suffix) {
-  if (IsNoNeedDump() || NoNeedDumpGraphBySuffix(suffix)) {
+  if (IsNoNeedDump(ge::DumpFormat::GE_PROTO) || NoNeedDumpGraphBySuffix(suffix)) {
     return;
   }
   if (!IsDumpGraphLevel1()) {
@@ -393,7 +430,7 @@ void AutofuseUtils::DumpGEGraphLevel1(const ge::ComputeGraphPtr &graph, const st
 
 void AutofuseUtils::DumpGraphToOnnxLevel1(const ge::ComputeGraph &compute_graph, const std::string &module_name,
                                           const std::string &suffix) {
-  if (IsNoNeedDump() || NoNeedDumpGraphBySuffix(suffix)) {
+  if (IsNoNeedDump(ge::DumpFormat::ONNX) || NoNeedDumpGraphBySuffix(suffix)) {
     return;
   }
 
