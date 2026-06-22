@@ -77,7 +77,7 @@ ACLNN 接口更接近底层算子原子操作，需要将 GEMM 拆解为：
 
 ## 环境准备
 
-- 通过安装指导 [环境准备](https://gitcode.com/cann/ge/blob/master/docs/build.md#2-%E5%AE%89%E8%A3%85%E8%BD%AF%E4%BB%B6%E5%8C%85) 正确安装 `toolkit` 和 `ops` 包。
+- 通过安装指导 [环境准备](https://gitcode.com/cann/ge/blob/master/docs/zh/build.md#2-%E5%AE%89%E8%A3%85%E8%BD%AF%E4%BB%B6%E5%8C%85) 正确安装 `toolkit` 和 `ops` 包。
 - 设置环境变量（假设包安装在 `/usr/local/Ascend/`）：
 
 ```bash
