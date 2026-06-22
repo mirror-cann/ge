@@ -50,7 +50,6 @@ const char *const kModeSupport =
     "The value must be selected from the following: 0(model to framework model), "
     "1(framework model to json), 3(only pre-check), "
     "5(pbtxt to json), 6(display model info), "
-    "7(convert a model to the OM2 format), "
     "30(model to execute-om for nano, an .om file for nano chips).";
 const char *const kModelToJsonSupport =
     "The framework must be selected from {0(Caffe), 3(TensorFlow), 5(Onnx)} when model is set to 1(JSON).";
@@ -787,8 +786,7 @@ class GFlagUtils {
   
   static Status CheckFlags() {
     const bool is_mode_om = ((FLAGS_mode == static_cast<int32_t>(RunMode::GEN_OM_MODEL)) ||
-                             (FLAGS_mode == static_cast<int32_t>(RunMode::GEN_EXE_OM_FOR_NANO)) ||
-                             (FLAGS_mode == static_cast<int32_t>(RunMode::GEN_OM2_MODEL)));
+                             (FLAGS_mode == static_cast<int32_t>(RunMode::GEN_EXE_OM_FOR_NANO)));
 
     const bool is_dbg = (FLAGS_mode == static_cast<int32_t>(RunMode::GEN_EXE_OM_FOR_NANO));
 
@@ -939,9 +937,6 @@ class GFlagUtils {
     GE_ASSERT_SUCCESS(CheckQuantDumpableParamValid(FLAGS_quant_dumpable), "[Check][QuantDumpable] failed!");
     GE_CHK_BOOL_EXEC(CheckAttrCompressionParamValid(FLAGS_enable_attr_compression) == SUCCESS,
                      return FAILED, "[Check][AttrCompression]failed!");
-    if (FLAGS_mode == static_cast<int32_t>(RunMode::GEN_OM2_MODEL)) {
-      GE_ASSERT_SUCCESS(CheckOm2UserOptionsValid(ge::flgs::GetUserOptions()), "[Check][OM2][UserOptions] failed!");
-    }
     return SUCCESS;
   }
 
@@ -2166,8 +2161,7 @@ int32_t main_impl(int32_t argc, char* argv[]) {
     if (FLAGS_mode == (static_cast<int32_t>(RunMode::GEN_OM_MODEL)) ||
         FLAGS_mode == (static_cast<int32_t>(RunMode::GEN_EXE_OM)) ||
         FLAGS_mode == (static_cast<int32_t>(RunMode::ONLY_PRE_CHECK)) ||
-        FLAGS_mode == (static_cast<int32_t>(RunMode::GEN_EXE_OM_FOR_NANO)) ||
-        FLAGS_mode == (static_cast<int32_t>(RunMode::GEN_OM2_MODEL))) {
+        FLAGS_mode == (static_cast<int32_t>(RunMode::GEN_EXE_OM_FOR_NANO))) {
       GE_IF_BOOL_EXEC(GenerateOmModel() != SUCCESS, ret = FAILED;
           break);
     } else if (FLAGS_mode == static_cast<int32_t>(RunMode::MODEL_TO_JSON)) {  // Mode 1, transfer model to JSON
