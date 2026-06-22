@@ -100,8 +100,10 @@ void MemcpyAsyncTaskCodeBuilder::SetupIoAddrRefresh(TaskSemanticContributeContex
 
 Status MemcpyAsyncTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> &items) {
   items.push_back(ast_.Comment("============================= " + header_.op_name + " ==============================="));
-  items.push_back(
-      ast_.VarDecl("auto", input_addr_node_.symbol_hint, GetAddr(total_dev_mem_ptr_, input_addr_node_.mem_offset)));
+  const auto input_addr = (input_addr_node_.kind == AddrValueKind::kConstTensor && input_addr_node_.const_index.has_value())
+                              ? Arg(constants_[static_cast<int64_t>(*input_addr_node_.const_index)])
+                              : Arg(GetAddr(total_dev_mem_ptr_, input_addr_node_.mem_offset));
+  items.push_back(ast_.VarDecl("auto", input_addr_node_.symbol_hint, input_addr));
   items.push_back(
       ast_.VarDecl("auto", output_addr_node_.symbol_hint, GetAddr(total_dev_mem_ptr_, output_addr_node_.mem_offset)));
   if (io_refresh_) {
