@@ -1,4 +1,4 @@
-````# Ascend C 算子通过 TorchAir 入图样例
+# Ascend C 算子通过 TorchAir 入图样例
 
 ## 样例概述
 
@@ -21,7 +21,7 @@
 
 ### CANN
 
-- 参考 [安装指导](../../../docs/zh/build.md#1-环境准备) 完成 toolkit 和 ops 包安装。
+- 参考 [安装指导](../../../docs/zh/quick_install.md#1-环境准备) 完成 toolkit 和 ops 包安装。
 
 ### 框架与插件
 
