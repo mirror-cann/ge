@@ -42,13 +42,13 @@
 
 ## **API**
 
-- [GraphEngine API](../zh/api/graph_engine_api/README.md)
+- GraphEngine API
 - DataFlow API
-  - [C++ Interface](../zh/api/dflow_api/README_cpp.md)
-  - [Python Interface](../zh/api/dflow_api/README_python.md)
+  - C++ Interface
+  - Python Interface
 - LLM DataDist API
-  - [C++ Interface](../zh/api/llm_datadist_api/README_cpp.md)
-  - [Python Interface](../zh/api/llm_datadist_api/README_python.md)
+  - C++ Interface
+  - Python Interface
 
 ## Architecture and Development Guide
 
