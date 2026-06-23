@@ -23,6 +23,15 @@ constexpr int32_t kInitializeTimeoutInMillis = 5000;
 constexpr uint64_t kDefaultCacheSizePerLayer = 2U;
 constexpr int64_t kDefaultDstCacheId = -1;
 
+std::map<ge::AscendString, ge::AscendString> BuildGeOptions(
+    const std::map<ge::AscendString, ge::AscendString> &options,
+    int32_t device_id) {
+  auto ge_options = options;
+  const auto device_id_str = std::to_string(device_id);
+  ge_options[ge::OPTION_EXEC_DEVICE_ID] = ge::AscendString(device_id_str.c_str());
+  return ge_options;
+}
+
 void AddFuncDef(FlowNodeDef &flow_node_def,
                 const std::string &func_name,
                 std::vector<uint32_t> input_indices,
@@ -220,12 +229,14 @@ ge::Status LlmFlowService::Initialize(const std::map<ge::AscendString, ge::Ascen
   sync_kv_wait_time_ = wait_time_info.sync_kv_wait_time;
   device_indices_ = deploy_info_.GetDeviceIndices();
   const auto &logical_device_ids = deploy_info_.GetLogicalDeviceIds();
+  LLM_CHK_BOOL_RET_STATUS(!device_ids_.empty(), ge::LLM_PARAM_INVALID, "device_ids is empty");
   is_spmd_ = device_indices_.size() == 1U;
   LLMLOGI("device_num in numa config = %zu, deploy to device_indices = %s",
          logical_device_ids.size(),
          llm::ToString(device_indices_).c_str());
-  auto ret = main_pool_.commit([&options]() -> ge::Status {
-    return GeApi::GetInstance().Initialize(options);
+  const auto main_ge_options = BuildGeOptions(options, device_ids_.front());
+  auto ret = main_pool_.commit([main_ge_options]() -> ge::Status {
+    return GeApi::GetInstance().Initialize(main_ge_options);
   }).get(); // 异步执行，防止在主线程SetDevice，否则可能会影响torch_npu场景
   LLM_CHK_STATUS_RET(ret, "Failed to initialize GE");
 

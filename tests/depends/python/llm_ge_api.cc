@@ -21,6 +21,12 @@ namespace llm {
 
 ge::Status GeApi::Initialize(const std::map<ge::AscendString, ge::AscendString> &options) {
   LLMLOGI("Stub GE Initialize");
+  auto it = options.find(ge::OPTION_EXEC_DEVICE_ID);
+  int32_t device_id = 0;
+  if (it != options.cend()) {
+    LLM_CHK_STATUS_RET(ge::ConvertToInt32(it->second.GetString(), device_id), "convert [%s] to int failed.",
+                       it->second.GetString());
+  }
   return ge::SUCCESS;
 }
 
