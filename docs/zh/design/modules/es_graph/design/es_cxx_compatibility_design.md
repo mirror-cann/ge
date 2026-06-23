@@ -108,7 +108,7 @@ gen_esb \
 #### 2.4.3 generate_es_package 函数的使用方式
 
 
-[generate_es_package](https://gitcode.com/cann/ge/blob/master/docs/es/tools/generate_es_package_cmake_readme.md)是对gen_esb封装后的cmake函数，当前参数如下:
+[generate_es_package](../../../../user-guides/es_graph/tools/generate_es_package_cmake_readme.md)是对gen_esb封装后的cmake函数，当前参数如下:
 
 | 参数 | 必需性 | 说明 | 示例 |
 |------|--------|------|------|

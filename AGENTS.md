@@ -67,7 +67,7 @@ rm -rf build_ut/ build_st/ output/ build/ build_out/ cov/ build_cmake_gcov/
 
 ## 架构文档加载
 
-**重要**： 在探索仓库/项目、回答问题、修改代码、输出设计文档、需求Spec或做代码检视时，根据下表加载对应文档。每个文档只需加载一次，匹配触发词、涉及目录或场景中任意一条即加载。同时，修改了代码后，要更新`docs/zh/design/features/`和`docs/zh/design/architecture/modules`下的对应文档。
+**重要**： 在探索仓库/项目、回答问题、修改代码、输出设计文档、需求Spec或做代码检视时，根据下表加载对应文档。每个文档只需加载一次，匹配触发词、涉及目录或场景中任意一条即加载。同时，修改了代码后，要更新`docs/zh/design/features/`和`docs/zh/design/modules`下的对应文档。
 
 | 文档 | 触发词 | 涉及目录 |
 |------|----------------|----------|
@@ -120,7 +120,7 @@ rm -rf build_ut/ build_st/ output/ build/ build_out/ cov/ build_cmake_gcov/
 
 > **触发词**：设计文档、设计spec、spec输出、design document、设计方案输出、brainstorming 输出文档、写入设计文档、写spec、写设计、保存spec、save spec、save design、写入 docs/superpowers/specs、设计方案、架构设计、技术方案
 
-任何输出设计文档/spec的场景（包括但不限于 superpowers brainstorming skill、用户直接要求写设计文档、输出设计方案），**必须**先读取模板文件 [docs/guidelines/design_document_template.md]，然后按照模板格式输出。模板中的每个章节都必须覆盖。即使 superpowers skill 有自己的格式要求，也要以本模板为准。
+任何输出设计文档/spec的场景（包括但不限于 superpowers brainstorming skill、用户直接要求写设计文档、输出设计方案），**必须**先读取模板文件 [docs/zh/design/design_document_template.md]，然后按照模板格式输出。模板中的每个章节都必须覆盖。即使 superpowers skill 有自己的格式要求，也要以本模板为准。
 
 同时，**必须**逐项检查以下内容：
 

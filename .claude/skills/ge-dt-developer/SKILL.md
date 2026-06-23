@@ -6,10 +6,10 @@ description: |-
 
 # GE DT 测试开发规范
 
-开发 UT/ST 用例前，务必先阅读 `docs/guidelines/dt_guide/` 下的三份指导文档：
-- `docs/guidelines/dt_guide/UT用例开发指导.md`
-- `docs/guidelines/dt_guide/ST用例开发指导.md`
-- `docs/guidelines/dt_guide/测试框架指南.md`
+开发 UT/ST 用例前，务必先阅读 `docs/zh/contributions/dev_test_guide` 下的三份指导文档：
+- `docs/zh/contributions/dev_test_guide/UT_testcase_dev_guide.md`
+- `docs/zh/contributions/dev_test_guide/ST_testcase_dev_guide.md`
+- `docs/zh/contributions/dev_test_guide/test_framework_guide.md`
 
 ## 强制规范
 

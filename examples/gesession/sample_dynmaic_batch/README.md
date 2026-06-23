@@ -33,7 +33,7 @@
 
 ## 环境要求
 
-- 通过安装指导 [环境准备](https://gitcode.com/cann/ge/blob/master/docs/zh/build.md#1-%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87) 正确安装`toolkit`和`ops`包
+- 通过安装指导 [环境准备](../../../docs/zh/quick_install.md#1-环境准备) 正确安装`toolkit`和`ops`包
 
 - 设置环境变量（假设包安装在`/usr/local/Ascend/`）
 

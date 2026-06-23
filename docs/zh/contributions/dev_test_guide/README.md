@@ -8,9 +8,9 @@
 
 | 文档 | 内容 | 适用场景 |
 |------|------|---------|
-| [测试框架指南](测试框架指南.md) | 测试基类、Graph DSL、faker、stub、checker | 构造输入、打桩、校验输出时查阅 |
-| [UT用例开发指导](UT用例开发指导.md) | UT设计checklist、校验方法、图类UT、rt2 kernel UT | 编写UT用例时查阅 |
-| [ST用例开发指导](ST用例开发指导.md) | ST注释要求、场景checklist、图编译/执行校验、DUMP阶段列表 | 编写ST用例时查阅 |
+| [测试框架指南](./test_framework_guide.md) | 测试基类、Graph DSL、faker、stub、checker | 构造输入、打桩、校验输出时查阅 |
+| [UT用例开发指导](./UT_testcase_dev_guide.md) | UT设计checklist、校验方法、图类UT、rt2 kernel UT | 编写UT用例时查阅 |
+| [ST用例开发指导](./ST_testcase_dev_guide.md) | ST注释要求、场景checklist、图编译/执行校验、DUMP阶段列表 | 编写ST用例时查阅 |
 
 ## 基础知识
 

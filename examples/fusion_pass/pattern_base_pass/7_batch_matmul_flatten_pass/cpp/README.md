@@ -147,7 +147,7 @@
 
 3. 一键式验证（可选）
 
-   - 使用 `quick_verify.sh` 脚本可一键完成编译、ATC、dump 图检查和性能测试。脚本中的 `soc_version` 默认为 `Ascend910B3`，请根据实际环境修改脚本中 atc 命令的 `--soc_version` 参数（参考[使用 ATC 离线推理](#2-使用-atc-离线推理)中的说明）：
+   - 使用 `quick_verify.sh` 脚本可一键完成编译、ATC、dump 图检查和性能测试。脚本中的 `soc_version` 默认为 `Ascend910B3`，请根据实际环境修改脚本中 atc 命令的 `--soc_version` 参数（参考[使用 ATC 离线推理](#程序运行)中的说明）：
 
      ```
      cd data

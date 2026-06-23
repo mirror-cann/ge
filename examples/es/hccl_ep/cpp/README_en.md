@@ -1,0 +1,223 @@
+# Sample Usage Guide
+
+## 1. Function Description
+
+This sample demonstrates how to use HcomAllGather and HcomReduceScatter collective communication operators for graph construction, aimed at helping graph developers quickly understand collective communication definition and usage of this type of operators in graph construction.
+
+## 2. Directory Structure
+
+```angular2html
+cpp/
+├── src/
+|   ├── CMakeLists.txt                // CMake build file
+|   ├── es_showcase.h                 // Header file
+|   └── make_ep_graph.cpp             // sample file
+├── rank_table/
+|   ├── a2/
+|   |   └── rank_table_2p.json        // A2(d802) 2-card rank table configuration (v1.0)
+├── CMakeLists.txt                    // CMake build file
+├── main.cpp                          // Program main entry
+├── README.md                         // README file
+├── run_sample.sh                     // Execution script
+└── utils.h                           // Utility file
+```
+
+## 3. Usage Instructions
+
+### 3.1. Prepare CANN Package
+
+- Install `toolkit` and `ops` packages correctly following [Environment Preparation](../../../../docs/en/quick_install.md#1-environment-preparation)
+- Set environment variables (assuming package is installed at /usr/local/Ascend/)
+
+```bash
+source /usr/local/Ascend/cann/set_env.sh
+```
+
+### 3.2. Build and Execute
+
+#### 1.2.1 Generate ES Interfaces and Build Graph for DUMP
+
+Simply run the following command to clean, generate interfaces, construct graph and DUMP graph:
+
+```bash
+bash run_sample.sh
+```
+
+Current run_sample.sh behavior: automatically clean old build, build sample and default execute sample dump. When you see the following message, it indicates successful execution:
+
+```text
+[Success] sample execution successful, pbtxt dump generated in current directory. The file starts with ge_onnx_ and can be opened in netron for display
+```
+
+**1.2.2 Output File Description**
+
+After successful execution, the following files will be generated in current directory:
+
+- `ge_onnx_*.pbtxt` - protobuf text format of graph structure, can be viewed with netron
+
+#### 1.2.3 Build Graph and Execute
+
+**Important Prerequisite: Ensure your system has at least 2 available NPU devices**
+
+**Platform Support Description:**
+
+- A2 Platform: `lspci | grep d802` has output, script automatically uses `rank_table/a2/rank_table_2p.json`
+- A5 Platform: `lspci | grep d806` has output, script will exit with error (this form is not supported)
+- Other platforms: Current version does not support, will exit with error directly in script
+
+Besides basic graph construction and dump functionality, this sample also supports actually executing EP graph on multiple cards.
+
+**Usage:**
+
+```bash
+bash run_sample.sh -t sample_and_run
+```
+
+This command will:
+
+1. Automatically generate ES interfaces
+2. Compile sample program
+3. Automatically configure rank table and environment variables (`RANK_TABLE_FILE`, `RANK_ID`, `DEVICE_ID`)
+4. Run graph in parallel on 2 NPU devices (device ID automatically read from rank_table, each process corresponds to one rank and one device)
+5. Use HcomAllGather and HcomReduceScatter for inter-card data synchronization
+
+**Note:**
+
+- Script will automatically identify hardware through `lspci` and select corresponding rank table (currently only A2 uses `rank_table/a2/rank_table_2p.json`; A5 does not support this form)
+- If you need to use other devices (like 2,3 or 4,5), please modify `device_id` in rank table file under corresponding platform directory
+- `run_sample.sh` will automatically set all required environment variables, no manual configuration needed
+
+After successful execution, you will see:
+
+```text
+[Success] sample_and_run execution successful, pbtxt and data output dump generated in current directory
+```
+
+You can view computation results through data file
+
+### 3.3. Log Printing
+
+If you need log printing to assist debugging during executable program execution, you can set the following environment variables before `bash run_sample.sh` to print logs to screen:
+
+```bash
+export ASCEND_SLOG_PRINT_TO_STDOUT=1 # Print logs to screen
+export ASCEND_GLOBAL_LOG_LEVEL=0     # Log level set to debug level
+```
+
+### 3.4. DUMP Graph During Graph Compilation Process
+
+If you need to DUMP graph to assist debugging graph compilation process during executable program execution, you can set the following environment variables before `bash run_sample.sh -t sample_and_run` to DUMP graph to execution path:
+
+```bash
+export DUMP_GE_GRAPH=2
+```
+
+## 4. Core Concepts Introduction
+
+### 4.1. Graph Construction Steps
+
+- Create graph builder (provides context, workspace and construction-related methods needed for graph construction)
+- Add starting nodes (starting nodes refer to nodes without input dependencies, usually including graph inputs (like Data nodes) and weight constants (like Const nodes))
+- Add intermediate nodes (intermediate nodes are computation nodes with input dependencies, usually generated by user graph construction logic, and connected using existing nodes as inputs)
+- Set graph output (explicitly specify graph output nodes as computation result endpoints)
+
+### 4.2. Multi-card Running Key Concepts
+
+**Environment Variable Description:**
+When running multi-card sample, script will automatically set the following environment variables:
+
+- `RANK_ID`: Logical process number (0 or 1 in this sample)
+- `DEVICE_ID`: Physical device ID (0 or 1 in this sample)
+- `RANK_TABLE_FILE`: Rank table configuration file path (currently only A2: `rank_table/a2/rank_table_2p.json`; A5 does not support this form)
+- For detailed introduction of `RANK_TABLE_FILE`, `RANK_ID`, `DEVICE_ID`, please refer to [Example a2: rank table configuration resource information](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/850alpha002/hccl/hcclug/hcclug_000067.html)
+
+**GE Initialization Configuration:**
+
+```cpp
+std::map<ge::AscendString, ge::AscendString> config = {
+  {"ge.exec.deviceId", device_id},           // From environment variable DEVICE_ID
+  {"ge.graphRunMode", "0"},
+  {"ge.exec.rankTableFile", rank_table_file}, // From environment variable RANK_TABLE_FILE
+  {"ge.exec.rankId", rank_id}                 // From environment variable RANK_ID
+};
+```
+
+### 4.3. EP Graph Construction
+
+**Concept Explanation:**
+EP (Expert Parallel) graph refers to graph structure running on multiple cards through expert parallel method. This sample demonstrates how to use ES operators to build EP graph containing collective communication operators, achieving inter-card data synchronization and parallel computation.
+
+**Graph Construction API Features:**
+
+- Supports multi-operator combination graph construction, including dynamic quantization, matrix multiplication, MoE gating, collective communication operators, etc.
+- Uses HcomAllGather and HcomReduceScatter operators to achieve inter-card data aggregation and distribution, requires configuring rank table file
+- Supports W8A8 quantization mode, can perform FP32 to INT8 conversion inside graph to improve performance
+
+For example, HcomAllGather operator prototype is shown below, ES graph construction generated API is HcomAllGather (C++) or EsHcomAllGather (C)
+
+```c++
+  REG_OP(HcomAllGather)
+      .INPUT(x, TensorType({DT_FLOAT, DT_INT32, DT_INT8, DT_INT16, DT_FLOAT16, DT_BFLOAT16, DT_INT64, DT_UINT64,
+                            DT_UINT8, DT_UINT16, DT_UINT32, DT_FLOAT64}))
+      .OUTPUT(y, TensorType({DT_FLOAT, DT_INT32, DT_INT8, DT_INT16, DT_FLOAT16, DT_BFLOAT16, DT_INT64, DT_UINT64,
+                            DT_UINT8, DT_UINT16, DT_UINT32, DT_FLOAT64}))
+      .REQUIRED_ATTR(rank_size, Int)
+      .REQUIRED_ATTR(group, String)
+      .ATTR(fusion, Int, 0)
+      .ATTR(fusion_id, Int, -1)
+      .OP_END_FACTORY_REG(HcomAllGather)
+```
+
+Its corresponding function prototype is:
+
+- Function name: HcomAllGather (C++) or EsHcomAllGather (C)
+- Parameters: 5 in total, in order: x, rank_size, group, fusion (optional, default 0), fusion_id (optional, default -1)
+- Return value: output y
+
+**C API:**
+
+```c
+EsCTensorHolder *EsHcomAllGather(EsCTensorHolder *x, int64_t rank_size, const char *group, int64_t fusion, int64_t fusion_id);
+```
+
+**C++ API:**
+
+```c++
+EsTensorHolder HcomAllGather(const EsTensorHolder &x, int64_t rank_size, const char *group, int64_t fusion=0, int64_t fusion_id=-1);
+```
+
+Note: fusion and fusion_id are optional parameters in C++ API with default values, usually can be omitted
+
+For example, HcomReduceScatter operator prototype is shown below, ES graph construction generated API is HcomReduceScatter (C++) or EsHcomReduceScatter (C)
+
+```c++
+  REG_OP(HcomReduceScatter)
+      .INPUT(x, TensorType({DT_FLOAT, DT_INT32, DT_INT8, DT_INT16, DT_FLOAT16, DT_INT64}))
+      .OUTPUT(y, TensorType({DT_FLOAT, DT_INT32, DT_INT8, DT_INT16, DT_FLOAT16, DT_INT64}))
+      .REQUIRED_ATTR(reduction, String)
+      .ATTR(fusion, Int, 0)
+      .ATTR(fusion_id, Int, -1)
+      .REQUIRED_ATTR(group, String)
+      .REQUIRED_ATTR(rank_size, Int)
+      .OP_END_FACTORY_REG(HcomReduceScatter)
+```
+
+Its corresponding function prototype is:
+
+- Function name: HcomReduceScatter (C++) or EsHcomReduceScatter (C)
+- Parameters: 6 in total, in order: x, reduction, group, rank_size, fusion (optional, default 0), fusion_id (optional, default -1)
+- Return value: output y
+
+**C API:**
+
+```c
+EsCTensorHolder *EsHcomReduceScatter(EsCTensorHolder *x, const char *reduction, const char *group, int64_t rank_size, int64_t fusion, int64_t fusion_id);
+```
+
+**C++ API:**
+
+```c++
+EsTensorHolder HcomReduceScatter(const EsTensorHolder &x, const char *reduction, const char *group, int64_t rank_size, int64_t fusion=0, int64_t fusion_id=-1);
+```
+
+Note: fusion and fusion_id are optional parameters in C++ API with default values, usually can be omitted
