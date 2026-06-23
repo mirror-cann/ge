@@ -480,14 +480,6 @@ rtError_t RuntimeStub::rtsUseStreamResInCurrentThread(const rtStream_t stm) {
   return RT_ERROR_NONE;
 }
 
-rtError_t RuntimeStub::rtsGetThreadLastTaskId(uint32_t *taskId)
-{
-  if (*taskId == 999) {
-    return -1;
-  }
-  *taskId = 0;
-  return RT_ERROR_NONE;
-}
 
 rtError_t RuntimeStub::rtsDeviceGetCapability(int32_t deviceId, int32_t devFeatureType, int32_t *val)
 {
@@ -1444,13 +1436,6 @@ rtError_t rtsUseStreamResInCurrentThread(const rtStream_t stm) {
   return ge::RuntimeStub::GetInstance()->rtsUseStreamResInCurrentThread(stm);
 }
 
-rtError_t rtsGetThreadLastTaskId(uint32_t *taskId)
-{
-  if (std::string(__FUNCTION__) == g_runtime_stub_mock) {
-    return -1;
-  }
-  return ge::RuntimeStub::GetInstance()->rtsGetThreadLastTaskId(taskId);
-}
 
 rtError_t rtsDeviceGetCapability(int32_t deviceId, int32_t devFeatureType, int32_t *val)
 {

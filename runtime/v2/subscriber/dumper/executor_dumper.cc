@@ -240,7 +240,7 @@ ge::Status NormalProcessor(const ge::OpDescPtr &op_desc, ge::ExceptionDumper *du
     uint32_t task_id = 0U;
     uint32_t stream_id = 0U;
     int32_t device_id = 0;
-    GE_CHK_RT_RET(rtsGetThreadLastTaskId(&task_id));
+    GE_CHK_ACL_RET(aclrtGetThreadLastTaskId(&task_id));
     GE_CHK_ACL_RET(aclrtStreamGetId(stream, reinterpret_cast<int32_t*>(&stream_id)));
     GE_CHK_ACL_RET(aclrtGetDevice(&device_id));
     ge::OpDescInfoId id(task_id, stream_id, device_id);

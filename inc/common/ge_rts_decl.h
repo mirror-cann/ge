@@ -90,14 +90,14 @@ typedef struct tagLabelDevInfo_t {
 
 typedef void (*rtCallback_t)(void *fnData);
 
-typedef enum {
-    KERNEL_TYPE_AICORE = 0,
-    KERNEL_TYPE_AICPU = 1,
+typedef enum rtKernelType {
+    KERNEL_TYPE_CCE = 0,
+    KERNEL_TYPE_FWK = 1,
+    KERNEL_TYPE_AICPU = 2,
     KERNEL_TYPE_AICPU_CUSTOM = 4,
     KERNEL_TYPE_AICPU_KFC = 5,
     KERNEL_TYPE_CUSTOM_KFC = 6,
     KERNEL_TYPE_HWTS = 10,
-    KERNEL_TYPE_FWK = 11,
     KERNEL_TYPE_RESERVED = 99,
 } rtKernelType_t;
 
@@ -117,7 +117,6 @@ RTS_API rtError_t rtVectorCoreKernelLaunchWithHandle(void *hdl, const uint64_t t
 RTS_API rtError_t rtVectorCoreKernelLaunch(const void *stubFunc, uint32_t numBlocks, rtArgsEx_t *argsInfo,
     rtSmDesc_t *smDesc, rtStream_t stm, uint32_t flags, const rtTaskCfgInfo_t *cfgInfo);
 
-RTS_API rtError_t rtsGetThreadLastTaskId(uint32_t *taskId);
 
 RTS_API rtError_t rtGetSocVersion(char_t *ver, const uint32_t maxLen);
 
