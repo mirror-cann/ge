@@ -278,4 +278,4 @@ graph TB
 
 - Development Guide: [`custom_op_development_guide.md`](./custom_op_development_guide.md)
 - Architecture Design: [`custom_op_architecture.md`](./custom_op_architecture.md)
-- Sample Code: [`examples/custom_op/`](../../../../../examples/custom_op/)
+- Sample Code: [`examples/custom_op/`](../../../../../examples/custom_op/README_en.md)
