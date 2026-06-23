@@ -679,7 +679,7 @@ TEST_F(JitExecutorUT, run_success_when_input_graph_contain_two_reshape_one_const
   TensorDesc td(Shape(shape_dim), FORMAT_NCHW, DT_FLOAT);
   td.SetOriginShape(Shape(shape_dim));
   Tensor tensor(td);
-  std::vector<int64_t> input_data_2 = {2, 3, 3, 2};
+  std::vector<int64_t> input_data_2{2, 3, 3, 2};
   TensorDesc desc_2(Shape({4}), FORMAT_NCHW, DT_INT32);
   desc_2.SetOriginShape(Shape({4}));
   Tensor input_tensor_2{desc_2};

@@ -42,6 +42,7 @@ class LoweringManager {
 
   [[nodiscard]] bool IsLoweringRegistered(const std::string &op_type) const;
   static void Register(const std::string &op_type, const std::function<graphStatus(const NodePtr &)> &lower);
+  static bool HasLowering(const std::string &op_type) { return Instance().IsLoweringRegistered(op_type); }
 
  private:
   LoweringManager() = default;

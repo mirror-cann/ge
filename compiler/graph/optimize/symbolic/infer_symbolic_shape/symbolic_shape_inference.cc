@@ -376,9 +376,116 @@ graphStatus PrintSymbolShapeInfo(const OpDescPtr &op_desc, const std::string &st
   GELOGD("%s", DebugInOutSymbolInfo(op_desc, stage).c_str());
   return GRAPH_SUCCESS;
 }
-}  // namespace
 
-Status SymbolicShapeInference::SimplifyTensorSymbol(const GeTensorDescPtr &ge_tensor_desc) const {
+Status DoComputeAndUpdate(const NodePtr &node) {
+  const auto op_desc = node->GetOpDesc();
+  GE_ASSERT_NOTNULL(op_desc);
+  const auto kernel_func = SymbolicKernelFactory::GetInstance().Create(op_desc->GetType());
+  if (kernel_func == nullptr) { return UNSUPPORTED; }
+  GELOGD("Start to host compute for node %s", op_desc->GetNamePtr());
+  std::vector<std::unique_ptr<gert::SymbolTensor>> inputs_holder;
+  std::vector<std::unique_ptr<gert::SymbolTensor>> outputs_holder;
+  inputs_holder.reserve(op_desc->GetAllInputsDescPtr().size());
+  GE_ASSERT_GRAPH_SUCCESS(ConstructComputeSymbolShapeContextInputs(node, inputs_holder));
+  GE_ASSERT_GRAPH_SUCCESS(ConstructComputeSymbolShapeContextOutputs(op_desc, outputs_holder));
+
+  const auto kernel_context_holder = gert::KernelRunContextBuilder()
+      .Inputs(GetVoidPtr<gert::SymbolTensor>(inputs_holder))
+      .Outputs(GetVoidPtr<gert::SymbolTensor>(outputs_holder))
+      .Build(op_desc);
+  auto infer_symbol_shape_ctx = reinterpret_cast<gert::InferSymbolComputeContext *>(kernel_context_holder.context_);
+  auto ret = kernel_func(infer_symbol_shape_ctx);
+  GE_ASSERT_TRUE(ret == ge::GRAPH_SUCCESS || ret == ge::UNSUPPORTED,
+                 "[Call][InferSymbolCompute] failed, op_desc[%s], ret[%d]", op_desc->GetName().c_str());
+  if (ret == ge::UNSUPPORTED) {
+    GELOGW("Symbol compute unsupported, node %s[%s].", op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    return ge::UNSUPPORTED;
+  }
+  GE_ASSERT_GRAPH_SUCCESS(UpdateOpDescOutShape(op_desc, infer_symbol_shape_ctx));
+  GE_ASSERT_GRAPH_SUCCESS(PrintSymbolShapeInfo(op_desc, "After_Compute_Symbol"));
+  return ge::GRAPH_SUCCESS;
+}
+
+Status UseStaticShapeIfWeCan(const OpDescPtr &op_desc) {
+  for (const auto &output_desc : op_desc->GetAllOutputsDescPtr()) {
+    GE_ASSERT_NOTNULL(output_desc);
+    if (!output_desc->IsOriginShapeInitialized()) {
+      GELOGW("op[%s] origin shape not initialized.", op_desc->GetName().c_str());
+      return ge::UNSUPPORTED;
+    }
+    if (output_desc->GetOriginShape().IsUnknownShape()) {
+      GELOGW("op[%s] is dynamic shape.", op_desc->GetName().c_str());
+      return ge::UNSUPPORTED;
+    }
+    auto attr = output_desc->GetOrCreateAttrsGroup<SymbolicDescAttr>();
+    GE_ASSERT_NOTNULL(attr);
+    attr->symbolic_tensor = gert::SymbolTensor();
+    for (const auto &dim : output_desc->GetOriginShape().GetDims()) {
+      attr->symbolic_tensor.MutableOriginSymbolShape().MutableDims().push_back(ge::Symbol(dim));
+    }
+  }
+  GE_ASSERT_SUCCESS(PrintSymbolShapeInfo(op_desc, "After_Static_Infer_Symbol"));
+  return ge::GRAPH_SUCCESS;
+}
+
+Status DoInferAndUpdate(const NodePtr &node, const gert::OpImplKernelRegistry::OpImplFunctionsV2 *func) {
+  GE_ASSERT_NOTNULL(func);
+  GE_ASSERT_NOTNULL(func->infer_symbol_shape);
+  const auto op_desc = node->GetOpDesc();
+  GE_ASSERT_NOTNULL(op_desc);
+  std::vector<std::unique_ptr<gert::SymbolTensor>> inputs_holder;
+  std::vector<std::unique_ptr<gert::SymbolShape>> outputs_holder;
+  inputs_holder.reserve(op_desc->GetAllInputsDescPtr().size());
+  const auto ret = ConstructInferSymbolShapeContextInputs(node, *func, inputs_holder);
+  GE_ASSERT_TRUE((ret == SUCCESS) || (ret == UNSUPPORTED), "[Construct][InferShapeContextInputs] failed, name[%s]",
+                 op_desc->GetName().c_str());
+  if (ret == UNSUPPORTED) {
+    GELOGW("UNSUPPORTED infer shape");
+    return ge::UNSUPPORTED;
+  }
+
+  GE_ASSERT_GRAPH_SUCCESS(ConstructInferSymbolShapeContextOutputs(op_desc, outputs_holder),
+                          "[Construct][InferShapeContextOutputs] failed, op_desc[%s]", op_desc->GetName().c_str());
+
+  const auto kernel_context_holder = gert::KernelRunContextBuilder()
+      .Inputs(GetVoidPtr<gert::SymbolTensor>(inputs_holder))
+      .Outputs(GetVoidPtr<gert::SymbolShape>(outputs_holder))
+      .Build(op_desc);
+  auto infer_symbol_shape_ctx = reinterpret_cast<gert::InferSymbolShapeContext *>(kernel_context_holder.context_);
+  auto infer_ret = func->infer_symbol_shape(infer_symbol_shape_ctx);
+  GE_ASSERT_TRUE((infer_ret == SUCCESS) || (infer_ret == UNSUPPORTED),
+                 "[Call][InferSymbolShapeFunc] failed, op_desc[%s], ret[%d]", op_desc->GetName().c_str());
+  if (infer_ret == UNSUPPORTED) {
+    GELOGW("Symbol infer unsupported, node %s[%s].", op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    return UNSUPPORTED;
+  }
+  GE_ASSERT_GRAPH_SUCCESS(UpdateOpDescOutShape(op_desc, infer_symbol_shape_ctx));
+  GE_ASSERT_GRAPH_SUCCESS(PrintSymbolShapeInfo(op_desc, "After_Infer_Symbol"));
+  return ge::GRAPH_SUCCESS;
+}
+
+Status DoInferShapeAndUpdate(const NodePtr &node) {
+  const auto op_desc = node->GetOpDesc();
+  GE_ASSERT_NOTNULL(op_desc);
+  auto functions = gert::OpImplInferSymbolShapeRegistry::GetInstance().GetOpImpl(op_desc->GetType().c_str());
+  if (functions == nullptr || functions->infer_symbol_shape == nullptr) {
+    GELOGW("Symbolic infershape callback for node %s[%s] is not implemented.",
+           op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    return UNSUPPORTED;
+  }
+  auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
+  GE_ASSERT_NOTNULL(space_registry);
+  auto function_new = const_cast<gert::OpImplKernelRegistry::OpImplFunctionsV2 *>(
+      space_registry->GetOpImpl(op_desc->GetType().c_str()));
+  if (function_new != nullptr) {
+    function_new->infer_symbol_shape = functions->infer_symbol_shape;
+  } else {
+    function_new = const_cast<gert::OpImplKernelRegistry::OpImplFunctionsV2 *>(functions);
+  }
+  return DoInferAndUpdate(node, function_new);
+}
+
+Status SimplifyTensorSymbol(const GeTensorDescPtr &ge_tensor_desc) {
   GE_ASSERT_NOTNULL(ge_tensor_desc);
   auto symbol_attr = ge_tensor_desc->GetAttrsGroup<SymbolicDescAttr>();
   if (symbol_attr == nullptr) {
@@ -400,170 +507,8 @@ Status SymbolicShapeInference::SimplifyTensorSymbol(const GeTensorDescPtr &ge_te
   return GRAPH_SUCCESS;
 }
 
-Status SymbolicShapeInference::Simplify(const ComputeGraphPtr &graph) const {
-  for (auto &node : graph->GetAllNodes()) {
-    GE_ASSERT_NOTNULL(node);
-    const auto op_desc = node->GetOpDesc();
-    GE_ASSERT_NOTNULL(op_desc);
-    for (size_t index = 0UL; index < op_desc->GetOutputsSize(); index++) {
-      auto output_desc_ptr = op_desc->MutableOutputDesc(index);
-      GE_ASSERT_SUCCESS(SimplifyTensorSymbol(output_desc_ptr));
-    }
-    GE_ASSERT_SUCCESS(UpdateSymbolShapeAndDtypeToPeerInputs(node));
-  }
-  return ge::GRAPH_SUCCESS;
-}
-
-Status SymbolicShapeInference::Infer(const ComputeGraphPtr &graph) const {
-  auto root_graph = ge::GraphUtils::FindRootGraph(graph);
-  GE_ASSERT_NOTNULL(root_graph);
-  // 设置context
-  ShapeEnvGuarder guarder(root_graph->GetAttrsGroup<ShapeEnvAttr>());
-  for (auto &node : graph->GetAllNodes()) {
-    GE_ASSERT_NOTNULL(node);
-    GuardDfxContext dfx_context("node name:" + node->GetName() + " node type:" + node->GetType());
-    // 每个算子不管能不能推导都需要更新对端的符号shape，这里不允许添加continue语句
-    const auto ret = InferOneNode(node);
-    GE_ASSERT_TRUE((ret == SUCCESS) || (ret == UNSUPPORTED), "[InferOneNode] failed,name[%s]", node->GetName().c_str());
-    if (ret == UNSUPPORTED) {
-      GELOGW("InferOneNode unsupport, node %s[%s]", node->GetName().c_str(), node->GetType().c_str());
-    }
-    GE_ASSERT_SUCCESS(UpdateSymbolShapeAndDtypeToPeerInputs(node));
-  }
-  GE_ASSERT_SUCCESS(Simplify(graph));
-  return SUCCESS;
-}
-
-Status SymbolicShapeInference::UseStaticShapeIfWeCan(OpDescPtr &op_desc) const {
-  GELOGW("We did not find infer symbol shape for op[%s].", op_desc->GetName().c_str());
-  for (const auto &output_desc : op_desc->GetAllOutputsDescPtr()) {
-    GE_ASSERT_NOTNULL(output_desc);
-    if (output_desc->GetOriginShape().IsUnknownShape()) {
-      GELOGW("Only support static shape while no infer symbol shape for op[%s].", op_desc->GetName().c_str());
-      return ge::UNSUPPORTED;
-    }
-    auto attr = output_desc->GetOrCreateAttrsGroup<SymbolicDescAttr>();
-    GE_ASSERT_NOTNULL(attr);
-    attr->symbolic_tensor = gert::SymbolTensor();
-    for (const auto &dim : output_desc->GetOriginShape().GetDims()) {
-      attr->symbolic_tensor.MutableOriginSymbolShape().MutableDims().push_back(ge::Symbol(dim));
-    }
-  }
-  GE_ASSERT_SUCCESS(PrintSymbolShapeInfo(op_desc, "After_Infer_Symbol"));
-  return ge::GRAPH_SUCCESS;
-}
-
-Status SymbolicShapeInference::DoInferAndUpdate(const NodePtr &node, const OpDescPtr &op_desc,
-                                                const gert::OpImplKernelRegistry::OpImplFunctionsV2 *func) const {
-  GE_ASSERT_NOTNULL(func);
-  GE_ASSERT_NOTNULL(func->infer_symbol_shape);
-  std::vector<std::unique_ptr<gert::SymbolTensor>> inputs_holder;
-  std::vector<std::unique_ptr<gert::SymbolShape>> outputs_holder;
-  inputs_holder.reserve(op_desc->GetAllInputsDescPtr().size());
-  const auto ret = ConstructInferSymbolShapeContextInputs(node, *func, inputs_holder);
-  GE_ASSERT_TRUE((ret == SUCCESS) || (ret == UNSUPPORTED), "[Construct][InferShapeContextInputs] failed, name[%s]",
-                 op_desc->GetName().c_str());
-  if (ret == UNSUPPORTED) {
-    GELOGW("UNSUPPORTED infer shape");
-    return ge::UNSUPPORTED;
-  }
-
-  GE_ASSERT_GRAPH_SUCCESS(ConstructInferSymbolShapeContextOutputs(op_desc, outputs_holder),
-                          "[Construct][InferShapeContextOutputs] failed, op_desc[%s]", op_desc->GetName().c_str());
-
-  const auto kernel_context_holder = gert::KernelRunContextBuilder()
-                                         .Inputs(GetVoidPtr<gert::SymbolTensor>(inputs_holder))
-                                         .Outputs(GetVoidPtr<gert::SymbolShape>(outputs_holder))
-                                         .Build(op_desc);
-  auto infer_symbol_shape_ctx = reinterpret_cast<gert::InferSymbolShapeContext *>(kernel_context_holder.context_);
-  auto infer_ret = func->infer_symbol_shape(infer_symbol_shape_ctx);
-  GE_ASSERT_TRUE((infer_ret == SUCCESS) || (infer_ret == UNSUPPORTED),
-                 "[Call][InferSymbolShapeFunc] failed, op_desc[%s], ret[%d]", op_desc->GetName().c_str());
-  if (infer_ret == UNSUPPORTED) {
-    GELOGW("Symbol infer unsupported, node %s[%s].",
-        op_desc->GetName().c_str(), op_desc->GetType().c_str());
-    return UNSUPPORTED;
-  }
-  GE_ASSERT_GRAPH_SUCCESS(UpdateOpDescOutShape(op_desc, infer_symbol_shape_ctx));
-  GE_ASSERT_SUCCESS(PrintSymbolShapeInfo(op_desc, "After_Infer_Symbol"));
-  return ge::GRAPH_SUCCESS;
-}
-
-
-Status SymbolicShapeInference::DoComputeAndUpdate(const NodePtr &node, const OpDescPtr &op_desc,
-                                                  const InferSymbolComputeKernelFunc &kernel_func) const {
-  GELOGD("start Compute for node %s", op_desc->GetNamePtr());
-  std::vector<std::unique_ptr<gert::SymbolTensor>> inputs_holder;
-  std::vector<std::unique_ptr<gert::SymbolTensor>> outputs_holder;
-  inputs_holder.reserve(op_desc->GetAllInputsDescPtr().size());
-  GE_ASSERT_GRAPH_SUCCESS(ConstructComputeSymbolShapeContextInputs(node, inputs_holder));
-  GE_ASSERT_GRAPH_SUCCESS(ConstructComputeSymbolShapeContextOutputs(op_desc, outputs_holder));
-
-  const auto kernel_context_holder = gert::KernelRunContextBuilder()
-                                         .Inputs(GetVoidPtr<gert::SymbolTensor>(inputs_holder))
-                                         .Outputs(GetVoidPtr<gert::SymbolTensor>(outputs_holder))
-                                         .Build(op_desc);
-  auto infer_symbol_shape_ctx = reinterpret_cast<gert::InferSymbolComputeContext *>(kernel_context_holder.context_);
-  auto ret = kernel_func(infer_symbol_shape_ctx);
-  GE_ASSERT_TRUE(ret == ge::GRAPH_SUCCESS || ret == ge::UNSUPPORTED,
-                 "[Call][InferSymbolCompute] failed, op_desc[%s], ret[%d]", op_desc->GetName().c_str());
-  if (ret == ge::UNSUPPORTED) {
-    GELOGW("Symbol compute unsupported, node %s[%s].", op_desc->GetName().c_str(), op_desc->GetType().c_str());
-    return ge::UNSUPPORTED;
-  }
-  GE_ASSERT_GRAPH_SUCCESS(UpdateOpDescOutShape(op_desc, infer_symbol_shape_ctx));
-  GE_ASSERT_SUCCESS(PrintSymbolShapeInfo(op_desc, "After_Compute_Symbol"));
-  return ge::GRAPH_SUCCESS;
-}
-
-Status SymbolicShapeInference::InferOneNode(NodePtr &node) const {
-  auto op_desc = node->GetOpDesc();
-  GE_ASSERT_NOTNULL(op_desc);
-  GE_ASSERT_SUCCESS(PrintSymbolShapeInfo(op_desc, "Before_Infer_Symbol", false));
-  if (OpTypeUtils::IsDataNode(op_desc->GetType()) || op_desc->GetType() == NETOUTPUT) {
-    GELOGD("No need to infer symbol shape for net-output/data node %s.", op_desc->GetName().c_str());
-    return ge::SUCCESS;
-  }
-
-  if (!IsSupportInfer(op_desc)) {
-    REPORT_INNER_ERR_MSG("W18888", "op %s[%s] Check support infer symbol shape failed.",
-                         node->GetNamePtr(), node->GetTypePtr());
-    GELOGW("op %s[%s] Check support infer symbol shape failed.", node->GetNamePtr(), node->GetTypePtr());
-    return ge::UNSUPPORTED;
-  }
-
-  // 推导前清理残留shape
-  GE_ASSERT_SUCCESS(ClearOutputSymbol(*op_desc.get()));
-  GE_ASSERT_SUCCESS(RecoverOpDescIrDefinition(op_desc, op_desc->GetType()));
-  auto kernel_func = SymbolicKernelFactory::GetInstance().Create(op_desc->GetType());
-  if (kernel_func != nullptr) {
-    auto ret = DoComputeAndUpdate(node, op_desc, kernel_func);
-    GE_ASSERT_TRUE(ret == SUCCESS || ret == UNSUPPORTED,
-                   "[DoComputeAndUpdate] failed, name[%s]", op_desc->GetName().c_str());
-    if (ret == SUCCESS) {
-      GELOGI("symbolic compute success, name[%s]", op_desc->GetName().c_str());
-      return ge::SUCCESS;
-    }
-  }
-  auto functions = gert::OpImplInferSymbolShapeRegistry::GetInstance().GetOpImpl(op_desc->GetType().c_str());
-  if (functions == nullptr || functions->infer_symbol_shape == nullptr) {
-    return UseStaticShapeIfWeCan(op_desc);
-  }
-
-  auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
-  GE_ASSERT_NOTNULL(space_registry);
-  auto function_new = const_cast<gert::OpImplKernelRegistry::OpImplFunctionsV2 *>(
-      space_registry->GetOpImpl(op_desc->GetType().c_str()));
-  if (function_new != nullptr) {
-    function_new->infer_symbol_shape = functions->infer_symbol_shape;
-  } else {
-    function_new = const_cast<gert::OpImplKernelRegistry::OpImplFunctionsV2 *>(functions);
-  }
-  return DoInferAndUpdate(node, op_desc, function_new);
-}
-
 // todo: 暂时无需考虑某个节点更新后影响其他pass场景，后续迁移到NodePass时需要考虑
-graphStatus SymbolicShapeInference::UpdateSymbolShapeAndDtypeToPeerInputs(const NodePtr &node) const {
+graphStatus UpdateSymbolShapeAndDtypeToPeerInputs(const NodePtr &node) {
   auto op_desc = node->GetOpDesc();
   GE_ASSERT_NOTNULL(op_desc);
   for (const auto &out_anchor : node->GetAllOutDataAnchors()) {
@@ -609,5 +554,74 @@ graphStatus SymbolicShapeInference::UpdateSymbolShapeAndDtypeToPeerInputs(const 
     }
   }
   return GRAPH_SUCCESS;
+}
+
+Status Simplify(const ComputeGraphPtr &graph) {
+  for (auto &node : graph->GetAllNodes()) {
+    GE_ASSERT_NOTNULL(node);
+    const auto op_desc = node->GetOpDesc();
+    GE_ASSERT_NOTNULL(op_desc);
+    for (size_t index = 0UL; index < op_desc->GetOutputsSize(); index++) {
+      auto output_desc_ptr = op_desc->MutableOutputDesc(index);
+      GE_ASSERT_SUCCESS(SimplifyTensorSymbol(output_desc_ptr));
+    }
+    GE_ASSERT_SUCCESS(UpdateSymbolShapeAndDtypeToPeerInputs(node));
+  }
+  return ge::GRAPH_SUCCESS;
+}
+
+Status InferOneNode(NodePtr &node) {
+  auto op_desc = node->GetOpDesc();
+  GE_ASSERT_NOTNULL(op_desc);
+  if (OpTypeUtils::IsDataNode(op_desc->GetType()) || op_desc->GetType() == NETOUTPUT) {
+    GELOGD("No need to infer symbol shape for net-output/data node %s.", op_desc->GetName().c_str());
+    return ge::SUCCESS;
+  }
+
+  if (!IsSupportInfer(op_desc)) {
+    GELOGW("op %s[%s] Check support infer symbol shape failed.", node->GetNamePtr(), node->GetTypePtr());
+    return ge::UNSUPPORTED;
+  }
+
+  // 推导前清理残留shape
+  GE_ASSERT_SUCCESS(ClearOutputSymbol(*op_desc.get()));
+  GE_ASSERT_SUCCESS(RecoverOpDescIrDefinition(op_desc, op_desc->GetType()));
+  GE_ASSERT_SUCCESS(PrintSymbolShapeInfo(op_desc, "Before_Infer_Symbol", false));
+
+  // 1. 优先kernel计算推导
+  Status ret = DoComputeAndUpdate(node);
+  if (ret != UNSUPPORTED) {
+    return ret;
+  }
+
+  // 2. 其次静态shape推导
+  ret = UseStaticShapeIfWeCan(op_desc);
+  if (ret != UNSUPPORTED) {
+    return ret;
+  }
+
+  // 3. 最后shape callback推导
+  return DoInferShapeAndUpdate(node);
+}
+}  // namespace
+
+Status SymbolicShapeInference::Infer(const ComputeGraphPtr &graph) const {
+  auto root_graph = ge::GraphUtils::FindRootGraph(graph);
+  GE_ASSERT_NOTNULL(root_graph);
+  // 设置context
+  ShapeEnvGuarder guarder(root_graph->GetAttrsGroup<ShapeEnvAttr>());
+  for (auto &node : graph->GetAllNodes()) {
+    GE_ASSERT_NOTNULL(node);
+    GuardDfxContext dfx_context("node name:" + node->GetName() + " node type:" + node->GetType());
+    // 每个算子不管能不能推导都需要更新对端的符号shape，这里不允许添加continue语句
+    const auto ret = InferOneNode(node);
+    GE_ASSERT_TRUE((ret == SUCCESS) || (ret == UNSUPPORTED), "[InferOneNode] failed,name[%s]", node->GetName().c_str());
+    if (ret == UNSUPPORTED) {
+      GELOGW("InferOneNode unsupport, node %s[%s]", node->GetName().c_str(), node->GetType().c_str());
+    }
+    GE_ASSERT_SUCCESS(UpdateSymbolShapeAndDtypeToPeerInputs(node));
+  }
+  GE_ASSERT_SUCCESS(Simplify(graph));
+  return SUCCESS;
 }
 }  // namespace ge

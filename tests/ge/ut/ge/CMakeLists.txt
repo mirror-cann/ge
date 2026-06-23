@@ -798,6 +798,7 @@ target_link_libraries(ut_libge_symbol_infer_utest
         graph
         graph_base
         ge_compiler
+        aihacb_autofusion_stub
         gert
         ascendcl
         ge_executor_shared
@@ -931,6 +932,7 @@ target_link_libraries(ut_libge_others_utest
     ascendcl_stub
     ${AIR_COMMON_LINK_OPTION}
     ge_compiler
+    aihacb_autofusion_stub
     gert
     ge_runner
     ge_runner_v2
@@ -1178,6 +1180,7 @@ target_link_libraries(ut_libge_label_maker_utest
     ge_common_base
     gert
     ge_compiler
+    aihacb_autofusion_stub
     gRPC::grpc++
     gRPC::grpc
     -Wl,--whole-archive
@@ -1232,6 +1235,7 @@ target_link_libraries(ut_libge_kernel_utest
         ge_common_base
         gert
         ge_compiler
+        aihacb_autofusion_stub
         -Wl,--no-whole-archive
         ge_running_env GTestShared::gtest GTestShared::gtest_main GTestShared::gmock_main ${COMMON_SHARED_LIBRARIES} -lrt -ldl
         -Wl,--no-as-needed ascendcl_stub GTestShared::gmock -Wl,--as-needed
@@ -1296,6 +1300,7 @@ target_link_libraries(ut_libge_distinct_load_utest
     symengine
     gert
     ge_compiler
+    aihacb_autofusion_stub
     register
     opp_registry
     om2_executor

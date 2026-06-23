@@ -908,7 +908,7 @@ TEST_F(UserGraphsManagerlUT, add_graph_verify_options_flow_to_ep_after_slicing) 
 }
 
 static void VerifyEpOptions(const std::vector<std::unique_ptr<ge::ExecutionPoint>> &slice_graphs) {
-  EXPECT_GT(slice_graphs.size(), 2U) << "should have first + middle + last EPs";
+  EXPECT_GE(slice_graphs.size(), 2U) << "should have first + last EPs";
 
   auto &first_opts = slice_graphs.front()->GetEpGraphOptions();
   EXPECT_NE(first_opts.find("ge.inputShape"), first_opts.end());
@@ -964,6 +964,68 @@ TEST_F(UserGraphsManagerlUT, add_graph_verify_multi_ep_options_seperation) {
     }
     VerifyEpOptions(ctrl->order_.slice_graphs_);
     promise.set_value(status);
+    return SUCCESS;
+  };
+  EXPECT_EQ(user_graph_manager.RunGraphAsync(user_graph_id, std::move(inputs), 0, callback), SUCCESS);
+  EXPECT_EQ(future.get(), SUCCESS);
+
+  EXPECT_EQ(user_graph_manager.RemoveGraph(user_graph_id), SUCCESS);
+  EXPECT_EQ(user_graph_manager.Finalize(), SUCCESS);
+  EXPECT_EQ(graph_manager.Finalize(), SUCCESS);
+}
+
+static void VerifyThreeEpOptions(const std::vector<std::unique_ptr<ge::ExecutionPoint>> &slice_graphs) {
+  ASSERT_GE(slice_graphs.size(), 3U) << "should have at least 3 EPs (first + middle + ...)";
+
+  auto &first_opts = slice_graphs.front()->GetEpGraphOptions();
+  EXPECT_NE(first_opts.find("ge.inputShape"), first_opts.end());
+  EXPECT_EQ(first_opts.size(), 3U);
+
+  for (size_t i = 1; i < slice_graphs.size(); ++i) {
+    auto &mid_opts = slice_graphs[i]->GetEpGraphOptions();
+    EXPECT_EQ(mid_opts.find("ge.inputShape"), mid_opts.end());
+    EXPECT_NE(mid_opts.find("my.custom"), mid_opts.end());
+    if (i < slice_graphs.size() - 1) {
+      EXPECT_EQ(mid_opts.find("ge.outputDatatype"), mid_opts.end());
+      EXPECT_EQ(mid_opts.size(), 1U);
+    }
+  }
+}
+
+TEST_F(UserGraphsManagerlUT, add_graph_verify_three_ep_middle_options) {
+  ModelExecutor model_executor;
+  model_executor.Initialize({}, 0);
+  GraphManager graph_manager;
+  EXPECT_EQ(graph_manager.Initialize({}, &model_executor), SUCCESS);
+  UserGraphsManager user_graph_manager(graph_manager);
+
+  uint32_t user_graph_id = 0u;
+  auto graph = JitShareGraph::ThreeReshapeNodeThreeRelu();
+  std::map<std::string, std::string> options;
+  options["ge.inputShape"] = "1,2,3,4";
+  options["ge.outputDatatype"] = "float16";
+  options["my.custom"] = "custom_val";
+  EXPECT_EQ(user_graph_manager.AddGraph(user_graph_id, *graph, options), SUCCESS);
+
+  std::vector<float> data0(2 * 3 * 3 * 2, 0.0f);
+  std::vector<int64_t> shape_data{2, 3, 3, 2};
+  std::vector<gert::Tensor> inputs(2);
+  inputs[0] = {{{2, 3, 3, 2}, {2, 3, 3, 2}}, {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},
+               gert::kOnDeviceHbm, ge::DT_FLOAT, data0.data()};
+  inputs[1] = {{{4}, {4}}, {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},
+               gert::kOnDeviceHbm, ge::DT_INT64, shape_data.data()};
+
+  std::promise<Status> promise;
+  auto future = promise.get_future();
+  auto *ugm_ptr = &user_graph_manager;
+  const RunAsyncCallbackV2 callback = [&](Status status, std::vector<gert::Tensor> &outputs) {
+    auto *ctrl = ugm_ptr->ids_to_user_graph_ctrl_[user_graph_id].get();
+    if (ctrl == nullptr || ctrl->order_.slice_graphs_.size() < 3U) {
+      promise.set_value(FAILED);
+      return FAILED;
+    }
+    VerifyThreeEpOptions(ctrl->order_.slice_graphs_);
+    promise.set_value(SUCCESS);
     return SUCCESS;
   };
   EXPECT_EQ(user_graph_manager.RunGraphAsync(user_graph_id, std::move(inputs), 0, callback), SUCCESS);

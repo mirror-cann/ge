@@ -15,6 +15,8 @@
 #include "framework/common/framework_types_internal.h"
 #include "jit_execution/exe_points/execution_order.h"
 #include "ge_common/debug/ge_log.h"
+#include "faker/space_registry_faker.h"
+#include "graph/ge_local_context.h"
 #include <vector>
 using namespace std;
 using namespace testing;
@@ -23,6 +25,9 @@ using namespace ge;
 class ExecutionOrderUT : public testing::Test {
  protected:
   void SetUp() override {
+    gert::SpaceRegistryFaker::CreateDefaultSpaceRegistry();
+    std::map<std::string, std::string> options = {{ge::SOC_VERSION, "Ascend310"}};
+    GetThreadLocalContext().SetGlobalOption(options);
     es_graph_ = std::unique_ptr<es::EsGraphBuilder>(new es::EsGraphBuilder("Hi Lowering graph"));
   }
   void TearDown() override {}
@@ -57,8 +62,8 @@ TEST_F(ExecutionOrderUT, no_slice_tests) {
 
   std::vector<GeTensor> input_tensors(1);
   GeTensorDesc td;
-  td.SetShape((GeShape({-1, -1, -1, -1})));
-  td.SetOriginShape((GeShape({-1, -1, -1, -1})));
+  td.SetShape((GeShape({2, 3, 3, 2})));
+  td.SetOriginShape((GeShape({2, 3, 3, 2})));
   td.SetFormat(FORMAT_ND);
   td.SetOriginFormat(FORMAT_ND);
   td.SetPlacement(Placement::kPlacementDevice);
@@ -66,8 +71,8 @@ TEST_F(ExecutionOrderUT, no_slice_tests) {
 
   input_tensors[0] = GeTensor(td);
   ExecutionPoint *first_ep = nullptr;
-  EXPECT_EQ(eo.FirstPoint(input_tensors, first_ep), SUCCESS);
-  EXPECT_NE(first_ep, nullptr);
+  ASSERT_EQ(eo.FirstPoint(input_tensors, first_ep), SUCCESS);
+  ASSERT_NE(first_ep, nullptr);
   EXPECT_TRUE(first_ep->IsLast());
   EXPECT_EQ(first_ep->GetEpOutNum(), 1);
 

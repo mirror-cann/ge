@@ -3217,7 +3217,7 @@ ge::ComputeGraphPtr ShareGraph::BuildStaticReduceAbsReluNodeGraph() {
 
   auto data1 = graph->FindNode("data1");
   AttrUtils::SetInt(data1->GetOpDesc(), "index", 0);
-  SetNoStorage(data1->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, {2, 2, 2});
+  SetNoStorage(data1->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, {2, 2, 16});
   data1->GetOpDesc()->MutableAllInputName() = {{"x", 0}};
   data1->GetOpDesc()->MutableAllOutputName() = {{"y", 0}};
 
@@ -3225,7 +3225,7 @@ ge::ComputeGraphPtr ShareGraph::BuildStaticReduceAbsReluNodeGraph() {
   abs0->GetOpDesc()->MutableAllInputName() = {{"x", 0}};
   abs0->GetOpDesc()->MutableAllOutputName() = {{"y", 0}};
   abs0->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameAiCore);
-  SetNoStorage(abs0->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, {2, 2, 2});
+  SetNoStorage(abs0->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, {2, 2, 16});
   AddCompileResult(abs0, false);
 
   SetConstValue<int64_t, ge::DT_INT64>(graph->FindNode("const1"), {2});
@@ -3234,7 +3234,7 @@ ge::ComputeGraphPtr ShareGraph::BuildStaticReduceAbsReluNodeGraph() {
   reduceMax->GetOpDesc()->MutableAllInputName() = {{"x", 0}, {"axes", 1}};
   reduceMax->GetOpDesc()->MutableAllOutputName() = {{"y", 0}};
   reduceMax->GetOpDesc()->SetOpKernelLibName(kEngineNameAiCore);
-  SetNoStorage(reduceMax->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, {2, 2, 2});
+  SetNoStorage(reduceMax->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, {2, 2, 16});
   for (size_t i = 0; i < reduceMax->GetOpDesc()->GetOutputsSize(); ++i) {
     reduceMax->GetOpDesc()->MutableOutputDesc(i)->SetShape(GeShape({2, 2}));
     reduceMax->GetOpDesc()->MutableOutputDesc(i)->SetOriginShape(GeShape({2, 2}));
@@ -3355,7 +3355,7 @@ ge::ComputeGraphPtr ShareGraph::BuildStaticTwoReduceReluNodeGraph() {
 
   auto data1 = graph->FindNode("data1");
   AttrUtils::SetInt(data1->GetOpDesc(), "index", 0);
-  SetNoStorage(data1->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, {2, 2, 2});
+  SetNoStorage(data1->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, {16, 16, 16});
   data1->GetOpDesc()->MutableAllInputName() = {{"x", 0}};
   data1->GetOpDesc()->MutableAllOutputName() = {{"y", 0}};
 
@@ -3363,7 +3363,7 @@ ge::ComputeGraphPtr ShareGraph::BuildStaticTwoReduceReluNodeGraph() {
   abs1->GetOpDesc()->MutableAllInputName() = {{"x", 0}};
   abs1->GetOpDesc()->MutableAllOutputName() = {{"y", 0}};
   abs1->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameAiCore);
-  SetNoStorage(abs1->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, {2, 2, 2});
+  SetNoStorage(abs1->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, {16, 16, 16});
   AddCompileResult(abs1, false);
 
   SetConstValue<int64_t, ge::DT_INT64>(graph->FindNode("const1"), {2});
@@ -3373,10 +3373,10 @@ ge::ComputeGraphPtr ShareGraph::BuildStaticTwoReduceReluNodeGraph() {
   reduceMax->GetOpDesc()->MutableAllInputName() = {{"x", 0}, {"axes", 1}};
   reduceMax->GetOpDesc()->MutableAllOutputName() = {{"y", 0}};
   reduceMax->GetOpDesc()->SetOpKernelLibName(kEngineNameAiCore);
-  SetNoStorage(reduceMax->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, {2, 2, 2});
+  SetNoStorage(reduceMax->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, {16, 16, 16});
   for (size_t i = 0; i < reduceMax->GetOpDesc()->GetOutputsSize(); ++i) {
-    reduceMax->GetOpDesc()->MutableOutputDesc(i)->SetShape(GeShape({2, 2}));
-    reduceMax->GetOpDesc()->MutableOutputDesc(i)->SetOriginShape(GeShape({2, 2}));
+    reduceMax->GetOpDesc()->MutableOutputDesc(i)->SetShape(GeShape({16, 16}));
+    reduceMax->GetOpDesc()->MutableOutputDesc(i)->SetOriginShape(GeShape({16, 16}));
   }
   AddCompileResult(reduceMax, false);
 
@@ -3384,10 +3384,10 @@ ge::ComputeGraphPtr ShareGraph::BuildStaticTwoReduceReluNodeGraph() {
   reduceSum->GetOpDesc()->MutableAllInputName() = {{"x", 0}, {"axes", 1}};
   reduceSum->GetOpDesc()->MutableAllOutputName() = {{"y", 0}};
   reduceSum->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameAiCore);
-  SetNoStorage(reduceSum->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, {2, 2});
+  SetNoStorage(reduceSum->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, {16, 16});
   for (size_t i = 0; i < reduceSum->GetOpDesc()->GetOutputsSize(); ++i) {
-    reduceSum->GetOpDesc()->MutableOutputDesc(i)->SetShape(GeShape({2}));
-    reduceSum->GetOpDesc()->MutableOutputDesc(i)->SetOriginShape(GeShape({2}));
+    reduceSum->GetOpDesc()->MutableOutputDesc(i)->SetShape(GeShape({16}));
+    reduceSum->GetOpDesc()->MutableOutputDesc(i)->SetOriginShape(GeShape({16}));
   }
   AddCompileResult(reduceSum, false);
 
@@ -3557,7 +3557,7 @@ ge::ComputeGraphPtr ShareGraph::BuildStaticAbsReluReduceSumNodeGraph() {
 
   auto data1 = graph->FindNode("data1");
   AttrUtils::SetInt(data1->GetOpDesc(), "index", 0);
-  SetNoStorage(data1->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, {2, 2, 2});
+  SetNoStorage(data1->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, {2, 2, 16});
   data1->GetOpDesc()->MutableAllInputName() = {{"x", 0}};
   data1->GetOpDesc()->MutableAllOutputName() = {{"y", 0}};
 
@@ -3565,21 +3565,21 @@ ge::ComputeGraphPtr ShareGraph::BuildStaticAbsReluReduceSumNodeGraph() {
   abs1->GetOpDesc()->MutableAllInputName() = {{"x", 0}};
   abs1->GetOpDesc()->MutableAllOutputName() = {{"y", 0}};
   abs1->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameAiCore);
-  SetNoStorage(abs1->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, {2, 2, 2});
+  SetNoStorage(abs1->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, {2, 2, 16});
   AddCompileResult(abs1, false);
 
   auto relu = graph->FindNode("relu");
   relu->GetOpDesc()->MutableAllInputName() = {{"x", 0}};
   relu->GetOpDesc()->MutableAllOutputName() = {{"y", 0}};
-  relu->GetOpDesc()->SetOpKernelLibName(kEngineNameAiCore);
-  SetNoStorage(relu->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, {2, 2, 2});
+  relu->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameAiCore);
+  SetNoStorage(relu->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, {2, 2, 16});
   AddCompileResult(relu, false);
 
   auto reduceSum = graph->FindNode("reduceSum");
   reduceSum->GetOpDesc()->MutableAllInputName() = {{"x", 0}, {"axes", 1}};
   reduceSum->GetOpDesc()->MutableAllOutputName() = {{"y", 0}};
   reduceSum->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameAiCore);
-  SetNoStorage(reduceSum->GetOpDesc(), ge::FORMAT_NCHW, DT_FLOAT, {2, 2, 2});
+  SetNoStorage(reduceSum->GetOpDesc(), ge::FORMAT_NCHW, DT_FLOAT, {2, 2, 16});
   AddCompileResult(reduceSum, false);
 
   SetConstValue<int64_t, ge::DT_INT64>(graph->FindNode("const1"), {2});
@@ -3687,7 +3687,7 @@ ge::ComputeGraphPtr ShareGraph::BuildStaticReluAddReduceSumNodeGraph() {
 
   auto data1 = graph->FindNode("data1");
   AttrUtils::SetInt(data1->GetOpDesc(), "index", 0);
-  SetNoStorage(data1->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, {2, 2, 2});
+  SetNoStorage(data1->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, {16, 16, 16});
   data1->GetOpDesc()->MutableAllInputName() = {{"x", 0}};
   data1->GetOpDesc()->MutableAllOutputName() = {{"y", 0}};
 
@@ -3695,26 +3695,26 @@ ge::ComputeGraphPtr ShareGraph::BuildStaticReluAddReduceSumNodeGraph() {
   relu->GetOpDesc()->MutableAllInputName() = {{"x", 0}};
   relu->GetOpDesc()->MutableAllOutputName() = {{"y", 0}};
   relu->GetOpDesc()->SetOpKernelLibName(kEngineNameAiCore);
-  SetNoStorage(relu->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, {2, 2, 2});
+  SetNoStorage(relu->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, {16, 16, 16});
   AddCompileResult(relu, false);
 
   auto data2 = graph->FindNode("data2");
   AttrUtils::SetInt(data2->GetOpDesc(), "index", 1);
-  SetNoStorage(data2->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, {2, 2, 2, 2});
+  SetNoStorage(data2->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, {16, 16, 16, 16});
   data2->GetOpDesc()->MutableAllInputName() = {{"x", 0}};
   data2->GetOpDesc()->MutableAllOutputName() = {{"y", 0}};
 
   auto add1 = graph->FindNode("add1");
   add1->GetOpDesc()->MutableAllInputName() = {{"x1", 0}, {"x2", 1}};
   add1->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameAiCore);
-  SetNoStorage(add1->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, {2, 2, 2, 2});
+  SetNoStorage(add1->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, {16, 16, 16, 16});
   AddCompileResult(add1, false);
 
   auto reduceSum = graph->FindNode("reduceSum");
   reduceSum->GetOpDesc()->MutableAllInputName() = {{"x", 0}, {"axes", 1}};
   reduceSum->GetOpDesc()->MutableAllOutputName() = {{"y", 0}};
   reduceSum->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameAiCore);
-  SetNoStorage(reduceSum->GetOpDesc(), ge::FORMAT_NCHW, DT_FLOAT, {2, 2, 2, 2});
+  SetNoStorage(reduceSum->GetOpDesc(), ge::FORMAT_NCHW, DT_FLOAT, {16, 16, 16, 16});
   AddCompileResult(reduceSum, false);
 
   SetConstValue<int64_t, ge::DT_INT64>(graph->FindNode("const1"), {3});

@@ -329,25 +329,30 @@ Status BinaryGraphBuilder::DebugIOMapping(const BinaryGraphIOLinkage &io_link) c
   auto in_data_nodes = io_link.remaining_graph->GetInputNodes();
   GELOGI("io map size:%zu", io_link.out_idx_2_in_idxs.size());
   for (const auto &io_idx_pair : io_link.out_idx_2_in_idxs) {
-    GE_ASSERT_NOTNULL(netout_node->GetInDataAnchor(static_cast<int32_t>(io_idx_pair.first)));
-    GE_ASSERT_NOTNULL(netout_node->GetInDataAnchor(static_cast<int32_t>(io_idx_pair.first))->GetPeerOutAnchor());
-    auto out_name = netout_node->GetInDataAnchor(static_cast<int32_t>(io_idx_pair.first))->GetPeerOutAnchor()->GetOwnerNode()->GetName();
-    const auto out_idx = netout_node->GetInDataAnchor(static_cast<int32_t>(io_idx_pair.first))->GetPeerOutAnchor()->GetIdx();
-    GE_ASSERT_NOTNULL(in_data_nodes.at(static_cast<size_t>(io_idx_pair.second))->GetOutDataAnchor(0));
-    auto in_name = in_data_nodes.at(static_cast<size_t>(io_idx_pair.second))->GetOutDataAnchor(0)->GetPeerInDataAnchors().at(0)->GetOwnerNode()->GetName();
-    const auto in_idx = in_data_nodes.at(static_cast<size_t>(io_idx_pair.second))->GetOutDataAnchor(0)->GetPeerInDataAnchors().at(0)->GetIdx();
+    const auto out_anchor = netout_node->GetInDataAnchor(static_cast<int32_t>(io_idx_pair.first));
+    GE_ASSERT_NOTNULL(out_anchor);
+    const auto peer_out_anchor = out_anchor->GetPeerOutAnchor();
+    GE_ASSERT_NOTNULL(peer_out_anchor);
+    const auto out_name = peer_out_anchor->GetOwnerNode()->GetName();
+    const auto out_idx = peer_out_anchor->GetIdx();
+
+    const auto in_data_node = in_data_nodes.at(static_cast<size_t>(io_idx_pair.second));
+    GE_ASSERT_NOTNULL(in_data_node->GetOutDataAnchor(0));
+    const auto first_peer_in_anchor = in_data_node->GetOutDataAnchor(0)->GetPeerInDataAnchors().at(0);
+    const auto in_name = first_peer_in_anchor->GetOwnerNode()->GetName();
+    const auto in_idx = first_peer_in_anchor->GetIdx();
     int64_t in_idx_attr;
-    (void)AttrUtils::GetInt(in_data_nodes.at(static_cast<size_t>(io_idx_pair.second))->GetOpDesc(), ATTR_NAME_INDEX, in_idx_attr);
+    (void)AttrUtils::GetInt(in_data_node->GetOpDesc(), ATTR_NAME_INDEX, in_idx_attr);
 
     std::stringstream info;
-    info << "out_name:" << out_name 
-         << ", out_idx:" << out_idx 
-         << ", netout_idx:" << io_idx_pair.first 
-         << ", in_name:" << in_name 
-         << ", in_idx:" << in_idx 
+    info << "out_name:" << out_name
+         << ", out_idx:" << out_idx
+         << ", netout_idx:" << io_idx_pair.first
+         << ", in_name:" << in_name
+         << ", in_idx:" << in_idx
          << ", data_idx:" << io_idx_pair.second
          << ", data_idx_attr:" << in_idx_attr;
-  GELOGI("GetIOIdxMapping:%s", info.str().c_str());
+    GELOGI("GetIOIdxMapping:%s", info.str().c_str());
   }
   return GRAPH_SUCCESS;
 }

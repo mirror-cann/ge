@@ -990,6 +990,7 @@ TEST_F(SymbolicShapeComputeUT, test_tile_2nd_input_dims_invalid) {
   auto op_desc = tile_node->GetOpDesc();
   op_desc->MutableInputDesc(0)->SetShape(GeShape({3}));
   op_desc->MutableInputDesc(1)->SetShape(GeShape({3}));
+  op_desc->MutableOutputDesc(0)->SetOriginShape(GeShape({-2}));
 
   SymbolicShapeInference ssi;
   ASSERT_EQ(ssi.Infer(cg), ge::SUCCESS);
@@ -1013,6 +1014,7 @@ TEST_F(SymbolicShapeComputeUT, test_tile_kMultiplesInputIndex_symbols_value_inva
   auto op_desc = tile_node->GetOpDesc();
   op_desc->MutableInputDesc(0)->SetShape(GeShape({3}));
   op_desc->MutableInputDesc(1)->SetShape(GeShape({3}));
+  op_desc->MutableOutputDesc(0)->SetOriginShape(GeShape({-2}));
 
   SymbolicShapeInference ssi;
   ASSERT_EQ(ssi.Infer(cg), ge::SUCCESS);
@@ -1388,6 +1390,7 @@ TEST_F(SymbolicShapeComputeUT, test_stridedslice_AttrStartInput_symbols_value_in
   op_desc->MutableInputDesc(1)->SetShape(GeShape({1}));
   op_desc->MutableInputDesc(2)->SetShape(GeShape({1}));
   op_desc->MutableInputDesc(3)->SetShape(GeShape({1}));
+  op_desc->MutableOutputDesc(0)->SetOriginShape(GeShape({-2}));
 
   SymbolicShapeInference ssi;
   ASSERT_EQ(ssi.Infer(cg), ge::SUCCESS);
@@ -2806,9 +2809,22 @@ TEST_F(SymbolicShapeComputeUT, InferShapeForGraphWithNodeNotSupportSymbolInfer) 
                                                     squared_difference_node->GetInDataAnchor(1), foo_node),
             SUCCESS);
 
+  foo_node->GetOpDesc()->MutableOutputDesc(0)->SetOriginShape(GeShape({-2}));
+  auto neg_tmp = cg->FindNode("Neg_3");
+  ASSERT_NE(neg_tmp, nullptr);
+  // 清空所有计算节点输出OriginShape → UseStaticShapeIfWeCan全部UNSUPPORTED
+  for (auto &n : cg->GetDirectNode()) {
+    auto t = n->GetType();
+    if (!t.empty() && t != "Data" && t != "NETOUTPUT") {
+      for (size_t i = 0; i < n->GetOpDesc()->GetOutputsSize(); ++i) {
+        n->GetOpDesc()->MutableOutputDesc(i)->SetOriginShape(GeShape({-2}));
+      }
+    }
+  }
+
   SymbolicShapeInference ssi;
   ASSERT_EQ(ssi.Infer(cg), ge::SUCCESS);
-  auto foo_attr = foo_op_desc->GetOutputDesc(0).template GetAttrsGroup<SymbolicDescAttr>();
+  auto foo_attr = foo_node->GetOpDesc()->GetOutputDesc(0).template GetAttrsGroup<SymbolicDescAttr>();
   ASSERT_EQ(foo_attr, nullptr);
   auto neg_node = cg->FindNode("Neg_3");
   ASSERT_NE(neg_node, nullptr);

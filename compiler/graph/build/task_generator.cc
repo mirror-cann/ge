@@ -116,6 +116,21 @@ bool NeedDoFusionTask() {
   GELOGI("Get buffer option %s with value %s", BUFFER_OPTIMIZE.c_str(), buffer_optimize.c_str());
   return ((buffer_optimize == "l1_optimize") || (buffer_optimize == "l2_optimize"));
 }
+
+struct ThreadDeviceContext {
+  int32_t device_id = kInvalidDeviceId;
+  ~ThreadDeviceContext() {
+    if (device_id != kInvalidDeviceId) {
+      (void)aclrtResetDevice(device_id);
+      device_id = kInvalidDeviceId;
+    }
+  }
+};
+
+static ThreadDeviceContext &GetThreadDeviceContext() {
+  thread_local ThreadDeviceContext ctx;
+  return ctx;
+}
 }  // namespace
 
 TaskGenerator::TaskGenerator(uint8_t *var_mem_base, uint64_t var_mem_size, RunContext *run_context) {
@@ -500,13 +515,12 @@ Status TaskGenerator::GenerateTaskForNormalNode(Node *const node, const std::str
   GetThreadLocalContext() = ge_context;
   error_message::SetErrMgrContext(error_context);
   if (device_id != kInvalidDeviceId) {
-    GE_CHK_ACL_RET(aclrtSetDevice(device_id));
-  }
-  GE_MAKE_GUARD(reset_device, [device_id]() {
-    if (device_id != kInvalidDeviceId) {
-      GE_CHK_RT(aclrtResetDevice(device_id));
+    auto &tl_ctx = GetThreadDeviceContext();
+    if (tl_ctx.device_id != device_id) {
+      GE_CHK_ACL_RET(aclrtSetDevice(device_id));
+      tl_ctx.device_id = device_id;
     }
-  });
+  }
   return GenTaskForNormalNode(node, tag, task_def_list_per_node);
 }
 
@@ -548,13 +562,12 @@ Status TaskGenerator::GenerateTaskForFftsNode(Node *ffts_node, const std::string
   GetThreadLocalContext() = ge_context;
   error_message::SetErrMgrContext(error_context);
   if (device_id != kInvalidDeviceId) {
-    GE_CHK_ACL_RET(aclrtSetDevice(device_id));
-  }
-  GE_MAKE_GUARD(reset_device, [device_id]() {
-    if (device_id != kInvalidDeviceId) {
-      GE_CHK_RT(aclrtResetDevice(device_id));
+    auto &tl_ctx = GetThreadDeviceContext();
+    if (tl_ctx.device_id != device_id) {
+      GE_CHK_ACL_RET(aclrtSetDevice(device_id));
+      tl_ctx.device_id = device_id;
     }
-  });
+  }
   const auto &op_desc = ffts_node->GetOpDesc();  // node and op desc must not be null
   if (!op_desc->HasAttr(ATTR_NAME_FFTS_PLUS_SUB_GRAPH)) {
     return SUCCESS;
