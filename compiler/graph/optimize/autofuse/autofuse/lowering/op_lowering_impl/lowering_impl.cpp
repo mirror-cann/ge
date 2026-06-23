@@ -29,6 +29,7 @@
 #include "backend/backend_spec.h"
 #include "can_fuse/backend/backend_utils.h"
 #include "lowering/op_helper/cube.h"
+#include "common/fp16_t/fp16_t.h"
 
 namespace ge {
 using namespace autofuse;
@@ -418,6 +419,11 @@ string ProcessScalarTensor(const vector<ge::Tensor> &tensors, Func&& func) {
     GE_ASSERT(tensor.GetDataType() == dtype);
     const void* data = tensor.GetData();
     switch (dtype) {
+      case ge::DT_FLOAT16: {
+        const auto raw = *reinterpret_cast<const uint16_t*>(data);
+        scalar_tensors.emplace_back(ge::fp16_t(raw).ToFloat());
+        break;
+      }
       case ge::DT_FLOAT:   scalar_tensors.emplace_back(*reinterpret_cast<const float*>(data)); break;
       case ge::DT_INT8:    scalar_tensors.emplace_back(*reinterpret_cast<const int8_t*>(data)); break;
       case ge::DT_INT32:   scalar_tensors.emplace_back(*reinterpret_cast<const int32_t*>(data)); break;

@@ -28,6 +28,7 @@ target_include_directories(aihac_autofusion BEFORE PRIVATE
        ${AIR_CODE_DIR}/inc/graph_metadef/external
        ${AIR_CODE_DIR}/inc/graph_metadef/external/graph
        ${AIR_CODE_DIR}/inc/graph_metadef/external/exe_graph
+       ${AIR_CODE_DIR}/base
 )
 
 target_compile_definitions(aihac_autofusion PRIVATE
@@ -46,6 +47,7 @@ else ()
                ${CMAKE_CURRENT_SOURCE_DIR}
                ${TOP_DIR}/air/inc
                ${TOP_DIR}/air/inc/graph_metadef
+               ${TOP_DIR}/air/base
                ${TOP_DIR}/runtime/include
                ${TOP_DIR}/runtime/include/external
         )

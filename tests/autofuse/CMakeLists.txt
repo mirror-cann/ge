@@ -132,6 +132,9 @@ cmake_print_variables(ENABLE_OPEN_SRC)
 ######################################autofuse##########################################
 set(AUTOFUSE_DIR ${CODE_ROOT_DIR}/autofuse)
 file(GLOB_RECURSE AUTOFUSE_SOURCES "${AUTOFUSE_DIR}/*.cpp")
+list(APPEND AUTOFUSE_SOURCES
+    "${AIR_CODE_DIR}/base/common/fp16_t/fp16_t.cc"
+)
 
 add_library(autofuse SHARED
    ${AUTOFUSE_SOURCES}
@@ -145,6 +148,7 @@ target_compile_definitions(autofuse PRIVATE
 target_include_directories(autofuse PUBLIC
     ${AUTOFUSE_DIR}
     ${CODE_ROOT_DIR}
+    ${AIR_CODE_DIR}/base
     ${CODE_ROOT_DIR}/autofuse
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_BINARY_DIR}/proto/metadef_protos

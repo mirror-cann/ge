@@ -4253,6 +4253,56 @@ TEST_F(LoopLoweringToAscBackendUT, SimpleApplyAdamD2_beta1_power_eq_1) {
   ASSERT_EQ(asc_graph, nullptr);
 }
 
+TEST_F(LoopLoweringToAscBackendUT, SimpleApplyAdamDFloat16ScalarInputs) {
+  [this]() {
+    auto var = es_graph_->CreateInput(0, "var", nullptr);
+    var.SetSymbolShape({"s0", "s1", "s2"});
+    auto m = es_graph_->CreateInput(1, "m", nullptr);
+    m.SetSymbolShape({"s0", "s1", "s2"});
+    auto v = es_graph_->CreateInput(2, "v", nullptr);
+    v.SetSymbolShape({"s0", "s1", "s2"});
+
+    // Raw IEEE-754 half values: 0x3000=0.125, 0x3400=0.25, 0x3800=0.5.
+    auto beta1_power = CreateConst(*es_graph_, ge::DT_FLOAT16, {}, std::vector<uint16_t>{0x3000U});
+    beta1_power.SetSymbolShape({});
+    auto beta2_power = CreateConst(*es_graph_, ge::DT_FLOAT16, {}, std::vector<uint16_t>{0x3400U});
+    beta2_power.SetSymbolShape({});
+    auto lr = CreateConst(*es_graph_, ge::DT_FLOAT16, {}, std::vector<uint16_t>{0x3000U});
+    lr.SetSymbolShape({});
+    auto beta1 = CreateConst(*es_graph_, ge::DT_FLOAT16, {}, std::vector<uint16_t>{0x3800U});
+    beta1.SetSymbolShape({});
+    auto beta2 = CreateConst(*es_graph_, ge::DT_FLOAT16, {}, std::vector<uint16_t>{0x3800U});
+    beta2.SetSymbolShape({});
+    auto epsilon = CreateConst(*es_graph_, ge::DT_FLOAT, {}, std::vector<float>{0.0625});
+    epsilon.SetSymbolShape({});
+
+    auto grad = es_graph_->CreateInput(3, "grad", nullptr);
+    grad.SetSymbolShape({"s0", "s1", "s2"});
+    auto rst = es::ApplyAdamD(var, m, v, beta1_power, beta2_power, lr, beta1, beta2, epsilon, grad);
+    rst.var.SetSymbolShape({"s0", "s1", "s2"});
+    rst.m.SetSymbolShape({"s0", "s1", "s2"});
+    rst.v.SetSymbolShape({"s0", "s1", "s2"});
+    es_graph_->SetOutput(rst.var, 0);
+    es_graph_->SetOutput(rst.m, 1);
+    es_graph_->SetOutput(rst.v, 2);
+  }();
+  auto graph = es_graph_->Build();
+  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+  auto nodeptr = cg->FindNode("ApplyAdamD_6");
+  ASSERT_NE(nodeptr, nullptr);
+
+  ASSERT_EQ(LoweringManager::LoweringGraph(cg), GRAPH_SUCCESS);
+  auto asc_graph =
+    ge::loop::GetKernelBox(nodeptr->GetOutDataAnchor(0)).Realize<loop::AscOverrides>("graph");
+  ASSERT_NE(asc_graph, nullptr);
+  auto asc_graph1 =
+    ge::loop::GetKernelBox(nodeptr->GetOutDataAnchor(1)).Realize<loop::AscOverrides>("graph");
+  ASSERT_NE(asc_graph1, nullptr);
+  auto asc_graph2 =
+    ge::loop::GetKernelBox(nodeptr->GetOutDataAnchor(2)).Realize<loop::AscOverrides>("graph");
+  ASSERT_NE(asc_graph2, nullptr);
+}
+
 TEST_F(LoopLoweringToAscBackendUT, SimpleApplyGradientDescent) {
   [this]() {
     auto var = es_graph_->CreateInput(0, "var", nullptr);
