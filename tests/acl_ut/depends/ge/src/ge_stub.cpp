@@ -401,6 +401,24 @@ Status aclStub::GetOm2MemAndWeightSize(const void *model_data, size_t model_size
     return SUCCESS;
 }
 
+Status aclStub::GetOm2ModelMetadata(const std::string &model_path,
+                                    std::vector<ge::Om2TensorDesc> &input_desc,
+                                    std::vector<ge::Om2TensorDesc> &input_desc_v2,
+                                    std::vector<ge::Om2TensorDesc> &output_desc,
+                                    std::vector<ge::Om2TensorDesc> &output_desc_v2)
+{
+    return SUCCESS;
+}
+
+Status aclStub::GetOm2ModelMetadata(const void *model_data, size_t model_size,
+                                    std::vector<ge::Om2TensorDesc> &input_desc,
+                                    std::vector<ge::Om2TensorDesc> &input_desc_v2,
+                                    std::vector<ge::Om2TensorDesc> &output_desc,
+                                    std::vector<ge::Om2TensorDesc> &output_desc_v2)
+{
+    return SUCCESS;
+}
+
 Status aclStub::ExecModel(uint32_t model_id, void *stream, const ge::RunModelData &run_input_data,
                             const std::vector<ge::GeTensorDesc> &input_desc, ge::RunModelData &run_output_data,
                             std::vector<ge::GeTensorDesc> &output_desc, bool async_mode)
@@ -2544,6 +2562,22 @@ namespace gert {
     ge::Status GetOm2MemAndWeightSize(const void *model_data, size_t model_size, size_t &work_size,
                                       size_t &weight_size) {
         return MockFunctionTest::aclStubInstance().GetOm2MemAndWeightSize(model_data, model_size, work_size, weight_size);
+    }
+    ge::Status GetOm2ModelMetadata(const std::string &model_path,
+                                   std::vector<ge::Om2TensorDesc> &input_desc,
+                                   std::vector<ge::Om2TensorDesc> &input_desc_v2,
+                                   std::vector<ge::Om2TensorDesc> &output_desc,
+                                   std::vector<ge::Om2TensorDesc> &output_desc_v2) {
+        return MockFunctionTest::aclStubInstance().GetOm2ModelMetadata(model_path, input_desc, input_desc_v2,
+                                                                       output_desc, output_desc_v2);
+    }
+    ge::Status GetOm2ModelMetadata(const void *model_data, size_t model_size,
+                                   std::vector<ge::Om2TensorDesc> &input_desc,
+                                   std::vector<ge::Om2TensorDesc> &input_desc_v2,
+                                   std::vector<ge::Om2TensorDesc> &output_desc,
+                                   std::vector<ge::Om2TensorDesc> &output_desc_v2) {
+        return MockFunctionTest::aclStubInstance().GetOm2ModelMetadata(model_data, model_size, input_desc,
+                                                                       input_desc_v2, output_desc, output_desc_v2);
     }
     ge::Status IsOm2Model(const void *data, size_t size, bool &is_support) {
         return MockFunctionTest::aclStubInstance().IsOm2Model(data, size, is_support);

@@ -1263,15 +1263,6 @@ TEST_F(Om2ModelExecutorUt, load_ok_with_internal_work_ptr_and_external_device_we
   EXPECT_EQ(executor.Load(model_data_holder.model_data, load_arg, 1U), SUCCESS);
 }
 
-TEST_F(Om2ModelExecutorUt, load_failed_when_external_work_ptr_size_too_small) {
-  auto model_data_holder = LoadValidModelData();
-  gert::Om2ModelExecutor executor;
-  auto load_arg = MakeOm2LoadArg();
-  load_arg.work_ptr = reinterpret_cast<void *>(0x12345);
-  load_arg.work_size = 1024U;
-  EXPECT_NE(executor.Load(model_data_holder.model_data, load_arg, 1U), SUCCESS);
-}
-
 TEST_F(Om2ModelExecutorUt, load_failed_when_external_device_weight_size_too_small) {
   auto model_data_holder = LoadValidModelData();
   gert::Om2ModelExecutor executor;

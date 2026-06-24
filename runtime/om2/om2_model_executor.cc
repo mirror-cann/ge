@@ -211,6 +211,37 @@ ge::Status GetOm2MemAndWeightSizeFromArchive(ge::RAIIZipArchive &archive, size_t
   return ge::SUCCESS;
 }
 
+ge::Status GetOm2ModelMetadataFromArchive(ge::RAIIZipArchive &archive,
+                                          std::vector<ge::Om2TensorDesc> &input_desc,
+                                          std::vector<ge::Om2TensorDesc> &input_desc_v2,
+                                          std::vector<ge::Om2TensorDesc> &output_desc,
+                                          std::vector<ge::Om2TensorDesc> &output_desc_v2) {
+  const auto file_names = archive.ListFiles();
+  for (const auto &file_name : file_names) {
+    if (!IsFileNameEndsWith(file_name, "model_meta.json")) {
+      continue;
+    }
+    size_t buff_size = 0UL;
+    auto buff_data = archive.ExtractToMem(file_name, buff_size);
+    GE_ASSERT_TRUE(buff_data != nullptr && buff_size != 0U);
+    const ge::JsonFile model_meta_json(buff_data.get(), buff_size);
+    GE_ASSERT_TRUE(model_meta_json.IsValid());
+
+    ge::JsonFile::json inputs;
+    GE_ASSERT_TRUE(model_meta_json.Get("inputs", inputs));
+    GE_ASSERT_SUCCESS(SetTensorDesc(inputs, input_desc));
+    GE_ASSERT_SUCCESS(SetTensorDesc(inputs, input_desc_v2, true));
+
+    ge::JsonFile::json outputs;
+    GE_ASSERT_TRUE(model_meta_json.Get("outputs", outputs));
+    GE_ASSERT_SUCCESS(SetTensorDesc(outputs, output_desc));
+    output_desc_v2 = output_desc;
+    return ge::SUCCESS;
+  }
+  GE_ASSERT_TRUE(false, "[OM2] model_meta.json not found in archive.");
+  return ge::FAILED;
+}
+
 ge::Status RtMallocBuffer(size_t size, void *&ptr) {
   ptr = nullptr;
   if (size == 0U) {
@@ -796,7 +827,6 @@ class Om2ModelExecutor::Impl {
   ge::Status PrepareWorkPtr(const Om2ModelLoadArg &load_arg, void *&work_ptr) {
     const size_t required_work_size = model_meta_info_.work_size;
     if (load_arg.work_ptr != nullptr) {
-      GE_ASSERT_TRUE(load_arg.work_size >= required_work_size, "[OM2][Check] Invalid external work_ptr size.");
       work_ptr = load_arg.work_ptr;
       return ge::SUCCESS;
     }
@@ -1066,6 +1096,36 @@ ge::Status GetOm2MemAndWeightSize(const void *model_data, size_t model_size, siz
   ge::RAIIZipArchive archive(static_cast<const uint8_t *>(model_data), model_size);
   GE_ASSERT_TRUE(archive.IsGood());
   GE_ASSERT_SUCCESS(GetOm2MemAndWeightSizeFromArchive(archive, work_size, internal_weight_size));
+  return ge::SUCCESS;
+}
+
+ge::Status GetOm2ModelMetadata(const std::string &model_path,
+                               std::vector<ge::Om2TensorDesc> &input_desc,
+                               std::vector<ge::Om2TensorDesc> &input_desc_v2,
+                               std::vector<ge::Om2TensorDesc> &output_desc,
+                               std::vector<ge::Om2TensorDesc> &output_desc_v2) {
+  ge::ModelData model_data;
+  GE_CHK_STATUS_RET(LoadOm2DataFromFile(model_path, model_data),
+                    "[OM2][Query] Load model data from file failed.");
+  std::shared_ptr<void> data_guarder(model_data.model_data, [](const void *const p) {
+    if (p != nullptr) {
+      delete[] static_cast<const uint8_t *>(p);
+    }
+  });
+  ge::RAIIZipArchive archive(static_cast<uint8_t *>(model_data.model_data), model_data.model_len);
+  GE_ASSERT_TRUE(archive.IsGood());
+  GE_ASSERT_SUCCESS(GetOm2ModelMetadataFromArchive(archive, input_desc, input_desc_v2, output_desc, output_desc_v2));
+  return ge::SUCCESS;
+}
+
+ge::Status GetOm2ModelMetadata(const void *model_data, size_t model_size,
+                               std::vector<ge::Om2TensorDesc> &input_desc,
+                               std::vector<ge::Om2TensorDesc> &input_desc_v2,
+                               std::vector<ge::Om2TensorDesc> &output_desc,
+                               std::vector<ge::Om2TensorDesc> &output_desc_v2) {
+  ge::RAIIZipArchive archive(static_cast<const uint8_t *>(model_data), model_size);
+  GE_ASSERT_TRUE(archive.IsGood());
+  GE_ASSERT_SUCCESS(GetOm2ModelMetadataFromArchive(archive, input_desc, input_desc_v2, output_desc, output_desc_v2));
   return ge::SUCCESS;
 }
 

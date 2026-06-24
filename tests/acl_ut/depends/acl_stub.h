@@ -209,6 +209,16 @@ public:
     virtual ge::Status GetOm2MemAndWeightSize(const std::string &path, size_t &mem_size, size_t &weight_size);
     virtual ge::Status GetOm2MemAndWeightSize(const void *model_data, size_t model_size, size_t &mem_size,
                                               size_t &weight_size);
+    virtual ge::Status GetOm2ModelMetadata(const std::string &model_path,
+                                           std::vector<ge::Om2TensorDesc> &input_desc,
+                                           std::vector<ge::Om2TensorDesc> &input_desc_v2,
+                                           std::vector<ge::Om2TensorDesc> &output_desc,
+                                           std::vector<ge::Om2TensorDesc> &output_desc_v2);
+    virtual ge::Status GetOm2ModelMetadata(const void *model_data, size_t model_size,
+                                           std::vector<ge::Om2TensorDesc> &input_desc,
+                                           std::vector<ge::Om2TensorDesc> &input_desc_v2,
+                                           std::vector<ge::Om2TensorDesc> &output_desc,
+                                           std::vector<ge::Om2TensorDesc> &output_desc_v2);
     virtual ge::Status IsOm2Model(const void *data, size_t size, bool &is_support);
     virtual ge::Status IsOm2Model(const char *file_path, bool &is_support);
     virtual ge::Status GetModelDescInfo(std::vector<ge::TensorDesc> &input_desc,
@@ -461,6 +471,18 @@ public:
     MOCK_METHOD3(GetOm2MemAndWeightSize, ge::Status(const std::string &path, size_t &mem_size, size_t &weight_size));
     MOCK_METHOD4(GetOm2MemAndWeightSize,
                  ge::Status(const void *model_data, size_t model_size, size_t &mem_size, size_t &weight_size));
+    MOCK_METHOD5(GetOm2ModelMetadata,
+                 ge::Status(const std::string &model_path,
+                            std::vector<ge::Om2TensorDesc> &input_desc,
+                            std::vector<ge::Om2TensorDesc> &input_desc_v2,
+                            std::vector<ge::Om2TensorDesc> &output_desc,
+                            std::vector<ge::Om2TensorDesc> &output_desc_v2));
+    MOCK_METHOD6(GetOm2ModelMetadata,
+                 ge::Status(const void *model_data, size_t model_size,
+                            std::vector<ge::Om2TensorDesc> &input_desc,
+                            std::vector<ge::Om2TensorDesc> &input_desc_v2,
+                            std::vector<ge::Om2TensorDesc> &output_desc,
+                            std::vector<ge::Om2TensorDesc> &output_desc_v2));
     MOCK_METHOD3(IsOm2Model, ge::Status(const void *data, size_t size, bool &is_support));
     MOCK_METHOD2(IsOm2Model, ge::Status(const char *file_path, bool &is_support));
     MOCK_METHOD3(GetModelDescInfo, ge::Status(std::vector<ge::TensorDesc> &input_desc,

@@ -346,42 +346,20 @@ aclError FillModelDescFromTensorDescs(aclmdlDesc* modelDesc,
 aclError PopulateDescFromOm2Data(aclmdlDesc* modelDesc, const ge::ModelData& om2Data) {
     ACL_LOG_INFO("Populating aclmdlDesc from OM2 data");
 
-    // Create temporary executor from OM2 data
-    gert::Om2ModelLoadArg loadArgs;
-    ACL_REQUIRES_OK(ConstructOm2ModelLoadArg(nullptr, 0U, nullptr, 0U, loadArgs));
-    ge::graphStatus ret = ge::GRAPH_SUCCESS;
-    // Remove const qualifier for LoadOm2ExecutorFromData call
-    ge::ModelData& mutableOm2Data = const_cast<ge::ModelData&>(om2Data);
-    std::unique_ptr<gert::Om2ModelExecutor> executor = gert::LoadOm2ExecutorFromData(mutableOm2Data, loadArgs, ret);
-    if (executor == nullptr) {
-        ACL_LOG_CALL_ERROR("[Load][Om2Executor]create temporary OM2 executor failed, ge result[%u]", ret);
-        return ACL_GET_ERRCODE_GE(static_cast<int32_t>(ret));
-    }
-
-    // Get model desc info (v1)
-    const std::vector<ge::Om2TensorDesc>* inputDesc = nullptr;
-    const std::vector<ge::Om2TensorDesc>* outputDesc = nullptr;
-    ret = executor->GetModelDescInfo(inputDesc, outputDesc);
+    // Lightweight metadata parsing: only extracts model_meta.json from ZIP archive, no model loading
+    std::vector<ge::Om2TensorDesc> inputDesc;
+    std::vector<ge::Om2TensorDesc> inputDescV2;
+    std::vector<ge::Om2TensorDesc> outputDesc;
+    std::vector<ge::Om2TensorDesc> outputDescV2;
+    ge::Status ret = gert::GetOm2ModelMetadata(om2Data.model_data, om2Data.model_len,
+                                                inputDesc, inputDescV2, outputDesc, outputDescV2);
     if (ret != ge::SUCCESS) {
-        ACL_LOG_CALL_ERROR("[Get][ModelDescInfo]get om2 model description failed, ge result[%u]", ret);
+        ACL_LOG_CALL_ERROR("[Get][Om2ModelMetadata]parse OM2 metadata failed, ge result[%u]", ret);
         return ACL_GET_ERRCODE_GE(static_cast<int32_t>(ret));
     }
-    ACL_REQUIRES_NOT_NULL(inputDesc);
-    ACL_REQUIRES_NOT_NULL(outputDesc);
-
-    // Get model desc info (v2)
-    const std::vector<ge::Om2TensorDesc>* inputDescV2 = nullptr;
-    const std::vector<ge::Om2TensorDesc>* outputDescV2 = nullptr;
-    ret = executor->GetModelDescInfo(inputDescV2, outputDescV2, true);
-    if (ret != ge::SUCCESS) {
-        ACL_LOG_CALL_ERROR("[Get][ModelDescInfo]get om2 model description v2 failed, ge result[%u]", ret);
-        return ACL_GET_ERRCODE_GE(static_cast<int32_t>(ret));
-    }
-    ACL_REQUIRES_NOT_NULL(inputDescV2);
-    ACL_REQUIRES_NOT_NULL(outputDescV2);
 
     // Fill aclmdlDesc using common helper
-    ACL_REQUIRES_OK(FillModelDescFromTensorDescs(modelDesc, *inputDesc, *outputDesc, *inputDescV2, *outputDescV2));
+    ACL_REQUIRES_OK(FillModelDescFromTensorDescs(modelDesc, inputDesc, outputDesc, inputDescV2, outputDescV2));
 
     ACL_LOG_INFO("Successfully populated aclmdlDesc from OM2 data");
     return ACL_SUCCESS;
