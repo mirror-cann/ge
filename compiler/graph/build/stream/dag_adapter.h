@@ -12,17 +12,22 @@
 #define GE_GRAPH_BUILD_STREAM_DAG_ADAPTER_H_
 
 #include <memory>
+#include <string>
+#include <unordered_map>
 
 #include "graph/build/dag/dag_graph.h"
+#include "graph/build/dag/dag_profiling_parser.h"
 #include "external/register/register_custom_pass.h"
 #include "common/ge_common/ge_types.h"
+#include "graph/node.h"
 
 namespace ge {
 class DAGAdapter {
  public:
   static graphStatus ToGEStatus(minidag::graphStatus status);
   static graphStatus FromGEGraph(const ConstGraphPtr &ge_graph,
-                                      std::shared_ptr<minidag::DAGGraph> &dag);
+                                 std::shared_ptr<minidag::DAGGraph> &dag,
+                                 bool &has_profiled_node_cost);
   static graphStatus RefreshStreamIdsToGE(
       const minidag::DAGGraph &dag,
       const ConstGraphPtr &ge_graph,
@@ -30,7 +35,17 @@ class DAGAdapter {
   DAGAdapter() = delete;
 
  private:
-  static graphStatus ConvertNodes(const ConstGraphPtr &ge_graph, minidag::DAGGraph &dag);
+  static graphStatus ConvertNodes(const ConstGraphPtr &ge_graph,
+                                    minidag::DAGGraph &dag,
+                                    bool &has_profiled_node_cost);
+  static std::string ResolveProfilingPath();
+  static void LoadProfilingData(const std::string &profiling_path,
+                                std::unordered_map<std::string, minidag::ProfilingData> &profiles);
+  static minidag::NodeCost BuildNodeCost(const std::string &node_name,
+                                          const NodePtr &node,
+                                          const OpDescPtr &op_desc,
+                                          const std::unordered_map<std::string, minidag::ProfilingData> &profiles,
+                                          bool &profiled_cost_matched);
   static graphStatus ConvertEdges(const ConstGraphPtr &ge_graph, minidag::DAGGraph &dag);
   static graphStatus ConvertDataEdgesForNode(
       const GNode &gnode,

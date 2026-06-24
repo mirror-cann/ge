@@ -8,6 +8,12 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
+#include <cstdio>
+#include <cstdlib>
+#include <fstream>
+#include <string>
+#include <unistd.h>
+
 #include <gtest/gtest.h>
 
 #include "graph/build/stream/dag_stream_allocator_pass.h"
@@ -22,6 +28,46 @@
 namespace minidag {
 
 namespace {
+struct GraphOptionGuard {
+  ~GraphOptionGuard() {
+    ge::GetThreadLocalContext().SetGraphOption({});
+  }
+};
+
+class ProfilingFileGuard {
+ public:
+  ProfilingFileGuard() = default;
+  ~ProfilingFileGuard() {
+    if (!path_.empty()) {
+      unsetenv("MINIDAG_PROFILING_PATH");
+      std::remove(path_.c_str());
+    }
+  }
+
+  bool CreateAndSet(const std::string &csv_content) {
+    char temp_path[] = "/tmp/test_runpass_profiled_XXXXXX.csv";
+    const std::string suffix = ".csv";
+    const int suffix_len = static_cast<int>(suffix.size());
+    int fd = mkstemps(temp_path, suffix_len);
+    if (fd == -1) {
+      return false;
+    }
+    close(fd);
+
+    path_ = temp_path;
+    std::ofstream file(path_);
+    if (!file.is_open()) {
+      return false;
+    }
+    file << csv_content;
+    file.close();
+    return setenv("MINIDAG_PROFILING_PATH", path_.c_str(), 1) == 0;
+  }
+
+ private:
+  std::string path_;
+};
+
 // 测试辅助：构建简单的 Graph（仅包含节点和控制边）
 ge::ConstGraphPtr BuildGraphWithNodes() {
   auto graph = std::make_shared<ge::Graph>("test_graph");
@@ -349,6 +395,50 @@ TEST(DagStreamAllocatorPassTest, RunPass_WithAutoMultistreamMode_LoadBalance) {
   EXPECT_EQ(ret, ge::SUCCESS);
 
   ge::GetThreadLocalContext().SetGraphOption({});
+}
+
+/**
+ * 场景 C1.1: profiling 文件命中节点时，stream pass 成功走通入口路径
+ */
+TEST(DagStreamAllocatorPassTest, RunPass_WithProfiledNodeCost_EntryPathSucceeds) {
+  std::map<std::string, std::string> options;
+  options["ge.autoMultistreamParallelMode"] = "LoadBalance:8";
+  ge::GetThreadLocalContext().SetGraphOption(options);
+  GraphOptionGuard graph_option_guard;
+
+  ProfilingFileGuard profiling_file_guard;
+  ASSERT_TRUE(profiling_file_guard.CreateAndSet(
+      "Op Name,Task Type,Task Duration(us),Block Num,Mix Block Num\n"
+      "add1,AI_CORE,88.0,8,0\n"));
+
+  auto graph = BuildGraphWithControlEdge();
+  ASSERT_NE(graph, nullptr);
+
+  ge::StreamPassContext context(0);
+  auto ret = RunMiniDAGStreamPass(graph, context);
+  EXPECT_EQ(ret, ge::SUCCESS);
+}
+
+/**
+ * 场景 C1.2: profiling 文件未命中节点时，stream pass 成功走通入口路径
+ */
+TEST(DagStreamAllocatorPassTest, RunPass_WithUnmatchedProfiling_EntryPathSucceeds) {
+  std::map<std::string, std::string> options;
+  options["ge.autoMultistreamParallelMode"] = "LoadBalance:8";
+  ge::GetThreadLocalContext().SetGraphOption(options);
+  GraphOptionGuard graph_option_guard;
+
+  ProfilingFileGuard profiling_file_guard;
+  ASSERT_TRUE(profiling_file_guard.CreateAndSet(
+      "Op Name,Task Type,Task Duration(us),Block Num,Mix Block Num\n"
+      "other_node,AI_CORE,21.0,4,0\n"));
+
+  auto graph = BuildGraphWithControlEdge();
+  ASSERT_NE(graph, nullptr);
+
+  ge::StreamPassContext context(0);
+  auto ret = RunMiniDAGStreamPass(graph, context);
+  EXPECT_EQ(ret, ge::SUCCESS);
 }
 
 /**
