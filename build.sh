@@ -425,7 +425,11 @@ build_pkg() {
     build_single_pkg "${component}" || { echo "GE build failed: ${component}."; exit 1; }
   done
 
-  ls -l ${BUILD_OUT_PATH}/cann-*.run && echo "GE package success!"
+  if [ "${PACKAGE_TYPE}" = "run" ]; then
+    ls -l ${BUILD_OUT_PATH}/cann-*.run && echo "GE package success!"
+  else
+    echo "GE package success!"
+  fi
 }
 
 build_single_pkg() {
@@ -463,7 +467,9 @@ build_single_pkg() {
 
   execute_command "make ${component} ${VERBOSE} -j${THREAD_NUM}"
   execute_command "cpack"
-  copy_pkg "${component}"
+    if [ "${PACKAGE_TYPE}" = "run" ]; then
+    copy_pkg "${component}"
+  fi
   echo "===== GE package success: ${component} ====="
 }
 

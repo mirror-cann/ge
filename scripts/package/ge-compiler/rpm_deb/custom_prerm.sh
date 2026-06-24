@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2026 Huawei Technologies Co., Ltd.
 # This program is free software, you can redistribute it and/or modify it under the terms and conditions of
@@ -33,7 +34,7 @@ libge_runner.so
 libge_runner_v2.so"
 
 sourcedir="${INSTALL_PATH}"
-pkg_arch_name="$(PKG_ARCH_NAME)"
+pkg_arch_name="${PKG_ARCH_NAME}"
 
 remove_stub_softlink() {
     local install_path="${sourcedir}"
