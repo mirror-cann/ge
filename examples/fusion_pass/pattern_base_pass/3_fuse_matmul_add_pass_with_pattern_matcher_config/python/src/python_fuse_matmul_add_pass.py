@@ -14,13 +14,11 @@
 
 from __future__ import annotations
 
-from ge.es.graph_builder import GraphBuilder
 from ge.passes import (
     PassStage,
     PatternFusionPass,
     PatternMatcherConfigBuilder,
-    create_pattern,
-    create_replacement,
+    pattern,
     register_fusion_pass,
 )
 
@@ -35,11 +33,21 @@ except ImportError:
         MatMul = None
 
 
+try:
+    from ge.es.nn import BatchMatMulV2
+except ImportError:
+    try:
+        from ge.es.all import BatchMatMulV2
+    except ImportError:
+        BatchMatMulV2 = None
+
+
 def _require_es_apis() -> None:
     pairs = [
         ("MatMul", MatMul),
         ("Add", Add),
         ("GEMM", GEMM),
+        ("BatchMatMulV2", BatchMatMulV2),
     ]
     missing = [name for name, obj in pairs if obj is None]
     if missing:
@@ -61,28 +69,26 @@ class PythonMatmulAddFusionPass(PatternFusionPass):
             .build()
         )
 
-    def patterns(self):
+    @pattern
+    def matmul_add(self, inputs):
         print("Define pattern for MatmulAddFusionPass in matcher config sample")
         _require_es_apis()
 
-        graph_builder = GraphBuilder("pattern")
-        x, y = graph_builder.create_inputs(2)
-        z = graph_builder.create_const_float([0.1, 0.1, 0.1, 0.1], [2, 2])
-        add = MatMul(x, y, None, transpose_x1=False, transpose_x2=False) + z
+        x, y = inputs[:2]
+        return MatMul(x, y, None, transpose_x1=False, transpose_x2=False) + [[0.1, 0.1], [0.1, 0.1]]
 
-        return [create_pattern(graph_builder.build_and_reset([add]))]
+    @pattern
+    def batch_matmul_add(self, inputs):
+        print("Define pattern for MatmulAddFusionPass in matcher config sample")
+        _require_es_apis()
+        x, y = inputs[:2]
+        return BatchMatMulV2(x, y) + [[0.1, 0.1], [0.1, 0.1]]
 
-    def replacement(self, match_result):
+    def replacement(self, inputs):
         print("Define replacement for MatmulAddFusionPass in matcher config sample")
         _require_es_apis()
-
-        replace_graph_builder = GraphBuilder("replacement")
-        r_a, r_b = replace_graph_builder.create_inputs(2)
-        r_c = replace_graph_builder.create_const_float([0.1, 0.1, 0.1, 0.1], [2, 2])
-        alpha_const = replace_graph_builder.create_scalar_float(1.0)
-        beta_const = replace_graph_builder.create_scalar_float(1.0)
-        gemm = GEMM(r_a, r_b, r_c, alpha_const, beta_const)
-        return create_replacement(replace_graph_builder.build_and_reset([gemm]))
+        r_a, r_b = inputs[:2]
+        return GEMM(r_a, r_b, [[0.1, 0.1], [0.1, 0.1]], 1.0, 1.0)
 
 
 if __name__ == "__main__":

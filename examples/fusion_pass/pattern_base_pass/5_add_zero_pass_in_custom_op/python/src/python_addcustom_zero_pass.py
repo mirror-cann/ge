@@ -14,14 +14,12 @@
 
 from math import fabs
 
-from ge.es.graph_builder import GraphBuilder
 from ge.graph import Tensor
 from ge.graph.types import DataType
 from ge.passes import (
     PassStage,
     PatternFusionPass,
-    create_pattern,
-    create_replacement,
+    pattern,
     register_fusion_pass,
 )
 
@@ -85,38 +83,31 @@ def _is_tensor_value_equal_to_zero(tensor: Tensor):
     return False
 
 
-def _build_pattern0():
-    pattern_builder = GraphBuilder("addcustom_zero_pattern0")
-    input_tensor = pattern_builder.create_input(0)
-    other_tensor = pattern_builder.create_input(1)
-    const_tensor = pattern_builder.create_const_float(0.0)
-    identity_tensor = Identity(const_tensor)
-    add_zero_tensor = AddCustom(input_tensor, identity_tensor)
-    add_tensor = AddCustom(add_zero_tensor, other_tensor)
-    pattern_builder.set_graph_output(add_tensor, 0)
-    return create_pattern(pattern_builder.build_and_reset())
-
-
-def _build_pattern1():
-    pattern_builder = GraphBuilder("addcustom_zero_pattern1")
-    input_tensor = pattern_builder.create_input(0)
-    other_tensor = pattern_builder.create_input(1)
-    const_tensor = pattern_builder.create_const_float(0.0)
-    moved_const_tensor = TensorMove(Identity(const_tensor))
-    add_zero_tensor = AddCustom(input_tensor, moved_const_tensor)
-    add_tensor = AddCustom(add_zero_tensor, other_tensor)
-    pattern_builder.set_graph_output(add_tensor, 0)
-    return create_pattern(pattern_builder.build_and_reset())
-
-
 @register_fusion_pass(name="PythonAddCustomZeroPass", stage=PassStage.BEFORE_INFER_SHAPE)
 class PythonAddCustomZeroPass(PatternFusionPass):
     """Recognize AddCustom(AddCustom(x, zero), y) and replace it with AddCustom(x, y)."""
 
-    def patterns(self):
+    @pattern
+    def addcustom_zero(self, inputs):
         print("Define pattern for PythonAddCustomZeroPass")
         _require_es_apis()
-        return [_build_pattern0(), _build_pattern1()]
+        x, y = inputs[:2]
+        builder = x.get_owner_builder()
+        const_tensor = builder.create_const_float(0.0)
+        identity_tensor = Identity(const_tensor)
+        add_zero_tensor = AddCustom(x, identity_tensor)
+        return AddCustom(add_zero_tensor, y)
+
+    @pattern
+    def addcustom_zero_with_tensormove(self, inputs):
+        print("Define pattern for PythonAddCustomZeroPass")
+        _require_es_apis()
+        x, y = inputs[:2]
+        builder = x.get_owner_builder()
+        const_tensor = builder.create_const_float(0.0)
+        moved_const_tensor = TensorMove(Identity(const_tensor))
+        add_zero_tensor = AddCustom(x, moved_const_tensor)
+        return AddCustom(add_zero_tensor, y)
 
     def meet_requirements(self, match_result):
         print("Define MeetRequirements for PythonAddCustomZeroPass")
@@ -133,16 +124,11 @@ class PythonAddCustomZeroPass(PatternFusionPass):
                 return False
         return True
 
-    def replacement(self, match_result):
+    def replacement(self, inputs):
         print("Define replacement for PythonAddCustomZeroPass")
         _require_es_custom_apis()
-
-        replacement_builder = GraphBuilder("addcustom_zero_replacement")
-        input_tensor = replacement_builder.create_input(0)
-        other_tensor = replacement_builder.create_input(1)
-        add_tensor = AddCustom(input_tensor, other_tensor)
-        replacement_builder.set_graph_output(add_tensor, 0)
-        return create_replacement(replacement_builder.build_and_reset())
+        x, y = inputs[:2]
+        return AddCustom(x, y)
 
 
 if __name__ == "__main__":
