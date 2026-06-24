@@ -35,6 +35,10 @@ class InsertAippOpUtil {
 
   Status InsertAippOps(ge::ComputeGraphPtr &graph, std::string &aippConfigPath);
 
+  /// @brief Validate that insert_op_conf contains no dynamic AIPP (OM2 only supports static AIPP).
+  ///        Called at entry points (ATC / aclgrphBuildModel) where OM2 mode is already known.
+  static Status ValidateStaticAippOnly(const std::string &config_path);
+
   void ClearNewOps();
 
   Status UpdateDataNodeByAipp(const ComputeGraphPtr &graph) const;

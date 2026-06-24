@@ -40,6 +40,7 @@
 #include "graph/utils/type_utils_inner.h"
 #include "graph/utils/tensor_adapter.h"
 #include "api/gelib/gelib.h"
+#include "graph/preprocess/insert_op/insert_aipp_op_util.h"
 #include "api/aclgrph/option_utils.h"
 #include "mmpa/mmpa_api.h"
 #include "common/single_op_parser.h"
@@ -134,9 +135,7 @@ const std::unordered_set<std::string> kOm2UnsuppotedFlag = {
     "check_report",
     "json",
     "virtual_type",
-    "insert_op_conf",
     "op_name_map",
-    "enable_small_channel",
     "quant_dumpable",
     "ac_parallel_enable",
     "tiling_schedule_optimize",
@@ -956,6 +955,10 @@ class GFlagUtils {
       // OM2: 跳过 OPP 白名单校验，依赖 CheckOm2HostEnvValid（方向检查）+ 编译阶段自然报错
       GE_ASSERT_SUCCESS(CheckOm2UserOptionsValid(ge::flgs::GetUserOptions()), "[Check][OM2][UserOptions] failed!");
       GE_ASSERT_SUCCESS(ge::CheckOm2HostEnvValid(FLAGS_host_env_os, FLAGS_host_env_cpu), "[Check][OM2][HostEnv] failed!");
+      if (!FLAGS_insert_op_conf.empty()) {
+        GE_CHK_BOOL_EXEC(ge::InsertAippOpUtil::ValidateStaticAippOnly(FLAGS_insert_op_conf) == ge::SUCCESS,
+                         return FAILED, "[Check][OM2][InsertOpConf] Dynamic AIPP is not supported in OM2 mode.");
+      }
     } else {
       if (CheckHostEnvOsAndHostEnvCpuValid(FLAGS_host_env_os, FLAGS_host_env_cpu) != SUCCESS) {
         return PARAM_INVALID;
