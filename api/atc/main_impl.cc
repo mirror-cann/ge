@@ -46,6 +46,7 @@
 #include "parser/common/op_registration_tbe.h"
 #include "framework/common/helper/model_helper.h"
 #include "graph/utils/op_type_utils.h"
+#include "graph_metadef/graph/operator_factory_impl.h"
 #include "nlohmann/json.hpp"
 #include "graph_metadef/graph/utils/file_utils.h"
 #include "register/optimization_option_registry.h"
@@ -2236,6 +2237,8 @@ Status ReportInvalidRunMode() {
 }
 
 Status RunAtcByMode(const std::map<std::string, std::string> &raw_options) {
+  //备份并清空注册信息map
+  OperatorFactoryImpl::BackupAndClearRegInfoOnce();
   if (!FLAGS_singleop.empty()) {
     return CheckAndRunSingleOp();
   }
