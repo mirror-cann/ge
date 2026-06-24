@@ -221,6 +221,7 @@ class GraphMemoryAssigner {
   Status AtomicCleanCheck() const;
   Status ReuseCheck() const;
   Status CheckOffset() const;
+  Status UpdateParentNodeOffset() const;
   Status CheckRefNodeOffset(const NodePtr &node) const;
 
   Status AssignReferenceMemory() const;

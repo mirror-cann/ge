@@ -77,18 +77,18 @@ int64_t GetSymbolOutputOffset(const ge::AnchorToSymbol &anchor_to_symbol, const 
     return ge::kInvalidOffset;
   }
   for (const auto &node_index_io : iter2->second) {
-    if (node_index_io.value_ == out_symbol) {
+    if (node_index_io.node_->GetType() == ge::NETOUTPUT && node_index_io.io_type_ == ge::kIn) {
       if ((node->GetOpDesc() == nullptr) || (node_index_io.node_->GetOpDesc() == nullptr)) {
         return ge::kInvalidOffset;
       }
       std::vector<int64_t> output_list = node->GetOpDesc()->GetOutputOffset();
-      std::vector<int64_t> symbol_output_list = node_index_io.node_->GetOpDesc()->GetOutputOffset();
-      if (node_index_io.index_ >= symbol_output_list.size()) {
+      std::vector<int64_t> netoutput_input_offsets = node_index_io.node_->GetOpDesc()->GetInputOffset();
+      if (node_index_io.index_ >= netoutput_input_offsets.size()) {
         return ge::kInvalidOffset;
       }
-      GELOGI("Node %s %uth output offset is %" PRId64 ", Symbol %s output offset is %" PRId64 ".", node->GetName().c_str(), i,
-             output_list[i], iter2->first.c_str(), symbol_output_list.at(node_index_io.index_));
-      return symbol_output_list.at(node_index_io.index_);
+      GELOGI("Node %s %uth output offset is %" PRId64 ", netoutput %s input offset is %" PRId64 ".", node->GetName().c_str(), i,
+             output_list[i], iter2->first.c_str(), netoutput_input_offsets.at(node_index_io.index_));
+      return netoutput_input_offsets.at(node_index_io.index_);
     }
   }
   return ge::kInvalidOffset;
@@ -2382,9 +2382,6 @@ Status GraphMemoryAssigner::AtomicCleanCheck() const {
 }
 
 Status GraphMemoryAssigner::OffsetValidCheck() const {
-  GE_CHECK_NOTNULL(mem_assigner_);
-  const AnchorToSymbol &anchor_to_symbol = mem_assigner_->GetAnchorToSymbol();
-  const SymbolToAnchors &symbol_to_anchors = mem_assigner_->GetSymbolToAnchors();
   for (const ge::NodePtr &node : compute_graph_->GetAllNodes()) {
     GE_CHECK_NOTNULL(node->GetOpDesc());
     std::vector<int64_t> input_list = node->GetOpDesc()->GetInputOffset();
@@ -2397,25 +2394,14 @@ Status GraphMemoryAssigner::OffsetValidCheck() const {
       }
     }
 
-    bool need_update_output = false;
     std::vector<int64_t> output_list = node->GetOpDesc()->GetOutputOffset();
-    for (uint32_t i = 0; i < output_list.size(); ++i) {
-      if (output_list[i] == ge::kInvalidOffset) {
+    for (auto output : output_list) {
+      if (output == ge::kInvalidOffset) {
         std::string error = "Invalid output offset" + FmtToStr(ge::kInvalidOffset) +
                             + " in node" + FmtToStr(node->GetName());
         GE_ERRORLOG_AND_ERRORMSG(FAILED, error.c_str());
         return FAILED;
       }
-      if (node->GetType() == IDENTITY || node->GetType() == READVARIABLEOP) {
-        auto symbol_offset = GetSymbolOutputOffset(anchor_to_symbol, symbol_to_anchors, node, i);
-        if (symbol_offset != ge::kInvalidOffset && output_list[i] != symbol_offset) {
-          output_list[i] = symbol_offset;
-          need_update_output = true;
-        }
-      }
-    }
-    if (need_update_output) {
-      node->GetOpDesc()->SetOutputOffset(output_list);
     }
 
     std::vector<int64_t> workspace_list = node->GetOpDesc()->GetWorkspace();
@@ -2429,6 +2415,31 @@ Status GraphMemoryAssigner::OffsetValidCheck() const {
     }
     // check reuse input and output
     GE_CHK_STATUS_RET(CheckRefNodeOffset(node), "[Check][Offset]fail for node: %s", node->GetName().c_str());
+  }
+  return SUCCESS;
+}
+
+Status GraphMemoryAssigner::UpdateParentNodeOffset() const {
+  GE_CHECK_NOTNULL(mem_assigner_);
+  const AnchorToSymbol &anchor_to_symbol = mem_assigner_->GetAnchorToSymbol();
+  const SymbolToAnchors &symbol_to_anchors = mem_assigner_->GetSymbolToAnchors();
+  for (const ge::NodePtr &node : compute_graph_->GetAllNodes()) {
+    GE_CHECK_NOTNULL(node->GetOpDesc());
+    if (node->GetOpDesc()->GetSubgraphInstanceNames().empty()) {
+      continue;
+    }
+    bool need_update_output = false;
+    std::vector<int64_t> output_list = node->GetOpDesc()->GetOutputOffset();
+    for (uint32_t i = 0; i < output_list.size(); ++i) {
+      auto symbol_offset = GetSymbolOutputOffset(anchor_to_symbol, symbol_to_anchors, node, i);
+      if (symbol_offset != ge::kInvalidOffset && output_list[i] != symbol_offset) {
+        output_list[i] = symbol_offset;
+        need_update_output = true;
+      }
+    }
+    if (need_update_output) {
+      node->GetOpDesc()->SetOutputOffset(output_list);
+    }
   }
   return SUCCESS;
 }

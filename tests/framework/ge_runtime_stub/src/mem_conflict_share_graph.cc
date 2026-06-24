@@ -134,14 +134,19 @@ void MemConflictShareGraph::SetContinuousOutput(ComputeGraphPtr &root_graph, con
 
 void MemConflictShareGraph::SetShapeForAllNodes(ComputeGraphPtr &graph, const std::vector<int64_t> &shape) {
   for (auto &node : graph->GetAllNodes()) {
-    for (size_t i = 0U; i < node->GetOutDataNodesSize(); ++i) {
-      auto out_tensor = node->GetOpDescBarePtr()->MutableOutputDesc(i);
-      out_tensor->SetShape(GeShape{shape});
+    auto op_desc = node->GetOpDescBarePtr();
+    for (size_t i = 0U; i < op_desc->GetOutputsSize(); ++i) {
+      auto out_tensor = op_desc->MutableOutputDesc(i);
+      if (out_tensor != nullptr) {
+        out_tensor->SetShape(GeShape{shape});
+      }
     }
 
-    for (size_t i = 0U; i < node->GetInDataNodesSize(); ++i) {
-      auto in_tensor = node->GetOpDescBarePtr()->MutableInputDesc(i);
-      in_tensor->SetShape(GeShape{shape});
+    for (size_t i = 0U; i < op_desc->GetAllInputsSize(); ++i) {
+      auto in_tensor = op_desc->MutableInputDesc(i);
+      if (in_tensor != nullptr) {
+        in_tensor->SetShape(GeShape{shape});
+      }
     }
   }
 }
@@ -154,9 +159,12 @@ void MemConflictShareGraph::SetShapeForNodesInputs(ComputeGraphPtr &graph, const
     if (iter == names.end()) {
       continue;
     }
-    for (size_t i = 0U; i < node->GetInDataNodesSize(); ++i) {
-      auto in_tensor = node->GetOpDescBarePtr()->MutableInputDesc(i);
-      in_tensor->SetShape(GeShape{shape});
+    auto op_desc = node->GetOpDescBarePtr();
+    for (size_t i = 0U; i < op_desc->GetAllInputsSize(); ++i) {
+      auto in_tensor = op_desc->MutableInputDesc(i);
+      if (in_tensor != nullptr) {
+        in_tensor->SetShape(GeShape{shape});
+      }
     }
   }
 }
@@ -169,9 +177,12 @@ void MemConflictShareGraph::SetShapeForNodesOutputs(ComputeGraphPtr &graph, cons
     if (iter == names.end()) {
       continue;
     }
-    for (size_t i = 0U; i < node->GetOutDataNodesSize(); ++i) {
-      auto out_tensor = node->GetOpDescBarePtr()->MutableOutputDesc(i);
-      out_tensor->SetShape(GeShape{shape});
+    auto op_desc = node->GetOpDescBarePtr();
+    for (size_t i = 0U; i < op_desc->GetOutputsSize(); ++i) {
+      auto out_tensor = op_desc->MutableOutputDesc(i);
+      if (out_tensor != nullptr) {
+        out_tensor->SetShape(GeShape{shape});
+      }
     }
   }
 }
@@ -235,16 +246,23 @@ Status MemConflictShareGraph::TopologicalSortingMock(const ComputeGraphPtr &grap
 }
 void MemConflictShareGraph::SetSizeForAllNodes(ComputeGraphPtr &graph) {
   for (auto &node : graph->GetAllNodes()) {
-    for (size_t i = 0U; i < node->GetOutDataNodesSize(); ++i) {
-      auto out_tensor = node->GetOpDescBarePtr()->MutableOutputDesc(i);
+    auto op_desc = node->GetOpDescBarePtr();
+    for (size_t i = 0U; i < op_desc->GetOutputsSize(); ++i) {
+      auto out_tensor = op_desc->MutableOutputDesc(i);
+      if (out_tensor == nullptr) {
+        continue;
+      }
       int64_t tensor_size = 0;
       TensorUtils::CalcTensorMemSize(out_tensor->GetShape(), out_tensor->GetFormat(), out_tensor->GetDataType(), tensor_size);
       tensor_size = (tensor_size + 32 - 1) / 32 * 32 + 32;
       TensorUtils::SetSize(*out_tensor, tensor_size);
     }
 
-    for (size_t i = 0U; i < node->GetInDataNodesSize(); ++i) {
-      auto in_tensor = node->GetOpDescBarePtr()->MutableInputDesc(i);
+    for (size_t i = 0U; i < op_desc->GetAllInputsSize(); ++i) {
+      auto in_tensor = op_desc->MutableInputDesc(i);
+      if (in_tensor == nullptr) {
+        continue;
+      }
       int64_t tensor_size = 0;
       TensorUtils::CalcTensorMemSize(in_tensor->GetShape(), in_tensor->GetFormat(), in_tensor->GetDataType(), tensor_size);
       tensor_size = (tensor_size + 32 - 1) / 32 * 32 + 32;
