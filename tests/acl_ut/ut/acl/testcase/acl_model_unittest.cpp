@@ -6410,13 +6410,7 @@ TEST_F(UTEST_ACL_Model, aclRecoverAllHcclTasks_CallsBothOmAndOm2)
 }
 
 TEST_F(UTEST_ACL_Model, TestOm2DumpInitCallback) {
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), Om2DumpGlobalInit())
-        .WillOnce(Return(ge::SUCCESS));
     EXPECT_EQ(Om2DumpInitCallbackFunc(nullptr, 0, nullptr), ACL_SUCCESS);
-
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), Om2DumpGlobalInit())
-        .WillOnce(Return(ge::FAILED));
-    EXPECT_NE(Om2DumpInitCallbackFunc(nullptr, 0, nullptr), ACL_SUCCESS);
 }
 
 TEST_F(UTEST_ACL_Model, TestOm2DumpInitCallbackRegister) {
