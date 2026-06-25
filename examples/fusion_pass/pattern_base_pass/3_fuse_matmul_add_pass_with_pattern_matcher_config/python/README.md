@@ -2,7 +2,7 @@
 
 ## 功能描述
 
-本目录提供 `pattern_base_pass/3_fuse_matmul_add_pass_with_pattern_matcher_config` 的 **纯 Python** 版本示例，逻辑与 C++ [`FuseMatMulAndAddPass`](../cpp/src/fuse_matmul_add_pass.cpp) 一致。
+本目录提供 `pattern_base_pass/3_fuse_matmul_add_pass_with_pattern_matcher_config` 的 **纯 Python** 版本示例，逻辑与 C++ [`FuseMatMulAndAddPass`](../cpp/src/fuse_matmul_add_pass.cpp) 中一致。
 
 - 在构造函数中启用：
   - `PatternMatcherConfigBuilder().enable_const_value_match()`

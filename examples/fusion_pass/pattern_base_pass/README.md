@@ -20,7 +20,7 @@
 
 ## 开发指南
 
-建议先阅读机制说明，再选择语言指南：
+建议阅读机制说明后，再选择语言指南：
 
 - [融合 Pattern Pass 机制](../../../docs/zh/design/features/fusion_pattern_pass.md)
 - [Python 融合 Pass 开发指南](../python_fusion_pass_development_guide.md)

@@ -7,8 +7,8 @@ This directory provides a **pure Python** version of `pattern_base_pass/3_fuse_m
 - Enabled in constructor:
   - `PatternMatcherConfigBuilder().enable_const_value_match()`
   - `PatternMatcherConfigBuilder().enable_ir_attr_match()`
-- `patterns()` defines `MatMul(x, y, transpose_x1=False, transpose_x2=False) + Add(Const)` topology.
-- `replacement()` defines `GEMM(x, y, Const, alpha=1, beta=1)`.
+- `@pattern` method defines `MatMul(x, y, transpose_x1=False, transpose_x2=False) + Add(Const)` topology, and creates a shape=[2,2] Const tensor.
+- Expression `replacement(self, inputs)` defines `GEMM(x, y, Const, alpha=1, beta=1)`, and creates Const and scalar tensors.
 - Registration phase is `PassStage.BEFORE_INFER_SHAPE`.
 
 ## Directory Structure

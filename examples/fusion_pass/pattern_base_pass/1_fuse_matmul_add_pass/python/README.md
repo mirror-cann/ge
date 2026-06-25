@@ -1,6 +1,6 @@
 # FuseMatMulAndAddPass Python 样例使用指导
 
-本目录提供 `pattern_base_pass/1_fuse_matmul_add_pass` 的 **纯 Python** 版本示例，逻辑与 C++ [`FuseMatMulAndAddPass`](../cpp/src/fuse_matmul_add_pass.cpp) 一致：
+本目录提供 `pattern_base_pass/1_fuse_matmul_add_pass` 的 **纯 Python** 版本示例，逻辑与 C++ [`FuseMatMulAndAddPass`](../cpp/src/fuse_matmul_add_pass.cpp) 中一致：
 
 - **Pattern 0**：`MatMul(a, b)` → `Add(..., c)`，图输入 `0/1/2` 对应 `a/b/c`
 - **Pattern 1**：`BatchMatMulV2(a, b)` → `Add(..., c)`，同上三输入拓扑

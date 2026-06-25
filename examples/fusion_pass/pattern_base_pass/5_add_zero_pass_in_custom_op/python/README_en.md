@@ -4,11 +4,12 @@
 
 This directory provides a **pure Python** version of `pattern_base_pass/5_add_zero_pass_in_custom_op`, with logic consistent with C++ version:
 
-- `patterns()` defines two patterns:
+- Uses `@pattern` method to define two patterns:
   - `Data + Const -> Identity -> AddCustom -> AddCustom`
   - `Data + Const -> Identity -> TensorMove -> AddCustom -> AddCustom`
 - `meet_requirements()` reads matched `Const.value` and judges zero value per same rules as C++ sample
-- `replacement()` replaces matched add-zero structure with `AddCustom(input0, input1)`
+- Expression `replacement(self, inputs)` replaces matched add-zero structure with `AddCustom(inputs[0], inputs[1])`
+- `@pattern` method obtains the framework's `GraphBuilder` via `inputs[0].get_owner_builder()`, uses `create_const_float(0.0)` to explicitly create a DT_FLOAT scalar Const node; the framework automatically sets graph outputs and captures inputs
 
 ## Directory Structure
 
@@ -89,6 +90,6 @@ After successful execution, logs show similar output:
 ```text
 Define pattern for PythonAddCustomZeroPass
 Define MeetRequirements for PythonAddCustomZeroPass
-[PythonAddCustomZeroPass] matched=addcustom_zero_pattern0 const_dtype=DT_FLOAT16 zero=True
+[PythonAddCustomZeroPass] matched=PythonAddCustomZeroPass_addcustom_zero_pattern const_dtype=DT_FLOAT16 zero=True
 Define replacement for PythonAddCustomZeroPass
 ```

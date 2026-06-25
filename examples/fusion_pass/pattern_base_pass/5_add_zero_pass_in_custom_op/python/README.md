@@ -2,7 +2,7 @@
 
 ## 功能描述
 
-本目录提供 `pattern_base_pass/5_add_zero_pass_in_custom_op` 的 **纯 Python** 版本示例，逻辑与 C++ 版本一致：
+本目录提供 `pattern_base_pass/5_add_zero_pass_in_custom_op` 的 **纯 Python** 版本示例，逻辑与 C++ 版本中一致：
 
 - 使用 `@pattern` 方法定义两个 pattern：
   - `Data + Const -> Identity -> AddCustom -> AddCustom`

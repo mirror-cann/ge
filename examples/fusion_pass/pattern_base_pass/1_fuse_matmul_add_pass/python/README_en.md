@@ -5,7 +5,7 @@ This directory provides a **pure Python** version of `pattern_base_pass/1_fuse_m
 - **Pattern 0**: `MatMul(a, b)` → `Add(..., c)`, graph inputs `0/1/2` correspond to `a/b/c`
 - **Pattern 1**: `BatchMatMulV2(a, b)` → `Add(..., c)`, same three-input topology
 - **Replacement**: `GEMM(r_a, r_b, r_c, alpha=1, beta=1)` (scalar `1.0` aligns with C++ `CreateScalar(1)`)
-- Inherits **`PatternFusionPass`**, implements `patterns()` / `meet_requirements()` / `replacement()`; phase is **`BeforeInferShape`**
+- Inherits **`PatternFusionPass`**, uses `@pattern` method to declare patterns, expression `replacement(self, inputs)` to declare replacement graph; phase is **`BeforeInferShape`**
 
 No additional matcher configuration like `enable_const_value_match()` enabled, consistent with C++ default matching behavior.
 
@@ -70,3 +70,5 @@ Similar to C++ sample, when pattern/replacement invoked:
 Define pattern for FuseMatMulAndAddPass
 Define replacement for FuseMatMulAndAddPass
 ```
+
+Note: Since `@pattern` method is used, the pattern graph names in logs are `PythonFuseMatMulAndAddPass_matmul_add_pattern` and `PythonFuseMatMulAndAddPass_batch_matmul_add_pattern`.
