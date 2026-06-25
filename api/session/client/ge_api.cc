@@ -162,19 +162,30 @@ void ConstructSession(const std::map<std::string, std::string> &options, Session
 
 Status CheckCompiledFlag(const SessionPtr &inner_session, uint32_t graph_id, bool expect_flag) {
   bool flag = false;
-  GE_ASSERT_SUCCESS(inner_session->GetCompiledFlag(graph_id, flag),
-    "get compiled flag failed. session_id:%llu, graph_id:%u", inner_session->GetSessionId(), graph_id);
+  if (inner_session->GetCompiledFlag(graph_id, flag) != SUCCESS) {
+    return GE_GRAPH_GRAPH_NOT_EXIST;
+  }
   if (flag != expect_flag) {
-    const auto error_code = expect_flag ? GE_GRAPH_NOT_BUILT : UNSUPPORTED;
-    const auto error_msg = expect_flag ?
-        "Graph needs to be compiled first, graph_id=" + std::to_string(graph_id) :
-        "Incompatible with API CompileGraph, graph_id=" + std::to_string(graph_id);
-    GELOGE(error_code, "%s", error_msg.c_str());
-    REPORT_PREDEFINED_ERR_MSG("E10062", std::vector<const char *>({"interface", "reason"}),
-                              std::vector<const char *>({"verify the graph status", error_msg.c_str()}));
-    return error_code;
+    return expect_flag ? GE_GRAPH_NOT_BUILT : UNSUPPORTED;
   }
   return SUCCESS;
+}
+
+void ReportApiCallSeqError(const char *const api_name, const uint32_t graph_id, const Status code,
+                           const bool expect_compiled) {
+  std::string reason;
+  if (code == GE_GRAPH_GRAPH_NOT_EXIST) {
+    reason = "the graph (graph_id=" + std::to_string(graph_id) + ") does not exist";
+  } else if (expect_compiled) {
+    reason = "the graph (graph_id=" + std::to_string(graph_id) + ") has not been compiled; call CompileGraph before "
+        + api_name;
+  } else {
+    reason = "the graph (graph_id=" + std::to_string(graph_id) + ") has been compiled by CompileGraph; "
+        + std::string(api_name) + " and CompileGraph are mutually exclusive and cannot be used together";
+  }
+  const std::string iface = std::string("call ") + api_name;
+  REPORT_PREDEFINED_ERR_MSG("E10062", std::vector<const char *>({"interface", "reason"}),
+                            std::vector<const char *>({iface.c_str(), reason.c_str()}));
 }
 } // namespace
 size_t SessionUtils::NumSessions() {
@@ -573,6 +584,9 @@ Status Session::RunGraph(uint32_t graph_id, const std::vector<Tensor> &inputs, s
     ret = dflow_session->RunGraph(graph_id, inputs, outputs);
   } else {
     const auto check_ret = CheckCompiledFlag(inner_session, graph_id, false);
+    if (check_ret != SUCCESS) {
+      ReportApiCallSeqError("RunGraph", graph_id, check_ret, false);
+    }
     GE_CHK_BOOL_RET_STATUS(check_ret == SUCCESS, check_ret,
       "Run graph failed, incompatible with API CompileGraph, graph_id=%u", graph_id);
     ret = inner_session->RunGraph(graph_id, inputs, outputs);
@@ -724,6 +738,9 @@ Status Session::BuildGraph(uint32_t graph_id, const std::vector<InputTensorInfo>
     ret = dflow_session->BuildGraph(graph_id, ge_inputs);
   } else {
     const auto check_ret = CheckCompiledFlag(inner_session, graph_id, false);
+    if (check_ret != SUCCESS) {
+      ReportApiCallSeqError("BuildGraph", graph_id, check_ret, false);
+    }
     GE_CHK_BOOL_RET_STATUS(check_ret == SUCCESS, check_ret,
       "Build graph failed, incompatible with API CompileGraph, graph_id=%u", graph_id);
     ret = inner_session->BuildGraph(graph_id, inputs);
@@ -747,6 +764,9 @@ Status Session::LoadGraph(const uint32_t graph_id, const std::map<AscendString, 
   const auto inner_session = g_session_manager->GetSession(sessionId_);
   GE_CHK_BOOL_RET_STATUS(inner_session != nullptr, FAILED, "Load graph failed, session_id:%" PRIu64 ".", sessionId_);
   const auto check_ret = CheckCompiledFlag(inner_session, graph_id, true);
+  if (check_ret != SUCCESS) {
+    ReportApiCallSeqError("LoadGraph", graph_id, check_ret, true);
+  }
   GE_CHK_BOOL_RET_STATUS(check_ret == SUCCESS, FAILED,
     "Load graph failed, graph needs to be compiled first, graph_id:%u", graph_id);
 
@@ -804,6 +824,9 @@ Status Session::BuildGraph(uint32_t graph_id, const std::vector<ge::Tensor> &inp
     ret = dflow_session->BuildGraph(graph_id, ge_inputs);
   } else {
     const auto check_ret = CheckCompiledFlag(inner_session, graph_id, false);
+    if (check_ret != SUCCESS) {
+      ReportApiCallSeqError("BuildGraph", graph_id, check_ret, false);
+    }
     GE_CHK_BOOL_RET_STATUS(check_ret == SUCCESS, check_ret,
       "Build graph failed, check compiled flag failed, graph_id=%u", graph_id);
     ret = inner_session->BuildGraph(graph_id, inputs);
@@ -846,15 +869,12 @@ Status Session::RunGraphAsync(uint32_t graph_id, const std::vector<ge::Tensor> &
 
   const auto check_ret = CheckCompiledFlag(inner_session, graph_id, false);
   if (check_ret != SUCCESS) {
+    ReportApiCallSeqError("RunGraphAsync", graph_id, check_ret, false);
     if (callback != nullptr) {
       std::vector<ge::Tensor> outputs;
       callback(check_ret, outputs);
     }
     GELOGE(check_ret, "Run graph async failed, incompatible with API CompileGraph, graph_id=%u", graph_id);
-    const std::string reason = "Graph " + std::to_string(graph_id) +
-        " has been compiled by calling CompileGraph. RunGraphAsync and CompileGraph are mutually exclusive and cannot be used together";
-    REPORT_PREDEFINED_ERR_MSG("E10062", std::vector<const char *>({"interface", "reason"}),
-                              std::vector<const char *>({"call RunGraphAsync", reason.c_str()}));
     return check_ret;
   }
 
@@ -1120,6 +1140,9 @@ CompiledGraphSummaryPtr Session::GetCompiledGraphSummary(uint32_t graph_id) {
   const auto inner_session = g_session_manager->GetSession(sessionId_);
   GE_ASSERT_NOTNULL(inner_session, "[Get][User Graph]Failed, session_id:%" PRIu64 ".", sessionId_);
   const auto check_ret = CheckCompiledFlag(inner_session, graph_id, true);
+  if (check_ret != SUCCESS) {
+    ReportApiCallSeqError("GetCompiledGraphSummary", graph_id, check_ret, true);
+  }
   GE_ASSERT_SUCCESS(check_ret, "[Get][Summary]Failed, graph needs to be compiled first, graph_id=%u", graph_id);
   auto ret = inner_session->GetCompiledGraphSummary(graph_id, summary);
   GE_ASSERT_SUCCESS(ret, "[Get][Summary]Failed, error code:%u, session_id:%" PRIu64 ", graph_id:%u", ret, sessionId_, graph_id);
@@ -1150,6 +1173,9 @@ Status Session::SetGraphConstMemoryBase(uint32_t graph_id, const void *const mem
                          "Dflow session does not support current function, pls check.");
 
   const auto check_ret = CheckCompiledFlag(inner_session, graph_id, true);
+  if (check_ret != SUCCESS) {
+    ReportApiCallSeqError("SetGraphConstMemoryBase", graph_id, check_ret, true);
+  }
   GE_CHK_BOOL_RET_STATUS(check_ret == SUCCESS, check_ret,
     "[Set][Memory]Failed, graph needs to be compiled first, graph_id=%u", graph_id);
 
@@ -1182,6 +1208,9 @@ Status Session::UpdateGraphFeatureMemoryBase(uint32_t graph_id, const void *cons
                          "Dflow session does not support current function, pls check.");
 
   const auto check_ret = CheckCompiledFlag(inner_session, graph_id, true);
+  if (check_ret != SUCCESS) {
+    ReportApiCallSeqError("UpdateGraphFeatureMemoryBase", graph_id, check_ret, true);
+  }
   GE_CHK_BOOL_RET_STATUS(check_ret == SUCCESS, check_ret,
     "[Update][Memory]Failed, graph needs to be compiled first, graph_id=%u", graph_id);
 
@@ -1219,6 +1248,9 @@ Status Session::SetGraphFixedFeatureMemoryBaseWithType(uint32_t graph_id, Memory
                          "Dflow session does not support current function, pls check.");
 
   const auto check_ret = CheckCompiledFlag(inner_session, graph_id, true);
+  if (check_ret != SUCCESS) {
+    ReportApiCallSeqError("SetGraphFixedFeatureMemoryBaseWithType", graph_id, check_ret, true);
+  }
   GE_CHK_BOOL_RET_STATUS(check_ret == SUCCESS, check_ret,
     "[Set][Memory]Failed, graph needs to be compiled first, graph_id=%u", graph_id);
 
@@ -1251,6 +1283,9 @@ Status Session::UpdateGraphRefreshableFeatureMemoryBase(uint32_t graph_id, const
                          "Dflow session does not support current function, pls check.");
 
   const auto check_ret = CheckCompiledFlag(inner_session, graph_id, true);
+  if (check_ret != SUCCESS) {
+    ReportApiCallSeqError("UpdateGraphRefreshableFeatureMemoryBase", graph_id, check_ret, true);
+  }
   GE_CHK_BOOL_RET_STATUS(check_ret == SUCCESS, check_ret,
     "[Update][Memory]Failed, graph needs to be compiled first, graph_id=%u", graph_id);
 

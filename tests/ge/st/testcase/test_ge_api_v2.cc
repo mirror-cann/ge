@@ -2460,4 +2460,52 @@ TEST_F(GeApiV2Test, RunGraphWithStreamAsync_builtin_allocator_output_memory_dyna
     EXPECT_GT(gert_outputs2[i].GetSize(), 0U);
   }
 }
+
+TEST_F(GeApiV2Test, RunApis_MutuallyExclusive) {
+  // Once RunGraphAsync sets the run mode, the other Run APIs are mutually exclusive. CheckRunGraphMode
+  // reports E10062 once with the accurate API name, so GeSession::RunGraphAsync no longer emits a duplicate
+  // report. Return codes are unchanged.
+  std::map<AscendString, AscendString> options;
+  EXPECT_EQ(GEInitializeV2(options), SUCCESS);
+  GeSession session(options);
+  GraphId graph_id = 1;
+  const auto compute_graph = MakeShared<ComputeGraph>("test_graph");
+  Graph graph = GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph);
+  EXPECT_EQ(session.AddGraph(graph_id, graph), SUCCESS);
+
+  std::vector<gert::Tensor> inputs;
+  std::vector<gert::Tensor> outputs;
+  EXPECT_EQ(session.RunGraphAsync(graph_id, inputs, nullptr), SUCCESS);
+  EXPECT_NE(session.RunGraph(graph_id, inputs, outputs), SUCCESS);
+  EXPECT_NE(session.RunGraphWithStreamAsync(graph_id, nullptr, inputs, outputs), SUCCESS);
+  EXPECT_EQ(session.RemoveGraph(graph_id), SUCCESS);
+  EXPECT_EQ(GEFinalizeV2(), SUCCESS);
+  ReInitGe();
+}
+
+TEST_F(GeApiV2Test, SessionApis_GraphNotExist_ReportE10062) {
+  // V2 APIs report graph-not-found at the user-facing API layer after GetGraphNode became a silent lookup.
+  std::map<AscendString, AscendString> options;
+  EXPECT_EQ(GEInitializeV2(options), SUCCESS);
+  GeSession session(options);
+  const GraphId graph_id = 99999U;
+  std::vector<gert::Tensor> inputs;
+  std::vector<gert::Tensor> outputs;
+  EXPECT_NE(session.RunGraph(graph_id, inputs, outputs), SUCCESS);
+  EXPECT_NE(session.RunGraphWithStreamAsync(graph_id, nullptr, inputs, outputs), SUCCESS);
+  EXPECT_NE(session.LoadGraph(graph_id, options, nullptr), SUCCESS);
+  AscendString json_result;
+  EXPECT_NE(session.GraphDebugJSONPrint(graph_id, 0U, json_result), SUCCESS);
+  EXPECT_NE(session.RunGraphAsync(graph_id, inputs, nullptr), SUCCESS);
+  EXPECT_EQ(session.GetCompiledGraphSummary(graph_id), nullptr);
+  EXPECT_NE(session.SetGraphConstMemoryBase(graph_id, nullptr, 0U), SUCCESS);
+  EXPECT_NE(session.UpdateGraphFeatureMemoryBase(graph_id, nullptr, 0U), SUCCESS);
+  EXPECT_NE(session.SetGraphFixedFeatureMemoryBaseWithType(graph_id, MemoryType::MEMORY_TYPE_DEFAULT, nullptr, 0U),
+            SUCCESS);
+  EXPECT_NE(session.UpdateGraphRefreshableFeatureMemoryBase(graph_id, nullptr, 0U), SUCCESS);
+  ModelBufferData model_buffer;
+  EXPECT_NE(session.GetCompiledModel(graph_id, model_buffer), SUCCESS);
+  EXPECT_EQ(GEFinalizeV2(), SUCCESS);
+  ReInitGe();
+}
 }  // namespace ge

@@ -1866,4 +1866,38 @@ TEST_F(UtestGeApi, GeSessionDumpDebugJSONPrint_graph_not_exist_after_initialize)
   EXPECT_EQ(GeSessionGraphDebugJSONPrint(session, 1U, 0U, json_result), FAILED);
   EXPECT_EQ(GEFinalize(), SUCCESS);
 }
+
+TEST_F(UtestGeApi, SessionApis_GraphNotExist_ReportE10062) {
+  // GetGraphNode/CheckCompiledFlag are silent tools; for a non-existent graph the external Session APIs
+  // report E10062 at the API layer. Covers the Session-layer not-found report blocks for CheckCompiledFlag callers.
+  std::map<AscendString, AscendString> options;
+  EXPECT_EQ(GEInitialize(options), SUCCESS);
+  Session session(options);
+  const uint32_t graph_id = 99999U;
+  std::vector<ge::Tensor> inputs;
+  std::vector<ge::Tensor> outputs;
+  EXPECT_NE(session.RunGraph(graph_id, inputs, outputs), SUCCESS);
+  EXPECT_NE(session.BuildGraph(graph_id, inputs), SUCCESS);
+  std::vector<InputTensorInfo> info_inputs;
+  EXPECT_NE(session.BuildGraph(graph_id, info_inputs), SUCCESS);
+  EXPECT_NE(session.LoadGraph(graph_id, options, nullptr), SUCCESS);
+  EXPECT_NE(session.RunGraphAsync(graph_id, inputs, nullptr), SUCCESS);
+  EXPECT_EQ(session.GetCompiledGraphSummary(graph_id), nullptr);
+  EXPECT_NE(session.SetGraphConstMemoryBase(graph_id, nullptr, 0U), SUCCESS);
+  // Intentionally do NOT call GEFinalize here: finalizing without ReInitGe would destroy the fake-op
+  // environment and pollute subsequent graph-compilation UTs in the same binary. Leave GE initialized.
+}
+
+TEST_F(UtestGeApi, LoadGraph_NotCompiled_ReportE10062) {
+  // AddGraph without compiling, then LoadGraph -> CheckCompiledFlag(expect=true) mismatch (not built).
+  // Covers CheckCompiledFlag's mismatch return and the "not compiled" branch of ReportApiCallSeqError.
+  std::map<AscendString, AscendString> options;
+  EXPECT_EQ(GEInitialize(options), SUCCESS);
+  Session session(options);
+  GraphId graph_id = 1;
+  const auto compute_graph = MakeShared<ComputeGraph>("test_graph");
+  EXPECT_EQ(session.AddGraph(graph_id, GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph)), SUCCESS);
+  EXPECT_NE(session.LoadGraph(graph_id, options, nullptr), SUCCESS);
+  // Leave GE initialized (no GEFinalize) to avoid destroying the fake-op environment.
+}
 }  // namespace ge

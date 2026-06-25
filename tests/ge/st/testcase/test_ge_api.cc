@@ -2012,4 +2012,89 @@ TEST_F(GeApiTest, api_not_init_failed) {
   }
   ReInitGe();
 }
+
+TEST_F(GeApiTest, LoadGraph_NotCompiled_Failed) {
+  // LoadGraph requires the graph to be compiled first. Calling it on an added-but-uncompiled graph hits
+  // CheckCompiledFlag(expect=true) mismatch and fails. The error is now reported once via the user-facing
+  // "call LoadGraph" interface instead of an internal "verify the graph status" step.
+  std::map<std::string, std::string> str_options;
+  EXPECT_EQ(GEInitialize(str_options), SUCCESS);
+  std::map<AscendString, AscendString> options;
+  Session session(options);
+  GraphId graph_id = 1;
+  const auto compute_graph = MakeShared<ComputeGraph>("test_graph");
+  EXPECT_EQ(session.AddGraph(graph_id, GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph)), SUCCESS);
+  EXPECT_NE(session.LoadGraph(graph_id, options, nullptr), SUCCESS);
+  std::string err_msg = ge::GEGetErrorMsgV2().GetString();
+  EXPECT_NE(err_msg.find("call LoadGraph"), std::string::npos);
+  EXPECT_NE(err_msg.find("has not been compiled"), std::string::npos);
+  ReInitGe();
+}
+
+TEST_F(GeApiTest, RunGraphAsync_AfterCompileGraph_Incompatible) {
+  // After CompileGraph succeeds the graph carries the compiled flag, so RunGraphAsync is incompatible.
+  // CheckCompiledFlag(expect=false) mismatch reports E10062 once with the user-facing "call RunGraphAsync"
+  // interface (issue #1 problem 3): no internal "verify the graph status" and no duplicate report.
+  dlog_setlevel(GE_MODULE_NAME, DLOG_INFO, 0);
+  gert::GertRuntimeStub runtime_stub(false);
+  MockGenerateTask();
+
+  std::map<AscendString, AscendString> options;
+  options.emplace(ge::OPTION_GRAPH_RUN_MODE, AscendString("0"));
+  Session session(options);
+
+  auto graph = BuildAddGraph();
+  uint32_t graph_id = 1;
+  EXPECT_EQ(session.AddGraph(graph_id, graph), SUCCESS);
+  EXPECT_EQ(session.CompileGraph(graph_id), SUCCESS);
+
+  std::vector<ge::Tensor> inputs;
+  EXPECT_NE(session.RunGraphAsync(graph_id, inputs, nullptr), SUCCESS);
+  std::string err_msg = ge::GEGetErrorMsgV2().GetString();
+  EXPECT_NE(err_msg.find("call RunGraphAsync"), std::string::npos);
+  EXPECT_NE(err_msg.find("mutually exclusive"), std::string::npos);
+}
+
+TEST_F(GeApiTest, SessionApis_GraphNotExist_ReportE10062) {
+  // GetGraphNode/CheckCompiledFlag are silent tools. For a non-existent graph, the CheckCompiledFlag callers
+  // report E10062 at the Session layer, while CompileGraph/RemoveGraph report it from GraphManager itself
+  // ("get the graph"). Covers both not-found report paths.
+  std::map<std::string, std::string> str_options;
+  EXPECT_EQ(GEInitialize(str_options), SUCCESS);
+  std::map<AscendString, AscendString> options;
+  Session session(options);
+  const uint32_t graph_id = 99999U;
+  std::vector<ge::Tensor> inputs;
+  std::vector<ge::Tensor> outputs;
+
+  EXPECT_NE(session.RunGraph(graph_id, inputs, outputs), SUCCESS);
+  std::string err_msg = ge::GEGetErrorMsgV2().GetString();
+  EXPECT_NE(err_msg.find("call RunGraph"), std::string::npos);
+  EXPECT_NE(err_msg.find("99999"), std::string::npos);
+
+  EXPECT_NE(session.BuildGraph(graph_id, inputs), SUCCESS);
+  std::vector<InputTensorInfo> input_infos;
+  EXPECT_NE(session.BuildGraph(graph_id, input_infos), SUCCESS);
+  EXPECT_NE(session.LoadGraph(graph_id, options, nullptr), SUCCESS);
+  EXPECT_NE(session.RunGraphAsync(graph_id, inputs, nullptr), SUCCESS);
+  EXPECT_EQ(session.GetCompiledGraphSummary(graph_id), nullptr);
+  EXPECT_NE(session.SetGraphConstMemoryBase(graph_id, nullptr, 0U), SUCCESS);
+  EXPECT_NE(session.UpdateGraphFeatureMemoryBase(graph_id, nullptr, 0U), SUCCESS);
+  EXPECT_NE(session.SetGraphFixedFeatureMemoryBaseWithType(graph_id, MemoryType::MEMORY_TYPE_DEFAULT, nullptr, 0U),
+            SUCCESS);
+  EXPECT_NE(session.UpdateGraphRefreshableFeatureMemoryBase(graph_id, nullptr, 0U), SUCCESS);
+
+  // CompileGraph/RemoveGraph: graph does not exist -> E10062 reported by GraphManager itself ("get the graph").
+  EXPECT_NE(session.CompileGraph(graph_id), SUCCESS);
+  err_msg = ge::GEGetErrorMsgV2().GetString();
+  EXPECT_NE(err_msg.find("get the graph"), std::string::npos);
+  EXPECT_NE(err_msg.find("99999"), std::string::npos);
+
+  EXPECT_NE(session.RemoveGraph(graph_id), SUCCESS);
+  err_msg = ge::GEGetErrorMsgV2().GetString();
+  EXPECT_NE(err_msg.find("get the graph"), std::string::npos);
+  EXPECT_NE(err_msg.find("99999"), std::string::npos);
+
+  ReInitGe();
+}
 }  // namespace ge

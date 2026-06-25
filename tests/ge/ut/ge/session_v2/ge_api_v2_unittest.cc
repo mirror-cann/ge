@@ -1733,6 +1733,9 @@ TEST_F(UtestGeApiV2, RunGraphAsync_Success_OnlyAdd) {
 
   // after RunGraphAsync run failed before, RunGraphAsync submit success
   EXPECT_EQ(session_ptr->RunGraphAsync(graph_id, inputs, callback), SUCCESS);
+  std::vector<gert::Tensor> outputs;
+  EXPECT_NE(session_ptr->RunGraph(graph_id, inputs, outputs), SUCCESS);
+  EXPECT_NE(session_ptr->RunGraphWithStreamAsync(graph_id, nullptr, inputs, outputs), SUCCESS);
   sleep(1);  // wait callback
   EXPECT_EQ(test_callback_called, true);
   delete session_ptr;

@@ -133,13 +133,24 @@ void ConstructSession(const std::map<std::string, std::string> &options, Session
   }
 }
 
+void ReportIfGraphNotExist(const char *const api_name, const uint32_t graph_id, const Status ret) {
+  if (ret != GE_GRAPH_GRAPH_NOT_EXIST) {
+    return;
+  }
+  const std::string reason = "the graph (graph_id=" + std::to_string(graph_id) + ") does not exist";
+  const std::string iface_msg = "call " + std::string(api_name);
+  REPORT_PREDEFINED_ERR_MSG("E10062", std::vector<const char *>({"interface", "reason"}),
+      std::vector<const char *>({iface_msg.c_str(), reason.c_str()}));
+}
+
 Status CheckRunGraphMode(const RunGraphMode &cur_mode, uint32_t graph_id, const RunGraphMode &expect_mode) {
   if ((cur_mode != RunGraphMode::kRunGraphModeEnd) && (cur_mode != expect_mode)) {
     GELOGE(UNSUPPORTED, "Failed to execute %s for graph[%u] because %s was already called."
         " These execution methods are mutually exclusive and cannot be mixed.",
         GetRunGraphModeStr(expect_mode), graph_id, GetRunGraphModeStr(cur_mode));
-    const std::string reason = std::string(GetRunGraphModeStr(cur_mode)) + " was already called for graph " +
-        std::to_string(graph_id) + ". " + GetRunGraphModeStr(expect_mode) + " and " + GetRunGraphModeStr(cur_mode) +
+    const std::string reason = std::string(GetRunGraphModeStr(cur_mode)) +
+        " was already called for the graph (graph_id=" + std::to_string(graph_id) + "). " +
+        GetRunGraphModeStr(expect_mode) + " and " + GetRunGraphModeStr(cur_mode) +
         " are mutually exclusive and cannot be used together";
     const std::string iface_msg = "call " + std::string(GetRunGraphModeStr(expect_mode));
     REPORT_PREDEFINED_ERR_MSG("E10062", std::vector<const char *>({"interface", "reason"}),
@@ -650,6 +661,7 @@ Status GeSession::RunGraph(uint32_t graph_id, const std::vector<gert::Tensor> &i
   GE_CHK_BOOL_RET_STATUS(impl_ != nullptr, FAILED, "GeSession construction incomplete (null impl pointer)");
   RunGraphMode cur_mode = RunGraphMode::kRunGraphModeEnd;
   const auto get_mode_ret = impl_->GetRunGraphMode(graph_id, cur_mode);
+  ReportIfGraphNotExist("RunGraph", graph_id, get_mode_ret);
   GE_CHK_BOOL_RET_STATUS(get_mode_ret == SUCCESS, FAILED, "Run graph async failed, get run graph mode failed. "
                                                           "graph_id: %u", graph_id);
   auto ret = CheckRunGraphMode(cur_mode, graph_id, RunGraphMode::kRunGraph);
@@ -698,6 +710,7 @@ Status GeSession::RunGraphWithStreamAsync(uint32_t graph_id, void *stream, const
   GE_CHK_BOOL_RET_STATUS(impl_ != nullptr, FAILED, "GeSession construction incomplete (null impl pointer)");
   RunGraphMode cur_mode = RunGraphMode::kRunGraphModeEnd;
   const auto get_mode_ret = impl_->GetRunGraphMode(graph_id, cur_mode);
+  ReportIfGraphNotExist("RunGraphWithStreamAsync", graph_id, get_mode_ret);
   GE_CHK_BOOL_RET_STATUS(get_mode_ret == SUCCESS, FAILED, "Run graph with stream async failed, get run graph mode "
                                                           "failed. graph_id: %u", graph_id);
   auto ret = CheckRunGraphMode(cur_mode, graph_id, RunGraphMode::kRunGraphWithStreamAsync);
@@ -747,6 +760,11 @@ Status GeSession::LoadGraph(const uint32_t graph_id, const std::map<AscendString
   }
 
   GE_CHK_BOOL_RET_STATUS(impl_ != nullptr, FAILED, "GeSession construction incomplete (null impl pointer)");
+  RunGraphMode cur_mode = RunGraphMode::kRunGraphModeEnd;
+  const auto get_mode_ret = impl_->GetRunGraphMode(graph_id, cur_mode);
+  ReportIfGraphNotExist("LoadGraph", graph_id, get_mode_ret);
+  GE_CHK_BOOL_RET_STATUS(get_mode_ret == SUCCESS, FAILED,
+                         "Load graph failed, get run graph mode failed, graph_id:%u.", graph_id);
   if (!impl_->GetBuildFlag(graph_id)) {
     GELOGI("Graph is not compiled, start to compile graph, session_id:%lu, graph_id:%u", GetSessionId(), graph_id);
     const auto ret = impl_->CompileGraph(graph_id, {});
@@ -772,6 +790,11 @@ Status GeSession::GraphDebugJSONPrint(const uint32_t graph_id, uint32_t flags, A
   }
 
   GE_CHK_BOOL_RET_STATUS(impl_ != nullptr, FAILED, "GeSession construction incomplete (null impl pointer)");
+  RunGraphMode cur_mode = RunGraphMode::kRunGraphModeEnd;
+  const auto get_mode_ret = impl_->GetRunGraphMode(graph_id, cur_mode);
+  ReportIfGraphNotExist("GraphDebugJSONPrint", graph_id, get_mode_ret);
+  GE_CHK_BOOL_RET_STATUS(get_mode_ret == SUCCESS, FAILED,
+                         "Dump debug json print failed, get run graph mode failed, graph_id:%u.", graph_id);
   const auto ret = impl_->DumpDebugJSONPrint(graph_id, flags, json_result);
   GE_CHK_BOOL_RET_STATUS(ret == SUCCESS, FAILED,
                          "Dump debug json print failed, error code:%u, session_id:%lu, graph_id:%u.",
@@ -792,6 +815,7 @@ Status GeSession::RunGraphAsync(uint32_t graph_id, const std::vector<gert::Tenso
   GE_CHK_BOOL_RET_STATUS(impl_ != nullptr, FAILED, "GeSession construction incomplete (null impl pointer)");
   RunGraphMode cur_mode = RunGraphMode::kRunGraphModeEnd;
   const auto get_mode_ret = impl_->GetRunGraphMode(graph_id, cur_mode);
+  ReportIfGraphNotExist("RunGraphAsync", graph_id, get_mode_ret);
   GE_CHK_BOOL_RET_STATUS(get_mode_ret == SUCCESS, FAILED, "Run graph async failed, get run graph mode failed. "
                                                           "graph_id: %u", graph_id);
   auto ret = CheckRunGraphMode(cur_mode, graph_id, RunGraphMode::kRunGraphAsync);
@@ -800,11 +824,7 @@ Status GeSession::RunGraphAsync(uint32_t graph_id, const std::vector<gert::Tenso
       std::vector<gert::Tensor> outputs;
       callback(ret, outputs);
     }
-    const std::string reason = "API " + std::string(GetRunGraphModeStr(cur_mode)) +
-        " was already called for graph " + std::to_string(graph_id) +
-        ". Different Run APIs are mutually exclusive and cannot be used together";
-    REPORT_PREDEFINED_ERR_MSG("E10062", std::vector<const char *>({"interface", "reason"}),
-                              std::vector<const char *>({"call RunGraphAsync", reason.c_str()}));
+    // CheckRunGraphMode already reported E10062 for RunGraphAsync; no duplicate report here (spec 4.4).
     GELOGE(ret, "Run graph async failed, check run graph mode failed, graph_id:%u", graph_id);
     return ret;
   }
@@ -883,6 +903,7 @@ CompiledGraphSummaryPtr GeSession::GetCompiledGraphSummary(uint32_t graph_id) {
 
   CompiledGraphSummaryPtr summary = nullptr;
   Status ret = impl_->GetCompiledGraphSummary(graph_id, summary);
+  ReportIfGraphNotExist("GetCompiledGraphSummary", graph_id, ret);
   GE_ASSERT_SUCCESS(ret, "[Get][Summary]Failed, error code:%u, session_id:%lu, graph_id:%u.",
                     ret, GetSessionId(), graph_id);
   return summary;
@@ -909,6 +930,7 @@ Status GeSession::SetGraphConstMemoryBase(uint32_t graph_id, const void *const m
   }
 
   const auto ret = impl_->SetGraphConstMemoryBase(graph_id, memory, size);
+  ReportIfGraphNotExist("SetGraphConstMemoryBase", graph_id, ret);
   GE_ASSERT_SUCCESS(ret, "[Set][Memory]Failed, error code:%u, session_id:%lu, graph_id:%u, memory:%p, size:%zu", ret,
                     GetSessionId(), graph_id, memory, size);
   return SUCCESS;
@@ -935,6 +957,7 @@ Status GeSession::UpdateGraphFeatureMemoryBase(uint32_t graph_id, const void *co
   }
 
   const auto ret = impl_->UpdateGraphFeatureMemoryBase(graph_id, memory, size);
+  ReportIfGraphNotExist("UpdateGraphFeatureMemoryBase", graph_id, ret);
   GE_ASSERT_SUCCESS(ret, "[Update][Memory]Failed, error code:%u, session_id:%lu, graph_id:%u, memory:%p, size:%zu", ret,
                     GetSessionId(), graph_id, memory, size);
   return SUCCESS;
@@ -962,6 +985,7 @@ Status GeSession::SetGraphFixedFeatureMemoryBaseWithType(uint32_t graph_id, Memo
   }
 
   const auto ret = impl_->SetGraphFixedFeatureMemoryBase(graph_id, type, memory, size);
+  ReportIfGraphNotExist("SetGraphFixedFeatureMemoryBaseWithType", graph_id, ret);
   GE_ASSERT_SUCCESS(ret,
                     "[Set][Memory]Failed, error code:%u, session_id:%lu, graph_id:%u, type:%d,"
                     " memory:%p, size:%zu",
@@ -990,6 +1014,7 @@ Status GeSession::UpdateGraphRefreshableFeatureMemoryBase(uint32_t graph_id, con
   }
 
   const auto ret = impl_->UpdateGraphRefreshableFeatureMemoryBase(graph_id, memory, size);
+  ReportIfGraphNotExist("UpdateGraphRefreshableFeatureMemoryBase", graph_id, ret);
   GE_ASSERT_SUCCESS(ret, "[Update][Memory]Failed, error code:%u, session_id:%lu, graph_id:%u, memory:%p, size:%zu", ret,
                     GetSessionId(), graph_id, memory, size);
   return SUCCESS;
@@ -1029,7 +1054,9 @@ Status GeSession::GetCompiledModel(uint32_t graph_id, ModelBufferData &model_buf
     return FAILED;
   }
   GE_CHK_BOOL_RET_STATUS(impl_ != nullptr, FAILED, "GeSession construction incomplete (null impl pointer)");
-  return impl_->GetCompiledModel(graph_id, model_buffer);
+  const auto ret = impl_->GetCompiledModel(graph_id, model_buffer);
+  ReportIfGraphNotExist("GetCompiledModel", graph_id, ret);
+  return ret;
 }
 }  // namespace ge
 

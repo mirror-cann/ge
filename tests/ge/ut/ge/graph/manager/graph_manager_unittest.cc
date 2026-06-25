@@ -536,6 +536,21 @@ void CreateGraph(Graph &graph) {
   graph.SetInputs(inputs).SetOutputs(outputs).SetTargets(targets);
 }
 
+GraphNodePtr MakeGraphNodeWithModel(const GraphId graph_id) {
+  Graph graph("test_graph");
+  CreateGraph(graph);
+  auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
+  auto ge_root_model = MakeShared<GeRootModel>();
+  EXPECT_EQ(ge_root_model->Initialize(compute_graph), SUCCESS);
+  ge_root_model->SetModelId(1U);
+
+  auto graph_node = MakeShared<ge::GraphNode>(graph_id);
+  graph_node->SetGraph(MakeShared<ge::Graph>(graph));
+  graph_node->SetComputeGraph(compute_graph);
+  graph_node->SetGeRootModel(ge_root_model);
+  return graph_node;
+}
+
 /*      Data
  *       |
  *      Relu       Const
@@ -1112,6 +1127,15 @@ TEST_F(UtestGraphManagerTest, test_remove_graph_1) {
   graph_node->SetRunFlag(true);
   status = graph_manager.RemoveGraph(graph_id);
   EXPECT_EQ(status, ge::SUCCESS);
+}
+
+TEST_F(UtestGraphManagerTest, test_remove_graph_null_node) {
+  GraphId graph_id = 1;
+  GraphManager graph_manager;
+  graph_manager.graph_rebuild_state_ctrl_ = MakeShared<GraphRebuildStateCtrl>();
+  graph_manager.AddGraphNode(graph_id, nullptr);
+
+  EXPECT_EQ(graph_manager.RemoveGraph(graph_id), ge::GE_GRAPH_GRAPH_NODE_NULL);
 }
 
 TEST_F(UtestGraphManagerTest, test_remove_graph_2) {
@@ -5435,5 +5459,131 @@ TEST_F(UtestGraphManagerTest, set_default_hccl_options_with_hcom_grouplist) {
   builder.Finalize();
   (void)std::remove(logic_topo_config.c_str());
   (void)std::remove(hccl_sub_comm_config.c_str());
+}
+
+TEST_F(UtestGraphManagerTest, test_get_graph_node_not_exist) {
+  // GetGraphNode is a tool-like lookup: it stays silent (no error code) and just returns
+  // GE_GRAPH_GRAPH_NOT_EXIST; the user-facing operation that called it reports E10062.
+  GraphId graph_id = 1;
+  GraphManager graph_manager;
+  GraphNodePtr graph_node = nullptr;
+  EXPECT_EQ(graph_manager.GetGraphNode(graph_id, graph_node), ge::GE_GRAPH_GRAPH_NOT_EXIST);
+  EXPECT_EQ(graph_node, nullptr);
+}
+
+TEST_F(UtestGraphManagerTest, test_load_graph_not_exist) {
+  // GraphManager::LoadGraph stays silent for not-found (Session::LoadGraph reports at the API layer); it only
+  // returns GE_GRAPH_GRAPH_NOT_EXIST here.
+  GraphId graph_id = 1;
+  GraphManager graph_manager;
+  std::map<AscendString, AscendString> options;
+  EXPECT_NE(graph_manager.LoadGraph(graph_id, options, nullptr), ge::SUCCESS);
+}
+
+TEST_F(UtestGraphManagerTest, test_compile_graph_not_exist) {
+  // GraphManager::CompileGraph stays silent for not-found (Session::CompileGraph pre-checks and reports
+  // E10062 at the API layer); it only returns GE_GRAPH_GRAPH_NOT_EXIST here.
+  GraphId graph_id = 1;
+  GraphManager graph_manager;
+  std::vector<ge::Tensor> inputs;
+  EXPECT_EQ(graph_manager.CompileGraph(graph_id, 0U, inputs), ge::GE_GRAPH_GRAPH_NOT_EXIST);
+}
+
+TEST_F(UtestGraphManagerTest, test_load_graph_already_loaded) {
+  // LoadGraph on an already-loaded graph reports E10062 with the unified "(graph_id=N)" wording.
+  GraphId graph_id = 1;
+  GraphManager graph_manager;
+  GraphNodePtr graph_node = MakeGraphNodeWithModel(graph_id);
+  graph_node->SetLoadFlag(true);
+  graph_manager.AddGraphNode(graph_id, graph_node);
+  std::map<AscendString, AscendString> options;
+  EXPECT_EQ(graph_manager.LoadGraph(graph_id, options, nullptr), ge::GE_GRAPH_REPEAT_OPERATION);
+}
+
+TEST_F(UtestGraphManagerTest, test_load_graph_already_running) {
+  GraphId graph_id = 1;
+  GraphManager graph_manager;
+  GraphNodePtr graph_node = MakeGraphNodeWithModel(graph_id);
+  graph_node->SetRunFlag(true);
+  graph_manager.AddGraphNode(graph_id, graph_node);
+  std::map<AscendString, AscendString> options;
+  EXPECT_EQ(graph_manager.LoadGraph(graph_id, options, nullptr), ge::GE_GRAPH_ALREADY_RUNNING);
+}
+
+TEST_F(UtestGraphManagerTest, test_run_graph_already_running) {
+  // RunGraph on an already-running graph reports E10062 with the unified "(graph_id=N)" wording.
+  GraphId graph_id = 1;
+  GraphManager graph_manager;
+  GraphNodePtr graph_node = MakeShared<ge::GraphNode>(graph_id);
+  graph_node->SetRunFlag(true);
+  graph_manager.AddGraphNode(graph_id, graph_node);
+  std::vector<gert::Tensor> inputs;
+  std::vector<gert::Tensor> outputs;
+  EXPECT_EQ(graph_manager.RunGraph(graph_id, inputs, outputs), ge::GE_GRAPH_ALREADY_RUNNING);
+}
+
+TEST_F(UtestGraphManagerTest, test_run_graph_with_stream_async_already_running) {
+  GraphId graph_id = 1;
+  GraphManager graph_manager;
+  GraphNodePtr graph_node = MakeGraphNodeWithModel(graph_id);
+  graph_node->SetRunFlag(true);
+  graph_manager.AddGraphNode(graph_id, graph_node);
+  std::vector<GeTensor> inputs;
+  std::vector<GeTensor> outputs;
+  EXPECT_EQ(graph_manager.RunGraphWithStreamAsync(graph_id, nullptr, 0U, inputs, outputs),
+            ge::GE_GRAPH_ALREADY_RUNNING);
+}
+
+TEST_F(UtestGraphManagerTest, test_build_graph_not_exist) {
+  // BuildGraph on a non-existent graph reports E10062 via GetValidGraphNodeForBuild (interface "get the graph").
+  GraphId graph_id = 1;
+  GraphManager graph_manager;
+  std::vector<GeTensor> inputs;
+  GeRootModelPtr ge_root_model = nullptr;
+  EXPECT_NE(graph_manager.BuildGraph(graph_id, inputs, ge_root_model), ge::SUCCESS);
+}
+
+TEST_F(UtestGraphManagerTest, test_inner_remove_graph_null_node) {
+  GraphId graph_id = 1;
+  GraphManager graph_manager;
+  graph_manager.AddGraphNode(graph_id, nullptr);
+  EXPECT_EQ(graph_manager.InnerRemoveGraph(graph_id), ge::GE_GRAPH_GRAPH_NODE_NULL);
+}
+
+TEST_F(UtestGraphManagerTest, test_build_graph_without_load_need_rebuild) {
+  GraphId graph_id = 1;
+  GraphManager graph_manager;
+  graph_manager.graph_rebuild_state_ctrl_ = MakeShared<GraphRebuildStateCtrl>();
+  GraphNodePtr graph_node = MakeGraphNodeWithModel(graph_id);
+  graph_node->SetBuildFlag(true);
+  graph_manager.graph_rebuild_state_ctrl_->AddResourceName(graph_id, "resource");
+  graph_manager.graph_rebuild_state_ctrl_->SetStateChanged("resource");
+  graph_manager.AddGraphNode(graph_id, graph_node);
+  const std::vector<GeTensor> inputs;
+  GeRootModelPtr ge_root_model = nullptr;
+  EXPECT_EQ(graph_manager.BuildGraphWithoutLoad(graph_id, inputs, ge_root_model, 0U, false), ge::PARAM_INVALID);
+}
+
+TEST_F(UtestGraphManagerTest, test_compile_graph_already_running) {
+  GraphId graph_id = 1;
+  GraphManager graph_manager;
+  GraphNodePtr graph_node = MakeGraphNodeWithModel(graph_id);
+  graph_node->SetRunFlag(true);
+  graph_manager.AddGraphNode(graph_id, graph_node);
+  std::vector<ge::Tensor> inputs;
+  EXPECT_EQ(graph_manager.CompileGraph(graph_id, 0U, inputs), ge::GE_GRAPH_ALREADY_RUNNING);
+}
+
+TEST_F(UtestGraphManagerTest, test_compile_graph_need_rebuild) {
+  GraphId graph_id = 1;
+  GraphManager graph_manager;
+  graph_manager.graph_rebuild_state_ctrl_ = MakeShared<GraphRebuildStateCtrl>();
+  GraphNodePtr graph_node = MakeGraphNodeWithModel(graph_id);
+  graph_node->SetBuildFlag(true);
+  graph_manager.graph_rebuild_state_ctrl_->AddResourceName(graph_id, "resource");
+  graph_manager.graph_rebuild_state_ctrl_->SetStateChanged("resource");
+  graph_manager.AddGraphNode(graph_id, graph_node);
+  std::vector<ge::Tensor> inputs;
+  EXPECT_EQ(graph_manager.CompileGraph(graph_id, 0U, inputs), ge::PARAM_INVALID);
 }
 } // namespace ge
