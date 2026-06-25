@@ -828,4 +828,22 @@ TEST_F(UtestUtilInsertAippOp, test_UpdateDataNodeByAipp3) {
   EXPECT_EQ(instance.RecordAIPPInfoToData(sub_graph), SUCCESS);
 }
 
+TEST_F(UtestUtilInsertAippOp, ValidateStaticAippOnly_EmptyPath_Success) {
+  EXPECT_EQ(InsertAippOpUtil::ValidateStaticAippOnly(""), SUCCESS);
+}
+
+TEST_F(UtestUtilInsertAippOp, ValidateStaticAippOnly_InvalidFile_Fail) {
+  EXPECT_EQ(InsertAippOpUtil::ValidateStaticAippOnly("/nonexistent/path/aipp.cfg"), PARAM_INVALID);
+}
+
+TEST_F(UtestUtilInsertAippOp, ValidateStaticAippOnly_StaticMode_Success) {
+  const std::string cfg_path = GetAirPath() + "/tests/ge/st/config_file/aipp_conf/aipp_static.cfg";
+  EXPECT_EQ(InsertAippOpUtil::ValidateStaticAippOnly(cfg_path), SUCCESS);
+}
+
+TEST_F(UtestUtilInsertAippOp, ValidateStaticAippOnly_DynamicMode_Rejected) {
+  const std::string cfg_path = GetAirPath() + "/tests/ge/st/config_file/aipp_conf/aipp_dynamic.cfg";
+  EXPECT_EQ(InsertAippOpUtil::ValidateStaticAippOnly(cfg_path), PARAM_INVALID);
+}
+
 } // namespace ge

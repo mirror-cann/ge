@@ -11,7 +11,7 @@
 #include "common/config/numa_config_manager.h"
 #include "mmpa/mmpa_api.h"
 #include "common/config/configurations.h"
-#include "common/config/json_parser.h"
+#include "common/config/dflow_deployer_json_parser.h"
 #include "common/config/config_parser.h"
 #include "graph/ge_global_options.h"
 #include "graph/ge_context.h"

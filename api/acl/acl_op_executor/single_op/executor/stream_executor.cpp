@@ -8,13 +8,13 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-#include "stream_executor.h"
+#include "acl_stream_executor.h"
 #include "common/common_inner.h"
 #include "single_op/compile/op_kernel_selector.h"
-#include "op_task.h"
+#include "acl_op_task.h"
 #include "securec.h"
 #include "utils/math_utils.h"
-#include "utils/attr_utils.h"
+#include "utils/acl_attr_utils.h"
 #include "graph/utils/tensor_utils_ex.h"
 
 namespace acl {

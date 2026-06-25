@@ -28,13 +28,138 @@
 #include "register/custom_pass_context_impl.h"
 #include "graph/ge_local_context.h"
 #include "external/ge_common/ge_common_api_types.h"
+#include <fstream>
+#include <dirent.h>
+#include <sys/stat.h>
+#include <nlohmann/json.hpp>
 
 #include "depends/ascendcl/src/ascendcl_stub.h"
 
 namespace ge {
 
-// 测试辅助函数
+// 测试辅助函数 - 模拟 dag_adapter.cc 中的私有函数
 namespace {
+graphStatus CallFromGEGraph(const ConstGraphPtr &ge_graph,
+                            std::shared_ptr<minidag::DAGGraph> &dag) {
+  bool has_profiled_node_cost = false;
+  return DAGAdapter::FromGEGraph(ge_graph, dag, has_profiled_node_cost);
+}
+
+std::string FindLatestFileInDir(const std::string &dir_path, const std::string &prefix) {
+  DIR *dir = opendir(dir_path.c_str());
+  if (dir == nullptr) {
+    return "";
+  }
+  
+  std::vector<std::string> matching_files;
+  struct dirent *entry;
+  while ((entry = readdir(dir)) != nullptr) {
+    if (entry->d_type == DT_REG) {
+      std::string filename = entry->d_name;
+      if (filename.find(prefix) == 0) {
+        matching_files.push_back(filename);
+      }
+    }
+  }
+  closedir(dir);
+  
+  if (matching_files.empty()) {
+    return "";
+  }
+  
+  std::sort(matching_files.begin(), matching_files.end());
+  return matching_files.back();
+}
+
+std::string FindLatestProfDir(const std::string &base_path) {
+  DIR *dir = opendir(base_path.c_str());
+  if (dir == nullptr) {
+    return "";
+  }
+  
+  std::vector<std::string> prof_dirs;
+  struct dirent *entry;
+  while ((entry = readdir(dir)) != nullptr) {
+    if (entry->d_type == DT_DIR) {
+      std::string dirname = entry->d_name;
+      if (dirname.find("PROF_") == 0 && dirname != "." && dirname != "..") {
+        prof_dirs.push_back(dirname);
+      }
+    }
+  }
+  closedir(dir);
+  
+  if (prof_dirs.empty()) {
+    return "";
+  }
+  
+  std::sort(prof_dirs.begin(), prof_dirs.end());
+  return prof_dirs.back();
+}
+
+std::string BuildOpSummaryPath(const std::string &output_dir) {
+  if (output_dir.empty()) {
+    return "";
+  }
+  
+  std::string prof_dir = FindLatestProfDir(output_dir);
+  if (prof_dir.empty()) {
+    return "";
+  }
+  
+  std::string profiler_output_path = output_dir + "/" + prof_dir + "/mindstudio_profiler_output";
+  DIR *profiler_dir = opendir(profiler_output_path.c_str());
+  if (profiler_dir == nullptr) {
+    return "";
+  }
+  closedir(profiler_dir);
+  
+  std::string op_summary_file = FindLatestFileInDir(profiler_output_path, "op_summary_");
+  if (op_summary_file.empty()) {
+    return "";
+  }
+  
+  return profiler_output_path + "/" + op_summary_file;
+}
+
+void CreateMockProfilingStructure(const std::string &base_path, const std::string &prof_dir_name,
+                                   const std::string &csv_filename) {
+  mkdir(base_path.c_str(), 0755);
+  std::string prof_path = base_path + "/" + prof_dir_name;
+  mkdir(prof_path.c_str(), 0755);
+  std::string output_path = prof_path + "/mindstudio_profiler_output";
+  mkdir(output_path.c_str(), 0755);
+  
+  std::string csv_path = output_path + "/" + csv_filename;
+  std::ofstream file(csv_path);
+  file << "Op Name,Task Type,Task Duration(us),Block Num,Mix Block Num\n"
+       << "add1,AI_CORE,100.0,8,0\n";
+  file.close();
+}
+
+void CleanupMockProfilingStructure(const std::string &base_path) {
+  auto remove_dir = [](const std::string &path) {
+    DIR *dir = opendir(path.c_str());
+    if (dir == nullptr) return;
+    struct dirent *entry;
+    while ((entry = readdir(dir)) != nullptr) {
+      if (entry->d_type == DT_REG) {
+        std::string filepath = path + "/" + entry->d_name;
+        std::remove(filepath.c_str());
+      }
+    }
+    closedir(dir);
+    rmdir(path.c_str());
+  };
+  
+  std::string prof_path = base_path + "/" + FindLatestProfDir(base_path);
+  if (!prof_path.empty() && prof_path != base_path) {
+    std::string output_path = prof_path + "/mindstudio_profiler_output";
+    remove_dir(output_path);
+    rmdir(prof_path.c_str());
+  }
+  rmdir(base_path.c_str());
+}
 ge::ConstGraphPtr BuildGraphWithNodes() {
   auto graph = std::make_shared<ge::Graph>("test_graph");
   ge::Operator data1_op("data1", "Data");
@@ -161,7 +286,7 @@ TEST_F(DAGAdapterGEIntegrationTest, FromGEGraph_NodeCount) {
   ASSERT_NE(ge_graph, nullptr);
 
   std::shared_ptr<minidag::DAGGraph> dag;
-  auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
+  auto ret = CallFromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
   EXPECT_EQ(dag->GetNodeCount(), 3);
@@ -175,7 +300,7 @@ TEST_F(DAGAdapterGEIntegrationTest, FromGEGraph_ControlEdgeCount) {
   ASSERT_NE(ge_graph, nullptr);
 
   std::shared_ptr<minidag::DAGGraph> dag;
-  auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
+  auto ret = CallFromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
   EXPECT_EQ(dag->GetEdgeCount(), 2);
@@ -189,7 +314,7 @@ TEST_F(DAGAdapterGEIntegrationTest, FromGEGraph_TopoOrder) {
   ASSERT_NE(ge_graph, nullptr);
 
   std::shared_ptr<minidag::DAGGraph> dag;
-  auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
+  auto ret = CallFromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
 
@@ -208,7 +333,7 @@ TEST_F(DAGAdapterGEIntegrationTest, FromGEGraph_NodeTypes) {
   ASSERT_NE(ge_graph, nullptr);
 
   std::shared_ptr<minidag::DAGGraph> dag;
-  auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
+  auto ret = CallFromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
 
@@ -229,7 +354,7 @@ TEST_F(DAGAdapterGEIntegrationTest, FromGEGraph_MultiNodeGraph) {
   ASSERT_NE(ge_graph, nullptr);
 
   std::shared_ptr<minidag::DAGGraph> dag;
-  auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
+  auto ret = CallFromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
   EXPECT_EQ(dag->GetNodeCount(), 5);
@@ -244,7 +369,7 @@ TEST_F(DAGAdapterGEIntegrationTest, FromGEGraph_StreamLabelConvertedToSerialFlag
   ASSERT_NE(ge_graph, nullptr);
 
   std::shared_ptr<minidag::DAGGraph> dag;
-  auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
+  auto ret = CallFromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
 
@@ -277,7 +402,7 @@ TEST_F(DAGAdapterGEIntegrationTest, FromGEGraph_EmptyGraph) {
   ASSERT_NE(ge_graph, nullptr);
 
   std::shared_ptr<minidag::DAGGraph> dag;
-  auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
+  auto ret = CallFromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
   EXPECT_EQ(dag->GetNodeCount(), 0);
@@ -289,7 +414,7 @@ TEST_F(DAGAdapterGEIntegrationTest, FromGEGraph_EmptyGraph) {
  */
 TEST_F(DAGAdapterGEIntegrationTest, FromGEGraph_NullInput) {
   std::shared_ptr<minidag::DAGGraph> dag;
-  auto ret = DAGAdapter::FromGEGraph(nullptr, dag);
+  auto ret = CallFromGEGraph(nullptr, dag);
   EXPECT_NE(ret, ge::GRAPH_SUCCESS);
 }
 
@@ -331,7 +456,7 @@ TEST_F(DAGAdapterGEIntegrationTest, FromGEGraph_ControlEdgePortValues) {
   ASSERT_NE(ge_graph, nullptr);
 
   std::shared_ptr<minidag::DAGGraph> dag;
-  auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
+  auto ret = CallFromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
 
@@ -356,7 +481,7 @@ TEST_F(DAGAdapterGEIntegrationTest, FromGEGraph_NodeInputOutputCount) {
   ASSERT_NE(ge_graph, nullptr);
 
   std::shared_ptr<minidag::DAGGraph> dag;
-  auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
+  auto ret = CallFromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
 
@@ -379,7 +504,7 @@ TEST_F(DAGAdapterGEIntegrationTest, FromGEGraph_MultiNodeConnections) {
   ASSERT_NE(ge_graph, nullptr);
 
   std::shared_ptr<minidag::DAGGraph> dag;
-  auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
+  auto ret = CallFromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
 
@@ -406,7 +531,7 @@ TEST_F(DAGAdapterGEIntegrationTest, FromGEGraph_NodeStreamIdDefault) {
   ASSERT_NE(ge_graph, nullptr);
 
   std::shared_ptr<minidag::DAGGraph> dag;
-  auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
+  auto ret = CallFromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
 
@@ -511,7 +636,7 @@ TEST_F(DAGAdapterGEIntegrationTest, RefreshStreamIdsToGE_NormalFlow) {
   ASSERT_NE(ge_graph, nullptr);
 
   std::shared_ptr<minidag::DAGGraph> dag;
-  auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
+  auto ret = CallFromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
 
@@ -533,7 +658,7 @@ TEST_F(DAGAdapterGEIntegrationTest, RefreshStreamIdsToGE_InvalidStreamId) {
   ASSERT_NE(ge_graph, nullptr);
 
   std::shared_ptr<minidag::DAGGraph> dag;
-  auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
+  auto ret = CallFromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
 
@@ -571,7 +696,7 @@ TEST_F(DAGAdapterGEIntegrationTest, RefreshStreamIdsToGE_StreamIdOutOfRange) {
   ASSERT_NE(ge_graph, nullptr);
 
   std::shared_ptr<minidag::DAGGraph> dag;
-  auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
+  auto ret = CallFromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
 
@@ -612,7 +737,7 @@ TEST_F(DAGAdapterGEIntegrationTest, RefreshStreamIdsToGE_OriginStreamIdInvalid) 
 
   // 转换为 DAG
   std::shared_ptr<minidag::DAGGraph> dag;
-  auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
+  auto ret = CallFromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
 
@@ -656,8 +781,9 @@ TEST_F(DAGAdapterGEIntegrationTest, ConvertNodes_DuplicateNode) {
 
   auto dag = std::make_shared<minidag::DAGGraph>("test_dag");
   dag->AddNode("data1", "Data");
+  bool has_profiled_node_cost = false;
 
-  auto ret = DAGAdapter::ConvertNodes(ge_graph, *dag);
+  auto ret = DAGAdapter::ConvertNodes(ge_graph, *dag, has_profiled_node_cost);
   EXPECT_NE(ret, ge::GRAPH_SUCCESS);
 }
 
@@ -681,7 +807,8 @@ TEST_F(DAGAdapterGEIntegrationTest, ConvertNodes_EmptyGraph) {
   ASSERT_NE(ge_graph, nullptr);
 
   auto dag = std::make_shared<minidag::DAGGraph>("empty_dag");
-  auto ret = DAGAdapter::ConvertNodes(ge_graph, *dag);
+  bool has_profiled_node_cost = false;
+  auto ret = DAGAdapter::ConvertNodes(ge_graph, *dag, has_profiled_node_cost);
   EXPECT_EQ(ret, GRAPH_SUCCESS);
   EXPECT_EQ(dag->GetNodeCount(), 0);
 }
@@ -852,7 +979,7 @@ TEST_F(DAGAdapterDataEdgeTest, FromGEGraph_DataEdges) {
   ASSERT_NE(ge_graph, nullptr);
 
   std::shared_ptr<minidag::DAGGraph> dag;
-  auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
+  auto ret = CallFromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
 
@@ -875,7 +1002,7 @@ TEST_F(DAGAdapterDataEdgeTest, FromGEGraph_DataEdgeCount) {
   ASSERT_NE(ge_graph, nullptr);
 
   std::shared_ptr<minidag::DAGGraph> dag;
-  auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
+  auto ret = CallFromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
 
@@ -935,12 +1062,423 @@ TEST_F(DAGAdapterGEIntegrationTest, FromGEGraph_FillDeviceResourceSuccess) {
   ASSERT_NE(ge_graph, nullptr);
 
   std::shared_ptr<minidag::DAGGraph> dag;
-  auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
+  auto ret = CallFromGEGraph(ge_graph, dag);
   EXPECT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
   const auto &resource = dag->GetDeviceResource();
   EXPECT_EQ(resource.cube_core_num, 32);
   EXPECT_EQ(resource.vector_core_num, 32);
+}
+
+// --------------------
+// 场景 10：路径拼接辅助函数测试
+// --------------------
+
+class DAGAdapterPathUtilsTest : public testing::Test {
+ protected:
+  void SetUp() override {
+    test_base_path_ = "/tmp/test_profiling_" + std::to_string(getpid());
+  }
+  
+  void TearDown() override {
+    CleanupMockProfilingStructure(test_base_path_);
+  }
+  
+  std::string test_base_path_;
+};
+
+/**
+ * 场景 10-1: FindLatestFileInDir 正常查找
+ */
+TEST_F(DAGAdapterPathUtilsTest, FindLatestFileInDir_Normal) {
+  std::string dir_path = "/tmp/test_find_files_" + std::to_string(getpid());
+  mkdir(dir_path.c_str(), 0755);
+  
+  std::ofstream file1(dir_path + "/op_summary_20260101.csv");
+  file1 << "test1\n";
+  file1.close();
+  
+  std::ofstream file2(dir_path + "/op_summary_20260202.csv");
+  file2 << "test2\n";
+  file2.close();
+  
+  std::ofstream file3(dir_path + "/other_file.txt");
+  file3 << "test3\n";
+  file3.close();
+  
+  std::string result = FindLatestFileInDir(dir_path, "op_summary_");
+  EXPECT_EQ(result, "op_summary_20260202.csv");
+  
+  std::remove((dir_path + "/op_summary_20260101.csv").c_str());
+  std::remove((dir_path + "/op_summary_20260202.csv").c_str());
+  std::remove((dir_path + "/other_file.txt").c_str());
+  rmdir(dir_path.c_str());
+}
+
+/**
+ * 场景 10-2: FindLatestFileInDir 目录不存在返回空
+ */
+TEST_F(DAGAdapterPathUtilsTest, FindLatestFileInDir_DirNotExist) {
+  std::string result = FindLatestFileInDir("/tmp/nonexistent_dir_12345", "op_summary_");
+  EXPECT_TRUE(result.empty());
+}
+
+/**
+ * 场景 10-3: FindLatestFileInDir 无匹配文件返回空
+ */
+TEST_F(DAGAdapterPathUtilsTest, FindLatestFileInDir_NoMatchingFiles) {
+  std::string dir_path = "/tmp/test_find_no_files_" + std::to_string(getpid());
+  mkdir(dir_path.c_str(), 0755);
+  
+  std::ofstream file1(dir_path + "/other_file.txt");
+  file1 << "test\n";
+  file1.close();
+  
+  std::string result = FindLatestFileInDir(dir_path, "op_summary_");
+  EXPECT_TRUE(result.empty());
+  
+  std::remove((dir_path + "/other_file.txt").c_str());
+  rmdir(dir_path.c_str());
+}
+
+/**
+ * 场景 10-4: FindLatestProfDir 正常查找
+ */
+TEST_F(DAGAdapterPathUtilsTest, FindLatestProfDir_Normal) {
+  CreateMockProfilingStructure(test_base_path_, "PROF_000001_20260101", "op_summary_1.csv");
+  
+  std::string result = FindLatestProfDir(test_base_path_);
+  EXPECT_EQ(result, "PROF_000001_20260101");
+}
+
+/**
+ * 场景 10-5: FindLatestProfDir 多个目录返回最新
+ */
+TEST_F(DAGAdapterPathUtilsTest, FindLatestProfDir_MultipleDirs) {
+  CreateMockProfilingStructure(test_base_path_, "PROF_000001_20260101", "op_summary_1.csv");
+  std::string prof_path2 = test_base_path_ + "/PROF_000002_20260202";
+  mkdir(prof_path2.c_str(), 0755);
+  
+  std::string result = FindLatestProfDir(test_base_path_);
+  EXPECT_EQ(result, "PROF_000002_20260202");
+  
+  rmdir(prof_path2.c_str());
+}
+
+/**
+ * 场景 10-6: FindLatestProfDir 目录不存在返回空
+ */
+TEST_F(DAGAdapterPathUtilsTest, FindLatestProfDir_DirNotExist) {
+  std::string result = FindLatestProfDir("/tmp/nonexistent_dir_12345");
+  EXPECT_TRUE(result.empty());
+}
+
+/**
+ * 场景 10-7: BuildOpSummaryPath 正常构建完整路径
+ */
+TEST_F(DAGAdapterPathUtilsTest, BuildOpSummaryPath_Normal) {
+  CreateMockProfilingStructure(test_base_path_, "PROF_000001_20260101", "op_summary_20260101.csv");
+  
+  std::string result = BuildOpSummaryPath(test_base_path_);
+  EXPECT_FALSE(result.empty());
+  EXPECT_TRUE(result.find("PROF_000001_20260101") != std::string::npos);
+  EXPECT_TRUE(result.find("mindstudio_profiler_output") != std::string::npos);
+  EXPECT_TRUE(result.find("op_summary_") != std::string::npos);
+  EXPECT_TRUE(result.find(".csv") != std::string::npos);
+}
+
+/**
+ * 场景 10-8: BuildOpSummaryPath 空输入目录返回空
+ */
+TEST_F(DAGAdapterPathUtilsTest, BuildOpSummaryPath_EmptyInput) {
+  std::string result = BuildOpSummaryPath("");
+  EXPECT_TRUE(result.empty());
+}
+
+/**
+ * 场景 10-9: BuildOpSummaryPath 无 PROF 目录返回空
+ */
+TEST_F(DAGAdapterPathUtilsTest, BuildOpSummaryPath_NoProfDir) {
+  mkdir(test_base_path_.c_str(), 0755);
+  
+  std::string result = BuildOpSummaryPath(test_base_path_);
+  EXPECT_TRUE(result.empty());
+  
+  rmdir(test_base_path_.c_str());
+}
+
+/**
+ * 场景 10-10: BuildOpSummaryPath 无 mindstudio_profiler_output 返回空
+ */
+TEST_F(DAGAdapterPathUtilsTest, BuildOpSummaryPath_NoProfilerOutput) {
+  mkdir(test_base_path_.c_str(), 0755);
+  std::string prof_path = test_base_path_ + "/PROF_000001_20260101";
+  mkdir(prof_path.c_str(), 0755);
+  
+  std::string result = BuildOpSummaryPath(test_base_path_);
+  EXPECT_TRUE(result.empty());
+  
+  rmdir(prof_path.c_str());
+  rmdir(test_base_path_.c_str());
+}
+
+/**
+ * 场景 10-11: BuildOpSummaryPath 无 op_summary 文件返回空
+ */
+TEST_F(DAGAdapterPathUtilsTest, BuildOpSummaryPath_NoOpSummaryFile) {
+  mkdir(test_base_path_.c_str(), 0755);
+  std::string prof_path = test_base_path_ + "/PROF_000001_20260101";
+  std::string output_path = prof_path + "/mindstudio_profiler_output";
+  mkdir(prof_path.c_str(), 0755);
+  mkdir(output_path.c_str(), 0755);
+
+  std::ofstream other_file(output_path + "/other_file.txt");
+  other_file << "test\n";
+  other_file.close();
+
+  std::string result = BuildOpSummaryPath(test_base_path_);
+  EXPECT_TRUE(result.empty());
+
+  std::remove((output_path + "/other_file.txt").c_str());
+  rmdir(output_path.c_str());
+  rmdir(prof_path.c_str());
+  rmdir(test_base_path_.c_str());
+}
+
+// --------------------
+// 场景 11：MiniDAG Profiling 开关测试
+// --------------------
+
+class DAGAdapterProfilingPriorityTest : public testing::Test {
+ protected:
+  void SetUp() override {
+    test_base_path_ = "/tmp/test_prof_priority_" + std::to_string(getpid());
+  }
+  
+  void TearDown() override {
+    CleanupMockProfilingStructure(test_base_path_);
+    unsetenv("GE_PROFILING_MODE");
+    unsetenv("GE_PROFILING_OPTIONS");
+    unsetenv("MINIDAG_PROFILING_PATH");
+    ge::GetThreadLocalContext().SetGraphOption({});
+  }
+  
+  void CreateProfilingDir(const std::string &base_path, const std::string &prof_dir_name,
+                           const std::string &csv_filename, const std::string &op_name,
+                           float exec_time, size_t cube_block) {
+    mkdir(base_path.c_str(), 0755);
+    std::string prof_path = base_path + "/" + prof_dir_name;
+    mkdir(prof_path.c_str(), 0755);
+    std::string output_path = prof_path + "/mindstudio_profiler_output";
+    mkdir(output_path.c_str(), 0755);
+    
+    std::string csv_path = output_path + "/" + csv_filename;
+    std::ofstream file(csv_path);
+    file << "Op Name,Task Type,Task Duration(us),Block Num,Mix Block Num\n"
+         << op_name << ",AI_CORE," << exec_time << "," << cube_block << ",0\n";
+    file.close();
+  }
+  
+  void RemoveProfilingDir(const std::string &base_path) {
+    auto remove_dir = [](const std::string &path) {
+      DIR *dir = opendir(path.c_str());
+      if (dir == nullptr) return;
+      struct dirent *entry;
+      while ((entry = readdir(dir)) != nullptr) {
+        if (entry->d_type == DT_REG) {
+          std::string filepath = path + "/" + entry->d_name;
+          std::remove(filepath.c_str());
+        }
+      }
+      closedir(dir);
+      rmdir(path.c_str());
+    };
+    
+    std::string prof_dir = FindLatestProfDir(base_path);
+    if (!prof_dir.empty() && prof_dir != "." && prof_dir != "..") {
+      std::string prof_path = base_path + "/" + prof_dir;
+      std::string output_path = prof_path + "/mindstudio_profiler_output";
+      remove_dir(output_path);
+      rmdir(prof_path.c_str());
+    }
+    rmdir(base_path.c_str());
+  }
+  
+  std::string test_base_path_;
+};
+
+/**
+ * 场景 11-1: GE Options (profilingMode=1 + profilingOptions) 被忽略
+ * 验证即使 profilingMode=1 且 profilingOptions 有 output，MiniDAG 也不读取 GE Options 路径
+ */
+TEST_F(DAGAdapterProfilingPriorityTest, GEOptionsIgnored) {
+  std::string option_path = test_base_path_ + "_option";
+  CreateProfilingDir(option_path, "PROF_000001_20260101", "op_summary_1.csv", "add1", 100.0f, 8);
+  
+  std::map<std::string, std::string> options;
+  options[OPTION_EXEC_PROFILING_MODE] = "1";
+  options[OPTION_EXEC_PROFILING_OPTIONS] = "{\"output\":\"" + option_path + "\"}";
+  ge::GetThreadLocalContext().SetGraphOption(options);
+  
+  auto ge_graph = BuildGraphWithNodes();
+  ASSERT_NE(ge_graph, nullptr);
+  
+  std::shared_ptr<minidag::DAGGraph> dag;
+  auto ret = CallFromGEGraph(ge_graph, dag);
+  ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
+  ASSERT_NE(dag, nullptr);
+  
+  auto add_node = dag->FindNode("add1");
+  ASSERT_NE(add_node, nullptr);
+  const auto& cost = add_node->GetCost();
+  EXPECT_EQ(cost.execution_time, -1.0f);
+  EXPECT_EQ(cost.cube_block_num, 0U);
+  
+  RemoveProfilingDir(option_path);
+}
+
+/**
+ * 场景 11-4: GE 环境变量被忽略
+ * 验证即使设置 GE_PROFILING_MODE + GE_PROFILING_OPTIONS，MiniDAG 也不读取 GE 环境变量
+ */
+TEST_F(DAGAdapterProfilingPriorityTest, GEEnvIgnored) {
+  std::string env_path = test_base_path_ + "_env";
+  CreateProfilingDir(env_path, "PROF_000001_20260101", "op_summary_1.csv", "add1", 200.0f, 16);
+  
+  // 不设置 GE Options（或设置无效的）
+  ge::GetThreadLocalContext().SetGraphOption({});
+  
+  // 设置 GE 环境变量
+  setenv("GE_PROFILING_MODE", "true", 1);
+  setenv("GE_PROFILING_OPTIONS", ("{\"output\":\"" + env_path + "\"}").c_str(), 1);
+  
+  auto ge_graph = BuildGraphWithNodes();
+  ASSERT_NE(ge_graph, nullptr);
+  
+  std::shared_ptr<minidag::DAGGraph> dag;
+  auto ret = CallFromGEGraph(ge_graph, dag);
+  ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
+  ASSERT_NE(dag, nullptr);
+  
+  auto add_node = dag->FindNode("add1");
+  ASSERT_NE(add_node, nullptr);
+  const auto& cost = add_node->GetCost();
+  EXPECT_EQ(cost.execution_time, -1.0f);
+  EXPECT_EQ(cost.cube_block_num, 0U);
+  
+  RemoveProfilingDir(env_path);
+}
+
+/**
+ * 场景 11-6: MINIDAG_PROFILING_PATH 独立于 GE Options 生效
+ * 验证即使 GE Options 存在，真正生效的仍只有 MINIDAG_PROFILING_PATH
+ */
+/**
+ * 场景 11-5: 仅 MINIDAG_PROFILING_PATH 作为 profiling 开关
+ * 验证当 GE Options、GE 环境变量和 MINIDAG_PROFILING_PATH 同时存在时，只有 MINIDAG_PROFILING_PATH 生效
+ */
+TEST_F(DAGAdapterProfilingPriorityTest, OnlyMinidagProfilingPathIsEffective) {
+  std::string option_path = test_base_path_ + "_option";
+  std::string env_path = test_base_path_ + "_env";
+  std::string minidag_path = test_base_path_ + "_minidag.csv";
+  
+  // 三种数据源，数据不同
+  CreateProfilingDir(option_path, "PROF_000001_20260101", "op_summary_1.csv", "add1", 100.0f, 8);
+  CreateProfilingDir(env_path, "PROF_000001_20260101", "op_summary_1.csv", "add1", 200.0f, 16);
+  
+  std::ofstream file(minidag_path);
+  file << "Op Name,Task Type,Task Duration(us),Block Num,Mix Block Num\n"
+       << "add1,AI_CORE,500.0,40,0\n";
+  file.close();
+  
+  // 设置所有方式
+  std::map<std::string, std::string> options;
+  options[OPTION_EXEC_PROFILING_MODE] = "1";
+  options[OPTION_EXEC_PROFILING_OPTIONS] = "{\"output\":\"" + option_path + "\"}";
+  ge::GetThreadLocalContext().SetGraphOption(options);
+  
+  setenv("GE_PROFILING_MODE", "true", 1);
+  setenv("GE_PROFILING_OPTIONS", ("{\"output\":\"" + env_path + "\"}").c_str(), 1);
+  setenv("MINIDAG_PROFILING_PATH", minidag_path.c_str(), 1);
+  
+  auto ge_graph = BuildGraphWithNodes();
+  ASSERT_NE(ge_graph, nullptr);
+  
+  std::shared_ptr<minidag::DAGGraph> dag;
+  auto ret = CallFromGEGraph(ge_graph, dag);
+  ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
+  ASSERT_NE(dag, nullptr);
+  
+  auto add_node = dag->FindNode("add1");
+  ASSERT_NE(add_node, nullptr);
+  const auto& cost = add_node->GetCost();
+  // 仅 MINIDAG_PROFILING_PATH 生效，使用 minidag_path 的数据
+  EXPECT_EQ(cost.execution_time, 500.0f);
+  EXPECT_EQ(cost.cube_block_num, 40U);
+  
+  RemoveProfilingDir(option_path);
+  RemoveProfilingDir(env_path);
+  std::remove(minidag_path.c_str());
+}
+
+TEST_F(DAGAdapterProfilingPriorityTest, InvalidProfilingCsvUsesDefaultCost) {
+  std::string invalid_csv_path = test_base_path_ + "_invalid.csv";
+  std::ofstream file(invalid_csv_path);
+  file << "Op Name,Task Type,Task Duration(us),Block Num,Mix Block Num\n"
+       << "add1,AI_CORE,invalid,8,0\n";
+  file.close();
+  setenv("MINIDAG_PROFILING_PATH", invalid_csv_path.c_str(), 1);
+
+  auto ge_graph = BuildGraphWithNodes();
+  ASSERT_NE(ge_graph, nullptr);
+
+  std::shared_ptr<minidag::DAGGraph> dag;
+  auto ret = CallFromGEGraph(ge_graph, dag);
+  ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
+  auto add_node = dag->FindNode("add1");
+  ASSERT_NE(add_node, nullptr);
+  EXPECT_EQ(add_node->GetCost().execution_time, -1.0f);
+  EXPECT_EQ(add_node->GetCost().cube_block_num, 0U);
+
+  std::remove(invalid_csv_path.c_str());
+}
+
+TEST_F(DAGAdapterProfilingPriorityTest, BlockDimFallbackForAicNode) {
+  auto ge_graph = BuildGraphWithNodes();
+  ASSERT_NE(ge_graph, nullptr);
+  auto add_gnode = ge_graph->FindNodeByName(AscendString("add1"));
+  ASSERT_NE(add_gnode, nullptr);
+  auto add_node = NodeAdapter::GNode2Node(*add_gnode);
+  ASSERT_NE(add_node, nullptr);
+  ASSERT_TRUE(AttrUtils::SetInt(add_node->GetOpDesc(), TVM_ATTR_NAME_BLOCKDIM, 32));
+  ASSERT_TRUE(AttrUtils::SetStr(add_node->GetOpDesc(), ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIC"));
+
+  std::shared_ptr<minidag::DAGGraph> dag;
+  auto ret = CallFromGEGraph(ge_graph, dag);
+  ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
+  auto dag_add_node = dag->FindNode("add1");
+  ASSERT_NE(dag_add_node, nullptr);
+  EXPECT_EQ(dag_add_node->GetCost().cube_block_num, 32U);
+  EXPECT_EQ(dag_add_node->GetCost().vec_block_num, 0U);
+}
+
+TEST_F(DAGAdapterProfilingPriorityTest, BlockDimFallbackForAivNode) {
+  auto ge_graph = BuildGraphWithNodes();
+  ASSERT_NE(ge_graph, nullptr);
+  auto add_gnode = ge_graph->FindNodeByName(AscendString("add1"));
+  ASSERT_NE(add_gnode, nullptr);
+  auto add_node = NodeAdapter::GNode2Node(*add_gnode);
+  ASSERT_NE(add_node, nullptr);
+  ASSERT_TRUE(AttrUtils::SetInt(add_node->GetOpDesc(), TVM_ATTR_NAME_BLOCKDIM, 16));
+  ASSERT_TRUE(AttrUtils::SetStr(add_node->GetOpDesc(), ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIV"));
+
+  std::shared_ptr<minidag::DAGGraph> dag;
+  auto ret = CallFromGEGraph(ge_graph, dag);
+  ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
+  auto dag_add_node = dag->FindNode("add1");
+  ASSERT_NE(dag_add_node, nullptr);
+  EXPECT_EQ(dag_add_node->GetCost().cube_block_num, 0U);
+  EXPECT_EQ(dag_add_node->GetCost().vec_block_num, 16U);
 }
 
 }  // namespace ge

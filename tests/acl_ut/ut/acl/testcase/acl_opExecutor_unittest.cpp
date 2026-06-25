@@ -16,7 +16,7 @@
 #define protected public
 #define private public
 #include "single_op/op_executor.h"
-#include "executor/stream_executor.h"
+#include "executor/acl_stream_executor.h"
 #undef private
 #undef protected
 
@@ -37,7 +37,7 @@
 #include "acl/acl.h"
 #include "acl/acl_mdl.h"
 #include "single_op/op_model_parser.h"
-#include "single_op/executor/resource_manager.h"
+#include "single_op/executor/acl_op_exec_resource_manager.h"
 #include "utils/math_utils.h"
 #include "common/ge_types.h"
 #include "acl_stub.h"

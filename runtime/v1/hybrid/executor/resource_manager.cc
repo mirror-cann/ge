@@ -8,7 +8,7 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-#include "hybrid/executor/resource_manager.h"
+#include "hybrid/executor/rt_hybrid_resource_manager.h"
 #include "hybrid/node_executor/ge_local/data_flow_kernels.h"
 #include "graph/utils/op_desc_utils.h"
 #include "graph/utils/type_utils.h"

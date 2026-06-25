@@ -16,7 +16,7 @@
 #include <map>
 
 #include "graph/op_desc.h"
-#include "utils/string_utils.h"
+#include "utils/acl_string_utils.h"
 #include "types/op_attr.h"
 #include "types/acl_op_inner.h"
 #include "types/op_model.h"

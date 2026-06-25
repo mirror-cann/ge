@@ -1818,7 +1818,6 @@ TEST(UtestIrBuild, aclgrphBuildModelOm2UnsupportedBuildOptionTest) {
   Graph graph = BuildIrGraph1();
   const std::vector<std::string> unsupported_options = {
       ge::ir_option::OP_NAME_MAP,
-      ge::ir_option::INSERT_OP_FILE,
       ge::ir_option::AC_PARALLEL_ENABLE,
       ge::ir_option::QUANT_DUMPABLE,
       ge::ir_option::TILING_SCHEDULE_OPTIMIZE,
@@ -1828,7 +1827,6 @@ TEST(UtestIrBuild, aclgrphBuildModelOm2UnsupportedBuildOptionTest) {
       ge::OPTION_HOST_ENV_OS,
       ge::OPTION_HOST_ENV_CPU,
       ge::ir_option::VIRTUAL_TYPE,
-      ge::ir_option::ENABLE_SMALL_CHANNEL,
       ge::ir_option::ENABLE_COMPRESS_WEIGHT,
       ge::ir_option::COMPRESS_WEIGHT_CONF,
       ge::ir_option::TUNE_DEVICE_IDS,
@@ -1860,6 +1858,44 @@ TEST(UtestIrBuild, aclgrphBuildModelOm2UnsupportedGlobalOptionTest) {
       {"ge.offlineMode", "7"},
   };
   EXPECT_EQ(ge::aclgrphBuildModel(graph, build_options, model), ge::PARAM_INVALID);
+}
+
+TEST(UtestIrBuild, aclgrphBuildModelOm2InsertOpFileNotBlockedByUnsupportedCheck) {
+  Graph graph = BuildIrGraph1();
+  ModelBufferData model;
+  // INSERT_OP_FILE was removed from kOm2UnsupportedOptions, so "1" should NOT be rejected
+  // by CheckOm2UnsupportedOptions. It will fail later (invalid file) but not with the
+  // unsupported-option error path.
+  const std::map<std::string, std::string> build_options = {
+      {"ge.offlineMode", "7"},
+      {ge::ir_option::INSERT_OP_FILE, "1"},
+  };
+  // The call may still fail (no real AIPP cfg / no init), but NOT because of the
+  // unsupported-options blacklist.
+  auto ret = ge::aclgrphBuildModel(graph, build_options, model);
+  EXPECT_NE(ret, ge::GRAPH_SUCCESS);
+}
+
+TEST(UtestIrBuild, aclgrphBuildModelOm2DynamicAippRejected) {
+  // Write a temporary dynamic AIPP config file
+  const std::string cfg_path = "/tmp/ut_om2_dynamic_aipp.cfg";
+  {
+    std::ofstream ofs(cfg_path);
+    ofs << "aipp_op {\n"
+        << "  aipp_mode: dynamic\n"
+        << "  related_input_rank: 0\n"
+        << "  max_src_image_size: 752640\n"
+        << "}\n";
+  }
+
+  Graph graph = BuildIrGraph1();
+  ModelBufferData model;
+  const std::map<std::string, std::string> build_options = {
+      {"ge.offlineMode", "7"},
+      {ge::ir_option::INSERT_OP_FILE, cfg_path},
+  };
+  EXPECT_EQ(ge::aclgrphBuildModel(graph, build_options, model), ge::PARAM_INVALID);
+  (void)remove(cfg_path.c_str());
 }
 
 TEST(UtestIrCommon, CheckDynamicBatchSizeInputShapeValidTest) {

@@ -21,7 +21,7 @@
 #include "graph/utils/graph_utils.h"
 #include "graph/utils/graph_utils_ex.h"
 #include "graph/utils/op_desc_utils_ex.h"
-#include "hybrid/executor/resource_manager.h"
+#include "hybrid/executor/rt_hybrid_resource_manager.h"
 
 #include "macro_utils/dt_public_unscope.h"
 

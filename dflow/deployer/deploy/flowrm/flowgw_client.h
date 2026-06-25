@@ -17,7 +17,7 @@
 #include "queue_schedule/qs_client.h"
 #include "common/mem_grp/memory_group_manager.h"
 #include "graph_metadef/common/ge_common/util.h"
-#include "common/config/json_parser.h"
+#include "common/config/dflow_deployer_json_parser.h"
 #include "common/subprocess/subprocess_manager.h"
 #include "proto/deployer.pb.h"
 

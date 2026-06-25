@@ -8,8 +8,8 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-#ifndef TRUNK_PROJ_RESOURCE_MANAGER_H
-#define TRUNK_PROJ_RESOURCE_MANAGER_H
+#ifndef ACL_OP_EXEC_RESOURCE_MANAGER_H
+#define ACL_OP_EXEC_RESOURCE_MANAGER_H
 
 #include <vector>
 #include "acl/acl_base.h"
@@ -37,4 +37,4 @@ private:
 };
 } // namespace acl
 
-#endif // TRUNK_PROJ_RESOURCE_MANAGER_H
+#endif // ACL_OP_EXEC_RESOURCE_MANAGER_H

@@ -150,6 +150,7 @@ TEST_F(configuration_st, loadconfigfile_success)
   options.emplace(ge::PRECISION_MODE, ALLOW_FP32_TO_FP16);
   string soc_version = "Ascend910B1";
   PlatformUtils::Instance().soc_version_ = soc_version;
+  config.lib_path_ = GetCodeDir() + "/tests/engines/nn_engine/depends/CANN_910b_stub/cann/x86_64-linux/lib64/";
   config.content_map_.clear();
   Status status = config.LoadConfigFile();
   EXPECT_EQ(status, SUCCESS);
@@ -1685,17 +1686,41 @@ TEST_F(configuration_st, precision_mode_hif8_case) {
   EXPECT_EQ(precision_mode, "force_fp16");
 }
 
+static void InitSessionGraphConfig(Configuration &config, map<string, string> &options,
+                                    const string &customize_dtypes, const string &modify_mixlist,
+                                    const string &disable_reused_memory) {
+  options.clear();
+  options.emplace(ge::OPTION_EXEC_DISABLE_REUSED_MEMORY, disable_reused_memory);
+  options.emplace(ge::CUSTOMIZE_DTYPES, GetCodeDir() + customize_dtypes);
+  options.emplace(ge::MODIFY_MIXLIST, GetCodeDir() + modify_mixlist);
+  config.is_init_ = false;
+  config.lib_path_ = GetCodeDir() + "/tests/engines/nn_engine/depends/CANN_910b_stub/cann/x86_64-linux/lib64/";
+  config.ascend_ops_path_ = GetCodeDir();
+  config.Initialize(options);
+  if (config.op_debug_config_parse_ == nullptr) {
+    config.op_debug_config_parse_ = std::make_shared<OpDebugConfigParser>();
+  }
+  if (config.impl_mode_parser_ == nullptr) {
+    config.impl_mode_parser_ = std::make_shared<OpImplModeConfigParser>(config.ascend_ops_path_);
+  }
+  if (config.cust_dtypes_parser_ == nullptr) {
+    config.cust_dtypes_parser_ = std::make_shared<OpCustDtypesConfigParser>();
+  }
+  if (config.mix_list_parser_ == nullptr) {
+    config.mix_list_parser_ = std::make_shared<ModifyMixlistConfigParser>();
+    config.mix_list_parser_->InitializeFromOptions(options);
+  }
+  ge::GetThreadLocalContext().SetGraphOption(options);
+}
+
 TEST_F(configuration_st, session_graph_config_params_01) {
   Configuration config(AI_CORE_NAME);
   map<string, string> options;
   string session_graph_id = "0_1";
-  options.emplace(ge::OPTION_EXEC_DISABLE_REUSED_MEMORY, "1");
-  options.emplace(ge::CUSTOMIZE_DTYPES, GetCodeDir() + "/tests/engines/nn_engine/ut/stub/custom.cfg");
-  options.emplace(ge::MODIFY_MIXLIST, GetCodeDir() + "/tests/engines/nn_engine/config/mix_list/op_mix_list1.json");
-  config.is_init_ = false;
-  Status ret = config.Initialize(options);
-  ge::GetThreadLocalContext().SetGraphOption(options);
-  ret = config.RefreshParameters();
+  InitSessionGraphConfig(config, options,
+    "/tests/engines/nn_engine/ut/stub/custom.cfg",
+    "/tests/engines/nn_engine/config/mix_list/op_mix_list1.json", "1");
+  Status ret = config.RefreshParameters();
   EXPECT_EQ(ret, SUCCESS);
   EXPECT_EQ(config.IsEnableReuseMemory(), 0);
   OpCustomizeDtype custom_dtype_0, custom_dtype_1, custom_dtype_2, custom_dtype_3;
@@ -1712,15 +1737,19 @@ TEST_F(configuration_st, session_graph_config_params_01) {
   EXPECT_EQ(config.GetPrecisionPolicy("A", GRAY), GRAY);
   EXPECT_EQ(config.GetPrecisionPolicy("A", BLACK), BLACK);
   EXPECT_EQ(config.GetPrecisionPolicy("A", WHITE), WHITE);
+}
 
-  session_graph_id = "0_2";
-  options[ge::OPTION_EXEC_DISABLE_REUSED_MEMORY] = "0";
-  options[ge::CUSTOMIZE_DTYPES] = GetCodeDir() + "/tests/engines/nn_engine/ut/stub/custom2.cfg";
-  options[ge::MODIFY_MIXLIST] = GetCodeDir() + "/tests/engines/nn_engine/config/mix_list/op_mix_list2.json";
-  ge::GetThreadLocalContext().SetGraphOption(options);
-  ret = config.RefreshParameters();
+TEST_F(configuration_st, session_graph_config_params_01_2) {
+  Configuration config(AI_CORE_NAME);
+  map<string, string> options;
+  string session_graph_id = "0_2";
+  InitSessionGraphConfig(config, options,
+    "/tests/engines/nn_engine/ut/stub/custom2.cfg",
+    "/tests/engines/nn_engine/config/mix_list/op_mix_list2.json", "0");
+  Status ret = config.RefreshParameters();
   EXPECT_EQ(ret, SUCCESS);
   EXPECT_EQ(config.IsEnableReuseMemory(), 1);
+  OpCustomizeDtype custom_dtype_0, custom_dtype_1, custom_dtype_2, custom_dtype_3;
   (void)config.GetCustomizeDtypeByOpName("Matmul_name", custom_dtype_0);
   (void)config.GetCustomizeDtypeByOpType("MatMul", custom_dtype_1);
   (void)config.GetCustomizeDtypeByOpName("Test_name", custom_dtype_2);
@@ -1734,16 +1763,19 @@ TEST_F(configuration_st, session_graph_config_params_01) {
   EXPECT_EQ(config.GetPrecisionPolicy("A", GRAY), BLACK);
   EXPECT_EQ(config.GetPrecisionPolicy("A", BLACK), BLACK);
   EXPECT_EQ(config.GetPrecisionPolicy("A", WHITE), BLACK);
+}
 
-
-  session_graph_id = "0_3";
-  options[ge::OPTION_EXEC_DISABLE_REUSED_MEMORY] = "1";
-  options[ge::CUSTOMIZE_DTYPES] = GetCodeDir() + "/tests/engines/nn_engine/ut/stub/custom.cfg";
-  options[ge::MODIFY_MIXLIST] = GetCodeDir() + "/tests/engines/nn_engine/config/mix_list/op_mix_list2.json";
-  ge::GetThreadLocalContext().SetGraphOption(options);
-  ret = config.RefreshParameters();
+TEST_F(configuration_st, session_graph_config_params_01_3) {
+  Configuration config(AI_CORE_NAME);
+  map<string, string> options;
+  string session_graph_id = "0_3";
+  InitSessionGraphConfig(config, options,
+    "/tests/engines/nn_engine/ut/stub/custom.cfg",
+    "/tests/engines/nn_engine/config/mix_list/op_mix_list2.json", "1");
+  Status ret = config.RefreshParameters();
   EXPECT_EQ(ret, SUCCESS);
   EXPECT_EQ(config.IsEnableReuseMemory(), 0);
+  OpCustomizeDtype custom_dtype_0, custom_dtype_1, custom_dtype_2, custom_dtype_3;
   (void)config.GetCustomizeDtypeByOpName("Matmul_name", custom_dtype_0);
   (void)config.GetCustomizeDtypeByOpType("MatMul", custom_dtype_1);
   (void)config.GetCustomizeDtypeByOpName("Test_name", custom_dtype_2);

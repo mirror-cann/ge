@@ -11,8 +11,8 @@
 #ifndef ACL_UTILS_HASH_UTILS_H
 #define ACL_UTILS_HASH_UTILS_H
 #include "acl/acl_base.h"
-#include "utils/string_utils.h"
-#include "utils/attr_utils.h"
+#include "utils/acl_string_utils.h"
+#include "utils/acl_attr_utils.h"
 #include "types/op_attr.h"
 #include "types/acl_op_inner.h"
 #include "common/log_inner.h"

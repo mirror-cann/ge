@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
-#include "utils/string_utils.h"
+#include "utils/acl_string_utils.h"
 #include "utils/math_utils.h"
-#include "utils/hash_utils.h"
-#include "utils/file_utils.h"
-#include "utils/attr_utils.h"
+#include "utils/acl_hash_utils.h"
+#include "utils/acl_file_utils.h"
+#include "utils/acl_attr_utils.h"
 #include "acl_stub.h"
 #include "types/acl_op_inner.h"
 

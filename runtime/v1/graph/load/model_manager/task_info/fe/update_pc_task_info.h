@@ -12,7 +12,6 @@
 #define GE_GRAPH_LOAD_MODEL_MANAGER_TASK_INFO_UPDATE_PC_TASK_INFO_H
 
 #include "graph/load/model_manager/task_info/task_info.h"
-#include "rt_external.h"
 #include "graph/op_desc.h"
 
 namespace ge {

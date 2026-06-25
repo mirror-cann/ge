@@ -11,7 +11,7 @@
 #include "op_attr.h"
 #include <sstream>
 #include "graph/ge_attr_value.h"
-#include "utils/attr_utils.h"
+#include "utils/acl_attr_utils.h"
 #include "common/prof_api_reg.h"
 #include "single_op/acl_op_executor_impl.h"
 

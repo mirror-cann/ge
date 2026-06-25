@@ -13,8 +13,8 @@ if(NOT PROJECT_SOURCE_DIR)
     else()
         include(FetchContent)
 
-        set(CANN_CMAKE_TAG "master-029") # CANN_CMAKE_TAG变量会在scripts/download_third_party_source.sh中用到，确保这个变量存在
-        set(CANN_CMAKE_SHA256 "c19b7875141eff1b608d12d078e64c4c28357e15e70bff97a98179918d0b607e")
+        set(CANN_CMAKE_TAG "master-030") # CANN_CMAKE_TAG变量会在scripts/download_third_party_source.sh中用到，确保这个变量存在
+        set(CANN_CMAKE_SHA256 "7d548dde5123d2787944bb9f1bf4b148496a61ab9df6e2c20cf434c81c3da905")
         if(CANN_3RD_LIB_PATH AND EXISTS "${CANN_3RD_LIB_PATH}/cmake-${CANN_CMAKE_TAG}.tar.gz")
             FetchContent_Declare(
                 cann-cmake

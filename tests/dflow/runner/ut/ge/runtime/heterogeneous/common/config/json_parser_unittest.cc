@@ -17,7 +17,7 @@
 #include "common/env_path.h"
 
 #include "macro_utils/dt_public_scope.h"
-#include "common/config/json_parser.h"
+#include "common/config/dflow_deployer_json_parser.h"
 #include "macro_utils/dt_public_unscope.h"
 
 using namespace std;

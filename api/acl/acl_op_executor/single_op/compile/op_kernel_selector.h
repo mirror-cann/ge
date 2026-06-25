@@ -8,8 +8,8 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-#ifndef TRUNK_PROJ_OP_KERNEL_SELECTOR_H
-#define TRUNK_PROJ_OP_KERNEL_SELECTOR_H
+#ifndef ACL_OP_KERNEL_SELECTOR_H
+#define ACL_OP_KERNEL_SELECTOR_H
 
 #include <string>
 #include <vector>
@@ -73,4 +73,4 @@ private:
 };
 } // namespace acl
 
-#endif // TRUNK_PROJ_OP_KERNEL_SELECTOR_H
+#endif // ACL_OP_KERNEL_SELECTOR_H

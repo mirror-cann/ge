@@ -11,7 +11,7 @@
 #ifndef ACL_OP_EXEC_COMPILER_OP_COMPILE_SERVICE_H
 #define ACL_OP_EXEC_COMPILER_OP_COMPILE_SERVICE_H
 
-#include "op_compiler.h"
+#include "acl_op_exec_compiler.h"
 #include "acl/acl_base_rt.h"
 
 namespace acl {

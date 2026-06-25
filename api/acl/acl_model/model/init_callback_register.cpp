@@ -13,7 +13,7 @@
 #include "acl_resource_manager.h"
 #include "error_codes_inner.h"
 #include "framework/runtime/dump/model_dump_manager.h"
-#include "json_parser.h"
+#include "acl_json_parser.h"
 #include "log_inner.h"
 
 namespace {

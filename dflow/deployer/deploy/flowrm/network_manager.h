@@ -13,7 +13,7 @@
 
 #include "common/config/configurations.h"
 #include "ge/ge_api_error_codes.h"
-#include "common/config/json_parser.h"
+#include "common/config/dflow_deployer_json_parser.h"
 
 namespace ge {
 enum class PortType {

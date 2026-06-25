@@ -37,17 +37,29 @@ public:
 	std::vector<PatternUniqPtr> Patterns() override {
 	  std::cout << "Define pattern for MatmulAddFusionPass in matcher config sample" << std::endl;
 		std::vector<PatternUniqPtr> patterns;
-		auto graph_builder = es::EsGraphBuilder("pattern");
-	  auto [x, y] = graph_builder.CreateInputs<2>();
-	  auto z = graph_builder.CreateConst(
+		auto graph_builder0 = es::EsGraphBuilder("pattern0");
+	  auto [x0, y0] = graph_builder0.CreateInputs<2>();
+	  auto z0 = graph_builder0.CreateConst(
 	    std::vector<float>{0.1f, 0.1f, 0.1f, 0.1f},
 	    std::vector<int64_t>{2,2}
 	  );
-	  auto matmul = es::MatMul(x, y, nullptr, false, false);
-	  auto add = es::Add(matmul, z);
-	  auto graph = graph_builder.BuildAndReset({add});
-	  auto pattern = std::make_unique<Pattern>(std::move(*graph));
-		patterns.emplace_back(std::move(pattern));
+	  auto matmul0 = es::MatMul(x0, y0, nullptr, false, false);
+	  auto add0 = es::Add(matmul0, z0);
+	  auto graph0 = graph_builder0.BuildAndReset({add0});
+	  auto pattern0 = std::make_unique<Pattern>(std::move(*graph0));
+	  patterns.emplace_back(std::move(pattern0));
+
+	  auto graph_builder1 = es::EsGraphBuilder("pattern1");
+	  auto [x1, y1] = graph_builder1.CreateInputs<2>();
+	  auto z1 = graph_builder1.CreateConst(
+      std::vector<float>{0.1f, 0.1f, 0.1f, 0.1f},
+      std::vector<int64_t>{2,2}
+    );
+	  auto matmul1 = es::BatchMatMulV2(x1, y1);
+	  auto add1 = es::Add(matmul1, z1);
+	  auto graph1 = graph_builder1.BuildAndReset({add1});
+	  auto pattern1 = std::make_unique<Pattern>(std::move(*graph1));
+	  patterns.emplace_back(std::move(pattern1));
 	  return patterns;
 	}
   GraphUniqPtr Replacement(const std::unique_ptr<MatchResult> &match_result) override {

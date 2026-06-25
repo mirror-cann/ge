@@ -14,12 +14,10 @@
 
 from __future__ import annotations
 
-from ge.es.graph_builder import GraphBuilder
 from ge.passes import (
     PassStage,
     PatternFusionPass,
-    create_pattern,
-    create_replacement,
+    pattern,
     register_fusion_pass,
 )
 
@@ -61,35 +59,28 @@ def _require_es_apis() -> None:
 @register_fusion_pass(name="PythonFuseMatMulAndAddPass", stage=PassStage.BEFORE_INFER_SHAPE)
 class PythonFuseMatMulAndAddPass(PatternFusionPass):
 
-    def patterns(self):
+    @pattern
+    def matmul_add(self, inputs):
         print("Define pattern for FuseMatMulAndAddPass")
         _require_es_apis()
+        a, b, c = inputs[:3]
+        return MatMul(a, b) + c
 
-        pattern_builder0 = GraphBuilder("pattern0")
-        a0, b0, c0 = pattern_builder0.create_inputs(3)
-        add0 = MatMul(a0, b0) + c0
-
-        pat0 = create_pattern(pattern_builder0.build_and_reset([add0]))
-
-        pattern_builder1 = GraphBuilder("pattern1")
-        a1, b1, c1 = pattern_builder1.create_inputs(3)
-        add1 = BatchMatMulV2(a1, b1) + c1
-        pat1 = create_pattern(pattern_builder1.build_and_reset([add1]))
-
-        return [pat0, pat1]
+    @pattern
+    def batch_matmul_add(self, inputs):
+        print("Define pattern for FuseMatMulAndAddPass")
+        _require_es_apis()
+        a, b, c = inputs[:3]
+        return BatchMatMulV2(a, b) + c
 
     def meet_requirements(self, match_result):
         return True
 
-    def replacement(self, match_result):
+    def replacement(self, inputs):
         print("Define replacement for FuseMatMulAndAddPass")
         _require_es_apis()
-        replace_builder = GraphBuilder("replacement")
-        r_a, r_b, r_c = replace_builder.create_inputs(3)
-        alpha_const = replace_builder.create_scalar_float(1.0)
-        beta_const = replace_builder.create_scalar_float(1.0)
-        gemm = GEMM(r_a, r_b, r_c, alpha_const, beta_const)
-        return create_replacement(replace_builder.build_and_reset([gemm]))
+        r_a, r_b, r_c = inputs[:3]
+        return GEMM(r_a, r_b, r_c, 1.0, 1.0)
 
 
 if __name__ == "__main__":

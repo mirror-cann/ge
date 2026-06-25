@@ -8,9 +8,9 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-#include "op_kernel_registry.h"
+#include "acl_op_kernel_registry.h"
 #include "framework/common/util.h"
-#include "utils/file_utils.h"
+#include "utils/acl_file_utils.h"
 #include "common/log_inner.h"
 #include "error_codes_inner.h"
 

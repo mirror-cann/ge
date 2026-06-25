@@ -15,7 +15,7 @@
 #include <string>
 #include <vector>
 #include "ge/ge_api_error_codes.h"
-#include "common/config/json_parser.h"
+#include "common/config/dflow_deployer_json_parser.h"
 #include "deploy/deployer/deploy_context.h"
 #include "proto/deployer.pb.h"
 

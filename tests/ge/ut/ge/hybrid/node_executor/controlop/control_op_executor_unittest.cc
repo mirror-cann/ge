@@ -19,7 +19,7 @@
 #include "ge/ut/ge/ffts_plus_proto_tools.h"
 #include "ge_graph_dsl/graph_dsl.h"
 #include "graph/utils/graph_utils.h"
-#include "hybrid/executor/resource_manager.h"
+#include "hybrid/executor/rt_hybrid_resource_manager.h"
 
 using namespace std;
 using namespace testing;

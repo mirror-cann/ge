@@ -25,7 +25,7 @@
 #include "hybrid/executor/node_state.h"
 #include "hybrid/executor/rt_callback_manager.h"
 #include "hybrid/model/hybrid_model.h"
-#include "hybrid/executor/resource_manager.h"
+#include "hybrid/executor/rt_hybrid_resource_manager.h"
 
 // If expr is not SUCCESS, print the log and return the same value
 #define HYBRID_CHK_STATUS_RET(expr, ...)        \

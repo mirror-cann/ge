@@ -11,13 +11,17 @@
 #ifndef GE_INC_COMMON_GE_RTS_DECL_H_
 #define GE_INC_COMMON_GE_RTS_DECL_H_
 
-// 这里的rt接口声明用于日落的GE代码使用，待GE代码日落时同时删除这些声明。
+// 这里的rt接口声明用于日落的GE代码使用，待GE代码日落时同时删除这些声明，新增代码禁止使用这里的定义。
 
 #include <cstdint>
 #include "rt_external_kernel.h"
 #include "rt_external_stars.h"
 #include "rt_external_mem.h"
 #include "rt_external_ffts_define.h"
+
+#if defined(__cplusplus)
+extern "C" {
+#endif
 
 typedef struct rtFunctionInfo {
   void *pcAddr;
@@ -101,12 +105,7 @@ typedef enum rtKernelType {
     KERNEL_TYPE_RESERVED = 99,
 } rtKernelType_t;
 
-
 #define RT_CAPABILITY_SUPPORT (0x1U)
-
-#if defined(__cplusplus)
-extern "C" {
-#endif
 
 RTS_API rtError_t rtKernelLaunchWithHandleV2(void *hdl, const uint64_t tilingKey, uint32_t numBlocks,
     rtArgsEx_t *argsInfo, rtSmDesc_t *smDesc, rtStream_t stm, const rtTaskCfgInfo_t *cfgInfo);
@@ -116,7 +115,6 @@ RTS_API rtError_t rtVectorCoreKernelLaunchWithHandle(void *hdl, const uint64_t t
 
 RTS_API rtError_t rtVectorCoreKernelLaunch(const void *stubFunc, uint32_t numBlocks, rtArgsEx_t *argsInfo,
     rtSmDesc_t *smDesc, rtStream_t stm, uint32_t flags, const rtTaskCfgInfo_t *cfgInfo);
-
 
 RTS_API rtError_t rtGetSocVersion(char_t *ver, const uint32_t maxLen);
 

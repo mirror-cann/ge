@@ -11,7 +11,7 @@
 #include "tensor_desc_internal.h"
 #include <sstream>
 #include "framework/common/ge_format_util.h"
-#include "utils/string_utils.h"
+#include "utils/acl_string_utils.h"
 #include "utils/math_utils.h"
 #include "model/acl_resource_manager.h"
 #include "common/prof_api_reg.h"

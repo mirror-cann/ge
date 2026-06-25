@@ -2777,5 +2777,66 @@ ComputeGraphPtr BuildOneNodeConnectTwoPhonyConcat() {
   MemConflictShareGraph::TopologicalSortingMock(graph, {"a", "b", "d", "c", "pc2", "pc1"});
   return graph;
 }
+/*
+ *  Root graph:
+ *    relu0 -> partitioned_call(2 outputs) -> identity -> netoutput
+ *    partitioned_call output[1] is dangling (not connected)
+ *
+ *  Subgraph of partitioned_call:
+ *    data -> relu1 -> [0]phony_concat -> [0]netoutput
+ *    relu2[0] -> [1]phony_concat
+ *    relu2[0] -> reshape -> [1]netoutput
+ *
+ *  phony_concat: NOPADDING_CONTINUOUS_INPUT, output shape = sum of input shapes
+ */
+ComputeGraphPtr BuildPartitionedCallWithPhonyConcatSubgraph() {
+  auto root_builder = block_mem_ut::GraphBuilder("root_graph");
+  const auto &relu0 = root_builder.AddNode("relu0", RELU, 1, 1);
+  const auto &partitioned_call = root_builder.AddNode("partitioned_call", PARTITIONEDCALL, 1, 2);
+  const auto &identity = root_builder.AddNode("identity", IDENTITY, 1, 1);
+  const auto &root_netoutput = root_builder.AddNode("root_netoutput", NETOUTPUT, 1, 0);
+  root_builder.AddDataEdge(relu0, 0, partitioned_call, 0);
+  root_builder.AddDataEdge(partitioned_call, 0, identity, 0);
+  root_builder.AddDataEdge(identity, 0, root_netoutput, 0);
+  auto graph = root_builder.GetGraph();
+
+  auto sub_builder = block_mem_ut::GraphBuilder("partitioned_call_sub");
+  const auto &data = sub_builder.AddNode("data", DATA, 0, 1);
+  const auto &relu1 = sub_builder.AddNode("relu1", RELU, 1, 1);
+  const auto &relu2 = sub_builder.AddNode("relu2", RELU, 1, 1);
+  const auto &phony_concat = sub_builder.AddNode("phony_concat", PHONYCONCAT, 2, 1);
+  const auto &reshape = sub_builder.AddNode("reshape", RESHAPE, 1, 1);
+  const auto &sub_netoutput = sub_builder.AddNode("sub_netoutput", NETOUTPUT, 2, 0);
+  sub_builder.AddDataEdge(data, 0, relu1, 0);
+  sub_builder.AddDataEdge(relu1, 0, phony_concat, 0);
+  sub_builder.AddDataEdge(data, 0, relu2, 0);
+  sub_builder.AddDataEdge(relu2, 0, phony_concat, 1);
+  sub_builder.AddDataEdge(relu2, 0, reshape, 0);
+  sub_builder.AddDataEdge(phony_concat, 0, sub_netoutput, 0);
+  sub_builder.AddDataEdge(reshape, 0, sub_netoutput, 1);
+  auto sub_graph = sub_builder.GetGraph();
+
+  sub_graph->SetParentNode(partitioned_call);
+  sub_graph->SetParentGraph(graph);
+  partitioned_call->GetOpDesc()->AddSubgraphName("partitioned_call_sub");
+  partitioned_call->GetOpDesc()->SetSubgraphInstanceName(0, "partitioned_call_sub");
+  graph->AddSubgraph(sub_graph->GetName(), sub_graph);
+
+  MemConflictShareGraph::SetNoPaddingContinuousInput(sub_graph, "phony_concat");
+
+  AttrUtils::SetInt(sub_netoutput->GetOpDesc()->MutableInputDesc(0), ATTR_NAME_PARENT_NODE_INDEX, 0);
+  AttrUtils::SetInt(sub_netoutput->GetOpDesc()->MutableInputDesc(1), ATTR_NAME_PARENT_NODE_INDEX, 1);
+
+  MemConflictShareGraph::SetShapeForAllNodes(sub_graph, {1, 1, 16, 8});
+  MemConflictShareGraph::SetShapeForAllNodes(graph, {1, 1, 16, 8});
+  phony_concat->GetOpDescBarePtr()->MutableOutputDesc(0)->SetShape(GeShape({2, 1, 16, 8}));
+  sub_netoutput->GetOpDescBarePtr()->MutableInputDesc(0)->SetShape(GeShape({2, 1, 16, 8}));
+
+  MemConflictShareGraph::SetSizeForAllNodes(sub_graph);
+  MemConflictShareGraph::SetSizeForAllNodes(graph);
+
+  graph->TopologicalSorting();
+  return graph;
+}
 }  // namespace block_mem_ut
 } // namespace ge

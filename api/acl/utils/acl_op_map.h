@@ -16,8 +16,8 @@
 #include <vector>
 #include <climits>
 #include "types/acl_op_inner.h"
-#include "utils/attr_utils.h"
-#include "utils/hash_utils.h"
+#include "utils/acl_attr_utils.h"
+#include "utils/acl_hash_utils.h"
 #include <chrono>
 #include <unordered_map>
 

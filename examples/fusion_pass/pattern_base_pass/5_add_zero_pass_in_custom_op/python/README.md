@@ -2,13 +2,14 @@
 
 ## 功能描述
 
-本目录提供 `pattern_base_pass/5_add_zero_pass_in_custom_op` 的 **纯 Python** 版本示例，逻辑与 C++ 版本一致：
+本目录提供 `pattern_base_pass/5_add_zero_pass_in_custom_op` 的 **纯 Python** 版本示例，逻辑与 C++ 版本中一致：
 
-- `patterns()` 定义两个 pattern：
+- 使用 `@pattern` 方法定义两个 pattern：
   - `Data + Const -> Identity -> AddCustom -> AddCustom`
   - `Data + Const -> Identity -> TensorMove -> AddCustom -> AddCustom`
 - `meet_requirements()` 中读取匹配到的 `Const.value`，按 C++ 样例同样的规则判断零值
-- `replacement()` 用 `AddCustom(input0, input1)` 替换匹配到的加零结构
+- 表达式 `replacement(self, inputs)` 用 `AddCustom(inputs[0], inputs[1])` 替换匹配到的加零结构
+- `@pattern` 方法通过 `inputs[0].get_owner_builder()` 获取框架的 `GraphBuilder`，使用 `create_const_float(0.0)` 显式创建 DT_FLOAT scalar Const 节点；框架自动设置图输出并 capture 输入
 
 ## 目录结构
 
@@ -89,6 +90,6 @@ Python pass 运行时会加载基于 `pybind11` 的预编译二进制组件。CA
 ```text
 Define pattern for PythonAddCustomZeroPass
 Define MeetRequirements for PythonAddCustomZeroPass
-[PythonAddCustomZeroPass] matched=addcustom_zero_pattern0 const_dtype=DT_FLOAT16 zero=True
+[PythonAddCustomZeroPass] matched=PythonAddCustomZeroPass_addcustom_zero_pattern const_dtype=DT_FLOAT16 zero=True
 Define replacement for PythonAddCustomZeroPass
 ```

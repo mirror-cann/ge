@@ -5,22 +5,22 @@
 | 样例                              | 样例链接                                                                     |
 |---------------------------------|--------------------------------------------------------------------------|
 | MatMul+Add融合为GEMM自定义pass样例      | [README](1_fuse_matmul_add_pass/cpp/README.md)                           |
-| MatMul+Add融合为GEMM自定义pass样例（Python版本） | [README](1_fuse_matmul_add_pass/python/README.md)                        |
+| MatMul+Add融合为GEMM自定义pass样例（Python版本，演示 `@pattern` 表达式写法） | [README](1_fuse_matmul_add_pass/python/README.md)                        |
 | capture tensor 功能的使用            | [README](2_fuse_matmul_add_pass_with_capture_tensor/cpp/README.md)       |
 | capture tensor 功能的使用（Python版本）            | [README](2_fuse_matmul_add_pass_with_capture_tensor/python/README.md)    |
 | PatternMatcherConfig 功能的使用      | [README](3_fuse_matmul_add_pass_with_pattern_matcher_config/cpp/README.md) |
-| PatternMatcherConfig 功能的使用（Python版本）       | [README](3_fuse_matmul_add_pass_with_pattern_matcher_config/python/README.md) |
+| PatternMatcherConfig 功能的使用（Python版本，演示 `@pattern` 表达式写法）       | [README](3_fuse_matmul_add_pass_with_pattern_matcher_config/python/README.md) |
 | 删除加零操作的自定义pass样例                | [README](4_add_zero_pass/cpp/README.md)                                  |
 | 删除加零操作的自定义pass样例（Python版本，演示 `@pattern` 表达式写法） | [README](4_add_zero_pass/python/README.md)                               |
 | 自定义算子的自定义pass样例                 | [README](5_add_zero_pass_in_custom_op/cpp/README.md)                       |
-| 自定义算子的自定义pass样例（Python 版本）     | [README](5_add_zero_pass_in_custom_op/python/README.md)                  |
+| 自定义算子的自定义pass样例（Python 版本，演示 `@pattern` 表达式写法）     | [README](5_add_zero_pass_in_custom_op/python/README.md)                  |
 | 拆分分组卷积的自定义pass样例                | [README](6_decompose_grouped_conv_to_splited_pass/cpp/README.md)         |
 | 拆分分组卷积的自定义pass样例（Python版本）     | [README](6_decompose_grouped_conv_to_splited_pass/python/README.md)      |
 | BatchMatMul展平为MatMul的自定义pass样例       | [README](7_batch_matmul_flatten_pass/cpp/README.md)                    |
 
 ## 开发指南
 
-建议先阅读机制说明，再选择语言指南：
+建议阅读机制说明后，再选择语言指南：
 
 - [融合 Pattern Pass 机制](../../../docs/zh/design/features/fusion_pattern_pass.md)
 - [Python 融合 Pass 开发指南](../python_fusion_pass_development_guide.md)

@@ -16,7 +16,7 @@
 #include "acl/acl.h"
 #include "types/op_attr.h"
 #include "graph/ge_attr_value.h"
-#include "utils/attr_utils.h"
+#include "utils/acl_attr_utils.h"
 #include "acl_stub.h"
 
 using namespace testing;

@@ -16,10 +16,27 @@
 #include "common/ge_common/ge_types.h"
 #include "graph/build/stream/stream_utils.h"
 #include "graph/ge_local_context.h"
+#include "graph/utils/op_type_utils.h"
 #include "external/ge_common/ge_common_api_types.h"
 #include "platform/platform_info.h"
+#include "graph/build/dag/dag_profiling_parser.h"
+#include <cstdlib>
+#include <cstring>
 
 namespace ge {
+
+namespace {
+constexpr size_t kCsvSuffixLength = 4U;
+
+std::string GetOpNameWithoutScope(const std::string &full_name) {
+  size_t pos = full_name.find_last_of('/');
+  if (pos != std::string::npos && pos + 1 < full_name.size()) {
+    return full_name.substr(pos + 1);
+  }
+  return full_name;
+}
+}
+
 graphStatus DAGAdapter::ToGEStatus(minidag::graphStatus status) {
   switch (status) {
     case minidag::graphStatus::SUCCESS:
@@ -37,8 +54,10 @@ graphStatus DAGAdapter::ToGEStatus(minidag::graphStatus status) {
 }
 
 graphStatus DAGAdapter::FromGEGraph(const ConstGraphPtr &ge_graph,
-                                         std::shared_ptr<minidag::DAGGraph> &dag) {
+                                    std::shared_ptr<minidag::DAGGraph> &dag,
+                                    bool &has_profiled_node_cost) {
   GE_ASSERT_NOTNULL(ge_graph, "FromGEGraph failed: ge_graph is null");
+  has_profiled_node_cost = false;
 
   // 1. 获取图名称
   AscendString name;
@@ -48,7 +67,7 @@ graphStatus DAGAdapter::FromGEGraph(const ConstGraphPtr &ge_graph,
   GE_ASSERT_NOTNULL(dag, "FromGEGraph failed: create DAGGraph failed");
 
   // 2. 转换节点（并设置topo_id）
-  auto nodes_ret = ConvertNodes(ge_graph, *dag);
+  auto nodes_ret = ConvertNodes(ge_graph, *dag, has_profiled_node_cost);
   GE_ASSERT_SUCCESS(nodes_ret, "FromGEGraph failed: ConvertNodes returned %d",
                     static_cast<int>(nodes_ret));
 
@@ -65,7 +84,15 @@ graphStatus DAGAdapter::FromGEGraph(const ConstGraphPtr &ge_graph,
   return GRAPH_SUCCESS;
 }
 
-graphStatus DAGAdapter::ConvertNodes(const ConstGraphPtr &ge_graph, minidag::DAGGraph &dag) {
+graphStatus DAGAdapter::ConvertNodes(const ConstGraphPtr &ge_graph,
+                                     minidag::DAGGraph &dag,
+                                     bool &has_profiled_node_cost) {
+  GE_ASSERT_NOTNULL(ge_graph);
+  has_profiled_node_cost = false;
+  std::string profiling_path = ResolveProfilingPath();
+  std::unordered_map<std::string, minidag::ProfilingData> profiles;
+  LoadProfilingData(profiling_path, profiles);
+
   auto gnodes = ge_graph->GetDirectNode();
   int64_t topo_id = 0;
 
@@ -82,18 +109,11 @@ graphStatus DAGAdapter::ConvertNodes(const ConstGraphPtr &ge_graph, minidag::DAG
     GE_ASSERT_NOTNULL(node);
     auto op_desc = node->GetOpDesc();
     GE_ASSERT_NOTNULL(op_desc);
-    int32_t block_dim = -1;
-    minidag::NodeCost cost;
-    // 统计cube/vector核数
-    (void)AttrUtils::GetInt(op_desc, TVM_ATTR_NAME_BLOCKDIM, block_dim);
-    if (block_dim != -1) {
-      if (StreamUtils::IsAicNode(node)) {
-        cost.cube_block_num = block_dim;
-      }
-      if (StreamUtils::IsAivNode(node)) {
-        cost.vec_block_num = block_dim;
-      }
-    }
+
+    std::string node_name(name.GetString());
+    bool profiled_cost_matched = false;
+    minidag::NodeCost cost = BuildNodeCost(node_name, node, op_desc, profiles, profiled_cost_matched);
+    has_profiled_node_cost = has_profiled_node_cost || profiled_cost_matched;
     // 设置串行标记
     std::string stream_label;
     (void) AttrUtils::GetStr(op_desc, ATTR_NAME_STREAM_LABEL, stream_label);
@@ -110,6 +130,77 @@ graphStatus DAGAdapter::ConvertNodes(const ConstGraphPtr &ge_graph, minidag::DAG
 
   GELOGI("ConvertNodes done: total=%zu", gnodes.size());
   return GRAPH_SUCCESS;
+}
+
+std::string DAGAdapter::ResolveProfilingPath() {
+  // Environment variable for explicitly specifying the op_summary.csv path. MiniDAG switches to the
+  // weighted algorithm in the later stream merge stage only when at least one node in the current
+  // graph matches profiling data from this file; otherwise it keeps the original non-weighted strategy.
+  const char *env_minidag_path = std::getenv("MINIDAG_PROFILING_PATH");
+  if (env_minidag_path == nullptr || strlen(env_minidag_path) == 0) {
+    return "";
+  }
+  std::string env_str(env_minidag_path);
+  if (env_str.size() >= kCsvSuffixLength && env_str.substr(env_str.size() - kCsvSuffixLength) == ".csv") {
+    std::string profiling_path = env_str;
+    GELOGI("Profiling path overridden by MINIDAG_PROFILING_PATH (csv file): %s", profiling_path.c_str());
+    return profiling_path;
+  }
+  GELOGW("MINIDAG_PROFILING_PATH only accepts csv file path, but got: %s", env_str.c_str());
+  return "";
+}
+
+void DAGAdapter::LoadProfilingData(
+    const std::string &profiling_path,
+    std::unordered_map<std::string, minidag::ProfilingData> &profiles) {
+  if (profiling_path.empty()) {
+    return;
+  }
+  auto parse_ret = minidag::ProfilingParser::Parse(profiling_path, profiles);
+  if (parse_ret != minidag::graphStatus::SUCCESS) {
+    GELOGW("Parse profiling data failed from %s, using default cost values.", profiling_path.c_str());
+    profiles.clear();
+    return;
+  }
+  GELOGI("Parsed %zu profiling records from %s", profiles.size(), profiling_path.c_str());
+}
+
+minidag::NodeCost DAGAdapter::BuildNodeCost(
+    const std::string &node_name,
+    const NodePtr &node,
+    const OpDescPtr &op_desc,
+    const std::unordered_map<std::string, minidag::ProfilingData> &profiles,
+    bool &profiled_cost_matched) {
+  minidag::NodeCost cost;
+  profiled_cost_matched = false;
+  auto it = profiles.find(node_name);
+  if (it == profiles.end()) {
+    std::string name_without_scope = GetOpNameWithoutScope(node_name);
+    it = profiles.find(name_without_scope);
+  }
+
+  if (it != profiles.end()) {
+    cost.execution_time = it->second.execution_time;
+    cost.cube_block_num = it->second.cube_block_num;
+    cost.vec_block_num = it->second.vec_block_num;
+    profiled_cost_matched = true;
+    GELOGI("Use profiling cost for %s: time=%f, cube=%zu, vec=%zu",
+           node_name.c_str(), cost.execution_time, cost.cube_block_num, cost.vec_block_num);
+    return cost;
+  }
+
+  int32_t block_dim = -1;
+  (void)AttrUtils::GetInt(op_desc, TVM_ATTR_NAME_BLOCKDIM, block_dim);
+  if (block_dim == -1) {
+    return cost;
+  }
+  if (StreamUtils::IsAicNode(node)) {
+    cost.cube_block_num = block_dim;
+  }
+  if (StreamUtils::IsAivNode(node)) {
+    cost.vec_block_num = block_dim;
+  }
+  return cost;
 }
 
 graphStatus DAGAdapter::ConvertEdges(const ConstGraphPtr &ge_graph, minidag::DAGGraph &dag) {

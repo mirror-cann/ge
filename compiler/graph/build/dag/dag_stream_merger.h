@@ -21,7 +21,8 @@ namespace minidag {
 
 enum class StreamMergeStrategy {
   kLoadBalance = 0,
-  kMainStream = 1
+  kMainStream = 1,
+  kWeightedLoadBalance = 2
 };
 
 struct StreamMergeOptions {

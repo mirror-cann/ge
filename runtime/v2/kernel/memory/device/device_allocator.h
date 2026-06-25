@@ -15,7 +15,6 @@
 #include "kernel/memory/type/mem_addr.h"
 #include "kernel/memory/util/object_allocator.h"
 #include "kernel/memory/allocator/scalable_config.h"
-#include "rt_external_mem.h"
 #include "graph/manager/active_memory_allocator.h"
 
 namespace gert {

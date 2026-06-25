@@ -14,6 +14,7 @@
 #include "ge_running_env/op_reg.h"
 #include "graph/ge_local_context.h"
 #include "graph/ge_global_options.h"
+#include "graph/preprocess/insert_op/insert_aipp_op_util.h"
 
 #include "utils/model_factory.h"
 #include "parser/common/op_registration_tbe.h"
@@ -84,6 +85,21 @@ class AtcCommonSTest : public AtcTest {
     std::ofstream raw_file(raw_path);
     raw_file << content;
     return raw_path;
+  }
+
+  std::string WriteAippConfig(const std::string &file_name, const std::string &aipp_mode) const {
+    auto cfg_dir = PathJoin(GetRunPath().c_str(), "temp");
+    Mkdir(cfg_dir.c_str());
+    const auto cfg_path = PathJoin(cfg_dir.c_str(), file_name.c_str());
+    std::ofstream cfg_file(cfg_path);
+    cfg_file << "aipp_op {\n"
+             << "  aipp_mode: " << aipp_mode << "\n"
+             << "  related_input_rank: 0\n"
+             << "  max_src_image_size: 752640\n"
+             << "  input_format: RGB888_U8\n"
+             << "  csc_switch: false\n"
+             << "}\n";
+    return cfg_path;
   }
 
   int32_t RunAtcWithRawOptions(const std::string &output_name, const std::string &raw_options_path,
@@ -3035,6 +3051,34 @@ TEST_F(AtcCommonSTest, GeFlags_raw_ge_options_om2_unsupported_option_failed) {
   const int32_t ret = RunAtcWithRawOptions("raw_ge_options_om2_unsupported_option", raw_path, {"--mode=7"});
   EXPECT_NE(ret, 0);
   ReInitGe();
+}
+
+TEST_F(AtcCommonSTest, GeFlags_om2_dynamic_aipp_rejected) {
+  const auto cfg_path = WriteAippConfig("om2_dynamic_aipp.cfg", "dynamic");
+  auto om_path = PathJoin(GetRunPath().c_str(), "temp");
+  Mkdir(om_path.c_str());
+  om_path = PathJoin(om_path.c_str(), "om2_dynamic_aipp_rejected");
+  std::string model_arg = "--model=st_run_data/origin_model/add.pb";
+  std::string output_arg = "--output=" + om_path;
+  std::string insert_conf_arg = "--insert_op_conf=" + cfg_path;
+  char *argv[] = {"atc",
+                  const_cast<char *>(model_arg.c_str()),
+                  const_cast<char *>(output_arg.c_str()),
+                  "--framework=3",
+                  "--mode=7",
+                  "--soc_version=Ascend310",
+                  "--input_format=NCHW",
+                  "--input_shape=Placeholder_1:1,256,256,3",
+                  const_cast<char *>(insert_conf_arg.c_str())};
+  int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
+  EXPECT_NE(ret, 0);
+  ReInitGe();
+}
+
+TEST_F(AtcCommonSTest, GeFlags_om2_static_aipp_validate_passes) {
+  EXPECT_EQ(InsertAippOpUtil::ValidateStaticAippOnly(""), SUCCESS);
+  const auto cfg_path = WriteAippConfig("om2_static_aipp.cfg", "static");
+  EXPECT_EQ(InsertAippOpUtil::ValidateStaticAippOnly(cfg_path), SUCCESS);
 }
 
 TEST_F(AtcCommonSTest, GeFlags_param_static_model_ops_lower_limit_invalid) {

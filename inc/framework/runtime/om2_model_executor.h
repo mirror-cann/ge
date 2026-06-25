@@ -69,6 +69,16 @@ VISIBILITY_EXPORT ge::Status GetOm2MemAndWeightSize(const std::string &model_pat
                                                     size_t &internal_weight_size);
 VISIBILITY_EXPORT ge::Status GetOm2MemAndWeightSize(const void *model_data, size_t model_size,
                                                     size_t &work_size, size_t &internal_weight_size);
+VISIBILITY_EXPORT ge::Status GetOm2ModelMetadata(const std::string &model_path,
+                                                 std::vector<ge::Om2TensorDesc> &input_desc,
+                                                 std::vector<ge::Om2TensorDesc> &input_desc_v2,
+                                                 std::vector<ge::Om2TensorDesc> &output_desc,
+                                                 std::vector<ge::Om2TensorDesc> &output_desc_v2);
+VISIBILITY_EXPORT ge::Status GetOm2ModelMetadata(const void *model_data, size_t model_size,
+                                                 std::vector<ge::Om2TensorDesc> &input_desc,
+                                                 std::vector<ge::Om2TensorDesc> &input_desc_v2,
+                                                 std::vector<ge::Om2TensorDesc> &output_desc,
+                                                 std::vector<ge::Om2TensorDesc> &output_desc_v2);
 VISIBILITY_EXPORT std::unique_ptr<Om2ModelExecutor> LoadOm2ExecutorFromData(ge::ModelData &model_data,
                                                                             const Om2ModelLoadArg &load_arg,
                                                                             ge::graphStatus &error_code);

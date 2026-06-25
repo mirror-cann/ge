@@ -12,8 +12,10 @@
 #include <ge_running_env/ge_running_env_faker.h>
 #include <ge_running_env/fake_op.h>
 #include <common/share_graph.h>
+#include <fstream>
 #include "api/gelib/gelib.h"
 #include "graph/build/stream/dag_adapter.h"
+#include "graph/build/dag/dag_profiling_parser.h"
 #include "graph/build/dag/dag_stream_allocator.h"
 #include "graph/build/dag/dag_types.h"
 #include "engines/manager/engine_manager/dnnengine_manager.h"
@@ -28,6 +30,12 @@
 
 namespace ge {
 namespace {
+graphStatus CallFromGEGraph(const ConstGraphPtr &ge_graph,
+                            std::shared_ptr<minidag::DAGGraph> &dag) {
+  bool has_profiled_node_cost = false;
+  return DAGAdapter::FromGEGraph(ge_graph, dag, has_profiled_node_cost);
+}
+
 void SetStreamLabel(const ge::GNode &gnode, const std::string &stream_label) {
   auto node = NodeAdapter::GNode2Node(gnode);
   ASSERT_NE(node, nullptr);
@@ -63,6 +71,20 @@ ge::ConstGraphPtr BuildStreamLabelControlGraph() {
 
 class DAGAdapterIntegrationTest : public testing::Test {
  protected:
+  void SetUp() override {
+    unsetenv("GE_PROFILING_MODE");
+    unsetenv("GE_PROFILING_OPTIONS");
+    unsetenv("MINIDAG_PROFILING_PATH");
+    ge::GetThreadLocalContext().SetGraphOption({{ge::SOC_VERSION, "Ascend910B1"}});
+  }
+
+  void TearDown() override {
+    unsetenv("GE_PROFILING_MODE");
+    unsetenv("GE_PROFILING_OPTIONS");
+    unsetenv("MINIDAG_PROFILING_PATH");
+    ge::GetThreadLocalContext().SetGraphOption({{ge::SOC_VERSION, "Ascend910B1"}});
+  }
+
   static void SetUpTestSuite() {
     std::map<std::string, std::string> options;
     options[ge::SOC_VERSION] = "Ascend910B1";
@@ -135,7 +157,7 @@ TEST_F(DAGAdapterIntegrationTest, EndToEnd_FullPipeline) {
   ASSERT_NE(ge_graph, nullptr);
 
   std::shared_ptr<minidag::DAGGraph> dag;
-  auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
+  auto ret = CallFromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
   EXPECT_EQ(dag->GetNodeCount(), original_node_count);
@@ -163,7 +185,7 @@ TEST_F(DAGAdapterIntegrationTest, EndToEnd_MultiNodeGraph) {
   ASSERT_NE(ge_graph, nullptr);
 
   std::shared_ptr<minidag::DAGGraph> dag;
-  auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
+  auto ret = CallFromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
   EXPECT_EQ(dag->GetNodeCount(), original_node_count);
@@ -196,7 +218,7 @@ TEST_F(DAGAdapterIntegrationTest, EndToEnd_StreamLabelAssignedToSameSerialStream
   ASSERT_NE(ge_graph, nullptr);
 
   std::shared_ptr<minidag::DAGGraph> dag;
-  auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
+  auto ret = CallFromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
 
@@ -243,7 +265,7 @@ TEST_F(DAGAdapterIntegrationTest, RefreshStreamIdsToGE_StreamIdSet) {
   ASSERT_NE(ge_graph, nullptr);
 
   std::shared_ptr<minidag::DAGGraph> dag;
-  auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
+  auto ret = CallFromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
 
@@ -280,7 +302,7 @@ TEST_F(DAGAdapterIntegrationTest, RefreshStreamIdsToGE_SkipInvalidStreamId) {
   ASSERT_NE(ge_graph, nullptr);
 
   std::shared_ptr<minidag::DAGGraph> dag;
-  auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
+  auto ret = CallFromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
 
@@ -306,7 +328,7 @@ TEST_F(DAGAdapterIntegrationTest, RefreshStreamIdsToGE_NodeNotFoundInGE) {
   ASSERT_NE(ge_graph, nullptr);
 
   std::shared_ptr<minidag::DAGGraph> dag;
-  auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
+  auto ret = CallFromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
 
@@ -328,7 +350,7 @@ TEST_F(DAGAdapterIntegrationTest, RefreshStreamIdsToGE_VariousStreamIds) {
   ASSERT_NE(ge_graph, nullptr);
 
   std::shared_ptr<minidag::DAGGraph> dag;
-  auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
+  auto ret = CallFromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
 
@@ -392,7 +414,7 @@ TEST_F(DAGAdapterIntegrationTest, FromGEGraph_DeviceResourcePopulated) {
   ASSERT_NE(ge_graph, nullptr);
 
   std::shared_ptr<minidag::DAGGraph> dag;
-  auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
+  auto ret = CallFromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
 
@@ -449,7 +471,7 @@ TEST_F(DAGAdapterIntegrationTest, FillDeviceResource_ValuesReasonable) {
   ASSERT_NE(ge_graph, nullptr);
 
   std::shared_ptr<minidag::DAGGraph> dag;
-  auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
+  auto ret = CallFromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
 
   const auto& resource = dag->GetDeviceResource();
@@ -457,5 +479,515 @@ TEST_F(DAGAdapterIntegrationTest, FillDeviceResource_ValuesReasonable) {
   EXPECT_GE(resource.vector_core_num, 0);
 }
 
+
+// --------------------
+// 场景 4：Profiling 集成测试
+// --------------------
+
+/**
+ * 场景 4-1: Profiling 数据集成验证
+ * 用例描述：测试环境变量 MINIDAG_PROFILING_PATH 设置后，DAGAdapter 正确解析 profiling 数据并设置节点开销
+ * 预置条件：
+ *   1. Fake AIcoreEngine 及 Add 算子信息
+ *   2. 创建 profiling CSV 文件
+ * 测试步骤：
+ *   1. 创建包含 add1 节点 profiling 数据的 CSV 文件
+ *   2. 设置 MINIDAG_PROFILING_PATH 环境变量
+ *   3. 将 GE 图转换为 MiniDAG 图
+ *   4. 验证 add1 节点的开销来自 profiling 数据
+ * 预期结果：
+ *   1. add1 节点的 execution_time、cube_block_num 正确设置
+ */
+TEST_F(DAGAdapterIntegrationTest, FromGEGraph_WithProfilingData_UsesProfilingCost) {
+  const char* profiling_path = "/tmp/test_minidag_profiling_integration.csv";
+  std::ofstream file(profiling_path);
+  file << "Op Name,Task Type,Task Duration(us),Block Num,Mix Block Num\n"
+       << "add1,AI_CORE,100.0,8,0\n";
+  file.close();
+
+  setenv("MINIDAG_PROFILING_PATH", profiling_path, 1);
+
+  auto compute_graph = gert::ShareGraph::BuildTwoAddNodeKnownShapeGraph();
+  ASSERT_NE(compute_graph, nullptr);
+  auto ge_graph = ToConstGraphPtr(compute_graph);
+  ASSERT_NE(ge_graph, nullptr);
+
+  std::shared_ptr<minidag::DAGGraph> dag;
+  auto ret = CallFromGEGraph(ge_graph, dag);
+  ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
+  ASSERT_NE(dag, nullptr);
+
+  auto add_node = dag->FindNode("add1");
+  ASSERT_NE(add_node, nullptr);
+  const auto& cost = add_node->GetCost();
+  EXPECT_EQ(cost.execution_time, 100.0f);
+  EXPECT_EQ(cost.cube_block_num, 8U);
+
+  unsetenv("MINIDAG_PROFILING_PATH");
+  std::remove(profiling_path);
+}
+
+/**
+ * 用例描述：测试 profiling 命中节点时，FromGEGraph 输出 has_profiled_node_cost 为 true
+ * 预置条件：
+ *   1. Fake AIcoreEngine 及 Add 算子信息
+ *   2. 创建 add1 节点命中的 profiling CSV 文件
+ * 测试步骤：
+ *   1. 设置 MINIDAG_PROFILING_PATH 环境变量
+ *   2. 调用带 has_profiled_node_cost 出参的新 FromGEGraph 签名
+ *   3. 校验转换成功且命中标志为 true
+ * 预期结果：
+ *   1. 返回 GRAPH_SUCCESS
+ *   2. has_profiled_node_cost 为 true
+ */
+TEST_F(DAGAdapterIntegrationTest, FromGEGraph_WithProfilingData_SetsProfiledCostFlag) {
+  const char *profiling_path = "/tmp/test_minidag_profiled_flag.csv";
+  struct ProfilingPathGuard {
+    explicit ProfilingPathGuard(const char *path) : path(path) {}
+    ~ProfilingPathGuard() {
+      unsetenv("MINIDAG_PROFILING_PATH");
+      std::remove(path);
+    }
+    const char *path;
+  } guard(profiling_path);
+  std::ofstream file(profiling_path);
+  file << "Op Name,Task Type,Task Duration(us),Block Num,Mix Block Num\n"
+       << "add1,AI_CORE,123.0,8,0\n";
+  file.close();
+
+  setenv("MINIDAG_PROFILING_PATH", profiling_path, 1);
+
+  auto compute_graph = gert::ShareGraph::BuildTwoAddNodeKnownShapeGraph();
+  ASSERT_NE(compute_graph, nullptr);
+  auto ge_graph = ToConstGraphPtr(compute_graph);
+  ASSERT_NE(ge_graph, nullptr);
+
+  std::shared_ptr<minidag::DAGGraph> dag;
+  bool has_profiled_node_cost = false;
+  auto ret = DAGAdapter::FromGEGraph(ge_graph, dag, has_profiled_node_cost);
+  ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
+  ASSERT_NE(dag, nullptr);
+  EXPECT_TRUE(has_profiled_node_cost);
+}
+
+/**
+ * 用例描述：测试 profiling 文件存在但节点未命中时，FromGEGraph 输出 has_profiled_node_cost 为 false
+ * 预置条件：
+ *   1. Fake AIcoreEngine 及 Add 算子信息
+ *   2. 创建节点名不匹配的 profiling CSV 文件
+ * 测试步骤：
+ *   1. 设置 MINIDAG_PROFILING_PATH 环境变量
+ *   2. 调用带 has_profiled_node_cost 出参的新 FromGEGraph 签名
+ *   3. 校验转换成功且命中标志为 false
+ * 预期结果：
+ *   1. 返回 GRAPH_SUCCESS
+ *   2. has_profiled_node_cost 为 false
+ */
+TEST_F(DAGAdapterIntegrationTest, FromGEGraph_WithUnmatchedProfiling_KeepsProfiledCostFlagFalse) {
+  const char *profiling_path = "/tmp/test_minidag_profiled_unmatched.csv";
+  struct ProfilingPathGuard {
+    explicit ProfilingPathGuard(const char *path) : path(path) {}
+    ~ProfilingPathGuard() {
+      unsetenv("MINIDAG_PROFILING_PATH");
+      std::remove(path);
+    }
+    const char *path;
+  } guard(profiling_path);
+  std::ofstream file(profiling_path);
+  file << "Op Name,Task Type,Task Duration(us),Block Num,Mix Block Num\n"
+       << "other_node,AI_CORE,55.0,4,0\n";
+  file.close();
+
+  setenv("MINIDAG_PROFILING_PATH", profiling_path, 1);
+
+  auto compute_graph = gert::ShareGraph::BuildTwoAddNodeKnownShapeGraph();
+  ASSERT_NE(compute_graph, nullptr);
+  auto ge_graph = ToConstGraphPtr(compute_graph);
+  ASSERT_NE(ge_graph, nullptr);
+
+  std::shared_ptr<minidag::DAGGraph> dag;
+  bool has_profiled_node_cost = true;
+  auto ret = DAGAdapter::FromGEGraph(ge_graph, dag, has_profiled_node_cost);
+  ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
+  ASSERT_NE(dag, nullptr);
+  EXPECT_FALSE(has_profiled_node_cost);
+}
+
+/**
+ * 场景 4-3: MINIDAG 环境变量独立于 profilingOptions 生效
+ * 用例描述：测试环境变量 MINIDAG_PROFILING_PATH 设置后，即使 profilingOptions 存在，也只读取 MINIDAG 路径
+ * 预置条件：
+ *   1. Fake AIcoreEngine 及 Add 算子信息
+ *   2. 创建两个不同的 profiling 文件
+ * 测试步骤：
+ *   1. 设置 profilingOptions 的 output 指向目录 A
+ *   2. 设置环境变量 MINIDAG_PROFILING_PATH 指向文件 B
+ *   3. 将 GE 图转换为 MiniDAG 图
+ *   4. 验证节点开销来自环境变量指定的文件 B
+ * 预期结果：
+ *   1. 仅 MINIDAG_PROFILING_PATH 生效，使用文件 B 的数据
+ */
+/**
+ * 场景 4-2: 环境变量指定目录时不生效
+ * 用例描述：测试环境变量 MINIDAG_PROFILING_PATH 设置为目录时，MiniDAG profiling 回填不生效
+ * 预置条件：
+ *   1. Fake AIcoreEngine 及 Add 算子信息
+ *   2. 创建模拟的 profiling 目录结构
+ * 测试步骤：
+ *   1. 创建 PROF_* 目录结构
+ *   2. 设置环境变量为目录路径（不是具体 csv 文件）
+ *   3. 将 GE 图转换为 MiniDAG 图
+ *   4. 验证节点开销保持默认值
+ * 预期结果：
+ *   1. 目录路径不生效，节点开销保持默认值
+ */
+TEST_F(DAGAdapterIntegrationTest, FromGEGraph_EnvDirectoryIgnored) {
+  std::string base_path = "/tmp/test_prof_env_dir_" + std::to_string(getpid());
+  std::string prof_dir = "PROF_000001_20260101";
+  std::string output_dir = base_path + "/" + prof_dir + "/mindstudio_profiler_output";
+  
+  mkdir(base_path.c_str(), 0755);
+  mkdir((base_path + "/" + prof_dir).c_str(), 0755);
+  mkdir(output_dir.c_str(), 0755);
+  
+  std::string csv_path = output_dir + "/op_summary_20260101.csv";
+  std::ofstream file(csv_path);
+  file << "Op Name,Task Type,Task Duration(us),Block Num,Mix Block Num\n"
+       << "add1,AI_CORE,150.0,12,0\n";
+  file.close();
+  
+  // 设置环境变量为目录（不是 csv 文件）
+  setenv("MINIDAG_PROFILING_PATH", base_path.c_str(), 1);
+
+  auto compute_graph = gert::ShareGraph::BuildTwoAddNodeKnownShapeGraph();
+  ASSERT_NE(compute_graph, nullptr);
+  auto ge_graph = ToConstGraphPtr(compute_graph);
+  ASSERT_NE(ge_graph, nullptr);
+
+  std::shared_ptr<minidag::DAGGraph> dag;
+  auto ret = CallFromGEGraph(ge_graph, dag);
+  ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
+  ASSERT_NE(dag, nullptr);
+
+  auto add_node = dag->FindNode("add1");
+  ASSERT_NE(add_node, nullptr);
+  const auto& cost = add_node->GetCost();
+  EXPECT_EQ(cost.execution_time, -1.0f);
+  EXPECT_EQ(cost.cube_block_num, 0U);
+
+  // 清理
+  unsetenv("MINIDAG_PROFILING_PATH");
+  std::remove(csv_path.c_str());
+  rmdir(output_dir.c_str());
+  rmdir((base_path + "/" + prof_dir).c_str());
+  rmdir(base_path.c_str());
+}
+
+// --------------------
+// 场景 5：MiniDAG Profiling 开关集成测试
+// --------------------
+
+/**
+ * 场景 5-1: GE Options (profilingMode=1 + profilingOptions) 被忽略
+ * 用例描述：测试 profilingMode=1 且 profilingOptions 有 output 时，完整流程仍忽略 GE Options 路径
+ * 预置条件：
+ *   1. Fake AIcoreEngine 及 Add 算子信息
+ *   2. 创建 profiling 目录结构
+ * 测试步骤：
+ *   1. 设置 profilingMode=1 和 profilingOptions
+ *   2. 构建 GE 图并转换为 MiniDAG
+ *   3. 验证节点开销保持默认值
+ * 预期结果：
+ *   1. 节点开销保持默认值，不使用 GE Options 指定的 profiling 数据
+ */
+TEST_F(DAGAdapterIntegrationTest, Profiling_GEOptionsIgnored) {
+  std::string base_path = "/tmp/test_st_ge_options_" + std::to_string(getpid());
+  std::string prof_dir = "PROF_000001_20260101";
+  std::string output_dir = base_path + "/" + prof_dir + "/mindstudio_profiler_output";
+  
+  mkdir(base_path.c_str(), 0755);
+  mkdir((base_path + "/" + prof_dir).c_str(), 0755);
+  mkdir(output_dir.c_str(), 0755);
+  
+  std::string csv_path = output_dir + "/op_summary_20260101.csv";
+  std::ofstream file(csv_path);
+  file << "Op Name,Task Type,Task Duration(us),Block Num,Mix Block Num\n"
+       << "add1,AI_CORE,250.0,20,0\n";
+  file.close();
+  
+  std::map<std::string, std::string> options;
+  options[ge::SOC_VERSION] = "Ascend910B1";
+  options[OPTION_EXEC_PROFILING_MODE] = "1";
+  options[OPTION_EXEC_PROFILING_OPTIONS] = "{\"output\":\"" + base_path + "\"}";
+  ge::GetThreadLocalContext().SetGraphOption(options);
+
+  auto compute_graph = gert::ShareGraph::BuildTwoAddNodeKnownShapeGraph();
+  ASSERT_NE(compute_graph, nullptr);
+  auto ge_graph = ToConstGraphPtr(compute_graph);
+  ASSERT_NE(ge_graph, nullptr);
+
+  std::shared_ptr<minidag::DAGGraph> dag;
+  auto ret = CallFromGEGraph(ge_graph, dag);
+  ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
+  ASSERT_NE(dag, nullptr);
+
+  auto add_node = dag->FindNode("add1");
+  ASSERT_NE(add_node, nullptr);
+  const auto& cost = add_node->GetCost();
+  EXPECT_EQ(cost.execution_time, -1.0f);
+  EXPECT_EQ(cost.cube_block_num, 0U);
+
+  // 清理
+  std::remove(csv_path.c_str());
+  rmdir(output_dir.c_str());
+  rmdir((base_path + "/" + prof_dir).c_str());
+  rmdir(base_path.c_str());
+  options.erase(OPTION_EXEC_PROFILING_MODE);
+  options.erase(OPTION_EXEC_PROFILING_OPTIONS);
+  ge::GetThreadLocalContext().SetGraphOption(options);
+}
+
+/**
+ * 场景 5-2: GE 环境变量被忽略端到端测试
+ * 用例描述：测试即使设置 GE_PROFILING_MODE + GE_PROFILING_OPTIONS，MiniDAG 仍忽略 GE 环境变量
+ * 预置条件：
+ *   1. Fake AIcoreEngine 及 Add 算子信息
+ *   2. 创建 profiling 目录结构
+ * 测试步骤：
+ *   1. 不设置 GE Options 或设置无效的
+ *   2. 设置 GE_PROFILING_MODE=true 和 GE_PROFILING_OPTIONS
+ *   3. 构建 GE 图并转换为 MiniDAG
+ *   4. 验证节点开销保持默认值
+ * 预期结果：
+ *   1. 节点开销保持默认值，不使用 GE 环境变量指定的 profiling 数据
+ */
+TEST_F(DAGAdapterIntegrationTest, Profiling_GEEnvIgnored) {
+  std::string base_path = "/tmp/test_st_ge_env_" + std::to_string(getpid());
+  std::string prof_dir = "PROF_000001_20260101";
+  std::string output_dir = base_path + "/" + prof_dir + "/mindstudio_profiler_output";
+  
+  mkdir(base_path.c_str(), 0755);
+  mkdir((base_path + "/" + prof_dir).c_str(), 0755);
+  mkdir(output_dir.c_str(), 0755);
+  
+  std::string csv_path = output_dir + "/op_summary_20260101.csv";
+  std::ofstream file(csv_path);
+  file << "Op Name,Task Type,Task Duration(us),Block Num,Mix Block Num\n"
+       << "add1,AI_CORE,300.0,25,0\n";
+  file.close();
+  
+  // 不设置 GE profiling options，让系统回退到环境变量
+  std::map<std::string, std::string> options;
+  options[ge::SOC_VERSION] = "Ascend910B1";
+  ge::GetThreadLocalContext().SetGraphOption(options);
+
+  setenv("GE_PROFILING_MODE", "true", 1);
+  setenv("GE_PROFILING_OPTIONS", ("{\"output\":\"" + base_path + "\"}").c_str(), 1);
+
+  auto compute_graph = gert::ShareGraph::BuildTwoAddNodeKnownShapeGraph();
+  ASSERT_NE(compute_graph, nullptr);
+  auto ge_graph = ToConstGraphPtr(compute_graph);
+  ASSERT_NE(ge_graph, nullptr);
+
+  std::shared_ptr<minidag::DAGGraph> dag;
+  auto ret = CallFromGEGraph(ge_graph, dag);
+  ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
+  ASSERT_NE(dag, nullptr);
+
+  auto add_node = dag->FindNode("add1");
+  ASSERT_NE(add_node, nullptr);
+  const auto& cost = add_node->GetCost();
+  EXPECT_EQ(cost.execution_time, -1.0f);
+  EXPECT_EQ(cost.cube_block_num, 0U);
+
+  // 清理
+  unsetenv("GE_PROFILING_MODE");
+  unsetenv("GE_PROFILING_OPTIONS");
+  std::remove(csv_path.c_str());
+  rmdir(output_dir.c_str());
+  rmdir((base_path + "/" + prof_dir).c_str());
+  rmdir(base_path.c_str());
+}
+
+/**
+ * 场景 5-3: MINIDAG_PROFILING_PATH 独立于 GE Options 生效端到端测试
+ * 用例描述：测试即使 GE Options 存在，真正生效的仍只有 MINIDAG_PROFILING_PATH
+ * 预置条件：
+ *   1. Fake AIcoreEngine 及 Add 算子信息
+ *   2. 创建两个不同的 profiling 数据源
+ * 测试步骤：
+ *   1. 设置 GE Options 指向数据源 A
+ *   2. 设置 MINIDAG_PROFILING_PATH 指向数据源 B
+ *   3. 构建 GE 图并转换为 MiniDAG
+ *   4. 验证节点开销来自 MINIDAG_PROFILING_PATH
+ * 预期结果：
+ *   1. 仅 MINIDAG_PROFILING_PATH 生效，使用数据源 B 的数据
+ */
+TEST_F(DAGAdapterIntegrationTest, Profiling_MinidagWorksIndependentlyOfGEOptions) {
+  // GE Options 指向的数据（不会被使用）
+  std::string option_path = "/tmp/test_st_option_" + std::to_string(getpid());
+  std::string prof_dir1 = "PROF_000001_20260101";
+  std::string output_dir1 = option_path + "/" + prof_dir1 + "/mindstudio_profiler_output";
+  
+  mkdir(option_path.c_str(), 0755);
+  mkdir((option_path + "/" + prof_dir1).c_str(), 0755);
+  mkdir(output_dir1.c_str(), 0755);
+  
+  std::string csv_path1 = output_dir1 + "/op_summary_1.csv";
+  std::ofstream file1(csv_path1);
+  file1 << "Op Name,Task Type,Task Duration(us),Block Num,Mix Block Num\n"
+        << "add1,AI_CORE,100.0,8,0\n";  // 这个数据不会被使用
+  file1.close();
+  
+  // MINIDAG_PROFILING_PATH 指向的数据（会被使用）
+  std::string minidag_path = "/tmp/test_st_minidag_override.csv";
+  std::ofstream file2(minidag_path);
+  file2 << "Op Name,Task Type,Task Duration(us),Block Num,Mix Block Num\n"
+        << "add1,AI_CORE,350.0,28,0\n";  // 这个数据会被使用
+  file2.close();
+  
+  std::map<std::string, std::string> options;
+  options[ge::SOC_VERSION] = "Ascend910B1";
+  options[OPTION_EXEC_PROFILING_MODE] = "1";
+  options[OPTION_EXEC_PROFILING_OPTIONS] = "{\"output\":\"" + option_path + "\"}";
+  ge::GetThreadLocalContext().SetGraphOption(options);
+  
+  setenv("MINIDAG_PROFILING_PATH", minidag_path.c_str(), 1);
+
+  auto compute_graph = gert::ShareGraph::BuildTwoAddNodeKnownShapeGraph();
+  ASSERT_NE(compute_graph, nullptr);
+  auto ge_graph = ToConstGraphPtr(compute_graph);
+  ASSERT_NE(ge_graph, nullptr);
+
+  std::shared_ptr<minidag::DAGGraph> dag;
+  auto ret = CallFromGEGraph(ge_graph, dag);
+  ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
+  ASSERT_NE(dag, nullptr);
+
+  auto add_node = dag->FindNode("add1");
+  ASSERT_NE(add_node, nullptr);
+  const auto& cost = add_node->GetCost();
+  // MINIDAG_PROFILING_PATH 覆盖，使用 minidag_path 的数据
+  EXPECT_EQ(cost.execution_time, 350.0f);
+  EXPECT_EQ(cost.cube_block_num, 28U);
+
+  // 清理
+  unsetenv("MINIDAG_PROFILING_PATH");
+  std::remove(minidag_path.c_str());
+  std::remove(csv_path1.c_str());
+  rmdir(output_dir1.c_str());
+  rmdir((option_path + "/" + prof_dir1).c_str());
+  rmdir(option_path.c_str());
+  options.erase(OPTION_EXEC_PROFILING_MODE);
+  options.erase(OPTION_EXEC_PROFILING_OPTIONS);
+  ge::GetThreadLocalContext().SetGraphOption(options);
+}
+
+/**
+ * 用例描述：测试 profiling CSV 中 MIX_AIV 任务类型在集成路径下被正确解析
+ * 预置条件：
+ *   1. Fake AIcoreEngine 及 Add 算子信息
+ * 测试步骤：
+ *   1. 创建一条 MIX_AIV profiling 记录
+ *   2. 设置 MINIDAG_PROFILING_PATH 指向该 CSV
+ *   3. 将 GE 图转换为 MiniDAG 图
+ * 预期结果：
+ *   1. 转换成功
+ *   2. add1 节点的 cube/vec block 数按 MIX_AIV 规则解析
+ */
+TEST_F(DAGAdapterIntegrationTest, FromGEGraph_WithMixAivProfiling_UsesParsedCoreCounts) {
+  const char *profiling_path = "/tmp/test_minidag_profiling_mix_aiv.csv";
+  std::ofstream file(profiling_path);
+  file << "Op Name,Task Type,Task Duration(us),Block Num,Mix Block Num\n"
+       << "add1,MIX_AIV,180.0,10,6\n";
+  file.close();
+
+  setenv("MINIDAG_PROFILING_PATH", profiling_path, 1);
+
+  auto compute_graph = gert::ShareGraph::BuildTwoAddNodeKnownShapeGraph();
+  ASSERT_NE(compute_graph, nullptr);
+  auto ge_graph = ToConstGraphPtr(compute_graph);
+  ASSERT_NE(ge_graph, nullptr);
+
+  std::shared_ptr<minidag::DAGGraph> dag;
+  auto ret = CallFromGEGraph(ge_graph, dag);
+  ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
+  ASSERT_NE(dag, nullptr);
+
+  auto add_node = dag->FindNode("add1");
+  ASSERT_NE(add_node, nullptr);
+  const auto &cost = add_node->GetCost();
+  EXPECT_EQ(cost.execution_time, 180.0f);
+  EXPECT_EQ(cost.cube_block_num, 6U);
+  EXPECT_EQ(cost.vec_block_num, 10U);
+
+  unsetenv("MINIDAG_PROFILING_PATH");
+  std::remove(profiling_path);
+}
+
+/**
+ * 用例描述：测试 ProfilingParser 在 profiling 文件不存在时返回失败
+ * 预置条件：
+ *   1. 无
+ * 测试步骤：
+ *   1. 调用 ProfilingParser::Parse 解析一个不存在的 CSV 路径
+ * 预期结果：
+ *   1. 返回 FAILED
+ *   2. profiles 保持为空
+ */
+TEST_F(DAGAdapterIntegrationTest, Parse_FileNotExist_ReturnsFailed) {
+  std::unordered_map<std::string, minidag::ProfilingData> profiles;
+  const auto ret = minidag::ProfilingParser::Parse("/tmp/nonexistent_minidag_st.csv", profiles);
+  EXPECT_EQ(ret, minidag::graphStatus::FAILED);
+  EXPECT_TRUE(profiles.empty());
+}
+
+/**
+ * 用例描述：测试 ProfilingParser 在 profiling 文件为空时返回失败
+ * 预置条件：
+ *   1. 创建一个空的 CSV 文件
+ * 测试步骤：
+ *   1. 调用 ProfilingParser::Parse 解析该空文件
+ * 预期结果：
+ *   1. 返回 FAILED
+ *   2. profiles 保持为空
+ */
+TEST_F(DAGAdapterIntegrationTest, Parse_EmptyFile_ReturnsFailed) {
+  const char *profiling_path = "/tmp/test_minidag_empty_st.csv";
+  std::ofstream file(profiling_path);
+  file.close();
+
+  std::unordered_map<std::string, minidag::ProfilingData> profiles;
+  const auto ret = minidag::ProfilingParser::Parse(profiling_path, profiles);
+  EXPECT_EQ(ret, minidag::graphStatus::FAILED);
+  EXPECT_TRUE(profiles.empty());
+
+  std::remove(profiling_path);
+}
+
+/**
+ * 用例描述：测试 ProfilingParser 在缺少必需列时返回失败
+ * 预置条件：
+ *   1. 创建缺少 Mix Block Num 列的 CSV 文件
+ * 测试步骤：
+ *   1. 调用 ProfilingParser::Parse 解析该 CSV
+ * 预期结果：
+ *   1. 返回 FAILED
+ *   2. profiles 保持为空
+ */
+TEST_F(DAGAdapterIntegrationTest, Parse_MissingRequiredColumn_ReturnsFailed) {
+  const char *profiling_path = "/tmp/test_minidag_missing_column_st.csv";
+  std::ofstream file(profiling_path);
+  file << "Op Name,Task Type,Task Duration(us),Block Num\n"
+       << "add1,AI_CORE,100.0,4\n";
+  file.close();
+
+  std::unordered_map<std::string, minidag::ProfilingData> profiles;
+  const auto ret = minidag::ProfilingParser::Parse(profiling_path, profiles);
+  EXPECT_EQ(ret, minidag::graphStatus::FAILED);
+  EXPECT_TRUE(profiles.empty());
+
+  std::remove(profiling_path);
+}
 
 }  // namespace ge

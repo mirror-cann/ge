@@ -11,7 +11,7 @@
 #include "op_model.h"
 #include <sstream>
 #include "framework/common/util.h"
-#include "utils/attr_utils.h"
+#include "utils/acl_attr_utils.h"
 
 namespace acl {
 std::string OpModelDef::DebugString() const

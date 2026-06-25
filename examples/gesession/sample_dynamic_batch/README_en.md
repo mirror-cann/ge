@@ -45,9 +45,9 @@ In this sample:
 
 1. Login to development environment as running user.
 
-2. After downloading the code and uploading to the environment, please first enter the "examples/gesession/sample_dynmaic_batch" sample directory under the root directory.
+2. After downloading the code and uploading to the environment, please first enter the "examples/gesession/sample_dynamic_batch" sample directory under the root directory.
 
-    Note that the sample directory in the following text refers to the "examples/gesession/sample_dynmaic_batch" directory.
+    Note that the sample directory in the following text refers to the "examples/gesession/sample_dynamic_batch" directory.
 
 3. Prepare ResNet-50 model.
     1. Obtain the ResNet-50 original model.
@@ -75,9 +75,9 @@ In this sample:
 
 1. Login to development environment as running user.
 
-2. Please first enter the "examples/gesession/sample_dynmaic_batch" sample directory under the root directory.
+2. Please first enter the "examples/gesession/sample_dynamic_batch" sample directory under the root directory.
 
-    Note that the sample directory in the following text refers to the "examples/gesession/sample_dynmaic_batch" directory.
+    Note that the sample directory in the following text refers to the "examples/gesession/sample_dynamic_batch" directory.
 
 3. Switch to "sample directory/scripts" and compile the program.
 

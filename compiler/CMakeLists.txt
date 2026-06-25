@@ -120,6 +120,7 @@ set(COMPILER_SRC_LIST
     "graph/build/dag/dag_graph.cc"
     "graph/build/dag/dag_stream_allocator.cc"
     "graph/build/dag/dag_stream_merger.cc"
+    "graph/build/dag/dag_profiling_parser.cc"
     "graph/build/stream/dag_adapter.cc"
     "graph/build/stream/dag_stream_allocator_pass.cc"
     "graph/build/memory/binary_block_mem_assigner.cc"

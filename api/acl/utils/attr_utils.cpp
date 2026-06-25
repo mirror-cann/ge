@@ -8,13 +8,13 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-#include "attr_utils.h"
+#include "acl_attr_utils.h"
 #include <cmath>
 #include "securec.h"
 
 #include "mmpa/mmpa_api.h"
 #include "common/log_inner.h"
-#include "hash_utils.h"
+#include "acl_hash_utils.h"
 
 namespace {
 constexpr float32_t FLOAT_DELTA = 1e-6F;

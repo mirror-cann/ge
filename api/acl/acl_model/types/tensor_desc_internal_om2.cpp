@@ -11,7 +11,7 @@
 #include "tensor_desc_internal.h"
 #include "model/acl_model_impl_om2.h"
 #include "utils/math_utils.h"
-#include "utils/string_utils.h"
+#include "utils/acl_string_utils.h"
 #include "common/prof_api_reg.h"
 #include "model/acl_resource_manager_om2.h"
 

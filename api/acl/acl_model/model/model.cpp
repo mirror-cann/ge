@@ -26,7 +26,7 @@
 #include "framework/runtime/gert_api.h"
 #include "framework/runtime/subscriber/global_profiler.h"
 #include "utils/math_utils.h"
-#include "utils/string_utils.h"
+#include "utils/acl_string_utils.h"
 #include "model_config.h"
 #include "acl_resource_manager.h"
 #include "graph/ge_local_context.h"

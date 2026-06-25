@@ -8,8 +8,8 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-#ifndef TRUNK_PROJ_OP_KERNEL_REGISTRY_H
-#define TRUNK_PROJ_OP_KERNEL_REGISTRY_H
+#ifndef ACL_OP_KERNEL_REGISTRY_H
+#define ACL_OP_KERNEL_REGISTRY_H
 
 #include <map>
 #include <memory>
@@ -64,4 +64,4 @@ private:
 };
 } // namespace acl
 
-#endif // TRUNK_PROJ_OP_KERNEL_REGISTRY_H
+#endif // ACL_OP_KERNEL_REGISTRY_H

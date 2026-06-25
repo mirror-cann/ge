@@ -25,7 +25,7 @@
 #include "single_op/compile/op_compile_service.h"
 #include "model/acl_resource_manager.h"
 #include "utils/array_utils.h"
-#include "utils/string_utils.h"
+#include "utils/acl_string_utils.h"
 #include "acl_stub.h"
 
 #undef private

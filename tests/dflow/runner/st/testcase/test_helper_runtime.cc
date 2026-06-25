@@ -29,7 +29,7 @@
 
 #include "macro_utils/dt_public_scope.h"
 #include "executor/cpu_sched_event_dispatcher.h"
-#include "common/config/json_parser.h"
+#include "common/config/dflow_deployer_json_parser.h"
 #include "common/config/config_parser.h"
 #include "common/file_constant_utils/file_constant_utils.h"
 #include "hybrid/node_executor/node_executor.h"

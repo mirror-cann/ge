@@ -9,7 +9,7 @@
  */
 
 #include "common/config/configurations.h"
-#include "common/config/json_parser.h"
+#include "common/config/dflow_deployer_json_parser.h"
 #include "common/debug/log.h"
 #include "common/config/config_parser.h"
 #include "dflow/base/utils/process_utils.h"

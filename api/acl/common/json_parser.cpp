@@ -8,7 +8,7 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-#include "json_parser.h"
+#include "acl_json_parser.h"
 
 #include <fstream>
 #include <sstream>

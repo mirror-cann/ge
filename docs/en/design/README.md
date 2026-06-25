@@ -2,19 +2,6 @@
 
 This documentation set introduces GE (Graph Engine) architecture design from different dimensions, **targeting developers who want to contribute code to GE**, helping quickly understand the overall project structure, core design decisions, and implementation details of each module.
 
-Excluding tests, there are approximately **790,000 lines of effective code** with over 8,000 source files:
-
-| Module | Ratio | Responsibility |
-|--------|-------|----------------|
-| compiler | 34% | Graph compilation (optimization, partitioning, building) |
-| runtime | 20% | Graph execution (loading, execution, Hybrid) |
-| graph_metadef | 12% | IR definition, operator registration |
-| dflow | 11% | Distributed flow framework |
-| base | 7% | Infrastructure |
-| inc | 6% | Public headers |
-| api | 4% | API interfaces |
-| parser | 3% | Model parsing |
-
 ## Architecture Overview
 
 | Document | Description |

@@ -29,6 +29,14 @@
 
 namespace ge {
 
+namespace {
+graphStatus CallFromGEGraph(const ConstGraphPtr &ge_graph,
+                            std::shared_ptr<minidag::DAGGraph> &dag) {
+  bool has_profiled_node_cost = false;
+  return DAGAdapter::FromGEGraph(ge_graph, dag, has_profiled_node_cost);
+}
+}  // namespace
+
 class MiniDAGStreamPassTest : public testing::Test {
  protected:
   static void SetUpTestSuite() {
@@ -178,7 +186,7 @@ TEST_F(MiniDAGStreamPassTest, EndToEnd_DAGNodeProperties) {
   ASSERT_NE(ge_graph, nullptr);
 
   std::shared_ptr<minidag::DAGGraph> dag;
-  auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
+  auto ret = CallFromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, SUCCESS);
   ASSERT_NE(dag, nullptr);
 
@@ -212,7 +220,7 @@ TEST_F(MiniDAGStreamPassTest, EndToEnd_DAGEdgeProperties) {
   ASSERT_NE(ge_graph, nullptr);
 
   std::shared_ptr<minidag::DAGGraph> dag;
-  auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
+  auto ret = CallFromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, SUCCESS);
   ASSERT_NE(dag, nullptr);
 
@@ -244,7 +252,7 @@ TEST_F(MiniDAGStreamPassTest, EndToEnd_DAGNodeEdgeRelations) {
   ASSERT_NE(ge_graph, nullptr);
 
   std::shared_ptr<minidag::DAGGraph> dag;
-  auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
+  auto ret = CallFromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, SUCCESS);
   ASSERT_NE(dag, nullptr);
 
@@ -279,13 +287,24 @@ TEST_F(MiniDAGStreamPassTest, EndToEnd_DAGNodeCostProperties) {
   ASSERT_NE(ge_graph, nullptr);
 
   std::shared_ptr<minidag::DAGGraph> dag;
-  auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
+  auto ret = CallFromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, SUCCESS);
   ASSERT_NE(dag, nullptr);
 
   for (const auto& node : dag->GetAllNodes()) {
     const auto& cost = node->GetCost();
-    EXPECT_EQ(cost.execution_time, -1.0);
+    const auto ge_node = ge_graph->FindNodeByName(ge::AscendString(node->GetName().c_str()));
+    ASSERT_NE(ge_node, nullptr);
+    const auto ge_node_ptr = ge::NodeAdapter::GNode2Node(*ge_node);
+    ASSERT_NE(ge_node_ptr, nullptr);
+    ASSERT_NE(ge_node_ptr->GetOpDesc(), nullptr);
+    // 当前实现以 GE OpDesc 的原始 stream_id 是否为 INVALID_STREAM_ID 判断是否将 execution_time 置为 0.0。
+    // MiniDAG 节点自身的 stream_id 不是这里的判断依据。
+    if (ge_node_ptr->GetOpDesc()->GetStreamId() == ge::INVALID_STREAM_ID) {
+      EXPECT_EQ(cost.execution_time, 0.0f);
+    } else {
+      EXPECT_EQ(cost.execution_time, -1.0f);
+    }
     EXPECT_EQ(cost.memory_usage, 0);
   }
 
@@ -319,7 +338,7 @@ TEST_F(MiniDAGStreamPassTest, EndToEnd_CompleteGraphStructure) {
   ASSERT_NE(ge_graph, nullptr);
 
   std::shared_ptr<minidag::DAGGraph> dag;
-  auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
+  auto ret = CallFromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, SUCCESS);
   ASSERT_NE(dag, nullptr);
 
@@ -350,7 +369,7 @@ TEST_F(MiniDAGStreamPassTest, EndToEnd_RefreshStreamIdsToGE) {
   ASSERT_NE(ge_graph, nullptr);
 
   std::shared_ptr<minidag::DAGGraph> dag;
-  auto ret = DAGAdapter::FromGEGraph(ge_graph, dag);
+  auto ret = CallFromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, SUCCESS);
   ASSERT_NE(dag, nullptr);
 
@@ -462,7 +481,7 @@ TEST_F(MiniDAGStreamPassTest, Adapter_ControlEdgeConversion) {
   graph->AddControlEdge(add1, netoutput);
 
   std::shared_ptr<minidag::DAGGraph> dag;
-  auto ret = DAGAdapter::FromGEGraph(graph, dag);
+  auto ret = CallFromGEGraph(graph, dag);
   ASSERT_EQ(ret, ge::SUCCESS);
   ASSERT_NE(dag, nullptr);
 
@@ -497,7 +516,7 @@ TEST_F(MiniDAGStreamPassTest, Adapter_ControlEdgeNodeRelation) {
   graph->AddControlEdge(relu1, netoutput);
 
   std::shared_ptr<minidag::DAGGraph> dag;
-  auto ret = DAGAdapter::FromGEGraph(graph, dag);
+  auto ret = CallFromGEGraph(graph, dag);
   ASSERT_EQ(ret, ge::SUCCESS);
   ASSERT_NE(dag, nullptr);
 

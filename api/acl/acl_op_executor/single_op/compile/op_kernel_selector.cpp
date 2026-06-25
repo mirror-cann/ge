@@ -12,8 +12,8 @@
 #include <map>
 #include <memory>
 #include "common/log_inner.h"
-#include "op_kernel_registry.h"
-#include "utils/attr_utils.h"
+#include "acl_op_kernel_registry.h"
+#include "utils/acl_attr_utils.h"
 
 namespace {
     constexpr uint64_t DEFAULT_MAX_OP_NUM_FOR_HANDLE = UINT64_MAX;

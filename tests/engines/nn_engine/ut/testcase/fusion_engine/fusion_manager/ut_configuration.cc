@@ -482,8 +482,10 @@ TEST_F(configuration_ut, get_opsstoreinfo)
 
 TEST_F(configuration_ut, getstringvalue_success)
 {
+    Configuration& config = Configuration::Instance(fe::AI_CORE_NAME);
+    config.content_map_["l2cache.datavisitdist.threshold"] = "5";
     string stringvalue;
-    Status status = Configuration::Instance(fe::AI_CORE_NAME).GetStringValue("l2cache.datavisitdist.threshold", stringvalue);
+    Status status = config.GetStringValue("l2cache.datavisitdist.threshold", stringvalue);
     EXPECT_EQ(status, SUCCESS);
     EXPECT_EQ(stringvalue, "5");
 }
@@ -522,16 +524,22 @@ TEST_F(configuration_ut, GetOpStoreInfoByImplType_failed)
 
 TEST_F(configuration_ut, getgraphfilepath)
 {
+    Configuration& config = Configuration::Instance(fe::AI_CORE_NAME);
+    config.ascend_ops_path_ = GetCodeDir();
+    config.content_map_["fusionrulemgr.aicore.graphfilepath"] =
+      "built-in/fusion_rules/ai_core/built_in_graph_rules.json";
     string graph_file_path;
-    Status status = Configuration::Instance(fe::AI_CORE_NAME).GetGraphFilePath(graph_file_path);
+    Status status = config.GetGraphFilePath(graph_file_path);
     EXPECT_EQ(status, SUCCESS);
     EXPECT_NE(graph_file_path, "");
 }
 
 TEST_F(configuration_ut, getcustomfilepath)
 {
+    Configuration& config = Configuration::Instance(fe::AI_CORE_NAME);
+    config.content_map_["fusionrulemgr.aicore.customfilepath"] = "";
     string custom_file_path;
-    Status status = Configuration::Instance(fe::AI_CORE_NAME).GetCustomFilePath(custom_file_path);
+    Status status = config.GetCustomFilePath(custom_file_path);
     EXPECT_EQ(status, SUCCESS);
     EXPECT_EQ(custom_file_path, "");
 }
@@ -602,19 +610,15 @@ TEST_F(configuration_ut, get_opsstoreinfo_vectorcore)
   }
 }
 
-TEST_F(configuration_ut, DISABLED_getgraphfilepath_vectorcore)
+TEST_F(configuration_ut, getgraphfilepath_vectorcore)
 {
   string graph_file_path;
   Configuration config(fe::VECTOR_CORE_NAME);
-  map<string, string> options;
   string soc_version = "Ascend910B";
   PlatformUtils::Instance().soc_version_ = soc_version;
-  options.emplace(ge::PRECISION_MODE, ALLOW_FP32_TO_FP16);
-  options.emplace("ge.socVersion", "Ascend910B1");
-  config.is_init_ = false;
   config.lib_path_ = GetCodeDir() + "/tests/engines/nn_engine/depends/CANN_910b_stub/cann/x86_64-linux/lib64/";
   config.ascend_ops_path_ = GetCodeDir();
-  config.Initialize(options);
+  config.content_map_["fusionrulemgr.vectorcore.graphfilepath"] = "built-in/fusion_rules/vector_core/built_in_graph_rules.json";
   Status status = config.GetGraphFilePath(graph_file_path);
   EXPECT_EQ(status, SUCCESS);
   EXPECT_NE(graph_file_path, "");

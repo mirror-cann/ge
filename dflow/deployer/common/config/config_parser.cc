@@ -16,7 +16,7 @@
 #include "common/debug/log.h"
 #include "dflow/base/utils/process_utils.h"
 #include "common/subprocess/subprocess_manager.h"
-#include "json_parser.h"
+#include "dflow_deployer_json_parser.h"
 #include "common/utils/deploy_location.h"
 #include "deploy/resource/device_info.h"
 #include "graph/ge_context.h"

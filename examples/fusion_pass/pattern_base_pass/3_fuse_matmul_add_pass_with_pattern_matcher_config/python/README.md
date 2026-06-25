@@ -2,13 +2,13 @@
 
 ## 功能描述
 
-本目录提供 `pattern_base_pass/3_fuse_matmul_add_pass_with_pattern_matcher_config` 的 **纯 Python** 版本示例，逻辑与 C++ [`FuseMatMulAndAddPass`](../cpp/src/fuse_matmul_add_pass.cpp) 一致。
+本目录提供 `pattern_base_pass/3_fuse_matmul_add_pass_with_pattern_matcher_config` 的 **纯 Python** 版本示例，逻辑与 C++ [`FuseMatMulAndAddPass`](../cpp/src/fuse_matmul_add_pass.cpp) 中一致。
 
 - 在构造函数中启用：
   - `PatternMatcherConfigBuilder().enable_const_value_match()`
   - `PatternMatcherConfigBuilder().enable_ir_attr_match()`
-- `patterns()` 定义 `MatMul(x, y, transpose_x1=False, transpose_x2=False) + Add(Const)` 拓扑。
-- `replacement()` 定义 `GEMM(x, y, Const, alpha=1, beta=1)`。
+- `@pattern` 方法定义 `MatMul(x, y, transpose_x1=False, transpose_x2=False) + Add(Const)` 拓扑，并创建 shape=[2,2] 的 Const 张量。
+- 表达式 `replacement(self, inputs)` 定义 `GEMM(x, y, Const, alpha=1, beta=1)`，并创建 Const 和 scalar 张量。
 - 注册阶段为 `PassStage.BEFORE_INFER_SHAPE`。
 
 ## 目录结构

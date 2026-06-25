@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include "common/common_inner.h"
 #include "common/log_inner.h"
-#include "common/json_parser.h"
+#include "common/acl_json_parser.h"
 #include "common/prof_api_reg.h"
 #include "acl_stub.h"
 

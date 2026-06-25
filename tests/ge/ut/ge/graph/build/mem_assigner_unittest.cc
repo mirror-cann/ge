@@ -3877,6 +3877,49 @@ TEST_F(UtestMemoryAssignerTest, ReAssignContinuousMemoryFail) {
   EXPECT_EQ(memory_assigner.AssignMemory(mem_offset, zero_memory_size), FAILED);
 }
 
+/*
+ *  Root graph:
+ *    relu0 -> partitioned_call(2 outputs, output[1] dangling) -> identity -> netoutput
+ *
+ *  Subgraph of partitioned_call:
+ *    data -> relu1 -> [0]phony_concat -> [0]netoutput
+ *    data -> relu2 -> [1]phony_concat
+ *    relu2 -> reshape -> [1]netoutput
+ *
+ *  phony_concat: NOPADDING_CONTINUOUS_INPUT, output reuses input[0]
+ *  Verify: partitioned_call output[1] offset == relu2 output offset
+ */
+TEST_F(UtestMemoryAssignerTest, PartitionedCallSuspendOut_WithPhonyConcatSubgraph) {
+  auto graph = block_mem_ut::BuildPartitionedCallWithPhonyConcatSubgraph();
+  MemoryAssigner memory_assigner(graph);
+  map<uint64_t, size_t> mem_offset;
+  size_t zero_memory_size = 0U;
+  EXPECT_EQ(memory_assigner.AssignMemory(mem_offset, zero_memory_size), GRAPH_SUCCESS);
+
+  auto partitioned_call = graph->FindNode("partitioned_call");
+  ASSERT_NE(partitioned_call, nullptr);
+  auto partitioned_call_offsets = partitioned_call->GetOpDesc()->GetOutputOffset();
+  ASSERT_GE(partitioned_call_offsets.size(), 2U);
+
+  auto out_anchor_1 = partitioned_call->GetOutDataAnchor(1);
+  ASSERT_NE(out_anchor_1, nullptr);
+  auto peer_anchors = out_anchor_1->GetPeerInDataAnchors();
+  EXPECT_TRUE(peer_anchors.empty()) << "partitioned_call output[1] should be dangling";
+
+  NodePtr relu2 = nullptr;
+  for (auto &node : graph->GetAllNodes()) {
+    if (node->GetName() == "relu2") {
+      relu2 = node;
+      break;
+    }
+  }
+  ASSERT_NE(relu2, nullptr);
+  auto relu2_offsets = relu2->GetOpDesc()->GetOutputOffset();
+  ASSERT_FALSE(relu2_offsets.empty());
+
+  EXPECT_EQ(partitioned_call_offsets.at(1), relu2_offsets.at(0));
+}
+
 TEST_F(UtestMemoryAssignerTest, SingleOutDiffStreamOptimize) {
   map<string, string> options{{"ge.hardwareInfo", "memory_size:102400"},
                               {MEMORY_OPTIMIZATION_POLICY, kMemoryPriority}};

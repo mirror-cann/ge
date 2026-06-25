@@ -5292,18 +5292,11 @@ TEST_F(UTEST_ACL_Model, aclmdlGetOpAttr_NotInOpAttrValueMap_ReturnsNull)
 
 TEST_F(UTEST_ACL_Model, aclmdlGetDescFromFile_Om2Model_PopulatesDescAndMap)
 {
-    // Test that aclmdlGetDescFromFile detects OM2 and populates desc + opAttrValueMap
+    // Test that aclmdlGetDescFromFile detects OM2 and populates desc via lightweight GetOm2ModelMetadata
     aclmdlDesc *desc = aclmdlCreateDesc();
     EXPECT_NE(desc, nullptr);
 
     const char *om2ModelPath = "/fake/om2_model.om2";
-
-    // Mock aclrtGetDevice to return success with valid deviceId
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclrtGetDevice(_))
-        .WillRepeatedly(Invoke([](int32_t *deviceId) {
-            *deviceId = 0;
-            return ACL_SUCCESS;
-        }));
 
     // Mock OM2 detection to return true
     EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _))
@@ -5313,21 +5306,38 @@ TEST_F(UTEST_ACL_Model, aclmdlGetDescFromFile_Om2Model_PopulatesDescAndMap)
     EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2DataFromFile(_, _))
         .WillOnce(Invoke(LoadOm2DataFromFileSuccess));
 
-    // Mock LoadOm2ExecutorFromData to return executor (required for complete flow)
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2ExecutorFromData(_, _, _))
-        .WillOnce(Invoke([](ge::ModelData &model_data, const gert::Om2ModelLoadArg &load_arg, ge::graphStatus &status) {
-            auto executor = std::make_unique<gert::Om2ModelExecutor>();
-            status = ge::SUCCESS;
-            // Note: memory allocated by LoadOm2DataFromFileSuccess will be managed by executor
-            // In real implementation, executor takes ownership via shared_ptr guard
-            return executor;
+    // Mock GetOm2ModelMetadata to return valid tensor descs (lightweight metadata parsing)
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(),
+                GetOm2ModelMetadata(An<const void *>(), _, _, _, _, _))
+        .WillOnce(Invoke([](const void *model_data, size_t model_size,
+                            std::vector<ge::Om2TensorDesc> &input_desc,
+                            std::vector<ge::Om2TensorDesc> &input_desc_v2,
+                            std::vector<ge::Om2TensorDesc> &output_desc,
+                            std::vector<ge::Om2TensorDesc> &output_desc_v2) {
+            ge::Om2TensorDesc in_desc;
+            in_desc.SetName("input");
+            in_desc.SetDataType(ge::DT_FLOAT);
+            in_desc.SetFormat(ge::FORMAT_ND);
+            in_desc.SetShape({1});
+            in_desc.SetShapeRange({});
+            in_desc.SetSize(sizeof(float));
+            input_desc.push_back(in_desc);
+            input_desc_v2.push_back(in_desc);
+
+            ge::Om2TensorDesc out_desc;
+            out_desc.SetName("output");
+            out_desc.SetDataType(ge::DT_FLOAT);
+            out_desc.SetFormat(ge::FORMAT_ND);
+            out_desc.SetShape({1});
+            out_desc.SetShapeRange({});
+            out_desc.SetSize(sizeof(float));
+            output_desc.push_back(out_desc);
+            output_desc_v2.push_back(out_desc);
+            return ge::SUCCESS;
         }));
 
-    // Note: Complete OM2 desc population requires mocking executor methods
-    // This test verifies OM2 detection routing and ensures memory is properly managed
-
     aclError ret = aclmdlGetDescFromFile(desc, om2ModelPath);
-    // Verify that OM2 detection path was taken
+    EXPECT_EQ(ret, ACL_SUCCESS);
 
     aclmdlDestroyDesc(desc);
 }
@@ -5336,16 +5346,9 @@ TEST_F(UTEST_ACL_Model, aclmdlGetDescFromFile_Om2Model_PopulatesDescAndMap)
 
 TEST_F(UTEST_ACL_Model, PopulateDescFromOm2Data_ValidOm2Data_PopulatesOpAttrValueMap)
 {
-    // Test PopulateDescFromOm2Data creates temporary executor and fills opAttrValueMap
+    // Test PopulateDescFromOm2Data uses lightweight GetOm2ModelMetadata (no full model loading)
     aclmdlDesc *desc = aclmdlCreateDesc();
     EXPECT_NE(desc, nullptr);
-
-    // Mock aclrtGetDevice to return success with valid deviceId (required by SetOm2ModelLoadArgDevice)
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclrtGetDevice(_))
-        .WillRepeatedly(Invoke([](int32_t *deviceId) {
-            *deviceId = 0; // Set valid deviceId
-            return ACL_SUCCESS;
-        }));
 
     // Mock IsOm2Model to return true for OM2 detection (const char* version for file path)
     EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(An<const char *>(), _))
@@ -5357,7 +5360,6 @@ TEST_F(UTEST_ACL_Model, PopulateDescFromOm2Data_ValidOm2Data_PopulatesOpAttrValu
     // Mock LoadOm2DataFromFile to return valid ModelData with real allocation
     EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2DataFromFile(_, _))
         .WillOnce(Invoke([](const std::string &path, ge::ModelData &model_data) {
-            // Allocate real memory that can be safely freed by shared_ptr guard
             model_data.model_data = new (std::nothrow) uint8_t[1024];
             if (model_data.model_data == nullptr) {
                 return ge::FAILED;
@@ -5367,29 +5369,39 @@ TEST_F(UTEST_ACL_Model, PopulateDescFromOm2Data_ValidOm2Data_PopulatesOpAttrValu
             return ge::SUCCESS;
         }));
 
-    // Mock LoadOm2ExecutorFromData to return executor
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2ExecutorFromData(_, _, _))
-        .WillOnce(Invoke([](ge::ModelData &model_data, const gert::Om2ModelLoadArg &load_arg, ge::graphStatus &status) {
-            auto executor = std::make_unique<gert::Om2ModelExecutor>();
-            status = ge::SUCCESS;
-            return executor;
+    // Mock GetOm2ModelMetadata to return valid tensor descs (lightweight metadata parsing)
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(),
+                GetOm2ModelMetadata(An<const void *>(), _, _, _, _, _))
+        .WillOnce(Invoke([](const void *model_data, size_t model_size,
+                            std::vector<ge::Om2TensorDesc> &input_desc,
+                            std::vector<ge::Om2TensorDesc> &input_desc_v2,
+                            std::vector<ge::Om2TensorDesc> &output_desc,
+                            std::vector<ge::Om2TensorDesc> &output_desc_v2) {
+            ge::Om2TensorDesc in_desc;
+            in_desc.SetName("input");
+            in_desc.SetDataType(ge::DT_FLOAT);
+            in_desc.SetFormat(ge::FORMAT_ND);
+            in_desc.SetShape({1});
+            in_desc.SetShapeRange({});
+            in_desc.SetSize(sizeof(float));
+            input_desc.push_back(in_desc);
+            input_desc_v2.push_back(in_desc);
+
+            ge::Om2TensorDesc out_desc;
+            out_desc.SetName("output");
+            out_desc.SetDataType(ge::DT_FLOAT);
+            out_desc.SetFormat(ge::FORMAT_ND);
+            out_desc.SetShape({1});
+            out_desc.SetShapeRange({});
+            out_desc.SetSize(sizeof(float));
+            output_desc.push_back(out_desc);
+            output_desc_v2.push_back(out_desc);
+            return ge::SUCCESS;
         }));
-
-    // Mock Om2ModelExecutor::GetOpAttr to return preset map
-    std::map<std::string, std::map<std::string, std::string>> test_map;
-    test_map["test_op"]["_datadump_original_op_names"] = "[\"op1\",\"op2\"]";
-
-    // Note: Om2ModelExecutor::GetOpAttr is called within PopulateDescFromOm2Data
-    // Need to mock GetOpAttr in ge_stub or through Om2ModelExecutor mock
-    // For now, rely on default stub behavior
 
     // Call aclmdlGetDescFromFile to trigger PopulateDescFromOm2Data flow
     const char *testPath = "/tmp/test.om";
     aclError ret = aclmdlGetDescFromFile(desc, testPath);
-
-    // Note: This test verifies the flow is triggered, actual opAttrValueMap verification
-    // requires proper mock of Om2ModelExecutor::GetOpAttr method
-    // In current implementation, default stub returns SUCCESS with empty map
 
     aclmdlDestroyDesc(desc);
 }

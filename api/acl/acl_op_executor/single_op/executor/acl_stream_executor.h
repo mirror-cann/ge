@@ -8,16 +8,16 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-#ifndef TRUNK_PROJ_STREAM_EXECUTOR_H
-#define TRUNK_PROJ_STREAM_EXECUTOR_H
+#ifndef ACL_STREAM_EXECUTOR_H
+#define ACL_STREAM_EXECUTOR_H
 
 #include <memory>
 #include <map>
 
 #include "types/acl_op_inner.h"
-#include "resource_manager.h"
+#include "acl_op_exec_resource_manager.h"
 #include "single_op/compile/op_kernel_selector.h"
-#include "op_task.h"
+#include "acl_op_task.h"
 
 namespace acl {
 class StreamExecutor {
@@ -65,4 +65,4 @@ private:
 } // namespace acl
 
 
-#endif // TRUNK_PROJ_STREAM_EXECUTOR_H
+#endif // ACL_STREAM_EXECUTOR_H
