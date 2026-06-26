@@ -15,6 +15,7 @@
 #include "ge/ge_api.h"
 #include "ge/ge_api_v2.h"
 #include "ge_running_env/ge_running_env_faker.h"
+#include "ge_running_env/scoped_unset_ld_preload.h"
 #include "compiler/session/dflow_api.h"
 namespace ge {
 
@@ -22,6 +23,7 @@ inline void InitGe() {
   std::map<AscendString, AscendString> options;
   options[ge::OPTION_HOST_ENV_OS] = "linux";
   options[ge::OPTION_HOST_ENV_CPU] = "x86_64";
+  ScopedUnsetLdPreload guard;
   auto init_status = ge::GEInitialize(options);
   if (init_status != SUCCESS) {
     std::cout << "ge init failed , ret code:" << init_status << std::endl;
@@ -41,6 +43,7 @@ inline void ReInitGe() {
   std::map<AscendString, AscendString> options;
   options[ge::OPTION_HOST_ENV_OS] = "linux";
   options[ge::OPTION_HOST_ENV_CPU] = "x86_64";
+  ScopedUnsetLdPreload guard;
   auto init_status = ge::GEInitializeV2(options);
   if (init_status != SUCCESS) {
     std::cout << "ge init failed , ret code:" << init_status << std::endl;

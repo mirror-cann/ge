@@ -172,6 +172,8 @@ target_compile_definitions(ut_libge_helper_utest PRIVATE
 target_link_options(ut_libge_helper_utest PRIVATE
     -Wl,--disable-new-dtags
     -Wl,-rpath,${CMAKE_CURRENT_LIST_DIR}
+    -rdynamic
+    -Wl,-Bsymbolic
 )
 
 target_link_libraries(ut_libge_helper_utest

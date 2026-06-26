@@ -9,7 +9,9 @@
  */
 
 #include <gtest/gtest.h>
+#include <cstdlib>
 #include <fstream>
+#include <string>
 #include "macro_utils/dt_public_scope.h"
 #include "graph/passes/memory_conflict/atomic_addr_clean_pass.h"
 #include "common/op/ge_op_utils.h"
@@ -29,12 +31,18 @@
 #include "engines/manager/opskernel_manager/ops_kernel_manager.h"
 #include "graph/debug/ge_attr_define.h"
 #include "common/plugin/plugin_manager.h"
+#include "ge_running_env/scoped_unset_ld_preload.h"
 
 using namespace testing;
 using namespace domi;
 
 namespace ge {
 namespace {
+static Status GEInitializeWithoutLdPreload(const std::map<AscendString, AscendString> &options) {
+  ScopedUnsetLdPreload guard;
+  return GEInitialize(options);
+}
+
 class TestOpsKernelInfoStore : public OpsKernelInfoStore {
  public:
   TestOpsKernelInfoStore() = default;
@@ -101,7 +109,7 @@ class UtestGraphPassesAtomicAddrCleanPass : public Test {
     ofs.close();
     rename(json_tmp_path.c_str(), json_path.c_str());
     std::map<AscendString, AscendString> options;
-    GEInitialize(options);
+    GEInitializeWithoutLdPreload(options);
     {
       std::ifstream ifs(json_backup_path);
       if (ifs.is_open()) {
@@ -824,7 +832,7 @@ TEST_F(UtestGraphPassesAtomicAddrCleanPass, test_ge_init_fail) {
   AtomicAddrCleanPass atomi_addr_clean_pass;
   EXPECT_EQ(atomi_addr_clean_pass.CallCompileOp(node_list), ge::GE_CLI_GE_NOT_INITIALIZED);
   std::map<AscendString, AscendString> options;
-  GEInitialize(options);
+  GEInitializeWithoutLdPreload(options);
 }
 
 }  // namespace ge

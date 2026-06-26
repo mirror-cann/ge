@@ -52,6 +52,7 @@
 #include "common/checker.h"
 #include "graph/utils/op_type_utils.h"
 #include "graph/fusion/pass/pass_plugin_loader.h"
+#include "common/python_runtime/ge_python_runtime_manager.h"
 
 namespace {
 
@@ -466,6 +467,9 @@ Status GeGenerator::Initialize(const std::map<std::string, std::string> &options
   std::map<std::string, std::string> option_tmp;
   option_tmp.emplace(std::pair<std::string, std::string>(string("ge.opsProtoLibPath"), opsproto_path));
   (void)manager->Initialize(option_tmp);
+  GE_ASSERT_SUCCESS(GePythonRuntimeManager::Instance().EnsureReady());
+  GE_DISMISSABLE_GUARD(release_python_runtime,
+                       ([]() { (void)GePythonRuntimeManager::Instance().ShutdownProcess(); }));
   GE_ASSERT_SUCCESS(fusion::LoadPassPlugins());
 
   ret = impl_->graph_manager_.Initialize(options);
@@ -485,6 +489,7 @@ Status GeGenerator::Initialize(const std::map<std::string, std::string> &options
   if (iter != options.end()) {
     impl_->build_step_ = iter->second;
   }
+  GE_DISMISS_GUARD(release_python_runtime);
   return SUCCESS;
 }
 

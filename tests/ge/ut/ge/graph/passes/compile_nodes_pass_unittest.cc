@@ -22,11 +22,17 @@
 #include "engines/manager/opskernel_manager/ops_kernel_manager.h"
 #include "ge/ge_api.h"
 #include "api/gelib/gelib.h"
+#include "ge_running_env/scoped_unset_ld_preload.h"
 
 using namespace std;
 using namespace ge;
 
 namespace {
+static Status GEInitializeWithoutLdPreload(const std::map<AscendString, AscendString> &options) {
+  ScopedUnsetLdPreload guard;
+  return GEInitialize(options);
+}
+
 class TestOpsKernelInfoStore : public OpsKernelInfoStore {
  public:
   TestOpsKernelInfoStore() = default;
@@ -93,7 +99,7 @@ class UtestCompileNodesPass : public testing::Test {
  protected:
   void SetUp() {
     std::map<AscendString, AscendString> options;
-    GEInitialize(options);
+    GEInitializeWithoutLdPreload(options);
     ge::GELib::GetInstance()->OpsKernelManagerObj().ops_kernel_store_.clear();
   }
   void TearDown() {
@@ -144,7 +150,7 @@ TEST_F(UtestCompileNodesPass, not_init_fail) {
   EXPECT_EQ(pass_.Run(graph_), GE_CLI_GE_NOT_INITIALIZED);
   EXPECT_EQ(graph_->GetDirectNodesSize(), 3);
   std::map<AscendString, AscendString> options;
-  GEInitialize(options);
+  GEInitializeWithoutLdPreload(options);
 }
 
 TEST_F(UtestCompileNodesPass, no_kernel_fail) {

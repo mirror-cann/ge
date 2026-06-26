@@ -61,6 +61,7 @@ target_include_directories(helper_runtime_test PRIVATE
 target_link_options(helper_runtime_test PRIVATE
     -Wl,--disable-new-dtags
     -Wl,-Bsymbolic
+    -rdynamic
 )
 
 target_compile_options(helper_runtime_test PRIVATE

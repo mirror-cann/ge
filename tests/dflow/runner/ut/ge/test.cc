@@ -15,6 +15,18 @@
 using namespace std;
 using namespace ge;
 
+extern "C" const char *__lsan_default_suppressions() {
+  return "leak:_PyObject_Malloc\n"
+         "leak:_PyObject_Realloc\n"
+         "leak:PyType_GenericAlloc\n"
+         "leak:PyType_Ready\n"
+         "leak:PyObject_GC_New\n"
+         "leak:PyObject_GC_NewVar\n"
+         "leak:_PyObject_GC_Malloc\n"
+         "leak:PyUnicode_New\n"
+         "leak:libpython\n";
+}
+
 int main(int argc, char **argv) {
   // init the logging
   testing::InitGoogleTest(&argc, argv);

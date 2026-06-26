@@ -60,6 +60,7 @@
 #include "analyzer/analyzer.h"
 #include "graph/utils/type_utils.h"
 #include "graph/fusion/pass/pass_plugin_loader.h"
+#include "common/python_runtime/ge_python_runtime_manager.h"
 #include "graph/operator_factory_impl.h"
 #include "base/err_msg.h"
 #include "base/err_mgr.h"
@@ -440,6 +441,8 @@ static graphStatus aclgrphBuildInitializeImpl(std::map<std::string, std::string>
   ge::PrintOptionMap(global_options, "global option");
   GE_ASSERT_GRAPH_SUCCESS(OpLibRegistry::GetInstance().PreProcessForCustomOp());
   LoadOpsProto();
+  GE_ASSERT_SUCCESS(GePythonRuntimeManager::Instance().EnsureReady());
+  GE_DISMISSABLE_GUARD(release_python_runtime, []() { (void)GePythonRuntimeManager::Instance().ShutdownProcess(); });
   GE_ASSERT_SUCCESS(fusion::LoadPassPlugins());
 
   std::shared_ptr<ge::GELib> instance_ptr = ge::GELib::GetInstance();
@@ -457,6 +460,7 @@ static graphStatus aclgrphBuildInitializeImpl(std::map<std::string, std::string>
   GELOGW("gelib has been initialized!");
   Status ret = static_cast<uint32_t>(error_message::ErrMgrInit(error_message::ErrorMessageMode::INTERNAL_MODE));
   GE_ASSERT_SUCCESS(ret, "ErrorManager init failed!");
+  GE_DISMISS_GUARD(release_python_runtime);
   return GRAPH_SUCCESS;
 }
 
@@ -483,9 +487,10 @@ void aclgrphBuildFinalize() {
   (void)fusion::ShutdownPassPluginsForProcess();
   if (ge::GELib::GetInstance() != nullptr && ge::GELib::GetInstance()->InitFlag()) {
     (void)ge::GELib::GetInstance()->Finalize();
-    return;
+  } else {
+    GELOGW("[Notice] gelib has not been initialized!do nothing!");
   }
-  GELOGW("[Notice] gelib has not been initialized!do nothing!");
+  (void)GePythonRuntimeManager::Instance().ShutdownProcess();
 }
 
 class Impl {

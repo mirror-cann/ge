@@ -21,6 +21,25 @@
 using namespace std;
 using namespace ge;
 
+extern "C" const char *__lsan_default_suppressions() {
+    return "leak:_PyObject_Malloc\n"
+           "leak:_PyObject_Realloc\n"
+           "leak:PyType_GenericAlloc\n"
+           "leak:PyType_Ready\n"
+           "leak:PyObject_GC_New\n"
+           "leak:PyObject_GC_NewVar\n"
+           "leak:_PyObject_GC_Malloc\n"
+           "leak:PyUnicode_New\n"
+           "leak:Py_InitializeEx\n"
+           "leak:PyImport_ImportModuleLevelObject\n"
+           "leak:PyThread_allocate_lock\n"
+           "leak:pybind11::detail::make_static_property_type\n"
+           "leak:pybind11::detail::make_object_base_type\n"
+           "leak:pybind11::detail::get_internals\n"
+           "leak:pybind11::detail::get_local_internals\n"
+           "leak:libpython\n";
+}
+
 int main(int argc, char **argv) {
   // init the logging
   testing::InitGoogleTest(&argc, argv);
