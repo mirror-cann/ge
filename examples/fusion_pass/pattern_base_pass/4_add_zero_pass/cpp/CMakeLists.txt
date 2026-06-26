@@ -65,7 +65,11 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
         -Wl,--as-needed
 )
 
-set_target_properties(${PROJECT_NAME} PROPERTIES INSTALL_RPATH "${CMAKE_CURRENT_BINARY_DIR}/es_output/lib64")
+# 运行时查找 es so 的路径：$ORIGIN 随融合 pass so 同目录查找（迁移安装场景），es_output 目录用于构建场景
+set_target_properties(${PROJECT_NAME} PROPERTIES
+        INSTALL_RPATH "$ORIGIN:${CMAKE_CURRENT_BINARY_DIR}/es_output/lib64"
+        BUILD_RPATH "$ORIGIN:${CMAKE_CURRENT_BINARY_DIR}/es_output/lib64"
+)
 
 install(TARGETS ${PROJECT_NAME}
         LIBRARY DESTINATION ${ASCEND_PATH}/opp/vendors/${PASS_SO_DIR}/custom_fusion_passes

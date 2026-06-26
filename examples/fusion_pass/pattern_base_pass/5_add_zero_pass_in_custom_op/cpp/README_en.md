@@ -75,6 +75,14 @@ Provides two verification methods: online inference and ATC offline model compil
    make install
    ```
 
+6. During compilation, the es so that the pass so depends on is generated in the build directory (located at `build/es_output/lib64`, named `libes_all.so` and `libes_custom.so`). `make install` only installs the pass so; the es so remains in the build directory. The runtime lookup path is already configured via `$ORIGIN` and the build directory path in CMakeLists.txt:
+   - If the build directory remains in place, the pass so can find the es so directly via the build path at runtime, and no extra action is required.
+   - If the build directory is deleted or the pass so is relocated (the original build path is no longer accessible at runtime), copy the es so to the pass so installation directory (i.e., `${ASCEND_PATH}/opp/vendors/${PASS_SO_DIR}/custom_fusion_passes`) so that it resides in the same directory as the pass so. It is then loaded from the same directory via `$ORIGIN` at runtime, without setting `LD_LIBRARY_PATH`.
+
+   ```bash
+   cp build/es_output/lib64/libes_all.so build/es_output/lib64/libes_custom.so ${ASCEND_PATH}/opp/vendors/${PASS_SO_DIR}/custom_fusion_passes/
+   ```
+
    After sample verification, run the following command to clean custom pass so installed under CANN package to avoid affecting subsequent UT/ST:
 
    ```bash
