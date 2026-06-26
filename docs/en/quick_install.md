@@ -164,6 +164,26 @@ For developers who do not depend on Ascend devices, if you want to quickly set u
             pip3 install attrs cython numpy decorator sympy cffi pyyaml pathlib2 psutil protobuf==3.20.0 scipy requests absl-py
             ```
 
+            If downloading speed is particularly slow when running previous `pip3` command, you'll need to configure the `pip` source, steps are as follows:
+
+            - a. Use your installing user to run the following commands:
+
+            ```bash
+            mkdir -p ~/.pip
+            cd ~/.pip
+            touch pip.conf
+            ```
+
+            - b. Edit the `pip.conf` file and write into the following contents:
+
+            ```bash
+            [global]
+            # This takes Huawei source as an example, please replace it according to the actual situation
+            index-url = https://mirrors.huaweicloud.com/repository/pypi/simple
+            trusted-host = mirrors.huaweicloud.com
+            timeout = 120
+            ```
+
 - **Scenario 2: Experience released version capabilities or develop based on released version**
 
     If you want to experience **officially released CANN package** capabilities, please visit [CANN Official Download Center](https://www.hiascend.com/cann/download), select the corresponding version of CANN software package (only supports CANN 8.5.0 and later versions) for installation.

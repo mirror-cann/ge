@@ -160,6 +160,26 @@ docker run --name cann_container \
             pip3 install attrs cython numpy decorator sympy cffi pyyaml pathlib2 psutil protobuf==3.20.0 scipy requests absl-py
             ```
 
+            如果使用`pip3`命令安装模块时下载速度特别慢，则需要配置`pip`源，步骤如下：
+
+            - a. 使用软件包的安装用户，执行如下命令：
+
+            ```bash
+            mkdir -p ~/.pip
+            cd ~/.pip
+            touch pip.conf
+            ```
+
+            - b. 编辑`pip.conf`文件，并写入如下内容：
+
+            ```bash
+            [global]
+            # 以华为源为例，请根据实际情况进行替换
+            index-url = https://mirrors.huaweicloud.com/repository/pypi/simple
+            trusted-host = mirrors.huaweicloud.com
+            timeout = 120
+            ```
+
 - **场景2：体验已发布版本能力或基于已发布版本进行开发**
 
     如果您想体验**官网正式发布的CANN包**能力，请访问[CANN官网下载中心](https://www.hiascend.com/cann/download)，选择对应版本CANN软件包（仅支持CANN 8.5.0及后续版本）进行安装。
